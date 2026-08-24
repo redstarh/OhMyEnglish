@@ -15,6 +15,10 @@
 * **응답 `content`에는 text 아닌 블록이 섞인다.** Claude Opus 5는 thinking이
   기본 on이라 `content[0]`가 thinking 블록일 수 있다. 첫 블록을 그냥 읽으면
   정상 응답을 "JSON 아님"으로 실패시킨다 — `extract_text`가 text 블록만 모은다.
+* **`stop_reason`을 읽는다.** 예산 절단(`max_tokens`)과 거부(`refusal`)는
+  "응답이 온전하지 않다"는 서버의 명시적 신고다. 이를 무시하고 잘린 텍스트를
+  파서에 넘기면 `last_error`에 "not JSON"만 남아, 예산·프롬프트 문제와 진짜
+  파싱 문제를 구분할 수 없다.
 
 자격증명은 `config.bedrock_client()` 팩토리에만 있다(F5) — 이 모듈은 boto3나
 토큰을 직접 다루지 않는다. 모델 ID도 `Settings.claude_model_id`가 SoT다.
@@ -27,12 +31,20 @@ import json
 from typing import Any, Protocol
 
 from app.config import Settings, bedrock_client
+from app.models.analysis import AnalysisValidationError
 
 # Bedrock InvokeModel의 Anthropic Messages 본문 규격 (모델 버전이 아니라 본문 스키마 버전).
 ANTHROPIC_VERSION = "bedrock-2023-05-31"
 
-# 한 발화 분석의 출력 상한. 한 문장에서 나올 findings JSON은 이보다 훨씬 짧다.
-MAX_TOKENS = 4096
+# 출력 상한. findings JSON 자체는 짧지만 **Claude Opus 5는 thinking이 기본 on이고
+# thinking 토큰이 이 예산을 함께 쓴다** — 4096이면 사고가 예산을 먹고 JSON이 중간에
+# 잘려 온다(`stop_reason="max_tokens"`). 비스트리밍 요청의 권장 기본값을 쓴다:
+# 넉넉하지만 HTTP 타임아웃 아래로 유지되는 값이다.
+MAX_TOKENS = 16000
+
+# 응답이 온전하지 않다는 서버 신고. 그대로 파서에 넘기면 원인이 뭉개진다.
+STOP_REASON_TRUNCATED = "max_tokens"
+STOP_REASON_REFUSAL = "refusal"
 
 
 class ClaudeClient(Protocol):
@@ -55,10 +67,27 @@ def build_invoke_body(prompt: str) -> str:
 def extract_text(payload: dict[str, Any]) -> str:
     """응답 `content`에서 text 블록만 이어붙인다.
 
-    text 블록이 없으면(거부·`max_tokens` 절단 등) 빈 문자열을 돌려준다 —
-    여기서 예외를 만들지 않고 `parse_analysis`의 단일 거부 경로로 흘려보내야
-    실패 처리(`fail_or_retry`)가 한 곳으로 모인다.
+    먼저 `stop_reason`을 본다. 예산 절단과 거부는 **그 사실 자체가 실패 사유**이므로
+    `AnalysisValidationError`로 올려 `last_error`에 남긴다(호출자는 이 예외를 다른
+    검증 실패와 같은 경로로 처리한다). 잘린 텍스트를 그대로 파서에 넘기면 사유가
+    "not JSON"으로 뭉개져, 예산을 올려야 하는 상황인지 프롬프트를 고쳐야 하는
+    상황인지 로그만 보고는 알 수 없다.
+
+    정상 종료인데 text 블록이 없는 경우는 빈 문자열을 돌려준다 —
+    `parse_analysis`의 단일 거부 경로로 흘려보낸다.
     """
+    stop_reason = payload.get("stop_reason")
+    if stop_reason == STOP_REASON_TRUNCATED:
+        raise AnalysisValidationError(
+            f"claude response hit the output budget (stop_reason={STOP_REASON_TRUNCATED}, "
+            f"max_tokens={MAX_TOKENS}) — the findings JSON is incomplete"
+        )
+    if stop_reason == STOP_REASON_REFUSAL:
+        details = payload.get("stop_details") or {}
+        raise AnalysisValidationError(
+            f"claude declined the request (stop_reason={STOP_REASON_REFUSAL}, "
+            f"category={details.get('category')})"
+        )
     blocks = payload.get("content") or []
     return "".join(block.get("text", "") for block in blocks if block.get("type") == "text")
 

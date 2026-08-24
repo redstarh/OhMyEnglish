@@ -11,6 +11,10 @@ Claude의 응답은 **신뢰할 수 없는 외부 입력**이다. 이 경계에�
   안에서 값이 갈라지는 일을 없앤다 (스키마와의 일치는 단위 테스트가 지킨다).
 * `extra="forbid"` — 모르는 필드는 프롬프트 계약이 어긋났다는 신호다. 조용히
   버리면 스키마 변경을 놓친 채 데이터가 반쯤만 저장된다.
+* `str_strip_whitespace=True` — 앞뒤 공백은 경계에서 깎는다. `pattern_key`에 붙은
+  공백 하나가 "다른 key"로 취급되면 병합(§7 Contract)이 깨지고, `original_span`에
+  붙은 공백은 그대로 사용자 화면에 나간다. 공백만으로 이루어진 값은 깎인 뒤
+  `min_length=1`에 걸려 거부된다.
 * 파싱·검증 실패는 전부 `AnalysisValidationError` **하나로** 수렴시킨다.
   호출자(`services.analysis.process_analysis`)는 이 예외 하나만 잡아
   `fail_or_retry`로 보내면 되고, pydantic 예외 타입에 의존하지 않는다.
@@ -50,7 +54,7 @@ class AnalysisValidationError(ValueError):
 
 
 class ErrorFinding(pydantic.BaseModel):
-    model_config = pydantic.ConfigDict(extra="forbid")
+    model_config = pydantic.ConfigDict(extra="forbid", str_strip_whitespace=True)
 
     category: ErrorCategory
     pattern_key: str = pydantic.Field(min_length=1)

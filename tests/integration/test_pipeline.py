@@ -66,8 +66,8 @@ async def _occurrences(pool: asyncpg.Pool, session_id: UUID) -> list[asyncpg.Rec
     async with pool.acquire() as conn:
         return await conn.fetch(
             """
-            select eo.pattern_id, eo.original_span, eo.correction, eo.severity, eo.confidence,
-                   u.sequence_no
+            select eo.id, eo.pattern_id, eo.original_span, eo.correction, eo.severity,
+                   eo.confidence, u.sequence_no
               from error_occurrences eo
               join utterances u on u.id = eo.utterance_id
              where u.session_id = $1
@@ -276,10 +276,26 @@ async def test_zero_findings_completes_the_job_and_clears_previous_occurrences(
 
 
 # lease를 잃은 워커의 결과는 통째로 버려진다 (§5.4) — complete가 False면 롤백이다.
+# Fix round 1 (M-8): **이미 확정된 결과가 보존되는지**까지 단정한다. 그래서 낡은 시도를
+# 재분석 job으로 만든다 — replace의 delete가 트랜잭션을 벗어나면(부분 롤백) 새 결과는
+# 안 남고 기존 결과만 지워져, 그 발화의 교정이 조용히 사라진다. 처음 분석되는 발화로는
+# 지울 것이 없어 이 버그를 못 잡는다.
 async def test_result_write_is_rolled_back_when_the_lease_was_lost(
     db_pool: asyncpg.Pool, committed_session, fake_claude
 ):
-    await _save(db_pool, committed_session.session_id, GYM_ANSWER)
+    utterance = await _save(db_pool, committed_session.session_id, GYM_ANSWER)
+    claude = fake_claude(
+        _response(_finding()),
+        _response(_finding(original_span="go to gym", correction="go to the gym")),
+    )
+    await process_analysis(db_pool, claude, await _claim(db_pool))  # 1차 분석 성공
+    before_occurrences = await _occurrences(db_pool, committed_session.session_id)
+    before_pattern = (await _patterns(db_pool, committed_session.user_id))[0]
+    assert len(before_occurrences) == 1
+
+    # 같은 발화의 재분석 job(크래시 후 재실행 상황)을 claim한 뒤 lease를 잃는다.
+    async with db_pool.acquire() as conn, conn.transaction():
+        await enqueue_analyze(conn, utterance.id)
     stale = await _claim(db_pool)
     # lease 만료 → 다른 claim이 job을 회수한다(실시간 대기 없이 SQL로 만든다).
     async with db_pool.acquire() as conn:
@@ -292,10 +308,17 @@ async def test_result_write_is_rolled_back_when_the_lease_was_lost(
     assert current.id == stale.id
     assert current.lease_token != stale.lease_token
 
-    await process_analysis(db_pool, fake_claude(_response(_finding())), stale)
+    await process_analysis(db_pool, claude, stale)
 
-    assert await _occurrences(db_pool, committed_session.session_id) == []
-    assert await _patterns(db_pool, committed_session.user_id) == []
+    # 낡은 시도는 아무 흔적도 남기지 않는다 — 지우지도, 새로 쓰지도 못한다.
+    after_occurrences = await _occurrences(db_pool, committed_session.session_id)
+    assert [record["id"] for record in after_occurrences] == [
+        record["id"] for record in before_occurrences
+    ], "롤백이 부분적이어서 이미 확정된 occurrence가 지워졌다"
+    after_pattern = (await _patterns(db_pool, committed_session.user_id))[0]
+    assert after_pattern["id"] == before_pattern["id"]
+    assert after_pattern["frequency"] == before_pattern["frequency"] == 1
+    assert after_pattern["last_seen_at"] == before_pattern["last_seen_at"]
     row = await _job_row(db_pool, stale.id)
     assert row["status"] == "running"  # 낡은 시도가 상태를 오염시키지 않았다
     assert row["locked_by"] == current.lease_token
@@ -377,3 +400,122 @@ async def test_job_without_an_utterance_target_is_reported_as_failed(
     assert row["status"] == "pending"
     assert "no utterance target" in row["last_error"]
     assert claude.prompts == [], "처리할 수 없는 job으로 Claude를 호출하면 안 된다"
+
+
+# --- Fix round 1 ---
+
+# I-2 회귀 방어: Claude 호출은 트랜잭션 **밖**이어야 한다 (§5.4). 호출을 트랜잭션
+# 안으로 옮기는 변형(뮤테이션)이 기존 테스트를 모두 통과했으므로, 호출 시점에
+# "트랜잭션을 연 채 대기하는 커넥션이 없다"를 직접 관측해 고정한다.
+_IDLE_IN_TRANSACTION_SQL = """
+select count(*)
+  from pg_stat_activity
+ where state = 'idle in transaction'
+   and datname = current_database()
+   and pid <> pg_backend_pid()
+"""
+
+
+class _TransactionSpyClaude:
+    """analyze 시점의 `idle in transaction` 커넥션 수를 기록하는 Claude 대역."""
+
+    def __init__(self, pool: asyncpg.Pool, response: str) -> None:
+        self._pool = pool
+        self._response = response
+        self.idle_in_transaction: int | None = None
+        self.prompts: list[str] = []
+
+    async def analyze(self, prompt: str) -> str:
+        self.prompts.append(prompt)
+        async with self._pool.acquire() as conn:
+            self.idle_in_transaction = await conn.fetchval(_IDLE_IN_TRANSACTION_SQL)
+        return self._response
+
+
+async def test_claude_is_called_outside_any_open_transaction(
+    db_pool: asyncpg.Pool, committed_session
+):
+    await _save(db_pool, committed_session.session_id, GYM_ANSWER)
+    claude = _TransactionSpyClaude(db_pool, _response(_finding()))
+
+    await process_analysis(db_pool, claude, await _claim(db_pool))
+
+    assert claude.idle_in_transaction == 0, (
+        "Claude 호출 동안 트랜잭션을 연 커넥션이 있다 — 그 시간 내내 행 잠금과 "
+        "스냅샷을 붙들어 다른 claim을 막는다 (설계서 §5.4)"
+    )
+    assert len(await _occurrences(db_pool, committed_session.session_id)) == 1
+
+
+# I-3 Ruling: 빈/공백 전사문은 "분석할 것이 없다 = 오류 0건"이다. Claude를 호출하지
+# 않고 replace로 정리한 뒤 done으로 끝낸다 — 결정론적으로 실패하는 입력을 5회
+# 재시도한 끝에 partial_failure로 표시하는 것은 사용자에게 거짓 신호다.
+@pytest.mark.parametrize("transcript", ["", "   ", "\n"])
+async def test_blank_transcript_completes_with_zero_findings(
+    db_pool: asyncpg.Pool, committed_session, fake_claude, transcript: str
+):
+    await _save(db_pool, committed_session.session_id, transcript)
+    job = await _claim(db_pool)
+    claude: FakeClaudeClient = fake_claude()
+
+    await process_analysis(db_pool, claude, job)
+
+    assert (await _job_row(db_pool, job.id))["status"] == "done"
+    assert await _occurrences(db_pool, committed_session.session_id) == []
+    assert claude.prompts == [], "빈 전사문으로 토큰을 태우면 안 된다"
+
+
+async def test_blank_transcript_still_replaces_previous_occurrences(
+    db_pool: asyncpg.Pool, committed_session, fake_claude
+):
+    # 발화가 재전사되어 빈 문자열로 바뀐 경우에도 replace 규칙은 그대로다.
+    utterance = await _save(db_pool, committed_session.session_id, GYM_ANSWER)
+    await process_analysis(db_pool, fake_claude(_response(_finding())), await _claim(db_pool))
+    assert len(await _occurrences(db_pool, committed_session.session_id)) == 1
+    async with db_pool.acquire() as conn, conn.transaction():
+        await conn.execute("update utterances set transcript = '' where id = $1", utterance.id)
+        await enqueue_analyze(conn, utterance.id)
+
+    await process_analysis(db_pool, fake_claude(), await _claim(db_pool))
+
+    assert await _occurrences(db_pool, committed_session.session_id) == []
+    pattern = (await _patterns(db_pool, committed_session.user_id))[0]
+    assert pattern["frequency"] == 0
+    assert pattern["last_seen_at"] is None
+
+
+# I-5: 공백·대소문자만 다른 pattern_key는 기존 패턴으로 병합된다. 실측으로는 앞공백
+# 하나에 신규 key로 판정되어 형식 검증에서 거부됐고, 그 발화는 5회 재시도 후 failed가
+# 됐다 — 병합이 앱의 핵심 약속이므로 표기 흔들림이 그것을 깨서는 안 된다.
+@pytest.mark.parametrize(
+    "returned_key",
+    [
+        f"  {ARTICLE_PATTERN_KEY}",
+        f"{ARTICLE_PATTERN_KEY}\n",
+        "Article_Missing_Before_Place_Noun",
+        " ARTICLE_MISSING_BEFORE_PLACE_NOUN ",
+    ],
+)
+async def test_case_and_whitespace_variants_merge_into_the_existing_pattern(
+    db_pool: asyncpg.Pool, committed_session, fake_claude, returned_key: str
+):
+    await _save(db_pool, committed_session.session_id, GYM_ANSWER)
+    await _save(db_pool, committed_session.session_id, OFFICE_ANSWER)
+    claude = fake_claude(
+        _response(_finding()),
+        _response(
+            _finding(
+                pattern_key=returned_key,
+                original_span="go to office",
+                correction="go to the office",
+            )
+        ),
+    )
+
+    for _ in range(2):
+        await process_analysis(db_pool, claude, await _claim(db_pool))
+
+    patterns = await _patterns(db_pool, committed_session.user_id)
+    assert [record["pattern_key"] for record in patterns] == [ARTICLE_PATTERN_KEY]
+    assert patterns[0]["frequency"] == 2
+    assert len(await _occurrences(db_pool, committed_session.session_id)) == 2

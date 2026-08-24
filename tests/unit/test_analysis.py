@@ -14,12 +14,18 @@ from __future__ import annotations
 
 import pytest
 
-from app.models.analysis import ERROR_CATEGORIES
+from app.models.analysis import (
+    ERROR_CATEGORIES,
+    AnalysisResult,
+    AnalysisValidationError,
+    ErrorFinding,
+)
 from app.services.analysis import (
     PROMPT_CATEGORIES,
     UNJUDGEABLE_CATEGORY,
     PatternRow,
     build_prompt,
+    resolve_pattern_keys,
 )
 
 TRANSCRIPT = "I usually go to gym after work."
@@ -129,5 +135,84 @@ def test_build_prompt_is_pure_and_order_independent():
 @pytest.mark.parametrize("transcript", ["", "   "])
 def test_build_prompt_rejects_an_empty_transcript(transcript: str):
     # 빈 전사문으로 Claude를 호출하는 것은 토큰만 태우는 무의미한 호출이다.
+    # (process_analysis는 호출 전에 분기하므로 이 예외를 보지 않는다 — I-3)
     with pytest.raises(ValueError, match="transcript"):
         build_prompt(transcript, [])
+
+
+# --- Fix round 1 (I-5): pattern_key 재사용 판정은 표기 흔들림에 견뎌야 한다 ---
+#
+# 실측: 기존 key에 앞공백 하나가 붙으면 "신규 key"로 판정되어 형식 검증에서 거부되고
+# 그 발화는 5회 재시도 끝에 failed가 된다. 대소문자만 다른 응답도 마찬가지로
+# 병합되지 않는 쌍둥이 패턴을 만든다. 저장 단계는 casefold로 대조하고 매치되면
+# **기존 표기로 정규화**해서 저장한다.
+
+
+def _finding(**overrides: object) -> ErrorFinding:
+    values: dict[str, object] = {
+        "category": "article",
+        "pattern_key": "article_missing_before_place_noun",
+        "target_form": "go to the gym",
+        "original_span": "go to gym",
+        "correction": "go to the gym",
+        "severity": "medium",
+        "confidence": 0.9,
+    }
+    values.update(overrides)
+    return ErrorFinding.model_validate(values)
+
+
+@pytest.mark.parametrize(
+    "returned_key",
+    [
+        "article_missing_before_place_noun",  # 그대로
+        "Article_Missing_Before_Place_Noun",  # 대소문자만 다르다
+        "ARTICLE_MISSING_BEFORE_PLACE_NOUN",
+    ],
+)
+def test_resolve_pattern_keys_normalizes_case_variants_to_the_existing_key(returned_key: str):
+    result = AnalysisResult(findings=[_finding(pattern_key=returned_key)])
+
+    resolved = resolve_pattern_keys(result, EXISTING)
+
+    assert resolved.findings[0].pattern_key == "article_missing_before_place_noun"
+
+
+def test_resolve_pattern_keys_keeps_a_valid_new_key_as_is():
+    result = AnalysisResult(findings=[_finding(pattern_key="article_missing_before_noun")])
+
+    resolved = resolve_pattern_keys(result, EXISTING)
+
+    assert resolved.findings[0].pattern_key == "article_missing_before_noun"
+
+
+def test_resolve_pattern_keys_rejects_a_new_key_that_breaks_the_format():
+    result = AnalysisResult(findings=[_finding(pattern_key="missing_article_before_gym")])
+
+    with pytest.raises(AnalysisValidationError, match="missing_article_before_gym"):
+        resolve_pattern_keys(result, EXISTING)
+
+
+def test_resolve_pattern_keys_accepts_a_reused_key_whose_format_is_legacy():
+    # 기존 key는 형식을 보지 않는다 (`past_tense_in_work_update` — 접두 없음).
+    result = AnalysisResult(
+        findings=[_finding(category="verb_tense", pattern_key="Past_Tense_In_Work_Update")]
+    )
+
+    resolved = resolve_pattern_keys(result, EXISTING)
+
+    assert resolved.findings[0].pattern_key == "past_tense_in_work_update"
+
+
+def test_resolve_pattern_keys_leaves_the_rest_of_the_finding_untouched():
+    finding = _finding(pattern_key="ARTICLE_MISSING_BEFORE_PLACE_NOUN")
+
+    resolved = resolve_pattern_keys(AnalysisResult(findings=[finding]), EXISTING)
+
+    assert resolved.findings[0].model_dump(exclude={"pattern_key"}) == finding.model_dump(
+        exclude={"pattern_key"}
+    )
+
+
+def test_resolve_pattern_keys_returns_empty_findings_unchanged():
+    assert resolve_pattern_keys(AnalysisResult(findings=[]), EXISTING).findings == []

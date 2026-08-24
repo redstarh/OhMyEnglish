@@ -204,15 +204,21 @@ def app_settings(monkeypatch: pytest.MonkeyPatch, test_database: str):
     비워야 한다 — 비우지 않으면 앞선 테스트의 값이 살아남는다.
     """
 
-    def configure(*, worker_enabled: bool) -> None:
+    def configure(
+        *,
+        worker_enabled: bool,
+        claude: object | None = None,
+        shutdown_timeout: float | None = None,
+    ) -> None:
         monkeypatch.setenv("DATABASE_URL", test_database)
         monkeypatch.setenv("AWS_REGION", "us-west-2")
         monkeypatch.setenv("WORKER_ENABLED", "true" if worker_enabled else "false")
         monkeypatch.setattr(db_module, "_pool", None)
         # 실물 Bedrock 클라이언트를 만들지 않는다(자격증명·실제 호출 금지).
-        monkeypatch.setattr(
-            main_module, "BedrockClaudeClient", lambda settings: FakeClaudeClient([])
-        )
+        stand_in = claude if claude is not None else FakeClaudeClient([])
+        monkeypatch.setattr(main_module, "BedrockClaudeClient", lambda settings: stand_in)
+        if shutdown_timeout is not None:
+            monkeypatch.setattr(main_module, "WORKER_SHUTDOWN_TIMEOUT", shutdown_timeout)
         get_settings.cache_clear()
 
     get_settings.cache_clear()
@@ -245,3 +251,45 @@ async def test_lifespan_starts_and_stops_the_worker_by_default(app_settings):
     assert task.done(), "lifespan 종료 후에도 워커가 돌면 프로세스가 내려가지 않는다"
     assert task.exception() is None
     assert db_module._pool is None, "pool도 함께 닫혀야 한다"
+
+
+# Fix round 1 (I-4) — 종료 대기에 상한이 있어야 한다. Claude 호출 한복판에서
+# shutdown이 걸리면 워커는 stop을 확인하지 못하므로, 상한 없이 await하면 프로세스가
+# 응답 없이 매달린다. 상한을 넘기면 cancel한다 — 그 job은 lease 만료로 회수된다.
+async def test_lifespan_shutdown_cancels_a_worker_that_will_not_stop(
+    app_settings, db_pool: asyncpg.Pool, committed_session
+):
+    class _HangingClaude:
+        def __init__(self) -> None:
+            self.started = asyncio.Event()
+
+        async def analyze(self, prompt: str) -> str:
+            self.started.set()
+            await asyncio.sleep(3600)  # 응답이 오지 않는 호출
+            raise AssertionError("unreachable")
+
+    hanging = _HangingClaude()
+    app_settings(worker_enabled=True, claude=hanging, shutdown_timeout=0.1)
+    utterance_id = await _save(db_pool, committed_session.session_id)
+    app = create_app()
+    loop = asyncio.get_running_loop()
+
+    context = app.router.lifespan_context(app)
+    await context.__aenter__()
+    try:
+        task = app.state.worker_task
+        await asyncio.wait_for(hanging.started.wait(), timeout=5.0)
+        shutdown_started = loop.time()
+    finally:
+        # 종료 시간을 재려면 컨텍스트 종료를 직접 호출해야 한다.
+        await asyncio.wait_for(context.__aexit__(None, None, None), timeout=5.0)
+
+    assert loop.time() - shutdown_started < 1.0, "종료가 상한 안에 끝나지 않았다"
+    assert task.cancelled(), "상한을 넘긴 워커는 cancel되어야 한다"
+    assert db_module._pool is None, "cancel 후에도 pool은 닫혀야 한다"
+    # 취소된 시도의 job은 running으로 남고 lease 만료 후 회수된다 (§5.4).
+    assert await _job_status(db_pool, utterance_id) == "running"
+
+
+def test_worker_shutdown_timeout_is_a_documented_design_value():
+    assert main_module.WORKER_SHUTDOWN_TIMEOUT == 15.0

@@ -232,23 +232,42 @@ async def load_existing_patterns(conn: asyncpg.Connection, user_id: UUID) -> lis
     ]
 
 
-def validate_pattern_keys(result: AnalysisResult, known_keys: set[str]) -> None:
-    """신규 key만 `^{category}_[a-z0-9_]+$`를 강제한다 (§5.6).
+def resolve_pattern_keys(
+    result: AnalysisResult, existing_patterns: list[PatternRow]
+) -> AnalysisResult:
+    """재사용된 key를 **기존 표기로 정규화**하고, 신규 key만 형식을 강제한다 (§5.6).
+
+    대조를 `casefold`로 하는 이유: 병합이 앱의 핵심 약속인데, Claude가 같은 오류에
+    `Article_Missing_...`처럼 표기만 바꿔 답하면 "형식이 틀린 신규 key"로 판정되어
+    그 발화가 재시도 상한까지 소모된 뒤 failed가 된다(실측). 앞뒤 공백은
+    `ErrorFinding`이 경계에서 이미 깎는다.
+
+    매치되면 DB에 있는 표기로 되돌려 저장한다 — `unique(user_id, pattern_key)`는
+    대소문자를 구분하므로 응답의 표기를 그대로 쓰면 병합되지 않는 쌍둥이 행이 생긴다.
 
     기존 key 재사용은 형식을 보지 않는다 — 근거 문서의 예시
     (`past_tense_in_work_update`)처럼 접두 형식이 아닌 key가 이미 있을 수 있고,
-    그것을 거부하면 재사용 우선 규칙과 정면으로 충돌한다. 형식 위반 신규 key는
-    이 발화의 분석 전체를 실패시킨다: 규격 밖 key를 그냥 저장하면 다음 세션에
-    병합되지 않는 쌍둥이 패턴이 생겨 앱의 핵심 약속이 조용히 무너진다.
+    그것을 거부하면 재사용 우선 규칙과 정면으로 충돌한다. 반대로 형식 위반 **신규**
+    key는 이 발화의 분석 전체를 실패시킨다: 규격 밖 key를 그냥 저장하면 다음 세션에
+    병합되지 않는 쌍둥이 패턴이 생겨 그 약속이 조용히 무너진다.
     """
+    canonical_by_fold = {row.pattern_key.casefold(): row.pattern_key for row in existing_patterns}
+    findings: list[ErrorFinding] = []
     for finding in result.findings:
-        if finding.pattern_key in known_keys:
-            continue
-        if not is_valid_new_pattern_key(finding.category, finding.pattern_key):
-            raise AnalysisValidationError(
-                f"new pattern_key {finding.pattern_key!r} does not match "
-                f"^{finding.category}_[a-z0-9_]+$"
-            )
+        canonical = canonical_by_fold.get(finding.pattern_key.casefold())
+        if canonical is None:
+            if not is_valid_new_pattern_key(finding.category, finding.pattern_key):
+                raise AnalysisValidationError(
+                    f"new pattern_key {finding.pattern_key!r} does not match "
+                    f"^{finding.category}_[a-z0-9_]+$"
+                )
+            canonical = finding.pattern_key
+        findings.append(
+            finding
+            if canonical == finding.pattern_key
+            else finding.model_copy(update={"pattern_key": canonical})
+        )
+    return AnalysisResult(findings=findings)
 
 
 async def _load_input(conn: asyncpg.Connection, utterance_id: UUID) -> _AnalysisInput | None:
@@ -338,21 +357,29 @@ async def process_analysis(pool: asyncpg.Pool, claude: ClaudeClient, job: Claime
         await _report_failure(pool, job, f"utterance {job.utterance_id} no longer exists")
         return
 
-    try:
-        prompt = build_prompt(loaded.transcript, loaded.existing_patterns)
-        raw = await claude.analyze(prompt)
-        result = parse_analysis(raw)
-        validate_pattern_keys(result, {row.pattern_key for row in loaded.existing_patterns})
-    except ValueError as exc:
-        # `AnalysisValidationError`(계약 위반)와 빈 전사문 거부가 여기로 온다.
-        # 예상된 결과이므로 스택트레이스 없이 사유만 남긴다.
-        logger.warning("job %s: analysis output rejected: %s", job.id, exc)
-        await _report_failure(pool, job, str(exc))
-        return
-    except Exception as exc:
-        logger.exception("job %s: claude call failed", job.id)
-        await _report_failure(pool, job, f"{type(exc).__name__}: {exc}")
-        return
+    if loaded.transcript.strip():
+        try:
+            prompt = build_prompt(loaded.transcript, loaded.existing_patterns)
+            raw = await claude.analyze(prompt)
+            result = resolve_pattern_keys(parse_analysis(raw), loaded.existing_patterns)
+        except ValueError as exc:
+            # `AnalysisValidationError`(계약 위반)가 여기로 온다. 예상된 결과이므로
+            # 스택트레이스 없이 사유만 남긴다.
+            logger.warning("job %s: analysis output rejected: %s", job.id, exc)
+            await _report_failure(pool, job, str(exc))
+            return
+        except Exception as exc:
+            logger.exception("job %s: claude call failed", job.id)
+            await _report_failure(pool, job, f"{type(exc).__name__}: {exc}")
+            return
+    else:
+        # 빈/공백 전사문은 "분석할 것이 없다 = 오류 0건"이다. Claude를 호출하지 않고
+        # (토큰만 태운다) 아래 저장 단계는 그대로 거친다 — 재전사로 발화가 비게 된
+        # 경우 이전 occurrence를 정리해야 하기 때문이다(§5.2 replace). 결정론적으로
+        # 실패하는 입력을 재시도 상한까지 돌려 partial_failure로 표시하는 것은
+        # 사용자에게 거짓 신호다.
+        logger.info("job %s: transcript is blank — recording zero findings", job.id)
+        result = AnalysisResult(findings=[])
 
     try:
         async with pool.acquire() as conn, conn.transaction():

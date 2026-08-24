@@ -7,6 +7,10 @@
 정지 순서가 중요하다: `stop`을 켜고 워커 태스크가 **끝난 뒤에** pool을 닫는다.
 반대로 하면 워커가 닫힌 pool에서 커넥션을 얻으려다 터진다. pool 닫기는
 `finally`에 두어 워커 종료가 실패해도 커넥션이 남지 않게 한다.
+
+종료 대기에는 상한이 있다(`WORKER_SHUTDOWN_TIMEOUT`). 워커가 Claude 호출
+한복판이면 `stop`을 확인할 지점에 도달하지 못하므로, 상한 없이 기다리면 프로세스가
+응답 없이 매달린다 — Ctrl+C도 먹지 않는 것처럼 보인다.
 """
 
 from __future__ import annotations
@@ -24,6 +28,12 @@ from app.workers.analysis_worker import run_worker
 from app.workers.claude_client import BedrockClaudeClient
 
 logger = logging.getLogger(__name__)
+
+# 설계 발명값 (근거 문서 없음) — 워커 종료 대기 상한. "정상적인 한 사이클(Claude 1회
+# 호출)은 끝낼 수 있지만 사람이 종료를 기다려줄 수 있는 시간"으로 정했다. 상한을
+# 넘기면 취소하며, 취소된 job은 `running`으로 남아 lease 만료 후 회수된다(§5.4) —
+# 그래서 취소가 데이터를 잃지 않는다.
+WORKER_SHUTDOWN_TIMEOUT = 15.0
 
 
 @contextlib.asynccontextmanager
@@ -50,8 +60,21 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     finally:
         app.state.worker_stop.set()
         try:
-            if app.state.worker_task is not None:
-                await app.state.worker_task
+            task = app.state.worker_task
+            if task is not None:
+                try:
+                    await asyncio.wait_for(task, timeout=WORKER_SHUTDOWN_TIMEOUT)
+                except TimeoutError:
+                    logger.warning(
+                        "분석 워커가 %.0f초 안에 멈추지 않아 취소한다 — 진행 중이던 "
+                        "job은 lease 만료 후 회수된다",
+                        WORKER_SHUTDOWN_TIMEOUT,
+                    )
+                    # `wait_for`가 이미 취소를 시작했다 — 멱등하게 한 번 더 요청하고
+                    # 취소가 끝나는 것만 확인한다.
+                    task.cancel()
+                    with contextlib.suppress(asyncio.CancelledError):
+                        await task
         finally:
             await close_pool()
 

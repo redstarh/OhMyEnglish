@@ -165,9 +165,22 @@ def test_parse_analysis_rejects_unknown_top_level_field():
 
 # 빈 문자열 필드는 거부한다 — pattern_key가 비면 사용자 패턴이 빈 key로 병합된다.
 @pytest.mark.parametrize("field", ["pattern_key", "target_form", "original_span", "correction"])
-def test_parse_analysis_rejects_empty_text_field(field: str):
+@pytest.mark.parametrize("value", ["", "   ", "\n\t"])
+def test_parse_analysis_rejects_blank_text_field(field: str, value: str):
     with pytest.raises(AnalysisValidationError):
-        parse_analysis(_raw(_finding(**{field: ""})))
+        parse_analysis(_raw(_finding(**{field: value})))
+
+
+# Fix round 1 (I-5) — 앞뒤 공백은 경계에서 깎는다. 공백 하나가 붙은 pattern_key가
+# 기존 key와 다른 값으로 취급되면 병합이 깨지고(그 발화는 5회 재시도 후 failed),
+# original_span에 붙은 공백은 사용자에게 그대로 보인다.
+@pytest.mark.parametrize("field", ["pattern_key", "target_form", "original_span", "correction"])
+def test_parse_analysis_strips_surrounding_whitespace(field: str):
+    expected = _finding()[field]
+
+    result = parse_analysis(_raw(_finding(**{field: f"  {expected}\n"})))
+
+    assert getattr(result.findings[0], field) == expected
 
 
 # ⑦ 코드펜스로 감싼 JSON → 펜스 제거 후 통과
@@ -294,7 +307,12 @@ async def test_bedrock_client_sends_the_messages_api_body_for_the_configured_mod
         "messages": [{"role": "user", "content": "analyze this"}],
     }
     assert ANTHROPIC_VERSION == "bedrock-2023-05-31"
-    assert MAX_TOKENS == 4096
+
+
+# Fix round 1 (I-1) — Opus 5는 thinking이 기본 on이고 thinking 토큰이 max_tokens
+# 예산을 함께 쓴다. 4096이면 사고가 예산을 먹고 findings JSON이 중간에 잘린다.
+def test_max_tokens_leaves_room_for_thinking_plus_the_findings_json():
+    assert MAX_TOKENS == 16000
 
 
 # Claude Opus 5는 thinking이 기본 on이라 content에 text 아닌 블록이 섞여 온다.
@@ -311,8 +329,51 @@ def test_extract_text_skips_non_text_content_blocks():
     assert extract_text(payload) == '{"findings": []}'
 
 
-def test_extract_text_returns_empty_string_when_there_is_no_text_block():
-    # 거부(refusal)나 max_tokens 절단처럼 text 블록이 없는 응답도 예외 없이
-    # 빈 문자열로 내려가 parse_analysis의 단일 거부 경로를 타야 한다.
+def test_extract_text_returns_empty_string_when_the_turn_ended_without_text():
+    # stop_reason이 정상 종료인데 text가 없는 응답은 parse_analysis의 단일 거부
+    # 경로로 내려간다(빈 문자열 → "not JSON").
     assert extract_text({"content": [{"type": "thinking", "thinking": ""}]}) == ""
     assert extract_text({}) == ""
+    assert extract_text({"stop_reason": "end_turn", "content": []}) == ""
+
+
+# Fix round 1 (I-1) — 절단과 거부는 "JSON 아님"으로 뭉개지면 안 된다. last_error에
+# 원인이 남아야 예산·프롬프트 문제와 파싱 문제를 구분할 수 있다.
+def test_extract_text_reports_truncation_at_max_tokens():
+    payload = {"stop_reason": "max_tokens", "content": [{"type": "text", "text": '{"find'}]}
+
+    with pytest.raises(AnalysisValidationError) as excinfo:
+        extract_text(payload)
+
+    assert "max_tokens" in str(excinfo.value)
+
+
+def test_extract_text_reports_a_refusal_with_its_category():
+    payload = {
+        "stop_reason": "refusal",
+        "stop_details": {"type": "refusal", "category": "cyber"},
+        "content": [],
+    }
+
+    with pytest.raises(AnalysisValidationError) as excinfo:
+        extract_text(payload)
+
+    assert "refusal" in str(excinfo.value)
+    assert "cyber" in str(excinfo.value)
+
+
+def test_extract_text_reports_a_refusal_without_stop_details():
+    with pytest.raises(AnalysisValidationError, match="refusal"):
+        extract_text({"stop_reason": "refusal", "content": []})
+
+
+async def test_bedrock_client_surfaces_truncation_as_a_validation_error(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    stub = _StubBedrockRuntime(
+        {"stop_reason": "max_tokens", "content": [{"type": "text", "text": '{"findings": [{'}]}
+    )
+    monkeypatch.setattr(claude_client_module, "bedrock_client", lambda: stub)
+
+    with pytest.raises(AnalysisValidationError, match="max_tokens"):
+        await BedrockClaudeClient(_test_settings()).analyze("analyze this")
