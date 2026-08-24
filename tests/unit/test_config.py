@@ -33,7 +33,9 @@ def test_settings_reads_dotenv(tmp_path, monkeypatch):
     )
     monkeypatch.chdir(tmp_path)
 
-    settings = Settings()
+    # config.py의 `get_settings`와 같은 사유 — pydantic-settings는 env/.env에서
+    # __init__을 런타임에 합성하지만 ty(alpha)는 그것을 모델링하지 못한다.
+    settings = Settings()  # ty: ignore[missing-argument]
 
     assert settings.database_url == "postgresql://ohmy:ohmy@localhost:5433/ohmyenglish"
     assert settings.aws_region == "us-west-2"
@@ -51,7 +53,9 @@ def test_settings_reads_optional_bearer_token(tmp_path, monkeypatch):
     )
     monkeypatch.chdir(tmp_path)
 
-    settings = Settings()
+    # config.py의 `get_settings`와 같은 사유 — pydantic-settings는 env/.env에서
+    # __init__을 런타임에 합성하지만 ty(alpha)는 그것을 모델링하지 못한다.
+    settings = Settings()  # ty: ignore[missing-argument]
 
     assert settings.aws_bearer_token_bedrock == "test-bearer-token"
 

@@ -1,0 +1,17 @@
+# ty 검사 스코프 — `ty check`(인자 없음) 한 번으로 백엔드 소스와 테스트를 모두 덮는다.
+#
+# 왜 `app/backend/pyproject.toml`의 `[tool.ty]`가 아닌가: `src.include`는 프로젝트
+# 루트 밖(`../../tests`)을 가리킬 수 없다("The parent directory operator (`..`) is
+# not allowed"). 그래서 설정을 리포지토리 루트로 올려 프로젝트 루트 자체를 넓힌다.
+# ty는 cwd에서 위로 올라가며 이 파일을 찾으므로 `app/backend`에서 실행해도 적용된다.
+#
+# ⚠️ `app/backend/pyproject.toml`에 `[tool.ty]` 섹션을 추가하지 마라 — 설정 탐색이
+# 거기서 멈춰 tests/가 조용히 검사 대상에서 빠진다.
+
+[environment]
+python = "app/backend/.venv"
+# 첫 파티 모듈 해석 경로. `app.*`는 app/backend 기준, 테스트는 리포 루트 기준이다.
+root = ["app/backend", "."]
+
+[src]
+include = ["app/backend/app", "tests"]

@@ -96,6 +96,7 @@ async def test_claim_next_issues_lease_token_and_increments_attempts(
 ):
     utterance_id = await _new_utterance(db_conn)
     job_id = await enqueue_analyze(db_conn, utterance_id)
+    assert job_id is not None  # 등록 성공을 전제하는 테스트 — 이후 호출은 UUID를 받는다
 
     claimed = await claim_next(db_conn)
 
@@ -121,6 +122,7 @@ async def test_claim_next_skips_job_whose_available_at_is_in_the_future(
 ):
     utterance_id = await _new_utterance(db_conn)
     job_id = await enqueue_analyze(db_conn, utterance_id)
+    assert job_id is not None  # 등록 성공을 전제하는 테스트 — 이후 호출은 UUID를 받는다
     await db_conn.execute(
         "update analysis_jobs set available_at = now() + interval '10 minutes' where id = $1",
         job_id,
@@ -146,6 +148,7 @@ async def test_expired_lease_is_reclaimed_and_stale_token_cannot_complete(
 ):
     utterance_id = await _new_utterance(db_conn)
     job_id = await enqueue_analyze(db_conn, utterance_id)
+    assert job_id is not None  # 등록 성공을 전제하는 테스트 — 이후 호출은 UUID를 받는다
 
     first = await claim_next(db_conn)
     assert first is not None
@@ -172,6 +175,7 @@ async def test_zombie_at_attempt_limit_is_reaped_to_failed_instead_of_reclaimed(
 ):
     utterance_id = await _new_utterance(db_conn)
     job_id = await enqueue_analyze(db_conn, utterance_id)
+    assert job_id is not None  # 등록 성공을 전제하는 테스트 — 이후 호출은 UUID를 받는다
     await db_conn.execute(
         "update analysis_jobs set attempts = $2 where id = $1", job_id, MAX_ATTEMPTS - 1
     )
@@ -201,6 +205,7 @@ async def test_expired_lease_below_attempt_limit_is_still_reclaimed(
 ):
     utterance_id = await _new_utterance(db_conn)
     job_id = await enqueue_analyze(db_conn, utterance_id)
+    assert job_id is not None  # 등록 성공을 전제하는 테스트 — 이후 호출은 UUID를 받는다
     await db_conn.execute(
         "update analysis_jobs set attempts = $2 where id = $1", job_id, MAX_ATTEMPTS - 2
     )
@@ -226,6 +231,7 @@ async def test_failure_at_attempt_limit_marks_failed_and_is_never_reclaimed(
 ):
     utterance_id = await _new_utterance(db_conn)
     job_id = await enqueue_analyze(db_conn, utterance_id)
+    assert job_id is not None  # 등록 성공을 전제하는 테스트 — 이후 호출은 UUID를 받는다
     await db_conn.execute(
         "update analysis_jobs set attempts = $2 where id = $1", job_id, MAX_ATTEMPTS - 1
     )
@@ -251,6 +257,7 @@ async def test_retry_before_limit_requeues_with_attempt_scaled_backoff(
 ):
     utterance_id = await _new_utterance(db_conn)
     job_id = await enqueue_analyze(db_conn, utterance_id)
+    assert job_id is not None  # 등록 성공을 전제하는 테스트 — 이후 호출은 UUID를 받는다
     await db_conn.execute("update analysis_jobs set attempts = 1 where id = $1", job_id)
 
     claimed = await claim_next(db_conn)
@@ -281,6 +288,7 @@ async def test_retry_before_limit_requeues_with_attempt_scaled_backoff(
 async def test_fail_or_retry_computes_backoff_from_injected_clock(db_conn: asyncpg.Connection):
     utterance_id = await _new_utterance(db_conn)
     job_id = await enqueue_analyze(db_conn, utterance_id)
+    assert job_id is not None  # 등록 성공을 전제하는 테스트 — 이후 호출은 UUID를 받는다
     await db_conn.execute("update analysis_jobs set attempts = 1 where id = $1", job_id)
     claimed = await claim_next(db_conn)
     assert claimed is not None
@@ -307,6 +315,7 @@ async def test_fail_or_retry_backoff_is_measured_from_statement_clock_not_transa
 ):
     utterance_id = await _new_utterance(db_conn)
     job_id = await enqueue_analyze(db_conn, utterance_id)
+    assert job_id is not None  # 등록 성공을 전제하는 테스트 — 이후 호출은 UUID를 받는다
     await db_conn.execute("update analysis_jobs set attempts = 1 where id = $1", job_id)
     claimed = await claim_next(db_conn)
     assert claimed is not None
@@ -324,6 +333,7 @@ async def test_fail_or_retry_backoff_is_measured_from_statement_clock_not_transa
 async def test_fail_or_retry_with_wrong_token_changes_nothing(db_conn: asyncpg.Connection):
     utterance_id = await _new_utterance(db_conn)
     job_id = await enqueue_analyze(db_conn, utterance_id)
+    assert job_id is not None  # 등록 성공을 전제하는 테스트 — 이후 호출은 UUID를 받는다
     claimed = await claim_next(db_conn)
     assert claimed is not None
 
