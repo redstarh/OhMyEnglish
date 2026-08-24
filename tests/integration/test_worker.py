@@ -25,13 +25,15 @@ import pytest
 from app import db as db_module
 from app.api import main as main_module
 from app.api.main import create_app
+from app.audio_gateway.fixtures import FIXTURE_TURNS
 from app.config import get_settings
 from app.services.utterances import save_final_transcript
 from app.workers import analysis_worker
 from app.workers.analysis_worker import run_worker
 from app.workers.claude_client import FakeClaudeClient
 
-GYM_ANSWER = "I usually go to gym after work."
+# 픽스처 발화의 소유자는 `app.audio_gateway.fixtures` 하나다 (문장 중복 정의 금지).
+GYM_ANSWER = FIXTURE_TURNS[0][1]
 
 
 def _response(**overrides: Any) -> str:

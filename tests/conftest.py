@@ -36,22 +36,16 @@ import asyncpg
 import pytest
 import pytest_asyncio
 
+# 공통 픽스처 발화 (AC 문서 §공통 픽스처) — 스텁·W-live·E2E-S가 같은 상수를 본다.
+# 소유자는 `app.audio_gateway.fixtures` 하나다: 스텁이 재생하는 문장과 테스트가
+# 기대하는 문장이 갈라지는 경로를 아예 만들지 않기 위해 여기서는 재수출만 한다.
+from app.audio_gateway.fixtures import FIXTURE_TURNS as FIXTURE_TURNS
 from app.workers.claude_client import FakeClaudeClient
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 MIGRATIONS_DIR = REPO_ROOT / "db" / "migrations"
 TEST_DB_NAME = "ohmyenglish_test"
 DEFAULT_DEV_DSN = "postgresql://ohmy:ohmy@localhost:5433/ohmyenglish"
-
-# 공통 픽스처 발화 (AC 문서 §공통 픽스처) — 스텁·W-live·E2E-S가 같은 상수를 본다.
-# (agent 질문, 사용자 응답) 순서다. 1·2번 응답은 같은 오류 유형(관사 누락)을
-# 서로 다른 문장에 담고 있어 "같은 오류는 하나의 패턴으로 병합"(tests/README.md:9)을
-# 관측하는 최소 데이터다.
-FIXTURE_TURNS = [
-    ("What do you usually do after work?", "I usually go to gym after work."),
-    ("What do you usually do on weekends?", "I usually go to office by subway."),
-    ("What do you need to do tonight?", "I need to finish my homework tonight."),
-]
 
 
 def _base_dsn() -> str:

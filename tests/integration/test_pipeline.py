@@ -20,13 +20,16 @@ from uuid import UUID
 import asyncpg
 import pytest
 
+from app.audio_gateway.fixtures import FIXTURE_TURNS
 from app.services.analysis import PatternRow, build_prompt, load_existing_patterns, process_analysis
 from app.services.jobs import LEASE, ClaimedJob, claim_next, enqueue_analyze
 from app.services.utterances import UtteranceRow, save_final_transcript
 from app.workers.claude_client import FakeClaudeClient
 
-GYM_ANSWER = "I usually go to gym after work."
-OFFICE_ANSWER = "I usually go to office by subway."
+# 픽스처 발화의 소유자는 `app.audio_gateway.fixtures` 하나다 — 스텁이 재생하는
+# 문장과 여기서 기대하는 문장이 갈라지지 않도록 문장을 다시 적지 않는다.
+GYM_ANSWER = FIXTURE_TURNS[0][1]
+OFFICE_ANSWER = FIXTURE_TURNS[1][1]
 
 ARTICLE_PATTERN_KEY = "article_missing_before_place_noun"
 
