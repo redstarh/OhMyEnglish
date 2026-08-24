@@ -2,32 +2,56 @@
 
 DB fixtures recreate the `ohmyenglish_test` database against the same
 PostgreSQL server used for local development (see `scripts/dev_db.sh`) and
-apply `db/migrations/*.sql` in order. Nothing here is asyncpg-pool-based on
-purpose: each test gets its own connection inside a rolled-back transaction,
-so tests never leak state into each other regardless of execution order.
+apply `db/migrations/*.sql` in order. The default `db_conn` fixture is not
+pool-based on purpose: each test gets its own connection inside a rolled-back
+transaction, so tests never leak state into each other regardless of
+execution order.
+
+`db_pool` exists for the code that **owns its own transactions** — the
+analysis pipeline and the worker loop commit and re-read across several short
+transactions, which a single rolled-back transaction cannot express. Anything
+using it writes committed rows, so it must clean up after itself:
+`committed_session` deletes its user on teardown and the cascade takes
+sessions → utterances → analysis_jobs → error_occurrences (and
+error_patterns) with it. Other tests assert on global row counts, so a
+committed row that survives its test breaks them.
 
 Task 1 tests (`tests/unit/test_config.py`) do not depend on any fixture
 defined here — pytest fixtures are lazy, so no database is touched unless a
-test explicitly requests `db_conn`. Schema-level verification lives in
-Task 2 (`tests/unit/test_schema.py`).
+test explicitly requests one. Schema-level verification lives in Task 2
+(`tests/unit/test_schema.py`).
 """
 
 from __future__ import annotations
 
 import asyncio
 import os
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Callable
 from pathlib import Path
+from typing import NamedTuple
 from urllib.parse import urlsplit, urlunsplit
+from uuid import UUID
 
 import asyncpg
 import pytest
 import pytest_asyncio
 
+from app.workers.claude_client import FakeClaudeClient
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 MIGRATIONS_DIR = REPO_ROOT / "db" / "migrations"
 TEST_DB_NAME = "ohmyenglish_test"
 DEFAULT_DEV_DSN = "postgresql://ohmy:ohmy@localhost:5433/ohmyenglish"
+
+# 공통 픽스처 발화 (AC 문서 §공통 픽스처) — 스텁·W-live·E2E-S가 같은 상수를 본다.
+# (agent 질문, 사용자 응답) 순서다. 1·2번 응답은 같은 오류 유형(관사 누락)을
+# 서로 다른 문장에 담고 있어 "같은 오류는 하나의 패턴으로 병합"(tests/README.md:9)을
+# 관측하는 최소 데이터다.
+FIXTURE_TURNS = [
+    ("What do you usually do after work?", "I usually go to gym after work."),
+    ("What do you usually do on weekends?", "I usually go to office by subway."),
+    ("What do you need to do tonight?", "I need to finish my homework tonight."),
+]
 
 
 def _base_dsn() -> str:
@@ -78,3 +102,58 @@ async def db_conn(test_database: str) -> AsyncIterator[asyncpg.Connection]:
     finally:
         await transaction.rollback()
         await conn.close()
+
+
+@pytest_asyncio.fixture
+async def db_pool(test_database: str) -> AsyncIterator[asyncpg.Pool]:
+    """A pool over the migrated test database, for code that owns its own
+    transactions (`services.analysis`, `workers.analysis_worker`).
+
+    Writes here **commit** — pair it with `committed_session` (or clean up by
+    hand) so nothing survives the test.
+    """
+    pool = await asyncpg.create_pool(dsn=test_database, min_size=1, max_size=5)
+    assert pool is not None
+    try:
+        yield pool
+    finally:
+        await pool.close()
+
+
+class CommittedSession(NamedTuple):
+    user_id: UUID
+    session_id: UUID
+
+
+@pytest_asyncio.fixture
+async def committed_session(db_pool: asyncpg.Pool) -> AsyncIterator[CommittedSession]:
+    """A committed user + `active` learning session, dropped again on teardown.
+
+    Deleting the user cascades to the session → utterances → analysis_jobs →
+    error_occurrences and to error_patterns, so the test leaves the database
+    exactly as it found it even though its writes were committed.
+    """
+    async with db_pool.acquire() as conn:
+        user_id = await conn.fetchval(
+            "insert into users (display_name) values ('Pipeline Test User') returning id"
+        )
+        session_id = await conn.fetchval(
+            "insert into learning_sessions (user_id, mode) values ($1, 'speaking') returning id",
+            user_id,
+        )
+    try:
+        yield CommittedSession(user_id=user_id, session_id=session_id)
+    finally:
+        async with db_pool.acquire() as conn:
+            await conn.execute("delete from users where id = $1", user_id)
+
+
+@pytest.fixture
+def fake_claude() -> Callable[..., FakeClaudeClient]:
+    """Factory for the Claude 대역: `fake_claude(resp1, resp2)` answers the
+    calls in order and records the prompts it received (`.prompts`)."""
+
+    def make(*responses: str) -> FakeClaudeClient:
+        return FakeClaudeClient(list(responses))
+
+    return make
