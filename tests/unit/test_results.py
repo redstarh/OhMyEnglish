@@ -82,15 +82,17 @@ async def _occurrence(
     correction: str,
     severity: str,
     confidence: str,
+    explanation: str = "학습자용 한 줄 설명 (테스트 기본값)",
 ) -> None:
     await conn.execute(
         "insert into error_occurrences "
-        "(utterance_id, pattern_id, original_span, correction, severity, confidence) "
-        "values ($1, $2, $3, $4, $5, $6)",
+        "(utterance_id, pattern_id, original_span, correction, explanation, severity, confidence) "
+        "values ($1, $2, $3, $4, $5, $6, $7)",
         utterance_id,
         pattern_id,
         original_span,
         correction,
+        explanation,
         severity,
         Decimal(confidence),
     )
@@ -160,6 +162,7 @@ async def test_top_two_corrections_ranked_by_severity_ordinal_not_text(
             correction="finished the report",
             severity="high",
             confidence="0.50",
+            explanation="어제 일어난 일이므로 과거형 finished를 씁니다.",
         )
         await _occurrence(
             conn,
@@ -183,6 +186,9 @@ async def test_top_two_corrections_ranked_by_severity_ordinal_not_text(
         "verb_tense_high",
         "article_missing_medium",
     ], "high가 medium보다 먼저 와야 한다 — ordinal desc, 텍스트 desc가 아니다"
+    # AC U2: 결과 카드가 "원문 → 교정문 → 한 줄 이유"를 요구한다 — 대표 occurrence의
+    # explanation이 reason으로 응답에 실려야 한다.
+    assert corrections[0]["reason"] == "어제 일어난 일이므로 과거형 finished를 씁니다."
 
 
 # ② non-terminal job 존재 → analyzing + corrections 키 자체 없음 (R2 규칙 3)

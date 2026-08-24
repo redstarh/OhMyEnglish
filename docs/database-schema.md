@@ -135,6 +135,7 @@ work?` / `What do you usually do on weekends?` / `What do you need to do tonight
 | `pattern_id` | uuid | not null, FK → `error_patterns`, `on delete cascade` |
 | `original_span` | text | not null |
 | `correction` | text | not null |
+| `explanation` | text | not null |
 | `severity` | text | not null, CHECK (`low`, `medium`, `high`) |
 | `confidence` | numeric(3,2) | not null, CHECK 0~1 |
 | `created_at` | timestamptz | not null, default `now()` |
@@ -142,7 +143,9 @@ work?` / `What do you usually do on weekends?` / `What do you need to do tonight
 발화에서 검출된 오류. **유니크 제약이 없다** — `analyze_utterance` 재시도는 한
 트랜잭션에서 `delete from error_occurrences where utterance_id = :id` 후 새 결과를
 insert하는 **발화 단위 replace**로 멱등성을 확보한다(같은 문장의 복수 occurrence를
-보존하기 위해 `unique(utterance_id, pattern_id)` 초안은 철회했다). 인덱스:
+보존하기 위해 `unique(utterance_id, pattern_id)` 초안은 철회했다). `explanation`은
+결과 화면의 "원문 → 교정문 → 한 줄 이유" 카드(AC U2)에 쓰는 학습자용 한국어 한
+문장이다 — Claude가 finding마다 산출해 `correction`과 함께 저장된다. 인덱스:
 `(pattern_id, created_at desc)`, `(utterance_id)`.
 
 ### `review_tasks` — 도입: Phase1(스키마) / 우선순위 계산·생성 로직: 3단계(복습)

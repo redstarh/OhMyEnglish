@@ -155,6 +155,7 @@ def _finding(**overrides: object) -> ErrorFinding:
         "target_form": "go to the gym",
         "original_span": "go to gym",
         "correction": "go to the gym",
+        "explanation": "장소를 가리키는 명사 앞에는 정관사 the가 필요합니다.",
         "severity": "medium",
         "confidence": 0.9,
     }

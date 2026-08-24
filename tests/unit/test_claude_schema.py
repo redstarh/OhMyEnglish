@@ -46,6 +46,7 @@ def _finding(**overrides: Any) -> dict[str, Any]:
         "target_form": "go to the gym",
         "original_span": "go to gym",
         "correction": "go to the gym",
+        "explanation": "장소를 가리키는 명사 앞에는 정관사 the가 필요합니다.",
         "severity": "medium",
         "confidence": 0.9,
     }
@@ -105,6 +106,7 @@ def test_parse_analysis_accepts_empty_findings():
         "target_form",
         "original_span",
         "correction",
+        "explanation",
         "severity",
         "confidence",
     ],
@@ -164,7 +166,9 @@ def test_parse_analysis_rejects_unknown_top_level_field():
 
 
 # 빈 문자열 필드는 거부한다 — pattern_key가 비면 사용자 패턴이 빈 key로 병합된다.
-@pytest.mark.parametrize("field", ["pattern_key", "target_form", "original_span", "correction"])
+@pytest.mark.parametrize(
+    "field", ["pattern_key", "target_form", "original_span", "correction", "explanation"]
+)
 @pytest.mark.parametrize("value", ["", "   ", "\n\t"])
 def test_parse_analysis_rejects_blank_text_field(field: str, value: str):
     with pytest.raises(AnalysisValidationError):
@@ -174,7 +178,9 @@ def test_parse_analysis_rejects_blank_text_field(field: str, value: str):
 # Fix round 1 (I-5) — 앞뒤 공백은 경계에서 깎는다. 공백 하나가 붙은 pattern_key가
 # 기존 key와 다른 값으로 취급되면 병합이 깨지고(그 발화는 5회 재시도 후 failed),
 # original_span에 붙은 공백은 사용자에게 그대로 보인다.
-@pytest.mark.parametrize("field", ["pattern_key", "target_form", "original_span", "correction"])
+@pytest.mark.parametrize(
+    "field", ["pattern_key", "target_form", "original_span", "correction", "explanation"]
+)
 def test_parse_analysis_strips_surrounding_whitespace(field: str):
     expected = _finding()[field]
 

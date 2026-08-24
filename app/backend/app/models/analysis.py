@@ -61,6 +61,7 @@ class ErrorFinding(pydantic.BaseModel):
     target_form: str = pydantic.Field(min_length=1)
     original_span: str = pydantic.Field(min_length=1)
     correction: str = pydantic.Field(min_length=1)
+    explanation: str = pydantic.Field(min_length=1)
     severity: Severity
     confidence: float = pydantic.Field(ge=0, le=1)
 

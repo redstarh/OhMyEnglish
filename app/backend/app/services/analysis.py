@@ -76,6 +76,8 @@ _CORRECTION_STYLE = """\
 - correction: 그 부분을 고친 자연스러운 표현. 원문과 비슷한 길이를 유지한다.
 - target_form: 이 오류 유형에서 앞으로 목표로 삼을 짧은 형태. 왜 틀렸는지 한
   줄로 설명할 수 있는 근거가 되어야 한다.
+- explanation: 왜 틀렸는지 학습자용 한국어 한 문장으로 설명한다. 단문으로,
+  친절한 어투로 쓴다 (예: '어제 일어난 일이므로 과거형 worked를 씁니다').
 - severity: 의사소통을 막는 정도. high(뜻이 달라진다) / medium(어색하다) /
   low(사소하다).
 - confidence: 확신도 0~1. 애매하면 낮춰라 — 확실하지 않은 교정을 높은 확신도로
@@ -105,7 +107,7 @@ _OUTPUT_RULES = """\
 - 오류가 없으면 {"findings": []} 를 출력한다.
 
 {"findings": [{"category": "...", "pattern_key": "...", "target_form": "...",
-"original_span": "...", "correction": "...", "severity": "...",
+"original_span": "...", "correction": "...", "explanation": "...", "severity": "...",
 "confidence": 0.0}]}"""
 
 _NO_EXISTING_PATTERNS = "(없음 — 이 학습자의 첫 분석이다. 모두 새 key로 만든다.)"
@@ -187,8 +189,8 @@ returning id
 
 _INSERT_OCCURRENCE_SQL = """
 insert into error_occurrences
-       (utterance_id, pattern_id, original_span, correction, severity, confidence)
-values ($1, $2, $3, $4, $5, $6)
+       (utterance_id, pattern_id, original_span, correction, explanation, severity, confidence)
+values ($1, $2, $3, $4, $5, $6, $7)
 """
 
 # frequency는 실제 행 수에서 다시 센다(+1 금지 — 재시도마다 부풀어 오른다).
@@ -293,6 +295,7 @@ async def _store_finding(
         pattern_id,
         finding.original_span,
         finding.correction,
+        finding.explanation,
         finding.severity,
         # numeric 컬럼에 float를 바인딩하면 asyncpg가 거부한다 — str 경유 Decimal로
         # 2진 부동소수 오차 없이 넘긴다.

@@ -28,6 +28,7 @@ def _correction_payload(correction: Correction) -> dict[str, object]:
         "category": correction.category,
         "original_span": correction.original_span,
         "correction": correction.correction,
+        "reason": correction.reason,
         "target_form": correction.target_form,
         "occurrences": correction.occurrences,
     }

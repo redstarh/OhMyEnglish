@@ -97,6 +97,10 @@ create table error_occurrences (
   pattern_id uuid not null references error_patterns (id) on delete cascade,
   original_span text not null,
   correction text not null,
+  -- AC U2: 결과 카드의 "원문 → 교정문 → 한 줄 이유" 세 번째 요소. Claude가
+  -- finding마다 산출하는 학습자용 한국어 한 문장 설명이라 correction과 함께
+  -- 채워진다(빈 값은 의미가 없어 not null).
+  explanation text not null,
   severity text not null check (severity in ('low', 'medium', 'high')),
   confidence numeric(3, 2) not null check (confidence between 0 and 1),
   created_at timestamptz not null default now()

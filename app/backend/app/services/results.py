@@ -30,9 +30,10 @@ max(confidence) desc → 발생 수 desc` 순으로 정렬한다. `severity`는
 아예 만들지 않는다. 별도 필터가 필요 없다.
 
 패턴 하나에 여러 occurrence(같은 오류가 여러 문장에)가 있을 때 대표로 보여줄
-`original_span`/`correction`은 그 패턴의 **가장 최근 발화**(`utterances.created_at`
-최댓값) 것을 쓴다 — `error_patterns.last_seen_at`(§5.2)과 같은 최신성 규칙을
-따른 것이며, 임의의 한 행을 고르는 것보다 근거가 있다.
+`original_span`/`correction`/`explanation`(AC U2 "한 줄 이유" → 응답의 `reason`)은
+그 패턴의 **가장 최근 발화**(`utterances.created_at` 최댓값) 것을 쓴다 —
+`error_patterns.last_seen_at`(§5.2)과 같은 최신성 규칙을 따른 것이며, 임의의
+한 행을 고르는 것보다 근거가 있다.
 
 Fix round 1 (I-1): 같은 발화의 같은 패턴에 occurrence가 2건 이상이면
 `utterance_created_at`/`occurrence_created_at`이 완전히 동률일 수 있다 —
@@ -67,6 +68,7 @@ class Correction:
     category: str
     original_span: str
     correction: str
+    reason: str
     target_form: str
     occurrences: int
 
@@ -102,6 +104,7 @@ with occ as (
          eo.pattern_id,
          eo.original_span,
          eo.correction,
+         eo.explanation,
          eo.severity,
          eo.confidence,
          u.created_at as utterance_created_at,
@@ -119,7 +122,7 @@ agg as (
    group by pattern_id
 ),
 representative as (
-  select distinct on (pattern_id) pattern_id, original_span, correction
+  select distinct on (pattern_id) pattern_id, original_span, correction, explanation
     from occ
    -- Fix round 1 (I-1): 앞 두 열이 완전히 동률(같은 트랜잭션에서 insert된
    -- occurrence)이어도 `occurrence_id`가 마지막 tie-break로 결과를 고정한다.
@@ -130,6 +133,7 @@ select ep.pattern_key,
        ep.target_form,
        rep.original_span,
        rep.correction,
+       rep.explanation,
        agg.occurrence_count
   from agg
   join error_patterns ep on ep.id = agg.pattern_id
@@ -147,6 +151,7 @@ async def _load_top_corrections(conn: asyncpg.Connection, session_id: UUID) -> l
             category=record["category"],
             original_span=record["original_span"],
             correction=record["correction"],
+            reason=record["explanation"],
             target_form=record["target_form"],
             occurrences=record["occurrence_count"],
         )
