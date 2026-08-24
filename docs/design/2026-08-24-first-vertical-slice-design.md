@@ -2,7 +2,7 @@
 
 - 작성: 2026-08-24
 - 트랙: A (풀) — 새 프로젝트, 아키텍처 신설
-- 상태: **캡틴 리뷰 대기**
+- 상태: **승인 — 구현 착수 가능** (하드 블로커: SigV4 자격증명 발급, §4.1)
 - 선행: `handoff/HANDOFF.md` §다음 구현 작업 순서 1~2, `docs/nova-sonic-claude-architecture.md`
 
 ### 리뷰 이력
@@ -14,7 +14,7 @@
 | 3차 | Codex (최종본) | **반려** — BLOCK 4건 | 멱등성을 replace 방식으로 재설계(§5.2), lease token 원자화(§5.4), 인증 모순 제거(§7), 결과 화면 조회 규칙 신설(§5.5), `analysis_jobs` 전체 명세(§6.1a), AC10~13 추가, 인용 3건 정정 |
 | 4차 | Fable 5 critic (심층) | **CHALLENGE** — 필수수정 4건 + 과설계 4건 | B-1 잔재 2곳 교체, B-2 sequence_no 모순 해소(무결성 가드로 재정의), B-3 `summarize_session` 다음 슬라이스 연기, B-4 pattern_key 정규화 계약 신설(§5.6), span 오프셋·impact_score·범위 밖 due_at 설계 제거, severity ordinal·last_seen_at 기준·동시성 1·백오프 공식 명시, 발명 수치(lease 5분·attempts 5·AC2 1초) 표기, 인용 4건 정정 |
 | 4차-재 | Fable 5 critic (재검증) | 경미 CHALLENGE → **수정 후 PASS 상당** | B-1~B-4 해소 전건 확인. 잔재 1건(AC3 key 단정이 §5.6 형식 위반) 수정, §5.6 발명 규칙 명시, §1 제외 목록에 세션 총평 추가 |
-| 5차 | 캡틴 | 대기 | — |
+| 5차 | 캡틴 | **승인** (2026-08-25, 대화형 리뷰) | summarize 연기 유지·큐 기본값·pattern_key 계약·복습 1·3·7일·카테고리 코드 7종·h-doc 수정 승인. **SigV4 발급 방식만 미결** — 구현 착수 전 결정 (IAM user access key 권장안 제시됨) |
 
 이 문서는 구현 범위와 결정만 정의한다. 코드와 SQL은 이 설계가 승인된 뒤에 쓴다.
 
@@ -357,8 +357,8 @@ Given 세션의 `analyze_utterance` 중 하나가 `failed`일 때, When 결과 �
 
 ## 9. 미결 사항 — 캡틴 확인 필요
 
-1. **h-doc의 SoT 포인터 수정**: h-doc이 `구현 범위의 SoT는 ~/MyProject/AllMyEnglish/spec/...다`라고 명시해 다음 세션을 폐기된 프로젝트로 유도한다. **사용자 개인 skill 파일이므로 설계자가 임의로 고치지 않는다.**
-2. ~~h-doc이 ❌로 판정한 3건의 재판정~~ → **문서 정리 작업으로 재분류.** 월간 분석(`HANDOFF.md:98`)·YouTube 추천(`docs/requirements-summary.md:99`)·요청형 학습(`HANDOFF.md:138`) 모두 OhMyEnglish 문서가 이미 범위 근거를 제공한다. h-doc의 ❌ 판정은 폐기된 AllMyEnglish 스펙 기준이므로, 캡틴 sign-off 대기가 아니라 h-doc 스펙 대조표를 손볼 때 함께 정정하면 된다(위 1번과 같은 작업). 첫 슬라이스와 무관하다.
+1. ~~h-doc의 SoT 포인터 수정~~ → **해소 (2026-08-25).** 캡틴 승인으로 skill 본문을 수정했다 — 구현 범위 정본을 OhMyEnglish로 교체, ❌ 3건 대조표를 "범위 질문은 프로젝트 문서로" 절로 대체, 학습자 프로필 유지.
+2. **SigV4 자격증명 발급 방식 (유일한 잔여 미결)**: 캡틴이 "나중에 결정"으로 보류 (2026-08-25). 구현 착수 전 반드시 결정 — 선택지는 §4.1 (권장: 전용 IAM user access key → `.env`). 발급 후 스파이크 재실행으로 양방향 1회 왕복 확인이 §10-1의 관문이다.
 
 ### 9.1 문서 근거로 확정한 사항 — 참고용
 

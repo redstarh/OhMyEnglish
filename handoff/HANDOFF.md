@@ -1,10 +1,22 @@
 # OhMyEnglish Handoff
 
-## 현재 상태
+## 현재 상태 (2026-08-25 갱신)
 
-요구사항, 제품 설계, 데이터 모델, Agent 프롬프트, 학습 플로우, UI 스토리보드, 음성 아키텍처를 확정했다.
+요구사항, 제품 설계, 데이터 모델, Agent 프롬프트, 학습 플로우, UI 스토리보드, 음성 아키텍처를 확정했고, **첫 수직 슬라이스 상세 설계서가 리뷰 5회(Codex 3회 + Fable critic 2회 + 캡틴)를 거쳐 승인됐다** — `docs/design/2026-08-24-first-vertical-slice-design.md` (구현 결정의 정본).
 
-아직 실제 웹 애플리케이션, FastAPI 서버, AWS 연결, 테스트 코드는 구현하지 않았다. 현재 저장소는 **구현 전 설계 완료 상태**다.
+아직 실제 웹 애플리케이션, FastAPI 서버, 테스트 코드는 구현하지 않았다. 저장소는 git 초기화됐다(브랜치 `design/first-vertical-slice`).
+
+### ⚠️ 구현 착수의 유일한 하드 블로커 — SigV4 자격증명
+
+**Nova Sonic 양방향 스트림은 Bedrock API key(bearer)로 호출할 수 없다** — 실측 확정 (2026-08-25):
+
+| 엔드포인트 | bearer token |
+|---|---|
+| `/invoke` | HTTP 200 |
+| `/invoke-with-response-stream` | HTTP 200 |
+| `/invoke-with-bidirectional-stream` | **HTTP 403 `This operation does not support API Keys`** |
+
+서비스가 API Key를 특정해 거부하므로 SigV4 자격증명이 필수다. **발급 방식은 미결(캡틴 "나중에 결정") — 구현 착수 전 반드시 결정한다.** 권장안: Bedrock 권한만 가진 전용 IAM user access key → `.env`. 상세: 설계서 §4.1.
 
 ## 제품 한 줄 정의
 
@@ -36,10 +48,15 @@ OhMyEnglish는 사용자의 반복 영어 오류를 패턴으로 기억하고, �
 | API / Audio Gateway | FastAPI + `asyncio` |
 | Frontend | Next.js / React 권장 |
 | 데이터베이스 | PostgreSQL |
-| 비동기 작업 | SQS + Worker 또는 Redis Queue |
+| 비동기 작업 | **PostgreSQL 큐** (`analysis_jobs` + `FOR UPDATE SKIP LOCKED`) — SQS/Redis는 과함 (캡틴 결정) |
+| 로컬 DB 실행 | podman 컨테이너 (로컬에 docker 없음) |
+| 백엔드 자격증명 | **SigV4 전용** — bearer token은 Nova 양방향에서 403 |
 
 ### 중요 주의사항
 
+- 두 모델 ID 모두 us-west-2 실측 검증 완료 (2026-08-24): `us.anthropic.claude-opus-5` invoke HTTP 200, `amazon.nova-2-sonic-v1:0` 실존(`in=[SPEECH] → out=[SPEECH,TEXT]`).
+- **`[1m]` 접미사를 모델 ID에 붙이지 않는다** — Bedrock 프로필이 아니며 400이다 (Claude Code 전용 표기). 1M 컨텍스트는 `anthropic_beta: ["context-1m-2025-08-07"]`로 켠다 (HTTP 200 확인).
+- Hermes Agent는 MVP에서 쓰지 않는다 (LLM agent loop라 결정론적 워커 부적합, Python <3.14 제약). 주간 리포트 cron + Slack DM 시점에 재검토.
 - Claude 호출은 `us.anthropic.claude-opus-5` US geographic 추론 프로필을 사용한다.
   - 요청은 `us-west-2`에서 시작하고, 추론은 미국 리전 안에서만 라우팅된다.
   - `global.anthropic.claude-opus-5`는 전 세계 리전으로 라우팅될 수 있으므로 사용하지 않는다.
@@ -158,6 +175,7 @@ review: 1d → 3d → 7d
 | `docs/voice-architecture.md` | 음성 인식·발화·제어 설계 |
 | `docs/nova-sonic-claude-architecture.md` | Nova 2 Sonic + Claude 상세 아키텍처 |
 | `tests/README.md` | 테스트 전략 |
+| `docs/design/2026-08-24-first-vertical-slice-design.md` | **첫 수직 슬라이스 설계서 (승인됨 — 구현 결정의 정본)** |
 
 ## 다음 구현 작업 순서
 
@@ -181,6 +199,9 @@ infra/                           # AWS 배포 환경
 ```
 
 ### 2. 첫 번째 수직 기능 (Vertical Slice)
+
+> **구현 순서·상세 결정은 설계서 §10이 정본이다**: ① SigV4 자격증명 확보(하드 블로커) → ② `001_initial_schema.sql` 재작성 + `database-schema.md` 정합화 → ③ 백엔드 + 분석 Worker(TDD, Nova 없이 테스트 가능한 부분 먼저) → ④ Audio Gateway 최소 왕복 → ⑤ 프론트엔드 → ⑥ barge-in·롤오버 → ⑦ 통합·E2E.
+> 주요 확정: `analyze_utterance` 단일 job(세션 총평은 다음 슬라이스), pattern_key 정규화 계약(§5.6), 복습 1·3·7일, 오류 카테고리 영문 코드 7종.
 
 다음 한 흐름을 먼저 완성한다.
 
@@ -226,8 +247,8 @@ What do you need to do tonight?
 
 ## 구현 시작 전 확인할 항목
 
-- AWS Bedrock 계정에서 `amazon.nova-2-sonic-v1:0` 접근 권한이 활성화되어 있는지
-- `us.anthropic.claude-opus-5` 호출 권한과 현재 로컬 Bedrock 설정이 정상인지
-- PostgreSQL 연결 정보
-- AWS 자격 증명은 서버에서만 사용하도록 IAM role 또는 환경 변수 구성
-- 오디오 녹음 보관을 첫 MVP에서 비활성화할지 여부
+- [x] `amazon.nova-2-sonic-v1:0` 접근 — 실존·streaming 확인 (2026-08-24)
+- [x] `us.anthropic.claude-opus-5` 호출 권한 — invoke HTTP 200 (2026-08-24)
+- [x] 오디오 녹음 보관 — 첫 슬라이스에서 켜지 않음 (기본 미저장 opt-in, 캡틴 승인)
+- [ ] **SigV4 자격증명 발급 방식 결정 + 발급** — 유일한 하드 블로커. 발급 후 양방향 스트림 스파이크 재실행으로 1회 왕복 확인
+- [ ] PostgreSQL 컨테이너(podman) 기동 및 연결 정보 확정
