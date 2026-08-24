@@ -13,8 +13,12 @@ infrastructure. Three properties carry the correctness of the whole pipeline:
   a worker whose lease expired and whose job was reclaimed by someone else can
   no longer write the outcome: it gets `False` and must drop the work.
 * **회수(recovery)** — a `running` job whose `locked_at` is older than `LEASE`
-  is claimable again by the very same query that claims `pending` jobs, so a
-  crashed worker's job resumes without a separate reaper.
+  and that still has attempts left is claimable again by the very same query
+  that claims `pending` jobs, so a crashed worker's job resumes on its own.
+  One whose attempts are exhausted is instead reaped to terminal `failed` at
+  the top of `claim_next`, so it can neither run a 6th time nor sit in
+  `running` forever (both would be visible to the user: the first as duplicate
+  Claude spend, the second as a session stuck on "analyzing").
 
 설계 발명값 (PRD/요구사항에 없는 운영 파라미터 — 이 세 상수는 설계 단계에서
 정한 값이며, 근거는 "5분이면 Claude 1회 호출이 확실히 끝난다 / 5회면 일시적
@@ -42,6 +46,9 @@ MAX_ATTEMPTS = 5
 BACKOFF = timedelta(minutes=1)
 
 JOB_TYPE_ANALYZE = "analyze_utterance"
+
+# reaper가 좀비 job에 남기는 사유 (아래 `_REAP_ZOMBIES_SQL` 참조).
+LEASE_EXPIRED_ERROR = "max attempts exceeded (lease expired without report)"
 
 
 @dataclass(frozen=True, slots=True)
@@ -93,15 +100,45 @@ async def enqueue_analyze(conn: asyncpg.Connection, utterance_id: UUID) -> UUID 
 async def claim_next(conn: asyncpg.Connection, *, now: datetime | None = None) -> ClaimedJob | None:
     """Claim the next runnable job, minting a new lease token for this claim.
 
-    Claims, in one statement, either a due `pending` job or a `running` job
-    whose lease expired (crash recovery). `attempts` is incremented at claim
-    time, so a recovered job spends an attempt exactly like a normal run —
-    a job that repeatedly kills its worker still walks toward `failed` instead
-    of being retried forever.
+    Two statements, in this order:
+
+    1. **reaper** — a `running` job that already spent every attempt and whose
+       lease expired is made terminal `failed`. Without this the job is a
+       zombie: the recovery leg below refuses to re-run it (attempt cap), and
+       nothing else ever moves it out of `running`, so `results` would report
+       that session as "analyzing" forever.
+    2. **claim** — either a due `pending` job or a `running` job whose lease
+       expired *and* still has attempts left (crash recovery). `attempts` is
+       incremented at claim time, so a recovered job spends an attempt exactly
+       like a normal run: a job that repeatedly kills its worker converges on
+       `failed` (via the reaper) instead of being retried forever.
+
+    The reaper runs on every call rather than in a separate loop — it is one
+    indexed UPDATE that matches nothing in the normal case, and keeping it here
+    means "no job stays claimable-but-uncompletable" holds without a second
+    moving part to deploy and supervise.
 
     `now` (aware) overrides the database clock; it exists so lease/backoff
     behaviour is testable without sleeping.
     """
+    at = _require_aware(now)
+    await conn.execute(
+        """
+        update analysis_jobs
+           set status = 'failed',
+               locked_at = null,
+               locked_by = null,
+               last_error = $4
+         where status = 'running'
+           and locked_at < coalesce($1::timestamptz, now()) - $2::interval
+           and attempts::int >= $3::int
+        """,
+        at,
+        LEASE,
+        MAX_ATTEMPTS,
+        LEASE_EXPIRED_ERROR,
+    )
+
     lease_token = uuid4().hex
     row = await conn.fetchrow(
         """
@@ -115,16 +152,18 @@ async def claim_next(conn: asyncpg.Connection, *, now: datetime | None = None) -
                    from analysis_jobs
                   where (status = 'pending' and available_at <= coalesce($1::timestamptz, now()))
                      or (status = 'running'
-                         and locked_at < coalesce($1::timestamptz, now()) - $3::interval)
+                         and locked_at < coalesce($1::timestamptz, now()) - $3::interval
+                         and attempts::int < $4::int)
                   order by available_at
                   limit 1
                   for update skip locked
                )
         returning id, utterance_id, attempts
         """,
-        _require_aware(now),
+        at,
         lease_token,
         LEASE,
+        MAX_ATTEMPTS,
     )
     if row is None:
         return None

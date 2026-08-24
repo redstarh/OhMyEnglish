@@ -21,6 +21,7 @@ import pytest
 from app.services.jobs import (
     BACKOFF,
     LEASE,
+    LEASE_EXPIRED_ERROR,
     MAX_ATTEMPTS,
     ClaimedJob,
     claim_next,
@@ -71,6 +72,7 @@ def test_queue_constants_are_the_documented_design_values():
     assert LEASE == timedelta(minutes=5)
     assert MAX_ATTEMPTS == 5
     assert BACKOFF == timedelta(minutes=1)
+    assert LEASE_EXPIRED_ERROR == "max attempts exceeded (lease expired without report)"
 
 
 # ① 같은 발화를 다시 enqueue → None (partial unique uq_analysis_jobs_pending_utterance)
@@ -160,6 +162,62 @@ async def test_expired_lease_is_reclaimed_and_stale_token_cannot_complete(
 
     assert await complete(db_conn, job_id, second.lease_token) is True
     assert (await _job_row(db_conn, job_id))["status"] == "done"
+
+
+# Fix round — 좀비 회수(reaper): attempts 상한에 도달한 채 lease만 만료된 running job은
+# 6회째 실행되지 않고 terminal `failed`로 수렴한다. 이 경로가 없으면 워커가 아무 보고도
+# 못 하고 죽은 job이 영원히 running으로 남아 결과 API가 세션을 "분석 중"에 고정한다.
+async def test_zombie_at_attempt_limit_is_reaped_to_failed_instead_of_reclaimed(
+    db_conn: asyncpg.Connection,
+):
+    utterance_id = await _new_utterance(db_conn)
+    job_id = await enqueue_analyze(db_conn, utterance_id)
+    await db_conn.execute(
+        "update analysis_jobs set attempts = $2 where id = $1", job_id, MAX_ATTEMPTS - 1
+    )
+    claimed = await claim_next(db_conn)  # attempts = MAX_ATTEMPTS, 마지막 실행 기회
+    assert claimed is not None
+    assert claimed.attempts == MAX_ATTEMPTS
+    await _expire_lease(db_conn, job_id)  # 워커가 죽어 complete/fail 보고를 못 한 상태
+
+    assert await claim_next(db_conn) is None  # 상한 초과 실행을 하지 않는다
+
+    row = await _job_row(db_conn, job_id)
+    assert row["status"] == "failed"
+    assert row["last_error"] == LEASE_EXPIRED_ERROR
+    assert row["attempts"] == MAX_ATTEMPTS  # reaper는 attempt를 소비하지 않는다
+    assert row["locked_at"] is None
+    assert row["locked_by"] is None
+
+    # terminal이므로 죽은 워커의 뒤늦은 보고도, 이후의 어떤 claim도 되살리지 못한다.
+    assert await complete(db_conn, job_id, claimed.lease_token) is False
+    assert await claim_next(db_conn) is None
+    assert (await _job_row(db_conn, job_id))["status"] == "failed"
+
+
+# Fix round — 상한 미달 job의 회수는 그대로 유지된다 (reaper가 과잉 수확하지 않는다)
+async def test_expired_lease_below_attempt_limit_is_still_reclaimed(
+    db_conn: asyncpg.Connection,
+):
+    utterance_id = await _new_utterance(db_conn)
+    job_id = await enqueue_analyze(db_conn, utterance_id)
+    await db_conn.execute(
+        "update analysis_jobs set attempts = $2 where id = $1", job_id, MAX_ATTEMPTS - 2
+    )
+    claimed = await claim_next(db_conn)  # attempts = MAX_ATTEMPTS - 1
+    assert claimed is not None
+    assert claimed.attempts == MAX_ATTEMPTS - 1
+    await _expire_lease(db_conn, job_id)
+
+    recovered = await claim_next(db_conn)
+
+    assert recovered is not None
+    assert recovered.id == job_id
+    assert recovered.attempts == MAX_ATTEMPTS
+    assert recovered.lease_token != claimed.lease_token
+    row = await _job_row(db_conn, job_id)
+    assert row["status"] == "running"
+    assert row["last_error"] is None  # reaper가 건드리지 않았다
 
 
 # ④ attempts 상한 도달 실패 → failed + last_error, 재claim 안 됨 (W5)
