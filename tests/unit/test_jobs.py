@@ -277,6 +277,49 @@ async def test_retry_before_limit_requeues_with_attempt_scaled_backoff(
     assert reclaimed.attempts == 3
 
 
+# Fix round 2 (I-2) — 백오프 기준 시계는 주입 가능해야 한다
+async def test_fail_or_retry_computes_backoff_from_injected_clock(db_conn: asyncpg.Connection):
+    utterance_id = await _new_utterance(db_conn)
+    job_id = await enqueue_analyze(db_conn, utterance_id)
+    await db_conn.execute("update analysis_jobs set attempts = 1 where id = $1", job_id)
+    claimed = await claim_next(db_conn)
+    assert claimed is not None
+    assert claimed.attempts == 2
+    at = datetime.now(UTC) + timedelta(hours=2)
+
+    assert (
+        await fail_or_retry(db_conn, job_id, claimed.lease_token, "transient error", now=at) is True
+    )
+
+    available_at = await db_conn.fetchval(
+        "select available_at from analysis_jobs where id = $1", job_id
+    )
+    assert available_at == at + 2 * BACKOFF
+
+
+# Fix round 2 (I-2) — 기본 시계는 문장 시계(clock_timestamp)여야 한다.
+# Postgres `now()`는 transaction_timestamp라 문장 사이에 전진하지 않는다: 한 트랜잭션
+# 안에서 claim 후 분석에 4분이 걸렸다면 `now()` 기준 백오프는 이미 지나간 시각을 가리켜
+# 사실상 0이 된다. available_at이 문장 시계 기준이면 트랜잭션 시작 이후 경과한 만큼
+# `now()`와의 차이가 백오프보다 반드시 크다.
+async def test_fail_or_retry_backoff_is_measured_from_statement_clock_not_transaction_start(
+    db_conn: asyncpg.Connection,
+):
+    utterance_id = await _new_utterance(db_conn)
+    job_id = await enqueue_analyze(db_conn, utterance_id)
+    await db_conn.execute("update analysis_jobs set attempts = 1 where id = $1", job_id)
+    claimed = await claim_next(db_conn)
+    assert claimed is not None
+
+    assert await fail_or_retry(db_conn, job_id, claimed.lease_token, "transient error") is True
+
+    delay = await db_conn.fetchval(
+        "select available_at - now() from analysis_jobs where id = $1", job_id
+    )
+    assert delay > 2 * BACKOFF, delay
+    assert delay < 2 * BACKOFF + timedelta(minutes=1), delay
+
+
 # ⑤ 보강 — 만료된 token으로는 재큐도 불가 (0행 → False)
 async def test_fail_or_retry_with_wrong_token_changes_nothing(db_conn: asyncpg.Connection):
     utterance_id = await _new_utterance(db_conn)

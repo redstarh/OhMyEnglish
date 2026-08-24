@@ -30,6 +30,16 @@ infrastructure. Three properties carry the correctness of the whole pipeline:
 
 The SQL keeps these as bound parameters rather than inlined literals so the
 Python constants above stay the single source of truth.
+
+**호출 계약 — 큐 함수는 각각 짧은 자기 트랜잭션에서 호출한다.** 워커는
+`claim_next` → (분석) → `complete`/`fail_or_retry`를 하나의 긴 트랜잭션으로
+묶지 않는다. lease를 잡은 뒤 Claude 호출이 끝날 때까지 트랜잭션을 열어두면
+① 그 시간 내내 행 잠금과 스냅샷을 붙들어 다른 워커의 claim을 방해하고
+② 실패 보고가 커밋되지 못한 채 프로세스가 죽으면 lease 만료까지 아무 진전이
+없다. 시계도 마찬가지 이유로 `now()`(=transaction_timestamp, 문장 사이에
+전진하지 않는다)가 아니라 `clock_timestamp()`를 기본값으로 쓴다 — 긴
+트랜잭션에서 백오프가 0으로 붕괴하는 것을 막는다. 테스트/재현을 위해
+`claim_next`와 `fail_or_retry`는 aware datetime을 `now=`로 주입받는다.
 """
 
 from __future__ import annotations
@@ -130,7 +140,7 @@ async def claim_next(conn: asyncpg.Connection, *, now: datetime | None = None) -
                locked_by = null,
                last_error = $4
          where status = 'running'
-           and locked_at < coalesce($1::timestamptz, now()) - $2::interval
+           and locked_at < coalesce($1::timestamptz, clock_timestamp()) - $2::interval
            and attempts::int >= $3::int
         """,
         at,
@@ -144,15 +154,16 @@ async def claim_next(conn: asyncpg.Connection, *, now: datetime | None = None) -
         """
         update analysis_jobs
            set status = 'running',
-               locked_at = coalesce($1::timestamptz, now()),
+               locked_at = coalesce($1::timestamptz, clock_timestamp()),
                locked_by = $2,
                attempts = attempts + 1
          where id = (
                  select id
                    from analysis_jobs
-                  where (status = 'pending' and available_at <= coalesce($1::timestamptz, now()))
+                  where (status = 'pending'
+                         and available_at <= coalesce($1::timestamptz, clock_timestamp()))
                      or (status = 'running'
-                         and locked_at < coalesce($1::timestamptz, now()) - $3::interval
+                         and locked_at < coalesce($1::timestamptz, clock_timestamp()) - $3::interval
                          and attempts::int < $4::int)
                   order by available_at
                   limit 1
@@ -193,14 +204,26 @@ async def complete(conn: asyncpg.Connection, job_id: UUID, lease_token: str) -> 
 
 
 async def fail_or_retry(
-    conn: asyncpg.Connection, job_id: UUID, lease_token: str, error: str
+    conn: asyncpg.Connection,
+    job_id: UUID,
+    lease_token: str,
+    error: str,
+    *,
+    now: datetime | None = None,
 ) -> bool:
     """Record a failed run: requeue with linear backoff, or give up at the cap.
 
     At `attempts >= MAX_ATTEMPTS` the job becomes terminal `failed` and keeps
     `last_error` for the results view (partial_failure). Below the cap it goes
-    back to `pending` at `now() + attempts * BACKOFF` and the lease is cleared.
-    Same lease gate as `complete`: `False` means the outcome was not recorded.
+    back to `pending` at `clock_timestamp() + attempts * BACKOFF` and the lease
+    is cleared. Same lease gate as `complete`: `False` means the outcome was not
+    recorded.
+
+    The backoff is measured from the *statement* clock, not `now()`
+    (=transaction_timestamp): the latter does not advance between statements, so
+    a worker that spent four minutes on Claude inside one transaction would get
+    a backoff that has already elapsed. `now` (aware) overrides the clock for
+    tests and replay, mirroring `claim_next`.
     """
     updated = await conn.fetchval(
         """
@@ -209,7 +232,8 @@ async def fail_or_retry(
                last_error = $3,
                available_at = case
                                 when attempts::int >= $4::int then available_at
-                                else now() + attempts::int * $5::interval
+                                else coalesce($6::timestamptz, clock_timestamp())
+                                     + attempts::int * $5::interval
                               end,
                locked_at = null,
                locked_by = null
@@ -221,5 +245,6 @@ async def fail_or_retry(
         error,
         MAX_ATTEMPTS,
         BACKOFF,
+        _require_aware(now),
     )
     return updated is not None
