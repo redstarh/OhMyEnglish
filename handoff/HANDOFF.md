@@ -1,12 +1,22 @@
 # OhMyEnglish Handoff
 
-## 현재 상태 (2026-08-25 갱신)
+## 현재 상태 (2026-08-25 갱신 — Phase 1 구현 막바지)
 
-요구사항, 제품 설계, 데이터 모델, Agent 프롬프트, 학습 플로우, UI 스토리보드, 음성 아키텍처를 확정했고, **첫 수직 슬라이스 상세 설계서가 리뷰 5회(Codex 3회 + Fable critic 2회 + 캡틴)를 거쳐 승인됐다** — `docs/design/2026-08-24-first-vertical-slice-design.md` (구현 결정의 정본).
+**첫 수직 슬라이스(Phase 1)의 코드 태스크가 사실상 완료됐다.** 백엔드 전체(스키마·PG 큐·전사문·Claude 분석 파이프라인·워커·결과 API·Audio Gateway+스텁)와 프론트엔드(Next.js 세션·결과 화면)가 구현·리뷰 통과 상태다. 구현 커밋 17개, **테스트 188 passed (skip/xfail 0), ruff/format/ty 전부 clean**.
 
-아직 실제 웹 애플리케이션, FastAPI 서버, 테스트 코드는 구현하지 않았다. 저장소는 git 초기화됐다(브랜치 `design/first-vertical-slice`).
+### 진행 중 / 남은 작업 (순서대로)
 
-### ⚠️ 구현 착수의 유일한 하드 블로커 — SigV4 자격증명
+| # | 작업 | 상태 |
+|---|---|---|
+| 1 | T9 fix round 1 — Gateway Important 5건(비ASCII 프레임 세션 사망, 어댑터 실패 고아 세션, 종료 시 이벤트 유실, unresponsive 런타임 선택, 사인파 톤) + CORS(localhost:3000) | **진행 중** (구현 agent 작업 중) |
+| 2 | T9 fix scoped re-review | 대기 |
+| 3 | **W-live** — 실제 Claude 2발화 스모크 (`scripts/smoke_analysis.py` 작성+실행, 패턴 병합 실물 검증) | 대기 (T11) |
+| 4 | **E2E-S** — 브라우저 6스텝 스모크 (AC 문서 §E2E-S — CORS 반영 후) | 대기 (T12) |
+| 5 | `/simplify` → 재검증 → **최종 whole-branch 리뷰**(최상위 모델) → 완료 선언 6항목 대조 | 대기 |
+
+완료 선언 기준은 `docs/design/2026-08-25-first-slice-acceptance-criteria.md` §완료 선언 규칙(6항목)이 정본이다 — 전 AC pass + W-live + E2E-S + red→green 증거 + /simplify + code-review Approve.
+
+### ⚠️ 유일한 하드 블로커 (Phase 2 진입 조건) — SigV4 자격증명
 
 **Nova Sonic 양방향 스트림은 Bedrock API key(bearer)로 호출할 수 없다** — 실측 확정 (2026-08-25):
 
@@ -16,239 +26,76 @@
 | `/invoke-with-response-stream` | HTTP 200 |
 | `/invoke-with-bidirectional-stream` | **HTTP 403 `This operation does not support API Keys`** |
 
-서비스가 API Key를 특정해 거부하므로 SigV4 자격증명이 필수다. **발급 방식은 미결(캡틴 "나중에 결정") — 구현 착수 전 반드시 결정한다.** 권장안: Bedrock 권한만 가진 전용 IAM user access key → `.env`. 상세: 설계서 §4.1.
+**발급 방식은 미결(캡틴 "나중에 결정")** — Phase 2(Nova 실연동) 착수 전 반드시 결정. 절차 가이드: `docs/ops/iam-setup-nova-sigv4.md` (Slack #clawair 전송 완료). Phase 1은 이 블로커와 무관하게 완주 가능 — Nova는 포트+스텁으로 격리했고 Claude 분석은 bearer로 동작한다(실측 200).
 
-## 제품 한 줄 정의
+## 구현 완료 내역 (태스크 → 커밋)
 
-OhMyEnglish는 사용자의 반복 영어 오류를 패턴으로 기억하고, 일상 질문·답변에서 IT 프로젝트 보고까지 말하기 중심으로 재훈련하는 개인화 영어 학습 Agent다.
+| 태스크 | 커밋 | 리뷰 결과 |
+|---|---|---|
+| T1 스캐폴딩+자격증명 격리(config 단일점) | `de61434`, fix `3d823ae` | Approve (fix: pool 경쟁 조건) |
+| T2 001 스키마 재작성+문서 정합화+시드 | `b0b2323` | Approve — 라이브 DB로 요건 전건 대조 |
+| T3 PG 큐(lease token·reaper·백오프) | `1351c0b`, fix `e002f79`·`fb3754d` | Approve — 구현자가 계획 결함(poison-pill 영구 루프) 발견, reaper ruling으로 해소. 리뷰 Important 3건(원자성·clock_timestamp·동시쓰기) 전건 해소 |
+| T4 전사문 저장+원자적 job 등록 | `e6f58a7` (fix는 T3와 공유) | Approve |
+| T5 Claude 클라이언트+W7 출력 경계 | `fb1839b` | Approve (배치 리뷰) |
+| T6 분석 파이프라인(replace 멱등·§5.6 key 계약) | `e96ab01` | Approve — 뮤테이션 테스트로 트랜잭션 경계 가드 실증 |
+| T7 워커 루프(동시성 1, WORKER_ENABLED) | `086a42e`, fix `010c90c`+chore `f315fa5` | Approve — Important 5건(MAX_TOKENS 16000, tx-밖 호출 가드, 빈 전사문 0건 done, 종료 상한 15s, key 정규화) 해소 |
+| T8 결과 API(R2 5분기·severity ordinal) | `7d453e4`, fix `f183249` | Approve (fix: 대표 문구 tie-break 결정화) |
+| explanation wave (U2 "한 줄 이유" 관통 — 계획 결함 수정) | `79ce9e2` | Approve 이슈 0건 |
+| T9 Gateway+Nova 포트+스텁+WS | `bac4144` | 스펙 ✅ / **fix round 1 진행 중** (Important 5 + CORS) |
+| T10 프론트엔드(Next.js 16, U1·U2 5상태) | `346bf23` | build+lint 통과. 실질 판정은 E2E-S (AC U-검증 원칙) |
 
-## 확정된 사용자 수준과 목표
+프로세스 상세(모든 ruling·이연 minor·red→green 증거 위치)는 `.superpowers/sdd/2026-08-25-phase1-implementation-plan/progress.md`(ledger, git 미추적)에 있다.
 
-- 현재 수준
-  - 일상적인 짧은 문장, 인사, small talk 가능
-  - `I want to ~`, `I need to ~`, `I'd like ~` 등 단문 패턴 중심
-  - 일상 단어 이해 가능
-- 학습 방식
-  - Speaking 중심
-  - 반복 오류를 1일·3일·7일 간격으로 다른 문맥에서 재학습
-  - 일상 Q&A, 업무 역할극, 쉐도잉, 추가 자유 학습 지원
-- 장기 목표
-  - 비즈니스 미팅 참여
-  - IT 프로젝트 리딩과 설명
-  - AWS Engage Manager 대상 프로젝트 상태 보고
+## 로컬 실행 방법
 
-## 확정된 기술 결정
+```bash
+# DB (podman — docker 없음)
+scripts/dev_db.sh start          # postgres:16-alpine, port 5433, ohmy/ohmy/ohmyenglish
+python3 scripts/migrate.py       # 001 적용 + 고정 사용자·시나리오 3행 시드 (멱등)
 
-| 영역 | 선택 |
-|---|---|
-| AWS Region | `us-west-2` |
-| 실시간 음성 모델 | `amazon.nova-2-sonic-v1:0` |
-| 학습 분석 모델 | `us.anthropic.claude-opus-5` |
-| Backend | Python |
-| API / Audio Gateway | FastAPI + `asyncio` |
-| Frontend | Next.js / React 권장 |
-| 데이터베이스 | PostgreSQL |
-| 비동기 작업 | **PostgreSQL 큐** (`analysis_jobs` + `FOR UPDATE SKIP LOCKED`) — SQS/Redis는 과함 (캡틴 결정) |
-| 로컬 DB 실행 | podman 컨테이너 (로컬에 docker 없음) |
-| 백엔드 자격증명 | **SigV4 전용** — bearer token은 Nova 양방향에서 403 |
+# 백엔드 (app/backend, Python 3.13 venv — uv)
+cd app/backend && .venv/bin/uvicorn app.api.main:app --port 8000
+#   .env: DATABASE_URL, AWS_REGION=us-west-2, AWS_BEARER_TOKEN_BEDROCK(Claude용)
+#   WORKER_ENABLED=false 로 기동하면 분석 워커 정지 (E2E-S 스텝 3용)
+#   voice_adapter=stub(기본) | stub_unresponsive(연결 실패 재현 — T9 fix 후)
 
-### 중요 주의사항
+# 프론트 (app/frontend, Next.js 16)
+cd app/frontend && npm run dev   # localhost:3000, NEXT_PUBLIC_API_BASE 기본 localhost:8000
 
-- 두 모델 ID 모두 us-west-2 실측 검증 완료 (2026-08-24): `us.anthropic.claude-opus-5` invoke HTTP 200, `amazon.nova-2-sonic-v1:0` 실존(`in=[SPEECH] → out=[SPEECH,TEXT]`).
-- **`[1m]` 접미사를 모델 ID에 붙이지 않는다** — Bedrock 프로필이 아니며 400이다 (Claude Code 전용 표기). 1M 컨텍스트는 `anthropic_beta: ["context-1m-2025-08-07"]`로 켠다 (HTTP 200 확인).
-- Hermes Agent는 MVP에서 쓰지 않는다 (LLM agent loop라 결정론적 워커 부적합, Python <3.14 제약). 주간 리포트 cron + Slack DM 시점에 재검토.
-- Claude 호출은 `us.anthropic.claude-opus-5` US geographic 추론 프로필을 사용한다.
-  - 요청은 `us-west-2`에서 시작하고, 추론은 미국 리전 안에서만 라우팅된다.
-  - `global.anthropic.claude-opus-5`는 전 세계 리전으로 라우팅될 수 있으므로 사용하지 않는다.
-  - 엄격히 `us-west-2` 단일 리전만 허용해야 하는 요구사항이 생기면, 구현 전 in-region 모델 가용성과 권한을 별도로 검증한다.
-- OpenClaw는 현재 사용하지 않는다.
-  - 실시간 음성 및 학습 기능은 OhMyEnglish 웹/모바일 앱과 Audio Gateway가 직접 담당한다.
-  - Telegram, Slack, WhatsApp 같은 외부 메신저 학습 알림이 필요할 때만 선택적으로 검토한다.
-- 음성 녹음은 기본 저장하지 않고 opt-in으로 설계한다.
-- API 키와 AWS 자격 증명은 브라우저에 노출하지 않는다.
-
-## 핵심 아키텍처
-
-```text
-Browser / Mobile
-  - microphone, speaker, live transcript, UI controls
-  - voice command button
-        │ Secure WebSocket
-        ▼
-Python FastAPI Audio Gateway
-  - authentication
-  - audio frame relay
-  - session state
-  - command router
-        │ bidirectional stream
-        ▼
-Amazon Nova 2 Sonic
-  - real-time speech-to-speech
-  - daily conversation, Q&A drills
-  - short correction, interruption, voice commands
-        │ finalized transcript events
-        ▼
-Claude Opus 5 Worker
-  - error pattern extraction
-  - review scheduling
-  - session feedback
-  - weekly/monthly analysis
-        ▼
-PostgreSQL
-  - users, sessions, utterances, error patterns, review tasks
+# 검증 게이트 (전부 통과 상태여야 정상)
+cd app/backend && .venv/bin/pytest -q && .venv/bin/ruff check . && .venv/bin/ruff format --check . && ty check
 ```
 
-## 모델 역할 분리
+## 구현 중 확정된 주요 판단 (요약 — 전문은 ledger)
 
-- **Nova 2 Sonic (실시간 경로)**
-  - 음성 입력과 음성 응답
-  - 일상 대화와 질문·답변 드릴
-  - 짧은 즉시 교정
-  - 음성 명령 처리
-  - 사용자가 끼어들면 Agent 음성을 멈추고 다시 듣기
+- **큐 의미론**: claim당 고유 lease token / attempts는 claim 시 +1(상한 5 = 최대 5회 호출) / claim 내장 reaper가 lease 만료+상한 도달 좀비를 `failed`로 수렴 / 모든 상태 전이·결과 쓰기는 `status='running' and locked_by=token` 조건 원자화 / 시계는 `clock_timestamp()`(Postgres `now()`는 트랜잭션 고정이라 백오프 무력화 — 실측)
+- **멱등성**: 분석 결과는 발화 단위 replace(delete+insert 한 트랜잭션) — 재시도·재분석 안전, 복수 occurrence 보존. `frequency`는 행 수 재계산, `last_seen_at`은 발화 시각 기준
+- **pattern_key 계약(§5.6)**: 기존 key 목록 프롬프트 주입 + 재사용 우선 + 신규만 `{category}_{snake}` + 공백/대소문자 변형은 기존 표기로 정규화
+- **빈/공백 전사문** = findings 0건 done (재시도 소진 금지) + Gateway 미저장 이중 방어
+- **Claude 클라이언트**: legacy InvokeModel + bearer (Phase 1 임시 이탈 — 설계서 §4.1의 "bearer 금지"는 Phase 2 SigV4 전환으로 해소, config.bedrock_client() 한 곳 격리라 전환 = 설정 교체). MAX_TOKENS 16000(thinking 예산 고려), stop_reason 관측
+- **Nova 포트**: 데이터 경로만 고정(부분/확정 전사문·오디오), 수명·barge-in은 Phase 2 확장. import 격리(AST 검사) — factory만 스텁을 안다
+- **결과 API**: R2 5분기 우선순위(failed→no_utterances→analyzing→partial_failure→final), severity는 CASE ordinal, 대표 문구는 eo.id tertiary key로 결정화
+- **agent 발화도 utterances에 저장**(job은 user learning만 — W6), 릴레이 예외 세션은 completed(failed는 연결 실패 전용)
 
-- **Claude Opus 5 (비동기 분석 경로)**
-  - 전사문에서 반복 문법/구문 오류 추출
-  - `error_patterns` 업데이트
-  - 1일·3일·7일 복습 과제 생성
-  - 세션 종료 피드백
-  - 주간·월간 학습 리포트
-  - IT 프로젝트 보고 학습 계획
+## 제품 정의·설계 정본 (변경 없음)
 
-Claude를 매 음성 턴의 실시간 응답 경로에 넣지 않는다. 응답 지연을 줄이기 위해 Nova 2 Sonic이 대화를 담당하고, Claude는 확정 전사문을 비동기로 분석한다.
+- 제품: 반복 영어 오류를 패턴으로 기억해 말하기 중심으로 재훈련하는 개인화 학습 Agent (일상 Q&A → IT 업무 → AWS Engage Manager 보고)
+- 설계 정본: `docs/design/2026-08-24-first-vertical-slice-design.md` (리뷰 5회 승인) / 완료 기준: `docs/design/2026-08-25-first-slice-acceptance-criteria.md` (critic 2회 PASS) / 구현 계획: `docs/design/2026-08-25-phase1-implementation-plan.md` (12태스크)
+- 기술: us-west-2 / `amazon.nova-2-sonic-v1:0`(Phase 2) / `us.anthropic.claude-opus-5`(**`[1m]` 접미사 금지** — Bedrock 프로필 아님, 1M은 `context-1m-2025-08-07` 베타 플래그) / FastAPI+asyncpg / PG 큐(SQS·Redis 배제) / Next.js / podman / 인증 없음·고정 사용자 1명·localhost 전용
+- 데이터 규칙: 오류는 재사용 가능한 패턴 단위(`unique(user_id, pattern_key)`), 복습 1·3·7일(3단계 로직은 미구현 — 스키마만), `voice_command` 발화는 분석 제외, 음성 녹음 기본 미저장(opt-in)
+- Hermes는 MVP 미사용(비결정론 agent loop·Python <3.14 제약) — 주간 리포트 cron+Slack 시점에 재검토. 세션 총평(`summarize_session`)은 다음 슬라이스(스키마는 준비됨)
 
-## 주요 기능 요구사항
+## 다음 세션 진입 절차
 
-- 매일 10~15분 Speaking 중심 학습
-- 일상 대화와 동일 문형 반복 Q&A
-- 세션당 고영향 오류 최대 1~2개만 교정
-- 오류 패턴별 다른 문맥 재학습
-- 일일 목표 완료 뒤에도 추가 학습 제한 없음
-  - 자유 대화
-  - 질문 다섯 개 더
-  - 약점 패턴 집중
-  - 업무 역할극
-  - 쉐도잉
-- UI와 음성 명령 모두 지원
-  - “추가 연습 시작”
-  - “질문 다섯 개 더”
-  - “천천히 다시 말해줘”
-  - “힌트 줘”
-  - “다음 문제”
-  - “오늘 학습 끝낼게”
-- 종료·삭제 등 영향이 큰 음성 명령은 한 번 더 확인
+1. `git log --oneline`과 ledger(`.superpowers/sdd/2026-08-25-phase1-implementation-plan/progress.md`)로 현재 위치 확인 — ledger의 `Task <N>: complete` 줄이 완료 태스크
+2. 위 "남은 작업" 표의 첫 미완 항목부터 재개 (T9 fix가 커밋됐는지 `git log`로 확인)
+3. E2E-S 6스텝은 AC 문서 §E2E-S가 정본 — 실행 기록을 완료 보고에 첨부
+4. 완료 선언은 AC 문서 6항목 전건 충족 시에만 — 미충족이면 완료라 부르지 않는다 (캡틴 최종 승인 필요)
 
-## 핵심 데이터 규칙
-
-- 오류는 개별 틀린 문장이 아니라 재사용 가능한 패턴으로 저장한다.
-
-```text
-pattern_key: past_tense_in_work_update
-original: Yesterday I work on the API.
-target: Yesterday, I worked on the API.
-review: 1d → 3d → 7d
-```
-
-- `learning_sessions.learning_source`
-  - `recommended`: 오늘의 권장 학습
-  - `additional`: 권장량 완료 뒤의 추가 학습
-  - `user_requested`: 사용자가 직접 특정 패턴으로 요청한 학습
-- `utterances.utterance_type`
-  - `learning`: 영어 학습 발화
-  - `voice_command`: UI/세션 제어 명령
-  - `command_confirmation`: 종료·삭제 등의 확인 발화
-- `voice_command`는 오류 분석 대상에서 제외한다.
-
-## 생성된 주요 문서
-
-| 문서 | 용도 |
-|---|---|
-| `README.md` | 프로젝트 구조와 문서 진입점 |
-| `docs/requirements-summary.html` | 사용자 작성 스타일의 핵심 요구사항 HTML |
-| `docs/requirements-summary.md` | 핵심 요구사항 Markdown |
-| `docs/PRD.md` | 제품 요구사항과 수용 기준 |
-| `docs/database-schema.md` | 데이터 모델 설명 |
-| `db/migrations/001_initial_schema.sql` | PostgreSQL 초기 스키마 |
-| `docs/agent-system-prompt.md` | 영어 코치 Agent 시스템 프롬프트 |
-| `docs/first-4-weeks.md` | 첫 4주 학습 플로우 |
-| `docs/storyboard.html` | UI 스토리보드 |
-| `docs/voice-architecture.md` | 음성 인식·발화·제어 설계 |
-| `docs/nova-sonic-claude-architecture.md` | Nova 2 Sonic + Claude 상세 아키텍처 |
-| `tests/README.md` | 테스트 전략 |
-| `docs/design/2026-08-24-first-vertical-slice-design.md` | **첫 수직 슬라이스 설계서 (승인됨 — 구현 결정의 정본)** |
-
-## 다음 구현 작업 순서
-
-### 1. 코드 프로젝트 초기화
-
-기존 최상위 `app/` 디렉터리를 애플리케이션 코드의 정본으로 사용한다. 테스트는 스택 안으로 넣지 않고 최상위 `tests/`를 그대로 유지한다 (`README.md` 프로젝트 구조와 `tests/README.md` 기준).
-
-```text
-app/
-├── frontend/                    # Next.js / React
-└── backend/                     # FastAPI
-    └── app/
-        ├── api/                 # HTTP, WebSocket endpoint
-        ├── audio_gateway/       # Nova 2 Sonic 양방향 스트림
-        ├── workers/             # Claude 분석 Worker
-        ├── models/              # DB model
-        └── services/            # 학습·복습 domain service
-tests/                           # unit, integration, e2e (최상위 유지)
-scripts/                         # 개발/운영 보조 스크립트
-infra/                           # AWS 배포 환경
-```
-
-### 2. 첫 번째 수직 기능 (Vertical Slice)
-
-> **구현 순서·상세 결정은 설계서 §10이 정본이다**: ① SigV4 자격증명 확보(하드 블로커) → ② `001_initial_schema.sql` 재작성 + `database-schema.md` 정합화 → ③ 백엔드 + 분석 Worker(TDD, Nova 없이 테스트 가능한 부분 먼저) → ④ Audio Gateway 최소 왕복 → ⑤ 프론트엔드 → ⑥ barge-in·롤오버 → ⑦ 통합·E2E.
-> 주요 확정: `analyze_utterance` 단일 job(세션 총평은 다음 슬라이스), pattern_key 정규화 계약(§5.6), 복습 1·3·7일, 오류 카테고리 영문 코드 7종.
-
-다음 한 흐름을 먼저 완성한다.
-
-```text
-브라우저 마이크
- → FastAPI WebSocket
- → Nova 2 Sonic
- → 음성 응답 + 실시간 전사문
- → Claude Opus 5 분석
- → error_patterns 저장
- → 학습 결과 화면
-```
-
-첫 시나리오는 일상 질문·답변 3개로 제한한다.
-
-```text
-What do you usually do after work?
-What do you usually do on weekends?
-What do you need to do tonight?
-```
-
-### 3. 추가 학습과 음성 명령
-
-- UI `질문 다섯 개 더`
-- UI `약점 패턴으로 연습`
-- 음성 `추가 연습 시작`
-- 음성 `천천히 다시 말해줘`
-- 음성 `힌트 줘`
-- 음성 `오늘 학습 끝낼게` + 종료 확인
-
-### 4. 업무 영어와 리포트
-
-- daily update
-- blocker 공유
-- 일정 변경
-- Status / Change / Risk / Decision needed / Next steps 보고 역할극
-
-### 5. 테스트
-
-- 단위: 오류 패턴 정규화, 복습 우선순위, 음성 명령 Intent
-- 통합: 전사문 → Claude 분석 → 패턴 저장 → 복습 과제 생성
-- E2E: 학습 시작 → 대화 → 교정 → 결과 → 추가 학습
-
-## 구현 시작 전 확인할 항목
+## 구현 시작 전 확인 항목 (이력)
 
 - [x] `amazon.nova-2-sonic-v1:0` 접근 — 실존·streaming 확인 (2026-08-24)
 - [x] `us.anthropic.claude-opus-5` 호출 권한 — invoke HTTP 200 (2026-08-24)
 - [x] 오디오 녹음 보관 — 첫 슬라이스에서 켜지 않음 (기본 미저장 opt-in, 캡틴 승인)
-- [ ] **SigV4 자격증명 발급 방식 결정 + 발급** — 유일한 하드 블로커. 발급 후 양방향 스트림 스파이크 재실행으로 1회 왕복 확인
-- [ ] PostgreSQL 컨테이너(podman) 기동 및 연결 정보 확정
+- [x] PostgreSQL 컨테이너(podman) — 기동·마이그레이션·시드 동작 확인 (테스트 188건이 실DB로 검증)
+- [ ] **SigV4 자격증명 발급 방식 결정 + 발급** — Phase 2 하드 블로커 (가이드: `docs/ops/iam-setup-nova-sigv4.md`)
