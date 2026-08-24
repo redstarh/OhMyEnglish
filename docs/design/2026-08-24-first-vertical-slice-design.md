@@ -13,6 +13,7 @@
 | 2차 | Codex (설계서 전체) | **조건부 승인** — BLOCK 2건 | BLOCK 2건 해소(§5.1~5.3), SHOULD FIX 5건 반영(§5.4, §7 Boundary·Failure·Dependency, §8.1, §9) |
 | 3차 | Codex (최종본) | **반려** — BLOCK 4건 | 멱등성을 replace 방식으로 재설계(§5.2), lease token 원자화(§5.4), 인증 모순 제거(§7), 결과 화면 조회 규칙 신설(§5.5), `analysis_jobs` 전체 명세(§6.1a), AC10~13 추가, 인용 3건 정정 |
 | 4차 | Fable 5 critic (심층) | **CHALLENGE** — 필수수정 4건 + 과설계 4건 | B-1 잔재 2곳 교체, B-2 sequence_no 모순 해소(무결성 가드로 재정의), B-3 `summarize_session` 다음 슬라이스 연기, B-4 pattern_key 정규화 계약 신설(§5.6), span 오프셋·impact_score·범위 밖 due_at 설계 제거, severity ordinal·last_seen_at 기준·동시성 1·백오프 공식 명시, 발명 수치(lease 5분·attempts 5·AC2 1초) 표기, 인용 4건 정정 |
+| 4차-재 | Fable 5 critic (재검증) | 경미 CHALLENGE → **수정 후 PASS 상당** | B-1~B-4 해소 전건 확인. 잔재 1건(AC3 key 단정이 §5.6 형식 위반) 수정, §5.6 발명 규칙 명시, §1 제외 목록에 세션 총평 추가 |
 | 5차 | 캡틴 | 대기 | — |
 
 이 문서는 구현 범위와 결정만 정의한다. 코드와 SQL은 이 설계가 승인된 뒤에 쓴다.
@@ -37,7 +38,7 @@
 
 ### 범위에 넣지 않는 것
 
-음성 명령(3단계), 업무 역할극·보고(4단계), 쉐도잉, 주간 리포트, 복습 과제 생성, 인증, AWS 배포, 모바일 앱. 각각 이후 단계에서 다룬다.
+음성 명령(3단계), 업무 역할극·보고(4단계), 쉐도잉, 주간 리포트, 복습 과제 생성, **세션 총평(`summarize_session`, §5.1)**, 인증, AWS 배포, 모바일 앱. 각각 이후 단계에서 다룬다.
 
 ---
 
@@ -185,7 +186,7 @@ Audio Gateway는 이를 전제로 만든다 — **연결 실패를 예외 포착
 `unique(user_id, pattern_key)` 병합(§7 Contract)과 AC4, 그리고 `tests/README.md:9`(같은 오류는 하나의 패턴으로 병합)는 **Claude가 세션을 넘어 같은 오류 유형에 같은 key를 내놓는다**는 전제 위에 있다. 자유 생성에 맡기면 `missing_article_before_place`와 `article_missing_before_gym`이 서로 병합되지 않아 앱의 핵심 약속이 조용히 무너진다 (4차 리뷰 B-4).
 
 - **재사용 우선**: 분석 프롬프트에 해당 사용자의 기존 `pattern_key` 목록(카테고리·`target_form` 포함)을 주입하고, 같은 오류 유형이면 **기존 key를 그대로 재사용**하게 지시한다. 단일 사용자라 목록이 작아 주입 비용이 낮다.
-- **신규 생성 규칙**: 기존에 없을 때만 `{category}_{간결한_영문_스네이크}` 형식으로 생성한다 (예: `article_missing_before_noun`).
+- **신규 생성 규칙**: 기존에 없을 때만 `{category}_{간결한_영문_스네이크}` 형식으로 생성한다 (예: `article_missing_before_noun`). 이 형식은 이 설계의 발명 규칙이다 — 근거 문서 예시 `past_tense_in_work_update`(`HANDOFF.md:129`, 카테고리 `verb_tense`)는 접두 형식이 아니며, 기존 key 재사용 우선 규칙 덕에 실질 충돌은 없다.
 - **검증**: `tests/README.md:3`의 "오류 패턴 정규화" 단위 테스트가 이 계약을 검증한다 — 같은 유형의 새 문장이 기존 key로 매핑되는지.
 
 ---
@@ -304,7 +305,7 @@ Given 세션이 시작되고 마이크 권한이 허용되었을 때, When 사�
 Given Agent가 말하고 있을 때, When 사용자가 말을 시작하면, Then Agent 오디오 송출이 중단되고 사용자 발화를 받는다 (`voice-architecture.md:63` — 원문 요구는 "즉시"). 검증용 상한 **1초**는 이 설계가 정한 발명값이며 체감 목표는 즉시다.
 
 **AC3 — 턴 단위 비동기 분석**
-Given 사용자가 `What do you usually do after work?`에 `I usually go to gym after work.`라고 답할 때, When 확정 전사문이 저장되면, Then 같은 트랜잭션에서 `analyze_utterance` 작업이 등록되고(§5.3) **세션 종료를 기다리지 않고** 처리되어 `article` 카테고리의 `missing_article_before_place` 패턴이 저장되며 `target_form`이 `I usually go to the gym after work.`가 된다. 음성 응답 경로는 이 분석을 기다리지 않는다.
+Given 사용자가 `What do you usually do after work?`에 `I usually go to gym after work.`라고 답할 때, When 확정 전사문이 저장되면, Then 같은 트랜잭션에서 `analyze_utterance` 작업이 등록되고(§5.3) **세션 종료를 기다리지 않고** 처리되어 `article` 카테고리의 패턴(**§5.6 형식의 key** — LLM 출력의 정확한 접미사는 단정하지 않는다)이 저장되며 `target_form`이 `I usually go to the gym after work.`가 된다. 음성 응답 경로는 이 분석을 기다리지 않는다.
 
 > `HANDOFF.md:130`의 과거시제 사례(`Yesterday I work on the API.`)는 업무 문맥이라 이번 일상 질문 3개의 전형적 답변이 아니다. 4단계(업무 영어) 검증용 독립 fixture로 둔다.
 
