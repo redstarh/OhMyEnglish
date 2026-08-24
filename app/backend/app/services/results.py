@@ -33,6 +33,16 @@ max(confidence) desc → 발생 수 desc` 순으로 정렬한다. `severity`는
 `original_span`/`correction`은 그 패턴의 **가장 최근 발화**(`utterances.created_at`
 최댓값) 것을 쓴다 — `error_patterns.last_seen_at`(§5.2)과 같은 최신성 규칙을
 따른 것이며, 임의의 한 행을 고르는 것보다 근거가 있다.
+
+Fix round 1 (I-1): 같은 발화의 같은 패턴에 occurrence가 2건 이상이면
+`utterance_created_at`/`occurrence_created_at`이 완전히 동률일 수 있다 —
+`_replace_occurrences`(§5.2)가 findings 전체를 **한 트랜잭션**에서 insert하고,
+PostgreSQL의 `now()`는 트랜잭션 시작 시각으로 고정되므로 `error_occurrences.created_at`
+이 마이크로초까지 같아진다. 이 동률을 그대로 두면 `distinct on`이 물리 스캔
+순서에 좌우돼 대표 문구 선택이 비결정적이다. `eo.id`(uuid — 시간 순서는 아니지만
+행마다 다르다)를 tie-break의 마지막 열로 추가해 **재조회 안정성**만 확보한다:
+어떤 occurrence가 선택되는지 자체는 의미가 없고, 매번 같은 것이 선택되는지가
+중요하다.
 """
 
 from __future__ import annotations
@@ -88,7 +98,8 @@ select
 # (occurrence 없이 행만 남은) 패턴은 join에서 자연히 빠진다.
 _TOP_CORRECTIONS_SQL = """
 with occ as (
-  select eo.pattern_id,
+  select eo.id as occurrence_id,
+         eo.pattern_id,
          eo.original_span,
          eo.correction,
          eo.severity,
@@ -110,7 +121,9 @@ agg as (
 representative as (
   select distinct on (pattern_id) pattern_id, original_span, correction
     from occ
-   order by pattern_id, utterance_created_at desc, occurrence_created_at desc
+   -- Fix round 1 (I-1): 앞 두 열이 완전히 동률(같은 트랜잭션에서 insert된
+   -- occurrence)이어도 `occurrence_id`가 마지막 tie-break로 결과를 고정한다.
+   order by pattern_id, utterance_created_at desc, occurrence_created_at desc, occurrence_id
 )
 select ep.pattern_key,
        ep.category,

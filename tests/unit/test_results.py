@@ -414,3 +414,138 @@ async def test_analyzing_hides_already_available_corrections(
     assert body["status"] == "analyzing"
     assert body["partial_failure"] is False
     assert "corrections" not in body
+
+
+# ⑨ Fix round 1 (I-2 ①) — severity·confidence가 같을 때 3차 정렬 기준
+# `occurrence_count desc`가 실제로 동작하는지 (지금까지 어떤 테스트도 이 축을
+# 단독으로 검증하지 않았다). 두 패턴 모두 severity="high", confidence=0.80으로
+# 동일하게 두고 발생 수만 다르게 한다 — 그 축이 아니면 순서를 정할 수 없다.
+async def test_top_corrections_tiebreak_by_occurrence_count_when_severity_and_confidence_tie(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session
+):
+    async with db_pool.acquire() as conn:
+        two_occurrences = await _pattern(
+            conn,
+            committed_session.user_id,
+            category="article",
+            pattern_key="article_missing_more_occurrences",
+            target_form="go to the gym",
+            frequency=2,
+        )
+        one_occurrence = await _pattern(
+            conn,
+            committed_session.user_id,
+            category="verb_tense",
+            pattern_key="verb_tense_fewer_occurrences",
+            target_form="I finished the report",
+            frequency=1,
+        )
+
+        first = await _utterance(conn, committed_session.session_id, 1, "I go to gym after work.")
+        second = await _utterance(
+            conn, committed_session.session_id, 2, "I go to office by subway."
+        )
+        third = await _utterance(
+            conn, committed_session.session_id, 3, "I finish report yesterday."
+        )
+        await _job(conn, first, "done")
+        await _job(conn, second, "done")
+        await _job(conn, third, "done")
+
+        await _occurrence(
+            conn,
+            first,
+            two_occurrences,
+            original_span="go to gym",
+            correction="go to the gym",
+            severity="high",
+            confidence="0.80",
+        )
+        await _occurrence(
+            conn,
+            second,
+            two_occurrences,
+            original_span="go to office",
+            correction="go to the office",
+            severity="high",
+            confidence="0.80",
+        )
+        await _occurrence(
+            conn,
+            third,
+            one_occurrence,
+            original_span="finish report yesterday",
+            correction="finished the report",
+            severity="high",
+            confidence="0.80",
+        )
+
+    response = await api_client.get(f"/api/sessions/{committed_session.session_id}/results")
+
+    assert response.status_code == 200
+    corrections = response.json()["corrections"]
+    assert [c["pattern_key"] for c in corrections] == [
+        "article_missing_more_occurrences",
+        "verb_tense_fewer_occurrences",
+    ], "severity·confidence가 같으면 발생 수(occurrence_count desc)가 순서를 정해야 한다"
+    assert corrections[0]["occurrences"] == 2
+    assert corrections[1]["occurrences"] == 1
+
+
+# ⑩ Fix round 1 (I-1 회귀 방어, I-2 ②) — 같은 발화의 같은 패턴에 occurrence 2건을
+# **한 트랜잭션에서** insert해 프로덕션 경계를 재현한다: PostgreSQL `now()`는
+# 트랜잭션 시작 시각으로 고정되므로 두 `error_occurrences.created_at`이 마이크로초까지
+# 동일해진다(§5.2 `_replace_occurrences`가 findings 전체를 한 트랜잭션에서 insert하는
+# 것과 같은 상황). representative CTE의 tie-break가 `eo.id`까지 내려가지 않으면
+# 대표 문구 선택이 물리 스캔 순서에 좌우된다 — 결과 조회를 두 번 해서 같은 문구가
+# 나오는지로 안정성을 고정한다.
+async def test_representative_correction_is_stable_when_occurrences_tie_on_created_at(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session
+):
+    async with db_pool.acquire() as conn:
+        utterance_id = await _utterance(
+            conn, committed_session.session_id, 1, "I go to gym and go to office."
+        )
+        await _job(conn, utterance_id, "done")
+        pattern_id = await _pattern(
+            conn,
+            committed_session.user_id,
+            category="article",
+            pattern_key="article_missing_before_place_noun",
+            target_form="go to the place",
+            frequency=2,
+        )
+        # 같은 트랜잭션 안에서 두 occurrence를 insert — created_at이 완전히 같아진다.
+        async with conn.transaction():
+            await _occurrence(
+                conn,
+                utterance_id,
+                pattern_id,
+                original_span="go to gym",
+                correction="go to the gym",
+                severity="high",
+                confidence="0.90",
+            )
+            await _occurrence(
+                conn,
+                utterance_id,
+                pattern_id,
+                original_span="go to office",
+                correction="go to the office",
+                severity="high",
+                confidence="0.90",
+            )
+
+    first_response = await api_client.get(f"/api/sessions/{committed_session.session_id}/results")
+    second_response = await api_client.get(f"/api/sessions/{committed_session.session_id}/results")
+
+    assert first_response.status_code == 200
+    assert second_response.status_code == 200
+    first_corrections = first_response.json()["corrections"]
+    second_corrections = second_response.json()["corrections"]
+    assert len(first_corrections) == 1
+    assert first_corrections[0]["original_span"] in {"go to gym", "go to office"}
+    assert first_corrections == second_corrections, (
+        "동일한 tie 상황에서 반복 조회가 다른 대표 문구를 돌려주면 안 된다 "
+        "(I-1: representative tie-break가 eo.id까지 내려가야 한다)"
+    )
