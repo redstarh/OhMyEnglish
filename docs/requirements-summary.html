@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OhMyEnglish — 핵심 요구사항</title>
+  <style>
+    :root { --navy:#12213d; --blue:#3268ed; --pale:#edf3ff; --mint:#e5f8ed; --ink:#182033; --muted:#667085; --line:#e4e9f2; }
+    * { box-sizing:border-box; } body { margin:0; background:#f7f9fc; color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; line-height:1.65; }
+    header { padding:52px max(24px,calc((100% - 980px)/2)); background:linear-gradient(125deg,var(--navy),#315dcc); color:#fff; }
+    h1 { margin:0 0 10px; font-size:clamp(32px,5vw,52px); } header p { margin:0; color:#dce6ff; }
+    nav { position:sticky; top:0; z-index:2; overflow:auto; white-space:nowrap; padding:12px max(24px,calc((100% - 980px)/2)); background:#fff; border-bottom:1px solid var(--line); }
+    nav a { display:inline-block; margin-right:6px; padding:7px 10px; border-radius:8px; color:var(--muted); text-decoration:none; font-size:13px; font-weight:700; }
+    nav a:hover { background:var(--pale); color:var(--blue); } main { max-width:980px; margin:auto; padding:38px 24px 80px; }
+    section { margin-bottom:28px; padding:25px; background:#fff; border:1px solid var(--line); border-radius:17px; box-shadow:0 5px 18px #14244909; }
+    h2 { margin:0 0 14px; font-size:22px; } h3 { margin:20px 0 8px; font-size:16px; } ul { margin:8px 0; padding-left:21px; } li { margin:4px 0; }
+    code { padding:2px 5px; border-radius:5px; background:#edf1f7; color:#204eb8; font-size:.9em; } .tag { display:inline-block; margin-bottom:10px; padding:4px 9px; border-radius:99px; background:var(--pale); color:var(--blue); font-size:12px; font-weight:800; }
+    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; } .card { padding:17px; border:1px solid var(--line); border-radius:12px; background:#fbfcff; } .card h3 { margin-top:0; }
+    .highlight { background:var(--mint); border-color:#c8ead8; } .flow { padding:22px; border-radius:13px; background:var(--navy); color:#fff; text-align:center; font-weight:700; line-height:2; }
+    .muted { color:var(--muted); } table { width:100%; border-collapse:collapse; margin-top:10px; font-size:14px; } th,td { padding:10px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line); } th { color:var(--muted); font-size:12px; }
+    @media(max-width:650px) { .grid { grid-template-columns:1fr; } section { padding:20px; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="tag" style="background:#ffffff22;color:#fff">OHMYENGLISH</div>
+    <h1>핵심 요구사항</h1>
+    <p>일상 영어부터 IT 프로젝트 리딩과 AWS Engage Manager 보고까지, 말하기 중심으로 성장하는 개인화 영어 학습 Agent</p>
+  </header>
+  <nav>
+    <a href="#level">영어 수준</a><a href="#learning">학습 방식</a><a href="#repeat">반복 오류</a><a href="#daily">하루 학습</a><a href="#business">업무 영어</a><a href="#voice">음성 대화</a><a href="#goal">최종 목표</a>
+  </nav>
+  <main>
+    <section id="level">
+      <div class="tag">01 · CURRENT LEVEL</div><h2>나의 영어 수준</h2>
+      <ul>
+        <li>하루 일상을 간단한 문장으로 이야기할 수 있음</li><li>간단한 인사와 small talk이 가능한 수준</li>
+        <li><code>I want to ~</code>, <code>I need to ~</code>, <code>I'd like ~</code> 등 간단한 패턴으로 단문 위주로 이야기함</li>
+        <li>일상 단어는 이해하고 들을 수 있음</li><li>긴 문장으로 이유, 진행 상황, 문제점을 설명할 때 부담을 느낌</li>
+      </ul>
+    </section>
+    <section id="learning">
+      <div class="tag">02 · SPEAKING FIRST</div><h2>학습 방향</h2>
+      <div class="grid">
+        <div class="card"><h3>말하기 중심</h3><ul><li>문법 설명보다 Speaking을 우선함</li><li>내가 세션의 65% 이상 말함</li><li>한 번에 질문 하나씩 받음</li></ul></div>
+        <div class="card"><h3>일상 → 업무 확장</h3><ul><li>일상 대화로 자신감 형성</li><li>업무 업데이트와 협업으로 확장</li><li>프로젝트 보고까지 단계적으로 학습</li></ul></div>
+      </div>
+      <h3>일상 질문·답변 반복</h3>
+      <p>하나의 문형을 최소 3~5개의 질문에서 사용합니다.</p>
+      <div class="card"><code>What do you usually do after work?</code><br><b>I usually watch a movie after work.</b><br><br><code>What do you usually do on weekends?</code><br><b>I usually meet my friends on weekends.</b></div>
+    </section>
+    <section id="repeat">
+      <div class="tag">03 · PERSONAL MEMORY</div><h2>반복 오류 학습</h2>
+      <ul><li>시제, 관사, 전치사, 어순, 동사 형태, 업무 표현, 발음·억양을 분석함</li><li>틀린 문장만 저장하지 않고 재사용할 수 있는 패턴으로 기억함</li><li>같은 오류를 1일, 3일, 7일 뒤 다른 상황에서 다시 연습함</li><li>내가 자주 틀리는 패턴을 직접 선택해서 학습을 만들 수 있음</li></ul>
+      <div class="card highlight"><b>예시: 과거 시제 업무 보고</b><br><span class="muted">틀린 문장</span> · Yesterday I work on the API.<br><span class="muted">목표 문장</span> · Yesterday, I worked on the API.<br><span class="muted">다음 행동</span> · 일상, 업무 업데이트, 일정 변경 상황에서 다시 말하기</div>
+    </section>
+    <section id="daily">
+      <div class="tag">04 · DAILY & EXTRA</div><h2>하루 학습 방식</h2>
+      <div class="grid">
+        <div class="card"><h3>기본 학습 · 10~15분</h3><ol><li>전날 패턴 짧게 복습</li><li>오늘의 일상 또는 업무 대화</li><li>핵심 오류 1~2개 교정</li><li>다른 상황에서 다시 말하기</li><li>다음 복습 일정 확인</li></ol></div>
+        <div class="card"><h3>추가 학습 · 제한 없음</h3><ul><li>자유 대화</li><li>질문 다섯 개 더</li><li>자주 틀리는 패턴 집중</li><li>업무 역할극</li><li>쉐도잉</li></ul><p class="muted">일일 목표는 권장량이며, 학습을 막는 제한이 아닙니다.</p></div>
+      </div>
+      <h3>주간·월간 분석</h3><ul><li>가장 많이 틀린 문법과 구문</li><li>지난주·지난달보다 좋아진 패턴</li><li>다음에 다시 연습할 문장과 업무 상황</li><li>일상 대화, 회의, 보고 영어의 변화</li></ul>
+    </section>
+    <section>
+      <div class="tag">05 · SHADOWING</div><h2>쉐도잉과 영상 학습</h2>
+      <ul><li>30~90초의 짧은 영상 또는 오디오 사용</li><li>듣기 → 문장 단위 따라 말하기 → 천천히 다시 듣기 → 녹음 → 내 상황에 맞게 바꿔 말하기</li><li>필요하면 YouTube 영상 후보를 주제와 수준에 맞춰 추천</li><li>사용자가 선택한 짧은 구간만 학습 과제로 사용</li></ul>
+    </section>
+    <section id="business">
+      <div class="tag">06 · BUSINESS ENGLISH</div><h2>업무 영어 학습</h2>
+      <table><thead><tr><th>단계</th><th>학습 내용</th></tr></thead><tbody>
+        <tr><td>초기 업무 영어</td><td>어제 한 일, 오늘 할 일, 도움 요청, 일정 변경</td></tr>
+        <tr><td>프로젝트 협업</td><td>blocker 공유, 우선순위 조율, API 지연·테스트 실패 설명</td></tr>
+        <tr><td>프로젝트 보고</td><td>상태, 변경점, 리스크, 필요한 결정, 다음 행동 보고</td></tr>
+      </tbody></table>
+      <div class="card"><b>보고 기본 구조</b><br>Current status → What changed → Risks / blockers → Decision needed → Next steps</div>
+    </section>
+    <section id="voice">
+      <div class="tag">07 · VOICE EXPERIENCE</div><h2>UI와 음성 제어</h2>
+      <div class="grid">
+        <div class="card"><h3>화면에서 제어</h3><p>오늘 학습 시작 · 추가 학습 · 질문 다섯 개 더 · 힌트 · 천천히 재생 · 다음 문제 · 일시 정지 · 종료 · 오류 패턴 확인</p></div>
+        <div class="card"><h3>음성으로 제어</h3><p>“추가 연습 시작”<br>“질문 다섯 개 더”<br>“천천히 다시 말해줘”<br>“힌트 줘”</p></div>
+      </div>
+      <h3>음성 대화 구현</h3>
+      <div class="grid">
+        <div class="card highlight"><h3>Nova 2 Sonic</h3><p>사용자의 음성을 듣고 바로 음성으로 답합니다.<br>일상 대화, 반복 Q&A, 짧은 교정, 음성 명령을 담당합니다.</p></div>
+        <div class="card"><h3>Claude Opus 5 on Bedrock</h3><p>전사문을 분석해 반복 오류와 복습 일정을 만들고, 주간·월간 분석과 업무 영어 학습 계획을 생성합니다.</p></div>
+      </div>
+      <div class="card" style="margin-top:14px"><b>확정된 기술 선택</b><br><span class="muted">AWS Region</span> · us-west-2<br><span class="muted">실시간 음성</span> · amazon.nova-2-sonic-v1:0<br><span class="muted">학습 분석</span> · us.anthropic.claude-opus-5<br><span class="muted">Backend</span> · Python + FastAPI + asyncio<br><span class="muted">데이터 라우팅</span> · 미국 리전 안에서만 라우팅</div>
+      <p class="muted">OpenClaw는 현재 필요하지 않습니다. 나중에 Telegram·Slack·WhatsApp 학습 알림이 필요할 때만 선택적으로 검토합니다.</p>
+    </section>
+    <section id="goal">
+      <div class="tag">08 · FINAL GOAL</div><h2>목표하는 수준</h2>
+      <ul><li>간단한 회사 영어부터 점진적으로 수준을 높임</li><li>회사 내 비즈니스 미팅에 참여하고 의견을 말할 수 있음</li><li>IT 회사 프로젝트를 리딩하고 일정·리스크·의사결정 사항을 설명할 수 있음</li><li>AWS Engage Manager에게 프로젝트 상황을 구조적으로 보고할 수 있음</li></ul>
+      <div class="flow">일상 질문·답변<br>↓<br>반복 오류 발견과 재학습<br>↓<br>업무 상황 적용<br>↓<br>프로젝트 보고 역할극<br>↓<br>AWS Engage Manager 보고 수준</div>
+    </section>
+  </main>
+</body>
+</html>

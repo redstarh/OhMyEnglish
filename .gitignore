@@ -1,0 +1,40 @@
+# --- Python (app/backend) ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# --- Node / Next.js (app/frontend) ---
+node_modules/
+.next/
+out/
+build/
+.turbo/
+*.tsbuildinfo
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- 환경 변수 / 자격 증명 ---
+# AWS_BEARER_TOKEN_BEDROCK, DATABASE_URL 등은 절대 커밋하지 않는다.
+.env
+.env.*
+!.env.example
+
+# --- 로컬 데이터 ---
+# 음성 녹음은 opt-in이며 저장소에 넣지 않는다.
+assets/audio/
+data/local/
+*.dump
+
+# --- OS / 편집기 ---
+.DS_Store
+.vscode/
+.idea/
+*.swp

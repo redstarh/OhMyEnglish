@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OhMyEnglish — Product Storyboard</title>
+  <style>
+    :root { --navy:#13223b; --blue:#3067ed; --sky:#eaf1ff; --mint:#d9f8e9; --ink:#172033; --muted:#667085; --line:#e5e9f2; --bg:#f7f9fc; }
+    * { box-sizing:border-box; } body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:var(--ink); background:var(--bg); }
+    header { padding:56px max(24px,calc((100% - 1120px)/2)); background:linear-gradient(125deg,#13223b,#284fbd); color:white; }
+    header p { max-width:660px; color:#d9e4ff; line-height:1.65; } h1 { margin:0 0 12px; font-size:clamp(32px,5vw,54px); } h2 { margin:0 0 10px; } h3 { margin:0 0 6px; font-size:17px; }
+    nav { position:sticky; top:0; z-index:3; display:flex; gap:8px; overflow:auto; padding:12px max(24px,calc((100% - 1120px)/2)); background:#fff; border-bottom:1px solid var(--line); }
+    nav a { white-space:nowrap; padding:8px 12px; color:var(--muted); text-decoration:none; font-size:14px; font-weight:600; }
+    main { max-width:1120px; margin:auto; padding:42px 24px 80px; } section { margin:0 0 64px; } .lead { color:var(--muted); line-height:1.7; max-width:760px; }
+    .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; } .two { grid-template-columns:repeat(2,1fr); }
+    .card { background:#fff; border:1px solid var(--line); border-radius:16px; padding:22px; box-shadow:0 4px 20px #1a32640a; }
+    .tag { display:inline-block; border-radius:999px; padding:5px 9px; background:var(--sky); color:var(--blue); font-size:12px; font-weight:700; margin-bottom:12px; }
+    .phone { background:#fff; border:9px solid var(--navy); border-radius:29px; min-height:480px; overflow:hidden; box-shadow:0 14px 30px #14244922; }
+    .screen-head { padding:20px; color:#fff; background:var(--navy); } .screen-body { padding:18px; }
+    .tiny { font-size:13px; color:var(--muted); line-height:1.55; } .row { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .pill { padding:7px 10px; border-radius:10px; background:#f1f4f9; font-size:12px; } .button { border:0; width:100%; padding:14px; border-radius:12px; background:var(--blue); color:#fff; font-weight:800; font-size:15px; margin-top:16px; }
+    .bubble { margin:12px 0; padding:11px 13px; border-radius:12px; line-height:1.45; font-size:14px; } .agent { background:var(--sky); } .user { background:var(--mint); margin-left:24px; }
+    .record { margin:20px auto 8px; height:66px; width:66px; display:grid; place-items:center; border-radius:50%; background:#ff5865; color:white; font-size:25px; }
+    .metric { padding:13px 0; border-bottom:1px solid var(--line); } .metric strong { display:block; font-size:24px; color:var(--blue); }
+    .week { border-left:3px solid var(--blue); padding:0 0 0 16px; margin:18px 0; } code { background:#eef2f8; padding:2px 5px; border-radius:4px; font-size:12px; }
+    @media(max-width:760px){ .grid,.two { grid-template-columns:1fr; } header { padding-top:40px; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="tag" style="background:#ffffff22;color:#fff">PERSONALIZED SPEAKING AGENT</div>
+    <h1>OhMyEnglish</h1>
+    <p>반복 오류를 기억하고, 일상 영어에서 IT 프로젝트 보고까지 말하기로 훈련시키는 개인화 영어 코치의 UI 스토리보드입니다.</p>
+  </header>
+  <nav>
+    <a href="#principle">제품 원칙</a><a href="#journey">학습 여정</a><a href="#screens">핵심 화면</a><a href="#voice">음성 제어</a><a href="#weekly">분석·복습</a><a href="#roadmap">4주 플로우</a><a href="#data">데이터·Agent</a>
+  </nav>
+  <main>
+    <section id="principle">
+      <div class="tag">01 · PRODUCT PRINCIPLE</div>
+      <h2>교정이 아니라, 다음 발화를 바꾸는 학습</h2>
+      <p class="lead">Agent는 사용자의 발화를 짧게 교정하고 끝내지 않습니다. 오류를 재사용 가능한 패턴으로 저장하고, 다른 상황에서 다시 말하게 하며, 충분히 성공하면 난이도를 올립니다.</p>
+      <div class="grid">
+        <div class="card"><span class="tag">SPEAK FIRST</span><h3>사용자가 더 많이 말한다</h3><p class="tiny">일상 대화와 반복 질문·답변을 매일 훈련합니다. 세션 발화량의 65% 이상을 사용자에게 할당합니다.</p></div>
+        <div class="card"><span class="tag">REMEMBER</span><h3>오류를 패턴으로 기억한다</h3><p class="tiny"><code>past_tense_in_work_update</code>처럼 문법과 사용 맥락을 함께 저장합니다.</p></div>
+        <div class="card"><span class="tag">TRANSFER</span><h3>실제 업무로 전이한다</h3><p class="tiny">daily update → blocker → risk → stakeholder report 순으로 업무 난이도를 높입니다.</p></div>
+      </div>
+    </section>
+
+    <section id="journey">
+      <div class="tag">02 · USER JOURNEY</div>
+      <h2>매일 10분의 닫힌 학습 루프</h2>
+      <div class="grid">
+        <div class="card"><h3>1. 오늘의 목표</h3><p class="tiny">복습할 오류와 오늘의 역할극을 제안합니다.</p></div>
+        <div class="card"><h3>2. 음성 역할극</h3><p class="tiny">짧은 질문, 충분한 발화, 필요한 경우만 힌트를 제공합니다.</p></div>
+        <div class="card"><h3>3. Repair &amp; Review</h3><p class="tiny">핵심 오류를 변형 문장으로 재발화하고 다음 복습 일정을 잡습니다.</p></div>
+      </div>
+    </section>
+
+    <section id="screens">
+      <div class="tag">03 · UI STORYBOARD</div>
+      <h2>핵심 화면 3개</h2>
+      <div class="grid">
+        <article class="phone">
+          <div class="screen-head"><div class="tiny" style="color:#a9bde8">MONDAY · 10 MINUTES</div><h3>오늘의 Speaking</h3></div>
+          <div class="screen-body">
+            <div class="row"><strong>오늘의 질문 답변</strong><span class="pill">3 / 3 완료</span></div>
+            <p class="tiny">“I usually…”를 써서 일상 질문 세 개에 답했어요.</p>
+            <div class="card" style="background:#f8fbff"><strong>복습 포인트</strong><p class="tiny">Past tense in work updates<br>“I worked on…”</p></div>
+            <button class="button">추가 학습 선택</button>
+            <p class="tiny" style="text-align:center">자유 대화 · 질문 5개 더 · 약점 집중 · 업무 역할극</p>
+          </div>
+        </article>
+        <article class="phone">
+          <div class="screen-head"><div class="tiny" style="color:#a9bde8">ROLE PLAY · 04:32</div><h3>Daily update</h3></div>
+          <div class="screen-body">
+            <div class="row"><span class="pill">🎙 음성 명령 ON</span><span class="tiny">“천천히 말해줘”</span></div>
+            <div class="bubble agent">What do you usually do after work?</div>
+            <div class="bubble user">I usually watch a movie and cook dinner.</div>
+            <div class="bubble agent">Nice. One more question: What do you usually do on weekends?</div>
+            <div class="record">●</div>
+            <p class="tiny" style="text-align:center">탭해서 말하기</p>
+          </div>
+        </article>
+        <article class="phone">
+          <div class="screen-head"><div class="tiny" style="color:#a9bde8">SESSION COMPLETE</div><h3>오늘의 정리</h3></div>
+          <div class="screen-body">
+            <div class="card" style="border-color:#c8ead9"><strong>잘했어요</strong><p class="tiny">업무 내용을 더 긴 문장으로 설명했어요.</p></div>
+            <div class="metric"><strong>1</strong><span class="tiny">다음에 집중할 패턴</span><p class="tiny">Past tense in work updates</p></div>
+            <div class="metric"><strong>Thu</strong><span class="tiny">다음 복습</span><p class="tiny">일정 변경 상황에서 다시 연습</p></div>
+            <button class="button">2분 복습 시작</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="voice">
+      <div class="tag">04 · VOICE + UI CONTROL</div>
+      <h2>버튼으로도, 말로도 학습을 움직인다</h2>
+      <p class="lead">모든 핵심 행동은 UI와 음성 명령을 동시에 제공합니다. 처음에는 버튼을 눌러 명령하는 방식을 기본으로 두고, 활성 학습 중에는 “Oh My English” 호출어로 학습 답변과 제어 발화를 구분합니다.</p>
+      <div class="two grid">
+        <div class="card"><h3>UI 제어</h3><p class="tiny">추가 학습 · 질문 5개 더 · 힌트 · 반복 · 속도 낮춤 · 다음 문제 · 일시정지 · 종료</p><button class="button">추가 학습 선택</button></div>
+        <div class="card"><h3>음성 제어</h3><p class="tiny">“추가 연습 시작”<br>“Oh My English, 질문 다섯 개 더”<br>“Repeat that slowly.”<br>“힌트 줘”</p><div class="card" style="background:var(--sky);border:0"><strong>안전 규칙</strong><p class="tiny">종료·삭제는 한 번 더 확인합니다. 학습 답변은 명령으로 오인하지 않습니다.</p></div></div>
+      </div>
+    </section>
+
+    <section id="weekly">
+      <div class="tag">05 · REVIEW INTELLIGENCE</div>
+      <h2>사용자가 ‘무엇을 왜 다시 해야 하는지’ 이해하는 화면</h2>
+      <div class="two grid">
+        <div class="card"><h3>주간 학습 리포트</h3><div class="metric"><strong>4 / 5</strong><span class="tiny">완료 세션</span></div><div class="metric"><strong>↓ 22%</strong><span class="tiny">과거 시제 오류 변화</span></div><div class="metric"><strong>2</strong><span class="tiny">다음 주 집중 패턴</span></div></div>
+        <div class="card"><h3>복습 큐</h3><p class="tiny"><b>오늘</b> · “I worked on…”을 incident update에서 말하기</p><p class="tiny"><b>3일 후</b> · 일정 지연을 과거 시제로 설명하기</p><p class="tiny"><b>7일 후</b> · 45초 프로젝트 업데이트에서 자연스럽게 쓰기</p><button class="button">약점 패턴으로 연습 만들기</button></div>
+      </div>
+    </section>
+
+    <section id="roadmap">
+      <div class="tag">06 · FIRST FOUR WEEKS</div>
+      <h2>일상에서 프로젝트 보고까지</h2>
+      <div class="two grid">
+        <div class="card"><div class="week"><h3>Week 1 — 일상 발화</h3><p class="tiny">자기소개, 오늘 한 일, 계획. 상위 오류 2개를 진단하고 30초 업데이트를 완성합니다.</p></div><div class="week"><h3>Week 2 — 업무 업데이트</h3><p class="tiny">어제·오늘·내일 업무를 45초로 보고합니다.</p></div></div>
+        <div class="card"><div class="week"><h3>Week 3 — 이슈와 협업</h3><p class="tiny">blocker, 도움 요청, 일정 변경을 회의 Q&amp;A로 연습합니다.</p></div><div class="week"><h3>Week 4 — 프로젝트 상태 보고</h3><p class="tiny">Status / Change / Risk / Ask / Next step 구조로 60초 보고합니다.</p></div></div>
+      </div>
+    </section>
+
+    <section id="data">
+      <div class="tag">07 · IMPLEMENTATION CONTRACT</div>
+      <h2>Agent가 기억해야 하는 최소 단위</h2>
+      <div class="card">
+        <pre style="white-space:pre-wrap; margin:0; font-size:13px; line-height:1.7">error_pattern
+  category: verb_tense
+  key: past_tense_in_work_update
+  original: "Yesterday I work on API test."
+  target: "Yesterday, I worked on API testing."
+  mastery: 35 / 100
+  review: 1d → 3d → 7d, each in a new context
+
+business_report
+  Status → Change → Risk → Decision needed → Next step</pre>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
