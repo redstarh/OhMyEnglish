@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     aws_region: str
     aws_bearer_token_bedrock: str | None = None
     claude_model_id: str = "us.anthropic.claude-opus-5"
+    # 분석 워커 기동 플래그. 기본은 켜짐 — API만 띄우고 큐를 일부러 쌓아두는
+    # 시나리오(E2E-S 3단계)에서만 끈다.
+    worker_enabled: bool = True
 
 
 @lru_cache
