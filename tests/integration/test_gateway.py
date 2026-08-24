@@ -29,13 +29,38 @@ import pytest
 
 from app.api import ws as ws_module
 from app.audio_gateway import session as session_module
-from app.audio_gateway.fixtures import FIXTURE_TURNS, SILENT_WAV_FRAME
+from app.audio_gateway.factory import (
+    STUB_ADAPTER,
+    STUB_UNRESPONSIVE_ADAPTER,
+    create_voice_adapter,
+)
+from app.audio_gateway.fixtures import FIXTURE_TURNS, TONE_WAV_FRAME
 from app.audio_gateway.port import AdapterEvent, TranscriptEvent, VoiceAdapter
-from app.audio_gateway.session import CONNECT_TIMEOUT, SessionEndStatus, SessionRunner
+from app.audio_gateway.session import (
+    CONNECT_ERROR_REASON,
+    CONNECT_TIMEOUT,
+    CONNECT_TIMEOUT_REASON,
+    DRAIN_TIMEOUT,
+    SessionEndStatus,
+    SessionRunner,
+)
 from app.audio_gateway.stub import StubVoiceAdapter
+from app.config import Settings
 
 # 연결 타임아웃 주입값. 실시간 대기 금지 — 무응답 경로도 0.1초 안에 판정된다.
 FAST_CONNECT_TIMEOUT = 0.1
+# 드레인 데드라인 주입값. 어댑터가 스트림을 닫지 않는 대역(`hold_open=True`)에서
+# 종료 경로를 보는 테스트는 데드라인 자체가 관심사가 아니라, 기다릴 이유가 없다.
+FAST_DRAIN_TIMEOUT = 0.05
+
+
+def _settings(*, voice_adapter: str) -> Settings:
+    """자격증명·DSN을 실제로 쓰지 않는 Settings 인스턴스 (팩토리 분기 검증용)."""
+    return Settings(
+        database_url="postgresql://unused/unused",
+        aws_region="us-west-2",
+        voice_adapter=voice_adapter,
+    )
 
 
 class FakeClient:
@@ -75,23 +100,38 @@ class ScriptedAdapter:
 
     스텁이 **만들지 않는** 경계 입력(빈 final, partial만 오는 흐름)을 러너에 넣기
     위한 것이다. `hold_open=True`면 대본을 다 흘린 뒤에도 스트림을 열어 둔다 —
-    클라이언트가 `end_session`으로 끝내는 경로를 볼 때 쓴다.
+    클라이언트가 `end_session`으로 끝내는 경로를 볼 때 쓴다. `delay`는 이벤트마다
+    앞에 두는 지연으로, 종료 신호가 먼저 도착한 뒤에 도착하는 이벤트를 만든다(I3).
+
+    `start_error`가 주어지면 `start()`가 그 예외를 던진다 — 타임아웃이 아닌 연결
+    실패(Phase 2의 403이 이 모양)를 재현한다(I2).
     """
 
-    def __init__(self, *events: AdapterEvent, hold_open: bool = False) -> None:
+    def __init__(
+        self,
+        *events: AdapterEvent,
+        hold_open: bool = False,
+        delay: float = 0.0,
+        start_error: Exception | None = None,
+    ) -> None:
         self.script = list(events)
         self.hold_open = hold_open
+        self.delay = delay
+        self.start_error = start_error
         self.frames: list[bytes] = []
         self.closed = False
 
     async def start(self) -> None:
-        return None
+        if self.start_error is not None:
+            raise self.start_error
 
     async def send_audio(self, frame: bytes) -> None:
         self.frames.append(frame)
 
     async def events(self) -> AsyncIterator[AdapterEvent]:
         for event in self.script:
+            if self.delay:
+                await asyncio.sleep(self.delay)
             yield event
         if self.hold_open:
             await asyncio.Event().wait()
@@ -193,7 +233,7 @@ async def test_fixture_run_broadcasts_the_full_protocol(db_pool, committed_sessi
     assert len(client.of_type("partial")) >= len(FIXTURE_TURNS)
     audio = client.of_type("audio")
     assert len(audio) == len(FIXTURE_TURNS)
-    assert base64.b64decode(audio[0]["data"]) == SILENT_WAV_FRAME
+    assert base64.b64decode(audio[0]["data"]) == TONE_WAV_FRAME
 
 
 # ② 무응답 어댑터 → status='failed' + 실패 이벤트, 무한 대기 없음 (G2)
@@ -216,6 +256,7 @@ async def test_unresponsive_adapter_fails_the_session_without_hanging(db_pool, c
 
     assert loop.time() - started < 1.0, "주입한 타임아웃을 무시하고 매달렸다"
     assert client.types == ["session_started", "session_failed"]
+    assert client.of_type("session_failed")[0]["reason"] == CONNECT_TIMEOUT_REASON
     session = await _session_row(db_pool, committed_session.session_id)
     assert session["status"] == "failed"
     assert session["ended_at"] is not None
@@ -295,7 +336,14 @@ async def test_client_audio_is_relayed_and_end_session_closes_the_session(
     )
 
     await asyncio.wait_for(
-        _runner(adapter, db_pool, committed_session.session_id, client).run(), timeout=5.0
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            client,
+            drain_timeout=FAST_DRAIN_TIMEOUT,
+        ).run(),
+        timeout=5.0,
     )
 
     assert adapter.frames == frames
@@ -309,7 +357,13 @@ async def test_client_disconnect_ends_the_session(db_pool, committed_session):
     adapter = ScriptedAdapter(hold_open=True)
 
     await asyncio.wait_for(
-        _runner(adapter, db_pool, committed_session.session_id, FakeClient(None)).run(),
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            FakeClient(None),
+            drain_timeout=FAST_DRAIN_TIMEOUT,
+        ).run(),
         timeout=5.0,
     )
 
@@ -328,11 +382,128 @@ async def test_malformed_client_message_does_not_kill_the_session(db_pool, commi
     )
 
     await asyncio.wait_for(
-        _runner(adapter, db_pool, committed_session.session_id, client).run(), timeout=5.0
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            client,
+            drain_timeout=FAST_DRAIN_TIMEOUT,
+        ).run(),
+        timeout=5.0,
     )
 
     assert adapter.frames == []
     assert client.types[-1] == "session_ended"
+
+
+# Fix round 1 (I1) — 비ASCII 문자열은 `binascii.Error`가 아니라 순수 `ValueError`다
+# (`b64decode`가 ascii 인코딩에서 먼저 실패한다). 그 예외를 놓치면 오디오 프레임
+# 하나가 펌프를 죽이고 세션 전체가 끝난다.
+async def test_non_ascii_audio_frame_does_not_kill_the_session(db_pool, committed_session):
+    adapter = ScriptedAdapter(hold_open=True)
+    good_frame = b"\x07\x08"
+    client = FakeClient(
+        {"type": "audio", "data": "한글데이터"},
+        {"type": "audio", "data": base64.b64encode(good_frame).decode("ascii")},
+        {"type": "end_session"},
+    )
+
+    await asyncio.wait_for(
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            client,
+            drain_timeout=FAST_DRAIN_TIMEOUT,
+        ).run(),
+        timeout=5.0,
+    )
+
+    # 깨진 프레임 뒤의 정상 프레임이 도착했다 = 세션이 살아 있었다.
+    assert adapter.frames == [good_frame]
+    assert client.types[-1] == "session_ended"
+    assert (await _session_row(db_pool, committed_session.session_id))["status"] == "completed"
+
+
+# Fix round 1 (I2) — 타임아웃이 아닌 연결 실패(예: 권한 거부)도 세션을 닫고 알려야
+# 한다. 예외가 그대로 새어나가면 세션은 `active` 고아로 남고 클라이언트는 통보를
+# 받지 못해 U2의 "연결 실패" 화면이 뜨지 않는다.
+async def test_failing_adapter_start_fails_the_session(db_pool, committed_session):
+    adapter = ScriptedAdapter(start_error=RuntimeError("403 forbidden"))
+    client = FakeClient()
+
+    await asyncio.wait_for(
+        _runner(adapter, db_pool, committed_session.session_id, client).run(), timeout=5.0
+    )
+
+    assert client.types == ["session_started", "session_failed"]
+    assert client.of_type("session_failed")[0]["reason"] == CONNECT_ERROR_REASON
+    session = await _session_row(db_pool, committed_session.session_id)
+    assert session["status"] == "failed"
+    assert session["ended_at"] is not None
+    assert adapter.closed
+    assert await _utterances(db_pool, committed_session.session_id) == []
+
+
+# Fix round 1 (I3) — 종료 신호 뒤에 도착하는 이벤트를 버리지 않는다. 사용자가
+# 말을 마치고 종료를 눌렀을 때 마지막 발화의 final은 아직 오는 중이다 — 즉시
+# 취소하면 그 발화가 통째로 사라진다(전사문·분석 모두).
+async def test_end_signal_drains_pending_adapter_events(db_pool, committed_session):
+    late = "I need to finish my homework tonight."
+    adapter = ScriptedAdapter(
+        TranscriptEvent(kind="final", text=late),
+        hold_open=True,  # 드레인이 데드라인으로 끝나는지도 함께 본다
+        delay=0.05,
+    )
+    client = FakeClient({"type": "end_session"})
+    loop = asyncio.get_running_loop()
+    started = loop.time()
+
+    await asyncio.wait_for(
+        _runner(adapter, db_pool, committed_session.session_id, client, drain_timeout=0.2).run(),
+        timeout=5.0,
+    )
+
+    assert loop.time() - started < 1.0, "드레인에 상한이 없다"
+    rows = await _utterances(db_pool, committed_session.session_id)
+    assert [row["transcript"] for row in rows] == [late]
+    assert await _job_count(db_pool, committed_session.session_id) == 1
+    assert client.types[-1] == "session_ended"
+
+
+# Fix round 1 (I3 후반) — 드레인 마감이 **저장 도중**에 걸려도 그 저장은 끝까지 간다.
+# shield가 없으면 취소가 `save_final_transcript`의 트랜잭션 한복판에서 터져 전사문과
+# 분석 job이 함께 롤백된다 — 발화가 흔적 없이 사라지는 유일한 경로다.
+async def test_a_save_in_flight_survives_the_drain_deadline(
+    db_pool, committed_session, monkeypatch: pytest.MonkeyPatch
+):
+    original = session_module.save_final_transcript
+
+    async def slow_save(conn, session_id, text, **kwargs):
+        # 드레인 데드라인(0.05초)보다 오래 걸리는 저장을 만든다.
+        await asyncio.sleep(0.1)
+        return await original(conn, session_id, text, **kwargs)
+
+    monkeypatch.setattr(session_module, "save_final_transcript", slow_save)
+    adapter = ScriptedAdapter(TranscriptEvent(kind="final", text="I go to gym."), hold_open=True)
+
+    await asyncio.wait_for(
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            FakeClient({"type": "end_session"}),
+            drain_timeout=0.05,
+        ).run(),
+        timeout=5.0,
+    )
+
+    rows = await _utterances(db_pool, committed_session.session_id)
+    assert [row["transcript"] for row in rows] == ["I go to gym."]
+    assert await _job_count(db_pool, committed_session.session_id) == 1
+
+
+# --- 스텁 자체의 계약 ---
 
 
 # --- 스텁 자체의 계약 ---
@@ -374,8 +545,38 @@ async def test_unresponsive_stub_never_completes_its_start():
         await asyncio.wait_for(adapter.start(), timeout=FAST_CONNECT_TIMEOUT)
 
 
+# Fix round 1 (I5) — 무음이면 프론트엔드 재생을 귀로 판정할 수 없다. 들리는 톤이어야
+# "소리가 났는가"가 사람이 확인할 수 있는 사실이 된다.
+def test_fixture_audio_frame_is_audible():
+    header, body = TONE_WAV_FRAME[:44], TONE_WAV_FRAME[44:]
+    assert header.startswith(b"RIFF")
+    assert set(body) != {0}, "무음 프레임은 귀로 판정할 수 없다"
+
+
 def test_connect_timeout_is_a_documented_design_value():
     assert CONNECT_TIMEOUT == 10
+
+
+def test_drain_timeout_is_a_documented_design_value():
+    assert DRAIN_TIMEOUT == 1.0
+
+
+# Fix round 1 (I4) — E2E-S 6(연결 실패 시나리오)은 서버를 코드 수정 없이 무응답
+# 모드로 띄울 수 있어야 실행 가능하다. 그 선택은 설정값 하나로 끝난다.
+@pytest.mark.parametrize(
+    ("setting", "expected_mode"),
+    [(STUB_ADAPTER, "fixture"), (STUB_UNRESPONSIVE_ADAPTER, "unresponsive")],
+)
+def test_factory_builds_the_stub_mode_from_settings(setting: str, expected_mode: str):
+    adapter = create_voice_adapter(_settings(voice_adapter=setting))
+
+    assert isinstance(adapter, StubVoiceAdapter)
+    assert adapter.mode == expected_mode
+
+
+def test_factory_rejects_an_unknown_adapter():
+    with pytest.raises(ValueError, match="voice_adapter"):
+        create_voice_adapter(_settings(voice_adapter="nova"))
 
 
 # ④ import 그래프 — 러너와 소켓 계층은 스텁을 모른다 (G3)

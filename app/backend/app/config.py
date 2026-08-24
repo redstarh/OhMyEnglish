@@ -26,9 +26,10 @@ class Settings(BaseSettings):
     # 분석 워커 기동 플래그. 기본은 켜짐 — API만 띄우고 큐를 일부러 쌓아두는
     # 시나리오(E2E-S 3단계)에서만 끈다.
     worker_enabled: bool = True
-    # 음성 어댑터 구현 선택 (G3). 첫 슬라이스에는 픽스처 스텁만 있어 기본값이
-    # 유일한 값이다 — Nova 어댑터가 들어오면 값이 하나 늘고, 분기는
-    # `audio_gateway/factory.py` 한 곳에만 있다.
+    # 음성 어댑터 구현 선택 (G3). 첫 슬라이스의 값은 `stub`(픽스처 재생)과
+    # `stub_unresponsive`(연결 실패 시나리오 E2E-S 6을 코드 수정 없이 재현) 둘이다.
+    # Nova 어댑터가 들어오면 값이 하나 늘고, 분기는 `audio_gateway/factory.py`
+    # 한 곳에만 있다.
     voice_adapter: str = "stub"
 
 

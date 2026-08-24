@@ -12,6 +12,7 @@ import한다. 같은 문장을 여러 곳에 적어두면 한쪽만 고쳐졌을
 
 from __future__ import annotations
 
+import math
 import struct
 
 # (agent 질문, 사용자 응답)
@@ -21,22 +22,35 @@ FIXTURE_TURNS: list[tuple[str, str]] = [
     ("What do you need to do tonight?", "I need to finish my homework tonight."),
 ]
 
-# 스텁이 흘리는 오디오 응답 프레임의 규격. Nova Sonic의 출력 형식(16kHz·16bit·mono
-# PCM)에 맞춘 값이라 프론트엔드 재생 경로를 실제와 같은 모양으로 검증할 수 있다.
+# 스텁이 흘리는 오디오 응답 프레임의 규격 — **스텁 전용 포맷**이다.
+# 16kHz·16bit·mono PCM은 스텁이 스스로 정한 값이고, Nova Sonic의 실제 출력 형식은
+# Phase 2에서 실측해 확정한다(포트는 `bytes`만 약속하므로 포맷은 계약이 아니다).
 _SAMPLE_RATE_HZ = 16_000
 _BITS_PER_SAMPLE = 16
 _CHANNELS = 1
-_FRAME_MILLISECONDS = 20
+# 사람이 "소리가 났다"를 귀로 판정할 수 있는 최소 길이 + 음높이. 무음이면 프론트엔드
+# 재생 경로가 조용히 망가져도 알 수 없어(볼륨 0, 디코드 실패, 라우팅 오류가 모두
+# 같은 결과) 들리는 톤을 발행한다. 440Hz = A4, 진폭은 클리핑을 피해 30%로 둔다.
+_FRAME_MILLISECONDS = 200
+_TONE_HZ = 440
+_TONE_AMPLITUDE = 0.3
 
 
-def _silent_wav(
-    *, sample_rate: int = _SAMPLE_RATE_HZ, milliseconds: int = _FRAME_MILLISECONDS
+def _tone_wav(
+    *,
+    sample_rate: int = _SAMPLE_RATE_HZ,
+    milliseconds: int = _FRAME_MILLISECONDS,
+    frequency: int = _TONE_HZ,
 ) -> bytes:
-    """헤더가 유효한 짧은 무음 WAV. 클라이언트가 실제로 디코딩·재생할 수 있는
-    바이트여야 base64 릴레이 경로를 끝까지 검증할 수 있다."""
+    """헤더가 유효한 짧은 사인파 톤 WAV. 클라이언트가 실제로 디코딩·재생할 수 있는
+    바이트여야 base64 릴레이 경로를 귀로 끝까지 확인할 수 있다."""
     block_align = _CHANNELS * _BITS_PER_SAMPLE // 8
     samples = sample_rate * milliseconds // 1000
-    body = b"\x00" * (samples * block_align)
+    peak = int(_TONE_AMPLITUDE * 32767)
+    body = b"".join(
+        struct.pack("<h", int(peak * math.sin(2 * math.pi * frequency * index / sample_rate)))
+        for index in range(samples)
+    )
     fmt_chunk = b"fmt " + struct.pack(
         "<IHHIIHH",
         16,  # fmt 청크 길이 (PCM)
@@ -52,6 +66,7 @@ def _silent_wav(
     return b"RIFF" + struct.pack("<I", riff_size) + b"WAVE" + fmt_chunk + data_chunk
 
 
-# 고정 오디오 프레임 — 턴마다 같은 바이트를 흘린다. 내용이 고정이라 클라이언트가
-# 받은 base64를 이 상수와 그대로 비교할 수 있다.
-SILENT_WAV_FRAME: bytes = _silent_wav()
+# 고정 오디오 프레임 — 턴마다 같은 바이트를 흘린다. import 시 한 번 계산하고
+# 재사용하므로(사전 계산 상수) 턴마다 사인파를 다시 만들지 않으며, 내용이 고정이라
+# 클라이언트가 받은 base64를 이 상수와 그대로 비교할 수 있다.
+TONE_WAV_FRAME: bytes = _tone_wav()

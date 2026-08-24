@@ -21,17 +21,19 @@ import base64
 import json
 from collections.abc import AsyncIterator, Iterator, MutableMapping
 from typing import Any
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import asyncpg
+import httpx
 import pytest
 import pytest_asyncio
 from fastapi import FastAPI
 
 from app import db as db_module
-from app.api.main import create_app
+from app.api import ws as ws_module
+from app.api.main import FRONTEND_ORIGIN, create_app
 from app.api.ws import FIXED_USER_ID, WS_SESSION_PATH
-from app.audio_gateway.fixtures import FIXTURE_TURNS, SILENT_WAV_FRAME
+from app.audio_gateway.fixtures import FIXTURE_TURNS, TONE_WAV_FRAME
 from app.config import get_settings
 
 RECEIVE_TIMEOUT = 5.0
@@ -216,4 +218,46 @@ async def test_ws_relays_transcripts_and_base64_audio(
     assert [event["sequence_no"] for event in finals] == list(range(1, len(FIXTURE_TURNS) * 2 + 1))
     audio = [event for event in events if event["type"] == "audio"]
     assert len(audio) == len(FIXTURE_TURNS)
-    assert base64.b64decode(audio[0]["data"]) == SILENT_WAV_FRAME
+    assert base64.b64decode(audio[0]["data"]) == TONE_WAV_FRAME
+
+
+# Fix round 1 (I2) — 어댑터를 아예 만들 수 없어도(설정 오타/구현 부재) 세션을
+# `active` 고아로 남기지 않는다. 소켓은 실패를 알리고 닫힌다.
+async def test_ws_reports_a_failed_session_when_the_adapter_cannot_be_built(
+    ws_app: FastAPI,
+    db_pool: asyncpg.Pool,
+    seeded_fixed_user: UUID,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    def explode(settings: object) -> None:
+        raise ValueError("알 수 없는 voice_adapter 설정: 'nova'")
+
+    monkeypatch.setattr(ws_module, "create_voice_adapter", explode)
+
+    async with ws_app.router.lifespan_context(ws_app), ASGIWebSocket(ws_app) as client:
+        failure = await client.receive_event()
+        assert failure is not None
+        assert failure["type"] == "session_failed"
+        assert await client.receive_event() is None, "실패 후 소켓이 닫히지 않았다"
+
+    async with db_pool.acquire() as conn:
+        session = await conn.fetchrow(
+            "select status, ended_at from learning_sessions where user_id = $1", FIXED_USER_ID
+        )
+    assert session is not None, "세션 행은 만들어졌어야 한다(그래야 결과 화면이 존재한다)"
+    assert session["status"] == "failed", "어댑터를 못 만든 세션이 active 고아로 남았다"
+    assert session["ended_at"] is not None
+
+
+# 추가(T10) — 브라우저에서 결과를 폴링할 수 있어야 한다 (CORS)
+async def test_results_endpoint_allows_the_frontend_origin(ws_app: FastAPI):
+    async with ws_app.router.lifespan_context(ws_app):
+        transport = httpx.ASGITransport(app=ws_app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+            response = await client.get(
+                f"/api/sessions/{uuid4()}/results", headers={"Origin": FRONTEND_ORIGIN}
+            )
+
+    # 없는 세션이라 404지만, CORS 헤더는 미들웨어가 응답 상태와 무관하게 붙인다.
+    assert response.status_code == 404
+    assert response.headers["access-control-allow-origin"] == FRONTEND_ORIGIN

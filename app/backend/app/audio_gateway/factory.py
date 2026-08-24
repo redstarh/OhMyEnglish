@@ -15,10 +15,16 @@ from app.audio_gateway.stub import StubVoiceAdapter
 from app.config import Settings
 
 STUB_ADAPTER = "stub"
+# 연결 실패 시나리오(E2E-S 6)를 **코드 수정 없이** 재현하기 위한 설정값. 무응답은
+# 예외가 아니라 "응답이 오지 않는 것"이라 실물로 만들기 어렵고, 서버를 이 모드로
+# 띄우면 프론트엔드의 연결 실패 화면(U2)을 손으로 확인할 수 있다.
+STUB_UNRESPONSIVE_ADAPTER = "stub_unresponsive"
 
 
 def create_voice_adapter(settings: Settings) -> VoiceAdapter:
     if settings.voice_adapter == STUB_ADAPTER:
-        return StubVoiceAdapter()
+        return StubVoiceAdapter("fixture")
+    if settings.voice_adapter == STUB_UNRESPONSIVE_ADAPTER:
+        return StubVoiceAdapter("unresponsive")
     # 오타를 조용히 스텁으로 흘려보내면 "실물이라 믿었던 세션이 픽스처였다"가 된다.
     raise ValueError(f"알 수 없는 voice_adapter 설정: {settings.voice_adapter!r}")

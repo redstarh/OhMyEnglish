@@ -24,7 +24,7 @@ import asyncpg
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from app.audio_gateway.factory import create_voice_adapter
-from app.audio_gateway.session import SessionRunner
+from app.audio_gateway.session import SessionRunner, mark_session_ended
 from app.config import get_settings
 
 logger = logging.getLogger(__name__)
@@ -32,6 +32,9 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 WS_SESSION_PATH = "/ws/session"
+
+SESSION_CREATE_FAILED_REASON = "session_create_failed"
+ADAPTER_UNAVAILABLE_REASON = "voice_adapter_unavailable"
 
 # 단일 사용자 로컬 도구다(설계서 §2) — 인증 계층이 없어 연결의 주인이 고정이다.
 # 값은 시드가 만드는 사용자 id와 같다(`scripts/migrate.py`의 `USER_ID`). 시드
@@ -115,12 +118,25 @@ async def session_socket(websocket: WebSocket) -> None:
         # 시드가 없으면(고정 사용자 부재) 여기서 걸린다 — 연결을 조용히 매달아두지
         # 않고 실패를 알린 뒤 닫는다.
         logger.exception("세션 행을 만들 수 없어 연결을 닫는다")
-        await channel.send_event({"type": "session_failed", "reason": "session_create_failed"})
+        await channel.send_event({"type": "session_failed", "reason": SESSION_CREATE_FAILED_REASON})
         with contextlib.suppress(RuntimeError):
             await websocket.close()
         return
 
-    runner = SessionRunner(create_voice_adapter(get_settings()), pool, session_id, client=channel)
+    try:
+        adapter = create_voice_adapter(get_settings())
+    except Exception:
+        # 어댑터를 만들지도 못했다(설정 오타/구현 부재). 세션 행은 이미 있으므로
+        # `active` 고아로 두지 않고 failed로 닫는다 — 결과 화면이 "연결 실패"를
+        # 표시할 근거가 그 status다 (R2 규칙 1).
+        logger.exception("음성 어댑터를 만들 수 없어 세션 %s를 failed로 닫는다", session_id)
+        await mark_session_ended(pool, session_id, "failed")
+        await channel.send_event({"type": "session_failed", "reason": ADAPTER_UNAVAILABLE_REASON})
+        with contextlib.suppress(RuntimeError):
+            await websocket.close()
+        return
+
+    runner = SessionRunner(adapter, pool, session_id, client=channel)
     try:
         await runner.run()
     except Exception:

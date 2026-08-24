@@ -20,7 +20,7 @@ import asyncio
 from collections.abc import AsyncIterator
 from typing import Literal, get_args
 
-from app.audio_gateway.fixtures import FIXTURE_TURNS, SILENT_WAV_FRAME
+from app.audio_gateway.fixtures import FIXTURE_TURNS, TONE_WAV_FRAME
 from app.audio_gateway.port import AdapterEvent, TranscriptEvent
 
 StubMode = Literal["fixture", "unresponsive"]
@@ -64,7 +64,7 @@ class StubVoiceAdapter:
             for prefix in _partial_prefixes(answer):
                 yield TranscriptEvent(kind="partial", text=prefix, speaker="user")
             yield TranscriptEvent(kind="final", text=answer, speaker="user")
-            yield SILENT_WAV_FRAME
+            yield TONE_WAV_FRAME
 
     async def close(self) -> None:
         self.closed = True

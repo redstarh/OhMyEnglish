@@ -21,6 +21,7 @@ import logging
 from collections.abc import AsyncIterator
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.results import router as results_router
 from app.api.ws import router as ws_router
@@ -36,6 +37,12 @@ logger = logging.getLogger(__name__)
 # 넘기면 취소하며, 취소된 job은 `running`으로 남아 lease 만료 후 회수된다(§5.4) —
 # 그래서 취소가 데이터를 잃지 않는다.
 WORKER_SHUTDOWN_TIMEOUT = 15.0
+
+# Next.js 개발 서버의 origin. 브라우저는 다른 origin의 fetch 응답을 CORS 헤더 없이
+# 스크립트에 넘기지 않으므로, 이 헤더가 없으면 결과 폴링(`GET /api/sessions/...`)이
+# 프론트엔드에서 통째로 막힌다. 단일 사용자 로컬 도구라 origin은 이 하나로 충분하고,
+# 와일드카드를 쓰지 않는 이유도 그것이다 — 허용 범위를 넓힐 이유가 없다.
+FRONTEND_ORIGIN = "http://localhost:3000"
 
 
 @contextlib.asynccontextmanager
@@ -83,6 +90,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 def create_app() -> FastAPI:
     app = FastAPI(title="OhMyEnglish API", lifespan=lifespan)
+    # WebSocket에는 CORS가 적용되지 않는다(브라우저가 preflight를 보내지 않는다) —
+    # 이 미들웨어는 결과 조회 같은 HTTP GET만을 위한 것이라 methods를 GET으로 좁힌다.
+    app.add_middleware(CORSMiddleware, allow_origins=[FRONTEND_ORIGIN], allow_methods=["GET"])
     app.include_router(results_router)
     app.include_router(ws_router)
 
