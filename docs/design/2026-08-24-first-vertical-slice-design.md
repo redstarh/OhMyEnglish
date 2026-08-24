@@ -88,7 +88,7 @@ Python 툴체인은 `uv`(0.11.8) + `ruff` + `ty`(0.0.31)를 쓴다. `aws-sdk-bed
 
 | 역할 | 모델 | 검증 상태 |
 |---|---|---|
-| 실시간 음성 | `amazon.nova-2-sonic-v1:0` | 실존 확인 — `streaming=True`, `in=[SPEECH] → out=[SPEECH,TEXT]` |
+| 실시간 음성 | `amazon.nova-2-sonic-v1:0` | 실존 확인 — `streaming=True`, `in=[SPEECH] → out=[SPEECH,TEXT]`. **양방향 호출은 SigV4 필수** (§4.1) |
 | 학습 분석 | `us.anthropic.claude-opus-5` | ACTIVE 프로필, invoke HTTP 200 확인 |
 
 - 두 모델 모두 `us-west-2`.
@@ -96,11 +96,31 @@ Python 툴체인은 `uv`(0.11.8) + `ruff` + `ty`(0.0.31)를 쓴다. `aws-sdk-bed
 - **`[1m]` 접미사를 모델 ID에 붙이지 않는다.** Bedrock inference profile ID가 아니며 raw invoke는 HTTP 400이다. Claude Code 전용 표기다.
 - Claude를 음성 턴의 동기 경로에 넣지 않는다 (`PRD.md:112`).
 
-### 최대 리스크 — 착수 전 스파이크 필요
+### 4.1 자격증명 — 검증 완료, 착수 차단 요인 확정
 
-Nova Sonic 양방향 스트림(`InvokeModelWithBidirectionalStream`)이 **현재 로컬 자격증명으로 되는지 미검증**이다. 로컬에는 `AWS_BEARER_TOKEN_BEDROCK`만 있고 SigV4 자격증명이 없다(`aws sts get-caller-identity` 실패). 양방향 스트림이 SigV4를 요구하면 자격증명 확보가 선행 조건이 된다.
+**결론: Nova Sonic 양방향 스트림은 Bedrock API key(bearer token)로 호출할 수 없다. SigV4 자격증명이 필수다.** 2026-08-25 스파이크로 확정했다.
 
-**조치**: `aws-sdk-bedrock-runtime` 0.10.0으로 최소 스트림 1회 왕복을 먼저 뚫는다. 실패하면 SigV4 자격증명을 발급한 뒤 재시도한다. 이 스파이크가 통과하기 전에는 프론트엔드에 착수하지 않는다.
+서비스가 직접 거부한다 — SDK 한계가 아니다.
+
+| 엔드포인트 | bearer token 결과 |
+|---|---|
+| `/invoke` | HTTP 200 |
+| `/invoke-with-response-stream` | HTTP 200 (이벤트 스트림 청크 수신) |
+| `/invoke-with-bidirectional-stream` | **HTTP 403 `This operation does not support API Keys`** |
+
+대조군으로 인증 헤더를 아예 뺐을 때는 `Authorization header is missing`이 돌아왔다. 메시지가 다르므로 403은 인증 평가 단계에 도달한 뒤 **API Key를 특정해 거부한 것**이다.
+
+SDK 쪽 증거도 일치한다. `aws-sdk-bedrock-runtime` 0.10.0의 `HTTPAuthSchemeResolver.resolve_auth_scheme`는 SigV4 옵션만 반환하고, `smithy_aws_core.auth`에는 `sigv4` 하위 모듈만 있다. 실제 실행 시 `IdentityChainError: No credential providers were configured to resolve an identity.`가 발생했다 — `AWS_BEARER_TOKEN_BEDROCK`이 설정돼 있어도 자격증명 체인이 인식하지 않는다.
+
+**따라서 SigV4 자격증명 확보가 첫 슬라이스의 하드 블로커다.** 발급 전에는 음성 경로를 구현할 수 없다.
+
+**자격증명 전략**: 백엔드는 **SigV4 단일 경로로 통일한다.** SigV4는 Nova Sonic 양방향과 Claude `/invoke` 양쪽에 모두 쓸 수 있어 경로를 두 개 유지할 이유가 없다. 현재의 `AWS_BEARER_TOKEN_BEDROCK`은 Claude Code 세션용으로만 남긴다. 로컬 단독 도구이므로 IAM user access key를 `.env`(gitignore 대상)에 두는 것으로 시작하고, 배포 시 IAM role로 교체한다.
+
+### 4.2 SDK 오류 전파 특성 — 설계에 반영
+
+스파이크에서 발견한 것: `invoke_model_with_bidirectional_stream`의 자격증명 실패가 **호출자에게 즉시 예외로 오지 않았다.** 내부 `RequestPipeline._execute_request` 태스크에서 발생하고 `Task exception was never retrieved`로 남았으며, 호출자 쪽에서는 30초 타임아웃으로 나타났다.
+
+Audio Gateway는 이를 전제로 만든다 — **연결 실패를 예외 포착만으로 감지하지 말고 자체 연결 타임아웃을 둔다.** 그렇지 않으면 자격증명·권한 오류가 "응답 없음"으로 보여 원인을 찾기 어렵다.
 
 ---
 
@@ -212,6 +232,7 @@ Nova Sonic 양방향 스트림(`InvokeModelWithBidirectionalStream`)이 **현재
 
 ### Failure
 
+- **Nova 스트림 연결 실패**: 자격증명·권한 오류가 즉시 예외로 오지 않고 무응답으로 나타난다 (§4.2). Audio Gateway는 자체 연결 타임아웃을 두고, 초과 시 세션을 실패로 닫고 사용자에게 알린다. 예외 포착만 믿으면 원인 불명의 무한 대기가 된다.
 - **Nova 스트림 끊김**: 확정 전사문과 현재 목표를 요약해 새 스트림에 넘긴다 (`nova-sonic-claude-architecture.md §6`). 재연결 실패 시 세션을 `ended_at`으로 닫고 그때까지의 전사문을 보존한다.
 - **Claude 호출 실패**: `analysis_jobs.attempts` 증가 + `available_at` 백오프. `attempts >= 5`면 terminal `failed` (§5.4).
 - **결과 저장 후 status 갱신 전 크래시**: 가장 까다로운 실패다. 같은 작업이 재실행되므로 `error_occurrences`의 `unique (utterance_id, pattern_id)`와 `frequency` 재계산 규약이 중복을 막는다 (§5.2). 이 두 장치가 없으면 재시도가 데이터를 오염시킨다.
@@ -298,7 +319,7 @@ Codex 리뷰 지적에 따라, 근거가 문서에 이미 있는 것은 미결�
 
 ## 10. 다음 단계
 
-1. Nova Sonic 양방향 스트림 스파이크 (§4) — 통과 전 프론트엔드 착수 금지
+1. **SigV4 자격증명 확보 (하드 블로커, §4.1)** — bearer token으로는 양방향 스트림이 403이다. 발급 후 `aws-sdk-bedrock-runtime` 0.10.0으로 최소 스트림 1회 왕복을 확인한다. 통과 전 음성 경로·프론트엔드 착수 금지
 2. `001_initial_schema.sql` 재작성 + `database-schema.md` 정합화 (§6)
 3. 백엔드 스캐폴딩 → 분석 Worker → Audio Gateway
 4. 프론트엔드 세션·결과 화면
