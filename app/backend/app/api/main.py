@@ -22,6 +22,7 @@ from collections.abc import AsyncIterator
 
 from fastapi import FastAPI
 
+from app.api.results import router as results_router
 from app.config import get_settings
 from app.db import close_pool, pool
 from app.workers.analysis_worker import run_worker
@@ -81,6 +82,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 def create_app() -> FastAPI:
     app = FastAPI(title="OhMyEnglish API", lifespan=lifespan)
+    app.include_router(results_router)
 
     @app.get("/health")
     async def health() -> dict[str, str]:
