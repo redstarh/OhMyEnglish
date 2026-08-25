@@ -25,11 +25,10 @@ test explicitly requests one. Schema-level verification lives in Task 2
 from __future__ import annotations
 
 import asyncio
-import os
+import sys
 from collections.abc import AsyncIterator, Callable
 from pathlib import Path
 from typing import NamedTuple
-from urllib.parse import urlsplit, urlunsplit
 from uuid import UUID
 
 import asyncpg
@@ -45,32 +44,15 @@ from app.workers.claude_client import FakeClaudeClient
 REPO_ROOT = Path(__file__).resolve().parent.parent
 MIGRATIONS_DIR = REPO_ROOT / "db" / "migrations"
 TEST_DB_NAME = "ohmyenglish_test"
-DEFAULT_DEV_DSN = "postgresql://ohmy:ohmy@localhost:5433/ohmyenglish"
 
+# `scripts/db_utils.py`는 앱 패키지에 의존하지 않는 독립 모듈이라 일반 패키지
+# 경로에 있지 않다 — pytest가 이 conftest를 최상위 모듈로 import할 때는
+# 스크립트 실행과 달리 `scripts/`가 자동으로 sys.path에 오르지 않으므로 직접 넣는다.
+SCRIPTS_DIR = REPO_ROOT / "scripts"
+if str(SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_DIR))
 
-def _base_dsn() -> str:
-    return os.environ.get("DATABASE_URL", DEFAULT_DEV_DSN)
-
-
-def _dsn_for(db_name: str) -> str:
-    parts = urlsplit(_base_dsn())
-    return urlunsplit((parts.scheme, parts.netloc, f"/{db_name}", parts.query, parts.fragment))
-
-
-async def _recreate_test_database() -> None:
-    admin_conn = await asyncpg.connect(dsn=_dsn_for("postgres"))
-    try:
-        await admin_conn.execute(f'DROP DATABASE IF EXISTS "{TEST_DB_NAME}"')
-        await admin_conn.execute(f'CREATE DATABASE "{TEST_DB_NAME}"')
-    finally:
-        await admin_conn.close()
-
-    conn = await asyncpg.connect(dsn=_dsn_for(TEST_DB_NAME))
-    try:
-        for sql_file in sorted(MIGRATIONS_DIR.glob("*.sql")):
-            await conn.execute(sql_file.read_text())
-    finally:
-        await conn.close()
+from db_utils import recreate_database  # noqa: E402
 
 
 @pytest.fixture(scope="session")
@@ -79,8 +61,7 @@ def test_database() -> str:
 
     Returns the DSN of the freshly migrated test database.
     """
-    asyncio.run(_recreate_test_database())
-    return _dsn_for(TEST_DB_NAME)
+    return asyncio.run(recreate_database(TEST_DB_NAME, MIGRATIONS_DIR))
 
 
 @pytest_asyncio.fixture
@@ -151,3 +132,30 @@ def fake_claude() -> Callable[..., FakeClaudeClient]:
         return FakeClaudeClient(list(responses))
 
     return make
+
+
+def default_finding(**overrides: object) -> dict[str, object]:
+    """공통 픽스처 발화 1("I usually go to gym after work.")에 대한 유효한
+    finding 리터럴 — 관사 누락 오류. `tests/unit/test_claude_schema.py`·
+    `test_analysis.py`, `tests/integration/test_pipeline.py`·`test_worker.py`가
+    이 8필드 리터럴을 각자 복붙해 갈라지지 않도록 여기 하나로 묻는다."""
+    finding: dict[str, object] = {
+        "category": "article",
+        "pattern_key": "article_missing_before_place_noun",
+        "target_form": "go to the gym",
+        "original_span": "go to gym",
+        "correction": "go to the gym",
+        "explanation": "장소를 가리키는 명사 앞에는 정관사 the가 필요합니다.",
+        "severity": "medium",
+        "confidence": 0.9,
+    }
+    finding.update(overrides)
+    return finding
+
+
+async def job_row(conn: asyncpg.Connection, job_id: UUID) -> asyncpg.Record:
+    """`analysis_jobs` 한 행을 조회한다 — 사라졌으면 즉시 실패시킨다.
+    `tests/unit/test_jobs.py`·`tests/integration/test_pipeline.py`가 공유한다."""
+    row = await conn.fetchrow("select * from analysis_jobs where id = $1", job_id)
+    assert row is not None, f"analysis_jobs row {job_id} disappeared"
+    return row

@@ -40,3 +40,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Next.js auto-generated agent rules (dev 서버가 매번 재생성)
+AGENTS.md
+CLAUDE.md

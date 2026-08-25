@@ -17,6 +17,7 @@ import json
 from typing import Any
 
 import pytest
+from conftest import default_finding
 
 from app.config import Settings
 from app.models.analysis import (
@@ -36,22 +37,6 @@ from app.workers.claude_client import (
     FakeClaudeClient,
     extract_text,
 )
-
-
-def _finding(**overrides: Any) -> dict[str, Any]:
-    """A valid finding for 픽스처 발화 1 ("I usually go to gym after work.")."""
-    finding = {
-        "category": "article",
-        "pattern_key": "article_missing_before_place_noun",
-        "target_form": "go to the gym",
-        "original_span": "go to gym",
-        "correction": "go to the gym",
-        "explanation": "장소를 가리키는 명사 앞에는 정관사 the가 필요합니다.",
-        "severity": "medium",
-        "confidence": 0.9,
-    }
-    finding.update(overrides)
-    return finding
 
 
 def _raw(*findings: dict[str, Any]) -> str:
@@ -75,7 +60,7 @@ def test_category_and_severity_codes_match_the_schema_check():
 
 # ① 정상 JSON → AnalysisResult
 def test_parse_analysis_accepts_valid_json():
-    result = parse_analysis(_raw(_finding()))
+    result = parse_analysis(_raw(default_finding()))
 
     assert isinstance(result, AnalysisResult)
     assert len(result.findings) == 1
@@ -112,7 +97,7 @@ def test_parse_analysis_accepts_empty_findings():
     ],
 )
 def test_parse_analysis_rejects_missing_required_field(missing: str):
-    finding = _finding()
+    finding = default_finding()
     del finding[missing]
 
     with pytest.raises(AnalysisValidationError):
@@ -128,20 +113,20 @@ def test_parse_analysis_rejects_missing_findings_key():
 # ③ severity:"critical" → 거부 (001 CHECK에 없는 값)
 def test_parse_analysis_rejects_unknown_severity():
     with pytest.raises(AnalysisValidationError):
-        parse_analysis(_raw(_finding(severity="critical")))
+        parse_analysis(_raw(default_finding(severity="critical")))
 
 
 # ④ confidence:1.5 → 거부 (numeric(3,2) check between 0 and 1)
 @pytest.mark.parametrize("confidence", [1.5, -0.1])
 def test_parse_analysis_rejects_out_of_range_confidence(confidence: float):
     with pytest.raises(AnalysisValidationError):
-        parse_analysis(_raw(_finding(confidence=confidence)))
+        parse_analysis(_raw(default_finding(confidence=confidence)))
 
 
 # ④ 경계값 0 / 1은 허용된다 (ge=0, le=1)
 @pytest.mark.parametrize("confidence", [0, 1])
 def test_parse_analysis_accepts_confidence_boundaries(confidence: float):
-    result = parse_analysis(_raw(_finding(confidence=confidence)))
+    result = parse_analysis(_raw(default_finding(confidence=confidence)))
 
     assert result.findings[0].confidence == float(confidence)
 
@@ -149,17 +134,17 @@ def test_parse_analysis_accepts_confidence_boundaries(confidence: float):
 # ⑤ category:"noun" → 거부 (001 CHECK에 없는 값)
 def test_parse_analysis_rejects_unknown_category():
     with pytest.raises(AnalysisValidationError):
-        parse_analysis(_raw(_finding(category="noun")))
+        parse_analysis(_raw(default_finding(category="noun")))
 
 
 # ⑥ 미지 필드 → 거부 (extra="forbid") — finding과 최상위 양쪽
 def test_parse_analysis_rejects_unknown_field_in_finding():
     with pytest.raises(AnalysisValidationError):
-        parse_analysis(_raw(_finding(span_start=3)))
+        parse_analysis(_raw(default_finding(span_start=3)))
 
 
 def test_parse_analysis_rejects_unknown_top_level_field():
-    raw = json.dumps({"findings": [_finding()], "summary": "nice try"})
+    raw = json.dumps({"findings": [default_finding()], "summary": "nice try"})
 
     with pytest.raises(AnalysisValidationError):
         parse_analysis(raw)
@@ -172,7 +157,7 @@ def test_parse_analysis_rejects_unknown_top_level_field():
 @pytest.mark.parametrize("value", ["", "   ", "\n\t"])
 def test_parse_analysis_rejects_blank_text_field(field: str, value: str):
     with pytest.raises(AnalysisValidationError):
-        parse_analysis(_raw(_finding(**{field: value})))
+        parse_analysis(_raw(default_finding(**{field: value})))
 
 
 # Fix round 1 (I-5) — 앞뒤 공백은 경계에서 깎는다. 공백 하나가 붙은 pattern_key가
@@ -182,9 +167,9 @@ def test_parse_analysis_rejects_blank_text_field(field: str, value: str):
     "field", ["pattern_key", "target_form", "original_span", "correction", "explanation"]
 )
 def test_parse_analysis_strips_surrounding_whitespace(field: str):
-    expected = _finding()[field]
+    expected = default_finding()[field]
 
-    result = parse_analysis(_raw(_finding(**{field: f"  {expected}\n"})))
+    result = parse_analysis(_raw(default_finding(**{field: f"  {expected}\n"})))
 
     assert getattr(result.findings[0], field) == expected
 
@@ -192,7 +177,7 @@ def test_parse_analysis_strips_surrounding_whitespace(field: str):
 # ⑦ 코드펜스로 감싼 JSON → 펜스 제거 후 통과
 @pytest.mark.parametrize("fence", ["```json", "```JSON", "```"])
 def test_parse_analysis_strips_code_fence(fence: str):
-    raw = f"{fence}\n{_raw(_finding())}\n```"
+    raw = f"{fence}\n{_raw(default_finding())}\n```"
 
     result = parse_analysis(raw)
 
@@ -220,7 +205,7 @@ def test_parse_analysis_rejects_non_json_response(raw: str):
 # 호출자(process_analysis)가 fail_or_retry 한 경로로 처리할 수 있어야 한다.
 def test_validation_error_is_a_value_error_and_carries_context():
     with pytest.raises(AnalysisValidationError) as excinfo:
-        parse_analysis(_raw(_finding(severity="critical")))
+        parse_analysis(_raw(default_finding(severity="critical")))
 
     assert isinstance(excinfo.value, ValueError)
     assert "critical" in str(excinfo.value)

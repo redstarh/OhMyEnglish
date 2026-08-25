@@ -13,6 +13,7 @@
 from __future__ import annotations
 
 import pytest
+from conftest import default_finding
 
 from app.models.analysis import (
     ERROR_CATEGORIES,
@@ -148,21 +149,6 @@ def test_build_prompt_rejects_an_empty_transcript(transcript: str):
 # **기존 표기로 정규화**해서 저장한다.
 
 
-def _finding(**overrides: object) -> ErrorFinding:
-    values: dict[str, object] = {
-        "category": "article",
-        "pattern_key": "article_missing_before_place_noun",
-        "target_form": "go to the gym",
-        "original_span": "go to gym",
-        "correction": "go to the gym",
-        "explanation": "장소를 가리키는 명사 앞에는 정관사 the가 필요합니다.",
-        "severity": "medium",
-        "confidence": 0.9,
-    }
-    values.update(overrides)
-    return ErrorFinding.model_validate(values)
-
-
 @pytest.mark.parametrize(
     "returned_key",
     [
@@ -172,7 +158,9 @@ def _finding(**overrides: object) -> ErrorFinding:
     ],
 )
 def test_resolve_pattern_keys_normalizes_case_variants_to_the_existing_key(returned_key: str):
-    result = AnalysisResult(findings=[_finding(pattern_key=returned_key)])
+    result = AnalysisResult(
+        findings=[ErrorFinding.model_validate(default_finding(pattern_key=returned_key))]
+    )
 
     resolved = resolve_pattern_keys(result, EXISTING)
 
@@ -180,7 +168,11 @@ def test_resolve_pattern_keys_normalizes_case_variants_to_the_existing_key(retur
 
 
 def test_resolve_pattern_keys_keeps_a_valid_new_key_as_is():
-    result = AnalysisResult(findings=[_finding(pattern_key="article_missing_before_noun")])
+    result = AnalysisResult(
+        findings=[
+            ErrorFinding.model_validate(default_finding(pattern_key="article_missing_before_noun"))
+        ]
+    )
 
     resolved = resolve_pattern_keys(result, EXISTING)
 
@@ -188,7 +180,11 @@ def test_resolve_pattern_keys_keeps_a_valid_new_key_as_is():
 
 
 def test_resolve_pattern_keys_rejects_a_new_key_that_breaks_the_format():
-    result = AnalysisResult(findings=[_finding(pattern_key="missing_article_before_gym")])
+    result = AnalysisResult(
+        findings=[
+            ErrorFinding.model_validate(default_finding(pattern_key="missing_article_before_gym"))
+        ]
+    )
 
     with pytest.raises(AnalysisValidationError, match="missing_article_before_gym"):
         resolve_pattern_keys(result, EXISTING)
@@ -197,7 +193,11 @@ def test_resolve_pattern_keys_rejects_a_new_key_that_breaks_the_format():
 def test_resolve_pattern_keys_accepts_a_reused_key_whose_format_is_legacy():
     # 기존 key는 형식을 보지 않는다 (`past_tense_in_work_update` — 접두 없음).
     result = AnalysisResult(
-        findings=[_finding(category="verb_tense", pattern_key="Past_Tense_In_Work_Update")]
+        findings=[
+            ErrorFinding.model_validate(
+                default_finding(category="verb_tense", pattern_key="Past_Tense_In_Work_Update")
+            )
+        ]
     )
 
     resolved = resolve_pattern_keys(result, EXISTING)
@@ -206,7 +206,9 @@ def test_resolve_pattern_keys_accepts_a_reused_key_whose_format_is_legacy():
 
 
 def test_resolve_pattern_keys_leaves_the_rest_of_the_finding_untouched():
-    finding = _finding(pattern_key="ARTICLE_MISSING_BEFORE_PLACE_NOUN")
+    finding = ErrorFinding.model_validate(
+        default_finding(pattern_key="ARTICLE_MISSING_BEFORE_PLACE_NOUN")
+    )
 
     resolved = resolve_pattern_keys(AnalysisResult(findings=[finding]), EXISTING)
 

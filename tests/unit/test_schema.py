@@ -10,6 +10,7 @@ connection inside a transaction that is always rolled back.
 from __future__ import annotations
 
 import importlib.util
+import sys
 import types
 from pathlib import Path
 from uuid import uuid4
@@ -18,10 +19,16 @@ import asyncpg
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-MIGRATE_PATH = REPO_ROOT / "scripts" / "migrate.py"
+SCRIPTS_DIR = REPO_ROOT / "scripts"
+MIGRATE_PATH = SCRIPTS_DIR / "migrate.py"
 
 
 def _load_migrate_module() -> types.ModuleType:
+    # `migrate.py`는 `from db_utils import base_dsn`을 쓴다 — 정상 실행(스크립트로
+    # 직접 구동)에서는 인터프리터가 스크립트 자신의 디렉터리를 자동으로 sys.path에
+    # 넣어주지만, 이 로더처럼 파일 경로로 직접 exec하면 그 자동 삽입이 없다.
+    if str(SCRIPTS_DIR) not in sys.path:
+        sys.path.insert(0, str(SCRIPTS_DIR))
     spec = importlib.util.spec_from_file_location("migrate", MIGRATE_PATH)
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)

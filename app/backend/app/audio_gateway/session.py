@@ -25,12 +25,13 @@ import asyncio
 import base64
 import contextlib
 import logging
-from typing import Literal, Protocol
+from typing import Protocol
 from uuid import UUID
 
 import asyncpg
 
 from app.audio_gateway.port import TranscriptEvent, VoiceAdapter
+from app.services.sessions import SessionEndStatus, mark_session_ended
 from app.services.utterances import save_final_transcript
 
 logger = logging.getLogger(__name__)
@@ -49,18 +50,6 @@ DRAIN_TIMEOUT = 1.0
 CONNECT_TIMEOUT_REASON = "voice_adapter_connect_timeout"
 CONNECT_ERROR_REASON = "voice_adapter_connect_failed"
 
-SessionEndStatus = Literal["completed", "failed"]
-
-# 종료는 한 UPDATE다 — `ended_at`과 `status`가 서로 다른 문장으로 갈라지면
-# 그 사이에 "끝났지만 active"인 상태가 관측된다. 시각은 DB 시계(timestamptz)로
-# 찍는다: 앱이 만든 naive datetime이 섞이는 경로를 아예 만들지 않는다.
-_END_SESSION_SQL = """
-update learning_sessions
-   set status = $2,
-       ended_at = now()
- where id = $1
-"""
-
 
 class ClientChannel(Protocol):
     """게이트웨이가 보는 클라이언트. WebSocket이라는 사실은 여기까지 오지 않는다.
@@ -72,14 +61,6 @@ class ClientChannel(Protocol):
     async def send_event(self, event: dict[str, object]) -> None: ...
 
     async def receive_event(self) -> dict[str, object] | None: ...
-
-
-async def mark_session_ended(
-    pool: asyncpg.Pool, session_id: UUID, status: SessionEndStatus
-) -> None:
-    """세션 종료를 기록한다 — `ended_at` + `status`를 한 UPDATE로."""
-    async with pool.acquire() as conn:
-        await conn.execute(_END_SESSION_SQL, session_id, status)
 
 
 class SessionRunner:

@@ -11,7 +11,10 @@
 [environment]
 python = "app/backend/.venv"
 # 첫 파티 모듈 해석 경로. `app.*`는 app/backend 기준, 테스트는 리포 루트 기준이다.
-root = ["app/backend", "."]
+# `scripts`는 `tests/conftest.py`가 `from db_utils import ...`로 정적 참조하는
+# `scripts/db_utils.py`를 해석하기 위한 루트다 — 런타임에는 conftest.py가 직접
+# sys.path에 넣지만, ty는 코드를 실행하지 않으므로 이 설정 없이는 해석하지 못한다.
+root = ["app/backend", ".", "scripts"]
 
 [src]
 include = ["app/backend/app", "tests"]

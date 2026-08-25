@@ -19,11 +19,13 @@ from uuid import UUID
 
 import asyncpg
 import pytest
+from conftest import default_finding, job_row
 
 from app.audio_gateway.fixtures import FIXTURE_TURNS
 from app.services.analysis import PatternRow, build_prompt, load_existing_patterns, process_analysis
-from app.services.jobs import LEASE, ClaimedJob, claim_next, enqueue_analyze
+from app.services.jobs import LEASE, ClaimedJob, enqueue_analyze
 from app.services.utterances import UtteranceRow, save_final_transcript
+from app.workers.analysis_worker import claim_one
 from app.workers.claude_client import FakeClaudeClient
 
 # 픽스처 발화의 소유자는 `app.audio_gateway.fixtures` 하나다 — 스텁이 재생하는
@@ -32,21 +34,6 @@ GYM_ANSWER = FIXTURE_TURNS[0][1]
 OFFICE_ANSWER = FIXTURE_TURNS[1][1]
 
 ARTICLE_PATTERN_KEY = "article_missing_before_place_noun"
-
-
-def _finding(**overrides: Any) -> dict[str, Any]:
-    finding = {
-        "category": "article",
-        "pattern_key": ARTICLE_PATTERN_KEY,
-        "target_form": "go to the gym",
-        "original_span": "go to gym",
-        "correction": "go to the gym",
-        "explanation": "장소를 가리키는 명사 앞에는 정관사 the가 필요합니다.",
-        "severity": "medium",
-        "confidence": 0.9,
-    }
-    finding.update(overrides)
-    return finding
 
 
 def _response(*findings: dict[str, Any]) -> str:
@@ -60,8 +47,7 @@ async def _save(pool: asyncpg.Pool, session_id: UUID, text: str) -> UtteranceRow
 
 
 async def _claim(pool: asyncpg.Pool) -> ClaimedJob:
-    async with pool.acquire() as conn, conn.transaction():
-        job = await claim_next(conn)
+    job = await claim_one(pool)
     assert job is not None, "claim할 job이 없다"
     return job
 
@@ -92,12 +78,7 @@ async def _patterns(pool: asyncpg.Pool, user_id: UUID) -> list[asyncpg.Record]:
 
 async def _job_row(pool: asyncpg.Pool, job_id: UUID) -> asyncpg.Record:
     async with pool.acquire() as conn:
-        row = await conn.fetchrow(
-            "select status, attempts, last_error, locked_by from analysis_jobs where id = $1",
-            job_id,
-        )
-    assert row is not None
-    return row
+        return await job_row(conn, job_id)
 
 
 # ① 두 발화에 같은 pattern_key → patterns 1행 / occurrences 2행 / frequency 2 (W2)
@@ -107,8 +88,8 @@ async def test_same_pattern_in_two_utterances_merges_into_one_pattern(
     first = await _save(db_pool, committed_session.session_id, GYM_ANSWER)
     second = await _save(db_pool, committed_session.session_id, OFFICE_ANSWER)
     claude = fake_claude(
-        _response(_finding()),
-        _response(_finding(original_span="go to office", correction="go to the office")),
+        _response(default_finding()),
+        _response(default_finding(original_span="go to office", correction="go to the office")),
     )
 
     for _ in range(2):
@@ -139,9 +120,9 @@ async def test_reprocessing_the_same_utterance_is_idempotent(
 ):
     await _save(db_pool, committed_session.session_id, GYM_ANSWER)
     utterance = await _save(db_pool, committed_session.session_id, OFFICE_ANSWER)
-    office_finding = _finding(original_span="go to office", correction="go to the office")
+    office_finding = default_finding(original_span="go to office", correction="go to the office")
     claude = fake_claude(
-        _response(_finding()),
+        _response(default_finding()),
         _response(office_finding),
         _response(office_finding),  # 재실행 — 같은 결과를 다시 받는다
     )
@@ -170,8 +151,8 @@ async def test_prompt_carries_the_users_existing_pattern_keys(
     await _save(db_pool, committed_session.session_id, GYM_ANSWER)
     await _save(db_pool, committed_session.session_id, OFFICE_ANSWER)
     claude: FakeClaudeClient = fake_claude(
-        _response(_finding()),
-        _response(_finding(original_span="go to office", correction="go to the office")),
+        _response(default_finding()),
+        _response(default_finding(original_span="go to office", correction="go to the office")),
     )
 
     for _ in range(2):
@@ -243,8 +224,8 @@ async def test_two_findings_of_one_pattern_in_a_single_utterance_are_both_kept(
     await _save(db_pool, committed_session.session_id, "I go to gym and go to office.")
     claude = fake_claude(
         _response(
-            _finding(),
-            _finding(original_span="go to office", correction="go to the office"),
+            default_finding(),
+            default_finding(original_span="go to office", correction="go to the office"),
         )
     )
 
@@ -263,7 +244,7 @@ async def test_zero_findings_completes_the_job_and_clears_previous_occurrences(
     db_pool: asyncpg.Pool, committed_session, fake_claude
 ):
     utterance = await _save(db_pool, committed_session.session_id, GYM_ANSWER)
-    claude = fake_claude(_response(_finding()), _response())
+    claude = fake_claude(_response(default_finding()), _response())
     await process_analysis(db_pool, claude, await _claim(db_pool))
     assert (await _patterns(db_pool, committed_session.user_id))[0]["frequency"] == 1
 
@@ -289,8 +270,8 @@ async def test_result_write_is_rolled_back_when_the_lease_was_lost(
 ):
     utterance = await _save(db_pool, committed_session.session_id, GYM_ANSWER)
     claude = fake_claude(
-        _response(_finding()),
-        _response(_finding(original_span="go to gym", correction="go to the gym")),
+        _response(default_finding()),
+        _response(default_finding(original_span="go to gym", correction="go to the gym")),
     )
     await process_analysis(db_pool, claude, await _claim(db_pool))  # 1차 분석 성공
     before_occurrences = await _occurrences(db_pool, committed_session.session_id)
@@ -336,9 +317,8 @@ async def test_new_pattern_key_violating_the_format_is_rejected(
     await _save(db_pool, committed_session.session_id, GYM_ANSWER)
     job = await _claim(db_pool)
 
-    await process_analysis(
-        db_pool, fake_claude(_response(_finding(pattern_key="missing_article_before_gym"))), job
-    )
+    claude = fake_claude(_response(default_finding(pattern_key="missing_article_before_gym")))
+    await process_analysis(db_pool, claude, job)
 
     row = await _job_row(db_pool, job.id)
     assert row["status"] == "pending"
@@ -366,7 +346,7 @@ async def test_existing_pattern_key_is_reused_regardless_of_its_format(
         db_pool,
         fake_claude(
             _response(
-                _finding(
+                default_finding(
                     category="verb_tense",
                     pattern_key=legacy_key,
                     target_form="I finished the report",
@@ -440,7 +420,7 @@ async def test_claude_is_called_outside_any_open_transaction(
     db_pool: asyncpg.Pool, committed_session
 ):
     await _save(db_pool, committed_session.session_id, GYM_ANSWER)
-    claude = _TransactionSpyClaude(db_pool, _response(_finding()))
+    claude = _TransactionSpyClaude(db_pool, _response(default_finding()))
 
     await process_analysis(db_pool, claude, await _claim(db_pool))
 
@@ -474,7 +454,8 @@ async def test_blank_transcript_still_replaces_previous_occurrences(
 ):
     # 발화가 재전사되어 빈 문자열로 바뀐 경우에도 replace 규칙은 그대로다.
     utterance = await _save(db_pool, committed_session.session_id, GYM_ANSWER)
-    await process_analysis(db_pool, fake_claude(_response(_finding())), await _claim(db_pool))
+    claude = fake_claude(_response(default_finding()))
+    await process_analysis(db_pool, claude, await _claim(db_pool))
     assert len(await _occurrences(db_pool, committed_session.session_id)) == 1
     async with db_pool.acquire() as conn, conn.transaction():
         await conn.execute("update utterances set transcript = '' where id = $1", utterance.id)
@@ -506,9 +487,9 @@ async def test_case_and_whitespace_variants_merge_into_the_existing_pattern(
     await _save(db_pool, committed_session.session_id, GYM_ANSWER)
     await _save(db_pool, committed_session.session_id, OFFICE_ANSWER)
     claude = fake_claude(
-        _response(_finding()),
+        _response(default_finding()),
         _response(
-            _finding(
+            default_finding(
                 pattern_key=returned_key,
                 original_span="go to office",
                 correction="go to the office",

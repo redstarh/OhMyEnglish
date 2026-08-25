@@ -13,16 +13,14 @@ creates duplicate rows.
 from __future__ import annotations
 
 import asyncio
-import os
 from pathlib import Path
 from uuid import UUID
 
 import asyncpg
+from db_utils import base_dsn
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 MIGRATIONS_DIR = REPO_ROOT / "db" / "migrations"
-
-DEFAULT_DEV_DSN = "postgresql://ohmy:ohmy@localhost:5433/ohmyenglish"
 
 # Single-user local tool (§2 확정 실행 환경) — a fixed, deterministic id.
 USER_ID = UUID("00000000-0000-0000-0000-000000000001")
@@ -54,10 +52,6 @@ SEED_SCENARIOS: list[tuple[UUID, str, str, str, str]] = [
 ]
 
 
-def _database_url() -> str:
-    return os.environ.get("DATABASE_URL", DEFAULT_DEV_DSN)
-
-
 async def _ensure_migrations_table(conn: asyncpg.Connection) -> None:
     await conn.execute(
         """
@@ -73,7 +67,12 @@ async def apply_migrations(conn: asyncpg.Connection) -> None:
     """Apply each `db/migrations/*.sql` file at most once, tracked by
     filename in `schema_migrations` — running this script again (e.g. on
     every backend startup, per design doc §7 Dependency init order) must
-    not fail with "relation already exists"."""
+    not fail with "relation already exists".
+
+    Deliberately not `db_utils.recreate_database`: this applies to the dev DB
+    in place (no drop), accumulating idempotently — the destructive drop/create
+    is only ever correct for disposable test/smoke databases.
+    """
     await _ensure_migrations_table(conn)
     for sql_file in sorted(MIGRATIONS_DIR.glob("*.sql")):
         already_applied = await conn.fetchval(
@@ -114,7 +113,7 @@ async def seed(conn: asyncpg.Connection) -> None:
 
 
 async def main() -> None:
-    conn = await asyncpg.connect(dsn=_database_url())
+    conn = await asyncpg.connect(dsn=base_dsn())
     try:
         await apply_migrations(conn)
         await seed(conn)

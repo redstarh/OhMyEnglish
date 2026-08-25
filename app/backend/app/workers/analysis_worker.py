@@ -31,8 +31,13 @@ from app.workers.claude_client import ClaudeClient
 logger = logging.getLogger(__name__)
 
 
-async def _claim(pool: asyncpg.Pool) -> ClaimedJob | None:
-    """claim 하나를 짧은 자기 트랜잭션에서 커밋한다 (§5.4)."""
+async def claim_one(pool: asyncpg.Pool) -> ClaimedJob | None:
+    """claim 하나를 짧은 자기 트랜잭션에서 커밋한다 (§5.4).
+
+    공개 이름이다 — `tests/integration/test_pipeline.py`와
+    `scripts/smoke_analysis.py`가 같은 claim 패턴을 재구현하지 않고 이 함수를
+    직접 쓴다.
+    """
     async with pool.acquire() as conn, conn.transaction():
         return await claim_next(conn)
 
@@ -73,7 +78,7 @@ async def run_worker(
     logger.info("analysis worker started (poll interval %.2fs, concurrency 1)", poll_interval)
     while not stop.is_set():
         try:
-            job = await _claim(pool)
+            job = await claim_one(pool)
             if job is None:
                 await _wait(stop, poll_interval)
                 continue

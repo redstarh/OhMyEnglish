@@ -24,8 +24,9 @@ import asyncpg
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from app.audio_gateway.factory import create_voice_adapter
-from app.audio_gateway.session import SessionRunner, mark_session_ended
+from app.audio_gateway.session import SessionRunner
 from app.config import get_settings
+from app.services.sessions import create_session, mark_session_ended
 
 logger = logging.getLogger(__name__)
 
@@ -41,22 +42,11 @@ ADAPTER_UNAVAILABLE_REASON = "voice_adapter_unavailable"
 # 스크립트는 앱 패키지를 import하지 않는 독립 ops 스크립트라 상수를 공유하지 못한다.
 FIXED_USER_ID = UUID("00000000-0000-0000-0000-000000000001")
 
-# 시나리오는 시드된 첫 행에 붙인다 — 첫 슬라이스에는 추천 로직이 없고(YAGNI),
-# 어떤 질문 세트로 대화했는지 결과가 참조할 수 있도록 연결만 해둔다. 시드가 없으면
-# `scenario_id`는 null로 남고(컬럼 nullable) 세션은 그대로 진행된다.
-_CREATE_SESSION_SQL = """
-insert into learning_sessions (user_id, scenario_id, mode)
-values ($1, (select id from learning_scenarios order by created_at, id limit 1), 'speaking')
-returning id
-"""
 
-
-async def create_session(pool: asyncpg.Pool) -> UUID:
-    """연결 하나에 대응하는 `active` 세션 행을 만든다."""
-    async with pool.acquire() as conn:
-        session_id = await conn.fetchval(_CREATE_SESSION_SQL, FIXED_USER_ID)
-    assert session_id is not None, "insert ... returning produced no row"
-    return session_id
+async def _safe_close(websocket: WebSocket) -> None:
+    """이미 닫혔을 수도 있는 소켓을 닫는다 — 재차 close해도 오류가 아니다."""
+    with contextlib.suppress(RuntimeError):
+        await websocket.close()
 
 
 class WebSocketChannel:
@@ -113,14 +103,13 @@ async def session_socket(websocket: WebSocket) -> None:
     pool: asyncpg.Pool = websocket.app.state.db_pool
 
     try:
-        session_id = await create_session(pool)
+        session_id = await create_session(pool, FIXED_USER_ID)
     except asyncpg.PostgresError:
         # 시드가 없으면(고정 사용자 부재) 여기서 걸린다 — 연결을 조용히 매달아두지
         # 않고 실패를 알린 뒤 닫는다.
         logger.exception("세션 행을 만들 수 없어 연결을 닫는다")
         await channel.send_event({"type": "session_failed", "reason": SESSION_CREATE_FAILED_REASON})
-        with contextlib.suppress(RuntimeError):
-            await websocket.close()
+        await _safe_close(websocket)
         return
 
     try:
@@ -132,8 +121,7 @@ async def session_socket(websocket: WebSocket) -> None:
         logger.exception("음성 어댑터를 만들 수 없어 세션 %s를 failed로 닫는다", session_id)
         await mark_session_ended(pool, session_id, "failed")
         await channel.send_event({"type": "session_failed", "reason": ADAPTER_UNAVAILABLE_REASON})
-        with contextlib.suppress(RuntimeError):
-            await websocket.close()
+        await _safe_close(websocket)
         return
 
     runner = SessionRunner(adapter, pool, session_id, client=channel)
@@ -143,5 +131,4 @@ async def session_socket(websocket: WebSocket) -> None:
         # 세션 하나의 사고가 소켓을 close 프레임 없이 끊게 두지 않는다.
         logger.exception("세션 %s가 예외로 끝났다", session_id)
     finally:
-        with contextlib.suppress(RuntimeError):
-            await websocket.close()
+        await _safe_close(websocket)

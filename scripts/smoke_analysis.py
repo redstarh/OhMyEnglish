@@ -5,11 +5,12 @@ AC 정본: `docs/design/2026-08-25-first-slice-acceptance-criteria.md` §W-live.
 Task 정본: `.superpowers/sdd/2026-08-25-phase1-implementation-plan/task-11-brief.md`.
 
 기존 앱 코드를 그대로 쓴다 — `app.audio_gateway.fixtures.FIXTURE_TURNS`,
-`app.services.utterances.save_final_transcript`, `app.services.jobs.claim_next`,
+`app.services.utterances.save_final_transcript`, `app.workers.analysis_worker.claim_one`,
 `app.services.analysis.process_analysis`, `app.workers.claude_client.BedrockClaudeClient`,
-`app.config`. 이 스크립트가 새로 만드는 것은 (1) 전용 스모크 DB 준비(conftest.py의
-`_recreate_test_database` 패턴을 DB명만 바꿔 재사용)와 (2) Claude 프롬프트/응답을
-기록하는 얇은 래퍼(`_RecordingClaudeClient`, 실제 호출은 그대로 위임)뿐이다.
+`app.config`. 이 스크립트가 새로 만드는 것은 (1) 전용 스모크 DB 준비
+(`scripts/db_utils.recreate_database` — tests/conftest.py와 공유하는 drop/create
++ 마이그레이션 적용, DB명만 다르다)와 (2) Claude 프롬프트/응답을 기록하는 얇은
+래퍼(`_RecordingClaudeClient`, 실제 호출은 그대로 위임)뿐이다.
 
 **dev DB(`ohmyenglish`)·test DB(`ohmyenglish_test`)를 쓰지 않는다** — 매 실행마다
 `ohmyenglish_smoke`를 drop/create해 001 마이그레이션을 새로 적용한다. 실행이 끝난
@@ -31,10 +32,10 @@ import os
 import re
 import sys
 from pathlib import Path
-from urllib.parse import urlsplit, urlunsplit
 from uuid import UUID
 
 import asyncpg
+from db_utils import recreate_database
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 BACKEND_DIR = REPO_ROOT / "app" / "backend"
@@ -50,12 +51,12 @@ from app.config import get_settings  # noqa: E402
 from app.db import close_pool  # noqa: E402
 from app.db import pool as get_db_pool  # noqa: E402
 from app.services.analysis import process_analysis  # noqa: E402
-from app.services.jobs import ClaimedJob, claim_next  # noqa: E402
+from app.services.jobs import ClaimedJob  # noqa: E402
 from app.services.utterances import save_final_transcript  # noqa: E402
+from app.workers.analysis_worker import claim_one  # noqa: E402
 from app.workers.claude_client import BedrockClaudeClient, ClaudeClient  # noqa: E402
 
 SMOKE_DB_NAME = "ohmyenglish_smoke"
-DEFAULT_DEV_DSN = "postgresql://ohmy:ohmy@localhost:5433/ohmyenglish"
 
 # AC W-live 단정 4: 이 스모크는 공통 픽스처 발화 1·2(관사 누락 오류)만 다루므로
 # 신규 key의 category는 반드시 article이어야 한다 — 일반 규칙(`{category}_snake`)이
@@ -83,39 +84,6 @@ class _RecordingClaudeClient:
         return raw
 
 
-def _base_dsn() -> str:
-    return os.environ.get("DATABASE_URL", DEFAULT_DEV_DSN)
-
-
-def _dsn_for(db_name: str) -> str:
-    parts = urlsplit(_base_dsn())
-    return urlunsplit((parts.scheme, parts.netloc, f"/{db_name}", parts.query, parts.fragment))
-
-
-async def _recreate_smoke_database() -> str:
-    """`ohmyenglish_smoke`를 drop/create하고 001 마이그레이션을 적용한다.
-
-    `tests/conftest.py`의 `_recreate_test_database` 패턴을 그대로 따르되 대상
-    DB명만 다르다 — dev(`ohmyenglish`)·test(`ohmyenglish_test`)와 완전히 분리된
-    전용 DB를 매 실행마다 새로 만든다.
-    """
-    admin_conn = await asyncpg.connect(dsn=_dsn_for("postgres"))
-    try:
-        await admin_conn.execute(f'DROP DATABASE IF EXISTS "{SMOKE_DB_NAME}"')
-        await admin_conn.execute(f'CREATE DATABASE "{SMOKE_DB_NAME}"')
-    finally:
-        await admin_conn.close()
-
-    dsn = _dsn_for(SMOKE_DB_NAME)
-    conn = await asyncpg.connect(dsn=dsn)
-    try:
-        for sql_file in sorted(MIGRATIONS_DIR.glob("*.sql")):
-            await conn.execute(sql_file.read_text())
-    finally:
-        await conn.close()
-    return dsn
-
-
 async def _seed_user_and_session(pool: asyncpg.Pool) -> tuple[UUID, UUID]:
     """`tests/conftest.py`의 `committed_session` 픽스처와 같은 패턴 — 고정 사용자
     1명 + `active` 학습 세션 1개. 스모크 DB는 다음 실행에서 drop되므로 teardown이
@@ -133,8 +101,7 @@ async def _seed_user_and_session(pool: asyncpg.Pool) -> tuple[UUID, UUID]:
 
 
 async def _claim(pool: asyncpg.Pool) -> ClaimedJob:
-    async with pool.acquire() as conn, conn.transaction():
-        job = await claim_next(conn)
+    job = await claim_one(pool)
     if job is None:
         raise RuntimeError(
             "claim할 job이 없다 — save_final_transcript가 analyze_utterance job을 "
@@ -219,7 +186,7 @@ async def main() -> int:
 
     print(f"[1/4] {SMOKE_DB_NAME} drop/create + 001 마이그레이션 적용")
     try:
-        smoke_dsn = await _recreate_smoke_database()
+        smoke_dsn = await recreate_database(SMOKE_DB_NAME, MIGRATIONS_DIR)
     except (OSError, asyncpg.PostgresError) as exc:
         print(
             f"ERROR: 스모크 DB 준비 실패 — {type(exc).__name__}: {exc}\n"

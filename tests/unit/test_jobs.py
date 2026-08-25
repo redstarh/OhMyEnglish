@@ -17,6 +17,7 @@ from uuid import UUID, uuid4
 
 import asyncpg
 import pytest
+from conftest import job_row
 
 from app.services.jobs import (
     BACKOFF,
@@ -48,16 +49,6 @@ async def _new_utterance(conn: asyncpg.Connection, *, sequence_no: int = 1) -> U
     )
 
 
-async def _job_row(conn: asyncpg.Connection, job_id: UUID) -> asyncpg.Record:
-    row = await conn.fetchrow(
-        "select status, attempts, locked_at, locked_by, last_error, available_at "
-        "from analysis_jobs where id = $1",
-        job_id,
-    )
-    assert row is not None, f"analysis_jobs row {job_id} disappeared"
-    return row
-
-
 async def _expire_lease(conn: asyncpg.Connection, job_id: UUID) -> None:
     """Push `locked_at` beyond the lease window instead of waiting for it."""
     await conn.execute(
@@ -65,6 +56,19 @@ async def _expire_lease(conn: asyncpg.Connection, job_id: UUID) -> None:
         job_id,
         LEASE + timedelta(minutes=1),
     )
+
+
+async def _enqueued(conn: asyncpg.Connection) -> UUID:
+    """New utterance → enqueue → assert registration succeeded, in one call.
+
+    Most tests here only need the resulting job id, not the utterance id —
+    this collapses the 3-line "insert utterance, enqueue, assert not None"
+    sequence that would otherwise repeat with the same comment across the
+    suite."""
+    utterance_id = await _new_utterance(conn)
+    job_id = await enqueue_analyze(conn, utterance_id)
+    assert job_id is not None  # 등록 성공을 전제하는 테스트 — 이후 호출은 UUID를 받는다
+    return job_id
 
 
 # 설계 발명값 상수는 코드가 SoT다 — 테스트는 값을 재선언하지 않고 import해서 쓴다.
@@ -106,7 +110,7 @@ async def test_claim_next_issues_lease_token_and_increments_attempts(
     assert claimed.attempts == 1
     assert len(claimed.lease_token) == 32  # uuid4().hex
 
-    row = await _job_row(db_conn, job_id)
+    row = await job_row(db_conn, job_id)
     assert row["status"] == "running"
     assert row["attempts"] == 1
     assert row["locked_by"] == claimed.lease_token
@@ -120,9 +124,7 @@ async def test_claim_next_issues_lease_token_and_increments_attempts(
 async def test_claim_next_skips_job_whose_available_at_is_in_the_future(
     db_conn: asyncpg.Connection,
 ):
-    utterance_id = await _new_utterance(db_conn)
-    job_id = await enqueue_analyze(db_conn, utterance_id)
-    assert job_id is not None  # 등록 성공을 전제하는 테스트 — 이후 호출은 UUID를 받는다
+    job_id = await _enqueued(db_conn)
     await db_conn.execute(
         "update analysis_jobs set available_at = now() + interval '10 minutes' where id = $1",
         job_id,
@@ -146,9 +148,7 @@ async def test_claim_next_rejects_naive_now(db_conn: asyncpg.Connection):
 async def test_expired_lease_is_reclaimed_and_stale_token_cannot_complete(
     db_conn: asyncpg.Connection,
 ):
-    utterance_id = await _new_utterance(db_conn)
-    job_id = await enqueue_analyze(db_conn, utterance_id)
-    assert job_id is not None  # 등록 성공을 전제하는 테스트 — 이후 호출은 UUID를 받는다
+    job_id = await _enqueued(db_conn)
 
     first = await claim_next(db_conn)
     assert first is not None
@@ -161,10 +161,10 @@ async def test_expired_lease_is_reclaimed_and_stale_token_cannot_complete(
     assert second.attempts == 2  # 회수도 attempt를 소비한다
 
     assert await complete(db_conn, job_id, first.lease_token) is False
-    assert (await _job_row(db_conn, job_id))["status"] == "running"
+    assert (await job_row(db_conn, job_id))["status"] == "running"
 
     assert await complete(db_conn, job_id, second.lease_token) is True
-    assert (await _job_row(db_conn, job_id))["status"] == "done"
+    assert (await job_row(db_conn, job_id))["status"] == "done"
 
 
 # Fix round — 좀비 회수(reaper): attempts 상한에 도달한 채 lease만 만료된 running job은
@@ -173,9 +173,7 @@ async def test_expired_lease_is_reclaimed_and_stale_token_cannot_complete(
 async def test_zombie_at_attempt_limit_is_reaped_to_failed_instead_of_reclaimed(
     db_conn: asyncpg.Connection,
 ):
-    utterance_id = await _new_utterance(db_conn)
-    job_id = await enqueue_analyze(db_conn, utterance_id)
-    assert job_id is not None  # 등록 성공을 전제하는 테스트 — 이후 호출은 UUID를 받는다
+    job_id = await _enqueued(db_conn)
     await db_conn.execute(
         "update analysis_jobs set attempts = $2 where id = $1", job_id, MAX_ATTEMPTS - 1
     )
@@ -186,7 +184,7 @@ async def test_zombie_at_attempt_limit_is_reaped_to_failed_instead_of_reclaimed(
 
     assert await claim_next(db_conn) is None  # 상한 초과 실행을 하지 않는다
 
-    row = await _job_row(db_conn, job_id)
+    row = await job_row(db_conn, job_id)
     assert row["status"] == "failed"
     assert row["last_error"] == LEASE_EXPIRED_ERROR
     assert row["attempts"] == MAX_ATTEMPTS  # reaper는 attempt를 소비하지 않는다
@@ -196,16 +194,14 @@ async def test_zombie_at_attempt_limit_is_reaped_to_failed_instead_of_reclaimed(
     # terminal이므로 죽은 워커의 뒤늦은 보고도, 이후의 어떤 claim도 되살리지 못한다.
     assert await complete(db_conn, job_id, claimed.lease_token) is False
     assert await claim_next(db_conn) is None
-    assert (await _job_row(db_conn, job_id))["status"] == "failed"
+    assert (await job_row(db_conn, job_id))["status"] == "failed"
 
 
 # Fix round — 상한 미달 job의 회수는 그대로 유지된다 (reaper가 과잉 수확하지 않는다)
 async def test_expired_lease_below_attempt_limit_is_still_reclaimed(
     db_conn: asyncpg.Connection,
 ):
-    utterance_id = await _new_utterance(db_conn)
-    job_id = await enqueue_analyze(db_conn, utterance_id)
-    assert job_id is not None  # 등록 성공을 전제하는 테스트 — 이후 호출은 UUID를 받는다
+    job_id = await _enqueued(db_conn)
     await db_conn.execute(
         "update analysis_jobs set attempts = $2 where id = $1", job_id, MAX_ATTEMPTS - 2
     )
@@ -220,7 +216,7 @@ async def test_expired_lease_below_attempt_limit_is_still_reclaimed(
     assert recovered.id == job_id
     assert recovered.attempts == MAX_ATTEMPTS
     assert recovered.lease_token != claimed.lease_token
-    row = await _job_row(db_conn, job_id)
+    row = await job_row(db_conn, job_id)
     assert row["status"] == "running"
     assert row["last_error"] is None  # reaper가 건드리지 않았다
 
@@ -229,9 +225,7 @@ async def test_expired_lease_below_attempt_limit_is_still_reclaimed(
 async def test_failure_at_attempt_limit_marks_failed_and_is_never_reclaimed(
     db_conn: asyncpg.Connection,
 ):
-    utterance_id = await _new_utterance(db_conn)
-    job_id = await enqueue_analyze(db_conn, utterance_id)
-    assert job_id is not None  # 등록 성공을 전제하는 테스트 — 이후 호출은 UUID를 받는다
+    job_id = await _enqueued(db_conn)
     await db_conn.execute(
         "update analysis_jobs set attempts = $2 where id = $1", job_id, MAX_ATTEMPTS - 1
     )
@@ -242,7 +236,7 @@ async def test_failure_at_attempt_limit_marks_failed_and_is_never_reclaimed(
 
     assert await fail_or_retry(db_conn, job_id, claimed.lease_token, "bedrock timeout") is True
 
-    row = await _job_row(db_conn, job_id)
+    row = await job_row(db_conn, job_id)
     assert row["status"] == "failed"
     assert row["last_error"] == "bedrock timeout"
 
@@ -255,9 +249,7 @@ async def test_failure_at_attempt_limit_marks_failed_and_is_never_reclaimed(
 async def test_retry_before_limit_requeues_with_attempt_scaled_backoff(
     db_conn: asyncpg.Connection,
 ):
-    utterance_id = await _new_utterance(db_conn)
-    job_id = await enqueue_analyze(db_conn, utterance_id)
-    assert job_id is not None  # 등록 성공을 전제하는 테스트 — 이후 호출은 UUID를 받는다
+    job_id = await _enqueued(db_conn)
     await db_conn.execute("update analysis_jobs set attempts = 1 where id = $1", job_id)
 
     claimed = await claim_next(db_conn)
@@ -266,7 +258,7 @@ async def test_retry_before_limit_requeues_with_attempt_scaled_backoff(
 
     assert await fail_or_retry(db_conn, job_id, claimed.lease_token, "transient error") is True
 
-    row = await _job_row(db_conn, job_id)
+    row = await job_row(db_conn, job_id)
     assert row["status"] == "pending"
     assert row["last_error"] == "transient error"
     assert row["locked_by"] is None
@@ -286,9 +278,7 @@ async def test_retry_before_limit_requeues_with_attempt_scaled_backoff(
 
 # Fix round 2 (I-2) — 백오프 기준 시계는 주입 가능해야 한다
 async def test_fail_or_retry_computes_backoff_from_injected_clock(db_conn: asyncpg.Connection):
-    utterance_id = await _new_utterance(db_conn)
-    job_id = await enqueue_analyze(db_conn, utterance_id)
-    assert job_id is not None  # 등록 성공을 전제하는 테스트 — 이후 호출은 UUID를 받는다
+    job_id = await _enqueued(db_conn)
     await db_conn.execute("update analysis_jobs set attempts = 1 where id = $1", job_id)
     claimed = await claim_next(db_conn)
     assert claimed is not None
@@ -313,9 +303,7 @@ async def test_fail_or_retry_computes_backoff_from_injected_clock(db_conn: async
 async def test_fail_or_retry_backoff_is_measured_from_statement_clock_not_transaction_start(
     db_conn: asyncpg.Connection,
 ):
-    utterance_id = await _new_utterance(db_conn)
-    job_id = await enqueue_analyze(db_conn, utterance_id)
-    assert job_id is not None  # 등록 성공을 전제하는 테스트 — 이후 호출은 UUID를 받는다
+    job_id = await _enqueued(db_conn)
     await db_conn.execute("update analysis_jobs set attempts = 1 where id = $1", job_id)
     claimed = await claim_next(db_conn)
     assert claimed is not None
@@ -331,15 +319,13 @@ async def test_fail_or_retry_backoff_is_measured_from_statement_clock_not_transa
 
 # ⑤ 보강 — 만료된 token으로는 재큐도 불가 (0행 → False)
 async def test_fail_or_retry_with_wrong_token_changes_nothing(db_conn: asyncpg.Connection):
-    utterance_id = await _new_utterance(db_conn)
-    job_id = await enqueue_analyze(db_conn, utterance_id)
-    assert job_id is not None  # 등록 성공을 전제하는 테스트 — 이후 호출은 UUID를 받는다
+    job_id = await _enqueued(db_conn)
     claimed = await claim_next(db_conn)
     assert claimed is not None
 
     assert await fail_or_retry(db_conn, job_id, uuid4().hex, "not my job") is False
 
-    row = await _job_row(db_conn, job_id)
+    row = await job_row(db_conn, job_id)
     assert row["status"] == "running"
     assert row["locked_by"] == claimed.lease_token
     assert row["last_error"] is None

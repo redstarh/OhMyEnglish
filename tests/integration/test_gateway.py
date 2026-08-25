@@ -506,9 +506,6 @@ async def test_a_save_in_flight_survives_the_drain_deadline(
 # --- 스텁 자체의 계약 ---
 
 
-# --- 스텁 자체의 계약 ---
-
-
 async def test_stub_counts_the_audio_frames_it_receives():
     adapter = StubVoiceAdapter()
     await adapter.start()

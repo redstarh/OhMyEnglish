@@ -21,6 +21,7 @@ from uuid import UUID
 
 import asyncpg
 import pytest
+from conftest import default_finding
 
 from app import db as db_module
 from app.api import main as main_module
@@ -37,18 +38,7 @@ GYM_ANSWER = FIXTURE_TURNS[0][1]
 
 
 def _response(**overrides: Any) -> str:
-    finding = {
-        "category": "article",
-        "pattern_key": "article_missing_before_place_noun",
-        "target_form": "go to the gym",
-        "original_span": "go to gym",
-        "correction": "go to the gym",
-        "explanation": "장소를 가리키는 명사 앞에는 정관사 the가 필요합니다.",
-        "severity": "medium",
-        "confidence": 0.9,
-    }
-    finding.update(overrides)
-    return json.dumps({"findings": [finding]})
+    return json.dumps({"findings": [default_finding(**overrides)]})
 
 
 async def _wait_until(
