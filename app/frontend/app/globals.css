@@ -1,12 +1,23 @@
+/* 화면의 모든 글자색은 이 토큰에서만 나온다. 인라인 하드코딩(`color: "#111"`)은
+   다크모드 팔레트를 통과하지 못해 AC U1의 "부분=회색 / 확정=일반" 위계를 뒤집는다
+   (1차수 F-1: #111이 #0a0a0a 위에서 1.05:1 — 부분 전사문 #999(6.95:1)보다 어두웠다).
+
+   위계 계약: 강조 대상은 `--foreground`, 덜 강조할 보조 문구는 `--foreground-muted`.
+   두 모드 모두 배경 대비 4.5:1(WCAG AA) 이상이면서 muted가 foreground보다 낮다 —
+   "덜 강조"를 밝기가 아니라 **대비**로 표현하기 때문에 배경이 뒤집혀도 살아남는다. */
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #171717; /* 17.9:1 */
+  --foreground-muted: #595959; /* 7.0:1 */
+  --danger: #cc0000; /* 5.9:1 — 기존 #c00 그대로, 라이트모드 외관은 바뀌지 않는다 */
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
-    --foreground: #ededed;
+    --foreground: #ededed; /* 16.9:1 */
+    --foreground-muted: #9a9a9a; /* 7.0:1 */
+    --danger: #ff8a8a; /* 8.7:1 — #cc0000은 이 배경에서 3.4:1로 AA 미달이라 밝은 쪽으로 뒤집는다 */
   }
 }
 

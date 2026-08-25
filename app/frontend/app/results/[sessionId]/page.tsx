@@ -72,10 +72,12 @@ export default function ResultsPage() {
     <main style={{ maxWidth: 640, margin: "0 auto", padding: "2rem", fontFamily: "sans-serif" }}>
       <h1>학습 결과</h1>
 
-      {!sessionId && <p style={{ color: "#c00" }}>세션 id가 없습니다.</p>}
+      {!sessionId && <p style={{ color: "var(--danger)" }}>세션 id가 없습니다.</p>}
 
       {sessionId && !result && (
-        <p style={{ color: fetchError ? "#c00" : undefined }}>{fetchError ?? "결과를 불러오는 중입니다..."}</p>
+        <p style={{ color: fetchError ? "var(--danger)" : undefined }}>
+          {fetchError ?? "결과를 불러오는 중입니다..."}
+        </p>
       )}
 
       {result && (
@@ -103,7 +105,10 @@ export default function ResultsPage() {
                   <p style={{ margin: "0.25rem 0" }}>
                     <strong>교정문:</strong> {correction.correction}
                   </p>
-                  <p style={{ margin: "0.25rem 0", color: "#555" }}>{correction.reason}</p>
+                  {/* 한 줄 이유는 원문·교정문보다 덜 강조한다 — 위계는 테마 토큰이 만든다. */}
+                  <p style={{ margin: "0.25rem 0", color: "var(--foreground-muted)" }}>
+                    {correction.reason}
+                  </p>
                 </div>
               ))}
             </div>

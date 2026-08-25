@@ -213,15 +213,19 @@ export default function SessionPage() {
               marginTop: "1rem",
             }}
           >
-            {lines.length === 0 && !partialLine && <p style={{ color: "#999" }}>대화를 기다리는 중...</p>}
+            {lines.length === 0 && !partialLine && (
+              <p style={{ color: "var(--foreground-muted)" }}>대화를 기다리는 중...</p>
+            )}
+            {/* 확정 전사문이 강조 대상이다 — 부분 전사문(muted)보다 배경 대비가 높아야
+                AC U1의 위계가 성립한다. 색은 테마 토큰에서만 온다(globals.css). */}
             {lines.map((line) => (
-              <p key={line.id} style={{ color: "#111", margin: "0.4rem 0" }}>
+              <p key={line.id} style={{ color: "var(--foreground)", margin: "0.4rem 0" }}>
                 <strong>{line.speaker === "agent" ? "질문" : "답변"}: </strong>
                 {line.text}
               </p>
             ))}
             {partialLine && (
-              <p style={{ color: "#999", margin: "0.4rem 0" }}>
+              <p style={{ color: "var(--foreground-muted)", margin: "0.4rem 0" }}>
                 <strong>{partialLine.speaker === "agent" ? "질문" : "답변"}: </strong>
                 {partialLine.text}
               </p>
@@ -240,7 +244,9 @@ export default function SessionPage() {
       {state === "failed" && (
         <div style={{ marginTop: "1rem" }}>
           <p>연결에 실패했습니다.</p>
-          {failureReason && <p style={{ color: "#666" }}>사유: {failureReason}</p>}
+          {failureReason && (
+            <p style={{ color: "var(--foreground-muted)" }}>사유: {failureReason}</p>
+          )}
           <button onClick={() => void startSession()} style={{ padding: "0.75rem 1.5rem" }}>
             다시 시도
           </button>
