@@ -47,7 +47,7 @@ MIGRATIONS_DIR = REPO_ROOT / "db" / "migrations"
 sys.path.insert(0, str(BACKEND_DIR))
 
 from app.audio_gateway.fixtures import FIXTURE_TURNS  # noqa: E402
-from app.config import get_settings  # noqa: E402
+from app.config import Settings, get_settings, prepare_bedrock_credentials  # noqa: E402
 from app.db import close_pool  # noqa: E402
 from app.db import pool as get_db_pool  # noqa: E402
 from app.services.analysis import process_analysis  # noqa: E402
@@ -173,15 +173,16 @@ def _print_checks(checks: list[Check]) -> bool:
 
 
 async def main() -> int:
-    # AWS_BEARER_TOKEN_BEDROCK 없으면 DB조차 만들지 않고 즉시 종료한다 — 뒤늦게
-    # Claude 호출 단계에서 실패하면 스모크 DB만 만들고 아무 의미 있는 진단 없이
-    # 끝나기 때문이다.
-    if not os.environ.get("AWS_BEARER_TOKEN_BEDROCK"):
-        print(
-            "ERROR: AWS_BEARER_TOKEN_BEDROCK 환경변수가 없다 — 실제 Claude 호출이 "
-            "즉시 실패한다. `export AWS_BEARER_TOKEN_BEDROCK=...` 후 재실행하라.",
-            file=sys.stderr,
-        )
+    # 자격증명이 없으면 DB조차 만들지 않고 즉시 종료한다 — 뒤늦게 Claude 호출
+    # 단계에서 실패하면 스모크 DB만 만들고 아무 의미 있는 진단 없이 끝나기 때문이다.
+    #
+    # 검사는 config의 단일 이음새에 위임한다(F5) — 이 스크립트는 자격증명
+    # 환경변수 이름을 알지 않는다. `get_settings()`를 쓰지 않는 이유는 아래
+    # DATABASE_URL 덮어쓰기 주석과 같다 — lru_cache에 dev DSN이 고정된다.
+    try:
+        prepare_bedrock_credentials(Settings())  # ty: ignore[missing-argument]
+    except Exception as exc:
+        print(f"ERROR: {type(exc).__name__}: {exc}", file=sys.stderr)
         return 1
 
     print(f"[1/4] {SMOKE_DB_NAME} drop/create + 001 마이그레이션 적용")
