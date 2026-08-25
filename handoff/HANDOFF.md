@@ -21,9 +21,9 @@
 - botocore 재시도 미설정(스로틀 중복 과금) — Phase 2 첫 운영 관찰 대상
 - 이연 minor 전체 목록·근거: ledger
 
-### ⚠️ 유일한 하드 블로커 (Phase 2 진입 조건) — SigV4 자격증명
+### ✅ 하드 블로커 해소 — SigV4 자격증명 (2026-08-26)
 
-**Nova Sonic 양방향 스트림은 Bedrock API key(bearer)로 호출할 수 없다** — 실측 확정 (2026-08-25):
+**Phase 2(Nova 실연동) 착수 조건이 충족됐다.** 원래 블로커는 이것이었다 — Nova Sonic 양방향 스트림은 Bedrock API key(bearer)로 호출할 수 없다 (2026-08-25 실측):
 
 | 엔드포인트 | bearer token |
 |---|---|
@@ -31,7 +31,20 @@
 | `/invoke-with-response-stream` | HTTP 200 |
 | `/invoke-with-bidirectional-stream` | **HTTP 403 `This operation does not support API Keys`** |
 
-**발급 방식은 미결(캡틴 "나중에 결정")** — Phase 2(Nova 실연동) 착수 전 반드시 결정. 절차 가이드: `docs/ops/iam-setup-nova-sigv4.md` (Slack #clawair 전송 완료). Phase 1은 이 블로커와 무관하게 완주 가능 — Nova는 포트+스텁으로 격리했고 Claude 분석은 bearer로 동작한다(실측 200).
+해소 경로 (전부 실측 증거 있음):
+
+| 단계 | 결과 |
+|---|---|
+| IAM user `ohmyenglish-local` + 최소권한 인라인 정책 | 캡틴이 발급 (account `783504293555`) |
+| `sts get-caller-identity` | `arn:aws:iam::783504293555:user/ohmyenglish-local` |
+| Claude invoke via SigV4 (앱 `config` 경유) | HTTP 200, `claude-opus-5` |
+| **Nova 양방향 스트림** | **PASS** — 요청 수락·스트림 유지·4xx 없음 (`scripts/spike_nova_bidirectional.py`) |
+
+**진행 중 발견한 정책 결함 1건**: 가이드의 `NovaSonicBidirectional` 문에 `bedrock:InvokeModelWithBidirectionalStream`만 넣었더니 HTTP 403이 났다. 양방향 연산도 **`bedrock:InvokeModel`을 함께 요구한다** — 서비스가 403 본문에 정확히 그렇게 답했다. 정책과 가이드를 모두 고쳤다.
+
+**자격증명 우선순위 (코드)**: SigV4가 있으면 SigV4를 쓰고 `AWS_BEARER_TOKEN_BEDROCK`을 프로세스 환경에서 제거한다(단일 경로 강제). 없으면 bearer로 폴백한다(전환기 — 캡틴 지시). 둘 다 없으면 즉시 실패. 전환 지점은 `app/backend/app/config.py`의 `prepare_bedrock_credentials()` **한 곳**이며, AC F5의 "전환 = 설정 교체" 약속대로 워커·클라이언트 코드는 무변경이었다.
+
+> ⚠️ **보안 후속**: 이 access key는 대화 기록을 경유했다 — 로테이션 권장 (`docs/ops/iam-setup-nova-sigv4.md` §6).
 
 ## 구현 완료 내역 (태스크 → 커밋)
 
@@ -65,7 +78,15 @@ python3 scripts/migrate.py       # 001 적용 + 고정 사용자·시나리오 3
 
 # 백엔드 (app/backend, Python 3.13 venv — uv)
 cd app/backend && .venv/bin/uvicorn app.api.main:app --port 8000
-#   .env: DATABASE_URL, AWS_REGION=us-west-2, AWS_BEARER_TOKEN_BEDROCK(Claude용)
+#   .env: DATABASE_URL, AWS_REGION=us-west-2, 그리고 Bedrock 자격증명
+#     자격증명 우선순위 (2026-08-25 SigV4 전환, config.py 한 곳에 격리):
+#       ① AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY (+임시면 AWS_SESSION_TOKEN)
+#          → SigV4 사용. 이때 AWS_BEARER_TOKEN_BEDROCK 을 프로세스 환경에서 제거해
+#            단일 경로를 강제한다 (§4.1). Nova 양방향은 이 경로만 가능.
+#       ② 없으면 AWS_BEARER_TOKEN_BEDROCK 으로 폴백 — 현재 상태.
+#          Claude invoke는 HTTP 200으로 동작하고(실측), Nova 양방향은 403이다.
+#       ③ 둘 다 없으면 워커 기동 시 즉시 RuntimeError. WORKER_ENABLED=false 로는 부팅됨.
+#     SigV4 발급 절차: docs/ops/iam-setup-nova-sigv4.md
 #   WORKER_ENABLED=false 로 기동하면 분석 워커 정지 (E2E-S 스텝 3용)
 #   voice_adapter=stub(기본) | stub_unresponsive(연결 실패 재현 — T9 fix 후)
 
