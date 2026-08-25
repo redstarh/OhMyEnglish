@@ -61,6 +61,52 @@ def test_prompt_injects_existing_patterns_with_category_and_target_form():
         assert pattern.target_form in prompt
 
 
+# --- Fix round 3 (F-2): `target_form`은 문장별 교정문이 아니라 패턴의 일반형이다 ---
+#
+# 1차수 F-2에서 교정 카드의 `target_form`이 표시된 `original_span`/`correction`과 다른
+# 문장을 가리켰다. 원인은 두 값이 독립적으로 선택되는 것이고(패턴 테이블 vs 대표
+# occurrence), 캡틴 결정은 **선택지 B — `target_form`을 패턴 수준의 일반형으로
+# 만든다**였다: 문장별 교정은 이미 `error_occurrences.correction`이 담고 있어서
+# `target_form`이 문장이면 같은 값을 두 번 저장하는 것이 된다. 그 의미를 만드는
+# 장치는 프롬프트 하나뿐이므로 프롬프트가 무엇을 요구하는지를 테스트가 고정한다.
+
+
+def test_prompt_defines_target_form_as_a_reusable_pattern_level_form():
+    prompt = build_prompt(TRANSCRIPT, [])
+
+    assert "일반형" in prompt
+    # 형식만 말하면 모델이 발화 문장을 그대로 넣는다(1차수 실측) — 금지를 명시한다.
+    assert "문장을 그대로 넣지 마라" in prompt
+    # 문장별 교정이 이미 있는 곳을 가리켜 역할 분담을 못 박는다.
+    assert "correction" in prompt
+
+
+def test_prompt_shows_good_and_bad_target_form_examples():
+    prompt = build_prompt(TRANSCRIPT, [])
+
+    assert "좋은 예" in prompt
+    assert "나쁜 예" in prompt
+    # 좋은 예는 자리표시자를 가진 재사용 가능한 형태, 나쁜 예는 완성된 문장이다.
+    assert "go to the + 장소 명사" in prompt
+    assert "I usually go to the gym after work." in prompt
+
+
+def test_prompt_tells_the_model_to_reuse_the_existing_target_form():
+    prompt = build_prompt(TRANSCRIPT, EXISTING)
+
+    # 기존 key를 재사용할 때 target_form까지 재사용해야 값이 분석마다 흔들리지 않는다.
+    assert "target_form도" in prompt
+    assert "그대로 쓴다" in prompt
+
+
+def test_prompt_requires_one_target_form_per_pattern_key():
+    prompt = build_prompt(TRANSCRIPT, [])
+
+    # 한 응답에 같은 pattern_key가 두 번 나오면 패턴 upsert에서 마지막 하나만 남는다
+    # (F-2의 기계적 원인) — 애초에 갈라지지 않게 요구한다.
+    assert "하나로 통일" in prompt
+
+
 def test_prompt_instructs_reuse_first_and_the_new_key_format():
     prompt = build_prompt(TRANSCRIPT, EXISTING)
 

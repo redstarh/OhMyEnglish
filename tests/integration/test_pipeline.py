@@ -504,3 +504,85 @@ async def test_case_and_whitespace_variants_merge_into_the_existing_pattern(
     assert [record["pattern_key"] for record in patterns] == [ARTICLE_PATTERN_KEY]
     assert patterns[0]["frequency"] == 2
     assert len(await _occurrences(db_pool, committed_session.session_id)) == 2
+
+
+# --- Fix round 3 (F-2) ---
+#
+# `target_form`은 **패턴 수준의 일반형**이고 문장별 교정은 `error_occurrences.correction`이
+# 담당한다(캡틴 결정 선택지 B). 두 값은 서로 다른 테이블에서 독립적으로 선택되므로
+# (패턴 테이블 vs 대표 occurrence — `services/results.py`), 한 발화에서 같은 패턴이 두 번
+# 나올 때 저장이 둘을 뒤섞지 않는다는 것을 고정한다.
+#
+# 이 테스트는 프롬프트 수정 **전에도 통과한다** — F-2의 원인은 저장 로직이 아니라 Claude가
+# 내놓은 `target_form`의 내용(문장별 교정문)이었기 때문이다. 그래서 이 파일이 막는 것은
+# "앞으로 누군가 `target_form`을 occurrence의 `correction`에서 채우는 것"이고, 의미 자체의
+# red-green 근거는 프롬프트 계약 테스트(`tests/unit/test_analysis.py`)에 있다.
+VERB_TENSE_PATTERN_KEY = "verb_tense_past_simple_yesterday"
+# 1차수 F-2가 관측된 그 발화. 한 문장에 verb_tense 오류가 두 곳 있다.
+TWO_ERROR_UTTERANCE = "Yesterday I go to the client meeting and present the project status."
+GENERALIZED_TARGET_FORM = "Yesterday + 동사 과거형"
+
+
+async def test_pattern_target_form_is_not_any_occurrence_correction(
+    db_pool: asyncpg.Pool, committed_session, fake_claude
+):
+    await _save(db_pool, committed_session.session_id, TWO_ERROR_UTTERANCE)
+    claude = fake_claude(
+        _response(
+            default_finding(
+                category="verb_tense",
+                pattern_key=VERB_TENSE_PATTERN_KEY,
+                target_form=GENERALIZED_TARGET_FORM,
+                original_span="Yesterday I go",
+                correction="Yesterday I went",
+            ),
+            default_finding(
+                category="verb_tense",
+                pattern_key=VERB_TENSE_PATTERN_KEY,
+                target_form=GENERALIZED_TARGET_FORM,
+                original_span="and present",
+                correction="and presented",
+            ),
+        )
+    )
+
+    await process_analysis(db_pool, claude, await _claim(db_pool))
+
+    patterns = await _patterns(db_pool, committed_session.user_id)
+    assert [record["pattern_key"] for record in patterns] == [VERB_TENSE_PATTERN_KEY]
+    assert patterns[0]["frequency"] == 2
+    assert patterns[0]["target_form"] == GENERALIZED_TARGET_FORM
+    occurrences = await _occurrences(db_pool, committed_session.session_id)
+    # 문장별 교정은 occurrence마다 그대로 남고, 패턴의 목표 형태는 그 어느 쪽도 아니다 —
+    # 대표 occurrence가 어느 것으로 뽑혀도 카드의 목표 형태가 다른 문장을 가리키지 않는다.
+    assert [record["correction"] for record in occurrences] == [
+        "Yesterday I went",
+        "and presented",
+    ]
+    assert patterns[0]["target_form"] not in {record["correction"] for record in occurrences}
+
+
+# 다음 발화의 프롬프트에 그 일반형이 그대로 주입돼야 재사용(§5.6)이 성립한다.
+async def test_the_next_prompt_carries_the_stored_generalized_target_form(
+    db_pool: asyncpg.Pool, committed_session, fake_claude
+):
+    await _save(db_pool, committed_session.session_id, TWO_ERROR_UTTERANCE)
+    claude = fake_claude(
+        _response(
+            default_finding(
+                category="verb_tense",
+                pattern_key=VERB_TENSE_PATTERN_KEY,
+                target_form=GENERALIZED_TARGET_FORM,
+                original_span="Yesterday I go",
+                correction="Yesterday I went",
+            )
+        )
+    )
+    await process_analysis(db_pool, claude, await _claim(db_pool))
+
+    async with db_pool.acquire() as conn:
+        existing = await load_existing_patterns(conn, committed_session.user_id)
+    prompt = build_prompt(GYM_ANSWER, existing)
+
+    assert GENERALIZED_TARGET_FORM in prompt
+    assert VERB_TENSE_PATTERN_KEY in prompt

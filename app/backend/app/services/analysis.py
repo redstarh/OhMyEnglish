@@ -74,14 +74,32 @@ _CORRECTION_STYLE = """\
 [교정 방식]
 - original_span: 발화에서 잘못된 부분만 원문 그대로 잘라낸다.
 - correction: 그 부분을 고친 자연스러운 표현. 원문과 비슷한 길이를 유지한다.
-- target_form: 이 오류 유형에서 앞으로 목표로 삼을 짧은 형태. 왜 틀렸는지 한
-  줄로 설명할 수 있는 근거가 되어야 한다.
+- target_form: 이 오류 패턴을 연습할 때 익힐 일반형. 문장을 그대로 넣지 마라 —
+  문장별 교정은 correction이 담당한다. 규칙은 아래 [target_form 일반형]에 있다.
 - explanation: 왜 틀렸는지 학습자용 한국어 한 문장으로 설명한다. 단문으로,
   친절한 어투로 쓴다 (예: '어제 일어난 일이므로 과거형 worked를 씁니다').
 - severity: 의사소통을 막는 정도. high(뜻이 달라진다) / medium(어색하다) /
   low(사소하다).
 - confidence: 확신도 0~1. 애매하면 낮춰라 — 확실하지 않은 교정을 높은 확신도로
   올리면 학습자가 잘못된 규칙을 외운다."""
+
+# F-2(1차수) 대응. `target_form`이 문장별 교정문이면 `error_occurrences.correction`과
+# 같은 값을 두 번 저장하는 것이고, 컬럼이 패턴 테이블에 있는 이유가 없어진다 —
+# 대표 occurrence(결과 조회 §5.5)와 패턴의 target_form은 독립적으로 선택되므로 그때
+# 카드의 원문/교정문과 목표 형태가 서로 다른 문장을 가리킨다(1차수 실측).
+# 형식만 지시하면 모델이 발화 문장을 그대로 넣으므로 **좋은 예/나쁜 예를 함께 준다**.
+_TARGET_FORM_RULES = """\
+[target_form 일반형]
+문장이 아니라 패턴을 적는다. 자리표시자(`+ 장소 명사`, `+ 동사 과거형`)나 규칙 조각을
+써서, 같은 오류를 다른 문장에서 다시 만났을 때 그대로 연습 목표로 쓸 수 있게 한다.
+
+좋은 예 / 나쁜 예(그 문장의 교정문을 그대로 넣은 것):
+- `go to the + 장소 명사` / `I usually go to the gym after work.`
+- `Yesterday + 동사 과거형` / `Yesterday I went to the client meeting.`
+- `I don't know + 의문사 + 주어 + 동사` / `I don't know why he left early.`
+
+한 응답 안에서 같은 pattern_key를 여러 번 낼 때는 target_form을 하나로 통일한다.
+패턴 하나에 목표가 여러 개면 학습자가 무엇을 연습할지 알 수 없다."""
 
 _CATEGORIES = "\n".join(
     [
@@ -97,7 +115,10 @@ _PATTERN_KEY_RULES = """\
 1. 아래 [이 학습자의 기존 패턴] 목록에 같은 오류 유형이 있으면 그 pattern_key를
    글자 그대로 재사용한다. 뜻이 같은 새 key를 만들지 마라.
 2. 목록에 없을 때만 {category}_{간결한_영문_스네이크} 형식으로 새로 만든다
-   (소문자·숫자·밑줄만). 예: article_missing_before_noun."""
+   (소문자·숫자·밑줄만). 예: article_missing_before_noun.
+3. 기존 key를 재사용하면 그 패턴의 target_form도 목록에 있는 값을 그대로 쓴다.
+   분석마다 목표 형태가 흔들리면 학습자가 연습할 것이 매번 달라진다. 목록의 값이
+   문장이라 일반형이 아닐 때만 [target_form 일반형] 규칙에 맞게 고친다."""
 
 _OUTPUT_RULES = """\
 [출력]
@@ -139,6 +160,7 @@ def build_prompt(transcript: str, existing_patterns: list[PatternRow]) -> str:
         [
             _ROLE_AND_LEVEL,
             _CORRECTION_STYLE,
+            _TARGET_FORM_RULES,
             _CATEGORIES,
             _PATTERN_KEY_RULES,
             _existing_patterns_section(existing_patterns),
@@ -178,7 +200,9 @@ delete from error_occurrences where utterance_id = $1 returning pattern_id
 
 # `do update`는 conflict 시에도 id를 돌려받기 위한 것이다(`do nothing`은 0행).
 # category는 갱신하지 않는다 — 패턴의 정체성은 처음 만들 때 정해진다. target_form은
-# 가장 최근 분석이 제시한 목표 형태로 갱신한다.
+# 가장 최근 분석이 제시한 목표 형태로 갱신한다. 그 값은 문장별 교정문이 아니라 패턴의
+# 일반형이므로(F-2, `[target_form 일반형]`) 재사용 지시를 따른 응답에서는 갱신이 같은
+# 값을 다시 쓰는 것이 되고, 발화가 달라져도 목표 형태가 흔들리지 않는다.
 _UPSERT_PATTERN_SQL = """
 insert into error_patterns (user_id, category, pattern_key, target_form)
 values ($1, $2, $3, $4)

@@ -114,6 +114,16 @@ work?` / `What do you usually do on weekends?` / `What do you need to do tonight
 **발화 시각**(`utterances.created_at`) 기준이다. `impact_score`는 3단계(복습
 우선순위)로 연기되어 아직 컬럼이 없다.
 
+`target_form`은 **패턴 수준의 일반화된 목표 형태**다 — 그 패턴을 연습할 때 익힐 형태이며
+문장이 아니다(예: `go to the + 장소 명사`, `Yesterday + 동사 과거형`). **문장별 교정은
+`error_occurrences.correction`이 담당한다.** 두 컬럼이 같은 성격의 값을 담으면 같은 것을
+두 번 저장하는 것이고, 이 컬럼이 발생이 아니라 패턴 테이블에 있는 이유가 없어진다. 실제
+증상도 관측됐다(1차수 F-2): 결과 조회는 대표 occurrence(§5.5)와 패턴의 `target_form`을
+**독립적으로** 고르기 때문에, `target_form`이 문장별 교정문이면 한 패턴에 occurrence가
+둘 이상일 때 카드의 `교정문`과 목표 형태가 서로 다른 문장을 가리킨다. 이 의미는
+`services/analysis.py`의 분석 프롬프트(`[target_form 일반형]` 절)가 강제하며, 복습
+기능(L계층)이 이 값을 연습 목표로 쓴다.
+
 `category` 7코드 ↔ `PRD.md:89` 한국어 표시명 매핑:
 
 | 코드 | 표시명 |
@@ -209,7 +219,7 @@ available_at)`는 워커의 `FOR UPDATE SKIP LOCKED` claim 조회용이다. `pay
 {
   "category": "verb_tense",
   "pattern_key": "past_tense_in_work_update",
-  "target_form": "Yesterday, I worked on the API.",
+  "target_form": "Yesterday + 동사 과거형",
   "mastery_score": 35,
   "frequency": 7,
   "last_seen_at": "2026-08-24T09:10:00+09:00",
