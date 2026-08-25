@@ -134,7 +134,7 @@ async def run(scenario: str, sentences: list[str], wait: float) -> dict:
                 print(f"  saved #{utterance.sequence_no} [{utterance_type}]: {text}")
 
         elapsed = await wait_for_jobs(session_id, wait)
-        result = {
+        result: dict[str, object] = {
             "scenario": scenario, "session_id": str(session_id),
             "saved": saved, "wait_s": elapsed,
         }
