@@ -1,20 +1,25 @@
 # OhMyEnglish Handoff
 
-## 현재 상태 (2026-08-25 갱신 — Phase 1 구현 막바지)
+## 현재 상태 (2026-08-25 최종 — Phase 1 개발 완료, 캡틴 게이트 1건 대기)
 
-**첫 수직 슬라이스(Phase 1)의 코드 태스크가 사실상 완료됐다.** 백엔드 전체(스키마·PG 큐·전사문·Claude 분석 파이프라인·워커·결과 API·Audio Gateway+스텁)와 프론트엔드(Next.js 세션·결과 화면)가 구현·리뷰 통과 상태다. 구현 커밋 17개, **테스트 188 passed (skip/xfail 0), ruff/format/ty 전부 clean**.
+**Phase 1의 개발·검증이 전부 끝났다.** 구현 커밋 21개, **테스트 201 passed (skip/xfail 0)**, ruff/format/ty 전부 clean. 완료된 검증:
 
-### 진행 중 / 남은 작업 (순서대로)
+- 태스크 리뷰 전건 Approve (fix loop 5회 전건 ADDRESSED)
+- **W-live**: 실제 Claude 2발화 스모크 **PASS 7/7** — `article_missing_before_noun` 패턴이 발화 2에서 재사용돼 frequency=2 병합 (§5.6 계약 실물 증명)
+- **E2E-S**: 6스텝 수행 완료 — 3문항 완주, partial 회색→final 전환, "분석 중"(워커 OFF), 확정+교정 카드 정확 1개(실제 Claude 브라우저 종단), 부분 실패 병존, 연결 실패(10초 내). 화면 증거는 chrome 세션 디렉터리
+- **/simplify**: 4각 리뷰 → 8건 적용 (`b915b09`)
+- **최종 whole-branch 리뷰(fable)**: 조건부 Approve → 필수 2건(bearer 전달, 001 함정 문서화) 해소(`f33d22a`) → 이연 minor 33건 전건 "병합 전 필수 아님" triage
 
-| # | 작업 | 상태 |
-|---|---|---|
-| 1 | T9 fix round 1 — Gateway Important 5건(비ASCII 프레임 세션 사망, 어댑터 실패 고아 세션, 종료 시 이벤트 유실, unresponsive 런타임 선택, 사인파 톤) + CORS(localhost:3000) | **진행 중** (구현 agent 작업 중) |
-| 2 | T9 fix scoped re-review | 대기 |
-| 3 | **W-live** — 실제 Claude 2발화 스모크 (`scripts/smoke_analysis.py` 작성+실행, 패턴 병합 실물 검증) | 대기 (T11) |
-| 4 | **E2E-S** — 브라우저 6스텝 스모크 (AC 문서 §E2E-S — CORS 반영 후) | 대기 (T12) |
-| 5 | `/simplify` → 재검증 → **최종 whole-branch 리뷰**(최상위 모델) → 완료 선언 6항목 대조 | 대기 |
+### ⏸ 완료 선언 전 캡틴 게이트 1건
 
-완료 선언 기준은 `docs/design/2026-08-25-first-slice-acceptance-criteria.md` §완료 선언 규칙(6항목)이 정본이다 — 전 AC pass + W-live + E2E-S + red→green 증거 + /simplify + code-review Approve.
+**E2E-S 스텝 1의 "마이크 실프레임 전송"** — headless Chrome의 MediaRecorder 제약으로 자동 검증 불가(브라우저 레벨 오디오 셰임으로 대체 검증됨). **캡틴이 실물 마이크로 세션 1회**: 백엔드(8002)·프론트(3000)가 켜져 있으니 `http://localhost:3000` 열고 학습 시작 → 마이크 허용 → 아무 말 → 종료 → 결과 확인. 또는 이월 수용을 명시하면 완료 선언 가능.
+
+### 후속(비차단) 항목
+
+- `pending_learning_utterances` 함수가 앱에서 미사용 (AC W6 대응물로 유지 중 — 삭제 여부 캡틴 판단)
+- WS 엔드포인트 origin 미검증 (localhost 단일 사용자라 수용 — Phase 2 인증 도입 시 처리)
+- botocore 재시도 미설정(스로틀 중복 과금) — Phase 2 첫 운영 관찰 대상
+- 이연 minor 전체 목록·근거: ledger
 
 ### ⚠️ 유일한 하드 블로커 (Phase 2 진입 조건) — SigV4 자격증명
 
@@ -41,8 +46,11 @@
 | T7 워커 루프(동시성 1, WORKER_ENABLED) | `086a42e`, fix `010c90c`+chore `f315fa5` | Approve — Important 5건(MAX_TOKENS 16000, tx-밖 호출 가드, 빈 전사문 0건 done, 종료 상한 15s, key 정규화) 해소 |
 | T8 결과 API(R2 5분기·severity ordinal) | `7d453e4`, fix `f183249` | Approve (fix: 대표 문구 tie-break 결정화) |
 | explanation wave (U2 "한 줄 이유" 관통 — 계획 결함 수정) | `79ce9e2` | Approve 이슈 0건 |
-| T9 Gateway+Nova 포트+스텁+WS | `bac4144` | 스펙 ✅ / **fix round 1 진행 중** (Important 5 + CORS) |
-| T10 프론트엔드(Next.js 16, U1·U2 5상태) | `346bf23` | build+lint 통과. 실질 판정은 E2E-S (AC U-검증 원칙) |
+| T9 Gateway+Nova 포트+스텁+WS | `bac4144`, fix `5c6c92c` | Approve — Important 5건(비ASCII 프레임, 어댑터 실패 가시화, 드레인+shield, unresponsive 모드, 사인파 톤)+CORS 해소 |
+| T10 프론트엔드(Next.js 16, U1·U2 5상태) | `346bf23` | E2E-S로 실질 판정 완료 (5상태 전부 실화면 확인) |
+| T11 W-live 스모크 | `19bdc99` | 컨트롤러 직접 실행 PASS 7/7 |
+| /simplify 정리 | `b915b09` | 8건 적용 (sessions.py 통합, db_utils 등) |
+| 최종 리뷰 fix | `f33d22a` | bearer .env→boto3 전달 + 001 함정 문서화 |
 
 프로세스 상세(모든 ruling·이연 minor·red→green 증거 위치)는 `.superpowers/sdd/2026-08-25-phase1-implementation-plan/progress.md`(ledger, git 미추적)에 있다.
 
