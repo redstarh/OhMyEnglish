@@ -53,7 +53,10 @@ Nova Sonic 양방향 스트림은 **Bedrock API Key(bearer)를 서비스 차원�
     {
       "Sid": "NovaSonicBidirectional",
       "Effect": "Allow",
-      "Action": "bedrock:InvokeModelWithBidirectionalStream",
+      "Action": [
+        "bedrock:InvokeModel",
+        "bedrock:InvokeModelWithBidirectionalStream"
+      ],
       "Resource": "arn:aws:bedrock:us-west-2::foundation-model/amazon.nova-2-sonic-v1:0"
     },
     {
@@ -73,6 +76,19 @@ Nova Sonic 양방향 스트림은 **Bedrock API Key(bearer)를 서비스 차원�
 ```
 
 > 참고: `us.` 추론 프로필은 미국 리전들로 라우팅되므로, 프로필 ARN과 함께 **각 리전의 기반 모델 ARN**(`arn:aws:bedrock:*::foundation-model/...`)에도 권한이 필요하다. 위 JSON이 둘 다 커버한다. 첫 호출에서 AccessDenied가 나면 오류 메시지에 찍힌 정확한 ARN을 Resource에 추가한다.
+
+> ⚠️ **실측 정정 (2026-08-26).** `NovaSonicBidirectional`에 처음에는 `bedrock:InvokeModelWithBidirectionalStream`만 넣었는데 **HTTP 403이 났다.** 서비스가 돌려준 실제 이유:
+>
+> ```
+> User: arn:aws:iam::<ACCOUNT_ID>:user/ohmyenglish-local is not authorized to perform:
+> bedrock:InvokeModel on resource:
+> arn:aws:bedrock:us-west-2::foundation-model/amazon.nova-2-sonic-v1:0
+> because no identity-based policy allows the bedrock:InvokeModel action
+> ```
+>
+> 즉 양방향 스트림 연산도 **`bedrock:InvokeModel` 권한을 함께 요구한다.** 위 JSON은 두 action을 모두 넣도록 고쳤다.
+>
+> 이 메시지를 얻는 데 진단 장치가 필요했다 — `aws-sdk-bedrock-runtime` 0.10.0은 403 응답 **본문을 버리고** `AccessDeniedException('')`만 남긴다. 빈 메시지로는 "정책 누락"과 "모델 접근 미승인"을 구분할 수 없다. `scripts/spike_nova_bidirectional.py`의 `DiagnosticTransport`가 그 본문을 붙잡아 출력하므로, 다음 AccessDenied에서도 같은 방식으로 원인을 읽을 수 있다.
 
 ## 4. `.env` 구성 (OhMyEnglish 백엔드 전용)
 
@@ -102,12 +118,23 @@ env -i AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=... \
   --body '{"anthropic_version":"bedrock-2023-05-31","max_tokens":16,"messages":[{"role":"user","content":"say ok"}]}' \
   --cli-binary-format raw-in-base64-out /tmp/out.json && cat /tmp/out.json
 
-# ③ Nova 양방향 스파이크 재실행 — "스트림 열림"이 나와야 최종 통과
-#    (Phase 1에서 폐기한 스파이크를 재작성해 실행: aws-sdk-bedrock-runtime 0.10.0,
-#     Python 3.12+, invoke_model_with_bidirectional_stream(amazon.nova-2-sonic-v1:0))
+# ③ Nova 양방향 스파이크 — "스트림 열림"이 나와야 최종 통과
+cd app/backend && .venv/bin/python ../../scripts/spike_nova_bidirectional.py
+#   불투명한 AccessDeniedException('')이 나오면 본문 포착을 켜서 원인을 읽는다:
+#   OMY_SPIKE_CAPTURE_BODY=1 .venv/bin/python ../../scripts/spike_nova_bidirectional.py
 ```
 
 ③이 통과하면 Nova 실연동(Phase 2) 착수 조건이 충족된다. 설계서 §10-1 관문.
+
+### 5.1 스파이크의 판정 기준 (2026-08-26 실측으로 재정의)
+
+처음에는 `await_output()`이 값을 돌려주는 것을 성공 조건으로 잡았는데 **그것이 틀렸다** — Nova Sonic은 클라이언트가 전체 초기화 시퀀스(sessionStart → promptStart → contentStart …)를 보내기 전까지 아무 이벤트도 내보내지 않는다. 그 프로토콜 구현은 Phase 2의 몫이다.
+
+스파이크가 판정하는 것은 **자격증명이 이 연산에 통하는가** 하나다. 인증·인가는 요청 시점에 평가되므로 실패하면 즉시 4xx가 온다(실측: 권한 부족 시 1초 안에 403). 따라서 **4xx·예외 → FAIL / 정해진 시간 조용히 유지 → PASS**다.
+
+"조용함 = 성공"은 위험한 기준이라 **음성 대조군**을 함께 돌린다 — 존재하지 않는 모델(`amazon.nova-sonic-v1:0`, "2"가 없는 쪽)로 같은 호출을 해 하네스가 실패를 실제로 잡아내는지 먼저 확인한다. 대조군이 조용하면 하네스가 고장 난 것이므로 판정하지 않는다.
+
+**본문 포착은 기본 꺼짐**이다. 응답 본문은 한 번만 읽을 수 있고 `response.body`가 읽기 전용이라 되돌릴 수 없어, 켜면 SDK의 예외 타입이 `SmithyError: premature EOF`로 바뀐다 — 즉 **진단이 진단을 가린다**(실측: 대조군의 `ValidationException`이 가려졌다). 불투명한 AccessDenied를 만났을 때만 켠다.
 
 > SDK 함정 (실측): 이 SDK는 자격증명 실패를 즉시 예외로 주지 않고 **무응답(타임아웃)**으로 나타낸다. 스파이크에 단계별 타임아웃을 걸어야 원인을 구분할 수 있다 — 설계서 §4.2.
 
