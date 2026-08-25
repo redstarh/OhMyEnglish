@@ -1,0 +1,491 @@
+"""Nova 2 Sonic 양방향 스트림 어댑터 — 포트의 실물 구현 (설계서 §5.3·§7).
+
+프로토콜은 **추측하지 않았다.** `tests/harness/spike_nova_protocol.py`(N-1 PASS)로
+실제 음성 왕복을 확인한 시퀀스와 `tests/harness/runs/2026-08-26-N1/`의 원자료가
+이 파일의 근거다. 그 실측에서 나온, 문서만 읽고는 알 수 없었던 것 넷:
+
+1. **`await_output()`은 초기화 이벤트를 보내기 전에 반환하지 않는다.** HTTP 응답 헤더
+   자체가 오지 않기 때문이다(먼저 기다리면 20초 타임아웃). 그래서 `start()`는 수신
+   태스크를 **먼저 띄우고** 초기화 이벤트를 보낸다 — 순서를 뒤집으면 연결이 매달린다.
+2. **문서에 없는 이벤트가 온다** — `userSpeechStart`/`userSpeechEnd`. 파서는 모르는
+   이벤트를 로그만 남기고 넘긴다. 다음 필드 추가가 세션을 끊어선 안 된다.
+3. **사용자 ASR은 `generationStage: FINAL` 한 블록으로만 온다.** 사용자 부분 전사문이
+   없다 — 화면의 "듣고 있어요"는 `userSpeechStart`~`End` 구간이 근거다.
+4. **오디오 출력은 헤더 없는 raw LPCM이다**(앞 4바이트가 `RIFF`가 아니었다). 포트가
+   `bytes`만 약속하므로 포맷 변환은 클라이언트의 몫이다.
+
+**무음 프레임은 만들지 않는다.** 스파이크는 WAV가 끝나면 프레임이 끊겨 endpointing을
+유도할 무음을 넣어야 했지만, 실제 마이크는 사용자가 말을 멈춘 뒤에도 계속 흐른다.
+다만 사용자가 **종료를 누르면** 프레임이 끊겨 endpointing이 발동하지 않을 수 있어,
+`close()`가 `contentEnd`로 오디오 content를 명시적으로 닫는다.
+
+자격증명은 `app.config` 하나에서만 온다 (F5) — 이 모듈은 키를 직접 읽지 않는다.
+어떤 구현이 붙는지 세션 러너는 모르고(G3), 선택은 `factory.create_voice_adapter`에만 있다.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import base64
+import contextlib
+import json
+import logging
+import uuid
+from collections.abc import AsyncIterator, Awaitable, Callable
+from typing import Any
+
+from app.audio_gateway.port import (
+    AdapterEvent,
+    InterruptionEvent,
+    Speaker,
+    SpeechBoundaryEvent,
+    TranscriptEvent,
+)
+from app.config import Settings, prepare_bedrock_credentials
+
+logger = logging.getLogger(__name__)
+
+# 공식 문서(nova2-userguide/sonic-input-events.html) 값 = N-1 실측 값.
+SAMPLE_RATE_HZ = 16_000
+SAMPLE_SIZE_BITS = 16
+CHANNEL_COUNT = 1
+BYTES_PER_SAMPLE = SAMPLE_SIZE_BITS // 8
+# 문서: "audio frames (approximately 32ms each) … maintaining the natural microphone
+# sampling cadence". 16kHz·16bit·mono에서 32ms = 512샘플 = 1024바이트.
+FRAME_MS = 32
+FRAME_BYTES = SAMPLE_RATE_HZ * BYTES_PER_SAMPLE * CHANNEL_COUNT * FRAME_MS // 1000
+
+# SDK docstring: "The response is returned in a stream that remains open for 8 minutes."
+# 세션 롤오버는 이번 범위가 아니다 — 상한에 닿으면 조용히 매달리지 않고 스트림을 끝내
+# 세션이 닫히게 한다(닫히지 않으면 세션이 영원히 `active` 고아로 남는다).
+STREAM_LIMIT_SECONDS = 8 * 60.0
+
+# 스트림 정리 상한. 정리가 늦는 것 때문에 세션 종료 기록이 막히면 안 된다.
+CLOSE_TIMEOUT_SECONDS = 5.0
+
+# 스파이크에서 실증된 추론 설정. 근거 문서가 정한 값이 아니라 스파이크 발명값이다.
+_INFERENCE_CONFIGURATION = {"maxTokens": 1024, "topP": 0.9, "temperature": 0.7}
+
+_SPECULATIVE_STAGE = "SPECULATIVE"
+_INTERRUPTED_STOP_REASON = "INTERRUPTED"
+_ROLE_TO_SPEAKER: dict[str, Speaker] = {"USER": "user", "ASSISTANT": "agent"}
+
+# 대화 규칙의 정본은 `docs/agent-system-prompt.md`다. 여기에는 **첫 슬라이스에서 Nova가
+# 실제로 할 수 있는 부분만** 옮긴다: 오류 메모리 JSON 산출은 Claude 워커의 일이고
+# (§5.2), 음성 명령 규칙은 도구 호출이 없어 지킬 수 없다. 그대로 넣으면 모델이 JSON을
+# 소리로 읽는다. 학습자 수준·목표는 h-doc 프로필과 같다.
+SYSTEM_PROMPT = """\
+You are OhMyEnglish, a warm, practical English speaking coach for a Korean learner.
+
+The learner can handle greetings, small talk, and simple daily-life sentences, and mostly
+speaks in short patterns such as "I want to...", "I need to...", and "I'd like to...".
+Their goal is to join business meetings and report project status in English.
+
+Rules:
+1. Speak clear, natural English at A2-B1 level. Keep each of your turns to one or two
+   short sentences.
+2. Ask one question at a time, then let the learner speak.
+3. Start from daily-life topics and move toward work updates once the learner is warmed up.
+4. Do not correct every mistake. At most one correction per turn: quote what the learner
+   said, give one natural correction, and ask them to say it again.
+5. If the learner is stuck, offer a short sentence starter instead of the full answer.
+6. Never read JSON, lists, or metadata out loud."""
+
+
+def _generation_stage(body: dict[str, Any]) -> str | None:
+    """`contentStart.additionalModelFields`에서 `generationStage`를 꺼낸다.
+
+    실측에서 이 필드는 **JSON 문자열**로 온다(`'{"generationStage":"FINAL"}'`). 모양이
+    바뀌어도 죽지 않아야 한다 — 못 읽으면 `None`이고, 그때 전사문은 확정으로 취급된다
+    (사용자 발화를 잃는 쪽이 화면에 한 줄 더 뜨는 쪽보다 나쁘다).
+    """
+    fields = body.get("additionalModelFields")
+    if isinstance(fields, str):
+        try:
+            fields = json.loads(fields)
+        except ValueError:
+            logger.debug("additionalModelFields를 해석할 수 없다: %r", fields[:80])
+            return None
+    if not isinstance(fields, dict):
+        return None
+    stage = fields.get("generationStage")
+    return stage if isinstance(stage, str) else None
+
+
+def _offset_ms(body: dict[str, Any]) -> int | None:
+    offset = body.get("inputAudioOffsetMs")
+    return offset if isinstance(offset, int) else None
+
+
+class NovaEventTranslator:
+    """Nova 출력 이벤트 → 포트 이벤트. 순수 상태기계다(I/O·시계를 보지 않는다).
+
+    상태를 갖는 이유는 두 가지다. ① `generationStage`는 `contentStart`에만 실려 오고
+    `textOutput`에는 없으므로 `contentId`로 이어야 한다. ② ASSISTANT 텍스트가
+    `SPECULATIVE`로만 오고 끝나는 턴이 있어(N-1 실측) 턴이 끝날 때 그 문장을 확정으로
+    올려야 한다 — 올리지 않으면 agent 질문이 전사문에 한 행도 남지 않는다.
+    """
+
+    def __init__(self) -> None:
+        self._stage_by_content: dict[str, str | None] = {}
+        self._role_by_content: dict[str, str] = {}
+        self._pending_agent_text: str | None = None
+
+    def translate(self, name: str, body: dict[str, Any]) -> list[AdapterEvent]:
+        if not isinstance(body, dict):
+            logger.warning("Nova 이벤트 %s의 본문이 객체가 아니다 — 넘긴다", name)
+            return []
+        if name == "contentStart":
+            return self._on_content_start(body)
+        if name == "textOutput":
+            return self._on_text_output(body)
+        if name == "audioOutput":
+            return self._on_audio_output(body)
+        if name == "contentEnd":
+            return self._on_content_end(body)
+        if name == "userSpeechStart":
+            return [SpeechBoundaryEvent(speaking=True, offset_ms=_offset_ms(body))]
+        if name == "userSpeechEnd":
+            return [SpeechBoundaryEvent(speaking=False, offset_ms=_offset_ms(body))]
+        if name == "completionEnd":
+            return self._flush_pending_agent_text()
+        # `usageEvent`·`completionStart`, 그리고 아직 문서에 없는 이벤트가 여기로 온다.
+        logger.debug("Nova 이벤트 %s를 흘려보냈다", name)
+        return []
+
+    def _on_content_start(self, body: dict[str, Any]) -> list[AdapterEvent]:
+        content_id = body.get("contentId")
+        if not isinstance(content_id, str):
+            return []
+        self._stage_by_content[content_id] = _generation_stage(body)
+        role = body.get("role")
+        if isinstance(role, str):
+            self._role_by_content[content_id] = role
+        return []
+
+    def _on_text_output(self, body: dict[str, Any]) -> list[AdapterEvent]:
+        text = body.get("content")
+        if not isinstance(text, str) or not text.strip():
+            # 빈 전사문은 세션이 어차피 버린다(`session._store_final`) — 여기서 끊는다.
+            return []
+        raw_content_id = body.get("contentId")
+        content_id = raw_content_id if isinstance(raw_content_id, str) else ""
+        # 실측에서는 `textOutput`에도 role이 실려 온다 — 없으면 contentStart에서 이어 온다.
+        raw_role = body.get("role")
+        role = raw_role if isinstance(raw_role, str) else self._role_by_content.get(content_id, "")
+        speaker = _ROLE_TO_SPEAKER.get(role, "user")
+        # `SPECULATIVE`만 예고다. 모르는 값·없는 값은 확정으로 취급한다(위 `_generation_stage`).
+        stage = self._stage_by_content.get(content_id)
+        kind = "partial" if stage == _SPECULATIVE_STAGE else "final"
+        if speaker == "agent":
+            self._pending_agent_text = text if kind == "partial" else None
+        return [TranscriptEvent(kind=kind, text=text, speaker=speaker)]
+
+    def _on_audio_output(self, body: dict[str, Any]) -> list[AdapterEvent]:
+        content = body.get("content")
+        if not isinstance(content, str):
+            return []
+        try:
+            return [base64.b64decode(content, validate=True)]
+        except ValueError:
+            logger.warning("base64로 해석할 수 없는 audioOutput을 버렸다")
+            return []
+
+    def _on_content_end(self, body: dict[str, Any]) -> list[AdapterEvent]:
+        content_id = body.get("contentId")
+        if isinstance(content_id, str):
+            self._stage_by_content.pop(content_id, None)
+            self._role_by_content.pop(content_id, None)
+        if body.get("stopReason") == _INTERRUPTED_STOP_REASON:
+            return [InterruptionEvent()]
+        return []
+
+    def _flush_pending_agent_text(self) -> list[AdapterEvent]:
+        """턴이 끝났다 — 예고로만 온 agent 문장을 확정으로 올린다.
+
+        끊긴 턴(barge-in)에서도 올린다: 사용자가 이미 그 질문의 일부를 들었으므로
+        전사문에서 통째로 사라지는 편이 더 나쁘다.
+        """
+        if self._pending_agent_text is None:
+            return []
+        text, self._pending_agent_text = self._pending_agent_text, None
+        return [TranscriptEvent(kind="final", text=text, speaker="agent")]
+
+
+StreamOpener = Callable[[], Awaitable[Any]]
+
+
+async def _open_bedrock_stream(settings: Settings) -> Any:
+    """실물 양방향 스트림을 연다. 자격증명 획득은 `app.config`에만 있다 (F5)."""
+    from aws_sdk_bedrock_runtime.client import AsyncBedrockRuntimeClient
+    from aws_sdk_bedrock_runtime.config import AsyncBedrockRuntimeConfig
+    from aws_sdk_bedrock_runtime.models import (
+        InvokeModelWithBidirectionalStreamOperationInput,
+    )
+
+    prepare_bedrock_credentials(settings)
+    # 이 SDK는 config 직접 생성을 금지한다 — `resolve()`가 유일한 경로다.
+    sdk_config = await AsyncBedrockRuntimeConfig.resolve(region=settings.aws_region)
+    client = AsyncBedrockRuntimeClient(config=sdk_config)
+    return await client.invoke_model_with_bidirectional_stream(
+        InvokeModelWithBidirectionalStreamOperationInput(model_id=settings.nova_model_id)
+    )
+
+
+class NovaVoiceAdapter:
+    """`port.VoiceAdapter`의 Nova 2 Sonic 구현.
+
+    `open_stream`은 테스트 이음매다 — 가짜 스트림을 넣으면 실물 호출 없이 이벤트
+    시퀀스·파싱·종료 순서를 전부 관측할 수 있다. 기본값은 실물이다.
+    """
+
+    def __init__(
+        self,
+        settings: Settings,
+        *,
+        open_stream: StreamOpener | None = None,
+        stream_limit_seconds: float = STREAM_LIMIT_SECONDS,
+    ) -> None:
+        self._settings = settings
+        self._open_stream: StreamOpener = open_stream or (lambda: _open_bedrock_stream(settings))
+        self._stream_limit_seconds = stream_limit_seconds
+        self._prompt_name = str(uuid.uuid4())
+        self._audio_content_name = f"audio-{uuid.uuid4()}"
+        self._text_content_name = f"text-{uuid.uuid4()}"
+        self._stream: Any | None = None
+        self._pump: asyncio.Task[None] | None = None
+        self._queue: asyncio.Queue[AdapterEvent | None] = asyncio.Queue()
+        self._translator = NovaEventTranslator()
+        self._audio_open = False
+        self._closed = False
+
+    # --- 포트 구현 ---
+
+    async def start(self) -> None:
+        self._stream = await self._open_stream()
+        # **수신을 먼저 띄운다.** `await_output()`은 초기화 이벤트를 받기 전에 반환하지
+        # 않으므로(실측), 순서를 뒤집으면 여기서 영원히 기다린다.
+        self._pump = asyncio.create_task(self._pump_output(), name="nova-output")
+        for payload in self._initialization_events():
+            await self._send_event(payload)
+        self._audio_open = True
+
+    async def send_audio(self, frame: bytes) -> None:
+        if not self._audio_open:
+            logger.debug("오디오 경로가 닫혀 있어 프레임(%d바이트)을 버렸다", len(frame))
+            return
+        if not frame or len(frame) % BYTES_PER_SAMPLE:
+            # 16bit raw LPCM이면 나올 수 없는 길이다 — 다른 포맷(webm/opus)이거나 잘린
+            # 프레임이다. 그대로 보내면 Nova가 잡음을 전사하고 원인을 알 수 없다.
+            logger.warning("샘플 경계에 맞지 않는 오디오 프레임(%d바이트)을 버렸다", len(frame))
+            return
+        try:
+            await self._send_event(
+                {
+                    "event": {
+                        "audioInput": {
+                            "promptName": self._prompt_name,
+                            "contentName": self._audio_content_name,
+                            "content": base64.b64encode(frame).decode("ascii"),
+                        }
+                    }
+                }
+            )
+        except Exception:
+            # 프레임 하나가 대화를 끊지 않는다. 스트림이 정말 죽었으면 출력 펌프가 끝나며
+            # 세션이 닫힌다 — 여기서 예외를 올리면 그 경로를 앞질러 릴레이가 터진다.
+            logger.warning("오디오 프레임 전송이 실패해 오디오 경로를 닫는다", exc_info=True)
+            self._audio_open = False
+
+    async def events(self) -> AsyncIterator[AdapterEvent]:
+        while True:
+            event = await self._queue.get()
+            if event is None:  # 출력 펌프가 끝났다 = 대화 종료
+                return
+            yield event
+
+    async def close(self) -> None:
+        if self._closed:
+            return
+        self._closed = True
+        self._audio_open = False
+        if self._stream is not None:
+            for payload in self._termination_events():
+                # 이미 끊긴 스트림에 보내는 것은 오류가 아니다 — 종료를 막지 않는다.
+                with contextlib.suppress(Exception):
+                    await self._send_event(payload)
+        if self._pump is not None and not self._pump.done():
+            self._pump.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await self._pump
+        if self._stream is not None:
+            await self._quiet_close(self._stream)
+
+    # --- 내부 ---
+
+    async def _pump_output(self) -> None:
+        """출력 이벤트를 큐로 옮긴다. 스트림이 끝나거나 상한에 닿으면 반환한다."""
+        stream = self._stream
+        try:
+            if stream is None:
+                return
+            _, receiver = await stream.await_output()
+            loop = asyncio.get_running_loop()
+            deadline = loop.time() + self._stream_limit_seconds
+            while True:
+                remaining = deadline - loop.time()
+                if remaining <= 0:
+                    logger.warning(
+                        "Nova 스트림 상한(%.0f초)에 닿았다 — 세션을 닫는다 "
+                        "(롤오버는 아직 구현 범위가 아니다)",
+                        self._stream_limit_seconds,
+                    )
+                    return
+                try:
+                    chunk = await asyncio.wait_for(receiver.receive(), remaining)
+                except TimeoutError:
+                    continue  # 다음 반복에서 상한을 판정한다
+                if chunk is None:
+                    return
+                for event in self._translate_chunk(chunk):
+                    self._queue.put_nowait(event)
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            logger.exception("Nova 출력 스트림이 예외로 끝났다 — 세션을 닫는다")
+        finally:
+            self._queue.put_nowait(None)
+
+    def _translate_chunk(self, chunk: Any) -> list[AdapterEvent]:
+        raw = getattr(getattr(chunk, "value", None), "bytes_", None)
+        if not raw:
+            return []
+        try:
+            event = json.loads(raw)["event"]
+            name, body = next(iter(event.items()))
+        except (AttributeError, KeyError, StopIteration, TypeError, ValueError):
+            logger.warning("Nova 출력을 해석할 수 없다: %r", raw[:120])
+            return []
+        return self._translator.translate(name, body)
+
+    async def _send_event(self, payload: dict[str, Any]) -> None:
+        from aws_sdk_bedrock_runtime.models import (
+            BidirectionalInputPayloadPart,
+            InvokeModelWithBidirectionalStreamInputChunk,
+        )
+
+        stream = self._stream
+        if stream is None:
+            raise RuntimeError("Nova 스트림이 아직 열리지 않았다")
+        await stream.input_stream.send(
+            InvokeModelWithBidirectionalStreamInputChunk(
+                value=BidirectionalInputPayloadPart(bytes_=json.dumps(payload).encode())
+            )
+        )
+
+    async def _quiet_close(self, stream: Any) -> None:
+        """정리 실패가 세션 종료 기록을 막지 않게 한다.
+
+        `close()`는 내부적으로 `await_output()`을 다시 기다리므로, 이미 취소된 상태에서는
+        `CancelledError`(BaseException 계열)가 올라온다 — 스파이크가 실측한 모양이다.
+        """
+        try:
+            await asyncio.wait_for(stream.close(), CLOSE_TIMEOUT_SECONDS)
+        except (Exception, asyncio.CancelledError):
+            logger.debug("Nova 스트림 close를 조용히 넘겼다", exc_info=True)
+
+    def _initialization_events(self) -> list[dict[str, Any]]:
+        """실증된 초기화 시퀀스 (스파이크와 같은 순서·같은 필드)."""
+        return [
+            {
+                "event": {
+                    "sessionStart": {
+                        "inferenceConfiguration": _INFERENCE_CONFIGURATION,
+                        # Nova 2에서 추가된 필드 — barge-in(AC2) 민감도가 여기서 정해진다.
+                        "turnDetectionConfiguration": {
+                            "endpointingSensitivity": self._settings.nova_endpointing_sensitivity
+                        },
+                    }
+                }
+            },
+            {
+                "event": {
+                    "promptStart": {
+                        "promptName": self._prompt_name,
+                        "textOutputConfiguration": {"mediaType": "text/plain"},
+                        "audioOutputConfiguration": {
+                            "mediaType": "audio/lpcm",
+                            "sampleRateHertz": SAMPLE_RATE_HZ,
+                            "sampleSizeBits": SAMPLE_SIZE_BITS,
+                            "channelCount": CHANNEL_COUNT,
+                            "voiceId": self._settings.nova_voice_id,
+                            "encoding": "base64",
+                            "audioType": "SPEECH",
+                        },
+                    }
+                }
+            },
+            {
+                "event": {
+                    "contentStart": {
+                        "promptName": self._prompt_name,
+                        "contentName": self._text_content_name,
+                        "type": "TEXT",
+                        "interactive": False,
+                        "role": "SYSTEM",
+                        "textInputConfiguration": {"mediaType": "text/plain"},
+                    }
+                }
+            },
+            {
+                "event": {
+                    "textInput": {
+                        "promptName": self._prompt_name,
+                        "contentName": self._text_content_name,
+                        "content": SYSTEM_PROMPT,
+                    }
+                }
+            },
+            {
+                "event": {
+                    "contentEnd": {
+                        "promptName": self._prompt_name,
+                        "contentName": self._text_content_name,
+                    }
+                }
+            },
+            {
+                "event": {
+                    "contentStart": {
+                        "promptName": self._prompt_name,
+                        "contentName": self._audio_content_name,
+                        "type": "AUDIO",
+                        # 대화 중 사용자가 끼어들 수 있어야 한다 (barge-in).
+                        "interactive": True,
+                        "role": "USER",
+                        "audioInputConfiguration": {
+                            "mediaType": "audio/lpcm",
+                            "sampleRateHertz": SAMPLE_RATE_HZ,
+                            "sampleSizeBits": SAMPLE_SIZE_BITS,
+                            "channelCount": CHANNEL_COUNT,
+                            "audioType": "SPEECH",
+                            "encoding": "base64",
+                        },
+                    }
+                }
+            },
+        ]
+
+    def _termination_events(self) -> list[dict[str, Any]]:
+        return [
+            {
+                "event": {
+                    "contentEnd": {
+                        "promptName": self._prompt_name,
+                        "contentName": self._audio_content_name,
+                    }
+                }
+            },
+            {"event": {"promptEnd": {"promptName": self._prompt_name}}},
+            {"event": {"sessionEnd": {}}},
+        ]

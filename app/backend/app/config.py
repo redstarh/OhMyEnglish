@@ -64,6 +64,13 @@ class Settings(BaseSettings):
     # Nova 어댑터가 들어오면 값이 하나 늘고, 분기는 `audio_gateway/factory.py`
     # 한 곳에만 있다.
     voice_adapter: str = "stub"
+    # Nova 2 Sonic 어댑터 설정. 모델 ID는 스파이크가 실측으로 확인한 값이고
+    # (`amazon.nova-sonic-v1:0`은 이 계정에 없다), voiceId는 실음성 왕복(N-1)에서 쓴 값이다.
+    # `nova_endpointing_sensitivity`(HIGH/MEDIUM/LOW)가 barge-in 민감도를 정한다 —
+    # 코드 수정 없이 환경변수로 바꿔 발화 종료 감지 시점을 튜닝할 수 있어야 한다(N13).
+    nova_model_id: str = "amazon.nova-2-sonic-v1:0"
+    nova_voice_id: str = "matthew"
+    nova_endpointing_sensitivity: str = "MEDIUM"
 
 
 @lru_cache

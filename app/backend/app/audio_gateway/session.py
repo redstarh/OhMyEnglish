@@ -30,7 +30,12 @@ from uuid import UUID
 
 import asyncpg
 
-from app.audio_gateway.port import TranscriptEvent, VoiceAdapter
+from app.audio_gateway.port import (
+    InterruptionEvent,
+    SpeechBoundaryEvent,
+    TranscriptEvent,
+    VoiceAdapter,
+)
 from app.services.sessions import SessionEndStatus, mark_session_ended
 from app.services.utterances import save_final_transcript
 
@@ -187,9 +192,25 @@ class SessionRunner:
                 task.result()  # 펌프에서 터진 예외를 삼키지 않는다
 
     async def _pump_adapter_events(self) -> None:
+        """어댑터 이벤트를 방송하거나 저장한다.
+
+        **저장되는 것은 사용자·agent의 final 전사문뿐이다.** 오디오 프레임·발화 경계·
+        barge-in 통보는 전부 화면 상태라 방송만 한다 — 포트가 Phase 2에서 확장됐어도
+        (`port.SpeechBoundaryEvent`·`InterruptionEvent`) 이 모듈의 저장 규칙과 세션
+        수명은 그대로다 (G3).
+        """
         async for event in self._adapter.events():
             if isinstance(event, bytes):
                 await self._send({"type": "audio", "data": base64.b64encode(event).decode("ascii")})
+            elif isinstance(event, SpeechBoundaryEvent):
+                await self._send(
+                    {
+                        "type": "speech_start" if event.speaking else "speech_end",
+                        "offset_ms": event.offset_ms,
+                    }
+                )
+            elif isinstance(event, InterruptionEvent):
+                await self._send({"type": "interrupted"})
             elif event.kind == "partial":
                 await self._send({"type": "partial", "text": event.text, "speaker": event.speaker})
             else:

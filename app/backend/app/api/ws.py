@@ -7,7 +7,8 @@
 프로토콜 (JSON 객체):
 
 * 서버→클라이언트: `session_started`(session_id) · `partial` · `final`(speaker,
-  sequence_no) · `audio`(base64) · `session_failed`(reason) · `session_ended`
+  sequence_no) · `audio`(base64) · `speech_start`/`speech_end`(offset_ms) ·
+  `interrupted` · `session_failed`(reason) · `session_ended`
 * 클라이언트→서버: `{"type":"audio","data":<base64>}` · `{"type":"end_session"}`
 
 어떤 음성 구현이 붙는지 이 모듈은 모른다 — 팩토리에서 주입받는다 (G3).

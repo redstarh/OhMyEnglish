@@ -2,9 +2,13 @@
  * `/ws/session` 클라이언트 — 백엔드 프로토콜은 `app/backend/app/api/ws.py` +
  * `app/backend/app/audio_gateway/session.py`가 정본이다.
  *
- * 서버→클라이언트: session_started | partial | final | audio | session_failed
- * | session_ended
+ * 서버→클라이언트: session_started | partial | final | audio | speech_start |
+ * speech_end | interrupted | session_failed | session_ended
  * 클라이언트→서버: {"type":"audio","data":<base64>} | {"type":"end_session"}
+ *
+ * `speech_start`/`speech_end`(Nova `userSpeechStart`/`userSpeechEnd`)와 `interrupted`
+ * (barge-in, `stopReason=INTERRUPTED`)는 3차수 포트 확장에서 추가됐다. 스텁 어댑터는
+ * 이 셋을 보내지 않으므로 스텁 모드 화면 거동은 그대로다.
  */
 
 import { sessionSocketUrl } from "./config";
@@ -16,6 +20,9 @@ export type ServerEvent =
   | { type: "partial"; text: string; speaker: Speaker }
   | { type: "final"; text: string; speaker: Speaker; sequence_no: number }
   | { type: "audio"; data: string }
+  | { type: "speech_start"; offset_ms: number | null }
+  | { type: "speech_end"; offset_ms: number | null }
+  | { type: "interrupted" }
   | { type: "session_failed"; reason: string }
   | { type: "session_ended"; session_id: string };
 

@@ -30,12 +30,20 @@ import pytest
 from app.api import ws as ws_module
 from app.audio_gateway import session as session_module
 from app.audio_gateway.factory import (
+    NOVA_ADAPTER,
     STUB_ADAPTER,
     STUB_UNRESPONSIVE_ADAPTER,
     create_voice_adapter,
 )
 from app.audio_gateway.fixtures import FIXTURE_TURNS, TONE_WAV_FRAME
-from app.audio_gateway.port import AdapterEvent, TranscriptEvent, VoiceAdapter
+from app.audio_gateway.nova import NovaVoiceAdapter
+from app.audio_gateway.port import (
+    AdapterEvent,
+    InterruptionEvent,
+    SpeechBoundaryEvent,
+    TranscriptEvent,
+    VoiceAdapter,
+)
 from app.audio_gateway.session import (
     CONNECT_ERROR_REASON,
     CONNECT_TIMEOUT,
@@ -516,15 +524,23 @@ async def test_stub_counts_the_audio_frames_it_receives():
     assert adapter.received_frames == 2
 
 
+def _stub_event_label(event: AdapterEvent) -> str:
+    """스텁이 흘린 이벤트 하나의 라벨. 스텁은 전사문·오디오만 흘린다 —
+    포트가 확장돼도(3차수) 그 계약은 그대로여서, 그 밖의 타입은 여기서 즉시 실패한다."""
+    if isinstance(event, bytes):
+        return "audio"
+    if isinstance(event, TranscriptEvent):
+        return f"{event.kind}:{event.speaker}"
+    raise AssertionError(f"스텁이 예상 밖 이벤트를 흘렸다: {event!r}")
+
+
 async def test_stub_replays_the_fixture_turns_in_order():
     adapter = StubVoiceAdapter()
     await adapter.start()
 
     events = [event async for event in adapter.events()]
 
-    kinds = [
-        "audio" if isinstance(event, bytes) else f"{event.kind}:{event.speaker}" for event in events
-    ]
+    kinds = [_stub_event_label(event) for event in events]
     # 각 턴은 질문(agent final) → 사용자 partial 1~2개 → 사용자 final → 오디오 프레임.
     assert kinds[0] == "final:agent"
     assert kinds[-1] == "audio"
@@ -532,7 +548,10 @@ async def test_stub_replays_the_fixture_turns_in_order():
     assert kinds.count("final:user") == len(FIXTURE_TURNS)
     assert kinds.count("audio") == len(FIXTURE_TURNS)
     assert len(FIXTURE_TURNS) <= kinds.count("partial:user") <= len(FIXTURE_TURNS) * 2
-    assert all(isinstance(event, bytes) or event.sequence_no is None for event in events)
+    for event in events:
+        # `sequence_no`는 서버(DB)가 부여한다 — 어댑터가 채우면 소유자가 둘이 된다.
+        if isinstance(event, TranscriptEvent):
+            assert event.sequence_no is None
 
 
 async def test_unresponsive_stub_never_completes_its_start():
@@ -571,9 +590,18 @@ def test_factory_builds_the_stub_mode_from_settings(setting: str, expected_mode:
     assert adapter.mode == expected_mode
 
 
+# Nova 실연동(3차수). 분기는 이 함수 한 곳에만 있다 (G3) — 팩토리는 어댑터를 만들 뿐
+# 스트림을 열지 않으므로, 이 테스트는 자격증명·네트워크를 만지지 않는다.
+def test_factory_builds_the_nova_adapter():
+    adapter = create_voice_adapter(_settings(voice_adapter=NOVA_ADAPTER))
+
+    assert isinstance(adapter, NovaVoiceAdapter)
+
+
 def test_factory_rejects_an_unknown_adapter():
+    # 오타를 조용히 스텁으로 흘리면 "실물이라 믿었던 세션이 픽스처였다"가 된다.
     with pytest.raises(ValueError, match="voice_adapter"):
-        create_voice_adapter(_settings(voice_adapter="nova"))
+        create_voice_adapter(_settings(voice_adapter="novva"))
 
 
 # ④ import 그래프 — 러너와 소켓 계층은 스텁을 모른다 (G3)
@@ -601,3 +629,80 @@ def test_gateway_core_does_not_import_the_stub(module: ModuleType):
     """
     assert all("stub" not in name.lower() for name in _imported_names(module))
     assert "StubVoiceAdapter" not in inspect.getsource(module)
+
+
+# --- Fix round 3 (N-4): Nova 신호를 담기 위한 포트 확장 ---
+#
+# Nova 2 Sonic이 주는 신호 중 `TranscriptEvent | bytes`에 매핑할 곳이 없던 셋을 포트에
+# 더했다(설계서 §7이 예고한 확장). 여기서 고정하는 것은 **확장이 상위 로직에 파급되지
+# 않는다**는 것이다 — 세션 수명·저장·job 등록은 스텁으로 검증된 그대로여야 한다(G3).
+
+
+async def test_speech_boundary_events_are_broadcast_but_never_stored(db_pool, committed_session):
+    adapter = ScriptedAdapter(
+        SpeechBoundaryEvent(speaking=True, offset_ms=0),
+        SpeechBoundaryEvent(speaking=False, offset_ms=1920),
+    )
+    client = FakeClient()
+
+    await asyncio.wait_for(
+        _runner(adapter, db_pool, committed_session.session_id, client).run(), timeout=5.0
+    )
+
+    assert client.types == ["session_started", "speech_start", "speech_end", "session_ended"]
+    assert client.of_type("speech_start")[0]["offset_ms"] == 0
+    assert client.of_type("speech_end")[0]["offset_ms"] == 1920
+    # 발화 경계는 전사문이 아니다 — 한 행도 남기지 않는다.
+    assert await _utterances(db_pool, committed_session.session_id) == []
+
+
+# barge-in 통보. 클라이언트가 **이미 받았지만 아직 재생하지 않은** 오디오를 버릴 근거는
+# 이 이벤트뿐이다 — 통보가 없으면 사용자가 말을 시작한 뒤에도 agent 목소리가 계속 나온다.
+async def test_interruption_is_broadcast_so_the_client_can_drop_queued_audio(
+    db_pool, committed_session
+):
+    adapter = ScriptedAdapter(TONE_WAV_FRAME, InterruptionEvent())
+    client = FakeClient()
+
+    await asyncio.wait_for(
+        _runner(adapter, db_pool, committed_session.session_id, client).run(), timeout=5.0
+    )
+
+    assert client.types == ["session_started", "audio", "interrupted", "session_ended"]
+    assert await _utterances(db_pool, committed_session.session_id) == []
+
+
+async def test_new_event_types_do_not_disturb_saving_or_the_session_lifecycle(
+    db_pool, committed_session
+):
+    answer = FIXTURE_TURNS[0][1]
+    adapter = ScriptedAdapter(
+        SpeechBoundaryEvent(speaking=True, offset_ms=0),
+        TranscriptEvent(kind="final", text=answer, speaker="user"),
+        SpeechBoundaryEvent(speaking=False, offset_ms=1920),
+        InterruptionEvent(),
+    )
+    client = FakeClient()
+
+    await asyncio.wait_for(
+        _runner(adapter, db_pool, committed_session.session_id, client).run(), timeout=5.0
+    )
+
+    rows = await _utterances(db_pool, committed_session.session_id)
+    assert [row["transcript"] for row in rows] == [answer]
+    assert await _job_count(db_pool, committed_session.session_id) == 1
+    session = await _session_row(db_pool, committed_session.session_id)
+    assert session["status"] == "completed"
+    assert session["ended_at"] is not None
+
+
+# 스텁은 새 이벤트를 만들지 않는다 — 1·2차수 회귀(C2: 회색 부분 전사문 → 확정 전환)가
+# 스텁 거동을 검증하고 있어서, 스텁이 발화 경계를 흘리기 시작하면 그 화면 거동이 바뀐다.
+async def test_stub_emits_only_transcripts_and_audio():
+    adapter = StubVoiceAdapter()
+    await adapter.start()
+
+    events = [event async for event in adapter.events()]
+
+    assert not any(isinstance(event, SpeechBoundaryEvent | InterruptionEvent) for event in events)
+    assert all(isinstance(event, TranscriptEvent | bytes) for event in events)

@@ -10,11 +10,15 @@
 
 from __future__ import annotations
 
+from app.audio_gateway.nova import NovaVoiceAdapter
 from app.audio_gateway.port import VoiceAdapter
 from app.audio_gateway.stub import StubVoiceAdapter
 from app.config import Settings
 
 STUB_ADAPTER = "stub"
+# Nova 2 Sonic 실연동 (3차수). 어댑터 생성은 스트림을 열지 않는다 — 연결은 `start()`가
+# 하고 그 상한은 세션 러너가 건다(`session.CONNECT_TIMEOUT`).
+NOVA_ADAPTER = "nova"
 # 연결 실패 시나리오(E2E-S 6)를 **코드 수정 없이** 재현하기 위한 설정값. 무응답은
 # 예외가 아니라 "응답이 오지 않는 것"이라 실물로 만들기 어렵고, 서버를 이 모드로
 # 띄우면 프론트엔드의 연결 실패 화면(U2)을 손으로 확인할 수 있다.
@@ -26,5 +30,7 @@ def create_voice_adapter(settings: Settings) -> VoiceAdapter:
         return StubVoiceAdapter("fixture")
     if settings.voice_adapter == STUB_UNRESPONSIVE_ADAPTER:
         return StubVoiceAdapter("unresponsive")
+    if settings.voice_adapter == NOVA_ADAPTER:
+        return NovaVoiceAdapter(settings)
     # 오타를 조용히 스텁으로 흘려보내면 "실물이라 믿었던 세션이 픽스처였다"가 된다.
     raise ValueError(f"알 수 없는 voice_adapter 설정: {settings.voice_adapter!r}")
