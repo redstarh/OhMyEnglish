@@ -27,18 +27,43 @@
 - **신규 커버**: E4(`voice_command` job 0건, W6) · E5(오류 0건 → `corrections: []`) · **E6(재분석 멱등 — W3 종단 최초)** · R8(라이트모드)
 - **회귀**: A1 · A2 · B1~B5 · D1(206 passed) · D2(ruff·format·ty clean) · F-3(마이크 33프레임 재현)
 
+## 실음성(N계층) — N-0·N-1 완료, **실음성 왕복 PASS** (2026-08-26)
+
+`tests/harness/spike_nova_protocol.py`로 Nova 2 Sonic에 합성 음성을 넣어 왕복을 확인했다.
+원자료: `tests/harness/runs/2026-08-26-N1/N1-nova-protocol.json` · 상세:
+`tests/harness/scenarios-N-real-voice.md`
+
+```
+[textOutput] USER/FINAL              'i usually go to gym after work.'   ← u1.wav 픽스처와 일치
+[textOutput] ASSISTANT/SPECULATIVE   'That's a great routine.'
+[audioOutput] × 17  총 44,800B(1.4초)  ← RIFF 아님 = raw LPCM
+```
+
+확정된 것: ① 입출력 모두 **raw LPCM**(16bit mono, 8/16/24kHz, base64, 32ms=1024B 프레임)
+② **무음 프레임 없으면 전사문이 안 온다**(약 480ms에 `userSpeechEnd`) ③ `await_output()`은
+초기화 이벤트 전에 반환하지 않으므로 **송수신 동시 시작** ④ 문서에 없는
+`userSpeechStart`/`userSpeechEnd` 이벤트가 온다 ⑤ Nova 2는
+`turnDetectionConfiguration.endpointingSensitivity`로 barge-in 민감도를 정한다
+
+**앱에 붙일 때 프론트엔드 2곳을 고쳐야 한다(확정):**
+- **입력** — `MediaRecorder`(webm/opus, 250ms)는 Nova와 호환되지 않는다 →
+  `AudioWorklet`으로 원시 PCM 16kHz 캡처
+- **출력** — `new Blob([...], {type:'audio/wav'})`는 헤더 없는 LPCM을 디코드하지 못한다 →
+  `AudioContext` 큐 재생(barge-in에 큐를 비울 수 있어야 하므로 사실상 필수)
+
+**⚠️ AC U1 "부분 전사문 회색 표시"에 대응하는 Nova 데이터가 없다** — 사용자 ASR은 `FINAL`
+한 블록으로만 온다. 1·2차수에서 검증한 C2(회색→검정)는 **스텁 거동이며 실연동 거동이 아니다.**
+선택 3개는 N 문서 §2 마지막.
+
 ## 다음에 할 것 — 우선순위
 
-1. **F-2 스키마 결정(캡틴)** — `target_form`이 패턴 수준 일반형인가 문장별 교정형인가.
-   선택지: ① 프롬프트가 일반형을 요구하게 바꾼다 ② `error_occurrences`로 컬럼을 내린다
-   (마이그레이션 002 + NOT NULL 백필 + `tests/unit/test_results.py:88` 갱신) ③ 학습 제시 기능이
-   의미를 확정할 때까지 API에서 뺀다. **결정되면 3차수를 열고 R3 재검증.**
-   재현 최소 입력: `inject_errors.py --scenario E6` 한 문장(occurrence 2개를 두 번 모두 생성 확인)
-2. **L계층(학습 제시) 착수 전 캡틴 결정 5건** — `tests/harness/scenarios-E-agent-learning.md`
-   §"L계층 착수 전에 캡틴이 정해야 하는 것". 복습 간격 기준 시각 / `task_type` 매핑 /
-   `mastery_score` 갱신 규칙 / 복습 대상 범위 / `target_form` 의미(=위 1번)
-3. **실음성(N계층) N-0** — AWS 공식 문서에서 Nova Sonic 이벤트 스키마와 오디오 포맷 확정.
-   **이것 없이 어댑터 구현 착수 금지.** 상세는 `tests/harness/scenarios-N-real-voice.md`
+1. **Nova 어댑터 구현** — 프로토콜이 실증됐으므로 착수 가능. 포트 확장 필요
+   (`userSpeechStart/End`, barge-in `INTERRUPTED`, `SPECULATIVE`/`FINAL` 구분).
+   작성자≠검증자 원칙상 **수정 세션(`claude_air_3-14`)에 넘긴다**
+2. **캡틴 결정 3건** — ① 사용자 부분 전사문 UI 처리(N 문서 §2) ② `target_form` 의미(=F-2)
+   ③ L계층 복습 규칙(`scenarios-E-agent-learning.md` §L계층)
+3. **F-2 3차수** — `target_form` 결정 후 R3 재검증.
+   재현 최소 입력: `inject_errors.py --scenario E6` 한 문장(occurrence 2개를 두 번 모두 생성)
 4. **문서 정합화(비차단)** — `HANDOFF.md`의 테스트 기준선 `201` → **206**
 
 ## 재개에 필요한 것
