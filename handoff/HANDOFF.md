@@ -52,6 +52,8 @@
 # DB (podman — docker 없음)
 scripts/dev_db.sh start          # postgres:16-alpine, port 5433, ohmy/ohmy/ohmyenglish
 python3 scripts/migrate.py       # 001 적용 + 고정 사용자·시나리오 3행 시드 (멱등)
+#   주의: 추적은 파일명 기준 — 001을 재작성했다면 재적용되지 않으니 dev DB를
+#   drop/재생성해야 한다 (scripts/db_utils.recreate_database)
 
 # 백엔드 (app/backend, Python 3.13 venv — uv)
 cd app/backend && .venv/bin/uvicorn app.api.main:app --port 8000

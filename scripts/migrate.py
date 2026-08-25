@@ -8,6 +8,10 @@ can run with just `asyncpg` installed (e.g. `app/backend/.venv/bin/python`).
 
 Seeding is idempotent (`on conflict ... do nothing`): re-running never
 creates duplicate rows.
+
+주의: 적용 추적은 파일명 기준이다 — pre-release 중 001을 재작성한 경우 이
+스크립트는 (파일명이 그대로라) 재적용하지 않으므로 dev DB를 drop/재생성해야
+한다 (`scripts/db_utils.recreate_database`).
 """
 
 from __future__ import annotations

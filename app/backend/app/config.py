@@ -10,6 +10,7 @@ function is the only place that needs to change.
 
 from __future__ import annotations
 
+import os
 from functools import lru_cache
 
 import boto3
@@ -51,4 +52,11 @@ def bedrock_client():
     strategy changes.
     """
     settings = get_settings()
+    # pydantic-settings reads AWS_BEARER_TOKEN_BEDROCK from `.env` into
+    # `settings` but never re-exports it to `os.environ`, so boto3 (which
+    # only looks at the process environment) sees nothing if the token was
+    # ever set only in `.env` — inject it, but never override a real shell
+    # export (`setdefault` is a no-op when the key is already present).
+    if settings.aws_bearer_token_bedrock:
+        os.environ.setdefault("AWS_BEARER_TOKEN_BEDROCK", settings.aws_bearer_token_bedrock)
     return boto3.client("bedrock-runtime", region_name=settings.aws_region)
