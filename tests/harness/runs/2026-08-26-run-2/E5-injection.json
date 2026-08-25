@@ -1,0 +1,22 @@
+{
+ "scenario": "E5",
+ "session_id": "2d46769a-b788-47e4-b11c-9659ea0eacd0",
+ "saved": [
+  {
+   "seq": 1,
+   "text": "I went to the gym after work yesterday.",
+   "type": "learning"
+  },
+  {
+   "seq": 2,
+   "text": "She usually takes the subway to the office.",
+   "type": "learning"
+  },
+  {
+   "seq": 3,
+   "text": "We need to finish the migration before the release.",
+   "type": "learning"
+  }
+ ],
+ "wait_s": 6.4
+}

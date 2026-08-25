@@ -1,0 +1,22 @@
+{
+ "scenario": "E6",
+ "session_id": "1e7f297d-8193-4fcd-a1f3-c7de2a95cef0",
+ "saved": [
+  {
+   "seq": 1,
+   "text": "Yesterday I go to the office and present the quarterly plan.",
+   "type": "learning"
+  }
+ ],
+ "wait_s": 6.4,
+ "before": {
+  "occurrences": 2,
+  "pattern_frequencies": "verb_tense_past_simple_yesterday=4"
+ },
+ "requeued": true,
+ "wait2_s": 6.4,
+ "after": {
+  "occurrences": 2,
+  "pattern_frequencies": "verb_tense_past_simple_yesterday=4"
+ }
+}

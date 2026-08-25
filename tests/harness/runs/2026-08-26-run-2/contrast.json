@@ -1,0 +1,66 @@
+[
+ {
+  "scheme": "light",
+  "tokens": {
+   "background": "#fff",
+   "foreground": "#171717",
+   "foreground-muted": "#595959",
+   "danger": "#c00"
+  },
+  "path": "/",
+  "rows": [
+   {
+    "text": "OhMyEnglish — 학습 세션",
+    "color": "rgb(23, 23, 23)",
+    "bg": "rgb(255, 255, 255)",
+    "contrast": 17.93
+   },
+   {
+    "text": "연결에 실패했습니다.",
+    "color": "rgb(23, 23, 23)",
+    "bg": "rgb(255, 255, 255)",
+    "contrast": 17.93
+   },
+   {
+    "text": "사유: voice_adapter_connect_timeout",
+    "color": "rgb(89, 89, 89)",
+    "bg": "rgb(255, 255, 255)",
+    "contrast": 7
+   }
+  ],
+  "emulated": "light",
+  "screenshot": "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-08-26-run-2/R1R2-failed-light.png"
+ },
+ {
+  "scheme": "dark",
+  "tokens": {
+   "background": "#0a0a0a",
+   "foreground": "#ededed",
+   "foreground-muted": "#9a9a9a",
+   "danger": "#ff8a8a"
+  },
+  "path": "/",
+  "rows": [
+   {
+    "text": "OhMyEnglish — 학습 세션",
+    "color": "rgb(237, 237, 237)",
+    "bg": "rgb(10, 10, 10)",
+    "contrast": 16.91
+   },
+   {
+    "text": "연결에 실패했습니다.",
+    "color": "rgb(237, 237, 237)",
+    "bg": "rgb(10, 10, 10)",
+    "contrast": 16.91
+   },
+   {
+    "text": "사유: voice_adapter_connect_timeout",
+    "color": "rgb(154, 154, 154)",
+    "bg": "rgb(10, 10, 10)",
+    "contrast": 7.04
+   }
+  ],
+  "emulated": "dark",
+  "screenshot": "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-08-26-run-2/R1R2-failed-dark.png"
+ }
+]

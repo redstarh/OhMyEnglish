@@ -1,0 +1,17 @@
+{
+ "scenario": "E4",
+ "session_id": "ebda965b-5e67-43ee-aef1-8ac54b66b9db",
+ "saved": [
+  {
+   "seq": 1,
+   "text": "질문 다섯 개 더 해줘.",
+   "type": "voice_command"
+  },
+  {
+   "seq": 2,
+   "text": "오늘 학습 끝낼게.",
+   "type": "voice_command"
+  }
+ ],
+ "wait_s": 0.1
+}

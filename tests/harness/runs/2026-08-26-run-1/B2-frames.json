@@ -1,0 +1,114 @@
+{
+ "scenario": "B2",
+ "session_id": "562f5341-01bb-4337-900a-3c68626b51c4",
+ "elapsed": 0.146,
+ "junk_sent": 0,
+ "audio_sent": 0,
+ "frames": [
+  {
+   "t": 0.011,
+   "type": "session_started",
+   "session_id": "562f5341-01bb-4337-900a-3c68626b51c4"
+  },
+  {
+   "t": 0.146,
+   "type": "final",
+   "speaker": "agent",
+   "text": "What do you usually do after work?",
+   "sequence_no": 1
+  },
+  {
+   "t": 0.146,
+   "type": "partial",
+   "speaker": "user",
+   "text": "I usually"
+  },
+  {
+   "t": 0.146,
+   "type": "partial",
+   "speaker": "user",
+   "text": "I usually go to"
+  },
+  {
+   "t": 0.146,
+   "type": "final",
+   "speaker": "user",
+   "text": "I usually go to gym after work.",
+   "sequence_no": 2
+  },
+  {
+   "t": 0.146,
+   "type": "audio",
+   "bytes": 6444,
+   "header": "RIFFWAVE"
+  },
+  {
+   "t": 0.146,
+   "type": "final",
+   "speaker": "agent",
+   "text": "What do you usually do on weekends?",
+   "sequence_no": 3
+  },
+  {
+   "t": 0.146,
+   "type": "partial",
+   "speaker": "user",
+   "text": "I usually"
+  },
+  {
+   "t": 0.146,
+   "type": "partial",
+   "speaker": "user",
+   "text": "I usually go to"
+  },
+  {
+   "t": 0.146,
+   "type": "final",
+   "speaker": "user",
+   "text": "I usually go to office by subway.",
+   "sequence_no": 4
+  },
+  {
+   "t": 0.146,
+   "type": "audio",
+   "bytes": 6444,
+   "header": "RIFFWAVE"
+  },
+  {
+   "t": 0.146,
+   "type": "final",
+   "speaker": "agent",
+   "text": "What do you need to do tonight?",
+   "sequence_no": 5
+  },
+  {
+   "t": 0.146,
+   "type": "partial",
+   "speaker": "user",
+   "text": "I need"
+  },
+  {
+   "t": 0.146,
+   "type": "partial",
+   "speaker": "user",
+   "text": "I need to finish"
+  },
+  {
+   "t": 0.146,
+   "type": "final",
+   "speaker": "user",
+   "text": "I need to finish my homework tonight.",
+   "sequence_no": 6
+  },
+  {
+   "t": 0.146,
+   "type": "audio",
+   "bytes": 6444,
+   "header": "RIFFWAVE"
+  },
+  {
+   "t": 0.146,
+   "type": "session_ended"
+  }
+ ]
+}

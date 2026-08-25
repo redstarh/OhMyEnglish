@@ -1,0 +1,75 @@
+INFO:     Started server process [43996]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8002 (Press CTRL+C to quit)
+INFO:     127.0.0.1:56715 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56720 - "WebSocket /ws/session" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:56729 - "WebSocket /ws/session" [accepted]
+INFO:     connection open
+base64로 해석할 수 없는 오디오 프레임을 무시했다
+base64로 해석할 수 없는 오디오 프레임을 무시했다
+알 수 없는 클라이언트 메시지를 무시했다: '무엇'
+JSON으로 해석할 수 없는 프레임을 무시했다
+알 수 없는 클라이언트 메시지를 무시했다: None
+텍스트가 아닌 프레임을 무시했다
+알 수 없는 클라이언트 메시지를 무시했다: None
+INFO:     127.0.0.1:56736 - "GET /api/sessions/9954ad3e-af46-4cc5-afb2-47c967afd8c7/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56743 - "GET /api/sessions/07b27f4d-13ad-4240-a312-45dd8b175042/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56745 - "GET /api/sessions/a4a29908-bc88-4b35-a331-b800e1bdbd7a/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56791 - "WebSocket /ws/session" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:56796 - "GET /api/sessions/c64fe180-50a7-4a67-8b45-45206791ec58/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56797 - "GET /api/sessions/c64fe180-50a7-4a67-8b45-45206791ec58/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56797 - "GET /api/sessions/c64fe180-50a7-4a67-8b45-45206791ec58/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56797 - "GET /api/sessions/c64fe180-50a7-4a67-8b45-45206791ec58/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56797 - "GET /api/sessions/c64fe180-50a7-4a67-8b45-45206791ec58/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56797 - "GET /api/sessions/c64fe180-50a7-4a67-8b45-45206791ec58/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56821 - "WebSocket /ws/session" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:56826 - "WebSocket /ws/session" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:56843 - "WebSocket /ws/session" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:56850 - "GET /api/sessions/f11628fc-50df-4a73-8000-5091a03ba8c5/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56851 - "GET /api/sessions/f11628fc-50df-4a73-8000-5091a03ba8c5/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56871 - "WebSocket /ws/session" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:56885 - "GET /health HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [43996]
+INFO:     Started server process [48065]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8002 (Press CTRL+C to quit)
+INFO:     127.0.0.1:57089 - "GET /api/sessions/562f5341-01bb-4337-900a-3c68626b51c4/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57089 - "GET /api/sessions/562f5341-01bb-4337-900a-3c68626b51c4/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57089 - "GET /api/sessions/562f5341-01bb-4337-900a-3c68626b51c4/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57092 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57094 - "GET /api/sessions/562f5341-01bb-4337-900a-3c68626b51c4/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57089 - "GET /api/sessions/562f5341-01bb-4337-900a-3c68626b51c4/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57089 - "GET /api/sessions/562f5341-01bb-4337-900a-3c68626b51c4/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57096 - "GET /api/sessions/562f5341-01bb-4337-900a-3c68626b51c4/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57089 - "GET /api/sessions/562f5341-01bb-4337-900a-3c68626b51c4/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57098 - "GET /api/sessions/562f5341-01bb-4337-900a-3c68626b51c4/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57089 - "GET /api/sessions/562f5341-01bb-4337-900a-3c68626b51c4/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57101 - "GET /health HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [48065]
+INFO:     Started server process [48760]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8002 (Press CTRL+C to quit)
+INFO:     127.0.0.1:57163 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57174 - "GET /api/sessions/07b27f4d-13ad-4240-a312-45dd8b175042/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57175 - "GET /api/sessions/07b27f4d-13ad-4240-a312-45dd8b175042/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57191 - "GET /api/sessions/a4a29908-bc88-4b35-a331-b800e1bdbd7a/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57190 - "GET /api/sessions/a4a29908-bc88-4b35-a331-b800e1bdbd7a/results HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [48760]

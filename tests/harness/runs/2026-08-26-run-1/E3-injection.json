@@ -1,0 +1,19 @@
+{
+ "scenario": "E3",
+ "session_id": "9c780afc-ba30-4642-ba41-d03848e26951",
+ "saved": [
+  {
+   "seq": 1,
+   "text": "I go to office by subway every morning."
+  },
+  {
+   "seq": 2,
+   "text": "She go to gym after work on Tuesday."
+  },
+  {
+   "seq": 3,
+   "text": "We go to airport by taxi tomorrow."
+  }
+ ],
+ "wait_s": 17.0
+}

@@ -1,0 +1,19 @@
+{
+ "scenario": "B5-r2",
+ "session_id": "633dc4be-5f25-450c-b934-f84b203a6eca",
+ "elapsed": 10.017,
+ "junk_sent": 0,
+ "audio_sent": 0,
+ "frames": [
+  {
+   "t": 0.01,
+   "type": "session_started",
+   "session_id": "633dc4be-5f25-450c-b934-f84b203a6eca"
+  },
+  {
+   "t": 10.017,
+   "type": "session_failed",
+   "reason": "voice_adapter_connect_timeout"
+  }
+ ]
+}
