@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OhMyEnglish — 아키텍처·개발 상황 (2026-08-25)</title>
+  <style>
+    :root { --navy:#12213d; --blue:#3268ed; --pale:#edf3ff; --ink:#182033; --muted:#667085;
+      --line:#e4e9f2; --surface:#fff; --bg:#f7f9fc; --code-bg:#eef2f8; --code-ink:#204eb8;
+      --good:#0f7a46; --good-bg:#e6f5ed; --warn:#8a5a00; --warn-bg:#fdf3e0;
+      --crit:#b3261e; --crit-bg:#fdeceb; --defer:#5c6a80; --defer-bg:#eef1f6; --track:#cddcff; }
+    @media (prefers-color-scheme: dark) {
+      :root { --navy:#0a1020; --blue:#7ba2ff; --pale:#1b2540; --ink:#e8ecf5; --muted:#9aa5bb;
+        --line:#26304a; --surface:#151c2e; --bg:#0d1220; --code-bg:#1d263c; --code-ink:#a8c2ff;
+        --good:#4cc38a; --good-bg:#12301f; --warn:#e0a83c; --warn-bg:#33260c;
+        --crit:#f2836f; --crit-bg:#3a1a18; --defer:#93a0b8; --defer-bg:#1e2637; --track:#2a3757; } }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); line-height:1.65;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo",sans-serif; }
+    header { padding:52px max(24px,calc((100% - 1060px)/2)) 44px; background:linear-gradient(125deg,var(--navy),#2a52b8); color:#fff; }
+    header h1 { margin:0 0 10px; font-size:clamp(28px,4.4vw,44px); letter-spacing:-.02em; }
+    header p { margin:0; max-width:720px; color:#d8e3ff; }
+    .meta { margin-top:18px; display:flex; flex-wrap:wrap; gap:8px; font-size:13px; }
+    .meta span { padding:5px 10px; border-radius:8px; background:#ffffff1f; color:#eaf0ff; }
+    nav { position:sticky; top:0; z-index:5; overflow:auto; white-space:nowrap;
+      padding:11px max(24px,calc((100% - 1060px)/2)); background:var(--surface); border-bottom:1px solid var(--line); }
+    nav a { display:inline-block; margin-right:4px; padding:7px 11px; border-radius:8px;
+      color:var(--muted); text-decoration:none; font-size:13px; font-weight:700; }
+    nav a:hover { background:var(--pale); color:var(--blue); }
+    main { max-width:1060px; margin:auto; padding:36px 24px 84px; }
+    section { margin-bottom:26px; padding:26px; background:var(--surface); border:1px solid var(--line);
+      border-radius:17px; box-shadow:0 5px 18px #14244909; }
+    h2 { margin:0 0 6px; font-size:23px; letter-spacing:-.01em; }
+    h3 { margin:22px 0 8px; font-size:16px; }
+    h4 { margin:14px 0 6px; font-size:14px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+    p { margin:8px 0; } ul,ol { margin:8px 0; padding-left:20px; } li { margin:4px 0; }
+    .lead { color:var(--muted); max-width:800px; }
+    code { padding:2px 5px; border-radius:5px; background:var(--code-bg); color:var(--code-ink); font-size:.88em; }
+    .tag { display:inline-block; margin-bottom:10px; padding:4px 9px; border-radius:99px;
+      background:var(--pale); color:var(--blue); font-size:11.5px; font-weight:800; letter-spacing:.05em; }
+    .grid { display:grid; gap:14px; grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .g2 { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .g4 { grid-template-columns:repeat(4,minmax(0,1fr)); }
+    .card { padding:17px; border:1px solid var(--line); border-radius:12px; background:var(--bg); }
+    .card h3 { margin-top:0; }
+    table { width:100%; border-collapse:collapse; margin-top:12px; font-size:13.5px; }
+    th,td { padding:9px 10px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line); }
+    th { color:var(--muted); font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; font-weight:800; }
+    td.num { font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .pill { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:99px;
+      font-size:12px; font-weight:800; white-space:nowrap; }
+    .ok { background:var(--good-bg); color:var(--good); }
+    .wait { background:var(--warn-bg); color:var(--warn); }
+    .block { background:var(--crit-bg); color:var(--crit); }
+    .later { background:var(--defer-bg); color:var(--defer); }
+    .tile { padding:15px 16px; border:1px solid var(--line); border-radius:12px; background:var(--bg); }
+    .tile span { display:block; color:var(--muted); font-size:12px; }
+    .tile strong { display:block; margin-top:3px; font-size:26px; font-weight:700; letter-spacing:-.02em; }
+    .flow { padding:20px; border-radius:13px; background:var(--navy); color:#e9efff;
+      font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px; line-height:1.7; overflow:auto; white-space:pre; }
+    .note { padding:14px 16px; border-left:3px solid var(--blue); border-radius:0 10px 10px 0;
+      background:var(--pale); font-size:13.5px; }
+    .note.danger { border-color:var(--crit); background:var(--crit-bg); }
+    .note.hold { border-color:var(--warn); background:var(--warn-bg); }
+    footer { max-width:1060px; margin:auto; padding:0 24px 70px; color:var(--muted); font-size:12.5px; }
+    @media (max-width:820px) { .grid,.g2,.g4 { grid-template-columns:1fr; } section { padding:20px; } }
+  </style>
+</head>
+<body>
+<header>
+  <div class="tag" style="background:#ffffff26;color:#fff">PART 2 · ARCHITECTURE &amp; STATUS</div>
+  <h1>아키텍처와 개발 상황</h1>
+  <p>Phase 1(첫 수직 슬라이스)의 시스템 구성, 비동기 큐 의미론, 태스크별 구현 커밋과 검증 증거,
+     그리고 Phase 2 진입을 막는 하드 블로커를 정리한다.</p>
+  <div class="meta">
+    <span>기준일 2026-08-25</span><span>브랜치 design/first-vertical-slice</span>
+    <span>HEAD 69ee7ea</span><span>us-west-2</span>
+  </div>
+</header>
+<nav>
+  <a href="status-report-2026-08-25.html" style="color:var(--blue)">← Part 1 · 요구사항·스토리보드</a>
+  <a href="#arch">아키텍처</a><a href="#queue">큐·멱등성</a><a href="#dev">개발 상황</a><a href="#gate">블로커·다음 단계</a>
+</nav>
+<main>
+  <section id="arch">
+    <div class="tag">03 · ARCHITECTURE</div>
+    <h2>시스템 구성</h2>
+    <p class="lead">실시간 음성은 Nova 2 Sonic이, 개인화 학습 판단과 장기 분석은 Claude Opus 5가 담당한다.
+      <b>Claude를 음성 턴의 동기 경로에 넣지 않는다</b> — 매 턴 Claude를 기다리면 대화 반응성이 무너진다.</p>
+
+    <h3>목표 아키텍처</h3>
+    <div class="flow">■ Browser — Next.js 16
+│   mic · speaker · live transcript · 세션 화면 / 결과 화면
+│
+│   WebSocket — audio frames / events
+▼
+■ OhMyEnglish Audio Gateway — FastAPI + asyncio
+│   · 세션 수명 관리 (learning_sessions)
+│   · 오디오 프레임 릴레이 · 자체 연결 타임아웃 10초
+│   · 확정 전사문 즉시 commit + analysis_jobs 원자 등록
+│
+├──── bidirectional audio ───▶ ■ Nova 2 Sonic
+│                                 amazon.nova-2-sonic-v1:0
+│                                 speech ↔ speech · VAD / barge-in
+│                                 [Phase 1 = 스텁 · Phase 2 = 실연동]
+│
+└──── finalized transcript ──▶ ■ analysis_jobs — PostgreSQL 큐
+                                  │  claim: FOR UPDATE SKIP LOCKED
+                                  │  lease token · attempts 상한 5
+                                  ▼
+                               ■ Claude Opus 5 Worker
+                                  │  us.anthropic.claude-opus-5
+                                  │  · 오류 패턴 추출 · key 재사용 계약
+                                  │  · 동시성 1 · 출력 스키마 검증
+                                  ▼
+                               ■ PostgreSQL 16 — podman :5433
+                                  │  users · learning_sessions · utterances
+                                  │  error_patterns · error_occurrences
+                                  ▼
+                               ■ 결과 API — 5상태 판정 → 결과 화면</div>
+
+    <h3>Phase 1의 실제 구성 — Nova는 포트 + 스텁으로 격리</h3>
+    <p class="lead">Nova 양방향 스트림은 SigV4 자격증명이 없어 실연동을 Phase 2로 분리했다.
+      대신 <b>음성 어댑터를 포트(인터페이스)로 격리</b>하고 스텁 구현으로 전체 흐름을 관통시켰다.
+      Claude 분석 경로는 현재 자격증명으로 동작하므로 <b>실물로 구현</b>했다.</p>
+    <table>
+      <thead><tr><th>구성 요소</th><th>Phase 1</th><th>비고</th></tr></thead>
+      <tbody>
+        <tr><td>음성 왕복 (Nova)</td><td><span class="pill later">◻ 스텁</span></td>
+          <td>포트가 고정하는 건 <b>데이터 경로</b>(오디오 프레임 입력 / 부분·확정 전사문 · 오디오 응답 출력).
+            수명 이벤트·barge-in 제어는 Phase 2에서 인터페이스가 확장된다</td></tr>
+        <tr><td>Claude 분석 워커</td><td><span class="pill ok">✓ 실물</span></td>
+          <td>legacy InvokeModel + bearer token (Phase 1 임시 이탈, <code>MAX_TOKENS=16000</code>)</td></tr>
+        <tr><td>PostgreSQL 큐</td><td><span class="pill ok">✓ 실물</span></td><td>SQS·Redis 배제 — 이미 확정된 PG만 쓴다</td></tr>
+        <tr><td>결과 API·화면</td><td><span class="pill ok">✓ 실물</span></td><td>5상태 계약 (Part 1 참조)</td></tr>
+      </tbody>
+    </table>
+    <div class="note" style="margin-top:14px">
+      <b>포트 격리 검증 방식:</b> Gateway 모듈이 스텁 구현을 <b>import하지 않고 주입만 받는다</b>는 것을
+      import 그래프(AST) 검사로 강제한다. 가짜↔가짜 교체 테스트는 동어반복이라 쓰지 않았다.
+    </div>
+
+    <h3>확정된 기술 선택</h3>
+    <div class="grid g2">
+      <div class="card">
+        <h4>모델 · 리전</h4>
+        <ul>
+          <li>리전 <code>us-west-2</code> 단일</li>
+          <li>실시간 음성 <code>amazon.nova-2-sonic-v1:0</code> (Phase 2)</li>
+          <li>학습 분석 <code>us.anthropic.claude-opus-5</code> — invoke HTTP 200 확인</li>
+          <li>전 세계로 라우팅되는 <code>global.anthropic.*</code>는 쓰지 않는다</li>
+          <li><b><code>[1m]</code> 접미사를 모델 ID에 붙이지 않는다</b> — Bedrock 프로필이 아니며 raw invoke는 HTTP 400.
+            1M 컨텍스트는 <code>context-1m-2025-08-07</code> 베타 플래그로 켠다</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>스택 · 툴체인</h4>
+        <ul>
+          <li>백엔드 FastAPI + <code>asyncio</code> + <code>asyncpg</code>, Python 3.13 (<code>uv</code> venv)</li>
+          <li>프론트 Next.js 16 (<code>localhost:3000</code>)</li>
+          <li>DB PostgreSQL 16-alpine on <b>podman</b> (<code>:5433</code>) — 로컬에 docker 없음</li>
+          <li>품질 <code>ruff</code> + <code>ruff format</code> + <code>ty</code></li>
+          <li>인증 없음 · 고정 사용자 1명 · localhost 전용</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>저장소 구조</h3>
+    <div class="flow">app/frontend/                  # Next.js — 세션 화면, 전사문, 결과 화면
+app/backend/app/
+  ├── api/                     # HTTP + WebSocket endpoint
+  ├── audio_gateway/           # 음성 어댑터 포트 + 스텁 (Phase 2: Nova)
+  ├── workers/                 # Claude 분석 worker (동시성 1)
+  ├── models/                  # DB model
+  └── services/                # 학습·복습 domain service
+tests/{unit,integration,e2e}/  # 최상위 유지
+scripts/                       # dev_db.sh · migrate.py · smoke_analysis.py</div>
+  </section>
+  <section id="queue">
+    <div class="tag">03-A · QUEUE SEMANTICS</div>
+    <h2>비동기 분석 — PostgreSQL 큐와 멱등성</h2>
+    <p class="lead">이 앱에서 세션 분석은 <b>유일한 산출물</b>이다. 프로세스가 죽으면 학습 데이터가 통째로 사라지므로
+      <code>BackgroundTasks</code>만 쓰는 단순안을 버리고 테이블 기반 큐(<code>analysis_jobs</code>)를 만들었다.</p>
+
+    <h3>claim과 lease</h3>
+    <table>
+      <thead><tr><th>규칙</th><th>결정</th><th>이유</th></tr></thead>
+      <tbody>
+        <tr><td>claim 방식</td><td>짧은 트랜잭션에서 <code>FOR UPDATE SKIP LOCKED</code> → 트랜잭션 닫고 Claude 호출 → 별도 트랜잭션에서 완료 처리</td>
+          <td>Claude 호출을 트랜잭션 안에 두면 커넥션을 수십 초 잡는다</td></tr>
+        <tr><td>lease token</td><td>claim <b>1회당</b> 고유 token을 <code>locked_by</code>에 기록 (워커 ID가 아니다)</td>
+          <td>같은 워커가 재claim해도 token이 달라져 이전 시도의 늦은 쓰기를 구분한다</td></tr>
+        <tr><td>원자화 조건</td><td>결과 쓰기·<code>done</code>·재큐·<code>failed</code> <b>전부</b>
+          <code>where status='running' and locked_by=:token</code></td>
+          <td>lease를 잃은 워커가 결과 쓰기나 재큐를 먼저 해 새 claim 상태를 오염시키는 것을 막는다. 0행이면 그 시도를 통째로 버린다</td></tr>
+        <tr><td>attempts</td><td><b>claim 시점</b>에 +1 — 상한 5 = “최대 5회 호출”</td>
+          <td>lease 만료 회수도 재claim이므로 attempt를 소비한다</td></tr>
+        <tr><td>종료 조건</td><td><code>attempts &gt;= 5</code>면 terminal <code>failed</code> + <code>last_error</code></td>
+          <td>상한이 없으면 영구 재시도한다 (poison-pill)</td></tr>
+        <tr><td>reaper</td><td>claim에 내장 — lease 만료 + 상한 도달 좀비를 <code>failed</code>로 수렴</td>
+          <td>구현 중 발견한 계획 결함(좀비가 영구 루프) 해소</td></tr>
+        <tr><td>백오프</td><td><code>available_at = clock_timestamp() + attempts × 1분</code></td>
+          <td><b>Postgres <code>now()</code>는 트랜잭션 고정</b>이라 백오프가 무력화된다 — 실측으로 확인</td></tr>
+        <tr><td>lease 기간</td><td>5분 (설계 발명값)</td><td>Claude 호출 상한 대비 여유값. 조정 시 AC 수치도 갱신</td></tr>
+        <tr><td>동시성</td><td>1</td><td>단일 사용자 로컬 도구. 잠금 규칙은 재기동·이중 기동 방어용</td></tr>
+      </tbody>
+    </table>
+
+    <h3>멱등성 — 재시도가 안전해야 한다</h3>
+    <p class="lead">가장 까다로운 실패는 “결과 저장은 끝났지만 <code>status</code> 갱신 전 크래시”다.
+      같은 작업이 재실행되므로 재실행이 중복을 만들지 않아야 한다.</p>
+    <ul>
+      <li><b>발화 단위 replace</b> — 한 트랜잭션에서 <code>delete from error_occurrences where utterance_id = :id</code> 후
+        새 결과 집합을 insert. 재시도하면 같은 집합으로 교체될 뿐이고, 재분석 결과가 달라져도 최신 결과만 남는다</li>
+      <li><code>unique(utterance_id, pattern_id)</code> 초안은 <b>철회</b> — 한 문장에 관사 누락이 두 곳 나오는 정상 데이터를 잃는다.
+        replace는 복수 occurrence를 보존하면서 멱등하다</li>
+      <li><code>frequency</code>는 <b>실제 행 수에서 재계산</b> — 무조건 <code>+1</code>이면 재시도마다 부풀어 오른다</li>
+      <li><code>last_seen_at</code>은 <b><code>utterances.created_at</code>(발화 시각)</b> 기준 —
+        occurrence 시각을 쓰면 replace가 재삽입할 때마다 현재로 당겨진다</li>
+      <li>확정 전사문 저장과 <code>analyze_utterance</code> 등록은 <b>한 트랜잭션</b> —
+        분리하면 그 사이 크래시에서 분석되지 않는 발화가 영구히 남는다</li>
+      <li><code>(job_type, utterance_id)</code> partial unique가 <code>pending</code>/<code>running</code> 동안 중복 등록을 차단</li>
+      <li><code>unique(session_id, sequence_no)</code>는 중복 제거 장치가 아니라 <b>Gateway 이중 commit 버그를 막는 무결성 가드</b></li>
+    </ul>
+
+    <h3>pattern_key 정규화 계약 — 앱의 핵심 약속</h3>
+    <p class="lead">“같은 오류는 하나의 패턴으로 병합”은 Claude가 세션을 넘어 같은 오류에 같은 key를 내놓는다는 전제 위에 있다.
+      자유 생성에 맡기면 <code>missing_article_before_place</code>와 <code>article_missing_before_gym</code>이
+      병합되지 않아 약속이 조용히 무너진다.</p>
+    <div class="grid">
+      <div class="card"><h4>1. 재사용 우선</h4><p style="font-size:13px">프롬프트에 해당 사용자의 기존
+        <code>pattern_key</code> 목록(카테고리·<code>target_form</code> 포함)을 주입하고, 같은 유형이면 기존 key를 그대로 쓰게 한다.</p></div>
+      <div class="card"><h4>2. 신규만 생성</h4><p style="font-size:13px">기존에 없을 때만
+        <code>{category}_{영문_스네이크}</code> 형식으로 만든다 (예: <code>article_missing_before_noun</code>).</p></div>
+      <div class="card"><h4>3. 표기 정규화</h4><p style="font-size:13px">공백·대소문자 변형은 기존 표기로 정규화한다.</p></div>
+    </div>
+    <div class="note" style="margin-top:14px">
+      <b>실물 증명:</b> 가짜 클라이언트로는 이 계약이 동어반복이 되므로 <b>W-live 스모크</b>가 실제 Claude로 판정한다.
+      2발화 연속 분석에서 <code>article_missing_before_noun</code>이 발화 2에서 재사용되어
+      <code>error_patterns</code> 1행 · <code>error_occurrences</code> 2행 · <code>frequency=2</code>로 병합됐다.
+    </div>
+
+    <h3>Claude 출력은 신뢰할 수 없는 외부 데이터</h3>
+    <p class="lead">필수 필드 누락 · <code>severity</code> 미정의값 · <code>confidence</code> 범위(0~1) 초과 ·
+      카테고리 CHECK 밖 값은 <b>저장 전 스키마 검증에서 거부</b>되고 job이 <code>last_error</code>와 함께 실패한다.
+      반면 <b>오류 0건 결과는 정상 <code>done</code></b>이다 — 빈 전사문도 findings 0건 done으로 처리해 재시도를 소진하지 않는다.</p>
+  </section>
+  <section id="dev">
+    <div class="tag">04 · DEVELOPMENT STATUS</div>
+    <h2>개발 상황</h2>
+    <p class="lead">12태스크 계획을 TDD(test-first)로 실행했다. 태스크마다 리뷰를 붙이고, 지적사항을 해소한 뒤에만
+      다음으로 넘어갔다.</p>
+
+    <div class="grid g4">
+      <div class="tile"><span>테스트</span><strong>201 passed</strong></div>
+      <div class="tile"><span>skip · xfail</span><strong>0</strong></div>
+      <div class="tile"><span>ruff · format · ty</span><strong>clean</strong></div>
+      <div class="tile"><span>브랜치 커밋</span><strong>33</strong></div>
+    </div>
+
+    <h3>태스크 → 커밋 → 리뷰 결과</h3>
+    <table>
+      <thead><tr><th>태스크</th><th>커밋</th><th>리뷰 결과</th></tr></thead>
+      <tbody>
+        <tr><td>T1 스캐폴딩 + 자격증명 격리(config 단일점)</td><td class="num"><code>de61434</code> <code>3d823ae</code></td>
+          <td><span class="pill ok">✓ Approve</span> fix: pool 경쟁 조건</td></tr>
+        <tr><td>T2 001 스키마 재작성 + 문서 정합화 + 시드</td><td class="num"><code>b0b2323</code></td>
+          <td><span class="pill ok">✓ Approve</span> 라이브 DB로 요건 전건 대조</td></tr>
+        <tr><td>T3 PG 큐 (lease token · reaper · 백오프)</td><td class="num"><code>1351c0b</code> <code>e002f79</code> <code>fb3754d</code></td>
+          <td><span class="pill ok">✓ Approve</span> 구현자가 계획 결함(poison-pill 영구 루프) 발견 → reaper로 해소.
+            Important 3건(원자성·<code>clock_timestamp</code>·동시쓰기) 해소</td></tr>
+        <tr><td>T4 전사문 저장 + 원자적 job 등록</td><td class="num"><code>e6f58a7</code></td><td><span class="pill ok">✓ Approve</span></td></tr>
+        <tr><td>T5 Claude 클라이언트 + 출력 경계 검증</td><td class="num"><code>fb1839b</code></td><td><span class="pill ok">✓ Approve</span> 배치 리뷰</td></tr>
+        <tr><td>T6 분석 파이프라인 (replace 멱등 · key 계약)</td><td class="num"><code>e96ab01</code></td>
+          <td><span class="pill ok">✓ Approve</span> 뮤테이션 테스트로 트랜잭션 경계 가드 실증</td></tr>
+        <tr><td>T7 워커 루프 (동시성 1 · <code>WORKER_ENABLED</code>)</td><td class="num"><code>086a42e</code> <code>010c90c</code> <code>f315fa5</code></td>
+          <td><span class="pill ok">✓ Approve</span> Important 5건(MAX_TOKENS 16000 · tx-밖 호출 가드 · 빈 전사문 0건 done ·
+            종료 상한 15s · key 정규화) 해소</td></tr>
+        <tr><td>T8 결과 API (5분기 · severity ordinal)</td><td class="num"><code>7d453e4</code> <code>f183249</code></td>
+          <td><span class="pill ok">✓ Approve</span> fix: 대표 문구 tie-break 결정화</td></tr>
+        <tr><td>explanation wave (“한 줄 이유” 관통)</td><td class="num"><code>79ce9e2</code></td>
+          <td><span class="pill ok">✓ Approve</span> 이슈 0건 — 계획 결함 수정</td></tr>
+        <tr><td>T9 Gateway + Nova 포트 + 스텁 + WS</td><td class="num"><code>bac4144</code> <code>5c6c92c</code></td>
+          <td><span class="pill ok">✓ Approve</span> Important 5건(비ASCII 프레임 · 어댑터 실패 가시화 · 드레인+shield ·
+            unresponsive 모드 · 사인파 톤) + CORS 해소</td></tr>
+        <tr><td>T10 프론트엔드 (Next.js 16 · 5상태)</td><td class="num"><code>346bf23</code></td>
+          <td><span class="pill ok">✓ Approve</span> E2E-S로 실질 판정 — 5상태 전부 실화면 확인</td></tr>
+        <tr><td>T11 W-live 스모크</td><td class="num"><code>19bdc99</code></td>
+          <td><span class="pill ok">✓ PASS 7/7</span> 컨트롤러 직접 실행</td></tr>
+        <tr><td>T12 E2E-S + 마무리 게이트</td><td class="num"><code>b915b09</code> <code>f33d22a</code></td>
+          <td><span class="pill wait">⏸ 캡틴 승인 대기</span> E2E-S 6스텝·<code>/simplify</code> 8건·최종 리뷰 완료</td></tr>
+      </tbody>
+    </table>
+
+    <h3>검증 증거</h3>
+    <div class="grid g2">
+      <div class="card">
+        <h4>자동 검증</h4>
+        <ul>
+          <li><b>201 passed</b> / skip·xfail 0 — 실제 podman PostgreSQL 대상 (4.06s)</li>
+          <li><code>ruff check</code> All checks passed · <code>ruff format --check</code> 24 files ·
+            <code>ty check</code> All checks passed</li>
+          <li>각 W/R/G AC 테스트의 <b>red→green 증거</b> 확보 (구현 전 실패 확인)</li>
+          <li>포트 격리 import 그래프(AST) 검사</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>수동·실물 검증</h4>
+        <ul>
+          <li><b>W-live</b> 실제 Claude 2발화 스모크 <b>PASS 7/7</b> — 패턴 병합 <code>frequency=2</code> 실증</li>
+          <li><b>E2E-S</b> 6스텝: 3문항 완주 · 부분→확정 전사문 전환 · “분석 중”(워커 OFF) ·
+            확정 + 교정 카드 정확히 1개(실제 Claude, 브라우저 종단) · 부분 실패 병존 · 연결 실패 10초 내</li>
+          <li><code>/simplify</code> 4각 리뷰 → 8건 적용</li>
+          <li>최종 whole-branch 리뷰: 조건부 Approve → 필수 2건(bearer 전달 · 001 함정 문서화) 해소 →
+            이연 minor 33건 전건 “병합 전 필수 아님” triage</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Phase 1에서 쓰지 않는 것 (명시)</h3>
+    <p class="lead"><code>mastery_score</code> · <code>self_difficulty</code> · <code>review_tasks</code> ·
+      <code>impact_score</code>는 <b>컬럼/테이블만 존재하고 어떤 코드도 읽거나 갱신하지 않는다</b> —
+      복습 스케줄링은 3단계다.</p>
+  </section>
+  <section id="gate">
+    <div class="tag">05 · BLOCKERS &amp; NEXT</div>
+    <h2>블로커와 다음 단계</h2>
+
+    <div class="note hold">
+      <b>⏸ 완료 선언 전 캡틴 게이트 1건 — E2E-S 스텝 1 “마이크 실프레임 전송”</b>
+      <p style="margin:8px 0 0">headless Chrome의 MediaRecorder 제약으로 자동 검증이 불가해 브라우저 레벨 오디오 셰임으로
+        대체 검증했다. 캡틴이 <b>실물 마이크로 세션 1회</b>를 돌리거나, <b>이월 수용을 명시</b>하면 완료 선언이 가능하다.</p>
+      <p style="margin:6px 0 0">절차: <code>localhost:3000</code> 열고 학습 시작 → 마이크 허용 → 아무 말 → 종료 → 결과 확인</p>
+    </div>
+
+    <div class="note danger" style="margin-top:14px">
+      <b>⚠ 유일한 하드 블로커 (Phase 2 진입 조건) — Nova SigV4 자격증명</b>
+      <p style="margin:8px 0 0"><b>Nova Sonic 양방향 스트림은 Bedrock API key(bearer token)로 호출할 수 없다.</b>
+        2026-08-25 스파이크로 실측 확정했다 — SDK 한계가 아니라 서비스가 직접 거부한다.</p>
+      <table style="margin-top:10px">
+        <thead><tr><th>엔드포인트</th><th>bearer token 결과</th></tr></thead>
+        <tbody>
+          <tr><td><code>/invoke</code></td><td><span class="pill ok">HTTP 200</span></td></tr>
+          <tr><td><code>/invoke-with-response-stream</code></td><td><span class="pill ok">HTTP 200</span></td></tr>
+          <tr><td><code>/invoke-with-bidirectional-stream</code></td>
+            <td><span class="pill block">HTTP 403</span> <code>This operation does not support API Keys</code></td></tr>
+        </tbody>
+      </table>
+      <p style="margin:10px 0 0">대조군으로 인증 헤더를 아예 뺐을 때는 <code>Authorization header is missing</code>이 돌아왔다 —
+        메시지가 다르므로 403은 인증 평가 단계에 도달한 뒤 <b>API Key를 특정해 거부한 것</b>이다.</p>
+      <p style="margin:6px 0 0"><b>발급 방식은 미결(캡틴 “나중에 결정”)</b> — Phase 2 착수 전 반드시 결정해야 한다.
+        절차 가이드: <code>docs/ops/iam-setup-nova-sigv4.md</code> (권장안: 전용 IAM user access key → <code>.env</code>).
+        Phase 1은 이 블로커와 무관하게 완주 가능하다 — Nova는 포트+스텁으로 격리했고 Claude 분석은 bearer로 동작한다.</p>
+    </div>
+
+    <h3>후속(비차단) 항목</h3>
+    <table>
+      <thead><tr><th>항목</th><th>판단</th></tr></thead>
+      <tbody>
+        <tr><td><code>pending_learning_utterances</code> 함수가 앱에서 미사용</td>
+          <td>AC W6 대응물로 유지 중 — 삭제 여부 캡틴 판단</td></tr>
+        <tr><td>WebSocket 엔드포인트 origin 미검증</td>
+          <td>localhost 단일 사용자라 수용 — Phase 2 인증 도입 시 처리</td></tr>
+        <tr><td><code>botocore</code> 재시도 미설정 (스로틀 중복 과금)</td>
+          <td>Phase 2 첫 운영 관찰 대상</td></tr>
+        <tr><td>이연 minor 33건</td><td>전건 “병합 전 필수 아님” triage 완료 — 목록·근거는 ledger</td></tr>
+      </tbody>
+    </table>
+
+    <h3>이월 로드맵</h3>
+    <div class="grid g2">
+      <div class="card">
+        <h4>Phase 2 — SigV4 확보 후</h4>
+        <ul>
+          <li>AC1 실음성 왕복 · AC12 실음성 3문항 완주</li>
+          <li>AC2 barge-in (끼어들기, 검증 상한 1초)</li>
+          <li>세션 롤오버 + 포트 수명 이벤트·barge-in 제어 연산 확장</li>
+          <li>무응답형 자격증명 오류의 실계측 (스파이크 재실행)</li>
+          <li>Claude 클라이언트 <b>bearer → SigV4 전환</b> — <code>config.bedrock_client()</code> 한 곳이라 설정 교체로 끝난다</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>다음 슬라이스 — SigV4와 무관</h4>
+        <ul>
+          <li>세션 총평 <code>summarize_session</code> (스키마는 준비됨 — 마이그레이션 없이 켠다)</li>
+          <li>음성 명령 8종 + 호출어 (3단계)</li>
+          <li>복습 과제 생성 1·3·7일 스케줄링 (3단계)</li>
+          <li>업무 역할극·프로젝트 보고 (4단계)</li>
+          <li>주간 리포트 cron + Slack — 이 시점에 Hermes 재사용 재검토</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>로컬 실행 방법</h3>
+    <div class="flow"># DB (podman — docker 없음)
+scripts/dev_db.sh start          # postgres:16-alpine, :5433, ohmy/ohmy/ohmyenglish
+python3 scripts/migrate.py       # 001 적용 + 고정 사용자·시나리오 3행 시드 (멱등)
+#   ⚠ 추적은 파일명 기준 — 001을 재작성했다면 재적용되지 않는다.
+#     dev DB를 drop/재생성할 것 (scripts/db_utils.recreate_database)
+
+# 백엔드 (Python 3.13 venv — uv)
+cd app/backend &amp;&amp; .venv/bin/uvicorn app.api.main:app --port 8000
+#   .env: DATABASE_URL, AWS_REGION=us-west-2, AWS_BEARER_TOKEN_BEDROCK
+#   WORKER_ENABLED=false      → 분석 워커 정지 (E2E-S 스텝 3용)
+#   voice_adapter=stub(기본) | stub_unresponsive(연결 실패 재현)
+
+# 프론트 (Next.js 16)
+cd app/frontend &amp;&amp; npm run dev   # :3000, NEXT_PUBLIC_API_BASE 기본 localhost:8000
+
+# 검증 게이트 (전부 통과 상태여야 정상)
+cd app/backend &amp;&amp; .venv/bin/pytest -q &amp;&amp; .venv/bin/ruff check . \
+  &amp;&amp; .venv/bin/ruff format --check . &amp;&amp; ty check</div>
+  </section>
+  </main>
+<footer>
+  <p><b>Part 2 / 2</b> — 아키텍처 · 큐 의미론 · 개발 상황 · 블로커
+    &nbsp;·&nbsp; <a href="status-report-2026-08-25.html" style="color:var(--blue)">← Part 1 (요구사항·스토리보드)</a></p>
+  <p>정본 문서: <code>docs/design/2026-08-24-first-vertical-slice-design.md</code> (리뷰 5회 승인) ·
+    <code>docs/design/2026-08-25-first-slice-acceptance-criteria.md</code> (critic 2회 PASS) ·
+    <code>docs/design/2026-08-25-phase1-implementation-plan.md</code> (12태스크) ·
+    <code>docs/nova-sonic-claude-architecture.md</code> · <code>docs/database-schema.md</code> ·
+    <code>handoff/HANDOFF.md</code></p>
+  <p>프로세스 상세(모든 ruling · 이연 minor · red→green 증거 위치)는
+    <code>.superpowers/sdd/2026-08-25-phase1-implementation-plan/progress.md</code>(ledger, git 미추적)에 있다.</p>
+  <p>이 보고서의 수치는 2026-08-25에 <code>pytest</code> · <code>ruff</code> · <code>ty</code> ·
+    <code>git</code>을 직접 실행해 확인한 값이다.</p>
+</footer>
+</body>
+</html>

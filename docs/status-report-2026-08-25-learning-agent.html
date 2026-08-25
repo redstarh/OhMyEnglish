@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OhMyEnglish — 학습 코치 Agent 설계 (2026-08-25)</title>
+  <style>
+    :root { --navy:#12213d; --blue:#3268ed; --pale:#edf3ff; --ink:#182033; --muted:#667085;
+      --line:#e4e9f2; --surface:#fff; --bg:#f7f9fc; --code-bg:#eef2f8; --code-ink:#204eb8;
+      --good:#0f7a46; --good-bg:#e6f5ed; --warn:#8a5a00; --warn-bg:#fdf3e0;
+      --crit:#b3261e; --crit-bg:#fdeceb; --defer:#5c6a80; --defer-bg:#eef1f6; --track:#cddcff; }
+    @media (prefers-color-scheme: dark) {
+      :root { --navy:#0a1020; --blue:#7ba2ff; --pale:#1b2540; --ink:#e8ecf5; --muted:#9aa5bb;
+        --line:#26304a; --surface:#151c2e; --bg:#0d1220; --code-bg:#1d263c; --code-ink:#a8c2ff;
+        --good:#4cc38a; --good-bg:#12301f; --warn:#e0a83c; --warn-bg:#33260c;
+        --crit:#f2836f; --crit-bg:#3a1a18; --defer:#93a0b8; --defer-bg:#1e2637; --track:#2a3757; } }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); line-height:1.65;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo",sans-serif; }
+    header { padding:52px max(24px,calc((100% - 1060px)/2)) 44px; background:linear-gradient(125deg,var(--navy),#2a52b8); color:#fff; }
+    header h1 { margin:0 0 10px; font-size:clamp(28px,4.4vw,44px); letter-spacing:-.02em; }
+    header p { margin:0; max-width:740px; color:#d8e3ff; }
+    .meta { margin-top:18px; display:flex; flex-wrap:wrap; gap:8px; font-size:13px; }
+    .meta span { padding:5px 10px; border-radius:8px; background:#ffffff1f; color:#eaf0ff; }
+    nav { position:sticky; top:0; z-index:5; overflow:auto; white-space:nowrap;
+      padding:11px max(24px,calc((100% - 1060px)/2)); background:var(--surface); border-bottom:1px solid var(--line); }
+    nav a { display:inline-block; margin-right:4px; padding:7px 11px; border-radius:8px;
+      color:var(--muted); text-decoration:none; font-size:13px; font-weight:700; }
+    nav a:hover { background:var(--pale); color:var(--blue); }
+    main { max-width:1060px; margin:auto; padding:36px 24px 84px; }
+    section { margin-bottom:26px; padding:26px; background:var(--surface); border:1px solid var(--line);
+      border-radius:17px; box-shadow:0 5px 18px #14244909; }
+    h2 { margin:0 0 6px; font-size:23px; letter-spacing:-.01em; }
+    h3 { margin:22px 0 8px; font-size:16px; }
+    h4 { margin:14px 0 6px; font-size:14px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+    p { margin:8px 0; } ul,ol { margin:8px 0; padding-left:20px; } li { margin:4px 0; }
+    .lead { color:var(--muted); max-width:800px; }
+    code { padding:2px 5px; border-radius:5px; background:var(--code-bg); color:var(--code-ink); font-size:.88em; }
+    .tag { display:inline-block; margin-bottom:10px; padding:4px 9px; border-radius:99px;
+      background:var(--pale); color:var(--blue); font-size:11.5px; font-weight:800; letter-spacing:.05em; }
+    .grid { display:grid; gap:14px; grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .g2 { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .g4 { grid-template-columns:repeat(4,minmax(0,1fr)); }
+    .card { padding:17px; border:1px solid var(--line); border-radius:12px; background:var(--bg); }
+    .card h3 { margin-top:0; }
+    table { width:100%; border-collapse:collapse; margin-top:12px; font-size:13.5px; }
+    th,td { padding:9px 10px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line); }
+    th { color:var(--muted); font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; font-weight:800; }
+    td.num { font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .pill { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:99px;
+      font-size:12px; font-weight:800; white-space:nowrap; }
+    .ok { background:var(--good-bg); color:var(--good); }
+    .wait { background:var(--warn-bg); color:var(--warn); }
+    .block { background:var(--crit-bg); color:var(--crit); }
+    .later { background:var(--defer-bg); color:var(--defer); }
+    .tile { padding:15px 16px; border:1px solid var(--line); border-radius:12px; background:var(--bg); }
+    .tile span { display:block; color:var(--muted); font-size:12px; }
+    .tile strong { display:block; margin-top:3px; font-size:26px; font-weight:700; letter-spacing:-.02em; }
+    .flow { padding:20px; border-radius:13px; background:var(--navy); color:#e9efff;
+      font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px; line-height:1.7; overflow:auto; white-space:pre; }
+    .note { padding:14px 16px; border-left:3px solid var(--blue); border-radius:0 10px 10px 0;
+      background:var(--pale); font-size:13.5px; }
+    .note.danger { border-color:var(--crit); background:var(--crit-bg); }
+    .note.hold { border-color:var(--warn); background:var(--warn-bg); }
+    .note.good { border-color:var(--good); background:var(--good-bg); }
+    footer { max-width:1060px; margin:auto; padding:0 24px 70px; color:var(--muted); font-size:12.5px; }
+    @media (max-width:820px) { .grid,.g2,.g4 { grid-template-columns:1fr; } section { padding:20px; } }
+  </style>
+</head>
+<body>
+<header>
+  <div class="tag" style="background:#ffffff26;color:#fff">PART 3 · LEARNING COACH AGENT</div>
+  <h1>학습 코치 Agent 설계</h1>
+  <p>고정된 질문 3개 대신, 학습자가 실제로 틀린 것에서 오늘의 연습을 정하는 Agent.
+     그리고 실력이 올라갈 때 응대 난이도가 따라 올라가게 만드는 구조.
+     설계 정본은 <code>docs/design/2026-08-25-learning-coach-agent-design.md</code>다.</p>
+  <div class="meta">
+    <span>기준일 2026-08-25</span><span>단계 3단계</span>
+    <span>상태 설계 초안 — 검토 전</span><span>Nova 블로커와 무관</span>
+  </div>
+</header>
+<nav>
+  <a href="status-report-2026-08-25.html" style="color:var(--blue)">← Part 1 · 요구사항·스토리보드</a>
+  <a href="status-report-2026-08-25-architecture.html" style="color:var(--blue)">← Part 2 · 아키텍처·개발</a>
+  <a href="#why">문제</a><a href="#split">역할 분담</a><a href="#flow">동작</a>
+  <a href="#input">입력</a><a href="#output">출력</a><a href="#chronic">만성 약점</a>
+  <a href="#level">수준 적응</a><a href="#schema">스키마</a><a href="#decide">결정 필요</a>
+</nav>
+<main>
+  <section id="why">
+    <div class="tag">06 · PROBLEM</div>
+    <h2>지금 무엇이 문제인가</h2>
+    <p class="lead">학습을 시작하면 <b>항상 같은 질문 3개</b>가 나온다. 무엇을 틀렸든 상관없다.
+      코드에 "첫 번째 시나리오를 가져와라"로 박혀 있다 (<code>app/services/sessions.py:29</code>).</p>
+
+    <h3>코드로 확인한 사실 (2026-08-25)</h3>
+    <table>
+      <thead><tr><th>사실</th><th>확인</th></tr></thead>
+      <tbody>
+        <tr><td>시나리오가 고정 — <code>order by created_at, id limit 1</code></td><td class="num"><code>sessions.py:29</code></td></tr>
+        <tr><td><code>users.current_level</code>을 읽거나 쓰는 코드가 없다 → 영구히 <code>A2</code></td><td>grep <b>0건</b></td></tr>
+        <tr><td><code>review_tasks</code>·<code>mastery_score</code>·<code>self_difficulty</code>·<code>next_review_at</code>을 쓰는 코드가 없다</td><td>grep <b>0건</b></td></tr>
+        <tr><td>세션 지시문을 음성 어댑터에 넘길 자리가 없다 — <code>start()</code>가 인자를 안 받는다</td><td class="num"><code>port.py:46</code></td></tr>
+        <tr><td>Claude가 만들 수 있는 "연습 상황 3개"를 저장할 컬럼이 없다</td><td><code>agent-system-prompt.md:47</code>이 요구</td></tr>
+        <tr><td>교정 후 재발화의 정답 여부를 기록하는 자리가 없다</td><td><code>review_tasks.status</code>는 수행 여부만</td></tr>
+      </tbody>
+    </table>
+
+    <div class="note" style="margin-top:16px">
+      <b>이건 새 기능 발명이 아니다.</b> 요구사항이 이미 정본에 있다 —
+      <code>PRD.md:117</code> "주간 화면에서 상위 오류, 개선 패턴, <b>다음 주 추천 시나리오</b>를 확인할 수 있다"(수용 기준),
+      <code>PRD.md:112</code> "확정 전사문을 비동기 분석해 <b>다음 턴·다음 세션에 반영한다</b>",
+      <code>PRD.md:58</code> "<b>성공률에 따라 난이도를 조절한다</b>".
+      만들어야 할 것은 그 요구사항을 잇는 부품이다.
+    </div>
+
+    <h3>이미 갖춰져 있어 새로 만들지 않는 것</h3>
+    <div class="grid g2">
+      <div class="card">
+        <h4>스키마 슬롯 (마이그레이션 불필요)</h4>
+        <ul>
+          <li><code>learning_scenarios(category, level, prompt_template)</code> — 폴백 뱅크</li>
+          <li><code>learning_sessions.learning_source</code> · <code>started_via</code> · <code>mode</code></li>
+          <li><code>error_patterns.next_review_at</code> · <code>mastery_score</code></li>
+          <li><code>review_tasks.scenario_context</code> · <code>review_stage</code> · <code>due_at</code></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>재사용하는 구조</h4>
+        <ul>
+          <li><code>analysis_jobs</code> 큐 — lease token·백오프·상한 5·reaper</li>
+          <li>Claude 출력 스키마 검증 (Phase 1 W7)</li>
+          <li><code>agent-system-prompt.md</code> — 지시문의 <b>고정부</b></li>
+          <li><code>first-4-weeks.md</code> — 손으로 쓴 시나리오·드릴 표</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="split">
+    <div class="tag">07 · ROLE SPLIT</div>
+    <h2>역할 분담 — 승인된 경계</h2>
+    <p class="lead">캡틴 질문이 출발점이었다: "LLM 에이전트만으로 충분히 학습 패턴을 파악하고 문제를 제시할 수 있지 않나."
+      대부분 맞다. 규모가 작아서 더 그렇다 — 하루 3발화면 1년 뒤에도 발화 1,000건 수준이라
+      한 사람의 전체 이력이 컨텍스트에 들어간다.</p>
+
+    <table>
+      <thead><tr><th>담당</th><th>하는 일</th><th>왜</th></tr></thead>
+      <tbody>
+        <tr><td><b>Claude</b> (판단·생성)</td>
+          <td>무엇이 약점의 본질인지, 어떤 질문·상황으로 연습시킬지, 난이도, 지시문 작성</td>
+          <td>점수식으로 산출 불가능. "긴 문장을 시도할 때만 시제가 무너진다" 같은 통찰은
+            <code>frequency=7</code>을 아무리 봐도 안 나온다</td></tr>
+        <tr><td><b>쿼리</b> (장부)</td>
+          <td>오늘 복습 대상 목록, 만성 지표 숫자, 최근 창 추출, 복습 단계 전이</td>
+          <td>놓침이 <b>조용히</b> 일어나면 안 된다. LLM에게 "떠올려라"라고 하면 어떤 패턴은 언급되지 않고 잊히는데,
+            사용자도 개발자도 알아챌 방법이 없다. 회귀 테스트도 여기서만 가능하다</td></tr>
+        <tr><td><b>Nova</b> (응대)</td>
+          <td>실시간 대화</td>
+          <td>Claude를 음성 턴 동기 경로에 넣지 않는다 (<code>PRD.md:112</code>)</td></tr>
+      </tbody>
+    </table>
+
+    <div class="note good" style="margin-top:16px">
+      <b>핵심 논거:</b> LLM 단독안에서도 커버리지를 확보하려면 "기억해서 떠올려라" 대신
+      <b>"이 목록을 받아서 판단하라"</b>로 줘야 한다. 그게 되는 순간 이미 하이브리드다.
+      즉 <b>장부를 없앨 수는 없고, 그것이 쿼리인지 희망인지만 고를 수 있다.</b>
+      이 프로젝트는 Phase 1에서 이미 같은 선택을 했다 — 분석 워커는 "어떤 발화를 분석할까"를
+      Claude에게 묻지 않고 <code>analysis_jobs</code> 클레임 쿼리가 정한다.
+    </div>
+
+    <h3>임계값을 발명하지 않는다</h3>
+    <p class="lead">"재발 며칠 이상이면 만성인가" 같은 판정을 설계가 숫자로 정하지 않는다.
+      쿼리는 <b>사실만</b> 제공하고 Claude가 판단한다. 예외는 이미 문서로 확정된 값뿐이다 —
+      복습 1·3·7일, 재시도 상한 5, 초점 패턴 1~2개, 질문 3~5개.</p>
+  </section>
+  <section id="flow">
+    <div class="tag">08 · TIMING</div>
+    <h2>언제 도는가 — 그리고 왜 느려지지 않는가</h2>
+    <p class="lead">캡틴 질문: "Claude가 만들고 Nova가 대답하면 느리지 않은가."
+      <b>계획을 세션 시작이 아니라 앞선 세션이 끝날 때 만들기 때문에 느려지지 않는다.</b></p>
+
+    <div class="flow">세션 종료 (ended_at + status 기록)
+  └─ 같은 트랜잭션에서 analysis_jobs 에 job 등록  (job_type='plan_next_session')
+       └─ 워커가 claim → Claude 1회 호출
+            └─ session_plans + learner_notes + current_level 갱신을 한 트랜잭션으로 커밋
+
+다음 세션 시작
+  └─ 준비된 session_plans 1행을 읽어 즉시 시작
+       └─ 없으면 learning_scenarios 폴백 (학습이 막히지 않는다)</div>
+
+    <h3>지연 예산 — 사용자가 기다리는 경로에 Claude 호출이 0개</h3>
+    <table>
+      <thead><tr><th>경로</th><th>Claude 호출</th><th>체감</th></tr></thead>
+      <tbody>
+        <tr><td>세션 시작</td><td><span class="pill ok">✓ 없음</span></td><td><code>session_plans</code> 1행 조회 + 지시문 전달 — DB 조회 1회</td></tr>
+        <tr><td>세션 중 대화</td><td><span class="pill ok">✓ 없음</span></td><td>Nova 단독. Nova 자체 지연만</td></tr>
+        <tr><td>턴마다 분석</td><td>있음 (비동기 job)</td><td>0 — 음성 응답 경로 밖 (Phase 1과 동일)</td></tr>
+        <tr><td>계획 생성</td><td>있음</td><td>0 — 직전 세션 종료 시 미리 실행</td></tr>
+      </tbody>
+    </table>
+    <p class="lead" style="margin-top:10px"><b>결론: 추가 아키텍처가 필요하지 않다.</b>
+      Phase 1이 분석을 음성 경로에서 떼낸 것과 같은 구조다.</p>
+
+    <div class="note hold" style="margin-top:14px">
+      <b>⏸ 남는 틈 1건 — 지연이 아니라 기능 퇴화다 (이후 과제, 캡틴 결정)</b>
+      <p style="margin:8px 0 0">세션을 끝내고 <b>곧바로 다시 시작</b>하면(예: "추가 학습" 연속 실행)
+        계획 생성이 아직 끝나지 않아 폴백으로 시작된다. 느려지는 것이 아니라 <b>패턴 기반 선택이 조용히 꺼진다.</b></p>
+      <p style="margin:6px 0 0">보완책 후보 2개 — 둘 다 새 인프라가 필요 없다:
+        ① 새 계획이 없으면 폴백 대신 <b>직전 계획의 남은 질문</b>을 이어 쓴다,
+        ② job 등록을 세션 종료가 아니라 <b>마지막 발화의 분석 완료 시점</b>으로 앞당긴다.</p>
+      <p style="margin:6px 0 0"><b>지금 반영한 조치:</b> 지시문 가변부에 크기 상한을 둔다
+        (길면 Nova 세션 초기화가 느려질 수 있음). 구체 수치는 Phase 2에서 실측해 정한다 — 지금 발명하지 않는다.</p>
+    </div>
+
+    <h3>계획이 없을 때 — 학습이 막히지 않는다</h3>
+    <p class="lead">첫 세션 · 계획 생성 실패(<code>attempts</code> 5회 소진) · 스키마 검증 거부 —
+      세 경우 모두 <code>learning_scenarios</code>에서 수준에 맞는 행을 골라 시작한다.
+      계획 부재는 <code>session_plans</code> 행이 없는 것으로 판별한다.</p>
+  </section>
+
+  <section id="input">
+    <div class="tag">09 · INPUT</div>
+    <h2>Agent가 받는 입력 — 3계층</h2>
+    <p class="lead">전체 이력을 매번 넣지 않는다. 컨텍스트에는 들어가지만 비용과 지연을 의미 없이 늘린다.</p>
+
+    <div class="grid">
+      <div class="card">
+        <h4>① 오늘 다뤄야 하는 목록</h4>
+        <p style="font-size:13px"><code>next_review_at &lt;= clock_timestamp()</code>인 패턴 전부.
+          <b>놓치면 안 되는 것</b>이라 쿼리가 담당한다.</p>
+        <p style="font-size:12.5px;color:var(--muted)">시각은 <code>clock_timestamp()</code> — Postgres
+          <code>now()</code>는 트랜잭션 고정이라 시간 판정이 무력화된다(Phase 1 실측).</p>
+      </div>
+      <div class="card">
+        <h4>② 최근 창 — 14일</h4>
+        <p style="font-size:13px">최근 14일의 발화 전사문과 그 발화의 오류(원문 조각·교정·이유·severity·confidence).
+          <b>지금 상태</b>를 알려준다.</p>
+        <p style="font-size:12.5px;color:var(--muted)">14일은 <b>유도값</b> — 복습 최장 간격 7일의 2배로
+          "1·3·7일 주기를 한 번 이상 완주한 구간". 근거 문서에 14일이 직접 있는 것은 아니다 (결정 필요 ①).</p>
+      </div>
+      <div class="card">
+        <h4>③ 만성 약점</h4>
+        <p style="font-size:13px">숫자 지표(계산) + Claude 관찰 노트(저장). <b>오래 끌고 있는 것</b>을 알려준다.</p>
+        <p style="font-size:12.5px;color:var(--muted)">최근 창만 보면 3개월째 못 고치는 문제를 놓친다.</p>
+      </div>
+    </div>
+
+    <div class="note" style="margin-top:16px">
+      <b>이 설계가 새로 확정하는 것 — 누가 <code>next_review_at</code>을 쓰는가.</b>
+      현재 이 컬럼에 값을 넣는 코드가 없어 ① 목록이 <b>항상 비어 있다.</b> 그래서 쓰기 주체를 여기서 정한다:
+      분석 결과 저장 트랜잭션에서 함께 갱신하고, 새 패턴은 <code>발화 시각 + 1일</code>,
+      <b>이미 있는 패턴이 다시 발생하면 단계를 1일로 되돌린다</b>(다시 틀린 패턴을 7일 뒤로 미루면 복습의 의미가 없다).
+      완주하면 1일 → 3일 → 7일로 진행하고, 3단계를 소진한 뒤 재발하면 그 사실이 만성 신호가 된다.
+      <code>review_tasks</code>를 처음 사용하는 부분이다.
+    </div>
+  </section>
+
+  <section id="output">
+    <div class="tag">10 · OUTPUT</div>
+    <h2>Agent가 내놓는 것 — 계획과 지시문</h2>
+
+    <h3>세션 계획 (<code>session_plans</code>)</h3>
+    <table>
+      <thead><tr><th>항목</th><th>내용</th><th>근거</th></tr></thead>
+      <tbody>
+        <tr><td>초점 패턴</td><td><b>1~2개</b></td><td><code>PRD.md:29</code>·<code>requirements-summary.md:15</code>·<code>agent-system-prompt.md:19</code></td></tr>
+        <tr><td>질문</td><td><b>3~5개</b>, 같은 목표 문형을 서로 다른 상황에서</td><td><code>PRD.md:62</code>·<code>requirements-summary.md:33</code></td></tr>
+        <tr><td>난이도</td><td>CEFR 코드 1개</td><td><code>PRD.md:58</code></td></tr>
+        <tr><td><b>추천 이유</b></td><td>학습자에게 보여줄 한국어 문장 — <b>필수 필드</b></td><td><code>PRD.md:110</code> "추천 이유를 UI에서 확인할 수 있어야 한다"</td></tr>
+        <tr><td>출처</td><td><code>agent</code> / <code>fallback</code></td><td>계획 품질 관측</td></tr>
+      </tbody>
+    </table>
+    <p class="lead" style="margin-top:8px">추천 이유가 비어 있으면 <b>저장 전에 거부한다</b> —
+      이유 없는 추천은 사용자가 판단을 검증할 수 없다.</p>
+
+    <h3>세션 지시문 — 수준에 맞춘 응대</h3>
+    <p class="lead"><code>agent-system-prompt.md</code>가 <b>고정부</b>다 —
+      한 번에 질문 하나, 사용자가 65% 말하기, 교정 5단계 순서, 종료 형식. 이 설계는 그 위에 <b>가변부</b>를 얹는다:
+      오늘의 CEFR 목표, 초점 패턴과 목표 형태, 목표 문장 길이대, 힌트를 얼마나 이르게 줄지, 오늘 쓸 상황 목록.</p>
+
+    <div class="note danger" style="margin-top:12px">
+      <b>포트 확장이 필요하다.</b> 현재 <code>VoiceAdapter.start()</code>가 인자를 받지 않아
+      (<code>app/audio_gateway/port.py:46</code>) 지시문을 넘길 자리가 아예 없다.
+      <code>start(instruction)</code>으로 확장한다.
+      <p style="margin:8px 0 0">이 확장은 <b>이미 허용돼 있다</b> — AC 문서가 "포트가 고정하는 것은 데이터 경로이고
+        제어 연산은 Phase 2에서 인터페이스가 <b>확장</b>된다. 목표는 인터페이스 무변경이 아니라
+        그 확장이 Gateway 상위 로직에 파급되지 않는 것"이라고 정했다. 따라서 이 변경은 어댑터 구현체와 factory에만 닿고
+        세션 수명·저장·job 등록에는 닿지 않아야 하며, import 그래프 검사로 강제한다.</p>
+    </div>
+
+    <div class="note good" style="margin-top:12px">
+      <b>이것이 "내 실력에 맞춰 응대하는 Agent"의 실현 경로다.</b>
+      응대하는 쪽은 Nova(빠름), 어떻게 응대할지 정하는 쪽은 Claude(미리·비동기).
+      Claude가 실력·약점을 보고 지시문을 써서 Nova에게 건네주고, Nova가 그 지시문대로 대화한다.
+      지금은 <code>agent-system-prompt.md</code>에 "A2-B1"이 <b>글자로 박혀</b> 있어 실력이 올라도 바뀌지 않는다.
+    </div>
+  </section>
+
+  <section id="chronic">
+    <div class="tag">11 · CHRONIC WEAKNESS</div>
+    <h2>만성 약점 — 숫자는 계산, 통찰은 노트</h2>
+
+    <h3>숫자 — 새로 저장할 것이 없다 (라이브 DB로 확인)</h3>
+    <table>
+      <thead><tr><th>만성 신호</th><th>계산 방법</th><th>새 컬럼</th></tr></thead>
+      <tbody>
+        <tr><td>누적 빈도</td><td><code>error_patterns.frequency</code></td><td><span class="pill ok">✓ 이미 있음</span></td></tr>
+        <tr><td>재발 세션 수</td><td><code>count(distinct u.session_id)</code></td><td><span class="pill ok">✓ 불필요</span></td></tr>
+        <tr><td>재발 일수 (서로 다른 날)</td><td><code>count(distinct 현지날짜)</code></td><td><span class="pill ok">✓ 불필요</span></td></tr>
+        <tr><td>지속 기간</td><td><code>max(u.created_at) - min(u.created_at)</code></td><td><span class="pill ok">✓ 불필요</span></td></tr>
+        <tr><td>휴면 후 재발 (최대 공백)</td><td>occurrence 시각에 <code>lag()</code></td><td><span class="pill ok">✓ 불필요</span></td></tr>
+      </tbody>
+    </table>
+
+    <div class="note danger" style="margin-top:14px">
+      <b>실측으로 찾은 함정 — <code>error_patterns.created_at</code>을 지속 기간의 시작으로 쓰면 안 된다.</b>
+      라이브 DB에서 <code>last_seen_at - created_at</code>이 <b>음수(−3.8초)</b>로 나왔다.
+      패턴 행의 insert 시각과 발화 시각이 서로 다른 출처이기 때문이다.
+      지속 기간은 반드시 <b>발화 시각의 min/max</b>로 계산한다.
+      Phase 1이 <code>last_seen_at</code>을 발화 시각 기준으로 정한 것과 같은 이유다.
+    </div>
+
+    <p class="lead" style="margin-top:14px"><b>휴면 후 재발이 가장 날카로운 신호다.</b>
+      <code>frequency=5</code>가 하루에 몰린 것과 3개월에 걸쳐 흩어진 것은 완전히 다르고,
+      그중 <b>한동안 사라졌다가 다시 나온 것</b>이 가장 위험하다.</p>
+    <p class="lead">산정은 <b>조회 시 계산</b>으로 둔다. 롤업 테이블 안은 채택하지 않았다 —
+      단일 사용자 규모에서 결과가 같고 갱신 시점·신선도 관리만 늘어난다.</p>
+
+    <h3>Claude 관찰 노트 (<code>learner_notes</code>)</h3>
+    <p class="lead">숫자가 담을 수 없는 관찰을 보존한다. 예: <b>"짧은 문장에서는 관사를 붙이는데 문장이 길어지면 빼먹는다"</b>,
+      <b>"일상 문맥에서는 맞고 업무 문맥으로 옮기면 같은 오류가 재발한다"</b>.
+      이런 건 재발 일수·지속 기간을 아무리 봐도 나오지 않고, 실제 문장을 읽어야 나온다.</p>
+    <ul>
+      <li>계획 생성과 <b>같은 Claude 호출</b>에서 갱신한다 (호출 1회로 계획 + 노트)</li>
+      <li><b>덧붙이기만 하고 지우지 않는다.</b> 최신 행이 현행 노트이고 과거 행이 남는다 —
+        노트가 이상해지면 데이터 삭제 없이 되돌릴 수 있고, 노트의 변화 자체를 관측할 수 있다</li>
+      <li>노트가 읽은 발화 범위를 함께 적어 어떤 근거로 쓰인 노트인지 추적한다</li>
+    </ul>
+  </section>
+
+  <section id="level">
+    <div class="tag">12 · LEVEL ADAPTATION</div>
+    <h2>수준 적응 — 실력이 오르면 난이도가 따라 오른다</h2>
+    <p class="lead"><code>PRD.md:58</code>이 "성공률에 따라 난이도를 조절한다"를 요구하는데,
+      <code>current_level</code>은 아무도 갱신하지 않아 <b>영구히 A2</b>다.</p>
+
+    <div class="grid g2">
+      <div class="card">
+        <h4>근거 데이터</h4>
+        <ul>
+          <li><code>pattern_attempts</code>의 정답률 (새 테이블)</li>
+          <li>발화 길이 추이 — <code>utterances.transcript</code>에서 계산, <b>소급 가능</b></li>
+        </ul>
+        <p style="font-size:13px">계획 생성 Claude 호출이 "유지 / 상향 / 하향"과 그 이유를 산출하고,
+          워커가 같은 트랜잭션에서 갱신한다.</p>
+      </div>
+      <div class="card">
+        <h4>제약 3개</h4>
+        <ul>
+          <li><b>한 번에 한 단계씩만</b> (A2 → B1 → B2). 두 단계 도약은 거부 —
+            h-doc이 경고한 "목표 수준을 현재 수준으로 착각"을 구조로 막는다</li>
+          <li><b>하향도 허용한다.</b> 상향만 가능하면 잘못 올라간 수준이 굳어 매 세션이 어려워진다</li>
+          <li>변경 사유를 <code>learner_notes</code>에 같은 append 행으로 남긴다 (별도 테이블 없음)</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="schema">
+    <div class="tag">13 · SCHEMA</div>
+    <h2>스키마 변경 — 새 테이블 3개 + 컬럼 1개 + CHECK 1개</h2>
+
+    <table>
+      <thead><tr><th>대상</th><th>무엇</th><th>왜</th></tr></thead>
+      <tbody>
+        <tr><td><code>session_plans</code></td><td>새 테이블 — 세션당 unique 1행. 초점 패턴(길이 1~2), 질문(길이 3~5), 난이도, <b>추천 이유(not null)</b>, 지시문, 출처</td>
+          <td>추천 이유 표시는 <code>PRD.md:110</code> 요구사항. 계획 부재가 폴백 판별자</td></tr>
+        <tr><td><code>learner_notes</code></td><td>새 테이블 — append-only. 관찰 항목 + 수준 변경 사유 + 읽은 발화 범위</td>
+          <td>드리프트가 생기면 되돌릴 수 있어야 한다</td></tr>
+        <tr><td><code>pattern_attempts</code></td><td>새 테이블 — <code>outcome in ('correct','incorrect','unclear')</code>,
+          <b>unique(pattern_id, utterance_id)</b></td>
+          <td><code>mastery_score</code>의 유일한 직접 근거. <code>unclear</code>를 두는 이유는 판정 불가 발화를
+            <code>incorrect</code>로 강제하면 숙련도가 부당하게 깎이기 때문</td></tr>
+        <tr><td><code>error_occurrences.suggested_contexts</code></td><td>컬럼 추가 (jsonb, nullable)</td>
+          <td><code>agent-system-prompt.md:47</code>이 이미 요구하는 "상황 3개".
+            <b>지금 저장하지 않으면 소급이 불가능하다</b></td></tr>
+        <tr><td><code>analysis_jobs.job_type</code></td><td>CHECK에 <code>plan_next_session</code> 추가</td>
+          <td>기존 큐를 그대로 재사용 — 새 큐를 만들지 않는다</td></tr>
+      </tbody>
+    </table>
+
+    <p class="lead" style="margin-top:12px"><b><code>002_learning_coach.sql</code>로 쌓는다.</b>
+      001은 이미 라이브 DB에 적용됐으므로 재작성하지 않는다 —
+      Phase 1이 001을 재작성한 것은 어떤 DB에도 적용되기 전이었기 때문이고 그 조건은 이제 성립하지 않는다.</p>
+  </section>
+
+  <section id="decide">
+    <div class="tag">14 · DECISIONS NEEDED</div>
+    <h2>캡틴 결정이 필요한 것</h2>
+
+    <table>
+      <thead><tr><th>#</th><th>결정 사항</th><th>기본안</th></tr></thead>
+      <tbody>
+        <tr><td class="num">1</td><td><b>최근 창 14일</b> — 7일의 2배로 유도했지만 근거 문서에 직접 수치가 없다</td><td>14일 유지</td></tr>
+        <tr><td class="num">2</td><td><b>정답 여부 판정 주체</b> — 분석 워커의 Claude vs 실시간 Nova.
+          Nova가 하면 즉시성은 좋지만 판정 품질이 낮고 포트가 더 확장된다</td><td>분석 워커의 Claude</td></tr>
+        <tr><td class="num">3</td><td><b><code>impact_score</code></b> — <code>PRD.md:91</code>이 "영향도"를 우선순위 요소로 적었는데
+          이 설계는 Claude 판단으로 대체했다. 문서를 맞출지, 공식을 살릴지</td><td>Claude 판단 유지 + 문서 정합화</td></tr>
+        <tr><td class="num">4</td><td><b>구현을 둘로 나눌지</b> — 아래 절단면 참조</td><td>나눈다</td></tr>
+      </tbody>
+    </table>
+
+    <h3>분해 권고 (결정 #4)</h3>
+    <div class="grid g2">
+      <div class="card">
+        <h4>슬라이스 1 — 기록과 계산</h4>
+        <p style="font-size:13px"><code>suggested_contexts</code> 저장, <code>pattern_attempts</code>,
+          복습 스케줄 갱신, 만성 지표 쿼리</p>
+        <p style="font-size:13px"><b>단독으로 가치가 있다</b> — 지금 새는 데이터가 멈추고,
+          "오늘 복습할 목록"이 처음으로 값을 갖는다. 화면 변화는 없다.</p>
+      </div>
+      <div class="card">
+        <h4>슬라이스 2 — 판단과 적용</h4>
+        <p style="font-size:13px">계획 생성 job, <code>session_plans</code>, <code>learner_notes</code>,
+          지시문 전달, 수준 갱신</p>
+        <p style="font-size:13px">슬라이스 1의 데이터가 있어야 의미가 있다.
+          <b>반대 순서는 불가능하다</b> — 계획을 세울 재료가 없다.</p>
+      </div>
+    </div>
+    <p class="lead" style="margin-top:12px">슬라이스 1을 먼저 하면 데이터 유실이 즉시 멈추고,
+      슬라이스 2를 실제 축적된 데이터로 검증할 수 있다. 한 계획으로 가면 슬라이스 2의 검증이 합성 데이터에 의존한다.</p>
+
+    <h3>이월 (이 설계의 완료 기준이 아님)</h3>
+    <ul>
+      <li>실제 Nova에 지시문이 반영되어 응대가 달라지는지 — Phase 2 SigV4 연동 필요</li>
+      <li>연속 세션의 계획 공백 보완 (§08의 틈) — 캡틴 결정: 이후 과제</li>
+      <li>지시문 크기 상한의 구체 수치 · Nova 응답 지연 계측 — Phase 2 실측</li>
+      <li>주간·월간 리포트, 쉐도잉·YouTube 과제 생성</li>
+      <li><code>self_difficulty</code> 사용자 입력 UI — 컬럼만 존재</li>
+      <li>다중 사용자 전환 — Part 2 참조</li>
+    </ul>
+  </section>
+  </main>
+<footer>
+  <p><b>Part 3 / 3</b> — 학습 코치 Agent 설계
+    &nbsp;·&nbsp; <a href="status-report-2026-08-25.html" style="color:var(--blue)">Part 1 (요구사항·스토리보드)</a>
+    &nbsp;·&nbsp; <a href="status-report-2026-08-25-architecture.html" style="color:var(--blue)">Part 2 (아키텍처·개발)</a></p>
+  <p>설계 정본: <code>docs/design/2026-08-25-learning-coach-agent-design.md</code> (410줄, 4 Lenses 검증 + 수용 시나리오 10건 + 실물 검증 1건).
+    이 문서는 그 설계서의 요약이다 — 상충하면 설계서가 정본이다.</p>
+  <p>상태: <b>설계 초안 — 검토 전.</b> 캡틴 승인 이력(2026-08-25): Agent 성질(LLM 판단 + 쿼리 장부),
+    만성 기록 방식(숫자 계산 + Claude 노트), 수준 적응 지시문 포함.</p>
+  <p>코드 인용(<code>sessions.py:29</code>, <code>port.py:46</code>, grep 0건, 라이브 DB 음수 실측)은
+    2026-08-25에 직접 확인한 값이다.</p>
+</footer>
+</body>
+</html>
