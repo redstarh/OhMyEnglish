@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - 모델: `us.anthropic.claude-opus-5` / region `us-west-2`. **`[1m]` 접미사 금지** (Bedrock 프로필 아님 — 400)
-- Phase 1 자격증명: bearer(`AWS_BEARER_TOKEN_BEDROCK`) 임시 사용 — 획득은 `config.py` 한 곳에 격리 (AC F5, 의도적 이탈 2)
+- ~~Phase 1 자격증명: bearer(`AWS_BEARER_TOKEN_BEDROCK`) 임시 사용 (AC F5, 의도적 이탈 2)~~ → **해소 (2026-08-26).** SigV4 단일 경로로 전환 완료. `prepare_bedrock_credentials()`가 SigV4를 우선 쓰고(없으면 bearer 폴백 — 전환기 캡틴 지시) SigV4가 있으면 bearer를 프로세스 환경에서 제거한다. **AC F5의 "전환 = 설정 교체"가 실증됐다** — 격리 지점 `config.py` 한 곳만 고쳐 워커·클라이언트 코드는 무변경. 실측: Claude invoke HTTP 200, Nova 양방향 스파이크 PASS(설계서 §10-1 관문 통과)
 - Nova 실연동 금지 — 포트+스텁만 (캡틴 결정 2026-08-25)
 - 워커 동시성 1 / lease 5분 / attempts 상한 5 / 백오프 `attempts × 1분` / Gateway 연결 타임아웃 10초 (전부 설계 발명값 — 코드 상수로 두고 주석에 발명값 표기)
 - `mastery_score`·`self_difficulty`·`review_tasks`·`impact_score`는 스키마만 존재, 어떤 코드도 읽거나 쓰지 않는다

@@ -49,7 +49,7 @@
 | 배포 | localhost 단독 개인 도구 | 캡틴 결정 2026-08-24 |
 | 인증 | 없음. 고정 `user_id` 1개를 시드 | 단일 사용자 |
 | DB | PostgreSQL 컨테이너 (**podman**) | 로컬에 docker 없음, podman 5.8.0 |
-| 비동기 처리 | PostgreSQL 큐 (`analysis_jobs`) | SQS/Redis는 과하다 — 캡틴 결정 |
+| 비동기 처리 | PostgreSQL 큐 (`analysis_jobs`) | SQS/Redis는 과하다 — 캡틴 결정. 더 강한 근거는 §5.0 (dual-write/outbox) |
 | 클라이언트 | Next.js 웹만 | 모바일 앱 추후 |
 | Slack 알림 | MVP 제외 | 필요해지면 나중에 |
 | `infra/` | 미생성 | 배포는 동작 확인 후 |
@@ -131,6 +131,30 @@ Audio Gateway는 이를 전제로 만든다 — **연결 실패를 예외 포착
 ## 5. 비동기 분석 — PostgreSQL 큐
 
 새 인프라 컴포넌트를 만들지 않고 이미 확정된 PostgreSQL만 쓴다.
+
+### 5.0 SQS·Redis를 쓰지 않는 이유 — 단순화가 아니라 원자성 요구
+
+**2026-08-25 보강.** §2의 근거는 "SQS/Redis는 과하다"(단순화) 한 줄이었다. 실제로는 그보다 강한 근거가 있어 명시해 둔다.
+
+초안(`nova-sonic-claude-architecture.md` §7)의 "SQS + Worker 또는 Redis Queue"는 특정 제품을 평가해 고른 것이 아니라, 요구사항(음성 턴의 동기 경로에서 Claude 분석을 떼낸다 — 같은 문서 §4.2)을 적으면서 떠오른 관행적 후보였다. 그 요구사항이 큐에 요구하는 기능은 4개다: 내구성 · 재시도와 백오프 · 중복 실행 방지 · 실패 격리.
+
+**§5.3이 요구하는 원자성이 외부 큐를 배제한다.** 확정 전사문 저장과 `analyze_utterance` 등록은 한 트랜잭션이어야 하는데, DB insert와 외부 큐 전송은 서로 다른 시스템이라 원자적으로 묶을 수 없다 — 전형적인 dual-write 문제다. 해결하려면 **PostgreSQL에 outbox 테이블을 두고 릴레이를 돌려야** 하므로 SQS 구성은 `PG 테이블 + 릴레이 프로세스 + SQS + 워커`가 된다. PostgreSQL 큐는 그중 앞 두 개만으로 같은 보장을 얻는다. **즉 외부 큐가 엄격히 더 복잡하고, 그 대가로 얻는 것이 이 규모에는 없다.**
+
+기능 대응에도 빠짐이 없다.
+
+| 외부 큐가 주는 것 | `analysis_jobs` 대응 |
+|---|---|
+| 내구성 | 테이블 행 — 프로세스 사망 후 재기동에 이어진다 (§5.4) |
+| visibility timeout | lease 5분 회수 + claim당 고유 token, 모든 쓰기를 `locked_by=:token`으로 원자화 (§5.4) |
+| 재시도·백오프 | `available_at = clock_timestamp() + attempts × 1분` (§5.4) |
+| DLQ | `attempts >= 5` → terminal `failed` + `last_error`, claim 내장 reaper (§5.4) |
+| FIFO 중복 제거 | partial unique `(job_type, utterance_id) where status in ('pending','running')` (§5.2) |
+
+at-least-once + 멱등성(발화 단위 replace, §5.2)이라는 의미론도 외부 큐와 같은 계약이다.
+
+로컬 환경 사정도 같은 방향이다 — 로컬에 docker가 없어 podman만 쓰고(§2) PostgreSQL 컨테이너는 이미 필수다. SQS는 AWS 의존(또는 localstack 컨테이너), Redis는 컨테이너 추가로 **개발 시 반드시 켜져 있어야 하는 두 번째 인프라**를 늘린다.
+
+**이 근거는 사용자 수와 무관하므로 다중 사용자로 확장해도 뒤집히지 않는다** — outbox 필요성은 그대로다. 다중 사용자 전환 시 새로 필요한 항목은 `2026-08-25-first-slice-acceptance-criteria.md` §이월에 별도 과제로 둔다 (캡틴 결정: 현재는 개인 학습 용도, 다중 사용자는 별도 Phase).
 
 ### 5.1 분석 단위 — 이번 슬라이스는 `analyze_utterance` 하나
 

@@ -134,9 +134,17 @@ Audio Gateway는 Nova 2 Sonic 세션의 서비스 제한·연결 종료 이벤�
 | 음성 Gateway | Python, FastAPI + asyncio | Bedrock 스트리밍 연결과 인증 격리 |
 | 실시간 음성 | Amazon Nova 2 Sonic (`amazon.nova-2-sonic-v1:0`) | 양방향 speech-to-speech |
 | 학습 분석 | Claude Opus 5 (`us.anthropic.claude-opus-5`) | 오류 패턴·보고 영어·장기 계획 |
-| 비동기 처리 | SQS + Worker 또는 Redis Queue | 음성 응답과 분석 분리 |
+| 비동기 처리 | **PostgreSQL 큐 (`analysis_jobs`)** | 음성 응답과 분석 분리. 초안의 "SQS + Worker 또는 Redis Queue"는 철회 — 아래 주석 참조 |
 | 데이터 | PostgreSQL | 학습 이력·오류 패턴·복습 큐 |
 | 음성 파일 | S3, opt-in | 필요 시에만 녹음 보관 |
+
+> **비동기 처리 선택 정정 (2026-08-25).** 이 문서의 초안은 "SQS + Worker 또는 Redis Queue"였다.
+> 첫 수직 슬라이스 설계에서 **PostgreSQL 큐(`analysis_jobs`)로 확정**했고, 이 표의 나머지 행과 달리
+> 이 행만 갱신되지 않아 상충하는 두 정본이 있었다.
+> 철회 근거는 단순화가 아니라 **원자성 요구**다 — 확정 전사문 저장과 작업 등록이 한 트랜잭션이어야 하므로
+> (`design/2026-08-24-first-vertical-slice-design.md` §5.3), 외부 큐를 쓰면 dual-write를 해결하기 위해
+> PostgreSQL outbox 테이블과 릴레이가 추가로 필요하다. 상세는 같은 설계서 **§5.0**.
+> 다중 사용자 전환 시의 과제는 `design/2026-08-25-first-slice-acceptance-criteria.md` §이월에 있다.
 
 ## 8. 개발 단계
 
