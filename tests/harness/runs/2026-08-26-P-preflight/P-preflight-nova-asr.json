@@ -1,0 +1,452 @@
+{
+  "note": "4차수 P계층 개시 전 사전 실측. spike_nova_protocol.py 로 Nova 직접 왕복(앱 경로 아님).",
+  "date": "2026-08-26",
+  "model": "amazon.nova-2-sonic-v1:0",
+  "cases": [
+    {
+      "fixture": "p1a.wav",
+      "spoken": "I think I found three very useful videos. (정확)",
+      "asr": "i think i found three very useful videos.",
+      "agent": "That's great to hear. Those videos can be a valuable resource for improving your English.",
+      "source": "spike stdout"
+    },
+    {
+      "fixture": "p1m.wav",
+      "spoken": "I sink I pound sree bery useful bideos. (음소 치환 θ→s f→p v→b)",
+      "asr": "i think i found three very useful videos.",
+      "agent": "That's great to hear. Those videos can be a valuable resource for improving your English.",
+      "finding": "ASR이 원문으로 복원했다 — 전사문이 p1a와 동일. agent 응답도 동일.",
+      "source": "spike stdout"
+    },
+    {
+      "fixture": "p1k.wav",
+      "spoken": "같은 문장을 한국어 음성(Yuna)이 읽음 (강한 억양)",
+      "asr": "아이싱크 아이파운드 쓰리 베리 유스풀 비디오즈",
+      "agent": "Sorry, that part sounds a bit unclear. Could you please repeat or clarify your request?",
+      "finding": "ASR 언어 판별이 뒤집혀 한글로 전사됐다. 이 전사문의 분석 처리는 미검증(P5).",
+      "source": "spike raw (아래 p1k_events)"
+    }
+  ],
+  "p1k_events": [
+    {
+      "userSpeechStart": {
+        "inputAudioOffsetMs": 0,
+        "promptName": "c31b7c48-641d-4de2-b2ee-2fd0ee17c19e",
+        "sessionId": "a11ac388-a054-448a-9b26-1ff9a0fe70f6"
+      }
+    },
+    {
+      "userSpeechEnd": {
+        "inputAudioDetectionOffsetMs": 3600,
+        "inputAudioOffsetMs": 3080,
+        "promptName": "c31b7c48-641d-4de2-b2ee-2fd0ee17c19e",
+        "sessionId": "a11ac388-a054-448a-9b26-1ff9a0fe70f6"
+      }
+    },
+    {
+      "completionStart": {
+        "completionId": "a32c993d-a1b4-493d-b8fb-7e70d383a657",
+        "promptName": "c31b7c48-641d-4de2-b2ee-2fd0ee17c19e",
+        "sessionId": "a11ac388-a054-448a-9b26-1ff9a0fe70f6"
+      }
+    },
+    {
+      "contentStart": {
+        "additionalModelFields": "{\"generationStage\":\"FINAL\"}",
+        "completionId": "a32c993d-a1b4-493d-b8fb-7e70d383a657",
+        "contentId": "d0192514-52ef-47e9-9b5b-a618dad0be01",
+        "promptName": "c31b7c48-641d-4de2-b2ee-2fd0ee17c19e",
+        "role": "USER",
+        "sessionId": "a11ac388-a054-448a-9b26-1ff9a0fe70f6",
+        "textOutputConfiguration": {
+          "mediaType": "text/plain"
+        },
+        "type": "TEXT"
+      }
+    },
+    {
+      "textOutput": {
+        "completionId": "a32c993d-a1b4-493d-b8fb-7e70d383a657",
+        "content": "아이싱크 아이파운드 쓰리 베리 유스풀 비디오즈",
+        "contentId": "d0192514-52ef-47e9-9b5b-a618dad0be01",
+        "promptName": "c31b7c48-641d-4de2-b2ee-2fd0ee17c19e",
+        "role": "USER",
+        "sessionId": "a11ac388-a054-448a-9b26-1ff9a0fe70f6"
+      }
+    },
+    {
+      "contentEnd": {
+        "completionId": "a32c993d-a1b4-493d-b8fb-7e70d383a657",
+        "contentId": "d0192514-52ef-47e9-9b5b-a618dad0be01",
+        "promptName": "c31b7c48-641d-4de2-b2ee-2fd0ee17c19e",
+        "sessionId": "a11ac388-a054-448a-9b26-1ff9a0fe70f6",
+        "stopReason": "PARTIAL_TURN",
+        "type": "TEXT"
+      }
+    },
+    {
+      "contentStart": {
+        "additionalModelFields": "{\"generationStage\":\"SPECULATIVE\"}",
+        "completionId": "a32c993d-a1b4-493d-b8fb-7e70d383a657",
+        "contentId": "33e0aa2b-bbe2-48be-876b-09c4d1bc3ad5",
+        "promptName": "c31b7c48-641d-4de2-b2ee-2fd0ee17c19e",
+        "role": "ASSISTANT",
+        "sessionId": "a11ac388-a054-448a-9b26-1ff9a0fe70f6",
+        "textOutputConfiguration": {
+          "mediaType": "text/plain"
+        },
+        "type": "TEXT"
+      }
+    },
+    {
+      "textOutput": {
+        "completionId": "a32c993d-a1b4-493d-b8fb-7e70d383a657",
+        "content": "Sorry, that part sounds a bit unclear. Could you please repeat or clarify your request?",
+        "contentId": "33e0aa2b-bbe2-48be-876b-09c4d1bc3ad5",
+        "promptName": "c31b7c48-641d-4de2-b2ee-2fd0ee17c19e",
+        "role": "ASSISTANT",
+        "sessionId": "a11ac388-a054-448a-9b26-1ff9a0fe70f6"
+      }
+    },
+    {
+      "contentEnd": {
+        "completionId": "a32c993d-a1b4-493d-b8fb-7e70d383a657",
+        "contentId": "33e0aa2b-bbe2-48be-876b-09c4d1bc3ad5",
+        "promptName": "c31b7c48-641d-4de2-b2ee-2fd0ee17c19e",
+        "sessionId": "a11ac388-a054-448a-9b26-1ff9a0fe70f6",
+        "stopReason": "PARTIAL_TURN",
+        "type": "TEXT"
+      }
+    },
+    {
+      "contentStart": {
+        "audioOutputConfiguration": {
+          "channelCount": 1,
+          "encoding": "base64",
+          "mediaType": "audio/lpcm",
+          "sampleRateHertz": 16000,
+          "sampleSizeBits": 16
+        },
+        "completionId": "a32c993d-a1b4-493d-b8fb-7e70d383a657",
+        "contentId": "c507d32f-dc9d-4ea1-b329-2850c28d9897",
+        "promptName": "c31b7c48-641d-4de2-b2ee-2fd0ee17c19e",
+        "role": "ASSISTANT",
+        "sessionId": "a11ac388-a054-448a-9b26-1ff9a0fe70f6",
+        "type": "AUDIO"
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3372
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 3416
+      }
+    },
+    {
+      "audioOutput": {
+        "bytes": 8576
+      }
+    },
+    {
+      "contentEnd": {
+        "completionId": "a32c993d-a1b4-493d-b8fb-7e70d383a657",
+        "contentId": "c507d32f-dc9d-4ea1-b329-2850c28d9897",
+        "promptName": "c31b7c48-641d-4de2-b2ee-2fd0ee17c19e",
+        "sessionId": "a11ac388-a054-448a-9b26-1ff9a0fe70f6",
+        "stopReason": "END_TURN",
+        "type": "AUDIO"
+      }
+    },
+    {
+      "completionEnd": {
+        "completionId": "a32c993d-a1b4-493d-b8fb-7e70d383a657",
+        "promptName": "c31b7c48-641d-4de2-b2ee-2fd0ee17c19e",
+        "sessionId": "a11ac388-a054-448a-9b26-1ff9a0fe70f6",
+        "stopReason": "END_TURN"
+      }
+    }
+  ]
+}
