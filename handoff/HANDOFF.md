@@ -1,6 +1,6 @@
 # OhMyEnglish Handoff
 
-> 제품·구현 정본. 최종 갱신 2026-08-26 09:40 · HEAD `5c2bcb1` · **다음 할 일: 하네스 4차수**
+> 제품·구현 정본. 최종 갱신 2026-08-26 09:40 · 기준 커밋 `204d8a1` 이후 · **다음 할 일: 하네스 4차수**
 > 이번 갱신은 캡틴 지시로 **테스트 세션(`claude_air_5-49`)이 수행**했다 — 원래 소유 관례상
 > 다른 세션 파일이지만, 4차수 범위가 제품 요구(발음 교정·학습 반영)로 넓어져 정본을 함께 고쳤다.
 > 하네스 절차는 `handoff/HANDOFF-test-harness.md`, 수정 세션 근거는 `handoff/HANDOFF-fix-session.md`.
@@ -160,7 +160,7 @@ cd app/backend && .venv/bin/python ../../tests/harness/spike_nova_protocol.py --
 
 ---
 
-## HEAD `5c2bcb1`까지의 커밋 (HANDOFF 이전 판 `c55fbc4` 이후 12건)
+## `204d8a1`까지의 커밋 (HANDOFF 이전 판 `c55fbc4` 이후 12건)
 
 | 커밋 | 내용 |
 |---|---|
@@ -172,7 +172,7 @@ cd app/backend && .venv/bin/python ../../tests/harness/spike_nova_protocol.py --
 | `37a2869` | `feat:` **Nova 2 Sonic 실연동** (포트 확장·어댑터·프론트 입출력 교체·테스트 28건) |
 | `486c302` `6e0ba96` | `docs:`/`test:` 수정 세션 handoff 신설 + 3차수 회귀 기록(F-2 검증·N5) |
 | `c1d34ef` `32a6c22` | `docs:` 하네스 handoff 4차수 진입용 재작성 + "미수행"의 의미 명확화 |
-| `5c2bcb1` | `test:` **4차수 준비** — P계층(발음)·M계층(학습 반영) 신설, 발음 픽스처 6개, 사전 실측, 이 파일 갱신 |
+| `204d8a1` | `test:` **4차수 준비** — P계층(발음)·M계층(학습 반영) 신설, 발음 픽스처 6개, 사전 실측, 이 파일 갱신 |
 
 ---
 
@@ -236,7 +236,7 @@ cd app/backend && .venv/bin/python ../../tests/harness/spike_nova_protocol.py --
 
 ## 다음 세션 진입 절차
 
-1. `git log --oneline -13`로 위 커밋 표와 맞는지 확인 (HEAD ≥ `5c2bcb1`)
+1. `git log --oneline -14`로 위 커밋 표와 맞는지 확인 (**HEAD ≥ `204d8a1`**)
 2. **포트 함정 절을 먼저 읽어라** — 백엔드 `--port 8002`, 프론트 `.env.local` `:8002`
 3. 게이트 4개를 돌려 실측 확인 (241 passed / ruff · format · ty clean)
 4. Nova를 건드리면 `spike_nova_protocol.py --wav p1a.wav`로 자격증명 생존을 먼저 확인
