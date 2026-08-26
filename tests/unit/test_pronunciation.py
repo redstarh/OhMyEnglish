@@ -143,3 +143,51 @@ def test_report_is_frozen() -> None:
     assert report is not None
     with pytest.raises(pydantic.ValidationError):
         report.outcome = "correct"  # type: ignore[misc]
+
+
+# ── 포트 확장: PronunciationEvent (설계서 §7 Contract) ────────────────────────
+
+
+def test_pronunciation_event_is_part_of_adapter_event_union() -> None:
+    """세션 루프가 `isinstance` 로 분기하므로 유니온에 들어 있어야 한다.
+    빠지면 이벤트가 조용히 `TranscriptEvent` 분기로 떨어져 `.kind` 접근에서 터진다."""
+    from typing import get_args as _get_args
+
+    from app.audio_gateway.port import AdapterEvent, PronunciationEvent
+
+    assert PronunciationEvent in _get_args(AdapterEvent)
+
+
+def test_pronunciation_event_rejects_extra_fields() -> None:
+    import pydantic
+    import pytest
+
+    from app.audio_gateway.port import PronunciationEvent
+
+    with pytest.raises(pydantic.ValidationError):
+        # 일부러 없는 필드를 넣는다 — `extra="forbid"`가 살아 있는지 보는 음성 테스트다.
+        PronunciationEvent(
+            target_form="I think.",
+            outcome="pending",
+            bogus=1,  # ty: ignore[unknown-argument]
+        )
+
+
+def test_pronunciation_event_is_frozen() -> None:
+    import pydantic
+    import pytest
+
+    from app.audio_gateway.port import PronunciationEvent
+
+    event = PronunciationEvent(target_form="I think.", outcome="pending")
+    with pytest.raises(pydantic.ValidationError):
+        event.target_form = "changed"  # type: ignore[misc]
+
+
+def test_pronunciation_event_optional_fields_default_to_none() -> None:
+    """시범 시점에는 재발화를 못 들었다 (설계서 F3) — 두 필드가 없어도 만들어져야 한다."""
+    from app.audio_gateway.port import PronunciationEvent
+
+    event = PronunciationEvent(target_form="I think.", outcome="pending")
+    assert event.spoken_form is None
+    assert event.target_sound is None

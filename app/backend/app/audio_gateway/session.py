@@ -32,6 +32,7 @@ import asyncpg
 
 from app.audio_gateway.port import (
     InterruptionEvent,
+    PronunciationEvent,
     SpeechBoundaryEvent,
     TranscriptEvent,
     VoiceAdapter,
@@ -211,10 +212,29 @@ class SessionRunner:
                 )
             elif isinstance(event, InterruptionEvent):
                 await self._send({"type": "interrupted"})
+            elif isinstance(event, PronunciationEvent):
+                await self._broadcast_pronunciation(event)
             elif event.kind == "partial":
                 await self._send({"type": "partial", "text": event.text, "speaker": event.speaker})
             else:
                 await self._store_final(event)
+
+    async def _broadcast_pronunciation(self, event: PronunciationEvent) -> None:
+        """발음 시범/판정을 화면에 알린다 (설계서 §5.1 S3·S7).
+
+        **저장은 아직 하지 않는다** — 시도 생명주기(`services/pronunciation.py`)가
+        붙는 것은 계획 Task 6이다. 지금은 포트에 다섯 번째 타입이 생겼으므로 이 분기가
+        **반드시** 있어야 한다: 없으면 이벤트가 `event.kind` 분기로 떨어져
+        `AttributeError`로 세션이 죽는다(`ty`가 실제로 이것을 잡았다).
+        """
+        await self._send(
+            {
+                "type": "pronunciation",
+                "outcome": event.outcome,
+                "target_form": event.target_form,
+                "target_sound": event.target_sound,
+            }
+        )
 
     async def _store_final(self, event: TranscriptEvent) -> None:
         """final을 저장한다 — **취소가 저장을 찢지 못하게** shield로 감싼다.

@@ -13,6 +13,14 @@ bytes`뿐이었다. Nova 2 Sonic 실연동에서 그 둘에 담을 수 없는 �
   받았지만 아직 재생하지 않은 오디오를 버리는 것"이라, 통보가 없으면 클라이언트는
   버릴 시점을 알 수 없다.
 
+**Phase 3 확장 (2026-08-27, 발음 tool 스파이크 기준).** 다섯 번째 타입을 더한다:
+
+* `PronunciationEvent` — Nova `toolUse`. 발음 판정은 **오디오를 들어야** 하고 전사문에는
+  흔적이 0이라(4차수 P2 실측: 음소를 치환해 발음해도 ASR이 원문으로 복원했다) 기존 네
+  타입 중 어느 것에도 담을 수 없다. `TranscriptEvent`로 흘리면 텍스트로 저장돼 버리고,
+  `SpeechBoundaryEvent`는 판정을 담을 자리가 없다.
+  설계서: `docs/design/2026-08-27-pronunciation-echo-design.md` §4.2
+
 agent 텍스트의 **예고/확정 구분**(`generationStage`가 `SPECULATIVE`인지 `FINAL`인지)에는
 새 타입을 만들지 않는다 — `kind`가 이미 그 구분이다. `partial`은 화면 표시용이고 저장되지
 않으므로(`session.py` 계약 1) `SPECULATIVE`가 그대로 대응한다. 타입을 하나 더 만들면 같은
@@ -38,6 +46,8 @@ from collections.abc import AsyncIterator
 from typing import Literal, Protocol
 
 import pydantic
+
+from app.models.pronunciation import PronunciationOutcome
 
 Speaker = Literal["user", "agent"]
 
@@ -76,8 +86,32 @@ class InterruptionEvent(pydantic.BaseModel):
     model_config = pydantic.ConfigDict(extra="forbid", frozen=True)
 
 
-# 어댑터가 흘리는 이벤트: 전사문, 오디오 응답 프레임(raw bytes), 발화 경계, barge-in 통보.
-AdapterEvent = TranscriptEvent | SpeechBoundaryEvent | InterruptionEvent | bytes
+class PronunciationEvent(pydantic.BaseModel):
+    """발음 시범 1회 또는 그 재발화 판정 (설계서 §4.2).
+
+    **어댑터만 만들 수 있다** — 오디오를 직접 듣는 것이 어댑터뿐이고, 전사문에는 발음의
+    흔적이 0이다(4차수 P2 실측). 게이트웨이가 추측할 수 있는 값이 아니다.
+
+    `outcome='pending'`은 "시범은 했고 재발화는 아직"이다. Nova가 재발화 **전에** tool을
+    부르기 때문에 정상 상태다(스파이크 F3) — 세션 종료 시 `unclear`로 수렴된다(§3.2).
+
+    스텁 어댑터는 이 이벤트를 만들지 않는다. 스텁 모드 화면에 발음 배지가 끼어들면
+    1·2차수 C2(회색 부분 전사문 → 확정 전환) 검증이 바뀐다.
+    """
+
+    model_config = pydantic.ConfigDict(extra="forbid", frozen=True)
+
+    target_form: str
+    outcome: PronunciationOutcome
+    spoken_form: str | None = None
+    target_sound: str | None = None
+
+
+# 어댑터가 흘리는 이벤트: 전사문, 오디오 응답 프레임(raw bytes), 발화 경계, barge-in 통보,
+# 발음 판정.
+AdapterEvent = (
+    TranscriptEvent | SpeechBoundaryEvent | InterruptionEvent | PronunciationEvent | bytes
+)
 
 
 class VoiceAdapter(Protocol):
