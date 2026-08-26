@@ -206,7 +206,7 @@ cd app/backend && .venv/bin/pytest -c pyproject.toml ../../tests/unit/test_schem
 ```
 Expected: 4 passed
 
-⚠️ `db_conn` 픽스처는 테스트 DB를 세션 스코프로 재생성한다. **dev DB(`:5433` `ohmyenglish`)에는 아직 적용되지 않았다** — 종단 테스트 전에 `python3 scripts/migrate.py`를 돌린다.
+⚠️ `db_conn` 픽스처는 테스트 DB를 세션 스코프로 재생성한다. **dev DB(`:5433` `ohmyenglish`)에는 아직 적용되지 않았다** — 종단 테스트 전에 `app/backend/.venv/bin/python scripts/migrate.py`를 돌린다.
 
 - [ ] **Step 5: 전체 게이트를 돌린다**
 
@@ -1338,7 +1338,7 @@ git commit -m "feat: 발음 오류를 error_patterns 패턴으로 연결"
 - [ ] **Step 4: 종단 확인**
 
 ```bash
-python3 scripts/migrate.py          # dev DB 에 003 적용
+app/backend/.venv/bin/python scripts/migrate.py          # dev DB 에 003 적용
 cd app/backend && .venv/bin/uvicorn app.api.main:app --port 8002 --log-level warning &
 cd app/frontend && npx tsc --noEmit
 ```

@@ -118,7 +118,9 @@ Nova도 **발음을 지적하지 않았다** — `nova.py:77` `SYSTEM_PROMPT`에
 ```bash
 # DB (podman — docker 없음)
 scripts/dev_db.sh start          # postgres:16-alpine, :5433, ohmy/ohmy/ohmyenglish
-python3 scripts/migrate.py       # 001 적용 + 고정 사용자·시나리오 3행 시드 (멱등)
+app/backend/.venv/bin/python scripts/migrate.py   # 001·003 적용 + 고정 사용자·시나리오 3행 시드 (멱등)
+#   ⚠️ `python3 scripts/migrate.py`는 **돌지 않는다** — 시스템 python에 asyncpg가 없다
+#      (2026-08-27 실측: ModuleNotFoundError). 반드시 venv python을 쓴다
 #   추적은 파일명 기준 — 001을 재작성했다면 dev DB를 drop/재생성해야 한다
 
 # 백엔드 (Python 3.13 venv — uv).  ⚠️ 포트 8002 · --reload 없음(소스 바뀌면 재기동)
