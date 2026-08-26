@@ -170,7 +170,7 @@ cd app/backend && .venv/bin/python ../../tests/harness/spike_nova_protocol.py --
 
 ---
 
-## `5e3083f`까지의 커밋 (HANDOFF 이전 판 `c55fbc4` 이후 15건)
+## `5e3083f`까지의 커밋 (HANDOFF 이전 판 `c55fbc4` 이후 **16건** — `git log --oneline c55fbc4..5e3083f | wc -l`로 확인)
 
 | 커밋 | 내용 |
 |---|---|
