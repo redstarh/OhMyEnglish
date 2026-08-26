@@ -83,6 +83,8 @@ async def test_001_migration_creates_expected_tables(db_conn: asyncpg.Connection
         "review_tasks",
         "users",
         "utterances",
+        # 003 — 발음 시범·재발화 (docs/design/2026-08-27-pronunciation-echo-design.md §6)
+        "pronunciation_attempts",
     }
 
 
@@ -161,3 +163,168 @@ async def test_seed_creates_fixed_user_and_three_scenarios_idempotently(
         "What do you usually do on weekends?",
         "What do you need to do tonight?",
     }
+
+
+# ── 003 pronunciation_attempts (발음 시범·재발화 설계서 §6.1) ──────────────────
+
+
+async def _insert_pronunciation_session(conn: asyncpg.Connection):
+    """발음 시도를 매달 세션 1개. 시나리오는 nullable 이라 생략한다."""
+    session_id = uuid4()
+    await _insert_user(conn)
+    await _insert_session(conn, session_id)
+    return session_id
+
+
+# ⑥ 테이블·컬럼 nullability — 시범 시점에는 아직 없는 값들이 nullable 이어야 한다
+@pytest.mark.asyncio
+async def test_pronunciation_attempts_column_nullability(db_conn: asyncpg.Connection):
+    columns = {
+        row["column_name"]: row["is_nullable"]
+        for row in await db_conn.fetch(
+            "select column_name, is_nullable from information_schema.columns "
+            "where table_name = 'pronunciation_attempts'"
+        )
+    }
+    assert columns, "pronunciation_attempts 테이블이 없다 (003 미적용)"
+    assert columns["session_id"] == "NO"
+    assert columns["target_form"] == "NO"
+    assert columns["outcome"] == "NO"
+    assert columns["signal_source"] == "NO"
+    # 시범 시점에는 재발화를 아직 못 들었다 (설계서 F3)
+    assert columns["spoken_form"] == "YES"
+    assert columns["utterance_id"] == "YES"
+    assert columns["pattern_id"] == "YES"
+    assert columns["target_sound"] == "YES"
+    assert columns["resolved_at"] == "YES"
+
+
+# ⑦ outcome CHECK — 열거값 밖은 DB가 거부한다 (앱의 강등은 그 앞단이다)
+@pytest.mark.asyncio
+async def test_pronunciation_attempts_rejects_unknown_outcome(db_conn: asyncpg.Connection):
+    session_id = await _insert_pronunciation_session(db_conn)
+
+    with pytest.raises(asyncpg.CheckViolationError):
+        await db_conn.execute(
+            "insert into pronunciation_attempts (session_id, target_form, outcome) "
+            "values ($1, 'I think.', 'bogus')",
+            session_id,
+        )
+
+
+# ⑧ pending은 정식 값이다 — Nova가 재발화 *전에* tool을 부른다 (설계서 F3·F4)
+@pytest.mark.asyncio
+async def test_pronunciation_attempts_accepts_pending(db_conn: asyncpg.Connection):
+    session_id = await _insert_pronunciation_session(db_conn)
+
+    row_id = await db_conn.fetchval(
+        "insert into pronunciation_attempts (session_id, target_form, outcome) "
+        "values ($1, 'I think I found three very useful videos.', 'pending') returning id",
+        session_id,
+    )
+    assert row_id is not None
+
+
+# ⑨ resolved_at 일관성 — 두 방향을 각각 본다.
+#    CHECK 위반이 트랜잭션을 abort시키므로 한 테스트에 raise를 두 번 넣을 수 없다
+#    (db_conn 픽스처는 테스트 하나를 트랜잭션 하나로 감싼다).
+@pytest.mark.asyncio
+async def test_pronunciation_attempts_pending_rejects_resolved_at(
+    db_conn: asyncpg.Connection,
+):
+    session_id = await _insert_pronunciation_session(db_conn)
+
+    with pytest.raises(asyncpg.CheckViolationError):
+        await db_conn.execute(
+            "insert into pronunciation_attempts "
+            "(session_id, target_form, outcome, resolved_at) "
+            "values ($1, 'I think.', 'pending', now())",
+            session_id,
+        )
+
+
+@pytest.mark.asyncio
+async def test_pronunciation_attempts_verdict_requires_resolved_at(
+    db_conn: asyncpg.Connection,
+):
+    """판정됐는데 언제인지 모르는 행이 생기면 수렴 여부를 사후에 알 수 없다."""
+    session_id = await _insert_pronunciation_session(db_conn)
+
+    with pytest.raises(asyncpg.CheckViolationError):
+        await db_conn.execute(
+            "insert into pronunciation_attempts (session_id, target_form, outcome) "
+            "values ($1, 'I think.', 'correct')",  # resolved_at 누락
+            session_id,
+        )
+
+
+# ⑩ 빈 target_form 거부 — 시범이 없는 시범 기록은 의미가 없다
+@pytest.mark.asyncio
+async def test_pronunciation_attempts_rejects_blank_target_form(db_conn: asyncpg.Connection):
+    session_id = await _insert_pronunciation_session(db_conn)
+
+    with pytest.raises(asyncpg.CheckViolationError):
+        await db_conn.execute(
+            "insert into pronunciation_attempts (session_id, target_form, outcome) "
+            "values ($1, '   ', 'pending')",
+            session_id,
+        )
+
+
+# ⑪ signal_source CHECK — 보조 신호로 만든 행을 구분할 수 있어야 한다 (R10-4)
+@pytest.mark.asyncio
+async def test_pronunciation_attempts_signal_source_check(db_conn: asyncpg.Connection):
+    session_id = await _insert_pronunciation_session(db_conn)
+
+    for source in ("nova_tool", "korean_transcript", "agent_reprompt"):
+        await db_conn.execute(
+            "insert into pronunciation_attempts "
+            "(session_id, target_form, outcome, signal_source) "
+            "values ($1, 'I think.', 'pending', $2)",
+            session_id,
+            source,
+        )
+    with pytest.raises(asyncpg.CheckViolationError):
+        await db_conn.execute(
+            "insert into pronunciation_attempts "
+            "(session_id, target_form, outcome, signal_source) "
+            "values ($1, 'I think.', 'pending', 'telepathy')",
+            session_id,
+        )
+
+
+# ⑫ 세션 삭제 시 cascade — teardown이 시도를 남기지 않는다 (하네스 격리 규약)
+@pytest.mark.asyncio
+async def test_pronunciation_attempts_cascades_with_session(db_conn: asyncpg.Connection):
+    session_id = await _insert_pronunciation_session(db_conn)
+    await db_conn.execute(
+        "insert into pronunciation_attempts (session_id, target_form, outcome) "
+        "values ($1, 'I think.', 'pending')",
+        session_id,
+    )
+
+    await db_conn.execute("delete from learning_sessions where id = $1", session_id)
+
+    assert await db_conn.fetchval("select count(*) from pronunciation_attempts") == 0
+
+
+# ⑬ 발화 삭제는 시도를 지우지 않는다 — set null. 판정 기록이 발화보다 오래 산다
+@pytest.mark.asyncio
+async def test_pronunciation_attempts_utterance_delete_sets_null(db_conn: asyncpg.Connection):
+    session_id = await _insert_pronunciation_session(db_conn)
+    utterance_id = uuid4()
+    await _insert_utterance(db_conn, utterance_id, session_id)
+    await db_conn.execute(
+        "insert into pronunciation_attempts (session_id, utterance_id, target_form, outcome) "
+        "values ($1, $2, 'I think.', 'pending')",
+        session_id,
+        utterance_id,
+    )
+
+    await db_conn.execute("delete from utterances where id = $1", utterance_id)
+
+    row = await db_conn.fetchrow(
+        "select utterance_id from pronunciation_attempts where session_id = $1", session_id
+    )
+    assert row is not None
+    assert row["utterance_id"] is None
