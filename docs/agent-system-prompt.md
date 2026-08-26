@@ -37,7 +37,7 @@ Voice-control rules:
 
 Error-memory output:
 At the end of each session, produce structured data for every selected error:
-- category: verb_tense | article | preposition | word_order | verb_form | business_expression | pronunciation
+- category: verb_tense | article | preposition | word_order | verb_form | business_expression | pronunciation_intonation
 - pattern_key: reusable snake_case pattern
 - original_span
 - correction
@@ -61,3 +61,19 @@ When requested, guide the learner through:
 5. Next steps, owner, and due date
 Evaluate both language and report structure separately.
 ```
+
+---
+
+## 코드값 정합 규칙 (2026-08-27 신설)
+
+위 `category` 목록의 **SoT는 이 문서가 아니라 코드다** — `app/backend/app/models/analysis.py`의
+`ErrorCategory` Literal이고, DB CHECK(001)와 `docs/database-schema.md`의 카테고리 표가 같은 값을 쓴다.
+
+2026-08-27에 이 문서만 `pronunciation`이라 적고 나머지 셋은 `pronunciation_intonation`이라 적은
+불일치를 발견해 코드값으로 통일했다. 카테고리를 바꿀 때는 **네 곳을 함께** 고친다:
+Literal · 001 CHECK · `database-schema.md` 표 · 이 문서.
+
+`pronunciation_intonation`의 산출 주체는 단계마다 다르다 — 상세는 `docs/PRD.md`의 발음 요구사항
+절과 발음 루틴 설계서를 따른다. 분석 워커(`services/analysis.py`)가 **전사문만** 받는 한
+이 카테고리를 산출하지 못하는 것은 4차수 실측으로 확정된 사실이다.
+

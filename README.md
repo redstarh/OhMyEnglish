@@ -27,7 +27,11 @@ OhMyEnglish/
 - [데이터베이스 스키마](docs/database-schema.md)
 - [Agent 시스템 프롬프트](docs/agent-system-prompt.md)
 - [첫 4주 학습 플로우](docs/first-4-weeks.md)
-- [음성 인식·발화 및 제어 설계](docs/voice-architecture.md)
 - [Nova Sonic + Claude 목표 아키텍처](docs/nova-sonic-claude-architecture.md)
 - [UI 스토리보드](docs/storyboard.html)
 - [Handoff](handoff/HANDOFF.md)
+
+### 폐기 문서
+
+현행 정본이 아니지만 승인된 설계서가 줄 단위로 인용해 지우지 않는다 —
+규약과 보관 목록은 [docs/backup/superseded/README.md](docs/backup/superseded/README.md).

@@ -296,7 +296,7 @@ at-least-once + 멱등성(발화 단위 replace, §5.2)이라는 의미론도 �
 
 - **타입 경계**: Nova 오디오 프레임(바이너리) ↔ 전사문(텍스트) ↔ Claude JSON 출력 ↔ DB 행. Claude 출력은 신뢰할 수 없는 외부 데이터로 취급해 스키마 검증 후 저장한다. `confidence`·`severity`는 CHECK 범위를 넘으면 거부한다.
 - **시간 경계**: 모든 시각을 `timestamptz`로 저장하고 naive datetime을 만들지 않는다. 날짜 단위 판단은 UTC가 아니라 `users.timezone`(`Asia/Seoul`)의 현지 날짜 기준이다. 복습 `due_at` 계산 알고리즘은 **복습 과제 생성이 범위에 들어오는 3단계 설계서에서 정의한다** (§8.1 케이스 4와 일치 — 초안의 상세 알고리즘은 범위 밖 설계라 이관, 4차 리뷰).
-- **프로세스 경계**: 부분 전사문은 화면 표시용으로만 쓰고 저장하지 않는다. 확정 전사문만 `utterances`에 남긴다 (`voice-architecture.md:42-43`).
+- **프로세스 경계**: 부분 전사문은 화면 표시용으로만 쓰고 저장하지 않는다. 확정 전사문만 `utterances`에 남긴다 (`docs/backup/superseded/voice-architecture.md:41-42` — 2026-08-27 폐기 이관, 줄 번호 유효. **원래 `:42-43`이라 적혀 있었으나 실측으로 어긋났다** — "부분은 표시용"의 근거는 `:41`, "확정만 저장"의 근거는 `:42`이고 `:43`은 분석 단계 얘기다).
 - **Nova 이벤트 경계**: 확정 전사문 이벤트는 **수신 즉시 `(session_id, sequence_no)`로 commit한다.** 연결이 끊기면 미저장 이벤트가 유실되므로 버퍼에 모아두지 않는다. `sequence_no`는 서버가 세션 내 단조 증가로 부여한다. **롤오버는 재수신을 만들지 않는다** — 절차(`nova-sonic-claude-architecture.md:121-126`)상 서버가 확정 전사문을 요약해 새 스트림에 컨텍스트로 넘길 뿐, Nova가 이전 턴을 다시 보내는 일이 없다. 따라서 `unique (session_id, sequence_no)`는 중복 제거 장치가 아니라 **Gateway 자체의 이중 commit 버그를 막는 무결성 가드**다. (초안의 "재수신 시 중복 제거" 서술은 서버 부여 번호와 양립하지 않아 철회했다.)
 - **학습/명령 경계**: `utterance_type`이 이 경계다. 첫 슬라이스에는 명령이 없지만 컬럼과 규약을 미리 지킨다.
 
@@ -326,7 +326,7 @@ at-least-once + 멱등성(발화 단위 replace, §5.2)이라는 의미론도 �
 Given 세션이 시작되고 마이크 권한이 허용되었을 때, When 사용자가 `What do you usually do after work?`에 영어로 답하면, Then Agent의 음성 응답이 재생되고 확정 전사문이 화면에 표시되며 `utterances`에 `utterance_type='learning'`으로 저장된다.
 
 **AC2 — 끼어들기**
-Given Agent가 말하고 있을 때, When 사용자가 말을 시작하면, Then Agent 오디오 송출이 중단되고 사용자 발화를 받는다 (`voice-architecture.md:63` — 원문 요구는 "즉시"). 검증용 상한 **1초**는 이 설계가 정한 발명값이며 체감 목표는 즉시다.
+Given Agent가 말하고 있을 때, When 사용자가 말을 시작하면, Then Agent 오디오 송출이 중단되고 사용자 발화를 받는다 (`docs/backup/superseded/voice-architecture.md:63` — 원문 요구는 "즉시". 2026-08-27 폐기 이관, 줄 번호 유효). 검증용 상한 **1초**는 이 설계가 정한 발명값이며 체감 목표는 즉시다.
 
 **AC3 — 턴 단위 비동기 분석**
 Given 사용자가 `What do you usually do after work?`에 `I usually go to gym after work.`라고 답할 때, When 확정 전사문이 저장되면, Then 같은 트랜잭션에서 `analyze_utterance` 작업이 등록되고(§5.3) **세션 종료를 기다리지 않고** 처리되어 `article` 카테고리의 패턴(**§5.6 형식의 key** — LLM 출력의 정확한 접미사는 단정하지 않는다)이 저장되며 `target_form`이 `I usually go to the gym after work.`가 된다. 음성 응답 경로는 이 분석을 기다리지 않는다.

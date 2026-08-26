@@ -209,7 +209,10 @@ cd app/backend && .venv/bin/python ../../tests/harness/spike_nova_protocol.py --
   - `docs/design/2026-08-25-phase1-implementation-plan.md` (12태스크)
   - `docs/design/2026-08-25-learning-coach-agent-design.md` (3단계, **검토 전 초안**)
   - `docs/ops/iam-setup-nova-sigv4.md` (IAM 절차 + SDK 함정 §5.1)
-  - `docs/database-schema.md` / `docs/nova-sonic-claude-architecture.md` / `docs/voice-architecture.md`
+  - `docs/database-schema.md` / `docs/nova-sonic-claude-architecture.md`
+  - ⚠️ `docs/voice-architecture.md`는 **2026-08-27에 `docs/backup/superseded/`로 이관**됐다
+    (스스로 폐기 선언 + Phase 표가 현행과 어긋남). 승인 설계서 3곳이 줄 단위로 인용하므로
+    파일 내용은 바이트 그대로 보존한다 — 규약은 `docs/backup/superseded/README.md`
 - 테스트 하네스: `tests/harness/README.md` + 위 §기록 규약의 5개 문서
 - 기술: us-west-2 / `amazon.nova-2-sonic-v1:0` / `us.anthropic.claude-opus-5`
   (**`[1m]` 접미사 금지** — Bedrock 프로필 아님) / FastAPI+asyncpg / PG 큐(SQS·Redis 배제, 근거 §5.0) /
