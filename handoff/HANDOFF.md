@@ -11,7 +11,7 @@
 |---|---|
 | Phase 1 (첫 수직 슬라이스) | ✅ 개발 완료 — 태스크 12/12 |
 | **Phase 2 Nova 2 Sonic 실연동** | ✅ **어댑터 구현 + 앱 경로 실음성 왕복(AC1) 실증** — 커밋 `37a2869`, 3차수 N5 |
-| 테스트 | ✅ **241 passed** (skip/xfail 0, 기준선 206 → +35). 2026-08-26 09:2x 실측 |
+| 테스트 | ✅ **241 passed** (skip/xfail 0, 기준선 206 → +35). **2026-08-26 17:2x 재실행 확인** |
 | 품질 게이트 | ✅ `ruff check .` · `ruff format --check .`(25파일) · `ty check` 전부 clean (`app/backend`·리포루트 양쪽) |
 | 하네스 테스트↔수정 루프 | **4/10 차수 사용.** 미해결 앱 결함 **0건**. 4차수 P·M 완료 → 5차수는 N·B·회귀 |
 | Phase 1 완료 선언 | ⏸ **캡틴 게이트** — 아래 |
@@ -161,7 +161,7 @@ cd app/backend && .venv/bin/python ../../tests/harness/spike_nova_protocol.py --
 | 백엔드 | `:8002` **스텁 모드** baseline (`--log-level warning`), **09:59:30 기동**(4차수 teardown 시 재기동). 이후 변경된 `.py` **없음** → 최신. 프로세스 env에 `VOICE_ADAPTER` **잔류 없음** |
 | 프론트 | `:3000`, 08-25 09:45 기동. 소스는 그보다 새롭지만 **dev 서버가 재컴파일해 최신**이다 |
 | DB baseline | `learning_sessions` 2 · `utterances` 6 · `error_patterns` 1 · `error_occurrences` 2 · `frequency` 합 2 · `analysis_jobs` 3 — **4차수 teardown 후 재실측으로 일치 확인** |
-| 하네스 부기 | `harness_runs` **5행**(4차수가 5번째 회차 `8e49d45a…`, `git_commit=4588b50`, note `round#4 P+M only`) · `harness_sessions` **35행** · `harness_pattern_baseline` 1행(**4차수 개시 시 재생성된 것 — 5차수 개시 때 또 새로 뜬다**) |
+| 하네스 부기 | `harness_runs` **5행**(4차수가 5번째 회차 `8e49d45a…`, `git_commit=4588b50`, note `round#4 P+M only`) · `harness_sessions` **35행** · `harness_pattern_baseline` 1행(**어느 차수에 생성된 것인지는 사후 확인 불가** — 테이블에 생성 시각이 없고 복사된 행 내용이 3·4차수에서 동일하다. **5차수 개시 때 무조건 새로 뜬다**) |
 | 음성 픽스처 9개 | `u1~u3`(문법 오류용) + `p1a/p1m/p1k/p2a/p2m/p2k`(발음 쌍, 신규) |
 
 > ⚠️ 하네스 §5의 "낡은 프로세스" mtime 검사는 **프론트에 오탐을 낸다** — Next dev는 HMR로
@@ -170,7 +170,11 @@ cd app/backend && .venv/bin/python ../../tests/harness/spike_nova_protocol.py --
 
 ---
 
-## `5e3083f`까지의 커밋 (HANDOFF 이전 판 `c55fbc4` 이후 **16건** — `git log --oneline c55fbc4..5e3083f | wc -l`로 확인)
+## HANDOFF 이전 판 `c55fbc4` 이후의 커밋
+
+> 개수·최신 해시를 이 제목에 박지 않는다 — 박으면 갱신할 때마다 낡는다(실제로 2회 낡았다).
+> **`git log --oneline c55fbc4..HEAD`로 확인하라.** 아래 표는 `5e3083f`까지(16건) 열거한 것이고,
+> 그보다 많으면 그 차이가 이 파일 갱신 이후에 생긴 커밋이다.
 
 | 커밋 | 내용 |
 |---|---|
@@ -250,14 +254,14 @@ cd app/backend && .venv/bin/python ../../tests/harness/spike_nova_protocol.py --
 
 ## 다음 세션 진입 절차
 
-1. `git log --oneline -17`로 위 커밋 표와 맞는지 확인 (**HEAD ≥ `5e3083f`**)
+1. `git log --oneline c55fbc4..HEAD`로 위 커밋 표를 대조 (**HEAD ≥ `5e3083f`**).
+   표보다 커밋이 많은 것은 정상 — 그 차이가 이 파일 갱신 이후의 작업이다
 2. **포트 함정 절을 먼저 읽어라** — 백엔드 `--port 8002`, 프론트 `.env.local` `:8002`
 3. 게이트 4개를 돌려 실측 확인 (241 passed / ruff · format · ty clean)
 4. Nova를 건드리면 `spike_nova_protocol.py --wav p1a.wav`로 자격증명 생존을 먼저 확인
    (키 로테이션 시 여기서 먼저 깨진다)
 5. 5차수를 시작하면 `handoff/HANDOFF-test-harness.md` §5 개시 절차를 그대로 실행 —
    `run_id.txt` 오염 방지 `grep` 고정과 `harness_pattern_baseline` 재생성이 포함돼 있다
-   (§5 본문은 "4차수"로 쓰여 있지만 절차 자체는 차수와 무관하다. note만 `round#5`로 바꾼다)
 6. 완료 선언은 AC 문서 §완료 선언 규칙 6항목 전건 충족 시에만 — 미충족이면 완료라 부르지 않는다
 7. 프로세스 상세(모든 ruling·이연 minor·red→green 증거 위치)는
    `.superpowers/sdd/2026-08-25-phase1-implementation-plan/progress.md` (ledger, git 미추적)
