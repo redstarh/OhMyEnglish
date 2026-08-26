@@ -73,8 +73,66 @@ SYSTEM_PROMPT = (
     "You are an English speaking coach. Keep replies to one short sentence."
 )
 
+# ── 발음 교정 스파이크 (`--tools`) ────────────────────────────────────────────
+# 묻는 것 하나: **Nova 2 Sonic이 `promptStart.toolConfiguration`을 받고 `toolUse`를
+# 내보내는가.** PRD v1.1 §10(발음 시범·재발화)이 "재발화 결과를 기록한다"를 요구하는데,
+# Nova의 판정을 DB로 가져오는 수단이 tool 호출뿐이다. `nova.py:73-76`은 "도구 호출이
+# 없어 음성 명령 규칙은 지킬 수 없다"고만 적어 두었고 실제로 시도한 기록이 없다.
+#
+# 답이 "된다"면 설계는 구조화 이벤트로 간다. "안 된다"면 보조 신호(한글 전사·재요청)만으로
+# 축소해야 한다 — 설계의 모양이 이 한 번의 왕복에 달려 있어서 먼저 확인한다.
+_PRONUNCIATION_TOOL_NAME = "report_pronunciation_coaching"
 
-def build_events(prompt_name: str, audio_content: str, text_content: str) -> dict[str, Any]:
+# Sonic의 `inputSchema.json`은 **JSON 문자열**이다(객체가 아니다). 이것도 검증 대상이다.
+_PRONUNCIATION_TOOL_SCHEMA = json.dumps(
+    {
+        "type": "object",
+        "properties": {
+            "spoken_form": {
+                "type": "string",
+                "description": "What the learner actually sounded like",
+            },
+            "target_form": {
+                "type": "string",
+                "description": "The correctly pronounced sentence you modeled",
+            },
+            "outcome": {"type": "string", "enum": ["correct", "incorrect", "unclear"]},
+        },
+        "required": ["spoken_form", "target_form", "outcome"],
+    }
+)
+
+TOOL_SYSTEM_PROMPT = (
+    "You are an English pronunciation coach for a Korean learner. "
+    "When the learner mispronounces a sound, say the whole sentence back with correct "
+    "pronunciation and ask them to repeat it. "
+    f"Then you MUST call the {_PRONUNCIATION_TOOL_NAME} tool to report what you heard. "
+    "Keep spoken replies to one or two short sentences."
+)
+
+
+def _tool_configuration() -> dict[str, Any]:
+    return {
+        "tools": [
+            {
+                "toolSpec": {
+                    "name": _PRONUNCIATION_TOOL_NAME,
+                    "description": (
+                        "Report a pronunciation coaching attempt so the app can store it."
+                    ),
+                    "inputSchema": {"json": _PRONUNCIATION_TOOL_SCHEMA},
+                }
+            }
+        ]
+    }
+
+
+def build_events(
+    prompt_name: str,
+    audio_content: str,
+    text_content: str,
+    with_tools: bool = False,
+) -> dict[str, Any]:
     """초기화·종료 이벤트를 한곳에 모아 둔다 (공식 문서 스키마 그대로)."""
     return {
         "session_start": {
@@ -102,6 +160,8 @@ def build_events(prompt_name: str, audio_content: str, text_content: str) -> dic
                         "encoding": "base64",
                         "audioType": "SPEECH",
                     },
+                    # `--tools`일 때만 실린다 — 없을 때의 기존 거동을 바꾸지 않는다.
+                    **({"toolConfiguration": _tool_configuration()} if with_tools else {}),
                 }
             }
         },
@@ -118,7 +178,7 @@ def build_events(prompt_name: str, audio_content: str, text_content: str) -> dic
             "event": {
                 "textInput": {
                     "promptName": prompt_name, "contentName": text_content,
-                    "content": SYSTEM_PROMPT,
+                    "content": TOOL_SYSTEM_PROMPT if with_tools else SYSTEM_PROMPT,
                 }
             }
         },
@@ -218,7 +278,7 @@ async def pump_output(receiver: Any, observed: list[dict[str, Any]]) -> None:
             print(f"  [{name}] {json.dumps(body, ensure_ascii=False)[:140]}")
 
 
-async def run(wav_name: str, realtime: bool, silence_ms: int) -> int:
+async def run(wav_name: str, realtime: bool, silence_ms: int, with_tools: bool = False) -> int:
     swallowed: list[BaseException] = []
     _install_swallowed_exception_reporter(swallowed)
     settings = Settings()  # ty: ignore[missing-argument]
@@ -248,7 +308,11 @@ async def run(wav_name: str, realtime: bool, silence_ms: int) -> int:
     stream = await _open_stream(client, NOVA_MODEL_ID, OPEN_TIMEOUT_S)
 
     prompt_name = str(uuid.uuid4())
-    events = build_events(prompt_name, f"audio-{uuid.uuid4()}", f"text-{uuid.uuid4()}")
+    events = build_events(
+        prompt_name, f"audio-{uuid.uuid4()}", f"text-{uuid.uuid4()}", with_tools=with_tools
+    )
+    if with_tools:
+        print(f"    toolConfiguration 포함 — tool={_PRONUNCIATION_TOOL_NAME}")
     observed: list[dict[str, Any]] = []
     pump: asyncio.Task[None] | None = None
     async def await_and_pump() -> None:
@@ -315,7 +379,10 @@ async def run(wav_name: str, realtime: bool, silence_ms: int) -> int:
                 await pump
         await _quiet_close(stream)
 
-    out = HARNESS / "evidence" / "N1-nova-protocol.json"
+    # `--tools`는 별도 파일에 쓴다 — N1(3차수 프로토콜 실증) 원자료를 덮지 않는다.
+    out = HARNESS / "evidence" / (
+        "P-tooluse-nova-protocol.json" if with_tools else "N1-nova-protocol.json"
+    )
     out.write_text(json.dumps(observed, ensure_ascii=False, indent=1))
 
     kinds: dict[str, int] = {}
@@ -328,6 +395,24 @@ async def run(wav_name: str, realtime: bool, silence_ms: int) -> int:
     print(f"\n관측 이벤트: {kinds or '없음'}")
     print(f"전사문/텍스트 {len(user_texts)}건: {user_texts}")
     print(f"raw -> {out}")
+
+    if with_tools:
+        # 스파이크의 유일한 질문에 대한 답. 이름이 정확히 무엇으로 오는지 모르므로
+        # 'tool'이 들어간 이벤트를 전부 훑는다.
+        tool_events = {k: v for k in kinds for v in [kinds[k]] if "tool" in k.lower()}
+        print(f"\n[tool use 판정] tool 관련 이벤트: {tool_events or '없음'}")
+        if tool_events:
+            for item in observed:
+                for k, b in item.items():
+                    if "tool" in k.lower():
+                        print(f"  [{k}] {json.dumps(b, ensure_ascii=False)[:400]}")
+            print("→ Nova가 toolConfiguration을 받아들이고 tool 이벤트를 냈다.")
+        else:
+            print(
+                "→ tool 이벤트가 오지 않았다. promptStart는 거부되지 않았으나(오류 없음)\n"
+                "  Nova가 tool을 호출하지 않았다. 프롬프트 강제력·스키마 형태·모델 지원\n"
+                "  세 가능성이 남는다 — 설계는 보조 신호 축소안으로 가야 한다."
+            )
 
     if transport.saw_error_status or swallowed:
         _report(transport, swallowed)
@@ -350,9 +435,13 @@ def main() -> int:
                     help="발화 뒤에 붙일 무음 길이 — endpointing 유도용")
     ap.add_argument("--no-realtime", action="store_true",
                     help="32ms 케이던스 없이 최대 속도로 보낸다 (케이던스 요구 여부 확인용)")
+    ap.add_argument("--tools", action="store_true",
+                    help="promptStart에 toolConfiguration을 실어 Nova의 tool use 지원을 확인한다 "
+                         "(PRD v1.1 §10 발음 교정 설계의 선행 검증). 발음 픽스처와 함께 쓴다: "
+                         "--wav p1m.wav --tools")
     args = ap.parse_args()
     return asyncio.run(run(args.wav, realtime=not args.no_realtime,
-                       silence_ms=args.silence_ms))
+                       silence_ms=args.silence_ms, with_tools=args.tools))
 
 
 if __name__ == "__main__":

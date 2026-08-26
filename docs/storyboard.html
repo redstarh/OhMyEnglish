@@ -31,9 +31,10 @@
     <div class="tag" style="background:#ffffff22;color:#fff">PERSONALIZED SPEAKING AGENT</div>
     <h1>OhMyEnglish</h1>
     <p>반복 오류를 기억하고, 일상 영어에서 IT 프로젝트 보고까지 말하기로 훈련시키는 개인화 영어 코치의 UI 스토리보드입니다.</p>
+    <p style="margin-top:14px;font-size:14px;color:#b9cbf5">요구사항 <b style="color:#fff">v1.1</b> 기준 · 2026-08-27 갱신 — <b style="color:#fff">03b 발음 시범·재발화</b>와 <b style="color:#fff">03c 추천 학습 루틴</b> 두 절이 신설되었습니다. 정본: <code style="background:#ffffff1f;color:#fff">docs/PRD.md</code> §10·§11</p>
   </header>
   <nav>
-    <a href="#principle">제품 원칙</a><a href="#journey">학습 여정</a><a href="#screens">핵심 화면</a><a href="#voice">음성 제어</a><a href="#weekly">분석·복습</a><a href="#roadmap">4주 플로우</a><a href="#data">데이터·Agent</a>
+    <a href="#principle">제품 원칙</a><a href="#journey">학습 여정</a><a href="#screens">핵심 화면</a><a href="#pronunciation">발음 시범 · v1.1</a><a href="#coach">추천 루틴 · v1.1</a><a href="#voice">음성 제어</a><a href="#weekly">분석·복습</a><a href="#roadmap">4주 플로우</a><a href="#data">데이터·Agent</a>
   </nav>
   <main>
     <section id="principle">
@@ -94,6 +95,86 @@
       </div>
     </section>
 
+    <section id="pronunciation">
+      <div class="tag">03b · PRONUNCIATION ECHO · 요구사항 v1.1 §10</div>
+      <h2>발음이 틀리면, 올바른 발음으로 다시 읽어준다</h2>
+      <p class="lead">채점하지 않습니다. <b>시범</b>합니다. 학습자가 목표음을 놓치면 Agent가 어떤 소리였는지 짚고 문장 전체를 올바른 발음으로 읽어준 뒤 따라 말하게 하고, 그 결과만 기록합니다. 2026-08-26 하네스 4차수가 “잘못 말했는데 아무 피드백이 없는” 세션을 실측으로 확인해 신설된 요구사항입니다.</p>
+      <div class="grid">
+        <article class="phone">
+          <div class="screen-head"><div class="tiny" style="color:#a9bde8">S1–S3 · 발음 감지</div><h3>발음 교정 중</h3></div>
+          <div class="screen-body">
+            <div class="bubble agent">I heard you found some videos. Tell me about them.</div>
+            <div class="bubble user">I sink I pound sree bery useful bideos.
+              <div class="pill" style="margin-top:8px;background:#ffe9ec;color:#c0303f">🔊 발음 교정 중</div>
+            </div>
+            <p class="tiny">전사문은 <code>i think i found three very useful videos.</code>로 적힙니다 — 글자로는 오류가 보이지 않습니다. 그래서 <b>음성을 직접 듣는 모델이 판정</b>합니다.</p>
+          </div>
+        </article>
+        <article class="phone">
+          <div class="screen-head"><div class="tiny" style="color:#a9bde8">S4–S5 · 시범과 따라 말하기</div><h3>Say this after me</h3></div>
+          <div class="screen-body">
+            <div class="bubble agent">Let’s work on that sentence.</div>
+            <div class="card" style="background:var(--sky);border:0">
+              <p class="tiny" style="margin:0 0 6px">올바른 발음 시범</p>
+              <strong style="font-size:17px;line-height:1.5">I <u>th</u>ink I <u>f</u>ound th<u>r</u>ee <u>v</u>ery useful <u>v</u>ideos.</strong>
+              <p class="tiny" style="margin:8px 0 0">▶︎ 0.75× · 1.0× · 다시 듣기</p>
+            </div>
+            <div class="record">●</div>
+            <p class="tiny" style="text-align:center">따라 말해보세요</p>
+          </div>
+        </article>
+        <article class="phone">
+          <div class="screen-head"><div class="tiny" style="color:#a9bde8">S6–S7 · 결과</div><h3>재발화 판정</h3></div>
+          <div class="screen-body">
+            <p class="tiny">시범 문장</p>
+            <div class="bubble agent" style="margin-top:4px">I think I found three very useful videos.</div>
+            <p class="tiny">내 발화</p>
+            <div class="bubble user" style="margin-left:0">I think I found three very useful videos.
+              <div class="pill" style="margin-top:8px;background:var(--mint);color:#15734b">✓ 좋아요</div>
+            </div>
+            <div class="metric"><strong>th → s</strong><span class="tiny">이번에 연습한 소리</span><p class="tiny">틀리면 패턴으로 기억해 다음 세션에 다시 나옵니다</p></div>
+          </div>
+        </article>
+      </div>
+      <div class="two grid" style="margin-top:16px">
+        <div class="card"><span class="tag">결과 화면이 달라진다</span><h3>“표시할 교정이 없습니다”가 사라진다</h3><p class="tiny">4차수 실측에서 정확 발음 세션과 오류 발음 세션의 결과 화면이 <b>똑같았습니다</b>. v1.1부터 문법 교정 카드 아래에 <b>발음 카드</b>가 붙고, 발음 시도가 있으면 빈 상태 문구를 쓰지 않습니다.</p></div>
+        <div class="card"><span class="tag">개입 예산</span><h3>평소엔 문법 우선, 발음은 분리</h3><p class="tiny">한 턴에 교정은 최대 1~2개입니다. 일반 세션에서는 <b>확실한 신호</b>(전사문에 한글이 섞임 · Agent가 되물음)가 뜰 때만 발음에 개입하고, 발음만 집중하려면 <b>추가 학습 → 발음 집중</b>으로 들어갑니다.</p><button class="button">추가 학습 · 발음 집중</button></div>
+      </div>
+    </section>
+
+    <section id="coach">
+      <div class="tag">03c · LEARNING COACH · 요구사항 v1.1 §11</div>
+      <h2>틀린 이력이 다음 세션을 만든다</h2>
+      <p class="lead">지금은 오류가 저장되기만 하고 다음 학습이 늘 똑같습니다(4차수 M계층 실측). v1.1부터 <b>직전 세션이 끝날 때</b> 이력을 읽어 다음 계획을 미리 만들어 둡니다 — 학습 시작 버튼을 누르고 기다리는 일이 없어야 하기 때문입니다.</p>
+      <div class="two grid">
+        <article class="phone">
+          <div class="screen-head"><div class="tiny" style="color:#a9bde8">TUESDAY · 오늘의 계획</div><h3>왜 이걸 연습하나요?</h3></div>
+          <div class="screen-body">
+            <div class="card" style="background:#f8fbff"><strong>오늘의 초점 2개</strong>
+              <p class="tiny">① <code>article_missing_before_noun</code> — 5번 틀렸고 3일 만에 또 나왔어요<br>② <code>pronunciation_th_as_s</code> — 따라 말하기가 2번 실패했어요</p>
+            </div>
+            <div class="card" style="background:var(--mint);border:0"><strong>추천 이유</strong><p class="tiny">문장이 길어질 때만 관사를 빼먹고 있어요. 오늘은 <b>긴 업무 문장</b>에서 같은 형태를 5번 말해볼게요.</p></div>
+            <button class="button">이 계획으로 시작</button>
+            <p class="tiny" style="text-align:center">계획이 없으면 기본 시나리오로 그냥 시작합니다</p>
+          </div>
+        </article>
+        <div class="card">
+          <h3>계획이 만들어지는 시점</h3>
+          <pre style="white-space:pre-wrap;margin:8px 0 0;font-size:12.5px;line-height:1.75">세션 종료
+  └─ 같은 트랜잭션에서 계획 생성 작업 등록
+       └─ 오류 이력 · 재발화 결과 · 발음 시도를 읽어
+          초점 패턴 1~2개 / 질문 3~5개 / 난이도 / 추천 이유
+
+다음 세션 시작
+  └─ 준비된 계획을 읽기만 한다  (대기 0)
+       └─ 없으면 기본 시나리오 폴백  (학습이 막히지 않는다)</pre>
+          <div class="metric"><strong>1d → 3d → 7d</strong><span class="tiny">복습 주기가 실제로 돌아간다</span><p class="tiny">또 틀린 패턴은 <b>1일로 되돌립니다</b>. 재발한 오류를 7일 뒤로 미루면 복습이 의미가 없습니다.</p></div>
+          <div class="metric"><strong>A2 → B1</strong><span class="tiny">난이도는 한 단계씩</span><p class="tiny">두 단계 도약은 거부하고, 너무 어려워지면 <b>내려가는 것도 허용</b>합니다.</p></div>
+          <div class="card" style="background:var(--sky);border:0;margin-top:12px"><strong>무엇이 만성 약점인지 숫자로 정하지 않는다</strong><p class="tiny">조회는 사실만 제공합니다 — 몇 세션에서 재발했는지, 며칠에 걸쳤는지, 사라졌다 다시 나왔는지. 그 사실을 보고 <b>Agent가 판단</b>합니다.</p></div>
+        </div>
+      </div>
+    </section>
+
     <section id="voice">
       <div class="tag">04 · VOICE + UI CONTROL</div>
       <h2>버튼으로도, 말로도 학습을 움직인다</h2>
@@ -133,6 +214,19 @@
   target: "Yesterday, I worked on API testing."
   mastery: 35 / 100
   review: 1d → 3d → 7d, each in a new context
+
+pronunciation_attempt                       ← 요구사항 v1.1 §10
+  target_form:   "I think I found three very useful videos."
+  target_sound:  th_as_s
+  outcome:       pending → correct | incorrect | unclear
+  signal_source: nova_tool | korean_transcript | agent_reprompt
+  (오디오는 저장하지 않는다. 남는 것은 판정과 시범 문장이다)
+
+session_plan                                ← 요구사항 v1.1 §11
+  focus_patterns: 1~2개  (발음 패턴도 들어올 수 있다)
+  questions:      3~5개
+  target_level:   CEFR 한 단계씩만 이동, 하향 허용
+  reason:         필수 — 비어 있으면 저장을 거부한다
 
 business_report
   Status → Change → Risk → Decision needed → Next step</pre>

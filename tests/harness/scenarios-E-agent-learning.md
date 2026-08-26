@@ -176,7 +176,8 @@ occurrence 1(`Yesterday I go` → `Yesterday I went`)인데 `target_form`은 `an
    `summarize_session` 전부 앱 참조 0건(위 L계층 표).
 
 즉 **오류를 기억은 하지만 그 기억을 쓰지 않는다.** 이는 설계상 이월이며(3단계 학습 코치
-Agent — `docs/design/2026-08-25-learning-coach-agent-design.md`, 검토 전 초안) 결함이 아니다.
+Agent — `docs/design/2026-08-25-learning-coach-agent-design.md`, **2026-08-27 정본 승격**)
+결함이 아니다. 요구사항으로도 정식화됐다 — `PRD.md` v1.1 §11.
 다만 캡틴이 요구한 "동작 검증"의 답은 **"현재 반영되지 않는다"**이고, 아래로 그 사실을
 증거와 함께 고정한다.
 

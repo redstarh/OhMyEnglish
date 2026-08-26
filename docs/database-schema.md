@@ -134,7 +134,7 @@ work?` / `What do you usually do on weekends?` / `What do you need to do tonight
 | `word_order` | 어순 |
 | `verb_form` | 동사 형태 |
 | `business_expression` | 업무 표현 |
-| `pronunciation_intonation` | 발음/억양 (텍스트 전사문만 다루는 첫 슬라이스 워커는 산출하지 않음) |
+| `pronunciation_intonation` | 발음/억양 — **분석 워커는 산출하지 않는다**(전사문에 발음 흔적이 0. 4차수 P2 실측). **산출 주체는 Nova tool 경로다** — `docs/design/2026-08-27-pronunciation-echo-design.md` §4.3. 시도는 `pronunciation_attempts`(003)에 쌓이고 `frequency`는 occurrence 수가 아니라 **시도 수** 기준이다 |
 
 ### `error_occurrences` — 도입: Phase1
 

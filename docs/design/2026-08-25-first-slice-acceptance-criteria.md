@@ -105,7 +105,7 @@ podman PG + 백엔드 + 프론트를 실제 기동하고 브라우저에서 다�
 
 ## Phase 1에서 쓰지 않는 것 (명시)
 
-`mastery_score`·`self_difficulty`·`review_tasks`·`impact_score`는 **컬럼/테이블만 존재하고 어떤 코드도 읽거나 갱신하지 않는다** (복습 스케줄링은 3단계). `pronunciation_intonation` 카테고리는 CHECK에만 있고 산출되지 않는다(§6.1 D1 참고).
+`mastery_score`·`self_difficulty`·`review_tasks`·`impact_score`는 **컬럼/테이블만 존재하고 어떤 코드도 읽거나 갱신하지 않는다** (복습 스케줄링은 3단계). `pronunciation_intonation` 카테고리는 CHECK에만 있고 산출되지 않는다(§6.1 D1 참고). ⚠️ **이 문단은 Phase 1 범위에 대한 진술이고 당시로서 옳았다. 2026-08-27에 범위가 넓어졌다** — `review_tasks`·복습 스케줄은 `2026-08-25-learning-coach-agent-design.md`(정본 승격), 발음 산출은 `2026-08-27-pronunciation-echo-design.md`, `impact_score`는 **영구 제외**로 결정됐다(학습 코치 설계서 §11 미결 3 종결).
 
 ## 이월 — 이 개발의 완료 기준이 아님
 

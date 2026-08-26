@@ -1,0 +1,237 @@
+{
+ "note": "PRD v1.1 §10 발음 시범·재발화 설계의 선행 스파이크. 묻는 것: Nova 2 Sonic이 promptStart.toolConfiguration을 받고 toolUse를 내보내는가.",
+ "date": "2026-08-27",
+ "model": "amazon.nova-2-sonic-v1:0",
+ "command": ".venv/bin/python ../../tests/harness/spike_nova_protocol.py --wav p1m.wav --tools",
+ "fixture": "p1m.wav — 음소 치환(θ→s, f→p, v→b). 실제 발음: \"I sink I pound sree bery useful bideos.\"",
+ "answer": "된다. toolConfiguration이 거부되지 않았고 contentStart(type=TOOL,role=TOOL) → toolUse → contentEnd(stopReason=TOOL_USE) 순서로 도착했다.",
+ "audioOutput_omitted": {
+  "frames": 101,
+  "base64_chars": 355248,
+  "reason": "base64 오디오는 판정에 쓰이지 않아 제외"
+ },
+ "usageEvent_omitted": 21,
+ "events": [
+  {
+   "userSpeechStart": {
+    "inputAudioOffsetMs": 0,
+    "promptName": "3812a285-a99f-44f0-8ab6-a34b03c43c92",
+    "sessionId": "6f78c3e2-bb09-4c01-aae8-cb95a17565cd"
+   }
+  },
+  {
+   "completionStart": {
+    "completionId": "05fa5ec3-418b-4a50-a1e7-b7bbb1022f0b",
+    "promptName": "3812a285-a99f-44f0-8ab6-a34b03c43c92",
+    "sessionId": "6f78c3e2-bb09-4c01-aae8-cb95a17565cd"
+   }
+  },
+  {
+   "userSpeechEnd": {
+    "inputAudioDetectionOffsetMs": 2760,
+    "inputAudioOffsetMs": 2480,
+    "promptName": "3812a285-a99f-44f0-8ab6-a34b03c43c92",
+    "sessionId": "6f78c3e2-bb09-4c01-aae8-cb95a17565cd"
+   }
+  },
+  {
+   "contentStart": {
+    "additionalModelFields": "{\"generationStage\":\"FINAL\"}",
+    "completionId": "05fa5ec3-418b-4a50-a1e7-b7bbb1022f0b",
+    "contentId": "b8e5a786-aa20-4f56-8c3f-739ae6f59114",
+    "promptName": "3812a285-a99f-44f0-8ab6-a34b03c43c92",
+    "role": "USER",
+    "sessionId": "6f78c3e2-bb09-4c01-aae8-cb95a17565cd",
+    "textOutputConfiguration": {
+     "mediaType": "text/plain"
+    },
+    "type": "TEXT"
+   }
+  },
+  {
+   "textOutput": {
+    "completionId": "05fa5ec3-418b-4a50-a1e7-b7bbb1022f0b",
+    "content": "i think i found three very useful videos.",
+    "contentId": "b8e5a786-aa20-4f56-8c3f-739ae6f59114",
+    "promptName": "3812a285-a99f-44f0-8ab6-a34b03c43c92",
+    "role": "USER",
+    "sessionId": "6f78c3e2-bb09-4c01-aae8-cb95a17565cd"
+   }
+  },
+  {
+   "contentEnd": {
+    "completionId": "05fa5ec3-418b-4a50-a1e7-b7bbb1022f0b",
+    "contentId": "b8e5a786-aa20-4f56-8c3f-739ae6f59114",
+    "promptName": "3812a285-a99f-44f0-8ab6-a34b03c43c92",
+    "sessionId": "6f78c3e2-bb09-4c01-aae8-cb95a17565cd",
+    "stopReason": "PARTIAL_TURN",
+    "type": "TEXT"
+   }
+  },
+  {
+   "contentStart": {
+    "completionId": "05fa5ec3-418b-4a50-a1e7-b7bbb1022f0b",
+    "contentId": "744c42db-d205-4d52-89d9-2e42cae7cc94",
+    "promptName": "3812a285-a99f-44f0-8ab6-a34b03c43c92",
+    "role": "TOOL",
+    "sessionId": "6f78c3e2-bb09-4c01-aae8-cb95a17565cd",
+    "toolUseOutputConfiguration": {
+     "mediaType": "application/json"
+    },
+    "type": "TOOL"
+   }
+  },
+  {
+   "toolUse": {
+    "completionId": "05fa5ec3-418b-4a50-a1e7-b7bbb1022f0b",
+    "content": "{\"target_form\":\"I think I found three very useful videos.\",\"spoken_form\":\"[awaiting user repetition]\",\"outcome\":\"pending\"}",
+    "contentId": "744c42db-d205-4d52-89d9-2e42cae7cc94",
+    "promptName": "3812a285-a99f-44f0-8ab6-a34b03c43c92",
+    "role": "TOOL",
+    "sessionId": "6f78c3e2-bb09-4c01-aae8-cb95a17565cd",
+    "toolName": "report_pronunciation_coaching",
+    "toolUseId": "fb0a993c-6798-4574-ade9-077667ec3336"
+   }
+  },
+  {
+   "contentEnd": {
+    "completionId": "05fa5ec3-418b-4a50-a1e7-b7bbb1022f0b",
+    "contentId": "744c42db-d205-4d52-89d9-2e42cae7cc94",
+    "promptName": "3812a285-a99f-44f0-8ab6-a34b03c43c92",
+    "sessionId": "6f78c3e2-bb09-4c01-aae8-cb95a17565cd",
+    "stopReason": "TOOL_USE",
+    "type": "TOOL"
+   }
+  },
+  {
+   "contentStart": {
+    "additionalModelFields": "{\"generationStage\":\"SPECULATIVE\"}",
+    "completionId": "05fa5ec3-418b-4a50-a1e7-b7bbb1022f0b",
+    "contentId": "ff536744-c2ca-4001-ac04-b0e1929e77f4",
+    "promptName": "3812a285-a99f-44f0-8ab6-a34b03c43c92",
+    "role": "ASSISTANT",
+    "sessionId": "6f78c3e2-bb09-4c01-aae8-cb95a17565cd",
+    "textOutputConfiguration": {
+     "mediaType": "text/plain"
+    },
+    "type": "TEXT"
+   }
+  },
+  {
+   "textOutput": {
+    "completionId": "05fa5ec3-418b-4a50-a1e7-b7bbb1022f0b",
+    "content": "Great! Let's work on that sentence. Say this after me: \"I think I found three very useful videos.\"",
+    "contentId": "ff536744-c2ca-4001-ac04-b0e1929e77f4",
+    "promptName": "3812a285-a99f-44f0-8ab6-a34b03c43c92",
+    "role": "ASSISTANT",
+    "sessionId": "6f78c3e2-bb09-4c01-aae8-cb95a17565cd"
+   }
+  },
+  {
+   "contentEnd": {
+    "completionId": "05fa5ec3-418b-4a50-a1e7-b7bbb1022f0b",
+    "contentId": "ff536744-c2ca-4001-ac04-b0e1929e77f4",
+    "promptName": "3812a285-a99f-44f0-8ab6-a34b03c43c92",
+    "sessionId": "6f78c3e2-bb09-4c01-aae8-cb95a17565cd",
+    "stopReason": "PARTIAL_TURN",
+    "type": "TEXT"
+   }
+  },
+  {
+   "contentStart": {
+    "audioOutputConfiguration": {
+     "channelCount": 1,
+     "encoding": "base64",
+     "mediaType": "audio/lpcm",
+     "sampleRateHertz": 16000,
+     "sampleSizeBits": 16
+    },
+    "completionId": "05fa5ec3-418b-4a50-a1e7-b7bbb1022f0b",
+    "contentId": "975eaaed-2df4-4f4e-996d-b91f5da2a9bd",
+    "promptName": "3812a285-a99f-44f0-8ab6-a34b03c43c92",
+    "role": "ASSISTANT",
+    "sessionId": "6f78c3e2-bb09-4c01-aae8-cb95a17565cd",
+    "type": "AUDIO"
+   }
+  },
+  {
+   "contentEnd": {
+    "completionId": "05fa5ec3-418b-4a50-a1e7-b7bbb1022f0b",
+    "contentId": "975eaaed-2df4-4f4e-996d-b91f5da2a9bd",
+    "promptName": "3812a285-a99f-44f0-8ab6-a34b03c43c92",
+    "sessionId": "6f78c3e2-bb09-4c01-aae8-cb95a17565cd",
+    "stopReason": "PARTIAL_TURN",
+    "type": "AUDIO"
+   }
+  },
+  {
+   "contentStart": {
+    "additionalModelFields": "{\"generationStage\":\"SPECULATIVE\"}",
+    "completionId": "05fa5ec3-418b-4a50-a1e7-b7bbb1022f0b",
+    "contentId": "9a1ab314-ffc6-43ee-98b1-9e6034513c5d",
+    "promptName": "3812a285-a99f-44f0-8ab6-a34b03c43c92",
+    "role": "ASSISTANT",
+    "sessionId": "6f78c3e2-bb09-4c01-aae8-cb95a17565cd",
+    "textOutputConfiguration": {
+     "mediaType": "text/plain"
+    },
+    "type": "TEXT"
+   }
+  },
+  {
+   "textOutput": {
+    "completionId": "05fa5ec3-418b-4a50-a1e7-b7bbb1022f0b",
+    "content": " \n\nNow you repeat that sentence for me.",
+    "contentId": "9a1ab314-ffc6-43ee-98b1-9e6034513c5d",
+    "promptName": "3812a285-a99f-44f0-8ab6-a34b03c43c92",
+    "role": "ASSISTANT",
+    "sessionId": "6f78c3e2-bb09-4c01-aae8-cb95a17565cd"
+   }
+  },
+  {
+   "contentEnd": {
+    "completionId": "05fa5ec3-418b-4a50-a1e7-b7bbb1022f0b",
+    "contentId": "9a1ab314-ffc6-43ee-98b1-9e6034513c5d",
+    "promptName": "3812a285-a99f-44f0-8ab6-a34b03c43c92",
+    "sessionId": "6f78c3e2-bb09-4c01-aae8-cb95a17565cd",
+    "stopReason": "PARTIAL_TURN",
+    "type": "TEXT"
+   }
+  },
+  {
+   "contentStart": {
+    "audioOutputConfiguration": {
+     "channelCount": 1,
+     "encoding": "base64",
+     "mediaType": "audio/lpcm",
+     "sampleRateHertz": 16000,
+     "sampleSizeBits": 16
+    },
+    "completionId": "05fa5ec3-418b-4a50-a1e7-b7bbb1022f0b",
+    "contentId": "1e24ba31-7cc3-4143-9121-850248d11a6d",
+    "promptName": "3812a285-a99f-44f0-8ab6-a34b03c43c92",
+    "role": "ASSISTANT",
+    "sessionId": "6f78c3e2-bb09-4c01-aae8-cb95a17565cd",
+    "type": "AUDIO"
+   }
+  },
+  {
+   "contentEnd": {
+    "completionId": "05fa5ec3-418b-4a50-a1e7-b7bbb1022f0b",
+    "contentId": "1e24ba31-7cc3-4143-9121-850248d11a6d",
+    "promptName": "3812a285-a99f-44f0-8ab6-a34b03c43c92",
+    "sessionId": "6f78c3e2-bb09-4c01-aae8-cb95a17565cd",
+    "stopReason": "END_TURN",
+    "type": "AUDIO"
+   }
+  },
+  {
+   "completionEnd": {
+    "completionId": "05fa5ec3-418b-4a50-a1e7-b7bbb1022f0b",
+    "promptName": "3812a285-a99f-44f0-8ab6-a34b03c43c92",
+    "sessionId": "6f78c3e2-bb09-4c01-aae8-cb95a17565cd",
+    "stopReason": "END_TURN"
+   }
+  }
+ ]
+}

@@ -226,7 +226,7 @@ at-least-once + 멱등성(발화 단위 replace, §5.2)이라는 의미론도 �
 | F2 | `analysis_jobs` 테이블 신설 (§5). `job_type` 2종 + 대상 컬럼 CHECK + `(status, available_at)` 인덱스 + partial unique |
 | F2-i | `error_occurrences`는 **발화 단위 replace**로 멱등 처리 (§5.2). `unique(utterance_id, pattern_id)` 초안은 복수 occurrence를 잃어 철회. 위치 표시는 기존 `original_span`으로 충분 (오프셋 컬럼 추가 안 함) |
 | F2-ii | `learning_sessions.status` 추가 — `active`/`completed`/`failed` CHECK. Nova 연결 실패로 닫힌 세션(§7 Failure)을 정상 종료와 구분 |
-| D1 | `error_patterns.category`에 CHECK 추가. 코드값 확정: `verb_tense`, `article`, `preposition`, `word_order`, `verb_form`, `business_expression`, `pronunciation_intonation`. `PRD.md:89`의 한국어 표시명과의 매핑을 문서화. (참고: `pronunciation_intonation`은 텍스트 전사문만 받는 이번 워커가 산출할 수 없다 — CHECK에는 두되 첫 슬라이스에선 미사용) |
+| D1 | `error_patterns.category`에 CHECK 추가. 코드값 확정: `verb_tense`, `article`, `preposition`, `word_order`, `verb_form`, `business_expression`, `pronunciation_intonation`. `PRD.md:89`의 한국어 표시명과의 매핑을 문서화. (참고: `pronunciation_intonation`은 텍스트 전사문만 받는 이번 워커가 산출할 수 없다 — CHECK에는 두되 첫 슬라이스에선 미사용. **이 판단은 2026-08-26 4차수 P2가 실측으로 재확인했고 지금도 유효하다.** 다만 2026-08-27부터 **Nova tool 경로**가 이 카테고리를 산출한다 — `2026-08-27-pronunciation-echo-design.md`. "워커가 못 한다"와 "아무도 안 한다"는 다르다) |
 | D2 | `create extension if not exists pgcrypto` + 모든 PK에 `default gen_random_uuid()`. 고정 단일 사용자는 결정적 UUID를 설정값으로 시드 |
 | E1 | `error_occurrences (pattern_id, created_at desc)`, `(utterance_id)` 인덱스 추가 |
 | C1 | 복습 간격을 **1·3·7일 3단계로 확정**하고 `database-schema.md:49`의 14일을 삭제 |
