@@ -21,9 +21,8 @@ OhMyEnglish/
 
 ## 핵심 문서
 
-- [PRD](docs/PRD.md)
-- [핵심 요구사항 요약](docs/requirements-summary.md)
-- [핵심 요구사항 HTML](docs/requirements-summary.html)
+- [PRD](docs/PRD.md) — **요구사항 정본 v1.1**
+- [핵심 요구사항 요약](docs/requirements-summary.md) — 학습자 관점 요약, PRD와 같은 버전
 - [데이터베이스 스키마](docs/database-schema.md)
 - [Agent 시스템 프롬프트](docs/agent-system-prompt.md)
 - [첫 4주 학습 플로우](docs/first-4-weeks.md)
