@@ -1,122 +1,210 @@
-# Handoff — 자동 테스트 하네스
+# Handoff — 자동 테스트 하네스 (4차수 진입용)
 
-> 이 파일은 **테스트 하네스 작업의 연속성**만 담당한다. 제품·구현 정본은 `handoff/HANDOFF.md`이고
-> 그 파일은 다른 세션이 소유하고 있으므로 건드리지 않는다.
-> 최종 갱신: 2026-08-26 · 대상 커밋 `3c62770`
+> 테스트 하네스 작업의 연속성만 담당한다. 제품·구현 정본은 `handoff/HANDOFF.md`,
+> 수정 세션의 판단 근거는 `handoff/HANDOFF-fix-session.md`이며 **둘 다 다른 세션 소유라
+> 건드리지 않는다.**
+> 최종 갱신 2026-08-26 · 대상 커밋 `6e0ba96` · **다음 할 일: 4차수 시작**
 
-## 현재 상태 — 2차수 완료, 루프 일시 종료 (2/10 차수 사용)
+---
+
+## 1. 지금 상태 — 3차수 완료, 앱 결함 0건
 
 | 항목 | 상태 |
 |---|---|
-| 하네스 절차 문서 | `docs/ops/2026-08-26-test-harness.html` (12절, tmux + Claude Code CLI + CDP) |
-| 1차수 리포트(HTML) | `docs/ops/2026-08-26-test-harness-report.html` (스크린샷 임베드) |
-| 회차 기록 | `tests/harness/runs/2026-08-26-run-1.md` · `-run-2.md` · 원장 `ROUNDS.md` |
-| **F-1** 다크모드 색상 위계 역전 (HIGH) | ✅ **수정 완료**(`3c62770`) — 2차수에서 두 모드 실측 검증 |
-| **F-2** `target_form` 불일치 (MEDIUM) | ⏸ **캡틴 결정 대기** — 스키마 변경 필요 |
-| 앱 결함 신규(2차수) | **0건** |
-| DB | baseline 완전 복원 (세션 2 · 패턴 1 · `frequency` 2) |
-| 스택 | 백엔드 `:8002` baseline(`--log-level warning`) · 프론트 `:3000` · podman `ohmy-pg` — 전부 정상 |
+| 루프 | **3/10 차수 사용.** 되돌려 보낼 결함이 없어 일시 종료 |
+| **F-1** 다크모드 색상 위계 역전 (HIGH) | ✅ 수정·검증 완료 (2차수) |
+| **F-2** `target_form` 불일치 (MEDIUM) | ✅ 수정·검증 완료 (3차수, 패턴 일반형) |
+| **Nova 2 Sonic 실연동** | ✅ **앱 경로로 관통 (AC1 충족)** — 3차수 N5 |
+| 미해결 앱 결함 | **없음.** 관찰 1건만 남음(O-1, LOW — 아래 §4) |
+| 게이트 | `241 passed`(skip/xfail 0) · ruff · format · ty 전부 clean |
+| DB | **baseline 정확 복원** — 세션 2 · 패턴 1 · `frequency` 2 · `harness_runs` 4행 |
+| 스택 | 백엔드 `:8002` baseline(`--log-level warning`, **스텁 모드**) · 프론트 `:3000` · podman `ohmy-pg` |
+| 미커밋 | `.claude/settings.json`(untracked) — 수정 세션이 배경작업 워크트리 격리를 끄려고 추가. **지우지 마라**, "워크트리 금지" 제약이 이것에 의존한다 |
 
-## 방금 끝낸 것 (2차수)
+## 2. 차수별 기록 (전부 git 추적)
 
-- 수정 세션(`claude_air_3-14`)의 완료 보고를 **항목별로 재현 검증** — 커밋·워크트리·토큰·게이트 4개 전부 직접 확인
-- **R1/R2**: 세션·결과·실패 화면 3곳 × 다크/라이트 = 전부 AA(4.5:1) 이상 + 확정이 부분보다 높은 대비
-  (다크 16.91 vs 7.04 / 라이트 17.93 vs 7.00). 라이트 부분이 원래 2.85:1로 AA 미달이던 것도 해소
-- **R3**: F-2 잔존 확인 + **조건 특정** — occurrence 2개 이상이며 서로 다른 `target_form`을 가진 패턴에서만 불일치
-- **R4**: teardown 직전 스윕으로 1차수 F-7(미등록 세션) 교정 확인 + baseline 정확 복원
-- **신규 커버**: E4(`voice_command` job 0건, W6) · E5(오류 0건 → `corrections: []`) · **E6(재분석 멱등 — W3 종단 최초)** · R8(라이트모드)
-- **회귀**: A1 · A2 · B1~B5 · D1(206 passed) · D2(ruff·format·ty clean) · F-3(마이크 33프레임 재현)
+| 문서 | 내용 |
+|---|---|
+| `tests/harness/runs/ROUNDS.md` | **원장** — 차수별 상태·10차수 상한·회귀 중점 규칙 |
+| `runs/2026-08-26-run-1.md` | 1차수 — 판정 17건, 발견 7건(F-1·F-2·F-3 게이트해소 등) |
+| `runs/2026-08-26-run-2.md` | 2차수 — F-1 검증, E4/E5/E6 신규, 신규결함 0 |
+| `runs/2026-08-26-run-3.md` | 3차수 — F-2 검증, **N5 실음성 왕복**, 신규결함 0 |
+| `docs/ops/2026-08-26-test-harness.html` | 절차 정본(12절) |
+| `docs/ops/2026-08-26-test-harness-report.html` | 1차수 리포트(스크린샷 임베드) |
+| `tests/harness/scenarios-N-real-voice.md` | Nova 계약·실측·남은 시나리오 **정본** |
+| `tests/harness/scenarios-E-agent-learning.md` | E계층(구현됨)·L계층(미구현) 시나리오 |
 
-## 실음성(N계층) — N-0·N-1 완료, **실음성 왕복 PASS** (2026-08-26)
+---
 
-`tests/harness/spike_nova_protocol.py`로 Nova 2 Sonic에 합성 음성을 넣어 왕복을 확인했다.
-원자료: `tests/harness/runs/2026-08-26-N1/N1-nova-protocol.json` · 상세:
-`tests/harness/scenarios-N-real-voice.md`
+## 3. 4차수에서 할 일 — **수정 왕복이 아니라 테스트 커버리지 확장**
 
-```
-[textOutput] USER/FINAL              'i usually go to gym after work.'   ← u1.wav 픽스처와 일치
-[textOutput] ASSISTANT/SPECULATIVE   'That's a great routine.'
-[audioOutput] × 17  총 44,800B(1.4초)  ← RIFF 아님 = raw LPCM
-```
+되돌려 보낼 결함이 없으므로 `claude_air_3-14`에 전달하지 않는다. 내가 돌린다.
 
-확정된 것: ① 입출력 모두 **raw LPCM**(16bit mono, 8/16/24kHz, base64, 32ms=1024B 프레임)
-② **무음 프레임 없으면 전사문이 안 온다**(약 480ms에 `userSpeechEnd`) ③ `await_output()`은
-초기화 이벤트 전에 반환하지 않으므로 **송수신 동시 시작** ④ 문서에 없는
-`userSpeechStart`/`userSpeechEnd` 이벤트가 온다 ⑤ Nova 2는
-`turnDetectionConfiguration.endpointingSensitivity`로 barge-in 민감도를 정한다
+### 묶음 ① Nova 실연동 미수행 시나리오 (정본: `scenarios-N-real-voice.md` §4)
 
-**앱에 붙일 때 프론트엔드 2곳을 고쳐야 한다(확정):**
-- **입력** — `MediaRecorder`(webm/opus, 250ms)는 Nova와 호환되지 않는다 →
-  `AudioWorklet`으로 원시 PCM 16kHz 캡처
-- **출력** — `new Blob([...], {type:'audio/wav'})`는 헤더 없는 LPCM을 디코드하지 못한다 →
-  `AudioContext` 큐 재생(barge-in에 큐를 비울 수 있어야 하므로 사실상 필수)
+| # | 시나리오 | 단정 | 준비물 |
+|---|---|---|---|
+| **N6** | **barge-in** | agent 발화 중 오디오 입력 → 1초 내 출력 중단 + `interrupted` 프레임 도착 + 클라이언트 오디오 큐 비움 | agent가 말하는 동안 두 번째 WAV를 주입해야 한다 — `u2.wav`를 지연 재생 |
+| **N7** | 실음성 3턴 완주 | `sequence_no` 단조, 사용자 발화 3건에 각각 job 1건 | `u1`→`u2`→`u3`를 순차 주입 |
+| **N8** | 실발화 → 실분석 병합 | `u1`+`u2`가 같은 `article` 패턴으로 병합, `frequency` +2 | E계층 단정을 실음성으로 재현 |
+| **N11** | 마이크 권한 거부 | `getUserMedia`가 reject → 화면 `microphone_permission_denied` | shim에서 `throw`만 하면 된다 |
+| **N12** | 포맷 불일치 방어 | 잘못된 샘플레이트/깨진 프레임에 세션이 조용히 죽지 않는가 | A2의 실물판 |
+| **N13** | endpointing 민감도 | `NOVA_ENDPOINTING_SENSITIVITY=HIGH/MEDIUM/LOW`로 `speech_end` 시점이 달라지는가 | N-1 실측: MEDIUM에서 약 480ms |
 
-**⚠️ AC U1 "부분 전사문 회색 표시"에 대응하는 Nova 데이터가 없다** — 사용자 ASR은 `FINAL`
-한 블록으로만 온다. 1·2차수에서 검증한 C2(회색→검정)는 **스텁 거동이며 실연동 거동이 아니다.**
-선택 3개는 N 문서 §2 마지막.
+### 묶음 ② 3차수에서 대체 커버한 것 전량 재확인
 
-## 다음에 할 것 — 우선순위
+3차수는 B1~B4를 "변경이 그 경로를 안 건드린다"는 판단으로 E6·A2·B5로 대체했다.
+**그 판단을 4차수에서 검증한다** — B1(`no_utterances`) · B2(`analyzing` + 수렴) ·
+B3(`final`) · B4(`partial_failure`) 전량, 그리고 라이트/다크 5상태 화면.
 
-1. **Nova 어댑터 구현** — 프로토콜이 실증됐으므로 착수 가능. 포트 확장 필요
-   (`userSpeechStart/End`, barge-in `INTERRUPTED`, `SPECULATIVE`/`FINAL` 구분).
-   작성자≠검증자 원칙상 **수정 세션(`claude_air_3-14`)에 넘긴다**
-2. **캡틴 결정 3건** — ① 사용자 부분 전사문 UI 처리(N 문서 §2) ② `target_form` 의미(=F-2)
-   ③ L계층 복습 규칙(`scenarios-E-agent-learning.md` §L계층)
-3. **F-2 3차수** — `target_form` 결정 후 R3 재검증.
-   재현 최소 입력: `inject_errors.py --scenario E6` 한 문장(occurrence 2개를 두 번 모두 생성)
-4. **문서 정합화(비차단)** — `HANDOFF.md`의 테스트 기준선 `201` → **206**
+### 묶음 ③ 회귀
 
-## 재개에 필요한 것
+A1 · A2 · E4 · E5 · E6 · D1 · D2 + 프론트 `npx tsc --noEmit`
+
+### 묶음 ④ O-1을 다른 결함과 묶어 전달 (결함이 더 나오면)
+
+4차수에서 새 결함이 나오면 O-1(선행 개행)을 함께 넣어 4차수 수정 지시를 만든다.
+**O-1 단독으로는 왕복을 열지 않는다** — LOW이고 사용자 영향이 없다.
+
+---
+
+## 4. 남은 관찰과 캡틴 결정
+
+| # | 내용 | 상태 |
+|---|---|---|
+| **O-1** (LOW) | agent 전사문에 **선행 개행**이 들어간다. Nova가 `'\nWhat time do you…'`를 보내고 `save_final_transcript`가 그대로 저장한다. agent 발화라 job이 없어 분석에는 안 들어가고 화면 렌더도 정상 — 지금은 무해 | 4차수에 묶어 전달 |
+| **L계층(복습 기능)** | `next_review_at`·`mastery_score`·`review_tasks`·`summarize_session` 전부 **앱 코드에 참조 0건**. 캡틴 결정 5건이 선행 필요 (`scenarios-E-agent-learning.md` §L계층) | 캡틴 결정 대기 |
+| **음성 픽스처 배치** | 3차수에는 `app/frontend/public/harness/u1.wav`로 **임시 배치 후 제거**했다. 4차수 N6~N8은 WAV 2~3개가 필요하다 — 매번 배치/제거하거나 캡틴이 상주 배치를 승인할 수 있다 | 캡틴 판단(사전승인 범위) |
+| **`.claude/settings.json` 커밋 여부** | 배경작업 워크트리 격리 해제. 하네스가 의존한다 | 캡틴 판단 |
+
+---
+
+## 5. 4차수 시작 절차 (그대로 실행)
 
 ```bash
-# 0) 프리플라이트 — 낡은 프로세스 함정 (실제로 걸렸던 항목)
-curl -s localhost:8002/health                  # {"status":"ok"} — version 키 있으면 StockAgent다
-ps -o lstart= -p $(lsof -nP -iTCP:8002 -sTCP:LISTEN -t)
-find app/backend/app -name '*.py' -newermt '<위 시각>'   # 결과 있으면 재기동하고 시작
+cd /Users/redstar/MyProject/OhMyEnglish
 
-# 1) 새 차수 열기 — run_id.txt 오염 주의 (2번 재발했다)
+# ① 스택 신원 — :8000 은 StockAgent다. version 키가 있으면 잘못된 포트다.
+curl -s localhost:8002/health          # {"status":"ok"} 여야 한다
+curl -so /dev/null -w '%{http_code}\n' localhost:3000
+
+# ② 낡은 프로세스 함정 (1차수에 실제로 물렸다 — 23시간 낡은 코드)
+ps -o lstart= -p $(lsof -nP -iTCP:8002 -sTCP:LISTEN -t)
+find app/backend/app app/frontend/app app/frontend/lib -newermt '<위 시각>' -name '*.py' -o -newermt '<위 시각>' -name '*.ts*'
+#   결과가 있으면 재기동하고 시작한다
+
+# ③ 회차 열기 — run_id.txt 오염 주의 (2번 재발했다. grep 고정 필수)
 podman exec -i ohmy-pg psql -U ohmy -d ohmyenglish -tAc \
-  "insert into harness_runs (git_commit, note) values ('<커밋>','<메모>') returning id" \
+  "insert into harness_runs (git_commit, note) values ('$(git rev-parse --short HEAD)','round#4 coverage') returning id" \
   | grep -oE '[0-9a-f-]{36}' | head -1 > .harness/run_id.txt
 
-# 2) 패턴 baseline (teardown 복원 기준) — 지금은 1차수 것이 남아 있다
+# ④ 패턴 baseline (teardown 복원 기준) — 3차수 것이 남아 있으니 새로 뜬다
 podman exec -i ohmy-pg psql -U ohmy -d ohmyenglish -c \
   "drop table if exists harness_pattern_baseline;
    create table harness_pattern_baseline as select id, pattern_key, frequency, last_seen_at
      from error_patterns where user_id='00000000-0000-0000-0000-000000000001';"
 
-# 3) 실행
-cd app/backend
-.venv/bin/python ../../tests/harness/ws_session.py --scenario A1
-.venv/bin/python ../../tests/harness/inject_errors.py --scenario E6
-.venv/bin/python ../../tests/harness/measure_contrast.py --shot-prefix /tmp/shot
+# ⑤ 이 세션의 주소를 기록 (수정 세션이 회신할 곳 — 세션마다 바뀐다!)
+tmux display-message -p '#{session_name}:#{window_index}.#{pane_index}' > .harness/caller_pane.txt
 ```
 
-정리 절차(3단계 + baseline 대조)는 `tests/harness/README.md` §정리. **teardown 직전에 미등록
-세션 스윕을 반드시 한 번 돌린다** — 브라우저 레그는 자동 등록 훅이 없다.
+### Nova 모드 실행 (N6~N13)
 
-## 하네스 운영에서 배운 함정 (반복하지 말 것)
+```bash
+# 백엔드를 nova 모드로. 픽스처를 프론트에서 fetch 가능하게 임시 배치.
+mkdir -p app/frontend/public/harness && cp tests/harness/fixtures/voice/*.wav app/frontend/public/harness/
+lsof -nP -iTCP:8002 -sTCP:LISTEN -t | xargs kill; sleep 3
+cd app/backend && VOICE_ADAPTER=nova nohup .venv/bin/uvicorn app.api.main:app --port 8002 \
+  --log-level info > ../../.harness/backend-nova.log 2>&1 &
+#   N13은 NOVA_ENDPOINTING_SENSITIVITY=HIGH|MEDIUM|LOW 를 함께 준다
+
+# 끝나면 반드시 baseline 복구 + 픽스처 제거
+rm -rf app/frontend/public/harness
+cd app/backend && nohup .venv/bin/uvicorn app.api.main:app --port 8002 --log-level warning >/dev/null 2>&1 &
+```
+
+### N5에서 검증된 브라우저 주입 스크립트 (그대로 재사용)
+
+`use_browser` `navigate http://localhost:3000` → 아래 `eval` → **`click` 액션으로 클릭**
+(→ `eval` 안의 `.click()`은 user activation이 없어 `ctx.resume()`이 멈춘다, 1차수 H-1)
+
+```js
+(async () => {
+  const ctx = new AudioContext({ sampleRate: 16000 });
+  const buf = await ctx.decodeAudioData(await (await fetch('/harness/u1.wav')).arrayBuffer());
+  const dest = ctx.createMediaStreamDestination();
+  window.__omy = { sent: 0, sentBytes: 0, recv: {}, texts: [] };
+  navigator.mediaDevices.getUserMedia = async () => {
+    await ctx.resume();
+    const src = ctx.createBufferSource(); src.buffer = buf; src.connect(dest); src.start();
+    return dest.stream;                    // WAV 뒤로는 무음이 흘러 endpointing이 발동한다
+  };
+  const send = WebSocket.prototype.send;
+  WebSocket.prototype.send = function (d) {
+    try { const m = JSON.parse(d); if (m.type === 'audio') { window.__omy.sent++; window.__omy.sentBytes += atob(m.data||'').length; } } catch (e) {}
+    return send.call(this, d);
+  };
+  const om = Object.getOwnPropertyDescriptor(WebSocket.prototype, 'onmessage');
+  Object.defineProperty(WebSocket.prototype, 'onmessage', { configurable: true,
+    get() { return om.get.call(this); },
+    set(fn) { om.set.call(this, (ev) => {
+      try { const m = JSON.parse(ev.data);
+        window.__omy.recv[m.type] = (window.__omy.recv[m.type]||0)+1;
+        if (m.type==='final'||m.type==='partial') window.__omy.texts.push(`${m.type}/${m.speaker}: ${m.text}`);
+      } catch (e) {}
+      return fn(ev); }); } });
+  return 'ready';
+})()
+```
+
+**N6(barge-in)은 이 스크립트를 확장해야 한다** — 첫 WAV가 끝나고 agent가 말하기 시작한 뒤
+(`recv.audio`가 늘기 시작한 시점) 두 번째 `BufferSource`를 `start()`해서 끼어들게 만든다.
+
+### 실행 스크립트
+
+```bash
+cd app/backend
+.venv/bin/python ../../tests/harness/ws_session.py --scenario <이름> [--junk --send-audio 3] [--timeout 20]
+.venv/bin/python ../../tests/harness/inject_errors.py --scenario E1|E3|E4|E5|E6 [--wait 120]
+.venv/bin/python ../../tests/harness/measure_contrast.py --shot-prefix <경로>   # 다크/라이트 대비
+.venv/bin/python ../../tests/harness/spike_nova_protocol.py [--wav u3.wav]      # Nova 직접 왕복
+```
+
+### 정리 (반드시) — 3단계 + 대조
+
+```bash
+# teardown 직전 스윕 (브라우저 레그는 자동 등록 훅이 없다 — 1차수 F-7)
+# 그다음 README §정리의 3단계: 세션 삭제(cascade) → frequency/last_seen_at 재계산 →
+#   baseline에 없던 0-occurrence 패턴 삭제
+# 마지막에 세션 2 · 패턴 1 · frequency 2 로 돌아오는지 반드시 대조한다
+```
+
+---
+
+## 6. 반복하지 말 것 (실측된 함정)
 
 | # | 함정 | 대응 |
 |---|---|---|
-| H-1 | `eval` 안의 `element.click()`은 **user activation을 만들지 않아** `AudioContext.resume()`이 멈춘다 → 화면이 `마이크 권한 요청 중`에서 정지 | 클릭은 CDP 실제 입력(플러그인 `click` 액션)으로만 |
-| H-2 | `psql -tAc "insert … returning id"`가 id와 `INSERT 0 1`을 함께 출력해 `run_id.txt`를 오염시킨다 (2회 발생) | `grep -oE '[0-9a-f-]{36}' \| head -1` 고정 |
-| H-3 | 브라우저 레그 세션이 부기에서 누락 | teardown 직전 시간창 스윕 |
+| H-1 | `eval` 안의 `element.click()`은 **user activation을 만들지 않아** `AudioContext.resume()`이 멈춘다 → 화면이 `마이크 권한 요청 중`에서 정지 | 클릭은 플러그인 `click` 액션(CDP 실제 입력)으로만 |
+| H-2 | `psql -tAc "insert … returning id"`가 `INSERT 0 1`을 함께 출력해 `run_id.txt`를 오염시킨다 (**2회 발생**) | `grep -oE '[0-9a-f-]{36}' \| head -1` 고정 |
+| H-3 | 브라우저 레그 세션이 부기에서 누락 | teardown **직전** 시간창 스윕 |
 | H-4 | 공유 dev DB에서 `frequency` 절대값 단정은 반드시 실패 | 델타로 단정 |
-| H-5 | 스텁이 지연 0으로 재생 → 브라우저가 오디오 프레임을 못 보내고 전사문 DOM도 못 잡힌다 | 마이크 측정은 B5(무응답 10초) 창에서, 렌더 관측은 이벤트 도착 스로틀로 |
-| H-6 | `prefers-color-scheme`은 페이지에서 바꿀 수 없다 | CDP `Emulation.setEmulatedMedia` (`measure_contrast.py`) |
+| H-5 | 스텁은 지연 0으로 재생 → 브라우저가 오디오 프레임을 못 보내고 전사문 DOM도 안 잡힌다 | 마이크 측정은 B5(무응답 10초) 창에서, 렌더 관측은 이벤트 도착 스로틀로 |
+| H-6 | `prefers-color-scheme`은 페이지에서 못 바꾼다 | CDP `Emulation.setEmulatedMedia` (`measure_contrast.py`) |
+| H-7 | Nova는 **초기화 이벤트 전에 HTTP 응답 헤더조차 안 보낸다** → `await_output()`을 먼저 부르면 타임아웃 | 송수신 동시 시작 |
+| H-8 | Nova는 **무음 프레임이 없으면 전사문을 안 준다** | 마이크는 계속 흐르므로 앱 경로에선 자동. 스크립트로 넣을 때만 무음을 이어 보낸다 |
+| H-9 | 백엔드는 `--reload`가 없다 | 소스가 바뀌면 반드시 재기동 |
+| H-10 | Bash 툴은 호출마다 cwd가 리셋될 수 있다 | `cd <절대경로> &&` 또는 절대경로 |
 
-## 세션 간 왕복 규약
+## 7. 세션 간 왕복 규약
 
-- 테스트 세션 → 수정 세션: `tmux send-keys -t claude_air_3-14:0.0 '<한 줄>' Enter`.
-  그 세션은 **agents 관리 화면**이므로 텍스트를 넣으면 새 작업이 생성된다(`enter to create`).
-  진행 중 작업에 덧붙이려면 `space`로 답장창을 열고 **대상이 맞는지 상태 문구로 확인한 뒤**
-  타이핑, 푸터가 `enter to send`로 바뀐 것을 보고 Enter.
-- 수정 세션 → 테스트 세션: `tmux send-keys -t claude_air_5-49:0.0 '<한 줄>' Enter`.
-- **10차수 상한.** 무한 루프 금지 — 상한에 닿으면 오류가 남아도 캡틴에게 보고하고 멈춘다.
+- **페인 주소는 세션마다 바뀐다.** 3차수까지는 테스트=`claude_air_5-49:0.0`,
+  수정=`claude_air_3-14:0.0`이었다. 새 세션에서는 `tmux display-message`로 자기 주소를
+  다시 얻고, 수정 세션 주소도 `tmux list-panes -a`로 다시 확인한다.
+- 수정 세션(`claude_air_3-14`)은 **agents 관리 화면**이다. 입력창에 텍스트를 넣으면 새 작업이
+  생성된다(`enter to create`). 진행 중 작업에 덧붙이려면 `space`로 답장창을 열고 **대상이
+  맞는지 상태 문구로 확인한 뒤** 타이핑, 푸터가 `enter to send`로 바뀐 것을 보고 Enter.
+- **전달은 파일 경로로 지목한다** — 3차수처럼 지시서를 `tests/harness/`에 쓰고 한 줄로 가리킨다.
+- **10차수 상한.** 상한에 닿으면 오류가 남아도 캡틴에게 보고하고 멈춘다.
 - 역할 분리: 테스트 세션은 앱 코드를 수정하지 않고, 수정 세션은 자기 수정을 합격 판정하지 않는다.
-
-## 미커밋 상태
-
-`docs/ops/2026-08-26-test-harness.html` · `docs/ops/2026-08-26-test-harness-report.html` ·
-`tests/harness/**` · 이 파일이 아직 untracked/미커밋이다. 커밋은 캡틴 확인 후.
+  단 `tests/harness/**`는 테스트 세션 소유이므로 그 안의 오류는 내가 고친다(3차수 `ty` 2건).
