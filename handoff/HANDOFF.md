@@ -1,6 +1,6 @@
 # OhMyEnglish Handoff
 
-> 제품·구현 정본. 최종 갱신 2026-08-26 09:40 · 기준 커밋 `204d8a1` 이후 · **다음 할 일: 하네스 4차수**
+> 제품·구현 정본. 최종 갱신 2026-08-26 17:30 · 기준 커밋 **HEAD ≥ `5e3083f`** · **다음 할 일: 하네스 5차수**
 > 이번 갱신은 캡틴 지시로 **테스트 세션(`claude_air_5-49`)이 수행**했다 — 원래 소유 관례상
 > 다른 세션 파일이지만, 4차수 범위가 제품 요구(발음 교정·학습 반영)로 넓어져 정본을 함께 고쳤다.
 > 하네스 절차는 `handoff/HANDOFF-test-harness.md`, 수정 세션 근거는 `handoff/HANDOFF-fix-session.md`.
@@ -51,7 +51,7 @@
 
 | 묶음 | 내용 | 정본 문서 |
 |:--:|---|---|
-| **P** | ✅ **완료(4차수)** — 발음 교정 루틴 검증. P1~P7 실행, P5(최우선 위험) **clean**, P8만 이월 | `tests/harness/scenarios-P-pronunciation.md` |
+| **P** | ✅ **완료(4차수)** — 발음 교정 루틴 검증. P1~P7 실행, P5(최우선 위험) **clean**. 이월은 P8 + **`p2` 쌍**(4차수는 `p1` 쌍만 돌렸다) | `tests/harness/scenarios-P-pronunciation.md` |
 | **M** | ✅ **완료(4차수)** — M0·M1로 반영 부재를 통제된 대조로 고정. 통합테스트 회귀 기준선 | `tests/harness/scenarios-E-agent-learning.md` M계층 |
 | ① | ⏭ **5차수** — 미실행 Nova 시나리오 N6(barge-in)·N7(3턴)·N8(실발화 병합)·N11(권한거부)·N12(포맷불일치)·N13(endpointing) | `tests/harness/scenarios-N-real-voice.md` §4 |
 | ② | ⏭ **5차수** — 3차수가 대체 커버한 B1~B4 전량 재확인 + 라이트/다크 5상태 (**이 판단은 아직 미검증**) | `runs/2026-08-26-run-3.md` §회귀 |
@@ -154,14 +154,14 @@ cd app/backend && .venv/bin/python ../../tests/harness/spike_nova_protocol.py --
 
 ---
 
-## 현재 스택·DB 상태 (2026-08-26 09:3x 실측)
+## 현재 스택·DB 상태 (**2026-08-26 17:2x 재실측 — 4차수 teardown 이후 값**)
 
 | 항목 | 값 |
 |---|---|
-| 백엔드 | `:8002` **스텁 모드** baseline (`--log-level warning`), 08:27:26 기동. 이후 변경된 `.py` **없음** → 최신 |
-| 프론트 | `:3000`, 08-25 09:45 기동(23h+). 소스는 그보다 새롭지만 **dev 서버가 재컴파일해 최신**이다 |
-| DB baseline | `learning_sessions` 2 · `utterances` 6 · `error_patterns` 1 · `error_occurrences` 2 · `frequency` 합 2 · `analysis_jobs` 3 |
-| 하네스 부기 | `harness_runs` 4행 · `harness_sessions` 29행 · `harness_pattern_baseline` 1행(**3차수 잔존 — 4차수 개시 시 새로 뜬다**) |
+| 백엔드 | `:8002` **스텁 모드** baseline (`--log-level warning`), **09:59:30 기동**(4차수 teardown 시 재기동). 이후 변경된 `.py` **없음** → 최신. 프로세스 env에 `VOICE_ADAPTER` **잔류 없음** |
+| 프론트 | `:3000`, 08-25 09:45 기동. 소스는 그보다 새롭지만 **dev 서버가 재컴파일해 최신**이다 |
+| DB baseline | `learning_sessions` 2 · `utterances` 6 · `error_patterns` 1 · `error_occurrences` 2 · `frequency` 합 2 · `analysis_jobs` 3 — **4차수 teardown 후 재실측으로 일치 확인** |
+| 하네스 부기 | `harness_runs` **5행**(4차수가 5번째 회차 `8e49d45a…`, `git_commit=4588b50`, note `round#4 P+M only`) · `harness_sessions` **35행** · `harness_pattern_baseline` 1행(**4차수 개시 시 재생성된 것 — 5차수 개시 때 또 새로 뜬다**) |
 | 음성 픽스처 9개 | `u1~u3`(문법 오류용) + `p1a/p1m/p1k/p2a/p2m/p2k`(발음 쌍, 신규) |
 
 > ⚠️ 하네스 §5의 "낡은 프로세스" mtime 검사는 **프론트에 오탐을 낸다** — Next dev는 HMR로
@@ -170,7 +170,7 @@ cd app/backend && .venv/bin/python ../../tests/harness/spike_nova_protocol.py --
 
 ---
 
-## `204d8a1`까지의 커밋 (HANDOFF 이전 판 `c55fbc4` 이후 12건)
+## `5e3083f`까지의 커밋 (HANDOFF 이전 판 `c55fbc4` 이후 15건)
 
 | 커밋 | 내용 |
 |---|---|
@@ -183,6 +183,9 @@ cd app/backend && .venv/bin/python ../../tests/harness/spike_nova_protocol.py --
 | `486c302` `6e0ba96` | `docs:`/`test:` 수정 세션 handoff 신설 + 3차수 회귀 기록(F-2 검증·N5) |
 | `c1d34ef` `32a6c22` | `docs:` 하네스 handoff 4차수 진입용 재작성 + "미수행"의 의미 명확화 |
 | `204d8a1` | `test:` **4차수 준비** — P계층(발음)·M계층(학습 반영) 신설, 발음 픽스처 6개, 사전 실측, 이 파일 갱신 |
+| `4588b50` | `docs:` handoff의 커밋 참조를 "≥ 204d8a1" 형태로 고정 (4차수 회차가 DB에 이 커밋으로 기록됐다) |
+| `61fc7ca` | `test:` **4차수 P·M 실행** — 발음 교정 부재 확정, 학습 반영 부재 확정, **신규 결함 0건**, 스크린샷 3장 |
+| `5ee59f8` `5e3083f` | `docs:` 캡틴 결정(발음 교정 수정 보류·기록만) + 게이트 정리(실물 마이크 이월, M계층 반영 단위 2갈래) |
 
 ---
 
@@ -238,7 +241,8 @@ cd app/backend && .venv/bin/python ../../tests/harness/spike_nova_protocol.py --
 
 ## 다음 작업 후보 (우선순위는 캡틴 결정)
 
-1. **하네스 5차수 실행** — 4차수에서 미실행한 묶음 ①②③ + P8 + `tests/harness/**` ruff 6건
+1. **하네스 5차수 실행** — 4차수에서 미실행한 묶음 ①②③ + P8 + **P계층 `p2` 쌍** +
+   `tests/harness/**` ruff 6건
 2. **캡틴 게이트 3건 처리** — 실물 마이크 1회(게이트 1·발음 보정을 한 번에) / 발음 교정 범위 / M계층 단위
 3. **학습 코치 Agent 구현 계획** — 설계서 검토 → `superpowers:writing-plans`. §12.1 분해 여부와
    §11 미결 3건(최근 창 14일 / 정답 판정 주체 / `impact_score`)이 선행 결정
@@ -246,13 +250,14 @@ cd app/backend && .venv/bin/python ../../tests/harness/spike_nova_protocol.py --
 
 ## 다음 세션 진입 절차
 
-1. `git log --oneline -14`로 위 커밋 표와 맞는지 확인 (**HEAD ≥ `204d8a1`**)
+1. `git log --oneline -17`로 위 커밋 표와 맞는지 확인 (**HEAD ≥ `5e3083f`**)
 2. **포트 함정 절을 먼저 읽어라** — 백엔드 `--port 8002`, 프론트 `.env.local` `:8002`
 3. 게이트 4개를 돌려 실측 확인 (241 passed / ruff · format · ty clean)
 4. Nova를 건드리면 `spike_nova_protocol.py --wav p1a.wav`로 자격증명 생존을 먼저 확인
    (키 로테이션 시 여기서 먼저 깨진다)
-5. 4차수를 시작하면 `handoff/HANDOFF-test-harness.md` §5 개시 절차를 그대로 실행 —
+5. 5차수를 시작하면 `handoff/HANDOFF-test-harness.md` §5 개시 절차를 그대로 실행 —
    `run_id.txt` 오염 방지 `grep` 고정과 `harness_pattern_baseline` 재생성이 포함돼 있다
+   (§5 본문은 "4차수"로 쓰여 있지만 절차 자체는 차수와 무관하다. note만 `round#5`로 바꾼다)
 6. 완료 선언은 AC 문서 §완료 선언 규칙 6항목 전건 충족 시에만 — 미충족이면 완료라 부르지 않는다
 7. 프로세스 상세(모든 ruling·이연 minor·red→green 증거 위치)는
    `.superpowers/sdd/2026-08-25-phase1-implementation-plan/progress.md` (ledger, git 미추적)

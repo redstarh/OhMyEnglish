@@ -1,26 +1,26 @@
-# Handoff — 자동 테스트 하네스 (4차수 진입용)
+# Handoff — 자동 테스트 하네스 (5차수 진입용)
 
 > 테스트 하네스 작업의 연속성만 담당한다. 제품·구현 정본은 `handoff/HANDOFF.md`,
 > 수정 세션의 판단 근거는 `handoff/HANDOFF-fix-session.md`이며 **둘 다 다른 세션 소유라
 > 건드리지 않는다.**
-> 최종 갱신 2026-08-26 09:40 · 대상 커밋 **`204d8a1` 이후** · **다음 할 일: 4차수 시작**
-> **4차수 범위가 캡틴 지시로 확장됐다 — P계층(발음 교정)·M계층(학습 반영) 신설.** §3 참조.
+> 최종 갱신 2026-08-26 17:30 · 대상 커밋 **HEAD ≥ `5e3083f`** · **다음 할 일: 5차수 시작**
+> **4차수(P계층 발음·M계층 학습 반영)는 실행 완료다** — `runs/2026-08-26-run-4.md`. §3 참조.
 
 ---
 
-## 1. 지금 상태 — 3차수 완료, 앱 결함 0건
+## 1. 지금 상태 — 4차수(P·M) 완료, 앱 결함 0건
 
 | 항목 | 상태 |
 |---|---|
 | 루프 | **4/10 차수 사용.** 되돌려 보낼 결함이 없어 일시 종료 |
 | **4차수 P·M (2026-08-26 완료)** | ✅ P1~P7 · M0 · M1. **신규 앱 결함 0건** — 최우선 위험 P5가 clean. 기록 `runs/2026-08-26-run-4.md` |
-| **5차수에 남은 것** | N6~N13 · B1~B4 전량 · 라이트/다크 5상태 · 회귀(A1·A2·E4·E5·E6·D1·D2) · P8 · `tests/harness/**` ruff 6건 |
+| **5차수에 남은 것** | N6~N13 · B1~B4 전량 · 라이트/다크 5상태 · 회귀(A1·A2·E4·E5·E6·D1·D2 + `tsc --noEmit`) · P8 · **P계층 `p2` 쌍(`p2a`/`p2m`/`p2k`) — 4차수는 `p1` 쌍만 돌렸다** · `tests/harness/**` ruff 6건 |
 | **F-1** 다크모드 색상 위계 역전 (HIGH) | ✅ 수정·검증 완료 (2차수) |
 | **F-2** `target_form` 불일치 (MEDIUM) | ✅ 수정·검증 완료 (3차수, 패턴 일반형) |
 | **Nova 2 Sonic 실연동** | ✅ **앱 경로로 관통 (AC1 충족)** — 3차수 N5 |
 | 미해결 앱 결함 | **없음.** 관찰 1건만 남음(O-1, LOW — 아래 §4) |
 | 게이트 | `241 passed`(skip/xfail 0) · ruff · format · ty 전부 clean |
-| DB | **baseline 정확 복원** — 세션 2 · 패턴 1 · `frequency` 2 · `harness_runs` 4행 |
+| DB | **baseline 정확 복원** — 세션 2 · 발화 6 · 패턴 1 · occurrence 2 · `frequency` 2 · jobs 3 (2026-08-26 17:2x 재실측으로 재확인). 부기는 `harness_runs` **5행** · `harness_sessions` **35행** |
 | 스택 | 백엔드 `:8002` baseline(`--log-level warning`, **스텁 모드**) · 프론트 `:3000` · podman `ohmy-pg` |
 | 미커밋 | `.claude/settings.json`(untracked) — 수정 세션이 배경작업 워크트리 격리를 끄려고 추가. **지우지 마라**, "워크트리 금지" 제약이 이것에 의존한다 |
 
@@ -35,7 +35,13 @@
 | `docs/ops/2026-08-26-test-harness.html` | 절차 정본(12절) |
 | `docs/ops/2026-08-26-test-harness-report.html` | 1차수 리포트(스크린샷 임베드) |
 | `tests/harness/scenarios-N-real-voice.md` | Nova 계약·실측·남은 시나리오 **정본** |
-| `tests/harness/scenarios-E-agent-learning.md` | E계층(구현됨)·L계층(미구현) 시나리오 |
+| `tests/harness/scenarios-E-agent-learning.md` | E계층(구현됨)·L계층(미구현)·M계층 시나리오 |
+| `tests/harness/scenarios-P-pronunciation.md` | P계층(발음 교정) 시나리오 **정본** |
+
+> ⚠️ **`.harness/`는 git 추적 대상이 아니다** — `.git/info/exclude:7`로 제외돼 있고 그 exclude는
+> `.gitignore`가 아니라 **로컬 전용이라 공유되지 않는다.** `.harness/evidence/**`(프레임 JSON·
+> 주입 결과·일부 스크린샷)와 `.harness/*.log`는 **이 머신에만 있다.** 다른 머신에서 재현이
+> 필요한 증거는 `tests/harness/runs/<차수>/`에 넣어야 커밋된다.
 
 ---
 
@@ -72,7 +78,7 @@
 
 | # | 이번에 확인할 것 |
 |---|---|
-| **M0** | `inject_errors.py --scenario E1`로 패턴 7개를 쌓고 **새 세션**을 연다 → ① `scenario_id`가 이전 세션과 동일(고정 첫 행, `sessions.py:29` `limit 1`) ② agent 첫 발화가 축적 패턴을 언급하지 않음 ③ `review_tasks` 0행 ④ `next_review_at` 전부 null |
+| **M0** | `inject_errors.py --scenario E1`로 패턴을 쌓고(문장 5개 주입 → 생기는 패턴 수는 Claude 판정이라 **비결정적**. 4차수 실측은 baseline 1 포함 **8개**였다) **새 세션**을 연다 → ① `scenario_id`가 이전 세션과 동일(고정 첫 행, `sessions.py:29` `limit 1`) ② agent 첫 발화가 축적 패턴을 언급하지 않음 ③ `review_tasks` 0행 ④ `next_review_at` 전부 null |
 | **M1** | `u1` → 새 세션 → `u2`(같은 `article` 패턴) → `frequency` 2로 오르지만 두 세션의 agent 발화가 구별되지 않음. **두 세션 발화를 나란히 기록**해 대조 증거로 남긴다 |
 
 ### 묶음 ① Nova 시나리오 중 **아직 실행하지 않은 것** (정본: `scenarios-N-real-voice.md` §4)
@@ -124,12 +130,12 @@ A1 · A2 · E4 · E5 · E6 · D1 · D2 + 프론트 `npx tsc --noEmit`
 | **L계층(복습 기능)** | `next_review_at`·`mastery_score`·`review_tasks`·`summarize_session` 전부 **앱 코드에 참조 0건**. 캡틴 결정 5건이 선행 필요 (`scenarios-E-agent-learning.md` §L계층) | 캡틴 결정 대기 |
 | **음성 픽스처 배치** | 3차수에는 `app/frontend/public/harness/u1.wav`로 **임시 배치 후 제거**했다. 4차수는 **WAV 9개**가 필요하다(`u1~u3` + 발음 쌍 `p1a/p1m/p1k/p2a/p2m/p2k`) — 매번 배치/제거하거나 캡틴이 상주 배치를 승인할 수 있다 | 캡틴 판단(사전승인 범위) |
 | **발음 픽스처의 한계** | `p*m`은 원어민이 다른 단어를 정확히 발음한 것, `p*k`는 한국어 TTS가 영문자를 읽은 것이다. 캡틴 육성은 그 사이에 있어 **실물 마이크 1회 보정**이 필요하다 — 제품 게이트 1(E2E-S 마이크)과 한 번에 처리 가능 | 캡틴 판단 |
-| **`tests/harness/**` ruff 6건** | `inject_errors.py`(I001·E501) · `measure_contrast.py`(E501) · `spike_nova_protocol.py`(I001) · `ws_session.py`(E501·UP041). 게이트 범위 밖이지만 **내 소유 파일이라 4차수에 정리한다** | 내 작업 |
+| **`tests/harness/**` ruff 6건** | `inject_errors.py`(I001·E501) · `measure_contrast.py`(E501) · `spike_nova_protocol.py`(I001) · `ws_session.py`(E501·UP041). 게이트 범위 밖이지만 **내 소유 파일이라 정리한다** — 4차수가 P·M으로 한정돼 손대지 않았다. **2026-08-26 17:2x 재실측에서 6건 그대로 → 5차수 몫** | 내 작업(5차수) |
 | **`.claude/settings.json` 커밋 여부** | 배경작업 워크트리 격리 해제. 하네스가 의존한다 | 캡틴 판단 |
 
 ---
 
-## 5. 4차수 시작 절차 (그대로 실행)
+## 5. 차수 시작 절차 (차수와 무관 — `note`의 회차 번호만 바꿔 그대로 실행)
 
 ```bash
 cd /Users/redstar/MyProject/OhMyEnglish
@@ -150,10 +156,10 @@ grep -rl 'localhost:8002' app/frontend/.next/dev >/dev/null && echo '프론트 �
 
 # ③ 회차 열기 — run_id.txt 오염 주의 (2번 재발했다. grep 고정 필수)
 podman exec -i ohmy-pg psql -U ohmy -d ohmyenglish -tAc \
-  "insert into harness_runs (git_commit, note) values ('$(git rev-parse --short HEAD)','round#4 coverage') returning id" \
+  "insert into harness_runs (git_commit, note) values ('$(git rev-parse --short HEAD)','round#5 coverage') returning id" \
   | grep -oE '[0-9a-f-]{36}' | head -1 > .harness/run_id.txt
 
-# ④ 패턴 baseline (teardown 복원 기준) — 3차수 것이 남아 있으니 새로 뜬다
+# ④ 패턴 baseline (teardown 복원 기준) — 이전 차수 것이 남아 있으니 매 차수 새로 뜬다
 podman exec -i ohmy-pg psql -U ohmy -d ohmyenglish -c \
   "drop table if exists harness_pattern_baseline;
    create table harness_pattern_baseline as select id, pattern_key, frequency, last_seen_at
@@ -163,7 +169,7 @@ podman exec -i ohmy-pg psql -U ohmy -d ohmyenglish -c \
 tmux display-message -p '#{session_name}:#{window_index}.#{pane_index}' > .harness/caller_pane.txt
 ```
 
-### Nova 모드 실행 (N6~N13)
+### Nova 모드 실행 (N6~N13 · P계층 재실행)
 
 ```bash
 # 백엔드를 nova 모드로. 픽스처를 프론트에서 fetch 가능하게 임시 배치.
