@@ -12,12 +12,12 @@
 | Phase 1 (첫 수직 슬라이스) | ✅ 개발 완료 — 태스크 12/12 |
 | **Phase 2 Nova 2 Sonic 실연동** | ✅ **어댑터 구현 + 앱 경로 실음성 왕복(AC1) 실증** — 커밋 `37a2869`, 3차수 N5 |
 | 테스트 | ✅ **241 passed** (skip/xfail 0, 기준선 206 → +35). **2026-08-26 17:2x 재실행 확인** |
-| 품질 게이트 | ✅ `ruff check .` · `ruff format --check .`(25파일) · `ty check` 전부 clean (`app/backend`·리포루트 양쪽) |
+| 품질 게이트 | ✅ **`app/backend`에서 실행할 때** `ruff check .` · `ruff format --check .`(25파일) · `ty check` 전부 clean. ⚠️ **"리포루트 양쪽 clean"은 틀렸다**(2026-08-26 재실측으로 정정) — 리포루트에 ruff 설정 파일이 **없어** 거기서 돌리면 ruff 기본 규칙이 적용돼 `check .` **56 errors** · `format --check .` **21 files**가 난다. 설정 SoT는 `app/backend/pyproject.toml`이므로 **게이트는 `app/backend` cwd로 정의된다**. `ty check`만 양쪽 clean |
 | 하네스 테스트↔수정 루프 | **4/10 차수 사용.** 미해결 앱 결함 **0건**. 4차수 P·M 완료 → 5차수는 N·B·회귀 |
 | Phase 1 완료 선언 | ⏸ **캡틴 게이트** — 아래 |
 | 3단계 학습 코치 Agent | 📄 설계서 초안(2026-08-25 18:49) — **검토 전** |
 | **발음 교정 루틴** | ❌ **없다 — 4차수 P계층에서 앱 경로로 확정.** 전사문 경로로는 원리적으로 불가. 개입 지점은 `nova.py:77` 프롬프트 한 곳. **캡틴 결정: 수정 보류, 기록만** |
-| **오류 → 이후 학습 반영** | ⚠️ **저장은 되고 활용은 안 된다 — 4차수 M계층에서 확정.** 패턴 8개를 쌓아도 agent 응답이 패턴 1개일 때와 글자까지 같았다 |
+| **오류 → 이후 학습 반영** | ⚠️ **저장은 되고 활용은 안 된다 — 4차수 M계층에서 확정.** 패턴 8개를 쌓아도 agent 응답이 3차수 N5 때와 글자까지 같았다. ⚠️ N5 시점 패턴 수를 "1개"라 적었던 것은 **오류** — Q1(E6 주입)이 N5보다 먼저 돌아 최소 2개였다(정확한 값 미기록). 대조 방향은 유지되나 **좌변 수치는 못 쓴다.** 결론의 근거는 코드 구조다 |
 
 브랜치: `design/first-vertical-slice` (git remote 없음 — 로컬 전용).
 
@@ -132,7 +132,11 @@ cd app/frontend && npm run dev   # :3000. .env.local 이 :8002 를 가리켜야 
 # 검증 게이트 (전부 통과 상태여야 정상)
 cd app/backend && .venv/bin/pytest -q && .venv/bin/ruff check . \
   && .venv/bin/ruff format --check . && ty check
+#   ⚠️ cwd가 게이트의 일부다. ruff 설정은 app/backend/pyproject.toml 하나뿐이고
+#      리포루트에는 없다 → 리포루트에서 돌리면 ruff 기본 규칙이 적용돼 56 errors가 난다.
+#      그건 회귀가 아니라 다른 규칙셋이다. 반드시 app/backend cwd에서 판정한다.
 #   tests/ 와 scripts/ 는 위 `ruff check .` 범위 밖 → 따로: ruff check ../../tests ../../scripts
+#      (이때도 cwd는 app/backend. 현재 6건 잔존 — 5차수 정리 대상)
 
 # Nova 직접 왕복 (자격증명·모델 생존 확인 + 발음 픽스처 ASR 확인)
 cd app/backend && .venv/bin/python ../../tests/harness/spike_nova_protocol.py --wav p1a.wav
@@ -161,7 +165,7 @@ cd app/backend && .venv/bin/python ../../tests/harness/spike_nova_protocol.py --
 | 백엔드 | `:8002` **스텁 모드** baseline (`--log-level warning`), **09:59:30 기동**(4차수 teardown 시 재기동). 이후 변경된 `.py` **없음** → 최신. 프로세스 env에 `VOICE_ADAPTER` **잔류 없음** |
 | 프론트 | `:3000`, 08-25 09:45 기동. 소스는 그보다 새롭지만 **dev 서버가 재컴파일해 최신**이다 |
 | DB baseline | `learning_sessions` 2 · `utterances` 6 · `error_patterns` 1 · `error_occurrences` 2 · `frequency` 합 2 · `analysis_jobs` 3 — **4차수 teardown 후 재실측으로 일치 확인** |
-| 하네스 부기 | `harness_runs` **5행**(4차수가 5번째 회차 `8e49d45a…`, `git_commit=4588b50`, note `round#4 P+M only`) · `harness_sessions` **35행** · `harness_pattern_baseline` 1행(**어느 차수에 생성된 것인지는 사후 확인 불가** — 테이블에 생성 시각이 없고 복사된 행 내용이 3·4차수에서 동일하다. **5차수 개시 때 무조건 새로 뜬다**) |
+| 하네스 부기 | `harness_runs` **5행**(4차수가 5번째 회차 `8e49d45a…`, `git_commit=4588b50`, note `round#4 P+M only`) · `harness_sessions` **35행** · `harness_pattern_baseline` 1행 — **4차수 개시 시 재생성된 것으로 확정**(`xmin` **51149**가 3차수 마지막 세션 `50579`와 4차수 첫 세션 `51177` **사이**다. 테이블에 생성 시각 컬럼이 없어 `xmin`으로 판별한다). **5차수 개시 때 또 새로 뜬다** |
 | 음성 픽스처 9개 | `u1~u3`(문법 오류용) + `p1a/p1m/p1k/p2a/p2m/p2k`(발음 쌍, 신규) |
 
 > ⚠️ 하네스 §5의 "낡은 프로세스" mtime 검사는 **프론트에 오탐을 낸다** — Next dev는 HMR로

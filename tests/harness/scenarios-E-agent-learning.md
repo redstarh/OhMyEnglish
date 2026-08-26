@@ -183,7 +183,7 @@ Agent — `docs/design/2026-08-25-learning-coach-agent-design.md`, 검토 전 �
 ### 4차수에 실제로 돌리는 시나리오
 
 > **4차수 실행 결과 (2026-08-26)**: **M0·M1 완료 — 부재 확정.** E1로 패턴 8개를 쌓은 뒤 새
-> 세션을 열었더니 ① `scenario_id`가 동일(`…0101`) ② agent 응답이 **3차수 N5(패턴 1개일 때)와
+> 세션을 열었더니 ① `scenario_id`가 동일(`…0101`) ② agent 응답이 **3차수 N5(누적이 더 적을 때)와
 > 글자까지 같았다** ③ `review_tasks` 0행 ④ `next_review_at`·`mastery_score` 설정 0건.
 > M1에서 `article` frequency가 **3 → 4 → 5**로 세션 경계를 넘어 병합됐다(저장 링크 ✅).
 > 실측은 `runs/2026-08-26-run-4.md` §M계층.
