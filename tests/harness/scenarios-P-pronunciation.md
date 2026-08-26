@@ -95,6 +95,11 @@ afconvert -f WAVE -d LEI16@16000 -c 1 /tmp/f.aiff p1a.wav
 전제: 백엔드 `VOICE_ADAPTER=nova`, 픽스처를 `app/frontend/public/harness/`에 임시 배치.
 브라우저 주입 스크립트는 `handoff/HANDOFF-test-harness.md` §5의 N5 검증본을 재사용한다.
 
+> **4차수 실행 결과 (2026-08-26)**: **P1·P2·P3·P4·P5·P6·P7 완료, 전부 기대대로.** 최우선 위험
+> P5는 **clean**이었다 — 한글 전사문에 대해 job이 `done`·attempts 1·findings 0으로 수렴했다
+> (120초 관측). P6 오탐 0건. **신규 앱 결함 0건 → 수정 왕복 열지 않음.** P8만 이월(5차수).
+> 실측·증거는 `runs/2026-08-26-run-4.md` §P계층. 아래 표의 "상태"는 4차수 개시 시점 값이다.
+
 | # | 시나리오 | 단정 | 상태 |
 |---|---|---|:--:|
 | **P1** | 정확 발음 기준선 (`p1a`, `p2a`) — 앱 경로 | 전사문이 문장과 일치. 분석 findings **0건**(문법적으로 옳으므로). agent가 발음을 언급하지 않는다 | 미실행 |
