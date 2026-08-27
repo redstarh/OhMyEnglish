@@ -1,7 +1,8 @@
 # OhMyEnglish Handoff
 
-> 제품·구현 정본. 최종 갱신 **2026-08-27** · 기준 커밋 **HEAD ≥ `a02cae5`** ·
-> **다음 할 일: 요구사항 v1.1 구현 (계획 Task 4) — `handoff/HANDOFF-v1.1-implementation.md`**
+> 제품·구현 정본. 최종 갱신 **2026-08-27** · 기준 커밋 **HEAD ≥ `582eef6`** ·
+> **다음 할 일: 요구사항 v1.1 구현 (계획 Task 5 — Nova 어댑터에 발음 tool 연결) —
+> `handoff/HANDOFF-v1.1-implementation.md`**
 >
 > ⭐ **요구사항이 v1.1로 올라갔다** (2026-08-27) — `docs/PRD.md` §10 발음 시범·재발화,
 > §11 학습 이력 기반 추천 학습 루틴. 그 구현 갈래의 정본은
@@ -20,13 +21,14 @@
 |---|---|
 | Phase 1 (첫 수직 슬라이스) | ✅ 개발 완료 — 태스크 12/12 |
 | **Phase 2 Nova 2 Sonic 실연동** | ✅ **어댑터 구현 + 앱 경로 실음성 왕복(AC1) 실증** — 커밋 `37a2869`, 3차수 N5 |
-| 테스트 | ✅ **241 passed** (skip/xfail 0, 기준선 206 → +35). **2026-08-26 17:2x 재실행 확인** |
+| 테스트 | ✅ **286 passed** (skip/xfail 0, 기준선 206 → +80). **2026-08-27 v1.1 Task 4까지 재실행 확인.** 게이트는 `app/backend` cwd에서 판정한다 |
 | 품질 게이트 | ✅ **`app/backend`에서 실행할 때** `ruff check .` · `ruff format --check .`(25파일) · `ty check` 전부 clean. ⚠️ **"리포루트 양쪽 clean"은 틀렸다**(2026-08-26 재실측으로 정정) — 리포루트에 ruff 설정 파일이 **없어** 거기서 돌리면 ruff 기본 규칙이 적용돼 `check .` **56 errors** · `format --check .` **21 files**가 난다. 설정 SoT는 `app/backend/pyproject.toml`이므로 **게이트는 `app/backend` cwd로 정의된다**. `ty check`만 양쪽 clean |
 | 하네스 테스트↔수정 루프 | **4/10 차수 사용.** 미해결 앱 결함 **0건**. 4차수 P·M 완료 → 5차수는 N·B·회귀 |
 | Phase 1 완료 선언 | ⏸ **캡틴 게이트** — 아래 |
 | **요구사항 정본** | ✅ **v1.1 (2026-08-27)** — `PRD.md` §10 발음 시범·재발화 · §11 이력 기반 추천 학습 루틴 신설. v1.0 사본은 `docs/backup/v1.0/` |
 | 3단계 학습 코치 Agent | ✅ **설계서 정본 승격(2026-08-27)** — 미결 3건 종결(최근 창 14일 유지 / 정답 판정은 문법=워커·발음=Nova 두 경로 / `impact_score` 영구 제외), **2슬라이스 분해 채택**. 구현 전 |
-| **발음 교정 루틴** | 🔨 **요구사항·설계 확정, 구현 전.** 4차수는 "없다"까지 확정했고 **2026-08-27 스파이크가 전제를 뒤집었다** — Nova tool use가 동작하고(`runs/2026-08-27-P-tooluse-spike/`), 지시하면 Nova가 **실제로 문장 전체를 올바른 발음으로 다시 읽어준다**. 즉 능력 부재가 아니라 지시 부재였다. 설계서 `docs/design/2026-08-27-pronunciation-echo-design.md` |
+| **발음 교정 루틴** | 🔨 **구현 중 — 9태스크 중 4개 완료**(표 003 · 검증 모델 · 포트 이벤트 · **생명주기 서비스**). 다음이 Task 5(Nova 지시문+tool)이고 **거기까지 하면 학습자가 실제로 피드백을 받기 시작한다.** 지금 앱을 돌리면 발음 교정은 여전히 일어나지 않는다. 상세는 `handoff/HANDOFF-v1.1-implementation.md`. 아래는 착수 전 확정 사항: |
+| ↳ (근거) | **요구사항·설계 확정.** 4차수는 "없다"까지 확정했고 **2026-08-27 스파이크가 전제를 뒤집었다** — Nova tool use가 동작하고(`runs/2026-08-27-P-tooluse-spike/`), 지시하면 Nova가 **실제로 문장 전체를 올바른 발음으로 다시 읽어준다**. 즉 능력 부재가 아니라 지시 부재였다. 설계서 `docs/design/2026-08-27-pronunciation-echo-design.md` |
 | **오류 → 이후 학습 반영** | ⚠️ **저장은 되고 활용은 안 된다 — 4차수 M계층에서 확정.** 패턴 8개를 쌓아도 agent 응답이 3차수 N5 때와 글자까지 같았다. ⚠️ N5 시점 패턴 수를 "1개"라 적었던 것은 **오류** — Q1(E6 주입)이 N5보다 먼저 돌아 최소 2개였다(정확한 값 미기록). 대조 방향은 유지되나 **좌변 수치는 못 쓴다.** 결론의 근거는 코드 구조다 |
 
 브랜치: `design/first-vertical-slice` (git remote 없음 — 로컬 전용).
@@ -265,9 +267,10 @@ cd app/backend && .venv/bin/python ../../tests/harness/spike_nova_protocol.py --
 ## 다음 작업 후보 (우선순위는 캡틴 결정)
 
 1. ⭐ **요구사항 v1.1 §10 구현 계속** — 계획 `docs/design/2026-08-27-pronunciation-echo-plan.md`
-   Task 4(생명주기 서비스) → **Task 5(Nova 지시문+tool)** → Task 6. **Task 5까지 하면
-   학습자가 실제로 발음 피드백을 받기 시작한다.** 상세는
-   `handoff/HANDOFF-v1.1-implementation.md`
+   **Task 5(Nova 지시문+tool)** → Task 6 → Task 7. **Task 5까지 하면 학습자가 실제로
+   발음 피드백을 받기 시작한다.** Task 4는 완료(`ed91363`·`582eef6`).
+   ⚠️ **계획 Task 5·6·7의 인터페이스 서술이 낡았다** — Task 4가 계획에서 2건 벗어났다.
+   착수 전 `handoff/HANDOFF-v1.1-implementation.md` **§2.1**을 읽어라(대체 시그니처 전문 포함)
 2. **요구사항 v1.1 §11 구현 계획 작성** — 설계서는 정본 승격 완료(미결 3건 종결).
    §12.1 **2슬라이스 채택 결정됨**. 슬라이스 1을 먼저 하는 것이 권고 — `suggested_contexts`가
    지금 버려지고 있고 소급이 불가능하다
@@ -283,7 +286,8 @@ cd app/backend && .venv/bin/python ../../tests/harness/spike_nova_protocol.py --
 1. `git log --oneline c55fbc4..HEAD`로 위 커밋 표를 대조 (**HEAD ≥ `5e3083f`**).
    표보다 커밋이 많은 것은 정상 — 그 차이가 이 파일 갱신 이후의 작업이다
 2. **포트 함정 절을 먼저 읽어라** — 백엔드 `--port 8002`, 프론트 `.env.local` `:8002`
-3. 게이트 4개를 돌려 실측 확인 (241 passed / ruff · format · ty clean)
+3. 게이트 4개를 **`app/backend` cwd에서** 돌려 실측 확인 (**286 passed** / ruff · format 27파일 · ty clean).
+   dev DB 마이그레이션은 **001·003·004** 3개다 — 다르면 `app/backend/.venv/bin/python scripts/migrate.py`(멱등)
 4. Nova를 건드리면 `spike_nova_protocol.py --wav p1a.wav`로 자격증명 생존을 먼저 확인
    (키 로테이션 시 여기서 먼저 깨진다)
 5. 5차수를 시작하면 `handoff/HANDOFF-test-harness.md` §5 개시 절차를 그대로 실행 —
