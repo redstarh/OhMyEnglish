@@ -520,12 +520,8 @@ def test_the_recorded_tool_block_translates_into_one_pronunciation_event():
 
 
 # TOOL 블록이 ASSISTANT 텍스트 **앞**에 온다(실측 순서). TOOL 블록이 그 뒤의 텍스트
-# 블록을 삼키거나 순서를 뒤집지 않는 것을 본다.
-#
-# ⚠️ 아래 기대값은 **결함을 포함한다**: agent 텍스트가 한 completion에 2블록으로 오면
-# 마지막 하나만 확정 승격돼서 **시범 문장("Say this after me: …")이 전사문에 남지 않는다.**
-# 코드 리뷰가 실측으로 잡았고 다음 커밋이 고친다(청크 이어붙이기) — 그때 이 기대값이
-# 바뀐다. 지금 그대로 두는 이유는 Task 5의 회귀 여부와 그 결함을 한 커밋에 섞지 않는 것이다.
+# 블록을 삼키거나 순서를 뒤집지 않는 것을 본다. 확정 행은 두 청크가 이어붙은 하나여야
+# 한다 — **시범 문장이 거기 살아 있는 것이 이 기능의 핵심 산출물이다.**
 def test_a_tool_block_does_not_disturb_the_agent_text_promotion():
     translated = _translate_all(
         [
@@ -554,7 +550,7 @@ def test_a_tool_block_does_not_disturb_the_agent_text_promotion():
         ),
         TranscriptEvent(kind="partial", text=TOOL_AGENT_TEXT_1, speaker="agent"),
         TranscriptEvent(kind="partial", text=TOOL_AGENT_TEXT_2, speaker="agent"),
-        TranscriptEvent(kind="final", text=TOOL_AGENT_TEXT_2, speaker="agent"),
+        TranscriptEvent(kind="final", text=TOOL_AGENT_TEXT_1 + TOOL_AGENT_TEXT_2, speaker="agent"),
     ]
 
 
@@ -640,3 +636,85 @@ def test_an_unknown_non_tool_role_still_falls_back_to_the_learner():
     )
 
     assert translated == [TranscriptEvent(kind="final", text=USER_TRANSCRIPT, speaker="user")]
+
+
+# 한 completion에 agent 텍스트가 **여러 블록**으로 오면 이어붙여 한 행으로 확정한다.
+#
+# 실측(`runs/2026-08-27-P-tooluse-spike/`)에서 발음 교정 턴이 정확히 그랬다: completion
+# 1개에 SPECULATIVE 텍스트 2블록, FINAL 재전송 없음. 두 번째 블록의 선행 공백과 `\n\n`이
+# 이것이 **한 턴의 연속 청크**임을 보여준다(별개 메시지가 아니다). 그런데 예전 구현은
+# `_pending_agent_text`를 덮어써서 마지막 블록만 승격했고, 그 결과 **시범 문장
+# "Say this after me: …"가 전사문에 한 행도 남지 않았다** — 이 기능에서 학습 가치가 가장
+# 높은 문장이고 설계 §5.1 S4가 "큰 글씨로 강조"라고 정한 그 문장이다.
+def test_agent_text_chunks_in_one_completion_are_joined_into_one_final_row():
+    translated = _translate_all(
+        [
+            _content_start(AGENT_TEXT_CONTENT_ID, "ASSISTANT", "SPECULATIVE"),
+            _text_output(AGENT_TEXT_CONTENT_ID, "ASSISTANT", TOOL_AGENT_TEXT_1),
+            _content_end(AGENT_TEXT_CONTENT_ID, "PARTIAL_TURN"),
+            _content_start("second-block", "ASSISTANT", "SPECULATIVE"),
+            _text_output("second-block", "ASSISTANT", TOOL_AGENT_TEXT_2),
+            _content_end("second-block", "PARTIAL_TURN"),
+            ("completionEnd", _envelope(extra={"stopReason": "END_TURN"})),
+        ]
+    )
+
+    finals = [e for e in translated if isinstance(e, TranscriptEvent) and e.kind == "final"]
+    assert len(finals) == 1, "한 턴은 한 행이다 — 청크마다 행이 생기면 전사문이 부풀어 오른다"
+    # 시범 문장이 살아 있어야 한다. 이것이 이 수정의 목적이다.
+    assert "Say this after me" in finals[0].text
+    assert "Now you repeat that sentence for me." in finals[0].text
+    assert finals[0].speaker == "agent"
+
+
+# 각 청크는 화면용 partial로 그대로 흘러야 한다 — 이어붙이기가 실시간 표시를 바꾸지 않는다.
+def test_joining_does_not_change_the_partial_frames():
+    translated = _translate_all(
+        [
+            _content_start(AGENT_TEXT_CONTENT_ID, "ASSISTANT", "SPECULATIVE"),
+            _text_output(AGENT_TEXT_CONTENT_ID, "ASSISTANT", "First chunk."),
+            _content_start("second-block", "ASSISTANT", "SPECULATIVE"),
+            _text_output("second-block", "ASSISTANT", " Second chunk."),
+        ]
+    )
+
+    assert translated == [
+        TranscriptEvent(kind="partial", text="First chunk.", speaker="agent"),
+        TranscriptEvent(kind="partial", text=" Second chunk.", speaker="agent"),
+    ]
+
+
+# FINAL이 오면 그때까지 쌓인 청크를 버린다 — FINAL이 그 턴의 정본이다. 안 버리면
+# 같은 내용이 두 번(청크 + FINAL) 이어붙여진다.
+def test_a_real_final_discards_the_accumulated_chunks():
+    translated = _translate_all(
+        [
+            _content_start(AGENT_TEXT_CONTENT_ID, "ASSISTANT", "SPECULATIVE"),
+            _text_output(AGENT_TEXT_CONTENT_ID, "ASSISTANT", "That's a great"),
+            _content_start("later-content", "ASSISTANT", "FINAL"),
+            _text_output("later-content", "ASSISTANT", AGENT_TEXT),
+            ("completionEnd", _envelope(extra={"stopReason": "END_TURN"})),
+        ]
+    )
+
+    assert translated == [
+        TranscriptEvent(kind="partial", text="That's a great", speaker="agent"),
+        TranscriptEvent(kind="final", text=AGENT_TEXT, speaker="agent"),
+    ]
+
+
+# 다음 턴이 앞 턴의 청크를 물고 가지 않는다 — completionEnd가 버퍼를 비워야 한다.
+def test_chunks_do_not_leak_across_turns():
+    translated = _translate_all(
+        [
+            _content_start(AGENT_TEXT_CONTENT_ID, "ASSISTANT", "SPECULATIVE"),
+            _text_output(AGENT_TEXT_CONTENT_ID, "ASSISTANT", "Turn one."),
+            ("completionEnd", _envelope(extra={"stopReason": "END_TURN"})),
+            _content_start("turn-two", "ASSISTANT", "SPECULATIVE"),
+            _text_output("turn-two", "ASSISTANT", "Turn two."),
+            ("completionEnd", _envelope(extra={"stopReason": "END_TURN"})),
+        ]
+    )
+
+    finals = [e for e in translated if isinstance(e, TranscriptEvent) and e.kind == "final"]
+    assert [e.text for e in finals] == ["Turn one.", "Turn two."]

@@ -196,7 +196,10 @@ class NovaEventTranslator:
     def __init__(self) -> None:
         self._stage_by_content: dict[str, str | None] = {}
         self._role_by_content: dict[str, str] = {}
-        self._pending_agent_text: str | None = None
+        # 한 턴의 SPECULATIVE agent 청크들. **리스트인 이유**는 한 completion에 텍스트가
+        # 여러 블록으로 오기 때문이다 — 문자열 하나로 두고 덮어쓰면 마지막 블록만 남아
+        # 시범 문장("Say this after me: …")이 전사문에서 사라진다(발음 스파이크 실측).
+        self._pending_agent_chunks: list[str] = []
 
     def translate(self, name: str, body: dict[str, Any]) -> list[AdapterEvent]:
         if not isinstance(body, dict):
@@ -250,7 +253,12 @@ class NovaEventTranslator:
         stage = self._stage_by_content.get(content_id)
         kind = "partial" if stage == _SPECULATIVE_STAGE else "final"
         if speaker == "agent":
-            self._pending_agent_text = text if kind == "partial" else None
+            if kind == "partial":
+                self._pending_agent_chunks.append(text)
+            else:
+                # FINAL이 그 턴의 정본이다 — 쌓인 청크를 버린다. 안 버리면 같은 내용이
+                # 청크 + FINAL로 두 번 이어붙여진다.
+                self._pending_agent_chunks.clear()
         return [TranscriptEvent(kind=kind, text=text, speaker=speaker)]
 
     def _on_tool_use(self, body: dict[str, Any]) -> list[AdapterEvent]:
@@ -303,14 +311,23 @@ class NovaEventTranslator:
         return []
 
     def _flush_pending_agent_text(self) -> list[AdapterEvent]:
-        """턴이 끝났다 — 예고로만 온 agent 문장을 확정으로 올린다.
+        """턴이 끝났다 — 예고로만 온 agent 청크들을 **이어붙여** 한 행으로 확정한다.
 
         끊긴 턴(barge-in)에서도 올린다: 사용자가 이미 그 질문의 일부를 들었으므로
         전사문에서 통째로 사라지는 편이 더 나쁘다.
+
+        **왜 이어붙이는가.** 한 completion = 한 턴인데 Nova는 그 턴의 텍스트를 여러 블록으로
+        보낸다(발음 스파이크 실측: SPECULATIVE 2블록, 사이에 AUDIO 블록, FINAL 재전송 없음).
+        두 번째 블록이 선행 공백과 `\\n\\n`으로 시작하는 것이 별개 메시지가 아니라 **연속
+        청크**라는 증거다. 청크마다 행을 만들면 전사문이 부풀고, 마지막 하나만 남기면 시범
+        문장이 사라진다 — 그래서 이어붙여 한 행으로 만든다.
         """
-        if self._pending_agent_text is None:
+        if not self._pending_agent_chunks:
             return []
-        text, self._pending_agent_text = self._pending_agent_text, None
+        text = "".join(self._pending_agent_chunks)
+        self._pending_agent_chunks.clear()
+        if not text.strip():
+            return []
         return [TranscriptEvent(kind="final", text=text, speaker="agent")]
 
 
