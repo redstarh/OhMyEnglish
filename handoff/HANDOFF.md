@@ -1,9 +1,18 @@
 # OhMyEnglish Handoff
 
-> 제품·구현 정본. 최종 갱신 2026-08-26 17:30 · 기준 커밋 **HEAD ≥ `5e3083f`** · **다음 할 일: 하네스 5차수**
-> 이번 갱신은 캡틴 지시로 **테스트 세션(`claude_air_5-49`)이 수행**했다 — 원래 소유 관례상
-> 다른 세션 파일이지만, 4차수 범위가 제품 요구(발음 교정·학습 반영)로 넓어져 정본을 함께 고쳤다.
-> 하네스 절차는 `handoff/HANDOFF-test-harness.md`, 수정 세션 근거는 `handoff/HANDOFF-fix-session.md`.
+> 제품·구현 정본. 최종 갱신 **2026-08-27** · 기준 커밋 **HEAD ≥ `a02cae5`** ·
+> **다음 할 일: 요구사항 v1.1 구현 (계획 Task 4) — `handoff/HANDOFF-v1.1-implementation.md`**
+>
+> ⭐ **요구사항이 v1.1로 올라갔다** (2026-08-27) — `docs/PRD.md` §10 발음 시범·재발화,
+> §11 학습 이력 기반 추천 학습 루틴. 그 구현 갈래의 정본은
+> **`handoff/HANDOFF-v1.1-implementation.md`**이고, 이 파일은 제품 전체 상태를 담는다.
+>
+> 갈래별 handoff: 하네스 `handoff/HANDOFF-test-harness.md` · 수정 세션
+> `handoff/HANDOFF-fix-session.md` · **v1.1 구현 `handoff/HANDOFF-v1.1-implementation.md`**.
+> 갱신 규약은 CLAUDE.md `<handoff>`.
+>
+> 2026-08-26 갱신은 캡틴 지시로 **테스트 세션(`claude_air_5-49`)이 수행**했다 — 원래 소유
+> 관례상 다른 세션 파일이지만, 4차수 범위가 제품 요구로 넓어져 정본을 함께 고쳤다.
 
 ## 현재 상태
 
@@ -255,12 +264,19 @@ cd app/backend && .venv/bin/python ../../tests/harness/spike_nova_protocol.py --
 
 ## 다음 작업 후보 (우선순위는 캡틴 결정)
 
-1. **하네스 5차수 실행** — 4차수에서 미실행한 묶음 ①②③ + P8 + **P계층 `p2` 쌍** +
-   `tests/harness/**` ruff 6건
-2. **캡틴 게이트 3건 처리** — 실물 마이크 1회(게이트 1·발음 보정을 한 번에) / 발음 교정 범위 / M계층 단위
-3. **학습 코치 Agent 구현 계획** — 설계서 검토 → `superpowers:writing-plans`. §12.1 분해 여부와
-   §11 미결 3건(최근 창 14일 / 정답 판정 주체 / `impact_score`)이 선행 결정
-4. **보안** — access key 로테이션
+1. ⭐ **요구사항 v1.1 §10 구현 계속** — 계획 `docs/design/2026-08-27-pronunciation-echo-plan.md`
+   Task 4(생명주기 서비스) → **Task 5(Nova 지시문+tool)** → Task 6. **Task 5까지 하면
+   학습자가 실제로 발음 피드백을 받기 시작한다.** 상세는
+   `handoff/HANDOFF-v1.1-implementation.md`
+2. **요구사항 v1.1 §11 구현 계획 작성** — 설계서는 정본 승격 완료(미결 3건 종결).
+   §12.1 **2슬라이스 채택 결정됨**. 슬라이스 1을 먼저 하는 것이 권고 — `suggested_contexts`가
+   지금 버려지고 있고 소급이 불가능하다
+3. **하네스 5차수 실행** — 4차수 미실행분 ①②③ + P8 + **P계층 `p2` 쌍** + **P7 재캡처** +
+   신규 P9~P12(발음 루틴) + `tests/harness/**` ruff 6건
+4. **캡틴 게이트 처리** — 실물 마이크 1회(게이트 1·발음 픽스처 보정을 한 번에) /
+   M계층 반영 단위(A·B 함께) / `toolResult` 회신 여부 / `agent_reprompt` 신호 유지 여부
+5. **추적 체크리스트 HTML** (캡틴 요청) — 요구사항 상세 기능 ↔ 설계·구현 대조표. 구현 후
+6. **보안** — access key 로테이션
 
 ## 다음 세션 진입 절차
 

@@ -210,7 +210,7 @@ at-least-once + 멱등성(발화 단위 replace, §5.2)이라는 의미론도 �
 `unique(user_id, pattern_key)` 병합(§7 Contract)과 AC4, 그리고 `tests/README.md:9`(같은 오류는 하나의 패턴으로 병합)는 **Claude가 세션을 넘어 같은 오류 유형에 같은 key를 내놓는다**는 전제 위에 있다. 자유 생성에 맡기면 `missing_article_before_place`와 `article_missing_before_gym`이 서로 병합되지 않아 앱의 핵심 약속이 조용히 무너진다 (4차 리뷰 B-4).
 
 - **재사용 우선**: 분석 프롬프트에 해당 사용자의 기존 `pattern_key` 목록(카테고리·`target_form` 포함)을 주입하고, 같은 오류 유형이면 **기존 key를 그대로 재사용**하게 지시한다. 단일 사용자라 목록이 작아 주입 비용이 낮다.
-- **신규 생성 규칙**: 기존에 없을 때만 `{category}_{간결한_영문_스네이크}` 형식으로 생성한다 (예: `article_missing_before_noun`). 이 형식은 이 설계의 발명 규칙이다 — 근거 문서 예시 `past_tense_in_work_update`(`HANDOFF.md:129`, 카테고리 `verb_tense`)는 접두 형식이 아니며, 기존 key 재사용 우선 규칙 덕에 실질 충돌은 없다.
+- **신규 생성 규칙**: 기존에 없을 때만 `{category}_{간결한_영문_스네이크}` 형식으로 생성한다 (예: `article_missing_before_noun`). 이 형식은 이 설계의 발명 규칙이다 — 근거 문서 예시 `past_tense_in_work_update`(`requirements-summary.md:49`, 카테고리 `verb_tense`. 2026-08-27 재지정 — 원래 `HANDOFF.md:129`였으나 handoff가 재작성되며 그 줄이 다른 내용이 됐다)는 접두 형식이 아니며, 기존 key 재사용 우선 규칙 덕에 실질 충돌은 없다.
 - **검증**: `tests/README.md:3`의 "오류 패턴 정규화" 단위 테스트가 이 계약을 검증한다 — 같은 유형의 새 문장이 기존 key로 매핑되는지.
 
 ---
@@ -331,7 +331,7 @@ Given Agent가 말하고 있을 때, When 사용자가 말을 시작하면, Then
 **AC3 — 턴 단위 비동기 분석**
 Given 사용자가 `What do you usually do after work?`에 `I usually go to gym after work.`라고 답할 때, When 확정 전사문이 저장되면, Then 같은 트랜잭션에서 `analyze_utterance` 작업이 등록되고(§5.3) **세션 종료를 기다리지 않고** 처리되어 `article` 카테고리의 패턴(**§5.6 형식의 key** — LLM 출력의 정확한 접미사는 단정하지 않는다)이 저장되며 `target_form`이 `I usually go to the gym after work.`가 된다. 음성 응답 경로는 이 분석을 기다리지 않는다.
 
-> `HANDOFF.md:130`의 과거시제 사례(`Yesterday I work on the API.`)는 업무 문맥이라 이번 일상 질문 3개의 전형적 답변이 아니다. 4단계(업무 영어) 검증용 독립 fixture로 둔다.
+> `requirements-summary.md:50`의 과거시제 사례(`Yesterday I work on the API.` — 2026-08-27 재지정, 원래 `HANDOFF.md:130`)는 업무 문맥이라 이번 일상 질문 3개의 전형적 답변이 아니다. 4단계(업무 영어) 검증용 독립 fixture로 둔다.
 
 **AC4 — 패턴 병합**
 Given 같은 관사 누락이 `I usually go to office by subway.`처럼 다른 문장에서 다시 나올 때, When 분석이 완료되면, Then `error_patterns` 행은 늘지 않고 `error_occurrences`가 한 건 추가되며 `frequency`가 그 실제 행 수로 재계산된다 (`tests/README.md:9`, §5.2).
@@ -369,7 +369,7 @@ Given 세션의 `analyze_utterance` 중 하나가 `failed`일 때, When 결과 �
 |---|---|---|---|
 | 1 | 같은 오류가 다른 문장에 나타나도 하나의 패턴으로 병합 | ✅ 범위 | **AC4** |
 | 2 | 세션 피드백이 최대 두 개의 핵심 오류만 선택 | ✅ 범위 | **AC5** |
-| 3 | 녹음 삭제 시 음성 URL 미노출 | ❌ 제외 | 녹음이 기본 미저장 opt-in이고(`HANDOFF.md:50`) 첫 슬라이스에 녹음 보관을 켜지 않는다. 녹음 기능 착수 시 AC 추가 |
+| 3 | 녹음 삭제 시 음성 URL 미노출 | ❌ 제외 | 녹음이 기본 미저장 opt-in이고(`docs/backup/superseded/voice-architecture.md:97` — 2026-08-27 재지정, 원래 `HANDOFF.md:50`. 폐기 문서지만 내용이 동결돼 인용이 안전하다) 첫 슬라이스에 녹음 보관을 켜지 않는다. 녹음 기능 착수 시 AC 추가 |
 | 4 | 1·3·7일 복습 일정이 중복 없이 생성 | ❌ 제외 | 복습 과제 생성은 3단계다(§1 범위 밖). 스키마 제약(`unique(pattern_id, review_stage)`)은 §6.1에서 미리 넣되 AC는 그 단계에서 추가 |
 | 5 | 일일 목표 완료 후에도 `additional` 세션 제한 없이 시작 | ❌ 제외 | 추가 학습은 3단계 |
 | 6 | 음성 명령은 오류 분석에 미포함 | ❌ 제외 | 음성 명령은 3단계. 단 §6.2 D4의 쿼리 규약과 `utterance_type` 컬럼은 지금부터 지킨다 |
@@ -390,10 +390,10 @@ Codex 리뷰 지적에 따라, 근거가 문서에 이미 있는 것은 미결�
 
 | 사항 | 결정 | 근거 |
 |---|---|---|
-| 복습 간격 | **1·3·7일 3단계.** `database-schema.md:49`의 14일을 삭제 | `HANDOFF.md:21`, `requirements-summary.md:52`, `tests/README.md:12` 3곳이 3단계이고 14일은 1곳뿐. ~~PRD~~ — PRD에는 간격 수치가 없다 (인용 정정) |
+| 복습 간격 | **1·3·7일 3단계.** `database-schema.md:49`의 14일을 삭제 | `requirements-summary.md:52`, `tests/README.md:12`, `docs/PRD.md` §4.3이 3단계이고 14일은 1곳뿐 (2026-08-27: `HANDOFF.md:21` 인용을 제거했다 — handoff 재작성으로 그 줄이 다른 내용이 됐다). ~~PRD~~ — PRD에는 간격 수치가 없다 (인용 정정) |
 | 오류 카테고리 코드 | §6.1 D1의 영문 7개 코드 | `PRD.md:89`의 7분류와 1:1, `database-schema.md:35`가 이미 영문 `verb_tense`를 씀 |
-| 음성 녹음 보관 | **첫 슬라이스에서 켜지 않음** (기본 미저장) | `HANDOFF.md:50` "음성 녹음은 기본 저장하지 않고 opt-in으로 설계한다" |
-| 일일 목표 수치 | 앱 상수 10~15분, 컬럼 미추가 | 수치 근거는 `HANDOFF.md:105`·`requirements-summary.md:60`. `PRD.md:63`은 "권장량(한도 아님)" 개념의 근거 (수치 없음 — 인용 정정) |
+| 음성 녹음 보관 | **첫 슬라이스에서 켜지 않음** (기본 미저장) | `docs/backup/superseded/voice-architecture.md:97` "음성 녹음 저장은 opt-in으로 두며, 기본은 전사문과 학습 결과만 보관한다" (2026-08-27 재지정, 원래 `HANDOFF.md:50`) |
+| 일일 목표 수치 | 앱 상수 10~15분, 컬럼 미추가 | 수치 근거는 `requirements-summary.md:60` (2026-08-27: `HANDOFF.md:105` 인용 제거 — handoff 재작성으로 그 줄이 다른 내용이 됐다). `PRD.md:63`은 "권장량(한도 아님)" 개념의 근거 (수치 없음 — 인용 정정) |
 
 복습 간격은 h-doc이 "복습 간격 N일 같은 수치는 철회된 거짓 정밀도 유형"이라 경고한 항목이라 캡틴에게 알린다. 다만 이 수치는 이 프로젝트 문서 4곳이 이미 확정한 값이므로 새로 발명한 숫자가 아니다.
 
