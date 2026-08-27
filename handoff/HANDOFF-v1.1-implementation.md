@@ -4,7 +4,7 @@
 > 둘뿐이다. 전체 작업 지도와 진행 상태는 **`TASKS.md`**, 함정은 `docs/ops/pitfalls.md`,
 > 결정과 근거는 `docs/design/**`이 소유한다 — 여기에 복사하지 않는다(한쪽이 낡는다).
 >
-> 최종 갱신 **2026-08-28** · 기준 커밋 **HEAD ≥ `43ecaad`** · 브랜치 `design/first-vertical-slice`
+> 최종 갱신 **2026-08-28** · 기준 커밋 **HEAD ≥ `f7cef42`** · 브랜치 `design/first-vertical-slice`
 
 ---
 
@@ -29,7 +29,13 @@
 
 ## 다음 한 걸음
 
-**계획 Task 7 — 패턴 연결 (`error_patterns` upsert).**
+**둘 중 하나 — 캡틴이 고른다.** (2026-08-28 세션은 전역 규약 정리로 끝났다)
+
+- **(A) 계획 Task 7 — 패턴 연결.** 코드 갈래를 이어간다. 아래가 그 상세다.
+- **(B) `TASKS.md` §F-3 — 전역 규약 정리 잔여.** `code-development-principles.md` 215줄
+  검토(판단 필요해 미뤘다) + 메모리 상충 1건 확인.
+
+### (A) 계획 Task 7 — 패턴 연결 (`error_patterns` upsert)
 계획: `docs/design/2026-08-27-pronunciation-echo-plan.md`
 
 **착수 전 필수 3건은 `TASKS.md` A-1에 있다** — 트랜잭션 소유권 / 경로 불문 패턴 생성 /
