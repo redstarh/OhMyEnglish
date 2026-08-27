@@ -276,19 +276,21 @@ async def test_pronunciation_attempts_rejects_blank_target_form(db_conn: asyncpg
 async def test_pronunciation_attempts_signal_source_check(db_conn: asyncpg.Connection):
     session_id = await _insert_pronunciation_session(db_conn)
 
+    # 판정된 행으로 확인한다 — `pending`은 005가 nova_tool로만 허용하므로 값역 확인에
+    # 쓰면 두 제약이 얽힌다. 이 테스트가 보는 것은 **출처 값역 하나**다.
     for source in ("nova_tool", "korean_transcript", "agent_reprompt"):
         await db_conn.execute(
             "insert into pronunciation_attempts "
-            "(session_id, target_form, outcome, signal_source) "
-            "values ($1, 'I think.', 'pending', $2)",
+            "(session_id, target_form, outcome, signal_source, resolved_at) "
+            "values ($1, 'I think.', 'unclear', $2, now())",
             session_id,
             source,
         )
     with pytest.raises(asyncpg.CheckViolationError):
         await db_conn.execute(
             "insert into pronunciation_attempts "
-            "(session_id, target_form, outcome, signal_source) "
-            "values ($1, 'I think.', 'pending', 'telepathy')",
+            "(session_id, target_form, outcome, signal_source, resolved_at) "
+            "values ($1, 'I think.', 'unclear', 'telepathy', now())",
             session_id,
         )
 
@@ -392,3 +394,37 @@ async def test_pronunciation_attempts_attempt_seq_rejects_supplied_value(
             "values ($1, 'I think.', 'pending', 1)",
             session_id,
         )
+
+
+# ── 005 — "대답 기다림 상태는 Nova tool만 만든다"를 DB가 강제한다 ────────────────
+#
+# 이 불변조건을 표에 두는 이유: 앱에서 지키면 판정 UPDATE가 `signal_source='nova_tool'`을
+# 매번 필터해야 하고, 보조 신호 경로가 실수로 pending 행을 만들면 판정이 그 행을 닫아
+# "누가 관측했나"가 뒤섞인다. 제약 한 줄로 그 케이스 자체를 없앤다.
+@pytest.mark.asyncio
+async def test_pending_requires_the_nova_tool_source(db_conn: asyncpg.Connection):
+    session_id = await _insert_pronunciation_session(db_conn)
+
+    with pytest.raises(asyncpg.CheckViolationError):
+        await db_conn.execute(
+            "insert into pronunciation_attempts "
+            "(session_id, target_form, outcome, signal_source) "
+            "values ($1, 'I think.', 'pending', 'korean_transcript')",
+            session_id,
+        )
+
+
+# 판정된 행은 어느 출처든 허용된다 — 보조 신호는 항상 판정된 상태로 태어난다
+@pytest.mark.asyncio
+async def test_a_resolved_row_accepts_any_source(db_conn: asyncpg.Connection):
+    session_id = await _insert_pronunciation_session(db_conn)
+
+    for source in ("nova_tool", "korean_transcript", "agent_reprompt"):
+        row_id = await db_conn.fetchval(
+            "insert into pronunciation_attempts "
+            "(session_id, target_form, outcome, signal_source, resolved_at) "
+            "values ($1, 'I think.', 'unclear', $2, now()) returning id",
+            session_id,
+            source,
+        )
+        assert row_id is not None

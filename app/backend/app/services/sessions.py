@@ -46,9 +46,22 @@ async def create_session(pool: asyncpg.Pool, user_id: UUID) -> UUID:
     return session_id
 
 
+async def end_session(conn: asyncpg.Connection, session_id: UUID, status: SessionEndStatus) -> None:
+    """세션 종료를 기록한다 — `ended_at` + `status`를 한 UPDATE로.
+
+    **연결을 받는 쪽이 원시 함수다.** 종료 기록을 다른 쓰기와 한 트랜잭션으로 묶어야 하는
+    호출자가 있어서다(`audio_gateway/session.py`: 종료 기록 + 발음 시도 수렴을 한 단위로).
+    `save_final_transcript(conn, …)`가 같은 이유로 연결을 받는다.
+    """
+    await conn.execute(_END_SESSION_SQL, session_id, status)
+
+
 async def mark_session_ended(
     pool: asyncpg.Pool, session_id: UUID, status: SessionEndStatus
 ) -> None:
-    """세션 종료를 기록한다 — `ended_at` + `status`를 한 UPDATE로."""
+    """묶을 것이 없는 호출자를 위한 편의 래퍼 — 연결을 하나 잡아 `end_session`을 부른다.
+
+    SQL은 여전히 `_END_SESSION_SQL` 하나가 소유한다.
+    """
     async with pool.acquire() as conn:
-        await conn.execute(_END_SESSION_SQL, session_id, status)
+        await end_session(conn, session_id, status)

@@ -40,6 +40,7 @@ from app.audio_gateway.nova import NovaVoiceAdapter
 from app.audio_gateway.port import (
     AdapterEvent,
     InterruptionEvent,
+    PronunciationEvent,
     SpeechBoundaryEvent,
     TranscriptEvent,
     VoiceAdapter,
@@ -277,13 +278,15 @@ async def test_adapter_close_precedes_the_session_end_record(
     db_pool, committed_session, monkeypatch: pytest.MonkeyPatch
 ):
     calls: list[str] = []
-    original = session_module.mark_session_ended
+    # 종료 기록은 이제 `end_session(conn, …)`이다 — 발음 시도 수렴과 한 트랜잭션으로
+    # 묶기 위해 연결을 받는 원시 함수를 쓴다(`services/sessions.py`).
+    original = session_module.end_session
 
-    async def spy(pool: asyncpg.Pool, session_id: UUID, status: SessionEndStatus) -> None:
+    async def spy(conn: asyncpg.Connection, session_id: UUID, status: SessionEndStatus) -> None:
         calls.append("session.end_record")
-        await original(pool, session_id, status)
+        await original(conn, session_id, status)
 
-    monkeypatch.setattr(session_module, "mark_session_ended", spy)
+    monkeypatch.setattr(session_module, "end_session", spy)
 
     await asyncio.wait_for(
         _runner(OrderSpyAdapter(calls), db_pool, committed_session.session_id, FakeClient()).run(),
@@ -706,3 +709,151 @@ async def test_stub_emits_only_transcripts_and_audio():
 
     assert not any(isinstance(event, SpeechBoundaryEvent | InterruptionEvent) for event in events)
     assert all(isinstance(event, TranscriptEvent | bytes) for event in events)
+
+
+# --- 발음 시도 기록 (계획 Task 6 · 설계서 §3.2 · PS1·PS4·PS5·PS8) ---
+#
+# 감지 경로는 **둘**이다: Nova tool(정확) + 한글 전사(확실). 세 번째였던 "agent가 되묻는
+# 문구를 잡기"는 **캡틴 결정(2026-08-28)으로 만들지 않는다** — 문구 매칭이라 케이스가 불어나고,
+# 지시문 규칙 8이 매번 "repeat"를 만들어 시범과 되묻기를 가르는 규칙이 계속 자란다.
+# 그래서 R10-4의 절반은 의도적으로 미충족이다.
+
+# 4차수 P4 실측: 한국어 억양이 강하면 ASR 언어 판별이 뒤집혀 영어 문장이 한글로 전사된다.
+KOREAN_TRANSCRIPT = "아이싱크 아이파운드 쓰리 베리 유스풀 비디오즈"
+PRONUNCIATION_TARGET = "I think I found three very useful videos."
+
+
+async def _pronunciation_rows(pool: asyncpg.Pool, session_id: UUID) -> list[asyncpg.Record]:
+    async with pool.acquire() as conn:
+        return await conn.fetch(
+            "select outcome, target_form, spoken_form, target_sound, signal_source "
+            "from pronunciation_attempts where session_id = $1 order by attempt_seq",
+            session_id,
+        )
+
+
+# ① PS1 — tool 이벤트가 저장되고 화면에도 나간다
+async def test_pronunciation_event_is_stored_and_broadcast(db_pool, committed_session):
+    client = FakeClient()
+    adapter = ScriptedAdapter(
+        PronunciationEvent(
+            target_form=PRONUNCIATION_TARGET,
+            outcome="pending",
+            spoken_form="[awaiting user repetition]",
+            target_sound="th_as_s",
+        )
+    )
+
+    await asyncio.wait_for(
+        _runner(adapter, db_pool, committed_session.session_id, client).run(), timeout=5.0
+    )
+
+    rows = await _pronunciation_rows(db_pool, committed_session.session_id)
+    assert len(rows) == 1
+    assert rows[0]["signal_source"] == "nova_tool"
+    assert rows[0]["target_form"] == PRONUNCIATION_TARGET
+    assert rows[0]["target_sound"] == "th_as_s"
+    frames = client.of_type("pronunciation")
+    assert len(frames) == 1
+    assert frames[0]["target_form"] == PRONUNCIATION_TARGET
+    assert frames[0]["outcome"] == "pending", "방송은 그 순간의 값이다 — 수렴은 나중 일이다"
+
+
+# ② 판정이 오면 같은 행이 닫힌다 — 시도 수가 부풀지 않는다
+async def test_a_verdict_closes_the_same_attempt(db_pool, committed_session):
+    adapter = ScriptedAdapter(
+        PronunciationEvent(target_form=PRONUNCIATION_TARGET, outcome="pending"),
+        PronunciationEvent(
+            target_form=PRONUNCIATION_TARGET,
+            outcome="correct",
+            spoken_form="I think I found three very useful videos.",
+        ),
+    )
+
+    await asyncio.wait_for(
+        _runner(adapter, db_pool, committed_session.session_id, FakeClient()).run(), timeout=5.0
+    )
+
+    rows = await _pronunciation_rows(db_pool, committed_session.session_id)
+    assert len(rows) == 1, "두 tool 호출은 한 시도다"
+    assert rows[0]["outcome"] == "correct"
+    assert rows[0]["spoken_form"] == "I think I found three very useful videos."
+
+
+# ③ PS4 + 캡틴 결정 — 대답 없이 끝나면 `incorrect`다. 이후 학습도 그냥 틀림으로 본다.
+#    `spoken_form`은 비운다: 재발화를 실제로 못 들었으므로 Nova의 placeholder 문구를
+#    "학습자가 이렇게 들렸다"로 남겨두면 결과 화면이 그 문구를 보여준다.
+async def test_pending_converges_to_incorrect_when_the_session_ends(db_pool, committed_session):
+    adapter = ScriptedAdapter(
+        PronunciationEvent(
+            target_form=PRONUNCIATION_TARGET,
+            outcome="pending",
+            spoken_form="[awaiting user repetition]",
+        ),
+        PronunciationEvent(target_form="Other sentence.", outcome="pending"),
+    )
+
+    await asyncio.wait_for(
+        _runner(adapter, db_pool, committed_session.session_id, FakeClient()).run(), timeout=5.0
+    )
+
+    rows = await _pronunciation_rows(db_pool, committed_session.session_id)
+    assert [row["outcome"] for row in rows] == ["incorrect", "incorrect"]
+    assert all(row["spoken_form"] is None for row in rows)
+
+
+# ④ PS5 — 한글 전사문이 보조 신호로 기록되고, 저장·job 등록은 그대로 일어난다
+async def test_korean_transcript_records_an_assist_signal(db_pool, committed_session):
+    adapter = ScriptedAdapter(TranscriptEvent(kind="final", text=KOREAN_TRANSCRIPT, speaker="user"))
+
+    await asyncio.wait_for(
+        _runner(adapter, db_pool, committed_session.session_id, FakeClient()).run(), timeout=5.0
+    )
+
+    rows = await _pronunciation_rows(db_pool, committed_session.session_id)
+    assert len(rows) == 1
+    assert rows[0]["signal_source"] == "korean_transcript"
+    assert rows[0]["outcome"] == "unclear"
+    assert rows[0]["spoken_form"] == KOREAN_TRANSCRIPT
+    # 파이프라인이 죽지 않았다는 증거 — 전사문도 남고 분석 job도 붙는다
+    assert len(await _utterances(db_pool, committed_session.session_id)) == 1
+    assert await _job_count(db_pool, committed_session.session_id) == 1
+
+
+# ⑤ 정상 영어 전사문에는 신호가 붙지 않는다 — 오탐 방지
+async def test_ascii_transcript_records_no_assist_signal(db_pool, committed_session):
+    adapter = ScriptedAdapter(
+        TranscriptEvent(kind="final", text=FIXTURE_TURNS[0][1], speaker="user")
+    )
+
+    await asyncio.wait_for(
+        _runner(adapter, db_pool, committed_session.session_id, FakeClient()).run(), timeout=5.0
+    )
+
+    assert await _pronunciation_rows(db_pool, committed_session.session_id) == []
+
+
+# ⑥ 한글이 섞여도 **agent** 발화에는 신호를 붙이지 않는다 — 신호는 학습자 발음에 대한 것이다
+async def test_korean_in_agent_text_records_no_assist_signal(db_pool, committed_session):
+    adapter = ScriptedAdapter(
+        TranscriptEvent(kind="final", text="좋아요, " + KOREAN_TRANSCRIPT, speaker="agent")
+    )
+
+    await asyncio.wait_for(
+        _runner(adapter, db_pool, committed_session.session_id, FakeClient()).run(), timeout=5.0
+    )
+
+    assert await _pronunciation_rows(db_pool, committed_session.session_id) == []
+
+
+# ⑦ PS8 — 스텁 모드는 발음 행을 만들지 않는다. 스텁 화면 판정(1·2차수 C2)이 바뀌면 안 된다
+async def test_stub_mode_produces_no_pronunciation_rows(db_pool, committed_session):
+    client = FakeClient()
+
+    await asyncio.wait_for(
+        _runner(StubVoiceAdapter(), db_pool, committed_session.session_id, client).run(),
+        timeout=10.0,
+    )
+
+    assert await _pronunciation_rows(db_pool, committed_session.session_id) == []
+    assert client.of_type("pronunciation") == []

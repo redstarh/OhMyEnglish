@@ -41,6 +41,7 @@ Task 4에는 한 단위로 묶일 두 번째 문장이 없다.
 from __future__ import annotations
 
 import logging
+import re
 from typing import Literal
 from uuid import UUID
 
@@ -62,6 +63,15 @@ AssistSignal = Literal["korean_transcript", "agent_reprompt"]
 AssistOutcome = Literal["correct", "incorrect", "unclear"]
 
 _NOVA_TOOL: SignalSource = "nova_tool"
+
+# 한글 음절 블록. ASR 언어 판별이 뒤집히면 영어 문장이 이렇게 전사된다 — 4차수 P4 실측
+# (`p1k` → '아이싱크 아이파운드 …'). 문구가 아니라 문자를 보므로 결정론적이다.
+_HANGUL = re.compile(r"[가-힣]")
+
+# 한글 전사 신호 행의 `target_form`. Nova가 시범한 문장이 아니라 "왜 이 행이 생겼는지"라서
+# 문장 자리에 설명이 들어간다. ⚠️ 결과 화면(계획 Task 8)이 `target_form`을 학습자에게
+# 보여주므로, 그 화면은 `signal_source`로 nova_tool 행과 구분해 렌더해야 한다.
+KOREAN_TRANSCRIPT_TARGET_FORM = "(전사문이 한국어로 인식되었습니다)"
 
 
 async def _insert_attempt(
@@ -133,17 +143,15 @@ async def record_attempt(
     # 판정값 — 가장 최근 pending을 닫는다. `coalesce`라서 판정이 값을 안 주면 시범
     # 시점의 값이 남는다(빈 판정이 기록을 지우지 않는다).
     #
-    # `signal_source = 'nova_tool'` 필터가 있는 이유: 이 함수는 Nova 생명주기만 닫아야
-    # 한다. 보조 신호 행을 닫으면 그 행이 `signal_source='korean_transcript'`인 채로
-    # Nova의 판정·발화를 실어 R10-4의 의미가 사라진다 — 코드 리뷰가 실측으로 재현했다.
-    # `record_signal`의 `outcome`에서 `pending`을 뺀 것이 1차 방어고 이것이 2차다.
+    # `signal_source`를 **필터하지 않는다.** 005 제약이 "pending은 nova_tool만"을 표에서
+    # 강제하므로 열린 행은 정의상 Nova 것이다 — 앱에서 한 번 더 거르면 같은 규칙이 두 층에
+    # 흩어진다.
     #
     # ⚠️ `for update`는 두 판정이 동시에 들어올 때 같은 행을 닫는 것을 막는다. 그런데
     # **패자가 새 행을 만드는 것이 아니다** — 잠금이 풀리면 EPQ 재검사가 이미 닫힌 행을
     # 떨어뜨리고 서브쿼리가 **그 다음 pending으로 전진**해 무관한 시도를 닫는다(리뷰가
     # 연결 2개로 실측). 지금은 `_pump_adapter_events`가 이벤트를 순차 await해 도달
-    # 불가지만, Task 6이 `_record_pronunciation`을 `create_task`로 띄우면 즉시 도달한다
-    # (`session.py:249`의 `_store_final`이 이미 그 패턴이다). 그때 동시성 테스트를 붙여라.
+    # 불가다 — 발음 기록을 `create_task`로 띄우면 즉시 도달하므로 띄우지 않는다.
     updated = await conn.fetchval(
         """
         update pronunciation_attempts set
@@ -154,9 +162,7 @@ async def record_attempt(
             resolved_at  = clock_timestamp()
         where id = (
             select id from pronunciation_attempts
-             where session_id = $1
-               and outcome = 'pending'
-               and signal_source = 'nova_tool'
+             where session_id = $1 and outcome = 'pending'
              order by attempt_seq desc
              limit 1
              for update
@@ -216,11 +222,53 @@ async def record_signal(
     )
 
 
+async def note_transcript(
+    conn: asyncpg.Connection,
+    session_id: UUID,
+    *,
+    transcript: str,
+    utterance_id: UUID,
+) -> UUID | None:
+    """확정된 **학습자** 전사문을 보고, 발음 신호가 보이면 시도 1건을 남긴다.
+
+    감지기를 늘리거나 줄이는 일이 `session.py`에 닿지 않게 하는 단일 진입점이다 —
+    호출자는 "이 전사문을 봐 달라"만 하고 무엇을 어떻게 보는지는 이 모듈이 안다.
+    신호가 없으면 `None`을 돌려준다.
+
+    **agent 발화는 넣지 않는다.** 신호는 학습자 발음에 대한 것이고, agent 문구를 보고
+    판단하는 감지기는 두지 않는다(캡틴 결정 2026-08-28: 문구 매칭은 케이스가 불어난다).
+
+    지금 감지기는 하나다 — 한글 전사. 4차수 P4 실측: 한국어 억양이 강하면 ASR 언어
+    판별이 뒤집혀 영어 문장이 `'아이싱크 아이파운드 …'`로 전사된다. 글자만 보면 되므로
+    결정론적이고, 모델 문구가 바뀌어도 깨지지 않는다.
+    """
+    if not _HANGUL.search(transcript):
+        return None
+    logger.info("전사문이 한글로 인식됐다 — 발음 신호로 기록한다 (세션 %s)", session_id)
+    return await record_signal(
+        conn,
+        session_id,
+        target_form=KOREAN_TRANSCRIPT_TARGET_FORM,
+        outcome="unclear",
+        signal_source="korean_transcript",
+        spoken_form=transcript,
+        utterance_id=utterance_id,
+    )
+
+
 async def resolve_dangling(conn: asyncpg.Connection, session_id: UUID) -> int:
-    """세션에 남은 `pending`을 `unclear`로 수렴시킨다. 바뀐 행 수를 돌려준다.
+    """세션에 남은 `pending`을 `incorrect`로 수렴시킨다. 바뀐 행 수를 돌려준다.
+
+    **왜 `incorrect`인가** (캡틴 결정 2026-08-28, 설계서 §3.2의 `unclear`를 뒤집음):
+    학습자 관점에서 "대답을 못 한 것"은 못 한 것이다. 이후 학습도 그냥 틀림으로 본다 —
+    "대답 안 함"만 따로 세는 규칙을 두지 않는다(플로우가 갈라지는 것을 막는다).
+
+    `spoken_form`을 **비운다**: 재발화를 실제로 못 들었으므로 "학습자가 이렇게 들렸다"에
+    남을 값이 없다. 비우지 않으면 Nova가 시범 시점에 넣은 placeholder
+    (`"[awaiting user repetition]"`)가 결과 화면에 학습자 발음으로 표시된다.
 
     멱등이다 — 두 번 불러도 두 번째는 0이다. 이미 판정된 행은 `where` 조건 밖이라
-    `correct`가 `unclear`로 덮이지 않는다.
+    `correct`가 덮이지 않는다.
 
     세션 종료 기록과 **같은 트랜잭션**에서 불러야 한다(설계서 §3.2). 분리하면 그 사이
     크래시에서 `pending`이 영구히 남는다 — 그래서 자기 트랜잭션을 열지 않고 호출자의
@@ -238,12 +286,18 @@ async def resolve_dangling(conn: asyncpg.Connection, session_id: UUID) -> int:
     rows = await conn.fetch(
         """
         update pronunciation_attempts
-           set outcome = 'unclear', resolved_at = clock_timestamp()
+           set outcome     = 'incorrect',
+               spoken_form = null,
+               resolved_at = clock_timestamp()
          where session_id = $1 and outcome = 'pending'
         returning id
         """,
         session_id,
     )
     if rows:
-        logger.info("미판정 발음 시도 %d건을 unclear로 수렴했다 (세션 %s)", len(rows), session_id)
+        logger.info(
+            "대답 없이 끝난 발음 시도 %d건을 incorrect로 수렴했다 (세션 %s)",
+            len(rows),
+            session_id,
+        )
     return len(rows)

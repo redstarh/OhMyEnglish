@@ -37,7 +37,8 @@ from app.audio_gateway.port import (
     TranscriptEvent,
     VoiceAdapter,
 )
-from app.services.sessions import SessionEndStatus, mark_session_ended
+from app.services.pronunciation import note_transcript, record_attempt, resolve_dangling
+from app.services.sessions import SessionEndStatus, end_session
 from app.services.utterances import save_final_transcript
 
 logger = logging.getLogger(__name__)
@@ -138,6 +139,10 @@ class SessionRunner:
 
         close가 실패해도 기록은 남긴다 — 자원 정리 실패 때문에 세션이 영원히
         `active`로 남는 편이 더 나쁘다. 진행 중인 저장은 그 전에 기다린다.
+
+        **종료 기록과 발음 시도 수렴은 한 트랜잭션이다** (설계서 §3.2). 갈라 두면 그 사이
+        크래시에서 "세션은 끝났는데 대답 기다림이 영원히 남은" 행이 생기고, 그것이 이후
+        학습 계산에 그대로 섞인다.
         """
         await self._await_pending_saves()
         try:
@@ -145,7 +150,9 @@ class SessionRunner:
         except Exception:
             logger.exception("어댑터 close가 실패했다 (세션 %s)", self._session_id)
         finally:
-            await mark_session_ended(self._pool, self._session_id, status)
+            async with self._pool.acquire() as conn, conn.transaction():
+                await end_session(conn, self._session_id, status)
+                await resolve_dangling(conn, self._session_id)
 
     async def _await_pending_saves(self) -> None:
         """shield된 저장이 끝나기를 기다린다 — 기다리지 않으면 전사문이 세션 종료
@@ -213,20 +220,37 @@ class SessionRunner:
             elif isinstance(event, InterruptionEvent):
                 await self._send({"type": "interrupted"})
             elif isinstance(event, PronunciationEvent):
-                await self._broadcast_pronunciation(event)
+                await self._record_pronunciation(event)
             elif event.kind == "partial":
                 await self._send({"type": "partial", "text": event.text, "speaker": event.speaker})
             else:
                 await self._store_final(event)
 
-    async def _broadcast_pronunciation(self, event: PronunciationEvent) -> None:
-        """발음 시범/판정을 화면에 알린다 (설계서 §5.1 S3·S7).
+    async def _record_pronunciation(self, event: PronunciationEvent) -> None:
+        """발음 시도를 저장하고 화면에 알린다 (설계서 §3.2·§5.1 S3·S7).
 
-        **저장은 아직 하지 않는다** — 시도 생명주기(`services/pronunciation.py`)가
-        붙는 것은 계획 Task 6이다. 지금은 포트에 다섯 번째 타입이 생겼으므로 이 분기가
-        **반드시** 있어야 한다: 없으면 이벤트가 `event.kind` 분기로 떨어져
-        `AttributeError`로 세션이 죽는다(`ty`가 실제로 이것을 잡았다).
+        생명주기 규칙은 전부 `services/pronunciation.py`가 안다 — 이 메서드는 이벤트를
+        그 함수에 넘기고 프레임을 방송할 뿐이다.
+
+        **예외를 세션 밖으로 던지지 않는다**: 발음 기록 실패가 대화를 끊으면 안 된다.
+        기록을 잃는 편이 낫다(설계서 §7 Contract).
+
+        **`create_task`로 띄우지 않는다.** 판정은 "같은 세션의 최신 대답 기다림 행"을
+        고르므로 두 기록이 겹치면 무관한 시도를 닫는다(코드 리뷰가 연결 2개로 실측).
+        이벤트 펌프가 순차로 await하는 지금 형태가 그 경합을 원천 차단한다.
         """
+        try:
+            async with self._pool.acquire() as conn:
+                await record_attempt(
+                    conn,
+                    self._session_id,
+                    target_form=event.target_form,
+                    outcome=event.outcome,
+                    spoken_form=event.spoken_form,
+                    target_sound=event.target_sound,
+                )
+        except Exception:
+            logger.exception("발음 시도 저장에 실패했다 (세션 %s)", self._session_id)
         await self._send(
             {
                 "type": "pronunciation",
@@ -256,6 +280,19 @@ class SessionRunner:
             utterance = await save_final_transcript(
                 conn, self._session_id, event.text, speaker=event.speaker
             )
+            if event.speaker == "user":
+                # 발음 신호가 보이는지 **서비스가** 본다. 무엇을 어떻게 보는지는 이 모듈의
+                # 관심사가 아니다 — 감지기가 늘거나 줄어도 여기는 바뀌지 않는다.
+                # 실패해도 전사문 저장을 되돌리지 않는다: 신호는 부가 정보다.
+                try:
+                    await note_transcript(
+                        conn,
+                        self._session_id,
+                        transcript=utterance.transcript,
+                        utterance_id=utterance.id,
+                    )
+                except Exception:
+                    logger.exception("발음 신호 기록에 실패했다 (세션 %s)", self._session_id)
         # 방송하는 `sequence_no`는 DB가 부여한 값이다 — 어댑터가 보낸 번호가 아니라
         # 실제로 저장된 순번이라야 클라이언트가 결과 조회와 대조할 수 있다.
         await self._send(
