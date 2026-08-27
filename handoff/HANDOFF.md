@@ -230,6 +230,8 @@ cd app/backend && .venv/bin/python ../../tests/harness/spike_nova_protocol.py --
   - ⚠️ `docs/voice-architecture.md`는 **2026-08-27에 `docs/backup/superseded/`로 이관**됐다
     (스스로 폐기 선언 + Phase 표가 현행과 어긋남). 승인 설계서 3곳이 줄 단위로 인용하므로
     파일 내용은 바이트 그대로 보존한다 — 규약은 `docs/backup/superseded/README.md`
+- **작업 상태**: `TASKS.md` (전체 Task·진행 상태의 정본)
+- **실측된 함정**: `docs/ops/pitfalls.md` (H-A~H-O)
 - 테스트 하네스: `tests/harness/README.md` + 위 §기록 규약의 5개 문서
 - 기술: us-west-2 / `amazon.nova-2-sonic-v1:0` / `us.anthropic.claude-opus-5`
   (**`[1m]` 접미사 금지** — Bedrock 프로필 아님) / FastAPI+asyncpg / PG 큐(SQS·Redis 배제, 근거 §5.0) /
@@ -267,27 +269,22 @@ cd app/backend && .venv/bin/python ../../tests/harness/spike_nova_protocol.py --
   하네스의 "워크트리 금지" 제약이 이것에 의존한다. **지우지 마라.** 커밋 여부는 캡틴 판단
 - 이연 minor 33건 전건 "병합 전 필수 아님" triage 완료 — 목록·근거는 ledger
 
-## 다음 작업 후보 (우선순위는 캡틴 결정)
+> 이 절의 미결 항목들은 **`TASKS.md` §B(캡틴 결정)·§E(비차단 후속)**에도 상태와 함께 실려 있다.
+> 상태의 정본은 `TASKS.md`다 — 여기 목록은 배경 설명으로 읽는다.
 
-1. ⭐ **요구사항 v1.1 §10 구현 계속** — 계획 `docs/design/2026-08-27-pronunciation-echo-plan.md`
-   **Task 7(패턴 연결)** → Task 8(결과 화면) → Task 9(5차수 시나리오).
-   Task 4·5·6 완료(`ed91363`·`582eef6`·`b31227a`·`1a8c908`·`0025301`).
-   ⚠️ **계획 본문 코드는 낡았다** — 계획에서 벗어난 것이 5건이고, 정본 목록은 **계획서
-   머리말의 "구현 후 정정" 표**다(`9b25efb`). 설계 계약의 정본은 설계서 §3.1a·§3.2·§6.1.
-   Task 7 착수 전 `handoff/HANDOFF-v1.1-implementation.md` **§6 "내 작업"** 첫 항목
-   (`record_attempt`가 자기 트랜잭션을 열어야 한다)을 처리해라 — Task 7이 그 원자성을 요구한다
-2. **요구사항 v1.1 §11 구현 계획 작성** — 설계서는 정본 승격 완료(미결 3건 종결).
-   §12.1 **2슬라이스 채택 결정됨**. 슬라이스 1을 먼저 하는 것이 권고 — `suggested_contexts`가
-   지금 버려지고 있고 소급이 불가능하다
-3. **하네스 5차수 실행** — 4차수 미실행분 ①②③ + P8 + **P계층 `p2` 쌍** + **P7 재캡처** +
-   신규 P9~P12(발음 루틴) + `tests/harness/**` ruff 6건
-4. **캡틴 게이트 처리** — 실물 마이크 1회(게이트 1·발음 픽스처 보정을 한 번에) /
-   M계층 반영 단위(A·B 함께) / `toolResult` 회신 여부 / `agent_reprompt` 신호 유지 여부
-5. **추적 체크리스트 HTML** (캡틴 요청) — 요구사항 상세 기능 ↔ 설계·구현 대조표. 구현 후
-6. **보안** — access key 로테이션
+## 다음 작업 후보 → **`TASKS.md`가 정본이다**
+
+전체 작업 갈래와 진행 상태, 착수 전 필수 조건, 캡틴 결정 대기 목록은 리포 루트
+**`TASKS.md`**에 있다. 이 파일에 후보 목록을 두면 두 곳이 갈라져 한쪽이 낡는다
+(2026-08-28에 실제로 그렇게 됐다).
+
+지금 다음 한 걸음은 **요구사항 v1.1 §10 Task 7(패턴 연결)** —
+상세는 `handoff/HANDOFF-v1.1-implementation.md`(다음 걸음)와 `TASKS.md` A-1(착수 전 필수 3건).
 
 ## 다음 세션 진입 절차
 
+0. **자기 갈래의 handoff → `TASKS.md`의 해당 표 한 줄** 순으로 읽는다. `TASKS.md` 전체나
+   이 파일 전체를 읽을 필요는 없다 — 이 파일은 **실행 방법·제품 배경**을 찾을 때 여는 참고서다.
 1. `git log --oneline c55fbc4..HEAD`로 위 커밋 표를 대조 (**HEAD ≥ `5e3083f`**).
    표보다 커밋이 많은 것은 정상 — 그 차이가 이 파일 갱신 이후의 작업이다
 2. **포트 함정 절을 먼저 읽어라** — 백엔드 `--port 8002`, 프론트 `.env.local` `:8002`
