@@ -115,9 +115,7 @@ async def test_two_pendings_resolve_newest_first(db_conn: asyncpg.Connection) ->
     old = await record_attempt(db_conn, session_id, target_form="First.", outcome="pending")
     new = await record_attempt(db_conn, session_id, target_form="Second.", outcome="pending")
 
-    closed = await record_attempt(
-        db_conn, session_id, target_form="Second.", outcome="correct"
-    )
+    closed = await record_attempt(db_conn, session_id, target_form="Second.", outcome="correct")
 
     assert closed == new
     assert (
@@ -169,8 +167,7 @@ async def test_verdict_attaches_values_when_given(db_conn: asyncpg.Connection) -
     )
 
     row = await db_conn.fetchrow(
-        "select spoken_form, target_sound, utterance_id "
-        "from pronunciation_attempts where id = $1",
+        "select spoken_form, target_sound, utterance_id from pronunciation_attempts where id = $1",
         attempt_id,
     )
     assert row is not None
@@ -252,9 +249,7 @@ async def test_verdict_does_not_close_another_sessions_pending(
 ) -> None:
     mine = await _session(db_conn)
     theirs = await _session(db_conn)
-    theirs_attempt = await record_attempt(
-        db_conn, theirs, target_form=TARGET, outcome="pending"
-    )
+    theirs_attempt = await record_attempt(db_conn, theirs, target_form=TARGET, outcome="pending")
 
     mine_attempt = await record_attempt(db_conn, mine, target_form=TARGET, outcome="correct")
 
@@ -294,9 +289,7 @@ async def test_signal_source_is_stored(db_conn: asyncpg.Connection) -> None:
 #    Nova의 pending은 세션 종료 수렴이 처리한다.
 async def test_assist_signal_does_not_close_a_nova_pending(db_conn: asyncpg.Connection) -> None:
     session_id = await _session(db_conn)
-    nova_pending = await record_attempt(
-        db_conn, session_id, target_form=TARGET, outcome="pending"
-    )
+    nova_pending = await record_attempt(db_conn, session_id, target_form=TARGET, outcome="pending")
 
     assist = await record_signal(
         db_conn,

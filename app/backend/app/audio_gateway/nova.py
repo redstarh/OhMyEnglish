@@ -13,6 +13,14 @@
    없다 — 화면의 "듣고 있어요"는 `userSpeechStart`~`End` 구간이 근거다.
 4. **오디오 출력은 헤더 없는 raw LPCM이다**(앞 4바이트가 `RIFF`가 아니었다). 포트가
    `bytes`만 약속하므로 포맷 변환은 클라이언트의 몫이다.
+5. **tool use가 동작한다** — 2026-08-27 스파이크(`runs/2026-08-27-P-tooluse-spike/`).
+   `promptStart.toolConfiguration`이 받아들여지고 `contentStart(type=TOOL, role=TOOL)` →
+   `toolUse` → `contentEnd(stopReason=TOOL_USE)` 순서로 온다. `inputSchema.json`은
+   **JSON 문자열**이다(객체가 아니다). TOOL 블록은 ASSISTANT 텍스트보다 **앞**에 오고,
+   Nova는 재발화 **전에** tool을 부른다(`outcome: "pending"`) — 그래서 tool 호출 1건이
+   판정된 시도 1건이 아니다(설계서 F3). `toolResult`는 **돌려보내지 않는다**: 안 보내도
+   `END_TURN`으로 정상 종료했다(캡틴 결정 2026-08-28). 그 관측은 1회뿐이라 다중 턴
+   거동은 5차수 관측 대상이다.
 
 **무음 프레임은 만들지 않는다.** 스파이크는 WAV가 끝나면 프레임이 끊겨 endpointing을
 유도할 무음을 넣어야 했지만, 실제 마이크는 사용자가 말을 멈춘 뒤에도 계속 흐른다.
@@ -37,11 +45,17 @@ from typing import Any
 from app.audio_gateway.port import (
     AdapterEvent,
     InterruptionEvent,
+    PronunciationEvent,
     Speaker,
     SpeechBoundaryEvent,
     TranscriptEvent,
 )
 from app.config import Settings, prepare_bedrock_credentials
+from app.models.pronunciation import (
+    PRONUNCIATION_TOOL_NAME,
+    PRONUNCIATION_TOOL_SCHEMA_JSON,
+    parse_tool_payload,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -69,11 +83,22 @@ _INFERENCE_CONFIGURATION = {"maxTokens": 1024, "topP": 0.9, "temperature": 0.7}
 _SPECULATIVE_STAGE = "SPECULATIVE"
 _INTERRUPTED_STOP_REASON = "INTERRUPTED"
 _ROLE_TO_SPEAKER: dict[str, Speaker] = {"USER": "user", "ASSISTANT": "agent"}
+# TOOL content는 발화가 아니다. 이 role만 명시적으로 걸러야 하는 이유는 `_on_text_output`의
+# `.get(role, "user")` 폴백이다 — 그냥 두면 tool JSON이 학습자 발화로 저장되고 분석 job까지
+# 등록된다. 다른 모르는 role은 계속 user로 떨어뜨린다(USER가 이름을 바꿔도 전사문을 잃지
+# 않는 쪽이 낫다는 기존 판단을 뒤집지 않는다).
+_TOOL_ROLE = "TOOL"
 
-# 대화 규칙의 정본은 `docs/agent-system-prompt.md`다. 여기에는 **첫 슬라이스에서 Nova가
-# 실제로 할 수 있는 부분만** 옮긴다: 오류 메모리 JSON 산출은 Claude 워커의 일이고
-# (§5.2), 음성 명령 규칙은 도구 호출이 없어 지킬 수 없다. 그대로 넣으면 모델이 JSON을
-# 소리로 읽는다. 학습자 수준·목표는 h-doc 프로필과 같다.
+# 대화 규칙의 정본은 `docs/agent-system-prompt.md`다. 여기에는 **Nova가 실제로 할 수 있는
+# 부분만** 옮긴다: 오류 메모리 JSON 산출은 Claude 워커의 일이다(§5.2). 그대로 넣으면 모델이
+# JSON을 소리로 읽는다. 학습자 수준·목표는 h-doc 프로필과 같다.
+#
+# 규칙 7~10(발음)은 2026-08-27 스파이크가 실효를 본 문구를 기준으로 한다 — 4차수에서 Nova가
+# 발음을 지적하지 않은 것은 **능력 부재가 아니라 지시 부재였다**(설계서 §2). 규칙 10이
+# 규칙 4의 상한을 다시 못박는 이유는 교정 예산이 코드로 강제되지 않기 때문이다(설계서 D5-1).
+#
+# ⚠️ 음성 명령 규칙은 여전히 빼 둔다. tool 호출은 이제 되지만 발음 보고용 tool 하나뿐이고,
+# 명령 실행 경로(`voice_command` 발화)는 이 어댑터에 없다.
 SYSTEM_PROMPT = """\
 You are OhMyEnglish, a warm, practical English speaking coach for a Korean learner.
 
@@ -89,7 +114,49 @@ Rules:
 4. Do not correct every mistake. At most one correction per turn: quote what the learner
    said, give one natural correction, and ask them to say it again.
 5. If the learner is stuck, offer a short sentence starter instead of the full answer.
-6. Never read JSON, lists, or metadata out loud."""
+6. Never read JSON, lists, or metadata out loud.
+
+Pronunciation coaching:
+7. You hear the learner's actual audio. The transcript does not show pronunciation
+   errors, so you are the only one who can notice them.
+8. When a sound is clearly off, name the sound that was off, say the whole sentence back
+   with correct pronunciation, and ask the learner to repeat it.
+9. Call report_pronunciation_coaching twice: once with outcome "pending" right after you
+   have modeled the sentence, and again with correct, incorrect, or unclear once you have
+   heard the learner repeat it. Always include target_sound - a short reusable key for the
+   sound that was off, such as th_as_s or f_as_p - so the app can group repeat offenders.
+10. A pronunciation correction is a correction. It counts against the one-per-turn limit
+    in rule 4 — never add it on top of a grammar correction in the same turn."""
+
+
+def _pronunciation_tool_configuration() -> dict[str, Any]:
+    """`promptStart.toolConfiguration`.
+
+    ⚠️ **스파이크가 실측한 것은 봉투 모양까지다** — `toolConfiguration` → `tools` →
+    `toolSpec` → `inputSchema.json`이 **문자열**이라는 것. **필드 구성은 실증되지 않았다**:
+    스파이크는 3필드(전부 required, `outcome` enum에 `pending` 없음)를 보냈고 우리는
+    4필드(required 2개, `pending` 포함)를 보낸다. 설계 §4.2를 따른 것이고 JSON Schema에서
+    더 느슨한 방향이라 거부될 근거는 없지만, **실물 왕복으로 확인한 적이 없다**
+    (handoff `HANDOFF-v1.1-implementation.md` §3.1이 그 차이를 표로 기록한다).
+
+    이름과 스키마의 소유자는 `app.models.pronunciation` 하나다. 여기서 문자열을 다시 적으면
+    어댑터가 보내는 이름과 파서가 기다리는 이름이 갈라져 tool 이벤트가 조용히 버려진다.
+    """
+    return {
+        "tools": [
+            {
+                "toolSpec": {
+                    "name": PRONUNCIATION_TOOL_NAME,
+                    "description": (
+                        "Report a pronunciation coaching attempt so the app can store it "
+                        "for later practice."
+                    ),
+                    # Sonic은 이 값을 **문자열**로 받는다 (객체가 아니다 — 스파이크 실측).
+                    "inputSchema": {"json": PRONUNCIATION_TOOL_SCHEMA_JSON},
+                }
+            }
+        ]
+    }
 
 
 def _generation_stage(body: dict[str, Any]) -> str | None:
@@ -141,6 +208,8 @@ class NovaEventTranslator:
             return self._on_text_output(body)
         if name == "audioOutput":
             return self._on_audio_output(body)
+        if name == "toolUse":
+            return self._on_tool_use(body)
         if name == "contentEnd":
             return self._on_content_end(body)
         if name == "userSpeechStart":
@@ -173,6 +242,9 @@ class NovaEventTranslator:
         # 실측에서는 `textOutput`에도 role이 실려 온다 — 없으면 contentStart에서 이어 온다.
         raw_role = body.get("role")
         role = raw_role if isinstance(raw_role, str) else self._role_by_content.get(content_id, "")
+        if role == _TOOL_ROLE:
+            logger.debug("TOOL content의 textOutput을 전사문으로 만들지 않았다")
+            return []
         speaker = _ROLE_TO_SPEAKER.get(role, "user")
         # `SPECULATIVE`만 예고다. 모르는 값·없는 값은 확정으로 취급한다(위 `_generation_stage`).
         stage = self._stage_by_content.get(content_id)
@@ -180,6 +252,36 @@ class NovaEventTranslator:
         if speaker == "agent":
             self._pending_agent_text = text if kind == "partial" else None
         return [TranscriptEvent(kind=kind, text=text, speaker=speaker)]
+
+    def _on_tool_use(self, body: dict[str, Any]) -> list[AdapterEvent]:
+        """발음 tool을 포트 이벤트로 바꾼다 (설계서 §4.2).
+
+        **예외를 던지지 않는다.** 발음 기록 실패가 대화를 끊으면 안 된다 — 검증은
+        `models.pronunciation.parse_tool_payload`가 하고 그것도 던지지 않는다(강등·폐기).
+        모르는 tool은 조용히 넘긴다: 나중에 다른 tool이 생겨도 발음 경로가 오작동하지
+        않아야 한다.
+        """
+        tool_name = body.get("toolName")
+        if tool_name != PRONUNCIATION_TOOL_NAME:
+            # **warning이다.** 선언한 tool이 하나뿐이라 오탐 비용이 0이고, 모델이 이름을
+            # 줄여 부르면(`report_pronunciation`) 모든 발음 이벤트가 조용히 사라진다.
+            # 설계서 §3.1은 놓침이 조용히 일어나선 안 된다고 요구한다 — 문서화된 기동이
+            # `--log-level warning`이라 debug는 프로덕션에서 한 줄도 보이지 않는다.
+            logger.warning("발음 tool이 아닌 %r을 무시했다", tool_name)
+            return []
+        raw = body.get("content")
+        report = parse_tool_payload(raw if isinstance(raw, str) else "")
+        if report is None:
+            # `parse_tool_payload`가 이미 왜 버렸는지 경고를 남겼다.
+            return []
+        return [
+            PronunciationEvent(
+                target_form=report.target_form,
+                outcome=report.outcome,
+                spoken_form=report.spoken_form,
+                target_sound=report.target_sound,
+            )
+        ]
 
     def _on_audio_output(self, body: dict[str, Any]) -> list[AdapterEvent]:
         content = body.get("content")
@@ -422,6 +524,10 @@ class NovaVoiceAdapter:
                             "encoding": "base64",
                             "audioType": "SPEECH",
                         },
+                        # 발음 판정을 DB로 가져오는 **유일한** 수단이다 (설계서 §4.2) —
+                        # 전사문에는 발음의 흔적이 0이다(4차수 P2 실측). 봉투 모양은
+                        # 스파이크가 실측했고 필드 구성은 아직 실물 미검증이다(아래 함수).
+                        "toolConfiguration": _pronunciation_tool_configuration(),
                     }
                 }
             },

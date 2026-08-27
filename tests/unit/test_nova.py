@@ -21,11 +21,18 @@ import pytest
 
 from app.audio_gateway.nova import (
     FRAME_BYTES,
+    SYSTEM_PROMPT,
     NovaEventTranslator,
     NovaVoiceAdapter,
 )
-from app.audio_gateway.port import InterruptionEvent, SpeechBoundaryEvent, TranscriptEvent
+from app.audio_gateway.port import (
+    InterruptionEvent,
+    PronunciationEvent,
+    SpeechBoundaryEvent,
+    TranscriptEvent,
+)
 from app.config import Settings
+from app.models.pronunciation import PRONUNCIATION_TOOL_NAME
 
 # --- N-1 실측에서 옮긴 값 ---
 
@@ -408,3 +415,228 @@ async def test_the_stream_time_limit_ends_the_event_stream_instead_of_hanging():
 
 async def _collect(adapter: NovaVoiceAdapter) -> list[Any]:
     return [event async for event in adapter.events()]
+
+
+# --- 발음 tool (설계서 §4.2 · 계획 Task 5 · 2026-08-27 스파이크) ---
+#
+# 아래 리터럴의 근거는 `tests/harness/runs/2026-08-27-P-tooluse-spike/
+# P-tooluse-nova-events.json`이다 — 실제 왕복에서 받은 이벤트를 그대로 옮겼다.
+# 이 파일의 규약대로 필드 이름을 손으로 다듬지 않았다.
+
+TOOL_CONTENT_ID = "744c42db-d205-4d52-89d9-2e42cae7cc94"
+TOOL_USE_ID = "fb0a993c-6798-4574-ade9-077667ec3336"
+# 스파이크가 실제로 받은 페이로드 (그대로). `pending`은 우리가 준 enum 밖이었다가
+# 정식 값으로 승격됐다 — Nova는 재발화 **전에** tool을 부른다(설계서 F3·F4).
+TOOL_PAYLOAD = (
+    '{"target_form":"I think I found three very useful videos.",'
+    '"spoken_form":"[awaiting user repetition]","outcome":"pending"}'
+)
+TOOL_TARGET_FORM = "I think I found three very useful videos."
+# 스파이크의 agent 응답 2블록 (둘 다 SPECULATIVE로만 왔다).
+TOOL_AGENT_TEXT_1 = "Great! Let's work on that sentence. Say this after me: \"I think I found"
+TOOL_AGENT_TEXT_2 = " \n\nNow you repeat that sentence for me."
+
+
+def _tool_content_start() -> tuple[str, dict[str, Any]]:
+    """실측 TOOL 블록의 여는 이벤트 — `toolUseOutputConfiguration`까지 그대로 둔다."""
+    return (
+        "contentStart",
+        _envelope(
+            extra={
+                "contentId": TOOL_CONTENT_ID,
+                "role": "TOOL",
+                "type": "TOOL",
+                "toolUseOutputConfiguration": {"mediaType": "application/json"},
+            }
+        ),
+    )
+
+
+def _tool_use(
+    content: str, *, tool_name: str = "report_pronunciation_coaching"
+) -> tuple[str, dict[str, Any]]:
+    return (
+        "toolUse",
+        _envelope(
+            extra={
+                "contentId": TOOL_CONTENT_ID,
+                "role": "TOOL",
+                "toolName": tool_name,
+                "toolUseId": TOOL_USE_ID,
+                "content": content,
+            }
+        ),
+    )
+
+
+# 4차수는 지시가 없어서 Nova가 발음을 지적하지 않았다. 스파이크는 지시하면 한다는 것을
+# 보였다 — 그 지시가 프롬프트에 실제로 있는지 못박는다.
+def test_system_prompt_instructs_pronunciation_modeling():
+    lowered = SYSTEM_PROMPT.lower()
+    assert "pronunc" in lowered
+    assert "repeat" in lowered
+    # 판정을 DB로 가져오는 수단이 tool 호출뿐이다 — 이름을 프롬프트가 불러야 한다.
+    assert PRONUNCIATION_TOOL_NAME in SYSTEM_PROMPT
+    # `target_sound`를 요구하지 않으면 Nova가 생략해도 정상 통과하고, 그러면 Task 7의
+    # `error_patterns` upsert가 **한 번도 실행되지 않는다**(설계서 §4.2: target_sound가
+    # 비면 pattern_key 생성을 건너뛴다). 스키마도 required가 아니라 프롬프트가 유일한 요구다.
+    assert "target_sound" in SYSTEM_PROMPT
+    assert "name the sound" in lowered
+
+
+# `toolConfiguration`이 없으면 Nova는 tool을 부를 수 없다 — 스파이크가 실증한 형태다.
+async def test_prompt_start_carries_the_pronunciation_tool():
+    stream = _FakeStream()
+    adapter = _adapter(stream)
+
+    await adapter.start()
+    await adapter.close()
+
+    tools = stream.payloads("promptStart")[0]["toolConfiguration"]["tools"]
+    assert len(tools) == 1
+    spec = tools[0]["toolSpec"]
+    assert spec["name"] == PRONUNCIATION_TOOL_NAME
+    assert spec["description"]
+    # Sonic은 `inputSchema.json`을 **문자열**로 받는다 (스파이크 실측).
+    assert isinstance(spec["inputSchema"]["json"], str)
+    assert json.loads(spec["inputSchema"]["json"])["type"] == "object"
+
+
+# 스파이크가 실제로 받은 TOOL 블록이 발음 이벤트 1건으로 번역된다.
+# `contentStart(type=TOOL, role=TOOL)`이 전사문을 만들어내지 않는 것도 함께 본다 —
+# role이 `_ROLE_TO_SPEAKER`에 없는 값이라 조용히 user로 떨어질 수 있는 자리다.
+def test_the_recorded_tool_block_translates_into_one_pronunciation_event():
+    translated = _translate_all(
+        [_tool_content_start(), _tool_use(TOOL_PAYLOAD), _content_end(TOOL_CONTENT_ID, "TOOL_USE")]
+    )
+
+    assert translated == [
+        PronunciationEvent(
+            target_form=TOOL_TARGET_FORM,
+            outcome="pending",
+            spoken_form="[awaiting user repetition]",
+        )
+    ]
+
+
+# TOOL 블록이 ASSISTANT 텍스트 **앞**에 온다(실측 순서). TOOL 블록이 그 뒤의 텍스트
+# 블록을 삼키거나 순서를 뒤집지 않는 것을 본다.
+#
+# ⚠️ 아래 기대값은 **결함을 포함한다**: agent 텍스트가 한 completion에 2블록으로 오면
+# 마지막 하나만 확정 승격돼서 **시범 문장("Say this after me: …")이 전사문에 남지 않는다.**
+# 코드 리뷰가 실측으로 잡았고 다음 커밋이 고친다(청크 이어붙이기) — 그때 이 기대값이
+# 바뀐다. 지금 그대로 두는 이유는 Task 5의 회귀 여부와 그 결함을 한 커밋에 섞지 않는 것이다.
+def test_a_tool_block_does_not_disturb_the_agent_text_promotion():
+    translated = _translate_all(
+        [
+            _content_start(USER_CONTENT_ID, "USER", "FINAL"),
+            _text_output(USER_CONTENT_ID, "USER", USER_TRANSCRIPT),
+            _content_end(USER_CONTENT_ID, "PARTIAL_TURN"),
+            _tool_content_start(),
+            _tool_use(TOOL_PAYLOAD),
+            _content_end(TOOL_CONTENT_ID, "TOOL_USE"),
+            _content_start(AGENT_TEXT_CONTENT_ID, "ASSISTANT", "SPECULATIVE"),
+            _text_output(AGENT_TEXT_CONTENT_ID, "ASSISTANT", TOOL_AGENT_TEXT_1),
+            _content_end(AGENT_TEXT_CONTENT_ID, "PARTIAL_TURN"),
+            _content_start("second-block", "ASSISTANT", "SPECULATIVE"),
+            _text_output("second-block", "ASSISTANT", TOOL_AGENT_TEXT_2),
+            _content_end("second-block", "PARTIAL_TURN"),
+            ("completionEnd", _envelope(extra={"stopReason": "END_TURN"})),
+        ]
+    )
+
+    assert translated == [
+        TranscriptEvent(kind="final", text=USER_TRANSCRIPT, speaker="user"),
+        PronunciationEvent(
+            target_form=TOOL_TARGET_FORM,
+            outcome="pending",
+            spoken_form="[awaiting user repetition]",
+        ),
+        TranscriptEvent(kind="partial", text=TOOL_AGENT_TEXT_1, speaker="agent"),
+        TranscriptEvent(kind="partial", text=TOOL_AGENT_TEXT_2, speaker="agent"),
+        TranscriptEvent(kind="final", text=TOOL_AGENT_TEXT_2, speaker="agent"),
+    ]
+
+
+# 다른 tool이 생겨도 발음 경로가 오작동하지 않아야 한다.
+def test_an_unknown_tool_name_is_ignored():
+    translated = _translate_all([_tool_use(TOOL_PAYLOAD, tool_name="something_else")])
+
+    assert translated == []
+
+
+# PS6 — 깨진 페이로드에 세션이 살아남는다. 뒤따라온 전사문이 흐르는 것이 그 증거다.
+@pytest.mark.parametrize(
+    "payload",
+    [
+        "not json at all",
+        "",
+        '{"target_form":',  # 잘린 JSON
+        '{"outcome":"correct"}',  # target_form이 없다 → 시범 없는 시범 기록
+        '{"target_form":"   ","outcome":"correct"}',  # 공백만
+        '["not", "an", "object"]',
+    ],
+)
+def test_a_broken_tool_payload_does_not_kill_the_stream(payload: str):
+    translated = _translate_all(
+        [
+            _tool_content_start(),
+            _tool_use(payload),
+            _content_end(TOOL_CONTENT_ID, "TOOL_USE"),
+            _content_start(USER_CONTENT_ID, "USER", "FINAL"),
+            _text_output(USER_CONTENT_ID, "USER", USER_TRANSCRIPT),
+        ]
+    )
+
+    assert translated == [TranscriptEvent(kind="final", text=USER_TRANSCRIPT, speaker="user")]
+
+
+# 판정 페이로드도 그대로 실린다 (재발화를 들은 뒤의 두 번째 호출 — 설계서 §3.2).
+def test_a_verdict_payload_carries_its_fields():
+    translated = _translate_all(
+        [
+            _tool_use(
+                '{"target_form":"I think.","spoken_form":"I sink.",'
+                '"outcome":"incorrect","target_sound":"th_as_s"}'
+            )
+        ]
+    )
+
+    assert translated == [
+        PronunciationEvent(
+            target_form="I think.",
+            outcome="incorrect",
+            spoken_form="I sink.",
+            target_sound="th_as_s",
+        )
+    ]
+
+
+# TOOL content는 발화가 아니다. `role: "TOOL"`이 `_ROLE_TO_SPEAKER`에 없어서 그대로 두면
+# `.get(role, "user")` 폴백이 tool JSON을 **학습자 발화로** 저장하고 분석 job까지 등록한다
+# (코드 리뷰 실측 재현). 스파이크에서는 TOOL content에 textOutput이 오지 않았지만,
+# Task 5가 toolConfiguration을 보내기 시작해 TOOL 블록이 실제 스트림에 등장하게 됐다.
+def test_text_on_a_tool_content_is_not_stored_as_learner_speech():
+    translated = _translate_all(
+        [
+            _tool_content_start(),
+            # role이 실려 오는 경우와 안 오는 경우 둘 다 — 후자는 contentStart에서 이어 온다.
+            ("textOutput", _envelope(extra={"contentId": TOOL_CONTENT_ID, "content": "{}"})),
+            _text_output(TOOL_CONTENT_ID, "TOOL", TOOL_PAYLOAD),
+        ]
+    )
+
+    assert translated == []
+
+
+# 반대 방향 가드: 모르는 role이 user로 떨어지는 기존 관용은 유지한다. USER/ASSISTANT가
+# 이름을 바꿔도 전사문을 잃지 않는 쪽이 낫다는 판단이 이미 `_on_text_output`에 있다.
+def test_an_unknown_non_tool_role_still_falls_back_to_the_learner():
+    translated = _translate_all(
+        [
+            _content_start(USER_CONTENT_ID, "LEARNER", "FINAL"),
+            _text_output(USER_CONTENT_ID, "LEARNER", USER_TRANSCRIPT),
+        ]
+    )
+
+    assert translated == [TranscriptEvent(kind="final", text=USER_TRANSCRIPT, speaker="user")]
