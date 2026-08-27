@@ -328,3 +328,67 @@ async def test_pronunciation_attempts_utterance_delete_sets_null(db_conn: asyncp
     )
     assert row is not None
     assert row["utterance_id"] is None
+
+
+# ── 004 attempt_seq (발음 시도의 삽입 순서를 DB가 강제한다) ─────────────────────
+
+
+# ⑭ attempt_seq는 GENERATED ALWAYS identity다 — 앱이 순서를 위조할 수 없어야 한다
+@pytest.mark.asyncio
+async def test_pronunciation_attempts_attempt_seq_is_generated_always(
+    db_conn: asyncpg.Connection,
+):
+    column = await db_conn.fetchrow(
+        "select is_identity, identity_generation, is_nullable, data_type "
+        "from information_schema.columns "
+        "where table_name = 'pronunciation_attempts' and column_name = 'attempt_seq'"
+    )
+    assert column is not None, "attempt_seq 컬럼이 없다 (004 미적용)"
+    assert column["is_identity"] == "YES"
+    assert column["identity_generation"] == "ALWAYS"
+    assert column["is_nullable"] == "NO"
+    assert column["data_type"] == "bigint"
+
+
+# ⑮ 한 트랜잭션에서 만든 두 행은 created_at이 같지만 attempt_seq는 갈린다.
+#    이것이 004의 존재 이유다 — now()는 트랜잭션 고정이라 "최신 시도"를 못 고른다
+#    (실측: created_at 정렬은 3회 중 1회 잘못된 행을 골랐다).
+@pytest.mark.asyncio
+async def test_pronunciation_attempts_attempt_seq_orders_within_one_transaction(
+    db_conn: asyncpg.Connection,
+):
+    session_id = await _insert_pronunciation_session(db_conn)
+    for target in ("First.", "Second."):
+        await db_conn.execute(
+            "insert into pronunciation_attempts (session_id, target_form, outcome) "
+            "values ($1, $2, 'pending')",
+            session_id,
+            target,
+        )
+
+    rows = await db_conn.fetch(
+        "select target_form, attempt_seq, created_at from pronunciation_attempts "
+        "where session_id = $1 order by attempt_seq desc",
+        session_id,
+    )
+    assert [row["target_form"] for row in rows] == ["Second.", "First."]
+    assert rows[0]["created_at"] == rows[1]["created_at"], (
+        "같은 트랜잭션이라 created_at은 동값이어야 한다 — 이 전제가 깨지면 이 테스트의 의미가 없다"
+    )
+    assert rows[0]["attempt_seq"] > rows[1]["attempt_seq"]
+
+
+# ⑯ 앱이 attempt_seq를 직접 주는 것은 거부된다 — 순서가 규약이 아니라 강제여야 한다
+@pytest.mark.asyncio
+async def test_pronunciation_attempts_attempt_seq_rejects_supplied_value(
+    db_conn: asyncpg.Connection,
+):
+    session_id = await _insert_pronunciation_session(db_conn)
+
+    with pytest.raises(asyncpg.exceptions.GeneratedAlwaysError):
+        await db_conn.execute(
+            "insert into pronunciation_attempts "
+            "(session_id, target_form, outcome, attempt_seq) "
+            "values ($1, 'I think.', 'pending', 1)",
+            session_id,
+        )
