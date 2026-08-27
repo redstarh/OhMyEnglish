@@ -317,3 +317,44 @@ async def test_assist_signal_does_not_close_a_nova_pending(db_conn: asyncpg.Conn
     assert rows[nova_pending]["outcome"] == "pending"
     assert rows[nova_pending]["signal_source"] == "nova_tool"
     assert rows[assist]["signal_source"] == "korean_transcript"
+
+
+# ⑭ Nova 판정은 **보조 신호 행을 닫지 않는다.** 코드 리뷰 실측 재현:
+#    `record_signal(outcome='pending')`로 만든 행을 Nova 판정이 UPDATE해
+#    signal_source='korean_transcript'인 행이 Nova의 판정·발화를 실어버렸다.
+#    그 행이 바로 ⑬번이 "생기면 안 된다"고 논증한 행이다 — 타입으로 막는 것(record_signal의
+#    outcome에서 pending 제외)에 더해 SQL에서도 막는다. 여기서는 타입을 우회해
+#    raw INSERT로 그 행을 만들어 **런타임 가드**를 검증한다.
+async def test_nova_verdict_does_not_close_an_assist_row(db_conn: asyncpg.Connection) -> None:
+    session_id = await _session(db_conn)
+    assist = await db_conn.fetchval(
+        "insert into pronunciation_attempts (session_id, target_form, outcome, signal_source) "
+        "values ($1, '(전사문이 한국어로 인식되었습니다)', 'pending', 'korean_transcript') "
+        "returning id",
+        session_id,
+    )
+
+    verdict = await record_attempt(
+        db_conn,
+        session_id,
+        target_form="Nova sentence.",
+        outcome="correct",
+        spoken_form="how the learner said it",
+    )
+
+    assert verdict != assist, "Nova 판정이 보조 신호 행을 닫았다 — signal_source의 의미가 사라진다"
+    row = await db_conn.fetchrow(
+        "select outcome, signal_source, target_form, spoken_form "
+        "from pronunciation_attempts where id = $1",
+        assist,
+    )
+    assert row is not None
+    assert row["outcome"] == "pending"
+    assert row["signal_source"] == "korean_transcript"
+    assert row["spoken_form"] is None
+    new_row = await db_conn.fetchrow(
+        "select outcome, signal_source from pronunciation_attempts where id = $1", verdict
+    )
+    assert new_row is not None
+    assert new_row["outcome"] == "correct"
+    assert new_row["signal_source"] == "nova_tool"

@@ -46,7 +46,7 @@ from uuid import UUID
 
 import asyncpg
 
-from app.models.pronunciation import PronunciationOutcome
+from app.models.pronunciation import PronunciationOutcome, SignalSource
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +55,13 @@ logger = logging.getLogger(__name__)
 # 값역의 SoT는 `models/pronunciation.SignalSource`(003 CHECK와 짝)이고 이것은 그 부분집합이다.
 AssistSignal = Literal["korean_transcript", "agent_reprompt"]
 
-_NOVA_TOOL: Literal["nova_tool"] = "nova_tool"
+# 보조 신호는 이미 일어난 관측이라 `pending`이 될 수 없다. 값역에서 빼는 이유는
+# `signal_source`를 좁힌 것과 같다 — 열린 보조 신호 행이 생기면 Nova 판정이 그것을
+# 닫아버려 함수를 나눈 목적이 무너진다(코드 리뷰가 실측으로 재현). SQL 쪽 2차 방어는
+# `record_attempt`의 `signal_source = 'nova_tool'` 필터다.
+AssistOutcome = Literal["correct", "incorrect", "unclear"]
+
+_NOVA_TOOL: SignalSource = "nova_tool"
 
 
 async def _insert_attempt(
@@ -67,7 +73,7 @@ async def _insert_attempt(
     spoken_form: str | None,
     target_sound: str | None,
     utterance_id: UUID | None,
-    signal_source: str,
+    signal_source: SignalSource,
 ) -> UUID:
     """행을 새로 만든다. `resolved_at`은 `outcome`에 맞춰 채운다 — 표의
     CHECK(`pending` ⇔ `resolved_at is null`)가 어긋난 조합을 거부한다.
@@ -125,8 +131,19 @@ async def record_attempt(
         )
 
     # 판정값 — 가장 최근 pending을 닫는다. `coalesce`라서 판정이 값을 안 주면 시범
-    # 시점의 값이 남는다(빈 판정이 기록을 지우지 않는다). `for update`는 두 판정이
-    # 동시에 들어올 때 같은 행을 닫는 것을 막는다 — 패자는 아래 INSERT 경로로 흐른다.
+    # 시점의 값이 남는다(빈 판정이 기록을 지우지 않는다).
+    #
+    # `signal_source = 'nova_tool'` 필터가 있는 이유: 이 함수는 Nova 생명주기만 닫아야
+    # 한다. 보조 신호 행을 닫으면 그 행이 `signal_source='korean_transcript'`인 채로
+    # Nova의 판정·발화를 실어 R10-4의 의미가 사라진다 — 코드 리뷰가 실측으로 재현했다.
+    # `record_signal`의 `outcome`에서 `pending`을 뺀 것이 1차 방어고 이것이 2차다.
+    #
+    # ⚠️ `for update`는 두 판정이 동시에 들어올 때 같은 행을 닫는 것을 막는다. 그런데
+    # **패자가 새 행을 만드는 것이 아니다** — 잠금이 풀리면 EPQ 재검사가 이미 닫힌 행을
+    # 떨어뜨리고 서브쿼리가 **그 다음 pending으로 전진**해 무관한 시도를 닫는다(리뷰가
+    # 연결 2개로 실측). 지금은 `_pump_adapter_events`가 이벤트를 순차 await해 도달
+    # 불가지만, Task 6이 `_record_pronunciation`을 `create_task`로 띄우면 즉시 도달한다
+    # (`session.py:249`의 `_store_final`이 이미 그 패턴이다). 그때 동시성 테스트를 붙여라.
     updated = await conn.fetchval(
         """
         update pronunciation_attempts set
@@ -137,7 +154,9 @@ async def record_attempt(
             resolved_at  = clock_timestamp()
         where id = (
             select id from pronunciation_attempts
-             where session_id = $1 and outcome = 'pending'
+             where session_id = $1
+               and outcome = 'pending'
+               and signal_source = 'nova_tool'
              order by attempt_seq desc
              limit 1
              for update
@@ -171,7 +190,7 @@ async def record_signal(
     session_id: UUID,
     *,
     target_form: str,
-    outcome: PronunciationOutcome,
+    outcome: AssistOutcome,
     signal_source: AssistSignal,
     spoken_form: str | None = None,
     target_sound: str | None = None,
@@ -181,6 +200,9 @@ async def record_signal(
 
     **열린 pending을 닫지 않는다** — 이 행은 Nova 시도의 판정이 아니라 별개의 관측이다.
     Nova의 pending은 `resolve_dangling`이 세션 종료 때 처리한다.
+
+    **이 행은 항상 판정된 상태로 태어난다** (`AssistOutcome`에 `pending`이 없다). 열린
+    보조 신호 행을 만들면 `record_attempt`가 그것을 닫아 이 분리의 목적이 무너진다.
     """
     return await _insert_attempt(
         conn,
@@ -203,6 +225,15 @@ async def resolve_dangling(conn: asyncpg.Connection, session_id: UUID) -> int:
     세션 종료 기록과 **같은 트랜잭션**에서 불러야 한다(설계서 §3.2). 분리하면 그 사이
     크래시에서 `pending`이 영구히 남는다 — 그래서 자기 트랜잭션을 열지 않고 호출자의
     것에 합류한다.
+
+    ⚠️ **그 전제조건을 지금은 어느 호출자도 만족시킬 수 없다.**
+    `services/sessions.py:49-54`의 `mark_session_ended(pool, session_id, status)`가 `pool`을
+    받아 **자기 연결을 acquire**한다(`audio_gateway/session.py:148`에서 호출) — 합류할
+    트랜잭션이 없다. 계획 Task 6 (d) "세션 상태를 기록하는 트랜잭션에 붙인다"도 같은 이유로
+    현 구조에서 불가능하다. `pool.acquire()`로 이 함수를 부르면 문법도 테스트도 통과하지만
+    원자성이 **조용히 없고**, 그 사이 크래시에서 `pending`이 영구 잔존한다 — 설계서가
+    "핵심 방어"라 부른 것의 실패다. 고칠 자리는 이 모듈이 아니라 `mark_session_ended`의
+    시그니처(`pool` → `conn`)와 `_close_and_record`가 `db.tx()`를 여는 것이다.
     """
     rows = await conn.fetch(
         """
