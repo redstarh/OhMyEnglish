@@ -4,16 +4,17 @@
 > `handoff/HANDOFF-test-harness.md`, 수정 세션은 `handoff/HANDOFF-fix-session.md`다.
 > 최종 갱신 **2026-08-28** · 기준 커밋 **HEAD ≥ `1a8c908`** · 브랜치 `design/first-vertical-slice`
 >
-> **다음 한 걸음: 계획 Task 6(세션 저장 · 한글 신호 · 종료 수렴).**
-> Task 4·5는 끝났다. **지금 Nova는 발음을 교정해 주지만 기록이 남지 않는다** — Task 6이
-> 그 구멍을 닫는다. 착수 전 §2.1(실제 시그니처)과 §6 "내 작업"을 읽어라.
+> **다음 한 걸음: 계획 Task 7(패턴 연결).**
+> Task 4·5·6이 끝났다. **발음 교정이 일어나고 기록도 남는다.** 남은 것은 그 기록을 약점
+> 패턴으로 연결(Task 7)하고 화면에 보이는 것(Task 8)이다.
+> ⚠️ 착수 전 **§2.1**(계획 이탈 5건)과 **§6 "내 작업"**(트랜잭션 선행조건)을 읽어라.
 
 ---
 
 ## 0. 다음 세션이 30초 안에 알아야 할 것
 
 1. **요구사항이 v1.1로 올라갔다.** 신규 2건 — `PRD.md` **§10 발음 시범·재발화**, **§11 학습 이력 기반 추천 학습 루틴**.
-2. **§10은 구현 중이고 9태스크 중 5개가 끝났다.** 계획: `docs/design/2026-08-27-pronunciation-echo-plan.md`
+2. **§10은 구현 중이고 9태스크 중 6개가 끝났다.** 계획: `docs/design/2026-08-27-pronunciation-echo-plan.md`
 3. **§11은 설계만 끝났고 코드가 0줄이다.**
 4. **지금 `VOICE_ADAPTER=nova`로 돌리면 Nova가 발음을 교정해 준다 — 그런데 화면 배지도 없고 기록도 없다.** 서버는 프레임을 방송하지만 프론트가 그 프레임을 모른다(배지=Task 8). 단계별 실측은 **§3.2**. 다음 걸음 Task 6이 기록(저장·한글 신호·종료 수렴)을 닫는다.
    ⚠️ 단 **실물 Nova 왕복으로 확인한 것이 아니다** — §3.1을 읽어라. 앱이 보내는 스키마는 스파이크가 보낸 것과 다르다.
@@ -25,7 +26,7 @@
 ## 1. 실측값 (2026-08-28, 이 절을 쓴 턴에 직접 실행)
 
 ```bash
-cd app/backend && .venv/bin/pytest -q              # 304 passed
+cd app/backend && .venv/bin/pytest -q              # 312 passed
 cd app/backend && .venv/bin/ruff check .            # All checks passed!
 cd app/backend && .venv/bin/ruff format --check .   # 27 files already formatted
 cd app/backend && ty check                          # All checks passed!
@@ -34,11 +35,11 @@ cd app/backend && .venv/bin/ruff check ../../tests ../../scripts   # Found 6 err
 
 | 항목 | 값 |
 |---|---|
-| 테스트 | **304 passed** (v1.1 착수 전 기준선 241 → +63), skip/xfail 0 |
+| 테스트 | **312 passed** (v1.1 착수 전 기준선 241 → +71), skip/xfail 0 |
 | ruff · format · ty | 전부 clean |
 | `tests/**` ruff | **6건 잔존** — 하네스 5차수 정리 대상. 늘어나지 않았다 |
 | `tests/**` format | **4건 잔존**(`ruff format --check ../../tests`) — 전부 `tests/harness/*`. **선언된 게이트 밖이다**(함정 H-L). 4를 넘으면 내가 만든 것이다 |
-| dev DB | 마이그레이션 **3개**(001·003·**004**) · 세션 2 · 발화 6 · 패턴 1 · occurrence 2 · job 3 · `pronunciation_attempts` **0행** |
+| dev DB | 마이그레이션 **4개**(001·003·004·**005**) · 세션 2 · 발화 6 · 패턴 1 · occurrence 2 · job 3 · `pronunciation_attempts` **0행** |
 | 미커밋 | `.claude/settings.json`(untracked) — **지우지 마라**, 하네스의 "워크트리 금지"가 의존한다 |
 
 004는 **dev DB에도 적용했다**(0행이라 무손실). 안 하면 Task 6이 쓰기를 연결한 뒤
@@ -46,7 +47,7 @@ cd app/backend && .venv/bin/ruff check ../../tests ../../scripts   # Found 6 err
 
 ```bash
 app/backend/.venv/bin/python scripts/migrate.py   # 멱등
-# → schema_migrations: 001_initial_schema.sql, 003_pronunciation_echo.sql, 004_pronunciation_attempt_seq.sql
+# → 001_initial_schema · 003_pronunciation_echo · 004_pronunciation_attempt_seq · 005_pronunciation_pending_is_nova_only
 ```
 
 ---
@@ -138,17 +139,17 @@ await resolve_dangling(conn, session_id)
 
 ---
 
-## 3. 남은 작업 — 계획 Task 6~9
+## 3. 남은 작업 — 계획 Task 7~9
 
 정본: `docs/design/2026-08-27-pronunciation-echo-plan.md` (각 태스크에 실제 코드가 있다).
-⚠️ 계획의 **예상 passed 수는 전부 낡았다** — 실제 기준선이 **304**다(계획은 241 기준).
+⚠️ 계획의 **예상 passed 수는 전부 낡았다** — 실제 기준선이 **312**다(계획은 241 기준).
 
 | # | 태스크 | 현재 상태 |
 |--:|---|---|
 | ~~4~~ | ~~시도 생명주기 서비스~~ | ✅ **완료** `ed91363` — `record_attempt`·`record_signal`·`resolve_dangling`, 테스트 13건 |
 | ~~5~~ | ~~Nova 어댑터 연결~~ | ✅ **완료** — `promptStart.toolConfiguration` 전송 · `toolUse` → `PronunciationEvent` 변환 · `SYSTEM_PROMPT` 규칙 7~10. 테스트 13건. ⚠️ **실물 Nova 왕복은 아직 안 했다**(§3.1) |
-| **6** | 세션 저장·한글 신호·종료 수렴 | `record_attempt` 앱 호출처 **0곳** · 한글 감지(`가-힣`) 0곳. 현재는 **방송만** 한다 |
-| **7** | 패턴 연결 (`error_patterns` upsert) | 0곳. **착수 전에 §6 "내 작업"의 트랜잭션 항목을 먼저 처리해라** |
+| ~~6~~ | ~~세션 배선·전사문 신호·종료 수렴~~ | ✅ **완료** `0025301` — 규칙은 서비스가 소유하고 세션은 배선만. 005 제약으로 특수 규칙 3개 소멸 |
+| **7** | 패턴 연결 (`error_patterns` upsert) | 0곳. **착수 전 §6 "내 작업"의 트랜잭션 항목을 먼저 처리해라.** 설계서 §3.2가 **경로 불문**을 요구한다 — 수렴으로 `incorrect`가 된 행도 패턴을 만든다 |
 | **8** | 결과 화면 발음 카드 | 백엔드 0곳 · 프론트 **0파일** |
 | **9** | 하네스 5차수 P9~P12 | 미작성 |
 

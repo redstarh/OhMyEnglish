@@ -10,6 +10,28 @@
 
 **Spec:** `docs/design/2026-08-27-pronunciation-echo-design.md` (요구사항: `docs/PRD.md` v1.1 §10)
 
+---
+
+## ⚠️ 구현 후 정정 (2026-08-28) — 이 계획의 일부 코드 블록은 낡았다
+
+Task 1~6이 끝났고, 구현 중 실측·리뷰·캡틴 결정으로 **계획과 달라진 것 5건**이 있다.
+아래 태스크 본문의 코드는 **당시 초안**이며 지금 코드와 다르다. 실제 계약의 정본은
+**설계서 §3.1a·§3.2·§6.1**이고, 연속성 정본은 **`handoff/HANDOFF-v1.1-implementation.md`**다.
+
+| # | 계획 | 실제 | 왜 |
+|---|---|---|---|
+| 1 | `order by created_at desc` | **`order by attempt_seq desc`** (004 신설) | `created_at` 기본값 `now()`는 트랜잭션 시각이라 한 트랜잭션의 두 행이 동값이다 — 실측 3회 중 1회 오래된 pending을 닫았다 |
+| 2 | `record_attempt(..., signal_source=...)` 한 함수 | **`record_attempt` + `record_signal` 두 함수**, 그리고 감지기 진입점 **`note_transcript`** | 인자값이 생명주기 동작을 바꾸면 호출부에서 안 보인다. 감지 규칙을 세션에 두면 다음 감지기가 또 거기 박힌다(설계서 §3.1a) |
+| 3 | 남은 pending을 `unclear`로 수렴 | **`incorrect` + `spoken_form=null`** | 캡틴 결정 — "대답을 못 한 것은 못 한 것"이고 이후 학습도 그냥 틀림으로 본다 |
+| 4 | 한글 정규식·보조 신호를 `session.py`에 (Task 6 Step 3 a·c) | **`services/pronunciation.py`가 소유**. 세션은 `note_transcript` 한 줄 | 같음 — 규칙은 서비스, 배선은 세션 |
+| 5 | `agent_reprompt`는 "5차수 관측 후 판정" | **만들지 않는다** (캡틴 결정) | 문구 매칭이라 케이스가 불어난다. R10-4 절반은 의도적 미충족 |
+
+그리고 **예상 passed 수는 전부 낡았다** — 계획은 241 기준이고 실제 기준선은 **312**다.
+
+Task 6 (d)의 "세션 상태를 기록하는 트랜잭션에 붙인다"는 당시 구조로 불가능했다
+(`mark_session_ended`가 `pool`을 받아 자기 연결을 acquire했다). `sessions.py`에
+`end_session(conn, …)`을 두고 `_close_and_record`가 트랜잭션을 여는 것으로 해결했다.
+
 ## Global Constraints
 
 - **작업 디렉터리**: `/Users/redstar/MyProject/OhMyEnglish`. 새 워크트리를 만들지 않는다 — 테스트 스택이 이 워킹트리를 직접 서빙한다.
@@ -48,7 +70,7 @@
 
 ---
 
-## Task 1: 003 마이그레이션 — `pronunciation_attempts`
+## Task 1: 003 마이그레이션 — `pronunciation_attempts`  —  ✅ 완료 `f7b8ccc`
 
 **Files:**
 - Create: `db/migrations/003_pronunciation_echo.sql`
@@ -224,7 +246,7 @@ git commit -m "feat: 003 마이그레이션 — pronunciation_attempts (발음 �
 
 ---
 
-## Task 2: tool 페이로드 검증 모델
+## Task 2: tool 페이로드 검증 모델  —  ✅ 완료 `a0eff8e`
 
 **Files:**
 - Create: `app/backend/app/models/pronunciation.py`
@@ -478,7 +500,7 @@ Expected: `254 passed`
 
 ---
 
-## Task 3: 포트 확장 — `PronunciationEvent`
+## Task 3: 포트 확장 — `PronunciationEvent`  —  ✅ 완료 `e6833c9`
 
 **Files:**
 - Modify: `app/backend/app/audio_gateway/port.py:80` (`AdapterEvent` 유니온)
@@ -581,7 +603,7 @@ git commit -m "feat: 포트에 PronunciationEvent 추가 (다섯 번째 어댑�
 
 ---
 
-## Task 4: 시도 생명주기 서비스
+## Task 4: 시도 생명주기 서비스  —  ✅ 완료 `ed91363`·`582eef6` — 정정 1·2·3 적용
 
 **Files:**
 - Create: `app/backend/app/services/pronunciation.py`
@@ -904,7 +926,7 @@ Expected: `264 passed`
 
 ---
 
-## Task 5: Nova 어댑터 — `toolConfiguration` 전송 + `toolUse` 변환
+## Task 5: Nova 어댑터 — `toolConfiguration` 전송 + `toolUse` 변환  —  ✅ 완료 `b31227a`·`1a8c908` — ⚠️ 실물 왕복 미검증
 
 **Files:**
 - Modify: `app/backend/app/audio_gateway/nova.py` — `promptStart` 페이로드(약 `:413`), 이벤트 디스패치(`:138-150`), `SYSTEM_PROMPT`(`:77`)
@@ -1094,7 +1116,7 @@ git commit -m "feat: Nova 어댑터에 발음 tool 연결 (toolConfiguration + t
 
 ---
 
-## Task 6: 세션 통합 — 이벤트 분기 · 종료 수렴 · 한글 전사 신호
+## Task 6: 세션 통합 — 이벤트 분기 · 종료 수렴 · 한글 전사 신호  —  ✅ 완료 `0025301` — 정정 2·3·4·5 적용
 
 **Files:**
 - Modify: `app/backend/app/audio_gateway/session.py` — `_pump_adapter_events`(`:202`), `_close_and_record`(`:135`), `_save_final`(`:234`)
@@ -1257,6 +1279,13 @@ git commit -m "feat: 세션에 발음 시도 기록·수렴·한글 전사 신�
 **Interfaces:**
 - Produces: `async def link_pattern(conn, user_id: UUID, attempt_id: UUID, *, target_sound: str) -> UUID | None` — `pronunciation_intonation` 패턴을 upsert하고 `attempt.pattern_id`를 채운다.
 
+> ⚠️ **정정 (2026-08-28)** — 설계서 §3.2가 **경로 불문**을 요구한다: `outcome='incorrect'`가
+> 되는 순간 패턴을 만든다. 즉 판정 경로(`record_attempt`)뿐 아니라 **종료 수렴
+> (`resolve_dangling`)으로 `incorrect`가 된 행도 포함**이다. 경로에 따라 다르게 처리하면
+> "대답 안 함"만 따로 세는 예외가 생기고 그것이 결과 화면·학습 계획으로 번진다.
+> 착수 전 `handoff/HANDOFF-v1.1-implementation.md` §6 "내 작업"의 트랜잭션 항목도 읽어라 —
+> `record_attempt`가 자기 트랜잭션을 열어야 부분 실행이 막힌다.
+
 - [ ] **Step 1~2: 실패하는 테스트**
 
 핵심 단정 4개:
@@ -1321,6 +1350,14 @@ git commit -m "feat: 발음 오류를 error_patterns 패턴으로 연결"
 
 **Interfaces:**
 - Produces: 결과 응답에 `pronunciation: [{target_form, target_sound, outcome}]` 배열 추가
+
+> ⚠️ **정정 (2026-08-28)** — 응답에 **`signal_source`도 실어야 한다.** 신호 행
+> (`korean_transcript`)의 `target_form`은 Nova가 시범한 문장이 아니라 설명 문구
+> (`"(전사문이 한국어로 인식되었습니다)"`)라서, 구분 없이 렌더하면 학습자에게 그 문구가
+> "이렇게 발음해야 합니다"로 보인다. 그리고 `outcome='incorrect'`인데 `spoken_form`이
+> null인 행은 **대답 없이 끝난 시도**다 — "들린 발음" 자리를 비워 두거나 "대답 없음"으로
+> 렌더한다. `pending`은 여전히 결과에 포함하지 않는다(종료 수렴이 이미 처리했으므로
+> 정상 종료한 세션에는 `pending`이 남지 않는다).
 
 - [ ] **Step 1~2: 실패하는 테스트**
 
