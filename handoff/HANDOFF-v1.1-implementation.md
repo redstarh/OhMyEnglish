@@ -2,28 +2,30 @@
 
 > 이 갈래의 연속성만 담당한다. 제품 정본은 `handoff/HANDOFF.md`, 하네스는
 > `handoff/HANDOFF-test-harness.md`, 수정 세션은 `handoff/HANDOFF-fix-session.md`다.
-> 최종 갱신 **2026-08-27** · 기준 커밋 **HEAD ≥ `ed91363`** · 브랜치 `design/first-vertical-slice`
+> 최종 갱신 **2026-08-28** · 기준 커밋 **HEAD ≥ `1a8c908`** · 브랜치 `design/first-vertical-slice`
 >
-> **다음 한 걸음: 계획 Task 5(Nova 어댑터 — `toolConfiguration` + `toolUse` 변환 + `SYSTEM_PROMPT`).**
-> Task 4는 끝났다. **Task 5까지 하면 학습자가 실제로 발음 피드백을 받기 시작한다.**
+> **다음 한 걸음: 계획 Task 6(세션 저장 · 한글 신호 · 종료 수렴).**
+> Task 4·5는 끝났다. **지금 Nova는 발음을 교정해 주지만 기록이 남지 않는다** — Task 6이
+> 그 구멍을 닫는다. 착수 전 §2.1(실제 시그니처)과 §6 "내 작업"을 읽어라.
 
 ---
 
 ## 0. 다음 세션이 30초 안에 알아야 할 것
 
 1. **요구사항이 v1.1로 올라갔다.** 신규 2건 — `PRD.md` **§10 발음 시범·재발화**, **§11 학습 이력 기반 추천 학습 루틴**.
-2. **§10은 구현 중이고 9태스크 중 4개가 끝났다.** 계획: `docs/design/2026-08-27-pronunciation-echo-plan.md`
+2. **§10은 구현 중이고 9태스크 중 5개가 끝났다.** 계획: `docs/design/2026-08-27-pronunciation-echo-plan.md`
 3. **§11은 설계만 끝났고 코드가 0줄이다.**
-4. **지금 앱을 돌리면 발음 교정은 여전히 일어나지 않는다** — Nova 지시문·tool 설정(Task 5)이 없고 세션 연결(Task 6)이 없다. 토대 4개만 깔렸다: 표(003) · 검증 모델 · 포트 이벤트 · **생명주기 서비스**.
+4. **지금 `VOICE_ADAPTER=nova`로 돌리면 Nova가 발음을 교정해 준다 — 그런데 화면 배지도 없고 기록도 없다.** 서버는 프레임을 방송하지만 프론트가 그 프레임을 모른다(배지=Task 8). 단계별 실측은 **§3.2**. 다음 걸음 Task 6이 기록(저장·한글 신호·종료 수렴)을 닫는다.
+   ⚠️ 단 **실물 Nova 왕복으로 확인한 것이 아니다** — §3.1을 읽어라. 앱이 보내는 스키마는 스파이크가 보낸 것과 다르다.
 5. 게이트를 돌릴 때 **cwd가 `app/backend`여야 한다**(§4).
-6. ⚠️ **계획 Task 5·6·7의 인터페이스 서술이 낡았다** — Task 4가 계획에서 2건 벗어났다(§2.1). 계획을 그대로 베끼지 말고 §2.1을 먼저 읽어라.
+6. ⚠️ **계획 Task 6·7의 인터페이스 서술이 낡았다** — Task 4가 계획에서 2건 벗어났다(§2.1). 계획을 그대로 베끼지 말고 §2.1을 먼저 읽어라. 계획이 추측으로 적은 테스트 헬퍼 이름(`_prompt_start_payload`·`_drain_adapter_events`)도 **실제로 없다** — 진짜는 `_translate_all`·`stream.payloads`다.
 
 ---
 
-## 1. 실측값 (2026-08-27, 이 절을 쓴 턴에 직접 실행)
+## 1. 실측값 (2026-08-28, 이 절을 쓴 턴에 직접 실행)
 
 ```bash
-cd app/backend && .venv/bin/pytest -q              # 286 passed
+cd app/backend && .venv/bin/pytest -q              # 304 passed
 cd app/backend && .venv/bin/ruff check .            # All checks passed!
 cd app/backend && .venv/bin/ruff format --check .   # 27 files already formatted
 cd app/backend && ty check                          # All checks passed!
@@ -32,9 +34,10 @@ cd app/backend && .venv/bin/ruff check ../../tests ../../scripts   # Found 6 err
 
 | 항목 | 값 |
 |---|---|
-| 테스트 | **286 passed** (v1.1 착수 전 기준선 241 → +45, 직전 269 → +17), skip/xfail 0 |
+| 테스트 | **304 passed** (v1.1 착수 전 기준선 241 → +63), skip/xfail 0 |
 | ruff · format · ty | 전부 clean |
 | `tests/**` ruff | **6건 잔존** — 하네스 5차수 정리 대상. 늘어나지 않았다 |
+| `tests/**` format | **4건 잔존**(`ruff format --check ../../tests`) — 전부 `tests/harness/*`. **선언된 게이트 밖이다**(함정 H-L). 4를 넘으면 내가 만든 것이다 |
 | dev DB | 마이그레이션 **3개**(001·003·**004**) · 세션 2 · 발화 6 · 패턴 1 · occurrence 2 · job 3 · `pronunciation_attempts` **0행** |
 | 미커밋 | `.claude/settings.json`(untracked) — **지우지 마라**, 하네스의 "워크트리 금지"가 의존한다 |
 
@@ -48,7 +51,7 @@ app/backend/.venv/bin/python scripts/migrate.py   # 멱등
 
 ---
 
-## 2. 이번 세션이 한 것 — 커밋 8개
+## 2. 이번 갈래가 한 것 — 커밋 표
 
 | 커밋 | 내용 |
 |---|---|
@@ -64,12 +67,22 @@ app/backend/.venv/bin/python scripts/migrate.py   # 멱등
 | `aa1fcfe` | **004 마이그레이션** `attempt_seq` (삽입 순서 강제) |
 | `ed91363` | **생명주기 서비스** (계획 Task 4) |
 | `582eef6` | **코드리뷰 반영** — 판정이 보조 신호 행을 닫던 결함 + 거짓 주석 1건 + 값역 2건 |
+| `b35dd07` | handoff 갱신 (Task 4 마감) |
+| `b31227a` | **Nova 어댑터에 발음 tool 연결** (계획 Task 5, 리뷰 5건 반영 포함) |
+| `1a8c908` | **fix: agent 텍스트 청크 이어붙이기** — 시범 문장이 전사문에 남게 |
 
-Task 4는 `/simplify` 4관점 리뷰(reuse·simplification·efficiency·altitude) →
-code-reviewer(opus) 순으로 두 패스를 받았다. **판정 Approve, CRITICAL 0.** 리뷰어가
-게이트 4개를 독립 재측정해 내 수치와 전부 일치했고, `pytest`가 주장한 red도
-`git show`로 재현해 확인했다. 리뷰가 실측 재현한 결함 1건은 `582eef6`에서 고쳤고,
-못 닫는 1건(설계 공백)은 §6 캡틴 결정 3-b로 올렸다.
+### 리뷰 두 태스크 모두 두 패스를 받았다
+
+**Task 4**: `/simplify` 4관점(reuse·simplification·efficiency·altitude) → code-reviewer(opus).
+**Approve, CRITICAL 0.** 실측 재현된 결함 1건을 `582eef6`에서 고쳤고, 못 닫는 1건(설계 공백)은
+§6 캡틴 결정 3-b로 올렸다.
+
+**Task 5**: 품질 정리 + 코드리뷰 게이트를 한 리뷰어(opus)에 합쳐 위임. **CRITICAL 0, HIGH 2건**.
+리뷰어가 게이트를 독립 재측정해 전부 일치했고, red도 `nova.py`만 HEAD로 되돌려 직접 재현했다.
+- HIGH F1(프롬프트가 `target_sound`를 요구하지 않아 Task 7 패턴 upsert가 무증상 미실행) → `b31227a`
+- HIGH F2(시범 문장이 전사문에 남지 않음) → **`1a8c908`으로 별 커밋** (Task 5 범위 밖이라 분리)
+- MEDIUM/LOW 4건(로그 레벨·TOOL role 폴백·과장된 주석·format) → `b31227a`
+- 남긴 것: F5(규칙 8이 설계 §3.3보다 넓다) → §6 1-b · 규칙 4 정본 불일치 → §6 1-c
 
 ---
 
@@ -125,21 +138,62 @@ await resolve_dangling(conn, session_id)
 
 ---
 
-## 3. 남은 작업 — 계획 Task 5~9
+## 3. 남은 작업 — 계획 Task 6~9
 
 정본: `docs/design/2026-08-27-pronunciation-echo-plan.md` (각 태스크에 실제 코드가 있다).
-⚠️ 계획의 **예상 passed 수는 전부 낡았다** — 실제 기준선이 285다(계획은 241 기준).
+⚠️ 계획의 **예상 passed 수는 전부 낡았다** — 실제 기준선이 **304**다(계획은 241 기준).
 
 | # | 태스크 | 현재 상태 |
 |--:|---|---|
 | ~~4~~ | ~~시도 생명주기 서비스~~ | ✅ **완료** `ed91363` — `record_attempt`·`record_signal`·`resolve_dangling`, 테스트 13건 |
-| **5** | **Nova 어댑터 연결** ← 가장 값이 크다 | `toolConfiguration` 0곳 · `toolUse` 0곳 · `SYSTEM_PROMPT` 발음 규칙 **0곳** |
+| ~~5~~ | ~~Nova 어댑터 연결~~ | ✅ **완료** — `promptStart.toolConfiguration` 전송 · `toolUse` → `PronunciationEvent` 변환 · `SYSTEM_PROMPT` 규칙 7~10. 테스트 13건. ⚠️ **실물 Nova 왕복은 아직 안 했다**(§3.1) |
 | **6** | 세션 저장·한글 신호·종료 수렴 | `record_attempt` 앱 호출처 **0곳** · 한글 감지(`가-힣`) 0곳. 현재는 **방송만** 한다 |
 | **7** | 패턴 연결 (`error_patterns` upsert) | 0곳. **착수 전에 §6 "내 작업"의 트랜잭션 항목을 먼저 처리해라** |
 | **8** | 결과 화면 발음 카드 | 백엔드 0곳 · 프론트 **0파일** |
 | **9** | 하네스 5차수 P9~P12 | 미작성 |
 
-**Task 5까지 하면 학습자가 실제로 발음 피드백을 받기 시작한다.** 스파이크로 동작을 이미 확인한 부분이다(§5).
+### 3.1 ⚠️ Task 5의 미검증 구멍 — 앱이 보내는 스키마는 스파이크가 보낸 것과 다르다
+
+Task 5는 **단위 테스트만** 통과했다(가짜 스트림). 실물 Nova 왕복으로 확인한 것이 아니다.
+그리고 앱이 보내는 tool 스키마는 스파이크가 보낸 것과 **같지 않다**:
+
+| | 스파이크 (`spike_nova_protocol.py:87`) | 앱 (`models/pronunciation.py:44`) |
+|---|---|---|
+| 필드 | 3개 — `spoken_form`·`target_form`·`outcome` | **4개** — +`target_sound` |
+| required | 3개 전부 | **2개** (`target_form`·`outcome`) |
+| `outcome` enum | `correct`·`incorrect`·`unclear` | **+`pending`** (F4로 승격) |
+| 시스템 프롬프트 | 5문장 전용 프롬프트 | 규칙 **10개** 전문 |
+
+즉 "스파이크가 실증한 형태"는 **봉투 모양**(`toolConfiguration` → `toolSpec` →
+`inputSchema.json`이 문자열)까지만 참이고, **내용은 실증되지 않았다.** Nova가 4필드
+스키마나 `pending` enum을 거부할 근거는 없지만 확인도 없다.
+
+**닫는 방법**: Task 8 Step 4의 종단 확인(백엔드 :8002 + `VOICE_ADAPTER=nova` + 발음
+픽스처 주입)이 첫 실물 검증이 된다. 그 전에 값싸게 보고 싶으면 `spike_nova_protocol.py`의
+`_PRONUNCIATION_TOOL_SCHEMA`를 앱 상수로 바꿔 1회 왕복한다. **5차수 P9가 이 확인을 포함해야
+한다** — 아니면 "발음 루틴이 동작한다"는 주장의 근거가 단위 테스트뿐이다.
+
+### 3.2 Task 5가 끝난 지금 실제로 무엇이 되고 무엇이 안 되나 (실측)
+
+| 단계 | 상태 |
+|---|---|
+| Nova가 발음을 지적하고 문장을 다시 읽어준다 | ✅ 지시문 규칙 7~10이 들어갔다 (실물 미검증 — §3.1) |
+| `toolUse`가 온다 | ✅ `toolConfiguration` 전송 |
+| `PronunciationEvent`로 번역된다 | ✅ `NovaEventTranslator._on_tool_use` |
+| 서버가 `{"type":"pronunciation"}` 프레임을 방송한다 | ✅ **이미 된다** — `session.py:215`의 분기가 Task 3에서 들어갔다 |
+| **프론트가 그 프레임으로 배지를 띄운다** | ❌ **아니다.** `app/frontend/lib/ws.ts`의 `ServerEvent` 유니온에 `pronunciation`이 **없고** `app/frontend/app/page.tsx`의 switch에 `case "pronunciation"`도 **없다**(실측 0곳). `isServerEvent`는 통과시키므로 프레임이 switch까지 가서 **조용히 무시**된다 — 크래시는 없다. 배지는 **Task 8** |
+| **DB에 저장된다** | ❌ **Task 6** — `_broadcast_pronunciation`이 저장하지 않는다(`session.py:225` 주석이 그렇게 적어 뒀다) |
+| 한글 전사 보조 신호 | ❌ Task 6 |
+| 세션 종료 시 pending 수렴 | ❌ Task 6 (`resolve_dangling` 호출처 0곳) |
+| 패턴 연결 | ❌ Task 7 |
+| 결과 화면 발음 카드 | ❌ Task 8 |
+
+즉 **지금 `VOICE_ADAPTER=nova`로 돌리면 Nova가 발음을 교정해 주지만, 화면에 배지도 안 뜨고
+기록도 남지 않는다.** 학습자가 얻는 것은 **그 순간 들리는 음성 교정뿐**이다.
+Task 6이 기록을, Task 8이 화면을 닫는다.
+
+⚠️ **한 줄로 요약하면**: "배지가 뜬다"고 적힌 낡은 서술을 믿고 nova로 띄운 뒤 배지가 없는 것을
+보고 **정상인** 어댑터·세션을 디버깅하지 마라. 프론트는 아직 그 프레임을 모른다.
 
 ### §11 (추천 학습 루틴) — 별도 계획이 아직 없다
 
@@ -171,6 +225,8 @@ await resolve_dangling(conn, session_id)
 | **H-H** | `PRD.md`는 `:29`~`:117`, `requirements-summary.md`는 `:15`~`:60`이 **줄 단위로 인용**된다(실측 13곳·5곳) | 새 내용은 **문서 끝에만** 추가. 기존 절은 **한 줄 → 한 줄** 교체만. 규약은 각 문서 맨 아래 |
 | **H-I** | **`db_conn` 픽스처는 마이그레이션만 적용하고 시드는 하지 않는다.** 계획 Task 4가 쓴 `select id from users limit 1` 헬퍼는 `None`을 돌려주고 not-null 위반으로 죽는다. 시드는 `scripts/migrate.py`의 `seed()`가 하고 `test_schema.py`만 그걸 명시 호출한다 | `db_conn` 테스트는 사용자·세션을 **직접 insert**한다. 리포 관례이기도 하다(`test_schema.py`·`test_utterances.py`·`test_jobs.py` 전부 자기 헬퍼를 쓴다). 커밋된 행이 필요하면 `db_pool`+`committed_session` |
 | **H-J** | **트랜잭션 시각 함정은 1회 실행으로 안 드러난다.** `created_at default now()`로 정렬하는 테스트가 **3회 중 1회만** 실패했다 — 한 번 돌려 통과하면 정상으로 보인다 | 순서·시각에 의존하는 테스트는 **최소 3~5회 반복 실행**으로 판정한다. 근본 대응은 정렬 키를 단조값으로 두는 것(004 `attempt_seq`) |
+| **H-L** | **선언된 게이트에 구멍이 있다 — `ruff format`이 `tests/`를 보지 않는다.** 게이트는 `ruff format --check .`(cwd `app/backend`)인데 그 범위에 `tests/`가 없다. `ruff check`는 `../../tests`를 따로 돌리도록 문서화됐지만 **format은 그 짝이 없다.** 그래서 테스트 파일의 포맷 위반이 **무증상으로 커밋된다** — Task 4·5가 각각 1건씩 남겼고 리뷰가 잡았다 | 테스트를 건드린 커밋 전에 **`.venv/bin/ruff format --check ../../tests`를 함께 돌린다**. 현재 잔존 **4건**은 전부 `tests/harness/*`(기존) — 5차수 정리 대상. 이 수치가 4를 넘으면 내가 만든 것이다 |
+| **H-M** | **"실패하는 테스트를 먼저 썼다"가 증거로 약할 수 있다.** Task 5는 13건을 먼저 썼지만 실제 red는 **5건**이었다 — 나머지 8건(모르는 tool 무시·깨진 페이로드 6종·발음 이벤트 0건)은 구현이 없으면 **자동으로 통과하는 부재 가드**다. `_on_tool_use`를 통째로 지워도 계속 초록이다 | 부재를 단정하는 테스트는 T0 증거로 쓰지 않는다. red 개수를 세어 **"N건 중 M건이 red였다"**로 적는다. 긍정 단정(이벤트가 실제로 만들어진다)이 짝을 이루는지 확인한다 |
 | **H-K** | **`ty`의 검사 범위는 리포루트 `ty.toml`의 `[src] include = ["app/backend/app", "tests"]`다.** `app/backend/` 직하에 둔 파일은 **조용히 검사되지 않는다** — `x: int = "문자열"`도 통과한다. 타입 방어가 실제로 작동하는지 확인하려다 "ty가 못 잡는다"는 잘못된 결론을 낼 수 있다(내가 한 번 냈다) | 타입 가드 검증용 임시 파일은 **`tests/` 안에** 두고 확인 후 지운다. `ty.toml:8`이 `[tool.ty]`를 pyproject에 추가하지 말라고 경고하는 것도 같은 이유다 |
 
 ---
@@ -211,7 +267,34 @@ Nova가 실제로 낸 응답: *"Say this after me: I think I found three very us
 
 ### 캡틴 결정 대기
 
-1. **`toolResult`를 Nova에 돌려보내야 하는가.** 스파이크에서 안 보냈는데 `END_TURN`으로 정상 종료했지만 **1회 관측**이다. 다중 턴에서 멈추는지 미검증. **기본안: 보내지 않는다.** 확인 방법은 `--tools`에 2턴 주입을 더하는 것.
+1. ~~**`toolResult`를 Nova에 돌려보내야 하는가.**~~ → ✅ **결정됨(2026-08-28): 보내지 않는다.**
+   기본안 유지 — 관측된 거동을 따른다(스파이크에서 안 보냈는데 `END_TURN`으로 정상 종료).
+   계획 Task 5가 이미 이 전제로 쓰여 있어 추가 작업이 0이다.
+   ⚠️ **그 관측은 1회뿐이다** — 다중 턴에서 Nova가 응답을 기다리며 멈추는지는 여전히 미검증이다.
+   멈춤이 재현되면 그때 추가한다. 확인 방법은 `spike_nova_protocol.py --tools`에 2턴 주입을
+   더하는 것이고, **5차수 관측 대상으로 넘긴다**(계획 Task 9의 P9~P12와 함께).
+1-b. ⭐ **교정 예산이 프롬프트에서 설계보다 넓다 — 기록되지 않은 요구사항 갭.** (Task 5 리뷰 MEDIUM)
+설계서 §3.3은 일반 Speaking 세션에서 **"보조 신호가 떴을 때만"** 발음 개입이라고 정했는데,
+`SYSTEM_PROMPT` 규칙 8은 **무조건**이다("When a sound is clearly off"). 좁혀 줄 장치가
+§4.1이 말한 **지시문 가변부**인데 **계획 Task 1~9에 그 구현이 없다**(grep "가변부"·"개입 모드"
+0건 — 학습 코치 설계서 §5.2가 만드는 자리다).
+**failure**: 문법 오류 + 살짝 흐린 발음이 같은 턴에 있으면 규칙 8이 발음 개입을 발동하고
+규칙 10이 문법 동시 교정을 금지해 **문법 교정이 밀려난다.** 매 턴 반복되면 §3.3이 막으려던
+"핵심 루프가 흔들린다"가 그대로 일어난다.
+선택지: (a) 지금은 수용하고 **5차수에 대조군**(발음 오류 없는 픽스처로 일반 대화 1턴,
+`partial`/`final` 프레임 수와 agent 행 수가 3차수 N5와 같은지)으로 관측한다
+(b) §11 학습 코치의 지시문 가변부가 붙을 때 함께 좁힌다. **계획 위반은 아니다** — 계획대로
+구현했고 계획 Self-Review가 R10-4 갭만 적고 이 갭은 적지 않았다.
+
+1-c. **규칙 4의 교정 상한이 요구사항 정본과 어긋난다** (Task 5 리뷰 ①, **기존 불일치**).
+`docs/agent-system-prompt.md:19`는 "at most one **or two** high-impact recurring errors"이고
+설계서 §3.3이 그 줄을 인용한다. 그런데 `nova.py`의 규칙 4는 **"At most one** correction per
+turn"이다 — 이 diff 이전부터 있던 불일치인데, Task 5의 규칙 10이 "one-per-turn"을 다시
+못박아 **두 곳으로 굳혔다**. (계획 :1069는 "one-or-two"라고 썼지만 그대로 넣으면 같은
+프롬프트 안의 규칙 4와 정면 모순이라 규칙 4에 맞췄다 — 그 판단은 리뷰도 옳다고 봤다.)
+선택지: (a) 정본을 코드에 맞춘다("at most one") (b) 규칙 4를 정본에 맞춘다("one or two").
+**Surgical Changes상 지금 규칙 4를 손대지 않았다** — 캡틴 결정 사항이다.
+
 2. **`agent_reprompt` 보조 신호를 유지할 가치가 있는가.** 문구 매칭이라 취약하다. **첫 구현에서 제외했고 그래서 R10-4의 절반이 미충족이다.** 5차수 관측 후 판정.
 3. **발음 `pattern_key`의 값역.** `target_sound`를 Nova가 만들면 키가 흩어질 수 있다(`th_as_s` vs `theta_to_s`). **기본안: §5.6 규약 재사용**(기존 키 주입 + 재사용 우선).
 
@@ -261,9 +344,12 @@ HIGH, 실측 재현). 판정 UPDATE는 `session_id` + 최신 pending만 보고 *
 2. `git log --oneline --reverse c02dddb~1..HEAD`로 위 커밋 표와 대조 (**HEAD ≥ `ed91363`**).
 3. 게이트 4개를 **`app/backend` cwd에서** 돌려 §1의 수치(**285 passed**)와 일치하는지 확인한다. 다르면 그 차이를 먼저 설명한다.
 4. Nova를 건드리면 `spike_nova_protocol.py --wav p1a.wav`로 자격증명 생존을 먼저 확인한다.
-5. **§2.1을 읽는다** — 계획 Task 5·6·7의 인터페이스 서술이 낡았다. 계획을 그대로 베끼면 없는 인자를 넘긴다.
-6. 계획 `docs/design/2026-08-27-pronunciation-echo-plan.md`의 **Task 5**부터 TDD로 진행한다. Task 5는 `tests/unit/test_nova.py`의 **기존 가짜 스트림 헬퍼 이름을 파일을 열어 확인**하고 재사용한다 — 계획이 그 이름을 추측으로 비워 뒀다.
-7. **각 태스크 완료 직후 이 파일을 갱신한다** — 별도 지시를 기다리지 않는다.
+5. **§2.1을 읽는다** — 계획 Task 6·7의 인터페이스 서술이 낡았다. 계획을 그대로 베끼면 없는 인자(`signal_source=`)를 넘겨 `TypeError`가 난다.
+6. 계획 `docs/design/2026-08-27-pronunciation-echo-plan.md`의 **Task 6**부터 TDD로 진행한다.
+   - 계획 Task 6의 테스트 본문에 `...`가 있다 — `tests/integration/test_gateway.py`의 **기존 가짜 어댑터·세션 구동 헬퍼를 파일을 열어 확인**하고 재사용한다. Task 5에서 같은 일을 했고, 계획이 추측한 이름은 실제로 없었다.
+   - Task 6 (d)의 "세션 종료 기록과 같은 트랜잭션"은 **지금 구조로 불가능하다** — §6 "내 작업" 두 번째 항목을 먼저 읽어라.
+7. **테스트를 건드렸으면 `ruff format --check ../../tests`를 함께 돌린다** — 선언된 게이트 밖이라 무증상으로 커밋된다(함정 H-L). 잔존 4건이 기준이다.
+8. **각 태스크 완료 직후 이 파일을 갱신한다** — 별도 지시를 기다리지 않는다.
 
 ## 8. 관련 문서
 

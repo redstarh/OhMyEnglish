@@ -1,7 +1,7 @@
 # OhMyEnglish Handoff
 
-> 제품·구현 정본. 최종 갱신 **2026-08-27** · 기준 커밋 **HEAD ≥ `582eef6`** ·
-> **다음 할 일: 요구사항 v1.1 구현 (계획 Task 5 — Nova 어댑터에 발음 tool 연결) —
+> 제품·구현 정본. 최종 갱신 **2026-08-28** · 기준 커밋 **HEAD ≥ `1a8c908`** ·
+> **다음 할 일: 요구사항 v1.1 구현 (계획 Task 6 — 세션 저장·한글 신호·종료 수렴) —
 > `handoff/HANDOFF-v1.1-implementation.md`**
 >
 > ⭐ **요구사항이 v1.1로 올라갔다** (2026-08-27) — `docs/PRD.md` §10 발음 시범·재발화,
@@ -21,13 +21,13 @@
 |---|---|
 | Phase 1 (첫 수직 슬라이스) | ✅ 개발 완료 — 태스크 12/12 |
 | **Phase 2 Nova 2 Sonic 실연동** | ✅ **어댑터 구현 + 앱 경로 실음성 왕복(AC1) 실증** — 커밋 `37a2869`, 3차수 N5 |
-| 테스트 | ✅ **286 passed** (skip/xfail 0, 기준선 206 → +80). **2026-08-27 v1.1 Task 4까지 재실행 확인.** 게이트는 `app/backend` cwd에서 판정한다 |
+| 테스트 | ✅ **304 passed** (skip/xfail 0, 기준선 206 → +98). **2026-08-28 v1.1 Task 5까지 재실행 확인.** 게이트는 `app/backend` cwd에서 판정한다. ⚠️ `ruff format`은 `tests/`를 **안 본다** — 테스트를 건드리면 `ruff format --check ../../tests`를 따로 (잔존 4건이 기준) |
 | 품질 게이트 | ✅ **`app/backend`에서 실행할 때** `ruff check .` · `ruff format --check .`(25파일) · `ty check` 전부 clean. ⚠️ **"리포루트 양쪽 clean"은 틀렸다**(2026-08-26 재실측으로 정정) — 리포루트에 ruff 설정 파일이 **없어** 거기서 돌리면 ruff 기본 규칙이 적용돼 `check .` **56 errors** · `format --check .` **21 files**가 난다. 설정 SoT는 `app/backend/pyproject.toml`이므로 **게이트는 `app/backend` cwd로 정의된다**. `ty check`만 양쪽 clean |
 | 하네스 테스트↔수정 루프 | **4/10 차수 사용.** 미해결 앱 결함 **0건**. 4차수 P·M 완료 → 5차수는 N·B·회귀 |
 | Phase 1 완료 선언 | ⏸ **캡틴 게이트** — 아래 |
 | **요구사항 정본** | ✅ **v1.1 (2026-08-27)** — `PRD.md` §10 발음 시범·재발화 · §11 이력 기반 추천 학습 루틴 신설. v1.0 사본은 `docs/backup/v1.0/` |
 | 3단계 학습 코치 Agent | ✅ **설계서 정본 승격(2026-08-27)** — 미결 3건 종결(최근 창 14일 유지 / 정답 판정은 문법=워커·발음=Nova 두 경로 / `impact_score` 영구 제외), **2슬라이스 분해 채택**. 구현 전 |
-| **발음 교정 루틴** | 🔨 **구현 중 — 9태스크 중 4개 완료**(표 003 · 검증 모델 · 포트 이벤트 · **생명주기 서비스**). 다음이 Task 5(Nova 지시문+tool)이고 **거기까지 하면 학습자가 실제로 피드백을 받기 시작한다.** 지금 앱을 돌리면 발음 교정은 여전히 일어나지 않는다. 상세는 `handoff/HANDOFF-v1.1-implementation.md`. 아래는 착수 전 확정 사항: |
+| **발음 교정 루틴** | 🔨 **구현 중 — 9태스크 중 5개 완료**(표 003·004 · 검증 모델 · 포트 이벤트 · 생명주기 서비스 · **Nova tool 연결**). **지금 `VOICE_ADAPTER=nova`로 돌리면 Nova가 발음을 교정해 준다 — 그런데 화면 배지도 없고 기록도 없다**(배지=Task 8, 기록=Task 6). ⚠️ **실물 Nova 왕복 미검증** — 앱이 보내는 tool 스키마가 스파이크가 보낸 것과 다르다. 상세·단계별 실측은 `handoff/HANDOFF-v1.1-implementation.md` §3.1·§3.2. 아래는 착수 전 확정 사항: |
 | ↳ (근거) | **요구사항·설계 확정.** 4차수는 "없다"까지 확정했고 **2026-08-27 스파이크가 전제를 뒤집었다** — Nova tool use가 동작하고(`runs/2026-08-27-P-tooluse-spike/`), 지시하면 Nova가 **실제로 문장 전체를 올바른 발음으로 다시 읽어준다**. 즉 능력 부재가 아니라 지시 부재였다. 설계서 `docs/design/2026-08-27-pronunciation-echo-design.md` |
 | **오류 → 이후 학습 반영** | ⚠️ **저장은 되고 활용은 안 된다 — 4차수 M계층에서 확정.** 패턴 8개를 쌓아도 agent 응답이 3차수 N5 때와 글자까지 같았다. ⚠️ N5 시점 패턴 수를 "1개"라 적었던 것은 **오류** — Q1(E6 주입)이 N5보다 먼저 돌아 최소 2개였다(정확한 값 미기록). 대조 방향은 유지되나 **좌변 수치는 못 쓴다.** 결론의 근거는 코드 구조다 |
 
@@ -44,8 +44,9 @@
    4차수에서 부재가 확정됐지만 고장난 것이 아니라 없는 기능이고(P5 clean), 문법 교정은 이미
    작동한다(O-3). 상위 순서는 복습·학습 코치다. 재개 시 `scenarios-P-pronunciation.md` §5에서
    층(①결함/②프롬프트/③패턴기억)을 고른다.
-3. **M계층 반영 단위** — 오류가 대화에 닿는 경로가 지금 0개다(`sessions.py:29`가 고정 시나리오,
-   `nova.py:77`이 정적 지시문). 두 갈래가 있고 배타적이지 않다:
+3. **M계층 반영 단위** — 오류가 대화에 닿는 경로가 지금 0개다(`sessions.py:29`가 고정 시나리오이고
+   `nova.py`의 `SYSTEM_PROMPT`가 정적 지시문 — 발음 규칙이 들어갔어도 **학습 이력이 반영되는
+   가변부는 여전히 없다**). 두 갈래가 있고 배타적이지 않다:
    - **A 시나리오 선택** — 약점 패턴에 맞는 질문 세트를 `learning_scenarios`에서 고른다.
      `limit 1`을 "추천 한 건"으로 바꾸는 작은 변경이지만, 반영이 시나리오 문구 수준으로 거칠다.
    - **B 지시문 주입** — "관사를 5번 틀렸다, 그 문형을 유도해라"를 Nova 지시문에 넣는다.
@@ -97,8 +98,10 @@
 **확정된 것**: ① 약한 발음 오류는 **전사문 경로에서 완전히 소실**된다(ASR 언어모델이 복원) →
 전사문만 받는 분석 워커는 **원리적으로** 발음을 판정할 수 없고, `analysis.py:48`이 
 `pronunciation_intonation`을 금지 카테고리로 둔 것은 실측으로도 옳다. ② speech-to-speech 모델인
-Nova도 **발음을 지적하지 않았다** — `nova.py:77` `SYSTEM_PROMPT`에 발음 지시가 없다(rule 4는
-"한 턴 1회 교정"이지만 발음 특화가 아니다). ③ 강한 억양은 **ASR 언어 판별을 뒤집는다** — 이
+Nova도 **발음을 지적하지 않았다** — 그때 `SYSTEM_PROMPT`에 발음 지시가 없었다(rule 4는
+"한 턴 1회 교정"이지만 발음 특화가 아니었다). ⚠️ **이 절은 4차수 시점의 기록이다** — 2026-08-28
+계획 Task 5가 `SYSTEM_PROMPT`에 발음 규칙 7~10과 tool을 넣어 이 전제는 **더 이상 현행이 아니다**
+(원래 여기 있던 `nova.py:77` 줄 인용은 그 변경으로 어긋나 제거했다). ③ 강한 억양은 **ASR 언어 판별을 뒤집는다** — 이
 한글 전사문이 워커에 들어가면 어떻게 되는지가 미검증이고 **결함 후보**다(P5).
 
 한계: `p1m`은 원어민이 다른 단어를 정확히 발음한 것, `p1k`는 한국어 TTS가 영문자를 읽은 것이다.
@@ -129,7 +132,7 @@ Nova도 **발음을 지적하지 않았다** — `nova.py:77` `SYSTEM_PROMPT`에
 ```bash
 # DB (podman — docker 없음)
 scripts/dev_db.sh start          # postgres:16-alpine, :5433, ohmy/ohmy/ohmyenglish
-app/backend/.venv/bin/python scripts/migrate.py   # 001·003 적용 + 고정 사용자·시나리오 3행 시드 (멱등)
+app/backend/.venv/bin/python scripts/migrate.py   # 001·003·004 적용 + 고정 사용자·시나리오 3행 시드 (멱등)
 #   ⚠️ `python3 scripts/migrate.py`는 **돌지 않는다** — 시스템 python에 asyncpg가 없다
 #      (2026-08-27 실측: ModuleNotFoundError). 반드시 venv python을 쓴다
 #   추적은 파일명 기준 — 001을 재작성했다면 dev DB를 drop/재생성해야 한다
@@ -267,10 +270,12 @@ cd app/backend && .venv/bin/python ../../tests/harness/spike_nova_protocol.py --
 ## 다음 작업 후보 (우선순위는 캡틴 결정)
 
 1. ⭐ **요구사항 v1.1 §10 구현 계속** — 계획 `docs/design/2026-08-27-pronunciation-echo-plan.md`
-   **Task 5(Nova 지시문+tool)** → Task 6 → Task 7. **Task 5까지 하면 학습자가 실제로
-   발음 피드백을 받기 시작한다.** Task 4는 완료(`ed91363`·`582eef6`).
-   ⚠️ **계획 Task 5·6·7의 인터페이스 서술이 낡았다** — Task 4가 계획에서 2건 벗어났다.
-   착수 전 `handoff/HANDOFF-v1.1-implementation.md` **§2.1**을 읽어라(대체 시그니처 전문 포함)
+   **Task 6(세션 저장·한글 신호·종료 수렴)** → Task 7 → Task 8.
+   Task 4·5는 완료(`ed91363`·`582eef6`·`b31227a`·`1a8c908`).
+   ⚠️ **계획 Task 6·7의 인터페이스 서술이 낡았다** — Task 4가 계획에서 2건 벗어났다.
+   착수 전 `handoff/HANDOFF-v1.1-implementation.md` **§2.1**을 읽어라(대체 시그니처 전문 포함).
+   Task 6 (d)의 "세션 종료 기록과 같은 트랜잭션"은 `mark_session_ended(pool, …)` 때문에
+   **현 구조로 불가능하다** — 그 handoff §6 "내 작업"에 실측과 고칠 자리를 적어 뒀다
 2. **요구사항 v1.1 §11 구현 계획 작성** — 설계서는 정본 승격 완료(미결 3건 종결).
    §12.1 **2슬라이스 채택 결정됨**. 슬라이스 1을 먼저 하는 것이 권고 — `suggested_contexts`가
    지금 버려지고 있고 소급이 불가능하다
@@ -286,7 +291,7 @@ cd app/backend && .venv/bin/python ../../tests/harness/spike_nova_protocol.py --
 1. `git log --oneline c55fbc4..HEAD`로 위 커밋 표를 대조 (**HEAD ≥ `5e3083f`**).
    표보다 커밋이 많은 것은 정상 — 그 차이가 이 파일 갱신 이후의 작업이다
 2. **포트 함정 절을 먼저 읽어라** — 백엔드 `--port 8002`, 프론트 `.env.local` `:8002`
-3. 게이트 4개를 **`app/backend` cwd에서** 돌려 실측 확인 (**286 passed** / ruff · format 27파일 · ty clean).
+3. 게이트 4개를 **`app/backend` cwd에서** 돌려 실측 확인 (**304 passed** / ruff · format 27파일 · ty clean).
    dev DB 마이그레이션은 **001·003·004** 3개다 — 다르면 `app/backend/.venv/bin/python scripts/migrate.py`(멱등)
 4. Nova를 건드리면 `spike_nova_protocol.py --wav p1a.wav`로 자격증명 생존을 먼저 확인
    (키 로테이션 시 여기서 먼저 깨진다)
