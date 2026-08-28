@@ -8,7 +8,11 @@
     toolUse(pending)  → INSERT (resolved_at is null)           `record_attempt`
     toolUse(판정값)    → 같은 세션의 **최신** pending을 UPDATE    `record_attempt`
                          (없으면 그 값으로 INSERT — 기록을 잃지 않는다)
-    세션 종료         → 남은 pending을 unclear로 수렴            `resolve_dangling`
+    세션 종료         → 남은 pending을 incorrect로 수렴          `resolve_dangling`
+    incorrect가 되면  → error_patterns 연결 (경로 불문)          `link_pattern`
+
+수렴값은 설계서 §3.2의 `unclear`가 아니라 `incorrect`다 — 캡틴이 2026-08-28에 뒤집었고
+근거는 `resolve_dangling` 주석에 있다.
 
 마지막 규칙이 핵심 방어다. `pending`을 영구히 남기면 "판정되지 않은 시도"가 조용히
 쌓여 숙련도 계산을 왜곡한다. 학습자가 대답하지 않고 세션을 끝낸 것도 정보이므로
@@ -29,13 +33,13 @@
 004 주석에 있다(요지: 규약은 표를 직접 쓰는 다른 writer를 구속하지 못하고, 벽시계는
 순서의 대리일 뿐이어서 동값 tie-break가 난수 uuid로 떨어진다).
 
-⚠️ **미결 — 트랜잭션 소유권.** 지금은 호출자의 트랜잭션을 그대로 쓴다. 계획 Task 7이
-`link_pattern`(패턴 upsert + 시도 UPDATE)을 더하면 설계서 §7 Failure의 "시도 INSERT와
-패턴 upsert를 한 트랜잭션에 둔다"를 **이 함수가** 보장해야 한다 — Task 6의 호출자가
-`pool.acquire()`(autocommit)라 호출자에게 맡기면 부분 실행이 생긴다. 그때
-`async with conn.transaction():`을 여기서 열어라(`services/utterances.py:13-17`이 같은
-결론을 이미 문서화한다). 지금 미리 넣지 않는 이유는 실패하는 테스트를 붙일 수 없어서다 —
-Task 4에는 한 단위로 묶일 두 번째 문장이 없다.
+**트랜잭션 소유권** (Task 4의 미결을 Task 7이 닫았다). `record_attempt`는 **자기
+트랜잭션을 연다** — 시도 INSERT/UPDATE와 `link_pattern`(패턴 upsert + 시도 UPDATE +
+frequency 재계산)이 한 단위여야 하고(설계서 §7 Failure), 호출자
+(`audio_gateway/session.py:243`)가 `pool.acquire()` 즉 autocommit이라 맡기면 부분 실행이
+생긴다(패턴 `frequency`만 오르거나 시도의 `pattern_id`가 null). 호출자가 이미 트랜잭션
+안이면 savepoint로 합성된다 — `services/utterances.py:13-17`이 같은 결론을 문서화한다.
+`resolve_dangling`만 예외로 호출자의 트랜잭션에 합류한다(그 함수 주석 참조).
 """
 
 from __future__ import annotations
@@ -127,68 +131,79 @@ async def record_attempt(
     `pending`이면 새 행을 연다. 판정값이면 같은 세션의 **최신 pending을 닫고**, 닫을
     것이 없으면 그 값으로 새 행을 만든다 — Nova가 시범 없이 판정만 보내도 기록을 잃지
     않는다(설계서 §3.2의 "없으면 새 행을 그 outcome으로 INSERT").
+
+    기록과 **패턴 연결이 한 트랜잭션**이다 — 이 함수가 직접 연다(모듈 주석 "트랜잭션
+    소유권"). 호출자가 autocommit이라 맡기면 부분 실행이 생긴다.
     """
-    if outcome == "pending":
-        return await _insert_attempt(
-            conn,
+    async with conn.transaction():
+        if outcome == "pending":
+            # 아직 오류가 아니라 패턴을 만들지 않는다. 이 행은 판정이 오거나
+            # `resolve_dangling`이 수렴할 때 패턴을 얻는다.
+            return await _insert_attempt(
+                conn,
+                session_id,
+                target_form=target_form,
+                outcome=outcome,
+                spoken_form=spoken_form,
+                target_sound=target_sound,
+                utterance_id=utterance_id,
+                signal_source=_NOVA_TOOL,
+            )
+
+        # 판정값 — 가장 최근 pending을 닫는다. `coalesce`라서 판정이 값을 안 주면 시범
+        # 시점의 값이 남는다(빈 판정이 기록을 지우지 않는다).
+        #
+        # `signal_source`를 **필터하지 않는다.** 005 제약이 "pending은 nova_tool만"을 표에서
+        # 강제하므로 열린 행은 정의상 Nova 것이다 — 앱에서 한 번 더 거르면 같은 규칙이 두 층에
+        # 흩어진다.
+        #
+        # ⚠️ `for update`는 두 판정이 동시에 들어올 때 같은 행을 닫는 것을 막는다. 그런데
+        # **패자가 새 행을 만드는 것이 아니다** — 잠금이 풀리면 EPQ 재검사가 이미 닫힌 행을
+        # 떨어뜨리고 서브쿼리가 **그 다음 pending으로 전진**해 무관한 시도를 닫는다(리뷰가
+        # 연결 2개로 실측). 지금은 `_pump_adapter_events`가 이벤트를 순차 await해 도달
+        # 불가다 — 발음 기록을 `create_task`로 띄우면 즉시 도달하므로 띄우지 않는다.
+        attempt_id = await conn.fetchval(
+            """
+            update pronunciation_attempts set
+                outcome      = $2,
+                spoken_form  = coalesce($3, spoken_form),
+                target_sound = coalesce($4, target_sound),
+                utterance_id = coalesce($5, utterance_id),
+                resolved_at  = clock_timestamp()
+            where id = (
+                select id from pronunciation_attempts
+                 where session_id = $1 and outcome = 'pending'
+                 order by attempt_seq desc
+                 limit 1
+                 for update
+            )
+            returning id
+            """,
             session_id,
-            target_form=target_form,
-            outcome=outcome,
-            spoken_form=spoken_form,
-            target_sound=target_sound,
-            utterance_id=utterance_id,
-            signal_source=_NOVA_TOOL,
+            outcome,
+            spoken_form,
+            target_sound,
+            utterance_id,
         )
+        if attempt_id is None:
+            logger.info("닫을 pending 시도가 없어 판정값으로 새 행을 만든다 (세션 %s)", session_id)
+            attempt_id = await _insert_attempt(
+                conn,
+                session_id,
+                target_form=target_form,
+                outcome=outcome,
+                spoken_form=spoken_form,
+                target_sound=target_sound,
+                utterance_id=utterance_id,
+                signal_source=_NOVA_TOOL,
+            )
 
-    # 판정값 — 가장 최근 pending을 닫는다. `coalesce`라서 판정이 값을 안 주면 시범
-    # 시점의 값이 남는다(빈 판정이 기록을 지우지 않는다).
-    #
-    # `signal_source`를 **필터하지 않는다.** 005 제약이 "pending은 nova_tool만"을 표에서
-    # 강제하므로 열린 행은 정의상 Nova 것이다 — 앱에서 한 번 더 거르면 같은 규칙이 두 층에
-    # 흩어진다.
-    #
-    # ⚠️ `for update`는 두 판정이 동시에 들어올 때 같은 행을 닫는 것을 막는다. 그런데
-    # **패자가 새 행을 만드는 것이 아니다** — 잠금이 풀리면 EPQ 재검사가 이미 닫힌 행을
-    # 떨어뜨리고 서브쿼리가 **그 다음 pending으로 전진**해 무관한 시도를 닫는다(리뷰가
-    # 연결 2개로 실측). 지금은 `_pump_adapter_events`가 이벤트를 순차 await해 도달
-    # 불가다 — 발음 기록을 `create_task`로 띄우면 즉시 도달하므로 띄우지 않는다.
-    updated = await conn.fetchval(
-        """
-        update pronunciation_attempts set
-            outcome      = $2,
-            spoken_form  = coalesce($3, spoken_form),
-            target_sound = coalesce($4, target_sound),
-            utterance_id = coalesce($5, utterance_id),
-            resolved_at  = clock_timestamp()
-        where id = (
-            select id from pronunciation_attempts
-             where session_id = $1 and outcome = 'pending'
-             order by attempt_seq desc
-             limit 1
-             for update
-        )
-        returning id
-        """,
-        session_id,
-        outcome,
-        spoken_form,
-        target_sound,
-        utterance_id,
-    )
-    if updated is not None:
-        return updated
-
-    logger.info("닫을 pending 시도가 없어 판정값으로 새 행을 만든다 (세션 %s)", session_id)
-    return await _insert_attempt(
-        conn,
-        session_id,
-        target_form=target_form,
-        outcome=outcome,
-        spoken_form=spoken_form,
-        target_sound=target_sound,
-        utterance_id=utterance_id,
-        signal_source=_NOVA_TOOL,
-    )
+        assert isinstance(attempt_id, UUID)
+        # 패턴을 만들 **조건은 SQL이 갖는다**(`incorrect` + `target_sound` 있음). 여기서 한 번
+        # 더 거르지 않는 것은 위 `signal_source`와 같은 이유다 — 같은 규칙이 두 층에 흩어지면
+        # 한쪽이 조용히 낡는다. 조건에 안 맞는 판정이면 이 호출은 no-op이다.
+        await link_pattern(conn, attempt_id)
+        return attempt_id
 
 
 async def record_signal(
@@ -209,6 +224,12 @@ async def record_signal(
 
     **이 행은 항상 판정된 상태로 태어난다** (`AssistOutcome`에 `pending`이 없다). 열린
     보조 신호 행을 만들면 `record_attempt`가 그것을 닫아 이 분리의 목적이 무너진다.
+
+    **패턴을 만들지 않는다.** 설계서 §3.2의 "경로 불문"은 Nova 판정과 종료 수렴 두 경로를
+    말한다. 보조 신호 행의 `target_form`은 시범 문장이 아니라 설명 문구이고
+    (`KOREAN_TRANSCRIPT_TARGET_FORM`), 패턴의 `target_form`은 "연습할 목표 형태"라
+    문장이어야 한다(설계서 §8 AC) — 설명 문구를 패턴에 실으면 복습 화면이 그것을 읽어준다.
+    그리고 지금 유일한 감지기가 내는 값은 `unclear`라 어차피 오류로 세지 않는다.
     """
     return await _insert_attempt(
         conn,
@@ -257,7 +278,7 @@ async def note_transcript(
 
 
 async def resolve_dangling(conn: asyncpg.Connection, session_id: UUID) -> int:
-    """세션에 남은 `pending`을 `incorrect`로 수렴시킨다. 바뀐 행 수를 돌려준다.
+    """세션에 남은 `pending`을 `incorrect`로 수렴시키고 패턴까지 연결한다. 바뀐 행 수를 돌려준다.
 
     **왜 `incorrect`인가** (캡틴 결정 2026-08-28, 설계서 §3.2의 `unclear`를 뒤집음):
     학습자 관점에서 "대답을 못 한 것"은 못 한 것이다. 이후 학습도 그냥 틀림으로 본다 —
@@ -267,21 +288,23 @@ async def resolve_dangling(conn: asyncpg.Connection, session_id: UUID) -> int:
     남을 값이 없다. 비우지 않으면 Nova가 시범 시점에 넣은 placeholder
     (`"[awaiting user repetition]"`)가 결과 화면에 학습자 발음으로 표시된다.
 
+    **패턴은 경로 불문으로 만든다** (설계서 §3.2, 계획 Task 7 정정): 판정으로 `incorrect`가
+    된 행뿐 아니라 여기서 수렴된 행도 `error_patterns`에 연결된다. 경로별 예외를 두면
+    "대답 안 함"만 따로 세는 규칙이 생기고 그것이 결과 화면·학습 계획으로 번진다.
+
     멱등이다 — 두 번 불러도 두 번째는 0이다. 이미 판정된 행은 `where` 조건 밖이라
     `correct`가 덮이지 않는다.
 
     세션 종료 기록과 **같은 트랜잭션**에서 불러야 한다(설계서 §3.2). 분리하면 그 사이
-    크래시에서 `pending`이 영구히 남는다 — 그래서 자기 트랜잭션을 열지 않고 호출자의
-    것에 합류한다.
+    크래시에서 `pending`이 영구히 남는다 — 그래서 `record_attempt`와 달리 자기 트랜잭션을
+    열지 않고 호출자의 것에 합류한다. 수렴 UPDATE와 그 뒤의 패턴 연결도 같은 단위다.
 
-    ⚠️ **그 전제조건을 지금은 어느 호출자도 만족시킬 수 없다.**
-    `services/sessions.py:49-54`의 `mark_session_ended(pool, session_id, status)`가 `pool`을
-    받아 **자기 연결을 acquire**한다(`audio_gateway/session.py:148`에서 호출) — 합류할
-    트랜잭션이 없다. 계획 Task 6 (d) "세션 상태를 기록하는 트랜잭션에 붙인다"도 같은 이유로
-    현 구조에서 불가능하다. `pool.acquire()`로 이 함수를 부르면 문법도 테스트도 통과하지만
-    원자성이 **조용히 없고**, 그 사이 크래시에서 `pending`이 영구 잔존한다 — 설계서가
-    "핵심 방어"라 부른 것의 실패다. 고칠 자리는 이 모듈이 아니라 `mark_session_ended`의
-    시그니처(`pool` → `conn`)와 `_close_and_record`가 `db.tx()`를 여는 것이다.
+    ✅ **그 전제조건은 Task 6이 충족시켰다** (Task 4 시점의 ⚠️를 정정한다):
+    `services/sessions.py:49`가 `end_session(conn, …)`로 연결을 받고,
+    `audio_gateway/session.py:153`이 `pool.acquire()` + `conn.transaction()` 안에서 종료
+    기록과 이 함수를 함께 부른다. `mark_session_ended(pool, …)`는 묶을 것이 없는 호출자용
+    래퍼로 남았고 유일한 사용처(`api/ws.py:123`)는 **어댑터 생성 실패 경로**라 시도 행이
+    아직 존재할 수 없다 — 그 경로가 수렴을 건너뛰어도 누수가 없다.
     """
     rows = await conn.fetch(
         """
@@ -300,4 +323,96 @@ async def resolve_dangling(conn: asyncpg.Connection, session_id: UUID) -> int:
             len(rows),
             session_id,
         )
+    for row in rows:
+        await link_pattern(conn, row["id"])
     return len(rows)
+
+
+# --- 패턴 연결 (R10-6 → R11-9, 설계서 §4.3, 계획 Task 7) ---
+
+# 패턴 재료를 **인자가 아니라 저장된 행**에서 읽는다. ① 판정 tool이 `target_sound`를 다시
+# 주지 않아도 시범 시점 값이 살아 있다(판정 UPDATE의 `coalesce`). ② 호출자가 outcome과
+# 소리를 다시 넘기다가 행과 어긋날 여지가 없다. ③ 판정·수렴 두 경로가 같은 한 문장을 쓴다.
+#
+# 적용 조건이 `where`에 있어서, 조건에 안 맞는 행에 불러도 0행을 돌려준다(무해한 no-op).
+# `pronunciation_intonation`은 카테고리 코드값이고 SoT는 `models/analysis.ErrorCategory`다.
+#
+# `target_form`은 not null이라 반드시 채운다 — 시도가 가진 **시범 문장**을 쓴다. 계획
+# 본문의 upsert에는 이 컬럼이 없어 그대로면 실패했다(원장 A-1 3번).
+_UPSERT_PRONUNCIATION_PATTERN_SQL = """
+insert into error_patterns (user_id, category, pattern_key, target_form)
+select s.user_id,
+       'pronunciation_intonation',
+       'pronunciation_' || btrim(a.target_sound),
+       a.target_form
+  from pronunciation_attempts a
+  join learning_sessions s on s.id = a.session_id
+ where a.id = $1
+   and a.outcome = 'incorrect'
+   and length(btrim(coalesce(a.target_sound, ''))) > 0
+on conflict (user_id, pattern_key) do update
+   set target_form = excluded.target_form
+returning id
+"""
+
+_LINK_ATTEMPT_SQL = "update pronunciation_attempts set pattern_id = $2 where id = $1"
+
+# `frequency`는 **시도 수**다 (설계서 §4.3) — 발음 시도는 `error_occurrences`를 만들지 않아
+# 문법 경로의 occurrence 재계산을 쓸 수 없다. 그래도 `+1`이 아니라 실제 행 수에서 다시 세는
+# 것은 같은 규약이다(`services/analysis.py:220` "+1 금지 — 재시도마다 부풀어 오른다"):
+# 이 함수를 같은 시도에 두 번 불러도 값이 변하지 않는다.
+#
+# `last_seen_at`도 최대값에서 다시 얻어 멱등을 지킨다. 연결된 행은 정의상 `incorrect`라
+# `resolved_at`이 non-null이다(003 CHECK).
+#
+# ⚠️ 이름이 `analysis.py`의 `_RECOUNT_PATTERN_SQL`과 비슷하지만 **세는 대상이 다르다**
+# (그쪽은 occurrence, 이쪽은 시도). 그래서 상수 이름에 출처를 박아 둔다.
+_RECOUNT_PATTERN_FROM_ATTEMPTS_SQL = """
+update error_patterns p
+   set frequency    = agg.attempts,
+       last_seen_at = agg.last_seen_at
+  from (
+         select count(*) as attempts, max(resolved_at) as last_seen_at
+           from pronunciation_attempts
+          where pattern_id = $1
+       ) as agg
+ where p.id = $1
+"""
+
+
+async def link_pattern(conn: asyncpg.Connection, attempt_id: UUID) -> UUID | None:
+    """`incorrect`가 된 시도를 재사용 가능한 `error_patterns` 행에 연결한다.
+
+    돌려주는 것은 패턴 id이고, 조건에 맞지 않는 시도(판정이 `incorrect`가 아니거나
+    `target_sound`가 없음)면 `None`이다 — 조건 판단을 SQL이 갖기 때문에 호출자는 경로마다
+    같은 한 줄을 쓴다(판정·수렴 **경로 불문**, 설계서 §3.2).
+
+    **임계값을 두지 않는다** — `incorrect` 1회에 만든다. 문법 오류도 1회에 패턴이 생기므로
+    같은 규약이다(`PRD.md:90`). "N회 이상이면 만성" 같은 수치를 발명하지 않는다.
+
+    `pattern_key`는 `'pronunciation_' || target_sound`다(§4.3). 값역이 흩어지는 문제
+    (`th_as_s` vs `theta_to_s`)는 문법 패턴과 같은 §5.6 규약 — 기존 키를 프롬프트에 주입하고
+    재사용을 우선시키는 것 — 으로 완화한다(캡틴 결정 2026-08-28, `TASKS.md` B-4).
+
+    호출자의 트랜잭션 안에서 부른다 — 세 문장(upsert · 연결 · 재계산)이 한 단위여야
+    `frequency`만 오르거나 `pattern_id`가 null인 부분 실행이 없다(설계서 §7 Failure).
+
+    ⚠️ `frequency` 재계산은 **발음 시도 수만** 센다. 같은 `pattern_key`가 문법 경로와 겹치면
+    두 재계산이 서로의 값을 덮는다. 문법 키는 `{category}_{snake}` 형식이라
+    `pronunciation_intonation_…`이 되고 발음 키는 `pronunciation_<소리>`라 실질 충돌은 없다.
+    """
+    pattern_id = await conn.fetchval(_UPSERT_PRONUNCIATION_PATTERN_SQL, attempt_id)
+    if pattern_id is None:
+        return None
+    assert isinstance(pattern_id, UUID)
+
+    await conn.execute(_LINK_ATTEMPT_SQL, attempt_id, pattern_id)
+    # 순서가 중요하다 — 이 시도를 연결한 **뒤에** 세야 자기 자신이 포함된다
+    # (`services/analysis.py`도 occurrence를 넣은 뒤 재계산한다).
+    #
+    # 세 문장을 CTE 하나로 합치지 않는다: 데이터를 바꾸는 CTE는 서로의 결과를 보지 못하고
+    # 같은 스냅샷을 읽으므로, 재계산이 방금 연결한 행을 **세지 못해** frequency가 하나 적게
+    # 나온다. 문장을 나누면 같은 트랜잭션 안에서 앞 문장의 효과를 본다.
+    await conn.execute(_RECOUNT_PATTERN_FROM_ATTEMPTS_SQL, pattern_id)
+    logger.info("발음 시도 %s를 패턴 %s에 연결했다", attempt_id, pattern_id)
+    return pattern_id

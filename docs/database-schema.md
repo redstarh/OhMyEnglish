@@ -109,10 +109,13 @@ work?` / `What do you usually do on weekends?` / `What do you need to do tonight
 | — | — | UNIQUE(`user_id`, `pattern_key`) |
 
 재학습의 단위. 같은 오류는 문장이 달라도 `unique(user_id, pattern_key)`로 한 패턴에
-병합된다. `frequency`/`last_seen_at`은 `error_occurrences`에서 파생되는 캐시이며
-분석 완료 트랜잭션에서 원자적으로 재계산한다 — `last_seen_at`은 발생 시각이 아니라
-**발화 시각**(`utterances.created_at`) 기준이다. `impact_score`는 3단계(복습
-우선순위)로 연기되어 아직 컬럼이 없다.
+병합된다. `frequency`/`last_seen_at`은 파생 캐시이며 **쓰기 트랜잭션에서 원자적으로
+재계산**한다(증분 `+1`이 아니다 — 재시도가 값을 부풀린다). 파생 원본은 카테고리에 따라
+둘이다: 문법 패턴은 `error_occurrences`에서, `pronunciation_intonation`은 발음 **시도
+수**에서 센다(아래 카테고리 표 참조 — 발음은 occurrence를 만들지 않는다).
+문법 경로의 `last_seen_at`은 발생 시각이 아니라 **발화 시각**(`utterances.created_at`)
+기준이고, 발음 경로는 시도의 판정 시각(`resolved_at`)이다.
+`impact_score`는 3단계(복습 우선순위)로 연기되어 아직 컬럼이 없다.
 
 `target_form`은 **패턴 수준의 일반화된 목표 형태**다 — 그 패턴을 연습할 때 익힐 형태이며
 문장이 아니다(예: `go to the + 장소 명사`, `Yesterday + 동사 과거형`). **문장별 교정은
