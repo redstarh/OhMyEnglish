@@ -400,7 +400,7 @@ Given 한 턴에 문법과 발음 오류가 함께 있을 때, Then 개입 합�
 ## 11. 구현 현황 (2026-08-28)
 
 계획: `docs/design/2026-08-27-pronunciation-echo-plan.md` (9태스크). **연속성 정본은
-`handoff/HANDOFF-v1.1-implementation.md`**이고 계획의 인터페이스 서술 일부는 낡았다 —
+`handoff/HANDOFF.md`**이고 계획의 인터페이스 서술 일부는 낡았다 —
 착수 전 그 handoff §2.1을 읽어라.
 
 | 태스크 | 상태 |

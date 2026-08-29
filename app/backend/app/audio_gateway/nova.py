@@ -137,7 +137,7 @@ def _pronunciation_tool_configuration() -> dict[str, Any]:
     스파이크는 3필드(전부 required, `outcome` enum에 `pending` 없음)를 보냈고 우리는
     4필드(required 2개, `pending` 포함)를 보낸다. 설계 §4.2를 따른 것이고 JSON Schema에서
     더 느슨한 방향이라 거부될 근거는 없지만, **실물 왕복으로 확인한 적이 없다**
-    (handoff `HANDOFF-v1.1-implementation.md` §3.1이 그 차이를 표로 기록한다).
+    (그 차이는 `TASKS.md` A-3이 표로 기록한다).
 
     이름과 스키마의 소유자는 `app.models.pronunciation` 하나다. 여기서 문자열을 다시 적으면
     어댑터가 보내는 이름과 파서가 기다리는 이름이 갈라져 tool 이벤트가 조용히 버려진다.

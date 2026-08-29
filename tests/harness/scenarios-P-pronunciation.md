@@ -93,7 +93,7 @@ afconvert -f WAVE -d LEI16@16000 -c 1 /tmp/f.aiff p1a.wav
 ## 4. 시나리오
 
 전제: 백엔드 `VOICE_ADAPTER=nova`, 픽스처를 `app/frontend/public/harness/`에 임시 배치.
-브라우저 주입 스크립트는 `handoff/HANDOFF-test-harness.md` §5의 N5 검증본을 재사용한다.
+브라우저 주입 스크립트는 `handoff/backup/2026-08-30/HANDOFF-test-harness.md` §5의 N5 검증본을 재사용한다.
 
 > **4차수 실행 결과 (2026-08-26)**: **P1·P2·P3·P4·P5·P6·P7 완료, 전부 기대대로.** 최우선 위험
 > P5는 **clean**이었다 — 한글 전사문에 대해 job이 `done`·attempts 1·findings 0으로 수렴했다
