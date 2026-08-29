@@ -33,13 +33,14 @@
 004 주석에 있다(요지: 규약은 표를 직접 쓰는 다른 writer를 구속하지 못하고, 벽시계는
 순서의 대리일 뿐이어서 동값 tie-break가 난수 uuid로 떨어진다).
 
-**트랜잭션 소유권** (Task 4의 미결을 Task 7이 닫았다). `record_attempt`는 **자기
-트랜잭션을 연다** — 시도 INSERT/UPDATE와 `link_pattern`(패턴 upsert + 시도 UPDATE +
-frequency 재계산)이 한 단위여야 하고(설계서 §7 Failure), 호출자
+**트랜잭션 소유권** (Task 4의 미결을 Task 7이 닫았다). **쓰기 진입점 둘 다 자기 트랜잭션을
+연다** — `record_attempt`와 `resolve_dangling`. 각자 시도 기록과 `link_pattern`(패턴 upsert +
+시도 UPDATE + frequency 재계산)을 한 단위로 묶어야 하고(설계서 §7 Failure), 호출자
 (`audio_gateway/session.py:243`)가 `pool.acquire()` 즉 autocommit이라 맡기면 부분 실행이
-생긴다(패턴 `frequency`만 오르거나 시도의 `pattern_id`가 null). 호출자가 이미 트랜잭션
-안이면 savepoint로 합성된다 — `services/utterances.py:13-17`이 같은 결론을 문서화한다.
-`resolve_dangling`만 예외로 호출자의 트랜잭션에 합류한다(그 함수 주석 참조).
+생긴다(패턴 `frequency`만 오르거나 시도의 `pattern_id`가 null, 또는 패턴 없는 `incorrect` 행).
+**호출자가 이미 트랜잭션 안이면 savepoint로 합성되므로** "종료 기록과 한 단위"(§3.2) 요구와
+충돌하지 않는다 — `services/utterances.py:13-17`이 같은 결론을 문서화하고, 이 모듈의 원자성
+테스트 2개가 savepoint·최상위 두 경로를 각각 실증한다.
 """
 
 from __future__ import annotations
@@ -51,9 +52,15 @@ from uuid import UUID
 
 import asyncpg
 
+from app.models.analysis import ErrorCategory
 from app.models.pronunciation import PronunciationOutcome, SignalSource
 
 logger = logging.getLogger(__name__)
+
+# 발음 패턴이 쓰는 카테고리 코드값. SQL 리터럴로 박지 않고 이 상수를 bind 파라미터로 넘긴다 —
+# 값역의 SoT는 `models/analysis.ErrorCategory`(001 CHECK와 짝)이고, 타입을 붙이면 오타를
+# `ty`가 잡는다. `pronunciation`이 아니라 `pronunciation_intonation`이다.
+_PRONUNCIATION_CATEGORY: ErrorCategory = "pronunciation_intonation"
 
 # 보조 신호의 값역. `nova_tool`은 **여기 없다** — 그것은 2단계 생명주기를 갖는
 # `record_attempt`의 것이고, 단발 행으로 새면 판정이 오지 않는 시도가 조용히 쌓인다.
@@ -62,9 +69,13 @@ AssistSignal = Literal["korean_transcript", "agent_reprompt"]
 
 # 보조 신호는 이미 일어난 관측이라 `pending`이 될 수 없다. 값역에서 빼는 이유는
 # `signal_source`를 좁힌 것과 같다 — 열린 보조 신호 행이 생기면 Nova 판정이 그것을
-# 닫아버려 함수를 나눈 목적이 무너진다(코드 리뷰가 실측으로 재현). SQL 쪽 2차 방어는
-# `record_attempt`의 `signal_source = 'nova_tool'` 필터다.
-AssistOutcome = Literal["correct", "incorrect", "unclear"]
+# 닫아버려 함수를 나눈 목적이 무너진다(코드 리뷰가 실측으로 재현).
+#
+# **`incorrect`도 없다** (Task 7 리뷰 MEDIUM-2). 설계서 §3.2는 "`incorrect`가 되는 순간
+# 패턴을 만든다"인데 보조 신호에는 `target_sound`가 없어 키를 만들 수 없다. 값역에 남겨두면
+# 다음 감지기가 `incorrect`를 넘기는 순간 그 규칙이 **조용히** 깨지므로, 주석이 아니라
+# 타입으로 막는다 — 005가 "규칙을 앱에 흩지 말고 제약으로"라 판정한 것과 같은 방향이다.
+AssistOutcome = Literal["correct", "unclear"]
 
 _NOVA_TOOL: SignalSource = "nova_tool"
 
@@ -226,10 +237,11 @@ async def record_signal(
     보조 신호 행을 만들면 `record_attempt`가 그것을 닫아 이 분리의 목적이 무너진다.
 
     **패턴을 만들지 않는다.** 설계서 §3.2의 "경로 불문"은 Nova 판정과 종료 수렴 두 경로를
-    말한다. 보조 신호 행의 `target_form`은 시범 문장이 아니라 설명 문구이고
-    (`KOREAN_TRANSCRIPT_TARGET_FORM`), 패턴의 `target_form`은 "연습할 목표 형태"라
-    문장이어야 한다(설계서 §8 AC) — 설명 문구를 패턴에 실으면 복습 화면이 그것을 읽어준다.
-    그리고 지금 유일한 감지기가 내는 값은 `unclear`라 어차피 오류로 세지 않는다.
+    말한다. 보조 신호는 "어떤 소리가 틀렸다"를 짚지 못하고 "이 전사문이 이상하다"만 말하므로
+    패턴 키를 만들 재료(`target_sound`)가 없다 — 설계서 §11:413이 같은 이유로 신호 행을
+    nova_tool 행과 구분해 렌더하라고 요구한다.
+    이 불변조건은 `AssistOutcome`이 **타입으로 잠근다** — `incorrect`가 값역에 없어서 보조
+    신호는 애초에 오류 판정이 될 수 없다. 주석으로만 두면 다음 감지기가 조용히 깬다.
     """
     return await _insert_attempt(
         conn,
@@ -296,8 +308,12 @@ async def resolve_dangling(conn: asyncpg.Connection, session_id: UUID) -> int:
     `correct`가 덮이지 않는다.
 
     세션 종료 기록과 **같은 트랜잭션**에서 불러야 한다(설계서 §3.2). 분리하면 그 사이
-    크래시에서 `pending`이 영구히 남는다 — 그래서 `record_attempt`와 달리 자기 트랜잭션을
-    열지 않고 호출자의 것에 합류한다. 수렴 UPDATE와 그 뒤의 패턴 연결도 같은 단위다.
+    크래시에서 `pending`이 영구히 남는다.
+
+    그럼에도 **자기 트랜잭션을 연다** — savepoint로 합류하므로 호출자의 단위를 깨지 않으면서
+    (그 의미론은 이 모듈의 원자성 테스트가 실증한다), 수렴 UPDATE와 그 뒤의 패턴 연결
+    `1+3N` 문장이 autocommit 호출자에게서도 쪼개지지 않는다. Task 7 전에는 UPDATE 한 문장이라
+    호출자에게 맡겨도 원자적이었지만 이제 아니다(리뷰 MEDIUM-3).
 
     ✅ **그 전제조건은 Task 6이 충족시켰다** (Task 4 시점의 ⚠️를 정정한다):
     `services/sessions.py:49`가 `end_session(conn, …)`로 연결을 받고,
@@ -306,26 +322,27 @@ async def resolve_dangling(conn: asyncpg.Connection, session_id: UUID) -> int:
     래퍼로 남았고 유일한 사용처(`api/ws.py:123`)는 **어댑터 생성 실패 경로**라 시도 행이
     아직 존재할 수 없다 — 그 경로가 수렴을 건너뛰어도 누수가 없다.
     """
-    rows = await conn.fetch(
-        """
-        update pronunciation_attempts
-           set outcome     = 'incorrect',
-               spoken_form = null,
-               resolved_at = clock_timestamp()
-         where session_id = $1 and outcome = 'pending'
-        returning id
-        """,
-        session_id,
-    )
-    if rows:
-        logger.info(
-            "대답 없이 끝난 발음 시도 %d건을 incorrect로 수렴했다 (세션 %s)",
-            len(rows),
+    async with conn.transaction():
+        rows = await conn.fetch(
+            """
+            update pronunciation_attempts
+               set outcome     = 'incorrect',
+                   spoken_form = null,
+                   resolved_at = clock_timestamp()
+             where session_id = $1 and outcome = 'pending'
+            returning id
+            """,
             session_id,
         )
-    for row in rows:
-        await link_pattern(conn, row["id"])
-    return len(rows)
+        if rows:
+            logger.info(
+                "대답 없이 끝난 발음 시도 %d건을 incorrect로 수렴했다 (세션 %s)",
+                len(rows),
+                session_id,
+            )
+        for row in rows:
+            await link_pattern(conn, row["id"])
+        return len(rows)
 
 
 # --- 패턴 연결 (R10-6 → R11-9, 설계서 §4.3, 계획 Task 7) ---
@@ -335,16 +352,26 @@ async def resolve_dangling(conn: asyncpg.Connection, session_id: UUID) -> int:
 # 소리를 다시 넘기다가 행과 어긋날 여지가 없다. ③ 판정·수렴 두 경로가 같은 한 문장을 쓴다.
 #
 # 적용 조건이 `where`에 있어서, 조건에 안 맞는 행에 불러도 0행을 돌려준다(무해한 no-op).
-# `pronunciation_intonation`은 카테고리 코드값이고 SoT는 `models/analysis.ErrorCategory`다.
 #
-# `target_form`은 not null이라 반드시 채운다 — 시도가 가진 **시범 문장**을 쓴다. 계획
-# 본문의 upsert에는 이 컬럼이 없어 그대로면 실패했다(원장 A-1 3번).
+# `target_form`(not null)에 **시범 문장을 넣지 않는다.** `docs/database-schema.md:120`이
+# 이 컬럼을 "패턴 수준의 일반화된 목표 형태 — **문장이 아니다**"로 정의하고, 그 근거는
+# 관측된 결함이다(1차수 F-2: 결과 조회가 대표 occurrence와 패턴 `target_form`을 독립적으로
+# 골라 카드의 두 값이 서로 다른 문장을 가리켰다). 발음도 같은 구조다 — 한 패턴에 시도가
+# 여럿이면 "마지막 시도의 문장"이 목표 형태로 굳는다. 문장은 이미 시도 행이 갖고 있다
+# (`pronunciation_attempts.target_form`) 이므로 여기 다시 넣으면 중복 저장이기도 하다.
+#
+# 그래서 **정규화한 `target_sound`를 쓴다** — 문장이 달라도 흔들리지 않는 유일한 일반형이고
+# 발명값이 아니다. 화면 표시 문구는 이 값이 아니라 Task 8이 `category`와 함께 정한다.
+#
+# `do update`는 충돌 시에도 id를 돌려받기 위한 것이다(`do nothing`은 0행 — `analysis.py:201`이
+# 같은 이유를 문서화한다). 같은 `pattern_key`면 `btrim(target_sound)`도 같으므로 이 갱신은
+# **항상 같은 값을 다시 쓴다** — 목표 형태가 시도마다 흔들리지 않는다.
 _UPSERT_PRONUNCIATION_PATTERN_SQL = """
 insert into error_patterns (user_id, category, pattern_key, target_form)
 select s.user_id,
-       'pronunciation_intonation',
+       $2,
        'pronunciation_' || btrim(a.target_sound),
-       a.target_form
+       btrim(a.target_sound)
   from pronunciation_attempts a
   join learning_sessions s on s.id = a.session_id
  where a.id = $1
@@ -390,18 +417,29 @@ async def link_pattern(conn: asyncpg.Connection, attempt_id: UUID) -> UUID | Non
     **임계값을 두지 않는다** — `incorrect` 1회에 만든다. 문법 오류도 1회에 패턴이 생기므로
     같은 규약이다(`PRD.md:90`). "N회 이상이면 만성" 같은 수치를 발명하지 않는다.
 
-    `pattern_key`는 `'pronunciation_' || target_sound`다(§4.3). 값역이 흩어지는 문제
-    (`th_as_s` vs `theta_to_s`)는 문법 패턴과 같은 §5.6 규약 — 기존 키를 프롬프트에 주입하고
-    재사용을 우선시키는 것 — 으로 완화한다(캡틴 결정 2026-08-28, `TASKS.md` B-4).
+    `pattern_key`는 `'pronunciation_' || target_sound`다(§4.3).
+
+    ⚠️ **값역 흩어짐의 완화책은 아직 없다** (`TASKS.md` B-4는 **부분 해소**다). §5.6 규약의
+    실행 기제는 "기존 키 목록을 프롬프트에 주입하고 재사용을 지시하는 것"인데, 그 주입은
+    문법 경로에만 있다(`analysis.py:248`의 `load_existing_patterns`, 호출은 같은 파일 `:306`
+    한 곳뿐). Nova 지시문(`audio_gateway/nova.py:126-127`)은 `th_as_s`·`f_as_p`를 **예시로
+    하드코딩**할 뿐 학습자의 기존 소리를 넣지 않는다. 그래서 같은 /θ/를 Nova가 다음 세션에
+    `theta_to_s`로 부르면 패턴이 갈라지고 R10-6의 "반복 오류 묶기"가 조용히 깨진다.
+    빈도는 5차수 관측 대상이고, 닫는 자리는 이 함수가 아니라 지시문 가변부다.
 
     호출자의 트랜잭션 안에서 부른다 — 세 문장(upsert · 연결 · 재계산)이 한 단위여야
     `frequency`만 오르거나 `pattern_id`가 null인 부분 실행이 없다(설계서 §7 Failure).
 
-    ⚠️ `frequency` 재계산은 **발음 시도 수만** 센다. 같은 `pattern_key`가 문법 경로와 겹치면
-    두 재계산이 서로의 값을 덮는다. 문법 키는 `{category}_{snake}` 형식이라
-    `pronunciation_intonation_…`이 되고 발음 키는 `pronunciation_<소리>`라 실질 충돌은 없다.
+    ⚠️ `frequency` 재계산은 **발음 시도 수만** 센다. 같은 `pattern_key`를 문법 경로가 만지면
+    두 재계산이 서로의 값을 덮는다. **신규** 문법 키는 그 카테고리가 프롬프트에서 금지돼
+    (`analysis.py:49` `UNJUDGEABLE_CATEGORY`) `pronunciation_`으로 시작할 수 없다. 남은 구멍은
+    **재사용 경로**다 — `_EXISTING_PATTERNS_SQL`(`analysis.py:188`)에 카테고리 필터가 없어
+    발음 키가 문법 프롬프트에 실리고, 모델이 그것을 글자 그대로 재사용하면 한 행을 두 writer가
+    번갈아 덮는다. 필터는 그 모듈의 몫이라 여기서 고치지 않는다(`TASKS.md` B-10).
     """
-    pattern_id = await conn.fetchval(_UPSERT_PRONUNCIATION_PATTERN_SQL, attempt_id)
+    pattern_id = await conn.fetchval(
+        _UPSERT_PRONUNCIATION_PATTERN_SQL, attempt_id, _PRONUNCIATION_CATEGORY
+    )
     if pattern_id is None:
         return None
     assert isinstance(pattern_id, UUID)

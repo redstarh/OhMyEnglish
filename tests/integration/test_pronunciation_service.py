@@ -6,8 +6,10 @@ Gateway가 갖고, 세션 종료 시 남은 `pending`을 `incorrect`로 수렴�
 `unclear`를 캡틴이 2026-08-28에 뒤집었다). `pending`을 영구히 남기면 미판정 시도가
 조용히 쌓여 숙련도 계산을 왜곡한다.
 
-⑭~⑳은 Task 7의 패턴 연결이다 — `incorrect`가 되는 **모든 경로**(판정·종료 수렴)가
-`error_patterns`를 만든다.
+⑭~㉗은 Task 7의 패턴 연결이다 — `incorrect`가 되는 **모든 경로**(판정·종료 수렴)가
+`error_patterns`를 만든다. ㉑~㉗은 리뷰(MEDIUM-3·4)가 지적한 경계와 원자성이고, 그중
+㉖·㉗은 `db_conn`이 아니라 **`db_pool`**을 쓴다 — 운영 경로는 savepoint가 아니라 최상위
+트랜잭션이라 코드 경로가 다르다. 그 둘은 커밋하므로 `_drop_user_of`로 직접 정리한다.
 
 **두 진입점이 나뉘어 있다.** `record_attempt`는 Nova tool 생명주기(pending → 판정)이고
 `record_signal`은 보조 신호 1건이다 — 후자는 열린 pending을 닫지 않는다. 함수를 나눈
@@ -32,7 +34,12 @@ import asyncpg
 import pytest
 
 from app.services import pronunciation as pronunciation_service
-from app.services.pronunciation import record_attempt, record_signal, resolve_dangling
+from app.services.pronunciation import (
+    link_pattern,
+    record_attempt,
+    record_signal,
+    resolve_dangling,
+)
 
 TARGET = "I think I found three very useful videos."
 HEARD = "I sink I found sree very useful videos."
@@ -64,6 +71,19 @@ async def _patterns(conn: asyncpg.Connection, session_id: UUID) -> list[asyncpg.
         "select ep.* from error_patterns ep "
         "join learning_sessions s on s.user_id = ep.user_id "
         "where s.id = $1 order by ep.pattern_key",
+        session_id,
+    )
+
+
+async def _drop_user_of(conn: asyncpg.Connection, session_id: UUID) -> None:
+    """`db_pool`을 쓰는 테스트의 정리. 사용자를 지우면 세션·시도가 cascade로 함께 사라진다.
+
+    `db_conn`(롤백 트랜잭션)과 달리 이 경로는 **실제로 커밋**하므로 남기면 뒤 테스트가
+    보게 된다 — `test_verdict_updates_the_latest_pending_row`처럼 표 전체를 세는 단정이
+    실제로 있다.
+    """
+    await conn.execute(
+        "delete from users where id = (select user_id from learning_sessions where id = $1)",
         session_id,
     )
 
@@ -368,7 +388,11 @@ async def test_incorrect_with_target_sound_creates_a_pattern(db_conn: asyncpg.Co
     pattern = patterns[0]
     assert pattern["category"] == "pronunciation_intonation"
     assert pattern["pattern_key"] == "pronunciation_th_as_s"
-    assert pattern["target_form"] == TARGET
+    # 패턴의 target_form은 **일반형**이지 시범 문장이 아니다 (`docs/database-schema.md:120`).
+    # 문장은 시도 행이 갖는다 — 여기 넣으면 중복이고, 한 패턴에 시도가 여럿일 때 결과 카드의
+    # 두 값이 서로 다른 문장을 가리키는 관측된 결함(1차수 F-2)이 재현된다.
+    assert pattern["target_form"] == SOUND
+    assert pattern["target_form"] != TARGET
     assert pattern["frequency"] == 1
     assert pattern["last_seen_at"] is not None
     assert await _pattern_id_of(db_conn, attempt_id) == pattern["id"]
@@ -395,9 +419,9 @@ async def test_same_target_sound_reuses_one_pattern(db_conn: asyncpg.Connection)
     patterns = await _patterns(db_conn, session_id)
     assert len(patterns) == 1
     assert patterns[0]["frequency"] == 2
-    # 최신 시범 문장으로 갱신된다 — 문법 경로의 `set target_form = excluded.target_form`과
-    # 같은 규약이다(services/analysis.py:206).
-    assert patterns[0]["target_form"] == "Thanks for the three files."
+    # **목표 형태가 흔들리지 않는다** — 두 번째 문장이 덮어쓰지 않는다. 흔들리면 학습자가
+    # 연습할 것이 분석마다 달라진다(`analysis.py:118` 규칙 3이 문법 경로에 요구하는 것과 같다).
+    assert patterns[0]["target_form"] == SOUND
     assert await _pattern_id_of(db_conn, first) == patterns[0]["id"]
     assert await _pattern_id_of(db_conn, second) == patterns[0]["id"]
 
@@ -490,3 +514,157 @@ async def test_attempt_and_pattern_link_are_one_transaction(
         )
         == 0
     ), "패턴 연결이 실패하면 시도 행도 남지 않아야 한다"
+
+
+# --- Task 7 리뷰(MEDIUM-4)가 지적한 경계값 ---
+
+
+# ㉑ 빈 문자열·공백만인 target_sound는 **없는 것과 같다**. `record_attempt`는 공개 서비스
+#    함수라 Nova 페이로드 검증(`parse_tool_payload`의 strip)을 통과하지 않는 호출자도 있다.
+@pytest.mark.parametrize("blank", ["", "   "])
+async def test_blank_target_sound_makes_no_pattern(db_conn: asyncpg.Connection, blank: str) -> None:
+    session_id = await _session(db_conn)
+
+    attempt_id = await record_attempt(
+        db_conn, session_id, target_form=TARGET, outcome="incorrect", target_sound=blank
+    )
+
+    assert await _patterns(db_conn, session_id) == []
+    assert await _pattern_id_of(db_conn, attempt_id) is None
+
+
+# ㉒ 앞뒤 공백은 키를 갈라놓지 않는다 — `pronunciation_ th_as_s `가 되면 같은 소리가 두
+#    패턴이 되어 R10-6의 "반복 오류 묶기"가 깨진다.
+async def test_target_sound_is_trimmed_into_the_key(db_conn: asyncpg.Connection) -> None:
+    session_id = await _session(db_conn)
+
+    padded = await record_attempt(
+        db_conn, session_id, target_form=TARGET, outcome="incorrect", target_sound=f"  {SOUND} "
+    )
+    clean = await record_attempt(
+        db_conn, session_id, target_form=TARGET, outcome="incorrect", target_sound=SOUND
+    )
+
+    patterns = await _patterns(db_conn, session_id)
+    assert len(patterns) == 1, "공백 차이가 패턴을 갈라놓으면 안 된다"
+    assert patterns[0]["pattern_key"] == "pronunciation_th_as_s"
+    assert patterns[0]["target_form"] == SOUND
+    assert await _pattern_id_of(db_conn, padded) == await _pattern_id_of(db_conn, clean)
+
+
+# ㉓ `unclear`는 오류로 세지 않는다. `correct`(⑰)보다 이쪽이 더 중요하다 — 페이로드 강등
+#    (설계서 §4.2)과 한글 전사 신호가 실제로 내는 값이 `unclear`다.
+async def test_unclear_makes_no_pattern(db_conn: asyncpg.Connection) -> None:
+    session_id = await _session(db_conn)
+
+    attempt_id = await record_attempt(
+        db_conn, session_id, target_form=TARGET, outcome="unclear", target_sound=SOUND
+    )
+
+    assert await _patterns(db_conn, session_id) == []
+    assert await _pattern_id_of(db_conn, attempt_id) is None
+
+
+# ㉔ 같은 시도에 두 번 불러도 값이 변하지 않는다 — frequency를 `+1`이 아니라 행 수에서
+#    재계산하는 이유가 이것이다(`analysis.py:220` "+1 금지"와 같은 규약).
+async def test_link_pattern_is_idempotent(db_conn: asyncpg.Connection) -> None:
+    session_id = await _session(db_conn)
+    attempt_id = await record_attempt(
+        db_conn, session_id, target_form=TARGET, outcome="incorrect", target_sound=SOUND
+    )
+    first = await _patterns(db_conn, session_id)
+
+    again = await link_pattern(db_conn, attempt_id)
+
+    assert again == first[0]["id"]
+    patterns = await _patterns(db_conn, session_id)
+    assert len(patterns) == 1
+    assert patterns[0]["frequency"] == 1, "두 번 불러도 시도 수는 1이다"
+    assert patterns[0]["last_seen_at"] == first[0]["last_seen_at"]
+
+
+# ㉕ 수렴이 여러 행을 한 번에 처리할 때도 같은 소리는 한 패턴으로 묶이고 시도 수가 맞는다.
+async def test_resolve_dangling_merges_two_pendings_of_one_sound(
+    db_conn: asyncpg.Connection,
+) -> None:
+    session_id = await _session(db_conn)
+    await record_attempt(
+        db_conn, session_id, target_form=TARGET, outcome="pending", target_sound=SOUND
+    )
+    await record_attempt(
+        db_conn, session_id, target_form="Three things.", outcome="pending", target_sound=SOUND
+    )
+
+    assert await resolve_dangling(db_conn, session_id) == 2
+
+    patterns = await _patterns(db_conn, session_id)
+    assert len(patterns) == 1
+    assert patterns[0]["frequency"] == 2
+    linked = await db_conn.fetchval(
+        "select count(*) from pronunciation_attempts where session_id = $1 and pattern_id = $2",
+        session_id,
+        patterns[0]["id"],
+    )
+    assert linked == 2
+
+
+# ㉖ 운영 경로는 savepoint가 아니라 **최상위 트랜잭션**이다 — `audio_gateway/session.py:243`이
+#    `pool.acquire()`(autocommit)로 부른다. ⑳이 덮은 savepoint 경로와 다른 코드 경로라
+#    따로 검증한다: 패턴 연결이 실패하면 시도 행이 **커밋되지 않아야** 한다.
+async def test_record_attempt_is_atomic_on_an_autocommit_connection(
+    db_pool: asyncpg.Pool, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    async with db_pool.acquire() as setup:
+        session_id = await _session(setup)
+
+    async def boom(*args: object, **kwargs: object) -> None:
+        raise RuntimeError("패턴 연결이 실패했다")
+
+    monkeypatch.setattr(pronunciation_service, "link_pattern", boom)
+
+    async with db_pool.acquire() as conn:
+        with pytest.raises(RuntimeError):
+            await record_attempt(
+                conn, session_id, target_form=TARGET, outcome="incorrect", target_sound=SOUND
+            )
+
+    async with db_pool.acquire() as check:
+        assert (
+            await check.fetchval(
+                "select count(*) from pronunciation_attempts where session_id = $1", session_id
+            )
+            == 0
+        ), "최상위 트랜잭션이 없으면 시도 행만 커밋돼 패턴 없는 고아가 된다"
+        await _drop_user_of(check, session_id)
+
+
+# ㉗ 수렴 경로도 최상위 트랜잭션에서 원자적이어야 한다. Task 7 전에는 UPDATE 한 문장이라
+#    autocommit에서도 안전했지만, 지금은 `1+3N` 문장이다 — 패턴 연결이 중간에 깨지면
+#    `pattern_id`가 null인 `incorrect` 행이 커밋된 채 남는다(리뷰 MEDIUM-3).
+async def test_resolve_dangling_is_atomic_on_an_autocommit_connection(
+    db_pool: asyncpg.Pool, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    async with db_pool.acquire() as setup, setup.transaction():
+        session_id = await _session(setup)
+        await record_attempt(
+            setup, session_id, target_form=TARGET, outcome="pending", target_sound=SOUND
+        )
+
+    async def boom(*args: object, **kwargs: object) -> None:
+        raise RuntimeError("패턴 연결이 실패했다")
+
+    monkeypatch.setattr(pronunciation_service, "link_pattern", boom)
+
+    async with db_pool.acquire() as conn:
+        with pytest.raises(RuntimeError):
+            await resolve_dangling(conn, session_id)
+
+    async with db_pool.acquire() as check:
+        outcome = await check.fetchval(
+            "select outcome from pronunciation_attempts where session_id = $1", session_id
+        )
+        assert outcome == "pending", (
+            "수렴만 커밋되면 패턴 없는 incorrect 행이 남는다 — 세션은 이미 끝났으므로 "
+            "그 행을 다시 수렴시킬 기회가 없다"
+        )
+        await _drop_user_of(check, session_id)

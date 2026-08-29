@@ -127,6 +127,13 @@ work?` / `What do you usually do on weekends?` / `What do you need to do tonight
 `services/analysis.py`의 분석 프롬프트(`[target_form 일반형]` 절)가 강제하며, 복습
 기능(L계층)이 이 값을 연습 목표로 쓴다.
 
+**발음 패턴(`pronunciation_intonation`)의 일반형은 `target_sound`다** (예: `th_as_s`) —
+`services/pronunciation.link_pattern`이 채운다. 그 경로에는 `error_occurrences`가 없어
+"문장별 교정"을 담을 곳이 따로 없지만, 시범 문장은 이미
+`pronunciation_attempts.target_form`에 남으므로 여기 다시 넣지 않는다. 넣으면 위 F-2 증상이
+그대로 재현된다(한 패턴에 시도가 여럿일 때 "마지막 시도의 문장"이 목표 형태로 굳는다).
+화면에 보일 문구는 이 값이 아니라 결과 화면이 `category`와 함께 정한다.
+
 `category` 7코드 ↔ `PRD.md:89` 한국어 표시명 매핑:
 
 | 코드 | 표시명 |
