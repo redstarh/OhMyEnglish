@@ -8,8 +8,11 @@ Gateway가 갖고, 세션 종료 시 남은 `pending`을 `incorrect`로 수렴�
 
 ⑭~㉗은 Task 7의 패턴 연결이다 — `incorrect`가 되는 **모든 경로**(판정·종료 수렴)가
 `error_patterns`를 만든다. ㉑~㉗은 리뷰(MEDIUM-3·4)가 지적한 경계와 원자성이고, 그중
-㉖·㉗은 `db_conn`이 아니라 **`db_pool`**을 쓴다 — 운영 경로는 savepoint가 아니라 최상위
-트랜잭션이라 코드 경로가 다르다. 그 둘은 커밋하므로 `_drop_user_of`로 직접 정리한다.
+㉖·㉗은 `db_conn`이 아니라 **`db_pool` + `committed_session`**을 쓴다 — 운영 경로는
+savepoint가 아니라 최상위 트랜잭션이라 코드 경로가 다르다. 그 둘은 실제로 커밋하므로
+정리를 단정 뒤에 직접 하지 않고 픽스처의 `try/finally`에 맡긴다 — 단정이 깨지는 순간
+(= 진짜 회귀가 난 순간) 정리가 건너뛰어지면 세션 스코프 DB가 오염돼 뒤 테스트의
+무회귀 신호까지 함께 무너진다.
 
 **두 진입점이 나뉘어 있다.** `record_attempt`는 Nova tool 생명주기(pending → 판정)이고
 `record_signal`은 보조 신호 1건이다 — 후자는 열린 pending을 닫지 않는다. 함수를 나눈
@@ -71,19 +74,6 @@ async def _patterns(conn: asyncpg.Connection, session_id: UUID) -> list[asyncpg.
         "select ep.* from error_patterns ep "
         "join learning_sessions s on s.user_id = ep.user_id "
         "where s.id = $1 order by ep.pattern_key",
-        session_id,
-    )
-
-
-async def _drop_user_of(conn: asyncpg.Connection, session_id: UUID) -> None:
-    """`db_pool`을 쓰는 테스트의 정리. 사용자를 지우면 세션·시도가 cascade로 함께 사라진다.
-
-    `db_conn`(롤백 트랜잭션)과 달리 이 경로는 **실제로 커밋**하므로 남기면 뒤 테스트가
-    보게 된다 — `test_verdict_updates_the_latest_pending_row`처럼 표 전체를 세는 단정이
-    실제로 있다.
-    """
-    await conn.execute(
-        "delete from users where id = (select user_id from learning_sessions where id = $1)",
         session_id,
     )
 
@@ -612,10 +602,9 @@ async def test_resolve_dangling_merges_two_pendings_of_one_sound(
 #    `pool.acquire()`(autocommit)로 부른다. ⑳이 덮은 savepoint 경로와 다른 코드 경로라
 #    따로 검증한다: 패턴 연결이 실패하면 시도 행이 **커밋되지 않아야** 한다.
 async def test_record_attempt_is_atomic_on_an_autocommit_connection(
-    db_pool: asyncpg.Pool, monkeypatch: pytest.MonkeyPatch
+    db_pool: asyncpg.Pool, committed_session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    async with db_pool.acquire() as setup:
-        session_id = await _session(setup)
+    session_id = committed_session.session_id
 
     async def boom(*args: object, **kwargs: object) -> None:
         raise RuntimeError("패턴 연결이 실패했다")
@@ -635,17 +624,16 @@ async def test_record_attempt_is_atomic_on_an_autocommit_connection(
             )
             == 0
         ), "최상위 트랜잭션이 없으면 시도 행만 커밋돼 패턴 없는 고아가 된다"
-        await _drop_user_of(check, session_id)
 
 
 # ㉗ 수렴 경로도 최상위 트랜잭션에서 원자적이어야 한다. Task 7 전에는 UPDATE 한 문장이라
 #    autocommit에서도 안전했지만, 지금은 `1+3N` 문장이다 — 패턴 연결이 중간에 깨지면
 #    `pattern_id`가 null인 `incorrect` 행이 커밋된 채 남는다(리뷰 MEDIUM-3).
 async def test_resolve_dangling_is_atomic_on_an_autocommit_connection(
-    db_pool: asyncpg.Pool, monkeypatch: pytest.MonkeyPatch
+    db_pool: asyncpg.Pool, committed_session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    async with db_pool.acquire() as setup, setup.transaction():
-        session_id = await _session(setup)
+    session_id = committed_session.session_id
+    async with db_pool.acquire() as setup:
         await record_attempt(
             setup, session_id, target_form=TARGET, outcome="pending", target_sound=SOUND
         )
@@ -667,4 +655,3 @@ async def test_resolve_dangling_is_atomic_on_an_autocommit_connection(
             "수렴만 커밋되면 패턴 없는 incorrect 행이 남는다 — 세션은 이미 끝났으므로 "
             "그 행을 다시 수렴시킬 기회가 없다"
         )
-        await _drop_user_of(check, session_id)

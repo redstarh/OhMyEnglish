@@ -4,7 +4,7 @@
 > 둘뿐이다. 전체 작업 지도와 진행 상태는 **`TASKS.md`**, 함정은 `docs/ops/pitfalls.md`,
 > 결정과 근거는 `docs/design/**`이 소유한다 — 여기에 복사하지 않는다(한쪽이 낡는다).
 >
-> 최종 갱신 **2026-08-28** · 기준 커밋 **HEAD ≥ `21ebf80`** · 브랜치 `design/first-vertical-slice`
+> 최종 갱신 **2026-08-29** · 기준 커밋 **HEAD ≥ `43ab5f7`** · 브랜치 `design/first-vertical-slice`
 
 ---
 
@@ -21,7 +21,7 @@
 | `toolUse` → `PronunciationEvent` → DB 저장 | **결과 화면 발음 카드** (Task 8) |
 | 한글 전사 신호 (`note_transcript`) | 되묻기 문구 감지 — **만들지 않는다**(캡틴 결정) |
 | 세션 종료 시 대답기다림 → `incorrect` 수렴 (종료 기록과 한 트랜잭션) | 복습 과제 생성 — §11의 몫 |
-| **약점 패턴 연결** — 판정·수렴 경로 불문 `error_patterns` upsert (`21ebf80`) | |
+| **약점 패턴 연결** — 판정·수렴 경로 불문 `error_patterns` upsert (`21ebf80`·`43ab5f7`) | |
 
 ⚠️ **배지 없음은 정상이다.** nova로 띄웠는데 배지가 없다고 정상인 어댑터·세션을 디버깅하지 마라.
 ⚠️ **실물 Nova 왕복은 아직 안 했다** — 단위 테스트만이다. `TASKS.md` A-3.
@@ -44,7 +44,7 @@
 
 ```bash
 cd app/backend                                    # 게이트는 이 cwd에서만 판정한다 (함정 H-A)
-.venv/bin/pytest -q                               # 319 passed
+.venv/bin/pytest -q                               # 327 passed
 .venv/bin/ruff check . && .venv/bin/ruff format --check .   # passed / 27 files formatted
 ty check                                          # All checks passed!
 .venv/bin/ruff check ../../tests ../../scripts    # Found 6 errors  (베이스라인, 게이트 밖)
@@ -53,7 +53,7 @@ ty check                                          # All checks passed!
 
 | 항목 | 값 |
 |---|---|
-| 테스트 | **319 passed**, skip/xfail 0 (Task 7이 +7. v1.1 착수 전 241 → 312 → 319) |
+| 테스트 | **327 passed**, skip/xfail 0 (Task 7이 +15. v1.1 착수 전 241 → 312 → 327) |
 | dev DB 마이그레이션 | **4개** — 001 · 003 · 004 · 005. `app/backend/.venv/bin/python scripts/migrate.py`(멱등) |
 | dev DB 행 | 세션 2 · 발화 6 · 패턴 1 · occurrence 2 · job 3 · `pronunciation_attempts` **0** · **발음 패턴 0** |
 | 미커밋 | `.claude/`(untracked) — **지우지 마라** |

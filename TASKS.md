@@ -38,15 +38,27 @@
 | 4 | 시도 생명주기 서비스 (+004 정렬 키) | ✅ | `ed91363` `582eef6` `aa1fcfe` | — |
 | 5 | Nova 어댑터 tool 연결 + 지시문 규칙 | ✅ | `b31227a` `1a8c908` | — |
 | 6 | 세션 배선 · 전사문 신호 · 종료 수렴 (+005 제약) | ✅ | `0025301` | — |
-| 7 | 패턴 연결 (`error_patterns` upsert) | ✅ | `21ebf80` | 3건 전건 해소 — A-1 |
+| 7 | 패턴 연결 (`error_patterns` upsert) | ✅ | `21ebf80` `43ab5f7` | 3건 전건 해소 — A-1 |
 | **8** | **결과 화면 발음 카드 (백엔드+프론트)** | **⏭ 다음 — 차단 없음** | — | A-2 후단 2건(`signal_source` 함께 싣기 · 수렴 행 해석). B-1은 결정됨 |
 | 9 | 하네스 5차수 P9~P12 시나리오 | ⏭ | — | A-3(실물 검증 포함) |
 
-### A-1. Task 7 착수 전 필수 3건 — ✅ 전건 해소 (`21ebf80`)
+### A-1. Task 7 착수 전 필수 3건 — ✅ 전건 해소 (`21ebf80` + `43ab5f7`)
 
 해소 방식: ① `record_attempt`가 `async with conn.transaction():`을 직접 연다(savepoint로
-합성) ② 적용 조건을 `link_pattern`의 **SQL `where`**에 두어 판정·수렴 두 경로가 같은 한 줄을
-쓴다 ③ `target_form`은 시도의 시범 문장으로 채운다. 아래 원문은 근거로 남긴다.
+합성). **`resolve_dangling`도 같다** — Task 7이 수렴을 `1+3N` 문장으로 만들어 호출자에게
+맡길 수 없게 됐다(`43ab5f7`, 리뷰 MEDIUM-3) ② 적용 조건을 `link_pattern`의 **SQL `where`**에
+두어 판정·수렴 두 경로가 같은 한 줄을 쓴다 ③ `target_form`은 **정규화한 `target_sound`**로
+채운다(예: `th_as_s`).
+
+⚠️ ③은 **뒤집힌 결정이다.** `21ebf80`은 "시도의 시범 문장"을 넣었고 리뷰 HIGH-2가 반박해
+`43ab5f7`이 정정했다 — `docs/database-schema.md:120`이 이 컬럼을 "일반화된 목표 형태,
+**문장이 아니다**"로 정의하고 근거가 관측된 결함(1차수 F-2)이다. 시범 문장은 이미
+`pronunciation_attempts.target_form`에 있다. **문장으로 되돌리지 마라.**
+
+T0 기록: 신규 7건 중 **5건이 red**였다(⑯⑰은 부재를 단정해 부모 커밋에서도 green — 함정 H-M).
+`43ab5f7`의 ㉗은 트랜잭션을 임시 제거해 red를 실제로 관측했다.
+
+아래 원문은 근거로 남긴다.
 
 1. **`record_attempt`가 자기 트랜잭션을 열어야 한다.** 지금은 호출자의 것을 쓰고, Task 6의
    호출자는 `pool.acquire()`(autocommit)다. 설계서 §7 Failure가 "시도 INSERT와 패턴 upsert를
