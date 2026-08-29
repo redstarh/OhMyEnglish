@@ -28,6 +28,7 @@ OhMyEnglish/
 - [첫 4주 학습 플로우](docs/first-4-weeks.md)
 - [Nova Sonic + Claude 목표 아키텍처](docs/nova-sonic-claude-architecture.md)
 - [UI 스토리보드](docs/storyboard.html)
+- [현황 보고 (2026-08-29)](docs/status-report-2026-08-29.html) — 요구사항·플로우·아키텍처·미결정 한 장. **스냅샷이고 정본이 아니다**
 - [Handoff](handoff/HANDOFF.md)
 
 ### 폐기 문서

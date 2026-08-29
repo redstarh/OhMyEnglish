@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OhMyEnglish — 요구사항·플로우·아키텍처·미결정 (2026-08-29)</title>
+  <style>
+    :root { --navy:#12213d; --blue:#3268ed; --pale:#edf3ff; --ink:#182033; --muted:#667085;
+      --line:#e4e9f2; --surface:#fff; --bg:#f7f9fc; --code-bg:#eef2f8; --code-ink:#204eb8;
+      --good:#0f7a46; --good-bg:#e6f5ed; --warn:#8a5a00; --warn-bg:#fdf3e0;
+      --crit:#b3261e; --crit-bg:#fdeceb; --defer:#5c6a80; --defer-bg:#eef1f6; --track:#cddcff; }
+    @media (prefers-color-scheme: dark) {
+      :root { --navy:#0a1020; --blue:#7ba2ff; --pale:#1b2540; --ink:#e8ecf5; --muted:#9aa5bb;
+        --line:#26304a; --surface:#151c2e; --bg:#0d1220; --code-bg:#1d263c; --code-ink:#a8c2ff;
+        --good:#4cc38a; --good-bg:#12301f; --warn:#e0a83c; --warn-bg:#33260c;
+        --crit:#f2836f; --crit-bg:#3a1a18; --defer:#93a0b8; --defer-bg:#1e2637; --track:#2a3757; } }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); line-height:1.65;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo",sans-serif; }
+    header { padding:52px max(24px,calc((100% - 1060px)/2)) 44px; background:linear-gradient(125deg,var(--navy),#2a52b8); color:#fff; }
+    header h1 { margin:0 0 10px; font-size:clamp(28px,4.4vw,44px); letter-spacing:-.02em; }
+    header p { margin:0; max-width:720px; color:#d8e3ff; }
+    .meta { margin-top:18px; display:flex; flex-wrap:wrap; gap:8px; font-size:13px; }
+    .meta span { padding:5px 10px; border-radius:8px; background:#ffffff1f; color:#eaf0ff; }
+    nav { position:sticky; top:0; z-index:5; overflow:auto; white-space:nowrap;
+      padding:11px max(24px,calc((100% - 1060px)/2)); background:var(--surface); border-bottom:1px solid var(--line); }
+    nav a { display:inline-block; margin-right:4px; padding:7px 11px; border-radius:8px;
+      color:var(--muted); text-decoration:none; font-size:13px; font-weight:700; }
+    nav a:hover { background:var(--pale); color:var(--blue); }
+    main { max-width:1060px; margin:auto; padding:36px 24px 84px; }
+    section { margin-bottom:26px; padding:26px; background:var(--surface); border:1px solid var(--line);
+      border-radius:17px; box-shadow:0 5px 18px #14244909; }
+    h2 { margin:0 0 6px; font-size:23px; letter-spacing:-.01em; }
+    h3 { margin:22px 0 8px; font-size:16px; }
+    h4 { margin:14px 0 6px; font-size:14px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+    p { margin:8px 0; } ul,ol { margin:8px 0; padding-left:20px; } li { margin:4px 0; }
+    .lead { color:var(--muted); max-width:800px; }
+    code { padding:2px 5px; border-radius:5px; background:var(--code-bg); color:var(--code-ink); font-size:.88em; }
+    .tag { display:inline-block; margin-bottom:10px; padding:4px 9px; border-radius:99px;
+      background:var(--pale); color:var(--blue); font-size:11.5px; font-weight:800; letter-spacing:.05em; }
+    .grid { display:grid; gap:14px; grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .g2 { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .g4 { grid-template-columns:repeat(4,minmax(0,1fr)); }
+    .card { padding:17px; border:1px solid var(--line); border-radius:12px; background:var(--bg); }
+    .card h3 { margin-top:0; }
+    table { width:100%; border-collapse:collapse; margin-top:12px; font-size:13.5px; }
+    th,td { padding:9px 10px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line); }
+    th { color:var(--muted); font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; font-weight:800; }
+    td.num { font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .pill { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:99px;
+      font-size:12px; font-weight:800; white-space:nowrap; }
+    .ok { background:var(--good-bg); color:var(--good); }
+    .wait { background:var(--warn-bg); color:var(--warn); }
+    .block { background:var(--crit-bg); color:var(--crit); }
+    .later { background:var(--defer-bg); color:var(--defer); }
+    .tile { padding:15px 16px; border:1px solid var(--line); border-radius:12px; background:var(--bg); }
+    .tile span { display:block; color:var(--muted); font-size:12px; }
+    .tile strong { display:block; margin-top:3px; font-size:26px; font-weight:700; letter-spacing:-.02em; }
+    .flow { padding:20px; border-radius:13px; background:var(--navy); color:#e9efff;
+      font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px; line-height:1.7; overflow:auto; white-space:pre; }
+    .note { padding:14px 16px; border-left:3px solid var(--blue); border-radius:0 10px 10px 0;
+      background:var(--pale); font-size:13.5px; }
+    .note.danger { border-color:var(--crit); background:var(--crit-bg); }
+    .note.hold { border-color:var(--warn); background:var(--warn-bg); }
+    footer { max-width:1060px; margin:auto; padding:0 24px 70px; color:var(--muted); font-size:12.5px; }
+    @media (max-width:820px) { .grid,.g2,.g4 { grid-template-columns:1fr; } section { padding:20px; } }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>요구사항 · 플로우 · 아키텍처 · 미결정</h1>
+  <p>OhMyEnglish 현재 상태를 한 장에 모았다. 요구사항은 <code>docs/PRD.md</code> v1.1,
+     구현 상태는 <code>TASKS.md</code>, 수치는 이 문서를 쓴 턴에 직접 실행한 출력이다.</p>
+  <div class="meta">
+    <span>2026-08-29</span>
+    <span>브랜치 design/first-vertical-slice</span>
+    <span>HEAD f60775f</span>
+    <span>327 passed</span>
+    <span>요구사항 v1.1</span>
+  </div>
+</header>
+
+<nav>
+  <a href="#summary">요약</a>
+  <a href="#req">요구사항</a>
+  <a href="#flow">스토리보드 플로우</a>
+  <a href="#arch">아키텍처</a>
+  <a href="#open">미결정</a>
+  <a href="#docs">문서 지도</a>
+</nav>
+
+<main>
+
+<section id="summary">
+  <span class="tag">SUMMARY</span>
+  <h2>지금 어디까지 왔나</h2>
+  <p class="lead">첫 수직 슬라이스(음성 세션 → 전사 저장 → 비동기 분석 → 결과 화면)가 돌아가고,
+     v1.1로 신설한 <strong>발음 시범·재발화</strong>가 백엔드까지 붙었다. 화면과 실물 음성 검증이 남았다.</p>
+
+  <div class="grid g4">
+    <div class="tile"><span>v1.1 §10 태스크</span><strong>7 / 9</strong></div>
+    <div class="tile"><span>백엔드 테스트</span><strong>327</strong></div>
+    <div class="tile"><span>DB 마이그레이션</span><strong>4</strong></div>
+    <div class="tile"><span>미결정 항목</span><strong>9</strong></div>
+  </div>
+
+  <h3>되는 것 / 안 되는 것</h3>
+  <div class="grid g2">
+    <div class="card">
+      <h3>되는 것</h3>
+      <ul>
+        <li>실시간 음성 대화 (Nova 2 Sonic), 전사문 영속 저장</li>
+        <li>전사문 기반 문법 오류 분석 → 패턴 병합 → 결과 화면 상위 교정</li>
+        <li>Nova가 발음을 지적하고 문장을 다시 읽어준다 + 재발화 판정 기록</li>
+        <li>한글 전사 신호 감지, 세션 종료 시 미판정 시도 수렴</li>
+        <li>발음 오류 → <code>error_patterns</code> 패턴 연결 (판정·수렴 <strong>경로 불문</strong>)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>안 되는 것</h3>
+      <ul>
+        <li><strong>발음 화면</strong> — 프론트가 <code>pronunciation</code> 프레임을 모른다 (Task 8)</li>
+        <li><strong>결과 화면 발음 카드</strong> (Task 8)</li>
+        <li><strong>§11 추천 학습 루틴</strong> — 설계만 끝났고 코드가 0줄</li>
+        <li><strong>복습 큐 · 주기 갱신</strong> (§11 R11-6)</li>
+        <li><strong>실물 Nova 왕복 검증 0회</strong> — 발음 기능은 단위·통합 테스트만 통과</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="note hold" style="margin-top:14px">
+    <strong>Phase 1은 아직 완료가 아니다.</strong> 완료 선언은 6항목 전건 충족일 때만 한다
+    (<code>docs/design/2026-08-25-first-slice-acceptance-criteria.md:147</code>) — 그중
+    <em>W-live 1회</em>·<em>E2E-S 1회</em>·<em>실물 마이크</em>가 남았다.
+  </div>
+</section>
+
+<section id="req">
+  <span class="tag">REQUIREMENTS</span>
+  <h2>요구사항 — v1.1</h2>
+  <p class="lead">정본은 <code>docs/PRD.md</code>다. 아래 상태는 코드·테스트로 확인한 것이고,
+     "프롬프트로만"은 <strong>모델에게 지시했을 뿐 코드가 강제하지 않는다</strong>는 뜻이다.</p>
+
+  <h3>MVP 범위 (§4 · §7)</h3>
+  <div class="grid">
+    <div class="card"><h3>Speaking Coach</h3><p>음성 역할극, 한 턴 1~2개 교정, 사용자 발화 65%</p><span class="pill wait">◐ 부분</span></div>
+    <div class="card"><h3>Error Memory &amp; Review</h3><p>오류를 패턴으로 기억, 1·3·7일 복습</p><span class="pill wait">◐ 저장만</span></div>
+    <div class="card"><h3>Additional Learning</h3><p>추가 학습 메뉴 (발음 집중 포함)</p><span class="pill later">⏳ 미구현</span></div>
+    <div class="card"><h3>Daily Conversation &amp; Drills</h3><p>일상 대화와 Q&amp;A 드릴</p><span class="pill wait">◐ 부분</span></div>
+    <div class="card"><h3>Voice Control</h3><p>음성으로 앱 제어</p><span class="pill later">⏳ 미구현</span></div>
+    <div class="card"><h3>Business English · Shadowing</h3><p>업무 영어, 쉐도잉 콘텐츠</p><span class="pill later">⏳ 미구현</span></div>
+  </div>
+
+  <h3>§10 발음 시범·재발화 <span class="pill ok">v1.1 신설</span></h3>
+  <table>
+    <thead><tr><th>#</th><th>요구사항</th><th>상태</th><th>근거 / 남은 것</th></tr></thead>
+    <tbody>
+      <tr><td class="num">R10-1</td><td>발음이 벗어나면 <strong>올바른 발음으로 문장을 다시 읽어준다</strong>, 틀린 소리를 지목</td>
+        <td><span class="pill ok">✅ 구현</span></td><td><code>audio_gateway/nova.py</code> 지시문 규칙 + tool 정의. 실물 왕복은 미검증</td></tr>
+      <tr><td class="num">R10-2</td><td>따라 말할 기회를 주고 재발화 결과를 3값으로 기록</td>
+        <td><span class="pill ok">✅ 구현</span></td><td><code>pronunciation_attempts</code> 2단계 생명주기 (<code>pending</code> → 판정)</td></tr>
+      <tr><td class="num">R10-3</td><td>판정 주체는 <strong>오디오를 직접 듣는 모델</strong>. 전사문 경로는 발음을 판정하지 않는다</td>
+        <td><span class="pill ok">✅ 구현</span></td><td>분석 워커 프롬프트가 그 카테고리를 금지 (<code>analysis.py:49</code>)</td></tr>
+      <tr><td class="num">R10-4</td><td>보조 신호 <strong>2개</strong>를 관측·기록</td>
+        <td><span class="pill block">⛔ 절반</span></td><td><code>korean_transcript</code>만 만든다. <code>agent_reprompt</code>는 <strong>안 만든다</strong>(캡틴 결정 — 문구 매칭이라 케이스가 불어난다). 미충족 구간의 크기는 5차수 관측 대상</td></tr>
+      <tr><td class="num">R10-5</td><td>일반 세션에서 발음 개입이 문법 교정과 예산을 다투지 않는다</td>
+        <td><span class="pill wait">◐ 프롬프트로만</span></td><td>지시문 가변부가 아직 없다 — 미결정 <strong>B-2</strong></td></tr>
+      <tr><td class="num">R10-6</td><td>발음 오류도 재사용 가능한 패턴으로 저장</td>
+        <td><span class="pill ok">✅ 구현</span></td><td><code>services/pronunciation.link_pattern</code> (2026-08-29). 키 값역 완화는 <strong>B-4</strong></td></tr>
+      <tr><td class="num">R10-7</td><td>오디오 원본을 저장하지 않는다</td>
+        <td><span class="pill ok">✅ 구현</span></td><td>남기는 것은 판정과 시범 문장 텍스트뿐</td></tr>
+      <tr><td class="num">R10-8</td><td>교정 예산("1~2개")과 발화 비중을 깨지 않는다</td>
+        <td><span class="pill wait">◐ 프롬프트로만</span></td><td>코드 강제 없음. 게다가 지시문과 정본 문구가 어긋난다 — <strong>B-3</strong></td></tr>
+    </tbody>
+  </table>
+
+  <h3>§11 학습 이력 기반 추천 학습 루틴 <span class="pill later">설계만</span></h3>
+  <div class="note danger">
+    <strong>코드가 0줄이다.</strong> 설계는 정본으로 승격됐고(<code>docs/design/2026-08-25-learning-coach-agent-design.md</code>)
+    2슬라이스로 쪼개져 있다. 아래 상태는 "저장은 되는데 활용이 없다"는 §11.1의 문제 진술 그대로다.
+  </div>
+  <table>
+    <thead><tr><th>#</th><th>요구사항</th><th>상태</th></tr></thead>
+    <tbody>
+      <tr><td class="num">R11-1</td><td>오류 이력 영속 저장 (패턴 · 발생과 교정 · 재발화 정답 여부 · 발음 시도)</td><td><span class="pill wait">◐ 부분 — 패턴·발생·발음 시도는 저장, <code>pattern_attempts</code>(재발화 정답 여부)는 없다</span></td></tr>
+      <tr><td class="num">R11-2</td><td>세션마다 이력에서 초점 패턴 1~2개 · 질문 3~5개 · 난이도 · 이유를 정한다</td><td><span class="pill later">⏳ 미구현</span></td></tr>
+      <tr><td class="num">R11-3</td><td>추천 이유는 필수 — 화면에서 확인 가능</td><td><span class="pill later">⏳ 미구현</span></td></tr>
+      <tr><td class="num">R11-4</td><td>계획 생성을 학습자 대기 경로에 두지 않는다 (앞 세션 종료 시 비동기)</td><td><span class="pill later">⏳ 미구현</span></td></tr>
+      <tr><td class="num">R11-5</td><td>계획이 없거나 실패해도 학습은 시작된다</td><td><span class="pill later">⏳ 미구현</span></td></tr>
+      <tr><td class="num">R11-6</td><td>복습 주기 1·3·7일 갱신, <strong>재발하면 주기를 되돌린다</strong></td><td><span class="pill later">⏳ 미구현 — 스키마의 <code>next_review_at</code>·<code>review_tasks</code>는 준비됨</span></td></tr>
+      <tr><td class="num">R11-7</td><td>난이도는 한 번에 한 단계, 하향도 허용</td><td><span class="pill later">⏳ 미구현</span></td></tr>
+      <tr><td class="num">R11-8</td><td>만성 약점 임계값을 제품이 발명하지 않는다 — 사실만 제공, 판단은 Agent</td><td><span class="pill later">⏳ 미구현</span></td></tr>
+      <tr><td class="num">R11-9</td><td>발음 시도 이력도 계획 입력에 포함, 발음 패턴도 초점이 될 수 있다</td><td><span class="pill wait">◐ 입력 절반 — 패턴 연결까지 됐고 계획 쪽이 없다</span></td></tr>
+      <tr><td class="num">R11-10</td><td>Agent의 <strong>관찰 기록</strong>을 덧붙이기만 하고 지우지 않는다</td><td><span class="pill later">⏳ 미구현</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="flow">
+  <span class="tag">STORYBOARD → FLOW</span>
+  <h2>스토리보드 플로우</h2>
+  <p class="lead">화면별 시안은 <code>docs/storyboard.html</code>이 갖고 있다. 여기서는 그 화면들이
+     <strong>어떤 순서로 이어지고 무엇이 아직 없는지</strong>를 흐름으로 본다.</p>
+
+  <h3>세션 한 회 (권장 10~15분)</h3>
+  <div class="flow">  ┌────────────────────┐      ┌────────────────────┐      ┌────────────────────┐
+  │ 1. 오늘의 목표      │─────▶│ 2. 음성 역할극       │─────▶│ 3. Repair & Review │
+  │   오늘의 Speaking   │      │   Daily update      │      │   오늘의 정리        │
+  └────────────────────┘      └────────────────────┘      └────────────────────┘
+        ▲                            │                            │
+        │                            │ 확정 전사문마다              │ 세션 종료
+        │                            ▼                            ▼
+        │                     ┌──────────────┐            ┌──────────────────┐
+        │                     │ 분석 job 등록 │            │ 결과 화면          │
+        │                     │  (원자적)     │            │  상위 교정 2개     │
+        │                     └──────┬───────┘            └──────────────────┘
+        │                            │ 비동기 (대기 경로 아님)
+        │                            ▼
+        │                     ┌──────────────┐
+        │                     │ 문법 오류 분석 │  Claude Opus 5
+        │                     │ 패턴 병합·저장 │  error_patterns / error_occurrences
+        │                     └──────┬───────┘
+        │                            │
+        └── ⏳ 다음 세션 계획 ◀────────┘   §11 R11-4 · 아직 없다
+            (초점 패턴·질문·난이도·이유)      계획이 없어도 학습은 시작된다(R11-5)</div>
+
+  <h3>03b 발음 시범·재발화 — 구현된 경로 <span class="pill ok">✅ 백엔드</span></h3>
+  <div class="flow">  Nova가 발음 이탈을 판단
+        │
+        ├─▶ toolUse(outcome=pending)  ──▶ INSERT attempt (resolved_at = null)
+        │     "Say this after me: …"        target_form = 시범한 문장 전체
+        │     ⏳ 화면 배지 — Task 8
+        │
+        ├─▶ 학습자 재발화
+        │     toolUse(correct|incorrect|unclear)
+        │        └▶ UPDATE 같은 세션의 최신 pending   (attempt_seq desc · for update)
+        │             coalesce → 빈 판정이 기록을 지우지 않는다
+        │             outcome = incorrect ─┐
+        │                                 │
+        └─▶ 재발화 없이 세션 종료           │  경로 불문
+              resolve_dangling            │
+                outcome = incorrect       │
+                spoken_form = null  ──────┤   "대답을 못 한 것은 못 한 것"
+                (세션 종료 기록과 한 트랜잭션)│
+                                          ▼
+                              ┌─────────────────────────────────┐
+                              │ link_pattern  (한 트랜잭션)       │
+                              │  1) error_patterns upsert        │
+                              │     pattern_key = pronunciation_&lt;소리&gt;
+                              │     target_form = &lt;소리&gt;  (일반형)│
+                              │  2) attempt.pattern_id 연결       │
+                              │  3) frequency = 시도 수 재계산     │
+                              └─────────────────────────────────┘
+                                          │
+                                          ▼  ⏳ Task 8 · §11
+                              결과 화면 발음 카드 / 다음 세션 초점</div>
+  <div class="note">
+    <strong>보조 신호</strong>는 Nova가 놓친 구간을 남기는 별도 경로다. 지금 감지기는 하나 —
+    확정 전사문에 한글 음절이 섞이면(<code>korean_transcript</code>) 판정과 별개의 관측 행을 남긴다.
+    그 행은 패턴을 만들지 않는다 — 어떤 소리가 틀렸는지 짚지 못해 키를 만들 재료가 없다.
+  </div>
+
+  <h3>03c 추천 학습 루틴 <span class="pill later">⏳ 설계만</span></h3>
+  <div class="flow">  앞 세션 종료
+        │
+        ▼
+  ┌──────────────────┐   이력 조회(사실만)   ┌────────────────────────┐
+  │ 계획 생성 job     │◀────────────────────│ error_patterns          │
+  │ (비동기 · R11-4)  │                     │ error_occurrences       │
+  └────────┬─────────┘                     │ pronunciation_attempts  │
+           │                                │ 관찰 기록 (R11-10)       │
+           ▼                                └────────────────────────┘
+  ┌──────────────────────────────┐
+  │ 오늘의 계획                    │  초점 패턴 1~2개 · 질문 3~5개
+  │  "왜 이걸 연습하나요?" (R11-3) │  난이도 ±1단계 · 추천 이유 필수
+  └──────────────┬───────────────┘
+                 │
+                 ▼
+        1·3·7일 복습 큐 (R11-6)  ── 재발하면 주기를 되돌린다
+  </div>
+  <div class="note hold">
+    <strong>미결정 B-6이 이 그림의 입구를 막고 있다.</strong> 저장된 오류가 대화에 닿는 경로가
+    현재 0개다 — 시나리오 선택으로 넣을지, 지시문 주입으로 넣을지가 §11 착수 전 결정이다.
+  </div>
+</section>
+
+<section id="arch">
+  <span class="tag">ARCHITECTURE</span>
+  <h2>아키텍처</h2>
+  <p class="lead">모델 분리가 이 설계의 뼈대다 — <strong>Nova 2 Sonic은 실시간 음성</strong>,
+     <strong>Claude Opus 5는 전사문 분석</strong>. 음성 응답 경로에서 장기 분석을 동기 호출하지 않는다.</p>
+
+  <h3>컴포넌트</h3>
+  <div class="flow">  브라우저 (Next.js)                 백엔드 (FastAPI · :8002)                    외부 (AWS Bedrock)
+  ┌─────────────────────┐          ┌──────────────────────────────────┐
+  │ app/page.tsx        │   WS     │ api/ws.py                        │
+  │  lib/ws.ts          │◀════════▶│   SessionRunner                  │
+  │  lib/audio.ts       │ PCM/JSON │ audio_gateway/session.py         │
+  │                     │          │   ├ port.py    (AdapterEvent)    │   SigV4
+  │ app/results/[id]    │◀── HTTP ▶│   ├ nova.py    ─────────────────────────────▶ Nova 2 Sonic
+  │  lib/api.ts         │          │   ├ stub.py    (픽스처 재생)      │        (양방향 스트림)
+  └─────────────────────┘          │   └ factory.py (VOICE_ADAPTER)   │
+                                   │                                  │
+                                   │ services/                        │
+                                   │   sessions · utterances          │
+                                   │   pronunciation · analysis        │
+                                   │   results · jobs                 │
+                                   │                                  │
+                                   │ workers/analysis_worker.py ─────────────────▶ Claude Opus 5
+                                   │   claude_client.py               │        (전사문 → 오류 패턴)
+                                   └────────────────┬─────────────────┘
+                                                    │ asyncpg (pool)
+                                                    ▼
+                                        PostgreSQL  001 · 003 · 004 · 005</div>
+
+  <h3>두 개의 시간축</h3>
+  <div class="grid g2">
+    <div class="card">
+      <h3>실시간 (학습자가 기다린다)</h3>
+      <ul>
+        <li>오디오 in/out, 전사, 발음 판정 — <strong>전부 Nova 한 번의 대화 턴 안에서</strong></li>
+        <li>DB 쓰기는 INSERT/UPDATE 1회 수준. 음성 경로를 막지 않는다</li>
+        <li>발음 기록을 <code>create_task</code>로 띄우지 않는다 — 이벤트를 순차 await해야 판정이 무관한 시도를 닫지 않는다</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>비동기 (학습자가 기다리지 않는다)</h3>
+      <ul>
+        <li>전사문 확정 시 <code>analysis_jobs</code>에 job을 <strong>같은 트랜잭션으로</strong> 등록</li>
+        <li>워커가 lease를 잡고 Claude 호출 → 패턴 upsert → <code>frequency</code> 재계산</li>
+        <li>결과 화면은 그 세션의 job이 <strong>전부 terminal</strong>일 때만 확정 표시</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>데이터 모델 (핵심)</h3>
+  <table>
+    <thead><tr><th>테이블</th><th>역할</th><th>이 슬라이스에서</th></tr></thead>
+    <tbody>
+      <tr><td><code>learning_sessions</code></td><td>세션 수명 · <code>status</code>(active/completed/failed)</td><td>연결 실패로 닫힌 세션을 정상 종료와 구분</td></tr>
+      <tr><td><code>utterances</code></td><td>발화별 전사문 · <code>sequence_no</code>는 서버가 부여</td><td>클라이언트 값을 믿지 않는다</td></tr>
+      <tr><td><code>analysis_jobs</code></td><td>비동기 분석 큐 (lease · 백오프)</td><td>전사문과 원자적으로 함께 남는다</td></tr>
+      <tr><td><code>error_patterns</code></td><td><strong>재학습의 단위.</strong> <code>unique(user_id, pattern_key)</code>로 병합</td><td>문법은 occurrence 수, <strong>발음은 시도 수</strong>로 <code>frequency</code>를 센다</td></tr>
+      <tr><td><code>error_occurrences</code></td><td>문장별 교정 (발화 단위 replace)</td><td>발음 경로는 이 표를 만들지 않는다 — 전사문에 흔적이 0이다</td></tr>
+      <tr><td><code>pronunciation_attempts</code></td><td>시범·재발화 판정 (003)</td><td><code>pending</code> ⇔ <code>resolved_at is null</code>을 CHECK가 강제. 순서는 <code>attempt_seq</code>(004)</td></tr>
+      <tr><td><code>review_tasks</code></td><td>복습 과제 (1·3·7일 3단계)</td><td>스키마만 있고 쓰는 코드가 없다 — §11</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note" style="margin-top:14px">
+    <strong>왜 발음은 <code>error_occurrences</code>를 쓰지 않는가.</strong> occurrence는 분석 워커가
+    <em>전사문에서</em> 찾은 오류에 붙는다. 4차수 실측에서 음소를 바꿔 발음해도 ASR이 원문으로
+    복원했다 — 전사문에 발음 흔적이 0이므로 워커가 만들 수 없고, 실시간 이벤트만이 만들 수 있다.
+  </div>
+</section>
+
+<section id="open">
+  <span class="tag">OPEN DECISIONS</span>
+  <h2>미결정 사항</h2>
+  <p class="lead">정본은 <code>TASKS.md</code> B절이다. 여기 옮긴 것은 <strong>무엇을 언제까지
+     정해야 하는가</strong>이고, 각 항목의 근거는 설계서가 갖고 있다.</p>
+
+  <h3>캡틴 결정 대기 <span class="pill wait">9건</span></h3>
+  <table>
+    <thead><tr><th>#</th><th>무엇을 정하는가</th><th>정하지 않으면</th><th>언제까지</th></tr></thead>
+    <tbody>
+      <tr><td class="num">B-2</td><td><strong>교정 예산 범위.</strong> 발음 개입을 "보조 신호가 뜰 때만"으로 좁힐 <em>지시문 가변부</em>가 아직 없다 — 지금 규칙은 무조건이다</td>
+        <td>문법 오류와 흐린 발음이 같은 턴에 오면 <strong>문법 교정이 밀려난다</strong></td><td>5차수 전</td></tr>
+      <tr><td class="num">B-3</td><td><strong>교정 상한 문구 불일치.</strong> 정본은 "one <em>or two</em>"인데 코드 규칙은 "At most <em>one</em>"</td>
+        <td>두 곳이 서로 다른 정본이 된다</td><td>여유 있을 때</td></tr>
+      <tr><td class="num">B-4</td><td><strong>발음 키 값역 (부분 해소).</strong> §5.6 규약 재사용으로 결정했으나 <em>기존 키 주입 기제가 Nova 경로에 없다</em> — 문법 워커에만 있다</td>
+        <td>같은 /θ/를 다음 세션에 <code>theta_to_s</code>로 부르면 패턴이 갈라져 "반복 오류 묶기"가 조용히 깨진다</td><td>Task 9 전</td></tr>
+      <tr><td class="num">B-5</td><td><strong>실물 마이크 1회 + 발음 픽스처 보정</strong> — 캡틴이 직접 돌려야 한다</td>
+        <td>판정 품질을 아무도 확인하지 못한 채 완료가 된다</td><td>완료 선언 전</td></tr>
+      <tr><td class="num">B-6</td><td><strong>M계층 반영 단위.</strong> 오류가 대화에 닿는 경로가 <strong>0개</strong>다 — 시나리오 선택(A) / 지시문 주입(B)</td>
+        <td>§11을 시작할 자리가 없다</td><td>§11 착수 전</td></tr>
+      <tr><td class="num">B-7</td><td><strong>Phase 1 완료 선언</strong> — AC 6항목 전건 충족 시에만</td>
+        <td>완료가 아닌 것을 완료로 부른다</td><td>B-5 이후</td></tr>
+      <tr><td class="num">B-8</td><td><code>pending_learning_utterances</code> 앱 미사용 — 유지 / 삭제</td>
+        <td>죽은 코드가 남는다</td><td>여유 있을 때</td></tr>
+      <tr><td class="num">B-9</td><td><code>.claude/settings.json</code> 커밋 여부 (untracked)</td>
+        <td>—  <strong>지우지 마라.</strong> 하네스의 워크트리 금지가 이 파일에 의존한다</td><td>여유 있을 때</td></tr>
+      <tr><td class="num">B-10</td><td><strong>문법 프롬프트에 발음 패턴이 새어 들어간다.</strong> 기존 패턴 주입 SQL에 카테고리 필터가 없다</td>
+        <td>모델이 발음 키를 재사용하면 한 행을 두 writer가 번갈아 덮어 <code>frequency</code> 의미가 파괴된다</td><td>Task 9 전</td></tr>
+    </tbody>
+  </table>
+
+  <h3>최근에 결정된 것 <span class="pill ok">뒤집으려면 근거를 반박해야 한다</span></h3>
+  <div class="grid g2">
+    <div class="card">
+      <h3>B-1 판정↔시범 상관키 → <em>최신순 수용</em></h3>
+      <p>2026-08-29. 판정 UPDATE가 최신 대답기다림만 보고 판정의 <code>target_form</code>을 버리므로
+         한 행에 두 값이 어긋날 수 있다. <strong>그래도 술어를 더하지 않는다</strong> —
+         실물 왕복이 0회라 이 순서가 일어나는 증거가 없고, 문자열 일치는 모델의 미세한 재렌더에
+         빗나가 "대답 없음" 행을 늘리는 <em>새 실패 모드</em>를 만든다. 빈도는 5차수 관측.</p>
+    </div>
+    <div class="card">
+      <h3>패턴의 <code>target_form</code> → <em>일반형(소리)</em></h3>
+      <p>2026-08-29. 처음엔 시범 문장을 넣었으나 코드리뷰가 반박했다 — 스키마 정본이 이 컬럼을
+         "일반화된 목표 형태, <strong>문장이 아니다</strong>"로 정의하고 근거가 관측된 결함이다.
+         문장은 이미 시도 행에 있다. <strong>문장으로 되돌리지 마라.</strong></p>
+    </div>
+    <div class="card">
+      <h3>수렴값 → <em><code>incorrect</code></em></h3>
+      <p>설계서의 <code>unclear</code>를 뒤집었다. "대답을 못 한 것은 못 한 것"이고 이후 학습도
+         그냥 틀림으로 본다 — "대답 안 함"만 따로 세는 규칙을 두지 않는다.</p>
+    </div>
+    <div class="card">
+      <h3><code>agent_reprompt</code> → <em>만들지 않는다</em></h3>
+      <p>되묻기 문구 감지는 문구 매칭이라 케이스가 불어나고 지시문이 바뀔 때마다 조용히 깨진다.
+         R10-4의 절반은 <strong>의도적 미충족</strong>이고 그 크기는 5차수 관측 대상이다.</p>
+    </div>
+  </div>
+
+  <h3>이 설계가 스스로 인정한 약점</h3>
+  <ul>
+    <li><strong>교정 예산이 코드로 강제되지 않는다</strong> — 관측 수단은 있다(세션당 시도 행 수)</li>
+    <li><strong>판정 품질을 회귀 테스트할 수 없다</strong> — Nova 판정은 비결정적이라 자동 테스트는 "규칙이 전달됐고 스키마가 맞다"까지다</li>
+    <li><strong>픽스처가 합성음이다</strong> — 원어민 발음이라 한국인의 중간값·불안정성을 재현하지 않는다</li>
+    <li><strong>Task 8이 소리 키를 그대로 렌더하면 학습자가 <code>th_as_s</code>를 본다</strong> — 표시 문구는 별도 결정이 필요하다</li>
+  </ul>
+</section>
+
+<section id="docs">
+  <span class="tag">DOCUMENT MAP</span>
+  <h2>문서 지도 — 어디가 정본인가</h2>
+  <p class="lead">같은 내용을 두 곳에 쓰지 않는다. 한쪽이 다른 쪽을 가리킨다.</p>
+  <table>
+    <thead><tr><th>문서</th><th>소유하는 것</th></tr></thead>
+    <tbody>
+      <tr><td><code>docs/PRD.md</code> (v1.1)</td><td><strong>요구사항 정본.</strong> §10 발음 · §11 추천 루틴 포함</td></tr>
+      <tr><td><code>TASKS.md</code></td><td><strong>전체 작업과 진행 상태의 정본.</strong> 미결정(B절)의 정본</td></tr>
+      <tr><td><code>docs/design/**</code></td><td><strong>결정과 근거의 정본.</strong> 뒤집힌 결정도 근거와 함께 남는다</td></tr>
+      <tr><td><code>docs/database-schema.md</code></td><td>스키마 계약 — 컬럼의 의미와 왜 그 값인지</td></tr>
+      <tr><td><code>docs/ops/pitfalls.md</code></td><td>실측된 함정 (H-A ~ H-Q)</td></tr>
+      <tr><td><code>handoff/HANDOFF-*.md</code></td><td>갈래별 연속성 — <strong>다음 한 걸음만</strong> (~120줄 상한)</td></tr>
+      <tr><td><code>docs/storyboard.html</code></td><td>화면별 시안 (이 문서는 그 흐름만 그린다)</td></tr>
+      <tr><td><code>docs/share/</code></td><td>공유용 스냅샷 — 정본에서 다시 만든다, 손으로 고치지 않는다</td></tr>
+      <tr><td><code>docs/backup/</code></td><td>지난 판 (<code>v1.0/</code> · <code>superseded/</code> · 날짜별)</td></tr>
+    </tbody>
+  </table>
+  <div class="note">
+    <strong>이 문서의 수치는 어디서 왔나.</strong> 327 passed · 마이그레이션 4개 · HEAD
+    <code>f60775f</code>는 이 문서를 만든 턴에 <code>app/backend</code>에서 직접 실행한 출력이다.
+    계산값이나 옮겨 적은 값이 아니다.
+  </div>
+</section>
+
+
+</main>
+
+<footer>
+  <p>이 문서는 스냅샷이다. 상태의 정본은 <code>TASKS.md</code>, 요구사항의 정본은 <code>docs/PRD.md</code>,
+     결정과 근거의 정본은 <code>docs/design/**</code>다. 어긋나면 정본을 따른다.</p>
+  <p>이전 판은 <code>docs/backup/</code>에 있다.</p>
+</footer>
+
+</body>
+</html>

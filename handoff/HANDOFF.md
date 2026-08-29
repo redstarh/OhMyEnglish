@@ -238,7 +238,8 @@ cd app/backend && .venv/bin/python ../../tests/harness/spike_nova_protocol.py --
   Next.js 16 / podman / 인증 없음·고정 사용자 1명·localhost 전용
 - 데이터 규칙: 오류는 재사용 가능한 패턴 단위(`unique(user_id, pattern_key)`), 복습 1·3·7일
   (**스키마만**), `voice_command` 발화는 분석 제외, 음성 녹음 기본 미저장(opt-in)
-- HTML 현황 보고서 3부: `docs/status-report-2026-08-25*.html` (Slack #clawair 전송 완료)
+- HTML 현황 보고서: 현행 **`docs/status-report-2026-08-29.html`** (요구사항·플로우·아키텍처·미결정).
+  2026-08-25 3부작은 `docs/backup/2026-08-29-superseded/`로 이관 (Slack #clawair 전송 완료분)
 
 ## 구현 중 확정된 주요 판단 (요약)
 
