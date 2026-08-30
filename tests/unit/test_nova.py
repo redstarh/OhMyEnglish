@@ -24,6 +24,7 @@ from app.audio_gateway.nova import (
     SYSTEM_PROMPT,
     NovaEventTranslator,
     NovaVoiceAdapter,
+    build_system_prompt,
 )
 from app.audio_gateway.port import (
     InterruptionEvent,
@@ -718,3 +719,64 @@ def test_chunks_do_not_leak_across_turns():
 
     finals = [e for e in translated if isinstance(e, TranscriptEvent) and e.kind == "final"]
     assert [e.text for e in finals] == ["Turn one.", "Turn two."]
+
+
+# --- G-1·G-3: 개입 조건 좁히기 + 학습자의 기존 소리 주입 ---
+
+
+# G-1 (캡틴 결정 B-2) — 일반 세션에서 발음 개입은 무조건이 아니다. 우리 감지기(한글 전사문)는
+# 전사가 온 **뒤에** 서버가 보는 것이라 Nova가 볼 수 없으므로, 조건을 **Nova가 스스로 적용할 수
+# 있는 문장**으로 좁힌다(2026-08-30 캡틴 선택). 좁히기 전 문구가 남아 있으면 코드가 결정과
+# 어긋난 상태 그대로다.
+def test_system_prompt_narrows_pronunciation_to_hard_to_understand_speech():
+    lowered = SYSTEM_PROMPT.lower()
+    assert "hard to understand" in lowered
+    assert "grammar first" in lowered
+    assert "when a sound is clearly off" not in lowered, (
+        "무조건 개입 문구가 남아 있다 — B-2 결정(문법 우선)과 어긋난다"
+    )
+
+
+# G-3 (캡틴 결정 B-4) — 기록이 0건이면 블록을 아예 넣지 않는다. dev DB의 현재 상태가 그것이고,
+# 빈 목록을 위한 빈 제목만 남기면 Nova가 "목록이 비었다"를 지시로 오해할 여지가 생긴다.
+def test_build_system_prompt_without_known_sounds_is_exactly_the_base_prompt():
+    assert build_system_prompt([]) == SYSTEM_PROMPT
+
+
+# 재사용 규약(§5.6)을 발음 경로에서도 동작시키는 것이 B-4의 목적이다 — 키를 보여주는 것만으로는
+# 부족하고 **그 키를 다시 쓰라는 지시**가 함께 있어야 새 키가 계속 생긴다.
+def test_build_system_prompt_lists_past_sounds_and_asks_to_reuse_them():
+    prompt = build_system_prompt(["th_as_s", "f_as_p"])
+
+    assert prompt.startswith(SYSTEM_PROMPT)
+    assert "th_as_s" in prompt
+    assert "f_as_p" in prompt
+    assert "reuse" in prompt.lower()
+
+
+# 조립한 문구가 **실제 전송 페이로드**에 실리는지까지 본다 — 조립만 맞고 배선이 빠지면
+# 지시문은 코드에만 있고 Nova는 못 본다.
+#
+# `build_system_prompt(...)`의 결과를 넣지 않고 **base와 확실히 다른 리터럴**을 넣는다:
+# 조립기가 base를 그대로 돌려주는 동안에는 두 값이 같아서, 어댑터가 인자를 무시해도
+# 이 단정이 통과해 버린다(관측됨).
+async def test_start_sends_the_assembled_instructions_when_given():
+    stream = _FakeStream()
+    instructions = "SENTINEL INSTRUCTIONS — not the base prompt"
+    adapter = _adapter(stream, instructions=instructions)
+
+    await adapter.start()
+    await adapter.close()
+
+    assert stream.payloads("textInput")[0]["content"] == instructions
+
+
+# 인자를 주지 않으면 기존 거동 그대로다(스텁·기존 차수 재현이 흔들리지 않는다).
+async def test_start_sends_the_base_prompt_when_no_instructions_are_given():
+    stream = _FakeStream()
+    adapter = _adapter(stream)
+
+    await adapter.start()
+    await adapter.close()
+
+    assert stream.payloads("textInput")[0]["content"] == SYSTEM_PROMPT

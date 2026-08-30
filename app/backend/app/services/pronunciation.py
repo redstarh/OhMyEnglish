@@ -382,6 +382,28 @@ on conflict (user_id, pattern_key) do update
 returning id
 """
 
+# 지시문에 주입할 기존 소리 (G-3, 캡틴 결정 B-4). `target_form`은 발음 패턴에서
+# `btrim(target_sound)`이므로(위 upsert) 이 컬럼이 곧 재사용할 키다.
+#
+# **문법 쪽 조회(`analysis.load_existing_patterns`)를 재사용하지 않는다.** 그쪽
+# `_EXISTING_PATTERNS_SQL`에는 카테고리 필터가 없고, 그 부재가 `frequency` 이중 writer
+# 문제(B-10 → G-8)의 뿌리다. 거기에 필터를 넣는 것은 아직 캡틴 판단을 기다리는 그 결정을
+# 미리 정하는 일이라, 발음 경로는 자기 필터를 갖는다 — "규칙은 서비스가 소유한다"(§3.1a).
+_KNOWN_SOUNDS_SQL = """
+select target_form
+  from error_patterns
+ where user_id = $1
+   and category = $2
+ order by target_form
+"""
+
+
+async def load_known_sounds(conn: asyncpg.Connection, user_id: UUID) -> list[str]:
+    """이 학습자가 전에 놓친 소리 키. 기록이 없으면 빈 목록 — 조립기가 블록을 생략한다."""
+    records = await conn.fetch(_KNOWN_SOUNDS_SQL, user_id, _PRONUNCIATION_CATEGORY)
+    return [record["target_form"] for record in records]
+
+
 _LINK_ATTEMPT_SQL = "update pronunciation_attempts set pattern_id = $2 where id = $1"
 
 # `frequency`는 **시도 수**다 (설계서 §4.3) — 발음 시도는 `error_occurrences`를 만들지 않아

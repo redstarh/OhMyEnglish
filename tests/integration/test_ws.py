@@ -19,7 +19,7 @@ from __future__ import annotations
 import asyncio
 import base64
 import json
-from collections.abc import AsyncIterator, Iterator, MutableMapping
+from collections.abc import AsyncIterator, Iterator, MutableMapping, Sequence
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -34,7 +34,7 @@ from app.api import ws as ws_module
 from app.api.main import FRONTEND_ORIGIN, create_app
 from app.api.ws import FIXED_USER_ID, WS_SESSION_PATH
 from app.audio_gateway.fixtures import FIXTURE_TURNS, TONE_WAV_FRAME
-from app.config import get_settings
+from app.config import Settings, get_settings
 
 RECEIVE_TIMEOUT = 5.0
 
@@ -261,3 +261,71 @@ async def test_results_endpoint_allows_the_frontend_origin(ws_app: FastAPI):
     # 없는 세션이라 404지만, CORS 헤더는 미들웨어가 응답 상태와 무관하게 붙인다.
     assert response.status_code == 404
     assert response.headers["access-control-allow-origin"] == FRONTEND_ORIGIN
+
+
+# --- G-3: 조립한 지시문이 어댑터까지 간다 (+ 조회 실패 방어) ---
+
+
+# 소켓이 세션을 만든 **뒤** 어댑터를 만들기 전에 기존 소리를 읽어 지시문을 조립해 넘긴다.
+# 이 순서가 아니면 사용자를 모르는 상태에서 조회하게 된다.
+async def test_ws_passes_assembled_instructions_to_the_adapter(
+    ws_app: FastAPI,
+    db_pool: asyncpg.Pool,
+    seeded_fixed_user: UUID,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    async with db_pool.acquire() as conn:
+        await conn.execute(
+            "insert into error_patterns (user_id, category, pattern_key, target_form) "
+            "values ($1, 'pronunciation_intonation', 'pronunciation_th_as_s', 'th_as_s')",
+            FIXED_USER_ID,
+        )
+    seen: dict[str, object] = {}
+    real_factory = ws_module.create_voice_adapter
+
+    def spy(settings: Settings, *, known_sounds: Sequence[str] = ()) -> object:
+        seen["known_sounds"] = list(known_sounds)
+        return real_factory(settings, known_sounds=known_sounds)
+
+    monkeypatch.setattr(ws_module, "create_voice_adapter", spy)
+
+    try:
+        async with ws_app.router.lifespan_context(ws_app), ASGIWebSocket(ws_app) as client:
+            await client.receive_event()
+    finally:
+        async with db_pool.acquire() as conn:
+            await conn.execute("delete from error_patterns where user_id = $1", FIXED_USER_ID)
+
+    # 소켓은 **데이터**만 넘긴다 — 조립은 팩토리가 한다(G3 이음매). 그래서 여기서 보는 것은
+    # 조립된 문구가 아니라 목록이고, 문구 조립은 `test_nova`·`test_gateway`가 못박는다.
+    assert seen.get("known_sounds") == ["th_as_s"], (
+        "학습자의 기존 소리가 어댑터 생성까지 전달되지 않았다"
+    )
+
+
+# 발음 힌트는 **부가 정보**다. 그 조회가 깨졌다고 대화를 못 열면 손해가 더 크다 —
+# 빈 목록으로 넘어가고 세션은 그대로 열린다.
+async def test_ws_opens_the_session_even_if_the_known_sounds_lookup_fails(
+    ws_app: FastAPI,
+    db_pool: asyncpg.Pool,
+    seeded_fixed_user: UUID,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    async def explode(conn: object, user_id: object) -> list[str]:
+        raise asyncpg.PostgresError("기존 소리 조회가 깨졌다")
+
+    monkeypatch.setattr(ws_module, "load_known_sounds", explode)
+
+    async with ws_app.router.lifespan_context(ws_app), ASGIWebSocket(ws_app) as client:
+        first = await client.receive_event()
+
+    assert first is not None
+    assert first["type"] != "session_failed", (
+        "발음 힌트 조회 실패가 세션을 막았다 — 부가 정보 때문에 대화를 잃는다"
+    )
+
+    async with db_pool.acquire() as conn:
+        status = await conn.fetchval(
+            "select status from learning_sessions where user_id = $1", FIXED_USER_ID
+        )
+    assert status != "failed"

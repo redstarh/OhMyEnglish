@@ -39,6 +39,7 @@ import pytest
 from app.services import pronunciation as pronunciation_service
 from app.services.pronunciation import (
     link_pattern,
+    load_known_sounds,
     record_attempt,
     record_signal,
     resolve_dangling,
@@ -655,3 +656,64 @@ async def test_resolve_dangling_is_atomic_on_an_autocommit_connection(
             "수렴만 커밋되면 패턴 없는 incorrect 행이 남는다 — 세션은 이미 끝났으므로 "
             "그 행을 다시 수렴시킬 기회가 없다"
         )
+
+
+# --- G-3: Nova 지시문에 주입할 기존 소리 조회 (캡틴 결정 B-4) ---
+
+
+async def _user(conn: asyncpg.Connection) -> UUID:
+    user_id = await conn.fetchval(
+        "insert into users (display_name, timezone, current_level) "
+        "values ('Known Sounds Test User', 'Asia/Seoul', 'A2') returning id"
+    )
+    assert isinstance(user_id, UUID)
+    return user_id
+
+
+async def _seed_pattern(
+    conn: asyncpg.Connection, user_id: UUID, *, category: str, pattern_key: str, target_form: str
+) -> None:
+    await conn.execute(
+        "insert into error_patterns (user_id, category, pattern_key, target_form) "
+        "values ($1, $2, $3, $4)",
+        user_id,
+        category,
+        pattern_key,
+        target_form,
+    )
+
+
+# 발음 카테고리만 골라온다. **문법 패턴이 섞이면 안 된다** — 문법 쪽 조회
+# (`analysis._EXISTING_PATTERNS_SQL`)에 카테고리 필터가 없는 것이 `frequency` 이중 writer
+# 문제(B-10/G-8)의 뿌리다. 그 조회를 재사용하지 않고 여기서 필터를 갖는 이유가 이것이다.
+async def test_load_known_sounds_returns_only_pronunciation_patterns(
+    db_conn: asyncpg.Connection,
+) -> None:
+    user_id = await _user(db_conn)
+    await _seed_pattern(
+        db_conn,
+        user_id,
+        category="pronunciation_intonation",
+        pattern_key="pronunciation_th_as_s",
+        target_form="th_as_s",
+    )
+    await _seed_pattern(
+        db_conn,
+        user_id,
+        category="article",
+        pattern_key="article_missing_before_noun",
+        target_form="go to the + 장소 명사",
+    )
+
+    sounds = await load_known_sounds(db_conn, user_id)
+
+    assert sounds == ["th_as_s"]
+
+
+# 기록이 없으면 빈 목록이다 — 지시문 조립이 이 값으로 블록을 생략한다(dev DB의 현재 상태).
+async def test_load_known_sounds_is_empty_without_pronunciation_history(
+    db_conn: asyncpg.Connection,
+) -> None:
+    user_id = await _user(db_conn)
+
+    assert await load_known_sounds(db_conn, user_id) == []

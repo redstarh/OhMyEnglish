@@ -36,7 +36,7 @@ from app.audio_gateway.factory import (
     create_voice_adapter,
 )
 from app.audio_gateway.fixtures import FIXTURE_TURNS, TONE_WAV_FRAME
-from app.audio_gateway.nova import NovaVoiceAdapter
+from app.audio_gateway.nova import SYSTEM_PROMPT, NovaVoiceAdapter
 from app.audio_gateway.port import (
     AdapterEvent,
     InterruptionEvent,
@@ -607,6 +607,37 @@ def test_factory_rejects_an_unknown_adapter():
         create_voice_adapter(_settings(voice_adapter="novva"))
 
 
+# G-3 — 지시문 가변부가 지나가는 **유일한 통로**가 이 팩토리다. 두 가지를 함께 못박는다:
+# ① `port.start()`를 넓히지 않는다(어댑터를 **만들 때** 넘기므로 포트 계약이 그대로다)
+# ② 넘기는 것은 **데이터**(소리 목록)이고 조립은 여기서 한다 — 호출자가 프롬프트를 만들면
+#    소켓 계층이 `nova`를 import해야 하고 G3 이음매가 사라진다.
+def test_factory_assembles_the_prompt_from_known_sounds_for_nova():
+    adapter = create_voice_adapter(
+        _settings(voice_adapter=NOVA_ADAPTER), known_sounds=["th_as_s", "f_as_p"]
+    )
+
+    assert isinstance(adapter, NovaVoiceAdapter)
+    assert "th_as_s" in adapter.instructions
+    assert "f_as_p" in adapter.instructions
+
+
+# 목록을 주지 않으면 기본 문구다 — dev DB의 현재 상태(기록 0건)가 이 경로다.
+def test_factory_uses_the_base_prompt_when_there_are_no_known_sounds():
+    adapter = create_voice_adapter(_settings(voice_adapter=NOVA_ADAPTER))
+
+    assert isinstance(adapter, NovaVoiceAdapter)
+    assert adapter.instructions == SYSTEM_PROMPT
+
+
+# PS8(스텁 무손상) — 스텁은 이 값을 쓰지 않는다. 인자를 받고도 모드가 그대로여야
+# 1·2차수 판정이 재현된다.
+def test_factory_ignores_known_sounds_for_the_stub():
+    adapter = create_voice_adapter(_settings(voice_adapter=STUB_ADAPTER), known_sounds=["th_as_s"])
+
+    assert isinstance(adapter, StubVoiceAdapter)
+    assert adapter.mode == "fixture"
+
+
 # ④ import 그래프 — 러너와 소켓 계층은 스텁을 모른다 (G3)
 
 
@@ -632,6 +663,15 @@ def test_gateway_core_does_not_import_the_stub(module: ModuleType):
     """
     assert all("stub" not in name.lower() for name in _imported_names(module))
     assert "StubVoiceAdapter" not in inspect.getsource(module)
+
+
+# G-3 확장 — 같은 이음매를 **실물 어댑터 쪽으로도** 막는다. 소켓이 지시문을 조립하려면
+# `build_system_prompt`(= `nova` 모듈)를 import해야 하고, 그 순간 "어떤 구현이 붙는지 소켓은
+# 모른다"가 깨진다. 그래서 팩토리가 데이터를 받아 조립한다 — 이 테스트가 그 결정을 지킨다.
+@pytest.mark.parametrize("module", [session_module, ws_module], ids=["session", "ws"])
+def test_gateway_core_does_not_import_the_nova_adapter(module: ModuleType):
+    assert all("nova" not in name.lower() for name in _imported_names(module))
+    assert "NovaVoiceAdapter" not in inspect.getsource(module)
 
 
 # --- Fix round 3 (N-4): Nova 신호를 담기 위한 포트 확장 ---

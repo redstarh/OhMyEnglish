@@ -39,7 +39,7 @@ import contextlib
 import json
 import logging
 import uuid
-from collections.abc import AsyncIterator, Awaitable, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable, Sequence
 from typing import Any
 
 from app.audio_gateway.port import (
@@ -119,14 +119,41 @@ Rules:
 Pronunciation coaching:
 7. You hear the learner's actual audio. The transcript does not show pronunciation
    errors, so you are the only one who can notice them.
-8. When a sound is clearly off, name the sound that was off, say the whole sentence back
-   with correct pronunciation, and ask the learner to repeat it.
+8. Grammar first. On most turns, correct grammar and leave pronunciation alone. Take up
+   pronunciation only when a sound is so far off that the sentence is hard to understand —
+   never for a mild accent. When you do take it up, name the sound that was off, say the
+   whole sentence back with correct pronunciation, and ask the learner to repeat it.
 9. Call report_pronunciation_coaching twice: once with outcome "pending" right after you
    have modeled the sentence, and again with correct, incorrect, or unclear once you have
    heard the learner repeat it. Always include target_sound - a short reusable key for the
    sound that was off, such as th_as_s or f_as_p - so the app can group repeat offenders.
 10. A pronunciation correction is a correction. It counts against the one-per-turn limit
     in rule 4 — never add it on top of a grammar correction in the same turn."""
+
+
+def build_system_prompt(known_sounds: Sequence[str]) -> str:
+    """세션용 지시문 = 위 기본 문구 + 이 학습자가 전에 놓친 소리 목록 (G-3, 캡틴 결정 B-4).
+
+    문법 워커에만 있던 §5.6 재사용 규약을 발음 경로에도 만든다. 목록만 보여주는 것으로는
+    부족하다 — **그 키를 다시 쓰라는 지시**가 없으면 Nova가 같은 소리에 새 키를 지어내고
+    (`th_as_s` vs `theta_to_s`) 반복 오류가 서로 다른 패턴으로 흩어진다(설계서 §10 미결 3).
+
+    **기록이 0건이면 블록을 아예 넣지 않는다.** 빈 목록에 제목만 남기면 Nova가 "목록이
+    비었다"를 지시로 오해할 여지가 생기고, 지금 dev DB가 정확히 그 상태다.
+
+    ⚠️ 여기 실리는 키는 **Nova에게만 보이는 값**이다. 학습자 화면에는 나가지 않는다
+    (설계서 §10 미결 4 — 결과 응답에서 이미 뺐다).
+    """
+    if not known_sounds:
+        return SYSTEM_PROMPT
+    listed = ", ".join(known_sounds)
+    return (
+        f"{SYSTEM_PROMPT}\n\n"
+        "Sounds this learner has missed before:\n"
+        f"{listed}\n"
+        "If one of them is off again, reuse that exact key as target_sound instead of\n"
+        "inventing a new one — repeat offenders must group under one key."
+    )
 
 
 def _pronunciation_tool_configuration() -> dict[str, Any]:
@@ -364,7 +391,11 @@ class NovaVoiceAdapter:
         *,
         open_stream: StreamOpener | None = None,
         stream_limit_seconds: float = STREAM_LIMIT_SECONDS,
+        instructions: str | None = None,
     ) -> None:
+        # 세션마다 조립된 지시문(G-3). `None`이면 기본 문구 — 스텁·기존 차수 재현이
+        # 흔들리지 않게 "주지 않으면 이전과 같다"를 기본값으로 둔다.
+        self.instructions = instructions or SYSTEM_PROMPT
         self._settings = settings
         self._open_stream: StreamOpener = open_stream or (lambda: _open_bedrock_stream(settings))
         self._stream_limit_seconds = stream_limit_seconds
@@ -565,7 +596,7 @@ class NovaVoiceAdapter:
                     "textInput": {
                         "promptName": self._prompt_name,
                         "contentName": self._text_content_name,
-                        "content": SYSTEM_PROMPT,
+                        "content": self.instructions,
                     }
                 }
             },

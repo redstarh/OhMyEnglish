@@ -27,6 +27,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from app.audio_gateway.factory import create_voice_adapter
 from app.audio_gateway.session import SessionRunner
 from app.config import get_settings
+from app.services.pronunciation import load_known_sounds
 from app.services.sessions import create_session, mark_session_ended
 
 logger = logging.getLogger(__name__)
@@ -97,6 +98,21 @@ class WebSocketChannel:
         return payload
 
 
+async def _load_known_sounds_or_empty(pool: asyncpg.Pool) -> list[str]:
+    """학습자가 전에 놓친 소리 — 실패하면 빈 목록 (G-3, 캡틴 결정 B-4).
+
+    **예외를 밖으로 던지지 않는다.** 이 값은 지시문에 얹는 **부가 정보**이고, 조회가 깨졌다고
+    세션을 못 열면 대화 전체를 잃는다. 빈 목록이면 어댑터가 기본 문구로 진행한다 —
+    `services/pronunciation.record_attempt`가 기록 실패에 같은 판단을 내린 것과 같은 규약이다.
+    """
+    try:
+        async with pool.acquire() as conn:
+            return await load_known_sounds(conn, FIXED_USER_ID)
+    except Exception:
+        logger.exception("기존 발음 소리를 읽지 못해 기본 지시문으로 진행한다")
+        return []
+
+
 @router.websocket(WS_SESSION_PATH)
 async def session_socket(websocket: WebSocket) -> None:
     await websocket.accept()
@@ -113,8 +129,10 @@ async def session_socket(websocket: WebSocket) -> None:
         await _safe_close(websocket)
         return
 
+    known_sounds = await _load_known_sounds_or_empty(pool)
+
     try:
-        adapter = create_voice_adapter(get_settings())
+        adapter = create_voice_adapter(get_settings(), known_sounds=known_sounds)
     except Exception:
         # 어댑터를 만들지도 못했다(설정 오타/구현 부재). 세션 행은 이미 있으므로
         # `active` 고아로 두지 않고 failed로 닫는다 — 결과 화면이 "연결 실패"를
