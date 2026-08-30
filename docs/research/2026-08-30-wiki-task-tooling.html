@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>위키 · Task/PR 도구 조사 (2026-08-30)</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#22201d;--mut:#6b6660;--line:#e3e0db;--card:#fff;--ok:#1f7a4d;--warn:#8a5a00;--bad:#a3352b;--accent:#2f5c8f}
+@media(prefers-color-scheme:dark){:root{--bg:#181715;--fg:#e8e5e0;--mut:#9d978f;--line:#332f2b;--card:#211f1c;--ok:#5fbe8a;--warn:#d9a13a;--bad:#e0776a;--accent:#7aa8d8}}
+*{box-sizing:border-box}
+body{margin:0;padding:2rem 1.25rem 4rem;background:var(--bg);color:var(--fg);
+ font:15px/1.65 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+main{max-width:60rem;margin:0 auto}
+h1{font-size:1.6rem;margin:0 0 .3rem;letter-spacing:-.01em}
+h2{font-size:1.2rem;margin:2.6rem 0 .8rem;padding-bottom:.35rem;border-bottom:2px solid var(--line)}
+h3{font-size:1rem;margin:1.6rem 0 .5rem}
+p,li{margin:.45rem 0}
+.sub{color:var(--mut);font-size:.87rem;margin-bottom:1.6rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:1rem 1.15rem;margin:.9rem 0}
+.grid{display:grid;gap:.9rem}
+@media(min-width:56rem){.grid.two{grid-template-columns:1fr 1fr}}
+.pick{border-left:4px solid var(--ok)}
+.alt{border-left:4px solid var(--accent)}
+.out{border-left:4px solid var(--bad)}
+.tag{display:inline-block;font-size:.72rem;font-weight:600;padding:.12rem .5rem;border-radius:999px;
+ border:1px solid var(--line);color:var(--mut);margin-left:.35rem;vertical-align:middle}
+.t-ok{color:var(--ok);border-color:var(--ok)}.t-warn{color:var(--warn);border-color:var(--warn)}.t-bad{color:var(--bad);border-color:var(--bad)}
+table{width:100%;border-collapse:collapse;font-size:.83rem;margin:.8rem 0}
+th,td{text-align:left;padding:.5rem .55rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;color:var(--mut);font-weight:600}
+tbody tr:hover{background:rgba(127,127,127,.06)}
+code{font:.86em ui-monospace,SFMono-Regular,Menlo,monospace;background:rgba(127,127,127,.13);padding:.1rem .32rem;border-radius:4px}
+.q{border-left:3px solid var(--line);padding-left:.8rem;color:var(--mut);font-size:.85rem;margin:.5rem 0}
+.mine{background:linear-gradient(0deg,rgba(31,122,77,.07),rgba(31,122,77,.07));border-color:var(--ok)}
+ol.steps{padding-left:1.3rem}ol.steps>li{margin:.7rem 0}
+.foot{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--line);color:var(--mut);font-size:.8rem}
+a{color:var(--accent)}
+.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+</style>
+</head>
+<body>
+<main>
+
+<h1>개인 앱 프로젝트용 위키 · Task/PR 도구 조사</h1>
+<p class="sub">OhMyEnglish · 2026-08-30 · 에이전트 104개 · 소스 22개 · 주장 110건 추출 → 25건 적대적 검증(3표) → <strong>19건 확정 / 6건 기각</strong></p>
+
+<div class="card mine">
+<h3 style="margin-top:0">내가 직접 확인한 것 (조사 결과를 그대로 옮기지 않았음)</h3>
+<ul>
+<li>리포 실측: <code>find docs handoff -name '*.md' | wc -l</code> → <strong>30개</strong>, <code>wc -l TASKS.md</code> → <strong>308줄</strong>. 조사 전제로 넘긴 27개/285줄은 낡은 값이었고 조사 쪽 정정이 맞았다.</li>
+<li>대문자 파일 <code>TASKS.md</code>·<code>handoff/HANDOFF.md</code>·<code>docs/PRD.md</code> 실재 확인 → Otter Wiki의 소문자화 기본값에 <strong>정면으로 걸린다</strong>.</li>
+<li>Gitea 유휴 메모리를 <strong>내가 다시 측정</strong>: 168,864 → 168,912 → 169,232 KB(20초 간격) ≈ <strong>165MB</strong>, HTTP 200, 프로세스 1개. 조사 보고 163.8MB와 1% 내 일치. 측정 후 프로세스 종료함.</li>
+</ul>
+</div>
+
+<h2>결론</h2>
+<div class="grid two">
+<div class="card pick">
+<h3 style="margin-top:0">A. 위키 → <strong>Otter Wiki</strong><span class="tag t-ok">1순위</span></h3>
+<p>git 리포 <em>자체가</em> 저장 계층이라, 네가 원한 "정본 = 리포 평문 md, 버전 이력 = git 커밋"이 우회 없이 성립한다. 페이지 목록도 DB 인덱스가 아니라 디스크를 <code>os.walk</code>로 훑는다. 서비스 1개·SQLite·외부 DB 0, MIT, v2.24.0(2026-08-29)로 매우 활발.</p>
+<p>SQLite에는 사용자·환경설정·초안·렌더캐시만 들어가고 <strong>페이지 본문·버전 이력 테이블이 아예 없다</strong> — 도구를 버려도 문서는 평문 md로 남는다(탈출 비용 0).</p>
+</div>
+<div class="card pick">
+<h3 style="margin-top:0">B. Plan/Task/PR → <strong>Gitea 네이티브</strong><span class="tag t-ok">1순위</span></h3>
+<p>이슈·PR 리뷰 UI·칸반(Projects)·위키를 <strong>단일 프로세스 하나</strong>로 덮는다. 공식 darwin-arm64 바이너리와 Homebrew 병(arm64_tahoe)이 있어 컨테이너·리눅스 VM·외부 DB가 모두 0이다. MIT, v1.27.3(2026-08-29).</p>
+<p>지금 이 리포는 remote가 없어 PR 개념 자체가 없는데, 로컬 forge를 remote로 붙이면 그게 한 번에 해결된다. 유휴 165MB는 내가 직접 확인한 값.</p>
+</div>
+</div>
+
+<h2>왜 이렇게 갈렸나 — 판정축</h2>
+<div class="card">
+<p><strong>리소스를 1순위 축으로 두자 "컨테이너냐 네이티브냐"가 결론을 지배했다.</strong> 이 맥에서 podman machine 게스트는 <em>컨테이너 0개 상태에서 이미 ~450MB를 커밋</em>한다(<code>podman machine ssh 'free -m'</code> 실측: 컨테이너 기동 전 used 454MB / total 3890MB). 즉 컨테이너 경로를 택하면 앱이 100MB든 상관없이 네가 정한 예산(유휴 ≤512MB 적합)의 대부분을 VM이 먼저 먹는다.</p>
+<p class="q">주의: macOS Virtualization.framework 회계 특성상 호스트 <code>ps</code>로는 vfkit 17MB + gvproxy 30MB로 작게 보인다. 어느 쪽을 "리소스"로 셀지에 따라 컨테이너의 불이익 크기가 달라진다 — 이 보고서는 게스트 <code>free -m</code> 기준으로 셌다.</p>
+<p><strong>그리고 탈락은 대부분 리소스가 아니라 "정본 위치" 때문이었다.</strong> 무거워서 떨어진 건 GitLab·Plane 둘뿐이고, 나머지는 기존 마크다운을 제자리에서 정본으로 두지 못해서 떨어졌다.</p>
+</div>
+
+<h2>A. 위키 — 후보별 판정</h2>
+
+<h3>Otter Wiki 채택 시 반드시 처리할 함정 3건 <span class="tag t-warn">중요</span></h3>
+<div class="card out">
+<ol>
+<li><strong>대문자 파일명이 안 보인다.</strong> <code>RETAIN_PAGE_NAME_CASE=False</code>가 기본이라 경로를 <code>.lower()</code> 한다(<code>server.py:52</code>). 위에서 확인했듯 이 리포엔 <code>TASKS.md</code>·<code>HANDOFF.md</code>·<code>PRD.md</code>가 있다 → <strong><code>RETAIN_PAGE_NAME_CASE=True</code>를 반드시 켜라.</strong> 메인테이너가 issue #160에서 같은 답을 했다.</li>
+<li><strong>원격 push/pull은 공식적으로 experimental.</strong> 병합 충돌 해결 UI가 없고 <code>reset_to_remote</code>는 fetch 후 hard reset이다. 로컬 리포를 직접 가리키는 용도로만 쓰고 원격 동기화에 의존하지 말 것.</li>
+<li><strong>저장 안 한 초안·렌더 캐시는 SQLite에 갇힌다.</strong> 커밋된 문서는 안전하지만 편집 중 초안은 md가 아니다.</li>
+</ol>
+<p>추가 주의: 앱 리포 루트에 직접 붙이면 <strong>위키 편집이 작업 브랜치에 커밋을 만든다</strong>. 별도 clone이나 docs 전용 브랜치를 <code>REPOSITORY</code>로 두는 편이 안전하다 (이 부분은 미검증).</p>
+</div>
+
+<h3>대안 — SilverBullet <span class="tag">A 2순위</span></h3>
+<div class="card alt">
+<p>폴더가 정본이고 <strong>서버에 DB가 아예 없다</strong>(인덱스는 캐시라 언제든 재생성). ADR-003이 "Markdown is the source of truth... the index is a cache, not the canonical store"라고 명시하고, "별도 저작 DB(Notion/Confluence 방식)는 <em>Rejected</em>"라고 못 박았다. 위키링크·백링크·전문검색이 1급 기능이라 '위키다움'은 Otter Wiki보다 강하다. Developer ID 서명된 39MB 단일 바이너리, MIT.</p>
+<p><strong>결정적 macOS 제약</strong>: 공식 Install 문서가 대소문자 구분 없는 기본 APFS에서의 구동을 "highly discouraged"로 명시하고 case-sensitive APFS 볼륨을 따로 만들라고 한다. 유휴 RSS 실측값은 이번 조사에서 확보하지 못했다(공식 수치는 self-report "few hundred MB"뿐).</p>
+</div>
+
+<h3>탈락 — 이유가 리소스가 아니다</h3>
+<div class="card out">
+<p><strong>LeafWiki</strong> — 리소스는 가장 가볍다(네이티브 유휴 36.6MB 실측). 하지만 앱 밖에서 넣은 <code>.md</code>에 <code>leafwiki_id</code>를 포함한 관리 frontmatter 블록 전체를 <strong>디스크 파일에 되쓰기</strong>하고 opt-out 옵션이 없다. README가 직접 인정한다: <em>"that ID write-back will show up as an extra diff you didn't make yourself."</em> → "기존 md를 수정 없이 읽는 도구"가 아니고 git diff를 오염시킨다.</p>
+<p><strong>Wiki.js</strong> — 정본이 DB이고 git은 동기화 타깃이다. 공식 문서 축자: <em>"A Git repository must be dedicated to Wiki.js. It is not possible to use only a subfolder or submodules at the moment."</em> → 이 리포의 <code>docs/</code>·<code>handoff/</code>를 대상으로 지정하는 것이 <strong>공식적으로 불가능</strong>하다. 기존 콘텐츠는 관리자 화면에서 <code>Import Everything</code>을 수동 실행해야 하고, 모듈 비활성 구간에 생긴 콘텐츠는 <code>Add Untracked Changes</code>+<code>Force Sync</code>를 손으로 돌려야 복구된다. AGPL-3.0, v2.5.314(2026-05-01)로 상대적으로 느리고 v3는 2023년 이후 미출시.</p>
+<p><strong>Outline</strong> — 라이선스가 Business Source License 1.1이고, 라이선스 본문이 스스로 <em>"is not an Open Source license"</em>라고 명시한다 → 오픈소스 요건에서 탈락. <strong>Docmost</strong> — 메인테이너가 "Postgres is the only supported database"라고 공식 답변(설계 결정이지 백로그가 아님).</p>
+</div>
+
+<h2>B. Plan/Task/Status/PR — 후보별 판정</h2>
+
+<h3>대안 — Forgejo <span class="tag">B 2순위</span></h3>
+<div class="card alt">
+<p>SQLite가 문서상 기본이자 저활동 인스턴스에 <strong>공식 권장</strong>이고, 배포 바이너리에 SQLite가 내장돼 외부 DB 준비 단계가 아예 없다(설치 문서의 섹션 제목이 문자 그대로 <em>"Optional: Set up database"</em>). GPL-3.0-or-later, v16.0.3(2026-08-20).</p>
+<p><strong>이 맥에서 Gitea보다 불리한 단 하나의 이유</strong>: 공식 릴리스 자산이 <strong>리눅스 전용</strong>(amd64/arm-6/arm64)이고 <strong>darwin 바이너리가 없다</strong>(Codeberg 릴리스 API 실측). Homebrew 병으로 네이티브 설치하거나 podman VM ~450MB를 감수해야 한다. 또 공식 문서에 하드웨어/RAM 요구사항이 전혀 없다(docs 리포 md 138개 전수 grep → 유효 히트 0건).</p>
+</div>
+
+<h3>상주 0 후보 — 확인은 됐지만 검증은 안 된 유력주 <span class="tag t-warn">미검증</span></h3>
+<div class="card">
+<p><strong>Backlog.md</strong>는 정본이 리포 안 평문 마크다운이고 서버·DB가 아예 없다 — <code>TASKS.md</code> 308줄을 "태스크 1개 = md 1파일"로 쪼개 그대로 옮길 수 있어 네 제약과 가장 잘 맞는 부류다. 다만 이 후보는 <strong>3표 적대적 검증 단계에 오르지 못했다</strong>(예산이 상위 25개 주장에서 소진). 채택 검토 시 별도 확인이 필요하다.</p>
+<p><strong>git-bug</strong>은 이슈를 작업트리 파일이 아니라 <strong>git 오브젝트 자체</strong>로 임베드한다 → "리포에 데이터가 남는다"는 맞지만 "정본은 md 파일"이라는 네 조건은 충족하지 못한다(도구를 버리면 평문 md가 아니라 커스텀 git ref만 남는다).</p>
+</div>
+
+<h3>리소스 과잉으로 탈락</h3>
+<div class="card out">
+<p><strong>GitLab CE</strong> — <em>"PostgreSQL is the only supported database"</em>(SQLite 불가) + Redis/Valkey 별도 요구. 공식 requirements가 메모리 제약 환경의 하한조차 <em>"at least 8 GB of memory"</em>로 명시하고 <em>"Disable swap where possible"</em>까지 적는다. 배포 단위는 1컨테이너지만 그 안에 Postgres·Redis·Gitaly·Puma·Sidekiq·Nginx 등 6+ 서비스가 상주한다.</p>
+<p><strong>Plane</strong> — compose 최상위 서비스 <strong>13개</strong>(web/admin/space/api/worker/beat-worker/migrator/live/postgres/valkey/rabbitmq/minio/proxy). SQLite로 축소가 <em>구조적으로</em> 불가능하다 — <code>settings/common.py</code>가 ENGINE을 postgresql로 하드코딩하고 마이그레이션이 <code>django.contrib.postgres.ArrayField</code>를, 검색이 <code>ArrayAgg</code>를 쓴다(둘 다 PostgreSQL 전용) → SQLite에서는 <code>migrate</code> 자체가 실패. 워커 OOM 이슈 #6671이 여전히 open. AGPL-3.0, v1.4.2(2026-08-23)로 유지보수는 활발하나 1인용으로는 과잉.</p>
+</div>
+
+<h2>비교표</h2>
+<table>
+<thead><tr><th>도구</th><th>설치</th><th>상주</th><th>DB</th><th>유휴 메모리</th><th>정본 위치</th><th>최근 릴리스</th><th>라이선스</th><th>판정</th></tr></thead>
+<tbody>
+<tr><td><strong>Otter Wiki</strong></td><td>podman / venv+uwsgi</td><td>1</td><td>SQLite</td><td class="num">106MB(podman)<br>160MB(네이티브)</td><td><strong>리포 평문 md</strong></td><td>v2.24.0 2026-08-29</td><td>MIT</td><td><span class="tag t-ok">A 1순위</span></td></tr>
+<tr><td><strong>Gitea</strong></td><td>brew / 단일 바이너리</td><td>1</td><td>SQLite</td><td class="num"><strong>165MB</strong> (내 실측)</td><td>리포 + 이슈는 DB</td><td>v1.27.3 2026-08-29</td><td>MIT</td><td><span class="tag t-ok">B 1순위</span></td></tr>
+<tr><td>SilverBullet</td><td>단일 39MB 바이너리</td><td>1</td><td><strong>없음</strong></td><td class="num">미측정</td><td><strong>폴더 평문 md</strong></td><td>v2.10.0 2026-07-28</td><td>MIT</td><td><span class="tag">A 2순위</span></td></tr>
+<tr><td>Forgejo</td><td>brew (darwin 바이너리 ✗)</td><td>1</td><td>SQLite</td><td class="num">미측정</td><td>리포 + 이슈는 DB</td><td>v16.0.3 2026-08-20</td><td>GPL-3.0+</td><td><span class="tag">B 2순위</span></td></tr>
+<tr><td>Backlog.md</td><td>npm</td><td><strong>0</strong></td><td>없음</td><td class="num">0</td><td><strong>리포 평문 md</strong></td><td>v1.50.1 2026-08-10</td><td>MIT</td><td><span class="tag t-warn">미검증 유력</span></td></tr>
+<tr><td>LeafWiki</td><td>단일 바이너리</td><td>1</td><td>SQLite</td><td class="num">37MB</td><td>md + <strong>frontmatter 되쓰기</strong></td><td>v0.12.1 2026-08-16</td><td>MIT</td><td><span class="tag t-bad">탈락</span></td></tr>
+<tr><td>Wiki.js</td><td>컨테이너</td><td>1~2</td><td>SQLite 가능</td><td class="num">—</td><td><strong>DB</strong> (전용 리포 요구)</td><td>v2.5.314 2026-05-01</td><td>AGPL-3.0</td><td><span class="tag t-bad">탈락</span></td></tr>
+<tr><td>Outline</td><td>컨테이너</td><td>3+</td><td>Postgres</td><td class="num">—</td><td>DB</td><td>—</td><td><strong>BSL 1.1</strong></td><td><span class="tag t-bad">비오픈소스</span></td></tr>
+<tr><td>Docmost</td><td>컨테이너</td><td>3+</td><td>Postgres 전용</td><td class="num">—</td><td>DB</td><td>—</td><td>AGPL-3.0</td><td><span class="tag t-bad">탈락</span></td></tr>
+<tr><td>Plane</td><td>docker-compose</td><td><strong>13</strong></td><td>Postgres 전용</td><td class="num">요구 4GB<br><small>(실측 아님)</small></td><td>DB</td><td>v1.4.2 2026-08-23</td><td>AGPL-3.0</td><td><span class="tag t-bad">과잉</span></td></tr>
+<tr><td>GitLab CE</td><td>omnibus</td><td>6+ (1컨테이너)</td><td>Postgres 전용</td><td class="num">하한 8GB<br><small>(실측 아님)</small></td><td>DB</td><td>—</td><td>MIT/EE 혼합</td><td><span class="tag t-bad">과잉</span></td></tr>
+</tbody>
+</table>
+<p class="q">"유휴 메모리"는 <strong>빈 인스턴스 하한</strong>이다. 리포·이슈가 쌓이고 Gitea의 bleve 인덱서가 돌면 오른다. Plane 4GB·GitLab 8GB는 호스트 프로비저닝 요구사항이지 유휴 실측값이 아니므로 같은 칸에서 직접 비교하지 말 것. 컨테이너 경로는 여기에 podman VM ~450MB를 더해야 한다.</p>
+
+<h2>통합안 vs 분리안</h2>
+<div class="grid two">
+<div class="card">
+<h3 style="margin-top:0">통합 — Gitea 하나</h3>
+<p class="num"><strong>~165MB · 프로세스 1개</strong></p>
+<p>이슈+PR 리뷰+칸반+위키를 한 몸으로. 리소스 총량으로는 명백히 우월하고, Gitea는 리포 브라우저에서 <code>docs/**.md</code>를 그대로 렌더링하니 "읽기 전용 문서 뷰 + 이슈/PR"이면 이것만으로 충분하다.</p>
+<p><strong>한계</strong>: forge의 Wiki 기능은 별도 <code>&lt;repo&gt;.wiki.git</code>을 정본으로 쓰므로 "리포 <code>docs/</code>가 위키의 정본"이라는 요건을 만족하지 못한다. <em>이 성질은 이번 라운드에서 실행 검증하지 않았다 — 채택 전 로컬 Gitea에서 1회 확인 권장.</em></p>
+</div>
+<div class="card">
+<h3 style="margin-top:0">분리 — Otter Wiki + Gitea</h3>
+<p class="num"><strong>~270~330MB · 프로세스 2개</strong></p>
+<p>위키를 따로 두는 비용은 네이티브 기준 약 <strong>+160MB</strong>, 컨테이너 기준 약 +550MB(VM 포함). 이 값을 내는 이유는 단 하나 — 리포 <code>docs/</code> 마크다운을 위키의 정본으로 쓸 수 있다는 것.</p>
+<p><strong>추천 판단</strong>: 위키링크·백링크·전문검색 기반 지식 그래프가 실제로 필요해질 때까지는 통합안으로 시작하고, 필요해지면 같은 리포에 Otter Wiki를 얹어라.</p>
+</div>
+</div>
+
+<h2>첫 걸음</h2>
+<ol class="steps">
+<li><strong><code>brew install gitea</code> → SQLite로 기동 → 이 로컬 forge를 <code>git remote add local</code>로 붙이고 push.</strong> 이슈·PR·칸반이 한 번에 생긴다. 최소 <code>app.ini</code>(<code>DB_TYPE=sqlite3</code>, <code>INSTALL_LOCK=true</code>, <code>SECRET_KEY</code>, <code>HTTP_ADDR=127.0.0.1</code>)만으로 설치 위저드 없이 HTTP 200이 뜨는 것을 확인했다 — 실측에 쓴 파일은 <code>/tmp/giteatest/custom/conf/app.ini</code>에 남아 있다.</li>
+<li><strong><code>TASKS.md</code> 308줄을 즉시 폐기하지 말고 원장으로 유지한 채, 진행 중 태스크만 이슈로 이중 등록해 2주 병행 운영한 뒤 정본을 하나로 접어라.</strong> 이 리포의 규약이 "TASKS.md = 상태의 정본"이라, 정본을 한 번에 옮기면 세션 인계 지표가 깨진다.</li>
+<li><strong>위키가 필요해지면 Otter Wiki를 <code>REPOSITORY=&lt;리포 경로&gt;</code> + <code>RETAIN_PAGE_NAME_CASE=True</code>로 얹어라.</strong> 대문자 파일 3개가 실재하므로 두 번째 옵션은 선택이 아니라 필수다. 백업 디렉터리(<code>docs/backup/**</code>, <code>handoff/backup/**</code>)를 위키에 노출하지 않는 공식 수단은 확인되지 않았다 — 별도 clone이나 docs 전용 브랜치를 대상으로 두는 우회가 필요할 수 있다.</li>
+</ol>
+
+<h2>한계 — 이 보고서가 답하지 못한 것</h2>
+<div class="card">
+<p><strong>검증되지 않은 후보</strong>: 네가 목록에 넣은 것 중 DokuWiki·Gollum·TiddlyWiki·Trilium·MkDocs·mdBook·Quartz 등 정적 생성기·Obsidian·Logseq·Joplin, 그리고 B의 Vikunja·Kanboard·Wekan·Leantime·Taskwarrior·dstask·radicle·jj는 3표 검증 단계에 오르지 못했다(상위 25개 주장에서 예산 소진). 참고로 Vikunja는 Homebrew formula가 없다(API 404).</p>
+<p><strong>1차 수집 단계 근거만 있는 것</strong> (3표 검증 미통과 — 참고 신호로만): Focalboard는 README 최상단에 <em>"This repository is currently not maintained"</em>가 있고 리포가 <code>mattermost</code>→<code>mattermost-community</code>로 이관됐으며 최근 52주 커밋이 0건이다. 단 GitHub <code>archived</code> 플래그는 여전히 <code>false</code>라 자동 필터로는 걸러지지 않는다. Dendron은 README에 <em>"maintenace only, active development has ceased"</em>가 메인테이너 선언으로 있다. git-appraise는 <code>archived=false</code>이지만 master 마지막 커밋이 2023-08-12로 약 3년 무활동이다(<code>updated_at</code> 2026-08-22는 star 등 메타데이터 시각이라 코드 활동 지표가 아니다).</p>
+<p><strong>기각된 주장 6건</strong> — 근거로 재인용하지 말 것: GitLab "16GB/8vCPU 기준선"(0-3), Wiki.js "bi-directional은 기본 5분 스케줄 미러"(0-3), LeafWiki "git 백업은 단방향 push"(0-3, 방향성은 여전히 쟁점이나 <em>탈락 사유인 frontmatter 되쓰기는 이와 독립적으로 3-0 확정</em>), Forgejo "바이너리 복사+chmod로 끝나는 단일 프로세스 배포"(0-3), Plane "podman에서 안 뜬다"(1-2), GitLab "8GB 하한이라 조건부 등급에도 못 든다"(1-2).</p>
+<p><strong>시효</strong>: Gitea v1.27.3·Otter Wiki v2.24.0·SilverBullet push가 전부 2026-08-29, Forgejo v16.0.3이 2026-08-20 — 조사 시점 열흘 내라 버전·수치는 수 주 안에 낡는다.</p>
+</div>
+
+<h2>남은 질문</h2>
+<div class="card">
+<ul>
+<li>Gitea/Forgejo의 Wiki가 정말 <code>&lt;repo&gt;.wiki.git</code>만 정본으로 쓰는가, 아니면 메인 리포 <code>docs/</code>를 위키 소스로 지정하는 설정이 있는가 — <strong>가능하다면 통합안 하나로 정본 요건까지 만족해 분리안이 불필요해진다.</strong> 가장 값어치 있는 다음 확인.</li>
+<li>SilverBullet의 네이티브 유휴 RSS는 얼마이고, 대소문자 구분 없는 기본 APFS에서 실제로 어떤 오류가 나는가(공식 문서는 "highly discouraged"라고만 하고 실패 양상을 적지 않는다).</li>
+<li>Otter Wiki에서 백업 디렉터리와 소스 코드를 위키 노출에서 제외하는 공식 수단이 있는가 — 없으면 별도 clone이 필수인데, 그러면 "리포 md가 제자리에서 정본"이라는 성질이 약해진다.</li>
+<li>상주 0 대안(Backlog.md·dstask 등)이 <code>TASKS.md</code> 308줄을 대체할 수 있는가 — 확인되면 리소스 0으로 B의 상당 부분을 덮는다.</li>
+</ul>
+</div>
+
+<h2>출처</h2>
+<div class="card" style="font-size:.83rem">
+<p><strong>A</strong>: <a href="https://github.com/redimp/otterwiki">github.com/redimp/otterwiki</a> · <a href="https://otterwiki.com/Installation">otterwiki.com/Installation</a> · <a href="https://otterwiki.com/Configuration/Repository%20Management">Repository Management</a> · <a href="https://v2.silverbullet.md/Install">v2.silverbullet.md/Install</a> · <a href="https://github.com/silverbulletmd/silverbullet">silverbulletmd/silverbullet</a> · <a href="https://github.com/perber/leafwiki">perber/leafwiki</a> · <a href="https://docs.requarks.io/storage/git">docs.requarks.io/storage/git</a> · <a href="https://github.com/requarks/wiki/issues/1984">wiki#1984</a> · <a href="https://github.com/outline/outline/blob/main/LICENSE">Outline LICENSE (BSL 1.1)</a> · <a href="https://github.com/docmost/docmost/issues/21">docmost#21</a></p>
+<p><strong>B</strong>: <a href="https://github.com/go-gitea/gitea">go-gitea/gitea</a> · <a href="https://formulae.brew.sh/api/formula/gitea.json">brew formula: gitea</a> · <a href="https://forgejo.org/docs/latest/admin/installation/binary/">Forgejo 바이너리 설치</a> · <a href="https://forgejo.org/docs/latest/admin/setup/recommendations/">Forgejo 권장 설정</a> · <a href="https://codeberg.org/forgejo/forgejo/releases">Forgejo 릴리스</a> · <a href="https://github.com/MrLesk/Backlog.md">MrLesk/Backlog.md</a> · <a href="https://github.com/git-bug/git-bug">git-bug</a> · <a href="https://docs.gitlab.com/install/requirements/">GitLab requirements</a> · <a href="https://developers.plane.so/self-hosting/methods/docker-compose">Plane self-hosting</a> · <a href="https://github.com/makeplane/plane/issues/6671">plane#6671</a> · <a href="https://github.com/mattermost-community/focalboard">focalboard</a> · <a href="https://github.com/dendronhq/dendron">dendron</a> · <a href="https://github.com/google/git-appraise">git-appraise</a> · <a href="https://github.com/jj-vcs/jj">jj-vcs/jj</a></p>
+</div>
+
+<p class="foot">deep-research 워크플로 · 5개 검색 각도 → 22개 소스 → 주장 110건 → 상위 25건 3표 적대적 검증(2표 반박 시 폐기) → 종합 후 14건.
+리포 실측값·대문자 파일명·Gitea 유휴 메모리는 보고 전에 메인 세션에서 직접 재확인했다.</p>
+
+</main>
+</body>
+</html>
