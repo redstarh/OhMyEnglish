@@ -18,7 +18,7 @@
 | 4 | `002` 확인 — 1번을 하면 **자동 no-op**이 된다. 안 하면 실패한다 | `002_move_legacy_public_tables_to_en_coach.sql` | R5 |
 | 5 | 마이그레이션 추적표를 **`en_coach` 스키마 안**에 둔다 | 마이그레이션 러너 | R4 |
 
-**비밀번호는 이 문서에 없다** — 별도로 전달받는다.
+**비밀번호**: `mvs6pZyocJIyISV1fPD7tZVD` (§2에 전체 URL이 있다)
 
 **OhMyEnglish 쪽은 이미 준비됐다**: 역할 `en_coach`, 스키마 `en_coach`(소유자 = 그 역할),
 공유 표 3개 읽기 권한, 역할 기본 `search_path = en_coach`.
@@ -188,8 +188,8 @@ CHECK 제약에 나뉘어 있어(예: `pronunciation_attempts`는 `pending` ⇔ 
 DATABASE_URL=postgresql://en_coach:change-me@localhost:5432/en_coach
 #                                            ~~~~ 포트   ~~~~~~~~ DB
 
-# ✅ 이렇게
-DATABASE_URL=postgresql://en_coach:<전달받은_비밀번호>@localhost:5433/ohmyenglish
+# ✅ 이렇게 — 그대로 복사해 쓴다
+DATABASE_URL=postgresql://en_coach:mvs6pZyocJIyISV1fPD7tZVD@localhost:5433/ohmyenglish
 ```
 
 | 항목 | 값 | 주의 |
@@ -197,13 +197,19 @@ DATABASE_URL=postgresql://en_coach:<전달받은_비밀번호>@localhost:5433/oh
 | host / port | `localhost` / **5433** | 5432가 아니다. 이 머신의 5432는 비어 있고 우리 컨테이너는 5433에 포워딩된다 |
 | database | **`ohmyenglish`** | 공유 DB다. `en_coach`라는 DB는 없다(만들었다가 철회했다) |
 | user / role | **`en_coach`** | 스키마 `en_coach`의 소유자 |
-| password | 별도 전달 | 문서·리포에 넣지 않는다 |
-| search_path | **`en_coach`** | R2. 역할 기본값도 그렇게 설정해 두었다 |
+| password | `mvs6pZyocJIyISV1fPD7tZVD` | **로컬 dev 전용**이다. 이 문서가 git에 있으므로 원격·공유 환경에는 이 값을 쓰지 않는다 |
+| search_path | **`en_coach`** | R2. 역할 기본값을 그렇게 설정해 두었다(2026-08-30 확인: 한정자 없이 `error_patterns`를 읽으면 `relation does not exist`로 **차단된다**). 앱이 `SET search_path`로 `public`을 다시 넣으면 이 방어가 풀린다 |
 
 명시적으로 못 박고 싶으면 URL에 붙인다(`%3D`는 `=`의 인코딩):
 
 ```bash
-DATABASE_URL=postgresql://en_coach:<비밀번호>@localhost:5433/ohmyenglish?options=-csearch_path%3Den_coach
+DATABASE_URL=postgresql://en_coach:mvs6pZyocJIyISV1fPD7tZVD@localhost:5433/ohmyenglish?options=-csearch_path%3Den_coach
+```
+
+**비밀번호를 바꾸려면** (한 줄, 양쪽 `.env`만 갱신하면 된다):
+
+```bash
+podman exec -i ohmy-pg psql -U ohmy -d ohmyenglish -c "alter role en_coach password '<새값>'"
 ```
 
 ⚠️ **비밀번호는 반드시 필요하다.** 이 PostgreSQL은 컨테이너 안에서만 `trust`(무비밀번호)이고,
