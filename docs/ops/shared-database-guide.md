@@ -56,7 +56,36 @@ DATABASE_URL=postgresql://ohmy:ohmy@localhost:5433/ohmyenglish
 - ⚠️ 이 자격증명은 **로컬 개발 전용**이다(비밀번호가 `ohmy`). 공유 환경·원격에 그대로
   쓰지 않는다.
 
-### 2.3 참고: 다른 앱이 백엔드 API를 부를 경우
+### 2.3 인증 — **어디서 붙느냐로 갈린다** (2026-08-30 실측)
+
+컨테이너의 `pg_hba.conf`가 이렇게 돼 있다(postgres 공식 이미지 기본값):
+
+```
+local   all  all                     trust            ← 컨테이너 내부 유닉스 소켓
+host    all  all  127.0.0.1/32       trust            ← 컨테이너 내부 TCP
+host    all  all  ::1/128            trust
+host    all  all  all                scram-sha-256    ← 그 밖의 전부 = 비밀번호 필요
+```
+
+| 어디서 | 비밀번호 | 실측 결과 |
+|---|:--:|---|
+| **컨테이너 내부** (`podman exec … psql -U ohmy`) | **불필요** | `PGPASSWORD=COMPLETELY_WRONG`을 줘도 접속됐다 — `trust`는 비밀번호를 아예 보지 않는다 |
+| **호스트 → `localhost:5433`** | **필수** | 비밀번호 없이·틀린 값으로 4가지 조합 전부 `InvalidPasswordError` |
+
+**왜 `127.0.0.1/32 trust`가 호스트에는 안 걸리는가**: podman이 포트를 포워딩하면 서버가 보는
+접속 주소가 `127.0.0.1`이 아니라 **컨테이너 네트워크 게이트웨이**다(실측: `inet_client_addr()`
+→ `10.88.0.2`). 그래서 마지막 줄 `scram-sha-256`이 적용된다.
+
+**사용자(role)는 언제나 필요하다.** 생략하면 클라이언트가 OS 사용자명으로 시도하고
+(`redstar`), 그런 역할이 없어 실패한다. 즉 "user·password 없이 접근"은 불가능하고,
+정확히는 **"컨테이너 내부에서는 user만 있으면 password가 불필요"**하다.
+
+> ⚠️ **보안 함의**: `podman exec` 권한이 있으면 **비밀번호 없이 DB 전체에 접근된다.**
+> 이 가이드의 §4.1 SQL이 비밀번호 없이 돌아가는 이유가 그것이다. 로컬 개발 전용 구성이므로
+> 수용하지만, 원격·공유 환경으로 옮길 때는 `local`·`127.0.0.1` 줄을 `scram-sha-256`으로
+> 바꾸고(`POSTGRES_HOST_AUTH_METHOD=scram-sha-256`) 비밀번호를 `ohmy`가 아닌 값으로 돌린다.
+
+### 2.4 참고: 다른 앱이 백엔드 API를 부를 경우
 
 | 항목 | 값 |
 |---|---|
