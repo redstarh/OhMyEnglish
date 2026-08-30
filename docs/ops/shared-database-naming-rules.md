@@ -212,6 +212,15 @@ DATABASE_URL=postgresql://en_coach:mvs6pZyocJIyISV1fPD7tZVD@localhost:5433/ohmye
 podman exec -i ohmy-pg psql -U ohmy -d ohmyenglish -c "alter role en_coach password '<새값>'"
 ```
 
+**⚠️ DB가 안 뜨면 — 컨테이너가 꺼져 있는 것이다.** PostgreSQL은 OhMyEnglish 리포의
+podman 컨테이너 `ohmy-pg`(`postgres:16-alpine`)로 돈다. `Connection refused`가 나면:
+
+```bash
+podman ps | grep ohmy-pg                        # 떠 있는지 확인
+podman start ohmy-pg                            # 꺼져 있으면 시작
+# 컨테이너가 아예 없으면 OhMyEnglish 쪽에 알린다 (scripts/dev_db.sh start 가 만든다)
+```
+
 ⚠️ **비밀번호는 반드시 필요하다.** 이 PostgreSQL은 컨테이너 안에서만 `trust`(무비밀번호)이고,
 **호스트(`localhost:5433`)에서 오는 접속은 `scram-sha-256`**이다 — 비밀번호 없이·틀린 값으로는
 붙지 않는다. `psql`이 이 머신에 설치돼 있지 않아 컨테이너 안에서 확인해야 할 때는

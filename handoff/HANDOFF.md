@@ -13,7 +13,7 @@
 > | 하네스 차수·시나리오 | `tests/harness/runs/ROUNDS.md` · `tests/harness/README.md` |
 > | 한 장 요약(공유용) | `docs/status-report-2026-08-29.html` |
 >
-> 최종 갱신 **2026-08-30** · 기준 커밋 **HEAD ≥ `b3a37b9`** · 브랜치 `design/first-vertical-slice`
+> 최종 갱신 **2026-08-30** · 기준 커밋 **HEAD ≥ `7a5bfce`** · 브랜치 `design/first-vertical-slice`
 > **이 파일이 유일한 handoff다.** 2026-08-30에 갈래별 4개를 하나로 합쳤다(이전 판은
 > `handoff/backup/2026-08-30/`).
 
@@ -26,6 +26,12 @@
 끝났고 코드가 0줄이다.
 
 `VOICE_ADAPTER=nova`로 띄우면 Nova가 발음을 교정하고, 판정이 기록되고, 약점 패턴까지 쌓인다.
+
+**이 세션에서 닫힌 것 2개** (2026-08-30):
+- **캡틴 결정 B-1~B-10 전건 종결.** 거기서 나온 작업 8건이 `TASKS.md` **G절**이다 — 아직 착수 0.
+- **En-Coach와 DB 공유 구성 완료.** 같은 DB(`ohmyenglish`) + 스키마 분리. En-Coach가 규칙을
+  지켜 실제로 붙었다(실측: `en_coach` 스키마에 `ec_*` 9개 + 자기 `schema_migrations`,
+  우리 `public`에 `ec_` 표 0개). 규칙 정본은 `docs/ops/shared-database-naming-rules.md`.
 
 | 되는 것 | 안 되는 것 |
 |---|---|
@@ -81,6 +87,7 @@ ty check                                          # All checks passed!
 | 항목 | 값 |
 |---|---|
 | 테스트 | **327 passed**, skip/xfail 0 (v1.1 착수 전 241 → 312 → 327) |
+| 공유 DB | `en_coach` 스키마에 표 **10개**(`ec_*` 9 + 추적표). 우리 `public`은 13개(우리 10 + 하네스 3), `ec_` 오염 **0** |
 | dev DB 마이그레이션 | **4개** — 001 · 003 · 004 · 005 (`schema_migrations`가 파일명으로 추적, 멱등) |
 | dev DB 행 | 세션 2 · 발화 6 · 패턴 1 · occurrence 2 · job 3 · `pronunciation_attempts` **0** · 발음 패턴 **0** |
 | 미커밋 | `.claude/`(untracked) — **커밋하지 말고 지우지도 마라**(B-9 결정) |
@@ -129,6 +136,19 @@ Task 8이 읽을 컬럼: `pronunciation_attempts`의 `target_form`·`spoken_form
 
 - **2026-08-28** `claude_air_3-14` → 같은 창의 새 컨텍스트: ✅ **4/4 일치**(HEAD만 docs 커밋 1건 차이).
   3-15는 빈 셸이라 쓰이지 않고 정리됨.
+- **2026-08-30** `claude_air_3-14` → **다음 세션**: ⏳ **대조 대기** — 아래 기준값을 새 세션이
+  직접 돌려 얻어 보고한다.
+
+### 다음 세션이 대조할 기준값 (이 절을 쓴 턴에 직접 실행해 얻었다)
+
+| # | 지표 | 값 |
+|--:|---|---|
+| 1 | HEAD | **`HEAD ≥ 7a5bfce`** — 반드시 `≥`로 읽는다(함정 H-P). ⚠️ 처음 `b9575fb`로 적었다가 정정했다: 마감 커밋에서 `--amend`가 그 커밋을 덮어써 **히스토리에서 사라진 해시**였다(함정 H-R). `7a5bfce`는 실재하는 조상이다 |
+| 2 | 다음 한 걸음 | **A절 Task 8 — 결과 화면 발음 카드** (차단 없음) |
+| 3 | 게이트 | **327 passed** · ruff·format(27파일)·ty clean · `tests/**` 베이스라인 **6 errors·4 files** |
+| 4 | 착수 전 필수 | **2건** — `TASKS.md` A-2 후단(`signal_source` 함께 싣기 · 수렴 행 해석) |
+
+미커밋은 `.claude/`(untracked) 하나뿐이고 **커밋하지도 지우지도 않는다**(B-9 결정).
 
 인계 확인은 새 세션이 **직접 돌려 얻은** 4개(HEAD · 다음 한 걸음 · 게이트 실측 · 착수 전 필수
 건수)가 위 실측값과 일치하는 것이다 — "읽었다"는 지표가 아니다. 절차는
