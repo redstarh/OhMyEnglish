@@ -555,3 +555,219 @@ async def test_representative_correction_is_stable_when_occurrences_tie_on_creat
         "동일한 tie 상황에서 반복 조회가 다른 대표 문구를 돌려주면 안 된다 "
         "(I-1: representative tie-break가 eo.id까지 내려가야 한다)"
     )
+
+
+# --- Task 8: 발음 카드 (PS9 · 설계서 §10 미결 4 결정 · TASKS.md A-2 후단) ---
+
+
+async def _attempt(
+    conn: asyncpg.Connection,
+    session_id: UUID,
+    *,
+    target_form: str,
+    outcome: str,
+    spoken_form: str | None = None,
+    target_sound: str | None = None,
+    signal_source: str = "nova_tool",
+) -> UUID:
+    """발음 시도 1행을 직접 만든다 (Nova 어댑터·세션 배선을 거치지 않는다).
+
+    `resolved_at`은 003의 `pronunciation_attempts_resolved_consistency`가 `outcome`과
+    짝을 강제하므로(pending이면 null, 판정됐으면 반드시 값) SQL 안에서 함께 정한다 —
+    호출부가 매번 기억해야 하는 규약으로 남기지 않는다.
+    """
+    attempt_id = await conn.fetchval(
+        "insert into pronunciation_attempts (session_id, target_form, spoken_form, "
+        "target_sound, outcome, signal_source, resolved_at) "
+        "values ($1, $2, $3, $4, $5, $6, case when $5 = 'pending' then null else now() end) "
+        "returning id",
+        session_id,
+        target_form,
+        spoken_form,
+        target_sound,
+        outcome,
+        signal_source,
+    )
+    assert attempt_id is not None
+    return attempt_id
+
+
+# ⑪ 발음 시도가 있는 세션의 결과에 `pronunciation` 배열이 실린다 (PS9 단정 1).
+# 같은 테스트가 **표시 규약 결정**(설계서 §10 미결 4)도 고정한다: 기계 키
+# (`target_sound` = 패턴 `target_form`의 재료)는 응답 어디에도 나오지 않는다.
+# 계획서 `:1352`가 적은 `target_sound` 필드는 그 결정으로 폐기됐다 — 관측된 키가
+# 0건인 상태에서 화면에 내보내면 학습자가 `th_as_s`를 읽는다.
+async def test_pronunciation_attempts_appear_in_results_without_machine_key(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session
+):
+    async with db_pool.acquire() as conn:
+        utterance_id = await _utterance(conn, committed_session.session_id, 1, "I think it's 3.")
+        await _job(conn, utterance_id, "done")
+        await _attempt(
+            conn,
+            committed_session.session_id,
+            target_form="I think it's three.",
+            spoken_form="I sink it's sree.",
+            target_sound="th_as_s",
+            outcome="incorrect",
+        )
+
+    response = await api_client.get(f"/api/sessions/{committed_session.session_id}/results")
+
+    assert response.status_code == 200
+    assert response.json()["pronunciation"] == [
+        {
+            "target_form": "I think it's three.",
+            "spoken_form": "I sink it's sree.",
+            "outcome": "incorrect",
+            "signal_source": "nova_tool",
+        }
+    ]
+    assert "th_as_s" not in response.text, (
+        "기계 키는 응답에 실리지 않는다 (설계서 §10 미결 4 — 실물 왕복 0회라 "
+        "표시 규칙이 발명값이다)"
+    )
+
+
+# ⑫ `pending`은 결과에 포함하지 않는다 (PS9 단정 3) — 미판정을 학습자에게 보이지 않는다.
+# `"pending"이 없다`는 부재 단정만으로는 red가 되지 않는다(구현 전에는 배열 자체가 없어
+# 자동 통과한다). 그래서 **판정된 1건만 실린다**를 양성으로 단정한다.
+async def test_pending_attempt_is_excluded_and_resolved_one_remains(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session
+):
+    async with db_pool.acquire() as conn:
+        await _attempt(
+            conn,
+            committed_session.session_id,
+            target_form="Could you say water again?",
+            outcome="pending",
+        )
+        await _attempt(
+            conn,
+            committed_session.session_id,
+            target_form="I drink water every morning.",
+            spoken_form="I drink water every morning.",
+            target_sound="w_as_b",
+            outcome="correct",
+        )
+
+    response = await api_client.get(f"/api/sessions/{committed_session.session_id}/results")
+
+    assert response.status_code == 200
+    pronunciation = response.json()["pronunciation"]
+    assert [item["outcome"] for item in pronunciation] == ["correct"]
+    assert pronunciation[0]["target_form"] == "I drink water every morning."
+
+
+# ⑬ `incorrect`인데 `spoken_form`이 null인 행은 **대답 없이 끝난 시도**다
+# (TASKS.md A-2 후단 ②, 종료 수렴 §3.2). 키를 지우면 프론트가 "들린 발음"을
+# 빈 문자열로 렌더할지 생략할지 구분할 수 없으므로 **키는 있고 값이 null**이다.
+async def test_unanswered_attempt_keeps_spoken_form_key_as_null(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session
+):
+    async with db_pool.acquire() as conn:
+        await _attempt(
+            conn,
+            committed_session.session_id,
+            target_form="I think it's three.",
+            target_sound="th_as_s",
+            outcome="incorrect",
+        )
+
+    response = await api_client.get(f"/api/sessions/{committed_session.session_id}/results")
+
+    assert response.status_code == 200
+    item = response.json()["pronunciation"][0]
+    assert item["outcome"] == "incorrect"
+    assert "spoken_form" in item
+    assert item["spoken_form"] is None
+
+
+# ⑭ 신호 행은 `signal_source`로 구분된다 (TASKS.md A-2 후단 ①). 신호 행의
+# `target_form`은 Nova가 시범한 문장이 아니라 **설명 문구**라서, 구분 없이 렌더하면
+# 학습자에게 그 문구가 "이렇게 발음해야 합니다"로 보인다.
+async def test_signal_row_is_distinguishable_by_signal_source(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session
+):
+    async with db_pool.acquire() as conn:
+        await _attempt(
+            conn,
+            committed_session.session_id,
+            target_form="(전사문이 한국어로 인식되었습니다)",
+            outcome="unclear",
+            signal_source="korean_transcript",
+        )
+
+    response = await api_client.get(f"/api/sessions/{committed_session.session_id}/results")
+
+    assert response.status_code == 200
+    item = response.json()["pronunciation"][0]
+    assert item["signal_source"] == "korean_transcript"
+    assert item["target_form"] == "(전사문이 한국어로 인식되었습니다)"
+
+
+# ⑮ `analyzing` 중에도 발음 배열은 실린다 — 계획서 `:1371` "발음 배열은 그 판정과
+# **독립적으로** 실린다". R2 규칙 3이 막는 것은 *비동기 분석이 끝나지 않은* 문법 교정의
+# 잠정 노출이고, 발음 시도 행은 종료 수렴이 `pending`을 없애므로 구조적으로 확정값이다.
+# `corrections` 키가 여전히 없는 것을 함께 단정해 규칙 3을 건드리지 않았음을 고정한다.
+async def test_pronunciation_is_included_while_grammar_is_still_analyzing(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session
+):
+    async with db_pool.acquire() as conn:
+        utterance_id = await _utterance(conn, committed_session.session_id, 1, "I think it's 3.")
+        await _job(conn, utterance_id, "pending")
+        await _attempt(
+            conn,
+            committed_session.session_id,
+            target_form="I think it's three.",
+            spoken_form="I sink it's sree.",
+            target_sound="th_as_s",
+            outcome="incorrect",
+        )
+
+    response = await api_client.get(f"/api/sessions/{committed_session.session_id}/results")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "analyzing"
+    assert "corrections" not in body
+    assert len(body["pronunciation"]) == 1
+
+
+# ⑯ 카드 순서는 **삽입 순**이다(시도 1건 = 1카드, 설계서 §10 미결 4). 두 시도를
+# **한 트랜잭션에서** 만들어 `created_at`을 마이크로초까지 동률로 만든다 — `now()`가
+# 트랜잭션 시각으로 고정되기 때문이다(004가 `attempt_seq`를 신설한 바로 그 이유).
+# 이 상황에서 순서를 정할 수 있는 것은 `attempt_seq`뿐이다.
+#
+# ⚠️ `attempt_seq`는 표 전역 identity라 롤백이 번호에 구멍을 낸다(004 경고) — 정렬에만
+# 쓰고 번호 자체는 응답에 싣지 않는다. 학습자에게 보이는 순번은 배열 위치가 만든다.
+async def test_pronunciation_ordered_by_insertion_when_created_at_ties(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session
+):
+    async with db_pool.acquire() as conn:
+        async with conn.transaction():
+            await _attempt(
+                conn,
+                committed_session.session_id,
+                target_form="I think it's three.",
+                spoken_form="I sink it's sree.",
+                target_sound="th_as_s",
+                outcome="incorrect",
+            )
+            await _attempt(
+                conn,
+                committed_session.session_id,
+                target_form="Coffee, please.",
+                spoken_form="Copi, please.",
+                target_sound="f_as_p",
+                outcome="incorrect",
+            )
+
+    response = await api_client.get(f"/api/sessions/{committed_session.session_id}/results")
+
+    assert response.status_code == 200
+    pronunciation = response.json()["pronunciation"]
+    assert [item["target_form"] for item in pronunciation] == [
+        "I think it's three.",
+        "Coffee, please.",
+    ]
