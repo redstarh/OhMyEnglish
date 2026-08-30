@@ -1,8 +1,27 @@
 # 공유 PostgreSQL — 네이밍·접근 규칙 (En-Coach 전달용)
 
 > **한 DB(`ohmyenglish`)를 OhMyEnglish와 En-Coach가 함께 쓴다.** 이 문서는 En-Coach 쪽에
-> 전달할 **규칙과 접속 정보**다. 배경과 구축 내역은 `docs/ops/shared-database-guide.md`.
-> 작성 2026-08-30.
+> 전달할 **규칙과 접속 정보**이고, **이 문서 하나로 자립한다** — 다른 문서를 함께 받지
+> 않아도 된다. 작성 2026-08-30 (OhMyEnglish 팀).
+
+---
+
+## 체크리스트 — En-Coach가 할 일 (5개)
+
+이것만 하면 붙는다. 근거는 아래 §0·§1에 있다.
+
+| # | 할 일 | 어디 | 규칙 |
+|--:|---|---|:--:|
+| 1 | 표 **9개에 `ec_` 접두어** 일괄 적용 (마이그레이션·모델·쿼리 전부) | `db/migrations/001_initial_schema.sql` 외 | R1 |
+| 2 | `search_path`에서 **`public` 제거** — 3곳 | `app/backend/app/db.py:33`·`:41`, `001_initial_schema.sql:4` | R2 |
+| 3 | `.env`의 **포트·DB 이름** 교체 (`5432`→`5433`, `en_coach`→`ohmyenglish`) + 비밀번호 | `app/backend/.env` | §2 |
+| 4 | `002` 확인 — 1번을 하면 **자동 no-op**이 된다. 안 하면 실패한다 | `002_move_legacy_public_tables_to_en_coach.sql` | R5 |
+| 5 | 마이그레이션 추적표를 **`en_coach` 스키마 안**에 둔다 | 마이그레이션 러너 | R4 |
+
+**비밀번호는 이 문서에 없다** — 별도로 전달받는다.
+
+**OhMyEnglish 쪽은 이미 준비됐다**: 역할 `en_coach`, 스키마 `en_coach`(소유자 = 그 역할),
+공유 표 3개 읽기 권한, 역할 기본 `search_path = en_coach`.
 
 ---
 
@@ -187,8 +206,10 @@ DATABASE_URL=postgresql://en_coach:<전달받은_비밀번호>@localhost:5433/oh
 DATABASE_URL=postgresql://en_coach:<비밀번호>@localhost:5433/ohmyenglish?options=-csearch_path%3Den_coach
 ```
 
-⚠️ **비밀번호는 반드시 필요하다.** 호스트에서 오는 접속은 `scram-sha-256`이다
-(`shared-database-guide.md` §2.3).
+⚠️ **비밀번호는 반드시 필요하다.** 이 PostgreSQL은 컨테이너 안에서만 `trust`(무비밀번호)이고,
+**호스트(`localhost:5433`)에서 오는 접속은 `scram-sha-256`**이다 — 비밀번호 없이·틀린 값으로는
+붙지 않는다. `psql`이 이 머신에 설치돼 있지 않아 컨테이너 안에서 확인해야 할 때는
+`podman exec -i ohmy-pg psql -U en_coach -d ohmyenglish` 를 쓴다(이때는 비밀번호가 필요 없다).
 
 ---
 
@@ -218,7 +239,7 @@ DATABASE_URL=postgresql://en_coach:<비밀번호>@localhost:5433/ohmyenglish?opt
 
 ---
 
-## 5. OhMyEnglish 쪽 숙제 (대칭을 위해)
+## 5. 참고 — OhMyEnglish 쪽 숙제 (En-Coach가 할 일은 아니다)
 
 지금은 En-Coach만 전용 스키마를 갖고 우리는 `public`에 있다. **비대칭이라 우리 표가
 "기본값 자리"를 차지한다** — W1이 위험한 이유가 그것이다. 우리 표도 전용 스키마
