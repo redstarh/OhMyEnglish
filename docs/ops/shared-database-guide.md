@@ -317,6 +317,7 @@ podman exec -i ohmy-pg psql -U otherapp -d ohmyenglish -c "select count(*) from 
 
 | 문서 | 무엇 |
 |---|---|
+| **`docs/ops/shared-database-naming-rules.md`** | **En-Coach 전달용 네이밍·접근 규칙** (R1~R6 + 접속 정보 + 부여된 권한) |
 | `docs/database-schema.md` | 표·컬럼의 의미와 **왜 그 값인지**. 컬럼을 읽기 전에 본다 |
 | `docs/ops/local-run.md` | 로컬 실행 방법 (DB·백엔드·프론트·게이트) |
 | `db/migrations/*.sql` | 스키마 정본. 주석에 결정 근거가 있다 |
