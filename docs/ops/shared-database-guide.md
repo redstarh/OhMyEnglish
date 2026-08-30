@@ -143,164 +143,146 @@ pronunciation_attempts · schema_migrations
 
 ---
 
-## 4. ✅ 채택된 구성 — **별도 DB + 외부 테이블로 공유** (2026-08-30 구축·검증 완료)
+## 4. ✅ 채택된 구성 — **같은 DB + 스키마 분리** (2026-08-30 구축·검증 완료)
 
-캡틴 결정: "내부 별도의 database를 생성해서 사용하고, 나중에 OhMyEnglish와 table로 데이터를
-함께 공유할 수 있어."
+캡틴 결정: 별도 DB + FDW로 한 번 만들었다가 **철회하고 이 방식으로 옮겼다**(§4-alt에 그때
+얻은 것을 남겼다). 이유는 조인이다 — 같은 DB 안이면 `postgres_fdw` 없이 **네이티브 조인**이
+되고 외부 테이블 재동기화 문제도 없다.
 
-⚠️ **PostgreSQL은 DB가 다르면 일반 쿼리로 조인할 수 없다.** 그래서 공유는 `postgres_fdw`
-(외부 테이블)로 잇는다 — 다른 App은 자기 DB에 있는 테이블처럼 우리 표를 **읽고, 자기
-테이블과 조인**할 수 있다. 아래는 실제로 만들어 돌려 본 구성이다.
-
-### 4.0 만들어진 것 (현재 상태)
+### 4.1 만들어진 것 (현재 상태)
 
 | 대상 | 값 |
 |---|---|
-| 다른 App의 DB | **`otherapp`** (owner `otherapp`) |
-| 다른 App의 역할 | **`otherapp`** — 자기 DB의 소유자. OhMyEnglish DB에는 직접 접근 권한이 없다 |
-| 공유 전용 읽기 역할 | **`ohmy_share_ro`** — `ohmyenglish`에 CONNECT + `public` USAGE + **SELECT만** (`error_patterns` · `error_occurrences` · `pronunciation_attempts`) |
-| 외부 서버 / 스키마 | `ohmyenglish_srv` → 외부 테이블 3개가 `otherapp` DB의 **`ohmyenglish` 스키마**에 있다 |
-
-접속 URL (비밀번호는 별도 전달 — 이 문서에 적지 않는다):
-
-```bash
-DATABASE_URL=postgresql://otherapp:<비밀번호>@localhost:5433/otherapp
-```
-
-### 4.0a 검증된 동작 (직접 돌린 결과)
-
-| # | 확인 | 결과 |
-|--:|---|---|
-| ① | 호스트에서 `otherapp` 접속 | ✅ (비밀번호 필요 — §2.3) |
-| ② | `select … from ohmyenglish.error_patterns` | ✅ 우리 dev DB의 실제 행이 보인다 |
-| ③ | 자기 테이블 생성·삽입 | ✅ 자기 DB는 자유롭게 쓴다 |
-| ④ | **자기 테이블 × 우리 외부 테이블 조인** | ✅ — "table로 데이터를 함께 공유"가 이 형태로 성립한다 |
-| ⑤ | 우리 표에 `update` | ✅ **차단됨** (`InsufficientPrivilegeError: permission denied`) |
-
-### 4.0b ⚠️ 이 구성에서 걸렸던 것 — `trust`가 FDW를 막는다
-
-`import foreign schema`가 처음에 이렇게 실패했다:
-
-```
-ERROR: password or GSSAPI delegated credentials required
-DETAIL: Non-superuser cannot connect if the server does not request a password.
-```
-
-postgres_fdw는 **비superuser가 쓸 때 원격이 비밀번호를 실제로 요구할 것**을 강제한다(trust를
-악용한 권한 상승 방지). 그런데 컨테이너 내부 접속은 `trust`라 비밀번호를 묻지 않는다(§2.3).
-→ superuser가 매핑의 원격 역할을 `ohmy_share_ro`로 **고정해 두었으므로** 그 가드를 해제했다:
-
-```sql
-alter user mapping for otherapp server ohmyenglish_srv
-  options (add password_required 'false');
-```
-
-**왜 안전한가**: 상승 위험은 "비superuser가 임의의 강한 역할로 붙는 것"인데, 매핑을 만든
-주체가 superuser이고 원격 역할이 읽기 전용으로 못 박혀 있다. 원격·공유 환경으로 옮길 때는
-이 옵션 대신 `pg_hba.conf`의 `127.0.0.1/32`를 `scram-sha-256`으로 바꾸는 쪽이 맞다.
-
-### 4.0c 공유 표를 늘리거나 줄이려면
-
-```sql
--- 늘릴 때: ohmyenglish DB에서 읽기 권한을 주고
-grant select on table public.<표이름> to ohmy_share_ro;
--- otherapp DB에서 외부 테이블을 다시 가져온다 (otherapp 역할로 실행해야 한다)
-import foreign schema public limit to (<표이름>) from server ohmyenglish_srv into ohmyenglish;
-
--- 줄일 때
-drop foreign table ohmyenglish.<표이름>;                      -- otherapp DB
-revoke select on table public.<표이름> from ohmy_share_ro;    -- ohmyenglish DB
-```
-
-⚠️ `import foreign schema`는 **현재 사용자의 user mapping**으로 원격에 붙는다 — `ohmy`로
-실행하면 `user mapping not found for "ohmy"`가 난다. **`otherapp`으로 실행한다.**
-
-⚠️ 외부 테이블은 **스냅샷이 아니라 뷰처럼 매번 원격을 읽는다.** 우리가 컬럼을 바꾸면
-외부 테이블 정의가 낡는다 — 스키마를 바꾸면 다시 `import`한다.
-
-### 4.0d 이름을 바꾸려면
-
-```sql
-alter database otherapp rename to <새이름>;   -- 접속 중인 세션이 없어야 한다
-alter role otherapp rename to <새이름>;       -- ⚠️ 역할명을 바꾸면 비밀번호를 다시 설정해야 한다
-```
-
----
-
-## 4-alt. 대안 구성 — 스키마로만 나눈다 (DB 공유)
-
-FDW 없이 **네이티브 조인**이 필요하면 이쪽이다. 같은 DB 안이라 조인이 그냥 되고 외부 테이블
-재동기화 문제도 없다. 대신 두 앱이 한 DB를 공유하므로 §3의 위험(특히 `public` 오염)을
-`revoke`로 막아야 한다.
-
-### 4.1 역할과 스키마를 만든다 (한 번)
-
-```sql
--- superuser(= ohmy)로 접속: psql postgresql://ohmy:ohmy@localhost:5433/ohmyenglish
--- ⚠️ 이 머신에는 psql이 없다. podman으로 컨테이너 안에서 실행한다:
---    podman exec -i ohmy-pg psql -U ohmy -d ohmyenglish
-
-create role otherapp login password '<강한 비밀번호>';
-create schema otherapp authorization otherapp;
-
--- public에 테이블을 만들지 못하게 막는다 (실수 방지 — 이것이 이 가이드의 핵심 한 줄)
-revoke create on schema public from otherapp;
-
--- 그 역할이 접속할 때 자기 스키마를 먼저 보게 한다
-alter role otherapp set search_path = otherapp;
-```
-
-`authorization otherapp`로 만들면 그 스키마 안에서는 별도 grant 없이 자유롭게
-테이블을 만들 수 있다.
-
-### 4.2 다른 앱의 `DATABASE_URL`
+| 데이터베이스 | **`ohmyenglish`** (우리와 공유) |
+| 다른 App의 역할 | **`otherapp`** — 기본 `search_path = otherapp` |
+| 다른 App의 스키마 | **`otherapp`** (owner `otherapp`) — 그 안에서는 자유롭게 만든다 |
+| 우리 표 접근 | `public` USAGE + **SELECT만** — `error_patterns` · `error_occurrences` · `pronunciation_attempts` |
+| `public`에 만들기 | **불가** (PG16 기본값이 PUBLIC에 USAGE만 준다 — 실측 확인) |
 
 ```bash
-# 역할 기본 search_path를 위에서 정했으므로 URL에 옵션이 없어도 된다
 DATABASE_URL=postgresql://otherapp:<비밀번호>@localhost:5433/ohmyenglish
-
-# 역할 기본값에 기대지 않고 커넥션마다 못 박고 싶으면 (권장 — 명시적)
+# 역할 기본 search_path가 otherapp이라 옵션 없이도 자기 스키마를 먼저 본다.
+# 커넥션마다 못 박고 싶으면 (권장 — 명시적):
 DATABASE_URL=postgresql://otherapp:<비밀번호>@localhost:5433/ohmyenglish?options=-csearch_path%3Dotherapp
 ```
 
 `?options=-csearch_path%3Dotherapp`의 `%3D`는 `=`의 URL 인코딩이다. libpq 기반
-드라이버(psycopg, asyncpg)가 이 형식을 지원한다.
+드라이버(psycopg, asyncpg)가 이 형식을 지원한다. 비밀번호는 이 문서에 적지 않는다.
 
-### 4.3 우리 데이터를 **읽어야** 할 때만 최소 권한을 준다
+### 4.2 검증된 동작 (호스트에서 직접 돌린 결과)
 
-기본은 **권한 없음**이다. 필요한 표만 명시적으로 열어 준다.
+| # | 확인 | 결과 |
+|--:|---|---|
+| ① | 호스트에서 `otherapp` 접속 | ✅ (비밀번호 필요 — §2.3) |
+| ② | `show search_path` | ✅ `otherapp` |
+| ③ | 자기 테이블 생성 | ✅ **`otherapp` 스키마**에 만들어진다(`public` 아님) |
+| ④ | `select count(*) from public.error_patterns` | ✅ 우리 실제 행이 보인다 |
+| ⑤ | **자기 테이블 × 우리 표 네이티브 조인** | ✅ FDW 없이 그냥 된다 |
+| ⑥ | 우리 표에 `update` | ✅ **차단** `permission denied for table error_patterns` |
+| ⑦ | `create table public.x` | ✅ **차단** `permission denied for schema public` |
+| ⑧ | 권한 안 준 우리 표 읽기(`users`) | ✅ **차단** `permission denied for table users` — 최소 권한이 실제로 걸려 있다 |
+| ⑨ | 우리 표 `drop` | ✅ **차단** `must be owner of table` |
+
+우리 앱 게이트도 함께 확인했다: **327 passed** · ruff · ty clean (영향 없음).
+
+### 4.3 만든 SQL (재현용)
 
 ```sql
-grant usage on schema public to otherapp;              -- 스키마 접근만 (객체 접근은 별도)
-grant select on table public.error_patterns to otherapp;   -- 예: 약점 패턴만 읽기
--- 앞으로 만들어질 표까지 자동으로 열지 마라. default privileges는 쓰지 않는다 —
--- 새 표가 조용히 노출된다.
+-- superuser(= ohmy)로. ⚠️ 이 머신에 psql이 없다 → podman exec로 컨테이너 안에서:
+--   podman exec -i ohmy-pg psql -U ohmy -d ohmyenglish
+create role otherapp login password '<강한 비밀번호>';
+grant connect on database ohmyenglish to otherapp;
+create schema otherapp authorization otherapp;
+alter role otherapp set search_path = otherapp;
+
+-- 우리 표는 읽기만
+grant usage on schema public to otherapp;
+grant select on table error_patterns, error_occurrences, pronunciation_attempts to otherapp;
 ```
+
+`public`에 대한 `revoke create`는 **넣지 않았다** — PG15부터 `public` 스키마가 PUBLIC에게
+CREATE를 주지 않는 것이 기본값이고, 이 서버에서 실측으로 확인했다(`nspacl`이 `=U/`,
+그리고 위 ⑦이 실제로 차단됐다). 구버전(PG14 이하)에 옮길 때는 반드시 넣어라:
+`revoke create on schema public from public;`
+
+### 4.4 공유 표를 늘리거나 줄이려면
+
+```sql
+grant select on table public.<표이름> to otherapp;      -- 늘릴 때
+revoke select on table public.<표이름> from otherapp;    -- 줄일 때
+```
+
+앞으로 만들어질 표까지 자동으로 열지 마라 — `alter default privileges`는 쓰지 않는다.
+새 표가 조용히 노출된다.
 
 > **쓰기 권한은 주지 않는다.** 우리 앱의 불변조건이 앱 코드와 CHECK 제약에 나뉘어 있어
 > (예: `pronunciation_attempts`는 `pending` ⇔ `resolved_at is null`, 시도 순서는
 > `attempt_seq` identity가 강제) 외부에서 직접 INSERT하면 그 규약이 깨진다. 데이터를
 > 넣어야 한다면 표가 아니라 **백엔드 API를 통한다**.
 
-### 4.4 확장(extension)은 DB 단위로 공유된다
+### 4.5 ⚠️ dev DB를 재생성하면 다른 App 데이터도 함께 사라진다
 
-`pgcrypto`는 이미 설치돼 있다(001). 다른 앱이 `gen_random_uuid()`를 쓰려면 스키마
-한정자 없이 그대로 부를 수 있다 — `create extension`을 다시 실행하지 않는다
-(`if not exists`라 에러는 안 나지만 불필요하다).
+이제 두 앱이 **같은 데이터베이스**를 쓴다. `docs/ops/local-run.md`가 적어 둔
+"001을 재작성했다면 dev DB를 drop/재생성해야 한다"를 실행하면 **`otherapp` 스키마와 그
+안의 데이터까지 없어진다.**
+
+- 우리 테스트는 안전하다 — 파괴적 재생성 대상은 `ohmyenglish_test`·`ohmyenglish_smoke`뿐이고
+  dev DB(`ohmyenglish`)는 `migrate.py`가 drop 없이 누적 적용한다(§3-(1)).
+- 위험은 **사람이 손으로 dev DB를 재생성할 때**다. 그때는 다른 App 담당에게 먼저 알린다.
+- 다른 App은 **자기 마이그레이션 스크립트를 갖는 것이 좋다** — 스키마를 언제든 다시 세울 수
+  있으면 이 위험이 "재실행 한 번"으로 줄어든다. 추적 표는 자기 스키마 안에 둔다(§3-(3)).
+
+### 4.6 확장(extension)은 DB 단위로 공유된다
+
+`pgcrypto`는 이미 설치돼 있다(001). 다른 App이 `gen_random_uuid()`를 쓰려면 스키마 한정자
+없이 그대로 부를 수 있다 — `create extension`을 다시 실행하지 않는다.
+
+### 4.7 이름을 바꾸려면
+
+```sql
+alter schema otherapp rename to <새이름>;
+alter role otherapp rename to <새이름>;   -- ⚠️ 역할명을 바꾸면 비밀번호를 다시 설정해야 한다
+alter role <새이름> set search_path = <새이름>;
+```
 
 ---
 
-## 5. 세 방식 비교
+## 4-alt. 철회한 구성 — 별도 DB + `postgres_fdw` (2026-08-30에 만들었다가 되돌림)
+
+**지금 이 구성은 남아 있지 않다** — DB `otherapp`, 역할 `ohmy_share_ro`, FDW 서버·매핑·외부
+테이블을 전부 제거했다(실측 확인: foreign server 0, `postgres_fdw` 확장 0). 다시 필요해질
+때를 위해 **그때 실제로 걸린 것**만 남긴다.
+
+⚠️ **PostgreSQL은 DB가 다르면 일반 쿼리로 조인할 수 없다.** 별도 DB를 고르면 공유는
+`postgres_fdw`(외부 테이블)로 이어야 하고, 아래 셋이 반드시 걸린다.
+
+1. **`trust`가 FDW를 막는다.** `import foreign schema`가
+   `password or GSSAPI delegated credentials required`로 실패한다 — postgres_fdw는 비superuser가
+   쓸 때 **원격이 비밀번호를 실제로 요구할 것**을 강제하는데(trust 악용 방지) 컨테이너 내부
+   접속은 `trust`라 묻지 않는다(§2.3). 우회는 superuser가 매핑을 읽기 전용 역할로 고정한 뒤
+   `alter user mapping … options (add password_required 'false')`. 원격 환경이라면 이 대신
+   `pg_hba.conf`의 `127.0.0.1/32`를 `scram-sha-256`으로 바꾸는 쪽이 맞다.
+2. **`import foreign schema`는 실행한 사용자의 user mapping으로 원격에 붙는다.** `ohmy`
+   (superuser)로 돌리면 `user mapping not found for "ohmy"`가 난다 — 매핑을 가진 역할
+   (`otherapp`)로 실행해야 한다.
+3. **외부 테이블은 스냅샷이 아니라 매번 원격을 읽는다.** 우리가 컬럼을 바꾸면 정의가 낡으므로
+   다시 `import`해야 하고, 큰 표를 반복 조인하면 네이티브보다 확실히 불리하다.
+
+세 번째가 이 구성을 철회한 이유다.
+
+---
+
+## 5. 네 방식 비교
 
 | 방식 | 조인 | 격리 | 대가 | 상태 |
 |---|---|---|---|---|
-| **별도 DB + `postgres_fdw`** | 외부 테이블 경유 (가능) | **강함** — 권한·마이그레이션·이름공간이 완전히 분리 | 스키마가 바뀌면 외부 테이블 재`import`. 원격 읽기라 대량 조인은 느릴 수 있다 | ✅ **채택·구축 완료** (§4) |
-| 스키마 분리 (DB 공유) | 네이티브 (빠름) | 중간 — 같은 DB라 `public` 오염·권한 실수 여지 | `revoke create on public`을 반드시 걸어야 한다 | 대안 (§4-alt) |
+| **스키마 분리 (DB 공유)** | **네이티브 — 그냥 된다** | 중간 — 같은 DB라 권한 실수 여지. dev DB 재생성이 양쪽을 날린다(§4.5) | 우리 표 접근을 `grant select`로 하나씩 열어야 한다 | ✅ **채택·구축 완료** (§4) |
+| 별도 DB + `postgres_fdw` | 외부 테이블 경유 | **강함** — 권한·마이그레이션·이름공간 완전 분리 | 스키마 변경 시 재`import`, 대량 조인 느림, `trust`가 FDW를 막는 함정 | ↩️ 만들었다가 철회 (§4-alt) |
 | 별도 컨테이너 (포트 5434 등) | 불가 (FDW로도 네트워크 경유) | 가장 강함 | 리소스 두 배, 포트 관리 | 미사용 |
 | `public` 공유 | 네이티브 | **없음** | 이름 충돌 · `schema_migrations` 충돌 · 소유 구분 소실 | ❌ 권장하지 않음 |
 
-**대량 조인이 느려지면** 스키마 분리(§4-alt)로 옮기는 것이 정공법이다. 외부 테이블은 매 쿼리마다
-원격을 읽으므로, 큰 표를 반복 조인하면 네이티브보다 확실히 불리하다.
+**격리가 더 필요해지면**(예: 다른 App이 프로덕션급이 되거나 담당이 갈리면) §4-alt로 되돌리는
+길이 열려 있다 — 그때 걸릴 것 3개를 §4-alt가 이미 적어 두었다.
 
 ---
 
@@ -312,21 +294,22 @@ cd app/backend && .venv/bin/pytest -q && .venv/bin/ruff check . \
   && .venv/bin/ruff format --check . && ty check
 #   2026-08-30 구축 후 실측: 327 passed (영향 없음)
 
-# ② 별도 DB·역할·외부 테이블이 실제로 있나
-podman exec -i ohmy-pg psql -U ohmy -d ohmyenglish -tAc \
-  "select datname from pg_database where not datistemplate order by 1"
-podman exec -i ohmy-pg psql -U otherapp -d otherapp -c "\det ohmyenglish.*"
+# ② 스키마와 역할이 실제로 있나
+podman exec -i ohmy-pg psql -U ohmy -d ohmyenglish -c "\dn"
+podman exec -i ohmy-pg psql -U otherapp -d ohmyenglish -c "show search_path"   # → otherapp
 
-# ③ 공유 읽기가 되고 쓰기는 막히나 (otherapp 자격증명으로 호스트에서)
-#    select … from ohmyenglish.error_patterns  → 행이 보여야 한다
-#    update ohmyenglish.error_patterns …       → permission denied 가 정답이다
-
-# ③ 다른 앱이 public에 테이블을 못 만드는가 (막혔으면 ERROR가 정답이다)
+# ③ 다른 App이 public에 테이블을 못 만드는가 — **ERROR가 정답이다**
 podman exec -i ohmy-pg psql -U otherapp -d ohmyenglish \
   -c "create table public.should_fail(x int)"
+#   기대: permission denied for schema public
+
+# ④ 권한 안 준 표는 못 읽는가 — 이것도 ERROR가 정답이다
+podman exec -i ohmy-pg psql -U otherapp -d ohmyenglish -c "select count(*) from public.users"
+#   기대: permission denied for table users
 ```
 
-③이 성공하면 §4.1의 `revoke create on schema public`이 안 걸린 것이다.
+③·④가 **성공하면** 최소 권한이 안 걸린 것이다. `grant`를 과하게 준 적이 없는지 확인한다:
+`podman exec -i ohmy-pg psql -U ohmy -d ohmyenglish -c "\dp public.*"`
 
 ---
 
