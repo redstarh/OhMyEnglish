@@ -1,0 +1,114 @@
+{
+ "scenario": "Q3-A2",
+ "session_id": "9861f2f3-6439-429e-bd81-6ed7e4d6387b",
+ "elapsed": 0.177,
+ "junk_sent": 5,
+ "audio_sent": 3,
+ "frames": [
+  {
+   "t": 0.008,
+   "type": "session_started",
+   "session_id": "9861f2f3-6439-429e-bd81-6ed7e4d6387b"
+  },
+  {
+   "t": 0.177,
+   "type": "final",
+   "speaker": "agent",
+   "text": "What do you usually do after work?",
+   "sequence_no": 1
+  },
+  {
+   "t": 0.177,
+   "type": "partial",
+   "speaker": "user",
+   "text": "I usually"
+  },
+  {
+   "t": 0.177,
+   "type": "partial",
+   "speaker": "user",
+   "text": "I usually go to"
+  },
+  {
+   "t": 0.177,
+   "type": "final",
+   "speaker": "user",
+   "text": "I usually go to gym after work.",
+   "sequence_no": 2
+  },
+  {
+   "t": 0.177,
+   "type": "audio",
+   "bytes": 6444,
+   "header": "RIFFWAVE"
+  },
+  {
+   "t": 0.177,
+   "type": "final",
+   "speaker": "agent",
+   "text": "What do you usually do on weekends?",
+   "sequence_no": 3
+  },
+  {
+   "t": 0.177,
+   "type": "partial",
+   "speaker": "user",
+   "text": "I usually"
+  },
+  {
+   "t": 0.177,
+   "type": "partial",
+   "speaker": "user",
+   "text": "I usually go to"
+  },
+  {
+   "t": 0.177,
+   "type": "final",
+   "speaker": "user",
+   "text": "I usually go to office by subway.",
+   "sequence_no": 4
+  },
+  {
+   "t": 0.177,
+   "type": "audio",
+   "bytes": 6444,
+   "header": "RIFFWAVE"
+  },
+  {
+   "t": 0.177,
+   "type": "final",
+   "speaker": "agent",
+   "text": "What do you need to do tonight?",
+   "sequence_no": 5
+  },
+  {
+   "t": 0.177,
+   "type": "partial",
+   "speaker": "user",
+   "text": "I need"
+  },
+  {
+   "t": 0.177,
+   "type": "partial",
+   "speaker": "user",
+   "text": "I need to finish"
+  },
+  {
+   "t": 0.177,
+   "type": "final",
+   "speaker": "user",
+   "text": "I need to finish my homework tonight.",
+   "sequence_no": 6
+  },
+  {
+   "t": 0.177,
+   "type": "audio",
+   "bytes": 6444,
+   "header": "RIFFWAVE"
+  },
+  {
+   "t": 0.177,
+   "type": "session_ended"
+  }
+ ]
+}

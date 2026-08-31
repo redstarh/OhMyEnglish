@@ -1,0 +1,32 @@
+{
+ "scenario": "E1",
+ "session_id": "403bdd9f-7094-4fe0-88e3-2b8063ede89e",
+ "saved": [
+  {
+   "seq": 1,
+   "text": "Yesterday I go to the client meeting and present the project status.",
+   "type": "learning"
+  },
+  {
+   "seq": 2,
+   "text": "I will discuss about the deployment risk with my manager on next week.",
+   "type": "learning"
+  },
+  {
+   "seq": 3,
+   "text": "I know not why the migration failed during the last release.",
+   "type": "learning"
+  },
+  {
+   "seq": 4,
+   "text": "The team have finish the integration test already.",
+   "type": "learning"
+  },
+  {
+   "seq": 5,
+   "text": "I usually go to gym before the daily standup meeting.",
+   "type": "learning"
+  }
+ ],
+ "wait_s": 29.6
+}

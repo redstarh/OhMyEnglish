@@ -91,7 +91,7 @@
   <a href="#e">E절 · 비차단</a>
   <a href="#ledger">원장 이관</a>
   <a href="#measured">실측값</a>
-  <a href="#decisions">결정 대기</a>
+  <a href="#decisions">결정 완료</a>
 </nav>
 
 <main>
@@ -114,8 +114,10 @@
   <div class="note">
     <strong>가장 중요한 제약 한 가지.</strong> 남은 검증 항목 가운데 <strong>실물 마이크 세션 1회에
     묶인 것이 세 건</strong>이다 — 세션 화면 배지(A-5)·발음 판정 품질(A-3)·음성 픽스처 보정.
-    이 세 건은 자동 테스트로 대체할 수 없다고 2026-08-30에 결정했으므로, 캡틴에게 마이크 세션을
-    요청하기 전까지는 <strong>어느 것도 종결되지 않는다.</strong>
+    이 세 건은 자동 테스트로 대체할 수 없다고 2026-08-30에 결정했다.
+    <strong>마이크 세션은 2026-08-31에 캡틴이 승인했으므로 더 이상 대기 항목이 아니다</strong> —
+    다만 <strong>A-5 배지를 먼저 올려야</strong> 한 세션에서 세 건을 함께 닫을 수 있다.
+    배지 없이 마이크를 쓰면 같은 세션을 두 번 써야 한다.
   </div>
 </section>
 
@@ -234,10 +236,12 @@
       </tr>
       <tr>
         <td><strong>G-4</strong></td><td>D</td>
-        <td><strong>실물 마이크 세션을 캡틴에게 요청한다.</strong> 캡틴이 “요청하면 진행하겠다”고
-            답했으므로 <strong>요청할 차례는 우리 쪽</strong>이다. 절차·픽스처·확인 항목을 미리 준비해
-            한 세션에서 마이크 1회 · 픽스처 보정 · A-5 배지 관측을 함께 닫는다</td>
-        <td>G-1·G-3 <span class="pill ok">해소</span> → <strong>A-5 구현</strong> → G-4</td>
+        <td><strong>실물 마이크 세션.</strong> <span class="pill ok">2026-08-31 승인</span>
+            캡틴 “마이크 테스트 필요하면 진행해” — 요청 단계는 끝났고 남은 것은 실행이다.
+            절차·픽스처·확인 항목을 준비해 한 세션에서 마이크 1회 · 픽스처 보정 ·
+            A-5 배지 관측을 함께 닫는다</td>
+        <td>G-1·G-3 <span class="pill ok">해소</span> → <strong>A-5 구현</strong> → G-4.
+            배지가 없으면 같은 세션을 두 번 써야 한다</td>
       </tr>
       <tr>
         <td><strong>G-5</strong></td><td>A</td>
@@ -250,12 +254,13 @@
         <td>기각안 재검토가 먼저다</td>
       </tr>
       <tr>
-        <td><strong>G-8</strong></td><td>A</td>
-        <td><code>frequency</code>를 두 writer가 번갈아 덮는 문제를 해소한다. 재발을 있는 그대로 세는
-            단순한 모델로 바꾸고, 필요하면 컬럼을 나눈다. 대상은 <code>error_patterns</code> 스키마(006 신설) ·
-            <code>services/analysis.py</code> · <code>services/pronunciation.py</code>다</td>
-        <td><span class="pill block">착수 전 캡틴 해석 확인</span> — 스키마가 걸리고
-            캡틴 문구가 두 안 중 어느 쪽인지 갈린다</td>
+        <td><strong>G-8</strong></td><td><strong>B</strong></td>
+        <td><code>frequency</code>를 두 writer가 번갈아 덮는 문제를 해소한다.
+            <span class="pill ok">2026-08-31 확정</span> <strong>(나) 경로 분리</strong> —
+            발음 키가 문법 프롬프트에 실리지 않게
+            <code>services/analysis.py:188</code>의 <code>_EXISTING_PATTERNS_SQL</code>에
+            카테고리 필터를 더해 충돌 자체를 없앤다. <strong>스키마 변경 0 · 006 마이그레이션 불필요</strong></td>
+        <td><span class="pill ok">해소</span> — 근거는 아래 “결정 완료” 절에 적었다</td>
       </tr>
       <tr>
         <td><strong>G-6</strong></td><td>A/D</td>
@@ -453,12 +458,16 @@ npx eslint app lib                                   → 무출력 (exit 0)</div
               <code>docs/ops/2026-08-26-test-harness-report.html:501·732-733</code>이
               <code>.harness/evidence/*.json</code>과 <code>.harness/backend*.log</code>를
               <strong>가장 강한 주장의 원자료로 인용</strong>한다. 대조해 보니 <code>evidence/</code> 22개 파일 중
-              <strong>커밋된 사본이 없는 것이 8건</strong>이고(스크린샷 3개 ·
+              <strong>커밋된 사본이 없는 것이 9건</strong>이고(스크린샷 3개 ·
               <code>P-tooluse-nova-protocol.json</code> · <code>Q3-*</code> 3개 · <code>A2-r2</code>/<code>B2-r2</code>),
-              이름은 같으나 내용이 다른 것이 5건이다. untracked이므로 git으로 복원할 수도 없다</td></tr>
-      <tr><td><code>.superpowers/sdd/</code> (1.1 MB, untracked)</td>
-          <td>Phase 1 계획 실행 당시의 task brief·report·review diff다. 폐기 스냅샷 HTML 2건이
-              <code>progress.md</code> 경로를 가리킨다. 현행 문서가 참조하지는 않으므로 <strong>처분 여부는 결정이 필요하다</strong></td></tr>
+              이름은 같으나 내용이 다른 것이 4건이다. untracked이므로 git으로 복원할 수도 없다.
+              <strong>2026-08-31 캡틴 지시로 커밋했다</strong> — 대조표는
+              <code>tests/harness/runs/2026-08-31-evidence-provenance.md</code>가 소유한다</td></tr>
+      <tr><td><s><code>.superpowers/sdd/</code></s> (1.1 MB, 37개 파일)</td>
+          <td><strong>2026-08-31 캡틴 지시로 삭제했다</strong>("필요 없으면 삭제").
+              Phase 1 계획 실행 당시의 task brief 12개 · report 10개 · review diff 12개였다.
+              diff 12개(580 KB)는 대상 커밋 15개가 모두 리포에 살아 있어 <code>git diff</code>로 재생성된다.
+              brief·report는 재생성되지 않으나 각 태스크의 <strong>결과와 커밋은 A절 표가 이미 갖고 있다</strong></td></tr>
       <tr><td><code>docs/backup/**</code> (12개 파일)</td>
           <td>정리 대상이 아니라 <strong>규약이 있는 큐레이션 보관소</strong>다.
               <code>superseded/voice-architecture.md</code>는 승인된 설계서 3곳이
@@ -480,20 +489,48 @@ npx eslint app lib                                   → 무출력 (exit 0)</div
 </section>
 
 <section id="decisions">
-  <span class="tag">결정 대기</span>
-  <h2>진행하려면 캡틴의 답이 필요한 것</h2>
-  <ol>
-    <li><strong>G-8의 해석</strong> — “두 번 틀리면 두 번 입력 가능하도록”이라는 문구가
-        두 안 중 어느 쪽을 뜻하는지에 따라 스키마 설계가 갈린다. <strong>착수 전 확인이 명시된 유일한 항목</strong>이다.</li>
-    <li><strong>G-4 실물 마이크 세션</strong> — 요청할 차례가 우리 쪽이다.
-        A-5 배지를 올린 직후에 요청하면 한 세션에서 배지 · 판정 품질 · 픽스처를 함께 닫을 수 있다.</li>
-    <li><strong><code>.superpowers/sdd/</code>(1.1 MB)의 처분</strong> — 현행 문서가 참조하지 않는
-        과정 기록이다. 삭제할지, 남길지 결정이 필요하다.</li>
-    <li><strong><code>.harness/</code>의 고유 증거 8건을 커밋할지</strong> — 지금은 untracked이므로
-        디스크가 지워지면 복원 경로가 없는데, 커밋된 리포트가 그 파일들을 인용하고 있다.</li>
-    <li><strong>H-S 다음의 함정을 신설할지</strong> — “게이트 전에 dev DB를 띄운다”는 전제가
-        19건의 함정 목록에 없다.</li>
-  </ol>
+  <span class="tag">결정 완료</span>
+  <h2>2026-08-31 캡틴 답변 — 5건 전건 종결</h2>
+  <table>
+    <thead><tr><th>물었던 것</th><th>캡틴 답</th><th>그에 따라 한 것</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>G-8의 해석</strong> — 두 안 중 어느 쪽인가</td>
+        <td>“두 번 틀리면 <strong>두 번 틀린 것으로 기록</strong>”</td>
+        <td><strong>(나) 경로 분리로 확정.</strong> 이 문구는 <strong>세는 방식만 구속하고 저장 구조를
+            지정하지 않는다</strong> — 두 writer 모두 이미 행 수를 다시 세므로 “두 번 기록”은 지금도 참이고,
+            버그는 한 행을 두 writer가 덮는 것이다. 남는 기준은 B-10이 함께 말한 “단순한 모델링”이므로
+            <strong>스키마 변경 0</strong>인 (나)를 골랐고, “필요시 반복 컬럼”의 <em>필요시</em>가 성립하지 않는다.
+            트랙이 A에서 <strong>B</strong>로 내려갔다</td>
+      </tr>
+      <tr>
+        <td><strong>G-4 실물 마이크 세션</strong></td>
+        <td>“마이크 테스트 필요하면 진행해”</td>
+        <td><span class="pill ok">승인</span> 요청 단계가 끝났다. <strong>순서는 바뀌지 않는다</strong> —
+            A-5 배지를 먼저 올려야 한 세션에서 배지 · 판정 품질 · 픽스처를 함께 닫는다.
+            배지 없이 마이크를 쓰면 같은 세션을 두 번 써야 한다</td>
+      </tr>
+      <tr>
+        <td><strong><code>.superpowers/sdd/</code>의 처분</strong></td>
+        <td>“필요 없으면 삭제”</td>
+        <td><strong>삭제했다</strong>(37개 파일, 1.1 MB). 현행 문서의 참조가 0건임을 확인한 뒤 지웠다</td>
+      </tr>
+      <tr>
+        <td><strong><code>.harness/</code> 고유 증거를 커밋할지</strong></td>
+        <td>“커밋해”</td>
+        <td><strong>14개 파일을 차수 폴더에 커밋했다.</strong> 차수는 추측하지 않고
+            차수 문서가 원자료로 명시한 줄을 근거로 정했다. 어느 문서도 자기 것이라 적지 않은
+            <strong>2건은 <code>2026-08-26-unattributed/</code>에 분리</strong>했다 —
+            잘못된 차수에 넣는 것보다 미분류가 싸다</td>
+      </tr>
+      <tr>
+        <td><strong>“게이트 전 dev DB 기동”을 함정으로 신설할지</strong></td>
+        <td><span class="pill wait">되묻는 중</span></td>
+        <td>질문의 뜻을 확인하고 있다. 현재는 <code>handoff/HANDOFF.md</code>의 진입 절차에만 적혀 있고
+            <code>docs/ops/pitfalls.md</code>의 19건에는 없다</td>
+      </tr>
+    </tbody>
+  </table>
 </section>
 
 </main>

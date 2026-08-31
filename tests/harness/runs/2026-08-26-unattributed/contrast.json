@@ -1,0 +1,112 @@
+[
+ {
+  "scheme": "light",
+  "tokens": {
+   "background": "#fff",
+   "foreground": "#171717",
+   "foreground-muted": "#595959",
+   "danger": "#c00"
+  },
+  "path": "/results/737b8fba-92b2-4eaa-8e50-dfddabdf1ff9",
+  "rows": [
+   {
+    "text": "학습 결과",
+    "color": "rgb(23, 23, 23)",
+    "bg": "rgb(255, 255, 255)",
+    "contrast": 17.93
+   },
+   {
+    "text": "확정",
+    "color": "rgb(23, 23, 23)",
+    "bg": "rgb(255, 255, 255)",
+    "contrast": 17.93
+   },
+   {
+    "text": "시범 문장",
+    "color": "rgb(89, 89, 89)",
+    "bg": "rgb(255, 255, 255)",
+    "contrast": 7
+   },
+   {
+    "text": "I think it's three.",
+    "color": "rgb(23, 23, 23)",
+    "bg": "rgb(255, 255, 255)",
+    "contrast": 17.93
+   },
+   {
+    "text": "내 발화",
+    "color": "rgb(89, 89, 89)",
+    "bg": "rgb(255, 255, 255)",
+    "contrast": 7
+   },
+   {
+    "text": "I sink it's sree.",
+    "color": "rgb(23, 23, 23)",
+    "bg": "rgb(255, 255, 255)",
+    "contrast": 17.93
+   },
+   {
+    "text": "다시 연습해요",
+    "color": "rgb(204, 0, 0)",
+    "bg": "rgb(255, 255, 255)",
+    "contrast": 5.89
+   }
+  ],
+  "emulated": "light"
+ },
+ {
+  "scheme": "dark",
+  "tokens": {
+   "background": "#0a0a0a",
+   "foreground": "#ededed",
+   "foreground-muted": "#9a9a9a",
+   "danger": "#ff8a8a"
+  },
+  "path": "/results/737b8fba-92b2-4eaa-8e50-dfddabdf1ff9",
+  "rows": [
+   {
+    "text": "학습 결과",
+    "color": "rgb(237, 237, 237)",
+    "bg": "rgb(10, 10, 10)",
+    "contrast": 16.91
+   },
+   {
+    "text": "확정",
+    "color": "rgb(237, 237, 237)",
+    "bg": "rgb(10, 10, 10)",
+    "contrast": 16.91
+   },
+   {
+    "text": "시범 문장",
+    "color": "rgb(154, 154, 154)",
+    "bg": "rgb(10, 10, 10)",
+    "contrast": 7.04
+   },
+   {
+    "text": "I think it's three.",
+    "color": "rgb(237, 237, 237)",
+    "bg": "rgb(10, 10, 10)",
+    "contrast": 16.91
+   },
+   {
+    "text": "내 발화",
+    "color": "rgb(154, 154, 154)",
+    "bg": "rgb(10, 10, 10)",
+    "contrast": 7.04
+   },
+   {
+    "text": "I sink it's sree.",
+    "color": "rgb(237, 237, 237)",
+    "bg": "rgb(10, 10, 10)",
+    "contrast": 16.91
+   },
+   {
+    "text": "다시 연습해요",
+    "color": "rgb(255, 138, 138)",
+    "bg": "rgb(10, 10, 10)",
+    "contrast": 8.72
+   }
+  ],
+  "emulated": "dark"
+ }
+]

@@ -1,0 +1,73 @@
+INFO:     Started server process [8594]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8002 (Press CTRL+C to quit)
+INFO:     127.0.0.1:64465 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64494 - "WebSocket /ws/session" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:64534 - "GET /api/sessions/065d8100-6f0e-41d1-85ab-b6fb3bbc62ab/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64535 - "GET /api/sessions/065d8100-6f0e-41d1-85ab-b6fb3bbc62ab/results HTTP/1.1" 200 OK
+Traceback (most recent call last):
+  File "/Users/redstar/MyProject/OhMyEnglish/app/backend/.venv/lib/python3.13/site-packages/awscrt/aio/http.py", line 389, in _on_body
+    future.set_result(chunk)
+    ~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.12_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/concurrent/futures/_base.py", line 544, in set_result
+    raise InvalidStateError('{}: {!r}'.format(self._state, self))
+concurrent.futures._base.InvalidStateError: CANCELLED: <Future at 0x10b1f5ad0 state=cancelled>
+Treating Python exception as error 3(AWS_ERROR_UNKNOWN)
+INFO:     127.0.0.1:64585 - "WebSocket /ws/session" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:64618 - "GET /api/sessions/b1876916-65a8-40b9-a5dd-6c44758ee550/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64619 - "GET /api/sessions/b1876916-65a8-40b9-a5dd-6c44758ee550/results HTTP/1.1" 200 OK
+Traceback (most recent call last):
+  File "/Users/redstar/MyProject/OhMyEnglish/app/backend/.venv/lib/python3.13/site-packages/awscrt/aio/http.py", line 389, in _on_body
+    future.set_result(chunk)
+    ~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.12_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/concurrent/futures/_base.py", line 544, in set_result
+    raise InvalidStateError('{}: {!r}'.format(self._state, self))
+concurrent.futures._base.InvalidStateError: CANCELLED: <Future at 0x10b220450 state=cancelled>
+Treating Python exception as error 3(AWS_ERROR_UNKNOWN)
+INFO:     127.0.0.1:64682 - "WebSocket /ws/session" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:64717 - "GET /api/sessions/939dd7cb-19d3-4858-881f-37b68e3077ef/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64718 - "GET /api/sessions/939dd7cb-19d3-4858-881f-37b68e3077ef/results HTTP/1.1" 200 OK
+Traceback (most recent call last):
+  File "/Users/redstar/MyProject/OhMyEnglish/app/backend/.venv/lib/python3.13/site-packages/awscrt/aio/http.py", line 389, in _on_body
+    future.set_result(chunk)
+    ~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.12_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/concurrent/futures/_base.py", line 544, in set_result
+    raise InvalidStateError('{}: {!r}'.format(self._state, self))
+concurrent.futures._base.InvalidStateError: CANCELLED: <Future at 0x10b1f61d0 state=cancelled>
+Treating Python exception as error 3(AWS_ERROR_UNKNOWN)
+INFO:     127.0.0.1:64816 - "GET /api/sessions/065d8100-6f0e-41d1-85ab-b6fb3bbc62ab/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64817 - "GET /api/sessions/065d8100-6f0e-41d1-85ab-b6fb3bbc62ab/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64838 - "GET /api/sessions/b1876916-65a8-40b9-a5dd-6c44758ee550/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64837 - "GET /api/sessions/b1876916-65a8-40b9-a5dd-6c44758ee550/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64919 - "WebSocket /ws/session" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:64955 - "GET /api/sessions/f3b94fc6-ae75-4b3c-9697-f97eec64067d/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64956 - "GET /api/sessions/f3b94fc6-ae75-4b3c-9697-f97eec64067d/results HTTP/1.1" 200 OK
+Traceback (most recent call last):
+  File "/Users/redstar/MyProject/OhMyEnglish/app/backend/.venv/lib/python3.13/site-packages/awscrt/aio/http.py", line 389, in _on_body
+    future.set_result(chunk)
+    ~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.12_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/concurrent/futures/_base.py", line 544, in set_result
+    raise InvalidStateError('{}: {!r}'.format(self._state, self))
+concurrent.futures._base.InvalidStateError: CANCELLED: <Future at 0x10b20ba50 state=cancelled>
+Treating Python exception as error 3(AWS_ERROR_UNKNOWN)
+INFO:     127.0.0.1:64976 - "WebSocket /ws/session" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:65017 - "GET /api/sessions/2a2b8e48-6274-41e6-9a9e-4ed34ed51d9e/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65016 - "GET /api/sessions/2a2b8e48-6274-41e6-9a9e-4ed34ed51d9e/results HTTP/1.1" 200 OK
+Traceback (most recent call last):
+  File "/Users/redstar/MyProject/OhMyEnglish/app/backend/.venv/lib/python3.13/site-packages/awscrt/aio/http.py", line 389, in _on_body
+    future.set_result(chunk)
+    ~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.12_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/concurrent/futures/_base.py", line 544, in set_result
+    raise InvalidStateError('{}: {!r}'.format(self._state, self))
+concurrent.futures._base.InvalidStateError: CANCELLED: <Future at 0x10b2206d0 state=cancelled>
+Treating Python exception as error 3(AWS_ERROR_UNKNOWN)
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [8594]

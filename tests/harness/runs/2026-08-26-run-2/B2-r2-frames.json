@@ -1,0 +1,114 @@
+{
+ "scenario": "B2-r2",
+ "session_id": "c6630a4d-648e-4d25-a953-4665111b2be2",
+ "elapsed": 0.21,
+ "junk_sent": 0,
+ "audio_sent": 0,
+ "frames": [
+  {
+   "t": 0.013,
+   "type": "session_started",
+   "session_id": "c6630a4d-648e-4d25-a953-4665111b2be2"
+  },
+  {
+   "t": 0.209,
+   "type": "final",
+   "speaker": "agent",
+   "text": "What do you usually do after work?",
+   "sequence_no": 1
+  },
+  {
+   "t": 0.209,
+   "type": "partial",
+   "speaker": "user",
+   "text": "I usually"
+  },
+  {
+   "t": 0.209,
+   "type": "partial",
+   "speaker": "user",
+   "text": "I usually go to"
+  },
+  {
+   "t": 0.209,
+   "type": "final",
+   "speaker": "user",
+   "text": "I usually go to gym after work.",
+   "sequence_no": 2
+  },
+  {
+   "t": 0.209,
+   "type": "audio",
+   "bytes": 6444,
+   "header": "RIFFWAVE"
+  },
+  {
+   "t": 0.209,
+   "type": "final",
+   "speaker": "agent",
+   "text": "What do you usually do on weekends?",
+   "sequence_no": 3
+  },
+  {
+   "t": 0.209,
+   "type": "partial",
+   "speaker": "user",
+   "text": "I usually"
+  },
+  {
+   "t": 0.209,
+   "type": "partial",
+   "speaker": "user",
+   "text": "I usually go to"
+  },
+  {
+   "t": 0.209,
+   "type": "final",
+   "speaker": "user",
+   "text": "I usually go to office by subway.",
+   "sequence_no": 4
+  },
+  {
+   "t": 0.209,
+   "type": "audio",
+   "bytes": 6444,
+   "header": "RIFFWAVE"
+  },
+  {
+   "t": 0.209,
+   "type": "final",
+   "speaker": "agent",
+   "text": "What do you need to do tonight?",
+   "sequence_no": 5
+  },
+  {
+   "t": 0.209,
+   "type": "partial",
+   "speaker": "user",
+   "text": "I need"
+  },
+  {
+   "t": 0.209,
+   "type": "partial",
+   "speaker": "user",
+   "text": "I need to finish"
+  },
+  {
+   "t": 0.209,
+   "type": "final",
+   "speaker": "user",
+   "text": "I need to finish my homework tonight.",
+   "sequence_no": 6
+  },
+  {
+   "t": 0.209,
+   "type": "audio",
+   "bytes": 6444,
+   "header": "RIFFWAVE"
+  },
+  {
+   "t": 0.209,
+   "type": "session_ended"
+  }
+ ]
+}
