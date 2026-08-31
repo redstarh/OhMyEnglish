@@ -247,6 +247,18 @@ _되돌리기 비용도 (나)를 가리킨다_: (나)는 필터 한 줄이라 �
 전역 규약은 `~/.claude/CLAUDE.md` "DB 시각·날짜 규약", En-Coach 쪽 정책은
 `~/MyProject/En-Coach/docs/operations/timezone-policy-handoff.md`.
 
+⚠️ **착수 전 필수 — 문서가 없는 컬럼을 있는 것처럼 말한다** (2026-09-01 중간 점검 실측,
+`docs/consistency-audit-2026-09-01.html` D-6). **`impact_score`·`suggested_contexts`는 실제 DB에
+컬럼이 없다** — 마이그레이션 참조 각 **0건**이고 `information_schema`에도 없다. 그런데 설계서
+**4개·2개 파일**이 이 컬럼을 전제로 서술한다. 위 "착수 전 실측"의 "앱 참조 0곳"과는 **상태가 다르다** —
+`next_review_at`·`mastery_score`·`self_difficulty`·`users.current_level`은 **컬럼이 있고 앱만 안 쓰는**
+것이라 바로 쓸 수 있지만, 이 둘은 **006에서 신설해야 한다.** 설계서를 믿고 쓰면 그 자리에서 깨진다.
+
+⚠️ **스키마 문서도 뒤처져 있다**(같은 점검 D-5). `docs/database-schema.md`가 정의한 표는 **8개**인데
+우리 표는 **10개**다 — `pronunciation_attempts`(003~005가 만든 §10 핵심 표)와 `schema_migrations`의
+정의 섹션이 없고 "아직 SQL에 없는 테이블" 목록에도 없다. §11이 `error_patterns`를 만지므로
+그 문서를 근거로 쓰기 전에 채운다.
+
 **순서 권고**: §10 Task 7·8 → §11 슬라이스 1 → §11 슬라이스 2.
 슬라이스 1을 앞세우는 근거: `suggested_contexts`는 모델이 산출해도 지금 **버려지고 소급이
 불가능하다**. 늦어질수록 잃는 것이 쌓인다.

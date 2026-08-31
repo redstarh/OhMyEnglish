@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OhMyEnglish — 중간 점검: 요구·설계·개발·DB·인프라 일관성 (2026-09-01)</title>
+  <style>
+    :root { --navy:#12213d; --blue:#3268ed; --pale:#edf3ff; --ink:#182033; --muted:#667085;
+      --line:#e4e9f2; --surface:#fff; --bg:#f7f9fc; --code-bg:#eef2f8; --code-ink:#204eb8;
+      --good:#0f7a46; --good-bg:#e6f5ed; --warn:#8a5a00; --warn-bg:#fdf3e0;
+      --crit:#b3261e; --crit-bg:#fdeceb; --defer:#5c6a80; --defer-bg:#eef1f6; }
+    @media (prefers-color-scheme: dark) {
+      :root { --navy:#0a1020; --blue:#7ba2ff; --pale:#1b2540; --ink:#e8ecf5; --muted:#9aa5bb;
+        --line:#26304a; --surface:#151c2e; --bg:#0d1220; --code-bg:#1d263c; --code-ink:#a8c2ff;
+        --good:#4cc38a; --good-bg:#12301f; --warn:#e0a83c; --warn-bg:#33260c;
+        --crit:#f2836f; --crit-bg:#3a1a18; --defer:#93a0b8; --defer-bg:#1e2637; } }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); line-height:1.62;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo",sans-serif; }
+    header { padding:46px max(24px,calc((100% - 1060px)/2)) 38px; background:linear-gradient(125deg,var(--navy),#2a52b8); color:#fff; }
+    header h1 { margin:0 0 9px; font-size:clamp(26px,4vw,40px); letter-spacing:-.02em; }
+    header p { margin:0; max-width:760px; color:#d8e3ff; }
+    .meta { margin-top:16px; display:flex; flex-wrap:wrap; gap:8px; font-size:13px; }
+    .meta span { padding:5px 10px; border-radius:8px; background:#ffffff1f; color:#eaf0ff; }
+    nav { position:sticky; top:0; z-index:5; overflow:auto; white-space:nowrap;
+      padding:11px max(24px,calc((100% - 1060px)/2)); background:var(--surface); border-bottom:1px solid var(--line); }
+    nav a { display:inline-block; margin-right:4px; padding:7px 11px; border-radius:8px;
+      color:var(--muted); text-decoration:none; font-size:13px; font-weight:700; }
+    nav a:hover { background:var(--pale); color:var(--blue); }
+    main { max-width:1060px; margin:auto; padding:32px 24px 80px; }
+    section { margin-bottom:24px; padding:24px; background:var(--surface); border:1px solid var(--line);
+      border-radius:16px; box-shadow:0 5px 18px #14244909; }
+    h2 { margin:0 0 6px; font-size:22px; letter-spacing:-.01em; }
+    h3 { margin:20px 0 8px; font-size:15.5px; }
+    p { margin:8px 0; } ul,ol { margin:8px 0; padding-left:20px; } li { margin:5px 0; }
+    .lead { color:var(--muted); max-width:830px; }
+    code { padding:2px 5px; border-radius:5px; background:var(--code-bg); color:var(--code-ink); font-size:.87em; }
+    .tag { display:inline-block; margin-bottom:9px; padding:4px 9px; border-radius:99px;
+      background:var(--pale); color:var(--blue); font-size:11.5px; font-weight:800; letter-spacing:.05em; }
+    .grid { display:grid; gap:12px; grid-template-columns:repeat(5,minmax(0,1fr)); }
+    .tile { padding:14px 15px; border:1px solid var(--line); border-radius:12px; background:var(--bg); }
+    .tile span { display:block; color:var(--muted); font-size:11.5px; }
+    .tile strong { display:block; margin-top:3px; font-size:15px; font-weight:800; letter-spacing:-.01em; }
+    table { width:100%; border-collapse:collapse; margin-top:11px; font-size:13.2px; }
+    th,td { padding:8px 9px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line); }
+    th { color:var(--muted); font-size:11.2px; text-transform:uppercase; letter-spacing:.05em; font-weight:800; }
+    .pill { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:99px;
+      font-size:11.5px; font-weight:800; white-space:nowrap; }
+    .ok { background:var(--good-bg); color:var(--good); }
+    .part { background:var(--warn-bg); color:var(--warn); }
+    .no { background:var(--crit-bg); color:var(--crit); }
+    .later { background:var(--defer-bg); color:var(--defer); }
+    .note { padding:13px 15px; margin:11px 0; border-left:3px solid var(--blue); border-radius:0 10px 10px 0;
+      background:var(--pale); font-size:13.2px; }
+    .note.danger { border-color:var(--crit); background:var(--crit-bg); }
+    .note.hold { border-color:var(--warn); background:var(--warn-bg); }
+    footer { max-width:1060px; margin:auto; padding:0 24px 64px; color:var(--muted); font-size:12.5px; }
+    @media (max-width:900px) { .grid { grid-template-columns:repeat(2,minmax(0,1fr)); } section { padding:19px; } }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>중간 점검 — 5개 층의 일관성</h1>
+  <p><strong>요구기능 · 설계 · 개발 · DB · 인프라</strong>가 최초 시나리오대로 맞물려 있는지 실물로 대조했다.
+     모든 판정은 이 턴에 직접 실행한 명령의 출력이며, 표에는 <strong>불일치만</strong> 담았다.</p>
+  <div class="meta">
+    <span>기준 <code>44611e7</code></span>
+    <span>요구 정본 <code>docs/PRD.md</code> v1.1</span>
+    <span>DB <code>:5432</code> · 347 passed</span>
+  </div>
+</header>
+
+<nav>
+  <a href="#verdict">한눈에</a>
+  <a href="#scope">MVP 범위 대조</a>
+  <a href="#defects">불일치 7건</a>
+  <a href="#layers">층별 상세</a>
+  <a href="#next">다음 작업</a>
+</nav>
+
+<main>
+
+<section id="verdict">
+  <span class="tag">한눈에</span>
+  <h2>결론 — 만든 부분은 일관되고, 문제는 <em>경계 표시</em>다</h2>
+  <p class="lead">첫 수직 슬라이스(§10 발음 포함)는 요구 → 설계 → 코드 → DB가 <strong>서로 어긋나지 않는다</strong>.
+     불일치 7건을 찾았고 <strong>기능을 깨는 것은 0건</strong>이다. 셋은 이미 태스크가 붙어 있고(G-2·G-5·G-8),
+     하나는 프론트 미구현(A-5), 나머지 셋은 <strong>“문서가 코드보다 앞서 나간 자리”</strong>다 —
+     스키마 문서·설계서가 아직 없는 표·컬럼을 이미 있는 것처럼 서술한다.
+     지금 위험은 버그가 아니라 <strong>다음 세션이 그 문서를 믿고 §11에 착수하는 것</strong>이다.</p>
+
+  <div class="grid" style="margin-top:14px">
+    <div class="tile"><span>요구기능</span><strong><span class="pill ok">경계 문서화</span></strong></div>
+    <div class="tile"><span>설계</span><strong><span class="pill part">앞서 나감 1곳</span></strong></div>
+    <div class="tile"><span>개발</span><strong><span class="pill ok">일관</span></strong></div>
+    <div class="tile"><span>DB</span><strong><span class="pill part">문서 드리프트</span></strong></div>
+    <div class="tile"><span>인프라</span><strong><span class="pill ok">일관</span></strong></div>
+  </div>
+
+  <div class="note">
+    <strong>“안 만든 것”과 “빠뜨린 것”이 구분되어 있다.</strong> Phase 1의 목표는 처음부터
+    <strong>첫 수직 슬라이스 하나</strong>를 관통시키는 것이었고 그건 달성됐다. 미구현 MVP 항목 5개는
+    <strong>전부 설계서가 단계를 배정해 두었다</strong>(3단계·4단계·이후 단계) — 즉 누락이 아니다.
+    <strong>고칠 대상은 문서가 코드보다 앞서 나간 3건(D-5·D-6·D-1)뿐이다.</strong>
+  </div>
+</section>
+
+<section id="scope">
+  <span class="tag">MVP 범위</span>
+  <h2><code>PRD.md</code> §4의 8항목 ↔ 실제 구현</h2>
+  <p class="lead">구현 표면은 API 3개(<code>/health</code> · WS <code>/ws/session</code> ·
+     <code>GET /{session_id}/results</code>) · 서비스 6개 · 워커 1개 · 화면 2개다.</p>
+  <table>
+    <thead><tr><th>#</th><th>MVP 요구</th><th>상태</th><th>근거</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>음성/텍스트 역할극과 전사문 표시</td><td><span class="pill ok">됨</span></td>
+          <td>WS 세션 + <code>app/page.tsx</code>. 전사문이 <code>utterances</code>에 6행 실재</td></tr>
+      <tr><td>2</td><td>세션당 핵심 오류 1~2개 교정</td><td><span class="pill part">됨 (문구 불일치)</span></td>
+          <td>분석·병합·상위 교정 표시 동작. 단 <strong>개수 문구가 코드와 문서에서 다르다</strong> → 불일치 <strong>D-1</strong></td></tr>
+      <tr><td>3</td><td>오류 패턴 저장 + <strong>숙련도·다음 복습일 계산</strong></td><td><span class="pill part">절반</span></td>
+          <td>저장·병합은 됨(<code>error_patterns</code> 1행). <strong>계산은 0줄</strong> —
+              <code>mastery_score</code>·<code>next_review_at</code> 컬럼은 실재하나 앱 참조 <strong>각 0곳</strong></td></tr>
+      <tr><td>4</td><td>일간 복습 큐 · 주간 학습 리포트</td><td><span class="pill later">계획된 미구현</span></td>
+          <td><code>review_tasks</code> 표는 있고 앱 참조 <strong>0곳</strong> — 스키마 문서가
+              “우선순위 계산·생성 로직: 3단계”로 <strong>명시</strong>했으므로 의도된 상태다.
+              <code>weekly_reports</code>는 표 자체가 없고 문서도 “아직 SQL에 없는 테이블”로 적었다 ✓</td></tr>
+      <tr><td>5</td><td>일상 대화 · 반복 질문·답변 드릴 · IT 업무 역할극</td>
+          <td><span class="pill later">1/3 — 나머지는 단계 배정됨</span></td>
+          <td>시드된 시나리오 3행이 <strong>전부 <code>daily_life</code></strong>(<code>…101/102/103</code>)다.
+              단 <strong>업무 역할극은 “4단계”로, 드릴은 §11 폴백 뱅크의 초기 내용으로 설계서가 배정해 두었다</strong>
+              (<code>first-vertical-slice-design.md:41</code> · <code>learning-coach-agent-design.md:59</code>) →
+              미달이 아니라 <strong>아직 그 단계가 아니다</strong>.
+              다만 세션 2건 모두 같은 시나리오 하나를 썼다 → 불일치 <strong>D-3</strong></td></tr>
+      <tr><td>6</td><td>발화 녹음 기반 쉐도잉</td><td><span class="pill later">계획된 미구현</span></td>
+          <td><code>shadowing_items</code> 표 없음 + 문서가 “아직 SQL에 없는 테이블”로 적었다 ✓ 설계서도 없다</td></tr>
+      <tr><td>7</td><td>일일 목표 달성 뒤 자유 추가 학습</td><td><span class="pill later">계획된 미구현</span></td>
+          <td>코드·표 없음. <strong>설계서가 “추가 학습은 3단계”로 명시</strong>했다
+              (<code>first-vertical-slice-design.md:374</code> — 수용 기준 5번을 “❌ 제외”로 표시).
+              §10 설계서는 여기에 <code>발음 집중</code> 메뉴를 얹는 계획까지 적어 두었다</td></tr>
+      <tr><td>8</td><td>UI <strong>와 음성 명령</strong>을 모두 통한 학습 제어</td><td><span class="pill later">UI만 — 3단계 배정</span></td>
+          <td><code>nova.py:100-101</code>이 <strong>“음성 명령 규칙은 여전히 빼 둔다 … 명령 실행 경로는 이
+              어댑터에 없다”</strong>고 코드에 적어 두었고, 설계서도 <strong>“음성 명령(3단계)”</strong>으로
+              범위 밖에 두었다. 발화 타입 <code>voice_command</code>는 저장되지만 교정 대상이 아니다
+              (<code>utterances.py:20</code>) — <strong>코드·설계·문서가 같은 말을 한다</strong></td></tr>
+    </tbody>
+  </table>
+  <div class="note hold">
+    <strong>요약: 8항목 중 온전히 도는 것 1개 · 절반 2개 · 계획된 미구현 5개.</strong>
+    미구현 5개는 <strong>전부 설계서가 단계를 배정</strong>했으므로 누락이 아니다.
+    “절반”인 2·3번만이 실제로 손볼 자리다 — 2번은 문구 불일치(D-1), 3번은
+    <strong>숙련도·복습일 계산이 0줄</strong>인데 이것이 곧 §11 슬라이스 1의 내용이다.
+    v1.1에서 신설된 §10(발음)은 이 8항목 밖의 추가 요구이고 <strong>7.5/9 태스크</strong>까지 왔다.
+  </div>
+</section>
+
+<section id="defects">
+  <span class="tag">불일치</span>
+  <h2>고칠 대상 7건 — 심각도순</h2>
+  <p class="lead">“계획된 미구현”은 여기서 뺐다. 아래는 <strong>층 사이의 말이 서로 다른</strong> 것들이다.</p>
+  <table>
+    <thead><tr><th>ID</th><th>어긋난 두 층</th><th>내용과 근거</th><th>소유</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>D-1</strong></td><td>문서 ↔ 코드</td>
+        <td><strong>한 턴에 허용되는 교정 개수가 다르다.</strong>
+            <code>nova.py:114</code> = “At most <strong>one</strong> correction per turn” /
+            <code>docs/agent-system-prompt.md:19</code> = “at most <strong>one or two</strong>”.
+            PRD §4-2도 “1~2개”라 <strong>문서 2곳이 코드와 다르다</strong></td>
+        <td><span class="pill part">G-2</span></td>
+      </tr>
+      <tr>
+        <td><strong>D-2</strong><br><span class="pill later">낮음</span></td><td>PRD ↔ 설계서<br>(계층 문제)</td>
+        <td><strong>PRD §4는 8항목을 단계 표시 없이 나열한다.</strong> 단계는 설계서에만 있어
+            (음성 명령·추가 학습 = 3단계 / 업무 역할극 = 4단계 / 쉐도잉 = 이후 / 드릴 = §11 뱅크)
+            <strong>PRD만 읽으면 8개가 모두 지금 범위처럼 보인다</strong>.
+            기능 결함은 아니고 <strong>읽는 사람이 범위를 오인하는 자리</strong>다 —
+            PRD §4에 단계 열 하나를 붙이면 끝난다</td>
+        <td><span class="pill later">미배정</span></td>
+      </tr>
+      <tr>
+        <td><strong>D-3</strong></td><td>설계 ↔ 코드</td>
+        <td><strong>설계는 추천, 코드는 고정.</strong>
+            <code>services/sessions.py:29</code>의 <code>_CREATE_SESSION_SQL</code>이
+            <code>(select id from learning_scenarios order by created_at, id limit 1)</code>로
+            <strong>항상 같은 시나리오</strong>를 고른다. 실측: 세션 2건 모두 <code>…101</code>.
+            §11 M계층 설계는 이력 기반 선택을 요구한다</td>
+        <td><span class="pill part">G-5</span></td>
+      </tr>
+      <tr>
+        <td><strong>D-4</strong></td><td>설계 ↔ 코드</td>
+        <td><strong><code>frequency</code>를 두 writer가 서로 다른 규약으로 덮을 수 있다.</strong>
+            <code>analysis.py</code>는 <code>error_occurrences</code> 행 수를,
+            <code>pronunciation.py</code>는 <code>pronunciation_attempts</code> 행 수를 센다.
+            뿌리는 <code>analysis.py:188</code>의 <code>_EXISTING_PATTERNS_SQL</code>에
+            <strong>카테고리 필터가 없는 것</strong>(직접 확인: <code>where user_id = $1</code>뿐)</td>
+        <td><span class="pill part">G-8</span></td>
+      </tr>
+      <tr>
+        <td><strong>D-5</strong></td><td>DB ↔ 스키마 문서</td>
+        <td><strong>문서가 정의한 표는 8개인데 우리 표는 10개다.</strong> 빠진 것은
+            <strong><code>pronunciation_attempts</code></strong>(003~005가 만든 §10의 핵심 표)와
+            <code>schema_migrations</code>. 문서는 본문에서 그 표를 스쳐 언급할 뿐
+            <strong>정의 섹션이 없다</strong> — “아직 SQL에 없는 테이블” 목록에도 없다</td>
+        <td><span class="pill no">미배정</span></td>
+      </tr>
+      <tr>
+        <td><strong>D-6</strong></td><td>설계 ↔ DB</td>
+        <td><strong>설계서가 쓰는 컬럼 2개가 스키마에 아예 없다.</strong>
+            <code>impact_score</code>(설계서 <strong>4개</strong> 파일에서 언급) ·
+            <code>suggested_contexts</code>(<strong>2개</strong>) — 마이그레이션 참조
+            <strong>각 0건</strong>이고 실제 DB에도 없다. 앞서 원장은 이를 “앱 참조 0곳”으로만
+            적었는데 <strong>상태가 다르다</strong>(컬럼 부재 ≠ 미사용)</td>
+        <td><span class="pill no">미배정</span></td>
+      </tr>
+      <tr>
+        <td><strong>D-7</strong></td><td>백엔드 ↔ 프론트</td>
+        <td><strong>WS 계약의 한쪽만 구현됐다.</strong> 백엔드는
+            <code>session.py:256</code>에서 <code>{"type":"pronunciation", …}</code>을 방송하는데
+            <code>lib/ws.ts</code>의 <code>ServerEvent</code>(9 variant)와 <code>page.tsx</code>에
+            그 타입이 없다(두 파일 출현 <strong>0회</strong>)</td>
+        <td><span class="pill part">A-5</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="note danger">
+    <strong>가장 값싸고 위험한 것은 D-5·D-6이다.</strong> 코드를 고치는 일이 아니라
+    <strong>문서가 거짓을 말하는 것</strong>이고, §11 슬라이스 1이 바로 그 컬럼들을 쓰려고 착수한다 —
+    설계서를 믿고 <code>impact_score</code>에 쓰려 하면 그 자리에서 깨진다. 지금 문서 3곳만 고치면 된다.
+  </div>
+</section>
+
+<section id="layers">
+  <span class="tag">층별</span>
+  <h2>층별 상세</h2>
+
+  <h3>요구기능 — <span class="pill ok">경계가 문서화돼 있다</span></h3>
+  <p>정본은 <code>docs/PRD.md</code> v1.1(226줄)이고 §10·§11이 v1.1에서 신설됐다.
+     <strong>미구현 5개 전부 설계서가 단계를 배정해 두었다</strong> — 음성 명령·추가 학습 <strong>3단계</strong>,
+     업무 역할극·보고 <strong>4단계</strong>, 쉐도잉·주간 리포트·복습 과제 생성 <strong>이후 단계</strong>
+     (<code>first-vertical-slice-design.md:41</code>·<code>:374</code>), 드릴은 §11 폴백 뱅크의 초기 내용
+     (<code>learning-coach-agent-design.md:59</code>).
+     <strong>즉 “안 만든 것”과 “빠뜨린 것”이 구분되어 있다.</strong> 남는 것은 PRD 자체에 단계 표시가
+     없어 그것만 읽으면 범위를 오인한다는 점뿐이다(D-2, 낮음).</p>
+
+  <h3>설계 — <span class="pill part">앞서 나간 자리 1곳</span></h3>
+  <p>설계서 7건이 있고 대상이 명확히 갈린다: 첫 수직 슬라이스 3건 · §10 발음 2건 · §11 추천 1건 ·
+     원장 이관 1건. <strong>서로 충돌하는 서술은 찾지 못했고, 두 설계서 모두 “범위에 넣지 않는 것”
+     절을 갖고 있다.</strong> 문제는 충돌이 아니라 <strong>앞서 나감</strong>이다 — §11 설계서가
+     아직 없는 컬럼을 전제한다(D-6).
+     <code>pronunciation-echo-plan.md</code>는 머리말에 “구현 후 정정” 표를 두어 본문이 낡았음을
+     스스로 밝히고 있어 이 부분은 관리되고 있다.</p>
+
+  <h3>개발 — <span class="pill ok">일관</span></h3>
+  <p>서비스 경계가 설계와 맞는다 — 규칙은 서비스가 갖고 세션은 배선만 한다.
+     게이트도 깨끗하다: <strong>347 passed</strong> · <code>ruff</code>·<code>ty</code> clean ·
+     프론트 <code>tsc</code>·<code>eslint</code> exit 0. 내부 모순은 D-4(<code>frequency</code>) 하나이고
+     그것도 “지금은 키가 겹치지 않아 사고가 안 난 상태”로 원장에 근거가 적혀 있다.</p>
+
+  <h3>DB — <span class="pill part">문서 드리프트</span></h3>
+  <p>마이그레이션 4개(<code>001</code>·<code>003</code>·<code>004</code>·<code>005</code>)가
+     <code>schema_migrations</code>로 멱등 추적되고, 실제 표는 우리 10개 + 하네스 3개다.
+     <strong>스키마와 코드는 맞는데 스키마 문서가 뒤처졌다</strong>(D-5).
+     설계는 됐지만 앱이 안 쓰는 컬럼이 4개다 —
+     <code>error_patterns</code>의 <code>mastery_score</code>·<code>next_review_at</code>·<code>self_difficulty</code>,
+     <code>users.current_level</code>(각 앱 참조 0곳). 이들은 <strong>부재가 아니라 미사용</strong>이라
+     §11이 바로 쓸 수 있다.</p>
+  <div class="note hold">
+    <strong>§11 착수 전 필수(H-S).</strong> 이 DB의 역할 <code>ohmy</code>는 <code>TimeZone=UTC</code>다.
+    복습 주기·<code>next_review_at</code>을 <code>current_date</code>로 구하면 KST와 하루 어긋난다 —
+    <code>AT TIME ZONE</code>으로 변환하고 tz의 SoT는 <code>users.timezone</code> 컬럼이다.
+  </div>
+
+  <h3>인프라 — <span class="pill ok">일관</span></h3>
+  <table>
+    <thead><tr><th>항목</th><th>값</th><th>확인</th></tr></thead>
+    <tbody>
+      <tr><td>DB</td><td><code>:5432</code> homebrew <code>postgresql@17</code> (17.9)</td>
+          <td>2026-08-31 이관. 폴백 podman <code>:5433</code>(16.15) 유지. StockAgent와 인스턴스 공유이며
+              <code>ohmy</code>는 superuser가 아니라 남의 표를 못 읽는다(확인됨)</td></tr>
+      <tr><td>포트</td><td>백엔드 <code>:8002</code> · 프론트 <code>:3000</code></td>
+          <td><code>:8000</code>은 StockAgent다 — 프론트 폴백이 <code>:8000</code>이라 <code>.env.local</code> 필수</td></tr>
+      <tr><td>음성 어댑터</td><td><code>stub</code>(기본) · <code>stub_unresponsive</code> · <code>nova</code></td>
+          <td>팩토리와 설정이 같은 3개를 선언한다 — 불일치 없음</td></tr>
+      <tr><td>모델 ID</td><td><code>us.anthropic.claude-opus-5</code> · <code>amazon.nova-2-sonic-v1:0</code></td>
+          <td><code>.env.example</code>과 <code>config.py</code>가 동일. <code>[1m]</code> 접미어 없음 ✓</td></tr>
+    </tbody>
+  </table>
+  <p class="lead" style="margin-top:10px">⚠️ 실물 Nova 왕복은 여전히 <strong>0회</strong>다 —
+     인프라 설정이 일관된 것과 <strong>실제로 통하는 것</strong>은 다르다. 판정 품질은 미검증이며
+     G-4 마이크 세션이 그것을 닫는다.</p>
+</section>
+
+<section id="next">
+  <span class="tag">다음 작업</span>
+  <h2>권고 순서</h2>
+  <ol>
+    <li><strong>D-5·D-6 문서 정정 (30분, 코드 변경 0).</strong> <code>database-schema.md</code>에
+        <code>pronunciation_attempts</code> 정의를 넣고, §11 설계서의 <code>impact_score</code>·
+        <code>suggested_contexts</code>를 “미신설”로 표시한다. <strong>§11 착수 전에 해야 한다</strong> —
+        안 하면 그 컬럼에 쓰려다 깨진다.</li>
+    <li><strong>A-5 세션 화면 배지 (D-7).</strong> 이미 결정·선행이 모두 끝났고 고칠 자리가 2곳으로 특정돼 있다.</li>
+    <li><strong>G-4 마이크 세션.</strong> 캡틴 승인됨. A-5 직후에 붙이면 배지·판정 품질·픽스처를 한 번에 닫는다.</li>
+    <li><strong>G-2(D-1) · G-8(D-4) · G-7.</strong> 각각 문서 한 줄 · 필터 한 줄 · 죽은 함수 삭제로 짧다.</li>
+    <li><strong>D-2는 한 줄이다</strong> — PRD §4의 8항목에 <strong>단계 열</strong>을 붙여
+        설계서에만 있는 배정(3단계·4단계·이후)을 요구 문서에서도 보이게 한다.</li>
+  </ol>
+  <div class="note">
+    <strong>지금 상태로 §11에 들어가도 안전하다.</strong> 막는 것은 없고, 위 1번만 먼저 치우면
+    설계서를 믿고 착수해도 어긋나지 않는다.
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <p>작성 2026-09-01 · 기준 커밋 <code>44611e7</code> · 브랜치 <code>design/first-vertical-slice</code>.
+     상태의 정본은 <code>TASKS.md</code>, 다음 한 걸음은 <code>handoff/HANDOFF.md</code>가 소유한다 —
+     이 문서와 어긋나면 그쪽을 따른다. 판정 근거는 전부 이 턴에 직접 실행한 명령의 출력이다.</p>
+</footer>
+
+</body>
+</html>
