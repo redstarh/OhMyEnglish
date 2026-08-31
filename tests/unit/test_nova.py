@@ -269,16 +269,29 @@ class _FakeStream:
         return [payload["event"][name] for payload in self.sent if name in payload["event"]]
 
 
-def _settings() -> Settings:
-    return Settings(
-        database_url="postgresql://unused/unused",
-        aws_region="us-west-2",
-        voice_adapter="nova",
-    )
+def _settings(**overrides: Any) -> Settings:
+    # ⚠️ `nova_endpointing_sensitivity`를 명시하지 않으면 pydantic이 개발자의
+    # `app/backend/.env`를 읽어 테스트가 주변 환경에 의존한다. 실제로 2026-09-01에
+    # `.env`를 `LOW`로 튜닝했더니 `turnDetectionConfiguration` 단정이 깨졌다 —
+    # 회귀가 아니라 픽스처 결함이었다. 이 값은 **환경변수로 튜닝하도록 설계된 노브**(N13)라서
+    # 테스트가 고정해야 한다. `overrides`가 이기도록 dict로 합친다(키워드 중복 방지).
+    kwargs: dict[str, Any] = {
+        "database_url": "postgresql://unused/unused",
+        "aws_region": "us-west-2",
+        "voice_adapter": "nova",
+        "nova_endpointing_sensitivity": "MEDIUM",
+    }
+    kwargs.update(overrides)
+    return Settings(**kwargs)
 
 
 def _adapter(stream: _FakeStream, **kwargs: Any) -> NovaVoiceAdapter:
     return NovaVoiceAdapter(_settings(), open_stream=stream.open, **kwargs)
+
+
+def _adapter_with(stream: _FakeStream, **setting_overrides: Any) -> NovaVoiceAdapter:
+    """설정을 바꿔 끼운 어댑터 — 환경변수 노브가 실제로 전달되는지 보는 테스트용."""
+    return NovaVoiceAdapter(_settings(**setting_overrides), open_stream=stream.open)
 
 
 async def test_start_sends_the_initialization_sequence_in_the_recorded_order():
@@ -296,6 +309,24 @@ async def test_start_sends_the_initialization_sequence_in_the_recorded_order():
         "contentEnd",
         "contentStart",
     ]
+
+
+async def test_endpointing_sensitivity_setting_reaches_nova():
+    """환경변수 노브(N13)가 실제로 `sessionStart`에 실리는지 본다.
+
+    앞 테스트는 값을 `MEDIUM`으로 **고정**해 놓았으므로 "설정이 전달된다"를 증명하지
+    못한다 — 기본값과 우연히 같을 수 있기 때문이다. 2026-09-01에 `.env`를 `LOW`로
+    튜닝했을 때 이 성질을 지키는 테스트가 없어서 실패를 회귀로 오인했다.
+    """
+    stream = _FakeStream()
+    adapter = _adapter_with(stream, nova_endpointing_sensitivity="LOW")
+
+    await adapter.start()
+    await adapter.close()
+
+    assert stream.payloads("sessionStart")[0]["turnDetectionConfiguration"] == {
+        "endpointingSensitivity": "LOW"
+    }
 
 
 async def test_start_configures_the_audio_formats_nova_requires():

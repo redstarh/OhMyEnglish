@@ -9,7 +9,7 @@
 > **추가 규칙**: 항목마다 ① 무엇이 일어났는가 ② 어떻게 알았는가(실측) ③ 대응. 재현 근거가
 > 없으면 넣지 않는다. 번호는 재사용하지 않는다(다른 문서가 `H-x`로 인용한다).
 >
-> 최종 갱신 **2026-08-31** (H-S · H-T 신설)
+> 최종 갱신 **2026-09-01** (H-S · H-T · H-U · H-V 신설)
 
 ---
 
@@ -32,6 +32,13 @@
 | **H-I** | **`db_conn` 픽스처는 마이그레이션만 적용하고 시드는 하지 않는다.** `select id from users limit 1`은 `None`을 돌려주고 not-null 위반으로 죽는다. 시드는 `scripts/migrate.py`의 `seed()`가 하고 `test_schema.py`만 그걸 명시 호출한다 | `db_conn` 테스트는 사용자·세션을 **직접 insert**한다(리포 관례 — `test_schema.py`·`test_utterances.py`·`test_jobs.py` 전부 자기 헬퍼를 쓴다). 커밋된 행이 필요하면 `db_pool`+`committed_session` |
 | **H-J** | **트랜잭션 시각 함정은 1회 실행으로 안 드러난다.** `created_at default now()`(= 트랜잭션 시각)로 정렬하는 테스트가 **3회 중 1회만** 실패했다 — 한 번 돌려 통과하면 정상으로 보인다 | 순서·시각에 의존하는 테스트는 **최소 3~5회 반복 실행**으로 판정한다. 근본 대응은 정렬 키를 단조값으로 두는 것(004 `attempt_seq`) |
 | **H-S** | **공유 DB의 세션 타임존은 UTC라서 `current_date`가 KST 날짜와 하루 다를 수 있다.** UTC 자정~09:00(KST) 구간이 전부 그 구간이다. 실측(2026-08-31 08:04 KST, `ohmyenglish`): `SHOW TimeZone`→`UTC`, `current_date`→**`2026-08-30`**, `(now() AT TIME ZONE 'Asia/Seoul')::date`→**`2026-08-31`**. **지금은 무해하다** — 우리 코드에 날짜 계산이 0곳이고(`current_date`·`::date`·`date_trunc`·`date.today()`·`datetime.now()` 전부 0건) 시각 컬럼은 전부 `timestamptz`, `date` 컬럼은 0개다. **§11(복습 주기 1·3·7일 · `next_review_at` · 일일 계획)이 이 칸을 처음 밟는다** | 달력 날짜는 `current_date`로 구하지 않는다 — `AT TIME ZONE`으로 사용자 타임존으로 변환한다. tz의 SoT는 **`users.timezone` 컬럼**(기본값 `Asia/Seoul`, 아직 앱이 읽지 않는다)이고 호스트 시간·세션 기본값이 아니다. `ALTER DATABASE … SET TimeZone`은 **걸지 않는다**(En-Coach와 공유 — 상대 서비스의 `current_date`가 조용히 바뀐다). 전역 규약은 `~/.claude/CLAUDE.md` "DB 시각·날짜 규약" |
+
+## 실음성·분석 파이프라인
+
+| # | 함정 | 대응 |
+|---|---|---|
+| **H-U** | **발화 종료 감지가 이르면 문장이 쪼개지고, 그 조각이 `error_patterns`에 없는 약점을 만든다.** 실측(2026-09-01, 실물 마이크 1회 · 세션 `bbfc3908`): `endpointingSensitivity=MEDIUM`이 **1.05~2.54초 침묵**에 발화를 확정해 내 발화 **18건 중 4건이 문장 중간에 쪼개졌다**(`"i'm going to"`⇢`"have a meeting"`). `services/utterances.py:140`이 발화마다 무조건 `enqueue_analyze`를 부르므로 **조각이 완전한 문장처럼 분석되고**, 분석기는 "주어 없음"을 정직하게 보고한다 — 주어는 앞 조각에 있다. 결과: occurrence **13건 중 7건이 조각산**이고 패턴 `verb_form_missing_subject`(freq 4)·`verb_form_missing_object`(freq 2)는 **100% 오탐**이다 | **오탐 패턴을 학습자의 실제 약점으로 읽지 마라.** 패턴을 근거로 쓰기 전에 그 occurrence의 `utterance.transcript`가 **문장으로 완결됐는지** 본다(종결 부호·주어 유무). `NOVA_ENDPOINTING_SENSITIVITY=LOW`는 **완화일 뿐 해소가 아니다**(3단뿐이라 조각을 0으로 못 만든다). 구조적 해소는 턴 경계까지 모아 분석하는 것이고 후보와 결정 대기는 `TASKS.md` **I-1**이 소유한다 |
+| **H-V** | **`inet_server_port()`로는 어느 PostgreSQL에 붙었는지 판별할 수 없다.** 컨테이너 안에서도 5432로 듣기 때문에 호스트 :5433으로 붙어도 `5432`가 나온다 — 이관 검증에서 실제로 잘못된 "확인"을 한 번 냈다(2026-09-01) | `show server_version`으로 판별한다 — **`17.9`=homebrew(:5432) · `16.15`=podman 컨테이너(:5433)**. 포트를 물어보지 말고 **서버 정체**를 물어본다 |
 
 ## 타입·계약
 

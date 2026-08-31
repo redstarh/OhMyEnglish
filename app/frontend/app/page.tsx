@@ -3,9 +3,35 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { VoiceIo, base64ToBytes, bytesToBase64 } from "@/lib/audio";
-import { SessionSocket, type ServerEvent, type Speaker } from "@/lib/ws";
+import {
+  SessionSocket,
+  type PronunciationOutcome,
+  type ServerEvent,
+  type Speaker,
+} from "@/lib/ws";
 
 type ScreenState = "idle" | "connecting" | "active" | "ending" | "failed";
+
+// 발음 배지 문구 (A-5). **새로 만들지 않고 결과 화면 카드의 어휘를 그대로 쓴다**
+// (`app/results/[sessionId]/page.tsx:44-48`) — 같은 판정을 두 화면이 다른 말로 부르면
+// 학습자가 다른 것으로 읽는다. `pending`만 이 화면에 있는 상태이고 문구는
+// `docs/storyboard.html` 03b(:108)를 따른다. 점수·정답률은 쓰지 않는다 — "채점하지
+// 않습니다. 시범합니다"(:101)가 톤 계약이다.
+const PRONUNCIATION_BADGE: Record<PronunciationOutcome, string> = {
+  pending: "🔊 발음 교정 중",
+  correct: "✓ 좋아요",
+  incorrect: "다시 연습해요",
+  unclear: "잘 안 들렸어요",
+};
+
+// 색은 `app/globals.css`의 토큰만 쓴다 — 하드코딩 색이 다크모드 위계를 뒤집은 1차수 F-1의
+// 재발 방지. `unclear`는 오류가 아니라 미판정이라 danger가 아니라 muted다(결과 화면과 동일).
+const PRONUNCIATION_BADGE_COLOR: Record<PronunciationOutcome, string> = {
+  pending: "var(--foreground-muted)",
+  correct: "var(--foreground)",
+  incorrect: "var(--danger)",
+  unclear: "var(--foreground-muted)",
+};
 
 interface TranscriptLine {
   id: number;
@@ -37,6 +63,9 @@ export default function SessionPage() {
   // 구간의 "듣고 있어요"로 대체한다. 스텁 어댑터는 그 경계를 보내지 않으므로 스텁 모드의
   // 부분 전사문 거동(1·2차수 C2가 검증하는 회색→확정 전환)은 그대로 남는다.
   const [listening, setListening] = useState(false);
+  // 진행 중인 발음 시도 1건의 판정. 한 번에 하나만 흐르므로(시범 → 재발화 → 판정)
+  // 목록이 아니라 최신 1건만 들고 있는다. 세션이 끝나면 결과 화면의 카드가 전건을 보여준다.
+  const [pronunciation, setPronunciation] = useState<PronunciationOutcome | null>(null);
 
   const socketRef = useRef<SessionSocket | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -91,6 +120,10 @@ export default function SessionPage() {
         case "interrupted":
           // barge-in — 이미 받았지만 아직 재생하지 않은 응답 오디오를 버린다.
           voiceRef.current?.dropQueuedAudio();
+          break;
+        case "pronunciation":
+          // `target_sound`는 기계 키라 읽지 않는다 (설계서 §10 미결 4).
+          setPronunciation(event.outcome);
           break;
         case "session_failed":
           if (terminalHandledRef.current) return;
@@ -222,6 +255,21 @@ export default function SessionPage() {
                   듣고 있어요...
                 </p>
               )
+            )}
+            {/* 발음 배지 (A-5 · 요구사항 v1.1 §10). 다음 `pronunciation` 프레임이 올 때까지
+                최신 판정을 남긴다 — 한 번에 한 시도만 흐르기 때문이다. 스텁 모드에서는
+                프레임이 오지 않아 이 자리가 비어 있는 것이 정상이다. */}
+            {pronunciation && (
+              <p
+                aria-live="polite"
+                style={{
+                  color: PRONUNCIATION_BADGE_COLOR[pronunciation],
+                  margin: "0.4rem 0",
+                  fontWeight: 600,
+                }}
+              >
+                {PRONUNCIATION_BADGE[pronunciation]}
+              </p>
             )}
           </div>
           <button
