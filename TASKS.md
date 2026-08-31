@@ -228,6 +228,14 @@ B절 결정이 만든 작업이다. **어느 것도 아직 착수하지 않았�
 `self_difficulty`·`impact_score`·`suggested_contexts` **앱 참조 0곳** / `sessions.py:29`는 여전히
 고정 시나리오 1개 / `port.py` `start()`에 인자가 없어 지시문을 넘길 자리가 없다.
 
+⚠️ **착수 전 필수 — 달력 날짜를 `current_date`로 구하지 않는다** (함정 **H-S**, 2026-08-31 실측).
+공유 DB 세션 타임존이 UTC라서 UTC 자정~09:00(KST) 구간에는 `current_date`가 KST 날짜보다
+하루 이르다. 복습 주기(1·3·7일) · `next_review_at` · 일일 계획이 전부 이 칸에 걸린다 —
+`AT TIME ZONE`으로 변환하고 tz의 SoT는 `users.timezone` 컬럼이다(기본값 `Asia/Seoul`, 아직
+앱이 읽지 않는다). `ALTER DATABASE … SET TimeZone`은 En-Coach와 공유하는 DB라 금지다.
+전역 규약은 `~/.claude/CLAUDE.md` "DB 시각·날짜 규약", En-Coach 쪽 정책은
+`~/MyProject/En-Coach/docs/operations/timezone-policy-handoff.md`.
+
 **순서 권고**: §10 Task 7·8 → §11 슬라이스 1 → §11 슬라이스 2.
 슬라이스 1을 앞세우는 근거: `suggested_contexts`는 모델이 산출해도 지금 **버려지고 소급이
 불가능하다**. 늦어질수록 잃는 것이 쌓인다.

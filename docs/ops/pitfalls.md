@@ -30,6 +30,7 @@
 | **H-E** | `db_conn` 픽스처는 테스트 하나를 **트랜잭션 하나**로 감싼다. CHECK 위반이 트랜잭션을 abort시켜 **한 테스트에 `pytest.raises`를 두 번 넣을 수 없다** | 음성 케이스마다 테스트를 쪼갠다 |
 | **H-I** | **`db_conn` 픽스처는 마이그레이션만 적용하고 시드는 하지 않는다.** `select id from users limit 1`은 `None`을 돌려주고 not-null 위반으로 죽는다. 시드는 `scripts/migrate.py`의 `seed()`가 하고 `test_schema.py`만 그걸 명시 호출한다 | `db_conn` 테스트는 사용자·세션을 **직접 insert**한다(리포 관례 — `test_schema.py`·`test_utterances.py`·`test_jobs.py` 전부 자기 헬퍼를 쓴다). 커밋된 행이 필요하면 `db_pool`+`committed_session` |
 | **H-J** | **트랜잭션 시각 함정은 1회 실행으로 안 드러난다.** `created_at default now()`(= 트랜잭션 시각)로 정렬하는 테스트가 **3회 중 1회만** 실패했다 — 한 번 돌려 통과하면 정상으로 보인다 | 순서·시각에 의존하는 테스트는 **최소 3~5회 반복 실행**으로 판정한다. 근본 대응은 정렬 키를 단조값으로 두는 것(004 `attempt_seq`) |
+| **H-S** | **공유 DB의 세션 타임존은 UTC라서 `current_date`가 KST 날짜와 하루 다를 수 있다.** UTC 자정~09:00(KST) 구간이 전부 그 구간이다. 실측(2026-08-31 08:04 KST, `ohmyenglish`): `SHOW TimeZone`→`UTC`, `current_date`→**`2026-08-30`**, `(now() AT TIME ZONE 'Asia/Seoul')::date`→**`2026-08-31`**. **지금은 무해하다** — 우리 코드에 날짜 계산이 0곳이고(`current_date`·`::date`·`date_trunc`·`date.today()`·`datetime.now()` 전부 0건) 시각 컬럼은 전부 `timestamptz`, `date` 컬럼은 0개다. **§11(복습 주기 1·3·7일 · `next_review_at` · 일일 계획)이 이 칸을 처음 밟는다** | 달력 날짜는 `current_date`로 구하지 않는다 — `AT TIME ZONE`으로 사용자 타임존으로 변환한다. tz의 SoT는 **`users.timezone` 컬럼**(기본값 `Asia/Seoul`, 아직 앱이 읽지 않는다)이고 호스트 시간·세션 기본값이 아니다. `ALTER DATABASE … SET TimeZone`은 **걸지 않는다**(En-Coach와 공유 — 상대 서비스의 `current_date`가 조용히 바뀐다). 전역 규약은 `~/.claude/CLAUDE.md` "DB 시각·날짜 규약" |
 
 ## 타입·계약
 
