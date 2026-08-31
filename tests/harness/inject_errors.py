@@ -19,7 +19,6 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
-import subprocess
 import sys
 import time
 from pathlib import Path
@@ -35,6 +34,10 @@ from app.services.jobs import enqueue_analyze  # noqa: E402
 from app.services.sessions import create_session, mark_session_ended  # noqa: E402
 from app.services.utterances import save_final_transcript  # noqa: E402
 from app.api.ws import FIXED_USER_ID  # noqa: E402
+
+# DATABASE_URL을 따라가는 psql 헬퍼 (:5432 기본, :5433 폴백). 이전에는 이 파일이
+# `podman exec`를 하드코딩해 폴백 컨테이너의 사본을 건드렸다 — 함정 H-T.
+from psql_cli import psql  # noqa: E402
 
 RUN_ID = (HARNESS / "run_id.txt").read_text().strip()
 
@@ -77,12 +80,6 @@ INJECTIONS: dict[str, list[str]] = {
 }
 
 
-def psql(sql: str) -> str:
-    out = subprocess.run(
-        ["podman", "exec", "-i", "ohmy-pg", "psql", "-U", "ohmy", "-d", "ohmyenglish", "-tAc", sql],
-        check=True, capture_output=True, text=True,
-    )
-    return out.stdout.strip()
 
 
 async def wait_for_jobs(session_id, wait: float) -> float:

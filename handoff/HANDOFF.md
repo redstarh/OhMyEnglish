@@ -107,7 +107,8 @@ cd ../frontend && npx tsc --noEmit && npx eslint app lib   # 둘 다 무출력(c
 | 항목 | 값 |
 |---|---|
 | 테스트 | **347 passed**, skip/xfail 0 (v1.1 착수 전 241 → 312 → 327 → 333 → 347) |
-| 공유 DB | **2026-08-31 실측: `en_coach` 스키마에 표 14개**(`ec_*` 13 + 추적표) — 8-30에 기록한 10개(`ec_*` 9)에서 늘었다. **불일치가 아니라 En-Coach의 진도다**(계획·LLM 분석 계열 4개 추가). 우리 `public`은 13개(우리 10 + 하네스 3), `ec_` 오염 **0** |
+| 공유 DB | **⚠️ 2026-08-31에 호스트가 바뀌었다: podman :5433 → homebrew `postgresql@17` :5432** (함정 H-T). 같은 날 실측: `en_coach` 스키마에 표 **14개**(`ec_*` 13 + 추적표) — 8-30에 기록한 10개에서 늘었는데 **불일치가 아니라 En-Coach의 진도다**. 우리 `public`은 13개(우리 10 + 하네스 3), `ec_` 오염 **0**. 이관 후 행 수는 전부 동일(세션 2 · 발화 6 · 패턴 1 · occurrence 2 · job 3 · 사용자 1 · 시나리오 3) |
+| DB 타임존 | 역할 `ohmy`에 **`TimeZone=UTC` 고정**. :5432 인스턴스 기본값은 `Asia/Seoul`이라 그대로 쓰면 **함정 H-S가 안 보인다**. `ohmyenglish_test`도 UTC로 확인했다. 인스턴스 기본값은 건드리지 않았다(StockAgent 공유) |
 | dev DB 마이그레이션 | **4개** — 001 · 003 · 004 · 005 (`schema_migrations`가 파일명으로 추적, 멱등) |
 | dev DB 행 | 세션 2 · 발화 6 · 패턴 1 · occurrence 2 · job 3 · `pronunciation_attempts` **0** · 발음 패턴 **0** |
 | 미커밋 | `.claude/` · `.mcp.json` · `backlog/`(모두 untracked) — **커밋하지 말고 지우지도 마라**. `.claude/`는 B-9 결정, `.mcp.json`·`backlog/`는 캡틴이 진행 중인 원장(Backlog.md) 도입이다(태스크 0건 = 아직 미이행, 원장은 여전히 `TASKS.md`) |
@@ -122,9 +123,12 @@ cd ../frontend && npx tsc --noEmit && npx eslint app lib   # 둘 다 무출력(c
 
 1. 이 파일 → **`TASKS.md`의 해당 절 표 한 줄** → 필요할 때만 계획서. `TASKS.md` 전체를 읽지 않는다.
 2. 게이트를 `app/backend` cwd에서 돌려 위 실측값과 대조한다. **다르면 그 차이를 먼저 설명한다.**
-   ⚠️ **게이트 전에 dev DB를 띄운다** — `podman machine start && scripts/dev_db.sh start`.
-   내려가 있으면 `pytest`가 **192 passed · 155 errors**로 끝난다(2026-08-31 실측). 원인은
-   회귀가 아니라 `localhost:5433` 연결 거부다 — **회귀로 오진하지 마라.** 상세는 함정 **H-T**.
+   ⚠️ **게이트 전에 DB가 떠 있는지 본다** — `brew services list | grep postgresql@17`.
+   **dev DB는 2026-08-31에 podman(:5433) → homebrew `postgresql@17`(:5432)로 옮겼다**(함정 **H-T**).
+   보통 부팅 시 launchd가 띄우므로 손댈 일이 드물다. 안 떠 있으면 `brew services start postgresql@17`.
+   DB가 없으면 `pytest`가 **192 passed · 155 errors**로 끝나는데 **회귀가 아니라 연결 거부다** —
+   errors가 100건 넘게 한꺼번에 나면 코드보다 연결을 먼저 의심한다.
+   ⚠️ 그 인스턴스는 **StockAgent와 공유**한다 — 인스턴스 재시작·`ALTER SYSTEM` 금지, DB 단위로만 다룬다.
 3. Nova를 건드리면 `spike_nova_protocol.py --wav p1a.wav`로 자격증명 생존을 먼저 확인한다.
 4. 계획서를 열면 **머리말의 "구현 후 정정" 표를 먼저 읽는다** — 본문 코드 블록 5건이 낡았고,
    테스트 헬퍼 이름은 추측이라 실재하지 않는다(함정 H-N).

@@ -20,7 +20,14 @@ from urllib.parse import urlsplit, urlunsplit
 
 import asyncpg
 
-DEFAULT_DEV_DSN = "postgresql://ohmy:ohmy@localhost:5433/ohmyenglish"
+# :5432는 homebrew `postgresql@17` (launchd로 부팅 시 자동 기동)이다. 2026-08-31에
+# podman `ohmy-pg`(:5433)에서 이리로 옮겼다 — podman 가상머신이 내려가면 게이트가
+# 155 errors로 무너지던 의존을 없애기 위해서다(함정 H-T). :5433 컨테이너는 폴백으로 남아 있다.
+# ⚠️ 이 인스턴스는 StockAgent와 **공유**한다(`stockagent`·`stocknews*` DB). 인스턴스 단위
+#    조작(재시작·ALTER SYSTEM)은 남의 서비스를 건드린다 — DB 단위로만 다룬다.
+# ⚠️ 인스턴스 기본 TimeZone은 `Asia/Seoul`이지만 역할 `ohmy`에 UTC를 고정해 두었다
+#    (`alter role ohmy set TimeZone='UTC'`). 그래야 함정 H-S가 계속 보인다.
+DEFAULT_DEV_DSN = "postgresql://ohmy:ohmy@localhost:5432/ohmyenglish"
 
 
 def base_dsn() -> str:

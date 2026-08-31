@@ -28,6 +28,11 @@
 > 이 머신에 **`psql` 클라이언트가 없다**(실측: `command -v psql` → 없음). `docker`는
 > **podman 별칭**이다. 그래서 아래 SQL은 전부 `podman exec`로 컨테이너 안에서 돌린다.
 
+📌 **2026-08-31: dev DB의 기본 경로가 바뀌었다 — homebrew `postgresql@17`(:5432)다.**
+아래 컨테이너(:5433)는 **폴백으로만 남아 있고 데이터는 이관 시점의 사본**이다.
+현재 접속정보는 `docs/ops/local-run.md`와 `shared-database-naming-rules.md` §2가 소유한다.
+옮긴 이유: podman 가상머신이 내려가 있으면 게이트가 `192 passed · 155 errors`로 무너졌다(함정 **H-T**).
+
 `scripts/dev_db.sh`가 만드는 컨테이너의 실제 값:
 
 | 항목 | 값 |
@@ -47,7 +52,9 @@ scripts/dev_db.sh stop
 
 ```bash
 # 기본값 (환경변수를 주지 않으면 이것이 쓰인다 — scripts/db_utils.py:DEFAULT_DEV_DSN)
-DATABASE_URL=postgresql://ohmy:ohmy@localhost:5433/ohmyenglish
+DATABASE_URL=postgresql://ohmy:ohmy@localhost:5432/ohmyenglish
+# 폴백(podman 컨테이너)을 쓸 때만 5433으로 바꾼다
+# DATABASE_URL=postgresql://ohmy:ohmy@localhost:5433/ohmyenglish
 ```
 
 - 앱은 `app/backend/.env`(gitignore 대상)에서 읽는다. 셸 export가 `.env`보다 우선한다.

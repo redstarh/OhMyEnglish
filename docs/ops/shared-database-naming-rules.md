@@ -14,7 +14,7 @@
 |--:|---|---|:--:|
 | 1 | 표 **9개에 `ec_` 접두어** 일괄 적용 (마이그레이션·모델·쿼리 전부) | `db/migrations/001_initial_schema.sql` 외 | R1 |
 | 2 | `search_path`에서 **`public` 제거** — 3곳 | `app/backend/app/db.py:33`·`:41`, `001_initial_schema.sql:4` | R2 |
-| 3 | `.env`의 **포트·DB 이름** 교체 (`5432`→`5433`, `en_coach`→`ohmyenglish`) + 비밀번호 | `app/backend/.env` | §2 |
+| 3 | `.env`의 **DB 이름** 교체 (`en_coach`→`ohmyenglish`) + 비밀번호. **포트는 `5432` 그대로다** — 2026-08-31 이관 후 정정(이전 판은 `5433`을 요구했다) | `app/backend/.env` | §2 |
 | 4 | `002` 확인 — 1번을 하면 **자동 no-op**이 된다. 안 하면 실패한다 | `002_move_legacy_public_tables_to_en_coach.sql` | R5 |
 | 5 | 마이그레이션 추적표를 **`en_coach` 스키마 안**에 둔다 | 마이그레이션 러너 | R4 |
 
@@ -186,15 +186,20 @@ CHECK 제약에 나뉘어 있어(예: `pronunciation_attempts`는 `pending` ⇔ 
 ```bash
 # ❌ 지금 (app/backend/.env.example)
 DATABASE_URL=postgresql://en_coach:change-me@localhost:5432/en_coach
-#                                            ~~~~ 포트   ~~~~~~~~ DB
+#                                                          ~~~~~~~~ DB 이름만 틀렸다
 
 # ✅ 이렇게 — 그대로 복사해 쓴다
-DATABASE_URL=postgresql://en_coach:mvs6pZyocJIyISV1fPD7tZVD@localhost:5433/ohmyenglish
+DATABASE_URL=postgresql://en_coach:mvs6pZyocJIyISV1fPD7tZVD@localhost:5432/ohmyenglish
 ```
+
+📌 **2026-08-31 이관 후에는 포트가 그대로다.** 이관 전 이 문서는 `5432`→`5433` 교체를
+요구했지만, dev DB가 homebrew `postgresql@17`(**:5432**)로 옮겨져 **포트는 바꿀 필요가 없다** —
+바꿀 것은 **DB 이름(`en_coach` → `ohmyenglish`)과 비밀번호**뿐이다. 이미 `5433`으로 고쳐 둔
+`.env`가 있다면 **`5432`로 되돌린다.**
 
 | 항목 | 값 | 주의 |
 |---|---|---|
-| host / port | `localhost` / **5433** | 5432가 아니다. 이 머신의 5432는 비어 있고 우리 컨테이너는 5433에 포워딩된다 |
+| host / port | `localhost` / **5432** | ⚠️ **2026-08-31에 5433 → 5432로 바뀌었다.** 이전 판의 "이 머신의 5432는 비어 있다"는 서술은 **틀렸다** — 거기에 homebrew `postgresql@17`이 StockAgent DB(`stockagent`·`stocknews*`)와 함께 떠 있었다. podman 컨테이너(:5433)는 **폴백으로 남아 있지만 정본이 아니다** — 거기 있는 데이터는 이관 시점의 사본이라 그 뒤 변경이 반영되지 않는다 |
 | database | **`ohmyenglish`** | 공유 DB다. `en_coach`라는 DB는 없다(만들었다가 철회했다) |
 | user / role | **`en_coach`** | 스키마 `en_coach`의 소유자 |
 | password | `mvs6pZyocJIyISV1fPD7tZVD` | **로컬 dev 전용**이다. 이 문서가 git에 있으므로 원격·공유 환경에는 이 값을 쓰지 않는다 |
@@ -203,28 +208,55 @@ DATABASE_URL=postgresql://en_coach:mvs6pZyocJIyISV1fPD7tZVD@localhost:5433/ohmye
 명시적으로 못 박고 싶으면 URL에 붙인다(`%3D`는 `=`의 인코딩):
 
 ```bash
-DATABASE_URL=postgresql://en_coach:mvs6pZyocJIyISV1fPD7tZVD@localhost:5433/ohmyenglish?options=-csearch_path%3Den_coach
+DATABASE_URL=postgresql://en_coach:mvs6pZyocJIyISV1fPD7tZVD@localhost:5432/ohmyenglish?options=-csearch_path%3Den_coach
 ```
+
+**En-Coach가 해야 할 일은 포트 한 글자다** — `.env`(와 `.env.example`)의 `5433` → `5432`.
+2026-08-31 이관 시점에 확인한 것: En-Coach는 `.env`가 없어 **DB에 붙어 있지 않았고**,
+`en_coach` 스키마 14개 표의 **행 수가 0**이었다. 그래서 데이터 이관 없이 스키마째 옮겼다
+(`pg_dump`/`pg_restore`, 소유자·권한·`search_path` 기본값 보존). `en_coach_harness_test`도
+함께 옮겼고 그쪽 DB 기본 TimeZone `Asia/Seoul`도 그대로 유지했다.
 
 **비밀번호를 바꾸려면** (한 줄, 양쪽 `.env`만 갱신하면 된다):
 
 ```bash
-podman exec -i ohmy-pg psql -U ohmy -d ohmyenglish -c "alter role en_coach password '<새값>'"
+/opt/homebrew/opt/postgresql@17/bin/psql -h 127.0.0.1 -p 5432 -U "$(whoami)" -d ohmyenglish \
+  -c "alter role en_coach password '<새값>'"
 ```
 
-**⚠️ DB가 안 뜨면 — 컨테이너가 꺼져 있는 것이다.** PostgreSQL은 OhMyEnglish 리포의
-podman 컨테이너 `ohmy-pg`(`postgres:16-alpine`)로 돈다. `Connection refused`가 나면:
+**타임존 규약은 바뀌지 않았다.** `ohmyenglish`의 DB 기본 TimeZone은 이관 후에도 **UTC**다
+(인스턴스 기본값이 `Asia/Seoul`이라 명시적으로 `alter database … set TimeZone='UTC'`를 걸었다).
+En-Coach가 세션 단위로 `SET LOCAL TIME ZONE 'Asia/Seoul'`을 쓰는 방식은 그대로 유효하다 —
+이건 DB 기본값에 의존하지 않기 때문이다. 즉 **이관은 그쪽 타임존 정책을 건드리지 않는다.**
+
+**⚠️ DB가 안 뜨면 — brew 서비스가 멈춘 것이다.** PostgreSQL은 이제 **homebrew
+`postgresql@17`**(:5432)로 돈다. 보통 부팅 시 launchd가 띄우므로 따로 시작할 일이 드물다.
+`Connection refused`가 나면:
 
 ```bash
-podman ps | grep ohmy-pg                        # 떠 있는지 확인
-podman start ohmy-pg                            # 꺼져 있으면 시작
-# 컨테이너가 아예 없으면 OhMyEnglish 쪽에 알린다 (scripts/dev_db.sh start 가 만든다)
+brew services list | grep postgresql@17         # started 인지 확인
+brew services start postgresql@17               # 멈춰 있으면 시작
 ```
 
-⚠️ **비밀번호는 반드시 필요하다.** 이 PostgreSQL은 컨테이너 안에서만 `trust`(무비밀번호)이고,
-**호스트(`localhost:5433`)에서 오는 접속은 `scram-sha-256`**이다 — 비밀번호 없이·틀린 값으로는
-붙지 않는다. `psql`이 이 머신에 설치돼 있지 않아 컨테이너 안에서 확인해야 할 때는
-`podman exec -i ohmy-pg psql -U en_coach -d ohmyenglish` 를 쓴다(이때는 비밀번호가 필요 없다).
+⚠️ **인스턴스를 재시작하면 StockAgent도 함께 끊긴다** — 같은 인스턴스에 `stockagent`·`stocknews*`가
+있다. DB 단위로만 다루고, 인스턴스 단위 조작(`ALTER SYSTEM`·restart)은 하지 않는다.
+
+**`psql`은 PATH에 없다.** 절대 경로를 쓴다:
+
+```bash
+PGPASSWORD='mvs6pZyocJIyISV1fPD7tZVD' /opt/homebrew/opt/postgresql@17/bin/psql \
+  -h 127.0.0.1 -p 5432 -U en_coach -d ohmyenglish
+```
+
+⚠️ **비밀번호는 반드시 필요하다** — 호스트에서 오는 접속은 `scram-sha-256`이다.
+
+**폴백(podman :5433)을 쓸 때만** 아래가 유효하다. 단 그 컨테이너의 데이터는 2026-08-31 이관
+시점의 **사본**이고 그 뒤 변경이 없다:
+
+```bash
+podman machine start && podman start ohmy-pg    # 가상머신부터 띄워야 한다
+podman exec -i ohmy-pg psql -U en_coach -d ohmyenglish   # 컨테이너 안은 비밀번호 불필요
+```
 
 ---
 

@@ -436,6 +436,12 @@ npx eslint app lib                                   → 무출력 (exit 0)</div
     재부팅 후 첫 세션이 이 155 errors를 <strong>회귀로 오진할 수 있는 자리</strong>다.
     판별 규칙은 <strong>errors가 100건 넘게 한꺼번에 나면 코드보다 연결을 먼저 의심하는 것</strong>이다 —
     회귀는 이렇게 균일하게 무너지지 않는다.
+    <br><br>
+    📌 <strong>같은 날 이 함정의 뿌리를 없앴다</strong> — dev DB를 podman(:5433)에서
+    <strong>homebrew <code>postgresql@17</code>(:5432)</strong>로 옮겼다. launchd가 부팅 시 띄우므로
+    “가상머신이 2개월째 내려가 있는” 상태가 생기지 않는다. 게이트는 이관 후에도
+    <strong>347 passed</strong>이고 오히려 빨라졌다(5.7s → 3.8s, VM이 빠졌다).
+    podman 컨테이너는 폴백으로 남겼다.
   </div>
 
   <h3>미사용 파일 정리 — 삭제한 것</h3>

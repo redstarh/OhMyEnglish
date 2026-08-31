@@ -13,11 +13,13 @@ import argparse
 import asyncio
 import base64
 import json
-import subprocess
 import sys
 import time
 from pathlib import Path
 
+# psql_cli — DATABASE_URL을 따라가는 psql 헬퍼 (:5432 기본, :5433 폴백). 이전에는 이 파일이
+# `podman exec`를 하드코딩해 폴백 컨테이너의 사본에 하네스 세션을 등록했다 — 함정 H-T.
+from psql_cli import psql
 from websockets.asyncio.client import connect
 
 HARNESS = Path(__file__).resolve().parent.parent.parent / ".harness"
@@ -33,14 +35,9 @@ JUNK_FRAMES = [
 
 
 def register(session_id: str, scenario: str) -> None:
-    subprocess.run(
-        [
-            "podman", "exec", "-i", "ohmy-pg", "psql", "-U", "ohmy", "-d", "ohmyenglish",
-            "-tAc",
-            "insert into harness_sessions (run_id, session_id, scenario) "
-            f"values ('{RUN_ID}', '{session_id}', '{scenario}') on conflict do nothing",
-        ],
-        check=True, capture_output=True,
+    psql(
+        "insert into harness_sessions (run_id, session_id, scenario) "
+        f"values ('{RUN_ID}', '{session_id}', '{scenario}') on conflict do nothing"
     )
 
 
