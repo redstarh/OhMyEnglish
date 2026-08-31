@@ -12,6 +12,7 @@
 > | 실측된 함정 | `docs/ops/pitfalls.md` (H-A~H-R) |
 > | 하네스 차수·시나리오 | `tests/harness/runs/ROUNDS.md` · `tests/harness/README.md` |
 > | 한 장 요약(공유용) | `docs/status-report-2026-08-29.html` |
+> | **남은 작업만 모은 보고(공유용)** | `docs/remaining-work-2026-08-31.html` — 상태 정본은 아니다, `TASKS.md`를 따른다 |
 >
 > 최종 갱신 **2026-08-30** · 기준 커밋 **HEAD ≥ `efc6264`** · 브랜치 `design/first-vertical-slice`
 > **이 파일이 유일한 handoff다.** 2026-08-30에 갈래별 4개를 하나로 합쳤다(이전 판은
@@ -106,7 +107,7 @@ cd ../frontend && npx tsc --noEmit && npx eslint app lib   # 둘 다 무출력(c
 | 항목 | 값 |
 |---|---|
 | 테스트 | **347 passed**, skip/xfail 0 (v1.1 착수 전 241 → 312 → 327 → 333 → 347) |
-| 공유 DB | `en_coach` 스키마에 표 **10개**(`ec_*` 9 + 추적표). 우리 `public`은 13개(우리 10 + 하네스 3), `ec_` 오염 **0** |
+| 공유 DB | **2026-08-31 실측: `en_coach` 스키마에 표 14개**(`ec_*` 13 + 추적표) — 8-30에 기록한 10개(`ec_*` 9)에서 늘었다. **불일치가 아니라 En-Coach의 진도다**(계획·LLM 분석 계열 4개 추가). 우리 `public`은 13개(우리 10 + 하네스 3), `ec_` 오염 **0** |
 | dev DB 마이그레이션 | **4개** — 001 · 003 · 004 · 005 (`schema_migrations`가 파일명으로 추적, 멱등) |
 | dev DB 행 | 세션 2 · 발화 6 · 패턴 1 · occurrence 2 · job 3 · `pronunciation_attempts` **0** · 발음 패턴 **0** |
 | 미커밋 | `.claude/` · `.mcp.json` · `backlog/`(모두 untracked) — **커밋하지 말고 지우지도 마라**. `.claude/`는 B-9 결정, `.mcp.json`·`backlog/`는 캡틴이 진행 중인 원장(Backlog.md) 도입이다(태스크 0건 = 아직 미이행, 원장은 여전히 `TASKS.md`) |
@@ -121,6 +122,9 @@ cd ../frontend && npx tsc --noEmit && npx eslint app lib   # 둘 다 무출력(c
 
 1. 이 파일 → **`TASKS.md`의 해당 절 표 한 줄** → 필요할 때만 계획서. `TASKS.md` 전체를 읽지 않는다.
 2. 게이트를 `app/backend` cwd에서 돌려 위 실측값과 대조한다. **다르면 그 차이를 먼저 설명한다.**
+   ⚠️ **게이트 전에 dev DB를 띄운다** — `podman machine start && scripts/dev_db.sh start`.
+   내려가 있으면 `pytest`가 **192 passed · 155 errors**로 끝난다(2026-08-31 실측). 원인은
+   회귀가 아니라 `localhost:5433` 연결 거부다 — **회귀로 오진하지 마라.**
 3. Nova를 건드리면 `spike_nova_protocol.py --wav p1a.wav`로 자격증명 생존을 먼저 확인한다.
 4. 계획서를 열면 **머리말의 "구현 후 정정" 표를 먼저 읽는다** — 본문 코드 블록 5건이 낡았고,
    테스트 헬퍼 이름은 추측이라 실재하지 않는다(함정 H-N).

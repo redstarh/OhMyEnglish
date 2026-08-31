@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OhMyEnglish — 남은 작업 보고 (2026-08-31)</title>
+  <style>
+    :root { --navy:#12213d; --blue:#3268ed; --pale:#edf3ff; --ink:#182033; --muted:#667085;
+      --line:#e4e9f2; --surface:#fff; --bg:#f7f9fc; --code-bg:#eef2f8; --code-ink:#204eb8;
+      --good:#0f7a46; --good-bg:#e6f5ed; --warn:#8a5a00; --warn-bg:#fdf3e0;
+      --crit:#b3261e; --crit-bg:#fdeceb; --defer:#5c6a80; --defer-bg:#eef1f6; --track:#cddcff; }
+    @media (prefers-color-scheme: dark) {
+      :root { --navy:#0a1020; --blue:#7ba2ff; --pale:#1b2540; --ink:#e8ecf5; --muted:#9aa5bb;
+        --line:#26304a; --surface:#151c2e; --bg:#0d1220; --code-bg:#1d263c; --code-ink:#a8c2ff;
+        --good:#4cc38a; --good-bg:#12301f; --warn:#e0a83c; --warn-bg:#33260c;
+        --crit:#f2836f; --crit-bg:#3a1a18; --defer:#93a0b8; --defer-bg:#1e2637; --track:#2a3757; } }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); line-height:1.65;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo",sans-serif; }
+    header { padding:52px max(24px,calc((100% - 1060px)/2)) 44px; background:linear-gradient(125deg,var(--navy),#2a52b8); color:#fff; }
+    header h1 { margin:0 0 10px; font-size:clamp(28px,4.4vw,44px); letter-spacing:-.02em; }
+    header p { margin:0; max-width:760px; color:#d8e3ff; }
+    .meta { margin-top:18px; display:flex; flex-wrap:wrap; gap:8px; font-size:13px; }
+    .meta span { padding:5px 10px; border-radius:8px; background:#ffffff1f; color:#eaf0ff; }
+    nav { position:sticky; top:0; z-index:5; overflow:auto; white-space:nowrap;
+      padding:11px max(24px,calc((100% - 1060px)/2)); background:var(--surface); border-bottom:1px solid var(--line); }
+    nav a { display:inline-block; margin-right:4px; padding:7px 11px; border-radius:8px;
+      color:var(--muted); text-decoration:none; font-size:13px; font-weight:700; }
+    nav a:hover { background:var(--pale); color:var(--blue); }
+    main { max-width:1060px; margin:auto; padding:36px 24px 84px; }
+    section { margin-bottom:26px; padding:26px; background:var(--surface); border:1px solid var(--line);
+      border-radius:17px; box-shadow:0 5px 18px #14244909; }
+    h2 { margin:0 0 6px; font-size:23px; letter-spacing:-.01em; }
+    h3 { margin:22px 0 8px; font-size:16px; }
+    h4 { margin:14px 0 6px; font-size:14px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+    p { margin:8px 0; } ul,ol { margin:8px 0; padding-left:20px; } li { margin:5px 0; }
+    .lead { color:var(--muted); max-width:820px; }
+    code { padding:2px 5px; border-radius:5px; background:var(--code-bg); color:var(--code-ink); font-size:.88em; }
+    .tag { display:inline-block; margin-bottom:10px; padding:4px 9px; border-radius:99px;
+      background:var(--pale); color:var(--blue); font-size:11.5px; font-weight:800; letter-spacing:.05em; }
+    .grid { display:grid; gap:14px; grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .g2 { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .g4 { grid-template-columns:repeat(4,minmax(0,1fr)); }
+    .card { padding:17px; border:1px solid var(--line); border-radius:12px; background:var(--bg); }
+    .card h3 { margin-top:0; }
+    table { width:100%; border-collapse:collapse; margin-top:12px; font-size:13.5px; }
+    th,td { padding:9px 10px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line); }
+    th { color:var(--muted); font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; font-weight:800; }
+    td.num { font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .pill { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:99px;
+      font-size:12px; font-weight:800; white-space:nowrap; }
+    .ok { background:var(--good-bg); color:var(--good); }
+    .wait { background:var(--warn-bg); color:var(--warn); }
+    .block { background:var(--crit-bg); color:var(--crit); }
+    .later { background:var(--defer-bg); color:var(--defer); }
+    .tile { padding:15px 16px; border:1px solid var(--line); border-radius:12px; background:var(--bg); }
+    .tile span { display:block; color:var(--muted); font-size:12px; }
+    .tile strong { display:block; margin-top:3px; font-size:26px; font-weight:700; letter-spacing:-.02em; }
+    .flow { padding:20px; border-radius:13px; background:var(--navy); color:#e9efff;
+      font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px; line-height:1.7; overflow:auto; white-space:pre; }
+    .note { padding:14px 16px; margin:12px 0; border-left:3px solid var(--blue); border-radius:0 10px 10px 0;
+      background:var(--pale); font-size:13.5px; }
+    .note.danger { border-color:var(--crit); background:var(--crit-bg); }
+    .note.hold { border-color:var(--warn); background:var(--warn-bg); }
+    footer { max-width:1060px; margin:auto; padding:0 24px 70px; color:var(--muted); font-size:12.5px; }
+    @media (max-width:820px) { .grid,.g2,.g4 { grid-template-columns:1fr; } section { padding:20px; } }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>남은 작업 보고</h1>
+  <p>2026-08-31 기준으로 <strong>착수하지 않았거나 절반만 끝난 작업</strong>만 모았다. 완료된 작업은
+     담지 않는다 — 그것은 <code>TASKS.md</code>와 <code>handoff/HANDOFF.md</code>가 소유한다.
+     이 문서의 모든 수치는 작성 시점에 직접 실행한 명령의 출력이다.</p>
+  <div class="meta">
+    <span>브랜치 <code>design/first-vertical-slice</code></span>
+    <span>HEAD <code>783050e</code></span>
+    <span>상태 정본 <code>TASKS.md</code></span>
+    <span>연속성 <code>handoff/HANDOFF.md</code></span>
+  </div>
+</header>
+
+<nav>
+  <a href="#summary">요약</a>
+  <a href="#next">즉시 착수</a>
+  <a href="#a">A절 · §10 발음</a>
+  <a href="#g">G절 · 결정 후속</a>
+  <a href="#c">C절 · §11 추천 루틴</a>
+  <a href="#d">D절 · 하네스</a>
+  <a href="#e">E절 · 비차단</a>
+  <a href="#ledger">원장 이관</a>
+  <a href="#measured">실측값</a>
+  <a href="#decisions">결정 대기</a>
+</nav>
+
+<main>
+
+<section id="summary">
+  <span class="tag">요약</span>
+  <h2>남은 작업의 규모</h2>
+  <p class="lead">요구사항 v1.1의 두 축 가운데 <strong>§10(발음 시범·재발화)은 9개 태스크 중 7.5개를
+     마쳤고, §11(이력 기반 추천 학습 루틴)은 설계만 끝나 코드가 한 줄도 없다.</strong>
+     §10의 잔여는 Task 8의 남은 절반(A-5)과 Task 9(하네스 P9~P12 시나리오) 두 건이며,
+     그 사이에 캡틴 결정에서 파생된 후속 작업 6건과 실물 음성으로만 판정할 수 있는 검증 항목이 걸려 있다.</p>
+
+  <div class="grid g4" style="margin-top:16px">
+    <div class="tile"><span>§10 태스크</span><strong>7.5 / 9</strong></div>
+    <div class="tile"><span>§11 구현</span><strong>0줄</strong></div>
+    <div class="tile"><span>G절 잔여</span><strong>6 / 8</strong></div>
+    <div class="tile"><span>하네스 차수</span><strong>4 / 10</strong></div>
+  </div>
+
+  <div class="note">
+    <strong>가장 중요한 제약 한 가지.</strong> 남은 검증 항목 가운데 <strong>실물 마이크 세션 1회에
+    묶인 것이 세 건</strong>이다 — 세션 화면 배지(A-5)·발음 판정 품질(A-3)·음성 픽스처 보정.
+    이 세 건은 자동 테스트로 대체할 수 없다고 2026-08-30에 결정했으므로, 캡틴에게 마이크 세션을
+    요청하기 전까지는 <strong>어느 것도 종결되지 않는다.</strong>
+  </div>
+</section>
+
+<section id="next">
+  <span class="tag">즉시 착수</span>
+  <h2>A-5 — 세션 화면 발음 배지 (Task 8의 남은 절반)</h2>
+  <p>백엔드는 이미 발음 판정 프레임을 방송하고 있으나, 프론트엔드가 그 타입을 알지 못해
+     화면에 아무것도 표시되지 않는다. <strong>선행 조건은 모두 해소되었으므로 지금 착수할 수 있다.</strong></p>
+
+  <table>
+    <thead><tr><th>측</th><th>현재 상태</th><th>확인 방법과 결과</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>백엔드</td>
+        <td><span class="pill ok">보내고 있다</span></td>
+        <td><code>app/backend/app/audio_gateway/session.py:256</code>에
+            <code>"type": "pronunciation"</code>이 존재한다</td>
+      </tr>
+      <tr>
+        <td>프론트엔드</td>
+        <td><span class="pill block">모르고 있다</span></td>
+        <td><code>app/frontend/lib/ws.ts</code>의 <code>ServerEvent</code> union은 9개 variant를
+            갖는데(<code>:18-27</code>) 그중 <code>pronunciation</code>이 없다.
+            <code>app/frontend/app/page.tsx:66</code>의 <code>switch (event.type)</code>에도 분기가 없다.
+            두 파일에서 <code>pronunciation</code> 출현 횟수는 <strong>각각 0회</strong>다</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>고칠 자리는 두 곳이다</h3>
+  <ol>
+    <li><code>lib/ws.ts</code>의 <code>ServerEvent</code>에 variant를 추가한다.</li>
+    <li><code>app/page.tsx</code>의 <code>switch</code>에 분기를 추가하고 배지를 렌더한다.
+        시각 규약은 <code>docs/storyboard.html</code> 03b이며, 사용자 버블에
+        <code>🔊 발음 교정 중</code> pill을 붙이고 판정이 끝나면 <code>✓ 좋아요</code> pill로 바꾼다.</li>
+  </ol>
+
+  <div class="note danger">
+    <strong>그 프레임은 <code>target_sound</code>라는 기계 키를 함께 싣는다. 화면에 렌더하지 않는다.</strong>
+    설계서 §10 미결 4의 결정이며, 결과 화면 카드에는 이미 같은 규약이 적용되어 있다.
+    실물 왕복이 0회이므로 관측된 키가 0건이고, 따라서 표시 사전이나 분해 규칙을 지금 만들면
+    그것은 전부 발명값이 된다.
+  </div>
+
+  <div class="note hold">
+    <strong>이 작업은 스스로 검증되지 않는다.</strong> 스텁 어댑터는 이 프레임을 내지 않고,
+    프론트엔드에는 테스트 프레임워크가 없으며(<code>package.json</code>의 test 스크립트 0개),
+    하네스의 <code>ws_session.py</code>는 클라이언트로 접속하므로 서버가 보내는 프레임을 주입할 수 없다.
+    그래서 <strong>배지를 먼저 올려 두고 G-4 마이크 세션에서 함께 관측한다</strong>는 순서가
+    2026-08-30에 확정되었다. <strong>Task 8은 그때까지 열어 둔다.</strong>
+  </div>
+</section>
+
+<section id="a">
+  <span class="tag">A절</span>
+  <h2>요구사항 v1.1 §10 — 발음 시범·재발화의 잔여</h2>
+  <table>
+    <thead><tr><th>항목</th><th>상태</th><th>내용과 제약</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>A-5</strong></td>
+        <td><span class="pill wait">착수 가능</span></td>
+        <td>세션 화면 발음 배지. 위 절에 상세를 적었다. 선행 G-1·G-3은 <code>efc6264</code>로 완료되었다</td>
+      </tr>
+      <tr>
+        <td><strong>A-3</strong></td>
+        <td><span class="pill block">검증 불가</span></td>
+        <td><strong>실물 Nova 왕복이 0회다.</strong> 발음 기능은 단위·통합 테스트만 통과했으므로
+            <strong>판정 품질은 미검증</strong>이다. 지시문이 실제로 Nova의 행동을 바꾸는지도
+            확인되지 않았다 — 자동으로 고정한 범위는 “문구가 조립되어 전송 페이로드에 실린다”까지다.
+            5차수에서 반드시 관측해야 하는 항목으로 실물 tool 스키마가 지정되어 있다</td>
+      </tr>
+      <tr>
+        <td><strong>Task 9</strong></td>
+        <td><span class="pill block">선행 대기</span></td>
+        <td>하네스 5차수의 P9~P12 시나리오를 작성하고 실행한다. 착수 전 필수로
+            <strong>A-3(실물 검증 포함)</strong>이 걸려 있으므로 마이크 세션보다 앞설 수 없다.
+            §10의 마지막 태스크다</td>
+      </tr>
+      <tr>
+        <td><strong>A-4</strong></td>
+        <td><span class="pill later">의도적 미충족</span></td>
+        <td>요구사항 대비 일부러 구현하지 않은 구간이다. 미충족 구간의 크기 자체를
+            5차수에서 관측하기로 되어 있다</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="lead" style="margin-top:14px">데이터 측면의 사실 한 가지 — dev DB의
+     <code>pronunciation_attempts</code>는 <strong>0행</strong>이다. 통합 테스트가 롤백 트랜잭션으로
+     돌기 때문에 흔적을 남기지 않는다. 결과 화면 카드가 실제로 렌더되는 것은 시드 데이터로 확인했으므로,
+     실물 왕복이 필요한 대상은 렌더가 아니라 판정 품질이다.</p>
+</section>
+
+<section id="g">
+  <span class="tag">G절</span>
+  <h2>캡틴 결정에서 파생된 후속 작업 — 8건 중 6건이 남았다</h2>
+  <p class="lead">B-1~B-10 결정은 전건 종결되었고, 거기에서 실행 작업 8건이 나왔다.
+     G-1과 G-3은 <code>efc6264</code>로 완료되었으므로 아래 6건이 잔여다.</p>
+
+  <table>
+    <thead><tr><th>ID</th><th>트랙</th><th>작업</th><th>선행 조건</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>G-2</strong></td><td>C</td>
+        <td>교정 상한을 <strong>한 턴 1개</strong>로 통일한다. 요구사항 문서를 코드에 맞추는 방향이다.
+            대상은 <code>docs/agent-system-prompt.md:19</code> 한 줄이다</td>
+        <td><span class="pill ok">없음</span> — 언제든 끼워 넣을 수 있다</td>
+      </tr>
+      <tr>
+        <td><strong>G-7</strong></td><td>B</td>
+        <td><code>pending_learning_utterances</code>를 삭제한다.
+            <code>app/backend/app/services/utterances.py:145</code>에 정의되어 있고
+            <strong>앱 코드 호출자가 0곳</strong>이다(참조는 같은 모듈의 주석 1건과
+            <code>tests/unit/test_utterances.py</code>의 테스트 3건뿐이다). 함수와 그 테스트를 함께 제거한다</td>
+        <td><span class="pill ok">없음</span> — 짧다</td>
+      </tr>
+      <tr>
+        <td><strong>G-4</strong></td><td>D</td>
+        <td><strong>실물 마이크 세션을 캡틴에게 요청한다.</strong> 캡틴이 “요청하면 진행하겠다”고
+            답했으므로 <strong>요청할 차례는 우리 쪽</strong>이다. 절차·픽스처·확인 항목을 미리 준비해
+            한 세션에서 마이크 1회 · 픽스처 보정 · A-5 배지 관측을 함께 닫는다</td>
+        <td>G-1·G-3 <span class="pill ok">해소</span> → <strong>A-5 구현</strong> → G-4</td>
+      </tr>
+      <tr>
+        <td><strong>G-5</strong></td><td>A</td>
+        <td>§11의 M계층을 <strong>시나리오 선택</strong> 갈래로 설계한다. 고칠 자리는 이미 특정되어 있다 —
+            <code>services/sessions.py:29</code>가 <code>_CREATE_SESSION_SQL</code> 안에서 항상 같은
+            시나리오 하나를 고른다. <strong>단, 기각했던 B갈래의 근거가 사실이 아니었음이 확인되었다</strong> —
+            “지시문 주입은 <code>port.start()</code> 인자 확장이 필요하다”고 적혀 있었으나 실제 이음매는
+            <code>audio_gateway/factory.create_voice_adapter</code>이고, G-3이 그 통로를 이미 만들었다.
+            <strong>A갈래 채택이 틀렸다는 뜻은 아니고 기각 사유가 사라졌다는 뜻이므로, B갈래를 다시 검토해야 한다</strong></td>
+        <td>기각안 재검토가 먼저다</td>
+      </tr>
+      <tr>
+        <td><strong>G-8</strong></td><td>A</td>
+        <td><code>frequency</code>를 두 writer가 번갈아 덮는 문제를 해소한다. 재발을 있는 그대로 세는
+            단순한 모델로 바꾸고, 필요하면 컬럼을 나눈다. 대상은 <code>error_patterns</code> 스키마(006 신설) ·
+            <code>services/analysis.py</code> · <code>services/pronunciation.py</code>다</td>
+        <td><span class="pill block">착수 전 캡틴 해석 확인</span> — 스키마가 걸리고
+            캡틴 문구가 두 안 중 어느 쪽인지 갈린다</td>
+      </tr>
+      <tr>
+        <td><strong>G-6</strong></td><td>A/D</td>
+        <td>Phase 1 완료 선언의 미충족 3건을 채운다 — <strong>W-live 1회 · E2E-S 1회 · 실물 마이크</strong>.
+            대조 대상은 수용 기준 문서의 6항목이다</td>
+        <td>G-4</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="c">
+  <span class="tag">C절</span>
+  <h2>요구사항 v1.1 §11 — 이력 기반 추천 학습 루틴 (전량 미착수)</h2>
+  <p class="lead">설계서는 정본으로 승격되었고 미결 3건도 종결되었으나,
+     <strong>구현은 한 줄도 시작되지 않았다.</strong> §12.1의 2슬라이스 분해가 채택되어 있다.</p>
+
+  <table>
+    <thead><tr><th>단계</th><th>상태</th><th>범위</th></tr></thead>
+    <tbody>
+      <tr><td>계획 문서 작성</td><td><span class="pill wait">대기</span></td>
+          <td><strong>첫 걸음이다.</strong> 2슬라이스 분해를 실행 계획으로 옮긴다</td></tr>
+      <tr><td>슬라이스 1 — 데이터 유실 정지</td><td><span class="pill wait">대기</span></td>
+          <td><code>suggested_contexts</code> 저장 · <code>pattern_attempts</code> ·
+              복습 스케줄 갱신 · 만성 지표 쿼리</td></tr>
+      <tr><td>슬라이스 2 — 계획 생성·반영</td><td><span class="pill wait">대기</span></td>
+          <td>지시문 가변부가 여기에서 생긴다. B-2와 묶인다</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>슬라이스 1을 앞세우는 근거</strong>는 회복 불가능성이다 —
+     <code>suggested_contexts</code>는 모델이 산출해도 지금은 버려지고 소급이 불가능하므로,
+     늦어질수록 잃는 것이 쌓인다.</p>
+
+  <div class="note danger">
+    <strong>착수 전 필수 — 달력 날짜를 <code>current_date</code>로 구하지 않는다.</strong>
+    2026-08-31에 실측한 함정이다(<code>pitfalls.md</code> H-S). 이 dev DB의 세션 타임존은
+    실제로 <strong><code>UTC</code></strong>로 확인되었고, UTC 자정부터 09:00(KST)까지의 구간에서는
+    <code>current_date</code>가 KST 날짜보다 하루 이르다. 복습 주기(1·3·7일) ·
+    <code>next_review_at</code> · 일일 계획이 전부 이 한 칸에 걸린다.
+    <code>AT TIME ZONE</code>으로 변환하고, 타임존의 SoT는 <code>users.timezone</code> 컬럼이다
+    (기본값 <code>Asia/Seoul</code>이며 아직 앱이 읽지 않는다).
+    이 DB는 En-Coach와 공유하므로 <code>ALTER DATABASE … SET TimeZone</code>은 금지된다.
+  </div>
+
+  <p class="lead"><strong>착수 전 실측(2026-08-27 확인)</strong>: 테이블
+     <code>session_plans</code>·<code>learner_notes</code>·<code>pattern_attempts</code>가 전부 없고,
+     컬럼 <code>next_review_at</code>·<code>mastery_score</code>·<code>current_level</code>·
+     <code>self_difficulty</code>·<code>impact_score</code>·<code>suggested_contexts</code>의
+     앱 참조가 0곳이다.</p>
+</section>
+
+<section id="d">
+  <span class="tag">D절</span>
+  <h2>테스트 하네스 — 5차수가 남았다</h2>
+  <p class="lead">10차수 상한 가운데 4차수를 사용했고 <strong>미해결 앱 결함은 0건</strong>이다.
+     5차수 하나에 많은 항목이 몰려 있다.</p>
+  <div class="grid g2">
+    <div class="card">
+      <h3>5차수가 담아야 할 범위</h3>
+      <ul>
+        <li>미실행 Nova 시나리오 N6·N7·N8·N11·N12·N13</li>
+        <li>B1~B4 재확인 및 라이트·다크 5상태</li>
+        <li>회귀 A1·A2·E4·E5·E6·D1·D2 + 프론트 <code>npx tsc --noEmit</code></li>
+        <li>P8 · <code>p2</code> 쌍 · P7 재캡처</li>
+        <li>신규 P9~P12(Task 9)</li>
+        <li><code>tests/**</code>의 ruff 6건·format 4건 정리</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>반드시 포함해야 하는 관측 3건</h3>
+      <ul>
+        <li><strong>A-3</strong> — 실물 tool 스키마</li>
+        <li><strong>A-4</strong> — 미충족 구간의 크기</li>
+        <li><strong>B-2 대조군</strong> — 발음 개입이 없는 일반 대화 1턴이
+            3차수의 N5와 같은지</li>
+      </ul>
+      <h4>일부러 빼는 것</h4>
+      <p style="font-size:13.5px;margin:0">N9(세션 롤오버 — 8분 이상의 실음성이 필요하여 시간·비용이 크다) ·
+         N10(무응답형 자격증명 실패 — <code>.env</code> 편집 금지 제약에 걸린다)</p>
+    </div>
+  </div>
+</section>
+
+<section id="e">
+  <span class="tag">E절</span>
+  <h2>비차단 후속 — 지금 막고 있지는 않은 8건</h2>
+  <table>
+    <thead><tr><th>항목</th><th>처리 방침</th></tr></thead>
+    <tbody>
+      <tr><td><code>tests/**</code> ruff 6건 · format 4건</td>
+          <td>전부 <code>tests/harness/*</code>에 있고 <strong>선언된 게이트 범위 밖</strong>이다. 5차수에서 정리한다</td></tr>
+      <tr><td>WS 엔드포인트 origin 미검증</td>
+          <td><code>api/ws.py</code>에 origin 참조가 0건이다. localhost 단일 사용자 환경이므로 수용한다</td></tr>
+      <tr><td><code>botocore</code> 재시도 미설정</td>
+          <td>스로틀 시 중복 과금 위험이 있다. Phase 2 운영에서 관찰한다</td></tr>
+      <tr><td>AWS access key 로테이션</td>
+          <td>대화 기록을 경유한 키다. 절차는 <code>docs/ops/iam-setup-nova-sigv4.md</code> §6에 있다</td></tr>
+      <tr><td>추적 체크리스트 HTML (캡틴 요청)</td>
+          <td>요구사항 상세 기능과 설계·구현의 대조표다. 구현 후에 만든다</td></tr>
+      <tr><td>이연 minor 33건</td>
+          <td>전건 “병합 전 필수 아님”으로 triage가 끝났다</td></tr>
+      <tr><td><strong>O-1</strong> (LOW) agent 전사문의 선행 개행</td>
+          <td>Nova가 <code>'\nWhat time do you…'</code>를 보내고 <code>save_final_transcript</code>가
+              그대로 저장한다. agent 발화라 분석 job이 없고 화면 렌더도 정상이므로 현재는 무해하다.
+              4차수에서 두 세션에 재현되었고 5차수에 묶어 전달한다</td></tr>
+      <tr><td>우리 표를 <code>public</code>에서 전용 스키마로 이관하는 검토</td>
+          <td>En-Coach는 전용 스키마를 쓰는데 우리는 <code>public</code>에 있어 <strong>비대칭</strong>이다 —
+              우리 표가 기본값 자리를 차지해 남의 <code>search_path</code> 폴백이 우리 것으로 떨어진다.
+              우리 SQL이 전부 한정자 없이 쓰여 있어 변경 범위가 크므로 지금은 미룬다</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="ledger">
+  <span class="tag">원장</span>
+  <h2>작업 원장 이관이 미이행 상태다</h2>
+  <p><code>backlog init</code>과 MCP 등록은 끝났으나 <strong><code>backlog/tasks/</code>가 비어 있다</strong>.
+     따라서 <strong>상태의 정본은 여전히 <code>TASKS.md</code>(356줄)</strong>이며,
+     태스크를 지목할 때는 줄 번호가 아니라 절 안의 ID(<code>A-5</code>, <code>G-8</code>)를 쓴다.</p>
+  <p>이관 지시서는 <code>docs/design/2026-08-30-tasks-md-migration-spec.md</code>(126줄)에 있다.
+     이관이 막혀 있는 이유는 도구가 아니라 분류다 — <code>TASKS.md</code>의 상당 부분이 태스크가 아니라
+     <strong>결정 기록</strong>이어서, 일괄 변환하면 결정이 태스크로 변질된다.
+     비태스크 행의 분류에 대한 승인이 남아 있다.</p>
+  <div class="note hold">
+    <code>.claude/</code> · <code>.mcp.json</code> · <code>backlog/</code>는 모두 untracked 상태로 두었다.
+    <strong>커밋하지도, 지우지도 않는다</strong> — 각각 B-9 결정과 진행 중인 원장 도입이라는 사유를 갖는다.
+  </div>
+</section>
+
+<section id="measured">
+  <span class="tag">실측값</span>
+  <h2>이 보고서를 쓴 시점에 직접 실행해 얻은 값</h2>
+  <p class="lead">게이트는 <code>app/backend</code>를 cwd로 삼아야 판정이 성립한다(함정 H-A).
+     리포지토리 루트에는 ruff 설정이 없어 다른 규칙셋으로 돌게 된다.</p>
+  <div class="flow">cd app/backend
+.venv/bin/pytest -q                                  → 347 passed
+.venv/bin/ruff check .                               → All checks passed!
+.venv/bin/ruff format --check .                      → 27 files already formatted
+ty check                                             → All checks passed!
+.venv/bin/ruff check ../../tests ../../scripts       → Found 6 errors      (베이스라인, 게이트 밖)
+.venv/bin/ruff format --check ../../tests            → 4 files            (베이스라인, 게이트 밖)
+cd ../frontend
+npx tsc --noEmit                                     → 무출력 (exit 0)
+npx eslint app lib                                   → 무출력 (exit 0)</div>
+
+  <table>
+    <thead><tr><th>항목</th><th>값</th></tr></thead>
+    <tbody>
+      <tr><td>dev DB 행</td>
+          <td class="num"><code>learning_sessions</code> 2 · <code>utterances</code> 6 ·
+              <code>error_patterns</code> 1 · <code>error_occurrences</code> 2 ·
+              <code>analysis_jobs</code> 3 · <code>users</code> 1 ·
+              <strong><code>pronunciation_attempts</code> 0</strong></td></tr>
+      <tr><td>마이그레이션</td><td class="num">4개 — <code>001</code> · <code>003</code> · <code>004</code> · <code>005</code></td></tr>
+      <tr><td>세션 타임존</td><td class="num"><code>SHOW TimeZone</code> → <strong><code>UTC</code></strong> (H-S의 전제가 성립한다)</td></tr>
+      <tr><td>공유 DB 격리</td>
+          <td>우리 <code>public</code> 13개 표(우리 10 + 하네스 3), <code>ec_</code> 접두어 오염 <strong>0건</strong>.
+              <strong><code>en_coach</code> 스키마는 14개 표</strong>(<code>ec_*</code> 13 + 자기 <code>schema_migrations</code>)로
+              <strong>기록된 10개보다 늘었다</strong> — En-Coach가 자기 스키마 안에서 진도를 낸 결과이며 규칙 위반은 없다</td></tr>
+      <tr><td>실측된 함정</td><td class="num">19건 (H-A ~ H-S)</td></tr>
+      <tr><td>추적 파일</td><td class="num">174개</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note danger">
+    <strong>게이트를 돌리기 전에 dev DB를 띄워야 한다. 이 전제가 함정 목록에 없다.</strong>
+    이번에 <code>pytest</code>의 첫 실행이 <strong>192 passed · 155 errors</strong>로 끝났는데,
+    원인은 회귀가 아니라 <code>localhost:5433</code>의 연결 거부였다.
+    podman 가상머신과 <code>ohmy-pg</code> 컨테이너가 함께 내려가 있었고,
+    <code>podman machine start</code>와 <code>scripts/dev_db.sh start</code>를 거친 뒤 347로 복귀했다.
+    재부팅 후 첫 세션이 이 155 errors를 <strong>회귀로 오진할 수 있는 자리</strong>다.
+  </div>
+
+  <h3>미사용 파일 정리 — 삭제한 것</h3>
+  <p>재생성이 가능하고 정보 손실이 없는 것만 지웠다. 총 약 1.4 MB이며, 삭제 후 게이트 5종을
+     다시 돌려 위 값과 동일함을 확인했다.</p>
+  <table>
+    <thead><tr><th>대상</th><th>근거</th></tr></thead>
+    <tbody>
+      <tr><td><code>__pycache__</code> 10개 디렉터리 (1.0 MB)</td><td>Python이 재생성한다</td></tr>
+      <tr><td><code>.pytest_cache</code> 2곳 · <code>.ruff_cache</code> 2곳 (232 KB)</td><td>도구가 재생성한다</td></tr>
+      <tr><td><code>app/frontend/tsconfig.tsbuildinfo</code> (108 KB)</td><td><code>tsc</code>가 재생성한다 — 삭제 후 재생성과 exit 0을 확인했다</td></tr>
+      <tr><td><code>.DS_Store</code> 2개 (16 KB)</td><td>macOS Finder의 부산물이다</td></tr>
+    </tbody>
+  </table>
+
+  <h3>지우지 않은 것과 그 근거</h3>
+  <p>“미사용처럼 보이지만 실제로는 인용되고 있는” 자산이 여럿이었다. 아래는 <strong>의도적으로 남긴 것</strong>이다.</p>
+  <table>
+    <thead><tr><th>대상</th><th>남긴 근거</th></tr></thead>
+    <tbody>
+      <tr><td><code>.harness/</code> (824 KB, untracked)</td>
+          <td><strong>지우면 증거가 사라진다.</strong> 커밋된 리포트
+              <code>docs/ops/2026-08-26-test-harness-report.html:501·732-733</code>이
+              <code>.harness/evidence/*.json</code>과 <code>.harness/backend*.log</code>를
+              <strong>가장 강한 주장의 원자료로 인용</strong>한다. 대조해 보니 <code>evidence/</code> 22개 파일 중
+              <strong>커밋된 사본이 없는 것이 8건</strong>이고(스크린샷 3개 ·
+              <code>P-tooluse-nova-protocol.json</code> · <code>Q3-*</code> 3개 · <code>A2-r2</code>/<code>B2-r2</code>),
+              이름은 같으나 내용이 다른 것이 5건이다. untracked이므로 git으로 복원할 수도 없다</td></tr>
+      <tr><td><code>.superpowers/sdd/</code> (1.1 MB, untracked)</td>
+          <td>Phase 1 계획 실행 당시의 task brief·report·review diff다. 폐기 스냅샷 HTML 2건이
+              <code>progress.md</code> 경로를 가리킨다. 현행 문서가 참조하지는 않으므로 <strong>처분 여부는 결정이 필요하다</strong></td></tr>
+      <tr><td><code>docs/backup/**</code> (12개 파일)</td>
+          <td>정리 대상이 아니라 <strong>규약이 있는 큐레이션 보관소</strong>다.
+              <code>superseded/voice-architecture.md</code>는 승인된 설계서 3곳이
+              <code>file:line</code> 형태로 인용하고 있어, 한 줄만 더해도 근거가 어긋난다.
+              같은 이름의 파일이 두 곳에 있는 것도 “스냅샷을 덮어쓰지 않는다”는 규약의 결과이며
+              README가 그 사실을 명시한다</td></tr>
+      <tr><td><code>handoff/backup/2026-08-30/</code> (5개 파일)</td>
+          <td>갈래별 handoff 4개를 하나로 합칠 때 만든 백업이고, 현행
+              <code>handoff/HANDOFF.md</code>가 이 경로를 가리킨다</td></tr>
+      <tr><td><code>docs/share/2026-08-27-requirements-v1.1.md</code><br>
+              <code>docs/design/2026-08-30-tasks-md-migration-spec.md</code></td>
+          <td>추적 파일 중 <strong>다른 파일의 참조가 0건인 것은 이 둘뿐</strong>이었으나,
+              전자는 규약이 명시된 공유용 스냅샷이고 후자는 <strong>아직 이행되지 않은 작업 지시서</strong>다.
+              둘 다 미사용이 아니다</td></tr>
+      <tr><td><code>app/frontend/.next/</code> (106 MB)</td>
+          <td>개발 서버가 실제로 쓰는 빌드 캐시다. 지우면 전체 재빌드 비용이 발생하므로 남겼다</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="decisions">
+  <span class="tag">결정 대기</span>
+  <h2>진행하려면 캡틴의 답이 필요한 것</h2>
+  <ol>
+    <li><strong>G-8의 해석</strong> — “두 번 틀리면 두 번 입력 가능하도록”이라는 문구가
+        두 안 중 어느 쪽을 뜻하는지에 따라 스키마 설계가 갈린다. <strong>착수 전 확인이 명시된 유일한 항목</strong>이다.</li>
+    <li><strong>G-4 실물 마이크 세션</strong> — 요청할 차례가 우리 쪽이다.
+        A-5 배지를 올린 직후에 요청하면 한 세션에서 배지 · 판정 품질 · 픽스처를 함께 닫을 수 있다.</li>
+    <li><strong><code>.superpowers/sdd/</code>(1.1 MB)의 처분</strong> — 현행 문서가 참조하지 않는
+        과정 기록이다. 삭제할지, 남길지 결정이 필요하다.</li>
+    <li><strong><code>.harness/</code>의 고유 증거 8건을 커밋할지</strong> — 지금은 untracked이므로
+        디스크가 지워지면 복원 경로가 없는데, 커밋된 리포트가 그 파일들을 인용하고 있다.</li>
+    <li><strong>H-S 다음의 함정을 신설할지</strong> — “게이트 전에 dev DB를 띄운다”는 전제가
+        19건의 함정 목록에 없다.</li>
+  </ol>
+</section>
+
+</main>
+
+<footer>
+  <p>작성 2026-08-31 · 기준 커밋 <code>783050e</code> · 브랜치 <code>design/first-vertical-slice</code>.
+     상태의 정본은 <code>TASKS.md</code>이고 다음 한 걸음은 <code>handoff/HANDOFF.md</code>가 소유한다 —
+     이 문서와 어긋나면 그쪽을 따른다.</p>
+</footer>
+
+</body>
+</html>
