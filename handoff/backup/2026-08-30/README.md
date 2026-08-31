@@ -27,6 +27,17 @@
 | | `tests/harness/**` ruff 6건 | `TASKS.md` E절 · `ROUNDS.md` 5차수 행 |
 | `HANDOFF-fix-session.md` (58줄) | 3차수 "고치는 쪽" 인계 — 그 왕복은 끝났다 | 경과는 `tests/harness/runs/2026-08-26-run-3.md`(차수 기록) |
 
+## 뒤늦게 합류한 파일 — 2026-09-01
+
+| 폐기 파일 | 무엇 | 왜 여기로 |
+|---|---|---|
+| `handoff-to-fix-session-round3.md` (12k) | 3차수에 **테스트 세션 → 수정 세션**으로 보낸 지시서 | 원래 `tests/harness/`에 있었다. 그 왕복은 3차수에 끝났고 O-1 등 잔여 관측은 **2026-08-30에 `TASKS.md` E절로 이관**됐는데 파일만 제자리에 남아 있었다. 캡틴 지시(2026-09-01 "이전 handoff와 최종본이 아닌 것은 backup 폴더로")로 옮겼다 |
+
+**갱신한 참조 1건**: `tests/harness/runs/2026-08-26-run-3.md:5`의 상대 링크를 이 폴더로 돌렸다.
+규약 3(경로만 갱신)에 따라 **문장은 건드리지 않았다.**
+**갱신하지 않은 참조 1건**: 같은 폴더의 `HANDOFF-fix-session.md:5`가 옛 경로를 산문으로 적고 있다 —
+그 파일은 스냅샷이라 사후 편집하지 않는다(규약 1). 이 절이 그 사실을 대신 기록한다.
+
 ## 참조 갱신 결과
 
 옮기면서 깨진 경로를 고쳤다 — **경로만** 고치고 줄 번호는 건드리지 않았다.
@@ -39,5 +50,5 @@
 | `tests/harness/scenarios-P-pronunciation.md` | N5 주입 스크립트 참조 → 이 폴더의 `HANDOFF-test-harness.md` §5 (그 스크립트는 여기밖에 없다) |
 
 **고치지 않은 것 2건** — 둘 다 **스냅샷**이라 규약 1을 적용했다:
-`tests/harness/runs/2026-08-26-run-3.md`(차수 기록) · `tests/harness/handoff-to-fix-session-round3.md`
+`tests/harness/runs/2026-08-26-run-3.md`(차수 기록) · `handoff-to-fix-session-round3.md`(같은 폴더 — 2026-09-01 이동)
 (3차수 인계 원본). 그때의 경로를 그대로 두는 것이 "그 시점의 기록"이다.

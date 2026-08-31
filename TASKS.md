@@ -402,9 +402,34 @@ gate면 제거(hook 포함), 단 검토는 꼭 해."
 
 ✅ **결정 (2026-09-01, 캡틴): (가) 턴 경계까지 모아서 분석한다.**
 화면 표시는 그대로 두고 **분석 입력만** 합친다 — agent가 응답을 시작하면 그 직전까지의 사용자
-final을 하나로 이어 job 1건을 건다. 고칠 자리는 `services/utterances.py:140` 한 곳이다.
+final을 하나로 이어 job 1건을 건다.
 하네스 **N8("실발화 병합 `u1`+`u2`")**이 이미 이 경로를 예정했으므로 검증 시나리오도 있다.
 ⚠️ 착수 전에 5차수를 열지 않는다 — 오탐이 섞인 데이터로 5차수를 판정하면 그 판정이 오염된다.
+
+⚠️ **"고칠 자리는 `utterances.py:140` 한 곳"이라던 앞선 서술은 틀렸다** (2026-09-01 정정).
+합치려면 **턴이 끝났다는 신호**가 필요하고 저장 시점에는 그것을 알 수 없다 — 그 발화가 마지막인지
+아직 모른다. 실제 접점은 **4곳**이다. 코드 확인으로 얻은 좌표:
+
+| # | 어디 | 무엇을 |
+|--:|---|---|
+| 1 | `services/utterances.py:140` (`save_final_transcript`) | 사용자 learning 발화에서 **즉시 enqueue 하지 않는다**. 저장은 그대로 — 화면·`sequence_no`는 건드리지 않는다 |
+| 2 | `services/jobs.py` 또는 `utterances.py` (신설) | **flush 함수** — 세션의 **뒤에서 이어지는 사용자 learning 발화 묶음**(중간에 agent 발화가 없는 구간)을 찾아 그 **마지막 발화 1건에만** job을 건다. 멱등성은 기존 `uq_analysis_jobs_pending_utterance`(001:157)가 이미 준다 |
+| 3 | `audio_gateway/session.py` **두 지점** | ① `_store_final`(`:280-283`)에서 **agent** final을 저장한 직후 flush ② `end_session` 경로(`:154`)에서도 flush. **②가 없으면 마지막 사용자 묶음이 영원히 분석되지 않는다** — 대화가 사용자 발화로 끝나는 것이 정상이다 |
+| 4 | `services/analysis.py` `_LOAD_INPUT_SQL` | 지금은 `u.transcript` 한 건을 읽는다(`select u.transcript, s.user_id … where u.id = $1`). **그 발화로 끝나는 사용자 묶음의 전사문을 이어서** 돌려주게 바꾼다. 여기가 "분석 입력만 합친다"의 실체다 |
+
+**묶음의 정의**: 같은 세션 · `speaker='user'` · `utterance_type='learning'` · `sequence_no`가 연속이며
+사이에 다른 speaker가 없는 최대 구간. `ANALYZED_SPEAKER`·`ANALYZED_UTTERANCE_TYPE`
+상수(`utterances.py:33-35`)를 그대로 쓴다 — enqueue 조건과 갈라지지 않게 두 곳이 같은 상수를 본다.
+
+**T0(red) 계획** — 부재 가드가 되지 않게 **긍정 단정**으로 짠다(함정 H-M):
+① 사용자 발화 3건을 연속 저장하면 job이 **3건이 아니라 0건**이다(flush 전) ②
+agent final 저장 후 job이 **정확히 1건**이고 그 `utterance_id`가 **묶음의 마지막**이다 ③
+`_load_input`이 세 전사문을 **이어붙인 문자열**을 돌려준다 ④ 사용자 발화로 끝난 세션을
+`end_session`하면 job이 1건 생긴다 ⑤ agent 발화가 사이에 끼면 묶음이 **둘로 갈린다**.
+
+**회귀로 지켜야 할 것**: 스텁 모드 E계층 시나리오는 발화 1건마다 job 1건을 기대한다 —
+`inject_errors.py`가 `wait_for_jobs`로 job 수렴을 기다린다. 묶음이 1건이면 동작이 같지만
+**연속 주입 시나리오(E1은 문장 5개)는 job 수가 5 → 1로 줄어든다.** 그 단정을 함께 고친다.
 
 **원인 체인 (관측)**:
 1. `endpointingSensitivity=MEDIUM`이 발화를 이르게 확정했다. **임계는 약 480ms**
@@ -437,8 +462,24 @@ final을 하나로 이어 job 1건을 건다. 고칠 자리는 `services/utteran
   값싸지만 **"i don't know." 같은 정상 단문을 함께 잃는다**.
 - (가)가 데이터를 잃지 않아 더 낫다고 본다. 고칠 자리는 `services/utterances.py:140` 한 곳이다.
 
-**남은 오염 데이터**: 오탐 패턴 2개가 dev DB에 살아 있다. 지울지는 캡틴 결정이다 —
-증거이기도 하고, 두면 다음 세션의 프롬프트·복습 큐에 계속 실린다.
+**오염 데이터 정리 — ✅ 완료 (2026-09-01, 캡틴 지시 "오탐 삭제")**
+
+한 트랜잭션으로 지우고 즉시 대조했다. **전사문·세션·job은 지우지 않았다** — 증거이고
+I-1 수정 후 같은 좌표로 재대조해야 한다.
+
+| 무엇 | 전 → 후 |
+|---|---|
+| `verb_form_missing_subject` · `verb_form_missing_object` | **삭제**(각 100% 조각산). occurrence는 FK `CASCADE`로 함께 |
+| `article_missing_before_noun` | freq **5 → 4** (조각 occurrence 1건만 삭제) |
+| `error_patterns` | 6 → **4** |
+| `error_occurrences` | 15 → **8** |
+| `utterances` · `learning_sessions` · `analysis_jobs` · `pronunciation_attempts` | **51 · 3 · 21 · 3 그대로**(보존) |
+
+검증: 남은 패턴 4개의 **조각 occurrence가 전부 0**이고, 문법 패턴은 `frequency` = occurrence 수로
+일치한다. 발음 시도 3건의 `pattern_id`도 온전하다(`pronunciation_attempts` FK는 `SET NULL`인데
+발음 패턴은 지우지 않았으므로 발동하지 않았다).
+⚠️ `pronunciation_an_as_a`는 freq 1 · occurrence 0인데 **정상**이다 — 발음 패턴은 **시도 수**를
+센다(`docs/database-schema.md:111`). 이 불일치를 버그로 오인하지 마라.
 
 ### I-2. `target_sound` 값역이 계획과 다르다 — 관측 3건 (설계 재검토 필요)
 
