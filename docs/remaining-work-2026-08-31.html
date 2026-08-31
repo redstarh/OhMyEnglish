@@ -96,6 +96,29 @@
 
 <main>
 
+<section id="verdict-note" style="border-color:var(--warn)">
+  <span class="tag" style="background:var(--warn-bg);color:var(--warn)">2026-09-01 갱신</span>
+  <h2>이 보고서는 2026-08-31 스냅샷이다 — 세 항목이 그 뒤 종결됐다</h2>
+  <p class="lead">스냅샷을 덮어쓰지 않는 것이 이 리포의 규약이라 본문은 그대로 두고 여기에 차이만 적는다.
+     <strong>현재 상태의 정본은 <code>TASKS.md</code></strong>이고 다음 한 걸음은
+     <code>handoff/HANDOFF.md</code>가 소유한다.</p>
+  <table>
+    <thead><tr><th>본문이 말하는 것</th><th>2026-09-01 현재</th></tr></thead>
+    <tbody>
+      <tr><td>“즉시 착수: A-5 세션 화면 발음 배지”</td>
+          <td><span class="pill ok">완료</span> 구현했고 실물 마이크로 확인했다. <strong>Task 8도 함께 닫혔다</strong>(§10은 8.5/9)</td></tr>
+      <tr><td>“실물 Nova 왕복이 0회다”(A-3)</td>
+          <td><span class="pill ok">해소</span> <strong>1회 완료.</strong> 기록은 <code>tests/harness/runs/2026-09-01-mic-1.md</code></td></tr>
+      <tr><td>“G-4 마이크 세션 — 승인됨, 실행 대기”</td>
+          <td><span class="pill ok">완료</span> 2026-09-01 실행</td></tr>
+      <tr><td>—</td>
+          <td><span class="pill block">신규</span> 그 세션이 결함 <strong>I-1</strong>을 드러냈다 —
+              조각 발화가 오탐 패턴을 만든다(occurrence 13건 중 7건). 해소 방향은
+              <strong>(가) 턴 경계 병합</strong>으로 확정됐다(캡틴). 함정 <strong>H-U</strong></td></tr>
+    </tbody>
+  </table>
+</section>
+
 <section id="summary">
   <span class="tag">요약</span>
   <h2>남은 작업의 규모</h2>
@@ -158,8 +181,9 @@
   <div class="note danger">
     <strong>그 프레임은 <code>target_sound</code>라는 기계 키를 함께 싣는다. 화면에 렌더하지 않는다.</strong>
     설계서 §10 미결 4의 결정이며, 결과 화면 카드에는 이미 같은 규약이 적용되어 있다.
-    실물 왕복이 0회이므로 관측된 키가 0건이고, 따라서 표시 사전이나 분해 규칙을 지금 만들면
-    그것은 전부 발명값이 된다.
+    ✅ <strong>2026-09-01 갱신</strong>: 실물 왕복 1회로 키 3건이 관측됐다
+    (<code>am_as_i_m</code>·<code>w_as_vw</code>·<code>an_as_a</code>) — 더 이상 전부 발명값은 아니다.
+    다만 <strong>음소 치환이 하나도 없어서</strong> §10이 의도한 “발음”과 어긋나는지가 먼저다(I-2).
   </div>
 
   <div class="note hold">
@@ -185,7 +209,8 @@
       <tr>
         <td><strong>A-3</strong></td>
         <td><span class="pill block">검증 불가</span></td>
-        <td><strong>실물 Nova 왕복이 0회다.</strong> 발음 기능은 단위·통합 테스트만 통과했으므로
+        <td>✅ <strong>2026-09-01: 왕복 1회 완료 — 이 행은 해소됐다.</strong>
+            아래는 그 전의 서술이다. <strong>실물 Nova 왕복이 0회다.</strong> 발음 기능은 단위·통합 테스트만 통과했으므로
             <strong>판정 품질은 미검증</strong>이다. 지시문이 실제로 Nova의 행동을 바꾸는지도
             확인되지 않았다 — 자동으로 고정한 범위는 “문구가 조립되어 전송 페이로드에 실린다”까지다.
             5차수에서 반드시 관측해야 하는 항목으로 실물 tool 스키마가 지정되어 있다</td>
