@@ -9,7 +9,7 @@
 > **추가 규칙**: 항목마다 ① 무엇이 일어났는가 ② 어떻게 알았는가(실측) ③ 대응. 재현 근거가
 > 없으면 넣지 않는다. 번호는 재사용하지 않는다(다른 문서가 `H-x`로 인용한다).
 >
-> 최종 갱신 **2026-08-28**
+> 최종 갱신 **2026-08-31** (H-S · H-T 신설)
 
 ---
 
@@ -18,6 +18,7 @@
 | # | 함정 | 대응 |
 |---|---|---|
 | **H-A** | **게이트의 cwd가 판정의 일부다.** 리포루트에는 ruff 설정이 없어 거기서 돌리면 기본 규칙으로 `check .` **56 errors** · `format --check .` **21 files**가 난다. 회귀가 아니라 다른 규칙셋이다 | 반드시 `cd app/backend` 후 판정한다. 설정 SoT는 `app/backend/pyproject.toml` 하나뿐이다 |
+| **H-T** | **게이트를 돌리기 전에 dev DB를 띄워야 한다 — 안 띄우면 회귀처럼 보인다.** 실측(2026-08-31): `pytest -q`가 **`192 passed, 155 errors`**로 끝났다. 원인은 회귀가 아니라 `OSError: Multiple exceptions: [Errno 61] Connect call failed ('::1', 5433), [Errno 61] Connect call failed ('127.0.0.1', 5433)`이었다 — podman **가상머신 자체가** 내려가 있었고(`podman machine list`의 LAST UP이 2개월 전) `ohmy-pg` 컨테이너도 `Exited`였다. **:5432에 별개의 homebrew `postgresql@17`이 떠 있어서 더 헷갈린다** — 포트가 달라 우리 것이 아니다. 기동 후 **347 passed**로 복귀했다 | 게이트 전에 `podman machine start && scripts/dev_db.sh start`를 돌리고 `podman ps`로 `ohmy-pg`가 `Up`인지 본다. **errors가 100건 넘게 한꺼번에 나면 코드를 의심하기 전에 연결을 의심한다** — 회귀는 이렇게 균일하게 무너지지 않는다. 실제 게이트 기준선은 **347 passed**이고 `192 passed`는 DB 없이 돌 수 있는 부분집합이다 |
 | **H-L** | **선언된 게이트에 구멍이 있다 — `ruff format`이 `tests/`를 보지 않는다.** 게이트는 `ruff format --check .`(cwd `app/backend`)이고 그 범위에 `tests/`가 없다. `ruff check`는 `../../tests`를 따로 돌리도록 문서화됐지만 **format은 그 짝이 없다.** 그래서 테스트 파일의 포맷 위반이 **무증상으로 커밋된다** — 두 태스크가 각각 1건씩 남겼고 코드리뷰가 잡았다 | 테스트를 건드린 커밋 전에 `.venv/bin/ruff format --check ../../tests`를 함께 돌린다. 잔존 **4건**(전부 `tests/harness/*`)이 기준선 — 이 수치가 늘면 내가 만든 것이다 |
 | **H-K** | **`ty`의 검사 범위는 리포루트 `ty.toml`의 `[src] include = ["app/backend/app", "tests"]`다.** `app/backend/` 직하에 둔 파일은 **조용히 검사되지 않는다** — `x: int = "문자열"`도 통과한다. 타입 방어가 실제로 작동하는지 확인하려다 "ty가 못 잡는다"는 **잘못된 결론**을 낼 수 있다(실제로 한 번 냈다) | 타입 가드 검증용 임시 파일은 **`tests/` 안에** 두고 확인 후 지운다. `ty.toml:8`이 `[tool.ty]`를 pyproject에 추가하지 말라고 경고하는 것도 같은 이유다 |
 | **H-F** | `ty`는 `tests/`까지 본다. 억제 주석은 **오류가 보고되는 그 줄**에 붙여야 한다 — 호출 첫 줄에 붙이면 `unused-ignore` 경고가 난다 | `bogus=1,  # ty: ignore[unknown-argument]` |

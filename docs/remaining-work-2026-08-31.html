@@ -421,18 +421,21 @@ npx eslint app lib                                   → 무출력 (exit 0)</div
           <td>우리 <code>public</code> 13개 표(우리 10 + 하네스 3), <code>ec_</code> 접두어 오염 <strong>0건</strong>.
               <strong><code>en_coach</code> 스키마는 14개 표</strong>(<code>ec_*</code> 13 + 자기 <code>schema_migrations</code>)로
               <strong>기록된 10개보다 늘었다</strong> — En-Coach가 자기 스키마 안에서 진도를 낸 결과이며 규칙 위반은 없다</td></tr>
-      <tr><td>실측된 함정</td><td class="num">19건 (H-A ~ H-S)</td></tr>
+      <tr><td>실측된 함정</td><td class="num">20건 (H-A ~ H-T) — H-T는 2026-08-31 신설</td></tr>
       <tr><td>추적 파일</td><td class="num">174개</td></tr>
     </tbody>
   </table>
 
   <div class="note danger">
-    <strong>게이트를 돌리기 전에 dev DB를 띄워야 한다. 이 전제가 함정 목록에 없다.</strong>
+    <strong>게이트를 돌리기 전에 dev DB를 띄워야 한다</strong>
+    (2026-08-31 캡틴 지시로 <strong>함정 H-T</strong>로 신설했다).
     이번에 <code>pytest</code>의 첫 실행이 <strong>192 passed · 155 errors</strong>로 끝났는데,
     원인은 회귀가 아니라 <code>localhost:5433</code>의 연결 거부였다.
     podman 가상머신과 <code>ohmy-pg</code> 컨테이너가 함께 내려가 있었고,
     <code>podman machine start</code>와 <code>scripts/dev_db.sh start</code>를 거친 뒤 347로 복귀했다.
     재부팅 후 첫 세션이 이 155 errors를 <strong>회귀로 오진할 수 있는 자리</strong>다.
+    판별 규칙은 <strong>errors가 100건 넘게 한꺼번에 나면 코드보다 연결을 먼저 의심하는 것</strong>이다 —
+    회귀는 이렇게 균일하게 무너지지 않는다.
   </div>
 
   <h3>미사용 파일 정리 — 삭제한 것</h3>
@@ -525,9 +528,11 @@ npx eslint app lib                                   → 무출력 (exit 0)</div
       </tr>
       <tr>
         <td><strong>“게이트 전 dev DB 기동”을 함정으로 신설할지</strong></td>
-        <td><span class="pill wait">되묻는 중</span></td>
-        <td>질문의 뜻을 확인하고 있다. 현재는 <code>handoff/HANDOFF.md</code>의 진입 절차에만 적혀 있고
-            <code>docs/ops/pitfalls.md</code>의 19건에는 없다</td>
+        <td>“함정 H-T로 적어라”</td>
+        <td><strong><code>docs/ops/pitfalls.md</code>에 H-T를 신설했다</strong>(게이트·검사 도구 절, H-A 바로 뒤).
+            판별 규칙까지 적었다 — <strong>errors가 100건 넘게 한꺼번에 나면 코드보다 연결을 먼저 의심한다.
+            회귀는 이렇게 균일하게 무너지지 않는다.</strong> 함정은 19건에서 <strong>20건</strong>이 되었다.
+            <code>:5432</code>에 별개의 homebrew <code>postgresql@17</code>이 떠 있어 더 헷갈린다는 사실도 함께 적었다</td>
       </tr>
     </tbody>
   </table>

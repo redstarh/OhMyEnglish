@@ -124,7 +124,7 @@ cd ../frontend && npx tsc --noEmit && npx eslint app lib   # 둘 다 무출력(c
 2. 게이트를 `app/backend` cwd에서 돌려 위 실측값과 대조한다. **다르면 그 차이를 먼저 설명한다.**
    ⚠️ **게이트 전에 dev DB를 띄운다** — `podman machine start && scripts/dev_db.sh start`.
    내려가 있으면 `pytest`가 **192 passed · 155 errors**로 끝난다(2026-08-31 실측). 원인은
-   회귀가 아니라 `localhost:5433` 연결 거부다 — **회귀로 오진하지 마라.**
+   회귀가 아니라 `localhost:5433` 연결 거부다 — **회귀로 오진하지 마라.** 상세는 함정 **H-T**.
 3. Nova를 건드리면 `spike_nova_protocol.py --wav p1a.wav`로 자격증명 생존을 먼저 확인한다.
 4. 계획서를 열면 **머리말의 "구현 후 정정" 표를 먼저 읽는다** — 본문 코드 블록 5건이 낡았고,
    테스트 헬퍼 이름은 추측이라 실재하지 않는다(함정 H-N).
