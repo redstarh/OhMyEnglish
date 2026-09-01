@@ -9,7 +9,7 @@
 > | 요구사항 | `docs/PRD.md` v1.1 |
 > | 결정과 근거 | `docs/design/**` |
 > | 실행 방법·포트·게이트 | **`docs/ops/local-run.md`** |
-> | 실측된 함정 | `docs/ops/pitfalls.md` (H-A~H-W, 23건) |
+> | 실측된 함정 | `docs/ops/pitfalls.md` (H-A~H-X, 24건) |
 > | 하네스 차수 | `tests/harness/runs/ROUNDS.md` · `tests/harness/README.md` |
 > | **실물 마이크 절차·결과** | **`tests/harness/runs/2026-09-01-mic-1.md`** ← 마이크를 쓸 거면 이것부터 |
 > | 5개 층 일관성 점검 | `docs/consistency-audit-2026-09-01.html` |
@@ -81,6 +81,9 @@ nova 세션에서 발음 표시가 없으면 그때는 조사할 일이다.
 ```bash
 cd app/backend                                    # 게이트는 이 cwd에서만 판정한다 (함정 H-A)
 .venv/bin/pytest -q                               # 365 passed  (부분 실행은 -c pyproject.toml — 함정 H-W)
+# ⚠️ 게이트를 `| tail`로 파이프하지 마라 — exit code가 tail의 것이 되어 실패가 && 체인을
+#    통과한다(실측 사고 1건). ⚠️ 리뷰를 subagent에 위임한 동안 게이트를 겹쳐 돌리지 마라 —
+#    테스트 DB는 실행마다 DROP/CREATE되는 공유 자원이다 (함정 H-X).
 .venv/bin/ruff check . && .venv/bin/ruff format --check .   # passed / 27 files formatted
 ty check                                          # All checks passed!
 .venv/bin/ruff check ../../tests ../../scripts    # Found 6 errors  (베이스라인, 게이트 밖)
