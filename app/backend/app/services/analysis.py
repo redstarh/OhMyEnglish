@@ -208,6 +208,9 @@ run as (
              end as from_seq
         from target t
 )
+-- ⚠️ 아래 `order by u.sequence_no`를 지우지 말 것 — 제거해도 전체 스위트가 통과한다.
+-- 근거(왜 테스트로 덮을 수 없고 왜 그래도 필요한가)는 `tests/integration/test_pipeline.py`의
+-- ⚠️ 블록이 소유한다. 지우면 학습자가 뒤섞인 어순의 문장으로 교정을 받는다.
 select (select string_agg(u.transcript, ' ' order by u.sequence_no)
           from utterances u
          where u.session_id = r.session_id

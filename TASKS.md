@@ -479,6 +479,28 @@ T0 red를 구현 전에 실제로 관측했다. 정직하게 센 것:
 계획이 Bitmap Heap Scan이나 병렬 Seq Scan으로 바뀌면 어순이 깨지고, 그때 학습자는 뒤섞인
 문장으로 교정을 받는다. 같은 이유로 `flush`의 `order by r.session_id, r.sequence_no`도 미검증이다.
 
+**코드 리뷰 재검증 결과 — ✅ Approve (2026-09-02)**. CRITICAL·HIGH **0건**. 리뷰어가 독립적으로
+게이트를 돌려 `365 passed`·ruff·format·ty clean·베이스라인 6 errors/4 files 전부 내 수치와
+일치했고, HIGH 1 수정을 같은 재현 스크립트로 재검증했다(수정 전 `acquire=1 / RuntimeError /
+close=False / 기록=[]` → 수정 후 `acquire=2 / 예외 None / close=True / 기록 2건`).
+뮤테이션 4건(`partition by` 제거 · `active` 필터 무력화 · `else 1` · 스윕 no-op) **전부 죽었다**.
+
+재검증에서 나온 신규 지적 3건 처리:
+
+| # | 무엇 | 처리 |
+|--:|---|---|
+| MEDIUM 9 | `flush_ended_sessions` docstring이 **"그 전에 프로세스 사망"까지 덮는다고 주장**했는데 거짓이다 — 죽으면 세션이 `active`로 남고 스윕은 정의상 `active`를 건너뛴다 | ✅ docstring을 "러너가 `_close_and_record`까지 도달했으나 flush가 실패한 경우"로 좁혔다. 못 덮는 것을 ⚠️로 명시하고 **별건 `I-4`** 신설 |
+| LOW 10 | `utterances.py`의 `order by`도 같은 미검증 상태인데 경고가 없었다 | ✅ 그 줄 옆에 경고 추가 |
+| LOW 11 | "지우지 말 것" 경고가 지워질 코드(`analysis.py`) 옆이 아니라 테스트 파일에만 있었다 | ✅ `_LOAD_INPUT_SQL` 바로 위에 포인터 추가 |
+
+**MEDIUM 5 후속 — 텍스트 tripwire를 넣었다** (리뷰어 제안 수용).
+`test_merge_sql_keeps_its_explicit_ordering`(`tests/unit/test_analysis.py`)이 두 SQL의
+집계식 전체를 문자열로 단정한다. 행동은 못 잡지만 진짜 위험인 "정리 중 조용히 지워지는 것"은
+잡는다. 이 리포에는 소스 텍스트 단정 선례가 있다(`test_gateway.py:768`).
+⚠️ **처음 쓴 tripwire는 실패할 수 없는 것이었다** — 경고 주석이 같은 SQL 문자열 안에 있어서
+`"order by u.sequence_no"`만 찾으면 실제 `order by`를 지워도 주석이 남아 통과했다. 집계식
+전체를 단정하도록 고치고 두 `order by`를 실제로 지워 red를 확인했다.
+
 **리뷰가 확인하고 "결함 아님"으로 판정한 것** (다시 조사하지 말 것): occurrence가 묶음의
 마지막 발화를 가리키는 것은 **화면에 새지 않는다** — `results.py`는 `eo.original_span`만 싣고
 프론트도 그것만 렌더한다(`utteranceId`는 TS 코드에 없다). `pending_learning_utterances`의 의미
@@ -631,6 +653,31 @@ I-1 수정 후 같은 좌표로 재대조해야 한다.
 `set_result`) 1건 + `Treating Python exception as error 3(AWS_ERROR_UNKNOWN)`.
 **우리 코드가 아니다.** 세션은 `completed`, 결과 API 200, 발음 저장 실패 로그 0건 —
 시도 3건 전부 저장됐다. 로그 노이즈로만 다룬다.
+
+### I-4. `active` 고아 세션에는 회복 경로가 없다 — ⏭ 대기 (2026-09-02 신설, I-1 코드 리뷰가 발견)
+
+**종료 기록 전에 프로세스가 죽으면 그 세션은 `active`로 영구히 남는다.** `end_session`이
+돌지 않으므로 `status='active'`이고, I-1의 회복 스윕(`flush_ended_sessions`)은 **정의상
+`active`를 건너뛴다** — 건너뛰지 않으면 진행 중 세션의 자라는 묶음을 걸어 I-1 결함을
+되살리기 때문이다. 그래서 그 세션의 사용자 발화 묶음은 아무도 걷지 않는다.
+
+**증상은 I-1 HIGH 2와 같다**: 턴 경계 flush가 한 번도 안 걸린 채(첫 agent final 이전)
+죽으면 job이 0건이고, `results.py` 규칙 2 → 프론트 terminal `no_utterances`
+("분석 대상 없음")에 고정된다. **I-1 이전에는 이 경우도 발화마다 job이 있어 워커가 나중에
+처리했다** — 즉 좁지만 실재하는 미해소 회귀다.
+
+확인한 것 (2026-09-02): 앱 코드에 **`'active'` 리터럴이 한 곳도 없다**(grep) — 고아 세션을
+정리하는 기동 리퍼나 스윕이 없다. 실 DB의 `active` 세션은 현재 **0건**이라 아직 관측된
+피해는 없다.
+
+**착수 전 결정 필요 (캡틴)**: "얼마나 오래 `active`면 죽은 것으로 본다"는 **새 설계 발명값**이
+필요하다. 이것이 I-1 범위에서 빠진 이유다. 후보 — ① 기동 시 `active` 전부를 `failed`로
+닫는다(단일 사용자·단일 프로세스라 기동 시점에 살아 있는 세션은 없다. 가장 단순하고
+발명값이 없다) ② `started_at`이 N분보다 오래된 `active`를 닫는다(N이 발명값). ①이면
+그 뒤 스윕이 자동으로 묶음을 걷는다 — 리퍼가 `failed`로 닫으면 스윕 대상이 되기 때문이다.
+
+⚠️ 어느 쪽이든 **진행 중인 실제 세션을 닫지 않는지**가 유일한 위험이다. ①은 기동 시점에만
+돌므로 그 위험이 구조적으로 없다.
 
 ---
 

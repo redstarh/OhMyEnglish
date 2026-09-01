@@ -184,6 +184,11 @@ enqueued as (
 select e.utterance_id
   from enqueued e
   join run_ends r on r.id = e.utterance_id
+ -- ⚠️ 이 order by를 지우지 말 것. 제거해도 전체 스위트가 통과한다(실측) — 물리 행
+ -- 순서를 테스트에서 통제할 수 없기 때문이고, 불필요하다는 뜻이 아니다. 근거와
+ -- 같은 계열의 가드는 `services/analysis.py` `_LOAD_INPUT_SQL`과
+ -- `tests/integration/test_pipeline.py`의 ⚠️ 블록이 소유한다. 텍스트 tripwire는
+ -- `tests/unit/test_analysis.py`에 있다.
  order by r.session_id, r.sequence_no
 """
 
@@ -233,21 +238,29 @@ async def flush_ended_sessions(conn: asyncpg.Connection) -> list[UUID]:
     """**끝난** 세션에서 job이 없는 묶음을 걷어 등록한다 — I-1의 회복 경로.
 
     `flush_pending_analysis`와 같은 묶음 정의를 쓰고(`_RUN_END_FLUSH_TEMPLATE`) 대상
-    세션만 다르다. 존재 이유: 세션 종료 경로의 flush는 실패할 수 있고(연결 획득 실패·
-    SQL 오류·그 전에 프로세스 사망) 그러면 그 묶음을 다시 걸어줄 사람이 없다. 잃으면
+    세션만 다르다. 존재 이유: **러너가 `_close_and_record`까지 도달했는데 그 flush가
+    실패한 경우**(연결 획득 실패·SQL 오류)에 그 묶음을 다시 걸어줄 사람이 없다. 잃으면
     결과 화면이 **terminal** 상태 `no_utterances`("분석 대상 없음")를 띄운다
     (`services/results.py` 규칙 2 → 프론트가 폴링을 멈춘다) — 45초를 말한 사용자가
     영구히 그 화면을 본다.
+
+    ⚠️ **이 함수가 덮지 못하는 것: 종료 기록 전에 프로세스가 죽는 경우.** 그러면
+    `end_session`이 돌지 않아 세션이 `active`로 남고, 이 스윕은 정의상 `active`를
+    건너뛰므로 그 묶음은 **영구히** 걷히지 않는다. 같은 증상(terminal
+    `no_utterances`)이 남는다. 해소에는 `active` 고아 세션 리퍼가 필요하고, 그것은
+    "얼마나 오래 `active`면 죽은 것인가"라는 새 발명값을 요구해 I-1 범위 밖이다 —
+    별건으로 `TASKS.md` **I-4**가 소유한다. 코드 리뷰가 잡은 과대 주장이다.
 
     **`active` 세션을 포함하지 않는 것이 이 함수의 안전성 전부다.** 진행 중 세션의
     마지막 묶음은 사용자가 말하는 중이라 아직 자란다. 그것을 걸면 조각 하나가 완전한
     문장처럼 분석되는 I-1 결함이 되살아난다 — 고치려던 것을 회복 경로가 되돌리는 셈이다.
 
     비용: 끝난 세션의 발화를 훑는 seq scan 1회다. 워커는 **큐가 비었을 때만** 부르므로
-    (`workers/analysis_worker.py`) 분석이 밀리는 동안에는 돌지 않는다. 단일 사용자
-    로컬 도구 기준으로 이 비용을 받아들였다 — 이력이 커져 문제가 되면 그때 좁힌다.
-    시간 창으로 자르지 않은 이유는 워커가 그 창보다 오래 내려가 있으면 **조용히**
-    묶음을 잃기 때문이다.
+    (`workers/analysis_worker.py`) 분석이 밀리는 동안에는 돌지 않는다 — 단 **유휴
+    정상 상태에서는 poll 주기마다 돈다**(기본 1초 = 1 Hz). 실측(코드 리뷰,
+    `explain analyze`): Execution Time **0.400 ms**. 단일 사용자 로컬 도구 기준으로
+    이 비용을 받아들였다 — 이력이 커져 문제가 되면 그때 좁힌다. 시간 창으로 자르지
+    않은 이유는 워커가 그 창보다 오래 내려가 있으면 **조용히** 묶음을 잃기 때문이다.
     """
     records = await conn.fetch(
         _FLUSH_ENDED_SESSIONS_SQL,

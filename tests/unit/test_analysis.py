@@ -21,6 +21,8 @@ from app.models.analysis import (
     AnalysisValidationError,
     ErrorFinding,
 )
+from app.services import analysis as analysis_module
+from app.services import utterances as utterances_module
 from app.services.analysis import (
     PROMPT_CATEGORIES,
     UNJUDGEABLE_CATEGORY,
@@ -265,3 +267,25 @@ def test_resolve_pattern_keys_leaves_the_rest_of_the_finding_untouched():
 
 def test_resolve_pattern_keys_returns_empty_findings_unchanged():
     assert resolve_pattern_keys(AnalysisResult(findings=[]), EXISTING).findings == []
+
+
+# --- I-1 어순 tripwire ---
+#
+# 병합 어순을 지키는 것은 두 SQL의 `order by`뿐인데 **행동 테스트로 덮을 수 없다**:
+# 제거 뮤테이션이 전체 스위트를 통과한다. 물리 행 순서를 테스트에서 통제할 수 없기
+# 때문이다(계획은 Seq Scan이고 FSM이 지운 행의 빈 공간을 재사용한다 — 근거는
+# `tests/integration/test_pipeline.py`의 ⚠️ 블록).
+#
+# 그래서 **행동이 아니라 텍스트를 단정한다.** 계획이 바뀌어 실제 어순이 깨지는 것은
+# 못 잡지만, 진짜 위험인 "정리 중에 조용히 지워지는 것"은 정확히 잡는다. 이 리포는
+# 이미 소스 텍스트를 단정하는 선례가 있다(`test_gateway.py`의 어댑터 격리 검사).
+def test_merge_sql_keeps_its_explicit_ordering():
+    # ⚠️ 단정은 **집계식 전체**를 본다. 두 SQL에는 "지우지 말 것" 경고 주석이 같은
+    # 문자열 안에 들어 있어서, `"order by u.sequence_no"`만 찾으면 실제 `order by`를
+    # 지워도 주석이 남아 통과한다 — 실패할 수 없는 tripwire는 없는 것보다 나쁘다.
+    assert "string_agg(u.transcript, ' ' order by u.sequence_no)" in (
+        analysis_module._LOAD_INPUT_SQL
+    ), "분석 입력 병합의 어순이 사라졌다 — 학습자가 뒤섞인 문장으로 교정을 받는다"
+    assert "\n order by r.session_id, r.sequence_no\n" in (
+        utterances_module._RUN_END_FLUSH_TEMPLATE
+    ), "flush 반환 순서 계약(`sequence_no` 순)이 SQL에서 사라졌다"
