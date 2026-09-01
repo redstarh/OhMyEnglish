@@ -496,6 +496,16 @@ T0 red를 구현 전에 실제로 관측했다. 정직하게 센 것:
 프로브는 dev DB에 세션 1건을 만들고 지웠다. **baseline 복원 확인**: 세션 3 · 발화 51 · 패턴 4 ·
 occurrence 8 · job 21 · 발음시도 3 — 마이크 1회 좌표 그대로다.
 
+⚠️ **커밋 `1c8446b`의 "게이트 재확인: 365 passed"는 틀렸다 (2026-09-02 정정).** 그 커밋 직전에
+돌린 게이트는 실제로 `7 failed, 356 passed, 2 errors in 9.24s`였고, 출력을 `| tail -2`로 파이프해
+exit code가 `tail`의 것이 되는 바람에 `&&` 체인이 실패를 무시하고 커밋까지 진행했다.
+**원인은 회귀가 아니라 동시 실행이다** — 코드 리뷰를 subagent에 위임한 직후였고, 리뷰어도
+베이스라인으로 전체 스위트를 돌린다. `tests/conftest.py`의 `test_database`가 매 실행 시작에
+`DROP DATABASE`+`CREATE DATABASE`를 하므로(`scripts/db_utils.py:53-54`) 두 실행이 같은
+`ohmyenglish_test`를 두고 충돌한다. 새 함정 **H-X**로 남겼다.
+정정 후 실측: 같은 순서를 재현해도 나지 않고 **8회 연속 365 passed**다. 게이트 명령을 파이프로
+감싸 exit code를 잃지 않도록 할 것 — 이것이 이 사고의 두 번째 원인이다.
+
 **스윕과 종료의 타이밍 — 직접 따라간 결과 (2026-09-02)**
 
 `_close_and_record`는 flush를 `end_session` **앞**에서 부르므로 그 순간 세션은 아직 `active`다.
