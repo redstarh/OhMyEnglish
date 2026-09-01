@@ -21,7 +21,7 @@ import base64
 import inspect
 from collections.abc import AsyncIterator
 from types import ModuleType
-from typing import Any
+from typing import Any, cast
 from uuid import UUID
 
 import asyncpg
@@ -149,6 +149,26 @@ class ScriptedAdapter:
         self.closed = True
 
 
+class FlakyPool:
+    """`acquire()`의 **N번째 호출만** 실패시키는 pool 프록시.
+
+    `SessionRunner`가 pool에서 쓰는 것은 `acquire()` 하나뿐이라 이 대역으로 충분하다.
+    `asyncpg.Pool` 인스턴스에 monkeypatch를 걸지 않는 이유는 그쪽이 `__slots__`를
+    쓸 수 있어 속성 치환이 구현 세부에 의존하기 때문이다 — 프록시는 그 가정이 없다.
+    """
+
+    def __init__(self, inner: asyncpg.Pool, *, fail_on: int) -> None:
+        self._inner = inner
+        self._fail_on = fail_on
+        self.calls = 0
+
+    def acquire(self, *args: Any, **kwargs: Any) -> Any:
+        self.calls += 1
+        if self.calls == self._fail_on:
+            raise RuntimeError("injected pool.acquire failure")
+        return self._inner.acquire(*args, **kwargs)
+
+
 class OrderSpyAdapter:
     """픽스처 스텁을 감싸 `close()` 호출 시점만 기록한다 (G1 순서 단정용)."""
 
@@ -221,6 +241,89 @@ async def test_fixture_run_saves_user_finals_and_enqueues_three_jobs(db_pool, co
     assert len(rows) == len(FIXTURE_TURNS) * 2
     # 분석 job은 사용자 발화에만 붙는다 (W6).
     assert await _job_count(db_pool, committed_session.session_id) == len(FIXTURE_TURNS)
+
+
+# I-1 T0④ — 대화가 사용자 발화로 끝나는 것이 정상이다. agent final이 뒤따르지
+# 않으므로 턴 경계 flush가 걸리지 않고, 종료 경로에서 한 번 더 flush하지 않으면
+# 마지막 묶음은 영원히 분석되지 않는다.
+async def test_session_ending_with_user_speech_enqueues_its_analysis_on_close(
+    db_pool, committed_session
+):
+    adapter = ScriptedAdapter(
+        TranscriptEvent(kind="final", text="i'm going to", speaker="user"),
+        TranscriptEvent(kind="final", text="have a meeting.", speaker="user"),
+    )
+
+    await asyncio.wait_for(
+        _runner(adapter, db_pool, committed_session.session_id, FakeClient()).run(), timeout=5.0
+    )
+
+    assert await _job_count(db_pool, committed_session.session_id) == 1
+    async with db_pool.acquire() as conn:
+        target = await conn.fetchval(
+            "select u.sequence_no from analysis_jobs j join utterances u on u.id = j.utterance_id "
+            "where u.session_id = $1",
+            committed_session.session_id,
+        )
+    assert target == 2, "job은 묶음의 **마지막** 발화에 걸려야 한다 (병합 입력의 기준점)"
+
+
+# I-1 T3 — flush가 터져도 대화와 종료 기록은 살아남는다.
+# 저장과 등록이 갈라진 뒤(`save_final_transcript`가 더 이상 enqueue하지 않는다)
+# 남은 위험은 flush 실패가 이벤트 펌프나 종료 경로를 끌고 내려가는 것이다. 분석
+# 1건을 잃는 편이 전사문을 잃거나 세션을 `active` 고아로 남기는 것보다 낫다.
+async def test_a_failing_flush_loses_only_the_analysis_not_the_session(
+    db_pool, committed_session, monkeypatch: pytest.MonkeyPatch
+):
+    async def boom(conn: asyncpg.Connection, session_id: UUID) -> list[UUID]:
+        raise RuntimeError("injected flush failure")
+
+    monkeypatch.setattr(session_module, "flush_pending_analysis", boom)
+    client = FakeClient()
+
+    await asyncio.wait_for(
+        _runner(StubVoiceAdapter(), db_pool, committed_session.session_id, client).run(),
+        timeout=5.0,
+    )
+
+    assert client.types[-1] == "session_ended"
+    session = await _session_row(db_pool, committed_session.session_id)
+    assert session["status"] == "completed"
+    assert session["ended_at"] is not None
+    # 전사문은 한 행도 잃지 않는다 — 질문 3 + 응답 3.
+    assert len(await _utterances(db_pool, committed_session.session_id)) == len(FIXTURE_TURNS) * 2
+    assert await _job_count(db_pool, committed_session.session_id) == 0
+
+
+# I-1 T3 보강 — flush의 **연결 획득**이 실패해도 close와 종료 기록은 반드시 돈다.
+# 위 테스트는 `flush_pending_analysis`만 raise시키므로 acquire 실패 경로를 덮지 못한다.
+# 코드 리뷰가 가짜 pool로 실측한 결함이다: acquire를 가드 밖에 두면 `adapter.close()`가
+# 한 번도 불리지 않고(실물에서는 Nova 양방향 스트림 누수) 세션이 `active` 고아로 남는다.
+async def test_a_failing_flush_connection_still_closes_the_adapter_and_records_the_end(
+    db_pool, committed_session
+):
+    adapter = ScriptedAdapter(
+        TranscriptEvent(kind="final", text="i'm going to have a meeting.", speaker="user")
+    )
+    # acquire 순서: ① 발화 저장 ② 종료 경로 flush ③ 종료 기록. ②만 실패시킨다.
+    pool = FlakyPool(db_pool, fail_on=2)
+    # `asyncpg.Pool`은 Protocol이 아니라 구상 클래스라 프록시가 구조적으로 맞지 않는다.
+    # 러너가 쓰는 것은 `acquire()` 하나뿐이므로 여기서만 좁힌다.
+    await asyncio.wait_for(
+        _runner(
+            adapter, cast(asyncpg.Pool, pool), committed_session.session_id, FakeClient()
+        ).run(),
+        timeout=5.0,
+    )
+
+    assert pool.calls >= 3, "종료 기록 acquire까지 도달하지 못했다 — 앞에서 터졌다"
+    assert adapter.closed, "flush 연결 획득 실패가 어댑터 정리를 건너뛰었다"
+    session = await _session_row(db_pool, committed_session.session_id)
+    assert session["status"] == "completed", "세션이 active 고아로 남았다"
+    assert session["ended_at"] is not None
+    # 잃는 것은 분석 job 하나뿐이다 — 전사문은 남는다.
+    assert len(await _utterances(db_pool, committed_session.session_id)) == 1
+    assert await _job_count(db_pool, committed_session.session_id) == 0
 
 
 # ① 보강 — 같은 완주에서 클라이언트가 받는 프로토콜(순서·필드·base64)

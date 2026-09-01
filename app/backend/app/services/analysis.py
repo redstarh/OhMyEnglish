@@ -39,6 +39,7 @@ from app.models.analysis import (
     parse_analysis,
 )
 from app.services.jobs import ClaimedJob, complete, fail_or_retry
+from app.services.utterances import ANALYZED_SPEAKER, ANALYZED_UTTERANCE_TYPE
 from app.workers.claude_client import ClaudeClient
 
 logger = logging.getLogger(__name__)
@@ -178,11 +179,41 @@ def build_prompt(transcript: str, existing_patterns: list[PatternRow]) -> str:
 
 # --- 결과 저장 (§5.2 replace + frequency 재계산) ---
 
+# 분석 입력은 발화 1건이 아니라 **그 발화로 끝나는 사용자 발화 묶음**이다 (I-1).
+# 묶음의 시작은 "직전의 분석 대상 아닌 발화 다음"이다 — 그 사이는 전부 사용자
+# learning 발화이므로 범위 조건만으로 잘라낼 수 있다. 대상 발화가 분석 대상이
+# 아니면(직접 등록된 job) 병합하지 않고 그 발화 하나만 읽어 이전 동작을 유지한다.
+# 묶음 정의의 소유자는 `services/utterances.py`다 — 상수를 여기서 다시 적지 않는다.
 _LOAD_INPUT_SQL = """
-select u.transcript, s.user_id
-  from utterances u
-  join learning_sessions s on s.id = u.session_id
- where u.id = $1
+with target as (
+      select u.id, u.session_id, u.sequence_no, s.user_id,
+             (u.speaker = $2 and u.utterance_type = $3) as analyzable
+        from utterances u
+        join learning_sessions s on s.id = u.session_id
+       where u.id = $1
+),
+run as (
+      select t.user_id,
+             t.session_id,
+             t.sequence_no as to_seq,
+             case
+               when t.analyzable then coalesce(
+                      (select max(prior.sequence_no)
+                         from utterances prior
+                        where prior.session_id = t.session_id
+                          and prior.sequence_no < t.sequence_no
+                          and not (prior.speaker = $2 and prior.utterance_type = $3)),
+                      0) + 1
+               else t.sequence_no
+             end as from_seq
+        from target t
+)
+select (select string_agg(u.transcript, ' ' order by u.sequence_no)
+          from utterances u
+         where u.session_id = r.session_id
+           and u.sequence_no between r.from_seq and r.to_seq) as transcript,
+       r.user_id
+  from run r
 """
 
 _EXISTING_PATTERNS_SQL = """
@@ -297,7 +328,9 @@ def resolve_pattern_keys(
 
 
 async def _load_input(conn: asyncpg.Connection, utterance_id: UUID) -> _AnalysisInput | None:
-    record = await conn.fetchrow(_LOAD_INPUT_SQL, utterance_id)
+    record = await conn.fetchrow(
+        _LOAD_INPUT_SQL, utterance_id, ANALYZED_SPEAKER, ANALYZED_UTTERANCE_TYPE
+    )
     if record is None:
         return None
     return _AnalysisInput(

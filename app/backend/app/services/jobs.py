@@ -91,9 +91,14 @@ async def enqueue_analyze(conn: asyncpg.Connection, utterance_id: UUID) -> UUID 
     queued for this utterance.
 
     `on conflict do nothing` (rather than letting the unique violation raise)
-    is deliberate: the caller in `utterances.save_final_transcript` runs inside
-    the same transaction as the transcript insert, and a raised violation would
-    abort that transaction — losing the transcript over a duplicate job.
+    is deliberate: **호출자가 다른 쓰기와 한 트랜잭션에 있을 수 있고**, 올라온
+    violation은 그 트랜잭션을 abort시켜 중복 job 하나 때문에 무관한 쓰기를 잃게
+    한다. ⚠️ **원래 근거는 `utterances.save_final_transcript`가 전사문 insert와
+    같은 트랜잭션에서 이것을 부른다는 것이었는데, 그 호출자는 I-1(2026-09-01)에서
+    사라졌다** — 지금 앱 코드에 이 함수의 호출처는 없고(등록은
+    `utterances.flush_pending_analysis`의 SQL이 직접 한다) 남은 호출처는 재분석
+    경로(하네스 E6·테스트)다. 그래도 위 이유는 유효하므로 유지한다: 재분석을
+    다른 쓰기와 묶어 부르는 호출자가 생기면 같은 함정을 다시 만난다.
     """
     return await conn.fetchval(
         """

@@ -24,7 +24,11 @@ from conftest import default_finding, job_row
 from app.audio_gateway.fixtures import FIXTURE_TURNS
 from app.services.analysis import PatternRow, build_prompt, load_existing_patterns, process_analysis
 from app.services.jobs import LEASE, ClaimedJob, enqueue_analyze
-from app.services.utterances import UtteranceRow, save_final_transcript
+from app.services.utterances import (
+    UtteranceRow,
+    flush_pending_analysis,
+    save_final_transcript,
+)
 from app.workers.analysis_worker import claim_one
 from app.workers.claude_client import FakeClaudeClient
 
@@ -40,10 +44,32 @@ def _response(*findings: dict[str, Any]) -> str:
     return json.dumps({"findings": list(findings)})
 
 
-async def _save(pool: asyncpg.Pool, session_id: UUID, text: str) -> UtteranceRow:
-    """확정 전사문 저장 + job 등록 (커밋된다)."""
+AGENT_ACK = "Tell me more."
+
+
+async def _save(
+    pool: asyncpg.Pool, session_id: UUID, text: str, *, close_turn: bool = True
+) -> UtteranceRow:
+    """사용자 확정 전사문 저장 + **턴 닫기**까지 (커밋된다). 반환값은 사용자 발화 행.
+
+    I-1 이후 분석 job은 저장이 아니라 턴 경계에서 걸린다 — 사용자 발화만 저장하면
+    claim할 job이 없다. 게이트웨이와 같은 순서로(`audio_gateway/session.py`) agent
+    final을 하나 끼워 턴을 닫고 flush한다. 그래서 세션의 `sequence_no`는 user 1 ·
+    agent 2 · user 3 …으로 번갈아 오른다. `enqueue_analyze`를 직접 부르지 않는
+    이유는 그러면 병합 경로를 우회해 실제와 다른 입력을 검증하기 때문이다.
+
+    `close_turn=False`면 턴을 열어 둔다 — 쪼개진 조각을 쌓는 시나리오용이다.
+    """
     async with pool.acquire() as conn:
-        return await save_final_transcript(conn, session_id, text)
+        row = await save_final_transcript(conn, session_id, text)
+        if close_turn:
+            await _close_turn(conn, session_id)
+    return row
+
+
+async def _close_turn(conn: asyncpg.Connection, session_id: UUID) -> None:
+    await save_final_transcript(conn, session_id, AGENT_ACK, speaker="agent")
+    await flush_pending_analysis(conn, session_id)
 
 
 async def _claim(pool: asyncpg.Pool) -> ClaimedJob:
@@ -81,6 +107,58 @@ async def _job_row(pool: asyncpg.Pool, job_id: UUID) -> asyncpg.Record:
         return await job_row(conn, job_id)
 
 
+# I-1 T0③ — 쪼개진 사용자 final 묶음은 **이어붙인 한 문장**으로 분석된다.
+# 조각을 따로 보내면 분석기가 "주어 없음"·"목적어 없음"을 찾아낸다 — 주어가 앞
+# 조각에 있으니 당연하고, 그래서 실물 마이크 1회에서 오탐 패턴 2개가 생겼다.
+async def test_fragmented_finals_are_analyzed_as_one_merged_transcript(
+    db_pool: asyncpg.Pool, committed_session, fake_claude
+):
+    fragments = ("I will plan the", "active plan", "for the client.")
+    for fragment in fragments:
+        await _save(db_pool, committed_session.session_id, fragment, close_turn=False)
+    async with db_pool.acquire() as conn:
+        await _close_turn(conn, committed_session.session_id)
+    claude = fake_claude(_response())
+
+    await process_analysis(db_pool, claude, await _claim(db_pool))
+
+    assert len(claude.prompts) == 1, "묶음 하나에 Claude 호출은 1회다"
+    assert " ".join(fragments) in claude.prompts[0]
+
+
+# I-1 경계 — 분석 대상이 **아닌** 발화에 직접 등록된 job은 병합하지 않는다.
+# `_LOAD_INPUT_SQL`의 `else t.sequence_no` 분기가 지키는 "이전 동작 유지"다. 그 분기를
+# `else 1`로 바꿔도 전체 스위트가 통과했으므로(코드 리뷰 실측) 여기서 못 박는다 —
+# 그 뮤테이션은 "세션 처음부터 그 발화까지 전부 병합"이라는 명백한 오답이다.
+async def test_a_job_on_non_analyzable_speech_reads_only_that_utterance(
+    db_pool: asyncpg.Pool, committed_session, fake_claude
+):
+    await _save(db_pool, committed_session.session_id, GYM_ANSWER, close_turn=False)
+    await _save(db_pool, committed_session.session_id, OFFICE_ANSWER, close_turn=False)
+    async with db_pool.acquire() as conn:
+        agent = await save_final_transcript(
+            conn, committed_session.session_id, AGENT_ACK, speaker="agent"
+        )
+        async with conn.transaction():
+            assert await enqueue_analyze(conn, agent.id) is not None
+    claude = fake_claude(_response())
+
+    await process_analysis(db_pool, claude, await _claim(db_pool))
+
+    assert AGENT_ACK in claude.prompts[0]
+    assert GYM_ANSWER not in claude.prompts[0], "분석 대상이 아닌 발화에 앞 묶음이 붙었다"
+    assert OFFICE_ANSWER not in claude.prompts[0]
+
+
+# ⚠️ **`_LOAD_INPUT_SQL`의 `order by u.sequence_no`에는 테스트가 없다 — 지우지 말 것.**
+# 뮤테이션(order by 제거)이 전체 스위트를 통과한다(실측). 그래서 테스트를 만들려고
+# 뒤 조각을 먼저 insert해 힙 순서를 역전시켜 봤지만 **그래도 통과한다**: 계획은 Seq Scan
+# 인데(`explain` 확인) 앞선 테스트가 지운 행의 빈 공간을 FSM이 재사용하므로 물리 순서를
+# 테스트에서 통제할 수 없다. 즉 이 가드는 **위반을 공개 경로로 재현할 수 없는** 종류다 —
+# 커버리지가 없다는 것이 불필요하다는 뜻이 아니다. 계획이 병렬 Seq Scan이나 Bitmap Heap
+# Scan으로 바뀌면 어순이 실제로 깨지고, 그때 학습자는 뒤섞인 문장으로 교정을 받는다.
+
+
 # ① 두 발화에 같은 pattern_key → patterns 1행 / occurrences 2행 / frequency 2 (W2)
 async def test_same_pattern_in_two_utterances_merges_into_one_pattern(
     db_pool: asyncpg.Pool, committed_session, fake_claude
@@ -111,7 +189,8 @@ async def test_same_pattern_in_two_utterances_merges_into_one_pattern(
             committed_session.session_id,
         )
     assert [record["status"] for record in statuses] == ["done", "done"]
-    assert first.sequence_no == 1 and second.sequence_no == 2
+    # 턴마다 agent final이 하나 끼므로 사용자 발화는 1·3번이다 (`_save` docstring).
+    assert first.sequence_no == 1 and second.sequence_no == 3
 
 
 # ② 결과 저장 후 status 갱신 전에 죽은 job을 재실행 → 중복 없음, last_seen_at 불변 (W3)

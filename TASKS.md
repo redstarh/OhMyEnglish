@@ -398,7 +398,101 @@ gate면 제거(hook 포함), 단 검토는 꼭 해."
 세션 `bbfc3908-639c-4f1e-a565-fdbd74e0a420`(3분 28초, `completed`). 전부 이 세션의 DB를
 직접 조회해 얻은 값이다.
 
-### I-1. **발화 종료 감지가 이르면 문장이 쪼개지고, 그 조각이 오탐 패턴을 만든다** — 🔨 착수 가능
+### I-1. **발화 종료 감지가 이르면 문장이 쪼개지고, 그 조각이 오탐 패턴을 만든다** — ✅ 구현 완료 (2026-09-01)
+
+**구현 완료 — 접점 4곳 + 코드 리뷰 지적 반영 + 회복 스윕.** 게이트: **365 passed**(348 → 365) ·
+ruff·format(27파일)·`ty` clean · `tests/**` 베이스라인 **6 errors·4 files 그대로** ·
+프론트 `tsc`·`eslint` exit 0.
+
+T0 red를 구현 전에 실제로 관측했다. 정직하게 센 것:
+- **본 수정 8건 중 8건 red.** 그중 2건은 단정 실패로 결함 자체를 증명했다(`assert 2 == 1` =
+  조각 2개에 job 2건 / 저장만으로 job 3건). 나머지 6건은 미구현 red다.
+- **회복 스윕 5건 중 3건 red.** 나머지 2건은 "아무것도 하지 않아야 한다"는 **부재 가드**라
+  스텁에서도 통과했다(함정 **H-M**) — red 증거로 세지 않는다. 대신 구현 후 뮤테이션으로
+  두 건 모두 실제로 red가 되는 것을 확인했다(`active` 필터 무력화 / `partition by` 제거).
+- **T0가 아닌 것 2건**: flush 실패 내성(`test_gateway.py`)과 acquire 실패 내성은 green 이후
+  **6단계 테스트 보강**으로 썼다. 후자는 결함을 되살려 red를 확인했다.
+
+순증: 신설 18건 − 폐기 1건 = **+17** (348 → 365로 일치).
+
+| # | 무엇을 했나 | 어디 |
+|--:|---|---|
+| 1 | `save_final_transcript`에서 즉시 `enqueue_analyze` 제거 | `services/utterances.py` |
+| 2 | `flush_pending_analysis(conn, session_id)` 신설 — 묶음마다 **마지막 발화 1건**에만 job | 같은 파일 `_FLUSH_RUNS_SQL` |
+| 3 | flush 두 지점 — agent final 저장 직후(`_save_final`) · 종료 경로(`_close_and_record`) | `audio_gateway/session.py` |
+| 4 | `_LOAD_INPUT_SQL`이 묶음 전사문을 `string_agg`으로 이어붙여 분석 입력으로 준다 | `services/analysis.py` |
+
+**설계에서 정정한 것 1건 — 멱등성은 기존 partial unique만으로 부족했다.** 앞선 설계는
+"멱등성은 `uq_analysis_jobs_pending_utterance`(001:157)가 이미 준다"고 적었는데 **틀렸다**:
+그 인덱스는 `pending`/`running`만 덮으므로 분석이 `done`이 된 묶음이 다음 flush에서 다시
+등록된다. flush는 세션 하나에서 턴마다 + 종료 시 불리므로, 이 가드가 없으면 첫 묶음이
+**턴 수만큼 재분석**되어 Claude 호출이 그만큼 늘어난다. 그래서 `not exists (… job_type = …)`
+가드를 넣었다. 회귀 테스트: `test_flush_does_not_re_enqueue_a_run_whose_analysis_already_finished`.
+⚠️ 이 가드는 flush 경로에만 있다 — `enqueue_analyze` 직접 호출(재분석 경로, E6 시나리오)은
+그대로 허용된다.
+
+**하네스 회귀는 "5 → 1"이 아니라 "턴을 하나씩 닫는다"로 처리했다.** 앞선 설계는 E1의 job 수가
+5 → 1로 줄어드니 `wait_for_jobs` 단정을 고치라고 적었지만, 그러면 **E계층 시나리오 자체가
+소멸한다** — E1은 "문장마다 다른 카테고리의 패턴이 생긴다"를 관측하는 것이고 5문장이 한 묶음이
+되면 패턴 분산을 볼 수 없다. 실제 세션은 문장마다 agent가 응답하므로, `inject_errors.py`가
+문장 하나 → agent 응답 하나 → flush를 반복하게 고쳤다. job 수는 **5건 그대로**이고
+`wait_for_jobs`는 손대지 않았다. 부작용: 주입 발화의 `sequence_no`가 1·3·5…로 오른다.
+
+**삭제한 테스트 1건과 그 근거** — `test_save_is_atomic_even_when_the_caller_opened_no_transaction`.
+그것이 지킨 불변식("전사문 insert와 enqueue가 한 단위")은 enqueue가 저장에서 빠지면서
+**사라졌다** — write가 하나뿐이라 단정할 원자성이 없다. 되살리지 말 것. 그 자리를 대신하는 것은
+`tests/integration/test_gateway.py`의 flush 실패 내성 테스트다(flush가 터져도 세션은 `completed`로
+닫히고 전사문 6행은 남는다). 원자성의 소유자는 `save_final_transcript`에서 **호출자의
+트랜잭션**으로 옮겨졌고 `test_transcript_and_job_roll_back_together_when_the_turn_fails`가 지킨다.
+
+**코드 리뷰에서 나온 결함 2건(HIGH)과 그 처리 — 2026-09-02**
+
+| # | 무엇 | 처리 |
+|--:|---|---|
+| HIGH 1 | flush용 `pool.acquire()`를 예외 가드 **밖**에 뒀다 → acquire가 실패하면 `adapter.close()`와 `end_session()`이 **한 번도 실행되지 않아** 세션이 `active` 고아로 남고 Nova 스트림이 누수된다. 같은 메서드 docstring이 금지한 상태이고 **변경 전에는 도달 불가**였다 | ✅ 수정. 연결 획득을 `_flush_analysis` 안으로 넣었다. 회귀 테스트 `test_a_failing_flush_connection_still_closes_the_adapter_and_records_the_end` — 결함을 되살리면 실제로 red가 되는 것을 확인했다 |
+| HIGH 2 | 종료 flush가 실패하면 그 묶음이 영구히 분석되지 않고, 결과 화면이 **terminal** 상태 `no_utterances`("분석 대상 없음")에 고정된다(`results.py` 규칙 2 → 프론트 `TERMINAL_STATUSES`). I-1 이전에는 "발화는 있는데 job 0건"이 도달 불가였다 | ✅ **캡틴 결정(2026-09-02): 워커 스윕 — 끝난 세션만.** 아래 참조 |
+
+**회복 경로 (HIGH 2 해소)** — `flush_ended_sessions`(`services/utterances.py`) +
+`sweep_lost_runs`(`workers/analysis_worker.py`). 워커가 **큐가 빌 때만** 부르고,
+`status in ('completed','failed')` 세션만 훑는다.
+
+⚠️ **`active` 세션을 넣지 마라.** 진행 중 세션의 마지막 묶음은 사용자가 말하는 중이라 아직
+자란다 — 그것을 걸면 조각이 따로 분석되는 **I-1 결함이 그대로 되살아난다**. 회복 경로가 고친
+것을 되돌리는 셈이다. 가드는 `test_sweep_never_touches_an_active_session`·
+`test_worker_sweep_leaves_an_active_session_alone`이고, 필터를 무력화하면 둘 다 red가 된다(실측).
+
+⚠️ **`lead()`의 `partition by u.session_id`를 지우지 마라.** 단일 세션 flush에서는 무의미하지만
+스윕에서는 필수다 — 없으면 전역 `sequence_no` 순서로 섞여 다른 세션의 발화가 앞 세션의 묶음을
+닫는다. `test_sweep_computes_run_boundaries_per_session`이 지킨다(뮤테이션으로 red 확인).
+두 flush가 **같은 SQL 템플릿**(`_RUN_END_FLUSH_TEMPLATE`)을 쓰는 이유도 이것이다 — 묶음 정의가
+두 벌로 갈라지면 회복 스윕이 턴 경계와 다른 경계를 계산한다.
+
+비용: 끝난 세션 발화의 seq scan 1회. 시간 창으로 자르지 **않았다** — 워커가 그 창보다 오래
+내려가 있으면 조용히 묶음을 잃기 때문이다. 단일 사용자 도구 기준으로 받아들였고, 이력이
+커지면 그때 좁힌다.
+
+**테스트로 덮지 못한 것 1건 (지우지 말 것)** — `_LOAD_INPUT_SQL`의
+`order by u.sequence_no`. 뮤테이션(제거)이 전체 스위트를 통과한다. 뒤 조각을 먼저 insert해
+힙 순서를 역전시켜 봤지만 **그래도 통과한다**: 계획은 Seq Scan인데(`explain` 확인) 앞선 테스트가
+지운 행의 빈 공간을 FSM이 재사용하므로 물리 순서를 테스트에서 통제할 수 없다. 즉 위반을 공개
+경로로 재현할 수 없는 종류의 가드다 — **커버리지가 없다는 것이 불필요하다는 뜻이 아니다.**
+계획이 Bitmap Heap Scan이나 병렬 Seq Scan으로 바뀌면 어순이 깨지고, 그때 학습자는 뒤섞인
+문장으로 교정을 받는다. 같은 이유로 `flush`의 `order by r.session_id, r.sequence_no`도 미검증이다.
+
+**리뷰가 확인하고 "결함 아님"으로 판정한 것** (다시 조사하지 말 것): occurrence가 묶음의
+마지막 발화를 가리키는 것은 **화면에 새지 않는다** — `results.py`는 `eo.original_span`만 싣고
+프론트도 그것만 렌더한다(`utteranceId`는 TS 코드에 없다). `pending_learning_utterances`의 의미
+변화도 앱 호출처가 0곳이라 무영향. `enqueue_analyze` 직접 호출(재분석·E6)은 `not exists` 가드에
+막히지 않는다. `analysis.py` → `utterances.py` → `sessions.py`·`jobs.py`에 순환 없음.
+
+**남은 추측 1건 (마이크 2회에서 볼 것)**: Nova는 agent final을 `completionEnd`에 내는데
+(`nova.py:249-250·340-358`) barge-in 등으로 사용자 ASR final이 그 **뒤에** 도착하면 한 문장이
+여전히 두 묶음으로 갈릴 수 있다. 실측이 없어 단정하지 못한다 — 리뷰가 추측으로 표시한 것이다.
+
+**대조 대기**: 오탐이 정말 사라졌는지는 **실물 마이크 2회**로 확인한다. 1회의 좌표
+(세션 `bbfc3908-…`, 발화 51 · 패턴 4 · occurrence 8)는 보존돼 있다.
+
+---
 
 ✅ **결정 (2026-09-01, 캡틴): (가) 턴 경계까지 모아서 분석한다.**
 화면 표시는 그대로 두고 **분석 입력만** 합친다 — agent가 응답을 시작하면 그 직전까지의 사용자

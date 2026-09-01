@@ -5,9 +5,16 @@
 **R1("패턴 상위 2개만 반환")을 밟을 수 없다** — 패턴이 1개뿐이라 상한이 발동하지 않는다.
 이 스크립트는 서로 다른 카테고리의 오류 문장을 앱 경로로 주입해 패턴을 여러 개 만든다.
 
-앱 코드를 우회하지 않는다 — `create_session`과 `save_final_transcript`를 그대로 쓰므로
-전사문 저장·job 등록·워커 분석·패턴 병합이 전부 실제 경로다. 스텁 어댑터만 건너뛴다
-(스텁은 고정 3문장만 재생하므로 임의 문장을 넣을 수단이 없다).
+앱 코드를 우회하지 않는다 — `create_session`·`save_final_transcript`·
+`flush_pending_analysis`를 그대로 쓰므로 전사문 저장·job 등록·워커 분석·패턴 병합이
+전부 실제 경로다. 스텁 어댑터만 건너뛴다 (스텁은 고정 3문장만 재생하므로 임의 문장을
+넣을 수단이 없다).
+
+⚠️ **문장마다 턴을 닫는다** (I-1, 2026-09-01). 분석 job은 저장이 아니라 턴 경계에서
+걸리므로, agent 응답을 끼우지 않으면 주입한 문장 전체가 **하나의 묶음**이 되어 job 1건
+으로 합쳐진다. E계층은 "문장마다 다른 카테고리의 패턴이 생긴다"를 관측하는 시나리오라
+그 병합이 곧 시나리오의 소멸이다. 그래서 게이트웨이와 같은 순서로 문장 하나 → agent
+응답 하나 → flush를 반복한다. 그 결과 `sequence_no`는 1·3·5…로 오른다.
 
 실행:
     cd app/backend && .venv/bin/python ../../tests/harness/inject_errors.py --scenario E1
@@ -32,7 +39,10 @@ from app.db import close_pool  # noqa: E402
 from app.db import pool as get_db_pool  # noqa: E402
 from app.services.jobs import enqueue_analyze  # noqa: E402
 from app.services.sessions import create_session, mark_session_ended  # noqa: E402
-from app.services.utterances import save_final_transcript  # noqa: E402
+from app.services.utterances import (  # noqa: E402
+    flush_pending_analysis,
+    save_final_transcript,
+)
 from app.api.ws import FIXED_USER_ID  # noqa: E402
 
 # DATABASE_URL을 따라가는 psql 헬퍼 (:5432 기본, :5433 폴백). 이전에는 이 파일이
@@ -43,6 +53,9 @@ RUN_ID = (HARNESS / "run_id.txt").read_text().strip()
 
 # 시나리오별 발화 종류. 기본은 분석 대상(user/learning)이고, E4만 명령 발화다 (W6).
 UTTERANCE_TYPE = {"E4": "voice_command"}
+
+# 턴을 닫는 agent 응답. 내용은 관측 대상이 아니다 — 묶음 경계 신호로만 쓰인다.
+AGENT_ACK = "Thanks, tell me more."
 
 # 서로 다른 카테고리를 노리는 문장. 실제 Claude가 무엇을 검출할지는 비결정적이므로
 # "이 카테고리가 반드시 나온다"고 단정하지 않는다 — **여러 패턴이 생기는 것**과
@@ -129,6 +142,9 @@ async def run(scenario: str, sentences: list[str], wait: float) -> dict:
                 saved.append({"seq": utterance.sequence_no, "text": text, "type": utterance_type})
                 utterance_ids.append(utterance.id)
                 print(f"  saved #{utterance.sequence_no} [{utterance_type}]: {text}")
+                # 턴을 닫아 이 문장 하나에 job 1건을 건다 (모듈 docstring의 ⚠️ 참조).
+                await save_final_transcript(conn, session_id, AGENT_ACK, speaker="agent")
+                await flush_pending_analysis(conn, session_id)
 
         elapsed = await wait_for_jobs(session_id, wait)
         result: dict[str, object] = {

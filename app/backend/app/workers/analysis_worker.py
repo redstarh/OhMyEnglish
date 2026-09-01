@@ -21,14 +21,32 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
+from uuid import UUID
 
 import asyncpg
 
 from app.services.analysis import process_analysis
 from app.services.jobs import ClaimedJob, claim_next
+from app.services.utterances import flush_ended_sessions
 from app.workers.claude_client import ClaudeClient
 
 logger = logging.getLogger(__name__)
+
+
+async def sweep_lost_runs(pool: asyncpg.Pool) -> list[UUID]:
+    """끝난 세션에서 job이 없는 사용자 발화 묶음을 걷어 등록한다 (I-1 회복 경로).
+
+    분석 job은 턴 경계와 세션 종료 때 걸린다(`audio_gateway/session.py`). 그 종료 쪽
+    flush가 실패하거나 그 전에 프로세스가 죽으면 그 묶음을 다시 걸어줄 사람이 없고,
+    결과 화면은 **terminal** 상태 `no_utterances`("분석 대상 없음")에 고정된다. 큐
+    수명주기의 소유자가 워커이므로 회복도 여기 둔다.
+
+    **큐가 비었을 때만 부른다** — 분석이 밀리는 동안 이력 전체를 훑을 이유가 없고,
+    잃은 묶음이 문제가 되는 시점도 "더 할 일이 없을 때"다. 규칙(무엇이 묶음인가,
+    어떤 세션이 끝난 것인가)은 `services/utterances.py`가 소유한다.
+    """
+    async with pool.acquire() as conn:
+        return await flush_ended_sessions(conn)
 
 
 async def claim_one(pool: asyncpg.Pool) -> ClaimedJob | None:
@@ -80,6 +98,16 @@ async def run_worker(
         try:
             job = await claim_one(pool)
             if job is None:
+                # 큐가 비었다 — 잃어버린 묶음이 있으면 지금 걷는다. 걷은 것이
+                # 있으면 곧바로 다음 claim으로 가서 그 job을 처리한다.
+                recovered = await sweep_lost_runs(pool)
+                if recovered:
+                    logger.info(
+                        "종료 flush를 놓친 발화 묶음 %d건에 분석 job을 걸었다 (I-1 회복): %s",
+                        len(recovered),
+                        [str(utterance_id) for utterance_id in recovered],
+                    )
+                    continue
                 await _wait(stop, poll_interval)
                 continue
             await process_analysis(pool, claude, job)

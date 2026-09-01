@@ -28,7 +28,8 @@ from app.api import main as main_module
 from app.api.main import create_app
 from app.audio_gateway.fixtures import FIXTURE_TURNS
 from app.config import get_settings
-from app.services.utterances import save_final_transcript
+from app.services.sessions import end_session
+from app.services.utterances import flush_pending_analysis, save_final_transcript
 from app.workers import analysis_worker
 from app.workers.analysis_worker import run_worker
 from app.workers.claude_client import FakeClaudeClient
@@ -64,9 +65,60 @@ async def _job_is_done(pool: asyncpg.Pool, utterance_id: UUID) -> bool:
 
 
 async def _save(pool: asyncpg.Pool, session_id: UUID, text: str = GYM_ANSWER) -> UUID:
+    """사용자 발화를 저장하고 **턴을 닫아** 그 발화에 분석 job을 건다.
+
+    I-1 이후 job은 저장이 아니라 턴 경계에서 걸린다 — agent final을 하나 끼우지
+    않으면 워커가 claim할 것이 없다(게이트웨이와 같은 순서).
+    """
     async with pool.acquire() as conn:
         utterance = await save_final_transcript(conn, session_id, text)
+        await save_final_transcript(conn, session_id, "Tell me more.", speaker="agent")
+        await flush_pending_analysis(conn, session_id)
     return utterance.id
+
+
+# I-1 회복 — 종료 flush를 놓친 묶음을 워커가 스스로 걷어 끝까지 분석한다.
+# 이것이 없으면 결과 화면이 terminal 상태 "분석 대상 없음"에 고정된다.
+async def test_worker_recovers_a_run_whose_end_of_session_flush_was_lost(
+    db_pool, committed_session, fake_claude
+):
+    # 종료 경로 flush가 실패한 상태를 그대로 만든다: 발화는 있고 job은 없다.
+    async with db_pool.acquire() as conn:
+        utterance = await save_final_transcript(conn, committed_session.session_id, GYM_ANSWER)
+        await end_session(conn, committed_session.session_id, "completed")
+    assert await _job_status(db_pool, utterance.id) is None, "job이 이미 있으면 회복을 볼 수 없다"
+    claude: FakeClaudeClient = fake_claude(_response())
+    stop = asyncio.Event()
+    task = asyncio.create_task(run_worker(db_pool, claude, stop=stop, poll_interval=0.01))
+
+    try:
+        await _wait_until(lambda: _job_is_done(db_pool, utterance.id), what="스윕 후 job이 done")
+    finally:
+        stop.set()
+        await asyncio.wait_for(task, timeout=1.0)
+
+    async with db_pool.acquire() as conn:
+        occurrences = await conn.fetchval(
+            "select count(*) from error_occurrences where utterance_id = $1", utterance.id
+        )
+    assert occurrences == 1, "회복된 job이 분석까지 끝나지 않았다"
+
+
+# I-1 회복 — 스윕은 **진행 중** 세션을 건드리지 않는다. 워커가 도는 동안 사용자가
+# 아직 말하고 있으면 그 묶음은 자란다 — 여기서 걸면 조각이 따로 분석되는 결함이 되살아난다.
+async def test_worker_sweep_leaves_an_active_session_alone(db_pool, committed_session, fake_claude):
+    async with db_pool.acquire() as conn:
+        utterance = await save_final_transcript(conn, committed_session.session_id, GYM_ANSWER)
+    stop = asyncio.Event()
+    task = asyncio.create_task(run_worker(db_pool, fake_claude(), stop=stop, poll_interval=0.01))
+
+    try:
+        await asyncio.sleep(0.1)  # 여러 유휴 사이클을 돌 만한 시간
+    finally:
+        stop.set()
+        await asyncio.wait_for(task, timeout=1.0)
+
+    assert await _job_status(db_pool, utterance.id) is None, "active 세션의 묶음에 job이 걸렸다"
 
 
 # ① active 세션에서 enqueue된 job이 워커 1사이클 후 done이 된다 (W1 관측형)

@@ -5,8 +5,12 @@
 1. **final만 저장한다.** `partial`은 브로드캐스트만 하고 한 행도 남기지 않는다.
    partial은 같은 문장이 자라는 중간 상태라, 저장하면 한 발화가 여러 행으로 쪼개져
    `sequence_no`와 분석 job이 함께 오염된다. 저장은 `save_final_transcript`에
-   맡기며 **트랜잭션을 감싸지 않는다** — 그 함수가 자기 트랜잭션을 열어 전사문과
-   job의 원자성을 스스로 보장한다(§5.2).
+   맡기며 **트랜잭션을 감싸지 않는다** — 그 함수가 자기 트랜잭션을 열어 전사문
+   insert(와 `sequence_no` 재시도)를 스스로 원자적으로 만든다(§5.2).
+1a. **분석 job은 저장이 아니라 턴 경계에서 건다** (I-1). agent final을 저장한 직후와
+   세션 종료 경로에서 `flush_pending_analysis`를 부르는 것이 이 모듈의 일이다 —
+   규칙(무엇이 묶음인가)은 `services/utterances.py`가 소유하고 여기는 **언제**만 안다.
+   저장 시점에 걸면 이르게 확정된 조각이 완전한 문장처럼 분석되어 오탐이 된다.
 2. **빈 final은 저장하지 않는다.** 어댑터가 만들지 않아야 하는 값이지만, 새어
    들어오면 분석 job이 붙은 빈 발화가 남아 워커가 빈 입력으로 Claude를 호출한다.
 3. **종료 순서는 `close()` → 종료 기록**(G1). 반대로 하면 "종료됨"으로 기록된 뒤
@@ -39,7 +43,7 @@ from app.audio_gateway.port import (
 )
 from app.services.pronunciation import note_transcript, record_attempt, resolve_dangling
 from app.services.sessions import SessionEndStatus, end_session
-from app.services.utterances import save_final_transcript
+from app.services.utterances import flush_pending_analysis, save_final_transcript
 
 logger = logging.getLogger(__name__)
 
@@ -145,6 +149,13 @@ class SessionRunner:
         학습 계산에 그대로 섞인다.
         """
         await self._await_pending_saves()
+        # 대화가 사용자 발화로 끝나는 것이 정상이다 — 뒤따르는 agent final이 없으니
+        # 턴 경계 flush가 걸리지 않는다. 여기서 한 번 더 걷지 않으면 마지막 사용자
+        # 묶음이 영원히 분석되지 않는다 (I-1). 저장이 다 끝난 뒤에 부른다.
+        # **연결 획득까지 `_flush_analysis` 안에서** 한다 — acquire가 pool 소진이나
+        # 종료 중 취소로 실패하면 아래 close·종료 기록이 통째로 건너뛰어져 세션이
+        # `active` 고아로 남는다(이 docstring이 금지한 상태다).
+        await self._flush_analysis()
         try:
             await self._adapter.close()
         except Exception:
@@ -264,8 +275,9 @@ class SessionRunner:
         """final을 저장한다 — **취소가 저장을 찢지 못하게** shield로 감싼다.
 
         드레인 데드라인이 만료돼 펌프가 취소될 때 저장이 진행 중이면, shield가 없으면
-        `save_final_transcript`의 트랜잭션 중간에서 취소가 터진다: 전사문은 롤백되고
-        (분석 job도 함께) 그 발화는 흔적 없이 사라진다. 시작한 저장은 끝까지 간다.
+        `save_final_transcript`의 트랜잭션 중간에서 취소가 터진다: 전사문이 롤백되어
+        그 발화는 흔적 없이 사라진다. 시작한 저장은 끝까지 간다. (분석 job은 이제
+        여기서 걸리지 않으므로 같이 잃을 것이 없다 — I-1.)
         """
         if not event.text.strip():
             logger.warning("빈 final 전사문을 버렸다 (세션 %s)", self._session_id)
@@ -293,6 +305,11 @@ class SessionRunner:
                     )
                 except Exception:
                     logger.exception("발음 신호 기록에 실패했다 (세션 %s)", self._session_id)
+            else:
+                # agent가 말을 시작했다 = 사용자 턴이 닫혔다. 그 직전까지의 사용자
+                # final 묶음을 하나로 묶어 분석 job 1건을 건다 (I-1). 이 모듈은
+                # learning 발화만 저장하므로 speaker가 유일한 판별자다.
+                await self._flush_analysis(conn)
         # 방송하는 `sequence_no`는 DB가 부여한 값이다 — 어댑터가 보낸 번호가 아니라
         # 실제로 저장된 순번이라야 클라이언트가 결과 조회와 대조할 수 있다.
         await self._send(
@@ -303,6 +320,33 @@ class SessionRunner:
                 "sequence_no": utterance.sequence_no,
             }
         )
+
+    async def _flush_analysis(self, conn: asyncpg.Connection | None = None) -> None:
+        """턴이 닫힌 사용자 발화 묶음에 분석 job을 건다 (I-1).
+
+        **예외를 밖으로 던지지 않는다.** flush 실패가 이벤트 펌프를 죽이면 대화가
+        끊기고, 종료 경로에서 터지면 세션이 `active` 고아로 남는다 — 둘 다 분석
+        1건을 잃는 것보다 나쁘다. 다음 flush가 같은 묶음을 다시 찾으므로(묶음의
+        마지막 발화에 job이 없으면 대상이다) 턴 중간의 실패는 스스로 회복된다.
+        종료 시점의 실패만이 그 묶음을 잃는다.
+
+        `conn`이 없으면 **연결도 여기서 얻는다.** 호출자가 acquire를 하면 그 실패가
+        이 가드 밖에 남아 종료 경로를 끌고 내려간다(코드 리뷰가 가짜 pool로 실측:
+        acquire 1회 실패 → `adapter.close()` 미호출 · 종료 기록 0건). 이미 연결을
+        들고 있는 호출처는 그것을 넘겨 재사용한다 — 연결을 쥔 채 또 얻지 않는다.
+
+        **호출자의 트랜잭션 안에서 부르지 않는다** — SQL 오류가 나면 그 트랜잭션이
+        abort되어 뒤따르는 종료 기록까지 함께 실패한다. 두 호출처 모두 트랜잭션을
+        열지 않은 연결을 쓴다.
+        """
+        try:
+            if conn is not None:
+                await flush_pending_analysis(conn, self._session_id)
+                return
+            async with self._pool.acquire() as own_conn:
+                await flush_pending_analysis(own_conn, self._session_id)
+        except Exception:
+            logger.exception("분석 job flush에 실패했다 (세션 %s)", self._session_id)
 
     async def _pump_client_messages(self) -> None:
         while True:
