@@ -18,10 +18,12 @@ PostgreSQL의 `now()`는 **트랜잭션 시작 시각에 고정**되므로, 테�
 
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timedelta
 from uuid import UUID, uuid4
 
 import asyncpg
+import pytest
 from conftest import backdate_session as _backdate
 
 from app.services.sessions import ORPHAN_IDLE_GRACE, end_session, reap_orphan_sessions
@@ -141,6 +143,43 @@ async def test_reaper_ignores_live_ids_that_are_not_active_sessions(db_conn: asy
     await _backdate(db_conn, session_id, by=PAST_THE_GRACE)
 
     assert await reap_orphan_sessions(db_conn, live_session_ids={uuid4(), uuid4()}) == [session_id]
+
+
+# T0 — **소유자의 종료 기록이 리퍼의 판정을 덮지 못한다** (캡틴 결정 2026-09-03).
+# 가드가 없으면 리퍼가 `failed`로 닫은 세션을 나중에 소유자가 `completed`로 덮어써서
+# **리퍼가 개입했다는 사실이 DB에서 사라진다**(`ended_at`까지 되돌아간다). 그 경합은 live
+# 가드가 깨진 뒤에만 도달하므로, 조용히 수렴시키는 대신 최초 판정을 남기고 경고를 찍는다 —
+# 그 경고가 가드 고장의 유일한 신호다.
+async def test_end_session_does_not_overwrite_a_reaped_session(
+    db_conn: asyncpg.Connection, caplog: pytest.LogCaptureFixture
+):
+    session_id = await _new_session(db_conn)
+    await save_final_transcript(db_conn, session_id, ANSWER)
+    await _backdate(db_conn, session_id, by=PAST_THE_GRACE)
+    assert await reap_orphan_sessions(db_conn) == [session_id]
+    _, reaped_at = await _state(db_conn, session_id)
+
+    with caplog.at_level(logging.INFO):
+        await end_session(db_conn, session_id, "completed")
+
+    assert await _state(db_conn, session_id) == ("failed", reaped_at), (
+        "소유자의 종료 기록이 리퍼의 판정과 시각을 덮었다"
+    )
+    assert [record for record in caplog.records if record.levelno >= logging.WARNING], (
+        "덮어쓰기를 막았는데 경고가 없다 — 가드 고장이 관측되지 않는다 (H-Z: INFO는 안 보인다)"
+    )
+
+
+# T2 — 정상 흐름은 값이 그대로다: `active` 세션은 소유자가 닫는다. 위 가드가 이것까지
+# 막으면 모든 세션이 영원히 `active`로 남는다.
+async def test_end_session_closes_an_active_session(db_conn: asyncpg.Connection):
+    session_id = await _new_session(db_conn)
+
+    await end_session(db_conn, session_id, "completed")
+
+    status, ended_at = await _state(db_conn, session_id)
+    assert status == "completed"
+    assert ended_at is not None
 
 
 # T2 — 유예는 **파라미터**다. `idle_after`가 실제로 SQL의 interval에 묶이는지 본다: 묶이지

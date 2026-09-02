@@ -12,17 +12,23 @@
   "누구의 세션인가"를 주입받기만 한다.
 * **종료**는 `ended_at`과 `status`를 한 UPDATE로 묻는다 — 두 문장으로 갈라지면
   그 사이에 "끝났지만 active"인 상태가 관측된다. 시각은 DB 시계(timestamptz)로
-  찍는다: 앱이 만든 naive datetime이 섞이는 경로를 아예 만들지 않는다.
+  찍는다: 앱이 만든 naive datetime이 섞이는 경로를 아예 만들지 않는다. 그리고
+  **`active`인 세션만** 닫는다 — 고아 리퍼의 판정을 덮지 않기 위해서다(`end_session` 참조).
+* **고아 리퍼**(`reap_orphan_sessions`, I-4)는 종료 기록 없이 프로세스가 죽어 남은
+  `active` 세션을 닫는다. 그 판정의 안전성은 호출자가 넘기는 live 세션 집합에 걸려 있다.
 """
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Collection
 from datetime import timedelta
 from typing import Literal
 from uuid import UUID
 
 import asyncpg
+
+logger = logging.getLogger(__name__)
 
 SessionEndStatus = Literal["completed", "failed"]
 
@@ -38,11 +44,15 @@ values ($1, (select id from learning_scenarios order by created_at, id limit 1),
 returning id
 """
 
+# `and status = 'active'`는 **캡틴 결정(2026-09-03)**이다 — `end_session`이 리퍼의 판정을 덮지
+# 못하게 막는다. `returning id`는 그 가드가 걸렸는지(0행)를 호출자가 알기 위한 것이다.
 _END_SESSION_SQL = """
 update learning_sessions
    set status = $2,
        ended_at = now()
  where id = $1
+   and status = 'active'
+returning id
 """
 
 # `status = 'failed'`는 `SessionEndStatus`의 한 값이다 — 리터럴로 박은 이유는 리퍼가
@@ -76,8 +86,25 @@ async def end_session(conn: asyncpg.Connection, session_id: UUID, status: Sessio
     **연결을 받는 쪽이 원시 함수다.** 종료 기록을 다른 쓰기와 한 트랜잭션으로 묶어야 하는
     호출자가 있어서다(`audio_gateway/session.py`: 종료 기록 + 발음 시도 수렴을 한 단위로).
     `save_final_transcript(conn, …)`가 같은 이유로 연결을 받는다.
+
+    ⚠️ **`active`인 세션만 닫는다** (캡틴 결정 2026-09-03). 가드가 없으면 고아 리퍼가 `failed`로
+    닫은 세션을 나중에 소유자가 `completed`로 덮어써 **리퍼가 개입했다는 사실이 DB에서 사라진다**
+    (`ended_at`까지 되돌아간다). 그 상황은 곧 **live 가드가 진행 중 세션을 놓쳤다**는 뜻이고,
+    그때 스윕은 이미 자라는 묶음을 걷었을 수 있다 — 조용히 수렴시키면 그 사고가 흔적 없이
+    사라진다. 그래서 **최초 판정을 남기고 경고를 찍는다.** 정상 흐름(`active` → 종료)에서는
+    값이 그대로이므로 이 가드가 보이지 않는다.
+
+    경고를 `warning`으로 찍는 이유는 함정 **H-Z**다 — 문서가 지정한 실행 명령에서 INFO는
+    보이지 않는다. 이 로그가 가드 고장의 유일한 신호이므로 안 보이면 없는 것과 같다.
     """
-    await conn.execute(_END_SESSION_SQL, session_id, status)
+    closed = await conn.fetchval(_END_SESSION_SQL, session_id, status)
+    if closed is None:
+        logger.warning(
+            "세션 %s를 %s로 닫으려 했지만 이미 `active`가 아니다 — 최초 판정을 유지한다. "
+            "고아 리퍼가 먼저 닫았다면 live 가드가 진행 중 세션을 놓쳤다는 신호다 (I-4)",
+            session_id,
+            status,
+        )
 
 
 async def reap_orphan_sessions(
@@ -118,8 +145,10 @@ async def reap_orphan_sessions(
     작성자가 있다.** `tests/harness/inject_errors.py`가 앱의 `create_session`을 **별도
     프로세스**에서 부르고(같은 DB), 백엔드 워커의 분석을 `--wait`(기본 180초) 동안 **새 발화
     없이** 기다린다 — 유예의 3배다. 그 창에서 백엔드 리퍼는 그 세션을 진행 중인데도 닫는다.
-    관측 가능한 피해는 없다(스크립트 끝의 `mark_session_ended`가 덮어써 최종 상태가 수렴하고
-    하네스는 status를 단정하지 않는다) — 판단 근거와 미결은 `TASKS.md` **I-4**가 소유한다.
+    **그러면 그 세션은 `failed`로 끝난다**: 스크립트 끝의 `mark_session_ended`는 위 `active`
+    가드에 막혀 되돌리지 못하고 경고만 남긴다(그 경고가 바로 이 사고의 신호다). 하네스가 보는
+    것은 패턴·occurrence이고 세션 status를 단정하지 않으므로 시나리오는 그대로 성립한다 —
+    다만 그 세션의 결과 API는 `connection_failed`가 된다. 근거는 `TASKS.md` **I-4**가 소유한다.
     같은 DB를 보는 백엔드를 둘 띄우거나 `--workers 2`로 띄우면 같은 이유로 서로의 진행 중
     세션을 닫는다. 문서가 지정한 실행은 단일 프로세스다(`docs/ops/local-run.md`).
 
