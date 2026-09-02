@@ -674,30 +674,65 @@ I-1 수정 후 같은 좌표로 재대조해야 한다.
 **우리 코드가 아니다.** 세션은 `completed`, 결과 API 200, 발음 저장 실패 로그 0건 —
 시도 3건 전부 저장됐다. 로그 노이즈로만 다룬다.
 
-### I-4. `active` 고아 세션에는 회복 경로가 없다 — ⏭ 대기 (2026-09-02 신설, I-1 코드 리뷰가 발견)
+### I-4. `active` 고아 세션 리퍼 — ✅ 완료 (2026-09-02 신설, 2026-09-03 구현)
 
-**종료 기록 전에 프로세스가 죽으면 그 세션은 `active`로 영구히 남는다.** `end_session`이
-돌지 않으므로 `status='active'`이고, I-1의 회복 스윕(`flush_ended_sessions`)은 **정의상
-`active`를 건너뛴다** — 건너뛰지 않으면 진행 중 세션의 자라는 묶음을 걸어 I-1 결함을
-되살리기 때문이다. 그래서 그 세션의 사용자 발화 묶음은 아무도 걷지 않는다.
+**캡틴 결정 (2026-09-03): "1분 이상 답이 없으면 `failed`로 닫는다."** 후보 ②(시간 유예) 계열이고
+①(기동 시 전부 닫기)은 채택되지 않았다. **무활동의 기준은 마지막 발화 시각**
+(`utterances.created_at` 최댓값 — **화자를 가리지 않는다**, 발화가 없으면 `started_at`),
+유예는 **60초**(`ORPHAN_IDLE_GRACE`).
 
-**증상은 I-1 HIGH 2와 같다**: 턴 경계 flush가 한 번도 안 걸린 채(첫 agent final 이전)
-죽으면 job이 0건이고, `results.py` 규칙 2 → 프론트 terminal `no_utterances`
-("분석 대상 없음")에 고정된다. **I-1 이전에는 이 경우도 발화마다 job이 있어 워커가 나중에
-처리했다** — 즉 좁지만 실재하는 미해소 회귀다.
+**착수 전 확인에서 드러난 것 2개 — 설계를 바꿨다.**
 
-확인한 것 (2026-09-02): 앱 코드에 **`'active'` 리터럴이 한 곳도 없다**(grep) — 고아 세션을
-정리하는 기동 리퍼나 스윕이 없다. 실 DB의 `active` 세션은 현재 **0건**이라 아직 관측된
-피해는 없다.
+1. **유예만으로는 위험하다.** 사용자가 60초 넘게 뜸을 들인 **진행 중** 세션이 닫히고, 그 직후
+   스윕이 아직 자라는 중인 묶음을 걷어 **I-1 오탐이 되살아난다**(`flush_ended_sessions`는
+   `failed`를 "끝난 세션"으로 본다). → **live 가드**를 함께 넣었다: `api/ws.py`가 살아있는
+   WebSocket의 세션 id를 `app.state.live_sessions`에 등록·해제하고 리퍼는 그 집합의 세션을
+   건드리지 않는다. 캡틴이 이 조합을 선택했다(단순한 "마지막 발화만" 안을 기각).
+2. **리퍼가 닫은 세션의 결과 화면은 `connection_failed`("연결 실패")가 된다** — `results.py`
+   규칙 1이 job 상태를 보지 않고 최우선하므로, 스윕이 걷은 묶음이 분석을 끝내도 **그 화면에
+   교정은 실리지 않는다.** 사용자가 보는 변화는 "분석 대상 없음" → "연결 실패"뿐이다. 오류
+   패턴·숙련도 같은 누적 데이터는 정상 갱신된다. 프로세스가 죽어 끝난 세션이라는 사실을 그대로
+   표시하는 쪽을 택했다.
 
-**착수 전 결정 필요 (캡틴)**: "얼마나 오래 `active`면 죽은 것으로 본다"는 **새 설계 발명값**이
-필요하다. 이것이 I-1 범위에서 빠진 이유다. 후보 — ① 기동 시 `active` 전부를 `failed`로
-닫는다(단일 사용자·단일 프로세스라 기동 시점에 살아 있는 세션은 없다. 가장 단순하고
-발명값이 없다) ② `started_at`이 N분보다 오래된 `active`를 닫는다(N이 발명값). ①이면
-그 뒤 스윕이 자동으로 묶음을 걷는다 — 리퍼가 `failed`로 닫으면 스윕 대상이 되기 때문이다.
+**구현 4곳**
 
-⚠️ 어느 쪽이든 **진행 중인 실제 세션을 닫지 않는지**가 유일한 위험이다. ①은 기동 시점에만
-돌므로 그 위험이 구조적으로 없다.
+| 파일 | 무엇 |
+|---|---|
+| `app/services/sessions.py` | `ORPHAN_IDLE_GRACE`(60초) + `reap_orphan_sessions(conn, *, live_session_ids, idle_after)`. `learning_sessions` 생명주기 SQL의 단일 소유자라서 여기 뒀다 |
+| `app/workers/analysis_worker.py` | `reap_orphans()` — 큐가 빌 때 **리퍼 → 스윕** 순서로 부른다. 이 순서라서 방금 닫힌 세션의 묶음이 **같은 유휴 사이클에** 걷힌다 |
+| `app/api/ws.py` | 세션 행 생성 **직후** 등록, `finally`에서 소켓 close **앞에** 해제 |
+| `app/api/main.py` | `create_app()`이 `app.state.live_sessions`를 만든다(lifespan이 아니다 — 닫을 자원이 아니고, lifespan 없이 라우터만 쓰는 호출자에게도 있어야 한다). lifespan은 워커에 **집합 객체 자체**를 주입한다 |
+
+**게이트 (2026-09-03, 이 절을 쓴 세션이 직접 실행)**: **377 passed**(366 → 377, +11) ·
+ruff·`format --check`(27파일)·`ty` 전부 exit 0 · `tests/**` 베이스라인 **6 errors·4 files 유지** ·
+프론트 `tsc`·`eslint` exit 0.
+
+**red→green: 11건 중 11건이 red였다** — 부재 가드가 하나도 없다(H-M). 서비스 8건은
+`ImportError: cannot import name 'ORPHAN_IDLE_GRACE'`, 워커 2건은
+`TypeError: run_worker() got an unexpected keyword argument 'live_sessions'`, ws 1건은
+`AttributeError: 'State' object has no attribute 'live_sessions'`로 각각 실패했다.
+
+**뮤테이션 2건 전부 죽었다** (직접 실행 후 복원):
+
+| 무력화한 것 | red가 된 테스트 |
+|---|---|
+| live 가드 → `and ($1::uuid[] is not null)` | `test_reaper_skips_a_session_a_live_connection_still_owns` **만** (1 failed, 7 passed) |
+| `where s.status = 'active'` → `where s.status is not null` | `test_reaper_does_not_reclose_a_session_that_already_ended` **만** (1 failed, 7 passed) |
+
+**시각을 `sleep`으로 만들지 않는다.** PostgreSQL `now()`는 트랜잭션 시작에 고정되므로 `db_conn`
+안에서는 기다려도 유예를 넘길 수 없다 — 공용 헬퍼 `conftest.backdate_session`이 행을 과거로 민다.
+
+**비용 실측 (dev DB `explain analyze`)**: `Execution Time` **0.389 ms**, 그리고
+`max(utterances.created_at)` 서브플랜은 **never executed**였다 — `status='active'` 필터가 먼저
+3행을 걸러서다. 즉 비용은 이력 크기가 아니라 **`active` 세션 수**에 걸린다(스윕의 0.400 ms와
+같은 자리수). ⚠️ 이 측정이 함정 하나를 만들었다 — **`explain analyze`는 UPDATE를 실제로
+실행한다**(`pitfalls.md` **H-Y**). 그때 `active` 세션이 0건이라 아무것도 바뀌지 않았을 뿐이다.
+
+**남은 것 2개**
+- **실물로는 확인하지 않았다.** 프로세스를 강제 종료해 고아를 만드는 경로는 단위·통합 테스트로만
+  덮었다. 마이크 2회에서 세션 중간에 백엔드를 죽여 보면 한 번에 확인된다.
+- **코드 리뷰 미실시.** SVG는 코드 수정 완료 시 `code-reviewer` 위임을 요구하지만 이 세션은
+  subagent 호출이 금지된 상태로 시작했다 — 캡틴이 리뷰 세션을 열 때 대상이다.
 
 ---
 
