@@ -771,7 +771,7 @@ INFO였으므로 `logger.warning`으로 올리고 tripwire를 붙였다
 | live 가드 배선에 tripwire 없음 (`api/main.py`) | **HIGH (양쪽)** | ✅ 통합 테스트 `test_lifespan_hands_the_live_session_registry_itself_to_the_worker`. **뮤테이션 2방향 전부 red 확인** — 복사본(`set(app.state.live_sessions)`) · kwarg 삭제. 순서가 이 테스트의 전부다: lifespan을 연 **뒤** 등록하고, 등록한 **뒤** 과거로 민다(그래야 복사본이 그 id를 못 갖는다) |
 | "단일 프로세스" 전제가 이 리포에서 **거짓** — `tests/harness/inject_errors.py`가 앱 밖에서 `active` 세션을 소유하고 `--wait` 기본 **180초**(유예의 3배) 동안 발화 없이 기다린다 | HIGH(A) / MEDIUM(B) | ✅ docstring 정정 — 전제를 단정하지 않고 **실재하는 예외를 명시**했다(`sessions.py` + 하네스 모듈 docstring ⚠️). 동작은 바꾸지 않았다: 스크립트 끝의 `mark_session_ended`가 덮어써 최종 상태가 수렴하고 하네스는 status를 단정하지 않는다 |
 | 리퍼 예외가 **같은 사이클의 I-1 스윕을 막는다**(직렬로 묶였다) | MEDIUM(A) | ✅ 리퍼를 자기 `try/except`로 격리 + 테스트 `test_a_failing_reaper_still_lets_the_sweep_recover_a_lost_run`(격리를 제거하는 뮤테이션으로 red 확인) |
-| `_END_SESSION_SQL`에 상태 가드가 없어 `end_session`이 리퍼를 **조용히 되돌린다** | MEDIUM(A) / LOW(B) | ⏸ **캡틴 결정 대기** — 아래 |
+| `_END_SESSION_SQL`에 상태 가드가 없어 `end_session`이 리퍼를 **조용히 되돌린다** | MEDIUM(A) / LOW(B) | ✅ **캡틴 결정(2026-09-03): 가드를 넣는다.** `and status = 'active'` + `returning id`로 0행을 감지해 WARNING. red 관측 후 구현 |
 | 나이 상한 없는 백필 버스트 · `ended_at`의 의미가 "리퍼가 알아챈 시각"으로 바뀐 것 | MEDIUM(A) | ✅ 문서화만. 상한을 넣으면 **진짜 오래된 고아가 영구히 안 걷힌다**. `ended_at`을 읽는 앱 코드는 0곳(grep) |
 | `ws.py` 주석이 **일어날 수 없는** 위험을 순서의 근거로 든다 | LOW | ✅ 정정 — 갓 만든 세션은 `started_at` 기본값 `now()` 때문에 리핑 불가다. 순서의 진짜 근거는 바로 뒤 `_load_known_sounds_or_empty`의 **await 창**이다 |
 | "화자 무관"이 긴 agent 턴을 지켜주는 것처럼 읽힌다 | LOW | ✅ 정정 — 시계는 **final이 저장되는 순간에만** 전진하고(partial은 방송만) 그 구간을 지키는 것은 live 가드다. 그래서 가드는 엣지 장치가 아니라 **정상 사용 핫패스**에 있다 |
@@ -780,12 +780,26 @@ INFO였으므로 `logger.warning`으로 올리고 tripwire를 붙였다
 | `live_sessions.add`가 `try` 밖 → 레지스트리 부재 시 세션 행만 남는다 | LOW | ✅ 레지스트리 조회를 **세션 행 생성보다 앞으로** 옮겼다 — 실패해도 남길 행이 없다 |
 | 기존 I-1 스윕 테스트에 **벽시계 의존**이 생겼다(60초 넘으면 리퍼가 개입) | LOW | ✅ 그 테스트에 `live_sessions`를 넘겨 리퍼를 변수에서 제거했다 |
 
-**⏸ 캡틴 결정 1건 — `_END_SESSION_SQL`에 `and status = 'active'`를 넣을까?**
-넣으면 리퍼가 닫은 세션을 나중에 소유자가 `completed`로 덮어 **리퍼의 판정과 시각이 흔적 없이
-사라지는 것**을 막는다(리뷰어 A: 위 "단일 프로세스" 사고를 DB에서 보이지 않게 만드는 장치가 바로
-이것이다). 넣지 않은 이유: `end_session`은 I-4 범위를 넘는 **공용 프리미티브**이고, 넣으면 하네스
-세션이 `failed`로 남는 등 정상 경로 밖 동작이 바뀐다. 되돌리기 어려운 계약 변경이라 승인 없이
-손대지 않는다. 정상 흐름(`active` → 종료)에서는 어느 쪽이든 동작이 같다.
+**✅ 캡틴 결정 (2026-09-03): `end_session`은 `active`인 세션만 닫는다.**
+`_END_SESSION_SQL`에 `and status = 'active'`를 넣고 `returning id`로 0행을 감지해 **WARNING**을
+찍는다(**H-Z** — 문서 실행 경로에서 INFO는 보이지 않으므로 이 신호는 WARNING이어야 한다).
+가드가 없던 동안에는 리퍼가 `failed`로 닫은 세션을 소유자가 `completed`로 덮어써 **리퍼의 판정과
+`ended_at`이 흔적 없이 사라졌다** — 그 상황 자체가 "live 가드가 진행 중 세션을 놓쳤다"는 뜻이고
+그때 스윕은 이미 자라는 묶음을 걷었을 수 있으므로, 조용히 수렴시키는 것이 가장 나쁜 선택이었다.
+정상 흐름(`active` → 종료)에서는 값이 그대로여서 이 가드가 보이지 않는다.
+
+red 증거: 가드 없는 상태에서 `test_end_session_does_not_overwrite_a_reaped_session`이 실제로
+`failed` → `completed` 덮어쓰기를 잡아 red였다(1 failed · 10 passed). 무회귀 짝으로
+`test_end_session_closes_an_active_session`을 함께 뒀다 — 가드가 정상 종료까지 막으면 모든
+세션이 영원히 `active`로 남으므로 그쪽도 못이 필요하다.
+
+⚠️ **이 결정이 앞선 서술 1건을 낡게 만들었고 함께 정정했다.** 하네스(`inject_errors.py`) 세션이
+리퍼에게 닫히면 이제 **`failed`로 끝난다** — 끝의 `mark_session_ended(…, "completed")`가 가드에
+막혀 되돌리지 못하고 경고만 남긴다. 시나리오 자체는 성립한다(하네스가 보는 것은 패턴·occurrence
+이고 status를 단정하지 않는다). 단 그 세션의 결과 API는 `connection_failed`가 된다 — Task 9에서
+회귀로 오인하지 않도록 `sessions.py`와 하네스 모듈 docstring 양쪽에 못 박았다. 걸리적거리면
+**대기 전에 세션을 닫도록** 하네스 순서를 바꾸는 것이 옳은 방향이다(실제 앱도 세션을 닫고 나서
+워커가 분석한다).
 
 **리뷰어가 지적한 "실물 확인이 구조적으로 볼 수 없었던 것" — 수용한다.**
 `kill -9`는 프로세스와 함께 live 집합을 파괴하므로 가드가 **공집합으로 자동 충족**된다. 즉 실물로
@@ -810,7 +824,7 @@ HIGH 테스트가 메운다(리퍼와 **살아있는** 세션이 같은 프로�
 미검증 · DB 미조회 · "분석이 60초를 넘긴다"는 관측이 아니라 `--wait` 기본값에서의 **추론** ·
 백필 버스트 미관측 · 뮤테이션 미재현(내가 돌린 값 사용).
 
-게이트 갱신 — **381 passed**(378 → 381: 배선 tripwire · 리퍼 실패 격리 · 유예 파라미터 경계).
+게이트 갱신 — **383 passed**(378 → 381 → 383: 배선 tripwire · 리퍼 실패 격리 · 유예 파라미터 경계 · `end_session` 가드 2건).
 
 ---
 
