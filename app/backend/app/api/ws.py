@@ -129,25 +129,37 @@ async def session_socket(websocket: WebSocket) -> None:
         await _safe_close(websocket)
         return
 
-    known_sounds = await _load_known_sounds_or_empty(pool)
-
+    # 이 세션은 살아 있다 — 고아 세션 리퍼(I-4)가 닫아선 안 된다는 표시다. 세션 행을
+    # 만든 **직후** 등록한다: 그 사이에 유휴 워커가 끼어들면 방금 만든 세션이 고아로
+    # 보일 수 있다(발화가 없어 판정 기준이 `started_at`이므로 유예가 지난 시계에서는
+    # 즉시 대상이 된다). 해제는 어떤 경로로 끝나든 아래 `finally`가 한다.
+    live_sessions: set[UUID] = websocket.app.state.live_sessions
+    live_sessions.add(session_id)
     try:
-        adapter = create_voice_adapter(get_settings(), known_sounds=known_sounds)
-    except Exception:
-        # 어댑터를 만들지도 못했다(설정 오타/구현 부재). 세션 행은 이미 있으므로
-        # `active` 고아로 두지 않고 failed로 닫는다 — 결과 화면이 "연결 실패"를
-        # 표시할 근거가 그 status다 (R2 규칙 1).
-        logger.exception("음성 어댑터를 만들 수 없어 세션 %s를 failed로 닫는다", session_id)
-        await mark_session_ended(pool, session_id, "failed")
-        await channel.send_event({"type": "session_failed", "reason": ADAPTER_UNAVAILABLE_REASON})
-        await _safe_close(websocket)
-        return
+        known_sounds = await _load_known_sounds_or_empty(pool)
 
-    runner = SessionRunner(adapter, pool, session_id, client=channel)
-    try:
-        await runner.run()
-    except Exception:
-        # 세션 하나의 사고가 소켓을 close 프레임 없이 끊게 두지 않는다.
-        logger.exception("세션 %s가 예외로 끝났다", session_id)
+        try:
+            adapter = create_voice_adapter(get_settings(), known_sounds=known_sounds)
+        except Exception:
+            # 어댑터를 만들지도 못했다(설정 오타/구현 부재). 세션 행은 이미 있으므로
+            # `active` 고아로 두지 않고 failed로 닫는다 — 결과 화면이 "연결 실패"를
+            # 표시할 근거가 그 status다 (R2 규칙 1).
+            logger.exception("음성 어댑터를 만들 수 없어 세션 %s를 failed로 닫는다", session_id)
+            await mark_session_ended(pool, session_id, "failed")
+            await channel.send_event(
+                {"type": "session_failed", "reason": ADAPTER_UNAVAILABLE_REASON}
+            )
+            return
+
+        runner = SessionRunner(adapter, pool, session_id, client=channel)
+        try:
+            await runner.run()
+        except Exception:
+            # 세션 하나의 사고가 소켓을 close 프레임 없이 끊게 두지 않는다.
+            logger.exception("세션 %s가 예외로 끝났다", session_id)
     finally:
+        # 소켓을 닫기 **전에** 해제한다 — 순서가 뒤집히면 소켓이 이미 닫힌 세션이
+        # 잠깐 live로 남아 리퍼 면제 대상이 된다. 해제를 빠뜨리면 그 세션은 영구히
+        # 면제되어, 정작 고아가 됐을 때 아무도 닫지 않는다.
+        live_sessions.discard(session_id)
         await _safe_close(websocket)

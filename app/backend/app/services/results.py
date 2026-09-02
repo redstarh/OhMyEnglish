@@ -7,6 +7,11 @@
 
 1. `learning_sessions.status='failed'` → `connection_failed` — 이 세션의 job이
    무엇이든 상관없다. 연결 실패가 분석 진행 상태보다 우선한다.
+   ⚠️ `failed`를 만드는 곳은 연결 실패만이 아니다 — **고아 세션 리퍼**(I-4,
+   `sessions.reap_orphan_sessions`)가 프로세스 사망으로 `active`에 남은 세션도
+   `failed`로 닫는다. 그래서 이 규칙은 그 세션의 회복된 분석까지 함께 가린다:
+   리퍼→스윕이 묶음을 걷어 분석을 끝내도 화면은 `connection_failed`다. 누적
+   데이터(오류 패턴·숙련도)는 갱신되므로 잃는 것은 그 세션의 교정 표시뿐이다.
 2. `analyze_utterance` job이 0건 → `no_utterances` — 빈 결과를 확정처럼
    보여주는 경로를 여기서 차단한다.
 3. non-terminal(`pending`/`running`) job이 하나라도 있으면 → `analyzing`이고,

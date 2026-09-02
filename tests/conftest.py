@@ -27,6 +27,7 @@ from __future__ import annotations
 import asyncio
 import sys
 from collections.abc import AsyncIterator, Callable
+from datetime import timedelta
 from pathlib import Path
 from typing import NamedTuple
 from uuid import UUID
@@ -151,6 +152,34 @@ def default_finding(**overrides: object) -> dict[str, object]:
     }
     finding.update(overrides)
     return finding
+
+
+async def backdate_session(conn: asyncpg.Connection, session_id: UUID, *, by: timedelta) -> None:
+    """세션 시작 시각과 그 세션 발화들의 시각을 `by`만큼 과거로 민다 (I-4 리퍼 테스트).
+
+    **경과 시간을 `sleep`으로 만들 수 없기 때문에 있는 헬퍼다.** PostgreSQL의 `now()`는
+    트랜잭션 시작 시각에 고정되므로 `db_conn`(롤백되는 한 트랜잭션) 안에서는 아무리
+    기다려도 유예를 넘길 수 없고, 커밋하는 테스트에서도 1분을 실제로 기다릴 수는 없다.
+    행을 과거로 미는 방식은 벽시계에 의존하지 않아 느린 CI에서도 흔들리지 않는다.
+
+    `ended_at`은 건드리지 않는다 — 이미 끝난 세션을 리퍼가 다시 닫지 않는지 보는 테스트가
+    그 값의 불변을 단정한다. `tests/unit/test_sessions.py`와
+    `tests/integration/test_worker.py`가 공유한다.
+
+    ⚠️ 이것은 **테스트가 만든 합성 데이터**의 시각 조작이고, "표시가 틀렸다고 저장된
+    `timestamptz`를 변환해 UPDATE한다"(전역 시각 규약의 금지 사항)와는 다른 조작이다 —
+    실제 기록된 순간을 이동시키는 코드는 앱에 없다.
+    """
+    await conn.execute(
+        "update learning_sessions set started_at = started_at - $2::interval where id = $1",
+        session_id,
+        by,
+    )
+    await conn.execute(
+        "update utterances set created_at = created_at - $2::interval where session_id = $1",
+        session_id,
+        by,
+    )
 
 
 async def job_row(conn: asyncpg.Connection, job_id: UUID) -> asyncpg.Record:

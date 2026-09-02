@@ -21,16 +21,30 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
+from collections.abc import Collection
 from uuid import UUID
 
 import asyncpg
 
 from app.services.analysis import process_analysis
 from app.services.jobs import ClaimedJob, claim_next
+from app.services.sessions import ORPHAN_IDLE_GRACE, reap_orphan_sessions
 from app.services.utterances import flush_ended_sessions
 from app.workers.claude_client import ClaudeClient
 
 logger = logging.getLogger(__name__)
+
+
+async def reap_orphans(pool: asyncpg.Pool, *, live_sessions: Collection[UUID]) -> list[UUID]:
+    """죽은 프로세스가 남긴 `active` 고아 세션을 `failed`로 닫는다 (I-4 회복 1단).
+
+    **스윕보다 먼저 부른다.** 리퍼가 닫은 세션은 곧바로 `flush_ended_sessions`의 대상이
+    되므로 같은 유휴 사이클에서 회복이 끝난다 — 순서가 뒤집히면 회복이 이유 없이 한 주기
+    늦어진다. 규칙(무엇이 고아인가·왜 live 가드가 필요한가)은 `services/sessions.py`가
+    소유한다. 리퍼도 스윕과 같은 이유로 **큐가 빌 때만** 돈다.
+    """
+    async with pool.acquire() as conn:
+        return await reap_orphan_sessions(conn, live_session_ids=live_sessions)
 
 
 async def sweep_lost_runs(pool: asyncpg.Pool) -> list[UUID]:
@@ -78,8 +92,15 @@ async def run_worker(
     stop: asyncio.Event,
     poll_interval: float = 1.0,
     enabled: bool = True,
+    live_sessions: Collection[UUID] = (),
 ) -> None:
     """`stop`이 켜질 때까지 `analyze_utterance` job을 하나씩 처리한다.
+
+    `live_sessions`는 **살아있는 WebSocket이 소유한 세션 id 집합**이다 — 루프는 읽기만
+    하고, 채우고 비우는 것은 `api/ws.py`다. 고아 세션 리퍼(I-4)가 진행 중인 세션을 닫지
+    않는 근거가 이 집합이므로 **호출자는 반드시 살아있는 집합 객체 자체를 넘긴다**(그 순간의
+    복사본을 넘기면 세션이 열려도 리퍼에게는 계속 비어 보인다). 기본값이 빈 튜플인 것은
+    리퍼 없이 워커만 돌리는 테스트를 위한 것이다.
 
     `enabled=False`면 아무것도 claim하지 않고 즉시 돌아온다 — `WORKER_ENABLED`를
     그대로 넘기는 호출자(E2E-S 3단계처럼 워커 없이 API만 띄우는 실행)가 루프를
@@ -98,8 +119,19 @@ async def run_worker(
         try:
             job = await claim_one(pool)
             if job is None:
-                # 큐가 비었다 — 잃어버린 묶음이 있으면 지금 걷는다. 걷은 것이
-                # 있으면 곧바로 다음 claim으로 가서 그 job을 처리한다.
+                # 큐가 비었다 — 먼저 죽은 프로세스가 남긴 고아 세션을 닫고(I-4), 그
+                # 다음에 잃어버린 묶음을 걷는다(I-1). 이 순서라서 리퍼가 방금 닫은
+                # 세션의 묶음이 같은 사이클에 걷힌다. 걷은 것이 있으면 곧바로 다음
+                # claim으로 가서 그 job을 처리한다.
+                reaped = await reap_orphans(pool, live_sessions=live_sessions)
+                if reaped:
+                    logger.info(
+                        "마지막 발화 후 %.0f초 넘게 조용했던 `active` 세션 %d건을 "
+                        "failed로 닫았다 (I-4): %s",
+                        ORPHAN_IDLE_GRACE.total_seconds(),
+                        len(reaped),
+                        [str(session_id) for session_id in reaped],
+                    )
                 recovered = await sweep_lost_runs(pool)
                 if recovered:
                     logger.info(

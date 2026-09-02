@@ -182,6 +182,27 @@ async def test_ws_connection_creates_a_session_for_the_fixed_user(
     assert session["started_at"].tzinfo is not None
 
 
+# I-4 — 고아 세션 리퍼가 **진행 중** 세션을 닫지 않는 근거는 이 집합이다. 세션이 도는
+# 동안 등록되어 있어야 하고, 끝나면 빠져야 한다(빠지지 않으면 그 세션은 영구히 리퍼
+# 면제 대상이 되어, 정작 고아가 됐을 때 아무도 닫지 않는다).
+async def test_a_running_session_is_registered_as_live_and_released_when_it_ends(
+    ws_app: FastAPI, seeded_fixed_user: UUID
+):
+    async with ws_app.router.lifespan_context(ws_app), ASGIWebSocket(ws_app) as client:
+        started = await client.receive_event()
+        assert started is not None and started["type"] == "session_started"
+        session_id = UUID(started["session_id"])
+        # 대화가 끝나기 **전에** 관측한다 — 끝난 뒤에 보면 등록 여부를 알 수 없다.
+        live_while_running = set(ws_app.state.live_sessions)
+        await client.collect_until("session_ended")
+        # 소켓이 닫히는 것을 기다린다: 해제는 소켓 close **앞**에서 일어나므로,
+        # 여기까지 오면 해제도 끝났다 — 경쟁 없이 다음 단정을 할 수 있다.
+        assert await client.receive_event() is None
+
+    assert session_id in live_while_running, "진행 중 세션이 live 집합에 없다"
+    assert session_id not in ws_app.state.live_sessions, "끝난 세션이 live 집합에 남았다"
+
+
 # G4를 소켓 경로로 한 번 더 — 전사문 저장·job 등록이 실사용 경로에서도 일어난다
 async def test_ws_session_stores_user_finals_and_enqueues_jobs(
     ws_app: FastAPI, db_pool: asyncpg.Pool, seeded_fixed_user: UUID

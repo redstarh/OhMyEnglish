@@ -16,12 +16,13 @@ from __future__ import annotations
 import asyncio
 import json
 from collections.abc import Awaitable, Callable
+from datetime import timedelta
 from typing import Any
 from uuid import UUID
 
 import asyncpg
 import pytest
-from conftest import default_finding
+from conftest import backdate_session, default_finding
 
 from app import db as db_module
 from app.api import main as main_module
@@ -62,6 +63,12 @@ async def _job_status(pool: asyncpg.Pool, utterance_id: UUID) -> str | None:
 
 async def _job_is_done(pool: asyncpg.Pool, utterance_id: UUID) -> bool:
     return await _job_status(pool, utterance_id) == "done"
+
+
+async def _session_status(pool: asyncpg.Pool, session_id: UUID) -> str | None:
+    sql = "select status from learning_sessions where id = $1"
+    async with pool.acquire() as conn:
+        return await conn.fetchval(sql, session_id)
 
 
 async def _save(pool: asyncpg.Pool, session_id: UUID, text: str = GYM_ANSWER) -> UUID:
@@ -119,6 +126,66 @@ async def test_worker_sweep_leaves_an_active_session_alone(db_pool, committed_se
         await asyncio.wait_for(task, timeout=1.0)
 
     assert await _job_status(db_pool, utterance.id) is None, "active 세션의 묶음에 job이 걸렸다"
+
+
+# I-4 리퍼 — 종료 기록 전에 프로세스가 죽어 `active`로 남은 고아 세션을 워커가 닫고,
+# **같은 유휴 사이클의** 스윕이 그 묶음을 걷어 끝까지 분석한다. 리퍼가 없으면 스윕은
+# 정의상 `active`를 건너뛰므로 그 발화는 영구히 분석되지 않는다.
+async def test_worker_reaps_an_orphan_session_and_then_recovers_its_run(
+    db_pool, committed_session, fake_claude
+):
+    # 죽은 프로세스가 남긴 상태를 그대로 만든다: 세션은 `active`, 발화는 있고 job은 없다.
+    async with db_pool.acquire() as conn:
+        utterance = await save_final_transcript(conn, committed_session.session_id, GYM_ANSWER)
+        await backdate_session(conn, committed_session.session_id, by=timedelta(minutes=10))
+    assert await _job_status(db_pool, utterance.id) is None, "job이 이미 있으면 회복을 볼 수 없다"
+    claude: FakeClaudeClient = fake_claude(_response())
+    stop = asyncio.Event()
+    task = asyncio.create_task(
+        run_worker(db_pool, claude, stop=stop, poll_interval=0.01, live_sessions=set())
+    )
+
+    try:
+        await _wait_until(
+            lambda: _job_is_done(db_pool, utterance.id),
+            what="리퍼가 닫은 뒤 스윕이 걸은 job이 done",
+        )
+    finally:
+        stop.set()
+        await asyncio.wait_for(task, timeout=1.0)
+
+    assert await _session_status(db_pool, committed_session.session_id) == "failed", (
+        "리퍼가 고아 세션을 닫지 않았다"
+    )
+
+
+# I-4 리퍼 — **살아있는 연결이 소유한 세션은 유예를 넘겨도 닫지 않는다.** 닫히면 그 직후
+# 스윕이 아직 자라는 중인 묶음을 걷어 조각이 따로 분석되는 I-1 오탐이 되살아난다.
+async def test_worker_reaper_leaves_a_live_session_alone(db_pool, committed_session, fake_claude):
+    async with db_pool.acquire() as conn:
+        utterance = await save_final_transcript(conn, committed_session.session_id, GYM_ANSWER)
+        await backdate_session(conn, committed_session.session_id, by=timedelta(minutes=10))
+    stop = asyncio.Event()
+    task = asyncio.create_task(
+        run_worker(
+            db_pool,
+            fake_claude(),
+            stop=stop,
+            poll_interval=0.01,
+            live_sessions={committed_session.session_id},
+        )
+    )
+
+    try:
+        await asyncio.sleep(0.1)  # 여러 유휴 사이클을 돌 만한 시간
+    finally:
+        stop.set()
+        await asyncio.wait_for(task, timeout=1.0)
+
+    assert await _session_status(db_pool, committed_session.session_id) == "active", (
+        "live 집합에 있는 세션을 리퍼가 닫았다"
+    )
+    assert await _job_status(db_pool, utterance.id) is None, "닫힌 세션의 묶음에 job이 걸렸다"
 
 
 # ① active 세션에서 enqueue된 job이 워커 1사이클 후 done이 된다 (W1 관측형)

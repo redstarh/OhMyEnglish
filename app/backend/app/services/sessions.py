@@ -17,12 +17,20 @@
 
 from __future__ import annotations
 
+from collections.abc import Collection
+from datetime import timedelta
 from typing import Literal
 from uuid import UUID
 
 import asyncpg
 
 SessionEndStatus = Literal["completed", "failed"]
+
+# 설계 발명값 — **캡틴 결정 2026-09-03**: "1분 이상 답이 없으면 `failed`로 닫는다"(I-4).
+# 무엇이 "답"인가: 그 세션의 마지막 발화(화자 무관 — agent 응답도 활동이다), 발화가
+# 없으면 `started_at`. 이 값만으로는 진행 중 세션을 닫을 위험이 남으므로 리퍼는
+# **live 가드**와 함께만 안전하다 (`reap_orphan_sessions` 참조).
+ORPHAN_IDLE_GRACE = timedelta(seconds=60)
 
 _CREATE_SESSION_SQL = """
 insert into learning_sessions (user_id, scenario_id, mode)
@@ -35,6 +43,22 @@ update learning_sessions
    set status = $2,
        ended_at = now()
  where id = $1
+"""
+
+# `status = 'failed'`는 `SessionEndStatus`의 한 값이다 — 리터럴로 박은 이유는 리퍼가
+# 닫는 방식이 하나뿐이기 때문이다(정상 종료로 위장하지 않는다). 시각은 `_END_SESSION_SQL`과
+# 같은 규약으로 DB 시계에서 찍는다.
+_REAP_ORPHAN_SESSIONS_SQL = """
+update learning_sessions s
+   set status = 'failed',
+       ended_at = now()
+ where s.status = 'active'
+   and not (s.id = any($1::uuid[]))
+   and coalesce(
+         (select max(u.created_at) from utterances u where u.session_id = s.id),
+         s.started_at
+       ) < now() - $2::interval
+returning s.id
 """
 
 
@@ -54,6 +78,50 @@ async def end_session(conn: asyncpg.Connection, session_id: UUID, status: Sessio
     `save_final_transcript(conn, …)`가 같은 이유로 연결을 받는다.
     """
     await conn.execute(_END_SESSION_SQL, session_id, status)
+
+
+async def reap_orphan_sessions(
+    conn: asyncpg.Connection,
+    *,
+    live_session_ids: Collection[UUID] = (),
+    idle_after: timedelta = ORPHAN_IDLE_GRACE,
+) -> list[UUID]:
+    """유예를 넘겨 조용한 `active` 세션을 `failed`로 닫고 그 id들을 돌려준다 (I-4).
+
+    **왜 필요한가**: 종료 기록 전에 프로세스가 죽으면 `end_session`이 돌지 않아 세션이
+    `active`로 남는다. I-1 회복 스윕(`utterances.flush_ended_sessions`)은 **정의상
+    `active`를 건너뛰므로** 그 세션의 발화 묶음은 아무도 걷지 않고, 결과 화면은 terminal
+    상태 `no_utterances`("분석 대상 없음")에 고정된다. 리퍼가 닫아 스윕 대상으로 만든다 —
+    그래서 이 함수와 스윕은 **리퍼 → 스윕** 순서로 불려야 같은 사이클에 회복이 끝난다
+    (`workers/analysis_worker.py`).
+
+    **무활동의 기준**은 그 세션 마지막 발화의 `created_at`이고, 화자를 가리지 않는다 —
+    agent가 길게 답하는 동안 닫히면 안 된다. 발화가 없으면 `started_at`으로 잰다(연결만
+    열고 죽은 세션). 시각 비교는 전부 DB 시계(`now()`, timestamptz)로 한다: 앱이 만든
+    naive datetime이 이 판정에 섞이는 경로를 만들지 않는다.
+
+    ⚠️ **`live_session_ids`가 이 함수의 안전성 전부다.** 유예만으로 판정하면 사용자가
+    유예보다 길게 뜸을 들인 **진행 중** 세션이 닫히고, 그 직후 스윕이 아직 자라는 중인
+    묶음을 걷어 조각 하나가 완전한 문장처럼 분석되는 I-1 오탐이 그대로 되살아난다 —
+    고치려던 것을 회복 경로가 되돌리는 셈이다. 호출자는 **이 프로세스에서 살아있는
+    WebSocket이 소유한 세션 id 집합**을 넘긴다(`api/ws.py`가 등록·해제한다). 단일
+    프로세스라 그 집합이 곧 "살아있는 세션 전부"이고, 기동 직후에는 비어 있으므로
+    이전 프로세스가 남긴 고아는 유예 후 전부 걷힌다.
+
+    ⚠️ 리퍼가 닫은 세션의 결과 화면은 `results.py` **규칙 1**에 따라 `connection_failed`
+    ("연결 실패")가 된다 — 규칙 1은 job 상태를 보지 않고 최우선하므로, 스윕이 걷은 묶음이
+    분석을 끝내도 그 화면에 교정은 실리지 않는다. 오류 패턴·숙련도 같은 누적 데이터는
+    정상 갱신된다. 프로세스가 죽어 끝난 세션이라는 사실을 그대로 표시하는 쪽을 택한 것이다.
+
+    ⚠️ 죽은 세션의 마지막 묶음은 미완성 문장일 수 있다(말하는 중에 죽었으므로). 그 묶음이
+    조각으로 분석되는 것은 I-1과 같은 모양이지만, 이미 끝난 세션에서는 더 붙을 발화가
+    없으므로 피할 방법이 없다 — 받아들인 한계다.
+
+    반환 순서는 보장하지 않는다(`update ... returning`은 물리 순서다). 호출자는 로그로만
+    쓴다 — 순서에 의미를 두는 소비자가 생기면 그때 정렬을 넣는다.
+    """
+    records = await conn.fetch(_REAP_ORPHAN_SESSIONS_SQL, list(live_session_ids), idle_after)
+    return [record["id"] for record in records]
 
 
 async def mark_session_ended(

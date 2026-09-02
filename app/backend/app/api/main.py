@@ -19,6 +19,7 @@ import asyncio
 import contextlib
 import logging
 from collections.abc import AsyncIterator
+from uuid import UUID
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -59,6 +60,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
                 app.state.db_pool,
                 BedrockClaudeClient(settings),
                 stop=app.state.worker_stop,
+                # 집합 **객체 자체**를 넘긴다 — 복사본을 넘기면 세션이 열려도 리퍼에게는
+                # 계속 비어 보여 진행 중 세션을 닫는다 (I-4).
+                live_sessions=app.state.live_sessions,
             )
         )
     else:
@@ -90,6 +94,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 def create_app() -> FastAPI:
     app = FastAPI(title="OhMyEnglish API", lifespan=lifespan)
+    # 살아있는 WebSocket이 소유한 세션 id들 — `api/ws.py`가 채우고 비우며, 분석 워커의
+    # 고아 세션 리퍼가 읽는다(I-4). **lifespan이 아니라 여기서 만드는 이유**: 닫을 자원이
+    # 아니라 앱과 수명이 같은 상태이고, lifespan을 열지 않고 라우터만 쓰는 호출자에게도
+    # 있어야 한다 — 없으면 첫 연결이 AttributeError로 죽는다.
+    app.state.live_sessions = set[UUID]()
     # WebSocket에는 CORS가 적용되지 않는다(브라우저가 preflight를 보내지 않는다) —
     # 이 미들웨어는 결과 조회 같은 HTTP GET만을 위한 것이라 methods를 GET으로 좁힌다.
     app.add_middleware(CORSMiddleware, allow_origins=[FRONTEND_ORIGIN], allow_methods=["GET"])
