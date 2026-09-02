@@ -39,7 +39,6 @@ from app.services.utterances import (
     UtteranceRow,
     flush_ended_sessions,
     flush_pending_analysis,
-    pending_learning_utterances,
     save_final_transcript,
 )
 
@@ -421,41 +420,6 @@ async def test_sequence_no_is_scoped_to_its_session(db_conn: asyncpg.Connection)
     other = await save_final_transcript(db_conn, second_session, FIRST_TURN_ANSWER)
 
     assert other.sequence_no == 1
-
-
-# pending_learning_utterances — 분석 입력은 사용자 learning 발화만이다
-async def test_pending_learning_utterances_selects_only_user_learning_speech(
-    db_conn: asyncpg.Connection,
-):
-    session_id = await _new_session(db_conn)
-    learning = await save_final_transcript(db_conn, session_id, FIRST_TURN_ANSWER)
-    await save_final_transcript(
-        db_conn, session_id, "Stop the session.", utterance_type="voice_command"
-    )
-    await save_final_transcript(db_conn, session_id, "Nice, tell me more.", speaker="agent")
-    await flush_pending_analysis(db_conn, session_id)
-
-    pending = await pending_learning_utterances(db_conn)
-
-    assert [row.id for row in pending] == [learning.id]
-    assert pending[0].transcript == FIRST_TURN_ANSWER
-
-
-# pending_learning_utterances — 분석이 끝난 발화는 더 이상 대기 목록에 없다
-async def test_pending_learning_utterances_excludes_finished_analysis(
-    db_conn: asyncpg.Connection,
-):
-    session_id = await _new_session(db_conn)
-    await save_final_transcript(db_conn, session_id, FIRST_TURN_ANSWER)
-    await flush_pending_analysis(db_conn, session_id)
-
-    claimed = await claim_next(db_conn)
-    assert claimed is not None
-    assert len(await pending_learning_utterances(db_conn)) == 1  # running도 대기 중이다
-
-    assert await complete(db_conn, claimed.id, claimed.lease_token) is True
-
-    assert await pending_learning_utterances(db_conn) == []
 
 
 # 존재하지 않는 세션에는 저장하지 않는다 (FK 경계)

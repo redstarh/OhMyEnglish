@@ -40,8 +40,9 @@ from app.services.sessions import SessionEndStatus
 # 나머지 하나는 `active`이고, 그것이 스윕에서 빠져야 하는 유일한 상태다.
 ENDED_SESSION_STATUSES: tuple[str, ...] = get_args(SessionEndStatus)
 
-# 분석 대상 발화의 정의 (W6). 묶음 판정·`pending_learning_utterances`의 선택 조건·
-# 분석 입력 병합(`services/analysis.py`)이 갈라지지 않도록 모두 이 상수를 참조한다.
+# 분석 대상 발화의 정의 (W6). 묶음 판정과 분석 입력 병합(`services/analysis.py`)이
+# 갈라지지 않도록 둘 다 이 상수를 참조한다. (G-7로 세 번째 소비자
+# `pending_learning_utterances`를 삭제했다 — 앱 호출처가 0곳이었다.)
 ANALYZED_SPEAKER = "user"
 ANALYZED_UTTERANCE_TYPE = "learning"
 
@@ -270,34 +271,3 @@ async def flush_ended_sessions(conn: asyncpg.Connection) -> list[UUID]:
         list(ENDED_SESSION_STATUSES),
     )
     return [record["utterance_id"] for record in records]
-
-
-async def pending_learning_utterances(conn: asyncpg.Connection) -> list[UtteranceRow]:
-    """Utterances still waiting on analysis: the user's learning speech whose
-    `analyze_utterance` job has not reached a terminal state (`done`/`failed`).
-
-    `exists` rather than a join — even though the partial unique index allows at
-    most one live job per utterance, a semi-join can never fan a row out.
-    `created_at` alone does not order rows written in one transaction (they
-    share the transaction timestamp), so the sort key ends in `sequence_no`.
-    """
-    records = await conn.fetch(
-        f"""
-        select {_SELECT_COLUMNS}
-          from utterances u
-         where u.speaker = $1
-           and u.utterance_type = $2
-           and exists (
-                 select 1
-                   from analysis_jobs j
-                  where j.utterance_id = u.id
-                    and j.job_type = $3
-                    and j.status in ('pending', 'running')
-               )
-         order by u.created_at, u.session_id, u.sequence_no
-        """,
-        ANALYZED_SPEAKER,
-        ANALYZED_UTTERANCE_TYPE,
-        JOB_TYPE_ANALYZE,
-    )
-    return [_to_utterance(record) for record in records]
