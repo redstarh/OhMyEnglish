@@ -16,6 +16,15 @@
 그 병합이 곧 시나리오의 소멸이다. 그래서 게이트웨이와 같은 순서로 문장 하나 → agent
 응답 하나 → flush를 반복한다. 그 결과 `sequence_no`는 1·3·5…로 오른다.
 
+⚠️ **이 스크립트의 세션은 I-4 리퍼의 live 가드 밖에 있다** (2026-09-03 확인). 세션을 앱
+프로세스 **밖에서** 만들기 때문에 `api/ws.py`가 채우는 `app.state.live_sessions`에 등록되지
+않는다. 그래서 `wait_for_jobs`가 `--wait`(기본 180초) 동안 **새 발화 없이** 기다리는 사이,
+백엔드가 떠 있으면(워커가 job을 처리해야 하니 보통 떠 있다) 리퍼가 무활동 60초 판정으로 그
+세션을 `failed`로 닫는다. **관측 가능한 피해는 없다** — 마지막의
+`mark_session_ended(…, "completed")`가 status 필터 없이 덮어써 최종 상태가 `completed`로
+수렴하고, 이 스크립트는 세션 status를 단정하지 않는다. 다만 **대기 중에 DB를 들여다보면 그
+세션이 `failed`로 보인다 — 회귀로 오인하지 마라.**
+
 실행:
     cd app/backend && .venv/bin/python ../../tests/harness/inject_errors.py --scenario E1
     cd app/backend && .venv/bin/python ../../tests/harness/inject_errors.py --scenario E3 --repeat

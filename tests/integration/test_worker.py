@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 from collections.abc import Awaitable, Callable
 from datetime import timedelta
 from typing import Any
@@ -69,6 +70,10 @@ async def _session_status(pool: asyncpg.Pool, session_id: UUID) -> str | None:
     sql = "select status from learning_sessions where id = $1"
     async with pool.acquire() as conn:
         return await conn.fetchval(sql, session_id)
+
+
+async def _session_is_failed(pool: asyncpg.Pool, session_id: UUID) -> bool:
+    return await _session_status(pool, session_id) == "failed"
 
 
 async def _save(pool: asyncpg.Pool, session_id: UUID, text: str = GYM_ANSWER) -> UUID:
@@ -186,6 +191,43 @@ async def test_worker_reaper_leaves_a_live_session_alone(db_pool, committed_sess
         "live 집합에 있는 세션을 리퍼가 닫았다"
     )
     assert await _job_status(db_pool, utterance.id) is None, "닫힌 세션의 묶음에 job이 걸렸다"
+
+
+# I-4 관측성 — 리퍼가 걷었다는 신호는 **WARNING 이상**이어야 실물에서 보인다. 문서가 지정한
+# 실행 명령(`docs/ops/local-run.md`)은 root 로거에 핸들러를 두지 않아 `logging.lastResort`가
+# WARNING 이상만 흘린다(2026-09-03 실측). 레벨을 INFO로 내리면 이 테스트가 red가 된다.
+async def test_the_reaper_reports_above_info_so_the_documented_run_shows_it(
+    db_pool, committed_session, fake_claude, caplog
+):
+    async with db_pool.acquire() as conn:
+        await save_final_transcript(conn, committed_session.session_id, GYM_ANSWER)
+        await backdate_session(conn, committed_session.session_id, by=timedelta(minutes=10))
+    stop = asyncio.Event()
+
+    with caplog.at_level(logging.INFO):
+        task = asyncio.create_task(
+            run_worker(
+                db_pool,
+                fake_claude(_response()),
+                stop=stop,
+                poll_interval=0.01,
+                live_sessions=set(),
+            )
+        )
+        try:
+            await _wait_until(
+                lambda: _session_is_failed(db_pool, committed_session.session_id),
+                what="리퍼가 고아 세션을 닫는다",
+            )
+        finally:
+            stop.set()
+            await asyncio.wait_for(task, timeout=1.0)
+
+    reaped_lines = [record for record in caplog.records if "(I-4)" in record.getMessage()]
+    assert reaped_lines, "리퍼가 세션을 닫았는데 아무 로그도 남기지 않았다"
+    assert all(record.levelno >= logging.WARNING for record in reaped_lines), (
+        "리퍼 로그가 INFO라 문서 실행 경로에서는 보이지 않는다"
+    )
 
 
 # ① active 세션에서 enqueue된 job이 워커 1사이클 후 done이 된다 (W1 관측형)

@@ -125,7 +125,14 @@ async def run_worker(
                 # claim으로 가서 그 job을 처리한다.
                 reaped = await reap_orphans(pool, live_sessions=live_sessions)
                 if reaped:
-                    logger.info(
+                    # **WARNING이다 — INFO로 내리지 마라.** 리퍼가 걷었다는 것은 이전
+                    # 프로세스가 세션 도중에 죽었다는 뜻이고, 정상 운영에서는 나오지 않는다.
+                    # 게다가 문서가 지정한 실행 명령(`docs/ops/local-run.md`:
+                    # `.venv/bin/uvicorn app.api.main:app --port 8002`)은 root 로거에 핸들러를
+                    # 두지 않아 `logging.lastResort`가 **WARNING 이상만** 흘린다 — INFO면 이
+                    # 줄이 실물에서 아예 보이지 않는다(2026-09-03 실측: 같은 실행에서 INFO
+                    # "analysis worker started"는 0건, WARNING "텍스트가 아닌 프레임"은 출력됨).
+                    logger.warning(
                         "마지막 발화 후 %.0f초 넘게 조용했던 `active` 세션 %d건을 "
                         "failed로 닫았다 (I-4): %s",
                         ORPHAN_IDLE_GRACE.total_seconds(),
