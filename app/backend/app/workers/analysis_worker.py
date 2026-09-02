@@ -123,7 +123,16 @@ async def run_worker(
                 # 다음에 잃어버린 묶음을 걷는다(I-1). 이 순서라서 리퍼가 방금 닫은
                 # 세션의 묶음이 같은 사이클에 걷힌다. 걷은 것이 있으면 곧바로 다음
                 # claim으로 가서 그 job을 처리한다.
-                reaped = await reap_orphans(pool, live_sessions=live_sessions)
+                # 리퍼 고유의 실패가 **I-1 스윕을 막지 않게** 따로 감싼다. 이 두 회복 경로는
+                # 독립이고, 직렬로 묶으면 리퍼가 계속 실패하는 동안 잃어버린 묶음이 영구히
+                # 걷히지 않는다 — `utterances.flush_ended_sessions`가 말하는 terminal
+                # "분석 대상 없음"이 그 결과다. 아래 루프 레벨 `except`는 사이클을 통째로
+                # 건너뛰므로 여기서 대신 잡을 수 없다.
+                try:
+                    reaped = await reap_orphans(pool, live_sessions=live_sessions)
+                except Exception:
+                    logger.exception("고아 세션 리퍼가 실패했다 — 스윕은 그대로 진행한다 (I-4)")
+                    reaped = []
                 if reaped:
                     # **WARNING이다 — INFO로 내리지 마라.** 리퍼가 걷었다는 것은 이전
                     # 프로세스가 세션 도중에 죽었다는 뜻이고, 정상 운영에서는 나오지 않는다.

@@ -118,6 +118,10 @@ async def session_socket(websocket: WebSocket) -> None:
     await websocket.accept()
     channel = WebSocketChannel(websocket)
     pool: asyncpg.Pool = websocket.app.state.db_pool
+    # 살아있는 세션 레지스트리를 **세션 행을 만들기 전에** 집는다 (I-4). `create_app()`을
+    # 우회한 배선이면 여기서 `AttributeError`로 끝나는데, 그 시점에는 아직 세션 행이 없어
+    # `active` 고아를 남기지 않는다 — 뒤로 밀면 행을 만든 뒤 터져서 고아가 생긴다.
+    live_sessions: set[UUID] = websocket.app.state.live_sessions
 
     try:
         session_id = await create_session(pool, FIXED_USER_ID)
@@ -129,11 +133,13 @@ async def session_socket(websocket: WebSocket) -> None:
         await _safe_close(websocket)
         return
 
-    # 이 세션은 살아 있다 — 고아 세션 리퍼(I-4)가 닫아선 안 된다는 표시다. 세션 행을
-    # 만든 **직후** 등록한다: 그 사이에 유휴 워커가 끼어들면 방금 만든 세션이 고아로
-    # 보일 수 있다(발화가 없어 판정 기준이 `started_at`이므로 유예가 지난 시계에서는
-    # 즉시 대상이 된다). 해제는 어떤 경로로 끝나든 아래 `finally`가 한다.
-    live_sessions: set[UUID] = websocket.app.state.live_sessions
+    # 이 세션은 살아 있다 — 고아 세션 리퍼(I-4)가 닫아선 안 된다는 표시다. 세션 행 생성
+    # **직후**, 다음 `await`보다 **앞**에서 등록하는 것이 계약이다: 바로 아래
+    # `_load_known_sounds_or_empty`가 pool acquire를 await하므로(소진되면 길어진다) 등록을
+    # 그 뒤로 밀면 리퍼가 볼 수 있는 진짜 창이 열린다.
+    # ⚠️ **"갓 만든 세션이 즉시 리핑된다"는 위험은 없다** — `started_at`이 `now()` 기본값이라
+    # 나이가 0초이고 유예를 만족할 수 없다. 이 순서의 근거는 유예가 아니라 위의 await 창이다.
+    # 해제는 어떤 경로로 끝나든 아래 `finally`가 한다.
     live_sessions.add(session_id)
     try:
         known_sounds = await _load_known_sounds_or_empty(pool)

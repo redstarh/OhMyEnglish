@@ -64,7 +64,10 @@ async def test_reaper_closes_an_active_session_silent_past_the_grace(db_conn: as
 
     status, ended_at = await _state(db_conn, session_id)
     assert status == "failed"
-    assert ended_at is not None, "리퍼가 종료 시각을 남기지 않으면 결과 화면이 진행 중처럼 보인다"
+    # 불변식: `status`가 `active`가 아니면 `ended_at`이 채워져 있다 — `_END_SESSION_SQL`이 둘을
+    # 한 UPDATE로 묻는 것과 같은 이유이고, 리퍼도 그 불변식을 지켜야 한다.
+    # ⚠️ 결과 화면을 근거로 쓰지 마라 — `results.py`는 `status`만 읽고 `ended_at`은 보지 않는다.
+    assert ended_at is not None, "끝난 세션인데 종료 시각이 없는 행을 만들었다"
 
 
 # T0 — 유예 안에 말한 세션은 건드리지 않는다. 사용자가 잠깐 뜸을 들인 것과
@@ -138,6 +141,18 @@ async def test_reaper_ignores_live_ids_that_are_not_active_sessions(db_conn: asy
     await _backdate(db_conn, session_id, by=PAST_THE_GRACE)
 
     assert await reap_orphan_sessions(db_conn, live_session_ids={uuid4(), uuid4()}) == [session_id]
+
+
+# T2 — 유예는 **파라미터**다. `idle_after`가 실제로 SQL의 interval에 묶이는지 본다: 묶이지
+# 않으면(기본값만 쓰면) 아래 두 단정 중 하나는 반드시 깨진다. 같은 세션을 두 유예로 재는
+# 것이 핵심이다 — 경계가 값에 따라 실제로 움직인다는 뜻이다.
+async def test_reaper_honours_a_custom_grace(db_conn: asyncpg.Connection):
+    session_id = await _new_session(db_conn)
+    await save_final_transcript(db_conn, session_id, ANSWER)
+    await _backdate(db_conn, session_id, by=timedelta(minutes=5))
+
+    assert await reap_orphan_sessions(db_conn, idle_after=timedelta(minutes=10)) == []
+    assert await reap_orphan_sessions(db_conn, idle_after=timedelta(minutes=1)) == [session_id]
 
 
 # 발명값이다 — 캡틴 결정(2026-09-03: "1분 이상 답이 없으면 failed로 닫는다").

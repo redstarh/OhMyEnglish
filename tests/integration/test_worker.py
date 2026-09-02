@@ -122,7 +122,19 @@ async def test_worker_sweep_leaves_an_active_session_alone(db_pool, committed_se
     async with db_pool.acquire() as conn:
         utterance = await save_final_transcript(conn, committed_session.session_id, GYM_ANSWER)
     stop = asyncio.Event()
-    task = asyncio.create_task(run_worker(db_pool, fake_claude(), stop=stop, poll_interval=0.01))
+    # ⚠️ `live_sessions`를 넘기는 이유는 **벽시계 의존을 없애기 위해서다** (I-4). 넘기지 않으면
+    # 기본값이 빈 집합이라 리퍼가 이 세션을 상대하게 되고, 이 테스트 하나가 유예(60초)보다 오래
+    # 걸리면 세션이 닫혀 스윕이 job을 걸어 단정이 깨진다 — `conftest`가 스스로 금지한 의존이다.
+    # 여기서 볼 것은 **스윕**의 `active` 필터이고 리퍼는 변수가 아니어야 한다.
+    task = asyncio.create_task(
+        run_worker(
+            db_pool,
+            fake_claude(),
+            stop=stop,
+            poll_interval=0.01,
+            live_sessions={committed_session.session_id},
+        )
+    )
 
     try:
         await asyncio.sleep(0.1)  # 여러 유휴 사이클을 돌 만한 시간
@@ -443,6 +455,70 @@ async def test_lifespan_shutdown_cancels_a_worker_that_will_not_stop(
     assert db_module._pool is None, "cancel 후에도 pool은 닫혀야 한다"
     # 취소된 시도의 job은 running으로 남고 lease 만료 후 회수된다 (§5.4).
     assert await _job_status(db_pool, utterance_id) == "running"
+
+
+# I-4 배선 — **live 가드의 안전성 전부가 이 한 줄에 걸려 있다**(`api/main.py`): lifespan은
+# `app.state.live_sessions` **집합 객체 자체**를 워커에 넘겨야 한다. 복사본을 넘기거나 kwarg를
+# 빠뜨리면(기본값 `()`) 스위트는 전부 green인 채로 실물에서는 진행 중 세션이 유예만큼의 DB 침묵
+# 뒤에 닫히고, 같은 사이클의 스윕이 자라는 묶음을 걷어 I-1 오탐이 부활한다. 독립 리뷰어 2명이
+# 각각 지목한 유일한 HIGH였다(2026-09-03) — 그 전까지 이 배선을 덮는 테스트가 0건이었다.
+#
+# 순서가 이 테스트의 전부다: **lifespan을 연 뒤에** 등록하고, **등록한 뒤에** 과거로 민다.
+# 그래야 lifespan 시점에 뜬 복사본은 그 id를 갖지 못하고(→ 리핑 → red), 참조면 갖는다(→ green).
+async def test_lifespan_hands_the_live_session_registry_itself_to_the_worker(
+    app_settings, db_pool, committed_session
+):
+    app_settings(worker_enabled=True)
+    app = create_app()
+    async with db_pool.acquire() as conn:
+        await save_final_transcript(conn, committed_session.session_id, GYM_ANSWER)
+
+    async with app.router.lifespan_context(app):
+        # 여기서 등록한다 — lifespan이 복사본을 떴다면 그 복사본에는 없다.
+        app.state.live_sessions.add(committed_session.session_id)
+        async with db_pool.acquire() as conn:
+            await backdate_session(conn, committed_session.session_id, by=timedelta(minutes=10))
+
+        # 리퍼는 유휴 사이클마다 돈다(lifespan은 기본 poll_interval=1.0초). 한 사이클 이상
+        # 줄 만큼 기다리되, 닫히는 순간 곧바로 빠져나와 실패를 빨리 보고한다.
+        for _ in range(25):
+            if await _session_is_failed(db_pool, committed_session.session_id):
+                break
+            await asyncio.sleep(0.1)
+
+        assert await _session_status(db_pool, committed_session.session_id) == "active", (
+            "lifespan이 live 레지스트리를 참조로 넘기지 않아 진행 중 세션이 닫혔다"
+        )
+
+
+# I-4 — **리퍼의 실패가 I-1 스윕을 막지 않는다.** 두 회복 경로는 독립인데 한 `try`로 묶으면
+# 리퍼가 계속 실패하는 동안 잃어버린 묶음이 영구히 걷히지 않는다(terminal "분석 대상 없음").
+async def test_a_failing_reaper_still_lets_the_sweep_recover_a_lost_run(
+    db_pool, committed_session, fake_claude, monkeypatch
+):
+    async with db_pool.acquire() as conn:
+        utterance = await save_final_transcript(conn, committed_session.session_id, GYM_ANSWER)
+        await end_session(conn, committed_session.session_id, "completed")
+
+    async def exploding_reaper(*args: object, **kwargs: object) -> list[UUID]:
+        raise RuntimeError("리퍼가 터졌다")
+
+    monkeypatch.setattr(analysis_worker, "reap_orphans", exploding_reaper)
+    stop = asyncio.Event()
+    task = asyncio.create_task(
+        run_worker(db_pool, fake_claude(_response()), stop=stop, poll_interval=0.01)
+    )
+
+    try:
+        await _wait_until(
+            lambda: _job_is_done(db_pool, utterance.id),
+            what="리퍼가 실패해도 스윕이 걸은 job이 done",
+        )
+    finally:
+        stop.set()
+        await asyncio.wait_for(task, timeout=1.0)
+
+    assert task.exception() is None, "리퍼 실패가 루프를 죽였다"
 
 
 def test_worker_shutdown_timeout_is_a_documented_design_value():
