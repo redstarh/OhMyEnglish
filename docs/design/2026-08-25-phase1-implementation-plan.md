@@ -16,7 +16,7 @@
 - ~~Phase 1 자격증명: bearer(`AWS_BEARER_TOKEN_BEDROCK`) 임시 사용 (AC F5, 의도적 이탈 2)~~ → **해소 (2026-08-26).** SigV4 단일 경로로 전환 완료. `prepare_bedrock_credentials()`가 SigV4를 우선 쓰고(없으면 bearer 폴백 — 전환기 캡틴 지시) SigV4가 있으면 bearer를 프로세스 환경에서 제거한다. **AC F5의 "전환 = 설정 교체"가 실증됐다** — 격리 지점 `config.py` 한 곳만 고쳐 워커·클라이언트 코드는 무변경. 실측: Claude invoke HTTP 200, Nova 양방향 스파이크 PASS(설계서 §10-1 관문 통과)
 - Nova 실연동 금지 — 포트+스텁만 (캡틴 결정 2026-08-25)
 - 워커 동시성 1 / lease 5분 / attempts 상한 5 / 백오프 `attempts × 1분` / Gateway 연결 타임아웃 10초 (전부 설계 발명값 — 코드 상수로 두고 주석에 발명값 표기)
-- `mastery_score`·`self_difficulty`·`review_tasks`·`impact_score`는 스키마만 존재, 어떤 코드도 읽거나 쓰지 않는다
+- `mastery_score`·`self_difficulty`·`review_tasks`는 스키마만 존재, 어떤 코드도 읽거나 쓰지 않는다 (⚠️ 2026-09-03 정정: `impact_score`는 **컬럼 자체가 없어** 이 목록에 있으면 안 된다. 같은 문서 뒤쪽 006 주석이 "만들지 않는다"로 옳게 적었다)
 - 시간: 전부 `timestamptz`/aware datetime. naive datetime 금지 (SVG V3)
 - 시간 의존 테스트는 실시간 대기 금지 — `locked_at`/`available_at`을 과거로 직접 세팅
 - 테스트: `pytest` 전체 실패 0 + **skip/xfail 0**. 각 태스크는 red→green 증거(실패 출력 → 통과 출력)를 남긴다 (SVG T0)
@@ -210,7 +210,7 @@ returning id, utterance_id, attempts;
 
 **Interfaces:**
 - Produces: `save_final_transcript(conn, session_id, text, speaker="user") -> UtteranceRow` — 세션 내 `sequence_no` 단조 증가 부여, `utterance_type='learning'`이면 같은 트랜잭션에서 `enqueue_analyze`. `save_final_transcript`는 agent 발화(`speaker='agent'`)도 저장하되 job은 사용자 learning 발화만
-- Produces: `pending_learning_utterances(conn)` — 분석 입력 선택 쿼리 (W6의 검증 대상은 enqueue 조건)
+- Produces: ~~`pending_learning_utterances(conn)`~~ — 분석 입력 선택 쿼리 (W6의 검증 대상은 enqueue 조건). ⚠️ **2026-09-03 G-7로 삭제했다** — 앱 호출처가 0곳이었다(캡틴 결정 B-8 "죽은 코드는 삭제"). W6 증거는 이 줄이 이미 말한 대로 enqueue 조건 쪽에 있으므로 잃은 것이 없다.
 
 - [ ] 실패 테스트: ① 사용자 learning 발화 저장 → utterances 1행 + analysis_jobs 1행, **같은 트랜잭션**(중간 실패 주입 시 둘 다 롤백) ② `voice_command` 발화 저장 → job 0건 (W6) ③ agent 발화 → job 0건 ④ 같은 `(session_id, sequence_no)` 강제 재insert → unique 위반 (W3 가드) ⑤ sequence_no가 1,2,3 단조 증가
 - [ ] 구현 → green → lint/ty → Commit: `feat: transcript persistence with atomic job enqueue`

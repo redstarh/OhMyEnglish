@@ -105,7 +105,7 @@ podman PG + 백엔드 + 프론트를 실제 기동하고 브라우저에서 다�
 
 ## Phase 1에서 쓰지 않는 것 (명시)
 
-`mastery_score`·`self_difficulty`·`review_tasks`·`impact_score`는 **컬럼/테이블만 존재하고 어떤 코드도 읽거나 갱신하지 않는다** (복습 스케줄링은 3단계). `pronunciation_intonation` 카테고리는 CHECK에만 있고 산출되지 않는다(§6.1 D1 참고). ⚠️ **이 문단은 Phase 1 범위에 대한 진술이고 당시로서 옳았다. 2026-08-27에 범위가 넓어졌다** — `review_tasks`·복습 스케줄은 `2026-08-25-learning-coach-agent-design.md`(정본 승격), 발음 산출은 `2026-08-27-pronunciation-echo-design.md`, `impact_score`는 **영구 제외**로 결정됐다(학습 코치 설계서 §11 미결 3 종결).
+`mastery_score`·`self_difficulty`·`review_tasks`는 **컬럼/테이블만 존재하고 어떤 코드도 읽거나 갱신하지 않는다** (복습 스케줄링은 3단계). `pronunciation_intonation` 카테고리는 CHECK에만 있고 산출되지 않는다(§6.1 D1 참고). ⚠️ **이 문단은 Phase 1 범위에 대한 진술이고 당시로서 옳았다. 2026-08-27에 범위가 넓어졌다** — `review_tasks`·복습 스케줄은 `2026-08-25-learning-coach-agent-design.md`(정본 승격), 발음 산출은 `2026-08-27-pronunciation-echo-design.md`, `impact_score`는 **영구 제외**로 결정됐다(학습 코치 설계서 §11 미결 3 종결). ⚠️ **2026-09-03 정정 — `impact_score`는 이 목록에 있으면 안 된다: 컬럼 자체가 없다**(마이그레이션 참조 **0건** · `information_schema`에도 없음). 앞의 셋과 **상태가 다르다** — 그것들은 컬럼이 있고 앱만 안 쓰는 것이라 바로 쓸 수 있지만, 이것은 쓰려면 신설해야 한다.
 
 ## 이월 — 이 개발의 완료 기준이 아님
 

@@ -378,7 +378,7 @@ Given 정답률이 충분히 높아 Claude가 상향을 판단할 때, When 갱�
 Given 노트가 2회 갱신되었을 때, When 최신 노트가 부적절하다고 판단되면, Then 이전 노트 행이 그대로 남아 있어 데이터 삭제 없이 복구할 수 있다.
 
 **AS9 — 연습 상황 저장**
-Given Claude 분석이 `suggested_contexts` 3개를 산출할 때, When 결과가 저장되면, Then `error_occurrences.suggested_contexts`에 보존되고 재분석(replace) 후에도 최신 값이 남는다.
+Given Claude 분석이 `suggested_contexts` 3개를 산출할 때, When 결과가 저장되면, Then `error_occurrences.suggested_contexts`에 보존되고 재분석(replace) 후에도 최신 값이 남는다. ⚠️ **이 컬럼은 아직 없다**(2026-09-03 실측: 마이그레이션 참조 **0건**) — 슬라이스 1이 **006 마이그레이션으로 신설**한 뒤에야 이 AC를 만족시킬 수 있다. 설계서를 믿고 그대로 구현하면 그 자리에서 깨진다.
 
 **AS10 — 정답 여부 기록의 멱등성**
 Given 같은 재발화에 대한 분석이 재시도될 때, When 결과가 저장되면, Then `pattern_attempts` 행이 중복되지 않는다(`unique(pattern_id, utterance_id)`).

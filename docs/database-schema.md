@@ -216,6 +216,54 @@ available_at)`는 워커의 `FOR UPDATE SKIP LOCKED` claim 조회용이다. `pay
 슬라이스로 연기). 컬럼과 CHECK는 지금 확정해 다음 슬라이스에서 마이그레이션 없이
 켠다.
 
+### `pronunciation_attempts` — 도입: 003(발음 에코), 004·005가 보강
+
+| 컬럼 | 타입 | 제약 |
+|---|---|---|
+| `id` | uuid | PK, `default gen_random_uuid()` |
+| `session_id` | uuid | not null, FK → `learning_sessions`, `on delete cascade` |
+| `utterance_id` | uuid | null 허용, FK → `utterances`, **`on delete set null`** — 발화가 지워져도 판정 기록은 남는다 |
+| `pattern_id` | uuid | null 허용, FK → `error_patterns`, `on delete set null`. `outcome='incorrect'`이고 `target_sound`가 있을 때만 연결된다 |
+| `target_form` | text | not null, CHECK `length(btrim(...)) > 0` — 올바른 발음으로 읽어준 문장 |
+| `spoken_form` | text | null 허용 — 시범 시점에는 아직 못 들었다 |
+| `target_sound` | text | null 허용 — `pattern_key` 생성 재료(예: `th_as_s`). 모델이 안 줄 수 있다 |
+| `outcome` | text | not null, CHECK (`pending`, `correct`, `incorrect`, `unclear`) |
+| `signal_source` | text | not null, default `'nova_tool'`, CHECK (`nova_tool`, `korean_transcript`, `agent_reprompt`) |
+| `created_at` | timestamptz | not null, default `now()` |
+| `resolved_at` | timestamptz | null 허용 — `pending`을 벗어난 시각 |
+| `attempt_seq` | bigint | not null, `generated always as identity` (004) |
+| — | — | CHECK `(outcome = 'pending') = (resolved_at is null)` |
+| — | — | CHECK `outcome <> 'pending' or signal_source = 'nova_tool'` (005) |
+
+발음 시범 1회 = 1행. **`pending`은 정식 값이다** — Nova는 재발화 *전에* tool을 부르므로 행이
+열린 상태로 태어나고, 세션 종료 수렴이 남은 `pending`을 닫는다. 반면 보조 신호
+(`korean_transcript`)로 만든 행은 **항상 판정된 상태로 태어난다** — 005의 CHECK가 그것을
+강제한다(열리지 않으므로 닫을 것도 없다). 인덱스 2개: `(session_id, outcome)`(종료 수렴 경로) ·
+`(created_at desc)`(계획 생성이 최근 창을 읽는 경로).
+
+⚠️ **`attempt_seq`는 표 전역 삽입 순서다** — `utterances.sequence_no`처럼 세션 안에서 1,2,3…이
+아니다. 004 헤더가 이 함정을 소유한다.
+
+⚠️ **이 표가 `error_patterns.frequency`의 두 번째 writer다.** `pronunciation_intonation`
+카테고리의 `frequency`는 `error_occurrences` 수가 아니라 **이 표의 시도 수**를 센다(위
+`frequency` 파생 설명과 카테고리 표 참조). freq 1 · occurrence 0인 발음 패턴은 정상이다.
+
+### `schema_migrations` — 도입: 마이그레이션 러너 (SQL 파일이 아니다)
+
+| 컬럼 | 타입 | 제약 |
+|---|---|---|
+| `filename` | text | PK |
+| `applied_at` | timestamptz | not null, default `now()` |
+
+⚠️ **이 표만 `db/migrations/*.sql`이 아니라 `scripts/migrate.py`가 만든다**
+(`_ensure_migrations_table`, `create table if not exists`). 적용된 파일 이름을 담아 재실행을
+멱등으로 만든다 — 그래서 마이그레이션 파일을 grep해도 이 표의 DDL은 나오지 않는다.
+
+⚠️ **dev DB에는 `harness_*` 표 3개가 더 있다** — `harness_runs`·`harness_sessions`·
+`harness_pattern_baseline`(2026-09-03 `information_schema` 실측). 앱 스키마가 아니라 테스트
+하네스가 만든 것이고 **앱 코드 참조 0곳**(grep)이라 이 문서가 정의하지 않는다. 정의는
+`tests/harness/README.md`가 소유한다.
+
 ### 아직 SQL에 없는 테이블
 
 | 테이블 | 도입 | 비고 |
