@@ -251,6 +251,28 @@ async def test_prompt_carries_the_users_existing_pattern_keys(
     assert second_prompt == build_prompt(OFFICE_ANSWER, rows)
 
 
+# G-8 — **발음 패턴은 문법 프롬프트 재료에 실리지 않는다.** `error_patterns.frequency`를 두 writer가
+# 서로 다른 규약으로 센다 — 문법은 `error_occurrences` 행 수, 발음은 시도 수를 다시 센다.
+# 발음 키가 프롬프트에 실리면 모델이 그것을 글자 그대로 재사용할 수 있고, 그러면 한 행을 두 writer가
+# 번갈아 덮는다. 캡틴 결정(2026-08-31 "두 번 틀리면 두 번 틀린 것으로 기록") → **(나) 경로 분리**:
+# 스키마를 바꾸지 않고 충돌 경로 자체를 없앤다. 제외 카테고리의 소유자는
+# `services/analysis.py`의 `UNJUDGEABLE_CATEGORY`다.
+async def test_existing_patterns_exclude_the_pronunciation_category(db_pool, committed_session):
+    async with db_pool.acquire() as conn:
+        await conn.execute(
+            "insert into error_patterns (user_id, category, pattern_key, target_form) "
+            "values ($1, 'article', 'article_missing_before_place_noun', 'go to the gym'), "
+            "       ($1, 'pronunciation_intonation', 'pronunciation_th_as_s', 'think')",
+            committed_session.user_id,
+        )
+
+        rows = await load_existing_patterns(conn, committed_session.user_id)
+
+    assert [row.pattern_key for row in rows] == ["article_missing_before_place_noun"], (
+        "발음 패턴이 문법 프롬프트 재료에 실렸다 — frequency 이중 writer 충돌 경로가 열린다"
+    )
+
+
 # ④ 검증 실패 응답 → fail_or_retry 경로 (W7 연동). 결과는 하나도 쓰이지 않는다.
 @pytest.mark.parametrize(
     "raw",

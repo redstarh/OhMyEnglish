@@ -219,10 +219,18 @@ select (select string_agg(u.transcript, ' ' order by u.sequence_no)
   from run r
 """
 
+# ⚠️ **`category <> $2`를 지우지 말 것** (G-8, 캡틴 결정 2026-08-31 "두 번 틀리면 두 번 틀린
+# 것으로 기록" → **경로 분리**). `error_patterns.frequency`는 writer가 둘이고 규약이 다르다:
+# 문법 경로는 `error_occurrences` **행 수**를, 발음 경로는 `pronunciation_attempts` **시도 수**를
+# 다시 센다. 발음 키가 이 조회를 타고 프롬프트에 실리면 모델이 그것을 글자 그대로 재사용할 수
+# 있고(§5.6이 재사용을 지시한다), 그러면 한 행을 두 writer가 번갈아 덮는다. 신규 키는 이미
+# 안전하다 — 이 카테고리가 `PROMPT_CATEGORIES`에서 빠져 있다. **구멍은 재사용 경로뿐이었고**
+# 필터 한 줄이 그것을 닫는다. 스키마 변경 0(006 불필요)이 이 안을 고른 이유다.
 _EXISTING_PATTERNS_SQL = """
 select category, pattern_key, target_form
   from error_patterns
  where user_id = $1
+   and category <> $2
  order by pattern_key
 """
 
@@ -280,8 +288,14 @@ class _AnalysisInput:
 
 
 async def load_existing_patterns(conn: asyncpg.Connection, user_id: UUID) -> list[PatternRow]:
-    """프롬프트에 주입할 이 사용자의 기존 패턴 (§5.6). 단일 사용자라 목록이 작다."""
-    records = await conn.fetch(_EXISTING_PATTERNS_SQL, user_id)
+    """프롬프트에 주입할 이 사용자의 기존 패턴 (§5.6). 단일 사용자라 목록이 작다.
+
+    **발음 카테고리는 제외한다** (G-8) — 이 워커는 전사문만 받아 발음을 판정할 수 없고,
+    그 키가 프롬프트에 실려 재사용되면 `frequency`를 두 writer가 다른 규약으로 덮는다.
+    근거는 `_EXISTING_PATTERNS_SQL`의 ⚠️가 소유한다. 제외 값은 `UNJUDGEABLE_CATEGORY`
+    하나이므로 신규 키 금지(`PROMPT_CATEGORIES`)와 같은 상수를 본다 — 둘이 갈라질 수 없다.
+    """
+    records = await conn.fetch(_EXISTING_PATTERNS_SQL, user_id, UNJUDGEABLE_CATEGORY)
     return [
         PatternRow(
             category=record["category"],
