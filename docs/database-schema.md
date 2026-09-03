@@ -2,9 +2,10 @@
 
 관계형 DB(PostgreSQL 권장)를 기준으로 한다. 음성 파일은 객체 스토리지에 저장하고 DB에는 참조만 둔다.
 
-> 이 문서는 `db/migrations/001_initial_schema.sql`(첫 수직 슬라이스, 설계서
-> `docs/design/2026-08-24-first-vertical-slice-design.md` §6/§6.1a)과 1:1로
-> 정합화되어 있다. 각 표에 표시된 **도입** 단계는 그 테이블이 실제로 SQL에 존재하기
+> 이 문서는 `db/migrations/*.sql` **전체**(001 첫 수직 슬라이스 · 003~005 발음 에코 ·
+> **006 학습 코치 슬라이스 1**)와 1:1로 정합화되어 있다. 설계서는 각각
+> `docs/design/2026-08-24-first-vertical-slice-design.md` §6/§6.1a ·
+> `2026-08-27-pronunciation-echo-design.md` §6 · `2026-08-25-learning-coach-agent-design.md` §8. 각 표에 표시된 **도입** 단계는 그 테이블이 실제로 SQL에 존재하기
 > 시작하는 시점을 뜻한다.
 
 ```mermaid
@@ -18,9 +19,12 @@ erDiagram
   UTTERANCES ||--o{ ANALYSIS_JOBS : "analyze_utterance"
   ERROR_PATTERNS ||--o{ ERROR_OCCURRENCES : groups
   ERROR_PATTERNS ||--o{ REVIEW_TASKS : generates
+  ERROR_PATTERNS ||--o{ PATTERN_ATTEMPTS : "retried (006)"
+  UTTERANCES ||--o{ PATTERN_ATTEMPTS : judges
 ```
 
-`shadowing_items`(002)와 `weekly_reports`(002)는 아직 SQL에 존재하지 않아 다이어그램에서 제외했다 — 아래 표에서 도입 단계만 안내한다.
+`shadowing_items`와 `weekly_reports`는 아직 SQL에 존재하지 않아 다이어그램에서 제외했다 — 아래 표에서 도입 단계만 안내한다.
+⚠️ **마이그레이션 번호에 `002`는 없다** — 만들어진 적이 없고(파일·git 이력 각 0건) 003~005가 발음, **006이 학습 코치 슬라이스 1**이다. 이전 판이 미도입 표를 "002"로 안내했으나 그 번호는 이미 지나갔다.
 
 ## 핵심 테이블
 
@@ -115,7 +119,16 @@ work?` / `What do you usually do on weekends?` / `What do you need to do tonight
 수**에서 센다(아래 카테고리 표 참조 — 발음은 occurrence를 만들지 않는다).
 문법 경로의 `last_seen_at`은 발생 시각이 아니라 **발화 시각**(`utterances.created_at`)
 기준이고, 발음 경로는 시도의 판정 시각(`resolved_at`)이다.
-`impact_score`는 3단계(복습 우선순위)로 연기되어 아직 컬럼이 없다.
+`impact_score`는 **영구 제외**다 — 컬럼도 만들지 않는다. 2026-08-27 캡틴 결정(학습 코치
+설계서 §11 미결 3): `PRD.md:91`의 "영향도"는 우선순위 공식이 아니라 **Agent 판단**으로
+실현된다. ~~3단계로 연기~~라는 이전 서술은 폐기됐다.
+
+**`mastery_score`와 `next_review_at`의 유일한 writer는 `app/services/review.py`다**(006 이후).
+`frequency`처럼 파생값이고 증분하지 않는다 — `error_occurrences`와 `pattern_attempts`의
+이력에서 매번 다시 계산한다. `mastery_score`는 점수가 아니라 **상태 마커**다: 복습 3단계를
+재발 없이 완주하면 `100`, 재발하면 `0`이고 중간값이 없다(캡틴 결정 2026-09-03 — 임계값을
+발명하지 않는다는 설계서 §3.2의 귀결). 완주 이력이 사라지는 것은 아니다 —
+`pattern_attempts`의 correct 행이 남아 "3단계 소진 후 재발"을 언제든 재계산할 수 있다.
 
 `target_form`은 **패턴 수준의 일반화된 목표 형태**다 — 그 패턴을 연습할 때 익힐 형태이며
 문장이 아니다(예: `go to the + 장소 명사`, `Yesterday + 동사 과거형`). **문장별 교정은
@@ -158,6 +171,7 @@ work?` / `What do you usually do on weekends?` / `What do you need to do tonight
 | `explanation` | text | not null |
 | `severity` | text | not null, CHECK (`low`, `medium`, `high`) |
 | `confidence` | numeric(3,2) | not null, CHECK 0~1 |
+| `suggested_contexts` | jsonb | null 허용 — 도입: **006** |
 | `created_at` | timestamptz | not null, default `now()` |
 
 발화에서 검출된 오류. **유니크 제약이 없다** — `analyze_utterance` 재시도는 한
@@ -168,7 +182,15 @@ insert하는 **발화 단위 replace**로 멱등성을 확보한다(같은 문�
 문장이다 — Claude가 finding마다 산출해 `correction`과 함께 저장된다. 인덱스:
 `(pattern_id, created_at desc)`, `(utterance_id)`.
 
-### `review_tasks` — 도입: Phase1(스키마) / 우선순위 계산·생성 로직: 3단계(복습)
+`suggested_contexts`(006)는 그 패턴을 **다시 연습할 상황 3개**다 —
+`PRD.md:92`("같은 패턴을 최소 세 개의 다른 상황에서 재사용한다")와
+`agent-system-prompt.md:47`의 직접 재료이고, 분석 프롬프트가 요구해 finding마다 함께 온다.
+**길이 CHECK를 두지 않는다**: 모델이 2개만 낸 것을 실패로 만들면 그 발화의 교정 전체를 잃는다.
+nullable인 이유는 기존 발화에 이 값이 없기 때문이고, **"없음"의 표현은 null 하나다** — 앱은
+빈 배열을 저장하지 않는다. jsonb 바인딩은 `str`만 받으므로(파이썬 `list`는 `DataError`)
+`json.dumps(..., ensure_ascii=False)`로 쓰고 읽을 때 `json.loads`한다.
+
+### `review_tasks` — 도입: Phase1(스키마) / **행을 쓰는 로직: 006 슬라이스 1**
 
 | 컬럼 | 타입 | 제약 |
 |---|---|---|
@@ -184,10 +206,25 @@ insert하는 **발화 단위 replace**로 멱등성을 확보한다(같은 문�
 
 복습 큐. `user_id` 컬럼은 없다 — 소유자는 `pattern_id`로 유도한다(단일 사용자 범위의
 불일치 가능성 원천 제거). 복습 단계는 패턴이 아니라 **과제**에 두어
-`unique(pattern_id, review_stage)`로 중복 생성을 막는다. `due_at` 계산 알고리즘과
-우선순위 공식(`priority = frequency × impact × recency_decay × (1 -
-mastery_score/100)`)은 복습 과제 생성이 범위에 들어오는 3단계 설계서에서 정의한다 —
-테이블 스키마만 이번 슬라이스에 존재한다.
+`unique(pattern_id, review_stage)`로 중복 생성을 막는다.
+
+**이 표에 행을 쓰는 코드는 `app/services/review.py` 하나다**(006 이후). 규약 3개:
+
+- **패턴당 0행 또는 1행이다.** 재계산은 그 패턴의 행을 전부 지운 뒤 현재 상태 1행을 넣는다
+  (캡틴 결정 2026-09-03). `unique(pattern_id, review_stage)`와 맞물리는 유일한 형태이고,
+  지운 이력이 손실이 아닌 근거는 완주·재발 여부가 `pattern_attempts`·`error_occurrences`에서
+  언제든 재계산된다는 것이다.
+- **`due_at` = 그 단계의 예정일** = (그 단계를 촉발한 **발화 시각**) + 1·3·7일. `now()`를
+  기준으로 쓰지 않는다 — 분석 job은 재시도되므로 벽시계 기준이면 재실행마다 예정일이 밀린다.
+  단계가 오르는 조건은 "그 단계의 예정일이 온 뒤에 다시 맞혔다"이다(학습 코치 설계서 §4.1) —
+  정답 횟수만 세면 같은 세션에서 세 번 맞히는 것으로 1·3·7일을 경과하지 않고 완주한다.
+- **`task_type`은 지금 `rephrase`만 쓴다.** `role_play`·`shadowing`은 상황을 **생성**해야
+  하므로 슬라이스 2 이후다. `scenario_context`도 생성물이 아니라 그 패턴의 최신
+  `error_occurrences.original_span`(없으면 `error_patterns.target_form`)이다.
+
+~~우선순위 공식 `priority = frequency × impact × recency_decay × (1 - mastery_score/100)`~~은
+**폐기됐다** — `impact_score`가 영구 제외이고(§11 미결 3) 우선순위 판단은 Agent가 한다(§3.2).
+이 문서에서 그 공식을 되살리지 마라.
 
 ### `analysis_jobs` — 도입: Phase1 (신설)
 
@@ -264,12 +301,41 @@ available_at)`는 워커의 `FOR UPDATE SKIP LOCKED` claim 조회용이다. `pay
 하네스가 만든 것이고 **앱 코드 참조 0곳**(grep)이라 이 문서가 정의하지 않는다. 정의는
 `tests/harness/README.md`가 소유한다.
 
+### `pattern_attempts` — 도입: 006(학습 코치 슬라이스 1)
+
+| 컬럼 | 타입 | 제약 |
+|---|---|---|
+| `id` | uuid | PK, `default gen_random_uuid()` |
+| `pattern_id` | uuid | not null, FK → `error_patterns`, `on delete cascade` |
+| `utterance_id` | uuid | not null, FK → `utterances`, `on delete cascade` |
+| `outcome` | text | not null, CHECK (`correct`, `incorrect`, `unclear`) |
+| `created_at` | timestamptz | not null, default `now()` |
+| — | — | UNIQUE(`pattern_id`, `utterance_id`) |
+
+**교정 후 재발화의 정답 여부** — 복습 단계 전이의 **유일한 신호원**이다. 이 표가 비면 모든
+패턴이 1일 단계에 영원히 머문다. 판정 주체는 **분석 워커의 Claude**다(학습 코치 설계서 §11
+미결 2 종결): 전사문으로 판정할 수 있는 문법·표현만 여기 쌓이고, 발음은 전사문에 흔적이 0이라
+Nova가 판정해 `pronunciation_attempts`로 간다.
+
+`unclear`를 두는 이유: 판정할 수 없는 발화를 `incorrect`로 강제하면 숙련도가 부당하게 깎인다.
+**`pending`은 없다** — 이 판정은 전사문을 이미 본 뒤에 나오므로 대답을 기다리는 상태가 없다
+(발음 표와 다른 점이다).
+
+`pronunciation_attempts`와 **합치지 않은 이유**: 그 표의 행은 발화 없이 tool 이벤트만으로도
+생기고 `target_form`·`signal_source`·`pending`을 갖는다. 이 표의 행은 발화 1건이 유일한
+근거이므로 `utterance_id`가 not null이고 삭제가 **cascade**다(그 표는 `set null`이다 —
+판정 기록이 발화보다 오래 산다). 억지로 합치면 대부분 null인 표가 된다.
+
+`unique(pattern_id, utterance_id)`는 분석 재시도에서 행이 중복되지 않게 한다(AS10). 저장은
+발화 단위 replace다 — `delete from pattern_attempts where utterance_id = :id` 후 새 판정 insert.
+이 인덱스가 `pattern_id` 선두라 복습 재계산의 조회 경로도 겸하므로 **별도 인덱스를 두지 않았다**.
+
 ### 아직 SQL에 없는 테이블
 
 | 테이블 | 도입 | 비고 |
 |---|---|---|
-| `shadowing_items` | 002(쉐도잉) | `id`, `source_title`, `source_url`, `transcript`, `clip_start_sec`, `clip_end_sec`, `level` — 쉐도잉 착수 시 추가 |
-| `weekly_reports` | 002(주간리포트) | `id`, `user_id`, `week_start`, `metrics_json`, `insights`, `plan` — 주간 리포트 착수 시 추가 |
+| `shadowing_items` | 쉐도잉 착수 시 | `id`, `source_title`, `source_url`, `transcript`, `clip_start_sec`, `clip_end_sec`, `level` — 쉐도잉 착수 시 추가 |
+| `weekly_reports` | 주간 리포트 착수 시 | `id`, `user_id`, `week_start`, `metrics_json`, `insights`, `plan` — 주간 리포트 착수 시 추가 |
 
 ## 오류 패턴 레코드 예시
 
