@@ -29,7 +29,7 @@ from __future__ import annotations
 
 import json
 import re
-from typing import Literal, get_args
+from typing import Annotated, Literal, get_args
 
 import pydantic
 
@@ -48,6 +48,14 @@ Severity = Literal["low", "medium", "high"]
 ERROR_CATEGORIES: tuple[ErrorCategory, ...] = get_args(ErrorCategory)
 SEVERITIES: tuple[Severity, ...] = get_args(Severity)
 
+# `PRD.md:92` "같은 패턴을 최소 세 개의 다른 상황에서 재사용한다" ·
+# `agent-system-prompt.md:47` "suggested_contexts: three different contexts".
+# 개수를 강제하지 않는다(학습 코치 설계서 §8.2) — 2개만 낸 응답을 거부하면 그 발화의 교정
+# 전체를 잃는다. 항목의 빈 문자열은 거부한다: 공백만인 "상황"은 연습 재료가 되지 않는다.
+# 개수 상한을 두지 않는 이유: 출력이 `claude_client.MAX_TOKENS`로 이미 묶여 있어 폭주하는
+# 배열이 올 수 없다 — 여기서 수치를 발명하지 않는다.
+SuggestedContext = Annotated[str, pydantic.Field(min_length=1)]
+
 
 class AnalysisValidationError(ValueError):
     """Claude 응답이 계약을 벗어났다 — 이 발화의 분석은 실패로 처리한다."""
@@ -64,6 +72,9 @@ class ErrorFinding(pydantic.BaseModel):
     explanation: str = pydantic.Field(min_length=1)
     severity: Severity
     confidence: float = pydantic.Field(ge=0, le=1)
+    # 기본값을 둔다 — 필드가 없는 응답은 계약 위반이 아니다(§8.2 nullable). 필수로 만들면
+    # `conftest.default_finding`(8필드)과 하네스 시나리오가 전부 깨진다(무회귀).
+    suggested_contexts: list[SuggestedContext] = pydantic.Field(default_factory=list)
 
 
 class AnalysisResult(pydantic.BaseModel):

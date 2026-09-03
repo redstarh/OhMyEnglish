@@ -23,6 +23,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 from dataclasses import dataclass
 from decimal import Decimal
@@ -102,6 +103,19 @@ _TARGET_FORM_RULES = """\
 한 응답 안에서 같은 pattern_key를 여러 번 낼 때는 target_form을 하나로 통일한다.
 패턴 하나에 목표가 여러 개면 학습자가 무엇을 연습할지 알 수 없다."""
 
+# `PRD.md:92` · `agent-system-prompt.md:47`이 요구하는 "서로 다른 상황 3개". 모델은 이미 낼 수
+# 있는데 우리가 요구하지 않아 버려지고 있었다 — 소급이 불가능하므로(학습 코치 설계서 §8.2)
+# 프롬프트가 요구한다. 문구는 h-doc 프로필을 따른다: 단문·단일 절, 일상 → 업무 협업 순서.
+# 목표 수준(AWS 보고) 문형으로 상황을 만들면 첫 세션에서 얼어붙는다.
+_SUGGESTED_CONTEXTS_RULES = """\
+[suggested_contexts — 다시 연습할 상황 3개]
+같은 패턴을 서로 다른 상황에서 다시 말해보게 할 재료다. 한국어 짧은 구로 3개 적는다.
+- 서로 겹치지 않는 상황을 고른다. 같은 상황을 말만 바꿔 3개 적지 마라.
+- 학습자가 실제로 겪는 범위에서 고른다: 일상 → 회사 동료와의 협업 → 프로젝트 상황 보고 순으로
+  넓힌다. 학습자는 지금 단문 위주로 말하므로 상황도 한 문장으로 말할 수 있는 크기여야 한다.
+- 예: `퇴근 후 운동 계획 말하기` / `동료에게 오늘 일정 알려주기` / `회의에서 진행 상황 한 줄 보고`
+- 3개를 못 채우겠으면 2개만 적어도 된다. 억지로 채우려고 같은 상황을 늘리지 마라."""
+
 _CATEGORIES = "\n".join(
     [
         "[오류 카테고리 — 아래 값만 쓴다]",
@@ -130,7 +144,7 @@ _OUTPUT_RULES = """\
 
 {"findings": [{"category": "...", "pattern_key": "...", "target_form": "...",
 "original_span": "...", "correction": "...", "explanation": "...", "severity": "...",
-"confidence": 0.0}]}"""
+"confidence": 0.0, "suggested_contexts": ["...", "...", "..."]}]}"""
 
 _NO_EXISTING_PATTERNS = "(없음 — 이 학습자의 첫 분석이다. 모두 새 key로 만든다.)"
 
@@ -162,6 +176,7 @@ def build_prompt(transcript: str, existing_patterns: list[PatternRow]) -> str:
             _ROLE_AND_LEVEL,
             _CORRECTION_STYLE,
             _TARGET_FORM_RULES,
+            _SUGGESTED_CONTEXTS_RULES,
             _CATEGORIES,
             _PATTERN_KEY_RULES,
             _existing_patterns_section(existing_patterns),
@@ -255,8 +270,9 @@ returning id
 
 _INSERT_OCCURRENCE_SQL = """
 insert into error_occurrences
-       (utterance_id, pattern_id, original_span, correction, explanation, severity, confidence)
-values ($1, $2, $3, $4, $5, $6, $7)
+       (utterance_id, pattern_id, original_span, correction, explanation, severity, confidence,
+        suggested_contexts)
+values ($1, $2, $3, $4, $5, $6, $7, $8)
 """
 
 # frequency는 실제 행 수에서 다시 센다(+1 금지 — 재시도마다 부풀어 오른다).
@@ -374,6 +390,12 @@ async def _store_finding(
         # numeric 컬럼에 float를 바인딩하면 asyncpg가 거부한다 — str 경유 Decimal로
         # 2진 부동소수 오차 없이 넘긴다.
         Decimal(str(finding.confidence)),
+        # asyncpg는 jsonb에 **str만** 받는다 — 파이썬 list를 바인딩하면
+        # `DataError: expected str, got list`다(실측). 한글은 그대로 보존된다.
+        # 없음은 null 하나로 표현한다: 빈 배열도 함께 쓰면 "없음"이 두 모양이 된다.
+        json.dumps(finding.suggested_contexts, ensure_ascii=False)
+        if finding.suggested_contexts
+        else None,
     )
     return pattern_id
 

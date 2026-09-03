@@ -687,3 +687,73 @@ async def test_the_next_prompt_carries_the_stored_generalized_target_form(
 
     assert GENERALIZED_TARGET_FORM in prompt
     assert VERB_TENSE_PATTERN_KEY in prompt
+
+
+# ── 슬라이스 1 — 연습 상황 저장 (AS9, 학습 코치 설계서 §8.2) ────────────────────
+
+PRACTICE_CONTEXTS = [
+    "퇴근 후 운동 계획 말하기",
+    "동료에게 오늘 일정 알려주기",
+    "회의에서 진행 상황 한 줄 보고",
+]
+
+
+async def _stored_contexts(pool: asyncpg.Pool, utterance_id: UUID) -> list[asyncpg.Record]:
+    async with pool.acquire() as conn:
+        return await conn.fetch(
+            "select suggested_contexts from error_occurrences where utterance_id = $1",
+            utterance_id,
+        )
+
+
+# AS9 전단 — 모델이 낸 상황 3개가 보존된다. 없으면 슬라이스 2가 질문을 만들 재료가 없고
+# 소급도 불가능하다(§8.2).
+async def test_analysis_stores_the_suggested_contexts_of_a_finding(
+    db_pool: asyncpg.Pool, committed_session, fake_claude
+):
+    utterance = await _save(db_pool, committed_session.session_id, GYM_ANSWER)
+    claude = fake_claude(_response(default_finding(suggested_contexts=PRACTICE_CONTEXTS)))
+
+    await process_analysis(db_pool, claude, await _claim(db_pool))
+
+    rows = await _stored_contexts(db_pool, utterance.id)
+    assert [json.loads(row["suggested_contexts"]) for row in rows] == [PRACTICE_CONTEXTS]
+
+
+# 없음은 null 하나다 — 빈 배열도 함께 쓰면 "모델이 안 냈다"와 "빈 배열을 냈다"가 갈린다.
+async def test_analysis_leaves_suggested_contexts_null_when_the_model_omits_them(
+    db_pool: asyncpg.Pool, committed_session, fake_claude
+):
+    utterance = await _save(db_pool, committed_session.session_id, GYM_ANSWER)
+    claude = fake_claude(_response(default_finding()))
+
+    await process_analysis(db_pool, claude, await _claim(db_pool))
+
+    rows = await _stored_contexts(db_pool, utterance.id)
+    assert [row["suggested_contexts"] for row in rows] == [None]
+
+
+# AS9 후단 — "재분석(replace) 후에도 최신 값이 남는다". 이것이 없으면 replace가 낡은 값을
+# 남겨도 게이트가 통과한다.
+async def test_reanalysis_replaces_the_stored_suggested_contexts(
+    db_pool: asyncpg.Pool, committed_session, fake_claude
+):
+    utterance = await _save(db_pool, committed_session.session_id, GYM_ANSWER)
+    first = ["퇴근 후 운동 계획 말하기"]
+    await process_analysis(
+        db_pool,
+        fake_claude(_response(default_finding(suggested_contexts=first))),
+        await _claim(db_pool),
+    )
+
+    async with db_pool.acquire() as conn:
+        await enqueue_analyze(conn, utterance.id)
+    await process_analysis(
+        db_pool,
+        fake_claude(_response(default_finding(suggested_contexts=PRACTICE_CONTEXTS))),
+        await _claim(db_pool),
+    )
+
+    rows = await _stored_contexts(db_pool, utterance.id)
+    assert len(rows) == 1, "replace가 이전 occurrence를 남겼다"
+    assert json.loads(rows[0]["suggested_contexts"]) == PRACTICE_CONTEXTS

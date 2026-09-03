@@ -368,3 +368,32 @@ async def test_bedrock_client_surfaces_truncation_as_a_validation_error(
 
     with pytest.raises(AnalysisValidationError, match="max_tokens"):
         await BedrockClaudeClient(_test_settings()).analyze("analyze this")
+
+
+# ── 006/슬라이스 1 — suggested_contexts (설계서 §8.2, PRD.md:92) ────────────────
+
+
+def test_finding_accepts_suggested_contexts_and_strips_each_item():
+    padded = ["  퇴근 후 운동 계획 말하기 ", "회의에서 진행 상황 보고"]
+    payload = {"findings": [default_finding(suggested_contexts=padded)]}
+
+    result = parse_analysis(json.dumps(payload))
+
+    assert result.findings[0].suggested_contexts == [
+        "퇴근 후 운동 계획 말하기",
+        "회의에서 진행 상황 보고",
+    ]
+
+
+def test_finding_defaults_suggested_contexts_to_empty_when_absent():
+    """필드가 없는 응답은 계약 위반이 아니다 — §8.2가 nullable로 뒀고, 이 기본값이
+    기존 픽스처(conftest.default_finding 8필드)와 하네스 시나리오의 무회귀를 지킨다."""
+    result = parse_analysis(json.dumps({"findings": [default_finding()]}))
+
+    assert result.findings[0].suggested_contexts == []
+
+
+def test_finding_rejects_a_blank_suggested_context():
+    """공백만인 '상황'은 연습 재료가 되지 않는다 — 경계에서 거부한다."""
+    with pytest.raises(AnalysisValidationError):
+        parse_analysis(json.dumps({"findings": [default_finding(suggested_contexts=["   "])]}))

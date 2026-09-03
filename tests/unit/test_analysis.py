@@ -289,3 +289,24 @@ def test_merge_sql_keeps_its_explicit_ordering():
     assert "\n order by r.session_id, r.sequence_no\n" in (
         utterances_module._RUN_END_FLUSH_TEMPLATE
     ), "flush 반환 순서 계약(`sequence_no` 순)이 SQL에서 사라졌다"
+
+
+# ── 슬라이스 1 — 연습 상황 3개를 프롬프트가 요구한다 (PRD.md:92, agent-system-prompt.md:47) ──
+
+
+def test_prompt_asks_for_three_practice_contexts():
+    """프롬프트가 요구하지 않으면 컬럼만 생기고 값은 영원히 null이다 — 그리고 소급이 불가능하다."""
+    prompt = build_prompt(TRANSCRIPT, [])
+
+    assert "suggested_contexts" in prompt
+    assert "3개" in prompt
+
+
+def test_prompt_allows_fewer_contexts_rather_than_padding():
+    """개수를 강제하면 모델이 같은 상황을 늘려 채운다 — §8.2가 길이 CHECK를 뺀 이유와 같다."""
+    assert "2개만 적어도 된다" in build_prompt(TRANSCRIPT, [])
+
+
+def test_prompt_keeps_contexts_within_the_learner_reach():
+    """h-doc: 목표 수준(AWS 보고) 문형으로 상황을 만들면 첫 세션에서 얼어붙는다."""
+    assert "일상 → 회사 동료와의 협업 → 프로젝트 상황 보고" in build_prompt(TRANSCRIPT, [])
