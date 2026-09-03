@@ -876,6 +876,28 @@ def test_system_prompt_narrows_pronunciation_to_hard_to_understand_speech():
     )
 
 
+# I-7 (캡틴 관측 2026-09-03) — 튜터가 학습자를 기다리지 않았다. 마이크 2회 계측에서 한 턴에
+# 질문 + 예시 질문이 함께 실렸고, 노브(`NOVA_ENDPOINTING_SENSITIVITY`)는 **이미 `LOW`**로 끝까지
+# 내려가 있다(`.env`). 남은 레버가 지시문이므로 **대기 지시가 실제로 있는지** 못박는다.
+# ⚠️ LLM 준수는 확률적이다 — 이 테스트는 "지시가 있다"만 보증하고 "지켜진다"는 마이크 검증이 본다.
+def test_system_prompt_tells_the_tutor_to_wait_through_a_pause():
+    # ⚠️ **공백을 정규화해서 본다.** 지시문은 소스 줄 길이 때문에 문장 중간에서 줄바꿈되므로,
+    # 원문 그대로 부분문자열을 찾으면 **문구가 있는데도 red가 된다**(실제로 한 번 걸렸다).
+    # 단정은 문구에 걸어야 하고 줄바꿈 위치에 걸려선 안 된다.
+    lowered = " ".join(SYSTEM_PROMPT.lower().split())
+    assert "then stop and wait" in lowered, "대기 지시가 없다 — 침묵을 다음 질문으로 메운다 (I-7)"
+    # 침묵을 **다른 질문·예시로 메우는 것**을 금지하는 문구가 핵심이다. "질문 하나" 규칙만으로는
+    # 관측된 거동(질문 + 예시 질문을 한 턴에)을 막지 못했다.
+    assert "do not fill" in lowered
+    assert "ask one question at a time, then let the learner speak" not in lowered, (
+        "좁히기 전 문구가 남아 있다 — 대기 지시가 실효를 보지 못한다"
+    )
+    # 2차 (2026-09-03 검증 세션): 대기 규칙만으로는 **새 질문 + 교정을 한 턴에 묶는 것**을
+    # 막지 못했다(284자 한 턴 실측). 교정은 규칙 4·5가 시키는 일이라 모델이 정당하게 붙인다 —
+    # 그래서 그 조합을 명시적으로 금지한다. 규칙 10이 규칙 4의 상한을 다시 못박은 것과 같은 방식.
+    assert "never pair a correction with a new question" in lowered
+
+
 # G-3 (캡틴 결정 B-4) — 기록이 0건이면 블록을 아예 넣지 않는다. dev DB의 현재 상태가 그것이고,
 # 빈 목록을 위한 빈 제목만 남기면 Nova가 "목록이 비었다"를 지시로 오해할 여지가 생긴다.
 def test_build_system_prompt_without_known_sounds_is_exactly_the_base_prompt():
