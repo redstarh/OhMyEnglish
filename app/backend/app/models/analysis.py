@@ -56,6 +56,11 @@ SEVERITIES: tuple[Severity, ...] = get_args(Severity)
 # 배열이 올 수 없다 — 여기서 수치를 발명하지 않는다.
 SuggestedContext = Annotated[str, pydantic.Field(min_length=1)]
 
+# 006 `pattern_attempts.outcome` CHECK와 **같은 집합**이다. `'pending'`은 없다 —
+# 이 판정은 전사문을 이미 본 뒤에 이루어져 대답을 기다리는 상태가 없다(발음 쪽 표와 다른 점).
+AttemptOutcome = Literal["correct", "incorrect", "unclear"]
+ATTEMPT_OUTCOMES: tuple[AttemptOutcome, ...] = get_args(AttemptOutcome)
+
 
 class AnalysisValidationError(ValueError):
     """Claude 응답이 계약을 벗어났다 — 이 발화의 분석은 실패로 처리한다."""
@@ -77,10 +82,25 @@ class ErrorFinding(pydantic.BaseModel):
     suggested_contexts: list[SuggestedContext] = pydantic.Field(default_factory=list)
 
 
+class PatternAttempt(pydantic.BaseModel):
+    """이번 발화가 **기존 패턴**을 다시 시도한 결과 — 006 `pattern_attempts` 1행이 된다.
+
+    `pattern_key`의 형식을 여기서 보지 않는 이유는 `ErrorFinding`과 같다: 기존 패턴 목록과의
+    대조는 그 목록을 아는 저장 단계(`services.analysis.resolve_pattern_keys`)의 몫이다.
+    """
+
+    model_config = pydantic.ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    pattern_key: str = pydantic.Field(min_length=1)
+    outcome: AttemptOutcome
+
+
 class AnalysisResult(pydantic.BaseModel):
     model_config = pydantic.ConfigDict(extra="forbid")
 
     findings: list[ErrorFinding]
+    # 기본값을 둔다 — 재시도가 없는 발화가 대부분이고, 없는 것이 계약 위반이 아니다.
+    attempts: list[PatternAttempt] = pydantic.Field(default_factory=list)
 
 
 # ```json ... ``` / ``` ... ``` 로 감싼 응답. 언어 태그는 있어도 없어도 된다.

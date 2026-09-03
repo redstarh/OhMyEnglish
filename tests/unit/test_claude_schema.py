@@ -397,3 +397,31 @@ def test_finding_rejects_a_blank_suggested_context():
     """공백만인 '상황'은 연습 재료가 되지 않는다 — 경계에서 거부한다."""
     with pytest.raises(AnalysisValidationError):
         parse_analysis(json.dumps({"findings": [default_finding(suggested_contexts=["   "])]}))
+
+
+# ── 슬라이스 1 — attempts (재발화 정답 여부, 설계서 §8.1·§11 미결 2) ─────────────
+
+RETRIED_KEY = "article_missing_before_place_noun"
+
+
+def test_result_parses_attempts_with_their_outcome():
+    payload = {"findings": [], "attempts": [{"pattern_key": RETRIED_KEY, "outcome": "correct"}]}
+
+    result = parse_analysis(json.dumps(payload))
+
+    assert result.attempts[0].pattern_key == RETRIED_KEY
+    assert result.attempts[0].outcome == "correct"
+
+
+def test_result_defaults_attempts_to_empty_when_absent():
+    """대부분의 발화에는 재시도가 없다 — 기본값이 없으면 기존 픽스처가 전부 깨진다."""
+    assert parse_analysis(json.dumps({"findings": []})).attempts == []
+
+
+def test_attempt_rejects_an_outcome_outside_the_column_check():
+    """'pending'은 pattern_attempts CHECK에 없다 — 경계에서 막지 않으면 저장 트랜잭션
+    중간에 CheckViolation으로 터져 그 발화의 교정 전체가 사라진다."""
+    payload = {"findings": [], "attempts": [{"pattern_key": RETRIED_KEY, "outcome": "pending"}]}
+
+    with pytest.raises(AnalysisValidationError):
+        parse_analysis(json.dumps(payload))

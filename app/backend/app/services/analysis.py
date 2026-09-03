@@ -36,6 +36,7 @@ from app.models.analysis import (
     AnalysisResult,
     AnalysisValidationError,
     ErrorFinding,
+    PatternAttempt,
     is_valid_new_pattern_key,
     parse_analysis,
 )
@@ -135,6 +136,20 @@ _PATTERN_KEY_RULES = """\
    분석마다 목표 형태가 흔들리면 학습자가 연습할 것이 매번 달라진다. 목록의 값이
    문장이라 일반형이 아닐 때만 [target_form 일반형] 규칙에 맞게 고친다."""
 
+# 학습 코치 설계서 §11 미결 2 종결: **문법·표현** 재발화의 정답 여부는 분석 워커의 Claude가
+# 판정한다 (발음은 전사문에 흔적이 0이라 Nova가 판정해 `pronunciation_attempts`에 쌓인다 —
+# 자매 설계). 이 판정이 복습 단계 전이의 **유일한 신호원**이다 — 없으면 모든 패턴이
+# 1일 단계에 영원히 머문다.
+_ATTEMPT_RULES = """\
+[attempts — 기존 패턴을 다시 시도했는가]
+아래 [이 학습자의 기존 패턴] 목록의 패턴을 이번 발화에서 다시 시도했다면 그 결과를 적는다.
+- correct: 그 패턴의 목표 형태를 옳게 썼다.
+- incorrect: 같은 오류를 다시 냈다.
+- unclear: 시도한 것 같은데 옳은지 판정할 수 없다. 모르겠으면 억지로 정하지 마라.
+- **시도하지 않은 패턴은 적지 마라.** 이번 발화에 그 문형이 아예 나타나지 않은 것은 시도가 아니다.
+- 목록에 없는 pattern_key를 여기 적지 마라. 처음 발견한 오류는 findings에 넣는다.
+- 시도한 패턴이 없으면 "attempts": [] 를 출력한다."""
+
 _OUTPUT_RULES = """\
 [출력]
 - 아래 형식의 JSON 하나만 출력한다. 코드펜스나 설명 문장을 붙이지 마라.
@@ -144,7 +159,8 @@ _OUTPUT_RULES = """\
 
 {"findings": [{"category": "...", "pattern_key": "...", "target_form": "...",
 "original_span": "...", "correction": "...", "explanation": "...", "severity": "...",
-"confidence": 0.0, "suggested_contexts": ["...", "...", "..."]}]}"""
+"confidence": 0.0, "suggested_contexts": ["...", "...", "..."]}],
+"attempts": [{"pattern_key": "...", "outcome": "..."}]}"""
 
 _NO_EXISTING_PATTERNS = "(없음 — 이 학습자의 첫 분석이다. 모두 새 key로 만든다.)"
 
@@ -179,6 +195,7 @@ def build_prompt(transcript: str, existing_patterns: list[PatternRow]) -> str:
             _SUGGESTED_CONTEXTS_RULES,
             _CATEGORIES,
             _PATTERN_KEY_RULES,
+            _ATTEMPT_RULES,
             _existing_patterns_section(existing_patterns),
             "\n".join(
                 [
@@ -357,7 +374,28 @@ def resolve_pattern_keys(
             if canonical == finding.pattern_key
             else finding.model_copy(update={"pattern_key": canonical})
         )
-    return AnalysisResult(findings=findings)
+
+    # attempts는 findings와 **다르게** 다룬다: 미매치 key를 예외로 올리지 않고 버린다.
+    # 근거 — 재시도 판정은 복습 단계의 부가 신호이고, 버려도 손상되는 데이터가 없다. 반면
+    # findings의 규격 밖 신규 key를 그냥 저장하면 병합되지 않는 쌍둥이 패턴이 영구히 남는다.
+    # 성질이 다른 두 실패를 같은 강도로 다루면 저가치 필드 하나가 그 발화의 교정 전체를 태운다.
+    # dict로 모으는 것은 같은 key를 두 번 판정한 응답에서 **마지막 판정만** 남기기 위한 것이다 —
+    # `unique(pattern_id, utterance_id)`에 두 행을 넣을 수 없고, 순서 의존을 DB에 맡기지 않는다.
+    attempts: dict[str, PatternAttempt] = {}
+    for attempt in result.attempts:
+        canonical = canonical_by_fold.get(attempt.pattern_key.casefold())
+        if canonical is None:
+            logger.warning(
+                "dropping attempt for unknown pattern_key %r — not in this learner's patterns",
+                attempt.pattern_key,
+            )
+            continue
+        attempts[canonical] = (
+            attempt
+            if canonical == attempt.pattern_key
+            else attempt.model_copy(update={"pattern_key": canonical})
+        )
+    return AnalysisResult(findings=findings, attempts=list(attempts.values()))
 
 
 async def _load_input(conn: asyncpg.Connection, utterance_id: UUID) -> _AnalysisInput | None:

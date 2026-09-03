@@ -20,6 +20,7 @@ from app.models.analysis import (
     AnalysisResult,
     AnalysisValidationError,
     ErrorFinding,
+    PatternAttempt,
 )
 from app.services import analysis as analysis_module
 from app.services import utterances as utterances_module
@@ -310,3 +311,61 @@ def test_prompt_allows_fewer_contexts_rather_than_padding():
 def test_prompt_keeps_contexts_within_the_learner_reach():
     """h-doc: 목표 수준(AWS 보고) 문형으로 상황을 만들면 첫 세션에서 얼어붙는다."""
     assert "일상 → 회사 동료와의 협업 → 프로젝트 상황 보고" in build_prompt(TRANSCRIPT, [])
+
+
+# ── 슬라이스 1 — 재시도 판정을 묻고 정규화한다 (설계서 §11 미결 2 종결) ──────────
+
+RETRY_PATTERN = PatternRow("article", "article_missing_before_place_noun", "go to the + 장소 명사")
+
+
+def test_prompt_asks_whether_existing_patterns_were_retried():
+    """이 판정이 복습 단계 전이의 유일한 신호원이다 — 프롬프트가 묻지 않으면
+    모든 패턴이 1일 단계에 영원히 머문다(설계서 §4.1)."""
+    prompt = build_prompt(TRANSCRIPT, [RETRY_PATTERN])
+
+    assert "attempts" in prompt
+    assert "시도하지 않은 패턴은 적지 마라" in prompt
+    # 목록은 이 절 **아래**에 온다 — "위"라고 쓰면 모델이 다른 것을 찾는다
+    assert "위 [이 학습자의 기존 패턴]" not in prompt
+
+
+def test_resolve_pattern_keys_normalizes_an_attempt_key_to_the_existing_spelling():
+    result = AnalysisResult(
+        findings=[],
+        attempts=[
+            PatternAttempt(pattern_key="Article_Missing_Before_Place_Noun", outcome="correct")
+        ],
+    )
+
+    resolved = resolve_pattern_keys(result, [RETRY_PATTERN])
+
+    assert resolved.attempts[0].pattern_key == RETRY_PATTERN.pattern_key
+
+
+def test_resolve_pattern_keys_drops_an_attempt_for_an_unknown_pattern():
+    """findings의 신규 key와 달리 **버린다** — 부가 신호 하나 때문에 그 발화의 교정
+    전체를 잃으면 사용자가 보는 산출물을 저가치 필드에 내주는 것이 된다."""
+    result = AnalysisResult(
+        findings=[], attempts=[PatternAttempt(pattern_key="never_seen_key", outcome="correct")]
+    )
+
+    assert resolve_pattern_keys(result, []).attempts == []
+
+
+def test_resolve_pattern_keys_keeps_the_last_verdict_for_a_repeated_key():
+    """같은 패턴을 두 번 판정한 응답은 마지막 판정만 남긴다 —
+    unique(pattern_id, utterance_id)에 두 행을 넣을 수 없고, 순서 의존을 DB의
+    on-conflict에 맡기지 않고 여기서 결정론으로 만든다."""
+    result = AnalysisResult(
+        findings=[],
+        attempts=[
+            PatternAttempt(pattern_key=RETRY_PATTERN.pattern_key, outcome="correct"),
+            PatternAttempt(pattern_key=RETRY_PATTERN.pattern_key, outcome="incorrect"),
+        ],
+    )
+
+    resolved = resolve_pattern_keys(result, [RETRY_PATTERN])
+
+    assert [(a.pattern_key, a.outcome) for a in resolved.attempts] == [
+        (RETRY_PATTERN.pattern_key, "incorrect")
+    ]
