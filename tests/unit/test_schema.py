@@ -10,6 +10,7 @@ connection inside a transaction that is always rolled back.
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
 import types
 from pathlib import Path
@@ -85,6 +86,8 @@ async def test_001_migration_creates_expected_tables(db_conn: asyncpg.Connection
         "utterances",
         # 003 — 발음 시범·재발화 (docs/design/2026-08-27-pronunciation-echo-design.md §6)
         "pronunciation_attempts",
+        # 006 — 학습 코치 슬라이스 1 (docs/design/2026-08-25-learning-coach-agent-design.md §8.1)
+        "pattern_attempts",
     }
 
 
@@ -428,3 +431,118 @@ async def test_a_resolved_row_accepts_any_source(db_conn: asyncpg.Connection):
             source,
         )
         assert row_id is not None
+
+
+# ── 006 학습 코치 슬라이스 1 (학습 코치 설계서 §8.1·§8.2) ────────────────────────
+
+
+async def _insert_pattern_and_occurrence(conn: asyncpg.Connection):
+    """user → session → utterance → pattern 한 벌. 006 테스트의 공통 전제.
+
+    `_insert_user`는 고정 USER_ID를 넣으므로 한 테스트에서 두 번 부르면 PK를 위반한다 —
+    이 헬퍼가 한 번만 부르고 나머지를 이어 만든다.
+    """
+    session_id = uuid4()
+    utterance_id = uuid4()
+    await _insert_user(conn)
+    await _insert_session(conn, session_id)
+    await _insert_utterance(conn, utterance_id, session_id)
+    pattern_id = await conn.fetchval(
+        "insert into error_patterns (user_id, category, pattern_key, target_form) "
+        "values ($1, 'article', 'article_missing_before_place_noun', 'go to the + 장소 명사') "
+        "returning id",
+        migrate.USER_ID,
+    )
+    return utterance_id, pattern_id
+
+
+# ② suggested_contexts — jsonb 이고 nullable 이어야 한다 (설계서 §8.2: 기존 발화에는 없다)
+@pytest.mark.asyncio
+async def test_error_occurrences_has_nullable_jsonb_suggested_contexts(
+    db_conn: asyncpg.Connection,
+):
+    column = await db_conn.fetchrow(
+        "select data_type, is_nullable from information_schema.columns "
+        "where table_name = 'error_occurrences' and column_name = 'suggested_contexts'"
+    )
+    assert column is not None, "suggested_contexts 컬럼이 없다 (006 미적용)"
+    assert column["data_type"] == "jsonb"
+    # nullable 이어야 소급 불가능한 과거 발화가 저장을 막지 않는다 (§8.2)
+    assert column["is_nullable"] == "YES"
+
+
+# ③ 상황 배열이 그대로 왕복한다 — 개수 CHECK를 두지 않으므로 2개도 통과해야 한다 (§8.2)
+@pytest.mark.asyncio
+async def test_suggested_contexts_round_trips_without_a_length_constraint(
+    db_conn: asyncpg.Connection,
+):
+    utterance_id, pattern_id = await _insert_pattern_and_occurrence(db_conn)
+    contexts = ["퇴근 후 운동 계획 말하기", "동료에게 오늘 일정 알려주기"]
+
+    stored = await db_conn.fetchval(
+        "insert into error_occurrences "
+        "(utterance_id, pattern_id, original_span, correction, explanation, severity, "
+        " confidence, suggested_contexts) "
+        "values ($1, $2, 'go to gym', 'go to the gym', '정관사가 필요합니다.', 'medium', 0.9, $3) "
+        "returning suggested_contexts",
+        utterance_id,
+        pattern_id,
+        json.dumps(contexts, ensure_ascii=False),
+    )
+
+    # asyncpg는 jsonb를 str로 돌려준다 (파이썬 list를 바인딩하면 DataError다 — 2026-09-03 실측)
+    assert json.loads(stored) == contexts
+
+
+# ④ pattern_attempts — 같은 (pattern, utterance) 두 번은 거부된다 (AS10 멱등의 바닥)
+@pytest.mark.asyncio
+async def test_pattern_attempts_rejects_a_duplicate_pattern_utterance_pair(
+    db_conn: asyncpg.Connection,
+):
+    utterance_id, pattern_id = await _insert_pattern_and_occurrence(db_conn)
+    await db_conn.execute(
+        "insert into pattern_attempts (pattern_id, utterance_id, outcome) "
+        "values ($1, $2, 'correct')",
+        pattern_id,
+        utterance_id,
+    )
+
+    with pytest.raises(asyncpg.UniqueViolationError):
+        await db_conn.execute(
+            "insert into pattern_attempts (pattern_id, utterance_id, outcome) "
+            "values ($1, $2, 'incorrect')",
+            pattern_id,
+            utterance_id,
+        )
+
+
+# ⑤ outcome 값역 — 'pending'은 이 표에 없다. 발음 표(pronunciation_attempts)와 다르다:
+#    이 표의 행은 재발화 전사문을 이미 본 뒤에 만들어지므로 "대답 기다림" 상태가 없다.
+@pytest.mark.asyncio
+async def test_pattern_attempts_outcome_check_rejects_pending(db_conn: asyncpg.Connection):
+    utterance_id, pattern_id = await _insert_pattern_and_occurrence(db_conn)
+
+    with pytest.raises(asyncpg.CheckViolationError):
+        await db_conn.execute(
+            "insert into pattern_attempts (pattern_id, utterance_id, outcome) "
+            "values ($1, $2, 'pending')",
+            pattern_id,
+            utterance_id,
+        )
+
+
+# ⑥ 발화가 지워지면 판정도 지워진다 — 이 표의 행은 발화 1건이 유일한 근거라서 cascade다
+#    (발음 표는 set null 이다: 그 행은 발화 없이 tool 이벤트만으로도 생긴다)
+@pytest.mark.asyncio
+async def test_pattern_attempts_cascades_with_the_utterance(db_conn: asyncpg.Connection):
+    utterance_id, pattern_id = await _insert_pattern_and_occurrence(db_conn)
+    await db_conn.execute(
+        "insert into pattern_attempts (pattern_id, utterance_id, outcome) "
+        "values ($1, $2, 'correct')",
+        pattern_id,
+        utterance_id,
+    )
+
+    await db_conn.execute("delete from utterances where id = $1", utterance_id)
+
+    assert await db_conn.fetchval("select count(*) from pattern_attempts") == 0
