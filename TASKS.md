@@ -839,6 +839,80 @@ HIGH 테스트가 메운다(리퍼와 **살아있는** 세션이 같은 프로�
 
 게이트 갱신 — **383 passed**(378 → 381 → 383: 배선 tripwire · 리퍼 실패 격리 · 유예 파라미터 경계 · `end_session` 가드 2건).
 
+### I-5. `{ "interrupted" : true }`가 agent 전사문으로 저장된다 — ✅ 완료 (2026-09-03)
+
+`nova._on_text_output`은 `role`만 보고 **내용을 보지 않는다.** Nova는 barge-in 때 그 마커를
+ASSISTANT `textOutput`으로 보내고, 우리는 그것을 `TranscriptEvent(final, agent)`로 만들어
+`utterances`에 넣는다. 마이크 2회 세션 `182e7d49`의 seq **9·15**가 그 행이다(둘 다 사용자가
+실제로 끼어든 지점).
+
+**피해는 제한적이다** — agent 발화라 분석 대상이 아니고, 묶음 경계로는 오히려 올바르게 작동한다.
+남는 문제는 ① 전사문에 기계 문자열이 섞인다 ② 지시문 규칙 6("Never read JSON … out loud")과
+같은 계열의 누출이다 ③ agent 발화 수를 부풀려 "학습자 65% 발화" 지표를 왜곡한다.
+
+✅ **조치 (`adb9e8d`)**: `_is_control_payload`가 **JSON 객체로 파싱되는지**만 보고 그러면 전사문을
+만들지 않는다. 문자열 상수로 박지 않은 이유는 Nova가 공백을 바꿔 보내기 때문이고, 포함 검사를
+하지 않은 이유는 중괄호를 말하는 정상 발화를 잃기 때문이다. red 3건 먼저 관측했고,
+**과잉 필터링을 막는 반대쪽 못**도 함께 뒀다(`test_speech_that_merely_mentions_braces_is_still_a_transcript`).
+
+### I-6. agent 한 턴이 여러 `utterances` 행으로 저장된다 — ✅ 완료 (2026-09-03)
+
+**증거는 계측 1회로 확정했다** (`tests/harness/runs/2026-09-03-nova-turn-events.log`, 42줄 원본).
+`nova.translate`에 임시 진단 로그를 넣고 30초 세션을 돌려 얻었다 — 조사 후 계측은 걷어냈다.
+
+| 관측 | 값 |
+|---|---|
+| `completionStart` | **1회** (세션 전체) |
+| `completionEnd` | **0회** |
+| agent 턴 | 2개 → `utterances` **4행**(len 67+56, 77+64) |
+
+**한 턴의 텍스트가 두 번 온다.** 먼저 `SPECULATIVE` 블록들로, 그 다음 **같은 텍스트가 `FINAL`로
+재전송된다**(len·head가 정확히 같다). `_on_text_output`은 SPECULATIVE만 `_pending_agent_chunks`에
+모으고 **FINAL은 블록마다 행을 만든다** — 그래서 한 턴이 N행이 된다.
+
+**부수적으로 확정된 것 2개 (둘 다 낡은 서술이다)**:
+1. `nova.py` 모듈 docstring의 **"FINAL 재전송 없음"은 거짓이다.** 스파이크 1회 관측을 일반화한
+   서술이었고 실물에서 반증됐다.
+2. `_flush_pending_agent_text`는 `completionEnd`에 걸려 있는데 **그 이벤트가 오지 않는다** —
+   이 흐름에서는 사실상 죽은 경로다. SPECULATIVE만 오고 끝나는 턴이 생기면 행이 아예 안 남는다.
+
+**턴 경계를 무엇으로 잡는가 — 이것이 설계 판단이다.** 로그가 보여주는 유일한 경계 신호는
+ASSISTANT 오디오 content의 `contentEnd(stopReason=END_TURN)`이고, 그것은 FINAL 재전송보다 **앞에**
+온다. 반면 FINAL 블록들의 `stopReason`은 일관되지 않는다(첫 블록 `END_TURN`, 둘째 `PARTIAL_TURN`).
+
+- **(가) END_TURN에서 SPECULATIVE 누적분을 한 행으로 flush하고, 뒤따르는 중복 FINAL을 버린다.**
+  행이 사용자 다음 발화보다 **먼저** 들어가 `sequence_no` 순서가 보존된다. FINAL만 오는 턴을
+  놓치지 않도록 "이번 턴에 이미 flush한 텍스트"와 대조하는 장치가 필요하다.
+- **(나) FINAL 블록들을 모아 한 행으로 만든다.** 경계 신호가 불안정해 flush 시점이 모호하고,
+  늦게 flush하면 agent 행이 사용자 발화 **뒤로** 밀려 묶음 경계가 틀어진다 — 위험하다.
+
+✅ **(가)로 구현했다 (`adb9e8d`)**. 원본 로그를 픽스처로 옮겨(`test_nova.py`의 `_live_agent_turn`)
+red 2건을 먼저 관측했다 — 이제 이 검증에 **마이크도 과금도 필요하지 않다.** `contentEnd(END_TURN)`
+에서 쌓인 청크를 한 행으로 올리고, 올린 청크를 기억해 뒤따르는 FINAL 재전송을 버린다.
+`completionEnd` 경로는 **남겼다** — 그 이벤트가 오는 스파이크 흐름의 기존 테스트가 그대로 통과한다
+(두 흐름이 모두 실재하므로 하나만 남기면 다른 쪽이 조용히 깨진다).
+
+⚠️ **`sequence_no`를 바꾸지 않는다.** 행이 줄면 번호는 자연히 촘촘해지지만, 기존 세션의 번호를
+재계산하지 않는다(전사문 인용이 깨진다).
+
+### I-7. 튜터가 기다리지 않는다 — 지시문 미준수 (2026-09-03 신설, 캡틴 관측)
+
+캡틴 관측: "내가 말하려고 하기 전에 다음 질문을 하거나 바로 튜터가 말을 한다. 내가 말하면 멈추기는
+한다." **I-6와 다른 문제다** — I-6는 저장 계층이고 이것은 모델 행동이다.
+
+I-6 조사가 이것도 갈라냈다: 한 턴이 **2문장·2질문**을 담는다(예: `That is good! Can you tell me
+what you talked about?` + `  For example, was it about your work or something else?`). 지시문 규칙
+1("Keep each of your turns to one or two short sentences")·2("Ask one question at a time, then let
+the learner speak")가 **지켜지지 않는다.**
+
+**노브는 이미 끝까지 내려가 있다** — `NOVA_ENDPOINTING_SENSITIVITY=LOW`(`.env`, 코드 기본값은
+`MEDIUM`). barge-in은 정상 동작한다(캡틴 확인 + `INTERRUPTED` 이벤트 관측).
+
+**조치 후보**: 지시문에 **대기 규칙**을 명시한다 — "질문 하나를 하고 **멈춘다**. 침묵을 다른 질문으로
+메우지 않는다. 학습자가 답하지 않으면 기다리고, 긴 침묵 뒤에만 짧은 시작 문장을 준다." 규칙 1의
+상한을 예시와 함께 다시 못박는 것도 같은 계열이다(규칙 10이 규칙 4를 다시 못박은 전례가 있다).
+트랙 C(문구) + 마이크 1회 검증. ⚠️ LLM 준수는 확률적이라 **검증 없이 완료로 치지 않는다.**
+
 ---
 
 ## 관련 문서 지도
