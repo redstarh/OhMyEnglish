@@ -41,6 +41,7 @@ from app.models.analysis import (
     parse_analysis,
 )
 from app.services.jobs import ClaimedJob, complete, fail_or_retry
+from app.services.review import recompute, store_attempts
 from app.services.utterances import ANALYZED_SPEAKER, ANALYZED_UTTERANCE_TYPE
 from app.workers.claude_client import ClaudeClient
 
@@ -452,8 +453,15 @@ async def _replace_occurrences(
     for finding in result.findings:
         touched.add(await _store_finding(conn, utterance_id, user_id, finding))
 
+    # 설계서 §9 Dependency: **정답 여부가 먼저 기록되고 그 다음 갱신이다.** 같은 트랜잭션
+    # 안에서 처리한다 — 판정과 그에 따른 단계가 갈라지면 절반만 반영된 상태가 남는다.
+    touched |= await store_attempts(conn, utterance_id, user_id, result.attempts)
+
     for pattern_id in touched:
         await conn.execute(_RECOUNT_PATTERN_SQL, pattern_id)
+        # frequency·last_seen_at 재계산 **다음**이다: 복습 상태는 같은 이력을 다시 세므로
+        # 순서를 뒤집으면 한 턴 낡은 값 위에서 단계를 정한다.
+        await recompute(conn, pattern_id)
 
     if not await complete(conn, job.id, job.lease_token):
         raise _LeaseLost

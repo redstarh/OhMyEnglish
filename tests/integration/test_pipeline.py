@@ -13,6 +13,7 @@
 from __future__ import annotations
 
 import json
+from datetime import timedelta
 from decimal import Decimal
 from typing import Any
 from uuid import UUID
@@ -757,3 +758,135 @@ async def test_reanalysis_replaces_the_stored_suggested_contexts(
     rows = await _stored_contexts(db_pool, utterance.id)
     assert len(rows) == 1, "replace가 이전 occurrence를 남겼다"
     assert json.loads(rows[0]["suggested_contexts"]) == PRACTICE_CONTEXTS
+
+
+# ── 슬라이스 1 — 재시도 판정과 복습 상태가 분석 트랜잭션에서 함께 반영된다 (Task 5) ──
+
+
+def _retry_response(outcome: str) -> str:
+    """오류 0건 + 기존 패턴 재시도 판정 1건 — 예정일에 맞힌 복습 턴의 모양이다."""
+    return json.dumps(
+        {"findings": [], "attempts": [{"pattern_key": ARTICLE_PATTERN_KEY, "outcome": outcome}]}
+    )
+
+
+async def _process_next(pool: asyncpg.Pool, fake_claude, response: str) -> None:
+    """대기 중인 job 하나를 주어진 응답으로 처리한다 — claim + process 를 한 줄로 묶는다."""
+    await process_analysis(pool, fake_claude(response), await _claim(pool))
+
+
+async def _pattern_review(pool: asyncpg.Pool) -> asyncpg.Record:
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow(
+            "select id, next_review_at, mastery_score from error_patterns where pattern_key = $1",
+            ARTICLE_PATTERN_KEY,
+        )
+    assert row is not None, f"패턴 {ARTICLE_PATTERN_KEY} 이 없다"
+    return row
+
+
+async def _review_stages(pool: asyncpg.Pool, pattern_id: UUID) -> list[tuple[int, str]]:
+    async with pool.acquire() as conn:
+        rows = await conn.fetch(
+            "select review_stage, status from review_tasks where pattern_id = $1 "
+            "order by review_stage",
+            pattern_id,
+        )
+    return [(row["review_stage"], row["status"]) for row in rows]
+
+
+async def _said_at(pool: asyncpg.Pool, utterance_id: UUID) -> Any:
+    async with pool.acquire() as conn:
+        return await conn.fetchval("select created_at from utterances where id = $1", utterance_id)
+
+
+# §4.1 — 이 슬라이스의 완료 판정. 지금까지 next_review_at 은 항상 null 이었다.
+async def test_analysis_schedules_the_first_review_for_a_new_pattern(
+    db_pool: asyncpg.Pool, committed_session, fake_claude
+):
+    utterance = await _save(db_pool, committed_session.session_id, GYM_ANSWER)
+
+    await _process_next(db_pool, fake_claude, _response(default_finding()))
+
+    row = await _pattern_review(db_pool)
+    # 발화 시각 + 1일이다 — now() 기준이 아니다
+    assert row["next_review_at"] == await _said_at(db_pool, utterance.id) + timedelta(days=1)
+    assert row["mastery_score"] == 0
+    assert await _review_stages(db_pool, row["id"]) == [(1, "pending")]
+
+
+# 예정일에 맞히면 3일 뒤로 넘어간다 — 실제 대화 두 턴으로 확인한다.
+async def test_a_correct_retry_on_the_due_date_advances_the_stage_end_to_end(
+    db_pool: asyncpg.Pool, committed_session, fake_claude
+):
+    first = await _save(db_pool, committed_session.session_id, GYM_ANSWER)
+    await _process_next(db_pool, fake_claude, _response(default_finding()))
+    due_at = await _said_at(db_pool, first.id) + timedelta(days=1)
+
+    retry = await _save(db_pool, committed_session.session_id, OFFICE_ANSWER)
+    # 복습 예정일에 맞힌 것으로 만든다 — 발화 시각이 단계 전이의 기준이다
+    async with db_pool.acquire() as conn:
+        await conn.execute("update utterances set created_at = $2 where id = $1", retry.id, due_at)
+    await _process_next(db_pool, fake_claude, _retry_response("correct"))
+
+    async with db_pool.acquire() as conn:
+        outcome = await conn.fetchval(
+            "select outcome from pattern_attempts where utterance_id = $1", retry.id
+        )
+    row = await _pattern_review(db_pool)
+    assert outcome == "correct"
+    assert row["next_review_at"] == due_at + timedelta(days=3)
+    assert await _review_stages(db_pool, row["id"]) == [(2, "pending")]
+
+
+# AS10 + 멱등 — job 은 재시도된다. 두 번 분석해도 단계가 두 칸 오르지 않는다.
+async def test_reanalysing_the_same_utterance_does_not_double_advance(
+    db_pool: asyncpg.Pool, committed_session, fake_claude
+):
+    first = await _save(db_pool, committed_session.session_id, GYM_ANSWER)
+    await _process_next(db_pool, fake_claude, _response(default_finding()))
+    due_at = await _said_at(db_pool, first.id) + timedelta(days=1)
+    retry = await _save(db_pool, committed_session.session_id, OFFICE_ANSWER)
+    async with db_pool.acquire() as conn:
+        await conn.execute("update utterances set created_at = $2 where id = $1", retry.id, due_at)
+
+    await _process_next(db_pool, fake_claude, _retry_response("correct"))
+    after_first = (await _pattern_review(db_pool))["next_review_at"]
+    async with db_pool.acquire() as conn:
+        await enqueue_analyze(conn, retry.id)
+    await _process_next(db_pool, fake_claude, _retry_response("correct"))
+
+    row = await _pattern_review(db_pool)
+    async with db_pool.acquire() as conn:
+        attempt_count = await conn.fetchval(
+            "select count(*) from pattern_attempts where utterance_id = $1", retry.id
+        )
+    assert row["next_review_at"] == after_first
+    assert attempt_count == 1
+    assert await _review_stages(db_pool, row["id"]) == [(2, "pending")]
+
+
+# 부가 신호 하나가 그 발화의 교정 전체를 태우지 않는다 (Task 3 의 비대칭).
+async def test_an_unknown_attempt_key_does_not_fail_the_analysis(
+    db_pool: asyncpg.Pool, committed_session, fake_claude
+):
+    utterance = await _save(db_pool, committed_session.session_id, GYM_ANSWER)
+    response = json.dumps(
+        {
+            "findings": [default_finding()],
+            "attempts": [{"pattern_key": "hallucinated_key", "outcome": "correct"}],
+        }
+    )
+    job = await _claim(db_pool)
+
+    await process_analysis(db_pool, fake_claude(response), job)
+
+    async with db_pool.acquire() as conn:
+        occurrences = await conn.fetchval(
+            "select count(*) from error_occurrences where utterance_id = $1", utterance.id
+        )
+        attempts = await conn.fetchval("select count(*) from pattern_attempts")
+        status = await conn.fetchval("select status from analysis_jobs where id = $1", job.id)
+    assert occurrences == 1, "교정이 사라졌다 — attempts 실패가 findings 를 태웠다"
+    assert attempts == 0, "목록에 없는 key 가 저장됐다"
+    assert status == "done"
