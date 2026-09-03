@@ -52,7 +52,10 @@ from app.db import close_pool  # noqa: E402
 from app.db import pool as get_db_pool  # noqa: E402
 from app.services.analysis import process_analysis  # noqa: E402
 from app.services.jobs import ClaimedJob  # noqa: E402
-from app.services.utterances import save_final_transcript  # noqa: E402
+from app.services.utterances import (  # noqa: E402
+    flush_pending_analysis,
+    save_final_transcript,
+)
 from app.workers.analysis_worker import claim_one  # noqa: E402
 from app.workers.claude_client import BedrockClaudeClient, ClaudeClient  # noqa: E402
 
@@ -82,6 +85,22 @@ class _RecordingClaudeClient:
         raw = await self._inner.analyze(prompt)
         self.raw_responses.append(raw)
         return raw
+
+
+# I-1(2026-09-02) 이후 분석 job은 **저장이 아니라 턴 경계**에서 걸린다
+# (`services/utterances.save_final_transcript` docstring). 사용자 발화만 저장하면
+# claim할 job이 없다 — 이 스크립트는 그 변경 전(2026-08-31)이 마지막 수정이라
+# 그때부터 `claim할 job이 없다`로 죽어 있었다(2026-09-04 실측).
+# 게이트웨이(`audio_gateway/session.py`)와 같은 순서로 agent final을 하나 끼워 턴을 닫는다.
+AGENT_ACK = "Tell me more."
+
+
+async def _save_user_turn(pool: asyncpg.Pool, session_id: UUID, text: str) -> None:
+    """사용자 확정 전사문 저장 + 턴 닫기 — 이 두 번째 단계가 분석 job을 등록한다."""
+    async with pool.acquire() as conn:
+        await save_final_transcript(conn, session_id, text)
+        await save_final_transcript(conn, session_id, AGENT_ACK, speaker="agent")
+        await flush_pending_analysis(conn, session_id)
 
 
 async def _seed_user_and_session(pool: asyncpg.Pool) -> tuple[UUID, UUID]:
@@ -222,8 +241,7 @@ async def main() -> int:
         turn2_answer = FIXTURE_TURNS[1][1]
 
         print(f"[2/4] 발화 1 저장 → claim → process_analysis (실제 Claude): {turn1_answer!r}")
-        async with db_pool.acquire() as conn:
-            await save_final_transcript(conn, session_id, turn1_answer)
+        await _save_user_turn(db_pool, session_id, turn1_answer)
         job1 = await _claim(db_pool)
         await process_analysis(db_pool, claude, job1)
         job1_row = await _job_row(db_pool, job1.id)
@@ -231,8 +249,7 @@ async def main() -> int:
         patterns_after_1 = await _patterns(db_pool, user_id)
 
         print(f"[3/4] 발화 2 저장 → claim → process_analysis (실제 Claude): {turn2_answer!r}")
-        async with db_pool.acquire() as conn:
-            await save_final_transcript(conn, session_id, turn2_answer)
+        await _save_user_turn(db_pool, session_id, turn2_answer)
         job2 = await _claim(db_pool)
         await process_analysis(db_pool, claude, job2)
         job2_row = await _job_row(db_pool, job2.id)
