@@ -154,6 +154,15 @@ cd ../frontend && npx tsc --noEmit && npx eslint app lib   # 둘 다 exit 0
 인계 확인은 새 세션이 **직접 돌려 얻은** 4개가 위 값과 일치하는 것이다 — "읽었다"는 지표가 아니다.
 절차는 `~/.claude/rules/session-handover.md`, 함정은 `pitfalls.md` **H-P**·**H-Q**.
 
+⚠️ **이번 인계는 tmux를 쓰지 않았다.** 2026-09-04 실측: `TMUX` 환경변수가 비어 있고
+`tmux ls`가 `error connecting to /private/tmp/tmux-501/default`다 — **tmux 서버가 아예 없고**
+이 세션은 순수 iTerm2였다. 그래서 `session-handover.md`의 **§3(세션 생성)·§5(`send-keys` 보고)·
+§6(이전 세션 kill)은 적용되지 않는다.** 그 절차는 `claude_air_<그룹>-<번호>` tmux 세션을
+전제로 쓰였고(2026-08-28 환경), 지금 환경은 다르다.
+
+**그래서 새 세션이 할 일은 이것뿐이다**: 위 4개를 직접 돌려 대조하고, 다르면 그 차이를 먼저
+설명한다. **`tmux kill-session`을 찾지 마라 — 죽일 세션이 없다.** 양방향 보고도 필요 없다.
+
 ---
 
 ## 발음 쪽을 다시 건드릴 때 (§10)
