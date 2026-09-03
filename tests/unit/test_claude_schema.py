@@ -393,10 +393,25 @@ def test_finding_defaults_suggested_contexts_to_empty_when_absent():
     assert result.findings[0].suggested_contexts == []
 
 
-def test_finding_rejects_a_blank_suggested_context():
-    """공백만인 '상황'은 연습 재료가 되지 않는다 — 경계에서 거부한다."""
-    with pytest.raises(AnalysisValidationError):
-        parse_analysis(json.dumps({"findings": [default_finding(suggested_contexts=["   "])]}))
+# ⚠️ 이 절의 규칙: **부가 필드의 규격 위반은 그 항목만 버린다.** 응답 전체를 거부하면
+# 저가치 필드 하나가 그 발화의 **교정 전체**를 태운다 — `suggested_contexts`가 없어도
+# 학습자는 교정을 받아야 한다. `findings`의 엄격함은 그대로다(아래 마지막 테스트가 지킨다).
+def test_finding_drops_a_blank_suggested_context_instead_of_rejecting():
+    payload = {"findings": [default_finding(suggested_contexts=["집에서 말하기", "   "])]}
+
+    result = parse_analysis(json.dumps(payload))
+
+    assert result.findings[0].suggested_contexts == ["집에서 말하기"]
+
+
+def test_finding_drops_suggested_contexts_that_are_not_a_list():
+    """모델이 문자열 하나로 답해도 그 발화의 교정을 잃지 않는다."""
+    payload = {"findings": [default_finding(suggested_contexts="집에서 말하기")]}
+
+    result = parse_analysis(json.dumps(payload))
+
+    assert result.findings[0].suggested_contexts == []
+    assert result.findings[0].correction == "go to the gym"
 
 
 # ── 슬라이스 1 — attempts (재발화 정답 여부, 설계서 §8.1·§11 미결 2) ─────────────
@@ -418,10 +433,45 @@ def test_result_defaults_attempts_to_empty_when_absent():
     assert parse_analysis(json.dumps({"findings": []})).attempts == []
 
 
-def test_attempt_rejects_an_outcome_outside_the_column_check():
-    """'pending'은 pattern_attempts CHECK에 없다 — 경계에서 막지 않으면 저장 트랜잭션
-    중간에 CheckViolation으로 터져 그 발화의 교정 전체가 사라진다."""
-    payload = {"findings": [], "attempts": [{"pattern_key": RETRIED_KEY, "outcome": "pending"}]}
+# 값역 밖 `outcome`이 006 CHECK에 닿으면 저장 트랜잭션 중간에 터진다 — 그래서 경계에서
+# 막아야 한다. 단 **막는 방법이 "그 항목만 버리기"** 여야 한다: 응답 전체를 거부하면
+# 그 발화의 교정까지 함께 사라져 막으려던 손실이 그대로 일어난다(실측 확인).
+@pytest.mark.parametrize(
+    ("label", "attempt"),
+    [
+        ("값역 밖 outcome", {"pattern_key": RETRIED_KEY, "outcome": "pending"}),
+        ("여분 필드", {"pattern_key": RETRIED_KEY, "outcome": "correct", "confidence": 0.8}),
+        ("빈 pattern_key", {"pattern_key": "   ", "outcome": "correct"}),
+        ("outcome 누락", {"pattern_key": RETRIED_KEY}),
+        ("항목이 객체가 아님", "correct"),
+    ],
+)
+def test_result_drops_a_malformed_attempt_and_keeps_the_findings(label: str, attempt: object):
+    payload = {"findings": [default_finding()], "attempts": [attempt]}
 
+    result = parse_analysis(json.dumps(payload))
+
+    assert result.attempts == [], label
+    assert len(result.findings) == 1, f"{label}: 교정이 사라졌다"
+
+
+def test_a_valid_attempt_survives_next_to_a_malformed_one():
+    """항목 단위로 버린다 — 성한 판정을 함께 잃지 않는다."""
+    payload = {
+        "findings": [],
+        "attempts": [
+            {"pattern_key": "bogus", "outcome": "wat"},
+            {"pattern_key": RETRIED_KEY, "outcome": "correct"},
+        ],
+    }
+
+    result = parse_analysis(json.dumps(payload))
+
+    assert [(a.pattern_key, a.outcome) for a in result.attempts] == [(RETRIED_KEY, "correct")]
+
+
+def test_findings_stay_strict_while_the_side_fields_are_lenient():
+    """비대칭의 반쪽 — `findings`의 규격 위반은 여전히 응답 전체를 거부한다.
+    규격 밖 신규 key를 그냥 저장하면 병합되지 않는 쌍둥이 패턴이 영구히 남기 때문이다."""
     with pytest.raises(AnalysisValidationError):
-        parse_analysis(json.dumps(payload))
+        parse_analysis(json.dumps({"findings": [default_finding(severity="critical")]}))

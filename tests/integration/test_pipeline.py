@@ -890,3 +890,36 @@ async def test_an_unknown_attempt_key_does_not_fail_the_analysis(
     assert occurrences == 1, "교정이 사라졌다 — attempts 실패가 findings 를 태웠다"
     assert attempts == 0, "목록에 없는 key 가 저장됐다"
     assert status == "done"
+
+
+# 2026-09-04 코드 리뷰 HIGH-2 — `store_attempts`가 **지워진** 판정의 pattern_id도
+# `touched`에 넣는다는 하중이 무보호였다(그 줄을 `set()`으로 바꿔도 전체 스위트가 통과했다).
+# 재분석에서 판정이 사라지면 그 패턴을 다시 계산하지 않아 단계가 낡은 채 남는다.
+async def test_reanalysis_that_drops_the_attempt_rewinds_the_stage(
+    db_pool: asyncpg.Pool, committed_session, fake_claude
+):
+    first = await _save(db_pool, committed_session.session_id, GYM_ANSWER)
+    await _process_next(db_pool, fake_claude, _response(default_finding()))
+    first_due = await _said_at(db_pool, first.id) + timedelta(days=1)
+
+    retry = await _save(db_pool, committed_session.session_id, OFFICE_ANSWER)
+    async with db_pool.acquire() as conn:
+        await conn.execute(
+            "update utterances set created_at = $2 where id = $1", retry.id, first_due
+        )
+    await _process_next(db_pool, fake_claude, _retry_response("correct"))
+    assert (await _pattern_review(db_pool))["next_review_at"] == first_due + timedelta(days=3)
+
+    # 같은 발화를 다시 분석했더니 이번엔 판정이 없다 — 예정일이 1단계로 되돌아가야 한다
+    async with db_pool.acquire() as conn:
+        await enqueue_analyze(conn, retry.id)
+    await _process_next(db_pool, fake_claude, json.dumps({"findings": [], "attempts": []}))
+
+    row = await _pattern_review(db_pool)
+    async with db_pool.acquire() as conn:
+        attempts = await conn.fetchval(
+            "select count(*) from pattern_attempts where utterance_id = $1", retry.id
+        )
+    assert attempts == 0
+    assert row["next_review_at"] == first_due, "판정이 사라졌는데 단계가 낡은 채 남았다"
+    assert await _review_stages(db_pool, row["id"]) == [(1, "pending")]

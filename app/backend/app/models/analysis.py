@@ -19,6 +19,20 @@ Claude의 응답은 **신뢰할 수 없는 외부 입력**이다. 이 경계에�
   호출자(`services.analysis.process_analysis`)는 이 예외 하나만 잡아
   `fail_or_retry`로 보내면 되고, pydantic 예외 타입에 의존하지 않는다.
 
+**엄격함은 필드마다 다르다 — 의도된 비대칭이다.**
+
+* `findings`와 그 안의 8필드 → **응답 전체 거부.** 규격 밖 값을 저장하면 되돌릴 수 없다.
+  특히 형식 밖 `pattern_key`는 병합되지 않는 쌍둥이 패턴을 영구히 남긴다.
+* `suggested_contexts`·`attempts` → **그 항목만 버린다.** 부가 신호이고, 버려도
+  손상되는 데이터가 없다.
+
+이 비대칭이 없으면 값역 밖 `outcome` 하나나 공백 상황 문자열 하나가 **그 발화의 교정
+전체를 태운다** — 2026-09-04 실측: 5경로 전부 `findings` 0건으로 끝났다. 학습자에게
+보이는 산출물(교정)을 저가치 필드 때문에 잃는 것이라 방향이 거꾸로였다. 버린 항목은
+`logger.warning`으로 남긴다 — 조용히 사라지면 프롬프트가 어긋난 것을 알 수 없다.
+⚠️ 최상위에 **모르는 키**가 오는 것은 여전히 전체 거부다: 그것은 프롬프트 계약 자체가
+바뀌었다는 신호이고 한 항목의 잡음이 아니다.
+
 `pattern_key`는 여기서 **형식만** 본다(빈 문자열 거부). `^{category}_...`
 형식 강제는 **신규 key에만** 적용되는 규칙이라(기존 key 재사용은 형식 무관 허용
 — §5.6) 사용자의 기존 key 목록을 아는 저장 단계의 몫이다. 이 모듈은 그 판정에
@@ -28,10 +42,13 @@ Claude의 응답은 **신뢰할 수 없는 외부 입력**이다. 이 경계에�
 from __future__ import annotations
 
 import json
+import logging
 import re
 from typing import Annotated, Literal, get_args
 
 import pydantic
+
+logger = logging.getLogger(__name__)
 
 ErrorCategory = Literal[
     "verb_tense",
@@ -50,10 +67,11 @@ SEVERITIES: tuple[Severity, ...] = get_args(Severity)
 
 # `PRD.md:92` "같은 패턴을 최소 세 개의 다른 상황에서 재사용한다" ·
 # `agent-system-prompt.md:47` "suggested_contexts: three different contexts".
-# 개수를 강제하지 않는다(학습 코치 설계서 §8.2) — 2개만 낸 응답을 거부하면 그 발화의 교정
-# 전체를 잃는다. 항목의 빈 문자열은 거부한다: 공백만인 "상황"은 연습 재료가 되지 않는다.
-# 개수 상한을 두지 않는 이유: 출력이 `claude_client.MAX_TOKENS`로 이미 묶여 있어 폭주하는
-# 배열이 올 수 없다 — 여기서 수치를 발명하지 않는다.
+# 개수를 강제하지 않는다(학습 코치 설계서 §8.2) — 2개만 냈다고 실패로 만들 이유가 없다.
+# 공백만인 "상황"은 연습 재료가 되지 않으므로 통과시키지 않지만, **그 항목만 버린다**
+# (`ErrorFinding._keep_usable_contexts`). 개수 상한을 두지 않는 이유: 출력이
+# `claude_client.MAX_TOKENS`로 이미 묶여 있어 폭주하는 배열이 올 수 없다 —
+# 여기서 수치를 발명하지 않는다.
 SuggestedContext = Annotated[str, pydantic.Field(min_length=1)]
 
 # 006 `pattern_attempts.outcome` CHECK와 **같은 집합**이다. `'pending'`은 없다 —
@@ -81,6 +99,24 @@ class ErrorFinding(pydantic.BaseModel):
     # `conftest.default_finding`(8필드)과 하네스 시나리오가 전부 깨진다(무회귀).
     suggested_contexts: list[SuggestedContext] = pydantic.Field(default_factory=list)
 
+    @pydantic.field_validator("suggested_contexts", mode="before")
+    @classmethod
+    def _keep_usable_contexts(cls, value: object) -> list[str]:
+        """쓸 수 없는 항목을 **버린다** — 이 필드 때문에 교정을 잃지 않는다(모듈 docstring 비대칭).
+
+        배열이 아니면 통째로 버린다(모델이 문자열 하나로 답하는 경우). 항목은 공백을 깎은 뒤
+        빈 것을 버린다 — `str_strip_whitespace`는 이 검증 **뒤에** 돌므로 여기서 직접 깎는다.
+        """
+        if not isinstance(value, list):
+            logger.warning(
+                "dropping suggested_contexts: expected a list, got %s", type(value).__name__
+            )
+            return []
+        kept = [item.strip() for item in value if isinstance(item, str) and item.strip()]
+        if len(kept) != len(value):
+            logger.warning("dropped %d unusable suggested_contexts item(s)", len(value) - len(kept))
+        return kept
+
 
 class PatternAttempt(pydantic.BaseModel):
     """이번 발화가 **기존 패턴**을 다시 시도한 결과 — 006 `pattern_attempts` 1행이 된다.
@@ -101,6 +137,29 @@ class AnalysisResult(pydantic.BaseModel):
     findings: list[ErrorFinding]
     # 기본값을 둔다 — 재시도가 없는 발화가 대부분이고, 없는 것이 계약 위반이 아니다.
     attempts: list[PatternAttempt] = pydantic.Field(default_factory=list)
+
+    @pydantic.field_validator("attempts", mode="before")
+    @classmethod
+    def _keep_valid_attempts(cls, value: object) -> list[PatternAttempt]:
+        """규격을 벗어난 판정을 **항목 단위로 버린다** (모듈 docstring 비대칭).
+
+        값역 밖 `outcome`을 그대로 통과시키면 006 `pattern_attempts` CHECK에 부딪혀 결과
+        저장 트랜잭션 중간에 터진다 — 그래서 막아야 한다. 다만 **막는 방법이 "그 항목만
+        버리기"** 여야 한다: 응답 전체를 거부하면 그 발화의 교정까지 사라져 막으려던 손실이
+        그대로 일어난다. 성한 판정은 옆 항목의 잡음에 휩쓸리지 않는다.
+        """
+        if not isinstance(value, list):
+            logger.warning("dropping attempts: expected a list, got %s", type(value).__name__)
+            return []
+        kept: list[PatternAttempt] = []
+        for item in value:
+            try:
+                kept.append(PatternAttempt.model_validate(item))
+            except pydantic.ValidationError as exc:
+                logger.warning(
+                    "dropping malformed attempt %r: %s", item, exc.errors(include_url=False)
+                )
+        return kept
 
 
 # ```json ... ``` / ``` ... ``` 로 감싼 응답. 언어 태그는 있어도 없어도 된다.

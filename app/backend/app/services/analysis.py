@@ -459,8 +459,11 @@ async def _replace_occurrences(
 
     for pattern_id in touched:
         await conn.execute(_RECOUNT_PATTERN_SQL, pattern_id)
-        # frequency·last_seen_at 재계산 **다음**이다: 복습 상태는 같은 이력을 다시 세므로
-        # 순서를 뒤집으면 한 턴 낡은 값 위에서 단계를 정한다.
+        # ⚠️ 이 두 줄의 순서는 **제약이 아니다.** `review.recompute`는 `frequency`·
+        # `last_seen_at`을 읽지 않고 `error_occurrences`·`pattern_attempts`·`utterances`와
+        # `target_form`만 본다 — 맞바꿔도 결과가 같다(2026-09-04 실측으로 확인했고, 그전
+        # 주석은 있지도 않은 의존을 단정하고 있었다). **참인 순서 제약은 하나다**:
+        # `store_attempts`가 `recompute`보다 먼저 와야 한다(설계서 §9 Dependency).
         await recompute(conn, pattern_id)
 
     if not await complete(conn, job.id, job.lease_token):

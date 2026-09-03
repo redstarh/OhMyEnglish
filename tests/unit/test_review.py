@@ -393,3 +393,53 @@ async def test_store_attempts_skips_a_pattern_key_that_no_longer_exists(
 
     assert touched == set()
     assert await db_conn.fetchval("select count(*) from pattern_attempts") == 0
+
+
+# ── 무보호였던 하중 지점 2개 (2026-09-04 코드 리뷰 MEDIUM-4·MEDIUM-5) ─────────────
+
+
+# ⑲ `_HISTORY_SQL`의 `array_agg(... order by ...)`가 없으면 이 테스트가 깨진다.
+#    `fold_stages`의 전제조건은 **오름차순**이고, 그것이 깨지면 예외도 실패도 없이
+#    단계만 조용히 틀린다. 삽입 순서를 시각 역순으로 만들어 정렬에 의존시킨다.
+@pytest.mark.asyncio
+async def test_recompute_orders_the_corrects_by_utterance_time_not_insert_order(
+    db_conn: asyncpg.Connection,
+):
+    session_id, pattern_id = await _seed(db_conn)
+    await _occurrence(db_conn, await _utterance(db_conn, session_id, T0), pattern_id)
+    later = T0 + _days(4)  # 2단계 예정일
+    earlier = T0 + _days(1)  # 1단계 예정일
+    # **나중 것을 먼저 삽입한다** — 정렬이 없으면 fold가 이 순서를 그대로 본다
+    await _attempt(db_conn, await _utterance(db_conn, session_id, later), pattern_id, "correct")
+    await _attempt(db_conn, await _utterance(db_conn, session_id, earlier), pattern_id, "correct")
+
+    state = await recompute(db_conn, pattern_id)
+
+    # 오름차순이면 T0+1d가 1단계를, T0+4d가 2단계를 통과해 3단계에 이른다.
+    # 삽입 순서대로 보면 T0+4d만 통과하고 T0+1d는 예정일 전이라 버려져 2단계에 멈춘다.
+    assert state.stage == 3, "정렬이 빠졌다 — fold가 삽입 순서를 봤다"
+    assert state.anchor == later
+    assert state.next_review_at == later + _days(7)
+
+
+# ⑳ 같은 발화에 오류와 정답이 함께 달린 **모순된 판정**에서 단계가 오르지 않는다.
+#    실물 모델이 한 발화에 finding과 attempt를 함께 내는 것이 2026-09-04 실물 왕복에서
+#    관측됐으므로 가상의 경계가 아니다.
+#    ⚠️ 이 동작을 지키는 것은 `_HISTORY_SQL`의 strict `>`가 아니라 **`fold_stages`의 간격
+#    조건**이다 — `>`를 `>=`로 바꿔도 이 테스트는 통과한다(2026-09-04 실측). 재발과 같은
+#    순간의 정답은 anchor와 시각이 같아 1단계 예정일(+1일) 전이므로 어차피 건너뛴다.
+#    그래서 이 테스트는 **결과**를 못 박고, 어느 줄이 그것을 지키는지에 의존하지 않는다.
+@pytest.mark.asyncio
+async def test_a_correct_on_the_very_utterance_that_relapsed_does_not_advance(
+    db_conn: asyncpg.Connection,
+):
+    session_id, pattern_id = await _seed(db_conn)
+    relapsed = await _utterance(db_conn, session_id, T0)
+    await _occurrence(db_conn, relapsed, pattern_id)
+    # 같은 발화에 correct 판정도 달린다 (모델이 findings와 attempts에 함께 낸 경우)
+    await _attempt(db_conn, relapsed, pattern_id, "correct")
+
+    state = await recompute(db_conn, pattern_id)
+
+    assert state.stage == 1, "재발과 같은 순간의 정답이 단계를 올렸다"
+    assert state.next_review_at == T0 + _days(1)
