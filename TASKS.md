@@ -298,6 +298,33 @@ CHECK 2개·인덱스 2개·`attempt_seq` 함정·**frequency 두 번째 writer*
 정의 섹션이 없고 "아직 SQL에 없는 테이블" 목록에도 없다. §11이 `error_patterns`를 만지므로
 그 문서를 근거로 쓰기 전에 채운다.
 
+### ⏸ 슬라이스 1 코드 리뷰 — 미수신 (2026-09-04)
+
+리뷰를 위임했으나 **결과를 받지 못한 채 세션이 끝났다.** 다시 띄울 때 범위는
+`git diff f8b3669..HEAD`이고, **특히 볼 자리 3개**는 이렇다:
+
+1. **`services/review.py`의 멱등성** — 같은 발화 재분석이 단계를 두 번 올리지 않는가.
+   `fold_stages`는 순수 함수라 단위 테스트가 경계를 덮지만, `recompute`가 `review_tasks`를
+   지우고 다시 넣는 경로는 통합 테스트 3건이 전부다.
+2. **`recompute`가 `error_patterns.next_review_at`·`mastery_score`를 덮어쓴다.** 발음 경로가
+   `frequency`의 두 번째 writer인 것(G-8)과 충돌하지 않는지.
+3. **`attempts` 미매치 key를 버리는 비대칭**이 의도대로 좁게만 작동하는가 — `findings`의
+   규격 밖 신규 key는 여전히 분석을 실패시켜야 한다.
+
+⚠️ 위임 프롬프트에 **"전체 `pytest`를 돌리지 마라"**를 넣는다(함정 **H-X**).
+
+### 슬라이스 2 착수 전 확인 4건
+
+1. 마이그레이션 번호는 **007**이다. `002`는 만들어진 적이 없고 006이 슬라이스 1이었다
+   (설계서 §8.4에 정정을 박아 뒀다).
+2. 슬라이스 1이 만든 소비 가능한 자산 3개: `services/chronic.py`(만성 지표, **호출자 0곳**) ·
+   `error_occurrences.suggested_contexts`(질문 생성 재료) · `error_patterns.next_review_at`
+   (§4.1의 "오늘 복습할 목록" 쿼리가 이제 0행이 아니다).
+3. §6.2의 결정론적 만성 신호("3단계 소진 후 재발")를 **계산해 Claude에 넘기는 것이 슬라이스 2**다.
+   `mastery_score`가 재발로 0이 되어도 `pattern_attempts`에서 재계산된다(설계서 §6.2 근거).
+4. `review_tasks.task_type`은 지금 `rephrase`만 쓴다. `role_play`·`shadowing`은 상황을
+   **생성**해야 하므로 슬라이스 2 이후다.
+
 ### ✅ 캡틴 결정 2건 (2026-09-03) — 설계서가 답을 주지 않은 자리를 닫았다
 
 계획 수립 중에 §4.1이 정하지 않은 두 가지가 드러났다. 둘 다 **원장(`review_tasks`)에 실제로 쓰는 값의
