@@ -142,6 +142,15 @@ cd ../frontend && npx tsc --noEmit && npx eslint app lib   # 둘 다 exit 0
   ⚠️ **이 리포에는 git remote가 없다** — `git remote -v`가 비어 있어 푸시할 대상이 없다.
   리포 생성·연결은 캡틴 몫이고, 붙이면 `remoteOperations`도 되돌린다.
 
+- **2026-09-04 인계 확인 (새 세션 `claude_air_1-1`)** — ✅ **4/4 일치.** 직접 돌린 값: HEAD `df368e4`
+  (`aae6f91..HEAD` 4건 전부 **docs-only**, 변경 파일은 `handoff/HANDOFF.md` 하나 — H-P의 `≥`로 읽어
+  일치 판정) · 다음 한 걸음 **§11 슬라이스 2**(원장 C절 "슬라이스 2 — 계획 생성·반영 ⏭") ·
+  게이트 **454 passed** · ruff·format(**29 files**)·ty 전부 exit 0 · 베이스라인 **6 errors·4 files** ·
+  프론트 `tsc`·`eslint` exit 0 · 착수 전 필수 **0건**(이연 4건 확인) ·
+  DB `postgresql@17` **started**. ⚠️ **W-live 스모크 11/11은 돌리지 않았다** — 실물 Claude 비용이
+  들어 대조에서 제외했다(다른 6개 수치가 일치하므로 인계 판정에는 영향 없음).
+  이전 세션은 tmux 밖에 있었으므로 `kill-session` 없음 — `tmux ls`에 `claude_air_1-1` 하나뿐이다.
+
 ### 다음 세션이 대조할 기준값 (이 절을 쓴 턴에 직접 실행해 얻었다)
 
 | # | 지표 | 값 |
