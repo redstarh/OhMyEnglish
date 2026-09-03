@@ -28,6 +28,7 @@ process_analysis → 단정. **재시도 없음** — 실제 Claude 출력은 �
 from __future__ import annotations
 
 import asyncio
+import json
 import os
 import re
 import sys
@@ -50,6 +51,7 @@ from app.audio_gateway.fixtures import FIXTURE_TURNS  # noqa: E402
 from app.config import Settings, get_settings, prepare_bedrock_credentials  # noqa: E402
 from app.db import close_pool  # noqa: E402
 from app.db import pool as get_db_pool  # noqa: E402
+from app.models.analysis import ATTEMPT_OUTCOMES  # noqa: E402
 from app.services.analysis import process_analysis  # noqa: E402
 from app.services.jobs import ClaimedJob  # noqa: E402
 from app.services.utterances import (  # noqa: E402
@@ -96,11 +98,21 @@ AGENT_ACK = "Tell me more."
 
 
 async def _save_user_turn(pool: asyncpg.Pool, session_id: UUID, text: str) -> None:
-    """사용자 확정 전사문 저장 + 턴 닫기 — 이 두 번째 단계가 분석 job을 등록한다."""
+    """사용자 확정 전사문 저장 + 턴 닫기 — 이 두 번째 단계가 분석 job을 등록한다.
+
+    **`flush_pending_analysis`의 반환값을 확인한다.** 버리면 다음 턴 경계 변경으로 flush가
+    0건이나 2건을 등록해도 원인 지점에서 조용하고, 한참 뒤 `_claim`에서 엉뚱한 곳을 가리키는
+    메시지로만 드러난다 — 이 스크립트를 이틀간 죽어 있게 만든 침묵이 정확히 그것이다(함정 H-AA).
+    """
     async with pool.acquire() as conn:
-        await save_final_transcript(conn, session_id, text)
+        utterance = await save_final_transcript(conn, session_id, text)
         await save_final_transcript(conn, session_id, AGENT_ACK, speaker="agent")
-        await flush_pending_analysis(conn, session_id)
+        enqueued = await flush_pending_analysis(conn, session_id)
+    if enqueued != [utterance.id]:
+        raise RuntimeError(
+            f"턴 경계가 등록한 job이 기대와 다르다: {enqueued!r} (기대 [{utterance.id}]) — "
+            "flush_pending_analysis의 등록 규칙이 바뀌었는지 본다"
+        )
 
 
 async def _seed_user_and_session(pool: asyncpg.Pool) -> tuple[UUID, UUID]:
@@ -123,8 +135,8 @@ async def _claim(pool: asyncpg.Pool) -> ClaimedJob:
     job = await claim_one(pool)
     if job is None:
         raise RuntimeError(
-            "claim할 job이 없다 — save_final_transcript가 analyze_utterance job을 "
-            "등록했는지 확인하라"
+            "claim할 job이 없다 — 등록 주체는 **턴 경계의 flush_pending_analysis**다"
+            "(I-1 이후. save_final_transcript는 등록하지 않는다). `_save_user_turn`을 보라"
         )
     return job
 
@@ -141,7 +153,7 @@ async def _job_row(pool: asyncpg.Pool, job_id: UUID) -> asyncpg.Record:
 async def _patterns(pool: asyncpg.Pool, user_id: UUID) -> list[asyncpg.Record]:
     async with pool.acquire() as conn:
         return await conn.fetch(
-            "select category, pattern_key, target_form, frequency "
+            "select category, pattern_key, target_form, frequency, next_review_at, mastery_score "
             "from error_patterns where user_id = $1 order by created_at",
             user_id,
         )
@@ -150,7 +162,8 @@ async def _patterns(pool: asyncpg.Pool, user_id: UUID) -> list[asyncpg.Record]:
 async def _occurrences(pool: asyncpg.Pool, session_id: UUID) -> list[asyncpg.Record]:
     async with pool.acquire() as conn:
         return await conn.fetch(
-            "select eo.original_span, eo.correction, eo.explanation, eo.severity, eo.confidence "
+            "select eo.original_span, eo.correction, eo.explanation, eo.severity, eo.confidence, "
+            "       eo.suggested_contexts "
             "from error_occurrences eo join utterances u on u.id = eo.utterance_id "
             "where u.session_id = $1 order by u.created_at, eo.created_at",
             session_id,
@@ -258,6 +271,21 @@ async def main() -> int:
         patterns = await _patterns(db_pool, user_id)
         occurrences = await _occurrences(db_pool, session_id)
         pattern = patterns[0] if len(patterns) == 1 else None
+        # 학습 코치 슬라이스 1(006)의 산출물. 이 단정이 없으면 저장이 깨져도 PASS를 찍는다.
+        contexts = [row["suggested_contexts"] for row in occurrences]
+        async with db_pool.acquire() as conn:
+            attempt_rows = await conn.fetch(
+                "select pa.outcome from pattern_attempts pa "
+                "  join utterances u on u.id = pa.utterance_id "
+                " where u.session_id = $1",
+                session_id,
+            )
+            review_rows = await conn.fetch(
+                "select rt.review_stage, rt.status from review_tasks rt "
+                "  join error_patterns p on p.id = rt.pattern_id "
+                " where p.user_id = $1",
+                user_id,
+            )
         first_key = patterns_after_1[0]["pattern_key"] if len(patterns_after_1) == 1 else None
         second_prompt = claude.prompts[1] if len(claude.prompts) >= 2 else None
 
@@ -299,6 +327,33 @@ async def main() -> int:
                 first_key is not None and NEW_KEY_PATTERN.fullmatch(first_key) is not None,
                 f"실제 pattern_key={first_key!r}",
             ),
+            # ── 학습 코치 슬라이스 1 (006) ─────────────────────────────────────
+            # L2의 목적은 "**실물 모델이** 새 필드를 내는가"다. 사람이 DB를 열어 보는 것으로
+            # 대신하면 다음 회차에 그 저장이 깨져도 이 스크립트는 PASS를 찍는다.
+            Check(
+                "실물 모델이 suggested_contexts를 냈다 (occurrence마다)",
+                bool(contexts) and all(item is not None for item in contexts),
+                f"실제 {[('null' if c is None else json.loads(c)) for c in contexts]!r} — "
+                "null이면 컬럼·저장 경로가 아니라 **프롬프트**를 본다",
+            ),
+            Check(
+                "next_review_at이 채워졌다 (복습 목록이 0행을 벗어난다)",
+                pattern is not None and pattern["next_review_at"] is not None,
+                f"실제 next_review_at={pattern['next_review_at'] if pattern else 'N/A'}",
+            ),
+            Check(
+                "review_tasks가 패턴당 0~1행이다",
+                len(review_rows) <= len(patterns),
+                f"실제 {len(review_rows)}행 / 패턴 {len(patterns)}개: "
+                f"{[(r['review_stage'], r['status']) for r in review_rows]!r}",
+            ),
+            # 재시도 판정은 **모델 판단**이라 0건일 수 있다 — 그것을 실패로 만들지 않는다.
+            # 값역만 본다: 규격 밖 outcome이 저장됐다면 경계 검증이 뚫린 것이다.
+            Check(
+                "pattern_attempts의 outcome이 전부 값역 안이다",
+                all(row["outcome"] in ATTEMPT_OUTCOMES for row in attempt_rows),
+                f"실제 {[r['outcome'] for r in attempt_rows]!r} (값역 {list(ATTEMPT_OUTCOMES)})",
+            ),
         ]
         all_passed = _print_checks(checks)
 
@@ -309,11 +364,18 @@ async def main() -> int:
                 f"target_form={row['target_form']!r} frequency={row['frequency']}"
             )
         for index, row in enumerate(occurrences, start=1):
+            stored = row["suggested_contexts"]
             print(
                 f"occurrence[{index}]: original_span={row['original_span']!r} "
                 f"correction={row['correction']!r} explanation={row['explanation']!r} "
-                f"severity={row['severity']!r} confidence={row['confidence']}"
+                f"severity={row['severity']!r} confidence={row['confidence']} "
+                f"suggested_contexts={'null' if stored is None else json.loads(stored)!r}"
             )
+        print(f"pattern_attempts: {[r['outcome'] for r in attempt_rows]!r}")
+        print(
+            f"review_tasks: {[(r['review_stage'], r['status']) for r in review_rows]!r} · "
+            f"next_review_at={pattern['next_review_at'] if pattern else 'N/A'}"
+        )
 
         print(
             f"\n{'PASS' if all_passed else 'FAIL'}: "

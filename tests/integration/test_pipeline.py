@@ -775,10 +775,15 @@ async def _process_next(pool: asyncpg.Pool, fake_claude, response: str) -> None:
     await process_analysis(pool, fake_claude(response), await _claim(pool))
 
 
-async def _pattern_review(pool: asyncpg.Pool) -> asyncpg.Record:
+async def _pattern_review(pool: asyncpg.Pool, user_id: UUID) -> asyncpg.Record:
+    """이 사용자의 관사 패턴 한 행. **user 범위로 좁힌다** — `db_pool` 경로는 커밋하므로
+    앞선 테스트가 중간에 죽으면 전역 조회가 무관한 이유로 실패한다(같은 파일의
+    `_patterns`·`_occurrences`가 이미 그 관례다)."""
     async with pool.acquire() as conn:
         row = await conn.fetchrow(
-            "select id, next_review_at, mastery_score from error_patterns where pattern_key = $1",
+            "select id, next_review_at, mastery_score from error_patterns "
+            " where user_id = $1 and pattern_key = $2",
+            user_id,
             ARTICLE_PATTERN_KEY,
         )
     assert row is not None, f"패턴 {ARTICLE_PATTERN_KEY} 이 없다"
@@ -808,7 +813,7 @@ async def test_analysis_schedules_the_first_review_for_a_new_pattern(
 
     await _process_next(db_pool, fake_claude, _response(default_finding()))
 
-    row = await _pattern_review(db_pool)
+    row = await _pattern_review(db_pool, committed_session.user_id)
     # 발화 시각 + 1일이다 — now() 기준이 아니다
     assert row["next_review_at"] == await _said_at(db_pool, utterance.id) + timedelta(days=1)
     assert row["mastery_score"] == 0
@@ -833,7 +838,7 @@ async def test_a_correct_retry_on_the_due_date_advances_the_stage_end_to_end(
         outcome = await conn.fetchval(
             "select outcome from pattern_attempts where utterance_id = $1", retry.id
         )
-    row = await _pattern_review(db_pool)
+    row = await _pattern_review(db_pool, committed_session.user_id)
     assert outcome == "correct"
     assert row["next_review_at"] == due_at + timedelta(days=3)
     assert await _review_stages(db_pool, row["id"]) == [(2, "pending")]
@@ -851,12 +856,12 @@ async def test_reanalysing_the_same_utterance_does_not_double_advance(
         await conn.execute("update utterances set created_at = $2 where id = $1", retry.id, due_at)
 
     await _process_next(db_pool, fake_claude, _retry_response("correct"))
-    after_first = (await _pattern_review(db_pool))["next_review_at"]
+    after_first = (await _pattern_review(db_pool, committed_session.user_id))["next_review_at"]
     async with db_pool.acquire() as conn:
         await enqueue_analyze(conn, retry.id)
     await _process_next(db_pool, fake_claude, _retry_response("correct"))
 
-    row = await _pattern_review(db_pool)
+    row = await _pattern_review(db_pool, committed_session.user_id)
     async with db_pool.acquire() as conn:
         attempt_count = await conn.fetchval(
             "select count(*) from pattern_attempts where utterance_id = $1", retry.id
@@ -885,7 +890,12 @@ async def test_an_unknown_attempt_key_does_not_fail_the_analysis(
         occurrences = await conn.fetchval(
             "select count(*) from error_occurrences where utterance_id = $1", utterance.id
         )
-        attempts = await conn.fetchval("select count(*) from pattern_attempts")
+        attempts = await conn.fetchval(
+            "select count(*) from pattern_attempts pa "
+            "  join utterances u on u.id = pa.utterance_id "
+            " where u.session_id = $1",
+            committed_session.session_id,
+        )
         status = await conn.fetchval("select status from analysis_jobs where id = $1", job.id)
     assert occurrences == 1, "교정이 사라졌다 — attempts 실패가 findings 를 태웠다"
     assert attempts == 0, "목록에 없는 key 가 저장됐다"
@@ -908,14 +918,15 @@ async def test_reanalysis_that_drops_the_attempt_rewinds_the_stage(
             "update utterances set created_at = $2 where id = $1", retry.id, first_due
         )
     await _process_next(db_pool, fake_claude, _retry_response("correct"))
-    assert (await _pattern_review(db_pool))["next_review_at"] == first_due + timedelta(days=3)
+    advanced = await _pattern_review(db_pool, committed_session.user_id)
+    assert advanced["next_review_at"] == first_due + timedelta(days=3)
 
     # 같은 발화를 다시 분석했더니 이번엔 판정이 없다 — 예정일이 1단계로 되돌아가야 한다
     async with db_pool.acquire() as conn:
         await enqueue_analyze(conn, retry.id)
     await _process_next(db_pool, fake_claude, json.dumps({"findings": [], "attempts": []}))
 
-    row = await _pattern_review(db_pool)
+    row = await _pattern_review(db_pool, committed_session.user_id)
     async with db_pool.acquire() as conn:
         attempts = await conn.fetchval(
             "select count(*) from pattern_attempts where utterance_id = $1", retry.id

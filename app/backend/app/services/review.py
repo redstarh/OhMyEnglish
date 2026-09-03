@@ -220,6 +220,11 @@ async def store_attempts(
 
     호출자의 트랜잭션 안에서 돈다. 자기 트랜잭션을 열지 않는다 — 판정 기록과 그에 따른 단계
     갱신이 갈라지면 절반만 반영된 상태가 남는다(설계서 §9 Dependency).
+
+    ⚠️ **전제조건: `attempts`는 canonical `pattern_key`로 중복이 제거돼 있어야 한다.**
+    같은 key가 두 번 오면 `unique(pattern_id, utterance_id)` 위반으로 호출자의 트랜잭션이
+    통째로 깨진다 — 그 발화의 교정까지 함께 사라진다. 지금 그것을 보장하는 것은
+    `services.analysis.resolve_pattern_keys`의 dict 수집 하나다(그 함수를 고칠 때 이 계약을 본다).
     """
     removed = await conn.fetch(_DELETE_ATTEMPTS_SQL, utterance_id)
     touched: set[UUID] = {record["pattern_id"] for record in removed}
