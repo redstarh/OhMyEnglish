@@ -42,7 +42,7 @@ HIGH 2건 수정 · 지적 1건 반박 · 이연 4건). 처리 표는 `TASKS.md`
 | 실시간 음성 대화·전사문 영속 저장 | **§11 슬라이스 2** — 추천 학습 루틴의 *판단*부(C절). 슬라이스 1(기록·계산)은 됐다 |
 | **조각 발화를 턴 경계까지 모아서 분석** (I-1) | 세션 시작이 여전히 **고정 시나리오 1개**다 — 계획을 읽는 경로가 슬라이스 2 |
 | **잃어버린 묶음을 워커가 회복** — 끝난 세션 스윕 + **`active` 고아 리퍼**(I-4) | 리퍼가 닫은 세션의 **결과 화면엔 교정이 안 뜬다** — 규칙 1이 `connection_failed`로 가린다 |
-| **복습 큐·주기 갱신** — 분석 1턴이 `next_review_at`·`review_tasks`·`mastery_score`를 만든다(006, `services/review.py`) | 복습 목록을 **읽어 쓰는 곳이 아직 없다** — 화면도 계획 생성도 슬라이스 2다 |
+| **복습 큐·주기 갱신** — 분석 1턴이 `next_review_at`·`review_tasks`·`mastery_score`를 만든다(006, `services/review.py`). 목록 조회 `load_due_reviews`도 있다 | 그 목록을 **앱 경로에서 쓰는 곳이 0곳**(백필 스크립트가 보고용으로만 부른다) — 화면도 계획 생성도 슬라이스 2다 |
 | **연습 상황 3개 저장**(`suggested_contexts`) · **재시도 정답 여부**(`pattern_attempts`) · **만성 지표 쿼리**(`services/chronic.py`) | `chronic.py`를 **호출하는 코드가 0곳** — 소비자는 슬라이스 2의 계획 생성이다 |
 | 세션 화면 발음 배지 + 결과 화면 발음 카드 | 음성 명령 제어 — **3단계로 이연**(설계서가 명시) |
 | 문법 오류 분석 → 패턴 병합 → 상위 교정 (**발음 키는 문법 프롬프트에서 제외** — G-8) | **§11 슬라이스 2 전체** — 계획 생성 job · `session_plans` · `learner_notes` · 지시문 전달 · 수준 갱신. 007 마이그레이션이 필요하다 |
@@ -85,7 +85,7 @@ HIGH 2건 수정 · 지적 1건 반박 · 이연 4건). 처리 표는 `TASKS.md`
 
 ```bash
 cd app/backend                                    # 게이트는 이 cwd에서만 판정한다 (함정 H-A)
-.venv/bin/pytest -q                               # 439 passed   (부분 실행은 -c pyproject.toml — H-W)
+.venv/bin/pytest -q                               # 454 passed   (부분 실행은 -c pyproject.toml — H-W)
 .venv/bin/ruff check . && .venv/bin/ruff format --check .   # passed / 29 files
 ty check                                          # All checks passed!
 .venv/bin/ruff check ../../tests ../../scripts    # Found 6 errors  (베이스라인, 게이트 밖)
@@ -116,7 +116,7 @@ cd ../frontend && npx tsc --noEmit && npx eslint app lib   # 둘 다 exit 0
 
 ## 다음 세션 진입 절차
 
-1. 이 파일 → **`TASKS.md` C절**(리뷰 미결 + 슬라이스 2 확인 4건). `TASKS.md` 전체를 읽지
+1. 이 파일 → **`TASKS.md` C절**(코드 리뷰 결과 표 · **이연 4건** · 슬라이스 2 확인 4건). `TASKS.md` 전체를 읽지
    않는다 — I절은 **전부 닫혔다**. 마이크를 쓸 일이 생기면 `runs/2026-09-01-mic-1.md` §1.
 2. 게이트를 `app/backend` cwd에서 돌려 위 실측값과 대조한다. **다르면 그 차이를 먼저 설명한다.**
    ⚠️ **게이트 전에 DB부터 본다** — `brew services list | grep postgresql@17`. 안 떠 있으면
@@ -146,7 +146,7 @@ cd ../frontend && npx tsc --noEmit && npx eslint app lib   # 둘 다 exit 0
 
 | # | 지표 | 값 |
 |--:|---|---|
-| 1 | HEAD | **`HEAD ≥ aae6f91`** — 반드시 `≥`로 읽는다(**H-P**). 작성 시점 실제 HEAD가 `aae6f91`이다 |
+| 1 | HEAD | **`HEAD ≥ aae6f91`** — 반드시 `≥`로 읽는다(**H-P**). `aae6f91`이 마지막 **코드** 커밋이고 그 뒤는 이 마감 커밋들(docs 전용)이다. 불일치를 보면 `git log --oneline aae6f91..HEAD`가 docs-only인지 먼저 본다 |
 | 2 | 다음 한 걸음 | **§11 슬라이스 2** — 계획서부터 쓴다(007 마이그레이션). 슬라이스 1은 리뷰까지 닫혔다. I절 미결 0건 |
 | 3 | 게이트 | **454 passed** · ruff·format(**29파일**)·ty 전부 **exit 0** · `tests/**`+`scripts/**` 베이스라인 **6 errors·4 files** · 프론트 `tsc`·`eslint` exit 0 · W-live 스모크 **11/11**(실물 Claude, 돌릴 때마다 비용) |
 | 4 | 착수 전 필수 | **0건.** 대신 `TASKS.md` C절의 **이연 4건**을 읽는다 — 발음 미배선·`review_tasks` 행 정체성이 슬라이스 2의 설계에 직접 걸린다 |
