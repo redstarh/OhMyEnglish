@@ -112,6 +112,9 @@ select r.at as relapse_at,
             join utterances u on u.id = pa.utterance_id
            where pa.pattern_id = $1
              and pa.outcome = 'correct'
+             -- `r.at is null or`도 관측 불가능하다: relapse가 없으면 `fold_stages`가
+             -- `correct_times`를 **읽기 전에** return하므로 이 배열이 무엇이든 결과가 같다.
+             -- 남기는 이유는 SQL 단독으로도 의미가 통하게 하는 것이다(`> null`은 0행이 된다).
              and (r.at is null or u.created_at > r.at)),
          '{}'::timestamptz[]
        ) as correct_times
@@ -272,7 +275,8 @@ async def recompute(conn: asyncpg.Connection, pattern_id: UUID) -> ReviewState:
             pattern_id,
             REVIEW_TASK_TYPE,
             state.scenario_context,
-            FINAL_STAGE if state.completed else state.stage,
+            # `completed`면 `fold_stages`가 `stage=FINAL_STAGE`를 보장하므로 분기가 필요 없다.
+            state.stage,
             state.next_review_at or state.anchor,
             "done" if state.completed else "pending",
         )

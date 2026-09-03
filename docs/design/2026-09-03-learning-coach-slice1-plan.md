@@ -126,14 +126,14 @@ ruff · ty. 프론트엔드는 **건드리지 않는다**.
 relapse_at 이 없으면  → stage 1 · 미완주 · anchor 없음 · next_review_at 없음
                         (틀린 적이 없는 패턴은 복습할 것이 없다)
 
-anchor := relapse_at ; stage := 1
+anchor := relapse_at ; stage := 1        # stage 는 **1-based** (1·2·3)
 correct_times 를 순서대로 훑으며:
-    due := anchor + STAGE_DAYS[stage]
+    due := anchor + STAGE_DAYS[stage - 1]  # ← 파이썬 인덱스는 0-based 다
     said_at < due   → **건너뛴다** (예정일 전의 정답 — 간격이 경과하지 않았다)
     said_at >= due  → anchor := said_at ; stage := stage + 1
                       stage > 3 이면 → 완주 (next_review_at 없음)
 
-끝까지 완주하지 않았으면 → next_review_at := anchor + STAGE_DAYS[stage]
+끝까지 완주하지 않았으면 → next_review_at := anchor + STAGE_DAYS[stage - 1]
 ```
 
 `STAGE_DAYS = (1, 3, 7)`이고 **문서로 확정된 값**이다(설계서 §4.1 · `database-schema.md`) — 발명이 아니다.
@@ -142,7 +142,7 @@ correct_times 를 순서대로 훑으며:
 | 결과 | `next_review_at` | `mastery_score` | `review_tasks` |
 |---|---|:--:|---|
 | 완주 (3단계를 예정일마다 통과) | `null` | `100` | `review_stage=3`, `status='done'`, `due_at=anchor` 1행 |
-| 미완주이고 `relapse_at` 있음 | `anchor + STAGE_DAYS[stage]` | `0` | `review_stage=stage`, `status='pending'`, `due_at=next_review_at` 1행 |
+| 미완주이고 `relapse_at` 있음 | `anchor + STAGE_DAYS[stage - 1]` | `0` | `review_stage=stage`, `status='pending'`, `due_at=next_review_at` 1행 |
 | `relapse_at` 없음 (틀린 적 없음) | `null` | `0` | 0행 |
 
 - `anchor`는 항상 **발화 시각**이다. `now()`를 쓰지 않는다 — 재실행마다 예정일이 밀리면 멱등이 깨진다
@@ -2315,7 +2315,10 @@ AC: **AS9**는 저장(Task 2)과 **재분석 후 최신 값 유지**(Task 2의 r
 단 두 곳이 **의도적으로** 지시문이다: Task 2 Step 6의 job claim 헬퍼 이름(그 파일의 기존 형태를
 따르라고 명시했다)과 Task 7 전체(문서 편집이라 코드 블록이 없다).
 
-**3. Type consistency** — `STAGE_DAYS`는 `review.py` 한 곳에만 있고 SQL은 `$2::int[]`로 받는다.
+**3. Type consistency** — `STAGE_DAYS`는 `review.py` 한 곳에만 있다. ⚠️ **정정(2026-09-04)**:
+접기가 파이썬으로 옮겨져 ~~SQL이 `$2::int[]`로 받는다~~는 서술은 폐기됐다 — SQL에는 `1,3,7`이
+아예 없다(그래서 이 항목이 더 강하게 참이다). `stage`는 **1-based**이고 파이썬 인덱스는
+`STAGE_DAYS[stage - 1]`이다.
 `FINAL_STAGE = len(STAGE_DAYS) = 3`이 `review_tasks.review_stage between 1 and 3`과 맞는다.
 `AttemptOutcome` Literal 3값 = 006 `outcome` CHECK 3값. `recompute`·`store_attempts` 이름이
 Task 4 정의와 Task 5 호출에서 일치한다. `mastery_score`는 `numeric(5,2)`이므로 `Decimal`로 바인딩하고

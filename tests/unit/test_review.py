@@ -541,3 +541,32 @@ async def test_backfill_is_idempotent(db_conn: asyncpg.Connection):
 
     assert dict(await _pattern_row(db_conn, pattern_id)) == first
     assert [dict(row) for row in await _task_rows(db_conn, pattern_id)] == first_tasks
+
+
+# ㉕ `scenario_context`가 **최신** occurrence의 원문이라는 것(리뷰 L11 — 무보호였다).
+#    `_HISTORY_SQL`의 `order by u.created_at desc`를 `asc`로 바꾸면 이 테스트가 깨진다.
+@pytest.mark.asyncio
+async def test_scenario_context_takes_the_latest_occurrence_not_the_first(
+    db_conn: asyncpg.Connection,
+):
+    session_id, pattern_id = await _seed(db_conn)
+    first = await _utterance(db_conn, session_id, T0)
+    latest = await _utterance(db_conn, session_id, T0 + _days(2))
+    await db_conn.execute(
+        "insert into error_occurrences "
+        "(utterance_id, pattern_id, original_span, correction, explanation, severity, confidence) "
+        "values ($1, $2, 'go to gym', 'go to the gym', '이유', 'medium', 0.9)",
+        first,
+        pattern_id,
+    )
+    await db_conn.execute(
+        "insert into error_occurrences "
+        "(utterance_id, pattern_id, original_span, correction, explanation, severity, confidence) "
+        "values ($1, $2, 'go to office', 'go to the office', '이유', 'medium', 0.9)",
+        latest,
+        pattern_id,
+    )
+
+    await recompute(db_conn, pattern_id)
+
+    assert (await _task_rows(db_conn, pattern_id))[0]["scenario_context"] == "go to office"
