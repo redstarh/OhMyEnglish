@@ -82,6 +82,8 @@ _INFERENCE_CONFIGURATION = {"maxTokens": 1024, "topP": 0.9, "temperature": 0.7}
 
 _SPECULATIVE_STAGE = "SPECULATIVE"
 _INTERRUPTED_STOP_REASON = "INTERRUPTED"
+# 턴 경계 신호. 실물 계측(2026-09-03)에서 `completionEnd`는 한 번도 오지 않았고 이것만 왔다.
+_END_TURN_STOP_REASON = "END_TURN"
 _ROLE_TO_SPEAKER: dict[str, Speaker] = {"USER": "user", "ASSISTANT": "agent"}
 # TOOL content는 발화가 아니다. 이 role만 명시적으로 걸러야 하는 이유는 `_on_text_output`의
 # `.get(role, "user")` 폴백이다 — 그냥 두면 tool JSON이 학습자 발화로 저장되고 분석 job까지
@@ -206,6 +208,27 @@ def _generation_stage(body: dict[str, Any]) -> str | None:
     return stage if isinstance(stage, str) else None
 
 
+def _is_control_payload(text: str) -> bool:
+    """전사문이 아니라 **제어 신호**인가 (I-5).
+
+    실물에서 barge-in 때 `{ "interrupted" : true }`가 ASSISTANT `textOutput`으로 온다
+    (마이크 2회 실측, 세션 `182e7d49` seq 9·15). 그것을 전사문으로 만들면 기계 문자열이
+    학습 기록에 섞이고 agent 발화 수가 부풀어 "학습자 65% 발화" 지표가 왜곡된다.
+
+    **문자열 상수로 박지 않는 이유**: Nova가 공백을 바꿔 보낸다. **포함 검사를 하지 않는
+    이유**: 중괄호를 말하는 정상 발화("I said {like this}")를 잃는다. 그래서 **JSON 객체로
+    파싱되는지**만 본다 — 사람 발화가 JSON 객체가 되는 경우는 없다.
+    """
+    stripped = text.strip()
+    if not stripped.startswith("{"):
+        return False
+    try:
+        return isinstance(json.loads(stripped), dict)
+    except ValueError:
+        # `json.JSONDecodeError`가 `ValueError`의 하위 클래스다 — 파싱 실패는 곧 사람 말이다.
+        return False
+
+
 def _offset_ms(body: dict[str, Any]) -> int | None:
     offset = body.get("inputAudioOffsetMs")
     return offset if isinstance(offset, int) else None
@@ -227,6 +250,9 @@ class NovaEventTranslator:
         # 여러 블록으로 오기 때문이다 — 문자열 하나로 두고 덮어쓰면 마지막 블록만 남아
         # 시범 문장("Say this after me: …")이 전사문에서 사라진다(발음 스파이크 실측).
         self._pending_agent_chunks: list[str] = []
+        # 이번 턴에 **이미 한 행으로 올린** agent 청크들. Nova가 같은 텍스트를 FINAL로
+        # 재전송하므로(I-6 실측) 그것을 알아보고 버리기 위한 기억이다.
+        self._flushed_agent_chunks: set[str] = set()
 
     def translate(self, name: str, body: dict[str, Any]) -> list[AdapterEvent]:
         if not isinstance(body, dict):
@@ -267,6 +293,9 @@ class NovaEventTranslator:
         if not isinstance(text, str) or not text.strip():
             # 빈 전사문은 세션이 어차피 버린다(`session._store_final`) — 여기서 끊는다.
             return []
+        if _is_control_payload(text):
+            logger.debug("제어 페이로드를 전사문으로 만들지 않았다 (I-5): %r", text[:40])
+            return []
         raw_content_id = body.get("contentId")
         content_id = raw_content_id if isinstance(raw_content_id, str) else ""
         # 실측에서는 `textOutput`에도 role이 실려 온다 — 없으면 contentStart에서 이어 온다.
@@ -282,9 +311,15 @@ class NovaEventTranslator:
         if speaker == "agent":
             if kind == "partial":
                 self._pending_agent_chunks.append(text)
+            elif text in self._flushed_agent_chunks:
+                # **재전송이다** — 이 청크는 이미 이번 턴의 행에 실렸다 (I-6). 블록마다
+                # 행을 만들면 한 턴이 N행으로 갈린다. 같은 청크가 또 오는 경우를 위해
+                # 소비하며 지운다.
+                self._flushed_agent_chunks.discard(text)
+                return []
             else:
-                # FINAL이 그 턴의 정본이다 — 쌓인 청크를 버린다. 안 버리면 같은 내용이
-                # 청크 + FINAL로 두 번 이어붙여진다.
+                # 아직 아무것도 올리지 않은 턴에서 온 FINAL이다 — 그것이 정본이므로
+                # 쌓인 청크를 버린다. 안 버리면 같은 내용이 청크 + FINAL로 두 번 실린다.
                 self._pending_agent_chunks.clear()
         return [TranscriptEvent(kind=kind, text=text, speaker=speaker)]
 
@@ -335,6 +370,11 @@ class NovaEventTranslator:
             self._role_by_content.pop(content_id, None)
         if body.get("stopReason") == _INTERRUPTED_STOP_REASON:
             return [InterruptionEvent()]
+        if body.get("stopReason") == _END_TURN_STOP_REASON:
+            # 턴이 끝났다 — 쌓인 청크를 **한 행으로** 올린다 (I-6). 이 신호는 FINAL
+            # 재전송보다 **앞에** 오므로, 여기서 올려야 agent 행이 사용자 다음 발화보다
+            # 먼저 들어가 `sequence_no` 순서가 보존된다. 쌓인 것이 없으면 no-op이다.
+            return self._flush_pending_agent_text()
         return []
 
     def _flush_pending_agent_text(self) -> list[AdapterEvent]:
@@ -351,10 +391,13 @@ class NovaEventTranslator:
         """
         if not self._pending_agent_chunks:
             return []
-        text = "".join(self._pending_agent_chunks)
+        chunks = list(self._pending_agent_chunks)
         self._pending_agent_chunks.clear()
+        text = "".join(chunks)
         if not text.strip():
             return []
+        # 무엇을 올렸는지 기억한다 — Nova가 같은 청크를 FINAL로 재전송하면 알아보고 버린다.
+        self._flushed_agent_chunks = {chunk for chunk in chunks if chunk.strip()}
         return [TranscriptEvent(kind="final", text=text, speaker="agent")]
 
 

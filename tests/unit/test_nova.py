@@ -127,6 +127,114 @@ def test_the_recorded_run_translates_into_port_events():
     ]
 
 
+# I-6 — **한 턴은 한 행이다.** 실물 마이크 계측(2026-09-03,
+# `tests/harness/runs/2026-09-03-nova-turn-events.log`)에서 Nova는 한 agent 턴의 텍스트를
+# **두 번** 보냈다: 먼저 `SPECULATIVE` 블록들로, 그 다음 **같은 텍스트를 `FINAL`로 재전송**한다
+# (len·내용이 정확히 같다). 그 세션에는 `completionEnd`가 **한 번도 오지 않았고**
+# `completionStart`는 1회였다 — 즉 턴 경계 신호는 ASSISTANT 오디오의
+# `contentEnd(stopReason=END_TURN)` 하나뿐이다.
+#
+# 이 픽스처가 없으면 같은 검증에 **마이크 세션과 Nova 과금**이 매번 필요하다.
+LIVE_TURN_BLOCK_A = "That is good! Can you tell me what you talked about?"
+LIVE_TURN_BLOCK_B = "  For example, was it about your work or something else?"
+_LIVE_IDS = (
+    "live-spec-a",
+    "live-audio-a",
+    "live-spec-b",
+    "live-audio-b",
+    "live-fin-a",
+    "live-fin-b",
+)
+
+
+def _live_agent_turn() -> list[tuple[str, dict[str, Any]]]:
+    spec_a, audio_a, spec_b, audio_b, fin_a, fin_b = _LIVE_IDS
+    return [
+        _content_start(spec_a, "ASSISTANT", "SPECULATIVE"),
+        _text_output(spec_a, "ASSISTANT", LIVE_TURN_BLOCK_A),
+        _content_end(spec_a, "PARTIAL_TURN"),
+        _content_start(audio_a, "ASSISTANT", None, content_type="AUDIO"),
+        _content_end(audio_a, "PARTIAL_TURN"),
+        _content_start(spec_b, "ASSISTANT", "SPECULATIVE"),
+        _text_output(spec_b, "ASSISTANT", LIVE_TURN_BLOCK_B),
+        _content_end(spec_b, "PARTIAL_TURN"),
+        _content_start(audio_b, "ASSISTANT", None, content_type="AUDIO"),
+        _content_end(audio_b, "END_TURN"),
+        # 여기서부터가 재전송이다. 블록마다 행을 만들면 한 턴이 두 행이 된다.
+        _content_start(fin_a, "ASSISTANT", "FINAL"),
+        _text_output(fin_a, "ASSISTANT", LIVE_TURN_BLOCK_A),
+        _content_end(fin_a, "END_TURN"),
+        _content_start(fin_b, "ASSISTANT", "FINAL"),
+        _text_output(fin_b, "ASSISTANT", LIVE_TURN_BLOCK_B),
+        _content_end(fin_b, "PARTIAL_TURN"),
+    ]
+
+
+def test_a_live_agent_turn_becomes_exactly_one_final_transcript():
+    finals = [
+        event
+        for event in _translate_all(_live_agent_turn())
+        if isinstance(event, TranscriptEvent) and event.kind == "final"
+    ]
+
+    whole_turn = LIVE_TURN_BLOCK_A + LIVE_TURN_BLOCK_B
+    assert finals == [TranscriptEvent(kind="final", text=whole_turn, speaker="agent")], (
+        "한 턴이 여러 행으로 갈렸다 (I-6) — FINAL 재전송을 블록마다 저장하고 있다"
+    )
+
+
+# I-6 — 재전송된 FINAL은 **버린다**. 위 테스트가 개수를 보므로 이 테스트는 **내용 중복**을 본다:
+# 같은 문장이 두 번 저장되면 학습자 전사문이 부풀고 "학습자 65% 발화" 지표가 왜곡된다.
+def test_the_resent_final_blocks_do_not_duplicate_the_turn_text():
+    texts = [
+        event.text
+        for event in _translate_all(_live_agent_turn())
+        if isinstance(event, TranscriptEvent) and event.kind == "final"
+    ]
+
+    assert texts.count(LIVE_TURN_BLOCK_A) == 0, "블록 A가 그대로 한 행으로 남았다"
+    assert sum(text.count(LIVE_TURN_BLOCK_A) for text in texts) == 1, "블록 A가 두 번 실렸다"
+
+
+# I-5 — **제어 페이로드를 전사문으로 만들지 않는다.** barge-in 때 Nova가
+# `{ "interrupted" : true }`를 ASSISTANT `textOutput`으로 보낸다(마이크 2회 세션 `182e7d49`의
+# seq 9·15가 그 행이다). agent 발화라 분석 대상은 아니지만 전사문에 기계 문자열이 섞이고 agent
+# 발화 수를 부풀려 "학습자 65% 발화" 지표를 왜곡한다. 지시문 규칙 6("Never read JSON … out
+# loud")과 같은 계열의 누출이다.
+# ⚠️ **문자열 상수로 박지 말 것** — 실물은 공백이 들어간 형태로 왔다. JSON 객체인지로 판정한다.
+@pytest.mark.parametrize(
+    "payload",
+    ['{ "interrupted" : true }', '{"interrupted": true}', '{"foo": {"bar": 1}}'],
+)
+def test_a_json_control_payload_never_becomes_a_transcript(payload: str):
+    translated = _translate_all(
+        [
+            _content_start("ctl", "ASSISTANT", "FINAL"),
+            _text_output("ctl", "ASSISTANT", payload),
+            _content_end("ctl", "END_TURN"),
+        ]
+    )
+
+    assert [e for e in translated if isinstance(e, TranscriptEvent)] == [], (
+        f"제어 페이로드가 전사문이 됐다 (I-5): {payload!r}"
+    )
+
+
+# I-5 — 반대쪽 못: 중괄호가 들어간 **사람 말**은 그대로 저장된다. 판정을 문자 포함으로 하면
+# 정상 발화를 잃는다.
+def test_speech_that_merely_mentions_braces_is_still_a_transcript():
+    spoken = "I said {like this} in the meeting."
+    translated = _translate_all(
+        [
+            _content_start("spk", "ASSISTANT", "FINAL"),
+            _text_output("spk", "ASSISTANT", spoken),
+            _content_end("spk", "END_TURN"),
+        ]
+    )
+
+    assert [e.text for e in translated if isinstance(e, TranscriptEvent)] == [spoken]
+
+
 # Nova는 단일 턴 실측에서 ASSISTANT 텍스트를 SPECULATIVE로만 보냈다. 승격하지 않으면
 # agent 질문이 전사문에 한 행도 남지 않아, 스텁으로 검증한 거동(질문 3 + 응답 3행)과
 # 실연동이 갈라진다. completionEnd는 Nova 자신이 "이 턴은 끝났다"고 알리는 신호다.
