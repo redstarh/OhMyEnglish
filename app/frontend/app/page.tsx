@@ -72,7 +72,6 @@ export default function SessionPage() {
   const voiceRef = useRef<VoiceIo | null>(null);
   const sessionIdRef = useRef<string | null>(null);
   const terminalHandledRef = useRef(false);
-  const nextLineIdRef = useRef(0);
 
   const stopMedia = useCallback(() => {
     const voice = voiceRef.current;
@@ -99,15 +98,29 @@ export default function SessionPage() {
         case "partial":
           setPartialLine({ id: -1, speaker: event.speaker, text: event.text });
           break;
-        case "final":
+        case "final": {
           setPartialLine(null);
           setListening(false);
-          nextLineIdRef.current += 1;
-          setLines((prev) => [
-            ...prev,
-            { id: nextLineIdRef.current, speaker: event.speaker, text: event.text },
-          ]);
+          const { speaker, text } = event;
+          setLines((prev) => {
+            const last = prev.at(-1);
+            // I-8 — **같은 화자의 연속 final은 한 줄로 이어 붙인다.** Nova의 발화 종료 감지가
+            // 이르면(임계 약 480ms 실측) 한 문장이 여러 final로 쪼개져 화면에 두 줄로 보인다
+            // (캡틴 관측 2026-09-03: "살짝만 늦게 말해도 문장이 두 줄로 표시된다").
+            // 분석은 이미 그 조각들을 한 묶음으로 합치므로(I-1) 화면을 합치는 것이 분석과
+            // **일치하는** 쪽이다. 이어붙일 때 공백 하나를 넣는 것도 백엔드와 같은 규약이다
+            // (`services/analysis.py`의 `string_agg(u.transcript, ' ')`).
+            // ⚠️ **저장은 건드리지 않는다** — 조각이 몇 번 생기는지가 함정 H-U·I-1의 유일한
+            // 관측 수단이라 DB에는 쪼개진 그대로 남긴다. 이 병합은 표시 계층에만 있다.
+            if (last && last.speaker === speaker) {
+              return [...prev.slice(0, -1), { ...last, text: `${last.text} ${text}` }];
+            }
+            // id는 배열에서 파생한다 — ref를 state 업데이터 안에서 증가시키면 StrictMode의
+            // 이중 호출에서 번호가 두 칸씩 뛴다.
+            return [...prev, { id: (last?.id ?? 0) + 1, speaker, text }];
+          });
           break;
+        }
         case "speech_start":
           setListening(true);
           break;
