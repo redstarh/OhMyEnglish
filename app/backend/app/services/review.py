@@ -122,6 +122,22 @@ _APPLY_PATTERN_SQL = """
 update error_patterns set next_review_at = $2, mastery_score = $3 where id = $1
 """
 
+# 설계서 §4.1의 "오늘 다뤄야 하는 목록". **`clock_timestamp()`를 쓴다** — Postgres `now()`는
+# 트랜잭션 시작 시각에 고정되므로 시간 기반 판정이 무력화된다(Phase 1 §5.4 실측).
+# `order by`가 가장 밀린 것을 앞에 놓는다: 연체는 무효가 아니라 더 시급한 것이다.
+_DUE_REVIEWS_SQL = """
+select p.id as pattern_id, p.pattern_key, p.category, p.target_form,
+       p.next_review_at, p.mastery_score
+  from error_patterns p
+ where p.user_id = $1
+   and p.next_review_at is not null
+   and p.next_review_at <= clock_timestamp()
+ order by p.next_review_at
+"""
+
+# 백필 대상. 이력에서만 계산하므로 **전체를 훑는 것이 안전하고 멱등이다**.
+_ALL_PATTERNS_SQL = "select id from error_patterns where user_id = $1 order by pattern_key"
+
 _DELETE_TASKS_SQL = """
 delete from review_tasks where pattern_id = $1
 """
@@ -256,3 +272,54 @@ async def recompute(conn: asyncpg.Connection, pattern_id: UUID) -> ReviewState:
             "done" if state.completed else "pending",
         )
     return state
+
+
+@dataclass(frozen=True, slots=True)
+class DueReview:
+    """복습 예정일이 지난 패턴 한 건 (설계서 §4.1의 목록 항목)."""
+
+    pattern_id: UUID
+    pattern_key: str
+    category: str
+    target_form: str
+    next_review_at: datetime
+    mastery_score: float
+
+
+async def load_due_reviews(conn: asyncpg.Connection, user_id: UUID) -> list[DueReview]:
+    """오늘 다뤄야 하는 복습 목록 — 예정일이 지난 것만, **가장 밀린 것부터** (설계서 §4.1).
+
+    **놓치면 안 되는 목록이라 판정을 Claude에 맡기지 않는다**(§3.2의 경계). 소비자는 슬라이스 2의
+    계획 생성이고, 이 슬라이스에서 함수를 두는 이유는 두 가지다: ① 슬라이스 1의 완료 판정
+    ("복습 목록이 처음으로 값을 갖는다")을 **실제로 증명할 수 있게** 한다 ② `now()` 대신
+    `clock_timestamp()`를 써야 한다는 §4.1의 함정을 이 슬라이스 안에서 고정한다 —
+    아니면 슬라이스 2가 같은 함정을 다시 밟는다.
+    """
+    records = await conn.fetch(_DUE_REVIEWS_SQL, user_id)
+    return [
+        DueReview(
+            pattern_id=record["pattern_id"],
+            pattern_key=record["pattern_key"],
+            category=record["category"],
+            target_form=record["target_form"],
+            next_review_at=record["next_review_at"],
+            mastery_score=float(record["mastery_score"]),
+        )
+        for record in records
+    ]
+
+
+async def recompute_all(conn: asyncpg.Connection, user_id: UUID) -> int:
+    """이 사용자의 **모든** 패턴에 `recompute`를 돌린다. 건드린 패턴 수를 돌려준다.
+
+    **백필용이다.** `recompute`는 분석이 건드린 패턴에만 돌기 때문에, 006 **전에** 쌓인
+    패턴은 그 패턴이 다시 발생할 때까지 예정일을 받지 못한다 — 마이그레이션 직후에도
+    `load_due_reviews`가 0행이라 슬라이스 1의 완료 판정이 실물에서 성립하지 않는다
+    (2026-09-04 dev DB 실측: 패턴 7행·occurrence 17행인데 예정일 0건).
+
+    이력에서만 계산하므로 몇 번 돌려도 같은 결과다(멱등). 호출자의 트랜잭션에서 돈다.
+    """
+    pattern_ids = [record["id"] for record in await conn.fetch(_ALL_PATTERNS_SQL, user_id)]
+    for pattern_id in pattern_ids:
+        await recompute(conn, pattern_id)
+    return len(pattern_ids)

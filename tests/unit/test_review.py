@@ -10,6 +10,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime, timedelta
 from uuid import UUID
 
@@ -21,7 +22,9 @@ from app.services.review import (
     FINAL_STAGE,
     STAGE_DAYS,
     fold_stages,
+    load_due_reviews,
     recompute,
+    recompute_all,
     store_attempts,
 )
 
@@ -443,3 +446,98 @@ async def test_a_correct_on_the_very_utterance_that_relapsed_does_not_advance(
 
     assert state.stage == 1, "재발과 같은 순간의 정답이 단계를 올렸다"
     assert state.next_review_at == T0 + _days(1)
+
+
+# ── "오늘 복습할 목록" 읽기 + 기존 패턴 백필 (2026-09-04 리뷰 MEDIUM-6 · 계획 검토) ──
+
+
+# ㉑ §4.1의 목록 쿼리 — 예정일이 지난 것만, 가장 밀린 것부터.
+@pytest.mark.asyncio
+async def test_due_list_returns_only_patterns_whose_review_is_due(db_conn: asyncpg.Connection):
+    _, overdue = await _seed(db_conn)
+    later, upcoming, never = [
+        await db_conn.fetchval(
+            "insert into error_patterns (user_id, category, pattern_key, target_form, "
+            " next_review_at) values ($1, 'article', $2, 'x', $3) returning id",
+            USER_ID,
+            key,
+            due,
+        )
+        for key, due in (
+            ("article_older", T0 - _days(9)),
+            ("article_future", T0 + _days(9)),
+            ("article_none", None),
+        )
+    ]
+    await db_conn.execute(
+        "update error_patterns set next_review_at = $2 where id = $1", overdue, T0 - _days(3)
+    )
+
+    due_now = await load_due_reviews(db_conn, USER_ID)
+
+    # 가장 밀린 것이 앞이다. 미래·null 은 목록에 없다.
+    assert [row.pattern_id for row in due_now] == [later, overdue]
+    assert upcoming not in [row.pattern_id for row in due_now]
+    assert never not in [row.pattern_id for row in due_now]
+    assert due_now[0].pattern_key == "article_older"
+
+
+# ㉒ **`now()`가 아니라 `clock_timestamp()`** — Postgres `now()`는 트랜잭션 시작 시각에
+#    고정되어 시간 기반 판정을 무력화한다(설계서 §4.1이 Phase 1 §5.4 실측을 근거로 못 박았다).
+#    이 테스트는 그 차이를 실제로 만든다: 트랜잭션이 시작된 **뒤**의 시각을 예정일로 두고
+#    벽시계가 그 시각을 지나도록 기다린다. `now()`로 구현하면 이 행을 아직 미래로 본다.
+@pytest.mark.asyncio
+async def test_due_list_uses_the_wall_clock_not_the_frozen_transaction_time(
+    db_conn: asyncpg.Connection,
+):
+    _, pattern_id = await _seed(db_conn)
+    await db_conn.execute(
+        "update error_patterns "
+        "   set next_review_at = clock_timestamp() + interval '150 milliseconds' "
+        " where id = $1",
+        pattern_id,
+    )
+    await asyncio.sleep(0.4)
+
+    due_now = await load_due_reviews(db_conn, USER_ID)
+
+    assert [row.pattern_id for row in due_now] == [pattern_id], (
+        "now()를 썼다 — 트랜잭션 시작 시각에 고정되어 이 예정일을 아직 미래로 본다"
+    )
+
+
+# ㉓ 백필 — 006 **전에** 쌓인 패턴은 그 패턴이 다시 발생할 때까지 예정일을 못 받는다.
+#    이것이 없으면 마이그레이션 직후에도 목록이 0행이라 슬라이스 1의 완료 판정이 실물에서
+#    성립하지 않는다(2026-09-04 dev DB 실측: 패턴 7행 · occurrence 17행 · 예정일 0건).
+@pytest.mark.asyncio
+async def test_backfill_schedules_every_pattern_that_already_has_history(
+    db_conn: asyncpg.Connection,
+):
+    session_id, pattern_id = await _seed(db_conn)
+    await _occurrence(db_conn, await _utterance(db_conn, session_id, T0), pattern_id)
+    # 006 이전 상태를 흉내낸다 — 이력은 있는데 예정일이 없다
+    await db_conn.execute(
+        "update error_patterns set next_review_at = null, mastery_score = 0 where id = $1",
+        pattern_id,
+    )
+
+    touched = await recompute_all(db_conn, USER_ID)
+
+    assert touched == 1
+    assert (await _pattern_row(db_conn, pattern_id))["next_review_at"] == T0 + _days(1)
+    assert _stages(await _task_rows(db_conn, pattern_id)) == [(1, "pending")]
+
+
+# ㉔ 백필은 멱등이다 — 이력에서만 계산하므로 몇 번 돌려도 같다
+@pytest.mark.asyncio
+async def test_backfill_is_idempotent(db_conn: asyncpg.Connection):
+    session_id, pattern_id = await _seed(db_conn)
+    await _occurrence(db_conn, await _utterance(db_conn, session_id, T0), pattern_id)
+
+    await recompute_all(db_conn, USER_ID)
+    first = dict(await _pattern_row(db_conn, pattern_id))
+    first_tasks = [dict(row) for row in await _task_rows(db_conn, pattern_id)]
+    await recompute_all(db_conn, USER_ID)
+
+    assert dict(await _pattern_row(db_conn, pattern_id)) == first
+    assert [dict(row) for row in await _task_rows(db_conn, pattern_id)] == first_tasks
