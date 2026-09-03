@@ -79,7 +79,7 @@ I-8(조각이 화면에 두 줄 → 표시 계층에서 합침). **I절 미결 0
 
 ```bash
 cd app/backend                                    # 게이트는 이 cwd에서만 판정한다 (함정 H-A)
-.venv/bin/pytest -q                               # 388 passed   (부분 실행은 -c pyproject.toml — H-W)
+.venv/bin/pytest -q                               # 389 passed   (부분 실행은 -c pyproject.toml — H-W)
 .venv/bin/ruff check . && .venv/bin/ruff format --check .   # passed / 27 files
 ty check                                          # All checks passed!
 .venv/bin/ruff check ../../tests ../../scripts    # Found 6 errors  (베이스라인, 게이트 밖)
@@ -93,25 +93,24 @@ cd ../frontend && npx tsc --noEmit && npx eslint app lib   # 둘 다 exit 0
 
 | 항목 | 값 |
 |---|---|
-| 테스트 | **388 passed**, skip/xfail 0 (241 → … → 383 → 381(G-7 삭제) → 382 → 384(I-6) → **388**(I-5)) |
+| 테스트 | **389 passed**, skip/xfail 0 (241 → … → 381(G-7 삭제) → 382(G-8) → 384(I-6) → 388(I-5) → **389**(I-7)) |
 | DB | `:5432` homebrew **17.9** · 역할 `ohmy` **`TimeZone=UTC`**. 인스턴스 기본은 `Asia/Seoul`이라 풀리면 함정 **H-S**가 안 보인다 |
-| dev DB 행 | 세션 **5** · 발화 **81** · 패턴 **6** · occurrence **15** · job **28** · 발음시도 **3** · `active` **0** (마이크 2회 + I-6 계측 세션이 더해진 값. 1·2회차 좌표는 `runs/2026-09-03-mic-2.md`가 보존한다) |
-| 보존 이유 | 오탐 패턴 2개만 삭제하고 전사문·세션·job은 남겼다 — **마이크 2회에서 같은 좌표로 재대조**하기 위해서다 |
+| dev DB 행 | 세션 **7** · 발화 **92** · 패턴 **7** · occurrence **17** · job **33** · 발음시도 **4** · `active` **0** |
+| 보존 이유 | ✅ **소진됐다** — 보존 목적(마이크 2회 재대조)은 2026-09-03에 끝났고 1·2회차 좌표는 `runs/2026-09-01-mic-1.md`·`runs/2026-09-03-mic-2.md`가 소유한다. 이제 dev DB를 비워도 잃는 증거가 없다(비울 이유가 생기면 비워도 된다) |
 | 서버 | `:8002`·`:3000` 둘 다 **내려가 있음**(`lsof` 확인). `:8000`은 StockAgent(남의 것) |
 | 미커밋 | `.claude/` · `.mcp.json` · `backlog/`(untracked) — **커밋하지도 지우지도 마라** |
 
-⚠️ `pronunciation_an_as_a`는 freq 1 · occurrence 0인데 **정상**이다 — 문법 패턴의 `frequency`는
-`error_occurrences` 수지만 **발음 패턴은 `pronunciation_attempts`의 시도 수**를 센다. 버그로
-오인하지 마라. 근거는 `docs/database-schema.md`의 `frequency` 파생 설명과
-`pronunciation_intonation` 카테고리 행이다 — **줄 번호로 인용하지 않는다**(그 문서는
-줄 단위 인용이 실제로 깨진 전례가 있다: 함정 **H-H**).
+⚠️ **발음 패턴이 freq ≥ 1 · occurrence 0인 것은 정상이다** — 근거는 이제
+`docs/database-schema.md`의 **`pronunciation_attempts` 절**이 소유한다(D-5에서 그 절을 신설했다).
+그 문서는 **줄 번호로 인용하지 않는다**(줄 단위 인용이 실제로 깨진 전례: 함정 **H-H**).
 
 ---
 
 ## 다음 세션 진입 절차
 
-1. 이 파일 → **`tests/harness/runs/2026-09-01-mic-1.md` §1**(다음 걸음이 마이크 2회다).
-   I-1이 무엇을 바꿨는지 알아야 할 때만 **`TASKS.md` I-1**. `TASKS.md` 전체를 읽지 않는다.
+1. 이 파일 → **`TASKS.md` §11**(다음 걸음이 §11 슬라이스 1이다). 마이크를 쓸 일이 생기면
+   `runs/2026-09-01-mic-1.md` §1(절차)과 `runs/2026-09-03-mic-2.md`(2회 결과). `TASKS.md`
+   전체를 읽지 않는다 — I절(I-1~I-8)은 **전부 닫혔으니** 다시 읽을 이유가 없다.
 2. 게이트를 `app/backend` cwd에서 돌려 위 실측값과 대조한다. **다르면 그 차이를 먼저 설명한다.**
    ⚠️ **게이트 전에 DB부터 본다** — `brew services list | grep postgresql@17`. 안 떠 있으면
    `pytest`가 대량 errors로 끝나는데 **회귀가 아니라 연결 거부다**(**H-T**가 판별법을 소유한다).
@@ -127,6 +126,10 @@ cd ../frontend && npx tsc --noEmit && npx eslint app lib   # 둘 다 exit 0
 
 - **2026-08-28**·**2026-08-30** 2회 모두 ✅ 4/4 일치. 후자는 새 세션이 기준 해시 오류를 잡아냈다 —
   인계 확인이 실제로 작동한 사례다(**H-R**).
+- **2026-09-03 마감** — I-4 완결(리퍼 + live 가드 + 독립 리뷰 2명) · D-5·D-6·G-2·G-7·G-8 소진 ·
+  실물 마이크 2회로 I-1 확증 · 그 회차가 낸 I-5~I-8 전부 닫음. **I절 미결 0건.**
+  ⚠️ **이 리포에는 git remote가 없다** — `git remote -v`가 비어 있어 푸시할 대상이 없다(2026-09-03
+  확인). 리포 생성·연결은 캡틴 몫이고, 붙이면 `remoteOperations`도 되돌린다.
 
 ### 다음 세션이 대조할 기준값 (이 절을 쓴 턴에 직접 실행해 얻었다)
 
@@ -134,8 +137,8 @@ cd ../frontend && npx tsc --noEmit && npx eslint app lib   # 둘 다 exit 0
 |--:|---|---|
 | 1 | HEAD | **`HEAD ≥ 21e9d1b`** — 반드시 `≥`로 읽는다(**H-P**). 작성 시점 실제 HEAD는 `21e9d1b`(코드 = I-8) |
 | 2 | 다음 한 걸음 | **§11 슬라이스 1** — 006 마이그레이션 + `suggested_contexts` 저장. I절 미결 0건 |
-| 3 | 게이트 | **388 passed** · ruff·format(27파일)·ty 전부 **exit 0** · `tests/**` 베이스라인 **6 errors·4 files** · 프론트 `tsc`·`eslint` exit 0 |
-| 4 | 착수 전 필수 | **0건.** 단 §11 슬라이스 1로 가려면 D-5·D-6이 선행이다 |
+| 3 | 게이트 | **389 passed** · ruff·format(27파일)·ty 전부 **exit 0** · `tests/**` 베이스라인 **6 errors·4 files** · 프론트 `tsc`·`eslint` exit 0 |
+| 4 | 착수 전 필수 | **0건.** §11 슬라이스 1의 선행이던 D-5·D-6은 2026-09-03에 해소됐다 — 대신 착수 전 **볼 것 3개**가 위 「다음 한 걸음」에 있다(없는 컬럼 2개 · 함정 H-S · 우선순위 근거) |
 
 인계 확인은 새 세션이 **직접 돌려 얻은** 4개가 위 값과 일치하는 것이다 — "읽었다"는 지표가 아니다.
 절차는 `~/.claude/rules/session-handover.md`, 함정은 `pitfalls.md` **H-P**·**H-Q**.
