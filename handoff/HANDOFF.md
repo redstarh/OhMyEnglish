@@ -154,14 +154,27 @@ cd ../frontend && npx tsc --noEmit && npx eslint app lib   # 둘 다 exit 0
 인계 확인은 새 세션이 **직접 돌려 얻은** 4개가 위 값과 일치하는 것이다 — "읽었다"는 지표가 아니다.
 절차는 `~/.claude/rules/session-handover.md`, 함정은 `pitfalls.md` **H-P**·**H-Q**.
 
-⚠️ **이번 인계는 tmux를 쓰지 않았다.** 2026-09-04 실측: `TMUX` 환경변수가 비어 있고
-`tmux ls`가 `error connecting to /private/tmp/tmux-501/default`다 — **tmux 서버가 아예 없고**
-이 세션은 순수 iTerm2였다. 그래서 `session-handover.md`의 **§3(세션 생성)·§5(`send-keys` 보고)·
-§6(이전 세션 kill)은 적용되지 않는다.** 그 절차는 `claude_air_<그룹>-<번호>` tmux 세션을
-전제로 쓰였고(2026-08-28 환경), 지금 환경은 다르다.
+### ⚠️ 이번 인계의 tmux 상태 — 한쪽만 tmux다
 
-**그래서 새 세션이 할 일은 이것뿐이다**: 위 4개를 직접 돌려 대조하고, 다르면 그 차이를 먼저
-설명한다. **`tmux kill-session`을 찾지 마라 — 죽일 세션이 없다.** 양방향 보고도 필요 없다.
+2026-09-04 실측: 마감하는 세션은 **tmux 밖**이었다(`TMUX` 비어 있음 · `tmux ls`가
+`error connecting to /private/tmp/tmux-501/default` — 서버가 아예 없었다. 순수 iTerm2).
+캡틴 지시로 **새 세션만 tmux 안에서 시작한다**:
+
+| | 값 |
+|---|---|
+| 새 세션 이름 | **`claude_air_1-1`** (tmux 3.6a · iTerm2 새 창 전면 · `attached`) |
+| 그 세션의 cwd | `/Users/redstar/MyProject/OhMyEnglish` (확인함) |
+| 번호가 `1-1`인 이유 | 서버가 없어 **상속할 그룹이 없었다.** 다음 인계부터는 `session-handover.md` §3의 `PREFIX` 유도가 정상 작동한다 |
+
+**그래서 새 세션이 하지 말아야 할 것 2개** (`session-handover.md` §5·§6이 전제하는 상대가 없다):
+
+- **`tmux kill-session`으로 이전 세션을 정리하지 마라 — 죽일 세션이 없다.** 이전 세션은 tmux
+  밖에서 `/exit`으로 끝난다.
+- **`send-keys` 양방향 보고를 기다리지 마라.** 대조 결과를 받아 적을 이전 세션이 없으므로,
+  4개 지표를 직접 돌려 **자기가 이 파일의 「인계 기록」에 결과를 적는다**(일치했으면 한 줄,
+  다르면 차이를 먼저 설명한다).
+
+다음 세션부터는 서버가 살아 있으니 §3·§5·§6을 그대로 쓸 수 있다.
 
 ---
 
