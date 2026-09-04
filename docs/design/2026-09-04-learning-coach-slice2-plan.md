@@ -716,8 +716,12 @@ lease 상실의 유일한 신호다.
 `:469`에서 계속 쓰이므로 **유지한다.** 최종 형태:
 
 ```python
-from app.services.jobs import ClaimedJob, complete, report_failure
+from app.services.jobs import JOB_TYPE_ANALYZE, ClaimedJob, complete, report_failure
 ```
+
+⚠️ **`JOB_TYPE_ANALYZE`도 함께 import한다** (2026-09-04 구현자가 잡은 계획서 결함). 원래 이 자리에
+그 상수가 빠져 있었는데, 새 대상 판정(`if job.job_type != JOB_TYPE_ANALYZE:`)이 그것을 쓴다.
+`analysis.py`의 기존 import에는 없었으므로(`ClaimedJob, complete, fail_or_retry`뿐) 반드시 추가해야 한다.
 
 호출부 2곳(`analysis.py:493`과 이 태스크가 더하는 종류 판정)도 새 이름을 쓴다.
 `_report_failure`를 쓰는 다른 모듈은 **없다**(앱·테스트·스크립트 전체 grep 0건) — 옮겨도 깨질 곳이 없다.
