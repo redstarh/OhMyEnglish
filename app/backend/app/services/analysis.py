@@ -476,12 +476,15 @@ async def process_analysis(pool: asyncpg.Pool, claude: ClaudeClient, job: Claime
     claim은 호출자(워커)가 이미 했다 — 이 함수는 claim된 job을 받아 입력 읽기 →
     (트랜잭션 밖) Claude 호출 → 결과 replace 저장 + `complete`까지 한다. 어떤
     실패도 예외로 올리지 않는다: 워커 루프가 한 job 때문에 죽으면 그 세션은
-    영원히 "분석 중"에 머문다. 모든 실패는 `fail_or_retry`로 큐에 보고된다.
+    영원히 "분석 중"에 머문다. 모든 실패는 `report_failure`로 큐에 보고된다.
     """
     if job.job_type != JOB_TYPE_ANALYZE:
-        # `summarize_session`·`plan_next_session` job(대상이 session_id)이 라우팅
-        # 실수로 여기 올 수 있다. "대상 없음"이 아니라 "종류가 다르다"로 실패시켜야
-        # 원인이 보인다 — 그 종류의 job은 utterance_id가 없는 것이 정상이다(Task 3).
+        # `plan_next_session`은 워커가 `process_plan`으로 분기하므로 여기 오면
+        # 라우팅 결함이다. `summarize_session`은 다르다 — 워커의 분기는
+        # `JOB_TYPE_PLAN`만 갈라내므로 그 종류는 **설계상** else로 와서 여기 도달한다
+        # (다만 이 종류를 등록하는 코드는 아직 없다). 어느 경우든 "대상 없음"이 아니라
+        # "종류가 다르다"로 실패시켜야 원인이 보인다 — 그 종류의 job은 utterance_id가
+        # 없는 것이 정상이다(Task 3).
         await report_failure(pool, job, f"job {job.id} is not an analysis job: {job.job_type}")
         return
     if job.utterance_id is None:

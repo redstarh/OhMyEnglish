@@ -1,7 +1,8 @@
 """분석 워커 — asyncio 단일 루프, 동시성 1 (설계서 §5.4).
 
-FastAPI 기동과 함께 뜨는 하나의 태스크가 `claim_next` → `process_analysis`를
-반복한다. **동시성을 1로 고정한 것은 설계 결정이다** — 단일 사용자 로컬 도구라
+FastAPI 기동과 함께 뜨는 하나의 태스크가 `claim_next` → (job 종류로 분기)
+`process_analysis`/`process_plan`을 반복한다. **동시성을 1로 고정한 것은 설계
+결정이다** — 단일 사용자 로컬 도구라
 병렬 처리 이유가 없고, `for update skip locked`·lease token 같은 잠금 규칙은
 병렬 처리량이 아니라 재기동·이중 기동 방어를 위한 것이다.
 
@@ -95,7 +96,8 @@ async def run_worker(
     enabled: bool = True,
     live_sessions: Collection[UUID] = (),
 ) -> None:
-    """`stop`이 켜질 때까지 `analyze_utterance` job을 하나씩 처리한다.
+    """`stop`이 켜질 때까지 job을 하나씩 처리한다 — `analyze_utterance`는
+    `process_analysis`로, `plan_next_session`은 `process_plan`으로 보낸다(Task 3).
 
     `live_sessions`는 **살아있는 WebSocket이 소유한 세션 id 집합**이다 — 루프는 읽기만
     하고, 채우고 비우는 것은 `api/ws.py`다. 고아 세션 리퍼(I-4)가 진행 중인 세션을 닫지
@@ -164,8 +166,9 @@ async def run_worker(
             else:
                 await process_analysis(pool, claude, job)
         except Exception:
-            # 여기까지 오는 것은 큐/DB 자체의 장애다(`process_analysis`는 자기
-            # 실패를 큐에 보고한다). 루프를 살려두고 다음 주기에 다시 시도한다.
+            # 여기까지 오는 것은 큐/DB 자체의 장애다 — `process_analysis`·`process_plan`
+            # 둘 다 자기 job의 실패를 큐에 보고하고 예외를 올리지 않는다. 루프를
+            # 살려두고 다음 주기에 다시 시도한다.
             logger.exception("analysis worker cycle failed — retrying after the poll interval")
             await _wait(stop, poll_interval)
     logger.info("analysis worker stopped")

@@ -35,7 +35,7 @@ from app.services.analysis import (
     process_analysis,
     resolve_pattern_keys,
 )
-from app.services.jobs import ClaimedJob
+from app.services.jobs import JOB_TYPE_PLAN, ClaimedJob
 
 TRANSCRIPT = "I usually go to gym after work."
 
@@ -382,13 +382,17 @@ def test_resolve_pattern_keys_keeps_the_last_verdict_for_a_repeated_key():
 async def test_process_analysis_rejects_non_analyze_job(db_pool: asyncpg.Pool, fake_claude):
     job = ClaimedJob(
         id=uuid4(),
-        job_type="plan_next_session",
+        job_type=JOB_TYPE_PLAN,
         utterance_id=None,
         session_id=uuid4(),
         lease_token="t",
         attempts=1,
     )
+    claude = fake_claude()
+
     # 라우팅 실수를 조용히 삼키지 않는다 — 대상이 없다고 실패시키던 기존 문구가
-    # 아니라 "종류가 다르다"로 실패해야 원인이 보인다.
-    await process_analysis(db_pool, fake_claude(), job)
-    # job 행이 없으므로 상태 갱신은 일어나지 않지만, 예외로 터지지 않는 것이 계약이다
+    # 아니라 "종류가 다르다"로 실패해야 원인이 보인다. 예외로 터지지 않는 것도 계약이다
+    # (job 행이 없어 report_failure의 UPDATE는 0행이지만, 그 자체가 예외를 일으키지 않는다).
+    await process_analysis(db_pool, claude, job)
+
+    assert claude.prompts == [], "처리할 수 없는 job으로 Claude를 호출하면 안 된다"
