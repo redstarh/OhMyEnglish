@@ -294,8 +294,13 @@ create table session_plans (
   -- "계획 생성은 됐지만 뱅크 내용을 썼다"는 뜻이다.
   source text not null check (source in ('agent', 'fallback')),
   created_at timestamptz not null default now(),
+  -- ⚠️ `cardinality`를 쓴다. `array_length('{}', 1)`은 **NULL**이고 CHECK 식이 NULL이면
+  -- Postgres가 **만족으로 취급**하므로 빈 배열이 그대로 통과한다(2026-09-04 실측: 통과 1행).
+  -- `cardinality('{}')`는 0이라 하한 1이 실제로 막힌다(같은 실측에서 거부 확인).
+  -- 바로 아래 `questions`가 안전한 것은 `jsonb_array_length('[]')`가 0을 돌려주기 때문이다 —
+  -- 두 함수의 빈값 처리가 달라서 생긴 비대칭이다.
   constraint session_plans_focus_len
-    check (array_length(focus_pattern_ids, 1) between 1 and 2),
+    check (cardinality(focus_pattern_ids) between 1 and 2),
   constraint session_plans_questions_len
     check (jsonb_typeof(questions) = 'array' and jsonb_array_length(questions) between 3 and 5),
   constraint session_plans_reason_not_blank
