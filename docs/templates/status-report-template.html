@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{프로젝트}} — 요구사항 상태 · 아키텍처 ({{YYYY-MM-DD}})</title>
+<!--
+  ⚠️ 이것은 **템플릿**이다. 규약의 정본은 `docs/ops/status-report-convention.md`다 —
+  절 순서 · 판정 어휘 4개 · 근거 규칙 · 색 규약 · 만든 뒤 할 것 2건이 거기 있다.
+  쓰는 법: 이 파일을 `docs/status-report-YYYY-MM-DD.html` 로 복사하고 {{...}} 를 채운다.
+  ⚠️ 아래 CSS 는 **렌더 확인으로 고친 것이 들어 있다 — 되돌리지 마라**:
+     `.kpi > div` 의 `>` (없으면 테두리 이중) · 2D ASCII 흐름도 대신 표(한글 전각 정렬 어긋남).
+-->
+<!--
+  판정 색은 dataviz skill 의 **status 팔레트**(예약, 테마 금지)를 쓴다:
+  good #0ca30c / warning #fab219 / critical #d03b3b.
+  validate_palette.js 실측 (2026-09-05, 이 문서를 쓴 턴):
+    CVD separation PASS ΔE 11.3(protan) · Normal-vision floor PASS ΔE 27.6 · Chroma PASS
+    light: #fab219 대비 1.79 (<3:1) → 규약이 정한 완화책 **아이콘+라벨 병기**를 적용했다
+    dark(#1a1a19): 세 색 전부 3:1 이상 PASS
+  ⚠️ 처음에 미완료를 serious #ec835a 로 두었더니 warning 과 정상시야 ΔE 13.6(<15)로 hard FAIL —
+     인접 세그먼트라 실제로 구분이 안 됐다. critical 로 다시 골라 통과시켰다(의미도 그쪽이 맞다).
+-->
+<style>
+  :root{
+    --surface:#fcfcfb; --panel:#fff; --ink:#1a1a19; --ink-2:#4a4a46; --ink-3:#75756e;
+    --line:#e3e3de; --line-2:#efefea; --accent:#2d5f8a;
+    --good:#0ca30c; --warn:#fab219; --crit:#d03b3b; --hold:#6b4fa8;
+    --good-bg:#eaf7ea; --warn-bg:#fdf4e1; --crit-bg:#fbeaea; --hold-bg:#f1ecfa;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --surface:#1a1a19; --panel:#232322; --ink:#f2f2ee; --ink-2:#c2c2ba; --ink-3:#8f8f86;
+      --line:#3a3a37; --line-2:#2e2e2c; --accent:#7fb3dd;
+      --good-bg:#14290f; --warn-bg:#332703; --crit-bg:#30110f; --hold-bg:#221a33;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--surface);color:var(--ink);
+    font:15px/1.65 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Segoe UI",Roboto,sans-serif;}
+  .wrap{max-width:1080px;margin:0 auto;padding:40px 22px 80px}
+  h1{font-size:26px;margin:0 0 6px;letter-spacing:-.2px}
+  h2{font-size:19px;margin:44px 0 12px;padding-bottom:7px;border-bottom:2px solid var(--line)}
+  h3{font-size:15px;margin:26px 0 8px;color:var(--ink-2)}
+  .sub{color:var(--ink-3);font-size:13px;margin:0 0 22px}
+  code{font:12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;
+    background:var(--line-2);padding:1px 5px;border-radius:4px}
+  table{width:100%;border-collapse:collapse;margin:10px 0 4px;font-size:13.5px}
+  th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line-2);vertical-align:top}
+  th{font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--ink-3);
+    border-bottom:1px solid var(--line);font-weight:600}
+  td:first-child{white-space:nowrap;font-weight:600}
+  tbody tr:hover{background:var(--line-2)}
+  .b{display:inline-block;padding:1px 8px;border-radius:11px;font-size:11.5px;
+    font-weight:700;white-space:nowrap;border:1px solid transparent}
+  .b-good{background:var(--good-bg);color:var(--good);border-color:var(--good)}
+  .b-warn{background:var(--warn-bg);color:#8a5c00;border-color:var(--warn)}
+  .b-crit{background:var(--crit-bg);color:var(--crit);border-color:var(--crit)}
+  .b-hold{background:var(--hold-bg);color:var(--hold);border-color:var(--hold)}
+  @media (prefers-color-scheme:dark){ .b-warn{color:var(--warn)} }
+  .kpi{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 6px}
+  /* ⚠️ `>` 가 필요하다 — `.kpi div` 로 두면 안쪽 .n/.l 까지 잡아 테두리가 이중으로 걸린다
+     (2026-09-05 렌더 확인에서 실제로 그랬다). */
+  .kpi > div{flex:1 1 150px;background:var(--panel);border:1px solid var(--line);
+    border-radius:9px;padding:12px 14px}
+  .kpi .n{font-size:27px;font-weight:700;letter-spacing:-.5px;line-height:1.15}
+  .kpi .l{font-size:12px;color:var(--ink-3);margin-top:2px}
+  .bar{display:flex;gap:2px;height:34px;margin:14px 0 8px;border-radius:5px;overflow:hidden}
+  .bar span{display:flex;align-items:center;justify-content:center;color:#fff;
+    font-size:12px;font-weight:700;border-radius:4px}
+  .note{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent);
+    border-radius:0 8px 8px 0;padding:11px 14px;margin:14px 0;font-size:13.5px;color:var(--ink-2)}
+  .note b{color:var(--ink)}
+  .flow{background:var(--panel);border:1px solid var(--line);border-radius:9px;
+    padding:16px;overflow-x:auto;margin:12px 0}
+  .flow pre{margin:0;font:12.5px/1.9 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink-2)}
+  .flow pre b{color:var(--ink);font-weight:700}
+  .flow pre i{color:var(--crit);font-style:normal;font-weight:700}
+  footer{margin-top:52px;padding-top:16px;border-top:1px solid var(--line);
+    font-size:12.5px;color:var(--ink-3)}
+</style>
+</head>
+<body data-palette="#0ca30c,#fab219,#d03b3b">
+<div class="wrap">
+
+<h1>{{프로젝트}} — 요구사항 상태 · 아키텍처</h1>
+<p class="sub">
+  {{YYYY-MM-DD}} · 브랜치 <code>{{브랜치}}</code> · HEAD <code>{{해시}}</code> ·
+  요구사항 정본 <code>{{경로}}</code> {{버전}}
+</p>
+
+<div class="note">
+  <b>이 문서는 스냅샷이다.</b> 값이 정본과 다르면 <b>정본이 맞다</b> — 상태의 정본은
+  <code>TASKS.md</code>, 다음 한 걸음은 <code>handoff/HANDOFF.md</code>다.
+  판정 근거는 전부 <b><code>파일:심볼</code> 또는 원장 태스크</b>다(줄 번호로 인용하지 않는다).
+  "문서에 그렇게 쓰여 있다"만으로 <b>완료</b>를 준 항목은 없다.
+</div>
+
+<h2>한눈에</h2>
+
+<div class="kpi">
+  <div><div class="n" style="color:var(--good)">{{N}}</div><div class="l">✔ 완료</div></div>
+  <div><div class="n" style="color:var(--warn)">{{N}}</div><div class="l">◐ 부분</div></div>
+  <div><div class="n" style="color:var(--crit)">{{N}}</div><div class="l">✕ 미완료</div></div>
+  <div><div class="n" style="color:var(--hold)">{{N}}</div><div class="l">⏸ 미결정 (사람 결정 대기)</div></div>
+</div>
+
+<!-- flex 값 = 각 판정의 **건수**(비율은 flex 가 알아서 낸다). 미결정은 판정이 아니므로 넣지 않는다.
+     ⚠️ 템플릿 상태에서는 `flex:{{N}}` 이 유효한 CSS 가 아니라 세 세그먼트가 글자 폭으로 쪼그라들어
+     보인다 — 결함이 아니다. 숫자를 채우면 폭이 비율대로 벌어진다. -->
+<div class="bar" role="img" aria-label="요구사항 {{합계}}건 중 완료 {{N}}건, 부분 {{N}}건, 미완료 {{N}}건">
+  <span style="background:var(--good);flex:{{N}}">✔ 완료 {{N}}</span>
+  <span style="background:var(--warn);color:#3d2900;flex:{{N}}">◐ 부분 {{N}}</span>
+  <span style="background:var(--crit);flex:{{N}}">✕ 미완료 {{N}}</span>
+</div>
+<p class="sub" style="margin:0">
+  요구사항 <b>{{합계}}건</b> 기준({{절별 내역}}).
+  미결정 {{N}}건은 <b>판정이 아니라 사람의 결정 대기</b>라서 위 막대에 넣지 않았다.
+</p>
+
+<div class="note">
+  <b>가장 중요한 한 문장</b>: {{표 47행을 읽지 않고도 알아야 할 패턴 하나. 근거를 함께.}}
+  <br>⚠️ 이 상자를 비워 두지 마라 — 패턴을 찾아 한 문장으로 올리는 것이 보고의 값어치다.
+</div>
+
+<h2>애플리케이션 아키텍처 (단순 버전)</h2>
+
+<!-- ⚠️ 2D ASCII 아트를 쓰지 않는다 — 한글 전각과 ASCII 반각이 섞여 monospace 에서도 열이 어긋난다.
+     경로 하나를 단계별로 따라가는 표로 그린다. 7~10 단계 이내로 유지한다. -->
+<div class="flow">
+<table style="font-size:13px;margin:0">
+  <thead><tr><th style="width:34px">#</th><th style="width:230px">모듈</th><th>무엇을 하나</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td><code>{{모듈}}</code></td><td>{{한 줄 역할}}</td></tr>
+    <tr><td>…</td><td><code>{{외부 의존은 [외부] 로 표시}}</code></td><td>{{…}}</td></tr>
+    <tr><td>N</td><td><i>✕ 없음</i></td><td><i>{{고리가 끊긴 자리 — 있으면 반드시 적는다}}</i></td></tr>
+  </tbody>
+</table>
+</div>
+<p class="sub" style="margin:4px 0 0">{{이 아키텍처의 뼈대를 한 문장으로 — 왜 이렇게 나눴나}}</p>
+
+<h3>끊긴 자리 — 여기가 남은 작업의 전부다</h3>
+<table>
+  <thead><tr><th>끊긴 곳</th><th>지금</th><th>누가 잇나</th></tr></thead>
+  <tbody><tr><td>{{…}}</td><td>{{근거 — reader 0곳 등}}</td><td>{{태스크 ID}}</td></tr></tbody>
+</table>
+
+<h3>DB 표 {{N}}개 (현재 실재)</h3>
+<table>
+  <thead><tr><th>표</th><th>용도</th><th>언제 생겼나</th></tr></thead>
+  <tbody><tr><td>{{표}}</td><td>{{한 줄}}</td><td>{{마이그레이션 번호 · 미적용이면 표시}}</td></tr></tbody>
+</table>
+<p class="sub" style="margin:4px 0 0"><b>없는 표</b>: {{제외된 것과 그 근거}}</p>
+
+<h2>요구사항 상태</h2>
+
+<!-- 요구사항 절마다 h3 하나. 제목에 판정 요약 배지를 달아 캡틴이 절 단위로 먼저 훑게 한다. -->
+<h3>{{§절 이름}} <span class="b b-good">✔{{N}}</span> <span class="b b-warn">◐{{N}}</span> <span class="b b-crit">✕{{N}}</span></h3>
+<table>
+  <thead><tr><th>ID</th><th>요구</th><th>판정</th><th>근거</th></tr></thead>
+  <tbody>
+    <tr><td>{{ID}}</td><td>{{한 줄 요구}}</td><td><span class="b b-good">✔ 완료</span></td><td><code>{{파일:심볼}}</code></td></tr>
+    <tr><td>{{ID}}</td><td>{{…}}</td><td><span class="b b-warn">◐ 부분</span></td><td>{{무엇이 되고 무엇이 안 되나 — "reader 0곳" 같은 사실}}</td></tr>
+    <tr><td>{{ID}}</td><td>{{…}}</td><td><span class="b b-crit">✕ 미완료</span></td><td>{{없다는 근거}}</td></tr>
+  </tbody>
+</table>
+
+<h2>미결정 — 사람의 결정을 기다린다 ({{N}}건)</h2>
+<!-- ⚠️ 쓰기 전에 각 ⏸ 가 원장에서 아직 살아 있는지 확인한다. 낡은 ⏸ 를 올리면 캡틴에게
+     이미 내린 결정을 다시 묻는 보고가 된다(2026-09-05 에 실제로 1건 잡았다). -->
+<table>
+  <thead><tr><th>#</th><th>무엇을 결정하나</th><th>왜 지금 막혀 있나</th></tr></thead>
+  <tbody><tr><td>1</td><td><span class="b b-hold">⏸</span> <b>{{결정 항목}}</b></td><td>{{막힌 이유 — 되돌리기 어려움·비용·표본 부족 등}}</td></tr></tbody>
+</table>
+
+<div class="note">
+  <b>미결정과 구분해야 할 것 — 이미 결정된 축소.</b> 되돌릴 대상이 아니다: {{목록과 근거}}
+</div>
+
+<h2>게이트 실측 (이 문서를 쓴 턴에 직접 실행)</h2>
+<!-- ⚠️ 그 턴에 직접 돌린 출력만 적는다. 게이트 안과 밖 베이스라인을 구분해 각각 적고,
+     밖은 "0 으로 만들 대상이 아니라 유지 대상"이라는 것을 함께 적는다. -->
+<table>
+  <thead><tr><th>검사</th><th>결과</th></tr></thead>
+  <tbody><tr><td>{{검사}}</td><td>{{출력}}</td></tr></tbody>
+</table>
+
+<h2>지금 진행 중</h2>
+<table>
+  <thead><tr><th>태스크</th><th>상태</th></tr></thead>
+  <tbody><tr><td>{{태스크}}</td><td><span class="b b-warn">◐ {{상태}}</span> {{근거}}</td></tr></tbody>
+</table>
+
+<div class="note">
+  <b>이 슬라이스에서 가장 값비쌌던 교훈</b>(다음 태스크가 같은 값을 다시 치르지 않도록):
+  {{교훈과 그 판별법의 소유자}}
+</div>
+
+<footer>
+  스냅샷 · {{YYYY-MM-DD}} · HEAD <code>{{해시}}</code> ·
+  상태의 정본 <code>TASKS.md</code> · 다음 한 걸음 <code>handoff/HANDOFF.md</code> ·
+  요구사항 정본 <code>{{경로}}</code> ·
+  이전 보고는 <code>docs/backup/{{YYYY-MM-DD}}-superseded/</code> ·
+  형식 규약 <code>docs/ops/status-report-convention.md</code>
+</footer>
+
+</div>
+</body>
+</html>
