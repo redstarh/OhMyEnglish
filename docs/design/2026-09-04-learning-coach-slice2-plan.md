@@ -2234,6 +2234,19 @@ def build_system_prompt(
         return prompt
     forms = ", ".join(f"{item.pattern_key} ({item.target_form})" for item in plan.focus)
     contexts = ", ".join(plan.contexts)
+```
+
+⚠️ **`contexts`는 빈 리스트일 수 있다** (2026-09-04 Task 5 구현 후 확인). `SessionInstruction.contexts`는
+`list[str]`이고 **길이 제약이 없다** — `focus`(1~2)·`questions`(3~5)와 달리 문서 근거가 있는 수치가
+없어서 제약을 두지 않은 것이 맞다(임계값을 발명하지 않는다). 그래서 `", ".join([])`은 **빈 문자열**이 되고
+`"- Situations to use today: "`처럼 값 없는 줄이 지시문에 실린다.
+
+**빈 리스트면 그 줄을 아예 넣지 않는다.** 근거: 발음 소리 목록이 같은 상황을 이미 그렇게 처리한다 —
+`build_system_prompt`의 기존 docstring이 "**기록이 0건이면 블록을 아예 넣지 않는다.** 빈 목록에 제목만
+남기면 Nova가 '목록이 비었다'를 지시로 오해할 여지가 생긴다"고 근거까지 적어 뒀다. 같은 판단을
+`contexts`에도 적용한다. `focus`는 최소 1개가 보장되므로 이 처리가 필요 없다.
+
+```python
     return (
         f"{prompt}\n\n"
         "Today's plan:\n"
