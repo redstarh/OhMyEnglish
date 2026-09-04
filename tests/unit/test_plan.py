@@ -38,7 +38,10 @@ def test_prompt_lists_every_due_pattern(plan_input_factory):
         assert key in prompt
     # `- focus:`는 각 항목에 `target_form`을 요구한다 — 목록이 그것을 싣지 않으면 모델이
     # 지어낸다(pattern_id 와 같은 부류, FK가 없어 검증만으로는 안 걸린다). 무테스트였다.
-    assert f'target form "{data.due_reviews[0].target_form}"' in prompt
+    # ⚠️ **첫 항목만 보지 않는다** — 2·3번째에서만 떼도 통과했다(재리뷰 지적). `pattern_id`도
+    # 같은 논리로 "f-string 하나라 균일하니 괜찮다"고 보였다가 문제였던 자리다.
+    for review in data.due_reviews:
+        assert f'target form "{review.target_form}"' in prompt
 
 
 def test_prompt_includes_pattern_id_so_the_model_never_invents_one(plan_input_factory):
@@ -159,6 +162,9 @@ def test_prompt_forbids_extra_keys_and_blank_strings(plan_input_factory):
     # 빈 리스트와 빈 문자열을 갈라 말하는 문장 — 없으면 모델이 "모든 문자열이 비면 안 된다"를
     # **빈 리스트 금지**로 읽을 여지가 있다(재리뷰 라운드 2의 Minor. 이 문장이 무테스트였다).
     assert "Empty lists are allowed where said above; empty strings are not" in spec_section
+    # 위 문장이 가리키는 "where said above"의 실체 — `notes`·`contexts`에 개수 하한이 없다는
+    # 것을 모델에게 알리는 **유일한 문장**이다. 이것이 없으면 위 문장이 가리킬 곳이 없어진다.
+    assert "An empty list is fine here." in _bullet(prompt, "notes")
 
 
 def _bullet(prompt: str, key: str) -> str:
@@ -191,21 +197,32 @@ def _bullet_lead(prompt: str, key: str) -> str:
     규격에 이미 불릿 간 상호참조가 있으므로(`instruction.target_level must equal the
     top-level target_level`) 현실적인 편집이다 — 라운드 1이 만든 회귀와 **같은 부류**이고
     창만 한 단계 좁혀졌을 뿐이었다.
+
+    ⚠️ **마침표가 없으면 여기서 죽는다.** 그냥 `partition(".")`을 쓰면 마침표 0개일 때
+    본문 전체가 돌아와 이 함수가 **조용히 `_bullet()`으로 퇴화**하고 위의 false-green이
+    그대로 되살아난다 — 세미콜론 문체로 다시 쓴 불릿에서 22개 전부 통과함을 재리뷰가
+    증명했고 나도 같은 위험을 따로 찾았다. **조용한 퇴화를 시끄러운 실패로 바꾼다.**
     """
-    head, _, _ = _bullet(prompt, key).partition(".")
+    head, sep, _ = _bullet(prompt, key).partition(".")
+    assert sep, f"{key!r} 불릿에 마침표가 없다 — 첫 문장을 가를 수 없다(창이 불릿 전체로 넓어진다)"
     return head
 
 
 def _section_header(prompt: str, anchor: str) -> str:
-    """절 제목 **한 줄**만. 고정 길이 창(`+120` 같은 것)을 쓰지 않는다.
+    """절 제목 **전체**. 고정 길이 창(`+120` 같은 것)을 쓰지 않는다.
 
     ⚠️ 고정 창은 **자기순환**이었다(재리뷰 라운드 2). 최근 창 제목은 지금 **134자**인데
     그것은 여기서 재려는 문구(37자)가 있기 때문이다 — 그 문구를 지우면 제목이 97자로 줄어
     120자 창이 목록 본문으로 **23자 새어들고**, 그 자리에 같은 문구를 넣은 뮤테이션에서
     테스트가 **통과했다.** 단정이 지키려는 문구가 단정의 경계를 지켜 주면 안 된다.
+
+    ⚠️ **한 줄만 자르지 않는다.** 발음 절 제목은 **두 줄**이고 첫 줄은 단어 중간에서 끊긴다
+    (95자). 첫 줄만 보면 제목이 분명히 말하는 문구가 둘째 줄에 있을 때 **거짓 실패**가 난다
+    (재리뷰 지적). 네 절 제목이 모두 `):`로 끝나므로 거기까지 자른다 — `):`로 끝나는 규약은
+    `test_every_section_header_is_followed_directly_by_its_list`가 지킨다.
     """
     start = prompt.index(anchor)
-    return prompt[start : prompt.index("\n", start)]
+    return prompt[start : prompt.index("):", start) + 2]
 
 
 def test_prompt_states_the_documented_counts(plan_input_factory):
