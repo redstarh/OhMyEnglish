@@ -70,14 +70,16 @@ rank these against the grammar counts above):
 # ⚠️ 지시문 크기 상한도 넣지 않는다 — 설계서 §3.4가 그 수치는 실측 후에 정한다고 했다.
 _OUTPUT_SPEC = """\
 Return one JSON object and nothing else. Keys:
-- focus: one or two patterns, each {pattern_id, pattern_key, target_form}. Pick from the lists above.
-- questions: three to five items, each {prompt, context}. Same target form, different situations.
+- focus: one or two patterns, each {pattern_id, pattern_key, target_form}. Pick from the lists
+  above.
+- questions: three to five items, each {prompt, context}. Same target form, different
+  situations.
 - target_level: one CEFR code. It must equal level.target_level.
 - reason: one short sentence **in Korean**, addressed to the learner, saying why today's practice
   is this. Never leave it empty.
-- instruction: {target_level, focus:[{pattern_key, target_form}], sentence_length, hint_timing, contexts}
-  — sentence_length and hint_timing are short English phrases that will be spliced into the tutor's
-  instructions. contexts is the list of situations for today.
+- instruction: {target_level, focus:[{pattern_key, target_form}], sentence_length, hint_timing,
+  contexts} — sentence_length and hint_timing are short English phrases that will be spliced into
+  the tutor's instructions. contexts is the list of situations for today.
 - level: {action: keep|up|down, target_level, reason}. Move at most one CEFR step from the current
   level, in either direction. Going down is allowed and is better than staying too hard.
 - notes: observations worth keeping that numbers cannot hold — for example "adds articles in short
@@ -90,7 +92,7 @@ def _format_due_reviews(due_reviews: list[DueReview]) -> str:
     if not due_reviews:
         return "(none due today)"
     return "\n".join(
-        f"- {review.pattern_key} ({review.category}): target form \"{review.target_form}\", "
+        f'- {review.pattern_key} ({review.category}): target form "{review.target_form}", '
         f"due since {review.next_review_at.isoformat()}, mastery {review.mastery_score}"
         for review in due_reviews
     )
@@ -132,7 +134,10 @@ def _format_chronic(chronic: list[ChronicMetric], chronic_pattern_ids: set[UUID]
 
 
 def _format_pronunciation(pronunciation: list[PronunciationTally]) -> str:
-    """설계서 §4.4 — 발음 시도 집계. 점수·등급을 요구하지 않는다(requirements-summary.md:120-121)."""
+    """설계서 §4.4 — 발음 시도 집계. 점수·등급은 요구하지 않는다.
+
+    하지 않는 것 목록: requirements-summary.md:120-121.
+    """
     if not pronunciation:
         return "(no pronunciation attempts in this window)"
     return "\n".join(
