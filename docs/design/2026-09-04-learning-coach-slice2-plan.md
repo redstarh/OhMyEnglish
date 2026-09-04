@@ -1748,8 +1748,30 @@ async def process_plan(pool: asyncpg.Pool, claude: ClaudeClient, job: ClaimedJob
             owner["user_id"],
             plan.level.target_level,
         )
-        await complete(conn, job.id, job.lease_token)
+        if not await complete(conn, job.id, job.lease_token):
+            raise _LeaseLost
 ```
+
+⚠️ **`complete`의 반환값을 반드시 본다** (2026-09-04 확인 — 원래 이 계획서가 무시하고 있었다).
+`jobs.complete`는 `bool`을 돌려주고 그 docstring이 **"`False`는 lease가 더 이상 우리 것이 아니라는
+뜻이며 호출자는 자기 작업이 기록된 것으로 취급해서는 안 된다"**고 못 박는다. 무시하면 lease를 잃은
+뒤에도 계획·노트·수준 갱신이 **커밋되고**, 그 job을 다시 claim한 워커가 또 쓴다 — 계획은
+`unique(session_id)`에 막히지만 **노트는 append-only라 중복 행이 남는다.**
+
+**기존 관례를 그대로 따른다**(`services/analysis.py`가 소유): 트랜잭션 **안에서** 예외를 올려
+그 트랜잭션을 통째로 롤백시키고, 밖에서 잡아 경고만 남긴다. `analysis.py`의 `_LeaseLost`는
+**private이라 재사용할 수 없으므로** `plan.py`에 같은 뜻의 내부 예외를 하나 둔다(이름·주석은
+그쪽 관례를 따른다). 잡는 쪽:
+
+```python
+    except _LeaseLost:
+        # 계획·노트·수준 갱신이 함께 롤백됐다. 이 시도의 산출물은 통째로 버린다 —
+        # 같은 job은 이미 다른 claim이 들고 있다. report_failure를 부르지 않는다(우리 job이 아니다).
+        logger.warning("job %s: lease lost, plan rolled back", job.id)
+```
+
+⚠️ **`plan.py`의 import에 `complete`를 더해야 한다.** 지금은 `from app.services.jobs import
+ClaimedJob, report_failure`뿐이다(2026-09-04 확인).
 
 ⚠️ **jsonb 바인딩은 `str`이다.** asyncpg는 jsonb 컬럼에 파이썬 `list`/`dict`를 받지 않고
 `DataError: expected str, got list`로 거부한다(슬라이스 1에서 실측). 쓸 때 `json.dumps(..., ensure_ascii=False)`,
