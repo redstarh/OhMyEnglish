@@ -183,7 +183,8 @@ async def reap_orphan_sessions(
 async def mark_session_ended(
     pool: asyncpg.Pool, session_id: UUID, status: SessionEndStatus
 ) -> None:
-    """묶을 것이 없는 호출자를 위한 편의 래퍼 — 연결을 하나 잡아 `end_session`을 부른다.
+    """묶을 것이 없는 호출자를 위한 편의 래퍼 — 연결을 하나 잡아 트랜잭션을 열고 그 안에서
+    `end_session`을 부른다.
 
     SQL은 여전히 `_END_SESSION_SQL` 하나가 소유한다.
 
