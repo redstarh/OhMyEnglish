@@ -1509,7 +1509,33 @@ def test_prompt_does_not_invent_a_size_limit(plan_input_factory):
         assert banned not in prompt.lower()
 ```
 
-⚠️ 픽스처 `plan_input_factory`는 이 태스크가 `tests/conftest.py`에 만든다 — `PlanInput`을
+⚠️ **픽스처가 만족해야 하는 실제 시그니처** (2026-09-04 Task 4 구현 후 직접 확인 — 추측하지 말고
+이 값을 써라). 네 자료구조 모두 `frozen=True, slots=True`이므로 **모든 필드를 넘겨야** 한다:
+
+```
+PlanInput(user_id, timezone, window_from, window_to, current_level,
+          due_reviews, chronic, chronic_pattern_ids, recent, pronunciation)   # 10개
+RecentUtterance(said_at, transcript, corrections)
+RecentCorrection(pattern_key, category, original_span, correction, explanation, severity, confidence)
+PronunciationTally(target_sound, outcome, attempts, last_seen)
+```
+
+⚠️ **`RecentUtterance.corrections`는 `tuple[RecentCorrection, ...]`이다 — 리스트가 아니다.**
+Task 4의 리뷰에서 `frozen=True`인데 리스트에 append 하던 것을 tuple로 굳혔다. 픽스처가 리스트를
+넘기면 `ty check`가 깨진다.
+
+⚠️ **`chronic_pattern_ids`는 `set[UUID]`다.** 테스트가 `chronic_flagged=["article_missing"]`처럼
+**키 이름**으로 주면 픽스처가 그것을 해당 패턴의 `pattern_id`로 바꿔 담아야 한다 — 프롬프트 코드가
+`metric.pattern_id in data.chronic_pattern_ids`로 판정하기 때문이다. 키 문자열을 그대로 넣으면
+그 판정이 영원히 거짓이 되고 **만성 신호 테스트가 통과하지 못한다.**
+
+⚠️ **`due_reviews`·`chronic`의 원소 타입은 이 태스크가 정의하지 않는다** —
+`services/review.py`의 `DueReview(pattern_id, pattern_key, category, target_form, next_review_at, mastery_score)`와
+`services/chronic.py`의 `ChronicMetric(pattern_id, pattern_key, category, frequency, mastery_score,
+next_review_at, recurring_sessions, recurring_days, first_seen, last_seen, span, max_gap)`을 **import해 쓴다.**
+새로 만들지 마라.
+
+픽스처 `plan_input_factory`는 이 태스크가 `tests/conftest.py`에 만든다 — `PlanInput`을
 DB 없이 만들어 주는 순수 팩토리다(프롬프트 조립은 순수 함수라 DB가 필요 없다).
 
 - [ ] **Step 2: 테스트를 돌려 실패를 확인한다**
