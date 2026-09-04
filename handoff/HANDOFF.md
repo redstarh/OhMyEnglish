@@ -13,8 +13,8 @@
 > | 하네스 차수 | `tests/harness/runs/ROUNDS.md` · `tests/harness/README.md` |
 > | **실물 마이크 절차·결과** | 절차는 **`runs/2026-09-01-mic-1.md` §1** · 2회 결과는 **`runs/2026-09-03-mic-2.md`** ← 마이크를 쓸 거면 이 둘 |
 > | **슬라이스 1 실물 검증** | `runs/2026-09-04-slice1-live.md` (L1 006 적용 · L2 실물 Claude가 새 필드를 낸다) |
-> | I-1 완료 보고(공유용) | `docs/i1-status-2026-09-03.html` — **스냅샷이다.** 값이 다르면 정본이 맞다 |
-> | 5개 층 일관성 점검 | `docs/consistency-audit-2026-09-01.html` (스냅샷) |
+> | I-1 완료 보고(공유용) | `docs/backup/2026-09-05-superseded/i1-status-2026-09-03.html` — **스냅샷이다.** 값이 다르면 정본이 맞다 |
+> | 5개 층 일관성 점검 | `docs/backup/2026-09-05-superseded/consistency-audit-2026-09-01.html` (스냅샷) |
 >
 > 최종 갱신 **2026-09-05** · 브랜치 `design/first-vertical-slice` · **§11 슬라이스 2 실행 중**
 > 기준 커밋 **HEAD ≥ `d316054`** (슬라이스 2 S2-6 완료 — 고침 4라운드. 슬라이스 1의 마지막 코드 커밋은 `aae6f91`이었다)

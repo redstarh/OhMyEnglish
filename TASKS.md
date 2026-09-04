@@ -346,7 +346,7 @@ FK 없는 `focus_pattern_ids`에 조용히 저장되는 원래 경로가 살아�
 나머지 언급은 이미 정확했다(연기·영구 제외·작업 항목). 아래는 그 판정의 원래 기록이다.
 
 ⚠️ **착수 전 필수 — 문서가 없는 컬럼을 있는 것처럼 말한다** (2026-09-01 중간 점검 실측,
-`docs/consistency-audit-2026-09-01.html` D-6). **`impact_score`·`suggested_contexts`는 실제 DB에
+`docs/backup/2026-09-05-superseded/consistency-audit-2026-09-01.html` D-6). **`impact_score`·`suggested_contexts`는 실제 DB에
 컬럼이 없다** — 마이그레이션 참조 각 **0건**이고 `information_schema`에도 없다. 그런데 설계서
 **4개·2개 파일**이 이 컬럼을 전제로 서술한다. 위 "착수 전 실측"의 "앱 참조 0곳"과는 **상태가 다르다** —
 `next_review_at`·`mastery_score`·`self_difficulty`·`users.current_level`은 **컬럼이 있고 앱만 안 쓰는**
