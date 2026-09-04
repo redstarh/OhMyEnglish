@@ -186,6 +186,12 @@ async def mark_session_ended(
     """묶을 것이 없는 호출자를 위한 편의 래퍼 — 연결을 하나 잡아 `end_session`을 부른다.
 
     SQL은 여전히 `_END_SESSION_SQL` 하나가 소유한다.
+
+    ⚠️ **`end_session`은 이제 항상 두 쓰기를 한다** — 종료 UPDATE와 계획 job 등록(§3.1,
+    `closed`가 있을 때). 그래서 이 래퍼도 트랜잭션을 열어야 한다: 열지 않으면 asyncpg는
+    문장마다 autocommit이라 종료 UPDATE가 커밋된 뒤 계획 job INSERT 전에 프로세스가
+    죽으면 그 세션의 계획이 영구히 만들어지지 않는다(재시도는 `active` 가드에 막히고
+    리퍼는 `active`만 건드린다 — 되살릴 경로가 없다).
     """
-    async with pool.acquire() as conn:
+    async with pool.acquire() as conn, conn.transaction():
         await end_session(conn, session_id, status)

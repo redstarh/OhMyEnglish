@@ -19,6 +19,7 @@ import asyncpg
 import pytest
 from conftest import job_row
 
+from app.services import sessions as sessions_module
 from app.services.jobs import (
     BACKOFF,
     JOB_TYPE_PLAN,
@@ -32,7 +33,7 @@ from app.services.jobs import (
     enqueue_plan_next_session,
     fail_or_retry,
 )
-from app.services.sessions import end_session
+from app.services.sessions import end_session, mark_session_ended
 
 # 고정 사용자 id — `tests/unit/test_schema.py`·`test_chronic.py`와 같은 패턴이다.
 # `db_conn`은 매 테스트 롤백되는 트랜잭션이라 시딩된 사용자가 없다(§ conftest 참조).
@@ -454,12 +455,28 @@ async def test_end_session_enqueues_plan_job_in_same_transaction(db_conn: asyncp
 
 # 이미 닫힌 세션을 다시 닫으려 하면 job 이 늘지 않는다 — end_session 의 active 가드가
 # 실제로 닫았는지(`closed`)를 보기 때문이다.
+#
+# ⚠️ 리뷰 라운드 2(Important 2) — 첫 job을 pending에 둔 채로만 재호출하면 이 테스트는
+# 가드를 재지 못한다: 두 번째 등록이 여전히 pending인 job과
+# `uq_analysis_jobs_pending_session`에서 충돌하고 `on conflict do nothing`이 그것을
+# 삼켜 count가 1로 유지된다 — `sessions.py`의 가드 `return`을 지워도 이 테스트는
+# 그대로 초록이었다(부분 유니크가 대신 막아 준 것이라 가드 자체는 미검증). 첫 job을
+# `done`으로 올려 부분 유니크의 범위(`status in ('pending','running')`) 밖으로
+# 보내면 그 방어가 물러나고, 남는 것은 오직 `end_session`의 `closed is None` 가드뿐이다.
 async def test_end_session_does_not_enqueue_when_already_closed(db_conn: asyncpg.Connection):
     await _insert_user(db_conn)
     session_id = uuid4()
     await _insert_session(db_conn, session_id)
 
     await end_session(db_conn, session_id, "failed")
+    # 첫 job을 done으로 밀어 partial unique의 범위(pending/running) 밖으로 보낸다 —
+    # 그래야 아래 재호출에서 job이 늘지 않는 이유가 가드 하나로 좁혀진다.
+    await db_conn.execute(
+        "update analysis_jobs set status = 'done' where job_type = $1 and session_id = $2",
+        JOB_TYPE_PLAN,
+        session_id,
+    )
+
     await end_session(db_conn, session_id, "completed")
 
     assert (
@@ -468,3 +485,30 @@ async def test_end_session_does_not_enqueue_when_already_closed(db_conn: asyncpg
         )
         == 1
     )
+
+
+# Minor 1 (리뷰 라운드 2) — 위 `test_end_session_enqueues_plan_job_in_same_transaction`은
+# `db_conn` 픽스처(트랜잭션 하나) 안에서 돈다. 그 안에서는 경계가 구조적으로 하나뿐이라
+# "받은 연결로 job을 1건 건다"까지만 재고, 프로덕션 호출자(`mark_session_ended`)가 실제로
+# 트랜잭션을 여는지는 재지 못한다 — Important 1에서 바로 그 경계가 빠져 있었다(`asyncpg`는
+# 명시적 `conn.transaction()`이 없으면 문장마다 autocommit이라, 종료 UPDATE가 커밋된 뒤
+# 계획 job INSERT 전에 죽으면 그 세션의 계획이 영구히 만들어지지 않는다). 이 테스트가 그
+# 경계의 직접 증거다: `db_pool`로 실제 커밋 경로를 타고, 두 번째 쓰기(계획 job 등록)가
+# 실패하면 첫 번째 쓰기(종료 UPDATE)까지 롤백되는지 — 즉 세션이 여전히 `active`인지 본다.
+async def test_mark_session_ended_rolls_back_the_close_when_plan_enqueue_fails(
+    db_pool: asyncpg.Pool, committed_session, monkeypatch: pytest.MonkeyPatch
+):
+    def _boom(conn: asyncpg.Connection, session_id: UUID) -> None:
+        raise RuntimeError("simulated crash before the plan job commits")
+
+    monkeypatch.setattr(sessions_module, "enqueue_plan_next_session", _boom)
+
+    with pytest.raises(RuntimeError, match="simulated crash"):
+        await mark_session_ended(db_pool, committed_session.session_id, "completed")
+
+    async with db_pool.acquire() as conn:
+        status = await conn.fetchval(
+            "select status from learning_sessions where id = $1",
+            committed_session.session_id,
+        )
+    assert status == "active", "종료 UPDATE가 계획 job 등록 실패에도 커밋됐다 — 트랜잭션이 없다"

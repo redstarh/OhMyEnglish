@@ -7,7 +7,9 @@ infrastructure. Three properties carry the correctness of the whole pipeline:
 * **멱등 등록** — the partial unique index `uq_analysis_jobs_pending_utterance`
   covers only `status in ('pending','running')`, so re-registering an utterance
   that is still queued is a no-op (`None`), while re-registering one whose job
-  already finished is allowed (re-analysis).
+  already finished is allowed (re-analysis). `uq_analysis_jobs_pending_session`
+  is the same shape for `session_id` — it is what makes `enqueue_plan_next_session`
+  idempotent while a `plan_next_session` job for that session is still pending/running.
 * **lease token** — a fresh `uuid4().hex` is minted *per claim*, not per worker.
   Every terminal update is gated on `status='running' and locked_by=$token`, so
   a worker whose lease expired and whose job was reclaimed by someone else can
@@ -67,9 +69,11 @@ class ClaimedJob:
     """One successful claim. `lease_token` is only valid until `LEASE` elapses.
 
     `utterance_id` is optional because `analysis_jobs` also carries
-    `summarize_session` jobs (target columns are mutually exclusive per the
-    `analysis_jobs_target_matches_job_type` CHECK). Jobs produced by
-    `enqueue_analyze` always have it set.
+    `plan_next_session` jobs, produced by `enqueue_plan_next_session` (target
+    columns are mutually exclusive per the `analysis_jobs_target_matches_job_type`
+    CHECK — those jobs carry `session_id` instead). `summarize_session` is a
+    third value the CHECK allows but no code enqueues yet. Jobs produced by
+    `enqueue_analyze` always have `utterance_id` set.
     """
 
     id: UUID

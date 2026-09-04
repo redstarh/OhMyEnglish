@@ -318,9 +318,11 @@ async def resolve_dangling(conn: asyncpg.Connection, session_id: UUID) -> int:
     ✅ **그 전제조건은 Task 6이 충족시켰다** (Task 4 시점의 ⚠️를 정정한다):
     `services/sessions.py:49`가 `end_session(conn, …)`로 연결을 받고,
     `audio_gateway/session.py:153`이 `pool.acquire()` + `conn.transaction()` 안에서 종료
-    기록과 이 함수를 함께 부른다. `mark_session_ended(pool, …)`는 묶을 것이 없는 호출자용
-    래퍼로 남았고 유일한 사용처(`api/ws.py:123`)는 **어댑터 생성 실패 경로**라 시도 행이
-    아직 존재할 수 없다 — 그 경로가 수렴을 건너뛰어도 누수가 없다.
+    기록과 이 함수를 함께 부른다. `mark_session_ended(pool, …)`도 **이제 자기 트랜잭션을
+    연다**(Task 2 고침 라운드 2 — `end_session`이 종료 UPDATE + 계획 job 등록 두 쓰기를
+    하게 되면서, 감싸지 않으면 그 사이 크래시에서 계획이 영구히 안 만들어진다) — 여전히
+    이 함수는 부르지 않는다. 유일한 사용처(`api/ws.py:123`)는 **어댑터 생성 실패 경로**라
+    시도 행이 아직 존재할 수 없다 — 그 경로가 수렴을 건너뛰어도 누수가 없다.
     """
     async with conn.transaction():
         rows = await conn.fetch(
