@@ -291,7 +291,14 @@ async def test_sweep_does_not_re_enqueue_what_a_turn_boundary_already_flushed(
     await end_session(db_conn, session_id, "completed")
 
     assert await flush_ended_sessions(db_conn) == []
-    assert await db_conn.fetchval("select count(*) from analysis_jobs") == 1
+    # 종류를 명시한다: 세션 종료가 같은 트랜잭션에서 plan_next_session job 을 하나 더
+    # 건다(설계서 §3.1). 이 테스트가 보는 것은 분석 job 의 중복 등록이다.
+    assert (
+        await db_conn.fetchval(
+            "select count(*) from analysis_jobs where job_type = 'analyze_utterance'"
+        )
+        == 1
+    )
 
 
 # T0 — 묶음 경계는 **세션마다** 계산된다. `lead()`에 partition이 없으면 다른 세션의
