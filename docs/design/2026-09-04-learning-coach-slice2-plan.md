@@ -791,7 +791,13 @@ git commit -m "feat: 워커가 job 종류로 분기한다
 - Produces:
   - `review.load_completed_then_relapsed(conn: asyncpg.Connection, user_id: UUID) -> set[UUID]`
   - `RecentUtterance(said_at: datetime, transcript: str, corrections: list[RecentCorrection])`
-  - `RecentCorrection(pattern_key: str, category: str, original_span: str, correction: str, reason: str, severity: str, confidence: float)`
+  - `RecentCorrection(pattern_key: str, category: str, original_span: str, correction: str, explanation: str, severity: str, confidence: float)`
+    ⚠️ **필드 이름은 `explanation`이다 — `reason`이 아니다** (2026-09-04 확인). DB 컬럼이
+    `error_occurrences.explanation`(`001_initial_schema.sql:103`)이고, 결과 API가 프론트 계약을 위해
+    `reason=record["explanation"]`으로 **매핑**할 뿐이다(`services/results.py:224`, 그 매핑을 `:38`이
+    문서화한다). 이 자료구조는 Claude 프롬프트로 가는 내부 값이므로 **DB 이름을 그대로 쓴다** —
+    `reason`으로 쓰면 계획의 `session_plans.reason`(학습자에게 보여줄 추천 이유)과 이름이 겹쳐
+    서로 다른 두 값이 같은 말로 불린다.
   - `PronunciationTally(target_sound: str, outcome: str, attempts: int, last_seen: datetime)`
   - `PlanInput(user_id: UUID, timezone: str, window_from: datetime, window_to: datetime, current_level: str, due_reviews: list[DueReview], chronic: list[ChronicMetric], chronic_pattern_ids: set[UUID], recent: list[RecentUtterance], pronunciation: list[PronunciationTally])`
   - `async def load_plan_input(conn: asyncpg.Connection, user_id: UUID) -> PlanInput`
@@ -1074,7 +1080,8 @@ async def load_plan_input(conn: asyncpg.Connection, user_id: UUID) -> PlanInput:
 
 `_load_recent`의 SQL은 **학습 발화만** 본다(Phase 1 §6.2 D4 규약 계속) —
 `where u.utterance_type = 'learning' and u.created_at >= $2`, 그 발화의 `error_occurrences`를
-`original_span`·`correction`·`reason`·`severity`·`confidence`와 함께 붙인다.
+`original_span`·`correction`·**`explanation`**·`severity`·`confidence`와 함께 붙인다.
+⚠️ 그 컬럼 이름은 `explanation`이다(`reason`이 아니다) — 위 `RecentCorrection` 항목의 근거 참조.
 
 `_load_pronunciation`의 SQL은 설계서 §4.4를 그대로 쓰되 **`outcome <> 'pending'`을 더한다**:
 
