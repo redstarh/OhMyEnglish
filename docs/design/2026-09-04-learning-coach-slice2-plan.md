@@ -384,6 +384,21 @@ dev DB 적용은 **캡틴 승인 후** 실물 검증 L1에서 한다(아래 「�
   `async def enqueue_plan_next_session(conn: asyncpg.Connection, session_id: UUID) -> UUID | None`
   (등록했으면 job id, 이미 pending/running이면 `None`)
 
+⚠️ **`end_session`의 호출자가 둘이고 둘 다 트랜잭션을 열어야 한다** (2026-09-04 리뷰에서 발견,
+직접 확인). 정상 종료(`audio_gateway/session.py:164`)는 이미 `conn.transaction()`으로 감싸지만
+**`mark_session_ended`(`sessions.py:190`)는 열지 않는다** — asyncpg는 명시적 블록이 없으면 문장마다
+autocommit이라 그 경로가 비원자적이 된다. 이 태스크가 그 래퍼에도 트랜잭션을 넣는다.
+`mark_session_ended`가 "묶을 것이 없는 호출자용"이라던 서술 **2곳**(`sessions.py:186` docstring ·
+`pronunciation.py:321` 주석)은 이제 거짓이므로 함께 정정한다.
+
+⚠️ **고아 리퍼가 닫은 세션은 계획 job을 받지 못한다 — 알고 받아들이는 축소다.**
+`reap_orphan_sessions`는 `end_session`을 거치지 않고 대량 UPDATE로 닫는다(`sessions.py:63-74`).
+그래서 **프로세스가 죽어 끝난 세션**은 다음 세션에서 폴백으로 시작한다 — 설계서 §3.3이 열거한
+폴백 사유 3개(첫 세션·생성 실패·스키마 거부) 밖의 **4번째 사유**다. 리퍼 SQL에 등록을 붙이는 것은
+별 태스크이고(대량 UPDATE에서 job을 걸면 오래된 고아가 쌓인 DB에서 한 번에 N건이 등록된다),
+이 계획은 고치지 않는다. **Task 12가 설계서 §11 이월에 이 사유를 적는다.**
+⚠️ **버그로 다시 조사하지 마라.**
+
 - [ ] **Step 1: 실패하는 테스트를 쓴다**
 
 ```python
@@ -895,8 +910,19 @@ async def test_single_occurrence_has_no_max_gap(db_conn, seed_occurrences_on_day
 
 ⚠️ 위 테스트가 쓰는 픽스처(`seed_due_patterns`·`seed_utterance_at`·`seed_pronunciation`·`seed_cycle`·
 `seed_user`·`seed_two_patterns`·`seed_occurrences_on_days`)는 **이 태스크가 `tests/conftest.py`에 만든다.**
-기존 `committed_session`·`backdate_session`·`default_finding` 패턴을 따르고, 시각은 전부
-`datetime.now(UTC) - timedelta(days=N)`로 만들어 **naive datetime을 절대 만들지 않는다.**
+시각은 전부 `datetime.now(UTC) - timedelta(days=N)`로 만들어 **naive datetime을 절대 만들지 않는다.**
+
+**`conftest.py`에 이미 있는 것 (2026-09-04 직접 확인 — 이것들을 재사용하고 다시 만들지 않는다)**:
+`test_database`(세션 스코프) · `db_conn`(트랜잭션 **하나**로 도는 연결) · `db_pool` ·
+`committed_session` · `fake_claude` · 헬퍼 `default_finding` · `backdate_session(conn, session_id, *, by: timedelta)` ·
+`job_row(conn, job_id)`. **위 7개와 겹치는 것은 없다** — 전부 새로 만드는 것이 맞다.
+특히 `backdate_session`은 "N일 전" 픽스처를 만들 때 그대로 쓸 수 있다.
+
+⚠️ **`db_conn`은 트랜잭션 하나로 돈다.** 위반을 기대하는 단정이 있으면 `async with db_conn.transaction():`으로
+감싸야 한다(Task 1에서 실측한 함정 — 감싸지 않으면 뒤 문장이 `InFailedSQLTransactionError`로 죽는다).
+이 태스크의 테스트에는 위반 기대가 하나 있다: `InvalidTimezoneError`는 **앱 예외**라 DB 트랜잭션을
+망가뜨리지 않지만, `chronic.load_chronic_metrics`가 내부에서 DB를 건드린 뒤 실패하는 경로라면
+같은 함정에 걸릴 수 있다 — 돌려 보고 확인하라.
 
 - [ ] **Step 2: 테스트를 돌려 실패를 확인한다**
 
@@ -2299,7 +2325,12 @@ Given 발음 재발화에 반복 실패한 소리가 최근 창 안에 있을 �
 검증할 수 없다** — §4.4의 발음 시도 쿼리로 검증한다.
 ```
 
-6. **§11 이월에 두 줄을 더한다.**
+6. **§11 이월에 세 줄을 더한다.**
+
+```markdown
+| **고아 리퍼가 닫은 세션의 계획 생성** | 리퍼는 `end_session`을 거치지 않고 대량 UPDATE로 닫으므로(2026-09-04 리뷰에서 확인) **프로세스가 죽어 끝난 세션은 계획 job을 받지 못한다** — §3.3이 열거한 폴백 사유 3개 밖의 4번째 사유다. 대량 UPDATE에 등록을 붙이면 오래된 고아가 쌓인 DB에서 한 번에 N건이 등록되므로 별 판단이 필요하다. ⚠️ 버그로 재조사하지 말 것 |
+```
+
 
 ```markdown
 | **발음 성과를 난이도 단계 판단에 넣기** | 캡틴 결정 2026-09-04: **지금은 넣지 않고 MVP 이후 재검토한다.** 영구 제외가 아니다 — 이후 발음 교정을 따로 요청하면 그때 구체 요구사항을 정리한다. 근거: `requirements-summary.md`가 발음 점수·등급·유사도 지표를 "하지 않는 것"으로 정했고, 단계 판단에 넣으려면 없는 점수 기준을 발명해야 한다(§3.2 위반). 발음 자체는 실시간 교정과 계획 입력(§4.4)으로 살아 있다 |
