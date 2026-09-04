@@ -222,15 +222,24 @@ def seed_due_patterns() -> Callable[..., object]:
 
 @pytest.fixture
 def seed_utterance_at() -> Callable[..., object]:
-    """호출마다 **같은 사용자·세션**에 발화를 쌓는다(§4.2 최근 창·발화 유형 필터 검증용).
-    매번 새 사용자를 만들면 필터가 없어도 통과하는 테스트가 되므로, 이 클로저 안에서
-    첫 호출이 만든 사용자를 이후 호출이 재사용한다."""
+    """호출마다 **같은 사용자·세션**에 발화를 쌓는다(§4.2 최근 창·발화 유형·화자 필터
+    검증용). 매번 새 사용자를 만들면 필터가 없어도 통과하는 테스트가 되므로, 이 클로저
+    안에서 첫 호출이 만든 사용자를 이후 호출이 재사용한다.
+
+    `speaker`가 기본값 `'user'`인 이유: 코치(`'agent'`) 발화도 `utterance_type='learning'`으로
+    저장되므로(리뷰 Important-1), 그 누출을 막는 필터를 검증하려는 테스트만 명시적으로
+    `speaker="agent"`를 넘긴다."""
 
     state: dict[str, UUID] = {}
     sequence = count(1)
 
     async def make(
-        conn: asyncpg.Connection, *, days_ago: int, transcript: str, kind: str = "learning"
+        conn: asyncpg.Connection,
+        *,
+        days_ago: int,
+        transcript: str,
+        kind: str = "learning",
+        speaker: str = "user",
     ) -> UUID:
         if "user_id" not in state:
             state["user_id"] = await conn.fetchval(
@@ -244,8 +253,9 @@ def seed_utterance_at() -> Callable[..., object]:
         await conn.execute(
             "insert into utterances "
             "(session_id, speaker, utterance_type, transcript, sequence_no, created_at) "
-            "values ($1, 'user', $2, $3, $4, $5)",
+            "values ($1, $2, $3, $4, $5, $6)",
             state["session_id"],
+            speaker,
             kind,
             transcript,
             next(sequence),
@@ -260,9 +270,12 @@ def seed_utterance_at() -> Callable[..., object]:
 def seed_pronunciation() -> Callable[..., object]:
     """`(target_sound, outcome)` 쌍마다 발음 시도 1건을 만든다(§4.4). `pending`은
     `resolved_at`을 비워 표의 CHECK(`..._resolved_consistency`)를 만족시키고, 그 외
-    판정값은 판정 시각을 채운다 — 채우지 않으면 그 CHECK가 insert를 거부한다."""
+    판정값은 판정 시각을 채운다 — 채우지 않으면 그 CHECK가 insert를 거부한다.
 
-    async def make(conn: asyncpg.Connection, pairs: list[tuple[str, str]]) -> UUID:
+    `target_sound`가 `None`일 수 있다 — 003이 그 컬럼을 nullable로 뒀다(리뷰 M3:
+    `outcome='incorrect'`이고 키가 있을 때만 채워지므로, 키 없는 행이 실물에 존재한다)."""
+
+    async def make(conn: asyncpg.Connection, pairs: list[tuple[str | None, str]]) -> UUID:
         user_id = await conn.fetchval(
             "insert into users (display_name) values ('Plan Input Test') returning id"
         )
