@@ -26,12 +26,12 @@ from __future__ import annotations
 
 import asyncio
 import sys
-from collections.abc import AsyncIterator, Callable
+from collections.abc import AsyncIterator, Callable, Sequence
 from datetime import UTC, datetime, timedelta
 from itertools import count
 from pathlib import Path
 from typing import NamedTuple
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import asyncpg
 import pytest
@@ -41,6 +41,9 @@ import pytest_asyncio
 # 소유자는 `app.audio_gateway.fixtures` 하나다: 스텁이 재생하는 문장과 테스트가
 # 기대하는 문장이 갈라지는 경로를 아예 만들지 않기 위해 여기서는 재수출만 한다.
 from app.audio_gateway.fixtures import FIXTURE_TURNS as FIXTURE_TURNS
+from app.services.chronic import ChronicMetric
+from app.services.plan_input import PlanInput, PronunciationTally
+from app.services.review import DueReview
 from app.workers.claude_client import FakeClaudeClient
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -451,5 +454,94 @@ def seed_occurrences_on_days() -> Callable[..., object]:
                 pattern_id,
             )
         return user_id, pattern_id
+
+    return make
+
+
+# ── Task 6 (계획 프롬프트) 픽스처 ────────────────────────────────────────────
+#
+# `tests/unit/test_plan.py`가 쓴다. `build_plan_prompt`는 순수 함수라 DB가 필요 없으므로
+# 이 팩토리도 DB 없이 `PlanInput`을 조립한다(위 7개와 달리 `conn`을 받지 않는다).
+
+
+@pytest.fixture
+def plan_input_factory() -> Callable[..., PlanInput]:
+    """DB 없이 `PlanInput`을 조립한다 — 프롬프트 조립 테스트 전용.
+
+    `chronic_flagged`는 **패턴 key**로 받는다(테스트가 그렇게 쓴다).
+    `PlanInput.chronic_pattern_ids`는 `set[UUID]`이므로, 여기서 key → `pattern_id`로 바꿔 담는다 —
+    키 문자열을 그대로 넣으면
+    `build_plan_prompt`의 `metric.pattern_id in data.chronic_pattern_ids` 판정이 영원히 거짓이
+    된다(Task 6 브리프 경고).
+
+    ⚠️ **`chronic` 목록은 `chronic_flagged` 키에서만 만든다 — `due_keys`를 미러링하지 않는다.**
+    처음에는 `due_keys`마다 `ChronicMetric`도 함께 만들었지만, 그러면 `due_reviews` 절이
+    통째로 비어도(예: `_format_due_reviews`가 깨져도) 같은 key가 `chronic` 절에 그대로 남아
+    `test_prompt_lists_every_due_pattern`이 **엉뚱한 이유로 통과**했다(2026-09-05 mutation
+    테스트로 직접 확인 — 그 함수를 항상 `"(none due today)"`만 돌리게 바꿔도 이 테스트가
+    초록으로 남았다). 두 목록을 분리하니 같은 mutation에 실패로 반응한다. `pattern_ids`는
+    여전히 두 목록의 합집합에 미리 배정한다 — `chronic_flagged`가 `due_keys` 밖의 key를
+    가리켜도(테스트가 그렇게 쓰지는 않지만) `KeyError`로 죽지 않게 하기 위해서다.
+    """
+
+    def make(
+        *,
+        due_keys: Sequence[str] = (),
+        chronic_flagged: Sequence[str] = (),
+        pronunciation: Sequence[tuple[str, str, int]] = (),
+    ) -> PlanInput:
+        now = datetime.now(UTC)
+        pattern_ids: dict[str, UUID] = {}
+        for key in (*due_keys, *chronic_flagged):
+            pattern_ids.setdefault(key, uuid4())
+
+        due_reviews = [
+            DueReview(
+                pattern_id=pattern_ids[key],
+                pattern_key=key,
+                category="grammar",
+                target_form=f"target form for {key}",
+                next_review_at=now - timedelta(days=1),
+                mastery_score=0.0,
+            )
+            for key in due_keys
+        ]
+        chronic = [
+            ChronicMetric(
+                pattern_id=pattern_ids[key],
+                pattern_key=key,
+                category="grammar",
+                frequency=3,
+                mastery_score=0.0,
+                next_review_at=now - timedelta(days=1),
+                recurring_sessions=2,
+                recurring_days=2,
+                first_seen=now - timedelta(days=10),
+                last_seen=now - timedelta(days=1),
+                span=timedelta(days=9),
+                max_gap=timedelta(days=3),
+            )
+            for key in chronic_flagged
+        ]
+        chronic_pattern_ids = {pattern_ids[key] for key in chronic_flagged}
+        pronunciation_tallies = [
+            PronunciationTally(
+                target_sound=sound, outcome=outcome, attempts=attempts, last_seen=now
+            )
+            for sound, outcome, attempts in pronunciation
+        ]
+
+        return PlanInput(
+            user_id=uuid4(),
+            timezone="Asia/Seoul",
+            window_from=now - timedelta(days=14),
+            window_to=now,
+            current_level="A2",
+            due_reviews=due_reviews,
+            chronic=chronic,
+            chronic_pattern_ids=chronic_pattern_ids,
+            recent=[],
+            pronunciation=pronunciation_tallies,
+        )
 
     return make
