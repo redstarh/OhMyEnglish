@@ -14,7 +14,12 @@ from uuid import UUID
 import asyncpg
 import pytest
 
-from app.services.plan_input import InvalidTimezoneError, _load_recent, load_plan_input
+from app.services.plan_input import (
+    InvalidTimezoneError,
+    _load_pronunciation,
+    _load_recent,
+    load_plan_input,
+)
 from app.services.review import load_completed_then_relapsed
 
 
@@ -100,6 +105,37 @@ async def test_recent_window_upper_bound_actually_excludes(
     )
 
     assert [item.transcript for item in included] == ["kept"]
+
+
+# 리뷰 M1(발음 쪽) — `_PRONUNCIATION_SQL`은 `_RECENT_SQL`과 **별개 SQL 문장**이라 한쪽
+# 상한을 확인했다고 다른 쪽이 보장되지 않는다. 같은 방식(과거 두 시점 + 그 사이의
+# `window_to`)으로 이 쿼리의 상한도 겨눈다.
+@pytest.mark.asyncio
+async def test_pronunciation_window_upper_bound_actually_excludes(db_conn: asyncpg.Connection):
+    user_id = await db_conn.fetchval(
+        "insert into users (display_name) values ('Plan Input Boundary Test') returning id"
+    )
+    session_id = await db_conn.fetchval(
+        "insert into learning_sessions (user_id, mode) values ($1, 'speaking') returning id",
+        user_id,
+    )
+    now = datetime.now(UTC)
+    for target_sound, days_ago in (("th_as_s", 3), ("f_as_p", 1)):
+        at = now - timedelta(days=days_ago)
+        await db_conn.execute(
+            "insert into pronunciation_attempts "
+            "(session_id, target_form, target_sound, outcome, resolved_at, created_at) "
+            "values ($1, 'the gym', $2, 'incorrect', $3, $3)",
+            session_id,
+            target_sound,
+            at,
+        )
+
+    included = await _load_pronunciation(
+        db_conn, user_id, now - timedelta(days=10), now - timedelta(days=2)
+    )
+
+    assert [tally.target_sound for tally in included] == ["th_as_s"]
 
 
 # §4.4 주의 1 — pending 은 미판정이라 계획 근거로 쓰지 않는다.
