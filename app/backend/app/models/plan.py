@@ -182,7 +182,7 @@ def _one_step_or_same(current: str, target: str) -> bool:
     return abs(CEFR_LEVELS.index(target) - CEFR_LEVELS.index(current)) <= 1
 
 
-def parse_plan(raw: str, *, current_level: str) -> PlanOutput:
+def parse_plan(raw: str, *, current_level: str, allowed_pattern_ids: set[UUID]) -> PlanOutput:
     """모델 출력 문자열 → 검증된 계획. 실패는 전부 `PlanValidationError`다.
 
     `current_level`을 인자로 받는 이유: 두 단계 도약 여부는 **출력만으로는 판정할 수
@@ -190,6 +190,19 @@ def parse_plan(raw: str, *, current_level: str) -> PlanOutput:
     거기서 확정 거부다(`parse_analysis`와 같은 비대칭: JSON 디코드 실패만 다음 후보로
     넘어간다). 필드가 틀린 JSON을 펜스 제거 후 재시도해도 같은 결과이고, 그 사이 다른
     후보가 우연히 통과하면 어느 응답을 저장했는지 알 수 없게 된다.
+
+    `allowed_pattern_ids`가 같은 이유로 인자다 — **어떤 id 가 실재하는지는 출력만으로
+    판정할 수 없다.** 모델이 형식만 맞는 UUID 를 지어내면 `pattern_id: UUID`도 통과하고
+    `session_plans.focus_pattern_ids uuid[]`에는 **FK 가 없어** DB 도 통과한다. 그러면
+    존재하지 않는 패턴 id 가 조용히 저장되고 초점·복습 조회가 영구히 어긋난다 — **실패보다
+    나쁘다**(`InvalidTimezoneError` docstring 의 "틀린 계획보다 실패가 낫다"와 같은 원칙).
+    집합을 아는 것은 호출자(`services/plan.py`)이고 그 값은 **프롬프트에 실린 두 목록**과
+    같아야 한다: `{r.pattern_id for r in due_reviews} | {m.pattern_id for m in chronic}`.
+    비어 있으면 어떤 초점도 통과하지 못한다 — 그래서 호출자가 그 경우 Claude 를 부르지
+    않는다(콜드스타트).
+
+    **키워드 인자를 필수로 둔다.** 기본값 `None`("검사 안 함")을 주면 잊은 호출자가 가드
+    없이 지나가고, 그 실패는 조용해서 테스트로도 안 드러난다.
     """
     if current_level not in CEFR_LEVELS:
         raise PlanValidationError(f"unknown current_level: {current_level!r}")
@@ -203,6 +216,16 @@ def parse_plan(raw: str, *, current_level: str) -> PlanOutput:
             result = PlanOutput.model_validate(payload)
         except pydantic.ValidationError as exc:
             raise PlanValidationError(f"plan response failed validation: {exc}") from exc
+        # ⚠️ 초점 **전 항목**을 본다. 첫 항목만 검사하면 두 번째에 지어낸 id 를 실어도
+        # 통과하고, 그 값이 그대로 `focus_pattern_ids`에 저장된다.
+        invented = [
+            item.pattern_id for item in result.focus if item.pattern_id not in allowed_pattern_ids
+        ]
+        if invented:
+            raise PlanValidationError(
+                "focus references pattern_id that was not offered in the prompt: "
+                + ", ".join(str(pattern_id) for pattern_id in invented)
+            )
         if not _one_step_or_same(current_level, result.level.target_level):
             raise PlanValidationError(
                 f"level jump from {current_level!r} to {result.level.target_level!r} "

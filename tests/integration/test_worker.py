@@ -23,7 +23,7 @@ from uuid import UUID
 
 import asyncpg
 import pytest
-from conftest import backdate_session, default_finding, job_row
+from conftest import backdate_session, default_finding, job_row, plan_json
 
 from app import db as db_module
 from app.api import main as main_module
@@ -31,7 +31,7 @@ from app.api.main import create_app
 from app.audio_gateway.fixtures import FIXTURE_TURNS
 from app.config import get_settings
 from app.services.jobs import JOB_TYPE_PLAN
-from app.services.plan import PLAN_NOT_IMPLEMENTED
+from app.services.plan import PLAN_NO_FOCUS_CANDIDATES
 from app.services.sessions import end_session
 from app.services.utterances import flush_pending_analysis, save_final_transcript
 from app.workers import analysis_worker
@@ -96,10 +96,16 @@ async def _save(pool: asyncpg.Pool, session_id: UUID, text: str = GYM_ANSWER) ->
 #
 # ⚠️ Task 3 리뷰 M4 — `end_session`은 이제 같은 트랜잭션에서 `plan_next_session` job도
 # 하나 건다(Task 2). 이 테스트는 그것과 무관하게 통과한다: 워커가 그 계획 job을 먼저
-# claim해 처리(→ `PLAN_NOT_IMPLEMENTED`로 report_failure, 정상 백오프로 재큐)한 뒤,
-# 큐가 비는 다음 사이클에 스윕이 돌아 이 발화의 분석 job을 걸고 처리한다 — 계획 job이
-# 아직 처리되지 않았어도 lease가 running으로 잡혀 있으니 스윕 대상이 아니다. 아래
-# `_wait_until`은 이 발화의 job만 보므로 순서가 몇 사이클 늦어져도 단정은 흔들리지 않는다.
+# claim해 처리한 뒤, 큐가 비는 다음 사이클에 스윕이 돌아 이 발화의 분석 job을 걸고
+# 처리한다 — 계획 job이 아직 처리되지 않았어도 lease가 running으로 잡혀 있으니 스윕
+# 대상이 아니다. 아래 `_wait_until`은 이 발화의 job만 보므로 순서가 몇 사이클 늦어져도
+# 단정은 흔들리지 않는다.
+#
+# ⚠️ Task 7 정정 — 그 계획 job 이 수렴하는 사유가 바뀌었다. 이 사용자에게는 아직
+# `error_patterns`가 없으므로(분석이 돌기 **전**이다) 복습 예정도 만성 지표도 0건이고,
+# `process_plan`은 **Claude를 부르지 않고** `PLAN_NO_FOCUS_CANDIDATES`로 재큐한다. 그래서
+# `fake_claude(_response())`의 응답 1건은 계획이 삼키지 않고 분석이 그대로 쓴다 —
+# 정상 백오프(1분)라 이 테스트 시간 안에 다시 claim되지도 않는다.
 async def test_worker_recovers_a_run_whose_end_of_session_flush_was_lost(
     db_pool, committed_session, fake_claude
 ):
@@ -122,7 +128,15 @@ async def test_worker_recovers_a_run_whose_end_of_session_flush_was_lost(
         occurrences = await conn.fetchval(
             "select count(*) from error_occurrences where utterance_id = $1", utterance.id
         )
+        plan_error = await conn.fetchval(
+            "select last_error from analysis_jobs where job_type = $1 and session_id = $2",
+            JOB_TYPE_PLAN,
+            committed_session.session_id,
+        )
     assert occurrences == 1, "회복된 job이 분석까지 끝나지 않았다"
+    # 위 ⚠️ 를 산문으로만 두지 않는다 — 같은 큐의 계획 job이 콜드스타트 사유로 재큐됐고
+    # 그래서 분석용 응답 1건을 삼키지 않았다는 사실을 여기서 잰다.
+    assert plan_error == PLAN_NO_FOCUS_CANDIDATES
 
 
 # I-1 회복 — 스윕은 **진행 중** 세션을 건드리지 않는다. 워커가 도는 동안 사용자가
@@ -316,33 +330,56 @@ async def test_worker_drains_every_queued_job(db_pool, committed_session, fake_c
 # 어떤 테스트도 부르지 않았다. 이 분기(`analysis_worker.py`의 `job.job_type == JOB_TYPE_PLAN`)를
 # 지우면 이 job이 `process_analysis`로 흘러 사유가 "is not an analysis job"이 되어
 # 아래 단정이 깨진다 — 직접 지우고 관측한 red 출력은 보고서에 있다.
-async def test_worker_routes_a_plan_job_to_process_plan(db_pool, committed_session, fake_claude):
+#
+# ⚠️ **Task 7이 이 테스트의 계약을 바꿨다** — 저장이 구현되기 전에는 이 job 이 "아직 구현
+# 안 됨" 사유로 재큐되는 것이 관측 대상이었다. 이제는 **`done`으로 수렴하고
+# 계획 행·수준 갱신이 남는다.** 그 상수도 없어졌으므로 단정을 새 계약으로 옮긴다(지우지
+# 않는다 — 이 태스크가 실제로 무엇을 바꿨는지 보여주는 자리다). 라우팅 분기를 지우면
+# `process_analysis`가 "is not an analysis job"으로 재큐해 `done`에 도달하지 못하고, 계획
+# 행도 수준 갱신도 생기지 않는다.
+async def test_worker_routes_a_plan_job_to_process_plan(
+    db_pool, ended_session_with_history, fake_claude
+):
+    history = ended_session_with_history
+    # job 을 손으로 넣지 않는다 — `end_session`이 같은 트랜잭션에서 이미 걸었다(Task 2).
+    # 손으로 넣으면 partial unique 때문에 중복 위반이 나고, 그 연결도 우회하게 된다.
     async with db_pool.acquire() as conn:
         job_id = await conn.fetchval(
-            "insert into analysis_jobs (job_type, session_id) values ($1, $2) returning id",
+            "select id from analysis_jobs where job_type = $1 and session_id = $2",
             JOB_TYPE_PLAN,
-            committed_session.session_id,
+            history.session_id,
         )
+    assert job_id is not None, "end_session이 계획 job을 걸지 않았다"
+    claude = fake_claude(plan_json(history.pattern_id, level_action="up", target_level="B1"))
     stop = asyncio.Event()
-    task = asyncio.create_task(run_worker(db_pool, fake_claude(), stop=stop, poll_interval=0.01))
+    task = asyncio.create_task(run_worker(db_pool, claude, stop=stop, poll_interval=0.01))
 
-    async def _reported() -> bool:
+    async def _is_done() -> bool:
         async with db_pool.acquire() as conn:
             row = await job_row(conn, job_id)
-        return row["last_error"] == PLAN_NOT_IMPLEMENTED
+        return bool(row["status"] == "done")
 
     try:
-        await _wait_until(_reported, what="plan job이 PLAN_NOT_IMPLEMENTED 사유로 수렴한다")
+        await _wait_until(_is_done, what="plan job이 done으로 수렴한다")
     finally:
         stop.set()
         await asyncio.wait_for(task, timeout=1.0)
 
     async with db_pool.acquire() as conn:
         row = await job_row(conn, job_id)
-    # 상한(MAX_ATTEMPTS) 전이므로 failed가 아니라 정상 백오프로 재큐된 pending이다 —
-    # process_plan이 raise가 아니라 report_failure로 정직하게 보고했다는 증거다(Task 3 리뷰 I4).
-    assert row["status"] == "pending"
-    assert row["last_error"] == PLAN_NOT_IMPLEMENTED
+        plan_target = await conn.fetchval(
+            "select target_level from session_plans where session_id = $1", history.session_id
+        )
+        level = await conn.fetchval(
+            "select current_level from users where id = $1", history.user_id
+        )
+    assert row["last_error"] is None
+    assert plan_target == "B1"
+    assert level == "B1"
+    # 받은 프롬프트가 **계획 프롬프트**여야 한다 — 분석 프롬프트에는 이 절 제목이 없으므로
+    # 라우팅이 어긋나면 여기서도 걸린다.
+    assert len(claude.prompts) == 1
+    assert "Due for review today" in claude.prompts[0]
 
 
 # ② stop 이벤트로 루프가 1초 내 종료된다
@@ -537,9 +574,10 @@ async def test_lifespan_hands_the_live_session_registry_itself_to_the_worker(
 # 리퍼가 계속 실패하는 동안 잃어버린 묶음이 영구히 걷히지 않는다(terminal "분석 대상 없음").
 #
 # ⚠️ Task 3 리뷰 M4 — 여기서도 `end_session`이 `plan_next_session` job을 함께 건다. 그
-# job은 첫 사이클에 claim되어 `PLAN_NOT_IMPLEMENTED`로 report_failure되고 정상 백오프로
-# 재큐된다(위 `test_worker_recovers_a_run_whose_end_of_session_flush_was_lost`와 같은 경로) —
-# 리퍼가 터지는 것과는 다른 사이클이라 서로 간섭하지 않는다. 이 발화의 job은 그다음 스윕이 건다.
+# job은 첫 사이클에 claim되어 `PLAN_NO_FOCUS_CANDIDATES`로 report_failure되고 정상 백오프로
+# 재큐된다(위 `test_worker_recovers_a_run_whose_end_of_session_flush_was_lost`와 같은 경로:
+# 분석 전이라 복습·만성 후보가 0건이므로 Claude를 부르지 않는다 — Task 7) — 리퍼가 터지는
+# 것과는 다른 사이클이라 서로 간섭하지 않는다. 이 발화의 job은 그다음 스윕이 건다.
 async def test_a_failing_reaper_still_lets_the_sweep_recover_a_lost_run(
     db_pool, committed_session, fake_claude, monkeypatch
 ):

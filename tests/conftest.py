@@ -25,6 +25,7 @@ test explicitly requests one. Schema-level verification lives in Task 2
 from __future__ import annotations
 
 import asyncio
+import json
 import sys
 from collections.abc import AsyncIterator, Callable, Sequence
 from datetime import UTC, datetime, timedelta
@@ -42,8 +43,15 @@ import pytest_asyncio
 # 기대하는 문장이 갈라지는 경로를 아예 만들지 않기 위해 여기서는 재수출만 한다.
 from app.audio_gateway.fixtures import FIXTURE_TURNS as FIXTURE_TURNS
 from app.services.chronic import ChronicMetric
+from app.services.jobs import (
+    JOB_TYPE_PLAN,
+    ClaimedJob,
+    claim_next,
+    enqueue_plan_next_session,
+)
 from app.services.plan_input import PlanInput, PronunciationTally, RecentCorrection, RecentUtterance
 from app.services.review import DueReview
+from app.services.sessions import end_session
 from app.workers.claude_client import FakeClaudeClient
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -570,3 +578,143 @@ def plan_input_factory() -> Callable[..., PlanInput]:
         )
 
     return make
+
+
+# ── Task 7 (계획·노트·수준을 한 트랜잭션에 저장) 픽스처 ──────────────────────
+#
+# `tests/integration/test_plan_pipeline.py`·`tests/integration/test_worker.py`가 쓴다.
+# `process_plan`은 자기 트랜잭션을 여러 개 여므로(입력 읽기 → 트랜잭션 **밖** Claude 호출 →
+# 저장 한 트랜잭션) `db_conn`(롤백되는 한 트랜잭션)으로는 잴 수 없다 — `db_pool`을 쓰고
+# `committed_session`과 같은 규약으로 teardown 에서 사용자를 지운다.
+
+
+class PlanHistory(NamedTuple):
+    user_id: UUID
+    session_id: UUID
+    pattern_id: UUID
+
+
+async def end_new_session(pool: asyncpg.Pool, user_id: UUID) -> UUID:
+    """이 사용자의 세션을 하나 더 만들고 `end_session`으로 닫는다 — 반환값은 세션 id.
+
+    **노트가 덧붙여지는지 보려면 세션이 둘 필요하다**: `session_plans.session_id`가
+    `unique`라 한 세션이 만드는 계획은 하나뿐이고(007), 같은 세션으로 두 번 돌리면
+    두 번째 계획 insert 가 unique 위반으로 트랜잭션 전체를 되돌린다 — 그러면 노트도
+    남지 않아 append-only 를 재는 것이 아니라 롤백을 재게 된다.
+
+    `end_session`을 쓰는 이유: 그것이 같은 트랜잭션에서 `plan_next_session` job 을
+    거는 실물 경로다(Task 2). 테스트가 job 을 손으로 넣으면 그 연결을 우회한다.
+    """
+    async with pool.acquire() as conn, conn.transaction():
+        session_id = await conn.fetchval(
+            "insert into learning_sessions (user_id, mode) values ($1, 'speaking') returning id",
+            user_id,
+        )
+        await end_session(conn, session_id, "completed")
+    assert isinstance(session_id, UUID), f"세션을 만들지 못했다: {session_id!r}"
+    return session_id
+
+
+@pytest_asyncio.fixture
+async def ended_session_with_history(db_pool: asyncpg.Pool) -> AsyncIterator[PlanHistory]:
+    """계획을 만들 수 있는 최소 이력 — 끝난 세션 1개 + **복습 예정일이 지난 패턴 1개**.
+
+    패턴을 반드시 하나 심는다: `process_plan`의 허용 id 집합은
+    `due_reviews ∪ chronic`이고 **0건이면 Claude 를 부르지 않고 콜드스타트 사유로
+    종결한다**(계획서 Task 7 ②). 패턴이 없으면 저장을 재려는 테스트가 그 경로로 빠져
+    아무것도 저장되지 않은 채 "이유가 틀린" 초록/빨강을 낸다.
+
+    쓰기는 커밋된다 — teardown 에서 사용자를 지우고 cascade 가 세션 → job → 계획 →
+    노트를 함께 걷어간다(`committed_session`과 같은 규약).
+    """
+    async with db_pool.acquire() as conn:
+        user_id = await conn.fetchval(
+            "insert into users (display_name) values ('Plan Pipeline Test') returning id"
+        )
+        pattern_id = await conn.fetchval(
+            "insert into error_patterns (user_id, category, pattern_key, target_form, "
+            "next_review_at) values ($1, 'article', 'plan_pipeline_due', 'go to the gym', $2) "
+            "returning id",
+            user_id,
+            datetime.now(UTC) - timedelta(days=1),
+        )
+    session_id = await end_new_session(db_pool, user_id)
+    try:
+        yield PlanHistory(user_id=user_id, session_id=session_id, pattern_id=pattern_id)
+    finally:
+        async with db_pool.acquire() as conn:
+            await conn.execute("delete from users where id = $1", user_id)
+
+
+async def claim_plan_job(pool: asyncpg.Pool, session_id: UUID) -> ClaimedJob:
+    """이 세션의 `plan_next_session` job 을 claim 한다 — 걸려 있지 않으면 먼저 등록한다.
+
+    `end_session`이 이미 걸어 둔 job 이 있으면 `enqueue_plan_next_session`이 `None`을
+    돌려주고(partial unique `uq_analysis_jobs_pending_session`) 그 job 을 claim 한다.
+    앞선 job 이 terminal(`done`/`failed`)이 된 뒤에는 새 job 이 걸린다 — 큐의 멱등 규약
+    그대로다.
+
+    ⚠️ claim 한 것이 **이 세션의 계획 job 인지** 단정한다. `claim_next`는 큐 전체에서
+    하나를 고르므로, 다른 테스트가 남긴 job 을 집어오면 이 헬퍼가 조용히 엉뚱한 job 을
+    돌려주고 호출한 테스트가 이유 없이 초록이 된다.
+    """
+    async with pool.acquire() as conn:
+        await enqueue_plan_next_session(conn, session_id)
+        job = await claim_next(conn)
+    assert job is not None, f"세션 {session_id} 의 계획 job 을 claim 하지 못했다"
+    assert job.job_type == JOB_TYPE_PLAN, f"claim 한 job 종류가 다르다: {job.job_type}"
+    assert job.session_id == session_id, f"claim 한 job 의 세션이 다르다: {job.session_id}"
+    return job
+
+
+def plan_json(
+    pattern_id: UUID,
+    *,
+    level_action: str = "keep",
+    target_level: str = "A2",
+    reason: str = "관사를 계속 빼먹어서 오늘은 그것만 봅니다.",
+    level_reason: str = "정답률이 아직 낮습니다.",
+    notes: Sequence[str] = ("짧은 문장에서는 관사를 붙이는데 길어지면 빼먹는다",),
+) -> str:
+    """유효한 계획 응답 1건. `target_level`은 **세 자리 전부**에 들어간다.
+
+    `PlanOutput`의 after-validator 가 `target_level`·`level.target_level`·
+    `instruction.target_level`의 일치를 요구하므로 한 인자로 셋을 함께 움직인다 —
+    따로 두면 이 팩토리를 쓰는 모든 테스트가 셋을 손으로 맞춰야 하고, 하나를 잊으면
+    재려던 것과 무관한 불일치 오류로 거부된다.
+
+    `level_action`은 **라벨**이다(계획서 Task 7 — `target_level`이 정본). 어긋난 조합을
+    일부러 만들 수 있어야 그 어긋남이 경고로 드러나는지 잴 수 있다.
+    """
+    return json.dumps(
+        {
+            "focus": [
+                {
+                    "pattern_id": str(pattern_id),
+                    "pattern_key": "plan_pipeline_due",
+                    "target_form": "go to the gym",
+                }
+            ],
+            "questions": [
+                {"prompt": "What did you do at work today?", "context": "work update"},
+                {"prompt": "Tell me about your morning.", "context": "daily life"},
+                {"prompt": "What will you do tomorrow?", "context": "plan"},
+            ],
+            "target_level": target_level,
+            "reason": reason,
+            "instruction": {
+                "target_level": target_level,
+                "focus": [{"pattern_key": "plan_pipeline_due", "target_form": "go to the gym"}],
+                "sentence_length": "two short clauses",
+                "hint_timing": "offer a starter after one long pause",
+                "contexts": ["work update", "daily life", "plan"],
+            },
+            "level": {
+                "action": level_action,
+                "target_level": target_level,
+                "reason": level_reason,
+            },
+            "notes": list(notes),
+        },
+        ensure_ascii=False,
+    )
