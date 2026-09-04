@@ -16,8 +16,8 @@
 > | I-1 완료 보고(공유용) | `docs/i1-status-2026-09-03.html` — **스냅샷이다.** 값이 다르면 정본이 맞다 |
 > | 5개 층 일관성 점검 | `docs/consistency-audit-2026-09-01.html` (스냅샷) |
 >
-> 최종 갱신 **2026-09-04** · 브랜치 `design/first-vertical-slice`
-> 기준 커밋 **HEAD ≥ `aae6f91`** (마지막 **코드** 커밋 = 리뷰 LOW 3건. 슬라이스 1은 리뷰까지 닫혔다)
+> 최종 갱신 **2026-09-05** · 브랜치 `design/first-vertical-slice` · **§11 슬라이스 2 실행 중**
+> 기준 커밋 **HEAD ≥ `c0e3198`** (슬라이스 2 S2-5 고침. 슬라이스 1의 마지막 코드 커밋은 `aae6f91`이었다)
 > **이 파일이 유일한 handoff다.** 이전 판은 `handoff/backup/2026-08-30/`.
 
 ---
@@ -95,11 +95,11 @@ HIGH 2건 수정 · 지적 1건 반박 · 이연 4건). 처리 표는 `TASKS.md`
 
 ---
 
-## 실측값 (2026-09-04, 이 절을 쓴 턴에 직접 실행)
+## 실측값 (2026-09-05 갱신, 이 절을 쓴 턴에 직접 실행)
 
 ```bash
 cd app/backend                                    # 게이트는 이 cwd에서만 판정한다 (함정 H-A)
-.venv/bin/pytest -q                               # 454 passed   (부분 실행은 -c pyproject.toml — H-W)
+.venv/bin/pytest -q                               # 512 passed (2026-09-05 실측 — 슬라이스 2 진행에 따라 늘어난다. 부분 실행은 -c pyproject.toml — H-W)
 .venv/bin/ruff check . && .venv/bin/ruff format --check .   # passed / 29 files
 ty check                                          # All checks passed!
 .venv/bin/ruff check ../../tests ../../scripts    # Found 6 errors  (베이스라인, 게이트 밖)
@@ -113,7 +113,7 @@ cd ../frontend && npx tsc --noEmit && npx eslint app lib   # 둘 다 exit 0
 
 | 항목 | 값 |
 |---|---|
-| 테스트 | **512 passed** (슬라이스 2 실행 중 — 454에서 시작) — 이전: **454 passed**, skip/xfail 0 (… → 389(I-7) → 394(006) → 403 → 410 → 428 → 432 → 439(만성 지표) → 446(HIGH-1) → 453(백필·목록) → **454**(L11)) |
+| 테스트 | **512 passed**, skip/xfail 0 — 2026-09-05 실측. 슬라이스 2 실행 중이라 **태스크마다 늘어난다**: 454(슬라이스 1 마감) → 460(S2-1) → 465(S2-2) → 468(S2-3) → 484(S2-4) → **512**(S2-5). 정확한 현재 값은 **직접 돌려 얻어라** |
 | DB | `:5432` homebrew **17.9** · 역할 `ohmy` **`TimeZone=UTC`**. 인스턴스 기본은 `Asia/Seoul`이라 풀리면 함정 **H-S**가 안 보인다 |
 | dev DB 행 | 세션 **7** · 발화 **92** · 패턴 **7** · occurrence **17** · job **33** · 발음시도 **4** · `active` **0** · `pattern_attempts` **0**(dev DB로 세션을 돌린 적이 없다) · **`review_tasks` 6행**(백필이 만들었다) |
 | 복습 목록 | **오늘 복습할 목록 1건** — 처음으로 0행이 아니다. 문법 패턴 6개가 예정일을 받았고 발음 1개는 null(구조적 제외) |
@@ -169,10 +169,10 @@ cd ../frontend && npx tsc --noEmit && npx eslint app lib   # 둘 다 exit 0
 
 | # | 지표 | 값 |
 |--:|---|---|
-| 1 | HEAD | **`HEAD ≥ aae6f91`** — 반드시 `≥`로 읽는다(**H-P**). `aae6f91`이 마지막 **코드** 커밋이고 그 뒤는 이 마감 커밋들(docs 전용)이다. 불일치를 보면 `git log --oneline aae6f91..HEAD`가 docs-only인지 먼저 본다 |
-| 2 | 다음 한 걸음 | **§11 슬라이스 2** — 계획서부터 쓴다(007 마이그레이션). 슬라이스 1은 리뷰까지 닫혔다. I절 미결 0건 |
-| 3 | 게이트 | **454 passed** · ruff·format(**29파일**)·ty 전부 **exit 0** · `tests/**`+`scripts/**` 베이스라인 **6 errors·4 files** · 프론트 `tsc`·`eslint` exit 0 · W-live 스모크 **11/11**(실물 Claude, 돌릴 때마다 비용) |
-| 4 | 착수 전 필수 | **0건.** 대신 `TASKS.md` C절의 **이연 4건**을 읽는다 — 발음 미배선·`review_tasks` 행 정체성이 슬라이스 2의 설계에 직접 걸린다 |
+| 1 | HEAD | **`HEAD ≥ c0e3198`** — 반드시 `≥`로 읽는다(**H-P**). `c0e3198`이 마지막 **코드** 커밋(S2-5 고침)이고 그 뒤는 문서·원장 커밋이다. 불일치를 보면 `git log --oneline c0e3198..HEAD`가 docs-only인지 먼저 본다. ⚠️ **슬라이스 2가 실행 중이라 이 값은 태스크마다 앞으로 나간다** |
+| 2 | 다음 한 걸음 | **S2-6(프롬프트 조립)** — 계획서 `2026-09-04-learning-coach-slice2-plan.md`의 Task 6이다. S2-1~S2-4 완료 · S2-5 리뷰 중. 상태의 정본은 `TASKS.md` C절 태스크 원장이므로 **거기서 직접 읽어라** |
+| 3 | 게이트 | **512 passed**(2026-09-05, 슬라이스 2 S2-5 시점) · ruff·format·ty 전부 **exit 0** · `tests/**`+`scripts/**` 베이스라인 **6 errors·4 files**(다섯 태스크 연속 유지) · 프론트 `tsc`·`eslint` exit 0. ⚠️ **테스트 수는 슬라이스 2 태스크마다 늘어난다** — 불일치를 보면 회귀가 아니라 진행일 수 있다. `TASKS.md` C절의 태스크 원장으로 어디까지 됐는지 먼저 본다. W-live 스모크 **11/11**은 실물 Claude라 **돌릴 때마다 비용**이므로 대조에서 제외한다 |
+| 4 | 착수 전 필수 | **캡틴 승인 2건이 대기 중이다** — ① **007을 실물 dev DB에 적용**(되돌리기 어렵다. 아직 안 해서 `session_plans` 표가 dev DB에 없고, 그 덕에 오염된 입력으로 만든 계획이 존재하지 않는다) ② **실물 Claude 계획 생성 1회**(비용). 둘 다 S2-12 이후다. 그리고 계획서 「구현 전 정정」표를 먼저 읽는다(실행 중 **11건 추가**) · `TASKS.md` C절의 **이연 4건**도 읽는다 |
 
 인계 확인은 새 세션이 **직접 돌려 얻은** 4개가 위 값과 일치하는 것이다 — "읽었다"는 지표가 아니다.
 절차는 `~/.claude/rules/session-handover.md`, 함정은 `pitfalls.md` **H-P**·**H-Q**.
