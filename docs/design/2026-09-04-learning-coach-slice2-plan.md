@@ -941,9 +941,15 @@ async def test_single_occurrence_has_no_max_gap(db_conn, seed_occurrences_on_day
 
 ⚠️ **`db_conn`은 트랜잭션 하나로 돈다.** 위반을 기대하는 단정이 있으면 `async with db_conn.transaction():`으로
 감싸야 한다(Task 1에서 실측한 함정 — 감싸지 않으면 뒤 문장이 `InFailedSQLTransactionError`로 죽는다).
-이 태스크의 테스트에는 위반 기대가 하나 있다: `InvalidTimezoneError`는 **앱 예외**라 DB 트랜잭션을
-망가뜨리지 않지만, `chronic.load_chronic_metrics`가 내부에서 DB를 건드린 뒤 실패하는 경로라면
-같은 함정에 걸릴 수 있다 — 돌려 보고 확인하라.
+
+✅ **이 태스크의 `InvalidTimezoneError` 테스트는 그 함정에 걸리지 않는다** (2026-09-04 실측으로 확정):
+`load_plan_input`이 `pg_timezone_names`를 **평범한 SELECT로 먼저 조회**해 판정하므로 DB 오류가
+아예 발생하지 않고, 던지는 것은 **앱 예외**라 트랜잭션이 abort되지 않는다. savepoint로 감쌀 필요가 없다.
+확인한 값: `exists(select 1 from pg_timezone_names where name = 'Asia/Seoul')` → `true`,
+`'Not/AZone'` → `false`. 그리고 무효값을 `at time zone`에 쓰면 DB가
+`ERROR: time zone "Not/AZone" not recognized`로 거부한다 — **먼저 검증하는 이유가 이것이다.**
+검증을 건너뛰고 변환을 시도하면 DB 오류가 나서 `db_conn` 트랜잭션이 abort되고, 그때는 원인이
+"타임존이 무효하다"가 아니라 "뒤 문장이 다 죽었다"로 보인다.
 
 - [ ] **Step 2: 테스트를 돌려 실패를 확인한다**
 
