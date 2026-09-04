@@ -1093,8 +1093,23 @@ async def load_plan_input(conn: asyncpg.Connection, user_id: UUID) -> PlanInput:
     )
 ```
 
-`_load_recent`의 SQL은 **학습 발화만** 본다(Phase 1 §6.2 D4 규약 계속) —
-`where u.utterance_type = 'learning' and u.created_at >= $2`, 그 발화의 `error_occurrences`를
+`_load_recent`의 SQL은 **학습자의 학습 발화만** 본다 — ⚠️ **두 조건의 쌍이다**:
+`where u.speaker = $3 and u.utterance_type = $4 and u.created_at >= $2` (하한과 **상한** 둘 다).
+`$3`·`$4`는 리터럴이 아니라 `services/utterances.py`의 **`ANALYZED_SPEAKER`·`ANALYZED_UTTERANCE_TYPE`
+상수를 재사용한다** — 그 두 상수가 "학습자의 학습 발화"의 단일 출처이고 다른 세 곳
+(`analysis.py`·`utterances.py` 2곳)이 이미 둘을 함께 쓴다.
+
+⚠️ **종류만 걸면 코치 발화가 섞인다** (2026-09-04 Task 4 리뷰에서 실측 발견 — 원래 이 계획서와
+설계서 §4.2 둘 다 `utterance_type`만 적었다). 코치 발화도 `utterance_type` 기본값 `'learning'`으로
+저장되므로 전부 통과한다. **dev DB 실측**: 14일 창에서 **92행** 중 학습자 **38행** · 코치 **54행(59%)**.
+그러면 모델이 받는 "학습자의 최근 발화" 과반이 오류 0건인 유창한 영어가 되어 수준 판정과 초점
+선정이 왜곡된다. 설계서 §4.2도 함께 정정했다.
+
+⚠️ **픽스처가 이 결함을 숨긴다.** `seed_utterance_at`이 항상 `speaker='user'`로만 넣으면 코치 발화가
+데이터에 없어 "학습 발화만 본다" 테스트가 통과한다. 그 픽스처는 speaker를 받아야 하고, 테스트는
+**코치 발화 1건이 제외되는 것**을 단정해야 한다.
+
+그 발화의 `error_occurrences`를
 `original_span`·`correction`·**`explanation`**·`severity`·`confidence`와 함께 붙인다.
 ⚠️ 그 컬럼 이름은 `explanation`이다(`reason`이 아니다) — 위 `RecentCorrection` 항목의 근거 참조.
 

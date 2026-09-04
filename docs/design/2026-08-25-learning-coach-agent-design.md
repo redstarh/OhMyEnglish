@@ -182,7 +182,20 @@ attempts에만 적은 경우를 덮는다).
 
 ### 4.2 최근 창
 
-최근 **14일**의 `utterances`(전사문·`utterance_type='learning'`)와 그 발화의 `error_occurrences`(원문 조각·교정·이유·severity·confidence).
+최근 **14일**의 `utterances`(전사문·**`speaker='user'` AND `utterance_type='learning'`**)와 그 발화의 `error_occurrences`(원문 조각·교정·이유·severity·confidence).
+
+⚠️ **두 조건은 쌍이다 — 한쪽만 걸면 코치 발화가 섞인다** (2026-09-04 슬라이스 2 Task 4 리뷰에서
+실측 발견. 이 절이 원래 `utterance_type`만 적어 구현이 그대로 옮겼다). 코치 발화도
+`utterance_type` 기본값 `'learning'`으로 저장되므로(`app/backend/app/services/utterances.py`의
+`save_final_transcript` 기본값) 종류만 걸러도 전부 통과한다. **dev DB 실측**: 14일 창에서
+종류만 거른 결과 **92행** 중 학습자 발화는 **38행**, 코치 발화가 **54행(59%)**이었다.
+그러면 모델이 받는 "학습자의 최근 발화" 과반이 **오류 0건인 유창한 영어**가 되어 수준 판정과
+초점 패턴 선정이 통째로 왜곡된다.
+
+**코드에는 이 쌍을 위한 상수가 있다** — `services/utterances.py`의 `ANALYZED_SPEAKER`·
+`ANALYZED_UTTERANCE_TYPE`. 이 창을 읽는 새 코드는 **리터럴을 쓰지 말고 그 상수를 재사용한다.**
+`error_occurrences`를 경유하는 경로(`chronic.py`·`review.py`)는 상류의 분석 워커가 이미 두 조건으로
+걸러 넘기므로 안전하다 — **`utterances`를 직접 읽는 소비자만** 이 함정에 걸린다.
 
 **14일은 유도값이다** — 복습 최장 간격 7일(`database-schema.md` 1·3·7일 확정)의 2배로, "1·3·7일 주기를 한 번 이상 완주한 구간"을 뜻한다. 근거 문서에 14일이라는 수치가 직접 있는 것은 아니므로 조정 시 이 설계서의 값을 함께 갱신한다.
 
