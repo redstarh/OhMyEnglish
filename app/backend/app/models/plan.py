@@ -39,7 +39,7 @@ from __future__ import annotations
 
 import json
 import re
-from typing import Literal
+from typing import Annotated, Literal, get_args
 from uuid import UUID
 
 import pydantic
@@ -47,9 +47,16 @@ import pydantic
 # 001 users.current_level / learning_scenarios.level, 007 session_plans.target_level
 # CHECK와 **같은 값역**이다. 여기서 값을 늘리면 그 CHECK들도 함께 고쳐야 한다
 # (두 곳이 SoT를 나눠 갖지 않게).
-CEFR_LEVELS: tuple[str, ...] = ("A1", "A2", "B1", "B2", "C1", "C2")
-
 CefrLevel = Literal["A1", "A2", "B1", "B2", "C1", "C2"]
+
+# `models/analysis.py`의 `ERROR_CATEGORIES = get_args(ErrorCategory)`와 같은 선례 —
+# 값역을 두 번 손으로 적으면 갈라질 수 있고, 갈라지면 `_one_step_or_same`의
+# `CEFR_LEVELS.index(target)`가 Literal-유효 값에도 가드 없는 `ValueError`를 던진다.
+CEFR_LEVELS: tuple[str, ...] = get_args(CefrLevel)
+
+# `models/analysis.py`의 `SuggestedContext`와 같은 선례 — 항목 단위 비공백을 건다.
+# 개수 상한은 두지 않는다(발명하지 않는다).
+NonBlankText = Annotated[str, pydantic.Field(min_length=1)]
 
 
 class PlanValidationError(ValueError):
@@ -101,7 +108,7 @@ class SessionInstruction(pydantic.BaseModel):
     focus: list[InstructionFocus] = pydantic.Field(min_length=1, max_length=2)
     sentence_length: str = pydantic.Field(min_length=1)
     hint_timing: str = pydantic.Field(min_length=1)
-    contexts: list[str]
+    contexts: list[NonBlankText]
 
 
 class LevelDecision(pydantic.BaseModel):
@@ -124,19 +131,24 @@ class PlanOutput(pydantic.BaseModel):
     reason: str = pydantic.Field(min_length=1)
     instruction: SessionInstruction
     level: LevelDecision
-    notes: list[str]
+    notes: list[NonBlankText]
 
     @pydantic.model_validator(mode="after")
-    def _target_level_matches_level_decision(self) -> PlanOutput:
-        """계획의 난이도(`target_level`)와 수준 판단(`level.target_level`)이 어긋나면 거부한다.
+    def _target_level_matches_level_and_instruction(self) -> PlanOutput:
+        """`target_level` · `level.target_level` · `instruction.target_level` 셋이 다르면 거부한다.
 
-        두 값이 다르면 어느 것이 오늘의 목표인지 알 수 없다 — 저장하면 `session_plans`
-        1행과 `instruction`이 서로 다른 수준을 가리키는 상태가 영구히 남는다.
+        셋은 같은 개념("오늘의 목표 수준")이다. `target_level`은 화면에 표시되고,
+        `level.target_level`은 그 판단의 근거이며, `instruction.target_level`은
+        대화 상대가 실제로 조립해 말하는 지시문의 수준이다. 셋이 갈라지면 저장 시점의
+        표시와 대화 상대가 말하는 수준이 서로 다른 상태가 영구히 남는다 — 학습자는
+        화면에서 한 레벨을 보는데 대화 상대는 다른 레벨로 말한다.
         """
-        if self.target_level != self.level.target_level:
+        levels = {self.target_level, self.level.target_level, self.instruction.target_level}
+        if len(levels) > 1:
             raise ValueError(
                 f"target_level({self.target_level!r}) != "
-                f"level.target_level({self.level.target_level!r})"
+                f"level.target_level({self.level.target_level!r}) != "
+                f"instruction.target_level({self.instruction.target_level!r})"
             )
         return self
 

@@ -14,7 +14,7 @@ from uuid import uuid4
 
 import pytest
 
-from app.models.plan import PlanValidationError, parse_plan
+from app.models.plan import CEFR_LEVELS, PlanValidationError, parse_plan
 
 
 def _payload(**overrides: object) -> str:
@@ -81,21 +81,18 @@ def test_focus_count_outside_one_to_two_is_rejected(count: int):
 
 # AS5 ③ CEFR 값역 밖이면 거부한다 (001 의 CHECK 와 같은 값역)
 #
-# `level.target_level`도 함께 "Z9"로 맞춘다 — `target_level`만 바꾸면
-# `target_level != level.target_level` 불일치 검증에 걸려서 거부되고, 그 경우
-# 이 테스트는 CEFR 값역 검증이 아니라 그 불일치 검증을 재는 것이 된다(두 검증이
-# 같은 관측 결과를 내는 confound). 두 필드를 같은 값으로 맞춰야 CEFR 값역 검증만
-# 단독으로 걸리는지 확인할 수 있다(뮤테이션 검증: target_level 을 CefrLevel 에서
-# str 로 넓히면 이 confound 때문에 그래도 통과해 버린다 — 직접 확인함).
+# `level`은 오버라이드하지 않는다(기본값 "A2"로 남는다) — pydantic의
+# `model_validator(mode="after")`는 **필드 검증이 하나라도 실패하면 실행되지 않는다.**
+# 즉 `target_level="Z9"`는 `PlanOutput.target_level: CefrLevel`의 Literal 검증에서
+# **단독으로** 거부되고, `target_level != level.target_level` 불일치 검증(after
+# validator)까지 갈 일이 없다 — 애초에 confound가 아니다(2026-09-04 리뷰: 이전
+# 커밋이 `level`도 "Z9"로 맞춰 confound를 없앤다고 적었는데, 그 진단 자체가 틀렸다.
+# `match=`로 pydantic의 Literal 오류 문구를 직접 고정해 이 field-level 검증이
+# 실제로 걸리는지 뮤테이션으로 재확인했다 — `target_level`을 `str`로 넓히면 메시지가
+# "Input should be ..."에서 불일치 메시지로 바뀌어 이 `match=`가 깨진다).
 def test_unknown_level_is_rejected():
-    with pytest.raises(PlanValidationError):
-        parse_plan(
-            _payload(
-                target_level="Z9",
-                level={"action": "keep", "target_level": "Z9", "reason": "정답률이 아직 낮습니다."},
-            ),
-            current_level="A2",
-        )
+    with pytest.raises(PlanValidationError, match="Input should be"):
+        parse_plan(_payload(target_level="Z9"), current_level="A2")
 
 
 # AS7 — 두 단계 도약은 거부한다. h-doc 이 경고한 "목표 수준을 현재 수준으로 착각"을 구조로 막는다.
@@ -150,6 +147,45 @@ def test_target_level_must_match_level_decision():
         parse_plan(payload, current_level="A2")
 
 
+# Important 1(리뷰 2026-09-04, 팀리드가 직접 재현) — `instruction.target_level`도 같은
+# 값이어야 한다. `target_level`·`level.target_level`은 맞아도 `instruction.target_level`이
+# 갈라지면 저장되는 표시(A2)와 대화 상대가 실제로 말하는 지시문 수준(C2)이 다른 상태가
+# 영구히 남는다 — 학습자는 화면에서 A2를 보는데 대화 상대는 C2로 말한다.
+def test_instruction_target_level_must_match():
+    payload = _payload(
+        target_level="A2",
+        level={"action": "keep", "target_level": "A2", "reason": "정답률이 아직 낮습니다."},
+        instruction={
+            "target_level": "C2",
+            "focus": [{"pattern_key": "article_missing", "target_form": "a/an/the"}],
+            "sentence_length": "two short clauses",
+            "hint_timing": "offer a starter after one long pause",
+            "contexts": ["work update", "daily life", "plan"],
+        },
+    )
+    with pytest.raises(PlanValidationError):
+        parse_plan(payload, current_level="A2")
+
+
+# Important 2(리뷰 2026-09-04) — 두 단계 **하향** 도약도 거부한다. 기존 테스트 전부가
+# `current_level="A2"`라 `_one_step_or_same`의 대칭(`abs`)이 실제로 재지는지 확인할 방법이
+# 없었다(A2 밑으로 두 칸은 존재하지 않는다) — `current_level`을 올려서 확인한다.
+def test_two_step_down_jump_is_rejected():
+    payload = _payload(
+        target_level="A2",
+        level={"action": "down", "target_level": "A2", "reason": "많이 어려워했습니다."},
+        instruction={
+            "target_level": "A2",
+            "focus": [{"pattern_key": "article_missing", "target_form": "a/an/the"}],
+            "sentence_length": "one short clause",
+            "hint_timing": "offer a starter early",
+            "contexts": ["work update", "daily life", "plan"],
+        },
+    )
+    with pytest.raises(PlanValidationError):
+        parse_plan(payload, current_level="B2")
+
+
 # 규격 밖 필드가 섞이면 거부한다 (슬라이스 1과 같은 extra="forbid" 규약)
 def test_unknown_field_is_rejected():
     with pytest.raises(PlanValidationError):
@@ -168,3 +204,109 @@ def test_prose_wrapped_json_is_rejected():
     raw = "여기 계획입니다:\n" + _payload() + "\n확인해 주세요."
     with pytest.raises(PlanValidationError):
         parse_plan(raw, current_level="A2")
+
+
+# Important 3(리뷰 2026-09-04) — 산문이 **코드펜스까지 감싸도** 거부한다. 위
+# `test_prose_wrapped_json_is_rejected`의 입력에는 백틱이 전혀 없어 `_FENCED`의
+# `\A...\Z` 앵커가 실행조차 되지 않았다 — 그 테스트가 재는 것은 "원문이 그냥 JSON
+# 파싱에 실패하면 거부"뿐이었다. 이 테스트는 실제로 펜스가 있는데 그 앞뒤에 산문이
+# 붙은 경우를 재현해 앵커가 산문-포함 매칭을 실제로 막는지 확인한다.
+def test_prose_wrapped_fenced_json_is_rejected():
+    raw = "여기 계획입니다:\n```json\n" + _payload() + "\n```\n확인해 주세요."
+    with pytest.raises(PlanValidationError):
+        parse_plan(raw, current_level="A2")
+
+
+# M7(리뷰 2026-09-04) — 하위 모델의 `extra="forbid"`도 실제로 걸리는지 확인한다.
+# `test_unknown_field_is_rejected`는 최상위 `PlanOutput`만 재므로 `instruction`·
+# `questions` 항목의 `model_config`가 지워져도 잡지 못한다.
+def test_instruction_unknown_field_is_rejected():
+    payload = _payload(
+        instruction={
+            "target_level": "A2",
+            "focus": [{"pattern_key": "article_missing", "target_form": "a/an/the"}],
+            "sentence_length": "two short clauses",
+            "hint_timing": "offer a starter after one long pause",
+            "contexts": ["work update", "daily life", "plan"],
+            "surprise": "nope",
+        }
+    )
+    with pytest.raises(PlanValidationError):
+        parse_plan(payload, current_level="A2")
+
+
+def test_question_item_unknown_field_is_rejected():
+    questions = [
+        {"prompt": "q0", "context": "c0", "surprise": "nope"},
+        {"prompt": "q1", "context": "c1"},
+        {"prompt": "q2", "context": "c2"},
+    ]
+    with pytest.raises(PlanValidationError):
+        parse_plan(_payload(questions=questions), current_level="A2")
+
+
+# 미공개 이탈이었던 것을 여기서 등재한다(보고서 참조) — `SessionInstruction.focus`도
+# 1~2개다. 문서 근거는 `PlanOutput.focus`와 같다(PRD.md:188 R11-2 · agent-system-prompt.md:19):
+# 초점 패턴 자체가 1~2개이고, 지시문은 그 초점을 문장으로 옮긴 것일 뿐 개수가 늘거나
+# 줄 이유가 없다. 빼면 `instruction.focus=[]`가 통과해 "초점 없는 세션 지시문"이 관문을
+# 지나간다.
+@pytest.mark.parametrize("count", [0, 3])
+def test_instruction_focus_count_outside_one_to_two_is_rejected(count: int):
+    focus = [{"pattern_key": f"k{i}", "target_form": "f"} for i in range(count)]
+    payload = _payload(
+        instruction={
+            "target_level": "A2",
+            "focus": focus,
+            "sentence_length": "two short clauses",
+            "hint_timing": "offer a starter after one long pause",
+            "contexts": ["work update", "daily life", "plan"],
+        }
+    )
+    with pytest.raises(PlanValidationError):
+        parse_plan(payload, current_level="A2")
+
+
+# M5(리뷰 2026-09-04) — 001 `users.current_level` CHECK와 같은 값역인지 값 자체를
+# 고정한다. `models/analysis.py`의 `test_category_and_severity_codes_match_the_schema_check`와
+# 같은 선례.
+def test_cefr_levels_match_the_schema_check():
+    assert CEFR_LEVELS == ("A1", "A2", "B1", "B2", "C1", "C2")
+
+
+# M6(리뷰 2026-09-04) — `contexts`·`notes` 항목 단위 비공백. `models/analysis.py`의
+# `SuggestedContext`와 같은 선례(발명이 아니다). 개수 상한은 걸지 않는다(발명하지 않는다).
+def test_blank_context_item_is_rejected():
+    payload = _payload(
+        instruction={
+            "target_level": "A2",
+            "focus": [{"pattern_key": "article_missing", "target_form": "a/an/the"}],
+            "sentence_length": "two short clauses",
+            "hint_timing": "offer a starter after one long pause",
+            "contexts": ["work update", "   "],
+        }
+    )
+    with pytest.raises(PlanValidationError):
+        parse_plan(payload, current_level="A2")
+
+
+def test_blank_note_item_is_rejected():
+    with pytest.raises(PlanValidationError):
+        parse_plan(_payload(notes=["   "]), current_level="A2")
+
+
+# M9(리뷰 2026-09-04) — `plan.py`와 `analysis.py`의 `_FENCED`가 "글자 그대로 같다"는
+# 두 모듈 docstring의 주장을 지켜 주는 테스트. 한쪽만 고쳐지면 조용히 갈라지는데,
+# 이 테스트가 있으면 그 갈라짐이 실패로 드러난다.
+def test_fenced_regex_matches_analysis_module():
+    from app.models.analysis import _FENCED as analysis_fenced
+    from app.models.plan import _FENCED as plan_fenced
+
+    assert plan_fenced.pattern == analysis_fenced.pattern
+
+
+# 이탈 2(리뷰 2026-09-04) — `current_level` 자체가 값역 밖이면 거부한다. 가드
+# (`parse_plan`의 `if current_level not in CEFR_LEVELS`)는 Step 3에서 이미 있었지만
+# 전용 테스트가 없어 다음 리팩터가 초록 상태로 지울 위험이 있었다.
+def test_unknown_current_level_is_rejected():
+    with pytest.raises(PlanValidationError):
+        parse_plan(_payload(), current_level="Z9")
