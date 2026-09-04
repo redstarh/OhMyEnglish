@@ -338,8 +338,15 @@ alter table analysis_jobs add constraint analysis_jobs_target_matches_job_type
 - [ ] **Step 4: 테스트를 돌려 통과를 확인한다**
 
 Run: `cd app/backend && .venv/bin/pytest ../../tests/unit/test_schema.py -c pyproject.toml -v`
-Expected: 전건 PASS. 이어서 전체 게이트: `.venv/bin/pytest -q` → **454보다 5 늘어 459 passed**,
+Expected: 전건 PASS. 이어서 전체 게이트: `.venv/bin/pytest -q` → **458 passed**(454 + 신규 4건.
+표 목록 단정은 **기존 테스트 수정**이라 개수를 늘리지 않는다 — 2026-09-04 실측으로 확인),
 `.venv/bin/ruff check . && .venv/bin/ruff format --check .` → exit 0, `ty check` → All checks passed.
+
+⚠️ **위반을 기대하는 단정은 `async with db_conn.transaction():`으로 하나씩 감싼다.** `db_conn`
+픽스처는 트랜잭션 **하나**로 돌기 때문에 CHECK·UNIQUE 위반이 나면 그 트랜잭션이 abort되고,
+같은 테스트의 다음 문장이 전부 `InFailedSQLTransactionError`로 죽는다. 위 ⑭는 위반 3건과 성공 1건을
+한 테스트에 담고 있어 이 격리 없이는 **항상 실패한다**(2026-09-04 실측). asyncpg의 중첩 트랜잭션이
+savepoint로 동작해 위반 하나만 되돌린다.
 
 - [ ] **Step 5: 커밋**
 
