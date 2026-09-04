@@ -79,6 +79,29 @@ async def test_recent_window_lower_bound_is_inclusive(db_conn: asyncpg.Connectio
     assert [item.transcript for item in included] == ["on the edge"]
 
 
+# 리뷰 M1 — 창의 상한(`window_to`)이 실제로 발화를 자른다. 이 상한이 없으면 `PlanInput`이
+# 주장하는 닫힌 구간이 거짓이 된다(그 값이 `learner_notes.window_from/window_to`로 이어져
+# "이 노트가 읽은 발화 범위"의 근거가 된다). 미래 시각을 만들 필요는 없다 — 둘 다 과거에
+# 두고 `window_to`를 둘 사이에 걸면 상한만으로 나중 발화가 잘리는지 확인할 수 있다.
+@pytest.mark.asyncio
+async def test_recent_window_upper_bound_actually_excludes(
+    db_conn: asyncpg.Connection, seed_utterance_at
+):
+    user_id = await seed_utterance_at(db_conn, days_ago=3, transcript="kept", kind="learning")
+    await seed_utterance_at(
+        db_conn, days_ago=1, transcript="too new for this window", kind="learning"
+    )
+
+    included = await _load_recent(
+        db_conn,
+        user_id,
+        datetime.now(UTC) - timedelta(days=10),
+        datetime.now(UTC) - timedelta(days=2),
+    )
+
+    assert [item.transcript for item in included] == ["kept"]
+
+
 # §4.4 주의 1 — pending 은 미판정이라 계획 근거로 쓰지 않는다.
 @pytest.mark.asyncio
 async def test_pronunciation_pending_is_excluded(db_conn: asyncpg.Connection, seed_pronunciation):
