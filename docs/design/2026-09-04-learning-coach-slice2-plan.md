@@ -94,6 +94,29 @@ ruff · ty · Next.js(App Router)/TypeScript. **슬라이스 1과 달리 프론�
 | §8.1 `session_plans.session_id`는 "FK → `learning_sessions`, **unique**(세션당 1개)"이고 §3.3은 "계획 미사용을 `session_plans` **부재**로 판별한다" | **어느 세션인지 정해져 있지 않다.** 계획은 세션 N이 끝날 때 만들어져 세션 N+1이 쓴다. 생성 시점에 N+1은 **존재하지 않으므로** 소비 세션 id를 넣을 수 없다 | **계획을 만든 세션(N)을 가리킨다.** 설계서 자신의 두 제약이 이 답을 강제한다: ① §8.1이 `not null` + `unique`를 요구하는데 소비 세션으로 읽으면 생성 시 null이어야 한다 ② §3.4가 **세션 시작은 조회 1회**라고 못 박았는데 소비 세션으로 읽으면 시작 시 UPDATE가 필요하다. 그래서 세션 시작은 "**직전 세션이 만든 계획**"을 조회한다. §3.3의 "부재"도 그렇게 읽는다. 소비 표시 컬럼을 **만들지 않는다** — 항상 최신 계획을 읽으므로 중복 소비가 실질 문제를 만들지 않고, 만드는 순간 §8.1에 없는 컬럼을 발명하는 것이 된다 |
 | §12.1 "슬라이스 2는 **화면 변화가 없다**"는 암묵 전제 (슬라이스 1 계획서가 "프론트 수정 0건"을 제약으로 삼았다) | `docs/PRD.md:189`(R11-3)·`docs/requirements-summary.md:131`이 추천 이유를 **화면에서 볼 수 있어야 함**으로 요구한다. 화면 코드의 `reason`은 교정 이유·연결 실패 이유뿐이다 | **캡틴 결정 2026-09-04: 간략하게 표시한다.** Task 11이 조회 경로 1개 + 화면 한 줄을 만든다. **슬라이스 1의 "프론트 0건" 제약은 이어지지 않는다** |
 
+### Task 7 착수 전 점검 (2026-09-05, 전부 직접 실행해 확인) — 브리프가 참조한 것 대조
+
+**일치한 것 6건** (그대로 써도 된다): `load_plan_input(conn, user_id)` · `complete(conn, job_id,
+lease_token) -> bool`과 브리프가 인용한 docstring · `report_failure(pool, job, error)` ·
+`analysis.py`의 private `_LeaseLost` 관례 · 007의 `session_plans`·`learner_notes` 컬럼 이름 ·
+`PLAN_NOT_IMPLEMENTED`가 `tests/integration/test_worker.py`에서 **3곳**에 단정돼 있다는 경고.
+
+**어긋난 것 6건** — 브리프대로 하면 그 자리에서 깨진다:
+
+| # | 브리프의 전제 | 실측 | 이 태스크가 쓰는 것 |
+|--:|---|---|---|
+| 1 | 픽스처 `ended_session_with_history`·`claim_plan_job`·`plan_json`을 쓴다 | **셋 다 없다**(`grep def` 0건). 있는 것은 `committed_session`·`fake_claude`·`db_pool`·`seed_*` | **이 태스크가 셋을 만든다.** 브리프는 그 지시를 빠뜨렸다 |
+| 2 | 부분 반영 테스트가 `pytest.raises(asyncpg.UniqueViolationError)`로 예외가 **밖으로 새는 것**을 단정한다 | 같은 브리프가 "기존 관례를 그대로 따른다(`analysis.py`)"고 하는데 `analysis.py:539`는 **broad `except Exception` → `report_failure`**다. 관례를 따르면 예외가 새지 않아 그 테스트가 실패한다 | **관례를 따른다**(예외를 삼켜 `report_failure`). 그러지 않으면 job이 `running`에 남아 lease 만료까지 갔다가 **거짓 사유**로 종결된다 — **Ruling 16이 고친 바로 그 실패 모드**다. 테스트는 `pytest.raises` 대신 **부분 행 부재 + job 사유**를 단정하게 고친다 |
+| 3 | DB 테스트를 `tests/unit/test_plan.py`에 넣는다 | 그 파일은 **순수 함수 전용**이고 docstring이 "DB 없이 조립한다"를 못 박았다. 같은 브리프의 Files 절은 `tests/integration/test_plan_pipeline.py`(신규)를 적어 **자기모순**이다 | DB 테스트는 **`tests/integration/test_plan_pipeline.py`**. `tests/unit/test_plan.py`는 순수 함수만 유지한다 |
+| 4 | Step 2의 red 가 `NotImplementedError: Task 7이 저장까지 채운다`로 올라온다 | 그 형태는 **이미 없다** — Ruling 16이 `report_failure(PLAN_NOT_IMPLEMENTED)`로 교체했다(같은 브리프 Step 4가 그 사실을 안다) | red 는 "행이 없다·job이 `done`이 아니다"로 나타난다. **Step 2의 기대 문구를 믿지 말고 실제 출력을 적는다** |
+| 5 | Files 절이 `plan.py`·`test_plan.py`·`test_plan_pipeline.py`만 적는다 | 같은 브리프 ⚠️ ①이 **`models/plan.py` 시그니처를 넓히는 것이 이 태스크 범위**라고 적어 Files 절과 어긋난다 | `models/plan.py`도 변경 대상이다(`parse_plan`에 허용 id 집합) |
+| 6 | 노트 단정이 `assert "정답률" in note["note"]` | jsonb 코덱이 **설정돼 있지 않다**(`set_type_codec` 0건) → asyncpg 가 `str`로 돌려준다. 그래서 이 단정은 **가짜 응답의 문구**를 재는 것이고 코드가 무엇을 저장했는지는 재지 않는다 | `json.loads(...)`로 파싱해 `level_reason`·`observations`가 **왕복하는지**를 잰다 |
+
+⚠️ **허용 id 집합은 프롬프트와 같아야 한다** — S2-6 이 `- focus:`에서 두 절 제목
+(`"Due for review today"`·`"Chronic metrics"`)을 **그대로 인용**하게 고쳤으므로 가드의 집합도
+`{r.pattern_id for r in data.due_reviews} | {m.pattern_id for m in data.chronic}`이어야 한다.
+어긋나면 **정당한 계획이 거부된다.**
+
 ⚠️ **다시 조사하지 말 것 2건** (알고 남긴 축소다):
 1. **발음 패턴의 `next_review_at`은 영구히 null이고 `review_tasks` 행도 생기지 않는다.** 근거는
    설계서 §4.1 「구현이 채운 공백」 4번. 발음은 **§4.4의 별도 경로**로 계획 입력에 들어오므로 요구사항
