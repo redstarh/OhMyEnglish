@@ -12,6 +12,9 @@
 
 from __future__ import annotations
 
+from uuid import uuid4
+
+import asyncpg
 import pytest
 from conftest import default_finding
 
@@ -29,8 +32,10 @@ from app.services.analysis import (
     UNJUDGEABLE_CATEGORY,
     PatternRow,
     build_prompt,
+    process_analysis,
     resolve_pattern_keys,
 )
+from app.services.jobs import ClaimedJob
 
 TRANSCRIPT = "I usually go to gym after work."
 
@@ -369,3 +374,21 @@ def test_resolve_pattern_keys_keeps_the_last_verdict_for_a_repeated_key():
     assert [(a.pattern_key, a.outcome) for a in resolved.attempts] == [
         (RETRY_PATTERN.pattern_key, "incorrect")
     ]
+
+
+# ── Task 3 — 분석 job 만 process_analysis 로 간다 ─────────────────────────────
+
+
+async def test_process_analysis_rejects_non_analyze_job(db_pool: asyncpg.Pool, fake_claude):
+    job = ClaimedJob(
+        id=uuid4(),
+        job_type="plan_next_session",
+        utterance_id=None,
+        session_id=uuid4(),
+        lease_token="t",
+        attempts=1,
+    )
+    # 라우팅 실수를 조용히 삼키지 않는다 — 대상이 없다고 실패시키던 기존 문구가
+    # 아니라 "종류가 다르다"로 실패해야 원인이 보인다.
+    await process_analysis(db_pool, fake_claude(), job)
+    # job 행이 없으므로 상태 갱신은 일어나지 않지만, 예외로 터지지 않는 것이 계약이다

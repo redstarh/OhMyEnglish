@@ -46,11 +46,14 @@ Python constants above stay the single source of truth.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from uuid import UUID, uuid4
 
 import asyncpg
+
+logger = logging.getLogger(__name__)
 
 # --- 설계 발명값 (design-invented values, see module docstring) ---
 LEASE = timedelta(minutes=5)
@@ -68,16 +71,17 @@ LEASE_EXPIRED_ERROR = "max attempts exceeded (lease expired without report)"
 class ClaimedJob:
     """One successful claim. `lease_token` is only valid until `LEASE` elapses.
 
-    `utterance_id` is optional because `analysis_jobs` also carries
-    `plan_next_session` jobs, produced by `enqueue_plan_next_session` (target
-    columns are mutually exclusive per the `analysis_jobs_target_matches_job_type`
-    CHECK — those jobs carry `session_id` instead). `summarize_session` is a
-    third value the CHECK allows but no code enqueues yet. Jobs produced by
-    `enqueue_analyze` always have `utterance_id` set.
+    `job_type`을 함께 돌려주는 이유: 큐 하나에 종류가 셋이고
+    (`analyze_utterance`·`summarize_session`·`plan_next_session`) 대상 컬럼이
+    상호배타적이라, **종류를 모르면 어느 대상을 읽어야 하는지 알 수 없다.**
+    이전에는 `utterance_id`의 유무로 추측했는데 그러면 계획 job이 "대상 없음"으로
+    실패했다(계획서 Task 3).
     """
 
     id: UUID
+    job_type: str
     utterance_id: UUID | None
+    session_id: UUID | None
     lease_token: str
     attempts: int
 
@@ -200,7 +204,7 @@ async def claim_next(conn: asyncpg.Connection, *, now: datetime | None = None) -
                   limit 1
                   for update skip locked
                )
-        returning id, utterance_id, attempts
+        returning id, job_type, utterance_id, session_id, attempts
         """,
         at,
         lease_token,
@@ -211,7 +215,9 @@ async def claim_next(conn: asyncpg.Connection, *, now: datetime | None = None) -
         return None
     return ClaimedJob(
         id=row["id"],
+        job_type=row["job_type"],
         utterance_id=row["utterance_id"],
+        session_id=row["session_id"],
         lease_token=lease_token,
         attempts=row["attempts"],
     )
@@ -279,3 +285,16 @@ async def fail_or_retry(
         _require_aware(now),
     )
     return updated is not None
+
+
+async def report_failure(pool: asyncpg.Pool, job: ClaimedJob, error: str) -> None:
+    """실패를 큐에 보고한다 — 짧은 자기 트랜잭션(이 모듈의 호출 계약).
+
+    `analysis.py`의 private 함수였는데 계획 생성 job 도 같은 보고가 필요해져 여기로 옮겼다.
+    내용은 job 수명주기 로직뿐이라 이 모듈이 원래 자리다. 복제하면 두 경로의 보고 방식이
+    조용히 갈라진다.
+    """
+    async with pool.acquire() as conn, conn.transaction():
+        recorded = await fail_or_retry(conn, job.id, job.lease_token, error)
+    if not recorded:
+        logger.warning("job %s: failure report discarded (lease no longer ours)", job.id)

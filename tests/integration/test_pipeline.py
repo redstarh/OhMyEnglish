@@ -466,9 +466,12 @@ async def test_existing_pattern_key_is_reused_regardless_of_its_format(
     assert patterns[0]["frequency"] == 1
 
 
-# 대상 발화가 없는 job(`summarize_session`)은 이번 파이프라인이 처리할 수 없다.
-# 조용히 넘기면 job이 영원히 running으로 남아 결과 API가 세션을 "분석 중"에 고정한다.
-async def test_job_without_an_utterance_target_is_reported_as_failed(
+# 분석용이 아닌 종류의 job(`summarize_session`)이 process_analysis로 잘못 오면
+# "종류가 다르다"로 실패해야 한다 — utterance_id가 없는 것은 이 종류의 정상적인
+# 모양(DB CHECK가 요구)이지 결함이 아니므로 "대상 없음"은 원인을 잘못 지목한다
+# (Task 3). 조용히 넘기면 job이 영원히 running으로 남아 결과 API가 세션을
+# "분석 중"에 고정하므로, failed로 수렴시키는 것 자체는 그대로다.
+async def test_job_of_a_non_analyze_kind_is_reported_as_failed(
     db_pool: asyncpg.Pool, committed_session, fake_claude
 ):
     async with db_pool.acquire() as conn:
@@ -484,7 +487,7 @@ async def test_job_without_an_utterance_target_is_reported_as_failed(
 
     row = await _job_row(db_pool, job.id)
     assert row["status"] == "pending"
-    assert "no utterance target" in row["last_error"]
+    assert "is not an analysis job" in row["last_error"]
     assert claude.prompts == [], "처리할 수 없는 job으로 Claude를 호출하면 안 된다"
 
 

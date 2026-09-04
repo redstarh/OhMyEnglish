@@ -27,7 +27,8 @@ from uuid import UUID
 import asyncpg
 
 from app.services.analysis import process_analysis
-from app.services.jobs import ClaimedJob, claim_next
+from app.services.jobs import JOB_TYPE_PLAN, ClaimedJob, claim_next
+from app.services.plan import process_plan
 from app.services.sessions import ORPHAN_IDLE_GRACE, reap_orphan_sessions
 from app.services.utterances import flush_ended_sessions
 from app.workers.claude_client import ClaudeClient
@@ -158,7 +159,10 @@ async def run_worker(
                     continue
                 await _wait(stop, poll_interval)
                 continue
-            await process_analysis(pool, claude, job)
+            if job.job_type == JOB_TYPE_PLAN:
+                await process_plan(pool, claude, job)
+            else:
+                await process_analysis(pool, claude, job)
         except Exception:
             # 여기까지 오는 것은 큐/DB 자체의 장애다(`process_analysis`는 자기
             # 실패를 큐에 보고한다). 루프를 살려두고 다음 주기에 다시 시도한다.

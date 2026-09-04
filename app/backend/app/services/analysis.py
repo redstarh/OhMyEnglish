@@ -40,7 +40,7 @@ from app.models.analysis import (
     is_valid_new_pattern_key,
     parse_analysis,
 )
-from app.services.jobs import ClaimedJob, complete, fail_or_retry
+from app.services.jobs import JOB_TYPE_ANALYZE, ClaimedJob, complete, report_failure
 from app.services.review import recompute, store_attempts
 from app.services.utterances import ANALYZED_SPEAKER, ANALYZED_UTTERANCE_TYPE
 from app.workers.claude_client import ClaudeClient
@@ -470,14 +470,6 @@ async def _replace_occurrences(
         raise _LeaseLost
 
 
-async def _report_failure(pool: asyncpg.Pool, job: ClaimedJob, error: str) -> None:
-    """실패를 큐에 보고한다 — 짧은 자기 트랜잭션(jobs.py 호출 계약)."""
-    async with pool.acquire() as conn, conn.transaction():
-        recorded = await fail_or_retry(conn, job.id, job.lease_token, error)
-    if not recorded:
-        logger.warning("job %s: failure report discarded (lease no longer ours)", job.id)
-
-
 async def process_analysis(pool: asyncpg.Pool, claude: ClaudeClient, job: ClaimedJob) -> None:
     """claim된 `analyze_utterance` job 하나를 끝까지 처리한다.
 
@@ -486,11 +478,16 @@ async def process_analysis(pool: asyncpg.Pool, claude: ClaudeClient, job: Claime
     실패도 예외로 올리지 않는다: 워커 루프가 한 job 때문에 죽으면 그 세션은
     영원히 "분석 중"에 머문다. 모든 실패는 `fail_or_retry`로 큐에 보고된다.
     """
+    if job.job_type != JOB_TYPE_ANALYZE:
+        # `summarize_session`·`plan_next_session` job(대상이 session_id)이 라우팅
+        # 실수로 여기 올 수 있다. "대상 없음"이 아니라 "종류가 다르다"로 실패시켜야
+        # 원인이 보인다 — 그 종류의 job은 utterance_id가 없는 것이 정상이다(Task 3).
+        await report_failure(pool, job, f"job {job.id} is not an analysis job: {job.job_type}")
+        return
     if job.utterance_id is None:
-        # `summarize_session` job(대상이 session_id)은 이번 슬라이스에 등록되지
-        # 않지만 타입상 가능하다. 처리 불가를 보고해 상한까지 소모된 뒤 failed로
-        # 수렴시킨다 — 조용히 넘기면 job이 영원히 running으로 남는다.
-        await _report_failure(pool, job, f"job {job.id} has no utterance target")
+        # DB CHECK가 이 경우를 막지만 지우지 마라 — 아래에서 utterance_id를 UUID로
+        # 쓰므로 이것이 타입을 좁히는 유일한 장치다(ty check가 이 분기 없이는 깨진다).
+        await report_failure(pool, job, f"job {job.id} has no utterance target")
         return
 
     try:
@@ -498,11 +495,11 @@ async def process_analysis(pool: asyncpg.Pool, claude: ClaudeClient, job: Claime
             loaded = await _load_input(conn, job.utterance_id)
     except Exception as exc:  # DB 장애 — 큐에 보고하고 재시도에 맡긴다
         logger.exception("job %s: loading analysis input failed", job.id)
-        await _report_failure(pool, job, f"{type(exc).__name__}: {exc}")
+        await report_failure(pool, job, f"{type(exc).__name__}: {exc}")
         return
 
     if loaded is None:
-        await _report_failure(pool, job, f"utterance {job.utterance_id} no longer exists")
+        await report_failure(pool, job, f"utterance {job.utterance_id} no longer exists")
         return
 
     if loaded.transcript.strip():
@@ -514,11 +511,11 @@ async def process_analysis(pool: asyncpg.Pool, claude: ClaudeClient, job: Claime
             # `AnalysisValidationError`(계약 위반)가 여기로 온다. 예상된 결과이므로
             # 스택트레이스 없이 사유만 남긴다.
             logger.warning("job %s: analysis output rejected: %s", job.id, exc)
-            await _report_failure(pool, job, str(exc))
+            await report_failure(pool, job, str(exc))
             return
         except Exception as exc:
             logger.exception("job %s: claude call failed", job.id)
-            await _report_failure(pool, job, f"{type(exc).__name__}: {exc}")
+            await report_failure(pool, job, f"{type(exc).__name__}: {exc}")
             return
     else:
         # 빈/공백 전사문은 "분석할 것이 없다 = 오류 0건"이다. Claude를 호출하지 않고
@@ -538,4 +535,4 @@ async def process_analysis(pool: asyncpg.Pool, claude: ClaudeClient, job: Claime
         logger.warning("job %s: lease lost, result rolled back", job.id)
     except Exception as exc:
         logger.exception("job %s: storing analysis result failed", job.id)
-        await _report_failure(pool, job, f"{type(exc).__name__}: {exc}")
+        await report_failure(pool, job, f"{type(exc).__name__}: {exc}")

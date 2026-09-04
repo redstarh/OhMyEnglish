@@ -434,6 +434,22 @@ async def test_enqueue_plan_next_session_is_idempotent_while_pending(db_conn: as
     )
 
 
+# Task 3: claim_next 가 job_type·session_id 를 함께 돌려준다 — 이전에는 utterance_id의
+# 유무로 종류를 추측했는데 그러면 계획 job이 "대상 없음"으로 즉시 실패했다.
+async def test_claim_next_reports_job_type_and_session_target(db_conn: asyncpg.Connection):
+    await _insert_user(db_conn)
+    session_id = uuid4()
+    await _insert_session(db_conn, session_id)
+    await enqueue_plan_next_session(db_conn, session_id)
+
+    claimed = await claim_next(db_conn)
+
+    assert claimed is not None
+    assert claimed.job_type == JOB_TYPE_PLAN
+    assert claimed.session_id == session_id
+    assert claimed.utterance_id is None
+
+
 # 설계서 §3.1: 종료 기록과 job 등록이 한 트랜잭션이다. 분리하면 그 사이 크래시에서
 # 다음 계획이 영구히 만들어지지 않는다.
 async def test_end_session_enqueues_plan_job_in_same_transaction(db_conn: asyncpg.Connection):
