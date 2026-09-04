@@ -1720,7 +1720,18 @@ async def process_plan(pool: asyncpg.Pool, claude: ClaudeClient, job: ClaimedJob
 - [ ] **Step 4: 테스트를 돌려 통과를 확인한다**
 
 Run: `cd app/backend && .venv/bin/pytest -q` → 전건 PASS.
-Run: `grep -rn "NotImplementedError" app/` → **0건이어야 한다.**
+Run: `grep -rn "PLAN_NOT_IMPLEMENTED" app/ ../../tests/` → **0건이어야 한다.**
+
+⚠️ **이 게이트가 `NotImplementedError` grep에서 바뀐 이유** (2026-09-04 Task 3 리뷰): Task 3의
+임시물은 `raise NotImplementedError`가 **아니다.** 그 형태는 job을 `running`+사유 없음으로 남기고
+25분 뒤 **거짓 사유**로 종결시켜 이전보다 나빠졌으므로, `report_failure(pool, job, PLAN_NOT_IMPLEMENTED)`
++ `logger.warning`으로 교체했다. 그래서 **`NotImplementedError`를 grep하면 이미 0건이고 게이트가
+무력하다** — 반드시 상수 이름으로 grep한다.
+
+⚠️ **Task 3이 만든 테스트도 이 태스크가 고쳐야 한다.** 큐에 계획 job을 넣고 워커를 돌려
+`PLAN_NOT_IMPLEMENTED` 사유로 수렴하는지 단정하는 테스트가 있다. 계획 저장이 구현되면 그 job은
+**`done`으로 수렴해야** 하므로 그 테스트의 단정이 바뀐다. **그 테스트를 지우지 말고 새 계약으로
+고쳐라** — 그것이 이 태스크가 실제로 무엇을 바꿨는지 보여주는 자리다.
 Run: `.venv/bin/ruff check . && .venv/bin/ruff format --check . && ty check` → 전부 exit 0.
 
 - [ ] **Step 5: 커밋**
