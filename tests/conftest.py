@@ -42,7 +42,7 @@ import pytest_asyncio
 # 기대하는 문장이 갈라지는 경로를 아예 만들지 않기 위해 여기서는 재수출만 한다.
 from app.audio_gateway.fixtures import FIXTURE_TURNS as FIXTURE_TURNS
 from app.services.chronic import ChronicMetric
-from app.services.plan_input import PlanInput, PronunciationTally
+from app.services.plan_input import PlanInput, PronunciationTally, RecentCorrection, RecentUtterance
 from app.services.review import DueReview
 from app.workers.claude_client import FakeClaudeClient
 
@@ -482,6 +482,12 @@ def plan_input_factory() -> Callable[..., PlanInput]:
     초록으로 남았다). 두 목록을 분리하니 같은 mutation에 실패로 반응한다. `pattern_ids`는
     여전히 두 목록의 합집합에 미리 배정한다 — `chronic_flagged`가 `due_keys` 밖의 key를
     가리켜도(테스트가 그렇게 쓰지는 않지만) `KeyError`로 죽지 않게 하기 위해서다.
+
+    `recent`는 `(transcript, corrections)` 튜플의 목록이다. `corrections`는 `RecentCorrection`의
+    필드 순서 그대로인 7-튜플의 목록이다(`pattern_key, category, original_span, correction,
+    explanation, severity, confidence`) — 교정이 없는 발화는 빈 목록을 준다. 리뷰
+    Important-4: 이 파라미터가 없어서 `_format_recent`의 발화 줄·교정 줄 포맷이 한 번도
+    실행되지 않았다.
     """
 
     def make(
@@ -489,6 +495,7 @@ def plan_input_factory() -> Callable[..., PlanInput]:
         due_keys: Sequence[str] = (),
         chronic_flagged: Sequence[str] = (),
         pronunciation: Sequence[tuple[str, str, int]] = (),
+        recent: Sequence[tuple[str, Sequence[tuple[str, str, str, str, str, str, float]]]] = (),
     ) -> PlanInput:
         now = datetime.now(UTC)
         pattern_ids: dict[str, UUID] = {}
@@ -530,6 +537,14 @@ def plan_input_factory() -> Callable[..., PlanInput]:
             )
             for sound, outcome, attempts in pronunciation
         ]
+        recent_utterances = [
+            RecentUtterance(
+                said_at=now - timedelta(hours=index),
+                transcript=transcript,
+                corrections=tuple(RecentCorrection(*fields) for fields in corrections),
+            )
+            for index, (transcript, corrections) in enumerate(recent)
+        ]
 
         return PlanInput(
             user_id=uuid4(),
@@ -540,7 +555,7 @@ def plan_input_factory() -> Callable[..., PlanInput]:
             due_reviews=due_reviews,
             chronic=chronic,
             chronic_pattern_ids=chronic_pattern_ids,
-            recent=[],
+            recent=recent_utterances,
             pronunciation=pronunciation_tallies,
         )
 
