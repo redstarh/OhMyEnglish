@@ -666,8 +666,25 @@ async def report_failure(pool: asyncpg.Pool, job: ClaimedJob, error: str) -> Non
         logger.warning("job %s: failure report discarded (lease no longer ours)", job.id)
 ```
 
-`analysis.py`는 `_report_failure` 정의를 지우고 `from app.services.jobs import report_failure`로
-바꾼다. 호출부 2곳(`analysis.py:493`과 이 태스크가 더하는 종류 판정)도 새 이름을 쓴다.
+⚠️ **`jobs.py`에는 지금 logger가 없다** (2026-09-04 직접 확인: `import logging`·`getLogger` 각 0건).
+옮기는 함수가 `logger.warning`을 쓰므로 `import logging`과 `logger = logging.getLogger(__name__)`을
+함께 넣어야 한다. `analysis.py`의 logger 정의(`:27`·`:48`)는 다른 곳에서도 쓰이므로 **지우지 않는다.**
+
+⚠️ **로그 이름이 바뀐다.** 그 경고는 이제 `app.services.analysis`가 아니라 `app.services.jobs`로 찍힌다.
+레벨은 `warning` 그대로 둔다 — 문서가 지정한 실행에서 INFO는 보이지 않고(함정 H-Z), 이 로그가
+lease 상실의 유일한 신호다.
+
+`analysis.py`는 `_report_failure` 정의를 지우고 import를 정리한다. **`fail_or_retry`를 빼고
+`report_failure`를 넣는다** — 직접 확인한 결과 `fail_or_retry`는 `_report_failure` 안에서만 쓰이므로
+(`analysis.py:476` 한 곳) 남겨 두면 미사용 import가 되어 `ruff`가 게이트를 깬다. `complete`는
+`:469`에서 계속 쓰이므로 **유지한다.** 최종 형태:
+
+```python
+from app.services.jobs import ClaimedJob, complete, report_failure
+```
+
+호출부 2곳(`analysis.py:493`과 이 태스크가 더하는 종류 판정)도 새 이름을 쓴다.
+`_report_failure`를 쓰는 다른 모듈은 **없다**(앱·테스트·스크립트 전체 grep 0건) — 옮겨도 깨질 곳이 없다.
 
 ```python
 # app/backend/app/services/plan.py (이 태스크가 만드는 최소 형태)
