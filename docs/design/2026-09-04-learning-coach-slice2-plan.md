@@ -1138,7 +1138,17 @@ git commit -m "feat: 계획 입력을 모으는 읽기 전용 모듈
   - `PlanValidationError(ValueError)`
   - `FocusPattern(pattern_id: UUID, pattern_key: str, target_form: str)`
   - `PlanQuestion(prompt: str, context: str)`
-  - `SessionInstruction(target_level: str, focus: list[FocusPattern], sentence_length: str, hint_timing: str, contexts: list[str])`
+  - `InstructionFocus(pattern_key: str, target_form: str)`
+  - `SessionInstruction(target_level: str, focus: list[InstructionFocus], sentence_length: str, hint_timing: str, contexts: list[str])`
+
+⚠️ **초점 패턴을 나타내는 타입이 둘인 것은 의도된 것이다** (2026-09-04 정정 — 원래 계획서가 둘 다
+`FocusPattern`으로 써서 테스트 payload와 어긋나 있었다). 두 자리가 서로 다른 데이터를 필요로 한다:
+- `PlanOutput.focus`는 **`FocusPattern`**(`pattern_id` 포함) — 그 id가 `session_plans.focus_pattern_ids`에
+  저장되므로 반드시 있어야 한다.
+- `SessionInstruction.focus`는 **`InstructionFocus`**(`pattern_id` 없음) — 이 값은 Task 10에서
+  **대화 상대의 지시문 문장으로 조립된다.** 대화 상대는 UUID를 쓸 일이 없고, 넣으면 프롬프트에
+  기계 값이 섞인다. `extra="forbid"` 규약상 `pattern_id`를 요구하는 타입을 쓰면 아래 테스트 payload가
+  **검증에서 거부된다** — 그것이 원래 계획서의 결함이었다.
   - `LevelDecision(action: Literal["keep", "up", "down"], target_level: str, reason: str)`
   - `PlanOutput(focus: list[FocusPattern], questions: list[PlanQuestion], target_level: str, reason: str, instruction: SessionInstruction, level: LevelDecision, notes: list[str])`
   - `def parse_plan(raw: str, *, current_level: str) -> PlanOutput`
@@ -2002,13 +2012,13 @@ git commit -m "feat: 스텁 어댑터가 지시문을 받아 보관한다
 ```python
 # tests/unit/test_nova.py 에 추가
 from app.audio_gateway.nova import SYSTEM_PROMPT, build_system_prompt
-from app.models.plan import FocusPattern, SessionInstruction
+from app.models.plan import InstructionFocus, SessionInstruction
 
 
 def _instruction(**overrides: object) -> SessionInstruction:
     body: dict[str, object] = {
         "target_level": "B1",
-        "focus": [FocusPattern(pattern_id=uuid4(), pattern_key="article_missing", target_form="a/an/the")],
+        "focus": [InstructionFocus(pattern_key="article_missing", target_form="a/an/the")],
         "sentence_length": "two or three short clauses",
         "hint_timing": "wait through one long pause before offering a starter",
         "contexts": ["work update", "daily life", "weekend plan"],
