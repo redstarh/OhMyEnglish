@@ -28,6 +28,8 @@ from uuid import UUID
 
 import asyncpg
 
+from app.services.jobs import enqueue_plan_next_session
+
 logger = logging.getLogger(__name__)
 
 SessionEndStatus = Literal["completed", "failed"]
@@ -105,6 +107,10 @@ async def end_session(conn: asyncpg.Connection, session_id: UUID, status: Sessio
             session_id,
             status,
         )
+        return
+    # 설계서 §3.1: 같은 트랜잭션에서 다음 계획 job을 건다. `closed`가 있을 때만 거는 이유는
+    # 이미 닫힌 세션 재호출(리퍼가 먼저 닫은 경우)에서 job이 중복되지 않게 하려는 것이다.
+    await enqueue_plan_next_session(conn, session_id)
 
 
 async def reap_orphan_sessions(

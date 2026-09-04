@@ -56,6 +56,7 @@ MAX_ATTEMPTS = 5
 BACKOFF = timedelta(minutes=1)
 
 JOB_TYPE_ANALYZE = "analyze_utterance"
+JOB_TYPE_PLAN = "plan_next_session"
 
 # reaper가 좀비 job에 남기는 사유 (아래 `_REAP_ZOMBIES_SQL` 참조).
 LEASE_EXPIRED_ERROR = "max attempts exceeded (lease expired without report)"
@@ -110,6 +111,27 @@ async def enqueue_analyze(conn: asyncpg.Connection, utterance_id: UUID) -> UUID 
         JOB_TYPE_ANALYZE,
         utterance_id,
     )
+
+
+_ENQUEUE_PLAN_SQL = """
+insert into analysis_jobs (job_type, session_id)
+values ($1, $2)
+on conflict do nothing
+returning id
+"""
+
+
+async def enqueue_plan_next_session(conn: asyncpg.Connection, session_id: UUID) -> UUID | None:
+    """끝난 세션 하나를 근거로 **다음** 세션 계획을 만들 job을 건다 (설계서 §3.1).
+
+    `None`은 실패가 아니라 **이미 걸려 있다**는 뜻이다 — partial unique
+    `uq_analysis_jobs_pending_session`이 `(job_type, session_id)`를 pending/running
+    동안 하나로 묶는다. 재시도되는 호출자가 중복을 만들지 않는다.
+
+    ⚠️ 연결을 받는다(pool이 아니다). 세션 종료 기록과 **한 트랜잭션**이어야 하기 때문이다 —
+    분리하면 그 사이 크래시에서 다음 계획이 영구히 만들어지지 않는다.
+    """
+    return await conn.fetchval(_ENQUEUE_PLAN_SQL, JOB_TYPE_PLAN, session_id)
 
 
 async def claim_next(conn: asyncpg.Connection, *, now: datetime | None = None) -> ClaimedJob | None:

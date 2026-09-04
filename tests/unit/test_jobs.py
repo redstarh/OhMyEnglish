@@ -21,6 +21,7 @@ from conftest import job_row
 
 from app.services.jobs import (
     BACKOFF,
+    JOB_TYPE_PLAN,
     LEASE,
     LEASE_EXPIRED_ERROR,
     MAX_ATTEMPTS,
@@ -28,8 +29,30 @@ from app.services.jobs import (
     claim_next,
     complete,
     enqueue_analyze,
+    enqueue_plan_next_session,
     fail_or_retry,
 )
+from app.services.sessions import end_session
+
+# 고정 사용자 id — `tests/unit/test_schema.py`·`test_chronic.py`와 같은 패턴이다.
+# `db_conn`은 매 테스트 롤백되는 트랜잭션이라 시딩된 사용자가 없다(§ conftest 참조).
+_USER_ID = UUID("00000000-0000-0000-0000-000000000001")
+
+
+async def _insert_user(conn: asyncpg.Connection) -> None:
+    await conn.execute(
+        "insert into users (id, display_name, timezone, current_level) "
+        "values ($1, 'Plan Job Test User', 'Asia/Seoul', 'A2')",
+        _USER_ID,
+    )
+
+
+async def _insert_session(conn: asyncpg.Connection, session_id: UUID) -> None:
+    await conn.execute(
+        "insert into learning_sessions (id, user_id, mode) values ($1, $2, 'speaking')",
+        session_id,
+        _USER_ID,
+    )
 
 
 async def _new_utterance(conn: asyncpg.Connection, *, sequence_no: int = 1) -> UUID:
@@ -369,3 +392,79 @@ async def test_complete_and_fail_return_false_for_unknown_job(db_conn: asyncpg.C
 async def test_enqueue_rejects_unknown_utterance(db_conn: asyncpg.Connection):
     with pytest.raises(asyncpg.ForeignKeyViolationError):
         await enqueue_analyze(db_conn, uuid4())
+
+
+# Task 2 — plan_next_session job 등록 (설계서 §3.1). Task 1이 만든 CHECK/partial unique를
+# 그대로 탄다: 대상 컬럼은 (session_id is not null and utterance_id is null), 중복 방지는
+# uq_analysis_jobs_pending_session이 (job_type, session_id)로 이미 걸어 둔 것을 쓴다.
+async def test_enqueue_plan_next_session_registers_one_job(db_conn: asyncpg.Connection):
+    await _insert_user(db_conn)
+    session_id = uuid4()
+    await _insert_session(db_conn, session_id)
+
+    job_id = await enqueue_plan_next_session(db_conn, session_id)
+
+    assert job_id is not None
+    row = await db_conn.fetchrow(
+        "select job_type, session_id, utterance_id, status from analysis_jobs where id = $1",
+        job_id,
+    )
+    assert row["job_type"] == JOB_TYPE_PLAN
+    assert row["session_id"] == session_id
+    assert row["utterance_id"] is None
+    assert row["status"] == "pending"
+
+
+async def test_enqueue_plan_next_session_is_idempotent_while_pending(db_conn: asyncpg.Connection):
+    await _insert_user(db_conn)
+    session_id = uuid4()
+    await _insert_session(db_conn, session_id)
+
+    first = await enqueue_plan_next_session(db_conn, session_id)
+    second = await enqueue_plan_next_session(db_conn, session_id)
+
+    assert first is not None
+    assert second is None
+    assert (
+        await db_conn.fetchval(
+            "select count(*) from analysis_jobs where job_type = $1", JOB_TYPE_PLAN
+        )
+        == 1
+    )
+
+
+# 설계서 §3.1: 종료 기록과 job 등록이 한 트랜잭션이다. 분리하면 그 사이 크래시에서
+# 다음 계획이 영구히 만들어지지 않는다.
+async def test_end_session_enqueues_plan_job_in_same_transaction(db_conn: asyncpg.Connection):
+    await _insert_user(db_conn)
+    session_id = uuid4()
+    await _insert_session(db_conn, session_id)
+
+    await end_session(db_conn, session_id, "completed")
+
+    assert (
+        await db_conn.fetchval(
+            "select count(*) from analysis_jobs where job_type = $1 and session_id = $2",
+            JOB_TYPE_PLAN,
+            session_id,
+        )
+        == 1
+    )
+
+
+# 이미 닫힌 세션을 다시 닫으려 하면 job 이 늘지 않는다 — end_session 의 active 가드가
+# 실제로 닫았는지(`closed`)를 보기 때문이다.
+async def test_end_session_does_not_enqueue_when_already_closed(db_conn: asyncpg.Connection):
+    await _insert_user(db_conn)
+    session_id = uuid4()
+    await _insert_session(db_conn, session_id)
+
+    await end_session(db_conn, session_id, "failed")
+    await end_session(db_conn, session_id, "completed")
+
+    assert (
+        await db_conn.fetchval(
+            "select count(*) from analysis_jobs where session_id = $1", session_id
+        )
+        == 1
+    )
