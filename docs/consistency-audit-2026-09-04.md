@@ -28,7 +28,7 @@
 
 ### 2. "왜 이걸 연습하는지 이유를 화면에서 볼 수 있어야 한다" — 화면 쪽 담당이 없다
 
-- 요구사항: `docs/PRD.md:190` (R11-3), `docs/requirements-summary.md:131` 두 곳이 **화면에서 볼 수 있어야 함**을 명시.
+- 요구사항: `docs/PRD.md:189` (R11-3), `docs/requirements-summary.md:131` 두 곳이 **화면에서 볼 수 있어야 함**을 명시.
 - 조각 2는 이유를 **저장만** 한다(계획 표의 `reason` 칸).
 - 화면에 그걸 보여주는 자리가 없다: 화면 코드의 `reason`은 교정 이유(`app/frontend/app/results/[sessionId]/page.tsx:171`)와
   연결 실패 이유(`app/frontend/app/page.tsx:145`)뿐이다.

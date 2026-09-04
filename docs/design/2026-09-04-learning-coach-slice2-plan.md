@@ -81,7 +81,7 @@ ruff · ty · Next.js(App Router)/TypeScript. **슬라이스 1과 달리 프론�
 | §7 수준 갱신 근거는 "`pattern_attempts`의 정답률과 **발화 길이 추이**" | `pattern_attempts`는 문법·표현 전용이고 발음은 `pronunciation_attempts`에 쌓인다. 즉 **발음은 수준 판단에 안 들어간다** — 그런데 그 이유가 어디에도 없었다 | **캡틴 결정 2026-09-04: 지금은 넣지 않고 MVP 이후 재검토.** ⚠️ **영구 제외로 적지 마라** — 재검토가 예정된 이월이다. Task 12가 설계서 §11 이월에 그렇게 기록한다 |
 | 머리말 "요구사항 근거: R11-1~10, **AC11-1~6**" (전부 커버한다고 선언) | **AC11-5·AC11-6이 설계서 어디에도 없다** — 리터럴 0건이고 수용 시나리오 11개에 발음을 다루는 것이 0건이다 | **AC11-6은 이 계획이 닫는다**(Task 12가 AS11을 신설). **AC11-5는 실물 음성 확인이 필요해 이 계획의 범위 밖이고**, Task 12가 그 미충족 사실을 설계서에 적는다 |
 | §8.1 `session_plans.session_id`는 "FK → `learning_sessions`, **unique**(세션당 1개)"이고 §3.3은 "계획 미사용을 `session_plans` **부재**로 판별한다" | **어느 세션인지 정해져 있지 않다.** 계획은 세션 N이 끝날 때 만들어져 세션 N+1이 쓴다. 생성 시점에 N+1은 **존재하지 않으므로** 소비 세션 id를 넣을 수 없다 | **계획을 만든 세션(N)을 가리킨다.** 설계서 자신의 두 제약이 이 답을 강제한다: ① §8.1이 `not null` + `unique`를 요구하는데 소비 세션으로 읽으면 생성 시 null이어야 한다 ② §3.4가 **세션 시작은 조회 1회**라고 못 박았는데 소비 세션으로 읽으면 시작 시 UPDATE가 필요하다. 그래서 세션 시작은 "**직전 세션이 만든 계획**"을 조회한다. §3.3의 "부재"도 그렇게 읽는다. 소비 표시 컬럼을 **만들지 않는다** — 항상 최신 계획을 읽으므로 중복 소비가 실질 문제를 만들지 않고, 만드는 순간 §8.1에 없는 컬럼을 발명하는 것이 된다 |
-| §12.1 "슬라이스 2는 **화면 변화가 없다**"는 암묵 전제 (슬라이스 1 계획서가 "프론트 수정 0건"을 제약으로 삼았다) | `docs/PRD.md:190`(R11-3)·`docs/requirements-summary.md:131`이 추천 이유를 **화면에서 볼 수 있어야 함**으로 요구한다. 화면 코드의 `reason`은 교정 이유·연결 실패 이유뿐이다 | **캡틴 결정 2026-09-04: 간략하게 표시한다.** Task 11이 조회 경로 1개 + 화면 한 줄을 만든다. **슬라이스 1의 "프론트 0건" 제약은 이어지지 않는다** |
+| §12.1 "슬라이스 2는 **화면 변화가 없다**"는 암묵 전제 (슬라이스 1 계획서가 "프론트 수정 0건"을 제약으로 삼았다) | `docs/PRD.md:189`(R11-3)·`docs/requirements-summary.md:131`이 추천 이유를 **화면에서 볼 수 있어야 함**으로 요구한다. 화면 코드의 `reason`은 교정 이유·연결 실패 이유뿐이다 | **캡틴 결정 2026-09-04: 간략하게 표시한다.** Task 11이 조회 경로 1개 + 화면 한 줄을 만든다. **슬라이스 1의 "프론트 0건" 제약은 이어지지 않는다** |
 
 ⚠️ **다시 조사하지 말 것 2건** (알고 남긴 축소다):
 1. **발음 패턴의 `next_review_at`은 영구히 null이고 `review_tasks` 행도 생기지 않는다.** 근거는
@@ -286,7 +286,7 @@ create table session_plans (
   questions jsonb not null,
   -- CEFR 값역은 001 의 users.current_level·learning_scenarios.level 과 **같은 값**을 쓴다.
   target_level text not null check (target_level in ('A1', 'A2', 'B1', 'B2', 'C1', 'C2')),
-  -- not null + 공백 금지: 이유 없는 추천은 사용자가 판단을 검증할 수 없다(PRD.md:190 R11-3).
+  -- not null + 공백 금지: 이유 없는 추천은 사용자가 판단을 검증할 수 없다(PRD.md:189 R11-3).
   reason text not null,
   -- 세션 지시문 가변부(§5.2). 구조로 저장하고 문장 조립은 읽는 쪽이 한다.
   instruction jsonb not null,
@@ -1112,7 +1112,7 @@ def test_valid_plan_parses():
     assert result.level.action == "keep"
 
 
-# AS5 ① 추천 이유가 비어 있으면 거부한다 (PRD.md:190 R11-3 — 이유 없는 추천은 검증할 수 없다)
+# AS5 ① 추천 이유가 비어 있으면 거부한다 (PRD.md:189 R11-3 — 이유 없는 추천은 검증할 수 없다)
 @pytest.mark.parametrize("blank", ["", "   ", "\n"])
 def test_blank_reason_is_rejected(blank: str):
     with pytest.raises(PlanValidationError):
@@ -2127,7 +2127,7 @@ git commit -m "feat: 세션 지시문에 오늘의 계획을 얹는다 + 빠져 
 
 **캡틴 결정 2026-09-04**: 추천 이유를 **간략하게** 표시한다. 이 태스크가 읽는 방식:
 **이유 한 문장 + 오늘의 난이도만.** 초점 패턴 목록·질문 목록은 **넣지 않는다** — 요구사항이 요구하는 것은
-"왜 이 연습인지"(`docs/PRD.md:190`·`docs/requirements-summary.md:131`)이고 그 이상은 승인된 범위가 아니다.
+"왜 이 연습인지"(`docs/PRD.md:189`·`docs/requirements-summary.md:131`)이고 그 이상은 승인된 범위가 아니다.
 
 ⚠️ **이 태스크가 슬라이스 1의 "프론트 수정 0건" 제약을 끝낸다.** 그 제약은 슬라이스 1의 것이었다.
 
@@ -2179,7 +2179,7 @@ import하는 **선례가 있다**. 새 상수를 만들면 값이 두 곳에 생
 ```python
 @router.get("/next-plan")
 async def next_plan(request: Request) -> dict[str, str | None]:
-    """다음 세션에 쓸 계획의 **추천 이유만** 내려준다 (PRD.md:190 R11-3).
+    """다음 세션에 쓸 계획의 **추천 이유만** 내려준다 (PRD.md:189 R11-3).
 
     계획이 없으면 404가 아니라 null이다 — 계획 부재는 오류가 아니고, 화면은 그 자리를
     비우기만 한다(설계서 §9 Contract: 계획 부재가 실패로 번역되지 않는다).
@@ -2235,7 +2235,7 @@ git add app/backend/app/api/results.py app/frontend/lib/api.ts app/frontend/app/
         tests/integration/test_plan_api.py
 git commit -m "feat: 시작 화면에 추천 이유를 한 줄로 보여준다
 
-- PRD.md:190 R11-3 · requirements-summary.md:131 이 '화면에서 볼 수 있어야 함'을
+- PRD.md:189 R11-3 · requirements-summary.md:131 이 '화면에서 볼 수 있어야 함'을
   요구하는데 담당이 없었다(2026-09-04 점검)
 - 캡틴 결정대로 간략하게: 이유 한 문장 + 난이도만. 질문 목록은 내려주지 않는다 —
   미리 보면 답을 준비해 즉흥 발화 연습이 무의미해진다
