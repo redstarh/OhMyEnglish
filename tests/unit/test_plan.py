@@ -36,6 +36,9 @@ def test_prompt_lists_every_due_pattern(plan_input_factory):
     # AS1 — 하나라도 빠지면 실패다.
     for key in ("article_missing", "verb_tense_past", "preposition_at"):
         assert key in prompt
+    # `- focus:`는 각 항목에 `target_form`을 요구한다 — 목록이 그것을 싣지 않으면 모델이
+    # 지어낸다(pattern_id 와 같은 부류, FK가 없어 검증만으로는 안 걸린다). 무테스트였다.
+    assert f'target form "{data.due_reviews[0].target_form}"' in prompt
 
 
 def test_prompt_includes_pattern_id_so_the_model_never_invents_one(plan_input_factory):
@@ -76,7 +79,6 @@ def test_prompt_restricts_focus_to_the_two_lists_that_carry_pattern_id(plan_inpu
     )
 
     prompt = build_plan_prompt(data)
-    spec_section = prompt[prompt.index("Return one JSON object") :]
 
     # 재리뷰 라운드 2의 Critical — 이전 문구는 "Pick from the lists above"였는데 **네 목록 중
     # 둘만 pattern_id를 싣는다**(내가 프로브로 확인: 최근 교정 `False` · 발음 `False`).
@@ -85,18 +87,22 @@ def test_prompt_restricts_focus_to_the_two_lists_that_carry_pattern_id(plan_inpu
     # `focus_pattern_ids uuid[]`에 조용히 저장되는 원래 경로가 그대로 살아난다.
     # 계획서 Task 7이 정한 허용 집합도 `due_reviews ∪ chronic` 둘뿐이라, 다른 목록에서 고른
     # 초점은 그 가드가 어차피 하드 거부한다 — 프롬프트가 그 경계를 먼저 말해야 한다.
-    assert "review list or the chronic list" in spec_section
-    assert "only two lists that carry pattern_id" in spec_section
+    focus_bullet = _bullet(prompt, "focus")
+    assert "only two lists that carry pattern_id" in focus_bullet
+    assert "a pattern taken from anywhere else is rejected" in focus_bullet
 
-    # 초점 출처가 아닌 두 절은 스스로도 그 사실을 말한다.
-    recent_header = prompt[
-        prompt.index("Recent learner utterances") : prompt.index("Recent learner utterances") + 120
-    ]
-    pronunciation_header = prompt[
-        prompt.index("Pronunciation attempts") : prompt.index("Pronunciation attempts") + 120
-    ]
-    assert "context only" in recent_header
-    assert "context only" in pronunciation_header
+    # ⚠️ 규격이 부르는 이름은 **절 제목을 그대로 인용**해야 한다(재리뷰 라운드 2의 Minor).
+    # 이전 판은 "review list"라고 불렀는데 제목은 "Due for review today (…)"였다 — 그 둘을
+    # 잇는 것이 모델의 추론이고, 추론이 틀리면 **Critical 경로가 되살아난다**(다른 목록에서
+    # 초점을 골라 UUID를 지어낸다). 인용과 실제 제목이 함께 있는지 잰다.
+    for bare in ("Due for review today", "Chronic metrics"):
+        assert f'"{bare}"' in focus_bullet  # 규격이 제목 문구를 인용한다
+        assert f"{bare} (" in prompt  # 그 문구로 시작하는 절 제목이 실재한다
+
+    # 초점 출처가 아닌 두 절은 스스로도 그 사실을 말한다. 제목 **줄 끝까지** 자른다 —
+    # 고정 길이 창은 자기순환이었다(`_section_header` docstring).
+    assert "context only" in _section_header(prompt, "Recent learner utterances")
+    assert "context only" in _section_header(prompt, "Pronunciation attempts")
 
 
 def test_prompt_asks_for_the_output_contract(plan_input_factory):
@@ -150,20 +156,56 @@ def test_prompt_forbids_extra_keys_and_blank_strings(plan_input_factory):
     # contexts 항목·notes 항목이 같은 제약을 받는다.
     assert "Do not add any key that is not listed above" in spec_section
     assert "must be non-empty" in spec_section
+    # 빈 리스트와 빈 문자열을 갈라 말하는 문장 — 없으면 모델이 "모든 문자열이 비면 안 된다"를
+    # **빈 리스트 금지**로 읽을 여지가 있다(재리뷰 라운드 2의 Minor. 이 문장이 무테스트였다).
+    assert "Empty lists are allowed where said above; empty strings are not" in spec_section
 
 
 def _bullet(prompt: str, key: str) -> str:
-    """출력 규격에서 `- <key>:` 불릿 하나만 잘라낸다.
+    """출력 규격에서 `- <key>:` 불릿의 **본문**만 잘라낸다 (`- key:` 표지는 벗긴다).
 
     규격 전체나 프롬프트 전체를 대상으로 문구를 찾으면 **다른 불릿에 있는 같은 낱말**에
     걸려 판별력을 잃는다 — 재리뷰 라운드 2가 그 방식으로 회귀 1건과 항진 2건을 잡았다.
-    불릿은 다음 `\\n- ` 또는 규격 끝까지다(이어지는 줄은 두 칸 들여쓰기라 걸리지 않는다).
+
+    불릿은 다음 `\\n- ` **또는 빈 줄**에서 끝난다. ⚠️ 빈 줄을 경계로 넣은 이유: 마지막
+    불릿(`notes`)은 `\\n- `를 만나지 않아 규격 끝의 **전역 문장 2개까지 끌고 왔다**
+    (실측 — `"must be non-empty" in _bullet(prompt, "notes")` → `True`,
+    `"Do not add any key" in _bullet(prompt, "notes")` → `True`). 그것을 불릿 내용으로
+    착각하면 엉뚱한 자리를 지킨다.
     """
     spec = prompt[prompt.index("Return one JSON object") :]
-    start = spec.index(f"- {key}:")
-    rest = spec[start + 1 :]
-    end = rest.find("\n- ")
-    return rest[:end] if end != -1 else rest
+    marker = f"- {key}:"
+    assert marker in spec, f"출력 규격에 {marker!r} 불릿이 없다"
+    body = spec[spec.index(marker) + len(marker) :]
+    ends = [i for i in (body.find("\n- "), body.find("\n\n")) if i != -1]
+    return body[: min(ends)] if ends else body
+
+
+def _bullet_lead(prompt: str, key: str) -> str:
+    """불릿 본문의 **첫 문장**만. 문구를 그 불릿의 **주어에 묶는다.**
+
+    ⚠️ `_bullet()`만으로는 부족하다 — 창을 좁힐 뿐 문구를 주어에 묶지 않는다. 재리뷰
+    라운드 2가 반례를 통과시켰고 **내가 직접 재현했다(22 passed)**: `- focus:`에서 개수
+    제약을 지우고 두 칸 들여쓴 연속 줄에 `"Note: instruction.focus below also has one or
+    two items."`를 넣으면 `"one or two" in _bullet(prompt, "focus")`가 **참으로 남는다.**
+    규격에 이미 불릿 간 상호참조가 있으므로(`instruction.target_level must equal the
+    top-level target_level`) 현실적인 편집이다 — 라운드 1이 만든 회귀와 **같은 부류**이고
+    창만 한 단계 좁혀졌을 뿐이었다.
+    """
+    head, _, _ = _bullet(prompt, key).partition(".")
+    return head
+
+
+def _section_header(prompt: str, anchor: str) -> str:
+    """절 제목 **한 줄**만. 고정 길이 창(`+120` 같은 것)을 쓰지 않는다.
+
+    ⚠️ 고정 창은 **자기순환**이었다(재리뷰 라운드 2). 최근 창 제목은 지금 **134자**인데
+    그것은 여기서 재려는 문구(37자)가 있기 때문이다 — 그 문구를 지우면 제목이 97자로 줄어
+    120자 창이 목록 본문으로 **23자 새어들고**, 그 자리에 같은 문구를 넣은 뮤테이션에서
+    테스트가 **통과했다.** 단정이 지키려는 문구가 단정의 경계를 지켜 주면 안 된다.
+    """
+    start = prompt.index(anchor)
+    return prompt[start : prompt.index("\n", start)]
 
 
 def test_prompt_states_the_documented_counts(plan_input_factory):
@@ -171,9 +213,12 @@ def test_prompt_states_the_documented_counts(plan_input_factory):
 
     # ⚠️ 프롬프트 전체에서 "one or two"를 찾으면 **판별력이 없다** — 고침 라운드 1이
     # `- instruction:` 불릿에 "one or two items"를 더한 뒤로는 `- focus:`의 개수 제약을
-    # 지워도 통과했다(재리뷰 라운드 2가 잡은 회귀, 내가 직접 재현). 불릿을 잘라서 잰다.
-    assert "one or two" in _bullet(prompt, "focus")  # 초점 패턴 (PRD.md:188)
-    assert "three to five" in _bullet(prompt, "questions")  # 질문 (PRD.md:188)
+    # 지워도 통과했다(재리뷰 라운드 2가 잡은 회귀, 내가 직접 재현).
+    # ⚠️ **불릿으로 좁히는 것도 부족했다** — 두 칸 들여쓴 연속 줄에 `instruction.focus`
+    # 상호참조를 넣으면 개수 제약을 지워도 통과한다(라운드 2의 반례, 내가 재현: 22 passed).
+    # 문구를 불릿의 **주어에 묶는다** → 첫 문장만 본다.
+    assert "one or two" in _bullet_lead(prompt, "focus")  # 초점 패턴 (PRD.md:188)
+    assert "three to five" in _bullet_lead(prompt, "questions")  # 질문 (PRD.md:188)
 
 
 def test_prompt_requires_korean_reason(plan_input_factory):
@@ -291,8 +336,14 @@ def test_prompt_renders_a_missing_max_gap_as_not_applicable(plan_input_factory):
     # `chronic.py`는 발생이 1건뿐인 패턴에 `max_gap=None`을 낸다. 픽스처가 고정값이라
     # `"n/a"` 분기가 한 번도 실행되지 않았다(재리뷰 라운드 2의 Minor). `None`이 그대로
     # 새면 모델이 "longest gap None"을 읽는다.
-    assert "longest gap n/a" in prompt
-    assert "None" not in prompt
+    # ⚠️ `"None" not in prompt`로 재지 않는다 — **만성 절로 좁힌다.** 프롬프트에는 학습자
+    # 전사문이 그대로 실리므로 `"None of them worked."` 같은 발화에 오경보한다(라운드 2가
+    # 실측으로 증명했다). 이 파일 머리말의 지배 규칙("전체를 대상으로 찾지 않는다")도 같다.
+    chronic_section = prompt[
+        prompt.index("Chronic metrics") : prompt.index("Pronunciation attempts")
+    ]
+    assert "longest gap n/a" in chronic_section
+    assert "None" not in chronic_section
 
 
 def test_prompt_includes_recent_utterances_and_their_corrections(plan_input_factory):

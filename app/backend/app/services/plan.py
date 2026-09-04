@@ -108,9 +108,9 @@ occurrence, so do not rank these against the grammar counts above):"""
 _OUTPUT_SPEC = """\
 Return one JSON object and nothing else. Keys:
 - focus: one or two patterns, each {pattern_id, pattern_key, target_form}. Pick only from the
-  review list or the chronic list above — those are the only two lists that carry pattern_id,
-  and a pattern taken from anywhere else is rejected. Copy pattern_id exactly as given there;
-  never invent one.
+  "Due for review today" list or the "Chronic metrics" list above — they are
+  the only two lists that carry pattern_id, and a pattern taken from anywhere else is rejected.
+  Copy pattern_id exactly as given there; never invent one.
 - questions: three to five items, each {prompt, context}. Same target form, different
   situations.
 - target_level: one CEFR code (A1|A2|B1|B2|C1|C2). It must equal level.target_level and
