@@ -1837,6 +1837,18 @@ ClaimedJob, report_failure`뿐이다(2026-09-04 확인).
 `DataError: expected str, got list`로 거부한다(슬라이스 1에서 실측). 쓸 때 `json.dumps(..., ensure_ascii=False)`,
 읽을 때 `json.loads`. `ensure_ascii=False`가 한글을 그대로 보존한다.
 
+⚠️ **`instruction`이 jsonb로 직렬화되는 것은 타입이 둘로 나뉘어 있기 때문이다 — 합치지 마라.**
+(2026-09-04 확인) `json.dumps`는 `UUID`를 직렬화하지 못한다(`TypeError: Object of type UUID is
+not JSON serializable`). `SessionInstruction.focus`의 항목 타입이 **`InstructionFocus`(`pattern_id` 없음)**
+라서 `plan.instruction.model_dump()`에 UUID가 **하나도 없고** 그래서 위 `json.dumps`가 성립한다.
+누군가 "타입이 둘이라 중복이다"라며 **`FocusPattern`으로 통일하면 이 저장이 그 자리에서 깨진다**
+(`pattern_id: UUID`가 들어오므로). 두 타입이 나뉜 이유는 `models/plan.py`의 `InstructionFocus`
+docstring이 소유한다 — 그쪽도 함께 읽어라.
+
+⚠️ **`focus_pattern_ids`는 반대다** — `uuid[]` 컬럼이므로 `json.dumps`를 거치지 않고
+`[item.pattern_id for item in plan.focus]`를 **UUID 리스트 그대로** 넘긴다. asyncpg가 `uuid[]`를
+네이티브로 받는다. 여기에 `str()`을 씌우지 마라.
+
 ⚠️ **`NotImplementedError`가 사라졌는지 확인한다** — Step 4에서 grep으로 본다.
 
 - [ ] **Step 4: 테스트를 돌려 통과를 확인한다**
