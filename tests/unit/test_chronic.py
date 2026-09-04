@@ -163,3 +163,49 @@ async def test_missing_user_raises_instead_of_defaulting_the_timezone(
 ):
     with pytest.raises(LookupError):
         await load_chronic_metrics(db_conn, UUID("00000000-0000-0000-0000-0000000000ff"))
+
+
+# ── 이연 LOW-12 — chronic SQL 세부 3개는 이 계획(계획서 Task 4)이 첫 소비자다 ──────────
+
+
+# ① 정렬이 pattern_key 순인지 (뮤테이션: order by 제거)
+@pytest.mark.asyncio
+async def test_chronic_metrics_are_ordered_by_pattern_key(db_conn, seed_two_patterns):
+    user_id = await seed_two_patterns(db_conn, keys=["zebra_last", "alpha_first"])
+
+    metrics = await load_chronic_metrics(db_conn, user_id)
+
+    assert [metric.pattern_key for metric in metrics] == ["alpha_first", "zebra_last"]
+
+
+# ② 최대 공백은 **인접 간격의 최대값**이다 — 전체 지속기간(span, 44일)이 아니라 그 안의
+#    간격들(2, 40, 2일) 중 최댓값(40일)인지를 본다.
+#    ⚠️ 브리프가 제안한 뮤테이션("lag 의 tie-break 변경")은 **이 값에 관측 가능한 효과가
+#    없다**(2026-09-04 실측) — 이 테스트 데이터에 동시각 발생이 없어 tie-break가 아예
+#    갈리지 않는다. 실제로 이 테스트를 red로 만드는 뮤테이션은 `max(...)`를 `min(...)`으로
+#    바꾸는 것이다(직접 확인: red).
+@pytest.mark.asyncio
+async def test_max_gap_is_largest_adjacent_interval(db_conn, seed_occurrences_on_days):
+    user_id, _ = await seed_occurrences_on_days(db_conn, days=[0, 2, 42, 44])
+
+    metrics = await load_chronic_metrics(db_conn, user_id)
+
+    # 간격은 2, 40, 2 → 최대 40일
+    assert metrics[0].max_gap == timedelta(days=40)
+
+
+# ③ 발생이 1건이면 최대 공백이 없다.
+#    ⚠️ 브리프가 제안한 뮤테이션("where prev_at is not null 제거")도 **이 값에 관측 가능한
+#    효과가 없다**(2026-09-04 실측) — `gap`이 바깥 쿼리에 `left join`되고 `max()`가 NULL을
+#    무시하므로, 그 필터가 있든 없든(단일 발생이면 prev_at이 애초에 NULL이라) `max_gap`은
+#    항상 NULL로 귀결된다. 이 줄은 review.py `_HISTORY_SQL`의 strict `>`와 같은 종류의
+#    무해한 중복 방어다 — 그래도 이 테스트는 "발생 1건 → 공백 없음"이라는 실제 불변조건은
+#    지킨다(`span == 0`과 함께 그 자체로 의미 있는 단정이다).
+@pytest.mark.asyncio
+async def test_single_occurrence_has_no_max_gap(db_conn, seed_occurrences_on_days):
+    user_id, _ = await seed_occurrences_on_days(db_conn, days=[0])
+
+    metrics = await load_chronic_metrics(db_conn, user_id)
+
+    assert metrics[0].max_gap is None
+    assert metrics[0].span == timedelta(0)

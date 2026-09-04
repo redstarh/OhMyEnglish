@@ -27,7 +27,8 @@ from __future__ import annotations
 import asyncio
 import sys
 from collections.abc import AsyncIterator, Callable
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
+from itertools import count
 from pathlib import Path
 from typing import NamedTuple
 from uuid import UUID
@@ -188,3 +189,254 @@ async def job_row(conn: asyncpg.Connection, job_id: UUID) -> asyncpg.Record:
     row = await conn.fetchrow("select * from analysis_jobs where id = $1", job_id)
     assert row is not None, f"analysis_jobs row {job_id} disappeared"
     return row
+
+
+# ── Task 4 (계획 입력) 픽스처 ────────────────────────────────────────────────
+#
+# 아래 7개는 `tests/unit/test_plan_input.py`·`test_chronic.py`(이연 LOW-12 추가분)가 쓴다.
+# 위 7개 픽스처와 겹치지 않는다(2026-09-04 확인). 시각은 전부 `datetime.now(UTC) -
+# timedelta(days=N)`로 만든다 — naive datetime을 절대 만들지 않는다(전역 시각 규약).
+
+
+@pytest.fixture
+def seed_due_patterns() -> Callable[..., object]:
+    """복습 예정일이 지난 패턴 `count`개와 사용자 1명을 만든다 (AS1 — 하나라도 빠지면
+    실패). `load_due_reviews`는 `error_patterns` 행만 보므로 발화·occurrence는 필요 없다."""
+
+    async def make(conn: asyncpg.Connection, *, count: int) -> UUID:
+        user_id = await conn.fetchval(
+            "insert into users (display_name) values ('Plan Input Test') returning id"
+        )
+        for index in range(count):
+            await conn.execute(
+                "insert into error_patterns (user_id, category, pattern_key, target_form, "
+                "next_review_at) values ($1, 'article', $2, 'x', $3)",
+                user_id,
+                f"plan_input_due_{index}",
+                datetime.now(UTC) - timedelta(days=1 + index),
+            )
+        return user_id
+
+    return make
+
+
+@pytest.fixture
+def seed_utterance_at() -> Callable[..., object]:
+    """호출마다 **같은 사용자·세션**에 발화를 쌓는다(§4.2 최근 창·발화 유형 필터 검증용).
+    매번 새 사용자를 만들면 필터가 없어도 통과하는 테스트가 되므로, 이 클로저 안에서
+    첫 호출이 만든 사용자를 이후 호출이 재사용한다."""
+
+    state: dict[str, UUID] = {}
+    sequence = count(1)
+
+    async def make(
+        conn: asyncpg.Connection, *, days_ago: int, transcript: str, kind: str = "learning"
+    ) -> UUID:
+        if "user_id" not in state:
+            state["user_id"] = await conn.fetchval(
+                "insert into users (display_name) values ('Plan Input Test') returning id"
+            )
+            state["session_id"] = await conn.fetchval(
+                "insert into learning_sessions (user_id, mode) values ($1, 'speaking') "
+                "returning id",
+                state["user_id"],
+            )
+        await conn.execute(
+            "insert into utterances "
+            "(session_id, speaker, utterance_type, transcript, sequence_no, created_at) "
+            "values ($1, 'user', $2, $3, $4, $5)",
+            state["session_id"],
+            kind,
+            transcript,
+            next(sequence),
+            datetime.now(UTC) - timedelta(days=days_ago),
+        )
+        return state["user_id"]
+
+    return make
+
+
+@pytest.fixture
+def seed_pronunciation() -> Callable[..., object]:
+    """`(target_sound, outcome)` 쌍마다 발음 시도 1건을 만든다(§4.4). `pending`은
+    `resolved_at`을 비워 표의 CHECK(`..._resolved_consistency`)를 만족시키고, 그 외
+    판정값은 판정 시각을 채운다 — 채우지 않으면 그 CHECK가 insert를 거부한다."""
+
+    async def make(conn: asyncpg.Connection, pairs: list[tuple[str, str]]) -> UUID:
+        user_id = await conn.fetchval(
+            "insert into users (display_name) values ('Plan Input Test') returning id"
+        )
+        session_id = await conn.fetchval(
+            "insert into learning_sessions (user_id, mode) values ($1, 'speaking') returning id",
+            user_id,
+        )
+        for target_sound, outcome in pairs:
+            resolved_at = None if outcome == "pending" else datetime.now(UTC)
+            await conn.execute(
+                "insert into pronunciation_attempts "
+                "(session_id, target_form, target_sound, outcome, resolved_at) "
+                "values ($1, 'the gym', $2, $3, $4)",
+                session_id,
+                target_sound,
+                outcome,
+                resolved_at,
+            )
+        return user_id
+
+    return make
+
+
+@pytest.fixture
+def seed_cycle() -> Callable[..., object]:
+    """`load_completed_then_relapsed`(§6.2) 테스트용 — 패턴 1개에 재발 시각(`relapses`)과
+    정답 시각(`corrects`)을 일 단위 오프셋으로 심는다. 재발은 `error_occurrences`로, 정답은
+    `pattern_attempts`(outcome='correct')로 심는다 — `_FULL_HISTORY_SQL`이 그 두 표에서
+    시각만 뽑는다. 기준일을 충분히 과거로 잡아 오프셋이 커도 미래로 넘어가지 않게 한다."""
+
+    sequence = count(1)
+
+    async def make(
+        conn: asyncpg.Connection, *, relapses: list[int], corrects: list[int]
+    ) -> tuple[UUID, UUID]:
+        user_id = await conn.fetchval(
+            "insert into users (display_name) values ('Plan Input Test') returning id"
+        )
+        session_id = await conn.fetchval(
+            "insert into learning_sessions (user_id, mode) values ($1, 'speaking') returning id",
+            user_id,
+        )
+        pattern_id = await conn.fetchval(
+            "insert into error_patterns (user_id, category, pattern_key, target_form) "
+            "values ($1, 'article', 'plan_input_cycle_pattern', 'x') returning id",
+            user_id,
+        )
+        base = datetime.now(UTC) - timedelta(days=100)
+
+        async def utterance_at(day: int) -> UUID:
+            return await conn.fetchval(
+                "insert into utterances (session_id, speaker, transcript, sequence_no, "
+                "created_at) values ($1, 'user', 'x', $2, $3) returning id",
+                session_id,
+                next(sequence),
+                base + timedelta(days=day),
+            )
+
+        for day in relapses:
+            utterance_id = await utterance_at(day)
+            await conn.execute(
+                "insert into error_occurrences "
+                "(utterance_id, pattern_id, original_span, correction, explanation, severity, "
+                "confidence) values ($1, $2, 'x', 'y', 'z', 'medium', 0.9)",
+                utterance_id,
+                pattern_id,
+            )
+        for day in corrects:
+            utterance_id = await utterance_at(day)
+            await conn.execute(
+                "insert into pattern_attempts (pattern_id, utterance_id, outcome) "
+                "values ($1, $2, 'correct')",
+                pattern_id,
+                utterance_id,
+            )
+        return user_id, pattern_id
+
+    return make
+
+
+@pytest.fixture
+def seed_user() -> Callable[..., object]:
+    """`users.timezone`에 임의 값을 직접 넣는다(LOW-14). 001은 이 컬럼에 CHECK를 두지
+    않았다 — 무효값의 거부는 `load_plan_input`이 조회 시점에 한다."""
+
+    async def make(conn: asyncpg.Connection, *, tz: str) -> UUID:
+        return await conn.fetchval(
+            "insert into users (display_name, timezone) values ('Plan Input Test', $1) "
+            "returning id",
+            tz,
+        )
+
+    return make
+
+
+@pytest.fixture
+def seed_two_patterns() -> Callable[..., object]:
+    """`load_chronic_metrics`의 정렬(`order by pattern_key`) 검증용(이연 LOW-12 ①) —
+    지정한 순서로 패턴을 만들고 각각 occurrence 1건을 붙인다. occurrence가 없는 패턴은
+    그 쿼리의 join에서 빠지므로(chronic.py 모듈 docstring) 빈 패턴은 만들지 않는다."""
+
+    sequence = count(1)
+
+    async def make(conn: asyncpg.Connection, *, keys: list[str]) -> UUID:
+        user_id = await conn.fetchval(
+            "insert into users (display_name) values ('Chronic Order Test') returning id"
+        )
+        session_id = await conn.fetchval(
+            "insert into learning_sessions (user_id, mode) values ($1, 'speaking') returning id",
+            user_id,
+        )
+        for key in keys:
+            pattern_id = await conn.fetchval(
+                "insert into error_patterns (user_id, category, pattern_key, target_form) "
+                "values ($1, 'article', $2, 'x') returning id",
+                user_id,
+                key,
+            )
+            utterance_id = await conn.fetchval(
+                "insert into utterances (session_id, speaker, transcript, sequence_no, "
+                "created_at) values ($1, 'user', 'x', $2, $3) returning id",
+                session_id,
+                next(sequence),
+                datetime.now(UTC),
+            )
+            await conn.execute(
+                "insert into error_occurrences "
+                "(utterance_id, pattern_id, original_span, correction, explanation, severity, "
+                "confidence) values ($1, $2, 'x', 'y', 'z', 'medium', 0.9)",
+                utterance_id,
+                pattern_id,
+            )
+        return user_id
+
+    return make
+
+
+@pytest.fixture
+def seed_occurrences_on_days() -> Callable[..., object]:
+    """`load_chronic_metrics`의 최대 공백(`max_gap`) 검증용(이연 LOW-12 ②·③) — 패턴 1개에
+    지정한 일 오프셋마다 occurrence 1건을 심는다. 기준일을 충분히 과거로 잡아 오프셋이
+    커도 미래로 넘어가지 않게 한다."""
+
+    sequence = count(1)
+
+    async def make(conn: asyncpg.Connection, *, days: list[int]) -> tuple[UUID, UUID]:
+        user_id = await conn.fetchval(
+            "insert into users (display_name) values ('Chronic Gap Test') returning id"
+        )
+        session_id = await conn.fetchval(
+            "insert into learning_sessions (user_id, mode) values ($1, 'speaking') returning id",
+            user_id,
+        )
+        pattern_id = await conn.fetchval(
+            "insert into error_patterns (user_id, category, pattern_key, target_form) "
+            "values ($1, 'article', 'chronic_gap_pattern', 'x') returning id",
+            user_id,
+        )
+        base = datetime.now(UTC) - timedelta(days=100)
+        for day in days:
+            utterance_id = await conn.fetchval(
+                "insert into utterances (session_id, speaker, transcript, sequence_no, "
+                "created_at) values ($1, 'user', 'x', $2, $3) returning id",
+                session_id,
+                next(sequence),
+                base + timedelta(days=day),
+            )
+            await conn.execute(
+                "insert into error_occurrences "
+                "(utterance_id, pattern_id, original_span, correction, explanation, severity, "
+                "confidence) values ($1, $2, 'x', 'y', 'z', 'medium', 0.9)",
+                utterance_id,
+                pattern_id,
+            )
+        return user_id, pattern_id
+
+    return make

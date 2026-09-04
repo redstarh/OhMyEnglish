@@ -318,6 +318,58 @@ async def load_due_reviews(conn: asyncpg.Connection, user_id: UUID) -> list[DueR
     ]
 
 
+# 완주 판정에는 **재발 이전** 정답까지 필요하다 — `_HISTORY_SQL`은 마지막 재발 이후만 보므로
+# 이 판정에 쓸 수 없다. 그래서 전체 이력을 시각만 뽑아 온다(단일 사용자 규모라 전량이 싸다).
+_FULL_HISTORY_SQL = """
+select p.id as pattern_id,
+       coalesce((
+         select array_agg(t.at order by t.at)
+           from (
+                 select u.created_at as at
+                   from error_occurrences eo
+                   join utterances u on u.id = eo.utterance_id
+                  where eo.pattern_id = p.id
+                 union all
+                 select u.created_at as at
+                   from pattern_attempts pa
+                   join utterances u on u.id = pa.utterance_id
+                  where pa.pattern_id = p.id and pa.outcome = 'incorrect'
+                ) t
+       ), '{}'::timestamptz[]) as relapse_times,
+       coalesce((
+         select array_agg(u.created_at order by u.created_at, pa.id)
+           from pattern_attempts pa
+           join utterances u on u.id = pa.utterance_id
+          where pa.pattern_id = p.id and pa.outcome = 'correct'
+       ), '{}'::timestamptz[]) as correct_times
+  from error_patterns p
+ where p.user_id = $1
+ order by p.pattern_key
+"""
+
+
+async def load_completed_then_relapsed(conn: asyncpg.Connection, user_id: UUID) -> set[UUID]:
+    """3단계(1·3·7일)를 완주한 **뒤에** 다시 발생한 패턴들 (설계서 §6.2).
+
+    이것이 설계서가 허용한 **유일한 결정론적 만성 신호**다 — 임계값이 아니라 문서로 확정된
+    1·3·7일에서 유도되기 때문이다(§3.2). 판정 자체는 `fold_stages`가 하고 이 함수는
+    사이클을 잘라 넘기기만 한다. **복습 단계의 정의를 여기 복제하지 않는다.**
+
+    한 번 완주한 뒤 재발했다면 그 사실은 이후에도 참이므로, 연속한 재발 쌍을 모두 본다.
+    마지막 재발 이후의 열린 구간은 세지 않는다 — 아직 "재발이 뒤따랐다"가 성립하지 않는다.
+    """
+    flagged: set[UUID] = set()
+    for record in await conn.fetch(_FULL_HISTORY_SQL, user_id):
+        relapses = list(record["relapse_times"])
+        corrects = list(record["correct_times"])
+        for start, end in zip(relapses, relapses[1:], strict=False):
+            within = [at for at in corrects if start < at < end]
+            if fold_stages(start, within, "").completed:
+                flagged.add(record["pattern_id"])
+                break
+    return flagged
+
+
 async def recompute_all(conn: asyncpg.Connection, user_id: UUID) -> int:
     """이 사용자의 **모든** 패턴에 `recompute`를 돌린다. 건드린 패턴 수를 돌려준다.
 
