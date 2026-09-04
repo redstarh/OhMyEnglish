@@ -13,6 +13,16 @@ M3: `..._asks_for_the_output_contract`는 `"level"`이 `"target_level"`의 부�
 `"Current level:"`에도 걸려 그 키를 지워도 통과했다 — `"- key:"` 형태로 좁혔다. 그 외에는
 Critical-1(pattern_id)·Important-1(제약 3개)·Important-4(최근 창)·Important-5(h-doc 단문
 기준)·Important-6(기간을 정수 일수로)·M1(빈 목록 근거)·M2(빈 줄 비대칭) 테스트를 새로 더했다.
+
+⚠️ **이 파일의 지배 규칙 (재리뷰 라운드 2에서 얻었다 — 어기면 같은 구멍이 다시 난다)**:
+**프롬프트 전체나 규격 전체를 대상으로 문구를 찾지 않는다.** 같은 낱말이 다른 절·다른 불릿에
+있어서 판별력을 잃는다. 이 슬라이스에서 그 방식이 만든 사고 4건: ① `"Korean" in prompt`가
+헤더의 "Korean learner"를 쟀다 ② `"instruction.target_level" in prompt`가 `- instruction:`
+불릿에 걸려 **일치 요구 문장을 지워도** 통과했다 ③ `"one or two" in prompt`가 `- instruction:`
+쪽에 걸려 `- focus:`의 개수 제약이 **무보호가 됐다**(고침 라운드 1이 만든 회귀) ④ 두 목록에
+같은 key를 줘서 `pattern_id`가 동일해져 한쪽만 떼도 통과했다.
+→ **절은 `prompt.index(...)` 사이를 잘라서, 불릿은 `_bullet()`으로 잘라서 잰다.**
+→ **양성만 재지 않는다** — 표식·placeholder는 붙지 **않아야** 하는 경우도 함께 잰다.
 """
 
 from app.services.plan import build_plan_prompt
@@ -29,7 +39,10 @@ def test_prompt_lists_every_due_pattern(plan_input_factory):
 
 
 def test_prompt_includes_pattern_id_so_the_model_never_invents_one(plan_input_factory):
-    data = plan_input_factory(due_keys=["article_missing"], chronic_flagged=["article_missing"])
+    # ⚠️ 두 목록에 **다른** key를 준다. 같은 key를 주면 픽스처의 `setdefault`가 key당 id를
+    # 하나만 배정해 두 id가 동일해지고, 그러면 한쪽 포맷에서만 id를 떼도 이 테스트가 통과한다
+    # (재리뷰 라운드 2가 잡았고 내가 직접 재현했다 — `identical? True`).
+    data = plan_input_factory(due_keys=["article_missing"], chronic_flagged=["verb_tense_past"])
 
     prompt = build_plan_prompt(data)
 
@@ -37,9 +50,53 @@ def test_prompt_includes_pattern_id_so_the_model_never_invents_one(plan_input_fa
     # id는 FK 없는 focus_pattern_ids에 조용히 저장돼 복습·초점 조회가 영구히 어긋난다.
     due_id = data.due_reviews[0].pattern_id
     chronic_id = data.chronic[0].pattern_id
-    assert str(due_id) in prompt
-    assert str(chronic_id) in prompt
+    assert due_id != chronic_id  # 픽스처가 두 id를 실제로 갈라 놓았는지 먼저 확인한다
+    due_section = prompt[
+        prompt.index("Due for review today") : prompt.index("Recent learner utterances")
+    ]
+    chronic_section = prompt[
+        prompt.index("Chronic metrics") : prompt.index("Pronunciation attempts")
+    ]
+    assert str(due_id) in due_section
+    assert str(chronic_id) in chronic_section
     assert "never invent one" in prompt
+
+
+def test_prompt_restricts_focus_to_the_two_lists_that_carry_pattern_id(plan_input_factory):
+    data = plan_input_factory(
+        due_keys=["article_missing"],
+        chronic_flagged=["verb_tense_past"],
+        pronunciation=[("th_as_s", "incorrect", 4)],
+        recent=[
+            (
+                "I go to gym after work.",
+                [("preposition_at", "preposition", "to gym", "to the gym", "설명", "medium", 0.9)],
+            )
+        ],
+    )
+
+    prompt = build_plan_prompt(data)
+    spec_section = prompt[prompt.index("Return one JSON object") :]
+
+    # 재리뷰 라운드 2의 Critical — 이전 문구는 "Pick from the lists above"였는데 **네 목록 중
+    # 둘만 pattern_id를 싣는다**(내가 프로브로 확인: 최근 교정 `False` · 발음 `False`).
+    # 최근 교정 목록은 실제 `error_patterns` 행의 `pattern_key`를 부르면서 id는 없으므로
+    # 모델이 거기서 초점을 고르면 **여전히 UUID를 지어내야** 하고, FK 없는
+    # `focus_pattern_ids uuid[]`에 조용히 저장되는 원래 경로가 그대로 살아난다.
+    # 계획서 Task 7이 정한 허용 집합도 `due_reviews ∪ chronic` 둘뿐이라, 다른 목록에서 고른
+    # 초점은 그 가드가 어차피 하드 거부한다 — 프롬프트가 그 경계를 먼저 말해야 한다.
+    assert "review list or the chronic list" in spec_section
+    assert "only two lists that carry pattern_id" in spec_section
+
+    # 초점 출처가 아닌 두 절은 스스로도 그 사실을 말한다.
+    recent_header = prompt[
+        prompt.index("Recent learner utterances") : prompt.index("Recent learner utterances") + 120
+    ]
+    pronunciation_header = prompt[
+        prompt.index("Pronunciation attempts") : prompt.index("Pronunciation attempts") + 120
+    ]
+    assert "context only" in recent_header
+    assert "context only" in pronunciation_header
 
 
 def test_prompt_asks_for_the_output_contract(plan_input_factory):
@@ -56,20 +113,29 @@ def test_prompt_requires_matching_target_level_and_valid_cefr(plan_input_factory
     prompt = build_plan_prompt(plan_input_factory())
 
     # Important-1 — 키 이름이 맞아도 target_level·level.target_level·instruction.target_level
-    # 셋의 일치와 CEFR 값역을 프롬프트가 말하지 않으면 Task 5의 검증기가 응답을 거부한다.
-    assert "instruction.target_level" in prompt
+    # 셋의 일치와 CEFR 값역을 프롬프트가 말하지 않으면 Task 5의 검증기가 응답을 거부한다
+    # (`PlanOutput._target_level_matches_level_and_instruction`).
+    # ⚠️ `"instruction.target_level" in prompt`로는 못 잰다 — 그 이름이 `- instruction:` 절에도
+    # 있어서 일치 요구 문장을 통째로 지워도 통과했다(재리뷰 라운드 2, 내가 직접 재현).
+    # `level.target_level`은 이 문장에만 나오므로 그것을 잰다.
+    assert "must equal level.target_level" in prompt
+    assert "all three must match" in prompt
     assert "A1|A2|B1|B2|C1|C2" in prompt
 
 
 def test_prompt_requires_instruction_focus_count_and_non_empty_fields(plan_input_factory):
     prompt = build_plan_prompt(plan_input_factory())
-    spec_section = prompt[prompt.index("Return one JSON object") :]
 
     # Important-1 — instruction.focus도 1~2개여야 하고, sentence_length·hint_timing·
     # level.reason은 비어 있으면 안 된다는 것을 프롬프트가 명시해야 한다.
-    assert "instruction.focus" in spec_section
-    assert "one or two items" in spec_section
-    assert spec_section.count("must not be empty") >= 2
+    # ⚠️ 이전 판은 `spec_section.count("must not be empty") >= 2`였다 — **어느 필드에**
+    # 붙었는지와 무관한 문구 세기라 두 요구를 한 불릿에 몰아도 통과했다(재리뷰 라운드 2의
+    # Minor). 불릿별로 잰다.
+    instruction_bullet = _bullet(prompt, "instruction")
+    assert "instruction.focus" in instruction_bullet
+    assert "one or two items" in instruction_bullet
+    assert "must not be empty" in instruction_bullet
+    assert "must not be empty" in _bullet(prompt, "level")
 
 
 def test_prompt_forbids_extra_keys_and_blank_strings(plan_input_factory):
@@ -86,21 +152,57 @@ def test_prompt_forbids_extra_keys_and_blank_strings(plan_input_factory):
     assert "must be non-empty" in spec_section
 
 
+def _bullet(prompt: str, key: str) -> str:
+    """출력 규격에서 `- <key>:` 불릿 하나만 잘라낸다.
+
+    규격 전체나 프롬프트 전체를 대상으로 문구를 찾으면 **다른 불릿에 있는 같은 낱말**에
+    걸려 판별력을 잃는다 — 재리뷰 라운드 2가 그 방식으로 회귀 1건과 항진 2건을 잡았다.
+    불릿은 다음 `\\n- ` 또는 규격 끝까지다(이어지는 줄은 두 칸 들여쓰기라 걸리지 않는다).
+    """
+    spec = prompt[prompt.index("Return one JSON object") :]
+    start = spec.index(f"- {key}:")
+    rest = spec[start + 1 :]
+    end = rest.find("\n- ")
+    return rest[:end] if end != -1 else rest
+
+
 def test_prompt_states_the_documented_counts(plan_input_factory):
     prompt = build_plan_prompt(plan_input_factory())
 
-    assert "1-2" in prompt or "one or two" in prompt  # 초점 패턴 (PRD.md:188)
-    assert "3-5" in prompt or "three to five" in prompt  # 질문 (PRD.md:188)
+    # ⚠️ 프롬프트 전체에서 "one or two"를 찾으면 **판별력이 없다** — 고침 라운드 1이
+    # `- instruction:` 불릿에 "one or two items"를 더한 뒤로는 `- focus:`의 개수 제약을
+    # 지워도 통과했다(재리뷰 라운드 2가 잡은 회귀, 내가 직접 재현). 불릿을 잘라서 잰다.
+    assert "one or two" in _bullet(prompt, "focus")  # 초점 패턴 (PRD.md:188)
+    assert "three to five" in _bullet(prompt, "questions")  # 질문 (PRD.md:188)
 
 
 def test_prompt_requires_korean_reason(plan_input_factory):
     prompt = build_plan_prompt(plan_input_factory())
 
-    # 출력 규격 절만 본다 — 헤더의 "Korean learner"에 낚이면 규격에서 그 요구를 지워도
-    # 통과한다(리뷰 Important-2, 리뷰어가 직접 증명했다).
-    spec_section = prompt[prompt.index("Return one JSON object") :]
-    assert "Korean" in spec_section
-    assert "reason" in spec_section
+    # 출력 규격의 `- reason:` 불릿만 본다 — 헤더의 "Korean learner"에 낚이면 규격에서 그
+    # 요구를 지워도 통과하고(리뷰 Important-2), 규격 전체를 보면 그 요구를 **다른 키로
+    # 옮겨도** 통과한다(재리뷰 라운드 2의 잔여 지적).
+    assert "Korean" in _bullet(prompt, "reason")
+
+
+def test_prompt_states_the_current_level_and_the_one_step_rule(plan_input_factory):
+    prompt = build_plan_prompt(plan_input_factory())
+
+    # 재리뷰 라운드 2의 Important — 둘 다 무테스트였다. `Current level:` 값을
+    # `(unavailable)`로 바꿔도, 한 칸 규칙 문장을 지워도 전부 통과했다(내가 직접 재현).
+    # `parse_plan`의 `_one_step_or_same`가 두 칸 도약을 **하드 거부**하는데, 모델이
+    # 기준선(현재 수준)을 모르면 그 규칙을 지킬 수 없다 — 응답 전체가 죽는다.
+    assert "Current level: A2" in prompt  # 픽스처의 current_level
+    assert "at most one CEFR step from the current" in _bullet(prompt, "level")
+
+
+def test_prompt_keeps_pattern_id_out_of_the_instruction_focus(plan_input_factory):
+    prompt = build_plan_prompt(plan_input_factory())
+
+    # `InstructionFocus`도 `extra="forbid"`라서 `instruction.focus[]`에 `pattern_id`가
+    # 하나라도 들어오면 **응답 전체가 거부된다**. 최상위 `focus`는 그 id를 요구하므로
+    # 모델이 같은 모양으로 복사할 유인이 크다 — 그래서 프롬프트가 명시해야 한다.
+    assert "no pattern_id here" in _bullet(prompt, "instruction")
 
 
 def test_prompt_keeps_pronunciation_separate_from_grammar(plan_input_factory):
@@ -125,6 +227,9 @@ def test_prompt_keeps_pronunciation_separate_from_grammar(plan_input_factory):
     assert "th_as_s" not in due_section
     assert "th_as_s" in pronunciation_section
     assert "article_missing" not in pronunciation_section
+    # 절을 나누는 것만으로는 부족하다 — 두 계산 기준이 다르다는 것을 문장으로도 알린다
+    # (§4.4 주의 2). 그 문구가 무테스트였다(재리뷰 라운드 2의 Minor).
+    assert "do not rank these against the grammar counts" in pronunciation_section
 
 
 def test_prompt_never_asks_for_a_pronunciation_score(plan_input_factory):
@@ -145,6 +250,27 @@ def test_prompt_marks_the_chronic_signal_when_present(plan_input_factory):
     assert "completed all three review stages" in prompt
 
 
+def test_prompt_marks_only_the_flagged_chronic_pattern(plan_input_factory):
+    data = plan_input_factory(
+        chronic_flagged=["article_missing"],
+        chronic_unflagged=["verb_tense_past"],
+    )
+
+    prompt = build_plan_prompt(data)
+    chronic_section = prompt[
+        prompt.index("Chronic metrics") : prompt.index("Pronunciation attempts")
+    ]
+    lines = [line for line in chronic_section.splitlines() if line.startswith("- ")]
+
+    # 재리뷰 라운드 2의 Important — 음성 케이스가 없어서 `metric.pattern_id in
+    # chronic_pattern_ids` 조건을 `if True`로 바꿔도 전부 통과했다(내가 직접 재현).
+    # 그러면 §6.2의 **유일한 결정론적 신호**가 전 패턴에 붙어 소음이 된다.
+    marked = [line for line in lines if "completed all three review stages" in line]
+    assert len(lines) == 2
+    assert len(marked) == 1
+    assert "article_missing" in marked[0]
+
+
 def test_prompt_renders_chronic_span_and_gap_as_whole_days(plan_input_factory):
     data = plan_input_factory(due_keys=["article_missing"], chronic_flagged=["article_missing"])
 
@@ -155,6 +281,18 @@ def test_prompt_renders_chronic_span_and_gap_as_whole_days(plan_input_factory):
     assert "span 9 days" in prompt
     assert "longest gap 3 days" in prompt
     assert "0:00:00" not in prompt
+
+
+def test_prompt_renders_a_missing_max_gap_as_not_applicable(plan_input_factory):
+    data = plan_input_factory(chronic_flagged=["article_missing"], chronic_max_gap=None)
+
+    prompt = build_plan_prompt(data)
+
+    # `chronic.py`는 발생이 1건뿐인 패턴에 `max_gap=None`을 낸다. 픽스처가 고정값이라
+    # `"n/a"` 분기가 한 번도 실행되지 않았다(재리뷰 라운드 2의 Minor). `None`이 그대로
+    # 새면 모델이 "longest gap None"을 읽는다.
+    assert "longest gap n/a" in prompt
+    assert "None" not in prompt
 
 
 def test_prompt_includes_recent_utterances_and_their_corrections(plan_input_factory):
@@ -199,18 +337,31 @@ def test_prompt_sets_a_short_single_clause_baseline(plan_input_factory):
     assert "gradually" in prompt
 
 
-def test_prompt_states_empty_lists_explicitly(plan_input_factory):
-    prompt = build_plan_prompt(plan_input_factory())
+_PLACEHOLDERS = (
+    "(none due today)",
+    "(no learner utterances in this window)",
+    "(no chronic metrics yet)",
+    "(no pronunciation attempts in this window)",
+)
 
-    # M1 — `audio_gateway/nova.py`의 선례(0건이면 블록을 아예 넣지 않는다)와 다르게,
-    # 여기서는 절 제목을 유지하고 빈 목록을 명시한다(plan.py 모듈 주석에 근거를 남겼다).
-    for placeholder in (
-        "(none due today)",
-        "(no learner utterances in this window)",
-        "(no chronic metrics yet)",
-        "(no pronunciation attempts in this window)",
-    ):
-        assert placeholder in prompt
+
+def test_prompt_drops_the_placeholder_once_a_list_has_rows(plan_input_factory):
+    data = plan_input_factory(
+        due_keys=["article_missing"],
+        chronic_flagged=["verb_tense_past"],
+        pronunciation=[("th_as_s", "incorrect", 4)],
+        recent=[("I go to gym after work.", [])],
+    )
+
+    prompt = build_plan_prompt(data)
+
+    # M1의 반쪽 — 빈 목록에 placeholder가 **있는지**는 아래
+    # `test_every_section_header_is_followed_directly_by_its_list`가 이미 잰다(그 단정이
+    # `f"):\n{ph}" in prompt`라서 존재까지 함의한다). 재리뷰 라운드 2가 지적한 중복을
+    # 없애고, 그 테스트가 못 재는 반대 방향만 여기서 잰다: **행이 있으면 사라져야 한다.**
+    # 사라지지 않으면 모델이 "없다"와 목록을 동시에 읽는다.
+    for placeholder in _PLACEHOLDERS:
+        assert placeholder not in prompt
 
 
 def test_every_section_header_is_followed_directly_by_its_list(plan_input_factory):
@@ -221,12 +372,7 @@ def test_every_section_header_is_followed_directly_by_its_list(plan_input_factor
     # 통과한다(2026-09-05 직접 확인). 빈 줄은 `\n\n`이고 절 사이 구분자도 이미 `\n\n`이라
     # 셋이 겹치는 자리가 없다. 실측한 차이는 제목 바로 뒤였다: 발음 `'\n\n'` · 나머지 `'\n'`.
     # 네 절 제목은 모두 `):`로 끝나므로 그 뒤에 목록이 바로 오는지를 잰다.
-    for placeholder in (
-        "(none due today)",
-        "(no learner utterances in this window)",
-        "(no chronic metrics yet)",
-        "(no pronunciation attempts in this window)",
-    ):
+    for placeholder in _PLACEHOLDERS:
         assert f"):\n{placeholder}" in prompt
 
 

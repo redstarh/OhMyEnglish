@@ -31,6 +31,21 @@
   nothing else"는 JSON **밖**의 산문만 막고 키는 막지 않는다 ② 열거한 셋(`sentence_length`·
   `hint_timing`·`level.reason`) 밖에도 `questions.prompt`·`context`·`contexts` 항목·`notes`
   항목이 `min_length=1`이다. 출력의 **모든** 문자열이 그 제약을 받으므로 한 문장으로 적었다.
+
+**재리뷰 라운드 2 (2026-09-05)에서 잡힌 것 — 이쪽이 더 중요하다**:
+* **Critical-1이 절반만 닫혀 있었다.** 라운드 1은 복습·만성 줄에 `pattern_id`를 실었지만
+  `- focus:`는 "Pick from the lists **above**"라고 말했고, **위의 네 목록 중 둘은 id가 없다**
+  (최근 교정 · 발음). 최근 교정 목록은 실제 `error_patterns` 행의 `pattern_key`를 부르면서
+  id는 없으므로 모델이 거기서 초점을 고르면 **여전히 UUID를 지어내야** 하고, 원래의 조용한
+  저장 경로가 그대로 살아난다 — 고친 문구가 오히려 그 선택을 초대했다. 그래서 `- focus:`가
+  **두 목록을 이름으로 지목**하고, 나머지 두 절은 제목에서 "context only, never a focus
+  source"라고 스스로 말한다. ⚠️ 이 경계는 발명한 것이 아니다 — 계획서 Task 7이 정한 허용
+  집합이 `{r.pattern_id for r in due_reviews} | {m.pattern_id for m in chronic}`이고, 그
+  가드는 다른 목록에서 고른 초점을 **어차피 하드 거부한다.** 프롬프트와 그 집합이 어긋나면
+  정당한 응답이 거부된다.
+* **발음이 초점이 될 수 없는 이유는 id 부재보다 앞선다** — `PronunciationTally`에는
+  `target_sound`만 있어 애초에 유효한 `FocusPattern`을 만들 수 없다. 그리고 발음 패턴이
+  복습 스케줄에 들어오지 않는 것은 설계서 §4.1 「구현 공백 4」의 **알고 남긴 축소**다.
 """
 
 from __future__ import annotations
@@ -83,8 +98,8 @@ The lists below are **facts**, already computed. Do not recompute them and do no
 # metrics ...:")은 한 줄 문자열이라 그 문제가 없다 — 발음 절만 제목과 목록 사이에
 # 빈 줄이 하나 더 생겼었다.
 _PRONUNCIATION_NOTE = """\
-Pronunciation attempts (separate list — counted per attempt, not per error occurrence, so do not
-rank these against the grammar counts above):"""
+Pronunciation attempts (context only, never a focus source — counted per attempt, not per error
+occurrence, so do not rank these against the grammar counts above):"""
 
 # 키 이름은 Task 5(`app.models.plan.PlanOutput`, `extra="forbid"`)와 글자 그대로 같아야 한다 —
 # 하나만 어긋나면 실물 모델 응답이 검증 단계에서 전부 거부된다. 초점 1~2개·질문 3~5개는
@@ -92,8 +107,10 @@ rank these against the grammar counts above):"""
 # ⚠️ 지시문 크기 상한도 넣지 않는다 — 설계서 §3.4가 그 수치는 실측 후에 정한다고 했다.
 _OUTPUT_SPEC = """\
 Return one JSON object and nothing else. Keys:
-- focus: one or two patterns, each {pattern_id, pattern_key, target_form}. Pick from the lists
-  above and copy pattern_id exactly as given there — never invent one.
+- focus: one or two patterns, each {pattern_id, pattern_key, target_form}. Pick only from the
+  review list or the chronic list above — those are the only two lists that carry pattern_id,
+  and a pattern taken from anywhere else is rejected. Copy pattern_id exactly as given there;
+  never invent one.
 - questions: three to five items, each {prompt, context}. Same target form, different
   situations.
 - target_level: one CEFR code (A1|A2|B1|B2|C1|C2). It must equal level.target_level and
@@ -109,10 +126,11 @@ Return one JSON object and nothing else. Keys:
   level, in either direction. Going down is allowed and is better than staying too hard. reason
   must not be empty.
 - notes: observations worth keeping that numbers cannot hold — for example "adds articles in short
-  sentences but drops them once the sentence gets longer". Empty list is fine.
+  sentences but drops them once the sentence gets longer". An empty list is fine here.
 
 Do not add any key that is not listed above — one unknown key makes the whole response invalid.
-Every string anywhere in the object must be non-empty.
+Empty lists are allowed where said above; empty strings are not — every string anywhere in the
+object must be non-empty.
 """
 
 
@@ -208,8 +226,8 @@ def build_plan_prompt(data: PlanInput) -> str:
         "Due for review today (facts, already computed — do not recompute):",
         _format_due_reviews(data.due_reviews),
         "",
-        f"Recent learner utterances ({data.window_from.isoformat()} to "
-        f"{data.window_to.isoformat()}):",
+        f"Recent learner utterances (context only, never a focus source — "
+        f"{data.window_from.isoformat()} to {data.window_to.isoformat()}):",
         _format_recent(data.recent),
         "",
         "Chronic metrics (facts only — you decide whether a pattern counts as chronic):",

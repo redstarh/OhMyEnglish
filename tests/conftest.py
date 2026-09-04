@@ -488,18 +488,28 @@ def plan_input_factory() -> Callable[..., PlanInput]:
     explanation, severity, confidence`) — 교정이 없는 발화는 빈 목록을 준다. 리뷰
     Important-4: 이 파라미터가 없어서 `_format_recent`의 발화 줄·교정 줄 포맷이 한 번도
     실행되지 않았다.
+
+    **재리뷰(라운드 2)가 요구한 파라미터 2개** — 없으면 잴 수 없는 것이 있었다:
+    * `chronic_unflagged` — 만성 목록에 있지만 `chronic_pattern_ids`에는 **없는** 패턴.
+      이것이 없으면 `_format_chronic`의 `if metric.pattern_id in chronic_pattern_ids` 조건을
+      `if True`로 바꿔도 아무 테스트가 실패하지 않았다(직접 확인). §6.2의 유일한 결정론적
+      신호가 전 패턴에 붙어 소음이 되는 것을 막는 음성 케이스가 이 파라미터로 성립한다.
+    * `chronic_max_gap` — `max_gap`이 `None`인 패턴(발생이 1건뿐일 때 `chronic.py`가 그렇게
+      낸다). 고정값이라 `"n/a"` 분기가 한 번도 실행되지 않았다.
     """
 
     def make(
         *,
         due_keys: Sequence[str] = (),
         chronic_flagged: Sequence[str] = (),
+        chronic_unflagged: Sequence[str] = (),
+        chronic_max_gap: timedelta | None = timedelta(days=3),
         pronunciation: Sequence[tuple[str, str, int]] = (),
         recent: Sequence[tuple[str, Sequence[tuple[str, str, str, str, str, str, float]]]] = (),
     ) -> PlanInput:
         now = datetime.now(UTC)
         pattern_ids: dict[str, UUID] = {}
-        for key in (*due_keys, *chronic_flagged):
+        for key in (*due_keys, *chronic_flagged, *chronic_unflagged):
             pattern_ids.setdefault(key, uuid4())
 
         due_reviews = [
@@ -526,9 +536,9 @@ def plan_input_factory() -> Callable[..., PlanInput]:
                 first_seen=now - timedelta(days=10),
                 last_seen=now - timedelta(days=1),
                 span=timedelta(days=9),
-                max_gap=timedelta(days=3),
+                max_gap=chronic_max_gap,
             )
-            for key in chronic_flagged
+            for key in (*chronic_flagged, *chronic_unflagged)
         ]
         chronic_pattern_ids = {pattern_ids[key] for key in chronic_flagged}
         pronunciation_tallies = [
