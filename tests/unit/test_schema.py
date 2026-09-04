@@ -13,6 +13,7 @@ import importlib.util
 import json
 import sys
 import types
+from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4
 
@@ -565,9 +566,12 @@ async def test_analysis_jobs_accepts_plan_next_session(db_conn: asyncpg.Connecti
         "insert into analysis_jobs (job_type, session_id) values ('plan_next_session', $1)",
         session_id,
     )
-    assert await db_conn.fetchval(
-        "select count(*) from analysis_jobs where job_type = 'plan_next_session'"
-    ) == 1
+    assert (
+        await db_conn.fetchval(
+            "select count(*) from analysis_jobs where job_type = 'plan_next_session'"
+        )
+        == 1
+    )
 
 
 # ⑬ 007 — 계획 job 은 utterance 를 대상으로 삼을 수 없다 (대상 컬럼 배타 CHECK 3분기)
@@ -579,12 +583,18 @@ async def test_plan_job_rejects_utterance_target(db_conn: asyncpg.Connection):
     await _insert_session(db_conn, session_id)
     await _insert_utterance(db_conn, utterance_id, session_id)
 
-    with pytest.raises(asyncpg.CheckViolationError):
+    # 기존 job_type CHECK가 이미 이 값을 거부하므로(007 이전에도 우연히 green), 예외 타입만으로는
+    # "대상 컬럼 배타 CHECK"가 실제로 걸렸는지 구분되지 않는다 — constraint_name으로 못박는다.
+    with pytest.raises(asyncpg.CheckViolationError) as excinfo:
         await db_conn.execute(
-            "insert into analysis_jobs (job_type, utterance_id) "
-            "values ('plan_next_session', $1)",
+            "insert into analysis_jobs (job_type, utterance_id) values ('plan_next_session', $1)",
             utterance_id,
         )
+    # asyncpg가 constraint_name을 메타클래스에서 동적으로 setattr하므로(_base.py의
+    # _field_map) ty가 클래스 선언만 보고는 이 속성을 못 찾는다 — getattr로 우회한다.
+    assert getattr(excinfo.value, "constraint_name", None) == (
+        "analysis_jobs_target_matches_job_type"
+    )
 
 
 # ⑭ 007 — session_plans 불변조건: 초점 1~2개 · 질문 3~5개 · 이유 비어있지 않음 (설계서 §9 Contract)
@@ -603,12 +613,23 @@ async def test_session_plans_invariants(db_conn: asyncpg.Connection):
             [session_id, focus, questions, reason],
         )
 
-    ok_questions = '[{"prompt":"q1","context":"c1"},{"prompt":"q2","context":"c2"},{"prompt":"q3","context":"c3"}]'
+    ok_questions = (
+        '[{"prompt":"q1","context":"c1"},'
+        '{"prompt":"q2","context":"c2"},'
+        '{"prompt":"q3","context":"c3"}]'
+    )
 
     # CHECK 위반은 트랜잭션을 abort시킨다. db_conn 픽스처는 테스트 하나를 트랜잭션
     # 하나로 감싸므로, 이 위반들을 이어서 검증하려면 각각 savepoint(중첩 트랜잭션)로
     # 격리해야 다음 assert가 이어질 수 있다(다른 곳의 pronunciation_attempts 테스트가
     # 이 문제를 별도 테스트 분리로 피한 것과 같은 근본 원인).
+
+    # 초점 0개 → 거부. array_length('{}', 1)은 NULL이라 CHECK가 만족으로 오판할 수 있는
+    # 자리라서 하한을 반드시 직접 확인한다(cardinality로 고친 이유 — 007 SQL 주석 참조).
+    sql, args = insert([], ok_questions, "이유")
+    with pytest.raises(asyncpg.CheckViolationError):
+        async with db_conn.transaction():
+            await db_conn.execute(sql, *args)
 
     # 초점 3개 → 거부
     sql, args = insert([pattern_a, pattern_b, pattern_c], ok_questions, "이유")
@@ -617,7 +638,20 @@ async def test_session_plans_invariants(db_conn: asyncpg.Connection):
             await db_conn.execute(sql, *args)
 
     # 질문 2개 → 거부
-    sql, args = insert([pattern_a], '[{"prompt":"q1","context":"c1"},{"prompt":"q2","context":"c2"}]', "이유")
+    sql, args = insert(
+        [pattern_a], '[{"prompt":"q1","context":"c1"},{"prompt":"q2","context":"c2"}]', "이유"
+    )
+    with pytest.raises(asyncpg.CheckViolationError):
+        async with db_conn.transaction():
+            await db_conn.execute(sql, *args)
+
+    # 질문 6개 → 거부 (상한도 하한만큼 직접 확인한다)
+    too_many_questions = (
+        '[{"prompt":"q1","context":"c1"},{"prompt":"q2","context":"c2"},'
+        '{"prompt":"q3","context":"c3"},{"prompt":"q4","context":"c4"},'
+        '{"prompt":"q5","context":"c5"},{"prompt":"q6","context":"c6"}]'
+    )
+    sql, args = insert([pattern_a], too_many_questions, "이유")
     with pytest.raises(asyncpg.CheckViolationError):
         async with db_conn.transaction():
             await db_conn.execute(sql, *args)
@@ -629,7 +663,9 @@ async def test_session_plans_invariants(db_conn: asyncpg.Connection):
             await db_conn.execute(sql, *args)
 
     # 정상 1행은 들어간다
-    sql, args = insert([pattern_a, pattern_b], ok_questions, "관사를 계속 빼먹어서 오늘 그것만 봅니다")
+    sql, args = insert(
+        [pattern_a, pattern_b], ok_questions, "관사를 계속 빼먹어서 오늘 그것만 봅니다"
+    )
     await db_conn.execute(sql, *args)
     assert await db_conn.fetchval("select count(*) from session_plans") == 1
 
@@ -640,7 +676,11 @@ async def test_session_plans_unique_and_cascade(db_conn: asyncpg.Connection):
     await _insert_user(db_conn)
     session_id = uuid4()
     await _insert_session(db_conn, session_id)
-    questions = '[{"prompt":"q1","context":"c1"},{"prompt":"q2","context":"c2"},{"prompt":"q3","context":"c3"}]'
+    questions = (
+        '[{"prompt":"q1","context":"c1"},'
+        '{"prompt":"q2","context":"c2"},'
+        '{"prompt":"q3","context":"c3"}]'
+    )
     sql = (
         "insert into session_plans "
         "(session_id, focus_pattern_ids, questions, target_level, reason, instruction, source) "
@@ -655,3 +695,39 @@ async def test_session_plans_unique_and_cascade(db_conn: asyncpg.Connection):
 
     await db_conn.execute("delete from learning_sessions where id = $1", session_id)
     assert await db_conn.fetchval("select count(*) from session_plans") == 0
+
+
+# ⑯ 007 — learner_notes: window_to가 window_from보다 앞서면 거부된다 (§6.3)
+@pytest.mark.asyncio
+async def test_learner_notes_rejects_window_out_of_order(db_conn: asyncpg.Connection):
+    await _insert_user(db_conn)
+    window_to = datetime(2026, 9, 1, tzinfo=UTC)
+    window_from = datetime(2026, 9, 2, tzinfo=UTC)
+
+    with pytest.raises(asyncpg.CheckViolationError):
+        await db_conn.execute(
+            "insert into learner_notes (user_id, note, window_from, window_to) "
+            "values ($1, '{}'::jsonb, $2, $3)",
+            migrate.USER_ID,
+            window_from,
+            window_to,
+        )
+
+
+# ⑰ 007 — learner_notes: 사용자가 지워지면 그 사용자의 노트도 함께 지워진다
+@pytest.mark.asyncio
+async def test_learner_notes_cascades_with_the_user(db_conn: asyncpg.Connection):
+    await _insert_user(db_conn)
+    now = datetime.now(UTC)
+
+    await db_conn.execute(
+        "insert into learner_notes (user_id, note, window_from, window_to) "
+        "values ($1, '{}'::jsonb, $2, $3)",
+        migrate.USER_ID,
+        now,
+        now,
+    )
+
+    await db_conn.execute("delete from users where id = $1", migrate.USER_ID)
+
+    assert await db_conn.fetchval("select count(*) from learner_notes") == 0

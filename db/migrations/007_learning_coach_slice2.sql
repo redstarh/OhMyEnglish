@@ -14,7 +14,9 @@
 -- — 소비 세션은 생성 시점에 존재하지 않는다. 세션 시작은 직전 세션이 만든 계획을 조회한다.
 create table session_plans (
   id uuid primary key default gen_random_uuid(),
-  -- unique: 한 세션이 계획을 두 번 만들지 않는다. cascade: 세션이 지워지면 계획도 무의미하다.
+  -- unique: 한 세션이 계획을 두 번 만들지 않는다. cascade: 조회가 "이 세션이 만든 계획"을
+  -- session_id 로 찾으므로, 만든 세션이 사라지면 그 계획을 찾을 길이 없다 — 계획 내용 자체는
+  -- 다음 세션에도 유효하지만 참조 경로가 끊기므로 함께 지운다.
   session_id uuid not null unique references learning_sessions (id) on delete cascade,
   -- 초점 패턴 1~2개 (PRD §11 R11-2). uuid[] 로 두는 이유: 순서가 의미를 갖고 행이 2개뿐이라
   -- 별도 연결 표를 만들면 조회가 늘기만 한다(YAGNI).
@@ -23,7 +25,7 @@ create table session_plans (
   questions jsonb not null,
   -- CEFR 값역은 001 의 users.current_level·learning_scenarios.level 과 **같은 값**을 쓴다.
   target_level text not null check (target_level in ('A1', 'A2', 'B1', 'B2', 'C1', 'C2')),
-  -- not null + 공백 금지: 이유 없는 추천은 사용자가 판단을 검증할 수 없다(PRD.md:190 R11-3).
+  -- not null + 공백 금지: 이유 없는 추천은 사용자가 판단을 검증할 수 없다(PRD.md:189 R11-3).
   reason text not null,
   -- 세션 지시문 가변부(§5.2). 구조로 저장하고 문장 조립은 읽는 쪽이 한다.
   instruction jsonb not null,
@@ -31,12 +33,17 @@ create table session_plans (
   -- "계획 생성은 됐지만 뱅크 내용을 썼다"는 뜻이다.
   source text not null check (source in ('agent', 'fallback')),
   created_at timestamptz not null default now(),
+  -- ⚠️ `cardinality`를 쓴다. `array_length('{}', 1)`은 NULL 이고 CHECK 식이 NULL 이면
+  -- Postgres 가 만족으로 취급하므로 빈 배열이 통과한다(2026-09-04 실측: 통과 1행).
+  -- 아래 `questions`가 안전한 것은 `jsonb_array_length('[]')`가 0 을 돌려주기 때문이다 —
+  -- 두 함수의 빈값 처리가 달라서 생긴 비대칭이다.
   constraint session_plans_focus_len
-    check (array_length(focus_pattern_ids, 1) between 1 and 2),
+    check (cardinality(focus_pattern_ids) between 1 and 2),
   constraint session_plans_questions_len
     check (jsonb_typeof(questions) = 'array' and jsonb_array_length(questions) between 3 and 5),
+  -- 공백뿐 아니라 탭·개행만 있는 이유도 거부한다 — btrim 기본 문자셋은 스페이스만 지운다.
   constraint session_plans_reason_not_blank
-    check (btrim(reason) <> '')
+    check (btrim(reason, E' \t\n\r') <> '')
 );
 
 -- §6.3: 덧붙이기만 한다. 갱신·삭제하지 않으므로 updated_at 을 두지 않는다.
