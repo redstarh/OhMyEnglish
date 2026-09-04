@@ -1322,11 +1322,32 @@ def test_unknown_field_is_rejected():
         parse_plan(_payload(surprise="nope"), current_level="A2")
 
 
-# 모델이 JSON 앞뒤에 말을 붙여도 파싱한다 (슬라이스 1의 _json_candidates 와 같은 관용)
-def test_prose_wrapped_json_parses():
-    raw = "여기 계획입니다:\n" + _payload() + "\n확인해 주세요."
+# 코드펜스로 감싼 응답은 파싱한다 — 프롬프트가 "펜스 없이"를 요구해도 모델이 종종 붙인다.
+def test_code_fenced_json_parses():
+    raw = "```json\n" + _payload() + "\n```"
     assert parse_plan(raw, current_level="A2").target_level == "A2"
+
+
+# 산문으로 감싼 응답은 **거부한다.** 계약을 지키지 않은 응답은 실패로 보고하는 것이
+# 이 리포의 확립된 선택이다 — 산문 중간에서 JSON을 긁어내지 않는다.
+def test_prose_wrapped_json_is_rejected():
+    raw = "여기 계획입니다:\n" + _payload() + "\n확인해 주세요."
+    with pytest.raises(PlanValidationError):
+        parse_plan(raw, current_level="A2")
 ```
+
+⚠️ **관용의 범위를 넓히지 마라 — 기존 관례를 글자 그대로 따른다** (2026-09-04 정정: 원래 이 계획서가
+"산문으로 감싸도 파싱한다"를 요구해 **리포 관례와 정면으로 충돌**했다). `models/analysis.py`의
+`_json_candidates`는 후보를 **둘만** 만든다: 원문, 그리고 **전체가 펜스인 경우** 그 본문
+(정규식이 `\A...\Z`로 앵커돼 앞뒤에 산문이 있으면 매칭되지 않는다). 그 docstring이 이유를 적어 뒀다 —
+"그 이상(산문 중간의 JSON 추출 등)은 하지 않는다. 계약을 지키지 않은 응답은 실패로 보고하는 편이 낫다."
+
+⚠️ **후보 순회의 비대칭을 반드시 지킨다** (`parse_analysis`가 소유하는 규약):
+- **JSON 디코드 실패 → 다음 후보로 넘어간다** (`continue`)
+- **스키마 검증 실패 → 그 자리에서 거부한다** (`raise`, 다음 후보를 보지 않는다)
+
+그 이유도 기존 docstring에 있다: 필드가 틀린 JSON은 펜스를 벗겨도 같은 결과이고, 그 사이 **다른
+후보가 우연히 통과하면 어느 응답을 저장했는지 알 수 없게 된다.** 두 실패를 같게 다루면 이 보장이 깨진다.
 
 - [ ] **Step 2: 테스트를 돌려 실패를 확인한다**
 
