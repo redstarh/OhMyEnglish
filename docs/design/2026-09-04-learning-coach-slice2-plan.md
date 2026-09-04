@@ -635,6 +635,28 @@ class ClaimedJob:
 ⚠️ **Task 7까지는 `process_plan`이 없다.** 이 태스크에서는 `services/plan.py`에 **호출 가능한 최소
 형태**를 만들어 둔다 — 입력을 읽지 못하면 job을 실패로 종결시키는 것까지만. Task 4~7이 그 안을 채운다.
 
+**먼저 실패 보고 헬퍼를 공용으로 옮긴다.** `_report_failure`는 지금 `analysis.py:473`의 **private
+함수**여서 `plan.py`가 쓸 수 없다. 내용은 job 수명주기 로직뿐이고(`fail_or_retry` 한 줄) 분석에
+고유한 것이 없으므로 `jobs.py`로 옮겨 공개한다 — 복제하지 않는다.
+
+```python
+# app/backend/app/services/jobs.py 로 옮긴다 (analysis.py 에서 삭제)
+async def report_failure(pool: asyncpg.Pool, job: ClaimedJob, error: str) -> None:
+    """실패를 큐에 보고한다 — 짧은 자기 트랜잭션(이 모듈의 호출 계약).
+
+    `analysis.py`의 private 함수였는데 계획 생성 job 도 같은 보고가 필요해져 여기로 옮겼다.
+    내용은 job 수명주기 로직뿐이라 이 모듈이 원래 자리다. 복제하면 두 경로의 보고 방식이
+    조용히 갈라진다.
+    """
+    async with pool.acquire() as conn, conn.transaction():
+        recorded = await fail_or_retry(conn, job.id, job.lease_token, error)
+    if not recorded:
+        logger.warning("job %s: failure report discarded (lease no longer ours)", job.id)
+```
+
+`analysis.py`는 `_report_failure` 정의를 지우고 `from app.services.jobs import report_failure`로
+바꾼다. 호출부 2곳(`analysis.py:493`과 이 태스크가 더하는 종류 판정)도 새 이름을 쓴다.
+
 ```python
 # app/backend/app/services/plan.py (이 태스크가 만드는 최소 형태)
 async def process_plan(pool: asyncpg.Pool, claude: ClaudeClient, job: ClaimedJob) -> None:
@@ -643,7 +665,7 @@ async def process_plan(pool: asyncpg.Pool, claude: ClaudeClient, job: ClaimedJob
     지금은 대상 검증만 한다 — 계약을 먼저 고정해 워커 분기가 이 태스크에서 완결되게 한다.
     """
     if job.session_id is None:
-        await _report_failure(pool, job, f"plan job {job.id} has no session target")
+        await report_failure(pool, job, f"plan job {job.id} has no session target")
         return
     raise NotImplementedError("Task 7이 저장까지 채운다")
 ```
@@ -656,10 +678,10 @@ Task 7의 Step 4가 그것을 확인한다. 완료 판정 전에 `grep -rn "NotI
 
 ```python
     if job.job_type != JOB_TYPE_ANALYZE:
-        await _report_failure(pool, job, f"job {job.id} is not an analysis job: {job.job_type}")
+        await report_failure(pool, job, f"job {job.id} is not an analysis job: {job.job_type}")
         return
     if job.utterance_id is None:
-        await _report_failure(pool, job, f"job {job.id} has no utterance target")
+        await report_failure(pool, job, f"job {job.id} has no utterance target")
         return
 ```
 
@@ -1498,21 +1520,36 @@ async def test_rejected_plan_stores_nothing_and_records_error(
 
 # 부분 반영이 없다 — 수준 갱신이 실패하면 계획도 남지 않는다.
 @pytest.mark.asyncio
-async def test_no_partial_write_when_level_update_fails(
-    db_pool, fake_claude, ended_session_with_history
+async def test_no_partial_write_when_plan_insert_fails(
+    db_pool: asyncpg.Pool, fake_claude, ended_session_with_history
 ):
-    session_id, _ = await ended_session_with_history(db_pool)
-    job = await claim_plan_job(db_pool, session_id)
-    # CEFR 값역은 통과하지만 DB 에 없는 사용자로 갱신을 강제 실패시킨다
-    claude = fake_claude(response=plan_json())
+    # 실패를 만드는 방법: 그 세션에 계획 행을 **미리** 넣어 unique(session_id)를 건드린다.
+    # ⚠️ 사용자를 지우는 방법은 쓸 수 없다 — learning_sessions.user_id 가 cascade 라 세션까지
+    # 사라지고, 그러면 process_plan 이 "세션 없음" 정상 실패 경로로 빠져 트랜잭션을 열지도 않는다.
+    session_id, user_id = await ended_session_with_history(db_pool)
+    questions = '[{"prompt":"q1","context":"c1"},{"prompt":"q2","context":"c2"},{"prompt":"q3","context":"c3"}]'
     async with db_pool.acquire() as conn:
-        await conn.execute("delete from users where id = (select user_id from learning_sessions where id = $1)", session_id)
+        await conn.execute(
+            "insert into session_plans "
+            "(session_id, focus_pattern_ids, questions, target_level, reason, instruction, source) "
+            "values ($1, $2, $3::jsonb, 'A2', '먼저 있던 계획', '{}'::jsonb, 'agent')",
+            session_id,
+            [uuid4()],
+            questions,
+        )
+    job = await claim_plan_job(db_pool, session_id)
+    claude = fake_claude(response=plan_json(level_action="up", target_level="B1"))
 
-    with pytest.raises(Exception):
+    with pytest.raises(asyncpg.UniqueViolationError):
         await process_plan(db_pool, claude, job)
 
     async with db_pool.acquire() as conn:
-        assert await conn.fetchval("select count(*) from session_plans") == 0
+        # 노트와 수준 갱신이 같은 트랜잭션에 있었으므로 함께 되돌아간다
+        assert await conn.fetchval("select count(*) from learner_notes") == 0
+        assert await conn.fetchval("select current_level from users where id = $1", user_id) == "A2"
+        assert await conn.fetchval(
+            "select reason from session_plans where session_id = $1", session_id
+        ) == "먼저 있던 계획"
 ```
 
 - [ ] **Step 2: 테스트를 돌려 실패를 확인한다**
@@ -1531,7 +1568,7 @@ async def process_plan(pool: asyncpg.Pool, claude: ClaudeClient, job: ClaimedJob
     들고 있으면 다른 job 이 막힌다.
     """
     if job.session_id is None:
-        await _report_failure(pool, job, f"plan job {job.id} has no session target")
+        await report_failure(pool, job, f"plan job {job.id} has no session target")
         return
 
     async with pool.acquire() as conn:
@@ -1539,7 +1576,7 @@ async def process_plan(pool: asyncpg.Pool, claude: ClaudeClient, job: ClaimedJob
             "select user_id from learning_sessions where id = $1", job.session_id
         )
         if owner is None:
-            await _report_failure(pool, job, f"session {job.session_id} not found")
+            await report_failure(pool, job, f"session {job.session_id} not found")
             return
         data = await load_plan_input(conn, owner["user_id"])
 
@@ -1549,7 +1586,7 @@ async def process_plan(pool: asyncpg.Pool, claude: ClaudeClient, job: ClaimedJob
         plan = parse_plan(raw, current_level=data.current_level)
     except PlanValidationError as exc:
         # 예상된 결과다 — 반쯤 검증된 계획을 쓰지 않는다(§9 Failure).
-        await _report_failure(pool, job, f"plan contract violated: {exc}")
+        await report_failure(pool, job, f"plan contract violated: {exc}")
         return
 
     async with pool.acquire() as conn, conn.transaction():
@@ -1648,36 +1685,43 @@ async def test_load_prepared_plan_returns_none_when_absent(db_conn, seed_user):
 
 
 # 폴백은 수준이 맞는 시나리오를 고른다.
+# ⚠️ `create_session`은 **pool** 을 받는다(`create_session(pool, user_id)`) — 그래서 이 두 테스트는
+#    `db_conn`이 아니라 `db_pool` 픽스처를 쓴다. conn 을 pool 처럼 감싸는 헬퍼를 만들지 않는다.
 @pytest.mark.asyncio
-async def test_session_creation_prefers_scenario_matching_level(db_conn, seed_user):
-    user_id = await seed_user(db_conn, level="B1")
-    await db_conn.execute(
-        "insert into learning_scenarios (id, category, level, title, prompt_template) "
-        "values ($1, 'work', 'B1', 'B1 scenario', 'Tell me about your project.')",
-        uuid4(),
-    )
+async def test_session_creation_prefers_scenario_matching_level(db_pool: asyncpg.Pool, seed_user):
+    async with db_pool.acquire() as conn:
+        user_id = await seed_user(conn, level="B1")
+        await conn.execute(
+            "insert into learning_scenarios (id, category, level, title, prompt_template) "
+            "values ($1, 'work', 'B1', 'B1 scenario', 'Tell me about your project.')",
+            uuid4(),
+        )
 
-    session_id = await create_session(db_conn_pool_of(db_conn), user_id)
+    session_id = await create_session(db_pool, user_id)
 
-    level = await db_conn.fetchval(
-        "select s.level from learning_scenarios s "
-        "join learning_sessions ls on ls.scenario_id = s.id where ls.id = $1",
-        session_id,
-    )
+    async with db_pool.acquire() as conn:
+        level = await conn.fetchval(
+            "select s.level from learning_scenarios s "
+            "join learning_sessions ls on ls.scenario_id = s.id where ls.id = $1",
+            session_id,
+        )
     assert level == "B1"
 
 
 # 수준에 맞는 시나리오가 없으면 시드된 첫 행으로 떨어지고, 시작이 실패하지 않는다.
-# (시드는 A2 3행뿐이라 B2 사용자는 이 경로로 온다 — 계획 문서 「구현 전 정정」)
+# (시드는 A2 3행뿐이라 C2 사용자는 이 경로로 온다 — 계획 문서 「구현 전 정정」)
 @pytest.mark.asyncio
-async def test_session_creation_falls_back_when_no_level_match(db_conn, seed_user):
-    user_id = await seed_user(db_conn, level="C2")
+async def test_session_creation_falls_back_when_no_level_match(db_pool: asyncpg.Pool, seed_user):
+    async with db_pool.acquire() as conn:
+        user_id = await seed_user(conn, level="C2")
 
-    session_id = await create_session(db_conn_pool_of(db_conn), user_id)
+    session_id = await create_session(db_pool, user_id)
 
-    assert await db_conn.fetchval(
-        "select scenario_id is not null from learning_sessions where id = $1", session_id
-    ) is True
+    async with db_pool.acquire() as conn:
+        has_scenario = await conn.fetchval(
+            "select scenario_id is not null from learning_sessions where id = $1", session_id
+        )
+    assert has_scenario is True
 ```
 
 - [ ] **Step 2: 테스트를 돌려 실패를 확인한다**
@@ -2111,6 +2155,14 @@ Expected: **2건 FAIL** — 404 (경로가 없다).
 - [ ] **Step 3: 최소 구현**
 
 `results.py`의 기존 라우터에 경로를 더한다(`router = APIRouter(prefix="/api/sessions", …)`).
+
+⚠️ **사용자 id를 얻는 방법**: `results.py`는 지금 사용자 맥락이 **전혀 없다**(세션 id로만 조회한다 —
+`user_id` 참조 0건). 그래서 `from app.api.ws import FIXED_USER_ID`로 가져온다 —
+그 상수가 앱 전역의 단일 사용자 id이고, 이미 `tests/harness/inject_errors.py`가 같은 경로로
+import하는 **선례가 있다**. 새 상수를 만들면 값이 두 곳에 생겨 갈라진다.
+
+⚠️ **경로 충돌 없음을 확인했다**: `results.py`의 기존 경로는 `@router.get("/{session_id}/results")`
+**하나뿐**이고 세그먼트 수가 달라 `/next-plan`을 가리지 않는다.
 
 ```python
 @router.get("/next-plan")
