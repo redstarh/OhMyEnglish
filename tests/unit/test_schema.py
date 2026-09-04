@@ -88,6 +88,9 @@ async def test_001_migration_creates_expected_tables(db_conn: asyncpg.Connection
         "pronunciation_attempts",
         # 006 — 학습 코치 슬라이스 1 (docs/design/2026-08-25-learning-coach-agent-design.md §8.1)
         "pattern_attempts",
+        # 007 — 학습 코치 슬라이스 2 (docs/design/2026-08-25-learning-coach-agent-design.md §8.1)
+        "session_plans",
+        "learner_notes",
     }
 
 
@@ -546,3 +549,109 @@ async def test_pattern_attempts_cascades_with_the_utterance(db_conn: asyncpg.Con
     await db_conn.execute("delete from utterances where id = $1", utterance_id)
 
     assert await db_conn.fetchval("select count(*) from pattern_attempts") == 0
+
+
+# ── 007 학습 코치 슬라이스 2 (학습 코치 설계서 §8.1·§8.3) ────────────────────────
+
+
+# ⑫ 007 — analysis_jobs 가 계획 job 을 받는다 (설계서 §8.3)
+@pytest.mark.asyncio
+async def test_analysis_jobs_accepts_plan_next_session(db_conn: asyncpg.Connection):
+    await _insert_user(db_conn)
+    session_id = uuid4()
+    await _insert_session(db_conn, session_id)
+
+    await db_conn.execute(
+        "insert into analysis_jobs (job_type, session_id) values ('plan_next_session', $1)",
+        session_id,
+    )
+    assert await db_conn.fetchval(
+        "select count(*) from analysis_jobs where job_type = 'plan_next_session'"
+    ) == 1
+
+
+# ⑬ 007 — 계획 job 은 utterance 를 대상으로 삼을 수 없다 (대상 컬럼 배타 CHECK 3분기)
+@pytest.mark.asyncio
+async def test_plan_job_rejects_utterance_target(db_conn: asyncpg.Connection):
+    await _insert_user(db_conn)
+    session_id = uuid4()
+    utterance_id = uuid4()
+    await _insert_session(db_conn, session_id)
+    await _insert_utterance(db_conn, utterance_id, session_id)
+
+    with pytest.raises(asyncpg.CheckViolationError):
+        await db_conn.execute(
+            "insert into analysis_jobs (job_type, utterance_id) "
+            "values ('plan_next_session', $1)",
+            utterance_id,
+        )
+
+
+# ⑭ 007 — session_plans 불변조건: 초점 1~2개 · 질문 3~5개 · 이유 비어있지 않음 (설계서 §9 Contract)
+@pytest.mark.asyncio
+async def test_session_plans_invariants(db_conn: asyncpg.Connection):
+    await _insert_user(db_conn)
+    session_id = uuid4()
+    await _insert_session(db_conn, session_id)
+    pattern_a, pattern_b, pattern_c = uuid4(), uuid4(), uuid4()
+
+    def insert(focus: list, questions: str, reason: str) -> tuple[str, list]:
+        return (
+            "insert into session_plans "
+            "(session_id, focus_pattern_ids, questions, target_level, reason, instruction, source) "
+            "values ($1, $2, $3::jsonb, 'A2', $4, '{}'::jsonb, 'agent')",
+            [session_id, focus, questions, reason],
+        )
+
+    ok_questions = '[{"prompt":"q1","context":"c1"},{"prompt":"q2","context":"c2"},{"prompt":"q3","context":"c3"}]'
+
+    # CHECK 위반은 트랜잭션을 abort시킨다. db_conn 픽스처는 테스트 하나를 트랜잭션
+    # 하나로 감싸므로, 이 위반들을 이어서 검증하려면 각각 savepoint(중첩 트랜잭션)로
+    # 격리해야 다음 assert가 이어질 수 있다(다른 곳의 pronunciation_attempts 테스트가
+    # 이 문제를 별도 테스트 분리로 피한 것과 같은 근본 원인).
+
+    # 초점 3개 → 거부
+    sql, args = insert([pattern_a, pattern_b, pattern_c], ok_questions, "이유")
+    with pytest.raises(asyncpg.CheckViolationError):
+        async with db_conn.transaction():
+            await db_conn.execute(sql, *args)
+
+    # 질문 2개 → 거부
+    sql, args = insert([pattern_a], '[{"prompt":"q1","context":"c1"},{"prompt":"q2","context":"c2"}]', "이유")
+    with pytest.raises(asyncpg.CheckViolationError):
+        async with db_conn.transaction():
+            await db_conn.execute(sql, *args)
+
+    # 이유가 공백뿐 → 거부
+    sql, args = insert([pattern_a], ok_questions, "   ")
+    with pytest.raises(asyncpg.CheckViolationError):
+        async with db_conn.transaction():
+            await db_conn.execute(sql, *args)
+
+    # 정상 1행은 들어간다
+    sql, args = insert([pattern_a, pattern_b], ok_questions, "관사를 계속 빼먹어서 오늘 그것만 봅니다")
+    await db_conn.execute(sql, *args)
+    assert await db_conn.fetchval("select count(*) from session_plans") == 1
+
+
+# ⑮ 007 — 세션이 지워지면 계획도 함께 지워진다 · 세션당 1행
+@pytest.mark.asyncio
+async def test_session_plans_unique_and_cascade(db_conn: asyncpg.Connection):
+    await _insert_user(db_conn)
+    session_id = uuid4()
+    await _insert_session(db_conn, session_id)
+    questions = '[{"prompt":"q1","context":"c1"},{"prompt":"q2","context":"c2"},{"prompt":"q3","context":"c3"}]'
+    sql = (
+        "insert into session_plans "
+        "(session_id, focus_pattern_ids, questions, target_level, reason, instruction, source) "
+        "values ($1, $2, $3::jsonb, 'A2', '이유', '{}'::jsonb, 'agent')"
+    )
+    await db_conn.execute(sql, session_id, [uuid4()], questions)
+
+    # UNIQUE 위반도 트랜잭션을 abort시킨다 — savepoint로 격리해야 아래 delete가 이어진다.
+    with pytest.raises(asyncpg.UniqueViolationError):
+        async with db_conn.transaction():
+            await db_conn.execute(sql, session_id, [uuid4()], questions)
+
+    await db_conn.execute("delete from learning_sessions where id = $1", session_id)
+    assert await db_conn.fetchval("select count(*) from session_plans") == 0
