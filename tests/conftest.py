@@ -855,13 +855,23 @@ async def seed_scenarios_for_level(db_pool: asyncpg.Pool) -> AsyncIterator[Calla
     `create_session`이 pool 을 받으므로 롤백 트랜잭션으로는 잴 수 없다. 그래서
     `committed_session`과 같은 규약으로 teardown 에서 직접 지운다 — **남기면 두 곳이 깨진다**:
     `tests/unit/test_schema.py`의 `count(*) from users == 1`, 그리고 남은 시나리오가 다른
-    테스트의 시나리오 선택을 조용히 바꾼다(선택이 전역 `order by created_at, id`이므로).
+    테스트의 시나리오 선택을 조용히 바꾼다 — 선택은 사용자 수준으로 좁힌 뒤에도 결국
+    `order by created_at, id`로 한 행을 고르므로 남은 행이 그 앞에 끼면 다른 행이 붙는다.
     사용자를 먼저 지우고(세션이 cascade 로 따라간다) 그 다음에 시나리오를 지운다 —
     `learning_sessions.scenario_id`에는 cascade 가 없어(001) 순서를 뒤집으면 FK 에 막힌다.
 
-    `scenarios`는 `(level, days_ago)` 목록이다. `days_ago`가 필요한 이유: 폴백 경로가
-    `order by created_at, id`로 고르므로, 수준이 **안 맞는** 행을 더 이르게 심어야
-    "수준을 보지 않는 구현"과 "보는 구현"이 서로 다른 행을 고른다.
+    `scenarios`는 `(level, days_ago)` 목록이고 `days_ago`가 `created_at`을 과거로 민다.
+
+    ⚠️ **인자 조합이 곧 이 픽스처의 판별력이다 — 무엇이 부족한지는 실측으로 정해져 있다.**
+    "수준이 **안 맞는** 행을 하나 더 이르게 심는다"는 배치는 **부족하다**: 그러면 일치 행이
+    동시에 "가장 최신 행"이 되어 수준을 무시하고 `desc`로 고르는 구현이 그대로 통과한다.
+    거꾸로 일치 행을 가장 이르게 두면 수준을 무시하고 **가장 이른 행**을 고르는 구현
+    (= 슬라이스 2 이전의 SQL)이 통과한다. 한 조합으로 두 방향을 막을 수 없다.
+    → **수준 우선**을 재려면 불일치 행을 **가장 이른 행과 가장 최신 행 양쪽에** 두고 일치
+      행을 가운데 둔다(3행). → **폴백의 "가장 이른 행"**을 재려면 불일치 행을 **2행 이상**
+      심는다: 1행이면 어떤 정렬이든 그 행을 골라 "폴백 절이 존재한다"만 재게 된다.
+    조합별 누출 실측과 이 배치가 막지 **못하는** 것은 `tests/unit/test_sessions.py`의 두
+    시나리오 테스트 주석이 소유한다 — 여기서 다시 적지 않는다.
     """
     user_ids: list[UUID] = []
     scenario_ids: list[UUID] = []
