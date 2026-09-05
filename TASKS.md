@@ -542,10 +542,50 @@ S2-6에서 **네 라운드 연속으로 내 고침 자체에서 같은 부류가
 `ruff check .`·`ruff format --check .`(32 files)·`ty check` 전부 exit 0 · 게이트 밖 **6 errors · 4 files**
 유지 · 프론트 `tsc`·`eslint` 둘 다 exit 0.
 
-⚠️ **재검증 보고가 M9 행에서 잘려 도착했다** — 뮤테이션 표 M9 이후(프론트 F1~F4 · 픽스처 D1) ·
-§3 특별 검증 3건의 결론 · §4 확신도 · §5 미확인 목록을 **아직 받지 못했다.** 재요청했고 미수신이다.
-받은 범위(판정 · Important 1 · Minor 4 · M1~M8)만으로 위 처리를 했고, **M5·M7이 원리뷰 Important 2건의
-(b)를 닫는 증거**다(M5 → ④ 단독 red · M7 → ⑤ 단독 red).
+#### 재검증이 낸 증거 (2026-09-06 · 2통에 걸쳐 도착, 둘 다 잘렸다)
+
+**뮤테이션 14회 — 백엔드 9 · 프론트 4 · 픽스처 1.** 무력화마다 **전체 스위트**를 돌려 red를 전건
+열거했다(파급 red를 규칙 수로 오산하지 않기 위해). ①~⑤는 `tests/integration/test_plan_api.py`의 다섯 테스트다.
+
+| # | 무력화 | red | 판정 |
+|---|---|---|---|
+| M1~M3 | `results.py`의 `reason`/`target_level`을 None·상수로 | ① ④ (`2 failed, 580 passed`) | 보호됨 |
+| M4 | 계획 부재를 404로 | ② ③ ⑤ | 보호됨 |
+| **M5** | 수준을 지시문이 아니라 **컬럼**에서 읽는다(4곳) | **④ 단독** | 보호됨 — 원리뷰 Important (b) 닫힘 |
+| M6 | 조회를 사용자로 좁히지 않는다(`or true`) | ③ + `test_sessions.py::…ignores_another_learners_newer_plan` | 보호됨 |
+| **M7** | 읽을 수 없는 지시문에서 컬럼으로 **부분 표시** | **⑤ 단독** | 보호됨 — 읽을 수 없는 경로 닫힘 |
+| M8 | 수준을 상수 `"C1"`(=④의 기대값)으로 | **① 단독** | ①과 ④는 **중복이 아니다** |
+| M9 | 최신 1행 정렬을 `asc`로 뒤집는다 | `test_sessions.py::…returns_the_latest_plan` **단독** | 보호됨 — **소유 층에서만**. API 5건은 계획을 1행만 심어 이 규칙을 재지 않는다(층 분리가 옳다) |
+| D1 | `committed_fixed_user` **teardown** 제거 | ② ③ (`2 failed, 580 passed`) | teardown은 하중을 받는다 — **`test_schema`는 red가 아니다** → Minor-3 |
+| **F1~F4** | `page.tsx`의 렌더 줄을 상수화·삭제, `setNextPlan` 제거 | **없음** — `tsc` exit 0 · `eslint` exit 0(F3·F4는 warning만) | **4/4 무보호** → Minor-1 |
+
+**T0 집계**: 신규 5건 **전부 red를 얻었다.** ④와 ⑤는 **단독 killer**(M5·M7)를 가져 다른 테스트로
+대체되지 않는다. ⚠️ **프론트 4건은 삭제조차 게이트를 통과한다** — `eslint`가 미사용 변수를 warning으로만
+내고 exit 0이다.
+
+**특별 검증 ① — 근거 (가)·(나) 둘 다 참이다** (팀리드가 직접 재확인):
+- **(가)** `session_plans`를 **읽는** SQL은 앱 전체에서 하나다 — `services/sessions.py:110`(`_PREPARED_PLAN_SQL`).
+  쓰기는 `services/plan.py:89`. **`session_plans.target_level`을 읽는 앱 코드는 0곳**이다(grep 전수).
+- **(나)** 전파 사슬이 코드로 이어진다: `services/plan.py:354`(`_UPDATE_LEVEL_SQL`에 `plan.level.target_level`)
+  → `:101` `update users set current_level = $2` → `services/plan_input.py:23`(`select … current_level from users`)
+  → `:215` `current_level=row["current_level"]` → `services/plan.py:275` `f"Current level: {…}"` **그리고**
+  `models/plan.py:244` `_one_step_or_same(current_level, result.level.target_level)`.
+- **정정문의 전제도 참** — 화면과 대화 상대가 **같은 필드 하나**를 읽는다: `api/ws.py:135`가
+  `prepared.instruction`을 넘기고 → `audio_gateway/factory.py:48` → `nova.py:220` `f"{plan.target_level}"`이며
+  그 `plan`의 타입이 **`SessionInstruction`**이다(`nova.py:154` 시그니처). ⚠️ **그 검증자를 지우지 마라.**
+- 부수 확인: 007의 `session_plans_reason_not_blank`는 실재한다(`db/migrations/007_…sql:45~46`
+  `check (btrim(reason, E' \t\n\r') <> '')`). `instruction jsonb not null`이라 `json.loads` 실패 경로는
+  **DB를 통해 도달 불가** — V2 방어 누락이 아니다.
+
+⚠️ **재검증의 ② 결론은 범위가 좁았다 — 그래서 "1건뿐"이 거짓이었다.** 재검증은 `app/**`·`tests/**`·
+`docs/**`를 훑고 "잔존 거짓 **전체 목록** 1건뿐"이라고 단정했으나 **`handoff/**`를 범위에 넣지 않았고**
+거기에 2건째가 있었다(위 팀리드 스윕). **`e9b79c9`가 실패한 방식(층을 덜 셈)을 재검증이 반복했다.**
+→ 규약: **"전체"라고 쓸 때는 훑은 범위를 함께 적는다.** 좁은 범위에 "전부"를 붙이면 과장이 아니라 거짓이다.
+
+⚠️ **아직 미수신 4건**(3차 요청, 짧게 쪼개 달라고 했다): **§3 ③**((a) docstring 일치 · (b) `instruction=`
+분리 테스트가 컬럼/jsonb 구분을 실제로 재는가) · **§4 확신도** · **§5 재검증이 확인하지 못한 것** ·
+**`b5acdf0` 고침 3라운드 재재검증 판정.** ⚠️ **미수신을 근거로 ✅로 올리지 않는다** — `idle`은 "끝났다"가
+아니다. 보고가 **같은 자리에서 두 번 잘렸다**는 것도 남긴다(긴 표를 한 메시지에 담으면 잘린다).
 
 **원리뷰(Critical 0 · Important 2)가 잡은 것과 처리**:
 1. **`PreparedPlan`·validator docstring이 이 커밋으로 거짓이 됐다** → 교체(`24ad4cc`). 화면에
