@@ -1022,13 +1022,18 @@ def test_plan_block_says_it_replaces_the_general_hint_rule():
 # 리뷰 라운드 1 (I-1) — 대체 문장이 필요한 축은 **둘**이었다. 힌트 시점 말고 **목표 수준**도
 # 고정 규칙 1(`A2-B1 level`)과 같은 축인데 처음에는 대체 문장이 없어서, `target_level="C1"`
 # 계획에서 `at A2-B1 level`과 `- Target level: C1`이 한 지시문에 함께 실렸다(리뷰어 관측).
+# ⚠️ 대체 축이 **왜 둘인가**(그리고 규칙 3이 왜 대체 대상이 아닌가)는 `build_system_prompt`의
+# docstring이 소유한다 — 그 판단은 테스트로 옮기지 않았다(지킬 회귀가 없는 부재 단정이 된다).
 def test_plan_block_says_the_target_level_replaces_the_base_level_in_rule_1():
     block = _plan_block(build_system_prompt((), _instruction(target_level="C1")))
 
     assert f"instead of the {_BASE_LEVEL_RANGE} level in rule 1" in block
     assert "C1" in block
     # ⚠️ 규칙 1의 **턴 길이**는 대체 대상이 아니다 — 코치 자신의 턴 길이는 그대로다.
-    # 대체 범위가 규칙 1 전체로 넓어지면 이 단정이 걸린다.
+    # 대체 범위가 규칙 1 전체로 넓어지면 이 단정이 걸린다. **단 대소문자를 구분한다** —
+    # `- Ignore Rule 1 entirely for today.`처럼 대문자로 넓히면 통과한다(직접 확인: red 0건).
+    # 그대로 두는 이유: 집안 스타일이 소문자(`in rule 4`)이고 1차 방어는 docstring의 명시적
+    # 서술이다. `lower()`로 넓히면 이 단정이 앵커 문구까지 함께 낮춰야 해 오히려 약해진다.
     assert "rule 1" not in block.replace(f"instead of the {_BASE_LEVEL_RANGE} level in rule 1", "")
 
 
