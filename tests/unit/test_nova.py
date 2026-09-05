@@ -33,6 +33,7 @@ from app.audio_gateway.port import (
     TranscriptEvent,
 )
 from app.config import Settings
+from app.models.plan import InstructionFocus, SessionInstruction
 from app.models.pronunciation import PRONUNCIATION_TOOL_NAME
 
 # --- N-1 실측에서 옮긴 값 ---
@@ -894,7 +895,8 @@ def test_system_prompt_tells_the_tutor_to_wait_through_a_pause():
     )
     # 2차 (2026-09-03 검증 세션): 대기 규칙만으로는 **새 질문 + 교정을 한 턴에 묶는 것**을
     # 막지 못했다(284자 한 턴 실측). 교정은 규칙 4·5가 시키는 일이라 모델이 정당하게 붙인다 —
-    # 그래서 그 조합을 명시적으로 금지한다. 규칙 10이 규칙 4의 상한을 다시 못박은 것과 같은 방식.
+    # 그래서 그 조합을 명시적으로 금지한다. 규칙 11이 규칙 4의 상한을 다시 못박은 것과 같은 방식
+    # (65% 규칙이 7번으로 들어오면서 발음 규칙이 8~11로 밀렸다 — 가리키는 규칙 4는 안 밀린다).
     assert "never pair a correction with a new question" in lowered
 
 
@@ -941,3 +943,102 @@ async def test_start_sends_the_base_prompt_when_no_instructions_are_given():
     await adapter.close()
 
     assert stream.payloads("textInput")[0]["content"] == SYSTEM_PROMPT
+
+
+# --- Task 10: 오늘의 계획을 지시문에 얹는다 (설계서 §5.2 가변부) ---
+
+
+def _instruction(**overrides: object) -> SessionInstruction:
+    """계획 지시문 1건. 값은 **고정부와 겹치지 않는 것**을 골랐다.
+
+    ⚠️ 고정부에 이미 있는 문구를 쓰면 단정이 항진명제가 된다 — `SYSTEM_PROMPT`는
+    `"A2-B1 level"`(규칙 1)과 `"work updates"`(규칙 3)를 이미 말하므로
+    `"B1" in prompt`·`"work update" in prompt`는 계획 블록이 **없어도** 참이다(직접 확인:
+    각 1건). 그래서 아래 단정들은 전부 `_plan_block()`으로 창을 좁혀서 잰다.
+    """
+    body: dict[str, object] = {
+        "target_level": "B1",
+        "focus": [InstructionFocus(pattern_key="article_missing", target_form="a/an/the")],
+        "sentence_length": "two or three short clauses",
+        "hint_timing": "wait through one long pause before offering a starter",
+        "contexts": ["work update", "daily life", "weekend plan"],
+    }
+    body.update(overrides)
+    return SessionInstruction(**body)
+
+
+def _plan_block(prompt: str) -> str:
+    """계획 블록만 잘라낸다 — 고정부·소리 목록을 창에서 뺀다.
+
+    `tests/unit/test_plan.py`의 지배 규칙과 같은 이유다: 프롬프트 전체를 대상으로 문구를
+    찾으면 **다른 절에 있는 같은 낱말**에 걸려 판별력을 잃는다. 계획 블록이 마지막이라
+    제목부터 끝까지가 창이다.
+    """
+    anchor = "Today's plan:"
+    assert anchor in prompt, "계획 블록 제목이 없다"
+    return prompt[prompt.index(anchor) :]
+
+
+# PRD.md:59 · R10-8 — 요구사항인데 실제 지시문에 없었다(2026-09-04 점검, 직접 확인: 0건).
+# `_is_control_payload` 주석이 "학습자 65% 발화 지표"를 말하지만 그것은 **코드 주석**이고
+# Nova 가 받는 문구가 아니었다 — 대화 상대는 이 목표를 모르고 있었다.
+def test_fixed_prompt_states_the_65_percent_speaking_target():
+    lowered = " ".join(SYSTEM_PROMPT.lower().split())
+    assert "65%" in SYSTEM_PROMPT, "학습자 발화 비중 목표가 지시문에 없다 (R10-8)"
+    assert "learner to speak" in lowered
+
+
+# 계획이 없으면 예전 그대로다 — 폴백 경로(AS4)가 고정부만으로 시작한다.
+def test_build_system_prompt_without_a_plan_is_exactly_the_base_prompt():
+    assert build_system_prompt((), None) == SYSTEM_PROMPT
+
+
+def test_plan_block_carries_level_focus_length_and_contexts():
+    block = _plan_block(build_system_prompt((), _instruction()))
+
+    assert "B1" in block
+    assert "article_missing" in block
+    assert "a/an/the" in block
+    assert "two or three short clauses" in block
+    assert "work update" in block
+    assert "weekend plan" in block
+
+
+# 어긋남 ② — 힌트 시점은 고정 규칙에 **이미** 있다(규칙 2·5). 계획이 그것을 대체한다는
+# 것이 문구로 없으면 "긴 침묵 뒤에만"과 오늘의 지시가 함께 실려 모순된 지시문이 된다.
+def test_plan_block_says_it_replaces_the_general_hint_rule():
+    block = _plan_block(build_system_prompt((), _instruction()))
+
+    assert "instead of the general hint rule" in block
+    assert "wait through one long pause before offering a starter" in block
+
+
+# 발음 소리 목록과 계획이 함께 있어도 둘 다 실린다 — G-3 블록을 계획이 밀어내지 않는다.
+def test_sounds_and_plan_can_coexist():
+    prompt = build_system_prompt(("th_as_s",), _instruction())
+
+    assert prompt.startswith(SYSTEM_PROMPT)
+    # ⚠️ **소리 목록을 `"th_as_s"`로 재지 않는다** — 그 키는 고정부 규칙 10의 예시로 **이미**
+    # 들어 있어서(직접 확인: 1건) 소리 블록을 통째로 버리는 뮤테이션에서도 통과했다.
+    # 블록의 **제목**으로 잰다(고정부에 0건). 창은 계획 블록 앞까지로 좁힌다.
+    before_plan = prompt.removesuffix(_plan_block(prompt))
+    assert "Sounds this learner has missed before" in before_plan
+    assert "reuse that exact key" in before_plan
+    assert "article_missing" in _plan_block(prompt)
+
+
+# `SessionInstruction.contexts`는 길이 제약이 없다(`focus`·`questions`와 달리 문서 근거가
+# 있는 수치가 없어서 두지 않았다). 빈 목록에 제목만 남기면 Nova 가 "목록이 비었다"를
+# 지시로 오해할 여지가 생긴다 — 소리 목록이 같은 판단을 이미 내렸다(B-4).
+def test_plan_block_omits_the_situations_line_when_there_are_no_contexts():
+    block = _plan_block(build_system_prompt((), _instruction(contexts=[])))
+
+    assert "Situations" not in block
+    # 나머지 줄은 그대로 있다 — 줄 하나를 빼는 것이 블록을 깨뜨리지 않는다.
+    assert "B1" in block
+    assert "a/an/the" in block
+
+
+# 기존 tripwire 가 계속 산다 — 65% 규칙을 끼워 넣으면서 대기 규칙을 밀어내지 않았는지 본다.
+def test_system_prompt_still_tells_the_tutor_to_wait_through_a_pause_after_the_insert():
+    assert "do not fill it with another question" in SYSTEM_PROMPT

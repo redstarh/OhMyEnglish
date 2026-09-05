@@ -55,6 +55,7 @@ from app.audio_gateway.session import (
 )
 from app.audio_gateway.stub import StubVoiceAdapter
 from app.config import Settings
+from app.models.plan import InstructionFocus, SessionInstruction
 
 # 연결 타임아웃 주입값. 실시간 대기 금지 — 무응답 경로도 0.1초 안에 판정된다.
 FAST_CONNECT_TIMEOUT = 0.1
@@ -732,13 +733,59 @@ def test_factory_uses_the_base_prompt_when_there_are_no_known_sounds():
     assert adapter.instructions == SYSTEM_PROMPT
 
 
-# PS8(스텁 무손상) — 스텁은 이 값을 쓰지 않는다. 인자를 받고도 모드가 그대로여야
-# 1·2차수 판정이 재현된다.
-def test_factory_ignores_known_sounds_for_the_stub():
+# PS8(스텁 무손상) — 스텁도 조립된 지시문을 **받는다**(Task 10). 다만 보관만 하므로
+# 모드가 그대로여야 1·2차수 판정이 재현된다. 지시문을 받는 이유는 AS6 판정 수단이
+# 그것뿐이기 때문이다(아래 `test_factory_puts_the_plan_into_the_stub_instructions`).
+def test_factory_gives_the_stub_the_instructions_without_changing_its_mode():
     adapter = create_voice_adapter(_settings(voice_adapter=STUB_ADAPTER), known_sounds=["th_as_s"])
 
     assert isinstance(adapter, StubVoiceAdapter)
     assert adapter.mode == "fixture"
+    instructions = adapter.instructions
+    assert instructions is not None
+    assert "th_as_s" in instructions
+
+
+# --- Task 10: 오늘의 계획이 지시문에 실린다 (AS6) ---
+#
+# 여기가 "지시문에 계획이 실린다"를 재는 자리다. 소켓 계층(`tests/integration/test_ws.py`)은
+# **데이터**가 팩토리까지 가는 것만 잰다 — 조립은 팩토리가 소유하므로(G3 이음매) 조립 문구를
+# 소켓에서 단정하면 그 이음매를 재는 테스트와 규약이 갈린다.
+
+
+def _plan_instruction() -> SessionInstruction:
+    """`SYSTEM_PROMPT`와 겹치지 않는 값만 쓴다 — 겹치면 단정이 항진명제가 된다.
+    (`"B1"`·`"work update"`는 고정부에 이미 있어서 쓰지 않는다.)"""
+    return SessionInstruction(
+        target_level="C1",
+        focus=[InstructionFocus(pattern_key="article_missing", target_form="a/an/the")],
+        sentence_length="two or three short clauses",
+        hint_timing="wait through one long pause before offering a starter",
+        contexts=["weekend plan"],
+    )
+
+
+def test_factory_puts_the_plan_into_the_nova_instructions():
+    adapter = create_voice_adapter(_settings(voice_adapter=NOVA_ADAPTER), plan=_plan_instruction())
+
+    assert isinstance(adapter, NovaVoiceAdapter)
+    assert adapter.instructions != SYSTEM_PROMPT
+    assert "a/an/the" in adapter.instructions
+    assert "weekend plan" in adapter.instructions
+
+
+# AS6 — 전달 경로가 관통했는지 판정할 수단이 스텁의 보관값뿐이다.
+# ⚠️ **`is not None`으로 끝내지 않는다.** Nova 는 `instructions or SYSTEM_PROMPT`로 falsy 를
+# 강제하므로 빈 조립이 조용히 폴백되고, 스텁은 `""`를 그대로 기록한다 — non-None 단정은
+# "지시문이 도달했다"가 아니라 "생성자가 인자를 받았다"만 증명한다(S2-9 리뷰 인계 1).
+def test_factory_puts_the_plan_into_the_stub_instructions():
+    adapter = create_voice_adapter(_settings(voice_adapter=STUB_ADAPTER), plan=_plan_instruction())
+
+    assert isinstance(adapter, StubVoiceAdapter)
+    instructions = adapter.instructions
+    assert instructions is not None
+    assert "a/an/the" in instructions
+    assert "weekend plan" in instructions
 
 
 # ④ import 그래프 — 러너와 소켓 계층은 스텁을 모른다 (G3)
@@ -858,7 +905,8 @@ async def test_stub_emits_only_transcripts_and_audio():
 #
 # 감지 경로는 **둘**이다: Nova tool(정확) + 한글 전사(확실). 세 번째였던 "agent가 되묻는
 # 문구를 잡기"는 **캡틴 결정(2026-08-28)으로 만들지 않는다** — 문구 매칭이라 케이스가 불어나고,
-# 지시문 규칙 8이 매번 "repeat"를 만들어 시범과 되묻기를 가르는 규칙이 계속 자란다.
+# 지시문 규칙 9(발음 시범)가 매번 "repeat"를 만들어 시범과 되묻기를 가르는 규칙이 계속
+# 자란다. ⚠️ 번호는 Task 10에서 밀렸다 — 65% 규칙이 7번으로 들어와 발음 규칙이 8~11이 됐다.
 # 그래서 R10-4의 절반은 의도적으로 미충족이다.
 
 # 4차수 P4 실측: 한국어 억양이 강하면 ASR 언어 판별이 뒤집혀 영어 문장이 한글로 전사된다.

@@ -27,8 +27,9 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from app.audio_gateway.factory import create_voice_adapter
 from app.audio_gateway.session import SessionRunner
 from app.config import get_settings
+from app.models.plan import SessionInstruction
 from app.services.pronunciation import load_known_sounds
-from app.services.sessions import create_session, mark_session_ended
+from app.services.sessions import create_session, load_prepared_plan, mark_session_ended
 
 logger = logging.getLogger(__name__)
 
@@ -113,6 +114,27 @@ async def _load_known_sounds_or_empty(pool: asyncpg.Pool) -> list[str]:
         return []
 
 
+async def _load_prepared_plan_or_none(pool: asyncpg.Pool) -> SessionInstruction | None:
+    """직전 세션이 준비해 둔 오늘의 계획 — 없거나 읽지 못하면 `None` (설계서 §3.3).
+
+    **계획 조회 실패를 세션 시작 실패로 번역하지 않는다** — `_load_known_sounds_or_empty`와
+    같은 규약이다. 계획은 지시문에 얹는 **부가 정보**이고, 조회가 깨졌다고 세션을 못 열면
+    대화 전체를 잃는다.
+
+    계획이 없는 것과 조회가 실패한 것을 **여기서 구분하지 않는다**: 둘 다 "오늘은 고정
+    지시문으로 시작한다"로 수렴하고, 그것이 §3.3이 정한 동작이다. 구분이 필요한 신호는
+    로그가 담당한다 — `load_prepared_plan`은 부재를 조용히 `None`으로 돌려주고, 여기 걸리는
+    것은 조회 자체가 깨진 경우뿐이다.
+    """
+    try:
+        async with pool.acquire() as conn:
+            prepared = await load_prepared_plan(conn, FIXED_USER_ID)
+    except Exception:
+        logger.exception("준비된 계획을 읽지 못해 계획 없이 시작한다")
+        return None
+    return prepared.instruction if prepared is not None else None
+
+
 @router.websocket(WS_SESSION_PATH)
 async def session_socket(websocket: WebSocket) -> None:
     await websocket.accept()
@@ -135,17 +157,18 @@ async def session_socket(websocket: WebSocket) -> None:
 
     # 이 세션은 살아 있다 — 고아 세션 리퍼(I-4)가 닫아선 안 된다는 표시다. 세션 행 생성
     # **직후**, 다음 `await`보다 **앞**에서 등록하는 것이 계약이다: 바로 아래
-    # `_load_known_sounds_or_empty`가 pool acquire를 await하므로(소진되면 길어진다) 등록을
-    # 그 뒤로 밀면 리퍼가 볼 수 있는 진짜 창이 열린다.
+    # `_load_known_sounds_or_empty`와 `_load_prepared_plan_or_none`이 각각 pool acquire를
+    # await하므로(소진되면 길어진다) 등록을 그 뒤로 밀면 리퍼가 볼 수 있는 진짜 창이 열린다.
     # ⚠️ **"갓 만든 세션이 즉시 리핑된다"는 위험은 없다** — `started_at`이 `now()` 기본값이라
     # 나이가 0초이고 유예를 만족할 수 없다. 이 순서의 근거는 유예가 아니라 위의 await 창이다.
     # 해제는 어떤 경로로 끝나든 아래 `finally`가 한다.
     live_sessions.add(session_id)
     try:
         known_sounds = await _load_known_sounds_or_empty(pool)
+        plan = await _load_prepared_plan_or_none(pool)
 
         try:
-            adapter = create_voice_adapter(get_settings(), known_sounds=known_sounds)
+            adapter = create_voice_adapter(get_settings(), known_sounds=known_sounds, plan=plan)
         except Exception:
             # 어댑터를 만들지도 못했다(설정 오타/구현 부재). 세션 행은 이미 있으므로
             # `active` 고아로 두지 않고 failed로 닫는다 — 결과 화면이 "연결 실패"를

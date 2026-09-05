@@ -51,6 +51,7 @@ from app.audio_gateway.port import (
     TranscriptEvent,
 )
 from app.config import Settings, prepare_bedrock_credentials
+from app.models.plan import SessionInstruction
 from app.models.pronunciation import (
     PRONUNCIATION_TOOL_NAME,
     PRONUNCIATION_TOOL_SCHEMA_JSON,
@@ -95,9 +96,13 @@ _TOOL_ROLE = "TOOL"
 # 부분만** 옮긴다: 오류 메모리 JSON 산출은 Claude 워커의 일이다(§5.2). 그대로 넣으면 모델이
 # JSON을 소리로 읽는다. 학습자 수준·목표는 h-doc 프로필과 같다.
 #
-# 규칙 7~10(발음)은 2026-08-27 스파이크가 실효를 본 문구를 기준으로 한다 — 4차수에서 Nova가
-# 발음을 지적하지 않은 것은 **능력 부재가 아니라 지시 부재였다**(설계서 §2). 규칙 10이
+# 규칙 8~11(발음)은 2026-08-27 스파이크가 실효를 본 문구를 기준으로 한다 — 4차수에서 Nova가
+# 발음을 지적하지 않은 것은 **능력 부재가 아니라 지시 부재였다**(설계서 §2). 규칙 11이
 # 규칙 4의 상한을 다시 못박는 이유는 교정 예산이 코드로 강제되지 않기 때문이다(설계서 D5-1).
+#
+# 규칙 7(65% 발화 목표)은 `docs/PRD.md:59`·R10-8이 요구하는데 **지시문에 없었다**(2026-09-04
+# 점검: `65%` 0건). 발음 절 **앞**에 넣어 발음 규칙이 8~11로 밀렸다 — 규칙 11이 번호로
+# 가리키는 규칙 4는 밀리지 않으므로 그 상호 참조는 그대로 산다.
 #
 # ⚠️ 음성 명령 규칙은 여전히 빼 둔다. tool 호출은 이제 되지만 발음 보고용 tool 하나뿐이고,
 # 명령 실행 경로(`voice_command` 발화)는 이 어댑터에 없다.
@@ -120,45 +125,71 @@ Rules:
    with a new question in the same turn — correct, ask for the repeat, and then stop.
 5. If the learner is stuck, offer a short sentence starter instead of the full answer.
 6. Never read JSON, lists, or metadata out loud.
+7. Aim for the learner to speak at least 65% of the session. Keep your own turns short.
 
 Pronunciation coaching:
-7. You hear the learner's actual audio. The transcript does not show pronunciation
+8. You hear the learner's actual audio. The transcript does not show pronunciation
    errors, so you are the only one who can notice them.
-8. Grammar first. On most turns, correct grammar and leave pronunciation alone. Take up
+9. Grammar first. On most turns, correct grammar and leave pronunciation alone. Take up
    pronunciation only when a sound is so far off that the sentence is hard to understand —
    never for a mild accent. When you do take it up, name the sound that was off, say the
    whole sentence back with correct pronunciation, and ask the learner to repeat it.
-9. Call report_pronunciation_coaching twice: once with outcome "pending" right after you
-   have modeled the sentence, and again with correct, incorrect, or unclear once you have
-   heard the learner repeat it. Always include target_sound - a short reusable key for the
-   sound that was off, such as th_as_s or f_as_p - so the app can group repeat offenders.
-10. A pronunciation correction is a correction. It counts against the one-per-turn limit
+10. Call report_pronunciation_coaching twice: once with outcome "pending" right after you
+    have modeled the sentence, and again with correct, incorrect, or unclear once you have
+    heard the learner repeat it. Always include target_sound - a short reusable key for the
+    sound that was off, such as th_as_s or f_as_p - so the app can group repeat offenders.
+11. A pronunciation correction is a correction. It counts against the one-per-turn limit
     in rule 4 — never add it on top of a grammar correction in the same turn."""
 
 
-def build_system_prompt(known_sounds: Sequence[str]) -> str:
-    """세션용 지시문 = 위 기본 문구 + 이 학습자가 전에 놓친 소리 목록 (G-3, 캡틴 결정 B-4).
+def build_system_prompt(known_sounds: Sequence[str], plan: SessionInstruction | None = None) -> str:
+    """세션용 지시문 = 위 기본 문구 + 놓친 소리 목록 + **오늘의 계획** (G-3, 캡틴 결정 B-4).
 
-    문법 워커에만 있던 §5.6 재사용 규약을 발음 경로에도 만든다. 목록만 보여주는 것으로는
-    부족하다 — **그 키를 다시 쓰라는 지시**가 없으면 Nova가 같은 소리에 새 키를 지어내고
-    (`th_as_s` vs `theta_to_s`) 반복 오류가 서로 다른 패턴으로 흩어진다(설계서 §10 미결 3).
+    소리 목록도 계획도 없으면 결과는 `SYSTEM_PROMPT` **그 자체**다 — 계획 없이 시작하는
+    경로(AS4)의 지시문이 예전과 글자 그대로 같다.
 
-    **기록이 0건이면 블록을 아예 넣지 않는다.** 빈 목록에 제목만 남기면 Nova가 "목록이
-    비었다"를 지시로 오해할 여지가 생기고, 지금 dev DB가 정확히 그 상태다.
+    **놓친 소리 목록**: 문법 워커에만 있던 §5.6 재사용 규약을 발음 경로에도 만든다. 목록만
+    보여주는 것으로는 부족하다 — **그 키를 다시 쓰라는 지시**가 없으면 Nova가 같은 소리에
+    새 키를 지어내고 (`th_as_s` vs `theta_to_s`) 반복 오류가 서로 다른 패턴으로
+    흩어진다(설계서 §10 미결 3). ⚠️ 여기 실리는 키는 **Nova에게만 보이는 값**이다. 학습자
+    화면에는 나가지 않는다 (설계서 §10 미결 4 — 결과 응답에서 이미 뺐다).
 
-    ⚠️ 여기 실리는 키는 **Nova에게만 보이는 값**이다. 학습자 화면에는 나가지 않는다
-    (설계서 §10 미결 4 — 결과 응답에서 이미 뺐다).
+    **오늘의 계획**(§5.2 가변부): 계획을 문장으로 바꾸는 것은 **읽는 쪽의 일이다** —
+    `session_plans.instruction`은 구조로 저장되고(jsonb) 여기서 문장이 된다. 설계서가 이
+    변환을 정하지 않아 계획서 Task 10이 정했다. ⚠️ 계획 블록은 고정 규칙 중 **힌트 시점만
+    대체하며, 대체한다는 것이 블록 안에 문장으로 있어야 한다** — 없으면 "긴 침묵 뒤에만"
+    (규칙 2·5)과 오늘의 지시가 함께 실려 모순된 지시문이 된다.
+
+    **값이 없는 줄은 아예 넣지 않는다** — 소리 기록 0건(지금 dev DB의 상태)과 `contexts`
+    빈 목록이 같은 처리를 받는다. 빈 목록에 제목만 남기면 Nova가 "목록이 비었다"를 지시로
+    오해할 여지가 생긴다. `focus`는 최소 1개가 보장되므로(`SessionInstruction`) 그 처리가
+    필요 없다.
     """
-    if not known_sounds:
-        return SYSTEM_PROMPT
-    listed = ", ".join(known_sounds)
-    return (
-        f"{SYSTEM_PROMPT}\n\n"
-        "Sounds this learner has missed before:\n"
-        f"{listed}\n"
-        "If one of them is off again, reuse that exact key as target_sound instead of\n"
-        "inventing a new one — repeat offenders must group under one key."
+    prompt = SYSTEM_PROMPT
+    if known_sounds:
+        listed = ", ".join(known_sounds)
+        prompt = (
+            f"{prompt}\n\n"
+            "Sounds this learner has missed before:\n"
+            f"{listed}\n"
+            "If one of them is off again, reuse that exact key as target_sound instead of\n"
+            "inventing a new one — repeat offenders must group under one key."
+        )
+    if plan is None:
+        return prompt
+    forms = ", ".join(f"{item.pattern_key} ({item.target_form})" for item in plan.focus)
+    lines = [
+        "Today's plan:",
+        f"- Target level: {plan.target_level}",
+        f"- Focus on: {forms}",
+        f"- Aim for sentences of this shape: {plan.sentence_length}",
+    ]
+    if plan.contexts:
+        lines.append(f"- Situations to use today: {', '.join(plan.contexts)}")
+    lines.append(
+        f"- Hint timing for today, instead of the general hint rule above: {plan.hint_timing}"
     )
+    return f"{prompt}\n\n" + "\n".join(lines)
 
 
 def _pronunciation_tool_configuration() -> dict[str, Any]:

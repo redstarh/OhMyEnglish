@@ -19,7 +19,7 @@ from __future__ import annotations
 import asyncio
 import base64
 import json
-from collections.abc import AsyncIterator, Iterator, MutableMapping, Sequence
+from collections.abc import AsyncIterator, Callable, Iterator, MutableMapping, Sequence
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -35,6 +35,7 @@ from app.api.main import FRONTEND_ORIGIN, create_app
 from app.api.ws import FIXED_USER_ID, WS_SESSION_PATH
 from app.audio_gateway.fixtures import FIXTURE_TURNS, TONE_WAV_FRAME
 from app.config import Settings, get_settings
+from app.models.plan import SessionInstruction
 
 RECEIVE_TIMEOUT = 5.0
 
@@ -304,9 +305,17 @@ async def test_ws_passes_assembled_instructions_to_the_adapter(
     seen: dict[str, object] = {}
     real_factory = ws_module.create_voice_adapter
 
-    def spy(settings: Settings, *, known_sounds: Sequence[str] = ()) -> object:
+    # `plan`을 받는 이유: 소켓이 그것을 넘기기 시작한 뒤(Task 10)로는 이 대역이 인자를
+    # 못 받으면 `TypeError`로 죽는다 — 여기서 재려는 것과 무관한 실패가 된다.
+    def spy(
+        settings: Settings,
+        *,
+        known_sounds: Sequence[str] = (),
+        plan: SessionInstruction | None = None,
+    ) -> object:
         seen["known_sounds"] = list(known_sounds)
-        return real_factory(settings, known_sounds=known_sounds)
+        seen["plan"] = plan
+        return real_factory(settings, known_sounds=known_sounds, plan=plan)
 
     monkeypatch.setattr(ws_module, "create_voice_adapter", spy)
 
@@ -344,6 +353,110 @@ async def test_ws_opens_the_session_even_if_the_known_sounds_lookup_fails(
     assert first["type"] != "session_failed", (
         "발음 힌트 조회 실패가 세션을 막았다 — 부가 정보 때문에 대화를 잃는다"
     )
+
+    async with db_pool.acquire() as conn:
+        status = await conn.fetchval(
+            "select status from learning_sessions where user_id = $1", FIXED_USER_ID
+        )
+    assert status != "failed"
+
+
+# --- Task 10: 준비된 계획이 어댑터 생성까지 넘어간다 (AS6의 소켓 구간) ---
+#
+# 여기서 재는 것은 **데이터**다 — 조립된 문구가 아니다. 조립은 팩토리가 소유하므로(G3
+# 이음매) "지시문에 계획이 실린다"는 `tests/integration/test_gateway.py`가 못박는다.
+
+
+# ⚠️ 대역의 기본값을 `None`으로 두면 **소켓이 `plan`을 아예 넘기지 않는 것**과 `None`으로
+# 넘기는 것이 같은 관측이 된다 — 소켓에서 `plan=plan`을 지우는 뮤테이션에서
+# `seen["plan"] is None`이 그대로 참이었다(직접 확인). 그래서 "안 넘겼다"를 따로 표시한다.
+_PLAN_NOT_PASSED = object()
+
+
+def _capture_factory_args(monkeypatch: pytest.MonkeyPatch) -> dict[str, object]:
+    """팩토리를 감싸 인자를 캡처한다 — 위 `known_sounds` 테스트와 같은 형태다."""
+    seen: dict[str, object] = {}
+    real_factory = ws_module.create_voice_adapter
+
+    def spy(
+        settings: Settings,
+        *,
+        known_sounds: Sequence[str] = (),
+        plan: SessionInstruction | None | object = _PLAN_NOT_PASSED,
+    ) -> object:
+        seen["known_sounds"] = list(known_sounds)
+        seen["plan"] = plan
+        forwarded = plan if isinstance(plan, SessionInstruction) else None
+        return real_factory(settings, known_sounds=known_sounds, plan=forwarded)
+
+    monkeypatch.setattr(ws_module, "create_voice_adapter", spy)
+    return seen
+
+
+async def test_ws_passes_the_prepared_plan_to_the_adapter(
+    ws_app: FastAPI,
+    db_pool: asyncpg.Pool,
+    seeded_fixed_user: UUID,
+    seed_plan_for_session: Callable[..., Any],
+    monkeypatch: pytest.MonkeyPatch,
+):
+    # ⚠️ **커밋된 연결로 심는다.** 이 픽스처의 기존 사용처 4건은 전부 롤백 트랜잭션(`db_conn`)
+    # 인데, 소켓은 **별도 연결**로 계획을 읽으므로 그 쓰기가 보이지 않는다.
+    # 사용자가 `FIXED_USER_ID`여야 하는 이유: `ws.py`는 고정 사용자로만 세션을 만든다.
+    # teardown은 `seeded_fixed_user`가 한다 — 사용자를 지우면 세션이, 세션을 지우면
+    # `session_plans`가 cascade로 따라간다(007).
+    async with db_pool.acquire() as conn:
+        await seed_plan_for_session(conn, user_id=FIXED_USER_ID, target_level="B1")
+    seen = _capture_factory_args(monkeypatch)
+
+    async with ws_app.router.lifespan_context(ws_app), ASGIWebSocket(ws_app) as client:
+        await client.receive_event()
+
+    plan = seen.get("plan")
+    assert isinstance(plan, SessionInstruction), "준비된 계획이 어댑터 생성까지 가지 않았다"
+    assert plan.target_level == "B1"
+    assert [item.pattern_key for item in plan.focus] == ["plan_pipeline_due"]
+
+
+# AS4 — 계획이 없어도 세션은 열린다. 그때 넘어가는 것은 `None`이고, 팩토리가 고정부만으로
+# 조립한다(그 조립은 `test_gateway.py`가 잰다).
+async def test_ws_passes_no_plan_when_none_is_prepared(
+    ws_app: FastAPI,
+    seeded_fixed_user: UUID,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    seen = _capture_factory_args(monkeypatch)
+
+    async with ws_app.router.lifespan_context(ws_app), ASGIWebSocket(ws_app) as client:
+        first = await client.receive_event()
+
+    assert first is not None and first["type"] == "session_started"
+    # `_PLAN_NOT_PASSED`가 아니라 `None`이어야 한다 — 소켓이 조회를 **하고** 부재를 넘긴 것이다.
+    assert seen.get("plan") is None, "소켓이 `plan`을 넘기지 않았다 — 계획 조회 자체가 없다"
+
+
+# 계획도 **부가 정보**다 — `_load_known_sounds_or_empty`와 같은 규약이다. 조회가 깨졌다고
+# 대화를 못 열면 손해가 더 크다: 계획 없이 고정 지시문으로 시작한다(§3.3).
+async def test_ws_opens_the_session_even_if_the_plan_lookup_fails(
+    ws_app: FastAPI,
+    db_pool: asyncpg.Pool,
+    seeded_fixed_user: UUID,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    async def explode(conn: object, user_id: object) -> None:
+        raise asyncpg.PostgresError("계획 조회가 깨졌다")
+
+    monkeypatch.setattr(ws_module, "load_prepared_plan", explode)
+    seen = _capture_factory_args(monkeypatch)
+
+    async with ws_app.router.lifespan_context(ws_app), ASGIWebSocket(ws_app) as client:
+        first = await client.receive_event()
+
+    assert first is not None
+    assert first["type"] != "session_failed", (
+        "계획 조회 실패가 세션을 막았다 — 부가 정보 때문에 대화를 잃는다"
+    )
+    assert seen.get("plan") is None
 
     async with db_pool.acquire() as conn:
         status = await conn.fetchval(
