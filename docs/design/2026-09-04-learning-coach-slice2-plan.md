@@ -148,6 +148,31 @@ lease_token) -> bool`과 브리프가 인용한 docstring · `report_failure(poo
 ⚠️ **`load_prepared_plan`을 세션 시작 경로에 배선하지 않는다** — 이 태스크는 함수와 폴백까지다.
 `ws.py`가 그것을 팩토리에 넘기는 것은 **Task 10**이 소유한다(File Structure 표가 `ws.py`를 그쪽에 뒀다).
 
+### Task 9 착수 전 점검 (2026-09-05, 전부 직접 실행해 확인) — 브리프가 참조한 것 대조
+
+브리프는 이 계획서 Task 9 절과 **글자 그대로 같다**(`diff` 확인 — 빈 줄 1개 차이). 그래서 아래 표가
+브리프에 대한 정정이기도 하다.
+
+**일치한 것 3건**: `StubMode = Literal["fixture", "unresponsive"]` · `VoiceAdapter` 프로토콜에
+`instructions`가 **없다**(그래서 이 속성은 프로토콜 밖 확장이고 포트를 건드리지 않는다) ·
+시그니처를 `(mode="fixture", *, instructions=None)`로 두면 기존 `StubVoiceAdapter(mode="unresponsive")`
+키워드 호출 2건이 그대로 산다.
+
+**어긋난 것 6건** — 브리프대로 하면 그 자리에서 깨진다:
+
+| # | 브리프의 전제 | 실측 | 이 태스크가 쓰는 것 |
+|--:|---|---|---|
+| 1 | Step 3 코드가 `self._mode = mode`로 **private 으로 바꾼다** | `stub.py`는 **`self.mode`**(public)이고 **테스트가 그것을 직접 단정한다** — `tests/integration/test_gateway.py:696` `assert adapter.mode == expected_mode` · `:741` `assert adapter.mode == "fixture"` | **`self.mode`를 유지한다.** 이름을 바꾸면 기존 테스트 2건이 깨지는데 이 태스크의 요구사항은 **동작을 바꾸지 않는다**다 |
+| 2 | Step 3 의 `__init__` 코드가 기존 본문을 대체한다 | 그 코드에 **기존 3줄이 빠져 있다**: ① `if mode not in get_args(StubMode): raise ValueError(…)` 모드 검증 ② `self.closed = False` — **테스트 5곳이 `adapter.closed`를 단정한다**(`test_gateway.py:320`·`375`·`464`·`484`·`558`) ③ `self._received_frames = 0` — `received_frames` property 가 이 값에 의존한다 | **기존 본문에 두 줄만 더한다**(`self._instructions = instructions` + property). 대체하지 않는다 |
+| 3 | 세 번째 테스트가 `assert type(plain) is type(with_instructions)`로 "지시문이 동작을 바꾸지 않는다"를 잰다 | **항진명제다.** 같은 클래스 생성자로 만든 두 객체의 타입은 항상 같다 — 구현이 지시문에 따라 발화를 바꿔도 이 단정은 통과한다. 이 슬라이스의 지배 실패 모드(누적 23건) 그 자체다 | **관측 가능한 동일성을 재라**: 두 어댑터의 `events()`가 **같은 발화 시퀀스**를 내는지 비교한다. red 는 "지시문이 있으면 발화가 달라지는" 구현을 일부러 만들어 관측한다 |
+| 4 | Test 파일이 `tests/unit/test_stub_adapter.py`(신규 또는 기존 수정) | 그 파일은 **없다.** 스텁을 쓰는 테스트는 `tests/integration/test_gateway.py`이고 DB·러너를 함께 쓴다 | **`tests/unit/test_stub_adapter.py`를 신규로 만든다** — 생성자·속성은 순수 단위 검사라 통합에 넣을 이유가 없다 |
+| 5 | 스텁의 `instructions`를 **읽기 전용 property** 로 둔다 | `nova.py`는 **public 속성**이다(`self.instructions = instructions or SYSTEM_PROMPT`) — 타입도 다르다(`str` vs `str \| None`) | property 를 **유지한다**(스텁은 받아서 보관만 하므로 쓰기를 열 이유가 없다). ⚠️ 다만 **두 어댑터의 관례가 갈리는 것을 알고 택한 것**이므로, Task 10 에서 팩토리가 둘에 지시문을 넘길 때 그 차이를 다시 확인한다 |
+| 6 | Step 2 red 기대: "**3건 FAIL** — `TypeError: … unexpected keyword argument 'instructions'`" | 셋 다 생성자에서 죽으므로 형태는 맞다. 그러나 3번 테스트의 red 는 **"생성자가 인자를 안 받는다"만** 재고 구현 후에는 위 #3 처럼 **항진명제로 남는다** | red 건수를 그대로 믿지 말고 **각 red 가 무엇을 고정하는지** 적는다. 3번은 #3 의 형태로 다시 쓴 뒤 red 를 새로 관측한다 |
+
+⚠️ **스텁의 발화 계약을 건드리지 마라** — 재생 문장의 소유자는 `app.audio_gateway.fixtures`의
+`FIXTURE_TURNS` 하나이고 `tests/conftest.py`는 그것을 **재수출만** 한다(기대 문장과 재생 문장이
+갈라지는 경로를 만들지 않기 위해서다 — 그 파일 주석이 근거를 소유). 새 픽스처 문장을 발명하지 않는다.
+
 ---
 
 ## File Structure
