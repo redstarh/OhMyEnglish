@@ -277,7 +277,7 @@ _되돌리기 비용도 (나)를 가리킨다_: (나)는 필터 한 줄이라 �
 | S2-8 | 세션 시작이 준비된 계획을 읽는다 + 폴백 (AS4) | ✅ **APPROVE**(Critical 0 · Important 0 · Minor 0) · 고침 2라운드 |
 | S2-9 | 가짜 대화 상대가 지시문을 보관 (AS6 검증 수단) | ✅ **APPROVE**(Critical 0 · Important 0 · Minor 7 처리) · 고침 1라운드 |
 | S2-10 | 지시문에 계획 얹기 + 빠져 있던 65% 규칙 넣기 | ✅ **APPROVE**(Critical 0 · Important 2 처리 · Minor 7) · 고침 2라운드 |
-| S2-11 | 추천 이유를 화면에 한 줄 (캡틴 결정) | 🔨 구현·고침 **2라운드 완료** · ⚠️ **최종 판정 미수신**(세션 마감) — 재검증 필요 |
+| S2-11 | 추천 이유를 화면에 한 줄 (캡틴 결정) | 🔨 재검증 도착 `CHANGES REQUESTED`(Critical 0 · **Important 1** · Minor 4 — **코드 0줄, 전부 서술**) → **고침 3라운드 완료** · ⚠️ **재재검증 대기**. 게이트 green(582) |
 | S2-12 | 문서 마감 + 발음 확인 시나리오 AS11 신설 | ⏭ |
 | S2-L1 | 007을 실물 dev DB에 적용 | ⏸ 캡틴 승인 대기 |
 | S2-L2 | 실물 Claude로 계획 생성 1회 (AS-live) | ⏸ 캡틴 승인 대기 |
@@ -505,6 +505,47 @@ Task 10 소유"로 교체) · M-5(발화 동일성 테스트가 `FIXTURE_TURNS`�
 `ty check` 전부 exit 0 · 게이트 밖 **6 errors · 4 files** · **프론트 `tsc`·`eslint` 둘 다 exit 0**
 (슬라이스 2에서 프론트 게이트가 걸린 **첫 태스크**다). **⚠️ 고침 2라운드에 대한 최종 판정을 받지
 못한 채 세션이 마감됐으므로 ✅가 아니다.** 다음 세션이 재검증을 받고 올려라.
+
+#### ✅ 재검증 도착 (2026-09-06) — `CHANGES REQUESTED` · Critical 0 · **Important 1** · Minor 4 → **고침 3라운드 완료 · 재재검증 대기**
+
+⚠️ **코드는 고칠 것이 0줄이었다.** Important 1건이 **문서 한 줄**이었다 — 정정 스윕이 **영구 지식 층을
+놓쳤다**. 상세와 근거·교훈은 `docs/design/2026-09-05-slice2-execution-log.md` **§6**이 소유한다.
+
+| # | 무엇 | 고친 곳 |
+|---|---|---|
+| **Important-1** | `e9b79c9`가 닫은 그 거짓이 **정본 문서에 남아 있었다** — execution-log 판단 25의 `저장값(화면)`. 코드 docstring과 정면 모순 상태였다 | `execution-log` 판단 25 셀 + §6 정정 |
+| **Minor-1** | **프론트 렌더 무보호**(뮤테이션 4/4 생존 · 줄을 지워도 `tsc`·`eslint` exit 0) · `lib/api.ts`의 `fetchNextPlan`도 테스트 0건 | **이연** — 소유자는 **J절 계획**. ⚠️ 기록 제약은 아래 |
+| **Minor-2** | `page.tsx`의 "폴링하지 않는다" **근거 절이 사실과 반대** — 계획이 쓰이는 시점이 바로 "세션 사이"다 | `app/frontend/app/page.tsx` 주석 (동작 불변) |
+| **Minor-3** | `committed_fixed_user` docstring이 **지목한 피해자가 틀렸다** — red는 `test_schema`가 아니라 같은 파일의 ②③ | `tests/integration/test_plan_api.py` docstring |
+| **Minor-4** | 컬럼 열거 누락 — `_PREPARED_PLAN_SQL`은 `sp.id`도 고른다 | `app/backend/app/models/plan.py` docstring |
+
+⚠️ **Minor-1이 부과하는 기록 제약 — 지키지 않으면 원장이 거짓이 된다**: **S2-11을 "R11-3 관통 확인"으로
+적지 마라.** "화면에서 볼 수 있다"는 **어떤 층에서도 관측되지 않았다** — 백엔드 API가 값을 낸다는 것까지만
+검증됐다. 실제 렌더 관측의 소유자는 **J절 T3·T4**다.
+
+✅ **팀리드가 직접 확인한 것**(위임받은 판정을 그대로 옮기지 않는다): Important-1의 세 근거
+(`api/results.py:69` · `services/sessions.py:109` · 판단 25 셀) · Minor-4 · Minor-2의 세 근거
+(`page.tsx:226~227` 주석 · `services/sessions.py:206` · `api/ws.py:135`) · **Minor-3은 테스트를 돌리지
+않고 값 비교로 완결**(픽스처가 넣는 세 값이 시드값과 전부 같고 `migrate.USER_ID == FIXED_USER_ID`) ·
+그리고 docstring이 근거로 삼은 (나)(`services/plan.py:101 _UPDATE_LEVEL_SQL` · `models/plan.py:191·244
+_one_step_or_same` · `build_system_prompt(… plan: SessionInstruction …)`).
+
+⚠️ **팀리드 스윕이 재검증이 보고하지 않은 잔존 거짓 2건째를 찾았다** — `handoff/HANDOFF.md`의
+2026-09-05 마감 기록 "지시문 수준이 무제약이라 **화면은 A2**·대화 상대는 C2"가 같은 거짓이었고
+**두 겹으로 틀렸다**(화면은 컬럼을 읽지 않고, 그 시점엔 그 화면 자체가 없었다 — S2-11이 만들었다).
+`저장 기록은 A2`로 고쳤다. **스윕에서 참으로 확인해 그대로 둔 4건도 §6에 열거했다** — 다음 사람이
+같은 조사를 반복하지 않게.
+
+⚠️ **아직 ✅가 아니다.** 고침 3라운드(문서·주석만, **실행 코드 0줄**)에 대한 재재검증을 받아야 한다.
+S2-6에서 **네 라운드 연속으로 내 고침 자체에서 같은 부류가 다시 났고**, 이번 고침은 전부 **서술**이라
+정확히 그 부류다. 게이트는 고침 후 메인이 직접 다시 돌렸다: `pytest -q` **582 passed** ·
+`ruff check .`·`ruff format --check .`(32 files)·`ty check` 전부 exit 0 · 게이트 밖 **6 errors · 4 files**
+유지 · 프론트 `tsc`·`eslint` 둘 다 exit 0.
+
+⚠️ **재검증 보고가 M9 행에서 잘려 도착했다** — 뮤테이션 표 M9 이후(프론트 F1~F4 · 픽스처 D1) ·
+§3 특별 검증 3건의 결론 · §4 확신도 · §5 미확인 목록을 **아직 받지 못했다.** 재요청했고 미수신이다.
+받은 범위(판정 · Important 1 · Minor 4 · M1~M8)만으로 위 처리를 했고, **M5·M7이 원리뷰 Important 2건의
+(b)를 닫는 증거**다(M5 → ④ 단독 red · M7 → ⑤ 단독 red).
 
 **원리뷰(Critical 0 · Important 2)가 잡은 것과 처리**:
 1. **`PreparedPlan`·validator docstring이 이 커밋으로 거짓이 됐다** → 교체(`24ad4cc`). 화면에

@@ -150,7 +150,8 @@ class PlanOutput(pydantic.BaseModel):
         1. **컬럼은 "오늘의 목표 수준"의 저장 기록이다.** 읽히는 값과 갈라지면 실제로 쓰인
            수준과 다른 기록이 그 행에 영구히 남는다 — 사후 분석·보고가 그 기록을 믿는다.
            앱은 이 컬럼을 읽지 않는다: `session_plans`를 읽는 SQL은 `_PREPARED_PLAN_SQL`
-           하나이고 `reason`·`instruction`만 고른다.
+           하나이고 `sp.id`·`sp.reason`·`sp.instruction`만 고른다 — `target_level`은 그
+           select 목록에 없다.
         2. **`level.target_level`은 다음 세션으로 전파된다.** `process_plan`이 그 값으로
            `users.current_level`을 갱신하므로(`services/plan.py` `_UPDATE_LEVEL_SQL`),
            갈라진 값은 다음 계획의 `Current level:` 입력이자 한 단계 가드

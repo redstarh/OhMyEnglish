@@ -46,8 +46,15 @@ async def committed_fixed_user(db_pool: asyncpg.Pool) -> AsyncIterator[None]:
     그 사용자로 심어야 API 가 읽는다: `seed_plan_for_session`의 기본 동작인 "새 사용자를
     만든다"로는 이 경로를 재지 못한다.
 
-    teardown 에서 사용자를 지우면 cascade 가 세션 → 계획을 걷어간다(007). 남기면 다른
-    테스트가 깨진다 — `tests/unit/test_schema.py`가 `count(*) from users == 1`을 잰다.
+    teardown 에서 사용자를 지우면 cascade 가 세션 → 계획을 걷어간다(007). 남기면 **이 파일의
+    "계획이 없다" 테스트들이 깨진다** — 커밋된 계획 행이 살아남아 그것들이 계획을 찾아낸다.
+
+    ⚠️ **2026-09-06 정정 — 이 절이 지목한 피해자가 틀렸다.** 원래 "`tests/unit/test_schema.py`가
+    `count(*) from users == 1`을 잰다"고 적었으나 **그 테스트는 깨지지 않는다**: 이 픽스처가 넣는
+    값 `('Learner', 'Asia/Seoul', 기본 current_level='A2')`이 `scripts/migrate.py`의 시드값과
+    **완전히 같고**, `migrate.USER_ID`가 `FIXED_USER_ID`와 **같은 UUID**이며, 시드가
+    `on conflict (id) do nothing`이다 → 남은 행이 시드된 행과 구별되지 않아 `count`도 필드 단정도
+    그대로 통과한다. **teardown 은 여전히 하중을 받는다 — 이유만 다르다.**
     `timezone`을 명시해 넣는 것은 `seed_user`와 같은 규약이다(LOW-14).
     """
     async with db_pool.acquire() as conn:
