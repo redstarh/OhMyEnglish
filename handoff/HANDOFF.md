@@ -231,6 +231,23 @@ cd ../frontend && npx tsc --noEmit && npx eslint app lib   # 둘 다 exit 0 (202
   6건을 제거했다(판정 기준 = mtime 2일 경과 **+** 보관소 밖 참조 0건). 현황 보고 한 장을 새로
   쓰고 **템플릿·형식 규약**으로 승격했다(`docs/ops/status-report-convention.md`).
 
+- **2026-09-05 인계 확인 (새 세션 `claude_air_1-2`)** — ✅ **4/4 일치.** 양쪽이 **각자 직접 돌려
+  얻은 값**을 대조했다(읽은 값이 아니다). ① HEAD `831a6a4` — `c94b012` 뒤 2건(`e17a567`·`831a6a4`)이
+  **docs-only**(`TASKS.md`·`handoff/HANDOFF.md`)임을 양쪽이 확인 ② 다음 한 걸음 **S2-8** ⏭
+  (원장 C절 직접 조회 · S2-1~S2-7 전부 ✅) ③ **550 passed** · `ruff check`·`format`(32 files)·`ty`
+  전부 exit 0 · 게이트 밖 **6 errors·4 files** · 프론트 `tsc`·`eslint` exit 0 ④ 읽을 것 3건 +
+  캡틴 승인 대기 2건.
+  ⚠️ **W-live 스모크 11/11은 양쪽 모두 대조에서 제외했다** — 실물 Claude라 비용이 든다.
+  다른 지표가 전부 일치하므로 인계 판정에는 영향이 없다.
+  **새 세션이 데이터로 확증한 것 2건**(기준값 표에 없던 것 — 값어치가 있어 남긴다):
+  dev DB 에 `session_plans`·`learner_notes` **표가 없다** · `schema_migrations` **5행**
+  (`001`·`003`·`004`·`005`·`006`). 둘이 서로를 확증한다 — **007 미적용**이 맞고, 그래서
+  **S2-L1(캡틴 승인 대기)이 아직 살아 있다**는 것이 데이터로 확인됐다. DB `postgresql@17`
+  started · `TimeZone=UTC`(함정 H-S 가 보이는 상태).
+  **tmux**: 양쪽 다 tmux 안이었고 `session-handover.md` §6 정리 순서를 그대로 썼다 —
+  새 세션이 `send-keys`로 보고 → 이 세션이 대조·기록 → 이 세션 `/exit` → **새 세션이**
+  `tmux kill-session -t claude_air_1-1`.
+
 ### 다음 세션이 **하지 말아야 할 것** 5건 (전부 이 세션에서 실제로 겪었다)
 
 1. **"구조적으로 막았다"고 보고하기 전에 그 도구 자체에 같은 검사를 걸어라.** S2-6에서 내가 그
