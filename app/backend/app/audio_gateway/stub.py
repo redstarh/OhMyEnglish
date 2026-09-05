@@ -35,14 +35,28 @@ def _partial_prefixes(answer: str) -> list[str]:
 
 
 class StubVoiceAdapter:
-    """`VoiceAdapter` 픽스처 구현. `received_frames`로 수신 프레임 수를 노출한다."""
+    """`VoiceAdapter` 픽스처 구현. `received_frames`로 수신 프레임 수를, `instructions`로
+    생성 시점에 받은 지시문을 노출한다."""
 
-    def __init__(self, mode: StubMode = "fixture") -> None:
+    def __init__(self, mode: StubMode = "fixture", *, instructions: str | None = None) -> None:
         if mode not in get_args(StubMode):
             raise ValueError(f"알 수 없는 스텁 모드: {mode!r}")
         self.mode = mode
         self.closed = False
         self._received_frames = 0
+        # 받아서 보관만 한다 — 재생 발화는 `FIXTURE_TURNS`가 결정한다(설계서 §5.2).
+        # 스텁이 쓰지도 않는 값을 받는 이유: 지시문이 조립 지점(`factory.py`)에서
+        # 어댑터까지 실제로 도달했는지 판정할 수단이 이것뿐이다(설계서 AS6). 실물 Nova의
+        # 응대가 지시문에 따라 달라지는지는 별개 확인이고 이 슬라이스의 범위가 아니다.
+        # 키워드 전용인 것도 계약이다 — 위치로 받으면 기존 `StubVoiceAdapter("fixture")`·
+        # `("unresponsive")` 호출 옆에 두 번째 값이 조용히 끼어들 수 있다.
+        self._instructions = instructions
+
+    @property
+    def instructions(self) -> str | None:
+        """생성 시점에 받은 지시문. 스텁은 이 값을 읽지 않으므로 쓰기를 열지 않는다 —
+        `NovaVoiceAdapter.instructions`가 public 속성인 것과 갈리는 지점이다."""
+        return self._instructions
 
     @property
     def received_frames(self) -> int:
