@@ -138,16 +138,24 @@ class PlanOutput(pydantic.BaseModel):
         """`target_level` · `level.target_level` · `instruction.target_level` 셋이 다르면 거부한다.
 
         셋은 같은 개념("오늘의 목표 수준")이다. `target_level`은 `session_plans`의 컬럼이 되고,
-        `level.target_level`은 그 판단의 근거이며, `instruction.target_level`은
-        대화 상대가 실제로 조립해 말하는 지시문의 수준이다. 셋이 갈라지면 저장 시점의
-        표시와 대화 상대가 말하는 수준이 서로 다른 상태가 영구히 남는다 — 학습자는
-        화면에서 한 레벨을 보는데 대화 상대는 다른 레벨로 말한다.
+        `level.target_level`은 `users.current_level`을 갱신하며, `instruction.target_level`은
+        대화 상대가 실제로 조립해 말하는 지시문의 수준이다.
 
-        ⚠️ **화면이 읽는 것은 `instruction.target_level`이다** — 컬럼이 아니다
-        (`api/results.py`의 `next_plan` → `services/sessions.py`의 `PreparedPlan`).
-        이 검증이 셋을 묶어 두기 때문에 그 선택이 표시값을 바꾸지 않는다: 여기서 거부하는
-        조합은 저장되지 않으므로 화면과 컬럼이 갈라진 행은 `process_plan` 경로에서 생기지
-        않는다. 이 단정을 풀면 **읽는 쪽이 컬럼이 아니라 지시문이라는 사실이 관측된다.**
+        ⚠️ **화면도 대화 상대도 `instruction.target_level` 하나를 읽는다** — 컬럼이 아니다
+        (`api/results.py`의 `next_plan` → `services/sessions.py`의 `PreparedPlan`, 그리고
+        `audio_gateway/nova.py`의 `build_system_prompt`). 그래서 "학습자가 보는 수준과 대화
+        상대가 말하는 수준이 갈라진다"는 실패 모드는 **일어날 수 없다.** 셋이 갈라졌을 때
+        어긋나는 것은 나머지 둘이고, **그 둘이 이 검증의 이유다**:
+
+        1. **컬럼은 "오늘의 목표 수준"의 저장 기록이다.** 읽히는 값과 갈라지면 실제로 쓰인
+           수준과 다른 기록이 그 행에 영구히 남는다 — 사후 분석·보고가 그 기록을 믿는다.
+           앱은 이 컬럼을 읽지 않는다: `session_plans`를 읽는 SQL은 `_PREPARED_PLAN_SQL`
+           하나이고 `reason`·`instruction`만 고른다.
+        2. **`level.target_level`은 다음 세션으로 전파된다.** `process_plan`이 그 값으로
+           `users.current_level`을 갱신하므로(`services/plan.py` `_UPDATE_LEVEL_SQL`),
+           갈라진 값은 다음 계획의 `Current level:` 입력이자 한 단계 가드
+           (`_one_step_or_same`)의 입력이 된다 — 실제로 쓰이지 않은 수준으로 수준 이동이
+           기록되고 그 오차가 이어진다.
         """
         levels = {self.target_level, self.level.target_level, self.instruction.target_level}
         if len(levels) > 1:

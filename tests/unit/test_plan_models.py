@@ -170,10 +170,16 @@ def test_target_level_must_match_level_decision():
         parse_plan(payload, current_level="A2", allowed_pattern_ids=_ALLOWED)
 
 
-# Important 1(리뷰 2026-09-04, 팀리드가 직접 재현) — `instruction.target_level`도 같은
-# 값이어야 한다. `target_level`·`level.target_level`은 맞아도 `instruction.target_level`이
-# 갈라지면 저장되는 표시(A2)와 대화 상대가 실제로 말하는 지시문 수준(C2)이 다른 상태가
-# 영구히 남는다 — 학습자는 화면에서 A2를 보는데 대화 상대는 C2로 말한다.
+# Important 1(리뷰 2026-09-04) — `instruction.target_level`도 같은 값이어야 한다.
+# `target_level`·`level.target_level`이 맞아도 여기가 갈라지면, **읽히는 수준은 C2**이고
+# (화면과 대화 상대가 둘 다 `instruction.target_level`을 읽는다 — `api/results.py`와
+# `audio_gateway/nova.py`) **컬럼에만 A2가 남는다.** 어긋나는 것은 기록이지 표시가 아니다:
+# 실제로 쓰인 수준과 다른 기록이 그 행에 영구히 남고 사후 분석이 그것을 믿는다.
+# 근거 전문은 `models/plan.py`의 `_target_level_matches_level_and_instruction`이 소유한다.
+#
+# ⚠️ 앞선 판은 "학습자는 화면에서 A2를 보는데 대화 상대는 C2로 말한다"고 적었다 — 거짓이다.
+# 화면도 C2를 본다. 그 서술을 남겨 두면 다음 사람이 "이 실패 모드는 불가능하다"에 도달한 뒤
+# 검증자를 지울 이유로 쓴다.
 def test_instruction_target_level_must_match():
     payload = _payload(
         target_level="A2",
