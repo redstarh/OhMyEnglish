@@ -36,7 +36,7 @@ from conftest import (
 )
 
 from app.services.plan import PLAN_NO_FOCUS_CANDIDATES, process_plan
-from app.services.plan_input import RECENT_WINDOW_DAYS
+from app.services.plan_input import RECENT_WINDOW_DAYS, load_plan_input
 
 # `asyncio_mode = "auto"`(pyproject.toml)라 `async def test_` 에 마커를 붙이지 않는다.
 #
@@ -208,6 +208,37 @@ async def test_invented_pattern_id_is_rejected_and_nothing_is_stored(
         row = await job_row(conn, job.id)
     # 사유에 그 id 가 들어 있어야 어느 값이 문제였는지 job 이력에서 읽을 수 있다.
     assert str(invented) in row["last_error"]
+
+
+# 허용 id 집합은 `due_reviews ∪ chronic`이다 — **두 절 모두** 실제로 쓰인다.
+#
+# ⚠️ 이 테스트가 없던 동안 `process_plan`의 `| {metric.pattern_id for metric in data.chronic}`를
+# **통째로 지워도 549건이 전부 통과했다**(2026-09-05 codex 리뷰 지적, 메인이 직접 재현).
+# 원인은 두 겹이었다: ① 픽스처가 발생·발화를 안 심어 `data.chronic`이 **0건**이었다(실측
+# `due=1 chronic=0`) ② 그래서 chronic 에만 있는 id 로 초점을 고르는 경로가 한 번도 실행되지
+# 않았다. 두 목록은 **구조적으로 갈라진다** — `load_due_reviews`는 `next_review_at`으로 거르고
+# `load_chronic_metrics`는 거르지 않으므로, "발생은 있지만 아직 예정일이 안 된" 패턴은
+# chronic 에만 있다. 그 패턴을 초점으로 고른 계획이 거부되면 정당한 계획을 잃는다.
+async def test_focus_from_the_chronic_list_alone_is_accepted(
+    db_pool: asyncpg.Pool, fake_claude, ended_session_with_history: PlanHistory
+):
+    history = ended_session_with_history
+    async with db_pool.acquire() as conn:
+        data = await load_plan_input(conn, history.user_id)
+
+    # 선행 확인 — 이 id 가 정말 chronic 에만 있어야 이 테스트가 의미를 갖는다.
+    assert history.chronic_pattern_id in {metric.pattern_id for metric in data.chronic}
+    assert history.chronic_pattern_id not in {review.pattern_id for review in data.due_reviews}
+
+    claude = fake_claude(plan_json(history.chronic_pattern_id))
+    job = await claim_plan_job(db_pool, history.session_id)
+
+    await process_plan(db_pool, claude, job)
+
+    assert len(claude.prompts) == 1, "이 경로는 콜드스타트가 아니다 — Claude 가 불렸어야 한다"
+    plan = await _plan_row(db_pool, history.session_id)
+    assert plan is not None, "chronic 에만 있는 초점이 거부됐다 — 허용 집합의 chronic 절이 죽었다"
+    assert plan["focus_pattern_ids"] == [history.chronic_pattern_id]
 
 
 # 부분 반영이 없다 — 계획 insert 가 실패하면 노트도 수준 갱신도 남지 않는다(§9 Contract).

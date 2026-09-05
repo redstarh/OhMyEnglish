@@ -44,6 +44,7 @@ import pytest_asyncio
 from app.audio_gateway.fixtures import FIXTURE_TURNS as FIXTURE_TURNS
 from app.services.chronic import ChronicMetric
 from app.services.jobs import (
+    JOB_TYPE_ANALYZE,
     JOB_TYPE_PLAN,
     ClaimedJob,
     claim_next,
@@ -592,6 +593,9 @@ class PlanHistory(NamedTuple):
     user_id: UUID
     session_id: UUID
     pattern_id: UUID
+    # 복습 예정일이 **아직 오지 않은** 패턴 — `due_reviews`에는 없고 `chronic`에만 있다.
+    # 허용 id 집합의 chronic 절이 실제로 쓰이는지 재려면 이것이 필요하다(아래 픽스처 docstring).
+    chronic_pattern_id: UUID
 
 
 async def end_new_session(pool: asyncpg.Pool, user_id: UUID) -> UUID:
@@ -626,7 +630,20 @@ async def ended_session_with_history(db_pool: asyncpg.Pool) -> AsyncIterator[Pla
 
     쓰기는 커밋된다 — teardown 에서 사용자를 지우고 cascade 가 세션 → job → 계획 →
     노트를 함께 걷어간다(`committed_session`과 같은 규약).
+
+    ⚠️ **패턴을 둘 심는다 — 하나로는 허용 id 집합의 절반이 죽은 채로 남는다.**
+    `process_plan`의 집합은 `due_reviews ∪ chronic`인데 두 목록은 **구조적으로 갈라진다**:
+    `load_due_reviews`는 `next_review_at <= clock_timestamp()`로 거르고(`review.py`),
+    `load_chronic_metrics`는 그 컬럼으로 **거르지 않고 발생이 1건 이상인 패턴 전부**를 낸다.
+    그래서 "발생은 있지만 아직 복습 예정일이 안 된" 패턴은 **chronic 에만** 있다.
+
+    2026-09-05 실측(codex 리뷰): 이 픽스처가 due 패턴 하나만 심던 동안 `data.chronic`이
+    **0건**이었고(발생·발화를 안 심어서 `_METRICS_SQL`의 `error_occurrences ⋈ utterances`
+    조인이 비었다), 그래서 `process_plan`에서 `| {metric.pattern_id …}` 절을 **통째로 지워도
+    549건이 전부 통과했다.** 그 절을 지키는 테스트가 하나도 없었다.
+    → `chronic_pattern_id`는 미래 예정일 + 발생 1건으로 심어 그 절을 실제로 통과하게 만든다.
     """
+    now = datetime.now(UTC)
     async with db_pool.acquire() as conn:
         user_id = await conn.fetchval(
             "insert into users (display_name) values ('Plan Pipeline Test') returning id"
@@ -636,11 +653,51 @@ async def ended_session_with_history(db_pool: asyncpg.Pool) -> AsyncIterator[Pla
             "next_review_at) values ($1, 'article', 'plan_pipeline_due', 'go to the gym', $2) "
             "returning id",
             user_id,
-            datetime.now(UTC) - timedelta(days=1),
+            now - timedelta(days=1),
+        )
+        chronic_pattern_id = await conn.fetchval(
+            "insert into error_patterns (user_id, category, pattern_key, target_form, "
+            "next_review_at) values ($1, 'verb_tense', 'plan_pipeline_chronic', 'went', $2) "
+            "returning id",
+            user_id,
+            now + timedelta(days=3),  # 미래 → due_reviews 에서 제외된다
         )
     session_id = await end_new_session(db_pool, user_id)
+    # 발생 1건을 붙여야 `load_chronic_metrics`가 이 패턴을 낸다(발생 0건은 제외된다).
+    # 발화는 이 세션에 매단다 — `_METRICS_SQL`이 `error_occurrences ⋈ utterances`로 조인한다.
+    async with db_pool.acquire() as conn:
+        utterance_id = await conn.fetchval(
+            "insert into utterances (session_id, speaker, utterance_type, transcript, "
+            "sequence_no, created_at) "
+            "values ($1, 'user', 'learning', 'I go there yesterday.', 1, $2) returning id",
+            session_id,
+            now - timedelta(hours=1),
+        )
+        await conn.execute(
+            "insert into error_occurrences "
+            "(utterance_id, pattern_id, original_span, correction, explanation, severity, "
+            "confidence) values ($1, $2, 'go there yesterday', 'went there yesterday', "
+            "'과거 시점에는 과거형을 씁니다.', 'medium', 0.9)",
+            utterance_id,
+            chronic_pattern_id,
+        )
+        # ⚠️ 그 발화의 분석 job 을 **done 으로 남긴다.** 실물에서 occurrence 가 존재하는 것은
+        # 분석이 이미 돌았기 때문이고, `flush_pending_analysis`의 회복 스윕은
+        # `analyze_utterance` job 이 **없는** 발화만 새로 건다(`utterances.py` 의 `not exists`).
+        # 이 행이 없으면 워커 테스트에서 스윕이 분석 job 을 하나 더 걸어 가짜 Claude 의 응답을
+        # 계획 대신 분석이 먹는다 — 2026-09-05 에 실제로 그렇게 깨졌다(`prompts` 2건).
+        await conn.execute(
+            "insert into analysis_jobs (job_type, utterance_id, status) values ($1, $2, 'done')",
+            JOB_TYPE_ANALYZE,
+            utterance_id,
+        )
     try:
-        yield PlanHistory(user_id=user_id, session_id=session_id, pattern_id=pattern_id)
+        yield PlanHistory(
+            user_id=user_id,
+            session_id=session_id,
+            pattern_id=pattern_id,
+            chronic_pattern_id=chronic_pattern_id,
+        )
     finally:
         async with db_pool.acquire() as conn:
             await conn.execute("delete from users where id = $1", user_id)
