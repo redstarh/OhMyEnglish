@@ -173,6 +173,33 @@ lease_token) -> bool`과 브리프가 인용한 docstring · `report_failure(poo
 `FIXTURE_TURNS` 하나이고 `tests/conftest.py`는 그것을 **재수출만** 한다(기대 문장과 재생 문장이
 갈라지는 경로를 만들지 않기 위해서다 — 그 파일 주석이 근거를 소유). 새 픽스처 문장을 발명하지 않는다.
 
+### Task 10 착수 전에 볼 것 — S2-9 리뷰가 넘긴 인계 3건 (2026-09-05, 전부 프로브로 관측)
+
+두 어댑터의 `instructions`는 **세 축에서 다르다.** 스텁의 property docstring은 그중 하나(public 속성
+vs property)만 적었다 — 나머지 둘이 Task 10에서 실패를 만든다.
+
+| 축 | 스텁 | Nova (`nova.py:440`·`444`) |
+|---|---|---|
+| 쓰기 | 읽기 전용 property — setter 없음(`AttributeError … has no setter`) | 쓰기 가능 public 속성. `tests/integration/test_gateway.py:731`이 `adapter.instructions == SYSTEM_PROMPT`를 단정한다 |
+| 타입 | `str \| None` | `str`(생성자 인자는 `str \| None`인데 대입 결과가 `str`로 좁혀진다) |
+| **falsy 강제** | **강제하지 않는다** — `""`·`"   "`·`None`을 받은 대로 기록 | `instructions or SYSTEM_PROMPT` → **`None`과 `""` 둘 다** `SYSTEM_PROMPT`로 대체된다. `"   "`(공백만)는 truthy라 그대로 통과 |
+
+1. ⚠️ **AS6을 `adapter.instructions is not None`으로 단정하지 마라 — 빈 내용에도 초록이 된다.**
+   Task 10의 조립이 어떤 경로에서 `""`를 만들면(초점 0건·질문 0건인 계획, 폴백 분기의 조립 누락)
+   **Nova는 조용히 `SYSTEM_PROMPT`로 폴백해 증상이 안 보이고** 스텁은 `""`를 기록한다. non-None
+   단정은 "지시문이 도달했다"가 아니라 **"생성자가 인자를 받았다"만** 증명한다 — 지배 실패 모드
+   그 자체다. **AS6은 계획 내용의 부분문자열을 단정한다.** 위 falsy 강제 차이를 Task 10의 확인
+   항목에 행으로 넣어라(Task 9 점검 #5가 "Task 10에서 다시 확인한다"고 남긴 것이 이것이다).
+2. ⚠️ **`VoiceAdapter` 프로토콜 타입 값에서 `.instructions`를 건드리면 `ty`가 막는다** — 프로토콜
+   멤버는 `close`·`events`·`send_audio`·`start` 4개뿐이라 읽기·쓰기 **둘 다**
+   `unresolved-attribute`다(관측). **`isinstance(adapter, StubVoiceAdapter)`로 좁힌 뒤 읽어라** —
+   그 관례가 이미 리포에 있다(`tests/integration/test_gateway.py:695`·`740`).
+   ⚠️ 그리고 **생성 후에 `adapter.instructions = …`로 꽂는 배선을 만들지 마라** — 스텁은 setter가
+   없어 런타임 `AttributeError`다. 반드시 **생성자 인자로** 넘긴다(`NovaVoiceAdapter(settings,
+   instructions=…)`와 같은 형태).
+3. ⚠️ **2번을 만났다고 프로토콜에 `instructions`를 얹지 마라** — Task 9 점검이 "프로토콜 밖 확장"으로
+   못 박은 결정을 뒤집는 것이다. `isinstance` 좁히기로 끝난다.
+
 ---
 
 ## File Structure
@@ -2185,8 +2212,14 @@ Expected: **3건 FAIL** — `TypeError: StubVoiceAdapter.__init__() got an unexp
         return self._instructions
 ```
 
-⚠️ **키워드 전용 인자로 둔다**(`*` 뒤). 위치 인자로 두면 기존 `StubVoiceAdapter("fixture")` 호출과
-`StubVoiceAdapter("unresponsive")`가 조용히 의미를 바꿀 수 있다.
+⚠️ **키워드 전용 인자로 둔다**(`*` 뒤). ⚠️ **다만 그 이유를 이 문장처럼 쓰지 마라 — 정정한다**
+(2026-09-05 리뷰 M-2). 원래 문구는 "위치 인자로 두면 기존 `StubVoiceAdapter("fixture")`·
+`("unresponsive")` 호출이 조용히 의미를 바꿀 수 있다"였는데 **그것은 사실이 아니다**: 위치 인자를
+**2개 넘기는 호출이 0건**이므로(리뷰어가 전체 호출처 grep — 팩토리 2곳은 위치 1개, 테스트 10곳은
+위치 0개 또는 `mode=` 키워드) 기존 호출의 의미는 어느 쪽으로 두어도 바뀌지 않았다.
+**실제 이득은 앞으로 쓰는 사람이 위치로 끼워 넣지 못하게 하는 것이다.** 이 리포가 "있지도 않은
+의존을 주석이 단정했다"로 지적받은 것과 같은 부류라 남긴다 — 구현 코드의 인라인 주석은 미래형으로
+정확히 썼고, 과장은 이 계획서와 커밋 메시지에 있었다.
 
 - [ ] **Step 4: 테스트를 돌려 통과를 확인한다**
 
