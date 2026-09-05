@@ -137,11 +137,17 @@ class PlanOutput(pydantic.BaseModel):
     def _target_level_matches_level_and_instruction(self) -> PlanOutput:
         """`target_level` · `level.target_level` · `instruction.target_level` 셋이 다르면 거부한다.
 
-        셋은 같은 개념("오늘의 목표 수준")이다. `target_level`은 화면에 표시되고,
+        셋은 같은 개념("오늘의 목표 수준")이다. `target_level`은 `session_plans`의 컬럼이 되고,
         `level.target_level`은 그 판단의 근거이며, `instruction.target_level`은
         대화 상대가 실제로 조립해 말하는 지시문의 수준이다. 셋이 갈라지면 저장 시점의
         표시와 대화 상대가 말하는 수준이 서로 다른 상태가 영구히 남는다 — 학습자는
         화면에서 한 레벨을 보는데 대화 상대는 다른 레벨로 말한다.
+
+        ⚠️ **화면이 읽는 것은 `instruction.target_level`이다** — 컬럼이 아니다
+        (`api/results.py`의 `next_plan` → `services/sessions.py`의 `PreparedPlan`).
+        이 검증이 셋을 묶어 두기 때문에 그 선택이 표시값을 바꾸지 않는다: 여기서 거부하는
+        조합은 저장되지 않으므로 화면과 컬럼이 갈라진 행은 `process_plan` 경로에서 생기지
+        않는다. 이 단정을 풀면 **읽는 쪽이 컬럼이 아니라 지시문이라는 사실이 관측된다.**
         """
         levels = {self.target_level, self.level.target_level, self.instruction.target_level}
         if len(levels) > 1:

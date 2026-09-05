@@ -119,9 +119,15 @@ select sp.id as plan_id, sp.reason, sp.instruction
 class PreparedPlan:
     """직전 세션이 만들어 둔 계획에서 **세션 시작이 쓰는 것만** 담는다.
 
-    초점 패턴 id·질문 목록·목표 수준은 담지 않는다 — 대화 상대에게 넘어가는 것은
-    `instruction`(§5.2 가변부)이고, 화면에 나가는 것은 `reason`이다(R11-3). `plan_id`는
-    로그와 조회 경로가 어느 계획이 쓰였는지 가리키기 위한 것이다.
+    초점 패턴 id·질문 목록은 담지 않는다. 대화 상대에게 넘어가는 것은 `instruction`
+    (§5.2 가변부)이고, `plan_id`는 로그와 조회 경로가 어느 계획이 쓰였는지 가리킨다.
+
+    **화면에 나가는 것은 `reason`과 `instruction.target_level` 둘이다**(R11-3) —
+    `api/results.py`의 `next_plan`이 이 두 값으로 시작 화면의 한 줄을 만든다. 목표 수준을
+    별도 필드로 담지 않는 것은 "안 쓴다"가 아니라 **지시문 안의 값이 그 하나**라는 뜻이다:
+    `session_plans.target_level` 컬럼과 같은 값임을 저장 시점에 `PlanOutput`이 강제하고
+    (`models/plan.py` `_target_level_matches_level_and_instruction`), 지시문을 읽을 수 없어
+    이 함수가 `None`을 돌려주면 세션도 화면도 그 계획을 함께 버린다.
     """
 
     plan_id: UUID

@@ -8,21 +8,28 @@
 실서버를 띄우지 않고 ASGI 트랜스포트로 앱에 직접 붙는다. `db_conn`이 아니라 `db_pool`을
 쓰는 이유도 같다 — 라우터가 여는 커넥션에는 롤백되는 트랜잭션의 쓰기가 보이지 않는다.
 
-⚠️ 이 파일의 지배 규칙: 세 테스트가 **서로 다른 것**을 고정한다. 응답 전체를 dict 동일성으로
-재므로 키가 빠지거나 늘면 걸린다 —
+⚠️ 이 파일의 지배 규칙: 다섯 테스트가 **서로 다른 것**을 고정한다. 응답 전체를 dict
+동일성으로 재므로 키가 빠지거나 늘면 걸린다 —
 ① 계획이 있을 때: 라우터가 그 행의 이유와 수준을 **DB에서** 옮긴다 (픽스처 기본값과 다른
    값으로 심어 상수 반환을 배제한다).
 ② 계획이 없을 때: 404 가 아니라 두 값이 `null` 이다 (§9 Contract).
 ③ 남의 계획만 있을 때: ①②를 둘 다 통과시키는 "사용자로 좁히지 않는 조회"를 여기서 잡는다.
+④ 수준을 **지시문에서** 꺼낸다 — ①은 이것을 구분하지 못한다: `seed_plan_for_session`이
+   `target_level` 인자 하나로 컬럼과 지시문을 **같은 값으로** 채우므로 어느 쪽을 읽어도
+   통과한다. 두 값을 갈라 심는 것이 유일한 판별 수단이다.
+⑤ 지시문을 읽을 수 없을 때: 행에 이유가 있어도 화면을 비운다 (`api/results.py`의 계약).
 """
 
 from __future__ import annotations
 
+import json
 from collections.abc import AsyncIterator
+from uuid import uuid4
 
 import asyncpg
 import httpx
 import pytest_asyncio
+from conftest import plan_json
 
 from app.api.ws import FIXED_USER_ID
 
@@ -109,3 +116,66 @@ async def test_next_plan_ignores_another_learners_plan(
         # 전역 `count(*)` 단정이 깨진다.
         async with db_pool.acquire() as conn:
             await conn.execute("delete from users where id = $1", other_user_id)
+
+
+# ④ 수준은 **지시문 안의 값**이다 — `session_plans.target_level` 컬럼이 아니다.
+#
+# ⚠️ 이 조합(컬럼 `B1` ≠ 지시문 `C1`)은 `process_plan` 경로에서 생기지 않는다: `PlanOutput`의
+# `_target_level_matches_level_and_instruction`이 세 값의 일치를 저장 전에 강제한다. 그래서
+# 이것은 "어느 값이 맞는가"를 다투는 테스트가 아니라 **읽는 지점이 어디인가**를 못 박는
+# 테스트다. 지시문 쪽인 이유: 그 값이 대화 상대가 실제로 말하는 수준이고, 지시문을 읽을 수
+# 없으면 세션이 그 계획을 아예 쓰지 않는다(⑤ — 그때 화면도 함께 비어야 짝이 맞는다).
+# 컬럼으로 옮기는 수정(예: `_PREPARED_PLAN_SQL`에 컬럼을 더해 `prepared.target_level`을 쓰는
+# 것)은 ①②③을 전부 통과하고 여기서만 걸린다.
+async def test_next_plan_reads_target_level_from_the_instruction_not_the_column(
+    api_client: httpx.AsyncClient,
+    db_pool: asyncpg.Pool,
+    committed_fixed_user,
+    seed_plan_for_session,
+):
+    reason = "컬럼과 지시문의 수준을 갈라 심은 계획"
+    # 지시문은 `plan_json`이 소유하는 유효한 모양에서 뽑는다 — 여기서 다시 적으면
+    # `SessionInstruction` 계약이 바뀔 때 이 테스트만 낡는다.
+    instruction = json.loads(plan_json(uuid4(), target_level="C1"))["instruction"]
+    async with db_pool.acquire() as conn:
+        await seed_plan_for_session(
+            conn,
+            user_id=FIXED_USER_ID,
+            reason=reason,
+            target_level="B1",
+            instruction=json.dumps(instruction, ensure_ascii=False),
+        )
+
+    response = await api_client.get(NEXT_PLAN_PATH)
+
+    assert response.status_code == 200
+    assert response.json() == {"reason": reason, "target_level": "C1"}, (
+        "컬럼(B1)을 읽었다 — 화면이 대화 상대가 말하지 않는 수준을 보여준다"
+    )
+
+
+# ⑤ 지시문을 읽을 수 없으면 **이유가 있어도** 화면을 비운다.
+#
+# `load_prepared_plan`이 그 행을 `None`으로 돌려주므로 세션은 고정 지시문으로 시작한다 —
+# 그때 이유만 보여주면 화면은 오늘의 초점을 말하는데 대화 상대는 그 초점을 모른다.
+# 그 층의 판정 자체는 `tests/unit/test_sessions.py`가 잰다(경고 로그까지). 여기서 재는 것은
+# **API 응답 shape**다: "DB에 이유가 있는데 왜 비나"라는 그럴듯한 수정(부분 표시)이 없으면
+# 게이트를 조용히 통과한다. 읽을 수 없는 지시문의 모양도 그 파일과 같은 것을 쓴다.
+async def test_next_plan_stays_empty_when_the_instruction_cannot_be_read(
+    api_client: httpx.AsyncClient,
+    db_pool: asyncpg.Pool,
+    committed_fixed_user,
+    seed_plan_for_session,
+):
+    async with db_pool.acquire() as conn:
+        await seed_plan_for_session(
+            conn,
+            user_id=FIXED_USER_ID,
+            reason="읽을 수 없는 지시문을 가진 계획의 이유",
+            instruction='"not an instruction object"',
+        )
+
+    response = await api_client.get(NEXT_PLAN_PATH)
+
+    assert response.status_code == 200
+    assert response.json() == {"reason": None, "target_level": None}
