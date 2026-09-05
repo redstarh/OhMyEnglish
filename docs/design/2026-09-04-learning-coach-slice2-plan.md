@@ -2510,6 +2510,32 @@ git commit -m "feat: 세션 지시문에 오늘의 계획을 얹는다 + 빠져 
 
 ---
 
+### Task 11 착수 전 점검 (2026-09-05, 전부 직접 실행해 확인) — 브리프가 참조한 것 대조
+
+브리프는 이 계획서 Task 11 절과 **글자 그대로 같다**(`diff` 확인).
+
+**일치한 것 5건**: `results.py`의 `router = APIRouter(prefix="/api/sessions", tags=["results"])` ·
+기존 경로가 `@router.get("/{session_id}/results")` **하나뿐**이라 `/next-plan`과 세그먼트 수가 달라
+**충돌하지 않는다**(⚠️ 나중에 `/{something}` 단일 세그먼트 경로가 추가되면 충돌한다 — 지금은 없다) ·
+`lib/api.ts`가 `import { API_BASE } from "./config"`를 쓴다 · `tests/integration/test_plan_api.py`는
+없다(신규) · `FIXED_USER_ID`를 `app.api.ws`에서 import하는 선례가 `tests/harness/inject_errors.py`에 있다.
+
+**어긋난 것 6건** — 브리프대로 하면 그 자리에서 깨진다:
+
+| # | 브리프의 전제 | 실측 | 이 태스크가 쓰는 것 |
+|--:|---|---|---|
+| 1 | 테스트가 `api_client` 픽스처를 쓴다 | **그 픽스처는 `tests/unit/test_results.py` 안에 정의된 로컬 픽스처다**(`tests/conftest.py`에 없다). 신규 파일에서 부를 수 없다 | **`tests/conftest.py`로 올려 공유하거나** 신규 파일에 같은 형태로 만든다. 올리는 쪽을 권한다 — API 경로가 둘로 늘었으므로 두 파일이 같은 픽스처를 쓴다. ⚠️ conftest 를 편집하면 게이트 **밖** format 이 늘 수 있다(그 파일만 포맷해 4로 되돌린다) |
+| 2 | `seed_plan_for_session(db_pool, reason=…, target_level=…)` | 시그니처가 `make(conn, *, user_id=None, reason=…, target_level=…, days_ago=0, instruction=None)`다 — **`conn`을 받는다**(pool 아님). S2-10에서 같은 어긋남이 이미 나왔다 | `db_pool.acquire()`의 conn 을 넘겨 **커밋**시킨다. 근거는 `tests/unit/test_results.py` 머리말이 소유한다: "라우터가 연 커넥션은 테스트가 쓴 커넥션과 별개이므로 **롤백되는 `db_conn` 트랜잭션은 라우터 쪽에 보이지 않는다 — 커밋되는 픽스처가 필수다**" |
+| 3 | 심은 계획을 API 가 읽는다 | 라우터는 `FIXED_USER_ID`로 조회하는데 그 픽스처는 기본적으로 **새 사용자를 만든다** | **`user_id=FIXED_USER_ID`로 심는다.** teardown 은 `seeded_fixed_user`·`committed_session` 규약대로 직접 지운다(사용자를 지우면 007 의 cascade 가 세션→계획을 걷는다) |
+| 4 | `seed_user(db_pool)` | `make(conn, *, tz: str)` — **`conn`을 받고 `tz`가 필수**다(S2-9 M-3 에서 기본값을 의도적으로 되돌렸다: LOW-14 의 "타임존을 명시해 넣는다"를 지키기 위해서다) | `tz=`를 명시하고 conn 을 넘긴다. ⚠️ **기본값을 다시 넣지 마라** — 되돌린 결정이다 |
+| 5 | 프론트가 `className="text-sm text-muted-foreground"` | **이 프로젝트에 그 스타일 시스템이 없다.** `page.tsx`에 `className` **0건**이고 Tailwind 설정 파일도 없다(`tailwind.config*` 없음). 실제 관례는 **인라인 `style={{…}}` 객체 + `globals.css`의 CSS 변수**다 — 예: `<p style={{ color: "var(--foreground-muted)" }}>` | **기존 관례를 그대로 따른다.** ⚠️ **Tailwind 를 도입하지 마라** — 새 의존성이고 이 태스크 범위가 아니다. 색·간격 토큰을 새로 만들지 말고 `globals.css`에 이미 있는 변수를 쓴다 |
+| 6 | 조회 실패 처리를 정하지 않았다 | `ws.py`는 `_load_prepared_plan_or_none`으로 예외를 삼켜 세션 시작을 막지 않는다. 그런데 **API 경로에서는 삼킬 필요가 없다** — 계획서 자신의 프론트 코드가 `if (!response.ok) return { reason: null, target_level: null }`로 **이미 방어한다** | **백엔드에서 예외를 삼키지 않는다.** 삼키면 장애가 조용해지고(500 이 사라진다) 화면은 어차피 같은 결과를 낸다. `results.py`의 기존 예외 관례를 그대로 따른다 |
+
+⚠️ **테스트 파일 위치**: 계획서는 `tests/integration/test_plan_api.py`(신규)를 지정하지만 **API 테스트 선례는
+`tests/unit/test_results.py`**다(그 파일이 `unit` 아래인데 DB·`httpx.ASGITransport`를 쓴다 — 이 리포는
+unit/integration 경계가 "DB 사용 여부"가 아니다). 신규 파일을 만들되 **#1 의 픽스처 공유와 함께** 결정하고,
+어느 쪽을 택했는지 보고에 근거를 적어라.
+
 ### Task 11: 추천 이유를 화면에 한 줄로 보여준다
 
 **Files:**
