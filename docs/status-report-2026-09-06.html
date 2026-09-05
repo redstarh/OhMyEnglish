@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OhMyEnglish — 요구사항 상태 · 아키텍처 (2026-09-06)</title>
+<!--
+  규약의 정본은 `docs/ops/status-report-convention.md`다. 템플릿은
+  `docs/templates/status-report-template.html`을 복사해 채웠다.
+  ⚠️ CSS 의 `.kpi > div` 자손 선택자와 "표로 그린 흐름도"는 렌더 확인으로 고친 것이다 — 되돌리지 마라.
+  판정 색은 dataviz status 팔레트(good #0ca30c / warning #fab219 / critical #d03b3b).
+  검증기는 템플릿에 들어 있는 조합을 그대로 썼으므로 이 판에서 다시 돌리지 않았다(색 미변경).
+-->
+<style>
+  :root{
+    --surface:#fcfcfb; --panel:#fff; --ink:#1a1a19; --ink-2:#4a4a46; --ink-3:#75756e;
+    --line:#e3e3de; --line-2:#efefea; --accent:#2d5f8a;
+    --good:#0ca30c; --warn:#fab219; --crit:#d03b3b; --hold:#6b4fa8;
+    --good-bg:#eaf7ea; --warn-bg:#fdf4e1; --crit-bg:#fbeaea; --hold-bg:#f1ecfa;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --surface:#1a1a19; --panel:#232322; --ink:#f2f2ee; --ink-2:#c2c2ba; --ink-3:#8f8f86;
+      --line:#3a3a37; --line-2:#2e2e2c; --accent:#7fb3dd;
+      --good-bg:#14290f; --warn-bg:#332703; --crit-bg:#30110f; --hold-bg:#221a33;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--surface);color:var(--ink);
+    font:15px/1.65 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Segoe UI",Roboto,sans-serif;}
+  .wrap{max-width:1080px;margin:0 auto;padding:40px 22px 80px}
+  h1{font-size:26px;margin:0 0 6px;letter-spacing:-.2px}
+  h2{font-size:19px;margin:44px 0 12px;padding-bottom:7px;border-bottom:2px solid var(--line)}
+  h3{font-size:15px;margin:26px 0 8px;color:var(--ink-2)}
+  .sub{color:var(--ink-3);font-size:13px;margin:0 0 22px}
+  code{font:12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;
+    background:var(--line-2);padding:1px 5px;border-radius:4px}
+  table{width:100%;border-collapse:collapse;margin:10px 0 4px;font-size:13.5px}
+  th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line-2);vertical-align:top}
+  th{font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--ink-3);
+    border-bottom:1px solid var(--line);font-weight:600}
+  td:first-child{white-space:nowrap;font-weight:600}
+  tbody tr:hover{background:var(--line-2)}
+  .b{display:inline-block;padding:1px 8px;border-radius:11px;font-size:11.5px;
+    font-weight:700;white-space:nowrap;border:1px solid transparent}
+  .b-good{background:var(--good-bg);color:var(--good);border-color:var(--good)}
+  .b-warn{background:var(--warn-bg);color:#8a5c00;border-color:var(--warn)}
+  .b-crit{background:var(--crit-bg);color:var(--crit);border-color:var(--crit)}
+  .b-hold{background:var(--hold-bg);color:var(--hold);border-color:var(--hold)}
+  @media (prefers-color-scheme:dark){ .b-warn{color:var(--warn)} }
+  .kpi{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 6px}
+  .kpi > div{flex:1 1 150px;background:var(--panel);border:1px solid var(--line);
+    border-radius:9px;padding:12px 14px}
+  .kpi .n{font-size:27px;font-weight:700;letter-spacing:-.5px;line-height:1.15}
+  .kpi .l{font-size:12px;color:var(--ink-3);margin-top:2px}
+  .kpi .d{font-size:11.5px;color:var(--ink-3);margin-top:3px}
+  .bar{display:flex;gap:2px;height:34px;margin:14px 0 8px;border-radius:5px;overflow:hidden}
+  .bar span{display:flex;align-items:center;justify-content:center;color:#fff;
+    font-size:12px;font-weight:700;border-radius:4px}
+  .note{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent);
+    border-radius:0 8px 8px 0;padding:11px 14px;margin:14px 0;font-size:13.5px;color:var(--ink-2)}
+  .note b{color:var(--ink)}
+  .flow{background:var(--panel);border:1px solid var(--line);border-radius:9px;
+    padding:16px;overflow-x:auto;margin:12px 0}
+  footer{margin-top:52px;padding-top:16px;border-top:1px solid var(--line);
+    font-size:12.5px;color:var(--ink-3)}
+</style>
+</head>
+<body data-palette="#0ca30c,#fab219,#d03b3b">
+<div class="wrap">
+
+<h1>OhMyEnglish — 요구사항 상태 · 아키텍처</h1>
+<p class="sub">
+  2026-09-06 · 브랜치 <code>design/first-vertical-slice</code> · HEAD <code>cc2112b</code> ·
+  요구사항 정본 <code>docs/PRD.md</code> v1.1
+</p>
+
+<div class="note">
+  <b>이 문서는 스냅샷이다.</b> 값이 정본과 다르면 <b>정본이 맞다</b> — 상태의 정본은
+  <code>TASKS.md</code>, 다음 한 걸음은 <code>handoff/HANDOFF.md</code>다.
+  판정 근거는 전부 <b><code>파일:심볼</code> 또는 원장 태스크</b>다(줄 번호로 인용하지 않는다).
+  "문서에 그렇게 쓰여 있다"만으로 <b>완료</b>를 준 항목은 없다.
+  <br>⚠️ <b>이 판에서 다시 확인한 범위</b>: 2026-09-05 판과 비교해 <b>판정이 바뀐 7건은 이 턴에 코드로
+  직접 다시 확인했다.</b> 바뀌지 않은 40건은 <b>이전 판의 판정과 근거를 그대로 이어받았다</b>(재확인하지
+  않았다는 뜻이다 — 그 사실을 숨기지 않는다).
+</div>
+
+<h2>한눈에</h2>
+
+<div class="kpi">
+  <div><div class="n" style="color:var(--good)">22</div><div class="l">✔ 완료</div><div class="d">이전 17 → <b>+5</b></div></div>
+  <div><div class="n" style="color:var(--warn)">16</div><div class="l">◐ 부분</div><div class="d">이전 20 → −4</div></div>
+  <div><div class="n" style="color:var(--crit)">9</div><div class="l">✕ 미완료</div><div class="d">이전 10 → −1</div></div>
+  <div><div class="n" style="color:var(--hold)">7</div><div class="l">⏸ 미결정 (사람 결정 대기)</div><div class="d">이전 8 → −1 (1건은 오분류였다)</div></div>
+</div>
+
+<div class="bar" role="img" aria-label="요구사항 47건 중 완료 22건, 부분 16건, 미완료 9건">
+  <span style="background:var(--good);flex:22">✔ 완료 22</span>
+  <span style="background:var(--warn);color:#3d2900;flex:16">◐ 부분 16</span>
+  <span style="background:var(--crit);flex:9">✕ 미완료 9</span>
+</div>
+<p class="sub" style="margin:0">
+  요구사항 <b>47건</b> 기준(§4 MVP 범위 8 · §7 말하기 훈련 10 · §10 발음 13 · §11 추천 학습 16).
+  미결정 7건은 <b>판정이 아니라 사람의 결정 대기</b>라서 위 막대에 넣지 않았다.
+</p>
+
+<div class="note">
+  <b>가장 중요한 한 문장</b>: <b>완료가 처음으로 부분을 넘어섰다(22 &gt; 16)</b> — 지난 보고가 지목한
+  병목("만들어 저장은 하는데 그것을 읽는 코드가 한 곳도 없다")이 <b>계획·수준·폴백 경로에서 닫혔기
+  때문</b>이다. <b>다만 같은 병목이 정확히 세 자리에 남아 있고</b>(계획이 만든 질문 3~5개 ·
+  다시 연습할 상황 3개 · 복습 과제 행), <b>가장 큰 남은 위험은 코드가 아니다 — 시작 화면에 뜨는
+  추천 이유를 사람이 한 번도 눈으로 본 적이 없다</b>(자동 검사도 0건이라, 그 줄을 지워도 모든 검사가
+  통과한다).
+</div>
+
+<h2>애플리케이션 아키텍처 (단순 버전)</h2>
+
+<div class="flow">
+<table style="font-size:13px;margin:0">
+  <thead><tr><th style="width:34px">#</th><th style="width:250px">모듈</th><th>무엇을 하나</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td><code>frontend/app/page.tsx</code></td><td>학습자가 시작 버튼을 누른다. 이 화면이 <b>다음 세션의 추천 이유와 목표 수준을 한 줄로</b> 보여준다</td></tr>
+    <tr><td>2</td><td><code>backend/api/ws</code></td><td>음성 연결을 연다. 시작 시점에 <b>준비된 계획을 읽는다</b>(없으면 계획 없이 시작한다)</td></tr>
+    <tr><td>3</td><td><code>audio_gateway/factory:create_voice_adapter</code></td><td>계획을 <b>데이터로</b> 받아 음성 어댑터를 만든다 (통로를 둘로 늘리지 않기 위해 포트는 손대지 않는다)</td></tr>
+    <tr><td>4</td><td><code>audio_gateway/nova:build_system_prompt</code></td><td>불변 대화 규칙 + <b>오늘의 계획</b>(목표 수준·초점·문장 길이·상황·힌트 시점)을 합쳐 지시문을 만든다</td></tr>
+    <tr><td>5</td><td><code>[외부] Amazon Nova Sonic</code></td><td>실시간 음성 대화. <b>발음 판정도 이 모델이 한다</b>(우리가 점수를 발명하지 않는다)</td></tr>
+    <tr><td>6</td><td><code>audio_gateway/session</code></td><td>전사문을 저장하고 분석 작업을 큐에 넣는다. 조각난 발화는 턴 경계까지 모은다</td></tr>
+    <tr><td>7</td><td><code>services/analysis</code> → <code>[외부] Claude</code></td><td>문법 오류를 분석해 <b>오류 패턴</b>으로 저장한다</td></tr>
+    <tr><td>8</td><td><code>services/review:recompute</code></td><td>복습 주기(1·3·7일)와 숙련도를 갱신한다. 재발하면 되돌린다</td></tr>
+    <tr><td>9</td><td><code>services/sessions:end_session</code></td><td>세션을 닫고 <b>같은 트랜잭션에서</b> 다음 계획 작업을 등록한다 (사용자가 기다리는 경로에 모델 호출이 없다)</td></tr>
+    <tr><td>10</td><td><code>services/plan:process_plan</code> → <code>[외부] Claude</code></td><td>다음 세션 계획을 만들어 저장하고 <b>학습자 수준을 갱신한다</b> → 다시 1번으로</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="sub" style="margin:4px 0 0">
+  뼈대를 한 문장으로: <b>대화는 음성 모델이, 판단은 글 모델이, 순서와 저장은 우리 코드가 맡는다</b> —
+  그래서 학습자가 기다리는 경로(1~6)에는 글 모델 호출이 하나도 없고, 판단(7~10)은 전부 세션이 끝난 뒤에 돈다.
+  이번 슬라이스에서 <b>10번 → 1·2번으로 되돌아오는 고리가 처음 닫혔다.</b>
+</p>
+
+<h3>끊긴 자리 — 여기가 남은 작업의 전부다</h3>
+<table>
+  <thead><tr><th>끊긴 곳</th><th>지금</th><th>누가 잇나</th></tr></thead>
+  <tbody>
+    <tr><td>시작 화면을 아무도 본 적이 없다</td><td>보여주는 코드는 있다(<code>api/results:next_plan</code> → <code>page.tsx</code>). 그런데 <b>브라우저로 확인한 적 0회 · 자동 검사 0건</b> — 그 줄을 통째로 지워도 타입 검사와 문법 검사가 모두 통과한다(무력화 4건 중 4건 생존)</td><td>프론트엔드 검증 계획 T3·T4 (착수 가능)</td></tr>
+    <tr><td>계획이 만든 <b>질문 3~5개</b>가 대화 상대에게 가지 않는다</td><td>저장은 된다(<code>services/plan</code>의 계획 저장). 그런데 지시문 자료구조(<code>models/plan:SessionInstruction</code>)에 <b>질문 필드가 아예 없다</b> — 읽는 곳이 저장 한 줄뿐이다</td><td>미배정 (다음 슬라이스 후보)</td></tr>
+    <tr><td><b>다시 연습할 상황 3개</b>를 아무도 읽지 않는다</td><td>분석이 저장한다(<code>services/analysis</code>). 계획 입력에 <b>넣는 코드 0곳</b> — 지시문의 "오늘 쓸 상황"은 글 모델이 스스로 낸 값이다</td><td>미배정 (다음 슬라이스 후보)</td></tr>
+    <tr><td><b>복습 과제 행</b>을 아무도 읽지 않는다</td><td><code>services/review</code>가 지우고 다시 넣기만 한다. 읽는 코드 0곳 — 무해하지만 화면이 과제 번호로 "완료 표시"를 하려면 먼저 정해야 한다</td><td>미결정 5</td></tr>
+    <tr><td>실물 글 모델로 계획을 만든 적이 0회</td><td>자동 검사는 전부 대역(모의)이다</td><td>미결정 2 (승인 대기)</td></tr>
+    <tr><td>개발 데이터베이스에 계획 표 2개가 없다</td><td>마이그레이션 007 미적용 — <b>직접 조회로 확인</b>(표 0개)</td><td>미결정 1 (승인 대기)</td></tr>
+  </tbody>
+</table>
+
+<h3>데이터베이스 표 14개 (개발 DB에서 직접 조회)</h3>
+<table>
+  <thead><tr><th>표</th><th>용도</th><th>언제 생겼나</th></tr></thead>
+  <tbody>
+    <tr><td><code>users</code> · <code>learning_scenarios</code></td><td>학습자 1명(단일 사용자 도구) · 시나리오 시드</td><td>001</td></tr>
+    <tr><td><code>learning_sessions</code> · <code>utterances</code></td><td>세션과 발화 전사문</td><td>001</td></tr>
+    <tr><td><code>error_patterns</code> · <code>error_occurrences</code></td><td>오류 패턴과 그 발생 기록</td><td>001</td></tr>
+    <tr><td><code>analysis_jobs</code></td><td>분석·계획 작업 큐</td><td>001</td></tr>
+    <tr><td><code>pronunciation_attempts</code></td><td>발음 재발화 시도 3값</td><td>003 · 004 · 005</td></tr>
+    <tr><td><code>review_tasks</code> · <code>pattern_attempts</code></td><td>복습 과제 · 재시도 정답 여부</td><td>006</td></tr>
+    <tr><td><code>harness_runs</code> · <code>harness_sessions</code> · <code>harness_pattern_baseline</code></td><td>테스트 하네스 전용</td><td>001</td></tr>
+    <tr><td><code>schema_migrations</code></td><td>적용 이력 — <b>001 · 003 · 004 · 005 · 006</b></td><td>—</td></tr>
+  </tbody>
+</table>
+<p class="sub" style="margin:4px 0 0">
+  <b>없는 표</b>: <code>session_plans</code>·<code>learner_notes</code>(마이그레이션 007이 만들지만
+  <b>개발 DB에 아직 적용하지 않았다</b> — 미결정 1) · <code>shadowing_items</code>(쉐도잉 착수 시) ·
+  <code>weekly_reports</code>(주간 리포트 착수 시).
+  <b>002는 존재한 적이 없다</b>(번호만 비어 있다).
+</p>
+
+<h2>요구사항 상태</h2>
+<p class="sub" style="margin:0 0 8px">
+  <b>이번에 판정이 바뀐 7건은 ⟳ 로 표시했다</b> — 그 7건만 이 턴에 코드로 다시 확인했다.
+</p>
+
+<h3>§11 이력 기반 추천 학습 루틴 <span class="b b-good">✔11</span> <span class="b b-warn">◐3</span> <span class="b b-crit">✕2</span></h3>
+<table>
+  <thead><tr><th>ID</th><th>요구</th><th>판정</th><th>근거</th></tr></thead>
+  <tbody>
+    <tr><td>R11-1</td><td>오류 이력을 영구히 저장한다</td><td><span class="b b-good">✔ 완료</span></td><td><code>review:store_attempts</code></td></tr>
+    <tr><td>R11-4</td><td>계획 생성을 사용자가 기다리는 경로에 두지 않는다</td><td><span class="b b-good">✔ 완료</span></td><td><code>jobs:enqueue_plan_next_session</code></td></tr>
+    <tr><td>R11-6</td><td>1·3·7일로 복습일을 갱신하고 재발하면 되돌린다</td><td><span class="b b-good">✔ 완료</span></td><td><code>review:fold_stages</code> (단계 = 1,3,7일)</td></tr>
+    <tr><td>R11-8</td><td>임계값을 발명하지 않고 사실만 모델에 넘긴다</td><td><span class="b b-good">✔ 완료</span></td><td><code>chronic:ChronicMetric</code></td></tr>
+    <tr><td>R11-10</td><td>관찰 기록은 덧붙이기만 한다</td><td><span class="b b-good">✔ 완료</span></td><td><code>plan:_INSERT_NOTE_SQL</code></td></tr>
+    <tr><td>AC11-1</td><td>복습일이 지난 패턴이 빠짐없이 입력에 들어간다</td><td><span class="b b-good">✔ 완료</span></td><td><code>review:_DUE_REVIEWS_SQL</code></td></tr>
+    <tr><td>AC11-4</td><td>잘못된 계획은 저장을 거부한다</td><td><span class="b b-good">✔ 완료</span></td><td><code>models/plan:parse_plan</code> + 007 검사 제약 3개</td></tr>
+    <tr><td>⟳ R11-2</td><td>계획이 초점·질문·난이도·이유를 담는다</td><td><span class="b b-good">✔ 완료</span></td><td><code>plan:process_plan</code>이 저장 · <code>models/plan:PlanResult</code>가 초점 1~2개·질문 3~5개·빈 이유 금지를 강제한다 <b>(이전 ◐)</b></td></tr>
+    <tr><td>⟳ R11-5</td><td>계획이 없어도 학습이 시작된다</td><td><span class="b b-good">✔ 완료</span></td><td><code>api/ws:_load_prepared_plan_or_none</code> · <code>sessions:load_prepared_plan</code> — <b>폴백 분기가 생겼다</b>(이전에는 그 분기가 0곳) <b>(이전 ◐)</b></td></tr>
+    <tr><td>⟳ AC11-3</td><td>계획 조회가 실패해도 세션이 열린다</td><td><span class="b b-good">✔ 완료</span></td><td>같은 함수가 예외를 <code>None</code>으로 돌려준다 <b>(이전 ◐)</b></td></tr>
+    <tr><td>⟳ R11-7</td><td>수준은 한 단계씩만 · 하향도 허용</td><td><span class="b b-good">✔ 완료</span></td><td><code>models/plan:_one_step_or_same</code>가 강제 · <code>plan:_UPDATE_LEVEL_SQL</code>이 기록 · <b><code>nova:build_system_prompt</code>가 그 수준을 대화 상대에게 전달한다</b>(이전에는 전달되지 않았다) <b>(이전 ◐)</b></td></tr>
+    <tr><td>⟳ R11-3</td><td>학습자가 화면에서 왜 이 연습인지 확인할 수 있다</td><td><span class="b b-warn">◐ 부분</span></td><td><b>코드 경로는 생겼다</b>(<code>api/results:next_plan</code> → <code>page.tsx</code>). 그러나 <b>브라우저 확인 0회 · 자동 검사 0건</b> — 무력화 4건 중 4건이 살아남았다(줄을 지워도 검사 통과). 관측 소유자는 프론트엔드 검증 계획 T3·T4 <b>(근거 갱신)</b></td></tr>
+    <tr><td>R11-9</td><td>발음 이력이 입력에 들어가고 발음도 초점이 될 수 있다</td><td><span class="b b-warn">◐ 부분</span></td><td>입력은 들어간다(<code>plan_input:_load_pronunciation</code>) · 초점 후보에서는 <b>구조적으로 제외</b>된다(<code>plan:_PRONUNCIATION_NOTE</code>가 "초점 원천이 아니다"라고 못 박는다)</td></tr>
+    <tr><td>AC11-2</td><td>가장 깊은 재발이 초점이 되고 질문 3~5개와 이유가 붙는다</td><td><span class="b b-warn">◐ 부분</span></td><td>계약은 <code>models/plan:parse_plan</code>이 강제한다 · <b>선택은 글 모델이 하고 실물 왕복이 0회</b>라 실제로 그렇게 고르는지 확인되지 않았다(미결정 2)</td></tr>
+    <tr><td>AC11-5</td><td>두 세션 연속 틀린 패턴에서 대화가 구별된다</td><td><span class="b b-crit">✕ 미완료</span></td><td>실물 음성 응대가 달라지는 것을 요구한다 — 대역으로 판정 불가. 캡틴 결정으로 이월</td></tr>
+    <tr><td>AC11-6</td><td>발음 반복 실패가 초점 후보가 된다</td><td><span class="b b-crit">✕ 미완료</span></td><td>허용 집합이 "복습 대상 ∪ 만성"이고 발음은 복습일이 항상 비어 있어 <b>구조적 제외</b></td></tr>
+  </tbody>
+</table>
+
+<h3>§7 기능 요구 — 말하기 훈련 · 질문 드릴 <span class="b b-good">✔2</span> <span class="b b-warn">◐4</span> <span class="b b-crit">✕4</span></h3>
+<table>
+  <thead><tr><th>ID</th><th>요구</th><th>판정</th><th>근거</th></tr></thead>
+  <tbody>
+    <tr><td>한 질문·힌트</td><td>한 번에 하나만 묻고 막히면 힌트를 준다</td><td><span class="b b-good">✔ 완료</span></td><td><code>nova:SYSTEM_PROMPT</code> 규칙 2·5 · 실물 마이크 2회 확인</td></tr>
+    <tr><td>⟳ 난이도 조절</td><td>A2 안팎에서 시작해 성취에 따라 조절한다</td><td><span class="b b-good">✔ 완료</span></td><td><code>plan:_UPDATE_LEVEL_SQL</code>이 수준을 쓰고 <b><code>nova:build_system_prompt</code>가 "규칙 1의 A2-B1 대신 오늘의 목표 수준"으로 <u>대체</u>한다</b> — 이전 판의 "지시문이 A2-B1 하드코딩"이 닫혔다 <b>(이전 ◐)</b></td></tr>
+    <tr><td>⟳ 65% 규칙</td><td>학습자 발화 비중을 65% 이상으로</td><td><span class="b b-warn">◐ 부분</span></td><td><b>지시문에 규칙 7로 들어갔다</b>(<code>nova:SYSTEM_PROMPT</code> — "학습자가 최소 65% 말하도록"). 그러나 <b>실제 비중을 재는 코드는 없다</b> <b>(이전 ✕)</b></td></tr>
+    <tr><td>교정 순서</td><td>원문 → 자연스러운 문장 → 이유 → 2회 변형</td><td><span class="b b-warn">◐ 부분</span></td><td>앞 3단계는 <code>results:Correction</code> · 재발화는 1회로 축소(캡틴 결정, 되돌릴 대상 아님)</td></tr>
+    <tr><td>드릴 구성</td><td>같은 문형을 질문 3~5개로</td><td><span class="b b-warn">◐ 부분</span></td><td>계획이 질문을 만들고 저장한다 · <b>지시문 자료구조에 질문 필드가 없어 대화 상대에게 전달되지 않는다</b>(<code>models/plan:SessionInstruction</code>) — 읽는 곳이 저장 한 줄뿐</td></tr>
+    <tr><td>문맥 전이</td><td>같은 패턴을 일상에서 업무로 옮긴다</td><td><span class="b b-warn">◐ 부분</span></td><td>분석이 "다시 연습할 상황 3개"를 저장한다 · <b>계획 입력에 넣는 코드 0곳</b>(앱 전체 조회 0건) · 업무 시나리오 시드도 0행</td></tr>
+    <tr><td>일일 권장량</td><td>일일 목표는 한도가 아니라 권장량</td><td><span class="b b-crit">✕ 미완료</span></td><td>그 개념이 스키마·앱 어디에도 없다</td></tr>
+    <tr><td>주제 9종</td><td>인사·일과·식사·취미·약속·감정·길·부탁·의견</td><td><span class="b b-crit">✕ 미완료</span></td><td>시나리오 시드 3행이 전부 같은 계열</td></tr>
+    <tr><td>드릴 4턴</td><td>드릴마다 4턴 이상</td><td><span class="b b-crit">✕ 미완료</span></td><td>턴 구조를 정하는 코드·지시문 0곳</td></tr>
+    <tr><td>즉시 드릴</td><td>"질문 더 주세요"로 즉시 생성</td><td><span class="b b-crit">✕ 미완료</span></td><td>음성 명령 경로 0곳 (3단계로 이연)</td></tr>
+  </tbody>
+</table>
+
+<h3>§10 발음 시범·재발화 <span class="b b-good">✔7</span> <span class="b b-warn">◐5</span> <span class="b b-crit">✕1</span></h3>
+<p class="sub" style="margin:0 0 6px">이번 슬라이스에서 <b>바뀐 항목 없음</b> — 판정과 근거를 이전 판에서 그대로 이어받았다.</p>
+<table>
+  <thead><tr><th>ID</th><th>요구</th><th>판정</th><th>근거</th></tr></thead>
+  <tbody>
+    <tr><td>R10-1 · AC10-1</td><td>올바른 발음을 들려주고 틀린 소리를 지목한다</td><td><span class="b b-good">✔ 완료</span></td><td><code>nova:SYSTEM_PROMPT</code> 규칙 8</td></tr>
+    <tr><td>R10-2</td><td>재발화 기회를 주고 3값을 기록한다</td><td><span class="b b-good">✔ 완료</span></td><td><code>pronunciation:record_attempt</code></td></tr>
+    <tr><td>R10-3</td><td>판정 주체는 음성 모델이다</td><td><span class="b b-good">✔ 완료</span></td><td><code>analysis:UNJUDGEABLE_CATEGORY</code></td></tr>
+    <tr><td>R10-7</td><td>오디오를 저장하지 않는다</td><td><span class="b b-good">✔ 완료</span></td><td>오디오 영속 경로 0곳</td></tr>
+    <tr><td>AC10-2</td><td>재발화 결과를 다음 계획이 읽는다</td><td><span class="b b-good">✔ 완료</span></td><td><code>plan_input:_PRONUNCIATION_SQL</code></td></tr>
+    <tr><td>AC10-3</td><td>한국어로 말하면 신호를 기록한다</td><td><span class="b b-good">✔ 완료</span></td><td><code>pronunciation:_HANGUL</code></td></tr>
+    <tr><td>R10-4</td><td>보조 신호 2개</td><td><span class="b b-warn">◐ 부분</span></td><td><code>pronunciation:note_transcript</code> — 되묻기 신호는 결정된 미구현</td></tr>
+    <tr><td>R10-6</td><td>발음 패턴을 저장하고 다시 등장시킨다</td><td><span class="b b-warn">◐ 부분</span></td><td><code>pronunciation:link_pattern</code>·<code>load_known_sounds</code> · 복습 일정 진입은 의도된 축소</td></tr>
+    <tr><td>R10-5 · R10-8 · AC10-4</td><td>개입 시점 · 세션당 교정 1~2개 상한</td><td><span class="b b-warn">◐ 부분</span></td><td>지시문 문구로만 좁힌다 · 코드 강제 0 (결정된 축소)</td></tr>
+    <tr><td>AC10-5</td><td>추가 학습에서 발음 집중 세션</td><td><span class="b b-crit">✕ 미완료</span></td><td>추가 학습 진입점 0곳</td></tr>
+  </tbody>
+</table>
+
+<h3>§4 MVP 범위 <span class="b b-good">✔2</span> <span class="b b-warn">◐4</span> <span class="b b-crit">✕2</span></h3>
+<p class="sub" style="margin:0 0 6px">이번 슬라이스에서 <b>바뀐 항목 없음</b> — 판정과 근거를 이전 판에서 그대로 이어받았다.</p>
+<table>
+  <thead><tr><th>ID</th><th>요구</th><th>판정</th><th>근거</th></tr></thead>
+  <tbody>
+    <tr><td>§4-2</td><td>세션당 핵심 오류 1~2개를 교정한다</td><td><span class="b b-good">✔ 완료</span></td><td><code>services/results:MAX_CORRECTIONS</code></td></tr>
+    <tr><td>§4-3</td><td>패턴 저장 · 숙련도 · 다음 복습일</td><td><span class="b b-good">✔ 완료</span></td><td><code>services/review:recompute</code></td></tr>
+    <tr><td>§4-1</td><td>역할극 + 전사문 표시</td><td><span class="b b-warn">◐ 부분</span></td><td>전사문 저장은 된다 · 역할극 시나리오가 1개로 고정</td></tr>
+    <tr><td>§4-4</td><td>일간 복습 큐 + 주간 리포트</td><td><span class="b b-warn">◐ 부분</span></td><td>큐 계산은 <code>review:load_due_reviews</code> · <b>화면·엔드포인트 0곳</b> · 주간 리포트 표 없음</td></tr>
+    <tr><td>§4-5</td><td>일상 · 질문 드릴 · 업무 역할극</td><td><span class="b b-warn">◐ 부분</span></td><td>시나리오 시드가 일상 3행(업무 0행) · 드릴 전달 경로 0곳</td></tr>
+    <tr><td>§4-8</td><td>화면 + 음성 명령 제어</td><td><span class="b b-warn">◐ 부분</span></td><td>화면 버튼 2개 · 음성 명령은 3단계로 이연</td></tr>
+    <tr><td>§4-6</td><td>녹음 기반 쉐도잉 과제</td><td><span class="b b-crit">✕ 미완료</span></td><td>표 없음 · 과제 종류가 "다시 말하기" 하나</td></tr>
+    <tr><td>§4-7</td><td>일일 목표 후 자유 추가 학습</td><td><span class="b b-crit">✕ 미완료</span></td><td>일일 목표 개념 없음 · 추가 학습 진입점 0곳</td></tr>
+  </tbody>
+</table>
+
+<h2>미결정 — 사람의 결정을 기다린다 (7건)</h2>
+<p class="sub" style="margin:0 0 8px">
+  <b>7건 전부 이 턴에 원장·코드·데이터베이스에서 아직 살아 있는지 확인했다.</b>
+  이전 판의 8건 중 1건은 <b>미결정이 아니었다</b>(아래 상자).
+</p>
+<table>
+  <thead><tr><th>#</th><th>무엇을 결정하나</th><th>왜 지금 막혀 있나</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td><span class="b b-hold">⏸</span> <b>마이그레이션 007을 개발 DB에 적용할까</b></td><td>되돌리기 어렵다. 아직 안 했기 때문에 <b>오염된 입력으로 만든 계획이 존재하지 않는 상태</b>가 유지된다. <b>직접 조회로 미적용 확인</b>(적용 이력 001·003·004·005·006, 계획 표 0개)</td></tr>
+    <tr><td>2</td><td><span class="b b-hold">⏸</span> <b>실물 글 모델로 계획을 1회 만들어 볼까</b></td><td>비용이 든다. 자동 검사는 전부 대역이라 <b>실물 왕복 0회</b>가 남는다. AC11-2 판정이 여기 걸려 있다</td></tr>
+    <tr><td>3</td><td><span class="b b-hold">⏸</span> <b>발음 소리 키의 값 범위가 §10 의도와 어긋나는가</b></td><td>관측 3건에 음소 치환이 하나도 없다(축약형·관사 — 발음이 아니라 문법에 가깝다). 표본이 작아 마이크 세션이 더 필요하다</td></tr>
+    <tr><td>4</td><td><span class="b b-hold">⏸</span> <b>발음 패턴 키의 값 범위를 열거해 고정할까</b></td><td>실물 관측이 부족해 표시 사전을 만들면 <b>발명한 값이 코드에 굳는다</b>. 3번과 같은 뿌리라 함께 판정해야 한다</td></tr>
+    <tr><td>5</td><td><span class="b b-hold">⏸</span> <b>복습 과제 행의 정체성 경계</b></td><td>재계산이 "지우고 다시 넣기"라 번호와 상태가 매번 초기화된다. <b>읽는 코드가 0곳이라 지금은 무해하다</b>(이 턴에 재확인) — 화면이 과제 번호로 "완료 표시"를 하기 전에 정해야 한다</td></tr>
+    <tr><td>6</td><td><span class="b b-hold">⏸</span> <b>AC11-5를 언제 닫을까</b></td><td>실물 음성 응대가 달라지는 것을 요구해 이번 슬라이스 밖으로 이월됐다</td></tr>
+    <tr><td>7</td><td><span class="b b-hold">⏸</span> <b>원격 저장소 생성·연결</b></td><td><code>git remote</code>가 <b>비어 있다</b>(이 턴에 확인). 밀어 올릴 대상이 없다 — 저장소 생성은 캡틴 몫이다</td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <b>이전 판에서 미결정으로 잘못 올린 것 1건 — 정정한다.</b>
+  "발음 도구 응답을 돌려보내지 않는 것이 여러 턴에서도 안전한가"는 <b>미결정이 아니다.</b>
+  <b>결정은 2026-08-28에 이미 내려졌다</b>("보내지 않는다 — 관측된 거동을 따른다").
+  남은 것은 <b>결정이 아니라 검증</b>이고(관측이 1회뿐), 5차수 관측 대상으로 예약돼 있다.
+  규약이 금지한 "이미 결정된 것을 미결정으로 올리기"에 해당해 <b>미결정 절에서 뺐다</b> —
+  그대로 두면 캡틴에게 이미 내린 결정을 다시 묻는 보고가 된다.
+  <br><b>이미 결정된 축소(되돌릴 대상이 아니다)</b>: 세션당 교정 1~2개 상한을 코드로 강제하지 않고
+  지시문 문구로만 좁힌다 · 재발화 기회는 1회 · 음성 명령 제어는 3단계로 이연 ·
+  발음 성과를 난이도 판단에 넣지 않는다(MVP 이후 재검토) · 발음 패턴은 복습 일정에 넣지 않는다.
+</div>
+
+<h2>게이트 실측 (이 문서를 쓴 턴에 직접 실행)</h2>
+<table>
+  <thead><tr><th>검사</th><th>결과</th></tr></thead>
+  <tbody>
+    <tr><td>자동 검사 전체 (<code>pytest</code>)</td><td><b>582건 통과</b> · 실패 0 · 건너뜀 0 (9.82초, 종료 코드 0)</td></tr>
+    <tr><td>문법 검사 (게이트 안)</td><td><b>전건 통과</b> (종료 코드 0)</td></tr>
+    <tr><td>서식 검사 (게이트 안)</td><td><b>32개 파일 서식 일치</b> (종료 코드 0)</td></tr>
+    <tr><td>타입 검사 (게이트 안)</td><td><b>전건 통과</b> (종료 코드 0)</td></tr>
+    <tr><td>문법 검사 (게이트 <b>밖</b> 기준선)</td><td><b>6건</b> — 하네스 스크립트. <b>0으로 만들 대상이 아니라 유지 대상</b>이다(열두 태스크 연속 동일)</td></tr>
+    <tr><td>서식 검사 (게이트 <b>밖</b> 기준선)</td><td><b>4개 파일</b> — 같은 이유로 유지 대상</td></tr>
+    <tr><td>프론트엔드 타입 검사</td><td><b>출력 0줄</b> (종료 코드 0)</td></tr>
+    <tr><td>프론트엔드 문법 검사</td><td><b>출력 0줄</b> (종료 코드 0)</td></tr>
+    <tr><td>데이터베이스</td><td>PostgreSQL 17 기동 중 · 개발 DB 표 <b>14개</b> · 적용 이력 <b>001·003·004·005·006</b></td></tr>
+  </tbody>
+</table>
+<p class="sub" style="margin:4px 0 0">
+  ⚠️ <b>프론트엔드 검사 2개는 화면이 맞는지 재지 않는다</b> — 타입과 문법만 본다.
+  그래서 추천 이유 한 줄을 지워도 <b>둘 다 통과한다</b>(무력화 4건 중 4건 생존). 이것이 R11-3이
+  완료가 아닌 이유다.
+</p>
+
+<h2>지금 진행 중</h2>
+<table>
+  <thead><tr><th>태스크</th><th>상태</th></tr></thead>
+  <tbody>
+    <tr><td>추천 학습 루틴 — 판단·적용 (12개 중 11개)</td><td><span class="b b-good">✔ 완료</span> S2-1 ~ S2-11 전건 독립 검토 통과. 마지막 항목은 <b>고침 4라운드 끝에 승인</b>됐고, 그 4라운드 중 <b>프로그램 코드는 한 줄도 바뀌지 않았다</b>(전부 서술 정정)</td></tr>
+    <tr><td>추천 학습 루틴 — 문서 마감 (12개 중 12번째)</td><td><span class="b b-warn">◐ 진행 중</span> 착수 전 대조에서 <b>계획서와의 어긋남 10건</b>을 잡았다(설계서 정정 대상이 7곳이 아니라 최소 9곳 · 스모크 파일 경로가 틀렸다 · 인계 문서 줄 수가 196줄이 아니라 377줄). 남은 3개 단계 중 하나는 <b>미결정 2번(비용)에 걸려 있다</b></td></tr>
+    <tr><td>프론트엔드 검증 자산</td><td><span class="b b-good">✔ 계획 확정</span> 비판 검토가 조건부 승인을 냈고 <b>그 조건(추가 명세 4건 + 사소 3건)을 이행해 착수 조건이 0건이다</b>. 이 계획이 R11-3의 화면 관측을 소유한다</td></tr>
+    <tr><td>테스트 하네스 5차수</td><td><span class="b b-warn">◐ 대기</span> 차단은 해제됐다. ⚠️ 하네스와 스모크가 <b>둘 다 2026-09-04 이후 손대지 않았고</b> 그 뒤로 코드가 크게 바뀌었다 — 돌리기 전에 신선도를 대조해야 한다</td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <b>이 슬라이스에서 가장 값비쌌던 교훈</b>(다음 태스크가 같은 값을 다시 치르지 않도록):
+  <b>"검사가 통과했는데 통과한 이유가 틀린" 경우가 누적 25건이었다.</b> 같은 부류가
+  <b>고침 라운드 안에서 여섯 번 되풀이됐고</b>, 형태가 옮겨 다녔다 — 처음 넷은 <i>검사</i>가
+  구현을 지우고도 통과하는 것이었고, 뒤 둘은 <i>설명 문장</i>이 사실보다 과장된 것이었다.
+  판별법의 소유자는 <code>tests/unit/test_plan.py</code> 머리말이고, 계단과 교훈은
+  <code>TASKS.md</code> C절과 <code>docs/design/2026-09-05-slice2-execution-log.md</code> §6이 소유한다.
+  <br>가장 짧은 형태로: <b>정확한 근거가 코드에 이미 적혀 있는지 먼저 찾아라</b> — 새로 쓴 문장은
+  새로 틀릴 수 있고, 기존 근거를 인용하면 그럴 수 없다.
+</div>
+
+<footer>
+  스냅샷 · 2026-09-06 · HEAD <code>cc2112b</code> ·
+  상태의 정본 <code>TASKS.md</code> · 다음 한 걸음 <code>handoff/HANDOFF.md</code> ·
+  요구사항 정본 <code>docs/PRD.md</code> v1.1 ·
+  이전 보고는 <code>docs/backup/2026-09-06-superseded/</code> ·
+  형식 규약 <code>docs/ops/status-report-convention.md</code>
+</footer>
+
+</div>
+</body>
+</html>

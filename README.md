@@ -28,7 +28,7 @@ OhMyEnglish/
 - [첫 4주 학습 플로우](docs/first-4-weeks.md)
 - [Nova Sonic + Claude 목표 아키텍처](docs/nova-sonic-claude-architecture.md)
 - [UI 스토리보드](docs/storyboard.html)
-- [**현황 보고 (2026-09-05)**](docs/status-report-2026-09-05.html) — 요구사항 47건 판정 · 미완료 · 미결정 8건 · 아키텍처(단순) 한 장. **스냅샷이고 정본이 아니다** — 값이 다르면 `TASKS.md`가 맞다
+- [**현황 보고 (2026-09-06)**](docs/status-report-2026-09-06.html) — 요구사항 47건 판정(완료 22 · 부분 16 · 미완료 9) · 미결정 7건 · 아키텍처(단순) 한 장. **스냅샷이고 정본이 아니다** — 값이 다르면 `TASKS.md`가 맞다. 이전 판은 `docs/backup/2026-09-06-superseded/`
   - **형식 규약**: [docs/ops/status-report-convention.md](docs/ops/status-report-convention.md) — 다음 보고는 **이 형식으로만** 쓴다(절 순서 · 판정 어휘 4개 · 근거 규칙 · 색 검증)
   - **템플릿**: [docs/templates/status-report-template.html](docs/templates/status-report-template.html) — 복사해서 `{{…}}`를 채운다
   - 이전 판(2026-08-29 등 4건)은 [`docs/backup/2026-09-05-superseded/`](docs/backup/2026-09-05-superseded/README.md)
