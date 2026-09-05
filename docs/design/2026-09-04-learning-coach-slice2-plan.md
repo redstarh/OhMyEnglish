@@ -2667,6 +2667,29 @@ git commit -m "feat: 시작 화면에 추천 이유를 한 줄로 보여준다
 
 ---
 
+### Task 12 착수 전 점검 (2026-09-06, 전부 직접 실행해 확인) — 브리프가 참조한 것 대조
+
+⚠️ **어긋남 10건이다** — 이 슬라이스 평균(6~7건)보다 많다. **이 표가 아래 본문보다 이긴다.**
+
+| # | 계획서 본문이 말하는 것 | 실측 | 처방 |
+|--:|---|---|---|
+| 1 | Step 1 ①: "§5.2의 '`start(instruction)`으로 확장한다'를 한 줄 교체" | ⚠️ **인용이 실제 문구와 다르고 한 줄로 닫히지 않는다.** §5.2의 실제 문구는 "`start(instruction: SessionInstruction)` **형태로** 확장한다"이고, 같은 전제에 걸린 것이 **셋**이다: ⓐ 볼드 표제 "**전달 경로 — 어댑터 포트 확장이 필요하다.**" ⓑ "현재 `VoiceAdapter.start()`는 인자를 받지 않아 … 지시문을 넘길 자리가 없다" ⓒ **그 다음 단락 전체**("이 확장은 허용된다 — AC 문서 §범위 재정의가 …") | ⓐⓒ까지 고친다. ⚠️ **ⓑ의 앞부분("인자를 받지 않는다")은 지금도 참이다** — 거짓은 "넘길 자리가 없다 → 확장한다" 쪽이다. 참인 절을 지우지 않는다 |
+| 2 | Step 1 ③: "§9 **Dependency**의 `start(instruction)` 변경" | ⚠️ **계획서가 놓친 자리가 하나 더 있다** — `start(instruction)`은 §9 **Contract**(어댑터 포트)에도 있다("`start(instruction)`은 지시문을 **소비만** 한다"). 계획서는 Dependency만 지목한다 | **정정 대상은 7곳이 아니라 최소 9곳이다.** Contract 행도 팩토리 경로로 고친다 |
+| 3 | ①의 처방 "포트는 무변경이다" | ✅ **사실로 확인됐다.** `app/backend/app/audio_gateway/port.py`의 `VoiceAdapter.start`가 `async def start(self) -> None:`(인자 없음)이고, **슬라이스 2 전체에서 `port.py`를 건드린 커밋이 0건**이다(`git log e6f4fef~1..HEAD -- …/port.py`). 그리고 `create_voice_adapter(settings, *, known_sounds, plan: SessionInstruction \| None = None)`이 계획을 **데이터로** 받는다 | 처방 방향이 옳다 — 그대로 쓴다 |
+| 4 | Step 1 ⑥: §11 이월에 세 줄을 더한다 | ✅ 세 행(`고아 리퍼가 닫은 세션의 계획 생성` · `발음 성과를 난이도 단계 판단에 넣기` · `AC11-5`) **전부 부재** — grep 0건 | 순수 삽입. `git diff -U0`으로 확인 |
+| 5 | Step 1 ⑤: §10에 AS11을 신설 | ✅ AS1~AS10 + AS-live만 있고 **AS11 부재.** 삽입 위치는 **AS10 뒤 · `### 10.1 실물 검증` 앞** | 그 자리에 넣는다 |
+| 6 | Step 2: "`아직 SQL에 없는 테이블` 절에서 이 둘을 지운다(있다면)" | ✅ **지울 것이 없다.** 그 절에는 `shadowing_items`·`weekly_reports` 둘뿐이고 `session_plans`·`learner_notes`는 `docs/database-schema.md` **전체에 0건**이다 | 계획서의 "(있다면)" 유보가 옳았다. **순수 삽입만** 한다 |
+| 7 | Files: "Modify: `tests/harness/` 스모크 단정" | ⚠️ **경로가 틀렸다.** 스모크는 **`scripts/smoke_analysis.py`**다(단정은 `checks = [...]` 리스트, `_print_checks`가 `N/M 단정 통과`를 찍는다). `tests/harness/`는 **하네스**이고 별개 자산이다 | Step 3의 대상 파일을 `scripts/smoke_analysis.py`로 바로잡는다 |
+| 8 | Step 3: 슬라이스 2 산출물 단정 4건을 넣는다 | ✅ **실행 가능하다 — 스모크가 007을 받는다.** `recreate_database(SMOKE_DB_NAME, MIGRATIONS_DIR)`가 `apply_migrations`를 거치고 그것이 `sorted(MIGRATIONS_DIR.glob("*.sql"))` **전건**을 적용한다(`scripts/migrate.py:81`) | ⚠️ **함께 고칠 것**: 스모크의 진행 문구 `[1/4] … 001 마이그레이션 적용`이 **낡았다** — 001만 적용하는 것처럼 읽힌다. 실제로는 전건이다 |
+| 9 | Step 3 경고: "하네스도 게이트 밖 자산이다(H-AA)" | ⚠️ **둘 다 슬라이스 2보다 오래됐다.** 스모크 마지막 변경 `d88c9f5`(2026-09-04) · 하네스 마지막 변경 `aae6f91`(2026-09-04). 슬라이스 2 코드는 그 뒤 전부다 | 경고가 유효하다. **돌려서 통과를 확인한 뒤** 단정을 더한다 — 지금 상태의 PASS/FAIL을 먼저 안다 |
+| 10 | Step 4: "handoff가 이미 120줄 상한을 넘겼다(2026-09-04 실측 **196줄**)" | ⚠️ **지금 377줄이다** — 그 뒤 배가됐다. 계획서가 지목한 감축 대상(발음 절·tmux 절)만으로는 120줄에 못 간다 | 감축 범위를 다시 정한다. **완료된 태스크의 서사를 커밋 메시지·`TASKS.md`로 보내고** handoff에는 "다음 한 걸음"과 "착수 전 필수"만 남긴다 |
+
+**대조에 쓴 명령**(재현용): `wc -l` · `grep -nE "^#{2,3} "` · `grep -n "start(instruction)"` ·
+`grep -n "^\*\*AS"` · `git log --oneline e6f4fef~1..HEAD -- <path>` · `git log -1 --date=short -- <path>` ·
+`grep -n -A8 "def create_voice_adapter"`.
+
+---
+
 ### Task 12: 문서를 정본과 맞춘다 (+ 발음 확인 시나리오 AS11 신설)
 
 **Files:**
