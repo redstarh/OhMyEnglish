@@ -125,6 +125,29 @@ lease_token) -> bool`과 브리프가 인용한 docstring · `report_failure(poo
    `review_tasks`를 **읽지 않는다**(복습 목록은 `error_patterns` 기준의 `load_due_reviews`가 돌려준다).
    과제 id로 "완료 표시"를 하려면 그 전에 경계를 정해야 하지만 **이 계획의 범위가 아니다**(설계서 §11 이월).
 
+### Task 8 착수 전 점검 (2026-09-05, 전부 직접 실행해 확인) — 브리프가 참조한 것 대조
+
+**일치한 것 5건** (그대로 써도 된다): `create_session(pool: asyncpg.Pool, user_id: UUID)` — 브리프의
+"pool을 받는다"는 경고가 맞다 · 007 `session_plans`의 `id`·`reason`·`instruction`·`created_at` 컬럼 이름 ·
+`session_plans.session_id`가 **계획을 만든 세션**을 가리킨다는 「구현 전 정정」 결론 ·
+`db_conn`은 롤백 트랜잭션 / `db_pool`은 커밋이라는 규약 ·
+`tests/integration/test_ws.py:177`의 `assert session["scenario_id"] == seeded_fixed_user`는 **깨지지 않는다**
+(그 픽스처가 심는 시나리오가 `A2` 1행이고 `users.current_level` 기본값도 `A2`라 수준 우선 경로가 같은 행을 고른다).
+
+**어긋난 것 6건** — 브리프대로 하면 그 자리에서 깨진다:
+
+| # | 브리프의 전제 | 실측 | 이 태스크가 쓰는 것 |
+|--:|---|---|---|
+| 1 | 픽스처 `seed_plan_for_session`을 쓴다 | **없다**(`tests/conftest.py`에 `grep def` 0건). 계획 관련으로 있는 것은 `ended_session_with_history`·`claim_plan_job`·`plan_json` | **이 태스크가 신설한다.** 브리프는 그 지시를 빠뜨렸다 |
+| 2 | `seed_user(conn, level="B1")` · `seed_user(db_conn)` | 시그니처가 `make(conn, *, tz: str)`다 — **`level` 인자가 없고 `tz`가 필수**라 두 형태 모두 `TypeError`다 | `seed_user`에 `level`을 더하고 `tz`에 기본값을 준다. 기존 호출 2건(`test_plan_input.py:231`·`245`)은 `tz=`를 명시하므로 무영향 |
+| 3 | Step 2의 red 가 "현재 SQL이 수준을 안 보므로 **A2 시나리오가 붙는다**"로 나타난다 | **테스트 DB에는 시나리오가 0행이다**(직접 조회). `recreate_database`는 `db/migrations/*.sql`만 적용하고 `migrate.py`의 `SEED_SCENARIOS`를 **부르지 않는다** — 시드 3행은 **dev DB에만** 있다. 그래서 `B1` 하나만 심으면 **현재 SQL도 그것을 고르고 테스트가 처음부터 초록**이다(전역 제약이 금지한 "통과하지만 이유가 틀린 테스트") | 수준이 **안 맞는** 시나리오(`A2`)를 **더 이른 `created_at`으로 함께 심는다.** 그러면 현재 SQL은 `A2`를, 고친 SQL은 `B1`을 골라 red 가 실제로 관측된다 |
+| 4 | 폴백 테스트가 `select scenario_id is not null` 로 `True` 를 단정한다 | 같은 이유로 시나리오가 0행이고 `learning_sessions.scenario_id`는 **nullable**(`001:35` — `not null`이 없다) → null 이 들어가 **구현 후에도 영원히 실패**한다 | 폴백 테스트도 `A2` 시나리오를 **심고** `C2` 사용자로 잰다. 재는 것은 "수준 일치가 0행이어도 시나리오가 붙는다"다 |
+| 5 | Step 3 이 SQL 만 주고 `sp.instruction` 을 그대로 쓴다 | **jsonb 코덱이 설정돼 있지 않다**(`set_type_codec` 0건) → asyncpg 가 `str` 을 돌려준다. 저장 쪽도 문자열이다(`services/plan.py:341` `json.dumps(plan.instruction.model_dump(), …)`) | `PreparedPlan.instruction: SessionInstruction`을 만들려면 **`json.loads` + `SessionInstruction.model_validate`** 가 필요하다. `app/models/plan.py`는 앱 모듈을 import 하지 않으므로(실측: `pydantic`·표준 라이브러리만) `sessions.py`가 그것을 import 해도 **순환이 생기지 않는다** |
+| 6 | Files 절이 `sessions.py`·`test_sessions.py`·`test_plan_pipeline.py` 만 적는다 | 위 1·2 때문에 픽스처 신설·확장이 필요하다 | **`tests/conftest.py`도 변경 대상이다.** ⚠️ 그 파일을 편집하면 게이트 **밖** format 베이스라인이 4→5 로 늘 수 있다 — 그때는 **그 파일만** 포맷해 4 로 되돌린다(하네스 4개는 건드리지 않는다) |
+
+⚠️ **`load_prepared_plan`을 세션 시작 경로에 배선하지 않는다** — 이 태스크는 함수와 폴백까지다.
+`ws.py`가 그것을 팩토리에 넘기는 것은 **Task 10**이 소유한다(File Structure 표가 `ws.py`를 그쪽에 뒀다).
+
 ---
 
 ## File Structure
