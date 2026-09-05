@@ -200,6 +200,33 @@ vs property)만 적었다 — 나머지 둘이 Task 10에서 실패를 만든다
 3. ⚠️ **2번을 만났다고 프로토콜에 `instructions`를 얹지 마라** — Task 9 점검이 "프로토콜 밖 확장"으로
    못 박은 결정을 뒤집는 것이다. `isinstance` 좁히기로 끝난다.
 
+### Task 10 착수 전 점검 (2026-09-05, 전부 직접 실행해 확인) — 브리프가 참조한 것 대조
+
+브리프는 이 계획서 Task 10 절과 **글자 그대로 같다**(`diff` 확인). 그래서 아래 표가 브리프 정정이기도 하다.
+
+**일치한 것 5건**: `SYSTEM_PROMPT`에 **`65%`가 없다**(코드의 65% 언급은 `nova.py`의 `_is_control_payload`
+주석 하나뿐) · 규칙이 일반 1~6 + 발음 7~10이고 **규칙 10이 "the one-per-turn limit in rule 4"를 번호로
+참조한다**(4는 밀리지 않으므로 그 참조는 그대로 산다) · `build_system_prompt`에 두 번째 인자에 기본값
+`None`을 주면 기존 호출 2건(`test_nova.py`의 `build_system_prompt([])`·`(["th_as_s", "f_as_p"])`)이
+그대로 산다 · `prompt.startswith(SYSTEM_PROMPT)` 단정도 계획 블록을 **뒤에** 붙이면 산다 ·
+`seed_plan_for_session`에 **`user_id` 인자가 있다**(`UUID | None = None`)이라 `FIXED_USER_ID`의 계획을
+심을 수 있다.
+
+**어긋난 것 7건** — 브리프대로 하면 그 자리에서 깨진다:
+
+| # | 브리프의 전제 | 실측 | 이 태스크가 쓰는 것 |
+|--:|---|---|---|
+| 1 | 통합 테스트가 `ws_client` 픽스처와 `start_session_and_capture_adapter`를 쓴다 | **둘 다 없다**(`grep` 0건) | **발명하지 마라 — 선례가 이미 있다.** `tests/integration/test_ws.py`가 `real_factory = ws_module.create_voice_adapter` → `spy` → `monkeypatch.setattr(ws_module, "create_voice_adapter", spy)`로 **팩토리를 감싸 인자를 캡처한다.** 그 형태를 그대로 쓴다 |
+| 2 | `create_voice_adapter`에 `plan=`을 더한다 | **기존 spy가 그것을 못 받는다** — 선례의 시그니처가 `def spy(settings: Settings, *, known_sounds: Sequence[str] = ()) -> object`다. 소켓이 `plan=`을 넘기기 시작하면 그 spy에서 **`TypeError`**가 난다 | **그 spy에 `plan` 인자를 함께 더한다.** 브리프는 이 파급을 빠뜨렸다 — 기존 테스트가 깨지는 것을 회귀로 오인하지 마라 |
+| 3 | AS6 종단을 `test_ws.py`에서 `adapter.instructions`에 `"B1"`이 있는지로 잰다 | **이 리포가 그 경계를 이미 정했다.** 같은 파일 spy 테스트의 마무리 주석이 못 박았다: "소켓은 **데이터**만 넘긴다 — 조립은 팩토리가 한다(G3 이음매). 그래서 여기서 보는 것은 조립된 문구가 아니라 목록이고, **문구 조립은 `test_nova`·`test_gateway`가 못박는다**" | **경계를 그대로 따른다**: 소켓 테스트는 **계획 데이터가 팩토리까지 넘어가는 것**(spy로 캡처한 `plan`)을 재고, "지시문에 계획이 실린다"는 **`test_gateway.py`의 팩토리 테스트**에서 잰다(그 파일에 `isinstance` 좁히기 + `adapter.instructions` 단정 관례가 이미 6건 있다). ⚠️ 소켓 계층에서 조립 문구를 단정하면 G-3 이음매를 재는 그 테스트와 규약이 갈린다 |
+| 4 | `seed_plan_for_session(db_pool, target_level=…, reason=…)` | 시그니처가 `make(conn, *, user_id=None, reason=…, target_level=…, days_ago=0, instruction=None)`다 — **`conn`을 받는다**(pool 아님). 그리고 기존 사용처 4건이 전부 `db_conn`(**롤백** 트랜잭션)이라, 소켓이 **별도 연결**로 읽는 통합 테스트에서는 그 쓰기가 보이지 않는다 | `db_pool.acquire()`로 얻은 conn 을 넘겨 **커밋**시키고, `user_id=FIXED_USER_ID`로 심는다. teardown 은 `seeded_fixed_user`·`committed_session`과 같은 규약으로 직접 지운다(사용자를 지우면 세션·계획이 cascade 로 따라간다) |
+| 5 | 통합 테스트가 임의 `user_id`로 세션을 시작한다 | `ws.py`는 `create_session(pool, FIXED_USER_ID)`로 **고정 사용자만** 쓴다(단일 사용자 로컬 도구) — 임의 사용자로 소켓을 여는 경로가 **없다** | 계획을 **`FIXED_USER_ID`에** 심는다. 새 경로를 만들지 않는다 |
+| 6 | Step 3 코드가 `_sounds_block(known_sounds)`를 부른다 | **그 헬퍼는 없다.** 현재 `build_system_prompt`는 `if not known_sounds: return SYSTEM_PROMPT` 뒤에 f-string 을 인라인으로 조립한다 | 헬퍼를 새로 만들지 않고 **기존 인라인 구조를 유지**한 채 계획 블록을 더한다(Simplicity First — 새 추상화 전에 기존 자산으로 가능한지 본다) |
+| 7 | "규칙 번호를 옮긴 뒤 그 참조와 **테스트 단정**을 함께 고친다" | `test_nova.py`에 규칙 번호를 단정하는 **테스트 코드는 없다** — 번호를 언급하는 것은 **주석 2곳**이다(`:202`가 규칙 6 = 안 밀림 · `:897`이 "규칙 10이 규칙 4의 상한을 다시 못박은" = **11로 밀린다**) | 주석을 고친다. ⚠️ 그리고 `test_gateway.py`의 **`test_factory_ignores_known_sounds_for_the_stub`** — 제목과 주석("스텁은 이 값을 쓰지 않는다. 인자를 받고도 모드가 그대로여야")이 **스텁에 지시문을 넘기기 시작하면 낡는다.** 단정은 모드만 보므로 통과하지만, 전역 제약("거짓이 된 문구는 교체한다")에 걸린다 |
+
+⚠️ **65% 규칙을 넣을 때 `_is_control_payload` 주석의 "학습자 65% 발화 지표"와 문구가 갈리지 않게 하라** —
+같은 수치를 두 곳에서 말하게 되므로, 지시문 쪽이 요구사항(`docs/PRD.md` R10-8)을 가리키는지 확인한다.
+
 ---
 
 ## File Structure
