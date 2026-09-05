@@ -141,12 +141,20 @@ Pronunciation coaching:
 11. A pronunciation correction is a correction. It counts against the one-per-turn limit
     in rule 4 — never add it on top of a grammar correction in the same turn."""
 
+# 규칙 1이 말하는 기본 수준. 계획 블록이 "이 수준을 대체한다"고 말할 때 **같은 낱말**로
+# 가리켜야 모델이 어느 절이 덮이는지 안다. `SYSTEM_PROMPT`는 평문 리터럴이라 여기서
+# 보간할 수 없으므로 값이 두 곳에 있다 — 갈라지는 것은
+# `test_the_base_level_range_constant_matches_the_fixed_prompt`가 막는다.
+_BASE_LEVEL_RANGE = "A2-B1"
+
 
 def build_system_prompt(known_sounds: Sequence[str], plan: SessionInstruction | None = None) -> str:
     """세션용 지시문 = 위 기본 문구 + 놓친 소리 목록 + **오늘의 계획** (G-3, 캡틴 결정 B-4).
 
     소리 목록도 계획도 없으면 결과는 `SYSTEM_PROMPT` **그 자체**다 — 계획 없이 시작하는
-    경로(AS4)의 지시문이 예전과 글자 그대로 같다.
+    경로(AS4)에는 이 함수가 아무것도 덧붙이지 않는다. ⚠️ `SYSTEM_PROMPT` **자체는 이
+    태스크에서 바뀌었다**(규칙 7 신설 + 발음 번호 8~11) — 2026-09-03 마이크 검증이 확인한
+    문구와 같지 않다.
 
     **놓친 소리 목록**: 문법 워커에만 있던 §5.6 재사용 규약을 발음 경로에도 만든다. 목록만
     보여주는 것으로는 부족하다 — **그 키를 다시 쓰라는 지시**가 없으면 Nova가 같은 소리에
@@ -156,9 +164,21 @@ def build_system_prompt(known_sounds: Sequence[str], plan: SessionInstruction | 
 
     **오늘의 계획**(§5.2 가변부): 계획을 문장으로 바꾸는 것은 **읽는 쪽의 일이다** —
     `session_plans.instruction`은 구조로 저장되고(jsonb) 여기서 문장이 된다. 설계서가 이
-    변환을 정하지 않아 계획서 Task 10이 정했다. ⚠️ 계획 블록은 고정 규칙 중 **힌트 시점만
-    대체하며, 대체한다는 것이 블록 안에 문장으로 있어야 한다** — 없으면 "긴 침묵 뒤에만"
-    (규칙 2·5)과 오늘의 지시가 함께 실려 모순된 지시문이 된다.
+    변환을 정하지 않아 계획서 Task 10이 정했다.
+
+    ⚠️ **고정 규칙과 같은 축을 말하는 줄은 대체한다는 것을 블록 안에 문장으로 적는다.**
+    적지 않으면 두 지시가 함께 실려 모순된다. 축은 **둘**이다(S2-10 리뷰가 잡았다 — 처음에는
+    힌트 시점만 적었다):
+    * **힌트 시점** ↔ 규칙 2·5("긴 침묵 뒤에만 시작 힌트")
+    * **목표 수준** ↔ 규칙 1의 `A2-B1 level`. 계획이 이긴다: `models/plan.py`의 validator가
+      `instruction.target_level`을 "대화 상대가 실제로 말하는 수준"으로 정의하고, 학습자
+      프로필(h-doc)이 현재 수준에 고착시키지 말라고 규정한다. ⚠️ 규칙 1의 **턴 길이**
+      부분(`Keep each of your turns to …`)은 대체 대상이 **아니다** — 코치 자신의 턴 길이는
+      그대로다. 대체 범위를 넓히지 않는다.
+
+    ⚠️ **`sentence_length`의 주어는 학습자다** (`services/plan.py`의 프롬프트가 "as **the
+    learner** is ready"로 그렇게 정의한다). 조립문에서 주어를 빼면 규칙 1의 `your turns`와
+    섞여 코치 자신의 턴 길이 지시로 읽힌다.
 
     **값이 없는 줄은 아예 넣지 않는다** — 소리 기록 0건(지금 dev DB의 상태)과 `contexts`
     빈 목록이 같은 처리를 받는다. 빈 목록에 제목만 남기면 Nova가 "목록이 비었다"를 지시로
@@ -180,9 +200,10 @@ def build_system_prompt(known_sounds: Sequence[str], plan: SessionInstruction | 
     forms = ", ".join(f"{item.pattern_key} ({item.target_form})" for item in plan.focus)
     lines = [
         "Today's plan:",
-        f"- Target level: {plan.target_level}",
+        f"- Target level for today, instead of the {_BASE_LEVEL_RANGE} level in rule 1: "
+        f"{plan.target_level}",
         f"- Focus on: {forms}",
-        f"- Aim for sentences of this shape: {plan.sentence_length}",
+        f"- Aim for the learner's sentences to be this shape: {plan.sentence_length}",
     ]
     if plan.contexts:
         lines.append(f"- Situations to use today: {', '.join(plan.contexts)}")

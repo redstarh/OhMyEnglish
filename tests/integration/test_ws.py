@@ -431,8 +431,11 @@ async def test_ws_passes_no_plan_when_none_is_prepared(
         first = await client.receive_event()
 
     assert first is not None and first["type"] == "session_started"
-    # `_PLAN_NOT_PASSED`가 아니라 `None`이어야 한다 — 소켓이 조회를 **하고** 부재를 넘긴 것이다.
-    assert seen.get("plan") is None, "소켓이 `plan`을 넘기지 않았다 — 계획 조회 자체가 없다"
+    # `_PLAN_NOT_PASSED`가 아니라 `None`이어야 한다 = 소켓이 `plan=` 인자를 **넘겼다**.
+    # ⚠️ 이것은 **조회가 일어났다는 증거가 아니다** — `_load_prepared_plan_or_none` 본문을
+    # `return None` 한 줄로 바꿔도 여기는 초록이다(리뷰 M-1이 확인, 나도 재현했다).
+    # 조회 자체는 `..._passes_the_prepared_plan_to_the_adapter`가 잡는다.
+    assert seen.get("plan") is None, "소켓이 `plan=` 인자를 아예 넘기지 않았다"
 
 
 # 계획도 **부가 정보**다 — `_load_known_sounds_or_empty`와 같은 규약이다. 조회가 깨졌다고

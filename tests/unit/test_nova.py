@@ -20,6 +20,7 @@ from typing import Any
 import pytest
 
 from app.audio_gateway.nova import (
+    _BASE_LEVEL_RANGE,
     FRAME_BYTES,
     SYSTEM_PROMPT,
     NovaEventTranslator,
@@ -890,6 +891,11 @@ def test_system_prompt_tells_the_tutor_to_wait_through_a_pause():
     # 침묵을 **다른 질문·예시로 메우는 것**을 금지하는 문구가 핵심이다. "질문 하나" 규칙만으로는
     # 관측된 거동(질문 + 예시 질문을 한 턴에)을 막지 못했다.
     assert "do not fill" in lowered
+    # Task 10 흡수 — 65% 규칙을 규칙 6 다음에 끼워 넣을 때 이 문장을 밀어내지 않았는지도 여기서
+    # 본다. **정규화된 `lowered`에 걸어야 한다**: 원문 그대로 찾으면 위 ⚠️의 함정에 걸려
+    # 문구가 그대로인데도 줄바꿈 위치만 옮기면 red 가 된다(별도 테스트로 뒀다가 그 오탐만
+    # 남아서 이리로 합쳤다 — 진짜 회귀는 위 두 단정이 이미 잡는다).
+    assert "do not fill it with another question" in lowered
     assert "ask one question at a time, then let the learner speak" not in lowered, (
         "좁히기 전 문구가 남아 있다 — 대기 지시가 실효를 보지 못한다"
     )
@@ -1013,6 +1019,35 @@ def test_plan_block_says_it_replaces_the_general_hint_rule():
     assert "wait through one long pause before offering a starter" in block
 
 
+# 리뷰 라운드 1 (I-1) — 대체 문장이 필요한 축은 **둘**이었다. 힌트 시점 말고 **목표 수준**도
+# 고정 규칙 1(`A2-B1 level`)과 같은 축인데 처음에는 대체 문장이 없어서, `target_level="C1"`
+# 계획에서 `at A2-B1 level`과 `- Target level: C1`이 한 지시문에 함께 실렸다(리뷰어 관측).
+def test_plan_block_says_the_target_level_replaces_the_base_level_in_rule_1():
+    block = _plan_block(build_system_prompt((), _instruction(target_level="C1")))
+
+    assert f"instead of the {_BASE_LEVEL_RANGE} level in rule 1" in block
+    assert "C1" in block
+    # ⚠️ 규칙 1의 **턴 길이**는 대체 대상이 아니다 — 코치 자신의 턴 길이는 그대로다.
+    # 대체 범위가 규칙 1 전체로 넓어지면 이 단정이 걸린다.
+    assert "rule 1" not in block.replace(f"instead of the {_BASE_LEVEL_RANGE} level in rule 1", "")
+
+
+# 블록이 가리키는 문구가 고정부에 **실제로** 있어야 한다. `SYSTEM_PROMPT`는 평문 리터럴이라
+# 값이 두 곳에 있고, 규칙 1의 수준을 고치면서 상수를 잊으면 블록이 없는 절을 가리킨다.
+def test_the_base_level_range_constant_matches_the_fixed_prompt():
+    assert f"at {_BASE_LEVEL_RANGE} level" in SYSTEM_PROMPT
+
+
+# 리뷰 라운드 1 (I-1) — `sentence_length`의 주어는 **학습자**다(`services/plan.py`가
+# "as the learner is ready"로 정의한다). 주어 없이 실으면 규칙 1의 `your turns`(코치 자신의
+# 턴 길이)와 섞여 반대 뜻으로 읽힌다.
+def test_plan_block_names_the_learner_as_the_subject_of_sentence_length():
+    block = _plan_block(build_system_prompt((), _instruction()))
+
+    assert "the learner's sentences" in block
+    assert "two or three short clauses" in block
+
+
 # 발음 소리 목록과 계획이 함께 있어도 둘 다 실린다 — G-3 블록을 계획이 밀어내지 않는다.
 def test_sounds_and_plan_can_coexist():
     prompt = build_system_prompt(("th_as_s",), _instruction())
@@ -1037,8 +1072,3 @@ def test_plan_block_omits_the_situations_line_when_there_are_no_contexts():
     # 나머지 줄은 그대로 있다 — 줄 하나를 빼는 것이 블록을 깨뜨리지 않는다.
     assert "B1" in block
     assert "a/an/the" in block
-
-
-# 기존 tripwire 가 계속 산다 — 65% 규칙을 끼워 넣으면서 대기 규칙을 밀어내지 않았는지 본다.
-def test_system_prompt_still_tells_the_tutor_to_wait_through_a_pause_after_the_insert():
-    assert "do not fill it with another question" in SYSTEM_PROMPT

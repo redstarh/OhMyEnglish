@@ -711,18 +711,37 @@ def test_factory_rejects_an_unknown_adapter():
         create_voice_adapter(_settings(voice_adapter="novva"))
 
 
+_SOUNDS_HEADER = "Sounds this learner has missed before"
+
+
+def _sounds_section(instructions: str) -> str:
+    """놓친 소리 블록만 잘라낸다 — 고정부를 창에서 뺀다.
+
+    `tests/unit/test_nova.py`의 `_plan_block`과 같은 이유이고 같은 형태다: 조용한 퇴화를
+    시끄러운 실패로 바꾸려고 제목 부재를 먼저 단정한다(`_bullet` 관례).
+    """
+    assert _SOUNDS_HEADER in instructions, "지시문에 놓친 소리 블록이 없다"
+    return instructions[instructions.index(_SOUNDS_HEADER) :]
+
+
 # G-3 — 지시문 가변부가 지나가는 **유일한 통로**가 이 팩토리다. 두 가지를 함께 못박는다:
 # ① `port.start()`를 넓히지 않는다(어댑터를 **만들 때** 넘기므로 포트 계약이 그대로다)
 # ② 넘기는 것은 **데이터**(소리 목록)이고 조립은 여기서 한다 — 호출자가 프롬프트를 만들면
 #    소켓 계층이 `nova`를 import해야 하고 G3 이음매가 사라진다.
+#
+# ⚠️ **소리 목록을 `"th_as_s"`·`"f_as_p"`로 재지 않는다** — 두 키는 고정부 규칙 10의 예시로
+# **이미** 들어 있다(직접 확인: 각 1건). 그래서 이 단정은 팩토리가 목록을 **버려도** 초록이었다
+# (S2-10 리뷰가 `if known_sounds:` → `if False:` 뮤테이션으로 증명했고 나도 재현했다).
+# 블록 **제목**으로 잰다 — 그 문구는 고정부에 0건이라 판별력이 있다.
 def test_factory_assembles_the_prompt_from_known_sounds_for_nova():
     adapter = create_voice_adapter(
         _settings(voice_adapter=NOVA_ADAPTER), known_sounds=["th_as_s", "f_as_p"]
     )
 
     assert isinstance(adapter, NovaVoiceAdapter)
-    assert "th_as_s" in adapter.instructions
-    assert "f_as_p" in adapter.instructions
+    sounds = _sounds_section(adapter.instructions)
+    assert "th_as_s" in sounds
+    assert "f_as_p" in sounds
 
 
 # 목록을 주지 않으면 기본 문구다 — dev DB의 현재 상태(기록 0건)가 이 경로다.
@@ -743,7 +762,9 @@ def test_factory_gives_the_stub_the_instructions_without_changing_its_mode():
     assert adapter.mode == "fixture"
     instructions = adapter.instructions
     assert instructions is not None
-    assert "th_as_s" in instructions
+    # 위 nova 테스트와 같은 이유로 제목으로 잰다 — `"th_as_s"`는 고정부에 이미 있어서
+    # 팩토리가 목록을 버려도 초록이었다(리뷰 I-2).
+    assert "th_as_s" in _sounds_section(instructions)
 
 
 # --- Task 10: 오늘의 계획이 지시문에 실린다 (AS6) ---
