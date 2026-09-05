@@ -35,8 +35,7 @@ def _partial_prefixes(answer: str) -> list[str]:
 
 
 class StubVoiceAdapter:
-    """`VoiceAdapter` 픽스처 구현. `received_frames`로 수신 프레임 수를, `instructions`로
-    생성 시점에 받은 지시문을 노출한다."""
+    """`VoiceAdapter` 픽스처 구현. 수신 프레임 수와 받은 지시문을 속성으로 노출한다."""
 
     def __init__(self, mode: StubMode = "fixture", *, instructions: str | None = None) -> None:
         if mode not in get_args(StubMode):
@@ -45,9 +44,10 @@ class StubVoiceAdapter:
         self.closed = False
         self._received_frames = 0
         # 받아서 보관만 한다 — 재생 발화는 `FIXTURE_TURNS`가 결정한다(설계서 §5.2).
-        # 스텁이 쓰지도 않는 값을 받는 이유: 지시문이 조립 지점(`factory.py`)에서
-        # 어댑터까지 실제로 도달했는지 판정할 수단이 이것뿐이다(설계서 AS6). 실물 Nova의
-        # 응대가 지시문에 따라 달라지는지는 별개 확인이고 이 슬라이스의 범위가 아니다.
+        # 스텁이 쓰지도 않는 값을 받는 이유: 조립 지점에서 어댑터까지 지시문이 실제로
+        # 도달했는지 판정할 수단이 이것뿐이다(설계서 AS6). 다만 지금은 **받을 자리만** 있다 —
+        # 팩토리(`factory.py`)는 스텁에 지시문을 넘기지 않고, 그 배선은 Task 10 소유다.
+        # 실물 Nova의 응대가 지시문에 따라 달라지는지는 별개 확인이고 이 슬라이스의 범위가 아니다.
         # 키워드 전용인 것도 계약이다 — 위치로 받으면 기존 `StubVoiceAdapter("fixture")`·
         # `("unresponsive")` 호출 옆에 두 번째 값이 조용히 끼어들 수 있다.
         self._instructions = instructions

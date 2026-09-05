@@ -41,9 +41,10 @@ def test_stub_without_instructions_reports_none():
 
 
 def test_instructions_cannot_be_passed_positionally():
-    # 키워드 전용으로 두는 이유: 위치로 받으면 기존 `StubVoiceAdapter("fixture")`·
-    # `("unresponsive")` 호출 옆에 두 번째 값이 조용히 끼어들 수 있다.
-    with pytest.raises(TypeError):
+    # 키워드 전용으로 두는 **근거**는 `stub.py`의 `__init__` 주석이 소유한다. 여기서는 그
+    # 규칙이 실제로 강제되는지만 잰다. `match`로 좁히는 이유: 타입만 단정하면 다른 원인으로
+    # 난 `TypeError`도 통과해 "무엇이 걸렸는지" 구분하지 못한다.
+    with pytest.raises(TypeError, match="positional"):
         StubVoiceAdapter("fixture", INSTRUCTIONS)  # ty: ignore[too-many-positional-arguments]
 
 
@@ -51,6 +52,12 @@ async def test_stub_replays_the_same_utterances_with_or_without_instructions():
     plain = await _replayed(StubVoiceAdapter("fixture"))
     instructed = await _replayed(StubVoiceAdapter("fixture", instructions=INSTRUCTIONS))
 
+    # 비어 있지 않음을 먼저 못박는다 — `FIXTURE_TURNS`가 비면 아래 비교가 `[] == []`가 되어
+    # 지시문이 발화에 섞이는 구현에도 초록이 된다(공허한 통과).
+    # 개수를 박지 않는 이유: 재생 문장의 소유자는 `app.audio_gateway.fixtures` 하나이고,
+    # 이 테스트가 재는 것은 턴 수가 아니라 **두 어댑터의 동일성**이다. 여기에 개수를 적으면
+    # 픽스처 크기의 소유자가 둘로 갈린다.
+    assert plain
     assert instructed == plain
 
 
