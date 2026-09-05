@@ -35,8 +35,13 @@ from typing import NamedTuple
 from uuid import UUID, uuid4
 
 import asyncpg
+import httpx
 import pytest
 import pytest_asyncio
+
+# ASGI 트랜스포트로 직접 붙는 대상 — `api_client`가 여기의 `app.state.db_pool`만
+# 테스트 풀로 바꾼다. 실서버도, lifespan도 열지 않는다.
+from app.api.main import app
 
 # 공통 픽스처 발화 (AC 문서 §공통 픽스처) — 스텁·W-live·E2E-S가 같은 상수를 본다.
 # 소유자는 `app.audio_gateway.fixtures` 하나다: 스텁이 재생하는 문장과 테스트가
@@ -135,6 +140,25 @@ async def committed_session(db_pool: asyncpg.Pool) -> AsyncIterator[CommittedSes
     finally:
         async with db_pool.acquire() as conn:
             await conn.execute("delete from users where id = $1", user_id)
+
+
+@pytest_asyncio.fixture
+async def api_client(db_pool: asyncpg.Pool) -> AsyncIterator[httpx.AsyncClient]:
+    """실제 서버를 기동하지 않는다 — ASGI 트랜스포트로 앱에 직접 붙고, lifespan이
+    여는 DB pool·워커는 건너뛴 채 라우터가 읽는 `app.state.db_pool`만 주입한다.
+
+    HTTP 라우터를 재는 파일이 둘이라(`tests/unit/test_results.py` 결과 조회 ·
+    `tests/integration/test_plan_api.py` 계획 조회) 여기서 공유한다 — 두 파일에
+    같은 픽스처를 두면 주입 대상이 늘 때 한쪽만 고쳐져 조용히 갈라진다.
+
+    ⚠️ 이 픽스처가 쓰는 것은 **커밋된** 행만 본다: 라우터가 여는 커넥션은 테스트가 쓴
+    커넥션과 별개이므로 롤백되는 `db_conn` 트랜잭션은 라우터 쪽에 보이지 않는다.
+    `db_pool` + 스스로 정리하는 픽스처(`committed_session` 등)와 함께 쓴다.
+    """
+    app.state.db_pool = db_pool
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+        yield client
 
 
 @pytest.fixture

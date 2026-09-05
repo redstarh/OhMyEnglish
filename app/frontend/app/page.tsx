@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { fetchNextPlan, type NextPlanSummary } from "@/lib/api";
 import { VoiceIo, base64ToBytes, bytesToBase64 } from "@/lib/audio";
 import {
   SessionSocket,
@@ -32,6 +33,10 @@ const PRONUNCIATION_BADGE_COLOR: Record<PronunciationOutcome, string> = {
   incorrect: "var(--danger)",
   unclear: "var(--foreground-muted)",
 };
+
+// 추천 이유 한 줄의 머리말 (R11-3). "왜 이 연습인지"를 학습자 말로 붙인다 — 이유 문장은
+// 계획이 소유하므로 여기서 문구를 만들지 않는다.
+const NEXT_PLAN_PREFIX = "오늘 이걸 연습해요:";
 
 interface TranscriptLine {
   id: number;
@@ -66,6 +71,9 @@ export default function SessionPage() {
   // 진행 중인 발음 시도 1건의 판정. 한 번에 하나만 흐르므로(시범 → 재발화 → 판정)
   // 목록이 아니라 최신 1건만 들고 있는다. 세션이 끝나면 결과 화면의 카드가 전건을 보여준다.
   const [pronunciation, setPronunciation] = useState<PronunciationOutcome | null>(null);
+  // 다음 세션의 추천 이유 (R11-3). 초기값이 "계획 없음"이라 조회가 끝나기 전에는 그 자리가
+  // 비어 있다 — 로딩 문구를 두지 않는다: 이유는 시작 버튼을 막지 않는 부가 정보다.
+  const [nextPlan, setNextPlan] = useState<NextPlanSummary>({ reason: null, target_level: null });
 
   const socketRef = useRef<SessionSocket | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -215,6 +223,27 @@ export default function SessionPage() {
     socketRef.current?.endSession();
   }, []);
 
+  // 시작 화면에 보여줄 추천 이유를 한 번 읽는다 (R11-3). 폴링하지 않는다 — 계획은 세션
+  // **사이**에만 바뀌고, 이 화면은 세션이 끝나면 결과 화면으로 넘어가며 언마운트된다.
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadNextPlan(): Promise<void> {
+      try {
+        const plan = await fetchNextPlan();
+        if (!cancelled) setNextPlan(plan);
+      } catch {
+        // 백엔드가 안 떠 있으면 `fetch` 자체가 reject 한다(응답 상태가 아니라 네트워크
+        // 실패다). 계획 표시는 학습을 막지 않으므로 그 자리를 비운 채 둔다.
+      }
+    }
+
+    void loadNextPlan();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // 언마운트 시 마이크·소켓 자원을 반드시 정리한다.
   useEffect(() => {
     return () => {
@@ -228,9 +257,21 @@ export default function SessionPage() {
       <h1>OhMyEnglish — 학습 세션</h1>
 
       {state === "idle" && (
-        <button onClick={() => void startSession()} style={{ padding: "0.75rem 1.5rem" }}>
-          학습 시작
-        </button>
+        <>
+          {/* 추천 이유 한 줄 (R11-3). 이유가 없으면 **아무것도 렌더하지 않는다** — 빈 자리가
+              "계획 없음"의 표현이다. 시작 버튼보다 덜 강조하므로 색은 muted 토큰이고,
+              난이도는 있을 때만 괄호로 붙인다(계획에 이유는 있고 수준이 비는 경우는 없지만
+              HTTP 응답은 외부 경계다). */}
+          {nextPlan.reason && (
+            <p style={{ color: "var(--foreground-muted)", marginBottom: "1rem" }}>
+              {NEXT_PLAN_PREFIX} {nextPlan.reason}
+              {nextPlan.target_level ? ` (${nextPlan.target_level})` : null}
+            </p>
+          )}
+          <button onClick={() => void startSession()} style={{ padding: "0.75rem 1.5rem" }}>
+            학습 시작
+          </button>
+        </>
       )}
 
       {state === "connecting" && <p>마이크 권한을 요청하는 중입니다...</p>}

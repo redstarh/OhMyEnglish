@@ -1,4 +1,7 @@
-"""`GET /api/sessions/{id}/results` — 세션 결과 조회 엔드포인트 (설계서 §5.5, R1~R3).
+"""조회 엔드포인트 — `GET /api/sessions/{id}/results`(설계서 §5.5, R1~R3)와 `/next-plan`.
+
+`/next-plan`의 계약은 그 함수의 docstring이 소유한다 (R11-3 — 추천 이유를 화면에서 볼 수
+있어야 한다). 아래 서술은 결과 조회의 것이다.
 
 라우터는 판정 로직을 갖지 않는다 — `services.results.get_session_result`가
 R2 우선순위를 전부 결정하고, 여기서는 그 결과를 HTTP로 옮기기만 한다:
@@ -22,14 +25,48 @@ from uuid import UUID
 import asyncpg
 from fastapi import APIRouter, HTTPException, Request
 
+from app.api.ws import FIXED_USER_ID
 from app.services.results import (
     Correction,
     PronunciationAttempt,
     SessionResult,
     get_session_result,
 )
+from app.services.sessions import load_prepared_plan
 
 router = APIRouter(prefix="/api/sessions", tags=["results"])
+
+
+# 리터럴 경로를 `/{session_id}/results`보다 **먼저** 등록한다. 세그먼트 수가 달라 지금은
+# 가려지지 않지만, 나중에 `/{something}` 한 세그먼트 경로가 생기면 등록 순서가 판정한다.
+@router.get("/next-plan")
+async def next_plan(request: Request) -> dict[str, str | None]:
+    """다음 세션에 쓸 계획의 **추천 이유와 목표 수준만** 내려준다 (`docs/PRD.md:189` R11-3).
+
+    계획이 없으면 404가 아니라 두 값이 `null`이다 — 계획 부재는 오류가 아니고, 화면은 그
+    자리를 비우기만 한다(설계서 §9 Contract: 계획 부재가 실패로 번역되지 않는다). `null`이
+    뜻하는 것은 "**세션이 쓸 계획이 없다**"이고, 빈 이유가 내려오는 경우는 아니다 —
+    이유가 빈 계획은 저장 자체가 막힌다(`session_plans_reason_not_blank`, 007).
+
+    초점 패턴·질문 목록을 내려주지 않는 이유: 캡틴 결정은 "간략하게 표시"였고, 질문을
+    미리 보여주면 학습자가 답을 준비해 즉흥 발화 연습이 무의미해진다.
+
+    **세션 시작과 같은 함수로 읽는다**(`load_prepared_plan`) — 조회 SQL을 여기서 다시
+    쓰면 "다음 계획"의 정의가 둘로 갈라진다. 그래서 목표 수준도 지시문에서 꺼낸다:
+    `session_plans.target_level`과 같은 값임을 저장 시점에 `PlanOutput`이 강제하고
+    (`models/plan.py` `_target_level_matches_level_and_instruction`), 지시문을 읽을 수
+    없어 세션이 그 계획을 **쓰지 못하는** 경우에는 화면도 함께 비워야 맞다 — 그때
+    이유만 보여주면 화면은 오늘의 초점을 말하는데 대화 상대는 고정 지시문으로 말한다.
+
+    조회 실패를 삼키지 않는다(`get_results`와 같은 규약) — 프론트가 실패를 이미 빈 화면으로
+    번역하므로, 여기서 삼키면 화면 결과는 같은데 장애만 조용해진다.
+    """
+    pool: asyncpg.Pool = request.app.state.db_pool
+    async with pool.acquire() as conn:
+        prepared = await load_prepared_plan(conn, FIXED_USER_ID)
+    if prepared is None:
+        return {"reason": None, "target_level": None}
+    return {"reason": prepared.reason, "target_level": prepared.instruction.target_level}
 
 
 def _correction_payload(correction: Correction) -> dict[str, object]:

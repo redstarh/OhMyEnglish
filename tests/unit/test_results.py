@@ -2,9 +2,8 @@
 
 워커를 돌리지 않는다 — `analysis_jobs`/`error_patterns`/`error_occurrences`는
 이 테스트가 SQL로 직접 세팅한다(태스크 지시: "워커는 이 태스크와 무관"). FastAPI
-는 실서버를 띄우지 않고 `httpx.ASGITransport`로 ASGI 앱에 직접 붙는다 — `app`의
-`lifespan`(DB pool 생성·분석 워커 기동)은 실행하지 않고, 라우터가 읽는
-`app.state.db_pool`만 테스트 풀로 주입한다.
+는 실서버를 띄우지 않고 `httpx.ASGITransport`로 ASGI 앱에 직접 붙는다 — 그 배선은
+`tests/conftest.py`의 `api_client`가 소유한다(계획 조회 테스트와 공유한다).
 
 `db_pool` + `committed_session`(둘 다 `tests/conftest.py`)을 쓴다: 라우터가
 연 커넥션은 테스트가 쓴 커넥션과 별개이므로, 롤백되는 `db_conn` 트랜잭션은
@@ -13,15 +12,11 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator
 from decimal import Decimal
 from uuid import UUID, uuid4
 
 import asyncpg
 import httpx
-import pytest_asyncio
-
-from app.api.main import app
 
 # --- DB 직접 세팅 헬퍼 (워커를 거치지 않고 원하는 상태를 바로 만든다) ---
 
@@ -96,16 +91,6 @@ async def _occurrence(
         severity,
         Decimal(confidence),
     )
-
-
-@pytest_asyncio.fixture
-async def api_client(db_pool: asyncpg.Pool) -> AsyncIterator[httpx.AsyncClient]:
-    """실제 서버를 기동하지 않는다 — ASGI 트랜스포트로 앱에 직접 붙고, lifespan이
-    여는 DB pool·워커는 건너뛴 채 라우터가 읽는 `app.state.db_pool`만 주입한다."""
-    app.state.db_pool = db_pool
-    transport = httpx.ASGITransport(app=app)
-    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-        yield client
 
 
 # ① 3패턴 검출 세션 → 정확히 2개, high가 medium보다 먼저 (R1 ordinal — 텍스트 desc면
