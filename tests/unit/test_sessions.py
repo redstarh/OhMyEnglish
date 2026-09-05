@@ -25,6 +25,7 @@ PostgreSQL의 `now()`는 **트랜잭션 시작 시각에 고정**되므로, 테�
 
 from __future__ import annotations
 
+import json
 import logging
 from datetime import datetime, timedelta
 from uuid import UUID, uuid4
@@ -32,6 +33,7 @@ from uuid import UUID, uuid4
 import asyncpg
 import pytest
 from conftest import backdate_session as _backdate
+from conftest import plan_json
 
 from app.models.plan import SessionInstruction
 from app.services.sessions import (
@@ -257,7 +259,8 @@ async def test_load_prepared_plan_ignores_another_learners_newer_plan(
 
 # AS4 — 계획이 없으면 `None`이다. 예외를 던지면 세션 시작이 계획 부재로 실패한다.
 async def test_load_prepared_plan_returns_none_when_absent(db_conn: asyncpg.Connection, seed_user):
-    user_id = await seed_user(db_conn)
+    # `tz`는 이 픽스처의 필수 인자다 (LOW-14 — 타임존을 명시해 넣는다).
+    user_id = await seed_user(db_conn, tz="Asia/Seoul")
 
     assert await load_prepared_plan(db_conn, user_id) is None
 
@@ -274,10 +277,15 @@ async def test_load_prepared_plan_parses_the_stored_instruction(
 
     assert prepared is not None
     assert isinstance(prepared.instruction, SessionInstruction)
-    assert prepared.instruction.target_level == "B1"
-    # 조립이 실제로 읽는 자리들이 비어 있지 않다 — 모델 타입만 맞고 내용이 비면 소용없다.
-    assert prepared.instruction.focus
-    assert prepared.instruction.contexts
+    # 필드가 하나도 떨어지지 않았는지 **전체 동일성**으로 잰다. `assert prepared.instruction.focus`
+    # 같은 단정은 항진명제였다(리뷰 라운드 1의 Minor) — `SessionInstruction.focus`가
+    # `min_length=1`이라 `model_validate`를 통과한 인스턴스는 반드시 비어 있지 않다.
+    # 기대값은 픽스처가 심은 것과 **같은 소유자**(`plan_json`)에서 만든다: 모양을 여기 다시
+    # 적으면 한쪽이 조용히 낡는다. `plan_json`의 `instruction`은 `pattern_id`를 담지 않으므로
+    # 인자로 준 uuid 와 무관하게 같은 지시문이 나온다.
+    assert prepared.instruction == SessionInstruction.model_validate(
+        json.loads(plan_json(uuid4(), target_level="B1"))["instruction"]
+    )
 
 
 # T3 — 읽을 수 없는 지시문은 **계획 없음과 같이** 다룬다. `SessionInstruction`에 필수 필드가
@@ -297,39 +305,60 @@ async def test_load_prepared_plan_skips_a_plan_whose_instruction_cannot_be_read(
     )
 
 
-# AS4 / §3.3 — 수준이 맞는 시나리오가 있으면 그것을 고른다. 안 맞는 행을 **더 이르게** 심어
-# 두 구현이 서로 다른 행을 고르게 만든다: 수준을 보지 않는 SQL은 `order by created_at`으로
-# `A2`를 고른다(그것이 이 태스크의 red 였다).
+async def _attached_scenario(pool: asyncpg.Pool, session_id: UUID) -> UUID | None:
+    async with pool.acquire() as conn:
+        return await conn.fetchval(
+            "select scenario_id from learning_sessions where id = $1", session_id
+        )
+
+
+# AS4 / §3.3 — 수준이 맞는 시나리오를 고른다.
+#
+# ⚠️ **일치 행을 시각 양쪽 끝에서 떼어 놓는다** (리뷰 라운드 1의 Important — 앞선 판은
+# 일치 행을 가장 최신 행으로 심어서 "수준이 맞는 행"과 "가장 최신 행"이 **같은 한 행**을
+# 지목했다. 그래서 수준을 무시하고 `desc`로 고르는 구현이 그대로 통과했고, 메인이 직접
+# 재현했다 — 558 passed).
+# 뒤집는 것으로는 부족하다: 일치 행을 가장 이르게 두면 이번엔 **이 커밋 이전의 SQL**
+# (수준 무시 + 가장 이른 행)이 통과한다. 한 조합으로 두 방향을 막을 수 없다.
+# → `A2`를 **가장 이른 행과 가장 최신 행 양쪽에** 두고 일치 행(`B1`)을 가운데 둔다.
+#   그러면 `created_at`을 어느 방향으로 정렬하든 수준을 보지 않는 구현은 `A2`를 고른다.
+# ⚠️ 이 배치가 막지 **못하는** 것도 적어 둔다: `created_at`을 아예 보지 않고 `s.id`만으로
+#   고르는 구현은 3행 중 하나를 무작위로 집으므로 이 단정이 흔들린다(막지 않는다 —
+#   그런 정렬을 요구하는 문서가 없고, 확률로 지키는 단정을 만들지 않기 위해서다).
 async def test_session_creation_prefers_a_scenario_matching_the_learners_level(
     db_pool: asyncpg.Pool, seed_scenarios_for_level
 ):
-    user_id, (earlier_but_wrong_level, matching) = await seed_scenarios_for_level(
-        level="B1", scenarios=[("A2", 3), ("B1", 0)]
+    user_id, (earliest, matching, newest) = await seed_scenarios_for_level(
+        level="B1", scenarios=[("A2", 5), ("B1", 3), ("A2", 0)]
     )
 
     session_id = await create_session(db_pool, user_id)
 
-    async with db_pool.acquire() as conn:
-        scenario_id = await conn.fetchval(
-            "select scenario_id from learning_sessions where id = $1", session_id
-        )
+    scenario_id = await _attached_scenario(db_pool, session_id)
     assert scenario_id == matching, "수준이 맞는 시나리오가 있는데 다른 행이 붙었다"
-    assert scenario_id != earlier_but_wrong_level
+    # 실패 사유를 읽을 수 있게 두 극단을 따로 짚는다 — 어느 정렬로 새는지 바로 보인다.
+    assert scenario_id != earliest, "수준을 무시하고 가장 이른 행을 골랐다"
+    assert scenario_id != newest, "수준을 무시하고 가장 최신 행을 골랐다"
 
 
-# AS4 / §9 Failure — 수준 일치가 0행이어도 시작이 실패하지 않고 기존 동작(가장 이른 행)으로
-# 떨어진다. 시드가 `A2` 3행뿐이라 수준이 올라가면 실제로 이 경로로 온다.
+# AS4 / §9 Failure — 수준 일치가 0행이어도 시작이 실패하지 않고 **기존 동작(가장 이른 행)**
+# 으로 떨어진다. 시드가 `A2` 3행뿐이라 수준이 올라가면 실제로 이 경로로 온다.
+#
 # ⚠️ `scenario_id is not null`로 재지 않는다 — 그 컬럼은 nullable 이고, 폴백 절을 지운
 # 구현에서도 null 이 들어가 **단정이 어느 쪽이든 통과하지 않는다**. 붙은 행을 직접 지목한다.
-async def test_session_creation_falls_back_when_no_scenario_matches_the_level(
+# ⚠️ 불일치 행을 **2행** 심는다 (리뷰 라운드 1의 Important — 1행만 심으면 어떤 정렬이든
+# 그 행을 골라서 "폴백 절이 존재한다"만 재고 **"가장 이른 행"이라는 규칙은 무보호**였다).
+# 그 규칙은 이 커밋이 유지한다고 선언한 기존 계약이고
+# `tests/harness/scenarios-E-agent-learning.md`가 문서에 못 박은 값이다.
+async def test_session_creation_falls_back_to_the_earliest_scenario(
     db_pool: asyncpg.Pool, seed_scenarios_for_level
 ):
-    user_id, (only_scenario,) = await seed_scenarios_for_level(level="C2", scenarios=[("A2", 3)])
+    user_id, (earliest, later) = await seed_scenarios_for_level(
+        level="C2", scenarios=[("A2", 3), ("A2", 1)]
+    )
 
     session_id = await create_session(db_pool, user_id)
 
-    async with db_pool.acquire() as conn:
-        scenario_id = await conn.fetchval(
-            "select scenario_id from learning_sessions where id = $1", session_id
-        )
-    assert scenario_id == only_scenario, "수준 일치가 0행인데 시나리오가 붙지 않았다"
+    scenario_id = await _attached_scenario(db_pool, session_id)
+    assert scenario_id == earliest, "수준 일치가 0행일 때 가장 이른 시나리오로 떨어지지 않았다"
+    assert scenario_id != later

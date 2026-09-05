@@ -370,19 +370,19 @@ def seed_cycle() -> Callable[..., object]:
 
 @pytest.fixture
 def seed_user() -> Callable[..., object]:
-    """`users.timezone`·`users.current_level`에 임의 값을 직접 넣는다(LOW-14). 001은
-    `timezone`에 CHECK를 두지 않았다 — 무효값의 거부는 `load_plan_input`이 조회 시점에 한다.
+    """`users.timezone`에 임의 값을 직접 넣는다(LOW-14). 001은 이 컬럼에 CHECK를 두지
+    않았다 — 무효값의 거부는 `load_plan_input`이 조회 시점에 한다.
 
-    두 기본값은 **001의 컬럼 기본값과 같은 값**이다(`'Asia/Seoul'`·`'A2'`) — 그래서 인자를
-    생략한 호출은 이 픽스처가 원래 만들던 행과 같은 행을 만든다. `level`은 Task 8의
-    수준 우선 시나리오 선택을 재는 테스트가 쓴다."""
+    ⚠️ **`tz`는 필수로 남긴다.** 기본값을 주면 LOW-14 가 의도한 "타임존을 명시해 넣는다"는
+    강제가 약해진다(리뷰 라운드 1의 Minor — Task 8 이 잠시 기본값을 넣었다가 되돌렸다).
+    수준을 정해야 하는 테스트는 `seed_scenarios_for_level`을 쓴다: 공유 픽스처의 계약을
+    호출 한 건 때문에 넓히지 않는다."""
 
-    async def make(conn: asyncpg.Connection, *, tz: str = "Asia/Seoul", level: str = "A2") -> UUID:
+    async def make(conn: asyncpg.Connection, *, tz: str) -> UUID:
         return await conn.fetchval(
-            "insert into users (display_name, timezone, current_level) "
-            "values ('Plan Input Test', $1, $2) returning id",
+            "insert into users (display_name, timezone) values ('Plan Input Test', $1) "
+            "returning id",
             tz,
-            level,
         )
 
     return make
