@@ -370,14 +370,19 @@ def seed_cycle() -> Callable[..., object]:
 
 @pytest.fixture
 def seed_user() -> Callable[..., object]:
-    """`users.timezone`에 임의 값을 직접 넣는다(LOW-14). 001은 이 컬럼에 CHECK를 두지
-    않았다 — 무효값의 거부는 `load_plan_input`이 조회 시점에 한다."""
+    """`users.timezone`·`users.current_level`에 임의 값을 직접 넣는다(LOW-14). 001은
+    `timezone`에 CHECK를 두지 않았다 — 무효값의 거부는 `load_plan_input`이 조회 시점에 한다.
 
-    async def make(conn: asyncpg.Connection, *, tz: str) -> UUID:
+    두 기본값은 **001의 컬럼 기본값과 같은 값**이다(`'Asia/Seoul'`·`'A2'`) — 그래서 인자를
+    생략한 호출은 이 픽스처가 원래 만들던 행과 같은 행을 만든다. `level`은 Task 8의
+    수준 우선 시나리오 선택을 재는 테스트가 쓴다."""
+
+    async def make(conn: asyncpg.Connection, *, tz: str = "Asia/Seoul", level: str = "A2") -> UUID:
         return await conn.fetchval(
-            "insert into users (display_name, timezone) values ('Plan Input Test', $1) "
-            "returning id",
+            "insert into users (display_name, timezone, current_level) "
+            "values ('Plan Input Test', $1, $2) returning id",
             tz,
+            level,
         )
 
     return make
@@ -775,3 +780,128 @@ def plan_json(
         },
         ensure_ascii=False,
     )
+
+
+# ── Task 8 (세션 시작이 준비된 계획을 읽는다) 픽스처 ─────────────────────────
+#
+# `tests/unit/test_sessions.py`가 쓴다. 둘로 나눈 이유는 재는 대상이 다르기 때문이다:
+# `load_prepared_plan`은 **연결**을 받으므로 롤백 트랜잭션(`db_conn`)으로 재고,
+# `create_session`은 **pool**을 받으므로(`create_session(pool, user_id)`) 커밋하는
+# 픽스처가 필요하다. conn 을 pool 처럼 감싸는 헬퍼를 만들지 않는다.
+
+
+@pytest.fixture
+def seed_plan_for_session() -> Callable[..., object]:
+    """`session_plans` 한 행을 그 계획을 **만든 세션**과 함께 심는다.
+
+    `session_id`가 가리키는 것은 계획을 만든 세션(N)이고 소비하는 세션(N+1)이 아니다 —
+    계획서 「구현 전 정정」이 그 결론과 근거를 소유한다. `session_plans.session_id`가
+    `unique`(007)라 호출마다 세션을 새로 만든다: 같은 세션에 두 계획을 심으려 하면
+    unique 위반이 나고, 최신 1행 선택을 재려던 테스트가 그 위반을 재게 된다.
+
+    `instruction`·`questions`는 **`plan_json`에서 뽑는다.** 여기에 모양을 다시 적으면
+    `SessionInstruction`(Task 5)이 바뀔 때 한쪽이 조용히 낡아, 저장된 jsonb 가 지금의
+    계약과 다른 채로 테스트가 초록이 된다.
+
+    `days_ago`로 `created_at`을 과거로 심는다 — `now()`가 트랜잭션에 고정되어 있어
+    `db_conn` 안에서는 기다려도 시각이 벌어지지 않는다(`backdate_session`과 같은 이유).
+    `instruction`에 문자열을 주면 그 값을 그대로 저장한다: 읽는 쪽이 **읽을 수 없는**
+    지시문을 만났을 때의 경로를 재기 위한 자리다.
+    """
+
+    async def make(
+        conn: asyncpg.Connection,
+        *,
+        user_id: UUID | None = None,
+        reason: str = "관사를 계속 빼먹어서 오늘은 그것만 봅니다.",
+        target_level: str = "A2",
+        days_ago: int = 0,
+        instruction: str | None = None,
+    ) -> tuple[UUID, UUID]:
+        if user_id is None:
+            user_id = await conn.fetchval(
+                "insert into users (display_name) values ('Prepared Plan Test') returning id"
+            )
+        session_id = await conn.fetchval(
+            "insert into learning_sessions (user_id, mode, status, ended_at) "
+            "values ($1, 'speaking', 'completed', now()) returning id",
+            user_id,
+        )
+        payload = json.loads(plan_json(uuid4(), target_level=target_level))
+        plan_id = await conn.fetchval(
+            "insert into session_plans (session_id, focus_pattern_ids, questions, target_level, "
+            "reason, instruction, source, created_at) "
+            "values ($1, $2, $3, $4, $5, $6, 'agent', $7) returning id",
+            session_id,
+            [uuid4()],  # focus_pattern_ids 에 FK 는 없다 (007 주석) — 이 픽스처는 값만 채운다
+            json.dumps(payload["questions"], ensure_ascii=False),
+            target_level,
+            reason,
+            instruction
+            if instruction is not None
+            else json.dumps(payload["instruction"], ensure_ascii=False),
+            datetime.now(UTC) - timedelta(days=days_ago),
+        )
+        assert isinstance(user_id, UUID) and isinstance(plan_id, UUID)
+        return user_id, plan_id
+
+    return make
+
+
+@pytest_asyncio.fixture
+async def seed_scenarios_for_level(db_pool: asyncpg.Pool) -> AsyncIterator[Callable[..., object]]:
+    """수준이 정해진 사용자 1명 + `created_at`이 정해진 시나리오 여러 행을 **커밋한다.**
+
+    `create_session`이 pool 을 받으므로 롤백 트랜잭션으로는 잴 수 없다. 그래서
+    `committed_session`과 같은 규약으로 teardown 에서 직접 지운다 — **남기면 두 곳이 깨진다**:
+    `tests/unit/test_schema.py`의 `count(*) from users == 1`, 그리고 남은 시나리오가 다른
+    테스트의 시나리오 선택을 조용히 바꾼다(선택이 전역 `order by created_at, id`이므로).
+    사용자를 먼저 지우고(세션이 cascade 로 따라간다) 그 다음에 시나리오를 지운다 —
+    `learning_sessions.scenario_id`에는 cascade 가 없어(001) 순서를 뒤집으면 FK 에 막힌다.
+
+    `scenarios`는 `(level, days_ago)` 목록이다. `days_ago`가 필요한 이유: 폴백 경로가
+    `order by created_at, id`로 고르므로, 수준이 **안 맞는** 행을 더 이르게 심어야
+    "수준을 보지 않는 구현"과 "보는 구현"이 서로 다른 행을 고른다.
+    """
+    user_ids: list[UUID] = []
+    scenario_ids: list[UUID] = []
+
+    async def make(*, level: str, scenarios: Sequence[tuple[str, int]]) -> tuple[UUID, list[UUID]]:
+        created: list[UUID] = []
+        async with db_pool.acquire() as conn:
+            user_id = await conn.fetchval(
+                "insert into users (display_name, current_level) "
+                "values ('Scenario Level Test', $1) returning id",
+                level,
+            )
+            user_ids.append(user_id)
+            for scenario_level, days_ago in scenarios:
+                scenario_id = await conn.fetchval(
+                    "insert into learning_scenarios "
+                    "(category, level, title, prompt_template, created_at) "
+                    "values ('business', $1, $2, 'Tell me about your project.', $3) returning id",
+                    scenario_level,
+                    f"{scenario_level} scenario",
+                    datetime.now(UTC) - timedelta(days=days_ago),
+                )
+                scenario_ids.append(scenario_id)
+                created.append(scenario_id)
+            # 이 테스트의 단정은 "심은 행 중 어느 것이 붙었는가"다 — 다른 테스트가 남긴
+            # 시나리오가 있으면 폴백이 그것을 고를 수 있고, 그러면 실패 사유를 읽을 수 없다.
+            # 누출을 조용한 오답이 아니라 시끄러운 실패로 바꾼다.
+            leaked = await conn.fetchval(
+                "select count(*) from learning_scenarios where not (id = any($1::uuid[]))",
+                created,
+            )
+        assert leaked == 0, f"이 픽스처가 심지 않은 시나리오 {leaked}행이 남아 있다"
+        assert isinstance(user_id, UUID)
+        return user_id, created
+
+    try:
+        yield make
+    finally:
+        async with db_pool.acquire() as conn:
+            await conn.execute("delete from users where id = any($1::uuid[])", user_ids)
+            await conn.execute(
+                "delete from learning_scenarios where id = any($1::uuid[])", scenario_ids
+            )

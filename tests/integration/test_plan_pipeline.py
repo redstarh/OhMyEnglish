@@ -1,4 +1,6 @@
 """Task 7 — 계획·관찰 노트·수준 갱신을 **한 트랜잭션**에 저장한다 (설계서 §9 Contract).
+파일 끝에 Task 8 의 종단 1건이 붙는다 — 저장한 계획을 **다음 세션 시작이 읽는지**.
+
 
 `db_conn`(롤백되는 단일 트랜잭션)이 아니라 `db_pool` + `ended_session_with_history`를 쓴다.
 `process_plan`은 자기 트랜잭션을 여러 개 연다 — 입력 읽기 → **트랜잭션 밖** Claude 호출 →
@@ -35,8 +37,10 @@ from conftest import (
     plan_json,
 )
 
+from app.models.plan import SessionInstruction
 from app.services.plan import PLAN_NO_FOCUS_CANDIDATES, process_plan
 from app.services.plan_input import RECENT_WINDOW_DAYS, load_plan_input
+from app.services.sessions import load_prepared_plan
 
 # `asyncio_mode = "auto"`(pyproject.toml)라 `async def test_` 에 마커를 붙이지 않는다.
 #
@@ -432,3 +436,31 @@ async def test_claude_is_called_with_no_connection_held(
     assert idle == size, f"Claude 호출 중에 연결을 붙들고 있었다 (idle={idle}, size={size})"
     # 정상 경로였음을 확인한다 — 계획이 저장되지 않았다면 위 관측은 다른 흐름의 것이다.
     assert await _plan_row(db_pool, history.session_id) is not None
+
+
+# Task 8 — **워커가 방금 저장한 계획을 다음 세션 시작이 읽는다.** 종단으로 재는 이유:
+# 저장은 `json.dumps(instruction.model_dump())`(문자열)이고 읽기는 `model_validate`인데,
+# 픽스처가 심은 jsonb 로만 읽기를 재면 그 왕복이 아니라 **픽스처의 모양**을 재게 된다 —
+# 저장 쪽이 모양을 바꿔도 초록으로 남는다.
+async def test_the_next_session_start_reads_the_plan_the_worker_saved(
+    db_pool: asyncpg.Pool, fake_claude, ended_session_with_history: PlanHistory
+):
+    history = ended_session_with_history
+    response = plan_json(history.pattern_id, reason="관사를 계속 빼먹어서 오늘은 그것만 봅니다.")
+    job = await claim_plan_job(db_pool, history.session_id)
+
+    await process_plan(db_pool, fake_claude(response), job)
+
+    stored = await _plan_row(db_pool, history.session_id)
+    assert stored is not None, "저장이 안 됐으면 읽기를 잴 수 없다"
+    async with db_pool.acquire() as conn:
+        prepared = await load_prepared_plan(conn, history.user_id)
+
+    assert prepared is not None, "직전 세션이 만든 계획을 읽지 못했다"
+    assert prepared.plan_id == stored["id"]
+    assert prepared.reason == json.loads(response)["reason"]
+    # 지시문이 **구조로** 왕복한다 — 문자열이 그대로 새면 Task 10 의 조립이 문자열을
+    # 필드처럼 다루게 된다.
+    assert prepared.instruction == SessionInstruction.model_validate(
+        json.loads(response)["instruction"]
+    )

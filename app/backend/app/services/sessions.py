@@ -4,12 +4,14 @@
 여기 모은다 — 둘 다 `learning_sessions` 한 행의 생명주기 양끝일 뿐, 계층이
 다르다고 SQL을 갈라 둘 이유가 없다.
 
-* **생성**은 시나리오를 시드된 첫 행에 붙인다 — 첫 슬라이스에는 추천 로직이
-  없고(YAGNI), 어떤 질문 세트로 대화했는지 결과가 참조할 수 있도록 연결만
-  해둔다. 시드가 없으면 `scenario_id`는 null로 남고(컬럼 nullable) 세션은
-  그대로 진행된다. 고정 사용자 id는 이 모듈이 알지 못한다 — 호출자(`api/ws.py`)가
-  넘긴다: 단일 사용자 로컬 도구라는 사실은 API 계층의 관심사이고, 이 모듈은
-  "누구의 세션인가"를 주입받기만 한다.
+* **생성**은 시나리오를 **학습자 수준에 맞는 행**에 붙이고, 맞는 행이 없으면
+  가장 이른 행으로 떨어진다(설계서 §3.3). 시나리오가 아예 없으면 `scenario_id`는
+  null로 남고(컬럼 nullable) 세션은 그대로 진행된다. 고정 사용자 id는 이 모듈이
+  알지 못한다 — 호출자(`api/ws.py`)가 넘긴다: 단일 사용자 로컬 도구라는 사실은
+  API 계층의 관심사이고, 이 모듈은 "누구의 세션인가"를 주입받기만 한다.
+* **시작이 읽는 계획**은 `load_prepared_plan`이다 — 직전 세션이 만들어 둔
+  `session_plans` 최신 1행을 **조회만** 한다(§3.4). 없으면 `None`이고 세션은 위
+  폴백 시나리오로 그대로 시작한다(AS4).
 * **종료**는 `ended_at`과 `status`를 한 UPDATE로 묻는다 — 두 문장으로 갈라지면
   그 사이에 "끝났지만 active"인 상태가 관측된다. 시각은 DB 시계(timestamptz)로
   찍는다: 앱이 만든 naive datetime이 섞이는 경로를 아예 만들지 않는다. 그리고
@@ -20,14 +22,18 @@
 
 from __future__ import annotations
 
+import json
 import logging
 from collections.abc import Collection
+from dataclasses import dataclass
 from datetime import timedelta
 from typing import Literal
 from uuid import UUID
 
 import asyncpg
+import pydantic
 
+from app.models.plan import SessionInstruction
 from app.services.jobs import enqueue_plan_next_session
 
 logger = logging.getLogger(__name__)
@@ -42,7 +48,19 @@ ORPHAN_IDLE_GRACE = timedelta(seconds=60)
 
 _CREATE_SESSION_SQL = """
 insert into learning_sessions (user_id, scenario_id, mode)
-values ($1, (select id from learning_scenarios order by created_at, id limit 1), 'speaking')
+values ($1,
+        coalesce(
+          -- 학습자 수준에 맞는 시나리오를 먼저 찾는다 (설계서 §3.3).
+          (select s.id from learning_scenarios s
+            where s.level = (select u.current_level from users u where u.id = $1)
+            order by s.created_at, s.id limit 1),
+          -- 없으면 가장 이른 행으로 떨어진다 — 시드가 `A2` 3행뿐이라 수준이 올라가면
+          -- 일치가 0행이 되고 실제로 이 경로로 온다. 학습이 막히는 것보다 시나리오가
+          -- 조금 쉬운 편이 낫다(§9 Failure). 시나리오가 아예 없으면 둘 다 null 이고
+          -- `scenario_id`는 null 로 남는다(컬럼 nullable) — 세션은 그대로 진행된다.
+          (select s.id from learning_scenarios s order by s.created_at, s.id limit 1)
+        ),
+        'speaking')
 returning id
 """
 
@@ -72,6 +90,69 @@ update learning_sessions s
        ) < now() - $2::interval
 returning s.id
 """
+
+# 계획은 **그것을 만든 세션**을 가리킨다 — 세션 N이 끝날 때 만들어져 세션 N+1이 읽는다.
+# 생성 시점에 N+1은 존재하지 않으므로 소비 세션 id를 담을 수 없다(설계서 §8.1이 `not null`
+# + `unique`를 요구한다). 그래서 시작은 "**직전 세션이 만든 계획**"을 조회한다.
+#
+# 소비 표시를 하지 않으므로 언제나 최신 1행을 읽는다 — 표시를 두면 시작에 UPDATE가 생겨
+# "세션 시작은 조회 1회"(§3.4)가 깨지고, 007에 없는 컬럼을 발명하는 것이 된다. 계획을 쓰지
+# 않은 세션이 사이에 끼면 그 계획을 다시 읽는데, 계획은 이력에서 매번 재계산되므로
+# (증분 금지) 두 번 읽히는 것이 실질 문제를 만들지 않는다.
+_PREPARED_PLAN_SQL = """
+select sp.id as plan_id, sp.reason, sp.instruction
+  from session_plans sp
+  join learning_sessions ls on ls.id = sp.session_id
+ where ls.user_id = $1
+ order by sp.created_at desc
+ limit 1
+"""
+
+
+@dataclass(frozen=True, slots=True)
+class PreparedPlan:
+    """직전 세션이 만들어 둔 계획에서 **세션 시작이 쓰는 것만** 담는다.
+
+    초점 패턴 id·질문 목록·목표 수준은 담지 않는다 — 대화 상대에게 넘어가는 것은
+    `instruction`(§5.2 가변부)이고, 화면에 나가는 것은 `reason`이다(R11-3). `plan_id`는
+    로그와 조회 경로가 어느 계획이 쓰였는지 가리키기 위한 것이다.
+    """
+
+    plan_id: UUID
+    reason: str
+    instruction: SessionInstruction
+
+
+async def load_prepared_plan(conn: asyncpg.Connection, user_id: UUID) -> PreparedPlan | None:
+    """이 학습자에게 준비된 최신 계획을 돌려준다 — 없으면 `None` (설계서 §3.3·§3.4).
+
+    **조회만 한다.** 세션 시작에 Claude 호출도, 쓰기도 없다(§3.4).
+
+    **§9 Contract: 이 함수는 실패로 세션 시작을 막지 않는다.** 계획 부재(`None`)는 정상
+    경로이고 호출자는 고정 시나리오로 진행한다(AS4). 저장된 `instruction`이 지금의
+    `SessionInstruction` 계약을 만족하지 못하는 경우도 같게 다룬다 — 그 상황은 계약에
+    필수 필드가 늘었을 때 **이전에 저장된 모든 행**에서 한꺼번에 오므로, 예외로 새게 두면
+    그 순간부터 세션이 아예 시작되지 않는다. 대신 `warning`을 남긴다(H-Z: 문서가 지정한
+    실행에서 INFO는 보이지 않는다) — 계획이 매번 조용히 무시되는 것을 알 유일한 신호다.
+
+    `instruction`을 `json.loads` → `model_validate`로 좁히는 이유: 이 리포에는 jsonb
+    코덱이 설정돼 있지 않아(`set_type_codec` 0건) asyncpg가 `str`를 돌려준다. 문자열을
+    그대로 넘기면 지시문을 조립하는 쪽이 문자열을 필드처럼 다루게 된다.
+    """
+    row = await conn.fetchrow(_PREPARED_PLAN_SQL, user_id)
+    if row is None:
+        return None
+    try:
+        instruction = SessionInstruction.model_validate(json.loads(row["instruction"]))
+    except pydantic.ValidationError as error:
+        logger.warning(
+            "계획 %s의 지시문을 읽을 수 없어 계획 없이 시작한다 — 저장된 모양이 지금의 "
+            "SessionInstruction 계약과 다르다: %s",
+            row["plan_id"],
+            error,
+        )
+        return None
+    return PreparedPlan(plan_id=row["plan_id"], reason=row["reason"], instruction=instruction)
 
 
 async def create_session(pool: asyncpg.Pool, user_id: UUID) -> UUID:
