@@ -24,11 +24,13 @@
 이중 방어가 중복이 아닌 이유: pydantic은 **읽을 수 있는 오류**를 주고 DB CHECK는
 **다른 경로로 들어온 쓰기**까지 막는다(백필 스크립트 등).
 
-**엄격함이 스키마 검증에서 끝나지 않는 자리가 하나 있다** — 목표 수준이 현재 수준에서
-두 단계 이상 도약했는지는 출력만으로 판정할 수 없다(`parse_plan`이 `current_level`을
-인자로 받는 이유). h-doc이 경고한 "목표 수준을 현재 수준으로 착각"을 구조로 막는다
-— AWS 보고 수준 문형으로 예문을 만들면 첫 세션에서 얼어붙는다. 하향도 허용한다:
-상향만 되면 잘못 올라간 수준이 영구히 굳는다(설계서 §7).
+**엄격함이 스키마 검증에서 끝나지 않는 자리가 셋 있다** — ① 두 단계 도약 ② 지어낸
+`pattern_id` ③ 초점에 가장 깊은 재발이 없는 것. 셋 다 **출력만으로는 판정할 수 없어서**
+`parse_plan`이 인자를 셋 더 받는다(`current_level`·`allowed_pattern_ids`·
+`deepest_pattern_id` — 그 함수의 docstring이 각각의 근거를 소유한다). ①은 h-doc이 경고한
+"목표 수준을 현재 수준으로 착각"을 구조로 막는다 — AWS 보고 수준 문형으로 예문을 만들면
+첫 세션에서 얼어붙는다. 하향도 허용한다: 상향만 되면 잘못 올라간 수준이 영구히 굳는다
+(설계서 §7).
 
 `_json_candidates`의 관용 범위는 **`models/analysis.py`와 글자 그대로 같다** — 원문,
 그리고 전체가 코드펜스인 경우 그 본문뿐이다. 산문 중간의 JSON을 긁어내지 않는다.
@@ -197,7 +199,13 @@ def _one_step_or_same(current: str, target: str) -> bool:
     return abs(CEFR_LEVELS.index(target) - CEFR_LEVELS.index(current)) <= 1
 
 
-def parse_plan(raw: str, *, current_level: str, allowed_pattern_ids: set[UUID]) -> PlanOutput:
+def parse_plan(
+    raw: str,
+    *,
+    current_level: str,
+    allowed_pattern_ids: set[UUID],
+    deepest_pattern_id: UUID | None,
+) -> PlanOutput:
     """모델 출력 문자열 → 검증된 계획. 실패는 전부 `PlanValidationError`다.
 
     `current_level`을 인자로 받는 이유: 두 단계 도약 여부는 **출력만으로는 판정할 수
@@ -216,8 +224,23 @@ def parse_plan(raw: str, *, current_level: str, allowed_pattern_ids: set[UUID]) 
     비어 있으면 어떤 초점도 통과하지 못한다 — 그래서 호출자가 그 경우 Claude 를 부르지
     않는다(콜드스타트).
 
+    `deepest_pattern_id`도 같은 분업이다 — **초점이 "가장 깊은 재발"인지는 출력만으로 판정할
+    수 없다.** 요구사항 AC11-2는 *"가장 깊은 재발이 초점이 되고"*를 요구하는데 이 함수가
+    강제하던 것은 개수·비어 있지 않음·값역뿐이었고, 그래서 실물 1건이 우연히 최다 빈도를
+    고른 것과 **재현성**을 구분할 수 없었다(판정이 완료 → 부분으로 되돌아간 이유:
+    `docs/design/2026-09-06-review-outcomes.md` §2). 순위를 내는 것은 만성 목록을 소유한
+    `services/chronic.py`의 `deepest_recurrence`이고, 여기서는 **그 결과와 초점을 비교하는
+    판정만** 한다. 규칙 전문은 그 함수의 docstring이 소유한다.
+
+    ⚠️ **`None`은 "만성 목록이 비었다"는 뜻이고 그때 이 규칙을 적용하지 않는다.** 최상위가
+    존재하지 않으므로 강제할 대상이 없다 — 콜드스타트에서 계획 생성이 막히면 안 된다.
+    `allowed_pattern_ids`가 비는 것과는 다른 상황이다: 복습 예정만 있는 사용자는 허용 집합이
+    비지 않지만(`DueReview`에는 `frequency`가 없어) 깊이 축을 만들 수 없다.
+
     **키워드 인자를 필수로 둔다.** 기본값 `None`("검사 안 함")을 주면 잊은 호출자가 가드
-    없이 지나가고, 그 실패는 조용해서 테스트로도 안 드러난다.
+    없이 지나가고, 그 실패는 조용해서 테스트로도 안 드러난다. **`deepest_pattern_id`에
+    기본값을 주지 않는 이유가 바로 그것이다** — 이 인자는 `None`이 유효한 값이므로 기본값을
+    주면 잊은 호출자와 "만성 목록이 빈 호출자"가 **구분되지 않는다.**
     """
     if current_level not in CEFR_LEVELS:
         raise PlanValidationError(f"unknown current_level: {current_level!r}")
@@ -240,6 +263,18 @@ def parse_plan(raw: str, *, current_level: str, allowed_pattern_ids: set[UUID]) 
             raise PlanValidationError(
                 "focus references pattern_id that was not offered in the prompt: "
                 + ", ".join(str(pattern_id) for pattern_id in invented)
+            )
+        # AC11-2 — 초점 **1~2개 중 최소 하나**가 가장 깊은 재발이어야 한다. ⚠️ 첫 항목만
+        # 보지 않는다: 요구사항은 "초점이 그것을 포함한다"이고 "첫 초점이 그것이다"가 아니라
+        # 둘째 자리에 실은 정당한 계획을 거부하게 된다. 허용 집합 가드보다 **뒤에** 둔다 —
+        # 지어낸 id 는 더 근본적인 위반(존재하지 않는 패턴)이라 그쪽 사유가 먼저 보고돼야 한다.
+        if deepest_pattern_id is not None and all(
+            item.pattern_id != deepest_pattern_id for item in result.focus
+        ):
+            raise PlanValidationError(
+                "focus must include the deepest recurrence "
+                f"{deepest_pattern_id}, but it lists "
+                + ", ".join(str(item.pattern_id) for item in result.focus)
             )
         if not _one_step_or_same(current_level, result.level.target_level):
             raise PlanValidationError(

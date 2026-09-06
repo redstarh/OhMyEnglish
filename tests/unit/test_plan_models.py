@@ -13,8 +13,10 @@ import json
 from uuid import UUID, uuid4
 
 import pytest
+from conftest import chronic_metric
 
 from app.models.plan import CEFR_LEVELS, PlanValidationError, parse_plan
+from app.services.chronic import deepest_recurrence
 
 # Task 7 — `parse_plan`은 이제 **허용된 `pattern_id` 집합**을 함께 받는다. 지어낸 UUID는
 # pydantic(`UUID` 타입만 본다)도 DB(`focus_pattern_ids uuid[]`에 FK가 없다)도 통과하므로
@@ -26,6 +28,12 @@ from app.models.plan import CEFR_LEVELS, PlanValidationError, parse_plan
 # 거부되면 "통과하지만 이유가 틀린 테스트"가 된다(길이·값역 규칙을 재려던 것이므로).
 _IDS: list[UUID] = [uuid4(), uuid4(), uuid4()]
 _ALLOWED: set[UUID] = set(_IDS)
+
+# AC11-2 — `parse_plan`은 **가장 깊은 재발의 `pattern_id`**도 함께 받는다(파일 끝의 절이
+# 그 규칙을 소유한다). 아래 기존 호출이 전부 `_IDS[0]`을 넘기는 이유는 `_ALLOWED`와 같다:
+# `_payload()`의 초점이 `_IDS[0]` 하나이므로, 다른 값을 넘기면 이 파일의 다른 테스트들이
+# **최상위 누락 때문에** 거부되어 "통과하지만 이유가 틀린 테스트"가 된다.
+_DEEPEST: UUID = _IDS[0]
 
 
 def _payload(**overrides: object) -> str:
@@ -59,7 +67,9 @@ def _payload(**overrides: object) -> str:
 
 
 def test_valid_plan_parses():
-    result = parse_plan(_payload(), current_level="A2", allowed_pattern_ids=_ALLOWED)
+    result = parse_plan(
+        _payload(), current_level="A2", allowed_pattern_ids=_ALLOWED, deepest_pattern_id=_DEEPEST
+    )
 
     assert len(result.focus) == 1
     assert len(result.questions) == 3
@@ -71,7 +81,12 @@ def test_valid_plan_parses():
 @pytest.mark.parametrize("blank", ["", "   ", "\n"])
 def test_blank_reason_is_rejected(blank: str):
     with pytest.raises(PlanValidationError):
-        parse_plan(_payload(reason=blank), current_level="A2", allowed_pattern_ids=_ALLOWED)
+        parse_plan(
+            _payload(reason=blank),
+            current_level="A2",
+            allowed_pattern_ids=_ALLOWED,
+            deepest_pattern_id=_DEEPEST,
+        )
 
 
 # AS5 ② 질문 수가 3~5 밖이면 거부한다 (PRD.md:188 R11-2)
@@ -79,7 +94,12 @@ def test_blank_reason_is_rejected(blank: str):
 def test_question_count_outside_three_to_five_is_rejected(count: int):
     questions = [{"prompt": f"q{i}", "context": f"c{i}"} for i in range(count)]
     with pytest.raises(PlanValidationError):
-        parse_plan(_payload(questions=questions), current_level="A2", allowed_pattern_ids=_ALLOWED)
+        parse_plan(
+            _payload(questions=questions),
+            current_level="A2",
+            allowed_pattern_ids=_ALLOWED,
+            deepest_pattern_id=_DEEPEST,
+        )
 
 
 # 초점 패턴은 1~2개다 (PRD.md:188 · agent-system-prompt.md:19)
@@ -94,7 +114,12 @@ def test_focus_count_outside_one_to_two_is_rejected(count: int):
         for i in range(count)
     ]
     with pytest.raises(PlanValidationError):
-        parse_plan(_payload(focus=focus), current_level="A2", allowed_pattern_ids=_ALLOWED)
+        parse_plan(
+            _payload(focus=focus),
+            current_level="A2",
+            allowed_pattern_ids=_ALLOWED,
+            deepest_pattern_id=_DEEPEST,
+        )
 
 
 # AS5 ③ CEFR 값역 밖이면 거부한다 (001 의 CHECK 와 같은 값역)
@@ -110,7 +135,12 @@ def test_focus_count_outside_one_to_two_is_rejected(count: int):
 # "Input should be ..."에서 불일치 메시지로 바뀌어 이 `match=`가 깨진다).
 def test_unknown_level_is_rejected():
     with pytest.raises(PlanValidationError, match="Input should be"):
-        parse_plan(_payload(target_level="Z9"), current_level="A2", allowed_pattern_ids=_ALLOWED)
+        parse_plan(
+            _payload(target_level="Z9"),
+            current_level="A2",
+            allowed_pattern_ids=_ALLOWED,
+            deepest_pattern_id=_DEEPEST,
+        )
 
 
 # AS7 — 두 단계 도약은 거부한다. h-doc 이 경고한 "목표 수준을 현재 수준으로 착각"을 구조로 막는다.
@@ -120,7 +150,9 @@ def test_two_step_jump_is_rejected():
         level={"action": "up", "target_level": "B2", "reason": "빠르게 좋아졌습니다."},
     )
     with pytest.raises(PlanValidationError):
-        parse_plan(payload, current_level="A2", allowed_pattern_ids=_ALLOWED)
+        parse_plan(
+            payload, current_level="A2", allowed_pattern_ids=_ALLOWED, deepest_pattern_id=_DEEPEST
+        )
 
 
 # 한 단계 상향은 통과한다
@@ -137,7 +169,9 @@ def test_one_step_up_is_accepted():
         },
     )
     assert (
-        parse_plan(payload, current_level="A2", allowed_pattern_ids=_ALLOWED).level.target_level
+        parse_plan(
+            payload, current_level="A2", allowed_pattern_ids=_ALLOWED, deepest_pattern_id=_DEEPEST
+        ).level.target_level
         == "B1"
     )
 
@@ -156,7 +190,10 @@ def test_one_step_down_is_accepted():
         },
     )
     assert (
-        parse_plan(payload, current_level="A2", allowed_pattern_ids=_ALLOWED).level.action == "down"
+        parse_plan(
+            payload, current_level="A2", allowed_pattern_ids=_ALLOWED, deepest_pattern_id=_DEEPEST
+        ).level.action
+        == "down"
     )
 
 
@@ -167,7 +204,9 @@ def test_target_level_must_match_level_decision():
         level={"action": "up", "target_level": "B1", "reason": "좋아졌습니다."},
     )
     with pytest.raises(PlanValidationError):
-        parse_plan(payload, current_level="A2", allowed_pattern_ids=_ALLOWED)
+        parse_plan(
+            payload, current_level="A2", allowed_pattern_ids=_ALLOWED, deepest_pattern_id=_DEEPEST
+        )
 
 
 # Important 1(리뷰 2026-09-04) — `instruction.target_level`도 같은 값이어야 한다.
@@ -193,7 +232,9 @@ def test_instruction_target_level_must_match():
         },
     )
     with pytest.raises(PlanValidationError):
-        parse_plan(payload, current_level="A2", allowed_pattern_ids=_ALLOWED)
+        parse_plan(
+            payload, current_level="A2", allowed_pattern_ids=_ALLOWED, deepest_pattern_id=_DEEPEST
+        )
 
 
 # Important 2(리뷰 2026-09-04) — 두 단계 **하향** 도약도 거부한다. 기존 테스트 전부가
@@ -212,19 +253,31 @@ def test_two_step_down_jump_is_rejected():
         },
     )
     with pytest.raises(PlanValidationError):
-        parse_plan(payload, current_level="B2", allowed_pattern_ids=_ALLOWED)
+        parse_plan(
+            payload, current_level="B2", allowed_pattern_ids=_ALLOWED, deepest_pattern_id=_DEEPEST
+        )
 
 
 # 규격 밖 필드가 섞이면 거부한다 (슬라이스 1과 같은 extra="forbid" 규약)
 def test_unknown_field_is_rejected():
     with pytest.raises(PlanValidationError):
-        parse_plan(_payload(surprise="nope"), current_level="A2", allowed_pattern_ids=_ALLOWED)
+        parse_plan(
+            _payload(surprise="nope"),
+            current_level="A2",
+            allowed_pattern_ids=_ALLOWED,
+            deepest_pattern_id=_DEEPEST,
+        )
 
 
 # 코드펜스로 감싼 응답은 파싱한다 — 프롬프트가 "펜스 없이"를 요구해도 모델이 종종 붙인다.
 def test_code_fenced_json_parses():
     raw = "```json\n" + _payload() + "\n```"
-    assert parse_plan(raw, current_level="A2", allowed_pattern_ids=_ALLOWED).target_level == "A2"
+    assert (
+        parse_plan(
+            raw, current_level="A2", allowed_pattern_ids=_ALLOWED, deepest_pattern_id=_DEEPEST
+        ).target_level
+        == "A2"
+    )
 
 
 # 산문으로 감싼 응답은 **거부한다.** 계약을 지키지 않은 응답은 실패로 보고하는 것이
@@ -232,7 +285,9 @@ def test_code_fenced_json_parses():
 def test_prose_wrapped_json_is_rejected():
     raw = "여기 계획입니다:\n" + _payload() + "\n확인해 주세요."
     with pytest.raises(PlanValidationError):
-        parse_plan(raw, current_level="A2", allowed_pattern_ids=_ALLOWED)
+        parse_plan(
+            raw, current_level="A2", allowed_pattern_ids=_ALLOWED, deepest_pattern_id=_DEEPEST
+        )
 
 
 # Important 3(리뷰 2026-09-04) — 산문이 **코드펜스까지 감싸도** 거부한다. 위
@@ -243,7 +298,9 @@ def test_prose_wrapped_json_is_rejected():
 def test_prose_wrapped_fenced_json_is_rejected():
     raw = "여기 계획입니다:\n```json\n" + _payload() + "\n```\n확인해 주세요."
     with pytest.raises(PlanValidationError):
-        parse_plan(raw, current_level="A2", allowed_pattern_ids=_ALLOWED)
+        parse_plan(
+            raw, current_level="A2", allowed_pattern_ids=_ALLOWED, deepest_pattern_id=_DEEPEST
+        )
 
 
 # M7(리뷰 2026-09-04) — 하위 모델의 `extra="forbid"`도 실제로 걸리는지 확인한다.
@@ -261,7 +318,9 @@ def test_instruction_unknown_field_is_rejected():
         }
     )
     with pytest.raises(PlanValidationError):
-        parse_plan(payload, current_level="A2", allowed_pattern_ids=_ALLOWED)
+        parse_plan(
+            payload, current_level="A2", allowed_pattern_ids=_ALLOWED, deepest_pattern_id=_DEEPEST
+        )
 
 
 def test_question_item_unknown_field_is_rejected():
@@ -271,7 +330,12 @@ def test_question_item_unknown_field_is_rejected():
         {"prompt": "q2", "context": "c2"},
     ]
     with pytest.raises(PlanValidationError):
-        parse_plan(_payload(questions=questions), current_level="A2", allowed_pattern_ids=_ALLOWED)
+        parse_plan(
+            _payload(questions=questions),
+            current_level="A2",
+            allowed_pattern_ids=_ALLOWED,
+            deepest_pattern_id=_DEEPEST,
+        )
 
 
 # 미공개 이탈이었던 것을 여기서 등재한다(보고서 참조) — `SessionInstruction.focus`도
@@ -292,7 +356,9 @@ def test_instruction_focus_count_outside_one_to_two_is_rejected(count: int):
         }
     )
     with pytest.raises(PlanValidationError):
-        parse_plan(payload, current_level="A2", allowed_pattern_ids=_ALLOWED)
+        parse_plan(
+            payload, current_level="A2", allowed_pattern_ids=_ALLOWED, deepest_pattern_id=_DEEPEST
+        )
 
 
 # M5(리뷰 2026-09-04) — 001 `users.current_level` CHECK와 같은 값역인지 값 자체를
@@ -315,12 +381,19 @@ def test_blank_context_item_is_rejected():
         }
     )
     with pytest.raises(PlanValidationError):
-        parse_plan(payload, current_level="A2", allowed_pattern_ids=_ALLOWED)
+        parse_plan(
+            payload, current_level="A2", allowed_pattern_ids=_ALLOWED, deepest_pattern_id=_DEEPEST
+        )
 
 
 def test_blank_note_item_is_rejected():
     with pytest.raises(PlanValidationError):
-        parse_plan(_payload(notes=["   "]), current_level="A2", allowed_pattern_ids=_ALLOWED)
+        parse_plan(
+            _payload(notes=["   "]),
+            current_level="A2",
+            allowed_pattern_ids=_ALLOWED,
+            deepest_pattern_id=_DEEPEST,
+        )
 
 
 # M9(리뷰 2026-09-04) — `plan.py`와 `analysis.py`의 `_FENCED`가 "글자 그대로 같다"는
@@ -338,7 +411,12 @@ def test_fenced_regex_matches_analysis_module():
 # 전용 테스트가 없어 다음 리팩터가 초록 상태로 지울 위험이 있었다.
 def test_unknown_current_level_is_rejected():
     with pytest.raises(PlanValidationError):
-        parse_plan(_payload(), current_level="Z9", allowed_pattern_ids=_ALLOWED)
+        parse_plan(
+            _payload(),
+            current_level="Z9",
+            allowed_pattern_ids=_ALLOWED,
+            deepest_pattern_id=_DEEPEST,
+        )
 
 
 # ── Task 7 — 지어낸 `pattern_id` 거부 가드 ────────────────────────────────────
@@ -364,7 +442,9 @@ def test_focus_pattern_id_outside_the_allowed_set_is_rejected():
     )
 
     with pytest.raises(PlanValidationError, match=str(invented)):
-        parse_plan(payload, current_level="A2", allowed_pattern_ids=_ALLOWED)
+        parse_plan(
+            payload, current_level="A2", allowed_pattern_ids=_ALLOWED, deepest_pattern_id=_DEEPEST
+        )
 
 
 # ⚠️ **첫 항목만 보지 않는다.** 초점은 최대 2개이고, 첫 항목만 검사하는 구현은 두 번째에
@@ -383,7 +463,9 @@ def test_second_focus_item_is_checked_too():
     )
 
     with pytest.raises(PlanValidationError, match=str(invented)):
-        parse_plan(payload, current_level="A2", allowed_pattern_ids=_ALLOWED)
+        parse_plan(
+            payload, current_level="A2", allowed_pattern_ids=_ALLOWED, deepest_pattern_id=_DEEPEST
+        )
 
 
 # 음성 케이스 — 허용 집합 안의 id 2개는 통과한다. 이것이 없으면 "항상 거부한다"는 구현도
@@ -400,7 +482,9 @@ def test_two_allowed_focus_items_pass():
         ]
     )
 
-    result = parse_plan(payload, current_level="A2", allowed_pattern_ids=_ALLOWED)
+    result = parse_plan(
+        payload, current_level="A2", allowed_pattern_ids=_ALLOWED, deepest_pattern_id=_DEEPEST
+    )
 
     assert [item.pattern_id for item in result.focus] == [_IDS[0], _IDS[1]]
 
@@ -409,7 +493,9 @@ def test_two_allowed_focus_items_pass():
 # 부르지 않는 이유가 이것이다(계획서 Task 7 ②). 확실히 거부될 호출에 비용을 쓰지 않는다.
 def test_empty_allowed_set_rejects_every_focus():
     with pytest.raises(PlanValidationError):
-        parse_plan(_payload(), current_level="A2", allowed_pattern_ids=set())
+        parse_plan(
+            _payload(), current_level="A2", allowed_pattern_ids=set(), deepest_pattern_id=None
+        )
 
 
 # 스키마 검증이 **먼저** 온다 — 지어낸 id와 규격 위반이 함께 있으면 pydantic 오류가 나야
@@ -420,4 +506,145 @@ def test_schema_violation_is_reported_before_the_pattern_id_guard():
     )
 
     with pytest.raises(PlanValidationError, match="failed validation"):
-        parse_plan(payload, current_level="A2", allowed_pattern_ids=_ALLOWED)
+        parse_plan(
+            payload, current_level="A2", allowed_pattern_ids=_ALLOWED, deepest_pattern_id=_DEEPEST
+        )
+
+
+# ── AC11-2 — 가장 깊은 재발이 초점에 포함되어야 한다 ─────────────────────────
+#
+# 요구사항 AC11-2는 *"가장 깊은 재발이 초점이 되고"*를 요구하는데, 이 파일의 앞부분이
+# 강제하던 것은 **개수와 비어 있지 않음**뿐이었다 — 독립 리뷰가 그것을 잡아 판정이
+# 완료 → 부분으로 되돌아갔다(`docs/design/2026-09-06-review-outcomes.md` §2).
+#
+# 규칙의 정본은 그 §2다: **"가장 깊은 재발"은 만성 지표의 최다 `frequency`이고, 동률이면
+# `recurring_sessions` → `recurring_days` 순으로 깬다. 초점 1~2개 중 최소 하나가 그 최상위와
+# 일치해야 한다.** 순위 계산은 만성 목록을 소유한 `services/chronic.py`가 하고
+# (`deepest_recurrence`), `parse_plan`은 그 결과 하나를 받아 **판정만** 한다 —
+# `allowed_pattern_ids`와 같은 분업이다.
+#
+# ⚠️ **만성 목록이 비면 이 규칙을 적용하지 않는다**(`deepest_pattern_id=None`) — 최상위가
+# 존재하지 않으므로 강제할 대상이 없고, 콜드스타트에서 계획 생성이 막히면 안 된다.
+
+
+# ① 최상위가 초점에 **없으면 거부한다.** 이것이 이 절의 이유다.
+def test_focus_without_the_deepest_recurrence_is_rejected():
+    deepest = _IDS[1]
+    assert deepest != _IDS[0], "전제가 퇴화했다 — 두 id 가 같으면 이 테스트는 공허하다"
+
+    with pytest.raises(PlanValidationError) as exc:
+        parse_plan(
+            _payload(),  # 초점은 `_IDS[0]` 하나뿐이다
+            current_level="A2",
+            allowed_pattern_ids=_ALLOWED,
+            deepest_pattern_id=deepest,
+        )
+
+    # 거부 사유가 **무엇이 최상위였고 무엇이 왔는지**를 함께 말해야 한다 — 조용한 실패를
+    # 만들지 않는다. 둘 중 하나만 적으면 job 이력만 보고는 어느 쪽이 어긋났는지 모른다.
+    assert str(deepest) in str(exc.value)
+    assert str(_IDS[0]) in str(exc.value)
+
+
+# ② 최상위가 초점 **첫 항목**이면 통과한다.
+def test_the_deepest_recurrence_as_the_first_focus_item_passes():
+    payload = _payload(
+        focus=[
+            {"pattern_id": str(_IDS[0]), "pattern_key": "article_missing", "target_form": "a/the"},
+            {"pattern_id": str(_IDS[1]), "pattern_key": "verb_tense_past", "target_form": "went"},
+        ]
+    )
+
+    result = parse_plan(
+        payload, current_level="A2", allowed_pattern_ids=_ALLOWED, deepest_pattern_id=_IDS[0]
+    )
+
+    assert [item.pattern_id for item in result.focus] == [_IDS[0], _IDS[1]]
+
+
+# ③ 최상위가 초점 **둘째 항목**이어도 통과한다.
+#
+# ⚠️ 이것이 **첫 항목만 검사하는 구현을 잡는다.** 요구사항은 "초점 중 하나가 최상위"이고
+# "첫 초점이 최상위"가 아니다 — 첫 항목만 보는 구현은 정당한 계획을 거부한다(그리고 그
+# 거부는 실물 모델 응답에서만 드러나 대역 테스트로는 안 보인다).
+def test_the_deepest_recurrence_as_the_second_focus_item_passes():
+    payload = _payload(
+        focus=[
+            {"pattern_id": str(_IDS[0]), "pattern_key": "article_missing", "target_form": "a/the"},
+            {"pattern_id": str(_IDS[1]), "pattern_key": "verb_tense_past", "target_form": "went"},
+        ]
+    )
+
+    result = parse_plan(
+        payload, current_level="A2", allowed_pattern_ids=_ALLOWED, deepest_pattern_id=_IDS[1]
+    )
+
+    assert [item.pattern_id for item in result.focus] == [_IDS[0], _IDS[1]]
+
+
+# ④ **동률**일 때 `recurring_sessions`로 깬 최상위가 강제된다.
+#
+# 순위 계산(`deepest_recurrence`)과 강제(`parse_plan`)를 한 테스트에서 이어 붙인다 — 둘을
+# 따로만 재면 "순위는 맞지만 그 결과가 강제에 전달되지 않는" 배선 오류가 남는다.
+def test_the_tie_broken_top_is_the_one_that_is_enforced():
+    loser = chronic_metric(_IDS[0], frequency=3, recurring_sessions=1, recurring_days=9)
+    winner = chronic_metric(_IDS[1], frequency=3, recurring_sessions=4, recurring_days=1)
+    top = deepest_recurrence([loser, winner])
+    assert top is not None
+    assert top.pattern_id == _IDS[1], "동률 처리가 바뀌었다 — 아래 단정의 전제가 깨졌다"
+
+    # 동률에서 **진** 쪽만 초점으로 고른 계획은 거부된다.
+    with pytest.raises(PlanValidationError, match=str(_IDS[1])):
+        parse_plan(
+            _payload(),  # 초점은 `_IDS[0]` = loser
+            current_level="A2",
+            allowed_pattern_ids=_ALLOWED,
+            deepest_pattern_id=top.pattern_id,
+        )
+
+    # 이긴 쪽을 고른 계획은 통과한다 — 음성 케이스가 없으면 "항상 거부한다"도 위를 통과한다.
+    payload = _payload(
+        focus=[
+            {"pattern_id": str(_IDS[1]), "pattern_key": "verb_tense_past", "target_form": "went"}
+        ]
+    )
+    result = parse_plan(
+        payload,
+        current_level="A2",
+        allowed_pattern_ids=_ALLOWED,
+        deepest_pattern_id=top.pattern_id,
+    )
+    assert [item.pattern_id for item in result.focus] == [_IDS[1]]
+
+
+# ⑤ **만성 목록이 비면** 이 규칙은 적용되지 않는다 — 강제할 최상위가 없다.
+#
+# 콜드스타트에서 계획 생성이 막히면 안 된다(§2 경고 1). 복습 예정만 있는 사용자가
+# 여기에 해당한다: `DueReview`에는 `frequency`가 없어 깊이 축을 만들 수 없다.
+def test_an_empty_chronic_list_does_not_enforce_the_rule():
+    assert deepest_recurrence([]) is None, "빈 목록의 계약이 바뀌었다 — 아래 전제가 깨졌다"
+
+    result = parse_plan(
+        _payload(), current_level="A2", allowed_pattern_ids=_ALLOWED, deepest_pattern_id=None
+    )
+
+    assert [item.pattern_id for item in result.focus] == [_IDS[0]]
+
+
+# 순서 — 허용 집합 가드가 **먼저** 보고된다. 지어낸 id 는 최상위 누락보다 더 근본적인
+# 위반이고(존재하지 않는 패턴이다), 순서가 뒤집히면 job 이력의 사유가 "최상위 누락"으로
+# 바뀌어 어느 값이 문제였는지 읽을 수 없게 된다.
+def test_the_allowed_set_guard_is_reported_before_the_deepest_guard():
+    invented = uuid4()
+    assert invented not in _ALLOWED
+    payload = _payload(
+        focus=[{"pattern_id": str(invented), "pattern_key": "k", "target_form": "f"}]
+    )
+
+    with pytest.raises(PlanValidationError, match="was not offered in the prompt"):
+        parse_plan(
+            payload,
+            current_level="A2",
+            allowed_pattern_ids=_ALLOWED,
+            deepest_pattern_id=_IDS[1],  # 초점에 없다 — 두 가드가 함께 걸리는 입력이다
+        )

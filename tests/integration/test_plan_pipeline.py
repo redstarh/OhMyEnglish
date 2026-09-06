@@ -38,6 +38,7 @@ from conftest import (
 )
 
 from app.models.plan import SessionInstruction
+from app.services.chronic import deepest_recurrence
 from app.services.plan import PLAN_NO_FOCUS_CANDIDATES, process_plan
 from app.services.plan_input import RECENT_WINDOW_DAYS, load_plan_input
 from app.services.sessions import load_prepared_plan
@@ -84,6 +85,7 @@ async def test_plan_note_and_level_all_land_and_the_job_is_done(
     assert await _level(db_pool, history.user_id) == "A2", "001 의 기본 수준 전제가 깨졌다"
     response = plan_json(
         history.pattern_id,
+        deepest_pattern_id=history.chronic_pattern_id,
         level_action="up",
         target_level="B1",
         level_reason="짧은 문장은 안정적이라 한 단계 올립니다.",
@@ -109,7 +111,10 @@ async def test_plan_note_and_level_all_land_and_the_job_is_done(
     # 초록). asyncpg 0.31 은 `uuid[]` 파라미터에 문자열도 받아 같은 값을 저장하므로 관측
     # 가능한 차이가 없다 — 계획서 브리프의 "`str()`을 씌우지 마라"는 스타일 지침이고
     # 테스트로 고정할 수 있는 계약이 아니다. 여기서 지키는 계약은 **저장된 값의 동일성**뿐이다.
-    assert plan["focus_pattern_ids"] == [history.pattern_id]
+    # 초점이 **둘**인 이유는 AC11-2다 — 이 픽스처의 만성 최상위(`chronic_pattern_id`)가 초점에
+    # 실려야 `parse_plan`을 통과한다(`plan_json`의 `deepest_pattern_id` docstring). 순서까지
+    # 그대로 잰다: 최상위가 **둘째 자리**에 있어도 저장까지 간다는 것이 이 줄의 내용이다.
+    assert plan["focus_pattern_ids"] == [history.pattern_id, history.chronic_pattern_id]
     assert all(isinstance(value, UUID) for value in plan["focus_pattern_ids"])
     # ⚠️ 첫 항목만 보지 않는다 — 2·3번째를 떼도 통과하는 단정이 이 슬라이스의 사고였다.
     assert json.loads(plan["questions"]) == _expected_questions(response)
@@ -150,7 +155,13 @@ async def test_notes_are_append_only_across_two_sessions(
         job = await claim_plan_job(db_pool, session_id)
         await process_plan(
             db_pool,
-            fake_claude(plan_json(history.pattern_id, level_reason=level_reason)),
+            fake_claude(
+                plan_json(
+                    history.pattern_id,
+                    deepest_pattern_id=history.chronic_pattern_id,
+                    level_reason=level_reason,
+                )
+            ),
             job,
         )
 
@@ -176,7 +187,9 @@ async def test_rejected_plan_stores_nothing_and_records_the_reason(
     db_pool: asyncpg.Pool, fake_claude, ended_session_with_history: PlanHistory
 ):
     history = ended_session_with_history
-    claude = fake_claude(plan_json(history.pattern_id, reason=""))  # 이유 빈값 → 계약 위반
+    claude = fake_claude(
+        plan_json(history.pattern_id, deepest_pattern_id=history.chronic_pattern_id, reason="")
+    )  # 이유 빈값 → 계약 위반
     job = await claim_plan_job(db_pool, history.session_id)
 
     await process_plan(db_pool, claude, job)
@@ -212,6 +225,11 @@ async def test_invented_pattern_id_is_rejected_and_nothing_is_stored(
         row = await job_row(conn, job.id)
     # 사유에 그 id 가 들어 있어야 어느 값이 문제였는지 job 이력에서 읽을 수 있다.
     assert str(invented) in row["last_error"]
+    # ⚠️ **id 만 재면 안 된다.** AC11-2 의 최심 가드가 들어온 뒤로는 그쪽 거부 사유에도 초점
+    # id 가 열거된다("but it lists …") — 허용 집합 가드를 지워도 지어낸 id 가 여전히 사유에
+    # 나타나 위 단정만으로는 초록이 된다(그 픽스처의 만성 목록이 비어 있지 않으므로 최심
+    # 가드가 반드시 걸린다). 어느 가드가 거부했는지를 문구로 고정한다.
+    assert "was not offered in the prompt" in row["last_error"]
 
 
 # 허용 id 집합은 `due_reviews ∪ chronic`이다 — **두 절 모두** 실제로 쓰인다.
@@ -245,6 +263,45 @@ async def test_focus_from_the_chronic_list_alone_is_accepted(
     assert plan["focus_pattern_ids"] == [history.chronic_pattern_id]
 
 
+# AC11-2 — **가장 깊은 재발이 초점에 없으면** 계획을 저장하지 않는다.
+#
+# ⚠️ **이 테스트가 없으면 규칙이 `parse_plan` 안에만 살아 있고 배선은 무보호다.** 2026-09-06
+# 뮤테이션으로 직접 확인했다: `process_plan`의 `deepest_pattern_id=…`를 `None`으로 바꿔도
+# **593건이 전부 통과했다.** 단위 테스트는 그 값을 **인자로 직접 넘기므로** 호출자가 실제로
+# 순위를 계산해 넘기는지는 재지 못한다 — `| {metric.pattern_id …}` 절이 지워져도 549건이
+# 통과했던 2026-09-05 의 사고와 **같은 형태**다(위 테스트의 머리말).
+#
+# 고른 초점(`pattern_id`)은 허용 집합 안에 있다(복습 예정 목록) — 그래서 이 거부는 허용 집합
+# 가드가 아니라 최심 가드의 것이고, 사유 문구로 그것을 고정한다.
+async def test_a_focus_that_misses_the_deepest_recurrence_is_rejected(
+    db_pool: asyncpg.Pool, fake_claude, ended_session_with_history: PlanHistory
+):
+    history = ended_session_with_history
+    async with db_pool.acquire() as conn:
+        data = await load_plan_input(conn, history.user_id)
+
+    # 선행 확인 — 최상위가 정말 chronic 패턴이어야 아래 단정이 의미를 갖는다.
+    top = deepest_recurrence(data.chronic)
+    assert top is not None, "만성 목록이 비었다 — 그러면 이 규칙은 적용되지 않는다"
+    assert top.pattern_id == history.chronic_pattern_id
+    assert history.pattern_id in {review.pattern_id for review in data.due_reviews}
+
+    claude = fake_claude(plan_json(history.pattern_id))  # 최상위를 싣지 않은 응답
+    job = await claim_plan_job(db_pool, history.session_id)
+
+    await process_plan(db_pool, claude, job)
+
+    assert len(claude.prompts) == 1, "이 경로는 콜드스타트가 아니다 — Claude 가 불렸어야 한다"
+    assert await _plan_row(db_pool, history.session_id) is None
+    assert await _note_rows(db_pool, history.user_id) == []
+    assert await _level(db_pool, history.user_id) == "A2"
+    async with db_pool.acquire() as conn:
+        row = await job_row(conn, job.id)
+    assert "focus must include the deepest recurrence" in row["last_error"]
+    # 무엇이 최상위였는지가 사유에 있어야 job 이력만으로 판단할 수 있다.
+    assert str(history.chronic_pattern_id) in row["last_error"]
+
+
 # 부분 반영이 없다 — 계획 insert 가 실패하면 노트도 수준 갱신도 남지 않는다(§9 Contract).
 #
 # 실패를 만드는 방법: 그 세션에 계획 행을 **미리** 넣어 `unique(session_id)`를 건드린다.
@@ -270,7 +327,14 @@ async def test_no_partial_write_when_the_plan_insert_fails(
             questions,
         )
     job = await claim_plan_job(db_pool, history.session_id)
-    claude = fake_claude(plan_json(history.pattern_id, level_action="up", target_level="B1"))
+    claude = fake_claude(
+        plan_json(
+            history.pattern_id,
+            deepest_pattern_id=history.chronic_pattern_id,
+            level_action="up",
+            target_level="B1",
+        )
+    )
 
     await process_plan(db_pool, claude, job)
 
@@ -323,7 +387,14 @@ async def test_a_lost_lease_rolls_everything_back_without_reporting_failure(
             stolen_token,
         )
     assert updated == stolen_token, "lease 탈취를 만들지 못했다"
-    claude = fake_claude(plan_json(history.pattern_id, level_action="up", target_level="B1"))
+    claude = fake_claude(
+        plan_json(
+            history.pattern_id,
+            deepest_pattern_id=history.chronic_pattern_id,
+            level_action="up",
+            target_level="B1",
+        )
+    )
 
     await process_plan(db_pool, claude, job)
 
@@ -348,7 +419,14 @@ async def test_disagreeing_level_action_label_is_warned_but_stored(
 ):
     history = ended_session_with_history
     # A2 → B1 은 **상향**인데 라벨은 "down" 이다.
-    claude = fake_claude(plan_json(history.pattern_id, level_action="down", target_level="B1"))
+    claude = fake_claude(
+        plan_json(
+            history.pattern_id,
+            deepest_pattern_id=history.chronic_pattern_id,
+            level_action="down",
+            target_level="B1",
+        )
+    )
     job = await claim_plan_job(db_pool, history.session_id)
 
     with caplog.at_level(logging.WARNING, logger="app.services.plan"):
@@ -383,7 +461,14 @@ async def test_matching_level_action_label_produces_no_warning(
     caplog: pytest.LogCaptureFixture,
 ):
     history = ended_session_with_history
-    claude = fake_claude(plan_json(history.pattern_id, level_action="up", target_level="B1"))
+    claude = fake_claude(
+        plan_json(
+            history.pattern_id,
+            deepest_pattern_id=history.chronic_pattern_id,
+            level_action="up",
+            target_level="B1",
+        )
+    )
     job = await claim_plan_job(db_pool, history.session_id)
 
     with caplog.at_level(logging.WARNING, logger="app.services.plan"):
@@ -424,7 +509,13 @@ async def test_claude_is_called_with_no_connection_held(
 ):
     history = ended_session_with_history
     claude = _PoolProbingClaude(
-        db_pool, plan_json(history.pattern_id, level_action="up", target_level="B1")
+        db_pool,
+        plan_json(
+            history.pattern_id,
+            deepest_pattern_id=history.chronic_pattern_id,
+            level_action="up",
+            target_level="B1",
+        ),
     )
     job = await claim_plan_job(db_pool, history.session_id)
 
@@ -446,7 +537,11 @@ async def test_the_next_session_start_reads_the_plan_the_worker_saved(
     db_pool: asyncpg.Pool, fake_claude, ended_session_with_history: PlanHistory
 ):
     history = ended_session_with_history
-    response = plan_json(history.pattern_id, reason="관사를 계속 빼먹어서 오늘은 그것만 봅니다.")
+    response = plan_json(
+        history.pattern_id,
+        deepest_pattern_id=history.chronic_pattern_id,
+        reason="관사를 계속 빼먹어서 오늘은 그것만 봅니다.",
+    )
     job = await claim_plan_job(db_pool, history.session_id)
 
     await process_plan(db_pool, fake_claude(response), job)

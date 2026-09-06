@@ -60,7 +60,7 @@ from uuid import UUID
 import asyncpg
 
 from app.models.plan import CEFR_LEVELS, LevelDecision, PlanOutput, PlanValidationError, parse_plan
-from app.services.chronic import ChronicMetric
+from app.services.chronic import ChronicMetric, deepest_recurrence
 from app.services.jobs import ClaimedJob, complete, report_failure
 from app.services.plan_input import (
     PlanInput,
@@ -407,9 +407,18 @@ async def process_plan(pool: asyncpg.Pool, claude: ClaudeClient, job: ClaimedJob
         await report_failure(pool, job, f"{type(exc).__name__}: {exc}")
         return
 
+    # AC11-2 — "가장 깊은 재발"의 순위는 만성 목록을 소유한 쪽이 낸다(`chronic.py`). 여기서
+    # 계산해 넘기는 이유는 허용 집합과 같다: `parse_plan`은 출력만 보므로 **무엇이 최상위인지
+    # 알 수 없다**(`set[UUID]`에는 순서가 없고, 애초에 깊이 축은 프롬프트에 실린 만성 지표에만
+    # 있다). 만성 목록이 비면 `None`이고 그때 그 규칙은 적용되지 않는다 — 복습 예정만 있는
+    # 사용자는 허용 집합이 비지 않으므로 위 콜드스타트 분기로도 걸리지 않는다.
+    deepest = deepest_recurrence(data.chronic)
     try:
         plan = parse_plan(
-            raw, current_level=data.current_level, allowed_pattern_ids=allowed_pattern_ids
+            raw,
+            current_level=data.current_level,
+            allowed_pattern_ids=allowed_pattern_ids,
+            deepest_pattern_id=None if deepest is None else deepest.pattern_id,
         )
     except PlanValidationError as exc:
         # 예상된 결과다 — 반쯤 검증된 계획을 쓰지 않는다(§9 Failure). 스택트레이스 없이 사유만.

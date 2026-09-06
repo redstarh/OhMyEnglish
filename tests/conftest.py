@@ -756,6 +756,7 @@ async def claim_plan_job(pool: asyncpg.Pool, session_id: UUID) -> ClaimedJob:
 def plan_json(
     pattern_id: UUID,
     *,
+    deepest_pattern_id: UUID | None = None,
     level_action: str = "keep",
     target_level: str = "A2",
     reason: str = "관사를 계속 빼먹어서 오늘은 그것만 봅니다.",
@@ -771,16 +772,35 @@ def plan_json(
 
     `level_action`은 **라벨**이다(계획서 Task 7 — `target_level`이 정본). 어긋난 조합을
     일부러 만들 수 있어야 그 어긋남이 경고로 드러나는지 잴 수 있다.
+
+    **`deepest_pattern_id`는 AC11-2 때문에 생겼다.** `parse_plan`이 초점 1~2개 중 하나가
+    **가장 깊은 재발**이기를 요구하므로(`docs/design/2026-09-06-review-outcomes.md` §2),
+    `ended_session_with_history`에서 유효한 응답을 만들려면 그 최상위를 초점에 실어야 한다 —
+    그 픽스처의 만성 목록에는 `plan_pipeline_chronic` 하나뿐이라 **그것이 최상위**이고, 첫
+    인자로 주는 due 패턴만 실은 응답은 이제 거부된다.
+    ⚠️ 그래서 초점이 **둘**이 된다(due + 최상위). 그것이 오히려 실물에 가깝고, 최상위가
+    **둘째 자리**에 있어도 통과하는지를 파이프라인 종단에서 함께 재게 된다. 두 인자가 같은
+    id 면 항목을 늘리지 않는다 — `focus_pattern_ids`에 같은 값이 두 번 들어가면 저장된 배열이
+    실제 초점 수를 잘못 말한다.
     """
+    focus = [
+        {
+            "pattern_id": str(pattern_id),
+            "pattern_key": "plan_pipeline_due",
+            "target_form": "go to the gym",
+        }
+    ]
+    if deepest_pattern_id is not None and deepest_pattern_id != pattern_id:
+        focus.append(
+            {
+                "pattern_id": str(deepest_pattern_id),
+                "pattern_key": "plan_pipeline_chronic",
+                "target_form": "went",
+            }
+        )
     return json.dumps(
         {
-            "focus": [
-                {
-                    "pattern_id": str(pattern_id),
-                    "pattern_key": "plan_pipeline_due",
-                    "target_form": "go to the gym",
-                }
-            ],
+            "focus": focus,
             "questions": [
                 {"prompt": "What did you do at work today?", "context": "work update"},
                 {"prompt": "Tell me about your morning.", "context": "daily life"},
@@ -803,6 +823,45 @@ def plan_json(
             "notes": list(notes),
         },
         ensure_ascii=False,
+    )
+
+
+# ── AC11-2 (가장 깊은 재발) 헬퍼 ─────────────────────────────────────────────
+#
+# `tests/unit/test_chronic.py`(순위 계산)와 `tests/unit/test_plan_models.py`(그 최상위를
+# 강제하는 검증)가 함께 쓴다. 한 곳에 두는 이유: 두 파일이 각자 `ChronicMetric`을 조립하면
+# 깊이 축 세 필드의 기본값이 갈라지고, 그러면 한쪽이 재려는 **동률**이 다른 쪽에서는 동률이
+# 아니게 되어 같은 규칙을 서로 다르게 재게 된다.
+
+
+def chronic_metric(
+    pattern_id: UUID,
+    *,
+    frequency: int,
+    recurring_sessions: int = 1,
+    recurring_days: int = 1,
+) -> ChronicMetric:
+    """깊이 축 세 필드만 지정하는 `ChronicMetric`. 나머지는 순위에 쓰이지 않는 고정값이다.
+
+    `mastery_score`를 0.0 으로 고정한다 — 개발 DB 의 패턴 7 개가 **전부 `0.00`**이라 순위
+    축으로 쓸 수 없다는 실측이 이 규칙의 근거였다
+    (`docs/design/2026-09-06-review-outcomes.md` §2). 그 값을 여기서 흔들면 "왜 빈도인가"를
+    재는 테스트가 다른 축으로 갈릴 수 있다.
+    """
+    now = datetime.now(UTC)
+    return ChronicMetric(
+        pattern_id=pattern_id,
+        pattern_key=f"chronic_{frequency}f_{recurring_sessions}s_{recurring_days}d",
+        category="grammar",
+        frequency=frequency,
+        mastery_score=0.0,
+        next_review_at=None,
+        recurring_sessions=recurring_sessions,
+        recurring_days=recurring_days,
+        first_seen=now - timedelta(days=10),
+        last_seen=now,
+        span=timedelta(days=10),
+        max_gap=None,
     )
 
 

@@ -4,17 +4,22 @@
 나왔다), 휴면 후 재발의 최대 공백, 그리고 **재발 일수가 사용자 타임존 기준**이라는 것(함정 H-S).
 
 기대값은 계산이 아니라 실측이다 — 2026-09-04에 dev DB의 실제 표에 같은 쿼리를 걸어 확인했다.
+
+파일 끝에 AC11-2의 **깊이 순위**(`deepest_recurrence`)가 붙는다 — 그쪽은 이미 계산된 지표
+목록 위의 순수 함수라 DB를 쓰지 않는다. 규칙의 정본은
+`docs/design/2026-09-06-review-outcomes.md` §2다.
 """
 
 from __future__ import annotations
 
 from datetime import datetime, timedelta
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import asyncpg
 import pytest
+from conftest import chronic_metric
 
-from app.services.chronic import load_chronic_metrics
+from app.services.chronic import deepest_recurrence, load_chronic_metrics
 
 USER_ID = UUID("00000000-0000-0000-0000-000000000001")
 PATTERN_KEY = "article_missing_before_place_noun"
@@ -209,3 +214,68 @@ async def test_single_occurrence_has_no_max_gap(db_conn, seed_occurrences_on_day
 
     assert metrics[0].max_gap is None
     assert metrics[0].span == timedelta(0)
+
+
+# ── AC11-2 — "가장 깊은 재발"의 순위 ────────────────────────────────────────
+#
+# 규칙의 정본은 `docs/design/2026-09-06-review-outcomes.md` §2다: **최다 `frequency`이고,
+# 동률이면 `recurring_sessions` → `recurring_days` 순으로 깬다.** 아래 4건은 DB 를 쓰지
+# 않는다(`db_conn`을 요청하지 않는다) — `deepest_recurrence`는 이미 계산된 지표 목록 위의
+# 순수 함수다.
+#
+# ⚠️ **최상위를 목록의 첫 자리에 두지 않는다.** 첫 항목을 그냥 돌려주는 구현이 그래도
+# 통과하면 이 테스트는 순위를 재는 것이 아니라 목록 순서를 재는 것이 된다.
+
+
+def test_deepest_recurrence_is_none_for_an_empty_list():
+    # 콜드스타트 — 만성 목록이 비면 강제할 최상위가 존재하지 않는다(§2 경고 1).
+    assert deepest_recurrence([]) is None
+
+
+def test_deepest_recurrence_picks_the_highest_frequency():
+    low = chronic_metric(uuid4(), frequency=1)
+    high = chronic_metric(uuid4(), frequency=7)
+    middle = chronic_metric(uuid4(), frequency=3)
+
+    top = deepest_recurrence([low, middle, high])
+
+    assert top is not None
+    assert top.pattern_id == high.pattern_id
+
+
+def test_a_frequency_tie_is_broken_by_recurring_sessions():
+    fewer_sessions = chronic_metric(uuid4(), frequency=3, recurring_sessions=2, recurring_days=9)
+    more_sessions = chronic_metric(uuid4(), frequency=3, recurring_sessions=5, recurring_days=1)
+
+    top = deepest_recurrence([fewer_sessions, more_sessions])
+
+    # `recurring_days`가 더 큰 쪽이 아니라 `recurring_sessions`가 더 큰 쪽이 이긴다 —
+    # 두 축의 우선순위가 뒤집히면 이 단정이 깨진다.
+    assert top is not None
+    assert top.pattern_id == more_sessions.pattern_id
+
+
+def test_a_frequency_and_session_tie_is_broken_by_recurring_days():
+    fewer_days = chronic_metric(uuid4(), frequency=3, recurring_sessions=2, recurring_days=2)
+    more_days = chronic_metric(uuid4(), frequency=3, recurring_sessions=2, recurring_days=6)
+
+    top = deepest_recurrence([fewer_days, more_days])
+
+    assert top is not None
+    assert top.pattern_id == more_days.pattern_id
+
+
+# 복습 예정(`due_reviews`)은 최심 판정에 섞이지 않는다 — 시간 축이지 깊이 축이 아니다(§2
+# 근거 3). 그 경계는 **인터페이스로** 지켜진다: 이 함수는 `ChronicMetric`만 받으므로
+# `DueReview`(애초에 `frequency`가 없다)를 넣을 자리가 없다.
+def test_deepest_recurrence_only_reads_the_chronic_depth_fields():
+    metrics = [chronic_metric(uuid4(), frequency=2), chronic_metric(uuid4(), frequency=4)]
+
+    top = deepest_recurrence(metrics)
+
+    assert top is not None
+    # 순위에 쓰인 세 필드만으로 승자가 결정됐다 — `next_review_at`은 None 이고
+    # `mastery_score`는 두 항목이 같다(전부 0.00 이라 판별력이 없다는 실측).
+    assert top.next_review_at is None
+    assert {metric.mastery_score for metric in metrics} == {0.0}
+    assert top.frequency == 4

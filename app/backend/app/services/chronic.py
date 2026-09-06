@@ -16,6 +16,12 @@
 Claude가 하고, 그 호출은 슬라이스 2의 계획 생성이 소유한다. §6.2의 결정론적 신호
 ("3단계를 소진한 뒤 재발")도 슬라이스 2의 몫이다 — `pattern_attempts`와
 `error_occurrences`에서 언제든 재계산되므로 여기서 미리 만들지 않는다.
+
+⚠️ `deepest_recurrence`는 그 규칙의 예외가 아니다 — **임계값을 두지 않고 순서만 낸다.**
+"만성인가"를 정하지 않고 "이미 계산된 지표 중 어느 것이 가장 깊은가"만 답한다. 이 함수가
+이 모듈에 있는 이유는 `ChronicMetric`을 소유한 쪽이 그 필드의 우선순위도 소유해야 하기
+때문이다 — 깊이 축을 바꾸면 여기 한 곳만 고친다. AC11-2가 그 최상위를 초점에 강제하는
+자리는 `models/plan.py`의 `parse_plan`이고, 그 둘을 잇는 배선은 `services/plan.py`다.
 """
 
 from __future__ import annotations
@@ -89,6 +95,36 @@ class ChronicMetric:
     last_seen: datetime
     span: timedelta
     max_gap: timedelta | None
+
+
+def _depth(metric: ChronicMetric) -> tuple[int, int, int]:
+    """깊이 축 — 빈도, 그다음 연속 세션 수, 그다음 연속 일수. 큰 쪽이 더 깊다."""
+    return (metric.frequency, metric.recurring_sessions, metric.recurring_days)
+
+
+def deepest_recurrence(chronic: list[ChronicMetric]) -> ChronicMetric | None:
+    """AC11-2의 **"가장 깊은 재발"** 1건. 만성 목록이 비면 `None`.
+
+    규칙의 정본은 `docs/design/2026-09-06-review-outcomes.md` §2다 — 여기서 발명한 것이
+    아니고, 그 §2가 개발 DB 실측으로 정했다:
+
+    * **`frequency`가 축이다.** `mastery_score`는 패턴 7개가 **전부 `0.00`**이라 어떤 순위도
+      만들지 못한다(판별력 0). `frequency`는 `7·3·3·2·2·1·1`로 갈린다.
+    * **동률은 `recurring_sessions` → `recurring_days`로 깬다.** 같은 빈도라도 여러 세션·여러
+      날에 걸쳐 나온 쪽이 더 뿌리 깊게 재발한다.
+    * **복습 예정(`DueReview`)은 섞지 않는다** — 그것은 **시간** 축이고 깊이 축이 아니다.
+      이 함수가 `ChronicMetric`만 받는 것이 그 경계다(`DueReview`에는 `frequency`가 아예 없다).
+
+    `None`을 돌려주는 경우가 **콜드스타트**다: 최상위가 존재하지 않으므로 강제할 대상이 없고,
+    그때 계획 생성을 막으면 첫 세션부터 계획이 못 만들어진다. 그래서 이 값을 받는
+    `parse_plan`은 `None`을 "이 규칙을 적용하지 않는다"로 읽는다.
+
+    ⚠️ **남는 약점 하나**: 세 축이 **전부** 같은 두 패턴은 이 함수로 구분되지 않는다. 그때는
+    `load_chronic_metrics`의 `order by p.pattern_key`가 정한 순서에서 앞선 것이 이긴다(`max`는
+    첫 최대값을 돌려준다) — 결정론적이긴 하지만, 같은 깊이의 다른 패턴을 초점으로 고른 계획이
+    거부될 수 있다. §2가 정한 동률 규칙은 두 축까지이므로 그 이상을 발명하지 않았다.
+    """
+    return max(chronic, key=_depth, default=None)
 
 
 async def load_chronic_metrics(conn: asyncpg.Connection, user_id: UUID) -> list[ChronicMetric]:

@@ -350,7 +350,14 @@ async def test_worker_routes_a_plan_job_to_process_plan(
             history.session_id,
         )
     assert job_id is not None, "end_session이 계획 job을 걸지 않았다"
-    claude = fake_claude(plan_json(history.pattern_id, level_action="up", target_level="B1"))
+    claude = fake_claude(
+        plan_json(
+            history.pattern_id,
+            deepest_pattern_id=history.chronic_pattern_id,
+            level_action="up",
+            target_level="B1",
+        )
+    )
     stop = asyncio.Event()
     task = asyncio.create_task(run_worker(db_pool, claude, stop=stop, poll_interval=0.01))
 
