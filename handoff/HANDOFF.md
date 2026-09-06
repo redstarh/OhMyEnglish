@@ -31,9 +31,10 @@ C3용 보존 `session_id` **5개**(§9 표 · §11-8)를 이 태스크가 채운
 ### 미결 — **원장을 ✅로 올리기 전에 닫아야 한다**
 
 ⛔ **`TASK-21`은 AC 5/5이지만 `In Progress`다 — 리뷰 1차를 수신·반영했고 재검토가 미수신이다.**
-1차에서 **HIGH 1건·MEDIUM 1건**이 나왔다(실행체가 값을 **인쇄만** 하고 판정하지 않았다 —
-A2-2 음성 대조 ②가 코드에 없었고 §6-0의 ERROR 게이트도 출력이었다). 둘 다 직접 대조해 수용하고
-`check_leg`·`check_cross`를 넣어 닫았다 — 상세는 회차 기록 §3-c가 소유한다.
+1차에서 **HIGH 1 · MEDIUM 4 · LOW 2**가 나왔고 **7건 전부 직접 대조해 수용·수정했다.**
+뿌리는 하나였다 — **실행체가 값을 인쇄만 하고 판정하지 않았다.** 상세는 회차 기록 **§3-c·§3-d**가
+소유한다. ⭐ 고치는 과정에서 **백엔드를 내린 회차가 색 단정 전건 True를 냈다** — 즉 게이트가 없던
+판은 백엔드 없이도 초록이었다(관측). 새 게이트의 `session_started == 1`이 잡는다.
 **idle이 "끝났다"가 아니다.** 재검토 회신 뒤 **`APPROVE`가 나야** Done으로 올린다.
 회신이 없으면 **미수신 사실을 원장 노트에 남기고 Done으로 올리지 않는다.**
 
@@ -119,11 +120,11 @@ cd ../frontend && npx tsc --noEmit ; npx eslint app lib     # 둘 다 exit 0
 | DB | `:5432` homebrew **17** · 역할 `ohmy` · `TimeZone=UTC` · 표 **16개** · 마이그레이션 **001·003~007**(002는 존재한 적 없다) · ⚠️ 같은 DB에 남의 `en_coach` 스키마 — 우리 것은 `public` 하나 |
 | DB 행 수 (teardown 후) | `learning_sessions` **7** · `analysis_jobs` **34** · `utterances` **92** · `error_patterns` **7** · drift **0** |
 | ⚠️ 보존 대상 | `session_plans` **1행** · `learner_notes` **1행** — 실물 모델 왕복의 **유일한 증거**. **지우지 마라** |
-| 서버 | 백엔드 :8002 pid **11950** · `VOICE_ADAPTER=stub` · `WORKER_ENABLED=false` · 프론트 :3000 · ⚠️ `.env`는 고치지 않았다(모드는 환경변수로만) |
+| 서버 | 백엔드 :8002 pid **29516** · `VOICE_ADAPTER=stub` · `WORKER_ENABLED=false` · 프론트 :3000 · ⚠️ `.env`는 고치지 않았다(모드는 환경변수로만) |
 | 계측 | `tests/harness/instrument.js` **651줄** · sha256 **`846f130f2cf73365…`**(43119B). ⚠️ 해시는 주석 한 줄로도 바뀐다 — 회차 기록과 다르면 먼저 `git diff`로 **코드 줄** 변경 여부를 본다 |
-| 절차 문서 · 실행체 | `browser_leg.md` **629줄** · `c2_render_hierarchy.py` **659줄**(판정 게이트 포함) · `test_c2_gates.py` **178줄**(게이트 **안**) |
+| 절차 문서 · 실행체 | `browser_leg.md` **634줄** · `c2_render_hierarchy.py` **791줄**(판정 게이트 + 실패 진단 덤프) · `test_c2_gates.py` **178줄**(게이트 **안**) |
 | 브라우저 | Chrome **152.0.7977.65** · CDP **:9222** · 플러그인 격리 프로필. ⚠️ **탭이 회차 사이에 사라진다** — 없으면 `PUT /json/new`로 만든다 |
-| 마지막 회차 | `.harness/browser_run_id.txt` = `e3f3751a-fe98-4a42-b955-f7140f49da9b` (teardown 완료·drift 0) |
+| 마지막 회차 | `.harness/browser_run_id.txt` = `c50f335f-c7e2-4796-ac04-c319e5db6df9` (teardown 완료·drift 0) |
 | baseline 사본 | `runs/2026-09-06-pattern-baseline.tsv`(추적됨) — DB 표가 회차마다 drop되므로 **이 파일이 마지막 사본이다**. 회차 전에 7행 일치를 확인했다 |
 | 미커밋 | `.claude/` · `.mcp.json` · `handoff/HANDOFF-audit.md`(추적 밖) — **커밋하지도 지우지도 마라** |
 | ⛔ 남의 것 | **`.harness/audit-*`·`kanban-*`·`panel-*`**(추적 밖) — **감사 세션 소유다. 쓰지 마라**(읽는 것은 무해하다). OS crontab `37 * * * *`가 `.harness/audit-session-name.txt`의 이름으로 감사 회차를 보낸다 → 건드리면 **감사 회차가 내 창에 오거나 아무에게도 안 간다.** **내 것은 `browser_run_id.txt`와 `selfcheck-log.txt`뿐**이다(`run_id.txt`는 `ws_session.py`가 import 시점에 읽으므로 덮지 않는다) |

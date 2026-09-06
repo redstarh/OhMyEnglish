@@ -17,7 +17,9 @@
   아직 마운트되지 않아 0일 수 있고 그러면 주입 경로가 죽어 있어도 통과한다.
 - **user activation을 진짜 CDP 클릭으로 만든다**(함정 `H-AE`) — 합성 `element.click()`은
   `lib/audio.ts`의 `await context.resume()`를 영원히 pending으로 만들어 `active`에 도달하지 못한다.
-- **한 문서에 세션 하나**(§4-4 · 3규약 2) — 모드마다 `Page.navigate`로 새 문서를 연다.
+- **한 문서에 세션 하나** — 모드마다 `Page.navigate`로 새 문서를 연다. `snapshots`가 페이지 수명
+  전체에 쌓이기 때문이다. 근거는 `browser_leg.md` §5 A1-5 와 `instrument.js` 의
+  `judgeFinalLines` docstring 이 소유한다.
 - **계측을 sha256으로 고정한다**(§10-3) — 페이지가 받은 소스의 해시를 페이지 안에서 계산해
   파일 해시와 대조한다. 손으로 옮겨 적는 전사 드리프트가 구조적으로 0이 된다.
 - **`eval` 반환값이 증거다**(§10-1) — 개수·`textContent`만 내지 않고 판정 대상의 `outerHTML`과
@@ -103,7 +105,9 @@ MEASURE_JS = r"""
   const beforeInjectReason = reasonPs().length;
 
   // ③ 기대값을 런타임에 토큰에서 유도한다(AC #3).
-  //    같은 모드에서 두 번 읽는 것이 A2-3의 음성 대조다.
+  // ⚠️ **두 번 읽는 것은 A2-3의 음성 대조가 아니다 — 진단이다** (재검토 MEDIUM-4).
+  //    같은 tick 안의 두 호출이라 **원리적으로 갈릴 수 없다.** A2-3의 실제 대조는
+  //    ① 페이지가 보고한 스킴이 요청과 같은가(호출자가 회차를 죽인다) ② 모드가 하나면 미평가다.
   const probe = {
     muted1: omy.probeColor("--foreground-muted"),
     fg1: omy.probeColor("--foreground"),
@@ -200,17 +204,20 @@ MEASURE_JS = r"""
 """
 
 
-def find_target(port: int, url_substring: str, exact: str) -> tuple[str, str]:
-    """⚠️ **정확 일치를 먼저 고른다.** `localhost:3000` 부분일치만 쓰면 열려 있는
-    `/results/<id>` 탭을 먼저 잡아 **남의 화면을 하이재킹한다**(실측: 그 탭이 목록 앞에 있었다)."""
+def find_target(port: int, exact: str) -> tuple[str, str]:
+    """**정확 일치 → 없으면 새 탭.** 부분일치 폴백은 두지 않는다.
+
+    ⛔ **부분일치는 `browser_leg.md` §6이 금지한다 — 그리고 첫 판에 폴백으로 남아 있었다**
+    (2026-09-06 재검토 MEDIUM-2). `localhost:3000` 부분일치는 열려 있던 `/results/<id>` 탭을
+    먼저 잡아 **남의 화면을 하이재킹하고 그 위에서 `Page.navigate`로 지운다**(이 회차가 실제로
+    관측하고 함정으로 적은 것이 바로 그것이다). docstring 이 위험을 경고하면서 **폴백이 살아 있는
+    것은 밝히지 않아** 읽는 사람에게 정반대 인상을 줬다. → **경로를 지웠다.**
+    (`measure_contrast.py`는 부분일치만 쓴다 — 거기서 물려받은 형태다.)
+    """
     with urllib.request.urlopen(f"http://127.0.0.1:{port}/json/list", timeout=5) as fh:
         targets = json.load(fh)
-    pages = [t for t in targets if t.get("type") == "page"]
-    for t in pages:
-        if t.get("url", "") == exact:
-            return t["webSocketDebuggerUrl"], t["url"]
-    for t in pages:
-        if url_substring in t.get("url", ""):
+    for t in targets:
+        if t.get("type") == "page" and t.get("url", "") == exact:
             return t["webSocketDebuggerUrl"], t["url"]
     # ⚠️ **없으면 만든다.** 플러그인 Chrome 의 탭은 회차 사이에 사라진다(실측: `json/list` 가
     #    0건이 됐다). 남의 탭을 뒤지지 않고 **전용 탭을 새로 연다** — 부작용이 가장 작다.
@@ -284,6 +291,121 @@ class Cdp:
         return rect
 
 
+FAILURE_DUMP_JS = r"""
+(() => {
+  const omy = window.__omy;
+  const texts = (sel) => Array.from(document.querySelectorAll(sel))
+    .map((e) => (e.textContent || "").trim().slice(0, 60));
+  return {
+    url: location.href,
+    buttons: texts("button"),
+    paragraphs: texts("p"),
+    userActivation: navigator.userActivation
+      ? { hasBeenActive: navigator.userActivation.hasBeenActive,
+          isActive: navigator.userActivation.isActive }
+      : null,
+    visibility: document.visibilityState,
+    focused: document.hasFocus(),
+    // ⚠️ **아래 둘이 `H-AH`(배경 탭) 대 `H-AE`(합성 클릭)를 가르는 값이다** — 배경 탭이면
+    //    `socketUrls`가 비어 있고 `resumeLog`가 1건(설치 시점)에 머문다.
+    omy: omy ? {
+      socketUrls: omy.meta.socketUrls.slice(),
+      resumeLogLength: omy.meta.resumeLog.length,
+      resumeLog: omy.meta.resumeLog,
+      resumeErrors: omy.meta.resumeErrors,
+      appHandlerAttached: omy.meta.appHandlerAttached,
+      audioContextState: omy.meta.audioContextState,
+      contextState: omy.contextState ? omy.contextState() : null,
+      recv: JSON.parse(JSON.stringify(omy.recv)),
+      sent: JSON.parse(JSON.stringify(omy.sent)),
+      injected: omy.injected,
+      snapshotCounts: omy.snapshots.map((s) => s.count),
+    } : null,
+  };
+})()
+"""
+
+
+def classify_failure(o: dict) -> str:
+    """실패 원인을 계측 상태에서 가른다. **순서가 곧 판별력이다** — 앞의 조건이 더 상류다.
+
+    ⛔ **`socketUrls` 공백을 배경 탭의 지표로 쓰지 마라 — 팀리드가 직접 반례를 만들었다**
+    (2026-09-06: 백엔드를 내린 회차에서 `socketUrls=[]` · `resumeLog` **2건** ·
+    `appHandlerAttached=True`였다. 클릭은 정상으로 닿았고 소켓만 열리지 않았다).
+    `meta.socketUrls`는 **`send`가 불릴 때만** 채워지므로 소켓이 열려도 비어 있을 수 있다.
+
+    **가장 상류의 지표는 `resumeLog` 길이다** — 계측의 `getUserMedia` 대체본이 호출마다
+    `tryResume()`를 부르므로, 설치 시점의 1건에 머물면 **`getUserMedia`가 불리지 않았다**
+    = `startSession`이 시작조차 못 했다 = **클릭이 페이지에 닿지 않았다**(`H-AH`).
+    """
+    if len(o.get("resumeLog") or []) <= 1:
+        return (
+            "resumeLog 가 1건 이하다 → getUserMedia 가 안 불렸다 → **클릭이 페이지에 닿지 않았다**"
+            " (`H-AH` 배경 탭. `Page.bringToFront` 와 userActivation 단정을 확인하라)"
+        )
+    if not o.get("appHandlerAttached"):
+        return (
+            "클릭은 닿았는데(resumeLog 2건 이상) 앱 핸들러가 없다 → **소켓 생성 전에 죽었다**"
+            " (`VoiceIo.start` 실패 등. `resumeErrors` 와 화면의 `사유:` 를 읽어라)"
+        )
+    if (o.get("recv") or {}).get("session_started", 0) == 0:
+        return (
+            "소켓은 만들었는데 서버 프레임이 0건이다 → **백엔드가 없거나 연결이 실패했다**"
+            " (실측 재현: :8002 를 내린 회차가 정확히 이 모양이었다. `/health` 를 확인하라)"
+        )
+    return (
+        "클릭·소켓·서버 프레임 모두 정상이다 → `H-AH`도 백엔드 부재도 아니다."
+        " `H-AE`(합성 클릭으로 `resume()` pending)나 세션 길이 쪽을 본다 —"
+        " `resumeLog[*].afterAwait` 와 `contextState` 를 읽어라"
+    )
+
+
+async def dump_failure(cdp: Cdp, scheme: str, elapsed_ms: int) -> str:
+    """실패한 회차의 계측 상태와 화면을 **파일로 남기고** 요약 한 덩이를 돌려준다.
+
+    ⚠️ 이 함수 자체가 실패해도 원래 예외를 가려서는 안 된다 — 그래서 전부 감싸고 삼킨다.
+    """
+    lines = [f"실패 진단 (클릭 후 {elapsed_ms}ms) — H-AH/H-AE 판별용:"]
+    diag: dict = {"scheme": scheme, "elapsedMs": elapsed_ms}
+    try:
+        diag["page"] = await cdp.eval(FAILURE_DUMP_JS)
+    except BaseException as e:  # noqa: BLE001 — 진단이 원인을 가리면 안 된다
+        diag["page"] = f"진단 eval 실패: {e}"
+    try:
+        EVIDENCE.mkdir(parents=True, exist_ok=True)
+        shot = await cdp.call("Page.captureScreenshot", {"format": "png"})
+        path = EVIDENCE / f"c2-{scheme}-failure.png"
+        path.write_bytes(base64.b64decode(shot["data"]))
+        diag["screenshot"] = str(path.relative_to(ROOT))
+    except BaseException as e:  # noqa: BLE001
+        diag["screenshot"] = f"스크린샷 실패: {e}"
+    try:
+        out = EVIDENCE / f"c2-{scheme}-failure.json"
+        out.write_text(json.dumps(diag, ensure_ascii=False, indent=1), encoding="utf-8")
+        lines.append(f"  → {out.relative_to(ROOT)} · {diag.get('screenshot')}")
+    except BaseException as e:  # noqa: BLE001
+        lines.append(f"  진단 파일 쓰기 실패: {e}")
+    page = diag.get("page")
+    if isinstance(page, dict):
+        o = page.get("omy")
+        if isinstance(o, dict):
+            lines.append(
+                f"  socketUrls={o.get('socketUrls')} · resumeLog {o.get('resumeLogLength')}건"
+                f" · appHandlerAttached={o.get('appHandlerAttached')}"
+                f" · contextState={o.get('contextState')}"
+            )
+            lines.append(f"  recv={o.get('recv')} · snapshotCounts={o.get('snapshotCounts')}")
+            lines.append("  판별: " + classify_failure(o))
+        else:
+            lines.append("  window.__omy 가 없다 — 계측 설치 전에 죽었다")
+        lines.append(
+            f"  buttons={page.get('buttons')} · userActivation={page.get('userActivation')}"
+        )
+    else:
+        lines.append(f"  {page}")
+    return "\n".join(lines)
+
+
 async def run_scheme(
     cdp: Cdp, scheme: str, src: str, file_sha: str, base_url: str, phase: str
 ) -> dict:
@@ -293,7 +415,7 @@ async def run_scheme(
     #    `resumeLog[0].afterAwait null`(영원히 pending) · `active` 미도달.
     await cdp.call("Page.bringToFront")
 
-    # ── 한 문서 = 한 세션 (§4-4). 모드마다 새로 연다.
+    # ── 한 문서 = 한 세션 (`browser_leg.md` §5 A1-5). 모드마다 새로 연다.
     await cdp.call("Page.navigate", {"url": base_url})
     await asyncio.sleep(0.6)
     await cdp.call(
@@ -323,7 +445,7 @@ async def run_scheme(
             f"setEmulatedMedia 가 걸리지 않았다: 요청 {scheme} · 페이지 보고 {reported}"
         )
 
-    # ── 3규약 1: 무해한 요소를 CDP로 한 번 클릭해 user activation 을 만든다 (H-AE).
+    # ── 무해한 요소를 CDP로 한 번 클릭해 user activation 을 만든다 (`H-AE` 대응 ②).
     await cdp.click("document.querySelector('h1')", "h1 (user activation)")
     await asyncio.sleep(0.1)
     # ⚠️ **activation 을 추론하지 않고 직접 단정한다.** 없으면 `active` 미도달로 8초를 버리고
@@ -362,12 +484,22 @@ async def run_scheme(
         "  .find(b => /학습 시작/.test(b.textContent||''))",
         "학습 시작",
     )
-    data = await cdp.eval(
-        MEASURE_JS.replace("PARTIAL_TEXT", json.dumps(PARTIAL_TEXT, ensure_ascii=False)).replace(
-            "FINAL_TEXT", json.dumps(FINAL_TEXT, ensure_ascii=False)
-        ),
-        await_promise=True,
-    )
+    try:
+        data = await cdp.eval(
+            MEASURE_JS.replace(
+                "PARTIAL_TEXT", json.dumps(PARTIAL_TEXT, ensure_ascii=False)
+            ).replace("FINAL_TEXT", json.dumps(FINAL_TEXT, ensure_ascii=False)),
+            await_promise=True,
+        )
+    except SystemExit as exc:
+        failed_ms = round((time.monotonic() - t_click) * 1000)
+        # ⛔ **실패한 회차가 판별에 필요한 바로 그 데이터를 버리면 안 된다** (재검토 MEDIUM-3).
+        #    가장 흔한 실패는 `active` 8초 시간초과이고, 그때 `H-AH`(배경 탭)와 `H-AE`(합성 클릭)를
+        #    가르는 값은 **`socketUrls` 공백 여부와 `resumeLog` 길이**다(`pitfalls.md` H-AH).
+        #    첫 판은 그 시점에 바로 종료해 아티팩트를 0건 남겼고, 이 회차의 원인 판정은 팀리드가
+        #    나중에 살아 있는 페이지를 손으로 들여다봐서 겨우 얻었다 — **스크립트가 자기 진단을
+        #    재현하지 못했다.** 그래서 여기서 뜬다.
+        raise SystemExit(f"{exc}\n\n{await dump_failure(cdp, scheme, failed_ms)}") from exc
     elapsed_ms = round((time.monotonic() - t_click) * 1000)
 
     shot = await cdp.call("Page.captureScreenshot", {"format": "png"})
@@ -446,7 +578,8 @@ def check_leg(d: dict, phase: str) -> tuple[int, list[str]]:
         f"A2-2 대조 ② 위반: muted 와 foreground 가 같은 값이다({probe['muted1']})"
         " — 위계 단정이 항진명제가 된다",
     )
-    # ── 4. A2-3 음성 대조 — 같은 모드에서 두 번 읽으면 같다(읽기가 흔들리지 않음).
+    # ── 4. 진단 — 같은 모드 재판독이 같다. ⚠️ **A2-3의 음성 대조가 아니다**(재검토 MEDIUM-4):
+    #    같은 tick 안의 두 호출은 갈릴 수 없어 판별력이 0이다. A2-3은 §10의 모드 대조가 낸다.
     need(
         probe["muted1"] == probe["muted2"],
         f"같은 모드 재판독이 갈렸다: muted {probe['muted1']} vs {probe['muted2']}",
@@ -502,7 +635,7 @@ def check_leg(d: dict, phase: str) -> tuple[int, list[str]]:
         recv["final"] == 0,
         f"경쟁 프레임: recv.final={recv['final']} — 어댑터가 stub_unresponsive 가 아니다",
     )
-    # ── 8. 한 문서에 세션 하나(§4-4) + 계측이 살아 있었다는 증거.
+    # ── 8. 한 문서에 세션 하나(`browser_leg.md` §5 A1-5) + 계측이 살아 있었다는 증거.
     need(
         recv["session_started"] == 1,
         f"한 문서에 세션이 하나여야 한다: session_started={recv['session_started']}",
@@ -551,7 +684,7 @@ def check_cross(results: list[dict]) -> tuple[int, list[str]]:
 async def main_async(args) -> int:
     src = INSTRUMENT.read_text(encoding="utf-8")
     file_sha = hashlib.sha256(src.encode("utf-8")).hexdigest()
-    ws_url, url = find_target(args.port, args.url_substring, args.url)
+    ws_url, url = find_target(args.port, args.url)
     print(f"target: {url}")
     print(f"instrument.js sha256(file): {file_sha}  ({len(src.encode('utf-8'))}B)")
 
@@ -646,7 +779,6 @@ async def main_async(args) -> int:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--port", type=int, default=9222)
-    ap.add_argument("--url-substring", default="localhost:3000")
     ap.add_argument("--url", default="http://localhost:3000/")
     ap.add_argument("--schemes", default="light,dark")
     # `partial` 은 **눈으로 보기 위한 회차**다 — partial 상태에서 멈춰 창 안에서 스크린샷을 뜬다.

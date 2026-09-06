@@ -265,7 +265,7 @@ python3 -c "import subprocess,os; r=subprocess.run(['git','rev-parse','--show-to
 |---|---|---|---|
 | A2-1 | partial 줄은 muted | 접두 `<p>` 1개 + 그 `getComputedStyle(...).color` == **probe 유도 muted 값** — ⓑ | **주입을 아예 생략한 회차에서 접두 `<p>`가 0개**(§6-0). 이것이 없으면 주입이 조용히 실패해도(`ws.ts:isServerEvent` 게이트가 프레임을 거르거나 `ws.ts:74`의 `catch`가 파싱 실패를 삼키는 경로) 측정과 대조가 **둘 다** 통과한다 (주입 생략) |
 | A2-2 | 확정 줄은 foreground | partial 줄이 사라지고(`setPartialLine(null)`) 접두 `<p>` 1개의 색 == **probe 유도 foreground 값** — ⓑ | ① 위와 같은 주입 생략 ② **probe 두 값이 실제로 서로 다름** — 같으면 위계 단정이 무의미하게 통과한다 (probe 비교) |
-| A2-3 | 토큰이 모드별로 다르다 | 라이트의 muted 유도값 ≠ 다크의 muted 유도값 — ⓑ | **같은 모드에서 두 번 읽으면 같은 값이다** — 다르면 `Emulation.setEmulatedMedia`가 실제로 걸리지 않았다는 증거 (모드 전환 생략) |
+| A2-3 | 토큰이 모드별로 다르다 | 라이트의 muted 유도값 ≠ 다크의 muted 유도값 — ⓑ | ⛔ **정정 (2026-09-06 재검토 MEDIUM-4) — 이전 판이 지목한 대조는 판별력이 0이었다.** 이전 서술: *"같은 모드에서 두 번 읽으면 같은 값이다 — 다르면 `setEmulatedMedia`가 걸리지 않았다는 증거"*. 실행체가 그 두 번을 **같은 tick 안에서** 읽으므로(`probeColor`를 연달아 두 번 호출) **원리적으로 갈릴 수 없다** → 그 대조는 언제나 통과하고 아무것도 배제하지 못한다. **실제 대조는 둘이다**: ① **페이지가 보고한 스킴이 요청과 같다** — `matchMedia('(prefers-color-scheme: dark)')`를 읽어 대조하고 **다르면 회차를 죽인다**(실행체가 그렇게 한다. 이전 판이 이름 붙인 것보다 강하다) ② **모드를 하나만 돌린 회차는 `A2-3 미평가`이고 그것은 `PASS`가 아니다**(§10) — 실행체가 FAIL·exit 1로 낸다. 두 번 읽기는 **진단으로만** 남긴다(판독 자체가 흔들리지 않음). (모드 전환 생략 · 단일 모드) |
 
 ### C3 결과 화면 · C4 교정 카드 · C5 발음 배지
 
@@ -320,7 +320,12 @@ run-1의 스로틀 스크립트는 **회수 불가로 확정**됐다(지목된 C
 부르므로 2건이 아니라는 것은 **`getUserMedia`가 호출되지 않았다**, 즉 클릭이 페이지에 닿지 않았다는 뜻이다.
 → **① 회차 시작에 `Page.bringToFront` ② user activation을 추론하지 말고
 `navigator.userActivation.hasBeenActive`로 직접 단정한다**(없으면 이름 있는 실패로 죽인다).
-가르는 값: 배경 탭이면 `socketUrls`가 **비어 있고**, `H-AE`(합성 클릭)면 소켓은 열린다.
+⛔ **가르는 값은 `socketUrls`가 아니라 `resumeLog` 길이다** — 첫 판이 `socketUrls` 공백을 배경 탭의
+지표로 적었고 **팀리드가 반례를 만들어 반증했다**(백엔드를 내린 회차에서 `socketUrls=[]`인데
+`resumeLog` 2건 · `appHandlerAttached=True` — 클릭은 닿았고 소켓만 안 열렸다). `socketUrls`는
+**`send`가 불릴 때만** 채워진다. 4갈래 판별의 정본은 **`pitfalls.md` H-AH**이고 구현은
+`c2_render_hierarchy.py:classify_failure`다 — 실패 회차마다
+`.harness/evidence/c2-<모드>-failure.json`에 계측 덤프와 스크린샷을 남긴다(재검토 MEDIUM-3).
 
 ⚠️ **대상 탭을 부분일치로 고르지 않는다.** `localhost:3000`으로 찾으면 열려 있던 `/results/<id>` 탭이
 목록 앞에 있어 **그것을 잡는다**(실측). **정확 일치를 먼저** 고르고, 맞는 탭이 없으면
