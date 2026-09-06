@@ -280,9 +280,15 @@
   const snapshotNow = () => prefixedLines().map((p) => p.textContent);
   omy.snapshotNow = snapshotNow;
 
-  // ── 4-b. 스냅샷 적립 — "언제 찍을까"를 고르지 않는다 ────────────────────────
-  // ⚠️ 동기(종단 프레임)와 rAF 둘 다 회차 운에 걸렸다(T2에서 **서로 반대로** 실패했다).
-  // 타이밍에서 벗어나는 유일한 방법은 **DOM이 바뀔 때마다 전부 적립**하는 것이다.
+  // ── 4-b. 스냅샷 적립 — **초과 검출과 단조성**을 담당한다 ────────────────────
+  // ⛔ **이 자리에 있던 두 줄을 지운다**(2026-09-06 리뷰가 찾았다. 팀리드의 앞선 스윕이 놓쳤다 —
+  //    강조 `**`가 검색 구절을 끊어서 `grep`이 "없다"를 냈다. 함정 `H-AG`와 같은 형태다):
+  //    ⓐ "동기와 rAF 둘 다 회차 운에 걸렸다" — **동기 종단 스냅샷은 지금 내용·순서 단정의 정본이고**
+  //       실제 서버 경로 8회에서 정상이었다. 조건 없이 "못 믿는다"고 적으면 다음 세션이 정본을
+  //       `snapshots`로 되돌린다(그것이 거짓 FAIL을 낸 배치다).
+  //    ⓑ "타이밍에서 벗어나는 유일한 방법은 전부 적립하는 것" — **틀렸다. 그것이 `H-AF`다.**
+  //       적립은 「언제 찍을까」의 운을 「어느 스냅샷을 비교할까」의 운으로 **옮겼을 뿐이다.**
+  // 남겨 둘 사실: rAF 스냅샷은 `router.push` 이후에 떠서 `[]`가 된다(T2 실측) — **rAF로 옮기지 마라.**
   const record = () => {
     const texts = snapshotNow();
     const last = omy.snapshots[omy.snapshots.length - 1];
@@ -349,7 +355,9 @@
    * 이미 그 어휘를 정해 뒀다). `judgeable === false`면 `pass`를 판정으로 쓰지 마라.
    *
    * ⚠️ **`terminalPresent`는 독립 조건이 아니다** — `terminalMatches`가 그것을 이미 요구하므로
-   * `pass`의 실질 독립 조건은 **셋**(`terminalMatches` · `noExcess` · `nonDecreasing`)이다.
+   * `pass`의 실질 독립 조건은 **넷**(`terminalMatches` · `noExcess` · `reachedExpected` ·
+   * `nonDecreasing`)이다. ⚠️ **개수를 말하는 문장은 조건을 더할 때마다 함께 고친다** — 이 줄이
+   * `reachedExpected`를 더하면서 한 번 낡았다(리뷰 지적).
    * `terminalPresent`는 **사유 판별용**이다(왜 `terminalMatches`가 거짓인가를 가른다).
    * 이전 서술이 "4항목"이라 적었고 그것은 틀렸다.
    *
@@ -379,6 +387,30 @@
     // ⚠️ **독립 조건이 아니다** — `terminalMatches`가 이미 이것을 요구한다. 사유 판별용으로만 낸다.
     const terminalPresent = Array.isArray(terminal);
     const terminalMatches = sameAs(terminal);
+
+    // ⛔ **여기서 한 번만 유도하고 아래에서는 이 이름만 쓴다.** 같은 식을 `pass`·`verdict`에서 다시
+    // 쓰면 한쪽만 고쳐져 **플래그와 `verdict`가 갈린다** — 이 파일이 겪은 드리프트와 같은 형태다
+    // (2026-09-06 리뷰가 5곳 중복 유도를 지적했다).
+    const noExcess = maxCount <= expected.length;
+    const reachedExpected = maxCount >= expected.length;
+    const exactStateSeen = omy.snapshots.some((s) => sameAs(s.texts));
+    /**
+     * 종단 스냅샷이 **기대의 진접두**인가 — 짧고, 있는 만큼은 정확하다.
+     *
+     * ⛔ **이것이 「하네스가 순간을 놓쳤다」의 유일한 판별자다.** `exactStateSeen`만으로는 못 가른다:
+     * 확정 줄이 append-only라 **종단이 어떻게 오염되든 적립에는 정답 상태가 남을 수 있고**, 특히
+     * I-8 병합(`page.tsx:123~124`)은 **개수를 바꾸지 않고 마지막 줄 텍스트만** 치환하므로
+     * 「적립에 정답 + 종단은 같은 개수인데 내용 다름」이 **실제로 도달 가능하다**(리뷰 지적, 팀리드가
+     * 그 경로를 `page.tsx`에서 확인). 그것을 `exactStateSeen`만으로 분기하면 **순서 뒤바뀜·본문
+     * 치환·종단 partial 오염이 전부 「하네스 사고」로 분류된다** — 그 셋은 `browser_leg.md` A1-5가
+     * **음성 대조로 이름 붙인 셋**이고, 그러면 문서가 요구한 대조를 문서가 기각하게 된다.
+     * 커밋 누락이 만드는 종단은 **진접두 모양 하나뿐**이므로 그것으로 가른다.
+     */
+    const terminalIsPrefix =
+      terminalPresent &&
+      terminal.length < expected.length &&
+      terminal.every((t, i) => t === expected[i]);
+    const pass = terminalMatches && noExcess && reachedExpected && nonDecreasing;
     return {
       maxCount,
       expectedCount: expected.length,
@@ -400,7 +432,7 @@
       // 스스로 철회했다** — 위 부등식을 위반해 브라우저에서 발생하지 않는다. 그것을 회귀 테스트로
       // 만들려 하면 재현되지 않고, 합성으로 억지로 만들면 **도달 불가 입력을 지키는 테스트**가 남는다.
       // 이 파일 머리말이 정한 규칙이 정확히 그것이다: 바뀐 것이 근거면 근거를 갈아라.
-      noExcess: maxCount <= expected.length,
+      noExcess,
       /**
        * 기대 개수에 **도달한 적이 있는가**. `noExcess`와 합쳐 옛 `===`와 **정확히 같은 강도**가 되고
        * (`<=` ∧ `>=` ⟺ `==`), 얻는 것은 **사유가 갈리는 것**이다 — "초과 렌더"와 "한 번도 도달 안 함"이
@@ -410,7 +442,7 @@
        * 불렀다). 잘린 적립으로 낸 `noExcess`·`nonDecreasing`을 통과로 적으면 그 회차는 아무것도
        * 보증하지 않는다 — 그래서 `pass`에 넣는다.
        */
-      reachedExpected: maxCount >= expected.length,
+      reachedExpected,
       terminalPresent,
       terminalMatches,
       nonDecreasing,
@@ -423,10 +455,14 @@
        * (2026-09-06 리뷰 지적). 연접(AND)으로 넣으면 `pass`가 더 엄격해질 뿐이고 골라내기가 되려면
        * **이접(OR)**이어야 한다. **진짜 이유는 이것이다: 이 값의 효용이 `pass` 밖에 있다는 것 자체다.**
        * `pass`의 항이 되면 그것은 「원인 중 하나」가 되어 **"왜 `pass`가 거짓인가"를 지목하지 못한다.**
-       * 용도는 하나다: `terminalMatches`가 거짓인데 이것이 참이면 **앱 결함이 아니라 종단 스냅샷
-       * 전제가 깨진 회차**다. 그 해석은 `verdict`가 접어서 낸다.
+       * ⛔ **이 값만으로 「하네스가 놓쳤다」를 단정하지 마라 — 이전 판이 그렇게 적었고 틀렸다.**
+       * 확정 줄이 append-only라 **종단이 어떻게 오염되든 적립에 정답 상태가 남을 수 있다**(특히 I-8
+       * 병합은 개수 불변으로 마지막 줄만 치환한다). 그래서 이 값이 참인 것은 「정답 상태가 언젠가
+       * 있었다」만 뜻한다. 판별에는 **`terminalIsPrefix`를 함께** 건다 — 그 해석은 `verdict`가 접어서
+       * 낸다. 이 필드는 그 판정의 재료이고 혼자서는 결론이 아니다.
        */
-      exactStateSeen: omy.snapshots.some((s) => sameAs(s.texts)),
+      exactStateSeen,
+      terminalIsPrefix,
       /**
        * **판정 가능했는가.** 종단 스냅샷이 없는 회차는 `pass`가 거짓이지만 그것은 **`FAIL`이 아니라
        * `측정 불가`**다 — 종단 프레임 없이 소켓이 닫히는 경로가 앱의 정상 경로이기 때문이다.
@@ -434,12 +470,9 @@
       judgeable: terminalPresent,
       // **진단용이다 — 판정에 쓰지 않는다.** 이전 판이 이것으로 판정해 거짓 FAIL을 냈다.
       atMaxDiagnostic: omy.snapshots.find((s) => s.count === maxCount) || null,
-      // 실질 독립 조건은 **넷**이다(`terminalPresent`는 `terminalMatches`가 이미 요구하므로 세지 않는다).
-      pass:
-        terminalMatches &&
-        maxCount <= expected.length &&
-        maxCount >= expected.length &&
-        nonDecreasing,
+      // 실질 독립 조건은 **넷**이다: `terminalMatches` · `noExcess` · `reachedExpected` ·
+      // `nonDecreasing`. `terminalPresent`는 `terminalMatches`가 이미 요구하므로 세지 않는다.
+      pass,
       /**
        * **해석을 접은 한 값.** 회차는 `pass`를 해석하지 말고 **이 값을 그대로 베껴 적는다.**
        *
@@ -450,20 +483,23 @@
        */
       verdict: !terminalPresent
         ? "UNMEASURABLE_NO_TERMINAL"
-        : terminalMatches && maxCount <= expected.length && maxCount >= expected.length && nonDecreasing
+        : pass
           ? "PASS"
           : !nonDecreasing
             ? "REMOUNT_OR_TWO_SESSIONS"
-            : maxCount > expected.length
+            : !noExcess
               ? "APP_EXCESS_RENDER"
-              : maxCount < expected.length
+              : !reachedExpected
                 ? // ⚠️ **둘을 가른다 — 라벨이 앱 결함을 하네스 사고로 오분류하면 안 된다.**
                   // 정상 순서에서는 `|종단| <= maxCount` 이므로 `maxCount < |종단|` 은 **적립이 잘린 것**
                   // 이다(예: `stopRecording()` 을 종단 프레임 전에 불렀다). 같으면 **앱이 덜 그린 것**이다.
-                  terminalPresent && maxCount < terminal.length
+                  maxCount < terminal.length
                   ? "HARNESS_TRUNCATED_ACCRUAL"
                   : "APP_UNDER_RENDER"
-                : omy.snapshots.some((s) => sameAs(s.texts))
+                : // ⛔ **`exactStateSeen` 만으로 분기하지 않는다** — 그러면 순서 뒤바뀜·본문 치환·
+                  // 종단 partial 오염이 전부 「하네스 사고」가 된다(리뷰 실측 반례 3건). 커밋 누락이
+                  // 만드는 종단은 **진접두** 모양뿐이므로 그 게이트를 함께 건다.
+                  terminalIsPrefix && exactStateSeen
                   ? "HARNESS_MISSED_TERMINAL_MOMENT"
                   : "APP_CONTENT_MISMATCH",
     };
