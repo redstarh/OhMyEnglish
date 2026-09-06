@@ -109,15 +109,49 @@
   const omy = {
     /** 서버 → 클라이언트 프레임 계수. 키가 곧 기대 키다(§4-4). */
     recv: { session_started: 0, partial: 0, final: 0, audio: 0, session_ended: 0, session_failed: 0 },
-    /** 클라이언트 → 서버 **실제 전송** 계수를 `type`별로. `audio`와 `end_session`을 따로 담는다. */
-    sent: { audio: 0, end_session: 0, unparsed: 0, other: 0 },
-    /** 전송한 `audio` 프레임의 base64 길이 합 — 빈 `data`만 보낸 경우를 계수와 가른다. */
+    /** 클라이언트 → 서버 **실제 전송** 계수를 `type`별로. `audio`와 `end_session`을 따로 담는다.
+     *
+     * ⚠️ **`foreign`은 앱 소켓이 아닌 전송이다** — T5a 실측: `sent.other = 1`의 정체가
+     * `ws://localhost:3000/_next/hmr?...`(Next dev HMR)였다. 전역 프로토타입을 감싸므로 앱과
+     * 무관한 소켓이 섞이고, 그러면 `other`·`unparsed`가 앱 신호가 아니게 된다. URL로 가른다.
+     */
+    sent: { audio: 0, end_session: 0, unparsed: 0, other: 0, foreign: 0 },
+    /** 전송한 `audio` 프레임의 base64 길이 합 — 빈 `data`를 보낸 경우를 가른다. */
     sentAudioBytes: 0,
-    /** `start` 호출 계수와 **인자 `when` 배열**(A1-4 대조 ②). */
-    started: { count: 0, when: [] },
-    /** `session_ended`/`session_failed` 도착 시점의 확정 줄 `textContent` 배열(A1-5 내용 단정). */
-    finalLines: null,
-    /** 진단용 — `final`마다 찍은 스냅샷. ⚠️ partial 줄이 섞일 수 있어 단정에 쓰지 않는다. */
+    /**
+     * 전송한 `audio` 프레임 중 **PCM에 0이 아닌 샘플이 하나라도 있는** 프레임 수.
+     *
+     * ⚠️ **`sentAudioBytes`만으로는 무음과 유음을 가를 수 없다** — T5a·T2 실측: 무음·유음 모두
+     * 프레임 **146**건 · 바이트 **199,728**로 완전히 같았다. `lib/audio.ts`의 캡처 워클렛
+     * `process()`가 **진폭과 무관하게** 512샘플마다 `postMessage`하기 때문이다(무음 게이트 없음).
+     * **다른 것은 PCM 내용뿐이므로 그것을 세야** A1-7의 무음 대조가 성립한다.
+     */
+    sentAudioNonZeroFrames: 0,
+    /**
+     * `start` 호출 기록. `count`·`when`은 그대로 두고 **`calls`가 프레임 태깅을 담는다**.
+     *
+     * ⚠️ **태깅이 없으면 "어느 프레임이 통과했는지"가 추론에 머문다** — T2에서 실제로 그랬다
+     * (`count`가 0/1로 흔들렸는데 어느 `audio` 프레임에서 났는지 알 수 없어 순서에서 역추론했다).
+     * `afterRecvAudio`는 그 `start`가 불린 시점까지 **수신한** `audio` 프레임 수다.
+     */
+    started: { count: 0, when: [], calls: [] },
+    /** 종단 프레임 도착 시점의 동기 스냅샷. ⚠️ **진단용이다** — 단정은 `snapshots`로 한다(아래). */
+    finalLinesAtTerminal: null,
+    /**
+     * **A1-5 단정의 정본.** MutationObserver가 DOM이 바뀔 때마다 적립한다.
+     *
+     * ⚠️ **동기 스냅샷도 rAF 스냅샷도 회차 운에 걸린다** — T2는 동기가 React commit 전이라 `[]`를
+     * 봤고, rAF는 `router.push` 이후에 떠서 `[]`를 봤다(둘이 **서로 반대로** 실패했다). T5a는
+     * 여유가 9.7초라 동기가 통했다. **타이밍에 걸리지 않는 유일한 방법은 "언제 찍을까"를 고르지
+     * 않고 바뀔 때마다 전부 적립하는 것**이다.
+     *
+     * 항목: `{ ts, count, texts }`. **직전과 같으면 적립하지 않는다**(중복 억제).
+     *
+     * ⚠️ **"기대값과 같은 스냅샷이 하나 있다"만으로 단정하지 않는다** — 그것은 골라내기다.
+     * 세 개를 함께 본다: ① 관측된 **최대 개수가 정확히 기대 개수**(초과가 없다) ② **그 최대
+     * 지점의 `texts`가 기대와 순서까지 일치** ③ `count`가 **비감소**(전사문은 append-only이고
+     * 병합은 개수를 늘리지 않는다 — `page.tsx`의 계약). 셋을 함께 걸면 골라내기가 막힌다.
+     */
     snapshots: [],
     /** `inject()`로 넣은 프레임 계수 — `recv`를 오염시키지 않기 위해 따로 센다. */
     injected: 0,
@@ -129,10 +163,21 @@
       /** ⚠️ §11-2가 물은 것 — 정답을 코드에 박지 않고 **찾아서 적는다**. */
       startOwner: startOwner.name,
       createBufferSourceOwner: (findOwner(AudioContext, "createBufferSource") || {}).name || null,
+      /**
+       * ⚠️ **이 필드는 "그 시점의 기록"이고 현재 상태가 아니다.** T5a 관측: `tryResume()` 안에서만
+       * 갱신되므로 async `resume()`이 끝나기 전 값이 남는다. **현재 상태는 `omy.contextState()`로
+       * 읽어라** — 그것이 살아 있는 값이다. 이 필드는 이력의 마지막 항목이다.
+       */
       audioContextState: null,
+      /** `resume()` 시도마다 `{ at, before, afterSync, afterAwait }`. `afterAwait`가 진짜 결과다. */
+      resumeLog: [],
       resumeAttempts: 0,
       resumeErrors: [],
       appHandlerAttached: false,
+      /** 앱 세션 소켓으로 인정한 URL 조각. `sent.foreign` 판정의 기준이다. */
+      appSocketPath: "/ws/session",
+      /** 관측한 소켓 URL 전부 — `foreign`이 왜 생겼는지 사후에 알 수 있게 한다. */
+      socketUrls: [],
     },
     /** 회차가 켜고 끄는 것. 기본은 소리 나는 톤이다. */
     config: {
@@ -146,17 +191,33 @@
   // ⚠️ 여기서 AudioContext를 만들지만 `resume()`을 기다리지 않는다(위 설계 판단).
   const ctx = new AudioContext();
   omy.meta.audioContextState = ctx.state;
+  // ⚠️ 살아 있는 값을 읽는 경로를 따로 둔다 — 스냅샷 필드는 시점 기록이라 §11-3을 판정할 수 없다.
+  omy.contextState = () => ({ state: ctx.state, currentTime: ctx.currentTime });
 
   const tryResume = () => {
     omy.meta.resumeAttempts += 1;
+    const entry = { at: Date.now(), before: ctx.state, afterSync: null, afterAwait: null };
+    omy.meta.resumeLog.push(entry);
     try {
       const result = ctx.resume();
-      if (result && typeof result.catch === "function") {
-        result.catch((error) => omy.meta.resumeErrors.push(String(error)));
+      if (result && typeof result.then === "function") {
+        // **여기가 진짜 결과다.** 동기 직후 값은 resume 이전 상태일 수 있다(T5a 관측).
+        result.then(
+          () => {
+            entry.afterAwait = ctx.state;
+            omy.meta.audioContextState = ctx.state;
+          },
+          (error) => {
+            entry.afterAwait = `error: ${error}`;
+            omy.meta.resumeErrors.push(String(error));
+          }
+        );
       }
     } catch (error) {
       omy.meta.resumeErrors.push(String(error));
+      entry.afterAwait = `throw: ${error}`;
     }
+    entry.afterSync = ctx.state;
     omy.meta.audioContextState = ctx.state;
   };
   tryResume();
@@ -193,6 +254,53 @@
   const snapshotNow = () => prefixedLines().map((p) => p.textContent);
   omy.snapshotNow = snapshotNow;
 
+  // ── 4-b. 스냅샷 적립 — "언제 찍을까"를 고르지 않는다 ────────────────────────
+  // ⚠️ 동기(종단 프레임)와 rAF 둘 다 회차 운에 걸렸다(T2에서 **서로 반대로** 실패했다).
+  // 타이밍에서 벗어나는 유일한 방법은 **DOM이 바뀔 때마다 전부 적립**하는 것이다.
+  const record = () => {
+    const texts = snapshotNow();
+    const last = omy.snapshots[omy.snapshots.length - 1];
+    // 직전과 같으면 적립하지 않는다 — MutationObserver는 같은 상태로도 여러 번 부른다.
+    if (last && last.count === texts.length && last.texts.join(" ") === texts.join(" ")) {
+      return;
+    }
+    omy.snapshots.push({ ts: Math.round(performance.now()), count: texts.length, texts });
+  };
+  const observer = new MutationObserver(record);
+  observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+  record(); // 시작 상태(보통 0줄)를 첫 항목으로 남긴다 — 0에서 출발했음을 증거로 만든다.
+  /** 관측을 멈춘다. 회차 끝에서 부른다 — 안 불러도 무해하지만 스냅샷이 계속 쌓인다. */
+  omy.stopRecording = () => {
+    observer.disconnect();
+    return omy.snapshots.length;
+  };
+  /**
+   * A1-5 판정을 **골라내기 없이** 낸다. 기대 배열을 넣으면 셋을 함께 재서 돌려준다.
+   * ⚠️ 이 함수는 판정을 **계산**할 뿐이고 기대값을 만들지 않는다 — 기대값은 호출자가
+   * `fixtures.py:FIXTURE_TURNS`에서 연역해 넘긴다.
+   */
+  omy.judgeFinalLines = (expected) => {
+    const counts = omy.snapshots.map((s) => s.count);
+    const maxCount = counts.length ? Math.max(...counts) : 0;
+    const nonDecreasing = counts.every((c, i) => i === 0 || c >= counts[i - 1] || c === 0);
+    const atMax = omy.snapshots.find((s) => s.count === maxCount) || null;
+    const exact =
+      !!atMax &&
+      atMax.texts.length === expected.length &&
+      atMax.texts.every((t, i) => t === expected[i]);
+    return {
+      maxCount,
+      expectedCount: expected.length,
+      countMatches: maxCount === expected.length,
+      textsMatchAtMax: exact,
+      nonDecreasing,
+      snapshotCount: omy.snapshots.length,
+      atMax,
+      // 셋 전부 참이어야 PASS 다. 하나라도 거짓이면 그 항목이 사유다.
+      pass: maxCount === expected.length && exact && nonDecreasing,
+    };
+  };
+
   // ── 5. 수신 프레임 계수 + 앱 핸들러 포획 ────────────────────────────────────
   // 앱은 `socket.onmessage = fn` 으로 붙는다(`lib/ws.ts:SessionSocket`). 그 `fn`을 잡아 두면
   // 주입(§7-6)이 **같은 경로로** 프레임을 넣을 수 있다.
@@ -214,16 +322,13 @@
           if (frame && Object.prototype.hasOwnProperty.call(omy.recv, frame.type)) {
             omy.recv[frame.type] += 1;
           }
-          // ⚠️ **여기서 동기로 찍는다.** `session_ended`가 오는 시점에는 확정 줄 6개가 이미
-          // 렌더돼 있고 partial 줄은 `setPartialLine(null)`로 사라져 있다. 앱 핸들러가
-          // `router.push`로 언마운트하기 **전**이라 이 스냅샷만이 A1-5의 단정 대상이 된다.
+          // ⚠️ **이 동기 스냅샷은 진단용이다 — A1-5의 단정 대상이 아니다.**
+          // 처음에는 이것이 단정 정본이었는데 **React commit 전에 찍히면 `[]`가 된다**(T2 실측).
+          // 반대로 rAF로 옮기면 `router.push` **이후**에 떠서 역시 `[]`가 됐다 — 두 방식이
+          // 서로 반대로 실패한다. 그래서 단정은 §4-b의 MutationObserver 적립(`snapshots`)이
+          // 소유하고, 이 값은 "종단 프레임 시점에 무엇이 보였나"의 기록으로만 남긴다.
           if (frame && (frame.type === "session_ended" || frame.type === "session_failed")) {
-            omy.finalLines = snapshotNow();
-          } else if (frame && frame.type === "final") {
-            // 진단용 — 렌더 후를 보려면 프레임을 두 번 넘긴다. 단정에 쓰지 않는다(partial 혼입).
-            requestAnimationFrame(() =>
-              requestAnimationFrame(() => omy.snapshots.push(snapshotNow()))
-            );
+            omy.finalLinesAtTerminal = snapshotNow();
           }
         } catch {
           // 해석할 수 없는 프레임은 세지 않는다 — 앱도 같은 자리에서 무시한다(`ws.ts`).
@@ -234,14 +339,40 @@
   });
 
   // ── 6. 실제 전송 계수 (A1-7의 효과 지점) ────────────────────────────────────
+  /** base64 PCM(16bit LE)에 0이 아닌 샘플이 하나라도 있는지. **무음과 유음을 가르는 유일한 값이다.** */
+  const hasNonZeroPcm = (base64) => {
+    if (!base64) return false;
+    let bytes;
+    try {
+      bytes = atob(base64);
+    } catch {
+      return false; // base64가 아니면 판정하지 않는다 — false 로 세는 편이 안전하다.
+    }
+    // 16bit LE 두 바이트가 **둘 다 0이 아닐 때만** 0이 아닌 샘플이다. 바이트 단위로 훑어도
+    // 같은 결과가 나온다(0 샘플은 두 바이트가 모두 0이다).
+    for (let i = 0; i < bytes.length; i += 1) {
+      if (bytes.charCodeAt(i) !== 0) return true;
+    }
+    return false;
+  };
+
   const nativeSend = sendOwner.descriptor.value;
   sendOwner.proto.send = function (data) {
+    // ⚠️ **앱 소켓만 센다.** 전역 프로토타입을 감싸므로 Next dev HMR 소켓이 섞인다(T5a 실측:
+    // `sent.other = 1`의 정체가 `ws://localhost:3000/_next/hmr?...`였다).
+    const url = typeof this.url === "string" ? this.url : "";
+    if (omy.meta.socketUrls.indexOf(url) === -1) omy.meta.socketUrls.push(url);
+    if (url.indexOf(omy.meta.appSocketPath) === -1) {
+      omy.sent.foreign += 1;
+      return nativeSend.call(this, data);
+    }
     try {
       const payload = JSON.parse(data);
       const type = payload && payload.type;
       if (type === "audio") {
         omy.sent.audio += 1;
         omy.sentAudioBytes += (payload.data || "").length;
+        if (hasNonZeroPcm(payload.data)) omy.sentAudioNonZeroFrames += 1;
       } else if (type === "end_session") {
         omy.sent.end_session += 1;
       } else {
@@ -256,8 +387,17 @@
   // ── 7. 재생 시작 계수 (A1-4의 효과 지점) ────────────────────────────────────
   const nativeStart = startOwner.descriptor.value;
   startOwner.proto.start = function (when) {
+    const at = typeof when === "number" ? when : 0;
     omy.started.count += 1;
-    omy.started.when.push(typeof when === "number" ? when : 0);
+    omy.started.when.push(at);
+    // ⚠️ **프레임 태깅** — 어느 `audio` 프레임에서 이 재생이 났는지를 남긴다. 없으면 "몇 번째가
+    // 통과했는가"가 순서에서의 추론에 머문다(T2에서 실제로 그랬다).
+    omy.started.calls.push({
+      ts: Math.round(performance.now()),
+      when: at,
+      afterRecvAudio: omy.recv.audio,
+      contextState: omy.contextState().state,
+    });
     return nativeStart.apply(this, arguments);
   };
 

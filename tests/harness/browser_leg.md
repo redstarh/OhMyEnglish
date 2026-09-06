@@ -141,8 +141,11 @@ m = re.search(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", o
 assert m, f"UUID 를 못 찾았다: {out!r}"
 print(m.group(0), end="")
 PY
-# 개설 직후 반드시 확인한다 — 36자여야 한다
-python3 -c "v=open('.harness/browser_run_id.txt').read(); assert len(v)==36 and v.count('-')==4, f'오염됨: {v!r} (len={len(v)})'; print('run_id OK:', v)"
+# 개설 직후 반드시 확인한다 — 36자여야 한다.
+# ⚠️ **리포 루트에서 돌린다.** 위 블록이 `cd app/backend` 로 들어간 채 끝나므로 이어서 돌리면
+#    `FileNotFoundError` 로 죽는다 (T5a D-2 실측 — 파일은 정상 기록됐는데 검증만 막혔다).
+#    §2 가 스스로 경고하는 "에이전트 스레드는 bash 호출마다 cwd 가 초기화된다"와 같은 부류다.
+python3 -c "import subprocess,os; r=subprocess.run(['git','rev-parse','--show-toplevel'],capture_output=True,text=True).stdout.strip(); v=open(os.path.join(r,'.harness/browser_run_id.txt')).read(); assert len(v)==36 and v.count('-')==4, f'오염됨: {v!r} (len={len(v)})'; print('run_id OK:', v)"
 ```
 
 이 파일에 **개행이나 psql 부산물이 섞이면 안 된다** — 값이 SQL에 그대로 들어간다(1회차에서 `INSERT01`이 섞여 세션 하나가 미등록으로 남았다). **브라우저 레그에는 세션 자동 등록 훅이 없다**(세션을 만드는 주체가 브라우저다) → **teardown 직전에 시간창 스윕으로 등록한다**(§8 ①-a).
@@ -225,10 +228,10 @@ python3 -c "v=open('.harness/browser_run_id.txt').read(); assert len(v)==36 and 
 | A1-1 | `recv.final` | **6** = 3턴 × (agent 1 + user 1) — ⓐ | `VOICE_ADAPTER=stub_unresponsive` → **0** (환경변수) |
 | A1-2 | `recv.partial` | **6** = 3턴 × 2 — ⓐ | 같은 대조 → **0** (환경변수) |
 | A1-3 | `recv.audio` | **3** = 3턴 × `TONE_WAV_FRAME` 1 — ⓐ | 같은 대조 → **0** (환경변수) |
-| A1-4 | 재생 **시작**(`AudioBufferSourceNode.prototype.start` 호출 수) | **3** — ⓐ. `enqueueAudio`가 프레임당 노드 1개를 만들어 `start`를 1회 부른다. ⚠️ **`createBufferSource` 계수를 버렸다** — 생성만 세면 `start` 줄이 지워져도 3이 나온다(§4) | ① `VOICE_ADAPTER=stub_unresponsive` → **0** (환경변수) ② **같은 후킹이 기록한 `when` 인자 3개가 비감소이고 첫째 < 셋째다** — `nextStartTime`이 `buffer.duration`만큼 밀리는 것이 큐잉의 효과다. 세 값이 전부 같으면 큐가 동작하지 않은 것이고 **계수만 맞은 것**이다 (인자 검사) |
-| A1-5 | 확정 줄 수 **와 내용** | 접두 `질문: `/`답변: `를 가진 `<p>` **6개**이고, **DOM 순서대로 `textContent`가 정확히** `질문: {FIXTURE_TURNS[i][0]}` / `답변: {FIXTURE_TURNS[i][1]}` (i=0,1,2 교대) — ⓐ. 스텁이 픽스처 문장을 **축자로** 흘린다(`stub.py`가 `FIXTURE_TURNS`의 question·answer를 그대로 `text=`에 넣는다 — 직접 읽어 확인). I-8 병합(`page.tsx:123`)은 **연속 동일 화자**에만 걸리고 픽스처는 교대하므로 병합 0회. ⚠️ **개수 단정을 버리지 않고 내용 단정을 더했다** — 개수만 세면 `{line.text}` 보간이 사라져도 6개가 남는다 | ① **주입·세션 전 idle 화면에서 그 `<p>`가 0개다** (계측 생략) ② **기대 문장 6개가 각각 20자 이상이다** — 빈 문자열끼리 비교해 통과하는 형태를 배제한다(실제 최단은 35자) ③ **기대값 하나에 sentinel을 덧붙인 변형이 어떤 `<p>`의 `textContent`와도 같지 않다** — 등호 비교가 항상 참을 내지 않음을 증명한다 (문자열 변형) |
+| A1-4 | 재생 **시작**(`AudioBufferSourceNode.prototype.start` 호출 수) | **3** — ⓐ. `enqueueAudio`가 프레임당 노드 1개를 만들어 `start`를 1회 부른다. ⚠️ **`createBufferSource` 계수를 버렸다** — 생성만 세면 `start` 줄이 지워져도 3이 나온다(§4). ⛔ **`VOICE_ADAPTER=stub`에서만 측정한다** — `stub_unresponsive`는 `audio` 프레임을 0건 보내므로 이 단정을 **평가할 수 없다**(T2·T5a 실측: `started.count` 0·1). ⚠️ **T2에서 3이 나오지 않은 원인은 화면 결함이 아니다**: 세션이 23ms에 자기종료해 `voiceRef.current`가 채워지기 전에 프레임이 도착하고 `page.tsx`의 `enqueueAudioFrame`이 `if (!voice) return`으로 버린다. **그러므로 A1-4는 세션 길이가 워클렛 준비보다 긴 구성에서만 유효하고, 그 구성이 확보되기 전에는 `측정 불가`로 보고한다**(FAIL 아님) | ① `VOICE_ADAPTER=stub_unresponsive` → **0** (환경변수) ② **`started.calls`의 `when`이 비감소이고 첫째 < 셋째다** — `nextStartTime`이 `buffer.duration`만큼 밀리는 것이 큐잉의 효과다. 세 값이 전부 같으면 큐가 동작하지 않은 것이고 **계수만 맞은 것**이다 ③ **`started.calls[i].afterRecvAudio`로 어느 수신 프레임에서 났는지 확인한다**(2026-09-06 계측에 추가한 프레임 태깅). 태깅이 없던 동안 T2의 0/1 원인 판정이 **순서에서의 추론**에 머물렀다 (인자·태그 검사) |
+| A1-5 | 확정 줄 수 **와 내용** | 접두 `질문: `/`답변: `를 가진 `<p>` **6개**이고, **DOM 순서대로 `textContent`가 정확히** `질문: {FIXTURE_TURNS[i][0]}` / `답변: {FIXTURE_TURNS[i][1]}` (i=0,1,2 교대) — ⓐ. 스텁이 픽스처 문장을 **축자로** 흘린다(`stub.py`가 `FIXTURE_TURNS`의 question·answer를 그대로 `text=`에 넣는다 — 직접 읽어 확인). I-8 병합(`page.tsx:123`)은 **연속 동일 화자**에만 걸리고 픽스처는 교대하므로 병합 0회. ⚠️ **개수 단정을 버리지 않고 내용 단정을 더했다** — 개수만 세면 `{line.text}` 보간이 사라져도 6개가 남는다 | ⛔ **스냅샷 시점을 고르지 않는다 — `omy.judgeFinalLines(expected)`를 쓴다**(2026-09-06 계측 신설). 동기 스냅샷은 React commit 전이라 `[]`가 되고 rAF는 `router.push` 이후라 역시 `[]`가 된다(T2에서 **서로 반대로** 실패했다). MutationObserver가 DOM이 바뀔 때마다 적립하고, 판정은 **셋을 함께** 본다: ① 관측 **최대 개수 == 기대 개수**(초과 없음) ② 그 최대 지점의 `texts`가 **순서까지 일치** ③ `count`가 **비감소**(전사문은 append-only, 병합은 개수를 늘리지 않는다). ⚠️ **"기대값과 같은 스냅샷이 하나 있다"만으로 판정하면 골라내기다** — 그래서 셋을 함께 건다. **판별력 실측(팀리드, 2026-09-06)**: 합성 5시나리오에서 정상만 pass — 본문삭제 → `texts` 실패 · 초과렌더 → `count` 실패 · 순서뒤바뀜 → `texts` 실패 · 개수감소 → `nonDecreasing` 실패. ④ 그 밖에 **기대 문장 6개가 각각 20자 이상**(실제 최단 35자)이고 **sentinel 변형이 어떤 `<p>`와도 같지 않다** (문자열 변형) |
 | A1-6 | 결과 화면 이동 | URL이 `/results/<session_id>` — **ⓑ `session_started` 프레임의 `session_id`를 계측이 기록해 대조** | `stub_unresponsive` → URL이 `/`에 남고 `사유: voice_adapter_connect_timeout`이 뜬다 (환경변수) |
-| A1-7 | 마이크 합성 → WS **실제 송신** | 계측이 `WebSocket.prototype.send`를 후킹해 payload를 파싱하고 `type === "audio"`인 프레임을 계수 → **> 0**, 그리고 각 프레임의 `data`가 빈 문자열이 아니다 — ⓑ. ⚠️ **이 문서가 적었던 `sendAudio` 계수 서술을 버렸다**(원본 스크립트는 이미 `send`를 후킹했다 — ⛔ 상자 ①): `ws.ts:SessionSocket.send`가 `readyState !== OPEN`이면 **조용히 버린다**(전송하지 않고 반환) → 소켓이 닫혀 실제 전송이 0이어도 `sendAudio` 계수는 증가한다(계수 지점 ≠ 효과 지점). `WebSocket.prototype.send`는 그 early-return을 통과한 호출만 본다 | ① **같은 후킹으로 `type === "end_session"` 프레임을 함께 센다 — 정확히 1건.** 이것이 0이면 `audio` 계수 0은 "전송 없음"이 아니라 **후킹 고장**이다. 2회차에서 A1-0에 쓴 것과 같은 형태의 구별이다. ⚠️ 이 값은 **세션 종료 클릭 후에** 읽는다(그전에는 아직 보내지 않았다) ② **T2 스파이크** — 합성 스트림을 **무음**으로 만들어 `audio` 계수가 0이 되는지 본다(§11-4). 0을 못 내면 A1-7은 **판별력 미확인으로 남긴다** — 0이 나오지 않는 대조는 대조가 아니다 |
+| A1-7 | 마이크 합성 → WS **실제 송신** | 계측이 `WebSocket.prototype.send`를 후킹해 payload를 파싱하고 `type === "audio"`인 프레임을 계수 → **> 0**, 그리고 각 프레임의 `data`가 빈 문자열이 아니다 — ⓑ. ⚠️ **이 문서가 적었던 `sendAudio` 계수 서술을 버렸다**(원본 스크립트는 이미 `send`를 후킹했다 — ⛔ 상자 ①): `ws.ts:SessionSocket.send`가 `readyState !== OPEN`이면 **조용히 버린다**(전송하지 않고 반환) → 소켓이 닫혀 실제 전송이 0이어도 `sendAudio` 계수는 증가한다(계수 지점 ≠ 효과 지점). `WebSocket.prototype.send`는 그 early-return을 통과한 호출만 본다 | ① **같은 후킹으로 `type === "end_session"` 프레임을 함께 센다 — 정확히 1건.** 이것이 0이면 `audio` 계수 0은 "전송 없음"이 아니라 **후킹 고장**이다. 2회차에서 A1-0에 쓴 것과 같은 형태의 구별이다. ⚠️ 이 값은 **세션 종료 클릭 후에** 읽는다(그전에는 아직 보내지 않았다) ② ⛔ **무음 계수 대조는 폐기했다 — 원리적으로 0이 될 수 없다**(T2 실측 · 팀리드가 코드로 확인). `lib/audio.ts`의 캡처 워클렛 `process()`가 **진폭과 무관하게** 512샘플마다 `postMessage`한다(무음 게이트 없음) → 무음·유음이 프레임 **146**건 · 바이트 **199,728**로 **완전히 같다.** ③ **대체 대조 — PCM 내용을 센다.** 계측이 `sentAudioNonZeroFrames`(0이 아닌 샘플이 있는 프레임 수)를 함께 기록한다. `config.silentMic = true`에서 **`sent.audio > 0`이면서 `sentAudioNonZeroFrames === 0`**이 되어야 하고, 톤에서는 둘이 같아야 한다. **팀리드가 이 판별력을 실측했다**(2026-09-06): 같은 바이트 길이(각 1368)의 무음·톤 프레임을 후킹에 넣어 `audio 2` · `nonZeroFrames 1` — **바이트로는 못 가르고 내용으로는 갈린다.** ⚠️ 이 대조는 **계측 단위에서 확인됐고 세션 관통에서는 미확인이다**(그 구성은 `stub`가 필요하다) |
 | A1-8 | DB 전사문 행 수 | `utterances` **6행** — ⓐ (final 6건. partial은 저장되지 않는다) | `stub_unresponsive` 세션의 `utterances` **0행** (환경변수) |
 
 ### C2 — 렌더 위계 (측정 절차는 §6. **라이트·다크 두 모드 필수**)
@@ -484,12 +487,22 @@ select count(*) from learning_sessions s join harness_sessions h on h.session_id
 
 - **음성 대조에서 FAIL이 나지 않으면 그 단정은 무효다.** PASS라고 보고하지 않는다.
 - 계측 `eval` 반환값이 `'instrumented'`가 아니면 **ERROR로 끝낸다**(§4). 주입 창 이탈도 **ERROR**다(§6).
-- `audio` 송신 계수가 `0`이면 FAIL이 아니라 **BLOCKED**다(headless AudioContext가 자동재생 정책으로 suspend될 수 있다) → `show_browser`로 headed 재시도. ⚠️ **단 같은 후킹의 `end_session` 계수가 1이어야 그렇다** — 그것도 0이면 BLOCKED가 아니라 후킹 고장이므로 **ERROR**다(A1-7).
+- `audio` 송신 계수가 `0`일 때의 판별 — ⛔ **이전 규칙("`end_session`도 0이면 후킹 고장이므로 ERROR")은 오진을 냈다**(T5a D-2·T2 실측). 그 회차에서 **후킹은 정상이었고**(HMR 소켓 프레임을 실제로 잡았다) 원인은 **세션 길이**였다: 스텁 세션이 23ms에 자기종료해 캡처 프레임 1건(512샘플@16kHz = **32ms**)이 만들어지기 전에 끝나고, `학습 종료` 버튼에 도달하지 못해 `end_session`도 0이 된다. **그 규칙대로면 엉뚱한 곳을 고친다.** 세 갈래로 가른다:
+  1. **`sent.foreign > 0`이거나 `meta.socketUrls`가 비어 있지 않다** → 후킹은 **살아 있다.** 원인을 세션 쪽에서 찾는다(아래 2·3).
+  2. **`recv.session_started === 1`인데 `sent.audio === 0`** → **세션이 너무 짧거나 워클렛 준비가 늦었다.** `started.calls`와 `recv.audio`를 함께 읽어 확인하고 **BLOCKED**로 보고한다(화면 결함이 아니다).
+  3. **`meta.socketUrls`가 비어 있다**(어떤 소켓도 관측되지 않았다) → 그때만 **후킹 고장 = ERROR**다.
+  ⚠️ headless AudioContext의 suspend는 **원인 후보에서 내려갔다** — T5a 프로브에서 제스처 안에서 만든 컨텍스트는 즉시 `running`이었다(§11-3).
 - **BLOCKED가 되는 표본 조건 2개**(FAIL과 구별한다 — 화면 결함이 아니라 표본 선택 실패다): `corrections[].reason`이 빈 문자열(A4-2) · `corrections.length === 0`인 세션을 primary로 잡았을 때(A4-1).
 - **판별력 미확인은 `PASS`가 아니다.** 그 회차에서 대조를 평가할 수 없었으면(A1-7의 무음 대조 · A4-2의 교정 1건) 그 사실을 회차 기록에 적고 **`PASS`로 올리지 않는다**(⛔ 상자).
 - **수치는 그 회차에 직접 돌린 출력만 적는다.** 계산값·낡은 값 금지. **앱 소스를 고치지 않는다** — 실패는 고치는 것이 아니라 보고하는 것이다.
 - **보고를 그대로 믿지 않는다** — 호출자가 단정 하나는 직접 재현한다. 행 수는 직접 세고 화면은 자동 저장된 `.html`·`.png`를 직접 읽는다. 불일치하면 **직접 검증이 이기고 보고를 폐기한다.**
 - 브라우저 레그 결과를 **게이트 수치와 섞어 보고하지 않는다.**
+- ⛔ **DB 수치는 baseline / 회차 후 / teardown 후 **3열**로 남긴다.** 하나라도 빠지면 **사후 대조가
+  원리적으로 불가능하다** — teardown이 걷어간 값은 나중에 조회해도 없다. 실측 사고(2026-09-06):
+  팀리드가 T2 결과를 사후 조회로 대조해 "에이전트 수치가 어긋난다"고 **오판했다.** 에이전트의 3열
+  기록이 옳았고 그 기록이 없었으면 판정이 뒤집힌 채로 남았다. 대상 표 6개:
+  `learning_sessions` · `analysis_jobs` · `utterances` · `error_patterns` ·
+  **`session_plans` · `learner_notes`**(뒤 둘은 보존 대상이라 **세 시점 모두 1행**임을 명시한다).
 
 ## §11. 아직 답을 발명하지 않은 것
 
@@ -507,6 +520,13 @@ select count(*) from learning_sessions s join harness_sessions h on h.session_id
 | 10 | **A4-1의 primary 세션이 `corrections`를 비우지 않는가** — 9번과 같은 자리에서 확인한다(둘 다 표본 조건이고 화면 결함이 아니다) | **T4** |
 
 ### ✅ 1회차에서 닫힌 것 1건 — 답이 예상한 둘 중 어느 것도 아니었다
+
+⛔ **아래는 계측을 걸지 않은 경로에만 적용된다 (T5a·T2 실측으로 범위가 좁혀졌다).**
+**계측을 클릭 전에 걸면 `navigator.mediaDevices.getUserMedia`가 교체되어 권한 대화상자가 아예 뜨지
+않는다** — T2·T5a 두 스파이크 모두 `dialog::accept` 없이 세션이 열렸다(합계 5회차).
+→ **정상 절차(계측을 먼저 거는 경로)에서는 대화상자 처리 단계가 필요 없다.** 아래 서술은
+**계측 없이 화면만 볼 때**(예: A1-7의 옛 대조 후보 ①, 지금은 폐기됨) 유효하다.
+⚠️ **`dialog::accept`를 기다리며 멈추지 마라** — 오지 않는 것을 기다리면 창(10초)을 넘긴다.
 
 **마이크 권한 거동**(계획서 I-4). 계획서는 두 갈래를 예상했다 — ⓐ `getUserMedia`가 실패해
 `microphone_permission_denied`가 뜨거나 ⓑ headless가 **가짜 장치로 조용히 성공**한다.
