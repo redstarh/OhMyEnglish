@@ -382,9 +382,14 @@
     return {
       maxCount,
       expectedCount: expected.length,
-      // ⚠️ **초과 검출 전용이므로 `<=` 다.** "기대 개수에 도달했는가"는 `terminalMatches`가 이미
-      // 단정하므로(일치하면 개수도 같다) 여기서 겹쳐 걸지 않는다. 설계 합의와 `H-AF` 대응란도
-      // `max <= 기대`다.
+      // ⚠️ **초과 검출 전용이므로 `<=` 다.** 설계 합의와 `H-AF` 대응란이 `max <= 기대`다.
+      // ⛔ **도달 검출은 겹쳐 걸지 않고 `reachedExpected`로 갈랐다 — 한 조건에 합치면 안 된다.**
+      // 처음에는 "`terminalMatches`가 개수를 이미 단정하므로 도달 검출은 불필요하다"고 적었는데
+      // **변이 내구성 축에서 틀렸다**(2026-09-06 리뷰가 지적하고 팀리드가 재현). `terminalMatches`의
+      // **길이 검사만** 잃는 변이를 넣고 「앱이 5줄만 렌더」를 돌리면: `===`판은 `noExcess`가 막아
+      // `false`인데 `<=`판은 `5 <= 6`이 참이라 **`true` = 거짓 PASS**다. `reachedExpected`를 더하면
+      // 다시 `false`이고 정상 6줄은 `true`로 무회귀다(직접 실측). `H-AB`의 "배선 줄만 무력화해
+      // 확인한다"를 이 함수에 적용한 결과다.
       // ⛔ **이 변경은 동작이 아니라 이름과 합의를 맞춘 것이다 — 근거를 정확히 적는다.**
       // 도달 가능한 입력에서 `===`와 `<=`는 `pass`가 **동일하다**: 종단 스냅샷은 message 핸들러
       // **맨 위**(앱 핸들러 호출 전)에서 찍히므로, 그보다 앞선 태스크에서 커밋된 DOM은 이미
@@ -396,15 +401,30 @@
       // 만들려 하면 재현되지 않고, 합성으로 억지로 만들면 **도달 불가 입력을 지키는 테스트**가 남는다.
       // 이 파일 머리말이 정한 규칙이 정확히 그것이다: 바뀐 것이 근거면 근거를 갈아라.
       noExcess: maxCount <= expected.length,
+      /**
+       * 기대 개수에 **도달한 적이 있는가**. `noExcess`와 합쳐 옛 `===`와 **정확히 같은 강도**가 되고
+       * (`<=` ∧ `>=` ⟺ `==`), 얻는 것은 **사유가 갈리는 것**이다 — "초과 렌더"와 "한 번도 도달 안 함"이
+       * 다른 플래그로 나온다.
+       * ⚠️ **거짓이면 대체로 하네스 쪽 사고다**: 정상 순서에서는 `|종단| <= maxCount`가 성립하므로
+       * `maxCount < 기대`는 **적립이 잘린 것**을 뜻한다(예: `stopRecording()`을 종단 프레임 **전에**
+       * 불렀다). 잘린 적립으로 낸 `noExcess`·`nonDecreasing`을 통과로 적으면 그 회차는 아무것도
+       * 보증하지 않는다 — 그래서 `pass`에 넣는다.
+       */
+      reachedExpected: maxCount >= expected.length,
       terminalPresent,
       terminalMatches,
       nonDecreasing,
       snapshotCount: omy.snapshots.length,
       finalLinesAtTerminal: terminal,
       /**
-       * 적립 중에 기대와 **정확히 같은 상태가 있었는가**. ⛔ **`pass`에 넣지 않는다** — 넣으면
-       * 이 파일이 금지한 「골라내기」가 되살아난다. 용도는 하나다: `terminalMatches`가 거짓인데
-       * 이것이 참이면 **앱 결함이 아니라 종단 스냅샷 전제가 깨진 회차**임을 회차가 알 수 있다.
+       * 적립 중에 기대와 **정확히 같은 상태가 있었는가**. ⛔ **`pass`에 넣지 않는다.**
+       *
+       * ⚠️ **근거를 정정한다** — 이전 판은 "넣으면 「골라내기」가 되살아난다"고 적었고 **부정확했다**
+       * (2026-09-06 리뷰 지적). 연접(AND)으로 넣으면 `pass`가 더 엄격해질 뿐이고 골라내기가 되려면
+       * **이접(OR)**이어야 한다. **진짜 이유는 이것이다: 이 값의 효용이 `pass` 밖에 있다는 것 자체다.**
+       * `pass`의 항이 되면 그것은 「원인 중 하나」가 되어 **"왜 `pass`가 거짓인가"를 지목하지 못한다.**
+       * 용도는 하나다: `terminalMatches`가 거짓인데 이것이 참이면 **앱 결함이 아니라 종단 스냅샷
+       * 전제가 깨진 회차**다. 그 해석은 `verdict`가 접어서 낸다.
        */
       exactStateSeen: omy.snapshots.some((s) => sameAs(s.texts)),
       /**
@@ -414,8 +434,38 @@
       judgeable: terminalPresent,
       // **진단용이다 — 판정에 쓰지 않는다.** 이전 판이 이것으로 판정해 거짓 FAIL을 냈다.
       atMaxDiagnostic: omy.snapshots.find((s) => s.count === maxCount) || null,
-      // 실질 독립 조건은 **셋**이다(`terminalPresent`는 `terminalMatches`가 이미 요구한다).
-      pass: terminalMatches && maxCount <= expected.length && nonDecreasing,
+      // 실질 독립 조건은 **넷**이다(`terminalPresent`는 `terminalMatches`가 이미 요구하므로 세지 않는다).
+      pass:
+        terminalMatches &&
+        maxCount <= expected.length &&
+        maxCount >= expected.length &&
+        nonDecreasing,
+      /**
+       * **해석을 접은 한 값.** 회차는 `pass`를 해석하지 말고 **이 값을 그대로 베껴 적는다.**
+       *
+       * ⚠️ **왜 필요한가**: `judgeable`·`exactStateSeen`은 진단 필드이고 **"함께 읽어라"는 규약으로만
+       * 지켜진다.** 그 규약은 `browser_leg.md` §4-4가 코드와 어긋난 채 낡았던 것과 **같은 종류의
+       * 보호**다(즉 약하다). 해석을 여기서 한 번 접으면 오분류가 **구조적으로** 어려워진다.
+       * 2026-09-06 독립 리뷰의 권고이고 채택했다.
+       */
+      verdict: !terminalPresent
+        ? "UNMEASURABLE_NO_TERMINAL"
+        : terminalMatches && maxCount <= expected.length && maxCount >= expected.length && nonDecreasing
+          ? "PASS"
+          : !nonDecreasing
+            ? "REMOUNT_OR_TWO_SESSIONS"
+            : maxCount > expected.length
+              ? "APP_EXCESS_RENDER"
+              : maxCount < expected.length
+                ? // ⚠️ **둘을 가른다 — 라벨이 앱 결함을 하네스 사고로 오분류하면 안 된다.**
+                  // 정상 순서에서는 `|종단| <= maxCount` 이므로 `maxCount < |종단|` 은 **적립이 잘린 것**
+                  // 이다(예: `stopRecording()` 을 종단 프레임 전에 불렀다). 같으면 **앱이 덜 그린 것**이다.
+                  terminalPresent && maxCount < terminal.length
+                  ? "HARNESS_TRUNCATED_ACCRUAL"
+                  : "APP_UNDER_RENDER"
+                : omy.snapshots.some((s) => sameAs(s.texts))
+                  ? "HARNESS_MISSED_TERMINAL_MOMENT"
+                  : "APP_CONTENT_MISMATCH",
     };
   };
 

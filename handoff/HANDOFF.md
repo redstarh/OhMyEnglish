@@ -42,7 +42,10 @@ backlog task list -s "To Do"           # priority high 와 caps-req 를 먼저 �
 ⛔ **`judgeFinalLines`를 다시 손대려면 두 대안을 먼저 기각해라 — 둘 다 이미 기각됐다.**
 ① **"최대치 전부를 후보로 두고 하나라도 일치"** → 거짓 PASS(I-8 병합은 **개수 불변·텍스트만** 변경).
 ② **색으로 확정/partial 가르기** → §6이 색을 선별에 쓰는 것을 금지한다(둘의 유일한 구조적 차이가 색).
-판정은 4항목이다: `terminalPresent` · `terminalMatches` · `noExcess` · `nonDecreasing`.
+판정은 **`verdict` 한 값을 베껴 적는다** — `pass`를 해석하지 않는다(계측이 해석을 접어서 낸다).
+독립 조건은 넷이다: `terminalMatches` · `noExcess`(`<=`) · `reachedExpected`(`>=`) · `nonDecreasing`.
+⛔ **`noExcess`와 `reachedExpected`를 `===` 하나로 합치지 마라** — `terminalMatches`의 길이 검사만 잃는
+변이에서 **「앱이 5줄만 렌더」가 거짓 PASS**가 된다(변이 실측). `terminalPresent`는 조건이 아니라 `judgeable`이다.
 
 ⚠️ **남은 한계(미확인 — 통과로 적지 마라)**: 이 판정은 **종단 시점에 partial이 없다**는 것에 의존한다.
 픽스처는 턴마다 user final로 끝나 구조적으로 보장되지만 **실물 Nova는 미확인이다.** 그 경우
@@ -136,8 +139,8 @@ cd ../frontend && npx tsc --noEmit ; npx eslint app lib     # 둘 다 exit 0
 | ⚠️ 보존 대상 | `session_plans` **1행** · `learner_notes` **1행** — 실물 모델 왕복의 **유일한 증거**이고 다시 만들면 비용이 든다. **지우지 마라** |
 | 서버 | 백엔드 **:8002 실행 중** pid **38202** — ⚠️ **T13이 `stub_unresponsive` → `VOICE_ADAPTER=stub`으로 바꿨다**(앱 기본값 `config.py:66`과 일치) · `WORKER_ENABLED=false`(비용 가드, 기본값은 `True`) · 프론트 **:3000 실행 중** |
 | 미커밋 | `.claude/` · `.mcp.json` · `tmp/`(추적 밖) — **커밋하지도 지우지도 마라** |
-| 계측 | `tests/harness/instrument.js` **437줄** · sha256 **`0be00c20a99c4fa9…`** (23917B). ⚠️ **해시는 주석 한 줄로도 바뀐다** — 회차 기록의 해시와 다르면 먼저 `git diff`로 실행 코드 변경 여부를 본다 |
-| 절차 문서 | `tests/harness/browser_leg.md` **557줄**. P5가 **4차 정정**됐고 §8-②가 **재계산 → baseline 복원**으로 바뀌었다 |
+| 계측 | `tests/harness/instrument.js` **612줄** · sha256 **`378372be0ac5f7f1…`** (39449B). ⚠️ **해시는 주석 한 줄로도 바뀐다** — 회차 기록의 해시와 다르면 먼저 `git diff`로 실행 코드 변경 여부를 본다 |
+| 절차 문서 | `tests/harness/browser_leg.md` **576줄**. P5가 **4차 정정**됐고 §8-②가 **재계산 → baseline 복원**으로 바뀌었다 |
 | baseline 사본 | `tests/harness/runs/2026-09-06-pattern-baseline.tsv`(추적됨) — **DB 표 `harness_pattern_baseline`이 회차마다 drop되므로 이 파일이 마지막 사본이다** |
 
 ⚠️ **백엔드가 이제 `stub`(픽스처 재생)이다 — 어느 모드가 필요한지 먼저 정하고 착수한다.**
