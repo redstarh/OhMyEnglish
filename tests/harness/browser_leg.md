@@ -166,9 +166,16 @@ python3 -c "import subprocess,os; r=subprocess.run(['git','rev-parse','--show-to
    - `recv` — 서버→클라이언트 프레임 종류별 계수(A1-1·A1-2·A1-3·A1-6).
    - **`sent`** — 클라이언트→서버 프레임을 `type`별로 나눈 계수. **`audio`와 `end_session`을 따로 담는다**(A1-7 측정과 그 음성 대조가 같은 객체에서 나온다).
    - **`started`** — `start` 호출 계수와 **호출 인자 `when`의 배열**(A1-4 측정과 대조 ②).
-   - **`finalLines`** — `final`마다 적립한 확정 줄 `textContent` **배열**(A1-5 내용 단정). 개수만 담지 않는다.
+   - **`snapshots`** — DOM이 바뀔 때마다 적립한 `{ts, count, texts}` 배열(A1-5). **개수만 담지 않는다.**
+   - **`finalLinesAtTerminal`** — 종단 프레임을 앱이 처리하기 **직전**의 동기 스냅샷(A1-5 내용 등호).
+   - **`judgeFinalLines`** — A1-5 판정을 계산하는 함수. 기대값은 호출자가 넘긴다.
+   - **`inject`** — 프레임 주입(C2·C5). 앱 핸들러를 직접 부르므로 `recv`를 오염시키지 않는다.
+   
+   ⚠️ **`finalLines` 키는 없다 — 요구하지 마라.** 2026-09-06 재설계가 그것을 **`finalLinesAtTerminal`(동기 진단) + `snapshots`(적립)** 둘로 갈랐다. ⛔ **이 절이 2026-09-06 T13 회차까지 `finalLines`를 요구하고 있었고, 그러면 이 절의 문장("하나라도 빠져 있으면 PASS를 낼 수 없다")대로 모든 브라우저 회차가 §4에서 ERROR로 끝나야 했다.** 브라우저에서 직접 확인한 값은 `keyState.finalLines = "ABSENT"`(2회 관측)다. §5의 A1-5는 재설계를 따라갔는데 **이 절만 낡아 있었다** — 한 문서 안에서도 두 곳에 적으면 한쪽이 조용히 낡는다.
    
    ⚠️ **계수와 대조가 같은 객체에서 나오는 것이 의도된 것이다** — 대조를 별도 경로로 재면 그 경로가 조용히 죽었을 때 "대조가 0이다"를 "무력화 성공"으로 오독한다.
+   
+   ⚠️ **이 목록을 셸 `grep`으로 계측과 대조하지 마라** — `instrument.js`에 리터럴 NUL이 있었을 때 이 셸의 `grep`이 그 파일을 통째로 건너뛰고 "없다"를 냈다(함정 **H-AG**). 2026-09-06에 그 NUL을 제거했지만(AC #16) **부재를 단정할 때는 `grep -a`나 파이썬을 쓰고, 가장 강한 확인은 페이지 안에서 `k in window.__omy`를 재는 것**이다.
 
 **계수 지점은 `AudioBufferSourceNode.prototype.start`다 — `createBufferSource`가 아니다.**
 ⚠️ **2026-09-06 재설계(`TASK-29`)**: `lib/audio.ts:enqueueAudio`는 노드 **생성**(`createBufferSource`)과 재생 **시작**(`source.start(startAt)`)을 **별개 줄에서** 부른다(직접 읽어 확인). 생성만 세면 `start` 줄을 지워도 계수가 3을 유지한다 — **소리는 나지 않는데 통과하는** 형태다(계수 지점 ≠ 효과 지점). `start`가 효과 지점이다.
