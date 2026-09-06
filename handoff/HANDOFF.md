@@ -1,7 +1,7 @@
 # Handoff — OhMyEnglish
 
 > **두 가지만 담는다: 다음 한 걸음 / 착수 전 필수.** 그 밖은 각 정본이 소유하고 여기서는 **가리키기만** 한다.
-> 최종 갱신 **2026-09-06** · 브랜치 `design/first-vertical-slice` · HEAD **`bcf0daf`**
+> 최종 갱신 **2026-09-06** · 브랜치 `design/first-vertical-slice` · HEAD **`f6c51e8`**
 >
 > ⚠️ **이전 판(475줄)은 `handoff/backup/2026-09-06/HANDOFF-full-475lines.md`가 소유한다.**
 > 슬라이스 1·2 이력 · 인계 기록 · S2-11 서술 · 발음 착수 안내가 거기 있다 — **필요할 때만 열어라.**
@@ -17,34 +17,40 @@ backlog task list -s "To Do"           # priority high 와 caps-req 를 먼저 �
 
 **원장이 상태의 정본이다**(`backlog/tasks/*.md`, 29건). 여기에 태스크 목록을 복사하지 않는다.
 
-### ⚠️ 첫 걸음 — 진행 중인 두 흐름의 **결과를 받아 닫는 것**부터다
+### ⚠️ 첫 걸음 — `TASK-31` **AC #13** 하나다. 그것만 남았다
 
-**두 위임이 2026-09-06에 나갔다. `idle`을 "끝났다"로 읽지 마라 — 이 리포에서 위임한 보고가 같은
-자리에서 세 번 잘렸다.** 완료는 **산출물의 존재**로만 판정한다.
+**`TASK-31`이 `In Progress`이고 13건 중 12건이 닫혔다.** 남은 #13은 **코드 수정으로 닫히지 않는다** —
+`finalLines` 스냅샷의 판별 실험이고 **실제 세션 관통 회차**가 필요하다.
 
-**① `AC11-2` 판정 — codex 리뷰 중.** 구현은 커밋 `6ef8d5c`(최심 재발이 초점에 없으면 계획 거부).
-⚠️ **팀리드가 리뷰 전에 더 센 근거를 찾았다 — 판정은 `부분`에 머무를 가능성이 높다**:
-`session_plans.questions`를 **읽는 곳이 0곳**이다(`services/sessions:_PREPARED_PLAN_SQL`이
-`sp.id`·`sp.reason`·`sp.instruction`만 고른다 · `audio_gateway/`·`api/`·프론트 grep 0건 ·
-`PreparedPlan` docstring이 "질문 목록은 담지 않는다"를 명시). **AC11-2는 세 연접**이고
-(초점에 최심 포함 · **질문이 그 패턴을 유발** · 이유 비어 있지 않음) 둘째가 소비자 0곳이다 →
-규약 §4가 그것을 `부분`으로 못 박는다. **그 연접을 닫는 것은 캡틴 결정 2(질문 전달)이고
-`TASK-6`·`TASK-25`가 소유한다.**
-리뷰에 넘긴 미확정 3건: ① 세 축 전부 동률 시 미정 ② "만성 목록 빈 경우 통과"의 종단 픽스처 없음
-③ 뮤테이션 중 무관한 red 2회 원인 미확정.
+**실험 내용**(발명하지 말고 그대로 해라): `settle()` 없이 `final` 직후 **종단 프레임을 같은 tick에
+연달아 주입**해 줄을 잃는지 본다. 잃으면 결함은 "동기 스냅샷 지점"이고, **새로 넣은 MutationObserver
+적립(`snapshots` + `judgeFinalLines`)이 그 조건에서도 살아남는지**가 진짜 물음이다.
 
-**② `TASK-19` T2 스파이크 — 검증 에이전트 실행 중.** `tests/harness/instrument.js`를 신설했고
-(커밋 `bcf0daf`, 292줄) **AC 4건은 미체크다** — 반환값·throw·`start`의 소유 프로토타입·A1-7 무음
-대조는 그 회차의 실측으로만 닫힌다. `node --check`만 통과했다(구문 검사이고 동작 검증이 아니다).
+⚠️ **왜 아직 열려 있나**: T2는 `[]`를 봤고 T5a는 정상 2줄을 봤다. **T5a 에이전트가 자기 관측으로
+T2를 반박하지 않았다** — 여유가 9.7초일 때 동작한 것만 보였고, 실제 `session_ended` 경로를 밟지
+않았으며(`stub_unresponsive`는 그 프레임을 안 보낸다) settle을 넣어 **문제 조건을 구조적으로
+회피했다.** 그 정직함이 이 항목을 살려 뒀다 — **닫혔다고 오인하지 마라.**
 
-### 그다음 (원장에서 확인한다)
+⚠️ **감사 세션에 "내가 #13을 산출물 없이 체크하면 미이행으로 올려 달라"고 부탁해 뒀다.**
 
-- **`TASK-20`** — CDP 프레임 주입 스파이크. `instrument.js`의 `inject()`는 **미검증이고 T5a 소유다**.
-- **`TASK-21`** (high) — 화면 관측. A1-0만 끝났고 17건 남았다. `TASK-19`·`TASK-20`을 전제한다.
-- **`TASK-30`** (high, 신설) — **판별력 관측.** 재설계한 7건의 대조가 실제로 FAIL을 내는지.
-  `TASK-19`·`21`·`22`를 선행으로 건다. ⚠️ **관측 전에는 그 7건을 `PASS`로 보고하지 않는다.**
+### 그다음 (원장에서 고른다)
+
+- **`TASK-21`** (high) — 화면 관측 17건. 선행은 `TASK-31`이다. A1-0만 끝났다.
+- **`TASK-30`** (high) — 판별력 **관측**. 재설계한 단정 7건의 대조가 실제로 FAIL을 내는지.
+  ⚠️ **관측 전에는 그 7건을 `PASS`로 보고하지 않는다.**
+- **`TASK-22`** — 결과 화면 5상태·교정 카드 관측.
 - **`TASK-6`·`TASK-25`** — 캡틴 결정 2·3(질문 전달 · 시나리오 전달). **같은 자리를 건드리니 함께
-  설계한다**(`captain-decisions.md` §2). AC11-2의 둘째 연접이 여기서 닫힌다.
+  설계한다**(`captain-decisions.md` §2). **AC11-2의 남은 연접이 여기서 닫힌다** — 요구사항을 실제로
+  움직이는 것은 프론트 검증 체인이 아니라 이쪽이다.
+
+### ✅ 2026-09-06에 확정된 것 — 재론하지 않는다
+
+- **AC11-2 = `◐ 부분` 확정** (2차 codex 리뷰 `PASS`). 세 연접 중 둘째(질문)가 **소비자 0곳**이다 —
+  표시 경로도 **발화 경로(`audio_gateway/nova.py:build_system_prompt`)도** `questions`를 읽지 않는다.
+  근거는 `docs/design/2026-09-06-review-outcomes.md` §6이 소유한다.
+- **CDP 프레임 주입은 된다** (`TASK-20` T5a, AC 4건 전건 `PASS`, 2회 회차 일치).
+  → **C5 폐기와 §7-6 직렬 큐 대안 둘 다 불필요해졌다.**
+- **`browser_leg.md` §11의 미결 2·3·5·6이 닫혔다.** 남은 것은 §11-7(`finalLines`)과 T4 몫이다.
 
 ⚠️ **2026-09-06에 닫은 것(`TASK-17`·`TASK-29`)의 내용은 여기 적지 않는다 — 원장 노트가 소유한다**
 (`backlog task view TASK-29`). 한 가지만 알아 둘 것: **`TASK-29`의 AC 하나를 `TASK-30`으로 옮겼다.
@@ -54,25 +60,30 @@ backlog task list -s "To Do"           # priority high 와 caps-req 를 먼저 �
 
 ## 착수 전 필수 — 이 세션에서 생긴 규약 4개
 
-| 규약 | 무엇을 정하나 |
+| 규약 (`docs/ops/`) | 한 줄 요지 — 상세는 그 문서가 소유한다 |
 |---|---|
-| `docs/ops/data-first-design-convention.md` | **표·데이터를 먼저 검토하고 정합성을 판정한 뒤 코드를 쓴다.** ALTER 대 CREATE 판정 · "저장은 되는데 읽는 곳이 없다"의 양방향 판별표 · 되돌리기 어려운 마이그레이션 절차 · ⚠️ **DB 공유가 스키마 수준이다**(`pg_dump`에 `-n public` 필수) |
-| `docs/ops/review-and-decision-protocol.md` | **요구사항 판정을 바꾸는 순간 codex 리뷰를 건다** · 결정 상충 처리 · 문서 보관 판정 기준 3개 |
-| `docs/ops/captain-instruction-register.md` | 지시 → 태스크 매핑 · **강제 장치 5개**(원장에서 고른다 · 라벨·우선순위 · 미이행 노출 · **방식이 지시되면 산출물로 대체 금지** · 순서 변경은 그 자리에서 말한다) |
-| `docs/ops/audit-session-brief.md` | **외부 감사 세션**(`claude_air_1-4`)이 읽는 브리프 |
+| `data-first-design-convention.md` | **표·데이터를 먼저 판정한 뒤 코드를 쓴다.** ⚠️ DB 공유가 **스키마 수준**이다(`pg_dump`에 `-n public`) |
+| `review-and-decision-protocol.md` | **요구사항 판정을 바꾸는 순간 codex 리뷰를 건다** |
+| `captain-instruction-register.md` | 강제 장치 5개. 핵심: **방식이 지시되면 산출물로 대체하지 않는다** |
+| `audit-session-brief.md` | 외부 감사 세션이 읽는 브리프 (읽기 전용·매시 감사) |
+| `pitfalls.md` | 실측 함정. **H-A**(게이트 cwd) · **H-P**(HEAD 해시는 적는 순간 낡는다) · **H-X**(동시 pytest) · **H-AB~H-AD**(2026-09-06 신규) |
 
 ### 캡틴 결정·판정 기록 — 재론하지 않는다
 
-- `docs/design/2026-09-06-captain-response-to-status-report.md` — 회신 원문 + 내가 답한 질문 3건
 - `docs/design/2026-09-06-captain-decisions.md` — **결정 8건** + 그 결정이 부과하는 제약
-- `docs/design/2026-09-06-gap-investigation.md` — 공백 조사 4건. ⚠️ **병목이 네 자리**
-- `docs/design/2026-09-06-review-outcomes.md` — **codex가 내 판정 하나를 뒤집었다**(AC11-2) + 단정 7건
-- `docs/status-report-2026-09-06.html` — 요구사항 47건 판정. **스냅샷이고 정본이 아니다**
+- `docs/design/2026-09-06-review-outcomes.md` — **판정 2건이 리뷰로 뒤집혔다.** §2 AC11-2 되돌림 ·
+  §4 단정 7건 · **§6 AC11-2를 `부분`으로 확정**(2차 리뷰)
+- `docs/design/2026-09-06-captain-response-to-status-report.md` · `…-gap-investigation.md` ·
+  `docs/status-report-2026-09-06.html`(**스냅샷이고 정본이 아니다**)
 
-### 회차 기록 (사후 편집하지 않는다)
+### 회차 기록 (사후 편집하지 않는다) — `tests/harness/runs/`
 
-`tests/harness/runs/2026-09-06-live-plan-1.md`(실물 계획 생성) ·
-`…-browser-leg-1.md`(팀리드 관측) · `…-browser-leg-2-agent.md`(에이전트 재현)
+`2026-09-06-live-plan-1.md`(실물 계획) · `…-browser-leg-1.md`·`…-browser-leg-2-agent.md`(A1-0) ·
+**`…-t2-instrument-spike.md`**(계측 신설 · teardown 사고) ·
+**`…-t5a-injection-spike.md`**(주입 확정 · 결함 8건) · `…-pattern-baseline.tsv`(baseline 사본)
+
+⚠️ **두 회차 기록은 팀리드가 「직접 확인한 것 / 못 한 것」을 절로 갈라 뒀다** — 그 절을 먼저 읽어라.
+남의 관측을 내 증거로 쓰지 않기 위한 것이고, 감사가 그 공백을 실제로 잡아냈다.
 
 ---
 
@@ -80,7 +91,7 @@ backlog task list -s "To Do"           # priority high 와 caps-req 를 먼저 �
 
 ```bash
 cd app/backend                                  # 게이트는 이 cwd에서만 판정한다 (함정 H-A)
-.venv/bin/pytest -q                             # 594 passed
+.venv/bin/pytest -q                             # 595 passed
 .venv/bin/ruff check . ; .venv/bin/ruff format --check .   # exit 0 / 32 files
 ty check                                        # exit 0
 .venv/bin/ruff check ../../tests ../../scripts  # 6 errors  (기준선, 게이트 밖)
@@ -93,13 +104,23 @@ cd ../frontend && npx tsc --noEmit ; npx eslint app lib     # 둘 다 exit 0
 
 | 항목 | 값 |
 |---|---|
-| 테스트 | **594 passed** (582 → +12, AC11-2 강제) |
+| 테스트 | **595 passed** (582 → +13. AC11-2 강제 +12 · 만성 빈 경로 종단 +1) |
 | DB | `:5432` homebrew **17** · 역할 `ohmy` · `TimeZone=UTC` · ⚠️ **같은 DB에 남의 `en_coach` 스키마가 있다 — 우리 것은 `public` 하나** |
 | 마이그레이션 | **001·003·004·005·006·007** 적용. 002는 존재한 적이 없다 |
 | 표 | **16개**. `session_plans`·`learner_notes`가 007로 생겼다 |
 | ⚠️ 보존 대상 | `session_plans` **1행** · `learner_notes` **1행** — 실물 모델 왕복의 **유일한 증거**이고 다시 만들면 비용이 든다. **지우지 마라** |
-| 서버 | 백엔드 **:8002 실행 중**(⚠️ `WORKER_ENABLED=false`로 떠 있다) · 프론트 **:3000 실행 중** |
+| 서버 | 백엔드 **:8002 실행 중** pid **30860** — ⛔ **`VOICE_ADAPTER=stub_unresponsive`로 떠 있다** · `WORKER_ENABLED=false` · 프론트 **:3000 실행 중** |
 | 미커밋 | `.claude/` · `.mcp.json` · `tmp/`(추적 밖) — **커밋하지도 지우지도 마라** |
+| 계측 | `tests/harness/instrument.js` **437줄** · sha256 **`0be00c20a99c4fa9…`** (23917B). ⚠️ **해시는 주석 한 줄로도 바뀐다** — 회차 기록의 해시와 다르면 먼저 `git diff`로 실행 코드 변경 여부를 본다 |
+| 절차 문서 | `tests/harness/browser_leg.md` **557줄**. P5가 **4차 정정**됐고 §8-②가 **재계산 → baseline 복원**으로 바뀌었다 |
+| baseline 사본 | `tests/harness/runs/2026-09-06-pattern-baseline.tsv`(추적됨) — **DB 표 `harness_pattern_baseline`이 회차마다 drop되므로 이 파일이 마지막 사본이다** |
+
+⛔ **백엔드가 `stub_unresponsive`로 떠 있다 — 이것을 모르면 관측이 전부 어긋난다.**
+그 모드는 `session_started`만 보내고 그 뒤 영원히 대기한다(**주입 창**이 그래서 열린다). 즉
+**`audio`·`final`·`partial` 프레임이 0건**이고 `A1-1~A1-5`·`A1-8`은 **평가할 수 없다.**
+C1 관통이나 A1-4 계수를 재려면 **`VOICE_ADAPTER=stub`(기본)으로 재기동**해야 한다:
+`cd app/backend && VOICE_ADAPTER=stub WORKER_ENABLED=false nohup .venv/bin/uvicorn app.api.main:app --port 8002 > /tmp/omy-backend.log 2>&1 &`
+⚠️ **로그를 그 경로로 리다이렉트해야 P5가 통과한다**(P5가 로그 pid와 실행 pid를 대조한다).
 
 ⚠️ **워커가 꺼져 있다.** 세션을 열어 분석을 돌리려면 켜야 하고, 그러면 **실물 모델 호출 비용**이 든다
 (승인된 것은 계획 생성 1회뿐이었다). 켜기 전에 캡틴 확인.
@@ -117,24 +138,46 @@ cd ../frontend && npx tsc --noEmit ; npx eslint app lib     # 둘 다 exit 0
 
 ### ⚠️ 이 리포의 지배 실패 모드 — 누적 25건 + 이 세션에 10건 더
 
-**"검사가 통과했는데 통과한 이유가 틀렸다."** 형태가 옮겨 다닌다:
+**"검사가 통과했는데 통과한 이유가 틀렸다."** 형태 **7가지의 정본은 여기가 아니다** —
+`docs/design/2026-09-06-review-outcomes.md` §4와 `tests/harness/browser_leg.md`의 ⛔ 상자가 소유한다.
+**두 곳에 적으면 한쪽이 조용히 낡는다.**
 
-1. **항진명제** — 재려는 값이 다른 곳에 이미 있어 구현을 지워도 통과한다.
-2. **자기순환** — 대상 선별에 재려는 값을 쓴다.
-3. **계수 지점이 효과 지점과 다르다** — 만든 것을 세고 **쓴 것을 세지 않는다.**
-4. **구조만 세고 내용을 보지 않는다** — 껍데기가 남으면 통과한다.
-5. **기대값이 0이 될 수 있다** — `0 == 0`은 구현이 없어도 성립한다.
-6. **0건 입력에서 통과를 단정한다** — 오류로 끝나는 형태보다 나쁘다(오류는 보이고 공허 통과는 안 보인다).
-7. **배선이 무보호다** — 단위 테스트가 값을 인자로 직접 넘겨 호출자를 재지 못한다.
+**판별법 한 줄만 여기 남긴다**: 단정을 채택하기 전에 **그 대조가 무력화에서 실제로 FAIL을 내는지**
+확인한다. 확인하지 않았다면 "대조 있음"이 아니라 **"판별력 미확인"**이다.
 
-**판별법**: 단정을 채택하기 전에 **그 대조가 무력화에서 실제로 FAIL을 내는지** 확인한다.
-확인하지 않았다면 "대조 있음"이 아니라 **"판별력 미확인"**이다.
+⚠️ **2026-09-06에 이 형태로 3건이 더 걸렸고 `docs/ops/pitfalls.md`에 등재했다**:
+**H-AB**(배선은 배선 줄만 무력화해 확인한다 — 가드 본문을 건드리면 단위도 함께 red가 되어
+못 가린다) · **H-AC**(하네스가 앱 계산식을 복제하면 낡고 **공유 dev DB를 파괴한다**) ·
+**H-AD**(크론 발동은 폴링으로 관측할 수 없다 — 관측이 대상을 없앤다).
+
+### 인계 지표 4개 — 새 세션은 **직접 돌려** 얻고 대조한다
+
+| # | 지표 | 기준값 (이 세션이 마감 시점에 직접 돌려 얻었다) |
+|--:|---|---|
+| 1 | `git rev-parse --short HEAD` | **`f6c51e8`** 이상 (`HEAD ≥ f6c51e8`. 이 값을 적은 커밋 자신이 HEAD를 옮기므로 등호를 요구하지 않는다 — 함정 H-P) |
+| 2 | `backlog task list -s "In Progress"` | **`TASK-31`(high) · `TASK-6` · `TASK-7`** 세 건. 다음 걸음은 **`TASK-31` AC #13** |
+| 3 | 게이트 | `app/backend` cwd에서 **595 passed** · `ruff check` 통과 · `ruff format` 32 files · `ty` 통과. 프론트 `npx tsc --noEmit`·`npx eslint app lib` **둘 다 exit 0** |
+| 4 | 착수 전 필수 | **1건** — `TASK-31` AC #13은 **세션 관통 회차**가 필요하고, 그러려면 백엔드를 **`VOICE_ADAPTER=stub`으로 재기동**해야 한다(지금은 `stub_unresponsive`) |
+
+⚠️ **3번이 핵심이다** — 읽기는 전달을 증명하지 못하고 **직접 돌린 출력**만 데이터다.
+하나라도 다르면 **그 차이를 먼저 설명한다.**
 
 ### ⚠️ 캡틴이 해야 하는 것 1건
 
-`claude_air_1-4`(외부 감사 세션)가 **수동 모드라 명령마다 승인을 묻는다.** 그 창에서 `2` 또는 `3`을
-고르면 계속 돈다. **권한은 캡틴 소유이므로 건드리지 않는다.**
-생존 신호: `.harness/audit-heartbeat.txt` — **오래됐으면 감사자가 죽은 것**이고 "이상 없음"과 구별된다.
+**감사 세션이 들어오는 메시지마다 캡틴에게 승인을 묻는다.** 배달 통지가 그것을 명시했다 —
+*"held for the **recipient** user's approval"*. ⚠️ **작업 세션의 `SendMessage` 허용으로는 풀리지
+않는다**(그것은 보내는 쪽이다. 2026-09-06에 `.claude/settings.local.json` allow에 추가했다).
+**받는 쪽 게이트이고 그 세션의 권한 모드가 소유한다** — 캡틴이 그 창에서 풀어야 한다.
+⚠️ 전역·프로젝트 `settings.json`에서 **해당 키를 찾지 못했다**(직접 grep) → 설정 항목이 아니라
+**세션 권한 모드**로 보인다. **확정하지 않았다.**
+
+생존 신호는 이제 둘이다: `.harness/audit-heartbeat.txt`(**매 회차 `>`로 덮인다 — 이력이 없다**) ·
+**`.harness/audit-fire-log.txt`(append-only, 감사자가 2026-09-06에 신설)** — 발동 이력은 이쪽을 본다.
+
+⛔ **크론 발동이 불안정하다 — 원인 미확정이다.** 감사 잡(`82bc95e7`, 슬롯 `:07`)이 자동 발동
+**1회뿐**이고, 작업 세션 잡(`460b4089`, 슬롯 `:23`)도 12:31 이후 조용했다. **둘 다 조용하지만
+작업 세션은 그 구간에 계속 바빴으므로 대조군이 못 된다**(idle 부재로도 설명된다).
+판별법과 관측자 효과는 `docs/ops/pitfalls.md` **H-AD**가 소유한다 — **폴링하지 마라.**
 
 ⚠️ **원장의 `created_date`·`updated_date`는 UTC다 — KST보다 9시간 이르다**(감사 발견, 직접 확인).
 시각 간격으로 지연을 논할 때 보정해라.
