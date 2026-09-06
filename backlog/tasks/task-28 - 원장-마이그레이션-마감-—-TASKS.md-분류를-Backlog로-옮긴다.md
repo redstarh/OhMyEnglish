@@ -4,6 +4,7 @@ title: 원장 마이그레이션 마감 — TASKS.md 분류를 Backlog로 옮긴
 status: To Do
 assignee: []
 created_date: '2026-09-06 01:37'
+updated_date: '2026-09-06 02:25'
 labels:
   - caps-req
 dependencies: []
@@ -23,3 +24,9 @@ ordinal: 28000
 - [ ] #3 TASKS.md 를 지우지 않는다 — 다른 문서가 절 제목으로 인용한다. 옮긴 뒤 남는 것이 무엇인지 적는다
 - [ ] #4 완료 후 지시 문서를 보관소로 보낸다(그때는 보관 기준 3개가 충족된다)
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+handoff 줄 수 정리는 2026-09-06에 선행 처리했다 — 475줄 → 137줄(72% 감소). 이전 판은 handoff/backup/2026-09-06/HANDOFF-full-475lines.md 가 소유한다(지우지 않고 옮겼다). 이 태스크의 남은 범위는 TASKS.md 분류를 Backlog 로 옮기는 것이다 — handoff 는 이미 정리됐다.
+<!-- SECTION:NOTES:END -->
