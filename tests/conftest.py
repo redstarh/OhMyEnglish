@@ -627,6 +627,19 @@ class PlanHistory(NamedTuple):
     chronic_pattern_id: UUID
 
 
+class DueOnlyHistory(NamedTuple):
+    """`PlanHistory`와 달리 **만성 패턴이 없다** — `chronic_pattern_id` 자리를 두지 않는다.
+
+    `PlanHistory`에 `None`을 허용하지 않는 이유: 그 필드를 `UUID | None`으로 넓히면 이미
+    그것을 `UUID`로 쓰는 열 곳이 전부 타입이 느슨해진다. 없는 것은 **필드를 두지 않는 것**으로
+    표현한다.
+    """
+
+    user_id: UUID
+    session_id: UUID
+    pattern_id: UUID
+
+
 async def end_new_session(pool: asyncpg.Pool, user_id: UUID) -> UUID:
     """이 사용자의 세션을 하나 더 만들고 `end_session`으로 닫는다 — 반환값은 세션 id.
 
@@ -727,6 +740,50 @@ async def ended_session_with_history(db_pool: asyncpg.Pool) -> AsyncIterator[Pla
             pattern_id=pattern_id,
             chronic_pattern_id=chronic_pattern_id,
         )
+    finally:
+        async with db_pool.acquire() as conn:
+            await conn.execute("delete from users where id = $1", user_id)
+
+
+@pytest_asyncio.fixture
+async def ended_session_with_due_only(db_pool: asyncpg.Pool) -> AsyncIterator[DueOnlyHistory]:
+    """**복습 예정만 있고 만성 목록이 빈** 사용자 — `deepest_pattern_id`가 `None`인 경로.
+
+    `ended_session_with_history`의 **거울상**이다. 그 픽스처는 만성 패턴을 일부러 심어
+    허용 집합의 chronic 절을 살렸고, 이것은 **일부러 심지 않아** `data.chronic`을 0건으로
+    만든다. 둘 다 필요하다 — 최심 가드에는 **강제하는 분기와 강제하지 않는 분기**가 있고
+    앞의 것만 재면 뒤의 것이 무보호로 남는다.
+
+    ⚠️ **이 상태가 도달 가능한 근거**(추측이 아니다): `services/chronic.py`의 `_METRICS_SQL`이
+    `error_patterns`에 `error_occurrences ⋈ utterances`를 **inner join**한다 → **발생 0건인
+    패턴은 만성 목록에서 빠진다.** 반면 `load_due_reviews`는 `next_review_at <= now`만 보고
+    발생을 요구하지 않는다. 그래서 여기서는 **발생·발화를 심지 않는 것**이 곧 "만성 0건"이다.
+    (같은 사실을 `ended_session_with_history` docstring이 2026-09-05 실측으로 적어 뒀다 —
+    그 픽스처가 due 하나만 심던 동안 `data.chronic`이 0건이었다.)
+
+    ⚠️ **콜드스타트로 빠지지 않는다.** 허용 집합은 `due_reviews ∪ chronic`이고 복습 예정
+    1건이 남아 있으므로 Claude 가 실제로 불린다 — 그것이 이 픽스처의 요점이다. 집합이 비면
+    `process_plan`이 Claude 를 부르지 않아 최심 분기에 **도달조차 하지 않는다.**
+
+    발화를 심지 않으므로 `flush_pending_analysis`의 회복 스윕이 걸 job 도 없다
+    (`ended_session_with_history`가 `analysis_jobs` 행을 넣어 막아야 했던 문제가 여기서는
+    구조적으로 일어나지 않는다).
+    """
+    now = datetime.now(UTC)
+    async with db_pool.acquire() as conn:
+        user_id = await conn.fetchval(
+            "insert into users (display_name) values ('Plan Due Only Test') returning id"
+        )
+        pattern_id = await conn.fetchval(
+            "insert into error_patterns (user_id, category, pattern_key, target_form, "
+            "next_review_at) values ($1, 'article', 'plan_due_only', 'go to the gym', $2) "
+            "returning id",
+            user_id,
+            now - timedelta(days=1),
+        )
+    session_id = await end_new_session(db_pool, user_id)
+    try:
+        yield DueOnlyHistory(user_id=user_id, session_id=session_id, pattern_id=pattern_id)
     finally:
         async with db_pool.acquire() as conn:
             await conn.execute("delete from users where id = $1", user_id)

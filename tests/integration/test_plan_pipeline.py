@@ -30,6 +30,7 @@ from uuid import UUID, uuid4
 import asyncpg
 import pytest
 from conftest import (
+    DueOnlyHistory,
     PlanHistory,
     claim_plan_job,
     end_new_session,
@@ -300,6 +301,51 @@ async def test_a_focus_that_misses_the_deepest_recurrence_is_rejected(
     assert "focus must include the deepest recurrence" in row["last_error"]
     # 무엇이 최상위였는지가 사유에 있어야 job 이력만으로 판단할 수 있다.
     assert str(history.chronic_pattern_id) in row["last_error"]
+
+
+# AC11-2 — **만성 목록이 비면 최심 규칙을 적용하지 않는다.** 위 테스트의 **거울상**이다.
+#
+# ⚠️ **왜 단위 테스트로 충분하지 않은가.** 단위(`test_plan_models.py`)는 `parse_plan`에
+# `deepest_pattern_id=None`을 **인자로 직접** 넘기므로 호출자가 정말 `None`을 넘기는지는 재지
+# 못한다 — 위 테스트 머리말이 적은 **무보호 배선**과 같은 형태이고, 이 리포는 그 자리에서 두 번
+# 사고를 냈다(2026-09-05 549건 · 2026-09-06 593건). 독립 리뷰(codex, 2026-09-06)가 이 공백을
+# `should-fix`로 올렸고 근거를 직접 확인해 수용했다.
+#
+# ⚠️ **막히면 무엇이 깨지나**: 복습 예정만 있고 발생 기록이 없는 사용자(= 만성 0건)의 계획이
+# **영구히 거부된다.** 콜드스타트와 다르다 — 콜드스타트는 Claude 를 부르지 않고 사유를 남기지만
+# 이쪽은 부르고 나서 버린다.
+#
+# 픽스처가 다르다: `ended_session_with_due_only`는 발생(`error_occurrences`)을 심지 않아
+# `_METRICS_SQL`의 inner join 이 비고 그래서 `data.chronic`이 **0건**이다.
+async def test_a_due_only_plan_is_accepted_when_the_chronic_list_is_empty(
+    db_pool: asyncpg.Pool, fake_claude, ended_session_with_due_only: DueOnlyHistory
+):
+    history = ended_session_with_due_only
+    async with db_pool.acquire() as conn:
+        data = await load_plan_input(conn, history.user_id)
+
+    # 선행 확인 — **이 셋이 이 테스트의 전제다.** 만성이 비지 않았다면 규칙이 적용되어 이
+    # 테스트는 "통과하지만 이유가 틀린" 초록이 된다. 비었음을 **단정하고** 넘어간다.
+    assert data.chronic == [], f"만성 목록이 비어야 이 분기다 — {data.chronic!r}"
+    assert deepest_recurrence(data.chronic) is None
+    assert history.pattern_id in {review.pattern_id for review in data.due_reviews}
+
+    # 최상위가 없으므로 실을 것도 없다 — `deepest_pattern_id`를 넘기지 않은 응답이다.
+    claude = fake_claude(plan_json(history.pattern_id))
+    job = await claim_plan_job(db_pool, history.session_id)
+
+    await process_plan(db_pool, claude, job)
+
+    assert len(claude.prompts) == 1, "콜드스타트가 아니다 — 허용 집합에 복습 예정 1건이 있다"
+    plan = await _plan_row(db_pool, history.session_id)
+    assert plan is not None, (
+        "만성 목록이 빈 사용자의 계획이 거부됐다 — 최심 가드가 `None`을 '검사 안 함'으로 "
+        "다루지 않고 강제했다. 복습 전용 사용자는 계획을 영구히 못 받는다"
+    )
+    assert plan["focus_pattern_ids"] == [history.pattern_id]
+    async with db_pool.acquire() as conn:
+        row = await job_row(conn, job.id)
+    assert row["status"] == "done", row["last_error"]
 
 
 # 부분 반영이 없다 — 계획 insert 가 실패하면 노트도 수준 갱신도 남지 않는다(§9 Contract).
