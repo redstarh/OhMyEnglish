@@ -281,26 +281,66 @@
    * A1-5 판정을 **골라내기 없이** 낸다. 기대 배열을 넣으면 셋을 함께 재서 돌려준다.
    * ⚠️ 이 함수는 판정을 **계산**할 뿐이고 기대값을 만들지 않는다 — 기대값은 호출자가
    * `fixtures.py:FIXTURE_TURNS`에서 연역해 넘긴다.
+   *
+   * ## 2026-09-06 재설계 (T13 회차) — 내용·순서 판정을 **종단 스냅샷**으로 옮겼다
+   *
+   * ⛔ **이전 판은 `snapshots.find(s => s.count === maxCount)`로 「첫」 최대치를 골라 거짓 FAIL을
+   * 냈다.** 같은 코드·같은 픽스처·같은 어댑터로 돌린 2회차가 갈렸다(`snapshotCounts`
+   * `0,1,2,2,2,3,4,4,4,5,6,0` = pass 대 `0,1,2,2,2,3,4,4,4,5,6,6,0` = fail). 후자의 첫 `6`은
+   * **확정 5줄 + partial 1줄**이었다 — partial 줄이 확정 줄과 **같은 접두 구조**를 쓰기 때문이다
+   * (`page.tsx:313~317` 대 `:307~311`). 즉 `count`는 "확정 줄 수"가 아니라 "확정 + partial"이다.
+   * **뿌리는 `find`가 아니라 선별이 과도 상태를 계수에 넣는 것이고 `find`는 방아쇠였다.**
+   *
+   * ⛔ **"최대치 지점 전부를 후보로 두고 하나라도 일치하면 통과"로 고치지 않았다** — 그것은 거짓
+   * PASS를 만든다. `page.tsx:123~124`의 I-8 병합은 **개수를 바꾸지 않고 텍스트만** 바꾸므로,
+   * 병합이 망가져 뒤쪽이 오염돼도 앞쪽의 올바른 최대치 하나로 통과한다. 그러면 이 파일이
+   * 스스로 금지한 **"골라내기"를 최대치 부분집합 안에서 되살리는** 셈이다.
+   *
+   * ⛔ **색으로 확정/partial을 가르지도 않았다** — 둘의 유일한 구조적 차이가 색이고
+   * (`--foreground` 대 `--foreground-muted`), `browser_leg.md` §6이 색을 선별에 쓰는 것을 금지한다.
+   *
+   * **채택한 방법**: 내용·순서는 **`finalLinesAtTerminal`**(종단 프레임을 앱이 처리하기 직전의
+   * 동기 스냅샷)로 재고, 적립(`snapshots`)은 **초과 검출과 단조성**에만 쓴다. 근거는 T13 실측이다 —
+   * 실제 서버 경로에서 그 동기 스냅샷이 **2회 모두** 픽스처 6줄과 정확히 일치했고, 그것은 우연이
+   * 아니다: WebSocket `message`는 프레임마다 **별개 task**로 디스패치되고 React는 task 경계에서
+   * flush하므로 **커밋 개입이 구조적**이다. 프레임이 같은 tick에 몰리는 것은 **주입만** 하는 일이고
+   * 주입 시나리오(C2·C5)는 이 판정을 쓰지 않는다.
+   *
+   * ⚠️ **`finalLinesAtTerminal`이 없으면 통과시키지 않는다**(`terminalPresent`). 종단 프레임이 오지
+   * 않았거나 `inject()`로만 프레임을 넣은 회차에서는 이 값이 `null`인데, 그때 조용히 통과하면
+   * **"0은 고장과 구별되지 않는다"**가 된다.
    */
   omy.judgeFinalLines = (expected) => {
     const counts = omy.snapshots.map((s) => s.count);
     const maxCount = counts.length ? Math.max(...counts) : 0;
-    const nonDecreasing = counts.every((c, i) => i === 0 || c >= counts[i - 1] || c === 0);
-    const atMax = omy.snapshots.find((s) => s.count === maxCount) || null;
-    const exact =
-      !!atMax &&
-      atMax.texts.length === expected.length &&
-      atMax.texts.every((t, i) => t === expected[i]);
+    // 0으로의 낙하는 언마운트다 — **마지막에 오는 0만** 허용한다. 중간에 0으로 떨어졌다가 다시
+    // 오르는 것은 컨테이너가 언마운트·재마운트된 것이므로 이상이고, 이전 판의 `|| c === 0`은
+    // 그것까지 통과시켰다(2026-09-06 독립 리뷰가 지적한 구멍을 여기서 닫는다).
+    const nonDecreasing = counts.every((c, i) => {
+      if (i === 0) return true;
+      if (c >= counts[i - 1]) return true;
+      return c === 0 && counts.slice(i).every((later) => later === 0);
+    });
+    const terminal = omy.finalLinesAtTerminal;
+    const terminalPresent = Array.isArray(terminal);
+    const terminalMatches =
+      terminalPresent &&
+      terminal.length === expected.length &&
+      terminal.every((t, i) => t === expected[i]);
     return {
       maxCount,
       expectedCount: expected.length,
-      countMatches: maxCount === expected.length,
-      textsMatchAtMax: exact,
+      // 초과 검출 — 과도 상태에도 최대치가 기대값을 넘지 않는 것이 계약이다.
+      noExcess: maxCount === expected.length,
+      terminalPresent,
+      terminalMatches,
       nonDecreasing,
       snapshotCount: omy.snapshots.length,
-      atMax,
-      // 셋 전부 참이어야 PASS 다. 하나라도 거짓이면 그 항목이 사유다.
-      pass: maxCount === expected.length && exact && nonDecreasing,
+      finalLinesAtTerminal: terminal,
+      // **진단용이다 — 판정에 쓰지 않는다.** 이전 판이 이것으로 판정해 거짓 FAIL을 냈다.
+      atMaxDiagnostic: omy.snapshots.find((s) => s.count === maxCount) || null,
+      // 넷 전부 참이어야 PASS 다. 하나라도 거짓이면 그 항목이 사유다.
+      pass: terminalPresent && terminalMatches && maxCount === expected.length && nonDecreasing,
     };
   };
 
