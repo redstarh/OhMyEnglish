@@ -4,7 +4,7 @@ title: '프론트엔드 검증 T2: instrument.js 신설 + 스파이크'
 status: Done
 assignee: []
 created_date: '2026-09-06 00:13'
-updated_date: '2026-09-06 03:12'
+updated_date: '2026-09-06 03:29'
 labels: []
 dependencies:
   - TASK-29
@@ -37,4 +37,14 @@ T2 스파이크 완료 — 회차 기록 tests/harness/runs/2026-09-06-t2-instru
 팀리드가 직접 확인한 것 4건 · 확인하지 못한 것(브라우저 관측 전부)은 회차 기록 §5 가 가른다. ⚠️ 팀리드가 DB 수치를 사후 조회로 대조해 '어긋난다'고 오판했다 — teardown 이 걷어간 값이라 사후에는 볼 수 없었고 에이전트의 3열 기록이 옳았다.
 
 드러낸 결함 10건은 TASK-31 이 소유한다(TASK-21 의 선행으로 걸었다). 이미 고친 것: browser_leg P5(로그 pid 대조 — 로그가 종료된 pid 15648 것이고 실행은 41641 이었다) · §8-②(재계산 → baseline 복원. 캡틴의 pronunciation_an_as_a 를 0/NULL 로 덮었다) · §8-③(발음 패턴 보호) · pitfalls H-AB·H-AC.
+
+── 2026-09-06 추가: 외부 감사 2회차 지적을 받아 팀리드가 브라우저로 직접 재현했다 ──
+지적: AC#1~#3 의 근거가 에이전트 보고 단독이고 기록 스스로 '확인하지 못했다'고 적었다 — 재현되지 않은 주장 위에 Done 이 올라갔다. 지적이 옳다.
+
+재현 결과(세션을 시작하지 않아 DB 무접촉, 전후 7·92·34·1·1·7 동일 · baseline drift 0):
+- ③ 전건 일치. Chrome/152.0.0.0 · createBufferSource 는 AudioContext.prototype 에서 undefined 이고 소유자는 BaseAudioContext · startOwner=AudioBufferSourceNode · start 는 두 프로토타입에 모두 own 이고 stop 은 AudioScheduledSourceNode 에만 있다(§4-3 우려가 stop 에서 실현된다)
+- ① 반환값이 문자열 instrumented. Promise 아님
+- ② delete WebSocket.prototype.send → 체인 탐색 null → '계측 대상 부재: WebSocket 체인에 send 가 없다' throw → 복원 확인. 에이전트 보고 문구와 축자 일치
+
+⚠️ 재현의 한계: 평가한 것은 instrument.js 의 가드·반환 경로이고 파일 전문이 아니다. 후킹 설치·계수·inject·probeColor 는 여전히 에이전트 보고가 근거다. 회차 기록 §7 이 그 선을 가른다.
 <!-- SECTION:NOTES:END -->

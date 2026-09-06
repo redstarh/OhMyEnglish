@@ -144,9 +144,60 @@
 - §8-0을 고쳤다: **무조건 `drop` 금지.** 표가 있고 drift > 0이면 **`ERROR`로 멈추고** 먼저 ②의 복원을
   돌린다 — 재스냅샷으로 덮지 않는다.
 
+## 7. 팀리드의 브라우저 재현 — **외부 감사 2회차 지적을 받아 수행했다**
+
+감사 지적: *"AC#1~#3의 근거가 에이전트 보고 단독이다. 기록 스스로 '팀리드가 확인하지 못한 것'이라
+적었다 — 재현되지 않은 주장 위에 `Done`이 올라갔다."* **지적이 옳다.** 반박하지 않고 재현했다.
+
+**방법**: 팀리드가 브라우저를 직접 몰아 `http://localhost:3000`을 열고 **세션을 시작하지 않은 채**
+프로토타입 사실과 가드 경로만 평가했다(그래서 DB에 아무것도 쓰지 않는다).
+
+### ③ 프로토타입 소유자 — **전건 일치** (팀리드 직접 실측)
+
+```json
+{"chrome": "Chrome/152.0.0.0",
+ "createBufferSource_on_AudioContext_prototype": "undefined",
+ "createBufferSourceOwner": "BaseAudioContext",
+ "startOwner": "AudioBufferSourceNode",
+ "start_own_on_AudioBufferSourceNode": true,
+ "start_own_on_AudioScheduledSourceNode": true,
+ "stop_own_on_AudioBufferSourceNode": false,
+ "stop_own_on_AudioScheduledSourceNode": true,
+ "onmessageOwner": "WebSocket", "sendOwner": "WebSocket", "omy_already": "undefined"}
+```
+
+- 계획서 예측(`AudioContext.prototype`에서 `undefined`)이 **맞았다** — 실제 소유자는 `BaseAudioContext`.
+- **`start`는 두 프로토타입에 모두** own property이고 가까운 쪽(`AudioBufferSourceNode`)이 잡힌다 —
+  인스턴스 조회에서 이기는 쪽이라 옳다.
+- **`stop`은 `AudioBufferSourceNode`에 없고 `AudioScheduledSourceNode`에만 있다** → §4-3의
+  "둘이 다른 자리일 수 있다"는 우려가 **`stop`에서 실현된다.**
+
+### ① 반환값 — **`instrumented`** (팀리드 직접 실측)
+
+`instrument.js`의 가드·반환 경로를 **축자로** 평가한 결과가 문자열 `instrumented`였다. **Promise가
+아니다** — 동기 IIFE 판단이 맞았고, "하네스가 await하는가"라는 미결이 열리지 않는다.
+
+### ② 후킹 대상 부재 시 throw — **재현됨** (팀리드 직접 실측)
+
+```json
+{"had": true, "still": false, "chainAfterDelete": "null",
+ "thrown": "계측 대상 부재: WebSocket 체인에 send 가 없다", "restored": true}
+```
+
+`delete WebSocket.prototype.send` → 체인 탐색이 `null` → 그 메시지로 throw → 복원 확인.
+에이전트가 보고한 문구와 **글자 그대로 같다.** 확인 후 페이지를 새로 로드해 정리했다.
+
+⚠️ **재현의 한계를 정확히 적는다**: 팀리드가 평가한 것은 `instrument.js`의 **가드·반환 경로**이고
+파일 전문이 아니다(후킹 설치·계수·`inject`·`probeColor`는 평가하지 않았다). 그 부분의 근거는
+여전히 에이전트 보고다. **재현한 것과 못 한 것을 이 문단이 가른다.**
+
+**DB 무접촉 확인**(재현 전후 동일): `learning_sessions` 7 · `utterances` 92 · `analysis_jobs` 34 ·
+`session_plans` **1** · `learner_notes` **1** · `error_patterns` 7 · baseline drift **0**.
+
 ---
 
-_기록: 2026-09-06. §1~4는 에이전트 보고, §5는 팀리드의 독립 확인, §6은 잘렸던 보고의 나머지다._
+_기록: 2026-09-06. §1~4는 에이전트 보고, §5는 팀리드의 독립 확인, §6은 잘렸던 보고의 나머지,_
+_§7은 외부 감사 지적을 받아 수행한 팀리드의 브라우저 재현이다._
 _결함은 이 회차 이후_
 _`browser_leg.md`(§8-②·③ · P5)와 `docs/ops/pitfalls.md`(H-AB·H-AC)에 반영했고, `instrument.js`_
 _결함 6건은 후속이 소유한다._
