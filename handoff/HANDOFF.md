@@ -25,10 +25,19 @@ backlog task list -s "To Do"           # priority high 와 caps-req 를 먼저 �
 
 - **AC #14 (이것부터)** — `judgeFinalLines`의 `atMax`가 **첫** 최대치를 고른다(`instrument.js:286`).
   partial 줄이 확정 줄과 같은 접두를 쓰므로 과도 상태가 먼저 최대치에 닿아 **거짓 FAIL**이 난다.
-  → **AC #1이 약속한 "회차 운 제거"는 미달이고 운의 자리만 옮겼다.** 근거·수치는 함정 **H-AF**와
-  회차 기록이 소유한다. **고친 뒤 같은 입력으로 2회 돌려 판정이 같은지 재라** — 1회로는 안 걸린다.
+  → **AC #1이 약속한 "회차 운 제거"는 미달이고 운의 자리만 옮겼다** — 그래서 **AC #1의 체크를
+  되돌렸다**(#14가 닫히면 다시 체크한다). 근거는 함정 **H-AF**와 회차 기록이 소유한다.
+  ⛔ **"최대치 전부를 후보로" 로 고치지 마라 — 거짓 PASS가 생긴다**(I-8 병합은 개수 불변·텍스트만
+  변경). **채택 방향**(회차 기록 §10): `finalLinesAtTerminal`(내용 등호) + `snapshots`의
+  `max ≤ 기대`(초과 검출) **조합**. 실제 서버 경로에서 동기 스냅샷이 신뢰 가능한 것은 구조적이다 —
+  WS 프레임이 프레임마다 별개 task라 커밋이 사이에 들어간다. **고친 뒤 같은 입력으로 2회 돌려
+  판정이 같은지 재라** — 1회로는 안 걸린다. `nonDecreasing`의 `|| c === 0`도 여기서 함께 **판정**한다.
 - **AC #15** — `browser_leg.md` §4-4(줄 169)가 계약 키 `finalLines`를 요구하는데 코드에 그 키가 없다
-  (`keyState.finalLines = "ABSENT"`, 2회 관측). §5 A1-5만 갱신되고 §4-4가 낡았다.
+  (`keyState.finalLines = "ABSENT"`, 2회 관측). §5 A1-5만 갱신되고 §4-4가 낡았다. **하드 블로커다** —
+  문자 그대로면 모든 브라우저 회차가 §4에서 ERROR다.
+- **AC #16** — `instrument.js:264`의 **NUL 2개**를 없앤다. 이 셸의 `grep`은 `ugrep -I` 래퍼라 그 파일을
+  **통째로 건너뛰고 rc=1**을 낸다(셸 `grep -c const` 출력 없음 대 `command grep` **37**). 함정 **H-AG**.
+  ⚠️ **그 파일에서 부재를 단정할 때 셸 `grep`을 쓰지 마라** — `command grep`·파이썬을 쓴다.
 
 ⚠️ **미확인 위험(AC로 올리지 않았다)**: `nonDecreasing`의 `|| c === 0`(`instrument.js:285`)이
 언마운트를 통과시키는데 **그 예외가 진짜 이상도 통과시키는 회차는 못 봤다.** 단정하지 마라.
@@ -74,7 +83,7 @@ backlog task list -s "To Do"           # priority high 와 caps-req 를 먼저 �
 | `review-and-decision-protocol.md` | **요구사항 판정을 바꾸는 순간 codex 리뷰를 건다** |
 | `captain-instruction-register.md` | 강제 장치 5개. 핵심: **방식이 지시되면 산출물로 대체하지 않는다** |
 | `audit-session-brief.md` | 외부 감사 세션이 읽는 브리프 (읽기 전용·매시 감사) |
-| `pitfalls.md` | 실측 함정. **H-A**(게이트 cwd) · **H-P**(HEAD 해시는 적는 순간 낡는다) · **H-X**(동시 pytest) · **H-AB~H-AD** · **H-AE·H-AF**(T13 신규 — 합성 클릭은 activation을 안 만든다 · 적립은 타이밍 운을 옮길 뿐이다) |
+| `pitfalls.md` | 실측 함정. **H-A**(게이트 cwd) · **H-P**(HEAD 해시는 적는 순간 낡는다) · **H-X**(동시 pytest) · **H-AB~H-AD** · **H-AE·H-AF·H-AG**(T13 신규 — 합성 클릭은 activation을 안 만든다 · 적립은 타이밍 운을 옮길 뿐이다 · **셸 `grep`이 `instrument.js`를 건너뛴다**) |
 
 ### 캡틴 결정·판정 기록 — 재론하지 않는다
 
@@ -175,7 +184,7 @@ cd ../frontend && npx tsc --noEmit ; npx eslint app lib     # 둘 다 exit 0
 | 1 | `git rev-parse --short HEAD` | **`150fd8e`** 이상 (`HEAD ≥ 150fd8e`. 이 값을 적은 커밋 자신이 HEAD를 옮기므로 등호를 요구하지 않는다 — 함정 H-P) |
 | 2 | `backlog task list -s "In Progress"` | **`TASK-31`(high) 한 건.** ⚠️ **`TASK-6`·`TASK-7`은 `To Do`로 되돌렸다**(3h13m 방치 · AC 1/3 · notes 없음 — 상태만 켜둔 것이 원장을 거짓말하게 만들었다. 사유는 각 태스크 코멘트에 있다). 다음 걸음은 **`TASK-31` AC #14**(그다음 #15) |
 | 3 | 게이트 | `app/backend` cwd에서 **595 passed** · `ruff check` 통과 · `ruff format` 32 files · `ty` 통과. 프론트 `npx tsc --noEmit`·`npx eslint app lib` **둘 다 exit 0** |
-| 4 | 착수 전 필수 | **2건** — ① **AC #14는 `judgeFinalLines` 수정이고, 고친 뒤 같은 입력으로 2회 돌려 판정이 같은지 재야 한다**(1회만 돌리면 이 부류는 통과한다 — 함정 H-AF) ② 브라우저 회차를 열려면 **CDP 클릭으로 sticky activation을 먼저 얻는다**(함정 H-AE). 백엔드 재기동은 **더 이상 필수가 아니다** — 이미 `stub`이다 |
+| 4 | 착수 전 필수 | **3건** — ① **AC #14는 고친 뒤 같은 입력으로 2회 돌려 판정이 같은지 재야 한다**(1회로는 안 걸린다 — H-AF). 방향은 위 첫 걸음이 못 박았다 ② 브라우저 회차를 열려면 **CDP 클릭으로 sticky activation을 먼저 얻는다**(H-AE) ③ **`instrument.js`에서 부재를 단정할 때 셸 `grep`을 쓰지 않는다**(H-AG — NUL 때문에 무조건 "없다"가 나온다). 백엔드 재기동은 **더 이상 필수가 아니다** — 이미 `stub`이다 |
 
 ⚠️ **3번이 핵심이다** — 읽기는 전달을 증명하지 못하고 **직접 돌린 출력**만 데이터다.
 하나라도 다르면 **그 차이를 먼저 설명한다.**
