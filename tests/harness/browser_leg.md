@@ -22,10 +22,32 @@
 | P2 | `cat app/frontend/.env.local` | `NEXT_PUBLIC_API_BASE=http://localhost:8002` | 일치 |
 | P3 | `git check-ignore -v app/frontend/.env.local` | 무시됨을 확인한다 — **P2가 없는 머신에서는 폴백이 `http://localhost:8000`이고 그것은 StockAgent다**(`lib/config.ts:API_BASE`). 조용히 남의 앱을 검증한다 | `app/frontend/.gitignore:34:.env*` |
 | P4 | `brew services list \| grep postgresql` | `postgresql@17  started` | `postgresql@17 started` |
-| P5 | `ps -o lstart= -p $(lsof -nP -iTCP:8002 -sTCP:LISTEN -t)` → `find app/backend/app -name '*.py' -newermt '<그 시각>'` | **결과가 비어야 한다.** 백엔드는 `--reload` 없이 뜨므로 소스가 프로세스보다 새로우면 갱신되지 않는다 | 회차마다 다시 잰다 |
+| P5 | 아래 파이썬 한 덩이 (⚠️ **1회차 정정 — 원래 명령은 거짓 통과를 냈다**) | **결과가 비어야 한다.** 백엔드는 `--reload` 없이 뜨므로 소스가 프로세스보다 새로우면 갱신되지 않는다 | 회차마다 다시 잰다 |
 | P6 | `curl -s localhost:3000 -o /dev/null -w '%{http_code}'` | `200` | 회차마다 다시 잰다 |
 | P7 | `grep -c 'superpowers-chrome' .claude/settings.local.json` | `2` 이상 (`Skill(superpowers-chrome:browsing)` + `mcp__…chrome__use_browser`) | `2` |
-| P8 | `ps aux \| grep -c '[p]ytest'` | `0` — 테스트 DB가 실행마다 DROP/CREATE되는 공유 자원이다 (함정 H-X) | 회차마다 다시 잰다 |
+| P8 | `ps -axo comm= \| awk -F/ '{print $NF}' \| grep -c '^pytest'` (⚠️ **1회차 정정**) | `0` — 테스트 DB가 실행마다 DROP/CREATE되는 공유 자원이다 (함정 H-X) | 회차마다 다시 잰다 |
+
+⚠️ **P5·P8은 1회차에서 원래 검사식이 거짓 통과를 냈다 — 고친 형태를 쓴다.**
+
+- **P8**: `ps aux | grep -c '[p]ytest'`가 **3**을 냈으나 실제 `pytest`는 **0건**이었다. 잡힌 것은
+  **검사를 실행한 셸 자신의 명령줄**이다(그 명령에 `pytest`라는 낱말이 들어 있다). `[p]` 트릭은
+  grep 자신만 피하고 **호출한 셸은 피하지 못한다.** → **프로세스 이름**(`comm`)으로 센다.
+- **P5**: `ps -o lstart=`가 로케일 문자열(`2026년 9월 6일 …`)을 내고 `find -newermt`가 그것을
+  **거부한다** — 명령이 오류로 끝나는데 출력이 비어 보여서 "새로운 소스 없음"으로 읽힌다.
+  ⚠️ **macOS `ps`는 `etimes`를 지원하지 않는다**(형식 목록을 출력한다). 아래를 쓴다:
+
+```bash
+python3 - <<'PY'
+import subprocess, glob, os, time
+b = int(subprocess.run(["stat","-f","%B","/tmp/omy-backend.log"],capture_output=True,text=True).stdout)
+srcs = glob.glob("app/backend/app/**/*.py", recursive=True)
+newer = [p for p in srcs if os.path.getmtime(p) > b]
+print("P5:", "통과 — 기동보다 새로운 소스 없음" if not newer else f"실패 — {newer}")
+PY
+```
+
+`/tmp/omy-backend.log`는 백엔드를 띄울 때 리다이렉트한 로그다(`nohup … > /tmp/omy-backend.log`).
+그 파일의 **생성 시각**(`%B`)이 기동 시각이다. 다른 경로로 띄웠으면 그 경로로 바꾼다.
 | P9 | §7의 DSN 확인 명령 | `ohmyenglish` | `ohmyenglish` |
 
 ⚠️ **설정 파일을 고치지 않는다.** P7이 실패하면 `.claude/settings*.json`·`.mcp.json`을 **편집하지 말고** 무엇이 없는지 적어 **"캡틴 몫"으로 보고하고 멈춘다.** 권한 설정은 사용자 소유다.
@@ -43,12 +65,24 @@ cd app/frontend && npm run dev                                                  
 
 ⚠️ **`.harness/run_id.txt`를 덮지 않는다** — `ws_session.py`가 **import 시점에** 그 파일을 읽으므로 다른 세션의 진행 중 회차 포인터를 하이재킹한다(작성 시점에 그 파일이 실재한다). 브라우저 레그는 **별도 파일** `.harness/browser_run_id.txt`를 쓴다. 새 수단이 아니라 파일명 하나다.
 
+⚠️ **1회차 정정 — 원래 명령이 이 함정을 막지 못했다.** `tr -d ' \n'`으로 공백만 지우면
+`INSERT 0 1`의 **`01`이 UUID 뒤에 붙어** 길이가 38이 된다(1회차에서 실제로 그랬다). 아래처럼
+**UUID 형태를 정규식으로 추출**하고 **길이를 단정**한다 — 아래 절이 경고만 하고 명령이 막지 않으면
+같은 사고가 반복된다.
+
 ```bash
-cd app/backend && .venv/bin/python -c "
-import sys; sys.path.insert(0,'../../tests/harness')
+cd app/backend && .venv/bin/python - <<'PY' > ../../.harness/browser_run_id.txt
+import re, sys, subprocess
+sys.path.insert(0, "../../tests/harness")
 from psql_cli import psql
-print(psql(\"insert into harness_runs (git_commit, note) values ('$(git rev-parse --short HEAD)','browser-leg') returning id\"))
-" | tr -d ' \n' > ../../.harness/browser_run_id.txt
+commit = subprocess.run(["git","rev-parse","--short","HEAD"],capture_output=True,text=True).stdout.strip()
+out = psql(f"insert into harness_runs (git_commit, note) values ('{commit}','browser-leg') returning id")
+m = re.search(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", out)
+assert m, f"UUID 를 못 찾았다: {out!r}"
+print(m.group(0), end="")
+PY
+# 개설 직후 반드시 확인한다 — 36자여야 한다
+python3 -c "v=open('.harness/browser_run_id.txt').read(); assert len(v)==36 and v.count('-')==4, f'오염됨: {v!r} (len={len(v)})'; print('run_id OK:', v)"
 ```
 
 이 파일에 **개행이나 psql 부산물이 섞이면 안 된다** — 값이 SQL에 그대로 들어간다(1회차에서 `INSERT01`이 섞여 세션 하나가 미등록으로 남았다). **브라우저 레그에는 세션 자동 등록 훅이 없다**(세션을 만드는 주체가 브라우저다) → **teardown 직전에 시간창 스윕으로 등록한다**(§8 ①-a).
@@ -237,6 +271,26 @@ select count(*) from learning_sessions s join harness_sessions h on h.session_id
 | 6 | §6의 **주입 창이 실제로 먹는가**(10초 안에 2단계가 끝나는가) | **T5a ④** |
 | 7 | 확정 줄 수(A1-5) **스냅샷 시점의 방법** — 소프트 내비게이션은 `window.__omy`를 파괴하지 않으므로 계측이 `final`마다 DOM 개수를 배열에 적립한다. rAF인지 MutationObserver인지는 미정 | **T2에서 실측해 확정한다** |
 | 8 | C3용 보존 `session_id` 5개(§9) | **T4에서 채운다** |
+
+### ✅ 1회차에서 닫힌 것 1건 — 답이 예상한 둘 중 어느 것도 아니었다
+
+**마이크 권한 거동**(계획서 I-4). 계획서는 두 갈래를 예상했다 — ⓐ `getUserMedia`가 실패해
+`microphone_permission_denied`가 뜨거나 ⓑ headless가 **가짜 장치로 조용히 성공**한다.
+**실제로는 셋째다: 권한 대화상자가 떠서 페이지 평가가 막힌다.**
+
+- 대화상자가 뜬 동안 `eval`이 **`undefined`를 돌려주고** 세션 정보가 사라진다 → **DOM을 읽을 수 없다.**
+  이것을 "계측 실패"로 오독하면 엉뚱한 곳을 고친다.
+- **처리한 뒤에야** DOM을 읽을 수 있다: `dialog::dismiss`(거부) 또는 `dialog::accept`(허용).
+- **거부하면 ⓐ가 성립한다** — 화면이 `연결에 실패했습니다 / 사유: microphone_permission_denied /
+  다시 시도`로 바뀌는 것을 1회차에서 관측했다.
+- ⚠️ **`getUserMedia` 실패 시 소켓이 열리기 전에 끝난다** — 1회차에서 `learning_sessions`가
+  **7 → 7**로 변화가 없었다. 즉 **거부 경로는 DB에 세션을 만들지 않는다.**
+
+→ **C1(세션 관통)을 돌릴 때는 `dialog::accept`가 필요하다.** 거부하면 세션이 열리지 않아 `recv.*`
+단정을 전혀 잴 수 없다. **모든 브라우저 절차의 첫 단계에 "대화상자 처리"를 넣는다.**
+
+⚠️ **`accept`는 실제 마이크를 켠다.** 그 경로를 처음 쓸 때 무엇이 관측되는지는 **T2 스파이크**가
+확정한다(위 3·4번과 같은 회차에서 본다).
 
 1~6은 계획서가 "실측 후 정한다"로 남긴 항목을 **그대로 넘긴 것**이다(§13-1·3c·3·3b·2 + N-3). 7·8은 이 문서가 새로 남겼다. **이 문서가 닫은 계획서 미결 2건**: §13-4(회차를 여는가 → **연다**, `.harness/browser_run_id.txt` · §3) · §13-9(`e8b7e17`의 추천 이유 한 줄 → **A1-0으로 넣는다.** 새 시나리오를 만들지 않는다 — 계약이 `page.tsx:271`·`:277`에서 읽히고 기대값이 API에서 유도되며 음성 대조가 상태 전이로 성립한다).
 
