@@ -1,0 +1,25 @@
+---
+id: TASK-17
+title: '프론트엔드 검증 T6: 검증 에이전트 정의를 만든다'
+status: To Do
+assignee: []
+created_date: '2026-09-06 00:13'
+updated_date: '2026-09-06 00:14'
+labels: []
+dependencies:
+  - TASK-18
+ordinal: 17000
+---
+
+## Description
+
+<!-- SECTION:DESCRIPTION:BEGIN -->
+캡틴 노트 항목 2가 '프론트엔드 테스트 Agent 존재여부 먼저 판단'을 요구했다. 판단 결과: 없다. 전역에 testagent·en-coach-reviewer·hermes만 있고 셋 다 브라우저 제어 도구가 없다(직접 확인). 계획서 T6이 이 일을 소유하고 캡틴이 이미 '만든다'로 확정했다. 절차 정본은 추적되는 tests/harness/browser_leg.md이고 에이전트 파일은 커밋하지 않는다(캡틴 결정).
+<!-- SECTION:DESCRIPTION:END -->
+
+## Acceptance Criteria
+<!-- AC:BEGIN -->
+- [ ] #1 브라우저 제어 도구를 가진 에이전트 정의를 만든다
+- [ ] #2 절차를 에이전트 정의에 재서술하지 않고 browser_leg.md를 가리킨다
+- [ ] #3 에이전트를 실제로 1회 호출해 재현시키고 호출자가 단정 하나를 직접 재현해 대조
+<!-- AC:END -->
