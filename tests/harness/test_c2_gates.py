@@ -1,0 +1,178 @@
+"""`c2_render_hierarchy.py`의 판정 게이트가 **실제로 FAIL을 내는지** 잰다.
+
+**왜 이 파일이 있는가**: 2026-09-06 리뷰(HIGH-1·MEDIUM-1)가 그 실행체의 첫 판을 뚫었다 — 값을
+**인쇄만** 하고 아무것도 비교하지 않아서, 사람이 rgb 문자열을 눈으로 대조하지 않으면 PASS가
+공허해졌다. 게이트를 넣은 뒤에도 **"게이트가 있다"는 "게이트가 판별력을 갖는다"가 아니다**
+(`browser_leg.md` §5 ⛔ 상자와 같은 규약). 그래서 조건마다 **무력화 입력을 넣어 FAIL을 관측한다.**
+
+⚠️ **입력은 합성이 아니라 실제 회차의 반환값이다** — `runs/2026-09-06-t3-c2-eval-return.json`.
+손으로 만든 픽스처는 **데이터 생성 경로의 결함에 눈이 먼다**(함정 `H-AF`가 그 형태였다).
+그 실물 위에 **한 필드씩** 변이를 얹어 어긋남이 그 조건에서만 나오는지 본다.
+
+✅ **이 파일은 게이트 안이다 — 규약이 아니라 구조가 지킨다.**
+`app/backend/pyproject.toml:33`의 `testpaths = ["../../tests"]`가 리포의 `tests/`를 가리키므로
+`.venv/bin/pytest -q`가 이 파일을 **수집한다**(실측: 595 → **618 passed**, 정확히 이 파일의 23건).
+그래서 함정 `H-AA`("게이트 밖 스크립트는 조용히 낡는다")가 이 파일에는 **적용되지 않는다.**
+
+⚠️ **이 문단의 첫 판은 정반대를 적었다** — "게이트 밖이다, 그래서 문서 규약으로 지킨다".
+게이트 수치가 **595에서 618로 뛴 것**이 그 서술을 반증했다. 규약으로 지킬 필요가 없는 것을
+규약으로 지킨다고 적으면 다음 세션이 **없는 위험을 관리하고 진짜 위험을 놓친다.**
+
+실행(단독으로 돌릴 때):
+    cd app/backend && .venv/bin/pytest ../../tests/harness/test_c2_gates.py -q
+"""
+
+from __future__ import annotations
+
+import copy
+import json
+import sys
+from pathlib import Path
+
+import pytest
+
+HARNESS = Path(__file__).resolve().parent
+sys.path.insert(0, str(HARNESS))
+
+from c2_render_hierarchy import check_cross, check_leg  # noqa: E402
+
+REAL = HARNESS / "runs" / "2026-09-06-t3-c2-eval-return.json"
+
+
+def load() -> list[dict]:
+    data = json.loads(REAL.read_text(encoding="utf-8"))
+    assert len(data) == 2, f"실물 회차 파일이 2모드여야 한다 — {len(data)}건"
+    return data
+
+
+def test_real_round_passes_and_checks_a_nonzero_number_of_assertions():
+    """green — 실물 회차는 통과한다. **검사한 수가 0이 아닌 것을 함께 단정한다.**
+
+    0건을 검사하고 통과를 단정하는 것이 이 리포의 지배 실패 모드다.
+    """
+    data = load()
+    total = 0
+    for d in data:
+        checked, fails = check_leg(d, "both")
+        assert fails == [], f"[{d['emulated']}] 실물 회차가 어긋났다: {fails}"
+        assert checked >= 20, f"검사한 단정이 {checked}건뿐이다 — 게이트가 비어 있다"
+        total += checked
+    checked, fails = check_cross(data)
+    assert fails == []
+    total += checked
+    assert total >= 40, f"전체 검사 수가 {total}건뿐이다"
+
+
+# (변이를 얹는 함수, 어긋남 메시지에 들어 있어야 하는 조각) — 조각은 그 조건을 특정한다.
+MUTATIONS: list[tuple[str, object, str]] = [
+    # ⛔ HIGH-1 이 지목한 바로 그 구멍: 두 토큰이 같아지면 위계 단정이 항진명제가 된다.
+    (
+        "두 토큰이 같은 값으로 회귀",
+        lambda d: d["probe"].update(fg1=d["probe"]["muted1"], fg2=d["probe"]["muted1"]),
+        "A2-2 대조 ②",
+    ),
+    # ⛔ MEDIUM-1: §6-0 이 게이트가 아니라 출력이었다.
+    (
+        "주입 전 접두 <p>가 이미 있다",
+        lambda d: d["beforeInject"].update(prefixedCount=1),
+        "§6-0 위반",
+    ),
+    (
+        "컨테이너 마운트 증거가 없다",
+        lambda d: d["beforeInject"].update(waitingTextPresent=False),
+        "§6-0 의 0개가 공허하다",
+    ),
+    ("주입 전에 창을 넘겼다", lambda d: d["beforeInject"].update(reasonPs=1), "창 이탈: 주입 전"),
+    (
+        "partial 판독 시점에 창을 넘겼다",
+        lambda d: d["partial"].update(reasonPs=1),
+        "창 이탈: partial 판독",
+    ),
+    (
+        "probe 재판독이 갈렸다",
+        lambda d: d["probe"].update(muted2="rgb(1, 2, 3)"),
+        "같은 모드 재판독이 갈렸다: muted",
+    ),
+    ("probe 가 빈 문자열", lambda d: d["probe"].update(muted1=""), "rgb 문자열이 아니다"),
+    (
+        "partial 이 foreground 로 렌더됐다",
+        lambda d: d["partial"].update(color=d["probe"]["fg1"]),
+        "A2-1: partial 색",
+    ),
+    ("partial 줄이 2개다", lambda d: d["partial"].update(count=2), "A2-1: partial 주입 후"),
+    (
+        "확정 줄이 muted 로 렌더됐다",
+        lambda d: d["final"].update(color=d["probe"]["muted1"]),
+        "A2-2: 확정 색",
+    ),
+    (
+        "partial 줄이 사라지지 않았다",
+        lambda d: d["final"].update(partialTextStillPresent=True),
+        "partial 문구가 문서에 남아",
+    ),
+    ("확정 줄이 통째로 없다", lambda d: d.update(final=None), "final 이 비었다"),
+    (
+        "어댑터가 stub 이었다 (경쟁 프레임)",
+        lambda d: d["omy"]["recv"].update(partial=6),
+        "경쟁 프레임: recv.partial",
+    ),
+    (
+        "한 문서에 세션이 둘",
+        lambda d: d["omy"]["recv"].update(session_started=2),
+        "세션이 하나여야 한다",
+    ),
+    (
+        "앱 핸들러가 안 붙었다",
+        lambda d: d["omy"].update(appHandlerAttached=False),
+        "onmessage 핸들러가 붙지 않았다",
+    ),
+    ("주입 수가 모자라다", lambda d: d["omy"].update(injected=1), "주입 수가 1다"),
+    ("초과 렌더", lambda d: d["omy"].update(snapshotCounts=[0, 1, 2, 1]), "초과 렌더"),
+    ("적립이 비었다", lambda d: d["omy"].update(snapshotCounts=[]), "snapshotCounts 가 비었다"),
+    (
+        "모드 에뮬레이션이 안 걸렸다",
+        lambda d: d.update(scheme="light", emulated="dark"),
+        "모드 불일치",
+    ),
+]
+
+
+@pytest.mark.parametrize("label,mutate,expected", MUTATIONS, ids=[m[0] for m in MUTATIONS])
+def test_each_mutation_is_caught(label, mutate, expected):
+    """red — 무력화마다 **그 조건이** 어긋나야 한다. 메시지 조각으로 조건을 특정한다."""
+    d = copy.deepcopy(load()[0])
+    mutate(d)
+    _, fails = check_leg(d, "both")
+    assert fails, f"{label}: 무력화했는데 어긋남이 0건이다 — 이 조건은 판별력이 없다"
+    assert any(expected in m for m in fails), (
+        f"{label}: 기대한 조건이 아니라 다른 것이 걸렸다 — {fails}"
+    )
+
+
+def test_cross_mode_control_catches_emulation_not_applied():
+    """red — 두 모드의 토큰이 같아지면 A2-3 이 잡는다(모드 전환이 안 걸린 경우)."""
+    data = copy.deepcopy(load())
+    data[1]["probe"].update(muted1=data[0]["probe"]["muted1"], fg1=data[0]["probe"]["fg1"])
+    _, fails = check_cross(data)
+    assert any("두 모드의 muted 가 같다" in m for m in fails), fails
+    assert any("두 모드의 foreground 가 같다" in m for m in fails), fails
+
+
+def test_single_mode_run_is_not_a_pass():
+    """red — 모드 하나만 돌면 A2-3 은 **평가할 수 없다.** §10: 판별력 미확인은 PASS 가 아니다."""
+    checked, fails = check_cross([copy.deepcopy(load()[0])])
+    assert checked == 0
+    assert any("A2-3 미평가" in m for m in fails), fails
+
+
+def test_partial_phase_expects_no_final_line():
+    """partial 회차는 final 이 없는 것이 정상이고, 판정 회차에서는 그것이 어긋남이다."""
+    partial_file = HARNESS / "runs" / "2026-09-06-t3-c2-eval-return-partial.json"
+    data = json.loads(partial_file.read_text(encoding="utf-8"))
+    for d in data:
+        checked, fails = check_leg(d, "partial")
+        assert fails == [], f"[{d['emulated']}] partial 회차가 어긋났다: {fails}"
+        assert checked >= 20
+    # 같은 데이터를 판정 회차로 재면 final 부재가 잡혀야 한다.
+    _, fails = check_leg(copy.deepcopy(data[0]), "both")
+    assert any("final 이 비었다" in m for m in fails), fails

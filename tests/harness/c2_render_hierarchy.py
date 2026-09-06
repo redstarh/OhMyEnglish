@@ -385,6 +385,169 @@ async def run_scheme(
     return data
 
 
+def check_leg(d: dict, phase: str) -> tuple[int, list[str]]:
+    """한 모드 회차의 단정을 **판정한다.** 반환은 `(검사한 단정 수, 어긋난 것들)`.
+
+    ⛔ **이 함수가 없던 판이 리뷰에서 뚫렸다 (2026-09-06 · HIGH-1 · MEDIUM-1).** 그 판은 값을
+    **인쇄만** 하고 아무것도 비교하지 않아서, 사람이 rgb 문자열을 눈으로 대조하지 않으면 PASS가
+    공허해졌다. 구체적으로 두 구멍이었다:
+    ① `browser_leg.md` §5 A2-2의 음성 대조 ②(**probe 두 값이 실제로 서로 다름**)가 코드에 **없었다**
+       → `--foreground-muted`와 `--foreground`가 같은 값으로 회귀하면 세 단정이
+       **전부 항진명제**가 된다
+       (모드 간 차이는 그대로 성립하므로 A2-3도 못 잡는다).
+    ② §6-0의 **"0이 아니면 그 회차는 ERROR"**가 게이트가 아니라 출력이었다.
+
+    ⚠️ **검사한 수를 함께 돌려주는 것이 의도된 것이다** — 0건을 검사하고 통과를 단정하는 것이
+    이 리포의 지배 실패 모드다(`browser_leg.md` §2-P5의 `assert srcs`와 같은 이유).
+    """
+    fails: list[str] = []
+    checked = 0
+
+    def need(cond: object, msg: str) -> None:
+        nonlocal checked
+        checked += 1
+        if not cond:
+            fails.append(msg)
+
+    probe, before, partial, final = d["probe"], d["beforeInject"], d["partial"], d["final"]
+    omy, recv = d["omy"], d["omy"]["recv"]
+
+    # ── 0. 공허 통과 방어: 빈 값·비문자열이면 아래 등호가 전부 참이 될 수 있다.
+    for key in ("muted1", "muted2", "fg1", "fg2"):
+        need(
+            isinstance(probe.get(key), str) and probe[key].startswith("rgb"),
+            f"probe.{key} 가 rgb 문자열이 아니다: {probe.get(key)!r} — 등호가 공허해진다",
+        )
+    need(
+        isinstance(partial.get("color"), str) and partial["color"].startswith("rgb"),
+        f"partial.color 가 rgb 문자열이 아니다: {partial.get('color')!r}",
+    )
+
+    # ── 1. §6-0 — 주입 전(`active` 도달 후) 접두 `<p>`가 0개. **아니면 ERROR다.**
+    need(
+        before["prefixedCount"] == 0,
+        f"§6-0 위반: 주입 전 접두 <p>가 {before['prefixedCount']}개다 (0이어야 한다)",
+    )
+    need(
+        before["waitingTextPresent"] is True,
+        "§6-0 의 0개가 공허하다: `대화를 기다리는 중...`이 없다"
+        " — 컨테이너가 마운트되기 전에 쟀을 수 있다",
+    )
+    # ── 2. §6 — 창 이탈 판별. `사유:` `<p>`가 보이면 창을 넘긴 것이고 FAIL 이 아니라 ERROR 다.
+    need(before["reasonPs"] == 0, f"창 이탈: 주입 전 `사유:` <p>가 {before['reasonPs']}개다")
+    need(
+        partial["reasonPs"] == 0,
+        f"창 이탈: partial 판독 시점에 `사유:` <p>가 {partial['reasonPs']}개다",
+    )
+
+    # ── 3. A2-2 음성 대조 ② — **probe 두 값이 서로 다르다.** 같으면 위계 단정이 무의미하다.
+    need(
+        probe["muted1"] != probe["fg1"],
+        f"A2-2 대조 ② 위반: muted 와 foreground 가 같은 값이다({probe['muted1']})"
+        " — 위계 단정이 항진명제가 된다",
+    )
+    # ── 4. A2-3 음성 대조 — 같은 모드에서 두 번 읽으면 같다(읽기가 흔들리지 않음).
+    need(
+        probe["muted1"] == probe["muted2"],
+        f"같은 모드 재판독이 갈렸다: muted {probe['muted1']} vs {probe['muted2']}",
+    )
+    need(
+        probe["fg1"] == probe["fg2"],
+        f"같은 모드 재판독이 갈렸다: fg {probe['fg1']} vs {probe['fg2']}",
+    )
+
+    # ── 5. A2-1 — partial 줄은 muted 토큰이고 정확히 1개다.
+    need(
+        partial["count"] == 1,
+        f"A2-1: partial 주입 후 접두 <p>가 {partial['count']}개다 (1이어야 한다)",
+    )
+    need(
+        partial["color"] == probe["muted1"],
+        f"A2-1: partial 색 {partial['color']} != muted probe {probe['muted1']}",
+    )
+
+    # ── 6. A2-2 — 확정 줄은 foreground 토큰이고 partial 줄은 사라진다.
+    if phase == "partial":
+        need(final is None, "partial 회차인데 final 이 채워졌다 — 분기가 어긋났다")
+        need(omy["injected"] == 1, f"partial 회차의 주입 수가 {omy['injected']}다 (1이어야 한다)")
+    else:
+        need(final is not None, "판정 회차인데 final 이 비었다 — A2-2 를 평가할 수 없다")
+        if final is not None:
+            need(
+                final["count"] == 1,
+                f"A2-2: final 주입 후 접두 <p>가 {final['count']}개다 (1이어야 한다)",
+            )
+            need(
+                final["color"] == probe["fg1"],
+                f"A2-2: 확정 색 {final['color']} != foreground probe {probe['fg1']}",
+            )
+            need(
+                final["partialTextStillPresent"] is False,
+                "A2-2: final 뒤에도 partial 문구가 문서에 남아 있다"
+                " — setPartialLine(null) 경로가 죽었다",
+            )
+            need(
+                final["reasonPs"] == 0,
+                f"창 이탈: final 판독 시점에 `사유:` <p>가 {final['reasonPs']}개다",
+            )
+        need(omy["injected"] == 2, f"판정 회차의 주입 수가 {omy['injected']}다 (2여야 한다)")
+
+    # ── 7. 주입 창의 전제 — `stub_unresponsive` 이므로 **경쟁 프레임이 0**이다(§6 주입 창).
+    #    `stub` 으로 잘못 띄우면 실물 partial/final 이 같은 상태를 덮어 측정이 조용히 무의미해진다.
+    need(
+        recv["partial"] == 0,
+        f"경쟁 프레임: recv.partial={recv['partial']} — 어댑터가 stub_unresponsive 가 아니다",
+    )
+    need(
+        recv["final"] == 0,
+        f"경쟁 프레임: recv.final={recv['final']} — 어댑터가 stub_unresponsive 가 아니다",
+    )
+    # ── 8. 한 문서에 세션 하나(§4-4) + 계측이 살아 있었다는 증거.
+    need(
+        recv["session_started"] == 1,
+        f"한 문서에 세션이 하나여야 한다: session_started={recv['session_started']}",
+    )
+    need(
+        omy["appHandlerAttached"] is True,
+        "앱 onmessage 핸들러가 붙지 않았다 — 주입 경로가 성립하지 않는다",
+    )
+    # ── 9. 초과 렌더 검출 — C2 회차에는 어느 시점에도 접두 `<p>`가 1개를 넘지 않는다.
+    counts = omy["snapshotCounts"]
+    need(bool(counts), "snapshotCounts 가 비었다 — 계측이 적립하지 않았다")
+    need(
+        max(counts or [0]) <= 1,
+        f"초과 렌더: snapshotCounts 최대가 {max(counts or [0])}다 (1 이하여야 한다)",
+    )
+    # ── 10. 모드 에뮬레이션이 실제로 걸렸다.
+    need(
+        d["scheme"] == d["emulated"],
+        f"모드 불일치: 요청 {d['emulated']} · 페이지 보고 {d['scheme']}",
+    )
+
+    return checked, fails
+
+
+def check_cross(results: list[dict]) -> tuple[int, list[str]]:
+    """A2-3 — **모드 간** 토큰이 다르다.
+
+    두 모드가 없으면 평가할 수 없고 **그것은 PASS 가 아니다**(§10).
+    """
+    schemes = [r["emulated"] for r in results]
+    if len(set(schemes)) < 2:
+        return 0, [
+            f"A2-3 미평가: 모드가 {schemes} 하나뿐이다 — 판별력 미확인은 PASS 가 아니다(§10)"
+        ]
+    a, b = results[0], results[1]
+    fails = []
+    if a["probe"]["muted1"] == b["probe"]["muted1"]:
+        fails.append(
+            f"A2-3: 두 모드의 muted 가 같다({a['probe']['muted1']}) — 모드 전환이 안 걸렸다"
+        )
+    if a["probe"]["fg1"] == b["probe"]["fg1"]:
+        fails.append(f"A2-3: 두 모드의 foreground 가 같다({a['probe']['fg1']})")
+    return 2, fails
+
+
 async def main_async(args) -> int:
     src = INSTRUMENT.read_text(encoding="utf-8")
     file_sha = hashlib.sha256(src.encode("utf-8")).hexdigest()
@@ -458,6 +621,25 @@ async def main_async(args) -> int:
         )
 
     print(f"\nraw -> {out.relative_to(ROOT)}")
+
+    # ── 판정 — 인쇄로 끝내지 않는다. 어긋나면 **비영 종료**다.
+    if not results:
+        raise SystemExit("회차 결과가 0건이다 — 0건을 검사하고 통과를 단정하지 않는다")
+    checked, fails = 0, []
+    for d in results:
+        n, f = check_leg(d, args.phase)
+        checked += n
+        fails += [f"[{d['emulated']}] {m}" for m in f]
+    n, f = check_cross(results)
+    checked += n
+    fails += f
+
+    print(f"\n--- 판정 (단정 {checked}건 검사) ---")
+    if fails:
+        for m in fails:
+            print(f"  FAIL  {m}")
+        raise SystemExit(f"판정 FAIL — 어긋난 단정 {len(fails)}건 / 검사 {checked}건")
+    print(f"  PASS  {checked}건 전건 통과")
     return 0
 
 

@@ -2,12 +2,12 @@
  {
   "scheme": "light",
   "timing": {
-   "activeMs": 17,
-   "partialInjectedAt": 17,
-   "partialRenderMs": 16,
-   "finalInjectedAt": 34,
-   "finalRenderMs": 17,
-   "totalMs": 51
+   "activeMs": 20,
+   "partialInjectedAt": 20,
+   "partialRenderMs": 17,
+   "finalInjectedAt": 37,
+   "finalRenderMs": 16,
+   "totalMs": 54
   },
   "beforeInject": {
    "prefixedCount": 0,
@@ -65,19 +65,19 @@
    "isActive": true
   },
   "instrumentSha256": "846f130f2cf73365ae00765b37300e00e3c1c5b1cb1ae6152f9a02b7fc16ae93",
-  "clickToEvalReturnMs": 59,
-  "clickToScreenshotMs": 138,
+  "clickToEvalReturnMs": 64,
+  "clickToScreenshotMs": 148,
   "screenshot": ".harness/evidence/c2-light.png"
  },
  {
   "scheme": "dark",
   "timing": {
-   "activeMs": 18,
-   "partialInjectedAt": 18,
-   "partialRenderMs": 16,
-   "finalInjectedAt": 35,
+   "activeMs": 20,
+   "partialInjectedAt": 20,
+   "partialRenderMs": 20,
+   "finalInjectedAt": 40,
    "finalRenderMs": 17,
-   "totalMs": 52
+   "totalMs": 58
   },
   "beforeInject": {
    "prefixedCount": 0,
@@ -135,8 +135,8 @@
    "isActive": true
   },
   "instrumentSha256": "846f130f2cf73365ae00765b37300e00e3c1c5b1cb1ae6152f9a02b7fc16ae93",
-  "clickToEvalReturnMs": 59,
-  "clickToScreenshotMs": 122,
+  "clickToEvalReturnMs": 69,
+  "clickToScreenshotMs": 160,
   "screenshot": ".harness/evidence/c2-dark.png"
  }
 ]

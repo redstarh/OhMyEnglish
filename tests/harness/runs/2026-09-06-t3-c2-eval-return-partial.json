@@ -2,12 +2,12 @@
  {
   "scheme": "light",
   "timing": {
-   "activeMs": 17,
-   "partialInjectedAt": 18,
-   "partialRenderMs": 17,
+   "activeMs": 18,
+   "partialInjectedAt": 19,
+   "partialRenderMs": 20,
    "finalInjectedAt": null,
    "finalRenderMs": null,
-   "totalMs": 35
+   "totalMs": 39
   },
   "beforeInject": {
    "prefixedCount": 0,
@@ -57,19 +57,19 @@
    "isActive": true
   },
   "instrumentSha256": "846f130f2cf73365ae00765b37300e00e3c1c5b1cb1ae6152f9a02b7fc16ae93",
-  "clickToEvalReturnMs": 42,
-  "clickToScreenshotMs": 107,
+  "clickToEvalReturnMs": 50,
+  "clickToScreenshotMs": 135,
   "screenshot": ".harness/evidence/c2-light-partial.png"
  },
  {
   "scheme": "dark",
   "timing": {
-   "activeMs": 18,
-   "partialInjectedAt": 19,
+   "activeMs": 20,
+   "partialInjectedAt": 21,
    "partialRenderMs": 17,
    "finalInjectedAt": null,
    "finalRenderMs": null,
-   "totalMs": 36
+   "totalMs": 37
   },
   "beforeInject": {
    "prefixedCount": 0,
@@ -119,8 +119,8 @@
    "isActive": true
   },
   "instrumentSha256": "846f130f2cf73365ae00765b37300e00e3c1c5b1cb1ae6152f9a02b7fc16ae93",
-  "clickToEvalReturnMs": 42,
-  "clickToScreenshotMs": 97,
+  "clickToEvalReturnMs": 46,
+  "clickToScreenshotMs": 108,
   "screenshot": ".harness/evidence/c2-dark-partial.png"
  }
 ]
