@@ -261,7 +261,10 @@
     const texts = snapshotNow();
     const last = omy.snapshots[omy.snapshots.length - 1];
     // 직전과 같으면 적립하지 않는다 — MutationObserver는 같은 상태로도 여러 번 부른다.
-    if (last && last.count === texts.length && last.texts.join(" ") === texts.join(" ")) {
+    // ⚠️ 구분자는 NUL 이고 **이스케이프 표기로 적는다** — 리터럴 NUL 을 넣으면 이 파일이
+    //    바이너리로 판정되어 `-a` 없는 grep 이 전부 무효가 된다(함정 H-AG, 2026-09-06 실측).
+    //    공백으로 되돌리지 마라: 줄 텍스트에 공백이 들어 있어 경계가 모호해진다.
+    if (last && last.count === texts.length && last.texts.join("\u0000") === texts.join("\u0000")) {
       return;
     }
     omy.snapshots.push({ ts: Math.round(performance.now()), count: texts.length, texts });
