@@ -26,6 +26,7 @@
 | P6 | `curl -s localhost:3000 -o /dev/null -w '%{http_code}'` | `200` | 회차마다 다시 잰다 |
 | P7 | `grep -c 'superpowers-chrome' .claude/settings.local.json` | `2` 이상 (`Skill(superpowers-chrome:browsing)` + `mcp__…chrome__use_browser`) | `2` |
 | P8 | `n=$(ps -axo comm= \| awk -F/ '{print $NF}' \| grep -c '^pytest'); echo "P8: pytest ${n}건"; [ "$n" -eq 0 ]` (⚠️ **2회차 재정정**) | `pytest 0건` — 테스트 DB가 실행마다 DROP/CREATE되는 공유 자원이다 (함정 H-X) | 회차마다 다시 잰다 |
+| P9 | §7의 DSN 확인 명령 | `ohmyenglish` | `ohmyenglish` |
 
 ⚠️ **P5·P8은 1회차에서 원래 검사식이 거짓 통과를 냈다 — 고친 형태를 쓴다.**
 
@@ -105,7 +106,9 @@ PY
 
 ⚠️ **P5가 실패하면 소스를 고치는 것이 아니라 백엔드를 재기동한다** — `--reload`가 없어 소스가 반영되지
 않은 것이 실패의 뜻이다. 재기동 명령은 `docs/ops/local-run.md`가 소유한다.
-| P9 | §7의 DSN 확인 명령 | `ohmyenglish` | `ohmyenglish` |
+
+⚠️ **P9는 표의 마지막 행이다** — 2026-09-06까지 이 산문 아래에 홀로 떨어져 있어 표로 렌더되지 않았다.
+표 안으로 되돌렸다. **프리플라이트는 P1~P9 아홉 건이고 여덟 건이 아니다.**
 
 ⚠️ **설정 파일을 고치지 않는다.** P7이 실패하면 `.claude/settings*.json`·`.mcp.json`을 **편집하지 말고** 무엇이 없는지 적어 **"캡틴 몫"으로 보고하고 멈춘다.** 권한 설정은 사용자 소유다.
 
@@ -251,7 +254,18 @@ python3 -c "v=open('.harness/browser_run_id.txt').read(); assert len(v)==36 and 
 
 run-1의 스로틀 스크립트는 **회수 불가로 확정**됐다(지목된 CDP 캐시 세션이 존재하지 않고 전체 캐시에 `__omy` 0건). 스텁 `events()`에 지연을 넣지 않는다 — ① 생산 코드에 테스트 전용 경로 ② D계층 통합 테스트가 스텁 타이밍에 의존 ③ `sleep`이 모든 백엔드 테스트를 느리게 한다. 검증하려는 규칙("partial은 muted, final은 foreground")은 **시간의 함수가 아니다**:
 
+⛔ **전 과정을 `eval` 한 번에 넣는다 (2026-09-06 T5a 실측 — 이것을 안 지키면 반드시 실패한다).**
+클릭 → 주입 → 판독을 **액션 여러 개로 쪼개지 마라.** 창은 10초인데 **에이전트 라운드트립이 약 30초**다
+(실측: `click` 액션 다음 `eval`이 페이지에 닿기까지 약 30 s, 실패 회차의 첫 스냅샷이 pre-click
+마커로부터 **37,992 ms**). ⚠️ **이 문서가 그것을 명시하지 않아 T5a 첫 회차가 실제로 창을 넘겼다** —
+문서를 성실히 따른 결과였다. **병목은 페이지가 아니라 라운드트립이다**: 페이지 쪽 8프레임 주입은
+`session_started`로부터 **256 ms**(창의 **2.6%**)에 끝난다.
+
 0. **주입 전에 센다** — 접두 `<p>`가 **0개**임을 확인한다. 0이 아니면 그 회차는 **ERROR**다(측정으로 넘어가지 않는다). 이것이 A2-1·A2-2의 음성 대조다.
+   ⚠️ **`active` 도달 후에 센다** (T5a D-7 — 비용 0의 강화). 클릭 전에 재면 **컨테이너가 아직
+   마운트되지 않아** 0일 수 있고, 그러면 **주입 경로가 죽어 있어도 이 대조가 통과한다.** `active`
+   도달 시점(전사문 컨테이너가 `대화를 기다리는 중...`을 그리고 버튼이 `학습 종료`인 상태)에서
+   0개임을 재면 그 경로가 닫힌다. T5a가 둘 다 재서 둘 다 0이었다.
 1. `partial` 프레임만 주입 → 접두 `<p>`가 **1개**로 늘었음을 확인하고 `getComputedStyle(...).color`를 읽는다.
 2. `final` 프레임 주입 → 다시 읽는다. partial 줄이 사라졌는지와 확정 줄의 색을 함께 단정한다.
 
@@ -259,7 +273,23 @@ run-1의 스로틀 스크립트는 **회수 불가로 확정**됐다(지목된 C
 
 **기대값은 하드코딩하지 않고 런타임에 유도한다.** 임시 probe 요소에 `style.color = 'var(--foreground-muted)'`를 걸고 `getComputedStyle(probe).color`를 읽는다. ⚠️ `getPropertyValue('--foreground-muted')`를 직접 비교하지 않는다 — 그쪽은 `#595959` 형태로 측정 대상의 `rgb(89, 89, 89)`와 문자열이 다르다. probe를 거치면 **같은 엔진이 같은 표현으로** 정규화한다. **단정의 정본은 색값이 아니라 `globals.css` 머리주석의 위계 계약**이다(`:5~7` — "강조 대상은 `--foreground`, 덜 강조할 보조 문구는 `--foreground-muted` … '덜 강조'를 밝기가 아니라 **대비**로 표현하기 때문에 배경이 뒤집혀도 살아남는다"). 팔레트가 바뀌어도 이 단정은 살아남는다. 모드 전환은 `measure_contrast.py`가 이미 쓰는 CDP `Emulation.setEmulatedMedia`를 재사용한다(새 수단 0개).
 
-**주입 창** — `VOICE_ADAPTER=stub_unresponsive`로 띄운다. `audio_gateway/session.py:102`가 `session_started`를 `_connect()`(`:104` → `:126 asyncio.wait_for(self._adapter.start(), …)`)보다 **먼저** 보내고, `stub.py:70`의 `await asyncio.Event().wait()`는 영원히 끝나지 않으므로 소켓이 살아 있고 경쟁 프레임이 **0인 구간**이 열린다(세 줄 모두 직접 읽어 확인). ⚠️ **창은 유한하다 — `session.py:53 CONNECT_TIMEOUT = 10.0`.** 10초가 지나면 `session_failed`가 오고 `page.tsx:355`가 **또 다른 muted `<p>`**(`사유: …`)를 그린다. 그 요소엔 접두가 없으므로 **접두 `<p>` 개수로 창 이탈을 판별한다.** 창을 넘겼으면 **FAIL이 아니라 ERROR로 보고하고 재시도한다.** 창에서 주입이 실제로 먹는지는 **PLAUSIBLE·미실행이고 T5a ④가 확정한다**(§11-6).
+**주입 창** — `VOICE_ADAPTER=stub_unresponsive`로 띄운다. `audio_gateway/session.py:102`가 `session_started`를 `_connect()`(`:104` → `:126 asyncio.wait_for(self._adapter.start(), …)`)보다 **먼저** 보내고, `stub.py:70`의 `await asyncio.Event().wait()`는 영원히 끝나지 않으므로 소켓이 살아 있고 경쟁 프레임이 **0인 구간**이 열린다(세 줄 모두 직접 읽어 확인). ⚠️ **창은 유한하다 — `session.py:53 CONNECT_TIMEOUT = 10.0`.** T5a 실측: `session_started` →
+`session_failed`가 **10,023 ms**(1회차 10,071 ms)로 그 상수와 일치한다.
+
+**✅ 창에서 주입이 실제로 먹는다 — T5a ④가 확정했다**(§11-5·6 닫힘). 주입 8프레임이 창의 **2.6%**
+(256 ms)에 끝났고 2회 독립 회차가 일치했다. **§7-6의 직렬 큐 대안으로 내려갈 필요가 없다.**
+
+⛔ **창 이탈 판별의 근거를 정정한다 (T5a D-8 — 이전 서술이 틀렸다).**
+이전 판은 *"`사유:` 요소엔 접두가 없으므로 **접두 `<p>` 개수가 늘지 않는다**"*로 판별했다.
+**실제로는 개수가 늘지 않는 것이 아니라 0으로 떨어진다.** `page.tsx`가 전사문 컨테이너를
+`state === "active" || state === "ending"`으로 가두고 `failed`는 **별도 블록**이라(팀리드가 직접 읽어
+확인) `session_failed`에서 **컨테이너가 통째로 언마운트된다** — T5a 실측: 접두 `<p>` **2 → 0** ·
+배지 **1 → 0** · `사유:` `<p>` **0 → 1**.
+
+→ **판별 자체는 성립한다**(창을 넘긴 회차에서는 기대 개수가 절대 나오지 않는다). 바뀐 것은 근거이고,
+**틀린 근거를 남기면 다음 회차가 "개수가 그대로면 창 안"이라고 오독한다.** 판별은 이렇게 한다:
+**기대 개수가 나오지 않고 `사유:` `<p>`가 1개면 창을 넘긴 것**이다. 그때는 **FAIL이 아니라 ERROR로
+보고하고 재시도한다** — 전 과정을 한 `eval`에 넣는 방식으로 바꾼다(위 ⛔).
 
 ⚠️ T5a에서 CDP 주입이 실패해 지연 방식으로 내려가야 한다면 **단일 직렬 큐로만** 간격을 벌린다. 프레임마다 독립 `setTimeout`을 걸면 `final`이 지연된 `partial`보다 먼저 디스패치되어 재려는 전이가 성립하지 않는다.
 
@@ -404,6 +434,14 @@ select count(*) from learning_sessions s join harness_sessions h on h.session_id
 
 **⑤ 프로세스·환경 복원**: 백엔드를 §2의 baseline 명령으로 되돌리고 `curl localhost:8002/health`로 확인한다. `.env`는 고치지 않았으므로 복원할 것이 없다.
 
+⚠️ **예외 — 백엔드를 호출자가 세웠으면 ⑤를 건너뛰고 「무변경」을 증거로 보고한다** (T5a D-5).
+지금 문장 그대로 따르면 **남의 세션이 세운 환경을 덮어쓴다.** 판별은 간단하다: 회차 브리프가 모드를
+지정하며 "손대지 마라"고 했으면 그 프로세스는 호출자 소유다.
+그때 보고할 증거 3개(T5a가 실제로 남긴 형태):
+`lsof -nP -iTCP:8002 -sTCP:LISTEN -t`가 **회차 시작과 같은 pid** · `ps -p <pid> -Eww`의
+`VOICE_ADAPTER`·`WORKER_ENABLED`가 **회차 시작과 같음** · `/health`가 `{"status":"ok"}`.
+**`app/backend/.env`를 열지도 않는다.**
+
 **보존 대상 — ①에서 제외하고 보고에 적는다**: (a) **§9의 C3용 `session_id` 5개** — 지우면 다음 회차가 실물 Claude 1회를 다시 쓴다. (b) **실패한 시나리오의 세션** — 재현 근거를 지우면 재현할 수 없어지는 것이 더 비싸다.
 
 ## §9. 실물 Claude 호출 상한 — **1회** · 보존 session_id
@@ -418,7 +456,31 @@ select count(*) from learning_sessions s join harness_sessions h on h.session_id
 
 ## §10. 판정 어휘와 보고
 
-산출물은 `PASS` / `FAIL` / `BLOCKED` / `ERROR` 넷 중 하나 + **단정별 근거 파일 경로**다(`use_browser`가 DOM 액션마다 자동 저장하는 `.png`·`.html`·`.md`·`-console.txt`). 새 어휘를 만들지 않는다.
+산출물은 `PASS` / `FAIL` / `BLOCKED` / `ERROR` 넷 중 하나 + **단정별 근거**다. 새 어휘를 만들지 않는다.
+
+⛔ **자동 저장 파일을 창 안 관측의 증거로 쓸 수 없다 (2026-09-06 T5a D-1·D-6 — 구조적 결함이다).**
+
+`use_browser`는 `.png`·`.html`·`.md`를 **액션이 끝난 뒤에** 저장한다. 그런데 §6의 주입 창(10초)이
+라운드트립(~30초)보다 짧아 **클릭·주입·판독을 한 `eval`에 넣어야 하고**, 그러면 `eval`이 반환하는
+순간의 화면은 **이미 창 밖**이다. T5a 실측: 그 회차의 `054-eval.html`에 `aria-live` **0건** ·
+주입한 전사문 문구 **0건** · 배지 문구 **0건**이고 `voice_adapter_connect_timeout`만 1건이었다 —
+**주입이 실패한 것이 아니라 캡처 시점이 창 밖이었다.**
+그리고 **`-console.txt`는 빈 스텁이다** — 팀리드가 직접 확인: **58바이트**, 내용은
+`# Console Log` + `# TODO: Console logging not yet implemented` 두 줄뿐이다(모든 액션에서 동일).
+→ **§10이 약속했던 증거 4종 중 세 개는 창 밖 상태만 담고 하나는 비어 있다.**
+
+**그래서 증거 규약을 바꾼다 — 창 안 관측은 `eval`의 반환값이 증거다:**
+
+1. **`eval` 반환값에 DOM 자체를 실어 보낸다** — 개수·`textContent`만 반환하면 제3자가 재확인할 수
+   없다. 판정 대상 요소의 **`outerHTML`**(배지·단정 요소)과 컨테이너의 **`innerHTML`**을 함께 담는다.
+   ⚠️ T5a는 이것을 하지 않았다(개수와 `textContent`만 반환) → 그 회차의 AC ①②③은
+   **자동 아티팩트로 재확인할 수 없고** 재현 경로가 "같은 payload를 다시 돌린다" 하나뿐이다.
+2. **회차 기록에 그 반환 JSON을 옮긴다.** 회차 기록이 증거의 소유자다.
+3. **계측 판을 sha256으로 고정한다.** T5a가 임시 CORS 서버로 파일을 그대로 받아 `eval`하고 페이지
+   안에서 sha256을 계산해 대조했다 — **전사 드리프트가 구조적으로 0이 된다.** 손으로 옮겨 적지 마라.
+   ⚠️ **해시는 회차 기록에만 적는다. 이 문서에 박지 마라** — 주석 한 줄만 고쳐도 낡는다(실측: 같은 날
+   docstring 정정으로 `66384c9106…`→`e1342aca…`로 바뀌었고 실행 코드 변경은 0줄이었다).
+4. `.png`·`.html`은 **창 밖 상태(실패 화면·idle 화면)의 증거로는 여전히 유효하다** — 버리지 않는다.
 
 - **음성 대조에서 FAIL이 나지 않으면 그 단정은 무효다.** PASS라고 보고하지 않는다.
 - 계측 `eval` 반환값이 `'instrumented'`가 아니면 **ERROR로 끝낸다**(§4). 주입 창 이탈도 **ERROR**다(§6).
@@ -433,12 +495,12 @@ select count(*) from learning_sessions s join harness_sessions h on h.session_id
 
 | # | 무엇 | 어디서 닫는가 |
 |---|---|---|
-| 1 | **타임아웃·재시도·폴링 대기 값 전부.** 유일하게 근거 있는 값은 `results/[sessionId]/page.tsx:POLL_INTERVAL_MS = 2000`이고 그것은 **앱의 값**이지 대기 상한이 아니다 | **T2·T4 실행에서 실측**해 그 출력으로 정한다 |
-| 2 | **`start`를 어느 프로토타입에서 후킹·단정하는가**(§4-3). ⚠️ 재설계로 대상이 `createBufferSource`에서 `AudioBufferSourceNode.prototype.start`로 **바뀌었다** — 명세상 `start`는 `AudioBufferSourceNode`가 자기 것으로 갖고 `stop`은 `AudioScheduledSourceNode`에 있어 **둘이 다른 자리일 수 있다.** 정답을 단정하지 않는다 | **T2 실측** |
-| 3 | headless AudioContext가 suspend되는가 | **T2 스파이크.** `audio` 계수가 0이면 BLOCKED → `show_browser` |
+| 1 | ~~타임아웃·재시도·폴링 대기 값 전부~~ → **✅ 대부분 닫혔다. 아래 실측표를 쓴다** | **T5a 실측**(2회차 · 1회차 교차 확인). 남은 것은 T4의 결과 화면 폴링 대기뿐이다 |
+| 2 | ~~`start`를 어느 프로토타입에서 후킹하는가~~ → **✅ 닫혔다.** `start` 소유자는 **`AudioBufferSourceNode`** · `createBufferSource` 소유자는 **`BaseAudioContext`**(`AudioContext.prototype`에서 `getOwnPropertyDescriptor`는 `undefined`). ⚠️ **`start`는 `AudioBufferSourceNode`와 `AudioScheduledSourceNode` 양쪽에 own property**이고 가까운 쪽이 인스턴스 조회에서 이긴다. **`stop`은 `AudioBufferSourceNode`에 없고 `AudioScheduledSourceNode`에만 있다** — §4-3의 "둘이 다른 자리일 수 있다"가 `stop`에서 실현된다 | **T2 + T5a 실측 · 팀리드가 브라우저로 직접 재현**(Chrome 152.0.0.0) |
+| 3 | headless AudioContext가 suspend되는가 → **부분적으로 닫혔다.** 제스처 **전** 생성은 `suspended`, 제스처(클릭) **안**에서 생성하면 `running`이다(T5a 프로브: 생성 즉시 `running` 1 ms · `addModule` 2 ms · `resume` 0 ms). ⚠️ **`audio` 계수 0의 원인은 suspend가 아니었다** — T2에서 세션이 23ms에 자기종료해 프레임이 만들어지기 전에 끝났다 | **닫힘.** 남은 것은 `audio` 계수를 실제로 재는 구성이고 `stub`(비-unresponsive)에서만 가능하다 |
 | 4 | **A1-7의 음성 대조가 실제로 FAIL을 내는가** — 재설계로 후보가 바뀌었다: ① `end_session` 1건 동반 계수(후킹 고장 구별 — **이것은 확실히 성립한다**) ② **무음 합성 스트림에서 `audio` 계수가 0이 되는가**(이것이 미결이다) | **T2 스파이크.** ②가 0을 못 내면 A1-7을 **판별력 미확인으로 남긴다**(채택하되 `PASS`로 올리지 않는다) |
-| 5 | **CDP `onmessage` 주입이 실제로 되는가** — 가장 넓게 걸린 미결. C5와 C2 2단계 측정이 함께 여기 걸린다 | **T5a 스파이크(T3보다 먼저).** 실패하면 C5는 폐기하고 C2는 §6의 직렬 큐 대안으로 내려간다 |
-| 6 | §6의 **주입 창이 실제로 먹는가**(10초 안에 2단계가 끝나는가) | **T5a ④** |
+| 5 | ~~CDP `onmessage` 주입이 실제로 되는가~~ → **✅ 된다. 가장 넓게 걸렸던 미결이 닫혔다.** `pronunciation`·`partial`·`final` 3종 전부 주입이 먹었고 **2회 독립 회차가 일치**했다. `inject()`가 `recv`를 오염시키지 않는 것도 **설계 주장에서 관측으로 승격**됐다(8프레임 주입 후 `recv` 불변 · `injected` 0→8) | **T5a ①②③ `PASS`.** C5 폐기·직렬 큐 대안 **둘 다 불필요** |
+| 6 | ~~주입 창이 10초 안에 끝나는가~~ → **✅ 닫혔다. 다만 병목을 잘못 짚고 있었다**(T5a D-3): 페이지 쪽은 **256 ms**(창의 **2.6%**)로 여유가 압도적이고 실제 병목은 **에이전트 라운드트립(~30 s)**이다. 그래서 조건은 "10초 안에 끝나는가"가 아니라 **"전 과정을 한 `eval`에 넣었는가"**다(§6 ⛔) | **T5a ④ `PASS`** |
 | 7 | 확정 줄 수·**내용**(A1-5) **스냅샷 시점의 방법** — 소프트 내비게이션은 `window.__omy`를 파괴하지 않으므로 계측이 `final`마다 DOM을 적립한다. ⚠️ **재설계로 적립 대상이 개수에서 `textContent` 배열로 늘었다.** rAF인지 MutationObserver인지는 미정 | **T2에서 실측해 확정한다** |
 | 8 | C3용 보존 `session_id` 5개(§9) | **T4에서 채운다** |
 | 9 | **A4-2의 기대값 교차 대조를 평가할 수 있는 세션이 있는가** — 교정이 **2건 이상**인 세션이 §9 보존 목록에 필요하다. 1건뿐인 세션만 있으면 그 대조는 영구히 평가 불가다 | **T4에서 보존 목록을 채울 때 `corrections.length`를 함께 적어 확인한다** |
