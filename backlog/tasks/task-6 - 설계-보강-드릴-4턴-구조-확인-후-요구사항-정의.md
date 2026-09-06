@@ -4,7 +4,7 @@ title: '설계 보강: 드릴 4턴 구조 확인 후 요구사항 정의'
 status: In Progress
 assignee: []
 created_date: '2026-09-06 00:12'
-updated_date: '2026-09-06 22:39'
+updated_date: '2026-09-06 23:27'
 labels:
   - caps-req
 dependencies: []
@@ -20,7 +20,7 @@ ordinal: 6000
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [x] #1 현재 턴 구조를 정하는 자리가 있는지 코드로 확인해 결과를 적는다(있다/없다 + 근거)
-- [ ] #2 없으면 요구사항을 정의하고 설계에 반영
+- [x] #2 없으면 요구사항을 정의하고 설계에 반영
 - [x] #3 지시문에 실을지 코드로 강제할지 근거와 함께 선택(교정 상한이 문구로만 좁힌 선례를 참고)
 <!-- AC:END -->
 
@@ -34,6 +34,8 @@ ordinal: 6000
 남은 것은 AC#2(요구사항 정의 + 설계 반영)이고 TASK-25 와 같은 설계서에 함께 쓴다 (캡틴 결정 §2 '결정 2·3은 같은 자리를 건드린다').
 
 착수 전 확인한 사실: 앱 코드에 drill/드릴 0건 · SYSTEM_PROMPT 규칙 전문에 4턴 시퀀스 없음 · session.py 의 턴 경계 감지는 분석 작업 배치용이고 드릴 카운터가 아니다 · 구멍이 둘이다(재료 미전달 + 조립 지시 부재, gap-investigation 항목 9). 세는 자리는 이미 있다.
+
+2026-09-07 AC#2 닫는다 — 요구사항을 정의하고 설계에 반영했다. 산출물은 `docs/design/2026-09-07-scenario-and-drill-turns-design.md` 이고 TASK-25 와 한 문서다(captain-decisions.md §2). 정의한 요구사항 둘: ① 지시문 조립 지시(계획 블록에 드릴 줄 2개 — 질문 열거 + 드릴 반복이 교정이 아니라는 명시. 설계서 §2.2) ② 턴 관측(기대 턴 수 = min(질문 수, drill_count) × drill_turns_min 을 세션 시작에 learning_sessions.summary 에 적고, 실제 턴 수는 결과 조회 때 utterances 의 agent final 개수로 센다. 설계서 §2.3). 새 감지기를 만들지 않았고 _flush_analysis 경로에 카운터를 얹지 않았다 — 그 함수가 예외를 밖으로 던지지 않는 계약이라 세는 일이 침묵 안으로 들어가면 누락이 관측되지 않는다. 마이그레이션 0건. ⚠️ 이 설계의 약점은 설계서 §5 가 소유한다 — 집계 턴 수는 드릴별로 귀속되지 않는다. 유도 7건은 설계서 §7.
 <!-- SECTION:NOTES:END -->
 
 ## Comments
