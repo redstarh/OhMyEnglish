@@ -265,7 +265,26 @@ print(psql_binary()); print(psql('select current_database()'))
 
 공유 dev DB를 파괴적으로 쓴다. **세션 수·패턴 수·`frequency`를 baseline과 대조하는 것까지가 끝**이다. 전제: 회차 시작 시각(`WINDOW_START`)과 `.harness/browser_run_id.txt`(§3). SQL은 §7의 헬퍼로 던진다. `00000000-0000-0000-0000-000000000001`은 시드 사용자 id다.
 
-**0. 회차 시작 전에 baseline을 뜬다** (없으면 캡틴의 패턴을 함께 지울 위험을 배제할 수 없다). `frequency`·`last_seen_at`을 함께 뜬다 — 마지막 대조(④)가 그 두 값을 요구한다.
+**0. 회차 시작 전에 baseline을 뜬다** (없으면 캡틴의 패턴을 함께 지울 위험을 배제할 수 없다). `frequency`·`last_seen_at`을 함께 뜬다 — 마지막 대조(④)와 **복원(②)**이 그 두 값을 요구한다.
+
+⛔ **무조건 `drop`하지 않는다 (2026-09-06 정정).** 이전 판은 `drop table if exists`로 시작했다.
+그러면 **앞 회차의 teardown이 ②를 못 끝내고 죽은 경우**(파괴적 UPDATE는 이미 실행됨) 새 회차가
+**오염된 값을 새 baseline으로 스냅샷**하고, 그 순간 원값의 사본이 **영구히 사라진다.**
+baseline은 DB 표라서 그 표가 유일한 사본이다.
+
+**먼저 drift를 본다 — 0이 아니면 멈춘다:**
+
+```sql
+-- 앞 회차가 정상 종료했으면 0이다. 0이 아니면 미완 teardown 이고, 그 상태에서 재스냅샷하면
+-- 오염된 값이 진실이 된다.
+select count(*) from harness_pattern_baseline b join error_patterns p on p.id = b.id
+ where p.frequency <> b.frequency or p.last_seen_at is distinct from b.last_seen_at;
+```
+
+- 표가 **없으면** → 아래로 진행한다(첫 회차).
+- 표가 있고 **drift 0** → 아래로 진행한다(재스냅샷해도 같은 값이다).
+- 표가 있고 **drift > 0** → ⛔ **`ERROR`로 멈춘다.** 먼저 §8-②의 복원을 돌려 drift를 0으로 만든
+  뒤에 회차를 연다. **재스냅샷으로 덮지 않는다.**
 
 ```sql
 drop table if exists harness_pattern_baseline;
@@ -273,6 +292,10 @@ create table harness_pattern_baseline as
   select id, pattern_key, frequency, last_seen_at from error_patterns
    where user_id = '00000000-0000-0000-0000-000000000001';
 ```
+
+**그리고 파일로도 뜬다** — DB 표 하나에 진실을 걸지 않는다. 마지막으로 검증된 사본:
+**`tests/harness/runs/2026-09-06-pattern-baseline.tsv`**(추적됨, drift 0에서 떴다).
+값이 정당하게 바뀌면(앱이 실제 학습으로 갱신) 새 날짜로 새 파일을 뜨고 이 줄을 갱신한다.
 
 **①-a 세션을 시간창 스윕으로 등록한다** (자동 등록 훅이 없다 — §3):
 
@@ -312,6 +335,11 @@ delete from learning_sessions
 occurrence 재계산을 쓸 수 없다."* 실측 대조(직접 쿼리): `pronunciation_an_as_a`는 `frequency` 컬럼 **2**
 인데 `error_occurrences` 행 **0**이고, 나머지 6개 패턴은 컬럼과 행 수가 **정확히 일치**한다.
 → 이전 판의 식은 **모든 발음 패턴을 구조적으로 0으로 덮는다.** 하네스 데이터와 무관한 결함이다.
+
+⚠️ **범위도 틀렸다 — 두 번째 결함이다.** 그 UPDATE의 서브쿼리는 `where ep.user_id = <시드 사용자>`로만
+좁혀서 **회차가 건드리지도 않은 패턴 7건 전부를 다시 썼다**(실측 `UPDATE 7`). 즉 하네스가 만든 변화를
+되돌리는 것이 아니라 **그 사용자의 모든 패턴을 자기 식으로 다시 계산**했다. 아래 복원식은 두 결함을
+함께 닫는다: **계산하지 않고**(writer 문제), **값이 실제로 다른 행만 만진다**(범위 문제).
 
 ```sql
 -- 복원. 하네스는 회차 창 안에서만 행을 더하고 ①에서 그 세션을 지웠으므로, 남아야 하는 값은

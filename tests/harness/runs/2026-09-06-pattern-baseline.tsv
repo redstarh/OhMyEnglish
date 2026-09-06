@@ -1,0 +1,14 @@
+# error_patterns baseline — 시드 사용자 00000000-0000-0000-0000-000000000001
+# 뜬 시각(그 턴에 직접 실행): 2026-09-06T03:14:18Z UTC
+# 왜 파일로 남기나: harness_pattern_baseline 은 DB 표이고 browser_leg.md §8-0 이 회차 시작마다
+#   drop-recreate 한다. teardown 이 중간에 죽은 뒤 새 회차가 열리면 오염된 값이 새 baseline 이
+#   되어 진실의 사본이 영구히 사라진다. 이 파일이 그 경우의 마지막 사본이다.
+# 이 시점 검증: baseline 대 error_patterns drift = 0 (직접 쿼리)
+pattern_key	category	frequency	mastery_score	last_seen_at	next_review_at
+article_missing_before_noun	article	7	0.00	2026-09-03 13:56:38.186958+00	2026-09-04 13:56:38.186958+00
+article_wrong_definite_article	article	2	0.00	2026-09-02 23:15:01.903223+00	2026-09-03 23:15:01.903223+00
+business_expression_verb_noun_collocation	business_expression	3	0.00	2026-08-31 22:21:03.123308+00	2026-09-01 22:21:03.123308+00
+preposition_missing_to_after_go	preposition	1	0.00	2026-09-03 13:07:28.002052+00	2026-09-04 13:07:28.002052+00
+preposition_time_expression_ago	preposition	3	0.00	2026-09-02 23:15:01.903223+00	2026-09-03 23:15:01.903223+00
+pronunciation_an_as_a	pronunciation_intonation	2	0.00	2026-09-03 13:51:26.680389+00	
+word_order_time_adverb_placement	word_order	1	0.00	2026-09-03 13:50:47.323905+00	2026-09-04 13:50:47.323905+00
