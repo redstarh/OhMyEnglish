@@ -129,6 +129,7 @@ cd ../frontend && npx tsc --noEmit ; npx eslint app lib     # 둘 다 exit 0
 | 절차 문서 | `tests/harness/browser_leg.md` **581줄** |
 | baseline 사본 | `tests/harness/runs/2026-09-06-pattern-baseline.tsv`(추적됨) — DB 표가 회차마다 drop되므로 **이 파일이 마지막 사본이다** |
 | 미커밋 | `.claude/` · `.mcp.json` · `handoff/HANDOFF-audit.md`(추적 밖) — **커밋하지도 지우지도 마라** |
+| ⛔ 남의 것 | **`.harness/audit-session-name.txt`**(추적 밖, 지금 `ohmyenglish-8e`) — **감사 세션 소유다. 읽지도 쓰지도 마라.** OS crontab `37 * * * *`가 그 이름으로 감사 회차를 보낸다 → 건드리면 **감사 회차가 내 창에 오거나 아무에게도 안 간다.** `.harness/audit-*`·`kanban-*`·`panel-*`도 감사 소유다. **내 것은 `browser_run_id.txt` 하나다**(`run_id.txt`는 `ws_session.py`가 import 시점에 읽으므로 덮지 않는다) |
 
 ### 모드 전환 — 무엇을 재는지 먼저 정한다
 
