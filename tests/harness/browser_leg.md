@@ -48,45 +48,63 @@
 비교하고 있었다** — 그러면 검사가 아무것도 보장하지 않는다(더 오래된 로그일수록 통과가 어려워지니
 방향은 안전하지만, **로그가 소스보다 새로우면 낡은 백엔드가 조용히 통과한다**).
 
+⚠️ **4차 재정정 (2026-09-06, 같은 날 두 번째) — 로그 파일의 생성 시각을 기동 시각으로 쓸 수 없다.**
+`>` 리다이렉트는 파일을 **잘라내기만 하고 inode 를 유지한다** → `stat -f %B`(생성 시각)가 **처음 만든
+시각에 머문다.** 실측: 백엔드를 재기동한 직후에도 `birth=1788656298`(낡음) · `mtime=1788665741`(방금)
+이었고, 그래서 **방금 띄운 백엔드가 "소스보다 낡았다"는 거짓 실패**를 냈다.
+→ 기동 시각은 **프로세스에서** 얻는다. ⚠️ **macOS `ps`는 `etimes`를 지원하지 않는다**(`keyword not
+found`) — `etime`은 지원하고 `[[dd-]hh:]mm:ss`의 **로케일 무관 숫자 형식**이다(실측 `00:58`).
+
 ```bash
 python3 - <<'PY'
-import subprocess, glob, os, re
+import subprocess, glob, os, re, time
 root = subprocess.run(["git","rev-parse","--show-toplevel"],capture_output=True,text=True).stdout.strip()
 assert root, "리포 루트를 못 찾았다 — git 저장소 안에서 돌려라"
-# ① 실제로 포트를 **듣고 있는** pid 를 찾는다. ⚠️ 명령줄을 스캔하지 않는다 —
-#    검사 스크립트 자신의 명령줄에 "--port 8002" 가 들어 있어 셸이 함께 잡힌다
-#    (P8 이 겪은 것과 **글자 그대로 같은** 거짓 양성. 팀리드가 실측으로 밟았다).
+# ① 실제로 포트를 **듣고 있는** pid. ⚠️ 명령줄을 스캔하지 않는다 — 검사 스크립트 자신의
+#    명령줄에 "--port 8002" 가 들어 있어 셸이 함께 잡힌다(P8 과 글자 그대로 같은 거짓 양성).
 out = subprocess.run(["lsof","-nP","-iTCP:8002","-sTCP:LISTEN","-t"],capture_output=True,text=True)
 pids = sorted({int(x) for x in out.stdout.split()})
 assert len(pids) == 1, f"8002 를 듣는 프로세스가 정확히 1개여야 한다 — {pids}"
 pid = pids[0]
-# ② 로그가 **그 프로세스의 것**인지. 이 단정이 없으면 아래 비교가 의미를 갖지 않는다.
+# ② 로그가 **그 프로세스의 것**인지 (신원 확인). 이것이 없으면 ③이 뜻을 갖지 않는다.
 log = "/tmp/omy-backend.log"
 assert os.path.exists(log), f"{log} 이 없다 — 백엔드를 어느 로그로 띄웠는지 확인해라"
 started = re.findall(r"Started server process \[(\d+)\]",
                      open(log, encoding="utf-8", errors="replace").read())
 assert started, "로그에 'Started server process' 가 없다 — 백엔드 로그가 아니다"
 assert started[-1] == str(pid), (
-    f"로그가 지금 도는 백엔드의 것이 아니다: 로그 pid={started[-1]} · 실행 pid={pid}. "
-    "이 상태로는 소스 최신성을 판정할 수 없다 — 로그를 리다이렉트해 백엔드를 다시 띄워라"
+    f"로그가 지금 도는 백엔드의 것이 아니다: 로그 pid={started[-1]} · 실행 pid={pid}"
 )
-# ③ 소스가 프로세스보다 새로운지
-b = int(subprocess.run(["stat","-f","%B",log],capture_output=True,text=True).stdout)
+# ③ 기동 시각은 **프로세스에서** 얻는다 (로그 파일 생성 시각을 쓰지 않는다 — 위 4차 정정).
+et = subprocess.run(["ps","-p",str(pid),"-o","etime="],capture_output=True,text=True).stdout.strip()
+m = re.fullmatch(r"(?:(?:(\d+)-)?(\d+):)?(\d+):(\d+)", et)
+assert m, f"ps etime 을 해석할 수 없다: {et!r}"
+d, h, mi, s = (int(x) if x else 0 for x in m.groups())
+start = time.time() - (d*86400 + h*3600 + mi*60 + s)
+# ④ 소스가 프로세스보다 새로운지
 srcs = glob.glob(os.path.join(root,"app/backend/app/**/*.py"), recursive=True)
 assert srcs, "소스가 0건이다 — 경로가 틀렸다. 0건 검사로 통과를 단정하지 않는다"
-newer = [p for p in srcs if os.path.getmtime(p) > b]
-print(f"P5: pid {pid} · 소스 {len(srcs)}건 →", "통과" if not newer else f"실패 — {len(newer)}건")
+newer = [os.path.relpath(p, root) for p in srcs if os.path.getmtime(p) > start]
+print(f"P5: pid {pid} · 기동 {et} 전 · 소스 {len(srcs)}건 →",
+      "통과" if not newer else f"실패 — {len(newer)}건: {newer}")
+assert not newer
 PY
 ```
 
-**⚠️ 이 검사의 핵심 단정 셋 — 하나라도 빠지면 공허 통과가 된다.**
+**⚠️ 이 검사의 핵심 단정 넷 — 하나라도 빠지면 공허 통과가 된다.** (셋이었고 4차 정정으로 넷이 됐다)
 1. **`len(pids) == 1`** — 듣는 프로세스를 `lsof`로 찾는다. **명령줄 스캔 금지**(셸 자기 자신이 잡힌다).
 2. **로그 pid == 실행 pid** — 로그가 그 프로세스의 것임을 세운 **뒤에야** 시각 비교가 뜻을 갖는다.
-3. **`assert srcs`** + **검사한 개수 출력** — 0건을 검사하고 통과를 단정하는 것이 이 절이 막으려는
+3. **기동 시각은 `ps -o etime=`에서** 얻는다. **`stat %B` 금지** — `>`가 inode 를 유지해 낡는다.
+4. **`assert srcs`** + **검사한 개수 출력** — 0건을 검사하고 통과를 단정하는 것이 이 절이 막으려는
    바로 그 실패다. 개수가 없으면 공허 통과를 구별할 수 없다.
 
-`/tmp/omy-backend.log`는 백엔드를 띄울 때 리다이렉트한 로그이고 그 **생성 시각**(`%B`)이 기동 시각이다.
-⚠️ **백엔드를 그 로그로 띄우지 않았으면 P5는 통과할 수 없다 — 그것이 옳은 동작이다.**
+**판별력 확인 (2026-09-06 팀리드 실측)**: 임계값을 흔들어 비교가 실제로 반응함을 확인했다 —
+임계 `0` → **32/32**건이 "더 새로움" · 임계 `1시간 전` → **2/32** · 임계 `지금+1시간` → **0/32**.
+그리고 재기동 **전**에는 이 검사가 정확히 실패했고(로그 pid 15648 ≠ 실행 41641) 재기동 **후**에
+통과했다. **양쪽을 다 봤으므로 "판별력 미확인"이 아니다.**
+
+⚠️ **P5가 실패하면 소스를 고치는 것이 아니라 백엔드를 재기동한다** — `--reload`가 없어 소스가 반영되지
+않은 것이 실패의 뜻이다. 재기동 명령은 `docs/ops/local-run.md`가 소유한다.
 | P9 | §7의 DSN 확인 명령 | `ohmyenglish` | `ohmyenglish` |
 
 ⚠️ **설정 파일을 고치지 않는다.** P7이 실패하면 `.claude/settings*.json`·`.mcp.json`을 **편집하지 말고** 무엇이 없는지 적어 **"캡틴 몫"으로 보고하고 멈춘다.** 권한 설정은 사용자 소유다.
