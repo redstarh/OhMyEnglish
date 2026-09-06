@@ -4,10 +4,11 @@ title: '신규 기능: 학습 시나리오 생성기 (5회 질문으로 사용�
 status: To Do
 assignee: []
 created_date: '2026-09-06 00:12'
-updated_date: '2026-09-06 01:35'
+updated_date: '2026-09-06 04:56'
 labels:
   - caps-req
-dependencies: []
+dependencies:
+  - TASK-25
 ordinal: 5000
 ---
 
