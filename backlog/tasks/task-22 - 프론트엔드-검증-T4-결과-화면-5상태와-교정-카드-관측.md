@@ -4,7 +4,9 @@ title: '프론트엔드 검증 T4: 결과 화면 5상태와 교정 카드 관측
 status: To Do
 assignee: []
 created_date: '2026-09-06 00:14'
-labels: []
+updated_date: '2026-09-06 01:35'
+labels:
+  - caps-req
 dependencies:
   - TASK-21
 ordinal: 22000

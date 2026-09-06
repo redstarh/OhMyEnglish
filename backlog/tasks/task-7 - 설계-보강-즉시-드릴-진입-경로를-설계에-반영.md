@@ -4,8 +4,9 @@ title: '설계 보강: 즉시 드릴 진입 경로를 설계에 반영'
 status: In Progress
 assignee: []
 created_date: '2026-09-06 00:12'
-updated_date: '2026-09-06 00:20'
-labels: []
+updated_date: '2026-09-06 01:35'
+labels:
+  - caps-req
 dependencies: []
 ordinal: 7000
 ---

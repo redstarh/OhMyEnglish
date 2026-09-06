@@ -4,7 +4,9 @@ title: '설계 보강: AC10-5 추가 학습 진입점 구조화'
 status: To Do
 assignee: []
 created_date: '2026-09-06 00:12'
-labels: []
+updated_date: '2026-09-06 01:35'
+labels:
+  - caps-req
 dependencies: []
 ordinal: 10000
 ---

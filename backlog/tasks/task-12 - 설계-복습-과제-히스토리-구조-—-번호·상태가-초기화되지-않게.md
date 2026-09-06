@@ -4,7 +4,9 @@ title: '설계: 복습 과제 히스토리 구조 — 번호·상태가 초기�
 status: To Do
 assignee: []
 created_date: '2026-09-06 00:13'
-labels: []
+updated_date: '2026-09-06 01:35'
+labels:
+  - caps-req
 dependencies: []
 ordinal: 12000
 ---

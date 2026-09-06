@@ -4,7 +4,9 @@ title: '신규 요구사항: 일일 권장량 = 30분 내 학습 가능량'
 status: To Do
 assignee: []
 created_date: '2026-09-06 00:11'
-labels: []
+updated_date: '2026-09-06 01:35'
+labels:
+  - caps-req
 dependencies: []
 ordinal: 2000
 ---

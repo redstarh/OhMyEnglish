@@ -4,7 +4,9 @@ title: '문서: AC11-5 실물 테스트 범위를 정리해 캡틴에게 올린�
 status: To Do
 assignee: []
 created_date: '2026-09-06 00:13'
-labels: []
+updated_date: '2026-09-06 01:35'
+labels:
+  - caps-req
 dependencies: []
 ordinal: 14000
 ---

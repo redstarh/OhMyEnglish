@@ -4,8 +4,9 @@ title: '요구사항 상세화: MVP 범위 미완료분을 구현 가능한 수�
 status: Done
 assignee: []
 created_date: '2026-09-06 00:12'
-updated_date: '2026-09-06 00:28'
-labels: []
+updated_date: '2026-09-06 01:35'
+labels:
+  - caps-req
 dependencies: []
 ordinal: 11000
 ---

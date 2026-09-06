@@ -4,8 +4,9 @@ title: '실행: 마이그레이션 007을 개발 DB에 적용'
 status: Done
 assignee: []
 created_date: '2026-09-06 00:13'
-updated_date: '2026-09-06 00:50'
-labels: []
+updated_date: '2026-09-06 01:35'
+labels:
+  - caps-req
 dependencies: []
 ordinal: 15000
 ---

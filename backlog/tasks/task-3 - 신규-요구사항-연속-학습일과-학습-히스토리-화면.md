@@ -4,7 +4,9 @@ title: '신규 요구사항: 연속 학습일과 학습 히스토리 화면'
 status: To Do
 assignee: []
 created_date: '2026-09-06 00:11'
-labels: []
+updated_date: '2026-09-06 01:35'
+labels:
+  - caps-req
 dependencies: []
 ordinal: 3000
 ---

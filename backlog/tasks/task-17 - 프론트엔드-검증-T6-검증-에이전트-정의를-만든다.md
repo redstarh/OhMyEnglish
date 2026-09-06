@@ -4,10 +4,12 @@ title: '프론트엔드 검증 T6: 검증 에이전트 정의를 만든다'
 status: To Do
 assignee: []
 created_date: '2026-09-06 00:13'
-updated_date: '2026-09-06 00:14'
-labels: []
+updated_date: '2026-09-06 01:35'
+labels:
+  - caps-req
 dependencies:
   - TASK-18
+priority: high
 ordinal: 17000
 ---
 

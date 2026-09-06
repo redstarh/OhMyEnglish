@@ -4,8 +4,9 @@ title: '설계 보강: 드릴 4턴 구조 확인 후 요구사항 정의'
 status: In Progress
 assignee: []
 created_date: '2026-09-06 00:12'
-updated_date: '2026-09-06 00:19'
-labels: []
+updated_date: '2026-09-06 01:35'
+labels:
+  - caps-req
 dependencies: []
 ordinal: 6000
 ---

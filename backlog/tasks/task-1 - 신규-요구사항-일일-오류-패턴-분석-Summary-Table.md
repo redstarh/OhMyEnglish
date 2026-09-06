@@ -4,7 +4,9 @@ title: '신규 요구사항: 일일 오류 패턴 분석 Summary Table'
 status: To Do
 assignee: []
 created_date: '2026-09-06 00:11'
-labels: []
+updated_date: '2026-09-06 01:35'
+labels:
+  - caps-req
 dependencies: []
 ordinal: 1000
 ---
