@@ -42,24 +42,51 @@
 조용히 통과했다** — 같은 거짓 통과를 더 나쁜 형태로 바꾼 것이다.
 ⚠️ **에이전트 스레드는 bash 호출마다 cwd가 초기화된다** — 상대경로에 기대면 안 된다.
 
+⚠️ **3회차 재정정 (2026-09-06) — 2차 정정에는 전제가 빠져 있었다.** 로그 파일이 **지금 도는 백엔드의
+것인지** 확인하지 않았다. 팀리드 실측: `/tmp/omy-backend.log`는 pid **15648**(이미 종료됨)이 쓴 것이고
+실제로 `:8002`를 듣는 프로세스는 pid **41641**이었다. 즉 **다른 프로세스의 기동 시각과 소스를
+비교하고 있었다** — 그러면 검사가 아무것도 보장하지 않는다(더 오래된 로그일수록 통과가 어려워지니
+방향은 안전하지만, **로그가 소스보다 새로우면 낡은 백엔드가 조용히 통과한다**).
+
 ```bash
 python3 - <<'PY'
-import subprocess, glob, os
+import subprocess, glob, os, re
 root = subprocess.run(["git","rev-parse","--show-toplevel"],capture_output=True,text=True).stdout.strip()
 assert root, "리포 루트를 못 찾았다 — git 저장소 안에서 돌려라"
+# ① 실제로 포트를 **듣고 있는** pid 를 찾는다. ⚠️ 명령줄을 스캔하지 않는다 —
+#    검사 스크립트 자신의 명령줄에 "--port 8002" 가 들어 있어 셸이 함께 잡힌다
+#    (P8 이 겪은 것과 **글자 그대로 같은** 거짓 양성. 팀리드가 실측으로 밟았다).
+out = subprocess.run(["lsof","-nP","-iTCP:8002","-sTCP:LISTEN","-t"],capture_output=True,text=True)
+pids = sorted({int(x) for x in out.stdout.split()})
+assert len(pids) == 1, f"8002 를 듣는 프로세스가 정확히 1개여야 한다 — {pids}"
+pid = pids[0]
+# ② 로그가 **그 프로세스의 것**인지. 이 단정이 없으면 아래 비교가 의미를 갖지 않는다.
 log = "/tmp/omy-backend.log"
 assert os.path.exists(log), f"{log} 이 없다 — 백엔드를 어느 로그로 띄웠는지 확인해라"
+started = re.findall(r"Started server process \[(\d+)\]",
+                     open(log, encoding="utf-8", errors="replace").read())
+assert started, "로그에 'Started server process' 가 없다 — 백엔드 로그가 아니다"
+assert started[-1] == str(pid), (
+    f"로그가 지금 도는 백엔드의 것이 아니다: 로그 pid={started[-1]} · 실행 pid={pid}. "
+    "이 상태로는 소스 최신성을 판정할 수 없다 — 로그를 리다이렉트해 백엔드를 다시 띄워라"
+)
+# ③ 소스가 프로세스보다 새로운지
 b = int(subprocess.run(["stat","-f","%B",log],capture_output=True,text=True).stdout)
 srcs = glob.glob(os.path.join(root,"app/backend/app/**/*.py"), recursive=True)
 assert srcs, "소스가 0건이다 — 경로가 틀렸다. 0건 검사로 통과를 단정하지 않는다"
 newer = [p for p in srcs if os.path.getmtime(p) > b]
-print(f"P5: 소스 {len(srcs)}건 검사 →", "통과" if not newer else f"실패 — {newer}")
+print(f"P5: pid {pid} · 소스 {len(srcs)}건 →", "통과" if not newer else f"실패 — {len(newer)}건")
 PY
 ```
 
-**⚠️ `assert srcs`가 이 검사의 핵심이다.** 0건을 검사하고 통과를 단정하는 것이 이 절이 막으려는
-바로 그 실패다. **검사한 개수를 함께 찍는다** — 개수가 없으면 공허 통과를 구별할 수 없다.
+**⚠️ 이 검사의 핵심 단정 셋 — 하나라도 빠지면 공허 통과가 된다.**
+1. **`len(pids) == 1`** — 듣는 프로세스를 `lsof`로 찾는다. **명령줄 스캔 금지**(셸 자기 자신이 잡힌다).
+2. **로그 pid == 실행 pid** — 로그가 그 프로세스의 것임을 세운 **뒤에야** 시각 비교가 뜻을 갖는다.
+3. **`assert srcs`** + **검사한 개수 출력** — 0건을 검사하고 통과를 단정하는 것이 이 절이 막으려는
+   바로 그 실패다. 개수가 없으면 공허 통과를 구별할 수 없다.
+
 `/tmp/omy-backend.log`는 백엔드를 띄울 때 리다이렉트한 로그이고 그 **생성 시각**(`%B`)이 기동 시각이다.
+⚠️ **백엔드를 그 로그로 띄우지 않았으면 P5는 통과할 수 없다 — 그것이 옳은 동작이다.**
 | P9 | §7의 DSN 확인 명령 | `ohmyenglish` | `ohmyenglish` |
 
 ⚠️ **설정 파일을 고치지 않는다.** P7이 실패하면 `.claude/settings*.json`·`.mcp.json`을 **편집하지 말고** 무엇이 없는지 적어 **"캡틴 몫"으로 보고하고 멈춘다.** 권한 설정은 사용자 소유다.
@@ -266,19 +293,42 @@ delete from learning_sessions
    and id not in (<§9의 보존 id 목록>);
 ```
 
-**② `frequency`·`last_seen_at` 재계산** — 앱과 **같은 식**으로 다시 센다(`services/analysis.py`). 앱이 `+1`을 하지 않고 항상 실제 행 수에서 재계산하므로, 하네스 행을 지운 뒤 같은 식을 돌리면 **하네스가 없었던 것과 같은 값**이 된다:
+**② `frequency`·`last_seen_at`을 baseline에서 **복원**한다 — 재계산하지 않는다.**
+
+⛔ **이전 판의 재계산 SQL은 캡틴 데이터를 파괴했다 (2026-09-06 실측, T2 스파이크).**
+`pronunciation_an_as_a`가 `frequency 2 / last_seen_at 2026-09-03 13:51:26.680389+00` →
+**`0 / NULL`**로 덮였다. ④의 drift 대조가 잡아냈고 ⓿의 baseline이 있어 복원했다.
+**baseline 없이 돌았다면 조용히 사라졌다.**
+
+**근본 원인 — 팀리드가 직접 확인했다(추측 아님): `frequency`의 writer가 둘인데 이전 판이 하나만
+베꼈다.**
+
+| writer | 세는 것 | 대상 |
+|---|---|---|
+| `services/analysis.py:_RECOUNT_PATTERN_SQL` | `error_occurrences` 행 수 | 문법 패턴 |
+| `services/pronunciation.py:_RECOUNT_PATTERN_FROM_ATTEMPTS_SQL` | **`pronunciation_attempts` 행 수** · `max(resolved_at)` | 카테고리 `pronunciation_intonation` |
+
+`pronunciation.py`가 그 이유를 명시한다 — *"발음 시도는 `error_occurrences`를 만들지 않아 문법 경로의
+occurrence 재계산을 쓸 수 없다."* 실측 대조(직접 쿼리): `pronunciation_an_as_a`는 `frequency` 컬럼 **2**
+인데 `error_occurrences` 행 **0**이고, 나머지 6개 패턴은 컬럼과 행 수가 **정확히 일치**한다.
+→ 이전 판의 식은 **모든 발음 패턴을 구조적으로 0으로 덮는다.** 하네스 데이터와 무관한 결함이다.
 
 ```sql
+-- 복원. 하네스는 회차 창 안에서만 행을 더하고 ①에서 그 세션을 지웠으므로, 남아야 하는 값은
+-- **정확히 baseline** 이다. 멱등이고 수식이 없으므로 앱 로직이 바뀌어도 낡지 않는다.
 update error_patterns p
-   set frequency = agg.occurrences, last_seen_at = agg.last_seen_at
-  from (select ep.id, count(eo.id) as occurrences, max(u.created_at) as last_seen_at
-          from error_patterns ep
-          left join error_occurrences eo on eo.pattern_id = ep.id
-          left join utterances       u  on u.id = eo.utterance_id
-         where ep.user_id = '00000000-0000-0000-0000-000000000001'
-         group by ep.id) agg
- where p.id = agg.id;
+   set frequency = b.frequency, last_seen_at = b.last_seen_at
+  from harness_pattern_baseline b
+ where p.id = b.id
+   and (p.frequency <> b.frequency or p.last_seen_at is distinct from b.last_seen_at);
 ```
+
+⚠️ **baseline 표가 없으면 여기서 멈추고 `ERROR`로 보고한다. 재계산으로 대체하지 않는다** — 그것이
+이 결함의 원인이었다. **하네스가 앱의 계산식을 복제하면 그 복제가 낡고, 낡은 것을 dev DB에 쓴다.**
+복원은 계산하지 않으므로 그 부류의 실패를 구조적으로 배제한다.
+
+⚠️ **전제**: 회차 중에 **앱의 정상 세션이 함께 돌지 않았다.** 돌았다면 그 변경도 되돌려진다.
+§8은 이미 배타적 사용을 전제하고, 이전 판의 재계산도 같은 전제였다(더 나쁜 방식으로).
 
 **③ baseline에 없던 0-occurrence 패턴만 삭제**:
 
@@ -286,8 +336,15 @@ update error_patterns p
 delete from error_patterns p
  where p.user_id = '00000000-0000-0000-0000-000000000001'
    and p.id not in (select id from harness_pattern_baseline)
-   and not exists (select 1 from error_occurrences eo where eo.pattern_id = p.id);
+   and not exists (select 1 from error_occurrences eo where eo.pattern_id = p.id)
+   -- ⚠️ 발음 시도는 occurrence 를 만들지 않는다(②의 표) → "occurrence 0건 = 잔여물"이
+   -- 발음 패턴에는 성립하지 않는다. 시도가 달린 패턴은 남긴다.
+   and not exists (select 1 from pronunciation_attempts pa where pa.pattern_id = p.id);
 ```
+
+⚠️ **baseline에 있는 패턴은 이 delete가 건드리지 않는다**(`not in baseline`) — 캡틴의
+`pronunciation_an_as_a`는 baseline에 있어 안전했다. 위 추가 조건은 **회차가 새로 만든** 발음 패턴을
+"occurrence 0건"만으로 잔여물로 오판해 지우는 것을 막는다.
 
 **④ 대조 — 여기까지가 teardown이다.**
 
