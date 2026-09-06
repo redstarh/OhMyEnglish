@@ -1,10 +1,10 @@
 ---
 id: TASK-17
 title: '프론트엔드 검증 T6: 검증 에이전트 정의를 만든다'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-06 00:13'
-updated_date: '2026-09-06 02:12'
+updated_date: '2026-09-06 02:32'
 labels:
   - caps-req
 dependencies:

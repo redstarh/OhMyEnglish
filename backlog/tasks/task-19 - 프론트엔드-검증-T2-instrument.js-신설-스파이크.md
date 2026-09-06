@@ -4,10 +4,10 @@ title: '프론트엔드 검증 T2: instrument.js 신설 + 스파이크'
 status: To Do
 assignee: []
 created_date: '2026-09-06 00:13'
-updated_date: '2026-09-06 00:14'
+updated_date: '2026-09-06 02:34'
 labels: []
 dependencies:
-  - TASK-18
+  - TASK-29
 ordinal: 19000
 ---
 
