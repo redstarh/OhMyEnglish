@@ -17,13 +17,14 @@ backlog task list -s "To Do"           # priority high 와 caps-req 를 먼저 �
 
 **원장이 상태의 정본이다**(`backlog/tasks/*.md`, 29건). 여기에 태스크 목록을 복사하지 않는다.
 
-### ⚠️ 첫 걸음 — `TASK-31`의 **AC 16건이 닫혔다.** 남은 것은 **코드리뷰 재검증 수신** 하나다
+### ⚠️ 첫 걸음 — **`TASK-21`이다.** `TASK-31`은 `Done`이고 그 순간 21이 열렸다
 
-**Done으로 올리지 않았다.** 1차 리뷰가 **`CHANGES REQUESTED`**(HIGH 3 · MEDIUM 4 · LOW 1)를 냈고
-**8건 전건을 재현·수용해 고쳤다**(`c90f32f`). 그 반영에 대한 **재검증이 미수신**이다
-(9단계: Approve 전 Done 전환 금지). ⚠️ **리뷰가 안 돌아올 수 있다** — 미수신이면 그 사실을 원장에
-미결로 남기고 **✅로 올리지 마라.** `Approve`면 `Done` → **쉬지 말고 `TASK-21`로 넘어간다**
-(감사가 지목한 누락 형태다: 31을 닫는 순간 21이 "선행 다 풀렸는데 미착수"로 뜬다).
+⛔ **감사가 지목한 누락 형태에 지금 정확히 서 있다**: `TASK-31`을 Done으로 올린 순간 `TASK-21`이
+**"선행 다 풀렸는데 미착수"**로 뜬다(`TASK-17`이 그랬다). **쉬지 말고 21로 간다.**
+
+**`TASK-31`은 5차 코드리뷰 `APPROVE`(CRITICAL 0 · HIGH 0) 후 Done으로 올렸다.** 리뷰가 5차까지 돈
+이유와 각 차수 판정은 **원장 노트와 회차 기록이 소유한다** — 여기서 재론하지 않는다.
+차수별 HIGH는 **3 → 1 → 1 → 1 → 0**이고 3·4차의 HIGH는 **내가 스스로 물어서 드러난 것**이다.
 
 ⛔ **1차 리뷰가 잡은 것 중 다음 세션이 반드시 알아야 할 하나**: **같은 파일 docstring 4곳이 새 판정과
 정반대를 말하고 있었다.** 본문을 고치고 그 본문을 설명하는 블록을 안 고친 형태다 — 이 리포의 지배
@@ -143,7 +144,7 @@ cd ../frontend && npx tsc --noEmit ; npx eslint app lib     # 둘 다 exit 0
 | ⚠️ 보존 대상 | `session_plans` **1행** · `learner_notes` **1행** — 실물 모델 왕복의 **유일한 증거**이고 다시 만들면 비용이 든다. **지우지 마라** |
 | 서버 | 백엔드 **:8002 실행 중** pid **38202** — ⚠️ **T13이 `stub_unresponsive` → `VOICE_ADAPTER=stub`으로 바꿨다**(앱 기본값 `config.py:66`과 일치) · `WORKER_ENABLED=false`(비용 가드, 기본값은 `True`) · 프론트 **:3000 실행 중** |
 | 미커밋 | `.claude/` · `.mcp.json` · `tmp/`(추적 밖) — **커밋하지도 지우지도 마라** |
-| 계측 | `tests/harness/instrument.js` **648줄** · sha256 **`5c354e4418604bc6…`** (42767B). ⚠️ **해시는 주석 한 줄로도 바뀐다** — 회차 기록의 해시와 다르면 먼저 `git diff`로 실행 코드 변경 여부를 본다 |
+| 계측 | `tests/harness/instrument.js` **651줄** · sha256 **`846f130f2cf73365…`** (43119B). ⚠️ **해시는 주석 한 줄로도 바뀐다** — 회차 기록의 해시와 다르면 먼저 `git diff`로 실행 코드 변경 여부를 본다 |
 | 절차 문서 | `tests/harness/browser_leg.md` **581줄**. P5가 **4차 정정**됐고 §8-②가 **재계산 → baseline 복원**으로 바뀌었다 |
 | baseline 사본 | `tests/harness/runs/2026-09-06-pattern-baseline.tsv`(추적됨) — **DB 표 `harness_pattern_baseline`이 회차마다 drop되므로 이 파일이 마지막 사본이다** |
 
