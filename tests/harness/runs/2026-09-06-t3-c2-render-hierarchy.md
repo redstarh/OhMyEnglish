@@ -141,9 +141,20 @@ audioContextState: "suspended" · resumeLog[0].afterAwait: null   ← 영원히 
 즉 `startSession`이 시작조차 안 했다는 뜻이다. **클릭이 페이지에 닿지 않았다.**
 
 ⚠️ **이 증상은 `H-AE`(합성 클릭이라 `context.resume()`이 pending)와 구별할 수 없게 닮았다.**
-가르는 값은 `resumeLog` 길이와 `socketUrls`다: 배경 탭이면 `socketUrls`가 **비어 있고**,
-`H-AE`면 소켓은 열린다. → 절차에 **`Page.bringToFront`를 넣고, user activation을 추론하지 말고
+→ 절차에 **`Page.bringToFront`를 넣고, user activation을 추론하지 말고
 `navigator.userActivation.hasBeenActive`로 직접 단정한다**(스크립트가 그렇게 한다).
+
+⛔ **이 자리에 있던 판별 문장은 반증됐다 — 지우지 않고 반례와 함께 남긴다**(2026-09-06 재검토 MEDIUM-B).
+이전 서술: *"가르는 값은 `resumeLog` 길이와 `socketUrls`다: 배경 탭이면 `socketUrls`가 **비어 있고**,
+`H-AE`면 소켓은 열린다."* **뒤쪽 절이 틀렸다.** 반례(같은 날 §3-d에서 팀리드가 직접 만들었다):
+:8002를 내린 회차가 `socketUrls=[]`인데 `resumeLog` **2건** · `appHandlerAttached=true`였다 —
+**클릭은 닿았고 소켓만 열리지 않았다.** `meta.socketUrls`는 **`send`가 불릴 때만** 채워지므로
+「빈 것」은 「소켓 없음」이 아니라 **「전송 관측 없음」**이다.
+→ **가르는 값은 `resumeLog` 길이 하나가 최상류다.** 4갈래 판별의 정본은 **`pitfalls.md` H-AH**이고
+구현은 `c2_render_hierarchy.py:classify_failure`다(갈래마다 테스트가 박혀 있다).
+⚠️ **이 문장이 정정 뒤에도 30분 넘게 남아 있었다** — `pitfalls.md`와 `browser_leg.md` §6은 고쳤는데
+**증거의 소유자인 이 기록만 낡았다.** 재검토가 그것을 잡았다. 「본문을 고치고 그것을 설명하는 문장을
+안 고친다」의 또 한 사례이고, **회차 기록도 그 대상이라는 것**이 새로 배운 것이다.
 
 ### H-후보 ② 플러그인 Chrome의 탭은 회차 사이에 사라진다
 
@@ -306,6 +317,43 @@ teardown ①-a `INSERT 0 2` · ① `DELETE 2` · ②③ `0` · 남은 회차 세
 `classify_failure`)는 **살아 있는 페이지에 직접 호출해 2회 태웠다**(`c2-selftest*-failure.json`).
 **`except SystemExit` 래퍼 3줄이 실제 앱 실패에서 발동하는 것은 관측하지 못했다** — 백엔드를 내려도
 `active`에 도달해 그 경로를 밟지 않았기 때문이다. 그 3줄은 **코드 읽기로만 확인했다.**
+
+---
+
+## 3-e. 재검토 2차 — MEDIUM 6건 · LOW 6건. **전부 대조하고 수용했다**
+
+리뷰어가 재검토에서 **게이트 조건 수를 독립적으로 셌다**(레그당 `need()` **27** × 2 + `check_cross` 2 =
+**56**, partial은 23×2+2=**48**) — 내 실행체 출력과 일치한다. 나도 다시 세서 같은 값을 얻었다.
+그리고 **자기 변이 10종을 만들어 전부 CAUGHT**을 확인했다(특히 `None == None`으로 등호가 공허하게
+참이 되는 두 조합이 rgb 가드에 먼저 걸린다).
+
+| # | 무엇 | 대조 결과 · 고친 것 |
+|---|---|---|
+| **③ 판별력 미관측 8건** | 27개 조건 중 **19개만** 변이로 덮여 있었다. 게이트는 나머지도 잡지만 **테스트가 안 본다.** 대칭 논거로 넘길 수 없는 둘: **`final["count"] == 1`**(`partial["count"]`와 **다른 코드 경로**) · **`partial.color` rgb 가드**(이 커밋이 새로 넣은 방어인데 형제만 덮였다) | 8건 + 공허 등호 조합 2건을 변이로 추가 → **변이 29종**. 리뷰어의 열거 기준으로 **27/27 관측**이 됐다(그 27↔라벨 매핑은 리뷰어의 것이고 내가 독립 재유도하지는 않았다 — 27이라는 수와 8건 각각의 변이 통과는 직접 확인했다) |
+| **① `classify_failure` 갈래 2의 의미가 틀렸다** | **사실이다.** `page.tsx` 순서를 직접 읽었다: `:177 getUserMedia` → `:185 new SessionSocket` → `:205 await VoiceIo.start` → `:218 setState("active")`. 그리고 `ws.ts:70`이 **생성자에서** `onmessage`를 붙인다 → `VoiceIo.start` 실패는 `appHandlerAttached=true`를 남기므로 **그 갈래에 도달할 수 없다** | 문구를 실제 구간(`:177`~`:185` = `getUserMedia` 거부 경로)으로 고치고, **계측이 `getUserMedia`를 대체하므로 정상 회차에서는 거의 도달하지 않는다**는 사실을 함께 적었다. **회귀 방지 테스트**를 박았다(`VoiceIo.start` 문구가 되살아나면 red) |
+| **① 창 이탈 갈래 누락** | **사실이다.** `session_started==1`인데 `session_failed>=1`이면 창을 넘긴 것이고 §6이 이름 붙이고 처방까지 정한 **유일한 실패**인데(FAIL이 아니라 ERROR + 재시도) 갈래 4로 떨어졌다 | `recv.session_failed >= 1` 갈래를 3·4 사이에 넣었다. **`session_started >= 2`(한 문서 두 세션) 갈래도** 함께 넣었다 |
+| **② `BaseException`이 과하다** | **사실이다.** `asyncio.CancelledError`는 3.8+에서 `BaseException`이라 **협조적 취소를 삼켜 문자열로 바꾼다**. `KeyboardInterrupt`도 삼킨다 | `except (Exception, SystemExit)`로 좁혔다. 원래 예외를 가리지 않는다는 판정(문자열 보존 + `from exc`)은 그대로 유효하다 |
+| **② `Cdp.call` 무타임아웃** | 소켓이 **열린 채 무응답**이면 진단이 영구히 매달린다 — 하필 페이지가 굳은 실패 경로에서 도는 코드다 | 진단 `eval`과 스크린샷을 `asyncio.wait_for(..., DIAG_TIMEOUT_S)`로 감쌌다. `Cdp.call` 전반의 무타임아웃은 **기존 결함으로 남긴다**(이 회차 범위 밖) |
+| **MEDIUM-A** | **§10의 3번째 갈래가 반증된 추론을 그대로 들고 있었다** — *"`socketUrls`가 비어 있다 → 그때만 후킹 고장 = ERROR"*. 내 반례가 정확히 그것을 반증한다 | §10-3을 ⛔로 정정했다. ⚠️ **1번 갈래는 유효하다**(비어 있지 **않으면** 후킹은 살아 있다 — 한쪽 방향만 성립) |
+| **MEDIUM-B** | **이 기록 §3(H-후보 ①)에 반증된 문장이 남아 있었다.** `pitfalls.md`와 `browser_leg.md`는 고쳤는데 **증거의 소유자만 낡았다** | 지우지 않고 **반례와 함께 반증 표시**를 했다(§3 참조). **회차 기록도 「함께 고쳐야 하는 문장」의 대상**이라는 것이 새로 배운 것이다 |
+| **MEDIUM-C** | `classify_failure`는 **분기 4개·테스트 0개**이고 **첫 판이 실제로 틀렸던 함수**다 | 갈래 **7종** 픽스처 + 배타성 + 회귀 방지 = 테스트 **9건** 추가. 순서를 바꾸면 red 다 |
+| **MEDIUM-D** | **§6 문단이 접합됐다** — 삽입한 게이트-테스트 블록 뒤에 기존 실행체 주장(`새 수단이 아니다` … `판정은 --phase both가 낸다`)이 붙어 **실행체 이야기가 테스트 문단 안에** 있었다 | 실행체 주장을 실행체 문단으로 되돌리고 테스트 문단을 pytest 결과에서 끊었다 |
+| **LOW** (6건) | 머리주석이 규약 소유자로 지목됐는데 **게이트 규약이 없었다** · `--phase partial`도 이제 판정을 내는데 문서는 "판정에 쓰지 않는다" · `check_cross`가 **세 번째 모드 이후를 조용히 버린다** · §5 A2-1·A2-2 대조가 "생략한 회차"라 적는데 실제는 **같은 회차의 주입 전 시점** · **매직넘버**(JS `8000`/`3000`/`16`, Python 대기값) · **`Page.navigate`의 `errorText` 미확인** | 전부 고쳤다. 상수에 이름을 줬고(`ACTIVE_TIMEOUT_MS` 등 — ⚠️ 그 값은 `H-AH`가 진단 signature로 인용하니 바꿀 때 그 문장도 함께 고친다), 치환을 `measure_js()` 한 곳으로 모았고, 3모드 이상은 **버리지 않고 어긋남으로 올린다**, `errorText`는 이름 있는 실패로 죽인다 |
+
+### 재검토 반영 후 종단 재확인 (회차 `3c8bcda5-a19b-40f9-a8cf-aeee46acf304`)
+
+- 게이트 테스트 **23 → 42 passed**(변이 29 + `classify_failure` 9 + 나머지 4).
+- 실행체 종단: `WINDOW_START` `2026-09-06 14:58:45.698936+00` → **`판정 (단정 56건 검사) · PASS · exit 0`**.
+- **새 `errorText` 가드를 실제로 발동시켰다** — 프론트를 죽이지 않고 닿을 수 없는 URL로 쟀다:
+  `--url http://localhost:9/` → `이동하지 못했다: net::ERR_UNSAFE_PORT — 프론트(:3000)가 떠 있나?` · **exit 1**.
+- `measure_js()`가 치환자를 남기지 않는 것을 직접 확인(남은 치환자 **0개** · 길이 5280).
+- DB 3열: `learning_sessions` 12 → **14** → **12** · `analysis_jobs` 45 → 47 → **45** ·
+  `utterances`·`error_patterns`·`error_occurrences` **불변**(114·8·18) · drift **0** ·
+  **§9 보존 5건 전부 생존**(직접 확인). 백엔드 `stub`·`WORKER_ENABLED=false` 복원.
+
+⚠️ **여전히 미관측으로 남는 것**: `dump_failure`의 `except SystemExit` 래퍼가 **실제 앱 실패에서**
+발동하는 것(§3-d와 같다 — 백엔드를 내려도 `active`에 도달한다). `classify_failure`는 이제 갈래마다
+테스트가 있지만 **그 래퍼가 그것을 부르는 경로**는 여전히 코드 읽기로만 확인했다.
 
 ---
 

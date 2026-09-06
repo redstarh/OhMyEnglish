@@ -4,7 +4,10 @@
 **왜 에이전트 액션이 아니라 이 스크립트인가**: §6이 ⛔로 못 박은 것은 "전 과정을 한 `eval`에"이고
 그 이유는 **에이전트 라운드트립(~30 s)이 주입 창(10 s)보다 길기 때문**이다. 이 스크립트는
 `measure_contrast.py`와 **같은 수단**(디버깅 포트 9222 + CDP over websocket)으로 붙어 왕복이
-밀리초 단위이므로 창 안에서 클릭·주입·판독을 끝낸다. 새 수단이 아니라 같은 수단의 재사용이다.
+**밀리초**다 — 실측으로 **클릭→`eval` 반환이 59~67 ms**이고 창(10,000 ms)의 **0.65 %**다.
+새 수단이 아니라 같은 수단의 재사용이다.
+⚠️ **근거를 sticky activation 주장에 걸지 않는다**(재검토 LOW-4) — 그 기제는 `H-AE` 대응란이
+소유하고 이 파일이 필연성을 단정할 근거는 없다. **이 스크립트를 정당화하는 것은 왕복 비율 하나다.**
 
 **모드 전환**도 `measure_contrast.py`가 이미 쓰는 `Emulation.setEmulatedMedia`를 재사용한다.
 
@@ -24,6 +27,13 @@
   파일 해시와 대조한다. 손으로 옮겨 적는 전사 드리프트가 구조적으로 0이 된다.
 - **`eval` 반환값이 증거다**(§10-1) — 개수·`textContent`만 내지 않고 판정 대상의 `outerHTML`과
   컨테이너 `innerHTML`을 함께 담는다.
+- ⛔ **인쇄하는 모든 불리언은 게이트다** — `check_leg`·`check_cross`가 판정하고 어긋나면 **비영
+  종료**한다. 2026-09-06 리뷰가 이 파일의 첫 판을 뚫은 자리가 정확히 여기였다(값을 인쇄만 하고
+  아무것도 비교하지 않아 사람이 눈으로 대조하지 않으면 PASS가 공허해졌다). 조건별 판별력은
+  `tests/harness/test_c2_gates.py`가 무력화 입력으로 지킨다 — **그 파일은 게이트 안이다**
+  (`app/backend/pyproject.toml:33` `testpaths = ["../../tests"]`).
+- **실패한 회차도 진단을 남긴다** — `dump_failure`가 계측 상태와 화면을
+  `.harness/evidence/c2-<모드>-failure.{json,png}`에 쓰고 `classify_failure`가 원인을 갈래로 낸다.
 
 실행:
     cd app/backend && .venv/bin/python ../../tests/harness/c2_render_hierarchy.py
@@ -53,6 +63,18 @@ EVIDENCE = ROOT / ".harness" / "evidence"
 # 주입 문구는 **서로 다르게** 둔다 — 같으면 "partial 줄이 사라졌다"를 텍스트로 확인할 수 없다.
 PARTIAL_TEXT = "PARTIAL_PROBE_ALPHA 부분 전사문 표본"
 FINAL_TEXT = "FINAL_PROBE_BETA 확정 전사문 표본"
+
+# ── 대기 상수 — 이름을 준다(재검토 LOW-6). ⚠️ `ACTIVE_TIMEOUT_MS` 는 `pitfalls.md` H-AH 가
+#    진단 signature 로 인용하는 값이다("8초 시간초과") — 바꾸면 그 문장도 함께 고쳐라.
+ACTIVE_TIMEOUT_MS = 8000
+RENDER_TIMEOUT_MS = 3000
+POLL_STEP_MS = 16  # 프레임 하나. 이보다 촘촘히 재도 DOM 이 더 자주 바뀌지 않는다.
+NAV_SETTLE_S = 0.6  # `Page.navigate` 직후 문서 교체가 시작될 여유
+EMULATION_SETTLE_S = 0.3  # `setEmulatedMedia` 가 스타일에 반영될 여유
+ACTIVATION_SETTLE_S = 0.1  # CDP 클릭 → `navigator.userActivation` 반영 여유
+READY_POLL_STEP_S = 0.25
+READY_POLL_TRIES = 60  # 0.25s × 60 = 15s. Next dev 첫 컴파일을 견딜 만큼.
+DIAG_TIMEOUT_S = 20.0  # 진단 eval·스크린샷의 상한. `Cdp.call` 자체에는 타임아웃이 없다.
 
 # ── 창 안에서 한 번에 도는 블록 ────────────────────────────────────────────────
 # ⚠️ 클릭은 이 블록 **밖**에서 CDP 마우스 이벤트로 한다(합성 클릭은 user activation을 못 만든다).
@@ -84,14 +106,16 @@ MEASURE_JS = r"""
       try { v = fn(); } catch (e) { v = false; }
       if (v) return Math.round(performance.now() - t0);
       if (performance.now() - t0 >= ms) throw new Error(`시간초과(${Math.round(ms)}ms): ${label}`);
-      await sleep(16);
+      await sleep(POLL_STEP_MS);
     }
   };
 
   const t0 = performance.now();
 
   // ① `active` 도달. 버튼 라벨이 `학습 종료`로 바뀌는 것이 그 지표다(page.tsx:346).
-  const activeMs = await waitFor(() => !!endButton(), 8000, "active 도달(학습 종료 버튼)");
+  const activeMs = await waitFor(
+    () => !!endButton(), ACTIVE_TIMEOUT_MS, "active 도달(학습 종료 버튼)"
+  );
 
   // 전사문 컨테이너를 **구조로** 잡는다 — 대기 문구 `<p>`의 부모다. 그 문구는 주입 뒤 사라지므로
   // 참조를 지금 붙잡아 둔다(§10-1이 요구하는 컨테이너 innerHTML의 소유자).
@@ -120,7 +144,7 @@ MEASURE_JS = r"""
   omy.inject({ type: "partial", text: PARTIAL_TEXT, speaker: "agent" });
   const partialRenderMs = await waitFor(
     () => prefixed().length === 1 && prefixed()[0].textContent.indexOf(PARTIAL_TEXT) !== -1,
-    3000,
+    RENDER_TIMEOUT_MS,
     "partial 줄 렌더"
   );
   const pEl = prefixed()[0];
@@ -162,7 +186,7 @@ MEASURE_JS = r"""
   omy.inject({ type: "final", text: FINAL_TEXT, speaker: "agent", sequence_no: 1 });
   const finalRenderMs = await waitFor(
     () => prefixed().length === 1 && prefixed()[0].textContent.indexOf(FINAL_TEXT) !== -1,
-    3000,
+    RENDER_TIMEOUT_MS,
     "final 줄 렌더"
   );
   const fEl = prefixed()[0];
@@ -202,6 +226,21 @@ MEASURE_JS = r"""
   };
 })()
 """
+
+
+def measure_js() -> str:
+    """`MEASURE_JS` 의 치환자를 실제 값으로 채운다.
+
+    ⚠️ **치환을 호출부에 흩지 않는다** — 문구 둘만 채우고 상수는 잊는 실수가 나기 쉽다(리터럴을
+    이름으로 옮긴 뒤 실제로 그럴 뻔했다). 여기 한 곳이 유일한 치환 지점이다.
+    """
+    return (
+        MEASURE_JS.replace("PARTIAL_TEXT", json.dumps(PARTIAL_TEXT, ensure_ascii=False))
+        .replace("FINAL_TEXT", json.dumps(FINAL_TEXT, ensure_ascii=False))
+        .replace("ACTIVE_TIMEOUT_MS", str(ACTIVE_TIMEOUT_MS))
+        .replace("RENDER_TIMEOUT_MS", str(RENDER_TIMEOUT_MS))
+        .replace("POLL_STEP_MS", str(POLL_STEP_MS))
+    )
 
 
 def find_target(port: int, exact: str) -> tuple[str, str]:
@@ -344,17 +383,42 @@ def classify_failure(o: dict) -> str:
             " (`H-AH` 배경 탭. `Page.bringToFront` 와 userActivation 단정을 확인하라)"
         )
     if not o.get("appHandlerAttached"):
+        # ⛔ **첫 판은 이 갈래를 "`VoiceIo.start` 실패"로 적었고 그것은 도달 불가였다** (재검토 ①).
+        #    `page.tsx` 실제 순서: `:177 getUserMedia` → `:185 new SessionSocket` →
+        #    `:205 await VoiceIo.start` → `:218 setState("active")`. 소켓 생성자가 `onmessage` 를
+        #    붙이므로(`ws.ts:70`) `VoiceIo.start` 실패는 `appHandlerAttached=true` 를 남긴다
+        #    → **그 원인은 이 갈래에 절대 오지 않는다.** 이 갈래의 실제 구간은 `:177`~`:185` 다.
         return (
-            "클릭은 닿았는데(resumeLog 2건 이상) 앱 핸들러가 없다 → **소켓 생성 전에 죽었다**"
-            " (`VoiceIo.start` 실패 등. `resumeErrors` 와 화면의 `사유:` 를 읽어라)"
+            "클릭은 닿았는데(resumeLog 2건 이상) 앱 핸들러가 없다 →"
+            " **`getUserMedia` 와 소켓 생성 사이(`page.tsx:177`~`:185`)에서 끝났다**"
+            " (= `getUserMedia` 거부 경로. ⚠️ 계측이 `getUserMedia` 를 대체하므로 정상 회차에서는"
+            " 거의 도달하지 않는다. `resumeErrors` 와 화면의 `사유:` 를 읽어라)"
         )
-    if (o.get("recv") or {}).get("session_started", 0) == 0:
+    recv = o.get("recv") or {}
+    if recv.get("session_started", 0) == 0:
         return (
             "소켓은 만들었는데 서버 프레임이 0건이다 → **백엔드가 없거나 연결이 실패했다**"
             " (실측 재현: :8002 를 내린 회차가 정확히 이 모양이었다. `/health` 를 확인하라)"
         )
+    if recv.get("session_failed", 0) >= 1:
+        # ⚠️ **첫 판에 이 갈래가 없어서 창 이탈이 갈래 4로 떨어졌다** (재검토 ①).
+        #    그런데 창 이탈은 §6 이 이름 붙이고 처방까지 정한 유일한 실패다 —
+        #    FAIL 이 아니라 ERROR 다.
+        return (
+            "`session_failed` 가 왔다 → **주입 창을 넘겼다**(`CONNECT_TIMEOUT`). `page.tsx` 가"
+            " `failed` 를 별도 블록으로 렌더해 전사문 컨테이너가 **언마운트**되고"
+            " `학습 종료` 버튼이"
+            " 영구히 사라져 `active` 대기가 시간초과한다. **FAIL 이 아니라 ERROR 다 — 재시도하라**"
+            " (§6). 화면의 `사유:` 문구가 그 증거다"
+        )
+    if recv.get("session_started", 0) >= 2:
+        return (
+            "한 문서에서 세션이 2회 이상 시작됐다 → **한 문서 한 세션 규약 위반**"
+            " (`snapshots` 가 페이지 수명 전체에 쌓여 판정이 오염된다). 모드마다 `navigate` 하라"
+        )
     return (
-        "클릭·소켓·서버 프레임 모두 정상이다 → `H-AH`도 백엔드 부재도 아니다."
+        "클릭·소켓·서버 프레임 모두 정상이고 창도 살아 있다 →"
+        " `H-AH`도 백엔드 부재도 창 이탈도 아니다."
         " `H-AE`(합성 클릭으로 `resume()` pending)나 세션 길이 쪽을 본다 —"
         " `resumeLog[*].afterAwait` 와 `contextState` 를 읽어라"
     )
@@ -368,22 +432,26 @@ async def dump_failure(cdp: Cdp, scheme: str, elapsed_ms: int) -> str:
     lines = [f"실패 진단 (클릭 후 {elapsed_ms}ms) — H-AH/H-AE 판별용:"]
     diag: dict = {"scheme": scheme, "elapsedMs": elapsed_ms}
     try:
-        diag["page"] = await cdp.eval(FAILURE_DUMP_JS)
-    except BaseException as e:  # noqa: BLE001 — 진단이 원인을 가리면 안 된다
+        # ⚠️ `Cdp.call` 에는 타임아웃이 없다 — 소켓이 **열린 채 무응답**이면 진단이 영구히
+        #    매달린다. 하필 페이지가 굳은 실패 경로에서 도는 코드다(재검토 LOW).
+        diag["page"] = await asyncio.wait_for(cdp.eval(FAILURE_DUMP_JS), DIAG_TIMEOUT_S)
+    except (Exception, SystemExit) as e:
         diag["page"] = f"진단 eval 실패: {e}"
     try:
         EVIDENCE.mkdir(parents=True, exist_ok=True)
-        shot = await cdp.call("Page.captureScreenshot", {"format": "png"})
+        shot = await asyncio.wait_for(
+            cdp.call("Page.captureScreenshot", {"format": "png"}), DIAG_TIMEOUT_S
+        )
         path = EVIDENCE / f"c2-{scheme}-failure.png"
         path.write_bytes(base64.b64decode(shot["data"]))
         diag["screenshot"] = str(path.relative_to(ROOT))
-    except BaseException as e:  # noqa: BLE001
+    except (Exception, SystemExit) as e:
         diag["screenshot"] = f"스크린샷 실패: {e}"
     try:
         out = EVIDENCE / f"c2-{scheme}-failure.json"
         out.write_text(json.dumps(diag, ensure_ascii=False, indent=1), encoding="utf-8")
         lines.append(f"  → {out.relative_to(ROOT)} · {diag.get('screenshot')}")
-    except BaseException as e:  # noqa: BLE001
+    except (Exception, SystemExit) as e:
         lines.append(f"  진단 파일 쓰기 실패: {e}")
     page = diag.get("page")
     if isinstance(page, dict):
@@ -416,16 +484,22 @@ async def run_scheme(
     await cdp.call("Page.bringToFront")
 
     # ── 한 문서 = 한 세션 (`browser_leg.md` §5 A1-5). 모드마다 새로 연다.
-    await cdp.call("Page.navigate", {"url": base_url})
-    await asyncio.sleep(0.6)
+    # ⚠️ **`errorText` 를 확인한다** (재검토 LOW-7) — 프론트가 죽어 있으면 `navigate` 는 조용히
+    #    성공하고 나중에 "학습 시작 버튼이 나타나지 않았다"로 **오진**한다. 여기서 이름 있게 죽인다.
+    nav = await cdp.call("Page.navigate", {"url": base_url})
+    if nav.get("errorText"):
+        raise SystemExit(
+            f"{base_url} 로 이동하지 못했다: {nav['errorText']} — 프론트(:3000)가 떠 있나?"
+        )
+    await asyncio.sleep(NAV_SETTLE_S)
     await cdp.call(
         "Emulation.setEmulatedMedia",
         {"features": [{"name": "prefers-color-scheme", "value": scheme}]},
     )
-    await asyncio.sleep(0.3)
+    await asyncio.sleep(EMULATION_SETTLE_S)
 
     # 앱이 상호작용 가능해질 때까지 기다린다.
-    for _ in range(60):
+    for _ in range(READY_POLL_TRIES):
         ready = await cdp.eval(
             "(() => document.readyState === 'complete' &&"
             " !!Array.from(document.querySelectorAll('button'))"
@@ -433,7 +507,7 @@ async def run_scheme(
         )
         if ready:
             break
-        await asyncio.sleep(0.25)
+        await asyncio.sleep(READY_POLL_STEP_S)
     else:
         raise SystemExit("학습 시작 버튼이 나타나지 않았다")
 
@@ -447,7 +521,7 @@ async def run_scheme(
 
     # ── 무해한 요소를 CDP로 한 번 클릭해 user activation 을 만든다 (`H-AE` 대응 ②).
     await cdp.click("document.querySelector('h1')", "h1 (user activation)")
-    await asyncio.sleep(0.1)
+    await asyncio.sleep(ACTIVATION_SETTLE_S)
     # ⚠️ **activation 을 추론하지 않고 직접 단정한다.** 없으면 `active` 미도달로 8초를 버리고
     #    원인이 화면 결함처럼 보인다 — 여기서 이름 있는 실패로 죽는 편이 낫다.
     activation = await cdp.eval(
@@ -485,12 +559,7 @@ async def run_scheme(
         "학습 시작",
     )
     try:
-        data = await cdp.eval(
-            MEASURE_JS.replace(
-                "PARTIAL_TEXT", json.dumps(PARTIAL_TEXT, ensure_ascii=False)
-            ).replace("FINAL_TEXT", json.dumps(FINAL_TEXT, ensure_ascii=False)),
-            await_promise=True,
-        )
+        data = await cdp.eval(measure_js(), await_promise=True)
     except SystemExit as exc:
         failed_ms = round((time.monotonic() - t_click) * 1000)
         # ⛔ **실패한 회차가 판별에 필요한 바로 그 데이터를 버리면 안 된다** (재검토 MEDIUM-3).
@@ -669,6 +738,13 @@ def check_cross(results: list[dict]) -> tuple[int, list[str]]:
     if len(set(schemes)) < 2:
         return 0, [
             f"A2-3 미평가: 모드가 {schemes} 하나뿐이다 — 판별력 미확인은 PASS 가 아니다(§10)"
+        ]
+    # ⚠️ **세 번째 모드 이후를 조용히 버리지 않는다** (재검토 LOW) — 이 대조는 두 모드 비교로
+    #    쓰였다. 세 개 이상을 받으면 버리는 것이 아니라 **어긋남으로 올린다.**
+    if len(results) != 2:
+        return 0, [
+            f"A2-3 미평가: 모드가 {schemes} 로 2개가 아니다 —"
+            " 이 대조는 두 모드 비교로 쓰였고 나머지를 조용히 버리지 않는다"
         ]
     a, b = results[0], results[1]
     fails = []

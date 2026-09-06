@@ -34,7 +34,7 @@ import pytest
 HARNESS = Path(__file__).resolve().parent
 sys.path.insert(0, str(HARNESS))
 
-from c2_render_hierarchy import check_cross, check_leg  # noqa: E402
+from c2_render_hierarchy import check_cross, check_leg, classify_failure  # noqa: E402
 
 REAL = HARNESS / "runs" / "2026-09-06-t3-c2-eval-return.json"
 
@@ -134,6 +134,47 @@ MUTATIONS: list[tuple[str, object, str]] = [
         lambda d: d.update(scheme="light", emulated="dark"),
         "모드 불일치",
     ),
+    # ── ⛔ 아래 8건은 **재검토가 "판별력 미관측"으로 지목한 조건들**이다 (2026-09-06 ③).
+    #    리뷰어가 독립 변이로 게이트가 잡는 것을 확인해 줬지만, **테스트가 보지 않으면 다음 변이에
+    #    눈이 먼다.** 특히 `final["count"]` 와 `partial.color` rgb 가드는 대칭 논거로
+    #    넘어가지 않는다:
+    #    앞의 것은 `partial["count"]` 와 **다른 코드 경로**(`if final is not None` 안)이고,
+    #    뒤의 것은 이 커밋이 새로 넣은 공허 통과 방어인데 형제(probe 쪽)만 덮여 있었다.
+    ("probe.muted2 가 비-rgb", lambda d: d["probe"].update(muted2=None), "probe.muted2 가 rgb"),
+    ("probe.fg1 가 비-rgb", lambda d: d["probe"].update(fg1=None), "probe.fg1 가 rgb"),
+    ("probe.fg2 가 비-rgb", lambda d: d["probe"].update(fg2=123), "probe.fg2 가 rgb"),
+    (
+        "partial.color 가 비-rgb",
+        lambda d: d["partial"].update(color=None),
+        "partial.color 가 rgb 문자열이 아니다",
+    ),
+    (
+        "fg 재판독이 갈렸다",
+        lambda d: d["probe"].update(fg2="rgb(9, 9, 9)"),
+        "같은 모드 재판독이 갈렸다: fg",
+    ),
+    ("확정 줄이 2개다", lambda d: d["final"].update(count=2), "A2-2: final 주입 후"),
+    (
+        "final 판독 시점에 창을 넘겼다",
+        lambda d: d["final"].update(reasonPs=1),
+        "창 이탈: final 판독",
+    ),
+    (
+        "경쟁 프레임 recv.final",
+        lambda d: d["omy"]["recv"].update(final=6),
+        "경쟁 프레임: recv.final",
+    ),
+    # ⚠️ **등호가 `None == None` 으로 공허하게 참이 되는 조합** — rgb 가드가 먼저 잡는지 본다.
+    (
+        "partial.color 와 muted1 이 둘 다 None",
+        lambda d: (d["partial"].update(color=None), d["probe"].update(muted1=None)),
+        "rgb 문자열이 아니다",
+    ),
+    (
+        "final.color 와 fg1 이 둘 다 None",
+        lambda d: (d["final"].update(color=None), d["probe"].update(fg1=None)),
+        "probe.fg1 가 rgb",
+    ),
 ]
 
 
@@ -176,3 +217,73 @@ def test_partial_phase_expects_no_final_line():
     # 같은 데이터를 판정 회차로 재면 final 부재가 잡혀야 한다.
     _, fails = check_leg(copy.deepcopy(data[0]), "both")
     assert any("final 이 비었다" in m for m in fails), fails
+
+
+# ── `classify_failure` — 분기 순서가 판별력 전부인 함수다. **첫 판의 판별 문구가 실제로 틀렸고**
+#    (`socketUrls` 공백을 배경 탭의 지표로 적었다) 팀리드가 반례를 만들어 반증했다. 재검토는
+#    거기서 **갈래 2의 의미가 도달 불가**이고 **창 이탈 갈래가 빠졌다**고 더 지적했다.
+#    그래서 갈래마다 픽스처를 박아 둔다 — 순서가 바뀌면 여기서 red 가 난다.
+def _omy(**over) -> dict:
+    base = {
+        "resumeLog": [{"at": 1, "afterAwait": "running"}, {"at": 2, "afterAwait": "running"}],
+        "appHandlerAttached": True,
+        "recv": {"session_started": 1, "session_failed": 0, "partial": 0, "final": 0},
+        "socketUrls": [],
+    }
+    base.update(over)
+    return base
+
+
+CLASSIFY_CASES = [
+    # (라벨, 계측 상태, 결과에 들어 있어야 하는 조각)
+    ("배경 탭 — resumeLog 1건", _omy(resumeLog=[{"at": 1}]), "클릭이 페이지에 닿지 않았다"),
+    ("resumeLog 0건도 같은 갈래", _omy(resumeLog=[]), "클릭이 페이지에 닿지 않았다"),
+    (
+        "핸들러 미부착 — getUserMedia~소켓 사이",
+        _omy(appHandlerAttached=False),
+        "page.tsx:177`~`:185",
+    ),
+    (
+        "백엔드 부재 — 서버 프레임 0건",
+        _omy(recv={"session_started": 0, "session_failed": 0}),
+        "백엔드가 없거나 연결이 실패했다",
+    ),
+    (
+        "창 이탈 — session_failed 가 왔다",
+        _omy(recv={"session_started": 1, "session_failed": 1}),
+        "주입 창을 넘겼다",
+    ),
+    (
+        "한 문서 두 세션",
+        _omy(recv={"session_started": 2, "session_failed": 0}),
+        "한 문서 한 세션 규약 위반",
+    ),
+    (
+        "셋 다 정상 — H-AE 나 세션 길이",
+        _omy(),
+        "`H-AH`도 백엔드 부재도 창 이탈도 아니다",
+    ),
+]
+
+
+@pytest.mark.parametrize("label,omy,expected", CLASSIFY_CASES, ids=[c[0] for c in CLASSIFY_CASES])
+def test_classify_failure_branches(label, omy, expected):
+    """갈래마다 **그 갈래로** 떨어지는지 본다. 순서를 바꾸면 여기서 깨진다."""
+    got = classify_failure(copy.deepcopy(omy))
+    assert expected in got, f"{label}: 기대한 갈래가 아니다 — {got}"
+
+
+def test_classify_failure_branches_are_mutually_exclusive():
+    """⚠️ 상류 조건이 하류를 **가려야** 한다 — 배경 탭이면 나머지 신호와 무관하게 그 갈래다."""
+    both = _omy(resumeLog=[{"at": 1}], recv={"session_started": 0, "session_failed": 1})
+    assert "클릭이 페이지에 닿지 않았다" in classify_failure(both)
+
+
+def test_classify_failure_does_not_claim_voiceio_start():
+    """⛔ **회귀 방지** — 갈래 2에 `VoiceIo.start` 를 되살리지 마라.
+
+    `page.tsx` 순서상 그 실패는 소켓 **뒤**(`:205`)라 `appHandlerAttached=true` 를 남기므로
+    이 갈래에 **절대 오지 않는다**(재검토 ①). 문구를 되살리면 읽는 사람을 엉뚱한 줄로 보낸다.
+    """
+    got = classify_failure(_omy(appHandlerAttached=False))
+    assert "VoiceIo.start" not in got, got
