@@ -1,10 +1,10 @@
 ---
 id: TASK-15
 title: '실행: 마이그레이션 007을 개발 DB에 적용'
-status: Awaiting Decision
+status: Done
 assignee: []
 created_date: '2026-09-06 00:13'
-updated_date: '2026-09-06 00:13'
+updated_date: '2026-09-06 00:50'
 labels: []
 dependencies: []
 ordinal: 15000
@@ -18,7 +18,7 @@ ordinal: 15000
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 적용 전 개발 DB를 백업하거나 되돌릴 수단을 확보한다(rollback 스크립트가 없다)
-- [ ] #2 적용 후 표 2개 실재와 analysis_jobs 제약 변경을 직접 조회로 확인
-- [ ] #3 적용 전후 기존 데이터 행 수를 대조해 손실 0건을 확인
+- [x] #1 적용 전 개발 DB를 백업하거나 되돌릴 수단을 확보한다(rollback 스크립트가 없다)
+- [x] #2 적용 후 표 2개 실재와 analysis_jobs 제약 변경을 직접 조회로 확인
+- [x] #3 적용 전후 기존 데이터 행 수를 대조해 손실 0건을 확인
 <!-- AC:END -->
