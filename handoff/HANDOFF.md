@@ -48,15 +48,18 @@ architectural 경로**로 착수했고 **캡틴 결정 2건을 받아 `captain-d
 - **설정값은 새로 만들지 않는다** — `config.py`의 `Settings`(BaseSettings)에 필드를 더한다
   (`captain-decisions.md` §2).
 
-### ⏸ 리뷰 미수신 — 내가 앞당길 수 없다
+### ✅ 리뷰 `APPROVE` 수신 — `TASK-21`·`TASK-22` **Done**. 그래서 `TASK-30`이 풀렸다
 
-`TASK-21`(AC 5/5) · `TASK-22`(AC 4/4)는 **관측이 끝났고** 리뷰 결론(C2·C3 둘 다
-`CHANGES REQUESTED`)의 **차단 사유를 전부 닫았다**(`5846887`). **3차 재검토 회신만 남았다.**
-⛔ **`APPROVE` 없이 `Done`으로 올리지 않는다** — 감사 세션이 그것만 보고 있고, 미수신인데 `Done`이면
-어긋남으로 올린다고 예고했다. 회신이 오면 `receiving-code-review`로 처리한다.
-⚠️ **감사가 캡틴에게 올린 미결이 하나 있다**: **미수신 리뷰에 상한(timeout)을 둘 것인가.**
-안 오면 두 태스크가 영구히 열려 있고 **`TASK-30`(HIGH)까지 함께 막힌다.** 규칙을 발명하지 말고
-캡틴 답을 기다린다.
+`TASK-21`·`TASK-22`는 **`APPROVE`를 받고 `Done`으로 올렸다**(차단 전건 닫힘). 리뷰어 보고를 그대로
+쓰지 않고 **3건을 직접 확인했다**: `tests/harness` **71 passed** · `browser_leg.md:608`의 §10 반증
+표시 실재 · `c3_results_screen.py:168-172`의 `corrections` 키 **양방향** 게이트 실재.
+⚠️ **`666` 전체는 리뷰어가 돌리지 않았다**(DB 공유 자원 · P8/H-X) — 그 수치는 내 측정이다.
+
+⛔ **그래서 `TASK-30`의 선행이 전부 `Done`이다**(`TASK-19`·`21`·`22` — 직접 조회로 확인).
+**「선행 풀림 + 미착수」는 감사가 매 회차 찾는 형태이고 `TASK-17`이 그랬다.** 지금 `TASK-6`·`TASK-25`가
+`In Progress`라 그 둘을 끝내는 것이 먼저지만, **`TASK-30`을 잊지 마라** — 설계서를 마치면 바로 그것이다.
+⚠️ 감사가 캡틴에게 올린 「미수신 리뷰에 상한을 둘 것인가」는 **이번엔 회신이 와서 발동하지 않았다.**
+규칙 사안이라 발명하지 않았고 캡틴 답을 기다린다.
 
 ### ✅ 확정된 것 — 재론하지 않는다
 
@@ -204,7 +207,7 @@ cd ../frontend && npx tsc --noEmit ; npx eslint app lib     # 둘 다 exit 0
 | # | 지표 | 기준값 (마감 시점에 직접 돌려 얻었다) |
 |--:|---|---|
 | 1 | `git rev-parse --short HEAD` | 이 파일을 담은 커밋 **이상**(등호를 요구하지 않는다 — `H-P`) · 추적된 미커밋 **0건** |
-| 2 | `backlog task list -s "In Progress"` | **4건** — `TASK-21`(AC 5/5) · `TASK-22`(AC 4/4)는 **리뷰 미수신으로 열려 있다** · **`TASK-6`(AC 2/3) · `TASK-25`(AC 0/4)가 착수 중이고 다음 걸음이다** |
+| 2 | `backlog task list -s "In Progress"` | **2건** — **`TASK-6`(AC 2/3) · `TASK-25`(AC 0/4)** 가 다음 걸음이다. `TASK-21`·`TASK-22`는 **`APPROVE` 받고 Done** → **`TASK-30`의 선행이 전부 풀렸다** |
 | 3 | 게이트 | **666 passed** · `ruff check`·`format`(32 files)·`ty` 통과 · 게이트 밖 **6 errors**·**4 files** · 프론트 `tsc`·`eslint` **exit 0** |
 | 4 | 착수 전 필수 | **3건** — ① **캡틴 결정 9·10을 다시 묻지 않는다**(`captain-decisions.md` §5) ② **`TASK-25` AC#4를 먼저 묻는다**(`mode` 리터럴을 함께 처리할지 — brainstorming의 한 번에 한 질문) ③ **워커를 켜지 않는다**(비용 + §9의 `C3e`가 깨진다) |
 

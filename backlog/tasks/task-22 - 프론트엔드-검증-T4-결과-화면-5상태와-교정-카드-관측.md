@@ -1,10 +1,10 @@
 ---
 id: TASK-22
 title: '프론트엔드 검증 T4: 결과 화면 5상태와 교정 카드 관측'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-06 00:14'
-updated_date: '2026-09-06 15:12'
+updated_date: '2026-09-06 22:41'
 labels:
   - caps-req
 dependencies:
@@ -72,4 +72,12 @@ AC #4 (보존 목록): browser_leg.md §9 표에 5개를 corrections 수와 만�
 
 ⛔ 요약을 좁혔다: 관측한 것은 다섯 상태의 라벨과 안내 문구이고 교정 카드 렌더는 final 하나에서만 봤다. partial_failure 의 done 교정 경로는 미관측이다.
 미결: 3차 재검토 미수신.
+
+2026-09-06(UTC) 리뷰 APPROVE 수신 — Done 으로 올린다. C3 차단 4건 + 내 테스트가 잡은 ⑤ 전건 닫힘 확인.
+
+리뷰어가 재현한 것(내가 직접 3건 교차 확인): ① 키 부재 → checked 8 · 이름 있는 FAIL 1건(이전 판은 fails=[]) · ①-b 양방향(analyzing 에 키 추가 → FAIL, 내가 요구한 것보다 한 방향 더 잠갔다는 평) · ② sentinel 비교식 없고 철회 근거 주석만 · ③ 2건 미만이면 A3-1 미평가 · ④ url 단정 · ⑤ 초과 카드에서 트레이스백 없이 FAIL 4건.
+green 재현: analyzing 8 · final 15 · partial_failure 8 · connection_failed 8 · no_utterances 8 · missing 4 = 51, fails 0. 내 측정(세션분 47 + missing 4)과 일치한다.
+§8-④ 조건도 닫혔다 — v2 가 v1 공유 7행 drift 0 에서 떴다는 한 줄이 회차 기록 T4 §5 에 있다는 것까지 리뷰어가 확인했다.
+
+남은 LOW/NOTE 는 전부 이미 수용·반영됐고 차단이 아니다.
 <!-- SECTION:NOTES:END -->
