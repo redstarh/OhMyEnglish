@@ -1,0 +1,142 @@
+[
+ {
+  "scheme": "light",
+  "timing": {
+   "activeMs": 17,
+   "partialInjectedAt": 17,
+   "partialRenderMs": 16,
+   "finalInjectedAt": 34,
+   "finalRenderMs": 17,
+   "totalMs": 51
+  },
+  "beforeInject": {
+   "prefixedCount": 0,
+   "reasonPs": 0,
+   "waitingTextPresent": true
+  },
+  "probe": {
+   "muted1": "rgb(89, 89, 89)",
+   "fg1": "rgb(23, 23, 23)",
+   "muted2": "rgb(89, 89, 89)",
+   "fg2": "rgb(23, 23, 23)"
+  },
+  "partial": {
+   "count": 1,
+   "color": "rgb(89, 89, 89)",
+   "text": "질문: PARTIAL_PROBE_ALPHA 부분 전사문 표본",
+   "outerHTML": "<p style=\"color: var(--foreground-muted); margin: 0.4rem 0px;\"><strong>질문: </strong>PARTIAL_PROBE_ALPHA 부분 전사문 표본</p>",
+   "reasonPs": 0
+  },
+  "final": {
+   "count": 1,
+   "color": "rgb(23, 23, 23)",
+   "text": "질문: FINAL_PROBE_BETA 확정 전사문 표본",
+   "outerHTML": "<p style=\"color: var(--foreground); margin: 0.4rem 0px;\"><strong>질문: </strong>FINAL_PROBE_BETA 확정 전사문 표본</p>",
+   "partialTextStillPresent": false,
+   "reasonPs": 0
+  },
+  "container": "<p style=\"color: var(--foreground); margin: 0.4rem 0px;\"><strong>질문: </strong>FINAL_PROBE_BETA 확정 전사문 표본</p>",
+  "omy": {
+   "recv": {
+    "session_started": 1,
+    "partial": 0,
+    "final": 0,
+    "audio": 0,
+    "session_ended": 0,
+    "session_failed": 0
+   },
+   "injected": 2,
+   "appHandlerAttached": true,
+   "socketUrls": [
+    "ws://localhost:8002/ws/session"
+   ],
+   "snapshotCounts": [
+    0,
+    1,
+    1
+   ],
+   "contextState": "running"
+  },
+  "emulated": "light",
+  "userActivation": {
+   "visible": "visible",
+   "focused": true,
+   "hasBeenActive": true,
+   "isActive": true
+  },
+  "instrumentSha256": "846f130f2cf73365ae00765b37300e00e3c1c5b1cb1ae6152f9a02b7fc16ae93",
+  "clickToEvalReturnMs": 59,
+  "clickToScreenshotMs": 138,
+  "screenshot": ".harness/evidence/c2-light.png"
+ },
+ {
+  "scheme": "dark",
+  "timing": {
+   "activeMs": 18,
+   "partialInjectedAt": 18,
+   "partialRenderMs": 16,
+   "finalInjectedAt": 35,
+   "finalRenderMs": 17,
+   "totalMs": 52
+  },
+  "beforeInject": {
+   "prefixedCount": 0,
+   "reasonPs": 0,
+   "waitingTextPresent": true
+  },
+  "probe": {
+   "muted1": "rgb(154, 154, 154)",
+   "fg1": "rgb(237, 237, 237)",
+   "muted2": "rgb(154, 154, 154)",
+   "fg2": "rgb(237, 237, 237)"
+  },
+  "partial": {
+   "count": 1,
+   "color": "rgb(154, 154, 154)",
+   "text": "질문: PARTIAL_PROBE_ALPHA 부분 전사문 표본",
+   "outerHTML": "<p style=\"color: var(--foreground-muted); margin: 0.4rem 0px;\"><strong>질문: </strong>PARTIAL_PROBE_ALPHA 부분 전사문 표본</p>",
+   "reasonPs": 0
+  },
+  "final": {
+   "count": 1,
+   "color": "rgb(237, 237, 237)",
+   "text": "질문: FINAL_PROBE_BETA 확정 전사문 표본",
+   "outerHTML": "<p style=\"color: var(--foreground); margin: 0.4rem 0px;\"><strong>질문: </strong>FINAL_PROBE_BETA 확정 전사문 표본</p>",
+   "partialTextStillPresent": false,
+   "reasonPs": 0
+  },
+  "container": "<p style=\"color: var(--foreground); margin: 0.4rem 0px;\"><strong>질문: </strong>FINAL_PROBE_BETA 확정 전사문 표본</p>",
+  "omy": {
+   "recv": {
+    "session_started": 1,
+    "partial": 0,
+    "final": 0,
+    "audio": 0,
+    "session_ended": 0,
+    "session_failed": 0
+   },
+   "injected": 2,
+   "appHandlerAttached": true,
+   "socketUrls": [
+    "ws://localhost:8002/ws/session"
+   ],
+   "snapshotCounts": [
+    0,
+    1,
+    1
+   ],
+   "contextState": "running"
+  },
+  "emulated": "dark",
+  "userActivation": {
+   "visible": "visible",
+   "focused": true,
+   "hasBeenActive": true,
+   "isActive": true
+  },
+  "instrumentSha256": "846f130f2cf73365ae00765b37300e00e3c1c5b1cb1ae6152f9a02b7fc16ae93",
+  "clickToEvalReturnMs": 59,
+  "clickToScreenshotMs": 122,
+  "screenshot": ".harness/evidence/c2-dark.png"
+ }
+]

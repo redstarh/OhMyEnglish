@@ -289,6 +289,27 @@ run-1의 스로틀 스크립트는 **회수 불가로 확정**됐다(지목된 C
 문서를 성실히 따른 결과였다. **병목은 페이지가 아니라 라운드트립이다**: 페이지 쪽 8프레임 주입은
 `session_started`로부터 **256 ms**(창의 **2.6%**)에 끝난다.
 
+✅ **실행체가 있다 — `tests/harness/c2_render_hierarchy.py`**(2026-09-06 T3 신설). 지키는 규약은 그 파일
+머리주석이 소유하고 **여기서 재서술하지 않는다.** 새 수단이 아니다: `measure_contrast.py`와 같은
+디버깅 포트 9222 + CDP over websocket이라 왕복이 **밀리초**이고, 그래서 §6의 ⛔("전 과정을 한 `eval`에")를
+지키면서 창을 **0.65 %**만 쓴다(실측: 클릭→`eval` 반환 **59~65 ms**, 창 10,000 ms). 모드 전환도 같은
+`Emulation.setEmulatedMedia`다. **판정은 `--phase both`(기본)가 낸다** — `--phase partial`은 partial
+상태를 눈으로 보기 위해 그 지점에서 멈추는 회차이고 판정에 쓰지 않는다.
+
+⛔ **회차를 배경 탭에서 돌리면 성립하지 않는다 — 증상이 `H-AE`와 구별되지 않는다** (2026-09-06 T3 실측).
+`Page.bringToFront` 없이 돌린 첫 시도가 `active` 도달에 **8초 시간초과**로 실패했고, 그때 계측 상태는
+`appHandlerAttached false` · `socketUrls []` · `recv` 전부 0 · `resumeLog[0].afterAwait null`(영원히 pending)
+이었다. `resumeLog`가 **1건**뿐인 것이 결정적이다 — 계측의 `getUserMedia` 대체본이 `tryResume()`를
+부르므로 2건이 아니라는 것은 **`getUserMedia`가 호출되지 않았다**, 즉 클릭이 페이지에 닿지 않았다는 뜻이다.
+→ **① 회차 시작에 `Page.bringToFront` ② user activation을 추론하지 말고
+`navigator.userActivation.hasBeenActive`로 직접 단정한다**(없으면 이름 있는 실패로 죽인다).
+가르는 값: 배경 탭이면 `socketUrls`가 **비어 있고**, `H-AE`(합성 클릭)면 소켓은 열린다.
+
+⚠️ **대상 탭을 부분일치로 고르지 않는다.** `localhost:3000`으로 찾으면 열려 있던 `/results/<id>` 탭이
+목록 앞에 있어 **그것을 잡는다**(실측). **정확 일치를 먼저** 고르고, 맞는 탭이 없으면
+`PUT /json/new`로 **전용 탭을 만든다** — 플러그인 Chrome의 탭은 회차 사이에 사라진다(실측:
+`json/list`가 0건이 됐고 Chrome 프로세스는 살아 있었다).
+
 0. **주입 전에 센다** — 접두 `<p>`가 **0개**임을 확인한다. 0이 아니면 그 회차는 **ERROR**다(측정으로 넘어가지 않는다). 이것이 A2-1·A2-2의 음성 대조다.
    ⚠️ **`active` 도달 후에 센다** (T5a D-7 — 비용 0의 강화). 클릭 전에 재면 **컨테이너가 아직
    마운트되지 않아** 0일 수 있고, 그러면 **주입 경로가 죽어 있어도 이 대조가 통과한다.** `active`
@@ -336,6 +357,16 @@ print(psql_binary()); print(psql('select current_database()'))
 작성자가 직접 돌린 출력(2026-09-06): `/opt/homebrew/opt/postgresql@17/bin/psql` · `ohmyenglish`. 세 사실이 여기 걸린다 — **백엔드 venv가 필요하다**(`db_utils`가 최상단에서 `asyncpg`를 import한다) · **`DATABASE_URL`은 환경변수로만 읽는다**(`app/backend/.env`만 고쳐도 반영되지 않는다. 기본값 `postgresql://ohmy:ohmy@localhost:5432/ohmyenglish`가 현재 `.env`와 일치한다) · **homebrew `postgresql@17`은 keg-only라 `psql`이 PATH에 없다**(`psql_binary()`가 keg를 찾는다).
 
 ⚠️ **DB 공유가 스키마 수준이다.** 같은 데이터베이스 `ohmyenglish` 안에 다른 프로젝트의 `en_coach` 스키마가 있고 소유자가 다르다(직접 확인: `en_coach:en_coach` · `public:pg_database_owner` · `current_user = ohmy`). **우리 것은 `public` 하나뿐이다** → `pg_dump`를 범위 없이 돌리면 `permission denied for schema en_coach`로 막힌다. **`-n public`을 붙인다.**
+
+⛔ **이 사실을 `information_schema.schemata`로 확인하지 마라 — 거짓 「없다」를 낸다** (2026-09-06 실측).
+그 뷰는 **현재 롤이 소유한 스키마만** 보여주므로 `ohmy`로 물으면 `public` **하나만** 나온다.
+그 답을 믿으면 "남의 스키마는 이제 없다"고 오판해 `-n public`을 떼고, 위 규약을 낡은 것으로 지운다.
+**`pg_namespace`로 묻는다** — 이 줄의 값은 그것으로 얻었다:
+
+```sql
+select n.nspname, pg_get_userbyid(n.nspowner) from pg_namespace n
+ where n.nspname not like 'pg\_%' and n.nspname <> 'information_schema' order by 1;
+```
 
 ## §8. teardown — 매 태스크의 일부다
 
