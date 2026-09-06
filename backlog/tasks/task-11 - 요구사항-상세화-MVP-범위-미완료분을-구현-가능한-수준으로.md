@@ -1,9 +1,10 @@
 ---
 id: TASK-11
 title: '요구사항 상세화: MVP 범위 미완료분을 구현 가능한 수준으로'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-06 00:12'
+updated_date: '2026-09-06 00:15'
 labels: []
 dependencies: []
 ordinal: 11000

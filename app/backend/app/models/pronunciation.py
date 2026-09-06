@@ -29,8 +29,14 @@ logger = logging.getLogger(__name__)
 # `pending` 은 정식 값이다 — Nova 는 재발화 **전에** tool 을 부른다(설계서 F3).
 PronunciationOutcome = Literal["pending", "correct", "incorrect", "unclear"]
 
-# 이 행이 무엇 때문에 생겼는지. `agent_reprompt` 는 값역에만 두고 첫 구현에서는 쓰지
-# 않는다 — 문구 매칭이라 취약해 5차수 관측 후 판정한다(설계서 §10 미결 2).
+# 이 행이 무엇 때문에 생겼는지. `agent_reprompt` 는 **값역에만 두고 만들지 않는다** —
+# 캡틴 결정 2026-08-28(발음 설계서 「미결 — 캡틴 확인 필요」 항목 2). 문구 매칭이라 케이스가
+# 불어나고, 지시문이 매 발음 시범마다 "repeat" 를 만들어 "시범 vs 되묻기" 를 가르는 규칙이
+# 자란다(같은 설계서 §3.1). **R10-4 의 절반은 의도적 미충족이다.**
+# ⚠️ 이 주석은 원래 "5차수 관측 후 판정한다(§10 미결 2)" 였고 **낡은 서술이었다** — 그 미결은
+# 2026-08-28에 닫혔다. 지금 남아 있는 것은 판정이 아니라 **뒤집는 조건**이고, 그것은 설계서
+# §8 항목 2가 소유한다("Nova 가 놓쳤고 전사문도 한글이 아닌" 구간의 크기 — 크면 다시 본다).
+# 그 관측은 backlog `TASK-24` 가 소유한다. **이 값을 쓰는 코드를 만들기 전에 그 태스크를 본다.**
 SignalSource = Literal["nova_tool", "korean_transcript", "agent_reprompt"]
 
 # Literal 에서 파생 — 코드값을 두 번 적지 않는다 (`models/analysis.py` 와 같은 관례).
