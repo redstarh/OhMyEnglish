@@ -135,10 +135,33 @@
      * `afterRecvAudio`는 그 `start`가 불린 시점까지 **수신한** `audio` 프레임 수다.
      */
     started: { count: 0, when: [], calls: [] },
-    /** 종단 프레임 도착 시점의 동기 스냅샷. ⚠️ **진단용이다** — 단정은 `snapshots`로 한다(아래). */
+    /**
+     * 종단 프레임을 **앱이 처리하기 직전**의 동기 스냅샷. **A1-5 내용·순서 단정의 정본이다.**
+     *
+     * ⚠️ **2026-09-06 역할이 뒤바뀌었다** — 이전 판은 이 값을 "진단용"이라 적고 `snapshots`를 단정
+     * 정본으로 삼았다. 그 배치가 **거짓 FAIL을 냈다**(적립 최대치에 partial 과도 상태가 먼저 닿는다).
+     * 지금은 반대다: **내용·순서는 이 값**, `snapshots`는 **초과 검출과 단조성**.
+     * 근거의 강도와 남은 위험은 `judgeFinalLines`의 docstring이 소유한다 — **여기서 재서술하지 않는다.**
+     *
+     * ⚠️ **first-wins로 잠근다**(아래 §5) — 한 문서에서 세션을 두 번 돌리면 두 번째 종단 프레임이
+     * 이 값을 덮어 첫 세션의 판정을 조용히 바꾼다. 앱도 같은 위험을 `terminalHandledRef`로 막는다.
+     * ⚠️ **`inject()`는 이 값을 채우지 않는다** — 주입은 앱 핸들러를 직접 부르므로 래퍼를 우회한다.
+     */
     finalLinesAtTerminal: null,
     /**
-     * **A1-5 단정의 정본.** MutationObserver가 DOM이 바뀔 때마다 적립한다.
+     * **A1-5의 초과 검출과 단조성을 담당한다.** MutationObserver가 DOM이 바뀔 때마다 적립한다.
+     *
+     * ⚠️ **2026-09-06: 이것은 더 이상 내용·순서 단정의 정본이 아니다.** 그 역할은
+     * `finalLinesAtTerminal`로 갔다 — 이 배열의 **최대치 지점**을 내용 단정에 쓰면 partial 과도 상태가
+     * 먼저 최대치에 닿아 **거짓 FAIL**이 난다(실물 회차 2건에서 관측). 판정이 이 배열에서 읽는 것은
+     * **`count`뿐**이고, `texts`가 남긴 역할은 둘이다: ① `record()`의 중복 억제 키(그래서 *어떤 상태가
+     * 스냅샷이 되는지*를 정한다) ② `atMaxDiagnostic`·`exactStateSeen`의 본문. **`pass`에 대해서는
+     * 아무것도 보증하지 않는다.**
+     *
+     * ⚠️ **그 손실이 지금 허용되는 이유는 앱 코드에 걸려 있다** — `page.tsx`의 `setLines`가 append
+     * 또는 마지막 줄 이어붙이기만 하므로 중간에 오염된 텍스트는 종단까지 남고 종단 단정이 잡는다.
+     * **줄을 치환·철회하는 경로(교정 표시·재전사·undo)가 생기면 이 전제가 깨진다** — 그때는 종단
+     * 1점 검사가 눈이 멀고 이 파일은 아무 신호도 내지 않는다. 그 경로를 만들면 여기를 함께 고쳐라.
      *
      * ⚠️ **동기 스냅샷도 rAF 스냅샷도 회차 운에 걸린다** — T2는 동기가 React commit 전이라 `[]`를
      * 봤고, rAF는 `router.push` 이후에 떠서 `[]`를 봤다(둘이 **서로 반대로** 실패했다). T5a는
@@ -148,9 +171,10 @@
      * 항목: `{ ts, count, texts }`. **직전과 같으면 적립하지 않는다**(중복 억제).
      *
      * ⚠️ **"기대값과 같은 스냅샷이 하나 있다"만으로 단정하지 않는다** — 그것은 골라내기다.
-     * 세 개를 함께 본다: ① 관측된 **최대 개수가 정확히 기대 개수**(초과가 없다) ② **그 최대
-     * 지점의 `texts`가 기대와 순서까지 일치** ③ `count`가 **비감소**(전사문은 append-only이고
-     * 병합은 개수를 늘리지 않는다 — `page.tsx`의 계약). 셋을 함께 걸면 골라내기가 막힌다.
+     * 그래서 `exactStateSeen`은 **진단으로만** 내고 `pass`에 넣지 않는다.
+     * ⛔ **이 자리에 있던 옛 3항목 처방(① 최대 개수 == 기대 ② 그 최대 지점의 `texts` 일치 ③ 비감소)을
+     * 지웠다.** ②가 바로 거짓 FAIL의 원인이었고, 그것을 계약으로 남겨 두면 다음 세션이 현재 코드를
+     * 회귀로 오판해 되살린다. **현재 판정의 정본은 `judgeFinalLines`의 docstring 하나다.**
      */
     snapshots: [],
     /** `inject()`로 넣은 프레임 계수 — `recv`를 오염시키지 않기 위해 따로 센다. */
@@ -300,17 +324,43 @@
    * (`--foreground` 대 `--foreground-muted`), `browser_leg.md` §6이 색을 선별에 쓰는 것을 금지한다.
    *
    * **채택한 방법**: 내용·순서는 **`finalLinesAtTerminal`**(종단 프레임을 앱이 처리하기 직전의
-   * 동기 스냅샷)로 재고, 적립(`snapshots`)은 **초과 검출과 단조성**에만 쓴다. 근거는 T13 실측이다 —
-   * 실제 서버 경로에서 그 동기 스냅샷이 **2회 모두** 픽스처 6줄과 정확히 일치했고, 그것은 우연이
-   * 아니다: WebSocket `message`는 프레임마다 **별개 task**로 디스패치되고 React는 task 경계에서
-   * flush하므로 **커밋 개입이 구조적**이다. 프레임이 같은 tick에 몰리는 것은 **주입만** 하는 일이고
-   * 주입 시나리오(C2·C5)는 이 판정을 쓰지 않는다.
+   * 동기 스냅샷)로 재고, 적립(`snapshots`)은 **초과 검출과 단조성**에만 쓴다.
    *
-   * ⚠️ **`finalLinesAtTerminal`이 없으면 통과시키지 않는다**(`terminalPresent`). 종단 프레임이 오지
-   * 않았거나 `inject()`로만 프레임을 넣은 회차에서는 이 값이 `null`인데, 그때 조용히 통과하면
-   * **"0은 고장과 구별되지 않는다"**가 된다.
+   * ⚠️ **근거의 강도를 낮춰 적는다 — 2026-09-06 독립 리뷰가 이전 서술을 반박했고 반박이 옳다.**
+   * 이전 서술은 *"WS `message`는 프레임마다 별개 task라 커밋 개입이 **구조적**이다"*였다. 그렇게
+   * 단정할 수 없다: React의 default-lane flush도 Scheduler의 `MessageChannel` **매크로태스크**이고
+   * WS `message`도 매크로태스크라, 프레임이 JS 스레드가 비기 전에 몰려 도착하면 message 이벤트가
+   * **먼저** 큐에 들어가고 flush가 뒤로 밀린다. 게다가 **이 픽스처에는 간격이 없다** —
+   * `stub.py`의 `events()`에 `await asyncio.sleep`이 **한 줄도 없다**(직접 읽어 확인).
+   * → 내가 가진 것은 **관측 4회**(T13 2회 + 재확인 2회)이고 **기제 증명이 아니다.**
+   *
+   * ⛔ **그래서 이 판정의 가장 나쁜 실패 모드는 조용하다**: 마지막 `final`과 종단 프레임이 합병되면
+   * `finalLinesAtTerminal`이 한 줄 짧아져 `terminalMatches`가 거짓이 되는데, 그때 `atMaxDiagnostic`은
+   * **정상 6줄을 보여준다** → "앱이 틀렸다"와 "하네스가 순간을 놓쳤다"가 구별되지 않는다.
+   * **`exactStateSeen`이 그 구별을 위해 있다** — 적립 중에 기대와 정확히 같은 상태가 **있었는지**를
+   * 따로 낸다. **`pass`에 넣지 않는다**(넣으면 「골라내기」가 되살아난다). `terminalMatches`가 거짓인데
+   * `exactStateSeen`이 참이면 **앱이 아니라 이 판정의 전제가 깨진 회차**이므로 회차 기록에 그렇게 적는다.
+   *
+   * ⚠️ **`judgeable`과 `pass`를 구별한다** — 종단 프레임 없이 소켓이 닫히는 경로는 **앱의 정상 지원
+   * 경로**다(`page.tsx`의 `onClose`가 `session_id`가 있으면 결과 화면으로 간다). 그 회차는 화면이
+   * 정상인데 종단 스냅샷이 없다 → **`FAIL`이 아니라 `측정 불가`로 보고한다**(`browser_leg.md` A1-4가
+   * 이미 그 어휘를 정해 뒀다). `judgeable === false`면 `pass`를 판정으로 쓰지 마라.
+   *
+   * ⚠️ **`terminalPresent`는 독립 조건이 아니다** — `terminalMatches`가 그것을 이미 요구하므로
+   * `pass`의 실질 독립 조건은 **셋**(`terminalMatches` · `noExcess` · `nonDecreasing`)이다.
+   * `terminalPresent`는 **사유 판별용**이다(왜 `terminalMatches`가 거짓인가를 가른다).
+   * 이전 서술이 "4항목"이라 적었고 그것은 틀렸다.
+   *
+   * ⚠️ **한 문서(페이지 로드)에 세션 하나만 돌린다.** `snapshots`는 페이지 수명 전체에 쌓이므로 두
+   * 번째 세션은 `nonDecreasing`을 깨뜨린다(중간 0 뒤 상승). 종단 스냅샷도 **first-wins**로 잠근다.
    */
   omy.judgeFinalLines = (expected) => {
+    // 이 파일의 컨벤션대로 이름 있는 오류로 죽인다(§1의 `need`). ⛔ **빈 기대값을 통과시키지 않는다**
+    // — `expected=[]`면 종단도 `[]`이고 계수도 0이라 **백지 화면이 4항목 전부 참**이 됐다(리뷰 실측).
+    // 기대 배열은 회차마다 손으로 적으므로(호출부가 코드에 없다) 오타·복붙 절단으로 실제로 밟는다.
+    need(Array.isArray(expected), "judgeFinalLines: expected 가 배열이 아니다 (A1-5 판정 불가)");
+    need(expected.length > 0, "judgeFinalLines: expected 가 비었다 — 빈 기대값은 공허 통과다 (A1-5)");
+
     const counts = omy.snapshots.map((s) => s.count);
     const maxCount = counts.length ? Math.max(...counts) : 0;
     // 0으로의 낙하는 언마운트다 — **마지막에 오는 0만** 허용한다. 중간에 0으로 떨어졌다가 다시
@@ -321,26 +371,40 @@
       if (c >= counts[i - 1]) return true;
       return c === 0 && counts.slice(i).every((later) => later === 0);
     });
+    const sameAs = (arr) =>
+      Array.isArray(arr) && arr.length === expected.length && arr.every((t, i) => t === expected[i]);
     const terminal = omy.finalLinesAtTerminal;
+    // ⚠️ **독립 조건이 아니다** — `terminalMatches`가 이미 이것을 요구한다. 사유 판별용으로만 낸다.
     const terminalPresent = Array.isArray(terminal);
-    const terminalMatches =
-      terminalPresent &&
-      terminal.length === expected.length &&
-      terminal.every((t, i) => t === expected[i]);
+    const terminalMatches = sameAs(terminal);
     return {
       maxCount,
       expectedCount: expected.length,
-      // 초과 검출 — 과도 상태에도 최대치가 기대값을 넘지 않는 것이 계약이다.
-      noExcess: maxCount === expected.length,
+      // ⚠️ **초과 검출 전용이므로 `<=` 다** — 설계 합의와 `H-AF` 대응란이 `max <= 기대`이고, `===`로
+      // 두면 마지막 커밋이 적립되기 전에 관측이 끝난 회차가 **종단이 완벽한데도 FAIL**이 된다
+      // (리뷰 실측: `max=5` + 종단 6줄 정확 → FAIL). "기대 개수에 도달했는가"는 `terminalMatches`가
+      // 이미 단정하므로 여기서 겹쳐 걸지 않는다.
+      noExcess: maxCount <= expected.length,
       terminalPresent,
       terminalMatches,
       nonDecreasing,
       snapshotCount: omy.snapshots.length,
       finalLinesAtTerminal: terminal,
+      /**
+       * 적립 중에 기대와 **정확히 같은 상태가 있었는가**. ⛔ **`pass`에 넣지 않는다** — 넣으면
+       * 이 파일이 금지한 「골라내기」가 되살아난다. 용도는 하나다: `terminalMatches`가 거짓인데
+       * 이것이 참이면 **앱 결함이 아니라 종단 스냅샷 전제가 깨진 회차**임을 회차가 알 수 있다.
+       */
+      exactStateSeen: omy.snapshots.some((s) => sameAs(s.texts)),
+      /**
+       * **판정 가능했는가.** 종단 스냅샷이 없는 회차는 `pass`가 거짓이지만 그것은 **`FAIL`이 아니라
+       * `측정 불가`**다 — 종단 프레임 없이 소켓이 닫히는 경로가 앱의 정상 경로이기 때문이다.
+       */
+      judgeable: terminalPresent,
       // **진단용이다 — 판정에 쓰지 않는다.** 이전 판이 이것으로 판정해 거짓 FAIL을 냈다.
       atMaxDiagnostic: omy.snapshots.find((s) => s.count === maxCount) || null,
-      // 넷 전부 참이어야 PASS 다. 하나라도 거짓이면 그 항목이 사유다.
-      pass: terminalPresent && terminalMatches && maxCount === expected.length && nonDecreasing,
+      // 실질 독립 조건은 **셋**이다(`terminalPresent`는 `terminalMatches`가 이미 요구한다).
+      pass: terminalMatches && maxCount <= expected.length && nonDecreasing,
     };
   };
 
@@ -365,12 +429,19 @@
           if (frame && Object.prototype.hasOwnProperty.call(omy.recv, frame.type)) {
             omy.recv[frame.type] += 1;
           }
-          // ⚠️ **이 동기 스냅샷은 진단용이다 — A1-5의 단정 대상이 아니다.**
-          // 처음에는 이것이 단정 정본이었는데 **React commit 전에 찍히면 `[]`가 된다**(T2 실측).
-          // 반대로 rAF로 옮기면 `router.push` **이후**에 떠서 역시 `[]`가 됐다 — 두 방식이
-          // 서로 반대로 실패한다. 그래서 단정은 §4-b의 MutationObserver 적립(`snapshots`)이
-          // 소유하고, 이 값은 "종단 프레임 시점에 무엇이 보였나"의 기록으로만 남긴다.
-          if (frame && (frame.type === "session_ended" || frame.type === "session_failed")) {
+          // ⚠️ **이 동기 스냅샷이 A1-5 내용·순서 단정의 정본이다** (2026-09-06 역할 교체 — 이전
+          // 주석은 "진단용"이라 적었고 그것은 현재 코드와 정반대였다). 찍는 자리가 `fn(event)`
+          // **앞**인 것이 계약이다: 앱이 종단 프레임을 처리하기 전 = `router.push`로 컨테이너가
+          // 언마운트되기 전의 DOM을 본다. **rAF로 옮기지 마라** — 그러면 `router.push` 이후에
+          // 떠서 `[]`가 된다(T2 실측).
+          // ⛔ **first-wins** — 한 문서에서 세션을 두 번 돌리면 두 번째 종단 프레임이 첫 세션의
+          // 판정을 조용히 덮는다. 앱도 같은 위험을 `terminalHandledRef`로 막으므로 미러링한다.
+          // 회차 절차는 세션마다 `navigate`로 새 문서를 여는 것이 정본이다(`browser_leg.md` §6).
+          if (
+            frame &&
+            (frame.type === "session_ended" || frame.type === "session_failed") &&
+            omy.finalLinesAtTerminal === null
+          ) {
             omy.finalLinesAtTerminal = snapshotNow();
           }
         } catch {
