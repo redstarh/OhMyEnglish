@@ -423,8 +423,10 @@ create table harness_pattern_baseline as
 ```
 
 **그리고 파일로도 뜬다** — DB 표 하나에 진실을 걸지 않는다. 마지막으로 검증된 사본:
-**`tests/harness/runs/2026-09-06-pattern-baseline.tsv`**(추적됨, drift 0에서 떴다).
+**`tests/harness/runs/2026-09-06-pattern-baseline-v2.tsv`**(추적됨 · **8행** · drift 0에서 떴다).
 값이 정당하게 바뀌면(앱이 실제 학습으로 갱신) 새 날짜로 새 파일을 뜨고 이 줄을 갱신한다.
+⚠️ **v2 로 올린 이유**: T4가 실물 분석 1회로 만든 패턴이 §9 보존 세션의 교정 근거라서 남는다(7 → 8행).
+이전 사본 `2026-09-06-pattern-baseline.tsv`(7행)도 추적된 채로 둔다 — 지우면 그 시점 값의 사본이 없어진다.
 
 **①-a 세션을 시간창 스윕으로 등록한다** (자동 등록 훅이 없다 — §3):
 
@@ -513,6 +515,14 @@ select count(*) from learning_sessions s join harness_sessions h on h.session_id
  where h.run_id = '<browser_run_id>';                                                          -- 보존 id 개수와 같아야 한다
 ```
 
+⛔ **첫 대조를 정정한다 (2026-09-06 T4 실측) — 「baseline 행 수와 같아야 한다」는 보존 세션이 생기면
+성립하지 않는다.** §9가 보존하라고 한 세션의 교정이 **새 패턴에 걸려 있으면** 그 패턴도 함께 남아야
+하고(지우면 그 세션의 카드가 사라진다) ③이 그것을 지키지 않는다 — ③은 occurrence가 있는 패턴을
+건드리지 않으므로 **정상 동작이다.** 실측: T4가 실물 분석 1회로 `article_missing_the_before_place_noun`을
+만들었고 패턴이 **7 → 8**이 됐다. → **대조는 `baseline 행 수 + 보존 세션이 만든 패턴 수`다.**
+그리고 그 변화는 §8-0이 말하는 **"값이 정당하게 바뀐" 경우**이므로 **새 날짜 파일로 baseline을 다시 뜬다**
+(그렇게 했다: `runs/2026-09-06-pattern-baseline-v2.tsv`, 8행). 다시 뜬 뒤에는 이 대조가 등호로 돌아온다.
+
 **⑤ 프로세스·환경 복원**: 백엔드를 §2의 baseline 명령으로 되돌리고 `curl localhost:8002/health`로 확인한다. `.env`는 고치지 않았으므로 복원할 것이 없다.
 
 ⚠️ **예외 — 백엔드를 호출자가 세웠으면 ⑤를 건너뛰고 「무변경」을 증거로 보고한다** (T5a D-5).
@@ -529,11 +539,30 @@ select count(*) from learning_sessions s join harness_sessions h on h.session_id
 
 상한 1회는 발명값이 아니다 — 이 리포는 실물 검증을 1회 단위로 승인해 왔다(`S2-L2` 실물 계획 생성 1회 · 슬라이스 1 `L1`·`L2` · `G-6`의 `W-live` 1회·`E2E-S` 1회 · `G-4` 실물 마이크 1회). **실물 호출이 필요한 태스크는 C3·C4(계획서 T4) 하나뿐이다** — C1·C2·C5는 `VOICE_ADAPTER=stub`이고 분석 워커를 쓰지 않으므로 **0회**다. **재실행 비용은 0으로 만든다**: 최초 1회만 세션을 만들어 분석을 돌리고 그 `session_id`를 아래에 적어, 이후 회차는 `/results/<id>`를 **재방문**한다(세션을 새로 만들지 않으므로 화면 검증이 백엔드 재기동과 분리된다).
 
-| 상태 | `session_id` |
-|---|---|
-| `analyzing` (C3a) · `final` (C3b) · `partial_failure` (C3c) · `connection_failed` (C3d) · `no_utterances` (C3e) | **5개 전부 T4에서 실측해 채운다** |
+✅ **T4(2026-09-06 · `TASK-22`)가 5개를 채웠다. 실물 호출은 정확히 `analyze_utterance` job 1건이다.**
+
+| # | 상태 | `session_id` | `corrections` | 어떻게 만들었나 |
+|---|---|---|--:|---|
+| C3a | `analyzing` | `210233be-ecaa-4409-a1af-8b7016cfe7e9` | **키 없음** | 앱 경로(`ws_session.py`, `stub`) + `WORKER_ENABLED=false` → `analyze_utterance` job 3건이 `pending`에 머문다(규칙 3) |
+| C3b | `final` | `6225ddaf-90a8-43af-9aa8-e003921c75eb` | **1** | 앱 경로 세션 → **발화 seq 4·6과 `plan_next_session` job을 지워** 묶음을 하나만 남기고 워커를 잠깐 켜 **실물 호출 1건**으로 `done`. 교정: `go to gym` → `go to the gym` |
+| C3c | `partial_failure` | `b2f0d169-3d90-431b-b842-cce21125052a` | **0** | 앱 경로 세션 → job 3건을 **1 `failed` + 2 `done`**으로 조성(규칙 4). `corrections`가 0이라 **primary로 쓰지 않는다** |
+| C3d | `connection_failed` | `76d9ef31-0d1b-4c50-b906-f16ee438080e` | **키 없음** | 앱 경로(`stub_unresponsive`) → `voice_adapter_connect_timeout`으로 `status='failed'`(규칙 1) |
+| C3e | `no_utterances` | `d127dece-d1d1-4329-802d-9b8fd1067388` | **키 없음** | 앱 경로 세션 → `analyze_utterance` job **전부 삭제**(규칙 2). ⚠️ 워커가 꺼져 있어야 유지된다 — `flush_ended_sessions`가 켜지면 되돌린다 |
+
+⚠️ **상태의 출처를 정직하게 가른다**: C3a·C3d는 **앱이 스스로 만든** 상태다. C3b·C3c·C3e는 **앱이 만든
+세션 위에 job 상태를 조성**한 것이고, 조성은 `results.py`의 규칙 2·4가 정의한 조건을 그대로 만든 것이다
+(그 규칙의 실세계 원인도 그 docstring이 적어 둔 것이다 — 규칙 2는 flush 실패, 규칙 4는 job 실패).
+**T4가 관측하려는 것은 화면이고 분석 파이프라인이 아니다.**
+
+⚠️ **`corrections` 키는 상태에 따라 응답에 아예 없다**(`api/results.py:11~12` — `null`도 아니다).
+`analyzing`·`connection_failed`·`no_utterances`가 그렇다. 직접 확인했다.
 
 ⚠️ 이 5개는 **teardown ①에서 제외한다**(§8 보존 대상 a).
+⚠️ **A4-1의 primary는 C3b 하나다**(`corrections >= 1`). C3c는 **음성 대조**로만 쓴다(빈 세션에서 접두 0개).
+⛔ **A4-2의 기대값 교차 대조는 이 목록으로 평가할 수 없다 — 교정 2건 이상인 세션이 없다**(§11-9가
+물은 것에 대한 답). **스텁 픽스처로는 원리적으로 어렵다**: 오류가 있는 두 문장(`go to gym`·`go to office`)이
+**같은 패턴으로 묶이고** R1이 패턴 단위로 그룹하므로 교정은 1건이 된다. 늘리려면 서로 다른 오류 종류를
+쓰는 표본이 필요하고 그것은 **실물 호출을 더 쓴다** → 캡틴 결정 사안으로 남긴다.
 
 ## §10. 판정 어휘와 보고
 
@@ -593,9 +622,9 @@ select count(*) from learning_sessions s join harness_sessions h on h.session_id
 | 5 | ~~CDP `onmessage` 주입이 실제로 되는가~~ → **✅ 된다. 가장 넓게 걸렸던 미결이 닫혔다.** `pronunciation`·`partial`·`final` 3종 전부 주입이 먹었고 **2회 독립 회차가 일치**했다. `inject()`가 `recv`를 오염시키지 않는 것도 **설계 주장에서 관측으로 승격**됐다(8프레임 주입 후 `recv` 불변 · `injected` 0→8) | **T5a ①②③ `PASS`.** C5 폐기·직렬 큐 대안 **둘 다 불필요** |
 | 6 | ~~주입 창이 10초 안에 끝나는가~~ → **✅ 닫혔다. 다만 병목을 잘못 짚고 있었다**(T5a D-3): 페이지 쪽은 **256 ms**(창의 **2.6%**)로 여유가 압도적이고 실제 병목은 **에이전트 라운드트립(~30 s)**이다. 그래서 조건은 "10초 안에 끝나는가"가 아니라 **"전 과정을 한 `eval`에 넣었는가"**다(§6 ⛔) | **T5a ④ `PASS`** |
 | 7 | 확정 줄 수·**내용**(A1-5) **스냅샷 시점의 방법** — 소프트 내비게이션은 `window.__omy`를 파괴하지 않으므로 계측이 `final`마다 DOM을 적립한다. ⚠️ **재설계로 적립 대상이 개수에서 `textContent` 배열로 늘었다.** rAF인지 MutationObserver인지는 미정 | **T2에서 실측해 확정한다** |
-| 8 | C3용 보존 `session_id` 5개(§9) | **T4에서 채운다** |
-| 9 | **A4-2의 기대값 교차 대조를 평가할 수 있는 세션이 있는가** — 교정이 **2건 이상**인 세션이 §9 보존 목록에 필요하다. 1건뿐인 세션만 있으면 그 대조는 영구히 평가 불가다 | **T4에서 보존 목록을 채울 때 `corrections.length`를 함께 적어 확인한다** |
-| 10 | **A4-1의 primary 세션이 `corrections`를 비우지 않는가** — 9번과 같은 자리에서 확인한다(둘 다 표본 조건이고 화면 결함이 아니다) | **T4** |
+| 8 | ~~C3용 보존 `session_id` 5개(§9)~~ → **✅ 닫혔다. §9 표가 5개를 담고 corrections 수까지 적었다** | **T4 실측**(2026-09-06 · `TASK-22`) |
+| 9 | **A4-2의 기대값 교차 대조를 평가할 수 있는 세션이 있는가** → ⛔ **답: 없다. 그리고 스텁 픽스처로는 원리적으로 어렵다.** 오류가 있는 두 문장(`go to gym`·`go to office`)이 **같은 패턴으로 묶이고** R1이 패턴 단위로 그룹하므로 교정이 1건이 된다(실측: `corrections` 길이 **1**). → **A4-2는 「판별력 미확인」으로 남는다** — `PASS`로 올리지 않는다. 닫으려면 **서로 다른 오류 종류**의 표본이 필요하고 그것은 실물 호출을 더 쓴다 | **캡틴 결정 사안**(표본을 늘릴지). T4가 조건을 실측해 확정했다 |
+| 10 | ~~A4-1의 primary 세션이 `corrections`를 비우지 않는가~~ → **✅ 닫혔다.** primary는 **C3b**이고 `corrections` **1건**이다(≥1 충족). 음성 대조용 빈 세션도 실재한다(**C3c**, 0건) | **T4 실측** |
 
 ### ✅ 1회차에서 닫힌 것 1건 — 답이 예상한 둘 중 어느 것도 아니었다
 

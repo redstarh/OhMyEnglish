@@ -8,25 +8,26 @@
 
 ---
 
-## 다음 한 걸음 — **`TASK-22`**. 원장에서 확인한 뒤 착수한다
+## 다음 한 걸음 — **리뷰 2건을 받아 닫는다**. 그 뒤 `TASK-30`
 
 ```bash
-backlog task list -s "In Progress"   # 비어 있어야 한다
-backlog task view TASK-22            # 이것이 첫 걸음
+backlog task list -s "In Progress"   # TASK-21 · TASK-22 (둘 다 AC 만족, 리뷰 대기)
+backlog task view TASK-30            # 리뷰가 닫히면 이것이 첫 걸음
 ```
 **원장이 상태의 정본이다**(`backlog/tasks/*.md`, **31건**). 여기에 태스크 목록을 복사하지 않는다.
 
-`TASK-30`(판별력 관측·high)은 **`TASK-22`도 선행이다**(`dependencies: TASK-19, TASK-21, TASK-22`).
-`TASK-19`는 Done이므로 **`TASK-22`가 유일한 착수 가능 경로**다.
+**`TASK-21` AC 5/5 · `TASK-22` AC 4/4로 관측은 끝났다.** 둘 다 `In Progress`인 이유는 하나다 —
+**신설 실행체 2개의 코드리뷰 미수신**. `TASK-30`(판별력 관측·high)은 그 둘이 선행이므로
+(`dependencies: TASK-19, TASK-21, TASK-22`) **리뷰를 닫는 것이 지금 유일한 전진**이다.
 
-### `TASK-22` — T4 결과 화면 5상태 + 교정 카드 (A3-1·A3-2·A4-1·A4-2)
+### `TASK-30` — 판별력 관측 (선행: `TASK-21`·`TASK-22` 리뷰가 닫혀야 한다)
 
-⛔ **착수 전에 판정해야 하는 것 — 실물 모델 호출**: `browser_leg.md` §9가 **상한 1회**를 정했고
-C3용 보존 `session_id` **5개**(§9 표 · §11-8)를 이 태스크가 채운다. 그러려면 **분석 워커를 켜야 한다**
-(`WORKER_ENABLED=true`) → **켜기 전 캡틴 확인.** 승인된 것은 계획 생성 1회뿐이다.
-⛔ **표본 조건 2개를 먼저 확인한다**(§11-9·10): `corrections.length >= 1`인 세션을 primary로 잡고
-(0이면 **FAIL이 아니라 BLOCKED**), **교정 2건 이상인 세션**이 보존 목록에 있어야 A4-2의 기대값 교차
-대조를 평가할 수 있다. 없으면 그 대조는 **판별력 미확인**으로 적는다.
+재설계한 단정 **7건**(A1-4·A1-5·A1-7·A3-1·A4-1·A4-2·A5-1)의 대조가 **실제로 FAIL을 내는지** 회차에서
+확인한다. ⚠️ **관측 전에는 그 7건을 `PASS`로 보고하지 않는다.**
+✅ **T4가 그중 셋의 표본 조건을 이미 확정했다** — A3-1(상태별 재방문으로 문구가 바뀐다: 관측됨) ·
+A4-1(primary C3b `corrections` 1건 · 음성 대조용 빈 세션 C3c: 확보) · **A4-2는 평가 불가**(§11-9).
+⛔ **A5-1·A5-2(발음 배지)는 아직 표본이 없다** — 보존 5세션 모두 `pronunciation`이 **0건**이다.
+그것은 주입(C5)으로 만든다 — `instrument.js`의 `inject`가 그 경로이고 `TASK-20`이 3종 주입을 확정했다.
 
 ### 미결 — **원장을 ✅로 올리기 전에 닫아야 한다**
 
@@ -43,6 +44,11 @@ C3용 보존 `session_id` **5개**(§9 표 · §11-8)를 이 태스크가 채운
 - **`TASK-21` AC #2·#3·#4 관측 완료.** C2 렌더 위계 **PASS**(A2-1·A2-2·A2-3, 라이트·다크 두 모드,
   **4회 독립 회차 값 전건 일치** · 실행체 게이트가 단정 **56건** 검사 전건 통과). 증거의 소유자는 **`tests/harness/runs/2026-09-06-t3-c2-render-hierarchy.md`**
   하나다 — 여기서 재서술하지 않는다. ⚠️ **A1-4·A1-5는 다시 재지 마라**(T13에서 측정됐다. 회차 기록을 인용한다).
+- **`TASK-22` AC #1~#4 관측 완료.** C3 5상태 + C4 교정 카드 **PASS**(게이트 단정 **48건** 전건).
+  **§9 보존 `session_id` 5개가 채워졌다** → §11-8·10 닫힘. 증거의 소유자는
+  **`runs/2026-09-06-t4-c3-c4-results-screen.md`** 하나다. 실물 호출은 **`analyze_utterance` 1건**.
+  ⛔ **A4-2 기대값 교차 대조는 「판별력 미확인」이다** — 교정 2건 이상 세션이 스텁 픽스처로는
+  원리적으로 어렵다(두 오류가 같은 패턴으로 묶인다). 표본을 늘릴지는 **캡틴 결정**(§11-9).
 - **감사 J10 어긋남은 닫혔다** — 닫히는 조건이 `browser_run_id.txt` mtime 또는 `TASK-21` `updated_date`
   이동이었고 **둘 다 움직였다**(회차 2건 개설 + AC 3건 체크 + 노트).
 - **AC11-2 = `◐ 부분`**(2차 codex 리뷰) — 근거 `2026-09-06-review-outcomes.md` §6.
@@ -81,6 +87,8 @@ C3용 보존 `session_id` **5개**(§9 표 · §11-8)를 이 태스크가 채운
 4. **부재를 단정할 때 `grep -a`나 파이썬을 쓴다** — **`H-AG`**. `command grep -n`조차 NUL 파일에서
    줄을 못 낸다(`Binary file … matches`·rc=0). ⚠️ **구절이 아니라 가장 짧은 고유 토큰으로 재라.**
 
+✅ **C3·C4 회차에도 실행체가 있다 — `tests/harness/c3_results_screen.py`**(게이트 내장. §9 보존
+5세션을 `--session <라벨>=<uuid>`로 넘긴다). **BLOCKED와 「판별력 미확인」을 FAIL과 따로 낸다.**
 ✅ **C2 회차에는 실행체가 있다 — `tests/harness/c2_render_hierarchy.py`.** 지키는 규약은 그 파일
 머리주석이 소유한다. 새 수단이 아니라 `measure_contrast.py`와 같은 CDP 9222다.
 ⛔ **실행체는 인쇄로 끝내지 않는다 — `check_leg`·`check_cross`가 판정하고 어긋나면 exit 1이다.**
@@ -95,7 +103,9 @@ C3용 보존 `session_id` **5개**(§9 표 · §11-8)를 이 태스크가 채운
   `docs/status-report-2026-09-06.html`(**스냅샷이고 정본이 아니다**)
 - `tests/harness/runs/` — `…-t2-instrument-spike.md` · `…-t5a-injection-spike.md` ·
   **`…-t13-finallines-discrimination.md`**(AC #13) · **`…-ac14-judge-rerun.md`**(AC #14 + 리뷰 2~5차) ·
-  **`…-t3-c2-render-hierarchy.md`**(C2 판정 · 증거 사본 6개 동봉) · `…-pattern-baseline.tsv`
+  **`…-t3-c2-render-hierarchy.md`**(C2 판정 · 증거 사본 6개) ·
+  **`…-t4-c3-c4-results-screen.md`**(C3·C4 판정 · 증거 사본 7개 · §9 보존 목록의 근거) ·
+  `…-pattern-baseline.tsv`(v1 7행) · **`…-pattern-baseline-v2.tsv`(현재 · 8행)**
 - ⚠️ **회차 기록은 「직접 확인한 것 / 못 한 것」을 절로 갈라 뒀다** — 그 절을 먼저 읽어라.
   ⚠️ **T5a가 §9에서 지목한 브라우저 아티팩트는 존재하지 않는다**(직접 확인).
 
@@ -118,14 +128,14 @@ cd ../frontend && npx tsc --noEmit ; npx eslint app lib     # 둘 다 exit 0
 | 항목 | 값 |
 |---|---|
 | DB | `:5432` homebrew **17** · 역할 `ohmy` · `TimeZone=UTC` · 표 **16개** · 마이그레이션 **001·003~007**(002는 존재한 적 없다) · ⚠️ 같은 DB에 남의 `en_coach` 스키마 — 우리 것은 `public` 하나 |
-| DB 행 수 (teardown 후) | `learning_sessions` **7** · `analysis_jobs` **34** · `utterances` **92** · `error_patterns` **7** · drift **0** |
+| DB 행 수 (T4 teardown 후 = **새 정상 상태**) | `learning_sessions` **12** · `analysis_jobs` **45** · `utterances` **114** · `error_patterns` **8** · `error_occurrences` **18** · drift **0**. ⚠️ **7/34/92/7에서 늘어난 것이 정상이다** — §9가 보존하라고 한 C3 세션 5개와 그 파생 행이다 |
 | ⚠️ 보존 대상 | `session_plans` **1행** · `learner_notes` **1행** — 실물 모델 왕복의 **유일한 증거**. **지우지 마라** |
-| 서버 | 백엔드 :8002 pid **29516** · `VOICE_ADAPTER=stub` · `WORKER_ENABLED=false` · 프론트 :3000 · ⚠️ `.env`는 고치지 않았다(모드는 환경변수로만) |
+| 서버 | 백엔드 :8002 pid **91156** · `VOICE_ADAPTER=stub` · `WORKER_ENABLED=false` · 프론트 :3000 · ⚠️ `.env`는 고치지 않았다(모드는 환경변수로만) |
 | 계측 | `tests/harness/instrument.js` **651줄** · sha256 **`846f130f2cf73365…`**(43119B). ⚠️ 해시는 주석 한 줄로도 바뀐다 — 회차 기록과 다르면 먼저 `git diff`로 **코드 줄** 변경 여부를 본다 |
-| 절차 문서 · 실행체 | `browser_leg.md` **634줄** · `c2_render_hierarchy.py` **791줄**(판정 게이트 + 실패 진단 덤프) · `test_c2_gates.py` **178줄**(게이트 **안**) |
+| 절차 문서 · 실행체 | `browser_leg.md` **663줄** · `c2_render_hierarchy.py` **791줄**(C2 · 게이트 + 실패 진단) · `c3_results_screen.py` **328줄**(C3·C4 · 게이트 내장) · `test_c2_gates.py` **178줄**(게이트 **안**) |
 | 브라우저 | Chrome **152.0.7977.65** · CDP **:9222** · 플러그인 격리 프로필. ⚠️ **탭이 회차 사이에 사라진다** — 없으면 `PUT /json/new`로 만든다 |
-| 마지막 회차 | `.harness/browser_run_id.txt` = `c50f335f-c7e2-4796-ac04-c319e5db6df9` (teardown 완료·drift 0) |
-| baseline 사본 | `runs/2026-09-06-pattern-baseline.tsv`(추적됨) — DB 표가 회차마다 drop되므로 **이 파일이 마지막 사본이다**. 회차 전에 7행 일치를 확인했다 |
+| 마지막 회차 | `.harness/browser_run_id.txt` = `cfa512f6-5a4f-4b1d-b09a-9fa14fa91d5f` (T4 · teardown 완료 — **원복이 아니라 5건 보존**) |
+| baseline 사본 | **`runs/2026-09-06-pattern-baseline-v2.tsv`**(추적됨 · **8행**) — DB 표가 회차마다 drop되므로 **이 파일이 마지막 사본이다.** v1(7행)도 추적된 채 둔다. ⚠️ **8행이 맞다**: T4의 실물 분석 1회가 만든 패턴이 보존 세션의 교정 근거다 |
 | 미커밋 | `.claude/` · `.mcp.json` · `handoff/HANDOFF-audit.md`(추적 밖) — **커밋하지도 지우지도 마라** |
 | ⛔ 남의 것 | **`.harness/audit-*`·`kanban-*`·`panel-*`**(추적 밖) — **감사 세션 소유다. 쓰지 마라**(읽는 것은 무해하다). OS crontab `37 * * * *`가 `.harness/audit-session-name.txt`의 이름으로 감사 회차를 보낸다 → 건드리면 **감사 회차가 내 창에 오거나 아무에게도 안 간다.** **내 것은 `browser_run_id.txt`와 `selfcheck-log.txt`뿐**이다(`run_id.txt`는 `ws_session.py`가 import 시점에 읽으므로 덮지 않는다) |
 
@@ -134,12 +144,20 @@ cd ../frontend && npx tsc --noEmit ; npx eslint app lib     # 둘 다 exit 0
 | 필요한 것 | 모드 | 왜 |
 |---|---|---|
 | C1 관통 · A1-1~A1-5 · A1-8 | **`stub`** (지금) | 픽스처 6줄 + `audio` 3건. **세션 전체가 22 ms** |
+| C3 결과 화면 재방문 | **아무 모드나** | `/results/<id>`는 HTTP라 어댑터와 무관하다. §9의 보존 5세션을 재방문한다 |
 | **주입 (C2·C5)** | **`stub_unresponsive`** | `session_started`만 보내고 대기 → **경쟁 프레임 0인 창 10 s**. 그 모드에서 `audio`·`final`·`partial`은 **0건** |
 
 `.env`를 고치지 않고 **환경변수로만** 전환한다:
 `cd app/backend && VOICE_ADAPTER=<모드> WORKER_ENABLED=false nohup .venv/bin/uvicorn app.api.main:app --port 8002 > /tmp/omy-backend.log 2>&1 &`
 ⚠️ **로그를 그 경로로 리다이렉트해야 P5가 통과한다**(P5가 로그 pid와 실행 pid를 대조한다).
-⚠️ **워커는 꺼 둔다** — 켜면 **실물 모델 호출 비용**이 든다. 켜기 전 캡틴 확인.
+⛔ **워커는 꺼 둔다 — 이유가 이제 둘이다.**
+① 켜면 **실물 모델 호출 비용**이 든다. 켜기 전 캡틴 확인.
+② **켜면 §9의 보존 세션 `C3e`(`no_utterances`)가 깨진다** — `flush_ended_sessions`가 그 세션의
+  지운 `analyze_utterance` job을 **되살려** 상태가 `analyzing`으로 바뀐다(T4 실측 기반).
+  그러면 그 세션을 다시 만들어야 하고 §9 표의 id가 낡는다. **켤 일이 있으면 켜기 전에 그 사실을 적고,
+  끈 뒤 `C3e`의 상태를 결과 API로 재확인한다.**
+⚠️ **스텁 세션 1회는 실물 호출 4건짜리다**(`analyze_utterance` 3 + `plan_next_session` 1).
+  "세션 1회 = 호출 1회"로 읽으면 4배가 된다 — **묶음 수를 먼저 세라**(T4 실측).
 
 ---
 
@@ -168,9 +186,9 @@ cd ../frontend && npx tsc --noEmit ; npx eslint app lib     # 둘 다 exit 0
 | # | 지표 | 기준값 (마감 시점에 직접 돌려 얻었다) |
 |--:|---|---|
 | 1 | `git rev-parse --short HEAD` | 이 파일을 담은 커밋 **이상**(등호를 요구하지 않는다 — `H-P`) · 추적된 미커밋 **0건** |
-| 2 | `backlog task list -s "In Progress"` | **`TASK-21`**(리뷰 미수신으로 열려 있다). 다음 걸음은 **`TASK-22`**(To Do · AC **0/4**) |
+| 2 | `backlog task list -s "In Progress"` | **`TASK-21`**(AC 5/5) · **`TASK-22`**(AC 4/4) — **둘 다 리뷰 미수신으로 열려 있다.** 다음 걸음은 **리뷰를 닫는 것**이고 그 뒤 **`TASK-30`** |
 | 3 | 게이트 | **618 passed** · `ruff check`·`format`(32 files)·`ty` 통과 · 게이트 밖 **6 errors**·**4 files** · 프론트 `tsc`·`eslint` **exit 0** |
-| 4 | 착수 전 필수 | **2건** — ① `TASK-22`는 **실물 모델 호출 1회**가 필요해 워커 기동에 **캡틴 확인**이 든다 ② **브라우저 회차 4규약**(위 ⛔) |
+| 4 | 착수 전 필수 | **3건** — ① **워커를 켜지 않는다**(비용 + §9의 `C3e`가 깨진다) ② **브라우저 회차 4규약**(위 ⛔) ③ `TASK-30`은 **리뷰 2건이 닫힌 뒤** 착수 가능(선행 `TASK-21`·`TASK-22`) |
 
 ⚠️ **3번이 핵심이다** — 읽기는 전달을 증명하지 못하고 **직접 돌린 출력**만 데이터다.
 

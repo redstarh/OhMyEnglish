@@ -1,0 +1,16 @@
+# error_patterns baseline — 시드 사용자 00000000-0000-0000-0000-000000000001
+# 뜬 시각(그 턴에 직접 실행): 2026-09-06T14:44:52Z UTC
+# 왜 파일로 남기나: harness_pattern_baseline 은 DB 표이고 browser_leg.md §8-0 이 회차 시작마다
+#   drop/재생성하므로, 그 표 하나에 진실을 걸면 미완 teardown 때 원값의 사본이 영구히 사라진다.
+# ⚠️ v2 — 패턴이 7건에서 8건으로 **정당하게** 늘었다: T4(TASK-22)가 실물 분석 1회로 만든
+#   article_missing_the_before_place_noun 이 §9 보존 세션(C3b final)의 교정 근거라서 남는다.
+#   이전 사본: 2026-09-06-pattern-baseline.tsv (7건).
+pattern_key	category	frequency	mastery_score	last_seen_at	next_review_at
+article_missing_before_noun	article	7	0.00	2026-09-03 13:56:38.186958+00	2026-09-04 13:56:38.186958+00
+article_missing_the_before_place_noun	article	1	0.00	2026-09-06 14:36:53.838781+00	2026-09-07 14:36:53.838781+00
+article_wrong_definite_article	article	2	0.00	2026-09-02 23:15:01.903223+00	2026-09-03 23:15:01.903223+00
+business_expression_verb_noun_collocation	business_expression	3	0.00	2026-08-31 22:21:03.123308+00	2026-09-01 22:21:03.123308+00
+preposition_missing_to_after_go	preposition	1	0.00	2026-09-03 13:07:28.002052+00	2026-09-09 14:36:53.838781+00
+preposition_time_expression_ago	preposition	3	0.00	2026-09-02 23:15:01.903223+00	2026-09-03 23:15:01.903223+00
+pronunciation_an_as_a	pronunciation_intonation	2	0.00	2026-09-03 13:51:26.680389+00
+word_order_time_adverb_placement	word_order	1	0.00	2026-09-03 13:50:47.323905+00	2026-09-09 14:36:53.838781+00
