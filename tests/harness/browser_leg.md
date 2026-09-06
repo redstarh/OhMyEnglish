@@ -25,7 +25,7 @@
 | P5 | 아래 파이썬 한 덩이 (⚠️ **1회차 정정 — 원래 명령은 거짓 통과를 냈다**) | **결과가 비어야 한다.** 백엔드는 `--reload` 없이 뜨므로 소스가 프로세스보다 새로우면 갱신되지 않는다 | 회차마다 다시 잰다 |
 | P6 | `curl -s localhost:3000 -o /dev/null -w '%{http_code}'` | `200` | 회차마다 다시 잰다 |
 | P7 | `grep -c 'superpowers-chrome' .claude/settings.local.json` | `2` 이상 (`Skill(superpowers-chrome:browsing)` + `mcp__…chrome__use_browser`) | `2` |
-| P8 | `ps -axo comm= \| awk -F/ '{print $NF}' \| grep -c '^pytest'` (⚠️ **1회차 정정**) | `0` — 테스트 DB가 실행마다 DROP/CREATE되는 공유 자원이다 (함정 H-X) | 회차마다 다시 잰다 |
+| P8 | `n=$(ps -axo comm= \| awk -F/ '{print $NF}' \| grep -c '^pytest'); echo "P8: pytest ${n}건"; [ "$n" -eq 0 ]` (⚠️ **2회차 재정정**) | `pytest 0건` — 테스트 DB가 실행마다 DROP/CREATE되는 공유 자원이다 (함정 H-X) | 회차마다 다시 잰다 |
 
 ⚠️ **P5·P8은 1회차에서 원래 검사식이 거짓 통과를 냈다 — 고친 형태를 쓴다.**
 
@@ -36,18 +36,30 @@
   **거부한다** — 명령이 오류로 끝나는데 출력이 비어 보여서 "새로운 소스 없음"으로 읽힌다.
   ⚠️ **macOS `ps`는 `etimes`를 지원하지 않는다**(형식 목록을 출력한다). 아래를 쓴다:
 
+⚠️ **2회차 재정정 — 1차 정정이 더 나빴다.** 아래 형태를 쓴다. 1차 정정은 `glob`이 **상대경로**라
+**다른 cwd에서 돌리면 `srcs`가 0건이 되고 "통과"를 단정했다**(팀리드가 `/tmp`에서 재현: `소스 0건`인데
+`P5: 통과`). `stat`은 절대경로라 예외조차 나지 않는다. **원래 형태는 최소한 오류를 냈지만 1차 정정은
+조용히 통과했다** — 같은 거짓 통과를 더 나쁜 형태로 바꾼 것이다.
+⚠️ **에이전트 스레드는 bash 호출마다 cwd가 초기화된다** — 상대경로에 기대면 안 된다.
+
 ```bash
 python3 - <<'PY'
-import subprocess, glob, os, time
-b = int(subprocess.run(["stat","-f","%B","/tmp/omy-backend.log"],capture_output=True,text=True).stdout)
-srcs = glob.glob("app/backend/app/**/*.py", recursive=True)
+import subprocess, glob, os
+root = subprocess.run(["git","rev-parse","--show-toplevel"],capture_output=True,text=True).stdout.strip()
+assert root, "리포 루트를 못 찾았다 — git 저장소 안에서 돌려라"
+log = "/tmp/omy-backend.log"
+assert os.path.exists(log), f"{log} 이 없다 — 백엔드를 어느 로그로 띄웠는지 확인해라"
+b = int(subprocess.run(["stat","-f","%B",log],capture_output=True,text=True).stdout)
+srcs = glob.glob(os.path.join(root,"app/backend/app/**/*.py"), recursive=True)
+assert srcs, "소스가 0건이다 — 경로가 틀렸다. 0건 검사로 통과를 단정하지 않는다"
 newer = [p for p in srcs if os.path.getmtime(p) > b]
-print("P5:", "통과 — 기동보다 새로운 소스 없음" if not newer else f"실패 — {newer}")
+print(f"P5: 소스 {len(srcs)}건 검사 →", "통과" if not newer else f"실패 — {newer}")
 PY
 ```
 
-`/tmp/omy-backend.log`는 백엔드를 띄울 때 리다이렉트한 로그다(`nohup … > /tmp/omy-backend.log`).
-그 파일의 **생성 시각**(`%B`)이 기동 시각이다. 다른 경로로 띄웠으면 그 경로로 바꾼다.
+**⚠️ `assert srcs`가 이 검사의 핵심이다.** 0건을 검사하고 통과를 단정하는 것이 이 절이 막으려는
+바로 그 실패다. **검사한 개수를 함께 찍는다** — 개수가 없으면 공허 통과를 구별할 수 없다.
+`/tmp/omy-backend.log`는 백엔드를 띄울 때 리다이렉트한 로그이고 그 **생성 시각**(`%B`)이 기동 시각이다.
 | P9 | §7의 DSN 확인 명령 | `ohmyenglish` | `ohmyenglish` |
 
 ⚠️ **설정 파일을 고치지 않는다.** P7이 실패하면 `.claude/settings*.json`·`.mcp.json`을 **편집하지 말고** 무엇이 없는지 적어 **"캡틴 몫"으로 보고하고 멈춘다.** 권한 설정은 사용자 소유다.

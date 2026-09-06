@@ -1,10 +1,10 @@
 ---
 id: TASK-17
 title: '프론트엔드 검증 T6: 검증 에이전트 정의를 만든다'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-06 00:13'
-updated_date: '2026-09-06 01:35'
+updated_date: '2026-09-06 01:44'
 labels:
   - caps-req
 dependencies:
@@ -21,7 +21,7 @@ ordinal: 17000
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 브라우저 제어 도구를 가진 에이전트 정의를 만든다
-- [ ] #2 절차를 에이전트 정의에 재서술하지 않고 browser_leg.md를 가리킨다
-- [ ] #3 에이전트를 실제로 1회 호출해 재현시키고 호출자가 단정 하나를 직접 재현해 대조
+- [x] #1 브라우저 제어 도구를 가진 에이전트 정의를 만든다
+- [x] #2 절차를 에이전트 정의에 재서술하지 않고 browser_leg.md를 가리킨다
+- [x] #3 에이전트를 실제로 1회 호출해 재현시키고 호출자가 단정 하나를 직접 재현해 대조
 <!-- AC:END -->

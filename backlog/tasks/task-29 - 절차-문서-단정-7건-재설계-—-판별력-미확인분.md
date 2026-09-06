@@ -4,6 +4,7 @@ title: 절차 문서 단정 7건 재설계 — 판별력 미확인분
 status: To Do
 assignee: []
 created_date: '2026-09-06 01:41'
+updated_date: '2026-09-06 01:44'
 labels:
   - caps-req
 dependencies: []
@@ -24,3 +25,9 @@ ordinal: 29000
 - [ ] #3 A4-1은 corrections가 비지 않은 세션을 primary로 쓴다(0 == 0 통과를 막는다)
 - [ ] #4 재설계 후 문서의 경고 블록을 갱신한다 — 남은 미확인 건수를 정확히 적는다
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2회차(에이전트 재현)에서 절차 결함 2건이 더 나와 이미 고쳤다 — P5 는 glob 이 상대경로라 다른 cwd 에서 소스 0건을 검사하고 통과를 단정했다(1차 정정이 원래보다 더 조용했다) → git 루트 기준 + assert srcs + 검사 개수 출력. P8 은 grep -c 가 0 을 찍고 exit 1 로 끝나 && 나 set -e 아래서 통과가 실패로 읽혔다 → 개수를 변수로 받아 [ -eq 0 ] 으로 판정. 둘 다 잘못된 cwd 에서 재검증했다. 남은 것은 단정 7건의 판별력 재설계다.
+<!-- SECTION:NOTES:END -->
