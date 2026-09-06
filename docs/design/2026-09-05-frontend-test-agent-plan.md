@@ -273,11 +273,21 @@ run-1은 왜 그때까지 안 잡혔는지도 적었다 — "`E2E-S`는 수동 1
 false-green으로 돌아가는 문이다". 다만 이 사례에서 퇴화한 것은 **감지 능력이 아니라 단정의
 최신성**이었다(위 ⚠️).
 
-**올바른 계수 지점**: `createBufferSource` — `enqueueAudio`가 프레임당 정확히 한 번 부르고,
-`sampleCount === 0`이면 그 앞에서 early-return하므로 **실제 재생 예약만** 세어진다.
-⚠️ **후킹 대상 경로에 주의한다**: 이 메서드는 명세상 `BaseAudioContext`의 것이라
-`Object.getOwnPropertyDescriptor(AudioContext.prototype, "createBufferSource")`는 **`undefined`**다
-(§7-4·T2).
+⛔ **아래 한 문단은 2026-09-06에 뒤집혔다 — §15 4차 개정이 정본이다.** 원문을 지우지 않고 남긴 것은
+"왜 그때 그렇게 판단했는지"가 흐려지지 않게 하기 위해서다. **읽고 따르지는 마라.**
+
+> ~~**올바른 계수 지점**: `createBufferSource` — `enqueueAudio`가 프레임당 정확히 한 번 부르고,
+> `sampleCount === 0`이면 그 앞에서 early-return하므로 **실제 재생 예약만** 세어진다.~~
+> ⚠️ **후킹 대상 경로에 주의한다**: 이 메서드는 명세상 `BaseAudioContext`의 것이라
+> `Object.getOwnPropertyDescriptor(AudioContext.prototype, "createBufferSource")`는 **`undefined`**다
+> (§7-4·T2).
+
+**정정된 계수 지점**: **`AudioBufferSourceNode.prototype.start`**. `enqueueAudio`는 노드 **생성**
+(`createBufferSource`)과 재생 **시작**(`source.start(startAt)`)을 **별개 줄에서** 부른다 — 생성만 세면
+`start` 줄을 지워도 계수가 유지되고 **소리는 나지 않는데 통과한다.** `sampleCount === 0` early-return
+덕에 프레임당 정확히 한 번이라는 사실은 그대로 유효하다(그 앞에서 걸러진다).
+⚠️ **어느 프로토타입에 있는지는 실측한다** — `instrument.js`가 체인을 걸어 찾아
+`__omy.meta.startOwner`에 적고 T2가 그 값을 보고한다. **정답을 코드에 박지 않는다.**
 
 → **T1·T2는 새 스크립트를 쓰는 일이 아니라, 낡은 스크립트를 코드와 대조해 고치는 일이다.**
 
@@ -747,6 +757,30 @@ run-1은 자기인증이라 독립 확증이 아니다) · M-1(미결 8을 **닫
 (인용한 `파일:줄`을 각각 열어 확인했다). N-3의 **창에서 주입이 실제로 먹는지**는 **PLAUSIBLE·미실행**
 이고 **T5a ④가 확정한다** — 여기서 되는 것으로 단정하지 않았다.
 
+### 4차 개정 (2026-09-06, `TASK-29` 판별력 재설계) — **§7-1의 계수 지점을 뒤집는다**
+
+**뒤집힌 사실과 근거를 함께 남긴다** — 조용히 덮으면 다음 세션이 철회된 지침을 되살린다.
+
+| 무엇 | 이 계획서가 적은 것 | **뒤집힌 판정** | 근거 |
+|---|---|---|---|
+| A1-4 계수 지점 | §7-1 마지막 절: *"**올바른 계수 지점**: `createBufferSource`"* | ❌ **틀렸다. `AudioBufferSourceNode.prototype.start`다** | `lib/audio.ts:enqueueAudio`가 노드 **생성**과 재생 **시작**을 **별개 줄에서** 부른다(직접 읽어 확인). 생성만 세면 `start` 줄을 지워도 계수가 3을 유지한다 — **소리는 나지 않는데 통과한다.** 계수 지점이 효과 지점과 다른 형태다 |
+| §11-2 미결의 대상 | *"`createBufferSource`를 어느 프로토타입에서 단정하는가"* | **대상이 `start`로 바뀌었다** | 명세상 `start`는 `AudioBufferSourceNode`가 자기 것으로 갖고 `stop`은 `AudioScheduledSourceNode`에 있어 **둘이 다른 자리일 수 있다.** `instrument.js`는 정답을 박지 않고 **프로토타입 체인을 걸어 찾아 `__omy.meta.startOwner`에 적는다** — T2가 그 값을 보고한다 |
+
+⚠️ **이 계획서가 옳았던 것 하나를 함께 못 박는다 — 다시 뒤집지 말 것.** §7-1은 `window.Audio` 계수가
+낡았다는 것과 그 자리가 `VoiceIo.enqueueAudio`라는 것을 **정확히** 짚었다. 바뀐 것은 그 함수 **안에서**
+무엇을 세는가이고, 진단 자체는 유효하다.
+
+⚠️ **A1-7은 이 계획서의 오류가 아니다.** 절차 문서(`browser_leg.md`)가 A1-7을 *"계측이 `sendAudio`
+호출을 계수"*로 서술했으나 **2026-08-26 원본 스크립트는 이미 `WebSocket.prototype.send`를 후킹하고
+있었다**(`docs/ops/2026-08-26-test-harness.html`, 직접 읽어 확인). 낡은 것은 스크립트가 아니라 절차
+문서의 서술이었고, **재설계가 A1-7에 실제로 더한 것은 `end_session` 동반 계수**다(계수 0이 "전송
+없음"인지 "후킹 고장"인지 가른다).
+
+**파생**: 재설계가 표본에 조건을 걸어(A4-1 `corrections.length >= 1` · A4-2 교정 2건 이상) `browser_leg.md`
+§11에 **미결 9·10이 새로 열렸다.** 대조를 강하게 만들면 표본 요구가 올라간다 — 이 계획서가 예상하지
+못한 결과다. 판별력 **관측**은 `TASK-30`이 소유한다(재설계는 설계했을 뿐 관측하지 않았다).
+
 ---
 
 _이 계획서의 사실은 전부 2026-09-05에 직접 읽어 확인했다. 미실측 항목은 §13, 정정은 §15._
+_⚠️ **§7-1의 계수 지점은 2026-09-06에 뒤집혔다 — 위 4차 개정을 먼저 읽어라.**_

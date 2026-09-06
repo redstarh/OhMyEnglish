@@ -1,10 +1,10 @@
 ---
 id: TASK-19
 title: '프론트엔드 검증 T2: instrument.js 신설 + 스파이크'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-06 00:13'
-updated_date: '2026-09-06 02:34'
+updated_date: '2026-09-06 02:44'
 labels: []
 dependencies:
   - TASK-29

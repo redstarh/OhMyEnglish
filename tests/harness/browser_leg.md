@@ -143,6 +143,13 @@ python3 -c "v=open('.harness/browser_run_id.txt').read(); assert len(v)==36 and 
 > **재설계에 쓴 수단 4가지 — 새 단정을 쓸 때도 이 순서로 고른다**:
 > ① **계수 지점을 효과 지점으로 옮긴다** — A1-4 `createBufferSource`→`start` ·
 >    A1-7 `sendAudio`→`WebSocket.prototype.send`. 만든 것을 세지 않고 **쓴 것**을 센다.
+>    ⚠️ **A1-7은 서술 정정이다 — 계측을 고친 것이 아니다.** 2026-08-26 원본 스크립트
+>    (`docs/ops/2026-08-26-test-harness.html`)는 **이미 `WebSocket.prototype.send`를 후킹하고
+>    `type === 'audio'`로 걸러 세고 있었다**(직접 읽어 확인). 낡은 것은 스크립트가 아니라 **이
+>    문서의 A1-7 서술**("계측이 `sendAudio` 호출을 계수")이었고, 그 서술대로 새 계측을 만들면
+>    실제로 뚫렸을 것이다. **재설계가 A1-7에 실제로 더한 것은 계수 지점이 아니라 `end_session`
+>    동반 계수**다(계수 0이 "전송 없음"인지 "후킹 고장"인지 가른다). A1-4는 이와 달리 **스크립트
+>    자체가 낡았다**(`window.Audio` 계수 → 항상 0).
 > ② **전역 검색을 요소 지목 + 등호로 바꾼다** — A3-1 · A4-2 · A5-1. 껍데기·뒤바뀜·동적 문구가
 >    한 번에 닫힌다. 「DOM에 있다」는 포함 검사가 이 문서에서 거짓 통과를 가장 많이 만들었다.
 > ③ **개수 단정에 내용 단정을 더한다** — A1-5 · A4-1. 개수를 **버리지 않고 더한다**(개수는
@@ -173,7 +180,7 @@ python3 -c "v=open('.harness/browser_run_id.txt').read(); assert len(v)==36 and 
 | A1-4 | 재생 **시작**(`AudioBufferSourceNode.prototype.start` 호출 수) | **3** — ⓐ. `enqueueAudio`가 프레임당 노드 1개를 만들어 `start`를 1회 부른다. ⚠️ **`createBufferSource` 계수를 버렸다** — 생성만 세면 `start` 줄이 지워져도 3이 나온다(§4) | ① `VOICE_ADAPTER=stub_unresponsive` → **0** (환경변수) ② **같은 후킹이 기록한 `when` 인자 3개가 비감소이고 첫째 < 셋째다** — `nextStartTime`이 `buffer.duration`만큼 밀리는 것이 큐잉의 효과다. 세 값이 전부 같으면 큐가 동작하지 않은 것이고 **계수만 맞은 것**이다 (인자 검사) |
 | A1-5 | 확정 줄 수 **와 내용** | 접두 `질문: `/`답변: `를 가진 `<p>` **6개**이고, **DOM 순서대로 `textContent`가 정확히** `질문: {FIXTURE_TURNS[i][0]}` / `답변: {FIXTURE_TURNS[i][1]}` (i=0,1,2 교대) — ⓐ. 스텁이 픽스처 문장을 **축자로** 흘린다(`stub.py`가 `FIXTURE_TURNS`의 question·answer를 그대로 `text=`에 넣는다 — 직접 읽어 확인). I-8 병합(`page.tsx:123`)은 **연속 동일 화자**에만 걸리고 픽스처는 교대하므로 병합 0회. ⚠️ **개수 단정을 버리지 않고 내용 단정을 더했다** — 개수만 세면 `{line.text}` 보간이 사라져도 6개가 남는다 | ① **주입·세션 전 idle 화면에서 그 `<p>`가 0개다** (계측 생략) ② **기대 문장 6개가 각각 20자 이상이다** — 빈 문자열끼리 비교해 통과하는 형태를 배제한다(실제 최단은 35자) ③ **기대값 하나에 sentinel을 덧붙인 변형이 어떤 `<p>`의 `textContent`와도 같지 않다** — 등호 비교가 항상 참을 내지 않음을 증명한다 (문자열 변형) |
 | A1-6 | 결과 화면 이동 | URL이 `/results/<session_id>` — **ⓑ `session_started` 프레임의 `session_id`를 계측이 기록해 대조** | `stub_unresponsive` → URL이 `/`에 남고 `사유: voice_adapter_connect_timeout`이 뜬다 (환경변수) |
-| A1-7 | 마이크 합성 → WS **실제 송신** | 계측이 `WebSocket.prototype.send`를 후킹해 payload를 파싱하고 `type === "audio"`인 프레임을 계수 → **> 0**, 그리고 각 프레임의 `data`가 빈 문자열이 아니다 — ⓑ. ⚠️ **`sendAudio` 계수를 버렸다**: `ws.ts:SessionSocket.send`가 `readyState !== OPEN`이면 **조용히 버린다**(전송하지 않고 반환) → 소켓이 닫혀 실제 전송이 0이어도 `sendAudio` 계수는 증가한다(계수 지점 ≠ 효과 지점) | ① **같은 후킹으로 `type === "end_session"` 프레임을 함께 센다 — 정확히 1건.** 이것이 0이면 `audio` 계수 0은 "전송 없음"이 아니라 **후킹 고장**이다. 2회차에서 A1-0에 쓴 것과 같은 형태의 구별이다. ⚠️ 이 값은 **세션 종료 클릭 후에** 읽는다(그전에는 아직 보내지 않았다) ② **T2 스파이크** — 합성 스트림을 **무음**으로 만들어 `audio` 계수가 0이 되는지 본다(§11-4). 0을 못 내면 A1-7은 **판별력 미확인으로 남긴다** — 0이 나오지 않는 대조는 대조가 아니다 |
+| A1-7 | 마이크 합성 → WS **실제 송신** | 계측이 `WebSocket.prototype.send`를 후킹해 payload를 파싱하고 `type === "audio"`인 프레임을 계수 → **> 0**, 그리고 각 프레임의 `data`가 빈 문자열이 아니다 — ⓑ. ⚠️ **이 문서가 적었던 `sendAudio` 계수 서술을 버렸다**(원본 스크립트는 이미 `send`를 후킹했다 — ⛔ 상자 ①): `ws.ts:SessionSocket.send`가 `readyState !== OPEN`이면 **조용히 버린다**(전송하지 않고 반환) → 소켓이 닫혀 실제 전송이 0이어도 `sendAudio` 계수는 증가한다(계수 지점 ≠ 효과 지점). `WebSocket.prototype.send`는 그 early-return을 통과한 호출만 본다 | ① **같은 후킹으로 `type === "end_session"` 프레임을 함께 센다 — 정확히 1건.** 이것이 0이면 `audio` 계수 0은 "전송 없음"이 아니라 **후킹 고장**이다. 2회차에서 A1-0에 쓴 것과 같은 형태의 구별이다. ⚠️ 이 값은 **세션 종료 클릭 후에** 읽는다(그전에는 아직 보내지 않았다) ② **T2 스파이크** — 합성 스트림을 **무음**으로 만들어 `audio` 계수가 0이 되는지 본다(§11-4). 0을 못 내면 A1-7은 **판별력 미확인으로 남긴다** — 0이 나오지 않는 대조는 대조가 아니다 |
 | A1-8 | DB 전사문 행 수 | `utterances` **6행** — ⓐ (final 6건. partial은 저장되지 않는다) | `stub_unresponsive` 세션의 `utterances` **0행** (환경변수) |
 
 ### C2 — 렌더 위계 (측정 절차는 §6. **라이트·다크 두 모드 필수**)
