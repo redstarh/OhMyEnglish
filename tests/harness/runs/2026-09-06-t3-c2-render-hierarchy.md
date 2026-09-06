@@ -357,6 +357,47 @@ teardown ①-a `INSERT 0 2` · ① `DELETE 2` · ②③ `0` · 남은 회차 세
 
 ---
 
+## 3-f. C2 재검토 결론과 그 뒤에 닫은 것
+
+**리뷰 결론: `CHANGES REQUESTED`**(CRITICAL·HIGH 없음). 차단 사유 3건 — `classify_failure` 갈래 2
+오귀속 · 창 이탈 갈래 누락 · MEDIUM-A(§10에 반증된 전제) · MEDIUM-B(이 기록에 반증된 문장). ⚠️ **리뷰는
+`1157aa8`을 봤고 그 세 건은 `09337e1`에서 이미 고쳤다** — 재검토 대상은 그 커밋이다.
+
+리뷰어가 독립 측정한 것(내 수치와 일치): 게이트 테스트 **23 passed** · 자기 변이 **10/10 CAUGHT** ·
+`ruff` rc=0(**게이트 cwd에서** — 리포 루트에서 재다가 `H-A`를 밟고 스스로 정정했다) · 56건 산식.
+
+### 그 뒤에 닫은 것 2건
+
+**① `find_target` 우선순위 테스트** — 리뷰가 1차부터 요구했고(T0 판정: "요구한 둘 중 하나는 아직
+없다") 이제 있다. **MEDIUM-2가 났던 자리**를 고정한다: 목록 **앞**에 `/results/<id>` 탭이 있어도 정확
+일치를 고른다 · `type != page`는 무시 · 정확 일치가 없으면 **부분일치로 떨어지지 않고 새 탭을 만든다** ·
+탭 생성이 소켓을 안 주면 이름 있는 실패로 죽는다. `urlopen`을 가로채 4건. → 게이트 테스트 **46 passed**.
+
+**② `dump_failure`의 `except SystemExit` 래퍼를 실제로 발동시켰다 — §3-d의 마지막 미관측이 닫혔다.**
+리뷰어가 처방한 수단을 그대로 썼다: `ACTIVE_TIMEOUT_MS`를 **메모리에서만** 1 ms로 낮춰 한 회차.
+결과(예외 메시지 전문에서):
+
+```
+페이지 예외: Error: 시간초과(3000ms): partial 줄 렌더
+실패 진단 (클릭 후 3032ms) — H-AH/H-AE 판별용:
+  → .harness/evidence/c2-light-failure.json · .harness/evidence/c2-light-failure.png
+  socketUrls=['ws://localhost:3000/_next/hmr?...'] · resumeLog 2건 · appHandlerAttached=True
+  recv={'session_started': 1, 'partial': 6, 'final': 6, 'audio': 3, 'session_ended': 1, ...}
+```
+
+**래퍼가 발동해 진단 파일 2개를 쓰고 `classify_failure`가 돌았다.** 코드 읽기가 아니라 관측이다.
+
+### ⭐ 그 실험이 **갈래 하나를 더 요구했다** — 그리고 그것을 넣었다
+
+위 덤프의 `session_ended: 1`을 보라. 백엔드가 `stub`(비-unresponsive)이라 세션이 **22 ms에 정상
+종료**하고 앱이 결과 화면으로 이동해 **전사문 컨테이너가 사라졌다.** 그런데 판별은
+*"`H-AE`나 세션 길이 쪽을 본다"*로 떨어졌다 — **원인은 어댑터 모드를 잘못 골랐다는 것**이고 처방이
+전혀 다르다. → **`recv.session_ended >= 1` 갈래를 추가**하고 테스트를 박았다.
+**리뷰가 지적한 「창 이탈 갈래 누락」과 같은 부류**이고, 그것을 고치려고 만든 실험이 **대칭인 나머지
+한쪽**을 드러냈다.
+
+---
+
 ## 4. 이 회차가 신설한 자산
 
 `tests/harness/c2_render_hierarchy.py` — §6의 실행체. 지키는 것은 파일 머리주석이 소유한다.

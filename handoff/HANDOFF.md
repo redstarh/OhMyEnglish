@@ -32,8 +32,9 @@ A4-1(primary C3b `corrections` 1건 · 음성 대조용 빈 세션 C3c: 확보) 
 ### 미결 — **원장을 ✅로 올리기 전에 닫아야 한다**
 
 ⛔ **`TASK-21`은 AC 5/5이지만 `In Progress`다 — 리뷰 1차를 수신·반영했고 재검토가 미수신이다.**
-1차 **HIGH 1 · MEDIUM 4 · LOW 2** + 재검토 2차 **MEDIUM 6 · LOW 6** — **19건 전부 직접 대조해
-수용·수정했다.**
+**결론 수신: C2·C3 둘 다 `CHANGES REQUESTED`**(CRITICAL·HIGH 없음).
+C2 1차 **HIGH 1 · MEDIUM 4 · LOW 2** + 재검토 **MEDIUM 6 · LOW 6** + C3 **차단 4건** —
+**전부 직접 재현·대조해 수용·수정했다.** 차단 사유는 모두 닫혔고 **3차 재검토 회신을 기다린다.**
 뿌리는 하나였다 — **실행체가 값을 인쇄만 하고 판정하지 않았다.** 상세는 회차 기록 **§3-c·§3-d**가
 소유한다. ⭐ 고치는 과정에서 **백엔드를 내린 회차가 색 단정 전건 True를 냈다** — 즉 게이트가 없던
 판은 백엔드 없이도 초록이었다(관측). 새 게이트의 `session_started == 1`이 잡는다.
@@ -116,7 +117,7 @@ A4-1(primary C3b `corrections` 1건 · 음성 대조용 빈 세션 C3c: 확보) 
 
 ```bash
 cd app/backend                                  # 게이트는 이 cwd 에서만 판정한다 (H-A)
-.venv/bin/pytest -q                             # 637 passed  (595 + C2 게이트 테스트 42)
+.venv/bin/pytest -q                             # 666 passed  (595 + 게이트 테스트 71: C2 47 · C3 24)
 .venv/bin/ruff check . ; .venv/bin/ruff format --check .   # exit 0 / 32 files
 ty check                                        # exit 0
 .venv/bin/ruff check ../../tests ../../scripts  # 6 errors  (기준선, 게이트 밖)
@@ -133,7 +134,7 @@ cd ../frontend && npx tsc --noEmit ; npx eslint app lib     # 둘 다 exit 0
 | ⚠️ 보존 대상 | `session_plans` **1행** · `learner_notes` **1행** — 실물 모델 왕복의 **유일한 증거**. **지우지 마라** |
 | 서버 | 백엔드 :8002 pid **14879** · `VOICE_ADAPTER=stub` · `WORKER_ENABLED=false` · 프론트 :3000 · ⚠️ `.env`는 고치지 않았다(모드는 환경변수로만) |
 | 계측 | `tests/harness/instrument.js` **651줄** · sha256 **`846f130f2cf73365…`**(43119B). ⚠️ 해시는 주석 한 줄로도 바뀐다 — 회차 기록과 다르면 먼저 `git diff`로 **코드 줄** 변경 여부를 본다 |
-| 절차 문서 · 실행체 | `browser_leg.md` **663줄** · `c2_render_hierarchy.py` **791줄**(C2 · 게이트 + 실패 진단) · `c3_results_screen.py` **328줄**(C3·C4 · 게이트 내장) · `test_c2_gates.py` **178줄**(게이트 **안**) |
+| 절차 문서 · 실행체 | `browser_leg.md` **679줄** · `c2_render_hierarchy.py` **879줄**(C2) · `c3_results_screen.py` **373줄**(C3·C4) · 게이트 테스트 `test_c2_gates.py` **385줄** + `test_c3_gates.py` **218줄** — **둘 다 게이트 안**(`pyproject.toml:33`) |
 | 브라우저 | Chrome **152.0.7977.65** · CDP **:9222** · 플러그인 격리 프로필. ⚠️ **탭이 회차 사이에 사라진다** — 없으면 `PUT /json/new`로 만든다 |
 | 마지막 회차 | `.harness/browser_run_id.txt` = `3c8bcda5-a19b-40f9-a8cf-aeee46acf304` (재검토 반영 후 C2 재확인 · teardown 완료 · **§9 보존 5건 생존 확인**) |
 | baseline 사본 | **`runs/2026-09-06-pattern-baseline-v2.tsv`**(추적됨 · **8행**) — DB 표가 회차마다 drop되므로 **이 파일이 마지막 사본이다.** v1(7행)도 추적된 채 둔다. ⚠️ **8행이 맞다**: T4의 실물 분석 1회가 만든 패턴이 보존 세션의 교정 근거다 |
@@ -188,7 +189,7 @@ cd ../frontend && npx tsc --noEmit ; npx eslint app lib     # 둘 다 exit 0
 |--:|---|---|
 | 1 | `git rev-parse --short HEAD` | 이 파일을 담은 커밋 **이상**(등호를 요구하지 않는다 — `H-P`) · 추적된 미커밋 **0건** |
 | 2 | `backlog task list -s "In Progress"` | **`TASK-21`**(AC 5/5) · **`TASK-22`**(AC 4/4) — **둘 다 리뷰 미수신으로 열려 있다.** 다음 걸음은 **리뷰를 닫는 것**이고 그 뒤 **`TASK-30`** |
-| 3 | 게이트 | **637 passed** · `ruff check`·`format`(32 files)·`ty` 통과 · 게이트 밖 **6 errors**·**4 files** · 프론트 `tsc`·`eslint` **exit 0** |
+| 3 | 게이트 | **666 passed** · `ruff check`·`format`(32 files)·`ty` 통과 · 게이트 밖 **6 errors**·**4 files** · 프론트 `tsc`·`eslint` **exit 0** |
 | 4 | 착수 전 필수 | **3건** — ① **워커를 켜지 않는다**(비용 + §9의 `C3e`가 깨진다) ② **브라우저 회차 4규약**(위 ⛔) ③ `TASK-30`은 **리뷰 2건이 닫힌 뒤** 착수 가능(선행 `TASK-21`·`TASK-22`) |
 
 ⚠️ **3번이 핵심이다** — 읽기는 전달을 증명하지 못하고 **직접 돌린 출력**만 데이터다.

@@ -34,7 +34,13 @@ import pytest
 HARNESS = Path(__file__).resolve().parent
 sys.path.insert(0, str(HARNESS))
 
-from c2_render_hierarchy import check_cross, check_leg, classify_failure  # noqa: E402
+import c2_render_hierarchy as c2  # noqa: E402
+from c2_render_hierarchy import (  # noqa: E402
+    check_cross,
+    check_leg,
+    classify_failure,
+    find_target,
+)
 
 REAL = HARNESS / "runs" / "2026-09-06-t3-c2-eval-return.json"
 
@@ -254,8 +260,13 @@ CLASSIFY_CASES = [
         "주입 창을 넘겼다",
     ),
     (
+        "세션 정상 종료 — 어댑터 모드 오선택",
+        _omy(recv={"session_started": 1, "session_failed": 0, "session_ended": 1}),
+        "어댑터가 `stub_unresponsive` 가 아니다",
+    ),
+    (
         "한 문서 두 세션",
-        _omy(recv={"session_started": 2, "session_failed": 0}),
+        _omy(recv={"session_started": 2, "session_failed": 0, "session_ended": 0}),
         "한 문서 한 세션 규약 위반",
     ),
     (
@@ -287,3 +298,88 @@ def test_classify_failure_does_not_claim_voiceio_start():
     """
     got = classify_failure(_omy(appHandlerAttached=False))
     assert "VoiceIo.start" not in got, got
+
+
+# ── `find_target` 우선순위 — 리뷰가 1차부터 요구한 테스트다. **MEDIUM-2 가 여기서 났다**:
+#    부분일치 폴백이 열려 있던 판은 목록 앞의 `/results/<id>` 탭을 잡아 그 위에서 `navigate` 로
+#    남의 화면을 지웠다. 폴백을 지운 뒤 그 동작을 **고정**한다.
+class _FakeResponse:
+    def __init__(self, payload: object) -> None:
+        self._payload = payload
+
+    def read(self) -> bytes:
+        return json.dumps(self._payload).encode()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc) -> bool:
+        return False
+
+
+def _patch_urlopen(monkeypatch, listing: list[dict], created: dict | None = None) -> list[str]:
+    """`json/list` 와 `json/new` 를 가로챈다. 돌려주는 리스트에 **호출 순서**가 쌓인다."""
+    calls: list[str] = []
+
+    def fake(req, timeout=None):  # noqa: ARG001
+        url = req if isinstance(req, str) else req.full_url
+        calls.append(url)
+        if "/json/new" in url:
+            assert created is not None, "탭 생성을 기대하지 않은 테스트인데 /json/new 가 불렸다"
+            return _FakeResponse(created)
+        return _FakeResponse(listing)
+
+    monkeypatch.setattr(c2.urllib.request, "urlopen", fake)
+    return calls
+
+
+EXACT = "http://localhost:3000/"
+
+
+def test_find_target_prefers_exact_over_results_tab(monkeypatch):
+    """⛔ 목록 **앞**에 `/results/<id>` 탭이 있어도 정확 일치를 고른다 (MEDIUM-2 회귀 방지)."""
+    listing = [
+        {
+            "type": "page",
+            "url": "http://localhost:3000/results/abc",
+            "webSocketDebuggerUrl": "ws://r",
+        },
+        {"type": "page", "url": EXACT, "webSocketDebuggerUrl": "ws://exact"},
+    ]
+    calls = _patch_urlopen(monkeypatch, listing)
+    ws, url = find_target(9222, EXACT)
+    assert (ws, url) == ("ws://exact", EXACT)
+    assert not any("/json/new" in c for c in calls), "정확 일치가 있으면 탭을 만들지 않는다"
+
+
+def test_find_target_ignores_non_page_targets(monkeypatch):
+    """같은 url 이라도 `type` 이 page 가 아니면 고르지 않는다(iframe·browser_ui)."""
+    listing = [
+        {"type": "iframe", "url": EXACT, "webSocketDebuggerUrl": "ws://iframe"},
+        {"type": "page", "url": EXACT, "webSocketDebuggerUrl": "ws://page"},
+    ]
+    _patch_urlopen(monkeypatch, listing)
+    assert find_target(9222, EXACT)[0] == "ws://page"
+
+
+def test_find_target_creates_tab_when_no_exact_match(monkeypatch):
+    """⛔ **부분일치로 떨어지지 않는다** — `/results/` 탭만 있으면 **새 탭을 만든다**."""
+    listing = [
+        {
+            "type": "page",
+            "url": "http://localhost:3000/results/abc",
+            "webSocketDebuggerUrl": "ws://r",
+        },
+    ]
+    created = {"webSocketDebuggerUrl": "ws://new", "url": EXACT}
+    calls = _patch_urlopen(monkeypatch, listing, created)
+    ws, url = find_target(9222, EXACT)
+    assert (ws, url) == ("ws://new", EXACT)
+    assert any("/json/new" in c for c in calls), calls
+
+
+def test_find_target_dies_when_tab_creation_returns_no_socket(monkeypatch):
+    """탭 생성이 소켓을 안 주면 **이름 있는 실패**로 죽는다(조용히 진행하지 않는다)."""
+    _patch_urlopen(monkeypatch, [], {"error": "nope"})
+    with pytest.raises(SystemExit, match="탭을 만들지 못했다"):
+        find_target(9222, EXACT)

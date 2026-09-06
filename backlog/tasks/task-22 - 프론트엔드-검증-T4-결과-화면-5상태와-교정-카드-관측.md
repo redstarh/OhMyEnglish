@@ -4,7 +4,7 @@ title: '프론트엔드 검증 T4: 결과 화면 5상태와 교정 카드 관측
 status: In Progress
 assignee: []
 created_date: '2026-09-06 00:14'
-updated_date: '2026-09-06 14:48'
+updated_date: '2026-09-06 15:12'
 labels:
   - caps-req
 dependencies:
@@ -54,4 +54,22 @@ AC #4 (보존 목록): browser_leg.md §9 표에 5개를 corrections 수와 만�
 ⛔ 통과로 적지 않은 것: A4-2 기대값 교차 대조는 교정 2건 이상 세션이 없어 평가 불가 → 판별력 미확인. 스텁 픽스처로는 원리적으로 어렵다 (오류 두 문장이 같은 패턴으로 묶이고 R1 이 패턴 단위로 그룹한다). 늘리려면 실물 호출을 더 쓴다 → 캡틴 결정. 그 밖에 발음 카드(C5)·partial_failure 의 done 교정 경로·폴링 정지 조건은 재지 않았다.
 
 ⚠️ C3e no_utterances 의 전제: 워커가 꺼져 있어야 유지된다. 켜면 flush_ended_sessions 가 지운 job 을 되살려 analyzing 으로 바뀐다. 백엔드는 stub + WORKER_ENABLED=false 로 복원했다.
+
+2026-09-06 C3 리뷰 수신 — 결론 CHANGES REQUESTED (CRITICAL·HIGH 없음). 차단 4건 + 내 테스트가 잡은 1건, 전부 직접 재현하고 고쳤다.
+
+① corrections 키 부재를 0으로 읽는 것이 공허 통과를 만들었다 — 재현: final 에서 키를 지우고 화면도 0장이면 checked 14→6, fails=[] 통과. A4-1·A4-2 전체가 조용히 사라진다. §11-9 가 요구하는 '교정 2건 이상 세션 추가' 가 primaries 마스크를 벗긴다는 지적도 맞다 → 상태별로 키 존재 자체를 단정한다.
+② sentinel 대조의 독립 판별력이 0이었다 — 등호가 이미 함의한다. 반증 입력에서 어긋남 2건. 코드에서 지우고 browser_leg §5 A4-2 대조 ① 도 철회, 회귀 방지 테스트를 박았다.
+③ A3-1 음성 대조가 세션 1건이면 항진명제 → 2건 미만이면 미평가로 갈라 낸다. 실측 확인.
+④ READ_JS 가 location.href 를 담고도 단정하지 않았다 → 세션 id 로 끝나는지 단정(내비게이션 커밋 확인). C2 MEDIUM-1 과 같은 형태였다.
+⑤ 내 게이트 테스트가 실행체 결함을 잡았다 — 카드가 API 보다 많으면 IndexError 트레이스백으로 죽어 이름 있는 FAIL 을 잃었다 → 경계 가드.
+
+게이트 테스트 신설: tests/harness/test_c3_gates.py 24 passed (실물 판독값 위 변이 18종 + 없는세션 4종 + sentinel 회귀 + green). 게이트 안이다.
+
+종단 재확인: 5세션 회차 판정 57건 PASS exit 0 (48→57) · 단일 세션 회차는 A3-1 미평가로 갈린다 · DB 변화 0(결과 화면 재방문은 세션을 만들지 않는다).
+게이트: 666 passed · ruff/format/ty 통과 · 프론트 exit 0 · 게이트 밖 6 errors/4 files 유지.
+
+리뷰가 §8-④ 정정에 단 조건(v2 가 v1 공유 7행에 drift 0 인 시점에 떴는가)에 답했다 — 그렇다. 재스냅샷 직전 drift 0 을 그 턴에 직접 확인했고 v2 머리주석에 뜬 시각이 있다. 회차 기록 §5 가 소유한다.
+
+⛔ 요약을 좁혔다: 관측한 것은 다섯 상태의 라벨과 안내 문구이고 교정 카드 렌더는 final 하나에서만 봤다. partial_failure 의 done 교정 경로는 미관측이다.
+미결: 3차 재검토 미수신.
 <!-- SECTION:NOTES:END -->

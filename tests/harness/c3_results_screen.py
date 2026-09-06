@@ -121,7 +121,7 @@ async def visit(cdp: Cdp, url: str, expect_label: str | None) -> dict:
     )
 
 
-def check_screen(payload: dict, dom: dict) -> tuple[int, list[str]]:
+def check_screen(payload: dict, dom: dict, session_id: str) -> tuple[int, list[str]]:
     """한 상태 화면의 단정을 **판정한다.** 반환 `(검사 수, 어긋난 것들)`."""
     fails: list[str] = []
     checked = 0
@@ -134,6 +134,15 @@ def check_screen(payload: dict, dom: dict) -> tuple[int, list[str]]:
 
     status = payload["status"]
     expected = STATUS_LABEL[status]
+    # ── ⛔ **`READ_JS` 가 `location.href` 를 담고도 아무도 단정하지 않았다** (C3 검토 ④).
+    #    `Page.navigate` 직후 폴링이 **이전 문서**를 읽을 수 있고, 두 세션이 같은 status 면
+    #    스테일 판독이 조용히 통과한다. C2 의 MEDIUM-1 과 **같은 형태**(측정만 하고 게이트 안 함)다.
+    need(
+        isinstance(dom.get("url"), str) and dom["url"].rstrip("/").endswith(session_id),
+        f"내비게이션 커밋 미확인: url={dom.get('url')!r} 이"
+        f" 세션 {session_id} 로 끝나지 않는다"
+        " — 이전 문서를 읽었을 수 있다",
+    )
     # ── A3-1: 요소 지목 + 등호. 전역 포함 검사를 쓰지 않는다.
     need(
         dom.get("firstDirectP") is not None,
@@ -149,7 +158,20 @@ def check_screen(payload: dict, dom: dict) -> tuple[int, list[str]]:
         dom["bodyHasPartialNotice"] == (status == "partial_failure"),
         f"부분 실패 안내 문구 존재={dom['bodyHasPartialNotice']} 인데 status={status}",
     )
-    # ── A4-1: 접두 개수 == API 의 corrections 길이. `corrections` 키는 상태에 따라 **없다**.
+    # ── ⛔ **키 부재를 0으로 만드는 것이 공허 통과를 만든다 — 리뷰가 실증했다** (C3 검토 ①).
+    #    `final` 에서 `corrections` 키를 지우고 화면도 0장이면 `checked` 가 14 → **6** 으로 줄고
+    #    **어긋남 0건**이 된다: A4-1·A4-2 전체가 조용히 사라지는데 그것이 FAIL 이 아니다.
+    #    지금은 `primaries`(교정 보유 세션 0건 → BLOCKED)가 막지만, **§11-9 가 요구하는
+    #    「교정 2건 이상 세션 추가」가 그 마스크를 벗긴다** — 하나가 키를 잃어도 primary 가 남는다.
+    #    → **상태별로 키의 존재 자체를 단정한다.** `results.py`/`api/results.py` 의 계약이
+    #    `final`·`partial_failure` 에만 키를 싣는다(직접 관측: 나머지 셋은 키가 없다).
+    key_expected = status in ("final", "partial_failure")
+    need(
+        ("corrections" in payload) == key_expected,
+        f"`corrections` 키 존재={('corrections' in payload)} 인데 status={status} 의 계약은"
+        f" {key_expected} 다 — 키 부재를 0으로 읽으면 A4-1·A4-2 가 조용히 사라진다",
+    )
+    # ── A4-1: 접두 개수 == API 의 corrections 길이.
     n = len(payload.get("corrections", []))
     need(
         dom["prefixCounts"]["원문"] == n,
@@ -161,6 +183,12 @@ def check_screen(payload: dict, dom: dict) -> tuple[int, list[str]]:
     )
     need(len(dom["cards"]) == n, f"A4-1: 카드 <div> {len(dom['cards'])}개 != API {n}")
     for i, card in enumerate(dom["cards"]):
+        # ⛔ **경계를 먼저 지킨다** — 화면 카드가 API 보다 많으면 `payload["corrections"][i]` 가
+        #    `IndexError` 로 죽어 **이름 있는 FAIL 대신 트레이스백**이 나고 나머지 어긋남도 잃는다.
+        #    (내가 쓴 게이트 테스트가 이 결함을 잡았다 — 카드 초과는 앱이 낼 수 있는 결함이다.)
+        if i >= n:
+            need(False, f"A4-1: 카드[{i}] 가 API corrections({n}건) 범위를 넘는다 — 초과 렌더다")
+            continue
         need(card["pCount"] == 3, f"A4-1: 카드[{i}] 의 <p> 가 {card['pCount']}개다 (3이어야 한다)")
         need(
             card["strongs"][:2] == ["원문:", "교정문:"],
@@ -176,10 +204,14 @@ def check_screen(payload: dict, dom: dict) -> tuple[int, list[str]]:
                 expected_reason.strip() != "",
                 f"A4-2 표본 조건: corrections[{i}].reason 이 비었다 → FAIL 이 아니라 BLOCKED 다",
             )
+            # ⛔ **여기 있던 sentinel 대조를 지웠다 — 독립 판별력이 0이었다** (C3 검토 ②).
+            #    `third == expected_reason` 이 참이면 `third != expected + "__SENTINEL__"` 는
+            #    **필연적으로** 참이다. 그것을 반증하는 유일한 입력을 넣으면
+            #    **위 등호가 함께 잡는다**(리뷰 재현: fails 2건). 즉 대조가 아니라
+            #    `checked` 를 카드마다 1씩 부풀리는 줄이었다.
+            #    **문자열 변형 대조의 실체는 등호 자신이다** —
+            #    `browser_leg.md` §5 A4-2 도 함께 고쳤다.
             need(third == expected_reason, f"A4-2: 카드[{i}] 셋째 줄 != API reason")
-            need(
-                third != expected_reason + "__SENTINEL__", "A4-2 문자열 변형 대조가 성립하지 않는다"
-            )
             # 카드가 실제로 그 교정을 담는지 — 원문도 함께 맞춘다(카드끼리 뒤바뀜 검출).
             need(
                 card["texts"][0] == f"원문: {payload['corrections'][i]['original_span']}",
@@ -261,7 +293,7 @@ async def main_async(args) -> int:
     # ── 판정 ────────────────────────────────────────────────────────────────
     checked, fails = 0, []
     for key in sessions:
-        c, f = check_screen(payloads[key], results[key])
+        c, f = check_screen(payloads[key], results[key], sessions[key])
         checked += c
         fails += [f"[{key}] {m}" for m in f]
     c, f = check_missing(missing)
@@ -269,10 +301,21 @@ async def main_async(args) -> int:
     fails += [f"[missing-uuid] {m}" for m in f]
 
     # A3-1 음성 대조 — 같은 요소의 문구가 상태마다 **실제로 바뀐다**.
+    # ⛔ **세션이 1건이면 이 대조는 항진명제다** (C3 검토 ③): `len(set(x)) != len(x)` 는 원소가
+    #    하나면 **절대 참이 되지 않는다.** C2 의 `check_cross` 는 단일 모드를 `미평가`로 갈랐는데
+    #    여기엔 그 분기가 없었다. → **2건 미만이면 평가하지 않고 미확인으로**
+    #    낸다(PASS 로 세지 않는다).
     texts = [results[k]["firstDirectP"]["text"] for k in sessions if results[k].get("firstDirectP")]
-    checked += 1
-    if len(set(texts)) != len(texts):
-        fails.append(f"A3-1 음성 대조: 같은 요소의 문구가 상태마다 바뀌지 않았다 — {texts}")
+    if len(texts) < 2:
+        unverified_extra = (
+            f"A3-1 음성 대조 미평가: 상태 화면이 {len(texts)}건뿐이다 —"
+            " 「상태마다 문구가 바뀐다」는 2건 이상에서만 평가된다(§10)"
+        )
+    else:
+        unverified_extra = None
+        checked += 1
+        if len(set(texts)) != len(texts):
+            fails.append(f"A3-1 음성 대조: 같은 요소의 문구가 상태마다 바뀌지 않았다 — {texts}")
     # 실제 세션에는 A3-2 의 오류 문구가 없어야 한다(상호 대조).
     for key in sessions:
         checked += 1
@@ -284,6 +327,8 @@ async def main_async(args) -> int:
         k for k in sessions if "corrections" in payloads[k] and not payloads[k]["corrections"]
     ]
     blocked, unverified = [], []
+    if unverified_extra:
+        unverified.append(unverified_extra)
     if not primaries:
         blocked.append(
             "A4-1: corrections >= 1 인 세션이 없다 — 화면 결함이 아니라 표본 선택 실패(BLOCKED)"
