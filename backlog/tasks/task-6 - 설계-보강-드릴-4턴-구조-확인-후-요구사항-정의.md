@@ -1,10 +1,10 @@
 ---
 id: TASK-6
 title: '설계 보강: 드릴 4턴 구조 확인 후 요구사항 정의'
-status: In Progress
+status: To Do
 assignee: []
 created_date: '2026-09-06 00:12'
-updated_date: '2026-09-06 01:35'
+updated_date: '2026-09-06 05:05'
 labels:
   - caps-req
 dependencies: []
@@ -23,6 +23,15 @@ ordinal: 6000
 - [ ] #2 없으면 요구사항을 정의하고 설계에 반영
 - [ ] #3 지시문에 실을지 코드로 강제할지 근거와 함께 선택(교정 상한이 문구로만 좁힌 선례를 참고)
 <!-- AC:END -->
+
+## Comments
+
+<!-- COMMENTS:BEGIN -->
+created: 2026-09-06 05:05
+---
+감사 세션이 전달한 캡틴 명령에 따라 정리한다: 01:35 UTC 부터 In Progress 였으나 AC 1/3 에서 진전이 없고 notes 도 없다. 실제 작업은 TASK-31 에만 걸려 있어 상태만 켜둔 것이 원장을 거짓말하게 만든다 → To Do 로 되돌린다. AC #1(현재 턴 구조 확인)은 이미 닫혔으므로 남은 것은 #2·#3 이고, handoff 가 지목한 대로 TASK-25 와 같은 자리를 건드리니 함께 설계한다.
+---
+<!-- COMMENTS:END -->
 
 ## 캡틴 결정 (2026-09-06) — 재론하지 않는다
 

@@ -1,10 +1,10 @@
 ---
 id: TASK-7
 title: '설계 보강: 즉시 드릴 진입 경로를 설계에 반영'
-status: In Progress
+status: To Do
 assignee: []
 created_date: '2026-09-06 00:12'
-updated_date: '2026-09-06 01:35'
+updated_date: '2026-09-06 05:05'
 labels:
   - caps-req
 dependencies: []
@@ -23,3 +23,12 @@ ordinal: 7000
 - [ ] #2 음성 명령 이연 결정과 충돌하지 않는 진입 방식을 정한다(화면 버튼 등)
 - [ ] #3 설계에 반영하고 어느 슬라이스에서 구현할지 지정
 <!-- AC:END -->
+
+## Comments
+
+<!-- COMMENTS:BEGIN -->
+created: 2026-09-06 05:05
+---
+TASK-6 과 같은 사유로 To Do 로 되돌린다(캡틴 명령, 감사 세션 전달). AC #1 은 닫혔고 #2·#3 은 음성 명령 이연 결정과 맞물린 설계 판단이라 별도 설계 회차가 필요하다. 상태만 In Progress 로 켜둔 채 방치하지 않는다.
+---
+<!-- COMMENTS:END -->
