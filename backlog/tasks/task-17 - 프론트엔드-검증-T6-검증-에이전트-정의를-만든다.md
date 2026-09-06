@@ -1,10 +1,10 @@
 ---
 id: TASK-17
 title: '프론트엔드 검증 T6: 검증 에이전트 정의를 만든다'
-status: Done
+status: In Progress
 assignee: []
 created_date: '2026-09-06 00:13'
-updated_date: '2026-09-06 01:44'
+updated_date: '2026-09-06 02:12'
 labels:
   - caps-req
 dependencies:
@@ -25,3 +25,9 @@ ordinal: 17000
 - [x] #2 절차를 에이전트 정의에 재서술하지 않고 browser_leg.md를 가리킨다
 - [x] #3 에이전트를 실제로 1회 호출해 재현시키고 호출자가 단정 하나를 직접 재현해 대조
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+⚠️ 외부 감사(claude_air_1-4) 1회차가 AC#3 미이행을 잡았다 — 팀리드가 근거를 직접 확인해 수용했다. 에이전트 호출과 결과 수용은 일어났으나 회차 기록을 만들지 않아 리포에 호출 증거가 0건이었다(1회차 기록의 커밋 10:28:38 이 에이전트 파일 생성 10:33:05 보다 4분 이르다 — 에이전트가 없을 때 만든 기록이다). 증거 없는 판정은 무효라는 규약대로 되돌렸고 tests/harness/runs/2026-09-06-browser-leg-2-agent.md 를 만들었다. 교훈: 방식이 지시된 태스크는 그 방식이 실행됐다는 산출물을 리포에 남기는 것까지가 이행이다 — 대화 기록은 제3자가 볼 수 없다.
+<!-- SECTION:NOTES:END -->

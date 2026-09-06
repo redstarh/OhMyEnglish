@@ -71,7 +71,84 @@ HIGH 2건 수정 · 지적 1건 반박 · 이연 4건). 처리 표는 `TASKS.md`
 그 파일의 §3(내가 놓쳤다가 잡힌 패턴 4개)을 **착수 전에 읽어라.** 진행 경위와 실행 출력은
 `.superpowers/.../progress.md`에 더 상세하지만 **git 무시 대상이라 사라질 수 있다.**
 
-## 다음 한 걸음 — **① S2-12** (② J절 T1도 착수 가능 · S2-11은 ✅ 종결)
+## 다음 한 걸음 — **원장(Backlog.md)에서 고른다. 이 문서에서 고르지 않는다**
+
+> ⚠️ **2026-09-06 전환**: 이 리포의 원장이 `TASKS.md` 수기 표에서 **Backlog.md로 넘어갔다.**
+> `backlog/`가 추적에 들어왔고 태스크 **29건**이 등록됐다. **다음 한 걸음은 아래 명령으로 얻는다** —
+> 이 문서에 태스크 목록을 복사하지 않는다(복사하면 한쪽이 낡는다).
+>
+> ```bash
+> backlog task list -s "In Progress"    # 이미 손댄 것부터
+> backlog task list -s "To Do"          # priority high 와 caps-req 를 먼저 본다
+> ```
+>
+> **왜 이렇게 바뀌었나**: 캡틴 지시를 **두 번 물어도 두 번 다 답만 하고 만들지 않은** 누락이 났다
+> (`TASK-17`). 원장은 정확했고 **원장을 보고 다음 행동을 고르지 않은 것**이 원인이었다.
+> 진단·강제 장치·지시 매핑은 **`docs/ops/captain-instruction-register.md`**가 소유한다 —
+> **착수 전에 그 §3을 읽는다.**
+
+### 이 세션에서 새로 생긴 규약 4개 — 착수 전에 반드시 본다
+
+| 규약 | 무엇을 정하나 |
+|---|---|
+| `docs/ops/data-first-design-convention.md` | **표·데이터를 먼저 검토하고 정합성을 판정한 뒤 코드를 쓴다.** ALTER 대 CREATE 판정 · "저장은 되는데 읽는 곳이 없다"의 양방향 판별표 · 되돌리기 어려운 마이그레이션 절차 |
+| `docs/ops/review-and-decision-protocol.md` | **요구사항 판정을 바꾸는 순간 codex 리뷰를 건다** · 결정 상충 처리 · 문서 보관 판정 기준 3개 |
+| `docs/ops/captain-instruction-register.md` | 지시 → 태스크 매핑 · **강제 장치 5개** |
+| `docs/ops/audit-session-brief.md` | **외부 감사 세션**(`claude_air_1-4`)이 읽는 브리프. 매시 감사 후 이 세션에 메시지 + `.harness/audit-heartbeat.txt`에 생존 신호 |
+
+### 캡틴 결정과 판정 기록 — 재론하지 않는다
+
+- `docs/design/2026-09-06-captain-response-to-status-report.md` — 회신 원문 + 내가 답한 질문 3건
+- `docs/design/2026-09-06-captain-decisions.md` — **결정 8건** + 결정이 부과하는 제약
+- `docs/design/2026-09-06-gap-investigation.md` — 공백 조사 4건. ⚠️ **병목이 네 자리**라는 것
+- `docs/design/2026-09-06-review-outcomes.md` — **codex 리뷰가 내 판정 하나를 뒤집었다**(AC11-2)
+
+### ⚠️ 이 세션이 남긴 미완 1건 — **미커밋 상태다. 커밋하기 전에 게이트를 통과시켜라**
+
+**AC11-2의 최심 포함 강제 구현이 진행 중이다.** 확정 규칙은 `review-outcomes.md` §2가 소유한다.
+
+**들어간 구조**(작업자가 만든 것, 팀리드 확인):
+- `services/chronic:deepest_recurrence` — 만성 목록에서 최상위를 고른다. ⚠️ **임계값을 두지 않고
+  순서만 낸다**(요구사항 R11-8 "임계값 발명 금지"를 지킨 형태다)
+- `models/plan:parse_plan`에 **`deepest_pattern_id: UUID | None` 키워드 필수 인자** 추가 —
+  기본값을 주지 않았다(`allowed_pattern_ids`와 같은 이유: 잊은 호출자가 조용히 가드를 건너뛴다)
+- `services/plan`이 `deepest_recurrence(data.chronic)`를 불러 그 결과를 넘긴다
+
+**끊긴 시점의 실측**(팀리드가 직접 돌렸다): `pytest -q` → **5 failed · 588 passed**.
+기준선은 **582 passed**다. 실패가 **8 → 3 → 5로 옮겨 다녔다** — 작업자가 TDD 사이클 안에서
+리팩터하며 새 단위 테스트를 다시 red로 만드는 중이었다. 마지막 실패는 `unit/test_chronic.py`의
+`deepest_recurrence` 테스트 4건 쪽이었다.
+게이트 나머지는 green이었다: `ruff check`·`format`(32 files)·`ty` 전부 exit 0 ·
+게이트 밖 **6 errors · 4 files** 유지.
+
+**변경된 파일 9개**(미커밋): `app/backend/app/models/plan.py` · `services/chronic.py` ·
+`services/plan.py` · `tests/conftest.py` · `tests/integration/test_plan_pipeline.py` ·
+`tests/integration/test_worker.py` · `tests/unit/test_chronic.py` · `tests/unit/test_plan_models.py`
+(+ 이 handoff).
+
+**이어받는 순서**:
+1. `git status --short`로 아직 그 9개가 남아 있는지 본다. ⚠️ **위임한 작업자가 이 세션 뒤에도
+   계속 돌아 스스로 끝냈을 수 있다** — 그러면 `pytest -q`가 green일 것이다. **먼저 돌려 확인한다.**
+2. red면 실패 목록을 읽고 **픽스처가 새 규칙을 지키게** 맞춘다(통합 테스트의 계획 픽스처가
+   최상위 패턴을 초점에 넣어야 한다 — 그것이 강제가 물린다는 증거다).
+3. green이 되면 **무력화로 판별력을 확인한다** — 최상위 검사를 지우거나 첫 항목만 검사하게 바꿔
+   어느 테스트가 red가 되는지 본다. 무력화 후에도 전부 green이면 그 테스트는 무보호다.
+4. **커밋 후 codex 리뷰를 건다** — 요구사항 판정(AC11-2)을 바꾸는 변경이다
+   (`docs/ops/review-and-decision-protocol.md` §1).
+
+### ⚠️ 캡틴이 해야 하는 것 1건 — 외부 감사 세션의 권한
+
+`claude_air_1-4`(외부 감사 세션)가 **수동 모드라 명령마다 승인을 묻고 첫 주기에서 멈춰 있다.**
+`.harness/audit-heartbeat.txt`가 아직 없는 것이 그 증거다. **권한은 캡틴 소유이므로 내가 바꾸지
+않았다.** 그 창에서 `2`(다시 묻지 않기) 또는 `3`(auto mode)을 고르면 감사가 돈다.
+⚠️ **생존 신호 파일이 없으면 "감사자가 죽은 것"과 "이상 없음"을 구별할 수 없다** — 그것이
+브리프 §3 ②를 둔 이유다.
+
+---
+
+## (이하는 슬라이스 2 이력 — 참고용. 다음 걸음은 위에서 얻는다)
+
+### S2-11은 ✅ 종결
 
 **✅ S2-11 종결 (2026-09-06) — `APPROVE`.** Critical 0 · Important 0 · Minor 1 처리 · 고침 **4라운드**.
 ⚠️ **프로덕션 코드는 `e8b7e17`·`24ad4cc` 이후 한 줄도 안 바뀌었다** — 고침 3·4라운드는 전부 **서술**이다.
