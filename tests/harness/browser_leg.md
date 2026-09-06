@@ -167,6 +167,13 @@ python3 -c "import subprocess,os; r=subprocess.run(['git','rev-parse','--show-to
    - **`sent`** — 클라이언트→서버 프레임을 `type`별로 나눈 계수. **`audio`와 `end_session`을 따로 담는다**(A1-7 측정과 그 음성 대조가 같은 객체에서 나온다).
    - **`started`** — `start` 호출 계수와 **호출 인자 `when`의 배열**(A1-4 측정과 대조 ②).
    - **`snapshots`** — DOM이 바뀔 때마다 적립한 `{ts, count, texts}` 배열(A1-5). **개수만 담지 않는다.**
+     ⚠️ **판정이 이 배열에서 읽는 것은 `count`뿐이다**(초과 검출·단조성). `texts`의 역할은 **진단으로 바뀌었다** —
+     ① `record()`의 중복 억제 키(그래서 *어떤* 상태가 스냅샷이 되는지를 정한다) ② `atMaxDiagnostic`·`exactStateSeen`의 본문.
+     **`pass`에 대해서는 아무것도 보증하지 않는다.** 그 손실이 허용되는 이유는 **앱 코드에 걸려 있다**:
+     `page.tsx`의 `setLines`가 append 또는 **마지막 줄에만** 이어붙이므로 확정 줄은 한 번 그려지면 바뀌지 않고,
+     중간에 오염된 내용은 종단까지 남아 `terminalMatches`가 잡는다. ⛔ **줄을 치환·철회하는 경로**
+     (교정 표시·재전사·undo)가 생기면 **이 전제가 깨지고 종단 1점 검사가 눈이 먼다** — 그때 이 절과
+     `instrument.js`의 `snapshots` docstring을 함께 고쳐라.
    - **`finalLinesAtTerminal`** — 종단 프레임을 앱이 처리하기 **직전**의 동기 스냅샷(A1-5 내용 등호).
    - **`judgeFinalLines`** — A1-5 판정을 계산하는 함수. 기대값은 호출자가 넘긴다.
    - **`inject`** — 프레임 주입(C2·C5). 앱 핸들러를 직접 부르므로 `recv`를 오염시키지 않는다.
