@@ -4,7 +4,7 @@ title: '실행: 테스트 하네스 5차수 — 미실행 Nova N6~N13 + 회귀 +
 status: To Do
 assignee: []
 created_date: '2026-09-07 17:50'
-updated_date: '2026-09-07 22:27'
+updated_date: '2026-09-07 23:05'
 labels: []
 dependencies:
   - TASK-44
@@ -27,6 +27,7 @@ TASKS.md D절(테스트 하네스 차수 원장)에서 이관. 원장은 tests/h
 - [ ] #6 tests/** ruff 6건·format 4건을 정리한다(H-L 기준선 대조)
 - [ ] #7 스파이크 nova 스키마와 앱 상수를 대조해 A-3 tool 스키마 확인을 닫는다
 - [ ] #8 A-4(agent_reprompt 미구현 구간)와 B-2(대조군) 관측 결과를 기록한다
+- [ ] #9 O-1(LOW) — agent 전사문에 선행 개행이 붙는 것을 5차수에서 다시 관측한다: Nova 가 '\nWhat time do you…' 를 보내고 save_final_transcript 가 그대로 저장한다. 4차수에서 두 세션(p1k·u1)에 재현됐고 agent 발화라 분석 job 이 없어 무해하다 — 재현하면 기록만 남기고, 사라졌으면 사라졌다고 적는다 (TASKS.md E절에서 이관, 소유자가 5차수였다)
 <!-- AC:END -->
 
 ## Comments
