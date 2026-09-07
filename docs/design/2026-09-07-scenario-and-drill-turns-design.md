@@ -11,15 +11,14 @@
 >
 > | # | 올린 것 | 판정 | 어디 |
 > |--:|---|---|---|
-> | 1 | `build_system_prompt(known_sounds, plan)` → **인자 3개** | ✅ 승인 | §2.1 · §6-6 |
-> | 2 | `create_voice_adapter(...)`에 `scenario` 인자 | ✅ 승인 | §2.1 · §6-5 |
-> | 3 | `PreparedPlan`에 `questions` 필드 | ✅ 승인 | §2.1 · §6-3 |
-> | 4 | 결과 API 응답에 `drill` 키(생략 규약) | ✅ 승인 | §2.3 · §6-7 |
+> | 1 | ⛔ **`build_system_prompt`는 인자 4개다** — `(known_sounds, plan, questions, scenario)`. **2판까지 「3개」로 올렸고 그것은 증명 가능하게 불충분했다**(3판 정정 · 캡틴 결정 15) | ✅ 승인 | §2.1 · §6-6 |
+> | 2 | `create_voice_adapter(...)`에 `questions`·`scenario` **두** 인자 | ✅ 승인 | §2.1 · §6-5 |
+> | 3 | `PreparedPlan`에 `questions` 필드 · `_load_prepared_plan_or_none`이 **`PreparedPlan`을 돌려준다**(지금은 `.instruction`만) | ✅ 승인 | §2.1 · §6-3·§6-4 |
+> | 4 | 결과 API 응답에 `drill` 키 — **`corrections`와 같은 R2 상태 규약**을 따른다(3판 정정) | ✅ 승인 | §2.3 · §6-7 |
 > | 5 | 결과 화면에 한 줄이 는다 — **톤 계약에 닿는다** | ✅ 승인 | §2.3 · §6-8 |
->
-> **마이그레이션은 0건이라 스키마 항목은 걸리지 않는다**(§2.3의 판정 — 그 판정 자체는 §7 유도 2다).
+> | 6 | ⛔ **마이그레이션 009 — `learning_sessions`에 컬럼 1개**(캡틴 결정 16). **2판까지 「마이그레이션 0건」이었고 그것이 유도 2의 문제였다** | ✅ 승인 | §2.3 · §6-14 |
 > ⚠️ **승인은 이 5건의 계약 변경에 대한 것이고, 설계 내용 전체에 대한 백지 위임이 아니다** —
-> §7의 유도 8건은 여전히 한 줄씩 뒤집을 수 있는 상태로 둔다.
+> §7의 유도 **10건**(1건은 철회됨)은 여전히 한 줄씩 뒤집을 수 있는 상태로 둔다.
 >
 > ## 2판 — critic `CHALLENGE`를 반영했다 (2026-09-07)
 >
@@ -30,11 +29,25 @@
 > |---|---|
 > | ⛔ **`learning_scenarios`를 길이만 재고 내용을 안 봤다** — 3행은 무대가 아니라 **질문**이고 `title`과 바이트 동일이었다 | §1 · §2.1(**결정 14**) · §2.2 |
 > | ⛔ `.env.example`이 *"없다"* — **실재한다**. `captain-decisions.md:35`에서 검증 없이 물려받았다 | §3 · §6-13 |
-> | ⛔ 영향 범위 **과소** — `services/results.py`·`scripts/migrate.py`·테스트 2개·`.env.example`이 빠졌다 | §6 (8곳 → **13곳**) |
+> | ⛔ 영향 범위 **과소** — `services/results.py`·`scripts/migrate.py`·테스트 2개·`.env.example`이 빠졌다 | §6 (8곳 → **16곳**, 3판까지) |
 > | ⚠️ barge-in에서 턴이 합쳐질 수 있는 경로를 **검토한 흔적이 없었다** | §2.3 · §5 약점 2 |
 >
-> ⏸ **판정문이 D2 중간에서 잘려 D3·D4·D5·결정 준수 4건·공격 3건을 아직 못 받았다** — 재요청했다.
-> **미수신 부분을 「없음」으로 읽지 않는다.**
+> ## 3판 — 판정문 후반부의 「막는 것 5건」을 반영했다 (2026-09-07)
+>
+> 후반부를 받아 **전건을 직접 확인했고 5건 모두 사실이었다.** 2판이 못 본 것이 셋, 2판이 **틀리게
+> 방어한 것**이 하나 있다. 지우지 않고 남긴다.
+>
+> | # | 막는 것 | 무엇이 틀렸나 | 고친 곳 |
+> |--:|---|---|---|
+> | **C-1** | **재료 미도달** | `ws.py:135`가 `prepared.instruction`만 돌려주고 `PreparedPlan`을 버리는데 인자를 3개로 올렸다 → **`questions`가 갈 길이 없었다** | §2.1 · 머리말 1·3 |
+> | **H-2** | `summary` **소유권** | `database-schema.md:76-78`이 그 컬럼을 `summarize_session`의 것으로 **이미 지정**했고 `007:70-71`이 그 job을 열어 뒀다. *"앱 참조 0곳"*은 코드엔 참이나 **결론으로 틀렸다** | §2.3 · §7 유도 2 |
+> | **H-3** | 지표 **오염** | 규칙 2·5가 *"침묵 뒤 힌트 한 문장"*을 **명령**한다 → 사용자 턴을 안 닫는 agent 행이 생겨 지표가 부푼다. §4의 "닫힌 사용자 턴 수"는 **등가가 아니라 상한**이었다 | §2.3 · §4 |
+> | **H-4** | **산식 어긋남** | 2판 문구의 코치 턴은 **3개**인데 기대값은 **×4** → 모델이 완벽히 지켜도 매 세션 미달 | §2.2 · §2.3 |
+> | **H-5** | `drill_count`가 **대화에 안 닿는다** | 문구는 질문을 전부 열거하고 기대값만 깎았다 → 통과 문턱만 바꾸는 노브 | §2.2 · §2.3 |
+>
+> ⛔ **2판이 틀리게 방어한 것**: barge-in을 *"`completionEnd`가 flush하므로 모순이 아니다"*로 눌렀는데
+> **`nova.py:86`이 「실물 계측에서 `completionEnd`는 한 번도 오지 않았다」고 적어 뒀다** — 한 번도 안 온
+> 경로에 기댄 방어였다. §5 약점 2를 그에 맞게 고쳤다.
 
 ---
 
@@ -55,7 +68,7 @@
 | 리포 자신이 질문이라 부른다 — *"learning_scenarios 3행(**질문 3개**)"* | `tests/unit/test_schema.py:145` |
 | 시드 원본은 `SEED_SCENARIOS`이고 주석이 *"3 daily_life **questions** … verbatim from the task brief"*라 자백한다 | `scripts/migrate.py:33-55` |
 | ⚠️ `on conflict (id) do nothing`이라 **상수만 고쳐도 기존 3행은 안 바뀐다**(고정 id) | `scripts/migrate.py:109` |
-| `learning_sessions.summary jsonb not null default '{}'` — **앱 참조 0곳** | `001_initial_schema.sql:46` · grep 0건 |
+| `learning_sessions.summary jsonb not null default '{}'` — **앱 참조 0곳** ⛔ **그러나 「미사용」이 아니다**: `database-schema.md:76-78`이 `summarize_session`의 것으로 지정했고 `007:70-71`이 그 job을 열어 뒀다. **코드 grep이 참이어도 결론은 틀릴 수 있다**(2판의 H-2) | `001_initial_schema.sql:46` · grep 0건 · `database-schema.md:76-78` · `007:70-71` |
 | 턴 경계 감지 = *"agent가 말을 시작했다 = 사용자 턴이 닫혔다"* | `app/backend/app/audio_gateway/session.py:322-326` |
 | 마이그레이션 **008은 주간 리포트(`TASK-26`)에 예약**됐다 | `captain-decisions.md` §3 유도 1 |
 
@@ -81,6 +94,30 @@
 - ⚠️ **`PreparedPlan` docstring `:122`를 같은 커밋에서 고친다.** 본문을 고치고 그 본문을 설명하는
   문장을 두는 것이 **리뷰 5차 중 4차가 걸린 형태**다.
 
+⛔ **재료가 조립 지점까지 가는 길 — 2판에 이 항목이 없었고 그것이 C-1이다.**
+`_load_prepared_plan_or_none`(`ws.py:117-135`)이 **`prepared.instruction`만 돌려주고 `PreparedPlan`을
+버린다.** 그 상태에서 인자를 3개(`known_sounds, plan, scenario`)로 두면 **`questions`가 실릴 자리가
+아예 없다.** 그래서 셋을 함께 바꾼다(캡틴 결정 15):
+
+1. `_load_prepared_plan_or_none`의 반환을 **`PreparedPlan | None`**으로 올린다(지금은
+   `SessionInstruction | None`). 실패 규약은 그대로 — 조회 실패·검증 실패면 `None`.
+2. `create_voice_adapter(settings, *, known_sounds, plan, questions, scenario)` —
+   `questions`를 `plan`과 **나란히 데이터로** 받는다.
+3. `build_system_prompt(known_sounds, plan, questions, scenario)` — **인자 4개.**
+
+⚠️ **`PreparedPlan`을 그대로 넘기지 않는 이유**: 그것은 `services`의 타입이고 `factory`·`nova`가
+import하면 §2.1이 방어한 **`models` ← `services` 방향이 뒤집힌다.** `list[PlanQuestion]`은
+**이미 `app/models/plan.py:85-90`에 있으므로** 방향을 깨지 않는다.
+⚠️ **`SessionInstruction`에 넣지 않는 이유**: `extra="forbid"` + 필수 필드 증가는 **저장된 모든 행을
+한꺼번에** 검증 실패시킨다 — `sessions.py:143-148`이 그 실패 모드에 이미 이름을 붙여 뒀고 보존 대상
+`session_plans` 1행이 첫 희생자가 된다.
+
+⚠️ **두 번째 소비자가 있다 — `/next-plan`**(`api/results.py:66`이 `load_prepared_plan`을 부른다).
+`questions` 검증 실패로 계획 전체를 포기하면(유도 3) **시작 화면의 추천 이유 한 줄(R11-3)도 같은
+조건에서 사라진다.** 2판이 이 파급을 적지 않았다. **그래도 유도 3을 유지한다**: DB CHECK 3~5가
+정상 경로를 지키므로 그 상황은 계약 어긋남이고, 대화와 화면이 **함께** 그 계획을 버리는 것이 한쪽만
+믿는 것보다 낫다. **`/next-plan`이 같은 조회를 공유한다는 사실을 `load_prepared_plan` docstring에 적는다.**
+
 **시나리오** (`TASK-25` AC#1·#3)
 
 - `load_session_scenario(conn, session_id) -> SessionScenario | None` 신설.
@@ -103,6 +140,17 @@
 
 문구는 **h-doc(학습자 프로필)이 소유하는 규약**을 따랐다: 단문·단일 절 · 난이도 상향 경로의
 첫 칸(일상) 유지 · **목표 수준 문형을 쓰지 않는다**(AWS 보고 문형으로 만들면 첫 세션에서 얼어붙는다).
+
+⚠️ **h-doc의 어느 규약이 적용되고 어느 것이 안 되는지 갈라 적는다** — `prompt_template`은 **학습자가
+듣는 문장이 아니라 코치(모델)에게 가는 지시문**이므로 범위가 갈린다:
+- **적용된다** — ① 난이도 상향 경로의 **첫 칸(일상)에 머무른다**: 역할을 colleague·friend·housemate로
+  두고 업무 보고 상황을 만들지 않았다 ② **목표 수준 문형 금지**: 무대가 AWS 보고 자리가 아니다.
+  이 둘은 **대화가 어느 수준에서 벌어지는지**를 정하므로 지시문에도 그대로 걸린다.
+- **적용되지 않는다** — *"단문·단일 절"*은 h-doc이 **예문·질문**(학습자가 말할 것)에 건 제약이다.
+  지시문 문장에 그것을 강제할 근거는 없다. ⚠️ **그런데 결과적으로 셋 다 단문·단일 절이다** —
+  제약이 아니라 짧을수록 모델이 무대를 덜 오해한다는 판단이고, 규약을 넓혀 적용한 것이 아니다.
+- ⚠️ **학습자에게 보이는 것은 `title`이고 그것은 지시문에 싣지 않는다**(§2.2) — 그래서 A2 수준
+  제약이 걸릴 자리는 이 표에 **없다.**
 **원래 3행의 화제(퇴근 후 · 주말 · 오늘 밤)는 보존하고 「종류」만 질문 → 무대로 바꾼다.**
 
 | id 끝 | `title` (화면 라벨) | `prompt_template` (지시문에 실린다) |
@@ -126,7 +174,8 @@
 - `ws.py`에 `_load_scenario_or_none(pool, session_id)` — `_load_known_sounds_or_empty`·
   `_load_prepared_plan_or_none`(`ws.py:117-135`)과 **글자 그대로 같은 실패 규약**: 조회 실패를
   세션 시작 실패로 번역하지 않고, 로그를 남기고 없이 진행한다.
-- `factory.create_voice_adapter(..., scenario=...)` → `build_system_prompt(known_sounds, plan, scenario)`.
+- `factory.create_voice_adapter(..., questions=..., scenario=...)` →
+  `build_system_prompt(known_sounds, plan, questions, scenario)` — **인자 4개**(위 C-1 항목).
   **G-3는 유지된다** — 팩토리는 여전히 **데이터**를 받아 여기서 조립하고, 소켓 계층은 어떤 구현이
   붙는지 모른다(`factory.py:37-47`이 그 근거를 소유한다).
 
@@ -143,14 +192,29 @@ Today's setting:
 ```
 
 ```
-- Work through these questions one at a time. Stay on each one for at least {N} turns:
-  ask it, let the learner answer, ask one follow-up about their answer, then have them
-  say it again a different way. This repeat is practice, not a correction — it does not
-  count against the one-correction-per-turn limit in rule 4.
+- Work through these questions one at a time, and stay on each one for at least {N}
+  exchanges. An exchange is one round: you say something, the learner answers. To fill
+  them, follow up on what the learner just said and have them say it again a different
+  way. That repeat is practice, not a correction — it does not count against the
+  one-correction-per-turn limit in rule 4.
     1. {prompt} ({context})
     …
 - If today's setting suggests a different pattern than the focus above, follow the focus.
 ```
+
+⛔ **3판이 이 문구를 두 군데 고쳤다 — 2판은 자기 산식과 어긋나 있었다.**
+
+1. **`turns` → `exchanges`, 그리고 exchange의 정의를 문구 안에 넣었다** (H-4). 2판은
+   *"ask it / (답) / ask one follow-up / say it again"*이라는 **4단계**를 열거했는데 그중 **코치 턴은
+   3개**였고, 기대값은 `drill_turns_min = 4`를 곱했다 → **모델이 지시를 글자 그대로 완벽히 지켜도
+   드릴마다 1턴 미달**이고 매 세션 `warning`이 떴다. 결정 10이 *"집계된 미달을 지시문 수정의 입력으로
+   쓴다"*이므로 **내 산식 오차가 지시문 수정을 유도**하게 된다. → **고정 단계를 열거하지 않고
+   「exchange 최소 N회」로 바꿔 문구와 지표가 같은 단위를 쓰게 했다.**
+   ⚠️ **exchange 1회 = §2.3이 세는 1건**이다(사용자 발화 뒤에 오는 코치 발화 1건). 단위가 하나다.
+2. **열거하는 질문은 `questions[:drill_count]`다** (H-5). 2판은 질문을 **전부** 열거하고 기대값만
+   `min(len(questions), drill_count)`로 깎았다 → 질문 5개·`drill_count=3`이면 프롬프트는 5개를 하라
+   하고 문턱은 3개분이라, **설정값이 대화를 바꾸지 않고 통과 문턱만 바꾸는 노브**였다.
+   결정 1은 *"드릴 횟수는 설정값에 두고 **읽는다**"*이고, 읽어서 **대화를 바꿔야** 그 결정이 지켜진다.
 
 **축 분석** — `build_system_prompt` docstring이 축마다 「대체한다/안 한다」를 근거와 함께 소유하는
 규약을 잇는다. **이 표의 정본은 그 docstring이 되고**, 아래는 설계 시점의 판정이다.
@@ -179,55 +243,88 @@ Today's setting:
 
 **두 값을 서로 다른 시점에 얻는다.**
 
-- **기대 턴 수** = `min(len(questions), drill_count) × drill_turns_min`.
-  **세션 시작에 `learning_sessions.summary`에 적는다** (결정 10의 *"세션에 남기고"*).
-  모양: `{"drill": {"count": K, "turns_expected": M}}`.
-  ⚠️ **왜 저장하나** — 실제 턴 수는 사후 도출되지만 **기대값은 복원 불가**다. 계획 조회가
-  「사용자 최신 1건」(`_PREPARED_PLAN_SQL`)이므로 다음 세션이 지나면 그 세션이 어느 계획을
-  썼는지 알 길이 없다.
-  ⚠️ **`summary`에는 CHECK가 없다** → **모양의 정본은 이 UPDATE를 하는 함수 docstring 하나**다.
-  두 곳에 적으면 한쪽이 조용히 낡는다.
-  실패 규약: 쓰기 실패 → 로그 + 세션 진행(부가 정보 — 기존 규약과 같다).
+**① 기대 exchange 수 — 마이그레이션 009의 새 컬럼에 적는다** (캡틴 결정 16)
 
-  ⛔ **덮어쓰지 않고 병합한다 — `summary = summary || $2::jsonb`.** 대입(`summary = $2`)으로 쓰면
-  나중에 다른 기능이 같은 컬럼에 넣은 키를 조용히 지운다. `summary`가 **`jsonb NOT NULL` +
-  기본값 `'{}'::jsonb`**라서 이 병합이 안전하다(직접 조회 2026-09-07: `is_nullable=NO` ·
-  `column_default='{}'::jsonb` · **12행 전부 `{}` · null 0행**). ⚠️ **null이 섞일 수 있는
-  컬럼이면 `||`를 쓸 수 없다** — `null || jsonb`는 `null`이라 기존 값이 통째로 사라진다.
-  NOT NULL + 기본값이 그 경로를 닫는 것이 이 설계가 대입 대신 병합을 쓸 수 있는 이유다.
-  같은 이유로 **INSERT(`_CREATE_SESSION_SQL`)를 고치지 않는다** — 기본값이 이미 `{}`를 넣는다.
+`drill_turns_expected` = `len(questions[:drill_count]) × drill_turns_min`.
+**세션 시작에 `learning_sessions.drill_turns_expected`(009 신설)에 UPDATE한다** — 결정 10의
+*"세션에 남기고"*.
 
-- **실제 턴 수** = 결과 조회 시점에
-  `count(*) from utterances where session_id = $1 and speaker = 'agent'`.
-  ⚠️ **이것이 「agent final = 사용자 턴 닫힘」과 같은 값인 이유**: `session.py:322-326`이 그 판별을
-  하는 바로 그 순간 저장되는 행이 agent final 행이다. **새 감지기를 만들지 않는다.**
-  ⚠️ **`_flush_analysis` 경로에 카운터를 얹지 않는다.** 그 함수는 예외를 밖으로 던지지 않는
-  계약(`session.py:339-355`)이고, 카운터를 얹으면 세는 일이 그 침묵 안으로 들어가 **누락이
-  관측되지 않는다.** 읽을 때 세면 두 곳에 세지 않아 갈라질 수 없고, 세션이 예외로 끝나도 값이 남는다.
+- 모양: `integer` · **nullable** · `check (drill_turns_expected > 0)`.
+  **null = 계획 없이 시작한 세션 = 관측 대상이 아니다.** 0을 쓰지 않는 이유: 0은 「기대가 0이었다」로
+  읽혀 「기대가 없었다」와 구분되지 않는다.
+- ⚠️ **왜 저장하나** — 실제값은 사후 도출되지만 **기대값은 복원 불가**다. 계획 조회가 「사용자 최신
+  1건」(`_PREPARED_PLAN_SQL`)이므로 다음 세션이 지나면 그 세션이 어느 계획을 썼는지 알 길이 없다.
+- 실패 규약: UPDATE 실패 → 로그 + 세션 진행(부가 정보 — 기존 규약과 같다).
 
-  ⚠️ **이 값이 세는 것은 정확히 「agent 전사문 행 수」다 — 「agent 턴 수」와 같다는 것은
-  조건부다.** 조건: **한 completion = 한 행.** 성립 근거와 성립하지 않는 경로를 둘 다 확인했다:
-  `_flush_pending_agent_text`가 한 턴의 청크를 **이어붙여 한 행**으로 만들고(`nova.py:451-472`),
-  `completionEnd`가 그 flush를 부른다(`nova.py:346-347`). 그런데 **barge-in에서
-  `contentEnd(stopReason=INTERRUPTED)`는 flush하지 않고 즉시 반환한다**(`nova.py:442-443`).
-  즉 **그 completion의 `completionEnd`가 오지 않으면** 끊긴 턴의 청크가 남아 다음 턴과
-  **한 행으로 합쳐지고**, 그러면 이 지표가 턴을 **적게** 센다.
-  ⛔ **지금은 관측 불가다** — 런타임이 `VOICE_ADAPTER=stub`이고 barge-in은 Nova 실물 경로다.
-  **그래서 「성립한다」고 단정하지 않고 조건을 적어 둔다**(§5 약점 2). 확정하려면 Nova 실물
-  세션에서 barge-in을 일으켜 `completionEnd` 수신 여부를 봐야 한다.
+⛔ **2판은 이 값을 `summary` jsonb에 넣으려 했고 그것이 H-2다.** 세 가지가 함께 틀렸다:
+1. **`summary`에는 문서화된 다음 소유자가 있다** — `docs/database-schema.md:76-78`이
+   *"`summary`(세션 총평)는 `summarize_session`과 함께 다음 슬라이스에서 채워진다"*고 **이미 지정**했고
+   `007:70-71`이 `analysis_jobs.job_type` CHECK에 `summarize_session`을 **열어 뒀다.**
+   §1의 *"앱 참조 0곳"*은 **코드에 대해 참이지만 결론으로는 틀렸다** — 미사용 컬럼이 아니라
+   **이름 붙은 다음 소비자가 있는** 컬럼이다.
+2. 총평 구현자가 `set summary = $2`를 쓰는 것은 **컬럼 이름과 문서를 따르는 정상 행동**이고,
+   그때 지워지는 값은 이 설계가 스스로 *"복원 불가"*라고 적은 값이다.
+   **docstring은 그 함수를 읽을 이유가 없는 사람을 구속하지 못한다.**
+3. ⛔ **그 유도의 효과가 「승인 게이트를 피하는 것」이었다** — 2판 §7 유도 2가 뒤집는 대가를
+   *"스키마 변경이라 승인 항목이 하나 는다"*로 적었다. 그것은 설계 근거가 아니라 **회피의 자백**이다.
+   `captain-decisions.md` §4가 스키마 변경에 백업·검증 절차까지 요구한 신중함의 **대상을 피한** 셈이다.
 
-- **계획이 없으면 기대값이 없다 → 관측 대상이 아니다.** 드릴은 계획의 질문에서 나온다.
+→ **009 컬럼이 옳다**: CHECK로 모양이 강제되고, 소유권 충돌이 없고, 스키마가 문서를 대신해 다음
+사람을 구속한다. **008은 `TASK-26`(주간 리포트) 예약이므로 009다.** `database-schema.md`에 이 컬럼을
+더한다(§6-15). ⛔ 적용 전 `pg_dump` 백업 → 적용 → **기존 행 수가 하나도 줄지 않았는지** 직접 조회.
+
+**② 실제 exchange 수 — 결과 조회 시점에 「사용자→코치 전이」를 센다**
+
+```sql
+select count(*) from (
+  select speaker, lag(speaker) over (order by sequence_no) as prev
+    from utterances
+   where session_id = $1
+     and utterance_type = 'learning'
+) t
+where t.speaker = 'agent' and t.prev = 'user'
+```
+
+⛔ **2판은 `count(*) … where speaker = 'agent'`였고 그것이 H-3다 — 지표가 자기 프롬프트가
+명령하는 행동에 오염됐다.** 기전: `SYSTEM_PROMPT` **규칙 2**(`nova.py:119-121`)가 *"긴 침묵 뒤에만
+짧은 시작 힌트를 한 문장 주고 다시 멈춘다"*를, **규칙 5**(`:126`)가 *"막히면 시작 힌트를 준다"*를
+**명령한다.** 학습자가 침묵하면 코치가 힌트를 말하고 → 그 힌트가 agent 행 1건이 되고 → 카운터가
+1 오른다. 그 순간 `_flush_analysis`는 **대기 발화가 없어 no-op**이다(`session.py:343-344`).
+**턴이 닫히지 않았는데 수만 올라간다.** → 학습자가 막혀 침묵만 한 세션이 「12 exchange 달성」으로
+통과할 수 있고, **지표가 높을 때 「드릴이 돌았다」인지 「막혀서 힌트가 반복됐다」인지 구분되지 않는다.**
+
+→ **전이를 세면 그 경로가 닫힌다**: 코치 발화 중 **직전이 사용자 발화인 것만** 센다. 연속 코치 발화
+(힌트 반복)와 **코치 선발화**는 세지 않는다. 이것이 exchange의 정의이자 §2.2 문구가 말하는 단위다.
+⚠️ **`utterance_type = 'learning'`을 함께 거른다** — 같은 리포의 다른 두 SQL(`plan_input.py:53` ·
+`utterances.py:161-162`)이 speaker와 함께 거르는 관례이고, 2판의 count만 그것을 깼다.
+⚠️ **새 감지기를 만들지 않는다**: 세는 규칙은 `session.py:322-326`의 판별과 같은 것이고,
+저장된 순서(`sequence_no`)로 사후에 같은 판정을 한다.
+⚠️ **`_flush_analysis` 경로에 카운터를 얹지 않는다** — 그 함수는 예외를 밖으로 던지지 않는
+계약(`session.py:339-355`)이라 세는 일이 그 침묵 안으로 들어가면 **누락이 관측되지 않는다.**
+
+⚠️ **남는 오차는 barge-in 하나다(과소 계수)** — 근거와 확정 방법은 **§5 약점 2**가 소유한다.
+
+**③ 계획이 없으면 기대값이 null → 관측 대상이 아니다.** 드릴은 계획의 질문에서 나온다.
 
 **노출** (결정 10: 결과 화면·로그에 보이게 · 점수처럼 보이면 안 된다)
 
-- 결과 API는 `corrections`의 **키 생략 규약**(`api/results.py:105-106`)을 그대로 따른다 —
-  기대값이 없으면 응답에 `drill` 키를 **넣지 않는다.**
-- 모양은 `{"turns_observed": N, "turns_expected": M}` **둘뿐**이다.
-  ⛔ **비율·퍼센트·「달성/미달」 낱말을 넣지 않는다.** 결과 화면 톤 계약은
-  *"채점하지 않습니다. 시범합니다"*(`docs/storyboard.html`)이고 그 계약이 문구를 소유한다.
-- 프론트는 값이 오면 **사실 진술 한 줄**, 없으면 아무것도 그리지 않는다.
-- 로그: 미달이면 `warning` 한 줄. `INFO`가 아닌 이유는 **H-Z**(문서가 지정한 실행에서 INFO는
-  보이지 않는다)다.
+- ⛔ **`drill` 키는 `corrections`와 **같은 R2 상태 규약**을 따른다** — `analyzing` ·
+  `connection_failed` · `no_utterances`에서는 **키째로 뺀다**(`api/results.py:10-13`의 doctrine:
+  잠정 노출 금지). **2판은 키 유무를 「기대값 존재」로 정했고 그것이 D5-4였다**: 리퍼가 닫은
+  `connection_failed` 세션에서 `corrections`는 숨는데 `drill: {1, 12}`는 실려 ① 화면 doctrine과
+  어긋나고 ② **연결 실패마다 미달이 쌓여** 결정 10이 쓰겠다는 신호가 오염됐다.
+  ⚠️ 2판 §4 Failure 표가 이것을 *"그래도 나온다"*고 **장점으로** 적었다 — 그 줄도 고쳤다.
+- API 모양은 `{"exchanges_observed": N, "exchanges_expected": M}`. **이 두 수의 용도는 결정 10이
+  정한 것 하나 — 「지시문을 고치는 입력」이고 서버·로그가 소비한다.**
+- ⛔ **화면에는 두 수를 함께 내보내지 않는다.** 분자와 분모를 나란히 주면 화면에서 `9 / 12`로 읽히고
+  그것이 **가장 점수처럼 보이는 모양**이다. 게다가 결정 10은 *"미달의 주어는 학습자가 아니라 대화
+  모델"*인데 그 수는 **학습자 화면**에 간다 — 학습자가 손쓸 수 없는 수를 자기 점수로 읽는다.
+  → **화면은 숫자 없이 한 문장만 그린다.** 예시(문구 확정은 톤 계약이 소유): *"오늘은 드릴이 계획보다
+  짧았어요."* **주어를 세션에 두고 학습자를 주어로 쓰지 않는다.** 미달이 아니면 아무것도 그리지 않는다.
+  ⚠️ **2판은 이 위험을 인지하고도 문구를 §8 범위 밖으로 밀었다** — 위험을 지는 항목을 미룬 것이라
+  3판에서 **제약을 여기 명시한다.** 낱말 선택만 톤 계약의 몫이다.
+- 로그: 미달이면 `warning` 한 줄(두 수를 적는다). `INFO`가 아닌 이유는 **H-Z**(문서가 지정한 실행에서
+  INFO는 보이지 않는다)다.
 
 ---
 
@@ -265,8 +362,19 @@ Today's setting:
 
 ### Contract
 
-- `build_system_prompt(known_sounds, plan, scenario)` — 셋 다 없으면 결과는 `SYSTEM_PROMPT`
-  **그 자체**(기존 계약 보존). `scenario`만 있고 `plan`이 없으면 setting 블록만 붙는다.
+⛔ **2판의 이 렌즈는 형식만 채웠다 — 그것이 D3다.** `build_system_prompt`의 전제·사후조건을
+적으면서 **`questions`가 그 시그니처의 어디에도 없다는 것을 스스로 발견하지 못했다**(=C-1).
+**Contract 렌즈의 존재 이유가 정확히 그것인데 통과시켰다.** 3판은 인자 4개를 **전부 열거하고
+각각의 부재 동작을 적는다** — 열거하지 않으면 같은 누락이 다시 통과한다.
+
+- `build_system_prompt(known_sounds, plan, questions, scenario)` — **인자 4개.** 부재 동작:
+  - **넷 다 없으면** 결과는 `SYSTEM_PROMPT` **그 자체**(기존 계약 보존).
+  - `scenario`만 있으면 setting 블록만, `plan`만 있으면 계획 블록만 붙는다.
+  - ⚠️ **`plan`이 `None`이면 `questions`는 무시한다** — 드릴 줄은 계획 블록 안에 있고, 계획 없이
+    질문만 실으면 목표 없는 질문 목록이 된다. **호출자가 둘을 함께 얻거나 함께 잃는다**
+    (`PreparedPlan` 하나에서 오므로 구조가 이미 그렇다).
+  - ⚠️ **`questions`가 빈 목록이면 드릴 줄을 넣지 않는다** — 값 없는 줄을 넣지 않는 기존 규약과 같다.
+    정상 경로에서 빈 목록은 오지 않는다(DB CHECK 3~5).
 - `load_session_scenario` 사후조건: 세션 부재·`scenario_id` null·시나리오 행 부재 → 전부 `None`.
   **DB 오류는 던진다** — 흡수는 `ws.py` 래퍼가 한다(기존 분업 그대로. 예외를 안으로 삼키면
   «조회가 깨졌다»와 «시나리오가 없다»가 서비스 계층에서 구분되지 않는다).
@@ -278,7 +386,9 @@ Today's setting:
 - **jsonb → 객체**: `questions`도 `instruction`과 같이 `str`로 온다 → `json.loads` + `model_validate`.
 - **DB → 지시문 문자열**: `prompt_template` 31~35자. 블록이 짧은 문구로도 성립한다(§2.2).
   `title`은 넘기지 않는다(규칙 6).
-- **모양이 강제되지 않는 경계**: `summary` jsonb에는 CHECK가 없다 → 정본을 docstring 한 곳에.
+- **모양이 강제되는 경계**: `drill_turns_expected`는 009의 `check (> 0)`가 지킨다 —
+  ⛔ **2판은 CHECK 없는 `summary` jsonb에 넣고 정본을 docstring 하나에 두려 했다**(§2.3 H-2).
+  **스키마가 지키면 다음 사람이 그 함수를 읽지 않아도 구속된다.**
 - **시각 경계**: 이 설계는 **달력 날짜를 판정하지 않는다.** `timestamptz`를 읽지도 쓰지도 않고
   「오늘/어제」 경계가 없다 — 그래서 `current_date` 함정이 걸리지 않는다.
 
@@ -287,25 +397,34 @@ Today's setting:
 | 실패 | 결과 | 근거 |
 |---|---|---|
 | 시나리오 조회 실패 | 로그 + 블록 없이 진행 | 계획과 같은 규약(`ws.py:117-135`) |
-| `questions` 검증 실패 | 계획 **전체** 포기 + warning | §2.1 |
-| `summary` 쓰기 실패 | 로그 + 진행 | 부가 정보 |
-| 세션이 예외로 끝남 | `turns_observed`는 **그래도 나온다** | 읽을 때 세므로 |
+| `questions` 검증 실패 | 계획 **전체** 포기 + warning. ⚠️ `/next-plan` 한 줄도 함께 사라진다 | §2.1 |
+| `drill_turns_expected` UPDATE 실패 | 로그 + 진행 → 그 세션은 관측 대상에서 빠진다 | 부가 정보 |
+| 세션이 예외로 끝남 | 관측값은 **그래도 나온다** | 읽을 때 세므로 |
+| 리퍼가 `connection_failed`로 닫음 | ⛔ **`drill` 키를 뺀다** | R2 상태 규약(§2.3) |
 
-⚠️ **남는 모호함 하나**: `drill` 키 부재가 「계획이 없었다」와 「`summary` 쓰기가 실패했다」를
-**구분하지 않는다.** 지금은 둘 다 «관측 없음»으로 수렴하는 것이 맞다(화면이 할 일이 같다).
-구분이 필요해지면 **로그가 답한다** — 쓰기 실패에만 로그가 남는다.
+⛔ **2판은 마지막 행을 *"그래도 나온다"*고 장점으로 적었다 — 그것이 D5-4였다.** 연결 실패 세션에
+미달이 실리면 화면 doctrine과 어긋나고 결정 10이 쓰겠다는 신호가 오염된다. **이제 상태 규약이 막는다.**
 
-부분 실행: `summary` 쓰기는 단독 UPDATE라 반쯤 쓰일 수 없다. 결과 조회는 읽기 전용이다.
+⚠️ **남는 모호함 하나**: `drill` 키 부재가 「계획이 없었다」·「UPDATE가 실패했다」·「R2 상태가
+숨긴다」 **셋을 구분하지 않는다.** 화면이 할 일이 같으므로 수렴시키는 것이 맞고, 구분이 필요하면
+**로그가 답한다**(UPDATE 실패에만 로그가 남는다).
+
+부분 실행: `drill_turns_expected` UPDATE는 단독이라 반쯤 쓰일 수 없다. 결과 조회는 읽기 전용이다.
 
 ### Dependency
 
 - 순서: `create_session`(`ws.py:149`) → `load_session_scenario` · 계획 로드(`ws.py:168`) →
-  `summary` 쓰기(질문 수를 알아야 기대값을 계산한다). **둘 다 기존 순서로 이미 만족한다** —
+  `drill_turns_expected` UPDATE(질문 수를 알아야 계산한다). **둘 다 기존 순서로 이미 만족한다** —
   새 순서 제약을 만들지 않는다.
-- 의존 방향: `models` ← `services`·`audio_gateway`. `SessionScenario`를 `models`에 두는 이유(§2.1).
-  순환 없음.
-- ⚠️ **진행 중 세션의 `turns_observed`는 미완값이다.** 결과 화면은 종료된 세션을 보므로 실무상
-  드러나지 않지만 계약으로 적는다 — 이 값은 「지금까지 닫힌 사용자 턴 수」다.
+- 의존 방향: `models` ← `services`·`audio_gateway`. `SessionScenario`를 `models`에 두는 이유와
+  `PreparedPlan`을 넘기지 않는 이유는 §2.1이 소유한다. 순환 없음 — `sessions.py:38`이 이미
+  `app.models.plan`을 import한다.
+- ⚠️ **진행 중 세션의 관측값은 미완값이다.** 결과 화면은 종료된 세션을 보므로 실무상 드러나지 않지만
+  계약으로 적는다.
+- ⛔ **계약 문장을 고쳤다** — 2판은 이 값을 *"닫힌 사용자 턴 수"*라고 적었고 그것은 **등가가 아니라
+  상한**이었다(H-3: 규칙 2·5가 명령하는 힌트 턴이 사용자 턴을 닫지 않고도 수를 올렸다).
+  3판의 값은 **「사용자 발화 바로 뒤에 온 코치 발화 수」 = exchange 수**이고, 그것이 §2.2 문구가
+  세라고 한 단위와 **같은 것**이다. **남는 편차는 barge-in 하나이고 §5 약점 2가 소유한다.**
 
 ---
 
@@ -323,33 +442,59 @@ Today's setting:
 ⚠️ **그래서 이 관측을 「드릴 4턴 요구사항이 지켜졌다」의 증거로 쓰지 않는다.** 쓰임은 결정 10이
 정한 것 하나 — **집계된 미달을 「지시문을 고치는 입력」으로 쓴다.**
 
-### 약점 2 — barge-in이 턴을 합칠 수 있다 (조건부 · 지금 관측 불가)
+### 약점 2 — barge-in이 exchange를 합칠 수 있다 (과소 계수 · 미확정)
 
-⛔ `turns_observed`는 **agent 전사문 행 수**이고 턴 수와 같다는 것은 **「한 completion = 한 행」이
-성립할 때만**이다. `contentEnd(INTERRUPTED)`가 flush하지 않으므로(`nova.py:442-443`) 그 completion의
-`completionEnd`가 오지 않으면 두 턴이 한 행이 되어 **적게 센다**(근거는 §2.3).
+⛔ **2판이 이 항목을 틀리게 방어했다.** 2판은 *"`completionEnd`가 그 flush를 부르므로 모순이
+아니다"*(`nova.py:346-347`)라고 눌렀는데, **`nova.py:86`이 「실물 계측(2026-09-03)에서
+`completionEnd`는 한 번도 오지 않았고 END_TURN만 왔다」고 적어 뒀다** — **한 번도 안 온 경로에
+기댄 방어**였다. 그 폴백을 근거로 쓸 수 없다.
 
-⚠️ **지금 확정할 수 없다** — `VOICE_ADAPTER=stub`이라 barge-in 경로가 돌지 않는다. **미확정을
-「성립한다」로 적지 않는 것이 이 절의 목적이다.** 방향은 셋이고 이 설계는 셋 다 하지 않는다:
-Nova 실물에서 barge-in을 일으켜 확인(별도 관측 태스크) · `InterruptionEvent`를 세어 보정
-(계측 대상이 계측을 바꾸는 결합이 생긴다) · 지표를 「행 수」로만 부르고 턴이라 부르지 않기.
+관측한 코드 사실 셋:
+- `nova.py:442-443` — `INTERRUPTED`면 `[InterruptionEvent()]`를 **즉시 반환**한다. 아래 END_TURN
+  분기(`:444-448`)에 닿지 않으므로 **flush가 일어나지 않는다.**
+- `nova.py:451-472` docstring은 *"끊긴 턴(barge-in)에서도 올린다"*고 적었다 — **코드와 어긋나 보인다.**
+- `nova.py:86` — `completionEnd` 폴백은 실측에서 **오지 않았다.**
+
+→ **의심되는 기전**: 끊긴 턴의 `_pending_agent_chunks`가 비워지지 않고 남아 **다음 턴의 END_TURN에서
+함께 한 행으로** 올라간다 → 코치 발화 2건이 `utterances` 1행 → exchange를 **적게** 센다.
+
+⚠️ **H-3(과다)과 반대 방향이라 두 오차가 서로를 가릴 수 있다** — 그것이 이 항목을 무시하면 안 되는
+이유다. **§2.3의 전이 세기는 H-3만 닫고 이것은 닫지 못한다**(합쳐진 행도 직전이 사용자 발화이므로
+1로 세어진다).
+
+⚠️ **미확정이다** — 끊긴 content 블록과 **별개로** 텍스트 content에 END_TURN `contentEnd`가 오는지는
+**코드만으로 알 수 없다.** 오면 정상 flush되어 어긋남이 없고, 오지 않으면 위 기전이 성립한다.
+Nova가 실제로 보내는 이벤트 순서에 달린 **실측 문제**이고 지금 런타임은 `stub`이라 돌지 않는다.
+**추측으로 단정하지 않는다.**
+
+**확정하려면 볼 것(순서대로 · 전부 읽기 전용)**:
+1. `tests/harness/runs/`의 실물 회차 원자료에서 `INTERRUPTED`가 실린 `contentEnd` 전후를 열어
+   **같은 completion 안에 END_TURN `contentEnd`가 또 오는지** 센다. barge-in이 그 회차에 없었다면
+   **이 자료로는 판정 불가**이고 그 사실을 미검증으로 남긴다.
+2. `tests/unit/test_nova.py`에서 `INTERRUPTED`를 넣는 테스트가 **flush를 단정하는지** 본다.
+   단정한다면 docstring의 주장이 테스트로 보장되고 이 기전은 배제된다.
+3. 둘로 안 갈리면 **Nova 실물 1회** — 코치가 말하는 중 끼어들고, 그 세션의 코치 발화 행 수와 실제
+   코치 턴 수를 대조한다. ⛔ 워커·실물 호출이 필요하므로 **캡틴 확인 후**에만.
+
 ⚠️ **`stub` 모드에서 이 약점은 발동하지 않는다** — 그래서 지금 구현·테스트는 유효하고,
-Nova가 붙는 시점에 이 절을 다시 읽어야 한다.
+**Nova가 붙는 시점에 이 절을 다시 읽어야 한다.**
 
 ---
 
 ## §6. 변경 대상과 테스트
 
-**마이그레이션 0건.** ⛔ `mode`·`sessions.py:65`의 `'speaking'` 리터럴을 **건드리지 않는다**
+⛔ **마이그레이션 1건 — `009`**(캡틴 결정 16. 2판까지 「0건」이었고 그것이 H-2였다).
+**008은 `TASK-26`(주간 리포트) 예약이다.**
+⛔ `mode`·`sessions.py:65`의 `'speaking'` 리터럴을 **건드리지 않는다**
 (결정 11 — 정본은 `captain-decisions.md` §5).
 
 | # | 파일 | 무엇 |
 |--:|---|---|
 | 1 | `app/config.py` | `Settings` 필드 2개 |
 | 2 | `app/models/scenario.py` | **신설** — `SessionScenario` |
-| 3 | `app/services/sessions.py` | `sp.questions` select · `PreparedPlan` + docstring `:122` · `load_session_scenario` · `summary` UPDATE |
-| 4 | `app/api/ws.py` | `_load_scenario_or_none` + 배선 |
-| 5 | `app/audio_gateway/factory.py` | 인자 1개(`scenario`) |
+| 3 | `app/services/sessions.py` | `sp.questions` select · `PreparedPlan` + docstring `:122` · `load_session_scenario` · **`drill_turns_expected` UPDATE** · `load_prepared_plan` docstring에 `/next-plan` 공유 사실 |
+| 4 | `app/api/ws.py` | `_load_scenario_or_none` + 배선 · ⛔ **`_load_prepared_plan_or_none`의 반환을 `PreparedPlan | None`으로**(`:117-135` — 지금은 `.instruction`만 돌려주고 `PreparedPlan`을 버린다. C-1의 자리다) |
+| 5 | `app/audio_gateway/factory.py` | 인자 **2개**(`questions`·`scenario`) |
 | 6 | `app/audio_gateway/nova.py` | 블록 조립 + **docstring 축 분석에 시나리오·질문·드릴 축 추가** |
 | 7 | `app/api/results.py` | `drill` 키(생략 규약) |
 | 8 | 프론트 결과 화면 | 사실 진술 한 줄 (문구는 톤 계약이 소유) |
@@ -357,11 +502,19 @@ Nova가 붙는 시점에 이 절을 다시 읽어야 한다.
 | 10 | `scripts/migrate.py` | `SEED_SCENARIOS` 3행 교체(`:34-55`) + `on conflict … do update set title, prompt_template`(`:109`) · `:33` 주석의 *"questions"* 서술도 함께 고친다 |
 | 11 | `tests/unit/test_schema.py` | `:145` 서술(*"질문 3개"*) · `:164-169`의 title 단정 3건 |
 | 12 | `tests/integration/test_ws.py` | ⛔ **spy 둘이 시그니처를 하드코딩한다**(`:306-320`·`:379-392`) → `scenario` kwarg가 늘면 **`TypeError`**. `:142-144`의 픽스처가 `values (…, $1, $1)`로 넣어 `title`=`prompt_template`을 만드는 것도 무대 모양으로 고친다 |
-| 13 | `/.env.example` | ⛔ **실재한다**(§3 정정) — 드릴 값 2줄을 근거 주석과 함께 더한다 |
+| 13 | `/.env.example` | ⛔ **실재한다**(§3 정정) — 드릴 값 2줄을 근거 주석과 함께 더한다(§7 유도 9) |
+| 14 | `db/migrations/009_drill_turns.sql` | ⛔ **신설**(결정 16) — `learning_sessions.drill_turns_expected integer` nullable + `check (> 0)` |
+| 15 | `docs/database-schema.md` | 새 컬럼 1행 + ⚠️ **`:76-78`의 `summary` 서술은 그대로 둔다** — 그 컬럼은 여전히 `summarize_session`의 것이고 이 설계는 손대지 않는다 |
+| 16 | `tests/integration/test_gateway.py` | `create_voice_adapter` 직접 호출 **8건**(`:694`·`703`·`711`·`737`·`749`·`759`·`790`·`803`) — 인자가 둘 늘면 함께 고친다 |
 
-⛔ **순서가 있다 — 시드 교체(10·11)가 선행이다.** `title`≠`prompt_template`이 되기 전에는
-§2.2의 규칙 6 방어와 그 tripwire가 **성립하지 않는다**(그 절의 ⛔ 상자). 시드를 먼저 바꾸고
-`pg_dump` 백업 → 적용 → 3행을 직접 조회해 확인한 뒤 나머지로 간다.
+⛔ **순서가 있다 — 둘이 선행이다.**
+1. **시드 교체(10·11)** — `title`≠`prompt_template`이 되기 전에는 §2.2의 규칙 6 방어와 그 tripwire가
+   **성립하지 않는다**(그 절의 ⛔ 상자). `pg_dump` 백업 → 교체 → 3행 직접 조회.
+   ✅ **이 단계는 끝났다**(커밋 `3cd12ba`).
+2. **009 적용(14·15)** — `drill_turns_expected`가 없으면 §2.3의 UPDATE가 갈 자리가 없다.
+   `pg_dump` 백업 → 적용 → **기존 행 수가 하나도 줄지 않았는지** 직접 조회.
+
+그 뒤 나머지(1~9·12·13·16)로 간다. **1·2를 건너뛰면 그 위의 테스트가 원리적으로 통과할 수 없다.**
 
 **테스트 (T0 red→green — 구현 전 실패를 실제로 관측한다)**
 
@@ -379,26 +532,39 @@ Nova가 붙는 시점에 이 절을 다시 읽어야 한다.
   (⚠️ 이것이 §2.2 tripwire의 **선행 조건**이라 같은 판에서 함께 든다)
 - **시드 upsert 멱등성** — `migrate.py`를 두 번 돌려 3행이 유지되고 내용이 새 값이다(`do update` 확인)
 - **`SessionResult.drill`** — 계획 있는 세션에 값 · 없는 세션에 `None` → API 키 생략
+- ⛔ **exchange 세기의 판별력 4건**(H-3이 뚫은 자리 — 여기가 이 판의 핵심 tripwire다):
+  ① 코치 발화가 **연속 2건**이면(힌트 반복) **1만 센다** ② **코치 선발화**는 세지 않는다
+  ③ `utterance_type != 'learning'` 행은 세지 않는다 ④ 사용자 발화만 있는 세션은 **0**
+- **기대값 = `len(questions[:drill_count]) × drill_turns_min`** — 질문 5개·`drill_count=3`·`min=4`면
+  **12**(2판 산식과 같은 수지만 **열거된 질문 수에서 나온다**는 것이 달라졌다)
+- ⛔ **프롬프트가 `drill_count`개만 열거한다**(H-5) — 질문 5개·`drill_count=3`이면 지시문에 **3개**만
+  실린다. **이것이 설정값이 대화를 바꾼다는 증거다**
+- ⛔ **문구에 고정 4단계 열거가 없다**(H-4) — `exchanges`라는 낱말이 실리고 `turns`가 실리지 않는다
+- ⛔ **R2 상태별 `drill` 키**(D5-4) — `connection_failed`·`analyzing`·`no_utterances`에서 **키 부재**,
+  기대값이 있어도 그렇다
+- **009**: 컬럼 nullable · `check (> 0)`가 0과 음수를 거부 · 기존 행에 null이 들어간다
 - 무회귀: **666 passed 유지 또는 증가**. ⚠️ **`test_ws.py` spy 둘과 `test_schema.py` title 단정은
   「고쳐야 통과하는」 기존 테스트다** — red가 아니라 **회귀**이므로 T0 red 증거로 세지 않는다
 
 ---
 
-## §7. 내가 유도한 것 8건 — 틀렸으면 이 줄만 뒤집으면 된다
+## §7. 내가 유도한 것 10건 (1건은 철회됨) — 틀렸으면 이 줄만 뒤집으면 된다
 
 `captain-decisions.md` §3의 선례를 따른다. **캡틴 결정이 답하지 않은 자리에서 내가 정한 것**이고,
 근거는 각각 본문이 소유한다. 뒤집을 때 무엇을 지우는지 함께 적었다 — 그것이 이 절의 쓸모다.
 
 | # | 유도 | 뒤집으면 |
 |--:|---|---|
-| 1 | `drill_count`·`drill_turns_min` **둘 다** 설정값으로 둔다 (결정 1 *"드릴 횟수"* 대 §2 *"드릴 턴 수"*의 어긋남 — §3) | 필드는 하나여야 한다 → **`drill_count`를 지우고** 기대 드릴 수를 질문 수로만 센다 |
-| 2 | **마이그레이션 0건** — 기대 턴 수를 기존·미사용 `summary` jsonb에 둔다 (§2.3) | `learning_sessions`에 컬럼을 신설하고 **009**를 쓴다(008은 `TASK-26` 예약) → 스키마 변경이라 승인 항목이 하나 는다 |
+| 1 | **두 설정값이 어떻게 맞물리는지** — `drill_count`가 열거·기대값의 **상한**이 되고 `drill_turns_min`이 exchange 수다 (§3) | 맞물림을 바꾼다(예: `drill_count`를 질문 수 하한으로 읽는다). ⛔ **`drill_count`를 지우는 것은 뒤집기가 아니라 위반이다** — 결정 1이 *"드릴 횟수는 설정값(config·env)에 따로 두고 읽는다"*고 **명시했다**. 2판이 뒤집는 길을 "지운다"로 적어 **캡틴 결정과 내 판단을 섞었다**(critic 지적) |
+| 2 | ~~마이그레이션 0건 — `summary` jsonb에 둔다~~ → **철회됐다.** 캡틴 결정 16으로 **009 컬럼**이 되었다 (§2.3 H-2) | 되살리지 마라. 철회 이유가 셋이다: 문서화된 다음 소유자(`summarize_session`) · docstring이 남을 구속하지 못함 · **그 유도의 효과가 승인 게이트 회피였다** |
 | 3 | `questions` 검증 실패 시 **계획 전체를 포기**한다 (§2.1) | 질문만 빈 목록으로 떨어뜨리고 계획은 살린다 → 「드릴 지시 없는 세션」이 정상처럼 보인다 |
 | 4 | 실제 턴 수를 **저장하지 않고 읽을 때 센다** (§2.3) | 세션 종료 시 저장한다 → 예외로 끝난 세션의 값을 잃고, 세는 자리가 둘이 된다 |
 | 5 | `title`을 지시문에 **싣지 않는다** — 규칙 6 (§2.2). ⚠️ **결정 14의 시드 교체 뒤에만 실질이 있다** — 그전에는 두 값이 바이트 동일이라 공허했다 | 무대 문구에 제목을 앞세운다 → 무대를 더 진하게 하지만 메타데이터 노출 여지가 생긴다 |
 | 6 | 질문 문구에서 **`in this order`를 뺀다** — 규칙 3 비대체 (§2.2) | 순서를 지정한다 → 드릴 순서가 예상 가능해지지만 규칙 3과 부딪힌다 |
 | 7 | 드릴 반복이 **교정이 아니라고 지시문에 명시**한다 — 규칙 11의 반대 방향 (§2.2) | 그 문장을 뺀다 → 모델이 드릴 반복을 교정으로 세어 드릴이 1턴에 끝날 위험이 돌아온다 |
 | 8 | 시드를 `on conflict … **do update**`로 바꾼다 (§2.1 · 결정 14는 「고친다」까지만 정했다) | `do nothing`을 두고 **일회성 UPDATE 스크립트**를 쓴다 → 시드 상수와 DB가 다시 갈라질 수 있지만, upsert가 손으로 고친 행을 덮을 위험은 없어진다 |
+| 9 | **루트 `.env.example`을 새 설정값과 함께 갱신한다** (§3 · §6-13). 그 파일이 `DATABASE_URL`·`CLAUDE_MODEL_ID`·`WORKER_ENABLED`·`NOVA_ENDPOINTING_SENSITIVITY`를 **근거 주석과 함께** 담는 관례를 이미 갖고 있고 드릴 값 둘이 같은 종류다 | 갱신하지 않는다 → 기본값의 정본은 여전히 `Settings`이므로 동작은 같지만, **운영자가 조정 가능한 노브를 발견할 자리가 없어진다.** ⚠️ 없는 것은 `app/backend/.env.example`뿐이고 루트 파일은 git 추적 중이다 |
+| 10 | 화면에 **숫자를 내보내지 않고** 문장 하나만 그린다 (§2.3 노출) | 두 수를 화면에 준다 → 미달의 크기가 보이지만 `9 / 12`로 읽혀 **가장 점수처럼 보이는 모양**이 되고, 결정 10의 *"미달의 주어는 대화 모델"*과 어긋난다 |
 
 ## §8. 범위 밖
 
@@ -418,3 +584,11 @@ _⛔ **첫 판이 틀린 자리를 지우지 않고 남겼다** — `.env.exampl
 _안 본」 것 둘 다 본문에 정정으로 남아 있다. 지우면 같은 실수가 돌아온다._
 _⚠️ **한 문장을 특히 기억할 것**: 인용의 출처가 정본(`captain-decisions.md`)이어도 **그 사실이_
 _지금도 참인지는 직접 확인해야 한다** — 이 판의 오류 2건 중 1건이 그 경로로 들어왔다._
+
+_2026-09-07 **3판**: 판정문 후반부의 **막는 것 5건**을 반영했다(머리말 3판 표). **캡틴 결정 15**_
+_(인자 4개) · **16**(마이그레이션 009)을 받았다. 2판이 승인받은 「인자 3개」는 **증명 가능하게_
+_불충분했고**(재료가 갈 길이 없었다) 「마이그레이션 0건」은 **소유자 있는 컬럼 점유**였다._
+_⚠️ **세 판을 통틀어 가장 값어치 있는 교훈 셋**: ① **길이를 재는 것은 내용을 보는 것이 아니다**_
+_(시나리오 3행) ② **grep이 참이어도 결론은 틀릴 수 있다**(`summary` 「앱 참조 0곳」) ③ **지표가_
+_자기 프롬프트가 명령하는 행동에 오염될 수 있다**(규칙 2·5의 힌트 턴). 셋 다 「검사가 통과했는데_
+_통과한 이유가 틀렸다」의 변종이고, 그것이 이 리포의 지배 실패 모드다._
