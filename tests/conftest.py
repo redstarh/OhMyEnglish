@@ -539,6 +539,7 @@ def plan_input_factory() -> Callable[..., PlanInput]:
     def make(
         *,
         due_keys: Sequence[str] = (),
+        due_pronunciation: Sequence[str] = (),
         chronic_flagged: Sequence[str] = (),
         chronic_unflagged: Sequence[str] = (),
         chronic_max_gap: timedelta | None = timedelta(days=3),
@@ -547,19 +548,27 @@ def plan_input_factory() -> Callable[..., PlanInput]:
     ) -> PlanInput:
         now = datetime.now(UTC)
         pattern_ids: dict[str, UUID] = {}
-        for key in (*due_keys, *chronic_flagged, *chronic_unflagged):
+        for key in (*due_keys, *due_pronunciation, *chronic_flagged, *chronic_unflagged):
             pattern_ids.setdefault(key, uuid4())
 
-        due_reviews = [
-            DueReview(
+        def _due(key: str, category: str, target_form: str) -> DueReview:
+            return DueReview(
                 pattern_id=pattern_ids[key],
                 pattern_key=key,
-                category="grammar",
-                target_form=f"target form for {key}",
+                category=category,
+                target_form=target_form,
                 next_review_at=now - timedelta(days=1),
                 mastery_score=0.0,
             )
-            for key in due_keys
+
+        # 발음 패턴의 복습 줄은 **소리**로 불린다(`TASK-44`, 설계서
+        # `2026-09-08-pronunciation-review-cycle-design.md` §5.6 ④) — 문법 줄과 다른 낱말을
+        # 쓰므로 `category`를 테스트가 정할 수 있어야 그 분기를 잴 수 있다. `due_keys`가
+        # `category="grammar"`로 고정돼 있어 이 파라미터 없이는 그 줄을 만들 수 없었다.
+        # ⚠️ `target_form`도 다르다: 발음 패턴의 그 컬럼은 **소리 키**다(문장이 아니다).
+        due_reviews = [_due(key, "grammar", f"target form for {key}") for key in due_keys] + [
+            _due(key, "pronunciation_intonation", key.removeprefix("pronunciation_"))
+            for key in due_pronunciation
         ]
         chronic = [
             ChronicMetric(

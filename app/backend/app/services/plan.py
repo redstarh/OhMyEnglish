@@ -46,9 +46,13 @@
   집합이 `{r.pattern_id for r in due_reviews} | {m.pattern_id for m in chronic}`이고, 그
   가드는 다른 목록에서 고른 초점을 **어차피 하드 거부한다.** 프롬프트와 그 집합이 어긋나면
   정당한 응답이 거부된다.
-* **발음이 초점이 될 수 없는 이유는 id 부재보다 앞선다** — `PronunciationTally`에는
-  `target_sound`만 있어 애초에 유효한 `FocusPattern`을 만들 수 없다. 그리고 발음 패턴이
-  복습 스케줄에 들어오지 않는 것은 설계서 §4.1 「구현 공백 4」의 **알고 남긴 축소**다.
+* **발음 절에서 초점을 고를 수 없는 이유는 id 부재다** — `PronunciationTally`에는
+  `target_sound`만 있어 **그 절의 값으로는** 유효한 `FocusPattern`을 만들 수 없다.
+  ⚠️ **「발음은 초점이 될 수 없다」는 철회됐다** (`TASK-44`, 설계서
+  `2026-09-08-pronunciation-review-cycle-design.md`). 발음 패턴은 이제 `next_review_at`을
+  받아 **"Due for review today" 목록을 통해** 초점 허용 집합에 들어온다 — 그 목록은
+  `pattern_id`를 싣는다. 바뀐 것은 "발음은 초점이 될 수 없다"이지 "이 절에서 고른다"가
+  아니다. 이전 판이 이 자리에 적었던 「구현 공백 4」의 **알고 남긴 축소는 해소됐다.**
 """
 
 from __future__ import annotations
@@ -59,6 +63,7 @@ from uuid import UUID
 
 import asyncpg
 
+from app.models.analysis import PRONUNCIATION_CATEGORY
 from app.models.plan import CEFR_LEVELS, LevelDecision, PlanOutput, PlanValidationError, parse_plan
 from app.services.chronic import ChronicMetric, deepest_recurrence
 from app.services.jobs import ClaimedJob, complete, report_failure
@@ -133,9 +138,15 @@ The lists below are **facts**, already computed. Do not recompute them and do no
 # `build_plan_prompt`의 `"\n".join`이 개행을 하나 더 얹는다. 다른 절 제목(예: "Chronic
 # metrics ...:")은 한 줄 문자열이라 그 문제가 없다 — 발음 절만 제목과 목록 사이에
 # 빈 줄이 하나 더 생겼었다.
+# ⚠️ 줄바꿈 위치는 설계서 §5.6의 문안과 다르다 — **단어는 한 자도 바꾸지 않았고** 줄바꿈만
+# 옮겼다. 설계서 판은 `"Due for review\ntoday"`로 인용 제목을 쪼갰는데, 다른 절 제목을
+# **이름으로 인용하는 규약**(`_OUTPUT_SPEC`의 `- focus:`가 같은 두 제목을 인용하고
+# `test_plan.py`가 `f'"{bare}"'`로 그것을 잰다)이 인용을 한 덩어리로 두는 것을 전제한다.
 _PRONUNCIATION_NOTE = """\
-Pronunciation attempts (context only, never a focus source — counted per attempt, not per error
-occurrence, so do not rank these against the grammar counts above):"""
+Pronunciation attempts (context only — these tallies carry no pattern_id, so do not pick a focus
+from this section; a pronunciation pattern that is ready to revisit appears in
+"Due for review today" above with its pattern_id. Counted per attempt, not per error occurrence,
+so do not rank these against the grammar counts above):"""
 
 # 키 이름은 Task 5(`app.models.plan.PlanOutput`, `extra="forbid"`)와 글자 그대로 같아야 한다 —
 # 하나만 어긋나면 실물 모델 응답이 검증 단계에서 전부 거부된다. 초점 1~2개·질문 3~5개는
@@ -182,12 +193,21 @@ def _format_due_reviews(due_reviews: list[DueReview]) -> str:
 
     `pattern_id`를 반드시 싣는다(리뷰 Critical-1) — 안 실으면 모델이 UUID를 지어내고,
     형식만 맞은 가짜 id가 FK 없는 `focus_pattern_ids`에 조용히 저장돼 복습 조회가 어긋난다.
+
+    발음 패턴은 `target_form`이 **소리 키**(`an_as_a`)라서 낱말을 바꿔 `target sound`로 낸다
+    (`TASK-44`, 설계서 `2026-09-08-pronunciation-review-cycle-design.md` §5.6 ④).
+    ⚠️ **이 분기는 `TASK-44`로 살아 있는 문제가 됐다** — 그전에는 발음 패턴의
+    `next_review_at`이 영원히 null이라 이 목록에 못 들어왔다. 이제 들어오는데 `target form`
+    으로 내면 모델이 소리 키를 **연습할 문장으로** 읽을 여지가 생기고, 그것이 1차수 F-2와
+    같은 부류의 오류다(카드의 두 값이 서로 다른 것을 가리킨다). `category`가 이미 같은 줄에
+    실리므로 분기 재료는 여기 있다.
     """
     if not due_reviews:
         return "(none due today)"
     return "\n".join(
         f"- {review.pattern_key} [pattern_id: {review.pattern_id}] ({review.category}): "
-        f'target form "{review.target_form}", due since {review.next_review_at.isoformat()}, '
+        f"{'target sound' if review.category == PRONUNCIATION_CATEGORY else 'target form'} "
+        f'"{review.target_form}", due since {review.next_review_at.isoformat()}, '
         f"mastery {review.mastery_score}"
         for review in due_reviews
     )

@@ -34,7 +34,7 @@ from uuid import UUID
 
 import asyncpg
 
-from app.models.analysis import PatternAttempt
+from app.models.analysis import PRONUNCIATION_CATEGORY, PatternAttempt
 
 logger = logging.getLogger(__name__)
 
@@ -120,6 +120,78 @@ select r.at as relapse_at,
        ) as correct_times
   from relapse r, context ctx
 """
+
+# 발음 패턴 하나의 이력 (설계서 `2026-09-08-pronunciation-review-cycle-design.md` §5.3).
+# 위 `_HISTORY_SQL`과 **같은 세 값**을 돌려준다 — 그래서 그 뒤 경로(`fold_stages` →
+# `_APPLY_PATTERN_SQL` → `review_tasks`)를 손대지 않고 공유한다.
+#
+# ⚠️ **`pattern_id`로 잇지 않는다.** `correct` 시도의 `pattern_id`는 영원히 null이다
+# (`pronunciation.py`의 upsert가 `outcome = 'incorrect'`로 거른다) → 그것으로 이으면 단계가
+# 영원히 오르지 않는다. 대신 `btrim(target_sound)`로 잇고, 그 값이 발음 패턴의 `target_form`과
+# 같은 것은 같은 upsert가 보장한다(conflict에서도 같은 값을 다시 쓴다).
+# `'pronunciation_' || …` 접두사 리터럴을 두 번째 장소에 복사하지 않기 위해 `pattern_key`가
+# 아니라 `target_form`으로 잇는다.
+#
+# ⚠️ **앵커는 `resolved_at`이다 — `utterances.created_at`이 아니다**(§3.3). 문법 경로가 발화
+# 시각을 쓰는 이유는 `analyze_utterance` job이 재시도되고 결과가 발화 단위 replace라 벽시계를
+# 쓰면 재실행마다 예정일이 밀리는 것인데, **발음 경로에는 그 이유가 없다** — 시도 행은 웹소켓
+# 이벤트에서 한 번 쓰이고 다시 계산되지 않는다. `docs/database-schema.md`가 이미 "발음 경로는
+# 시도의 판정 시각"이라고 정해 두었다. `utterance_id`를 쓰지 않는 두 번째 이유: 그 컬럼은
+# `on delete set null`이라 join하면 발화가 지워진 판정 기록이 **조용히 사라진다**.
+#
+# `resolved_at is not null`이 `pending`을 뺀다(004 CHECK가 `pending` ⟺ `resolved_at is null`).
+# `unclear`는 outcome 필터 둘 어디에도 안 걸려 자동으로 빠진다 — 판정할 수 없는 발화를
+# `incorrect`로 강제하면 숙련도가 부당하게 깎인다. `target_sound`가 null인 행도 자동으로
+# 빠진다(`btrim(null) = x`가 null이라 조건이 참이 되지 않는다) — 소리를 못 짚은 행이라 어느
+# 패턴의 것인지 정의되지 않는다.
+_PRONUNCIATION_HISTORY_SQL = """
+with pattern as (
+      select user_id, btrim(target_form) as sound from error_patterns where id = $1
+),
+sound_attempts as (
+      select a.id, a.outcome, a.resolved_at, a.target_form
+        from pronunciation_attempts a
+        join learning_sessions s on s.id = a.session_id
+        join pattern p on p.user_id = s.user_id
+       where a.resolved_at is not null
+         and btrim(a.target_sound) = p.sound
+),
+relapse as (
+      select max(resolved_at) as at from sound_attempts where outcome = 'incorrect'
+),
+context as (
+      -- 연습할 것은 **시범 문장**이다. 소리 키(`an_as_a`)를 넣으면 1차수 F-2와 같은 부류의
+      -- 오류다(카드의 두 값이 서로 다른 것을 가리킨다). coalesce의 두 번째 항은 시도가
+      -- 사라진 패턴을 위한 방어이고, 그때만 소리 키가 쓰인다.
+      select coalesce(
+               (select target_form
+                  from sound_attempts
+                 where outcome = 'incorrect'
+                 order by resolved_at desc, id desc
+                 limit 1),
+               (select sound from pattern)
+             ) as scenario_context
+)
+select r.at as relapse_at,
+       ctx.scenario_context,
+       coalesce(
+         (select array_agg(sa.resolved_at order by sa.resolved_at, sa.id)
+            from sound_attempts sa
+           where sa.outcome = 'correct'
+             -- `_HISTORY_SQL`과 같은 이유로 `r.at is null or`를 남긴다: relapse가 없으면
+             -- `fold_stages`가 이 배열을 읽기 전에 return하므로 관측 불가능하지만, SQL
+             -- 단독으로도 의미가 통해야 한다(`> null`은 0행이 된다).
+             and (r.at is null or sa.resolved_at > r.at)),
+         '{}'::timestamptz[]
+       ) as correct_times
+  from relapse r, context ctx
+"""
+
+# 이력 쿼리를 고르기 위해 카테고리를 먼저 읽는다 (설계서 §5.2).
+# **분기를 호출자에 두지 않는 이유**: 두 곳에 두면 한쪽이 조용히 낡고, 발음 패턴에 문법 모양의
+# 상태가 계산되는 조합이 생긴다. 여기 한 곳에 두면 `analysis.py`의 호출부도 백필
+# (`recompute_all`)도 시그니처가 그대로다.
+_PATTERN_CATEGORY_SQL = "select category from error_patterns where id = $1"
 
 _APPLY_PATTERN_SQL = """
 update error_patterns set next_review_at = $2, mastery_score = $3 where id = $1
@@ -252,7 +324,11 @@ async def recompute(conn: asyncpg.Connection, pattern_id: UUID) -> ReviewState:
     `error_patterns`(`next_review_at`·`mastery_score`)와 `review_tasks` 0~1행을 함께 맞춘다.
     호출자의 트랜잭션 안에서 돈다.
     """
-    record = await conn.fetchrow(_HISTORY_SQL, pattern_id)
+    # 카테고리로 이력 쿼리를 고른다 (설계서 §5.2). 그 뒤는 두 경로가 **완전히 공유한다** —
+    # `fold_stages`는 순수 함수라 어느 표에서 읽었는지 알 필요가 없다.
+    category = await conn.fetchval(_PATTERN_CATEGORY_SQL, pattern_id)
+    history_sql = _PRONUNCIATION_HISTORY_SQL if category == PRONUNCIATION_CATEGORY else _HISTORY_SQL
+    record = await conn.fetchrow(history_sql, pattern_id)
     if record is None:  # 방어: 교차 조인이라 항상 1행이지만 계약을 코드로 남긴다
         raise LookupError(f"review history query returned no row for pattern {pattern_id}")
 

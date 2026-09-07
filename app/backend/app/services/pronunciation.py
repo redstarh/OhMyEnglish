@@ -52,15 +52,18 @@ from uuid import UUID
 
 import asyncpg
 
-from app.models.analysis import ErrorCategory
+from app.models.analysis import PRONUNCIATION_CATEGORY
 from app.models.pronunciation import PronunciationOutcome, SignalSource
+from app.services import review
 
 logger = logging.getLogger(__name__)
 
 # 발음 패턴이 쓰는 카테고리 코드값. SQL 리터럴로 박지 않고 이 상수를 bind 파라미터로 넘긴다 —
-# 값역의 SoT는 `models/analysis.ErrorCategory`(001 CHECK와 짝)이고, 타입을 붙이면 오타를
-# `ty`가 잡는다. `pronunciation`이 아니라 `pronunciation_intonation`이다.
-_PRONUNCIATION_CATEGORY: ErrorCategory = "pronunciation_intonation"
+# 값역의 SoT는 `models/analysis`이고(001 CHECK와 짝) 타입이 붙어 있어 오타를 `ty`가 잡는다.
+# ⚠️ **이 모듈이 값을 직접 갖지 않는다** — `services/review.py`도 같은 값으로 이력 쿼리를
+# 고르는데(`2026-09-08-pronunciation-review-cycle-design.md` §5.2) 이 모듈이 그쪽을 import하므로
+# 반대 방향으로는 공유할 수 없다. 두 서비스가 각자 리터럴을 갖는 대신 모델에서 가져온다.
+_PRONUNCIATION_CATEGORY = PRONUNCIATION_CATEGORY
 
 # 보조 신호의 값역. `nova_tool`은 **여기 없다** — 그것은 2단계 생명주기를 갖는
 # `record_attempt`의 것이고, 단발 행으로 새면 판정이 오지 않는 시도가 조용히 쌓인다.
@@ -214,6 +217,11 @@ async def record_attempt(
         # 더 거르지 않는 것은 위 `signal_source`와 같은 이유다 — 같은 규칙이 두 층에 흩어지면
         # 한쪽이 조용히 낡는다. 조건에 안 맞는 판정이면 이 호출은 no-op이다.
         await link_pattern(conn, attempt_id)
+        # 판정 **경로 불문**으로 복습 상태를 다시 계산한다 (설계서 §5.5). `link_pattern`
+        # **뒤**여야 방금 만들어진 패턴이 첫 재계산에 포함된다. `correct`가 이 자리로
+        # 처음 재계산을 발화시키는 것이 「구현 공백 4」의 해소다 — 그전에는 발음 패턴의
+        # `next_review_at`을 아무도 쓰지 않아 복습 목록에 영원히 못 들어왔다.
+        await refresh_review(conn, attempt_id)
         return attempt_id
 
 
@@ -344,6 +352,9 @@ async def resolve_dangling(conn: asyncpg.Connection, session_id: UUID) -> int:
             )
         for row in rows:
             await link_pattern(conn, row["id"])
+            # 수렴도 판정이다 — 같은 재계산을 받는다 (설계서 §5.5). 대답 없이 끝난 시도가
+            # `incorrect`로 닫히면 그것이 재발이므로 예정일이 생겨야 한다.
+            await refresh_review(conn, row["id"])
         return len(rows)
 
 
@@ -477,4 +488,61 @@ async def link_pattern(conn: asyncpg.Connection, attempt_id: UUID) -> UUID | Non
     # 나온다. 문장을 나누면 같은 트랜잭션 안에서 앞 문장의 효과를 본다.
     await conn.execute(_RECOUNT_PATTERN_FROM_ATTEMPTS_SQL, pattern_id)
     logger.info("발음 시도 %s를 패턴 %s에 연결했다", attempt_id, pattern_id)
+    return pattern_id
+
+
+# 이 시도의 소리에 **이미 존재하는** 발음 패턴을 찾는다 (설계서 §5.5).
+#
+# ⛔ **패턴을 만들지 않는다** — 만드는 것은 `link_pattern`의 upsert 하나뿐이고 그것은
+# `incorrect`에만 걸린다(임계값 없음, 1회에 생성). 여기서도 만들면 **한 번도 틀린 적 없는
+# 소리를 맞힌 것만으로 패턴이 생겨** 복습 목록이 "틀린 적 있는 것"이라는 뜻을 잃는다.
+#
+# `pattern_id`로 찾지 않는 이유가 이 함수의 존재 이유다: `correct` 행의 `pattern_id`는
+# **영원히 null**이다(`link_pattern`의 upsert가 `outcome = 'incorrect'`로 거른다). 그래서
+# `btrim(target_sound)`로 잇는다 — 그 값이 발음 패턴의 `target_form`과 같은 것은
+# 위 `_UPSERT_PRONUNCIATION_PATTERN_SQL`이 보장한다(conflict에서도 같은 값을 다시 쓴다).
+_FIND_SOUND_PATTERN_SQL = """
+select p.id
+  from pronunciation_attempts a
+  join learning_sessions s on s.id = a.session_id
+  join error_patterns p on p.user_id = s.user_id
+                       and p.category = $2
+                       and p.target_form = btrim(a.target_sound)
+ where a.id = $1
+   and length(btrim(coalesce(a.target_sound, ''))) > 0
+"""
+
+
+async def refresh_review(conn: asyncpg.Connection, attempt_id: UUID) -> UUID | None:
+    """이 시도의 소리에 걸린 발음 패턴의 복습 상태를 다시 계산한다 (설계서 §5.5).
+
+    돌려주는 것은 재계산한 패턴 id이고, 그 소리에 패턴이 없으면 `None`이다 — **no-op이
+    정상 경로다.** 한 번도 틀린 적 없는 소리를 맞힌 것(관측: `am_as_i_m` `correct`)은
+    아무 것도 만들지 않는다.
+
+    ⛔ **`link_pattern`을 대체하지 않는다.** 그쪽은 `incorrect`를 패턴에 **연결**하고,
+    이쪽은 판정 **경로 불문**으로 상태를 다시 계산한다. 그래서 호출 순서가 정해져 있다 —
+    `link_pattern` **뒤**에 부른다: 방금 만들어진 패턴이 첫 재계산에 포함돼야 한다.
+
+    **`correct`가 이 경로로 처음 재계산을 발화시키는 것**이 「구현 공백 4」의 해소다.
+    그전까지 발음 패턴의 `next_review_at`은 아무도 쓰지 않아 영원히 null이었고, 그래서
+    복습 목록(`_DUE_REVIEWS_SQL`)에 못 들어오고 초점 허용 집합에서도 구조적으로 빠졌다.
+
+    ⚠️ `next_review_at`·`mastery_score`의 **유일한 writer는 `review.py`다**
+    (`docs/database-schema.md:145`) — 이 함수는 그 컬럼을 직접 쓰지 않고 `recompute`에 맡긴다.
+    그 불변조건을 여기서 깨면 두 writer가 서로의 값을 덮는다.
+
+    호출자의 트랜잭션 안에서 돈다 — 시도 기록과 상태 갱신이 갈라지면 판정은 남고 예정일은
+    낡은 부분 실행이 생긴다. 두 진입점(`record_attempt`·`resolve_dangling`) 모두 이미
+    자기 트랜잭션 안이다.
+    """
+    pattern_id = await conn.fetchval(_FIND_SOUND_PATTERN_SQL, attempt_id, _PRONUNCIATION_CATEGORY)
+    if pattern_id is None:
+        return None
+    assert isinstance(pattern_id, UUID)
+
+    # import를 함수 안에 두지 않는다 — 순환이 아니다(`review.py`는 `models.analysis`만
+    # import한다). 모듈 상단에 둔다.
+    await review.recompute(conn, pattern_id)
+    logger.info("발음 시도 %s로 패턴 %s의 복습 상태를 다시 계산했다", attempt_id, pattern_id)
     return pattern_id

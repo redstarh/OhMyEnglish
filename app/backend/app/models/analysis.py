@@ -65,6 +65,15 @@ Severity = Literal["low", "medium", "high"]
 ERROR_CATEGORIES: tuple[ErrorCategory, ...] = get_args(ErrorCategory)
 SEVERITIES: tuple[Severity, ...] = get_args(Severity)
 
+# 발음 패턴의 카테고리 코드값. **값역의 SoT인 여기 한 번만 적는다.**
+#
+# 왜 서비스 모듈이 각자 갖지 않는가: `services/review.py`가 이 값으로 이력 쿼리를 고르고
+# (`2026-09-08-pronunciation-review-cycle-design.md` §5.2) `services/pronunciation.py`도 같은
+# 값을 쓴다. 그런데 **`pronunciation.py`가 `review.py`를 import한다**(§5.5의 재계산 트리거)
+# 이므로 그 방향으로는 상수를 공유할 수 없다 — 서비스 쪽에 두면 리터럴이 세 번째로 복사된다.
+# 타입을 붙여 두면 오타를 `ty`가 잡는다. `pronunciation`이 아니라 `pronunciation_intonation`이다.
+PRONUNCIATION_CATEGORY: ErrorCategory = "pronunciation_intonation"
+
 # `PRD.md:92` "같은 패턴을 최소 세 개의 다른 상황에서 재사용한다" ·
 # `agent-system-prompt.md:47` "suggested_contexts: three different contexts".
 # 개수를 강제하지 않는다(학습 코치 설계서 §8.2) — 2개만 냈다고 실패로 만들 이유가 없다.
