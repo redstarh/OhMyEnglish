@@ -51,12 +51,13 @@ from app.audio_gateway.port import (
     TranscriptEvent,
 )
 from app.config import Settings, prepare_bedrock_credentials
-from app.models.plan import SessionInstruction
+from app.models.plan import PlanQuestion, SessionInstruction
 from app.models.pronunciation import (
     PRONUNCIATION_TOOL_NAME,
     PRONUNCIATION_TOOL_SCHEMA_JSON,
     parse_tool_payload,
 )
+from app.models.scenario import SessionScenario
 
 logger = logging.getLogger(__name__)
 
@@ -150,14 +151,60 @@ Pronunciation coaching:
 # 갈라지는 것은 `test_the_base_level_range_constant_matches_the_fixed_prompt`가 막는다.
 _BASE_LEVEL_RANGE = "A2-B1"
 
+# 무대 블록 제목. 계획 블록의 마지막 줄이 이것을 **되짚으므로**(아래 `_FOCUS_BEATS_SETTING`)
+# 두 문구가 같은 낱말(`today's setting`)로 서로를 가리켜야 모델이 어느 블록을 말하는지 안다.
+_SETTING_HEADER = "Today's setting:"
 
-def build_system_prompt(known_sounds: Sequence[str], plan: SessionInstruction | None = None) -> str:
-    """세션용 지시문 = 위 기본 문구 + 놓친 소리 목록 + **오늘의 계획** (G-3, 캡틴 결정 B-4).
+# 드릴 지시. **문구가 지표와 맞물려 있다** — 설계 2판은 *"ask it / (답) / ask one follow-up /
+# say it again"*이라는 고정 4단계를 열거했는데 그중 코치 턴은 **3개**였고 기대값은
+# `drill_turns_min = 4`를 곱했다. 즉 **모델이 지시를 글자 그대로 완벽히 지켜도 드릴마다 1턴
+# 미달**이고 매 세션 경고가 떴다(H-4). 캡틴 결정 10이 *"집계된 미달을 지시문 수정의 입력으로
+# 쓴다"*이므로 그 오차는 **지시문을 잘못 고치도록 유도**한다. → 고정 단계를 열거하지 않고
+# 「exchange 최소 N회」로 말해 문구와 지표가 같은 단위를 센다.
+# ⚠️ **`turns`라는 낱말을 쓰지 않는다.** exchange 1회 = 사용자 발화 뒤에 오는 코치 발화 1건이고,
+# 결과 조회가 세는 단위와 같다(설계서 §2.3).
+# ⚠️ f-string 이 아니라 `.format`인 이유는 `SYSTEM_PROMPT`를 평문으로 두는 것과 같다 — 모듈
+# 상수는 런타임 값을 보간할 수 없다. 다른 중괄호가 없으므로 `.format`이 안전하다.
+_DRILL_INSTRUCTION = """\
+- Work through these questions one at a time, and stay on each one for at least {turns}
+  exchanges. An exchange is one round: you say something, the learner answers. To fill
+  them, follow up on what the learner just said and have them say it again a different
+  way. That repeat is practice, not a correction — it does not count against the
+  one-correction-per-turn limit in rule 4."""
 
-    소리 목록도 계획도 없으면 결과는 `SYSTEM_PROMPT` **그 자체**다 — 계획 없이 시작하는
+# 결정 9의 예외 — *"시나리오 문구가 패턴을 지정하는 경우만"* 계획이 이긴다. 무대 문구가 짧아
+# 실제로 드물지만, 프롬프트에 적어 두는 것이 «드물기를 바라는 것»보다 낫다.
+_FOCUS_BEATS_SETTING = (
+    "- If today's setting suggests a different pattern than the focus above, follow the focus."
+)
+
+
+def build_system_prompt(
+    known_sounds: Sequence[str],
+    plan: SessionInstruction | None,
+    questions: Sequence[PlanQuestion],
+    scenario: SessionScenario | None,
+    *,
+    drill_count: int,
+    drill_turns_min: int,
+) -> str:
+    """세션용 지시문 = 기본 문구 + 놓친 소리 목록 + **오늘의 무대** + **오늘의 계획** (G-3).
+
+    **블록 순서: `SYSTEM_PROMPT` → 놓친 소리 → `Today's setting:` → `Today's plan:`**
+    (설계서 §2.2). 무대가 목표보다 **먼저** 읽혀야 하고, 계획 블록의 마지막 줄이 앞의 setting을
+    **되짚어** 우선순위를 말할 수 있다. 뒤집으면 그 줄이 아직 나오지 않은 블록을 가리킨다.
+
+    넷 중 아무것도 없으면 결과는 `SYSTEM_PROMPT` **그 자체**다 — 계획 없이 시작하는
     경로(AS4)에는 이 함수가 아무것도 덧붙이지 않는다. ⚠️ `SYSTEM_PROMPT` **자체는 이
     태스크에서 바뀌었다**(규칙 7 신설 + 발음 번호 8~11) — 2026-09-03 마이크 검증이 확인한
     문구와 같지 않다.
+
+    **인자에 기본값을 두지 않는다** (설계서 §2.1의 C-1). 두면 호출부가 재료를 빠뜨려도 조용히
+    통과해 **「질문이 안 실린 세션」·「무대 없는 세션」이 정상처럼 보인다** — 이 설계가 메우려는
+    공백이 정확히 그 모양이다(데이터는 DB에 있었고 읽는 쪽이 없었다).
+    `drill_count`·`drill_turns_min`도 인자로 받는다: 전역(`get_settings()`)을 여기서 읽으면
+    조립된 문구가 프로세스 환경에 조용히 묶여 같은 입력이 다른 프롬프트를 낸다. 값의 소유자는
+    `Settings`이고 `factory.create_voice_adapter`가 옮긴다.
 
     **놓친 소리 목록**: 문법 워커에만 있던 §5.6 재사용 규약을 발음 경로에도 만든다. 목록만
     보여주는 것으로는 부족하다 — **그 키를 다시 쓰라는 지시**가 없으면 Nova가 같은 소리에
@@ -192,14 +239,39 @@ def build_system_prompt(known_sounds: Sequence[str], plan: SessionInstruction | 
       단정하는 것이라 지킬 회귀가 없고, 규칙마다 tripwire를 늘리는 방향은 확장되지 않는다.
       **이 축은 이 docstring이 소유한다.**
 
+    * **오늘의 무대** ↔ 규칙 3("일상 화제에서 시작해 몸이 풀리면 업무로 옮긴다") —
+      **대체하지 않는다.** 캡틴 결정 9가 시나리오를 *"「오늘의 상황」과 같은 축"*으로 정했고,
+      그 축의 비대체 근거는 위 `contexts` 항목과 **같은 것**이다(비용 비대칭 + h-doc이 이름 붙인
+      실패). ⚠️ 그래서 setting 블록에도 대체 문장을 달지 않는다.
+    * **질문 목록** ↔ 규칙 2("하나씩 묻고 멈춘다") — **대체하지 않는다. 강화한다.** 같은
+      방향이라 `one at a time`이 규칙 2를 되짚는다.
+    * **질문 목록** ↔ 규칙 3 — **대체하지 않는다.** `contexts`와 같은 처리다. ⛔ 그래서 문구에
+      **`in this order`를 넣지 않는다** — 순서를 지정하면 규칙 3의 순서와 부딪히고, 결정 9가
+      세운 「계획 = 목표, 무대·순서는 안 덮는다」 틀을 벗어난다.
+    * **드릴 반복** ↔ 규칙 4(교정 1건/턴) — **명시적으로 갈라낸다.** 규칙 11이 *"발음 교정도
+      교정이다"*로 상한을 못박은 **선례의 반대 방향**이다. 적지 않으면 모델이 드릴 반복을
+      교정으로 세어 **드릴이 1턴에 끝난다**.
+    * **우선순위 문장**(`_FOCUS_BEATS_SETTING`) ↔ 결정 9의 예외 — **계획이 이긴다.** 무대 문구가
+      패턴을 지정하는 경우만이고, 그 판정을 프롬프트에 문장으로 적어 둔다.
+
+    ⚠️ **`title`은 지시문에 싣지 않는다.** 규칙 6이 *"Never read JSON, lists, or metadata out
+    loud"*이고 제목은 **화면용 라벨**이다. `prompt_template` 하나로 무대가 성립한다. ⚠️ 이 방어는
+    시드 교체 **전에는 공허했다** — `title`과 `prompt_template`이 바이트 동일이라 제목을 빼도 같은
+    문자열이 들어갔다(설계서 §2.2). 캡틴 결정 14의 시드 교체가 두 값을 갈라놓아 실질을 갖는다.
+
     ⚠️ **`sentence_length`의 주어는 학습자다** (`services/plan.py`의 프롬프트가 "as **the
     learner** is ready"로 그렇게 정의한다). 조립문에서 주어를 빼면 규칙 1의 `your turns`와
     섞여 코치 자신의 턴 길이 지시로 읽힌다.
 
-    **값이 없는 줄은 아예 넣지 않는다** — 소리 기록 0건(지금 dev DB의 상태)과 `contexts`
-    빈 목록이 같은 처리를 받는다. 빈 목록에 제목만 남기면 Nova가 "목록이 비었다"를 지시로
-    오해할 여지가 생긴다. `focus`는 최소 1개가 보장되므로(`SessionInstruction`) 그 처리가
-    필요 없다.
+    **값이 없는 줄은 아예 넣지 않는다** — 소리 기록 0건(지금 dev DB의 상태)·`contexts` 빈 목록·
+    무대 부재·질문 빈 목록이 모두 같은 처리를 받는다. 빈 목록에 제목만 남기면 Nova가 "목록이
+    비었다"를 지시로 오해할 여지가 생긴다. `focus`는 최소 1개가 보장되므로(`SessionInstruction`)
+    그 처리가 필요 없다.
+
+    ⛔ **열거하는 질문은 `questions[:drill_count]`다** (H-5). 전부 열거하고 기대값만 깎으면
+    `drill_count`가 **대화를 바꾸지 않고 통과 문턱만 바꾸는 노브**가 된다 — 캡틴 결정 1은 드릴
+    횟수를 *"설정값에 두고 **읽는다**"*이고, 읽어서 대화를 바꿔야 그 결정이 지켜진다. 기대값은
+    `services/sessions.record_drill_turns_expected`가 **같은 슬라이스**로 센다.
     """
     prompt = SYSTEM_PROMPT
     if known_sounds:
@@ -211,7 +283,10 @@ def build_system_prompt(known_sounds: Sequence[str], plan: SessionInstruction | 
             "If one of them is off again, reuse that exact key as target_sound instead of\n"
             "inventing a new one — repeat offenders must group under one key."
         )
+    if scenario is not None:
+        prompt = f"{prompt}\n\n{_SETTING_HEADER}\n{scenario.prompt_template}"
     if plan is None:
+        # 계획이 없으면 `questions`도 무시한다 — 드릴 줄은 계획 블록 **안**에 있다.
         return prompt
     forms = ", ".join(f"{item.pattern_key} ({item.target_form})" for item in plan.focus)
     lines = [
@@ -226,6 +301,16 @@ def build_system_prompt(known_sounds: Sequence[str], plan: SessionInstruction | 
     lines.append(
         f"- Hint timing for today, instead of the general hint rule above: {plan.hint_timing}"
     )
+    drilled = questions[:drill_count]
+    if drilled:
+        lines.append(_DRILL_INSTRUCTION.format(turns=drill_turns_min))
+        lines.extend(
+            f"    {number}. {question.prompt} ({question.context})"
+            for number, question in enumerate(drilled, start=1)
+        )
+    if scenario is not None:
+        # 무대가 없으면 이 줄은 아직 나오지 않은 블록을 가리킨다 — 그래서 넣지 않는다.
+        lines.append(_FOCUS_BEATS_SETTING)
     return f"{prompt}\n\n" + "\n".join(lines)
 
 

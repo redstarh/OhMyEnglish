@@ -946,7 +946,10 @@ def seed_plan_for_session() -> Callable[..., object]:
     `days_ago`로 `created_at`을 과거로 심는다 — `now()`가 트랜잭션에 고정되어 있어
     `db_conn` 안에서는 기다려도 시각이 벌어지지 않는다(`backdate_session`과 같은 이유).
     `instruction`에 문자열을 주면 그 값을 그대로 저장한다: 읽는 쪽이 **읽을 수 없는**
-    지시문을 만났을 때의 경로를 재기 위한 자리다.
+    지시문을 만났을 때의 경로를 재기 위한 자리다. `questions`도 같은 자리다(TASK-25 Batch B) —
+    질문 수를 3~5 사이에서 바꾸거나 `PlanQuestion` 계약을 어기는 모양을 심는다.
+    ⚠️ 007의 `session_plans_questions_len`이 **3~5개 배열**을 요구하므로 그 범위 밖을 주면
+    읽는 쪽이 아니라 insert 거부를 재게 된다.
     """
 
     async def make(
@@ -957,6 +960,7 @@ def seed_plan_for_session() -> Callable[..., object]:
         target_level: str = "A2",
         days_ago: int = 0,
         instruction: str | None = None,
+        questions: str | None = None,
     ) -> tuple[UUID, UUID]:
         if user_id is None:
             user_id = await conn.fetchval(
@@ -974,7 +978,9 @@ def seed_plan_for_session() -> Callable[..., object]:
             "values ($1, $2, $3, $4, $5, $6, 'agent', $7) returning id",
             session_id,
             [uuid4()],  # focus_pattern_ids 에 FK 는 없다 (007 주석) — 이 픽스처는 값만 채운다
-            json.dumps(payload["questions"], ensure_ascii=False),
+            questions
+            if questions is not None
+            else json.dumps(payload["questions"], ensure_ascii=False),
             target_level,
             reason,
             instruction

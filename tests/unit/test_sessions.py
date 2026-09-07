@@ -35,13 +35,15 @@ import pytest
 from conftest import backdate_session as _backdate
 from conftest import plan_json
 
-from app.models.plan import SessionInstruction
+from app.models.plan import PlanQuestion, SessionInstruction
 from app.services.sessions import (
     ORPHAN_IDLE_GRACE,
     create_session,
     end_session,
     load_prepared_plan,
+    load_session_scenario,
     reap_orphan_sessions,
+    record_drill_turns_expected,
 )
 from app.services.utterances import save_final_transcript
 
@@ -371,3 +373,249 @@ async def test_session_creation_falls_back_to_the_earliest_scenario(
     scenario_id = await _attached_scenario(db_pool, session_id)
     assert scenario_id == earliest, "수준 일치가 0행일 때 가장 이른 시나리오로 떨어지지 않았다"
     assert scenario_id != later
+
+
+# ── TASK-25 Batch B: 질문 목록이 계획과 함께 온다 (설계서 §2.1) ────────────────
+#
+# `questions`는 `instruction`과 **같은 처리**를 받는다: jsonb 코덱이 없어 asyncpg 가 `str`를
+# 주므로 `json.loads` → 모델 검증으로 좁힌다. 검증 실패는 **계획 전체를 포기**한다(§2.1) —
+# 질문만 빈 목록으로 떨어뜨리고 계획을 살리면 「드릴 지시 없는 세션」이 정상처럼 보인다.
+
+
+def _questions_json(count: int) -> str:
+    """`session_plans.questions`에 그대로 들어갈 JSON 배열.
+
+    007의 `session_plans_questions_len`이 **3~5개 배열**을 요구하므로 그 범위만 만든다 —
+    범위 밖을 넣으면 읽는 쪽을 재려던 테스트가 insert 거부를 재게 된다.
+    """
+    return json.dumps(
+        [
+            {"prompt": f"Question {index}?", "context": f"context {index}"}
+            for index in range(1, count + 1)
+        ]
+    )
+
+
+# T0 — 저장된 `questions`가 **구조**로 돌아온다. `instruction`과 같은 이유다: `str`가 그대로
+# 새어나가면 드릴 줄을 조립하는 쪽이 문자열을 필드처럼 다룬다.
+async def test_load_prepared_plan_parses_the_stored_questions(
+    db_conn: asyncpg.Connection, seed_plan_for_session
+):
+    user_id, _ = await seed_plan_for_session(db_conn)
+
+    prepared = await load_prepared_plan(db_conn, user_id)
+
+    assert prepared is not None
+    # 기대값은 픽스처가 심은 것과 **같은 소유자**(`plan_json`)에서 만든다 — 여기 모양을 다시
+    # 적으면 `PlanQuestion`이 바뀔 때 한쪽이 조용히 낡는다(`instruction` 단정과 같은 규약).
+    assert prepared.questions == [
+        PlanQuestion.model_validate(item) for item in json.loads(plan_json(uuid4()))["questions"]
+    ]
+    assert len(prepared.questions) == 3
+
+
+# T2 경계 — 질문 수의 상한(007: 5개)까지 그대로 실린다. 3개만 재면 열거·기대값 산식이
+# 「항상 3」인 구현에서도 초록이다.
+async def test_load_prepared_plan_reads_all_five_questions(
+    db_conn: asyncpg.Connection, seed_plan_for_session
+):
+    user_id, _ = await seed_plan_for_session(db_conn, questions=_questions_json(5))
+
+    prepared = await load_prepared_plan(db_conn, user_id)
+
+    assert prepared is not None
+    assert [question.prompt for question in prepared.questions] == [
+        f"Question {index}?" for index in range(1, 6)
+    ]
+    assert [question.context for question in prepared.questions] == [
+        f"context {index}" for index in range(1, 6)
+    ]
+
+
+# T3 — **계획 전체를 포기한다.** 질문만 빈 목록으로 떨어뜨리고 계획을 살리는 것이 이 리포의
+# 지배 실패 모드(*"통과했는데 통과한 이유가 틀렸다"*)에 가장 가깝다: DB CHECK 가 3~5를 지키므로
+# 정상 경로에서 깨질 수 없고, 깨졌다면 계약이 어긋난 것이다.
+# ⚠️ 이 파급은 대화에서 끝나지 않는다 — `/next-plan`(`api/results.py`)이 같은 조회를 공유하므로
+# 시작 화면의 추천 이유 한 줄도 같은 조건에서 사라진다. 대화와 화면이 **함께** 그 계획을 버리는
+# 것이 한쪽만 믿는 것보다 낫다(설계서 §2.1).
+async def test_load_prepared_plan_gives_up_the_plan_when_the_questions_cannot_be_read(
+    db_conn: asyncpg.Connection, seed_plan_for_session, caplog: pytest.LogCaptureFixture
+):
+    # 007의 CHECK(3~5개 배열)는 **통과하고** `PlanQuestion` 계약은 어기는 모양 — `context`가 없다.
+    # 그래야 읽는 쪽의 검증을 재는 것이 되고, insert 거부를 재는 것이 되지 않는다.
+    user_id, _ = await seed_plan_for_session(
+        db_conn,
+        questions=json.dumps([{"prompt": "a"}, {"prompt": "b"}, {"prompt": "c"}]),
+    )
+
+    with caplog.at_level(logging.INFO):
+        assert await load_prepared_plan(db_conn, user_id) is None
+
+    assert [record for record in caplog.records if record.levelno >= logging.WARNING], (
+        "읽을 수 없는 질문 목록을 건너뛰었는데 경고가 없다 — "
+        "계획이 매번 무시되는 것을 알 신호가 없다"
+    )
+
+
+# ── TASK-25 Batch B: 세션에 박힌 무대를 읽는다 (설계서 §2.1, AC#1·#3) ──────────
+
+
+async def _session_with_scenario(
+    conn: asyncpg.Connection,
+    *,
+    title: str = "Tonight's plans at home",
+    prompt_template: str = "You are a housemate talking with the learner about tonight.",
+    level: str = "A2",
+    user_level: str = "A2",
+) -> tuple[UUID, UUID]:
+    """사용자 1명 + 무대 1행 + 그 무대가 박힌 세션 1행. 반환은 `(session_id, scenario_id)`."""
+    user_id = await conn.fetchval(
+        "insert into users (display_name, current_level) values ('Scenario Read Test', $1) "
+        "returning id",
+        user_level,
+    )
+    scenario_id = await conn.fetchval(
+        "insert into learning_scenarios (category, level, title, prompt_template) "
+        "values ('daily_life', $1, $2, $3) returning id",
+        level,
+        title,
+        prompt_template,
+    )
+    session_id = await conn.fetchval(
+        "insert into learning_sessions (user_id, scenario_id, mode) "
+        "values ($1, $2, 'speaking') returning id",
+        user_id,
+        scenario_id,
+    )
+    return session_id, scenario_id
+
+
+# T0 — 세션 행에 **이미 박힌** 무대를 읽는다. 두 필드가 그대로 와야 조립하는 쪽이 화면 라벨과
+# 지시문 문구를 구분할 수 있다(규칙 6 — `title`은 싣지 않는다).
+async def test_load_session_scenario_reads_the_row_pinned_on_the_session(
+    db_conn: asyncpg.Connection,
+):
+    session_id, _ = await _session_with_scenario(db_conn)
+
+    scenario = await load_session_scenario(db_conn, session_id)
+
+    assert scenario is not None
+    assert scenario.title == "Tonight's plans at home"
+    assert scenario.prompt_template == "You are a housemate talking with the learner about tonight."
+
+
+# ⛔ **INSERT 가 고른 행을 다시 고르지 않는다.** 수준으로 재조회하면 학습자 수준이 올라간 뒤
+# 「그 세션이 실제로 받은 무대」와 갈라진다. 여기서는 세션에 `A2` 행이 박혀 있고 사용자 수준은
+# `B1`이며 `B1` 무대가 **더 최신으로** 존재한다 — 수준으로 다시 고르는 구현은 `B1` 행을 집는다.
+async def test_load_session_scenario_does_not_re_pick_by_the_learners_level(
+    db_conn: asyncpg.Connection,
+):
+    session_id, pinned = await _session_with_scenario(db_conn, level="A2", user_level="B1")
+    other = await db_conn.fetchval(
+        "insert into learning_scenarios (category, level, title, prompt_template) "
+        "values ('daily_life', 'B1', 'Level match', 'You match the learner level.') returning id"
+    )
+    assert other != pinned
+
+    scenario = await load_session_scenario(db_conn, session_id)
+
+    assert scenario is not None
+    assert scenario.prompt_template != "You match the learner level.", (
+        "학습자 수준으로 무대를 다시 골랐다 — 세션에 박힌 행과 갈라진다"
+    )
+
+
+# AC#3 — `scenario_id`가 null 이면 join 이 **0행**이라 `None`이다. 이 경로가 코드 분기 없이
+# 충족되는 것이 설계의 요점이다(`if scenario_id is None`을 쓰지 않는다).
+async def test_load_session_scenario_returns_none_when_the_session_has_no_scenario(
+    db_conn: asyncpg.Connection,
+):
+    user_id = await db_conn.fetchval(
+        "insert into users (display_name) values ('No Scenario Test') returning id"
+    )
+    session_id = await db_conn.fetchval(
+        "insert into learning_sessions (user_id, mode) values ($1, 'speaking') returning id",
+        user_id,
+    )
+
+    assert await load_session_scenario(db_conn, session_id) is None
+
+
+# 사후조건의 나머지 — 세션 자체가 없으면 `None`이다(예외가 아니다).
+# ⚠️ **「시나리오 행 부재」는 따로 재지 않는다**: `learning_sessions.scenario_id`가
+# `references learning_scenarios (id)`이고 cascade 가 없어(001) 참조된 무대를 지울 수 없다 —
+# 매달린 `scenario_id`는 FK 가 있는 동안 도달 불가다. 같은 코드 경로(join 0행)를 이 테스트가 잰다.
+async def test_load_session_scenario_returns_none_for_an_unknown_session(
+    db_conn: asyncpg.Connection,
+):
+    assert await load_session_scenario(db_conn, uuid4()) is None
+
+
+# ── TASK-25 Batch B: 기대 exchange 수를 세션에 남긴다 (설계서 §2.3, 캡틴 결정 16) ──
+
+
+async def _recorded_expectation(conn: asyncpg.Connection, session_id: UUID) -> int | None:
+    return await conn.fetchval(
+        "select drill_turns_expected from learning_sessions where id = $1", session_id
+    )
+
+
+# T2 경계 — `drill_count`가 **상한**으로 실제로 먹는지. 네 조합(질문 3·5 × 상한 1·3)에
+# **다섯째**를 더한다: 상한이 질문 수보다 **큰** 칸이 없으면 `len(questions)`를 무시하고
+# 상한만 곱하는 구현이 통과한다(질문 3·상한 1과 5·상한 1이 둘 다 1을 기대하므로).
+@pytest.mark.parametrize(
+    ("question_count", "drill_count", "expected"),
+    [(3, 1, 4), (3, 3, 12), (5, 1, 4), (5, 3, 12), (3, 5, 12)],
+    ids=["q3_c1", "q3_c3", "q5_c1", "q5_c3", "q3_c5"],
+)
+async def test_recorded_expectation_multiplies_the_listed_questions_by_the_minimum(
+    db_conn: asyncpg.Connection, question_count: int, drill_count: int, expected: int
+):
+    session_id = await _new_session(db_conn)
+
+    written = await record_drill_turns_expected(
+        db_conn,
+        session_id,
+        questions=[
+            PlanQuestion(prompt=f"q{index}", context=f"c{index}") for index in range(question_count)
+        ],
+        drill_count=drill_count,
+        drill_turns_min=4,
+    )
+
+    assert written == expected
+    assert await _recorded_expectation(db_conn, session_id) == expected
+
+
+# 설계서 §6이 이름을 붙인 산식 — 질문 5개 · `drill_count=3` · `drill_turns_min=4` → **12**.
+# 위 파라미터 표가 같은 수를 담지만 이 테스트가 **그 조합을 문서와 같은 이름으로** 고정한다:
+# 12는 「열거된 질문 수」에서 나오고 「질문 수」에서 나오지 않는다(H-5).
+async def test_the_documented_expectation_for_five_questions_is_twelve(
+    db_conn: asyncpg.Connection,
+):
+    session_id = await _new_session(db_conn)
+
+    written = await record_drill_turns_expected(
+        db_conn,
+        session_id,
+        questions=[PlanQuestion(prompt=f"q{i}", context=f"c{i}") for i in range(5)],
+        drill_count=3,
+        drill_turns_min=4,
+    )
+
+    assert written == 12
+
+
+# ⛔ 질문이 없으면 **아무것도 쓰지 않는다** → null 로 남는다 = 관측 대상이 아니다.
+# 0을 쓰지 않는 이유가 둘이다: 0은 「기대가 0이었다」로 읽혀 「기대가 없었다」와 구분되지 않고,
+# 009의 `check (… > 0)`가 그것을 거부한다(그러면 세션 시작이 부가 정보 때문에 깨진다).
+async def test_no_questions_leaves_the_expectation_null(db_conn: asyncpg.Connection):
+    session_id = await _new_session(db_conn)
+
+    assert (
+        await record_drill_turns_expected(
+            db_conn, session_id, questions=[], drill_count=3, drill_turns_min=4
+        )
+        is None
+    )
+    assert await _recorded_expectation(db_conn, session_id) is None

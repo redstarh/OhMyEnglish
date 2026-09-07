@@ -14,6 +14,13 @@
   `_load_prepared_plan_or_none`으로 이 함수를 감싸 어댑터 생성에 넘긴다(Task 10) —
   그래서 AS4("계획이 없어도 세션이 열린다")가 관통 경로로도 성립한다. 지시문 **조립**은
   이 모듈의 일이 아니다: 계획은 데이터로 팩토리까지 가고 문장이 되는 것은 거기서다(G-3).
+* **시작이 읽을 무대**는 `load_session_scenario`가 돌려준다 — **생성이 이미 박아 둔**
+  `scenario_id`를 읽는다(설계서 §2.1). 수준으로 다시 고르지 않는 것이 계약이다: 그러면
+  학습자 수준이 올라간 뒤 지시문의 무대와 세션 행의 무대가 갈라진다.
+* **시작이 쓰는 것이 하나 있다** — `record_drill_turns_expected`가 기대 exchange 수를
+  `learning_sessions.drill_turns_expected`(009)에 남긴다(캡틴 결정 16). ⚠️ 그래서 "세션 시작은
+  조회뿐"이 더 이상 참이 아니다: 기대값은 **복원 불가**라서(계획 조회가 「최신 1행」이다)
+  그 순간에 남기지 않으면 영구히 알 수 없다. 실패해도 세션은 진행한다(부가 정보).
 * **종료**는 `ended_at`과 `status`를 한 UPDATE로 묻는다 — 두 문장으로 갈라지면
   그 사이에 "끝났지만 active"인 상태가 관측된다. 시각은 DB 시계(timestamptz)로
   찍는다: 앱이 만든 naive datetime이 섞이는 경로를 아예 만들지 않는다. 그리고
@@ -26,7 +33,7 @@ from __future__ import annotations
 
 import json
 import logging
-from collections.abc import Collection
+from collections.abc import Collection, Sequence
 from dataclasses import dataclass
 from datetime import timedelta
 from typing import Literal
@@ -35,7 +42,8 @@ from uuid import UUID
 import asyncpg
 import pydantic
 
-from app.models.plan import SessionInstruction
+from app.models.plan import PlanQuestion, SessionInstruction
+from app.models.scenario import SessionScenario
 from app.services.jobs import enqueue_plan_next_session
 
 logger = logging.getLogger(__name__)
@@ -106,7 +114,7 @@ returning s.id
 # 그 앞 세션의 계획이 다시 읽힌다. 소비 표시의 경계를 정하는 것은 이 슬라이스의 범위가
 # 아니다(설계서 §11 이월).
 _PREPARED_PLAN_SQL = """
-select sp.id as plan_id, sp.reason, sp.instruction
+select sp.id as plan_id, sp.reason, sp.instruction, sp.questions
   from session_plans sp
   join learning_sessions ls on ls.id = sp.session_id
  where ls.user_id = $1
@@ -114,13 +122,19 @@ select sp.id as plan_id, sp.reason, sp.instruction
  limit 1
 """
 
+# `questions`는 jsonb **배열**이라 `SessionInstruction`처럼 단일 모델의 `model_validate`로 좁힐
+# 수 없다. `TypeAdapter`가 그 자리를 맡고, 모듈 상수로 두는 이유는 검증기를 한 번만 만들면
+# 되는 것을 세션 시작마다 다시 만들 이유가 없기 때문이다.
+_QUESTIONS_ADAPTER = pydantic.TypeAdapter(list[PlanQuestion])
+
 
 @dataclass(frozen=True, slots=True)
 class PreparedPlan:
     """직전 세션이 만들어 둔 계획에서 **세션 시작이 쓰는 것만** 담는다.
 
-    초점 패턴 id·질문 목록은 담지 않는다. 대화 상대에게 넘어가는 것은 `instruction`
-    (§5.2 가변부)이고, `plan_id`는 로그와 조회 경로가 어느 계획이 쓰였는지 가리킨다.
+    초점 패턴 id는 담지 않는다. 대화 상대에게 넘어가는 것은 `instruction`(§5.2 가변부)과
+    **`questions`**(오늘 드릴할 질문 3~5개)이고, `plan_id`는 로그와 조회 경로가 어느 계획이
+    쓰였는지 가리킨다.
 
     **화면에 나가는 것은 `reason`과 `instruction.target_level` 둘이다**(R11-3) —
     `api/results.py`의 `next_plan`이 이 두 값으로 시작 화면의 한 줄을 만든다. 목표 수준을
@@ -128,11 +142,17 @@ class PreparedPlan:
     `session_plans.target_level` 컬럼과 같은 값임을 저장 시점에 `PlanOutput`이 강제하고
     (`models/plan.py` `_target_level_matches_level_and_instruction`), 지시문을 읽을 수 없어
     이 함수가 `None`을 돌려주면 세션도 화면도 그 계획을 함께 버린다.
+
+    ⚠️ **`questions`를 `SessionInstruction`에 넣지 않고 이 자리에 둔 이유**: 그 모델은
+    `extra="forbid"`이고 필수 필드가 하나 늘면 **이전에 저장된 모든 행**이 한꺼번에 검증
+    실패한다(`load_prepared_plan` docstring이 그 실패 모드에 이름을 붙여 뒀다). `questions`는
+    007이 **별도 컬럼**으로 이미 저장하므로 지시문 안에 넣을 이유가 없다.
     """
 
     plan_id: UUID
     reason: str
     instruction: SessionInstruction
+    questions: list[PlanQuestion]
 
 
 async def load_prepared_plan(conn: asyncpg.Connection, user_id: UUID) -> PreparedPlan | None:
@@ -140,31 +160,131 @@ async def load_prepared_plan(conn: asyncpg.Connection, user_id: UUID) -> Prepare
 
     **조회만 한다.** 세션 시작에 Claude 호출도, 쓰기도 없다(§3.4).
 
-    **§9 Contract: 이 함수는 실패로 세션 시작을 막지 않는다.** 계획 부재(`None`)는 정상
-    경로이고 호출자는 고정 시나리오로 진행한다(AS4). 저장된 `instruction`이 지금의
-    `SessionInstruction` 계약을 만족하지 못하는 경우도 같게 다룬다 — 그 상황은 계약에
-    필수 필드가 늘었을 때 **이전에 저장된 모든 행**에서 한꺼번에 오므로, 예외로 새게 두면
-    그 순간부터 세션이 아예 시작되지 않는다. 대신 `warning`을 남긴다(H-Z: 문서가 지정한
-    실행에서 INFO는 보이지 않는다) — 계획이 매번 조용히 무시되는 것을 알 유일한 신호다.
+    ⚠️ **소비자가 둘이다.** 세션 시작(`api/ws.py`)과 **시작 화면의 `/next-plan`**
+    (`api/results.py`의 `next_plan`)이 이 함수를 공유한다. 그래서 아래 「계획 전체 포기」는
+    대화에서 끝나지 않고 **시작 화면의 추천 이유 한 줄(R11-3)도 같은 조건에서 사라지게 한다.**
+    그것을 받아들인 판단이다(설계서 §2.1): 저장된 모양이 계약과 어긋났다면 대화와 화면이
+    **함께** 그 계획을 버리는 것이 한쪽만 믿는 것보다 낫다.
 
-    `instruction`을 `json.loads` → `model_validate`로 좁히는 이유: 이 리포에는 jsonb
-    코덱이 설정돼 있지 않아(`set_type_codec` 0건) asyncpg가 `str`를 돌려준다. 문자열을
-    그대로 넘기면 지시문을 조립하는 쪽이 문자열을 필드처럼 다루게 된다.
+    **§9 Contract: 이 함수는 실패로 세션 시작을 막지 않는다.** 계획 부재(`None`)는 정상
+    경로이고 호출자는 고정 시나리오로 진행한다(AS4). 저장된 `instruction`·`questions`가 지금의
+    계약을 만족하지 못하는 경우도 같게 다룬다 — 그 상황은 계약에 필수 필드가 늘었을 때
+    **이전에 저장된 모든 행**에서 한꺼번에 오므로, 예외로 새게 두면 그 순간부터 세션이 아예
+    시작되지 않는다. 대신 `warning`을 남긴다(H-Z: 문서가 지정한 실행에서 INFO는 보이지 않는다)
+    — 계획이 매번 조용히 무시되는 것을 알 유일한 신호다.
+
+    ⛔ **질문 검증이 실패하면 계획 전체를 포기한다** — 질문만 빈 목록으로 떨어뜨리고 계획을
+    살리지 않는다(설계서 §2.1). 근거: `session_plans_questions_len`(007)이 3~5개 배열을 지키므로
+    정상 경로에서 깨질 수 없고, 깨졌다면 계약이 어긋난 것이다. **반쯤 유효한 계획을 쓰는 것**이
+    이 리포의 지배 실패 모드(*"통과했는데 통과한 이유가 틀렸다"*)에 가장 가깝다 — 그러면
+    「드릴 지시 없는 세션」이 정상처럼 보인다.
+
+    두 값을 `json.loads` → 모델 검증으로 좁히는 이유: 이 리포에는 jsonb 코덱이 설정돼 있지
+    않아(`set_type_codec` 0건) asyncpg가 `str`를 돌려준다. 문자열을 그대로 넘기면 지시문을
+    조립하는 쪽이 문자열을 필드처럼 다루게 된다.
     """
     row = await conn.fetchrow(_PREPARED_PLAN_SQL, user_id)
     if row is None:
         return None
     try:
         instruction = SessionInstruction.model_validate(json.loads(row["instruction"]))
+        questions = _QUESTIONS_ADAPTER.validate_python(json.loads(row["questions"]))
     except pydantic.ValidationError as error:
         logger.warning(
-            "계획 %s의 지시문을 읽을 수 없어 계획 없이 시작한다 — 저장된 모양이 지금의 "
-            "SessionInstruction 계약과 다르다: %s",
+            "계획 %s를 읽을 수 없어 계획 없이 시작한다 — 저장된 모양이 지금의 "
+            "SessionInstruction·PlanQuestion 계약과 다르다: %s",
             row["plan_id"],
             error,
         )
         return None
-    return PreparedPlan(plan_id=row["plan_id"], reason=row["reason"], instruction=instruction)
+    return PreparedPlan(
+        plan_id=row["plan_id"],
+        reason=row["reason"],
+        instruction=instruction,
+        questions=questions,
+    )
+
+
+# 세션 행에 **이미 박힌** `scenario_id`를 join해 읽는다 (설계서 §2.1, `TASK-25` AC#1·#3).
+#
+# ⛔ **INSERT가 고른 행을 다시 고르지 않는다.** `_CREATE_SESSION_SQL`처럼 학습자 수준으로
+# 재조회하면 수준이 올라간 뒤 두 값이 갈라져, 지시문이 「그 세션이 실제로 받은 무대」와 다른
+# 무대를 말한다. 그 폴백 경로는 실제로 발동한다(시드가 `A2` 3행뿐이다 — 위 SQL 주석).
+#
+# `scenario_id`가 null이면 join이 **0행**이라 `None`이 된다 — AC#3("null이면 지금 동작 유지")이
+# **코드 분기 없이** 충족되는 형태를 고른 것이다. `if scenario_id is None`을 쓰지 않는다.
+_SESSION_SCENARIO_SQL = """
+select s.title, s.prompt_template
+  from learning_sessions ls
+  join learning_scenarios s on s.id = ls.scenario_id
+ where ls.id = $1
+"""
+
+# 기대 exchange 수를 세션에 남긴다 (009, 캡틴 결정 16).
+#
+# **왜 저장하나**: 실제 exchange 수는 사후에 발화에서 도출되지만 **기대값은 복원 불가**다 —
+# 계획 조회가 「사용자 최신 1건」(`_PREPARED_PLAN_SQL`)이므로 다음 세션이 지나면 그 세션이
+# 어느 계획을 썼는지 알 길이 없다.
+# ⛔ **`learning_sessions.summary`에 얹지 않는다.** 그 컬럼은 `docs/database-schema.md`가
+# `summarize_session`(세션 총평)의 것으로 이미 지정했고 007이 그 job을 CHECK에 열어 뒀다 —
+# 총평 구현자가 `set summary = $2`를 쓰는 것은 **정상 행동**이고 그때 이 값이 지워진다.
+_DRILL_TURNS_EXPECTED_SQL = """
+update learning_sessions
+   set drill_turns_expected = $2
+ where id = $1
+"""
+
+
+async def load_session_scenario(
+    conn: asyncpg.Connection, session_id: UUID
+) -> SessionScenario | None:
+    """이 세션이 올라선 무대 — 없으면 `None` (설계서 §2.1, `TASK-25` AC#1·#3).
+
+    **사후조건: 세션 부재 · `scenario_id` null · 무대 행 부재 → 전부 `None`.** 셋이 한 경로로
+    수렴하는 것이 의도다(위 SQL 주석 — join 0행). 호출자는 무대 없이 진행한다.
+
+    ⛔ **DB 오류는 던진다.** 흡수는 `api/ws.py`의 래퍼가 한다(`_load_known_sounds_or_empty`·
+    `_load_prepared_plan_or_none`과 같은 분업). 예외를 여기서 삼키면 「조회가 깨졌다」와
+    「무대가 없다」가 서비스 계층에서 구분되지 않아, 조회가 영구히 깨진 것을 아무도 모른다.
+
+    반환 타입이 `models`에 있는 이유: `audio_gateway/factory.py`·`nova.py`가 `app.models`만 알고
+    `app.services`가 그 값을 채우는 기존 방향(`SessionInstruction`)과 같다.
+    """
+    row = await conn.fetchrow(_SESSION_SCENARIO_SQL, session_id)
+    if row is None:
+        return None
+    return SessionScenario(title=row["title"], prompt_template=row["prompt_template"])
+
+
+async def record_drill_turns_expected(
+    conn: asyncpg.Connection,
+    session_id: UUID,
+    *,
+    questions: Sequence[PlanQuestion],
+    drill_count: int,
+    drill_turns_min: int,
+) -> int | None:
+    """세션 시작에 기대 exchange 수를 남긴다 — 쓴 값을 돌려준다 (설계서 §2.3, 캡틴 결정 16).
+
+    값 = **열거되는 질문 수** × 드릴당 최소 exchange 수 = `len(questions[:drill_count])` ×
+    `drill_turns_min`. ⛔ **`len(questions)`가 아니다** — 지시문이 열거하는 것도
+    `questions[:drill_count]`이고(`audio_gateway/nova.build_system_prompt`), 두 수가 갈라지면
+    설정값이 **대화를 바꾸지 않고 통과 문턱만 바꾸는 노브**가 된다(H-5). 두 곳이 같은 슬라이스를
+    쓰는 것이 계약이고, 그 일치는 열거 수를 세는 테스트와 이 값을 재는 테스트가 함께 지킨다.
+
+    **질문이 0건이면 아무것도 쓰지 않고 `None`을 돌려준다** → 컬럼은 null로 남는다 =
+    **관측 대상이 아니다.** ⛔ 0을 쓰지 않는 이유가 둘이다: 0은 「기대가 0이었다」로 읽혀
+    「기대가 없었다」와 구분되지 않고, 009의 `check (… > 0)`가 그것을 거부해 **부가 정보 때문에
+    세션 시작이 깨진다.**
+
+    ⛔ **DB 오류는 던진다** — `load_session_scenario`와 같은 분업이다. 이 값은 부가 정보이므로
+    실패해도 세션은 진행해야 하고, 그 흡수와 로그는 `api/ws.py`의 래퍼가 소유한다.
+    """
+    expected = len(questions[:drill_count]) * drill_turns_min
+    if expected == 0:
+        return None
+    await conn.execute(_DRILL_TURNS_EXPECTED_SQL, session_id, expected)
+    return expected
 
 
 async def create_session(pool: asyncpg.Pool, user_id: UUID) -> UUID:

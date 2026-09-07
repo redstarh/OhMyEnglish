@@ -35,7 +35,8 @@ from app.api.main import FRONTEND_ORIGIN, create_app
 from app.api.ws import FIXED_USER_ID, WS_SESSION_PATH
 from app.audio_gateway.fixtures import FIXTURE_TURNS, TONE_WAV_FRAME
 from app.config import Settings, get_settings
-from app.models.plan import SessionInstruction
+from app.models.plan import PlanQuestion, SessionInstruction
+from app.models.scenario import SessionScenario
 
 RECEIVE_TIMEOUT = 5.0
 
@@ -124,6 +125,14 @@ def ws_app(monkeypatch: pytest.MonkeyPatch, test_database: str) -> Iterator[Fast
     get_settings.cache_clear()
 
 
+# 무대 1행의 두 값. **둘이 달라야 한다** — 이전 판은 `values (…, $1, $1)`로 심어
+# `title` = `prompt_template`이었고, 그동안 "`title`은 지시문에 싣지 않는다"(규칙 6)는 방어와
+# 그 tripwire가 **실물 데이터에서 원리적으로 성립하지 않았다**(설계서 §2.2의 ⛔ 상자).
+# 값은 시드 3행 중 하나(`…103`)와 같은 모양이다 — 질문이 아니라 **무대**(상황·역할)다.
+FIXTURE_SCENARIO_TITLE = "Tonight's plans at home"
+FIXTURE_SCENARIO_PROMPT = "You are a housemate talking with the learner about tonight."
+
+
 @pytest_asyncio.fixture
 async def seeded_fixed_user(db_pool: asyncpg.Pool) -> AsyncIterator[UUID]:
     """고정 사용자 + 시나리오 1행을 커밋해두고, teardown에서 지운다.
@@ -140,8 +149,9 @@ async def seeded_fixed_user(db_pool: asyncpg.Pool) -> AsyncIterator[UUID]:
         )
         scenario_id = await conn.fetchval(
             "insert into learning_scenarios (category, level, title, prompt_template) "
-            "values ('daily_life', 'A2', $1, $1) returning id",
-            FIXTURE_TURNS[0][0],
+            "values ('daily_life', 'A2', $1, $2) returning id",
+            FIXTURE_SCENARIO_TITLE,
+            FIXTURE_SCENARIO_PROMPT,
         )
     try:
         yield scenario_id
@@ -251,7 +261,11 @@ async def test_ws_reports_a_failed_session_when_the_adapter_cannot_be_built(
     seeded_fixed_user: UUID,
     monkeypatch: pytest.MonkeyPatch,
 ):
-    def explode(settings: object) -> None:
+    # ⚠️ **kwargs 를 받는다.** 받지 않으면 소켓의 호출이 `TypeError`로 죽어서, 이 테스트가
+    # 재려는 `ValueError`(설정 오타)가 **아예 발생하지 않는다** — 어떤 예외든 `session_failed`로
+    # 수렴하므로 초록이지만 통과한 이유가 틀린다. 팩토리 인자가 늘 때마다 이 대역이 조용히
+    # 그 상태로 빠지므로 여기서 닫아 둔다.
+    def explode(settings: object, **_kwargs: object) -> None:
         raise ValueError("알 수 없는 voice_adapter 설정: 'nova'")
 
     monkeypatch.setattr(ws_module, "create_voice_adapter", explode)
@@ -305,17 +319,27 @@ async def test_ws_passes_assembled_instructions_to_the_adapter(
     seen: dict[str, object] = {}
     real_factory = ws_module.create_voice_adapter
 
-    # `plan`을 받는 이유: 소켓이 그것을 넘기기 시작한 뒤(Task 10)로는 이 대역이 인자를
-    # 못 받으면 `TypeError`로 죽는다 — 여기서 재려는 것과 무관한 실패가 된다.
+    # `plan`·`questions`·`scenario`를 받는 이유: 소켓이 그것들을 넘기기 시작한 뒤로는 이 대역이
+    # 인자를 못 받으면 `TypeError`로 죽는다 — 여기서 재려는 것과 무관한 실패가 된다.
+    # ⚠️ `questions`·`scenario`에는 **기본값을 두지 않는다**: 두면 소켓이 그 인자를 아예 넘기지
+    # 않아도 이 대역이 조용히 받아들여, 실물 팩토리가 요구하는 것을 테스트가 면제해 준다.
     def spy(
         settings: Settings,
         *,
         known_sounds: Sequence[str] = (),
         plan: SessionInstruction | None = None,
+        questions: Sequence[PlanQuestion],
+        scenario: SessionScenario | None,
     ) -> object:
         seen["known_sounds"] = list(known_sounds)
         seen["plan"] = plan
-        return real_factory(settings, known_sounds=known_sounds, plan=plan)
+        return real_factory(
+            settings,
+            known_sounds=known_sounds,
+            plan=plan,
+            questions=questions,
+            scenario=scenario,
+        )
 
     monkeypatch.setattr(ws_module, "create_voice_adapter", spy)
 
@@ -372,6 +396,10 @@ async def test_ws_opens_the_session_even_if_the_known_sounds_lookup_fails(
 # `seen["plan"] is None`이 그대로 참이었다(직접 확인). 그래서 "안 넘겼다"를 따로 표시한다.
 _PLAN_NOT_PASSED = object()
 
+# `scenario`에는 같은 감시자를 두지 않는다 — 실물 팩토리가 그 kwarg 를 **요구하므로**(기본값 없음)
+# 소켓이 빠뜨리면 `TypeError`로 즉시 죽는다. 그 강제를 대역이 다시 흉내낼 이유가 없다.
+# ⚠️ 그래서 이 대역도 `questions`·`scenario`에 기본값을 두지 않는다(위 spy 와 같은 규약).
+
 
 def _capture_factory_args(monkeypatch: pytest.MonkeyPatch) -> dict[str, object]:
     """팩토리를 감싸 인자를 캡처한다 — 위 `known_sounds` 테스트와 같은 형태다."""
@@ -383,11 +411,21 @@ def _capture_factory_args(monkeypatch: pytest.MonkeyPatch) -> dict[str, object]:
         *,
         known_sounds: Sequence[str] = (),
         plan: SessionInstruction | None | object = _PLAN_NOT_PASSED,
+        questions: Sequence[PlanQuestion],
+        scenario: SessionScenario | None,
     ) -> object:
         seen["known_sounds"] = list(known_sounds)
         seen["plan"] = plan
+        seen["questions"] = list(questions)
+        seen["scenario"] = scenario
         forwarded = plan if isinstance(plan, SessionInstruction) else None
-        return real_factory(settings, known_sounds=known_sounds, plan=forwarded)
+        return real_factory(
+            settings,
+            known_sounds=known_sounds,
+            plan=forwarded,
+            questions=questions,
+            scenario=scenario,
+        )
 
     monkeypatch.setattr(ws_module, "create_voice_adapter", spy)
     return seen
@@ -460,6 +498,164 @@ async def test_ws_opens_the_session_even_if_the_plan_lookup_fails(
         "계획 조회 실패가 세션을 막았다 — 부가 정보 때문에 대화를 잃는다"
     )
     assert seen.get("plan") is None
+
+    async with db_pool.acquire() as conn:
+        status = await conn.fetchval(
+            "select status from learning_sessions where user_id = $1", FIXED_USER_ID
+        )
+    assert status != "failed"
+
+
+# --- TASK-25 Batch B: 무대·질문·기대 exchange 수가 소켓 구간을 관통한다 (설계서 §2.1) ---
+#
+# 여기서 재는 것도 **데이터**다 — 조립 문구는 `tests/integration/test_gateway.py`·
+# `tests/unit/test_nova.py`가 소유한다(G3 이음매).
+
+
+# ⛔ 이 배치에서 가장 중요한 한 줄의 증거다. `_load_prepared_plan_or_none`이 `PreparedPlan`을
+# 버리고 `.instruction`만 돌려주던 동안에는 **`questions`가 실릴 자리가 아예 없었다**(C-1).
+# 계획이 있으면 질문도 함께 팩토리까지 온다.
+async def test_ws_passes_the_prepared_questions_to_the_adapter(
+    ws_app: FastAPI,
+    db_pool: asyncpg.Pool,
+    seeded_fixed_user: UUID,
+    seed_plan_for_session: Callable[..., Any],
+    monkeypatch: pytest.MonkeyPatch,
+):
+    async with db_pool.acquire() as conn:
+        await seed_plan_for_session(conn, user_id=FIXED_USER_ID)
+    seen = _capture_factory_args(monkeypatch)
+
+    async with ws_app.router.lifespan_context(ws_app), ASGIWebSocket(ws_app) as client:
+        await client.receive_event()
+
+    captured = seen.get("questions")
+    assert isinstance(captured, list)
+    # 타입까지 좁혀서 센다 — `str` 3개가 넘어와도 개수 단정만으로는 통과한다(그러면 조립기가
+    # 문자열을 필드처럼 다룬다).
+    questions = [question for question in captured if isinstance(question, PlanQuestion)]
+    assert len(questions) == len(captured) == 3, (
+        "준비된 계획의 질문 목록이 `PlanQuestion` 3건으로 어댑터 생성까지 가지 않았다 (C-1)"
+    )
+    assert questions[0].prompt == "What did you do at work today?"
+
+
+# 계획이 없으면 질문도 없다 — 빈 목록이 「드릴 없음」이고, 조립기가 드릴 줄을 아예 넣지 않는다.
+async def test_ws_passes_no_questions_when_no_plan_is_prepared(
+    ws_app: FastAPI, seeded_fixed_user: UUID, monkeypatch: pytest.MonkeyPatch
+):
+    seen = _capture_factory_args(monkeypatch)
+
+    async with ws_app.router.lifespan_context(ws_app), ASGIWebSocket(ws_app) as client:
+        await client.receive_event()
+
+    assert seen.get("questions") == []
+
+
+# AC#1 — 세션에 박힌 무대가 팩토리까지 온다. 픽스처가 심은 두 값이 **달라야** 이 단정에
+# 판별력이 있다(`FIXTURE_SCENARIO_*` 주석).
+async def test_ws_passes_the_session_scenario_to_the_adapter(
+    ws_app: FastAPI, seeded_fixed_user: UUID, monkeypatch: pytest.MonkeyPatch
+):
+    seen = _capture_factory_args(monkeypatch)
+
+    async with ws_app.router.lifespan_context(ws_app), ASGIWebSocket(ws_app) as client:
+        await client.receive_event()
+
+    scenario = seen.get("scenario")
+    assert isinstance(scenario, SessionScenario), "세션의 무대가 어댑터 생성까지 가지 않았다"
+    assert scenario.prompt_template == FIXTURE_SCENARIO_PROMPT
+    assert scenario.title == FIXTURE_SCENARIO_TITLE
+
+
+# 무대도 **부가 정보**다 — `_load_known_sounds_or_empty`·`_load_prepared_plan_or_none`과 글자
+# 그대로 같은 규약이다. 조회가 깨졌다고 대화를 못 열면 손해가 더 크다.
+async def test_ws_opens_the_session_even_if_the_scenario_lookup_fails(
+    ws_app: FastAPI,
+    db_pool: asyncpg.Pool,
+    seeded_fixed_user: UUID,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    async def explode(conn: object, session_id: object) -> None:
+        raise asyncpg.PostgresError("무대 조회가 깨졌다")
+
+    monkeypatch.setattr(ws_module, "load_session_scenario", explode)
+    seen = _capture_factory_args(monkeypatch)
+
+    async with ws_app.router.lifespan_context(ws_app), ASGIWebSocket(ws_app) as client:
+        first = await client.receive_event()
+
+    assert first is not None
+    assert first["type"] != "session_failed", (
+        "무대 조회 실패가 세션을 막았다 — 부가 정보 때문에 대화를 잃는다"
+    )
+    assert seen.get("scenario") is None
+
+    async with db_pool.acquire() as conn:
+        status = await conn.fetchval(
+            "select status from learning_sessions where user_id = $1", FIXED_USER_ID
+        )
+    assert status != "failed"
+
+
+# 캡틴 결정 16 — 기대 exchange 수를 **세션 시작에** 009 컬럼에 남긴다. 계획 조회가 「사용자 최신
+# 1건」이라 다음 세션이 지나면 그 세션이 어느 계획을 썼는지 알 길이 없다 = 기대값은 복원 불가다.
+# 기본 설정(`drill_count=3`·`drill_turns_min=4`)에 질문 3개면 12다.
+async def test_ws_records_the_expected_exchange_count_on_the_session(
+    ws_app: FastAPI,
+    db_pool: asyncpg.Pool,
+    seeded_fixed_user: UUID,
+    seed_plan_for_session: Callable[..., Any],
+):
+    async with db_pool.acquire() as conn:
+        await seed_plan_for_session(conn, user_id=FIXED_USER_ID)
+
+    session_id, _ = await _run_one_session(ws_app)
+
+    async with db_pool.acquire() as conn:
+        expected = await conn.fetchval(
+            "select drill_turns_expected from learning_sessions where id = $1", session_id
+        )
+    assert expected == 12
+
+
+# 계획이 없으면 **쓰지 않는다** → null 로 남는다 = 관측 대상이 아니다. 0을 쓰면 「기대가 0이었다」로
+# 읽혀 「기대가 없었다」와 구분되지 않고, 009의 CHECK 가 그것을 거부해 세션 시작이 깨진다.
+async def test_ws_leaves_the_expected_exchange_count_null_without_a_plan(
+    ws_app: FastAPI, db_pool: asyncpg.Pool, seeded_fixed_user: UUID
+):
+    session_id, _ = await _run_one_session(ws_app)
+
+    async with db_pool.acquire() as conn:
+        expected = await conn.fetchval(
+            "select drill_turns_expected from learning_sessions where id = $1", session_id
+        )
+    assert expected is None
+
+
+# 기대값 기록도 **부가 정보**다 — UPDATE 실패가 세션을 막지 않는다(설계서 §2.3의 실패 규약).
+async def test_ws_opens_the_session_even_if_recording_the_expectation_fails(
+    ws_app: FastAPI,
+    db_pool: asyncpg.Pool,
+    seeded_fixed_user: UUID,
+    seed_plan_for_session: Callable[..., Any],
+    monkeypatch: pytest.MonkeyPatch,
+):
+    async with db_pool.acquire() as conn:
+        await seed_plan_for_session(conn, user_id=FIXED_USER_ID)
+
+    async def explode(*_args: object, **_kwargs: object) -> None:
+        raise asyncpg.PostgresError("기대값 UPDATE가 깨졌다")
+
+    monkeypatch.setattr(ws_module, "record_drill_turns_expected", explode)
+
+    async with ws_app.router.lifespan_context(ws_app), ASGIWebSocket(ws_app) as client:
+        first = await client.receive_event()
+
+    assert first is not None
+    assert first["type"] != "session_failed", (
+        "기대값 기록 실패가 세션을 막았다 — 부가 정보 때문에 대화를 잃는다"
+    )
 
     async with db_pool.acquire() as conn:
         status = await conn.fetchval(

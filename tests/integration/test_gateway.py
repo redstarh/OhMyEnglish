@@ -55,7 +55,8 @@ from app.audio_gateway.session import (
 )
 from app.audio_gateway.stub import StubVoiceAdapter
 from app.config import Settings
-from app.models.plan import InstructionFocus, SessionInstruction
+from app.models.plan import InstructionFocus, PlanQuestion, SessionInstruction
+from app.models.scenario import SessionScenario
 
 # 연결 타임아웃 주입값. 실시간 대기 금지 — 무응답 경로도 0.1초 안에 판정된다.
 FAST_CONNECT_TIMEOUT = 0.1
@@ -691,7 +692,7 @@ def test_drain_timeout_is_a_documented_design_value():
     [(STUB_ADAPTER, "fixture"), (STUB_UNRESPONSIVE_ADAPTER, "unresponsive")],
 )
 def test_factory_builds_the_stub_mode_from_settings(setting: str, expected_mode: str):
-    adapter = create_voice_adapter(_settings(voice_adapter=setting))
+    adapter = create_voice_adapter(_settings(voice_adapter=setting), questions=(), scenario=None)
 
     assert isinstance(adapter, StubVoiceAdapter)
     assert adapter.mode == expected_mode
@@ -700,7 +701,9 @@ def test_factory_builds_the_stub_mode_from_settings(setting: str, expected_mode:
 # Nova 실연동(3차수). 분기는 이 함수 한 곳에만 있다 (G3) — 팩토리는 어댑터를 만들 뿐
 # 스트림을 열지 않으므로, 이 테스트는 자격증명·네트워크를 만지지 않는다.
 def test_factory_builds_the_nova_adapter():
-    adapter = create_voice_adapter(_settings(voice_adapter=NOVA_ADAPTER))
+    adapter = create_voice_adapter(
+        _settings(voice_adapter=NOVA_ADAPTER), questions=(), scenario=None
+    )
 
     assert isinstance(adapter, NovaVoiceAdapter)
 
@@ -708,7 +711,7 @@ def test_factory_builds_the_nova_adapter():
 def test_factory_rejects_an_unknown_adapter():
     # 오타를 조용히 스텁으로 흘리면 "실물이라 믿었던 세션이 픽스처였다"가 된다.
     with pytest.raises(ValueError, match="voice_adapter"):
-        create_voice_adapter(_settings(voice_adapter="novva"))
+        create_voice_adapter(_settings(voice_adapter="novva"), questions=(), scenario=None)
 
 
 _SOUNDS_HEADER = "Sounds this learner has missed before"
@@ -735,7 +738,10 @@ def _sounds_section(instructions: str) -> str:
 # 블록 **제목**으로 잰다 — 그 문구는 고정부에 0건이라 판별력이 있다.
 def test_factory_assembles_the_prompt_from_known_sounds_for_nova():
     adapter = create_voice_adapter(
-        _settings(voice_adapter=NOVA_ADAPTER), known_sounds=["th_as_s", "f_as_p"]
+        _settings(voice_adapter=NOVA_ADAPTER),
+        known_sounds=["th_as_s", "f_as_p"],
+        questions=(),
+        scenario=None,
     )
 
     assert isinstance(adapter, NovaVoiceAdapter)
@@ -746,7 +752,9 @@ def test_factory_assembles_the_prompt_from_known_sounds_for_nova():
 
 # 목록을 주지 않으면 기본 문구다 — dev DB의 현재 상태(기록 0건)가 이 경로다.
 def test_factory_uses_the_base_prompt_when_there_are_no_known_sounds():
-    adapter = create_voice_adapter(_settings(voice_adapter=NOVA_ADAPTER))
+    adapter = create_voice_adapter(
+        _settings(voice_adapter=NOVA_ADAPTER), questions=(), scenario=None
+    )
 
     assert isinstance(adapter, NovaVoiceAdapter)
     assert adapter.instructions == SYSTEM_PROMPT
@@ -756,7 +764,12 @@ def test_factory_uses_the_base_prompt_when_there_are_no_known_sounds():
 # 모드가 그대로여야 1·2차수 판정이 재현된다. 지시문을 받는 이유는 AS6 판정 수단이
 # 그것뿐이기 때문이다(아래 `test_factory_puts_the_plan_into_the_stub_instructions`).
 def test_factory_gives_the_stub_the_instructions_without_changing_its_mode():
-    adapter = create_voice_adapter(_settings(voice_adapter=STUB_ADAPTER), known_sounds=["th_as_s"])
+    adapter = create_voice_adapter(
+        _settings(voice_adapter=STUB_ADAPTER),
+        known_sounds=["th_as_s"],
+        questions=(),
+        scenario=None,
+    )
 
     assert isinstance(adapter, StubVoiceAdapter)
     assert adapter.mode == "fixture"
@@ -787,7 +800,12 @@ def _plan_instruction() -> SessionInstruction:
 
 
 def test_factory_puts_the_plan_into_the_nova_instructions():
-    adapter = create_voice_adapter(_settings(voice_adapter=NOVA_ADAPTER), plan=_plan_instruction())
+    adapter = create_voice_adapter(
+        _settings(voice_adapter=NOVA_ADAPTER),
+        plan=_plan_instruction(),
+        questions=(),
+        scenario=None,
+    )
 
     assert isinstance(adapter, NovaVoiceAdapter)
     assert adapter.instructions != SYSTEM_PROMPT
@@ -800,13 +818,95 @@ def test_factory_puts_the_plan_into_the_nova_instructions():
 # 강제하므로 빈 조립이 조용히 폴백되고, 스텁은 `""`를 그대로 기록한다 — non-None 단정은
 # "지시문이 도달했다"가 아니라 "생성자가 인자를 받았다"만 증명한다(S2-9 리뷰 인계 1).
 def test_factory_puts_the_plan_into_the_stub_instructions():
-    adapter = create_voice_adapter(_settings(voice_adapter=STUB_ADAPTER), plan=_plan_instruction())
+    adapter = create_voice_adapter(
+        _settings(voice_adapter=STUB_ADAPTER),
+        plan=_plan_instruction(),
+        questions=(),
+        scenario=None,
+    )
 
     assert isinstance(adapter, StubVoiceAdapter)
     instructions = adapter.instructions
     assert instructions is not None
     assert "a/an/the" in instructions
     assert "weekend plan" in instructions
+
+
+# --- TASK-25 Batch B: 무대·질문도 같은 통로로 간다 (설계서 §2.1) ---
+#
+# 조립 **문구**는 `tests/unit/test_nova.py`가 소유한다. 여기서 재는 것은 팩토리가 그 재료를
+# 조립기까지 **넘기는가**다: 넘기지 않으면 조립기 테스트는 전부 초록인데 실제 세션은 고정
+# 문구로 시작한다 — 그것이 이 배치가 메우는 공백의 모양 그대로다.
+
+
+def _drill_questions() -> list[PlanQuestion]:
+    """`SYSTEM_PROMPT`·`_plan_instruction()`과 겹치지 않는 값만 쓴다 — 겹치면 항진명제가 된다."""
+    return [
+        PlanQuestion(prompt=f"Gateway drill {index}?", context=f"gateway context {index}")
+        for index in range(1, 4)
+    ]
+
+
+def _stage() -> SessionScenario:
+    return SessionScenario(
+        title="Tonight's plans at home",
+        prompt_template="You are a housemate talking with the learner about tonight.",
+    )
+
+
+def test_factory_puts_the_scenario_and_the_questions_into_the_nova_instructions():
+    adapter = create_voice_adapter(
+        _settings(voice_adapter=NOVA_ADAPTER),
+        plan=_plan_instruction(),
+        questions=_drill_questions(),
+        scenario=_stage(),
+    )
+
+    assert isinstance(adapter, NovaVoiceAdapter)
+    assert "You are a housemate talking with the learner about tonight." in adapter.instructions
+    assert "Gateway drill 1?" in adapter.instructions
+    # 규칙 6 — 화면용 라벨은 지시문에 실리지 않는다. 팩토리가 `SessionScenario`를 통째로
+    # 문자열화하는 구현에서 이 단정이 걸린다.
+    assert "at home" not in adapter.instructions
+
+
+def test_factory_puts_the_scenario_and_the_questions_into_the_stub_instructions():
+    adapter = create_voice_adapter(
+        _settings(voice_adapter=STUB_ADAPTER),
+        plan=_plan_instruction(),
+        questions=_drill_questions(),
+        scenario=_stage(),
+    )
+
+    assert isinstance(adapter, StubVoiceAdapter)
+    instructions = adapter.instructions
+    assert instructions is not None
+    assert "You are a housemate talking with the learner about tonight." in instructions
+    assert "Gateway drill 1?" in instructions
+
+
+# ⛔ 설정값 둘이 **팩토리를 지나 문구까지** 간다 — 조립기는 전역(`get_settings()`)을 읽지 않고
+# 인자로 받는다. 그래서 이 경로가 끊기면 설정값이 아무것도 바꾸지 않는다(캡틴 결정 1이 요구한
+# "읽는다"가 죽는다). 기본값(4·3)과 **다른 값**을 줘야 판별력이 있다.
+def test_factory_forwards_the_drill_settings_to_the_assembled_prompt():
+    # `_settings`를 넓히지 않고 여기서 직접 만든다 — 드릴 설정값을 쓰는 테스트가 이 하나뿐이다.
+    settings = Settings(
+        database_url="postgresql://unused/unused",
+        aws_region="us-west-2",
+        voice_adapter=NOVA_ADAPTER,
+        drill_count=1,
+        drill_turns_min=7,
+    )
+
+    adapter = create_voice_adapter(
+        settings, plan=_plan_instruction(), questions=_drill_questions(), scenario=None
+    )
+
+    assert isinstance(adapter, NovaVoiceAdapter)
+    flowed = " ".join(adapter.instructions.split())
+    assert "at least 7 exchanges" in flowed, "`drill_turns_min`이 문구까지 가지 않았다"
+    assert "Gateway drill 1?" in adapter.instructions
+    assert "Gateway drill 2?" not in adapter.instructions, "`drill_count`가 열거를 줄이지 않았다"
 
 
 # ④ import 그래프 — 러너와 소켓 계층은 스텁을 모른다 (G3)

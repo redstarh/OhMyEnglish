@@ -19,6 +19,7 @@ from __future__ import annotations
 import contextlib
 import json
 import logging
+from collections.abc import Sequence
 from uuid import UUID
 
 import asyncpg
@@ -26,10 +27,18 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from app.audio_gateway.factory import create_voice_adapter
 from app.audio_gateway.session import SessionRunner
-from app.config import get_settings
-from app.models.plan import SessionInstruction
+from app.config import Settings, get_settings
+from app.models.plan import PlanQuestion
+from app.models.scenario import SessionScenario
 from app.services.pronunciation import load_known_sounds
-from app.services.sessions import create_session, load_prepared_plan, mark_session_ended
+from app.services.sessions import (
+    PreparedPlan,
+    create_session,
+    load_prepared_plan,
+    load_session_scenario,
+    mark_session_ended,
+    record_drill_turns_expected,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -114,8 +123,13 @@ async def _load_known_sounds_or_empty(pool: asyncpg.Pool) -> list[str]:
         return []
 
 
-async def _load_prepared_plan_or_none(pool: asyncpg.Pool) -> SessionInstruction | None:
+async def _load_prepared_plan_or_none(pool: asyncpg.Pool) -> PreparedPlan | None:
     """직전 세션이 준비해 둔 오늘의 계획 — 없거나 읽지 못하면 `None` (설계서 §3.3).
+
+    ⛔ **`PreparedPlan`을 그대로 돌려준다 — `.instruction`만 꺼내지 않는다.** 이전 판은
+    지시문만 돌려주고 계획 객체를 **버렸고**, 그 상태에서는 오늘의 질문 3~5개가 어댑터까지
+    실릴 자리가 **아예 없었다**(설계서 §2.1의 C-1). 질문을 여기서 다시 조회하면 조회가 둘로
+    갈라져 「지시문이 가리키는 계획」과 「질문이 온 계획」이 달라질 수 있다.
 
     **계획 조회 실패를 세션 시작 실패로 번역하지 않는다** — `_load_known_sounds_or_empty`와
     같은 규약이다. 계획은 지시문에 얹는 **부가 정보**이고, 조회가 깨졌다고 세션을 못 열면
@@ -128,11 +142,55 @@ async def _load_prepared_plan_or_none(pool: asyncpg.Pool) -> SessionInstruction 
     """
     try:
         async with pool.acquire() as conn:
-            prepared = await load_prepared_plan(conn, FIXED_USER_ID)
+            return await load_prepared_plan(conn, FIXED_USER_ID)
     except Exception:
         logger.exception("준비된 계획을 읽지 못해 계획 없이 시작한다")
         return None
-    return prepared.instruction if prepared is not None else None
+
+
+async def _load_scenario_or_none(pool: asyncpg.Pool, session_id: UUID) -> SessionScenario | None:
+    """이 세션이 올라선 무대 — 없거나 읽지 못하면 `None` (설계서 §2.1, `TASK-25` AC#1·#3).
+
+    위 두 함수와 **글자 그대로 같은 실패 규약**이다: 조회 실패를 세션 시작 실패로 번역하지 않고,
+    로그를 남기고 무대 없이 진행한다. 무대는 지시문에 얹는 **부가 정보**이고, 조회가 깨졌다고
+    세션을 못 열면 대화 전체를 잃는다.
+
+    무대가 없는 것(`scenario_id` null)과 조회가 깨진 것을 여기서 구분하지 않는 것도 같다 —
+    둘 다 "무대 블록 없이 시작한다"로 수렴한다. 구분은 로그가 담당한다.
+    """
+    try:
+        async with pool.acquire() as conn:
+            return await load_session_scenario(conn, session_id)
+    except Exception:
+        logger.exception("이 세션의 무대를 읽지 못해 무대 없이 진행한다")
+        return None
+
+
+async def _record_drill_turns_or_continue(
+    pool: asyncpg.Pool,
+    session_id: UUID,
+    *,
+    questions: Sequence[PlanQuestion],
+    settings: Settings,
+) -> None:
+    """기대 exchange 수를 세션에 남긴다 — 실패하면 로그만 남기고 진행한다 (캡틴 결정 16).
+
+    같은 실패 규약을 잇는다: 이 값은 **관측용 부가 정보**이고, UPDATE가 깨졌다고 대화를 못 열면
+    손해가 더 크다. ⚠️ 다만 조회와 달리 **잃는 것이 있다** — 기대값은 복원 불가라서(계획 조회가
+    「최신 1건」이다) 이 UPDATE를 놓친 세션은 영구히 관측 대상에서 빠진다. 그래서 `exception`으로
+    찍는다: 문서가 지정한 실행이 `--log-level warning`이라 그 아래는 한 줄도 보이지 않는다(H-Z).
+    """
+    try:
+        async with pool.acquire() as conn:
+            await record_drill_turns_expected(
+                conn,
+                session_id,
+                questions=questions,
+                drill_count=settings.drill_count,
+                drill_turns_min=settings.drill_turns_min,
+            )
+    except Exception:
+        logger.exception("세션 %s의 기대 exchange 수를 남기지 못해 그대로 진행한다", session_id)
 
 
 @router.websocket(WS_SESSION_PATH)
@@ -156,19 +214,38 @@ async def session_socket(websocket: WebSocket) -> None:
         return
 
     # 이 세션은 살아 있다 — 고아 세션 리퍼(I-4)가 닫아선 안 된다는 표시다. 세션 행 생성
-    # **직후**, 다음 `await`보다 **앞**에서 등록하는 것이 계약이다: 바로 아래
-    # `_load_known_sounds_or_empty`와 `_load_prepared_plan_or_none`이 각각 pool acquire를
-    # await하므로(소진되면 길어진다) 등록을 그 뒤로 밀면 리퍼가 볼 수 있는 진짜 창이 열린다.
+    # **직후**, 다음 `await`보다 **앞**에서 등록하는 것이 계약이다: 바로 아래에서 pool acquire를
+    # await하는 것이 **네 개**(재료 조회 3 + 기대값 UPDATE 1)이므로(소진되면 길어진다) 등록을
+    # 그 뒤로 밀면 리퍼가 볼 수 있는 진짜 창이 열린다. ⚠️ 이 배치가 그 창을 둘만큼 더 늘렸다 —
+    # 그래서 등록이 앞에 있어야 한다는 근거가 약해지지 않고 강해졌다.
     # ⚠️ **"갓 만든 세션이 즉시 리핑된다"는 위험은 없다** — `started_at`이 `now()` 기본값이라
     # 나이가 0초이고 유예를 만족할 수 없다. 이 순서의 근거는 유예가 아니라 위의 await 창이다.
     # 해제는 어떤 경로로 끝나든 아래 `finally`가 한다.
     live_sessions.add(session_id)
     try:
         known_sounds = await _load_known_sounds_or_empty(pool)
-        plan = await _load_prepared_plan_or_none(pool)
+        # 무대는 **세션 행에 박힌 것**을 읽으므로 `create_session` 뒤여야 한다(설계서 §2.1).
+        scenario = await _load_scenario_or_none(pool, session_id)
+        prepared = await _load_prepared_plan_or_none(pool)
+        # 팩토리로 가는 것은 **데이터**다(G-3): 지시문과 질문 목록을 따로 넘긴다. `PreparedPlan`
+        # 자체를 넘기면 `factory`·`nova`가 `services`를 import해 의존 방향이 뒤집힌다.
+        plan = prepared.instruction if prepared is not None else None
+        questions = prepared.questions if prepared is not None else []
+        settings = get_settings()
+        # 질문 수를 알아야 계산하므로 계획 조회 **뒤**다. 계획이 없으면 아무것도 쓰지 않는다 →
+        # 컬럼이 null로 남고 그것이 「관측 대상 아님」이다(캡틴 결정 16).
+        await _record_drill_turns_or_continue(
+            pool, session_id, questions=questions, settings=settings
+        )
 
         try:
-            adapter = create_voice_adapter(get_settings(), known_sounds=known_sounds, plan=plan)
+            adapter = create_voice_adapter(
+                settings,
+                known_sounds=known_sounds,
+                plan=plan,
+                questions=questions,
+                scenario=scenario,
+            )
         except Exception:
             # 어댑터를 만들지도 못했다(설정 오타/구현 부재). 세션 행은 이미 있으므로
             # `active` 고아로 두지 않고 failed로 닫는다 — 결과 화면이 "연결 실패"를

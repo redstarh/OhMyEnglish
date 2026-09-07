@@ -15,6 +15,7 @@ from __future__ import annotations
 import asyncio
 import base64
 import json
+from collections.abc import Sequence
 from typing import Any
 
 import pytest
@@ -34,8 +35,9 @@ from app.audio_gateway.port import (
     TranscriptEvent,
 )
 from app.config import Settings
-from app.models.plan import InstructionFocus, SessionInstruction
+from app.models.plan import InstructionFocus, PlanQuestion, SessionInstruction
 from app.models.pronunciation import PRONUNCIATION_TOOL_NAME
+from app.models.scenario import SessionScenario
 
 # --- N-1 실측에서 옮긴 값 ---
 
@@ -906,16 +908,50 @@ def test_system_prompt_tells_the_tutor_to_wait_through_a_pause():
     assert "never pair a correction with a new question" in lowered
 
 
+# --- 조립기 호출 헬퍼 ---
+#
+# `build_system_prompt`의 데이터 인자 **넷 다 기본값이 없다**(설계서 §2.1 C-1): 기본값을 주면
+# "질문이 안 실린 세션"·"무대 없는 세션"이 호출부에서 조용히 생기고, 그것이 이 설계가 막으려는
+# 실패 모드다. 그래서 관심 없는 인자를 여기서 채운다 — 각 테스트가 넷을 매번 적으면 무엇을
+# 재는지가 인자 목록에 묻힌다.
+#
+# 드릴 설정값 둘도 조립기가 **요구한다**(전역에서 읽지 않는다 — `get_settings()`를 부르면
+# 프롬프트가 프로세스 환경에 조용히 묶인다). 실제 값의 소유자는 `Settings`이고 그 기본값 4·3은
+# `tests/unit/test_config.py`가 못박는다. 여기 리터럴은 그 기본값의 **복사가 아니라** "이 테스트가
+# 쓰는 값"이다 — 설정값이 실제로 먹는지 재는 테스트는 아래에서 자기 값을 명시로 준다.
+_TEST_DRILL_TURNS_MIN = 4
+_TEST_DRILL_COUNT = 3
+
+
+def _prompt(
+    known_sounds: Sequence[str] = (),
+    plan: SessionInstruction | None = None,
+    questions: Sequence[PlanQuestion] = (),
+    scenario: SessionScenario | None = None,
+    *,
+    drill_count: int = _TEST_DRILL_COUNT,
+    drill_turns_min: int = _TEST_DRILL_TURNS_MIN,
+) -> str:
+    return build_system_prompt(
+        known_sounds,
+        plan,
+        questions,
+        scenario,
+        drill_count=drill_count,
+        drill_turns_min=drill_turns_min,
+    )
+
+
 # G-3 (캡틴 결정 B-4) — 기록이 0건이면 블록을 아예 넣지 않는다. dev DB의 현재 상태가 그것이고,
 # 빈 목록을 위한 빈 제목만 남기면 Nova가 "목록이 비었다"를 지시로 오해할 여지가 생긴다.
 def test_build_system_prompt_without_known_sounds_is_exactly_the_base_prompt():
-    assert build_system_prompt([]) == SYSTEM_PROMPT
+    assert _prompt([]) == SYSTEM_PROMPT
 
 
 # 재사용 규약(§5.6)을 발음 경로에서도 동작시키는 것이 B-4의 목적이다 — 키를 보여주는 것만으로는
 # 부족하고 **그 키를 다시 쓰라는 지시**가 함께 있어야 새 키가 계속 생긴다.
 def test_build_system_prompt_lists_past_sounds_and_asks_to_reuse_them():
-    prompt = build_system_prompt(["th_as_s", "f_as_p"])
+    prompt = _prompt(["th_as_s", "f_as_p"])
 
     assert prompt.startswith(SYSTEM_PROMPT)
     assert "th_as_s" in prompt
@@ -996,11 +1032,11 @@ def test_fixed_prompt_states_the_65_percent_speaking_target():
 
 # 계획이 없으면 예전 그대로다 — 폴백 경로(AS4)가 고정부만으로 시작한다.
 def test_build_system_prompt_without_a_plan_is_exactly_the_base_prompt():
-    assert build_system_prompt((), None) == SYSTEM_PROMPT
+    assert _prompt((), None) == SYSTEM_PROMPT
 
 
 def test_plan_block_carries_level_focus_length_and_contexts():
-    block = _plan_block(build_system_prompt((), _instruction()))
+    block = _plan_block(_prompt((), _instruction()))
 
     assert "B1" in block
     assert "article_missing" in block
@@ -1013,7 +1049,7 @@ def test_plan_block_carries_level_focus_length_and_contexts():
 # 어긋남 ② — 힌트 시점은 고정 규칙에 **이미** 있다(규칙 2·5). 계획이 그것을 대체한다는
 # 것이 문구로 없으면 "긴 침묵 뒤에만"과 오늘의 지시가 함께 실려 모순된 지시문이 된다.
 def test_plan_block_says_it_replaces_the_general_hint_rule():
-    block = _plan_block(build_system_prompt((), _instruction()))
+    block = _plan_block(_prompt((), _instruction()))
 
     assert "instead of the general hint rule" in block
     assert "wait through one long pause before offering a starter" in block
@@ -1025,7 +1061,7 @@ def test_plan_block_says_it_replaces_the_general_hint_rule():
 # ⚠️ 대체 축이 **왜 둘인가**(그리고 규칙 3이 왜 대체 대상이 아닌가)는 `build_system_prompt`의
 # docstring이 소유한다 — 그 판단은 테스트로 옮기지 않았다(지킬 회귀가 없는 부재 단정이 된다).
 def test_plan_block_says_the_target_level_replaces_the_base_level_in_rule_1():
-    block = _plan_block(build_system_prompt((), _instruction(target_level="C1")))
+    block = _plan_block(_prompt((), _instruction(target_level="C1")))
 
     assert f"instead of the {_BASE_LEVEL_RANGE} level in rule 1" in block
     assert "C1" in block
@@ -1047,7 +1083,7 @@ def test_the_base_level_range_constant_matches_the_fixed_prompt():
 # "as the learner is ready"로 정의한다). 주어 없이 실으면 규칙 1의 `your turns`(코치 자신의
 # 턴 길이)와 섞여 반대 뜻으로 읽힌다.
 def test_plan_block_names_the_learner_as_the_subject_of_sentence_length():
-    block = _plan_block(build_system_prompt((), _instruction()))
+    block = _plan_block(_prompt((), _instruction()))
 
     assert "the learner's sentences" in block
     assert "two or three short clauses" in block
@@ -1055,7 +1091,7 @@ def test_plan_block_names_the_learner_as_the_subject_of_sentence_length():
 
 # 발음 소리 목록과 계획이 함께 있어도 둘 다 실린다 — G-3 블록을 계획이 밀어내지 않는다.
 def test_sounds_and_plan_can_coexist():
-    prompt = build_system_prompt(("th_as_s",), _instruction())
+    prompt = _prompt(("th_as_s",), _instruction())
 
     assert prompt.startswith(SYSTEM_PROMPT)
     # ⚠️ **소리 목록을 `"th_as_s"`로 재지 않는다** — 그 키는 고정부 규칙 10의 예시로 **이미**
@@ -1071,9 +1107,231 @@ def test_sounds_and_plan_can_coexist():
 # 있는 수치가 없어서 두지 않았다). 빈 목록에 제목만 남기면 Nova 가 "목록이 비었다"를
 # 지시로 오해할 여지가 생긴다 — 소리 목록이 같은 판단을 이미 내렸다(B-4).
 def test_plan_block_omits_the_situations_line_when_there_are_no_contexts():
-    block = _plan_block(build_system_prompt((), _instruction(contexts=[])))
+    block = _plan_block(_prompt((), _instruction(contexts=[])))
 
     assert "Situations" not in block
     # 나머지 줄은 그대로 있다 — 줄 하나를 빼는 것이 블록을 깨뜨리지 않는다.
     assert "B1" in block
     assert "a/an/the" in block
+
+
+# --- TASK-25 Batch B: 무대(scenario)와 드릴 질문이 지시문에 실린다 (설계서 §2.2) ---
+
+
+_SETTING_ANCHOR = "Today's setting:"
+# 결정 9의 예외를 프롬프트에 적어 둔 줄. 계획이 무대를 이긴다는 것을 **문장으로** 말한다.
+_FOCUS_WINS = (
+    "- If today's setting suggests a different pattern than the focus above, follow the focus."
+)
+
+
+def _scenario(**overrides: str) -> SessionScenario:
+    """무대 1건 — 값은 시드 3행 중 하나(`…103`)를 그대로 쓴다(`scripts/migrate.py`).
+
+    ⚠️ **`title`에 `prompt_template`에 없는 낱말이 있어야** 규칙 6 tripwire가 실질을 갖는다.
+    여기서 그 낱말은 `at home`이고 고정부·계획 블록·`_instruction()`의 어느 값에도 없다
+    (직접 확인). 두 값이 바이트 동일했던 시드 교체 **전에는** 이 방어가 공허했다(설계서 §2.2) —
+    그래서 두 값이 겹치지 않는 것 자체가 이 헬퍼의 계약이다.
+    """
+    body = {
+        "title": "Tonight's plans at home",
+        "prompt_template": "You are a housemate talking with the learner about tonight.",
+    }
+    body.update(overrides)
+    return SessionScenario(**body)
+
+
+def _questions(count: int) -> list[PlanQuestion]:
+    """질문 `count`개. 번호를 값에 박아 **몇 번째 질문이 실렸는지**를 셀 수 있게 한다 —
+    고정부·계획 블록과 겹치는 문구를 쓰면 "3개만 열거됐다"를 셀 수 없다."""
+    return [
+        PlanQuestion(prompt=f"Drill question {index}?", context=f"drill context {index}")
+        for index in range(1, count + 1)
+    ]
+
+
+def _listed_questions(block: str) -> list[str]:
+    """계획 블록에서 열거된 질문 줄만 뽑는다 — 개수와 순서를 함께 본다."""
+    return [line for line in block.splitlines() if "Drill question" in line]
+
+
+# ① 조립 4조합 중 **둘 다 없는 칸** — 결과는 `SYSTEM_PROMPT` 그 자체다(기존 계약 보존).
+# 계획도 무대도 없는 세션(AS4)이 이 경로이고, 여기에 무엇 하나라도 덧붙으면 1·2차수 재현이
+# 흔들린다.
+def test_prompt_without_a_plan_scenario_or_questions_is_exactly_the_base_prompt():
+    assert _prompt((), None, (), None) == SYSTEM_PROMPT
+
+
+# 계획이 없으면 질문은 **무시한다** — 드릴 줄은 계획 블록 안에 있고 그 블록이 없으므로
+# 실릴 자리가 없다. 질문만 있는 상태에서 블록을 만들면 목표 없는 질문 목록이 된다.
+def test_questions_are_ignored_when_there_is_no_plan():
+    assert _prompt((), None, _questions(5), None) == SYSTEM_PROMPT
+
+
+# ② 무대만 있는 칸 — setting 블록만 붙고 계획 블록은 없다.
+def test_a_scenario_alone_adds_only_the_setting_block():
+    scenario = _scenario()
+
+    prompt = _prompt((), None, (), scenario)
+
+    assert prompt == f"{SYSTEM_PROMPT}\n\n{_SETTING_ANCHOR}\n{scenario.prompt_template}"
+
+
+# ③④ 나머지 두 칸 — 무대·질문 각 유무에서 어느 블록이 붙는지. 계획은 항상 있다(질문은 계획
+# 블록 안에서만 실리므로 계획 없는 칸은 위 두 테스트가 담당한다).
+@pytest.mark.parametrize(
+    ("scenario", "questions", "has_setting", "has_drill"),
+    [
+        (None, [], False, False),
+        (_scenario(), [], True, False),
+        (None, _questions(3), False, True),
+        (_scenario(), _questions(3), True, True),
+    ],
+    ids=["plan_only", "plan_and_setting", "plan_and_drill", "all_three"],
+)
+def test_each_block_appears_only_when_its_material_is_present(
+    scenario: SessionScenario | None,
+    questions: list[PlanQuestion],
+    has_setting: bool,
+    has_drill: bool,
+):
+    prompt = _prompt((), _instruction(), questions, scenario)
+
+    assert (_SETTING_ANCHOR in prompt) is has_setting
+    assert ("Today's plan:" in prompt) is True
+    assert ("exchanges" in _plan_block(prompt)) is has_drill
+    # 우선순위 문장은 **무대가 있을 때만** 실린다 — 없으면 아직 나오지 않은 블록을 가리킨다.
+    assert (_FOCUS_WINS in prompt) is has_setting
+
+
+# 무대가 목표보다 **먼저** 읽혀야 하고, 계획 블록의 마지막 줄이 앞의 setting 을 되짚어
+# 우선순위를 말한다(설계서 §2.2). 뒤집으면 그 줄이 아직 나오지 않은 블록을 가리킨다.
+def test_the_setting_block_comes_before_the_plan_block():
+    prompt = _prompt((), _instruction(), _questions(3), _scenario())
+
+    assert prompt.index(_SETTING_ANCHOR) < prompt.index("Today's plan:")
+    # 놓친 소리 블록과의 순서도 함께 못박는다 — setting 이 그 앞으로 끼면 B-4 블록이 계획
+    # 블록 창(`_plan_block`) 밖에 있다는 전제가 깨진다.
+    with_sounds = _prompt(("th_as_s",), _instruction(), _questions(3), _scenario())
+    assert with_sounds.index("Sounds this learner has missed before") < with_sounds.index(
+        _SETTING_ANCHOR
+    )
+
+
+def test_the_setting_block_carries_the_prompt_template():
+    scenario = _scenario()
+
+    prompt = _prompt((), _instruction(), _questions(3), scenario)
+
+    assert scenario.prompt_template in prompt
+
+
+# ⛔ 규칙 6 tripwire — *"Never read JSON, lists, or metadata out loud"*이고 `title`은 **화면용
+# 라벨**이다. `prompt_template` 하나로 무대가 성립한다. 시드 교체가 두 값을 갈라놓은 뒤에야
+# 이 단정이 실질을 갖는다(설계서 §2.2의 ⛔ 상자 — 그 전에는 바이트 동일이라 반드시 실패했다).
+def test_the_scenario_title_never_reaches_the_prompt():
+    scenario = _scenario()
+
+    prompt = _prompt((), _instruction(), _questions(3), scenario)
+
+    assert scenario.title not in prompt
+    # 제목에만 있는 낱말로도 잰다 — 제목 전체가 아니라 일부만 실리는 경우를 잡는다.
+    assert "at home" not in prompt
+
+
+# 설정값 `drill_turns_min`이 **문구에 실린다.** 기본값(4)으로 재면 다른 4와 구별할 수 없어
+# 일부러 다른 값을 준다 — 이 단정이 "설정값을 읽는다"(캡틴 결정 1)의 증거다.
+def test_the_drill_line_carries_the_configured_minimum_number_of_exchanges():
+    block = _plan_block(_prompt((), _instruction(), _questions(3), None, drill_turns_min=7))
+
+    # 문구가 여러 줄로 감겨 있으므로 공백을 정규화해 잰다(`SYSTEM_PROMPT` 단정과 같은 방식).
+    flowed = " ".join(block.split())
+    assert "stay on each one for at least 7 exchanges" in flowed
+    # 규칙 2(하나씩 묻고 멈춘다)를 되짚는다 — 대체가 아니라 강화다.
+    assert "one at a time" in flowed
+
+
+# ⛔ H-4 tripwire — 2판은 고정 4단계(*"ask it / (답) / ask one follow-up / say it again"*)를
+# 열거했는데 그중 코치 턴은 **3개**였고 기대값은 4를 곱했다 → 모델이 완벽히 지켜도 드릴마다
+# 1턴 미달이라 매 세션 경고가 떴다. 단위를 `exchange` 하나로 통일해 문구와 지표가 같은 것을
+# 센다. 그래서 계획 블록에 `turns`라는 낱말이 **없어야** 한다.
+def test_the_drill_line_counts_exchanges_and_never_says_turns():
+    block = _plan_block(_prompt((), _instruction(), _questions(3), None))
+
+    flowed = " ".join(block.split())
+    assert "An exchange is one round: you say something, the learner answers" in flowed
+    assert "turns" not in block.lower(), (
+        "계획 블록이 `turns`를 말한다 — 문구와 기대값 지표의 단위가 갈린다 (H-4)"
+    )
+
+
+# 축 4 — 드릴 반복 ↔ 규칙 4(교정 1건/턴). 규칙 11이 *"발음 교정도 교정이다"*로 상한을 못박은
+# **선례의 반대 방향**이라 적지 않으면 모델이 드릴 반복을 교정으로 세어 드릴이 1턴에 끝난다.
+def test_the_drill_line_excludes_the_repeat_from_the_one_correction_per_turn_limit():
+    block = _plan_block(_prompt((), _instruction(), _questions(3), None))
+
+    flowed = " ".join(block.split())
+    assert "That repeat is practice, not a correction" in flowed
+    assert "does not count against the one-correction-per-turn limit in rule 4" in flowed
+
+
+def test_the_questions_are_listed_by_number():
+    block = _plan_block(_prompt((), _instruction(), _questions(3), None))
+
+    assert _listed_questions(block) == [
+        "    1. Drill question 1? (drill context 1)",
+        "    2. Drill question 2? (drill context 2)",
+        "    3. Drill question 3? (drill context 3)",
+    ]
+
+
+# ⛔ H-5 — **설정값이 대화를 바꾼다는 증거다.** 2판은 질문을 전부 열거하고 기대값만 깎아서
+# `drill_count`가 「대화를 바꾸지 않고 통과 문턱만 바꾸는 노브」였다. 결정 1은 *"드릴 횟수는
+# 설정값에 두고 **읽는다**"*이고, 읽어서 대화를 바꿔야 그 결정이 지켜진다.
+def test_only_drill_count_questions_are_listed():
+    block = _plan_block(_prompt((), _instruction(), _questions(5), None, drill_count=3))
+
+    assert len(_listed_questions(block)) == 3, "질문 5개 중 3개만 열거돼야 한다 (H-5)"
+    assert "Drill question 4" not in block
+    assert "Drill question 5" not in block
+
+
+# `drill_count`가 질문 수보다 크면 있는 것만 열거한다 — 없는 질문 자리를 만들지 않는다.
+def test_a_drill_count_above_the_question_count_lists_every_question():
+    block = _plan_block(_prompt((), _instruction(), _questions(3), None, drill_count=5))
+
+    assert len(_listed_questions(block)) == 3
+
+
+# ⚠️ **값이 없는 줄은 아예 넣지 않는다** — `known_sounds` 0건·`contexts` 빈 목록의 기존 규약을
+# 잇는다. 빈 목록에 드릴 지시만 남기면 모델이 "질문 목록이 비었다"를 지시로 오해할 여지가 생긴다.
+def test_the_drill_lines_are_omitted_when_there_are_no_questions():
+    block = _plan_block(_prompt((), _instruction(), (), None))
+
+    assert "exchanges" not in block
+    assert "Drill question" not in block
+    # 나머지 줄은 그대로다 — 드릴 줄을 빼는 것이 블록을 깨뜨리지 않는다.
+    assert "B1" in block
+    assert "a/an/the" in block
+
+
+# 축 5 — 우선순위 문장. 결정 9의 예외(*"시나리오 문구가 패턴을 지정하는 경우만"*)를 프롬프트에
+# 적어 둔다: 실제로 드문 상황이지만 적어 두는 것이 «드물기를 바라는 것»보다 낫다.
+def test_the_priority_line_says_the_focus_wins_over_the_setting():
+    block = _plan_block(_prompt((), _instruction(), _questions(3), _scenario()))
+
+    assert _FOCUS_WINS in block
+    # 그 줄이 **마지막**이어야 앞의 setting 을 되짚는 것이 된다(설계서 §2.2).
+    assert block.rstrip().endswith(_FOCUS_WINS)
+
+
+# ⛔ 규칙 3 비대체 tripwire — 순서를 지정하면 `SYSTEM_PROMPT` 규칙 3(일상 → 업무 순서)과
+# 부딪히고, 결정 9가 세운 「계획 = 목표, 무대·순서는 안 덮는다」 틀을 벗어난다. 그 순서 자체가
+# 학습자 프로필의 난이도 상향 경로에서 왔으므로 계획이 그것을 덮으면 프로필이 이름 붙인
+# 실패(*"목표 수준을 현재 수준으로 착각해 첫 세션에서 얼어붙는다"*)를 코드로 허용하게 된다.
+def test_the_drill_lines_never_pin_an_order_for_the_questions():
+    prompt = _prompt((), _instruction(), _questions(5), _scenario(), drill_count=5)
+
+    assert "in this order" not in prompt.lower(), (
+        "질문 순서를 지정했다 — 규칙 3(일상 → 업무)과 부딪힌다"
+    )
