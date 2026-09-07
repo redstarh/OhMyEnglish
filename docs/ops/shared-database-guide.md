@@ -192,6 +192,13 @@ DATABASE_URL=postgresql://otherapp:<비밀번호>@localhost:5433/ohmyenglish?opt
 
 우리 앱 게이트도 함께 확인했다: **327 passed** · ruff · ty clean (영향 없음).
 
+### 4.2-1 En-Coach가 실제로 붙었다 (실측, `TASKS.md` H-3에서 이관)
+
+이 문서 §4가 준비한 구성에 En-Coach가 실제로 접속한 뒤의 확인값이다 — `en_coach`
+스키마에 `ec_*` 접두 표 **9개** + 자기 `schema_migrations`가 생겼고, 우리 `public`
+스키마에는 `ec_` 접두 표가 **0개**다(비대칭 없음 확인). §4.4의 "공유 표를 늘리거나
+줄이려면"과 함께 읽는다.
+
 ### 4.3 만든 SQL (재현용)
 
 ```sql

@@ -38,3 +38,16 @@ OhMyEnglish/
 
 현행 정본이 아니지만 승인된 설계서가 줄 단위로 인용해 지우지 않는다 —
 규약과 보관 목록은 [docs/backup/superseded/README.md](docs/backup/superseded/README.md).
+
+## 관련 문서 지도
+
+> `TASKS.md`의 「관련 문서 지도」절을 원장 마이그레이션(`TASK-28`)으로 이관했다.
+
+| 무엇을 알고 싶은가 | 어디 |
+|---|---|
+| 무엇이 남았나 / 무엇을 놓쳤나 | `backlog board` · `backlog task list --plain` (원장은 Backlog.md — `~/.claude/rules/task-management.md`) |
+| 지금 어디까지 왔나 / 다음 한 걸음 | `handoff/HANDOFF-*.md` (짧게 유지) |
+| 실측된 함정 (반복하지 말 것) | `docs/ops/pitfalls.md` |
+| 왜 이렇게 설계했나 | `docs/design/**` — 결정과 근거의 정본 |
+| 무엇을 만들어야 하나 | `docs/PRD.md` (v1.1) · `docs/requirements-summary.md` |
+| 어떻게 돌리나 | `handoff/HANDOFF.md` §로컬 실행 방법 |
