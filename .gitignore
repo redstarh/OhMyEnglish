@@ -38,3 +38,13 @@ data/local/
 .vscode/
 .idea/
 *.swp
+
+# --- Claude Code 프로젝트 설정 (2026-09-08) ---
+# settings.json 만 공유한다 — 나머지는 로컬·런타임 상태다.
+.claude/settings.local.json
+.claude/settings.local.json.bak*
+.claude/scheduled_tasks.json
+.claude/scheduled_tasks.lock
+# 에이전트 파일은 커밋하지 않는다 (TASK-17 캡틴 결정).
+# 절차 정본은 추적되는 tests/harness/browser_leg.md 다.
+.claude/agents/
