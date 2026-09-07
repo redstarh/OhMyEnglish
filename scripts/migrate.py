@@ -6,8 +6,16 @@ can run with just `asyncpg` installed (e.g. `app/backend/.venv/bin/python`).
 
     app/backend/.venv/bin/python scripts/migrate.py
 
-Seeding is idempotent (`on conflict ... do nothing`): re-running never
-creates duplicate rows.
+Seeding is idempotent, but not the same way for every table. `users` uses
+`on conflict (id) do nothing` — re-running never touches an existing row.
+`learning_scenarios` uses `on conflict (id) do update` — re-running never
+creates a duplicate row either, but it does overwrite `title` and
+`prompt_template` back to the constants in `SEED_SCENARIOS` below. Why
+`do update` was chosen anyway (fixed ids would otherwise stay stale
+forever): `docs/design/2026-09-07-scenario-and-drill-turns-design.md` §7
+유도 8.
+
+⚠️ **손으로 고친 시나리오 행은 다음 실행에서 덮인다** — 그것이 위 선택의 대가다.
 
 주의: 적용 추적은 파일명 기준이다 — pre-release 중 001을 재작성한 경우 이
 스크립트는 (파일명이 그대로라) 재적용하지 않으므로 dev DB를 drop/재생성해야

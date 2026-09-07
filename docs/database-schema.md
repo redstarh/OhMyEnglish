@@ -54,9 +54,13 @@ erDiagram
 | `prompt_template` | text | not null |
 | `created_at` | timestamptz | not null, default `now()` |
 
-일상/업무 역할극 정의. 첫 슬라이스 시드는 `category='daily_life'`, `level='A2'` 3행이며
-`title`과 `prompt_template` 모두 질문 텍스트 그 자체다(`What do you usually do after
-work?` / `What do you usually do on weekends?` / `What do you need to do tonight?`).
+일상/업무 역할극 정의. 첫 슬라이스 시드는 `category='daily_life'`, `level='A2'` 3행이다 — 이 셋은
+여전히 참이다.
+⛔ **정정 — 이전 판은 여기서 `title`과 `prompt_template`이 「질문 텍스트 그 자체」로 서로 같다고
+적었다. 캡틴 결정 14(2026-09-07)로 시드가 무대(상황·역할)로 교체돼 지금은 두 값이 다르다** —
+`title`은 화면에 보이는 라벨, `prompt_template`은 코치(모델)에게 가는 무대 지시문이다. 새 값의
+정본은 `docs/design/2026-09-07-scenario-and-drill-turns-design.md` §2.1 「시드를 무대로 고친다」
+표다 — 여기 문구를 다시 옮기지 않는다(두 곳에 적으면 한쪽이 낡는다).
 
 ### `learning_sessions` — 도입: Phase1
 
