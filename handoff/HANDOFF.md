@@ -18,6 +18,10 @@ cd app/backend && .venv/bin/pytest -q      # 게이트는 이 cwd 에서만 판�
 보고서 정본: `.superpowers/sdd/2026-09-07-scenario-and-drill-turns-design/review-task44-report.md`.
 → **재리뷰를 1회 걸어 CRITICAL·HIGH 0건을 확인하면 `Done`.** ⛔ 리뷰 없이 올리지 마라 —
 결정 22 가 푼 것은 설계·문서뿐이고 **코드 트랙은 결정 13 이 그대로 산다.**
+💡 **그 보고서의 §10 이 재리뷰 체크리스트다 — 프롬프트를 새로 발명하지 말고 그것을 써라.**
+§2~§8 이 finding 별 `file`·`line`·`summary`·`failure_scenario` 를, §9 가 통과 근거를 갖는다.
+⚠️ 인용된 줄 번호는 **`57f67f8` 이전 기준이라 이미 밀렸다** — 줄이 아니라 **심볼·절 제목으로
+찾아라**(`H-O` · `task-management.md` §1-2).
 ⚠️ 재리뷰 프롬프트에 **`ReportFindings` 가 없을 수 있다**(1차 리뷰어 환경에 없었다) → **보고서를
 파일로 남기게 지시하라.** 그리고 **`pytest` 전체를 돌리지 말라고 명시하라**(`H-X`).
 
