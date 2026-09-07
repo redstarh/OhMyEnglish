@@ -27,6 +27,7 @@ import os
 from functools import lru_cache
 
 import boto3
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = logging.getLogger(__name__)
@@ -71,6 +72,13 @@ class Settings(BaseSettings):
     nova_model_id: str = "amazon.nova-2-sonic-v1:0"
     nova_voice_id: str = "matthew"
     nova_endpointing_sensitivity: str = "MEDIUM"
+    # 드릴당 exchange 수의 하한. 요구사항이 명시한 값(드릴마다 4턴 이상) — `drill_count`가
+    # 열거·기대값의 상한(`min(질문 수, drill_count)`)이고 이 값이 턴 수다(설계서 §3).
+    # 상한은 두지 않는다(발명하지 않는다) — `ge=1`이 기동 시점에 값역 위반을 거부한다.
+    drill_turns_min: int = Field(default=4, ge=1)
+    # 드릴 수의 상한(`min(질문 수, drill_count)`). 캡틴 결정 1 — "드릴 횟수는 설정값
+    # (config·env)에 따로 두고 읽는다"(설계서 §3).
+    drill_count: int = Field(default=3, ge=1)
 
 
 @lru_cache

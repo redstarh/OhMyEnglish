@@ -21,6 +21,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pydantic
 import pytest
 
 from app import config as config_module
@@ -244,6 +245,38 @@ def test_bedrock_client_fails_fast_when_no_credentials_of_any_kind(monkeypatch):
 
     with pytest.raises(RuntimeError, match="AWS_ACCESS_KEY_ID"):
         config_module.bedrock_client()
+
+
+# TASK-6 Batch A — 드릴 턴 수 설정값 (설계서 §3). `drill_count`가 열거·기대값의
+# 상한(`min(질문 수, drill_count)`)이고 `drill_turns_min`이 드릴당 exchange 수다.
+
+
+def test_drill_settings_default_to_four_and_three():
+    """기본값은 요구사항이 명시한 값(드릴마다 4턴 이상)과 캡틴 결정 1(드릴 횟수 3)."""
+    settings = _settings_with_credentials()
+
+    assert settings.drill_turns_min == 4
+    assert settings.drill_count == 3
+
+
+def test_drill_turns_min_rejects_zero_at_startup():
+    """값역 위반은 기동 시점에 거부된다 — 런타임에 조용히 잘리지 않는다(설계서 §3)."""
+    with pytest.raises(pydantic.ValidationError):
+        Settings(
+            database_url="postgresql://fake:fake@localhost/fake",
+            aws_region="us-west-2",
+            drill_turns_min=0,
+        )
+
+
+def test_drill_count_rejects_zero_at_startup():
+    """같은 모양 — `ge=1`이 `drill_count`에도 걸린다(설계서 532줄)."""
+    with pytest.raises(pydantic.ValidationError):
+        Settings(
+            database_url="postgresql://fake:fake@localhost/fake",
+            aws_region="us-west-2",
+            drill_count=0,
+        )
 
 
 def test_credential_strings_isolated_to_config_module():
