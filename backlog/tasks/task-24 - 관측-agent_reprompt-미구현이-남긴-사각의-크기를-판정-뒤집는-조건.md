@@ -4,7 +4,7 @@ title: '관측: agent_reprompt 미구현이 남긴 사각의 크기를 판정 (�
 status: Awaiting Decision
 assignee: []
 created_date: '2026-09-06 00:20'
-updated_date: '2026-09-07 22:27'
+updated_date: '2026-09-07 23:31'
 labels: []
 dependencies:
   - TASK-37
@@ -36,5 +36,10 @@ created: 2026-09-07 22:17
 created: 2026-09-07 22:27
 ---
 연관 감사(2026-09-08 팀리드): 선행 TASK-37 을 건다 — 중복이 실재했다. 이 태스크 AC#1·#2(사각 구간의 턴 수를 세고 퍼센트를 산출)는 TASK-37 AC#8(「A-4(agent_reprompt 미구현 구간)와 B-2(대조군) 관측 결과를 기록한다」)와 같은 관측이다. 두 태스크가 같은 실물 세션을 각각 요구하고 있었다. 갈라 둔다: 관측은 TASK-37 이 치르고, 이 태스크는 그 데이터로 AC#3(캡틴 결정을 뒤집을 크기인지)만 판정한다. AC 문장은 고치지 않았다 — 실측 출처가 TASK-37 임을 이 노트가 소유한다.
+---
+
+created: 2026-09-07 23:31
+---
+TASK-44 가 넘긴 요구(2026-09-08 · 코드 리뷰 MEDIUM-3): **agent_reprompt 감지기를 만들면 review.py 의 _PRONUNCIATION_HISTORY_SQL 에 signal_source 필터를 넣을지 함께 판정해야 한다.** 지금 그 쿼리의 correct_times 는 signal_source 를 거르지 않는다 — 설계서 §3.2 를 그대로 따른 것이고 현재는 도달 불가다(유일한 보조 신호 생산자 note_transcript 가 unclear + target_sound=None 만 낸다 · 팀리드 직접 확인). ⛔ 그런데 이 태스크가 agent_reprompt 로 outcome='correct' + target_sound 를 남기는 순간, **학습자가 Nova 에게 다시 말하지 않았는데 복습 단계가 접힌다.** 더 나쁜 것은 record_signal 이 refresh_review 를 부르지 않아(§5.5 가 두 진입점만 배선) 즉시가 아니라 **나중에 조용히** 반영된다는 점이다 — 진단이 어려운 형태다. 근거 주석은 그 쿼리 자리에 남겼다.
 ---
 <!-- COMMENTS:END -->

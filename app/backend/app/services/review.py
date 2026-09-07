@@ -5,8 +5,21 @@
 **단계를 증분하지 않고 이력에서 다시 접는다.** 이 모듈에서 이것 하나만 기억하면 된다.
 `analyze_utterance` job은 재시도되고 결과 저장은 발화 단위 replace라서, `stage + 1`로
 전이시키면 재실행마다 단계가 올라가 학습자가 하지 않은 복습이 완주된다. 그래서 상태를
-`error_occurrences`와 `pattern_attempts`에서 매번 다시 계산한다 — `frequency`를 `+1`하지
-않고 행 수에서 다시 세는 것(`services/analysis.py`)과 같은 규약이고, 같은 이유다.
+**이력에서** 매번 다시 계산한다 — `frequency`를 `+1`하지 않고 행 수에서 다시 세는 것
+(`services/analysis.py`)과 같은 규약이고, 같은 이유다.
+
+**⚠️ 이력의 출처는 하나가 아니다 — 카테고리가 고른다** (`TASK-44`, 설계서
+`2026-09-08-pronunciation-review-cycle-design.md` §5.2). `recompute`가 패턴의 `category`를
+먼저 읽는다:
+
+* `pronunciation_intonation` → `_PRONUNCIATION_HISTORY_SQL`
+  (표 `pronunciation_attempts` · 앵커 **`resolved_at`**)
+* 그 외 → `_HISTORY_SQL`
+  (표 `error_occurrences` + `pattern_attempts` · 앵커 **발화 시각** `utterances.created_at`)
+
+그 뒤는 **완전히 공유한다**(`fold_stages` → `_APPLY_PATTERN_SQL` → `review_tasks`) — 두 쿼리가
+**같은 세 값**(`relapse_at`·`scenario_context`·`correct_times`)을 같은 의미로 돌려주는 것이
+그 공유의 전제조건이다. ⛔ **한쪽만 고치지 마라.**
 
 **그리고 정답 횟수를 세지 않는다 — 예정일을 하나씩 접는다.** §4.1의 "복습을 완주하면 다음
 단계로 진행한다"는 그 단계의 예정일이 온 뒤에 다시 맞혔다는 뜻이고, 복습 목록의 판정도
@@ -14,9 +27,15 @@
 맞히는 것으로 1·3·7일을 한 번도 경과하지 않고 완주해 간격 반복이 무의미해진다.
 `fold_stages`가 그 조건을 담고, **순수 함수**라 DB 없이 검증된다.
 
-시각의 기준은 **발화 시각**이다. `now()`를 기준으로 쓰면 재실행마다 예정일이 밀려 멱등이
-깨진다. 간격 연산은 `timedelta`라 타임존과 무관하다 — 달력 날짜를 쓰는 곳은 이 모듈에
-없다(만성 지표의 "재발 일수"가 그 경계를 갖고 `services/chronic.py`가 소유한다).
+**시각의 기준은 벽시계가 아니라 기록된 시각이다.** `now()`를 기준으로 쓰면 재실행마다
+예정일이 밀려 멱등이 깨진다. **어느 기록된 시각인지는 위 표가 정한다** — 문법은 발화 시각,
+발음은 `resolved_at`이다. 발음이 다른 이유: 문법 쪽 앵커가 발화 시각인 것은
+`analyze_utterance` job이 재시도되고 결과가 발화 단위 replace라서인데 **발음 시도 행에는 그
+이유가 없다**(웹소켓 이벤트에서 한 번 쓰이고 다시 계산되지 않으므로 `resolved_at`이 그 한 번에
+확정된다). `docs/database-schema.md`가 이미 그렇게 정해 뒀다 — 새 경계가 아니다.
+
+간격 연산은 `timedelta`라 타임존과 무관하다 — 달력 날짜를 쓰는 곳은 이 모듈에 없다
+(만성 지표의 "재발 일수"가 그 경계를 갖고 `services/chronic.py`가 소유한다).
 
 `review_tasks`는 패턴당 **0행 또는 1행**이다. 재계산은 그 패턴의 행을 전부 지운 뒤 현재
 상태 1행을 넣는다 — `unique(pattern_id, review_stage)`와 맞물리는 유일한 형태이고, 지운
@@ -172,6 +191,16 @@ context as (
                (select sound from pattern)
              ) as scenario_context
 )
+-- ⚠️ `signal_source`를 **거르지 않는다 — 설계서 §3.2 를 그대로 따른 것이고, 대칭이 깨진 것을
+-- 알고 남긴다**(코드 리뷰 MEDIUM-3). `AssistOutcome`(`pronunciation.py`)이 `correct`를 허용하고
+-- `record_signal`이 `target_sound`를 받으므로, **보조 신호 행이 단계 전진으로 셀 수 있다.**
+-- 지금은 도달 불가다: 유일한 보조 신호 생산자 `note_transcript`가 `unclear` + `target_sound=None`
+-- 만 낸다(팀리드 직접 확인). ⛔ **다음 감지기가 `agent_reprompt` 로 `outcome='correct'` +
+-- `target_sound` 를 남기는 순간 학습자가 다시 말하지 않았는데 단계가 접힌다** — 그리고
+-- `record_signal` 은 `refresh_review` 를 부르지 않으므로(§5.5 가 두 진입점만 배선했다) 즉시가
+-- 아니라 **나중에 조용히** 반영돼 진단이 더 어렵다. 필터를 지금 넣지 않는 이유: 설계가 정하지
+-- 않은 동작을 발명하지 않는다. **그 감지기를 만드는 태스크가 이 줄을 함께 판정한다** —
+-- 소유자는 `TASK-24`(agent_reprompt)이고 그 노트가 이 요구를 갖는다.
 select r.at as relapse_at,
        ctx.scenario_context,
        coalesce(
@@ -239,7 +268,12 @@ def fold_stages(
 ) -> ReviewState:
     """마지막 재발 이후의 정답들을 훑어 **예정일을 넘긴 것만** 단계로 센다 (순수 함수).
 
-    `correct_times`는 발화 시각 오름차순이어야 한다 — `_HISTORY_SQL`이 그 순서로 돌려준다.
+    ⛔ **`correct_times`는 오름차순이어야 한다 — 이것이 이 함수의 전제조건이고, 어긋나면
+    예외도 실패도 없이 단계가 조용히 틀린다.** 생산자는 **둘**이고 각자 자기 `order by`로 그
+    순서를 만든다: `_HISTORY_SQL`(발화 시각 `u.created_at`) · `_PRONUNCIATION_HISTORY_SQL`
+    (`resolved_at` — 발음은 앵커가 다르다, 모듈 docstring의 표 참조). **어느 쪽의 `order by`도
+    「중복」이 아니다.** 이 함수는 시각의 출처를 모르고 알 필요도 없다 — 순수 함수라 표가
+    무엇이든 상관없는 것이 재사용의 근거다.
     예정일 전의 정답은 건너뛴다: 기록(`pattern_attempts`)에는 남고 단계만 올리지 않는다.
     한 세션에서 여러 번 맞히는 것으로 1·3·7일을 건너뛰는 경로를 막는 것이 이 조건이다.
     반대로 예정일을 **한참 지나** 맞힌 것은 그대로 통과시킨다 — "너무 늦은 복습"의 상한을

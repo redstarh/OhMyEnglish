@@ -166,6 +166,16 @@ select p.* from error_patterns p
 `incorrect` 판정은 occurrence가 없어도 **재발로 작동한다**(모델이 오류를 findings에 넣지 않고
 attempts에만 적은 경우를 덮는다).
 
+> ⛔ **철회됐다 (2026-09-08, `TASK-44` · 커밋 `9df2369`).** 아래 「구현 공백 4」는 **더 이상 참이
+> 아니다.** 발음 패턴은 이제 `next_review_at`을 받고 `review_tasks` 행을 얻으며, 복습 목록을 통해
+> **초점 허용 집합에도 들어온다.** 막고 있던 세 겹 중 ③(상태 계산 SQL이 `pronunciation_attempts`를
+> 읽지 않는다)이 `services/review.py`의 `_PRONUNCIATION_HISTORY_SQL` + 카테고리 분기로 열렸고,
+> ①·②(호출자가 분석 워커 하나 · 그 대상 집합에 발음이 없다)는 **우회했다** — 재계산 트리거를
+> `services/pronunciation.py`의 `refresh_review`가 판정 경로에서 직접 부르므로 분석 워커를 거치지
+> 않는다. 그래서 `load_existing_patterns`의 카테고리 제외(G-8)를 건드릴 필요가 없었다.
+> **설계·근거의 정본은 `docs/design/2026-09-08-pronunciation-review-cycle-design.md`다.**
+> ⚠️ 아래 본문은 **당시 관측 기록으로 남긴다** — 지우면 무엇이 왜 막혀 있었는지가 사라진다.
+
 **4. 발음 카테고리는 이 스케줄에 들어오지 않는다 — 슬라이스 1의 기록되지 않은 축소였다.**
 2026-09-04 코드 리뷰가 세 겹으로 막혀 있음을 확인했다: ① `recompute`의 호출자는 분석 워커
 하나뿐이고 ② 그 워커가 넘기는 대상 집합에 발음 패턴이 들어갈 수 없다(`load_existing_patterns`가
@@ -478,7 +488,7 @@ Given 같은 재발화에 대한 분석이 재시도될 때, When 결과가 저�
 | 다중 사용자 전환 | AC 문서 §다중 사용자 전환 (캡틴 결정 2026-08-25) |
 | **연속 세션의 계획 공백 보완** (§3.4) | 캡틴 결정 2026-08-25: 이후 과제. 후보 2개 — ① 새 계획이 없으면 폴백 대신 **직전 계획의 남은 질문**을 이어 쓴다, ② 계획 job 등록을 세션 종료가 아니라 **마지막 발화의 분석 완료 시점**으로 앞당긴다. 둘 다 새 인프라가 필요 없다 |
 | 지시문 크기 상한의 구체 수치 | Nova 초기화 시간 실측 필요 (Phase 2). 지금 발명하지 않는다 |
-| **발음 패턴의 복습 스케줄 배선** | 슬라이스 1이 문법 경로만 배선했다(§4.1 구현 공백 4). 상태 계산이 `pronunciation_attempts`를 읽어야 하고, 그러면 `frequency`의 writer가 둘인 것(G-8)과 같은 종류의 경계가 생긴다 — 자매 설계와 함께 결정한다 |
+| ~~**발음 패턴의 복습 스케줄 배선**~~ | ⛔ **이월 해소 (2026-09-08, `TASK-44` · `9df2369`).** 상태 계산이 `pronunciation_attempts`를 읽고(`_PRONUNCIATION_HISTORY_SQL`) 재계산은 판정 경로가 직접 부른다(`refresh_review`). 우려했던 "`frequency` writer 둘(G-8)과 같은 종류의 경계"는 **생기지 않았다** — `next_review_at`·`mastery_score`의 writer는 `review.py` 하나로 유지되고 `load_existing_patterns`를 건드리지 않았다. 정본은 `docs/design/2026-09-08-pronunciation-review-cycle-design.md` |
 | **`review_tasks` 행의 정체성** | 재계산이 delete+insert라서 `id`·`created_at`이 매번 새로 생기고 `status`가 계산값으로 덮인다 — `'skipped'`는 어떤 재계산에서도 살아남지 못한다. 지금은 reader가 0곳이라 무해하지만, 슬라이스 2/UI가 과제 id로 "완료 표시"를 하거나 학습자가 skip을 고르려면 **그 전에 경계를 정해야 한다**(2026-09-04 리뷰 MEDIUM-8) |
 | Nova 응답 지연 계측 | 스텁으로 측정 불가 (Phase 2) |
 

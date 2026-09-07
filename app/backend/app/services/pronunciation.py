@@ -58,12 +58,10 @@ from app.services import review
 
 logger = logging.getLogger(__name__)
 
-# 발음 패턴이 쓰는 카테고리 코드값. SQL 리터럴로 박지 않고 이 상수를 bind 파라미터로 넘긴다 —
-# 값역의 SoT는 `models/analysis`이고(001 CHECK와 짝) 타입이 붙어 있어 오타를 `ty`가 잡는다.
-# ⚠️ **이 모듈이 값을 직접 갖지 않는다** — `services/review.py`도 같은 값으로 이력 쿼리를
-# 고르는데(`2026-09-08-pronunciation-review-cycle-design.md` §5.2) 이 모듈이 그쪽을 import하므로
-# 반대 방향으로는 공유할 수 없다. 두 서비스가 각자 리터럴을 갖는 대신 모델에서 가져온다.
-_PRONUNCIATION_CATEGORY = PRONUNCIATION_CATEGORY
+# 카테고리 코드값은 `models/analysis`의 `PRONUNCIATION_CATEGORY`를 **직접 쓴다.** SQL 리터럴로
+# 박지 않고 bind 파라미터로 넘긴다 — 값역의 SoT가 그 모듈이고(001 CHECK와 짝) 타입이 붙어 있어
+# 오타를 `ty`가 잡는다. ⛔ **모듈 사설 별칭을 다시 만들지 마라**(코드 리뷰 LOW-1) — 같은 값에
+# 이름이 둘이 되고 `pronunciation_intonation`을 grep하는 사람이 이름 두 개를 추적한다.
 
 # 보조 신호의 값역. `nova_tool`은 **여기 없다** — 그것은 2단계 생명주기를 갖는
 # `record_attempt`의 것이고, 단발 행으로 새면 판정이 오지 않는 시도가 조용히 쌓인다.
@@ -216,12 +214,16 @@ async def record_attempt(
         # 패턴을 만들 **조건은 SQL이 갖는다**(`incorrect` + `target_sound` 있음). 여기서 한 번
         # 더 거르지 않는 것은 위 `signal_source`와 같은 이유다 — 같은 규칙이 두 층에 흩어지면
         # 한쪽이 조용히 낡는다. 조건에 안 맞는 판정이면 이 호출은 no-op이다.
-        await link_pattern(conn, attempt_id)
+        linked = await link_pattern(conn, attempt_id)
         # 판정 **경로 불문**으로 복습 상태를 다시 계산한다 (설계서 §5.5). `link_pattern`
         # **뒤**여야 방금 만들어진 패턴이 첫 재계산에 포함된다. `correct`가 이 자리로
         # 처음 재계산을 발화시키는 것이 「구현 공백 4」의 해소다 — 그전에는 발음 패턴의
         # `next_review_at`을 아무도 쓰지 않아 복습 목록에 영원히 못 들어왔다.
-        await refresh_review(conn, attempt_id)
+        #
+        # `linked`를 넘긴다(코드 리뷰 MEDIUM-2) — `incorrect`면 방금 upsert가 돌려준 id가
+        # 있으므로 **같은 정체성을 다른 키로 다시 찾지 않는다.** `correct`·`unclear`면
+        # `None`이라 `refresh_review`가 소리로 찾는다(그 경로가 ④를 닫는 자리다).
+        await refresh_review(conn, attempt_id, pattern_id=linked)
         return attempt_id
 
 
@@ -351,10 +353,11 @@ async def resolve_dangling(conn: asyncpg.Connection, session_id: UUID) -> int:
                 session_id,
             )
         for row in rows:
-            await link_pattern(conn, row["id"])
+            linked = await link_pattern(conn, row["id"])
             # 수렴도 판정이다 — 같은 재계산을 받는다 (설계서 §5.5). 대답 없이 끝난 시도가
-            # `incorrect`로 닫히면 그것이 재발이므로 예정일이 생겨야 한다.
-            await refresh_review(conn, row["id"])
+            # `incorrect`로 닫히면 그것이 재발이므로 예정일이 생겨야 한다. 이 경로는 전부
+            # `incorrect`라 `linked`가 대개 non-null이다(`target_sound`가 없으면 `None`).
+            await refresh_review(conn, row["id"], pattern_id=linked)
         return len(rows)
 
 
@@ -413,7 +416,7 @@ select target_form
 
 async def load_known_sounds(conn: asyncpg.Connection, user_id: UUID) -> list[str]:
     """이 학습자가 전에 놓친 소리 키. 기록이 없으면 빈 목록 — 조립기가 블록을 생략한다."""
-    records = await conn.fetch(_KNOWN_SOUNDS_SQL, user_id, _PRONUNCIATION_CATEGORY)
+    records = await conn.fetch(_KNOWN_SOUNDS_SQL, user_id, PRONUNCIATION_CATEGORY)
     return [record["target_form"] for record in records]
 
 
@@ -473,7 +476,7 @@ async def link_pattern(conn: asyncpg.Connection, attempt_id: UUID) -> UUID | Non
     번갈아 덮는다. 필터는 그 모듈의 몫이라 여기서 고치지 않는다(`TASKS.md` B-10).
     """
     pattern_id = await conn.fetchval(
-        _UPSERT_PRONUNCIATION_PATTERN_SQL, attempt_id, _PRONUNCIATION_CATEGORY
+        _UPSERT_PRONUNCIATION_PATTERN_SQL, attempt_id, PRONUNCIATION_CATEGORY
     )
     if pattern_id is None:
         return None
@@ -507,14 +510,35 @@ select p.id
   join learning_sessions s on s.id = a.session_id
   join error_patterns p on p.user_id = s.user_id
                        and p.category = $2
-                       and p.target_form = btrim(a.target_sound)
+                       -- 양쪽에 `btrim`을 건다 (코드 리뷰 LOW-2). `_PRONUNCIATION_HISTORY_SQL`이
+                       -- `btrim(target_form)`으로 재는데 여기만 패턴 쪽을 정규화하지 않으면,
+                       -- 어떤 경로로 `target_form`에 공백이 섞였을 때 **이력 쿼리는 계속
+                       -- 찾는데 이 조회만 조용히 no-op**이 되어 예정일이 낡은 값에 멈춘다.
+                       and btrim(p.target_form) = btrim(a.target_sound)
  where a.id = $1
    and length(btrim(coalesce(a.target_sound, ''))) > 0
 """
 
 
-async def refresh_review(conn: asyncpg.Connection, attempt_id: UUID) -> UUID | None:
+async def refresh_review(
+    conn: asyncpg.Connection, attempt_id: UUID, *, pattern_id: UUID | None = None
+) -> UUID | None:
     """이 시도의 소리에 걸린 발음 패턴의 복습 상태를 다시 계산한다 (설계서 §5.5).
+
+    `pattern_id`를 주면 그것을 쓰고 조회를 건너뛴다 — `link_pattern`이 방금 돌려준 값이
+    있으면 넘긴다(코드 리뷰 MEDIUM-2). **같은 정체성을 두 개의 다른 키로 판정하지 않는
+    것**이 이유다: `link_pattern`은 `pattern_key`(`'pronunciation_' || …`)로 upsert하고
+    이 함수의 폴백은 `target_form`으로 찾는다. 지금은 upsert가 두 값을 함께 쓰므로 결과가
+    일치하지만, 그 일치에 의존하는 구조를 남기지 않는다(이 모듈이 반복해서 경고하는
+    "같은 규칙이 두 층에 흩어지면 한쪽이 조용히 낡는다"). 쿼리도 하나 줄어든다.
+
+    ⛔ **정정 — 리뷰가 적은 실패 시나리오는 `incorrect` 경로에서 성립하지 않는다.** 리뷰는
+    "B-10 구멍으로 문법 경로가 `target_form`을 문장으로 덮으면 `refresh_review`가 no-op이
+    된다"고 적었는데, `_UPSERT_PRONUNCIATION_PATTERN_SQL`의 `on conflict … do update set
+    target_form = excluded.target_form`이 **이 함수보다 먼저 같은 트랜잭션에서 그 값을
+    복원한다**(팀리드가 문장 순서를 직접 확인했다). 남는 실제 구멍은 **`correct` 경로**다 —
+    거기서는 `link_pattern`이 no-op이라 넘길 id가 없고 폴백 조회만 남는다. 그 구멍의 뿌리는
+    B-10(`analysis._EXISTING_PATTERNS_SQL`에 카테고리 필터 없음)이고 이 함수가 아니다.
 
     돌려주는 것은 재계산한 패턴 id이고, 그 소리에 패턴이 없으면 `None`이다 — **no-op이
     정상 경로다.** 한 번도 틀린 적 없는 소리를 맞힌 것(관측: `am_as_i_m` `correct`)은
@@ -536,7 +560,10 @@ async def refresh_review(conn: asyncpg.Connection, attempt_id: UUID) -> UUID | N
     낡은 부분 실행이 생긴다. 두 진입점(`record_attempt`·`resolve_dangling`) 모두 이미
     자기 트랜잭션 안이다.
     """
-    pattern_id = await conn.fetchval(_FIND_SOUND_PATTERN_SQL, attempt_id, _PRONUNCIATION_CATEGORY)
+    if pattern_id is None:
+        pattern_id = await conn.fetchval(
+            _FIND_SOUND_PATTERN_SQL, attempt_id, PRONUNCIATION_CATEGORY
+        )
     if pattern_id is None:
         return None
     assert isinstance(pattern_id, UUID)

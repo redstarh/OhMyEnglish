@@ -30,6 +30,9 @@ from app.services.pronunciation import record_attempt, refresh_review, resolve_d
 from app.services.review import STAGE_DAYS, load_due_reviews, recompute
 
 USER_ID = UUID("00000000-0000-0000-0000-000000000044")
+# 두 번째 학습자. **사용자 격리를 재려면 사용자가 둘이어야 한다** — 하나뿐이던 동안 신설 쿼리의
+# 격리 join 이 뮤테이션에서 살아남았다(코드 리뷰 MEDIUM-1).
+OTHER_USER_ID = UUID("00000000-0000-0000-0000-000000000045")
 SOUND = "an_as_a"
 PATTERN_KEY = f"pronunciation_{SOUND}"
 # 시범 문장. ⛔ 이것이 `scenario_context`에 들어가야 한다 — 소리 키(`an_as_a`)가 아니다(§5.4).
@@ -50,6 +53,26 @@ async def _seed(conn: asyncpg.Connection) -> UUID:
     session_id = await conn.fetchval(
         "insert into learning_sessions (user_id, mode) values ($1, 'speaking') returning id",
         USER_ID,
+    )
+    assert isinstance(session_id, UUID)
+    return session_id
+
+
+async def _seed_other_learner(conn: asyncpg.Connection) -> UUID:
+    """**두 번째 학습자**와 그 세션. 사용자 격리를 재는 테스트만 쓴다.
+
+    ⚠️ 이 헬퍼가 없던 동안 두 신설 쿼리의 격리 join 을 지워도 전 테스트가 통과했다
+    (코드 리뷰 MEDIUM-1 · 팀리드가 뮤테이션으로 확인). 패턴은 만들지 않는다 — 남이 **같은
+    소리를 시도한 것**만으로 내 이력이 오염되는지가 재려는 것이다.
+    """
+    await conn.execute(
+        "insert into users (id, display_name, timezone, current_level) "
+        "values ($1, 'Other Learner', 'Asia/Seoul', 'A2')",
+        OTHER_USER_ID,
+    )
+    session_id = await conn.fetchval(
+        "insert into learning_sessions (user_id, mode) values ($1, 'speaking') returning id",
+        OTHER_USER_ID,
     )
     assert isinstance(session_id, UUID)
     return session_id
@@ -172,6 +195,47 @@ async def test_pending_and_unclear_attempts_do_not_schedule_anything(
 
     assert state.next_review_at is None
     assert await _task_rows(db_conn, pattern_id) == []
+
+
+# ⛔ **다른 학습자의 시도가 내 패턴 이력에 새지 않는다.**
+#
+# ⚠️ 이 테스트가 없으면 두 신설 쿼리의 사용자 격리 join 을 **지워도 전부 통과한다** — 팀리드가
+# 뮤테이션으로 직접 확인했다(`join pattern p on p.user_id = s.user_id` → `on true` 로 바꿔도
+# 17건 초록. 코드 리뷰 MEDIUM-1). 그러면 다중 사용자 전환 후 A 의 정답이 B 의 단계를 올려
+# **B 가 하지 않은 복습이 완주된다** — 예외도 실패도 없이. 이 리포는 이 부류를 이미 인정한
+# 전례가 있다(`conftest` 의 `chronic_unflagged` 도입 근거: 조건을 `if True` 로 바꿔도 아무
+# 테스트가 실패하지 않았다).
+@pytest.mark.asyncio
+async def test_another_learners_attempts_do_not_leak_into_my_pattern(
+    db_conn: asyncpg.Connection,
+):
+    await _seed(db_conn)
+    pattern_id = await _pronunciation_pattern(db_conn)
+    other_session = await _seed_other_learner(db_conn)
+    # 남이 **같은 소리**를 틀렸다 — 내 패턴의 이력이 되어서는 안 된다
+    await _attempt(db_conn, other_session, "incorrect", T0)
+
+    state = await recompute(db_conn, pattern_id)
+
+    assert state.next_review_at is None
+    assert await _task_rows(db_conn, pattern_id) == []
+
+
+# 같은 격리가 `refresh_review` 의 패턴 조회에도 걸린다 — 남의 정답이 내 예정일을 못 옮긴다.
+@pytest.mark.asyncio
+async def test_another_learners_correct_does_not_advance_my_stage(db_conn: asyncpg.Connection):
+    session_id = await _seed(db_conn)
+    pattern_id = await _pronunciation_pattern(db_conn)
+    await _attempt(db_conn, session_id, "incorrect", T0, pattern_id=pattern_id)
+    await recompute(db_conn, pattern_id)
+    before = (await _pattern_row(db_conn, pattern_id))["next_review_at"]
+
+    other_session = await _seed_other_learner(db_conn)
+    due = T0 + timedelta(days=STAGE_DAYS[0])
+    other_correct = await _attempt(db_conn, other_session, "correct", due)
+
+    assert await refresh_review(db_conn, other_correct) is None
+    assert (await _pattern_row(db_conn, pattern_id))["next_review_at"] == before
 
 
 # 다른 소리의 시도가 이 패턴의 이력에 섞이지 않는다.
