@@ -12,22 +12,39 @@
 
 from __future__ import annotations
 
+import logging
+from collections.abc import Sequence
 from decimal import Decimal
 from uuid import UUID, uuid4
 
 import asyncpg
 import httpx
+import pytest
+
+from app.services.results import logger as results_logger
 
 # --- DB 직접 세팅 헬퍼 (워커를 거치지 않고 원하는 상태를 바로 만든다) ---
 
 
 async def _utterance(
-    conn: asyncpg.Connection, session_id: UUID, sequence_no: int, transcript: str
+    conn: asyncpg.Connection,
+    session_id: UUID,
+    sequence_no: int,
+    transcript: str,
+    *,
+    speaker: str = "user",
+    utterance_type: str = "learning",
 ) -> UUID:
+    """발화 1행. `speaker`·`utterance_type`의 기본값은 분석 대상 발화다.
+
+    드릴 exchange 절(파일 끝)이 두 값을 바꿔 가며 쓴다 — 세는 규칙이 그 두 열에 걸려 있다.
+    """
     utterance_id = await conn.fetchval(
-        "insert into utterances (session_id, speaker, transcript, sequence_no) "
-        "values ($1, 'user', $2, $3) returning id",
+        "insert into utterances (session_id, speaker, utterance_type, transcript, sequence_no) "
+        "values ($1, $2, $3, $4, $5) returning id",
         session_id,
+        speaker,
+        utterance_type,
         transcript,
         sequence_no,
     )
@@ -756,3 +773,319 @@ async def test_pronunciation_ordered_by_insertion_when_created_at_ties(
         "I think it's three.",
         "Coffee, please.",
     ]
+
+
+# --- 드릴 exchange 관측 (설계서 §2.3 · 캡틴 결정 10·16 · 009 컬럼) ---
+#
+# 세는 것은 **「코치 발화 바로 뒤에 온 사용자 발화」**다. 설계 3판은 이 방향이 반대였고
+# 4판이 고쳤다 — 두 방향은 **세션이 학습자 발화로 끝날 때 1만큼 갈라지고** 그것이 정상
+# 종료 모양이라(`audio_gateway/stub.py`의 재생 순서) 완전 순응 세션이 매번 미달로 세어졌다.
+# ⑤가 그 tripwire다: 3판 방향으로 세면 12 대신 11이 나와 FAIL 한다.
+
+# `(speaker, utterance_type)` 조합에 이름을 붙인다 — 세는 규칙이 그 두 열에만 걸려 있으므로
+# 테스트 본문이 발화 **순서**만 보이게 한다.
+COACH = ("agent", "learning")
+LEARNER = ("user", "learning")
+LEARNER_COMMAND = ("user", "voice_command")
+COACH_CONFIRMATION = ("agent", "command_confirmation")
+
+# 로거 이름을 문자열로 박지 않는다 — 박으면 모듈이 옮겨졌을 때 「기록 0건」 단정이 조용히
+# 항진명제가 된다. 구현이 쓰는 로거를 그대로 가리킨다.
+RESULTS_LOGGER = results_logger.name
+
+
+async def _turns(
+    conn: asyncpg.Connection, session_id: UUID, turns: Sequence[tuple[str, str]]
+) -> list[UUID]:
+    """`(speaker, utterance_type)`을 순서대로 넣는다 — `sequence_no`는 1부터 붙는다."""
+    return [
+        await _utterance(
+            conn,
+            session_id,
+            sequence_no,
+            f"{speaker}/{utterance_type} {sequence_no}",
+            speaker=speaker,
+            utterance_type=utterance_type,
+        )
+        for sequence_no, (speaker, utterance_type) in enumerate(turns, start=1)
+    ]
+
+
+async def _set_drill_expected(conn: asyncpg.Connection, session_id: UUID, expected: int) -> None:
+    """세션 시작이 남긴 기대값(009)을 직접 박는다.
+
+    `sessions.record_drill_turns_expected`를 거치지 않는 것이 의도다 — 그 함수는 계획과
+    설정값에서 값을 **만드는** 쪽이고, 이 절이 재는 것은 그 값을 **읽는** 경로다. 계획을
+    세팅해 값을 유도하면 조립 실패와 조회 실패가 같은 red로 보인다.
+    """
+    await conn.execute(
+        "update learning_sessions set drill_turns_expected = $2 where id = $1",
+        session_id,
+        expected,
+    )
+
+
+def _results_logs(caplog: pytest.LogCaptureFixture) -> list[logging.LogRecord]:
+    """`services/results`가 낸 기록만 고른다 — 다른 모듈의 경고를 이 단정에 섞지 않는다."""
+    return [record for record in caplog.records if record.name == RESULTS_LOGGER]
+
+
+# ① 코치 발화가 **연속 2건**(질문 + 힌트)이어도 학습자 답이 1건이면 `1`이다.
+# H-3이 뚫은 자리: `count(*) where speaker='agent'`로 세면 2가 되고, 그때 턴은 닫히지
+# 않았으므로(`session.py`의 `_flush_analysis`가 no-op) **막혀서 힌트만 반복된 세션이
+# 「달성」으로 통과한다.** SYSTEM_PROMPT 규칙 2·5가 그 힌트를 **명령**하므로 이 경로는
+# 엣지 케이스가 아니다.
+async def test_drill_counts_one_exchange_when_the_coach_speaks_twice_before_the_answer(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session
+):
+    async with db_pool.acquire() as conn:
+        utterance_ids = await _turns(conn, committed_session.session_id, [COACH, COACH, LEARNER])
+        await _job(conn, utterance_ids[-1], "done")
+        await _set_drill_expected(conn, committed_session.session_id, 8)
+
+    response = await api_client.get(f"/api/sessions/{committed_session.session_id}/results")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "final"
+    assert body["drill"] == {"exchanges_observed": 1, "exchanges_expected": 8}, (
+        "힌트가 exchange 수를 올렸다 — 세는 것은 코치 발화가 아니라 「코치 뒤에 온 사용자 발화」다"
+    )
+
+
+# ② 사용자 발화가 0건이고 코치 발화만 있는 세션 → `0`. H-3이 뚫은 바로 그 자리다.
+#
+# ⚠️ **이 세션 상태는 인공이다.** 프로덕션에서는 사용자 learning 발화가 0건이면 분석 job도
+# 0건이라(`services/utterances.flush_pending_analysis`가 그 두 열로 묶음을 고른다) 상태가
+# `no_utterances`가 되고 키가 빠진다. 여기서 재는 것은 **세는 규칙**이고, 그것을 키가 실리는
+# 상태에서 관측하려면 job을 손으로 걸어야 한다 — 그래서 코치 발화에 걸었다.
+async def test_drill_counts_zero_when_only_the_coach_spoke(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session
+):
+    async with db_pool.acquire() as conn:
+        utterance_ids = await _turns(conn, committed_session.session_id, [COACH, COACH, COACH])
+        await _job(conn, utterance_ids[0], "done")
+        await _set_drill_expected(conn, committed_session.session_id, 8)
+
+    response = await api_client.get(f"/api/sessions/{committed_session.session_id}/results")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "final"
+    assert body["drill"] == {"exchanges_observed": 0, "exchanges_expected": 8}, (
+        "코치 발화만 있는 세션이 exchange를 얻었다 — 힌트 반복이 「달성」으로 통과하는 H-3이다"
+    )
+
+
+# ③ `utterance_type != 'learning'` 행은 세지 않는다 — 세어지지도, 직전 발화로 인정되지도 않는다.
+# 배치는 두 경로를 동시에 재도록 골랐다: 필터가 없으면 `user/voice_command`가 스스로 1건을
+# 만들어 **2**가 된다(관례의 정본은 `plan_input.py`·`utterances.py`의 두 SQL이다).
+async def test_drill_ignores_rows_that_are_not_learning_utterances(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session
+):
+    async with db_pool.acquire() as conn:
+        utterance_ids = await _turns(
+            conn,
+            committed_session.session_id,
+            [COACH, LEARNER_COMMAND, COACH_CONFIRMATION, LEARNER],
+        )
+        await _job(conn, utterance_ids[-1], "done")
+        await _set_drill_expected(conn, committed_session.session_id, 8)
+
+    response = await api_client.get(f"/api/sessions/{committed_session.session_id}/results")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["drill"] == {"exchanges_observed": 1, "exchanges_expected": 8}, (
+        "음성 명령·확인 발화가 exchange로 세어졌다 — `utterance_type = 'learning'` 필터가 없다"
+    )
+
+
+# ④ 사용자 발화만 있는 세션 → `0`. 직전이 코치 발화가 아니면 전이가 아니다.
+async def test_drill_counts_zero_when_only_the_learner_spoke(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session
+):
+    async with db_pool.acquire() as conn:
+        utterance_ids = await _turns(conn, committed_session.session_id, [LEARNER, LEARNER])
+        await _job(conn, utterance_ids[-1], "done")
+        await _set_drill_expected(conn, committed_session.session_id, 8)
+
+    response = await api_client.get(f"/api/sessions/{committed_session.session_id}/results")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["drill"] == {"exchanges_observed": 0, "exchanges_expected": 8}, (
+        "직전이 코치 발화가 아닌 사용자 발화가 세어졌다"
+    )
+
+
+# ⑤ ⛔ **단위 일치 tripwire (4판이 고친 자리)** — 정확히 12 라운드를 채우고 **사용자 발화로
+# 끝난** 세션이 `12`를 낸다. 3판 방향(`speaker='agent' and prev='user'`)으로 세면 `A2…A12`의
+# **11**이 나와 이 단정이 FAIL 한다. 그것이 이 테스트의 존재 이유다: 없으면 완전 순응 세션이
+# 매 세션 미달로 세어지고, 결정 10이 그 미달을 「지시문을 고치는 입력」으로 쓰므로
+# **산식 오차가 지시문 수정을 유도한다.**
+# 미달이 아니므로 **경고도 나지 않는다** — 그 짝을 여기서 함께 고정한다.
+async def test_drill_counts_twelve_for_exactly_twelve_rounds_ending_with_the_learner(
+    api_client: httpx.AsyncClient,
+    db_pool: asyncpg.Pool,
+    committed_session,
+    caplog: pytest.LogCaptureFixture,
+):
+    async with db_pool.acquire() as conn:
+        utterance_ids = await _turns(conn, committed_session.session_id, [COACH, LEARNER] * 12)
+        await _job(conn, utterance_ids[-1], "done")
+        await _set_drill_expected(conn, committed_session.session_id, 12)
+
+    with caplog.at_level(logging.INFO, logger=RESULTS_LOGGER):
+        response = await api_client.get(f"/api/sessions/{committed_session.session_id}/results")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["drill"] == {"exchanges_observed": 12, "exchanges_expected": 12}, (
+        "정확히 12 라운드를 채운 세션이 12를 내지 못했다 — 3판 방향으로 세면 11이 나온다"
+    )
+    assert _results_logs(caplog) == [], "미달이 아닌데 기록이 났다"
+
+
+# 계획 없이 시작한 세션은 기대값이 null이라 **관측 대상이 아니다** → 응답에 `drill` 키가 없다.
+# `corrections`가 실려 있는 것을 함께 단정한다 — 응답이 정상적으로 만들어진 상태에서
+# 키만 빠진 것임을 고정하려면 양성 짝이 필요하다(부재 단정 하나로는 공허하게 통과한다).
+async def test_drill_key_is_absent_when_the_session_started_without_a_plan(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session
+):
+    async with db_pool.acquire() as conn:
+        utterance_ids = await _turns(conn, committed_session.session_id, [COACH, LEARNER])
+        await _job(conn, utterance_ids[-1], "done")
+        # `drill_turns_expected`를 쓰지 않는다 — 계획 없이 시작한 세션의 모양이다.
+
+    response = await api_client.get(f"/api/sessions/{committed_session.session_id}/results")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "final"
+    assert "corrections" in body
+    assert "drill" not in body, "기대값이 null인데 drill 키가 실렸다 — 관측 대상이 아니다"
+
+
+# ⛔ R2 상태 3개에서는 **기대값이 있어도** 키가 빠지고 **로그도 나지 않는다**(D5-4 + critic B-4).
+# 리퍼가 닫은 세션도 기대값은 이미 쓰여 있고 그 `'failed'`는 `connection_failed`로 매핑되므로,
+# 막지 않으면 **연결 실패마다 미달이 API와 로그에 쌓여** 결정 10이 쓰겠다는 신호가 오염된다.
+# 세 테스트 모두 미달 상태(관측 1 · 기대 12)로 세팅한다 — 억제가 없으면 반드시 발동하는 모양이다.
+async def test_drill_key_and_log_are_absent_in_connection_failed(
+    api_client: httpx.AsyncClient,
+    db_pool: asyncpg.Pool,
+    committed_session,
+    caplog: pytest.LogCaptureFixture,
+):
+    async with db_pool.acquire() as conn:
+        utterance_ids = await _turns(conn, committed_session.session_id, [COACH, LEARNER])
+        await _job(conn, utterance_ids[-1], "done")
+        await _set_drill_expected(conn, committed_session.session_id, 12)
+        await conn.execute(
+            "update learning_sessions set status = 'failed' where id = $1",
+            committed_session.session_id,
+        )
+
+    with caplog.at_level(logging.INFO, logger=RESULTS_LOGGER):
+        response = await api_client.get(f"/api/sessions/{committed_session.session_id}/results")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "connection_failed"
+    assert "drill" not in body, "connection_failed에 drill이 실렸다 (D5-4)"
+    assert _results_logs(caplog) == [], "연결 실패 세션의 미달이 로그에 쌓였다 (critic B-4)"
+
+
+async def test_drill_key_and_log_are_absent_in_analyzing(
+    api_client: httpx.AsyncClient,
+    db_pool: asyncpg.Pool,
+    committed_session,
+    caplog: pytest.LogCaptureFixture,
+):
+    async with db_pool.acquire() as conn:
+        utterance_ids = await _turns(conn, committed_session.session_id, [COACH, LEARNER])
+        await _job(conn, utterance_ids[-1], "pending")
+        await _set_drill_expected(conn, committed_session.session_id, 12)
+
+    with caplog.at_level(logging.INFO, logger=RESULTS_LOGGER):
+        response = await api_client.get(f"/api/sessions/{committed_session.session_id}/results")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "analyzing"
+    assert "drill" not in body, "analyzing에 drill이 실렸다 — 잠정 노출 금지"
+    assert _results_logs(caplog) == [], "분석이 끝나지 않은 세션의 미달이 로그에 쌓였다"
+
+
+async def test_drill_key_and_log_are_absent_in_no_utterances(
+    api_client: httpx.AsyncClient,
+    db_pool: asyncpg.Pool,
+    committed_session,
+    caplog: pytest.LogCaptureFixture,
+):
+    async with db_pool.acquire() as conn:
+        # 발화는 있지만 job이 0건이다 — 규칙 2의 모양이고, 억제가 없으면 미달이 세어진다.
+        await _turns(conn, committed_session.session_id, [COACH, LEARNER])
+        await _set_drill_expected(conn, committed_session.session_id, 12)
+
+    with caplog.at_level(logging.INFO, logger=RESULTS_LOGGER):
+        response = await api_client.get(f"/api/sessions/{committed_session.session_id}/results")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "no_utterances"
+    assert "drill" not in body, "no_utterances에 drill이 실렸다 — 잠정 노출 금지"
+    assert _results_logs(caplog) == [], "분석 대상이 없는 세션의 미달이 로그에 쌓였다"
+
+
+# 미달이면 `warning` 한 줄에 두 수가 실린다. ⛔ `INFO`가 아닌 이유는 **H-Z** — 문서가 지정한
+# 실행에서 INFO는 보이지 않는다. 그래서 레벨을 등호로 못박고, 캡처는 INFO까지 열어 둔다
+# (구현이 INFO로 내면 기록은 잡히고 레벨 단정이 FAIL 한다 — 그것이 이 단정의 판별력이다).
+# 두 수는 세션 id를 지운 문구에서 찾는다 — uuid의 16진수에 우연히 섞이는 경로를 닫는다.
+async def test_drill_shortfall_logs_a_warning_carrying_both_numbers(
+    api_client: httpx.AsyncClient,
+    db_pool: asyncpg.Pool,
+    committed_session,
+    caplog: pytest.LogCaptureFixture,
+):
+    async with db_pool.acquire() as conn:
+        utterance_ids = await _turns(
+            conn, committed_session.session_id, [COACH, LEARNER, COACH, LEARNER]
+        )
+        await _job(conn, utterance_ids[-1], "done")
+        await _set_drill_expected(conn, committed_session.session_id, 8)
+
+    with caplog.at_level(logging.INFO, logger=RESULTS_LOGGER):
+        response = await api_client.get(f"/api/sessions/{committed_session.session_id}/results")
+
+    assert response.status_code == 200
+    assert response.json()["drill"] == {"exchanges_observed": 2, "exchanges_expected": 8}
+    records = _results_logs(caplog)
+    assert len(records) == 1, f"미달 기록이 1건이 아니다 — {[r.getMessage() for r in records]}"
+    assert records[0].levelno == logging.WARNING, (
+        "미달을 WARNING이 아닌 레벨로 냈다 — H-Z: INFO는 문서가 지정한 실행에서 보이지 않는다"
+    )
+    message = records[0].getMessage().replace(str(committed_session.session_id), "")
+    assert "2" in message and "8" in message, f"두 수가 그 줄에 없다 — {message!r}"
+
+
+# `partial_failure`는 `corrections`가 실리는 상태다 → `drill`도 함께 실린다.
+# 같은 R2 규약을 따른다는 것이 「셋에서 뺀다」와 「둘에서 싣는다」의 두 짝으로만 고정된다.
+async def test_drill_key_rides_with_partial_failure_like_corrections(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session
+):
+    async with db_pool.acquire() as conn:
+        utterance_ids = await _turns(
+            conn, committed_session.session_id, [COACH, LEARNER, COACH, LEARNER]
+        )
+        await _job(conn, utterance_ids[1], "done")
+        await _job(conn, utterance_ids[-1], "failed")
+        await _set_drill_expected(conn, committed_session.session_id, 8)
+
+    response = await api_client.get(f"/api/sessions/{committed_session.session_id}/results")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "partial_failure"
+    assert "corrections" in body
+    assert body["drill"] == {"exchanges_observed": 2, "exchanges_expected": 8}

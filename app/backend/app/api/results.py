@@ -11,6 +11,13 @@ R2 우선순위를 전부 결정하고, 여기서는 그 결과를 HTTP로 옮�
   **자체를 넣지 않는다**(생략 — `null`도 아니다). `analyzing`/`connection_failed`/
   `no_utterances`에서 교정을 조용히 노출하지 않기 위한 계약이 API 응답 shape까지
   그대로 이어진다(§5.5 "잠정 노출 금지").
+* `drill`은 `corrections`와 **같은 규약**을 따른다 — `SessionResult.drill`이 `None`이면
+  키 자체를 넣지 않는다. 그래서 `analyzing`/`connection_failed`/`no_utterances`에서는
+  기대값이 이미 기록돼 있어도 빠지고, 계획 없이 시작한 세션에서도 빠진다(설계서 §2.3).
+  ⚠️ 두 수(`exchanges_observed`/`exchanges_expected`)를 내려주지만 **화면은 그것을
+  렌더하지 않는다** — 소비자는 서버·로그이고, 화면은 미달일 때 문장 하나만 그린다
+  (캡틴 결정 10: `9 / 12`로 읽히면 점수처럼 보이고 미달의 주어는 학습자가 아니다).
+  이 어긋나 보이는 계약은 의도된 것이며 정본은 `services/results.py`의 `DrillTurns`다.
 * `pronunciation`은 **항상 있다**(비면 `[]`). 발음 시도는 R2 판정과 독립이며
   구조적으로 확정값이라 `corrections`의 키 생략 규약을 따르지 않는다 —
   근거는 `services/results.py` 모듈 docstring. 각 항목의 `spoken_form`은
@@ -28,6 +35,7 @@ from fastapi import APIRouter, HTTPException, Request
 from app.api.ws import FIXED_USER_ID
 from app.services.results import (
     Correction,
+    DrillTurns,
     PronunciationAttempt,
     SessionResult,
     get_session_result,
@@ -96,6 +104,13 @@ def _pronunciation_payload(attempt: PronunciationAttempt) -> dict[str, object]:
     }
 
 
+def _drill_payload(drill: DrillTurns) -> dict[str, object]:
+    return {
+        "exchanges_observed": drill.exchanges_observed,
+        "exchanges_expected": drill.exchanges_expected,
+    }
+
+
 def _result_payload(result: SessionResult) -> dict[str, object]:
     payload: dict[str, object] = {
         "status": result.status,
@@ -104,6 +119,10 @@ def _result_payload(result: SessionResult) -> dict[str, object]:
     }
     if result.corrections is not None:
         payload["corrections"] = [_correction_payload(item) for item in result.corrections]
+    # `corrections`와 **같은 모양**으로 뺀다 — 새 방식을 발명하지 않는다. 판정은 이미
+    # `services/results.py`가 끝냈고(`drill=None`), 여기서는 그것을 키 유무로 옮기기만 한다.
+    if result.drill is not None:
+        payload["drill"] = _drill_payload(result.drill)
     return payload
 
 

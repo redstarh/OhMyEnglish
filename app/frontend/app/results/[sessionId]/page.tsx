@@ -29,6 +29,15 @@ const STATUS_LABEL: Record<SessionResultStatus, string> = {
 
 const PARTIAL_FAILURE_NOTICE = "일부 발화는 분석하지 못했다 — 재시도되지 않습니다";
 
+// 드릴 미달 안내 (설계서 §2.3 · 캡틴 결정 10). **숫자를 쓰지 않는 것이 계약이다** — API는
+// `drill`로 두 수를 보내지만 여기서 렌더하는 것은 이 한 문장뿐이고, 두 수의 소비자는 서버·로그다
+// (결정 10이 정한 용도는 「지시문을 고치는 입력」 하나다). 분자와 분모를 나란히 두면 `9 / 12`로
+// 읽히고 그것이 가장 점수처럼 보이는 모양인데, 이 화면의 톤 계약은 "채점하지 않습니다,
+// 시범합니다"(`docs/storyboard.html`:101)다.
+// **주어를 세션에 둔다** — 미달의 주어는 학습자가 아니라 대화 모델이므로(결정 10) 학습자를
+// 주어로 쓰면 손쓸 수 없는 수를 자기 잘못으로 읽는다. 문구는 설계서 §2.3의 예시 그대로다.
+const DRILL_SHORTFALL_NOTICE = "오늘은 드릴이 계획보다 짧았어요.";
+
 // 발음 카드 문구 (Task 8). 어휘는 `docs/storyboard.html` 03b(:129-133)를 따른다 —
 // "채점하지 않습니다. 시범합니다"(:101)가 이 화면의 톤 계약이라 점수·정답률을 쓰지 않는다.
 const PRONUNCIATION_HEADING = "발음";
@@ -123,6 +132,13 @@ export default function ResultsPage() {
   // 발음 카드는 R2 판정과 **독립**이라 `showCorrections`를 타지 않는다 — `analyzing`
   // 중에도 보인다(근거: `app/backend/app/services/results.py` 모듈 docstring 마지막 절).
   const pronunciation = result?.pronunciation ?? [];
+  // 미달일 때만 그린다. 미달이 아니면 **아무것도 그리지 않는다** — 달성을 알리는 문장은
+  // 그 자체로 점수판이 된다. 상태 조건을 여기서 다시 쓰지 않는 이유: `drill` 키는 서버가
+  // 이미 R2 규약대로 뺀다(`analyzing`/`connection_failed`/`no_utterances`에서는 없다).
+  // 키 부재(`undefined`)와 `null`을 함께 막는다 — HTTP 응답은 외부 경계이고, 서버 계약은
+  // "키를 뺀다"이지만 그 계약이 깨졌을 때 화면이 예외로 죽는 것이 가장 나쁜 결과다.
+  const drill = result?.drill;
+  const drillFellShort = drill ? drill.exchanges_observed < drill.exchanges_expected : false;
 
   return (
     <main style={{ maxWidth: 640, margin: "0 auto", padding: "2rem", fontFamily: "sans-serif" }}>
@@ -141,6 +157,12 @@ export default function ResultsPage() {
           <p style={{ fontSize: "1.25rem", fontWeight: "bold" }}>{STATUS_LABEL[result.status]}</p>
 
           {result.status === "partial_failure" && <p>{PARTIAL_FAILURE_NOTICE}</p>}
+
+          {/* 세션에 대한 사실 진술 한 줄이다 — 오류가 아니므로 danger를 쓰지 않고, 상태
+              라벨과 위계를 다투지 않도록 muted로 둔다. */}
+          {drillFellShort && (
+            <p style={{ color: "var(--foreground-muted)" }}>{DRILL_SHORTFALL_NOTICE}</p>
+          )}
 
           {showCorrections && (
             <div style={{ marginTop: "1rem" }}>

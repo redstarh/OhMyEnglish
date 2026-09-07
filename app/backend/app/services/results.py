@@ -49,6 +49,15 @@ max(confidence) desc → 발생 수 desc` 순으로 정렬한다. `severity`는
 확정처럼 노출"에 해당하지 않는다. 표시 규약(기계 키 미노출 · 시도 1건 = 1카드)의
 정본은 설계서 §10 미결 4다.
 
+드릴 exchange 관측(§2.3 · 캡틴 결정 10·16)은 `corrections`와 **같은 R2 규약**을 따른다:
+`analyzing`/`connection_failed`/`no_utterances`에서는 `drill`이 `None`이고 그때는
+**미달 판정 자체를 하지 않아 로그도 나지 않는다.** 억제가 필요한 이유는 방어가 아니라
+정상 경로다 — 어댑터 생성이 실패해 `learning_sessions.status='failed'`가 된 세션도
+기대값은 이미 쓰여 있고(설계가 정한 순서: 계획을 읽은 뒤 어댑터를 만든다) 아래 규칙 1이
+그 `'failed'`를 `connection_failed`로 매핑하므로, 막지 않으면 **연결 실패마다 「미달」이
+API와 로그에 쌓인다.** 결정 10이 이 두 수의 용도를 「지시문을 고치는 입력」 하나로 정했는데
+연결이 끊겨 끝난 세션의 미달은 지시문에 대해 아무것도 말하지 않는다 — 그 신호를 오염시킨다.
+
 Fix round 1 (I-1): 같은 발화의 같은 패턴에 occurrence가 2건 이상이면
 `utterance_created_at`/`occurrence_created_at`이 완전히 동률일 수 있다 —
 `_replace_occurrences`(§5.2)가 findings 전체를 **한 트랜잭션**에서 insert하고,
@@ -62,11 +71,14 @@ PostgreSQL의 `now()`는 트랜잭션 시작 시각으로 고정되므로 `error
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import Literal
 from uuid import UUID
 
 import asyncpg
+
+logger = logging.getLogger(__name__)
 
 SessionResultStatus = Literal[
     "analyzing", "final", "partial_failure", "connection_failed", "no_utterances"
@@ -107,6 +119,19 @@ class PronunciationAttempt:
 
 
 @dataclass(frozen=True, slots=True)
+class DrillTurns:
+    """드릴이 계획만큼 돌았는지 (설계서 §2.3 · 캡틴 결정 10·16).
+
+    **두 수의 소비자는 서버와 로그다** — 「지시문을 고치는 입력」이 결정 10이 정한 용도
+    하나이고, 화면은 이것을 렌더하지 않는다(`9 / 12`로 읽히면 가장 점수처럼 보이는 모양이고,
+    미달의 주어는 학습자가 아니라 대화 모델이다). 그 어긋나 보이는 계약은 의도된 것이다.
+    """
+
+    exchanges_observed: int
+    exchanges_expected: int
+
+
+@dataclass(frozen=True, slots=True)
 class SessionResult:
     status: SessionResultStatus
     # `None`은 "이 상태에서는 응답에 `corrections` 키 자체가 없다"는 뜻이다
@@ -117,9 +142,42 @@ class SessionResult:
     # R2 판정과 **독립**이다 — 5개 상태 전부에서 실리고, 비어 있으면 빈 리스트다
     # (`corrections`처럼 `None`으로 키를 지우지 않는다). 근거는 모듈 docstring 마지막 절.
     pronunciation: list[PronunciationAttempt]
+    # `corrections`와 **같은** 규약이다: `None`은 "응답에 `drill` 키 자체가 없다"는 뜻이고
+    # R2 규칙 1·2·3에서 그렇게 된다. 계획 없이 시작한 세션(기대값 null)도 `None`이다 —
+    # 그 세션은 관측 대상이 아니다(009: null = 기대가 없었다).
+    drill: DrillTurns | None
 
 
-_SESSION_STATUS_SQL = "select status from learning_sessions where id = $1"
+_SESSION_ROW_SQL = """
+select status, drill_turns_expected
+  from learning_sessions
+ where id = $1
+"""
+
+# 실제 exchange 수 — **「코치 발화 바로 뒤에 온 사용자 발화」**를 센다(설계서 §2.3).
+#
+# ⛔ `count(*) … where speaker = 'agent'`가 아니다(H-3). `SYSTEM_PROMPT` 규칙 2·5가 침묵 뒤
+# 시작 힌트를 **명령**하므로 학습자가 막히면 코치 발화 행만 늘고, 그때 `_flush_analysis`는
+# 대기 발화가 없어 no-op이다 — **턴이 닫히지 않았는데 수만 오른다.** 전이를 세면 연속 코치
+# 발화(힌트 반복)와 코치 선발화가 세어지지 않아 그 경로가 닫힌다.
+# ⛔ 방향을 뒤집지 않는다(4판 정정). 3판은 `speaker='agent' and prev='user'`였고, 그러면
+# 세션이 학습자 발화로 끝나는 정상 종료 모양에서 **완전 순응 세션도 1만큼 미달**로 세어졌다.
+# `utterance_type = 'learning'`을 함께 거른다 — `plan_input.py`·`utterances.py`의 두 SQL이
+# speaker와 함께 거르는 관례이고, 음성 명령이 exchange를 만들지 않는다.
+#
+# 새 감지기가 아니다: 세는 규칙은 실시간 턴 판별(`audio_gateway/session.py`)과 같은 것이고
+# 저장된 순서(`sequence_no`)로 사후에 같은 판정을 한다. ⛔ 그래서 카운터를 `_flush_analysis`
+# 경로에 얹지 않는다 — 그 함수는 예외를 밖으로 던지지 않는 계약이라 세는 일이 그 침묵 안으로
+# 들어가면 누락이 관측되지 않는다.
+_EXCHANGES_OBSERVED_SQL = """
+select count(*) from (
+  select speaker, lag(speaker) over (order by sequence_no) as prev
+    from utterances
+   where session_id = $1
+     and utterance_type = 'learning'
+) t
+where t.speaker = 'user' and t.prev = 'agent'
+"""
 
 _JOB_COUNTS_SQL = """
 select
@@ -213,6 +271,34 @@ async def _load_pronunciation(
     ]
 
 
+async def _load_drill(
+    conn: asyncpg.Connection, session_id: UUID, expected: int | None
+) -> DrillTurns | None:
+    """실제 exchange 수를 세어 기대값과 함께 돌려준다. 미달이면 `warning` 한 줄을 남긴다.
+
+    **기대값이 `None`이면 세지도 않는다** — 계획 없이 시작한 세션은 관측 대상이 아니다(009).
+    `INFO`가 아니라 `warning`인 이유는 함정 **H-Z**다: 문서가 지정한 실행에서 INFO는 보이지
+    않으므로 미달이 조용히 지나간다.
+
+    ⛔ **호출자는 R2 규칙 1·2·3에서 이 함수를 부르지 않는다** — 그 세 상태에서는 미달 판정
+    자체를 하지 않는다(모듈 docstring). 그 조건을 여기 두지 않은 것은 판정이 이미 호출
+    지점에서 if/elif 사슬로 표현돼 있어서다: 상태를 인자로 받아 다시 분기하면 "정확히
+    하나"를 보장하는 그 구조가 둘로 갈라진다.
+    """
+    if expected is None:
+        return None
+    observed: int = await conn.fetchval(_EXCHANGES_OBSERVED_SQL, session_id)
+    if observed < expected:
+        logger.warning(
+            "세션 %s: 드릴 exchange 미달 — 관측 %d건 / 기대 %d건 "
+            "(지시문을 고치는 입력이다 — 캡틴 결정 10)",
+            session_id,
+            observed,
+            expected,
+        )
+    return DrillTurns(exchanges_observed=observed, exchanges_expected=expected)
+
+
 async def _load_top_corrections(conn: asyncpg.Connection, session_id: UUID) -> list[Correction]:
     records = await conn.fetch(_TOP_CORRECTIONS_SQL, session_id, MAX_CORRECTIONS)
     return [
@@ -238,8 +324,11 @@ async def get_session_result(conn: asyncpg.Connection, session_id: UUID) -> Sess
 
     발음 카드는 그 사슬 **밖**에서 한 번 읽어 모든 분기에 같은 값으로 실린다
     (모듈 docstring 마지막 절).
+
+    드릴 관측은 반대로 사슬 **안**에 있다 — `corrections`와 같은 자리에서만 실린다.
+    규칙 1·2·3은 `drill=None`으로 돌려주고 세지도 로그하지도 않는다(모듈 docstring).
     """
-    session = await conn.fetchrow(_SESSION_STATUS_SQL, session_id)
+    session = await conn.fetchrow(_SESSION_ROW_SQL, session_id)
     if session is None:
         return None
 
@@ -252,6 +341,7 @@ async def get_session_result(conn: asyncpg.Connection, session_id: UUID) -> Sess
             corrections=None,
             partial_failure=False,
             pronunciation=pronunciation,
+            drill=None,
         )
 
     counts = await conn.fetchrow(_JOB_COUNTS_SQL, session_id)
@@ -263,18 +353,23 @@ async def get_session_result(conn: asyncpg.Connection, session_id: UUID) -> Sess
             corrections=None,
             partial_failure=False,
             pronunciation=pronunciation,
+            drill=None,
         )
 
     # 규칙 3 — 진행 중인 job이 있으면 결과가 확정되지 않았다. 교정을 계산조차
     # 하지 않는다 — 계산해서 숨기는 것과 계산하지 않는 것은 "잠정 노출 금지"
     # 원칙 아래 같은 결과이지만, 후자가 실수로 새어나갈 표면을 만들지 않는다.
+    # 드릴 관측도 같은 이유로 계산하지 않는다: 세면 미달 로그가 따라온다.
     if counts["non_terminal"] > 0:
         return SessionResult(
             status="analyzing",
             corrections=None,
             partial_failure=False,
             pronunciation=pronunciation,
+            drill=None,
         )
+
+    drill = await _load_drill(conn, session_id, session["drill_turns_expected"])
 
     # 규칙 4 — 실패한 job이 있다(그리고 진행 중인 job은 없다). 성공분 교정은
     # 그대로 보여준다 — 아래 쿼리는 세션의 occurrence 전체를 보므로 실패한
@@ -286,6 +381,7 @@ async def get_session_result(conn: asyncpg.Connection, session_id: UUID) -> Sess
             corrections=corrections,
             partial_failure=True,
             pronunciation=pronunciation,
+            drill=drill,
         )
 
     # 규칙 5 — 1건 이상이고 전부 done.
@@ -295,4 +391,5 @@ async def get_session_result(conn: asyncpg.Connection, session_id: UUID) -> Sess
         corrections=corrections,
         partial_failure=False,
         pronunciation=pronunciation,
+        drill=drill,
     )

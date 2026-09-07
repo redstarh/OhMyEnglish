@@ -37,6 +37,20 @@ export interface PronunciationAttempt {
   signal_source: "nova_tool" | "korean_transcript" | "agent_reprompt";
 }
 
+/**
+ * 드릴이 계획만큼 돌았는지 (설계서 §2.3 · 캡틴 결정 10).
+ *
+ * ⚠️ **이 두 수를 화면에 렌더하지 않는다.** 소비자는 서버와 로그다 — 결정 10이 정한 용도는
+ * 「지시문을 고치는 입력」 하나다. 분자와 분모를 나란히 주면 `9 / 12`로 읽히고 그것이 가장
+ * 점수처럼 보이는 모양인데, 미달의 주어는 학습자가 아니라 **대화 모델**이라 학습자가 손쓸 수
+ * 없는 수를 자기 점수로 읽게 된다. API가 보내는 것과 화면이 그리는 것이 어긋나 보이는 이 계약은
+ * 의도된 것이고, 화면은 미달일 때 사실 진술 한 문장만 그린다.
+ */
+export interface DrillTurns {
+  exchanges_observed: number;
+  exchanges_expected: number;
+}
+
 export interface SessionResultPayload {
   status: SessionResultStatus;
   partial_failure: boolean;
@@ -44,6 +58,9 @@ export interface SessionResultPayload {
   corrections?: Correction[];
   // `corrections`와 달리 **항상 있다**(비면 `[]`) — R2 판정과 독립이다.
   pronunciation: PronunciationAttempt[];
+  // `corrections`와 **같은 규약**으로 빠진다: 위 세 상태에서는 기대값이 기록돼 있어도 키가
+  // 없고, 계획 없이 시작한 세션에서도 없다(관측 대상이 아니다).
+  drill?: DrillTurns;
 }
 
 /**
