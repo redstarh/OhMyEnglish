@@ -142,13 +142,14 @@ async def test_learning_sessions_status_check_rejects_invalid_value(db_conn: asy
         )
 
 
-# ⑤ 시드 후 users 1행 · learning_scenarios 3행(질문 3개), 재실행해도 중복 없음(멱등)
+# ⑤ 시드 후 users 1행 · learning_scenarios 3행(**무대** 3개 — 질문이 아니다. 캡틴 결정 14),
+#    재실행해도 중복 없음(멱등 — 이제 `do nothing` 이 아니라 `do update` 로 멱등이다)
 @pytest.mark.asyncio
 async def test_seed_creates_fixed_user_and_three_scenarios_idempotently(
     db_conn: asyncpg.Connection,
 ):
     await migrate.seed(db_conn)
-    await migrate.seed(db_conn)  # re-run — must stay idempotent (on conflict do nothing)
+    await migrate.seed(db_conn)  # re-run — must stay idempotent (on conflict do update)
 
     user_count = await db_conn.fetchval("select count(*) from users")
     assert user_count == 1
@@ -166,10 +167,43 @@ async def test_seed_creates_fixed_user_and_three_scenarios_idempotently(
     assert len(scenario_rows) == 3
     titles = {row["title"] for row in scenario_rows}
     assert titles == {
-        "What do you usually do after work?",
-        "What do you usually do on weekends?",
-        "What do you need to do tonight?",
+        "After work with a colleague",
+        "Weekend plans with a friend",
+        "Tonight's plans at home",
     }
+
+
+# ⑤-2 시드 3행은 **무대**다 — 질문이 아니고 `title`과 `prompt_template`이 갈라져 있다.
+#
+# 캡틴 결정 14 (2026-09-07). 근거: 결정 9가 「시나리오 = 무대(상황·역할) · 계획 = 목표(질문)」로
+# 역할을 갈랐는데 시드 3행은 **질문**이었고 두 컬럼이 **바이트 동일**이었다(psql 직접 조회).
+# 그 상태에서는 ① `Today's setting:`에 질문이 박혀 계획의 질문 3~5개와 종류가 겹치고
+# ② 「`title`을 지시문에 싣지 않는다」는 규칙 6 방어가 **공허해진다** — 같은 문자열이
+# `prompt_template`으로 들어가므로. 설계서 §2.1·§2.2가 근거를 소유한다.
+#
+# ⚠️ 위 ⑤와 나누는 이유: ⑤는 **개수와 멱등성**을 지키고 이것은 **내용의 종류**를 지킨다.
+# 한 테스트에 합치면 시드 문구를 고칠 때마다 멱등성 단정까지 함께 흔들린다.
+@pytest.mark.asyncio
+async def test_seeded_scenarios_are_stages_not_questions(
+    db_conn: asyncpg.Connection,
+):
+    await migrate.seed(db_conn)
+
+    rows = await db_conn.fetch(
+        "select title, prompt_template from learning_scenarios "
+        "where category = 'daily_life' order by title"
+    )
+    assert len(rows) == 3
+
+    for row in rows:
+        # 화면 라벨과 지시문 문구는 다른 문장이다.
+        assert row["title"] != row["prompt_template"], (
+            f"title 과 prompt_template 이 같다 — 규칙 6 방어가 공허해진다: {row['title']!r}"
+        )
+        # 무대는 질문이 아니다. 질문은 계획(`session_plans.questions`)이 소유한다.
+        assert not row["prompt_template"].rstrip().endswith("?"), (
+            f"prompt_template 이 질문이다 — 무대여야 한다: {row['prompt_template']!r}"
+        )
 
 
 # ── 003 pronunciation_attempts (발음 시범·재발화 설계서 §6.1) ──────────────────
