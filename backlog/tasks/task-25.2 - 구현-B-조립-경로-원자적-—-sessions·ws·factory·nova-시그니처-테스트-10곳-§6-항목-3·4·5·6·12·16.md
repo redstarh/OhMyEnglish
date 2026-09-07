@@ -3,10 +3,10 @@ id: TASK-25.2
 title: >-
   구현 B: 조립 경로 (원자적) — sessions·ws·factory·nova + 시그니처 테스트 10곳 (§6 항목
   3·4·5·6·12·16)
-status: Awaiting Decision
+status: Done
 assignee: []
 created_date: '2026-09-07 14:21'
-updated_date: '2026-09-07 15:04'
+updated_date: '2026-09-07 15:41'
 labels: []
 dependencies:
   - TASK-25.1
