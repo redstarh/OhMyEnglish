@@ -142,6 +142,58 @@ async def test_learning_sessions_status_check_rejects_invalid_value(db_conn: asy
         )
 
 
+# ④-2 009 `learning_sessions.drill_turns_expected` — nullable + `check (> 0)` (캡틴 결정 16)
+#
+# **왜 `summary` jsonb 가 아니라 컬럼인가**는 설계서
+# `docs/design/2026-09-07-scenario-and-drill-turns-design.md` §2.3 이 소유한다.
+# 요지만: `summary` 에는 `docs/database-schema.md` 가 지정한 **다음 소유자**
+# (`summarize_session`)가 이미 있고, CHECK 없는 jsonb 는 그 기능의 작성자를 구속하지 못한다.
+#
+# ⚠️ **nullable 인 것이 계약이다** — null 은 「계획 없이 시작한 세션 = 관측 대상 아님」이다.
+# ⛔ **0 을 허용하지 않는 이유**: 0 은 「기대가 0 이었다」로 읽혀 **「기대가 없었다」와 구분되지
+# 않는다.** 그 구분이 결과 화면의 `drill` 키 유무를 정하므로 값역에서 막는다.
+@pytest.mark.asyncio
+async def test_drill_turns_expected_is_nullable_and_rejects_non_positive(
+    db_conn: asyncpg.Connection,
+):
+    await _insert_user(db_conn)
+    session_id = await db_conn.fetchval(
+        "insert into learning_sessions (user_id, mode) values ($1, 'speaking') returning id",
+        migrate.USER_ID,
+    )
+
+    # 기본값은 null 이다 — INSERT 가 이 컬럼을 몰라도 세션이 만들어진다.
+    assert (
+        await db_conn.fetchval(
+            "select drill_turns_expected from learning_sessions where id = $1", session_id
+        )
+        is None
+    )
+
+    # ⚠️ 위반 하나를 **savepoint 안에서** 낸다. `db_conn`은 테스트당 트랜잭션 하나를 열어 두므로
+    # CHECK 위반이 그 트랜잭션을 abort시키고, 감싸지 않으면 **뒤따르는 문장이 전부
+    # `InFailedSQLTransactionError`로 죽는다**(이 테스트를 쓰다가 실제로 그랬다). 중첩
+    # `transaction()`은 asyncpg에서 savepoint가 되어 위반만 되돌린다.
+    for rejected in (0, -1):
+        with pytest.raises(asyncpg.CheckViolationError):
+            async with db_conn.transaction():
+                await db_conn.execute(
+                    "update learning_sessions set drill_turns_expected = $2 where id = $1",
+                    session_id,
+                    rejected,
+                )
+
+    await db_conn.execute(
+        "update learning_sessions set drill_turns_expected = 12 where id = $1", session_id
+    )
+    assert (
+        await db_conn.fetchval(
+            "select drill_turns_expected from learning_sessions where id = $1", session_id
+        )
+        == 12
+    )
+
+
 # ⑤ 시드 후 users 1행 · learning_scenarios 3행(**무대** 3개 — 질문이 아니다. 캡틴 결정 14),
 #    재실행해도 중복 없음(멱등 — 이제 `do nothing` 이 아니라 `do update` 로 멱등이다)
 @pytest.mark.asyncio

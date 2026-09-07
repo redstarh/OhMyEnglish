@@ -72,10 +72,21 @@ work?` / `What do you usually do on weekends?` / `What do you need to do tonight
 | `started_at` | timestamptz | not null, default `now()` |
 | `ended_at` | timestamptz | null 허용 |
 | `summary` | jsonb | not null, default `{}` |
+| `drill_turns_expected` | integer | null 허용, CHECK (`null` 또는 `> 0`) — 도입: **009** |
 
 한 번의 학습. `status`는 정상 종료(`completed`)와 Nova 연결 실패 등으로 닫힌 세션
 (`failed`)을 구분한다(F2-ii). `summary`(세션 총평)는 `summarize_session`과 함께
 다음 슬라이스에서 채워진다 — 컬럼은 이미 있지만 현재는 기본값(`{}`)만 쓴다.
+
+`drill_turns_expected`는 **이 세션이 기대한 드릴 exchange 수**다(캡틴 결정 10·16 ·
+설계: `docs/design/2026-09-07-scenario-and-drill-turns-design.md` §2.3이 정본).
+**null이 계약이다** — 계획 없이 시작한 세션은 관측 대상이 아니다. ⛔ **0을 허용하지 않는
+이유**: 0은 「기대가 0이었다」로 읽혀 **「기대가 없었다」와 구분되지 않고**, 그 구분이 결과
+응답의 `drill` 키 유무를 정한다. **실제 exchange 수는 저장하지 않는다** — 조회 시점에
+`utterances`에서 「사용자→코치 전이」로 센다(두 곳에 세면 갈라진다). 009 적용 시점의 기존
+12행은 전부 null이고 **백필하지 않는다**(기대값은 사후 복원이 불가능하다).
+⚠️ **`summary`와 혼동하지 마라** — 그 컬럼은 여전히 `summarize_session`의 것이고 이 설계는
+손대지 않는다. 드릴 관측을 그 jsonb에 얹으려던 첫 판을 기각한 근거는 설계서 §2.3이 소유한다.
 
 ### `utterances` — 도입: Phase1
 
