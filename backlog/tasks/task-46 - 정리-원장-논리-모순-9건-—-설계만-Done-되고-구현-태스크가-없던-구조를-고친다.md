@@ -1,10 +1,10 @@
 ---
 id: TASK-46
 title: '정리: 원장 논리 모순 9건 — 설계만 Done 되고 구현 태스크가 없던 구조를 고친다'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-07 22:20'
-updated_date: '2026-09-07 22:29'
+updated_date: '2026-09-07 22:38'
 labels: []
 dependencies: []
 ordinal: 49000
@@ -23,6 +23,6 @@ ordinal: 49000
 - [x] #3 handoff·노트가 금지한 태스크가 브리핑에서 「착수 가능」으로 뜨는 것을 의존·상태로 고친다 (TASK-23·13·24·36)
 - [x] #4 결정을 받았는데 AC·제목이 「대기」로 남은 것을 고친다 (TASK-42)
 - [x] #5 리뷰 없이 Done 된 TASK-7·TASK-12 를 팀리드가 검토해 유지·반려를 판정한다
-- [ ] #6 정리 결과를 커밋하고 handoff 의 다음 한 걸음을 갱신한다
+- [x] #6 정리 결과를 커밋하고 handoff 의 다음 한 걸음을 갱신한다
 - [x] #7 critic 4회차의 새 findings(register 줄번호 인용 3건 어긋남)를 줄번호 제거로 영구히 닫는다
 <!-- AC:END -->

@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OhMyEnglish — 캡틴 결정 대기 항목 (2026-09-08)</title>
+<!--
+  ⚠️ 이것은 **현황 보고가 아니다.** `docs/ops/status-report-convention.md`가 정한 8절 스냅샷
+  (`docs/status-report-YYYY-MM-DD.html`)과 **다른 산출물**이고 그것을 대체하지 않는다.
+  현행 현황 보고는 `docs/status-report-2026-09-06.html`이다.
+  담는 것은 하나뿐이다 — **캡틴이 답해야 진행되는 것.** 그 밖은 전부 뺐다.
+  CSS·판정 색은 그 규약의 템플릿에서 그대로 가져왔다(dataviz status 팔레트, 검증된 값 —
+  good #0ca30c / warning #fab219 / critical #d03b3b. 되돌리지 마라).
+-->
+<style>
+  :root{
+    --surface:#fcfcfb; --panel:#fff; --ink:#1a1a19; --ink-2:#4a4a46; --ink-3:#75756e;
+    --line:#e3e3de; --line-2:#efefea; --accent:#2d5f8a;
+    --good:#0ca30c; --warn:#fab219; --crit:#d03b3b; --hold:#6b4fa8;
+    --good-bg:#eaf7ea; --warn-bg:#fdf4e1; --crit-bg:#fbeaea; --hold-bg:#f1ecfa;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --surface:#1a1a19; --panel:#232322; --ink:#f2f2ee; --ink-2:#c2c2ba; --ink-3:#8f8f86;
+      --line:#3a3a37; --line-2:#2e2e2c; --accent:#7fb3dd;
+      --good-bg:#14290f; --warn-bg:#332703; --crit-bg:#30110f; --hold-bg:#221a33;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--surface);color:var(--ink);
+    font:15px/1.65 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Segoe UI",Roboto,sans-serif;}
+  .wrap{max-width:1080px;margin:0 auto;padding:40px 22px 80px}
+  h1{font-size:26px;margin:0 0 6px;letter-spacing:-.2px}
+  h2{font-size:19px;margin:44px 0 12px;padding-bottom:7px;border-bottom:2px solid var(--line)}
+  h3{font-size:15px;margin:26px 0 8px;color:var(--ink-2)}
+  .sub{color:var(--ink-3);font-size:13px;margin:0 0 22px}
+  code{font:12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;
+    background:var(--line-2);padding:1px 5px;border-radius:4px}
+  table{width:100%;border-collapse:collapse;margin:10px 0 4px;font-size:13.5px}
+  th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line-2);vertical-align:top}
+  th{font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--ink-3);
+    border-bottom:1px solid var(--line);font-weight:600}
+  td:first-child{white-space:nowrap;font-weight:600}
+  tbody tr:hover{background:var(--line-2)}
+  .b{display:inline-block;padding:1px 8px;border-radius:11px;font-size:11.5px;
+    font-weight:700;white-space:nowrap;border:1px solid transparent}
+  .b-good{background:var(--good-bg);color:var(--good);border-color:var(--good)}
+  .b-warn{background:var(--warn-bg);color:#8a5c00;border-color:var(--warn)}
+  .b-crit{background:var(--crit-bg);color:var(--crit);border-color:var(--crit)}
+  .b-hold{background:var(--hold-bg);color:var(--hold);border-color:var(--hold)}
+  @media (prefers-color-scheme:dark){ .b-warn{color:var(--warn)} }
+  .kpi{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 6px}
+  .kpi > div{flex:1 1 150px;background:var(--panel);border:1px solid var(--line);
+    border-radius:9px;padding:12px 14px}
+  .kpi .n{font-size:27px;font-weight:700;letter-spacing:-.5px;line-height:1.15}
+  .kpi .l{font-size:12px;color:var(--ink-3);margin-top:2px}
+  .note{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent);
+    border-radius:0 8px 8px 0;padding:11px 14px;margin:14px 0;font-size:13.5px;color:var(--ink-2)}
+  .note b{color:var(--ink)}
+  .note-crit{border-left-color:var(--crit)}
+  .note-good{border-left-color:var(--good)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:9px;
+    padding:14px 16px;margin:12px 0}
+  .card h4{margin:0 0 8px;font-size:15px;display:flex;gap:9px;align-items:baseline;flex-wrap:wrap}
+  .card dl{margin:0;display:grid;grid-template-columns:max-content 1fr;gap:5px 14px;font-size:13.5px}
+  .card dt{color:var(--ink-3);font-size:12px;text-transform:uppercase;letter-spacing:.4px;
+    padding-top:2px;white-space:nowrap}
+  .card dd{margin:0;color:var(--ink-2)}
+  .card dd b{color:var(--ink)}
+  .flow{background:var(--panel);border:1px solid var(--line);border-radius:9px;
+    padding:16px;overflow-x:auto;margin:12px 0}
+  .flow pre{margin:0;font:12.5px/1.9 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink-2)}
+  .flow pre b{color:var(--ink);font-weight:700}
+  .flow pre i{color:var(--crit);font-style:normal;font-weight:700}
+  footer{margin-top:52px;padding-top:16px;border-top:1px solid var(--line);
+    font-size:12.5px;color:var(--ink-3)}
+</style>
+</head>
+<body data-palette="#0ca30c,#fab219,#d03b3b">
+<div class="wrap">
+
+<h1>캡틴 결정 대기 항목</h1>
+<p class="sub">
+  2026-09-08 · 브랜치 <code>design/first-vertical-slice</code> · HEAD <code>2ea2b7f</code> ·
+  원장 47건 (완료 23 · 잔여 24)
+</p>
+
+<div class="note">
+  <b>이 문서는 현황 보고가 아니다.</b> 담은 것은 <b>캡틴이 답해야 진행되는 것</b>뿐이고,
+  진행 상태의 정본은 원장(<code>backlog/tasks/</code>)이며 현행 현황 보고는
+  <code>docs/status-report-2026-09-06.html</code>다. 값이 다르면 <b>정본이 맞다</b>.
+  아래 수치는 <b>2026-09-08 이 턴에 직접 돌려 얻은 것</b>이다 — 계산값·전달값이 아니다.
+</div>
+
+<h2>한눈에</h2>
+
+<div class="kpi">
+  <div><div class="n" style="color:var(--crit)">3</div><div class="l">✕ 다음 작업을 막는다</div></div>
+  <div><div class="n" style="color:var(--warn)">3</div><div class="l">◐ 되돌릴 수 없다 (실행이 캡틴 몫)</div></div>
+  <div><div class="n" style="color:var(--hold)">4</div><div class="l">⏸ 제품 방향 (기본값 있음)</div></div>
+  <div><div class="n" style="color:var(--ink-3)">2</div><div class="l">· 타이밍</div></div>
+</div>
+
+<div class="note note-good">
+  <b>오늘 무엇이 바뀌었나 (한 문장)</b> — 며칠째 마무리되지 않은 원인은 하나였다:
+  <b>설계가 <code>Done</code> 으로 쌓이는데 그 설계를 코드로 옮기는 태스크가 원장에 없었다.</b>
+  증거는 <code>db/migrations/</code> 가 <b>009 까지</b>인데 설계서가 <b>010</b>·<b>011</b> 을
+  확정해 둔 것이다. 구현 소유자 <b>TASK-43·44·45</b> 를 신설했고, 리뷰 게이트를 결정 22 로 풀어
+  설계 4건을 <code>Done</code> 으로 닫았다. 남은 것은 <b>아래 결정들과 구현</b>이다.
+</div>
+
+<div class="note note-crit">
+  <b>파이프라인이 한 줄이었다 — 이것이 감사의 최대 발견이다.</b> 관측·판정 태스크 4건
+  (<code>TASK-13</code>·<code>24</code>·<code>30</code>·<code>36</code>)이 각각 실물 세션을
+  요구했는데, 그 관측을 전부 <code>TASK-37</code>(하네스 5차수)이 이미 인수기준으로 갖고 있었다.
+  그리고 <code>TASK-37</code> 자신은 <b>발음 복습 주기가 구현돼야</b> 돌 수 있다.
+</div>
+
+<div class="flow"><pre><b>TASK-44</b> 발음 복습 주기 구현
+   └→ <b>TASK-37</b> 하네스 5차수 (실물 Nova + 브라우저 회차 + tests 정리)
+         ├→ TASK-13  발음 키 값역 판정
+         ├→ TASK-24  agent_reprompt 사각 크기 판정
+         ├→ TASK-30  판별력 관측 <i>[HIGH]</i>
+         └→ TASK-36  exchange 20 실현성 판정
+
+<i>네 건이 각각 실물 세션을 켜면 비용을 네 번 낸다</i> → 결정 24 로 한 번에 묶었다</pre></div>
+
+<h2><span class="b b-crit">✕ A</span> &nbsp;다음 작업을 막는 것 — 3건</h2>
+
+<p class="sub" style="margin:0 0 12px">
+  결정 23 이 다음을 <b>구현 3건</b>(<code>TASK-43</code>·<code>44</code>·<code>45</code>)으로 정했다.
+  아래 3건은 그 착수 전에 답이 필요하다 — 각 구현 태스크의 마지막 인수기준이
+  <b>“착수 전 설계서의 캡틴 질문이 닫혔는지 확인한다”</b>다.
+</p>
+
+<div class="card">
+  <h4><span class="b b-crit">A-1</span> 쉐도잉 클립(<code>shadowing_items</code>)의 행은 누가 어떻게 넣습니까?</h4>
+  <dl>
+    <dt>막는 것</dt><dd><code>TASK-45</code> (마이그레이션 011 쉐도잉 구현)</dd>
+    <dt>왜 사람이</dt><dd>PRD 가 자동 수집을 <b>비범위</b>로 못 박고 <i>“외부 영상은 메타데이터·링크만 보관하고 사용자가 선택한 콘텐츠만 과제로 사용한다”</i>고 정했다. 그래서 제목·링크·전사문·시간 창은 <b>손으로 들어와야</b> 하는데 그 일을 소유한 태스크가 원장에 없다</dd>
+    <dt>답이 없으면</dt><dd><code>TASK-45</code> 가 표만 만들고 <b>0행으로 남는다</b> — 쉐도잉 기능은 동작하지 않는다 (설계서 약점 2)</dd>
+    <dt>정본</dt><dd><code>docs/design/2026-09-08-shadowing-task-design.md</code> §13</dd>
+  </dl>
+</div>
+
+<div class="card">
+  <h4><span class="b b-crit">A-2</span> 기존 <code>review_tasks</code> 7행 삭제를 승인합니까?</h4>
+  <dl>
+    <dt>막는 것</dt><dd><code>TASK-43</code> (마이그레이션 010 복습 과제 히스토리)</dd>
+    <dt>실측</dt><dd><b>7행</b> — <code>select count(*) from review_tasks</code> 를 이 턴에 직접 조회했다 (설계서가 적은 값과 일치)</dd>
+    <dt>왜 사람이</dt><dd>DB 행을 지우는 일이다. 무손실 근거는 설계서 §5.4 에 있고 <code>recompute_all</code> 이 동등한 행을 복원한다 — 다만 되돌리려면 재계산을 다시 돌려야 한다</dd>
+    <dt>답이 없으면</dt><dd><code>TASK-43</code> 이 마이그레이션 작성에서 멈춘다 (기존 행 이관 방법이 “삭제하고 재계산”이다)</dd>
+    <dt>정본</dt><dd><code>docs/design/2026-09-08-review-task-history-design.md</code> §8 질문 4 · §5.4</dd>
+  </dl>
+</div>
+
+<div class="card">
+  <h4><span class="b b-crit">A-3</span> 008(주간 리포트) 마이그레이션 예약을 풉니까?</h4>
+  <dl>
+    <dt>막는 것</dt><dd><code>TASK-43</code>·<code>TASK-45</code> 의 번호 확정 · <code>TASK-26</code>(주간 리포트)</dd>
+    <dt>실측</dt><dd><code>db/migrations/</code> = 001·003·004·005·006·007·009 — <b>002·008 결번</b>. 010(<code>TASK-43</code>)·011(<code>TASK-45</code>)은 설계서에만 있고 <b>파일이 없다</b></dd>
+    <dt>왜 사람이</dt><dd><code>scripts/migrate.py</code> 는 <code>sorted(glob("*.sql"))</code> 순으로 적용하고 파일명으로 1회만 기록한다 → 008 을 나중에 쓰면 <b>신규 DB(008→011)와 기존 DB(011→008)의 적용 순서가 갈라진다.</b> 예약을 정한 것이 캡틴 결정이라 작업세션이 뒤집지 않는다</dd>
+    <dt>답이 없으면</dt><dd>예약이 유지되고 이 순서 위험이 그대로 남는다. 이 리포는 같은 번호 경쟁으로 <b>이미 세 번</b> 시간을 썼다(008 예약 대 <code>TASK-12</code> · 010 대 <code>TASK-27</code>)</dd>
+    <dt>정본</dt><dd><code>docs/design/2026-09-08-review-task-history-design.md</code> §8 질문 1 · §5.2</dd>
+  </dl>
+</div>
+
+<h2><span class="b b-warn">◐ B</span> &nbsp;되돌릴 수 없는 것 — 실행이 캡틴 몫 — 3건</h2>
+
+<div class="card">
+  <h4><span class="b b-warn">B-1</span> DB 비밀번호 회전을 실행합니까? <span class="b b-crit">보안</span></h4>
+  <dl>
+    <dt>태스크</dt><dd><code>TASK-42</code> · 인수기준 1/2 (방향은 <b>결정 21</b> 로 확정됨 — 회전 + 문서에서 제거)</dd>
+    <dt>왜 사람이</dt><dd>결정 21 이 두 제약을 캡틴 몫으로 <b>스스로 지정했다</b>: ① 공유 DB 라 <b>En-Coach 설정을 함께 고쳐야</b> 하는데 작업세션은 남의 리포를 고치지 않는다 ② <code>ALTER ROLE</code> 은 공유 자원 변경이라 캡틴 확인 후에 돈다</dd>
+    <dt>지금 막는 것</dt><dd><code>TASK-23</code>(원격 연결 + 첫 푸시). 오늘 <code>TASK-23</code> 에 선행 의존을 걸어 브리핑이 더는 “착수 가능”이라 말하지 않는다</dd>
+    <dt>노출 범위</dt><dd><code>git remote</code> 가 <b>없다</b> — 어디에도 push 되지 않았다 (결정 21 의 팀리드 직접 확인)</dd>
+  </dl>
+</div>
+
+<div class="card">
+  <h4><span class="b b-warn">B-2</span> AWS access key 로테이션을 실행합니까? <span class="b b-crit">보안</span></h4>
+  <dl>
+    <dt>태스크</dt><dd><code>TASK-38</code> — 오늘 <code>To Do</code> → <code>Awaiting Decision</code> 으로 옮겼다</dd>
+    <dt>왜 사람이</dt><dd>결정 21 제약 5 가 이 태스크를 이름으로 지목한다: <i>“<code>TASK-38</code> 도 같은 종류의 미결이다. 함께 보라 — 그것 역시 <b>살아 있는 자격증명</b>이고 실행은 캡틴 몫이다.”</i> 키가 대화 기록을 경유해 노출됐다</dd>
+    <dt>답이 없으면</dt><dd>유효한 키가 계속 노출 상태로 남는다. <b>B-1 과 한 묶음으로 보는 것이 규약</b>이다</dd>
+    <dt>정본</dt><dd><code>docs/ops/iam-setup-nova-sigv4.md</code> §6</dd>
+  </dl>
+</div>
+
+<div class="card">
+  <h4><span class="b b-warn">B-3</span> 첫 푸시를 PUBLIC 그대로 합니까, PRIVATE 으로 바꾼 뒤 합니까?</h4>
+  <dl>
+    <dt>태스크</dt><dd><code>TASK-23</code> 인수기준 1 · <b>B-1 이 닫힌 뒤에만 유효</b></dd>
+    <dt>왜 사람이</dt><dd>저장소는 실재한다 — <code>redstarh/OhMyEnglish</code> · <b>PUBLIC</b> · 아직 빈 저장소. 첫 푸시는 되돌리기 어려운 <b>외부 공개 행위</b>고 커밋 메시지·설계서·원장이 전부 공개된다. 되돌려도 캐시·색인에 남을 수 있다</dd>
+    <dt>답이 없으면</dt><dd>백업이 없는 상태가 이어진다. 지금은 로컬 단독이다</dd>
+  </dl>
+</div>
+
+<h2><span class="b b-hold">⏸ C</span> &nbsp;제품 방향 — 기본값이 있어 답이 없어도 진행된다 — 4건</h2>
+
+<div class="note">
+  <b>이 절은 막지 않는다.</b> 각 질문에 설계서가 <b>기본값</b>을 명시해 뒀고, 답이 없으면 그 기본값으로
+  구현한다. <b>뒤집고 싶은 것만 골라 답하면 된다</b> — 전부 답할 필요가 없다.
+</div>
+
+<table>
+  <thead><tr><th>#</th><th>질문</th><th>답이 없으면 (기본값)</th><th>태스크</th></tr></thead>
+  <tbody>
+    <tr><td>C-1</td><td>학습자가 복습 과제를 손으로 <b>“건너뛰기·완료”</b> 표시합니까?</td><td>표시하지 않는다 → 파생 이력만으로 끝난다. 있으면 <code>TASK-3</code> 에 학습자 행동 이력 표가 하나 더 필요하다</td><td><code>TASK-43</code></td></tr>
+    <tr><td>C-2</td><td>화면에 학습자용 <b>표시 번호(#1·#2 …)</b>가 필요합니까, <b>“3단계 중 2단계”</b>로 충분합니까?</td><td>“N단계 중 M단계”. 표시 번호를 원하면 순번 컬럼이 하나 더 필요하다</td><td><code>TASK-43</code></td></tr>
+    <tr><td>C-3</td><td>히스토리 화면에 <b>발음 복습이 안 보이는 것</b>을 수용합니까?</td><td>수용한다(이월된 축소). 풀면 자매 설계와의 접합면이 넓어진다</td><td><code>TASK-43</code>·<code>TASK-3</code></td></tr>
+    <tr><td>C-4</td><td>발음 복습 4건 — ① 예정일 지난 소리 <b>우선</b>으로 좁힐까 ② 주기를 <b>1·3·7일 아닌 값</b>으로 할까 ③ <code>task_type='rephrase'</code> <b>겸용</b>할까 ④ <b>만성 목록</b>에도 넣을까</td><td>① 전부 싣는다(범위 밖) ② 1·3·7일 ③ 겸용(마이그레이션 없음) ④ 넣지 않는다. <b>②·③·④ 를 바꾸면 마이그레이션과 발명값이 생긴다</b></td><td><code>TASK-44</code></td></tr>
+  </tbody>
+</table>
+
+<h2>· D &nbsp;타이밍 — 2건</h2>
+
+<div class="card">
+  <h4><span class="b">D-1</span> <code>public</code> → 전용 스키마 이관을 010·011 <b>전에</b> 합니까?</h4>
+  <dl>
+    <dt>태스크</dt><dd><code>TASK-41</code></dd>
+    <dt>왜 지금 묻나</dt><dd>En-Coach 는 전용 스키마(<code>en_coach</code>)를 쓰는데 우리 표는 <code>public</code> 에 있어 비대칭이다 — 남의 <code>search_path</code> 폴백이 우리 표로 떨어질 수 있다. <b>표를 더 추가할수록 이관 범위가 커진다</b>: 010·011 이 표를 더한다</dd>
+    <dt>미뤄 온 이유</dt><dd>우리 SQL 이 전부 한정자 없이 쓰여 있어 범위가 크다</dd>
+    <dt>답이 없으면</dt><dd>구현 3건을 먼저 하고 이관 비용이 그만큼 커진다 (결정 23 의 현재 방향)</dd>
+  </dl>
+</div>
+
+<div class="card">
+  <h4><span class="b">D-2</span> <code>TASKS.md</code> 잔여 분류를 지금 마감합니까, 보류합니까?</h4>
+  <dl>
+    <dt>태스크</dt><dd><code>TASK-28</code> · 인수기준 1/4 · <code>Awaiting Decision</code></dd>
+    <dt>상태</dt><dd><code>TASKS.md</code> 가 <b>140k</b> 로 남아 있다. D·E·H 절은 이미 원장으로 이관됐다(<code>TASK-37</code>·<code>38</code>·<code>39</code>·<code>40</code>·<code>41</code>·<code>42</code> 가 그 결과다)</dd>
+    <dt>왜 사람이</dt><dd>남은 것의 약 40%가 <b>태스크가 아니다</b>(결정 기록·판정 근거·사후 기록). 그 분류를 캡틴이 확정해야 <code>docs/design</code>·<code>pitfalls.md</code> 로 보낼 수 있다. ⚠️ 파일을 <b>지울 수는 없다</b> — 다른 설계 문서가 절 제목으로 지금도 인용한다</dd>
+    <dt>답이 없으면</dt><dd>브리핑이 매 세션 이것을 “결정 대기”로 다시 올린다. 기능 진행은 막지 않는다</dd>
+  </dl>
+</div>
+
+<h2>참고 — 오늘 닫은 것 (결정 불필요)</h2>
+
+<table>
+  <thead><tr><th>무엇</th><th>결과</th></tr></thead>
+  <tbody>
+    <tr><td>리뷰 게이트</td><td><b>결정 22</b> — 설계·문서는 팀리드 리뷰 없이 <code>Done</code>. <code>TASK-6</code>·<code>9</code>·<code>25</code>·<code>27</code> 완료, <code>TASK-7</code>·<code>12</code> 의 <code>Done</code> 유지</td></tr>
+    <tr><td>critic 재검증 4회차</td><td><code>CHALLENGE</code> — 다만 <b>P-1·P-2·S-1 은 전부 닫혔고</b> 새 findings 는 “수정 커밋이 30줄을 넣어 <code>register:&lt;줄&gt;</code> 인용 3건이 밀렸다”였다. 줄 번호를 <b>결정 번호로 바꿔 부류째 닫았다</b>(<code>git grep</code> → 0건). 라운드를 더 돌지 않는다</td></tr>
+    <tr><td>원장 모순</td><td>9건 정리 · 구현 태스크 <code>TASK-43</code>·<code>44</code>·<code>45</code> 신설 · 관측 파이프라인 의존 연결. <code>--ready</code> 가 17건 → <b>13건</b>(허위 “착수 가능” 4건 제거)</td></tr>
+    <tr><td>게이트 실측</td><td><b>732 passed</b> · <code>ruff check</code> exit 0 · <code>ruff format --check</code> 33 files · <code>ty check</code> exit 0 · 프론트 <code>tsc</code>·<code>eslint</code> exit 0 · 게이트 밖 <code>ruff</code> 6건·format 4건(<code>TASK-37</code> 인수기준 6 의 기준선)</td></tr>
+  </tbody>
+</table>
+
+<footer>
+  OhMyEnglish · 2026-09-08 · HEAD <code>2ea2b7f</code> ·
+  이 문서는 <b>결정 요청서</b>이고 현황 보고가 아니다 (현황 보고 정본은
+  <code>docs/status-report-2026-09-06.html</code>) ·
+  상태의 정본은 원장 <code>backlog/tasks/</code>, 다음 한 걸음은 <code>handoff/HANDOFF.md</code>.
+</footer>
+
+</div>
+</body>
+</html>
