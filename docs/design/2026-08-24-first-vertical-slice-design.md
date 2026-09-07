@@ -55,7 +55,7 @@
 | `infra/` | 미생성 | 배포는 동작 확인 후 |
 | 자격증명 | **백엔드는 SigV4 전용, bearer token 금지** | Nova 양방향이 API Key를 거부 (§4.1) |
 
-### Hermes 검토 결과 — MVP 미사용
+### Hermes 검토 결과 — MVP 미사용 → 2026-09-08 로컬에서 완전 폐기
 
 Hermes Agent(v0.20.1)는 cron 스케줄러·Slack 게이트웨이·FTS5 기억을 갖췄지만 비동기 분석 워커로는 부적합하다.
 
@@ -64,7 +64,16 @@ Hermes Agent(v0.20.1)는 cron 스케줄러·Slack 게이트웨이·FTS5 기억�
 - `requires-python >=3.11,<3.14`인데 로컬은 Python 3.14.3이다.
 - FastAPI ↔ Hermes CLI 프로세스 간 결합이 늘어난다. "SQS/Redis는 과하다"는 단순화 취지에 역행한다.
 
-**단 재사용처를 남긴다**: 주간 리포트를 cron으로 돌려 Slack DM으로 보내는 일. Hermes가 이미 둘 다 갖고 있어 그 시점에 재검토한다.
+~~**단 재사용처를 남긴다**: 주간 리포트를 cron으로 돌려 Slack DM으로 보내는 일. Hermes가 이미 둘 다 갖고 있어 그 시점에 재검토한다.~~
+
+**⚠️ 위 재사용처는 2026-09-08 철회됐다 — Hermes 를 로컬에서 완전히 삭제했다.** 지운 것: `~/.hermes`(2.2GB, `state.db` 340세션 · cron 2건 포함) · `~/.local/bin/hermes` · launchd `ai.hermes.gateway` · `~/.claude/agents/hermes.md` · `/sa-save`·`/sa-resume` 커맨드.
+
+폐기 근거 (실측):
+
+- **실사용이 이미 끊겨 있었다.** `state.db` 세션 소스별 마지막 기동이 `subagent` 2026-07-10 · `cli` 2026-08-19 였다. 남아 돌던 것은 `cron` 뿐이었다.
+- **그 cron 마저 전부 실패 중이었다.** 기록된 실행 19건이 **성공 0건**(2026-08-17 ~ 09-07), 에러는 둘 다 `RuntimeError: Response truncated due to output length limit`. 두 job(`sa-ar-daily-postmarket` · `sa-weekly-analysis`)은 StockAgent 작업이고 이 프로젝트와 무관했다.
+
+따라서 **주간 리포트를 cron 으로 돌려 Slack DM 으로 보내는 일에 Hermes 를 전제할 수 없다. 대체 수단은 미정이고, 그 기능을 착수하는 시점에 결정한다** — 이 문서를 근거로 Hermes 를 되살리지 않는다. (Slack 전송 자체는 `~/bin/slacksend` 가 이미 있고, 스케줄러는 별개 문제로 남는다.)
 
 ---
 
