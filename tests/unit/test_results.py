@@ -13,6 +13,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from collections.abc import Sequence
 from decimal import Decimal
 from uuid import UUID, uuid4
@@ -830,6 +831,23 @@ def _results_logs(caplog: pytest.LogCaptureFixture) -> list[logging.LogRecord]:
     return [record for record in caplog.records if record.name == RESULTS_LOGGER]
 
 
+def _labeled_number(message: str, label: str) -> str | None:
+    """로그 줄에서 **그 라벨이 가리키는** 수를 꺼낸다. 없으면 `None`.
+
+    `\\D*`가 숫자를 건너뛰지 못하므로 라벨 **바로 다음** 수만 잡는다 — 두 수가 뒤바뀌면
+    각 라벨이 다른 수를 가리키게 되어 단정이 FAIL 한다.
+
+    ⚠️ **문구(라벨)에 결합하는 쪽을 골랐다 — 취약성을 알고 받아들였다.** 라벨을 바꾸면 이
+    테스트가 깨진다. 그래도 그렇게 한 이유: **어느 수가 관측이고 어느 수가 기대인지 말하는
+    것은 라벨뿐**이라, 순서만 재는 단정(`index("2") < index("8")`)은 포맷 문자열의 라벨을
+    뒤집는 결함(`"기대 %d / 관측 %d"` + 같은 인자)을 **통과시킨다** — 두 무력화를 실제로
+    돌려 확인했다. 판별력을 취약성 위에 둔다: 깨지면 시끄럽게 깨지고, 통과하면 그 이유가
+    맞다. 라벨을 고칠 사람은 이 테스트도 함께 고친다.
+    """
+    found = re.search(rf"{label}\D*(\d+)", message)
+    return found.group(1) if found else None
+
+
 # ① 코치 발화가 **연속 2건**(질문 + 힌트)이어도 학습자 답이 1건이면 `1`이다.
 # H-3이 뚫은 자리: `count(*) where speaker='agent'`로 세면 2가 되고, 그때 턴은 닫히지
 # 않았으므로(`session.py`의 `_flush_analysis`가 no-op) **막혀서 힌트만 반복된 세션이
@@ -1041,7 +1059,13 @@ async def test_drill_key_and_log_are_absent_in_no_utterances(
 # 미달이면 `warning` 한 줄에 두 수가 실린다. ⛔ `INFO`가 아닌 이유는 **H-Z** — 문서가 지정한
 # 실행에서 INFO는 보이지 않는다. 그래서 레벨을 등호로 못박고, 캡처는 INFO까지 열어 둔다
 # (구현이 INFO로 내면 기록은 잡히고 레벨 단정이 FAIL 한다 — 그것이 이 단정의 판별력이다).
-# 두 수는 세션 id를 지운 문구에서 찾는다 — uuid의 16진수에 우연히 섞이는 경로를 닫는다.
+#
+# ⛔ **두 수의 「있음」만 재지 않는다 — 라벨↔숫자 결합을 잰다** (픽스 라운드 1).
+# `"2" in message and "8" in message`는 **순서에 눈이 멀어** `logger.warning`의 뒤 두 인자를
+# 뒤집어 *"관측 8건 / 기대 2건"*이 되어도 통과했다. API 페이로드 단정은 `DrillTurns` 생성만
+# 보고 **로그 포맷은 보지 않으므로** 그 스왑을 잡는 테스트가 0건이었다. 캡틴 결정 10이
+# 소비하는 것이 정확히 이 줄이라, 스왑이 들어가면 읽는 사람이 **미달을 초과로** 읽고 그
+# 잘못된 신호로 지시문을 고친다 — 게이트는 초록인 채로.
 async def test_drill_shortfall_logs_a_warning_carrying_both_numbers(
     api_client: httpx.AsyncClient,
     db_pool: asyncpg.Pool,
@@ -1065,8 +1089,13 @@ async def test_drill_shortfall_logs_a_warning_carrying_both_numbers(
     assert records[0].levelno == logging.WARNING, (
         "미달을 WARNING이 아닌 레벨로 냈다 — H-Z: INFO는 문서가 지정한 실행에서 보이지 않는다"
     )
-    message = records[0].getMessage().replace(str(committed_session.session_id), "")
-    assert "2" in message and "8" in message, f"두 수가 그 줄에 없다 — {message!r}"
+    message = records[0].getMessage()
+    assert _labeled_number(message, "관측") == "2", (
+        f"미달 로그의 「관측」이 2가 아니다 — 인자 순서나 라벨이 뒤집혔다: {message!r}"
+    )
+    assert _labeled_number(message, "기대") == "8", (
+        f"미달 로그의 「기대」가 8이 아니다 — 인자 순서나 라벨이 뒤집혔다: {message!r}"
+    )
 
 
 # `partial_failure`는 `corrections`가 실리는 상태다 → `drill`도 함께 실린다.
