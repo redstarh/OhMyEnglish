@@ -1,9 +1,10 @@
 ---
 id: TASK-36
 title: '관측: 기대 exchange 상한 20 이 10분 세션에서 실현 가능한지 실측한다 (캡틴 결정 20)'
-status: To Do
+status: Awaiting Decision
 assignee: []
 created_date: '2026-09-07 17:26'
+updated_date: '2026-09-07 22:17'
 labels: []
 dependencies: []
 ordinal: 39000
@@ -23,3 +24,12 @@ critic 재검증 2회차 R-6(MEDIUM). 캡틴 결정 17 로 기대값이 질문 3
 - [ ] #2 20 exchange 가 10분에 닿는지 판정하고 근거를 남긴다 — 닿지 않으면 무엇을 바꿀지(drill_turns_min 하향 · 기대값 상한 · 세션 길이 재정의) 선택지를 캡틴에게 올린다
 - [ ] #3 판정 결과를 설계서 §2.3·§5 와 captain-instruction-register 의 결정 20 에 반영한다 — 결정 20 이 기록한 모호함이 닫히는지 함께 적는다
 <!-- AC:END -->
+
+## Comments
+
+<!-- COMMENTS:BEGIN -->
+created: 2026-09-07 22:17
+---
+정리(2026-09-08 팀리드): To Do → Awaiting Decision. 근거 — AC#1이 스스로 「워커·실물 호출이 필요하므로 착수 전 캡틴 확인을 받는다」고 적는데 상태가 To Do여서 브리핑이 「착수 가능」으로 올렸다. AC 본문과 상태가 서로 모순이었다. ⚠️ TASK-13·TASK-24와 같은 실물 세션 1회로 묶는다 — 세 태스크가 각각 세션을 켜면 비용을 세 번 낸다.
+---
+<!-- COMMENTS:END -->
