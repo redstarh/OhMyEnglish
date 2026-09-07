@@ -4,12 +4,14 @@ title: 판별력 관측 — 재설계한 단정 7건의 대조가 실제로 FAIL
 status: To Do
 assignee: []
 created_date: '2026-09-06 02:43'
+updated_date: '2026-09-07 22:27'
 labels:
   - caps-req
 dependencies:
   - TASK-19
   - TASK-21
   - TASK-22
+  - TASK-37
 priority: high
 ordinal: 30000
 ---
@@ -31,3 +33,12 @@ TASK-29 가 7건을 재설계했으나 판별력을 '설계'했을 뿐 '관측'�
 - [ ] #7 A5-1 의 순차 주입에서 같은 요소의 문구가 매번 바뀌는지 확인
 - [ ] #8 관측 결과를 회차 기록에 남기고 미확인으로 남은 건을 browser_leg.md 상자에 정확한 개수로 갱신한다
 <!-- AC:END -->
+
+## Comments
+
+<!-- COMMENTS:BEGIN -->
+created: 2026-09-07 22:27
+---
+연관 감사(2026-09-08 팀리드): 선행에 TASK-37 을 더했다(기존 TASK-19·21·22 는 보존). 이 태스크 설명이 「대조가 실제로 FAIL 을 내는지는 브라우저 회차에서만 관측된다」고 적는데 그 회차를 소유한 태스크가 TASK-37 이다(AC#2 가 B1~B4 재확인과 라이트·다크 5상태를 담는다). 회차를 따로 도는 대신 5차수 안에서 관측한다.
+---
+<!-- COMMENTS:END -->

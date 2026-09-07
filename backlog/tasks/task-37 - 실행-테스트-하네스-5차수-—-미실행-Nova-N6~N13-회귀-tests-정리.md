@@ -4,8 +4,10 @@ title: '실행: 테스트 하네스 5차수 — 미실행 Nova N6~N13 + 회귀 +
 status: To Do
 assignee: []
 created_date: '2026-09-07 17:50'
+updated_date: '2026-09-07 22:27'
 labels: []
-dependencies: []
+dependencies:
+  - TASK-44
 ordinal: 40000
 ---
 
@@ -26,3 +28,12 @@ TASKS.md D절(테스트 하네스 차수 원장)에서 이관. 원장은 tests/h
 - [ ] #7 스파이크 nova 스키마와 앱 상수를 대조해 A-3 tool 스키마 확인을 닫는다
 - [ ] #8 A-4(agent_reprompt 미구현 구간)와 B-2(대조군) 관측 결과를 기록한다
 <!-- AC:END -->
+
+## Comments
+
+<!-- COMMENTS:BEGIN -->
+created: 2026-09-07 22:27
+---
+연관 감사(2026-09-08 팀리드): 선행 TASK-44 를 건다. 근거는 이 태스크의 AC#5 자신이다 — 「신규 P9~P12(발음 복습 주기 시나리오)를 실행한다」. 발음 복습 주기는 TASK-9 가 설계만 했고 구현 소유자가 TASK-44(오늘 신설)다. 구현 전에 그 시나리오를 돌릴 수 없다. ⚠️ 이 태스크가 리포의 관측 병목이다 — TASK-13·24·30·36 네 건이 전부 이 차수의 관측을 소비하므로 선행으로 걸었다. AC#6(tests/** ruff 6건·format 4건 정리)도 이 태스크 소유다 — 팀리드가 이 턴에 직접 측정해 6건·4건이 그대로임을 확인했다.
+---
+<!-- COMMENTS:END -->

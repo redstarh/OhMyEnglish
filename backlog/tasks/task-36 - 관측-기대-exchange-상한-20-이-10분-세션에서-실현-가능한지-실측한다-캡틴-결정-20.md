@@ -4,9 +4,10 @@ title: '관측: 기대 exchange 상한 20 이 10분 세션에서 실현 가능�
 status: Awaiting Decision
 assignee: []
 created_date: '2026-09-07 17:26'
-updated_date: '2026-09-07 22:17'
+updated_date: '2026-09-07 22:27'
 labels: []
-dependencies: []
+dependencies:
+  - TASK-37
 ordinal: 39000
 ---
 
@@ -31,5 +32,10 @@ critic 재검증 2회차 R-6(MEDIUM). 캡틴 결정 17 로 기대값이 질문 3
 created: 2026-09-07 22:17
 ---
 정리(2026-09-08 팀리드): To Do → Awaiting Decision. 근거 — AC#1이 스스로 「워커·실물 호출이 필요하므로 착수 전 캡틴 확인을 받는다」고 적는데 상태가 To Do여서 브리핑이 「착수 가능」으로 올렸다. AC 본문과 상태가 서로 모순이었다. ⚠️ TASK-13·TASK-24와 같은 실물 세션 1회로 묶는다 — 세 태스크가 각각 세션을 켜면 비용을 세 번 낸다.
+---
+
+created: 2026-09-07 22:27
+---
+연관 감사(2026-09-08 팀리드): 선행 TASK-37 을 건다. AC#1 이 요구하는 「실물 세션 1회 이상의 exchange 수와 소요 시간」이 TASK-37 5차수의 Nova 실행에서 그대로 나온다 — 별도 세션이 필요 없다.
 ---
 <!-- COMMENTS:END -->

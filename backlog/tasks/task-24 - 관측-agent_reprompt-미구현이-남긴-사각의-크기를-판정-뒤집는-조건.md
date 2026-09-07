@@ -4,9 +4,10 @@ title: '관측: agent_reprompt 미구현이 남긴 사각의 크기를 판정 (�
 status: Awaiting Decision
 assignee: []
 created_date: '2026-09-06 00:20'
-updated_date: '2026-09-07 22:17'
+updated_date: '2026-09-07 22:27'
 labels: []
-dependencies: []
+dependencies:
+  - TASK-37
 ordinal: 24000
 ---
 
@@ -30,5 +31,10 @@ TASK-8 조사에서 발견. R10-4 보조 신호 2개 중 agent_reprompt(되묻�
 created: 2026-09-07 22:17
 ---
 정리(2026-09-08 팀리드): To Do → Awaiting Decision. 근거는 TASK-13과 같다(실물 Nova 왕복이 필요하고 캡틴 확인 대상). AC#4가 TASK-13과의 묶음을 이미 요구하므로 TASK-36까지 셋을 한 세션으로 묶는다.
+---
+
+created: 2026-09-07 22:27
+---
+연관 감사(2026-09-08 팀리드): 선행 TASK-37 을 건다 — 중복이 실재했다. 이 태스크 AC#1·#2(사각 구간의 턴 수를 세고 퍼센트를 산출)는 TASK-37 AC#8(「A-4(agent_reprompt 미구현 구간)와 B-2(대조군) 관측 결과를 기록한다」)와 같은 관측이다. 두 태스크가 같은 실물 세션을 각각 요구하고 있었다. 갈라 둔다: 관측은 TASK-37 이 치르고, 이 태스크는 그 데이터로 AC#3(캡틴 결정을 뒤집을 크기인지)만 판정한다. AC 문장은 고치지 않았다 — 실측 출처가 TASK-37 임을 이 노트가 소유한다.
 ---
 <!-- COMMENTS:END -->
