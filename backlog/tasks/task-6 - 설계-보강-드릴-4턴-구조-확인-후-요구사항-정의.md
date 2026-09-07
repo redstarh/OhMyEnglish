@@ -1,10 +1,10 @@
 ---
 id: TASK-6
 title: '설계 보강: 드릴 4턴 구조 확인 후 요구사항 정의'
-status: In Progress
+status: Awaiting Decision
 assignee: []
 created_date: '2026-09-06 00:12'
-updated_date: '2026-09-07 13:03'
+updated_date: '2026-09-07 13:52'
 labels:
   - caps-req
 dependencies: []
@@ -38,6 +38,8 @@ ordinal: 6000
 2026-09-07 AC#2 닫는다 — 요구사항을 정의하고 설계에 반영했다. 산출물은 `docs/design/2026-09-07-scenario-and-drill-turns-design.md` 이고 TASK-25 와 한 문서다(captain-decisions.md §2). 정의한 요구사항 둘: ① 지시문 조립 지시(계획 블록에 드릴 줄 2개 — 질문 열거 + 드릴 반복이 교정이 아니라는 명시. 설계서 §2.2) ② 턴 관측(기대 턴 수 = min(질문 수, drill_count) × drill_turns_min 을 세션 시작에 learning_sessions.summary 에 적고, 실제 턴 수는 결과 조회 때 utterances 의 agent final 개수로 센다. 설계서 §2.3). 새 감지기를 만들지 않았고 _flush_analysis 경로에 카운터를 얹지 않았다 — 그 함수가 예외를 밖으로 던지지 않는 계약이라 세는 일이 침묵 안으로 들어가면 누락이 관측되지 않는다. 마이그레이션 0건. ⚠️ 이 설계의 약점은 설계서 §5 가 소유한다 — 집계 턴 수는 드릴별로 귀속되지 않는다. 유도 7건은 설계서 §7.
 
 2026-09-07 구현 — 설계서 §6 선행 2단계 완료. ① 시드 교체 3cd12ba ② **마이그레이션 009** 6e36f90 (learning_sessions.drill_turns_expected · nullable · CHECK null 또는 >0 · 캡틴 결정 16). 009 를 쓴 이유: summary jsonb 에는 database-schema.md 가 지정한 다음 소유자(summarize_session)가 있고 007 이 그 job 을 CHECK 에 열어 뒀다 — 코드 grep 0건이어도 미사용 컬럼이 아니다. 008 은 TASK-26 예약이라 009. TDD: red(UndefinedColumnError) → 009 → green. 실측 함정 1건: db_conn 은 테스트당 트랜잭션 하나라 CHECK 위반이 그것을 abort 시켜 뒤 문장이 InFailedSQLTransactionError 로 죽는다 → 위반을 중첩 transaction()(savepoint)으로 감쌌다. 직접 돌린 값: 668 passed · ruff/ty 통과 · 게이트 밖 6/4 기준선 유지. DB: pg_dump 백업 선행 → apply_migrations 만 실행 → 행 수 전건 동일(12/45/114/8/18 · session_plans 1 · learner_notes 1 보존) · 기존 12행 전부 null(백필 안 함). 남은 것: 설계서 §6 의 14곳(1~9·12·13·16).
+
+2026-09-07 상태를 In Progress → **Awaiting Decision** 으로 옮긴다. AC 3/3 이라 작업 기준으로는 끝났고 남은 것은 **사람·게이트의 판정**이다: ① SVG 가 CHALLENGE 를 「보완 후 재검증」으로 정의하는데 3판에서 보완만 하고 **재검증을 걸지 않았다** ② 캡틴 결정 13 이 Done 승격을 막고 있다. ⚠️ Done 으로 올리지 않은 이유가 이것이고, In Progress 로 두면 원장이 「아직 작업 중」이라 거짓말한다(Stop 훅 G2 가 정확히 이 어긋남을 잡는다 — 훅을 BACKLOG_GATE=0 으로 우회하지 않았다). 재검증이 PASS 로 오면 Done 으로 올린다.
 <!-- SECTION:NOTES:END -->
 
 ## Comments
