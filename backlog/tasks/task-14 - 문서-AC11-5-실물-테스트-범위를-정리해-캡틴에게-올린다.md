@@ -4,7 +4,7 @@ title: '문서: AC11-5 실물 테스트 범위를 정리해 캡틴에게 올린�
 status: Done
 assignee: []
 created_date: '2026-09-06 00:13'
-updated_date: '2026-09-07 17:45'
+updated_date: '2026-09-07 17:51'
 labels:
   - caps-req
 dependencies: []
@@ -28,18 +28,14 @@ ordinal: 14000
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
-2026-09-08 요청서 작성 완료. 산출물 docs/design/2026-09-08-ac11-5-live-test-request.md.
-
-내용: §0 psql 직접 조회(패턴 8건·최다빈도 article_missing_before_noun freq 7·복습기한 지남) → §2
-마이크 2세션 시나리오(mic-1·mic-2·live-plan-1 절차 재사용, 새 수단 0개) → §3 자동/사람 판정 분리
-(DB·API 4건 자동, 지시문 의미 확인·대화 유발 여부 2건 사람) → §4 시간(~25~30분)·비용(호출 횟수,
-금전 미추정) · 준비물(캡틴 실물 마이크 필수) → §5 캡틴에게 물을 것 6건 → §6 승인 전 미실행 확정.
-
-범위 밖 발견 1건(고치지 않고 여기 적는다): TASK-25 Implementation Notes(2026-09-07)가 이미 적어 둔
-사실이지만 이 태스크의 요청서 설계에 직접 영향을 준다 — session_plans.questions(질문 3~5개)가
-지시문 조립에 아직 실리지 않는다(sessions.py:108-115가 id·reason·instruction 세 컬럼만 고른다).
-TASK-25.2가 그 배선을 진행 중이다. 요청서 §5-3에서 "지금 상태로 돌릴지 TASK-25.2 완료를 기다릴지"를
-캡틴 결정 항목으로 올렸다 — 이 태스크가 그 배선을 대신 만들지 않았다.
-
-pytest 미실행(DB 공유 함정 H-X, 지시 규약대로). DB 쓰기 0건 — 읽기 전용 psql 조회 3건만 실행.
+2026-09-08 정정 (team-lead 지적, 같은 날) — §2 "사전 조건"이 낡은 사실을 적었다. TASK-25 노트
+(2026-09-07 시점엔 참)를 인용한 뒤 코드로 재확인하지 않아 "questions가 지시문에 안 실린다"고
+적었는데, 실제로는 TASK-25.2(Done)가 이미 배선을 끝냈다 — sessions.py:125의 _PREPARED_PLAN_SQL이
+sp.questions까지 고르고, nova.py:187의 build_system_prompt가 questions[:drill_count]를 지시문
+블록에 그대로 열거한다(둘 다 직접 코드로 재확인). 정정 내용: §2 "사전 조건" 서술 교체(낡은 판단을
+지우지 않고 정정으로 남김) · §5 캡틴 질문에서 "TASK-25.2 대기 여부" 1건 삭제(6건→5건) ·
+§3 자동/사람 판정표의 6번 항목을 6a·6b(자동)로 다시 갈랐다 — 다만 AC11-5 핵심(8·9, 실제 발화
+여부·대화 구별)은 여전히 사람 판정이라 §4 시간·비용 추정은 바뀌지 않았다. 결론: §3 자동/사람
+분리 자체는 안 바뀌었다 — 지시문에 질문이 실리는 것이 자동으로 확인 가능해졌을 뿐, Nova가 실제
+음성으로 그것을 발화하는지는 여전히 확률적 모델 응답이라 사람이 들어야 한다.
 <!-- SECTION:NOTES:END -->
