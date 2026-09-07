@@ -600,7 +600,13 @@ async def test_ws_opens_the_session_even_if_the_scenario_lookup_fails(
 
 # 캡틴 결정 16 — 기대 exchange 수를 **세션 시작에** 009 컬럼에 남긴다. 계획 조회가 「사용자 최신
 # 1건」이라 다음 세션이 지나면 그 세션이 어느 계획을 썼는지 알 길이 없다 = 기대값은 복원 불가다.
-# 기본 설정(`drill_count=3`·`drill_turns_min=4`)에 질문 3개면 12다.
+# 기본 설정은 `drill_count=**5**`·`drill_turns_min=4`이고(캡틴 결정 17) 질문이 3개니
+# `len(questions[:5]) × 4` = `min(3, 5) × 4` = **12**다.
+# ⚠️ **12가 상한에서 나온 수가 아니다** — 여기서 상한(5)은 질문 수(3)보다 크므로 **아무것도 자르지
+# 않는다.** 이 주석이 한때 *"기본 설정(drill_count=3 …)에 질문 3개면 12"*라고 적혀 있었고 **수는
+# 맞았지만 이유가 틀렸다**(그때도 실제 기본값은 5였다) — 그것을 믿는 다음 사람은 상한을 3으로
+# 오인한다. 「통과했는데 통과한 이유가 틀렸다」의 교과서적 형태라 그 값이 어디서 오는지 적어 둔다.
+# 상한이 **실제로 자르는** 경우는 `tests/unit/test_sessions.py`의 경계 표가 값을 명시해 잰다.
 async def test_ws_records_the_expected_exchange_count_on_the_session(
     ws_app: FastAPI,
     db_pool: asyncpg.Pool,

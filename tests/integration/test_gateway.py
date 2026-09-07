@@ -891,7 +891,8 @@ def test_factory_puts_the_scenario_and_the_questions_into_the_stub_instructions(
 
 # ⛔ 설정값 둘이 **팩토리를 지나 문구까지** 간다 — 조립기는 전역(`get_settings()`)을 읽지 않고
 # 인자로 받는다. 그래서 이 경로가 끊기면 설정값이 아무것도 바꾸지 않는다(캡틴 결정 1이 요구한
-# "읽는다"가 죽는다). 기본값(4·3)과 **다른 값**을 줘야 판별력이 있다.
+# "읽는다"가 죽는다). 기본값(`drill_turns_min=4`·`drill_count=**5**` — 캡틴 결정 17)과 **다른 값**을
+# 줘야 판별력이 있다. 아래가 `7`·`1`이라 둘 다 기본값과 다르다.
 def test_factory_forwards_the_drill_settings_to_the_assembled_prompt():
     # `_settings`를 넓히지 않고 여기서 직접 만든다 — 드릴 설정값을 쓰는 테스트가 이 하나뿐이다.
     settings = Settings(

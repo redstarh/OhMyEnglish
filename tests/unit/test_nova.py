@@ -916,9 +916,15 @@ def test_system_prompt_tells_the_tutor_to_wait_through_a_pause():
 # 재는지가 인자 목록에 묻힌다.
 #
 # 드릴 설정값 둘도 조립기가 **요구한다**(전역에서 읽지 않는다 — `get_settings()`를 부르면
-# 프롬프트가 프로세스 환경에 조용히 묶인다). 실제 값의 소유자는 `Settings`이고 그 기본값 4·3은
-# `tests/unit/test_config.py`가 못박는다. 여기 리터럴은 그 기본값의 **복사가 아니라** "이 테스트가
-# 쓰는 값"이다 — 설정값이 실제로 먹는지 재는 테스트는 아래에서 자기 값을 명시로 준다.
+# 프롬프트가 프로세스 환경에 조용히 묶인다). 실제 값의 소유자는 `Settings`이고 그 기본값
+# **`drill_turns_min=4`·`drill_count=5`**(캡틴 결정 17)은 `tests/unit/test_config.py`가 못박는다.
+# 여기 리터럴은 그 기본값의 **복사가 아니라** "이 테스트가 쓰는 값"이다 — 설정값이 실제로 먹는지
+# 재는 테스트는 아래에서 자기 값을 명시로 준다.
+#
+# ⚠️ **`_TEST_DRILL_COUNT`가 기본값(5)과 일부러 다르다.** 5로 두면 이 파일의 질문이 3개짜리라
+# 상한이 **아무것도 자르지 않고**, 「상한이 실제로 먹는다」를 재는 자리가 이 파일에서 사라진다.
+# 3으로 두면 `_questions(5)`를 주는 테스트에서 절단이 실제로 일어난다.
+# 기본값 자체가 대화에 닿는지는 `tests/integration/test_gateway.py`가 값을 **주지 않고** 잰다.
 _TEST_DRILL_TURNS_MIN = 4
 _TEST_DRILL_COUNT = 3
 
