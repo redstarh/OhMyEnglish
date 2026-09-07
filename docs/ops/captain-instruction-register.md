@@ -85,6 +85,29 @@
 | `learning_sessions.mode` 리터럴을 이 묶음에서 함께 처리하나 → *"다루지 않는다"* | **결정 11** — `docs/design/2026-09-06-captain-decisions.md` §5가 정본. `TASK-25` AC#4 닫힘, 소유자는 `TASK-27` |
 | 미수신 리뷰에 상한을 둘 것인가 → *"상한을 둔다 — 1회 재발송 후 진행"* | **결정 13**. 감사 세션이 올려 두고 열려 있던 질문이 닫혔다 — 아래 |
 | `learning_scenarios` 3행이 전부 **질문**이고 결정 9의 「무대」와 어긋난다 → *"시드를 무대로 고친다"* | **결정 14**. 데이터를 고치고 결정 9는 그대로 산다 — 아래 |
+| 인자 3개로 승인받았는데 `questions`가 실릴 자리가 없다 → *"인자 4개로 늘린다"* | **결정 15** — 아래 |
+| 기대 exchange 수를 `summary`에 두려 했는데 그 컬럼에 다음 소유자가 있다 → *"009로 새 컬럼"* | **결정 16** — 아래 |
+
+**결정 15 — `build_system_prompt`는 인자 4개다.** `(known_sounds, plan, questions, scenario)` ·
+`create_voice_adapter(settings, *, known_sounds, plan, questions, scenario)` ·
+`_load_prepared_plan_or_none`의 반환을 **`PreparedPlan | None`**으로 올린다.
+⚠️ **이것은 이전에 승인한 「인자 3개」의 정정이다.** 근거(감독 세션이 직접 확인): `api/ws.py:135`가
+`return prepared.instruction if prepared is not None else None`으로 **`PreparedPlan`을 버리므로**
+인자가 3개면 `questions`가 갈 길이 없다. 기각한 두 길과 그 이유는 설계서가 소유한다 — 특히
+`SessionInstruction`에 넣는 길은 `services/sessions.py:143-148`이 이름 붙인 실패 모드(필수 필드가
+늘면 **저장된 모든 행**이 한꺼번에 검증 실패)를 그대로 밟는다.
+
+**결정 16 — 기대값은 마이그레이션 009의 새 컬럼에.** `learning_sessions.drill_turns_expected integer`
+(nullable · `check (> 0)`). null = 계획 없이 시작한 세션 = 관측 대상 아님.
+⚠️ **`summary` jsonb를 쓰지 않는다** — 그 컬럼에는 **문서화된 다음 소유자가 있다**: `docs/database-schema.md`
+*"`summary`(세션 총평)는 `summarize_session`과 함께 다음 슬라이스에서 채워진다"*이고
+`db/migrations/007`이 `job_type` CHECK에 `summarize_session`을 **이미 열어 뒀다**(DB에 적용된 것까지 직접
+확인). "앱 참조 0곳"은 코드엔 참이지만 결론으로 틀렸다.
+**제약**: **008은 `TASK-26` 예약**이므로 009 · 적용 전 `pg_dump -n public` 백업 → 적용 → **기존 행 수가
+하나도 줄지 않았는지 직접 조회** · `database-schema.md`에 컬럼 1행을 더하되 **`summary` 서술은 건드리지
+않는다**(그 컬럼은 여전히 총평의 것이다).
+**착수 가능 확인(감독 세션 직접 조회)**: 마이그레이션은 `001·003~007`뿐이라 **009가 비어 있다** ·
+`drill_turns_expected` 컬럼은 **아직 없다**.
 
 **결정 14 — 시나리오 시드를 무대로 고친다.** `title`·`prompt_template`을 상황·역할 문구로 교체한다.
 **질문은 계획이 소유한다**(결정 9의 역할 분리를 데이터가 지키게 만드는 것이다 — 결정 9를 데이터에 맞춰
