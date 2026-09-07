@@ -251,12 +251,18 @@ def test_bedrock_client_fails_fast_when_no_credentials_of_any_kind(monkeypatch):
 # 상한(`min(질문 수, drill_count)`)이고 `drill_turns_min`이 드릴당 exchange 수다.
 
 
-def test_drill_settings_default_to_four_and_three():
-    """기본값은 요구사항이 명시한 값(드릴마다 4턴 이상)과 캡틴 결정 1(드릴 횟수 3)."""
+def test_drill_settings_default_to_four_and_five():
+    """기본값은 요구사항이 명시한 값(드릴마다 4턴 이상)과 **캡틴 결정 17**(드릴 수 상한 5).
+
+    ⚠️ `drill_count` 기본값은 **3에서 5로 올라갔다**. 지시문이 `questions[:drill_count]`만
+    열거하므로 3이면 질문 4~5개인 계획의 질문이 대화에 도달하지 않고, 그것이 캡틴 결정 2
+    (*"질문 3~5개를 전달한다"*)를 덮었다. 이전 값 3은 캡틴이 정한 값이 아니라 이전 세션의
+    유도였다 — 근거 전문은 `app/config.py`의 그 필드 주석이 소유한다.
+    """
     settings = _settings_with_credentials()
 
     assert settings.drill_turns_min == 4
-    assert settings.drill_count == 3
+    assert settings.drill_count == 5
 
 
 def test_drill_turns_min_rejects_zero_at_startup():

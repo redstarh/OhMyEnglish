@@ -78,7 +78,18 @@ class Settings(BaseSettings):
     drill_turns_min: int = Field(default=4, ge=1)
     # 드릴 수의 상한(`min(질문 수, drill_count)`). 캡틴 결정 1 — "드릴 횟수는 설정값
     # (config·env)에 따로 두고 읽는다"(설계서 §3).
-    drill_count: int = Field(default=3, ge=1)
+    #
+    # **기본값은 5다 — 캡틴 결정 17.** 지시문은 `questions[:drill_count]`만 열거하므로
+    # (`audio_gateway/nova.build_system_prompt`) 기본이 3이면 **질문 4~5개인 계획의 질문이
+    # 대화에 도달하지 않는다.** 그것은 **캡틴 결정 2**(*"계획이 만든 질문 3~5개를 대화 상대에게
+    # 전달한다"*)와 **결정 9**(*"계획 = 목표(초점 패턴과 질문 3~5개)"*)를 덮는다.
+    # ⚠️ 이전 기본값 `3`은 캡틴이 정한 값이 아니라 **이전 세션의 유도**였다 — 그래서 이 값은
+    # 결정을 뒤집는 것이 아니라 유도가 덮고 있던 결정 2를 **복원한다.**
+    # **왜 5인가**: `session_plans.questions`의 CHECK가 `3 ≤ len ≤ 5`(`007:42-43`)이므로 5면
+    # 절단이 원리적으로 일어나지 않는다. 상한은 여전히 발명하지 않는다(`ge=1`만 둔다).
+    # ⚠️ **H-5는 그대로 닫혀 있다** — 운영자가 이 값을 낮추면 **열거와 기대값이 함께** 줄어드므로
+    # 설정값이 여전히 대화를 바꾼다. 「통과 문턱만 바꾸는 노브」로 되돌아가지 않는다.
+    drill_count: int = Field(default=5, ge=1)
 
 
 @lru_cache

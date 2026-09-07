@@ -839,12 +839,16 @@ def test_factory_puts_the_plan_into_the_stub_instructions():
 # 문구로 시작한다 — 그것이 이 배치가 메우는 공백의 모양 그대로다.
 
 
-def _drill_questions() -> list[PlanQuestion]:
+def _drill_questions(count: int = 3) -> list[PlanQuestion]:
     """`SYSTEM_PROMPT`·`_plan_instruction()`과 겹치지 않는 값만 쓴다 — 겹치면 항진명제가 된다."""
     return [
         PlanQuestion(prompt=f"Gateway drill {index}?", context=f"gateway context {index}")
-        for index in range(1, 4)
+        for index in range(1, count + 1)
     ]
+
+
+def _listed_drills(instructions: str) -> list[str]:
+    return [line for line in instructions.splitlines() if "Gateway drill" in line]
 
 
 def _stage() -> SessionScenario:
@@ -907,6 +911,29 @@ def test_factory_forwards_the_drill_settings_to_the_assembled_prompt():
     assert "at least 7 exchanges" in flowed, "`drill_turns_min`이 문구까지 가지 않았다"
     assert "Gateway drill 1?" in adapter.instructions
     assert "Gateway drill 2?" not in adapter.instructions, "`drill_count`가 열거를 줄이지 않았다"
+
+
+# ⛔ **캡틴 결정 2의 회귀 방어** (캡틴 결정 17). 결정 2는 *"계획이 만든 질문 3~5개를 대화 상대에게
+# 전달한다"*인데, `drill_count` 기본값이 `3`이던 동안에는 지시문이 `questions[:3]`만 열거해
+# **질문 4~5개인 계획의 질문이 대화에 도달하지 않았다.** 기본값 5는
+# `session_plans.questions`의 CHECK 상한(`007:42-43`)과 같아 기본 설정에서 절단이 원리적으로
+# 일어나지 않는다.
+# ⚠️ **`drill_count`를 명시하지 않는 것이 이 테스트의 요점이다** — 재려는 것이 `Settings`의
+# **기본값**이 실제로 대화에 닿는지이므로, 값을 주면 위 테스트와 같은 것을 두 번 재게 된다.
+# ⚠️ H-5 tripwire는 그대로 살아 있다 — 「질문 5개·`drill_count=3`이면 3개만 열거」는
+# `tests/unit/test_nova.py`가 값을 **명시 주입**해 계속 단정한다.
+def test_the_default_drill_count_lists_every_question_a_plan_can_carry():
+    adapter = create_voice_adapter(
+        _settings(voice_adapter=NOVA_ADAPTER),
+        plan=_plan_instruction(),
+        questions=_drill_questions(5),
+        scenario=None,
+    )
+
+    assert isinstance(adapter, NovaVoiceAdapter)
+    assert len(_listed_drills(adapter.instructions)) == 5, (
+        "기본 설정에서 질문 5개가 전부 열거되지 않았다 — 결정 2가 다시 덮였다"
+    )
 
 
 # ④ import 그래프 — 러너와 소켓 계층은 스텁을 모른다 (G3)
