@@ -14,6 +14,7 @@ import json
 import sys
 import types
 from datetime import UTC, datetime, timedelta
+from itertools import count
 from pathlib import Path
 from uuid import uuid4
 
@@ -57,6 +58,11 @@ async def _insert_session(conn: asyncpg.Connection, session_id) -> None:
     )
 
 
+# 한 세션 안에서 `sequence_no`가 겹치지 않게 하는 카운터 (011 오디오 경계 테스트가 한 세션에
+# 여러 발화를 넣는다 — 001의 `unique(session_id, sequence_no)`가 그것을 요구한다).
+_SCHEMA_SEQ = count(1)
+
+
 async def _insert_utterance(conn: asyncpg.Connection, utterance_id, session_id, sequence_no=1):
     await conn.execute(
         "insert into utterances (id, session_id, speaker, transcript, sequence_no) "
@@ -92,6 +98,10 @@ async def test_001_migration_creates_expected_tables(db_conn: asyncpg.Connection
         # 007 — 학습 코치 슬라이스 2 (docs/design/2026-08-25-learning-coach-agent-design.md §8.1)
         "session_plans",
         "learner_notes",
+        # 011 — 쉐도잉 클립 (docs/design/2026-09-08-shadowing-task-design.md §3.3)
+        # ⚠️ 이 단정이 **표 이름 집합을 정확히** 비교하므로 새 표는 반드시 여기 들어와야 한다 —
+        # 그 설계서 §6이 「이 자리가 깨진다」고 미리 지목한 자산이다(빠뜨리면 red 로 즉시 드러난다).
+        "shadowing_items",
     }
 
 
@@ -922,3 +932,149 @@ async def test_learner_notes_cascades_with_the_user(db_conn: asyncpg.Connection)
     await db_conn.execute("delete from users where id = $1", migrate.USER_ID)
 
     assert await db_conn.fetchval("select count(*) from learner_notes") == 0
+
+
+# ⑤ 011 `shadowing_items` 값역·불변조건 (`TASK-45` · 설계서
+#    `docs/design/2026-09-08-shadowing-task-design.md` §3.3)
+#
+# ⛔ **90초 상한은 발명값이 아니라 PRD §7의 요구사항이다.** 스키마에 두는 이유: 클립을 넣는
+#    경로가 손이라(PRD가 자동 수집을 비범위로 뒀다) 사람이 실수로 긴 창을 넣을 수 있고,
+#    그때 조용히 저장되면 「쉐도잉 1회」의 정의가 문서와 갈라진다.
+# ⚠️ 위반은 **savepoint 안에서** 낸다 — `db_conn`이 테스트당 트랜잭션 하나를 열어 두므로
+#    감싸지 않으면 뒤따르는 문장이 전부 `InFailedSQLTransactionError`로 죽는다.
+@pytest.mark.asyncio
+async def test_shadowing_items_span_must_be_ordered_and_within_the_prd_limit(
+    db_conn: asyncpg.Connection,
+):
+    async def _insert(start: float, end: float) -> None:
+        await db_conn.execute(
+            "insert into shadowing_items (source_title, transcript, clip_start_sec, "
+            "clip_end_sec, level) values ('Standup', 'I hit a blocker today.', $1, $2, 'A2')",
+            start,
+            end,
+        )
+
+    # 정상 창 — 30~90초 안이고 순서가 맞다.
+    await _insert(0, 42.5)
+    assert await db_conn.fetchval("select count(*) from shadowing_items") == 1
+
+    # 끝이 시작보다 앞이면 거부된다.
+    with pytest.raises(asyncpg.CheckViolationError):
+        async with db_conn.transaction():
+            await _insert(50, 10)
+
+    # 같아도 거부된다 — 길이 0인 클립은 학습이 성립하지 않는다.
+    with pytest.raises(asyncpg.CheckViolationError):
+        async with db_conn.transaction():
+            await _insert(10, 10)
+
+    # 90초를 **넘으면** 거부된다(PRD §7).
+    with pytest.raises(asyncpg.CheckViolationError):
+        async with db_conn.transaction():
+            await _insert(0, 90.01)
+
+    # ⛔ 정확히 90초는 **받는다** — 상한이 포함이다. `<`로 잘못 쓰면 이 단정만 깨진다.
+    await _insert(0, 90)
+    assert await db_conn.fetchval("select count(*) from shadowing_items") == 2
+
+
+# ⑤-2 클립은 **쉐도잉 세션에만** 붙는다. 역방향은 강제하지 않는다 — 클립을 고르기 전에
+#      세션이 열릴 수 있다(§3.3).
+@pytest.mark.asyncio
+async def test_shadowing_item_can_only_attach_to_a_shadowing_session(
+    db_conn: asyncpg.Connection,
+):
+    await _insert_user(db_conn)
+    item_id = await db_conn.fetchval(
+        "insert into shadowing_items (source_title, transcript, clip_start_sec, "
+        "clip_end_sec, level) values ('Standup', 'I hit a blocker today.', 0, 40, 'A2') "
+        "returning id"
+    )
+
+    # `mode='speaking'` 세션에는 붙지 않는다.
+    with pytest.raises(asyncpg.CheckViolationError):
+        async with db_conn.transaction():
+            await db_conn.execute(
+                "insert into learning_sessions (user_id, mode, shadowing_item_id) "
+                "values ($1, 'speaking', $2)",
+                migrate.USER_ID,
+                item_id,
+            )
+
+    # `mode='shadowing'`이면 붙는다.
+    session_id = await db_conn.fetchval(
+        "insert into learning_sessions (user_id, mode, shadowing_item_id) "
+        "values ($1, 'shadowing', $2) returning id",
+        migrate.USER_ID,
+        item_id,
+    )
+    assert session_id is not None
+
+    # 역방향은 열려 있다 — 클립 없는 쉐도잉 세션이 정상이다(고르기 전 상태).
+    assert (
+        await db_conn.fetchval(
+            "insert into learning_sessions (user_id, mode) values ($1, 'shadowing') "
+            "returning shadowing_item_id",
+            migrate.USER_ID,
+        )
+        is None
+    )
+
+
+# ⑤-3 011 오디오 경계 — **R10-7 예외를 스키마가 가둔다** (§4.2)
+# ⛔ 이 단정이 무너지면 「오디오를 저장하지 않는다」는 규약이 코드 리뷰에만 의존하게 된다.
+#    캡틴이 연 예외는 **쉐도잉 낭독 하나**이고, 다른 오디오가 조용히 쌓이는 길을 막는다.
+@pytest.mark.asyncio
+async def test_audio_url_is_only_allowed_on_a_learner_shadowing_recording(
+    db_conn: asyncpg.Connection,
+):
+    await _insert_user(db_conn)
+    session_id = await db_conn.fetchval(
+        "insert into learning_sessions (user_id, mode) values ($1, 'shadowing') returning id",
+        migrate.USER_ID,
+    )
+
+    async def _insert(utterance_type: str, speaker: str, audio_url: str | None) -> None:
+        await db_conn.execute(
+            "insert into utterances (session_id, speaker, utterance_type, transcript, "
+            "audio_url, sequence_no) values ($1, $2, $3, 'I hit a blocker today.', $4, $5)",
+            session_id,
+            speaker,
+            utterance_type,
+            audio_url,
+            next(_SCHEMA_SEQ),
+        )
+
+    # 학습자의 쉐도잉 낭독 — 유일하게 오디오가 허용되는 조합이다.
+    await _insert("shadowing_recording", "user", "/audio/x.wav")
+
+    # 오디오 없는 낭독 행도 정상이다(§4.5: DB 포인터를 **마지막에** 쓰므로 그 사이 상태다).
+    await _insert("shadowing_recording", "user", None)
+
+    # 학습 발화에 오디오를 붙이면 거부된다 — R10-7이 그대로 산다.
+    with pytest.raises(asyncpg.CheckViolationError):
+        async with db_conn.transaction():
+            await _insert("learning", "user", "/audio/x.wav")
+
+    # agent 낭독은 없다 — 저장 대상은 **학습자 목소리**뿐이다.
+    with pytest.raises(asyncpg.CheckViolationError):
+        async with db_conn.transaction():
+            await _insert("shadowing_recording", "agent", "/audio/x.wav")
+
+    # 음성 명령에도 붙지 않는다.
+    with pytest.raises(asyncpg.CheckViolationError):
+        async with db_conn.transaction():
+            await _insert("voice_command", "user", "/audio/x.wav")
+
+
+# ⑤-4 `shadowing_recording`이 **값역에 들어왔다** — 그리고 그 값이 분석 경로에서 자동으로
+#      빠지는 것이 이 선택의 근거였다(§4.1). 값역 자체를 여기서 잠근다.
+@pytest.mark.asyncio
+async def test_utterance_type_domain_includes_shadowing_recording(db_conn: asyncpg.Connection):
+    definition = await db_conn.fetchval(
+        "select pg_get_constraintdef(oid) from pg_constraint "
+        "where conname = 'utterances_utterance_type_check'"
+    )
+    assert definition is not None
+    for value in ("learning", "voice_command", "command_confirmation", "shadowing_recording"):
+        assert value in definition, f"{value}가 값역에서 빠졌다"
