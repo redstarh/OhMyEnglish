@@ -1,10 +1,10 @@
 ---
 id: TASK-23
 title: '실행: 원격 저장소 연결 + 첫 푸시'
-status: To Do
+status: Awaiting Decision
 assignee: []
 created_date: '2026-09-06 00:14'
-updated_date: '2026-09-07 22:56'
+updated_date: '2026-09-08 22:19'
 labels:
   - caps-req
 dependencies:
@@ -24,6 +24,18 @@ ordinal: 23000
 - [ ] #2 추적 제외가 제대로 걸려 있는지 확인 — .env 및 비밀값이 이력에 없는지 전체 이력을 검사
 - [ ] #3 git remote add 후 첫 푸시. remote가 붙으면 backlog의 remote_operations를 true로 되돌린다
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-09-09 — ⛔ 선행 TASK-42 가 Done 이 됐지만 그것이 「풀렸다」를 뜻하지 않음. 상태를 Awaiting Decision 으로 옮긴 이유: 남은 것이 작업이 아니라 캡틴의 선택이고, To Do 로 두면 SessionStart 브리핑이 「착수 가능」으로 올려 다음 세션이 push 할 수 있음.
+
+무엇이 남았나 (캡틴 결정 41): 회전을 하지 않기로 했으므로 DB 비밀번호가 git 이력에 그대로 있음(도입 커밋 7a5bfce). 현재 트리만 깨끗함. 저장소 설정은 PUBLIC 이므로(결정 30) push 하면 이력째 공개됨.
+
+선택지 셋 — 하나를 캡틴이 고르기 전에는 remote 를 붙이지 않음: ① 그때 비밀번호를 회전한다 ② git 이력을 재작성한다(⚠️ 결정 21 이 기각했음 — handoff·원장·설계서·pitfalls·결정 기록에 커밋 해시 인용이 수십 건이고 전부 무효가 됨) ③ 새 초기 커밋으로 스쿼시해 push 한다(이력을 버리는 대가).
+
+⚠️ 백업이 없는 상태가 이어짐 — 로컬 단독임(결정 30 이 적은 그대로).
+<!-- SECTION:NOTES:END -->
 
 ## Comments
 

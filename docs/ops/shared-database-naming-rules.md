@@ -18,7 +18,7 @@
 | 4 | `002` 확인 — 1번을 하면 **자동 no-op**이 된다. 안 하면 실패한다 | `002_move_legacy_public_tables_to_en_coach.sql` | R5 |
 | 5 | 마이그레이션 추적표를 **`en_coach` 스키마 안**에 둔다 | 마이그레이션 러너 | R4 |
 
-**비밀번호**: `mvs6pZyocJIyISV1fPD7tZVD` (§2에 전체 URL이 있다)
+**비밀번호**: ⛔ **이 문서에 적지 않는다** — 아래 「비밀번호를 어디서 얻는가」 (§2에 전체 URL이 있다)
 
 **OhMyEnglish 쪽은 이미 준비됐다**: 역할 `en_coach`, 스키마 `en_coach`(소유자 = 그 역할),
 공유 표 3개 읽기 권한, 역할 기본 `search_path = en_coach`.
@@ -189,7 +189,7 @@ DATABASE_URL=postgresql://en_coach:change-me@localhost:5432/en_coach
 #                                                          ~~~~~~~~ DB 이름만 틀렸다
 
 # ✅ 이렇게 — 그대로 복사해 쓴다
-DATABASE_URL=postgresql://en_coach:mvs6pZyocJIyISV1fPD7tZVD@localhost:5432/ohmyenglish
+DATABASE_URL=postgresql://en_coach:<비밀번호>@localhost:5432/ohmyenglish
 ```
 
 📌 **2026-08-31 이관 후에는 포트가 그대로다.** 이관 전 이 문서는 `5432`→`5433` 교체를
@@ -202,13 +202,38 @@ DATABASE_URL=postgresql://en_coach:mvs6pZyocJIyISV1fPD7tZVD@localhost:5432/ohmye
 | host / port | `localhost` / **5432** | ⚠️ **2026-08-31에 5433 → 5432로 바뀌었다.** 이전 판의 "이 머신의 5432는 비어 있다"는 서술은 **틀렸다** — 거기에 homebrew `postgresql@17`이 StockAgent DB(`stockagent`·`stocknews*`)와 함께 떠 있었다. podman 컨테이너(:5433)는 **폴백으로 남아 있지만 정본이 아니다** — 거기 있는 데이터는 이관 시점의 사본이라 그 뒤 변경이 반영되지 않는다 |
 | database | **`ohmyenglish`** | 공유 DB다. `en_coach`라는 DB는 없다(만들었다가 철회했다) |
 | user / role | **`en_coach`** | 스키마 `en_coach`의 소유자 |
-| password | `mvs6pZyocJIyISV1fPD7tZVD` | **로컬 dev 전용**이다. 이 문서가 git에 있으므로 원격·공유 환경에는 이 값을 쓰지 않는다 |
+| password | ⛔ **이 문서에 적지 않는다** — 아래 「비밀번호를 어디서 얻는가」 | **로컬 dev 전용**이다. 이 문서가 git에 있으므로 원격·공유 환경에는 이 값을 쓰지 않는다 |
 | search_path | **`en_coach`** | R2. 역할 기본값을 그렇게 설정해 두었다(2026-08-30 확인: 한정자 없이 `error_patterns`를 읽으면 `relation does not exist`로 **차단된다**). 앱이 `SET search_path`로 `public`을 다시 넣으면 이 방어가 풀린다 |
+
+### 비밀번호를 어디서 얻는가 — 2026-09-09 (캡틴 결정 41)
+
+**이 문서에서 평문 값을 제거했다.** 이 문서는 git 추적 대상이고 저장소 설정이 **PUBLIC**이므로
+(결정 30) 값을 여기 두면 push 하는 순간 공개된다.
+
+**얻는 곳**: `app/backend/.env` 의 **`EN_COACH_DB_PASSWORD`** — 추적 밖이다
+(`.gitignore:26` 이 `.env` 를 덮는 것을 `git check-ignore` 로 확인했다).
+
+```bash
+# 이 리포 안에서
+grep '^EN_COACH_DB_PASSWORD=' app/backend/.env
+# 셸에 실어 쓸 때 (값을 화면에 찍지 않는다)
+export EN_COACH_DB_PASSWORD=$(sed -n 's/^EN_COACH_DB_PASSWORD=//p' app/backend/.env)
+```
+
+⚠️ **En-Coach 쪽 `.env` 는 이 리포가 고치지 않는다** — 남의 리포 설정을 직접 건드리지 않는다는
+규약이다(결정 21 제약 1). 그쪽은 같은 값을 자기 `.env` 에 둔다.
+
+⛔ **회전하지 않는다 — 그리고 그 대가를 여기 적어 둔다** (결정 41).
+**값은 git 이력에 그대로 남아 있다**(도입 커밋 `7a5bfce`). 현재 트리만 깨끗해진 것이다.
+따라서 **`TASK-23`(원격 연결 + 첫 푸시)은 이 문서가 깨끗해진 것으로 풀리지 않는다** —
+공개 push 는 이력을 함께 공개한다. 남은 선택지는 셋뿐이고 **그 판단은 캡틴 몫이다**:
+① 그때 회전한다 ② 이력을 재작성한다(결정 21 이 기각했다 — 해시 인용이 수십 건이다)
+③ 새 초기 커밋으로 스쿼시해 push 한다. **이 문서를 「push 차단이 해소됐다」의 근거로 쓰지 않는다.**
 
 명시적으로 못 박고 싶으면 URL에 붙인다(`%3D`는 `=`의 인코딩):
 
 ```bash
-DATABASE_URL=postgresql://en_coach:mvs6pZyocJIyISV1fPD7tZVD@localhost:5432/ohmyenglish?options=-csearch_path%3Den_coach
+DATABASE_URL=postgresql://en_coach:<비밀번호>@localhost:5432/ohmyenglish?options=-csearch_path%3Den_coach
 ```
 
 **En-Coach가 해야 할 일은 포트 한 글자다** — `.env`(와 `.env.example`)의 `5433` → `5432`.
@@ -244,7 +269,7 @@ brew services start postgresql@17               # 멈춰 있으면 시작
 **`psql`은 PATH에 없다.** 절대 경로를 쓴다:
 
 ```bash
-PGPASSWORD='mvs6pZyocJIyISV1fPD7tZVD' /opt/homebrew/opt/postgresql@17/bin/psql \
+PGPASSWORD="$EN_COACH_DB_PASSWORD" /opt/homebrew/opt/postgresql@17/bin/psql \
   -h 127.0.0.1 -p 5432 -U en_coach -d ohmyenglish
 ```
 
