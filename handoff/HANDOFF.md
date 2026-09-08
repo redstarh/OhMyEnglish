@@ -10,8 +10,15 @@
 
 ```bash
 backlog task list --ready --plain
-cd app/backend && .venv/bin/pytest -q      # 게이트는 이 cwd 에서만 판정한다 (H-A)
+cd app/backend                             # 게이트는 이 cwd 에서만 판정한다 (H-A)
+.venv/bin/pytest -q
+.venv/bin/ruff check . && .venv/bin/ruff format --check .
+ty check                                   # ⚠️ `.venv/bin/ty` 는 **없다** (아래)
 ```
+
+⚠️ **`ty` 는 venv 가 아니라 pipx 전역이다** — `/Users/redstar/.local/bin/ty`. `.venv/bin/ty` 를
+치면 `no such file` 이 나는데 **회귀가 아니라 경로다.** 두 세션이 각각 여기서 헛짚었다
+(2026-09-08 팀리드 · 인계받은 세션). `ruff`·`pytest` 는 venv 안이라 `.venv/bin/` 을 붙인다.
 
 **① `TASK-44` — 남은 것은 AC#7 하나다.** 구현·게이트·리뷰 후속이 끝났고 `Done` 만 남았다.
 코드 리뷰가 **BLOCK**(CRITICAL 0 · HIGH 2)을 냈고 **HIGH 2건을 이 세션이 고쳤다**(`57f67f8`).
@@ -88,6 +95,14 @@ cd app/backend && .venv/bin/pytest -q      # 게이트는 이 cwd 에서만 판�
 
 ⚠️ **3번이 핵심이다** — 읽기는 전달을 증명하지 못하고 **직접 돌린 출력**만 데이터다.
 ⚠️ **게이트 밖 6/4 는 0으로 만들 대상이 아니라 유지 대상이다** — `TASK-37` AC#6 이 소유한다.
+
+✅ **인계 확인: 4/4 일치** (2026-09-08 · 새 세션 tmux `claude_air_1-5`). 그 세션이 네 지표를
+**직접 돌려** 얻은 값이 위 기준값과 전건 일치했다(HEAD `e322850` · 집계 동일 · **751 passed**
+11.01s · 게이트 밖 6 errors·4 files · 프론트 exit 0 · 착수 전 필수 표 전체). 그 뒤 다음 걸음대로
+`TASK-44` 재리뷰에 착수했다.
+⚠️ **그 대조가 handoff 결함 1건을 잡았다** — 게이트 명령에 `ty` 경로가 없어 `.venv/bin/ty` 로
+읽히고 `no such file` 이 났다. 위 코드 블록에서 고쳤다. **인계 확인의 값어치가 이것이다**:
+"읽었다"로는 안 나오고 **직접 돌려야** 나온다.
 
 ---
 
