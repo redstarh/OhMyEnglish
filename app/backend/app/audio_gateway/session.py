@@ -29,8 +29,9 @@ import asyncio
 import base64
 import contextlib
 import logging
-from typing import Protocol
-from uuid import UUID
+from dataclasses import dataclass
+from typing import BinaryIO, Protocol
+from uuid import UUID, uuid4
 
 import asyncpg
 
@@ -42,10 +43,29 @@ from app.audio_gateway.port import (
     VoiceAdapter,
 )
 from app.services.pronunciation import note_transcript, record_attempt, resolve_dangling
+from app.services.recordings import ShadowingTurns, finalize_recording, pending_recording_path
 from app.services.sessions import SessionEndStatus, end_session
 from app.services.utterances import flush_pending_analysis, save_final_transcript
 
 logger = logging.getLogger(__name__)
+
+# 낭독 발화의 표시. 011 의 `utterances_utterance_type_check` 가 이 값을 가두고, 그 값역에 있는
+# 것만으로 **오류 분석·교정 표시·계획 입력에서 자동으로 빠진다**(설계서 §4.1 이 grep 으로 확인한
+# 4자리가 `utterance_type='learning'` 으로 거른다). 목록을 복제하지 않고 이 상수 하나만 둔다.
+SHADOWING_UTTERANCE_TYPE = "shadowing_recording"
+
+
+@dataclass(slots=True)
+class _RecordingTurn:
+    """열려 있는 낭독 턴 하나. `turn_id` 가 `.part` 파일 이름이고 핸들이 그 파일이다.
+
+    ⚠️ `utterance_id` 를 아직 모르기 때문에 이름이 둘 필요하다(설계서 §4.5): 바이트가 전사문
+    확정보다 먼저 도착하므로 턴이 닫힐 때 rename 한다.
+    """
+
+    turn_id: UUID
+    handle: BinaryIO
+
 
 # 설계 발명값 (근거 문서 없음) — 음성 어댑터 연결 수립 상한. "느린 네트워크에서
 # 한 번의 핸드셰이크는 끝낼 수 있지만, 사용자가 무반응을 장애로 인지하기 전"으로
@@ -86,6 +106,7 @@ class SessionRunner:
         client: ClientChannel,
         connect_timeout: float = CONNECT_TIMEOUT,
         drain_timeout: float = DRAIN_TIMEOUT,
+        shadowing: ShadowingTurns | None = None,
     ) -> None:
         self._adapter = adapter
         self._pool = pool
@@ -96,10 +117,23 @@ class SessionRunner:
         # shield로 보호한 저장 태스크들. 종료 기록 전에 이들을 기다려 전사문이
         # 세션 종료 뒤에 도착하는 역전을 막는다.
         self._pending_saves: set[asyncio.Task[None]] = set()
+        # 쉐도잉 재료. **`None` 이면 낭독 턴 신호를 무시한다** — 모드를 러너가 다시 판정하지
+        # 않는 것이 두 곳에서 갈라지지 않는 방법이다 (`TASK-45` · 결정 35).
+        self._shadowing = shadowing
+        self._recording_turn: _RecordingTurn | None = None
 
     async def run(self) -> None:
         """세션 하나를 끝까지 수행한다. 반환 시점에 세션은 DB에서 닫혀 있다."""
-        await self._send({"type": "session_started", "session_id": str(self._session_id)})
+        started: dict[str, object] = {
+            "type": "session_started",
+            "session_id": str(self._session_id),
+        }
+        if self._shadowing is not None:
+            # 요구 5 — 화면은 자기 기본값을 갖지 않고 **전달만** 받는다. ⛔ 말하기 세션에는
+            # 키 자체를 넣지 않는다: 없는 것과 「비었다」를 프론트가 구분해야 한다
+            # (`api/results.py` 의 `corrections`·`drill` 과 같은 규약).
+            started["shadowing"] = self._shadowing.as_event_payload()
+        await self._send(started)
 
         failure_reason = await self._connect()
         if failure_reason is not None:
@@ -112,6 +146,7 @@ class SessionRunner:
         finally:
             # 릴레이가 예외로 끝나도 세션은 닫는다 — `active`로 남은 세션은
             # 종료 시각이 없어 결과 화면에서 영원히 진행 중처럼 보인다.
+            self._abandon_open_recording_turn()
             await self._close_and_record("completed")
         await self._send({"type": "session_ended", "session_id": str(self._session_id)})
 
@@ -374,11 +409,22 @@ class SessionRunner:
             if message_type == "audio":
                 await self._forward_audio(message.get("data"))
                 continue
+            if message_type == "shadowing_turn_start":
+                self._open_recording_turn()
+                continue
+            if message_type == "shadowing_turn_end":
+                await self._close_recording_turn()
+                continue
             logger.warning("알 수 없는 클라이언트 메시지를 무시했다: %r", message_type)
 
     async def _forward_audio(self, data: object) -> None:
-        """base64 오디오 프레임을 어댑터로 넘긴다. 깨진 프레임은 세션을 죽이지
-        않는다 — 마이크 한 조각을 잃는 것이 대화를 끊는 것보다 낫다."""
+        """base64 오디오 프레임을 넘긴다. 깨진 프레임은 세션을 죽이지 않는다 —
+        마이크 한 조각을 잃는 것이 대화를 끊는 것보다 낫다.
+
+        ⛔ **낭독 턴이 열려 있으면 어댑터가 아니라 파일로 간다** (설계서 §4.5 의 1단계).
+        Nova 로 보내면 그 전사가 `learning` 발화로 저장되어 **학습자가 짓지 않은 문장이 오류
+        패턴을 오염시킨다** — §4.1 이 `utterance_type` 을 나눈 목적이 그것이다.
+        """
         if not isinstance(data, str):
             logger.warning("audio 메시지에 base64 data가 없다 — 무시한다")
             return
@@ -390,7 +436,78 @@ class SessionRunner:
             # 전자만 잡으면 "한글" 한 프레임이 펌프를 죽여 세션이 끝난다.
             logger.warning("base64로 해석할 수 없는 오디오 프레임을 무시했다")
             return
+        turn = self._recording_turn
+        if turn is not None:
+            # ⚠️ 동기 write 다. 프레임이 320바이트 남짓이라 스레드로 넘기는 비용이 쓰는 비용을
+            # 넘고, 같은 판단을 `load_recording` 의 읽기에도 적어 뒀다.
+            turn.handle.write(frame)
+            return
         await self._adapter.send_audio(frame)
+
+    def _open_recording_turn(self) -> None:
+        """낭독 턴을 연다 (요구 4). `.part` 파일이 「미완성」을 파일시스템에 적는다.
+
+        ⚠️ **중복 신호를 무해하게 삼킨다** — 이미 열려 있으면 그대로 둔다. 새로 열면 앞서 쓴
+        바이트가 고아 `.part` 로 버려지는데, 그것은 클라이언트의 신호 중복만으로 학습자의 낭독을
+        잃는 것이다. 쉐도잉 세션이 아니면(재료가 없으면) 경고만 남기고 무시한다.
+        """
+        if self._shadowing is None:
+            logger.warning("쉐도잉 세션이 아닌데 낭독 턴 신호가 왔다 — 무시한다")
+            return
+        if self._recording_turn is not None:
+            return
+        turn_id = uuid4()
+        path = pending_recording_path(self._shadowing.audio_root, self._session_id, turn_id)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        self._recording_turn = _RecordingTurn(turn_id=turn_id, handle=path.open("wb"))
+
+    async def _close_recording_turn(self) -> None:
+        """낭독 턴을 닫고 §4.5 의 2·3·4 를 이어 돈다.
+
+        **전사문은 클립의 것이다** — 학습자가 지은 문장이 아니므로 새로 전사하지 않는다. 그래서
+        이 경로는 Nova 를 부르지 않는다.
+
+        ⚠️ **`save_final_transcript` 와 `finalize_recording` 을 한 트랜잭션으로 묶지 않는다.**
+        사이에서 죽으면 행은 있고 `audio_url` 은 null 이라 **접근 불가**이고, 남은 파일은 §6.2 의
+        2다리가 걷는다 — 그것이 §4.5 가 설계한 상태다. 묶으면 rename 된 파일은 롤백되지 않으므로
+        오히려 「행 없는 파일」이 생긴다.
+        """
+        turn = self._recording_turn
+        if turn is None or self._shadowing is None:
+            return
+        self._recording_turn = None
+        turn.handle.close()
+        async with self._pool.acquire() as conn:
+            utterance = await save_final_transcript(
+                conn,
+                self._session_id,
+                self._shadowing.clip.transcript,
+                speaker="user",
+                utterance_type=SHADOWING_UTTERANCE_TYPE,
+            )
+            await finalize_recording(
+                conn,
+                self._shadowing.audio_root,
+                session_id=self._session_id,
+                turn_id=turn.turn_id,
+                utterance_id=utterance.id,
+            )
+
+    def _abandon_open_recording_turn(self) -> None:
+        """세션이 낭독 턴을 열어 둔 채 끝났다 — **핸들만 닫고 `.part` 는 남긴다.**
+
+        남은 파일은 고아 파일 정리 2다리가 걷는다(§6.2 의 ②). 여기서 `finalize` 로 승격하지 않는
+        이유: 학습자가 낭독을 끝냈다는 신호가 없으므로 그것이 완성된 녹음인지 알 수 없다.
+        """
+        turn = self._recording_turn
+        if turn is None:
+            return
+        self._recording_turn = None
+        turn.handle.close()
+        logger.warning(
+            "낭독 턴이 열린 채 세션 %s가 끝났다 — `.part`는 고아 파일 정리가 걷는다",
+            self._session_id,
+        )
 
     async def _send(self, event: dict[str, object]) -> None:
         await self._client.send_event(event)

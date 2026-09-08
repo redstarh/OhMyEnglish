@@ -20,9 +20,11 @@ import asyncio
 import base64
 import inspect
 from collections.abc import AsyncIterator
+from decimal import Decimal
+from pathlib import Path
 from types import ModuleType
 from typing import Any, cast
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import asyncpg
 import pytest
@@ -57,6 +59,13 @@ from app.audio_gateway.stub import StubVoiceAdapter
 from app.config import Settings
 from app.models.plan import InstructionFocus, PlanQuestion, SessionInstruction
 from app.models.scenario import SessionScenario
+from app.services.recordings import (
+    ShadowingClip,
+    ShadowingTurns,
+    recording_dir,
+    recording_path,
+    recording_url,
+)
 
 # 연결 타임아웃 주입값. 실시간 대기 금지 — 무응답 경로도 0.1초 안에 판정된다.
 FAST_CONNECT_TIMEOUT = 0.1
@@ -233,6 +242,173 @@ def _runner(
     adapter: VoiceAdapter, pool: asyncpg.Pool, session_id: UUID, client: FakeClient, **kw: Any
 ) -> SessionRunner:
     return SessionRunner(adapter, pool, session_id, client=client, **kw)
+
+
+# ── 쉐도잉 낭독 턴 (`TASK-45` · 설계서 §12 요구 4·5 · 캡틴 결정 35) ────────────────
+#
+# ⛔ **여기서 만드는 것은 신호를 「받는 쪽」뿐이다.** 어느 화면·어느 버튼이 그 신호를 보내는지는
+# `TASK-10` 이 소유한다(결정 35 의 팀리드 제약) — `start_shadowing_session` 이 호출 표면을 갖지
+# 않은 것과 같은 형태다.
+#
+# ⚠️ **낭독 프레임을 어댑터로 보내지 않는 것이 핵심 판단이다.** 쉐도잉은 학습자가 **주어진
+# 문장**을 따라 읽는 것이라 전사가 필요 없고, Nova 로 보내면 그 전사가 `learning` 발화로 저장되어
+# **학습자가 짓지 않은 문장이 오류 패턴을 오염시킨다** — 설계서 §4.1 이 `utterance_type` 을 나눈
+# 목적이 정확히 그것이다.
+
+SHADOWING_TRANSCRIPT = "I usually wake up at seven."
+
+
+class AudioSpyAdapter:
+    """픽스처 스텁을 감싸 **어댑터로 넘어간 프레임만** 기록한다 (낭독 분기 단정용)."""
+
+    def __init__(self) -> None:
+        self.frames: list[bytes] = []
+        self._inner = StubVoiceAdapter()
+
+    async def start(self) -> None:
+        await self._inner.start()
+
+    async def send_audio(self, frame: bytes) -> None:
+        self.frames.append(frame)
+        await self._inner.send_audio(frame)
+
+    def events(self) -> AsyncIterator[AdapterEvent]:
+        return self._inner.events()
+
+    async def close(self) -> None:
+        await self._inner.close()
+
+
+def _shadowing_turns(root: Path, **kw: Any) -> ShadowingTurns:
+    clip = ShadowingClip(
+        id=uuid4(),
+        source_title="A morning routine before work",
+        transcript=SHADOWING_TRANSCRIPT,
+        clip_start_sec=Decimal("0.00"),
+        clip_end_sec=Decimal("30.00"),
+    )
+    return ShadowingTurns(
+        clip=clip,
+        audio_root=root,
+        playback_rate=kw.get("playback_rate", 1.0),
+        repeat_count=kw.get("repeat_count", 1),
+    )
+
+
+async def test_session_started_carries_the_clip_and_the_settings(
+    db_pool, committed_session, tmp_path: Path
+):
+    """요구 5 — 화면은 **전달만** 받는다. 값의 정본은 `shadowing_items` 와 `Settings` 다."""
+    turns = _shadowing_turns(tmp_path, playback_rate=1.5, repeat_count=3)
+    client = FakeClient(None)
+
+    await asyncio.wait_for(
+        _runner(
+            StubVoiceAdapter(), db_pool, committed_session.session_id, client, shadowing=turns
+        ).run(),
+        timeout=5.0,
+    )
+
+    started = client.sent[0]
+    assert started["type"] == "session_started"
+    assert started["shadowing"] == {
+        "item_id": str(turns.clip.id),
+        "source_title": "A morning routine before work",
+        "transcript": SHADOWING_TRANSCRIPT,
+        "clip_start_sec": 0.0,
+        "clip_end_sec": 30.0,
+        "playback_rate": 1.5,
+        "repeat_count": 3,
+    }
+
+
+async def test_session_started_omits_shadowing_for_a_speaking_session(db_pool, committed_session):
+    """⛔ 말하기 세션에는 **키 자체를 넣지 않는다** — 이 리포의 기존 규약과 같다.
+
+    `corrections`·`drill` 이 `None` 일 때 키를 지우는 것과 같은 형태다(`api/results.py`): 없는
+    것과 「비었다」를 프론트가 구분해야 한다.
+    """
+    client = FakeClient(None)
+
+    await asyncio.wait_for(
+        _runner(StubVoiceAdapter(), db_pool, committed_session.session_id, client).run(),
+        timeout=5.0,
+    )
+
+    assert "shadowing" not in client.sent[0]
+
+
+async def test_a_shadowing_turn_stores_the_recording_and_its_pointer(
+    db_pool, committed_session, tmp_path: Path
+):
+    """요구 4 + AC#3 의 1단계 — 턴 경계가 파일 수명을 정한다.
+
+    턴이 닫히면 §4.5 의 3·4 가 이어 돌아 **`utterances` 행 + `audio_url` + 파일**이 생긴다.
+    전사문은 **클립의 것**이다: 학습자가 지은 문장이 아니므로 새로 전사하지 않는다.
+    """
+    frame = b"\x11\x22" * 160
+    encoded = base64.b64encode(frame).decode()
+    client = FakeClient(
+        {"type": "shadowing_turn_start"},
+        {"type": "audio", "data": encoded},
+        {"type": "shadowing_turn_end"},
+        None,
+    )
+    turns = _shadowing_turns(tmp_path)
+
+    await asyncio.wait_for(
+        _runner(
+            StubVoiceAdapter(), db_pool, committed_session.session_id, client, shadowing=turns
+        ).run(),
+        timeout=5.0,
+    )
+
+    async with db_pool.acquire() as conn:
+        row = await conn.fetchrow(
+            "select id, transcript, audio_url from utterances "
+            "where session_id = $1 and utterance_type = 'shadowing_recording'",
+            committed_session.session_id,
+        )
+    assert row is not None, "낭독 턴이 닫혔는데 발화 행이 없다"
+    assert row["transcript"] == SHADOWING_TRANSCRIPT
+    assert row["audio_url"] == recording_url(committed_session.session_id, row["id"])
+    stored = recording_path(tmp_path, committed_session.session_id, row["id"])
+    assert stored.read_bytes() == frame
+    assert list(recording_dir(tmp_path, committed_session.session_id).glob("*.part")) == []
+
+
+async def test_shadowing_frames_do_not_reach_the_voice_adapter(
+    db_pool, committed_session, tmp_path: Path
+):
+    """⛔ **낭독 프레임을 Nova 로 보내지 않는다.**
+
+    보내면 그 전사가 `learning` 발화로 저장되어 **학습자가 짓지 않은 문장이 오류 패턴을
+    오염시킨다** — 설계서 §4.1 이 `utterance_type` 을 나눈 목적이 그것이다. 대화 오디오는
+    그대로 어댑터로 가야 하므로 **분기의 양쪽**을 함께 잰다.
+    """
+    shadowed = base64.b64encode(b"\x33\x44" * 160).decode()
+    spoken = base64.b64encode(b"\x55\x66" * 160).decode()
+    client = FakeClient(
+        {"type": "shadowing_turn_start"},
+        {"type": "audio", "data": shadowed},
+        {"type": "shadowing_turn_end"},
+        {"type": "audio", "data": spoken},
+        None,
+    )
+    adapter = AudioSpyAdapter()
+
+    await asyncio.wait_for(
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            client,
+            shadowing=_shadowing_turns(tmp_path),
+        ).run(),
+        timeout=5.0,
+    )
+
+    assert adapter.frames == [b"\x55\x66" * 160], "낭독 프레임이 어댑터로 새어 나갔다"
 
 
 # ① 픽스처 완주 → 사용자 final 3행 + job 3건 (G4)

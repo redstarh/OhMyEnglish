@@ -64,8 +64,10 @@ class ASGIWebSocket:
     보낸 JSON을 돌려주고, close 프레임을 받으면 `None`을 돌려준다.
     """
 
-    def __init__(self, app: FastAPI) -> None:
+    def __init__(self, app: FastAPI, *, query_string: bytes = b"") -> None:
         self._app = app
+        # 쿼리 문자열을 받는 이유: 쉐도잉 진입이 `?mode=shadowing` 으로 열린다 (`TASK-45`).
+        self._scope = dict(_SCOPE) | {"query_string": query_string}
         self._to_app: asyncio.Queue[dict[str, Any]] = asyncio.Queue()
         self._from_app: asyncio.Queue[dict[str, Any]] = asyncio.Queue()
         self._task: asyncio.Task[None] | None = None
@@ -76,7 +78,7 @@ class ASGIWebSocket:
         await self._from_app.put(dict(message))
 
     async def __aenter__(self) -> ASGIWebSocket:
-        self._task = asyncio.create_task(self._app(dict(_SCOPE), self._to_app.get, self._asgi_send))
+        self._task = asyncio.create_task(self._app(self._scope, self._to_app.get, self._asgi_send))
         await self._to_app.put({"type": "websocket.connect"})
         accept = await asyncio.wait_for(self._from_app.get(), timeout=RECEIVE_TIMEOUT)
         assert accept["type"] == "websocket.accept", accept
@@ -166,6 +168,30 @@ async def seeded_fixed_user(db_pool: asyncpg.Pool) -> AsyncIterator[UUID]:
         async with db_pool.acquire() as conn:
             await conn.execute("delete from users where id = $1", FIXED_USER_ID)
             await conn.execute("delete from learning_scenarios where id = $1", scenario_id)
+
+
+@pytest_asyncio.fixture
+async def committed_clip(db_pool: asyncpg.Pool) -> AsyncIterator[str]:
+    """쉐도잉 클립 1행을 커밋해두고 **teardown 에서 반드시 지운다.**
+
+    ⛔ 남기면 `tests/unit/test_sessions.py` 의 `seed_shadowing_clips` 가 깨진다 — 그 픽스처는
+    자기가 만든 행 밖의 클립이 있으면 **시끄럽게 실패**하도록 만들어져 있다(누출을 조용한 오답이
+    아니라 실패로 바꾸는 장치). `shadowing_item_id` 는 `on delete set null` 이라 세션이 참조해도
+    지울 수 있다.
+    """
+    transcript = "I usually wake up at seven. Then I make a cup of coffee."
+    async with db_pool.acquire() as conn:
+        clip_id = await conn.fetchval(
+            "insert into shadowing_items "
+            "(source_title, transcript, clip_start_sec, clip_end_sec, level) "
+            "values ('A morning routine before work', $1, 0, 30, 'A2') returning id",
+            transcript,
+        )
+    try:
+        yield transcript
+    finally:
+        async with db_pool.acquire() as conn:
+            await conn.execute("delete from shadowing_items where id = $1", clip_id)
 
 
 async def _run_one_session(app: FastAPI) -> tuple[UUID, list[dict[str, Any]]]:
@@ -675,3 +701,81 @@ async def test_ws_opens_the_session_even_if_recording_the_expectation_fails(
             "select status from learning_sessions where user_id = $1", FIXED_USER_ID
         )
     assert status != "failed"
+
+
+# ── 쉐도잉 진입 (`TASK-45` · 설계서 §12 요구 1·2·3 의 호출 표면 · 캡틴 결정 35) ────
+#
+# ⛔ **여기서 만드는 것은 프로토콜뿐이다.** 「어느 화면·어느 버튼이 이 모드로 연결하는가」와
+# 「추가 학습 5종을 어떻게 배치하는가」는 `TASK-10` 이 그대로 소유한다(결정 34·35 의 제약).
+
+
+async def test_ws_opens_a_shadowing_session_and_hands_over_the_clip(
+    ws_app: FastAPI, seeded_fixed_user: UUID, committed_clip: str, db_pool: asyncpg.Pool
+):
+    """`?mode=shadowing` 이 쉐도잉 세션을 열고 클립·설정값을 **전달만** 한다 (요구 1·2·3·5)."""
+    async with (
+        ws_app.router.lifespan_context(ws_app),
+        ASGIWebSocket(ws_app, query_string=b"mode=shadowing") as client,
+    ):
+        started = await client.receive_event()
+
+    assert started is not None and started["type"] == "session_started"
+    shadowing = started["shadowing"]
+    assert shadowing["transcript"] == committed_clip
+    # 값의 정본은 `Settings` 다 — 화면이 자기 기본값을 갖지 않는다(§7 의 항등원 기본값).
+    assert shadowing["playback_rate"] == 1.0
+    assert shadowing["repeat_count"] == 1
+
+    async with db_pool.acquire() as conn:
+        row = await conn.fetchrow(
+            "select mode, shadowing_item_id from learning_sessions where id = $1",
+            UUID(started["session_id"]),
+        )
+    assert row is not None
+    assert row["mode"] == "shadowing"
+    assert row["shadowing_item_id"] is not None, "선택이 세션 행에 남지 않으면 재접속에서 잃는다"
+
+
+async def test_ws_still_opens_a_speaking_session_without_the_mode(
+    ws_app: FastAPI, seeded_fixed_user: UUID, db_pool: asyncpg.Pool
+):
+    """⛔ **무회귀 단정이다** — 기존 클라이언트는 쿼리 없이 붙고 말하기 세션을 받아야 한다.
+
+    이것이 없으면 진입점 배선이 조용히 모든 세션을 쉐도잉으로 바꾸는 변경이 통과한다.
+    """
+    async with ws_app.router.lifespan_context(ws_app), ASGIWebSocket(ws_app) as client:
+        started = await client.receive_event()
+
+    assert started is not None
+    assert "shadowing" not in started
+
+    async with db_pool.acquire() as conn:
+        mode = await conn.fetchval(
+            "select mode from learning_sessions where id = $1", UUID(started["session_id"])
+        )
+    assert mode == "speaking"
+
+
+async def test_ws_falls_back_to_speaking_for_an_unknown_mode(
+    ws_app: FastAPI, seeded_fixed_user: UUID, db_pool: asyncpg.Pool
+):
+    """알 수 없는 모드는 **말하기로 떨어진다** — 값역을 여기서 복제하지 않는다.
+
+    ⚠️ 이 선택의 대가를 적어 둔다: 학습자가 오타 난 링크로 붙으면 조용히 말하기 세션을 받는다.
+    그래서 경고를 남긴다. 반대로 연결을 거부하면 `learning_sessions_mode_check` 의 값역이 이
+    파일에 복제되고 두 곳이 갈라진다 — 그쪽 대가가 더 크다고 판단했다.
+    """
+    async with (
+        ws_app.router.lifespan_context(ws_app),
+        ASGIWebSocket(ws_app, query_string=b"mode=telepathy") as client,
+    ):
+        started = await client.receive_event()
+
+    assert started is not None
+    assert "shadowing" not in started
+
+    async with db_pool.acquire() as conn:
+        mode = await conn.fetchval(
+            "select mode from learning_sessions where id = $1", UUID(started["session_id"])
+        )
+    assert mode == "speaking"

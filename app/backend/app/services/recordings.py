@@ -18,7 +18,9 @@ LPCM 16kHz·16bit·mono 를 그대로 파일에 흘린다. 확장자가 `.pcm` �
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
 from datetime import UTC, datetime, time
+from decimal import Decimal
 from pathlib import Path
 from uuid import UUID
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
@@ -77,6 +79,15 @@ update utterances
  where id = any($1::uuid[])
 """
 
+# 세션이 고른 클립. **join 0행이 「클립 없음」의 유일한 표현이다** — 세션 부재·`shadowing_item_id`
+# null·클립 행 부재가 전부 여기로 수렴한다(`load_session_scenario` 와 같은 규약).
+_SELECT_SESSION_CLIP_SQL = """
+select i.id, i.source_title, i.transcript, i.clip_start_sec, i.clip_end_sec
+  from learning_sessions s
+  join shadowing_items i on i.id = s.shadowing_item_id
+ where s.id = $1
+"""
+
 # 2다리가 「살려 둘 파일」을 정하는 유일한 조회. **포인터가 정본이므로** 이 집합에 없는 바이트는
 # 접근 불가이고 걷어도 잃을 것이 없다.
 _SELECT_LIVE_RECORDING_IDS_SQL = """
@@ -102,6 +113,82 @@ select u.audio_url,
  where u.session_id = $1
    and u.id = $2
 """
+
+
+@dataclass(frozen=True, slots=True)
+class ShadowingClip:
+    """세션이 고른 클립에서 **화면이 쓰는 것만** 담는다 (설계서 §12 요구 5).
+
+    ⛔ `level` 을 담지 않는다 — 그것은 **선택의 키**이고 선택은 이미 끝났다. 화면에 실어 보내면
+    「학습자에게 수준을 표시한다」는 결정을 이 자리가 발명하는 셈이 된다(PRD 에 그 요구가 없다).
+
+    ⚠️ **문장으로 쪼개지 않는다.** PRD §7 의 「문장 단위로 제공한다」는 화면의 몫이고 쪼개는
+    규칙은 `TASK-10` 이 정한다 — 여기서 정하면 두 곳이 갈라진다(설계서 §3.2 유도 2 가 색인을
+    저장하지 않은 것과 같은 이유다).
+    """
+
+    id: UUID
+    source_title: str
+    transcript: str
+    clip_start_sec: Decimal
+    clip_end_sec: Decimal
+
+
+@dataclass(frozen=True, slots=True)
+class ShadowingTurns:
+    """낭독 턴이 쓰는 재료 묶음 — 세션 시작이 만들어 러너에 넘긴다 (캡틴 결정 35).
+
+    ⛔ **러너가 이 값을 스스로 조회하지 않는다.** 클립도 설정값도 세션 시작(`api/ws.py`)이 읽어
+    넘긴다 — 게이트웨이가 `services` 를 더 깊이 알게 하면 의존 방향이 뒤집힌다(`factory`·`nova` 가
+    `app.models` 만 아는 것과 같은 규약).
+
+    ⚠️ **이 묶음이 있으면 쉐도잉 세션이다.** `None` 이면 낭독 턴 신호를 받아도 무시한다 — 모드를
+    러너가 다시 판정하지 않는 것이 두 곳에서 갈라지지 않는 방법이다.
+    """
+
+    clip: ShadowingClip
+    audio_root: Path
+    playback_rate: float
+    repeat_count: int
+
+    def as_event_payload(self) -> dict[str, object]:
+        """`session_started` 에 실어 보낼 형태 (요구 5 — 화면은 **전달만** 받는다).
+
+        ⚠️ `Decimal` 을 `float` 로 바꾼다 — `json` 이 `Decimal` 을 직렬화하지 못한다. 초 단위
+        시간 창이라 배정밀도로 잃을 정밀도가 없다(스키마가 `numeric(6,2)` 다).
+        """
+        return {
+            "item_id": str(self.clip.id),
+            "source_title": self.clip.source_title,
+            "transcript": self.clip.transcript,
+            "clip_start_sec": float(self.clip.clip_start_sec),
+            "clip_end_sec": float(self.clip.clip_end_sec),
+            "playback_rate": self.playback_rate,
+            "repeat_count": self.repeat_count,
+        }
+
+
+async def load_session_clip(conn: asyncpg.Connection, session_id: UUID) -> ShadowingClip | None:
+    """이 세션이 고른 쉐도잉 클립 — 없으면 `None`.
+
+    **사후조건: 세션 부재 · `shadowing_item_id` null · 클립 행 부재 → 전부 `None`.** 셋이 한
+    경로로 수렴하는 것은 `load_session_scenario` 가 세운 규약과 같다(그 docstring 이 근거를
+    가진다). 클립이 0행이어도 세션을 여는 것이 `start_shadowing_session` 의 계약이므로 이
+    `None` 은 정상 상태다 — 호출자는 클립 없이 진행한다.
+
+    ⛔ **DB 오류는 던진다.** 흡수는 `api/ws.py` 의 래퍼가 한다(`_load_known_sounds_or_empty` 와
+    같은 분업) — 여기서 삼키면 「조회가 깨졌다」와 「클립이 없다」가 구분되지 않는다.
+    """
+    row = await conn.fetchrow(_SELECT_SESSION_CLIP_SQL, session_id)
+    if row is None:
+        return None
+    return ShadowingClip(
+        id=row["id"],
+        source_title=row["source_title"],
+        transcript=row["transcript"],
+        clip_start_sec=row["clip_start_sec"],
+        clip_end_sec=row["clip_end_sec"],
+    )
 
 
 def day_start_for(tz_name: str, *, now: datetime) -> datetime:

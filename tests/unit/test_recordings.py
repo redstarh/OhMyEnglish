@@ -13,6 +13,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from decimal import Decimal
 from pathlib import Path
 from uuid import UUID, uuid4
 from zoneinfo import ZoneInfoNotFoundError
@@ -25,6 +26,7 @@ from app.services.recordings import (
     day_start_for,
     finalize_recording,
     load_recording,
+    load_session_clip,
     pending_recording_path,
     purge_expired_recordings,
     recording_dir,
@@ -798,6 +800,51 @@ async def test_orphan_sweep_tolerates_a_missing_root(
 ) -> None:
     """뿌리가 없다는 것은 **저장한 적이 없다는 뜻이라 오류가 아니다** (§6.3)."""
     assert await sweep_orphan_recording_files(db_conn, tmp_path / "not-created-yet") == 0
+
+
+# ── 세션에 붙은 클립 읽기 (요구 5 · 캡틴 결정 35) ────────────────────────────────
+#
+# ⛔ **화면은 자기 기본값을 갖지 않는다** (설계서 §12 요구 5). 값의 정본은 `Settings` 와
+# `shadowing_items` 이고 세션 시작이 그것을 **전달만** 한다. 이 함수가 그 전달의 입력이다.
+
+
+@pytest.mark.asyncio
+async def test_loading_the_clip_of_a_session_that_picked_one(
+    db_conn: asyncpg.Connection,
+) -> None:
+    """세션이 고른 클립을 그대로 읽는다 — 전사문과 시간 창이 화면에 나갈 재료다."""
+    session_id = await _new_shadowing_session(db_conn)
+    clip_id = await db_conn.fetchval(
+        "insert into shadowing_items "
+        "(source_title, transcript, clip_start_sec, clip_end_sec, level) "
+        "values ('A morning routine', 'I usually wake up at seven.', 0, 30, 'A2') returning id"
+    )
+    await db_conn.execute(
+        "update learning_sessions set shadowing_item_id = $2 where id = $1", session_id, clip_id
+    )
+
+    clip = await load_session_clip(db_conn, session_id)
+
+    assert clip is not None
+    assert clip.id == clip_id
+    assert clip.transcript == "I usually wake up at seven."
+    assert (clip.clip_start_sec, clip.clip_end_sec) == (Decimal("0.00"), Decimal("30.00"))
+
+
+@pytest.mark.asyncio
+async def test_loading_the_clip_of_a_session_that_has_none(
+    db_conn: asyncpg.Connection,
+) -> None:
+    """⛔ 세션 부재 · `shadowing_item_id` null · 클립 행 부재가 **한 경로로 수렴한다.**
+
+    `load_session_scenario` 가 세운 규약과 같다(그 docstring 이 근거를 가짐) — 호출자는 클립
+    없이 진행한다. 클립이 0행이어도 세션을 여는 것이 `start_shadowing_session` 의 계약이므로
+    이 `None` 은 정상 상태다.
+    """
+    session_id = await _new_shadowing_session(db_conn)
+
+    assert await load_session_clip(db_conn, session_id) is None
+    assert await load_session_clip(db_conn, uuid4()) is None
 
 
 def test_media_type_declares_the_raw_pcm_parameters() -> None:

@@ -9,7 +9,13 @@
 * 서버→클라이언트: `session_started`(session_id) · `partial` · `final`(speaker,
   sequence_no) · `audio`(base64) · `speech_start`/`speech_end`(offset_ms) ·
   `interrupted` · `session_failed`(reason) · `session_ended`
-* 클라이언트→서버: `{"type":"audio","data":<base64>}` · `{"type":"end_session"}`
+* 클라이언트→서버: `{"type":"audio","data":<base64>}` · `{"type":"end_session"}` ·
+  `{"type":"shadowing_turn_start"}` · `{"type":"shadowing_turn_end"}`
+
+**쉐도잉 진입** (`TASK-45` · 결정 35): `?mode=shadowing` 으로 붙으면 세션이 그 모드로 열리고
+클립 1개가 붙으며 `session_started` 에 `shadowing`(클립 + 재생 속도·반복 횟수)이 실린다. 말하기
+세션에는 그 키가 **없다**. 낭독 턴 신호 둘은 그 모드에서만 뜻을 갖는다 — 아니면 무시된다.
+⛔ **어느 화면·어느 버튼이 그 모드로 연결하는지는 `TASK-10` 이 소유한다**(결정 34·35 의 제약).
 
 어떤 음성 구현이 붙는지 이 모듈은 모른다 — 팩토리에서 주입받는다 (G3).
 """
@@ -31,6 +37,7 @@ from app.config import Settings, get_settings
 from app.models.plan import PlanQuestion
 from app.models.scenario import SessionScenario
 from app.services.pronunciation import load_known_sounds
+from app.services.recordings import ShadowingTurns, load_session_clip
 from app.services.sessions import (
     PreparedPlan,
     create_session,
@@ -38,6 +45,7 @@ from app.services.sessions import (
     load_session_scenario,
     mark_session_ended,
     record_drill_turns_expected,
+    start_shadowing_session,
 )
 
 logger = logging.getLogger(__name__)
@@ -45,6 +53,10 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 WS_SESSION_PATH = "/ws/session"
+
+# 쉐도잉으로 붙는 유일한 값. ⛔ **모드 값역을 여기서 열거하지 않는다** — 그것은 001 의
+# `learning_sessions_mode_check` 가 가둔다. 이 상수가 아는 것은 「쉐도잉인가」 하나다.
+SHADOWING_MODE = "shadowing"
 
 SESSION_CREATE_FAILED_REASON = "session_create_failed"
 ADAPTER_UNAVAILABLE_REASON = "voice_adapter_unavailable"
@@ -121,6 +133,33 @@ async def _load_known_sounds_or_empty(pool: asyncpg.Pool) -> list[str]:
     except Exception:
         logger.exception("기존 발음 소리를 읽지 못해 기본 지시문으로 진행한다")
         return []
+
+
+async def _load_shadowing_turns_or_none(
+    pool: asyncpg.Pool, session_id: UUID, settings: Settings
+) -> ShadowingTurns | None:
+    """세션이 고른 클립 + 설정값 3종 — 없거나 읽지 못하면 `None` (설계서 §12 요구 5).
+
+    **예외를 밖으로 던지지 않는다** — `_load_known_sounds_or_empty` 와 같은 분업이다. 클립을 못
+    읽어도 세션은 열린다: 「클립이 0행이어도 세션을 연다」가 `start_shadowing_session` 의 계약이고,
+    여기서 터뜨리면 조회 한 번의 실패로 쉐도잉 진입이 **전부** 막힌다.
+
+    ⛔ **값의 정본은 `Settings` 다** — 화면이 자기 기본값을 갖지 않고 전달만 받는다(§7).
+    """
+    try:
+        async with pool.acquire() as conn:
+            clip = await load_session_clip(conn, session_id)
+    except Exception:
+        logger.exception("쉐도잉 클립을 읽지 못해 낭독 재료 없이 진행한다")
+        return None
+    if clip is None:
+        return None
+    return ShadowingTurns(
+        clip=clip,
+        audio_root=settings.shadowing_audio_root,
+        playback_rate=settings.shadowing_playback_rate,
+        repeat_count=settings.shadowing_repeat_count,
+    )
 
 
 async def _load_prepared_plan_or_none(pool: asyncpg.Pool) -> PreparedPlan | None:
@@ -203,8 +242,21 @@ async def session_socket(websocket: WebSocket) -> None:
     # `active` 고아를 남기지 않는다 — 뒤로 밀면 행을 만든 뒤 터져서 고아가 생긴다.
     live_sessions: set[UUID] = websocket.app.state.live_sessions
 
+    # 쉐도잉 진입 (`TASK-45` · 결정 35). ⛔ **값역을 여기서 복제하지 않는다** — 아는 것은
+    # 「쉐도잉인가 아닌가」 하나고, 나머지는 `learning_sessions_mode_check` 가 가둔다. 알 수 없는
+    # 값은 말하기로 떨어진다: 거부하면 그 값역이 이 파일에 복제되고 두 곳이 갈라진다.
+    # ⚠️ 대가를 명시한다 — 오타 난 링크로 붙으면 조용히 말하기 세션을 받으므로 경고를 남긴다.
+    requested_mode = websocket.query_params.get("mode")
+    shadowing_requested = requested_mode == SHADOWING_MODE
+    if requested_mode is not None and not shadowing_requested:
+        logger.warning("알 수 없는 mode=%r — 말하기 세션으로 진행한다", requested_mode)
+
     try:
-        session_id = await create_session(pool, FIXED_USER_ID)
+        session_id = (
+            await start_shadowing_session(pool, FIXED_USER_ID)
+            if shadowing_requested
+            else await create_session(pool, FIXED_USER_ID)
+        )
     except asyncpg.PostgresError:
         # 시드가 없으면(고정 사용자 부재) 여기서 걸린다 — 연결을 조용히 매달아두지
         # 않고 실패를 알린 뒤 닫는다.
@@ -257,7 +309,14 @@ async def session_socket(websocket: WebSocket) -> None:
             )
             return
 
-        runner = SessionRunner(adapter, pool, session_id, client=channel)
+        # 쉐도잉 재료는 **세션 시작이 읽어 넘긴다** — 러너가 스스로 조회하면 게이트웨이가
+        # `services` 를 더 깊이 알게 되어 의존 방향이 뒤집힌다(`ShadowingTurns` docstring).
+        shadowing = (
+            await _load_shadowing_turns_or_none(pool, session_id, settings)
+            if shadowing_requested
+            else None
+        )
+        runner = SessionRunner(adapter, pool, session_id, client=channel, shadowing=shadowing)
         try:
             await runner.run()
         except Exception:
