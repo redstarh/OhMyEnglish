@@ -8,14 +8,16 @@ can run with just `asyncpg` installed (e.g. `app/backend/.venv/bin/python`).
 
 Seeding is idempotent, but not the same way for every table. `users` uses
 `on conflict (id) do nothing` — re-running never touches an existing row.
-`learning_scenarios` uses `on conflict (id) do update` — re-running never
-creates a duplicate row either, but it does overwrite `title` and
-`prompt_template` back to the constants in `SEED_SCENARIOS` below. Why
-`do update` was chosen anyway (fixed ids would otherwise stay stale
-forever): `docs/design/2026-09-07-scenario-and-drill-turns-design.md` §7
-유도 8.
+`learning_scenarios` and `shadowing_items` use `on conflict (id) do update` —
+re-running never creates a duplicate row either, but it does overwrite the
+mutable columns back to the constants in `SEED_SCENARIOS` /
+`SEED_SHADOWING_ITEMS` below. Why `do update` was chosen anyway (fixed ids
+would otherwise stay stale forever):
+`docs/design/2026-09-07-scenario-and-drill-turns-design.md` §7 유도 8.
 
-⚠️ **손으로 고친 시나리오 행은 다음 실행에서 덮인다** — 그것이 위 선택의 대가다.
+⚠️ **손으로 고친 시나리오·클립 행은 다음 실행에서 덮인다** — 그것이 위 선택의 대가다.
+두 표 모두 **선택의 키가 되는 열은 갱신 대상에서 빼** 두었다(`learning_scenarios` 의
+`category`·`level` · `shadowing_items` 의 `level`) — 각 상수 위 주석이 그 근거를 갖는다.
 
 주의: 적용 추적은 파일명 기준이다 — pre-release 중 001을 재작성한 경우 이
 스크립트는 (파일명이 그대로라) 재적용하지 않으므로 dev DB를 drop/재생성해야
@@ -25,7 +27,9 @@ forever): `docs/design/2026-09-07-scenario-and-drill-turns-design.md` §7
 from __future__ import annotations
 
 import asyncio
+from decimal import Decimal
 from pathlib import Path
+from typing import NamedTuple
 from uuid import UUID
 
 import asyncpg
@@ -79,6 +83,69 @@ SEED_SCENARIOS: list[tuple[UUID, str, str, str, str]] = [
         "A2",
         "Tonight's plans at home",
         "You are a housemate talking with the learner about tonight.",
+    ),
+]
+
+# 쉐도잉 클립 (`TASK-45` AC#8 · **캡틴 결정 25**). 표를 만들어도 0행이면 쉐도잉은 동작하지
+# 않는다 — 설계서 `2026-09-08-shadowing-task-design.md` 약점 2 가 그것을 지목했고 결정 25 가
+# 시드로 닫았다.
+#
+# ⛔ **외부 콘텐츠를 긁어오지 않는다.** PRD §5 가 자동 수집을 비범위로 두고 §7 이 *"외부 영상은
+# 메타데이터·링크만 보관하고 사용자가 선택한 콘텐츠만 과제로 사용한다"* 고 정했다. 그래서
+# 결정 25 가 고른 형태는 **학습자 수준에 맞춰 직접 작성한 자체 문장**이고 `source_url`은
+# **null**이다(011 의 그 컬럼 주석: null = 내장·직접 입력 자료). 학습자가 링크를 넣는 경로는
+# 이 상수가 아니라 `TASK-10` 의 진입점 설계가 소유한다.
+#
+# ⛔ `level`을 바꾸지 마라 — `SEED_SCENARIOS` 의 같은 경고와 **같은 이유이고 더 조용하다**:
+# `_ATTACH_SHADOWING_CLIP_SQL` 이 `users.current_level`(=`A2`)로 좁힌 뒤 **없으면 가장 이른
+# 행으로 폴백한다.** 즉 수준이 어긋나도 세션은 열리고 아무 것도 실패하지 않는다.
+# `tests/unit/test_shadowing_seed.py` 가 그 침묵을 깨는 단정을 갖는다.
+#
+# **문구가 따른 학습자 프로필(h-doc) 규약 셋**: 단문·단일 절 · 난이도 상향 경로의 첫 칸(일상)에
+# 머무른다 · **목표 수준(AWS 보고) 문형을 쓰지 않는다.** 담화 표지(`First` · `Then` ·
+# `After that`)를 얹은 것은 규약이 아니라 판단이다 — 쉐도잉은 학습자가 짓지 않은 문장을 따라
+# 읽는 것이므로, 아직 스스로 만들지 못하는 **발화 순서**를 발판으로 주는 값어치가 있다.
+#
+# ⚠️ **`clip_end_sec` 는 실측 낭독 길이가 아니다 — 발명을 명시한다.** 자체 문장이라 출처 오디오가
+# 없어서 잴 대상이 아직 없다. 그래서 **PRD §7 의 하한 30초**를 그대로 썼다(요구사항 값이고 내가
+# 고른 숫자가 아니다). TTS 로 실물 오디오를 만드는 턴에 **실측으로 고친다.**
+#
+# **분량은 늘리지 않는다** — 결정 25 가 *"학습 1회가 성립하는 최소"* 로 못 박았다. 선택 절이
+# `limit 1`이므로 행을 늘려도 첫 행만 쓰인다: 늘리는 것은 죽은 데이터를 만드는 것이다.
+
+
+class ShadowingSeedClip(NamedTuple):
+    """시드 클립 1행. **필드 순서가 아래 insert 의 컬럼 순서와 묶여 있다**(`*clip`으로 넘긴다).
+
+    ⚠️ **`SEED_SCENARIOS`가 평범한 5원소 튜플인데 이쪽만 `NamedTuple`인 것은 의도다.** 그 표는
+    다섯 값이 전부 서로 다른 뜻의 문자열이라 위치로 읽히는데, 이쪽에는 **뒤바꿔도 타입이 같은
+    이웃 둘**(`clip_start_sec`·`clip_end_sec`)이 있다. 이름이 없으면 순서를 뒤집은 시드가
+    `clip_end_sec > clip_start_sec` CHECK 에서야 발각되고, 그것도 값에 따라 조용히 통과한다.
+    """
+
+    id: UUID
+    source_title: str
+    source_url: str | None
+    transcript: str
+    clip_start_sec: Decimal
+    clip_end_sec: Decimal
+    level: str
+
+
+SEED_SHADOWING_ITEMS: list[ShadowingSeedClip] = [
+    ShadowingSeedClip(
+        id=UUID("00000000-0000-0000-0000-000000000201"),
+        source_title="A morning routine before work",
+        source_url=None,
+        transcript=(
+            "I usually wake up at seven. First, I check my phone for messages. "
+            "Then I make a cup of coffee. After that, I get ready for work. "
+            "The bus stop is close to my house. "
+            "It takes about thirty minutes to get to the office."
+        ),
+        clip_start_sec=Decimal("0.00"),
+        clip_end_sec=Decimal("30.00"),
+        level="A2",
     ),
 ]
 
@@ -148,6 +215,30 @@ async def seed(conn: asyncpg.Connection) -> None:
             level,
             title,
             prompt_template,
+        )
+    for clip in SEED_SHADOWING_ITEMS:
+        await conn.execute(
+            """
+            insert into shadowing_items
+                (id, source_title, source_url, transcript,
+                 clip_start_sec, clip_end_sec, level)
+            values ($1, $2, $3, $4, $5, $6, $7)
+            -- `SEED_SCENARIOS` 와 **같은 규약**이다 (결정 14 · 설계서 §7 유도 8): 고정 id +
+            -- `do update`. `do nothing` 이면 위 상수를 고쳐도 이미 시드된 행이 영원히 낡은 값으로
+            -- 남는다 — 2026-09-07 에 시나리오 3행에서 실제로 그랬다.
+            -- ⛔ `level` 은 갱신 대상에서 뺀다. 그것은 클립 선택의 키이고
+            -- (`_ATTACH_SHADOWING_CLIP_SQL` 이 `users.current_level` 로 좁힌다), 여기서 덮으면
+            -- 학습자 수준과 클립 값역의 관계를 시드가 조용히 바꾼다.
+            on conflict (id) do update
+               set source_title = excluded.source_title,
+                   source_url = excluded.source_url,
+                   transcript = excluded.transcript,
+                   clip_start_sec = excluded.clip_start_sec,
+                   clip_end_sec = excluded.clip_end_sec
+            """,
+            # `ShadowingSeedClip` 의 필드 순서가 위 컬럼 순서다 — 그 묶음의 근거는 그 클래스의
+            # docstring 이 갖는다. 순서를 뒤집으면 재시드 테스트가 `transcript` 대조에서 잡는다.
+            *clip,
         )
 
 
