@@ -65,12 +65,22 @@ FAST_CONNECT_TIMEOUT = 0.1
 FAST_DRAIN_TIMEOUT = 0.05
 
 
-def _settings(*, voice_adapter: str) -> Settings:
-    """자격증명·DSN을 실제로 쓰지 않는 Settings 인스턴스 (팩토리 분기 검증용)."""
+def _settings(*, voice_adapter: str, **overrides) -> Settings:
+    """자격증명·DSN을 실제로 쓰지 않는 Settings 인스턴스 (팩토리 분기 검증용).
+
+    ⛔ `_env_file=None` — 이것 없이는 `app/backend/.env`가 이 인스턴스를 먹인다 (TASK-35).
+    `env_file=".env"`는 **프로세스 cwd 기준**이고 게이트는 `app/backend`에서 돌며 그 파일이
+    실재한다. ⚠️ `.env.example` 첫 줄이 *"Copy this file to app/backend/.env"*이므로
+    **표준 온보딩이 그 창을 연다.**
+    """
     return Settings(
+        # `ty`(alpha)는 pydantic-settings가 런타임에 합성하는 `__init__`을 모델링하지
+        # 못한다 — 같은 이유의 억제가 이 리포에 이미 있다(`missing-argument`).
+        _env_file=None,  # ty: ignore[unknown-argument]
         database_url="postgresql://unused/unused",
         aws_region="us-west-2",
         voice_adapter=voice_adapter,
+        **overrides,
     )
 
 
@@ -923,7 +933,15 @@ def test_factory_forwards_the_drill_settings_to_the_assembled_prompt():
 # **기본값**이 실제로 대화에 닿는지이므로, 값을 주면 위 테스트와 같은 것을 두 번 재게 된다.
 # ⚠️ H-5 tripwire는 그대로 살아 있다 — 「질문 5개·`drill_count=3`이면 3개만 열거」는
 # `tests/unit/test_nova.py`가 값을 **명시 주입**해 계속 단정한다.
-def test_the_default_drill_count_lists_every_question_a_plan_can_carry():
+# ⛔ **주변 환경 격리가 이 테스트의 전제조건이다** (TASK-35). 값을 주지 않는 것이 요점이라
+# **주변 환경이 그 자리를 대신 채울 수 있다** — 창이 둘이고 `_settings`의 `_env_file=None`이
+# `.env`를, 아래 `delenv`가 셸을 닫는다. 실측(2026-09-08): `DRILL_COUNT=3`으로 이 테스트를
+# 돌리면 열거가 3개로 줄어 **red 가 났다.** ⚠️ 그때 `.env`에 `DRILL_COUNT=9`를 넣은 실험은
+# **통과했다 — 9 > 5라서 운으로 통과한 것**이고 창이 닫혀 있다는 증거가 아니었다.
+def test_the_default_drill_count_lists_every_question_a_plan_can_carry(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.delenv("DRILL_COUNT", raising=False)
     adapter = create_voice_adapter(
         _settings(voice_adapter=NOVA_ADAPTER),
         plan=_plan_instruction(),

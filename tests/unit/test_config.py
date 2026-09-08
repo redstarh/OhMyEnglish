@@ -67,6 +67,13 @@ def _stub_boto3(monkeypatch) -> None:
     monkeypatch.setattr(config_module.boto3, "client", lambda *args, **kwargs: object())
 
 
+# TASK-35 — 기본값을 재는 단정을 **주변 환경에서 격리한다.** 창이 둘이고 기전이 다르다:
+#   ① `.env` 파일: `model_config`의 `env_file=".env"`가 **프로세스 cwd 기준**이고 게이트는
+#      `app/backend`에서 도므로 `app/backend/.env`로 해석된다 — 그 파일이 실재한다(실측 1.6k).
+#      ⛔ `.env.example` 첫 줄이 *"Copy this file to app/backend/.env"*이고 그 파일에 이제
+#      `DRILL_*`·`SHADOWING_*`이 들어 있다 → **표준 온보딩이 테스트가 읽는 파일에 그 키를 심는다.**
+#   ② 셸 환경변수: 실제 환경변수가 `.env`를 **앞지른다**.
+# `_env_file=None`이 ①을 닫는다. ②는 `_no_settings_env`가 닫는다.
 def _settings_with_credentials(
     key_id: str | None = "AKIADOTENV",
     secret: str | None = "dotenv-secret",
@@ -74,6 +81,9 @@ def _settings_with_credentials(
     bearer: str | None = None,
 ) -> Settings:
     return Settings(
+        # `ty`(alpha)는 pydantic-settings가 런타임에 합성하는 `__init__`을 모델링하지
+        # 못한다 — 같은 이유의 억제가 이 리포에 이미 있다(`missing-argument`).
+        _env_file=None,  # ty: ignore[unknown-argument]
         database_url="postgresql://fake:fake@localhost/fake",
         aws_region="us-west-2",
         aws_access_key_id=key_id,
@@ -251,7 +261,7 @@ def test_bedrock_client_fails_fast_when_no_credentials_of_any_kind(monkeypatch):
 # 상한(`min(질문 수, drill_count)`)이고 `drill_turns_min`이 드릴당 exchange 수다.
 
 
-def test_drill_settings_default_to_four_and_five():
+def test_drill_settings_default_to_four_and_five(_no_settings_env):
     """기본값은 요구사항이 명시한 값(드릴마다 4턴 이상)과 **캡틴 결정 17**(드릴 수 상한 5).
 
     ⚠️ `drill_count` 기본값은 **3에서 5로 올라갔다**. 지시문이 `questions[:drill_count]`만
@@ -285,6 +295,56 @@ def test_drill_count_rejects_zero_at_startup():
         )
 
 
+# ── 기본값 격리 (TASK-35) ────────────────────────────────────────────────────
+#
+# ⛔ **가장 값있는 단정은 인스턴스가 아니라 클래스를 읽는다.** 우리가 잠그려는 것은
+# 「pydantic이 무엇을 적용했나」가 아니라 **「선언된 기본값이 무엇인가」**이고, 그것은
+# `Settings.model_fields[…].default`에 있다 — **환경변수도 `.env`도 그 값에 닿을 수 없다.**
+# 실측(2026-09-08): `DRILL_COUNT=9 SHADOWING_REPEAT_COUNT=7 SHADOWING_PLAYBACK_RATE=1.75`인
+# 프로세스에서 선언값은 `5·1·1.0` 그대로였고 **인스턴스는 `9·7·1.75`로 오염됐다.**
+# → 그래서 아래 `test_declared_defaults_…`가 **무력화할 수 없는 tripwire**이고, 인스턴스
+#   테스트는 "pydantic이 그 값을 실제로 적용한다"를 따로 본다(그쪽은 격리가 필요하다).
+#
+# **왜 전역 autouse로 환경을 비우지 않았나**: `database_url`도 `Settings` 필드라서 전역으로
+# 지우면 `tests/conftest.py`의 DB 픽스처가 읽는 `DATABASE_URL`까지 사라진다. 격리는 그 값을
+# 재는 테스트에만 국소로 건다.
+
+# 이 목록을 손으로 유지하지 않는다 — 필드가 늘면 자동으로 따라온다(AC#3의 구조적 답).
+# `case_sensitive: False`(실측 `model_config`)이므로 대소문자 무관하게 지운다.
+_SETTINGS_FIELD_NAMES = frozenset(Settings.model_fields)
+
+
+@pytest.fixture
+def _no_settings_env(monkeypatch):
+    """`Settings` 필드를 먹일 수 있는 셸 환경변수를 **이 테스트 동안만** 지운다.
+
+    ⛔ `database_url`은 남긴다 — 지우면 DB 픽스처가 죽는다(위 주석). 기본값을 재는 쪽은
+    그 값을 인자로 명시하므로 남겨도 단정에 영향이 없다.
+    """
+    for key in list(os.environ):
+        if key.lower() in _SETTINGS_FIELD_NAMES and key.lower() != "database_url":
+            monkeypatch.delenv(key, raising=False)
+
+
+def test_declared_defaults_are_immune_to_the_environment():
+    """⛔ **무력화할 수 없는 tripwire** — 클래스의 선언값을 읽으므로 환경이 닿지 않는다.
+
+    이 단정이 깨지는 유일한 경로는 **누가 `config.py`의 기본값을 바꾸는 것**이고, 그것이
+    정확히 우리가 알고 싶은 사건이다. 값의 근거는 각 필드 주석이 소유한다 —
+    `drill_turns_min=4`(요구사항) · `drill_count=5`(캡틴 결정 17) ·
+    쉐도잉 셋(캡틴 결정 6의 값역 + 그 항등원 · 설계서 유도 3).
+    """
+    declared = {name: field.default for name, field in Settings.model_fields.items()}
+
+    assert declared["drill_turns_min"] == 4
+    assert declared["drill_count"] == 5
+    assert declared["shadowing_playback_rate"] == 1.0
+    assert declared["shadowing_repeat_count"] == 1
+    assert declared["shadowing_audio_root"] == Path("../../assets/audio")
+    # 모델 ID도 같은 부류다 — `test_claude_schema.py`가 이 값을 리터럴로 단정한다.
+    assert declared["claude_model_id"] == "us.anthropic.claude-opus-5"
+
+
 # TASK-45 — 쉐도잉 설정값 3종 (설계서 `2026-09-08-shadowing-task-design.md` §7.1·§7.2).
 # ⛔ **기본값은 값역의 「항등원」이다** — 캡틴 결정 6은 **값역만** 지정했고 기본값을 말하지
 #    않았다(설계서 유도 3). 관측 없이 중간값을 고르면 그 숫자가 코드에 굳는다. `1.0`배·`1`회는
@@ -293,7 +353,7 @@ def test_drill_count_rejects_zero_at_startup():
 #    "통과 문턱만 바꾸는 노브"가 아니라 내리면 실제 연습량이 함께 줄어든다.
 
 
-def test_shadowing_settings_default_to_the_range_identities():
+def test_shadowing_settings_default_to_the_range_identities(_no_settings_env):
     """기본값이 값역의 항등원이다 — `1.0`배 · `1`회. 설정 도입이 동작을 바꾸지 않는다."""
     settings = _settings_with_credentials()
 
@@ -301,7 +361,7 @@ def test_shadowing_settings_default_to_the_range_identities():
     assert settings.shadowing_repeat_count == 1
 
 
-def test_shadowing_audio_root_defaults_outside_the_backend_tree():
+def test_shadowing_audio_root_defaults_outside_the_backend_tree(_no_settings_env):
     """⚠️ 기본값이 `../../assets/audio`인 것은 편의가 아니라 **추적 회피**다 (설계서 §4.3).
 
     `.gitignore`의 `assets/audio/`는 슬래시를 포함해 **리포루트에만** 앵커되므로

@@ -23,7 +23,13 @@ from uuid import UUID
 
 import asyncpg
 import pytest
-from conftest import backdate_session, default_finding, job_row, plan_json
+from conftest import (
+    backdate_session,
+    default_finding,
+    job_row,
+    pin_settings_env,
+    plan_json,
+)
 
 from app import db as db_module
 from app.api import main as main_module
@@ -464,6 +470,10 @@ def app_settings(monkeypatch: pytest.MonkeyPatch, test_database: str):
     ) -> None:
         monkeypatch.setenv("DATABASE_URL", test_database)
         monkeypatch.setenv("AWS_REGION", "us-west-2")
+        # ⛔ 나머지 `Settings` 키를 비운다 (TASK-35) — `ws_app`과 같은 이유·같은 형태다.
+        # 이 팩토리는 앱의 `get_settings()`를 지나므로 `_env_file=None`을 쓸 수 없다.
+        # 아래에서 `WORKER_ENABLED`를 직접 심으므로 그 셋을 `keep`으로 남긴다.
+        pin_settings_env(monkeypatch, keep=("DATABASE_URL", "AWS_REGION", "WORKER_ENABLED"))
         monkeypatch.setenv("WORKER_ENABLED", "true" if worker_enabled else "false")
         monkeypatch.setattr(db_module, "_pool", None)
         # 실물 Bedrock 클라이언트를 만들지 않는다(자격증명·실제 호출 금지).

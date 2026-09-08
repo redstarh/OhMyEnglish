@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import sys
 from collections.abc import AsyncIterator, Callable, Sequence
 from datetime import UTC, datetime, timedelta
@@ -47,6 +48,7 @@ from app.api.main import app
 # 소유자는 `app.audio_gateway.fixtures` 하나다: 스텁이 재생하는 문장과 테스트가
 # 기대하는 문장이 갈라지는 경로를 아예 만들지 않기 위해 여기서는 재수출만 한다.
 from app.audio_gateway.fixtures import FIXTURE_TURNS as FIXTURE_TURNS
+from app.config import Settings
 from app.services.chronic import ChronicMetric
 from app.services.jobs import (
     JOB_TYPE_ANALYZE,
@@ -72,6 +74,63 @@ if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
 from db_utils import recreate_database  # noqa: E402
+
+# ── 주변 환경 격리 (TASK-35) ──────────────────────────────────────────────────
+#
+# `Settings`는 `env_file=".env"`(프로세스 cwd 기준 → 게이트는 `app/backend`에서 도므로
+# **`app/backend/.env`**)와 **셸 환경변수** 둘 다에서 값을 받는다. 그래서 「기본 설정에서
+# 무엇이 일어나나」를 재는 테스트가 **개발자의 로컬 환경에 열려 있다.**
+# ⛔ 이것은 가정된 위험이 아니다 — `.env.example` 첫 줄이 *"Copy this file to
+# app/backend/.env"*이고 그 파일에 `DRILL_*`·`SHADOWING_*`이 들어 있어 **표준 온보딩이
+# 그 창을 연다.** 실측(2026-09-08): 그 파일에 `CLAUDE_MODEL_ID`를 심으면
+# `test_claude_schema.py`가, 셸에 `DRILL_COUNT=3`을 두면 `test_gateway.py`·`test_ws.py`가 깨졌다.
+#
+# 앱의 `get_settings()`를 지나는 통합 테스트는 `_env_file=None`을 쓸 수 없다 — **앱이 자기
+# 설정을 스스로 읽는다.** 그래서 환경변수를 **지우는 것으로는 부족하다**: 지우면 `.env` 파일이
+# 그 자리를 대신 채운다(실측 — 지우기만 했을 때 `test_ws`가 오염된 `.env`로 계속 깨졌다).
+# ⛔ **선언된 기본값으로 못 박는다.** 우선순위가 `init kwargs > 환경변수 > .env`이므로
+# 환경변수에 기본값을 심으면 **두 창이 한 번에 닫힌다.**
+# 목록을 손으로 유지하지 않는다 — `Settings`의 필드에서 유도하므로 필드가 늘면 자동으로 따라온다.
+_SETTINGS_ENV_NAMES = frozenset(name.lower() for name in Settings.model_fields)
+
+
+def _declared_default_as_env(name: str) -> str | None:
+    """그 필드의 **선언된 기본값**을 환경변수 문자열로. 못 박을 수 없으면 `None`.
+
+    못 박지 않는 것 둘: **필수 필드**(`database_url` — 기본값이 없다)와 **기본값이 `None`인
+    필드**(자격증명 넷 — `"None"` 문자열을 심으면 그것이 값이 된다).
+    """
+    field = Settings.model_fields[name]
+    default = field.default
+    if default is None or repr(default) == "PydanticUndefined":
+        return None
+    if isinstance(default, bool):  # `str(False)`는 `"False"` — pydantic이 파싱한다
+        return "true" if default else "false"
+    return str(default)
+
+
+def pin_settings_env(monkeypatch: pytest.MonkeyPatch, *, keep: Sequence[str] = ()) -> None:
+    """`Settings`가 읽는 환경을 **선언된 기본값**으로 못 박는다 (`keep`은 건드리지 않는다).
+
+    이것이 있어야 「기본 설정에서 무엇이 일어나나」를 재는 통합 테스트가 개발자의
+    `app/backend/.env`·셸과 무관해진다 (TASK-35).
+
+    `keep`은 **호출자가 직접 `setenv`로 심는 키**다 — 못 박으면 픽스처가 자기 구성을 잃는다
+    (테스트 DB DSN 등). ⚠️ `model_config`의 `case_sensitive`가 `False`라 대소문자 무관하다.
+    """
+    kept = {name.lower() for name in keep}
+    targets = _SETTINGS_ENV_NAMES - kept
+    # ⚠️ **먼저 실재하는 키를 대소문자 무관하게 지운다.** `case_sensitive`가 `False`라
+    # `Drill_Count` 같은 변형도 값을 먹이는데, `delenv(NAME.upper())`만으로는 그것이 남는다.
+    for key in list(os.environ):
+        if key.lower() in targets:
+            monkeypatch.delenv(key, raising=False)
+    # 그 뒤 못 박을 수 있는 것만 표준 대문자 이름으로 심는다. 지우기만 하면 **`.env` 파일이
+    # 그 자리를 대신 채운다** — 그것이 이 함수가 「지우기」가 아니라 「못 박기」인 이유다.
+    for name in sorted(targets):
+        pinned = _declared_default_as_env(name)
+        if pinned is not None:
+            monkeypatch.setenv(name.upper(), pinned)
 
 
 @pytest.fixture(scope="session")

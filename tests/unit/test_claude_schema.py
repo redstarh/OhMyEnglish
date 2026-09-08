@@ -272,7 +272,15 @@ class _StubBedrockRuntime:
 
 
 def _test_settings() -> Settings:
+    # ⛔ `_env_file=None` — 이것 없이는 `app/backend/.env`가 이 인스턴스를 먹인다 (TASK-35).
+    # 실측(2026-09-08): 그 파일에 `CLAUDE_MODEL_ID=bogus-from-dotenv`를 넣으면 아래
+    # `test_bedrock_client_sends_the_messages_api_body_for_the_configured_model`이 **깨졌다.**
+    # ⚠️ `.env.example` 첫 줄이 *"Copy this file to app/backend/.env"*이므로 표준 온보딩이
+    # 그 창을 연다 — 즉 이것은 가정된 위험이 아니라 관측된 것이다.
     return Settings(
+        # `ty`(alpha)는 pydantic-settings가 런타임에 합성하는 `__init__`을 모델링하지
+        # 못한다 — 같은 이유의 억제가 이 리포에 이미 있다(`missing-argument`).
+        _env_file=None,  # ty: ignore[unknown-argument]
         database_url="postgresql://fake:fake@localhost/fake",
         aws_region="us-west-2",
     )
@@ -283,6 +291,10 @@ async def test_bedrock_client_sends_the_messages_api_body_for_the_configured_mod
 ):
     stub = _StubBedrockRuntime({"content": [{"type": "text", "text": '{"findings": []}'}]})
     monkeypatch.setattr(claude_client_module, "bedrock_client", lambda: stub)
+    # 창이 둘이다 — `_env_file=None`이 `.env`를, 이 한 줄이 **셸 환경변수**를 닫는다 (TASK-35).
+    # 아래 리터럴 단정이 재려는 것은 `Settings`의 **선언된 기본값**이고 운영자의 튜닝이 아니다.
+    # ⛔ 지우지 마라: 이 줄이 없으면 셸에 `CLAUDE_MODEL_ID`가 있는 개발자에게만 red 가 난다.
+    monkeypatch.delenv("CLAUDE_MODEL_ID", raising=False)
     settings = _test_settings()
 
     raw = await BedrockClaudeClient(settings).analyze("analyze this")

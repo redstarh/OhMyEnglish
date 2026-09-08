@@ -27,6 +27,7 @@ import asyncpg
 import httpx
 import pytest
 import pytest_asyncio
+from conftest import pin_settings_env
 from fastapi import FastAPI
 
 from app import db as db_module
@@ -119,6 +120,12 @@ def ws_app(monkeypatch: pytest.MonkeyPatch, test_database: str) -> Iterator[Fast
     monkeypatch.setenv("DATABASE_URL", test_database)
     monkeypatch.setenv("AWS_REGION", "us-west-2")
     monkeypatch.setenv("WORKER_ENABLED", "false")
+    # ⛔ 나머지 `Settings` 키를 비운다 (TASK-35). 이 앱은 자기 `get_settings()`를 읽으므로
+    # `_env_file=None`을 쓸 수 없다 → 환경변수 자체를 지운다. 실측(2026-09-08):
+    # 셸에 `DRILL_COUNT=3 DRILL_TURNS_MIN=99`를 두면
+    # `test_ws_records_the_expected_exchange_count_on_the_session`이 `297 == 12`로 깨졌다.
+    # 위 세 키는 이 픽스처가 직접 심으므로 `keep`으로 남긴다.
+    pin_settings_env(monkeypatch, keep=("DATABASE_URL", "AWS_REGION", "WORKER_ENABLED"))
     monkeypatch.setattr(db_module, "_pool", None)
     get_settings.cache_clear()
     yield create_app()
