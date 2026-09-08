@@ -1,10 +1,10 @@
 ---
 id: TASK-23
 title: '실행: 원격 저장소 연결 + 첫 푸시'
-status: Awaiting Decision
+status: In Progress
 assignee: []
 created_date: '2026-09-06 00:14'
-updated_date: '2026-09-08 22:19'
+updated_date: '2026-09-08 22:24'
 labels:
   - caps-req
 dependencies:
@@ -20,8 +20,8 @@ ordinal: 23000
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 PUBLIC 그대로 푸시할지 PRIVATE으로 바꾼 뒤 푸시할지 캡틴 확인을 받는다
-- [ ] #2 추적 제외가 제대로 걸려 있는지 확인 — .env 및 비밀값이 이력에 없는지 전체 이력을 검사
+- [x] #1 PUBLIC 그대로 푸시할지 PRIVATE으로 바꾼 뒤 푸시할지 캡틴 확인을 받는다
+- [x] #2 추적 제외가 제대로 걸려 있는지 확인 — .env 및 비밀값이 이력에 없는지 전체 이력을 검사
 - [ ] #3 git remote add 후 첫 푸시. remote가 붙으면 backlog의 remote_operations를 true로 되돌린다
 <!-- AC:END -->
 
@@ -35,6 +35,20 @@ ordinal: 23000
 선택지 셋 — 하나를 캡틴이 고르기 전에는 remote 를 붙이지 않음: ① 그때 비밀번호를 회전한다 ② git 이력을 재작성한다(⚠️ 결정 21 이 기각했음 — handoff·원장·설계서·pitfalls·결정 기록에 커밋 해시 인용이 수십 건이고 전부 무효가 됨) ③ 새 초기 커밋으로 스쿼시해 push 한다(이력을 버리는 대가).
 
 ⚠️ 백업이 없는 상태가 이어짐 — 로컬 단독임(결정 30 이 적은 그대로).
+
+2026-09-09 — 캡틴이 푸시를 승인함(「원격저장소는 이미 사전 승인했으니, 푸쉬해서 진행해」). Awaiting Decision → In Progress.
+
+AC#1 — PUBLIC 그대로 푸시로 확정. 결정 30 이 PUBLIC 유지를 정했고 이 승인이 push 를 열었음.
+
+AC#2 — 전체 이력 검사를 돌렸음 (팀리드 직접):
+· AWS 키 패턴: git log --all -G'AKIA[0-9A-Z]{16}' → 0건.
+· .env 커밋 이력: 없음. .env.example · app/frontend/.env.example 만 추적되고 그 안의 DATABASE_URL 은 postgresql://ohmy:ohmy@... 로 자리표시자임.
+· DB 비밀번호: 커밋 3건에 걸쳐 있음 — 7a5bfce(도입) → 44611e7(이관 시 수정) → f53bb51(오늘 제거). 즉 현재 트리는 깨끗하고 이력에는 남아 있음.
+
+⚠️ 노출 크기를 실측했음 — 예상보다 작음: Postgres 의 listen_addresses 가 localhost 이고 127.0.0.1·[::1] 에만 바인딩됨(lsof 확인). 즉 그 비밀번호는 이 머신에 셸 접근이 있는 사람에게만 쓸모가 있음. 공개의 한계 위험이 낮다는 뜻이고, 회전 면제(결정 41)의 대가가 그만큼 작음. ⛔ 다만 0 은 아님 — 값이 공개 색인에 남고 되돌려도 캐시에 남음.
+
+AC#3 — git remote add 완료(https://github.com/redstarh/OhMyEnglish.git). ls-remote 로 저장소가 실재하고 비어 있음을 확인함. ⛔ 첫 푸시는 인증에서 막혔음: gh 토큰 만료(gh auth status 가 invalid) · SSH 키가 GitHub 에 미등록(Permission denied (publickey)) · 키체인에 유효한 HTTPS 자격증명 없음(--dry-run 이 could not read Username). 사용자 인증이 선행이며 그것은 대리 실행 대상이 아님.
+⚠️ backlog 의 remoteOperations 는 푸시 성공까지 false 로 둠 — 인증이 안 되는 remote 를 켜면 backlog 명령이 매번 실패함.
 <!-- SECTION:NOTES:END -->
 
 ## Comments
