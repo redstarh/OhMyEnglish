@@ -285,6 +285,81 @@ def test_drill_count_rejects_zero_at_startup():
         )
 
 
+# TASK-45 — 쉐도잉 설정값 3종 (설계서 `2026-09-08-shadowing-task-design.md` §7.1·§7.2).
+# ⛔ **기본값은 값역의 「항등원」이다** — 캡틴 결정 6은 **값역만** 지정했고 기본값을 말하지
+#    않았다(설계서 유도 3). 관측 없이 중간값을 고르면 그 숫자가 코드에 굳는다. `1.0`배·`1`회는
+#    "설정이 생기는 것만으로 재생·연습량이 달라지지 않는 상태"라서 발명이 아니다.
+# ⚠️ `shadowing_repeat_count`는 **지시문을 바꾸는 값이다**(`drill_count`와 같은 부류) —
+#    "통과 문턱만 바꾸는 노브"가 아니라 내리면 실제 연습량이 함께 줄어든다.
+
+
+def test_shadowing_settings_default_to_the_range_identities():
+    """기본값이 값역의 항등원이다 — `1.0`배 · `1`회. 설정 도입이 동작을 바꾸지 않는다."""
+    settings = _settings_with_credentials()
+
+    assert settings.shadowing_playback_rate == 1.0
+    assert settings.shadowing_repeat_count == 1
+
+
+def test_shadowing_audio_root_defaults_outside_the_backend_tree():
+    """⚠️ 기본값이 `../../assets/audio`인 것은 편의가 아니라 **추적 회피**다 (설계서 §4.3).
+
+    `.gitignore`의 `assets/audio/`는 슬래시를 포함해 **리포루트에만** 앵커되므로
+    `app/backend/assets/audio/`는 **추적 대상이 된다** — 학습자 녹음이 git 에 들어간다.
+    이 단정이 무너지면 개인정보가 커밋된다.
+    """
+    settings = _settings_with_credentials()
+
+    assert settings.shadowing_audio_root == Path("../../assets/audio")
+    # 백엔드 트리 **안**을 가리키지 않는다 — 위 근거가 이 성질에 걸려 있다.
+    assert not (BACKEND_ROOT / settings.shadowing_audio_root).resolve().is_relative_to(BACKEND_ROOT)
+
+
+@pytest.mark.parametrize("rate", [0.49, 2.01])
+def test_shadowing_playback_rate_rejects_out_of_range_at_startup(rate: float):
+    """캡틴 결정 6의 0.5~2.0배가 **계약**이므로 기동 시점에 거부한다 (설계서 §7.2).
+
+    런타임에 조용히 잘리면 학습자가 들은 속도와 설정이 갈라진다.
+    """
+    with pytest.raises(pydantic.ValidationError):
+        Settings(
+            database_url="postgresql://fake:fake@localhost/fake",
+            aws_region="us-west-2",
+            shadowing_playback_rate=rate,
+        )
+
+
+@pytest.mark.parametrize("count", [0, 11])
+def test_shadowing_repeat_count_rejects_out_of_range_at_startup(count: int):
+    """같은 모양 — 캡틴 결정 6의 1~10회. 경계 **밖** 두 값을 함께 본다."""
+    with pytest.raises(pydantic.ValidationError):
+        Settings(
+            database_url="postgresql://fake:fake@localhost/fake",
+            aws_region="us-west-2",
+            shadowing_repeat_count=count,
+        )
+
+
+@pytest.mark.parametrize(("rate", "count"), [(0.5, 1), (2.0, 10)])
+def test_shadowing_range_endpoints_are_accepted(rate: float, count: int):
+    """⛔ 경계값은 **받는다** — 결정 6이 정한 것은 `0.5~2.0`·`1~10`이고 그 끝을 포함한다.
+
+    `gt`/`lt`를 잘못 쓰면 이 테스트만 깨진다(위 거부 테스트는 통과한 채로).
+    """
+    settings = _settings_with_credentials()
+    tuned = settings.model_copy(update={})  # 기본 인스턴스가 유효한 것을 먼저 확인한다
+    assert tuned is not None
+
+    accepted = Settings(
+        database_url="postgresql://fake:fake@localhost/fake",
+        aws_region="us-west-2",
+        shadowing_playback_rate=rate,
+        shadowing_repeat_count=count,
+    )
+    assert accepted.shadowing_playback_rate == rate
+    assert accepted.shadowing_repeat_count == count
+
+
 def test_credential_strings_isolated_to_config_module():
     """F5: 자격증명 문자열은 config.py 밖의 `app/` 코드에 등장하지 않는다."""
     for needle in ("AWS_BEARER", "AWS_SECRET_ACCESS_KEY", "AWS_ACCESS_KEY_ID"):

@@ -25,6 +25,7 @@ from __future__ import annotations
 import logging
 import os
 from functools import lru_cache
+from pathlib import Path
 
 import boto3
 from pydantic import Field
@@ -90,6 +91,29 @@ class Settings(BaseSettings):
     # ⚠️ **H-5는 그대로 닫혀 있다** — 운영자가 이 값을 낮추면 **열거와 기대값이 함께** 줄어드므로
     # 설정값이 여전히 대화를 바꾼다. 「통과 문턱만 바꾸는 노브」로 되돌아가지 않는다.
     drill_count: int = Field(default=5, ge=1)
+
+    # ── 쉐도잉 (`TASK-45` · 설계서 `2026-09-08-shadowing-task-design.md` §7.1) ──
+    #
+    # **새 설정 체계를 만들지 않고 이 클래스에 더한다.** 값역은 **캡틴 결정 6**이 지정했고
+    # (재생 0.5~2배 · 반복 1~10회) `ge`/`le`가 그것을 **기동 시점에** 거부한다 — pydantic이
+    # `Settings()` 구성에서 `ValidationError`를 던지고 `get_settings()`가 `@lru_cache`라
+    # 첫 호출(=앱 기동)에서 터진다. 런타임에 조용히 잘리지 않는 것이 계약이다(§7.2).
+    #
+    # ⛔ **기본값은 값역의 「항등원」이다 — 발명이 아니라 그 반대다** (설계서 유도 3).
+    # 캡틴은 **값역만** 정했고 기본값을 말하지 않았다. 관측 없이 중간값(예: 3회)을 고르면
+    # 그 숫자가 코드에 굳고, 나중에 "누가 3을 정했나"에 답할 사람이 없어진다. 값역의 최소는
+    # **"설정이 생기는 것만으로 동작이 달라지지 않는 상태"**라서 결정을 선점하지 않는다.
+    shadowing_playback_rate: float = Field(default=1.0, ge=0.5, le=2.0)
+    # ⚠️ **이것은 지시문을 바꾸는 값이다** — `drill_count`와 같은 부류이고 「통과 문턱만 바꾸는
+    # 노브」가 아니다. 코치 지시문이 "각 문장을 N회 따라 말하게 한다"로 이 값을 실으므로
+    # **내리면 실제 연습량이 함께 줄어든다.** 그것이 의도가 아니면 내리지 마라.
+    shadowing_repeat_count: int = Field(default=1, ge=1, le=10)
+    # 학습자 녹음 뿌리. 백엔드 cwd(`app/backend`) 기준 **상대경로**다 — `.env`와 같은 해석.
+    # ⛔ **기본값이 `../../`인 것은 편의가 아니라 추적 회피다** (설계서 §4.3 실측):
+    # `.gitignore`의 `assets/audio/`는 슬래시를 포함해 **리포루트에만** 앵커되므로
+    # `app/backend/assets/audio/`는 **추적 대상이 된다** → 학습자 녹음이 git 에 들어간다.
+    # 이 값을 백엔드 트리 안으로 옮기면 개인정보가 커밋된다.
+    shadowing_audio_root: Path = Path("../../assets/audio")
 
 
 @lru_cache
