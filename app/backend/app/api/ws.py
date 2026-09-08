@@ -273,11 +273,11 @@ async def session_socket(websocket: WebSocket) -> None:
 
     # 이 세션은 살아 있다 — 고아 세션 리퍼(I-4)가 닫아선 안 된다는 표시다. 세션 행 생성
     # **직후**, 다음 `await`보다 **앞**에서 등록하는 것이 계약이다: 바로 아래에서 pool acquire를
-    # await하는 것이 **말하기 네 개**(재료 조회 3 + 기대값 UPDATE 1)이고 **쉐도잉은 다섯**
-    # (클립 조회가 하나 더 붙는다)이므로(소진되면 길어진다) 등록을 그 뒤로 밀면 리퍼가 볼 수 있는
-    # 진짜 창이 열린다. ⚠️ 이 배치가 그 창을 늘려 왔다 — 그래서 등록이 앞에 있어야 한다는 근거가
-    # 약해지지 않고 강해졌다. (2026-09-09: 쉐도잉 경로가 다섯이 됐는데 이 수가 「네 개」로 낡아
-    # 있던 것을 리뷰가 잡았다 — 이 수는 위 배치의 근거로 쓰이는 문장이다.)
+    # **여러 번** await하므로(소진되면 길어진다) 등록을 그 뒤로 밀면 리퍼가 볼 수 있는 진짜 창이
+    # 열린다. 그 창은 기능이 붙을수록 늘어나므로 등록이 앞에 있어야 한다는 근거는 약해지지 않는다.
+    # ⚠️ **여기에 개수를 적지 않는다** — 이전 판이 「네 개」로 세어 뒀다가 쉐도잉 경로가 붙으며
+    # 낡았고(2026-09-09 리뷰가 잡았다), 그 수를 고치는 순간 결정 37 로 다시 낡았다. **근거는 개수가
+    # 아니라 「await 가 여럿이다」**이므로 세지 않는 서술이 옳다.
     # ⚠️ **"갓 만든 세션이 즉시 리핑된다"는 위험은 없다** — `started_at`이 `now()` 기본값이라
     # 나이가 0초이고 유예를 만족할 수 없다. 이 순서의 근거는 유예가 아니라 위의 await 창이다.
     # 해제는 어떤 경로로 끝나든 아래 `finally`가 한다.
@@ -294,9 +294,14 @@ async def session_socket(websocket: WebSocket) -> None:
         settings = get_settings()
         # 질문 수를 알아야 계산하므로 계획 조회 **뒤**다. 계획이 없으면 아무것도 쓰지 않는다 →
         # 컬럼이 null로 남고 그것이 「관측 대상 아님」이다(캡틴 결정 16).
-        await _record_drill_turns_or_continue(
-            pool, session_id, questions=questions, settings=settings
-        )
+        # ⛔ **쉐도잉 세션에는 쓰지 않는다** (캡틴 결정 37). 그 값은 **말하기 관측 지표**이고
+        # `TASK-36`(기대 exchange 상한이 10분 세션에서 실현 가능한지)이 읽는다 — 쉐도잉에 쓰면
+        # 아직 돌리지도 않은 관측이 오염된 데이터를 본다. null 이 「관측 대상 아님」을 뜻하는 것은
+        # 결정 16 이 이미 세운 계약이므로 여기서는 그 계약을 그대로 쓰는 것이다.
+        if not shadowing_requested:
+            await _record_drill_turns_or_continue(
+                pool, session_id, questions=questions, settings=settings
+            )
 
         try:
             adapter = create_voice_adapter(

@@ -756,6 +756,41 @@ async def test_ws_still_opens_a_speaking_session_without_the_mode(
     assert mode == "speaking"
 
 
+async def test_ws_does_not_record_the_exchange_count_for_a_shadowing_session(
+    ws_app: FastAPI,
+    db_pool: asyncpg.Pool,
+    seeded_fixed_user: UUID,
+    committed_clip: str,
+    seed_plan_for_session: Callable[..., Any],
+):
+    """⛔ **캡틴 결정 37** — `drill_turns_expected` 는 말하기 관측 지표다.
+
+    그 값은 **결정 16 이 만든 관측 지표**이고 `TASK-36`(기대 exchange 상한 20 이 10분 세션에서
+    실현 가능한지)이 읽는다. 쉐도잉 세션에 쓰면 **아직 돌리지도 않은 관측이 오염된 데이터를
+    보게 된다.** null 이 「관측 대상 아님」을 뜻하는 것은 결정 16 이 이미 세운 계약이므로,
+    쉐도잉에서 쓰지 않는 것이 그 계약을 그대로 쓰는 것이다.
+
+    ⚠️ **판별력을 위해 계획을 심는다** — 계획이 없으면 말하기 세션에서도 null 이라 아무것도 재지
+    못한다(바로 위 두 테스트가 그 두 경우를 각각 소유한다).
+    """
+    async with db_pool.acquire() as conn:
+        await seed_plan_for_session(conn, user_id=FIXED_USER_ID)
+
+    async with (
+        ws_app.router.lifespan_context(ws_app),
+        ASGIWebSocket(ws_app, query_string=b"mode=shadowing") as client,
+    ):
+        started = await client.receive_event()
+
+    assert started is not None
+    async with db_pool.acquire() as conn:
+        expected = await conn.fetchval(
+            "select drill_turns_expected from learning_sessions where id = $1",
+            UUID(started["session_id"]),
+        )
+    assert expected is None, "쉐도잉 세션에 말하기 관측 지표가 써져 TASK-36 이 오염된다"
+
+
 async def test_an_unknown_mode_is_warned_but_an_explicit_speaking_is_not(
     ws_app: FastAPI, seeded_fixed_user: UUID, caplog: pytest.LogCaptureFixture
 ):
