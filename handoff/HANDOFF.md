@@ -126,7 +126,7 @@ cd app/backend
 
 | # | 지표 | 기준값 (마감 시점에 직접 돌려 얻었다) |
 |--:|---|---|
-| 1 | `git rev-parse --short HEAD` | **`74a0097` 이상**(등호를 요구하지 않음 — `H-P`) · 추적된 미커밋 **0건** |
+| 1 | `git rev-parse --short HEAD` | **`33537ba` 이상**(등호를 요구하지 않음 — `H-P`) · 추적된 미커밋 **0건** |
 | 2 | 원장 집계 — `grep -h "^status:" backlog/tasks/*.md \| sort \| uniq -c` | 전체 **51** · Done **29** · To Do **16** · In Progress **1** · Awaiting Decision **5**. **다음은 `TASK-45` 의 남은 AC 넷임.** ⛔ `backlog task list --plain \| grep -c "^  TASK-"` 로 세지 마라 — 우선순위 라벨이 붙으면 `  [HIGH] TASK-N` 으로 출력돼 **5건이 빠진다**(실측 46 대 51) |
 | 3 | 게이트 (`app/backend` cwd) | **775 passed** · `ruff check` exit 0 · `ruff format --check` **33 files** · `ty check` exit 0 · 게이트 **밖** `ruff check ../../tests ../../scripts` **6 errors** · `ruff format --check ../../tests` **4 files** · `--check ../../scripts` **0** · 프론트 `npx tsc --noEmit`·`npx eslint app lib` 둘 다 exit 0 |
 | 4 | DB 상태 (읽기만) | `schema_migrations` = `001·003·004·005·006·007·009·010` · `review_tasks` **10행**(`done` 2 · `pending` 8) · `next_review_at` 있는 패턴 **8건** · **`shadowing_items` 표 없음**(011 미적용 — 의도한 상태임). ⚠️ **10행이 7행이 아닌 것이 정상임** — 010 이 접힌 단계와 발음 과제를 보존한 결과임. 줄어 있으면 그것이 회귀임 |
