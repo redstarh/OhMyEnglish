@@ -349,12 +349,20 @@ def build_system_prompt(
 def _pronunciation_tool_configuration() -> dict[str, Any]:
     """`promptStart.toolConfiguration`.
 
-    ⚠️ **스파이크가 실측한 것은 봉투 모양까지다** — `toolConfiguration` → `tools` →
-    `toolSpec` → `inputSchema.json`이 **문자열**이라는 것. **필드 구성은 실증되지 않았다**:
-    스파이크는 3필드(전부 required, `outcome` enum에 `pending` 없음)를 보냈고 우리는
-    4필드(required 2개, `pending` 포함)를 보낸다. 설계 §4.2를 따른 것이고 JSON Schema에서
-    더 느슨한 방향이라 거부될 근거는 없지만, **실물 왕복으로 확인한 적이 없다**
-    (그 차이는 `TASKS.md` A-3이 표로 기록한다).
+    ✅ **필드 구성이 2026-09-09에 실물로 확인됐다** (5차수 A-3 · 캡틴 결정 38로 승인된 실물
+    세션). 스파이크가 **이 모듈의 상수를 그대로 보내도록** 바꾼 뒤 1회 왕복했고, Nova가
+    4필드 스키마(required 2개, `pending` 포함)를 받아들여 `toolUse`를 냈다. 돌아온 payload는
+    `{"target_form": "...", "outcome": "pending"}`이고 **`pending`은 스파이크의 옛 3필드
+    스키마에 없던 값이다** — 즉 수락에 그치지 않고 실제로 쓰였다. 그 payload를
+    `parse_tool_payload`에 먹여 `PronunciationReport`가 나오는 것까지 확인했다.
+    ⚠️ **그 회차가 답하지 않은 것 하나**: `target_sound`가 `None`으로 왔는데 그것은 Nova의
+    거동이 아니라 **스파이크 프롬프트 탓이다** — 이 모듈의 시스템 프롬프트는 위(`:143`)에서
+    `Always include target_sound`를 요구하지만 스파이크 프롬프트는 요구하지 않는다.
+    앱 경로 세션에서 따로 관측한다(`TASK-13`).
+    이전 판이 이 자리에서 인용했던 `TASKS.md` A-3은 **결정 32로 아카이브됐다** — 지금 정본은
+    `docs/design/2026-09-08-tasks-md-archive.md` §A-3과 `tests/harness/runs/2026-09-09-run-5.md`다.
+    ⚠️ 실증된 것이 **봉투 모양**(`toolConfiguration` → `tools` → `toolSpec` →
+    `inputSchema.json`이 **문자열**)이라는 이전 서술은 그대로 참이고, 위가 그것을 넓힌 것이다.
 
     이름과 스키마의 소유자는 `app.models.pronunciation` 하나다. 여기서 문자열을 다시 적으면
     어댑터가 보내는 이름과 파서가 기다리는 이름이 갈라져 tool 이벤트가 조용히 버려진다.

@@ -223,6 +223,18 @@ null인 행은 **대답 없이 끝난 시도**다.
 **닫는 방법**: `spike_nova_protocol.py`의 `_PRONUNCIATION_TOOL_SCHEMA`를 앱 상수로 바꿔 1회 왕복한다.
 **Task 9(5차수 P9)가 이 확인을 포함해야 한다.**
 
+> ✅ **닫혔다 — 2026-09-09, `TASK-37` 5차수 · 캡틴 결정 38.** 위에 적힌 닫는 방법을 그대로 했다:
+> 스파이크가 `app.models.pronunciation`의 `PRONUNCIATION_TOOL_NAME`·
+> `PRONUNCIATION_TOOL_SCHEMA_JSON`을 그대로 보내게 바꾸고 `--wav p1m.wav --tools`로 1회 왕복했다.
+> **Nova가 4필드 스키마를 받아들여 `toolUse` 1건을 냈고** payload가
+> `{"target_form":"I think I found three very useful videos.","outcome":"pending"}`이다 —
+> **`pending`은 위 표의 「스파이크에 없던 값」이므로 수락에 그치지 않고 실제로 쓰였다.**
+> 그 payload를 `parse_tool_payload`에 먹여 `PronunciationReport`가 나오는 것까지 확인했다.
+> ⚠️ **위 표의 세 번째 행(시스템 프롬프트 차이)은 여전히 열려 있다** — 그 회차는 스파이크의
+> 5문장 프롬프트를 썼고 그래서 `target_sound`가 `None`으로 왔다. **그것은 Nova의 거동이 아니다**:
+> 앱 프롬프트는 `nova.py:143`에서 `Always include target_sound`를 요구한다. 앱 경로 세션의
+> 관측은 `TASK-13`이 소유한다. 실측 전문은 `tests/harness/runs/2026-09-09-run-5.md`다.
+
 ### A-4. 의도적 미충족 (요구사항 대비)
 
 | 요구사항 | 상태 |
