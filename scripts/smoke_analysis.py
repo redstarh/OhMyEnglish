@@ -280,14 +280,24 @@ async def main() -> int:
                 " where u.session_id = $1",
                 session_id,
             )
+            # `pattern_id`·`cycle_started_at`을 함께 읽는다 — 010부터 정체성이 자연키
+            # `(pattern_id, cycle_started_at, review_stage)`이고, 아래 단정이 그 키를 본다.
             review_rows = await conn.fetch(
-                "select rt.review_stage, rt.status from review_tasks rt "
+                "select rt.pattern_id, rt.cycle_started_at, rt.review_stage, rt.status "
+                "  from review_tasks rt "
                 "  join error_patterns p on p.id = rt.pattern_id "
                 " where p.user_id = $1",
                 user_id,
             )
         first_key = patterns_after_1[0]["pattern_key"] if len(patterns_after_1) == 1 else None
         second_prompt = claude.prompts[1] if len(claude.prompts) >= 2 else None
+
+        # 010부터 `review_tasks` 진단에 **사이클 키**가 필요하다 — 사다리가 쌓이면
+        # `review_stage`만으로는 어느 사이클의 몇 단계인지 읽을 수 없다. 두 단정과 아래
+        # 출력이 같은 표현을 쓰므로 한 곳에서 만든다.
+        review_detail = [
+            (r["cycle_started_at"], r["review_stage"], r["status"]) for r in review_rows
+        ]
 
         print("[4/4] 단정 검사")
         checks = [
@@ -341,11 +351,38 @@ async def main() -> int:
                 pattern is not None and pattern["next_review_at"] is not None,
                 f"실제 next_review_at={pattern['next_review_at'] if pattern else 'N/A'}",
             ),
+            # ⚠️ **이전 판의 「패턴당 0~1행」 단정은 010 이 폐기했다** (`TASK-43` · 코드 리뷰
+            # HIGH-1). 재계산이 「전부 지우고 1행」에서 **자연키 upsert + 사다리 보존**으로
+            # 바뀌었으므로 완주한 사이클은 `done` 세 행을 남기고 재발은 새 사이클을 연다 —
+            # 행 수 상한(`<= len(patterns)`)은 **정상 동작에서 뒤집힌다.**
+            # ⛔ 행 수로 멱등을 재려 하지 마라. 010 이 실제로 보장하는 것은 아래 둘이다.
             Check(
-                "review_tasks가 패턴당 0~1행이다",
-                len(review_rows) <= len(patterns),
-                f"실제 {len(review_rows)}행 / 패턴 {len(patterns)}개: "
-                f"{[(r['review_stage'], r['status']) for r in review_rows]!r}",
+                "review_tasks 의 자연키가 중복되지 않는다 (사이클 × 단계)",
+                len(
+                    {
+                        (r["pattern_id"], r["cycle_started_at"], r["review_stage"])
+                        for r in review_rows
+                    }
+                )
+                == len(review_rows),
+                f"실제 {len(review_rows)}행: {review_detail!r}",
+            ),
+            # 사다리는 `fold_stages` 가 `stage=1` 부터 `+1` 로만 append 하므로 한 사이클에
+            # **열린 단계가 최대 하나**다. 이것은 유일키가 아니라 **앱 로직**이 보장하는 것이라
+            # DB 가 잡아 주지 않는다 — 그래서 스모크가 볼 값어치가 있다.
+            Check(
+                "사이클마다 열린(pending) 단계가 최대 하나다",
+                all(
+                    sum(
+                        1
+                        for r in review_rows
+                        if (r["pattern_id"], r["cycle_started_at"]) == key
+                        and r["status"] == "pending"
+                    )
+                    <= 1
+                    for key in {(r["pattern_id"], r["cycle_started_at"]) for r in review_rows}
+                ),
+                f"실제 {review_detail!r}",
             ),
             # 재시도 판정은 **모델 판단**이라 0건일 수 있다 — 그것을 실패로 만들지 않는다.
             # 값역만 본다: 규격 밖 outcome이 저장됐다면 경계 검증이 뚫린 것이다.
@@ -373,7 +410,7 @@ async def main() -> int:
             )
         print(f"pattern_attempts: {[r['outcome'] for r in attempt_rows]!r}")
         print(
-            f"review_tasks: {[(r['review_stage'], r['status']) for r in review_rows]!r} · "
+            f"review_tasks: {review_detail!r} · "
             f"next_review_at={pattern['next_review_at'] if pattern else 'N/A'}"
         )
 

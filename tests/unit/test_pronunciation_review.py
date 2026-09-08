@@ -131,10 +131,13 @@ async def _pattern_row(conn: asyncpg.Connection, pattern_id: UUID) -> asyncpg.Re
     return row
 
 
+# 010부터 사다리 전체가 남으므로 `cycle_started_at`을 `order by`에 먼저 둔다 — 사이클이 둘
+# 이상이면 `review_stage`만으로는 순서가 정해지지 않아 단정이 조용히 흔들린다(`TASK-43`).
 async def _task_rows(conn: asyncpg.Connection, pattern_id: UUID) -> list[asyncpg.Record]:
     return await conn.fetch(
-        "select review_stage, status, due_at, scenario_context, task_type from review_tasks "
-        "where pattern_id = $1 order by review_stage",
+        "select review_stage, status, due_at, completed_at, cycle_started_at, "
+        "scenario_context, task_type from review_tasks "
+        "where pattern_id = $1 order by cycle_started_at, review_stage",
         pattern_id,
     )
 
@@ -432,7 +435,10 @@ async def test_record_attempt_refreshes_the_review_state(db_conn: asyncpg.Connec
     after = (await _pattern_row(db_conn, pattern_id))["next_review_at"]
     assert after is not None
     assert after > before  # 재계산이 실제로 돌았다
-    assert _stages(await _task_rows(db_conn, pattern_id)) == [(2, "pending")]
+    # 010부터 접힌 1단계가 이력으로 남는다 — **발음 복습 과제도 히스토리에 담긴다**는 뜻이고,
+    # 그것이 `TASK-43` 이 자매 설계에서 받은 요구다(`review_tasks` 에 새 컬럼을 두지 않고
+    # `pattern_id → category` 로 발음임을 유도한다). 이전 판은 `[(2,"pending")]`이었다.
+    assert _stages(await _task_rows(db_conn, pattern_id)) == [(1, "done"), (2, "pending")]
 
 
 # 수렴 경로(대답 없이 끝난 시도를 `incorrect`로 닫는 것)도 예정일을 만든다.

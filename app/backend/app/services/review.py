@@ -37,10 +37,22 @@
 간격 연산은 `timedelta`라 타임존과 무관하다 — 달력 날짜를 쓰는 곳은 이 모듈에 없다
 (만성 지표의 "재발 일수"가 그 경계를 갖고 `services/chronic.py`가 소유한다).
 
-`review_tasks`는 패턴당 **0행 또는 1행**이다. 재계산은 그 패턴의 행을 전부 지운 뒤 현재
-상태 1행을 넣는다 — `unique(pattern_id, review_stage)`와 맞물리는 유일한 형태이고, 지운
-이력이 손실이 아닌 근거는 완주·재발 여부가 `pattern_attempts`·`error_occurrences`에서
-언제든 다시 계산된다는 것이다 (캡틴 결정 2026-09-03).
+**`review_tasks`는 이력이다 — 지우지 않고 자연키로 upsert한다** (`TASK-43`, 마이그레이션 010,
+설계서 `2026-09-08-review-task-history-design.md` §2.2). 정체성은
+`(pattern_id, cycle_started_at, review_stage)`이고 재계산이 같은 사실에 같은 행으로 닿는다.
+
+⛔ **뒤집힌 규약이다.** 이전 판은 "패턴당 0행 또는 1행이고 재계산은 그 패턴의 행을 전부 지운 뒤
+현재 상태 1행을 넣는다"였다(캡틴 결정 2026-09-03). **그 결정의 근거는 파생값에 대해서는 지금도
+참이다** — 완주·재발 여부는 `pattern_attempts`·`error_occurrences`에서 언제든 다시 계산된다.
+바뀐 것은 그 근거가 **닿지 않는 값 세 개**를 분리했다는 것이다: `id`(화면·API가 과제를 가리키는
+손잡이) · `created_at` · 학습자가 손으로 만든 상태. 삭제하면 이 셋이 매번 새로 발급되거나
+사라진다 — 접힌 중간 단계와 끊긴 사이클도 흔적 없이 사라져 히스토리 화면을 그릴 근거가 없다.
+
+`recompute`의 사후조건: **현재 사이클 행은 사다리와 정확히 일치하고, 과거 사이클 행은 파생값이
+덮이지 않는다.** 과거 사이클에서 종료 상태를 못 받은 `pending` 행 하나만 `abandoned`로 내려가고
+(재발이 그 사이클을 끊었다는 사실이 히스토리의 "여기서 끊겼다"다), 근거가 이력에서 사라진 행은
+`superseded`로 은퇴한다 — **지우지 않는다**(미래에 그 행에 붙을 학습자 이력을 cascade로 날리지
+않기 위해). 값역과 각 상태의 뜻은 010과 `docs/database-schema.md`가 정본이다.
 """
 
 from __future__ import annotations
@@ -242,14 +254,81 @@ select p.id as pattern_id, p.pattern_key, p.category, p.target_form,
 # 백필 대상. 이력에서만 계산하므로 **전체를 훑는 것이 안전하고 멱등이다**.
 _ALL_PATTERNS_SQL = "select id from error_patterns where user_id = $1 order by pattern_key"
 
-_DELETE_TASKS_SQL = """
-delete from review_tasks where pattern_id = $1
+# 사다리 한 칸을 쓴다. **conflict target이 자연키라 재실행이 같은 행에 다시 닿는다** — 그것이
+# `id`·`created_at`이 살아남는 기전 전부다(설계서 §2.2). 010이 그 유일키를 만든다.
+#
+# ⚠️ **`scenario_context`는 `pending` 행에서만 갱신한다** (설계서 §7 약점 3의 완화). 지금 값은
+# 재계산 시점의 **최신** occurrence 원문이므로(`_HISTORY_SQL`의 `context` CTE), 그냥 덮으면
+# 1단계 행의 연습 문구가 나중 오류의 원문으로 바뀌어 "그때 무엇으로 연습했는가"가 틀어진다.
+# 판정 기준은 **기존 행의** 상태다(`review_tasks.status`, `excluded`가 아니다) — 이미 종료된
+# 행을 동결하는 것이 목적이므로 새로 쓰려는 상태를 보면 안 된다.
+# ⛔ 완화일 뿐 해결이 아니다: **열린 행의 문맥은 여전히 바뀐다.**
+#
+# `task_type`은 `do update`에 넣지 않는다 — 유형이 바뀌는 경로가 없고, 넣으면 미래에 유형을
+# 손으로 바꾼 행을 재계산이 되돌린다.
+_UPSERT_TASK_SQL = """
+insert into review_tasks (pattern_id, task_type, scenario_context, cycle_started_at,
+                          review_stage, due_at, status, completed_at)
+values ($1, $2, $3, $4, $5, $6, $7, $8)
+on conflict (pattern_id, cycle_started_at, review_stage) do update
+   set status           = excluded.status,
+       completed_at     = excluded.completed_at,
+       due_at           = excluded.due_at,
+       scenario_context = case
+                            when review_tasks.status = 'pending' then excluded.scenario_context
+                            else review_tasks.scenario_context
+                          end
 """
 
-_INSERT_TASK_SQL = """
-insert into review_tasks (pattern_id, task_type, scenario_context, review_stage, due_at, status)
-values ($1, $2, $3, $4, $5, $6)
+# 근거가 이력에서 사라진 행을 은퇴시킨다 — **지우지 않는다**(설계서 §4 Failure).
+# 둘을 한 문장으로 잡는다: ① 현재 사이클보다 **뒤에** 시작한 행 = 재분석이 그 재발을 지웠다
+# ② 같은 사이클인데 사다리 길이를 **넘는** 단계 행 = 정답 attempt가 재분석으로 사라져 사다리가
+# 짧아졌다. 판정이 시각·정수 비교뿐이라 결정론적이다.
+# `status <> 'superseded'`는 이미 은퇴한 행을 다시 쓰지 않게 해 멱등을 값 수준에서 지킨다.
+_SUPERSEDE_TASKS_SQL = """
+update review_tasks
+   set status = 'superseded'
+ where pattern_id = $1
+   and status <> 'superseded'
+   and (cycle_started_at > $2 or (cycle_started_at = $2 and review_stage > $3))
 """
+
+# 재발이 이전 사이클을 끊었다. 그 사이클의 **열린** 행만 내린다 — `done`은 실제로 접힌 단계라
+# 그대로 살고, 그것이 히스토리가 "1·2단계는 했고 3단계에서 끊겼다"를 그릴 근거다.
+# ⚠️ 이 전이가 §4 Contract의 "과거 사이클 행은 건드리지 않는다"와 문자대로는 부딪힌다.
+# 채택한 읽기: **파생값(due_at·completed_at·문맥)은 덮지 않고, 종료 상태를 못 받은 행에
+# 종료 상태만 준다.** 근거는 같은 §4 Failure가 이 전이의 목적을 명시한 것이다 — 그것이 없으면
+# 이 설계가 고치려는 병(끊긴 사이클이 흔적 없이 사라진다)이 그대로 남는다.
+_ABANDON_TASKS_SQL = """
+update review_tasks
+   set status = 'abandoned'
+ where pattern_id = $1
+   and status = 'pending'
+   and cycle_started_at < $2
+"""
+
+# 재발 자체가 사라진 경우(재분석으로 occurrence·incorrect가 전부 지워졌다) — 현재 사이클이
+# 없으므로 **모든** 행이 근거를 잃는다. `_SUPERSEDE_TASKS_SQL`은 기준 시각이 필요해 쓸 수 없다.
+_SUPERSEDE_ALL_TASKS_SQL = """
+update review_tasks
+   set status = 'superseded'
+ where pattern_id = $1
+   and status <> 'superseded'
+"""
+
+
+@dataclass(frozen=True, slots=True)
+class ReviewStageRow:
+    """사다리 한 칸 — 한 사이클 안의 단계 하나 (`TASK-43`, 설계서 §3.2).
+
+    `due_at`은 **그 단계를 촉발한 시각 + `STAGE_DAYS[stage-1]`**이고, `completed_at`은 그 단계를
+    접은 정답의 시각이다(열린 단계는 `None`). 촉발 시각은 1단계에서는 재발 시각이고 그 뒤로는
+    앞 단계를 접은 정답의 시각이다 — 즉 사다리는 **연쇄**다.
+    """
+
+    stage: int
+    due_at: datetime
+    completed_at: datetime | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -261,6 +340,13 @@ class ReviewState:
     next_review_at: datetime | None
     anchor: datetime | None
     scenario_context: str
+    # 이 사다리를 연 재발 시각. `review_tasks`의 자연키 한 칸이고 `anchor`와 **겸용하지 않는다** —
+    # `anchor`는 현재 단계의 기준이라 단계가 오를 때마다 이동하지만 이것은 사이클 내내 고정이다
+    # (설계서 §3.2가 겸용을 명시적으로 금지한다). 재발이 없으면 사이클이 없으므로 `None`이다.
+    cycle_started_at: datetime | None
+    # 1단계부터 도달한 단계까지의 사다리. 완주 사이클은 3칸(전부 `completed_at` 있음), 진행 중은
+    # 접힌 칸들 + 열린 칸 1개다. 재발이 없으면 빈 튜플이다.
+    ladder: tuple[ReviewStageRow, ...]
 
 
 def fold_stages(
@@ -289,13 +375,20 @@ def fold_stages(
             next_review_at=None,
             anchor=None,
             scenario_context=scenario_context,
+            cycle_started_at=None,
+            ladder=(),
         )
 
     anchor = relapse_at
     stage = 1
+    ladder: list[ReviewStageRow] = []
     for said_at in correct_times:
-        if said_at < anchor + timedelta(days=STAGE_DAYS[stage - 1]):
+        due_at = anchor + timedelta(days=STAGE_DAYS[stage - 1])
+        if said_at < due_at:
             continue  # 예정일 전 — 간격이 경과하지 않았다
+        # 이 칸을 접는다. `due_at`은 **이동 전** 앵커에서 계산한 값이어야 한다 — 접은 시각으로
+        # 다시 재면 그 단계의 예정일이 아니라 다음 단계의 기준이 된다.
+        ladder.append(ReviewStageRow(stage=stage, due_at=due_at, completed_at=said_at))
         anchor = said_at
         stage += 1
         if stage > FINAL_STAGE:
@@ -305,13 +398,20 @@ def fold_stages(
                 next_review_at=None,
                 anchor=anchor,
                 scenario_context=scenario_context,
+                cycle_started_at=relapse_at,
+                ladder=tuple(ladder),
             )
+    # 열린 칸 하나를 얹는다. 그 예정일이 곧 `next_review_at`이라 두 값이 갈라질 수 없다.
+    next_review_at = anchor + timedelta(days=STAGE_DAYS[stage - 1])
+    ladder.append(ReviewStageRow(stage=stage, due_at=next_review_at, completed_at=None))
     return ReviewState(
         stage=stage,
         completed=False,
-        next_review_at=anchor + timedelta(days=STAGE_DAYS[stage - 1]),
+        next_review_at=next_review_at,
         anchor=anchor,
         scenario_context=scenario_context,
+        cycle_started_at=relapse_at,
+        ladder=tuple(ladder),
     )
 
 
@@ -355,8 +455,17 @@ async def store_attempts(
 async def recompute(conn: asyncpg.Connection, pattern_id: UUID) -> ReviewState:
     """패턴 하나의 복습 상태를 이력에서 다시 계산해 반영한다 (멱등).
 
-    `error_patterns`(`next_review_at`·`mastery_score`)와 `review_tasks` 0~1행을 함께 맞춘다.
-    호출자의 트랜잭션 안에서 돈다.
+    `error_patterns`(`next_review_at`·`mastery_score`)와 `review_tasks`의 **사다리 행들**을 함께
+    맞춘다. 호출자의 트랜잭션 안에서 돈다 — 사다리 upsert 여러 건과 상태 전이가 한 트랜잭션에
+    들어가야 절반만 반영된 사다리가 남지 않는다.
+
+    **사후조건** (`TASK-43`, 마이그레이션 010): 현재 사이클 행은 `state.ladder`와 정확히 일치하고,
+    과거 사이클 행은 파생값이 덮이지 않는다. 과거 사이클의 `pending` 행은 `abandoned`가 되고,
+    근거가 이력에서 사라진 행은 `superseded`가 된다 — **어느 경로에서도 행을 지우지 않는다.**
+
+    멱등의 기전은 upsert의 conflict target이 자연키라는 것이다. 그래서 `id`·`created_at`이
+    재실행에도 불변이고, **그것을 검증하려면 테스트가 그 두 컬럼을 select해야 한다** — 그러지
+    않으면 이 설계의 핵심이 무보호로 남는다(설계서 §1.3).
     """
     # 카테고리로 이력 쿼리를 고른다 (설계서 §5.2). 그 뒤는 두 경로가 **완전히 공유한다** —
     # `fold_stages`는 순수 함수라 어느 표에서 읽었는지 알 필요가 없다.
@@ -376,20 +485,40 @@ async def recompute(conn: asyncpg.Connection, pattern_id: UUID) -> ReviewState:
         state.next_review_at,
         MASTERED if state.completed else NOT_MASTERED,
     )
-    # 지우고 다시 넣는다 — 한 statement 안의 delete/insert는 서로의 효과를 보지 못해
-    # unique(pattern_id, review_stage)에 부딪힌다. 두 문장으로 나누는 것이 그 함정을 피한다.
-    await conn.execute(_DELETE_TASKS_SQL, pattern_id)
-    if state.anchor is not None:
+    if state.cycle_started_at is None:
+        # 재발이 이력에서 사라졌다 — 현재 사이클이 없으므로 남은 행 전부가 근거를 잃는다.
+        # 행이 애초에 없던 패턴은 0행 그대로다(update가 0행을 건드린다).
+        await conn.execute(_SUPERSEDE_ALL_TASKS_SQL, pattern_id)
+        return state
+
+    # 사다리를 먼저 쓴다. 각 칸이 자기 예정일과 완주 시각을 들고 있어 `next_review_at or anchor`
+    # 폴백이 필요 없다 — 완주한 3단계 행도 실제 예정일(2단계를 접은 시각 + 7일)을 갖는다.
+    for row in state.ladder:
         await conn.execute(
-            _INSERT_TASK_SQL,
+            _UPSERT_TASK_SQL,
             pattern_id,
             REVIEW_TASK_TYPE,
             state.scenario_context,
-            # `completed`면 `fold_stages`가 `stage=FINAL_STAGE`를 보장하므로 분기가 필요 없다.
-            state.stage,
-            state.next_review_at or state.anchor,
-            "done" if state.completed else "pending",
+            state.cycle_started_at,
+            row.stage,
+            row.due_at,
+            "done" if row.completed_at is not None else "pending",
+            row.completed_at,
         )
+    # 그 다음에 은퇴·중단을 정리한다.
+    # ⚠️ **순서가 방벽이 아니다 — 세 문장이 건드리는 행 집합이 서로소다** (코드 리뷰 MEDIUM-1이
+    # 이전 주석의 "순서가 중요하다"를 반박했고, `where` 절 대조로 확인했다). `C`를 현재
+    # `cycle_started_at`, `L`을 새 사다리 길이라 하면:
+    #   upsert    → `cycle = C ∧ stage ∈ 1..L`  (`fold_stages`가 `stage=1`부터 `+1`로만
+    #                append하므로 사다리 단계는 **정확히 `1..L` 연속**이다)
+    #   supersede → `cycle > C` ∨ (`cycle = C ∧ stage > L`)
+    #   abandon   → `cycle < C ∧ status = 'pending'`
+    # 셋이 쌍마다 서로소이므로 어느 순서로 돌려도 결과가 같다. 읽는 순서로 사다리를 먼저 두었다.
+    # ⛔ **진짜 불변조건은 `$3`이 「새」 사다리 길이라는 것이다.** 그것을 **옛** 길이로 바꾸면
+    # 방금 길어진 칸이 `stage > L`에 걸려 `superseded`가 된다 — 그때는 **순서와 무관하게** 깨진다
+    # (upsert가 되살린 뒤 supersede가 다시 내린다). 순서를 지키려 하지 말고 이 인자를 지켜라.
+    await conn.execute(_SUPERSEDE_TASKS_SQL, pattern_id, state.cycle_started_at, len(state.ladder))
+    await conn.execute(_ABANDON_TASKS_SQL, pattern_id, state.cycle_started_at)
     return state
 
 

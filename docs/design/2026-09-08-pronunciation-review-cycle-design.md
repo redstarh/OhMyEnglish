@@ -196,9 +196,17 @@ replace라서 벽시계를 쓰면 재실행마다 예정일이 밀리는 것이�
 | `pronunciation_intonation` | **신설** `_PRONUNCIATION_HISTORY_SQL` (§5.3) |
 | 그 외 6종 | 기존 `_HISTORY_SQL` (`review.py:83-122`) |
 
-그 뒤는 **완전히 공유한다** — `fold_stages` → `_APPLY_PATTERN_SQL` → `review_tasks` 0~1행 replace
-(`review.py:259-283`). 호출자 시그니처가 바뀌지 않으므로 `analysis.py:467`도
-`recompute_all`(`review.py:373-386`, 백필)도 손대지 않는다.
+그 뒤는 **완전히 공유한다** — `fold_stages` → `_APPLY_PATTERN_SQL` → `review_tasks`.
+호출자 시그니처가 바뀌지 않으므로 `analysis.py`도 `recompute_all`(백필)도 손대지 않는다.
+
+⚠️ ~~`review_tasks` **0~1행 replace**~~ → ⛔ **뒤집혔다** (2026-09-08 · `TASK-43` · 마이그레이션
+010). 이 문장은 원래 *"`review_tasks` 0~1행 replace"*였다 — 아래 §7 L1 과 같은 사유로 함께 고쳤다.
+**지금은 자연키 `(pattern_id, cycle_started_at, review_stage)` upsert 이고 사이클마다 사다리 행이
+남는다.** 발음 경로가 이 공유 구간을 그대로 쓰므로 **발음 복습 과제도 히스토리에 쌓인다** — 그것이
+§9 약점 5 가 요구사항으로 올린 바로 그것이고, `tests/unit/test_pronunciation_review.py` 가 발음
+패턴의 사다리 `[(1,"done"),(2,"pending")]`를 단정해 이미 잠갔다.
+**정본**: `docs/design/2026-09-08-review-task-history-design.md` · `docs/database-schema.md` 의
+`review_tasks` 절 · `db/migrations/010_review_task_history.sql`.
 
 **분기를 호출자에 두지 않는 이유**: 두 곳에 두면 한쪽이 조용히 낡고, 발음 패턴에 문법 모양의
 상태가 계산되는 조합이 생긴다.
@@ -323,8 +331,25 @@ Phase1부터 있고, `task_type='rephrase'`는 기존 값역, 필요한 시도 �
 ### L1. Contract
 
 - **`recompute(conn, pattern_id)`** — 전제: 그 패턴이 실재하고 호출자가 트랜잭션을 갖는다.
-  사후: `next_review_at`·`mastery_score`·`review_tasks`(0~1행)가 이력과 정합. 멱등.
-  **계약이 넓어지지 않는다** — 시그니처·멱등성·트랜잭션 요구가 그대로다.
+  사후: `next_review_at`·`mastery_score`·`review_tasks`가 이력과 정합. 멱등.
+  **이 설계가 그 계약을 넓히지 않는다** — 시그니처·멱등성·트랜잭션 요구가 그대로다.
+  ⚠️ ~~`review_tasks`**(0~1행)**~~ → ⛔ **이 사후조건은 뒤집혔다** (2026-09-08 · `TASK-43` ·
+  마이그레이션 010). **조용히 덮지 않고 뒤집힌 사실과 근거를 함께 남긴다**(코드 리뷰 HIGH-2 —
+  이 문서가 `Done` 이고 **살아 있는 정본**이라, 낡은 계약을 읽은 다음 사람이 사다리 행을 버그로
+  판정할 경로가 열려 있었다).
+  - **원래 판정**: 재계산이 그 패턴의 행을 전부 지운 뒤 현재 상태 1행만 넣었다(패턴당 0행 또는
+    1행 · 캡틴 결정 2026-09-03). 무손실 근거는 완주·재발 여부를 이력에서 언제든 다시 계산한다는
+    것이었다.
+  - **왜 뒤집혔나**: 그 근거는 **파생값에 대해서만** 참이다 — `id`(화면·API 가 과제를 가리키는
+    손잡이) · `created_at` · 학습자가 손으로 만든 상태에는 닿지 않는다. 삭제하면 접힌 중간 단계와
+    **끊긴 사이클이 흔적 없이 사라져** "어디서 끊겼는가"를 복원할 수 없다.
+  - **지금의 판정**: 사후조건은 **「현재 사이클 행이 사다리와 일치하고, 과거 사이클 행은 파생값이
+    덮이지 않는다(종료 상태를 못 받은 `pending` 하나만 `abandoned`로 내려간다)」**다. 정체성은
+    자연키 `(pattern_id, cycle_started_at, review_stage)`이고 `id` 는 그 위에서 보존된다.
+    값역도 넓어졌다: `pending`·`done`·`abandoned`·`superseded` (`skipped` 는 제거됐다).
+  - **정본**: `docs/design/2026-09-08-review-task-history-design.md` §2.2·§3.3·§4 ·
+    `docs/database-schema.md` 의 `review_tasks` 절 · `db/migrations/010_review_task_history.sql`.
+    ⚠️ 되살리려면 그 설계서를 먼저 뒤집어라 — 이 줄만 고치면 코드와 어긋난다.
 - **`fold_stages`** — 불변: `correct_times`는 오름차순. 신설 쿼리도 `order by resolved_at`으로
   그 전제를 지킨다. 순서가 흐트러지면 단계가 **예외도 실패도 없이** 틀린다(`review.py:81-82`).
 - **`refresh_review(conn, attempt_id)`** — 사후: 패턴이 없으면 아무 것도 바뀌지 않는다(no-op).
@@ -411,10 +436,14 @@ Then 그 패턴이 「Due for review today」 목록에 `pattern_id`와 함께 �
    (`pronunciation.py:421-431`)이 `where pattern_id = $1`로 세므로 **정답이 `frequency`를 올린다.**
    그리고 `frequency`는 `deepest_recurrence`의 깊이 축이다(`chronic.py:100-102`) → **잘 맞힐수록
    재발이 깊어 보인다.** 대가: 정체성이 `target_sound` 문자열 일치에 의존한다(§5.3의 ⚠️).
-3. **`review_tasks`의 정체성 문제를 상속한다.** 재계산이 delete+insert라서 `id`·`created_at`이
-   매번 새로 생기고 `status`가 덮인다 — `2026-08-25-learning-coach-agent-design.md:482`의 이월
-   항목이고 캡틴 결정 19(히스토리 기록)가 걸려 있다. **발음 행이 늘어나 그 미결의 대상이
-   넓어진다.** 이 문서는 그 결정을 선점하지 않는다.
+3. ~~**`review_tasks`의 정체성 문제를 상속한다.**~~ ⛔ **해소됐다** (2026-09-08 · `TASK-43` ·
+   마이그레이션 010). 원래 서술: *"재계산이 delete+insert라서 `id`·`created_at`이 매번 새로 생기고
+   `status`가 덮인다 — `2026-08-25-learning-coach-agent-design.md`의 이월 항목이고 캡틴 결정
+   19(히스토리 기록)가 걸려 있다. 발음 행이 늘어나 그 미결의 대상이 넓어진다. 이 문서는 그 결정을
+   선점하지 않는다."*
+   **010이 정체성을 자연키로 옮겨 그 셋을 보존한다** — 그래서 이것은 「상속하는 약점」이 아니라
+   **이미 고쳐진 것**이고, 발음 행이 늘어난 것은 미결을 넓힌 것이 아니라 **히스토리에 담기게 된
+   것**이다(§9 약점 5가 요구사항으로 올린 그것). 캡틴 결정 19는 010으로 이행됐다.
 4. **§5.6-④는 유도다** — `target sound`로 낱말을 바꾸는 것이 모델 오독을 줄인다는 관측이 없다.
 5. **성능을 관측하지 않았다.** 시도 4행에서 판단했다. 백필은 패턴 수 × 쿼리 1회이므로 지금
    규모에서 무해하지만, 발음 시도가 수천 행이 되면 `(target_sound, outcome)` 인덱스가 필요해질

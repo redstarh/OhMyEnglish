@@ -793,11 +793,14 @@ async def _pattern_review(pool: asyncpg.Pool, user_id: UUID) -> asyncpg.Record:
     return row
 
 
+# 010부터 이 목록은 **사다리 전체**다 — 접힌 단계 행이 이력으로 남는다(`TASK-43`).
+# `cycle_started_at`을 `order by`에 먼저 둔다: 사이클이 둘 이상이면 `review_stage`만으로는
+# 순서가 정해지지 않아 단정이 조용히 흔들린다.
 async def _review_stages(pool: asyncpg.Pool, pattern_id: UUID) -> list[tuple[int, str]]:
     async with pool.acquire() as conn:
         rows = await conn.fetch(
             "select review_stage, status from review_tasks where pattern_id = $1 "
-            "order by review_stage",
+            "order by cycle_started_at, review_stage",
             pattern_id,
         )
     return [(row["review_stage"], row["status"]) for row in rows]
@@ -844,7 +847,8 @@ async def test_a_correct_retry_on_the_due_date_advances_the_stage_end_to_end(
     row = await _pattern_review(db_pool, committed_session.user_id)
     assert outcome == "correct"
     assert row["next_review_at"] == due_at + timedelta(days=3)
-    assert await _review_stages(db_pool, row["id"]) == [(2, "pending")]
+    # 010부터 접힌 1단계가 이력으로 남는다 (이전 판은 `[(2,"pending")]`이었다).
+    assert await _review_stages(db_pool, row["id"]) == [(1, "done"), (2, "pending")]
 
 
 # AS10 + 멱등 — job 은 재시도된다. 두 번 분석해도 단계가 두 칸 오르지 않는다.
@@ -871,7 +875,9 @@ async def test_reanalysing_the_same_utterance_does_not_double_advance(
         )
     assert row["next_review_at"] == after_first
     assert attempt_count == 1
-    assert await _review_stages(db_pool, row["id"]) == [(2, "pending")]
+    # 재분석이 단계를 두 칸 올리지 않는다 — 사다리 모양까지 그대로다(자연키 upsert가 같은 두 행에
+    # 다시 닿기 때문에 행이 늘어나지도 않는다).
+    assert await _review_stages(db_pool, row["id"]) == [(1, "done"), (2, "pending")]
 
 
 # 부가 신호 하나가 그 발화의 교정 전체를 태우지 않는다 (Task 3 의 비대칭).
@@ -936,4 +942,7 @@ async def test_reanalysis_that_drops_the_attempt_rewinds_the_stage(
         )
     assert attempts == 0
     assert row["next_review_at"] == first_due, "판정이 사라졌는데 단계가 낡은 채 남았다"
-    assert await _review_stages(db_pool, row["id"]) == [(1, "pending")]
+    # 010: 사다리가 짧아지면 넘치는 칸을 **`superseded`로 은퇴시키고 지우지 않는다**(설계서 §4
+    # Failure). 지우지 않는 이유는 미래에 그 행에 붙을 학습자 이력을 cascade로 날리지 않는 것이다.
+    # 1단계는 근거가 살아 있으므로 `pending`으로 되돌아간다.
+    assert await _review_stages(db_pool, row["id"]) == [(1, "pending"), (2, "superseded")]

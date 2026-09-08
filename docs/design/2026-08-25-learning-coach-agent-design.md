@@ -134,7 +134,7 @@ select p.* from error_patterns p
 
 - **분석 결과 저장 트랜잭션**(Phase 1 §5.2의 replace)에서 함께 갱신한다. 새 패턴이면 `발화 시각 + 1일`, 이미 있는 패턴이 다시 발생하면 복습 단계를 **되돌린다**(1일로 재설정) — 다시 틀린 패턴을 7일 뒤로 미루면 복습의 의미가 없다.
 - 복습을 완주하면 다음 단계로 진행한다: 1일 → 3일 → 7일. 3단계를 소진한 뒤 재발하면 1일로 돌아가고, 그 사실이 §6.2의 만성 신호가 된다.
-- 단계 자체는 `review_tasks.review_stage`(1~3, `unique(pattern_id, review_stage)`)가 보관한다 — Phase 1이 스키마만 만들어 둔 테이블을 이 설계가 처음 사용한다.
+- 단계 자체는 `review_tasks.review_stage`(1~3, ~~`unique(pattern_id, review_stage)`~~ → **010이 자연키 `unique(pattern_id, cycle_started_at, review_stage)`로 교체했다**)가 보관한다 — Phase 1이 스키마만 만들어 둔 테이블을 이 설계가 처음 사용한다.
 - 세 단계를 모두 통과하고 재발하지 않은 패턴은 `next_review_at`을 null로 두어 목록에서 빠진다. `mastery_score`가 그 상태를 기록한다(§7).
 
 이 갱신은 **쿼리(결정론) 담당이다** — §3.2의 경계에 따라 Claude에게 묻지 않는다. 1·3·7일은 이미 문서로 확정된 값이라 발명이 아니다.
@@ -143,12 +143,25 @@ select p.* from error_patterns p
 
 이 절이 정하지 않아 구현에서 결정해야 했던 것들이다. **뒤집으려면 아래 근거를 반박해야 한다.**
 
-**1. 재발 시 상위 단계 행은 삭제한다** (캡틴 결정 2026-09-03). 위 세 번째 항목이 단계를
-`review_tasks.review_stage`에 두는데, 그 표는 `unique(pattern_id, review_stage)`이고
-`scenario_context`가 not null이라 "1일로 되돌린다"를 그대로는 구현할 수 없었다. 그래서 재계산은
-그 패턴의 행을 **전부 지운 뒤 현재 상태 1행만** 넣는다 — 패턴당 0행 또는 1행이다. 지운 이력이
-손실이 아닌 근거: 완주 여부는 `pattern_attempts`, 재발 여부는 `error_occurrences`에서 언제든
-다시 계산된다.
+**1.** ~~**재발 시 상위 단계 행은 삭제한다**~~ → ⛔ **뒤집혔다 (2026-09-08, `TASK-43` ·
+마이그레이션 010).** 아래는 뒤집힌 사실과 근거를 함께 남긴 것이다 — 조용히 덮지 않는다.
+
+- **원래 판정**(캡틴 결정 2026-09-03): 위 세 번째 항목이 단계를 `review_tasks.review_stage`에
+  두는데 그 표가 `unique(pattern_id, review_stage)`이고 `scenario_context`가 not null이라
+  "1일로 되돌린다"를 그대로는 구현할 수 없었다. 그래서 재계산이 그 패턴의 행을 **전부 지운 뒤
+  현재 상태 1행만** 넣었다(패턴당 0행 또는 1행). 무손실 근거는 완주 여부가 `pattern_attempts`,
+  재발 여부가 `error_occurrences`에서 언제든 다시 계산된다는 것이었다.
+- **왜 뒤집혔나**: 그 무손실 근거는 **파생값에 대해서는 지금도 참이다.** 닿지 않는 값이 셋
+  있었다 — `id`(화면·API가 과제를 가리키는 손잡이) · `created_at` · 학습자가 손으로 만든 상태.
+  삭제하면 `id`가 매번 새로 발급되어 히스토리 화면이 완료 표시를 붙일 자리가 없고, 접힌 중간
+  단계와 **끊긴 사이클이 흔적 없이 사라져** "어디서 끊겼는가"를 복원할 수 없다.
+- **지금의 판정**: 유일키를 자연키 `(pattern_id, cycle_started_at, review_stage)`로 바꾸고
+  재계산은 **지우지 않고 upsert한다.** 재발은 상위 단계 행을 지우는 대신 **새 사이클을 연다** —
+  끊긴 사이클의 열린 행은 `abandoned`, 근거가 이력에서 사라진 행은 `superseded`로 은퇴한다.
+  즉 위 세 번째 항목의 `unique(pattern_id, review_stage)`도 낡았다(010이 교체했다).
+- **정본**: `docs/design/2026-09-08-review-task-history-design.md` · `docs/database-schema.md`의
+  `review_tasks` 절 · `db/migrations/010_review_task_history.sql`.
+  ⚠️ 되살리려면 그 설계서를 먼저 뒤집어라 — 이 줄만 고치면 코드와 어긋난다.
 
 **2. `mastery_score`는 상태 마커다** (캡틴 결정 2026-09-03). 위 네 번째 항목이 "그 상태를
 기록한다"고만 했고 공식이 어디에도 없었다. 3단계를 재발 없이 완주하면 `100`, 재발하면 `0`이고

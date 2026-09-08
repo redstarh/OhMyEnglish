@@ -209,7 +209,7 @@ nullable인 이유는 기존 발화에 이 값이 없기 때문이고, **"없음
 빈 배열을 저장하지 않는다. jsonb 바인딩은 `str`만 받으므로(파이썬 `list`는 `DataError`)
 `json.dumps(..., ensure_ascii=False)`로 쓰고 읽을 때 `json.loads`한다.
 
-### `review_tasks` — 도입: Phase1(스키마) / **행을 쓰는 로직: 006 슬라이스 1**
+### `review_tasks` — 도입: Phase1(스키마) / **행을 쓰는 로직: 006 슬라이스 1** / **히스토리: 010**
 
 | 컬럼 | 타입 | 제약 |
 |---|---|---|
@@ -217,29 +217,56 @@ nullable인 이유는 기존 발화에 이 값이 없기 때문이고, **"없음
 | `pattern_id` | uuid | not null, FK → `error_patterns`, `on delete cascade` |
 | `task_type` | text | not null, CHECK (`rephrase`, `role_play`, `shadowing`) |
 | `scenario_context` | text | not null |
+| `cycle_started_at` | timestamptz | not null (010) — 이 사다리를 연 **재발 시각** |
 | `review_stage` | smallint | not null, CHECK 1~3 |
 | `due_at` | timestamptz | not null |
-| `status` | text | not null, default `'pending'`, CHECK (`pending`, `done`, `skipped`) |
+| `completed_at` | timestamptz | null 허용 (010) — 이 단계를 접은 정답의 시각. 열린 단계는 null |
+| `status` | text | not null, default `'pending'`, CHECK (`pending`, `done`, `abandoned`, `superseded`) |
 | `created_at` | timestamptz | not null, default `now()` |
-| — | — | UNIQUE(`pattern_id`, `review_stage`) |
+| — | — | UNIQUE(`pattern_id`, `cycle_started_at`, `review_stage`) (010) |
+| — | — | CHECK `status <> 'done' or completed_at is not null` (010) |
 
-복습 큐. `user_id` 컬럼은 없다 — 소유자는 `pattern_id`로 유도한다(단일 사용자 범위의
-불일치 가능성 원천 제거). 복습 단계는 패턴이 아니라 **과제**에 두어
-`unique(pattern_id, review_stage)`로 중복 생성을 막는다.
+⚠️ **위 표는 논리적 묶음 순서다 — 물리 순서와 다르다.** 010이 두 컬럼을 `add column`으로 더했으므로
+`cycle_started_at`·`completed_at`의 실제 위치는 **`created_at` 뒤**다. `\d review_tasks` 출력과
+대조할 때 어긋나 보이는 것이 정상이다.
 
-**이 표에 행을 쓰는 코드는 `app/services/review.py` 하나다**(006 이후). 규약 3개:
+복습 큐이면서 **복습 이력**이다. `user_id` 컬럼은 없다 — 소유자는 `pattern_id`로 유도한다(단일
+사용자 범위의 불일치 가능성 원천 제거). 복습 단계는 패턴이 아니라 **과제**에 둔다.
 
-- **패턴당 0행 또는 1행이다.** 재계산은 그 패턴의 행을 전부 지운 뒤 현재 상태 1행을 넣는다
-  (캡틴 결정 2026-09-03). `unique(pattern_id, review_stage)`와 맞물리는 유일한 형태이고,
-  지운 이력이 손실이 아닌 근거는 완주·재발 여부가 `pattern_attempts`·`error_occurrences`에서
-  언제든 재계산된다는 것이다.
+**정체성은 자연키 `(pattern_id, cycle_started_at, review_stage)`이고 `id`는 그 위에서 보존되는
+손잡이다**(010 · 설계서 `2026-09-08-review-task-history-design.md` §2.2). 화면·API·미래 FK가
+가리키는 것은 `id`이고, 재계산이 "어느 행이 그 과제인가"를 판정하는 것은 자연키다.
+
+**이 표에 행을 쓰는 코드는 `app/services/review.py` 하나다**(006 이후). 규약 4개:
+
+- **패턴당 (사이클 × 도달 단계)행이다** — 010 이전의 "0행 또는 1행"은 **폐기됐다.**
+  재계산은 **지우지 않고 자연키로 upsert한다**: 현재 사이클 행은 사다리와 정확히 일치하고,
+  과거 사이클 행은 파생값이 덮이지 않는다(종료 상태를 못 받은 `pending` 하나만 `abandoned`로
+  내려간다). ⚠️ **뒤집힌 규약이다** — 2026-09-03 결정의 "전부 지운 뒤 1행"은 파생값에 대해서는
+  지금도 참이지만 `id`·`created_at`·학습자가 손으로 만든 상태에는 그 근거가 닿지 않는다.
+  삭제하면 화면이 과제를 가리킬 손잡이가 매번 새로 발급되고 접힌 중간 단계가 흔적 없이 사라진다.
 - **`due_at` = 그 단계의 예정일** = (그 단계를 촉발한 **발화 시각**) + 1·3·7일. `now()`를
   기준으로 쓰지 않는다 — 분석 job은 재시도되므로 벽시계 기준이면 재실행마다 예정일이 밀린다.
   단계가 오르는 조건은 "그 단계의 예정일이 온 뒤에 다시 맞혔다"이다(학습 코치 설계서 §4.1) —
   정답 횟수만 세면 같은 세션에서 세 번 맞히는 것으로 1·3·7일을 경과하지 않고 완주한다.
+  ⚠️ **발음 패턴은 앵커가 `pronunciation_attempts.resolved_at`이다**(`TASK-44`) — 발화 시각이
+  아니다. 이 표에는 그 구분이 없고 `pattern_id → category`로 유도한다(새 컬럼을 두지 않는다).
+- **`status`는 파생 전용이다**(010). `pending` 열린 단계 · `done` **이 단계를** 접었다 ·
+  `abandoned` 접기 전에 재발이 와서 사이클이 끊겼다 · `superseded` 이 행의 근거가 이력에서
+  사라졌다(재분석 — 화면에서 감춘다). ⚠️ **`done`의 뜻이 010에서 바뀌었다**: 「사이클 완주」가
+  아니라 「단계 완주」다. 완주한 사이클은 `done` **세 행**을 남긴다.
+  ⛔ **`skipped`는 값역에서 제거됐다** — 학습자가 손으로 만든 상태를 재계산이 소유한 칸에 두면
+  다음 재계산이 조용히 지운다. 학습자 행동은 이 표 **밖**에 두고, 그 표는 실제 행동이 정해지는
+  `TASK-3`에서 만든다. CHECK 위반으로 즉시 실패하는 것이 의도다.
 - **`task_type`은 지금 `rephrase`만 쓴다.** `role_play`·`shadowing`은 상황을 **생성**해야
   하므로 슬라이스 2 이후다. `scenario_context`도 생성물이 아니라 그 패턴의 최신
   `error_occurrences.original_span`(없으면 `error_patterns.target_form`)이다.
+  ⚠️ **완주·중단된 행에서는 동결한다**(010) — `pending` 행에만 갱신한다. 그러지 않으면 1단계
+  행의 연습 문구가 나중 오류의 원문으로 덮여 "그때 무엇으로 연습했는가"가 틀어진다.
+
+**달력 날짜 컬럼을 두지 않는다.** "며칠에 완주했는가 · 연속 학습일"은 읽을 때
+`completed_at at time zone (select timezone from users …)`으로 구한다 — `current_date`를 쓰지
+않는다. UTC 자정~09:00(KST)에 `current_date`가 KST 날짜보다 하루 이르기 때문이다.
 
 ~~우선순위 공식 `priority = frequency × impact × recency_decay × (1 - mastery_score/100)`~~은
 **폐기됐다** — `impact_score`가 영구 제외이고(§11 미결 3) 우선순위 판단은 Agent가 한다(§3.2).
@@ -376,8 +403,12 @@ Nova가 판정해 `pronunciation_attempts`로 간다.
 
 동일 패턴은 최소 1일, 3일, 7일 간격 3단계로 재확인한다(`review_tasks.review_stage`
 1~3). 각 시도는 서로 다른 문맥을 사용한다. 이 공식과 과제 생성 로직 자체는 3단계
-설계서에서 확정한다 — `review_tasks` 테이블은 Phase1에 이미 존재하지만 아직 아무도
-행을 만들지 않는다.
+설계서에서 확정한다.
+
+⚠️ **위 공식은 폐기됐다** — `review_tasks` 절이 그 근거를 갖는다(`impact_score`가 영구 제외이고
+우선순위 판단은 Agent가 한다). 여기서 되살리지 마라.
+⚠️ **"아직 아무도 행을 만들지 않는다"는 서술은 006에서 거짓이 됐다** — `app/services/review.py`가
+유일한 writer이고, 010부터는 사이클마다 사다리 행을 남긴다. 정본은 위 `review_tasks` 절이다.
 
 ## 일일 목표와 추가 학습
 

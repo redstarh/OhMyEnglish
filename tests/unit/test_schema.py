@@ -13,7 +13,7 @@ import importlib.util
 import json
 import sys
 import types
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from uuid import uuid4
 
@@ -192,6 +192,111 @@ async def test_drill_turns_expected_is_nullable_and_rejects_non_positive(
         )
         == 12
     )
+
+
+# ④-3 010 `review_tasks` 값역과 불변조건 (`TASK-43` · 설계서
+# `docs/design/2026-09-08-review-task-history-design.md` §3.3 · §4 Contract)
+#
+# ⛔ **`skipped` 제거가 이 설계의 집행 장치다.** 그 값을 남겨 두면 `TASK-3`(학습 히스토리 화면)
+# 구현자가 `update review_tasks set status='skipped'`를 쓰는 것이 **컬럼 이름과 문서를 따르는
+# 정상 행동**이고, 그 칸은 재계산이 소유하므로 다음 재계산에 조용히 사라진다. 값역에서 막으면
+# 그 시도가 즉시 실패해 학습자 행동을 둘 자리를 의도적으로 만들게 된다 — 009 가 같은 판단을 했다.
+# ⚠️ `done → completed_at not null`은 **함의이고 동치가 아니다**: `superseded`로 은퇴한 행이
+# 완주 시각을 그대로 들고 있어야 "우리가 그때 무엇을 믿었는지"가 남는다.
+@pytest.mark.asyncio
+async def test_review_tasks_status_domain_and_done_requires_completed_at(
+    db_conn: asyncpg.Connection,
+):
+    await _insert_user(db_conn)
+    pattern_id = await db_conn.fetchval(
+        "insert into error_patterns (user_id, category, pattern_key, target_form) "
+        "values ($1, 'article', 'article_test_key', 'a project') returning id",
+        migrate.USER_ID,
+    )
+    cycle_started_at = datetime(2026, 9, 1, 3, 0, tzinfo=UTC)
+
+    async def _insert(status: str, completed_at: datetime | None, stage: int = 1) -> None:
+        await db_conn.execute(
+            "insert into review_tasks (pattern_id, task_type, scenario_context, "
+            "cycle_started_at, review_stage, due_at, status, completed_at) "
+            "values ($1, 'rephrase', 'a project', $2, $3, $4, $5, $6)",
+            pattern_id,
+            cycle_started_at,
+            stage,
+            cycle_started_at + timedelta(days=1),
+            status,
+            completed_at,
+        )
+
+    # 위반은 **savepoint 안에서** 낸다 — `db_conn`이 테스트당 트랜잭션 하나를 열어 두므로
+    # 감싸지 않으면 뒤따르는 문장이 전부 `InFailedSQLTransactionError`로 죽는다(④-2와 같은 함정).
+    with pytest.raises(asyncpg.CheckViolationError):
+        async with db_conn.transaction():
+            await _insert("skipped", None)
+
+    # `done`인데 완주 시각이 없으면 거부된다.
+    with pytest.raises(asyncpg.CheckViolationError):
+        async with db_conn.transaction():
+            await _insert("done", None)
+
+    # 파생 상태 넷은 전부 받는다. `superseded`가 완주 시각을 들고 있는 것도 정상이다(함의이므로).
+    await _insert("pending", None, stage=1)
+    await _insert("done", cycle_started_at + timedelta(days=1), stage=2)
+    await _insert("abandoned", None, stage=3)
+    assert (
+        await db_conn.fetchval(
+            "select count(*) from review_tasks where pattern_id = $1", pattern_id
+        )
+        == 3
+    )
+    await db_conn.execute(
+        "update review_tasks set status = 'superseded' where pattern_id = $1 and review_stage = 2",
+        pattern_id,
+    )
+    assert (
+        await db_conn.fetchval(
+            "select completed_at from review_tasks where pattern_id = $1 and review_stage = 2",
+            pattern_id,
+        )
+        is not None
+    )
+
+
+# ④-4 010 유일키가 **사이클**을 가른다 — 같은 패턴의 같은 단계가 사이클마다 하나씩 존재한다.
+# 옛 키 `unique(pattern_id, review_stage)`로는 재발 후의 1단계를 담을 자리가 없었다(설계서 §2.3).
+@pytest.mark.asyncio
+async def test_review_tasks_unique_key_separates_cycles(db_conn: asyncpg.Connection):
+    await _insert_user(db_conn)
+    pattern_id = await db_conn.fetchval(
+        "insert into error_patterns (user_id, category, pattern_key, target_form) "
+        "values ($1, 'article', 'article_cycle_key', 'a project') returning id",
+        migrate.USER_ID,
+    )
+    first_cycle = datetime(2026, 9, 1, 3, 0, tzinfo=UTC)
+    second_cycle = datetime(2026, 9, 20, 3, 0, tzinfo=UTC)
+
+    async def _insert(cycle_started_at: datetime) -> None:
+        await db_conn.execute(
+            "insert into review_tasks (pattern_id, task_type, scenario_context, "
+            "cycle_started_at, review_stage, due_at, status) "
+            "values ($1, 'rephrase', 'a project', $2, 1, $3, 'pending')",
+            pattern_id,
+            cycle_started_at,
+            cycle_started_at + timedelta(days=1),
+        )
+
+    await _insert(first_cycle)
+    await _insert(second_cycle)  # 다른 사이클의 1단계 — 옛 키에서는 여기서 막혔다
+    assert (
+        await db_conn.fetchval(
+            "select count(*) from review_tasks where pattern_id = $1", pattern_id
+        )
+        == 2
+    )
+
+    with pytest.raises(asyncpg.UniqueViolationError):
+        async with db_conn.transaction():
+            await _insert(first_cycle)  # 같은 사이클의 같은 단계는 여전히 하나다
 
 
 # ⑤ 시드 후 users 1행 · learning_scenarios 3행(**무대** 3개 — 질문이 아니다. 캡틴 결정 14),

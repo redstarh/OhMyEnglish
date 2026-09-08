@@ -130,8 +130,8 @@ occurrence 1(`Yesterday I go` → `Yesterday I went`)인데 `target_form`은 `an
 | # | 시나리오 | 단정 |
 |---|---|---|
 | **L1** | 분석 완료 후 상위 패턴에 복습 일정이 생긴다 | R1이 고른 상위 2개 패턴에 `next_review_at`이 설정된다. **1일 뒤**(1단계)여야 한다 |
-| **L2** | 1·3·7일 3단계가 중복 없이 생성된다 | `review_tasks`에 같은 `(pattern_id, review_stage)`가 두 번 생기지 않는다 — 001의 `unique (pattern_id, review_stage)`가 가드다. 재분석·재시도 후에도 행 수가 늘지 않는다(멱등) |
-| **L3** | 복습 과제가 패턴 종류에 맞는 형태로 나온다 | `review_tasks.task_type`이 `rephrase`/`role_play`/`shadowing` 중 패턴 카테고리에 적합한 값. 예: `pronunciation_intonation` → `shadowing`. **적합성 판정 기준을 설계 시점에 문서로 확정해야 한다** — 없으면 이 시나리오는 판정 불가다 |
+| **L2** | 1·3·7일 3단계가 중복 없이 생성된다 | `review_tasks`에 같은 **자연키** `(pattern_id, cycle_started_at, review_stage)`가 두 번 생기지 않는다 — 010의 `review_tasks_cycle_stage_key`가 가드다. 그리고 **사이클마다 열린(`pending`) 단계가 최대 하나**다(이쪽은 DB가 아니라 `fold_stages`가 보장한다). 멱등의 지표는 **재분석·재시도 후에도 `id`가 보존되는 것**이다 |
+| **L3** | 복습 과제가 패턴 종류에 맞는 형태로 나온다 | `review_tasks.task_type`이 `rephrase`/`role_play`/`shadowing` 중 패턴 카테고리에 적합한 값. **적합성 판정 기준을 설계 시점에 문서로 확정해야 한다** — 없으면 이 시나리오는 판정 불가다. ⚠️ ~~예: `pronunciation_intonation` → `shadowing`~~ — **`TASK-44`가 발음 복습을 `rephrase` 겸용으로 확정했다**(캡틴 결정 대기 기본값 C-4 ③ · 마이그레이션 없음). 이 예시를 근거로 `shadowing`을 기대하지 마라. 시나리오 재설계 소유자는 `TASK-48` |
 | **L4** | 제시된 연습 목표가 표시된 교정과 같은 문장이다 | **F-2의 회귀 테스트.** `target_form`(또는 후속 필드)이 카드의 `원문`/`교정문`과 같은 occurrence에서 나온다 |
 | **L5** | 복습일이 지나면 그 패턴이 우선 제시된다 | `next_review_at`을 과거로 세팅(실시간 대기 금지 — AC W4·W5와 같은 방식) → 다음 세션/화면이 그 패턴을 먼저 낸다 |
 | **L6** | 숙련도가 오르면 복습 간격이 늘거나 제시가 멈춘다 | `mastery_score` 갱신 규칙이 확정된 뒤에만 판정 가능. **현재는 갱신 주체가 없다** |
