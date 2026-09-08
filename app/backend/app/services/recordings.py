@@ -206,8 +206,14 @@ def day_start_for(tz_name: str, *, now: datetime) -> datetime:
     부분 인덱스를 탄다(`(created_at at time zone …)::date` 는 못 탄다) ③ 되돌릴 수 없는 삭제의
     경계라 DB 없이 경계값을 값싸게 재야 한다.
 
-    ⚠️ **`replace(hour=0, …)` 를 쓰지 않는다** — DST 가 있는 지역에서 **존재하지 않는 지역
-    자정**을 만들 수 있다. 날짜와 tzinfo 로 다시 조립하면 `zoneinfo` 가 fold 규칙으로 푼다.
+    ⚠️ **`replace(hour=0, …)` 를 쓰지 않는다.** 2026-09-09 리뷰가 이 서술의 이전 판을 정정했다 —
+    위험은 「존재하지 않는 자정」이 아니라 **자정이 두 번 오는 날**이다(자정에 DST 가 끝나는 지역).
+    `replace` 는 입력 시각의 `fold` 를 물려받아 **두 번째** 자정을 고르고, 그러면 경계가 한 시간
+    늦어져 그 사이 녹음이 「어제」로 분류돼 하루 일찍 삭제된다. 날짜와 tzinfo 로 다시 조립하면
+    `fold=0`, 즉 **첫 번째** 자정이 되고 그것이 「오늘이 시작한 시각」이다.
+    실측(`America/Havana`, `2026-11-01 05:30Z`): 조립 → `04:00Z` · `replace` → `05:00Z`.
+    ⚠️ **`America/New_York` 로는 이 차이가 드러나지 않는다** — 그 지역은 자정이 아니라 02:00 에
+    바뀌어 두 방식이 같은 값을 낸다.
 
     ⚠️ **여기 있는 이유는 지금 소비자가 녹음뿐이기 때문이다.** 복습 주기·일일 계획이 같은 경계를
     밟으면(`H-S` 가 그것을 예고한다) 공용 자리로 옮긴다 — 그때까지 두 곳에서 계산하지 않는 것이
@@ -334,9 +340,17 @@ def _resolve_now(now: datetime | None) -> datetime:
 
 
 def _has_expired(row: asyncpg.Record, *, now: datetime | None) -> bool:
-    """이 녹음의 학습자 당일이 지났는가. **계산할 수 없으면 만료로 본다**(닫는 쪽)."""
+    """이 녹음의 학습자 당일이 지났는가. **계산할 수 없으면 만료로 본다**(닫는 쪽).
+
+    ⛔ **`_resolve_now` 를 `try` 밖에서 부른다 — 안에 두면 그 함수의 목적이 무너진다.**
+    2026-09-09 리뷰가 런타임으로 잡았다: 안에 뒀을 때 naive `now`(호출자의 버그)가
+    `ValueError` 로 아래 `except` 에 걸려 **멀쩡한 `Asia/Seoul` 을 지목하는 경고**가 났고,
+    조사하는 사람이 `users.timezone` 을 먼저 의심하게 됐다. `purge_expired_recordings` 는
+    처음부터 밖에서 불렀으므로 **두 호출자가 갈라져 있었다.**
+    """
+    resolved_now = _resolve_now(now)
     try:
-        cutoff = day_start_for(row["timezone"], now=_resolve_now(now))
+        cutoff = day_start_for(row["timezone"], now=resolved_now)
     except (ZoneInfoNotFoundError, ValueError):
         logger.warning(
             "학습자 타임존을 쓸 수 없어 녹음 접근을 닫는다 — timezone=%r", row["timezone"]
@@ -406,7 +420,9 @@ async def purge_expired_recordings(
     return purged
 
 
-async def sweep_orphan_recording_files(conn: asyncpg.Connection, root: Path) -> int:
+async def sweep_orphan_recording_files(
+    conn: asyncpg.Connection, root: Path, *, limit: int = PURGE_LIMIT_PER_CYCLE
+) -> int:
     """포인터가 없는 바이트를 걷는다 — §6.2 의 **2다리**. 지운 파일 수를 돌려준다.
 
     ⛔ **이 다리는 선택이 아니라 필수다.** 1다리의 `(b)` 실패는 1다리로 재시도되지 않는다 —
@@ -420,9 +436,16 @@ async def sweep_orphan_recording_files(conn: asyncpg.Connection, root: Path) -> 
     ⚠️ **진행 중 세션 디렉터리는 건드리지 않는다** — §4.5 의 1단계가 지금 그 안의 `.part` 에
     프레임을 흘리고 있을 수 있다. §5.4 가 삭제에서 진행 중 세션을 뺀 것과 같은 판단이다.
 
-    ⛔ **이름 규칙에 맞지 않는 파일은 지우지 않고 경고한다.** 설계서 §6.2 는 *"그 집합에 없는
-    파일"* 을 지우라고 적었지만 알 수 없는 파일을 조용히 지우면 되돌릴 수 없다. 남기고 경고하면
-    누출이 **보이는 상태**로 남아 사람이 판단할 수 있다 — **이 절충은 내가 정한 것이다.**
+    ⛔ **이름 규칙에 맞지 않는 파일은 지우지 않고 남긴다.** 설계서 §6.2 는 *"그 집합에 없는
+    파일"* 을 지우라고 적었지만 알 수 없는 파일을 조용히 지우면 되돌릴 수 없다 — **이 절충은 내가
+    정한 것이다.** ⚠️ **경고가 아니라 `debug` 로 적는다**: 2026-09-09 리뷰가 잡았듯 그 파일 하나가
+    영구히 남으므로 유휴 사이클(기본 1초)마다 경고가 나 **하루 8만 줄이 넘고**, 그 홍수가 진짜
+    실패(unlink 실패)의 `WARNING` 창구를 막는다(§6.3 이 지정한 실행 명령은 `WARNING` 이상만 흘린다).
+    우리가 만드는 이름은 `.pcm`·`.pcm.part` 둘뿐이라 그 밖의 파일은 애초에 우리 것이 아니다 —
+    남기는 것이 정책이고, 조사가 필요하면 **디렉터리가 지워지지 않고 남는 것**이 그 신호다.
+
+    ⚠️ **사이클 상한을 1다리와 같은 상수로 묶는다.** 파일시스템을 걷는 쪽만 무제한이면 유휴 사이클이
+    삭제로 오래 붙잡힌다. 남은 것은 다음 사이클이 이어간다(멱등).
 
     뿌리가 없으면 0을 돌려준다: 저장한 적이 없다는 뜻이라 오류가 아니다(§6.3).
     """
@@ -430,6 +453,8 @@ async def sweep_orphan_recording_files(conn: asyncpg.Connection, root: Path) -> 
         return 0
     removed = 0
     for session_dir in sorted(root.iterdir()):
+        if removed >= limit:
+            break
         if not session_dir.is_dir():
             continue
         try:
@@ -443,17 +468,19 @@ async def sweep_orphan_recording_files(conn: asyncpg.Connection, root: Path) -> 
         if status == "active":
             continue
         live = {row["id"] for row in await conn.fetch(_SELECT_LIVE_RECORDING_IDS_SQL, session_id)}
-        removed += _remove_orphans_in(session_dir, live)
+        removed += _remove_orphans_in(session_dir, live, limit=limit - removed)
         _remove_dir_if_empty(session_dir)
     if removed:
         logger.info("포인터 없는 쉐도잉 녹음 파일 %d건을 지웠다 (2다리)", removed)
     return removed
 
 
-def _remove_orphans_in(session_dir: Path, live: set[UUID]) -> int:
+def _remove_orphans_in(session_dir: Path, live: set[UUID], *, limit: int) -> int:
     """한 세션 디렉터리에서 고아를 지운다. `.part` 는 언제나 고아다(미완성 쓰기)."""
     removed = 0
     for path in sorted(session_dir.iterdir()):
+        if removed >= limit:
+            break
         if not path.is_file():
             continue
         if path.name.endswith(".pcm.part"):
@@ -463,14 +490,17 @@ def _remove_orphans_in(session_dir: Path, live: set[UUID]) -> int:
                 if UUID(path.stem) in live:
                     continue
             except ValueError:
-                logger.warning("이름을 해석할 수 없는 녹음 파일을 남긴다: %s", path)
+                logger.debug("이름을 해석할 수 없는 녹음 파일을 남긴다: %s", path)
                 continue
         else:
-            logger.warning("녹음 이름 규칙에 맞지 않는 파일을 남긴다: %s", path)
+            logger.debug("녹음 이름 규칙에 맞지 않는 파일을 남긴다: %s", path)
             continue
         try:
             path.unlink()
         except OSError:
+            # ⚠️ 이쪽은 `WARNING` 을 유지한다 — **우리 파일이고 조치가 필요하다.** 위의
+            # `debug` 와 갈라지는 근거가 그것이다: 남기는 것이 정책인 파일과, 지워야 하는데
+            # 못 지운 파일은 다르다.
             logger.warning("고아 녹음 파일을 지우지 못했다 — 다음 사이클에 다시 건다: %s", path)
             continue
         removed += 1

@@ -343,16 +343,23 @@ def test_day_start_moves_forward_the_moment_local_midnight_passes() -> None:
     assert day_start_for("Asia/Seoul", now=just_after) == datetime(2026, 9, 7, 15, 0, tzinfo=UTC)
 
 
-def test_day_start_handles_a_dst_zone_without_inventing_a_local_midnight() -> None:
-    """⛔ `replace(hour=0, …)` 를 쓰지 않는 이유가 이 단정이다 (§5.2 의 주석).
+def test_day_start_picks_the_first_of_two_local_midnights() -> None:
+    """⛔ `replace(hour=0, …)` 를 쓰지 않는 이유가 **이 입력**이다.
 
-    DST 가 있는 지역에서는 **존재하지 않는 지역 자정**이 만들어질 수 있다. 날짜와 tzinfo 로 다시
-    조립하면 `zoneinfo` 가 fold 규칙으로 푼다. 미국 동부 DST 종료일(2026-11-01) 하루를 잰다 —
-    그날 자정은 EDT(UTC-4)이므로 경계가 `2026-11-01 04:00Z` 다.
+    ⚠️ **이전 판은 판별력이 없었다.** `America/New_York 2026-11-01` 을 썼는데 거기서는 두 방식이
+    **같은 값**을 낸다(둘 다 `04:00Z`) — 즉 `replace` 로 되돌리는 변경이 green 이었다.
+    2026-09-09 코드 리뷰가 실측으로 잡았고 이 세션이 세 지역을 직접 대조해 확인했다.
+
+    갈리는 자리는 **지역 자정이 두 번 오는 날**이다. Havana 의 2026-11-01 은 DST 가 자정에 끝나
+    `00:00` 이 EDT(UTC-4)와 EST(UTC-5)로 두 번 온다. 「학습자의 오늘이 시작한 시각」은 **첫
+    번째**여야 한다 — `replace` 는 입력 시각의 fold 를 물려받아 **두 번째**를 골라 한 시간을 잃고,
+    그 한 시간 안에 만든 녹음이 「어제」로 분류돼 **하루 일찍 삭제된다.**
+
+    실측(같은 입력): `combine` → `04:00Z` · `replace` → `05:00Z`.
     """
-    now = datetime(2026, 11, 1, 12, 0, tzinfo=UTC)
+    now = datetime(2026, 11, 1, 5, 30, tzinfo=UTC)  # Havana 00:30, fold 뒤(EST)
 
-    assert day_start_for("America/New_York", now=now) == datetime(2026, 11, 1, 4, 0, tzinfo=UTC)
+    assert day_start_for("America/Havana", now=now) == datetime(2026, 11, 1, 4, 0, tzinfo=UTC)
 
 
 def test_day_start_rejects_an_unknown_timezone() -> None:
@@ -447,6 +454,27 @@ async def test_the_learner_timezone_decides_the_boundary_not_the_server(
         await load_recording(db_conn, tmp_path, kst_session, kst_utterance, now=NOON_KST) == FRAMES
     )
     assert await load_recording(db_conn, tmp_path, utc_session, utc_utterance, now=NOON_KST) is None
+
+
+@pytest.mark.asyncio
+async def test_load_lets_a_naive_now_surface_instead_of_blaming_the_timezone(
+    db_conn: asyncpg.Connection, tmp_path: Path
+) -> None:
+    """⛔ naive `now` 는 **호출자의 버그**이고 타임존 문제로 위장되면 안 된다.
+
+    2026-09-09 코드 리뷰가 런타임으로 잡은 결함이다: `_resolve_now` 가 `try` **안**에 있어
+    naive `now` 의 `ValueError` 가 타임존 `except` 에 걸렸고, **멀쩡한 `Asia/Seoul` 을 지목하는
+    경고**가 나면서 접근이 조용히 닫혔다. 조사하는 사람이 `users.timezone` 을 먼저 의심하게
+    되는 형태다 — 그 위장을 여기서 깬다.
+    """
+    session_id = await _new_shadowing_session(db_conn, status="completed")
+    utterance_id = await _new_recording_utterance(db_conn, session_id)
+    await _stored(db_conn, tmp_path, session_id, utterance_id)
+
+    with pytest.raises(ValueError):
+        await load_recording(
+            db_conn, tmp_path, session_id, utterance_id, now=datetime(2026, 9, 9, 12, 0)
+        )
 
 
 @pytest.mark.asyncio
@@ -755,6 +783,29 @@ async def test_orphan_sweep_does_not_touch_a_running_session(
 
 
 @pytest.mark.asyncio
+async def test_orphan_sweep_spares_a_finalized_file_whose_pointer_is_not_written_yet(
+    db_conn: asyncpg.Connection, tmp_path: Path
+) -> None:
+    """⛔ **`active` 가드의 몫이 `.part` 보다 넓다** (2026-09-09 리뷰 지적).
+
+    `finalize_recording` 은 rename 을 먼저 하고 **그 다음** 포인터를 쓴다(§4.5). 그 두 걸음 사이의
+    파일은 이름이 이미 `<utterance_id>.pcm` 인데 포인터가 없다 — 2다리가 보기에 **완벽한 고아**다.
+    진행 중 세션을 건너뛰는 가드가 그 창을 함께 지킨다.
+
+    ⚠️ 기존 단정은 `.part` 만 뒀으므로 가드를 「`.part` 만 지킨다」로 좁히는 변경이 통과했다.
+    이 단정이 그 구멍을 막는다 — 좁히면 방금 낭독한 녹음이 저장되는 순간에 지워진다.
+    """
+    session_id = await _new_shadowing_session(db_conn, status="active")
+    utterance_id = await _new_recording_utterance(db_conn, session_id)
+    finalized = recording_path(tmp_path, session_id, utterance_id)
+    finalized.parent.mkdir(parents=True, exist_ok=True)
+    finalized.write_bytes(FRAMES)  # rename 은 끝났고 `audio_url` 은 아직 null 이다
+
+    assert await sweep_orphan_recording_files(db_conn, tmp_path) == 0
+    assert finalized.is_file(), "포인터를 쓰기 전의 녹음이 지워졌다 — 낭독이 사라진다"
+
+
+@pytest.mark.asyncio
 async def test_orphan_sweep_removes_files_of_a_session_deleted_by_cascade(
     db_conn: asyncpg.Connection, tmp_path: Path
 ) -> None:
@@ -773,14 +824,19 @@ async def test_orphan_sweep_removes_files_of_a_session_deleted_by_cascade(
 
 
 @pytest.mark.asyncio
-async def test_orphan_sweep_leaves_an_unrecognized_file_and_warns(
+async def test_orphan_sweep_leaves_an_unrecognized_file_without_warning_every_cycle(
     db_conn: asyncpg.Connection, tmp_path: Path, caplog: pytest.LogCaptureFixture
 ) -> None:
-    """⛔ **이름 규칙에 맞지 않는 파일은 지우지 않고 경고한다.**
+    """⛔ **이름 규칙에 맞지 않는 파일은 지우지 않고 남긴다 — 그리고 경고하지 않는다.**
 
-    설계서 §6.2 는 *"그 집합에 없는 파일"* 을 지우라고 적었지만, 알 수 없는 파일을 조용히 지우면
-    **되돌릴 수 없다.** 남기고 경고하면 누출이 **보이는 상태**로 남아 사람이 판단할 수 있다 —
-    이 절충은 내가 정한 것이고 뒤집으려면 이 단정을 뒤집으면 된다.
+    설계서 §6.2 는 *"그 집합에 없는 파일"* 을 지우라고 적었지만 알 수 없는 파일을 조용히 지우면
+    **되돌릴 수 없다.** 남기는 것이 내가 정한 절충이다.
+
+    ⚠️ **경고 수준이 이 단정의 핵심이다.** 이전 판은 `WARNING` 이었고 2026-09-09 리뷰가 그 대가를
+    계산했다: 그 파일이 영구히 남으므로 유휴 사이클(기본 1초)마다 경고가 나 **하루 8만 줄이
+    넘고**, 그 홍수가 진짜 실패(unlink 실패)의 `WARNING` 창구를 막는다 — §6.3 이 지정한 실행
+    명령은 `WARNING` 이상만 흘리기 때문이다. 그래서 `debug` 로 내렸다. 조사 신호는 **디렉터리가
+    지워지지 않고 남는 것**이다.
     """
     session_id = await _new_shadowing_session(db_conn, status="completed")
     stray = recording_dir(tmp_path, session_id) / "notes.txt"
@@ -791,7 +847,28 @@ async def test_orphan_sweep_leaves_an_unrecognized_file_and_warns(
         assert await sweep_orphan_recording_files(db_conn, tmp_path) == 0
 
     assert stray.is_file()
-    assert "notes.txt" in caplog.text
+    assert caplog.text == "", "남기는 것이 정책인 파일에 매 사이클 경고가 났다"
+    assert stray.parent.is_dir(), "지우지 못한 파일이 있으면 디렉터리가 남아 신호가 된다"
+
+
+@pytest.mark.asyncio
+async def test_orphan_sweep_stops_at_the_cycle_limit(
+    db_conn: asyncpg.Connection, tmp_path: Path
+) -> None:
+    """⚠️ **파일시스템을 걷는 쪽도 상한으로 묶는다** (2026-09-09 리뷰 지적).
+
+    1다리는 `PURGE_LIMIT_PER_CYCLE` 로 묶였는데 2다리만 무제한이면 유휴 사이클이 삭제로 오래
+    붙잡힌다. 남은 것은 다음 사이클이 이어간다 — 스윕이 멱등이라 그것이 안전하다.
+    """
+    session_id = await _new_shadowing_session(db_conn, status="completed")
+    directory = recording_dir(tmp_path, session_id)
+    directory.mkdir(parents=True, exist_ok=True)
+    for _ in range(3):
+        (directory / f"{uuid4()}.pcm").write_bytes(FRAMES)
+
+    assert await sweep_orphan_recording_files(db_conn, tmp_path, limit=2) == 2
+    assert await sweep_orphan_recording_files(db_conn, tmp_path, limit=2) == 1
+    assert await sweep_orphan_recording_files(db_conn, tmp_path, limit=2) == 0
 
 
 @pytest.mark.asyncio

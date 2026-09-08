@@ -18,8 +18,15 @@ import asyncpg
 import pytest
 from migrate import SEED_SHADOWING_ITEMS, USER_ID, ShadowingSeedClip, seed
 
-# PRD §7 「30~90초의 짧은 오디오·영상 클립」. **발명값이 아니라 요구사항이다** — 011 의
+# PRD §7 「30~90초의 짧은 오디오·영상 클립」. **범위는 요구사항이다** — 011 의
 # `shadowing_items_span_within_limit` 가 상한만 가두므로 하한은 이 테스트가 지킨다.
+#
+# ⚠️ **다만 시드 행의 값(30.00)은 실측이 아니라 이 하한을 그대로 쓴 것이다** — 자체 작성 문장이라
+# 출처 오디오가 없어 잴 대상이 없다(`scripts/migrate.py` 의 그 주석이 정본). 2026-09-09 정리 검토가
+# 「범위 안」이라는 이름이 그 값을 실측처럼 보이게 한다고 지적했고 그것은 맞다.
+# ⛔ **그래도 이 단정을 지우지 않는다**: PRD 가 30초를 요구하므로 그보다 짧은 클립은 요구 위반이고,
+# TTS 실측이 30초 미만을 내면 **값을 내리는 것이 아니라 전사문을 늘리는 것**이 옳은 대응이다.
+# 즉 그때 이 단정이 막는 것은 실측이 아니라 요구 위반이다.
 PRD_CLIP_MIN_SEC = 30
 PRD_CLIP_MAX_SEC = 90
 
@@ -46,21 +53,17 @@ def test_seeded_clip_window_stays_inside_the_prd_range(clip: ShadowingSeedClip) 
 
 
 @pytest.mark.asyncio
-async def test_seed_inserts_clips_that_satisfy_the_schema(db_conn: asyncpg.Connection) -> None:
-    """시드가 011 의 CHECK 넷을 전부 만족한다 — insert 가 통과하는 것이 그 증거다.
+async def test_seeding_twice_does_not_duplicate_clips(db_conn: asyncpg.Connection) -> None:
+    """멱등이다 — `SEED_SCENARIOS` 와 같은 규약(고정 id + upsert)을 쓴다.
+
+    ⚠️ **첫 `seed()` 호출이 011 의 CHECK 넷 통과도 함께 증명한다** — 위반이면 그 줄에서 이미
+    `asyncpg` 예외로 걸린다. 그래서 그것만 따로 재던 단정을 지웠다(2026-09-09 정리 검토): 이름이
+    「스키마를 만족한다」였는데 실제로 재는 것은 **행 수**였고, CHECK 자체는
+    `tests/unit/test_schema.py` 의 011 절이 임의 값으로 이미 소유한다. **이름과 내용이 어긋난 것**이
+    지적의 핵심이었다.
 
     ⚠️ 값을 다시 세지 않고 **상수와 대조한다**: 개수를 적으면 시드를 늘린 턴에 낡는다.
     """
-    await seed(db_conn)
-
-    assert await db_conn.fetchval("select count(*) from shadowing_items") == len(
-        SEED_SHADOWING_ITEMS
-    )
-
-
-@pytest.mark.asyncio
-async def test_seeding_twice_does_not_duplicate_clips(db_conn: asyncpg.Connection) -> None:
-    """멱등이다 — `SEED_SCENARIOS` 와 같은 규약(고정 id + upsert)을 쓴다."""
     await seed(db_conn)
     await seed(db_conn)
 

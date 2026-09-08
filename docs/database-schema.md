@@ -21,9 +21,12 @@ erDiagram
   ERROR_PATTERNS ||--o{ REVIEW_TASKS : generates
   ERROR_PATTERNS ||--o{ PATTERN_ATTEMPTS : "retried (006)"
   UTTERANCES ||--o{ PATTERN_ATTEMPTS : judges
+  SHADOWING_ITEMS ||--o{ LEARNING_SESSIONS : "picked by (011)"
 ```
 
-`shadowing_items`와 `weekly_reports`는 아직 SQL에 존재하지 않아 다이어그램에서 제외했다 — 아래 표에서 도입 단계만 안내한다.
+`weekly_reports`는 아직 SQL에 존재하지 않아 다이어그램에서 제외했다 — 아래 표에서 도입 단계만 안내한다.
+⚠️ **`shadowing_items`는 2026-09-09에 도입됐다**(011 · 캡틴 결정 36으로 개발 DB에 적용). 이전 판이
+그것을 미도입으로 안내했으나 그 서술은 낡았다 — 아래 자기 절에 명세가 있다.
 ⚠️ **마이그레이션 번호에 `002`는 없다** — 만들어진 적이 없고(파일·git 이력 각 0건) 003~005가 발음, **006이 학습 코치 슬라이스 1**이다. 이전 판이 미도입 표를 "002"로 안내했으나 그 번호는 이미 지나갔다.
 
 ## 핵심 테이블
@@ -77,6 +80,8 @@ erDiagram
 | `ended_at` | timestamptz | null 허용 |
 | `summary` | jsonb | not null, default `{}` |
 | `drill_turns_expected` | integer | null 허용, CHECK (`null` 또는 `> 0`) — 도입: **009** |
+| `shadowing_item_id` | uuid | null 허용, FK → `shadowing_items`, `on delete set null` — 도입: **011** |
+| — | — | CHECK `shadowing_item_id is null or mode = 'shadowing'` — 도입: **011** |
 
 한 번의 학습. `status`는 정상 종료(`completed`)와 Nova 연결 실패 등으로 닫힌 세션
 (`failed`)을 구분한다(F2-ii). `summary`(세션 총평)는 `summarize_session`과 함께
@@ -103,16 +108,55 @@ Batch C 구현자가 범위 밖 결함으로 올렸다. **스키마 문서를 �
 | `id` | uuid | PK, `default gen_random_uuid()` |
 | `session_id` | uuid | not null, FK → `learning_sessions`, `on delete cascade` |
 | `speaker` | text | not null, CHECK (`user`, `agent`) |
-| `utterance_type` | text | not null, default `'learning'`, CHECK (`learning`, `voice_command`, `command_confirmation`) |
+| `utterance_type` | text | not null, default `'learning'`, CHECK (`learning`, `voice_command`, `command_confirmation`, `shadowing_recording`) — 마지막 값 도입: **011** |
 | `transcript` | text | not null |
 | `audio_url` | text | null 허용 |
 | `sequence_no` | integer | not null |
 | `created_at` | timestamptz | not null, default `now()` |
 | — | — | UNIQUE(`session_id`, `sequence_no`) |
+| — | — | CHECK `audio_url is null or (utterance_type = 'shadowing_recording' and speaker = 'user')` — 도입: **011** |
+| — | — | 부분 인덱스 `(session_id, created_at) where audio_url is not null` — 도입: **011** |
 
 학습 발화와 음성 명령을 `utterance_type`으로 구분한다. `sequence_no`는 서버가 세션 내
 단조 증가로 부여하므로 `unique(session_id, sequence_no)`는 재수신 중복 제거 장치가
 아니라 **Gateway 자체의 이중 commit을 막는 무결성 가드**다.
+
+⛔ **`audio_url`은 R10-7(오디오를 저장하지 않는다)의 유일한 예외를 담는다** — 캡틴이 연 예외는
+학습자의 쉐도잉 낭독 하나이고, 011의 CHECK가 그 경계를 **스키마에** 새긴다(설계
+`2026-09-08-shadowing-task-design.md` §4.2). 값은 파일 경로가 아니라 **API 경로**
+(`/api/sessions/<session_id>/recordings/<utterance_id>`)이고, 파일 위치는 두 id에서 결정론적으로
+유도된다(§4.4) — 그래서 저장 뿌리를 옮겨도 저장된 행이 무효가 되지 않는다.
+⚠️ **`shadowing_recording`은 오류 분석·교정 표시·계획 입력에서 자동으로 빠진다** — 그 네 자리가
+`utterance_type = 'learning'`으로 거르기 때문이다. 쉐도잉은 남의 문장을 따라 읽는 것이므로 그
+문장의 문법은 학습자의 것이 아니다(§4.1).
+
+### `shadowing_items` — 도입: **011**
+
+| 컬럼 | 타입 | 제약 |
+|---|---|---|
+| `id` | uuid | PK, `default gen_random_uuid()` |
+| `source_title` | text | not null, CHECK `length(btrim(source_title)) > 0` |
+| `source_url` | text | null 허용 — **null = 내장·직접 입력 자료** |
+| `transcript` | text | not null, CHECK `length(btrim(transcript)) > 0` |
+| `clip_start_sec` | numeric(6,2) | not null, CHECK `>= 0` |
+| `clip_end_sec` | numeric(6,2) | not null |
+| `level` | text | not null, CHECK (`A1`, `A2`, `B1`, `B2`, `C1`, `C2`) |
+| `created_at` | timestamptz | not null, default `now()` |
+| — | — | CHECK `clip_end_sec > clip_start_sec` |
+| — | — | CHECK `clip_end_sec - clip_start_sec <= 90` — PRD §7의 클립 길이 상한 |
+| — | — | 인덱스 `(level)` — 뜨거운 조회는 「학습자 수준에 맞는 클립 고르기」 하나다 |
+
+한 행이 **클립 1개**다(문장 1개가 아니다). 문장 단위 제공은 `transcript`를 **런타임에 쪼개** 만들고
+문장 색인을 저장하지 않는다 — 쪼개는 규칙이 바뀌면 저장된 색인이 조용히 낡기 때문이다(설계
+`2026-09-08-shadowing-task-design.md` §3.2 · 유도 2).
+
+⛔ **저작물 전체를 저장하지 않는다**(PRD §5) — 외부 영상은 **링크와 시간 창만** 보관한다. `level`은
+`learning_scenarios.level`과 **같은 값역**을 쓴다: 세션 시작이 학습자 수준으로 클립을 고르므로 선택의
+기준이 같다.
+
+⚠️ **시드 1행이 들어 있다**(캡틴 결정 25 · `scripts/migrate.py`의 `SEED_SHADOWING_ITEMS`). 전사문은
+학습자 수준(A2)에 맞춘 **자체 작성 문장**이고 `source_url`은 null이다 — PRD가 자동 수집을 비범위로
+두므로 외부 콘텐츠를 담지 않는다.
 
 ### `error_patterns` — 도입: Phase1
 
@@ -380,8 +424,11 @@ Nova가 판정해 `pronunciation_attempts`로 간다.
 
 | 테이블 | 도입 | 비고 |
 |---|---|---|
-| `shadowing_items` | 쉐도잉 착수 시 | `id`, `source_title`, `source_url`, `transcript`, `clip_start_sec`, `clip_end_sec`, `level` — 쉐도잉 착수 시 추가 |
 | `weekly_reports` | 주간 리포트 착수 시 | `id`, `user_id`, `week_start`, `metrics_json`, `insights`, `plan` — 주간 리포트 착수 시 추가 |
+
+⚠️ **`shadowing_items`가 이 표에서 빠진 것은 도입됐기 때문이다**(011 · 2026-09-09). 명세는 위
+자기 절이 갖는다 — 이 표에 남겨 두면 「설계 ↔ 실제 DB」가 갈라진다(그 위험은 010 때도 같았고
+그때는 마이그레이션과 이 문서를 한 커밋에서 함께 고쳤다).
 
 ## 오류 패턴 레코드 예시
 
