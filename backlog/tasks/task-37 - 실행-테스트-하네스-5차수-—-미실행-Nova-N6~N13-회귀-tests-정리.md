@@ -4,7 +4,7 @@ title: '실행: 테스트 하네스 5차수 — 미실행 Nova N6~N13 + 회귀 +
 status: In Progress
 assignee: []
 created_date: '2026-09-07 17:50'
-updated_date: '2026-09-08 19:50'
+updated_date: '2026-09-08 19:52'
 labels: []
 dependencies:
   - TASK-44
@@ -36,6 +36,8 @@ TASKS.md D절(테스트 하네스 차수 원장)에서 이관. 원장은 tests/h
 2026-09-09 착수 — 캡틴 결정 38 로 실물 Nova·마이크 세션 1회를 승인받았음(결정 20 이 유보한 것). 실행 순서를 실물 요구 여부로 갈랐음: ① 실물 0회 — AC#6(tests/** ruff·format) · AC#7(스파이크 스키마 대조) ② stub 스택 — AC#2(B1~B4 · 라이트/다크 5상태) · AC#3 의 A1·A2·D1·D2 + 프론트 tsc ③ 실물 1회 — AC#1 의 N6·N7·N8·N13 · AC#4 · AC#8 · AC#9 · AC#3 의 E4~E6(워커) 와 TASK-13·24·36 관측을 같은 세션에 실음 ④ AC#5 는 P9~P12 시나리오가 아직 없어 신설이 선행임. 근거: browser_leg.md §9 가 C1·C2·C5 를 stub·실물 0회로 명시함.
 
 진행 (2026-09-09) — AC#6 ✅(게이트 밖 ruff·format 기준선 6·4 → 0·0. 커밋 51fdd72) · AC#5 작성 ✅ 실행 미완(P9~P12 를 scenarios-P §4.1 에 신설. 커밋 a82aa21) · AC#7 절반(스파이크가 앱 상수를 그대로 보내게 바꿨고 정적 대조 완료. 실물 왕복 미실행) · 실물 세션 1회의 순서를 착수 전에 못박음(커밋 d766efb). 곁가지 함정 3건 등록: H-AR(ruff format 의 N files 가 .md 를 함께 셈) · H-AO 번호 충돌 정리 → H-AQ · H-AS(문서 기동 명령이 워커를 켬 — 기본값 True 이고 .env 에 키가 없음. 하네스 문서 3곳 수정. 커밋 a5c62af). 브라우저 다리(AC#2 + AC#3 의 A1)는 frontend-verifier 에 위임해 진행 중임 — 등록부 §1 이 그 지시를 손으로 대체한 것을 실패로 기록했으므로 방식을 지켰음.
+
+진행 2 (2026-09-09) — AC#2 ✅(라이트·다크 5상태. 5차 회차 cb2f4e19. 커밋 0b138ec) · AC#6 ✅ · AC#7 ✅(A-3 가 실물로 닫힘. Nova 가 앱 4필드 스키마를 받아들이고 pending 을 실제로 사용. parse_tool_payload 까지 확인. 커밋 9c3ea0d). 브라우저 다리는 5회차로 나눠 돌렸음 — 어댑터 모드 하나만 판정한다는 규약을 그 과정에서 만들었음. A1 여덟 건 PASS · A1-7 만 BLOCKED(표본 구성 — 스텁 세션이 32ms 프레임 하나가 만들어지기 전에 끝남) · A2 팀리드 직접 PASS(정크 5종이 각각 다른 이름 붙은 경로로 버려진 것을 로그로 확인) · C2·C3·C4 PASS · C5 PASS(대조 ①은 오염 — TASK-49 로 분리). 함정 3건 신설(H-AR·H-AS·H-AQ 번호 정리) + 계측 결함 1건 수정(startedSessionId) + 절차 결함 2건 수정(P5 실패 시 주체 · 로그 레벨) + 캐시 무력화 규약. 지금 nova 모드 실물 세션 1건 진행 중 — N7·TASK-36·O-1·TASK-13·TASK-24 다섯을 그 하나에서 얻음. 그 세션의 teardown 은 호출자가 소유함(구간 B 의 N8 이 그 job 을 씀).
 <!-- SECTION:NOTES:END -->
 
 ## Comments
