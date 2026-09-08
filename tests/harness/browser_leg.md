@@ -105,7 +105,22 @@ PY
 통과했다. **양쪽을 다 봤으므로 "판별력 미확인"이 아니다.**
 
 ⚠️ **P5가 실패하면 소스를 고치는 것이 아니라 백엔드를 재기동한다** — `--reload`가 없어 소스가 반영되지
-않은 것이 실패의 뜻이다. 재기동 명령은 `docs/ops/local-run.md`가 소유한다.
+않은 것이 실패의 뜻이다. **재기동 명령은 위 「기동 순서」의 것을 쓴다**(⛔ 이전 판은
+`docs/ops/local-run.md` 가 소유한다고 적었고 **그 명령에는 `WORKER_ENABLED=false` 가 없다** —
+평상시 개발용이라 워커가 켜지는 것이 그쪽의 의도다. 함정 `H-AS`).
+
+⛔ **재기동의 주체는 검증자가 아니라 호출자다 — 2026-09-09 에 이 어긋남이 실제로 회차를 막았다.**
+이 절은 *"P5 가 실패하면 재기동한다"* 고 적고 §8-⑤ 예외는 *"백엔드를 호출자가 세웠으면 손대지 않고
+「무변경」을 증거로 보고한다"* 고 적는다. 둘 사이에 **호출자가 세운 백엔드가 낡았을 때 검증자가 할 수
+있는 일이 없었다.** 위임된 검증자가 그것을 정확히 짚고 `BLOCKED` 로 멈췄고 **그 판단이 옳았다.**
+**규약**: 검증자는 **재기동하지 않고 `BLOCKED` 로 보고하며, 보고에 낡은 소스의 개수와 프로세스
+기동 시각을 넣는다.** 호출자가 재기동하고 P5 통과를 확인한 뒤 회차를 **다시 지시한다.**
+
+⛔ **로그는 `/tmp/omy-backend.log` 로 보내고 레벨은 `info` 여야 한다.** 위 ②의 신원 확인이
+`Started server process [pid]` 를 찾는데 그것은 uvicorn **INFO** 라 `--log-level warning` 으로
+띄우면 **나오지 않고 P5 가 그 assert 에서 죽는다**(2026-09-09 확인 — 같은 문서의 「기동 순서」가
+`warning` 을 적고 있었다). 실측 형태:
+`WORKER_ENABLED=false VOICE_ADAPTER=stub nohup .venv/bin/uvicorn app.api.main:app --port 8002 --log-level info > /tmp/omy-backend.log 2>&1 &`
 
 ⚠️ **P9는 표의 마지막 행이다** — 2026-09-06까지 이 산문 아래에 홀로 떨어져 있어 표로 렌더되지 않았다.
 표 안으로 되돌렸다. **프리플라이트는 P1~P9 아홉 건이고 여덟 건이 아니다.**
@@ -116,8 +131,11 @@ PY
 
 ```bash
 # ⛔ WORKER_ENABLED=false 를 빼지 마라 — 기본값이 True 다 (함정 H-AS).
+# ⛔ --log-level info + /tmp/omy-backend.log 도 필수다 — P5 의 신원 확인이 그 로그의
+#    "Started server process [pid]" 를 찾고 그것은 INFO 다 (warning 으로 띄우면 P5 가 죽는다).
 cd app/backend && WORKER_ENABLED=false VOICE_ADAPTER=stub \
-  .venv/bin/uvicorn app.api.main:app --port 8002 --log-level warning   # --reload 없음
+  nohup .venv/bin/uvicorn app.api.main:app --port 8002 --log-level info \
+  > /tmp/omy-backend.log 2>&1 &                                        # --reload 없음
 cd app/frontend && npm run dev                                          # :3000
 ```
 
@@ -542,6 +560,9 @@ select count(*) from learning_sessions s join harness_sessions h on h.session_id
 **⑤ 프로세스·환경 복원**: 백엔드를 §2의 baseline 명령으로 되돌리고 `curl localhost:8002/health`로 확인한다. `.env`는 고치지 않았으므로 복원할 것이 없다.
 
 ⚠️ **예외 — 백엔드를 호출자가 세웠으면 ⑤를 건너뛰고 「무변경」을 증거로 보고한다** (T5a D-5).
+⛔ **이 예외는 P5 실패에도 적용된다** — 호출자가 세운 백엔드가 낡았으면 검증자는 재기동하지 않고
+`BLOCKED` 로 멈춘다. 그 규약과 근거는 §2 의 P5 산문이 소유한다(2026-09-09 에 이 어긋남이 실제로
+회차를 막았다).
 지금 문장 그대로 따르면 **남의 세션이 세운 환경을 덮어쓴다.** 판별은 간단하다: 회차 브리프가 모드를
 지정하며 "손대지 마라"고 했으면 그 프로세스는 호출자 소유다.
 그때 보고할 증거 3개(T5a가 실제로 남긴 형태):
