@@ -888,3 +888,128 @@ DB 를 만졌음).
 ⚠️ **재검증 불가를 명시함**: 4차의 `d08d470a-…` 도 teardown 이 지웠음(`learning_sessions` 12 =
 baseline). 그래서 A1-6 의 증거는 **위 `eval` 반환 JSON 하나**이고, 그 안에 기대값·관측값·
 `recv` 가 함께 들어 있어 회차 밖에서도 대조 가능함(호출자 요구를 그렇게 반영했음).
+
+---
+
+# 5차 시도 — 결과 화면 **라이트 모드** 5상태. 네 항목 전부 `PASS`
+
+> 어댑터 그대로(`stub` · pid **72290**) · 재기동 없음. HEAD **`23aed48`** · 회차 `run_id`
+> **`cb2f4e19-90e6-4793-b372-b4ba0cd05c97`** · `WINDOW_START` **`2026-09-08 19:39:50.699933+00`**.
+> §9 보존 세션 5개를 **재방문**했고 **세션을 만들지 않았음.**
+> 프리플라이트 P1~P9 전건 통과 — P5 `pid 72290 · 기동 08:29 전 · 소스 34건 → 통과` ·
+> 플래그 `WORKER_ENABLED=false`·`VOICE_ADAPTER=stub`.
+
+**측정 수단**: `measure_contrast.py --url-substring <id 조각> --schemes light,dark
+--shot-prefix .harness/evidence/r5-<라벨>`. 그것이 `main p, main h1` 각각의
+`textContent`·`color`·배경·WCAG 대비와 토큰 4종, 그리고 **페이지가 보고한 스킴**을 함께 낸다.
+⚠️ **계측(`instrument.js`)은 이 회차에 쓰지 않았음** — 결과 화면 재방문이라 세션 계수·주입이
+없음. 그래서 §10-3 캐시 규약의 적용 대상이 아니었음(적용할 fetch 가 0건).
+
+## ① 5상태 라벨 — 라이트가 다크와 **같은 라벨 5개**. `PASS`
+
+`main` 첫 직계 `<p>` 의 `textContent`(`use_browser` `eval` 로 세션마다 직접 읽었음):
+
+| 상태 | 라이트 | 다크(2차·이 회차 재확인) | 같은가 |
+|---|---|---|---|
+| `analyzing` | `분석 중` | `분석 중` | **예** |
+| `final` | `확정` | `확정` | **예** |
+| `partial_failure` | `부분 실패` | `부분 실패` | **예** |
+| `connection_failed` | `연결 실패` | `연결 실패` | **예** |
+| `no_utterances` | `분석 대상 없음` | `분석 대상 없음` | **예** |
+
+**라벨이 모드에 무관함을 확인했음** — 모드마다 문구가 갈리면 결함인데 그런 일은 없었음.
+⚠️ 이 대조는 `measure_contrast.py` 가 **같은 실행에서 두 모드를 연달아 재기 때문에** 성립함
+(두 회차 값을 합친 것이 아님 — 라이트·다크 모두 이 회차에 직접 돌린 출력임).
+
+## ② 교정 카드 위계 — 라이트에서 성립. `PASS`
+
+`final` 세션(`6225ddaf-…`) 라이트:
+
+| 줄 | 색 | 대비 |
+|---|---|--:|
+| `학습 결과`(h1) · `확정` · `원문: go to gym` · `교정문: go to the gym` | `rgb(23, 23, 23)` = `--foreground` | **17.93:1** |
+| 이유 줄(라벨 없는 셋째 `<p>`) | `rgb(89, 89, 89)` = `--foreground-muted` | **7:1** |
+
+**이유 줄이 라벨 줄보다 덜 강조되고**(7:1 < 17.93:1) **동시에 AA 를 넘음**(7 ≥ 4.5).
+다크도 같은 위계임: 16.91:1 대 **7.04:1**. 카드 구조도 확인했음 — `cardCount` 1 ·
+`<p>` 3개 · `strongs` `["원문:","교정문:",null]`.
+
+## ③ 대비 AA — 두 모드 · 5상태 전건 통과. `PASS` (**F-1 회귀 없음**)
+
+측정한 `main p, main h1` 행은 **라이트 15행 · 다크 15행**이고 `[AA!]` 표시가 **0건**임:
+
+| 세션 | 라이트 (행수 · 최소 대비) | 다크 (행수 · 최소 대비) |
+|---|---|---|
+| `analyzing` | 2행 · 17.93:1 | 2행 · 16.91:1 |
+| `final` | 5행 · **7:1**(이유 줄) | 5행 · **7.04:1** |
+| `partial_failure` | 4행 · 17.93:1 | 4행 · 16.91:1 |
+| `connection_failed` | 2행 · 17.93:1 | 2행 · 16.91:1 |
+| `no_utterances` | 2행 · 17.93:1 | 2행 · 16.91:1 |
+
+⛔ **1차수 `F-1`(HIGH) 은 「다크에서 확정 전사문 대비 1.05:1」이었음.** 이 회차 다크의 최저값이
+**7.04:1** 이므로 그 결함은 재현되지 않았음 — **회귀 없음.** 토큰도 하드코딩이 아니라 CSS 변수에서
+나옴을 확인했음(라이트 `--foreground-muted=#595959` / 다크 `#9a9a9a`).
+
+## ④ 음성 대조 — 모드 전환이 실제로 걸렸음. `PASS`
+
+| 대조 | 관측 |
+|---|---|
+| **페이지가 보고한 스킴 == 요청** | 10회 전부 일치 — 출력이 `emulated=light (page reports light)` · `emulated=dark (page reports dark)`. 어긋나면 회차를 죽였을 자리인데 어긋나지 않았음 |
+| 라이트 muted ≠ 다크 muted | `#595959` ≠ `#9a9a9a` (= `rgb(89,89,89)` ≠ `rgb(154,154,154)`) — C2 가 세션 화면에서 얻은 값과 **같은 쌍** |
+| 라이트 fg ≠ 다크 fg | `#171717` ≠ `#ededed` |
+| 대비 수치가 모드에 따라 갈림 | 17.93 ≠ 16.91 · 7 ≠ 7.04 — 같은 값이면 전환이 안 걸린 것 |
+
+**모드를 하나만 돌리지 않았음** — 5세션 × 2모드 = **10회** 측정임.
+
+## 스크린샷 10장 — 전부 서로 다른 md5. 프레임에 세션 id 를 박았음
+
+⚠️ **프레임 식별 정보를 넣는 방법을 명시함**: `eval` 로 `document.body` 에
+`STAMP <pathname> | <ISO 시각>` 띠를 붙였음. ⛔ **`main` 밖에 붙여 측정을 오염시키지 않았음** —
+`stampInsideMain: false` 를 세션마다 확인했고 측정 행 수가 그대로였음(`analyzing` 2 · `final` 5).
+회차 끝에 지웠음(`stampRemoved: true`).
+
+| 파일 | md5 | | 파일 | md5 |
+|---|---|---|---|---|
+| `r5-analyzing-light.png` | `2e606a020cd3151f44786bb7ebe2bf1c` | | `r5-analyzing-dark.png` | `a771b238ee18670a5b4168c448e4303e` |
+| `r5-final-light.png` | `a178d1ac4d8fd18c5440a0ed8a5650d9` | | `r5-final-dark.png` | `145ee152c764ddfa627b739768660398` |
+| `r5-partial_failure-light.png` | `e44911a17e7fc1f1c49850282ab55091` | | `r5-partial_failure-dark.png` | `a41776453109197fe5dd941d4401004b` |
+| `r5-connection_failed-light.png` | `e6355f3647c55ec7dcb4e717d37b1a76` | | `r5-connection_failed-dark.png` | `c90b24ced6dbbce1495327e55e6b77c9` |
+| `r5-no_utterances-light.png` | `17a00dfa5c3ff361dd28dda3e5af3eb6` | | `r5-no_utterances-dark.png` | `a5933ea4a4cdadc131d55884b6520611` |
+
+`md5 -q r5-*.png | sort | uniq -d` 가 **빈 출력**임 — 10장에 중복이 없음. 라이트·다크 쌍도
+5쌍 전부 다름을 개별 확인했음. raw 는 세션별로 보존했음(`contrast.json` 이 매 실행 덮이므로):
+`r5-contrast-{analyzing,final,partial_failure,connection_failed,no_utterances}.json`.
+
+**`r5-final-light.png` 를 직접 열어 확인했음** — 흰 배경에 `학습 결과`/`확정`이 진하고 교정 카드의
+이유 줄이 회색으로 덜 강조되며, 하단 노란 띠에
+`STAMP /results/6225ddaf-90a8-43af-9aa8-e003921c75eb | 2026-09-08T19:40:54.326Z` 가 찍혔음.
+
+## DB — teardown 이 **완전 무변경**임
+
+| 표 (쿼리) | baseline | 회차 후 | teardown 후 |
+|---|--:|--:|--:|
+| `learning_sessions` (`where user_id='0…001'`) | 12 | 12 | 12 |
+| `analysis_jobs` (전체) | 45 | 45 | 45 |
+| `utterances` (전체) | 114 | 114 | 114 |
+| `error_patterns` (`where user_id='0…001'`) | 8 | 8 | 8 |
+| `session_plans` (전체) | 1 | 1 | 1 |
+| `learner_notes` (전체) | 1 | 1 | 1 |
+| `error_occurrences` (전체) | 18 | 18 | 18 |
+
+**세 열이 전부 같음.** teardown 출력이 그것을 뒷받침함: 창 안에 만들어진 세션 **0** ·
+`①-a INSERT 0 0` · `① DELETE 0` · `② UPDATE 0` · `③ DELETE 0` · `④-1` **8** ·
+**`④-2` drift(§8 정의 쿼리) 0** · **보존 세션 5개 생존**.
+⑤는 §8-⑤ 예외(무변경): pid **72290** 동일 · 플래그 동일 · `/health` `{"status":"ok"}`.
+⚠️ **브라우저 상태도 되돌렸음** — `measure_contrast.py` 가 마지막에 `Emulation.setEmulatedMedia
+{features: []}` 로 에뮬레이션을 해제하고, 회차 뒤 페이지가 OS 기본(`dark`)을 보고하는 것을
+직접 확인했음(`emulatedSchemeNow: "dark"`).
+
+## 내가 확인하지 못한 것
+
+- **다크 png 을 눈으로** — 라이트만 열어 봤음(`r5-final-light.png`). 다크는 2차 회차에서
+  `c3-final.png` 를 열어 봤고 이 회차 다크는 **수치로만** 확인했음.
+- **`connection_failed` 의 `danger` 토큰 렌더** — 그 화면의 `main p` 두 행이 모두
+  `--foreground` 였음. `danger`(`#c00`/`#ff8a8a`)는 토큰으로 존재하지만 **이 5화면에서는
+  쓰이지 않았음**(배지 `incorrect` 가 쓰는 것을 3차에서 봤음).
+- **회차 밖 png 3건의 바이트 동일**(`b2c5daa5…`) — 2차 보고에 적어 둔 것이고 이 회차 파일이
+  아니라 조사하지 않았음.

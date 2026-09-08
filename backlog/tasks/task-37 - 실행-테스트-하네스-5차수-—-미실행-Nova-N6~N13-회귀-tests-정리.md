@@ -4,7 +4,7 @@ title: '실행: 테스트 하네스 5차수 — 미실행 Nova N6~N13 + 회귀 +
 status: In Progress
 assignee: []
 created_date: '2026-09-07 17:50'
-updated_date: '2026-09-08 18:47'
+updated_date: '2026-09-08 19:46'
 labels: []
 dependencies:
   - TASK-44
@@ -20,7 +20,7 @@ TASKS.md D절(테스트 하네스 차수 원장)에서 이관. 원장은 tests/h
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [ ] #1 미실행 Nova N6·N7·N8·N11·N12·N13 시나리오를 실행한다
-- [ ] #2 B1~B4를 재확인하고 라이트·다크 5상태를 확인한다
+- [x] #2 B1~B4를 재확인하고 라이트·다크 5상태를 확인한다
 - [ ] #3 회귀 A1·A2·E4·E5·E6·D1·D2 + 프론트 npx tsc --noEmit 을 돌린다
 - [ ] #4 P8 + p2 쌍 + P7 재캡처를 수행한다
 - [ ] #5 신규 P9~P12(발음 복습 주기 시나리오)를 실행한다
