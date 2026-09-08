@@ -23,6 +23,7 @@ import asyncio
 import contextlib
 import logging
 from collections.abc import Collection
+from pathlib import Path
 from uuid import UUID
 
 import asyncpg
@@ -30,6 +31,7 @@ import asyncpg
 from app.services.analysis import process_analysis
 from app.services.jobs import JOB_TYPE_PLAN, ClaimedJob, claim_next
 from app.services.plan import process_plan
+from app.services.recordings import purge_expired_recordings, sweep_orphan_recording_files
 from app.services.sessions import ORPHAN_IDLE_GRACE, reap_orphan_sessions
 from app.services.utterances import flush_ended_sessions
 from app.workers.claude_client import ClaudeClient
@@ -65,6 +67,28 @@ async def sweep_lost_runs(pool: asyncpg.Pool) -> list[UUID]:
         return await flush_ended_sessions(conn)
 
 
+async def sweep_recordings(pool: asyncpg.Pool, root: Path) -> tuple[int, int]:
+    """만료된 쉐도잉 녹음을 걷는다 — 유휴 사이클의 **세 번째 회복 항목** (`TASK-45` · §6.1).
+
+    ⛔ **새 job 종류도 새 프로세스도 새 크론도 만들지 않는다.** `analysis_jobs` 에 종류를 더하려면
+    `analysis_jobs_target_matches_job_type` CHECK 를 DROP → ADD 해야 하고(그 CHECK 가 job 종류를
+    전수 열거한다) 그것이 `data-first` 가 말하는 가장 위험한 형태다. 게다가 그 표에는 `user_id` 가
+    없어 **사용자·날짜 단위**인 삭제를 담을 자리가 없다. 그래서 `reap_orphans`·`sweep_lost_runs` 와
+    같은 자리에 붙는다.
+
+    **두 다리를 이 순서로 부른다** (§6.2): 1다리가 포인터를 비우고 바이트를 지우고, 2다리가
+    포인터 없는 파일을 걷는다. 1다리의 unlink 실패가 2다리의 대상이 되므로 **같은 사이클에서
+    회복이 끝난다** — 리퍼를 스윕보다 먼저 부르는 것과 같은 이유다.
+
+    규칙(무엇이 만료인가 · 무엇이 고아인가)은 `services/recordings.py` 가 소유한다. 큐가 빌
+    때만 부르는 것도 다른 두 회복과 같다.
+    """
+    async with pool.acquire() as conn:
+        purged = await purge_expired_recordings(conn, root)
+        removed = await sweep_orphan_recording_files(conn, root)
+    return len(purged), removed
+
+
 async def claim_one(pool: asyncpg.Pool) -> ClaimedJob | None:
     """claim 하나를 짧은 자기 트랜잭션에서 커밋한다 (§5.4).
 
@@ -95,6 +119,7 @@ async def run_worker(
     poll_interval: float = 1.0,
     enabled: bool = True,
     live_sessions: Collection[UUID] = (),
+    recording_root: Path | None = None,
 ) -> None:
     """`stop`이 켜질 때까지 job을 하나씩 처리한다 — `analyze_utterance`는
     `process_analysis`로, `plan_next_session`은 `process_plan`으로 보낸다(Task 3).
@@ -151,6 +176,27 @@ async def run_worker(
                         len(reaped),
                         [str(session_id) for session_id in reaped],
                     )
+                # 쉐도잉 녹음 스윕도 **따로 감싼다** — 위 두 회복과 같은 이유다(한 `try` 로
+                # 묶으면 이 스윕이 계속 실패하는 동안 다른 회복이 영구히 막힌다).
+                # `recording_root` 가 없으면 저장 기능을 배선하지 않은 실행이므로 조용히 건너뛴다.
+                if recording_root is not None:
+                    try:
+                        purged, removed = await sweep_recordings(pool, recording_root)
+                    except Exception:
+                        logger.exception(
+                            "쉐도잉 녹음 스윕이 실패했다 — 다른 회복은 그대로 진행한다 "
+                            "(다음 유휴 사이클이 같은 조건을 다시 계산한다)"
+                        )
+                    else:
+                        if purged or removed:
+                            # **INFO 다** — 정상 운영에서 매일 나오는 일이고, 실패는 위
+                            # `exception`(ERROR)과 서비스의 `WARNING` 으로 보인다(§6.3).
+                            logger.info(
+                                "쉐도잉 녹음 스윕: 만료 %d건을 접근 불가로 만들고 "
+                                "고아 파일 %d건을 지웠다",
+                                purged,
+                                removed,
+                            )
                 recovered = await sweep_lost_runs(pool)
                 if recovered:
                     logger.info(

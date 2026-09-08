@@ -17,7 +17,8 @@ import asyncio
 import json
 import logging
 from collections.abc import Awaitable, Callable
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from typing import Any
 from uuid import UUID
 
@@ -38,6 +39,7 @@ from app.audio_gateway.fixtures import FIXTURE_TURNS
 from app.config import get_settings
 from app.services.jobs import JOB_TYPE_PLAN
 from app.services.plan import PLAN_NO_FOCUS_CANDIDATES
+from app.services.recordings import recording_path, recording_url
 from app.services.sessions import end_session
 from app.services.utterances import flush_pending_analysis, save_final_transcript
 from app.workers import analysis_worker
@@ -625,3 +627,127 @@ async def test_a_failing_reaper_still_lets_the_sweep_recover_a_lost_run(
 
 def test_worker_shutdown_timeout_is_a_documented_design_value():
     assert main_module.WORKER_SHUTDOWN_TIMEOUT == 15.0
+
+
+# ── 쉐도잉 녹음 스윕 (`TASK-45` AC#5 · 설계서 §6.1) ───────────────────────────────
+#
+# ⛔ **새 job 종류도 새 프로세스도 새 크론도 만들지 않는다.** `analysis_jobs` 에 종류를 더하려면
+# `analysis_jobs_target_matches_job_type` CHECK 를 DROP → ADD 해야 하고(그 CHECK 가 job 종류를
+# 전수 열거한다) 그것이 `data-first` 가 말하는 가장 위험한 형태다. 게다가 그 표에는 `user_id` 가
+# 없어 사용자·날짜 단위인 삭제를 담을 자리가 없다. → 유휴 사이클의 **세 번째 회복 항목**이다.
+
+
+async def _expired_recording(pool: asyncpg.Pool, session_id: UUID, root: Path) -> tuple[UUID, Path]:
+    """끝난 세션의 **이틀 전** 녹음. 어느 타임존에서도 당일이 지났다.
+
+    ⚠️ 워커는 자기 시계를 쓰므로(`now` 를 주입할 자리가 없다) 상대 시각으로 만든다 — 하루 전으로
+    두면 학습자 타임존과 실행 시각에 따라 경계 안에 들어올 수 있다.
+    """
+    async with pool.acquire() as conn:
+        await end_session(conn, session_id, "completed")
+        utterance_id = await conn.fetchval(
+            "insert into utterances "
+            "(session_id, speaker, utterance_type, transcript, sequence_no, created_at) "
+            "values ($1, 'user', 'shadowing_recording', 'I usually wake up at seven.', 90, $2) "
+            "returning id",
+            session_id,
+            datetime.now(UTC) - timedelta(days=2),
+        )
+        path = recording_path(root, session_id, utterance_id)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(b"\x00\x01" * 160)
+        await conn.execute(
+            "update utterances set audio_url = $2 where id = $1",
+            utterance_id,
+            recording_url(session_id, utterance_id),
+        )
+    return utterance_id, path
+
+
+async def _pointer_is_cleared(pool: asyncpg.Pool, utterance_id: UUID) -> bool:
+    async with pool.acquire() as conn:
+        return (
+            await conn.fetchval("select audio_url from utterances where id = $1", utterance_id)
+        ) is None
+
+
+async def test_worker_purges_an_expired_recording_on_an_idle_cycle(
+    db_pool, committed_session, fake_claude, tmp_path: Path
+):
+    """유휴 사이클이 만료된 녹음을 걷는다 — 두 다리가 실제로 배선됐는지 잰다."""
+    utterance_id, path = await _expired_recording(db_pool, committed_session.session_id, tmp_path)
+    # 응답을 주지 않는다 — 이 세션의 유일한 발화가 `shadowing_recording` 이라 분석 대상이 아니고
+    # (설계서 §4.1 이 그것을 의도했다), `end_session` 이 건 계획 job 은 후보가 0건이라
+    # `PLAN_NO_FOCUS_CANDIDATES` 로 끝나 Claude 를 부르지 않는다.
+    claude: FakeClaudeClient = fake_claude()
+    stop = asyncio.Event()
+    task = asyncio.create_task(
+        run_worker(db_pool, claude, stop=stop, poll_interval=0.01, recording_root=tmp_path)
+    )
+
+    try:
+        await _wait_until(
+            lambda: _pointer_is_cleared(db_pool, utterance_id),
+            what="유휴 사이클이 만료 녹음의 포인터를 비웠다",
+        )
+    finally:
+        stop.set()
+        await asyncio.wait_for(task, timeout=1.0)
+
+    assert not path.exists(), "포인터는 비웠는데 바이트가 남았다 — (b) 다리가 배선되지 않았다"
+    assert task.exception() is None
+
+
+async def test_a_failing_recording_sweep_does_not_kill_the_loop(
+    db_pool, committed_session, fake_claude, tmp_path: Path, monkeypatch
+):
+    """⛔ 녹음 스윕 고유의 실패가 **다른 회복을 막지 않는다** (§6.1 이 베낀 선례의 규칙).
+
+    리퍼·I-1 스윕과 같은 이유로 따로 감싼다: 한 `try` 로 묶으면 녹음 스윕이 계속 실패하는 동안
+    잃어버린 묶음이 영구히 걷히지 않는다.
+    """
+
+    async def boom(*args: object, **kwargs: object) -> None:
+        raise RuntimeError("녹음 스윕이 터졌다")
+
+    monkeypatch.setattr(analysis_worker, "sweep_recordings", boom)
+    async with db_pool.acquire() as conn:
+        utterance = await save_final_transcript(conn, committed_session.session_id, GYM_ANSWER)
+        await end_session(conn, committed_session.session_id, "completed")
+    claude: FakeClaudeClient = fake_claude(_response())
+    stop = asyncio.Event()
+    task = asyncio.create_task(
+        run_worker(db_pool, claude, stop=stop, poll_interval=0.01, recording_root=tmp_path)
+    )
+
+    try:
+        await _wait_until(
+            lambda: _job_is_done(db_pool, utterance.id),
+            what="녹음 스윕이 실패해도 I-1 스윕이 걸은 job 이 done",
+        )
+    finally:
+        stop.set()
+        await asyncio.wait_for(task, timeout=1.0)
+
+    assert task.exception() is None, "녹음 스윕 실패가 루프를 죽였다"
+
+
+async def test_lifespan_hands_the_recording_root_to_the_worker(app_settings, db_pool, monkeypatch):
+    """⛔ **배선 누락을 잡는 단정이다.**
+
+    `recording_root` 의 기본값이 `None`(스윕 없음)이므로 lifespan 이 넘기지 않으면 삭제가
+    **조용히 꺼진다** — 그러면 「당일이 지나면 삭제」가 코드가 있는데도 지켜지지 않는다.
+    """
+    app_settings(worker_enabled=True)
+    captured: dict[str, Any] = {}
+
+    async def fake_run_worker(pool: object, claude: object, **kwargs: Any) -> None:
+        captured.update(kwargs)
+
+    monkeypatch.setattr(main_module, "run_worker", fake_run_worker)
+    app = create_app()
+
+    async with app.router.lifespan_context(app):
+        pass
+
+    assert captured["recording_root"] == get_settings().shadowing_audio_root

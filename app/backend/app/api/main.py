@@ -63,6 +63,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
                 # 집합 **객체 자체**를 넘긴다 — 복사본을 넘기면 세션이 열려도 리퍼에게는
                 # 계속 비어 보여 진행 중 세션을 닫는다 (I-4).
                 live_sessions=app.state.live_sessions,
+                # ⛔ **이 인자를 빼면 쉐도잉 녹음 삭제가 조용히 꺼진다** (`TASK-45` · §6.1).
+                # 워커의 기본값이 `None`(스윕 없음)인 것은 녹음 없이 워커만 돌리는 테스트를
+                # 위한 것이고, 실물 배선은 여기 하나뿐이다 —
+                # `test_lifespan_hands_the_recording_root_to_the_worker` 가 그것을 못 박는다.
+                recording_root=settings.shadowing_audio_root,
             )
         )
     else:

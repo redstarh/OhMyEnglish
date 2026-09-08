@@ -77,6 +77,15 @@ update utterances
  where id = any($1::uuid[])
 """
 
+# 2다리가 「살려 둘 파일」을 정하는 유일한 조회. **포인터가 정본이므로** 이 집합에 없는 바이트는
+# 접근 불가이고 걷어도 잃을 것이 없다.
+_SELECT_LIVE_RECORDING_IDS_SQL = """
+select id
+  from utterances
+ where session_id = $1
+   and audio_url is not null
+"""
+
 # ⛔ **세션과 발화를 함께 조건에 넣는다.** `utterance_id` 만 보면 세션을 바꿔 넣은 요청이
 # 통과해 남의 녹음이 새어 나간다 — 녹음은 학습자 음성이므로 이 경계가 개인정보 경계다.
 #
@@ -308,6 +317,85 @@ async def purge_expired_recordings(
         # 이상만 흐른다(§6.3). 즉 이 줄은 개발 중에만 보이고 실패는 위 `WARNING` 으로 보인다.
         logger.info("만료된 쉐도잉 녹음 %d건을 접근 불가로 만들고 파일을 지웠다", len(purged))
     return purged
+
+
+async def sweep_orphan_recording_files(conn: asyncpg.Connection, root: Path) -> int:
+    """포인터가 없는 바이트를 걷는다 — §6.2 의 **2다리**. 지운 파일 수를 돌려준다.
+
+    ⛔ **이 다리는 선택이 아니라 필수다.** 1다리의 `(b)` 실패는 1다리로 재시도되지 않는다 —
+    조건이 `audio_url is not null` 이라 `(a)` 가 이미 선 행은 **다시 선택되지 않는다.** 파일
+    쪽에서 걷는 다리가 없으면 바이트가 영구히 남는다.
+
+    **잡는 것 셋**: ① 1다리의 unlink 실패 ② §4.5 의 중단된 쓰기(`.part`) ③ **FK cascade 로
+    사라진 포인터** — `utterances` 는 `learning_sessions` 에 `on delete cascade` 이므로 세션을
+    지우면 포인터는 사라지고 파일은 남는다. ③ 은 1다리가 원리적으로 볼 수 없는 경로다.
+
+    ⚠️ **진행 중 세션 디렉터리는 건드리지 않는다** — §4.5 의 1단계가 지금 그 안의 `.part` 에
+    프레임을 흘리고 있을 수 있다. §5.4 가 삭제에서 진행 중 세션을 뺀 것과 같은 판단이다.
+
+    ⛔ **이름 규칙에 맞지 않는 파일은 지우지 않고 경고한다.** 설계서 §6.2 는 *"그 집합에 없는
+    파일"* 을 지우라고 적었지만 알 수 없는 파일을 조용히 지우면 되돌릴 수 없다. 남기고 경고하면
+    누출이 **보이는 상태**로 남아 사람이 판단할 수 있다 — **이 절충은 내가 정한 것이다.**
+
+    뿌리가 없으면 0을 돌려준다: 저장한 적이 없다는 뜻이라 오류가 아니다(§6.3).
+    """
+    if not root.is_dir():
+        return 0
+    removed = 0
+    for session_dir in sorted(root.iterdir()):
+        if not session_dir.is_dir():
+            continue
+        try:
+            session_id = UUID(session_dir.name)
+        except ValueError:
+            # 우리가 만든 디렉터리가 아니다 — 뿌리를 남과 공유할 수 있으므로 건드리지 않는다.
+            continue
+        status = await conn.fetchval(
+            "select status from learning_sessions where id = $1", session_id
+        )
+        if status == "active":
+            continue
+        live = {row["id"] for row in await conn.fetch(_SELECT_LIVE_RECORDING_IDS_SQL, session_id)}
+        removed += _remove_orphans_in(session_dir, live)
+        _remove_dir_if_empty(session_dir)
+    if removed:
+        logger.info("포인터 없는 쉐도잉 녹음 파일 %d건을 지웠다 (2다리)", removed)
+    return removed
+
+
+def _remove_orphans_in(session_dir: Path, live: set[UUID]) -> int:
+    """한 세션 디렉터리에서 고아를 지운다. `.part` 는 언제나 고아다(미완성 쓰기)."""
+    removed = 0
+    for path in sorted(session_dir.iterdir()):
+        if not path.is_file():
+            continue
+        if path.name.endswith(".pcm.part"):
+            pass  # 미완성 — 살아있는 포인터를 가질 수 없다
+        elif path.suffix == ".pcm":
+            try:
+                if UUID(path.stem) in live:
+                    continue
+            except ValueError:
+                logger.warning("이름을 해석할 수 없는 녹음 파일을 남긴다: %s", path)
+                continue
+        else:
+            logger.warning("녹음 이름 규칙에 맞지 않는 파일을 남긴다: %s", path)
+            continue
+        try:
+            path.unlink()
+        except OSError:
+            logger.warning("고아 녹음 파일을 지우지 못했다 — 다음 사이클에 다시 건다: %s", path)
+            continue
+        removed += 1
+    return removed
+
+
+def _remove_dir_if_empty(session_dir: Path) -> None:
+    """빈 세션 디렉터리를 걷는다. 비어 있지 않으면 그대로 둔다 — 실패를 올리지 않는다."""
+    try:
+        session_dir.rmdir()
+    except OSError:
+        return
 
 
 def _unlink_recording(root: Path, session_id: UUID, utterance_id: UUID) -> None:

@@ -27,8 +27,10 @@ from app.services.recordings import (
     load_recording,
     pending_recording_path,
     purge_expired_recordings,
+    recording_dir,
     recording_path,
     recording_url,
+    sweep_orphan_recording_files,
 )
 
 FRAMES = b"\x00\x01" * 160  # raw LPCM 16kHz·16bit·mono 한 프레임 분량 (헤더 없음)
@@ -678,6 +680,124 @@ async def test_purge_stops_at_the_cycle_limit_and_resumes_next_time(
     assert len(first) == 2
     assert len(second) == 1
     assert await purge_expired_recordings(db_conn, tmp_path, now=NOON_KST, limit=2) == []
+
+
+# ── 고아 파일 정리 — 2다리 (AC#5 · 설계서 §6.2) ──────────────────────────────────
+#
+# ⛔ **이 다리는 선택이 아니라 필수다.** 1다리의 (b) 실패는 1다리로 재시도되지 않는다 — 조건이
+# `audio_url is not null` 이라 (a) 가 이미 선 행은 **다시 선택되지 않는다.** 그래서 파일 쪽에서
+# 걷는 다리가 없으면 바이트가 영구히 남는다.
+#
+# **이 다리가 잡는 것 셋**: ① 1다리의 unlink 실패 ② §4.5 의 중단된 쓰기(`.part`)
+# ③ **FK cascade 로 사라진 포인터** — `utterances` 는 `learning_sessions` 에
+# `on delete cascade` 이므로 세션을 지우면 포인터는 사라지고 파일은 남는다.
+
+
+@pytest.mark.asyncio
+async def test_orphan_sweep_keeps_files_that_still_have_a_pointer(
+    db_conn: asyncpg.Connection, tmp_path: Path
+) -> None:
+    """살아있는 녹음을 지우지 않는다 — 이 다리가 가장 먼저 만족해야 하는 성질이다."""
+    session_id = await _new_shadowing_session(db_conn, status="completed")
+    utterance_id = await _new_recording_utterance(db_conn, session_id)
+    await _stored(db_conn, tmp_path, session_id, utterance_id)
+
+    assert await sweep_orphan_recording_files(db_conn, tmp_path) == 0
+    assert recording_path(tmp_path, session_id, utterance_id).is_file()
+
+
+@pytest.mark.asyncio
+async def test_orphan_sweep_removes_a_file_whose_pointer_is_gone(
+    db_conn: asyncpg.Connection, tmp_path: Path
+) -> None:
+    """포인터가 없는 바이트를 걷는다 — 1다리의 (b) 실패가 여기서 낫는다."""
+    session_id = await _new_shadowing_session(db_conn, status="completed")
+    utterance_id = await _new_recording_utterance(db_conn, session_id)
+    await _stored(db_conn, tmp_path, session_id, utterance_id)
+    await db_conn.execute("update utterances set audio_url = null where id = $1", utterance_id)
+
+    assert await sweep_orphan_recording_files(db_conn, tmp_path) == 1
+    assert not recording_path(tmp_path, session_id, utterance_id).exists()
+
+
+@pytest.mark.asyncio
+async def test_orphan_sweep_removes_an_interrupted_write(
+    db_conn: asyncpg.Connection, tmp_path: Path
+) -> None:
+    """`.part` 는 언제나 고아다 (§4.5 의 2·3 사이에서 죽은 흔적)."""
+    session_id = await _new_shadowing_session(db_conn, status="completed")
+    pending = pending_recording_path(tmp_path, session_id, uuid4())
+    pending.parent.mkdir(parents=True, exist_ok=True)
+    pending.write_bytes(FRAMES)
+
+    assert await sweep_orphan_recording_files(db_conn, tmp_path) == 1
+    assert not pending.exists()
+
+
+@pytest.mark.asyncio
+async def test_orphan_sweep_does_not_touch_a_running_session(
+    db_conn: asyncpg.Connection, tmp_path: Path
+) -> None:
+    """⛔ 진행 중 세션 디렉터리는 건드리지 않는다 — **지금 쓰는 중인 `.part` 가 있다.**
+
+    §4.5 의 1단계가 그 파일에 프레임을 흘리고 있으므로, 여기서 지우면 학습자가 방금 낭독한
+    것이 사라진다. §5.4 가 삭제에서 진행 중 세션을 뺀 것과 같은 판단이다.
+    """
+    session_id = await _new_shadowing_session(db_conn, status="active")
+    pending = pending_recording_path(tmp_path, session_id, uuid4())
+    pending.parent.mkdir(parents=True, exist_ok=True)
+    pending.write_bytes(FRAMES)
+
+    assert await sweep_orphan_recording_files(db_conn, tmp_path) == 0
+    assert pending.is_file()
+
+
+@pytest.mark.asyncio
+async def test_orphan_sweep_removes_files_of_a_session_deleted_by_cascade(
+    db_conn: asyncpg.Connection, tmp_path: Path
+) -> None:
+    """⛔ **2다리 없이는 영구 누출인 경로다** (§6.2 의 ③).
+
+    `utterances` 는 `learning_sessions` 에 `on delete cascade` 이므로 **세션을 지우면 DB
+    포인터는 사라지고 파일은 남는다.** 1다리는 포인터로 대상을 고르므로 이것을 영원히 못 본다.
+    """
+    session_id = await _new_shadowing_session(db_conn, status="completed")
+    utterance_id = await _new_recording_utterance(db_conn, session_id)
+    await _stored(db_conn, tmp_path, session_id, utterance_id)
+    await db_conn.execute("delete from learning_sessions where id = $1", session_id)
+
+    assert await sweep_orphan_recording_files(db_conn, tmp_path) == 1
+    assert not recording_dir(tmp_path, session_id).exists()
+
+
+@pytest.mark.asyncio
+async def test_orphan_sweep_leaves_an_unrecognized_file_and_warns(
+    db_conn: asyncpg.Connection, tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """⛔ **이름 규칙에 맞지 않는 파일은 지우지 않고 경고한다.**
+
+    설계서 §6.2 는 *"그 집합에 없는 파일"* 을 지우라고 적었지만, 알 수 없는 파일을 조용히 지우면
+    **되돌릴 수 없다.** 남기고 경고하면 누출이 **보이는 상태**로 남아 사람이 판단할 수 있다 —
+    이 절충은 내가 정한 것이고 뒤집으려면 이 단정을 뒤집으면 된다.
+    """
+    session_id = await _new_shadowing_session(db_conn, status="completed")
+    stray = recording_dir(tmp_path, session_id) / "notes.txt"
+    stray.parent.mkdir(parents=True, exist_ok=True)
+    stray.write_text("사람이 둔 파일")
+
+    with caplog.at_level("WARNING"):
+        assert await sweep_orphan_recording_files(db_conn, tmp_path) == 0
+
+    assert stray.is_file()
+    assert "notes.txt" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_orphan_sweep_tolerates_a_missing_root(
+    db_conn: asyncpg.Connection, tmp_path: Path
+) -> None:
+    """뿌리가 없다는 것은 **저장한 적이 없다는 뜻이라 오류가 아니다** (§6.3)."""
+    assert await sweep_orphan_recording_files(db_conn, tmp_path / "not-created-yet") == 0
 
 
 def test_media_type_declares_the_raw_pcm_parameters() -> None:
