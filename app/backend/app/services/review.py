@@ -514,9 +514,15 @@ async def recompute(conn: asyncpg.Connection, pattern_id: UUID) -> ReviewState:
     #   supersede → `cycle > C` ∨ (`cycle = C ∧ stage > L`)
     #   abandon   → `cycle < C ∧ status = 'pending'`
     # 셋이 쌍마다 서로소이므로 어느 순서로 돌려도 결과가 같다. 읽는 순서로 사다리를 먼저 두었다.
-    # ⛔ **진짜 불변조건은 `$3`이 「새」 사다리 길이라는 것이다.** 그것을 **옛** 길이로 바꾸면
-    # 방금 길어진 칸이 `stage > L`에 걸려 `superseded`가 된다 — 그때는 **순서와 무관하게** 깨진다
-    # (upsert가 되살린 뒤 supersede가 다시 내린다). 순서를 지키려 하지 말고 이 인자를 지켜라.
+    # ⛔ **진짜 불변조건은 `$3`이 「새」 사다리 길이라는 것이다.** 옛 길이를 쓰면 두 방향으로 깨지고
+    # 둘의 순서 민감도가 **다르다**(재리뷰 새-LOW-3이 이 구분을 요구했다 — 아래를 뭉개면 다음 사람이
+    # 틀린 확신을 갖는다):
+    #   * 사다리가 **길어졌을 때**(`L_old=1 → L_new=2`, `$3=1`): **이 순서에서만** 깨진다.
+    #     upsert가 `(C,2)`를 만든 뒤 supersede가 `stage > 1`로 그것을 내린다. 순서를 뒤집으면
+    #     그 행이 아직 없어 supersede가 걸리지 않고 upsert가 나중에 만들어 **깨지지 않는다.**
+    #   * 사다리가 **짧아졌을 때**(`L_old=3 → L_new=1`, `$3=3`): **어느 순서에서도** 깨진다.
+    #     supersede가 `stage > 3`만 보아 은퇴시켜야 할 2·3단계 행을 놓친다.
+    # 즉 순서를 지키는 것으로는 첫째만 가려지고 둘째는 남는다. **순서가 아니라 이 인자를 지켜라.**
     await conn.execute(_SUPERSEDE_TASKS_SQL, pattern_id, state.cycle_started_at, len(state.ladder))
     await conn.execute(_ABANDON_TASKS_SQL, pattern_id, state.cycle_started_at)
     return state

@@ -356,8 +356,15 @@ async def main() -> int:
             # 바뀌었으므로 완주한 사이클은 `done` 세 행을 남기고 재발은 새 사이클을 연다 —
             # 행 수 상한(`<= len(patterns)`)은 **정상 동작에서 뒤집힌다.**
             # ⛔ 행 수로 멱등을 재려 하지 마라. 010 이 실제로 보장하는 것은 아래 둘이다.
+            #
+            # ⚠️ **아래 Check A 는 tripwire 다 — 지금은 실패할 수 없다** (재리뷰 새-LOW-1).
+            # 010 이 정확히 이 튜플에 `review_tasks_cycle_stage_key` UNIQUE 를 걸었으므로 중복은
+            # DB 가 거부하고, 010 미적용 상태에서는 `select rt.cycle_started_at` 이
+            # `UndefinedColumn` 으로 터져 단정에 **도달하기 전에** 죽는다. 남겨 두는 이유는
+            # **미래 마이그레이션이 그 제약을 떨어뜨리는 것을 잡는 유일한 감지기**이기 때문이다
+            # (예: `TASK-41` 의 스키마 이관). 그 의도가 아니게 되면 지우는 것이 정직하다.
             Check(
-                "review_tasks 의 자연키가 중복되지 않는다 (사이클 × 단계)",
+                "review_tasks 의 자연키가 중복되지 않는다 (사이클 × 단계 · 유일키 tripwire)",
                 len(
                     {
                         (r["pattern_id"], r["cycle_started_at"], r["review_stage"])
@@ -367,20 +374,26 @@ async def main() -> int:
                 == len(review_rows),
                 f"실제 {len(review_rows)}행: {review_detail!r}",
             ),
-            # 사다리는 `fold_stages` 가 `stage=1` 부터 `+1` 로만 append 하므로 한 사이클에
-            # **열린 단계가 최대 하나**다. 이것은 유일키가 아니라 **앱 로직**이 보장하는 것이라
-            # DB 가 잡아 주지 않는다 — 그래서 스모크가 볼 값어치가 있다.
+            # Check B — **패턴당** 열린(`pending`) 단계가 최대 하나다. 이것은 DB 가 아니라
+            # **앱 로직**이 보장하므로 스모크가 볼 값어치가 있다. 기전이 **둘**이다
+            # (재리뷰 새-LOW-2 — 하나만 적으면 절반만 지킨다):
+            #   ① 현재 사이클: `fold_stages` 가 `stage=1` 부터 `+1` 로만 append 하므로 열린 칸이
+            #      최대 하나다.
+            #   ② 과거 사이클: `_ABANDON_TASKS_SQL` 이 그 사이클의 `pending` 을 `abandoned` 로
+            #      내려 0개로 만든다.
+            # ⛔ **묶음을 `(pattern_id, cycle_started_at)` 로 하지 마라** — 그러면 「사이클마다
+            # 하나씩, 패턴당 둘」이 통과하는데 그것이 정확히 ②가 빠졌을 때의 모양이다.
+            # `pattern_id` 로 묶으면 abandon 회귀를 잡는 감지기가 하나 생긴다.
             Check(
-                "사이클마다 열린(pending) 단계가 최대 하나다",
+                "패턴당 열린(pending) 단계가 최대 하나다",
                 all(
                     sum(
                         1
                         for r in review_rows
-                        if (r["pattern_id"], r["cycle_started_at"]) == key
-                        and r["status"] == "pending"
+                        if r["pattern_id"] == pid and r["status"] == "pending"
                     )
                     <= 1
-                    for key in {(r["pattern_id"], r["cycle_started_at"]) for r in review_rows}
+                    for pid in {r["pattern_id"] for r in review_rows}
                 ),
                 f"실제 {review_detail!r}",
             ),
