@@ -136,6 +136,15 @@
      */
     started: { count: 0, when: [], calls: [] },
     /**
+     * `session_started` 프레임이 실어 온 `session_id` — **A1-6 기대 URL 의 출처다**(§5).
+     *
+     * ⚠️ **`null` 은 「세션이 시작되지 않았다」와 「프레임에 그 키가 없다」를 구별하지 않는다** —
+     * 판정 전에 `recv.session_started`를 함께 읽어 가른다. 전자면 A1-6 은 **측정 불가**이고
+     * 후자면 **프레임 계약의 결함**이다.
+     * ⛔ **first-wins** — 이유는 `finalLinesAtTerminal`과 같다.
+     */
+    startedSessionId: null,
+    /**
      * 종단 프레임을 **앱이 처리하기 직전**의 동기 스냅샷. **A1-5 내용·순서 단정의 정본이다.**
      *
      * ⚠️ **2026-09-06 역할이 뒤바뀌었다** — 이전 판은 이 값을 "진단용"이라 적고 `snapshots`를 단정
@@ -528,6 +537,20 @@
           const frame = JSON.parse(event.data);
           if (frame && Object.prototype.hasOwnProperty.call(omy.recv, frame.type)) {
             omy.recv[frame.type] += 1;
+          }
+          // A1-6 의 기대값 출처. `browser_leg.md` §5 가 "`session_started` 프레임의
+          // `session_id`를 계측이 기록해 대조"를 요구하는데 **그 기록이 없었다**(2026-09-09
+          // 5차수 브라우저 다리가 찾았다 — 회차가 DB 세션 행으로 대신 대조했고 그것은 문서가
+          // 지정한 유도가 아니다). ⛔ **first-wins** — 한 문서에서 세션을 두 번 돌리면 두 번째
+          // `session_started`가 첫 세션의 기대 URL을 조용히 덮는다(`finalLinesAtTerminal`과
+          // 같은 위험이고 같은 방식으로 막는다).
+          if (
+            frame &&
+            frame.type === "session_started" &&
+            typeof frame.session_id === "string" &&
+            omy.startedSessionId === null
+          ) {
+            omy.startedSessionId = frame.session_id;
           }
           // ⚠️ **이 동기 스냅샷이 A1-5 내용·순서 단정의 정본이다** (2026-09-06 역할 교체 — 이전
           // 주석은 "진단용"이라 적었고 그것은 현재 코드와 정반대였다). 찍는 자리가 `fn(event)`

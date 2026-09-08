@@ -148,3 +148,360 @@ DB 쪽은 `cd app/backend && .venv/bin/python -c "import sys; sys.path.insert(0,
 ⚠️ **이 회차가 읽은 절차는 커밋본이 아니라 디스크 작업본임**(`browser_leg.md` 가 `M` 상태였음).
 같은 시각 `docs/ops/pitfalls.md` · `tests/harness/README.md` · `runs/ROUNDS.md` 도 `M` 이었고
 **이 회차는 그 넷 중 어느 것도 수정하지 않았음** — 다른 세션의 진행 중 작업으로 보임.
+
+---
+
+# 2차 시도 — 프리플라이트 통과 후 회차를 열어 C1~C5 전부 관측함
+
+> 팀리드가 백엔드를 재기동해 P5 를 풀었음(pid 14879 → **26253**). HEAD **`5dd4fb8`**
+> (1차 시도의 `a82aa21` 뒤에 문서 커밋 3건이 붙었음 — `browser_leg.md` 를 다시 읽고 시작했음).
+> 회차 `run_id` **`8bc59725-7246-4957-b07d-ad66f9718d07`** · `WINDOW_START`
+> **`2026-09-08 18:53:53.937015+00`**(UTC · KST 2026-09-09 03:53).
+
+## 판정 요약 — 단정 18건
+
+| 묶음 | 판정 | 한 줄 근거 |
+|---|---|---|
+| **C1** | **부분** — `PASS` 2건 · `BLOCKED` 7건 | 측정값은 A1-0~A1-6·A1-8 전부 기대와 일치했으나, 음성 대조가 **어댑터 전환(백엔드 재기동)** 을 요구하는 6건을 회차가 평가할 수 없었음 |
+| **C2** | **`BLOCKED`** 3건 | 실행체가 「어댑터가 `stub_unresponsive` 가 아니다」로 진단하고 exit 1 을 냈음. 라이트에서 막혀 다크는 돌지 못했음 |
+| **C3** | **`PASS`** 2건 | 실행체 `c3_results_screen.py` 가 **단정 57건 전건 통과**·exit 0 |
+| **C4** | `PASS` 1건 · `BLOCKED` 1건 | A4-1 통과. A4-2 는 교정 2건 이상 세션이 없어 기대값 교차 대조 **미평가**(§11-9 가 예견한 그대로) |
+| **C5** | **`BLOCKED`** 2건 | 세션이 `active` 에 머물지 않아 배지를 렌더할 화면이 없었음. 주입 4건은 오류 없이 들어갔고 배지는 0개 |
+
+| # | 판정 | 기대 · 유도 | 관측 | 음성 대조가 FAIL 을 냈는가 |
+|---|---|---|---|---|
+| A1-0 | **`PASS`** | 1개 — ⓑ `next-plan` API 의 `reason` 이 null 아님 | 1개 | **예** — 클릭 후 **0개**(1 → 0 전이를 직접 관측) |
+| A1-1 | `BLOCKED` | 6 — ⓐ | **6** | 아님 — `stub_unresponsive` 필요 |
+| A1-2 | `BLOCKED` | 6 — ⓐ | **6** | 아님 — 같음 |
+| A1-3 | `BLOCKED` | 3 — ⓐ | **3** | 아님 — 같음 |
+| A1-4 | `BLOCKED` | 3 — ⓐ | **3** · `when`=[0,0.2,0.4] · `afterRecvAudio`=1/2/3 | 대조 ②③은 이 데이터에서 판별 조건으로 성립. 대조 ①은 어댑터 필요 → 미평가 |
+| A1-5 | **`PASS`** | 6줄 · 내용 등호 — ⓐ | **`verdict: "PASS"`** (계측 값을 그대로 베낌) | **예** — 무력화 4종이 실제로 FAIL: 순서뒤바뀜·sentinel → `APP_CONTENT_MISMATCH` · 5줄축약 → `APP_EXCESS_RENDER` · `[]`·null·비배열 → 이름 있는 throw |
+| A1-6 | `BLOCKED` | `/results/<session_id>` — ⓑ | `/results/0f2a66fc-…`(DB 행과 일치) | 아님 + **유도 경로가 없음**(아래 결함 2) |
+| A1-7 | `BLOCKED` | `sent.audio > 0` · data 비지 않음 — ⓑ | audio **1** · bytes **1368** | 아님 — §10 갈래 2(세션이 너무 짧다) |
+| A1-8 | `BLOCKED` | 6행 — ⓐ | **6행**(내용도 픽스처와 일치) | 아님 — `stub_unresponsive` 필요 |
+| A2-1 | `BLOCKED` | ⓑ probe 유도 muted | 미측정 | 미평가 |
+| A2-2 | `BLOCKED` | ⓑ probe 유도 foreground | 미측정 | 미평가 |
+| A2-3 | `BLOCKED` | 라이트 muted ≠ 다크 muted — ⓑ | 미측정 (두 모드 **모두**) | 미평가 |
+| A3-1 | **`PASS`** | ⓒ `STATUS_LABEL` · 요소 지목 + 등호 | 분석 중 / 확정 / 부분 실패 / 연결 실패 / 분석 대상 없음 | **예** — 같은 요소가 5상태 재방문에서 매번 다른 라벨 |
+| A3-2 | **`PASS`** | ⓑ 없는 uuid → 라벨 5개 부재 + 오류 문구 | `결과 API가 404을 반환했습니다` · 라벨 잔존 `[]` | **예** — 실제 세션에서 그 오류 문구 부재(상호 대조) |
+| A4-1 | **`PASS`** | N=1 — ⓑ API `corrections.length` | 원문/교정문 1/1 · 카드 1 · `pCount` 3 · 셋째 줄 비지 않음 | **예** — 빈 세션 2건에서 두 접두 **0개** |
+| A4-2 | `BLOCKED` | ⓑ 카드별 `reason` 등호 | 등호 통과(카드 셋째 `<p>` == API `reason`) | 아님 — 교정 1건이라 기대값 교차 **평가 불가**(실행체가 「미확인」으로 냈고 PASS 로 세지 않았음) |
+| A5-1 | `BLOCKED` | ⓒ `PRONUNCIATION_BADGE` · 요소 1개 + 등호 | 배지 **0개**(4 outcome 전부) | 대조 ①(주입 전 부재)만 성립. 본 단정 미측정 |
+| A5-2 | `BLOCKED` | ⓑ sentinel 0건 | sentinel 0건 **이지만** outcome 문구도 0건 | **아님** — §5 A5-2 가 「둘 다 0이면 주입 실패」로 이 경우를 배제함 |
+
+## 프리플라이트 P1~P9 — 아홉 건 전부 다시 돌려 전건 통과
+
+| # | 판정 | 직접 돌린 출력 |
+|---|---|---|
+| P1 | 통과 | `{"status":"ok"}` (`version` 없음) |
+| P2 | 통과 | `NEXT_PUBLIC_API_BASE=http://localhost:8002` |
+| P3 | 통과 | `app/frontend/.gitignore:34:.env*	app/frontend/.env.local` |
+| P4 | 통과 | `postgresql@17 started` |
+| **P5** | **통과** | **`P5: pid 26253 · 기동 03:36 전 · 소스 34건 → 통과`** · exit 0 |
+| P6 | 통과 | `200` |
+| P7 | 통과 | `2` |
+| P8 | 통과 | `P8: pytest 0건` |
+| P9 | 통과 | `/opt/homebrew/opt/postgresql@17/bin/psql` · `ohmyenglish` |
+
+백엔드 플래그를 프로세스에서 직접 확인했음(`ps -p 26253 -Eww`): `WORKER_ENABLED=false` ·
+`VOICE_ADAPTER=stub`. 회차 중 워커를 켜지 않았고 실물 호출은 **0회**임.
+
+## §4 계측 자기검사 — 통과. 손으로 옮기지 않았음
+
+**계측을 eval 페이로드로 옮겨 적지 않았음** — §10-3 규약대로 임시 CORS 서버(`127.0.0.1:8899`,
+`tests/harness/` 서빙, 회차 끝에 종료)로 페이지가 파일을 그대로 받아 페이지 안에서 sha256 을
+계산해 대조했음. **전사 드리프트가 구조적으로 0임.**
+
+| 검사 | 관측 |
+|---|---|
+| `eval` 반환값 | **`"instrumented"`** (§4-1) |
+| sha256 (페이지 계산) | **`846f130f2cf73365ae00765b37300e00e3c1c5b1cb1ae6152f9a02b7fc16ae93`** · 43,119 B |
+| 파일 해시 (`shasum -a 256`) | 같은 값 — 일치 |
+| 후킹 소유자 (§11-2 재확인) | `onmessage`=**WebSocket** · `send`=**WebSocket** · `start`=**AudioBufferSourceNode** · `createBufferSource`=**BaseAudioContext** |
+| 필수 키 8건 | `recv`·`sent`·`started`·`snapshots`·`finalLinesAtTerminal`·`judgeFinalLines`·`inject`·`probeColor` 전부 존재 |
+| `finalLines`(있으면 낡음) | **ABSENT** — §4 의 정정대로 요구하지 않았음 |
+| `judgeFinalLines` 반환 키 | `verdict`·`judgeable`·`reachedExpected`·`terminalIsPrefix`·`exactStateSeen`·`noExcess`·`terminalMatches`·`nonDecreasing`·`atMaxDiagnostic` 전부 존재 |
+
+⚠️ **`judgeFinalLines` 가 순수 함수임을 확인했음** — 같은 `expected` 로 두 번 불러 반환이 동일했음.
+그것이 없으면 뒤이은 무력화 호출이 앞 호출의 상태를 오염시켰을 수 있음.
+
+## C1 — 세션 두 번 관통. 같은 값을 재현했음
+
+**세션 2건을 각각 새 문서에서 돌렸음**(§5 A1-5 의 「한 문서에 세션 하나」 규약).
+① 톤(`silentMic:false`) → `0f2a66fc-427a-416d-825e-51cb394c2f7e`
+② 무음(`silentMic:true`) → `431f25f3-f6f8-4d70-8ddb-a6bb6294ae31`
+
+두 회차가 **`recv`·`started`·`finalLinesAtTerminal` 을 완전히 재현했음**:
+`recv={session_started:1, partial:6, final:6, audio:3, session_ended:1, session_failed:0}` ·
+`started={count:3, when:[0,0.2,0.4]}` · 종단 6줄이 픽스처와 축자 일치.
+
+**A1-4 의 대조 ②③이 이 데이터에서 실제 판별 조건으로 작동했음**: `when` 이 [0, 0.2, 0.4] 로
+비감소이고 첫째(0) < 셋째(0.4) — 세 값이 같으면 어긋났을 것임. `afterRecvAudio` 태그가 1/2/3 으로
+갈려 **어느 수신 프레임에서 났는지**가 확정됨. 다만 대조 ①(어댑터 전환 → 0)은 평가하지 못했음.
+
+**A1-8 은 행 수와 내용을 함께 확인했음** — `utterances` **6행**이고 `sequence_no` 1~6 이
+`agent`/`user` 교대로 픽스처 문장을 담았음. partial 12건은 저장되지 않았음(6행이 그 증거임).
+
+### A1-5 — `PASS`. 판별력을 이 회차에서 실측했음
+
+기대값은 `fixtures.py:FIXTURE_TURNS` 3턴에서 연역했음(ⓐ). 계측이 낸 값을 **해석하지 않고 베낌**:
+`verdict: "PASS"` · `maxCount 6` · `expectedCount 6` · `noExcess true` · `reachedExpected true` ·
+`terminalMatches true` · `nonDecreasing true` · `judgeable true` · `terminalIsPrefix false` ·
+`snapshotCount 11` · `snapshotCounts=[0,1,2,2,3,4,4,5,6,6,0]`.
+
+**무력화 입력 6종을 같은 회차 데이터에 얹어 FAIL 을 실제로 관측했음**(앱 소스를 고치지 않고
+기대값만 바꿨음):
+
+| 무력화 | 결과 |
+|---|---|
+| 1·3번째 줄 순서 뒤바꿈 | `terminalMatches false` → **`APP_CONTENT_MISMATCH`** |
+| 마지막 줄에 sentinel 덧붙임 | `terminalMatches false` → **`APP_CONTENT_MISMATCH`** |
+| 5줄로 축약 | `noExcess false` → **`APP_EXCESS_RENDER`** |
+| `expected = []` | **throw** — `expected 가 비었다 — 빈 기대값은 공허 통과다 (A1-5)` |
+| `expected = null` · `"nope"` | **throw** — `expected 가 배열이 아니다` |
+
+⚠️ **§5 의 정정 2가 이 회차에서 재현됐음** — `atMaxDiagnostic.texts` 의 마지막 줄이
+**`답변: I need to finish`**(partial)였음. 이전 판정식(최대 지점의 `texts` 를 본다)이면 **정상
+회차가 FAIL** 이었을 것임. 지금 판정은 종단 동기 스냅샷을 보므로 영향받지 않았음.
+
+또 A1-5 ④를 재확인했음: 기대 문장 6개 길이 `[38,35,39,37,35,41]` — 전부 20자 이상이고
+sentinel 변형이 DOM 의 어떤 `<p>` 와도 같지 않았음(0건).
+
+### A1-7 — `BLOCKED`. §10 갈래 2 에 정확히 걸렸음
+
+| 회차 | `sent.audio` | `sentAudioBytes` | `sentAudioNonZeroFrames` | `sent.end_session` |
+|---|--:|--:|--:|--:|
+| 톤 (`silentMic:false`) | **1** | 1368 | **0** | 0 |
+| 무음 (`silentMic:true`) | **0** | 0 | 0 | 0 |
+
+**후킹은 살아 있음**(§10 갈래 1): 톤 회차 `sent.foreign=1` · `socketUrls` 에
+`ws://localhost:8002/ws/session` 실재. 무음 회차도 `foreign=1`·`appHandlerAttached=true`.
+**갈래 2 가 성립함**: `recv.session_started === 1` 인데 `sent.audio` 가 0~1 로 흔들림 →
+**세션이 너무 짧음**(캡처 프레임 1건 = 512샘플@16kHz = 32 ms). 화면 결함이 아니므로 `BLOCKED` 임.
+
+**대조 ① `end_session` 1건은 구조적으로 평가 불가임** — 스텁 세션이 스스로 종료해
+`학습 종료` 버튼에 도달할 수 없음(두 회차 모두 클릭 후 결과 화면으로 이동했음).
+
+⚠️ **§11-4 의 미결이 닫히지 않았고 반대 방향의 새 사실이 늘었음** — 대조 ③은 *"`silentMic=true`
+에서 `audio > 0` 이면서 `nonZeroFrames === 0`, 톤에서는 둘이 같다"* 를 요구하는데 이 회차는
+**무음에서 `audio` 가 0**(전제 불성립)이고 **톤에서 `nonZeroFrames` 가 0**(요구 불성립)이었음.
+즉 대조 ③도 세션 길이에 걸림. `oscillator` 는 계측 시점에 `start()` 되지만 컨텍스트가 그때
+`suspended` 였으므로(관측: `audioContextState` 가 클릭 전 `suspended` → 후 `running`) 첫 32 ms 가
+램프업 구간일 가능성이 있으나 **이 회차 데이터로는 그것과 「톤 경로 고장」을 가르지 못했음.**
+
+## C2 — `BLOCKED` 3건. 실행체가 원인을 정확히 지목했음
+
+`cd app/backend && .venv/bin/python ../../tests/harness/c2_render_hierarchy.py` (기본
+`--schemes light,dark --phase both`) → **exit 1**. 라이트에서 막혀 다크는 돌지 못했으므로
+**두 모드 모두 미측정**이고 A2-3 은 그래서 미평가임.
+
+```
+=== light ===
+페이지 예외: Error: 시간초과(3000ms): partial 줄 렌더
+판별: 세션이 이미 **정상 종료**했다(`session_ended`) → … 주입 회차라면
+      **어댑터가 `stub_unresponsive` 가 아니다** (§6 주입 창은 그 모드에서만 열린다).
+      `recv.partial`·`recv.final` 이 0이 아닌 것이 증거다
+```
+
+진단 근거가 모두 살아 있었음: `socketUrls` 2건 · `resumeLog` 2건 ·
+`appHandlerAttached=True` · `userActivation={hasBeenActive:True, isActive:True}` ·
+`recv={session_started:1, partial:6, final:6, audio:3, session_ended:1}` ·
+`contextState={state:running, currentTime:3.05}`. 즉 `H-AE`(배경 탭·클릭 미도달)도
+`H-AH`(후킹 고장)도 **아님** — 어댑터 하나가 원인임. `classify_failure` 의 판별력이 이 회차에서
+실물로 확인됐음.
+
+## C5 — `BLOCKED` 2건. 주입은 됐고 화면이 없었음
+
+§6 ⛔ 대로 **클릭·주입·판독을 한 `eval` 에** 넣었음(합성 클릭 → active 대기 → 4 outcome 순차
+주입 → 판독). 합성 클릭이 세션을 실제로 열었음(`appHandlerAttached=true` · `recv` 전건 정상 ·
+`session_ended 1`) — 그러나 **`activeReached: false`**(4,003 ms 대기 후에도 `학습 종료` 버튼 부재)
+였고 판독 시점의 `main` 이 `<h1>학습 결과</h1>` 였음. 즉 **세션이 이미 결과 화면으로 넘어가
+배지를 렌더할 컨테이너가 언마운트됐음**(`page.tsx` 가 그 컨테이너를 `active`/`ending` 으로 가둠).
+
+주입 4건은 **오류 없이 들어갔음**(`injected: 4` · `injectErr: null` 전건) 그리고
+**`recv` 를 오염시키지 않았음**(주입 후에도 `recv` 에 `pronunciation` 키가 없음) — `inject()` 의
+설계 주장이 이 회차에서도 유지됐음. 배지는 4회 모두 **0개**.
+
+A5-1 의 대조 ①(주입 전 배지 부재)은 성립했음(`badgeBeforeClick: 0` · `badgeAtActive: 0`).
+A5-2 는 sentinel `ZZ_TARGET_SOUND_SENTINEL_9931` 이 DOM 0건이었으나 **outcome 문구도 0건**이라
+§5 A5-2 의 대조 규정(둘 다 0이면 주입 실패)에 따라 **평가 불가**임.
+
+## C3·C4 — 실행체가 단정 57건 전건 통과. exit 0
+
+`c3_results_screen.py` 를 §9 의 보존 세션 5개로 돌렸음(세션을 **새로 만들지 않았음** — 재방문).
+
+```
+세션 5건 · API 상태: analyzing=analyzing · final=final · partial_failure=partial_failure
+                     · connection_failed=connection_failed · no_utterances=no_utterances
+  analyzing          첫 직계 <p> = '분석 중'      · 원문/교정문 = 0/0 · 카드 0
+  final              첫 직계 <p> = '확정'        · 원문/교정문 = 1/1 · 카드 1
+  partial_failure    첫 직계 <p> = '부분 실패'    · 원문/교정문 = 0/0 · 카드 0
+  connection_failed  첫 직계 <p> = '연결 실패'    · 원문/교정문 = 0/0 · 카드 0
+  no_utterances      첫 직계 <p> = '분석 대상 없음' · 원문/교정문 = 0/0 · 카드 0
+  missing-uuid       첫 직계 <p> = '결과 API가 404을 반환했습니다' · 라벨 잔존 []
+--- 판정 (단정 57건 검사) ---
+  미확인   A4-2 기대값 교차 대조: 교정 **2건 이상**인 세션이 없어 평가할 수 없다 → 판별력 미확인
+  PASS  57건 전건 통과 · 미확인 1건은 통과로 세지 않았다
+```
+
+**A3-1 의 음성 대조가 실제로 성립했음** — 같은 요소(`main` 첫 직계 `<p>`)의 `textContent` 가
+5상태 재방문에서 **매번 다른 라벨**로 바뀌었음. 상수를 렌더하고 있으면 바뀌지 않았을 것임.
+
+**A4-1·A4-2 의 근거를 raw 증거에서 직접 읽었음**(`.harness/evidence/c3-results-screen.json`):
+API `corrections` 1건(`original_span: "go to gym"` · `correction: "go to the gym"` ·
+`reason: "gym처럼 늘 다니는 장소를 …"`)이고 DOM 카드가 `pCount: 3` ·
+`strongs: ["원문:","교정문:",null]` 이며 라벨 없는 셋째 `<p>` 가 그 `reason` 과 **문자열 등호**로
+일치했음(비어 있지 않음). **`c3-final.png` 를 직접 열어 눈으로 확인했음** — 다크 배경에 `확정`
+라벨과 교정 카드 1개가 렌더되고 이유 줄이 muted 로 나왔음.
+
+## DB — 3열 대조 (§10 규약)
+
+| 표 | baseline | 회차 후 | teardown 후 |
+|---|--:|--:|--:|
+| `learning_sessions` (시드 사용자) | 12 | **16** | **12** |
+| `analysis_jobs` | 45 | **61** | **45** |
+| `utterances` | 114 | **138** | **114** |
+| `error_patterns` (시드 사용자) | 8 | 8 | 8 |
+| `session_plans` | 1 | 1 | 1 |
+| `learner_notes` | 1 | 1 | 1 |
+
+세션 4건 × (utterances 6 + jobs 4) = 24·16 이 그대로 늘고 그대로 걷혔음. `error_patterns` 는
+회차 중 **한 번도 바뀌지 않았음**(워커가 꺼져 있어 분석이 돌지 않았음 → drift 0).
+
+**회차가 만든 세션 4건** (전부 `harness_sessions` 에 `run_id` 로 등록한 뒤 삭제):
+`0f2a66fc-…`(C1 톤) · `431f25f3-…`(C1 무음) · `93dbe6cd-…`(C2 실행체) · `c1e3075c-…`(C5 시도).
+
+### teardown — drift 0 · 보존 5건 생존
+
+| 단계 | 출력 |
+|---|---|
+| §8-0 drift (회차 **전**) | **0** → 재스냅샷 진행. baseline **8행** |
+| ①-a 스윕 등록 | `INSERT 0 4` |
+| ① 세션 삭제 | `DELETE 4` (보존 5개는 `not in` 으로 제외) |
+| ② `frequency`·`last_seen_at` 복원 | `UPDATE 0` — 바뀐 값이 없었으므로 만질 행이 없음(**재계산하지 않았음**) |
+| ③ baseline 밖 0-occurrence 패턴 삭제 | `DELETE 0` |
+| ④-1 `error_patterns` 행 수 | **8** = baseline 8 |
+| ④-2 **drift** | **0** |
+| ④-3 이 회차 등록 세션 중 생존 | **0** |
+| 보존 세션 5개 | **5 생존** |
+
+**보존 세션 5개가 회차 전후로 온전함을 job 단위까지 확인했음**:
+C3a `analyze_utterance:pending×3` · C3b `done×1` · C3c `done×2,failed×1` ·
+C3d `analyze_utterance 0건`(utterances 0) · C3e `analyze_utterance 0건`. 팀리드가 재기동 전후로
+보고한 값과 **일치함.**
+
+⚠️ **내 첫 집계 쿼리가 틀렸고 그것을 정정했음** — `analysis_jobs` 를 `session_id` 로만 조인하면
+`analyze_utterance` 가 전부 빠짐(그 job 의 `session_id` 는 **NULL** 이고 `utterance_id` 로 연결됨 —
+직접 확인: `analyze_utterance` 40건 전건 `session_id is null`). 첫 출력이 「C3b job 0건」처럼 보여
+팀리드 보고와 어긋났으나 **쿼리 결함이었고 데이터는 온전했음.** 다음 회차가 같은 함정을 밟지
+않도록 적어 둠: **보존 세션 무결성 확인은 `utterances` 경유 조인을 함께 해야 함.**
+
+### ⑤ 프로세스·환경 — §8-⑤ 예외 적용(무변경)
+
+백엔드를 호출자(팀리드)가 세웠으므로 **손대지 않았음.** 증거 3개:
+`lsof -nP -iTCP:8002 -sTCP:LISTEN -t` → **26253**(회차 시작과 같음) ·
+`ps -p 26253 -Eww` → `WORKER_ENABLED=false`·`VOICE_ADAPTER=stub`(회차 시작과 같음) ·
+`/health` → `{"status":"ok"}`. **`app/backend/.env` 를 열지 않았음.**
+회차가 띄운 임시 CORS 서버(`127.0.0.1:8899`)는 종료하고 `/tmp` 의 스크립트·로그를 지웠음
+(재확인: 8899 응답 `000`).
+
+## 증거 파일 — 이 회차가 만든 것만. md5 로 서로 다름을 확인함
+
+`.harness/evidence/` (타임스탬프 `09-09 04:02`):
+
+| 파일 | md5 |
+|---|---|
+| `c2-light-failure.png` | `e597fcd079fc754bf1385b1f1f30d2e4` |
+| `c2-light-failure.json` | (계측 덤프 1.4 kB) |
+| `c3-analyzing.png` | `b26969b71905a56f483fd65f23408a7a` |
+| `c3-final.png` | `e91117203e7f9aaee5d5fa4c543535f6` |
+| `c3-partial_failure.png` | `bc72f78587511a065b58acb677a5bd1b` |
+| `c3-connection_failed.png` | `b8d86abcfb786275dd828d8ee2cd9a53` |
+| `c3-no_utterances.png` | `1544fd0d1f420438c184302dcf06d359` |
+| `c3-missing.png` | `631d043a8bcad9b81b68b2d8b3906a6b` |
+| `c3-results-screen.json` | (API·DOM raw 7.2 kB) |
+
+**7장 전부 서로 다른 해시임** — 「같은 캡처를 두 이름으로 저장」이 아님을 이 값으로 배제함.
+
+⚠️ **이 회차 밖에서 바이트 동일 3건을 발견했음(고치지 않고 적어 둠)**: `c2-dark.png`(09-06 23:58) ·
+`c2-selftest-failure.png`(09-06 22:41) · `c2-selftest2-failure.png`(09-06 22:42)가 md5
+`b2c5daa57c8fceb46eeedd30f4a137fa` 로 **셋 다 같음.** 4차수의 그 사고와 같은 부류로 보이나
+**이 회차가 만든 파일이 아니므로 원인을 조사하지 않았음.**
+
+`use_browser` 자동 저장분: `~/Library/Caches/superpowers/browser/2026-09-08/session-1788871212847/`
+의 `001`~`012`(`.png`·`.html`·`.md`·`-console.txt`). ⚠️ **§10 이 이미 규정한 대로 창 안 관측의
+증거로 쓰지 않았음** — 판정 근거는 전부 `eval` 반환 JSON 이고 그것을 이 기록에 옮겼음.
+`-console.txt` 는 이 회차에서도 **빈 스텁**이었음(내용 미구현).
+
+## 절차 문서의 결함 — 신규 2건. 고치지 않고 보고함
+
+**결함 1 — 한 회차로 C1 과 C2·C5 를 동시에 판정할 수 없음. 그 사실이 절차에 적혀 있지 않음.**
+§5 C1 의 음성 대조 6건(A1-1·A1-2·A1-3·A1-4①·A1-6·A1-8)은 `VOICE_ADAPTER=stub_unresponsive` 를
+요구하고, §6 의 주입 창(C2·C5)도 같은 모드를 요구함. 그런데 **A1-4 본 단정은 `stub` 에서만
+측정 가능**하다고 §5 가 못 박음. 어댑터는 프로세스 환경변수이고 CORS 가 `:3000` 하드코딩이라
+두 번째 백엔드를 띄울 수 없음 → **두 모드는 재기동으로만 갈림.** 그리고 2026-09-09 커밋
+`5dd4fb8` 이 재기동 주체를 **호출자**로 정했으므로, 검증자가 한 번 불려서 낼 수 있는 최대치는
+**어느 한 모드의 단정뿐**임. 이 회차가 그 자리에 걸려 `BLOCKED` 12건을 냈음.
+→ 필요한 것은 §5·§6 에 **「모드가 갈리는 두 묶음이고 회차를 둘로 나눈다」**를 명시하고 브리프가
+모드를 지정하는 것으로 보임. **문서를 고치지 않았음** — 호출자 판단 몫임.
+
+**결함 2 — A1-6 의 유도 방식이 계측에 없음.** §5 A1-6 은 기대값을 *"ⓑ `session_started` 프레임의
+`session_id` 를 **계측이 기록해** 대조"* 로 정의하는데 **`instrument.js` 에 그 기록이 없음**
+(`grep -n 'session_id\|sessionId' instrument.js` → 주석 1줄뿐. §4 의 필수 키 목록에도 없음).
+그래서 이 회차는 URL 의 uuid 를 **DB 세션 행과** 대조했음(상류라 순환은 아니나 문서가 지정한
+경로가 아님). **문서가 요구하는 대조를 계측이 제공하지 않으므로 A1-6 은 지금 형태로는
+누가 돌려도 그대로 잴 수 없음.**
+
+## 내가 확인하지 못한 것
+
+- **C2 의 색 위계 전부**(A2-1·A2-2·A2-3). probe 유도값을 **한 번도 읽지 못했음** — 라이트·다크
+  두 모드 모두 미측정이고 A2-3 은 그래서 미평가임(§10: 미평가는 `PASS` 가 아님).
+- **A5-1 의 배지 문구 등호**(4 outcome). 배지 요소를 한 번도 렌더시키지 못했음.
+- **A1-7 의 대조 ①③.** 위 A1-7 절에 이유를 적었음. §11-4 는 여전히 열려 있음.
+- **A4-2 의 기대값 교차 대조.** 교정 2건 이상 세션이 없음 — §11-9 가 「캡틴 결정 사안」으로
+  남긴 그대로임. 실행체가 「미확인」으로 냈고 통과로 세지 않았음.
+- **A1-4 의 대조 ①**(어댑터 전환 → 0).
+- **바이트 동일 스크린샷 3건의 원인**(이 회차 밖 파일이라 조사하지 않았음).
+- **프론트 dev 서버가 HEAD 소스를 실행하는지.** 프리플라이트에 프론트용 대응 항목이 없어
+  재지 않았음(HMR 이 있어 백엔드와 같은 부류의 위험은 아니라고 보나 **관측한 것은 아님**).
+
+## 호출자가 재현하는 방법 — 무엇을 어떤 선택자로 쟀는가
+
+**가장 싼 재현은 C3·C4 임**(어댑터 무관 · 세션을 만들지 않음 · 실물 호출 0회):
+
+```bash
+cd app/backend && .venv/bin/python ../../tests/harness/c3_results_screen.py \
+  --session analyzing=210233be-ecaa-4409-a1af-8b7016cfe7e9 \
+  --session final=6225ddaf-90a8-43af-9aa8-e003921c75eb \
+  --session partial_failure=b2f0d169-3d90-431b-b842-cce21125052a \
+  --session connection_failed=76d9ef31-0d1b-4c50-b906-f16ee438080e \
+  --session no_utterances=d127dece-d1d1-4329-802d-9b8fd1067388
+```
+→ `단정 57건 검사` · `PASS 57건 전건 통과` · exit 0. raw 는 `.harness/evidence/c3-results-screen.json`.
+
+**C2 의 `BLOCKED` 재현**: `cd app/backend && .venv/bin/python ../../tests/harness/c2_render_hierarchy.py`
+→ exit 1 · `판별: … 어댑터가 stub_unresponsive 가 아니다`. 어댑터를 바꾸면 뒤집힘 — 그것이 이
+`BLOCKED` 가 환경 사실이고 화면 결함이 아니라는 증거임.
+
+**C1 재현** — 브라우저 액션 4개:
+① `navigate http://localhost:3000/`
+② `eval` 로 `fetch('http://127.0.0.1:8899/instrument.js')` → 페이지 안 sha256 대조 → `eval(text)`
+  (임시 CORS 서버: `python3 -m http.server` 에 `Access-Control-Allow-Origin: *` 를 얹어
+  `tests/harness/` 를 서빙. **파일 내용을 페이로드로 옮겨 적지 않음**)
+③ `click` **selector `button`** (CDP 클릭이어야 함 — 합성 클릭도 세션은 열리나 `H-AE` 위험)
+④ `eval` 로 `window.__omy` 판독.
+
+**선택자 정본** — 이 회차가 쓴 것 그대로:
+- 확정/partial 줄: `p` 중 `querySelector('strong').textContent` 가 `"질문: "`·`"답변: "` 인 것
+  (**색으로 고르지 않음** — §6)
+- A1-0: `p` 중 `textContent.startsWith("오늘 이걸 연습해요:")` (`page.tsx:NEXT_PLAN_PREFIX`)
+- 배지: `p[aria-live="polite"]`
+- 상태 라벨: `main` 의 첫 직계 `<p>` (실행체가 지목)
+
+**A1-5 판별력 재현**: 위 ④의 `eval` 안에서 `omy.judgeFinalLines(expected)` 를 정상 기대값과
+무력화 5종(순서 뒤바꿈 · sentinel 덧붙임 · 5줄 축약 · `[]` · `null`)으로 각각 부르고 `verdict` 를
+읽음. 앱 소스를 고치지 않음.
+
+**DB 대조**: `cd app/backend && .venv/bin/python -c "import sys; sys.path.insert(0,'../../tests/harness');
+from psql_cli import psql; print(psql('<질의>'))"` — §7 헬퍼만 씀(`podman exec` 를 쓰지 않음).
+보존 세션 무결성은 **`utterances` 경유 조인**으로 물어야 함(위 teardown 절의 ⚠️).
