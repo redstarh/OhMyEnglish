@@ -431,6 +431,18 @@ Then 그 패턴이 「Due for review today」 목록에 `pattern_id`와 함께 �
    지금 그것을 유도하는 유일한 장치는 `load_known_sounds`(`pronunciation.py:403`)가 세션 시작
    지시문에 **모든** 소리를 싣는 것이고(`api/ws.py:226`), **예정일로 좁히지 않는다.**
    → 그 필터는 이 태스크의 범위 밖이다. §10 Q1으로 올린다.
+
+   > ⚠️ **이 약점의 크기가 2026-09-09에 측정됐다 — 예상보다 크다** (5차수 · `TASK-13`·`TASK-24`).
+   > 실물 세션 2건에서 발음 픽스처(`p1m`·`p1k`·`p2m`)를 흘렸는데 **`pronunciation_attempts` 신규
+   > 0행**이었다. 그래서 `refresh_review`가 **발동할 입력 자체가 없었다**(`review_tasks` 10→10 ·
+   > `next_review_at` 8→8 — 고장이 아니다).
+   > ⛔ **원인은 프롬프트이고 통제 대조로 확정했다**: 같은 오디오·같은 tool 스키마에서 스파이크
+   > 프롬프트는 `toolUse` 1건, **앱 프롬프트는 0건**이다. 앱 프롬프트 규칙 9가
+   > *"never for a mild accent"* 로 **의도해서** 억제한다(B-2 결정 2026-08-30).
+   > **즉 이 약점은 「Nova가 안 다룰 수도 있다」가 아니라 「mild 오류에서는 설계상 안 다룬다」다.**
+   > 복습 시계가 도는 조건은 **사람이 마이크로 충분히 심한 오류를 말하는 것**이다 — 기존
+   > `pronunciation_attempts` 4행이 전부 그렇게(2026-08-31·09-03 실물 마이크) 생겼다.
+   > 실측 전문은 `tests/harness/runs/2026-09-09-run-5.md` 가 소유한다.
 2. **정답을 연결하는 대안을 기각했고, 그 대가가 있다.** `correct` 시도에도 `pattern_id`를 채우면
    §5.3의 `target_sound` join이 필요 없어진다. 기각 이유: `_RECOUNT_PATTERN_FROM_ATTEMPTS_SQL`
    (`pronunciation.py:421-431`)이 `where pattern_id = $1`로 세므로 **정답이 `frequency`를 올린다.**

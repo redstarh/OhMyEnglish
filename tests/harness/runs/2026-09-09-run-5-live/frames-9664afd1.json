@@ -1,0 +1,39 @@
+{
+  "session_id": "9664afd1-3747-4bc4-aaf2-94bb60dc7cfb",
+  "adapter": "nova", "backend_pid": 96473, "head": "23aed48",
+  "captured_by": "browser onmessage collector installed BEFORE instrument.js (raw frame text)",
+  "purpose": "실물 2차 — 발음 유발 (결정 39). p1m(음소 치환) → p1k(강한 억양) → p2m(음소 치환)",
+  "totals": {"frames": 290, "audio": 268, "text": 22, "pronunciation": 0},
+  "wav_played": [
+    {"i": 0, "name": "p1m.wav", "at_ms": 6193, "dur_s": 2.49},
+    {"i": 1, "name": "p1k.wav", "at_ms": 15773, "dur_s": 3.05},
+    {"i": 2, "name": "p2m.wav", "at_ms": 25770, "dur_s": 3.04}
+  ],
+  "text_frames": [
+    {"at": 6204, "type": "session_started", "session_id": "9664afd1-3747-4bc4-aaf2-94bb60dc7cfb"},
+    {"at": 7173, "type": "speech_start", "offset_ms": 0},
+    {"at": 9739, "type": "speech_end", "offset_ms": 2520},
+    {"at": 9746, "type": "final", "speaker": "user", "text": "i think i found three very useful videos."},
+    {"at": 10587, "type": "partial", "speaker": "agent", "text": "That's great! Can you tell me what the videos were about?"},
+    {"at": 11303, "type": "partial", "speaker": "agent", "text": " For example, were they about cooking, travel, or something else?"},
+    {"at": 12110, "type": "final", "speaker": "agent", "text": "That's great! Can you tell me what the videos were about? For example, were they about cooking, travel, or something else?"},
+    {"at": 16344, "type": "speech_start", "offset_ms": 9920},
+    {"at": 16347, "type": "interrupted"},
+    {"at": 19521, "type": "final", "speaker": "user", "text": "i think i found three very useful videos."},
+    {"at": 19611, "type": "speech_end", "offset_ms": 12680},
+    {"at": 20274, "type": "partial", "speaker": "agent", "text": "I see you mentioned finding three useful videos. What were the videos about?"},
+    {"at": 21258, "type": "partial", "speaker": "agent", "text": "  Were they about cooking, travel, or perhaps something else?"},
+    {"at": 22033, "type": "final", "speaker": "agent", "text": "I see you mentioned finding three useful videos. What were the videos about?  Were they about cooking, travel, or perhaps something else?"},
+    {"at": 26106, "type": "speech_start", "offset_ms": 19720},
+    {"at": 26109, "type": "interrupted"},
+    {"at": 29331, "type": "final", "speaker": "user", "text": "i finished the le port and chaille de lessalts with my team."},
+    {"at": 29385, "type": "speech_end", "offset_ms": 22640},
+    {"at": 30031, "type": "partial", "speaker": "agent", "text": "It looks like you mentioned finishing a project with your team."},
+    {"at": 30827, "type": "partial", "speaker": "agent", "text": " Could you tell me more about it?  For example, what kind of project was it?"},
+    {"at": 31613, "type": "partial", "speaker": "agent", "text": "  Was it a short project or a longer one?"},
+    {"at": 32138, "type": "final", "speaker": "agent", "text": "It looks like you mentioned finishing a project with your team. Could you tell me more about it?  For example, what kind of project was it?  Was it a short project or a longer one?"},
+    {"at": 89622, "type": "session_ended", "session_id": "9664afd1-3747-4bc4-aaf2-94bb60dc7cfb"}
+  ],
+  "pronunciation_frames": [],
+  "note": "pronunciation frames ZERO again. p1k did NOT transcribe as Korean (expected 아이싱크... , got English)."
+}

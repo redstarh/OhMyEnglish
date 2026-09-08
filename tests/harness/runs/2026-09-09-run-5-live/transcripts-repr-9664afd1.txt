@@ -1,0 +1,39 @@
+# DB utterances.transcript — repr() 덤프 (실물 2차 · 결정 39)
+# session_id = 9664afd1-3747-4bc4-aaf2-94bb60dc7cfb · adapter=nova · backend pid 96473 · HEAD 23aed48
+# 흘린 WAV: p1m(음소 치환) → p1k(강한 억양) → p2m(음소 치환)
+
+seq=1 speaker=user
+  repr = 'i think i found three very useful videos.'
+  선행공백=0 · 선행개행=False · 이중공백=False · 길이=41
+  == p1a 기대문장? True   (기대 'i think i found three very useful videos.')
+  == p2a 기대문장? False   (기대 'i finished the report and shared the results with my team.')
+  한글 포함? False
+
+seq=2 speaker=agent
+  repr = "That's great! Can you tell me what the videos were about? For example, were they about cooking, travel, or something else?"
+  선행공백=0 · 선행개행=False · 이중공백=False · 길이=122
+
+seq=3 speaker=user
+  repr = 'i think i found three very useful videos.'
+  선행공백=0 · 선행개행=False · 이중공백=False · 길이=41
+  == p1a 기대문장? True   (기대 'i think i found three very useful videos.')
+  == p2a 기대문장? False   (기대 'i finished the report and shared the results with my team.')
+  한글 포함? False
+
+seq=4 speaker=agent
+  repr = 'I see you mentioned finding three useful videos. What were the videos about?  Were they about cooking, travel, or perhaps something else?'
+  선행공백=0 · 선행개행=False · 이중공백=True · 길이=137
+
+seq=5 speaker=user
+  repr = 'i finished the le port and chaille de lessalts with my team.'
+  선행공백=0 · 선행개행=False · 이중공백=False · 길이=60
+  == p1a 기대문장? False   (기대 'i think i found three very useful videos.')
+  == p2a 기대문장? False   (기대 'i finished the report and shared the results with my team.')
+  한글 포함? False
+
+seq=6 speaker=agent
+  repr = 'It looks like you mentioned finishing a project with your team. Could you tell me more about it?  For example, what kind of project was it?  Was it a short project or a longer one?'
+  선행공백=0 · 선행개행=False · 이중공백=True · 길이=180
+
+# P2/P4 판정 재료
+# seq1 (p1m) · seq3 (p1k) · seq5 (p2m)

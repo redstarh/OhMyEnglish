@@ -89,6 +89,16 @@ SYSTEM_PROMPT = "You are an English speaking coach. Keep replies to one short se
 # 「스파이크는 통과했는데 앱은 실패한다」를 만들 수 있다 (이 파일 머리주석의 같은 경고).
 # 실증본 원자료는 `runs/2026-08-27-P-tooluse-spike/P-tooluse-nova-protocol.json` 이 보존한다.
 # 대조표는 `docs/design/2026-09-08-tasks-md-archive.md` §A-3 이 소유한다.
+# ── `--app-prompt` — 프롬프트를 원인에서 배제하거나 지목하기 위한 통제 대조 ─────────────
+# 왜 필요한가 (2026-09-09 실측): 같은 `p1m.wav` 로 **스파이크 프롬프트**는 `toolUse` 를 받았고
+# **앱 경로**(실물 세션 2건)는 `pronunciation` 프레임 0건이었다. 오디오·스키마·모델이 같으므로
+# 남은 차이는 시스템 프롬프트인데, 그것을 **말로 추론하지 않고 재려면** 이 스파이크가 앱
+# 프롬프트를 실어 같은 오디오를 한 번 더 보내면 된다. 그러면 앱 경로의 나머지(브라우저 캡처 ·
+# 게이트웨이 릴레이)가 변수에서 빠진다.
+# ⛔ `build_system_prompt` 를 쓰지 않고 **기반 프롬프트만** 가져온다 — 그 함수는 조립 재료 4개 +
+#    드릴 설정값 2개를 요구하고(캡틴 결정 19), 계획·무대를 끼우면 **무엇이 원인인지 다시 흐려진다.**
+#    규칙 8~11(발음)은 기반 프롬프트에 **무조건** 들어 있다(직접 확인).
+from app.audio_gateway.nova import SYSTEM_PROMPT as APP_SYSTEM_PROMPT  # noqa: E402
 from app.models.pronunciation import (  # noqa: E402
     PRONUNCIATION_TOOL_NAME,
     PRONUNCIATION_TOOL_SCHEMA_JSON,
@@ -130,8 +140,14 @@ def build_events(
     audio_content: str,
     text_content: str,
     with_tools: bool = False,
+    system_prompt: str | None = None,
 ) -> dict[str, Any]:
-    """초기화·종료 이벤트를 한곳에 모아 둔다 (공식 문서 스키마 그대로)."""
+    """초기화·종료 이벤트를 한곳에 모아 둔다 (공식 문서 스키마 그대로).
+
+    `system_prompt` 를 주면 그것을 쓴다 — `--app-prompt` 가 앱 프롬프트를 실어 통제 대조를
+    만드는 경로다. 주지 않으면 기존 거동(`--tools` 면 `TOOL_SYSTEM_PROMPT`, 아니면
+    `SYSTEM_PROMPT`)을 그대로 유지한다.
+    """
     return {
         "session_start": {
             "event": {
@@ -182,7 +198,8 @@ def build_events(
                 "textInput": {
                     "promptName": prompt_name,
                     "contentName": text_content,
-                    "content": TOOL_SYSTEM_PROMPT if with_tools else SYSTEM_PROMPT,
+                    "content": system_prompt
+                    or (TOOL_SYSTEM_PROMPT if with_tools else SYSTEM_PROMPT),
                 }
             }
         },
@@ -287,7 +304,13 @@ async def pump_output(receiver: Any, observed: list[dict[str, Any]]) -> None:
             print(f"  [{name}] {json.dumps(body, ensure_ascii=False)[:140]}")
 
 
-async def run(wav_name: str, realtime: bool, silence_ms: int, with_tools: bool = False) -> int:
+async def run(
+    wav_name: str,
+    realtime: bool,
+    silence_ms: int,
+    with_tools: bool = False,
+    app_prompt: bool = False,
+) -> int:
     swallowed: list[BaseException] = []
     _install_swallowed_exception_reporter(swallowed)
     settings = Settings()  # ty: ignore[missing-argument]
@@ -318,8 +341,17 @@ async def run(wav_name: str, realtime: bool, silence_ms: int, with_tools: bool =
 
     prompt_name = str(uuid.uuid4())
     events = build_events(
-        prompt_name, f"audio-{uuid.uuid4()}", f"text-{uuid.uuid4()}", with_tools=with_tools
+        prompt_name,
+        f"audio-{uuid.uuid4()}",
+        f"text-{uuid.uuid4()}",
+        with_tools=with_tools,
+        system_prompt=APP_SYSTEM_PROMPT if app_prompt else None,
     )
+    if app_prompt:
+        print(
+            f"    시스템 프롬프트 = **앱의 `nova.SYSTEM_PROMPT`** ({len(APP_SYSTEM_PROMPT)}자) — "
+            "통제 대조. 스파이크 전용 프롬프트를 쓰지 않는다"
+        )
     if with_tools:
         schema = json.loads(PRONUNCIATION_TOOL_SCHEMA_JSON)
         print(
@@ -405,11 +437,17 @@ async def run(wav_name: str, realtime: bool, silence_ms: int, with_tools: bool =
         await _quiet_close(stream)
 
     # `--tools`는 별도 파일에 쓴다 — N1(3차수 프로토콜 실증) 원자료를 덮지 않는다.
-    out = (
-        HARNESS
-        / "evidence"
-        / ("P-tooluse-nova-protocol.json" if with_tools else "N1-nova-protocol.json")
-    )
+    # ⛔ `--app-prompt`도 또 다른 파일에 쓴다 — 그 둘은 **통제 대조의 두 팔**이라 한쪽이 다른
+    #    쪽을 덮으면 대조 자체가 사라진다(2026-09-09).
+    if with_tools:
+        name = (
+            "P-tooluse-appprompt-nova-protocol.json"
+            if app_prompt
+            else "P-tooluse-nova-protocol.json"
+        )
+    else:
+        name = "N1-nova-protocol.json"
+    out = HARNESS / "evidence" / name
     out.write_text(json.dumps(observed, ensure_ascii=False, indent=1))
 
     kinds: dict[str, int] = {}
@@ -471,6 +509,13 @@ def main() -> int:
         "(PRD v1.1 §10 발음 교정 설계의 선행 검증). 발음 픽스처와 함께 쓴다: "
         "--wav p1m.wav --tools",
     )
+    ap.add_argument(
+        "--app-prompt",
+        action="store_true",
+        help="스파이크 전용 프롬프트 대신 앱의 nova.SYSTEM_PROMPT 를 실어 보낸다 — "
+        "「앱 경로에서 발음 tool 이 불리지 않는 것이 프롬프트 탓인가」를 재는 통제 대조. "
+        "같은 오디오로 --tools 단독과 대조한다: --wav p1m.wav --tools --app-prompt",
+    )
     args = ap.parse_args()
     return asyncio.run(
         run(
@@ -478,6 +523,7 @@ def main() -> int:
             realtime=not args.no_realtime,
             silence_ms=args.silence_ms,
             with_tools=args.tools,
+            app_prompt=args.app_prompt,
         )
     )
 
