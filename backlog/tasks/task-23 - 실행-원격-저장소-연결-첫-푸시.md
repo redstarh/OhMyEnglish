@@ -1,10 +1,10 @@
 ---
 id: TASK-23
 title: '실행: 원격 저장소 연결 + 첫 푸시'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-06 00:14'
-updated_date: '2026-09-08 22:24'
+updated_date: '2026-09-08 22:37'
 labels:
   - caps-req
 dependencies:
@@ -22,7 +22,7 @@ ordinal: 23000
 <!-- AC:BEGIN -->
 - [x] #1 PUBLIC 그대로 푸시할지 PRIVATE으로 바꾼 뒤 푸시할지 캡틴 확인을 받는다
 - [x] #2 추적 제외가 제대로 걸려 있는지 확인 — .env 및 비밀값이 이력에 없는지 전체 이력을 검사
-- [ ] #3 git remote add 후 첫 푸시. remote가 붙으면 backlog의 remote_operations를 true로 되돌린다
+- [x] #3 git remote add 후 첫 푸시. remote가 붙으면 backlog의 remote_operations를 true로 되돌린다
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -49,6 +49,16 @@ AC#2 — 전체 이력 검사를 돌렸음 (팀리드 직접):
 
 AC#3 — git remote add 완료(https://github.com/redstarh/OhMyEnglish.git). ls-remote 로 저장소가 실재하고 비어 있음을 확인함. ⛔ 첫 푸시는 인증에서 막혔음: gh 토큰 만료(gh auth status 가 invalid) · SSH 키가 GitHub 에 미등록(Permission denied (publickey)) · 키체인에 유효한 HTTPS 자격증명 없음(--dry-run 이 could not read Username). 사용자 인증이 선행이며 그것은 대리 실행 대상이 아님.
 ⚠️ backlog 의 remoteOperations 는 푸시 성공까지 false 로 둠 — 인증이 안 되는 remote 를 켜면 backlog 명령이 매번 실패함.
+
+2026-09-09 완료 — 캡틴 결정 42. 첫 푸시가 실제로 도착했음.
+
+인증 경위(기록해 둠 — 다음에 같은 자리에서 헛짚지 않게): gh 토큰이 무효라 push 가 could not read Username 으로 막혔음. 원인은 git 이 자격증명을 gh 에 위임하는 설정(credential.helper = !gh auth git-credential)이고, ⛔ 브라우저에서 GitHub 에 로그인하는 것은 CLI 토큰을 갱신하지 않음. gh auth login 의 기기 코드 승인이 끝난 뒤에야 ✓ Logged in · scope repo 가 됐음. 「로그인했다」를 증거로 쓰지 않고 매번 gh auth status + git push --dry-run 으로 확인했음.
+
+AC#3 — git remote add(https://github.com/redstarh/OhMyEnglish.git) 후 첫 푸시 완료. main(e8508e5) 을 먼저 올려 기본 브랜치를 잡고 design/first-vertical-slice(5539c6f · 커밋 441개)를 이어 올렸음 — 순서를 반대로 하면 GitHub 이 작업 브랜치를 기본으로 잡음. 원격 HEAD 가 main 을 가리키는 것을 확인했음. git ls-remote 로 대조: refs/heads/main=e8508e5 · refs/heads/design/first-vertical-slice=5539c6f 로 로컬과 일치. 푸시된 트리에 .env 없음. backlog 의 remoteOperations 를 true 로 되돌리고 그 상태에서 backlog 가 도는 것을 확인했음.
+
+⚠️ 임시 픽스처(app/frontend/public/harness/)는 .git/info/exclude 로 막아 두었으므로 올라가지 않았음 — 확인했음.
+
+⛔ 잔여 위험이 이제 실현됐음: DB 비밀번호가 공개 저장소의 git 이력에 있음(결정 41 이 회전 면제). 되돌려도 캐시·색인에 남음. 크기는 작음 — Postgres 가 localhost 전용 바인딩이라 이 머신 셸 접근자에게만 쓸모가 있음. 그래도 0 은 아님. 없애는 선택지 셋은 결정 42 가 소유함.
 <!-- SECTION:NOTES:END -->
 
 ## Comments
