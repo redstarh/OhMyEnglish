@@ -30,9 +30,11 @@ from __future__ import annotations
 from uuid import UUID
 
 import asyncpg
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Response
 
 from app.api.ws import FIXED_USER_ID
+from app.config import get_settings
+from app.services.recordings import RECORDING_MEDIA_TYPE, load_recording
 from app.services.results import (
     Correction,
     DrillTurns,
@@ -134,3 +136,25 @@ async def get_results(session_id: UUID, request: Request) -> dict[str, object]:
     if result is None:
         raise HTTPException(status_code=404, detail="session not found")
     return _result_payload(result)
+
+
+@router.get("/{session_id}/recordings/{utterance_id}")
+async def get_recording(session_id: UUID, utterance_id: UUID, request: Request) -> Response:
+    """학습자의 쉐도잉 낭독 하나를 raw PCM 으로 내보낸다 (`TASK-45` · 설계서 §4.4).
+
+    **판정은 서비스가 하고 여기서는 HTTP 로 옮기기만 한다** — 이 파일의 다른 라우터와 같은
+    규약이다. `load_recording` 이 `None` 을 돌려주는 경우가 셋이고 **전부 404 다**: 발화가 없다 ·
+    포인터가 아직 없다 · 포인터만 남고 파일이 없다. 뒤의 둘은 §4.5·§6 이 정상으로 인정하는 중간
+    상태이므로 500 으로 터뜨리지 않는다.
+
+    ⛔ **경로의 두 세그먼트가 둘 다 조회 조건이다** — `utterance_id` 만 보면 세션을 바꿔 넣은
+    요청이 남의 녹음을 받아 간다. 두 값이 `UUID` 로 선언된 것이 경로 탈출도 함께 막는다.
+    """
+    pool: asyncpg.Pool = request.app.state.db_pool
+    async with pool.acquire() as conn:
+        audio = await load_recording(
+            conn, get_settings().shadowing_audio_root, session_id, utterance_id
+        )
+    if audio is None:
+        raise HTTPException(status_code=404, detail="recording not found")
+    return Response(content=audio, media_type=RECORDING_MEDIA_TYPE)
