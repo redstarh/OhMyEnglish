@@ -241,7 +241,9 @@ A·B·C·D계층(run_id `9c6fe697-…`)은 teardown 완료돼 baseline과 일치
 2. **백엔드는 재기동하지 않아도 된다** — 프론트엔드만 고치는 경우. 백엔드 파이썬 소스를
    고쳤으면 `--reload`가 없으므로 **반영되지 않는다**: 보고에 "백엔드 소스 변경 있음"을
    명시하면 테스트 세션이 재기동한다. 직접 재기동한다면 baseline 명령을 그대로 쓴다 —
-   `cd app/backend && .venv/bin/uvicorn app.api.main:app --port 8002 --log-level warning`.
+   `cd app/backend && WORKER_ENABLED=false VOICE_ADAPTER=stub .venv/bin/uvicorn app.api.main:app --port 8002 --log-level warning`.
+   ⛔ **`WORKER_ENABLED=false` 를 빼지 마라 — 기본값이 `True` 다**(함정 `H-AS`). 이 줄은
+   2026-09-09 까지 그 플래그가 **없는** 형태였고, 그대로 따르면 워커가 켜져 보존 세션이 파괴된다.
 3. **`.env`를 편집하지 않는다.** 자격증명이 들어 있고 플래그는 환경변수로만 넘긴다.
 4. **DB를 건드리지 않는다.** `harness_*` 테이블과 보존된 E계층 세션은 다음 차수의 재현
    데이터다(위 "1차수 미정리 상태" 참조).

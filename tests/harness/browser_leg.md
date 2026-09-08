@@ -115,9 +115,17 @@ PY
 **기동 순서**(L4): DB(:5432) → 백엔드(:8002) → 프론트(:3000) → 브라우저. CORS가 `http://localhost:3000` 하드코딩이라 **두 번째 프론트를 :3001에 띄울 수 없다.** 플래그(`VOICE_ADAPTER` 등)는 **`app/backend/.env`를 고치지 않고 환경변수로만** 넘긴다 — 복구를 잊으면 영구화된다.
 
 ```bash
-cd app/backend && .venv/bin/uvicorn app.api.main:app --port 8002 --log-level warning   # --reload 없음
-cd app/frontend && npm run dev                                                          # :3000
+# ⛔ WORKER_ENABLED=false 를 빼지 마라 — 기본값이 True 다 (함정 H-AS).
+cd app/backend && WORKER_ENABLED=false VOICE_ADAPTER=stub \
+  .venv/bin/uvicorn app.api.main:app --port 8002 --log-level warning   # --reload 없음
+cd app/frontend && npm run dev                                          # :3000
 ```
+
+⛔ **`WORKER_ENABLED=false` 는 선택이 아니다.** `app/backend/app/config.py` 의 기본값이
+**`worker_enabled: bool = True`** 이고 `.env` 에 그 키가 **없다**(둘 다 직접 확인 — 2026-09-09).
+빼고 띄우면 워커가 켜져 ① 버드록 비용이 나가고 ② **§9 의 보존 세션 C3a(`analyzing` — job 이
+`pending` 에 머물러야 한다)와 C3e(`no_utterances` — `flush_ended_sessions` 가 job 을 되살린다)가
+파괴된다.** 그 둘은 이 문서가 재실행 비용을 0으로 만드는 근거다.
 
 ## §3. 회차를 연다 — `.harness/browser_run_id.txt`
 

@@ -69,5 +69,7 @@ cd app/backend
 일치하는지 **대조까지 해야 정리가 끝난 것이다**.
 
 백엔드를 재기동한 시나리오는 baseline 명령으로 되돌린다 —
-`.venv/bin/uvicorn app.api.main:app --port 8002 --log-level warning`.
+`WORKER_ENABLED=false VOICE_ADAPTER=stub .venv/bin/uvicorn app.api.main:app --port 8002 --log-level warning`.
 플래그는 `.env`를 고치지 않고 환경변수로만 넘긴다.
+⛔ **`WORKER_ENABLED=false` 를 빼지 마라 — 기본값이 `True` 다**(함정 `H-AS`). 빼면 워커가 켜져
+버드록 비용이 나가고 `browser_leg.md` §9 의 보존 세션이 파괴된다.
