@@ -70,8 +70,25 @@ values ($1,
           -- `scenario_id`는 null 로 남는다(컬럼 nullable) — 세션은 그대로 진행된다.
           (select s.id from learning_scenarios s order by s.created_at, s.id limit 1)
         ),
-        'speaking')
+        $2)
 returning id
+"""
+
+# 세션이 고른 쉐도잉 클립을 붙인다 (`TASK-45` · 설계서 §12 요구 2·3).
+# ⚠️ **선택 규칙이 위 시나리오 절과 같은 모양인 것은 의도다** — 설계서 §3.3이
+# *"`learning_scenarios.level`과 같은 값역을 쓴다 — 선택의 기준이 같기 때문이다"*로 그 근거를
+# 적었다. 수준 일치 우선 → 없으면 가장 이른 행 → 클립이 아예 없으면 **0행이 되어 update가
+# 아무 것도 하지 않는다**(`shadowing_item_id`는 null로 남고 세션은 그대로 진행된다).
+# ⛔ `mode`를 조건에 넣지 않는다 — 011의 CHECK가 이미 그것을 가둔다. 두 곳에 두면 갈라진다.
+_ATTACH_SHADOWING_CLIP_SQL = """
+update learning_sessions
+   set shadowing_item_id = coalesce(
+         (select i.id from shadowing_items i
+           where i.level = (select u.current_level from users u where u.id = $2)
+           order by i.created_at, i.id limit 1),
+         (select i.id from shadowing_items i order by i.created_at, i.id limit 1)
+       )
+ where id = $1
 """
 
 # `and status = 'active'`는 **캡틴 결정(2026-09-03)**이다 — `end_session`이 리퍼의 판정을 덮지
@@ -306,11 +323,49 @@ async def record_drill_turns_expected(
     return expected
 
 
-async def create_session(pool: asyncpg.Pool, user_id: UUID) -> UUID:
-    """연결 하나에 대응하는 `active` 세션 행을 만든다."""
+async def create_session(pool: asyncpg.Pool, user_id: UUID, *, mode: str = "speaking") -> UUID:
+    """연결 하나에 대응하는 `active` 세션 행을 만든다.
+
+    `mode`는 **키워드 전용이고 기본값이 `'speaking'`**이다 (`TASK-45` · 결정 11이 미뤄 둔
+    파라미터화가 여기서 발화한다). ⛔ **기존 호출자를 깨뜨리지 않는 것이 그 형태의 이유다** —
+    `api/ws.py`와 하네스는 인자를 주지 않고 지금 그대로 말하기 세션을 연다.
+    값역은 001의 `learning_sessions_mode_check`(`speaking`·`shadowing`·`review`)가 가둔다 —
+    이 함수가 목록을 복제하지 않는다(두 곳이 갈라지지 않게).
+    """
     async with pool.acquire() as conn:
-        session_id = await conn.fetchval(_CREATE_SESSION_SQL, user_id)
+        session_id = await conn.fetchval(_CREATE_SESSION_SQL, user_id, mode)
     assert session_id is not None, "insert ... returning produced no row"
+    return session_id
+
+
+async def start_shadowing_session(pool: asyncpg.Pool, user_id: UUID) -> UUID:
+    """쉐도잉 세션을 열고 **학습자 수준에 맞는 클립 1개를 붙인다** (`TASK-45`).
+
+    설계서 `2026-09-08-shadowing-task-design.md` §12가 진입점에 요구한 것 중 **1·2·3**을
+    이 함수가 이행한다: `mode='shadowing'`으로 연다 · 클립 1개를 고르고 그 id를 세션에
+    남긴다(선택이 재접속에서 살아남는다) · 선택 기준은 `users.current_level`이다.
+
+    ⛔ **범위 경계**: 「추가 학습 5종을 어떻게 배치하나」는 **`TASK-10`의 설계 몫이고 이 함수가
+    정하지 않는다**(캡틴 결정 34가 「최소한만 만든다」로 제약했다). 그래서 이 함수는 **호출
+    표면을 갖지 않는다** — 어느 화면·어느 버튼이 부르는지는 그 설계가 정하고, 그때 이 함수의
+    **호출자만** 바뀐다.
+
+    ⚠️ **선택 규칙은 발명이 아니라 선례다**: `learning_scenarios` 선택과 **같은 형태**
+    (수준 일치 우선 → 없으면 가장 이른 행)를 쓴다. 설계서 §3.3이 *"`learning_scenarios.level`과
+    같은 값역을 쓴다 — 선택의 기준이 같기 때문이다"*로 그 근거를 이미 적었다.
+
+    ⛔ **클립이 0행이어도 세션을 연다.** 011의 CHECK가 역방향(`mode='shadowing'`이면 반드시
+    클립)을 강제하지 않는 것과 같은 판단이다 — 여기서 예외를 던지면 시드가 비어 있는 DB에서
+    쉐도잉 진입이 **전부** 막힌다. `shadowing_item_id`는 그때 null로 남는다.
+
+    **한 트랜잭션이다** — 세션을 만든 뒤 클립을 붙이기 전에 죽으면 클립 없는 쉐도잉 세션이
+    남는데, 그것은 위 문장대로 정상 상태이므로 부분 실행이 손상이 아니다. 그래도 한 단위로
+    묶는 이유는 **선택이 세션과 함께 보이는 것**이 재접속 복원의 전제이기 때문이다.
+    """
+    async with pool.acquire() as conn, conn.transaction():
+        session_id = await conn.fetchval(_CREATE_SESSION_SQL, user_id, "shadowing")
+        assert session_id is not None, "insert ... returning produced no row"
+        await conn.execute(_ATTACH_SHADOWING_CLIP_SQL, session_id, user_id)
     return session_id
 
 

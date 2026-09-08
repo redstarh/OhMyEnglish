@@ -44,6 +44,7 @@ from app.services.sessions import (
     load_session_scenario,
     reap_orphan_sessions,
     record_drill_turns_expected,
+    start_shadowing_session,
 )
 from app.services.utterances import save_final_transcript
 
@@ -619,3 +620,96 @@ async def test_no_questions_leaves_the_expectation_null(db_conn: asyncpg.Connect
         is None
     )
     assert await _recorded_expectation(db_conn, session_id) is None
+
+
+# ── TASK-45: 쉐도잉 세션 시작 (설계서 `2026-09-08-shadowing-task-design.md` §12 요구 1~3) ──
+#
+# ⛔ **범위 경계를 여기 못 박는다.** 캡틴 결정 34 가 「최소 진입점」을 이 태스크로 옮겼지만
+# **「추가 학습 5종을 어떻게 배치하나」는 여전히 `TASK-10` 의 설계 몫이다.** 그래서 이 절이
+# 재는 것은 **계약**(mode='shadowing' 으로 열린다 · 클립 1개를 고른다 · 학습자 수준을 기준으로
+# 한다)뿐이고 **호출 표면**(어느 화면·어느 버튼·5종 중 어디에 놓는가)은 재지 않는다.
+# ⚠️ `TASK-10` 의 설계가 나오면 이 함수의 **호출자**가 바뀔 수 있다. 함수 자체는 그 설계와
+# 무관하게 살아남도록 「세션을 열고 클립을 붙인다」 하나만 한다.
+#
+# ⚠️ **선택 규칙은 발명이 아니라 선례다** — `learning_scenarios` 선택과 **같은 형태**
+# (수준 일치 우선 → 없으면 가장 이른 행)를 쓴다. 설계서 §3.3 이 *"`learning_scenarios.level`과
+# 같은 값역을 쓴다 — 선택의 기준이 같기 때문이다"* 라고 그 근거를 이미 적었다.
+
+
+async def _attached_clip(pool: asyncpg.Pool, session_id: UUID) -> UUID | None:
+    async with pool.acquire() as conn:
+        return await conn.fetchval(
+            "select shadowing_item_id from learning_sessions where id = $1", session_id
+        )
+
+
+async def _session_mode(pool: asyncpg.Pool, session_id: UUID) -> str:
+    async with pool.acquire() as conn:
+        mode = await conn.fetchval("select mode from learning_sessions where id = $1", session_id)
+    assert mode is not None
+    return mode
+
+
+# 요구 1·2·3 — 세션이 `shadowing` 으로 열리고, 학습자 수준에 맞는 클립이 붙는다.
+# ⚠️ 불일치 행을 **가장 이른 행과 가장 최신 행 양쪽에** 둔다 — 한쪽만 두면 수준을 무시하는
+# 구현(`asc`/`desc` 어느 쪽이든)이 통과한다(그 근거는 `seed_scenarios_for_level` 이 소유한다).
+async def test_shadowing_session_opens_with_mode_and_a_level_matched_clip(
+    db_pool: asyncpg.Pool, seed_shadowing_clips
+):
+    user_id, (earliest, matching, newest) = await seed_shadowing_clips(
+        level="B1", clips=[("A2", 5), ("B1", 3), ("A2", 0)]
+    )
+
+    session_id = await start_shadowing_session(db_pool, user_id)
+
+    assert await _session_mode(db_pool, session_id) == "shadowing"
+    clip_id = await _attached_clip(db_pool, session_id)
+    assert clip_id == matching, "수준이 맞는 클립이 있는데 다른 행이 붙었다"
+    assert clip_id != earliest, "수준을 무시하고 가장 이른 행을 골랐다"
+    assert clip_id != newest, "수준을 무시하고 가장 최신 행을 골랐다"
+
+
+# 폴백 — 수준 일치가 0행이어도 **시작이 실패하지 않는다.** 시나리오 선택과 같은 판단이다
+# (§9 Failure: 학습이 막히는 것보다 조금 쉬운 편이 낫다).
+# ⚠️ 불일치 행을 **2행** 심는다 — 1행이면 어떤 정렬이든 그 행을 골라 「폴백 절이 존재한다」만
+# 재고 **「가장 이른 행」이라는 규칙은 무보호**가 된다.
+async def test_shadowing_session_falls_back_to_the_earliest_clip(
+    db_pool: asyncpg.Pool, seed_shadowing_clips
+):
+    user_id, (earliest, later) = await seed_shadowing_clips(
+        level="C2", clips=[("A2", 3), ("A2", 1)]
+    )
+
+    session_id = await start_shadowing_session(db_pool, user_id)
+
+    clip_id = await _attached_clip(db_pool, session_id)
+    assert clip_id == earliest, "수준 일치가 0행일 때 가장 이른 클립으로 떨어지지 않았다"
+    assert clip_id != later
+
+
+# ⛔ 클립이 **아예 없어도** 세션은 열린다 — 011 의 CHECK 가 역방향을 강제하지 않는 것과
+# 같은 판단이다(§3.3: 클립을 고르기 전에 세션이 열릴 수 있다). 여기서 예외를 던지면
+# 시드가 비어 있는 개발 DB 에서 쉐도잉 진입이 **전부** 막힌다.
+async def test_shadowing_session_opens_without_a_clip_when_none_exist(
+    db_pool: asyncpg.Pool, seed_shadowing_clips
+):
+    user_id, _ = await seed_shadowing_clips(level="A2", clips=[])
+
+    session_id = await start_shadowing_session(db_pool, user_id)
+
+    assert await _session_mode(db_pool, session_id) == "shadowing"
+    assert await _attached_clip(db_pool, session_id) is None
+
+
+# ⚠️ **기존 호출부를 깨뜨리지 않는다** — `mode` 는 키워드 전용이고 기본값이 `'speaking'` 이다.
+# 이 단정이 무너지면 `api/ws.py`·하네스가 조용히 쉐도잉 세션을 열게 된다.
+async def test_create_session_still_defaults_to_speaking(
+    db_pool: asyncpg.Pool, seed_shadowing_clips
+):
+    user_id, _ = await seed_shadowing_clips(level="A2", clips=[("A2", 1)])
+
+    session_id = await create_session(db_pool, user_id)
+
+    assert await _session_mode(db_pool, session_id) == "speaking"
+    # 말하기 세션에는 클립이 붙지 않는다 — 011 의 CHECK 가 그것을 막기도 한다.
+    assert await _attached_clip(db_pool, session_id) is None

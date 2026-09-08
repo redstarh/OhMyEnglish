@@ -1129,3 +1129,63 @@ async def seed_scenarios_for_level(db_pool: asyncpg.Pool) -> AsyncIterator[Calla
             await conn.execute(
                 "delete from learning_scenarios where id = any($1::uuid[])", scenario_ids
             )
+
+
+@pytest_asyncio.fixture
+async def seed_shadowing_clips(db_pool: asyncpg.Pool) -> AsyncIterator[Callable[..., object]]:
+    """수준이 정해진 사용자 1명 + `created_at`이 정해진 쉐도잉 클립 여러 행을 **커밋한다.**
+
+    `seed_scenarios_for_level`과 **같은 규약·같은 이유**다(`TASK-45`): 세션 시작이 pool 을
+    받으므로 롤백 트랜잭션으로는 잴 수 없고, 남기면 다른 테스트의 클립 선택을 조용히 바꾼다 —
+    선택은 수준으로 좁힌 뒤에도 결국 `order by created_at, id`로 한 행을 고른다.
+    ⚠️ **teardown 순서**: 사용자를 먼저 지운다(세션이 cascade 로 따라간다). 그 뒤 클립을 지운다 —
+    `learning_sessions.shadowing_item_id`는 `on delete set null`이므로 순서를 뒤집어도 FK 에
+    막히지는 않지만, 세션이 살아 있는 동안 클립을 지우면 그 세션의 선택이 null 로 바뀌어
+    **다른 테스트가 「고르지 못했다」로 오독할 수 있다.**
+
+    `clips`는 `(level, days_ago)` 목록이고 `days_ago`가 `created_at`을 과거로 민다.
+    ⚠️ **인자 조합이 판별력이다** — 근거는 `seed_scenarios_for_level` docstring 이 소유한다
+    (여기서 다시 적지 않는다). 요지: **수준 우선**을 재려면 불일치 행을 가장 이른 행과 가장
+    최신 행 **양쪽에** 두고 일치 행을 가운데 둔다 · **폴백의 「가장 이른 행」**을 재려면 불일치
+    행을 **2행 이상** 심는다.
+    """
+    user_ids: list[UUID] = []
+    clip_ids: list[UUID] = []
+
+    async def make(*, level: str, clips: Sequence[tuple[str, int]]) -> tuple[UUID, list[UUID]]:
+        created: list[UUID] = []
+        async with db_pool.acquire() as conn:
+            user_id = await conn.fetchval(
+                "insert into users (display_name, current_level) "
+                "values ('Shadowing Level Test', $1) returning id",
+                level,
+            )
+            user_ids.append(user_id)
+            for clip_level, days_ago in clips:
+                clip_id = await conn.fetchval(
+                    "insert into shadowing_items "
+                    "(source_title, transcript, clip_start_sec, clip_end_sec, level, created_at) "
+                    "values ($1, $2, 0, 40, $3, $4) returning id",
+                    f"{clip_level} standup",
+                    f"This is a {clip_level} clip about today's blocker.",
+                    clip_level,
+                    datetime.now(UTC) - timedelta(days=days_ago),
+                )
+                clip_ids.append(clip_id)
+                created.append(clip_id)
+            # 누출을 조용한 오답이 아니라 시끄러운 실패로 바꾼다 — 같은 이유가
+            # `seed_scenarios_for_level`에 적혀 있다.
+            leaked = await conn.fetchval(
+                "select count(*) from shadowing_items where not (id = any($1::uuid[]))",
+                created,
+            )
+        assert leaked == 0, f"이 픽스처가 심지 않은 클립 {leaked}행이 남아 있다"
+        assert isinstance(user_id, UUID)
+        return user_id, created
+
+    try:
+        yield make
+    finally:
+        async with db_pool.acquire() as conn:
+            await conn.execute("delete from users where id = any($1::uuid[])", user_ids)
+            await conn.execute("delete from shadowing_items where id = any($1::uuid[])", clip_ids)
