@@ -604,7 +604,14 @@ select count(*) from learning_sessions s join harness_sessions h on h.session_id
 ⚠️ **`corrections` 키는 상태에 따라 응답에 아예 없다**(`api/results.py:11~12` — `null`도 아니다).
 `analyzing`·`connection_failed`·`no_utterances`가 그렇다. 직접 확인했다.
 
-⚠️ 이 5개는 **teardown ①에서 제외한다**(§8 보존 대상 a).
+| **C3f** | `final` | `e0c5e580-dfc0-4793-b02d-54cf4346c3c5` | **2** | **실물 Nova 앱 경로 세션**(2026-09-09 · 결정 38) + 워커로 분석 3건. **A4-2 의 primary 다** — 서로 다른 패턴 2개(`article_missing_the_before_place_noun` occ 2 · `verb_tense_past_simple_for_past_events` occ 2)를 가져 결과 API 가 **교정 2건**을 낸다 |
+
+✅ **A4-2 의 「표본이 없다」가 2026-09-09 에 해소됐다.** 이 절 아래 ⛔ 문단이 *"교정 2건 이상인
+세션이 없다 … 실물 호출을 더 쓴다 → 캡틴 결정 사안"* 이라 적었는데 **`C3f` 가 그 표본이다.**
+결정 38·39 가 쓴 실물 비용을 **영구 자산으로 바꾼 것**이고 그래서 이 세션을 보존한다.
+⚠️ **그 문단을 지우지 않는다** — 왜 오래 막혀 있었는지가 A4-2 를 읽는 사람에게 필요하다.
+
+⚠️ 이 **6개**는 **teardown ①에서 제외한다**(§8 보존 대상 a).
 ⚠️ **A4-1의 primary는 C3b 하나다**(`corrections >= 1`). C3c는 **음성 대조**로만 쓴다(빈 세션에서 접두 0개).
 ⛔ **A4-2의 기대값 교차 대조는 이 목록으로 평가할 수 없다 — 교정 2건 이상인 세션이 없다**(§11-9가
 물은 것에 대한 답). **스텁 픽스처로는 원리적으로 어렵다**: 오류가 있는 두 문장(`go to gym`·`go to office`)이
