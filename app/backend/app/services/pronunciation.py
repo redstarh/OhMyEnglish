@@ -532,6 +532,12 @@ async def refresh_review(
     일치하지만, 그 일치에 의존하는 구조를 남기지 않는다(이 모듈이 반복해서 경고하는
     "같은 규칙이 두 층에 흩어지면 한쪽이 조용히 낡는다"). 쿼리도 하나 줄어든다.
 
+    ⚠️ **주입 경로는 `category` 가드를 받지 않는다** (코드 리뷰 LOW-A). 폴백 조회
+    (`_FIND_SOUND_PATTERN_SQL`)는 `p.category = $2`로 발음 패턴만 돌려주지만, `pattern_id`를
+    주면 그 가드를 건너뛴다 — **`link_pattern`이 돌려준 id만 넘기는 것이 호출자의 책임이다.**
+    그래도 값이 틀리지 않는 이유는 `recompute`가 카테고리를 **스스로 다시 읽어** 이력 쿼리를
+    고르는 것이다(`review.py`). 이 함수가 카테고리를 보장한다고 읽지 마라.
+
     ⛔ **정정 — 리뷰가 적은 실패 시나리오는 `incorrect` 경로에서 성립하지 않는다.** 리뷰는
     "B-10 구멍으로 문법 경로가 `target_form`을 문장으로 덮으면 `refresh_review`가 no-op이
     된다"고 적었는데, `_UPSERT_PRONUNCIATION_PATTERN_SQL`의 `on conflict … do update set
