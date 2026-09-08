@@ -756,6 +756,33 @@ async def test_ws_still_opens_a_speaking_session_without_the_mode(
     assert mode == "speaking"
 
 
+async def test_an_unknown_mode_is_warned_but_an_explicit_speaking_is_not(
+    ws_app: FastAPI, seeded_fixed_user: UUID, caplog: pytest.LogCaptureFixture
+):
+    """⛔ **조용한 폴백의 유일한 완화책이 이 경고다** — 그것을 재는 단정이 없었다(2026-09-09 리뷰).
+
+    오타 난 링크로 붙은 학습자는 말하기 세션을 받으므로, 로그가 유일한 신호다. 그리고
+    **`?mode=speaking` 은 알 수 없는 값이 아니다** — 명시적 선택에 경고가 나면 그 경고가 오타를
+    가리키지 못하게 된다(같은 리뷰의 Minor 지적).
+    """
+    with caplog.at_level("WARNING"):
+        async with (
+            ws_app.router.lifespan_context(ws_app),
+            ASGIWebSocket(ws_app, query_string=b"mode=telepathy") as client,
+        ):
+            await client.receive_event()
+    assert "telepathy" in caplog.text
+
+    caplog.clear()
+    with caplog.at_level("WARNING"):
+        async with (
+            ws_app.router.lifespan_context(ws_app),
+            ASGIWebSocket(ws_app, query_string=b"mode=speaking") as client,
+        ):
+            await client.receive_event()
+    assert "알 수 없는 mode" not in caplog.text, "명시적 speaking 에 경고가 났다"
+
+
 async def test_ws_falls_back_to_speaking_for_an_unknown_mode(
     ws_app: FastAPI, seeded_fixed_user: UUID, db_pool: asyncpg.Pool
 ):

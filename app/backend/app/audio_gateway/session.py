@@ -61,10 +61,14 @@ class _RecordingTurn:
 
     ⚠️ `utterance_id` 를 아직 모르기 때문에 이름이 둘 필요하다(설계서 §4.5): 바이트가 전사문
     확정보다 먼저 도착하므로 턴이 닫힐 때 rename 한다.
+
+    ⛔ **`handle` 이 `None` 일 수 있고 그것이 「턴은 열려 있으나 바이트를 쓸 수 없다」는 뜻이다.**
+    두 상태를 갈라 두는 이유는 하나다: 턴을 아예 닫으면 이후 프레임이 어댑터로 흘러 **낭독이
+    Nova 에 들어간다**(§4.1 이 막으려는 오염). 근거는 `_write_recording_frame` 이 갖는다.
     """
 
     turn_id: UUID
-    handle: BinaryIO
+    handle: BinaryIO | None
 
 
 # 설계 발명값 (근거 문서 없음) — 음성 어댑터 연결 수립 상한. "느린 네트워크에서
@@ -438,11 +442,42 @@ class SessionRunner:
             return
         turn = self._recording_turn
         if turn is not None:
-            # ⚠️ 동기 write 다. 프레임이 320바이트 남짓이라 스레드로 넘기는 비용이 쓰는 비용을
-            # 넘고, 같은 판단을 `load_recording` 의 읽기에도 적어 뒀다.
-            turn.handle.write(frame)
+            self._write_recording_frame(turn, frame)
             return
         await self._adapter.send_audio(frame)
+
+    def _write_recording_frame(self, turn: _RecordingTurn, frame: bytes) -> None:
+        """낭독 프레임을 파일에 흘린다. **디스크 오류가 세션을 죽이지 않는다.**
+
+        같은 모듈의 `_record_pronunciation`·`_flush_analysis` 와 같은 규약이다 — 기록을 잃는 편이
+        대화를 끊는 것보다 낫다. 2026-09-09 리뷰가 이 경로만 그 규약에서 갈라져 있던 것을 잡았다:
+        base64 오류는 삼키면서 디스크 오류는 펌프를 죽이는 비대칭이었다.
+
+        ⛔ **실패해도 턴을 닫지 않고 「쓸 수 없는 턴」으로 남긴다.** 턴을 닫으면 이후 프레임이
+        어댑터로 흘러 **낭독이 Nova 에 들어가고**, 그 전사가 `learning` 발화로 저장되어 오류 패턴을
+        오염시킨다(§4.1) — 그것이 녹음 하나를 잃는 것보다 나쁘다. 즉 「턴이 열려 있다」와 「그
+        바이트를 쓸 수 있다」는 다른 상태이고 `handle is None` 이 후자의 부재를 뜻한다.
+
+        ⚠️ 동기 write 다. 프레임이 **1024바이트**(`lib/audio.ts` 의 `FRAME_BYTES` = 512샘플×2 ·
+        32ms)라 스레드로 넘기는 비용이 쓰는 비용을 넘고, 같은 판단을 `load_recording` 의 읽기에도
+        적어 뒀다.
+        """
+        if turn.handle is None:
+            return  # 이미 포기한 턴 — 프레임을 버린다(어댑터로 보내지 않는다)
+        try:
+            turn.handle.write(frame)
+        except OSError:
+            logger.exception(
+                "낭독 프레임을 쓰지 못해 이 턴의 녹음을 포기한다 (세션 %s)", self._session_id
+            )
+            self._discard_recording_handle(turn)
+
+    def _discard_recording_handle(self, turn: _RecordingTurn) -> None:
+        """핸들만 버리고 턴은 열어 둔다 — 위 docstring 의 「쓸 수 없는 턴」을 만든다."""
+        handle, turn.handle = turn.handle, None
+        if handle is not None:
+            with contextlib.suppress(OSError):
+                handle.close()
 
     def _open_recording_turn(self) -> None:
         """낭독 턴을 연다 (요구 4). `.part` 파일이 「미완성」을 파일시스템에 적는다.
@@ -450,6 +485,9 @@ class SessionRunner:
         ⚠️ **중복 신호를 무해하게 삼킨다** — 이미 열려 있으면 그대로 둔다. 새로 열면 앞서 쓴
         바이트가 고아 `.part` 로 버려지는데, 그것은 클라이언트의 신호 중복만으로 학습자의 낭독을
         잃는 것이다. 쉐도잉 세션이 아니면(재료가 없으면) 경고만 남기고 무시한다.
+
+        ⛔ **파일을 열지 못해도 턴은 연다**(`handle=None`). 열지 않으면 이후 프레임이 어댑터로 흘러
+        낭독이 Nova 에 들어간다 — `_write_recording_frame` 이 그 근거를 갖는다.
         """
         if self._shadowing is None:
             logger.warning("쉐도잉 세션이 아닌데 낭독 턴 신호가 왔다 — 무시한다")
@@ -458,8 +496,17 @@ class SessionRunner:
             return
         turn_id = uuid4()
         path = pending_recording_path(self._shadowing.audio_root, self._session_id, turn_id)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        self._recording_turn = _RecordingTurn(turn_id=turn_id, handle=path.open("wb"))
+        handle: BinaryIO | None
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            handle = path.open("wb")
+        except OSError:
+            logger.exception(
+                "낭독 녹음 파일을 열 수 없어 이 턴은 저장 없이 진행한다 (세션 %s)",
+                self._session_id,
+            )
+            handle = None
+        self._recording_turn = _RecordingTurn(turn_id=turn_id, handle=handle)
 
     async def _close_recording_turn(self) -> None:
         """낭독 턴을 닫고 §4.5 의 2·3·4 를 이어 돈다.
@@ -471,27 +518,44 @@ class SessionRunner:
         사이에서 죽으면 행은 있고 `audio_url` 은 null 이라 **접근 불가**이고, 남은 파일은 §6.2 의
         2다리가 걷는다 — 그것이 §4.5 가 설계한 상태다. 묶으면 rename 된 파일은 롤백되지 않으므로
         오히려 「행 없는 파일」이 생긴다.
+
+        **예외를 밖으로 던지지 않는다** — 같은 모듈의 `_record_pronunciation`·`_flush_analysis` 와
+        같은 규약이다. 2026-09-09 리뷰가 이 경로만 갈라져 있던 것을 잡았다: DB 실패가 클라이언트
+        펌프를 죽여 **세션이 `session_ended` 없이 사라졌다.** 녹음 1건을 잃는 것이 대화를 끊는
+        것보다 낫고, 남은 `.part` 는 2다리가 걷는다.
         """
         turn = self._recording_turn
         if turn is None or self._shadowing is None:
             return
         self._recording_turn = None
-        turn.handle.close()
-        async with self._pool.acquire() as conn:
-            utterance = await save_final_transcript(
-                conn,
+        if turn.handle is None:
+            # 쓸 수 없었던 턴이다(열기·쓰기 실패). 저장할 바이트가 없으므로 행도 만들지 않는다 —
+            # 행만 만들면 「전사문은 있고 오디오는 없는」 낭독이 남아 비교가 불가능하다.
+            logger.warning(
+                "낭독 턴에 저장된 바이트가 없어 발화 행을 만들지 않는다 (세션 %s)",
                 self._session_id,
-                self._shadowing.clip.transcript,
-                speaker="user",
-                utterance_type=SHADOWING_UTTERANCE_TYPE,
             )
-            await finalize_recording(
-                conn,
-                self._shadowing.audio_root,
-                session_id=self._session_id,
-                turn_id=turn.turn_id,
-                utterance_id=utterance.id,
-            )
+            return
+        with contextlib.suppress(OSError):
+            turn.handle.close()
+        try:
+            async with self._pool.acquire() as conn:
+                utterance = await save_final_transcript(
+                    conn,
+                    self._session_id,
+                    self._shadowing.clip.transcript,
+                    speaker="user",
+                    utterance_type=SHADOWING_UTTERANCE_TYPE,
+                )
+                await finalize_recording(
+                    conn,
+                    self._shadowing.audio_root,
+                    session_id=self._session_id,
+                    turn_id=turn.turn_id,
+                    utterance_id=utterance.id,
+                )
+        except Exception:
+            logger.exception("낭독 녹음 저장에 실패했다 (세션 %s)", self._session_id)
 
     def _abandon_open_recording_turn(self) -> None:
         """세션이 낭독 턴을 열어 둔 채 끝났다 — **핸들만 닫고 `.part` 는 남긴다.**
@@ -503,7 +567,7 @@ class SessionRunner:
         if turn is None:
             return
         self._recording_turn = None
-        turn.handle.close()
+        self._discard_recording_handle(turn)
         logger.warning(
             "낭독 턴이 열린 채 세션 %s가 끝났다 — `.part`는 고아 파일 정리가 걷는다",
             self._session_id,

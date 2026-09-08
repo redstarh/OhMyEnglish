@@ -411,6 +411,200 @@ async def test_shadowing_frames_do_not_reach_the_voice_adapter(
     assert adapter.frames == [b"\x55\x66" * 160], "낭독 프레임이 어댑터로 새어 나갔다"
 
 
+async def test_a_failed_recording_save_does_not_kill_the_session(
+    db_pool, committed_session, tmp_path: Path, monkeypatch
+):
+    """⛔ **저장 실패가 세션을 죽이지 않는다** — 같은 모듈의 다른 실패 경로와 같은 규약이다.
+
+    2026-09-09 리뷰가 이 경로만 갈라져 있던 것을 잡았다: DB 실패가 클라이언트 펌프를 죽여
+    **세션이 `session_ended` 없이 사라졌다.** `_record_pronunciation`·`_flush_analysis` 는 정반대로
+    정해 두고 근거까지 적어 뒀는데 낭독만 예외였다. 녹음 1건을 잃는 것이 대화를 끊는 것보다 낫고,
+    남은 `.part` 는 2다리가 걷는다.
+    """
+
+    async def boom(*args: object, **kwargs: object) -> None:
+        raise RuntimeError("포인터 UPDATE 실패")
+
+    monkeypatch.setattr(session_module, "finalize_recording", boom)
+    encoded = base64.b64encode(b"\x99\xaa" * 160).decode()
+    client = FakeClient(
+        {"type": "shadowing_turn_start"},
+        {"type": "audio", "data": encoded},
+        {"type": "shadowing_turn_end"},
+        None,
+    )
+
+    await asyncio.wait_for(
+        _runner(
+            StubVoiceAdapter(),
+            db_pool,
+            committed_session.session_id,
+            client,
+            shadowing=_shadowing_turns(tmp_path),
+        ).run(),
+        timeout=5.0,
+    )
+
+    assert client.types[-1] == "session_ended", "녹음 저장 실패가 세션을 통째로 죽였다"
+
+
+async def test_frames_are_dropped_not_forwarded_when_the_file_cannot_be_opened(
+    db_pool, committed_session, tmp_path: Path
+):
+    """⛔ **파일을 열 수 없어도 낭독 프레임이 어댑터로 새지 않는다.**
+
+    2026-09-09 리뷰가 `mkdir`/`open` 의 `OSError` 가 세션을 죽이던 것을 잡았다. 그런데 단순히
+    삼키고 턴을 열지 않으면 **더 나쁜 상태**가 된다: 이후 프레임이 어댑터로 흘러 낭독이 Nova 에
+    들어가고 그 전사가 `learning` 발화로 저장돼 오류 패턴을 오염시킨다(§4.1). 그래서 「턴은 열려
+    있고 바이트는 쓸 수 없다」(`handle=None`)를 표현하고 프레임을 **버린다.**
+
+    여기서는 `audio_root` 자리에 **파일**을 둬서 `mkdir` 을 실패시킨다 — 권한 문제를 흉내내는
+    가장 값싼 방법이다.
+    """
+    blocked_root = tmp_path / "root-is-a-file"
+    blocked_root.write_text("디렉터리가 아니라 파일이다")
+    adapter = AudioSpyAdapter()
+    encoded = base64.b64encode(b"\xbb\xcc" * 160).decode()
+    client = FakeClient(
+        {"type": "shadowing_turn_start"},
+        {"type": "audio", "data": encoded},
+        {"type": "shadowing_turn_end"},
+        None,
+    )
+
+    await asyncio.wait_for(
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            client,
+            shadowing=_shadowing_turns(blocked_root),
+        ).run(),
+        timeout=5.0,
+    )
+
+    assert adapter.frames == [], "파일을 못 열자 낭독 프레임이 Nova 로 새어 나갔다"
+    assert client.types[-1] == "session_ended", "파일 열기 실패가 세션을 죽였다"
+    async with db_pool.acquire() as conn:
+        stored = await conn.fetchval(
+            "select count(*) from utterances where session_id = $1 "
+            "and utterance_type = 'shadowing_recording'",
+            committed_session.session_id,
+        )
+    assert stored == 0, "저장된 바이트가 없는데 발화 행이 생겼다 — 비교할 수 없는 낭독이 남는다"
+
+
+async def test_a_turn_left_open_is_abandoned_with_a_warning(
+    db_pool, committed_session, tmp_path: Path, caplog: pytest.LogCaptureFixture
+):
+    """⛔ **`_abandon_open_recording_turn` 을 재는 유일한 단정이다.**
+
+    2026-09-09 리뷰가 그 줄을 지워도 스위트가 전부 통과함을 확인했다 — 낭독 턴을 쓰는 단정이
+    둘뿐이었고 **둘 다 `start`→`end` 짝을 맞춰 보냈기** 때문이다. 실물에서는 학습자가 낭독 중에
+    창을 닫는 것이 정상 경로다.
+
+    재는 것은 셋: `.part` 가 남는다(2다리가 걷을 대상) · **발화 행을 만들지 않는다**(끝났다는
+    신호가 없으므로 완성된 녹음인지 알 수 없다) · **경고가 남는다**(그것이 이 상태의 유일한 신호다).
+    """
+    encoded = base64.b64encode(b"\x77\x88" * 160).decode()
+    client = FakeClient(
+        {"type": "shadowing_turn_start"},
+        {"type": "audio", "data": encoded},
+        None,  # 낭독 중에 끊긴다 — `turn_end` 가 오지 않는다
+    )
+
+    with caplog.at_level("WARNING"):
+        await asyncio.wait_for(
+            _runner(
+                StubVoiceAdapter(),
+                db_pool,
+                committed_session.session_id,
+                client,
+                shadowing=_shadowing_turns(tmp_path),
+            ).run(),
+            timeout=5.0,
+        )
+
+    leftovers = list(recording_dir(tmp_path, committed_session.session_id).glob("*.pcm.part"))
+    assert len(leftovers) == 1, "열린 채 끝난 턴의 `.part` 가 남지 않았다"
+    async with db_pool.acquire() as conn:
+        stored = await conn.fetchval(
+            "select count(*) from utterances where session_id = $1 "
+            "and utterance_type = 'shadowing_recording'",
+            committed_session.session_id,
+        )
+    assert stored == 0, "끝났다는 신호가 없는데 발화 행이 생겼다"
+    assert "낭독 턴이 열린 채" in caplog.text
+
+
+async def test_a_duplicate_turn_start_does_not_discard_the_bytes_so_far(
+    db_pool, committed_session, tmp_path: Path
+):
+    """⛔ 중복 `start` 를 삼키는 판단을 재는 단정이다 (2026-09-09 리뷰가 미검증으로 지목).
+
+    새로 열면 앞서 쓴 바이트가 고아 `.part` 로 버려진다 — **클라이언트의 신호 중복만으로 학습자의
+    낭독을 잃는 것**이다. 재는 방법: 두 번 열고 프레임을 보낸 뒤 닫아서, `.part` 가 하나도 남지
+    않고(두 번째 턴이 만들어지지 않았다) 저장된 바이트가 **두 프레임 전부**인지 본다.
+    """
+    first = base64.b64encode(b"\x01\x02" * 160).decode()
+    second = base64.b64encode(b"\x03\x04" * 160).decode()
+    client = FakeClient(
+        {"type": "shadowing_turn_start"},
+        {"type": "audio", "data": first},
+        {"type": "shadowing_turn_start"},  # 중복 — 무해하게 삼켜야 한다
+        {"type": "audio", "data": second},
+        {"type": "shadowing_turn_end"},
+        None,
+    )
+
+    await asyncio.wait_for(
+        _runner(
+            StubVoiceAdapter(),
+            db_pool,
+            committed_session.session_id,
+            client,
+            shadowing=_shadowing_turns(tmp_path),
+        ).run(),
+        timeout=5.0,
+    )
+
+    async with db_pool.acquire() as conn:
+        utterance_id = await conn.fetchval(
+            "select id from utterances where session_id = $1 "
+            "and utterance_type = 'shadowing_recording'",
+            committed_session.session_id,
+        )
+    assert utterance_id is not None
+    stored = recording_path(tmp_path, committed_session.session_id, utterance_id)
+    assert stored.read_bytes() == b"\x01\x02" * 160 + b"\x03\x04" * 160
+    assert list(recording_dir(tmp_path, committed_session.session_id).glob("*.part")) == []
+
+
+async def test_turn_signals_in_a_speaking_session_are_ignored(
+    db_pool, committed_session, caplog: pytest.LogCaptureFixture
+):
+    """⛔ **말하기 세션에 낭독 턴 신호가 오는 것은 실물에서 도달 가능한 경로다.**
+
+    프론트가 그 메서드를 갖고 있고 어느 화면이 부르는지는 `TASK-10` 이 정하므로, 모드 없이 붙은
+    연결에 신호가 올 수 있다. 가드가 없으면 `self._shadowing.audio_root` 에서 `AttributeError` 가
+    나 **세션이 통째로 죽는다.** 2026-09-09 리뷰가 이 경로의 미검증을 지목했다.
+    """
+    client = FakeClient(
+        {"type": "shadowing_turn_start"},
+        {"type": "shadowing_turn_end"},
+        None,
+    )
+
+    with caplog.at_level("WARNING"):
+        await asyncio.wait_for(
+            _runner(StubVoiceAdapter(), db_pool, committed_session.session_id, client).run(),
+            timeout=5.0,
+        )
+
+    assert client.types[-1] == "session_ended", "낭독 턴 신호가 말하기 세션을 죽였다"
+    assert "쉐도잉 세션이 아닌데" in caplog.text
+
+
 # ① 픽스처 완주 → 사용자 final 3행 + job 3건 (G4)
 async def test_fixture_run_saves_user_finals_and_enqueues_three_jobs(db_pool, committed_session):
     adapter = StubVoiceAdapter()

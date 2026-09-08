@@ -57,6 +57,10 @@ WS_SESSION_PATH = "/ws/session"
 # 쉐도잉으로 붙는 유일한 값. ⛔ **모드 값역을 여기서 열거하지 않는다** — 그것은 001 의
 # `learning_sessions_mode_check` 가 가둔다. 이 상수가 아는 것은 「쉐도잉인가」 하나다.
 SHADOWING_MODE = "shadowing"
+# `create_session` 의 기본값과 같은 값이다. **여기 있는 이유는 경고 하나 때문이다**:
+# `?mode=speaking` 은 명시적 선택이므로 「알 수 없는 mode」로 경고하면 안 된다. ⛔ 이 둘이
+# 값역 전체는 아니다 — `review` 는 아직 진입점이 없고, 값역의 정본은 여전히 001 의 CHECK 다.
+SPEAKING_MODE = "speaking"
 
 SESSION_CREATE_FAILED_REASON = "session_create_failed"
 ADAPTER_UNAVAILABLE_REASON = "voice_adapter_unavailable"
@@ -248,7 +252,9 @@ async def session_socket(websocket: WebSocket) -> None:
     # ⚠️ 대가를 명시한다 — 오타 난 링크로 붙으면 조용히 말하기 세션을 받으므로 경고를 남긴다.
     requested_mode = websocket.query_params.get("mode")
     shadowing_requested = requested_mode == SHADOWING_MODE
-    if requested_mode is not None and not shadowing_requested:
+    if requested_mode not in (None, SHADOWING_MODE, SPEAKING_MODE):
+        # ⚠️ `?mode=speaking` 은 **알 수 없는 값이 아니다** — 명시적으로 그것을 고른 것이므로
+        # 경고하지 않는다(2026-09-09 리뷰 지적). 경고는 오타·낡은 링크만 가리켜야 값을 한다.
         logger.warning("알 수 없는 mode=%r — 말하기 세션으로 진행한다", requested_mode)
 
     try:
@@ -267,9 +273,11 @@ async def session_socket(websocket: WebSocket) -> None:
 
     # 이 세션은 살아 있다 — 고아 세션 리퍼(I-4)가 닫아선 안 된다는 표시다. 세션 행 생성
     # **직후**, 다음 `await`보다 **앞**에서 등록하는 것이 계약이다: 바로 아래에서 pool acquire를
-    # await하는 것이 **네 개**(재료 조회 3 + 기대값 UPDATE 1)이므로(소진되면 길어진다) 등록을
-    # 그 뒤로 밀면 리퍼가 볼 수 있는 진짜 창이 열린다. ⚠️ 이 배치가 그 창을 둘만큼 더 늘렸다 —
-    # 그래서 등록이 앞에 있어야 한다는 근거가 약해지지 않고 강해졌다.
+    # await하는 것이 **말하기 네 개**(재료 조회 3 + 기대값 UPDATE 1)이고 **쉐도잉은 다섯**
+    # (클립 조회가 하나 더 붙는다)이므로(소진되면 길어진다) 등록을 그 뒤로 밀면 리퍼가 볼 수 있는
+    # 진짜 창이 열린다. ⚠️ 이 배치가 그 창을 늘려 왔다 — 그래서 등록이 앞에 있어야 한다는 근거가
+    # 약해지지 않고 강해졌다. (2026-09-09: 쉐도잉 경로가 다섯이 됐는데 이 수가 「네 개」로 낡아
+    # 있던 것을 리뷰가 잡았다 — 이 수는 위 배치의 근거로 쓰이는 문장이다.)
     # ⚠️ **"갓 만든 세션이 즉시 리핑된다"는 위험은 없다** — `started_at`이 `now()` 기본값이라
     # 나이가 0초이고 유예를 만족할 수 없다. 이 순서의 근거는 유예가 아니라 위의 await 창이다.
     # 해제는 어떤 경로로 끝나든 아래 `finally`가 한다.

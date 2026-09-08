@@ -35,7 +35,10 @@ from app.services.recordings import (
     sweep_orphan_recording_files,
 )
 
-FRAMES = b"\x00\x01" * 160  # raw LPCM 16kHz·16bit·mono 한 프레임 분량 (헤더 없음)
+# raw LPCM 16kHz·16bit·mono 바이트 (헤더 없음). ⚠️ **실물 프레임 크기가 아니다** — 프론트가 보내는
+# 프레임은 `lib/audio.ts` 의 `FRAME_BYTES` = **1024바이트**(512샘플 · 32ms)다. 이 계층은 바이트를
+# 그대로 흘리므로 크기가 계약이 아니고, 여기 값은 「구분되는 바이트열」이면 된다.
+FRAMES = b"\x00\x01" * 160
 
 
 async def _new_shadowing_session(
