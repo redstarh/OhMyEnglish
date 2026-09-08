@@ -505,3 +505,295 @@ cd app/backend && .venv/bin/python ../../tests/harness/c3_results_screen.py \
 **DB 대조**: `cd app/backend && .venv/bin/python -c "import sys; sys.path.insert(0,'../../tests/harness');
 from psql_cli import psql; print(psql('<질의>'))"` — §7 헬퍼만 씀(`podman exec` 를 쓰지 않음).
 보존 세션 무결성은 **`utterances` 경유 조인**으로 물어야 함(위 teardown 절의 ⚠️).
+
+---
+
+# 3차 시도 — `stub_unresponsive`. 이 모드가 뒷받침하는 단정을 전부 판정함
+
+> 호출자가 어댑터를 전환했음(pid 26253 → **56138** · `VOICE_ADAPTER=stub_unresponsive` ·
+> `WORKER_ENABLED=false`). HEAD **`2668ca1`** · 회차 `run_id`
+> **`bcafc8ba-1c8e-43f9-afad-d7181dfccb3b`** · `WINDOW_START`
+> **`2026-09-08 19:19:01.108513+00`**(UTC).
+> `browser_leg.md`·`instrument.js` 를 둘 다 다시 읽고 시작했음(diff 확인: §2 어댑터 모드 규약 ·
+> A1-6 칸 · `startedSessionId`).
+
+## 판정 요약 — 이 회차가 평가한 11건
+
+| # | 판정 | 관측 | 음성 대조가 FAIL 을 냈는가 |
+|---|---|---|---|
+| A1-1 대조 | **`PASS`** | `recv.final` = **0** | **예** — 2차의 6 에서 0 으로 떨어졌음 |
+| A1-2 대조 | **`PASS`** | `recv.partial` = **0** | **예** — 2차의 6 → 0 |
+| A1-3 대조 | **`PASS`** | `recv.audio` = **0** | **예** — 2차의 3 → 0 |
+| A1-4 대조 ① | **`PASS`** | `started` = `{count:0, when:[], calls:[]}` | **예** — 2차의 3 → 0 |
+| A1-6 대조 | **`PASS`** | URL 이 **`http://localhost:3000/`** 에 남고 `사유: voice_adapter_connect_timeout` `<p>` **1개** | **예** — 2차의 `/results/<uuid>` 가 나오지 않았음 |
+| A1-8 대조 | **`PASS`** | 그 세션 `utterances` **0행**. 창 안 세션 **5건 전부 0행**이고 전체 `utterances` 가 **114 → 114**(불변) | **예** — 2차의 6행 → 0행 |
+| A2-1 | **`PASS`** | partial 줄 1개 · color == probe muted (라이트 `rgb(89,89,89)` · 다크 `rgb(154,154,154)`) | **예** — 주입 전(`active` 도달 후) 접두 `<p>` **0개**를 두 모드에서 관측 |
+| A2-2 | **`PASS`** | 확정 줄 1개 · color == probe fg (라이트 `rgb(23,23,23)` · 다크 `rgb(237,237,237)`) · partial 문구 잔존 **False** | **예** — ① 주입 전 0개 ② probe 두 값이 서로 다름(89≠23 · 154≠237) |
+| A2-3 | **`PASS`** | 라이트 muted `rgb(89,89,89)` ≠ 다크 muted `rgb(154,154,154)` | **예** — **두 모드를 다 돌렸음**(한 모드면 `A2-3 미평가`·FAIL). 페이지가 보고한 스킴이 요청과 일치(`page reports light`/`dark`) |
+| A5-1 | **`PASS`** | 4 outcome 전부 배지 **정확히 1개** + `textContent` 가 `PRONUNCIATION_BADGE` 와 등호 일치 | **예(대조 ②)** — 같은 요소가 매번 바뀜. ⚠️ 대조 ①은 이 문서에서 오염됨(아래) |
+| A5-2 | **`PASS`** | sentinel `ZZ_TARGET_SOUND_SENTINEL_9931` 이 leaf 0건 · 전체 `innerHTML` 검색 **false**(4회 전부) | **예** — 짝 대조 성립: 같은 프레임의 outcome 문구는 **있었음** |
+
+**A1-6 본 단정의 유도 경로가 실재함을 확인했음** — 새 계측 키 `startedSessionId` 가
+**`db1e7af0-1146-4a0a-a8e8-84f98072e09a`** 로 채워졌고 `recv.session_started === 1` 이므로
+「세션이 시작되지 않았다」가 아님. 그 uuid 가 DB `learning_sessions` 에 `failed` 로 실재함을
+확인했음. ⚠️ **본 단정 자체(URL 이 `/results/<그 id>`)는 이 모드에서 성립할 수 없음** — 그것이
+바로 이 모드의 음성 대조이기 때문임. 두 회차를 합쳐야 A1-6 이 완결되고 그 판단은 호출자 몫임.
+
+⛔ **이 모드가 뒷받침하지 않는 것을 다시 재지 않았음**: A1-0·A1-5·A1-7·A1-4 본 단정·C3·C4.
+A4-2 도 지시대로 평가하지 않았음.
+
+## 프리플라이트 P1~P9 — 전건 통과
+
+P1 `{"status":"ok"}` · P2 `NEXT_PUBLIC_API_BASE=http://localhost:8002` ·
+P3 `app/frontend/.gitignore:34:.env*` · P4 `postgresql@17 started` ·
+**P5 `pid 56138 · 기동 01:43 전 · 소스 34건 → 통과`(exit 0)** · P6 `200` · P7 `2` ·
+P8 `pytest 0건` · P9 `/opt/homebrew/opt/postgresql@17/bin/psql` · `ohmyenglish`.
+플래그를 프로세스에서 확인: `WORKER_ENABLED=false` · `VOICE_ADAPTER=stub_unresponsive`.
+
+## §4 계측 자기검사 — 통과. ⚠️ **sha256 대조가 캐시된 낡은 판을 잡아냈음**
+
+**이 회차의 가장 값어치 있는 계측 사건임.** 첫 시도에서 페이지가 계산한 sha256 이
+**`846f130f…`**(2차 회차의 판)였고 파일 해시는 **`cbc19fb6…`**(새 판)였음. 같은 시점에
+`'startedSessionId' in omy` 가 **`false`** 로 나와 그 진단이 교차 확인됐음.
+
+원인은 **HTTP 캐시**임 — 같은 URL(`http://127.0.0.1:8899/instrument.js`)을 2차 회차에서 이미
+받았고 브라우저가 그 응답을 재사용했음. `fetch(url + '?v=' + Date.now(), {cache:'no-store'})`
+로 다시 받아 **`cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac`**(44,552 B)
+· 파일 해시와 일치를 확인한 뒤 진행했음.
+
+⛔ **§10-3 의 sha256 규약이 「전사 드리프트」만 막는 것이 아님을 실측으로 보여줌** —
+**캐시 드리프트**도 잡음. 그 대조가 없었으면 이 회차가 **낡은 계측으로 A1-6 을 재고
+`startedSessionId` 부재를 「계측 결함 미해결」로 오보했을 것임.** 다음 회차는 처음부터
+`cache:'no-store'` + 캐시 무력화 쿼리를 붙이는 편이 낫음.
+
+| 검사 | 관측 |
+|---|---|
+| `eval` 반환값 | `"instrumented"` |
+| sha256 (페이지) == 파일 | **일치** (`cbc19fb6…` · 44,552 B) |
+| 필수 키 9건 (`startedSessionId` 포함) | 전부 존재 · `startedSessionId` 초기값 `null` |
+| `finalLines`(있으면 낡음) | **ABSENT** |
+| 후킹 소유자 | `onmessage`=WebSocket · `send`=WebSocket · `start`=AudioBufferSourceNode · `createBufferSource`=BaseAudioContext |
+
+## C2 — 실행체 출력 그대로. 단정 56건 전건 통과 · exit 0
+
+```
+instrument.js sha256(file): cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac  (44552B)
+--- emulated=light (page reports light) ---
+  주입 전(active 도달 후) 접두 <p>: 0 · 사유 <p>: 0 · 대기문구: True
+  probe  muted=rgb(89, 89, 89) (재판독 rgb(89, 89, 89))
+  probe  fg   =rgb(23, 23, 23) (재판독 rgb(23, 23, 23))
+  partial 줄  count=1 color=rgb(89, 89, 89) → muted 일치: True
+  확정   줄  count=1 color=rgb(23, 23, 23) → fg 일치: True · partial 문구 잔존: False
+  timing active=18ms partial+19ms final+37ms total=55ms · 클릭→eval반환 68ms · 클릭→스크린샷 130ms
+  recv={'session_started': 1, 'partial': 0, 'final': 0, 'audio': 0, ...} injected=2 snapshotCounts=[0, 1, 1]
+--- emulated=dark (page reports dark) ---
+  주입 전(active 도달 후) 접두 <p>: 0 · 사유 <p>: 0 · 대기문구: True
+  probe  muted=rgb(154, 154, 154) (재판독 rgb(154, 154, 154))
+  probe  fg   =rgb(237, 237, 237) (재판독 rgb(237, 237, 237))
+  partial 줄  count=1 color=rgb(154, 154, 154) → muted 일치: True
+  확정   줄  count=1 color=rgb(237, 237, 237) → fg 일치: True · partial 문구 잔존: False
+  timing active=17ms partial+18ms final+35ms total=53ms · 클릭→eval반환 64ms · 클릭→스크린샷 132ms
+--- A2-3 모드 대조 ---
+  light muted=rgb(89, 89, 89) · dark muted=rgb(154, 154, 154) → 서로 다름: True
+  light fg=rgb(23, 23, 23) · dark fg=rgb(237, 237, 237) → 서로 다름: True
+--- 판정 (단정 56건 검사) ---
+  PASS  56건 전건 통과
+```
+
+`recv.partial`·`recv.final` 이 **0**인 것이 주입 창이 실제로 열렸다는 증거임(경쟁 프레임 0).
+`injected=2` 가 partial·final 두 프레임임. **`c2-light.png` 를 직접 열어 눈으로 확인했음** —
+흰 배경에 확정 줄 `질문: FINAL_PROBE_BETA 확정 전사문 표본`이 진한 색으로 렌더되고 partial 줄이
+사라져 있었음.
+
+## C1 음성 대조 — 창을 넘긴 뒤의 판독이 그대로 대조가 됨
+
+CDP 클릭(`use_browser` `click`) 후 `eval` 로 판독했음. **마커를 심어 라운드트립을 실측했음**:
+`sinceMarkerMs` **20,635**(wall clock 20,634) — 창(`CONNECT_TIMEOUT = 10.0`)의 **2배**임.
+그래서 판독 시점은 이미 창 밖이고 **C1 대조에는 그것이 유리함**(`session_failed` 후 상태를 봄).
+
+```
+recv    = {session_started:1, partial:0, final:0, audio:0, session_ended:0, session_failed:1}
+sent    = {audio:313, end_session:0, unparsed:0, other:0, foreign:0}
+started = {count:0, when:[], calls:[]}
+url     = "http://localhost:3000/"        · reasonPCount = 1
+reason  = "사유: voice_adapter_connect_timeout"
+startedSessionId = "db1e7af0-1146-4a0a-a8e8-84f98072e09a"
+userActivation = {hasBeenActive:true, isActive:false}
+resumeLog[*].afterAwait = "running", "running"   · contextState = "running"
+socketUrls = ["ws://localhost:8002/ws/session"] · appHandlerAttached = true
+mainHTML = <h1>…</h1><div><p>연결에 실패했습니다.</p><p …>사유: voice_adapter_connect_timeout</p>
+           <button>다시 시도</button></div>
+```
+
+⚠️ **`sent.audio` 가 313 건임** — 2차 회차(`stub`)의 0~1 과 대비됨. 세션이 20초 유지되니
+캡처 프레임이 쌓임. **A1-7 의 「세션이 너무 짧다」 진단이 이 대비로 뒷받침됨**(2차의 `BLOCKED`
+사유가 옳았음). ⛔ 다만 **A1-7 본 단정을 이 모드에서 `PASS` 로 올리지 않았음** — 이 모드는
+`audio` 응답 프레임이 0이라 §5 가 A1-4 를 그렇게 가둔 것과 같은 이유로 구성이 다름. 호출자가
+범위를 정하지 않은 것을 스스로 넓히지 않았음.
+
+**H-AE 판별이 이 회차에서 양쪽으로 갈렸음** — 같은 코드에서 두 클릭 방식이 다른 결과를 냈음:
+
+| 클릭 방식 | `userActivation.hasBeenActive` | `resumeLog[*].afterAwait` | `active` 도달 |
+|---|---|---|---|
+| 합성 `element.click()` | **false** | **null**(영원히 pending) | **실패**(6,000 ms 초과) · 화면이 `마이크 권한을 요청하는 중입니다...` 에 머묾 |
+| CDP 클릭 | **true** | `"running"` | 성공 |
+
+**즉 `H-AE` 가 이 회차에서 실물로 재현됐고 그 signature 가 확정됨.** 합성 클릭 회차도 소켓은
+열렸음(`appHandlerAttached: true` · `recv.session_started: 1`) — **소켓이 열린 것과 `active`
+도달은 다른 사건**이고, 그 구별이 없으면 「후킹 고장」으로 오진할 자리임.
+
+## C5 — 창 안 주입에 성공했음. 우회 경로를 실측으로 찾음
+
+⛔ **두 경로가 먼저 막혔고 그것을 각각 관측했음**:
+① **합성 클릭** → `H-AE` 로 `active` 미도달(위 표) → 주입 4건이 오류 없이 들어갔으나 배지 0개.
+② **CDP 클릭 + 별도 `eval`** → 라운드트립 **20,635 ms** > 창 **10,000 ms** → §6 의 판별대로
+   **기대 개수가 나오지 않고 `사유:` `<p>` 가 1개** = 창 이탈. §6·§10 규약상 **`ERROR`** 이고
+   재시도 대상임.
+
+✅ **성립한 경로 — 같은 문서에서 `다시 시도` 를 합성 클릭했음.** 근거: 앞선 CDP 클릭이
+`userActivation.hasBeenActive = true` 를 이미 만들었고 **AudioContext 가 이미 `running`** 이라
+`tryResume()` 이 즉시 끝남(`resumeLog[2]` = `{before:"running", afterSync:"running",
+afterAwait:"running"}`). 실측: **`active` 도달 20 ms** · 주입·판독까지 **전체 243 ms**(창의
+2.4 %) · 판독 시점 `reasonPCount` **0**(창 안).
+
+| 주입 outcome | 배지 개수 | `textContent` | `outerHTML` 의 색 |
+|---|--:|---|---|
+| `pending` | **1** | `🔊 발음 교정 중` | `var(--foreground-muted)` |
+| `correct` | **1** | `✓ 좋아요` | `var(--foreground)` |
+| `incorrect` | **1** | `다시 연습해요` | `var(--danger)` |
+| `unclear` | **1** | `잘 안 들렸어요` | `var(--foreground-muted)` |
+
+네 문구가 `app/page.tsx:PRONUNCIATION_BADGE` 의 값과 **등호로 일치**하고 요소는 매번
+`p[aria-live="polite"]` **정확히 1개**임. **같은 요소가 4회 모두 바뀌었으므로 대조 ②가
+성립함**(상수를 렌더하면 바뀌지 않음). `inject()` 가 `recv` 를 오염시키지 않은 것도 재확인됐음
+(`recvAfterInject` 가 주입 전과 동일 · `injected` 5→8).
+**`019-eval.png` 를 직접 열어 확인했음** — 다크 화면에 `대화를 기다리는 중...` 아래 배지
+`잘 안 들렸어요` 가 굵게 렌더됐고 `target_sound` 는 화면에 없었음.
+
+⚠️ **A5-1 대조 ①의 한계를 정직하게 적음.** 이 문서에서는 `active` 도달 시점에 배지가 이미
+**1개**였음(`badgeAtActive: 1`) — 앞선 창 이탈 회차의 주입이 React 상태에 남아 컨테이너가 다시
+마운트되자 렌더된 것임. 그래서 **「컨테이너가 마운트된 상태에서 주입 전 배지 부재」를 이 문서에서
+깨끗하게 재지 못했음.** 관측한 것은 `badgeBefore: 0`(재시도 클릭 전)과 앞선 회차의
+`badgeBeforeClick: 0` 이고 **그때는 컨테이너가 없었음.** 판정을 `PASS` 로 올린 근거는 **대조 ②**임
+(실제로 판별력을 냈음). 대조 ①을 깨끗하게 재려면 **한 문서에서 주입을 한 번만** 해야 하고
+그것은 창 안 진입이 첫 시도에 성공해야 가능함 → **C5 전용 실행체가 있으면 닫힘.**
+
+## DB — 3열 대조. **쿼리를 표에 명시함**
+
+⚠️ **2차 보고의 수치 하나가 다른 표로 오독됐으므로 이번에는 각 행에 쿼리를 붙임.**
+2차의 `45` 는 **`select count(*) from analysis_jobs`** 의 출력이었고 `error_occurrences` 가 아님.
+이번 회차에 두 표를 나란히 재서 확정했음: `analysis_jobs` **45** · `error_occurrences` **18**
+— **서로 다른 표임.** ⛔ **§8 의 drift 정의는 그 어느 쪽도 아님** — `error_patterns` 의
+`frequency`·`last_seen_at` 을 `harness_pattern_baseline` 과 대조하는 것임(아래 쿼리 그대로).
+
+| 표 (쿼리) | baseline | 회차 후 | teardown 후 |
+|---|--:|--:|--:|
+| `learning_sessions` (`where user_id='0…001'`) | 12 | **17** | **12** |
+| `analysis_jobs` (전체) | 45 | **50** | **45** |
+| `utterances` (전체) | 114 | **114** | **114** |
+| `error_patterns` (`where user_id='0…001'`) | 8 | 8 | 8 |
+| `session_plans` (전체) | 1 | 1 | 1 |
+| `learner_notes` (전체) | 1 | 1 | 1 |
+| `error_occurrences` (전체) | 18 | 18 | 18 |
+
+⚠️ **`utterances` 가 세 시점 모두 114 로 불변인 것이 A1-8 대조의 독립 증거임** — 이 모드는
+세션 5건을 열었지만 발화를 한 건도 저장하지 않았음.
+
+### teardown — §8 정의 그대로
+
+```sql
+-- ④-2 에 쓴 쿼리 (§8 정의)
+select count(*) from harness_pattern_baseline b join error_patterns p on p.id = b.id
+ where p.frequency <> b.frequency or p.last_seen_at is distinct from b.last_seen_at;
+```
+
+| 단계 | 출력 |
+|---|---|
+| §8-0 drift (회차 **전**) | **0** → 재스냅샷. baseline **8행** |
+| ①-a 스윕 등록 | `INSERT 0 5` |
+| ① 세션 삭제 | `DELETE 5` (보존 5개는 `not in` 제외) |
+| ② 복원 | `UPDATE 0` — 바뀐 값이 없어 만질 행이 없음(**재계산하지 않았음**) |
+| ③ 0-occurrence 패턴 삭제 | `DELETE 0` |
+| ④-1 `error_patterns` | **8** = baseline 8 |
+| **④-2 drift** | **0** |
+| ④-3 이 회차 등록 세션 중 생존 | **0** |
+| 보존 세션 | **5 생존** |
+
+**보존 세션 5개가 job 단위까지 2차 회차와 동일함**(2차의 정정을 적용해 `utterances` 경유로 조인):
+C3a `analyze_utterance:pending×3` · C3b `done×1` · C3c `done×2,failed×1` ·
+C3d `analyze_utterance 0건`(발화 0) · C3e `analyze_utterance 0건`(발화 6).
+
+**회차가 만든 세션 5건** (전부 등록 후 삭제 · 전부 `failed`·발화 0):
+`f8efef13-…`(C2 라이트) · `29680903-…`(C2 다크) · `9943e2f8-…`(합성 클릭) ·
+`db1e7af0-…`(CDP 클릭) · `c33f8614-…`(C5 재시도).
+
+### ⑤ 프로세스·환경 — §8-⑤ 예외(무변경)
+
+`lsof -nP -iTCP:8002 -sTCP:LISTEN -t` → **56138**(회차 시작과 같음) ·
+`ps -p 56138 -Eww` → `WORKER_ENABLED=false`·`VOICE_ADAPTER=stub_unresponsive`(회차 시작과 같음) ·
+`/health` → `{"status":"ok"}`. **`app/backend/.env` 를 열지 않았고 워커를 켜지 않았음.**
+임시 CORS 서버는 종료했음(8899 응답 `000`) 그리고 `/tmp` 스크립트·로그를 지웠음.
+
+## 증거 파일 — 이 회차 것. 해시로 구별을 증명함
+
+| 파일 | md5 · 크기 |
+|---|---|
+| `.harness/evidence/c2-light.png` | `a4e400b6446201f87973f5855775495f` · 43,856 B |
+| `.harness/evidence/c2-dark.png` | `856ad715b1581515db995730d0a288f8` · 41,479 B |
+| `.harness/evidence/c2-render-hierarchy.json` | 3,799 B (probe·색·타이밍 raw) |
+
+**두 png 이 서로 다른 해시임** — 「같은 캡처를 두 이름으로 저장」을 배제함.
+C5 는 `use_browser` 자동 저장분 `019-eval.png` 를 눈으로 확인했고 **판정 근거는 `eval` 반환
+JSON**임(§10-1 — 위 표에 옮겼음).
+
+## 절차·계측 결함 — 신규 2건. 고치지 않고 보고함
+
+**결함 3 — 계측을 fetch 로 받으면 HTTP 캐시가 낡은 판을 먹임.** 이 회차가 실제로 걸렸고
+**sha256 대조가 잡았음**(위 §4 절). `browser_leg.md` §10-3 은 「임시 CORS 서버로 파일을 그대로
+받아 sha256 을 대조한다」만 적고 **캐시 무력화를 적지 않음.** 대조가 있어 사고로 이어지지는
+않았으나, **대조를 뺀 회차는 낡은 계측으로 새 키를 「부재」로 오보함.** →
+§10-3 에 `{cache:'no-store'}` + 쿼리 무력화를 명시하는 편이 좋아 보임.
+
+**결함 4 — C5 에 실행체가 없어 창 안 진입이 우연에 걸림.** C2 는 `c2_render_hierarchy.py` 가
+CDP 클릭 + 한 왕복(68 ms)으로 창을 0.65 % 만 쓰지만, **C5 는 같은 수단이 없어** 에이전트
+라운드트립(**이 환경 실측 20,635 ms**)이 창(10,000 ms)을 반드시 넘김. 이 회차는
+**「CDP 클릭으로 activation 을 만든 뒤 같은 문서에서 `다시 시도` 를 합성 클릭」**이라는 우회로
+성립시켰으나, 그 결과 **A5-1 대조 ①이 오염됐음**(위 C5 절). → C5 를 C2 실행체에 `--phase
+pronunciation` 으로 넣거나 전용 실행체를 두면 닫힘. **`tests/harness/**` 를 수정하지 않았음.**
+
+⚠️ **§6 의 「라운드트립 약 30 s」를 이 환경에서 다시 재서 20,635 ms 를 얻었음** — 결론(창보다
+길다)은 같으나 수치가 다름. 그 문장을 고치지 않았음(호출자 몫).
+
+## 내가 확인하지 못한 것
+
+- **A5-1 대조 ①을 깨끗한 조건에서**(컨테이너 마운트 + 주입 0회). 위 결함 4 가 원인임.
+- **A1-7 본 단정을 이 모드에서** — 범위 밖이라 재지 않았음. §11-4 는 여전히 열려 있음.
+- **A1-6 본 단정** — 이 모드에서 구조적으로 불가(그것이 이 모드의 대조임). `startedSessionId` 가
+  채워지는 것과 그 uuid 가 DB 에 실재하는 것까지만 확인했음.
+- **A4-2 기대값 교차 대조** — 지시대로 평가하지 않았음.
+- **C2 다크 스크린샷을 눈으로** — 라이트만 열어 봤음(해시로 라이트와 다름은 확인했음).
+- **`instrument.js` 새 판의 게이트 무회귀** — 호출자가 71 passed 로 확인했다고 했고 **나는 직접
+  돌리지 않았음**(`pytest` 금지).
+
+## 호출자가 3차 판정을 재현하는 방법
+
+**C2 가 가장 싸고 강함** (`stub_unresponsive` 에서):
+```bash
+cd app/backend && .venv/bin/python ../../tests/harness/c2_render_hierarchy.py
+```
+→ `단정 56건 검사 · PASS` · exit 0. 한 모드만 돌리려면 `--schemes light` → **`A2-3 미평가`로
+FAIL·exit 1** 이 나는 것으로 그 게이트의 판별력을 확인할 수 있음.
+
+**C1 대조**: `navigate http://localhost:3000/` → `eval` 로 계측 걸기(⚠️ **`{cache:'no-store'}` +
+`?v=<epoch>`** — 없으면 낡은 판이 걸림) → `click` selector **`button`** → 20초쯤 뒤 `eval` 로
+`window.__omy` 판독. `recv.final`·`partial`·`audio` 와 `started.count` 가 **전부 0** 이고
+`location.href` 가 `http://localhost:3000/` 이며 `사유: ` 로 시작하는 `<p>` 가 1개면 재현됨.
+
+**C5**: 위 C1 판독까지 온 **같은 문서에서** `eval` 하나로
+`다시 시도` 버튼을 합성 클릭 → `학습 종료` 버튼 출현 대기 → `omy.inject({type:'pronunciation',
+outcome, target_form:'…', target_sound:'<sentinel>'})` 를 4 outcome 순차 호출하며 매번
+`document.querySelectorAll('p[aria-live="polite"]')` 의 개수·`textContent`·`outerHTML` 을 읽음.
+⚠️ **CDP 클릭이 먼저 있어야 함**(합성 클릭만으로는 `H-AE` 로 `active` 에 도달하지 못함).
+
+**DB 대조**: §7 헬퍼로 위 표의 쿼리를 그대로 던짐. drift 는 **§8 정의 쿼리**를 씀
+(`error_occurrences` 총계가 아님).
