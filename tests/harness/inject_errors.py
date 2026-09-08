@@ -46,6 +46,11 @@ BACKEND_DIR = REPO_ROOT / "app" / "backend"
 HARNESS = REPO_ROOT / ".harness"
 sys.path.insert(0, str(BACKEND_DIR))
 
+# DATABASE_URL을 따라가는 psql 헬퍼 (:5432 기본, :5433 폴백). 이전에는 이 파일이
+# `podman exec`를 하드코딩해 폴백 컨테이너의 사본을 건드렸다 — 함정 H-T.
+from psql_cli import psql  # noqa: E402
+
+from app.api.ws import FIXED_USER_ID  # noqa: E402
 from app.db import close_pool  # noqa: E402
 from app.db import pool as get_db_pool  # noqa: E402
 from app.services.jobs import enqueue_analyze  # noqa: E402
@@ -54,11 +59,6 @@ from app.services.utterances import (  # noqa: E402
     flush_pending_analysis,
     save_final_transcript,
 )
-from app.api.ws import FIXED_USER_ID  # noqa: E402
-
-# DATABASE_URL을 따라가는 psql 헬퍼 (:5432 기본, :5433 폴백). 이전에는 이 파일이
-# `podman exec`를 하드코딩해 폴백 컨테이너의 사본을 건드렸다 — 함정 H-T.
-from psql_cli import psql  # noqa: E402
 
 RUN_ID = (HARNESS / "run_id.txt").read_text().strip()
 
@@ -102,8 +102,6 @@ INJECTIONS: dict[str, list[str]] = {
         "Yesterday I go to the office and present the quarterly plan.",
     ],
 }
-
-
 
 
 async def wait_for_jobs(session_id, wait: float) -> float:
@@ -159,8 +157,10 @@ async def run(scenario: str, sentences: list[str], wait: float) -> dict:
 
         elapsed = await wait_for_jobs(session_id, wait)
         result: dict[str, object] = {
-            "scenario": scenario, "session_id": str(session_id),
-            "saved": saved, "wait_s": elapsed,
+            "scenario": scenario,
+            "session_id": str(session_id),
+            "saved": saved,
+            "wait_s": elapsed,
         }
 
         # E6: 같은 발화에 job을 다시 등록해 replace 멱등성을 종단에서 관측한다.
@@ -185,27 +185,36 @@ async def run(scenario: str, sentences: list[str], wait: float) -> dict:
 
 def report(session_id: str) -> None:
     print("\n--- 검출된 패턴 (이 세션) ---")
-    print(psql(
-        "select ep.category, ep.pattern_key, count(eo.id) as occ_in_session, ep.frequency as total_freq, "
-        "       max(eo.severity) as sev, round(max(eo.confidence),2) as conf "
-        "  from error_occurrences eo "
-        "  join error_patterns ep on ep.id = eo.pattern_id "
-        "  join utterances u on u.id = eo.utterance_id "
-        f" where u.session_id = '{session_id}' "
-        " group by ep.category, ep.pattern_key, ep.frequency order by ep.category"
-    ) or "(없음)")
+    print(
+        psql(
+            "select ep.category, ep.pattern_key, count(eo.id) as occ_in_session, "
+            "       ep.frequency as total_freq, "
+            "       max(eo.severity) as sev, round(max(eo.confidence),2) as conf "
+            "  from error_occurrences eo "
+            "  join error_patterns ep on ep.id = eo.pattern_id "
+            "  join utterances u on u.id = eo.utterance_id "
+            f" where u.session_id = '{session_id}' "
+            " group by ep.category, ep.pattern_key, ep.frequency order by ep.category"
+        )
+        or "(없음)"
+    )
     print("\n--- job 상태 ---")
-    print(psql(
-        "select j.status, count(*) from analysis_jobs j join utterances u on u.id = j.utterance_id "
-        f"where u.session_id = '{session_id}' group by 1"
-    ))
+    print(
+        psql(
+            "select j.status, count(*) from analysis_jobs j "
+            "  join utterances u on u.id = j.utterance_id "
+            f"where u.session_id = '{session_id}' group by 1"
+        )
+    )
     print("\n--- 학습 제시 컬럼 (Phase 1 미구현 확인) ---")
-    print(psql(
-        "select count(*) filter (where next_review_at is not null) as next_review_set, "
-        "       count(*) filter (where mastery_score <> 0) as mastery_set, "
-        "       (select count(*) from review_tasks) as review_task_rows "
-        "  from error_patterns where user_id = '00000000-0000-0000-0000-000000000001'"
-    ))
+    print(
+        psql(
+            "select count(*) filter (where next_review_at is not null) as next_review_set, "
+            "       count(*) filter (where mastery_score <> 0) as mastery_set, "
+            "       (select count(*) from review_tasks) as review_task_rows "
+            "  from error_patterns where user_id = '00000000-0000-0000-0000-000000000001'"
+        )
+    )
 
 
 def main() -> int:

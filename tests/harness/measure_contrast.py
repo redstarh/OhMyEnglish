@@ -82,8 +82,10 @@ def find_target(port: int, url_substring: str) -> tuple[str, str]:
     for t in targets:
         if t.get("type") == "page" and url_substring in t.get("url", ""):
             return t["webSocketDebuggerUrl"], t["url"]
-    raise SystemExit(f"{url_substring} 을 띄운 page 타겟이 없다. 열린 탭: "
-                     + ", ".join(t.get("url", "?") for t in targets))
+    raise SystemExit(
+        f"{url_substring} 을 띄운 page 타겟이 없다. 열린 탭: "
+        + ", ".join(t.get("url", "?") for t in targets)
+    )
 
 
 async def measure(ws_url: str, schemes: list[str], shot_prefix: str | None) -> list[dict]:
@@ -103,8 +105,10 @@ async def measure(ws_url: str, schemes: list[str], shot_prefix: str | None) -> l
                     return payload.get("result", {})
 
         for scheme in schemes:
-            await call("Emulation.setEmulatedMedia",
-                       {"features": [{"name": "prefers-color-scheme", "value": scheme}]})
+            await call(
+                "Emulation.setEmulatedMedia",
+                {"features": [{"name": "prefers-color-scheme", "value": scheme}]},
+            )
             await asyncio.sleep(0.4)
             out = await call("Runtime.evaluate", {"expression": MEASURE_JS, "returnByValue": True})
             data = out["result"]["value"]
@@ -134,7 +138,9 @@ def main() -> int:
     results = asyncio.run(measure(ws_url, args.schemes.split(","), args.shot_prefix))
 
     for data in results:
-        print(f"\n=== emulated={data['emulated']} (page reports {data['scheme']}) {data['path']} ===")
+        print(
+            f"\n=== emulated={data['emulated']} (page reports {data['scheme']}) {data['path']} ==="
+        )
         print("  tokens: " + " · ".join(f"{k}={v}" for k, v in data["tokens"].items()))
         for row in data["rows"]:
             flag = "OK " if row["contrast"] >= 4.5 else "AA!"

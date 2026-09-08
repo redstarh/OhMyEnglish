@@ -1,10 +1,10 @@
 ---
 id: TASK-24
 title: '관측: agent_reprompt 미구현이 남긴 사각의 크기를 판정 (뒤집는 조건)'
-status: Awaiting Decision
+status: To Do
 assignee: []
 created_date: '2026-09-06 00:20'
-updated_date: '2026-09-07 23:31'
+updated_date: '2026-09-08 18:23'
 labels: []
 dependencies:
   - TASK-37
@@ -24,6 +24,12 @@ TASK-8 조사에서 발견. R10-4 보조 신호 2개 중 agent_reprompt(되묻�
 - [ ] #3 캡틴 결정을 뒤집을 만한 크기인지 판정하고 근거를 남긴다 — 뒤집지 않는 경우도 그 판정을 기록한다
 - [ ] #4 TASK-13(발음 키 값역)과 같은 마이크 세션에 묶어 비용을 한 번만 치른다
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-09-09 — 캡틴 결정 38 로 실물 Nova·마이크 세션 1회가 승인됐음. 결정 24 가 걸었던 「구현 3건 뒤」 조건은 TASK-43·44·45 가 전부 Done 이 되어 충족됨. Awaiting Decision → To Do. 선행 TASK-37 은 유지함 — 이 관측을 그 5차수 세션 안에서 치름(원장에 관측을 두 벌 돌리지 않음).
+<!-- SECTION:NOTES:END -->
 
 ## Comments
 

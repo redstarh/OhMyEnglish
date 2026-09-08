@@ -36,19 +36,23 @@ cd app/backend
 .venv/bin/pytest -q                        # ⛔ 동시 실행 금지 (H-X) · 경로만 주면 async 가 죽는다 (H-AJ)
 .venv/bin/ruff check . && .venv/bin/ruff format --check .
 /Users/redstar/.local/bin/ty check         # ⚠️ `.venv/bin/ty` 는 **없다** — pipx 전역이다
-.venv/bin/ruff check ../../tests ../../scripts    # 게이트 «밖» — 유지값이다 (지표 3)
-.venv/bin/ruff format --check ../../tests         # 게이트 «밖»
+.venv/bin/ruff check ../../tests ../../scripts    # 게이트 «밖» — 기준선 0 (지표 3)
+.venv/bin/ruff format --check ../../tests         # 게이트 «밖» — 기준선 0
 ```
 
 ⚠️ **`ty` 경로에서 세 세션이 각각 헛짚었다.** `.venv/bin/ty` 는 `no such file` 이 나는데
 **회귀가 아니라 경로다.** `ruff`·`pytest` 는 venv 안이라 `.venv/bin/` 을 붙인다.
 ⛔ **`tests/`·`scripts/` 를 건드렸으면 게이트 «밖»도 반드시 다시 잰다.** 2026-09-08 세션에서
 이 형태가 **반복해서** 났다 — 안쪽만 보고 밖이 늘어난 것을 놓쳤고 매번 되돌렸다(개수를 적지
-않는다: 세는 순간 낡는다). **유지값은 「0으로 만들 대상」이 아니지만 「늘어나도 되는 값」도 아님.**
-⛔ **그리고 `ruff check --fix` 를 디렉터리에 걸지 않음 — 내가 건드린 파일에만 검.**
-`--fix ../../tests/` 를 돌려 **범위 밖 `tests/harness/**` 가 고쳐지고 유지값이 6 → 3 으로 줄었다**
-(같은 세션 실측 · `git checkout` 으로 되돌렸다). 유지값을 **줄이는 것도 회귀다** — 그 6건은
-`TASK-37` AC#6 이 소유함.
+않는다: 세는 순간 낡는다).
+⚠️ **기준선이 2026-09-09 에 0 으로 바뀌었음** — `TASK-37` AC#6 이 `tests/harness/` 넷
+(`inject_errors.py`·`measure_contrast.py`·`spike_nova_protocol.py`·`ws_session.py`)을 정리했음.
+이전 판의 「유지값 6건·4건을 지키라」는 서술은 **낡았음.** 지금은 **늘어나는 것만 회귀**이고
+「줄이는 것도 회귀」였던 이유(그 6건의 소유자가 미착수 태스크였음)는 사라졌음.
+⛔ **그래도 `ruff check --fix` 를 디렉터리에 걸지 않음 — 내가 건드린 파일에만 검.** 그 규약은
+살아 있음: `--fix ../../tests/` 를 돌려 범위 밖 파일이 고쳐진 사고가 2026-09-08 에 있었음.
+⚠️ **그리고 게이트 밖 수치가 0 이 된 것이 스크립트가 도는 것을 증명하지 않음** — import 재정렬을
+했으면 네 스크립트에 `--help` 를 돌려 exit 0 을 직접 확인함(2026-09-09 에 그렇게 확인했음).
 
 ## 끝난 일의 기록 — 다시 하지 마라
 
@@ -128,13 +132,14 @@ SQL · 삭제의 `active` 예외 · uuid 순서에 달린 flaky · 낭독 턴 �
 |--:|---|---|
 | 1 | `git rev-parse --short HEAD` | **`2f57fbc` 이상**(등호를 요구하지 않음 — `H-P`) · 추적된 미커밋 **0건** |
 | 2 | 원장 집계 — `grep -h "^status:" backlog/tasks/*.md \| sort \| uniq -c` | 전체 **51** · Done **30** · To Do **16** · **In Progress 0** · Awaiting Decision **5**. ⛔ `backlog task list --plain \| grep -c "^  TASK-"` 로 세지 마라 — 우선순위 라벨이 붙으면 `  [HIGH] TASK-N` 으로 출력돼 **5건이 빠진다**(실측 46 대 51) |
-| 3 | 게이트 (`app/backend` cwd) | **843 passed** · `ruff check` exit 0 · `ruff format --check` **34 files** · `ty check` exit 0 · 게이트 **밖** `ruff check ../../tests ../../scripts` **6 errors** · `ruff format --check ../../tests` **4 files** · `--check ../../scripts` **0** · 프론트 `npx tsc --noEmit`·`npx eslint app lib` 둘 다 exit 0 |
+| 3 | 게이트 (`app/backend` cwd) | **843 passed** · `ruff check` exit 0 · `ruff format --check` **unformatted 0** · `ty check` exit 0 · 게이트 **밖** `ruff check ../../tests ../../scripts` **0 errors** · `ruff format --check ../../tests`·`../../scripts` **unformatted 0** · 프론트 `npx tsc --noEmit`·`npx eslint app lib` 둘 다 exit 0. ⛔ **format 의 「N files」는 적지 않음** — `.md` 를 함께 세므로 회차 기록을 추가하면 늘어남(`H-AR`) |
 | 4 | DB 상태 (읽기만) | `schema_migrations` **9건** = `001·003·004·005·006·007·009·010·011` · `review_tasks` **10행**(`done` 2 · `pending` 8) · `next_review_at` 있는 패턴 **8건** · `shadowing_items` **1행**(시드) · `utterances` **114행** · public 표 **17개**. ⚠️ **10행이 7행이 아닌 것이 정상임** — 010 이 접힌 단계와 발음 과제를 보존한 결과임. 줄어 있으면 그것이 회귀임. ⚠️ **`shadowing_items` 가 이제 존재함** — 이전 판의 「표 없음이 정상」은 낡았음(결정 36) |
 | 5 | 착수 전 필수 | 위 표 전체. ⛔ 막는 것 셋: **`TASK-23`·`42`·`38` 금지** · **워커 금지** · **critic 루프 재개 금지** |
 
 ⚠️ **3번이 핵심이다** — 읽기는 전달을 증명하지 못하고 **직접 돌린 출력**만 데이터다.
-⚠️ **게이트 밖 `ruff` 6건 / format 4건은 0으로 만들 대상이 아니라 유지 대상이다**(`TASK-37` AC#6).
-**늘어나면 그것은 회귀다** — 재개 세션이 10건으로 늘어난 것을 잡아 6건으로 되돌렸다.
+⚠️ **게이트 밖 기준선은 이제 0 이다** — `TASK-37` AC#6 이 2026-09-09 에 정리했음(`ruff check` ·
+`ruff format --check` 둘 다). **늘어나면 그것이 회귀임.** 이전 판의 「6건·4건을 유지하라」는
+서술은 낡았고, 그 6건을 「줄이는 것도 회귀」였던 근거(소유자가 미착수 태스크였음)도 사라졌음.
 
 ✅ **인계 확인: 4/4 일치** (2026-09-08 · 새 세션 `ohmyenglish-63` · tmux `claude_air1-1-1`).
 그 세션이 네 지표를 **직접 돌려** 얻은 값이 기준값과 전건 일치했음 — HEAD `f9226ff`(기준 `33537ba`

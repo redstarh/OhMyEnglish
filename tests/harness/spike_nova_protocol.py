@@ -45,7 +45,6 @@ HARNESS = REPO_ROOT / ".harness"
 sys.path.insert(0, str(BACKEND_DIR))
 sys.path.insert(0, str(SCRIPTS_DIR))
 
-from app.config import Settings, prepare_bedrock_credentials  # noqa: E402
 from spike_nova_bidirectional import (  # noqa: E402
     NOVA_MODEL_ID,
     DiagnosticTransport,
@@ -54,6 +53,8 @@ from spike_nova_bidirectional import (  # noqa: E402
     _quiet_close,
     _report,
 )
+
+from app.config import Settings, prepare_bedrock_credentials  # noqa: E402
 
 # 공식 문서(nova2-userguide/sonic-input-events.html) 값. 픽스처가 16kHz라 그대로 맞춘다.
 SAMPLE_RATE_HZ = 16_000
@@ -69,9 +70,7 @@ OPEN_TIMEOUT_S = 20.0
 # 감지한 뒤에 응답하므로 여유가 필요하다.
 DRAIN_TIMEOUT_S = 30.0
 
-SYSTEM_PROMPT = (
-    "You are an English speaking coach. Keep replies to one short sentence."
-)
+SYSTEM_PROMPT = "You are an English speaking coach. Keep replies to one short sentence."
 
 # ── 발음 교정 스파이크 (`--tools`) ────────────────────────────────────────────
 # 묻는 것 하나: **Nova 2 Sonic이 `promptStart.toolConfiguration`을 받고 `toolUse`를
@@ -81,46 +80,45 @@ SYSTEM_PROMPT = (
 #
 # 답이 "된다"면 설계는 구조화 이벤트로 간다. "안 된다"면 보조 신호(한글 전사·재요청)만으로
 # 축소해야 한다 — 설계의 모양이 이 한 번의 왕복에 달려 있어서 먼저 확인한다.
-_PRONUNCIATION_TOOL_NAME = "report_pronunciation_coaching"
-
-# Sonic의 `inputSchema.json`은 **JSON 문자열**이다(객체가 아니다). 이것도 검증 대상이다.
-_PRONUNCIATION_TOOL_SCHEMA = json.dumps(
-    {
-        "type": "object",
-        "properties": {
-            "spoken_form": {
-                "type": "string",
-                "description": "What the learner actually sounded like",
-            },
-            "target_form": {
-                "type": "string",
-                "description": "The correctly pronounced sentence you modeled",
-            },
-            "outcome": {"type": "string", "enum": ["correct", "incorrect", "unclear"]},
-        },
-        "required": ["spoken_form", "target_form", "outcome"],
-    }
+# ⚠️ **이름과 스키마를 여기서 다시 적지 않는다 — 앱 상수를 그대로 보낸다** (A-3, 2026-09-09).
+# 왜 바꿨나: 2026-08-27 스파이크는 **자기 스키마**(3필드 · 전부 required · `outcome` enum 에
+# `pending` 없음)를 보냈고, 그래서 실증된 것은 **봉투 모양까지**였다 —
+# `toolConfiguration`→`tools`→`toolSpec`→`inputSchema.json` 이 문자열이라는 것. 앱이 실제로
+# 보내는 것은 **4필드**(`+target_sound`) · **required 2개** · **`outcome` 에 `pending` 포함**
+# 이고 그 모양은 실물 왕복을 거친 적이 없었다. 스파이크가 앱과 다른 것을 보내는 동안은
+# 「스파이크는 통과했는데 앱은 실패한다」를 만들 수 있다 (이 파일 머리주석의 같은 경고).
+# 실증본 원자료는 `runs/2026-08-27-P-tooluse-spike/P-tooluse-nova-protocol.json` 이 보존한다.
+# 대조표는 `docs/design/2026-09-08-tasks-md-archive.md` §A-3 이 소유한다.
+from app.models.pronunciation import (  # noqa: E402
+    PRONUNCIATION_TOOL_NAME,
+    PRONUNCIATION_TOOL_SCHEMA_JSON,
 )
 
 TOOL_SYSTEM_PROMPT = (
     "You are an English pronunciation coach for a Korean learner. "
     "When the learner mispronounces a sound, say the whole sentence back with correct "
     "pronunciation and ask them to repeat it. "
-    f"Then you MUST call the {_PRONUNCIATION_TOOL_NAME} tool to report what you heard. "
+    f"Then you MUST call the {PRONUNCIATION_TOOL_NAME} tool to report what you heard. "
     "Keep spoken replies to one or two short sentences."
 )
 
 
 def _tool_configuration() -> dict[str, Any]:
+    """앱의 `nova._pronunciation_tool_configuration()` 과 같은 봉투를 만든다.
+
+    ⛔ 이 함수를 앱과 다르게 고치지 않는다 — 그러면 이 스파이크가 관측하는 것이 앱의
+    거동이 아니게 되고 A-3 이 다시 열린다. `description` 문구만 스파이크 쪽이 짧다
+    (앱은 `for later practice.` 가 붙는다 — 그 차이는 Nova 의 수락 여부에 영향이 없다).
+    """
     return {
         "tools": [
             {
                 "toolSpec": {
-                    "name": _PRONUNCIATION_TOOL_NAME,
+                    "name": PRONUNCIATION_TOOL_NAME,
                     "description": (
                         "Report a pronunciation coaching attempt so the app can store it."
                     ),
-                    "inputSchema": {"json": _PRONUNCIATION_TOOL_SCHEMA},
+                    "inputSchema": {"json": PRONUNCIATION_TOOL_SCHEMA_JSON},
                 }
             }
         ]
@@ -139,7 +137,9 @@ def build_events(
             "event": {
                 "sessionStart": {
                     "inferenceConfiguration": {
-                        "maxTokens": 1024, "topP": 0.9, "temperature": 0.7,
+                        "maxTokens": 1024,
+                        "topP": 0.9,
+                        "temperature": 0.7,
                     },
                     # Nova 2에서 추가된 필드 — barge-in(AC2) 민감도가 여기서 정해진다.
                     "turnDetectionConfiguration": {"endpointingSensitivity": "MEDIUM"},
@@ -168,8 +168,11 @@ def build_events(
         "system_start": {
             "event": {
                 "contentStart": {
-                    "promptName": prompt_name, "contentName": text_content,
-                    "type": "TEXT", "interactive": False, "role": "SYSTEM",
+                    "promptName": prompt_name,
+                    "contentName": text_content,
+                    "type": "TEXT",
+                    "interactive": False,
+                    "role": "SYSTEM",
                     "textInputConfiguration": {"mediaType": "text/plain"},
                 }
             }
@@ -177,7 +180,8 @@ def build_events(
         "system_text": {
             "event": {
                 "textInput": {
-                    "promptName": prompt_name, "contentName": text_content,
+                    "promptName": prompt_name,
+                    "contentName": text_content,
                     "content": TOOL_SYSTEM_PROMPT if with_tools else SYSTEM_PROMPT,
                 }
             }
@@ -188,8 +192,11 @@ def build_events(
         "audio_start": {
             "event": {
                 "contentStart": {
-                    "promptName": prompt_name, "contentName": audio_content,
-                    "type": "AUDIO", "interactive": True, "role": "USER",
+                    "promptName": prompt_name,
+                    "contentName": audio_content,
+                    "type": "AUDIO",
+                    "interactive": True,
+                    "role": "USER",
                     "audioInputConfiguration": {
                         "mediaType": "audio/lpcm",
                         "sampleRateHertz": SAMPLE_RATE_HZ,
@@ -213,7 +220,9 @@ def read_lpcm(path: Path) -> bytes:
     """WAV 헤더를 벗겨 raw LPCM만 돌려준다 — Nova가 받는 것은 컨테이너가 아니다."""
     with wave.open(str(path)) as wav:
         if (wav.getframerate(), wav.getsampwidth() * 8, wav.getnchannels()) != (
-            SAMPLE_RATE_HZ, SAMPLE_SIZE_BITS, CHANNEL_COUNT
+            SAMPLE_RATE_HZ,
+            SAMPLE_SIZE_BITS,
+            CHANNEL_COUNT,
         ):
             raise SystemExit(
                 f"{path.name}이 {SAMPLE_RATE_HZ}Hz/{SAMPLE_SIZE_BITS}bit/mono가 아니다: "
@@ -312,9 +321,16 @@ async def run(wav_name: str, realtime: bool, silence_ms: int, with_tools: bool =
         prompt_name, f"audio-{uuid.uuid4()}", f"text-{uuid.uuid4()}", with_tools=with_tools
     )
     if with_tools:
-        print(f"    toolConfiguration 포함 — tool={_PRONUNCIATION_TOOL_NAME}")
+        schema = json.loads(PRONUNCIATION_TOOL_SCHEMA_JSON)
+        print(
+            f"    toolConfiguration 포함 — tool={PRONUNCIATION_TOOL_NAME} "
+            f"(앱 상수: 필드 {len(schema['properties'])}개 · "
+            f"required {len(schema['required'])}개 · "
+            f"outcome enum={schema['properties']['outcome']['enum']})"
+        )
     observed: list[dict[str, Any]] = []
     pump: asyncio.Task[None] | None = None
+
     async def await_and_pump() -> None:
         """`await_output()`은 **서비스가 응답을 시작하기 전까지 반환하지 않는다** —
         HTTP 응답 헤더 자체가 아직 오지 않았기 때문이다(실측: 초기화 이벤트를 보내지
@@ -326,21 +342,30 @@ async def run(wav_name: str, realtime: bool, silence_ms: int, with_tools: bool =
         pump = asyncio.create_task(await_and_pump(), name="nova-output")
 
         print("[5/6] 초기화 시퀀스 + 오디오 전송")
-        for key in ("session_start", "prompt_start", "system_start", "system_text",
-                    "system_end", "audio_start"):
+        for key in (
+            "session_start",
+            "prompt_start",
+            "system_start",
+            "system_text",
+            "system_end",
+            "audio_start",
+        ):
             await send_event(stream, events[key])
         audio_content = events["audio_start"]["event"]["contentStart"]["contentName"]
 
         async def push(frame: bytes) -> None:
-            await send_event(stream, {
-                "event": {
-                    "audioInput": {
-                        "promptName": prompt_name,
-                        "contentName": audio_content,
-                        "content": base64.b64encode(frame).decode("ascii"),
+            await send_event(
+                stream,
+                {
+                    "event": {
+                        "audioInput": {
+                            "promptName": prompt_name,
+                            "contentName": audio_content,
+                            "content": base64.b64encode(frame).decode("ascii"),
+                        }
                     }
-                }
-            })
+                },
+            )
             if realtime:
                 await asyncio.sleep(FRAME_MS / 1000)
 
@@ -380,8 +405,10 @@ async def run(wav_name: str, realtime: bool, silence_ms: int, with_tools: bool =
         await _quiet_close(stream)
 
     # `--tools`는 별도 파일에 쓴다 — N1(3차수 프로토콜 실증) 원자료를 덮지 않는다.
-    out = HARNESS / "evidence" / (
-        "P-tooluse-nova-protocol.json" if with_tools else "N1-nova-protocol.json"
+    out = (
+        HARNESS
+        / "evidence"
+        / ("P-tooluse-nova-protocol.json" if with_tools else "N1-nova-protocol.json")
     )
     out.write_text(json.dumps(observed, ensure_ascii=False, indent=1))
 
@@ -389,9 +416,7 @@ async def run(wav_name: str, realtime: bool, silence_ms: int, with_tools: bool =
     for item in observed:
         for key in item:
             kinds[key] = kinds.get(key, 0) + 1
-    user_texts = [
-        b["content"] for i in observed for k, b in i.items() if k == "textOutput"
-    ]
+    user_texts = [b["content"] for i in observed for k, b in i.items() if k == "textOutput"]
     print(f"\n관측 이벤트: {kinds or '없음'}")
     print(f"전사문/텍스트 {len(user_texts)}건: {user_texts}")
     print(f"raw -> {out}")
@@ -431,17 +456,30 @@ async def run(wav_name: str, realtime: bool, silence_ms: int, with_tools: bool =
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--wav", default="u1.wav")
-    ap.add_argument("--silence-ms", type=int, default=1600,
-                    help="발화 뒤에 붙일 무음 길이 — endpointing 유도용")
-    ap.add_argument("--no-realtime", action="store_true",
-                    help="32ms 케이던스 없이 최대 속도로 보낸다 (케이던스 요구 여부 확인용)")
-    ap.add_argument("--tools", action="store_true",
-                    help="promptStart에 toolConfiguration을 실어 Nova의 tool use 지원을 확인한다 "
-                         "(PRD v1.1 §10 발음 교정 설계의 선행 검증). 발음 픽스처와 함께 쓴다: "
-                         "--wav p1m.wav --tools")
+    ap.add_argument(
+        "--silence-ms", type=int, default=1600, help="발화 뒤에 붙일 무음 길이 — endpointing 유도용"
+    )
+    ap.add_argument(
+        "--no-realtime",
+        action="store_true",
+        help="32ms 케이던스 없이 최대 속도로 보낸다 (케이던스 요구 여부 확인용)",
+    )
+    ap.add_argument(
+        "--tools",
+        action="store_true",
+        help="promptStart에 toolConfiguration을 실어 Nova의 tool use 지원을 확인한다 "
+        "(PRD v1.1 §10 발음 교정 설계의 선행 검증). 발음 픽스처와 함께 쓴다: "
+        "--wav p1m.wav --tools",
+    )
     args = ap.parse_args()
-    return asyncio.run(run(args.wav, realtime=not args.no_realtime,
-                       silence_ms=args.silence_ms, with_tools=args.tools))
+    return asyncio.run(
+        run(
+            args.wav,
+            realtime=not args.no_realtime,
+            silence_ms=args.silence_ms,
+            with_tools=args.tools,
+        )
+    )
 
 
 if __name__ == "__main__":

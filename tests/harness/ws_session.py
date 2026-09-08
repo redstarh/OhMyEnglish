@@ -51,7 +51,8 @@ async def run(scenario: str, junk: bool, timeout: float, send_audio: int) -> dic
                 await ws.send(payload)
             await ws.send(b"\x00\x01\x02\x03")  # binary frame
         for _ in range(send_audio):
-            await ws.send(json.dumps({"type": "audio", "data": base64.b64encode(b"\x00" * 320).decode()}))
+            silence = base64.b64encode(b"\x00" * 320).decode()
+            await ws.send(json.dumps({"type": "audio", "data": silence}))
         while True:
             remaining = timeout - (time.monotonic() - started)
             if remaining <= 0:
@@ -59,7 +60,7 @@ async def run(scenario: str, junk: bool, timeout: float, send_audio: int) -> dic
                 break
             try:
                 raw = await asyncio.wait_for(ws.recv(), remaining)
-            except (asyncio.TimeoutError, TimeoutError):
+            except TimeoutError:
                 frames.append({"_harness": "timeout"})
                 break
             except Exception as exc:  # 소켓 종료

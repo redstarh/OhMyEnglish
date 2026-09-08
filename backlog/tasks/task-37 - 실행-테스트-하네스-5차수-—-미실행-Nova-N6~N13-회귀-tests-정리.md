@@ -1,10 +1,10 @@
 ---
 id: TASK-37
 title: '실행: 테스트 하네스 5차수 — 미실행 Nova N6~N13 + 회귀 + tests/** 정리'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-07 17:50'
-updated_date: '2026-09-07 23:05'
+updated_date: '2026-09-08 18:31'
 labels: []
 dependencies:
   - TASK-44
@@ -24,11 +24,17 @@ TASKS.md D절(테스트 하네스 차수 원장)에서 이관. 원장은 tests/h
 - [ ] #3 회귀 A1·A2·E4·E5·E6·D1·D2 + 프론트 npx tsc --noEmit 을 돌린다
 - [ ] #4 P8 + p2 쌍 + P7 재캡처를 수행한다
 - [ ] #5 신규 P9~P12(발음 복습 주기 시나리오)를 실행한다
-- [ ] #6 tests/** ruff 6건·format 4건을 정리한다(H-L 기준선 대조)
+- [x] #6 tests/** ruff 6건·format 4건을 정리한다(H-L 기준선 대조)
 - [ ] #7 스파이크 nova 스키마와 앱 상수를 대조해 A-3 tool 스키마 확인을 닫는다
 - [ ] #8 A-4(agent_reprompt 미구현 구간)와 B-2(대조군) 관측 결과를 기록한다
 - [ ] #9 O-1(LOW) — agent 전사문에 선행 개행이 붙는 것을 5차수에서 다시 관측한다: Nova 가 '\nWhat time do you…' 를 보내고 save_final_transcript 가 그대로 저장한다. 4차수에서 두 세션(p1k·u1)에 재현됐고 agent 발화라 분석 job 이 없어 무해하다 — 재현하면 기록만 남기고, 사라졌으면 사라졌다고 적는다 (TASKS.md E절에서 이관, 소유자가 5차수였다)
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-09-09 착수 — 캡틴 결정 38 로 실물 Nova·마이크 세션 1회를 승인받았음(결정 20 이 유보한 것). 실행 순서를 실물 요구 여부로 갈랐음: ① 실물 0회 — AC#6(tests/** ruff·format) · AC#7(스파이크 스키마 대조) ② stub 스택 — AC#2(B1~B4 · 라이트/다크 5상태) · AC#3 의 A1·A2·D1·D2 + 프론트 tsc ③ 실물 1회 — AC#1 의 N6·N7·N8·N13 · AC#4 · AC#8 · AC#9 · AC#3 의 E4~E6(워커) 와 TASK-13·24·36 관측을 같은 세션에 실음 ④ AC#5 는 P9~P12 시나리오가 아직 없어 신설이 선행임. 근거: browser_leg.md §9 가 C1·C2·C5 를 stub·실물 0회로 명시함.
+<!-- SECTION:NOTES:END -->
 
 ## Comments
 
