@@ -1,0 +1,32 @@
+# DB utterances.transcript — repr() 덤프 (O-1 판정 근거)
+# session_id = e0c5e580-dfc0-4793-b02d-54cf4346c3c5 · adapter=nova · backend pid 96473
+# 눈으로 보면 선행 공백·개행이 보이지 않으므로 repr() 로 적는다.
+
+seq=1 speaker=user
+  repr = 'i usually go to gym after work.'
+  선행공백=0 · 선행개행=False · 이중공백포함=False · 길이=31
+
+seq=2 speaker=agent
+  repr = 'That\'s good to hear. Can you tell me what you did yesterday?  Try to say, "I ate a sandwich yesterday."'
+  선행공백=0 · 선행개행=False · 이중공백포함=True · 길이=103
+
+seq=3 speaker=user
+  repr = 'i usually go to office by subway.'
+  선행공백=0 · 선행개행=False · 이중공백포함=False · 길이=33
+
+seq=4 speaker=agent
+  repr = 'Okay, let\'s focus on yesterday. What did you eat yesterday?  Try to say, "I ate a sandwich yesterday." Remember to use "a" before "sandwich."'
+  선행공백=0 · 선행개행=False · 이중공백포함=True · 길이=141
+
+seq=5 speaker=user
+  repr = "yesterday i go to the client meeting and present the project's details."
+  선행공백=0 · 선행개행=False · 이중공백포함=False · 길이=71
+
+seq=6 speaker=agent
+  repr = 'I see you mentioned a client meeting. Let\'s practice with food first. What did you eat yesterday?  Try, "I ate a sandwich yesterday." Use "a" before "sandwich." Say it like this: "I ate a sandwich yesterday."'
+  선행공백=0 · 선행개행=False · 이중공백포함=True · 길이=208
+
+# 요약
+# - 선행 개행(\n): 6행 전부 없음
+# - 선행 공백: 6행 전부 0
+# - 이중 공백: agent 3행(seq 2·4·6) 전부 있음 — partial 조각 병합 지점

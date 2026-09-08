@@ -1013,3 +1013,150 @@ baseline). 그래서 A1-6 의 증거는 **위 `eval` 반환 JSON 하나**이고,
   쓰이지 않았음**(배지 `incorrect` 가 쓰는 것을 3차에서 봤음).
 - **회차 밖 png 3건의 바이트 동일**(`b2c5daa5…`) — 2차 보고에 적어 둔 것이고 이 회차 파일이
   아니라 조사하지 않았음.
+
+---
+
+# 6차 시도 — 실물 Nova 앱 경로 **세션 1건**. teardown 하지 않았음
+
+## ⛔ 보존할 세션 — `e0c5e580-dfc0-4793-b02d-54cf4346c3c5`
+
+> `status=completed` · `mode=speaking` · `started_at 2026-09-08 19:54:29.256593+00` ·
+> `ended_at 2026-09-08 19:56:15.624412+00`. **지우지 않았음**(호출자 소유 · 구간 B 의 N8 재료).
+> 백엔드 pid **96473** · `VOICE_ADAPTER=nova` · `WORKER_ENABLED=false` · HEAD `23aed48`.
+> 프리플라이트 P1~P9 전건 통과(P5 `pid 96473 · 기동 01:26 전 · 소스 34건 → 통과`).
+> **세션은 정확히 한 번만 열었음.** 계측 sha256 `cbc19fb6…`(파일 해시 일치 · `{cache:'no-store'}`).
+
+**증거 파일**(결정 38 제약 4 — `runs/` 아래 추적 가능한 자리):
+`tests/harness/runs/2026-09-09-run-5-live/frames-e0c5e580.json`(프레임 원본 23건 · JSON 유효 확인) ·
+`…/transcripts-repr-e0c5e580.txt`(DB 전사문 `repr()` 덤프).
+
+**주입 방법** — §5 의 N5 스크립트를 재사용하되 순서를 바꿨음: ① **프레임 원본 수집기를
+`instrument.js` 보다 먼저** 걸어 `onmessage` 체인의 가장 안쪽에서 raw `text` 를 잡았음(O-1 을
+strip 없이 보기 위함) ② 계측 ③ `getUserMedia` 를 **계측 뒤에** 덮어 톤 대신 WAV 를 흘림
+④ 턴 진행 스케줄러(agent audio 가 2초 조용해지면 다음 WAV). 클릭은 **CDP**로 했음
+(`userActivation.hasBeenActive: true` · `ctx=running` — `H-AE` 회피).
+
+## ① N7 실음성 3턴 완주 — `PASS`
+
+| 관측 | 값 |
+|---|---|
+| `sequence_no` | **1·2·3·4·5·6 단조** · `user`/`agent` 교대 · 전부 `utterance_type=learning` |
+| `recv` | `session_started 1 · partial 7 · final 6 · audio 341 · session_ended 1 · session_failed 0` |
+| user final / agent final | **3 / 3** |
+| `analyze_utterance` job | **사용자 발화 seq 1·3·5 에 각 1건** = 3건 전부 `pending`(워커 꺼짐) |
+| `plan_next_session` | 1건 `pending` |
+| 클라이언트 송신 | `sent.audio` **3,324** · `sent.end_session` **1** |
+| 재생 | `AudioBufferSourceNode.start` **344회**(수신 `audio` 341 + 내 WAV 3) |
+
+**전사문**(DB · 축약 없음은 덤프 파일에):
+user `i usually go to gym after work.` / `i usually go to office by subway.` /
+`yesterday i go to the client meeting and present the project's details.`
+
+⚠️ **곁가지 관측 — `interrupted` 2건.** 내 스케줄러가 agent 발화가 끝나기 전에 다음 WAV 를
+시작해 barge-in 이 두 번 발생했음(13,153 ms · 20,898 ms). **의도한 것이 아니지만 앱이 그것을
+처리하고 3턴을 완주했음** — N6(barge-in)의 우연한 표본이고 판정으로 세지 않음.
+
+## ② `TASK-36` — exchange 상한 20 의 실현성. 수치만 남김
+
+| 지표 | 값 |
+|---|---|
+| exchange 수 | **3** (user→agent 왕복) |
+| `session_started` → **마지막 agent final** | **23,124 ms** (5,697 → 28,821) |
+| `session_started` → `session_ended` | **106,240 ms** (5,697 → 111,937) |
+| 왕복별 소요 (WAV 시작 → 그 턴 agent final) | 턴1 **5,142 ms**(5,557→10,699) · 턴2 **5,666 ms**(12,787→18,453) · 턴3 **8,281 ms**(20,540→28,821) |
+| 평균 | **6,363 ms / exchange** |
+
+⛔ **106,240 ms 를 「대화 소요」로 읽지 마라** — 마지막 agent final(28,821 ms) 이후 83초는
+**내가 폴링하며 기다린 시간**이고 모델 지연이 아님. 상한 실현성의 근거로 쓸 값은 **평균 6.4초/
+exchange** 임: 20 exchange × 6.4초 ≈ **128초**.
+
+⛔ **결정 20 의 모호함을 그대로 적음**: 이 회차는 exchange **3** 에서 멈췄고 그것은 **내 스케줄러가
+WAV 3개만 흘리도록 만들었기 때문**임 — 즉 **「모델이 지시를 어겼다」도 「상한이 불가능하다」도
+아니고 관측 설계가 3턴이었음.** 그 구분에 쓸 근거로 남기는 것은 **한 왕복의 실측 초**(위 표)
+하나임. 20 exchange 를 실제로 재려면 WAV 를 20회 흘리는 회차가 필요하고 이 회차는 그것이 아님.
+
+## ③ `O-1` agent 전사문 선행 개행 — **부분 재현.** 형태가 다름
+
+⛔ **선행 개행(`\n`)은 재현되지 않았음. 선행 공백은 `partial` 프레임에만 있음.**
+
+`repr()` 로 확인한 것(덤프 파일이 정본):
+
+| 대상 | 선행 공백 | 선행 개행 | 이중 공백 |
+|---|--:|---|---|
+| DB `utterances.transcript` agent 3행(seq 2·4·6) | **0** | **없음** | **3행 전부 있음** (`?  Try`) |
+| DB user 3행 | 0 | 없음 | 없음 |
+| **`partial` 프레임 4건** | **2·2·1·1자** | 없음 | — |
+| `final` 프레임 3건 | 0 | 없음 | 있음 |
+
+선행 공백을 가진 partial 4건: `'  Try to say, …'` ×2 · `' What did you …'` · `' Use "a" befor…'`.
+**final 은 그 조각을 이어 붙인 것이고 그 병합 지점이 이중 공백으로 남음.**
+
+→ **판정: `O-1` 은 「선행 개행」으로는 재현되지 않았고 「partial 선행 공백 → final 이중 공백」으로
+재현됐음.** 오늘 스파이크가 본 `' Say this after me: …'` 와 **같은 부류**(선행 공백)이고,
+4차수가 적은 「선행 개행」과는 **문자가 다름.** DB 에 저장되는 값에는 선행 공백이 0이므로
+**화면에 선행 여백이 보이는 경로는 이 세션에 없음.** 남는 것은 **문장 중간 이중 공백** 하나임.
+
+## ④ `TASK-13` 발음 키 값역 — **`BLOCKED`. 표본 0**
+
+| 관측 | 값 |
+|---|--:|
+| 이 세션의 `pronunciation` 프레임 | **0건** |
+| 이 세션의 `pronunciation_attempts` 행 | **0행** |
+| 전체 `pronunciation_attempts` | **4행 — 실물 전과 같음**(늘지 않았음) |
+
+**앱 프롬프트가 `Always include target_sound` 를 요구하지만(`nova.py:143`) 이 세션에서는 도구가
+한 번도 호출되지 않았으므로 그 키가 채워지는지 관측할 수 없었음.** 표본이 0이라 값역 분류
+(음소 치환 대 비음소)를 낼 수 없음 → **`BLOCKED`**(화면·프롬프트 결함이 아니라 표본 부재).
+
+⚠️ **원인 후보를 추측으로 단정하지 않음.** 관측된 정황: agent 가 3턴 모두
+`Try to say, "I ate a sandwich yesterday."` 로 **시범 문장을 요청**했는데 내가 흘린 WAV 3개는
+그 문장과 무관한 내용이었음(`i usually go to gym…` 등). 즉 **모델이 요청한 문장을 사용자가
+읽지 않았고** 그래서 발음 평가 단계로 넘어가지 않은 것으로 **보임** — 확정하려면 모델이 지시한
+문장을 그대로 읽는 WAV 가 필요함. 참고로 기존 4행의 `target_sound` 값역은
+`am_as_i_m` · `w_as_vw` · `an_as_a`(2건) 이고 **전부 음소 치환 형태**이나 **이 회차가 얻은 값이
+아니므로 `TASK-13` 의 근거로 쓰지 않음.**
+
+## ⑤ `TASK-24` agent_reprompt 사각의 크기 — **`BLOCKED`. 분모 0**
+
+「발음을 놓쳤는데 전사문이 한글도 아닌」 턴 수를 세려면 **발음 시도가 분모**인데 이 세션의
+발음 시도가 **0건**임. 비율을 낼 수 없음. **표본 수 0 을 그대로 적음** — 0/0 을 「0 %」로 적지
+않음. 사용자 전사문 3건은 **전부 영어**였고 한글 전사는 0건임(그 자체는 사각의 크기가 아님).
+
+## ⑥ 곁가지 — `refresh_review` 발동하지 않았음
+
+| 표 | 실물 전 | 실물 후 |
+|---|--:|--:|
+| `pronunciation_attempts` | 4 | **4** |
+| `review_tasks` | 10 | **10** |
+| `error_patterns.next_review_at` 비NULL | 8 | **8** |
+| `error_patterns` (시드) | 8 | **8** |
+
+**발음 시도가 0건이므로 `refresh_review` 가 발동할 입력이 없었음** — `P9` 종단의 그 절반은
+이 회차에서 얻지 못했음. ⚠️ 워커가 꺼져 있어 `analyze_utterance` 3건이 `pending` 이므로
+**문법 경로의 패턴 갱신도 아직 일어나지 않았음**(구간 B 의 몫).
+
+## DB — teardown 하지 않았음. 증분을 그대로 남김
+
+| 표 (쿼리) | 실물 전 | 실물 후 (**그대로 둠**) |
+|---|--:|--:|
+| `learning_sessions` (`where user_id='0…001'`) | 12 | **13** (+1 = 이 세션) |
+| `analysis_jobs` (전체) | 45 | **49** (+4 = `analyze_utterance` 3 + `plan_next_session` 1) |
+| `utterances` (전체) | 114 | **120** (+6) |
+| `error_patterns` (`where user_id='0…001'`) | 8 | 8 |
+| `pronunciation_attempts` (전체) | 4 | 4 |
+| `review_tasks` (전체) | 10 | 10 |
+
+**§8-0 drift(§8 정의 쿼리) = 0 — 읽기만 했음.** 보존 세션 5개 **생존**.
+⑤ 프로세스: pid **96473** 동일 · `VOICE_ADAPTER=nova`·`WORKER_ENABLED=false` 동일 ·
+`/health` `{"status":"ok"}`. 임시 CORS 서버 종료(8899 `000`).
+⚠️ **픽스처(`app/frontend/public/harness/`)는 호출자가 배치했으므로 건드리지 않았음** —
+제거는 호출자 몫임(브리프가 그렇게 정했음).
+
+## 내가 확인하지 못한 것
+
+- **`TASK-13`·`TASK-24` 를 판정할 표본** — 발음 도구가 호출되지 않았음. 닫으려면 **모델이 지시한
+  문장을 그대로 읽는 WAV** 가 필요하고 그것은 **두 번째 실물 세션**임(결정 38 제약 1 이 금지).
+- **N8(실발화 → 실분석 병합)** — 워커가 꺼져 있어 job 3건이 `pending` 임. 구간 B 의 몫.
+- **exchange 20 의 실제 도달** — 이 회차 설계가 3턴이었음(위 ② 의 ⛔).
+- **`O-1` 의 선행 개행 형태** — 이 세션에서는 공백만 나왔음. 「사라졌다」고 단정하지 않음(표본
+  1 세션 · 3 agent 턴).

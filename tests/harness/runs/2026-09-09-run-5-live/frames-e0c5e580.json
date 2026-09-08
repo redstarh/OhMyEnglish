@@ -1,0 +1,39 @@
+{
+  "session_id": "e0c5e580-dfc0-4793-b02d-54cf4346c3c5",
+  "adapter": "nova",
+  "backend_pid": 96473,
+  "captured_by": "browser onmessage collector installed BEFORE instrument.js (raw frame text, not stripped)",
+  "totals": {"frames": 363, "audio": 341, "text": 22},
+  "wav_played": [
+    {"i": 0, "name": "u1.wav", "at_ms": 5557, "dur_s": 1.92},
+    {"i": 1, "name": "u2.wav", "at_ms": 12787, "dur_s": 2.16},
+    {"i": 2, "name": "u3.wav", "at_ms": 20540, "dur_s": 3.66}
+  ],
+  "text_frames": [
+    {"at": 5697, "type": "session_started", "session_id": "e0c5e580-dfc0-4793-b02d-54cf4346c3c5"},
+    {"at": 6588, "type": "speech_start"},
+    {"at": 8466, "type": "speech_end"},
+    {"at": 8473, "type": "final", "speaker": "user", "text": "i usually go to gym after work."},
+    {"at": 9160, "type": "partial", "speaker": "agent", "text": "That's good to hear. Can you tell me what you did yesterday?"},
+    {"at": 9913, "type": "partial", "speaker": "agent", "text": "  Try to say, \"I ate a sandwich yesterday.\""},
+    {"at": 10699, "type": "final", "speaker": "agent", "text": "That's good to hear. Can you tell me what you did yesterday?  Try to say, \"I ate a sandwich yesterday.\""},
+    {"at": 13150, "type": "speech_start"},
+    {"at": 13153, "type": "interrupted"},
+    {"at": 15757, "type": "speech_end"},
+    {"at": 15762, "type": "final", "speaker": "user", "text": "i usually go to office by subway."},
+    {"at": 16433, "type": "partial", "speaker": "agent", "text": "Okay, let's focus on yesterday. What did you eat yesterday?"},
+    {"at": 17275, "type": "partial", "speaker": "agent", "text": "  Try to say, \"I ate a sandwich yesterday.\" Remember to use \"a\" before \"sandwich.\""},
+    {"at": 18453, "type": "final", "speaker": "agent", "text": "Okay, let's focus on yesterday. What did you eat yesterday?  Try to say, \"I ate a sandwich yesterday.\" Remember to use \"a\" before \"sandwich.\""},
+    {"at": 20895, "type": "speech_start"},
+    {"at": 20898, "type": "interrupted"},
+    {"at": 24152, "type": "final", "speaker": "user", "text": "yesterday i go to the client meeting and present the project's details."},
+    {"at": 24747, "type": "speech_end"},
+    {"at": 25746, "type": "partial", "speaker": "agent", "text": "I see you mentioned a client meeting. Let's practice with food first."},
+    {"at": 26765, "type": "partial", "speaker": "agent", "text": " What did you eat yesterday?  Try, \"I ate a sandwich yesterday.\""},
+    {"at": 27669, "type": "partial", "speaker": "agent", "text": " Use \"a\" before \"sandwich.\" Say it like this: \"I ate a sandwich yesterday.\""},
+    {"at": 28821, "type": "final", "speaker": "agent", "text": "I see you mentioned a client meeting. Let's practice with food first. What did you eat yesterday?  Try, \"I ate a sandwich yesterday.\" Use \"a\" before \"sandwich.\" Say it like this: \"I ate a sandwich yesterday.\""},
+    {"at": 111937, "type": "session_ended", "session_id": "e0c5e580-dfc0-4793-b02d-54cf4346c3c5"}
+  ],
+  "pronunciation_frames": [],
+  "note": "pronunciation frames were ZERO in this session. audio frames omitted (341, counted only)."
+}
