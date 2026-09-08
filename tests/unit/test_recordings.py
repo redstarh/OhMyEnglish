@@ -12,17 +12,21 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from pathlib import Path
 from uuid import UUID, uuid4
+from zoneinfo import ZoneInfoNotFoundError
 
 import asyncpg
 import pytest
 
 from app.services.recordings import (
     RECORDING_MEDIA_TYPE,
+    day_start_for,
     finalize_recording,
     load_recording,
     pending_recording_path,
+    purge_expired_recordings,
     recording_path,
     recording_url,
 )
@@ -30,24 +34,85 @@ from app.services.recordings import (
 FRAMES = b"\x00\x01" * 160  # raw LPCM 16kHz·16bit·mono 한 프레임 분량 (헤더 없음)
 
 
-async def _new_shadowing_session(conn: asyncpg.Connection) -> UUID:
-    """사용자·세션을 직접 insert 한다 — `db_conn` 은 시드를 하지 않는다(`H-I`)."""
-    user_id = await conn.fetchval(
-        "insert into users (display_name) values ('Recording Test User') returning id"
-    )
-    return await conn.fetchval(
-        "insert into learning_sessions (user_id, mode) values ($1, 'shadowing') returning id",
-        user_id,
-    )
+async def _new_shadowing_session(
+    conn: asyncpg.Connection,
+    *,
+    status: str = "active",
+    timezone: str = "Asia/Seoul",
+    user_id: UUID | None = None,
+) -> UUID:
+    """사용자·세션을 직접 insert 한다 — `db_conn` 은 시드를 하지 않는다(`H-I`).
 
+    기본값이 `active`/`Asia/Seoul` 인 것은 **표의 기본값과 같다** — 그래서 만료를 재지 않는
+    단정들이 §5.4 의 예외(진행 중 세션은 삭제하지 않는다)에 자동으로 들어간다.
 
-async def _new_recording_utterance(conn: asyncpg.Connection, session_id: UUID) -> UUID:
-    """`audio_url` 이 아직 null 인 낭독 발화. 011 의 CHECK 가 이 조합만 허용한다."""
+    `user_id` 를 받는 이유 둘: **한 사용자가 세션 여럿을 갖는 상태**를 만들 수 있어야 하고,
+    스윕의 사용자 순서(`order by usr.id`)를 **결정론적으로** 만들 수 있어야 한다. 후자가 없으면
+    「한 사람의 잘못된 tz 가 나머지를 막지 않는다」를 재는 단정이 uuid 순서에 따라 우연히 통과한다
+    (2026-09-08 에 실제로 그랬다).
+    """
+    if user_id is None:
+        user_id = await conn.fetchval(
+            "insert into users (display_name, timezone) values ('Recording Test User', $1) "
+            "returning id",
+            timezone,
+        )
     return await conn.fetchval(
-        "insert into utterances (session_id, speaker, utterance_type, transcript, sequence_no) "
-        "values ($1, 'user', 'shadowing_recording', 'I usually wake up at seven.', 1) "
+        "insert into learning_sessions (user_id, mode, status) values ($1, 'shadowing', $2) "
         "returning id",
+        user_id,
+        status,
+    )
+
+
+async def _new_learner(conn: asyncpg.Connection, *, timezone: str, uuid_prefix: str) -> UUID:
+    """id 를 **직접 지정한** 학습자 — 스윕이 사용자를 `order by usr.id` 로 돌기 때문이다.
+
+    ⚠️ id 를 무작위로 두면 「잘못된 tz 를 만난 뒤에도 나머지가 처리된다」가 **순서 운에 따라
+    통과한다.** 잘못된 tz 사용자를 앞에 세워야 그 단정에 판별력이 생긴다.
+    """
+    return await conn.fetchval(
+        "insert into users (id, display_name, timezone) values ($1, 'Ordered Learner', $2) "
+        "returning id",
+        UUID(f"{uuid_prefix}-0000-0000-0000-000000000000"),
+        timezone,
+    )
+
+
+async def _new_recording_utterance(
+    conn: asyncpg.Connection,
+    session_id: UUID,
+    *,
+    created_at: datetime | None = None,
+    sequence_no: int = 1,
+) -> UUID:
+    """`audio_url` 이 아직 null 인 낭독 발화. 011 의 CHECK 가 이 조합만 허용한다.
+
+    `created_at` 을 받는 이유: 만료 경계가 그 값에 걸리므로 **과거 녹음을 만들 수 있어야** 한다.
+    기본값(`None`)이면 표의 `now()` 가 찍는다.
+    """
+    return await conn.fetchval(
+        "insert into utterances "
+        "(session_id, speaker, utterance_type, transcript, sequence_no, created_at) "
+        "values ($1, 'user', 'shadowing_recording', 'I usually wake up at seven.', $2, "
+        "coalesce($3::timestamptz, now())) returning id",
         session_id,
+        sequence_no,
+        created_at,
+    )
+
+
+async def _stored(
+    conn: asyncpg.Connection, root: Path, session_id: UUID, utterance_id: UUID
+) -> None:
+    """파일과 포인터가 **둘 다** 있는 상태로 만든다 — 접근 가능한 녹음."""
+    path = recording_path(root, session_id, utterance_id)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(FRAMES)
+    await conn.execute(
+        "update utterances set audio_url = $2 where id = $1",
+        utterance_id,
+        recording_url(session_id, utterance_id),
     )
 
 
@@ -231,6 +296,388 @@ async def test_load_is_scoped_to_the_session_even_when_a_file_exists(
     intruder.write_bytes(FRAMES)
 
     assert await load_recording(db_conn, tmp_path, other_session_id, utterance_id) is None
+
+
+# ── 「당일이 지났다」의 경계 (AC#4 · 설계서 §5.2·§5.3) ──────────────────────────────
+#
+# ⛔ **`current_date` 를 쓰지 않는다.** 설계 세션이 공유 DB 에서 직접 관측한 값이 그 근거다:
+# `current_date` = 2026-09-07 인데 `(now() at time zone 'Asia/Seoul')` = 2026-09-08 이었다
+# (`SHOW TimeZone` = UTC). 그 값으로 판정하면 **학습자가 아직 비교하지 못한 녹음이 하루 일찍
+# 사라지고 되돌릴 수 없다.** 타임존의 정본은 `users.timezone` 컬럼이다.
+#
+# 아래 기대값은 계산한 것이 아니라 **경계의 정의**다: 학습자의 현재 달력 날짜가 시작한 절대 시각.
+
+
+def test_day_start_rejects_a_naive_now() -> None:
+    """앱 경계에서 naive datetime 을 거부한다 — `jobs.py` 의 `_require_aware` 와 같은 방어다.
+
+    조용히 바인딩되면 서버 오프셋만큼 시각이 밀리고, 그 밀림이 **되돌릴 수 없는 삭제**의 경계를
+    움직인다.
+    """
+    with pytest.raises(ValueError):
+        day_start_for("Asia/Seoul", now=datetime(2026, 9, 8, 2, 45))
+
+
+def test_day_start_uses_the_learner_timezone_not_the_server_date() -> None:
+    """설계서 §5.1 이 관측한 그 순간을 그대로 잰다.
+
+    `2026-09-07 17:45:58+00` 은 서버 날짜로 9월 7일이지만 학습자(KST)에게는 **9월 8일**이다.
+    경계는 KST 9월 8일 00:00 = UTC 9월 7일 15:00 이어야 한다 — `current_date`(9월 7일)를 썼다면
+    경계가 하루 앞서 학습자의 오늘 녹음까지 삭제 대상이 됐다.
+    """
+    now = datetime(2026, 9, 7, 17, 45, 58, tzinfo=UTC)
+
+    assert day_start_for("Asia/Seoul", now=now) == datetime(2026, 9, 7, 15, 0, tzinfo=UTC)
+
+
+def test_day_start_moves_forward_the_moment_local_midnight_passes() -> None:
+    """자정 직전·직후가 서로 다른 날을 가리킨다 — 되돌릴 수 없는 판정이라 경계값을 잰다."""
+    just_before = datetime(2026, 9, 7, 14, 59, 59, tzinfo=UTC)  # KST 9/7 23:59:59
+    just_after = datetime(2026, 9, 7, 15, 0, 0, tzinfo=UTC)  # KST 9/8 00:00:00
+
+    assert day_start_for("Asia/Seoul", now=just_before) == datetime(2026, 9, 6, 15, 0, tzinfo=UTC)
+    assert day_start_for("Asia/Seoul", now=just_after) == datetime(2026, 9, 7, 15, 0, tzinfo=UTC)
+
+
+def test_day_start_handles_a_dst_zone_without_inventing_a_local_midnight() -> None:
+    """⛔ `replace(hour=0, …)` 를 쓰지 않는 이유가 이 단정이다 (§5.2 의 주석).
+
+    DST 가 있는 지역에서는 **존재하지 않는 지역 자정**이 만들어질 수 있다. 날짜와 tzinfo 로 다시
+    조립하면 `zoneinfo` 가 fold 규칙으로 푼다. 미국 동부 DST 종료일(2026-11-01) 하루를 잰다 —
+    그날 자정은 EDT(UTC-4)이므로 경계가 `2026-11-01 04:00Z` 다.
+    """
+    now = datetime(2026, 11, 1, 12, 0, tzinfo=UTC)
+
+    assert day_start_for("America/New_York", now=now) == datetime(2026, 11, 1, 4, 0, tzinfo=UTC)
+
+
+def test_day_start_rejects_an_unknown_timezone() -> None:
+    """⛔ `users.timezone` 에는 CHECK 가 없다(설계 세션이 조회로 확인했다).
+
+    그래서 잘못된 값이 실재할 수 있고, **그것이 한 사람만 막아야 한다** — 집합 UPDATE 안에서
+    터지면 한 사람의 값이 모든 사람의 삭제를 막는다(§5.2 의 이유 1). 여기서 예외 종류를 못
+    박아 두면 스윕이 그 사용자만 건너뛸 수 있다.
+    """
+    with pytest.raises(ZoneInfoNotFoundError):
+        day_start_for("Not/AZone", now=datetime(2026, 9, 8, tzinfo=UTC))
+
+
+# ── 조회 시점 차단 (AC#4 · 설계서 §6.4) ────────────────────────────────────────────
+#
+# ⛔ **워커에 개인정보를 걸지 않는다.** `WORKER_ENABLED=false` 로 며칠을 돌리면 스윕이 한 번도
+# 돌지 않는다 — 그동안 접근이 열려 있으면 「당일이 지나면 삭제」가 **워커 기동 여부에 걸린
+# 약속**이 된다. 그래서 조회가 같은 경계 함수를 다시 계산해 스스로 닫는다.
+#
+# ⚠️ 스윕과 조회가 **같은 함수 하나**(`day_start_for`)를 부르는 것이 계약이다 — 두 곳에서 각자
+# 계산하면 갈라진다(`009_drill_turns.sql` 이 "두 곳에 세면 갈라진다"로 적어 둔 규칙과 같다).
+
+NOON_KST = datetime(2026, 9, 8, 3, 0, tzinfo=UTC)  # KST 9/8 12:00
+
+
+@pytest.mark.asyncio
+async def test_load_refuses_a_recording_from_a_past_learner_day(
+    db_conn: asyncpg.Connection, tmp_path: Path
+) -> None:
+    """당일이 지난 녹음은 스윕이 돌기 전에도 접근 불가다."""
+    session_id = await _new_shadowing_session(db_conn, status="completed")
+    utterance_id = await _new_recording_utterance(
+        db_conn, session_id, created_at=datetime(2026, 9, 7, 3, 0, tzinfo=UTC)
+    )
+    await _stored(db_conn, tmp_path, session_id, utterance_id)
+
+    assert await load_recording(db_conn, tmp_path, session_id, utterance_id, now=NOON_KST) is None
+
+
+@pytest.mark.asyncio
+async def test_load_still_serves_a_past_day_recording_while_the_session_runs(
+    db_conn: asyncpg.Connection, tmp_path: Path
+) -> None:
+    """⛔ **§5.4 의 예외.** 자정을 넘기며 진행되는 세션의 녹음은 대상이 아니다.
+
+    23:58 에 만든 녹음을 00:01 에 막으면 **학습자가 지금 비교하려는 것이 사라진다.** 캡틴 결정의
+    문구가 *"비교된 오디오는 당일이 지나면 삭제한다"* 이므로 아직 비교 중인 것은 대상이 아니다.
+    """
+    session_id = await _new_shadowing_session(db_conn, status="active")
+    utterance_id = await _new_recording_utterance(
+        db_conn, session_id, created_at=datetime(2026, 9, 7, 14, 58, tzinfo=UTC)
+    )
+    await _stored(db_conn, tmp_path, session_id, utterance_id)
+
+    assert await load_recording(db_conn, tmp_path, session_id, utterance_id, now=NOON_KST) == FRAMES
+
+
+@pytest.mark.asyncio
+async def test_load_serves_a_recording_made_today_in_the_learner_timezone(
+    db_conn: asyncpg.Connection, tmp_path: Path
+) -> None:
+    """학습자의 오늘 녹음은 세션이 끝났어도 접근 가능하다 — 당일이 지나지 않았다."""
+    session_id = await _new_shadowing_session(db_conn, status="completed")
+    utterance_id = await _new_recording_utterance(
+        db_conn,
+        session_id,
+        created_at=datetime(2026, 9, 7, 16, 0, tzinfo=UTC),  # KST 9/8 01:00
+    )
+    await _stored(db_conn, tmp_path, session_id, utterance_id)
+
+    assert await load_recording(db_conn, tmp_path, session_id, utterance_id, now=NOON_KST) == FRAMES
+
+
+@pytest.mark.asyncio
+async def test_the_learner_timezone_decides_the_boundary_not_the_server(
+    db_conn: asyncpg.Connection, tmp_path: Path
+) -> None:
+    """⛔ **`current_date` 를 쓰면 이 두 사용자가 같은 판정을 받는다 — 그것이 틀렸다.**
+
+    `2026-09-07 16:00Z` 는 KST 학습자에게 **오늘**(9/8 01:00)이고 UTC 학습자에게는
+    **어제**(9/7 16:00)다. 같은 녹음 시각·같은 서버 날짜인데 판정이 갈려야 한다.
+    """
+    kst_session = await _new_shadowing_session(db_conn, status="completed", timezone="Asia/Seoul")
+    utc_session = await _new_shadowing_session(db_conn, status="completed", timezone="UTC")
+    made_at = datetime(2026, 9, 7, 16, 0, tzinfo=UTC)
+    kst_utterance = await _new_recording_utterance(db_conn, kst_session, created_at=made_at)
+    utc_utterance = await _new_recording_utterance(db_conn, utc_session, created_at=made_at)
+    await _stored(db_conn, tmp_path, kst_session, kst_utterance)
+    await _stored(db_conn, tmp_path, utc_session, utc_utterance)
+
+    assert (
+        await load_recording(db_conn, tmp_path, kst_session, kst_utterance, now=NOON_KST) == FRAMES
+    )
+    assert await load_recording(db_conn, tmp_path, utc_session, utc_utterance, now=NOON_KST) is None
+
+
+@pytest.mark.asyncio
+async def test_load_closes_when_the_learner_timezone_is_unusable(
+    db_conn: asyncpg.Connection, tmp_path: Path
+) -> None:
+    """⛔ 경계를 계산할 수 없으면 **닫는 쪽으로 넘어진다.**
+
+    `users.timezone` 에는 CHECK 가 없으므로 잘못된 값이 실재할 수 있다. 그때 바이트를 내주면
+    「당일이 지나면 삭제」가 **잘못된 설정값 하나로 무력화된다** — 녹음은 학습자 음성이므로
+    판정 불가는 거부여야 한다. 삭제 스윕의 처리(그 사용자만 건너뛴다)와 방향이 반대인 것은
+    의도다: 스윕은 열어 두고 넘어가면 되지만 조회는 그럴 수 없다.
+    """
+    session_id = await _new_shadowing_session(db_conn, status="completed", timezone="Not/AZone")
+    utterance_id = await _new_recording_utterance(db_conn, session_id)
+    await _stored(db_conn, tmp_path, session_id, utterance_id)
+
+    assert await load_recording(db_conn, tmp_path, session_id, utterance_id, now=NOON_KST) is None
+
+
+# ── 당일 경과 삭제 — 1다리 (AC#4 · 설계서 §6.2) ──────────────────────────────────
+#
+# **순서가 (a) 포인터 → (b) 파일인 것이 계약이다.** `database-schema.md` 가 요구하는 것은
+# 「즉시 접근 불가」이므로 실패 시 **닫히는 쪽**으로 넘어져야 한다. 뒤집으면(파일 먼저) 크래시 후
+# DB 는 "있다"고 하고 파일은 없어 **학습자에게 깨진 재생**이 남는다.
+
+
+async def _pointer_and_file(
+    conn: asyncpg.Connection, root: Path, session_id: UUID, utterance_id: UUID
+) -> tuple[str | None, bool]:
+    """(포인터, 파일 존재) — 두 다리의 상태를 한 번에 본다."""
+    audio_url = await conn.fetchval("select audio_url from utterances where id = $1", utterance_id)
+    return audio_url, recording_path(root, session_id, utterance_id).is_file()
+
+
+@pytest.mark.asyncio
+async def test_purge_clears_the_pointer_and_deletes_the_bytes(
+    db_conn: asyncpg.Connection, tmp_path: Path
+) -> None:
+    """만료된 녹음은 접근 불가가 되고 바이트가 사라진다 — 두 다리가 모두 걸린다."""
+    session_id = await _new_shadowing_session(db_conn, status="completed")
+    utterance_id = await _new_recording_utterance(
+        db_conn, session_id, created_at=datetime(2026, 9, 6, 3, 0, tzinfo=UTC)
+    )
+    await _stored(db_conn, tmp_path, session_id, utterance_id)
+
+    purged = await purge_expired_recordings(db_conn, tmp_path, now=NOON_KST)
+
+    assert purged == [utterance_id]
+    assert await _pointer_and_file(db_conn, tmp_path, session_id, utterance_id) == (None, False)
+
+
+@pytest.mark.asyncio
+async def test_purge_spares_a_running_session(db_conn: asyncpg.Connection, tmp_path: Path) -> None:
+    """⛔ §5.4 — 진행 중 세션의 녹음은 대상이 아니다. 학습자가 지금 비교하는 중이다."""
+    session_id = await _new_shadowing_session(db_conn, status="active")
+    utterance_id = await _new_recording_utterance(
+        db_conn, session_id, created_at=datetime(2026, 9, 6, 3, 0, tzinfo=UTC)
+    )
+    await _stored(db_conn, tmp_path, session_id, utterance_id)
+
+    assert await purge_expired_recordings(db_conn, tmp_path, now=NOON_KST) == []
+    audio_url, exists = await _pointer_and_file(db_conn, tmp_path, session_id, utterance_id)
+    assert audio_url is not None
+    assert exists
+
+
+@pytest.mark.asyncio
+async def test_purge_spares_the_running_session_of_a_learner_who_also_has_a_finished_one(
+    db_conn: asyncpg.Connection, tmp_path: Path
+) -> None:
+    """⛔ **§5.4 의 예외를 사용자 단위가 아니라 세션 단위로 적용한다.**
+
+    스윕은 사용자 목록을 먼저 뽑고 사용자마다 대상을 고른다. 사용자 목록 쪽에도 같은
+    `status <> 'active'` 조건이 있어서 **끝난 세션이 하나도 없는 학습자**는 애초에 목록에 뜨지
+    않는다 — 그래서 대상 조회 쪽 조건을 지워도 위 단정이 통과한다(2026-09-08 에 직접 확인했다:
+    32 passed). 실제 위험은 **한 학습자가 두 세션을 다 가진 지금 이 배치**다: 끝난 세션이 그를
+    목록에 올리고, 대상 조회에 조건이 없으면 **진행 중 세션의 녹음까지 함께 지워진다.**
+    """
+    learner = await _new_learner(db_conn, timezone="Asia/Seoul", uuid_prefix="00000003")
+    finished = await _new_shadowing_session(db_conn, status="completed", user_id=learner)
+    running = await _new_shadowing_session(db_conn, status="active", user_id=learner)
+    long_ago = datetime(2026, 9, 6, 3, 0, tzinfo=UTC)
+    finished_utterance = await _new_recording_utterance(db_conn, finished, created_at=long_ago)
+    running_utterance = await _new_recording_utterance(db_conn, running, created_at=long_ago)
+    await _stored(db_conn, tmp_path, finished, finished_utterance)
+    await _stored(db_conn, tmp_path, running, running_utterance)
+
+    assert await purge_expired_recordings(db_conn, tmp_path, now=NOON_KST) == [finished_utterance]
+    running_pointer, running_file = await _pointer_and_file(
+        db_conn, tmp_path, running, running_utterance
+    )
+    assert running_pointer is not None
+    assert running_file
+
+
+@pytest.mark.asyncio
+async def test_purge_spares_a_recording_made_on_the_learner_today(
+    db_conn: asyncpg.Connection, tmp_path: Path
+) -> None:
+    """당일이 지나지 않은 녹음은 남는다 — 경계가 **학습자의** 날짜다."""
+    session_id = await _new_shadowing_session(db_conn, status="completed")
+    utterance_id = await _new_recording_utterance(
+        db_conn,
+        session_id,
+        created_at=datetime(2026, 9, 7, 16, 0, tzinfo=UTC),  # KST 9/8 01:00
+    )
+    await _stored(db_conn, tmp_path, session_id, utterance_id)
+
+    assert await purge_expired_recordings(db_conn, tmp_path, now=NOON_KST) == []
+
+
+@pytest.mark.asyncio
+async def test_one_broken_timezone_does_not_block_everyone_else(
+    db_conn: asyncpg.Connection, tmp_path: Path
+) -> None:
+    """⛔ **이것이 경계를 Python 에서 구하는 첫째 이유다** (§5.2).
+
+    `users.timezone` 에는 CHECK 가 없어 잘못된 값이 실재할 수 있다. 집합 UPDATE 안에서
+    `AT TIME ZONE` 이 그 값을 만나면 **한 사람의 잘못된 값이 모든 사람의 삭제를 막는다** —
+    설계 세션이 직접 확인했다(`select now() at time zone 'Not/AZone'` → `ERROR`). 사용자별로
+    Python 이 계산하면 그 사람만 건너뛰고 나머지는 낫는다.
+
+    ⚠️ **잘못된 tz 사용자를 id 순서에서 앞에 세운다** — 스윕이 `order by usr.id` 로 돌기 때문이다.
+    무작위 id 로 두면 정상 사용자가 먼저 처리되어 `continue` 를 `break` 로 바꿔도 통과한다
+    (2026-09-08 에 직접 확인했다: 32 passed).
+    """
+    broken_user = await _new_learner(db_conn, timezone="Not/AZone", uuid_prefix="00000001")
+    healthy_user = await _new_learner(db_conn, timezone="Asia/Seoul", uuid_prefix="00000002")
+    broken = await _new_shadowing_session(db_conn, status="completed", user_id=broken_user)
+    healthy = await _new_shadowing_session(db_conn, status="completed", user_id=healthy_user)
+    long_ago = datetime(2026, 9, 6, 3, 0, tzinfo=UTC)
+    broken_utterance = await _new_recording_utterance(db_conn, broken, created_at=long_ago)
+    healthy_utterance = await _new_recording_utterance(db_conn, healthy, created_at=long_ago)
+    await _stored(db_conn, tmp_path, broken, broken_utterance)
+    await _stored(db_conn, tmp_path, healthy, healthy_utterance)
+
+    purged = await purge_expired_recordings(db_conn, tmp_path, now=NOON_KST)
+
+    assert purged == [healthy_utterance]
+    # 건너뛴 사용자의 녹음은 **그대로 남는다** — 값을 고치면 다음 사이클에 낫는다(§6.3).
+    broken_pointer, broken_file = await _pointer_and_file(
+        db_conn, tmp_path, broken, broken_utterance
+    )
+    assert broken_pointer is not None
+    assert broken_file
+
+
+@pytest.mark.asyncio
+async def test_purge_clears_the_pointer_even_when_the_file_is_already_gone(
+    db_conn: asyncpg.Connection, tmp_path: Path
+) -> None:
+    """⛔ **(b) 의 실패가 (a) 를 되돌리지 않는다** (§6.2).
+
+    파일이 이미 없는 것은 흔한 상태다(2다리가 먼저 걷었거나 사람이 지웠다). 그때 예외로 터지면
+    **접근 불가 확정이 미뤄지고** 그 사이 만료된 녹음이 계속 서빙된다 — 순서 계약이 지키려던
+    것을 스스로 깨는 셈이다.
+    """
+    session_id = await _new_shadowing_session(db_conn, status="completed")
+    utterance_id = await _new_recording_utterance(
+        db_conn, session_id, created_at=datetime(2026, 9, 6, 3, 0, tzinfo=UTC)
+    )
+    await _stored(db_conn, tmp_path, session_id, utterance_id)
+    recording_path(tmp_path, session_id, utterance_id).unlink()
+
+    assert await purge_expired_recordings(db_conn, tmp_path, now=NOON_KST) == [utterance_id]
+    assert (
+        await db_conn.fetchval("select audio_url from utterances where id = $1", utterance_id)
+        is None
+    )
+
+
+@pytest.mark.asyncio
+async def test_purge_keeps_going_when_the_bytes_cannot_be_removed(
+    db_conn: asyncpg.Connection, tmp_path: Path
+) -> None:
+    """⛔ **(b) 의 진짜 실패도 (a) 를 되돌리지 않는다** (§6.3).
+
+    파일 자리에 디렉터리를 두어 `unlink` 가 `OSError` 를 내게 한다 — 권한·EBUSY 를 흉내내는 가장
+    값싼 방법이다. 예외가 올라가면 **접근 불가 확정이 미뤄지고** 그 사이 만료된 녹음이 계속
+    서빙된다. 남은 바이트는 고아 파일 정리 2다리가 소유한다.
+    """
+    session_id = await _new_shadowing_session(db_conn, status="completed")
+    utterance_id = await _new_recording_utterance(
+        db_conn, session_id, created_at=datetime(2026, 9, 6, 3, 0, tzinfo=UTC)
+    )
+    await _stored(db_conn, tmp_path, session_id, utterance_id)
+    path = recording_path(tmp_path, session_id, utterance_id)
+    path.unlink()
+    path.mkdir()
+
+    assert await purge_expired_recordings(db_conn, tmp_path, now=NOON_KST) == [utterance_id]
+    assert (
+        await db_conn.fetchval("select audio_url from utterances where id = $1", utterance_id)
+        is None
+    )
+    assert path.is_dir()
+
+
+@pytest.mark.asyncio
+async def test_purging_twice_is_a_no_op(db_conn: asyncpg.Connection, tmp_path: Path) -> None:
+    """멱등이다 — **그래서 attempts 카운터도 백오프도 두지 않는다** (§6.3).
+
+    같은 조건을 다시 계산하므로 영구 실패해도 데이터가 어긋나지 않는다. `analysis_jobs` 의
+    lease·attempts 는 **Claude 호출 중복 과금**을 막는 장치인데 여기에는 그 비용이 없다.
+    """
+    session_id = await _new_shadowing_session(db_conn, status="completed")
+    utterance_id = await _new_recording_utterance(
+        db_conn, session_id, created_at=datetime(2026, 9, 6, 3, 0, tzinfo=UTC)
+    )
+    await _stored(db_conn, tmp_path, session_id, utterance_id)
+
+    assert await purge_expired_recordings(db_conn, tmp_path, now=NOON_KST) == [utterance_id]
+    assert await purge_expired_recordings(db_conn, tmp_path, now=NOON_KST) == []
+
+
+@pytest.mark.asyncio
+async def test_purge_stops_at_the_cycle_limit_and_resumes_next_time(
+    db_conn: asyncpg.Connection, tmp_path: Path
+) -> None:
+    """사이클당 상한이 루프를 굶기지 않는다 (§6.2). 남은 것은 다음 사이클이 이어간다."""
+    session_id = await _new_shadowing_session(db_conn, status="completed")
+    long_ago = datetime(2026, 9, 6, 3, 0, tzinfo=UTC)
+    for sequence_no in (1, 2, 3):
+        utterance_id = await _new_recording_utterance(
+            db_conn, session_id, created_at=long_ago, sequence_no=sequence_no
+        )
+        await _stored(db_conn, tmp_path, session_id, utterance_id)
+
+    first = await purge_expired_recordings(db_conn, tmp_path, now=NOON_KST, limit=2)
+    second = await purge_expired_recordings(db_conn, tmp_path, now=NOON_KST, limit=2)
+
+    assert len(first) == 2
+    assert len(second) == 1
+    assert await purge_expired_recordings(db_conn, tmp_path, now=NOON_KST, limit=2) == []
 
 
 def test_media_type_declares_the_raw_pcm_parameters() -> None:
