@@ -95,6 +95,11 @@ afconvert -f WAVE -d LEI16@16000 -c 1 /tmp/f.aiff p1a.wav
 전제: 백엔드 `VOICE_ADAPTER=nova`, 픽스처를 `app/frontend/public/harness/`에 임시 배치.
 브라우저 주입 스크립트는 `handoff/backup/2026-08-30/HANDOFF-test-harness.md` §5의 N5 검증본을 재사용한다.
 
+⛔ **그 파일의 nova 재기동 명령에는 `WORKER_ENABLED=false` 가 없다 — 붙여서 쓴다**(함정 `H-AS`).
+`worker_enabled` 기본값이 `True` 라서 빼면 워커가 켜지고 `browser_leg.md` §9 의 보존 세션이
+파괴된다. **그 파일은 보관본이라 고치지 않았다** — 역사 기록이고, 읽고 행동하는 자리는 여기다.
+워커를 켜야 하는 구간(분석 job 을 돌리는 P5 등)은 **구간을 좁혀 켜고 즉시 되돌린다.**
+
 > **4차수 실행 결과 (2026-08-26)**: **P1·P2·P3·P4·P5·P6·P7 완료, 전부 기대대로.** 최우선 위험
 > P5는 **clean**이었다 — 한글 전사문에 대해 job이 `done`·attempts 1·findings 0으로 수렴했다
 > (120초 관측). P6 오탐 0건. **신규 앱 결함 0건 → 수정 왕복 열지 않음.**
