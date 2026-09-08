@@ -797,3 +797,94 @@ outcome, target_form:'…', target_sound:'<sentinel>'})` 를 4 outcome 순차 �
 
 **DB 대조**: §7 헬퍼로 위 표의 쿼리를 그대로 던짐. drift 는 **§8 정의 쿼리**를 씀
 (`error_occurrences` 총계가 아님).
+
+---
+
+# 4차 시도 — A1-6 본 단정 하나. 지정된 유도로 재서 `PASS`
+
+> 호출자가 어댑터를 baseline 으로 되돌렸음(pid 56138 → **72290** · `VOICE_ADAPTER=stub` ·
+> `WORKER_ENABLED=false`). HEAD **`23aed48`** · 회차 `run_id`
+> **`3d7ddd94-d7a6-4524-8e36-28ac82266a0a`** · `WINDOW_START` **`2026-09-08 19:32:33.018671+00`**.
+> ⚠️ `browser_leg.md` §10-3 의 캐시 규약은 **미커밋 상태로 디스크에 있었고 그것을 정본으로 읽었음**
+> (`grep no-store` 로 확인: `⛔ 취득은 반드시 fetch(url, {cache:'no-store'}) 로 한다`).
+
+**프리플라이트 P1~P9 전건 통과** — P5 `pid 72290 · 기동 01:15 전 · 소스 34건 → 통과`(exit 0) ·
+P1 `{"status":"ok"}` · P4 `postgresql@17 started` · P6 `200` · P7 `2` · P8 `pytest 0건` ·
+P9 `ohmyenglish`. 플래그를 프로세스에서 확인: `WORKER_ENABLED=false`·`VOICE_ADAPTER=stub`.
+
+**계측** — §10-3 의 새 규약대로 `fetch(url + '?v=' + Date.now(), {cache:'no-store'})` 로 받았고
+페이지 계산 sha256 이 **`cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac`**
+(44,552 B) 로 파일 해시와 일치했음. `evalReturn` `"instrumented"` ·
+`startedSessionIdKeyPresent` **true** · 초기값 **`null`** · `recv` 전건 0(클릭 전).
+
+## A1-6 — `PASS`. 기대값·관측값이 같은 `eval` 반환 JSON 안에 있음
+
+```json
+{"startedSessionId":"d08d470a-9347-407d-b2ca-68b7f73fd4ad",
+ "recv_session_started":1,
+ "nullMeaning":"N/A — 값이 있음",
+ "expectedPath":"/results/d08d470a-9347-407d-b2ca-68b7f73fd4ad",
+ "actualPath" :"/results/d08d470a-9347-407d-b2ca-68b7f73fd4ad",
+ "actualHref" :"http://localhost:3000/results/d08d470a-9347-407d-b2ca-68b7f73fd4ad",
+ "A1_6_pathEquals":true,
+ "negControl_sentinelPathEquals":false, "negControl_rootEquals":false,
+ "recv":{"session_started":1,"partial":6,"final":6,"audio":3,"session_ended":1,"session_failed":0},
+ "h1":"학습 결과","firstDirectP":"분석 중",
+ "mainOuterHTML":"<main …><h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p></main>"}
+```
+
+**기대값의 출처가 계측이고 DB 가 아님** — `startedSessionId` 는 `session_started` 프레임이 실어 온
+값이고, `recv.session_started === 1` 이므로 `null` 의 두 뜻(세션 미시작 / 키 부재)은 발생하지
+않았음. **DB 로 대신하지 않았음**(4차에서는 그 조회를 아예 하지 않았고, teardown 의 잔여물 관리만
+DB 를 만졌음).
+
+**음성 대조는 3차 회차가 냈음** — 같은 단정을 `stub_unresponsive` 에서 재서
+`actualPath` 가 **`/`** 였고 `사유: voice_adapter_connect_timeout` 이 떴음. 이번 회차의
+`negControl_rootEquals: false` 가 그 반대편이므로 **두 모드가 실제로 갈렸음.**
+
+⚠️ **`negControl_sentinelPathEquals` 는 판별력이 0임을 밝혀 둠.** 본 단정이 이미
+`actualPath === expectedPath` 를 등호로 요구하므로 sentinel 을 덧붙인 부등호는 **필연적으로 참**임.
+`browser_leg.md` §5 가 A4-2 대조 ①을 철회한 것과 **같은 형태**임 — 검사 수를 부풀리는 줄이므로
+근거로 세지 않았음. **A1-6 을 받치는 대조는 3차의 모드 대조 하나임.**
+
+## DB — 3열. 각 행에 쿼리를 붙임(3차의 형식 유지)
+
+| 표 (쿼리) | baseline | 회차 후 | teardown 후 |
+|---|--:|--:|--:|
+| `learning_sessions` (`where user_id='0…001'`) | 12 | **13** | **12** |
+| `analysis_jobs` (전체) | 45 | **49** | **45** |
+| `utterances` (전체) | 114 | **120** | **114** |
+| `error_patterns` (`where user_id='0…001'`) | 8 | 8 | 8 |
+| `session_plans` (전체) | 1 | 1 | 1 |
+| `learner_notes` (전체) | 1 | 1 | 1 |
+| `error_occurrences` (전체) | 18 | 18 | 18 |
+
+회차가 만든 세션 **1건** — `d08d470a-…` (`completed` · 발화 6). teardown:
+§8-0 drift(회차 전) **0** → `①-a INSERT 0 1` · `① DELETE 1` · `② UPDATE 0`(재계산하지 않았음) ·
+`③ DELETE 0` · `④-1` **8** = baseline 8 · **`④-2` drift(§8 정의) 0** · `④-3` 생존 **0** ·
+**보존 세션 5개 생존**. ⑤는 §8-⑤ 예외(무변경): pid **72290** 동일 · 플래그 동일 ·
+`/health` `{"status":"ok"}` · 임시 CORS 서버 종료(8899 `000`).
+
+## A1-0~A1-8 — 세 회차 합산. 각 칸에 어느 회차에서 얻었는지 표시함
+
+| # | 본 단정 | 어느 회차 | 음성 대조가 FAIL 을 냈는가 | 어느 회차 | 종합 |
+|---|---|---|---|---|---|
+| A1-0 | 접두 `<p>` **1개**(ⓑ API `reason`≠null) | 2차 | **예** — 클릭 후 **0개** | 2차 | **`PASS`** |
+| A1-1 | `recv.final` **6** | 2차 | **예** — **0** | 3차 | **`PASS`** |
+| A1-2 | `recv.partial` **6** | 2차 | **예** — **0** | 3차 | **`PASS`** |
+| A1-3 | `recv.audio` **3** | 2차 | **예** — **0** | 3차 | **`PASS`** |
+| A1-4 | `started.count` **3** · `when`=[0,0.2,0.4] · `afterRecvAudio`=1/2/3 | 2차 | **예** — 대조 ① `count` **0** | 3차 | **`PASS`** |
+| A1-5 | `verdict: "PASS"`(계측 값을 베낌) | 2차 | **예** — 무력화 6종 중 5종이 `APP_CONTENT_MISMATCH`·`APP_EXCESS_RENDER`·이름 있는 throw | 2차 | **`PASS`** |
+| A1-6 | `actualPath === '/results/' + startedSessionId` (ⓑ **계측 유도**) | **4차** | **예** — 같은 단정이 `stub_unresponsive` 에서 `actualPath` **`/`** + `사유: voice_adapter_connect_timeout` | 3차 | **`PASS`** |
+| A1-7 | `sent.audio` **1** · `sentAudioBytes` **1368** | 2차 | **아님** — 대조 ①(`end_session` 1건)은 스텁이 자기종료해 구조적 불가 · 대조 ③은 톤에서도 `nonZeroFrames` 0(§11-4 미결) | — | **`BLOCKED`** |
+| A1-8 | `utterances` **6행**(내용도 픽스처와 일치) | 2차 | **예** — `stub_unresponsive` 세션 **0행**이고 전체 `utterances` **114 불변** | 3차 | **`PASS`** |
+
+⛔ **A1-7 하나만 남았음.** 그 사유는 화면 결함이 아니라 **표본 구성**임(§10 갈래 2 —
+스텁 세션이 32 ms 캡처 프레임 1건을 만들기도 전에 끝남). 3차의 `stub_unresponsive` 회차가
+`sent.audio` **313** 을 낸 것이 그 진단을 뒷받침함 — 세션이 20초 유지되면 프레임이 쌓임.
+**닫으려면 「응답 프레임이 오면서 세션이 길게 유지되는」 구성이 필요하고 그것은 이 회차가
+만들 수 있는 것이 아님**(호출자 판단 몫).
+
+⚠️ **재검증 불가를 명시함**: 4차의 `d08d470a-…` 도 teardown 이 지웠음(`learning_sessions` 12 =
+baseline). 그래서 A1-6 의 증거는 **위 `eval` 반환 JSON 하나**이고, 그 안에 기대값·관측값·
+`recv` 가 함께 들어 있어 회차 밖에서도 대조 가능함(호출자 요구를 그렇게 반영했음).
