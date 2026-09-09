@@ -131,6 +131,22 @@ OBSERVE_JS = """
   // ── 대조 ① — **주입 전** 배지 부재. 클릭보다 먼저 재므로 앞선 주입이 오염시킬 수 없다.
   const before = { badge_count: badges().length };
 
+  // ⛔ **앱의 onmessage 핸들러 부착을 기다린다 — 이것을 빼면 주입이 비결정적으로 죽는다.**
+  // 2026-09-09 실측: 초판이 클릭 직후 바로 주입해서 6회 중 2회가
+  // `omy.inject` 의 "앱의 onmessage 핸들러가 아직 붙지 않았다" 로 죽었고, **그 exit 1 을 판별력으로
+  // 오독할 뻔했다**(변이는 관측 뒤에 적용되므로 관측이 죽으면 변이는 적용조차 되지 않는다).
+  // 계측이 `omy.meta.appHandlerAttached` 로 그 상태를 노출한다(`instrument.js:211·534`).
+  const attachDeadline = Date.now() + 5000;
+  while (!(omy.meta && omy.meta.appHandlerAttached)) {
+    if (Date.now() > attachDeadline) {
+      throw new Error(
+        "앱 onmessage 핸들러가 5초 안에 붙지 않았다 — 세션 시작 클릭이 닿았는지 본다" +
+          " (meta=" + JSON.stringify(omy.meta || null) + ")"
+      );
+    }
+    await sleep(STEP);
+  }
+
   const sequence = [];
   for (const outcome of ORDER) {
     const injectedBefore = omy.injected;
@@ -209,7 +225,11 @@ def main() -> int:
     from pathlib import Path
 
     sys.path.insert(0, str(Path(__file__).parent))
-    from c2_render_hierarchy import Cdp, find_target, measure_js  # noqa: PLC0415
+    # ⛔ **계측은 `instrument.js` 다 — `measure_js()` 가 아니다.** 초판이 그것을 계측으로 써서
+    #    `eval` 이 `{}` 를 돌려주고 §4-1 검사에서 이름 있게 죽었다(2026-09-09 실측).
+    #    `measure_js()` 는 **C2 의 측정 스크립트**(6,029B)이고 계측은 `window.__omy` 를 설치하며
+    #    끝에서 `"instrumented"` 를 반환하는 44,552B 파일이다. 둘을 섞지 않는다.
+    from c2_render_hierarchy import INSTRUMENT, Cdp, find_target  # noqa: PLC0415
     from websockets.asyncio.client import connect  # noqa: PLC0415
 
     ap = argparse.ArgumentParser(description="C5 발음 배지 판정 (A5-1·A5-2)")
@@ -223,9 +243,9 @@ def main() -> int:
     )
     args = ap.parse_args()
 
-    src = measure_js()
+    src = INSTRUMENT.read_text(encoding="utf-8")
     file_sha = hashlib.sha256(src.encode("utf-8")).hexdigest()
-    print(f"계측 sha256(파일): {file_sha}  ({len(src.encode('utf-8'))}B)")
+    print(f"instrument.js sha256(파일): {file_sha}  ({len(src.encode('utf-8'))}B)")
 
     async def run() -> dict:
         ws_url, url = find_target(args.port, args.url)
@@ -266,6 +286,20 @@ def main() -> int:
                 "  .find(b => /학습 시작/.test(b.textContent||''))",
                 "학습 시작",
             )
+
+            # ⛔ **user activation 을 단정한다 — c2 가 쓰는 안전장치이고 초판이 빼먹었다.**
+            # 빼면 배경 탭 실패(`H-AE`)가 「주입 실패」로 늦게 드러나고, 그 exit 1 을 판별력으로
+            # 오독할 수 있다(2026-09-09 실측: 변이 5건 중 2건이 그 형태였다).
+            activation = await cdp.eval(
+                "JSON.stringify({hasBeenActive: navigator.userActivation.hasBeenActive,"
+                " isActive: navigator.userActivation.isActive})"
+            )
+            act = json.loads(activation)
+            if not act.get("hasBeenActive"):
+                raise SystemExit(
+                    f"user activation 이 생기지 않았다 — {act!r}. 탭이 배경이면 CDP 클릭이"
+                    " 페이지에 닿지 않는다 (H-AE). 다른 탭이 활성인지 본다"
+                )
 
             raw = await cdp.eval(observe_js(list(BADGE_TEXT)), await_promise=True)
             return json.loads(raw)

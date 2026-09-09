@@ -4,7 +4,7 @@ title: 판별력 관측 — 재설계한 단정 7건의 대조가 실제로 FAIL
 status: In Progress
 assignee: []
 created_date: '2026-09-06 02:43'
-updated_date: '2026-09-09 04:50'
+updated_date: '2026-09-09 05:58'
 labels:
   - caps-req
 dependencies:
@@ -30,7 +30,7 @@ TASK-29 가 7건을 재설계했으나 판별력을 '설계'했을 뿐 '관측'�
 - [x] #4 A3-1 의 상태별 세션 재방문에서 같은 요소의 문구가 바뀌는지 확인
 - [x] #5 A4-1 의 primary 세션이 corrections 를 비우지 않음을 확인하고 빈 세션 대조가 0 개를 내는지 확인
 - [x] #6 A4-2 의 기대값 교차 대조가 FAIL 을 내는지 확인 — 교정 2건 이상 세션이 필요하다. 1건뿐이면 판별력 미확인으로 기록한다
-- [ ] #7 A5-1 의 순차 주입에서 같은 요소의 문구가 매번 바뀌는지 확인
+- [x] #7 A5-1 의 순차 주입에서 같은 요소의 문구가 매번 바뀌는지 확인
 - [ ] #8 관측 결과를 회차 기록에 남기고 미확인으로 남은 건을 browser_leg.md 상자에 정확한 개수로 갱신한다
 <!-- AC:END -->
 
@@ -71,6 +71,27 @@ AC#8(기록·개수 갱신)은 세 회차가 끝난 뒤 마지막에 한다.
 §11-9 를 닫았다 — A4-2 표본 유무가 「없다」에서 「있다」로 바뀌었다. ⛔ C3f 를 지우면 되살아난다는 경고를 함께 넣었다.
 
 ⛔ 다음 세션이 잊지 말 것: 판별력 재설계 상자의 「미확인으로 남을 수 있는 것 2건」은 아직 안 고쳤다. A1-7 이 회차 2 에서 판정되므로 그때 한 번에 고친다(두 번 고치지 않는다). 그 자리에 A4-1 구조 하위 2건도 함께 넣어야 한다.
+
+⛔ 회차 2 유실 (2026-09-09) — H-AO 재발. 다시 돌려야 한다.
+
+위임한 검증자가 「Now let me write the run record」 시점에 API 오류로 죽었다. 즉 관측은 끝내고
+산출물만 잃었다 — pitfalls H-AO 가 적은 그 형태다.
+
+⚠️ 무결성은 지켜졌다(호출자가 직접 확인): 보존 세션 6개 전부 기대 상태 · 8개 표 수치가 baseline 과
+전부 동일(learning_sessions 13 · analysis_jobs 49 · utterances 120 · error_patterns 9 ·
+session_plans 2 · learner_notes 3 · pronunciation_attempts 4 · error_occurrences 24) · drift 0 ·
+harness_sessions 에 run_id 6454e5c1 로 C1 세션 3건이 등록돼 teardown 감사 기록이 남았다.
+즉 검증자가 회차를 정상 수행하고 teardown 까지 끝냈다.
+
+잃은 값: A1-4 의 when 배열 · A1-5 의 6줄 textContent · A1-7 의 sent.audio/end_session 계수와
+무음 대조 결과. AC#1·#2·#3 은 미체크로 둔다.
+
+⛔ 순서를 바꾼다 — 위임을 다시 하지 않고 C1 실행체를 만든 뒤 돌린다. 근거: 위임이 두 번 중 한 번
+죽었고(H-AO), C1 은 단정이 9건으로 가장 많아 유실 비용이 크고, 실행체가 있으면 유실이 구조적으로
+불가능해진다. TASK-49 가 C5 에서 같은 판단을 이미 내렸다.
+
+새 순서: ① stub_unresponsive 재기동 → TASK-49 AC#2·#3 실행 검증 = TASK-30 AC#7(A5-1) 을 함께 닫음
+(재기동 1회로 둘을 처리한다) ② 그 뒤 C1 실행체 신설 → AC#1·#2·#3 ③ AC#8.
 <!-- SECTION:NOTES:END -->
 
 ## Comments

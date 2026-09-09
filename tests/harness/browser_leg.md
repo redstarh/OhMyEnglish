@@ -353,10 +353,20 @@ cd app/backend && .venv/bin/python ../../tests/harness/c5_pronunciation_badge.py
 `cd app/backend && .venv/bin/pytest ../../tests/harness/test_c5_gates.py -q` → **11 passed**
 (2026-09-09 직접 실행). 변이 7건 · 빈 입력이 통과하지 않는지 · sentinel 이 실제 값과 겹치지 않는지.
 
-⚠️ **아직 실물 회차에서 돌리지 않았다.** 확인한 것은 게이트 11건과 `--help` exit 0 뿐이고,
-**대조 ①이 실제로 오염 없이 0 을 내는지와 실행체가 실물에서 exit 1 을 내는지는 미검증이다** —
-`TASK-30` 회차 3(`VOICE_ADAPTER=stub_unresponsive`)이 그것을 한다. **그때까지 A5-1 을 `PASS` 로
-올리지 않는다.**
+✅ **실물에서 돌렸다 (2026-09-09 · 회차 기록 `runs/2026-09-09-task30-c5-a51.md`).**
+정상 실행 `센 단정 15건 · 어긋남 0건` · exit **0** 이고, ⛔ **대조 ①이 `badge_count = 0` 으로 오염 없이
+나왔다** — 5차수가 합성 클릭 우회로 오염시켰던 그 값이다. 변이 **5건 전부 exit 1**(`badge-before` ·
+`two-badges` · `wrong-text` · `constant-text` · `sentinel-leak`)이고 **`FAIL` 줄이 실제로 났는지로
+셌다** — 환경 실패도 exit 1 을 내므로 exit code 만으로 세면 거짓 판별력이 된다(그 회차가 실제로
+그럴 뻔했다).
+
+⛔ **그 회차가 실행체 결함 3건을 잡았고 전부 고쳤다** — 값과 진단은 회차 기록이 소유한다:
+① 계측을 `measure_js()` 로 잘못 집었다(진짜 계측은 `instrument.js` · 44,552 B) ② 앱 `onmessage`
+핸들러 부착을 기다리지 않아 주입이 **비결정적으로** 죽었고 **그 exit 1 을 판별력으로 오독할 뻔했다**
+(변이는 관측 뒤에 적용되므로 관측이 죽으면 변이는 적용조차 되지 않는다) ③ c2 가 갖고 있는
+`hasBeenActive` 단정을 빼먹어 배경 탭 실패(`H-AE`)가 늦게 드러났다.
+⚠️ **곁가지**: `page` 탭이 여러 개면 `bringToFront` 에 활성 경쟁이 생겨 배경 탭 실패가 **비결정적**이
+된다 — `H-AE` 가 「배경 탭」은 담았으나 「탭 개수가 그것을 비결정적으로 만든다」는 새 각도다.
 
 ## §6. C2 측정 절차 — 타이밍에서 떼어낸다
 
