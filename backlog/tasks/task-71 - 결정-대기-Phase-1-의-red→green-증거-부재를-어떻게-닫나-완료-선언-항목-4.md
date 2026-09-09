@@ -1,10 +1,10 @@
 ---
 id: TASK-71
 title: '결정 대기: Phase 1 의 red→green 증거 부재를 어떻게 닫나 (완료 선언 항목 4)'
-status: Awaiting Decision
+status: Done
 assignee: []
 created_date: '2026-09-09 14:23'
-updated_date: '2026-09-09 14:23'
+updated_date: '2026-09-09 14:39'
 labels: []
 dependencies: []
 ordinal: 74000
@@ -32,7 +32,23 @@ AC 문서 「완료 선언 규칙」 항목 4 가 「각 W/R/G AC 테스트의 r
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 선택지 둘 중 하나로 결정을 받고 docs/ops/captain-instruction-register.md 에 등록한다
-- [ ] #2 면제를 고르면 AC 문서 「선언 자리」 표의 항목 4 에 면제와 근거를 적는다
-- [ ] #3 등가 증거를 고르면 어느 테스트에 뮤테이션 확인을 붙일지 목록을 만들어 태스크로 등록한다
+- [x] #1 선택지 둘 중 하나로 결정을 받고 docs/ops/captain-instruction-register.md 에 등록한다
+- [x] #2 면제를 고르면 AC 문서 「선언 자리」 표의 항목 4 에 면제와 근거를 적는다
+- [x] #3 등가 증거를 고르면 어느 테스트에 뮤테이션 확인을 붙일지 목록을 만들어 태스크로 등록한다
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-09-09 결정을 받아 같은 턴에 닫았음(rules/task-management.md §2 결정 대기 프로토콜).
+
+AC1 — 캡틴이 「뒱가 증거로 인정」(등가 증거)을 골랐음. 결정 48 로 대장에 등록했음(docs/ops/captain-instruction-register.md). 면제가 아니라 증거의 형태만 바꾼 것임 — red→green 의 목적이 「테스트가 결함을 실제로 잡는다」를 보이는 것이었고 뮤테이션 KILL 확인이 그것을 지금도 보일 수 있음.
+
+AC2 — 해당 없음. 면제를 고르지 않았으므로 「AC 문서에 면제와 근거를 적는다」가 발동하지 않음. ⛔ 이 칸을 체크한 것은 이행이 아니라 갈래가 닫혔다는 뜻임 — 다음 사람이 면제 기록을 찾지 않게 여기 적어 둠.
+
+AC3 — 목록을 만들고 TASK-73 으로 등록했음.
+
+⛔ 결정이 항목 4 를 곧바로 충족으로 만들지 않는다는 것을 결정 직후 직접 재서 확인했음. Phase 1 의 W/R/G AC 테스트에 기록된 뮤테이션 KILL 확인이 사실상 0건임 — test_utterances.py(W1·W3·W6)·test_jobs.py(W3·W4·W5)·test_claude_schema.py(W7)가 0건이고, 다른 파일의 히트는 테스트 이름(does_not_kill_the_session 류)이거나 SURVIVED 기록임. 후자는 KILL 의 반대 방향 사실이라 세지 않았음.
+
+즉 결정 48 이 만든 것은 닫힌 항목이 아니라 도달 가능한 경로임. AC 문서 「선언 자리」 표의 항목 4 를 그 사실대로 갱신했음 — 「충족 판정 불가」에서 「미충족 — 단 경로가 열렸다」로 바꾸고 소유자를 TASK-73 으로 적었음.
+<!-- SECTION:NOTES:END -->
