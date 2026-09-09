@@ -111,24 +111,26 @@ async def test_user_learning_transcript_is_saved_and_enqueued_when_the_turn_clos
     assert job["status"] == "pending"
 
 
-# ① 같은 트랜잭션 — 중간 실패를 주입하면 발화와 job이 함께 롤백된다.
-# 원자성의 소유자가 `save_final_transcript`에서 **호출자의 트랜잭션**으로 옮겨졌다
-# (I-1): 저장과 등록이 두 함수로 갈렸으므로, 둘을 한 단위로 묶는 것은 호출자다.
-async def test_transcript_and_job_roll_back_together_when_the_turn_fails(
-    db_conn: asyncpg.Connection,
-):
-    session_id = await _new_session(db_conn)
-
-    with pytest.raises(RuntimeError, match="injected"):
-        async with db_conn.transaction():  # savepoint = 호출자의 트랜잭션 경계
-            row = await save_final_transcript(db_conn, session_id, FIRST_TURN_ANSWER)
-            await save_final_transcript(db_conn, session_id, AGENT_REPLY, speaker="agent")
-            assert await flush_pending_analysis(db_conn, session_id) == [row.id]
-            assert await _counts(db_conn) == (2, 1)  # 커밋 전에는 보인다
-            assert row.sequence_no == 1
-            raise RuntimeError("injected failure after enqueue")
-
-    assert await _counts(db_conn) == (0, 0)  # 발화만 남거나 job만 남는 상태는 없다
+# ⛔ **여기 있던 `test_transcript_and_job_roll_back_together_when_the_turn_fails`를 지웠다 —
+#    되살리지 마라** (2026-09-09 codex 리뷰 HIGH · `TASK-76`).
+#
+# 그 테스트는 `async with db_conn.transaction():` 으로 **호출자 트랜잭션**을 열어
+# `save_final_transcript` 둘과 `flush_pending_analysis`를 감싸고, 예외를 던져 둘이 함께
+# 롤백되는 것을 단정했다. **프로덕션은 그 패턴을 쓰지 않고 금지한다** —
+# `audio_gateway/session.py`의 `_save_final`은 트랜잭션을 열지 않고,
+# `_flush_analysis`의 docstring이 *"호출자의 트랜잭션 안에서 부르지 않는다 — SQL 오류가 나면 그
+# 트랜잭션이 abort되어 뒤따르는 종료 기록까지 함께 실패한다"*를 명시한다. 즉 **프로덕션에 없는
+# 호출 패턴에서만 참인 성질을 증명하고 있었다.**
+#
+# ⛔ **그 성질은 애초에 설계 목표가 아니다.** `save_final_transcript`의 docstring이 그것을 적어
+# 뒀다 — *"분석 job은 여기서 걸지 않는다"* · *"I-1에서 enqueue가 빠지며 「두 write의 원자성」이라는
+# 원래 목적은 사라졌다"*. 즉 낡은 것은 테스트가 아니라 **AC W1의 문면**이고, 그것은 AC 문서에서
+# 고쳤다(`docs/design/2026-08-25-first-slice-acceptance-criteria.md`).
+#
+# **고치지 않고 지운 이유**: 지금 참인 것은 위 ①(`저장만으로는 job이 걸리지 않는다`)과 아래
+# 스윕 묶음(`test_sweep_enqueues_an_unflushed_run_in_an_ended_session` ·
+# `test_sweep_covers_sessions_closed_as_failed`)이 **이미 덮는다.** 같은 것을 세 번째로 쓰는 대신
+# 거짓 신호를 없앴다 — 통과하는 테스트가 있다는 것이 그 성질이 보장된다는 뜻이 되면 안 된다.
 
 
 # ② voice_command 발화는 저장되지만 job은 등록되지 않는다 (W6)
