@@ -2252,7 +2252,11 @@ git add docs/ TASKS.md handoff/HANDOFF.md
 git commit -m "docs: 006과 복습 재계산을 문서에 반영 — 슬라이스 1 완료 [skip ci]"
 ```
 
-`docs:` 접두어이므로 `[skip ci]`가 허용된다 (`code-development-principles.md` §2).
+`docs:` 접두어이므로 `[skip ci]`가 허용된다.
+⚠️ **2026-09-09 경로 정정** — 이 허용을 정한 `rules/code-development-principles.md` §2 는 **삭제됐고
+상시 로드 규칙에 후계가 없다**(직접 확인: `~/.claude` 의 `CLAUDE.md`·`AGENTS.md`·`rules/`·`docs/` 에
+`skip ci` 가 0건이고 `backups/rules-2026-09-09/code-development-principles.md` 에만 남았다).
+⛔ **이 리포에서는 그 태그가 애초에 동작상 무의미하다** — 근거는 `docs/ops/pitfalls.md` 의 **H-AQ** 다.
 
 ---
 

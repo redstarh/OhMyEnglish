@@ -58,7 +58,7 @@ cd app/backend
 | 4 | ✅ **원격이 붙었고 푸시가 기본 리듬임.** `origin` = `github.com/redstarh/OhMyEnglish` · **PUBLIC** · 기본 브랜치 `main`. ⛔ **남은 잔여 위험**: DB 비밀번호가 **공개 이력에 있음**(결정 41 이 회전 면제). Postgres 가 `localhost` 전용 바인딩이라 한계 위험은 낮으나 0 은 아님. 없애는 선택지 셋은 **결정 42 가 소유함** — 다시 발명하지 않음 | 결정 42·41 |
 | 5 | ⚠️ **`backlog task list --ready` 는 상태를 걸러내지 않음** — `Awaiting Decision`·`In Progress` 까지 「착수 가능」으로 뜸. **SessionStart 브리핑의 분류를 믿음** | 이 파일 |
 | 6 | ⛔ **워커를 켜기 전에 `H-AT` 를 읽음.** `available_at` 비켜두기만으로는 부족함 — `flush_ended_sessions` 가 **job 을 새로 만듦** | `H-AT` |
-| 7 | **함정을 안다** — `H-AT`(워커가 보존 세션을 파괴함) · `H-AS`(문서 기동 명령이 워커를 켬 · 기본값 `True`) · `H-AR`(format 의 N files 가 `.md` 를 셈) · `H-AO`(위임 리뷰가 산출물만 잃고 죽음) · `H-AM`(병렬 dispatch → `git commit -- <path>`) · `H-AJ`(pytest 에 경로만 주면 async 가 죽음) · `H-AL`(완료 태스크의 낡은 노트) · `H-X`(⛔ 동시 `pytest` 금지) · `H-AP`(판별력 확인이 stale `__pycache__` 를 남김) | `docs/ops/pitfalls.md` |
+| 7 | **함정을 안다** — `H-AU`(⛔ **`grep -r` 이 리포 루트에서 파일을 조용히 빠뜨림 — 「0건」이 거짓이 됨.** 증거용 grep 은 `git ls-files \| xargs grep` 으로 돌림) · `H-AT`(워커가 보존 세션을 파괴함) · `H-AS`(문서 기동 명령이 워커를 켬 · 기본값 `True`) · `H-AR`(format 의 N files 가 `.md` 를 셈) · `H-AO`(위임 리뷰가 산출물만 잃고 죽음) · `H-AM`(병렬 dispatch → `git commit -- <path>`) · `H-AJ`(pytest 에 경로만 주면 async 가 죽음) · `H-AL`(완료 태스크의 낡은 노트) · `H-X`(⛔ 동시 `pytest` 금지) · `H-AP`(판별력 확인이 stale `__pycache__` 를 남김) | `docs/ops/pitfalls.md` |
 | 8 | **DB 는 공유 인스턴스임**(`:5432`, StockAgent·En-Coach 와). 재시작·`ALTER SYSTEM`·`ALTER DATABASE … SET TimeZone` 금지 | `docs/ops/shared-database-guide.md` |
 | 9 | ⚠️ **`.superpowers/**` 는 git 추적 밖임** — critic·리뷰 보고서 전부가 거기 있음. **지우지 않음** | `.superpowers/sdd/2026-09-07-…/` |
 
