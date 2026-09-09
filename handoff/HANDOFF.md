@@ -54,7 +54,7 @@ cd app/backend
 
 | # | 무엇 | 정본 |
 |--:|---|---|
-| 1 | **받은 캡틴 결정을 다시 묻지 않음.** 개수를 세지 않음 — register 가 열거함. 최근 것 중 판단을 바꾸는 것: **40**(크리티컬 아닌 것은 사전 승인) · **41**(자격증명 회전 면제) · **42**(첫 푸시 완료) · **27**(008·002 영구 결번) · **31**(스키마 이관은 전부 끝난 뒤) | `docs/ops/captain-instruction-register.md` |
+| 1 | **받은 캡틴 결정을 다시 묻지 않음.** 개수를 세지 않음 — register 가 열거함. 최근 것 중 판단을 바꾸는 것: **43**(⛔ **태스크 경계에서 멈추지 않음** — 확인을 기다리는 것은 예의가 아니라 요청의 불이행임) · **44**(참고 프로젝트 적용은 `TASK-59`·`TASK-60` **둘뿐** · prompt cache 와 BlackHole 은 **하지 않음**) · **45**(음성 제어·세션 총평을 요건으로 확정 · 튜터 목소리는 외부 합성으로 바꾸지 않음) · **40**(크리티컬 아닌 것은 사전 승인) · **41**(자격증명 회전 면제) · **42**(첫 푸시 완료) · **31**(스키마 이관은 전부 끝난 뒤) | `docs/ops/captain-instruction-register.md` |
 | 2 | ⛔ **critic 재검증 루프를 다시 돌리지 않음.** 4회차까지 갔고 결정 22 가 설계·문서의 리뷰 게이트를 없앴음 | 결정 22 |
 | 3 | **설계는 끝났음 — 다시 하지 않음.** 구현 소유자 `TASK-43`·`44`·`45` 전부 `Done`. 남은 UI 는 `TASK-10` 이 소유하고 그 노트에 선점 목록이 있음 | 원장 |
 | 4 | ✅ **원격이 붙었고 푸시가 기본 리듬임.** `origin` = `github.com/redstarh/OhMyEnglish` · **PUBLIC** · 기본 브랜치 `main`. ⛔ **남은 잔여 위험**: DB 비밀번호가 **공개 이력에 있음**(결정 41 이 회전 면제). Postgres 가 `localhost` 전용 바인딩이라 한계 위험은 낮으나 0 은 아님. 없애는 선택지 셋은 **결정 42 가 소유함** — 다시 발명하지 않음 | 결정 42·41 |
@@ -68,8 +68,8 @@ cd app/backend
 
 | # | 지표 | 기준값 (마감 시점에 직접 돌려 얻었음) |
 |--:|---|---|
-| 1 | `git rev-parse --short HEAD` · `git status` | **`8b5b2e0` 이상**(등호를 요구하지 않음 — `H-P`) · 추적 미커밋 **0건** · `origin` 과 동기 |
-| 2 | 원장 — `grep -h "^status:" backlog/tasks/*.md \| sort \| uniq -c` | 전체 **61** · Done **45** · To Do **16** · In Progress **0** · Awaiting Decision **0**. ⛔ `backlog task list --plain \| grep -c "^  TASK-"` 로 세지 않음 — 우선순위 라벨이 붙으면 빠짐 |
+| 1 | `git rev-parse --short HEAD` · `git status` | **`f5ff611` 이상**(등호를 요구하지 않음 — `H-P`) · 추적 미커밋 **0건** · `origin` 과 동기 |
+| 2 | 원장 — `grep -h "^status:" backlog/tasks/*.md \| sort \| uniq -c` | 전체 **66** · Done **45** · To Do **21** · In Progress **0** · Awaiting Decision **0**. ⛔ `backlog task list --plain \| grep -c "^  TASK-"` 로 세지 않음 — 우선순위 라벨이 붙으면 빠짐 |
 | 3 | 게이트 (`app/backend` cwd) | **869 passed** · `ruff check` exit 0 · format **unformatted 0** · `ty check` exit 0 · 게이트 **밖** `ruff check` **0 errors** · format **unformatted 0** · 프론트 `npx tsc --noEmit`·`npx eslint app lib` exit 0. ⚠️ **843 → 854 → 869 는 게이트 테스트가 는 것**(`test_c5_gates.py` 11건 · `test_c1_gates.py` 15건) — 회귀가 아님. **그 둘이 판별력을 브라우저 없이 지킴.** ⛔ **`ty check` 는 `tests/harness/**` 까지 본다** — 2026-09-09 에 그 사실을 모르고 새 하네스 파일을 넣어 진단 4건이 났고(다른 세션이 찾음) **`TASK-49` 를 닫을 때 이 항목을 다시 재지 않은 것이 그 누락의 원인임.** 하네스 파일을 추가했으면 `ty check` 도 다시 잼 |
 | 4 | DB (읽기만) | `schema_migrations` **9건**(`001·003~007·009·010·011`) · `learning_sessions` **13** · `error_patterns` **9** · `error_occurrences` **24** · `utterances` **120** · `session_plans` **2** · `review_tasks` **15** · `pronunciation_attempts` **4** · **§8 drift 0** · **보존 세션 6개** 생존. ⚠️ **수치에 표 이름을 붙여 적음** — 이름 없는 묶음은 읽는 사람이 엉뚱한 표에 대응시킴(2026-09-09 실측) |
 | 5 | 결과 API 상태 6개 | `210233be` `analyzing` · `6225ddaf` `final`(교정 1) · `b2f0d169` `partial_failure` · `76d9ef31` `connection_failed` · `d127dece` `no_utterances` · **`e0c5e580` `final`(교정 2 — A4-2 표본)**. ⛔ **이 여섯이 `browser_leg.md` §9 의 자산임 — 지우지 않음** |
