@@ -49,6 +49,33 @@
 tool 이 온 2회 **모두** `target_sound` 가 있었음(`th_as_s`). 즉 복습 시계의 SQL 게이트를 통과할
 재료가 함께 옴 — **오는 것이 문제이고 실리는 것은 문제가 아님.**
 
+## 4-1. 후속 — 「코칭 ⟺ tool」을 내 6회로 대조했음 (2026-09-10)
+
+다른 세션이 표본을 늘리지 않고 **판별**로 닫았음(`runs/2026-09-10-task78-coaching-implies-tool.md` ·
+15/15 · 반대 방향 0건). 하중을 지는 주장이라 **내 원자료로 같은 관계를 확인했음.**
+
+⛔ **먼저 내 방법을 정정함** — 처음에 `sound` 키워드로 코칭 여부를 세려 했는데
+*"That sounds very professional"* 이 걸려서 **판별력이 0이었음.** 그래서 `role=ASSISTANT` 인
+`textOutput` 을 골라 **발화를 읽어서** 판정했음.
+
+| 팔 | `toolUse` | agent 가 그 턴에 한 것 | 관계 |
+|---|--:|---|---|
+| `p2a`+`p2k` ① | 1 | *"Let's make it a little more natural … Try saying: …"* — **문장을 다시 말하게 함** | ⚠️ 소리를 **이름으로 부르지는 않았음** |
+| `p2a`+`p2k` ② | 0 | *"Thank you for repeating. Your sentence is very clear."* — 문제 없다고 판정 | ✅ 맞음 |
+| `p1a`+`p1k` | 0 | *"Good, you said that very clearly."* | ✅ 맞음 |
+| `p2m`+`p2k` | 0 | *"I see you said 'la porte en chaille.' Did you mean …"* — 되물었으나 소리 지목 없음 | ✅ 맞음 |
+| `p1a`+`p1m` | 0 | *"Thanks for repeating that. Can you tell me …"* | ✅ 맞음 |
+| `p2a`+`p2k` ③ | 1 | *"Good. Let's focus on the th sound in the. Try saying …"* — **소리를 지목함** | ✅ 맞음 |
+
+**판정: 내 6회에서도 같은 방향임.** 단 정의에 따라 한 칸이 갈림 — 「코칭」을 **문장을 다시 말하게
+함**으로 읽으면 6/6 이 일치하고, **소리를 이름으로 부름**으로 좁게 읽으면 ①이 예외임(tool 은 왔고
+발화는 자연스러움 교정이었음). ⚠️ **그 차이를 뭉개지 않음** — 좁은 정의에서는 반대 방향 사례가
+내 표본에 **1건 있음.**
+
+⚠️ 곁가지 관측 하나 — `p2m`+`p2k` 에서 전사문이 **`la porte en chaille`**(프랑스어풍)로 왔음.
+ASR 언어 판별이 한글이 아닌 **제3 언어로도** 뒤집힘. `TASK-65` 가 찾은 기전의 범위가 더 넓을 수
+있고, **보조 신호(한글 감지)가 그것을 못 잡음** — `note_transcript` 는 `[가-힣]` 만 봄.
+
 ## 5. 다음 걸음 — 표본 추가가 아니라 판별
 
 ⛔ **더 돌리는 것으로는 닫히지 않음.** 5/9 를 6/11 로 만들어도 「왜 안 오는가」는 그대로임.
