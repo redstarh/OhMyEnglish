@@ -1,0 +1,277 @@
+{
+ "api": {
+  "analyzing": {
+   "status": "analyzing",
+   "partial_failure": false,
+   "pronunciation": []
+  },
+  "final": {
+   "status": "final",
+   "partial_failure": false,
+   "pronunciation": [],
+   "corrections": [
+    {
+     "pattern_key": "article_missing_the_before_place_noun",
+     "category": "article",
+     "original_span": "go to gym",
+     "correction": "go to the gym",
+     "reason": "gym처럼 늘 다니는 장소를 말할 때는 앞에 the를 붙여 'go to the gym'이라고 합니다.",
+     "target_form": "go to the + 장소 명사",
+     "occurrences": 1
+    }
+   ]
+  },
+  "final_two": {
+   "status": "final",
+   "partial_failure": false,
+   "pronunciation": [],
+   "corrections": [
+    {
+     "pattern_key": "verb_tense_past_simple_for_past_events",
+     "category": "verb_tense",
+     "original_span": "and present the project's details",
+     "correction": "and presented the project details",
+     "reason": "앞의 went와 같은 어제 일이므로 present도 과거형 presented로 맞춰 줍니다.",
+     "target_form": "Yesterday + 주어 + 동사 과거형",
+     "occurrences": 2
+    },
+    {
+     "pattern_key": "article_missing_the_before_place_noun",
+     "category": "article",
+     "original_span": "go to office",
+     "correction": "go to the office",
+     "reason": "회사 사무실처럼 정해진 장소를 말할 때는 장소 명사 앞에 the를 붙여 go to the office라고 합니다.",
+     "target_form": "go to the + 장소 명사",
+     "occurrences": 2
+    }
+   ],
+   "drill": {
+    "exchanges_observed": 2,
+    "exchanges_expected": 20
+   }
+  },
+  "partial_failure": {
+   "status": "partial_failure",
+   "partial_failure": true,
+   "pronunciation": [],
+   "corrections": []
+  },
+  "connection_failed": {
+   "status": "connection_failed",
+   "partial_failure": false,
+   "pronunciation": []
+  },
+  "no_utterances": {
+   "status": "no_utterances",
+   "partial_failure": false,
+   "pronunciation": []
+  }
+ },
+ "dom": {
+  "analyzing": {
+   "url": "http://localhost:3000/results/210233be-ecaa-4409-a1af-8b7016cfe7e9",
+   "directPCount": 2,
+   "firstDirectP": {
+    "text": "분석 중",
+    "outerHTML": "<p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p>"
+   },
+   "directPTexts": [
+    "분석 중",
+    "← 학습 시작 화면으로"
+   ],
+   "prefixCounts": {
+    "원문": 0,
+    "교정문": 0
+   },
+   "cards": [],
+   "bodyHasPartialNotice": false,
+   "labelsAnywhere": [
+    "분석 중"
+   ],
+   "bodyText": "학습 결과분석 중← 학습 시작 화면으로self.__next_r=\"ENx1A2cgUlNMuB84dXEYZ\";if(document.cookie.indexOf('next-instant-navigation-testing=')>-1){self.__next_instant_test=fetch(location.pathname+'?_rsc=xhdorIanPcIpYSsE',{credentials:'same-origin',headers:{'rsc':'1','next-router-prefetch':'1','next-router-segment-prefet",
+   "screenshot": ".harness/evidence/c3-analyzing.png"
+  },
+  "final": {
+   "url": "http://localhost:3000/results/6225ddaf-90a8-43af-9aa8-e003921c75eb",
+   "directPCount": 2,
+   "firstDirectP": {
+    "text": "확정",
+    "outerHTML": "<p style=\"font-size: 1.25rem; font-weight: bold;\">확정</p>"
+   },
+   "directPTexts": [
+    "확정",
+    "← 학습 시작 화면으로"
+   ],
+   "prefixCounts": {
+    "원문": 1,
+    "교정문": 1
+   },
+   "cards": [
+    {
+     "pCount": 3,
+     "strongs": [
+      "원문:",
+      "교정문:",
+      null
+     ],
+     "texts": [
+      "원문: go to gym",
+      "교정문: go to the gym",
+      "gym처럼 늘 다니는 장소를 말할 때는 앞에 the를 붙여 'go to the gym'이라고 합니다."
+     ],
+     "outerHTML": "<div style=\"border: 1px solid rgb(221, 221, 221); border-radius: 8px; padding: 1rem; margin: 0.75rem 0px;\"><p style=\"margin: 0.25rem 0px;\"><strong>원문:</strong> go to gym</p><p style=\"margin: 0.25rem 0px;\"><strong>교정문:</strong> go to the gym</p><p style=\"margin: 0.25rem 0px; color: var(--foreground-muted);\">gym처럼 늘 다니는 장소를 말할 때는 앞에 the를 붙여 'go to the gym'이라고 합니다.</p></div>"
+    }
+   ],
+   "bodyHasPartialNotice": false,
+   "labelsAnywhere": [
+    "확정"
+   ],
+   "bodyText": "학습 결과확정원문: go to gym교정문: go to the gymgym처럼 늘 다니는 장소를 말할 때는 앞에 the를 붙여 'go to the gym'이라고 합니다.← 학습 시작 화면으로self.__next_r=\"8QdppdevdQQCCQW5d0kma\";if(document.cookie.indexOf('next-instant-navigation-testing=')>-1){self.__next_instant_test=fetch(location.pathname+'?_rsc=xhdorIanPcIpYSsE',{credentials:'s",
+   "screenshot": ".harness/evidence/c3-final.png"
+  },
+  "final_two": {
+   "url": "http://localhost:3000/results/e0c5e580-dfc0-4793-b02d-54cf4346c3c5",
+   "directPCount": 3,
+   "firstDirectP": {
+    "text": "확정",
+    "outerHTML": "<p style=\"font-size: 1.25rem; font-weight: bold;\">확정</p>"
+   },
+   "directPTexts": [
+    "확정",
+    "오늘은 드릴이 계획보다 짧았어요.",
+    "← 학습 시작 화면으로"
+   ],
+   "prefixCounts": {
+    "원문": 2,
+    "교정문": 2
+   },
+   "cards": [
+    {
+     "pCount": 3,
+     "strongs": [
+      "원문:",
+      "교정문:",
+      null
+     ],
+     "texts": [
+      "원문: and present the project's details",
+      "교정문: and presented the project details",
+      "앞의 went와 같은 어제 일이므로 present도 과거형 presented로 맞춰 줍니다."
+     ],
+     "outerHTML": "<div style=\"border: 1px solid rgb(221, 221, 221); border-radius: 8px; padding: 1rem; margin: 0.75rem 0px;\"><p style=\"margin: 0.25rem 0px;\"><strong>원문:</strong> and present the project's details</p><p style=\"margin: 0.25rem 0px;\"><strong>교정문:</strong> and presented the project details</p><p style=\"margin: 0.25rem 0px; color: var(--foreground-muted);\">앞의 went와 같은 어제 일이므로 present도 과거형 presented로 맞춰 줍니다.</p></div>"
+    },
+    {
+     "pCount": 3,
+     "strongs": [
+      "원문:",
+      "교정문:",
+      null
+     ],
+     "texts": [
+      "원문: go to office",
+      "교정문: go to the office",
+      "회사 사무실처럼 정해진 장소를 말할 때는 장소 명사 앞에 the를 붙여 go to the office라고 합니다."
+     ],
+     "outerHTML": "<div style=\"border: 1px solid rgb(221, 221, 221); border-radius: 8px; padding: 1rem; margin: 0.75rem 0px;\"><p style=\"margin: 0.25rem 0px;\"><strong>원문:</strong> go to office</p><p style=\"margin: 0.25rem 0px;\"><strong>교정문:</strong> go to the office</p><p style=\"margin: 0.25rem 0px; color: var(--foreground-muted);\">회사 사무실처럼 정해진 장소를 말할 때는 장소 명사 앞에 the를 붙여 go to the office라고 합니다.</p></div>"
+    }
+   ],
+   "bodyHasPartialNotice": false,
+   "labelsAnywhere": [
+    "확정"
+   ],
+   "bodyText": "학습 결과확정오늘은 드릴이 계획보다 짧았어요.원문: and present the project's details교정문: and presented the project details앞의 went와 같은 어제 일이므로 present도 과거형 presented로 맞춰 줍니다.원문: go to office교정문: go to the office회사 사무실처럼 정해진 장소를 말할 때는 장소 명사 앞에 the를 붙여 go to the office라고 합니다.← 학습 시작 화면으로self.__next_r=\"1b-uKyTcPxS_SF35U4jJ5\"",
+   "screenshot": ".harness/evidence/c3-final_two.png"
+  },
+  "partial_failure": {
+   "url": "http://localhost:3000/results/b2f0d169-3d90-431b-b842-cce21125052a",
+   "directPCount": 3,
+   "firstDirectP": {
+    "text": "부분 실패",
+    "outerHTML": "<p style=\"font-size: 1.25rem; font-weight: bold;\">부분 실패</p>"
+   },
+   "directPTexts": [
+    "부분 실패",
+    "분석하지 못한 발화가 있습니다 — 재시도되지 않습니다",
+    "← 학습 시작 화면으로"
+   ],
+   "prefixCounts": {
+    "원문": 0,
+    "교정문": 0
+   },
+   "cards": [],
+   "bodyHasPartialNotice": true,
+   "labelsAnywhere": [
+    "부분 실패"
+   ],
+   "bodyText": "학습 결과부분 실패분석하지 못한 발화가 있습니다 — 재시도되지 않습니다표시할 교정이 없습니다.← 학습 시작 화면으로self.__next_r=\"mwtsTqtMS6LPLTj9ITHbe\";if(document.cookie.indexOf('next-instant-navigation-testing=')>-1){self.__next_instant_test=fetch(location.pathname+'?_rsc=xhdorIanPcIpYSsE',{credentials:'same-origin',headers:{'rsc':'1','next-route",
+   "screenshot": ".harness/evidence/c3-partial_failure.png"
+  },
+  "connection_failed": {
+   "url": "http://localhost:3000/results/76d9ef31-0d1b-4c50-b906-f16ee438080e",
+   "directPCount": 2,
+   "firstDirectP": {
+    "text": "연결 실패",
+    "outerHTML": "<p style=\"font-size: 1.25rem; font-weight: bold;\">연결 실패</p>"
+   },
+   "directPTexts": [
+    "연결 실패",
+    "← 학습 시작 화면으로"
+   ],
+   "prefixCounts": {
+    "원문": 0,
+    "교정문": 0
+   },
+   "cards": [],
+   "bodyHasPartialNotice": false,
+   "labelsAnywhere": [
+    "연결 실패"
+   ],
+   "bodyText": "학습 결과연결 실패← 학습 시작 화면으로self.__next_r=\"AO_gHe8GtfOIWFg0Tot7G\";if(document.cookie.indexOf('next-instant-navigation-testing=')>-1){self.__next_instant_test=fetch(location.pathname+'?_rsc=xhdorIanPcIpYSsE',{credentials:'same-origin',headers:{'rsc':'1','next-router-prefetch':'1','next-router-segment-prefe",
+   "screenshot": ".harness/evidence/c3-connection_failed.png"
+  },
+  "no_utterances": {
+   "url": "http://localhost:3000/results/d127dece-d1d1-4329-802d-9b8fd1067388",
+   "directPCount": 2,
+   "firstDirectP": {
+    "text": "분석 대상 없음",
+    "outerHTML": "<p style=\"font-size: 1.25rem; font-weight: bold;\">분석 대상 없음</p>"
+   },
+   "directPTexts": [
+    "분석 대상 없음",
+    "← 학습 시작 화면으로"
+   ],
+   "prefixCounts": {
+    "원문": 0,
+    "교정문": 0
+   },
+   "cards": [],
+   "bodyHasPartialNotice": false,
+   "labelsAnywhere": [
+    "분석 대상 없음"
+   ],
+   "bodyText": "학습 결과분석 대상 없음← 학습 시작 화면으로self.__next_r=\"6PCJNwCFHT6ymIcLnZ1M5\";if(document.cookie.indexOf('next-instant-navigation-testing=')>-1){self.__next_instant_test=fetch(location.pathname+'?_rsc=xhdorIanPcIpYSsE',{credentials:'same-origin',headers:{'rsc':'1','next-router-prefetch':'1','next-router-segment-pr",
+   "screenshot": ".harness/evidence/c3-no_utterances.png"
+  }
+ },
+ "missing": {
+  "url": "http://localhost:3000/results/00000000-0000-0000-0000-0000000000ff",
+  "directPCount": 2,
+  "firstDirectP": {
+   "text": "그 학습 결과를 찾을 수 없습니다.",
+   "outerHTML": "<p style=\"color: var(--danger);\">그 학습 결과를 찾을 수 없습니다.</p>"
+  },
+  "directPTexts": [
+   "그 학습 결과를 찾을 수 없습니다.",
+   "← 학습 시작 화면으로"
+  ],
+  "prefixCounts": {
+   "원문": 0,
+   "교정문": 0
+  },
+  "cards": [],
+  "bodyHasPartialNotice": false,
+  "labelsAnywhere": [],
+  "bodyText": "학습 결과그 학습 결과를 찾을 수 없습니다.← 학습 시작 화면으로self.__next_r=\"xa1KW5ZuOByioFq6noTUp\";if(document.cookie.indexOf('next-instant-navigation-testing=')>-1){self.__next_instant_test=fetch(location.pathname+'?_rsc=xhdorIanPcIpYSsE',{credentials:'same-origin',headers:{'rsc':'1','next-router-prefetch':'1','next-router",
+  "screenshot": ".harness/evidence/c3-missing.png"
+ }
+}

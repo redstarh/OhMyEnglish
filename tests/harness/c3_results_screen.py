@@ -14,8 +14,10 @@
   `<p>`를 **직계로 가진 `<div>`**다.
 - **기대값은 결과 API에서 유도한다**(ⓑ) — `corrections` 개수·`reason` 문자열을 하드코딩하지 않는다.
   API는 화면의 **상류**라 순환이 아니다. 단 상태 라벨 5개는 화면이 소유하는 한국어 문구이므로 ⓒ다.
-- **A3-1의 음성 대조는 「상태별 세션 재방문」이다** — 5상태를 차례로 방문해 **같은 요소의 문구가
-  매번 바뀌는지** 본다. 상수를 렌더하고 있으면 바뀌지 않는다.
+- **A3-1의 음성 대조는 「상태별 세션 재방문」이다** — 상태를 차례로 방문해 **같은 요소의 문구가
+  상태마다 바뀌는지** 본다. 상수를 렌더하고 있으면 바뀌지 않는다. ⛔ **세는 대상은 세션이 아니라
+  status 다**(`TASK-64`) — 같은 상태의 세션을 둘 넣으면 라벨이 정당하게 겹치므로 세션 목록의
+  중복을 보는 판정은 오탐한다. 판정은 `check_status_label_variation`이 소유한다.
 - **A4-1의 음성 대조는 `corrections`가 빈 세션에서 두 접두가 0개**인 것이다. 그 세션을 primary로
   쓰지 않는다 — `N == 0`을 primary로 잡으면 `0 == 0`이라 카드 구현이 없어도 통과한다.
 - **판별력 미확인을 PASS로 적지 않는다**(§10) — A4-2의 기대값 교차 대조는 교정 **2건 이상**인
@@ -252,6 +254,53 @@ def check_missing(dom: dict) -> tuple[int, list[str]]:
     return checked, fails
 
 
+def check_status_label_variation(
+    payloads: dict, results: dict, sessions: dict
+) -> tuple[int, list[str], str | None]:
+    """A3-1 음성 대조 — 같은 요소의 문구가 **상태마다** 바뀐다. 반환 `(검사 수, 어긋남, 미확인)`.
+
+    ⛔ **세션 목록의 중복이 아니라 「서로 다른 status 의 수」로 판정한다** (`TASK-64`). 이전 판은
+    `len(set(texts)) != len(texts)` 로 세션 목록을 봤는데 그것이 **「상태당 세션 1건」을 암묵
+    전제했다**: 같은 status 의 세션을 둘 넣으면 라벨이 **정당하게** 겹쳐 FAIL 이 났다(교정 2건
+    이상인 `final` 세션을 여섯째로 넣어 직접 관측). 그 오탐이 `browser_leg.md` §11-9 가 요구하는
+    「교정 2건 이상 세션 추가」를 막고 있었고, 그래서 A4-2 가 매 회차 미확인으로 남았다.
+
+    ⛔ **원래 근거는 살아 있다** (C3 검토 ③): 상태가 1종이면 「상태마다 바뀐다」는 **항진명제**라
+    평가하지 않고 미확인으로 낸다. 바뀐 것은 세는 대상이 세션에서 **상태**로 옮겨간 것뿐이다.
+
+    ⛔ **이 함수가 `main_async` 밖에 있는 이유**: 판정이 코루틴 안에 있으면 무력화 입력으로 잴 수
+    없다. `test_c3_gates.py` 가 브라우저 없이 이 함수의 판별력을 지킨다.
+    """
+    fails: list[str] = []
+    by_status: dict[str, set[str]] = {}
+    for key in sessions:
+        first = results[key].get("firstDirectP")
+        if first:
+            by_status.setdefault(payloads[key]["status"], set()).add(first["text"])
+
+    if len(by_status) < 2:
+        return (
+            0,
+            fails,
+            f"A3-1 음성 대조 미평가: 서로 다른 상태가 {len(by_status)}종뿐이다 —"
+            " 「상태마다 문구가 바뀐다」는 2종 이상에서만 평가된다(§10)",
+        )
+
+    observed = {status: sorted(texts) for status, texts in by_status.items()}
+    # ① 같은 상태는 같은 문구를 낸다 — 갈리면 화면이 status 의 함수가 아니다.
+    split = {status: texts for status, texts in observed.items() if len(texts) > 1}
+    if split:
+        fails.append(f"A3-1: 같은 상태가 서로 다른 문구를 냈다 — {split}")
+    # ② 서로 다른 상태는 서로 다른 문구를 낸다 — 겹치면 상수를 렌더하고 있다.
+    distinct = {t for texts in by_status.values() for t in texts}
+    if len(distinct) != len(by_status):
+        fails.append(
+            f"A3-1 음성 대조: 서로 다른 상태가 같은 문구를 냈다 — 상태 {len(by_status)}종에"
+            f" 문구 {len(distinct)}종 · {observed}"
+        )
+    return 2, fails, None
+
+
 async def main_async(args) -> int:
     sessions = dict(pair.split("=", 1) for pair in args.session)
     if not sessions:
@@ -310,22 +359,11 @@ async def main_async(args) -> int:
     checked += c
     fails += [f"[missing-uuid] {m}" for m in f]
 
-    # A3-1 음성 대조 — 같은 요소의 문구가 상태마다 **실제로 바뀐다**.
-    # ⛔ **세션이 1건이면 이 대조는 항진명제다** (C3 검토 ③): `len(set(x)) != len(x)` 는 원소가
-    #    하나면 **절대 참이 되지 않는다.** C2 의 `check_cross` 는 단일 모드를 `미평가`로 갈랐는데
-    #    여기엔 그 분기가 없었다. → **2건 미만이면 평가하지 않고 미확인으로**
-    #    낸다(PASS 로 세지 않는다).
-    texts = [results[k]["firstDirectP"]["text"] for k in sessions if results[k].get("firstDirectP")]
-    if len(texts) < 2:
-        unverified_extra = (
-            f"A3-1 음성 대조 미평가: 상태 화면이 {len(texts)}건뿐이다 —"
-            " 「상태마다 문구가 바뀐다」는 2건 이상에서만 평가된다(§10)"
-        )
-    else:
-        unverified_extra = None
-        checked += 1
-        if len(set(texts)) != len(texts):
-            fails.append(f"A3-1 음성 대조: 같은 요소의 문구가 상태마다 바뀌지 않았다 — {texts}")
+    # A3-1 음성 대조 — 판정은 `check_status_label_variation` 이 소유한다(무력화로 재려면
+    # 코루틴 밖에 있어야 한다). 세는 대상이 세션이 아니라 **상태**인 근거는 그 docstring 이 갖는다.
+    c, f, unverified_extra = check_status_label_variation(payloads, results, sessions)
+    checked += c
+    fails += f
     # 실제 세션에는 A3-2 의 오류 문구가 없어야 한다(상호 대조).
     for key in sessions:
         checked += 1

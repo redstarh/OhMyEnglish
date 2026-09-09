@@ -5,14 +5,17 @@
 14 → **6**으로 줄고 **어긋남 0건**이 됐다(A4-1·A4-2 전체가 조용히 사라지는데 FAIL이 아니다).
 그 형태를 회귀로 못 박는 것이 이 파일의 첫 목적이다.
 
-⚠️ **입력은 실제 회차의 판독값이다** — `runs/2026-09-09-c3-dom-read-post-task55.json`. 손으로 만든
-픽스처는 데이터 생성 경로의 결함에 눈이 먼다(`H-AF`). 그 위에 **한 필드씩** 변이를 얹는다.
+⚠️ **입력은 실제 회차의 판독값이다** — 지금은 `runs/2026-09-09-c3-dom-read-post-task64.json`
+(**정본은 아래 `REAL` 이다** — 여기에 이름을 적는 것이 낡는 자리이므로 갈 때 함께 고친다).
+손으로 만든 픽스처는 데이터 생성 경로의 결함에 눈이 먼다(`H-AF`). 그 위에 **한 필드씩** 변이를
+얹는다.
 
 ⛔ **2026-09-09 에 픽스처를 갈았다 — 값을 고친 것이 아니라 회차를 다시 돌렸다.** `TASK-55` 가 없는
 세션 화면의 문구를 `결과 API가 404을 반환했습니다`에서 학습자 언어로 바꿨고, `TASK-57` 이 부분 실패
 안내의 문체를 통일했다. **앱의 계약이 바뀌면 낡는 것은 게이트가 아니라 관측값이다** — 그래서
-브라우저 다리를 다시 돌려 새 판독을 얻었고(어긋남 0 / 단정 58건) 이전 회차
-`runs/2026-09-06-t4-c3-dom-read.json`은 **그 시점의 기록이므로 지우지 않았다.**
+브라우저 다리를 다시 돌려 새 판독을 얻었고(어긋남 0 / 단정 58건), `TASK-64` 가 A3-1 오탐을 없앤
+뒤 **교정 2건 세션을 여섯째로 넣어 한 번 더** 돌렸다(어긋남 0 / 단정 82건 · 미확인 0). 이전 회차
+둘은 **그 시점의 기록이므로 지우지 않았다.**
 
 ⚠️ **이 파일도 게이트 안이다** — `app/backend/pyproject.toml:33`의 `testpaths = ["../../tests"]`가
 리포의 `tests/`를 가리킨다. `test_c2_gates.py`와 같은 근거다.
@@ -37,12 +40,22 @@ import pytest
 HARNESS = Path(__file__).resolve().parent
 sys.path.insert(0, str(HARNESS))
 
-from c3_results_screen import check_missing, check_screen  # noqa: E402
+from c3_results_screen import (  # noqa: E402
+    check_missing,
+    check_screen,
+    check_status_label_variation,
+)
 
-REAL = HARNESS / "runs" / "2026-09-09-c3-dom-read-post-task55.json"
+REAL = HARNESS / "runs" / "2026-09-09-c3-dom-read-post-task64.json"
 SESSION_IDS = {
     "analyzing": "210233be-ecaa-4409-a1af-8b7016cfe7e9",
     "final": "6225ddaf-90a8-43af-9aa8-e003921c75eb",
+    # ⛔ **`final` 상태의 둘째 세션 — 교정이 2건이다** (`TASK-64` 가 이 자리를 열었다).
+    #    `browser_leg.md` §11-9 가 요구한 표본이고, `check_screen` 의 주석이 지목한
+    #    「`corrections` 키를 잃으면 A4-1·A4-2 가 조용히 사라진다」는 마스크를 이 세션이 벗긴다:
+    #    하나가 키를 잃어도 primary 가 남는다. 이전에는 A3-1 음성 대조가 같은 상태의 세션 둘을
+    #    오탐해서 이 표본을 넣을 수 없었다.
+    "final_two": "e0c5e580-dfc0-4793-b02d-54cf4346c3c5",
     "partial_failure": "b2f0d169-3d90-431b-b842-cce21125052a",
     "connection_failed": "76d9ef31-0d1b-4c50-b906-f16ee438080e",
     "no_utterances": "d127dece-d1d1-4329-802d-9b8fd1067388",
@@ -60,8 +73,20 @@ def leg(key: str):
     return copy.deepcopy(d["api"][key]), copy.deepcopy(d["dom"][key]), SESSION_IDS[key]
 
 
+def test_fixture_keeps_a_two_correction_session():
+    """⛔ **A4-2 표본이 픽스처에서 사라지는 것을 막는다** (`browser_leg.md` §11-9 · `TASK-64`).
+
+    교정 **2건 이상**인 세션이 없으면 A4-2 기대값 교차 대조가 「카드 1장 대 교정 1건」으로 줄어
+    카드끼리 뒤바뀜을 검출하지 못한다. 픽스처를 새 회차로 갈 때 그 세션을 빼먹으면
+    **어긋남 0건으로 조용히 통과**하므로 그 조건 자체를 단정한다.
+    """
+    d = load()
+    counts = {k: len(v.get("corrections", [])) for k, v in d["api"].items()}
+    assert max(counts.values()) >= 2, f"교정 2건 이상인 세션이 없다 — {counts}"
+
+
 def test_real_round_passes_every_state():
-    """green — 다섯 상태 전부 통과하고 **검사 수가 0이 아니다**."""
+    """green — 모든 상태 화면이 통과하고 **검사 수가 0이 아니다**."""
     total = 0
     for key in SESSION_IDS:
         payload, dom, sid = leg(key)
@@ -234,6 +259,75 @@ def test_machine_word_check_has_independent_discrimination():
     _, fails = check_missing(dom)
     assert len(fails) == 1, f"이 단정만 잡아야 한다 — {fails}"
     assert "기계 낱말이 새어 나왔다" in fails[0]
+
+
+# ── A3-1 음성 대조 (`TASK-64`) ────────────────────────────────────────────────────
+# ⛔ **이 묶음의 첫 목적은 오탐 회귀 방지다.** 이전 판은 세션 목록의 중복을 봐서 같은 상태의
+#    세션 둘을 FAIL 로 냈고, 그 오탐이 `browser_leg.md` §11-9(교정 2건 이상 세션 추가)를 막고
+#    있었다. 그래서 「겹쳐도 통과」와 「겹치면 FAIL」을 **둘 다** 못 박는다.
+
+
+def variation_legs() -> tuple[dict, dict, dict]:
+    """실제 회차의 다섯 상태를 `(payloads, results, sessions)` 로 낸다."""
+    d = load()
+    return d["api"], d["dom"], dict(SESSION_IDS)
+
+
+def test_variation_passes_on_real_round():
+    payloads, results, sessions = variation_legs()
+    checked, fails, unverified = check_status_label_variation(payloads, results, sessions)
+    assert fails == [], fails
+    assert unverified is None
+    assert checked == 2, checked
+
+
+def test_same_status_twice_is_not_a_failure():
+    """⛔ **TASK-64 가 고친 오탐 그 자체다.** 같은 상태의 세션이 여럿이면 라벨이 정당하게 겹친다.
+
+    실물 회차가 이미 `final` 을 둘 담으므로(`SESSION_IDS`) 위 `test_variation_passes_on_real_round`
+    가 그것을 덮는다. 여기서는 **셋째**를 얹어 「겹침 수가 늘어도 통과」인 것까지 못 박는다 —
+    이전 판은 겹침이 하나라도 있으면 FAIL 이었다.
+    """
+    payloads, results, sessions = variation_legs()
+    payloads = {**payloads, "final_three": copy.deepcopy(payloads["final"])}
+    results = {**results, "final_three": copy.deepcopy(results["final"])}
+    sessions = {**sessions, "final_three": SESSION_IDS["final"]}
+    checked, fails, unverified = check_status_label_variation(payloads, results, sessions)
+    assert fails == [], f"같은 상태의 세션 셋을 오탐했다 — {fails}"
+    assert unverified is None and checked == 2
+
+
+def test_two_statuses_sharing_one_label_is_caught():
+    """음성 대조의 본래 목적 — 상수를 렌더하면 서로 다른 상태가 같은 문구를 낸다."""
+    payloads, results, sessions = variation_legs()
+    results = copy.deepcopy(results)
+    results["analyzing"]["firstDirectP"]["text"] = results["final"]["firstDirectP"]["text"]
+    _, fails, unverified = check_status_label_variation(payloads, results, sessions)
+    assert unverified is None
+    assert any("서로 다른 상태가 같은 문구를 냈다" in m for m in fails), fails
+
+
+def test_same_status_with_two_labels_is_caught():
+    """화면이 status 의 함수가 아니면 잡는다 — 같은 상태가 두 문구를 낸 경우."""
+    payloads, results, sessions = variation_legs()
+    payloads = {**payloads, "final_three": copy.deepcopy(payloads["final"])}
+    other = copy.deepcopy(results["final"])
+    other["firstDirectP"]["text"] = "확정됨"
+    results = {**results, "final_three": other}
+    sessions = {**sessions, "final_three": SESSION_IDS["final"]}
+    _, fails, unverified = check_status_label_variation(payloads, results, sessions)
+    assert unverified is None
+    assert any("같은 상태가 서로 다른 문구를 냈다" in m for m in fails), fails
+
+
+def test_single_status_is_unverified_not_pass():
+    """⛔ **항진명제를 PASS 로 세지 않는다** (C3 검토 ③의 근거를 상태 단위로 계승한다)."""
+    payloads, results, sessions = variation_legs()
+    one = {"final": sessions["final"]}
+    checked, fails, unverified = check_status_label_variation(payloads, results, one)
+    assert fails == []
+    assert checked == 0, "미평가인데 검사 수를 세면 PASS 가 부풀려진다"
+    assert unverified is not None and "2종 이상에서만" in unverified
 
 
 def test_sentinel_control_is_gone():
