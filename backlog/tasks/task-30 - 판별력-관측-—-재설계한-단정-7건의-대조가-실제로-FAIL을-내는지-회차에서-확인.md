@@ -4,7 +4,7 @@ title: 판별력 관측 — 재설계한 단정 7건의 대조가 실제로 FAIL
 status: In Progress
 assignee: []
 created_date: '2026-09-06 02:43'
-updated_date: '2026-09-09 08:18'
+updated_date: '2026-09-09 08:26'
 labels:
   - caps-req
 dependencies:
@@ -24,8 +24,8 @@ TASK-29 가 7건을 재설계했으나 판별력을 '설계'했을 뿐 '관측'�
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 A1-4 의 when 인자 대조가 실제로 판별력을 갖는지 확인 — 세 값이 전부 같으면 FAIL 이 나는가
-- [ ] #2 A1-5 의 sentinel 변형 대조가 FAIL 을 내는지 확인
+- [x] #1 A1-4 의 when 인자 대조가 실제로 판별력을 갖는지 확인 — 세 값이 전부 같으면 FAIL 이 나는가
+- [x] #2 A1-5 의 sentinel 변형 대조가 FAIL 을 내는지 확인
 - [ ] #3 A1-7 의 무음 스트림 대조가 audio 계수 0 을 내는지 확인 — 못 내면 판별력 미확인으로 기록한다
 - [x] #4 A3-1 의 상태별 세션 재방문에서 같은 요소의 문구가 바뀌는지 확인
 - [x] #5 A4-1 의 primary 세션이 corrections 를 비우지 않음을 확인하고 빈 세션 대조가 0 개를 내는지 확인
