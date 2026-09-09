@@ -4,7 +4,7 @@ title: 판별력 관측 — 재설계한 단정 7건의 대조가 실제로 FAIL
 status: In Progress
 assignee: []
 created_date: '2026-09-06 02:43'
-updated_date: '2026-09-09 05:58'
+updated_date: '2026-09-09 08:18'
 labels:
   - caps-req
 dependencies:
@@ -92,6 +92,14 @@ harness_sessions 에 run_id 6454e5c1 로 C1 세션 3건이 등록돼 teardown �
 
 새 순서: ① stub_unresponsive 재기동 → TASK-49 AC#2·#3 실행 검증 = TASK-30 AC#7(A5-1) 을 함께 닫음
 (재기동 1회로 둘을 처리한다) ② 그 뒤 C1 실행체 신설 → AC#1·#2·#3 ③ AC#8.
+
+⛔ 위임 대상 재지정 (2026-09-09 · TASK-53). frontend-verifier 정의가 제거됐고 대체 에이전트로 갈아 끼우지 않았다 — 실행체로 옮겼다.
+
+AC#4·#5·#6(A3-1·A4-1·A4-2)은 회차 1 에서 그 에이전트로 이미 닫혔고 그 기록은 그 시점 사실이므로 고치지 않는다. 남은 AC#1·#2·#3(A1-4·A1-5·A1-7)은 TASK-52 의 C1 실행체(tests/harness/c1_session_walkthrough.py)로 호출자가 직접 돌린다. AC#7(A5-1)은 TASK-49 의 C5 실행체로 이미 닫았다.
+
+근거: 위임이 두 번 중 한 번 죽었다(회차 2 · H-AO). 실행체는 판정이 순수 함수라 게이트가 브라우저 없이 판별력을 고정하고(test_c1_gates 15 passed · test_c5_gates 11 passed) 관측이 파일로 떨어져 유실이 구조적으로 불가능하다. 판정 정본은 docs/ops/review-and-decision-protocol.md 의 그 절이다.
+
+⚠️ app-test-agent 는 사용자 여정 검증에 쓰고 하네스 단정 판정에는 쓰지 않는다 — 둘은 겹치지 않는다.
 <!-- SECTION:NOTES:END -->
 
 ## Comments

@@ -7,6 +7,15 @@
 #
 # ⚠️ `app/backend/pyproject.toml`에 `[tool.ty]` 섹션을 추가하지 마라 — 설정 탐색이
 # 거기서 멈춰 tests/가 조용히 검사 대상에서 빠진다.
+#
+# ⛔ **아래 `[src] include` 가 `tests` 를 담는다 — `tests/` 아래 새 파일도 게이트 대상이다.**
+# 그래서 `tests/harness/*.py` 를 하나 추가하면 `ty check` 를 **다시 재야 한다.** 2026-09-09 에
+# 이 사실을 모르고 새 하네스 실행체를 넣어 두 커밋(`7bbc415`·`057ceef`) 동안 게이트가 진단 4건으로
+# 깨진 채였고, 그 태스크를 `Done` 으로 닫을 때 `ty check` 를 재지 않은 것이 누락의 원인이었다.
+# 다른 세션의 테스트 회차가 찾아 알렸다.
+# ⚠️ **`pytest` 만 통과했다고 `ty` 가 통과한 것이 아니다** — `pytest` 는 `test_*.py` 만 수집하지만
+# `ty` 는 `tests/` 아래 **모든** `.py` 를 본다. 실행체(`c1_*.py`·`c5_*.py`)가 정확히 그 틈에 있다.
+# 함정 등록: `docs/ops/pitfalls.md` 의 **H-AV**.
 
 [environment]
 python = "app/backend/.venv"
