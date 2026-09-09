@@ -1,10 +1,10 @@
 ---
 id: TASK-77
 title: '결함: 종단 이벤트 없는 소켓 종료를 성공으로 처리한다 — 결과 화면이 이른 종단 상태에 고정된다'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-09 16:26'
-updated_date: '2026-09-09 22:15'
+updated_date: '2026-09-09 22:29'
 labels: []
 dependencies: []
 ordinal: 80000
@@ -28,23 +28,30 @@ app/frontend/app/page.tsx 의 SessionSocket onClose 가 sessionId 만 있으면 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 session_ended 미수신을 성공과 구별한다 — 어느 방향으로 갈랐는지 근거를 남긴다
-- [ ] #2 이른 종단 상태 고정이 사라지는 것을 관측한다 — 서버 처리 중에 결과 화면을 열어 폴링이 멈추지 않는 것을 직접 본다
-- [ ] #3 판별력을 게이트로 고정한다 — 결과 화면의 폴링 정지 판정은 순수 함수로 잴 수 있다(TASK-56 이 그 형태를 만들었음)
+- [x] #1 session_ended 미수신을 성공과 구별한다 — 어느 방향으로 갈랐는지 근거를 남긴다
+- [x] #2 이른 종단 상태 고정이 사라지는 것을 관측한다 — 서버 처리 중에 결과 화면을 열어 폴링이 멈추지 않는 것을 직접 본다
+- [x] #3 판별력을 게이트로 고정한다 — 결과 화면의 폴링 정지 판정은 순수 함수로 잴 수 있다(TASK-56 이 그 형태를 만들었음)
 <!-- AC:END -->
 
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
-2026-09-09 착수 — 범위를 좁혔음. codex 의 프레이밍보다 창이 작음.
+2026-09-10 완료. 캡틴 결정(2026-09-10) 「몇 번 더 보고 정함」대로 고쳤음 — 선택지 셋 중 결과 화면에서 유예를 골랐고, onClose 를 실패로 갈라 결과 접근을 잃는 쪽은 고르지 않았음.
 
-직접 읽어 확인한 것: audio_gateway/session.py 의 _close_and_record 순서가 ① 진행 중 저장 대기 ② _flush_analysis(종료 경로 flush) ③ adapter.close() ④ end_session + resolve_dangling(한 트랜잭션) 임. 즉 **종료 기록 전에 flush 가 돎.** 그래서 정상 세션에서는 세션이 completed 가 될 때 job 이 이미 걸려 있고, 결과 화면이 no_utterances 를 볼 수 없음.
+창을 먼저 좁혔음(코드를 직접 읽음): _close_and_record 순서가 저장 대기 → 종료 경로 flush → adapter.close() → end_session 이므로 **종료 기록 전에 flush 가 돎.** 그래서 정상 세션에는 경합이 없음. TASK-70 에서 어댑터 오류를 failed 로 기록하게 고친 것도 이 경로를 좁혔음(R2 가 connection_failed 를 냄). 남은 창은 **종료 경로 flush 가 실패한 경우** 하나임.
 
-TASK-70 의 다른 지적을 고친 것도 이 경로를 좁혔음 — 실행 중 어댑터 오류가 이제 failed 로 기록되므로 R2 가 connection_failed(사실에 맞는 종단 상태)를 냄. 클라이언트가 종단 이벤트 없이 닫혀 결과 화면으로 가도 학습자는 「연결 실패」를 봄.
+AC1 — session_ended 미수신을 성공과 구별함. 단 갈라 놓은 자리가 onClose 가 아니라 **결과 화면의 종단 판정**임. 근거: onClose 는 결과 화면에 더 일찍 도달하게 할 뿐이고, 학습자가 교정을 잃는 실제 원인은 no_utterances 를 첫 판독으로 확정하는 것임. onClose 를 실패로 만들면 그 세션의 교정을 보러 들어갈 수단이 없어짐 — 캡틴이 그 쪽을 고르지 않았음.
 
-남은 창은 하나임: **종료 경로 flush 가 실패한 경우.** _flush_analysis 는 예외를 삼키므로(그것이 의도임 — 분석 1건보다 세션·전사문이 중요함) 세션이 completed + job 0 으로 남고, 결과 화면이 no_utterances 를 **종단**으로 읽어 폴링을 멈춤. 그 뒤 워커가 유휴일 때 flush_ended_sessions 가 job 을 걸지만 화면은 이미 멈춰 있음. 기존 테스트 test_a_failing_flush_loses_only_the_analysis_not_the_session 이 그 상태를 고정하고 있음.
+AC2 — 이른 종단 고정이 사라지는 것을 직접 관측했음. CDP 로 fetch 를 감싸 세는 계측(TASK-56 이 만든 것과 같음 · 관측창 14s · 주기 2s):
+  no_utterances (d127dece) — 호출 5건 · 첫~끝 6.03s · 첫 주기 뒤 2건 → 다시 보고 **멈춤**(무한 아님)
+  final (6225ddaf · 음성 대조) — 호출 2건 · 첫 주기 뒤 0건 → 여전히 **즉시 멈춤**
+음성 대조가 없으면 「전부 다시 본다」와 구별되지 않으므로 함께 뒀음.
 
-⛔ 즉 고칠 자리가 onClose 가 아니라 「no_utterances 를 종단으로 읽는 것」일 수 있음. onClose 는 결과 화면에 더 일찍 도달하게 할 뿐임.
+AC3 — 판정을 shouldKeepPolling(status, noUtterancesSeen) 한 곳에 모았음. ⛔ 그 계측이 반증할 수 있음을 무력화로 확인했음: NO_UTTERANCES_RECHECKS 를 0 으로 내리면 호출 2건 · 첫 주기 뒤 0건 이고 FAIL 2건이 남. 되돌린 뒤 PASS 임.
 
-⚠️ 어느 쪽으로 고치는지가 학습자가 보는 것을 바꿈 — AC U2(5상태)와 R2 의 뜻에 걸림. 발명하지 않고 캡틴에게 물었음.
+⚠️ NO_UTTERANCES_RECHECKS = 3 은 설계 발명값임 — 스윕이 언제 도는지 보장하는 계약이 없음. 비용은 「진짜로 분석할 것이 없던 세션이 같은 문구를 몇 초 늦게 본다」 하나이고 주석에 그렇게 적었음. ⛔ 무한으로 만들지 않았음 — 상한이 없으면 TASK-56 이 없앤 영구 폴링이 다른 상태로 되살아남.
+
+⚠️ 계측 스크립트를 tests/ 아래에 넣지 않고 /tmp 에 뒀음 — 그 아래 새 .py 는 ty 게이트 대상인데 pytest 가 수집하지 않아 틈이 생김(H-AV). 관측값은 회차 기록이 가짐: tests/harness/runs/2026-09-10-task77-no-utterances-recheck.md.
+
+게이트: 프론트 npx tsc --noEmit exit 0 · npx eslint app lib exit 0. 백엔드 코드 변경 없음.
 <!-- SECTION:NOTES:END -->

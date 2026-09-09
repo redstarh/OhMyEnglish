@@ -45,6 +45,39 @@ const RETRYING_NOTICE = "결과를 불러오지 못했습니다. 다시 시도�
 const HOME_LINK_LABEL = "← 학습 시작 화면으로";
 
 /**
+ * `분석 대상 없음`을 **첫 판독으로 확정하지 않는다** (`TASK-77` · 캡틴 결정 2026-09-10).
+ *
+ * 왜: 종료 경로의 flush 가 실패하면(`_flush_analysis`가 예외를 삼킨다 — 분석 1건보다 세션과
+ * 전사문이 중요하다) 세션이 `completed` + job 0 으로 남는다. 그 순간 결과 API 는 R2 규칙 2 로
+ * `no_utterances`를 낸다. **그 상태는 영구가 아니다** — 워커가 유휴일 때 `flush_ended_sessions`가
+ * 그 묶음을 걷어 job 을 건다(`services/utterances.py`). 첫 판독에서 멈추면 그 뒤에 나온 교정을
+ * 학습자가 **영구히** 보지 못한다.
+ *
+ * ⚠️ **`NO_UTTERANCES_RECHECKS` 는 설계 발명값이다** — 스윕이 언제 도는지 보장하는 계약이 없으므로
+ * 근거 문서가 없다. 진짜로 분석할 것이 없던 세션은 이 횟수만큼 늦게 같은 문구를 보게 되고, 그것이
+ * 이 값이 사는 유일한 비용이다. 조정하면 이 주석의 수치도 함께 고친다.
+ * ⛔ **무한 재시도로 만들지 않는다** — 상한이 없으면 `TASK-56` 이 없앤 「영구 폴링」이 다른 상태로
+ * 되살아난다.
+ */
+const NO_UTTERANCES_RECHECKS = 3;
+
+/**
+ * 폴링을 이어갈지 정한다. **판정을 여기 한 곳에 모아 두는 것이 계약이다** — 흩어 두면
+ * 「어느 상태에서 멈추는가」를 코드 여러 곳에서 읽어야 하고, `TASK-56`·`TASK-77` 이 각각 그
+ * 판정을 건드렸다.
+ *
+ * `noUtterancesSeen` 은 **그 상태를 연속으로 몇 번 읽었는지**다(이번 판독을 포함한다).
+ */
+export function shouldKeepPolling(
+  status: SessionResultStatus,
+  noUtterancesSeen: number,
+): boolean {
+  if (!TERMINAL_STATUSES.has(status)) return true;
+  if (status === "no_utterances") return noUtterancesSeen <= NO_UTTERANCES_RECHECKS;
+  return false;
+}
+
+/**
  * 4xx는 영구 오류다 — 같은 요청을 되풀이해도 같은 답이 온다 (TASK-56). `TERMINAL_STATUSES`와
  * **같은 뜻으로** 폴링을 멈춘다. 5xx와 네트워크 실패(`fetch` 자체가 reject)는 회복 가능하므로
  * 계속 폴링한다 — 이 갈림이 없던 이전 판은 없는 세션 화면을 2초마다 영구히 다시 불렀다.
@@ -134,6 +167,9 @@ export default function ResultsPage() {
   useEffect(() => {
     if (!sessionId) return;
     let cancelled = false;
+    // `no_utterances`를 **연속으로** 몇 번 읽었는지. 상태에 두지 않는 이유: 이 수는 화면에
+    // 그려지지 않고 폴링 판정에만 쓰인다 — `useState`로 두면 판독마다 리렌더가 붙는다.
+    let noUtterancesSeen = 0;
 
     async function poll(): Promise<void> {
       try {
@@ -141,7 +177,8 @@ export default function ResultsPage() {
         if (cancelled) return;
         setResult(data);
         setFetchError(null);
-        if (!TERMINAL_STATUSES.has(data.status)) {
+        noUtterancesSeen = data.status === "no_utterances" ? noUtterancesSeen + 1 : 0;
+        if (shouldKeepPolling(data.status, noUtterancesSeen)) {
           timerRef.current = setTimeout(poll, POLL_INTERVAL_MS);
         }
       } catch (err) {
