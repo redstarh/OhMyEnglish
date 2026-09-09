@@ -1,10 +1,10 @@
 ---
 id: TASK-36
 title: '관측: 기대 exchange 상한 20 이 10분 세션에서 실현 가능한지 실측한다 (캡틴 결정 20)'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-07 17:26'
-updated_date: '2026-09-09 02:31'
+updated_date: '2026-09-09 02:33'
 labels: []
 dependencies:
   - TASK-37
