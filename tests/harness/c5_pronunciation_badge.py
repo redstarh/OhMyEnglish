@@ -16,6 +16,8 @@
 
 from __future__ import annotations
 
+from typing import Any, cast
+
 # ⓒ 하드코딩 — `app/page.tsx:21~26` 과 글자 단위로 같아야 한다. 순서도 주입 순서다.
 BADGE_TEXT: dict[str, str] = {
     "pending": "🔊 발음 교정 중",
@@ -33,7 +35,7 @@ SENTINEL = "ZZ_SENTINEL_TARGET_SOUND_ZZ"
 BADGE_SELECTOR = 'p[aria-live="polite"]'
 
 
-def check_badges(observed: dict) -> tuple[int, list[str]]:
+def check_badges(observed: dict[str, Any]) -> tuple[int, list[str]]:
     """관측을 판정한다. 반환은 `(센 단정 수, 어긋남 메시지)`.
 
     ⛔ **비거나 빠진 입력을 통과로 만들지 않는다** — 그러면 실행체가 아무것도 안 해도 `PASS` 가
@@ -42,8 +44,9 @@ def check_badges(observed: dict) -> tuple[int, list[str]]:
     checked = 0
     fails: list[str] = []
 
-    before = observed.get("before_injection")
-    if not isinstance(before, dict) or "badge_count" not in before:
+    before_raw = observed.get("before_injection")
+    before = cast(dict[str, Any], before_raw) if isinstance(before_raw, dict) else None
+    if before is None or "badge_count" not in before:
         fails.append("관측에 before_injection.badge_count 가 없다 — 대조 ①을 평가할 수 없다")
     else:
         checked += 1
@@ -64,9 +67,20 @@ def check_badges(observed: dict) -> tuple[int, list[str]]:
     if missing:
         fails.append(f"주입되지 않은 outcome 이 있다: {missing} — 네 종류를 모두 재야 한다")
 
-    for i, item in enumerate(seq):
+    for i, raw in enumerate(seq):
+        # ⚠️ **원소를 방어하고 타입을 명시한다.** 방어만 넣으면(`isinstance` 만) `ty` 가
+        # `dict[Unknown, Unknown]` 으로 좁혀 **`str` 키를 거부한다** — 2026-09-09 에 그 형태로
+        # 게이트가 깨졌고(진단 4건) `cast` 가 그것을 닫는다. 관측은 외부 JSON 이므로 `Any` 가
+        # 정직한 값 타입이다.
+        if not isinstance(raw, dict):
+            fails.append(f"[{i}] sequence 원소가 dict 가 아니다: {type(raw).__name__}")
+            continue
+        item = cast(dict[str, Any], raw)
+
         outcome = item.get("outcome")
-        expected = BADGE_TEXT.get(outcome)
+        # `str` 로 좁히지 않으면 `BADGE_TEXT.get(outcome)` 이 타입 검사에서 걸린다(같은 부류의
+        # 진단이다). 방어로도 옳다 — outcome 이 없거나 문자열이 아니면 그것이 관측 결함이다.
+        expected = BADGE_TEXT.get(outcome) if isinstance(outcome, str) else None
         if expected is None:
             fails.append(f"[{i}] 알 수 없는 outcome {outcome!r} 이다")
             continue
@@ -95,7 +109,11 @@ def check_badges(observed: dict) -> tuple[int, list[str]]:
             )
 
     # 대조 ② — 상수를 렌더하고 있으면 네 문구가 바뀌지 않는다.
-    texts = [item.get("text") for item in seq if item.get("outcome") in BADGE_TEXT]
+    texts = [
+        cast(dict[str, Any], x).get("text")
+        for x in seq
+        if isinstance(x, dict) and cast(dict[str, Any], x).get("outcome") in BADGE_TEXT
+    ]
     checked += 1
     if len(texts) > 1 and len(set(texts)) == 1:
         fails.append(
