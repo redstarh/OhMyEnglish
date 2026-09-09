@@ -6,29 +6,31 @@
 > ⛔ **정리된 결정 이력을 이 파일에 옮기지 않는다** (2026-09-09 사용자 지시). 결정은 번호로만
 > 가리킨다 — 본문은 `docs/ops/captain-instruction-register.md` 가 소유함.
 
-## 다음 한 걸음 — **`TASK-30` 을 권함**(선행 넷 전부 `Done`). `TASK-36`·`TASK-37` 은 `Done`
+## 다음 한 걸음 — **`TASK-55` 를 권함**(사용자에게 보이는 결함 · HIGH). 이어서 `56`·`57`
 
-> ✅ **`TASK-36` `Done`** (2026-09-09 · **실물 호출 0회**). 보존 세션 `e0c5e580` 에서 DB·결과 API 로
-> 직접 측정해 판정했음. **판정 정본은 설계서 `2026-09-07-scenario-and-drill-turns-design.md` §5 약점 3 의
-> 실측 절임** — 수치를 여기 재서술하지 않음. 결론 둘: 「상한이 불가능하다」 **배제됨** ·
-> 「모델이 지시를 어겼다」 **미해결**(관측 설계가 3턴이라 정의상 2가 상한이었음).
-> ⛔ **회차 요약이 적었던 「127초 · 21%」를 쓰지 않음 — 정정했음.** 그 환산은 **사용자 발화 수**를
-> exchange 로 셌고 **앱 정의는 코치→사용자 전이**임. 같은 세션이 3과 2로 갈림.
-> ⛔ **그 실측이 과소 계수 경로 하나를 새로 찾았음** — **학습자 선발화 세션은 exchange 를 1 적게 셈.**
-> 원인이 하네스 주입인지 barge-in 인지 **가르지 못했고**(5차수 프레임 캡처가 `.harness/evidence/` 에
-> 없음) **설계서 §5 약점 2 를 그 표본으로 닫지 않았음.**
+> ⛔ **`TASK-55`·`56`·`57` 은 다른 세션의 사용자 여정 테스트가 찾아 등록한 것임.** 인용된 줄이
+> 태스크 노트에 있고 그쪽이 **고친 뒤 재테스트하기로** 했음 — 끝나면 **HEAD 와 직접 돌린 게이트
+> 수치를 알려 주기로** 합의했음. 세션 간 주소는 매번 `ListAgents` 로 확인함.
+> `TASK-55`(HIGH)는 학습자에게 HTTP 상태 코드가 그대로 노출되고 그 화면에 홈으로 가는 링크가
+> 없다는 것 · `56`(MEDIUM)은 4xx 를 2초마다 영구 재시도 · `57`(LOW)은 문체 혼용임.
 >
-> ✅ **`TASK-37`(하네스 5차수) `Done`** (2026-09-09). AC 아홉 전부 · **신규 앱 결함 0건**.
-> 회차 정본은 `tests/harness/runs/2026-09-09-run-5.md`(요약) 와 `…-run-5-browser.md`(상세) ·
-> 하네스 원장은 `…/ROUNDS.md`. **진행 상태를 여기 재서술하지 않음.**
+> ✅ **판별력 관측이 끝났음** — `TASK-30`·`TASK-49`·`TASK-52` 모두 `Done`. 단정 일곱 전부 무력화에서
+> FAIL 을 관측했고 **`browser_leg.md` §11 의 미결 둘(§11-4·§11-9)이 닫혔음.** 회차 기록 넷이 값을
+> 가짐(`runs/2026-09-09-task30-*.md`). **진행 상태를 여기 재서술하지 않음.**
+> ⛔ **판별력이 게이트로 옮겨졌음** — 실행체 셋(`c1_session_walkthrough.py`·`c3_results_screen.py`·
+> `c5_pronunciation_badge.py`)이 판정을 순수 함수로 분리해 브라우저 없이 변이를 잡음.
+> **같은 관측을 다시 열 필요가 없음.**
 >
-> ⚠️ **`TASK-30` 의 선행 넷(`19`·`21`·`22`·`37`)이 전부 `Done` 임을 직접 확인했음.** AC 여덟 건 중
-> **AC#6(A4-2 기대값 교차 대조)의 표본이 이번 차수에 생겼음** — `C3f`(`e0c5e580`, 교정 2건)이고
-> `/results/<id>` **재방문**이므로 **실물 호출이 0회**임(`browser_leg.md` §9).
+> ⚠️ **백엔드 어댑터 상태를 알고 시작함**: pid **52228** · `VOICE_ADAPTER=stub_unresponsive` ·
+> `WORKER_ENABLED=false`. **A1-4·A1-5 를 다시 재려면 `stub` 으로 재기동해야 함** — 어느 어댑터가
+> 어느 단정을 뒷받침하는지는 `browser_leg.md` §5 의 C1 실행체 절이 소유함.
 >
 > ⛔ **워커를 켤 때 반드시 읽을 것: `H-AT`.** 2026-09-09 에 워커를 켜서 **보존 세션 2개를 두 번
 > 파괴했고** 복구에 비용이 들었음. 경로 둘과 대응이 그 함정에 있음.
 > ⚠️ **실물 호출·워커·재기동은 사전 승인임**(결정 40) — 묻지 않고 진행함.
+> ⛔ **teardown 범위를 시각창으로 잡음 — 실패한 실행도 세션을 만듦.** 「성공한 실행」만 지우면
+> 남고, 2026-09-09 에 실제로 1건을 빠뜨렸음. **공유 DB 에서 다른 세션의 회차가 겹치면 표 합계는
+> 어느 쪽의 지표도 되지 못함** — 보존 세션 여섯과 `drift 0` 이 증거임.
 
 ## 게이트 — 이 cwd 에서만 판정함 (`H-A`)
 
@@ -66,9 +68,9 @@ cd app/backend
 
 | # | 지표 | 기준값 (마감 시점에 직접 돌려 얻었음) |
 |--:|---|---|
-| 1 | `git rev-parse --short HEAD` · `git status` | **`057ceef` 이상**(등호를 요구하지 않음 — `H-P`) · 추적 미커밋 **0건** · `origin` 과 동기 |
-| 2 | 원장 — `grep -h "^status:" backlog/tasks/*.md \| sort \| uniq -c` | 전체 **55** · Done **40** · To Do **13** · In Progress **2** · Awaiting Decision **0**. ⚠️ **In Progress 2 가 정상 상태임** — `TASK-30`(판별력 관측)과 `TASK-52`(C1 실행체)가 함께 열려 있고 후자가 전자의 AC#1~#3 을 위한 선행임. 어긋남으로 세지 않음. ⛔ `backlog task list --plain \| grep -c "^  TASK-"` 로 세지 않음 — 우선순위 라벨이 붙으면 빠짐 |
-| 3 | 게이트 (`app/backend` cwd) | **854 passed** · `ruff check` exit 0 · format **unformatted 0** · `ty check` exit 0 · 게이트 **밖** `ruff check` **0 errors** · format **unformatted 0** · 프론트 `npx tsc --noEmit`·`npx eslint app lib` exit 0. ⚠️ **843 → 854 는 `test_c5_gates.py` 11건이 는 것**(`TASK-49`) — 회귀가 아님. ⛔ **`ty check` 는 `tests/harness/**` 까지 본다** — 2026-09-09 에 그 사실을 모르고 새 하네스 파일을 넣어 진단 4건이 났고(다른 세션이 찾음) **`TASK-49` 를 닫을 때 이 항목을 다시 재지 않은 것이 그 누락의 원인임.** 하네스 파일을 추가했으면 `ty check` 도 다시 잼 |
+| 1 | `git rev-parse --short HEAD` · `git status` | **`8b5b2e0` 이상**(등호를 요구하지 않음 — `H-P`) · 추적 미커밋 **0건** · `origin` 과 동기 |
+| 2 | 원장 — `grep -h "^status:" backlog/tasks/*.md \| sort \| uniq -c` | 전체 **61** · Done **45** · To Do **16** · In Progress **0** · Awaiting Decision **0**. ⛔ `backlog task list --plain \| grep -c "^  TASK-"` 로 세지 않음 — 우선순위 라벨이 붙으면 빠짐 |
+| 3 | 게이트 (`app/backend` cwd) | **869 passed** · `ruff check` exit 0 · format **unformatted 0** · `ty check` exit 0 · 게이트 **밖** `ruff check` **0 errors** · format **unformatted 0** · 프론트 `npx tsc --noEmit`·`npx eslint app lib` exit 0. ⚠️ **843 → 854 → 869 는 게이트 테스트가 는 것**(`test_c5_gates.py` 11건 · `test_c1_gates.py` 15건) — 회귀가 아님. **그 둘이 판별력을 브라우저 없이 지킴.** ⛔ **`ty check` 는 `tests/harness/**` 까지 본다** — 2026-09-09 에 그 사실을 모르고 새 하네스 파일을 넣어 진단 4건이 났고(다른 세션이 찾음) **`TASK-49` 를 닫을 때 이 항목을 다시 재지 않은 것이 그 누락의 원인임.** 하네스 파일을 추가했으면 `ty check` 도 다시 잼 |
 | 4 | DB (읽기만) | `schema_migrations` **9건**(`001·003~007·009·010·011`) · `learning_sessions` **13** · `error_patterns` **9** · `error_occurrences` **24** · `utterances` **120** · `session_plans` **2** · `review_tasks` **15** · `pronunciation_attempts` **4** · **§8 drift 0** · **보존 세션 6개** 생존. ⚠️ **수치에 표 이름을 붙여 적음** — 이름 없는 묶음은 읽는 사람이 엉뚱한 표에 대응시킴(2026-09-09 실측) |
 | 5 | 결과 API 상태 6개 | `210233be` `analyzing` · `6225ddaf` `final`(교정 1) · `b2f0d169` `partial_failure` · `76d9ef31` `connection_failed` · `d127dece` `no_utterances` · **`e0c5e580` `final`(교정 2 — A4-2 표본)**. ⛔ **이 여섯이 `browser_leg.md` §9 의 자산임 — 지우지 않음** |
 

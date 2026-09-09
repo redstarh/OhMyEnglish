@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OhMyEnglish 진행 정리 — 2026년 9월 9일</title>
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1a1a1a; --muted: #6b7280; --line: #e5e7eb;
+    --card: #f9fafb; --ok: #15803d; --warn: #b45309; --bad: #b91c1c; --accent: #1d4ed8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111317; --fg: #e8eaed; --muted: #9aa0a6; --line: #2a2e35;
+      --card: #191c21; --ok: #4ade80; --warn: #fbbf24; --bad: #f87171; --accent: #7aa2ff;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 2.2rem 1.2rem 4rem; background: var(--bg); color: var(--fg);
+    font: 16px/1.75 -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    max-width: 940px; margin-inline: auto; word-break: keep-all;
+  }
+  h1 { font-size: 1.65rem; margin: 0 0 .3rem; letter-spacing: -.02em; }
+  .sub { color: var(--muted); margin: 0 0 2rem; font-size: .95rem; }
+  h2 {
+    font-size: 1.2rem; margin: 2.6rem 0 .9rem; padding-bottom: .45rem;
+    border-bottom: 2px solid var(--line);
+  }
+  h3 { font-size: 1.02rem; margin: 1.6rem 0 .5rem; }
+  p { margin: .55rem 0; }
+  ul { margin: .5rem 0 .5rem 1.1rem; padding: 0; }
+  li { margin: .35rem 0; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: .7rem; margin: 1.2rem 0 .4rem; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: .85rem .95rem; }
+  .card .n { font-size: 1.5rem; font-weight: 700; letter-spacing: -.02em; }
+  .card .l { color: var(--muted); font-size: .82rem; margin-top: .15rem; }
+  table { border-collapse: collapse; width: 100%; margin: .9rem 0; font-size: .93rem; }
+  th, td { border: 1px solid var(--line); padding: .5rem .65rem; text-align: left; vertical-align: top; }
+  th { background: var(--card); font-weight: 600; }
+  .ok { color: var(--ok); font-weight: 600; }
+  .warn { color: var(--warn); font-weight: 600; }
+  .bad { color: var(--bad); font-weight: 600; }
+  .note {
+    background: var(--card); border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0; padding: .8rem 1rem; margin: 1rem 0;
+  }
+  .note.caution { border-left-color: var(--warn); }
+  .note strong { display: block; margin-bottom: .3rem; }
+  code { background: var(--card); padding: .1rem .35rem; border-radius: 4px; font-size: .88em; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .86rem; }
+</style>
+</head>
+<body>
+
+<h1>OhMyEnglish 진행 정리</h1>
+<p class="sub">2026년 9월 9일 · 작업 세션 기록 · 이 문서는 내부 약어를 쓰지 않고 풀어 씀</p>
+
+<div class="cards">
+  <div class="card"><div class="n">45</div><div class="l">완료한 작업</div></div>
+  <div class="card"><div class="n">16</div><div class="l">남은 작업</div></div>
+  <div class="card"><div class="n">869</div><div class="l">통과한 테스트</div></div>
+  <div class="card"><div class="n">0</div><div class="l">검사 오류</div></div>
+  <div class="card"><div class="n">51</div><div class="l">오늘 커밋</div></div>
+</div>
+<p class="sub">모든 수치는 이 세션에서 직접 명령을 돌려 얻은 값임. 코드 검사 네 종류(테스트·형식·서식·타입)가 전부 통과함.</p>
+
+<h2>1. 오늘 끝낸 일</h2>
+
+<h3>테스트가 진짜로 오류를 잡아내는지 확인함</h3>
+<p>
+지금까지 화면 검사 항목 일곱 개는 <strong>검사가 있다</strong>는 것만 확인된 상태였음.
+검사가 <strong>실제로 잘못된 값을 걸러내는지</strong>는 확인되지 않았음. 이번에 일곱 개 전부
+일부러 값을 틀리게 넣어서 <strong>검사가 실패를 내는 것을 눈으로 확인</strong>했음.
+</p>
+<table>
+  <tr><th>확인한 것</th><th>결과</th><th>어떻게 확인했나</th></tr>
+  <tr><td>학습 결과 화면이 상태에 따라 다른 문구를 보여주는가</td><td class="ok">확인됨</td><td>다섯 상태를 서로 바꿔 넣어 스물 건 전부 어긋남</td></tr>
+  <tr><td>교정 카드 개수가 실제 데이터와 맞는가</td><td class="ok">확인됨</td><td>교정이 없는 세션에서 카드가 0개로 나옴</td></tr>
+  <tr><td>교정 이유가 카드마다 제대로 붙는가</td><td class="ok">확인됨</td><td>두 카드의 이유를 서로 바꿔 넣으니 둘 다 어긋남</td></tr>
+  <tr><td>발음 안내 배지가 상황에 맞게 바뀌는가</td><td class="ok">확인됨</td><td>네 상황을 차례로 넣어 문구가 매번 달라짐</td></tr>
+  <tr><td>음성 재생 횟수와 시각이 계산되는가</td><td class="ok">확인됨</td><td>세 번 재생되고 시각이 서로 다름</td></tr>
+  <tr><td>대화 내용이 화면에 정확히 표시되는가</td><td class="ok">확인됨</td><td>여섯 줄이 원문과 글자 단위로 일치</td></tr>
+  <tr><td>마이크 음성이 서버로 실제 전송되는가</td><td class="ok">확인됨</td><td>313건 전송 확인 · 무음일 때 내용이 0으로 갈림</td></tr>
+</table>
+
+<div class="note">
+  <strong>오래 막혀 있던 문제 두 개가 풀림</strong>
+  하나는 <b>교정이 두 개 이상인 학습 세션이 없어서</b> 검사를 평가할 수 없던 것임. 실제 대화로 만든
+  세션이 표본이 되어 풀렸음.<br>
+  다른 하나는 <b>무음일 때 음성 전송 건수가 0이 되는가</b>였음. 확인해 보니
+  <b>0이 될 수 없는 구조</b>였음 — 음성 처리 부분이 소리 크기와 무관하게 일정 간격으로 보내기
+  때문임. 무음과 소리 있음이 전송 건수는 <b>313건으로 완전히 같고</b> 내용만 갈렸음.
+  그래서 판정 기준을 건수에서 <b>내용</b>으로 바꿨음.
+</div>
+
+<h3>검사 도구 두 개를 새로 만듦</h3>
+<p>
+지금까지 일부 화면 검사는 <strong>다른 세션에 맡겨서</strong> 했음. 그런데 오늘 그 방식이
+<strong>두 번 중 한 번 실패</strong>했음 — 검사는 다 끝냈는데 <strong>결과를 기록하기 직전에
+프로그램이 죽어서 측정값을 전부 잃었음</strong>. 데이터는 안전했지만 다시 처음부터 해야 했음.
+</p>
+<p>
+그래서 <strong>스스로 돌 수 있는 검사 프로그램 두 개</strong>를 만들었음. 판정 부분을 따로 떼어 놓아서
+<strong>브라우저 없이도 검사가 제대로 작동하는지 확인</strong>할 수 있음. 이제 측정값을 잃는 일이
+구조적으로 생기지 않음.
+</p>
+
+<h3>다른 세션과 나눠 일했음</h3>
+<p>
+같은 프로젝트를 보는 다른 작업 세션이 <strong>사용자 입장에서 앱을 직접 써 보는 테스트</strong>를
+맡았음. 서로 확인한 결과:
+</p>
+<ul>
+  <li>그 세션이 <strong>내가 놓친 문제 두 개</strong>를 찾아 줌 — 타입 검사가 깨진 것과, 없어진 도구를 아직 가리키는 문서. 둘 다 고쳤음</li>
+  <li>내가 그 세션에 <strong>거짓 판정에 속을 수 있는 함정</strong>을 알려 줌 — 프로그램이 실패했다는 사실만으로는 「검사가 오류를 잡았다」와 「환경이 고장났다」를 구분할 수 없음</li>
+  <li>그 세션이 앱에서 <strong>사용자에게 보이는 문제 세 개</strong>를 찾아 등록함(아래 남은 일)</li>
+</ul>
+
+<h2>2. 오늘 찾아서 고친 문제</h2>
+<table>
+  <tr><th>문제</th><th>왜 위험했나</th><th>처리</th></tr>
+  <tr>
+    <td>검사 프로그램이 <b>실패하면 측정값을 전부 버렸음</b></td>
+    <td>맡긴 검사가 값을 잃은 것과 똑같은 형태를 내 프로그램이 되풀이함</td>
+    <td class="ok">실패를 기록의 한 항목으로 남기고, 판정이 원인을 갈라 보게 고침</td>
+  </tr>
+  <tr>
+    <td>타입 검사가 <b>두 번의 커밋 동안 깨진 채였음</b></td>
+    <td>테스트는 통과했는데 타입 검사만 실패했고, 그 차이를 몰랐음</td>
+    <td class="ok">고치고, 「검사 범위가 서로 다르다」를 세 곳에 적어 둠</td>
+  </tr>
+  <tr>
+    <td>테스트 정리가 <b>세션 하나를 빠뜨렸음</b></td>
+    <td>실패한 실행도 데이터를 남기는데 성공한 것만 지웠음</td>
+    <td class="ok">함께 지우고, 정리 범위를 시간 기준으로 잡도록 규칙을 바꿈</td>
+  </tr>
+  <tr>
+    <td>문서가 <b>이미 없어진 도구</b>를 실행 담당으로 지목하고 있었음</td>
+    <td>그대로 실행하면 존재하지 않는 것을 부름</td>
+    <td class="ok">새로 만든 검사 프로그램으로 지정을 바꿈</td>
+  </tr>
+</table>
+
+<div class="note caution">
+  <strong>내가 낸 실수도 함께 적음</strong>
+  <b>다른 세션의 작업물이 내 커밋에 섞였음</b> — 변경 전체를 한 번에 담는 명령을 써서 그렇게 됐음.
+  이후 경로를 지정해 커밋함.<br>
+  <b>저장하지 않은 수정을 되돌리기로 지웠음</b> — 실험을 되돌릴 때 함께 사라졌음. 다시 적용하고
+  바로 저장했음. 교훈은 <b>저장하지 않은 상태로 실험하지 않는 것</b>임.
+</div>
+
+<h2>3. 참고 프로젝트 조사 결과</h2>
+<p>
+회의 기록 도구 하나를 살펴보고 우리에게 쓸 수 있는 것을 갈랐음. 그 도구는 <strong>회의를 기록하고
+실시간 자막·번역을 주는 것</strong>이 목적이고, <strong>학습 도구가 아님</strong>.
+</p>
+<table>
+  <tr><th>항목</th><th>사실</th><th>우리에게</th></tr>
+  <tr>
+    <td>음성 합성</td>
+    <td>제품 기능이 아니라 <b>테스트용 음원을 만드는 도구</b>로 씀. 무료 공개 모델이고 목소리 아홉 종을 쓸 수 있음</td>
+    <td class="ok">쓸 수 있음 — 아래 참조</td>
+  </tr>
+  <tr>
+    <td>음성 인식</td>
+    <td>한쪽 방향 전사만 함</td>
+    <td class="bad">맞지 않음 — 우리는 <b>주고받는 대화</b>가 필요함</td>
+  </tr>
+  <tr>
+    <td>발음 평가</td>
+    <td><b>없음</b>. 관련 단어가 나오지만 그것은 「단어인지 문장부호인지」를 뜻하는 것임</td>
+    <td class="warn">가져올 것 없음 — 우리 고유 영역임</td>
+  </tr>
+  <tr>
+    <td>시스템 소리 캡처 도구</td>
+    <td>회의 <b>상대의 목소리</b>를 잡기 위해 필요함</td>
+    <td class="bad">필요 없음 — 근거는 아래</td>
+  </tr>
+</table>
+
+<div class="note">
+  <strong>가장 값어치 있는 발견</strong>
+  우리 발음 테스트 음원은 맥에 기본으로 있는 음성 합성 기능으로 만들었음. 그런데 그 참고 프로젝트가
+  <b>바로 그 기능이 열등하다는 것을 실측</b>했음 — 세 문장 중 한 문장이 원문과 어긋났고, 무료 공개
+  모델은 세 문장 전부 일치했음.<br>
+  그리고 우리 쪽에서는 <b>한국식 억양 영어 음원이 오히려 정확한 영어로 인식돼</b> 발음 오류가
+  재현되지 않는 문제가 있었음. 음원을 만드는 도구를 바꾸면 풀릴 가능성이 있음.
+  <b>다만 아직 확인하지 않았으므로 가설로 남겼음.</b>
+</div>
+
+<div class="note">
+  <strong>시스템 소리 캡처 도구가 필요 없는 이유</strong>
+  우리 테스트는 <b>음성 파일을 브라우저 안에서 직접 마이크 입력으로 바꿔서</b> 넣음.
+  스피커·마이크·시스템 소리를 하나도 거치지 않음. 그 참고 프로젝트는 스피커로 소리를 내서
+  마이크로 받는 방식을 쓰다 <b>문제 네 건</b>을 겪었음. 그 길로 가지 않는 것이 맞음.
+</div>
+
+<div class="note caution">
+  <strong>내 판단을 하나 뒤집었음</strong>
+  처음에 <b>「응답 재사용으로 비용을 아낄 수 있다」를 가장 큰 적용 항목으로 적었다가</b>, 직접 재
+  보고 <b>불가능하다는 것을 확인해 뒤집었음</b>. 재사용이 작동하려면 앞부분이 일정 길이를 넘어야
+  하는데 우리 것은 그 절반도 안 됨. 억지로 늘리면 <b>품질과 무관하게 응답이 느려지고 비용이 늘어남</b>.<br>
+  대신 <b>실질적인 빈자리</b>를 찾았음 — 우리는 <b>사용량을 어디에도 기록하지 않아서</b> 비용이
+  어디로 새는지 볼 수 없고, 나중에 개선해도 <b>효과를 비교할 기준이 없음</b>.
+</div>
+
+<h2>4. 남은 일</h2>
+
+<h3>먼저 할 것 — 사용자에게 보이는 문제 세 개</h3>
+<table>
+  <tr><th>등급</th><th>무슨 일이 벌어지나</th></tr>
+  <tr>
+    <td class="bad">높음</td>
+    <td>학습 결과를 열 때 문제가 생기면 <b>학습자에게 기술적인 오류 문장이 그대로 보임</b>.
+        게다가 그 화면에서 <b>홈으로 돌아갈 방법이 없음</b></td>
+  </tr>
+  <tr>
+    <td class="warn">보통</td>
+    <td>다시 시도해도 소용없는 오류인데 <b>2초마다 무한히 다시 시도</b>함</td>
+  </tr>
+  <tr>
+    <td>낮음</td>
+    <td>일부 분석 실패 안내 문구에 <b>말투 두 가지가 섞여</b> 있음</td>
+  </tr>
+</table>
+
+<h3>그 뒤로 남은 것</h3>
+<ul>
+  <li><strong>새 기능 요청 여섯 가지</strong> — 오류 패턴 요약표 · 하루 권장 학습량 · 연속 학습일과 기록 화면 · 주제 아홉 가지 배치 · 학습 주제 생성기 · 주간 리포트</li>
+  <li><strong>화면 규칙을 기계로 지키기</strong> — 결과 화면에 점수처럼 보이는 숫자를 넣지 않기로 한 약속을 사람이 아니라 검사가 지키게 하기</li>
+  <li><strong>1단계 완료 판정</strong> — 여섯 항목을 증거와 맞춰 보기</li>
+  <li>문서 마감 · 데이터베이스 구조 정리 · 재시도 정책 설정 · 추적 체크리스트 만들기</li>
+</ul>
+
+<h2>5. 지금 상태 한눈에</h2>
+<table>
+  <tr><th>항목</th><th>값</th></tr>
+  <tr><td>테스트</td><td class="ok">869건 전부 통과</td></tr>
+  <tr><td>코드 형식·서식·타입 검사</td><td class="ok">오류 0</td></tr>
+  <tr><td>데이터베이스</td><td class="ok">기준값과 일치 · 어긋남 0 · 보존해야 할 학습 세션 여섯 개 모두 온전함</td></tr>
+  <tr><td>저장·업로드</td><td class="ok">저장 안 된 변경 없음 · 원격과 같음</td></tr>
+  <tr><td>진행 중인 작업</td><td>없음 — 다음 작업을 바로 시작할 수 있음</td></tr>
+</table>
+
+<footer>
+  이 문서는 사람이 읽기 위해 내부 약어를 풀어 쓴 것임. 정확한 항목 이름·측정값·근거는
+  <code>tests/harness/runs/</code> 의 회차 기록과 <code>docs/design/</code> 의 설계 문서가 가짐.
+  모든 수치는 이 세션에서 직접 명령을 돌려 얻은 것이고 계산값이나 추정값을 쓰지 않았음.
+</footer>
+
+</body>
+</html>
