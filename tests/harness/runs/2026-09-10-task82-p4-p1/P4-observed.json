@@ -1,0 +1,308 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3000/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/p2k.wav",
+  "bytes": 0,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 3.792,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 2,
+   "final": 2,
+   "audio": 101,
+   "session_ended": 0,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 1,
+   "speech_end": 1,
+   "interrupted": 0
+  },
+  "sent": {
+   "audio": 441,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 1
+  },
+  "startedSessionId": "ae0001c8-8e17-43a3-bcae-5c34b083fd8c",
+  "fixture": {
+   "url": "/harness/p2k.wav",
+   "bytes": 0,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 3.792,
+   "startedAt": 153,
+   "endedAt": 3938,
+   "micCalls": 1
+  },
+  "started": {
+   "count": 102,
+   "when": [
+    0,
+    5.776,
+    5.8549999999999995,
+    5.935,
+    6.015,
+    6.095,
+    6.175,
+    6.255,
+    6.335,
+    6.415,
+    6.495,
+    6.575,
+    6.655,
+    6.735,
+    6.815,
+    6.8950000000000005,
+    6.9750000000000005,
+    7.055000000000001,
+    7.135000000000001,
+    7.215000000000001,
+    7.295000000000001,
+    7.375000000000001,
+    7.455000000000001,
+    7.535000000000001,
+    7.615000000000001,
+    7.695000000000001,
+    7.775000000000001,
+    7.855000000000001,
+    7.935000000000001,
+    8.015,
+    8.095,
+    8.175,
+    8.255,
+    8.335,
+    8.415000000000001,
+    8.495000000000001,
+    8.575000000000001,
+    8.655000000000001,
+    8.735000000000001,
+    8.815000000000001,
+    8.895000000000001,
+    8.975000000000001,
+    9.055000000000001,
+    9.135000000000002,
+    9.215000000000002,
+    9.295000000000002,
+    9.375000000000002,
+    9.455000000000002,
+    9.535000000000002,
+    9.615000000000002,
+    9.695000000000002,
+    9.775000000000002,
+    10.016000000000002,
+    10.095000000000002,
+    10.175000000000002,
+    10.255000000000003,
+    10.335000000000003,
+    10.415000000000003,
+    10.495000000000003,
+    10.575000000000003,
+    10.655000000000003,
+    10.735000000000003,
+    10.815000000000003,
+    10.895000000000003,
+    10.975000000000003,
+    11.055000000000003,
+    11.135000000000003,
+    11.215000000000003,
+    11.295000000000003,
+    11.375000000000004,
+    11.455000000000004,
+    11.535000000000004,
+    11.615000000000004,
+    11.695000000000004,
+    11.775000000000004,
+    11.855000000000004,
+    11.935000000000004,
+    12.015000000000004,
+    12.095000000000004,
+    12.175000000000004,
+    12.255000000000004,
+    12.335000000000004,
+    12.415000000000004,
+    12.495000000000005,
+    12.575000000000005,
+    12.655000000000005,
+    12.735000000000005,
+    12.815000000000005,
+    12.895000000000005,
+    12.975000000000005,
+    13.055000000000005,
+    13.135000000000005,
+    13.215000000000005,
+    13.295000000000005,
+    13.375000000000005,
+    13.455000000000005,
+    13.535000000000005,
+    13.615000000000006,
+    13.695000000000006,
+    13.775000000000006,
+    13.855000000000006,
+    13.935000000000006
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 114,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 4783,
+    "count": 1,
+    "texts": [
+     "답변: 아이티니시프트 리포트 n c o d 더 이절치위드 마이팀"
+    ]
+   },
+   {
+    "ts": 5779,
+    "count": 2,
+    "texts": [
+     "답변: 아이티니시프트 리포트 n c o d 더 이절치위드 마이팀",
+     "질문: I see you want to talk about a report. Let's start with a simple sentence about your weekend."
+    ]
+   },
+   {
+    "ts": 6856,
+    "count": 2,
+    "texts": [
+     "답변: 아이티니시프트 리포트 n c o d 더 이절치위드 마이팀",
+     "질문: \nWhat do you want to do this weekend?  Try saying: \"I want to make a plan.\""
+    ]
+   },
+   {
+    "ts": 8028,
+    "count": 2,
+    "texts": [
+     "답변: 아이티니시프트 리포트 n c o d 더 이절치위드 마이팀",
+     "질문: I see you want to talk about a report. Let's start with a simple sentence about your weekend.\nWhat do you want to do this weekend?  Try saying: \"I want to make a plan.\""
+    ]
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 14.112
+  },
+  "meta": {
+   "hookedAt": "2026-09-09T23:34:38.323Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1788996878324,
+     "before": "suspended",
+     "afterSync": "suspended",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1788996878334,
+     "before": "suspended",
+     "afterSync": "suspended",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3000/_next/hmr?id=r9n7cWjS5y5BK8gdm3ya5",
+    "ws://localhost:8002/ws/session"
+   ]
+  },
+  "lines": [
+   "답변: 아이티니시프트 리포트 n c o d 더 이절치위드 마이팀",
+   "질문: I see you want to talk about a report. Let's start with a simple sentence about your weekend.\nWhat do you want to do this weekend?  Try saying: \"I want to make a plan.\""
+  ],
+  "url": "http://localhost:3000/",
+  "log": [
+   {
+    "at": 101,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 4761,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 14129,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 2,
+     "final": 2,
+     "audio": 101,
+     "session_ended": 0,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 1,
+     "speech_end": 1,
+     "interrupted": 0
+    }
+   }
+  ]
+ },
+ "screenshot_session": "../../tests/harness/runs/2026-09-10-task82-p4-p1/P4-session.png",
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3000/results/ae0001c8-8e17-43a3-bcae-5c34b083fd8c",
+  "recv": {
+   "session_started": 1,
+   "partial": 2,
+   "final": 2,
+   "audio": 101,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 1,
+   "speech_end": 1,
+   "interrupted": 0
+  },
+  "sent": {
+   "audio": 474,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "finalLinesAtTerminal": [
+   "답변: 아이티니시프트 리포트 n c o d 더 이절치위드 마이팀",
+   "질문: I see you want to talk about a report. Let's start with a simple sentence about your weekend.\nWhat do you want to do this weekend?  Try saying: \"I want to make a plan.\""
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "관찰된 신호",
+   "(전사문이 한국어로 인식되었습니다)",
+   "← 학습 시작 화면으로"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><div style=\"margin-top: 1.5rem;\"><h2 style=\"font-size: 1rem;\">발음</h2><div style=\"border-left: 3px solid var(--foreground-muted); padding-left: 0.75rem; margin: 0.75rem 0px;\"><p style=\"margin: 0.25rem 0px 0px; font-size: 0.8rem; color: var(--foreground-muted);\">관찰된 신호</p><p style=\"margin: 0.25rem 0px; color: var(--foreground-muted);\">(전사문이 한국어로 인식되었습니다)</p></div></div><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p>"
+ },
+ "screenshot_results": "../../tests/harness/runs/2026-09-10-task82-p4-p1/P4-results.png"
+}

@@ -1,0 +1,338 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3000/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/p2a.wav",
+  "bytes": 0,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 2.957,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 3,
+   "final": 2,
+   "audio": 125,
+   "session_ended": 0,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 1,
+   "speech_end": 1,
+   "interrupted": 0
+  },
+  "sent": {
+   "audio": 428,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 1
+  },
+  "startedSessionId": "a6e822e7-42b9-4562-b799-189e36bd3b4d",
+  "fixture": {
+   "url": "/harness/p2a.wav",
+   "bytes": 0,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 2.957,
+   "startedAt": 123,
+   "endedAt": 3080,
+   "micCalls": 1
+  },
+  "started": {
+   "count": 126,
+   "when": [
+    0,
+    4.96,
+    5.039,
+    5.119,
+    5.199,
+    5.279,
+    5.359,
+    5.439,
+    5.519,
+    5.599,
+    5.679,
+    5.759,
+    5.839,
+    5.9190000000000005,
+    5.9990000000000006,
+    6.079000000000001,
+    6.159000000000001,
+    6.239000000000001,
+    6.319000000000001,
+    6.399000000000001,
+    6.479000000000001,
+    6.559000000000001,
+    6.639000000000001,
+    6.719000000000001,
+    6.799000000000001,
+    6.879000000000001,
+    6.959000000000001,
+    7.0390000000000015,
+    7.1190000000000015,
+    7.199000000000002,
+    7.279000000000002,
+    7.359000000000002,
+    7.439000000000002,
+    7.519000000000002,
+    7.599000000000002,
+    7.679000000000002,
+    7.759000000000002,
+    7.839000000000002,
+    7.919000000000002,
+    7.999000000000002,
+    8.079000000000002,
+    8.159000000000002,
+    8.239000000000003,
+    8.319000000000003,
+    8.399000000000003,
+    8.479000000000003,
+    8.559000000000003,
+    8.639000000000003,
+    8.719000000000003,
+    8.799000000000003,
+    8.879000000000003,
+    8.959000000000003,
+    9.039000000000003,
+    9.119000000000003,
+    9.199000000000003,
+    9.279000000000003,
+    9.520000000000003,
+    9.599000000000004,
+    9.679000000000004,
+    9.759000000000004,
+    9.839000000000004,
+    9.919000000000004,
+    9.999000000000004,
+    10.079000000000004,
+    10.159000000000004,
+    10.239000000000004,
+    10.319000000000004,
+    10.399000000000004,
+    10.479000000000005,
+    10.559000000000005,
+    10.639000000000005,
+    10.719000000000005,
+    10.799000000000005,
+    10.879000000000005,
+    10.959000000000005,
+    11.039000000000005,
+    11.119000000000005,
+    11.199000000000005,
+    11.279000000000005,
+    11.359000000000005,
+    11.439000000000005,
+    11.519000000000005,
+    11.599000000000006,
+    11.679000000000006,
+    11.759000000000006,
+    11.839000000000006,
+    11.919000000000006,
+    11.999000000000006,
+    12.079000000000006,
+    12.159000000000006,
+    12.239000000000006,
+    12.319000000000006,
+    12.399000000000006,
+    12.479000000000006,
+    12.559000000000006,
+    12.639000000000006,
+    12.719000000000007,
+    12.799000000000007,
+    12.879000000000007,
+    12.959000000000007,
+    13.159000000000006,
+    13.160000000000005,
+    13.239000000000006,
+    13.319000000000006,
+    13.399000000000006,
+    13.479000000000006,
+    13.559000000000006,
+    13.639000000000006,
+    13.719000000000007,
+    13.799000000000007,
+    13.879000000000007,
+    13.959000000000007,
+    14.039000000000007,
+    14.119000000000007,
+    14.199000000000007,
+    14.279000000000007,
+    14.359000000000007,
+    14.439000000000007,
+    14.519000000000007,
+    14.599000000000007,
+    14.679000000000007,
+    14.759000000000007,
+    14.839000000000008,
+    14.919000000000008,
+    14.999000000000008,
+    15.199000000000007
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 97,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 4167,
+    "count": 1,
+    "texts": [
+     "답변: i finished the report and shared the results with my team."
+    ]
+   },
+   {
+    "ts": 4928,
+    "count": 2,
+    "texts": [
+     "답변: i finished the report and shared the results with my team.",
+     "질문: Great job sharing the report with your team! Let’s practice a sentence about your weekend plans."
+    ]
+   },
+   {
+    "ts": 6192,
+    "count": 2,
+    "texts": [
+     "답변: i finished the report and shared the results with my team.",
+     "질문: \nWhat do you want to do this weekend?  Try to use \"I want to make a plan.\""
+    ]
+   },
+   {
+    "ts": 7071,
+    "count": 2,
+    "texts": [
+     "답변: i finished the report and shared the results with my team.",
+     "질문:  or \"I want to make a new plan.\""
+    ]
+   },
+   {
+    "ts": 7660,
+    "count": 2,
+    "texts": [
+     "답변: i finished the report and shared the results with my team.",
+     "질문: Great job sharing the report with your team! Let’s practice a sentence about your weekend plans.\nWhat do you want to do this weekend?  Try to use \"I want to make a plan.\" or \"I want to make a new plan.\""
+    ]
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 13.722666666666667
+  },
+  "meta": {
+   "hookedAt": "2026-09-09T23:36:13.940Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1788996973941,
+     "before": "suspended",
+     "afterSync": "suspended",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1788996973952,
+     "before": "suspended",
+     "afterSync": "suspended",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3000/_next/hmr?id=C2TyckOfUWTd69fXGTjsr",
+    "ws://localhost:8002/ws/session"
+   ]
+  },
+  "lines": [
+   "답변: i finished the report and shared the results with my team.",
+   "질문: Great job sharing the report with your team! Let’s practice a sentence about your weekend plans.\nWhat do you want to do this weekend?  Try to use \"I want to make a plan.\" or \"I want to make a new plan.\""
+  ],
+  "url": "http://localhost:3000/",
+  "log": [
+   {
+    "at": 102,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 4131,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 13720,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 3,
+     "final": 2,
+     "audio": 125,
+     "session_ended": 0,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 1,
+     "speech_end": 1,
+     "interrupted": 0
+    }
+   }
+  ]
+ },
+ "screenshot_session": "../../tests/harness/runs/2026-09-10-task82-p4-p1/P1-session.png",
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3000/results/a6e822e7-42b9-4562-b799-189e36bd3b4d",
+  "recv": {
+   "session_started": 1,
+   "partial": 3,
+   "final": 2,
+   "audio": 125,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 1,
+   "speech_end": 1,
+   "interrupted": 0
+  },
+  "sent": {
+   "audio": 462,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "finalLinesAtTerminal": [
+   "답변: i finished the report and shared the results with my team.",
+   "질문: Great job sharing the report with your team! Let’s practice a sentence about your weekend plans.\nWhat do you want to do this weekend?  Try to use \"I want to make a plan.\" or \"I want to make a new plan.\""
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "← 학습 시작 화면으로"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p>"
+ },
+ "screenshot_results": "../../tests/harness/runs/2026-09-10-task82-p4-p1/P1-results.png"
+}
