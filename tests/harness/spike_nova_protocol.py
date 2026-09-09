@@ -141,6 +141,7 @@ def build_events(
     text_content: str,
     with_tools: bool = False,
     system_prompt: str | None = None,
+    endpointing: str = "MEDIUM",
 ) -> dict[str, Any]:
     """초기화·종료 이벤트를 한곳에 모아 둔다 (공식 문서 스키마 그대로).
 
@@ -158,7 +159,12 @@ def build_events(
                         "temperature": 0.7,
                     },
                     # Nova 2에서 추가된 필드 — barge-in(AC2) 민감도가 여기서 정해진다.
-                    "turnDetectionConfiguration": {"endpointingSensitivity": "MEDIUM"},
+                    # `N13`(민감도 대조)이 이것을 바꿔야 한다. ⛔ **앱 경로로는 그 관측이
+                    # 불가능하다** — `nova.py:429` 의 `_offset_ms` 가 `inputAudioOffsetMs`
+                    # 하나만 읽고 `inputAudioDetectionOffsetMs`(N-1 이 480 ms 의 근거로 쓴
+                    # 필드)를 **중계하지 않는다**(2026-09-09 확인). N-1 의 기준선도 이 스파이크에서
+                    # 나왔으므로 대조는 여기서 한다.
+                    "turnDetectionConfiguration": {"endpointingSensitivity": endpointing},
                 }
             }
         },
@@ -310,6 +316,7 @@ async def run(
     silence_ms: int,
     with_tools: bool = False,
     app_prompt: bool = False,
+    endpointing: str = "MEDIUM",
 ) -> int:
     swallowed: list[BaseException] = []
     _install_swallowed_exception_reporter(swallowed)
@@ -346,7 +353,9 @@ async def run(
         f"text-{uuid.uuid4()}",
         with_tools=with_tools,
         system_prompt=APP_SYSTEM_PROMPT if app_prompt else None,
+        endpointing=endpointing,
     )
+    print(f"    endpointingSensitivity = {endpointing}")
     if app_prompt:
         print(
             f"    시스템 프롬프트 = **앱의 `nova.SYSTEM_PROMPT`** ({len(APP_SYSTEM_PROMPT)}자) — "
@@ -510,6 +519,14 @@ def main() -> int:
         "--wav p1m.wav --tools",
     )
     ap.add_argument(
+        "--endpointing",
+        default="MEDIUM",
+        choices=["HIGH", "MEDIUM", "LOW"],
+        help="turnDetectionConfiguration.endpointingSensitivity — N13 민감도 대조용. "
+        "앱 경로로는 감지 지연을 잴 수 없어(nova.py:429 가 inputAudioDetectionOffsetMs 를 "
+        "중계하지 않는다) 이 스파이크로 대조한다",
+    )
+    ap.add_argument(
         "--app-prompt",
         action="store_true",
         help="스파이크 전용 프롬프트 대신 앱의 nova.SYSTEM_PROMPT 를 실어 보낸다 — "
@@ -524,6 +541,7 @@ def main() -> int:
             silence_ms=args.silence_ms,
             with_tools=args.tools,
             app_prompt=args.app_prompt,
+            endpointing=args.endpointing,
         )
     )
 

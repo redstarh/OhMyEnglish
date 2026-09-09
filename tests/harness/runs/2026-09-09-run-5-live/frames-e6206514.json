@@ -1,0 +1,42 @@
+{
+  "session_id": "e6206514-fca4-4be1-b2fc-7c57a8c82e8c",
+  "adapter": "nova", "backend_pid": 55492, "head": "0fdb975",
+  "endpointing": "NOVA_ENDPOINTING_SENSITIVITY=LOW (app/backend/.env:27)",
+  "purpose": "9차 — N6(barge-in) + N13(LOW) + B-2(대조군) 을 한 세션에서",
+  "wav_played": [
+    {"i": 0, "name": "u1.wav", "at_ms": 27397, "dur_s": 1.92},
+    {"i": 1, "name": "u2.wav", "at_ms": 31169, "dur_s": 2.16, "note": "BARGE-IN — agent audio 4건 수신 후"}
+  ],
+  "barge_in": {
+    "barge_at_ms": 31169, "audio_frames_at_barge": 4,
+    "interrupted_frame_at_ms": 31507, "first_stop_at_ms": 31507,
+    "ms_barge_to_interrupted": 338, "ms_barge_to_first_stop": 338,
+    "stop_calls_total": 20, "stop_calls_at_31507": 20,
+    "when_drop_to_zero": {"idx": 5, "prev_when": 3.967, "when": 0, "after_recv_audio": 4},
+    "stop_owner_prototype": "AudioScheduledSourceNode"
+  },
+  "endpointing_observation": {
+    "speech_start": [{"at": 28253, "offset_ms": 0}, {"at": 31504, "offset_ms": 3880}],
+    "speech_end": [{"at": 30243, "offset_ms": 1920}, {"at": 34118, "offset_ms": 5920}],
+    "ms_u1_play_to_speech_end_wallclock": 2846,
+    "note": "offset_ms 는 nova.py:_offset_ms 가 읽는 inputAudioOffsetMs 다. N-1 이 근거로 쓴 inputAudioDetectionOffsetMs 는 프레임에도 백엔드 로그에도 0건."
+  },
+  "text_frames": [
+    {"at": 27424, "type": "session_started", "session_id": "e6206514-fca4-4be1-b2fc-7c57a8c82e8c"},
+    {"at": 28253, "type": "speech_start", "offset_ms": 0},
+    {"at": 30243, "type": "speech_end", "offset_ms": 1920},
+    {"at": 30248, "type": "final", "speaker": "user", "text": "i usually go to gym after work."},
+    {"at": 30998, "type": "partial", "speaker": "agent", "text": "That's a good habit! Can you tell me what you want to do this weekend?"},
+    {"at": 31504, "type": "speech_start", "offset_ms": 3880},
+    {"at": 31507, "type": "interrupted"},
+    {"at": 31512, "type": "final", "speaker": "agent", "text": "That's a good habit! Can you tell me what you want to do this weekend?"},
+    {"at": 34118, "type": "speech_end", "offset_ms": 5920},
+    {"at": 34121, "type": "final", "speaker": "user", "text": "i usually go to office by subway."},
+    {"at": 34681, "type": "partial", "speaker": "agent", "text": "I see, that's convenient. Let's go back to the weekend plan."},
+    {"at": 35426, "type": "partial", "speaker": "agent", "text": " What do you want to do this weekend?  Try to use \"I want to make a plan.\""},
+    {"at": 36322, "type": "final", "speaker": "agent", "text": "I see, that's convenient. Let's go back to the weekend plan. What do you want to do this weekend?  Try to use \"I want to make a plan.\""},
+    {"at": 75290, "type": "session_ended", "session_id": "e6206514-fca4-4be1-b2fc-7c57a8c82e8c"}
+  ],
+  "recv_totals": {"session_started": 1, "partial": 3, "final": 4, "audio": 106, "session_ended": 1, "session_failed": 0},
+  "audio_frames_omitted": 106
+}

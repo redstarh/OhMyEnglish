@@ -1,0 +1,23 @@
+# DB utterances.transcript — repr() (9차 · N6+N13+B-2)
+# session_id = e6206514-fca4-4be1-b2fc-7c57a8c82e8c · adapter=nova · pid 55492 · HEAD 0fdb975 · endpointing=LOW
+# 흘린 WAV: u1.wav 1턴 → (agent 발화 중) u2.wav barge-in
+
+seq=1 speaker=user
+  repr = 'i usually go to gym after work.'
+  선행공백=0 · 선행개행=False · 이중공백=False
+  B-2 대조: == N5 기대 전사문? True  (기대 'i usually go to gym after work.')
+
+seq=2 speaker=agent
+  repr = "That's a good habit! Can you tell me what you want to do this weekend?"
+  선행공백=0 · 선행개행=False · 이중공백=False
+  B-2 대조: 발음 언급 낱말 없음
+
+seq=3 speaker=user
+  repr = 'i usually go to office by subway.'
+  선행공백=0 · 선행개행=False · 이중공백=False
+
+seq=4 speaker=agent
+  repr = 'I see, that\'s convenient. Let\'s go back to the weekend plan. What do you want to do this weekend?  Try to use "I want to make a plan."'
+  선행공백=0 · 선행개행=False · 이중공백=True
+  B-2 대조: 발음 언급 낱말 없음
+

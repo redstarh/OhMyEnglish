@@ -183,3 +183,107 @@ N11 거부 경로는 DB 에 세션을 만들지 않음) **`delete` 를 한 번�
 - **P11 의 계획 경로 누락 원인** — 백엔드 로직이고 범위 밖임.
 - **P8 카드의 다크·라이트 대비** — 이 회차는 렌더 구조와 기계 키 누출만 쟀음(대비는 5차 시도가
   5상태에서 이미 쟀고 이 세션은 그 다섯에 없음).
+
+---
+
+# 9차 시도 — N6 · N13 · B-2. **세션 1건으로 합쳤음**
+
+## ⛔ 보존할 세션 — `e6206514-fca4-4be1-b2fc-7c57a8c82e8c`
+
+> `completed` · `2026-09-08 23:50:40.775476+00` → `23:51:28.656045+00` · **teardown 하지 않았음**
+> (호출자 소유). 백엔드 pid **55492** · `VOICE_ADAPTER=nova` · `WORKER_ENABLED=false` ·
+> `NOVA_ENDPOINTING_SENSITIVITY=LOW`(`app/backend/.env:27`) · HEAD **`0fdb975`**.
+> 프리플라이트 통과(P5 `pid 55492 · 기동 03:56 전 · 소스 34건 → 통과`) · 계측 sha256 `cbc19fb6…`
+> 일치(`{cache:'no-store'}`) · **워커 켜지 않았음** · `H-AT` ③-1 대응으로 배경 프로세스를
+> `ps -axo pid,etime,command` 로 확인했음(CORS 서버 1개 → 회차 끝에 종료 · 8899 `000`).
+> **브리프가 목표한 3세션을 1세션으로 줄였음** — `u1.wav` 1턴(B-2 · N13) 뒤 agent 발화 중
+> `u2.wav` 를 끼워 barge-in(N6).
+> 증거: `runs/2026-09-09-run-5-live/frames-e6206514.json` · `…/transcripts-repr-e6206514.txt`.
+
+| 항목 | 판정 |
+|---|---|
+| **N6** ① 1초 안에 출력 중단 | **`PASS`** — **338 ms** |
+| **N6** ② `INTERRUPTED` 통보 | **부분** — 앱 계층 `interrupted` 프레임 1건 확인 · **Nova 원본 `stopReason` 은 앱 경로에서 관측 불가** |
+| **N6** ③ 클라이언트 오디오 큐 비움 | **`PASS`** — `stop()` **20회 동시 호출** + `when` 이 3.967 → **0** 으로 낙하 |
+| **N13** endpointing 민감도 | **`BLOCKED`** — 필요한 필드가 앱 경로에 없음(아래) |
+| **B-2** 대조군 | **`PASS`** — 전사문이 N5 기대와 등호 일치 · 발음 개입 **0건** |
+
+## N6 — barge-in. 셋 중 둘 `PASS`, 하나 부분
+
+`§5` 의 확장 지시 그대로 **`recv.audio` 가 늘기 시작한 시점**에 두 번째 `BufferSource` 를
+`start()` 했음: barge-in **@31,169 ms**(agent audio **4건** 수신 후).
+
+| 단정 | 관측 | 판정 |
+|---|---|---|
+| ① 1초 안에 출력 중단 | `interrupted` 프레임 **@31,507 ms** · 첫 `stop()` **@31,507 ms** → **barge-in 부터 338 ms** | **`PASS`**(< 1,000 ms) |
+| ② `stopReason=INTERRUPTED` 통보 | 프론트가 받은 `interrupted` 프레임 **1건**. ⛔ Nova 원본 `stopReason` 문자열은 **프레임에 없고**(`ws.ts` 의 `interrupted` 는 payload 가 `type` 뿐) **백엔드 로그에도 0건**(`grep -c stopReason` → **0** · `INTERRUPTED` → **0**) | **부분** |
+| ③ 오디오 큐 비움 | `stop()` 호출 **20회가 전부 `at: 31507`**(인자 없음) — `dropQueuedAudio()` 가 스케줄된 노드를 한꺼번에 멈춤. 그리고 `started.calls` 의 `when` 이 **3.967 → 0** 으로 떨어짐(`afterRecvAudio: 4` 지점) = `nextStartTime = 0` 의 효과 | **`PASS`** |
+
+**계측 지점을 확정했음**: `stop` 소유자는 **`AudioScheduledSourceNode.prototype`**(§11-2 실측
+재확인 — `AudioBufferSourceNode` 에는 없음). 그 후킹이 이 회차에 새로 더한 관측 지점이고
+`when` 낙하가 **큐 비움의 독립 증거**임(계수만으로는 「멈췄다」와 「비웠다」를 못 가름).
+
+⚠️ **`interrupted` 뒤에도 세션이 이어졌음** — 2턴이 정상 완주하고 `session_ended` 가 왔음
+(`final` 4 · `audio` 106). 7차의 곁가지 관측(끼어들어도 죽지 않음)이 **의도된 barge-in 에서도
+유지됨.**
+
+## N13 — `BLOCKED`. ⛔ **`MEDIUM` 재기동 요청을 철회함**
+
+**필요한 값이 앱 경로에 없음.** `nova.py:_offset_ms` 가 읽는 것은 **`inputAudioOffsetMs`** 하나이고
+(직접 읽어 확인) N-1 이 「MEDIUM 에서 약 480 ms」의 근거로 쓴 **`inputAudioDetectionOffsetMs` 는
+프레임에도 백엔드 로그에도 0건**(`grep -c` → 0). 즉 **감지 지연이 노출되지 않음.**
+
+이 회차가 얻은 값(LOW):
+
+| 무엇 | 값 |
+|---|--:|
+| `speech_start.offset_ms` | 0 · 3,880 |
+| `speech_end.offset_ms` | **1,920** · 5,920 |
+| `u1.wav` 길이 | **1,920 ms** — `speech_end - speech_start` 와 **정확히 같음** |
+| `u1` 재생 → `speech_end` 프레임 도착(벽시계) | 2,846 ms |
+
+⛔ **그 값은 발화 끝 오프셋이고 감지 지연이 아님.** 민감도를 바꿔도 발화 끝은 그대로이므로
+**`MEDIUM` 으로 재기동해도 같은 이유로 못 잼** → **재기동 요청을 철회함.**
+⚠️ **표본이 이미 흔들린 것도 함께 적음**: 같은 `u1.wav`·같은 `LOW` 에서 **7차 회차는
+`speech_end.offset_ms` 가 2,520** 이었고 이번은 **1,920** 임. 두 값이 갈리므로 이 필드로
+모드를 비교하면 **모드 차이와 회차 흔들림을 구별할 수 없음.**
+→ 닫으려면 **백엔드가 `inputAudioDetectionOffsetMs` 를 실어 보내야** 하거나
+`spike_nova_protocol.py`(Nova 직접 왕복)로 재야 함. **후자는 앱 경로가 아님.** 둘 다 이 회차
+범위 밖이므로 고치지 않았음.
+
+## B-2 — 대조군. 기준선 유지
+
+| 단정 | 관측 |
+|---|---|
+| 전사문이 실제 발화와 일치 | seq1 = `'i usually go to gym after work.'` — N5 기대(`u1.wav` = "I usually go to gym after work.")와 **등호 일치** (`== True`) |
+| 발음 개입 | agent 2턴 전사문에 `pronounc`·`sound`·`발음`·`accent` **0건** |
+| 저장·job | `utterances` 4행(user 2 · agent 2) · `analyze_utterance` **2건 `pending`**(사용자 발화 수와 일치) · `plan_next_session` 1건 |
+
+**「학습 반영 부재」 기준선이 유지됨** — 발음 개입이 없는 일반 대화에서 3차수 N5 와 같은 결과임.
+⚠️ **agent 문구는 회차마다 다름**(비결정적): 7차의 같은 WAV 응답은
+`That's good to hear. Can you tell me what you did yesterday? …` 였고 이번은
+`That's a good habit! Can you tell me what you want to do this weekend?` 임. **부류는 같음**
+(내용 질문 + 시범 요청) — **문구 등호로 대조하지 않았고**, 대조한 것은 **사용자 전사문**과
+**발음 언급 부재**임.
+
+## DB — teardown 하지 않았음 · drift 0
+
+**§8 정의 drift 쿼리 출력 = `0`**
+(`select count(*) from harness_pattern_baseline b join error_patterns p on p.id = b.id where p.frequency <> b.frequency or p.last_seen_at is distinct from b.last_seen_at`)
+
+| 표 | 회차 baseline | 회차 후 (**그대로 둠**) |
+|---|--:|--:|
+| `learning_sessions` (`where user_id='0…001'`) | 13 | **14** (+1 = 이 세션) |
+| `error_occurrences` (전체) | 24 | **24** (워커 꺼짐 → 분석 미실행) |
+
+**보존 세션 6개 생존.** 프로세스: pid **55492** 동일 · 플래그 동일 · `/health` `{"status":"ok"}`.
+⚠️ 회차 시작 시 baseline 이 브리프가 알려 준 값(`learning_sessions` 13 · `error_occurrences` 24 ·
+drift 0 · 보존 6)과 **일치했음** — 사전 통보가 대조를 성립시켰음.
+
+## 내가 확인하지 못한 것
+
+- **Nova 원본 `stopReason=INTERRUPTED`** — 앱 경로가 그 값을 버림. `spike_nova_protocol.py` 가
+  소유(N-1 기록에 `stopReason=END_TURN` 이 있음).
+- **N13 의 모드 간 비교** — 위 이유로 `LOW` 값조차 회차마다 흔들림.
+- **`interrupted` 뒤 큐가 「완전히」 비었는지** — `stop()` 20회와 `when` 낙하로 **비움 동작**은
+  확인했으나 **잔여 노드 0개**를 직접 세지는 못했음(`scheduled` Set 은 앱 내부 상태임).
