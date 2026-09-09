@@ -6,17 +6,23 @@
 > ⛔ **정리된 결정 이력을 이 파일에 옮기지 않는다** (2026-09-09 사용자 지시). 결정은 번호로만
 > 가리킨다 — 본문은 `docs/ops/captain-instruction-register.md` 가 소유함.
 
-## 다음 한 걸음 — `TASK-37`(하네스 5차수) `In Progress`
+## 다음 한 걸음 — **`TASK-36` 을 권함**(데이터가 이미 있음). `TASK-37` 은 `Done`
 
-> 회차 정본은 **`tests/harness/runs/2026-09-09-run-5.md`**(요약) 와 `…-run-5-browser.md`(상세).
-> **진행 상태를 여기 재서술하지 않음** — 그 둘과 원장이 가짐.
+> ✅ **`TASK-37`(하네스 5차수) `Done`** (2026-09-09). AC 아홉 전부 · **신규 앱 결함 0건**.
+> 회차 정본은 `tests/harness/runs/2026-09-09-run-5.md`(요약) 와 `…-run-5-browser.md`(상세) ·
+> 하네스 원장은 `…/ROUNDS.md`. **진행 상태를 여기 재서술하지 않음.**
 >
-> **남은 것**: `AC#1`(N6·N12·N13 실물) · `AC#3` 의 E4~E6 · `AC#4`(P8·P7 재캡처) ·
-> `AC#5` 실행(P9~P12) · `AC#8`·`AC#9`. 끝난 것은 `AC#2`·`AC#6`·`AC#7`.
+> **선행이 풀린 것 둘**: `TASK-36`(exchange 상한 실현성) · `TASK-30`(판별력 관측).
+> ⚠️ **`TASK-36` 을 먼저 권함 — 실물 데이터를 5차수가 이미 얻었음.** 왕복
+> **5,142 / 5,666 / 8,281 ms**(평균 6,363)이고 그 AC#1 은 충족돼 있음. **남은 것은 AC#3** —
+> 판정을 설계서 §2.3·§5 와 등록부 **결정 20** 에 반영하는 것이고 **실물 호출이 0회**임.
+> ⛔ **판정할 때 갈래를 섞지 않음**: 「상한이 불가능하다」는 **배제됨**(20 exchange ≈ 127초 =
+> 10분 예산의 21%. 결정 20 의 「하나당 30초」는 600÷20 의 산수였음) · 「모델이 지시를 어겼다」는
+> **미해결**(3에서 멈춘 것은 관측 설계 탓임). 하네스는 사고 시간이 0 이라 6.36초는 **하한**임.
 >
-> ⛔ **워커를 켤 때 반드시 읽을 것: `H-AT`.** 2026-09-09 에 워커를 켜서 **보존 세션 2개를
-> 파괴했고** 복구에 비용이 들었음. 막는 방법이 그 함정에 있음.
-> ⚠️ **실물 호출·워커·재기동은 이제 사전 승인임**(결정 40) — 묻지 않고 진행함.
+> ⛔ **워커를 켤 때 반드시 읽을 것: `H-AT`.** 2026-09-09 에 워커를 켜서 **보존 세션 2개를 두 번
+> 파괴했고** 복구에 비용이 들었음. 경로 둘과 대응이 그 함정에 있음.
+> ⚠️ **실물 호출·워커·재기동은 사전 승인임**(결정 40) — 묻지 않고 진행함.
 
 ## 게이트 — 이 cwd 에서만 판정함 (`H-A`)
 
@@ -54,10 +60,10 @@ cd app/backend
 
 | # | 지표 | 기준값 (마감 시점에 직접 돌려 얻었음) |
 |--:|---|---|
-| 1 | `git rev-parse --short HEAD` · `git status` | **`744bb07` 이상**(등호를 요구하지 않음 — `H-P`) · 추적 미커밋 **0건** · `origin` 과 동기 |
-| 2 | 원장 — `grep -h "^status:" backlog/tasks/*.md \| sort \| uniq -c` | 전체 **52** · Done **35** · To Do **16** · In Progress **1**(`TASK-37`) · Awaiting Decision **0**. ⛔ `backlog task list --plain \| grep -c "^  TASK-"` 로 세지 않음 — 우선순위 라벨이 붙으면 빠짐 |
+| 1 | `git rev-parse --short HEAD` · `git status` | **`3f97231` 이상**(등호를 요구하지 않음 — `H-P`) · 추적 미커밋 **0건** · `origin` 과 동기 |
+| 2 | 원장 — `grep -h "^status:" backlog/tasks/*.md \| sort \| uniq -c` | 전체 **52** · Done **36** · To Do **16** · In Progress **0** · Awaiting Decision **0**. ⛔ `backlog task list --plain \| grep -c "^  TASK-"` 로 세지 않음 — 우선순위 라벨이 붙으면 빠짐 |
 | 3 | 게이트 (`app/backend` cwd) | **843 passed** · `ruff check` exit 0 · format **unformatted 0** · `ty check` exit 0 · 게이트 **밖** `ruff check` **0 errors** · format **unformatted 0** · 프론트 `npx tsc --noEmit`·`npx eslint app lib` exit 0 |
-| 4 | DB (읽기만) | `schema_migrations` **9건**(`001·003~007·009·010·011`) · `error_patterns` **9** · `error_occurrences` **24** · `utterances` **120** · `review_tasks` **13** · `pronunciation_attempts` **4** · `shadowing_items` **1** · **§8 drift 0** · **보존 세션 6개** 생존. ⚠️ **수치에 표 이름을 붙여 적음** — 이름 없는 묶음은 읽는 사람이 엉뚱한 표에 대응시킴(2026-09-09 실측) |
+| 4 | DB (읽기만) | `schema_migrations` **9건**(`001·003~007·009·010·011`) · `learning_sessions` **13** · `error_patterns` **9** · `error_occurrences` **24** · `utterances` **120** · `session_plans` **2** · `review_tasks` **15** · `pronunciation_attempts` **4** · **§8 drift 0** · **보존 세션 6개** 생존. ⚠️ **수치에 표 이름을 붙여 적음** — 이름 없는 묶음은 읽는 사람이 엉뚱한 표에 대응시킴(2026-09-09 실측) |
 | 5 | 결과 API 상태 6개 | `210233be` `analyzing` · `6225ddaf` `final`(교정 1) · `b2f0d169` `partial_failure` · `76d9ef31` `connection_failed` · `d127dece` `no_utterances` · **`e0c5e580` `final`(교정 2 — A4-2 표본)**. ⛔ **이 여섯이 `browser_leg.md` §9 의 자산임 — 지우지 않음** |
 
 ⚠️ **3번과 5번이 핵심임** — 읽기는 전달을 증명하지 못하고 **직접 돌린 출력**만 데이터임.
