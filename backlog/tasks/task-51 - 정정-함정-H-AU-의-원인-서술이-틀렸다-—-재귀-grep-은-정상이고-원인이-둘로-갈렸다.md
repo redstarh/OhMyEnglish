@@ -1,10 +1,10 @@
 ---
 id: TASK-51
 title: '정정: 함정 H-AU 의 원인 서술이 틀렸다 — 재귀 grep 은 정상이고 원인이 둘로 갈렸다'
-status: Done
+status: In Progress
 assignee: []
 created_date: '2026-09-09 03:54'
-updated_date: '2026-09-09 03:56'
+updated_date: '2026-09-09 04:01'
 labels: []
 dependencies: []
 ordinal: 54000
@@ -23,4 +23,5 @@ TASK-50 에서 H-AU 를 「grep -r 이 파일을 조용히 빠뜨린다 · 원�
 - [x] #3 대응을 고친다 — git ls-files 는 추적 파일만 보므로 추적 밖(.superpowers/**)을 도리어 빠뜨린다. 범위별로 command grep · find 열거 · git ls-files 를 가려 쓴다
 - [x] #4 제외 필터는 경로에만 건다는 규칙을 넣는다 — 내용 매칭이 정당한 줄을 버리는 것이 이 사고의 실제 원인이다
 - [x] #5 handoff 착수 전 필수의 H-AU 요지와 프로젝트 메모리를 같은 내용으로 고친다 — 한쪽만 고치면 갈라진다
+- [x] #6 H-AU 와 handoff 의 「재귀 grep 자체는 정상이다」를 조인다 — 그 문장만 읽으면 맨 grep -r 도 안전하다고 읽히는데 기전 (나)가 바로 셰임 grep -r 이 빠뜨리는 것이다. 다른 세션 리뷰가 찾았고 직접 확인했다
 <!-- AC:END -->
