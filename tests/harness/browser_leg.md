@@ -328,6 +328,36 @@ python3 -c "import subprocess,os; r=subprocess.run(['git','rev-parse','--show-to
 | A5-1 | 배지 4 outcome | `pending`·`correct`·`incorrect`·`unclear`를 각각 주입 → **배지 요소가 정확히 1개**이고 그 `textContent`가 `app/page.tsx:PRONUNCIATION_BADGE`의 해당 문구와 **정확히 같다.** 요소는 `p[aria-live="polite"]`로 지목한다 — 프론트 전체에 `aria-live`가 **1건뿐**임을 직접 확인했다(`app/page.tsx`의 배지). **ⓒ 하드코딩**: 프레임은 기계값 `outcome`만 나르고 문구는 화면 상수다. ⚠️ **"대상 문구가 DOM에 있다"를 버렸다** — 그것은 배지 4종을 **전부** 렌더해도 통과한다. **요소 개수 1 + 등호**가 그 경로를 닫는다. ⚠️ 세 문구가 `/results/*`의 `OUTCOME_LABEL`에도 있는 문제는 **요소를 지목하므로 더는 성립하지 않는다** | ① **주입하지 않으면 배지 요소가 DOM에 부재**(`app/page.tsx`의 `{pronunciation && …}`) (주입 생략) ② **4 outcome을 순차 주입하며 같은 요소의 `textContent`가 매번 바뀐다** — 상수를 렌더하고 있으면 바뀌지 않는다 (순차 주입) |
 | A5-2 | `target_sound` 미렌더 | 주입한 `target_sound`에 **sentinel 값**을 넣고 DOM 전체에서 **0건** — ⓑ 런타임 유도(설계서 §10 미결 4) | **같은 프레임의 `outcome` 문구는 있어야 한다**(A5-1) — DOM 검색 자체가 동작함을 증명한다. 둘 다 0이면 주입이 실패한 것이다 (동일 프레임 대조) |
 
+✅ **C5 실행체가 있다 — `tests/harness/c5_pronunciation_badge.py`**(2026-09-09 `TASK-49` 신설).
+지키는 규약은 그 파일 머리주석이 소유하고 **여기서 재서술하지 않는다.**
+
+⛔ **왜 필요했나 — 대화형 왕복으로는 A5-1 의 대조 ①을 평가할 수 없었다.** C1·C2·C3·C4 는 실행체가
+있는데 C5 만 없어서 판정을 여러 번의 에이전트 왕복으로 해야 했고, 이 환경의 실측 라운드트립
+**20,635 ms** 가 주입 창 **10,000 ms** 를 **반드시 넘긴다.** 5차수는 CDP 클릭으로 user activation 을
+만든 뒤 **같은 문서에서 재시도를 합성 클릭**하는 우회로 성립시켰고, 그래서 **대조 ①(주입 전 배지
+부재)이 오염됐다** — 그 회차의 `PASS` 는 대조 ②만 근거로 냈다. 실행체는 **계측 설치 → 주입 전 배지
+관측 → CDP 클릭 1회 → 4 outcome 순차 주입** 을 한 프로세스·한 `eval` 안에서 끝내므로 그 오염이
+**원리적으로** 사라진다(§6 의 ⛔ 를 그대로 지킨다).
+
+**사용법** — 판정은 exit code 다(어긋남이 있으면 `1`):
+
+```bash
+cd app/backend && .venv/bin/python ../../tests/harness/c5_pronunciation_badge.py \
+  --port 9222 --url http://localhost:3000/ --out ../../.harness/evidence/c5-badges.json
+# 판별력 확인 — 관측을 일부러 비틀어 exit 1 이 나는지 본다 (⛔ 앱을 고치지 않는다)
+… c5_pronunciation_badge.py --mutate wrong-text     # badge-before·two-badges·constant-text·sentinel-leak
+```
+
+✅ **판별력을 게이트가 고정한다 — `tests/harness/test_c5_gates.py`.** 판정이 순수 함수
+(`check_badges`)로 분리돼 있어 **브라우저 없이** 변이가 잡히는지 센다:
+`cd app/backend && .venv/bin/pytest ../../tests/harness/test_c5_gates.py -q` → **11 passed**
+(2026-09-09 직접 실행). 변이 7건 · 빈 입력이 통과하지 않는지 · sentinel 이 실제 값과 겹치지 않는지.
+
+⚠️ **아직 실물 회차에서 돌리지 않았다.** 확인한 것은 게이트 11건과 `--help` exit 0 뿐이고,
+**대조 ①이 실제로 오염 없이 0 을 내는지와 실행체가 실물에서 exit 1 을 내는지는 미검증이다** —
+`TASK-30` 회차 3(`VOICE_ADAPTER=stub_unresponsive`)이 그것을 한다. **그때까지 A5-1 을 `PASS` 로
+올리지 않는다.**
+
 ## §6. C2 측정 절차 — 타이밍에서 떼어낸다
 
 run-1의 스로틀 스크립트는 **회수 불가로 확정**됐다(지목된 CDP 캐시 세션이 존재하지 않고 전체 캐시에 `__omy` 0건). 스텁 `events()`에 지연을 넣지 않는다 — ① 생산 코드에 테스트 전용 경로 ② D계층 통합 테스트가 스텁 타이밍에 의존 ③ `sleep`이 모든 백엔드 테스트를 느리게 한다. 검증하려는 규칙("partial은 muted, final은 foreground")은 **시간의 함수가 아니다**:

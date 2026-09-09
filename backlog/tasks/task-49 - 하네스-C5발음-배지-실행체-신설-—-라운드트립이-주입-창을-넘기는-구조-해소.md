@@ -1,9 +1,10 @@
 ---
 id: TASK-49
 title: '하네스: C5(발음 배지) 실행체 신설 — 라운드트립이 주입 창을 넘기는 구조 해소'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-08 19:30'
+updated_date: '2026-09-09 05:46'
 labels: []
 dependencies: []
 ordinal: 52000
@@ -17,8 +18,25 @@ ordinal: 52000
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 C5 실행체를 c2_render_hierarchy.py·c3_results_screen.py 와 같은 형태로 만든다 — 한 번의 프로세스 실행 안에서 주입·판독을 끝내 라운드트립이 창에 영향을 주지 않게 한다
+- [x] #1 C5 실행체를 c2_render_hierarchy.py·c3_results_screen.py 와 같은 형태로 만든다 — 한 번의 프로세스 실행 안에서 주입·판독을 끝내 라운드트립이 창에 영향을 주지 않게 한다
 - [ ] #2 A5-1 의 음성 대조 ①(주입 전 배지 요소 부재)을 오염 없이 평가한다 — 같은 문서에서 재시도를 합성 클릭하지 않는다
 - [ ] #3 판별력을 확인한다 — 배지 문구를 어긋나게 만든 변형에서 실행체가 exit 1 을 내는 것을 관측하고 그 출력을 첨부한다
-- [ ] #4 browser_leg.md §5 C5 표에 실행체 경로와 사용법을 적고, 우회 경로를 쓰던 서술을 지운다
+- [x] #4 browser_leg.md §5 C5 표에 실행체 경로와 사용법을 적고, 우회 경로를 쓰던 서술을 지운다
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-09-09 착수 — TASK-30 AC#7(A5-1 판별력) 이 이것을 필요로 해서 먼저 한다.
+
+발견: TASK-30 회차 3 을 위임으로 하면 이 태스크가 적은 구조 문제에 그대로 걸린다(라운드트립 20,635 ms > 주입 창 10,000 ms). 그래서 순서를 회차 2 → TASK-49 → 회차 3 으로 잡았다. ⛔ 의존은 걸지 않았다 — TASK-30 의 회차 1·2 는 이것 없이 진행되므로 의존을 걸면 원장이 「선행 대기」로 오분류한다.
+
+착수 전 수집한 조각(전부 호출자가 소스에서 직접 확인):
+- 주입 프레임 모양 — app/frontend/lib/ws.ts:60-65 의 {type:'pronunciation', outcome, target_form, target_sound}. target_sound 는 기계 키이고 화면에 렌더하지 않는다(A5-2 가 그 부재를 단정한다).
+- 배지 문구 4개 (ⓒ 하드코딩 · app/page.tsx:21-26) — pending='🔊 발음 교정 중' · correct='✓ 좋아요' · incorrect='다시 연습해요' · unclear='잘 안 들렸어요'.
+- 배지 요소 — app/page.tsx:330 의 aria-live='polite'. 프론트 전체에 aria-live 가 1건뿐임을 browser_leg.md A5-1 행이 확인해 뒀다.
+- 재사용할 도구 — c2_render_hierarchy.py 의 Cdp(call·eval·click)·find_target(port, exact). 주입은 계측이 주는 omy.inject(frame) 이고 omy.injected 가 계수다.
+- 모델로 삼을 형태 — c3_results_screen.py(판정 함수가 (exit_code, messages) 를 돌려주고 main() 이 int 를 반환) + test_c3_gates.py(판정 함수를 직접 불러 red/green 을 고정).
+
+⚠️ 테스트 실행에는 VOICE_ADAPTER=stub_unresponsive 재기동이 필요하다(주입 창 · browser_leg.md:405). 회차 2 가 stub 을 쓰는 중이라 코드 작성만 먼저 한다.
+<!-- SECTION:NOTES:END -->
