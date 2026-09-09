@@ -1,0 +1,18 @@
+=== analyze_utterance job 배치 (상태 판정의 재료) ===
+  prefix  | status  | n 
+----------+---------+---
+ 210233be | pending | 3
+ 6225ddaf | done    | 1
+ b2f0d169 | done    | 2
+ b2f0d169 | failed  | 1
+ e0c5e580 | done    | 3
+(5개 행)
+
+=== 세션별 구분 패턴 수 = corrections 건수의 재료 ===
+  prefix  | distinct_patterns | occurrences |                                  pattern_keys                                  
+----------+-------------------+-------------+--------------------------------------------------------------------------------
+ 6225ddaf |                 1 |           1 | article_missing_the_before_place_noun
+ d127dece |                 1 |           2 | article_missing_the_before_place_noun
+ e0c5e580 |                 2 |           4 | article_missing_the_before_place_noun | verb_tense_past_simple_for_past_events
+(3개 행)
+

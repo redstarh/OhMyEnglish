@@ -122,10 +122,22 @@ def check_c1(observed: dict[str, Any]) -> tuple[int, list[str]]:
         checked += 1
         end_session = sent.get("end_session")
         if end_session != 1:
+            # ⛔ **원인을 가른다 — 구별되지 않으면 앱 결함으로 오보고된다.**
+            click_raw = observed.get("end_click")
+            click = cast(dict[str, Any], click_raw) if isinstance(click_raw, dict) else None
+            if click is not None and not click.get("ok"):
+                hint = (
+                    " ⚠️ **종료 클릭 자체가 실패했다** — 후킹 고장도 앱 결함도 아니다."
+                    f" 오류: {click.get('error')!r} ·"
+                    f" 화면의 버튼: {observed.get('buttons')!r}"
+                )
+            else:
+                hint = (
+                    " ⛔ 종료 클릭은 성공했으므로 이것이 0 이면 audio 계수 0 은"
+                    " 「전송 없음」이 아니라 **후킹 고장**이다"
+                )
             fails.append(
-                f"A1-7 의 sent.end_session 이 {end_session!r} 다 — 정확히 1 이어야 한다."
-                " ⛔ 이것이 0 이면 audio 계수 0 은 「전송 없음」이 아니라 **후킹 고장**이다."
-                " (⚠️ 이 값은 세션 종료 클릭 **후에** 읽는다)"
+                f"A1-7 의 sent.end_session 이 {end_session!r} 다 — 정확히 1 이어야 한다.{hint}"
             )
 
     # ── A1-7 대체 대조 — PCM 내용을 센다 ────────────────────────────────────
@@ -333,11 +345,20 @@ def main() -> int:
             )
 
             # ⛔ `end_session` 은 **종료 클릭 후에** 세어진다 (§5 A1-7 행 ①).
-            await cdp.click(
-                "Array.from(document.querySelectorAll('button'))"
-                "  .find(b => /학습 종료/.test(b.textContent||''))",
-                "학습 종료",
-            )
+            # ⚠️ **여기서 실패해도 앞서 얻은 관측을 버리지 않는다.** 초판이 종료 클릭 실패에
+            #    죽어 **세션 관통 관측 전부를 잃었다**(2026-09-09 실측) — 위임 검증자가 산출물
+            #    직전에 죽어 값을 잃은 것(`H-AO`)과 **같은 형태를 실행체가 재현한 것**이다.
+            end_click: dict[str, Any] = {"attempted": True, "ok": False, "error": None}
+            observed["end_click"] = end_click
+            try:
+                await cdp.click(
+                    "Array.from(document.querySelectorAll('button'))"
+                    "  .find(b => /학습 종료/.test(b.textContent||''))",
+                    "학습 종료",
+                )
+                end_click["ok"] = True
+            except SystemExit as exc:
+                end_click["error"] = str(exc)
             after = json.loads(
                 await cdp.eval(
                     "(async () => { const s = () => JSON.stringify(window.__omy.sent);"
@@ -350,6 +371,13 @@ def main() -> int:
             )
             observed["sent"] = after
             observed["silent_mic"] = args.silent_mic
+            # 종료 버튼을 못 찾은 경우의 진단 재료 — 어떤 버튼이 화면에 있었는지 남긴다.
+            observed["buttons"] = json.loads(
+                await cdp.eval(
+                    "JSON.stringify(Array.from(document.querySelectorAll('button'))"
+                    "  .map(b => (b.textContent||'').trim()))"
+                )
+            )
             return observed
 
     observed = asyncio.run(run())

@@ -1,0 +1,16 @@
+     관측 status          기준 status          관측 corrections   기준 corrections   판정
+C3a  analyzing          analyzing          부재               부재               PASS
+C3b  final              final              있음(1건)           있음(1건)           PASS
+C3c  partial_failure    partial_failure    있음(0건)           있음(0건)           PASS
+C3d  connection_failed  connection_failed  부재               부재               PASS
+C3e  no_utterances      no_utterances      부재               부재               PASS
+C3f  final              final              있음(2건)           있음(2건)           PASS
+
+C3a 최상위 키: ['partial_failure', 'pronunciation', 'status']
+C3b 최상위 키: ['corrections', 'partial_failure', 'pronunciation', 'status']
+C3c 최상위 키: ['corrections', 'partial_failure', 'pronunciation', 'status']
+C3d 최상위 키: ['partial_failure', 'pronunciation', 'status']
+C3e 최상위 키: ['partial_failure', 'pronunciation', 'status']
+C3f 최상위 키: ['corrections', 'drill', 'partial_failure', 'pronunciation', 'status']
+
+PASS 6 / 6

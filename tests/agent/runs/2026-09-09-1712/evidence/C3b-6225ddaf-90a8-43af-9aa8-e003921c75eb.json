@@ -1,0 +1,1 @@
+{"status":"final","partial_failure":false,"pronunciation":[],"corrections":[{"pattern_key":"article_missing_the_before_place_noun","category":"article","original_span":"go to gym","correction":"go to the gym","reason":"gym처럼 늘 다니는 장소를 말할 때는 앞에 the를 붙여 'go to the gym'이라고 합니다.","target_form":"go to the + 장소 명사","occurrences":1}]}

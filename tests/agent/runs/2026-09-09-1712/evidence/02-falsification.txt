@@ -1,0 +1,9 @@
+C3a FAIL
+C3b FAIL
+C3c FAIL
+C3d FAIL
+C3e PASS
+C3f FAIL
+
+어긋남 5/5 (C3e 는 의도적으로 기준과 동일 → PASS 유지가 정상)
+판별력: 관측됨 — 세 종류(status·건수·키 유무)의 어긋남을 각각 잡았음
