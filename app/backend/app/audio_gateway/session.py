@@ -145,13 +145,24 @@ class SessionRunner:
             await self._send({"type": "session_failed", "reason": failure_reason})
             return
 
+        # ⛔ **닫는 것과 「무엇으로 닫는가」는 다른 결정이다** (2026-09-09 codex 리뷰 HIGH).
+        #    이전 판은 `finally`에서 무조건 `completed`를 기록했다. 닫는 이유는 그대로 옳지만
+        #    상태가 사실과 어긋났다 — 연결 뒤에 어댑터가 터진 세션이 **정상 종료로 남았고**,
+        #    그러면 결과 조회의 R2 우선순위가 `connection_failed`에 걸리지 못해
+        #    `final`·`no_utterances`로 떨어진다. **학습자가 장애를 성공으로 본다.**
+        #    ⚠️ flush 실패는 여기 오지 않는다 — `_flush_analysis`가 예외를 삼키므로
+        #    `_relay()`가 터지지 않고 그 경로는 `completed`가 맞다.
+        outcome = "completed"
         try:
             await self._relay()
+        except BaseException:
+            outcome = "failed"
+            raise
         finally:
             # 릴레이가 예외로 끝나도 세션은 닫는다 — `active`로 남은 세션은
             # 종료 시각이 없어 결과 화면에서 영원히 진행 중처럼 보인다.
             self._abandon_open_recording_turn()
-            await self._close_and_record("completed")
+            await self._close_and_record(outcome)
         await self._send({"type": "session_ended", "session_id": str(self._session_id)})
 
     async def _connect(self) -> str | None:

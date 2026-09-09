@@ -62,7 +62,7 @@
 
 | | 테스트 |
 |---|---|
-| W1 | `tests/unit/test_utterances.py:1` · `tests/integration/test_worker.py:1`·`:276`(active 세션 job 이 1사이클 후 done — 관측형) |
+| W1 | `tests/unit/test_utterances.py:1` · `tests/integration/test_worker.py:1`·`:276`(active 세션 job 이 1사이클 후 done — 관측형). ⛔ **아래 정정 참조 — 원자성 부분의 근거가 공허했다** |
 | W2 | `tests/unit/test_analysis.py:1` · `tests/integration/test_pipeline.py:163`(같은 key → patterns 1행 / occurrences 2행 / frequency 2) |
 | W3 | `tests/unit/test_utterances.py:329` · `tests/unit/test_jobs.py:1` |
 | W4 | `tests/unit/test_jobs.py:171`(lease 만료 회수 + 이전 token 의 complete 가 False) |
@@ -72,6 +72,20 @@
 
 ⛔ **W2 의 실물 계약은 가짜 클라이언트로 잴 수 없음** — AC 의 「W1~W7 검증 방식」이 그것을 명시하고
 **W-live 가 담당함.** §2 가 그 증거임.
+
+⛔ **2026-09-09 정정 — W1 의 「원자성」 부분은 이 대조가 충족으로 셀 근거가 없었다.** 항목 6의
+코드 리뷰(`TASK-70`)가 지적하고 팀리드가 코드로 확인했다:
+`tests/unit/test_utterances.py:117` 이 `async with db_conn.transaction():` 으로 **호출자
+트랜잭션**을 열어 두 호출을 감싸는데, **프로덕션은 그 패턴을 금지한다** —
+`_flush_analysis` 의 docstring 이 *"호출자의 트랜잭션 안에서 부르지 않는다"* 를 명시한다.
+즉 테스트가 증명하는 성질을 프로덕션이 의도적으로 피하고, AC W1 의 *"한 트랜잭션이고"* 는
+**프로덕션 경로에서 검증된 적이 없다.**
+⚠️ **덮지 않고 정정으로 남긴다** — 이 대조가 「테스트가 실재한다」를 충족의 근거로 쓴 것이
+어디까지 통하는지가 다음 사람에게 필요하다. 소유자는 `TASK-76` 이고, I-1 이후 설계(묶음 단위
+job)와 AC 문면이 어긋난 것도 그 태스크가 함께 판정한다.
+⚠️ **피해 자체는 리퍼+스윕이 덮는다** — `flush_ended_sessions` + `reap_orphan_sessions` 가
+「전사문만 남고 job 이 없다」를 영구 상태로 두지 않는다(`services/utterances.py:238~252`).
+그래서 항목 1 전체 판정은 유지하고 이 한 칸만 정정한다.
 
 ### R · G · U → ✅ 전 항목 증거 실재
 
@@ -187,7 +201,21 @@ red 출력을 값으로 적었음(*"백오프가 transaction_timestamp가 아닌
 시나리오·쉐도잉 범위임.
 
 ⛔ **이 항목은 지금 실행할 수 있음** — red→green 과 달리 리뷰는 사후에 돌려도 같은 판정을 냄.
-그래서 결정 사안이 아니라 **작업**임. 태스크로 등록함.
+그래서 결정 사안이 아니라 **작업**임. 태스크로 등록함(`TASK-70`).
+
+### 2026-09-09 실행 결과 — **Not Approve · HIGH 3건**
+
+`codex exec review` 를 Phase 1 소유 모듈 범위로 돌렸음(과거 diff 가 아니라 **현재 상태** — 그
+파일들이 이후 슬라이스로 바뀌었으므로 그때의 diff 를 보면 지금 없는 코드를 본다).
+
+| 지적 | 팀리드 검증 | 처리 |
+|---|---|---|
+| 실행 중 어댑터 오류를 `completed` 로 기록함 (`session.py`) | ✅ **맞음** — `finally` 가 무조건 `completed` 를 기록해 R2 가 `connection_failed` 에 걸리지 못함 | ✅ **고쳤음.** red 를 먼저 관측하고(`assert 'completed' == 'failed'`) 고친 뒤 885 passed |
+| 전사문 저장과 job 등록의 원자성 (`session.py`) | ⚠️ **프레이밍을 정정함** — 「전사문만 남는다」는 리퍼+스윕이 덮음. **실제 내용은 그 테스트가 공허하다는 것**이고 그것은 맞음 | `TASK-76` |
+| 종단 이벤트 없는 소켓 종료를 성공으로 처리함 (`page.tsx`) | ✅ **맞음** — `onClose` 가 `session_ended` 수신을 보지 않고, 이른 종단 상태 읽기가 폴링을 영구히 멈춤 | `TASK-77` |
+
+⛔ **Approve 가 아니므로 `TASK-70` 을 닫지 않음.** 그 태스크의 AC 가 *"Approve 전에 Done 으로
+올리지 않는다"* 를 요구함. `TASK-76`·`TASK-77` 이 닫힌 뒤 재리뷰해야 함.
 
 ---
 

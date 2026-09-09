@@ -650,6 +650,53 @@ async def test_session_ending_with_user_speech_enqueues_its_analysis_on_close(
     assert target == 2, "job은 묶음의 **마지막** 발화에 걸려야 한다 (병합 입력의 기준점)"
 
 
+# ⛔ **연결 뒤에 어댑터가 터지면 세션은 `failed`다 — `completed`가 아니다** (G2 · 2026-09-09
+# codex 리뷰 HIGH). 이전 판은 `finally`가 무조건 `completed`를 기록해서 **실제 연결 장애가
+# 정상 종료로 남았다**. 그러면 결과 조회의 R2 우선순위가 `connection_failed`에 걸리지 못하고
+# `final`이나 `no_utterances`로 떨어져 **학습자가 장애를 성공으로 본다**.
+# ⚠️ **`active` 고아를 막는 원래 의도는 그대로다** — 닫는 것은 여전히 닫고 상태만 사실에 맞춘다.
+# ⚠️ flush 실패와 구별한다: `_flush_analysis`는 예외를 삼켜 `_relay()`가 터지지 않으므로 그 경로는
+# `completed`가 맞다(바로 아래 T3 테스트가 그것을 고정한다).
+async def test_an_adapter_error_after_connect_records_the_session_as_failed(
+    db_pool, committed_session
+):
+    class ExplodingAdapter:
+        """연결은 성공하고 **이벤트 스트림에서** 터진다 — Phase 2의 스트림 중단 모양이다."""
+
+        def __init__(self) -> None:
+            self.closed = False
+
+        async def start(self) -> None:
+            return None
+
+        async def events(self):
+            yield TranscriptEvent(kind="final", text="i went to gym.", speaker="user")
+            raise RuntimeError("injected adapter stream failure")
+
+        async def send_audio(self, frame: bytes) -> None:
+            return None
+
+        async def close(self) -> None:
+            self.closed = True
+
+    adapter = ExplodingAdapter()
+    client = FakeClient()
+
+    with pytest.raises(RuntimeError, match="injected adapter stream failure"):
+        await asyncio.wait_for(
+            _runner(
+                cast(VoiceAdapter, adapter), db_pool, committed_session.session_id, client
+            ).run(),
+            timeout=5.0,
+        )
+
+    session = await _session_row(db_pool, committed_session.session_id)
+    assert session["status"] == "failed", "실행 중 어댑터 오류가 정상 종료로 기록됐다"
+    assert session["ended_at"] is not None, "세션이 active 고아로 남았다"
+    assert adapter.closed, "어댑터 정리를 건너뛰었다"
+    assert "session_ended" not in client.types, "장애인데 정상 종료 이벤트를 보냈다"
+
+
 # I-1 T3 — flush가 터져도 대화와 종료 기록은 살아남는다.
 # 저장과 등록이 갈라진 뒤(`save_final_transcript`가 더 이상 enqueue하지 않는다)
 # 남은 위험은 flush 실패가 이벤트 펌프나 종료 경로를 끌고 내려가는 것이다. 분석
