@@ -66,8 +66,8 @@ cd app/backend
 
 | # | 지표 | 기준값 (마감 시점에 직접 돌려 얻었음) |
 |--:|---|---|
-| 1 | `git rev-parse --short HEAD` · `git status` | **`559ac91` 이상**(등호를 요구하지 않음 — `H-P`) · 추적 미커밋 **0건** · `origin` 과 동기 |
-| 2 | 원장 — `grep -h "^status:" backlog/tasks/*.md \| sort \| uniq -c` | 전체 **53** · Done **38** · To Do **15** · In Progress **0** · Awaiting Decision **0**. ⛔ `backlog task list --plain \| grep -c "^  TASK-"` 로 세지 않음 — 우선순위 라벨이 붙으면 빠짐 |
+| 1 | `git rev-parse --short HEAD` · `git status` | **`917a63b` 이상**(등호를 요구하지 않음 — `H-P`) · 추적 미커밋 **0건** · `origin` 과 동기 |
+| 2 | 원장 — `grep -h "^status:" backlog/tasks/*.md \| sort \| uniq -c` | 전체 **54** · Done **39** · To Do **15** · In Progress **0** · Awaiting Decision **0**. ⛔ `backlog task list --plain \| grep -c "^  TASK-"` 로 세지 않음 — 우선순위 라벨이 붙으면 빠짐 |
 | 3 | 게이트 (`app/backend` cwd) | **843 passed** · `ruff check` exit 0 · format **unformatted 0** · `ty check` exit 0 · 게이트 **밖** `ruff check` **0 errors** · format **unformatted 0** · 프론트 `npx tsc --noEmit`·`npx eslint app lib` exit 0 |
 | 4 | DB (읽기만) | `schema_migrations` **9건**(`001·003~007·009·010·011`) · `learning_sessions` **13** · `error_patterns` **9** · `error_occurrences` **24** · `utterances` **120** · `session_plans` **2** · `review_tasks` **15** · `pronunciation_attempts` **4** · **§8 drift 0** · **보존 세션 6개** 생존. ⚠️ **수치에 표 이름을 붙여 적음** — 이름 없는 묶음은 읽는 사람이 엉뚱한 표에 대응시킴(2026-09-09 실측) |
 | 5 | 결과 API 상태 6개 | `210233be` `analyzing` · `6225ddaf` `final`(교정 1) · `b2f0d169` `partial_failure` · `76d9ef31` `connection_failed` · `d127dece` `no_utterances` · **`e0c5e580` `final`(교정 2 — A4-2 표본)**. ⛔ **이 여섯이 `browser_leg.md` §9 의 자산임 — 지우지 않음** |

@@ -1,7 +1,7 @@
 ---
 id: TASK-51
 title: '정정: 함정 H-AU 의 원인 서술이 틀렸다 — 재귀 grep 은 정상이고 원인이 둘로 갈렸다'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-09 03:54'
 updated_date: '2026-09-09 03:56'
