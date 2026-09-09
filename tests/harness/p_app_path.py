@@ -21,6 +21,13 @@
 ⛔ **어댑터는 `VOICE_ADAPTER=nova` · `WORKER_ENABLED=false` 여야 한다**(`H-AS`·`H-AT`).
 이 파일은 그것을 세우지 않는다 — **호출자의 몫이다**(`browser_leg.md` §8-⑤ 예외).
 
+⛔ **teardown 은 이 파일이 기록한 세션 ID 로 한다 — 시각창 «단독» 으로 지우지 않는다.**
+관측 JSON 의 `walk.startedSessionId` 가 `session_started` 프레임이 실어 온 값이고 그것이 삭제 대상의
+정본이다. 시각창은 **삭제 뒤 검증용** 으로만 쓴다. 이유: 같은 DB(`:5432` `ohmyenglish`)를 쓰는 다른
+세션이 `pytest` 를 돌리면 그 스위트의 커밋 계열 픽스처가 **커밋된 `learning_sessions` 행을 만들 수
+있고**, 시각창으로 지우면 **남의 데이터를 지운다.** 창에 내 것이 아닌 행이 잡히면 지우지 않고
+`session_id` 와 `started_at` 을 보고한다(`runs/2026-09-10-task82-p4-p1.md` §8).
+
 ⛔ **한 문서(페이지 로드)에 세션 하나만 돌린다.** `finalLinesAtTerminal` 과 `startedSessionId` 가
 first-wins 라서 두 번째 세션이 첫 세션의 값을 조용히 덮는다. 그래서 이 스크립트는 실행마다
 `Page.navigate` 로 새 문서를 열고 **세션 1개만** 만든다.
