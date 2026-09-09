@@ -1,10 +1,10 @@
 ---
 id: TASK-36
 title: '관측: 기대 exchange 상한 20 이 10분 세션에서 실현 가능한지 실측한다 (캡틴 결정 20)'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-07 17:26'
-updated_date: '2026-09-08 18:23'
+updated_date: '2026-09-09 02:31'
 labels: []
 dependencies:
   - TASK-37
@@ -21,15 +21,24 @@ critic 재검증 2회차 R-6(MEDIUM). 캡틴 결정 17 로 기대값이 질문 3
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 스텁이 아니라 실물 세션 1회 이상의 exchange 수와 소요 시간을 재고 기록한다 — 워커·실물 호출이 필요하므로 착수 전 캡틴 확인을 받는다
-- [ ] #2 20 exchange 가 10분에 닿는지 판정하고 근거를 남긴다 — 닿지 않으면 무엇을 바꿀지(drill_turns_min 하향 · 기대값 상한 · 세션 길이 재정의) 선택지를 캡틴에게 올린다
-- [ ] #3 판정 결과를 설계서 §2.3·§5 와 captain-instruction-register 의 결정 20 에 반영한다 — 결정 20 이 기록한 모호함이 닫히는지 함께 적는다
+- [x] #1 스텁이 아니라 실물 세션 1회 이상의 exchange 수와 소요 시간을 재고 기록한다 — 워커·실물 호출이 필요하므로 착수 전 캡틴 확인을 받는다
+- [x] #2 20 exchange 가 10분에 닿는지 판정하고 근거를 남긴다 — 닿지 않으면 무엇을 바꿀지(drill_turns_min 하향 · 기대값 상한 · 세션 길이 재정의) 선택지를 캡틴에게 올린다
+- [x] #3 판정 결과를 설계서 §2.3·§5 와 captain-instruction-register 의 결정 20 에 반영한다 — 결정 20 이 기록한 모호함이 닫히는지 함께 적는다
 <!-- AC:END -->
 
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
 2026-09-09 — 캡틴 결정 38 로 실물 Nova·마이크 세션 1회가 승인됐음. 결정 24 가 걸었던 「구현 3건 뒤」 조건은 TASK-43·44·45 가 전부 Done 이 되어 충족됨. Awaiting Decision → To Do. 선행 TASK-37 은 유지함 — 이 관측을 그 5차수 세션 안에서 치름(원장에 관측을 두 벌 돌리지 않음).
+
+2026-09-09 판정 — 실물 호출 0회. 보존 세션 e0c5e580 에서 DB·결과 API 로 직접 얻었다: started_at → 마지막 코치 발화 23,249 ms · 발화 6행 U A U A U A(전부 learning) · 설계서 §2.3 ② SQL 그대로 2 · API exchanges_observed 2 / expected 20 · 전이 간 간격 8,391 ms.
+
+판정: 「상한이 애초에 불가능하다」갈래 배제됨 — 20 exchange 가 10분 예산의 약 28~39%(시스템 지연 기준). 「모델이 지시를 어겼다」는 미해결이고 이 표본으로는 원리적으로 판정 불가(관측 설계 3턴 → 정의상 2가 상한). AC#2 가 준비한 선택지 셋(drill_turns_min 하향·상한·세션 길이 재정의)은 올릴 필요가 없어졌다.
+
+⛔ 회차 요약의 「127초 · 21%」를 쓰지 않는다 — 사용자 발화 수(3)를 exchange 로 센 값이고 앱 정의(코치→사용자 전이)는 2 다. 그 줄에 정정을 남겼다.
+⛔ 새로 찾은 것: 학습자 선발화 세션은 exchange 를 1 적게 센다(과소 계수). 원인이 하네스 주입인지 barge-in(§5 약점 2)인지 가르지 못했다 — 5차수 프레임 캡처가 .harness/evidence/ 에 없어 미검증으로 남겼다. 약점 2 를 이 표본으로 닫지 않았다.
+
+정본: 설계서 2026-09-07-scenario-and-drill-turns-design.md §5 약점 3 실측 절 · §2.3 두 자리 · 등록부 결정 20 후속.
 <!-- SECTION:NOTES:END -->
 
 ## Comments
