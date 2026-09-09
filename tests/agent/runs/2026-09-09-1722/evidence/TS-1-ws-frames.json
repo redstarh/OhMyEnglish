@@ -1,0 +1,193 @@
+{
+ "session_id": "47aec3e6-ce9a-4892-9bf3-ef80c05ac7d9",
+ "agent_finals": [
+  {
+   "seq": 1,
+   "text": "What do you usually do after work?"
+  },
+  {
+   "seq": 3,
+   "text": "What do you usually do on weekends?"
+  },
+  {
+   "seq": 5,
+   "text": "What do you need to do tonight?"
+  }
+ ],
+ "user_finals": [
+  {
+   "seq": 2,
+   "text": "I usually go to gym after work."
+  },
+  {
+   "seq": 4,
+   "text": "I usually go to office by subway."
+  },
+  {
+   "seq": 6,
+   "text": "I need to finish my homework tonight."
+  }
+ ],
+ "turns_when_end_sent": [
+  3,
+  3
+ ],
+ "end_send_outcome": "failed:ConnectionClosedOK",
+ "audio_send_outcome": "sent",
+ "ended_observed": true,
+ "socket_closed_observed": false,
+ "frames": [
+  {
+   "t": 0.025,
+   "event": {
+    "type": "session_started",
+    "session_id": "47aec3e6-ce9a-4892-9bf3-ef80c05ac7d9"
+   }
+  },
+  {
+   "t": 0.026,
+   "event": {
+    "type": "_client_sent",
+    "payload_type": "audio"
+   }
+  },
+  {
+   "t": 0.026,
+   "event": {
+    "type": "final",
+    "text": "What do you usually do after work?",
+    "speaker": "agent",
+    "sequence_no": 1
+   }
+  },
+  {
+   "t": 0.026,
+   "event": {
+    "type": "partial",
+    "text": "I usually",
+    "speaker": "user"
+   }
+  },
+  {
+   "t": 0.026,
+   "event": {
+    "type": "partial",
+    "text": "I usually go to",
+    "speaker": "user"
+   }
+  },
+  {
+   "t": 0.027,
+   "event": {
+    "type": "final",
+    "text": "I usually go to gym after work.",
+    "speaker": "user",
+    "sequence_no": 2
+   }
+  },
+  {
+   "t": 0.027,
+   "event": {
+    "type": "audio",
+    "b64_len": 8592
+   }
+  },
+  {
+   "t": 0.028,
+   "event": {
+    "type": "final",
+    "text": "What do you usually do on weekends?",
+    "speaker": "agent",
+    "sequence_no": 3
+   }
+  },
+  {
+   "t": 0.029,
+   "event": {
+    "type": "partial",
+    "text": "I usually",
+    "speaker": "user"
+   }
+  },
+  {
+   "t": 0.029,
+   "event": {
+    "type": "partial",
+    "text": "I usually go to",
+    "speaker": "user"
+   }
+  },
+  {
+   "t": 0.029,
+   "event": {
+    "type": "final",
+    "text": "I usually go to office by subway.",
+    "speaker": "user",
+    "sequence_no": 4
+   }
+  },
+  {
+   "t": 0.029,
+   "event": {
+    "type": "audio",
+    "b64_len": 8592
+   }
+  },
+  {
+   "t": 0.03,
+   "event": {
+    "type": "final",
+    "text": "What do you need to do tonight?",
+    "speaker": "agent",
+    "sequence_no": 5
+   }
+  },
+  {
+   "t": 0.03,
+   "event": {
+    "type": "partial",
+    "text": "I need",
+    "speaker": "user"
+   }
+  },
+  {
+   "t": 0.03,
+   "event": {
+    "type": "partial",
+    "text": "I need to finish",
+    "speaker": "user"
+   }
+  },
+  {
+   "t": 0.031,
+   "event": {
+    "type": "final",
+    "text": "I need to finish my homework tonight.",
+    "speaker": "user",
+    "sequence_no": 6
+   }
+  },
+  {
+   "t": 0.031,
+   "event": {
+    "type": "audio",
+    "b64_len": 8592
+   }
+  },
+  {
+   "t": 0.032,
+   "event": {
+    "type": "session_ended",
+    "session_id": "47aec3e6-ce9a-4892-9bf3-ef80c05ac7d9"
+   }
+  },
+  {
+   "t": 0.077,
+   "event": {
+    "type": "_client_send_failed",
+    "payload_type": "end_session",
+    "err": "ConnectionClosedOK"
+   }
+  }
+ ]
+}

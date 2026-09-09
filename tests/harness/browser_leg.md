@@ -283,9 +283,25 @@ python3 -c "import subprocess,os; r=subprocess.run(['git','rev-parse','--show-to
 > ⛔ **재설계는 판별력을 *설계*했을 뿐 *관측*하지 않았다.** 각 대조가 실제로 FAIL을 내는지는
 > T2·T3·T4 회차에서 확인한다. **확인 전에는 그 단정을 `PASS`로 보고하지 않는다.**
 >
-> ⛔ **재설계 후에도 회차에서 판별력 미확인으로 남을 수 있는 것 2건**:
-> **A1-7** — 무음 스트림 대조가 `0`을 못 내면(§11-4) · **A4-2** — 그 회차 세션의 교정이
-> **1건뿐이면** 기대값 교차 대조를 평가할 수 없다. 둘 다 그 회차 기록에 그대로 적는다.
+> ✅ **판별력 관측이 끝났다 (2026-09-09 · `TASK-30`).** 일곱 건 전부 **무력화에서 FAIL 이 나는 것을
+> 관측**했고 회차 기록 넷이 값을 갖는다: `runs/2026-09-09-task30-discrimination-c3c4.md`(A3-1·A4-1·A4-2) ·
+> `…-c5-a51.md`(A5-1) · `…-c1-tone.md`(A1-4·A1-5) · `…-a17.md`(A1-7).
+>
+> ⛔ **초판이 「미확인으로 남을 수 있는 것 2건」으로 지목한 둘은 **둘 다 닫혔다**:
+> **A1-7** — 무음 대조가 `sent.audio` 로는 **원리적으로 0 이 될 수 없음**이 확정됐고(폐기) 대체 대조
+> (`sentAudioNonZeroFrames` 톤 313 / 무음 **0**)가 **세션 관통에서 성립**했다(§11-4 닫힘) ·
+> **A4-2** — 실물 세션 `C3f`(교정 2건)가 표본이 되어 맞바꾼 기대값에서 **2/2** 어긋남을 냈다(§11-9 닫힘).
+>
+> ⛔ **그 대신 새로 드러난 미확인 2건이 있다 — A4-1 의 구조 하위 단정이다.**
+> 「카드 `<p>` 가 정확히 3개」와 「라벨 없는 셋째가 비어 있지 않다」는 **관측된 카드 전부에서 성립했으나
+> 3 이 아닌 카드나 빈 셋째를 낸 페이지를 하나도 보지 못했다** — 즉 **계수 부분만 판별력이 관측됐다.**
+> 닫으려면 그런 표본이 필요하고 스텁으로는 만들 수 없다(카드 구조는 앱이 고정한다).
+> ⚠️ **A4-2 의 대조는 기대값 쪽 무력화다** — 앱 쪽 뒤바뀜을 만들어 보지는 않았고(문서가 금지) 두 방향이
+> 대칭이라는 것은 **추론이지 관측이 아니다.**
+>
+> ⚠️ **판별력을 이제 게이트가 지킨다 — 회차에 의존하지 않는다.** 실행체 셋이 판정을 순수 함수로 분리해
+> `test_c1_gates.py`(**15 passed**) · `test_c3_gates.py` · `test_c5_gates.py`(**11 passed**) 가 **브라우저 없이**
+> 변이를 잡는다. 그래서 재설계가 퇴화하면 회차를 열기 전에 죽는다.
 
 **ⓐ의 근거**: `app/backend/app/audio_gateway/fixtures.py:FIXTURE_TURNS`는 **3턴**이고 세 응답 모두 **7 단어**다. `stub.py:_partial_prefixes`가 `sorted({max(1,7//3), max(1,2*7//3)})` = `{2,4}` → **턴당 partial 2개**. `stub.py:StubVoiceAdapter.events`가 턴마다 `agent final → user partial ×2 → user final → TONE_WAV_FRAME`을 낸다. **픽스처가 바뀌지 않는 한 다른 값이 나올 수 없다** — 관측에서 귀납한 값이 아니다. run-1이 같은 값을 적은 것은 **보강 정황이지 독립 확증이 아니다**(그 기록이 스스로 작성자=검증자임을 적었다). `>=`를 쓰지 않고 **등호로 조인다** — `>=`는 프레임이 중복 도달해도 통과한다.
 
@@ -327,6 +343,33 @@ python3 -c "import subprocess,os; r=subprocess.run(['git','rev-parse','--show-to
 | A4-2 | 이유 문구 **카드별** 관통 | 각 i에 대해 `원문: {corrections[i].original_span}`을 담은 **그 카드 `<div>` 안의** 라벨 없는 셋째 `<p>`의 `textContent`가 `corrections[i].reason`과 **정확히 같다** — ⓑ. 카드 컨테이너는 실재한다: `results/[sessionId]/page.tsx`의 `corrections.map`이 `original_span`·`correction`·`reason` 세 `<p>`를 **한 `<div>`에** 담는다(직접 읽어 확인). ⚠️ **DOM 전역 포함 검사를 버렸다** — 이유가 **카드끼리 뒤바뀌어도** 전역 검색은 전부 "있다"를 낸다. ⚠️ **대조 전에 `reason`이 빈 문자열이 아님을 단정한다** — 비었으면 FAIL이 아니라 **BLOCKED**(모델이 안 채운 것이지 화면 결함이 아니다) | ⛔ **대조 ①을 철회했다 — 독립 판별력이 0이었다** (2026-09-06 T4 검토 ②). 이전 서술: *"`reason`에 sentinel을 덧붙인 변형이 그 카드의 셋째 `<p>`와 **같지 않다**"*. 본 단정이 이미 `셋째 <p> == reason`을 **등호로** 요구하므로 그것이 참이면 sentinel 부등호는 **필연적으로** 참이다. 그것을 반증하는 유일한 입력을 넣으면 **등호가 함께 잡는다**(리뷰 재현: 어긋남 2건). 즉 대조가 아니라 검사 수를 부풀리는 줄이었다 — **문자열 변형 대조의 실체는 등호 자신이다.** 실행체에서 그 줄을 지우고 회귀 방지 테스트를 박았다(`test_c3_gates.py`). ⚠️ **A1-5의 같은 형태(§5 A1-5 ④의 sentinel 변형)와 A5-2의 sentinel은 다르다** — 저쪽은 **DOM 전체에서 0건**을 요구하는 부재 단정이라 등호에 흡수되지 않는다. ② **교정 2건 이상인 세션에서 `reason`을 서로 맞바꾼 기대값으로 다시 재면 FAIL이 난다** — 뒤바뀜을 실제로 잡는지 증명한다. **앱 소스를 고치지 않고 기대값만 바꿔** 계산한다. ⚠️ 교정이 1건뿐인 세션에서는 이 대조를 **평가할 수 없다** → 그 회차의 A4-2는 **판별력 미확인**으로 적는다 (기대값 교차) |
 | A5-1 | 배지 4 outcome | `pending`·`correct`·`incorrect`·`unclear`를 각각 주입 → **배지 요소가 정확히 1개**이고 그 `textContent`가 `app/page.tsx:PRONUNCIATION_BADGE`의 해당 문구와 **정확히 같다.** 요소는 `p[aria-live="polite"]`로 지목한다 — 프론트 전체에 `aria-live`가 **1건뿐**임을 직접 확인했다(`app/page.tsx`의 배지). **ⓒ 하드코딩**: 프레임은 기계값 `outcome`만 나르고 문구는 화면 상수다. ⚠️ **"대상 문구가 DOM에 있다"를 버렸다** — 그것은 배지 4종을 **전부** 렌더해도 통과한다. **요소 개수 1 + 등호**가 그 경로를 닫는다. ⚠️ 세 문구가 `/results/*`의 `OUTCOME_LABEL`에도 있는 문제는 **요소를 지목하므로 더는 성립하지 않는다** | ① **주입하지 않으면 배지 요소가 DOM에 부재**(`app/page.tsx`의 `{pronunciation && …}`) (주입 생략) ② **4 outcome을 순차 주입하며 같은 요소의 `textContent`가 매번 바뀐다** — 상수를 렌더하고 있으면 바뀌지 않는다 (순차 주입) |
 | A5-2 | `target_sound` 미렌더 | 주입한 `target_sound`에 **sentinel 값**을 넣고 DOM 전체에서 **0건** — ⓑ 런타임 유도(설계서 §10 미결 4) | **같은 프레임의 `outcome` 문구는 있어야 한다**(A5-1) — DOM 검색 자체가 동작함을 증명한다. 둘 다 0이면 주입이 실패한 것이다 (동일 프레임 대조) |
+
+✅ **C1 실행체가 있다 — `tests/harness/c1_session_walkthrough.py`**(2026-09-09 `TASK-52` 신설).
+A1-4·A1-5·A1-7 을 한 프로세스에서 관통·판독·판정한다. 지키는 규약은 그 파일 머리주석이 소유한다.
+
+⛔ **왜 필요했나 — 위임이 관측값만 잃고 죽었다.** `TASK-30` 회차 2 를 위임했더니 검증자가 「이제
+회차 기록을 쓰겠다」 시점에 API 오류로 죽어 **A1-4 의 `when` 배열 · A1-5 의 6줄 · A1-7 의 `sent` 계수를
+전부 잃었다**(`H-AO`). 무결성은 지켜졌고(teardown 까지 정상) **잃은 것이 값뿐**이라 더 비쌌다.
+
+**사용법** — 판정은 exit code 다. ⛔ **어댑터가 단정을 가른다**:
+
+```bash
+# A1-4·A1-5 — VOICE_ADAPTER=stub 로 띄운 뒤
+cd app/backend && .venv/bin/python ../../tests/harness/c1_session_walkthrough.py \
+  --out ../../.harness/evidence/c1-tone.json
+# A1-7 — VOICE_ADAPTER=stub_unresponsive (10초 창이 마이크가 흐를 시간을 준다)
+…c1_session_walkthrough.py --walk-timeout-ms 15000                 # sent.audio · nonZeroFrames
+…c1_session_walkthrough.py --walk-timeout-ms 15000 --silent-mic    # 대체 대조 (nonZero 가 0)
+…c1_session_walkthrough.py --walk-timeout-ms 3000                  # end_session 1 (창 안에서 클릭)
+```
+
+⚠️ **한 회차가 셋을 다 닫지 못한다** — `stub` 에서 A1-7 은 `BLOCKED`(0.4초에 끝나 캡처 창이 없다) ·
+`stub_unresponsive` 에서 A1-4·A1-5 가 `BLOCKED`(픽스처 3턴이 없다). §2 의 「한 회차는 어댑터 하나만」
+그대로다. 회차 기록 둘: `runs/2026-09-09-task30-c1-tone.md` · `…-a17.md`.
+
+✅ **판별력을 게이트가 고정한다 — `tests/harness/test_c1_gates.py`** → **15 passed**(직접 실행).
+변이 8건 · 무음 대조 · `verdict` 분류(⛔ `APP_*` 는 앱 결함, `UNMEASURABLE_*`·`HARNESS_*` 는 측정 불가) ·
+빈 입력 불통과 · **픽스처 연역 대조**(`fixtures.py` 턴 수가 `EXPECTED_START_CALLS` 와 갈리면 죽는다).
 
 ✅ **C5 실행체가 있다 — `tests/harness/c5_pronunciation_badge.py`**(2026-09-09 `TASK-49` 신설).
 지키는 규약은 그 파일 머리주석이 소유하고 **여기서 재서술하지 않는다.**
@@ -751,7 +794,7 @@ select count(*) from learning_sessions s join harness_sessions h on h.session_id
 | 1 | ~~타임아웃·재시도·폴링 대기 값 전부~~ → **✅ 대부분 닫혔다. 아래 실측표를 쓴다** | **T5a 실측**(2회차 · 1회차 교차 확인). 남은 것은 T4의 결과 화면 폴링 대기뿐이다 |
 | 2 | ~~`start`를 어느 프로토타입에서 후킹하는가~~ → **✅ 닫혔다.** `start` 소유자는 **`AudioBufferSourceNode`** · `createBufferSource` 소유자는 **`BaseAudioContext`**(`AudioContext.prototype`에서 `getOwnPropertyDescriptor`는 `undefined`). ⚠️ **`start`는 `AudioBufferSourceNode`와 `AudioScheduledSourceNode` 양쪽에 own property**이고 가까운 쪽이 인스턴스 조회에서 이긴다. **`stop`은 `AudioBufferSourceNode`에 없고 `AudioScheduledSourceNode`에만 있다** — §4-3의 "둘이 다른 자리일 수 있다"가 `stop`에서 실현된다 | **T2 + T5a 실측 · 팀리드가 브라우저로 직접 재현**(Chrome 152.0.0.0) |
 | 3 | headless AudioContext가 suspend되는가 → **부분적으로 닫혔다.** 제스처 **전** 생성은 `suspended`, 제스처(클릭) **안**에서 생성하면 `running`이다(T5a 프로브: 생성 즉시 `running` 1 ms · `addModule` 2 ms · `resume` 0 ms). ⚠️ **`audio` 계수 0의 원인은 suspend가 아니었다** — T2에서 세션이 23ms에 자기종료해 프레임이 만들어지기 전에 끝났다 | **닫힘.** 남은 것은 `audio` 계수를 실제로 재는 구성이고 `stub`(비-unresponsive)에서만 가능하다 |
-| 4 | **A1-7의 음성 대조가 실제로 FAIL을 내는가** — ⛔ **2026-09-09 정정: 이 행이 낡아 있었다.** 이전 판이 *"② 무음 합성 스트림에서 `audio` 계수가 0이 되는가(이것이 미결이다)"* 로 적었으나 **§5 의 A1-7 행이 그 갈래를 이미 폐기했다** — *"원리적으로 0이 될 수 없다"*(무음·유음이 프레임 **146**건 · 바이트 **199,728** 로 완전히 같다. 캡처 워클렛이 진폭과 무관하게 512샘플마다 보낸다). **§5 를 고치고 이 행을 안 고친 것**이고 이 리포의 지배 실패 모드 그대로다. **살아 있는 미결은 이것 하나다**: 대체 대조(`config.silentMic = true` 에서 **`sent.audio > 0` 이면서 `sentAudioNonZeroFrames === 0`**)가 **세션 관통에서** 성립하는가 — **계측 단위에서는 이미 확인됐다**(2026-09-06 실측: 같은 바이트 길이의 무음·톤 프레임을 후킹에 넣어 `audio 2` · `nonZeroFrames 1`). | **`VOICE_ADAPTER=stub` 세션 관통 회차**(`TASK-52` 의 C1 실행체). 성립하지 않으면 A1-7 을 **판별력 미확인으로 남긴다**(채택하되 `PASS`로 올리지 않는다). ⛔ **`audio` 계수가 0 이 되기를 기대하지 마라 — 폐기된 갈래다.** |
+| 4 | ~~**A1-7의 음성 대조가 실제로 FAIL을 내는가**~~ → ✅ **닫혔다 (2026-09-09 · `TASK-30` AC#3).** 대체 대조가 **세션 관통에서 성립한다**: 같은 15초 창에서 `--silent-mic` 만 바꿔 재니 **`sent.audio` 는 313 = 313 으로 완전히 같고** `sentAudioNonZeroFrames` 는 **313 대 0** 으로 갈렸다. 즉 「무음에서 `audio` 계수 0」 갈래가 폐기된 것이 옳았음을 관통에서 재확인하고 PCM 내용 대조가 판별력을 가짐을 관측했다. `sent.end_session` **1** 도 얻어 후킹 고장이 배제된다(창 안에서 클릭해야 얻어진다 — 두 어댑터 모두 기본 실행에서는 종료 버튼이 사라진다). 정본은 `runs/2026-09-09-task30-a17.md` 다. ⛔ **아래 정정 서술을 지우지 않는다** — 왜 이 행이 한 번 낡았는지가 다음 사람에게 필요하다. ⛔ **이전 판 정정 (2026-09-09): 이 행이 낡아 있었다.** 이전 판이 *"② 무음 합성 스트림에서 `audio` 계수가 0이 되는가(이것이 미결이다)"* 로 적었으나 **§5 의 A1-7 행이 그 갈래를 이미 폐기했다** — *"원리적으로 0이 될 수 없다"*(무음·유음이 프레임 **146**건 · 바이트 **199,728** 로 완전히 같다. 캡처 워클렛이 진폭과 무관하게 512샘플마다 보낸다). **§5 를 고치고 이 행을 안 고친 것**이고 이 리포의 지배 실패 모드 그대로다. **살아 있는 미결은 이것 하나다**: 대체 대조(`config.silentMic = true` 에서 **`sent.audio > 0` 이면서 `sentAudioNonZeroFrames === 0`**)가 **세션 관통에서** 성립하는가 — **계측 단위에서는 이미 확인됐다**(2026-09-06 실측: 같은 바이트 길이의 무음·톤 프레임을 후킹에 넣어 `audio 2` · `nonZeroFrames 1`). | **`VOICE_ADAPTER=stub` 세션 관통 회차**(`TASK-52` 의 C1 실행체). 성립하지 않으면 A1-7 을 **판별력 미확인으로 남긴다**(채택하되 `PASS`로 올리지 않는다). ⛔ **`audio` 계수가 0 이 되기를 기대하지 마라 — 폐기된 갈래다.** |
 | 5 | ~~CDP `onmessage` 주입이 실제로 되는가~~ → **✅ 된다. 가장 넓게 걸렸던 미결이 닫혔다.** `pronunciation`·`partial`·`final` 3종 전부 주입이 먹었고 **2회 독립 회차가 일치**했다. `inject()`가 `recv`를 오염시키지 않는 것도 **설계 주장에서 관측으로 승격**됐다(8프레임 주입 후 `recv` 불변 · `injected` 0→8) | **T5a ①②③ `PASS`.** C5 폐기·직렬 큐 대안 **둘 다 불필요** |
 | 6 | ~~주입 창이 10초 안에 끝나는가~~ → **✅ 닫혔다. 다만 병목을 잘못 짚고 있었다**(T5a D-3): 페이지 쪽은 **256 ms**(창의 **2.6%**)로 여유가 압도적이고 실제 병목은 **에이전트 라운드트립(~30 s)**이다. 그래서 조건은 "10초 안에 끝나는가"가 아니라 **"전 과정을 한 `eval`에 넣었는가"**다(§6 ⛔) | **T5a ④ `PASS`** |
 | 7 | 확정 줄 수·**내용**(A1-5) **스냅샷 시점의 방법** — 소프트 내비게이션은 `window.__omy`를 파괴하지 않으므로 계측이 `final`마다 DOM을 적립한다. ⚠️ **재설계로 적립 대상이 개수에서 `textContent` 배열로 늘었다.** rAF인지 MutationObserver인지는 미정 | **T2에서 실측해 확정한다** |
