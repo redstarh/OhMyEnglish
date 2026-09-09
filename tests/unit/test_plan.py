@@ -294,6 +294,63 @@ def test_prompt_keeps_pronunciation_separate_from_grammar(plan_input_factory):
     assert "do not rank these against the grammar counts" in pronunciation_section
 
 
+_PRONUNCIATION_FOCUS_HEADER = "Pronunciation focus for today:"
+
+
+def _pronunciation_focus_rule(prompt: str) -> str:
+    """발음 초점 규칙 블록만 잘라낸다 — 제목부터 다음 빈 줄까지.
+
+    ⚠️ 프롬프트 전체를 대상으로 재지 않는다(이 파일의 지배 규칙). `focus`라는 낱말은 출력
+    규격의 `- focus:`·`- instruction:` 두 불릿에도 있어서 창을 넓히면 판별력을 잃는다.
+    """
+    assert _PRONUNCIATION_FOCUS_HEADER in prompt, "발음 초점 규칙 블록이 없다"
+    body = prompt[prompt.index(_PRONUNCIATION_FOCUS_HEADER) :]
+    end = body.find("\n\n")
+    return body[:end] if end != -1 else body
+
+
+def test_prompt_gives_a_focus_slot_to_a_pronunciation_pattern_due_for_review(plan_input_factory):
+    """`TASK-81` AC#1·AC#3 — 발음이 초점 한 자리를 얻되 문법을 밀어내지 않는다.
+
+    `TASK-78`이 통제 대조로 확정한 결함이다: 발음 패턴은 `TASK-44` 이후 이미 초점 **후보**인데
+    (「Due for review today」가 `pattern_id`와 함께 싣는다) 프롬프트가 그것을 고를 이유를 한
+    줄도 주지 않아 모델이 문법만 골랐고, 그래서 세션의 `Focus on:`이 문법만 담아 발음 코칭이
+    앱 경로에서 0회가 됐다.
+    """
+    data = plan_input_factory(
+        due_keys=["article_missing"],
+        due_pronunciation=["pronunciation_an_as_a"],
+    )
+
+    prompt = build_plan_prompt(data)
+
+    rule = _pronunciation_focus_rule(prompt)
+    # 자리를 **내준다** — 초점 상한이 2개이므로(PRD.md:188 R11-2) 한 자리만 가져간다.
+    assert "one of the two focus slots" in rule
+    # AC#3 — 「자리를 내주는 것」과 「문법을 밀어내는 것」을 가른다. 규칙 9의 Grammar first는
+    # 캡틴 결정 B-2의 구현이고 계획의 문법 초점은 학습자의 실제 오류 패턴에서 나온 것이다.
+    assert "keep the other slot for a grammar pattern" in rule
+    assert "Do not drop the grammar focus" in rule
+
+
+def test_prompt_omits_the_pronunciation_focus_rule_when_none_is_due(plan_input_factory):
+    """음성 케이스 — AC#1의 조건은 「복습 예정일에 걸릴 때」다. 시도 집계만으로는 붙지 않는다.
+
+    ⚠️ **이 테스트가 판별력의 핵심이다.** 규칙을 무조건 붙이면 위 테스트만으로는 통과하는데,
+    그러면 조건이 사라져 복습 주기와 무관하게 매 계획이 발음에 자리를 내준다 — 「Pronunciation
+    attempts」 절은 `pattern_id`를 싣지 않아서 그 자리를 채울 유효한 초점이 **없고**, 모델이
+    거기서 고르면 `parse_plan`의 허용 집합이 계획 전체를 하드 거부한다.
+    """
+    data = plan_input_factory(
+        due_keys=["article_missing"],
+        pronunciation=[("th_as_s", "incorrect", 4)],
+    )
+
+    prompt = build_plan_prompt(data)
+
+    assert _PRONUNCIATION_FOCUS_HEADER not in prompt
+
+
 def test_prompt_never_asks_for_a_pronunciation_score(plan_input_factory):
     prompt = build_plan_prompt(plan_input_factory(pronunciation=[("th_as_s", "incorrect", 4)]))
 

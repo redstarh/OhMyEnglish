@@ -148,6 +148,29 @@ from this section; a pronunciation pattern that is ready to revisit appears in
 "Due for review today" above with its pattern_id. Counted per attempt, not per error occurrence,
 so do not rank these against the grammar counts above):"""
 
+# `TASK-81` — 발음이 초점 **한 자리**를 얻게 하는 규칙. `TASK-78`이 통제 대조로 확정한 결함을
+# 닫는다: 발음 패턴은 `TASK-44` 이후 이미 초점 후보인데(위 `_format_due_reviews`가 `pattern_id`와
+# 함께 싣는다) 그것을 고를 이유를 프롬프트가 한 줄도 주지 않아 모델이 문법만 골랐고, 그 결과
+# 세션 지시문의 `Focus on:`이 문법만 담아 **앱 경로에서 발음 코칭이 0회**가 됐다.
+#
+# ⚠️ **조건은 「복습 예정일에 걸릴 때」다** — 무조건 붙이지 않는다. 「Pronunciation attempts」 절은
+# `pattern_id`를 싣지 않으므로 그 절의 값으로는 유효한 초점을 만들 수 없고, 모델이 거기서 고르면
+# `process_plan`의 허용 집합이 **계획 전체를 하드 거부**한다. 그래서 판정 재료는 시도 집계가
+# 아니라 `due_reviews`의 `category`다.
+#
+# ⛔ **문법 초점을 없애지 않는다** — 규칙 9의 `Grammar first`는 캡틴 결정 B-2의 구현이고 계획의
+# 문법 초점은 학습자의 실제 오류 패턴에서 나온 것이다. 초점 상한이 2개라(PRD.md:188 R11-2) 발음이
+# 한 자리를 가져가면 나머지 한 자리가 문법으로 남는다 — 「자리를 내주는 것」과 「밀어내는 것」이
+# 갈리는 지점이 그 상한이다.
+# ⚠️ 닫는 `"""`를 새 줄에 두지 않는다(`_PRONUNCIATION_NOTE`와 같은 이유 — `"\n".join`이 개행을
+# 하나 더 얹어 절 사이 간격이 이 절만 달라진다).
+_PRONUNCIATION_FOCUS_RULE = """\
+Pronunciation focus for today:
+- A pronunciation pattern is due for review in the list above. Give it
+  one of the two focus slots, and keep the other slot for a grammar pattern from those two lists.
+- Do not drop the grammar focus to make room — the learner works on both today. If those two
+  lists carry no grammar pattern, the pronunciation pattern alone is fine."""
+
 # 키 이름은 Task 5(`app.models.plan.PlanOutput`, `extra="forbid"`)와 글자 그대로 같아야 한다 —
 # 하나만 어긋나면 실물 모델 응답이 검증 단계에서 전부 거부된다. 초점 1~2개·질문 3~5개는
 # PRD.md:188(R11-2)의 문서 근거가 있는 값이고, 그 외 임계값은 넣지 않는다(발명하지 않는다).
@@ -294,8 +317,12 @@ def build_plan_prompt(data: PlanInput) -> str:
         "",
         f"Current level: {data.current_level}",
         "",
-        _OUTPUT_SPEC,
     ]
+    # `TASK-81` — 발음이 복습 예정일에 걸린 계획에만 붙는다. 판정 재료가 `due_reviews`의
+    # `category`인 이유는 상수 위 주석이 소유한다(시도 집계에는 `pattern_id`가 없다).
+    if any(review.category == PRONUNCIATION_CATEGORY for review in data.due_reviews):
+        sections += [_PRONUNCIATION_FOCUS_RULE, ""]
+    sections.append(_OUTPUT_SPEC)
     return "\n".join(sections)
 
 
