@@ -4,7 +4,7 @@ title: '결함/재개: 결정 49 의 사실 전제 둘이 반증됐다 — 앱 �
 status: In Progress
 assignee: []
 created_date: '2026-09-09 16:28'
-updated_date: '2026-09-09 16:37'
+updated_date: '2026-09-09 22:03'
 labels: []
 dependencies: []
 ordinal: 81000
@@ -27,23 +27,18 @@ TASK-65 회차가 찾았다. 정본은 tests/harness/runs/2026-09-09-task65-sess
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
-2026-09-09 AC#2 진행분. 정본은 tests/harness/runs/2026-09-09-task65-session-context.md §4·§4.1 이다.
+2026-09-10 판별분. 정본은 tests/harness/runs/2026-09-10-task78-coaching-implies-tool.md 다. 앞선 표본 정정은 2026-09-09-task65-session-context.md §4.1 이 소유한다.
 
-표본을 넷에서 여덟로 늘렸다. ⛔ 먼저 적은 「4건 중 3건」이 과장이었다 — 그 넷에 p2a→p2k 회차가 둘 다 들어 있었다. 전수 8건에서 toolUse 가 온 것은 3건이다.
+⛔ 판별 결과: 코칭 ⟺ tool 이 15회 전부 성립한다. 코칭한 회차는 전부 toolUse 가 왔고 코칭하지 않은 회차는 전부 오지 않았다. 반대 방향 사례 0건이다. tool 이 온 회차는 전부 target_sound 를 실었다(동료 세션 2회 합쳐 5/5).
 
-갈리는 축이 턴 수가 아니라 문장으로 보인다: p2 문장(업무 보고) 2/2 · p1 문장 1/5. p1m→p1k 의 0 은 반복에서도 0 이었다(간헐 아님). p1a→p1m·p1a→p1k 도 0 이다.
+즉 문제가 tool 배선이 아니다. 흔들리는 것은 Nova 가 발음을 다룰지 판단하는 것이고, 같은 바이트·같은 프롬프트에서 갈렸다 — p2a→p2k 다섯 회차 중 둘은 「I heard you say shared with a slight accent … Focus on the sh sound」였고 셋은 「Thank you for repeating. Your sentence is very clear.」였다.
 
-⚠️ 무엇이 정하는지는 미확정이다. 문장이 2종뿐이다. p2 의 치환(f→p·r→l·θ→s 가 finished the report and shared the results 에 걸린다)이 전사문을 실제로 왜곡시키는 것과(5차수 P2(p2m) FAIL 이 그 실측이다) 관련이 있어 보이나 재지 않았다. 문장을 늘리려면 새 픽스처가 필요하고 그것은 이 AC 범위를 넘는다.
+사용자 물음(제대로 보내주는지 확인되면 우회로를 걷어내고 단순화)에 대한 답: tool 은 제대로 보낸다. 걷어낼 근거가 된다. 그리고 걷어내도 잃는 것이 없다 — 보조 신호는 여태 0행이고 TASK-65 가 그 이유를 확정했다(세션 첫 발화가 ASR 언어를 고정하므로 첫 마디부터 심하게 틀려야 한글 전사가 나온다).
+⛔ 대가는 숨기지 않는다: 판정 빈도가 「Nova 가 그 턴에 코칭하기로 하는가」에 걸리고 그것이 같은 입력에서도 갈린다. 놓침이 있다. 다만 그 놓침은 우회로가 메워 주던 것이 아니다.
 
-⛔ 결정 49 의 두 전제는 반증된 채로 남는다 — 「한 번도 불리지 않는다」는 1건만 있어도 무너지고, 「코칭 발화와 tool 중 하나만 얻는다」도 세 회차 전부 audioOutput 이 0 이 아니라 무너진다. 바뀌는 것은 강도다: 「다중 턴이면 온다」가 아니라 「다중 턴에서 올 수 있다」다.
+⛔ AC#2 를 다시 좁혔다 — 앞서 「문장이 축으로 보인다」고 적었으나 p2a→p2k 를 셋 더 돌리자 그 팔에서도 0 이 나왔다. 문장은 축이 아니고(또는 유일한 축이 아니고) 축은 「코칭 여부」다.
 
-⛔ AC#1 의 부분 증거를 직접 쿼리해 확인했다 — 그리고 이것이 더 크다. pronunciation_attempts 4행 전부:
-  bbfc3908|nova_tool|am_as_i_m|2026-08-31
-  bbfc3908|nova_tool|w_as_vw|2026-08-31
-  bbfc3908|nova_tool|an_as_a|2026-08-31
-  7b43ce56|nova_tool|an_as_a|2026-09-03
-두 세션 다 살아 있고 mode='speaking' 이다. 즉 앱 경로가 이미 tool 을 target_sound 와 함께 받은 적이 있고, 그 반례가 DB 에 처음부터 있었다. 다른 세션이 먼저 지목했고 내가 같은 쿼리로 확인했다.
-⚠️ 단정하지 않는 것: 그 세션들의 시스템 프롬프트가 지금 것과 같은지는 확인하지 않았다. 규칙 8~11 이 2026-08-27 설계에서 왔으므로 그럴 법하나 build_system_prompt 가 그 뒤 바뀌었을 수 있다.
+⚠️ 원인 미확정 후보 셋: 샘플링 비결정성(temperature 0.7 고정) · 규칙 9 의 never for a mild accent 판단이 경계에 걸림 · TASK-65 의 첫 발화 고정 기전이 발음 판단에도 걸림. 어느 것도 배제하지 못했다.
 
-AC#1 은 체크하지 않는다 — 위 증거는 과거 기록이고 다중 턴 여부도 확인되지 않았다. 신규 관측에는 브라우저 레그와 백엔드 nova 재기동이 필요하다. AC#3 도 미착수다(워커 필요).
+⛔ p2a+p2k 를 더 돌리는 것으로는 닫히지 않는다. 남은 걸음은 판별이고 셋을 회차 기록 §5 에 적었다. AC#1(앱 경로)을 먼저 하는 것을 권한다 — 나머지가 무엇을 얻어도 앱 경로에서 재현되지 않으면 쓸 수 없다.
 <!-- SECTION:NOTES:END -->
