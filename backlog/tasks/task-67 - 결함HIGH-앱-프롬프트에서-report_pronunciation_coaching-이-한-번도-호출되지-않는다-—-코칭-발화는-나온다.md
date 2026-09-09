@@ -4,7 +4,7 @@ title: '결함(HIGH): 앱 프롬프트에서 report_pronunciation_coaching 이 �
 status: Done
 assignee: []
 created_date: '2026-09-09 14:22'
-updated_date: '2026-09-09 16:12'
+updated_date: '2026-09-09 16:31'
 labels: []
 dependencies: []
 ordinal: 70000
@@ -27,25 +27,24 @@ test Agent 회차(runs/2026-09-09-task37-p-layer-agent.md)가 찾고 팀리드�
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
-2026-09-09 조사 완료 · AC1·AC2·AC4 닫음 · AC3 는 결정 49 로 「고치지 않는다」가 확정돼 닫음. 회차 기록은 tests/harness/runs/2026-09-09-task67-tool-call-investigation.md 가 소유함.
+⛔ 2026-09-09 정정 — 이 태스크의 결론이 너무 강했음. 「앱 프롬프트로는 불리지 않는다」가 아님.
 
-⛔ 같은 픽스처(p1k.wav)로 팔 열 개를 이 세션에서 내가 직접 돌렸음(실행 11회 · H4 만 2회). 기준선도 내가 다시 재현했음 — 남의 관측을 A/B 의 한 쪽으로 쓰지 않았음. toolConfiguration 은 모든 프롬프트 팔에서 같음을 코드로 확인했으므로 팔 사이 차이는 시스템 프롬프트 글자뿐임.
+빠진 변수는 다중 턴임. 내 팔 열 개가 전부 단일 발화였고 앱은 다중 턴으로 돎 — 사각이 정확히 앱이 도는 자리였음. 다른 세션(ohmyenglish-15)이 TASK-65 를 파다 찾았고 내가 직접 재현했음.
 
-⛔ 뺄셈이 아니라 덧셈으로 확정했음. 앱 프롬프트에서 절을 빼는 방식(H1·H2·H3)은 셋 다 0건이라 원인을 가르지 못했음. 작동하는 양성 대조에 앱 요소를 하나만 더하자 곧바로 갈렸음.
+내가 직접 돌려 얻은 것 — 앱 프롬프트 · toolChoice 강제 없음 · 발화 둘(p2a→p2k):
+  toolUse 1 · target_sound "th_as_s" · outcome pending · audioOutput 197 · 코칭 발화 정상
+즉 발화와 tool 을 동시에 얻음. 다른 세션 표본은 4회 중 3회에서 tool 이 왔음.
 
-확정된 원인 둘:
-C1 — 규칙 9 의 게이트가 심한 발음을 문법으로 라우팅함(n=2 · 두 회차 발화 문구 동일). 이것은 tool 과 별개의 학습자 가시 결함이라 TASK-75 로 분리 등록했음.
-C2 — 규칙 10 의 지시 형태가 호출을 막음. 낱말이 아님 — You MUST 를 더해도 0건이었음.
+DB 도 같은 방향임(내가 직접 쿼리): pronunciation_attempts 4행 전부 signal_source='nova_tool' 이고 target_sound 가 4행 전부에 있음(am_as_i_m · w_as_vw · an_as_a ×2). 출처는 실물 마이크 세션 둘임 — bbfc3908(mic-1) 3행 · 7b43ce56(mic-2) 1행.
 
-AC1 배제: ④ 모델의 tool 미지원 — 배제(양성 대조 + 기제 탐침). ③ 규칙 2 · ② 규칙 11 — 필요조건 아님(그 규칙이 없는 프롬프트에서 실패 재현). ⚠️ 충분조건인지는 재지 않았음. ① 규칙 10 의 강제력 — 부분 확정(형태가 원인).
+반증된 것 둘:
+① 「앱 프롬프트로는 한 번도 불리지 않는다」 — 거짓. 단일 발화에서만 참이었음.
+② 「턴마다 코칭 발화와 tool 호출 중 하나만 얻는다」 — 거짓. audioOutput 이 0 이 아님.
 
-AC2 — 소리 지목 미이행과 tool 미호출은 따로 움직임. H2 는 게이트가 있어도 소리를 지목했으나 tool 은 0건이고, H4 는 둘 다 없음. 관측으로 갈랐음.
+⛔ 이것은 내 방법 결함임 — 재는 단위를 앱이 도는 단위와 맞추지 않았음. 그 사실을 숨기지 않고 적음.
 
-AC4 — 누락의 원인이 프롬프트가 아니라 호출의 부재였음. 강제 호출 팔이 앱 프롬프트를 한 글자도 바꾸지 않은 채 {"target_sound":"th_as_s","target_form":"...","outcome":"pending"} 을 실어 보냈음. nova.py 의 _pronunciation_tool_configuration() docstring 이 예측했던 것이 관측으로 확인됐음. ⚠️ 다만 그 payload 가 services/pronunciation.py 의 SQL 조건을 통과해 실제로 저장되는 것까지는 보지 않았음.
+참인 범위로 좁힌 원래 관측: 앱 프롬프트 + 스파이크 경로 + **단일 발화** p1k.wav 에서 tool 0건이고, 같은 조건에서 스파이크 프롬프트는 1건임. C1(규칙 9 게이트가 문법으로 라우팅) · C2(규칙 10 형태) 는 그 범위 안에서 여전히 관측된 것이고, 다중 턴에서 그 둘이 어떻게 움직이는지는 재지 않았음.
 
-AC3 — 「고친 뒤 toolUse 가 오는 것을 확인한다」를 **고치지 않는 것으로** 닫음. 결정 49 (2026-09-09) 가 보조 신호로 축소를 확정했고 toolChoice 강제를 제품 경로에 넣지 않기로 했음. 근거: 기제는 실재하나(Nova 가 toolChoice 를 거부하지 않고 앱 프롬프트 그대로 toolUse 를 냄) 같은 회차에서 audioOutput 이 0 이고 코칭 발화가 사라짐 — 말하기 코치가 말을 잃는 것은 받아들일 수 없음. auto 는 생략과 같음. 통제 대조는 AC3 이 요구한 그대로 남겼음 — 스파이크 프롬프트 팔이 여전히 toolUse 를 내는 것을 내가 직접 재서 확인했고, 그것이 세 팔의 0건이 유효한 관측임을 보증함.
-
-⛔ 결정 49 의 대가를 함께 남겼음 — 보조 신호로는 복습 시계가 도달 불가임(note_transcript 가 target_sound=None 만 냄). 코드가 이미 적어 둔 사실이고 review.py:207~216 을 직접 읽어 확인했음. 판정은 TASK-74 가 소유함.
-
-⚠️ 하네스에 팔 둘을 더했음(--prompt-file · --tool-choice). 기본값이 없어 기본 팔은 앱과 글자 그대로 같음. 게이트 넷 직접 쟀음: pytest 884 passed · ruff check exit 0 · format unformatted 0 · ty check All checks passed · 게이트 밖 ruff All checks passed · format unformatted 0 · 스파이크 --help exit 0.
+⚠️ 결정 49 가 이 전제 위에서 내려졌음. 대장의 결정 49 항목에 정정을 남겼고 사용자에게 재결정을 요청함. 후속은 TASK-78(다른 세션 등록 — 앱 경로 확인 · 오는 조건과 안 오는 조건 가르기 · 종단으로 복습 시계까지 · 사용자 재결정)이 소유함.
+⛔ 재결정을 받기 전에는 toolChoice 강제를 제품 경로에 넣지 않음 — 결정 49 의 그 부분은 이 정정에 걸리지 않음.
 <!-- SECTION:NOTES:END -->
