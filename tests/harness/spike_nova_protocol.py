@@ -114,13 +114,29 @@ TOOL_SYSTEM_PROMPT = (
 )
 
 
-def _tool_configuration() -> dict[str, Any]:
+def _tool_configuration(tool_choice: str | None = None) -> dict[str, Any]:
     """앱의 `nova._pronunciation_tool_configuration()` 과 같은 봉투를 만든다.
 
     ⛔ 이 함수를 앱과 다르게 고치지 않는다 — 그러면 이 스파이크가 관측하는 것이 앱의
     거동이 아니게 되고 A-3 이 다시 열린다. `description` 문구만 스파이크 쪽이 짧다
     (앱은 `for later practice.` 가 붙는다 — 그 차이는 Nova 의 수락 여부에 영향이 없다).
+
+    ⚠️ **`tool_choice` 는 기제 탐침이고 기본값이 `None` 이라 기본 팔은 앱과 글자 그대로 같다**
+    (`TASK-67`). 왜 필요한가: 프롬프트 낱말을 다섯 가지로 바꿔도 tool 이 오지 않았고, 그러면
+    다음 물음이 「낱말」이 아니라 **「Nova 가 강제 기제를 받는가」**다. Converse 계열
+    `ToolConfiguration` 에는 `toolChoice`(`auto`/`any`/`tool`)가 있는데
+    (`aws_sdk_bedrock_runtime/models.py:12894`) **Nova Sonic 의 `promptStart` 가 같은 것을
+    받는지는 실증된 적이 없다.** 이 팔이 그것을 잰다 — 거부되면 그것도 답이다.
+    ⛔ **이 팔을 제품 경로로 옮기지 않는다** — `any`·`tool` 은 매 턴 강제라 발음 문제가 없는
+    턴에도 호출을 만든다. 여기서 재는 것은 「받는가」뿐이다.
     """
+    if tool_choice is not None:
+        choice: dict[str, Any] = (
+            {"tool": {"name": PRONUNCIATION_TOOL_NAME}}
+            if tool_choice == "tool"
+            else {tool_choice: {}}
+        )
+        return {**_tool_configuration(), "toolChoice": choice}
     return {
         "tools": [
             {
@@ -143,6 +159,7 @@ def build_events(
     with_tools: bool = False,
     system_prompt: str | None = None,
     endpointing: str = "MEDIUM",
+    tool_choice: str | None = None,
 ) -> dict[str, Any]:
     """초기화·종료 이벤트를 한곳에 모아 둔다 (공식 문서 스키마 그대로).
 
@@ -184,7 +201,11 @@ def build_events(
                         "audioType": "SPEECH",
                     },
                     # `--tools`일 때만 실린다 — 없을 때의 기존 거동을 바꾸지 않는다.
-                    **({"toolConfiguration": _tool_configuration()} if with_tools else {}),
+                    **(
+                        {"toolConfiguration": _tool_configuration(tool_choice)}
+                        if with_tools
+                        else {}
+                    ),
                 }
             }
         },
@@ -319,6 +340,8 @@ async def run(
     app_prompt: bool = False,
     endpointing: str = "MEDIUM",
     out_path: str | None = None,
+    prompt_file: str | None = None,
+    tool_choice: str | None = None,
 ) -> int:
     swallowed: list[BaseException] = []
     _install_swallowed_exception_reporter(swallowed)
@@ -349,19 +372,32 @@ async def run(
     stream = await _open_stream(client, NOVA_MODEL_ID, OPEN_TIMEOUT_S)
 
     prompt_name = str(uuid.uuid4())
+    # ⛔ **주입 프롬프트는 파일에서 읽은 그대로 보낸다** — 여기서 다듬으면 「한 변수만 바꿨다」가
+    #    거짓이 된다. 앞뒤 공백만 지우고(파일 끝 개행) 나머지는 손대지 않는다.
+    injected_prompt = Path(prompt_file).read_text(encoding="utf-8").strip() if prompt_file else None
     events = build_events(
         prompt_name,
         f"audio-{uuid.uuid4()}",
         f"text-{uuid.uuid4()}",
         with_tools=with_tools,
-        system_prompt=APP_SYSTEM_PROMPT if app_prompt else None,
+        system_prompt=injected_prompt or (APP_SYSTEM_PROMPT if app_prompt else None),
         endpointing=endpointing,
+        tool_choice=tool_choice,
     )
     print(f"    endpointingSensitivity = {endpointing}")
     if app_prompt:
         print(
             f"    시스템 프롬프트 = **앱의 `nova.SYSTEM_PROMPT`** ({len(APP_SYSTEM_PROMPT)}자) — "
             "통제 대조. 스파이크 전용 프롬프트를 쓰지 않는다"
+        )
+    if injected_prompt is not None:
+        # ⚠️ 앱 프롬프트와의 **글자 차이**를 함께 인쇄한다 — 「한 변수만 바꿨다」를 원자료가
+        #    스스로 증언해야 한다. 사람이 diff 를 따로 기억하는 것에 맡기지 않는다.
+        print(
+            f"    시스템 프롬프트 = 주입 파일 `{prompt_file}` ({len(injected_prompt)}자) · "
+            f"앱 프롬프트({len(APP_SYSTEM_PROMPT)}자)와의 길이 차 "
+            f"{len(injected_prompt) - len(APP_SYSTEM_PROMPT):+d}자 · "
+            f"동일={injected_prompt == APP_SYSTEM_PROMPT}"
         )
     if with_tools:
         schema = json.loads(PRONUNCIATION_TOOL_SCHEMA_JSON)
@@ -457,7 +493,14 @@ async def run(
     #    그래서 **기본값을 회차마다 다른 이름으로 바꿨다.** 사람이 `--out`을 기억하는 것에
     #    맡기지 않는다 — 잊는 것이 바로 관측된 실패다.
     if with_tools:
-        stem = "P-tooluse-appprompt-nova-protocol" if app_prompt else "P-tooluse-nova-protocol"
+        if prompt_file:
+            # 팔 이름에 프롬프트 파일 이름을 넣는다 — `TASK-67` 의 팔이 여럿이라 이것이 없으면
+            # 어느 변이의 원자료인지 파일 이름으로 구분할 수 없다.
+            stem = f"P-tooluse-{Path(prompt_file).stem}-nova-protocol"
+        elif app_prompt:
+            stem = "P-tooluse-appprompt-nova-protocol"
+        else:
+            stem = "P-tooluse-nova-protocol"
     else:
         stem = "N1-nova-protocol"
 
@@ -553,6 +596,22 @@ def main() -> int:
         "같은 오디오로 --tools 단독과 대조한다: --wav p1m.wav --tools --app-prompt",
     )
     ap.add_argument(
+        "--prompt-file",
+        default=None,
+        help="시스템 프롬프트를 이 파일에서 읽어 보낸다 — `TASK-67` 이 「앱 프롬프트의 어느 절이 "
+        "tool 호출을 막는가」를 **한 변수씩** 재기 위한 팔이다. `--app-prompt` 와 함께 주면 "
+        "거부한다(두 팔을 섞으면 무엇을 잰 것인지 알 수 없다). ⛔ 이 팔의 원자료는 파일 이름을 "
+        "stem 에 넣어 다른 팔을 덮지 않는다",
+    )
+    ap.add_argument(
+        "--tool-choice",
+        default=None,
+        choices=["auto", "any", "tool"],
+        help="promptStart.toolConfiguration 에 toolChoice 를 실어 Nova 가 강제 기제를 받는지 잰다 "
+        "(`TASK-67` 기제 탐침). ⛔ 기본값 없음 — 주지 않으면 봉투가 앱과 글자 그대로 같다. "
+        "⛔ 제품 경로로 옮기지 않는다: any·tool 은 매 턴 강제다",
+    )
+    ap.add_argument(
         "--out",
         default=None,
         help="원자료를 쓸 경로. 주지 않으면 `.harness/evidence/<팔>-<픽스처>-<UTC시각>.json` 으로 "
@@ -560,6 +619,9 @@ def main() -> int:
         "원본이 실제로 덮였다). 고정 이름 파일은 「가장 최근」 포인터로 함께 갱신되며 덮인다",
     )
     args = ap.parse_args()
+    # ⛔ 두 프롬프트 팔을 섞지 않는다 — 섞으면 어느 프롬프트를 잰 것인지 원자료에서 알 수 없다.
+    if args.app_prompt and args.prompt_file:
+        ap.error("--app-prompt 와 --prompt-file 을 함께 줄 수 없다 — 한 번에 한 팔만 잰다")
     return asyncio.run(
         run(
             args.wav,
@@ -569,6 +631,8 @@ def main() -> int:
             app_prompt=args.app_prompt,
             endpointing=args.endpointing,
             out_path=args.out,
+            prompt_file=args.prompt_file,
+            tool_choice=args.tool_choice,
         )
     )
 
