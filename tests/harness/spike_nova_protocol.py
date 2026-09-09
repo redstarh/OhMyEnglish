@@ -350,13 +350,28 @@ async def run(
     print("[1/6] 자격증명 준비 (앱과 같은 이음새)")
     prepare_bedrock_credentials(settings)
 
-    wav_path = FIXTURE_DIR / wav_name
-    lpcm = read_lpcm(wav_path)
+    # `--wav a.wav,b.wav` 로 **여러 발화를 한 세션에 이어 흘린다**(`TASK-65`). 왜 필요한가:
+    # 같은 `p1k.wav` 가 스파이크에서는 한글로 전사되고 앱 경로에서는 영어로 복원되는데, 앱 경로의
+    # 그 표본은 **영어 두 턴 뒤의 세 번째 발화**였다(`runs/2026-09-09-run-5-live/
+    # transcripts-repr-9664afd1.txt` seq=3). 즉 **선행 턴의 대화 문맥**이 남은 후보이고,
+    # 그것을 재려면 한 세션에 발화를 둘 이상 흘려야 한다.
+    # ⛔ 쉼표가 없으면 거동이 이전과 **글자 그대로 같다** — 통제 대조의 전제를 깨지 않는다.
+    wav_names = [name.strip() for name in wav_name.split(",") if name.strip()]
+    lpcm_parts = [read_lpcm(FIXTURE_DIR / name) for name in wav_names]
+    # 발화 사이에 무음을 끼워 endpointing 이 턴 경계를 잡게 한다. `silence_ms` 를 그대로 쓴다 —
+    # 그 값이 이미 「발화 종료를 감지시키는 길이」로 실측된 것이다(N-1: 약 480ms 에서 발동).
+    gap = b"\x00" * (FRAME_BYTES * (silence_ms // FRAME_MS))
+    lpcm = gap.join(lpcm_parts)
     frames = [lpcm[i : i + FRAME_BYTES] for i in range(0, len(lpcm), FRAME_BYTES)]
     print(
-        f"[2/6] 입력 준비: {wav_path.name} → raw LPCM {len(lpcm)}B, "
+        f"[2/6] 입력 준비: {'+'.join(wav_names)} → raw LPCM {len(lpcm)}B, "
         f"{len(frames)}프레임 × {FRAME_BYTES}B({FRAME_MS}ms), "
         f"{len(lpcm) / (SAMPLE_RATE_HZ * 2):.2f}초"
+        + (
+            f" · 발화 {len(wav_names)}개를 무음 {silence_ms}ms 로 이었다"
+            if len(wav_names) > 1
+            else ""
+        )
     )
 
     from aws_sdk_bedrock_runtime.client import AsyncBedrockRuntimeClient
@@ -514,7 +529,10 @@ async def run(
     else:
         # 픽스처와 시각을 넣어 회차가 서로를 덮지 않게 한다. 시각은 UTC다(절대 시각을 잃지 않는다).
         stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
-        out = evidence_dir / f"{stem}-{Path(wav_name).stem}-{stamp}.json"
+        # 여러 발화를 이어 흘렸으면 파일명에 그 순서를 담는다 — 무엇을 먹인 회차인지가
+        # 파일명만 봐도 남아야 한다(쉼표는 경로에 쓰지 않는다).
+        fixtures = "+".join(Path(name).stem for name in wav_names)
+        out = evidence_dir / f"{stem}-{fixtures}-{stamp}.json"
     out.write_text(payload)
 
     # 고정 이름은 **「가장 최근」 포인터로만** 남긴다 — 절차 문서와 기존 회차 기록이 이 이름을
@@ -564,7 +582,13 @@ async def run(
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--wav", default="u1.wav")
+    ap.add_argument(
+        "--wav",
+        default="u1.wav",
+        help="`fixtures/voice/` 안의 파일명. **쉼표로 여러 개를 주면 한 세션에 이어 흘린다** — "
+        "발화 사이에 `--silence-ms` 만큼 무음을 끼워 턴 경계를 만든다(`TASK-65`: 선행 턴의 대화 "
+        "문맥이 ASR 언어 판별을 바꾸는지 재는 팔). 하나만 주면 거동이 이전과 같다",
+    )
     ap.add_argument(
         "--silence-ms", type=int, default=1600, help="발화 뒤에 붙일 무음 길이 — endpointing 유도용"
     )
