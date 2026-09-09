@@ -34,6 +34,7 @@ import json
 import sys
 import uuid
 import wave
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -317,6 +318,7 @@ async def run(
     with_tools: bool = False,
     app_prompt: bool = False,
     endpointing: str = "MEDIUM",
+    out_path: str | None = None,
 ) -> int:
     swallowed: list[BaseException] = []
     _install_swallowed_exception_reporter(swallowed)
@@ -446,18 +448,35 @@ async def run(
         await _quiet_close(stream)
 
     # `--tools`는 별도 파일에 쓴다 — N1(3차수 프로토콜 실증) 원자료를 덮지 않는다.
-    # ⛔ `--app-prompt`도 또 다른 파일에 쓴다 — 그 둘은 **통제 대조의 두 팔**이라 한쪽이 다른
+    # ⛔ `--app-prompt`도 또 다른 팔이다 — 그 둘은 **통제 대조의 두 팔**이라 한쪽이 다른
     #    쪽을 덮으면 대조 자체가 사라진다(2026-09-09).
+    #
+    # ⛔ 그런데 팔을 갈라도 **같은 팔의 다음 회차가 앞 회차를 덮었다**(`TASK-68`). 그 경로는 git
+    #    추적 밖이라 복구할 수 없고, 2026-09-09에 실제로 일어났다 — 5차수 통제 대조의 원본이 단
+    #    한 벌이었고 다음 회차가 그것을 덮었다(`evidence/run5-preserved/`로 손으로 살렸다).
+    #    그래서 **기본값을 회차마다 다른 이름으로 바꿨다.** 사람이 `--out`을 기억하는 것에
+    #    맡기지 않는다 — 잊는 것이 바로 관측된 실패다.
     if with_tools:
-        name = (
-            "P-tooluse-appprompt-nova-protocol.json"
-            if app_prompt
-            else "P-tooluse-nova-protocol.json"
-        )
+        stem = "P-tooluse-appprompt-nova-protocol" if app_prompt else "P-tooluse-nova-protocol"
     else:
-        name = "N1-nova-protocol.json"
-    out = HARNESS / "evidence" / name
-    out.write_text(json.dumps(observed, ensure_ascii=False, indent=1))
+        stem = "N1-nova-protocol"
+
+    evidence_dir = HARNESS / "evidence"
+    evidence_dir.mkdir(parents=True, exist_ok=True)
+    payload = json.dumps(observed, ensure_ascii=False, indent=1)
+
+    if out_path is not None:
+        out = Path(out_path)
+        out.parent.mkdir(parents=True, exist_ok=True)
+    else:
+        # 픽스처와 시각을 넣어 회차가 서로를 덮지 않게 한다. 시각은 UTC다(절대 시각을 잃지 않는다).
+        stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+        out = evidence_dir / f"{stem}-{Path(wav_name).stem}-{stamp}.json"
+    out.write_text(payload)
+
+    # 고정 이름은 **「가장 최근」 포인터로만** 남긴다 — 절차 문서와 기존 회차 기록이 이 이름을
+    # 가리키므로 없애면 그 인용이 끊긴다. ⚠️ 이것은 덮인다. 판정 근거로 인용할 것은 위 `out`이다.
+    (evidence_dir / f"{stem}.json").write_text(payload)
 
     kinds: dict[str, int] = {}
     for item in observed:
@@ -533,6 +552,13 @@ def main() -> int:
         "「앱 경로에서 발음 tool 이 불리지 않는 것이 프롬프트 탓인가」를 재는 통제 대조. "
         "같은 오디오로 --tools 단독과 대조한다: --wav p1m.wav --tools --app-prompt",
     )
+    ap.add_argument(
+        "--out",
+        default=None,
+        help="원자료를 쓸 경로. 주지 않으면 `.harness/evidence/<팔>-<픽스처>-<UTC시각>.json` 으로 "
+        "쓴다 — ⛔ 회차가 서로를 덮지 않게 하는 것이 기본값이다(`TASK-68`: 5차수 통제 대조의 "
+        "원본이 실제로 덮였다). 고정 이름 파일은 「가장 최근」 포인터로 함께 갱신되며 덮인다",
+    )
     args = ap.parse_args()
     return asyncio.run(
         run(
@@ -542,6 +568,7 @@ def main() -> int:
             with_tools=args.tools,
             app_prompt=args.app_prompt,
             endpointing=args.endpointing,
+            out_path=args.out,
         )
     )
 
