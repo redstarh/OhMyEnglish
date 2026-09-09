@@ -4,9 +4,10 @@ title: '결함/재개: 결정 49 의 사실 전제 둘이 반증됐다 — 앱 �
 status: In Progress
 assignee: []
 created_date: '2026-09-09 16:28'
-updated_date: '2026-09-09 22:32'
+updated_date: '2026-09-09 23:01'
 labels: []
-dependencies: []
+dependencies:
+  - TASK-81
 ordinal: 81000
 ---
 
