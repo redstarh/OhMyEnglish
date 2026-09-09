@@ -5,8 +5,9 @@
 14 → **6**으로 줄고 **어긋남 0건**이 됐다(A4-1·A4-2 전체가 조용히 사라지는데 FAIL이 아니다).
 그 형태를 회귀로 못 박는 것이 이 파일의 첫 목적이다.
 
-⚠️ **입력은 실제 회차의 판독값이다** — 지금은 `runs/2026-09-09-c3-dom-read-post-task64.json`
-(**정본은 아래 `REAL` 이다** — 여기에 이름을 적는 것이 낡는 자리이므로 갈 때 함께 고친다).
+⚠️ **입력은 실제 회차의 판독값이다** — 어느 회차인지는 **아래 `REAL` 하나가 갖는다.**
+⛔ **여기에 파일 이름을 적지 않는다** — 2026-09-09 에 픽스처를 두 번 갈면서 이 자리가 **두 번
+낡았다.** 이름을 두 곳에 두면 한쪽이 조용히 거짓이 되므로 가리키기만 한다.
 손으로 만든 픽스처는 데이터 생성 경로의 결함에 눈이 먼다(`H-AF`). 그 위에 **한 필드씩** 변이를
 얹는다.
 
@@ -41,12 +42,14 @@ HARNESS = Path(__file__).resolve().parent
 sys.path.insert(0, str(HARNESS))
 
 from c3_results_screen import (  # noqa: E402
+    DRILL_SHORTFALL_NOTICE,
+    check_drill_contract,
     check_missing,
     check_screen,
     check_status_label_variation,
 )
 
-REAL = HARNESS / "runs" / "2026-09-09-c3-dom-read-post-task64.json"
+REAL = HARNESS / "runs" / "2026-09-09-c3-dom-read-post-task34.json"
 SESSION_IDS = {
     "analyzing": "210233be-ecaa-4409-a1af-8b7016cfe7e9",
     "final": "6225ddaf-90a8-43af-9aa8-e003921c75eb",
@@ -328,6 +331,79 @@ def test_single_status_is_unverified_not_pass():
     assert fails == []
     assert checked == 0, "미평가인데 검사 수를 세면 PASS 가 부풀려진다"
     assert unverified is not None and "2종 이상에서만" in unverified
+
+
+# ── 드릴 계약 (`TASK-34` · 캡틴 결정 10·18) ──────────────────────────────────────
+# ⛔ **AC1 이 요구하는 것은 「단정을 넣었다」가 아니라 「무력화에서 실제로 FAIL 한다」다.**
+#    그래서 숫자를 **일부러 렌더한** 입력을 넣어 FAIL 을 관측한다. 그리고 그 단정이 잡음
+#    생성기가 아님을 **음성 대조**로 함께 보인다 — API 가 준 문구의 숫자는 오탐하지 않는다.
+
+
+def test_drill_contract_passes_on_real_round():
+    """green — 실물 판독의 여섯 화면 전부 통과한다."""
+    for key in SESSION_IDS:
+        payload, dom, _ = leg(key)
+        checked, fails, _ = check_drill_contract(payload, dom)
+        assert fails == [], f"[{key}] {fails}"
+        assert checked == 2, f"[{key}] 검사 {checked}건"
+
+
+def test_drill_numbers_rendered_is_caught():
+    """⛔ **AC1** — 두 수를 화면에 그리면 잡는다. `final_two` 의 drill 은 2 / 20 이다."""
+    payload, dom, _ = leg("final_two")
+    assert payload["drill"] == {"exchanges_observed": 2, "exchanges_expected": 20}, payload["drill"]
+    dom["mainText"] += " 2 / 20"
+    _, fails, _ = check_drill_contract(payload, dom)
+    assert any("API 가 주지 않은 숫자가 있다" in m for m in fails), fails
+    assert any("'2'" in m and "'20'" in m for m in fails), (
+        f"새어 나온 수를 이름으로 적어야 한다 — {fails}"
+    )
+
+
+def test_other_number_leak_is_caught():
+    """드릴 두 수만이 아니라 **모든** 숫자 누출을 잡는다 — `occurrences` 가 새는 경로."""
+    payload, dom, _ = leg("final")
+    dom["mainText"] += " 2회"
+    _, fails, _ = check_drill_contract(payload, dom)
+    assert any("API 가 주지 않은 숫자가 있다" in m for m in fails), fails
+
+
+def test_api_supplied_number_is_not_a_false_positive():
+    """⛔ **음성 대조** — API 가 실어 보낸 교정 문구의 숫자는 오탐하지 않는다.
+
+    이것이 없으면 「숫자가 하나도 없다」로 재는 것과 구별되지 않고, 교정문에 연도가 든 세션에서
+    게이트가 잡음 생성기가 된다.
+    """
+    payload, dom, _ = leg("final")
+    payload["corrections"][0]["reason"] += " 2026년 표기입니다."
+    dom["mainText"] += " 2026년 표기입니다."
+    _, fails, _ = check_drill_contract(payload, dom)
+    assert fails == [], f"API 가 준 숫자를 오탐했다 — {fails}"
+
+
+def test_shortfall_notice_missing_is_caught():
+    payload, dom, _ = leg("final_two")
+    dom["mainText"] = dom["mainText"].replace(DRILL_SHORTFALL_NOTICE, "")
+    _, fails, _ = check_drill_contract(payload, dom)
+    assert any("드릴 미달 안내 존재" in m for m in fails), fails
+
+
+def test_shortfall_notice_on_a_met_session_is_caught():
+    """⛔ **AC2** — 달성 세션에 문장이 그려지면 잡는다. 달성 문장도 점수판이 된다(결정 10)."""
+    payload, dom, _ = leg("final_two")
+    payload["drill"] = {"exchanges_observed": 20, "exchanges_expected": 20}
+    _, fails, unverified = check_drill_contract(payload, dom)
+    assert any("드릴 미달 안내 존재" in m for m in fails), fails
+    assert unverified is None, "달성 표본이면 미확인이 아니다"
+
+
+def test_drillless_session_requires_no_notice():
+    """`drill` 키가 없는 상태에서 문장이 그려지면 잡는다 — 서버 계약이 깨진 경우다."""
+    payload, dom, _ = leg("analyzing")
+    assert "drill" not in payload
+    dom["mainText"] += DRILL_SHORTFALL_NOTICE
+    _, fails, _ = check_drill_contract(payload, dom)
+    assert any("드릴 미달 안내 존재" in m for m in fails), fails
 
 
 def test_sentinel_control_is_gone():

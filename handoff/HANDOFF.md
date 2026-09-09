@@ -6,9 +6,19 @@
 > ⛔ **정리된 결정 이력을 이 파일에 옮기지 않는다** (2026-09-09 사용자 지시). 결정은 번호로만
 > 가리킨다 — 본문은 `docs/ops/captain-instruction-register.md` 가 소유함.
 
-## 다음 한 걸음 — **`TASK-64` 를 권함**(작고, `browser_leg.md` §11-9 를 막고 있음)
+## 다음 한 걸음 — **`TASK-47` 을 권함**(Phase 1 완료 선언 6항목 대조). 그 뒤 `TASK-48`
 
-> ✅ **결과 화면 결함 셋이 닫혔음** — `TASK-55`·`56`·`57` 전부 `Done`. 수정 후 화면을 직접 열어
+> ✅ **결과 화면 갈래가 정리됐음** — `TASK-55`·`56`·`57`·`64`·`34` 전부 `Done`. C3 회차가
+> **단정 94건 전건 통과**이고 미확인은 「드릴 달성 세션 표본 없음」 하나뿐임(그 갈래는 게이트의
+> 무력화가 지킴). ⛔ **A4-2 미확인이 사라졌음** — `final_two`(`e0c5e580`)가 상태당 1건 제약이
+>풀려 회차에 들어갔고 게이트 픽스처에도 있음.
+> ⛔ **결과 화면은 수를 그리지 않음이 이제 게이트임**(`A3-3` · 결정 10·18). 재는 방식이
+> 「드릴 두 수가 없다」가 아니라 **「API 가 준 학습자 문구에 없던 숫자가 화면에 없다」**임 —
+> 화면에 숫자를 넣으려면 그 게이트를 먼저 통과시켜야 함.
+> ⚠️ **`browser_leg.md` 에서 「단정 18건」 같은 총계를 없앴음** — `A3-3` 을 더하자 그 수가 낡았음.
+> 개수가 필요하면 단정 목록을 셈.
+>
+> ✅ **결과 화면 결함 셋의 상세** — 수정 후 화면을 직접 열어
 > 봤고 회차 기록이 값을 가짐(`tests/harness/runs/2026-09-09-task55-56-57-results-screen-fix.md`).
 > ⛔ **상태 코드는 이제 분류용임** — `lib/api.ts` 의 `SessionResultsError.status` 가 문구가 아니라
 > 「4xx 면 폴링을 멈춘다」의 입력임. 학습자 문구는 화면이 소유함(`failureNotice`).
@@ -74,11 +84,11 @@ cd app/backend
 
 | # | 지표 | 기준값 (마감 시점에 직접 돌려 얻었음) |
 |--:|---|---|
-| 1 | `git rev-parse --short HEAD` · `git status` | **`dac604d` 이상**(등호를 요구하지 않음 — `H-P`) · 추적 미커밋 **0건** · `origin` 과 동기. ⚠️ **다른 세션이 동시에 원장을 쓰고 있으면 미커밋 0건이 아닐 수 있음** — 그 세션의 파일인지 먼저 보고 내 것만 커밋함(`H-AM`) |
-| 2 | 원장 — `grep -h "^status:" backlog/tasks/*.md \| sort \| uniq -c` | 전체 **67** · Done **48** · To Do **18** · In Progress **1**(`TASK-59` — **다른 세션 소유**) · Awaiting Decision **0**. ⛔ `backlog task list --plain \| grep -c "^  TASK-"` 로 세지 않음 — 우선순위 라벨이 붙으면 빠짐 |
-| 3 | 게이트 (`app/backend` cwd) | **871 passed** · `ruff check` exit 0 · format **unformatted 0** · `ty check` exit 0 · 게이트 **밖** `ruff check` **0 errors** · format **unformatted 0** · 프론트 `npx tsc --noEmit`·`npx eslint app lib` exit 0. ⚠️ **843 → 854 → 869 → 871 은 게이트 테스트가 는 것**(`test_c5_gates.py` 11건 · `test_c1_gates.py` 15건 · `test_c3_gates.py` 에 TASK-55 판별력 2건) — 회귀가 아님. **그것들이 판별력을 브라우저 없이 지킴.** ⛔ **`ty check` 는 `tests/harness/**` 까지 본다** — 2026-09-09 에 그 사실을 모르고 새 하네스 파일을 넣어 진단 4건이 났고(다른 세션이 찾음) **`TASK-49` 를 닫을 때 이 항목을 다시 재지 않은 것이 그 누락의 원인임.** 하네스 파일을 추가했으면 `ty check` 도 다시 잼 |
+| 1 | `git rev-parse --short HEAD` · `git status` | **`fc15b08` 이상**(등호를 요구하지 않음 — `H-P`) · 추적 미커밋 **0건** · `origin` 과 동기. ⚠️ **다른 세션이 동시에 원장을 쓰고 있으면 미커밋 0건이 아닐 수 있음** — 그 세션의 파일인지 먼저 보고 내 것만 커밋함(`H-AM`) |
+| 2 | 원장 — `grep -h "^status:" backlog/tasks/*.md \| sort \| uniq -c` | 전체 **68** · Done **51** · To Do **16** · In Progress **1**(`TASK-63` — **다른 세션 소유**) · Awaiting Decision **0**. ⛔ `backlog task list --plain \| grep -c "^  TASK-"` 로 세지 않음 — 우선순위 라벨이 붙으면 빠짐 |
+| 3 | 게이트 (`app/backend` cwd) | **884 passed** · `ruff check` exit 0 · format **unformatted 0** · `ty check` exit 0 · 게이트 **밖** `ruff check` **0 errors** · format **unformatted 0** · 프론트 `npx tsc --noEmit`·`npx eslint app lib` exit 0. ⚠️ **843 → 854 → 869 → 871 → 877 → 884 는 게이트 테스트가 는 것**(`test_c5_gates.py` 11건 · `test_c1_gates.py` 15건 · `test_c3_gates.py` 에 `TASK-55` 2건 · `TASK-64` 6건 · `TASK-34` 7건) — 회귀가 아님. **그것들이 판별력을 브라우저 없이 지킴.** ⛔ **`ty check` 는 `tests/harness/**` 까지 본다** — 2026-09-09 에 그 사실을 모르고 새 하네스 파일을 넣어 진단 4건이 났고(다른 세션이 찾음) **`TASK-49` 를 닫을 때 이 항목을 다시 재지 않은 것이 그 누락의 원인임.** 하네스 파일을 추가했으면 `ty check` 도 다시 잼 |
 | 4 | DB (읽기만) | `schema_migrations` **9건**(`001·003~007·009·010·011`) · `learning_sessions` **13** · `error_patterns` **9** · `error_occurrences` **24** · `utterances` **120** · `session_plans` **2** · `review_tasks` **15** · `pronunciation_attempts` **4** · **§8 drift 0** · **보존 세션 6개** 생존. ⚠️ **수치에 표 이름을 붙여 적음** — 이름 없는 묶음은 읽는 사람이 엉뚱한 표에 대응시킴(2026-09-09 실측) |
-| 5 | 결과 API 상태 6개 | `210233be` `analyzing` · `6225ddaf` `final`(교정 1) · `b2f0d169` `partial_failure` · `76d9ef31` `connection_failed` · `d127dece` `no_utterances` · **`e0c5e580` `final`(교정 2 — A4-2 표본)**. ⛔ **이 여섯이 `browser_leg.md` §9 의 자산임 — 지우지 않음.** ⚠️ **C3 회차에는 앞의 다섯만 넣음(상태당 1건)** — `e0c5e580` 을 여섯째로 넣으면 `final` 이 둘이 되어 A3-1 음성 대조가 오탐함. 그것이 `TASK-64` 임 |
+| 5 | 결과 API 상태 6개 | `210233be` `analyzing` · `6225ddaf` `final`(교정 1) · `b2f0d169` `partial_failure` · `76d9ef31` `connection_failed` · `d127dece` `no_utterances` · **`e0c5e580` `final`(교정 2 — A4-2 표본)**. ⛔ **이 여섯이 `browser_leg.md` §9 의 자산임 — 지우지 않음.** ✅ **C3 회차에 여섯 전부 넣음** — `TASK-64` 가 A3-1 오탐을 없앤 뒤부터임. `e0c5e580` 은 **교정 2건(A4-2)이자 드릴 미달 표본(A3-3 · `2 / 20`)** 을 겸함. ⚠️ **드릴 「달성」 표본은 아직 없음** — 그 갈래는 게이트의 무력화만이 지킴 |
 
 ⚠️ **3번과 5번이 핵심임** — 읽기는 전달을 증명하지 못하고 **직접 돌린 출력**만 데이터임.
 

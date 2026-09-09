@@ -34,6 +34,7 @@ import argparse
 import asyncio
 import base64
 import json
+import re
 import sys
 import urllib.request
 from pathlib import Path
@@ -61,6 +62,8 @@ PARTIAL_NOTICE = "분석하지 못한 발화가 있습니다 — 재시도되지
 # HTTP 상태 코드를 학습자에게 그대로 보여줬다. 지금 화면은 상태 코드를 **분류에만** 쓰고
 # 문구는 자기가 소유한다(`results/[sessionId]/page.tsx`의 `failureNotice`).
 MISSING_NOTICE = "그 학습 결과를 찾을 수 없습니다."
+# ⓒ 하드코딩 — 드릴 미달 안내(설계서 §2.3 · 캡틴 결정 10). 화면이 소유하는 한국어 문구다.
+DRILL_SHORTFALL_NOTICE = "오늘은 드릴이 계획보다 짧았어요."
 MISSING_UUID = "00000000-0000-0000-0000-0000000000ff"
 
 READ_JS = r"""
@@ -97,6 +100,11 @@ READ_JS = r"""
     bodyHasPartialNotice: document.body.textContent.indexOf(PARTIAL_NOTICE) !== -1,
     labelsAnywhere: LABELS.filter((l) => document.body.textContent.indexOf(l) !== -1),
     bodyText: document.body.textContent.replace(/\s+/g, " ").slice(0, 300),
+    // ⛔ **`main` 만 읽는다 — `body` 가 아니다** (`TASK-34`). `next dev` 가 body 에 주입하는
+    //    스크립트에 숫자가 섞여 있어서 `bodyText` 로 「숫자가 없다」를 재면 항상 FAIL 이 난다.
+    //    학습자가 보는 것은 `main` 안이고, 계약이 걸린 것도 그 범위다. 자르지 않는다 —
+    //    잘린 뒤쪽에 숫자가 있으면 그것을 못 본다.
+    mainText: main.textContent.replace(/\s+/g, " "),
   };
 })()
 """
@@ -254,6 +262,75 @@ def check_missing(dom: dict) -> tuple[int, list[str]]:
     return checked, fails
 
 
+def check_drill_contract(payload: dict, dom: dict) -> tuple[int, list[str], str | None]:
+    """드릴 계약 — **두 수가 화면에 닿지 않는다** (`TASK-34` · 캡틴 결정 10·18).
+
+    반환 `(검사 수, 어긋남, 미확인)`.
+
+    ## 왜 「그 두 수가 없다」로 재지 않는가
+
+    `exchanges_observed=2` 를 문자열 `"2"` 로 찾으면 교정문에 우연히 든 `2` 가 오탐이 되고,
+    반대로 화면이 `9 / 12` 대신 `아홉` 이나 `2회` 로 새면 **못 잡는다.** 그래서 재는 것은
+    **「API 가 준 학습자 문구에 없던 숫자가 화면에 있는가」** 다 — 화면이 소유하는 상수에는
+    숫자가 하나도 없고(직접 확인: 상태 라벨 5개 · 부분 실패 안내 · 미달 안내 · 발음 라벨 ·
+    빈 상태 문구 · 출구 문구), API 가 실어 보낸 교정·발음 문구만 숫자를 가질 수 있다.
+    이 형태가 드릴 두 수뿐 아니라 `occurrences` 같은 **다른 숫자 누출까지** 함께 막는다.
+
+    ⛔ **`target_form` 을 화이트리스트에 넣지 않는다.** 응답에는 있지만 교정 카드가 렌더하는
+    것은 `original_span`·`correction`·`reason` 셋이다. 렌더되지 않는 필드를 허용 목록에 넣으면
+    그 필드에만 있는 숫자가 화면에 새도 통과한다.
+
+    ⛔ **`directPCount` 를 등호로 올리지 않았다** (AC3 의 판단). 그 수는 계약이 아니라 구현의
+    부산물이라 정당한 `<p>` 하나만 늘어도 깨진다 — `TASK-55` 가 출구 링크를 넣을 때 실제로
+    늘었다. 계약이 말하는 것은 개수가 아니라 **무엇이 그려지는가**이므로 그것을 직접 잰다.
+    """
+    fails: list[str] = []
+    checked = 0
+
+    def need(cond: object, msg: str) -> None:
+        nonlocal checked
+        checked += 1
+        if not cond:
+            fails.append(msg)
+
+    main_text = dom["mainText"]
+    drill = payload.get("drill")
+    fell_short = bool(drill) and drill["exchanges_observed"] < drill["exchanges_expected"]
+
+    # ① 미달일 때만 문장이 그려진다 — 달성 문장도 점수판이 된다(결정 10).
+    need(
+        (DRILL_SHORTFALL_NOTICE in main_text) == fell_short,
+        f"드릴 미달 안내 존재={DRILL_SHORTFALL_NOTICE in main_text} 인데"
+        f" drill={drill!r} 의 미달 여부는 {fell_short} 다",
+    )
+
+    # ② API 가 준 학습자 문구에 없던 숫자가 화면에 없다.
+    rendered_api_text = ""
+    for correction in payload.get("corrections") or []:
+        for field in ("original_span", "correction", "reason"):
+            rendered_api_text += str(correction.get(field) or "")
+    for attempt in payload.get("pronunciation") or []:
+        for field in ("target_form", "spoken_form"):
+            rendered_api_text += str(attempt.get(field) or "")
+    allowed = set(re.findall(r"\d+", rendered_api_text))
+    leaked = sorted(set(re.findall(r"\d+", main_text)) - allowed)
+    need(
+        leaked == [],
+        f"화면에 API 가 주지 않은 숫자가 있다 — {leaked} · drill={drill!r}."
+        " 결과 화면은 수를 그리지 않는다(결정 10·18)",
+    )
+
+    # ⛔ **달성 세션(드릴이 있고 미달이 아닌 것)의 표본이 없으면 그 갈래를 통과로 세지 않는다**
+    #    (§10).
+    unverified = None
+    if drill is not None and fell_short:
+        unverified = (
+            "드릴 계약의 「달성 세션에는 아무것도 그리지 않는다」 갈래는 이 세션으로 평가되지"
+            " 않는다 — 미달 표본이다. 그 갈래의 판별력은 `test_c3_gates.py` 의 무력화가 지킨다"
+        )
+    return checked, fails, unverified
+
+
 def check_status_label_variation(
     payloads: dict, results: dict, sessions: dict
 ) -> tuple[int, list[str], str | None]:
@@ -351,10 +428,17 @@ async def main_async(args) -> int:
 
     # ── 판정 ────────────────────────────────────────────────────────────────
     checked, fails = 0, []
+    drill_unverified: list[str] = []
     for key in sessions:
         c, f = check_screen(payloads[key], results[key], sessions[key])
         checked += c
         fails += [f"[{key}] {m}" for m in f]
+        # 드릴 계약(`TASK-34`) — 판정은 `check_drill_contract` 이 소유한다.
+        c, f, u = check_drill_contract(payloads[key], results[key])
+        checked += c
+        fails += [f"[{key}] {m}" for m in f]
+        if u:
+            drill_unverified.append(f"[{key}] {u}")
     c, f = check_missing(missing)
     checked += c
     fails += [f"[missing-uuid] {m}" for m in f]
@@ -377,6 +461,13 @@ async def main_async(args) -> int:
     blocked, unverified = [], []
     if unverified_extra:
         unverified.append(unverified_extra)
+    unverified += drill_unverified
+    # 드릴 키 자체가 없으면 계약의 두 갈래 중 어느 것도 평가되지 않는다 — 그것도 미확인이다.
+    if not any(payloads[k].get("drill") for k in sessions):
+        unverified.append(
+            "드릴 계약: `drill` 키를 가진 세션이 없어 「두 수가 화면에 닿지 않는다」를"
+            " 평가할 수 없다 → 판별력 미확인"
+        )
     if not primaries:
         blocked.append(
             "A4-1: corrections >= 1 인 세션이 없다 — 화면 결함이 아니라 표본 선택 실패(BLOCKED)"
