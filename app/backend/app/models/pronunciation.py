@@ -46,6 +46,18 @@ SIGNAL_SOURCES: tuple[SignalSource, ...] = get_args(SignalSource)
 # 어댑터와 이 모듈이 같은 이름을 써야 한다 — 다르면 tool 이벤트가 조용히 버려진다.
 PRONUNCIATION_TOOL_NAME = "report_pronunciation_coaching"
 
+# 발음 패턴의 `pattern_key` 접두어. **정본은 `services/pronunciation.py` 의 upsert SQL 이다**
+# (`'pronunciation_' || btrim(a.target_sound)`, 설계서 §4.3) — 여기 상수는 그 규약을 **읽는**
+# 쪽을 위한 것이다. 지금 읽는 곳은 `audio_gateway/nova.build_system_prompt` 하나로, 계획 초점
+# 가운데 어느 것이 발음인지 가려내는 데 쓴다(`TASK-81`).
+# ⚠️ **왜 `category` 를 쓰지 않는가**: 세션 지시문이 읽는 값은 `SessionInstruction.focus` 이고
+# 그 항목(`InstructionFocus`)에는 `pattern_key`·`target_form` 둘뿐이다 — `category` 를 넣으면
+# `extra="forbid"` + 필수 필드 증가라서 **저장된 모든 계획 행이 한꺼번에 검증 실패한다**
+# (`audio_gateway/factory.py` 가 그 실패 모드에 이미 이름을 붙여 뒀다).
+# ⚠️ 값이 두 곳에 있으므로 갈라질 수 있다 — `tests/unit/test_nova.py` 의
+# `test_the_pronunciation_key_prefix_matches_the_sql_that_creates_those_rows` 가 그것을 막는다.
+PRONUNCIATION_PATTERN_KEY_PREFIX = "pronunciation_"
+
 # Nova Sonic 의 `inputSchema.json` 은 **JSON 문자열**이다(객체가 아니다) — 스파이크 F1.
 PRONUNCIATION_TOOL_SCHEMA_JSON = json.dumps(
     {

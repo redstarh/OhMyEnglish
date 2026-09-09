@@ -56,6 +56,7 @@ from app.audio_gateway.port import (
 from app.config import Settings, prepare_bedrock_credentials
 from app.models.plan import PlanQuestion, SessionInstruction
 from app.models.pronunciation import (
+    PRONUNCIATION_PATTERN_KEY_PREFIX,
     PRONUNCIATION_TOOL_NAME,
     PRONUNCIATION_TOOL_SCHEMA_JSON,
     parse_tool_payload,
@@ -186,6 +187,28 @@ _FOCUS_BEATS_SETTING = (
     "- If today's setting suggests a different pattern than the focus above, follow the focus."
 )
 
+# `TASK-81` — 발음 초점을 문법 초점 줄에서 **갈라낸** 뒤 이 줄로 낸다.
+#
+# ⚠️ **이 문구는 관측에서 나왔다.** 계획 프롬프트를 먼저 고쳐 `Focus on:` 첫 자리에
+# `pronunciation_an_as_a (an_as_a)` 가 실리게 하고 실물 Nova 왕복을 3회 돌렸더니, 코치는 매번
+# 「`an` 이 들어간 문장」 연습으로 갔다(`I wrote an email.` · `I have an idea.`) — 발음 코칭
+# 0회 · `toolUse` 0. **`an` 이 관사라서 소리 키가 관사 지시로 읽힌다.** 그래서 자리를 옮기는
+# 것만으로는 부족하고 「문법이 아니라 소리다」를 문장으로 말해야 한다.
+# 회차 기록: `tests/harness/runs/2026-09-10-task81-pronunciation-focus.md`.
+#
+# ⛔ **소리 키를 파싱해 풀어 쓰지 않는다.** `an_as_a` 를 「`an` 을 `a` 로」로 바꿔 주면 읽기는
+# 좋아지지만 `X_as_Y` 형태는 **Nova 가 지어내는 값**이라 규약이 아니다 — 고정부가 요구하는
+# 규약은 「같은 소리에 같은 키를 다시 쓴다」 하나이고 키의 **모양**은 아무것도 보장하지 않는다.
+# 파싱하면 다음 키 모양(`th_as_s` 는 맞지만 `vowel_length` 같은 것이 오면)에서 조용히 깨진다.
+# ⚠️ **한 줄로 낸다.** `tool` 이름과 소리 키가 같은 줄에 있어야 「무엇을 어느 이름으로 보고할지」가
+# 한 눈에 붙는다 — 그리고 테스트가 줄 단위로 그것을 잰다.
+_SOUND_INSTRUCTION = (
+    '- Sound to coach today: "{sound}" — this is a pronunciation focus, not a grammar one; '
+    "the learner's problem is how the word sounds, not which word to pick. When it is off, stop "
+    "and have them say just that word again, then report the attempt with the {tool} tool using "
+    '"{sound}" as target_sound.'
+)
+
 
 def build_system_prompt(
     known_sounds: Sequence[str],
@@ -297,8 +320,17 @@ def build_system_prompt(
 
     **값이 없는 줄은 아예 넣지 않는다** — 소리 기록 0건(지금 dev DB의 상태)·`contexts` 빈 목록·
     무대 부재·질문 빈 목록이 모두 같은 처리를 받는다. 빈 목록에 제목만 남기면 Nova가 "목록이
-    비었다"를 지시로 오해할 여지가 생긴다. `focus`는 최소 1개가 보장되므로(`SessionInstruction`)
-    그 처리가 필요 없다.
+    비었다"를 지시로 오해할 여지가 생긴다.
+    ⚠️ **`- Focus on:` 줄도 그 처리를 받는다** (`TASK-81`). `SessionInstruction.focus`가 최소
+    1개를 보장하는 것은 그대로지만 그 항목이 **전부 발음일 수 있고**, 그때 문법 초점이 0개라
+    이 줄이 빠진다 — 발음은 자기 줄(`_SOUND_INSTRUCTION`)로 나간다. 이전 판이 이 자리에서
+    *"`focus`는 최소 1개가 보장되므로 그 처리가 필요 없다"*고 단정했는데, 그 단정이 센 것은
+    **초점 개수**이고 지금 갈라진 축은 **초점의 종류**다.
+
+    **발음 초점은 문법 초점 줄에서 갈라낸다** (`TASK-81`). 같은 줄에 두면 코치가 소리 키를
+    **문법 지시로 읽는다** — 실물 왕복 3회로 관측했고 근거는 `_SOUND_INSTRUCTION`의 주석이
+    소유한다. 가르는 재료는 `pattern_key` 접두어 하나이고, `category`를 쓸 수 없는 이유는
+    `PRONUNCIATION_PATTERN_KEY_PREFIX`의 주석이 갖는다.
 
     ⛔ **열거하는 질문은 `questions[:drill_count]`다** (H-5). 전부 열거하고 기대값만 깎으면
     `drill_count`가 **대화를 바꾸지 않고 통과 문턱만 바꾸는 노브**가 된다 — 캡틴 결정 1은 드릴
@@ -320,14 +352,31 @@ def build_system_prompt(
     if plan is None:
         # 계획이 없으면 `questions`도 무시한다 — 드릴 줄은 계획 블록 **안**에 있다.
         return prompt
-    forms = ", ".join(f"{item.pattern_key} ({item.target_form})" for item in plan.focus)
+    # `TASK-81` — 발음 초점과 문법 초점을 **가른다**. 가르는 재료는 `pattern_key` 접두어 하나다
+    # (`PRONUNCIATION_PATTERN_KEY_PREFIX` 의 주석이 왜 `category` 가 아닌지를 소유한다).
+    sounds = [
+        item for item in plan.focus if item.pattern_key.startswith(PRONUNCIATION_PATTERN_KEY_PREFIX)
+    ]
+    grammar = [
+        item
+        for item in plan.focus
+        if not item.pattern_key.startswith(PRONUNCIATION_PATTERN_KEY_PREFIX)
+    ]
     lines = [
         "Today's plan:",
         f"- Target level for today, instead of the {_BASE_LEVEL_RANGE} level in rule 1: "
         f"{plan.target_level}",
-        f"- Focus on: {forms}",
-        f"- Aim for the learner's sentences to be this shape: {plan.sentence_length}",
     ]
+    # ⚠️ 초점이 **전부** 발음이면 이 줄을 넣지 않는다 — 빈 `- Focus on: ` 은 "초점이 없다"로
+    # 읽힌다. 「값이 없는 줄은 아예 넣지 않는다」는 이 함수의 규약과 같은 처리다.
+    if grammar:
+        forms = ", ".join(f"{item.pattern_key} ({item.target_form})" for item in grammar)
+        lines.append(f"- Focus on: {forms}")
+    lines.extend(
+        _SOUND_INSTRUCTION.format(sound=item.target_form, tool=PRONUNCIATION_TOOL_NAME)
+        for item in sounds
+    )
+    lines.append(f"- Aim for the learner's sentences to be this shape: {plan.sentence_length}")
     if plan.contexts:
         lines.append(f"- Situations to use today: {', '.join(plan.contexts)}")
     lines.append(

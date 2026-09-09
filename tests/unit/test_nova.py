@@ -36,7 +36,7 @@ from app.audio_gateway.port import (
 )
 from app.config import Settings
 from app.models.plan import InstructionFocus, PlanQuestion, SessionInstruction
-from app.models.pronunciation import PRONUNCIATION_TOOL_NAME
+from app.models.pronunciation import PRONUNCIATION_PATTERN_KEY_PREFIX, PRONUNCIATION_TOOL_NAME
 from app.models.scenario import SessionScenario
 
 # --- N-1 실측에서 옮긴 값 ---
@@ -1050,6 +1050,86 @@ def test_plan_block_carries_level_focus_length_and_contexts():
     assert "two or three short clauses" in block
     assert "work update" in block
     assert "weekend plan" in block
+
+
+_SOUND_LINE = "- Sound to coach today:"
+
+
+def _line_starting_with(block: str, prefix: str) -> str:
+    """계획 블록에서 그 접두어로 시작하는 줄 **하나**만. 없으면 시끄럽게 실패한다.
+
+    ⚠️ 블록 전체를 창으로 쓰지 않는다 — 발음 초점을 `Focus on:`에서 **빼는 것**이 이 태스크의
+    요구라서, 창이 넓으면 다른 줄에 남은 같은 낱말이 그 단정을 통과시킨다.
+    """
+    lines = [line for line in block.splitlines() if line.startswith(prefix)]
+    assert len(lines) == 1, f"{prefix!r}로 시작하는 줄이 {len(lines)}개다 — 하나여야 한다"
+    return lines[0]
+
+
+def test_plan_block_pulls_a_pronunciation_focus_out_of_the_grammar_focus_line():
+    """`TASK-81` — 발음 초점을 `Focus on:`에 그대로 두면 코치가 그것을 **문법으로 읽는다.**
+
+    ⚠️ **이것은 추측이 아니라 관측이다.** 계획 프롬프트를 먼저 고쳐 `Focus on:` 첫 자리에
+    `pronunciation_an_as_a (an_as_a)`가 실리게 한 뒤 실물 Nova 왕복을 3회 돌렸고, 코치는 매번
+    「`an`이 들어간 문장」 연습으로 갔다(`I wrote an email.` · `I have an idea.`) — 발음 코칭
+    0회 · `toolUse` 0. `an`이 관사라서 **소리 키가 관사 지시로 읽힌다.**
+    회차 기록: `tests/harness/runs/2026-09-10-task81-pronunciation-focus.md`.
+    """
+    block = _plan_block(
+        _prompt(
+            ("an_as_a",),
+            _instruction(
+                focus=[
+                    InstructionFocus(pattern_key="pronunciation_an_as_a", target_form="an_as_a"),
+                    InstructionFocus(pattern_key="article_missing", target_form="a/an/the"),
+                ]
+            ),
+        )
+    )
+
+    focus_line = _line_starting_with(block, "- Focus on:")
+    # 발음 초점은 문법 초점 줄에서 **빠진다** — 남으면 위에서 관측한 오독 경로가 그대로 산다.
+    assert "pronunciation_an_as_a" not in focus_line
+    assert "an_as_a" not in focus_line
+    # AC#3 — 문법 초점은 그 줄에 그대로 남는다. 자리를 내주는 것과 밀어내는 것은 다르다.
+    assert "article_missing" in focus_line
+    assert "a/an/the" in focus_line
+
+    # 발음은 자기 줄에서 **소리로** 불린다. ⛔ 키를 파싱해 풀어 쓰지 않는다 — `X_as_Y` 형태는
+    # Nova 가 지어내는 값이라 규약이 아니고(`known_sounds` 규약은 「같은 소리를 한 키로 묶는다」
+    # 뿐이다), 파싱하면 다음 키 모양에서 조용히 깨진다. 그대로 인용하고 tool 이름을 함께 준다.
+    sound_line = _line_starting_with(block, _SOUND_LINE)
+    assert "an_as_a" in sound_line
+    assert PRONUNCIATION_TOOL_NAME in sound_line
+
+
+def test_plan_block_has_no_sound_line_when_the_focus_is_all_grammar():
+    """음성 케이스 — 발음 초점이 없으면 그 줄이 붙지 않는다.
+
+    ⚠️ **판별력의 핵심이다.** 무조건 붙이면 소리 키가 없는데 코치가 소리를 지어내고, 그러면
+    `target_sound`가 `known_sounds` 규약을 깨서 같은 오류가 여러 키로 흩어진다 — 고정부의
+    「reuse that exact key」가 막으려는 것이 정확히 그것이다.
+    """
+    block = _plan_block(_prompt((), _instruction()))
+
+    assert _SOUND_LINE not in block
+
+
+def test_the_pronunciation_key_prefix_matches_the_sql_that_creates_those_rows():
+    """접두어가 두 곳에 있다 — 갈라지면 발음 초점이 조용히 문법으로 취급된다.
+
+    정본은 `services/pronunciation.py`의 upsert SQL 이다(`'pronunciation_' || target_sound`,
+    설계서 §4.3). 그 SQL 을 상수 참조로 바꾸는 것은 이 태스크의 범위 밖이라 **두 값이 같은지를
+    여기서 잰다** — `_BASE_LEVEL_RANGE`가 상수와 프롬프트 본문 두 곳에 있고 테스트가 갈라짐을
+    막는 것과 같은 관례다(`nova.py`의 그 상수 주석이 근거를 갖는다).
+    """
+    from pathlib import Path
+
+    from app.services import pronunciation as pronunciation_service
+
+    source = Path(pronunciation_service.__file__).read_text(encoding="utf-8")
+
+    assert f"'{PRONUNCIATION_PATTERN_KEY_PREFIX}' ||" in source
 
 
 # 어긋남 ② — 힌트 시점은 고정 규칙에 **이미** 있다(규칙 2·5). 계획이 그것을 대체한다는
