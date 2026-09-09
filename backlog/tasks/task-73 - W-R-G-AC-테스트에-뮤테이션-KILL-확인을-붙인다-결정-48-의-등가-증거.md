@@ -1,10 +1,10 @@
 ---
 id: TASK-73
 title: W/R/G AC 테스트에 뮤테이션 KILL 확인을 붙인다 (결정 48 의 등가 증거)
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-09 14:39'
-updated_date: '2026-09-09 16:15'
+updated_date: '2026-09-09 22:35'
 labels: []
 dependencies: []
 ordinal: 76000
@@ -47,21 +47,29 @@ ordinal: 76000
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
-2026-09-09 착수 전 범위 메모 (TASK-70 리뷰를 기다리는 동안 확보했음).
+2026-09-09 착수 전 범위 메모.
 
 ⛔ 뮤테이션 대상은 테스트가 아니라 AC 항목임. 해당 파일 아홉에 든 `def test_` 를 세 보면 200건을 넘음(2026-09-09 실측 — 이 수는 테스트가 늘면 낡으므로 기준으로 쓰지 않음). 그것을 하나씩 뮤테이션하면 이 태스크는 끝나지 않고, AC 가 요구하는 것도 그것이 아님.
 
-AC 항목은 열넷임 — W1~W7 · R1~R3 · G1~G4. 각 항목마다 **그 항목을 담는 단정 하나**를 골라 그것을 무력화하는 변이를 걸고 FAIL 을 관측하면 됨. 「테스트가 결함을 잡는다」를 보이는 것이 목적이므로 항목당 하나가 그 목적을 채움.
+AC 항목은 열넷임 — W1~W7 · R1~R3 · G1~G4. 각 항목마다 **그 항목을 담는 단정 하나**를 골라 무력화하고 FAIL 을 관측하면 됨.
 
-항목 → 파일 대응(TASK-47 이 파일:줄로 확인했음):
-- W1 tests/unit/test_utterances.py · tests/integration/test_worker.py
-- W2 tests/unit/test_analysis.py · tests/integration/test_pipeline.py
-- W3 tests/unit/test_utterances.py · tests/unit/test_jobs.py
-- W4·W5 tests/unit/test_jobs.py
-- W6 tests/unit/test_utterances.py
-- W7 tests/unit/test_claude_schema.py · tests/integration/test_pipeline.py
-- R1·R2·R3 tests/unit/test_results.py
-- G1·G2·G3·G4 tests/integration/test_gateway.py · tests/integration/test_ws.py
+2026-09-10 — 항목별 대상 단정을 실제 줄로 확정했음(소스를 건드리지 않고 읽기만 했음):
+- W1 ✅ **완료** — TASK-76 에서 두 변이로 확인했음. ① flush 묶음 정렬 뒤집기(`order by ... sequence_no` → `desc`) → FAIL 2건(test_merge_sql_keeps_its_explicit_ordering · test_agent_speech_between_finals_splits_the_run_in_two) ② 회복 스윕이 failed 세션을 건너뛰게(ENDED_SESSION_STATUSES 를 completed 만) → FAIL 2건(test_sweep_covers_sessions_closed_as_failed · test_worker_reaps_an_orphan_session_and_then_recovers_its_run). 둘 다 되돌렸고 git diff 로 확인했음.
+- W2 integration/test_pipeline.py:163 (같은 pattern_key → patterns 1행 / occurrences 2행 / frequency 2)
+- W3 unit/test_utterances.py:331 (같은 (session_id, sequence_no) 재insert → unique 위반)
+- W4 unit/test_jobs.py:171 (lease 만료 회수 + 이전 token 의 complete 가 False)
+- W5 unit/test_jobs.py:248 (attempts 상한 → failed + last_error, 재claim 불가)
+- W6 unit/test_utterances.py:136 (voice_command 는 저장되나 job 미등록)
+- W7 integration/test_pipeline.py:277 (검증 실패 응답 → fail_or_retry, 결과 0행)
+- R1 unit/test_results.py:114 (3패턴 → 정확히 2개, high 가 medium 보다 먼저 — ordinal)
+- R2 unit/test_results.py:197 (non-terminal job → analyzing + corrections 키 부재)
+- R3 unit/test_results.py:267 (failed 1 + done 2 → partial_failure + 성공분 병존)
+- G1 integration/test_gateway.py:8·194 (close 가 종료 기록보다 먼저)
+- G2 integration/test_gateway.py:733 (무응답 → failed + 실패 이벤트, 무한 대기 없음)
+- G3 integration/test_gateway.py:1128 (분기가 팩토리 한 곳에만 있음 — 소켓 계층이 nova 를 import 하지 않음)
+- G4 integration/test_gateway.py:608 (픽스처 완주 → final 3행 + job 3건)
 
 ⚠️ 기존 SURVIVED 주석을 KILL 로 바꾸려 하지 않음 — 그것은 「이 자리는 뮤테이션으로 잴 수 없다」를 근거와 함께 남긴 것임. 그 자리는 다른 단정을 고르거나 SURVIVED 를 유지하고 이유를 적음.
+
+⛔ 착수 조건 하나 — **codex 재리뷰가 도는 동안 소스를 변이시키지 않음.** 리뷰어가 리포를 읽으므로 변이된 코드를 리뷰하게 되고 판정이 무효가 됨. 2026-09-10 에 그것을 알아채고 변이를 리뷰 뒤로 미뤘음. 같은 이유로 `pytest` 동시 실행도 금지임(H-X).
 <!-- SECTION:NOTES:END -->
