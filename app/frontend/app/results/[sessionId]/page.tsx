@@ -2,8 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import {
   fetchSessionResults,
+  SessionResultsError,
   type PronunciationAttempt,
   type SessionResultPayload,
   type SessionResultStatus,
@@ -27,7 +29,38 @@ const STATUS_LABEL: Record<SessionResultStatus, string> = {
   no_utterances: "분석 대상 없음",
 };
 
-const PARTIAL_FAILURE_NOTICE = "일부 발화는 분석하지 못했다 — 재시도되지 않습니다";
+// 한 문장 안에서 문체를 섞지 않는다 (TASK-57) — 이전 판은 `일부 발화는 분석하지 못했다 —
+// 재시도되지 않습니다`로 앞이 해라체, 뒤가 합쇼체였다. 이 화면의 다른 문구는 `~습니다`·`~어요`다.
+const PARTIAL_FAILURE_NOTICE = "분석하지 못한 발화가 있습니다 — 재시도되지 않습니다";
+
+// 조회 실패 문구 — **화면이 소유한다** (TASK-55). 예외의 `message`를 그대로 그리면 HTTP 상태
+// 코드(`404`)와 `fetch`의 영어 오류가 학습자에게 노출된다. 상태 코드는 아래 두 함수의 분류
+// 입력이고 문구에는 들어가지 않는다 — 그래서 `404을`/`404를` 같은 조사 문제도 함께 사라진다.
+const NOT_FOUND_NOTICE = "그 학습 결과를 찾을 수 없습니다.";
+const UNAVAILABLE_NOTICE = "그 학습 결과를 열 수 없습니다.";
+const RETRYING_NOTICE = "결과를 불러오지 못했습니다. 다시 시도하고 있습니다...";
+
+// 결과 화면에서 빠져나갈 인앱 수단 (TASK-55). 조회가 실패한 화면에서는 이것이 유일한 출구다 —
+// 그전에는 학습자가 브라우저 뒤로가기 말고는 나갈 방법이 없었다.
+const HOME_LINK_LABEL = "← 학습 시작 화면으로";
+
+/**
+ * 4xx는 영구 오류다 — 같은 요청을 되풀이해도 같은 답이 온다 (TASK-56). `TERMINAL_STATUSES`와
+ * **같은 뜻으로** 폴링을 멈춘다. 5xx와 네트워크 실패(`fetch` 자체가 reject)는 회복 가능하므로
+ * 계속 폴링한다 — 이 갈림이 없던 이전 판은 없는 세션 화면을 2초마다 영구히 다시 불렀다.
+ */
+function isPermanentFailure(err: unknown): boolean {
+  return err instanceof SessionResultsError && err.status >= 400 && err.status < 500;
+}
+
+/** 학습자에게 보일 문구를 고른다. 기계 낱말(`API`·상태 코드·영어 예외)을 쓰지 않는다. */
+function failureNotice(err: unknown): string {
+  if (err instanceof SessionResultsError) {
+    if (err.status === 404) return NOT_FOUND_NOTICE;
+    if (err.status < 500) return UNAVAILABLE_NOTICE;
+  }
+  return RETRYING_NOTICE;
+}
 
 // 드릴 미달 안내 (설계서 §2.3 · 캡틴 결정 10). **숫자를 쓰지 않는 것이 계약이다** — API는
 // `drill`로 두 수를 보내지만 여기서 렌더하는 것은 이 한 문장뿐이고, 두 수의 소비자는 서버·로그다
@@ -113,9 +146,11 @@ export default function ResultsPage() {
         }
       } catch (err) {
         if (cancelled) return;
-        setFetchError(err instanceof Error ? err.message : "결과를 불러오지 못했습니다");
-        // 네트워크 오류는 terminal이 아니다 — 회복 가능하므로 계속 폴링한다.
-        timerRef.current = setTimeout(poll, POLL_INTERVAL_MS);
+        setFetchError(failureNotice(err));
+        // 회복 가능한 실패(5xx·네트워크)만 다시 부른다 — 4xx는 terminal이다(`isPermanentFailure`).
+        if (!isPermanentFailure(err)) {
+          timerRef.current = setTimeout(poll, POLL_INTERVAL_MS);
+        }
       }
     }
 
@@ -238,6 +273,19 @@ export default function ResultsPage() {
           )}
         </>
       )}
+
+      {/* 출구는 상태와 무관하게 **같은 자리에** 둔다 (TASK-55) — 화면마다 다른 자리에 두면
+          학습자가 매번 다시 찾는다. `<p>`로 감싸도 상태 라벨보다 뒤에 오므로 C3 하네스가
+          지목하는 「`main`의 첫 직계 `<p>`」는 그대로다(`tests/harness/c3_results_screen.py`). */}
+      <p style={{ marginTop: "2rem" }}>
+        {/* ⛔ **밑줄을 여기서 준다.** `globals.css`의 전역 `a`가 `text-decoration: none`이라
+            링크가 본문 글자와 구별되지 않는다(수정 직후 화면을 열어 직접 봤다). 색 토큰은 4개뿐이고
+            링크색 토큰이 없으므로 어포던스를 **밑줄**로 만든다. 전역 `a` 규칙은 고치지 않는다 —
+            이 화면 밖의 링크까지 바꾸는 결정이라 이 태스크의 범위가 아니다. */}
+        <Link href="/" style={{ textDecoration: "underline" }}>
+          {HOME_LINK_LABEL}
+        </Link>
+      </p>
     </main>
   );
 }

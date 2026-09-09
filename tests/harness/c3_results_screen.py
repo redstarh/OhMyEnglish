@@ -54,7 +54,11 @@ STATUS_LABEL = {
     "connection_failed": "연결 실패",
     "no_utterances": "분석 대상 없음",
 }
-PARTIAL_NOTICE = "일부 발화는 분석하지 못했다 — 재시도되지 않습니다"
+PARTIAL_NOTICE = "분석하지 못한 발화가 있습니다 — 재시도되지 않습니다"
+# 없는 세션 화면의 문구 — TASK-55 로 바뀌었다. 이전 값은 `결과 API가 404을 반환했습니다`로
+# HTTP 상태 코드를 학습자에게 그대로 보여줬다. 지금 화면은 상태 코드를 **분류에만** 쓰고
+# 문구는 자기가 소유한다(`results/[sessionId]/page.tsx`의 `failureNotice`).
+MISSING_NOTICE = "그 학습 결과를 찾을 수 없습니다."
 MISSING_UUID = "00000000-0000-0000-0000-0000000000ff"
 
 READ_JS = r"""
@@ -108,7 +112,7 @@ async def visit(cdp: Cdp, url: str, expect_label: str | None) -> dict:
     js = READ_JS.replace(
         "LABELS", json.dumps(list(STATUS_LABEL.values()), ensure_ascii=False)
     ).replace("PARTIAL_NOTICE", json.dumps(PARTIAL_NOTICE, ensure_ascii=False))
-    want = expect_label or "결과 API가"
+    want = expect_label or MISSING_NOTICE
     data: dict | None = None
     for _ in range(60):
         await asyncio.sleep(0.25)
@@ -234,9 +238,15 @@ def check_missing(dom: dict) -> tuple[int, list[str]]:
     need(dom.get("firstDirectP") is not None, "A3-2: 첫 직계 <p> 가 없다")
     if dom.get("firstDirectP"):
         need(
-            dom["firstDirectP"]["text"] == "결과 API가 404을 반환했습니다",
+            dom["firstDirectP"]["text"] == MISSING_NOTICE,
             f"A3-2: 오류 문구가 {dom['firstDirectP']['text']!r} 다",
         )
+    # ── ⛔ **TASK-55 의 회귀를 못 박는다. 그리고 이것은 위 등호에 종속되지 않는다** —
+    #    등호는 **첫** 직계 `<p>` 하나만 고정하므로 상태 코드가 **다른 줄로** 새어 나오면 통과한다.
+    #    그래서 직계 `<p>` **전체**에서 기계 낱말의 부재를 잰다. `bodyText` 를 쓰지 않는 이유는
+    #    거기에 Next 개발 서버가 주입하는 스크립트가 섞여 판정이 도구 버전에 매이기 때문이다.
+    leaked = [t for t in dom["directPTexts"] if any(k in t for k in ("API", "404", "422", "HTTP"))]
+    need(leaked == [], f"A3-2: 학습자 문구에 기계 낱말이 새어 나왔다 — {leaked}")
     need(dom["labelsAnywhere"] == [], f"A3-2: 상태 라벨이 남아 있다 — {dom['labelsAnywhere']}")
     need(dom["prefixCounts"]["원문"] == 0, "A3-2: 없는 세션인데 교정 카드가 있다")
     return checked, fails
@@ -319,7 +329,7 @@ async def main_async(args) -> int:
     # 실제 세션에는 A3-2 의 오류 문구가 없어야 한다(상호 대조).
     for key in sessions:
         checked += 1
-        if any("결과 API가" in t for t in results[key]["directPTexts"]):
+        if any(MISSING_NOTICE in t for t in results[key]["directPTexts"]):
             fails.append(f"[{key}] A3-2 상호 대조: 정상 세션에 오류 문구가 있다")
     # A4-1 표본 조건 — primary(교정 1건 이상)가 실재해야 한다. 없으면 FAIL 이 아니라 BLOCKED 다.
     primaries = [k for k in sessions if len(payloads[k].get("corrections", [])) >= 1]

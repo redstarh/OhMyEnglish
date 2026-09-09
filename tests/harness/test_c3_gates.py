@@ -5,8 +5,14 @@
 14 → **6**으로 줄고 **어긋남 0건**이 됐다(A4-1·A4-2 전체가 조용히 사라지는데 FAIL이 아니다).
 그 형태를 회귀로 못 박는 것이 이 파일의 첫 목적이다.
 
-⚠️ **입력은 실제 회차의 판독값이다** — `runs/2026-09-06-t4-c3-dom-read.json`. 손으로 만든 픽스처는
-데이터 생성 경로의 결함에 눈이 먼다(`H-AF`). 그 위에 **한 필드씩** 변이를 얹는다.
+⚠️ **입력은 실제 회차의 판독값이다** — `runs/2026-09-09-c3-dom-read-post-task55.json`. 손으로 만든
+픽스처는 데이터 생성 경로의 결함에 눈이 먼다(`H-AF`). 그 위에 **한 필드씩** 변이를 얹는다.
+
+⛔ **2026-09-09 에 픽스처를 갈았다 — 값을 고친 것이 아니라 회차를 다시 돌렸다.** `TASK-55` 가 없는
+세션 화면의 문구를 `결과 API가 404을 반환했습니다`에서 학습자 언어로 바꿨고, `TASK-57` 이 부분 실패
+안내의 문체를 통일했다. **앱의 계약이 바뀌면 낡는 것은 게이트가 아니라 관측값이다** — 그래서
+브라우저 다리를 다시 돌려 새 판독을 얻었고(어긋남 0 / 단정 58건) 이전 회차
+`runs/2026-09-06-t4-c3-dom-read.json`은 **그 시점의 기록이므로 지우지 않았다.**
 
 ⚠️ **이 파일도 게이트 안이다** — `app/backend/pyproject.toml:33`의 `testpaths = ["../../tests"]`가
 리포의 `tests/`를 가리킨다. `test_c2_gates.py`와 같은 근거다.
@@ -33,7 +39,7 @@ sys.path.insert(0, str(HARNESS))
 
 from c3_results_screen import check_missing, check_screen  # noqa: E402
 
-REAL = HARNESS / "runs" / "2026-09-06-t4-c3-dom-read.json"
+REAL = HARNESS / "runs" / "2026-09-09-c3-dom-read-post-task55.json"
 SESSION_IDS = {
     "analyzing": "210233be-ecaa-4409-a1af-8b7016cfe7e9",
     "final": "6225ddaf-90a8-43af-9aa8-e003921c75eb",
@@ -187,6 +193,17 @@ def test_each_mutation_is_caught(label, key, mutate, expected):
 
 MISSING_MUTATIONS = [
     ("오류 문구가 다르다", lambda m: m["firstDirectP"].update(text="어라"), "오류 문구가"),
+    # ⛔ **이 변이가 「기계 낱말 부재」 단정의 독립 판별력을 실증한다** (TASK-55). 첫 직계 `<p>` 는
+    #    기대 문구 그대로 두고 **둘째 줄로** 상태 코드를 흘린다 → 등호는 통과하고 이 단정만 잡는다.
+    #    잡지 못하면 그 단정은 등호의 종속절이므로 지워야 한다
+    #    (`test_sentinel_control_is_gone` 이 같은 이유로 있다).
+    (
+        "상태 코드가 다른 줄로 새어 나왔다",
+        lambda m: m.update(
+            directPTexts=[m["firstDirectP"]["text"], "결과 API가 404을 반환했습니다"]
+        ),
+        "기계 낱말이 새어 나왔다",
+    ),
     ("상태 라벨이 남아 있다", lambda m: m.update(labelsAnywhere=["확정"]), "상태 라벨이 남아 있다"),
     ("없는 세션인데 카드가 있다", lambda m: m["prefixCounts"].update(원문=1), "교정 카드가 있다"),
     ("첫 직계 <p> 가 없다", lambda m: m.update(firstDirectP=None), "첫 직계 <p> 가 없다"),
@@ -203,6 +220,20 @@ def test_missing_session_mutations_are_caught(label, mutate, expected):
     _, fails = check_missing(dom)
     assert fails, f"{label}: 어긋남 0건"
     assert any(expected in m for m in fails), f"{label}: 다른 조건 — {fails}"
+
+
+def test_machine_word_check_has_independent_discrimination():
+    """⛔ **TASK-55 의 단정이 등호의 종속절이 아님을 잰다.**
+
+    `firstDirectP` 등호를 **만족시킨 채** 둘째 줄로만 상태 코드를 흘린다. 어긋남이 **정확히 1건**
+    이어야 한다 — 2건이면 등호가 함께 잡은 것이므로 그 단정은 `checked` 부풀리기이고 지워야 한다
+    (`test_sentinel_control_is_gone` 이 같은 이유로 존재한다).
+    """
+    dom = copy.deepcopy(load()["missing"])
+    dom["directPTexts"] = [dom["firstDirectP"]["text"], "결과 API가 404을 반환했습니다"]
+    _, fails = check_missing(dom)
+    assert len(fails) == 1, f"이 단정만 잡아야 한다 — {fails}"
+    assert "기계 낱말이 새어 나왔다" in fails[0]
 
 
 def test_sentinel_control_is_gone():

@@ -6,13 +6,19 @@
 > ⛔ **정리된 결정 이력을 이 파일에 옮기지 않는다** (2026-09-09 사용자 지시). 결정은 번호로만
 > 가리킨다 — 본문은 `docs/ops/captain-instruction-register.md` 가 소유함.
 
-## 다음 한 걸음 — **`TASK-55` 를 권함**(사용자에게 보이는 결함 · HIGH). 이어서 `56`·`57`
+## 다음 한 걸음 — **`TASK-64` 를 권함**(작고, `browser_leg.md` §11-9 를 막고 있음)
 
-> ⛔ **`TASK-55`·`56`·`57` 은 다른 세션의 사용자 여정 테스트가 찾아 등록한 것임.** 인용된 줄이
-> 태스크 노트에 있고 그쪽이 **고친 뒤 재테스트하기로** 했음 — 끝나면 **HEAD 와 직접 돌린 게이트
-> 수치를 알려 주기로** 합의했음. 세션 간 주소는 매번 `ListAgents` 로 확인함.
-> `TASK-55`(HIGH)는 학습자에게 HTTP 상태 코드가 그대로 노출되고 그 화면에 홈으로 가는 링크가
-> 없다는 것 · `56`(MEDIUM)은 4xx 를 2초마다 영구 재시도 · `57`(LOW)은 문체 혼용임.
+> ✅ **결과 화면 결함 셋이 닫혔음** — `TASK-55`·`56`·`57` 전부 `Done`. 수정 후 화면을 직접 열어
+> 봤고 회차 기록이 값을 가짐(`tests/harness/runs/2026-09-09-task55-56-57-results-screen-fix.md`).
+> ⛔ **상태 코드는 이제 분류용임** — `lib/api.ts` 의 `SessionResultsError.status` 가 문구가 아니라
+> 「4xx 면 폴링을 멈춘다」의 입력임. 학습자 문구는 화면이 소유함(`failureNotice`).
+> ⛔ **결과 화면의 인앱 출구에 밑줄을 직접 줬음** — `globals.css` 의 전역 `a` 가
+> `text-decoration: none` 이라 링크가 본문 글자와 구별되지 않았음(화면으로 관측). 색 토큰이
+> 4개뿐이어서 어포던스를 밑줄로 만들었고 **전역 `a` 규칙은 고치지 않았음.**
+>
+> ⚠️ **`TASK-59` 는 다른 세션(`ohmyenglish-15`)이 잡고 있음** — 2026-09-09 13:38 에 `In Progress` 로
+> 바뀌었고 `tests/harness/fixtures/voice/p1q.wav` 등을 만들고 있음. **그 파일들과 그 태스크 md 를
+> 건드리지 않음.** 세션 간 주소는 매번 `ListAgents` 로 확인함.
 >
 > ✅ **판별력 관측이 끝났음** — `TASK-30`·`TASK-49`·`TASK-52` 모두 `Done`. 단정 일곱 전부 무력화에서
 > FAIL 을 관측했고 **`browser_leg.md` §11 의 미결 둘(§11-4·§11-9)이 닫혔음.** 회차 기록 넷이 값을
@@ -54,7 +60,7 @@ cd app/backend
 
 | # | 무엇 | 정본 |
 |--:|---|---|
-| 1 | **받은 캡틴 결정을 다시 묻지 않음.** 개수를 세지 않음 — register 가 열거함. 최근 것 중 판단을 바꾸는 것: **43**(⛔ **태스크 경계에서 멈추지 않음** — 확인을 기다리는 것은 예의가 아니라 요청의 불이행임) · **44**(참고 프로젝트 적용은 `TASK-59`·`TASK-60` **둘뿐** · prompt cache 와 BlackHole 은 **하지 않음**) · **45**(음성 제어·세션 총평을 요건으로 확정 · 튜터 목소리는 외부 합성으로 바꾸지 않음) · **40**(크리티컬 아닌 것은 사전 승인) · **41**(자격증명 회전 면제) · **42**(첫 푸시 완료) · **31**(스키마 이관은 전부 끝난 뒤) | `docs/ops/captain-instruction-register.md` |
+| 1 | **받은 캡틴 결정을 다시 묻지 않음.** 개수를 세지 않음 — register 가 열거함. 최근 것 중 판단을 바꾸는 것: **46**(⛔ **음성 제어에 참고할 구현체가 없음을 확인했음** — `realtime-meeting` 에 음성 명령 제어가 0건이고 `AllMyEnglish` 의 9건은 전부 문서임. `TASK-61` 은 **Nova tool 호출**로 만들고, 인식률이 낮은 것을 **관측한 뒤에만** 그 문서를 참고로 엶) · **43**(⛔ **태스크 경계에서 멈추지 않음** — 확인을 기다리는 것은 예의가 아니라 요청의 불이행임) · **44**(참고 프로젝트 적용은 `TASK-59`·`TASK-60` **둘뿐** · prompt cache 와 BlackHole 은 **하지 않음**) · **45**(음성 제어·세션 총평을 요건으로 확정 · 튜터 목소리는 외부 합성으로 바꾸지 않음) · **40**(크리티컬 아닌 것은 사전 승인) · **41**(자격증명 회전 면제) · **42**(첫 푸시 완료) · **31**(스키마 이관은 전부 끝난 뒤) | `docs/ops/captain-instruction-register.md` |
 | 2 | ⛔ **critic 재검증 루프를 다시 돌리지 않음.** 4회차까지 갔고 결정 22 가 설계·문서의 리뷰 게이트를 없앴음 | 결정 22 |
 | 3 | **설계는 끝났음 — 다시 하지 않음.** 구현 소유자 `TASK-43`·`44`·`45` 전부 `Done`. 남은 UI 는 `TASK-10` 이 소유하고 그 노트에 선점 목록이 있음 | 원장 |
 | 4 | ✅ **원격이 붙었고 푸시가 기본 리듬임.** `origin` = `github.com/redstarh/OhMyEnglish` · **PUBLIC** · 기본 브랜치 `main`. ⛔ **남은 잔여 위험**: DB 비밀번호가 **공개 이력에 있음**(결정 41 이 회전 면제). Postgres 가 `localhost` 전용 바인딩이라 한계 위험은 낮으나 0 은 아님. 없애는 선택지 셋은 **결정 42 가 소유함** — 다시 발명하지 않음 | 결정 42·41 |
@@ -68,11 +74,11 @@ cd app/backend
 
 | # | 지표 | 기준값 (마감 시점에 직접 돌려 얻었음) |
 |--:|---|---|
-| 1 | `git rev-parse --short HEAD` · `git status` | **`f5ff611` 이상**(등호를 요구하지 않음 — `H-P`) · 추적 미커밋 **0건** · `origin` 과 동기 |
-| 2 | 원장 — `grep -h "^status:" backlog/tasks/*.md \| sort \| uniq -c` | 전체 **66** · Done **45** · To Do **21** · In Progress **0** · Awaiting Decision **0**. ⛔ `backlog task list --plain \| grep -c "^  TASK-"` 로 세지 않음 — 우선순위 라벨이 붙으면 빠짐 |
-| 3 | 게이트 (`app/backend` cwd) | **869 passed** · `ruff check` exit 0 · format **unformatted 0** · `ty check` exit 0 · 게이트 **밖** `ruff check` **0 errors** · format **unformatted 0** · 프론트 `npx tsc --noEmit`·`npx eslint app lib` exit 0. ⚠️ **843 → 854 → 869 는 게이트 테스트가 는 것**(`test_c5_gates.py` 11건 · `test_c1_gates.py` 15건) — 회귀가 아님. **그 둘이 판별력을 브라우저 없이 지킴.** ⛔ **`ty check` 는 `tests/harness/**` 까지 본다** — 2026-09-09 에 그 사실을 모르고 새 하네스 파일을 넣어 진단 4건이 났고(다른 세션이 찾음) **`TASK-49` 를 닫을 때 이 항목을 다시 재지 않은 것이 그 누락의 원인임.** 하네스 파일을 추가했으면 `ty check` 도 다시 잼 |
+| 1 | `git rev-parse --short HEAD` · `git status` | **`dac604d` 이상**(등호를 요구하지 않음 — `H-P`) · 추적 미커밋 **0건** · `origin` 과 동기. ⚠️ **다른 세션이 동시에 원장을 쓰고 있으면 미커밋 0건이 아닐 수 있음** — 그 세션의 파일인지 먼저 보고 내 것만 커밋함(`H-AM`) |
+| 2 | 원장 — `grep -h "^status:" backlog/tasks/*.md \| sort \| uniq -c` | 전체 **67** · Done **48** · To Do **18** · In Progress **1**(`TASK-59` — **다른 세션 소유**) · Awaiting Decision **0**. ⛔ `backlog task list --plain \| grep -c "^  TASK-"` 로 세지 않음 — 우선순위 라벨이 붙으면 빠짐 |
+| 3 | 게이트 (`app/backend` cwd) | **871 passed** · `ruff check` exit 0 · format **unformatted 0** · `ty check` exit 0 · 게이트 **밖** `ruff check` **0 errors** · format **unformatted 0** · 프론트 `npx tsc --noEmit`·`npx eslint app lib` exit 0. ⚠️ **843 → 854 → 869 → 871 은 게이트 테스트가 는 것**(`test_c5_gates.py` 11건 · `test_c1_gates.py` 15건 · `test_c3_gates.py` 에 TASK-55 판별력 2건) — 회귀가 아님. **그것들이 판별력을 브라우저 없이 지킴.** ⛔ **`ty check` 는 `tests/harness/**` 까지 본다** — 2026-09-09 에 그 사실을 모르고 새 하네스 파일을 넣어 진단 4건이 났고(다른 세션이 찾음) **`TASK-49` 를 닫을 때 이 항목을 다시 재지 않은 것이 그 누락의 원인임.** 하네스 파일을 추가했으면 `ty check` 도 다시 잼 |
 | 4 | DB (읽기만) | `schema_migrations` **9건**(`001·003~007·009·010·011`) · `learning_sessions` **13** · `error_patterns` **9** · `error_occurrences` **24** · `utterances` **120** · `session_plans` **2** · `review_tasks` **15** · `pronunciation_attempts` **4** · **§8 drift 0** · **보존 세션 6개** 생존. ⚠️ **수치에 표 이름을 붙여 적음** — 이름 없는 묶음은 읽는 사람이 엉뚱한 표에 대응시킴(2026-09-09 실측) |
-| 5 | 결과 API 상태 6개 | `210233be` `analyzing` · `6225ddaf` `final`(교정 1) · `b2f0d169` `partial_failure` · `76d9ef31` `connection_failed` · `d127dece` `no_utterances` · **`e0c5e580` `final`(교정 2 — A4-2 표본)**. ⛔ **이 여섯이 `browser_leg.md` §9 의 자산임 — 지우지 않음** |
+| 5 | 결과 API 상태 6개 | `210233be` `analyzing` · `6225ddaf` `final`(교정 1) · `b2f0d169` `partial_failure` · `76d9ef31` `connection_failed` · `d127dece` `no_utterances` · **`e0c5e580` `final`(교정 2 — A4-2 표본)**. ⛔ **이 여섯이 `browser_leg.md` §9 의 자산임 — 지우지 않음.** ⚠️ **C3 회차에는 앞의 다섯만 넣음(상태당 1건)** — `e0c5e580` 을 여섯째로 넣으면 `final` 이 둘이 되어 A3-1 음성 대조가 오탐함. 그것이 `TASK-64` 임 |
 
 ⚠️ **3번과 5번이 핵심임** — 읽기는 전달을 증명하지 못하고 **직접 돌린 출력**만 데이터임.
 

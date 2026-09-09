@@ -289,7 +289,7 @@ process_analysis 계약 (설계서 §5.2·§5.3):
 - Consumes: WS 프로토콜(T9), 결과 API(T8)
 
 - [ ] 세션 화면: 시작 버튼 → `getUserMedia`(마이크 권한) → WS 연결 → 오디오 프레임 전송(MediaRecorder chunk) → partial=회색/final=검정 전사문 렌더 → 스텁 오디오 재생(`Audio` API) → 종료 버튼 → 결과 화면 이동. 연결 실패 이벤트 시 실패 UI
-- [ ] 결과 화면: 결과 API 폴링(2초) — `analyzing`("분석 중"), `final`(교정 카드 최대 2: 원문→교정문→한 줄 이유), `partial_failure`(성공분 + "일부 발화는 분석하지 못했다 — 재시도되지 않습니다"), `connection_failed`/`no_utterances` 각 문구
+- [ ] 결과 화면: 결과 API 폴링(2초) — `analyzing`("분석 중"), `final`(교정 카드 최대 2: 원문→교정문→한 줄 이유), `partial_failure`(성공분 + "분석하지 못한 발화가 있습니다 — 재시도되지 않습니다" · 문구는 `TASK-57`이 고쳤다), `connection_failed`/`no_utterances` 각 문구
 - [ ] 검증: `npm run build` 성공 + `npm run lint` 통과 (프론트 자동 테스트 없음 — AC U-검증, E2E-S가 판정)
 - [ ] Commit: `feat: session and results screens (Next.js)`
 

@@ -87,12 +87,32 @@ export async function fetchNextPlan(): Promise<NextPlanSummary> {
   return (await response.json()) as NextPlanSummary;
 }
 
+/**
+ * 결과 API가 실패 상태를 응답했을 때 던진다 (TASK-55·TASK-56).
+ *
+ * ⛔ **`status`는 화면 문구가 아니라 분류용이다.** 이전 판은 `결과 API가 ${status}을
+ * 반환했습니다`를 던졌고 결과 화면이 그것을 그대로 그려서 학습자가 `404`를 봤다. 학습자 문구는
+ * 화면이 소유하고(`app/results/[sessionId]/page.tsx`), 이 `message`는 콘솔·로그용이라 영어다 —
+ * 한국어로 쓰면 다음 사람이 화면에 그려도 되는 문장으로 착각한다.
+ *
+ * 폴링을 멈출지 판단하는 근거도 이 `status`다: 4xx는 같은 요청을 되풀이해도 같은 답이 온다.
+ */
+export class SessionResultsError extends Error {
+  readonly status: number;
+
+  constructor(status: number) {
+    super(`session results request failed: HTTP ${status}`);
+    this.name = "SessionResultsError";
+    this.status = status;
+  }
+}
+
 export async function fetchSessionResults(sessionId: string): Promise<SessionResultPayload> {
   const response = await fetch(`${API_BASE}/api/sessions/${sessionId}/results`, {
     cache: "no-store",
   });
   if (!response.ok) {
-    throw new Error(`결과 API가 ${response.status}을 반환했습니다`);
+    throw new SessionResultsError(response.status);
   }
   return (await response.json()) as SessionResultPayload;
 }

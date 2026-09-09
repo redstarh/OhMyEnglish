@@ -211,7 +211,7 @@ at-least-once + 멱등성(발화 단위 replace, §5.2)이라는 의미론도 �
 - 조회: `error_occurrences` ⨝ `utterances`(`utterance_id`)를 `utterances.session_id = :session`으로 좁히고 패턴을 조인
 - **상위 2개 선정** (`PRD.md:29` "세션당 핵심 오류 1~2개 교정"): `severity → confidence desc → 발생 수 desc` 순 **패턴 단위** 상위 2개. ⚠️ severity는 `('low','medium','high')` 텍스트이므로 **ordinal 매핑(high>medium>low, CASE 식)으로 정렬한다** — 텍스트 `desc`는 medium이 최상위가 되는 함정이다. 같은 패턴의 복수 occurrence는 한 항목으로 묶고 `original_span`을 함께 표시
 - **확정 표시 시점 (AC6과 단일 규칙)**: 그 세션의 `analyze_utterance`가 **전부 terminal**(`done`/`failed`)이 된 뒤에만 교정 결과를 확정 표시한다. 그 전에는 "분석 중"이다 — 일부만 분석된 시점의 상위 2개는 최종과 다를 수 있으므로 중간 노출하지 않는다
-- **부분/실패 표시**: 세션의 `analysis_jobs` 중 `failed`가 있으면 "일부 발화는 분석하지 못했다"를 명시하고 재시도 불가임을 알린다. `failed`를 숨기고 성공분만 보여주면 사용자는 완전한 결과로 오해한다
+- **부분/실패 표시**: 세션의 `analysis_jobs` 중 `failed`가 있으면 "분석하지 못한 발화가 있습니다"를 명시하고 재시도 불가임을 알린다. (⚠️ 2026-09-09 `TASK-57`이 문구를 고쳤다 — 이전 판 "일부 발화는 분석하지 못했다"는 한 문장 안에서 해라체와 합쇼체를 섞었다. 요구는 그대로고 표기만 바뀌었다.) `failed`를 숨기고 성공분만 보여주면 사용자는 완전한 결과로 오해한다
 - 세션 총평(`learning_sessions.summary`)은 `summarize_session`과 함께 다음 슬라이스다 (§5.1)
 
 ### 5.6 pattern_key 정규화 계약
@@ -370,7 +370,7 @@ Given 자격증명·권한 문제로 Nova 스트림이 열리지 않을 때, Whe
 Given 세션이 시작되면, When 사용자가 고정 질문 3개(§1)에 차례로 답하면, Then 각 질문마다 AC1의 왕복이 성립하고 세 발화 모두 `utterances`에 저장되며 각각 `analyze_utterance` 작업이 등록된다.
 
 **AC13 — 부분 실패 표시**
-Given 세션의 `analyze_utterance` 중 하나가 `failed`일 때, When 결과 화면을 보면, Then 성공한 발화의 교정과 함께 "일부 발화는 분석하지 못했다"가 표시된다 (§5.5). 실패를 숨기지 않는다.
+Given 세션의 `analyze_utterance` 중 하나가 `failed`일 때, When 결과 화면을 보면, Then 성공한 발화의 교정과 함께 "분석하지 못한 발화가 있습니다"가 표시된다 (§5.5 · 문구는 `TASK-57`이 고쳤다). 실패를 숨기지 않는다.
 
 ### 8.1 `tests/README.md` 필수 케이스 대응
 
