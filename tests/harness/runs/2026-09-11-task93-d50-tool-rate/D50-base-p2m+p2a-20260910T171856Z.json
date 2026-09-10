@@ -1,0 +1,1366 @@
+[
+ {
+  "usageEvent": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 22
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 22
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    }
+   },
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "totalInputTokens": 22,
+   "totalOutputTokens": 0,
+   "totalTokens": 22
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 150,
+      "textTokens": 0
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 150,
+      "textTokens": 22
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    }
+   },
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "totalInputTokens": 172,
+   "totalOutputTokens": 0,
+   "totalTokens": 172
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 1
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 150,
+      "textTokens": 23
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    }
+   },
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "totalInputTokens": 173,
+   "totalOutputTokens": 0,
+   "totalTokens": 173
+  }
+ },
+ {
+  "userSpeechStart": {
+   "inputAudioOffsetMs": 0,
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154"
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 43
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 150,
+      "textTokens": 66
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    }
+   },
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "totalInputTokens": 216,
+   "totalOutputTokens": 0,
+   "totalTokens": 216
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 86,
+      "textTokens": 0
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 236,
+      "textTokens": 66
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    }
+   },
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "totalInputTokens": 302,
+   "totalOutputTokens": 0,
+   "totalTokens": 302
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 3
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 236,
+      "textTokens": 69
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    }
+   },
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "totalInputTokens": 305,
+   "totalOutputTokens": 0,
+   "totalTokens": 305
+  }
+ },
+ {
+  "completionStart": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154"
+  }
+ },
+ {
+  "userSpeechEnd": {
+   "inputAudioDetectionOffsetMs": 3440,
+   "inputAudioOffsetMs": 3040,
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154"
+  }
+ },
+ {
+  "contentStart": {
+   "additionalModelFields": "{\"generationStage\":\"FINAL\"}",
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "contentId": "12986b00-462b-4ba7-8357-414d4b50234d",
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "role": "USER",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "textOutputConfiguration": {
+    "mediaType": "text/plain"
+   },
+   "type": "TEXT"
+  }
+ },
+ {
+  "textOutput": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "content": "i finished the la porte en chaille de lesseps with my team.",
+   "contentId": "12986b00-462b-4ba7-8357-414d4b50234d",
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "role": "USER",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154"
+  }
+ },
+ {
+  "contentEnd": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "contentId": "12986b00-462b-4ba7-8357-414d4b50234d",
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "stopReason": "PARTIAL_TURN",
+   "type": "TEXT"
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 1
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 236,
+      "textTokens": 70
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    }
+   },
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "totalInputTokens": 306,
+   "totalOutputTokens": 0,
+   "totalTokens": 306
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 339
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 236,
+      "textTokens": 409
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    }
+   },
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "totalInputTokens": 645,
+   "totalOutputTokens": 0,
+   "totalTokens": 645
+  }
+ },
+ {
+  "contentStart": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "contentId": "bf634053-c7cf-41bc-b8a7-772f26208b8c",
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "role": "TOOL",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "toolUseOutputConfiguration": {
+    "mediaType": "application/json"
+   },
+   "type": "TOOL"
+  }
+ },
+ {
+  "toolUse": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "content": "{\"target_form\":\"I finished the La Porte en Chaille de Lesseps with my team.\",\"outcome\":\"pending\"}",
+   "contentId": "bf634053-c7cf-41bc-b8a7-772f26208b8c",
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "role": "TOOL",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "toolName": "report_pronunciation_coaching",
+   "toolUseId": "68a1723e-3e03-4a9f-b1f0-12684b4320ba"
+  }
+ },
+ {
+  "contentEnd": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "contentId": "bf634053-c7cf-41bc-b8a7-772f26208b8c",
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "stopReason": "TOOL_USE",
+   "type": "TOOL"
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 0
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 101
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 236,
+      "textTokens": 409
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 101
+     }
+    }
+   },
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "totalInputTokens": 645,
+   "totalOutputTokens": 101,
+   "totalTokens": 746
+  }
+ },
+ {
+  "contentStart": {
+   "additionalModelFields": "{\"generationStage\":\"SPECULATIVE\"}",
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "contentId": "cc0cdb62-fab3-4ee4-9188-69e5d5509e5e",
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "role": "ASSISTANT",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "textOutputConfiguration": {
+    "mediaType": "text/plain"
+   },
+   "type": "TEXT"
+  }
+ },
+ {
+  "textOutput": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "content": "Great job! Let's focus on the \"th\" sound. Say this sentence with the correct \"th\" pronunciation: \"I finished the La Porte en Chaille de Lesseps with my team.\"",
+   "contentId": "cc0cdb62-fab3-4ee4-9188-69e5d5509e5e",
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "role": "ASSISTANT",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154"
+  }
+ },
+ {
+  "contentEnd": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "contentId": "cc0cdb62-fab3-4ee4-9188-69e5d5509e5e",
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "stopReason": "PARTIAL_TURN",
+   "type": "TEXT"
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 0
+     },
+     "output": {
+      "speechTokens": 1,
+      "textTokens": 19
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 236,
+      "textTokens": 409
+     },
+     "output": {
+      "speechTokens": 1,
+      "textTokens": 120
+     }
+    }
+   },
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "totalInputTokens": 645,
+   "totalOutputTokens": 121,
+   "totalTokens": 766
+  }
+ },
+ {
+  "contentStart": {
+   "audioOutputConfiguration": {
+    "channelCount": 1,
+    "encoding": "base64",
+    "mediaType": "audio/lpcm",
+    "sampleRateHertz": 16000,
+    "sampleSizeBits": 16
+   },
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "contentId": "86e7fd67-3fe9-410d-8813-30f574d97400",
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "role": "ASSISTANT",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "type": "AUDIO"
+  }
+ },
+ {
+  "audioOutput": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "content": "AQABAP//AAD/////AAD+/wAAAAABAP//AAAAAAAAAAABAAAAAAAAAP//AAAAAP////8AAP//AAAAAAAAAAD//wAA//8AAAAAAAAAAAAAAAD/////AAAAAP//AAAAAP//AAABAAAA//8BAAAAAAD//wAAAAAAAAAAAAAAAAAAAAAAAAAA//8BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAD//wAAAAABAAAAAAAAAAAAAAABAAAA//8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP//AAD//wEAAAAAAAAAAAAAAAAAAAD//wAAAAAAAAAA/////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//8AAAAAAAAAAAAAAAABAAAAAAAAAP//AAAAAP////8AAAAAAQD//wAAAAABAAAAAQAAAAAAAAAAAAAAAQAAAAEAAQAAAAAAAAAAAAEA//8AAAAA//8AAAAAAAABAAAAAAAAAAAAAAAAAP////8AAAAA//8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAABAAAAAAAAAP//AAD//wAAAAAAAAEAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAEAAAD//wAAAgAAAAEAAQAAAAAAAAABAP//AAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAABAP//AAAAAAAAAAD//wAAAAAAAAAAAAAAAP///v8AAAAAAAAAAAAAAAAAAP//AAAAAAAAAAAAAAEAAAABAP//AAAAAAAAAAAAAAAAAAAAAAAA//8AAAAAAAAAAAAAAAD//wAAAQAAAAEAAAD//wAAAAABAAAAAAABAAAAAQD//wAAAgAAAAAAAAAAAAEAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAP//AAAAAAAAAAABAAAAAAAAAAEAAQAAAAEAAAAAAAAAAAAAAAAAAAD//wAAAAAAAAAAAAABAP//AgAAAAAAAQD//wAA//8AAAEAAAAAAAEAAQAAAAAAAQAAAP7///8AAP////8AAAAA//8AAAAAAAABAAAAAAAAAP////8AAAAAAAAAAAEAAAD//wAAAAAAAAAA//8AAAAA//8AAAAAAQAAAAAAAAAAAP//AAAAAAAAAAD//wAAAAD//wEAAAAAAAAAAAAAAAAAAAD//wAAAAAAAAAAAQAAAAAA//8BAAEAAAAAAAAAAAABAAAAAAAAAP//AAAAAAAA//8BAAAA//8AAAEAAAAAAAAAAQABAP//AAAAAP//AAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAP//AAAAAAAAAAABAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAP7/AAAAAAAAAAAAAAAAAAAAAAAAAQABAAAA//8AAAAAAAAAAAAAAQD//wAAAAAAAAAA//8AAP////8AAAAAAAD//wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//8AAAAAAAD//wEAAAD//wAAAAAAAAAAAAABAAAAAAABAAAAAAAAAAEAAAAAAAEAAAAAAAAAAgD//wAAAQD+/wAAAAAAAAAAAAAAAP//AAD//wAAAAAAAAEAAAAAAAEAAAABAAAAAAAAAP7///8AAAAAAAAAAAAA//8AAAAA//8AAP////8AAP//AAAAAAAAAAAAAAAAAAABAAAAAAAAAAEAAAD//wAAAAAAAAAAAAAAAAAAAAAAAAAAAAD//wAAAAD//wAAAAD//wAAAAAAAAAAAQABAAAAAQAAAAAAAAAAAAAAAAAAAP//AAABAP//AAAAAAAAAAD//wAAAAABAAAA//8AAAAAAQAAAAAAAQD//wAAAAAAAAEAAAD//wAAAAD//wAAAQAAAAAAAAD//wAAAQAAAAAAAAABAP//AAAAAP//AAAAAAEAAAAAAAAAAAABAP//AAAAAAAAAAD//wAA//8BAAAAAAAAAAEAAAAAAAAAAAAAAAAAAQD//wAAAAAAAP//AAD//wAAAAD//wAA/////wAAAAAAAAAAAAABAAAAAAAAAAAAAQAAAAAAAAD//wAAAAAAAAAA//8BAAAAAAAAAAAAAgAAAAAAAQAAAP//AAAAAAAAAAAAAAAA//8AAAAAAAD//wAA//8AAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAEAAAAAAAEAAAAAAP//AQAAAAAAAAAAAAEAAAAAAAEAAAAAAP//AQABAAAAAAABAAAA//8BAAAA//8AAAAAAAAAAAAAAAAAAP//AAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAA//8AAAAAAAD//wAAAAAAAAAAAQAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAD//wAAAAAAAAAA//8AAAEA//8BAAAAAAAAAAAAAAAAAAEAAQAAAAAAAAD/////AAAAAAAAAQAAAAAAAAAAAAAA//8AAAAAAAAAAP//AAAAAAAAAAAAAAEAAAAAAAAAAAABAAAAAQABAAAAAAABAAAA//8AAP//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAEAAAD//wEAAAAAAAAA//8BAAEAAAAAAAAAAAAAAAEA//8AAP//AAABAAAAAQD//wEA/////wAAAAD//wAAAAAAAP//AAAAAAAAAAABAAAAAAAAAP//AAAAAAAAAAAAAAAAAAD//wAAAAD//wAAAAAAAAEA//8AAAAAAAAAAP//AAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQD//wAAAAAAAAAAAAAAAAAAAAAAAAAAAAD//wAAAAD//wAAAAAAAAAAAAAAAP////8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP//AAAAAAEAAAAAAAAAAAAAAAAAAAABAAAA//8AAAAAAQAAAAAAAAAAAAAAAAAAAP//AAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAP//AAAAAAAA//8BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAA//8AAAAAAAAAAP//AAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAQAAAAAAAAABAAAA//8AAP//AAAAAAEAAAA=",
+   "contentId": "86e7fd67-3fe9-410d-8813-30f574d97400",
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "role": "ASSISTANT",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154"
+  }
+ },
+ {
+  "audioOutput": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "content": "//8AAAAA/v8AAAAAAAAAAAAAAQD//wAAAQAAAAAAAQAAAAAAAAD//wAAAAAAAAAAAAAAAP//AAD//wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP//AAAAAAAAAAAAAAAAAAAAAAAA//8AAAAA//8AAAAAAAAAAAAAAQAAAAAAAAABAAAAAAAAAP//AAD//wAAAAAAAAAA//8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP//AAAAAAEA//8AAAAA//8BAAAAAAAAAP//AAAAAAEAAAAAAAAAAAAAAAEAAQAAAP////8AAAAAAAAAAAEAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAP//AAAAAAAAAAAAAAAA//8AAAAAAAD//wAAAQD//wAAAAAAAAAA//8AAAAAAAAAAAAAAAAAAAAAAAAAAAAA//8AAAAAAAD//wAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAD/////AAD//wAAAAAAAAAAAAAAAP////8AAAAAAAD//wAAAAAAAAAAAAAAAP//AAAAAAAAAAD//wAA//8AAP//AAAAAAAAAAAAAAAAAAAAAAEAAAAAAP//AAAAAAAAAAD//wAAAAAAAAAAAAAAAAAAAAD//wAAAAABAAAAAAD//wAAAQD//wAAAAAAAAAAAAAAAAAAAAAAAP//AAAAAP//AAD//wAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//8AAAAAAAD/////AAAAAAAAAAAAAAAAAAAAAP//AAAAAAAAAAAAAAAA//8AAAAAAAAAAAEAAAAAAP//AAAAAAAAAAAAAAAAAQAAAAEAAAAAAAEAAAD//wAAAAAAAAAAAAAAAAAAAQAAAAAAAAABAAAA//8BAAAAAQAAAAAAAAAAAAAA//8AAAAA//8AAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAD//wAAAAAAAP//AAAAAP//AAAAAP//AQABAAAAAAAAAAAA//8AAAAAAAAAAAEAAAABAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAP7/AAAAAAEAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAP////8BAAAAAAAAAAAA//8AAAAAAQAAAAAAAAABAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAD/////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAQAAAAAA//8AAAAAAAD/////AAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAA/////wAAAAAAAAAAAAAAAAAAAAABAAAAAAABAAAA//8AAAEAAAAAAAAAAAAAAP//AAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAP//AAABAAAAAQAAAAAAAAAAAAAAAQABAAAAAAAAAAAAAAAAAAEAAQAAAAAAAAAAAAAAAAD//wAA//8AAAAAAAAAAAAA//8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD//wAAAAAAAAAAAAAAAAAA//8AAAEAAAAAAAAAAAAAAAEAAAAAAAEAAAAAAAAA/////wAAAAD//wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP//AAAAAAAAAAAAAAAAAAD//wAAAAAAAAAA//8AAAAAAAAAAAAAAAAAAP//AAAAAAAAAAAAAAAAAAAAAAAAAQD/////AAAAAAAAAAAAAAAAAAAAAAEAAgAAAAAAAAAAAP//AAAAAAAAAAAAAAAAAAAAAAAAAAD//wAA//8AAP//AAAAAAAAAAAAAAAAAAAAAAAAAQABAAAAAAAAAAAAAAAAAAAAAAAAAAAA//8AAAAAAAAAAAAAAAD//wAAAAAAAP//AAAAAAAAAAAAAAAA//8AAAAAAAAAAAAAAAAAAAEAAAABAAAAAAAAAAAAAAAAAAAAAAAAAP////8AAAAAAAAAAAAAAAD//wAAAAAAAAAAAAAAAAAAAAAAAAEA//8AAAAAAQAAAP//AQD//wAAAAD//wAAAAD//wAAAAD//wAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAQD//wAAAAAAAAAAAQAAAAAAAAD//wAAAAAAAAAAAQAAAAAAAAAAAP//AAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAA//8AAAAAAAAAAP//AQAAAP//AAD//wAAAAD//wAAAAAAAAAAAAAAAAAAAAAAAAEAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAQAAAAAAAAABAAAAAAAAAAAAAAD//wAAAAABAAAAAAAAAAAAAAD+/wAA//8AAAAAAAAAAAAAAQAAAAAAAAAAAP//AAAAAAAAAQAAAAAA//8AAAAAAAABAAAAAAAAAAEAAAAAAAAAAQD//wAAAAAAAAAAAAAAAP//AAAAAAAAAAAAAAAAAAAAAP//AAAAAAAAAAAAAP////8BAAAAAAAAAAAAAAAAAP//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAA//8AAP////8AAAEAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//8AAAAAAQAAAAAAAAAAAAEAAAAAAAEA//8BAAAAAAABAAAAAAAAAAAAAAAAAP////8AAAAA//8AAAEAAAAAAAAAAQAAAAAAAAAAAAAA//8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//8AAAAA//8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQABAP//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAD//wAA//8AAAAAAAAAAAEAAAABAAAAAAAAAAAAAAABAAAAAAD//wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//8AAAAAAAAAAAAAAAAAAAEA//8AAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP//AAAAAP//AAAAAAEAAAAAAAAAAAAAAAAAAAD//wEAAAD//wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP//AAAAAA==",
+   "contentId": "86e7fd67-3fe9-410d-8813-30f574d97400",
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "role": "ASSISTANT",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154"
+  }
+ },
+ {
+  "audioOutput": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "content": "AAD//wAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAP//AAAAAAAAAAAAAAAA//8AAP//AAAAAAAAAAAAAAAAAQAAAP//AAAAAAAAAAAAAP//AAD/////AAAAAAAAAAAAAAAAAAD//wAAAAAAAAAAAQAAAAAAAAAAAP//AAAAAP//AAAAAAAAAAAAAP//AAAAAAAAAAAAAAAAAAD//wAAAAAAAP//AAAAAAAAAAD//wEA//8AAAAA//8AAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEA//8AAAEA//8BAAAAAAABAAAAAAAAAAIAAAABAAAAAAAAAAAAAAABAAEAAAAAAP//AQAAAAAAAAAAAAEAAAAAAAEAAAAAAAEAAAABAAAAAAAAAAEAAAABAAAAAQABAAEAAQAAAAAAAAACAAAAAQAAAAEAAQABAAEAAAABAAEAAQAAAAEAAQAAAAEAAAABAAEAAAABAAAAAAABAAAAAAABAAAAAAABAAAAAQAAAAAAAAAAAAAAAAAAAAAA//8BAP7/AgD//wAAAQAAAAAAAAABAP//AAAAAAAAAAABAAAAAAD//wAA//8AAP//AAAAAAAAAAD///////8AAP//AAD+/wAA//8AAP////8AAAAAAAD+////AAD/////AAD//wAA////////AAD////////+//////////////8AAP///v///////////wAA/v8AAP3/AQD+/wEA/v8AAP7///8AAP7/AAD+/wAA/f8AAP//AAD////////+/wAAAAD+/wAA//8AAP7/AAAAAAAAAAD//wAA/v//////AAD+/wAA/v8AAP7/AAD+/////v/+/wAA/f8AAP3/AAD+////AAD//wAA/////wAA//8AAP//AQD+/wEA//8AAAAAAAACAP//AgAAAAEAAAACAP//AgAAAAAAAQAAAAIAAAAAAAEAAQD+/wAA//////3//v////7//v////3/AAD6/////f/+//z//v/8//7//f/+/wAA/f///////f8AAPv/AAD///3//v///////P8DAPv/BQD7/wMA+f/+//r/+//7//3/AwD//////v8JAAgABQAOAAQA9f8MAO7/KgD0/14AcABGAU0BvADPAGr/4P82/pr++v1F/yP/vwArAdsBuQLxAMQB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",
+   "contentId": "86e7fd67-3fe9-410d-8813-30f574d97400",
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "role": "ASSISTANT",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154"
+  }
+ },
+ {
+  "audioOutput": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "content": "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",
+   "contentId": "86e7fd67-3fe9-410d-8813-30f574d97400",
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "role": "ASSISTANT",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154"
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 0
+     },
+     "output": {
+      "speechTokens": 20,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 236,
+      "textTokens": 409
+     },
+     "output": {
+      "speechTokens": 21,
+      "textTokens": 120
+     }
+    }
+   },
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "totalInputTokens": 645,
+   "totalOutputTokens": 141,
+   "totalTokens": 786
+  }
+ },
+ {
+  "audioOutput": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "content": "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",
+   "contentId": "86e7fd67-3fe9-410d-8813-30f574d97400",
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "role": "ASSISTANT",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154"
+  }
+ },
+ {
+  "audioOutput": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "content": "LgMxAy8DKQMeAw4D/QLnAtACtgKYAngCUwIsAgIC1gGnAXcBRgEVAeIArgB7AEoAGQDp/7v/i/9d/zH/B//h/r3+m/58/mD+SP4y/h/+Dv4A/vn98f3s/er96/3u/fT9/f0H/hX+Jv43/kn+Xf5y/ov+pP7A/t3++/4Z/zr/Wv98/5//wf/i/wEAIAA/AFwAewCXALEAyQDfAPEAAwEUASABLgE5AUIBRwFMAU0BTQFKAUQBQQE6ATEBJgEcAQ4BAQH0AOQA0gDCALAAnwCOAH0AbwBbAEoAOQArABwADgAAAPL/5v/Y/87/w/+5/63/pf+b/5D/hv+B/3v/dP9t/2j/Yv9f/1r/WP9X/1T/U/9T/1P/Uf9V/1j/W/9f/2T/aP9t/3H/df96/4H/if+P/5f/nf+n/7D/u//H/9P/3P/m//D//f8HABIAHgAqADMAPgBJAE8AVwBcAGMAaQBwAHcAfAB+AH8AgQCFAIYAhgCFAIQAhACEAIIAgAB/AHwAewB6AHgAdAByAG8AbABnAGUAYABYAFMATwBHAD8AOQAxACoAHgAVAAwAAAD2/+v/4f/W/8v/w/+5/63/pP+d/5P/iv+C/3v/df9w/2r/Z/9j/1//Xf9d/17/Xf9g/2P/Zf9p/3D/dv97/4L/iv+S/53/o/+x/7v/xv/R/+D/7P/6/wkAFQAhACwAPgBIAFMAYABnAHEAfACBAIUAkACUAJcAnQCeAJ8AoQClAKYApgCnAKUAogCgAJ4AmQCUAI0AhgCDAHkAcABmAF0AUwBIADsALQAjABQACgD+//H/5P/U/8j/uv+t/5//lP+I/4D/cv9p/2T/XP9c/1f/VP9Q/0//T/9M/0//Uv9Y/1b/Wv9i/2P/av9x/3P/fv+E/4z/lP+c/6T/r/+6/8P/z//a/+b/8////woAGQAjAC8APABGAFMAXwBqAHQAfACEAIwAkACRAJgAmgCfAKAAogCgAKEAngCeAJ0AlwCRAI4AiwCGAIMAgAB9AHUAbgBmAF4AWQBTAEwAQwA9ADMAKgAhABcAEgAHAP//9f/s/+P/2//Q/8X/vP+y/6r/o/+c/5T/kP+K/4T/gf99/3r/eP92/3f/eP96/37/gP+F/4f/jv+T/5j/n/+j/6n/r/+1/7j/vf/E/8f/z//W/9v/4//p//D/9v/6/wIACAANABMAHAAiACgALgAwADcAOgA+AD0APwBFAEUAUABPAEoARAA3AF4AQwA+AEgAPABGAEQARgA9AEEAPwA6ADoANgA3AC8ALQAlACcAIQAgABcAFwAZAAsADAAIAAgAAwACAAAA+//5//L/9P/2//X/8P/q/+r/6//m/+X/4//g/+H/3v/g/9v/3f/c/9z/2v/Y/9n/2v/c/9z/2//a/9j/2f/V/9b/1v/Y/9r/3P/c/93/3f/c/9//5P/m/+r/5//p/+3/7v/y//P/9//0//b/+////wEABwAGAAkADAAQAAwAEAATABQAFwAaABwAHAAfAB8AHQAeAB0AIAAhACUAJAAkACIAJAAiACMAIQAhACQAJAAjACAAIQAfAB4AHQAcAB0AHAAYABgAFwAVABQAEQAPAA4ACQAKAAkABwAGAAQAAgD//wAA/P/7//v/9v/0//T/8//z//L/7f/t/+r/7P/q/+n/6f/n/+X/5P/l/+T/4v/k/+T/5f/l/+f/5//n/+b/6P/q/+n/6v/t//D/7v/v//H/9f/3//T/9//5//j/+P/6//v//P/8/wAA/v8AAAAABAACAAMABQAHAAQABAAGAAcACQAIAAgACQAKAAsACgALAAoACwAMAAwADAAPAA4ADgANAAwACwAKAAkACQAJAAcACQAHAAQAAgADAAUABAADAAQAAQAAAAEAAgAAAAAAAAABAAEA//8BAAAAAQD+//7//f/+/wAA/v8AAP7//v/9///////9//r//f/8/////f/7//3/+//+//7//v/8/wAA/f/+//z//P/9//z//P/+/wAA/f/5//z//v///////f///////v8AAP3////9/wEA/f/+/wAAAAD//wAAAgABAAEAAQACAAIAAgACAAIAAgADAAIAAwACAAIABgACAAUABQACAAIAAwAGAAMABQADAAcABgAFAAQABAAFAAQAAQACAAAAAwABAAEA///+////AQABAP3/AAD8//z///8AAP/////9//v//f/7//n/+//8//r/9v/4//b/9v/5//n/+f/6//r/+v/8//z/+v/4//r/+f/6//r/+v/7//7//////wAAAAAAAAEAAwAEAAIAAwAGAAIAAQACAAUACAAQAAUABAACAAkACQAKAA8ACwAOAAMACgAJAAsADgASAAoABgAKABEADgAIAAUAAgAKAAcABAAAAAAAAQAIAAMA/f///wcAAwACAP7/AgAIAP3//f/7/wIABAD8//z//f8EAP3/AAD9/wEAAgABAAEA+//7//X//f/3/wAA9v/v//b/7//v//L/9//8//3/8//1//j/+v////r/9P/z//P/+//5//r//P/6//f/9v/5//3/AgADAAMAAAAFABMADQAEAAQACAALAAYABQACAAAAAAD8/wgA/f8NADsAPwD9/6n/FwA6ABoA7v/N/+3/HQAWAPb/7f8GAAAA+v/q/wIACQD6/9r/5P/5//7/+//p/+3/8//s//H/AAABAAQA9//r/+//9P/9//v//P8EAAUA8//+/wwABwD///P/+/8FABEA8//+/wYABwD+//z/+f8IABAACwADAP//BAAAAAYABwARAAoACwAFAAgAAQAGAAkACAAIAAUA///5/wcACwAKAAQA/f/2/wUAEAANAAcA+v/+/wAABgACAA0ACQACAPr//v8TAB4AJwDq//b/HQD//+b/xf8TADgAGADv/9n/CwAXAAYA3P/v/w0AAwDq//P/8v8TAAoA5f/7/wcABgABAAAACgAFAPP/8v8EAAcAFQASAAsAHAAgAC8AIQAPAAcAJQD1//n//P8NAO///f8LAAAA6//Y/93/8P8AANz/3f/o/+v/4P/b/+r//f8QABkAAgA4AAABlwE3ALr+wP77/7QADAAe/4X/HAJBAtj9kfsrAC8FiQG8/IH9FQFMAij/aP5d/8UAWgBp/6D/AwDUAIv/Z/9p/+gAWQBB/xYA5v98AGv/QQA1AEwALf/L/5sAVQAEAKn/+f80AEMArf+O/1oAlAD//3P/nf84AKMAHwBN/0f/lgDwAFQAQ/92/2IAogB/AMX+1f/p/6EAx/9AAE8AywA+/53+mP90AXwBRv9i/0P/VQCZAAkA4v85ACgAX/9z/2v/kwEZASL/C////0IATAAaAEkA9f8xAJ3/Q/54AD4DuP/y/5n8EAB8AawBkgD5/bgACf6SAYT+BgLH/w==",
+   "contentId": "86e7fd67-3fe9-410d-8813-30f574d97400",
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "role": "ASSISTANT",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154"
+  }
+ },
+ {
+  "userSpeechStart": {
+   "inputAudioOffsetMs": 4760,
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154"
+  }
+ },
+ {
+  "contentEnd": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "contentId": "86e7fd67-3fe9-410d-8813-30f574d97400",
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "stopReason": "PARTIAL_TURN",
+   "type": "AUDIO"
+  }
+ },
+ {
+  "contentStart": {
+   "additionalModelFields": "{\"generationStage\":\"FINAL\"}",
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "contentId": "a017db17-d0ea-44cc-bb0a-b677cb597e4a",
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "role": "ASSISTANT",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "textOutputConfiguration": {
+    "mediaType": "text/plain"
+   },
+   "type": "TEXT"
+  }
+ },
+ {
+  "textOutput": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "content": "{ \"interrupted\" : true }",
+   "contentId": "a017db17-d0ea-44cc-bb0a-b677cb597e4a",
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "role": "ASSISTANT",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154"
+  }
+ },
+ {
+  "contentEnd": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "contentId": "a017db17-d0ea-44cc-bb0a-b677cb597e4a",
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "stopReason": "INTERRUPTED",
+   "type": "TEXT"
+  }
+ },
+ {
+  "contentStart": {
+   "additionalModelFields": "{\"generationStage\":\"FINAL\"}",
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "contentId": "f303cc13-9409-4fb7-8c86-feaf5d7c3f6e",
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "role": "ASSISTANT",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "textOutputConfiguration": {
+    "mediaType": "text/plain"
+   },
+   "type": "TEXT"
+  }
+ },
+ {
+  "textOutput": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "content": "Great job! Let's focus on the \"th\" sound. Say this sentence with the correct \"th\" pronunciation: \"I finished the La Porte en Chaille de Lesseps with my team.\"",
+   "contentId": "f303cc13-9409-4fb7-8c86-feaf5d7c3f6e",
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "role": "ASSISTANT",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154"
+  }
+ },
+ {
+  "contentEnd": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "contentId": "f303cc13-9409-4fb7-8c86-feaf5d7c3f6e",
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "stopReason": "PARTIAL_TURN",
+   "type": "TEXT"
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 0
+     },
+     "output": {
+      "speechTokens": 20,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 236,
+      "textTokens": 409
+     },
+     "output": {
+      "speechTokens": 41,
+      "textTokens": 120
+     }
+    }
+   },
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "totalInputTokens": 645,
+   "totalOutputTokens": 161,
+   "totalTokens": 806
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 0
+     },
+     "output": {
+      "speechTokens": 20,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 236,
+      "textTokens": 409
+     },
+     "output": {
+      "speechTokens": 61,
+      "textTokens": 120
+     }
+    }
+   },
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "totalInputTokens": 645,
+   "totalOutputTokens": 181,
+   "totalTokens": 826
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 0
+     },
+     "output": {
+      "speechTokens": 20,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 236,
+      "textTokens": 409
+     },
+     "output": {
+      "speechTokens": 81,
+      "textTokens": 120
+     }
+    }
+   },
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "totalInputTokens": 645,
+   "totalOutputTokens": 201,
+   "totalTokens": 846
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 0
+     },
+     "output": {
+      "speechTokens": 20,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 236,
+      "textTokens": 409
+     },
+     "output": {
+      "speechTokens": 101,
+      "textTokens": 120
+     }
+    }
+   },
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "totalInputTokens": 645,
+   "totalOutputTokens": 221,
+   "totalTokens": 866
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 0
+     },
+     "output": {
+      "speechTokens": 20,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 236,
+      "textTokens": 409
+     },
+     "output": {
+      "speechTokens": 121,
+      "textTokens": 120
+     }
+    }
+   },
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "totalInputTokens": 645,
+   "totalOutputTokens": 241,
+   "totalTokens": 886
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 0
+     },
+     "output": {
+      "speechTokens": 20,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 236,
+      "textTokens": 409
+     },
+     "output": {
+      "speechTokens": 141,
+      "textTokens": 120
+     }
+    }
+   },
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "totalInputTokens": 645,
+   "totalOutputTokens": 261,
+   "totalTokens": 906
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 0
+     },
+     "output": {
+      "speechTokens": 20,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 236,
+      "textTokens": 409
+     },
+     "output": {
+      "speechTokens": 161,
+      "textTokens": 120
+     }
+    }
+   },
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "totalInputTokens": 645,
+   "totalOutputTokens": 281,
+   "totalTokens": 926
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 0
+     },
+     "output": {
+      "speechTokens": 20,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 236,
+      "textTokens": 409
+     },
+     "output": {
+      "speechTokens": 181,
+      "textTokens": 120
+     }
+    }
+   },
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "totalInputTokens": 645,
+   "totalOutputTokens": 301,
+   "totalTokens": 946
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 0
+     },
+     "output": {
+      "speechTokens": 20,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 236,
+      "textTokens": 409
+     },
+     "output": {
+      "speechTokens": 201,
+      "textTokens": 120
+     }
+    }
+   },
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "totalInputTokens": 645,
+   "totalOutputTokens": 321,
+   "totalTokens": 966
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 0
+     },
+     "output": {
+      "speechTokens": 20,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 236,
+      "textTokens": 409
+     },
+     "output": {
+      "speechTokens": 221,
+      "textTokens": 120
+     }
+    }
+   },
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "totalInputTokens": 645,
+   "totalOutputTokens": 341,
+   "totalTokens": 986
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 0
+     },
+     "output": {
+      "speechTokens": 17,
+      "textTokens": 3
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 236,
+      "textTokens": 409
+     },
+     "output": {
+      "speechTokens": 238,
+      "textTokens": 123
+     }
+    }
+   },
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "totalInputTokens": 645,
+   "totalOutputTokens": 361,
+   "totalTokens": 1006
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 2
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 236,
+      "textTokens": 411
+     },
+     "output": {
+      "speechTokens": 238,
+      "textTokens": 123
+     }
+    }
+   },
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "totalInputTokens": 647,
+   "totalOutputTokens": 361,
+   "totalTokens": 1008
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 100,
+      "textTokens": 0
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 336,
+      "textTokens": 411
+     },
+     "output": {
+      "speechTokens": 238,
+      "textTokens": 123
+     }
+    }
+   },
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "totalInputTokens": 747,
+   "totalOutputTokens": 361,
+   "totalTokens": 1108
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 3
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 336,
+      "textTokens": 414
+     },
+     "output": {
+      "speechTokens": 238,
+      "textTokens": 123
+     }
+    }
+   },
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "totalInputTokens": 750,
+   "totalOutputTokens": 361,
+   "totalTokens": 1111
+  }
+ },
+ {
+  "contentStart": {
+   "additionalModelFields": "{\"generationStage\":\"FINAL\"}",
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "contentId": "894c2828-bf44-4dff-89c4-ee72203c4c1e",
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "role": "USER",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "textOutputConfiguration": {
+    "mediaType": "text/plain"
+   },
+   "type": "TEXT"
+  }
+ },
+ {
+  "textOutput": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "content": "i finished the report and shared the results with my team.",
+   "contentId": "894c2828-bf44-4dff-89c4-ee72203c4c1e",
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "role": "USER",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154"
+  }
+ },
+ {
+  "contentEnd": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "contentId": "894c2828-bf44-4dff-89c4-ee72203c4c1e",
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "stopReason": "PARTIAL_TURN",
+   "type": "TEXT"
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 4,
+      "textTokens": 0
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 340,
+      "textTokens": 414
+     },
+     "output": {
+      "speechTokens": 238,
+      "textTokens": 123
+     }
+    }
+   },
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "totalInputTokens": 754,
+   "totalOutputTokens": 361,
+   "totalTokens": 1115
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 3
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 340,
+      "textTokens": 417
+     },
+     "output": {
+      "speechTokens": 238,
+      "textTokens": 123
+     }
+    }
+   },
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "totalInputTokens": 757,
+   "totalOutputTokens": 361,
+   "totalTokens": 1118
+  }
+ },
+ {
+  "userSpeechEnd": {
+   "inputAudioDetectionOffsetMs": 7880,
+   "inputAudioOffsetMs": 7560,
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154"
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 1
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 340,
+      "textTokens": 418
+     },
+     "output": {
+      "speechTokens": 238,
+      "textTokens": 123
+     }
+    }
+   },
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "totalInputTokens": 758,
+   "totalOutputTokens": 361,
+   "totalTokens": 1119
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 0
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 20
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 340,
+      "textTokens": 418
+     },
+     "output": {
+      "speechTokens": 238,
+      "textTokens": 143
+     }
+    }
+   },
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "totalInputTokens": 758,
+   "totalOutputTokens": 381,
+   "totalTokens": 1139
+  }
+ },
+ {
+  "contentStart": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "contentId": "4eac9741-17a6-4844-bff5-5a1e6d3b2a63",
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "role": "TOOL",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "toolUseOutputConfiguration": {
+    "mediaType": "application/json"
+   },
+   "type": "TOOL"
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 0
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 50
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 340,
+      "textTokens": 418
+     },
+     "output": {
+      "speechTokens": 238,
+      "textTokens": 193
+     }
+    }
+   },
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "totalInputTokens": 758,
+   "totalOutputTokens": 431,
+   "totalTokens": 1189
+  }
+ },
+ {
+  "toolUse": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "content": "{\"target_form\":\"I finished the report and shared the results with my team.\",\"outcome\":\"pending\"}",
+   "contentId": "4eac9741-17a6-4844-bff5-5a1e6d3b2a63",
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "role": "TOOL",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "toolName": "report_pronunciation_coaching",
+   "toolUseId": "4579a868-23b2-4e34-8562-388c93b76d9d"
+  }
+ },
+ {
+  "contentEnd": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "contentId": "4eac9741-17a6-4844-bff5-5a1e6d3b2a63",
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "stopReason": "TOOL_USE",
+   "type": "TOOL"
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 1
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 340,
+      "textTokens": 419
+     },
+     "output": {
+      "speechTokens": 238,
+      "textTokens": 193
+     }
+    }
+   },
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "totalInputTokens": 759,
+   "totalOutputTokens": 431,
+   "totalTokens": 1190
+  }
+ },
+ {
+  "completionEnd": {
+   "completionId": "c260f898-259a-4ce5-9472-309c836d226c",
+   "promptName": "f73603ea-2b24-4b32-bfe1-90d0bfa59c34",
+   "sessionId": "bd8aec3c-051f-4b2b-97a0-d6a28cc1f154",
+   "stopReason": "END_TURN"
+  }
+ }
+]
