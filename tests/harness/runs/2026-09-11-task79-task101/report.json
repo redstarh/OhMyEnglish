@@ -1,0 +1,166 @@
+{
+ "phases": {
+  "A": [
+   {
+    "poll_fetch": 3,
+    "poll_xhr": 0,
+    "label": "분석 대상 없음",
+    "original": 0,
+    "corrected": 0,
+    "t_s": 4.0,
+    "api_status": "no_utterances",
+    "api_awaiting": true,
+    "api_corrections": null
+   },
+   {
+    "poll_fetch": 6,
+    "poll_xhr": 0,
+    "label": "분석 대상 없음",
+    "original": 0,
+    "corrected": 0,
+    "t_s": 10.0,
+    "api_status": "no_utterances",
+    "api_awaiting": true,
+    "api_corrections": null
+   },
+   {
+    "poll_fetch": 11,
+    "poll_xhr": 0,
+    "label": "분석 대상 없음",
+    "original": 0,
+    "corrected": 0,
+    "t_s": 20.0,
+    "api_status": "no_utterances",
+    "api_awaiting": true,
+    "api_corrections": null
+   },
+   {
+    "poll_fetch": 14,
+    "poll_xhr": 0,
+    "label": "분석 대상 없음",
+    "original": 0,
+    "corrected": 0,
+    "t_s": 26.0,
+    "api_status": "no_utterances",
+    "api_awaiting": true,
+    "api_corrections": null
+   }
+  ],
+  "B": [
+   {
+    "poll_fetch": 16,
+    "poll_xhr": 0,
+    "label": "분석 중",
+    "original": 0,
+    "corrected": 0,
+    "t_s": 29.0,
+    "api_status": "analyzing",
+    "api_awaiting": false,
+    "api_corrections": null
+   },
+   {
+    "poll_fetch": 19,
+    "poll_xhr": 0,
+    "label": "분석 중",
+    "original": 0,
+    "corrected": 0,
+    "t_s": 36.0,
+    "api_status": "analyzing",
+    "api_awaiting": false,
+    "api_corrections": null
+   }
+  ],
+  "C": [
+   {
+    "poll_fetch": 27,
+    "poll_xhr": 0,
+    "label": "확정",
+    "original": 1,
+    "corrected": 1,
+    "t_s": 53.0,
+    "api_status": "final",
+    "api_awaiting": false,
+    "api_corrections": 1
+   },
+   {
+    "poll_fetch": 27,
+    "poll_xhr": 0,
+    "label": "확정",
+    "original": 1,
+    "corrected": 1,
+    "t_s": 61.0,
+    "api_status": "final",
+    "api_awaiting": false,
+    "api_corrections": 1
+   },
+   {
+    "poll_fetch": 27,
+    "poll_xhr": 0,
+    "label": "확정",
+    "original": 1,
+    "corrected": 1,
+    "t_s": 76.0,
+    "api_status": "final",
+    "api_awaiting": false,
+    "api_corrections": 1
+   }
+  ]
+ },
+ "session_id": "7b1f4a7f-f351-4839-b5c5-8236fcfd2d0b",
+ "utterance_id": "9e75b066-1004-47b2-8f98-7ea6f65179be",
+ "api_before": {
+  "status": "no_utterances",
+  "partial_failure": false,
+  "pronunciation": [],
+  "awaiting_analysis": true
+ },
+ "p5_guard": {
+  "argv": [
+   "guard",
+   "--expect-session",
+   "7b1f4a7f-f351-4839-b5c5-8236fcfd2d0b",
+   "--out",
+   "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-11-task79-task101/p5-guard.json"
+  ],
+  "returncode": 0,
+  "stdout": "claim 가능 job 16건 (제품 술어 두 갈래로 계산)\n    210233be analyze_utterance pending attempts=0 available_at=2026-09-06T14:39:30.941360+00:00\n    210233be analyze_utterance pending attempts=0 available_at=2026-09-06T14:39:30.944020+00:00\n    210233be analyze_utterance pending attempts=0 available_at=2026-09-06T14:39:30.945994+00:00\n    210233be plan_next_session pending attempts=0 available_at=2026-09-06T14:39:30.946968+00:00\n    b2f0d169 plan_next_session pending attempts=0 available_at=2026-09-06T14:39:31.051648+00:00\n    d127dece plan_next_session pending attempts=0 available_at=2026-09-06T14:39:31.159283+00:00\n    76d9ef31 plan_next_session pending attempts=0 available_at=2026-09-06T14:39:55.415215+00:00\n    24597f0f analyze_utterance pending attempts=0 available_at=2026-09-10T07:49:38.297176+00:00\n    24597f0f plan_next_session pending attempts=0 available_at=2026-09-10T07:49:45.461433+00:00\n    f8ebc78b analyze_utterance pending attempts=0 available_at=2026-09-10T07:52:51.140675+00:00\n    f8ebc78b plan_next_session pending attempts=0 available_at=2026-09-10T07:52:58.406944+00:00\n    d727f79d analyze_utterance pending attempts=0 available_at=2026-09-10T07:53:20.982975+00:00\n    d727f79d plan_next_session pending attempts=0 available_at=2026-09-10T07:53:28.282535+00:00\n    33447835 analyze_utterance pending attempts=0 available_at=2026-09-10T14:28:26.826355+00:00\n    33447835 plan_next_session pending attempts=0 available_at=2026-09-10T14:28:34.116633+00:00\n  * 7b1f4a7f analyze_utterance pending attempts=0 available_at=2026-09-10T22:27:45.852807+00:00\n스냅샷 1건 → /Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-11-task79-task101/p5-guard.json  (7b1f4a7f analyze_utterance pending attempts=0 available_at=2026-09-10T22:27:45.852807+00:00)\n당김: UPDATE 1 → 2000-01-01T00:00:00+00:00\n확인: 전역 최소가 기대 세션 것이다 — 7b1f4a7f analyze_utterance pending attempts=0 available_at=2000-01-01T00:00:00+00:00\n",
+  "stderr": ""
+ },
+ "p5_claim": {
+  "argv": [
+   "claim",
+   "--expect-session",
+   "7b1f4a7f-f351-4839-b5c5-8236fcfd2d0b"
+  ],
+  "returncode": 0,
+  "stdout": "확인: 전역 최소가 기대 세션 것이다 — 7b1f4a7f analyze_utterance pending attempts=0 available_at=2000-01-01T00:00:00+00:00\nclaim: job=a59799cb-405d-4f64-a458-3eb18d1091df type=analyze_utterance session=7b1f4a7f\n처리 후: status=done attempts=1\n",
+  "stderr": ""
+ },
+ "p5_restore": {
+  "argv": [
+   "restore",
+   "--in",
+   "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-11-task79-task101/p5-guard.json"
+  ],
+  "returncode": 0,
+  "stdout": "복원 1건\n  6225ddaf analyze_utterance done claimable=True\n  210233be analyze_utterance pending claimable=True\n  210233be analyze_utterance pending claimable=True\n  210233be analyze_utterance pending claimable=True\n  210233be plan_next_session pending claimable=True\n  b2f0d169 analyze_utterance failed claimable=True\n  b2f0d169 analyze_utterance done claimable=True\n  b2f0d169 analyze_utterance done claimable=True\n  b2f0d169 plan_next_session pending claimable=True\n  d127dece plan_next_session pending claimable=True\n  76d9ef31 plan_next_session pending claimable=True\n  e0c5e580 analyze_utterance done claimable=True\n  e0c5e580 analyze_utterance done claimable=True\n  e0c5e580 analyze_utterance done claimable=True\n  e0c5e580 plan_next_session done claimable=True\n",
+  "stderr": ""
+ },
+ "api_after": {
+  "status": "final",
+  "partial_failure": false,
+  "pronunciation": [],
+  "awaiting_analysis": false,
+  "corrections": [
+   {
+    "pattern_key": "verb_tense_past_simple_for_past_events",
+    "category": "verb_tense",
+    "original_span": "present the quarterly plan",
+    "correction": "presented the quarterly plan",
+    "reason": "and로 이어진 두 번째 동사도 어제 일이므로 presented로 과거형을 맞춰 줍니다.",
+    "target_form": "Yesterday + 주어 + 동사 과거형",
+    "occurrences": 2
+   }
+  ]
+ }
+}
