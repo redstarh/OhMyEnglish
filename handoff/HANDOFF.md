@@ -29,6 +29,11 @@
 **`TASK-73` 을 닫았다 (Done)** — 결정 48 이 인정한 등가 증거(뮤테이션 KILL 확인)를 **AC 항목 열넷
 전부**에 붙였다. AC 문서 「선언 자리」 표의 항목 4 가 ✅ 로 올라갔다.
 
+**`TASK-70` 을 닫았다 (Done)** — codex 재확인이 **approve** 했고 항목 6 이 ✅ 로 올라갔다.
+⛔ **그래서 6항목이 전건 충족됐다. 그러나 선언 문장은 적지 않았다** — 6항목은 선언의 *조건*이고
+선언 자체는 제품 이정표라 사용자 확인을 Slack 으로 요청했다. **확인이 오기 전까지 「Phase 1 이
+선언됐다」로 인용하지 않는다.** 그 구별은 AC 문서의 「선언 자리」 절이 소유한다.
+
 **`TASK-81` 은 AC#4 만 남기고 닫았다** — 계획 프롬프트와 세션 지시문 두 층을 고쳤다. ⛔ **그런데
 착수 전 가정이 반증됐다**(아래 ②).
 
@@ -50,18 +55,16 @@ codex 가 잡았다** — 내 검증만으로는 걸리지 않았다.
 
 ## ② 다음 세션이 이어가는 데 필요한 것
 
-### 다음 한 걸음 — **`TASK-70`**: 재리뷰 판정을 받아 기록한다
+### 다음 한 걸음 — **사용자 확인이 오면 AC 문서에 선언 문장을 적는다**
 
-AC#1·#2 는 체크됐고 **AC#3(판정을 AC 문서 항목 6 에 반영)만 남았다.** 지금 막힌 이유는 하나다:
-`f31ce3c` 로 HIGH 를 고친 뒤 **codex 재확인이 미수신**이다(그 에이전트는 `idle` 이고 두 번 물었다).
+6항목이 전건 충족됐고 그 근거는 AC 문서 「선언 자리」 표가 갖는다. **남은 것은 선언 문장 하나이고
+그것은 사용자 확인 사안이다.** 확인이 오면 그 절에 적는다 — 원장에 상태를 두 벌 쓰지 않는다.
 
-⛔ **`idle` 은 「끝났다」가 아니다.** 판정 없이 Approve 를 적지 않는 것이 그 태스크의 AC 다 —
-「HIGH 를 고쳤다」는 Approve 가 아니다. 재확인을 새로 돌리려면 **범위를 `config.py` 의
-`prepare_bedrock_credentials` 와 그 위 상수 둘, `test_config.py` 의 자격증명 테스트로 좁힌다**
-(전체 Phase 1 재리뷰는 너무 길고 1·2차 판정이 나머지를 덮었다).
+⚠️ **확인이 아직 없으면 이것을 기다리지 말고 아래를 진행한다.** 선언은 코드 작업을 막지 않는다.
 
-⚠️ 그것이 닫히면 **Phase 1 완료 선언**이 된다 — AC 문서 「선언 자리」 표에서 남은 미충족이 항목 6
-하나다.
+⛔ **선언과 함께 알아야 할 것**: Phase 1 의 AC 는 충족되지만 **발음 복습 주기는 아직 돌지 않는다**.
+발음 코칭이 어떤 프롬프트 조건에서도 일어나지 않기 때문이다(아래 「착수 전 필수」 2번). 그 둘은
+다른 축이므로 「Phase 1 충족」을 「발음 기능 동작」으로 읽지 않는다.
 
 ### 그 밖에 열려 있는 것 — 전부 **다른 것을 기다린다**
 
@@ -111,8 +114,8 @@ cd ../frontend && npx tsc --noEmit && npx eslint app lib
 
 | # | 지표 | 2026-09-10 마감 시점에 직접 돌려 얻은 값 |
 |--:|---|---|
-| 1 | `git rev-parse --short HEAD` · `git status` | **`bbe8e90` 이상**(등호를 요구하지 않는다 — `H-P`) · `origin` 과 동기 · 내 미커밋 0건 |
-| 2 | `grep -h "^status:" backlog/tasks/*.md \| sort \| uniq -c` | Done **63** · To Do **19** · In Progress **4**(`TASK-70`·`TASK-79`·`TASK-81` 내 것 · **`TASK-78` 다른 세션**) · Awaiting Decision **1**(`TASK-84` 다른 세션) |
+| 1 | `git rev-parse --short HEAD` · `git status` | **`daa1070` 이상**(등호를 요구하지 않는다 — `H-P`) · `origin` 과 동기 · 내 미커밋 0건 |
+| 2 | `grep -h "^status:" backlog/tasks/*.md \| sort \| uniq -c` | Done **64** · To Do **19** · In Progress **3**(`TASK-79`·`TASK-81` 내 것 · **`TASK-78` 다른 세션**) · Awaiting Decision **1**(`TASK-84` 다른 세션) |
 | 3 | 게이트 | **897 passed** · `ruff check` exit 0 · format **34 files already formatted** · `ty check` 통과 · 게이트 **밖** `ruff` **0건** · format **100 files** · 프론트 `tsc`·`eslint` exit 0 |
 | 4 | DB (읽기만) | `schema_migrations` **9** · `learning_sessions` **13** · `utterances` **120** · `error_occurrences` **24** · `session_plans` **2** · `pronunciation_attempts` **4** · `analysis_jobs` **49** — 여기까지 기준선 그대로. ⛔ **둘이 바뀌었다**: `error_patterns` **10**(기준선 9) · `review_tasks` **17**(기준선 15). **회귀가 아니라 다른 갈래의 P6 오탐 산출물이고 `TASK-84` 가 그 판정을 갖는다** |
 | 5 | 결과 API 상태 6개 | `210233be` analyzing · `6225ddaf` final · `b2f0d169` partial_failure · `76d9ef31` connection_failed · `d127dece` no_utterances · `e0c5e580` final. ⛔ **여섯을 지우지 않는다.** ⚠️ **`awaiting_analysis` 는 아직 응답에 없다** — 위 「착수 전 필수」 1번 |
