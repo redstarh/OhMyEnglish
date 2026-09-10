@@ -99,7 +99,56 @@
 
 ⚠️ **그러나 AC#1 을 체크하지 않는다** — 「구현했다」가 「충족했다」가 아니다.
 
-## 6. 정리 대조
+## 6. 규칙 5 탐침 — **원인이 아니다. 그러나 처음으로 소리가 언급됐다**
+
+§4 의 후보 2번(규칙 5 `If the learner is stuck, offer a short sentence starter…`)을 같은 단일 변수
+방식으로 쟀다. ⛔ **프로덕션 코드를 고치지 않았다** — 프롬프트 파일에서 그 한 줄(87바이트)만 뺀 판을
+만들어 스파이크로만 돌렸다. 규칙 5 는 사용자가 승인한 범위(규칙 9·11) 밖이라 제품 경로에 넣지 않는다.
+
+| 팔 | 회차 | 소리 언급 | 규칙 9 형태 충족 | `toolUse` | 지배적 행동 |
+|---|--:|:--:|:--:|--:|---|
+| 규칙 5 있음(기준) | 3 | 0 | 0 | 0 | 관사 `an` 연습 2 · 문장 단축 1 |
+| 규칙 5 제거 | 3 | **1** | **0** | 0 | 관사 연습 1 · 문장 단축 1 · **소리 언급 1** |
+
+⛔ **규칙 5 가 원인이라고 말할 수 없다.** 제거해도 지배적 행동이 그대로다(관사 연습·문장 단축).
+
+⚠️ **그러나 이 회차에서 처음으로 소리가 언급됐다** — 규칙 5 제거 쌍 3 의 발화다:
+
+> *"Great job! Can you say that again using this pattern? \"I finished a report and shared the
+> results.\" Let's try together. Say: \"I finished a report and shared the results with my team.\"
+> **What sound did you notice on \"a\"?**"*
+
+**규칙 9 가 요구한 형태에는 미달이다.** 규칙 9 는 *"name the sound that was off, say the whole
+sentence back with correct pronunciation, and ask the learner to repeat it"* 인데, 이 발화는 문장을
+되말하게 하고 소리를 **묻지만** 코치가 어긋난 소리를 **이름 붙여 지목하지 않는다.** 그리고
+`toolUse` 가 오지 않았다.
+
+⚠️ **표본 3에 1건이라 우연과 구별되지 않는다.** AC#1 이 요구한 「최소 2회 같은 방향」에 미달이다.
+
+⛔ **기준 팔의 「vowel sound」 언급을 소리 언급으로 세지 않았다** — 기준 팔 2회에 *"Remember to use
+\"an\" before words that start with a vowel sound."* 가 있는데 그것은 **관사 규칙의 설명**이고 학습자
+발음에 대한 지적이 아니다. 같은 낱말(`sound`)이 다른 것을 가리키는 자리라 정규식으로 세면 오탐이 된다.
+
+## 7. ⛔ 지금 가장 유력한 층 — **계획의 나머지가 소리 줄을 압도한다**
+
+두 탐침(§3·§6) 여섯 회차에서 지배적 행동이 **관사 연습**과 **문장 단축**이다. 그런데 이 회차가 쓴
+계획 블록은 소리 줄 하나를 빼면 **전부 관사를 가리킨다**:
+
+- `- Focus on: article_missing_before_noun (a/an + 단수 명사)`
+- `- Hint timing …: give a hint right after the learner drops or mispronounces the article`
+- 열거된 질문 다섯이 **전부** `an` 연습(`I eat an ...` · `an hour` · `an email` · `an idea`)
+
+⚠️ **즉 소리 줄 하나가 관사를 가리키는 여러 줄과 경합한다.** 코치가 관사로 가는 것이 프롬프트 전체를
+보면 다수 지시를 따르는 행동이다.
+
+⛔ **이것이 `TASK-81` 이 본 것과 같은 방향이고 한 단계 깊다.** 그때는 「초점 자리를 내주면 된다」였고
+지금 관측은 「자리를 내줘도 나머지가 그 자리를 덮는다」다.
+
+**다음에 잴 것**: 계획이 발음을 초점으로 지정한 세션에서 **질문도 그 소리를 겨냥해 만들게** 하는 것.
+그것은 `services/plan.build_plan_prompt` 의 `_PRONUNCIATION_FOCUS_RULE` 을 넓히는 일이고 **`TASK-81`
+의 연장**이다. ⚠️ 제품 경로 변경이라 사용자 승인이 선행되어야 한다 — 이 회차는 그 근거만 만들었다.
+
+## 8. 정리 대조
 
 DB 쓰기가 0건이고 백엔드를 재기동하지 않았으므로 지울 것이 없다. ⚠️ 이 턴에 표 건수를 다시 재지
 않았다 — 스파이크 직결 경로는 `learning_sessions` 를 만들지 않는다(`TASK-81` 회차에서 같은 경로로
