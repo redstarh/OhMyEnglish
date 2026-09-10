@@ -362,3 +362,47 @@ cd app/backend
 **그래서 이 회차가 `TASK-67`·`TASK-86` 에 주는 것**: 앱 프롬프트 팔의 tool 도착 0건 표본이
 **픽스처를 12종으로 통제해도 유지된다**는 것임. 지금까지 그 팔은 픽스처를 바꾼 적이 없었음.
 ⛔ **그 두 태스크의 소유 세션이 판정을 갖고, 이 절은 재료만 제공함.**
+
+## 13. 앱 경로 1회 — AC#5 를 실제로 닫음 (팀 리드 실행)
+
+⛔ **「대상 집합이 비었으니 충족」으로 처리하지 않았음.** 스파이크에서 신호가 0건이면 §8.3 의 선별
+기준이 공집합이 되는데, 그렇게 닫으면 **앱 경로 확인이 하나도 없이 AC 가 충족되는 구조**임. 결정 50
+이 *「스파이크만으로 닫지 않는다」* 를 명시했으므로 **유일하게 결함이 난 `pq08` 을** 골라 돌렸음.
+
+```bash
+.venv/bin/python ../../tests/harness/p_app_path.py --wav pq08.wav \
+  --shot-prefix .../app-pq08 --out .../app-path-pq08.json
+```
+
+세션 `33447835-6589-4e4d-b71c-08f94eb52265` · 스크린샷 둘(`app-pq08-session.png` ·
+`app-pq08-results.png`) · 관측 `app-path-pq08.json`.
+
+### 13.1 스파이크와 갈린 것 둘
+
+| | 스파이크(`--app-prompt`) | 앱 경로 |
+|---|---|---|
+| 전사 | `해피니시 the first version of the pile.` (혼재) | `he finished the first version of the pile.` (라틴) |
+| agent | `pile` 을 정답 문장으로 **되불러 줬음** | `pile` 을 **언급하지 않았음** — `what did you finish?` 로 되묻고 예시 둘을 줬음 |
+
+⛔ **`TASK-92` 의 결함이 앱 경로에서 재현되지 않았음.** 그 태스크 노트에 적었음 — 표본이 스파이크
+1건이라 **제품 경로의 결함으로 단정할 수 없음.**
+⚠️ 전사가 경로에 따라 문자 체계까지 갈리는 것은 `TASK-65` 가 다룬 현상과 같은 방향임.
+
+### 13.2 tool 미도착은 앱 경로에서도 성립함
+
+`pronunciation` 프레임 **0건**(관통 집계) · 새 세션의 `pronunciation_attempts` **0행**(직접 조회).
+화면에는 `he finished the first version of the pile.` 이 그대로 보이고 **발음 피드백이 없음** —
+학습자가 `file` 을 `pile` 로 발음했고 전사가 그것을 담고 있는데도 그럼(스크린샷으로 직접 확인).
+
+### 13.3 DB 변동 — 내 세션 1건만
+
+| 표 | 회차 전 | 회차 후 |
+|---|--:|--:|
+| `learning_sessions` | 16 | **17** (내 앱 경로 세션) |
+| `pronunciation_attempts` | 7 | 7 |
+| `error_patterns` | 9 | 9 |
+| `review_tasks` | 15 | 15 |
+
+⛔ **보존 세션 여섯 전건 생존**(직접 조회 `count=6`). 워커 미기동 · UPDATE·DELETE 0건.
+⚠️ **내 세션의 `analyze_utterance` job 이 `pending` 으로 남음** — 워커를 켜지 않았으므로 의도된
+상태임. 다른 갈래가 워커를 켜면 이 job 도 함께 걷힌다는 것을 알고 남김.

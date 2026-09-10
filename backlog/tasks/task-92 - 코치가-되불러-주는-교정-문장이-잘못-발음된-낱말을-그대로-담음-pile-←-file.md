@@ -4,6 +4,7 @@ title: 코치가 되불러 주는 교정 문장이 잘못 발음된 낱말을 �
 status: To Do
 assignee: []
 created_date: '2026-09-10 14:20'
+updated_date: '2026-09-10 14:30'
 labels: []
 dependencies: []
 ordinal: 95000
@@ -30,3 +31,17 @@ HEAD: 36c3162 (앱 프롬프트 nova.py 는 adf462c 상태 · 회차 중 미변�
 <!-- AC:BEGIN -->
 - [ ] #1 pq08 을 같은 봉투로 다시 돌렸을 때 교정 문장에 pile 이 들어가지 않는다
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-09-10 앱 경로에서 미재현 — 결함 범위를 좁힘 (팀 리드 확인).
+
+같은 pq08.wav 를 p_app_path.py 로 앱 경로에 흘렸더니 agent 가 pile 을 언급하지 않았음. 'I see you mentioned finishing a version. Could you tell me more about what you finished? For example, you could say "I finished a project" or "I finished an email." What did you finish?' 로 되물었음.
+
+전사도 갈렸음 — 스파이크는 '해피니시 the first version of the pile.'(혼재) 이고 앱 경로는 'he finished the first version of the pile.'(라틴) 임. 경로가 전사의 문자 체계까지 바꾸는 것은 TASK-65 가 다룬 현상과 같은 방향임.
+
+⛔ 따라서 이 결함은 지금 스파이크 경로 표본 1건뿐이고 제품 경로의 결함으로 단정할 수 없음. 증거: tests/harness/runs/2026-09-10-task90-pq-phoneme/app-path-pq08.json · app-pq08-session.png · 회차 기록 §13.
+
+⚠️ 다만 앱 경로에서 얻은 것이 따로 있음 — pile 이 전사에 남았는데 agent 가 그것을 무시하고 회피했음. 즉 「틀린 발음을 승인」은 아니지만 「전사에 남은 발음 오류를 다루지 않음」임. 그 판정의 소유는 TASK-87·TASK-67 쪽임.
+<!-- SECTION:NOTES:END -->
