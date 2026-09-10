@@ -239,6 +239,81 @@ def test_bedrock_client_exports_session_token_when_present(monkeypatch):
     assert os.environ["AWS_SESSION_TOKEN"] == "temporary-session-token"
 
 
+def test_partial_environ_sigv4_does_not_borrow_the_other_half_from_dotenv(monkeypatch):
+    """`TASK-80` — 환경에 access key 만 있으면 secret 을 `.env`에서 **빌려 오지 않는다.**
+
+    빌려 오면 두 출처가 섞인 쌍이 만들어지고, `missing_sigv4`가 비어서 **동작 중인 bearer 까지
+    지워진다.** 결과는 「잘못된 서명으로 바뀐 인증」이라 학습자가 보는 것은 무응답 타임아웃이다
+    (설계서 §4.2 — 이 SDK 는 자격증명 실패를 예외로 내지 않는다).
+
+    ⛔ 결정 41(자격증명 회전 면제)에 걸리지 않는다 — 회전이 아니라 **선택 로직**의 결함이다.
+    """
+    _clear_ambient_env()
+    os.environ["AWS_ACCESS_KEY_ID"] = "AKIASHELLONLY"
+    os.environ["AWS_BEARER_TOKEN_BEDROCK"] = "working-bearer-token"
+    monkeypatch.setattr(
+        config_module,
+        "get_settings",
+        lambda: _settings_with_credentials(bearer="dotenv-bearer"),
+    )
+    _stub_boto3(monkeypatch)
+
+    config_module.bedrock_client()
+
+    # 셸이 준 절반은 그대로 두고, 나머지 절반을 다른 출처에서 채우지 않는다.
+    assert os.environ["AWS_ACCESS_KEY_ID"] == "AKIASHELLONLY"
+    assert "AWS_SECRET_ACCESS_KEY" not in os.environ
+    # AC#2 — 동작하던 인증을 깨지 않는 것이 기준이다.
+    assert os.environ["AWS_BEARER_TOKEN_BEDROCK"] == "working-bearer-token"
+
+
+def test_partial_environ_secret_only_does_not_borrow_the_access_key(monkeypatch):
+    """반대 방향도 같다 — 한쪽만 검사하면 다른 쪽 순서에서 결함이 살아남는다.
+
+    ⚠️ 두 방향을 함께 재는 이유: 구현이 `AWS_ACCESS_KEY_ID`의 존재만 보고 분기하면 이 케이스가
+    조용히 통과한다(`.env` 의 access key 가 주입되고 다시 섞인 쌍이 된다).
+    """
+    _clear_ambient_env()
+    os.environ["AWS_SECRET_ACCESS_KEY"] = "shell-secret-only"
+    os.environ["AWS_BEARER_TOKEN_BEDROCK"] = "working-bearer-token"
+    monkeypatch.setattr(
+        config_module,
+        "get_settings",
+        lambda: _settings_with_credentials(bearer="dotenv-bearer"),
+    )
+    _stub_boto3(monkeypatch)
+
+    config_module.bedrock_client()
+
+    assert os.environ["AWS_SECRET_ACCESS_KEY"] == "shell-secret-only"
+    assert "AWS_ACCESS_KEY_ID" not in os.environ
+    assert os.environ["AWS_BEARER_TOKEN_BEDROCK"] == "working-bearer-token"
+
+
+def test_environ_sigv4_pair_does_not_take_a_session_token_from_dotenv(monkeypatch):
+    """세션 토큰도 **쌍과 같은 출처**여야 한다 — 임시 자격증명은 셋이 한 세트다.
+
+    셸의 영구 키 쌍에 `.env` 의 임시 세션 토큰이 붙으면 서명이 거부된다. `TASK-80` AC 는 access
+    와 secret 만 이름을 들지만 **같은 함수의 같은 기전**이고 AC#2 의 기준(동작하던 인증을 깨지
+    않는다)에 그대로 걸린다.
+    """
+    _clear_ambient_env()
+    os.environ["AWS_ACCESS_KEY_ID"] = "AKIASHELL"
+    os.environ["AWS_SECRET_ACCESS_KEY"] = "shell-secret"
+    monkeypatch.setattr(
+        config_module,
+        "get_settings",
+        lambda: _settings_with_credentials(session_token="dotenv-session-token"),
+    )
+    _stub_boto3(monkeypatch)
+
+    config_module.bedrock_client()
+
+    assert os.environ["AWS_ACCESS_KEY_ID"] == "AKIASHELL"
+    assert os.environ["AWS_SECRET_ACCESS_KEY"] == "shell-secret"
+    assert "AWS_SESSION_TOKEN" not in os.environ
+
+
 def test_bedrock_client_fails_fast_when_no_credentials_of_any_kind(monkeypatch):
     """설계서 §4.2 — 이 SDK는 자격증명 실패를 예외가 아니라 무응답(타임아웃)으로
     드러낸다. 원인을 추적할 수 있게 클라이언트를 만들기 전에 즉시 실패한다.

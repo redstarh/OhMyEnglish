@@ -137,15 +137,31 @@ def prepare_bedrock_credentials(settings: Settings) -> None:
     않는다. boto3와 Nova SDK(smithy)는 **프로세스 환경만** 보므로 `.env`에만 있는
     자격증명은 어느 쪽에도 보이지 않는다 — 한 번 주입한다.
 
-    `setdefault`이므로 셸 export가 있으면 그것을 존중한다(no-op).
+    셸 export가 있으면 그것을 존중한다.
+
+    ⛔ **키를 하나씩 `setdefault`하지 않는다** (`TASK-80` — 재리뷰 P2). 그러면 환경에 access key
+    만 남아 있을 때 `.env`의 secret 이 그 자리를 채워 **두 출처가 섞인 쌍**이 만들어진다. 그러면
+    `missing_sigv4`가 비어서 이 함수가 SigV4 준비 완료로 판단하고 **동작 중인 bearer 까지
+    지운다** — 결과는 잘못된 서명으로 바뀐 인증이고, 이 SDK 는 자격증명 실패를 예외가 아니라
+    **무응답 타임아웃**으로 드러내므로(설계서 §4.2) 원인을 추적하기 어렵다.
+    ⛔ 결정 41(자격증명 회전 면제)에 걸리지 않는다 — 회전이 아니라 **선택 로직**의 결함이다.
+
+    그래서 **쌍을 한 출처에서만** 가져온다: 환경에 SigV4 절반이라도 있으면 환경이 정본이고
+    `.env`에서 아무것도 빌려 오지 않는다. 환경에 하나도 없을 때만 `.env`의 **완전한 쌍**을
+    올린다 — 한쪽만 있는 `.env`도 쌍이 아니므로 올리지 않는다.
+
+    ⚠️ **세션 토큰도 쌍과 같은 출처여야 한다.** 임시 자격증명은 셋이 한 세트라, 셸의 영구 키
+    쌍에 `.env`의 임시 토큰이 붙으면 서명이 거부된다. `TASK-80`의 AC 는 access·secret 만 이름을
+    들지만 같은 함수의 같은 기전이고 「동작하던 인증을 깨지 않는다」는 그 기준에 그대로 걸린다.
     """
-    for env_key, value in (
-        ("AWS_ACCESS_KEY_ID", settings.aws_access_key_id),
-        ("AWS_SECRET_ACCESS_KEY", settings.aws_secret_access_key),
-        ("AWS_SESSION_TOKEN", settings.aws_session_token),
-    ):
-        if value:
-            os.environ.setdefault(env_key, value)
+    if not any(os.environ.get(key) for key in _SIGV4_ENV_KEYS):
+        if settings.aws_access_key_id and settings.aws_secret_access_key:
+            os.environ["AWS_ACCESS_KEY_ID"] = settings.aws_access_key_id
+            os.environ["AWS_SECRET_ACCESS_KEY"] = settings.aws_secret_access_key
+            # 쌍을 `.env`에서 올리는 이 자리에서만 토큰도 같은 출처에서 온다. 환경에 남아 있는
+            # 잔여 토큰은 건드리지 않는다 — 환경을 지우는 것은 이 함수의 몫이 아니다.
+            if settings.aws_session_token:
+                os.environ.setdefault("AWS_SESSION_TOKEN", settings.aws_session_token)
 
     missing_sigv4 = [key for key in _SIGV4_ENV_KEYS if not os.environ.get(key)]
 
