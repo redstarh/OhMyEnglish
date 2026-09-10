@@ -224,6 +224,72 @@ async def test_zero_jobs_yields_no_utterances(api_client: httpx.AsyncClient, com
     assert "corrections" not in body
 
 
+# ③-2 `TASK-79` — 같은 `no_utterances` 가 **회복 대상인지**를 응답이 구별한다
+async def test_no_utterances_with_an_analyzable_utterance_is_awaiting_analysis(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session
+):
+    """종료 flush 가 실패한 세션의 모양이다 — `_flush_analysis` 가 예외를 삼키면 발화는 남고
+    job 만 없다(분석 1건보다 세션과 전사문이 중요하다는 판단).
+
+    그 상태는 **영구가 아니다**: `flush_ended_sessions` 가 나중에 그 묶음을 걷어 job 을 건다.
+    화면이 그것을 알아야 폴링을 이어갈 수 있는데, 근거를 **상수가 아니라 응답**이 준다
+    (`TASK-79` AC#1). 상한을 시간으로 잡으면 스윕이 언제 도는지 보장하는 계약이 없어 **어떤
+    값도 맞을 수 없다** — 그리고 워커는 큐가 빌 때만 스윕하므로 분석이 밀리는 동안에는 아예
+    돌지 않는다(`services/utterances.flush_ended_sessions` 의 비용 절).
+
+    ⛔ **`status` 를 바꾸지 않는다.** R2 규칙 2 와 보존 표본(`d127dece` — 발화 6 · job 0)을
+    그대로 둔다. 바꾸면 「분석 대상 없음」 표본이 리포에서 사라진다.
+    """
+    async with db_pool.acquire() as conn:
+        await _utterance(conn, committed_session.session_id, 1, "I go to gym after work.")
+
+    response = await api_client.get(f"/api/sessions/{committed_session.session_id}/results")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "no_utterances"
+    assert body["awaiting_analysis"] is True
+
+
+async def test_no_utterances_without_any_utterance_is_not_awaiting_analysis(
+    api_client: httpx.AsyncClient, committed_session
+):
+    """음성 케이스 — 발화가 0건이면 걸릴 묶음이 없으므로 **영구** 상태다.
+
+    ⚠️ **판별력의 핵심이다.** 무조건 참으로 두면 진짜로 말하지 않은 세션에서 화면이 영구히
+    폴링하고, `TASK-56` 이 없앤 「영구 폴링」이 이 상태로 되살아난다.
+    """
+    response = await api_client.get(f"/api/sessions/{committed_session.session_id}/results")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "no_utterances"
+    assert body["awaiting_analysis"] is False
+
+
+async def test_awaiting_analysis_is_false_once_a_job_exists(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session
+):
+    """두 번째 음성 케이스 — job 이 걸린 뒤에는 참이 아니다. 발화 유무만 보면 새는 자리다.
+
+    `analyzing` 에서도 키가 **실린다**: 프론트가 상태마다 키 존재를 갈라 읽지 않게 한다
+    (`corrections`·`drill` 의 키 생략 규약과 **다른** 처리이고, 근거는 `pronunciation` 과 같다 —
+    R2 판정과 독립인 구조적 확정값이다).
+    """
+    async with db_pool.acquire() as conn:
+        utterance_id = await _utterance(
+            conn, committed_session.session_id, 1, "I go to gym after work."
+        )
+        await _job(conn, utterance_id, "pending")
+
+    response = await api_client.get(f"/api/sessions/{committed_session.session_id}/results")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "analyzing"
+    assert body["awaiting_analysis"] is False
+
+
 # ④ learning_sessions.status='failed' → connection_failed (job이 done이어도 우선한다)
 async def test_failed_session_yields_connection_failed_even_with_done_job(
     api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session

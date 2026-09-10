@@ -45,35 +45,35 @@ const RETRYING_NOTICE = "결과를 불러오지 못했습니다. 다시 시도�
 const HOME_LINK_LABEL = "← 학습 시작 화면으로";
 
 /**
- * `분석 대상 없음`을 **첫 판독으로 확정하지 않는다** (`TASK-77` · 캡틴 결정 2026-09-10).
- *
- * 왜: 종료 경로의 flush 가 실패하면(`_flush_analysis`가 예외를 삼킨다 — 분석 1건보다 세션과
- * 전사문이 중요하다) 세션이 `completed` + job 0 으로 남는다. 그 순간 결과 API 는 R2 규칙 2 로
- * `no_utterances`를 낸다. **그 상태는 영구가 아니다** — 워커가 유휴일 때 `flush_ended_sessions`가
- * 그 묶음을 걷어 job 을 건다(`services/utterances.py`). 첫 판독에서 멈추면 그 뒤에 나온 교정을
- * 학습자가 **영구히** 보지 못한다.
- *
- * ⚠️ **`NO_UTTERANCES_RECHECKS` 는 설계 발명값이다** — 스윕이 언제 도는지 보장하는 계약이 없으므로
- * 근거 문서가 없다. 진짜로 분석할 것이 없던 세션은 이 횟수만큼 늦게 같은 문구를 보게 되고, 그것이
- * 이 값이 사는 유일한 비용이다. 조정하면 이 주석의 수치도 함께 고친다.
- * ⛔ **무한 재시도로 만들지 않는다** — 상한이 없으면 `TASK-56` 이 없앤 「영구 폴링」이 다른 상태로
- * 되살아난다.
- */
-const NO_UTTERANCES_RECHECKS = 3;
-
-/**
  * 폴링을 이어갈지 정한다. **판정을 여기 한 곳에 모아 두는 것이 계약이다** — 흩어 두면
- * 「어느 상태에서 멈추는가」를 코드 여러 곳에서 읽어야 하고, `TASK-56`·`TASK-77` 이 각각 그
- * 판정을 건드렸다.
+ * 「어느 상태에서 멈추는가」를 코드 여러 곳에서 읽어야 하고, `TASK-56`·`TASK-77`·`TASK-79` 가
+ * 각각 그 판정을 건드렸다.
  *
- * `noUtterancesSeen` 은 **그 상태를 연속으로 몇 번 읽었는지**다(이번 판독을 포함한다).
+ * `분석 대상 없음`을 **첫 판독으로 확정하지 않는다** (`TASK-77` · 캡틴 결정 2026-09-10):
+ * 종료 경로의 flush 가 실패하면(`_flush_analysis`가 예외를 삼킨다 — 분석 1건보다 세션과 전사문이
+ * 중요하다) 세션이 `completed` + job 0 으로 남고 결과 API 가 R2 규칙 2 로 `no_utterances`를 낸다.
+ * **그 상태는 영구가 아니다** — 워커가 유휴일 때 `flush_ended_sessions`가 그 묶음을 걷어 job 을
+ * 건다. 첫 판독에서 멈추면 그 뒤에 나온 교정을 학습자가 **영구히** 보지 못한다.
+ *
+ * ⛔ **그 판정을 상수로 하지 않는다** (`TASK-79`). 이전 판은 `NO_UTTERANCES_RECHECKS = 3`
+ * (약 6초)로 버텼는데 **스윕이 언제 도는지 보장하는 계약이 없어 어떤 상수도 맞을 수 없다** —
+ * 게다가 워커는 큐가 빌 때만 스윕하므로 분석이 밀리는 동안에는 아예 돌지 않는다. 그러면 네 번째
+ * 판독에서 폴링이 멈추고, 뒤늦게 나온 교정을 화면이 영구히 표시하지 않는다.
+ *
+ * 대신 **서버가 회복 대상인지 알려준다**: `awaiting_analysis`는 「분석 대상 발화는 있는데 그 job 이
+ * 아직 0건」이라는 DB 사실이다(`services/results.SessionResult`가 뜻을 소유한다). 워커 상태와
+ * 무관하므로 스윕이 언제 돌든 판정이 성립한다.
+ *
+ * ⚠️ **이것이 「영구 폴링」을 되살리는 것이 아니다.** 회복이 끝나면 job 이 생겨 그 값이 거짓이
+ * 되고 폴링이 멈춘다. 그리고 발화가 0건인 세션(진짜로 말하지 않은 세션)은 처음부터 거짓이라
+ * **첫 판독에 멈춘다** — 이전 판보다 오히려 빠르다.
  */
 export function shouldKeepPolling(
   status: SessionResultStatus,
-  noUtterancesSeen: number,
+  awaitingAnalysis: boolean,
 ): boolean {
   if (!TERMINAL_STATUSES.has(status)) return true;
-  if (status === "no_utterances") return noUtterancesSeen <= NO_UTTERANCES_RECHECKS;
+  if (status === "no_utterances") return awaitingAnalysis;
   return false;
 }
 
@@ -167,9 +167,6 @@ export default function ResultsPage() {
   useEffect(() => {
     if (!sessionId) return;
     let cancelled = false;
-    // `no_utterances`를 **연속으로** 몇 번 읽었는지. 상태에 두지 않는 이유: 이 수는 화면에
-    // 그려지지 않고 폴링 판정에만 쓰인다 — `useState`로 두면 판독마다 리렌더가 붙는다.
-    let noUtterancesSeen = 0;
 
     async function poll(): Promise<void> {
       try {
@@ -177,8 +174,9 @@ export default function ResultsPage() {
         if (cancelled) return;
         setResult(data);
         setFetchError(null);
-        noUtterancesSeen = data.status === "no_utterances" ? noUtterancesSeen + 1 : 0;
-        if (shouldKeepPolling(data.status, noUtterancesSeen)) {
+        // `TASK-79` — 판독 사이에 들고 갈 상태가 없다. 회복 대상인지를 **서버가 판독마다**
+        // 알려주므로 프론트가 횟수를 세지 않는다(이전 판은 연속 판독 수를 셌다).
+        if (shouldKeepPolling(data.status, data.awaiting_analysis)) {
           timerRef.current = setTimeout(poll, POLL_INTERVAL_MS);
         }
       } catch (err) {

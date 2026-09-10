@@ -78,6 +78,11 @@ from uuid import UUID
 
 import asyncpg
 
+# 묶음 정의의 정본은 `services/utterances.py`다 — 두 값을 여기서 리터럴로 다시 적으면 스윕이 걸
+# 대상과 이 응답이 말하는 대상이 갈라진다(`_ANALYZABLE_UTTERANCES_SQL` 주석). 순환은 없다:
+# `utterances.py`는 `jobs`·`sessions`만 import 한다.
+from app.services.utterances import ANALYZED_SPEAKER, ANALYZED_UTTERANCE_TYPE
+
 logger = logging.getLogger(__name__)
 
 SessionResultStatus = Literal[
@@ -146,6 +151,27 @@ class SessionResult:
     # R2 규칙 1·2·3에서 그렇게 된다. 계획 없이 시작한 세션(기대값 null)도 `None`이다 —
     # 그 세션은 관측 대상이 아니다(009: null = 기대가 없었다).
     drill: DrillTurns | None
+    # `TASK-79` — **분석 대상 발화는 있는데 그 job 이 아직 하나도 없다.** 종료 flush 가 실패한
+    # 세션의 모양이고(`api/ws._flush_analysis`가 예외를 삼킨다), `flush_ended_sessions`가
+    # 나중에 그 묶음을 걷으므로 **그 `no_utterances`는 영구가 아니다.**
+    #
+    # ⚠️ **왜 이 필드가 필요한가**: 화면이 「지금 멈춰도 되는가」를 알 근거가 없었다. 이전 판은
+    # 프론트 상수(`NO_UTTERANCES_RECHECKS = 3`, 약 6초)로 버텼는데 **스윕이 언제 도는지 보장하는
+    # 계약이 없어 어떤 상수도 맞을 수 없다** — 게다가 워커는 큐가 빌 때만 스윕하므로 분석이
+    # 밀리는 동안에는 아예 돌지 않는다(`services/utterances.flush_ended_sessions` 비용 절).
+    #
+    # ⛔ **「스윕이 돌았는가」를 묻지 않는다.** 그 질문은 큐가 밀린 상황에서 영구히
+    # 답이 「아니오」라 지연 시나리오를 그대로 남긴다.
+    # 대신 **「걸릴 대상이 남아 있는가」**를 묻는다 — 워커 상태와 무관한 DB 사실이다.
+    # 발화가 있고 job 이 0건이면 묶음 끝 가운데 job 없는 것이 반드시 있다
+    # (`_RUN_END_FLUSH_TEMPLATE`의 묶음 정의상 마지막 분석 대상 발화가 묶음 끝이다).
+    # 그래서 이 조건이 스윕 대상 존재와 같은 뜻이다.
+    #
+    # ⛔ **`status`를 바꾸지 않는다** — R2 규칙 2 는 그대로다. 응답 키를 **더할** 뿐이라 기존
+    # 소비자와 보존 표본이 깨지지 않는다. `pronunciation`과 같은 규약으로 **항상 실린다**
+    # (`corrections`·`drill`의 키 생략 규약을 따르지 않는다): 프론트가 상태마다 키 존재를
+    # 갈라 읽지 않게 한다.
+    awaiting_analysis: bool
 
 
 _SESSION_ROW_SQL = """
@@ -188,6 +214,21 @@ select
   join utterances u on u.id = j.utterance_id
  where u.session_id = $1
    and j.job_type = 'analyze_utterance'
+"""
+
+# `TASK-79` — 분석 대상 발화가 있는가. **`_JOB_COUNTS_SQL`에 합치지 않는다**: 그쪽은
+# `join utterances`라서 job 없는 발화가 join 에서 빠지고, `left join`으로 바꾸면 `total`의 뜻이
+# 「job 수」에서 「발화 수」로 조용히 옮겨 간다 — R2 규칙 2·3 이 그 수에 걸려 있다.
+#
+# 두 값(`speaker`·`utterance_type`)의 정본은 `services/utterances.py`다 — 여기서 리터럴로 다시
+# 적으면 묶음 정의가 갈라지고, 갈라진 쪽은 조용히 틀린다(스윕은 걸 대상이 있는데 응답은 없다고
+# 말하거나 그 반대).
+_ANALYZABLE_UTTERANCES_SQL = """
+select count(*)
+  from utterances u
+ where u.session_id = $1
+   and u.speaker = $2
+   and u.utterance_type = $3
 """
 
 # R1 상위 2개. `occ`가 세션 범위로 한정되므로 다른 세션의 occurrence나 frequency=0
@@ -335,6 +376,12 @@ async def get_session_result(conn: asyncpg.Connection, session_id: UUID) -> Sess
     pronunciation = await _load_pronunciation(conn, session_id)
 
     # 규칙 1 — 연결 실패는 job 상태를 보지 않고 최우선한다.
+    #
+    # ⚠️ `awaiting_analysis`가 **여기서만** 정의상 확정이 아니다: 이 분기는 job 수를 세지 않으므로
+    # 「발화는 있고 job 은 0건」인지 알 수 없다. `False`로 두는 이유는 이 상태에서 그 값이 판정에
+    # 쓰이지 않기 때문이다 — 화면은 `connection_failed`를 종단으로 보고 즉시 멈춘다(`TASK-56`).
+    # ⛔ 값을 얻으려고 job 쿼리를 이 분기 위로 올리지 않는다: 그러면 *"job 상태를 보지 않고
+    # 최우선한다"*는 이 규칙의 서술이 코드와 어긋나 보인다.
     if session["status"] == "failed":
         return SessionResult(
             status="connection_failed",
@@ -342,18 +389,28 @@ async def get_session_result(conn: asyncpg.Connection, session_id: UUID) -> Sess
             partial_failure=False,
             pronunciation=pronunciation,
             drill=None,
+            awaiting_analysis=False,
         )
 
     counts = await conn.fetchrow(_JOB_COUNTS_SQL, session_id)
 
     # 규칙 2 — 분석 대상 자체가 없다.
+    #
+    # `TASK-79` — **같은 상태가 두 가지 뜻을 가진다.** 발화가 0건이면 영구이고, 발화가 있는데
+    # job 만 0건이면 종료 flush 가 실패한 것이라 회복 대상이다. 그 갈림을 응답이 알려 화면이
+    # 폴링을 이어갈 근거로 쓴다. **여기가 그 조건이 성립할 수 있는 유일한 분기다** — 아래 규칙
+    # 3·4·5 는 `counts["total"] > 0`이므로 정의상 거짓이다.
     if counts["total"] == 0:
+        analyzable = await conn.fetchval(
+            _ANALYZABLE_UTTERANCES_SQL, session_id, ANALYZED_SPEAKER, ANALYZED_UTTERANCE_TYPE
+        )
         return SessionResult(
             status="no_utterances",
             corrections=None,
             partial_failure=False,
             pronunciation=pronunciation,
             drill=None,
+            awaiting_analysis=analyzable > 0,
         )
 
     # 규칙 3 — 진행 중인 job이 있으면 결과가 확정되지 않았다. 교정을 계산조차
@@ -367,6 +424,8 @@ async def get_session_result(conn: asyncpg.Connection, session_id: UUID) -> Sess
             partial_failure=False,
             pronunciation=pronunciation,
             drill=None,
+            # 여기 아래는 전부 `counts["total"] > 0`이라 정의상 거짓이다(규칙 2 주석).
+            awaiting_analysis=False,
         )
 
     drill = await _load_drill(conn, session_id, session["drill_turns_expected"])
@@ -382,6 +441,7 @@ async def get_session_result(conn: asyncpg.Connection, session_id: UUID) -> Sess
             partial_failure=True,
             pronunciation=pronunciation,
             drill=drill,
+            awaiting_analysis=False,
         )
 
     # 규칙 5 — 1건 이상이고 전부 done.
@@ -392,4 +452,5 @@ async def get_session_result(conn: asyncpg.Connection, session_id: UUID) -> Sess
         partial_failure=False,
         pronunciation=pronunciation,
         drill=drill,
+        awaiting_analysis=False,
     )

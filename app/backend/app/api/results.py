@@ -118,6 +118,10 @@ def _result_payload(result: SessionResult) -> dict[str, object]:
         "status": result.status,
         "partial_failure": result.partial_failure,
         "pronunciation": [_pronunciation_payload(item) for item in result.pronunciation],
+        # `TASK-79` — `pronunciation`과 같은 규약으로 **항상 싣는다**(아래 키 생략 규약을 따르지
+        # 않는다). 화면이 상태마다 키 존재를 갈라 읽지 않게 하는 것이 목적이고, 뜻과 근거는
+        # `services/results.SessionResult.awaiting_analysis`가 소유한다.
+        "awaiting_analysis": result.awaiting_analysis,
     }
     if result.corrections is not None:
         payload["corrections"] = [_correction_payload(item) for item in result.corrections]
