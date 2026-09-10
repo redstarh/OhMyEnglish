@@ -15,6 +15,7 @@ import glob
 import json
 import os
 import re
+import sys
 from math import comb
 
 
@@ -72,9 +73,13 @@ def summarize(label: str, rows: list[dict]) -> tuple[int, int, int]:
 
 
 def main() -> None:
+    # 접두를 인자로 받는다 — `D50`(p2m 회차, 기본값) · `D50k`(p2k 회차). 두 회차를 «같은 코드»로
+    # 판정해야 대조가 정확하다. ⛔ 판정 논리를 회차마다 복사하지 않는다.
+    prefix = sys.argv[1] if len(sys.argv) > 1 else "D50"
     ev = ".harness/evidence/"
-    app = [read(p) for p in sorted(glob.glob(ev + "D50-app-*.json"))]
-    base = [read(p) for p in sorted(glob.glob(ev + "D50-base-*.json"))]
+    app = [read(p) for p in sorted(glob.glob(f"{ev}{prefix}-app-*.json"))]
+    base = [read(p) for p in sorted(glob.glob(f"{ev}{prefix}-base-*.json"))]
+    print(f"접두 `{prefix}` — 팔 A `{prefix}-app-*` · 팔 B `{prefix}-base-*`")
 
     # ⛔ 팔 A 를 「앱 프롬프트」로 부르지 않는다 — `--app-prompt` 는 `nova.SYSTEM_PROMPT`(규칙
     # 전문 2,339자)만 싣고, 앱이 실제로 보내는 것은 `build_system_prompt()` 가 계획·무대·초점을
@@ -95,7 +100,7 @@ def main() -> None:
     print(f"  ✔ 대조군에서 tool {tool_b}/{n_b} 도착 → 판별력 있음. 2단계로 간다.")
 
     print("\n⛔ 2단계 — 결정 50 의 두 비율 (분모를 함께 적는다)")
-    print(f"  팔 A(앱)   tool 도착률 = {tool_a}/{n_a} · target_sound 실림 = {sound_a}/{n_a}")
+    print(f"  팔 A(AS4)  tool 도착률 = {tool_a}/{n_a} · target_sound 실림 = {sound_a}/{n_a}")
     print(f"  팔 B(기반) tool 도착률 = {tool_b}/{n_b} · target_sound 실림 = {sound_b}/{n_b}")
     print("  ⚠️ 팔 B 의 target_sound 는 지표가 아니다 — 그 프롬프트가 요구하지 않는다.")
     p_two_sided = fisher(tool_a, n_a - tool_a, tool_b, n_b - tool_b)
