@@ -1,0 +1,186 @@
+[1/6] 자격증명 준비 (앱과 같은 이음새)
+[2/6] 입력 준비: pq01.wav → raw LPCM 130560B, 128프레임 × 1024B(32ms), 4.08초
+[3/6] 클라이언트 생성 (region=us-west-2)
+[4/6] 스트림 열기 (amazon.nova-2-sonic-v1:0)
+    endpointingSensitivity = MEDIUM
+    시스템 프롬프트 = **앱의 `nova.SYSTEM_PROMPT`** (2339자) — 통제 대조. 스파이크 전용 프롬프트를 쓰지 않는다
+    toolConfiguration 포함 — tool=report_pronunciation_coaching (앱 상수: 필드 4개 · required 2개 · outcome enum=['pending', 'correct', 'incorrect', 'unclear'])
+[5/6] 초기화 시퀀스 + 오디오 전송
+    … 20/128 프레임
+  [userSpeechStart] {"inputAudioOffsetMs": 600, "promptName": "749bcc67-0448-4bbe-97f9-2a6891922a85", "sessionId": "7a1bae94-0183-47d5-9e40-556590302863"}
+    … 40/128 프레임
+    … 60/128 프레임
+    … 80/128 프레임
+    … 100/128 프레임
+  [completionStart] {"completionId": "de5d973a-2756-4356-bc2f-b36b9415afbb", "promptName": "749bcc67-0448-4bbe-97f9-2a6891922a85", "sessionId": "7a1bae94-0183-4
+  [userSpeechEnd] {"inputAudioDetectionOffsetMs": 3320, "inputAudioOffsetMs": 3000, "promptName": "749bcc67-0448-4bbe-97f9-2a6891922a85", "sessionId": "7a1bae
+  [contentStart] type=TEXT USER/{"generationStage":"FINAL"}
+  [textOutput]   USER/{"generationStage":"FINAL"}  'i think we need to fix this bug today.'
+  [contentEnd]   type=TEXT stopReason=PARTIAL_TURN
+    … 120/128 프레임
+    발화 128프레임 전송 완료
+  [contentStart] type=TEXT ASSISTANT/{"generationStage":"SPECULATIVE"}
+  [textOutput]   ASSISTANT/{"generationStage":"SPECULATIVE"}  'I understand you want to talk about fixing a bug today.'
+  [contentEnd]   type=TEXT stopReason=PARTIAL_TURN
+  [contentStart] type=AUDIO ASSISTANT/
+  [audioOutput]  2528B  앞 4바이트=b'\xff\xff\x00\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xff\xff\x00\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x00\x00\xff\xff' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'K\xea\x90\xec' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'T\x03%\x05' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x1b\xf9\t\xf9' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'3\xf6.\x02' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x15\xf3P\xf0' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x17\x10_\x11' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xe3\x02b\x05' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\\\x03e\x04' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'd\x07\x88\x0b' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'a\x02\x9f\x03' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x88\x00\xdb\xff' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x91\xf7\xa5\xf5' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'5\x01`\x04' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xda\x01Y\x03' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'7\xf5\xc5\xf4' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x87\x00\x88\xff' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xc2\x043\x08' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xde\x08\xdf\xfb' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xab\xfd*\x01' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'-\x1e\x8f\x1d' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x1a\xfb"\xfb' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xda\xf1\r\xf4' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xc2\xf9\xd8\xf9' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x07\x00\x08\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'i\x10\xf8\x0e' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x14\xfe=\xfd' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  6432B  앞 4바이트=b' \xff\x87\xfd' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [contentEnd]   type=AUDIO stopReason=PARTIAL_TURN
+  [contentStart] type=TEXT ASSISTANT/{"generationStage":"SPECULATIVE"}
+  [textOutput]   ASSISTANT/{"generationStage":"SPECULATIVE"}  ' Let’s practice saying that in a natural way for work.'
+  [contentEnd]   type=TEXT stopReason=PARTIAL_TURN
+  [contentStart] type=AUDIO ASSISTANT/
+  [audioOutput]  2528B  앞 4바이트=b'\x00\x00\x01\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xff\xff\x00\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x06\x00\x01\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x1b\x00\x08\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x04\x00\x0b\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x00\x00\xff\xff' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x19\xfb\xec\xfa' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'r\x05\x12\x02' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xcf\xfc\\\x03' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x00\x00\x00\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x14\xfdP\xfd' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'/\xe6 \xed' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xd0\xff\xd1\xff' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xe5\n\x0b\x05' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'E\x00\x00\xfb' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'<\xf5U\x0f' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'g\xf9\x0e\x08' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xcd\n8\x0b' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xc3 p ' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'C\xfc\xf0\xfa' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xca\xf2R\xf2' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x00\x0f\xfc\x0f' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'j\x0c\xa3\x0b' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'}\xf0C\xed' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xc4\xfc\xb7\xfc' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'=\x00|\xfd' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'r\x02\xf1\x02' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xe7\xfb\x15\xfb' (RIFF면 컨테이너, 아니면 raw LPCM)
+    무음 50프레임(1600ms) 전송 — endpointing 유도
+[6/6] 출력 대기 (최대 30s) — 세션은 아직 닫지 않는다
+  [audioOutput]  2560B  앞 4바이트=b'\xca\x04\xea\x03' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xb8\x06,\x08' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xba\xfe\xae\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'n\x01h\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xc3\xfe\xa9\xfe' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'!\xf8\xeb\xf9' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x1d\x00\x91\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  6400B  앞 4바이트=b'\x01\x00\xff\xff' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  32B  앞 4바이트=b'\x00\x00\x01\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [contentEnd]   type=AUDIO stopReason=PARTIAL_TURN
+  [contentStart] type=TEXT ASSISTANT/{"generationStage":"SPECULATIVE"}
+  [textOutput]   ASSISTANT/{"generationStage":"SPECULATIVE"}  '\nCan you say: "I think we need to fix this bug today"?'
+  [contentEnd]   type=TEXT stopReason=PARTIAL_TURN
+  [contentStart] type=AUDIO ASSISTANT/
+  [audioOutput]  2528B  앞 4바이트=b'\x02\x00\x01\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xff\xff\x01\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x00\x00\x00\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xff\xff\x00\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x04\x00\x04\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xb1\xff*\xff' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x05\nF\x0e' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'i&\xfd&' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'D\x13\x99\xe8' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xb5\xf1\xfc\xea' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xe4\x05\xc8\x0e' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'p\x07a\t' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\t\x00\x04\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x04\x00\x06\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x00\x00\x01\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xff\xff\x01\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'<\x00\xa7\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xc6\x01G\xff' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x82\xfe\xaf\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\n\xe7\x16\xe5' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  5120B  앞 4바이트=b'\xa5\xff\xba\xff' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'p\x0b\xe6\x08' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xe6\x01\xd0\x01' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'c\r\x19\r' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x17\x01$\xfe' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xb9\x02{\xfd' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xf6\x11\x96\xe1' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'*\xff\xa4\xfe' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xfb\x01\xbc\xff' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'!\x00"\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x17\x03Z\x01' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xd6\xff\xdd\xfe' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x9e\xfeI\xff' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'=\xfc\xa6\xfc' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  7712B  앞 4바이트=b'*\x13\xcc\x14' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [contentEnd]   type=AUDIO stopReason=PARTIAL_TURN
+  [contentStart] type=TEXT ASSISTANT/{"generationStage":"SPECULATIVE"}
+  [textOutput]   ASSISTANT/{"generationStage":"SPECULATIVE"}  '   \n\nJust say that sentence after me, and I’ll listen.'
+  [contentEnd]   type=TEXT stopReason=PARTIAL_TURN
+  [contentStart] type=AUDIO ASSISTANT/
+  [audioOutput]  2528B  앞 4바이트=b'\x00\x00\x01\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x00\x00\x01\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x00\x00\x00\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x00\x00\x01\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xdf\xeap\xe9' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xf7\xec.\x15' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xfc\xff\xbd\x01' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x16\xda\x8f\xd8' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'B\xf9\xc6\xf8' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xf2\t\xbc\x11' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'n\x08k\xf8' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x7f\xff\x02\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x9b\x16V\x17' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xf9\xfe.\xfe' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xcc\x02\xa2\x02' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x0f\xfb+\x03' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xdf\x01\xeb\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xa6\x01\xad\x01' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xbb\xf8\xbd\xf9' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x1c\r\xed\x0b' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xeb\xf1\xee\xf0' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x90\xff\n\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xe6\xf2Y\xf6' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xd1\xfb}\xfc' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'N\xfb\xd7\xfb' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'b\xf5\xdf\x07' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  6400B  앞 4바이트=b'\xce\xfe\xfc\xfe' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  32B  앞 4바이트=b'\x00\x00\x00\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [contentEnd]   type=AUDIO stopReason=END_TURN
+    종료 시퀀스 전송 (contentEnd → promptEnd → sessionEnd)
+  [completionEnd] stopReason=END_TURN
+
+관측 이벤트: {'usageEvent': 25, 'userSpeechStart': 1, 'completionStart': 1, 'userSpeechEnd': 1, 'contentStart': 9, 'textOutput': 5, 'contentEnd': 9, 'audioOutput': 130, 'completionEnd': 1}
+전사문/텍스트 5건: ['i think we need to fix this bug today.', 'I understand you want to talk about fixing a bug today.', ' Let’s practice saying that in a natural way for work.', '\nCan you say: "I think we need to fix this bug today"?', '   \n\nJust say that sentence after me, and I’ll listen.']
+raw -> ../../.harness/evidence/PQ-pq01-20260910T140252Z.json
+
+[tool use 판정] tool 관련 이벤트: 없음
+→ tool 이벤트가 오지 않았다. promptStart는 거부되지 않았으나(오류 없음)
+  Nova가 tool을 호출하지 않았다. 프롬프트 강제력·스키마 형태·모델 지원
+  세 가능성이 남는다 — 설계는 보조 신호 축소안으로 가야 한다.
+
+PASS: Nova가 초기화 시퀀스를 받아들이고 텍스트 이벤트를 돌려줬다.

@@ -1,0 +1,364 @@
+# TASK-90 회차 — Qwen3 「중간 지대」 픽스처 12개로 발음 코칭 문턱을 잼
+
+> 시나리오 정본: `tests/harness/scenarios-PQ-qwen-phoneme.md` (케이스·판정 어휘·가설의 소유자).
+> 이 파일은 그 회차의 실측과 판정만 가짐.
+>
+> 실행 경로: 스파이크 직결(`spike_nova_protocol.py --tools --app-prompt`) — `learning_sessions` 를
+> 만들지 않는 경로임. 실물 Bedrock Nova 왕복 **14회**(케이스 12 + 선택 팔 2).
+
+---
+
+## 1. 판정 요지 — 무엇을 쟀고 무엇을 재지 않았는가
+
+**쟀음**: 픽스처를 통제한 첫 팔임. 오류 음소를 담은 12케이스로 실물 왕복을 돌려 네 축(O1~O4)을
+독립으로 읽었음.
+
+**실측 결과 세 줄**:
+
+1. **발음 코칭 0/12** · **toolUse 0/12**. 기준선 2/33(6.1%)과 **구별되지 않음**(Fisher 양측
+   `p = 1.0000`, 이 턴에 직접 계산함).
+2. 규칙 9 의 배제 절만 뺀 선택 팔(§5.5.1)에서도 **코칭 0/2 · tool 0/2** — 원인을 그 절로
+   귀속하지 못했음. ⛔ 표본 2건이라 **그 절이 원인이 아니라고 단정하지 않음**.
+3. **그룹 A(밀도 1)의 오류는 전사에서 사라짐**(5건 중 4건 완전 복원). 그런데 **밀도가 가장 높은
+   그룹 C 에서도 복원됨** — 즉 전사 잔존은 밀도 축이 아니라 **음소 종류 축**으로 갈렸음(§7-2).
+
+**재지 않았음**:
+
+- **목표 코칭 빈도**를 정하지 않았음 — `TASK-87` AC#1 의 사용자 결정 몫임.
+- **원인**을 특정하지 않았음. 픽스처 축에서 코칭률이 오르지 않았다는 것만 관측했고, 왜 오르지
+  않는지는 이 회차의 14회로 가릴 수 없음.
+- **앱 경로(`p_app_path.py`)를 돌리지 않았음** — 스파이크에서 `O2=코칭`·`O3=tool` 이 **0건**이라
+  시나리오 §8.3 의 선별 기준(신호를 보인 케이스로 좁힘)에 걸리는 케이스가 없음. `TASK-90` AC#5 가
+  요구하는 「좁혀 돌림」의 대상 집합이 공집합임(§8 의 8번 항목에 그 사실을 적음).
+
+## 2. 회차 환경 — 앱 프롬프트의 커밋
+
+`--app-prompt` 는 **그 순간의 소스**를 싣기 때문에 커밋 없이는 재현이 불가능함.
+
+| 항목 | 값 | 확인 명령 |
+|---|---|---|
+| 회차 시작 HEAD | `36c3162` | `git rev-parse --short HEAD` (14:00:51Z) |
+| 회차 종료 HEAD | `000b71e` | 같은 명령 (14:16Z 무렵) |
+| **`nova.py` 변경 여부** | **없음** — `git diff --stat 36c3162..000b71e -- app/backend/app/audio_gateway/nova.py` 출력이 비었음 | 아래 |
+| `nova.py` 마지막 변경 커밋 | `adf462c` (`feat(nova): 소리 줄에 규칙 10 리마인더를 넣음`) | `git log --oneline -3 -- .../nova.py` |
+| 작업 트리 오염 | `app/backend` 아래 미커밋 변경 0건 | `git status --short app/backend` |
+| 앱 프롬프트 길이 | 2339자 | 스파이크 출력 |
+
+⚠️ **회차 중 HEAD 가 다섯 커밋 움직였음**(다른 세션 둘이 같은 리포에서 작업 중임 —
+`ohmyenglish-40`·`ohmyenglish-e4`). 움직인 것은 문서·픽스처·다른 회차 기록이고 **`nova.py` 는
+한 글자도 바뀌지 않았음**을 위 diff 로 확인했음. 따라서 14회 전부가 **같은 프롬프트**를 실었음.
+
+- 그 구간 커밋: `0ee7871`(docs) · `9c3d2a4`(pq 픽스처 신설 · TASK-89) · `a01759e`(docs) ·
+  `14764ac`(docs) · `000b71e`(TASK-91 회차 기록).
+- 픽스처 바이트도 그대로임 — `9c3d2a4` 가 추가한 크기(`pq06` 147456B 등)가 회차 시작에 본
+  파일 크기와 일치함.
+
+| 항목 | 값 |
+|---|---|
+| 백엔드 `:8002` | 기동 시각 2026-09-10 16:27:44 KST · `{"status":"ok"}` · **재기동하지 않았음** |
+| DB | `:5432` homebrew `postgresql@17` · `learning_sessions` 16행(회차 전·후 동일) |
+| 픽스처 길이 | `pq01` 4.08s · `pq02` 3.68s · `pq03` 4.08s · `pq04` 3.76s · `pq05` 4.40s · `pq06` 4.48s · `pq07` 4.56s · `pq08` 3.28s · `pq09` 5.28s · `pq10` 4.96s · `pq11` 3.92s · `pq12` 4.40s — 빈 파일 0건(`afinfo` 전수) |
+| 봉투 | `--tools --app-prompt` · `endpointingSensitivity=MEDIUM` · `--tool-choice` **미사용** |
+
+## 3. 케이스 12행 — 네 축 판정
+
+⚠️ **O2 의 판정 기준에 미승인 사항이 붙음**: 「단순 재요청은 코칭이 아님」은
+`scenarios-P-pronunciation.md` §6-1 의 **제안 기준이고 캡틴 승인을 받지 않았음.** 이 표는 그 기준을
+적용한 결과이므로, 기준이 뒤집히면 `재요청만` 7건이 `코칭` 으로 재분류될 수 있음.
+
+| ID | 그룹 | O1 전사 | O2 코칭 | O3 tool | O4 오라우팅 | 원자료 |
+|---|---|---|---|---|---|---|
+| `pq01` | A · /θ/→/s/ ×1 | `복원` | `재요청만` | `없음` | `해당 없음` | `PQ-pq01-20260910T140252Z.json` |
+| `pq02` | A · /f/→/p/ ×1 | `기타`(가타카나) | `재요청만` | `없음` | `해당 없음` | `PQ-pq02-20260910T140332Z.json` |
+| `pq03` | A · /v/→/b/ ×1 | `복원` | `없음` | `없음` | `해당 없음` | `PQ-pq03-20260910T140411Z.json` |
+| `pq04` | A · /r/→/l/ ×1 | `복원` | `없음` | `없음` | `해당 없음` | `PQ-pq04-20260910T140451Z.json` |
+| `pq05` | A · /z/→/dʒ/ ×1 | `복원` | `없음` | `없음` | `해당 없음` | `PQ-pq05-20260910T140531Z.json` |
+| `pq06` | B · /θ/→/s/ ×3 | `남음` | `재요청만` | `없음` | `문법으로` | `PQ-pq06-20260910T140146Z.json` |
+| `pq07` | B · /r/→/l/ ×4 | `남음` | `재요청만` | `없음` | `해당 없음` | `PQ-pq07-20260910T140612Z.json` |
+| `pq08` | B · /f/→/p/ ×3 · /v/→/b/ ×1 | `남음`(첫 낱말만 한글) | `재요청만` | `없음` | `문법으로` | `PQ-pq08-20260910T140652Z.json` |
+| `pq09` | C · `p1m` 과 같은 철자 | `복원` | `없음` | `없음` | `해당 없음` | `PQ-pq09-20260910T140732Z.json` |
+| `pq10` | C · `p2m` 과 같은 철자 | `기타`(오류 음소 소실 · 주어·시제 어긋남) | `재요청만` | `없음` | `문법으로` | `PQ-pq10-20260910T140813Z.json` |
+| `pq11` | D · 대조군(`pq01` 정답판) | `복원` | `재요청만` | `없음` | `해당 없음` | `PQ-pq11-20260910T140854Z.json` |
+| `pq12` | D · 대조군(`pq06` 정답판) | `복원` | `없음` | `없음` | `해당 없음` | `PQ-pq12-20260910T140934Z.json` |
+
+**집계**: `O2=코칭` **0/12** · `O3=tool` **0/12** · `O4=문법으로` **3/12**(`pq06`·`pq08`·`pq10`) ·
+`O1=복원` 6/12 · `O1=남음` 3/12 · `O1=기타` 2/12 · `O1=한글` 0/12.
+그룹별 코칭: A **0/5** · B **0/3** · C **0/2** · D **0/2**.
+
+원자료 디렉터리는 두 곳에 같은 파일이 있음 — `.harness/evidence/`(스크립트 기본 출력지) 와
+`tests/harness/runs/2026-09-10-task90-pq-phoneme/`(회차 사본). 사본 쪽에 케이스별 stdout 로그도 있음
+(`pq01`~`pq12` · `pq06` 의 단계 A stdout 은 파일로 받지 않았고 원자료 JSON 이 그 회차의 증거임).
+
+### 3.1 전사문과 agent 발화 원문 — 판정의 근거
+
+⛔ 판정 어휘만 남기면 다음 세션이 다시 열어 봐야 하므로 원문을 그대로 옮김.
+
+| ID | 목표 문장 | Nova ASR 전사문(`USER`·`FINAL`) |
+|---|---|---|
+| `pq01` | I think we need to fix this bug today. | `i think we need to fix this bug today.` |
+| `pq02` | I need to send the final report today. | `イニットセンドペナルポートで` |
+| `pq03` | The meeting was very helpful for our team. | `the meeting was very helpful for our team.` |
+| `pq04` | I want to review the code with you. | `i want to review the code with you.` |
+| `pq05` | It is easy to understand the new process. | `it is easy to understand the new process.` |
+| `pq06` | I think three things are ready for the demo. | `i think sri, sings are ready for the demo.` |
+| `pq07` | I will review the report and share the results. | `he will leave you the leopold and shale the lessers.` |
+| `pq08` | I finished the first version of the file. | `해피니시 the first version of the pile.` |
+| `pq09` | I think I found three very useful videos. | `i think i found three very useful videos.` |
+| `pq10` | I finished the report and shared the results with my team. | `y finish the report and share the results with my team.` |
+| `pq11` | I think we need to fix this bug today. | `i think we need to fix this bug today.` |
+| `pq12` | I think three things are ready for the demo. | `i think three things are ready for the demo.` |
+
+agent 발화 가운데 판정을 가른 것:
+
+- `pq06` — `Could you tell me more about what you mean by "sri, sings are ready"?` /
+  `If you mean that something is ready for a demo, you could say: "I think everything is ready for
+  the demo."` / `Could you try saying that?` → **소리를 지목하지 않고 표현을 갈아 줌.** 게다가
+  제안 문장이 `three things` 를 `everything` 으로 바꿔 **뜻이 달라짐**.
+- `pq07` — `I think I need to hear that sentence again. It sounds a little unclear.` /
+  `Can you please repeat it for me?` → 소리 지목 없음. 전사가 무너진 케이스에서 `unclear`
+  재요청만 나옴(기존 `*k` 픽스처의 거동과 같음).
+- `pq08` — `Did you mean to say "I finished the first version of the pile"?` /
+  `Let's try this sentence together. Say: "I finished the first version of the pile."` →
+  **시제·주어를 고치면서 잘못 발음된 `pile`(← `file`)을 그대로 둠.** 발음 오류를 문법 교정으로
+  처리한 가장 뚜렷한 표본임.
+- `pq10` — `Let's make that a full sentence. Try saying: "I finished the report and shared the
+  results with my team."` → 시제·주어 교정. 소리 지목 없음.
+- `pq11`(대조군) — §7-1 참조. `pq01` 과 **바이트 단위로 같은** 발화가 나옴.
+
+## 4. 가설 판정
+
+| | 판정 | 근거 |
+|---|---|---|
+| **H-Q1** 오류 음소가 반복되면 코칭률이 6.1% 보다 오름 | **반증** | 사전 등록된 반증 조건(「그룹 B 에서 코칭 0건이고 그룹 C 와 구별되지 않으면」)이 **글자 그대로 성립**함 — B 0/3 · C 0/2. 상승 방향이 관측되지 않았음(0/12 = 0.0% < 6.1%). ⚠️ 다만 **비율로는 기준선과 구별되지 않음**(Fisher 양측 `p=1.0000`) — 즉 「올랐다」가 반증된 것이고 「내렸다」가 증명된 것이 아님 |
+| **H-Q2** ASR 복원력은 오류 밀도에 반비례함 | **구별되지 않음** | 사전 등록된 반증 조건(그룹 A 에 오류 철자 잔존)은 **미성립** — A 5건에 `남음` 0건. 그런데 밀도가 가장 높은 **그룹 C 에서 복원됨**(`pq09` 복원 · `pq10` 오류 음소 소실). 밀도 단조성이 D3 에서 깨졌으므로 성립으로 적을 수 없음. 실제로 갈린 축은 **음소 종류**로 보임(§7-2) |
+| **H-Q3** `pq09`·`pq10` 이 `p1m`·`p2m` 과 같은 결과를 냄 | **반증**(`pq10`) · **성립**(`pq09`) | `pq09` 전사문이 `p1m` 실측(`i think i found three very useful videos.`)과 **문자 단위로 같음**. 반면 `pq10` 은 `y finish the report and share the results with my team.` 이고 `p2m` 실측은 `i finished the la porte en chaille de lesseps with my team.` 임(`runs/2026-09-09-task37-p-layer-agent.md:93`) — **완전히 다름.** 따라서 **화자가 변수임**이 드러났고, `p2m` 으로 얻은 판정의 범위가 좁아짐 |
+| **H-Q4** 규칙 9 배제 절이 중간 지대를 구조적으로 걸러냄 | **구별되지 않음** | 그룹 A 0건은 예측과 일치하나 **밀도가 올라도 코칭이 나기 시작하지 않았음**(B 0/3 · C 0/2). 시나리오 §6 이 그 경우를 미리 적었음 — *「그룹 C 에서도 0건이면 문턱이 밀도 축 밖에 있다는 뜻이고 H-Q4 도 함께 못 서게 됨」*. 선택 팔에서 그 절을 빼도 코칭이 나지 않아(§5) **그 절로 귀속하지도 못함** |
+
+⛔ 표본이 작음(케이스당 1회 · 그룹당 2~5케이스). 위 판정은 **사전 등록된 반증 조건에 대한 판정**이고
+비율의 대소를 단정하는 것이 아님.
+
+## 5. 선택 팔 (§5.5.1) — 규칙 9 의 배제 절만 뺀 판
+
+**발동 조건이 성립함**: 그룹 A·B 에서 `O2=코칭` 0/8.
+
+한 변수만 뺐음 — 앱 프롬프트에서 아래 한 문장만 지우고 나머지를 글자 그대로 두었음.
+
+> Take up pronunciation only when a sound is so far off that the sentence is hard to
+> understand — never for a mild accent.
+
+- 주입 파일: `tests/harness/runs/2026-09-10-task90-pq-phoneme/prompt_no_rule9_gate.txt`
+- 스파이크가 스스로 인쇄한 대조: `주입 파일 (2212자) · 앱 프롬프트(2339자)와의 길이 차 -127자 ·
+  동일=False`. `nova.py` 는 **편집하지 않았음**(§2 의 diff 가 그것을 증언함).
+- 대상 픽스처 2개 — `pq06`(그룹 B · 전사에 오류 잔존) · `pq01`(그룹 A · 완전 복원). 비용 때문에
+  전 케이스를 다시 돌리지 않았음.
+
+| ID | O1 | O2 | O3 | O4 | 원자료 |
+|---|---|---|---|---|---|
+| `pq06` no-gate | `남음`(앱 프롬프트 팔과 전사문 동일) | `재요청만` | `없음` | `문법으로` | `PQ-nogate-pq06-20260910T141421Z.json` |
+| `pq01` no-gate | `복원` | `재요청만` | `없음` | `문법으로` | `PQ-nogate-pq01-20260910T141501Z.json` |
+
+agent 발화:
+
+- `pq06` no-gate — `The natural way to say this is: "I think Sri's designs are ready for the
+  demo."` / `Can you repeat that sentence after me?` → **소리를 지목하지 않고 「Sri 의 designs」로
+  낱말을 확정해 버림.** 발음 문제를 고유명사 해석으로 흡수했음.
+- `pq01` no-gate — `Let's make this sentence a little stronger for a business meeting.` /
+  `Try this: "I think we should fix this bug today."` → **표현 상향 교정.** 앱 프롬프트 팔에서
+  나온 「같은 문장을 따라 말해 보라」와 다르게, 배제 절을 빼자 오히려 **표현 교정**이 나왔음.
+
+**판정**: 배제 절을 빼도 코칭 0/2 · tool 0/2 임. 시나리오 §5.5.1 의 문면대로 읽으면
+「원인이 다른 곳」이나, ⛔ **표본 2건으로 그 절을 원인 후보에서 제외하지 않음.** 이 팔이 준 것은
+**「그 절 하나만 지우는 것으로는 코칭이 켜지지 않는다」** 는 사실 하나임.
+
+## 6. 기준선 대조
+
+| 항목 | 기준선(기존 실측) | 이 회차 | 대조 |
+|---|---|---|---|
+| 코칭률 | **2/33 = 6.1%** (4팔 누적 · `runs/2026-09-10-task86-reminder-control.md:84`) | **0/12 = 0.0%** | **구별되지 않음** — Fisher 양측 `p = 1.0000` |
+| `p1m` 전사 | `복원` — `i think i found three very useful videos.`(`runs/2026-08-26-run-4.md:35`) | `pq09` = **같은 문자열** | H-Q3 성립 방향 |
+| `p2m` 전사 | ⚠️ **`복원`이 아님** — `i finished the la porte en chaille de lesseps with my team.`(`runs/2026-09-09-task37-p-layer-agent.md:93`) | `pq10` = `y finish the report and share the results with my team.` | **갈림** → 화자가 변수 |
+| `p1k`·`p2k` 전사 | `한글` | 이 회차 `한글` 0/12 · 부분 한글 1건(`pq08` 첫 낱말) · 가타카나 1건(`pq02`) | 새 실패 양태 둘(§7-3) |
+| tool 도착 | `p2m` 스파이크에서 1건 관측(`task37` 기록 S2) | **0/14** | 이 회차에서 재현되지 않음 |
+
+⛔ **착수 지시가 준 기준선 한 줄이 기존 실측과 어긋남.** 지시는 「`p1m`/`p2m` 의 `O1=복원`」이라
+적었으나, `p2m` 은 4·5차수 기록에서 **복원되지 않았음**(위 표의 굵은 줄). `p2m` 을 「복원」으로 놓으면
+`pq10` 결과가 「화자 무관」으로 잘못 읽힘 — 실제로는 **정반대 방향의 증거**임. 이 회차는 기록 쪽
+값을 근거로 썼음. ⛔ 시나리오 문서와 지시문을 고치지 않았음(그 파일은 팀 리드 소유임).
+
+## 7. 예상 밖의 관측 — 시나리오가 예측하지 않은 것
+
+### 7-1. ⛔ 오류 케이스와 대조군이 **바이트 단위로 같은 응답**을 냈음
+
+`pq01`(오류 `sink`)과 `pq11`(정답 `think`)의 **전사문과 agent 발화 4조각이 전부 동일함**.
+직접 대조로 확인했음 — `pq01 USER == pq11 USER : True` · `pq01 ASST == pq11 ASST : True`.
+
+```
+I understand you want to talk about fixing a bug today. Let’s practice saying that in a
+natural way for work.\nCan you say: "I think we need to fix this bug today"?   \n\nJust say
+that sentence after me, and I’ll listen.
+```
+
+⚠️ 이것이 §3 표의 `pq01 O2=재요청만` 을 **해석 불가로 만듦.** 「따라 말해 보라」가 나왔으나
+**정답 발화에도 똑같이 나왔으므로 발음에 반응한 것이 아님.** 대조군을 같은 회차에 넣기로 한 시나리오
+§4.4 의 결정이 이 관측을 가능하게 했음 — 대조군이 없었으면 `pq01` 을 「부분 코칭」으로 오독했을 것임.
+
+⛔ **바이트 단위 동일이 무엇을 뜻하는지는 이 회차가 정하지 않음.** 표본 1쌍이고, 온도 0.7 에서
+같은 출력이 두 번 나온 것 자체가 별건으로 조사할 값어치가 있음.
+
+### 7-2. 전사 잔존을 가른 것은 **밀도가 아니라 음소 종류**로 보임
+
+| 음소 치환 | 케이스 | 전사 결과 |
+|---|---|---|
+| /r/→/l/ | `pq04`(×1) · `pq07`(×4) | ×1 은 **복원** · ×4 는 **문장이 무너짐**(`leave you the leopold … shale the lessers`) |
+| /θ/→/s/ | `pq01`(×1) · `pq06`(×3) · `pq09`(×2, 문장 안 5오류) | ×1 복원 · ×3 **잔존** · 그런데 `pq09` 는 **복원** |
+| /f/→/p/ | `pq02`(×1) · `pq08`(×3) · `pq10`(×1, 문장 안 5오류) | ×1 **가타카나** · ×3 **부분 한글 + 잔존** · `pq10` 은 **오류 음소 소실** |
+| /v/→/b/ | `pq03`(×1) · `pq09`(×2) | 둘 다 **복원** |
+| /z/→/dʒ/ | `pq05`(×1) | **복원** |
+
+⛔ 밀도만으로는 설명되지 않음 — `pq07`(4오류)은 무너졌고 `pq09`(5오류)는 완전 복원됨.
+문장 안 오류 수가 더 많은 그룹 C 가 오히려 더 잘 복원됐음. **/v/→/b/ 는 다섯 표본 전부 복원**이라
+전사에 신호를 남기지 못하는 음소로 보임. ⚠️ 표본이 케이스당 1회이므로 **음소별 경향으로 단정하지
+않음** — 다음 회차의 축 후보로 남김.
+
+### 7-3. `한글` 아닌 **가타카나** 전사가 나왔고, 판정 어휘에 그 칸이 없음
+
+`pq02` 전사문이 `イニットセンドペナルポートで` 임 — 일본어 가타카나임. 시나리오 §5 의 O1 어휘는
+`한글` 만 두었으므로 이 케이스를 `기타` 로 적었음. `pq08` 은 `해피니시 the first version of the
+pile.` 로 **한글과 영문이 섞였고** 그 칸도 없음.
+
+⛔ 시나리오 문서를 고치지 않고 보고함(팀 리드 소유). 제안: O1 어휘를 `한글` 대신
+`비라틴 문자`(언어 표기 별기) 로 넓히고, **부분 잔존**을 담는 칸을 하나 두는 것임.
+
+### 7-4. 발음 오류가 **문법 교정으로 흡수되면서 오류 낱말이 그대로 살아남음**
+
+`pq08` 이 가장 뚜렷함 — agent 가 시제(`finish`→`finished`)와 주어(`I` 보충)를 고쳐 문장을 다시
+불러 주면서, **잘못 발음된 `pile`(← `file`)을 교정 문장에 그대로 넣었음.**
+
+```
+Did you mean to say "I finished the first version of the pile"?
+Let's try this sentence together. Say: "I finished the first version of the pile."
+```
+
+⚠️ 학습자 관점에서는 **틀린 발음을 앱이 정답으로 되불러 준 것**임. `TASK-84`·`TASK-88` 이 다루는
+오라우팅과 같은 축이나, 「교정 문장이 오류를 승인한다」는 양태는 기존 기록에 없음.
+
+### 7-5. 규칙 4(교정 1건/턴)와 규칙 2(질문 1개)가 여러 케이스에서 함께 깨짐
+
+`pq04` — 소재 거절 + 화제 전환 + 질문 + 예시를 한 턴에 냈음(`Can you tell me what kind of project
+you are working on?` 뒤에 `For example, is it a website, an app, or something else?`).
+`pq10` — 교정 + 재요청 + 추가 제안(`If you need help, I can break it down.`)을 한 턴에 냈음.
+`pq03`·`pq05`·`pq12` — 질문 뒤에 문장 시작 예시를 덧붙였음(규칙 2 가 「긴 침묵 뒤에만」으로 제한한
+것임).
+
+⛔ 이 회차의 판정 대상이 아니므로 **결함으로 등록하지 않았음.** 관측만 남김 — 발음 축과 별개 축임.
+
+## 8. 하지 않은 것 — 파괴하지 않았음을 명시함
+
+1. ⛔ **워커를 켜지 않았음.** 스파이크 직결만 썼고 `uvicorn` 을 새로 띄운 일이 없음 —
+   `WORKER_ENABLED` 를 만질 일 자체가 없었음. 실물 Claude 호출 0건.
+2. ⛔ **DB 는 SELECT 만 했음 — `UPDATE`·`DELETE` 0건.** 돌린 것은 `select count(*)` 2회와
+   보존 세션 조회 2회뿐임. 회차 전후 `learning_sessions` **16행 동일** · 보존 세션 여섯
+   (`210233be`·`d127dece`·`6225ddaf`·`b2f0d169`·`76d9ef31`·`e0c5e580`) **6건 전부 존재**함.
+   스파이크 직결은 `learning_sessions` 를 만들지 않으므로 새 행도 0건임.
+3. ⛔ **소스를 수정하지 않았음.** `app/backend`·`app/frontend` 아래 파일을 쓰지 않았음 —
+   `git status --short app/backend` 출력이 비었음. 규칙 9 배제 절을 뺀 판은 `/tmp` 의 별도
+   파일이고 `nova.py` 를 건드리지 않았음.
+4. ⛔ **백엔드를 재기동하지 않았음.** `:8002` 기동 시각이 회차 전후 모두 16:27:44 KST 임.
+5. ⛔ **기존 픽스처를 덮거나 지우지 않았음.** `p1*`·`p2*` 전부 그대로이고 `pq*` 도 읽기만 했음.
+6. ⛔ **`--tool-choice` 를 주지 않았음.** 14회 전부 기본 봉투(앱과 글자 그대로 같음)임.
+7. ⛔ **`pytest` 를 돌리지 않았음.** 다른 세션 둘이 같은 리포에서 작업 중임.
+8. **앱 경로를 돌리지 않았음** — 사유는 §1 「재지 않았음」 세째 항목임(선별 기준에 걸리는 케이스가
+   공집합).
+
+## 9. 재현 명령
+
+```bash
+cd app/backend
+.venv/bin/python ../../tests/harness/spike_nova_protocol.py \
+  --wav pq06.wav --tools --app-prompt \
+  --out ../../.harness/evidence/PQ-pq06-<UTC시각>.json
+# 선택 팔 (규칙 9 배제 절 제거판)
+.venv/bin/python ../../tests/harness/spike_nova_protocol.py \
+  --wav pq06.wav --tools \
+  --prompt-file ../../tests/harness/runs/2026-09-10-task90-pq-phoneme/prompt_no_rule9_gate.txt \
+  --out ../../.harness/evidence/PQ-nogate-pq06-<UTC시각>.json
+```
+
+12케이스 순차 실행체의 사본은 `runs/2026-09-10-task90-pq-phoneme/run_pq_cases.sh` 임.
+⛔ **앱 프롬프트가 `nova.py` 에서 오므로 커밋이 다르면 다른 것을 재는 것임** — 이 회차의 기준은
+`nova.py` 가 `adf462c` 상태일 때임(§2).
+
+## 10. 등록한 결함
+
+| 결함 | 현상 | 근거 |
+|---|---|---|
+| **TASK-92** | 코치가 되불러 주는 교정 문장이 잘못 발음된 낱말을 그대로 담음(`pile` ← `file`) | §7-4 · `PQ-pq08-20260910T140652Z.json` |
+
+⛔ **고치지 않았음** — 수정은 개발 세션 몫임. `TASK-92` 본문이 재현 절차 3단계와 수정 제안을 가짐.
+§7-1(대조군과 바이트 단위 동일 응답) · §7-3(판정 어휘에 칸이 없음) · §7-5(규칙 2·4 위반)는
+**결함으로 등록하지 않고 관측으로만 남겼음** — 이 회차의 판정 대상 밖이고 소유 결정이 팀 리드에게
+있음.
+
+---
+
+## 11. 팀 리드의 독립 대조 — 위임 판정을 원자료로 다시 읽음
+
+⛔ **위임 보고를 증거로 받지 않고 원자료 14건을 직접 열어 대조했음.** 추출기는 `textOutput` 의
+`role` 로 전사(`USER`)와 agent 발화(`ASSISTANT`)를 가르고 `toolUse` 를 셈. 그 추출기의 판별력을
+먼저 확인했음 — 기존 원자료 둘에 돌려 한쪽에서 `target_sound: th_as_s` 인 `toolUse` 를 잡고 다른
+쪽에서 0건을 냈음.
+
+### 11.1 확인된 것 셋
+
+1. **`toolUse` 0건** — `grep -l '"toolUse"' .harness/evidence/PQ-*.json` 이 빈 출력임. 14건 전건.
+2. **`pq01`(오류판)과 `pq11`(대조군)의 응답이 문자 그대로 같음** — 전사와 agent 발화 4조각 전부
+   동일함을 파이썬 등가 비교로 확인(`USER True` · `ASST True`). §7-1 의 가장 강한 주장이 섬.
+3. **`pq08` 의 교정 문장이 `pile` 을 담음** — agent 가 *"Did you mean to say \"I finished the first
+   version of the pile\"?"* 와 *"Say: \"I finished the first version of the pile.\""* 를 냈고
+   *"Please repeat after me"* 로 마무리함. `TASK-92` 의 근거가 섬.
+
+### 11.2 O1 재판정 셋 — 판정 어휘가 좁아서 갈리지 않았던 것
+
+⛔ **회차 표를 고치지 않고 여기에 적음** — 누가 판정했는지가 흐려지지 않게 함. 시나리오 §5 의 O1
+어휘를 이 관측에 맞게 넓혔음(`부분 잔존` · `비라틴` · `혼재` 신설).
+
+| ID | 회차 표의 판정 | 재판정 | 근거 |
+|---|---|---|---|
+| `pq06` | `남음` | **`부분 잔존`** | `i think sri, sings are ready for the demo.` — `sink`→`think` 는 **복원됐고** `sree`→`sri` · `sings` 는 남음. 한 문장 안에서 낱말마다 갈림 |
+| `pq02` | `기타(가타카나)` | **`비라틴(가타카나)`** | `イニットセンドペナルポートで` |
+| `pq08` | `남음(첫 낱말만 한글)` | **`혼재`** | `해피니시 the first version of the pile.` — `pirst`·`bersion` 은 복원되고 `pile` 만 남음 |
+
+⚠️ `pq06` 재판정이 H-Q1 의 읽기를 바꾸지는 않음 — 코칭이 0건인 것은 그대로임. 바뀌는 것은 「밀도가
+높으면 전사에 남는다」의 근거가 더 약해지는 것임(같은 문장 안에서도 갈리므로).
+
+## 12. 이 회차가 새로 드러낸 것 — **tool 도착이 프롬프트 판에 걸려 있음**
+
+⛔ **이것은 위임 범위 밖에서 나온 관측임.** 회차 원자료를 기존 원자료 전체와 함께 세다가 나왔음.
+
+`--app-prompt` 로 **앱 프롬프트를 그대로** 실은 회차만 골라 시간순으로 `toolUse` 를 셌음
+(`P-tooluse-appprompt-*` 팔 + 이 회차 12건). 커밋 시각은 KST 이고 원자료 시각은 UTC 라 **UTC 로
+맞춰** 비교했음.
+
+| 구간 | 프롬프트 판 | 회차 | `toolUse` 도착 |
+|---|---|--:|--:|
+| UTC 09-09 14:44 ~ 21:55 | `9c3ea0d` 판 | 9 | **3** |
+| UTC 09-09 23:59 이후 | `ae5e832`(TASK-81 소리 줄) 이후 · `1e6cbf6` · `adf462c` | 21 | **0** |
+
+경계가 `ae5e832`(KST 09-10 08:51 = **UTC 09-09 23:51**)와 정확히 맞음 — 도착 3건이 전부 그 앞이고
+그 뒤 21회가 연속 0건임.
+
+⛔ **그러나 프롬프트를 원인으로 단정하지 않음. 픽스처 구성이 함께 달라 교란임.** 양쪽에 다 있는
+`p2a+p2k` 로 좁히면 **3회 중 2회 대 8회 중 0회**이고 Fisher 양측 **p=0.0545** — α=0.05 에서
+**구별되지 않음**. 전체로 넓히면 p=0.0207 이지만 그 값은 픽스처 차이를 함께 담고 있음.
+
+⚠️ **함께 적어야 하는 것 둘**:
+
+1. **도착한 3건의 payload 가 전부 `target_sound: th_as_s` 로 같음.** 그리고 그중 둘은 `p2a`(정확
+   발음)가 첫 발화인 회차임 — 즉 **tool 이 온 조건도 발음 오류의 함수가 아니었음.**
+2. **발화 수는 원인이 아님(반증했음).** 「1발화라 반복을 듣는 시점이 오지 않아 tool 이 안 온다」를
+   세웠다가, 원자료 전체 교차표에서 **1발화 회차에도 도착 3건**이 있어 철회했음
+   (1발화 3/37 · 2발화 2/84 · 3발화 0/7).
+
+**그래서 이 회차가 `TASK-67`·`TASK-86` 에 주는 것**: 앱 프롬프트 팔의 tool 도착 0건 표본이
+**픽스처를 12종으로 통제해도 유지된다**는 것임. 지금까지 그 팔은 픽스처를 바꾼 적이 없었음.
+⛔ **그 두 태스크의 소유 세션이 판정을 갖고, 이 절은 재료만 제공함.**

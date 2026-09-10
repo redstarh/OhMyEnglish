@@ -1,0 +1,79 @@
+[1/6] 자격증명 준비 (앱과 같은 이음새)
+[2/6] 입력 준비: pq02.wav → raw LPCM 117760B, 115프레임 × 1024B(32ms), 3.68초
+[3/6] 클라이언트 생성 (region=us-west-2)
+[4/6] 스트림 열기 (amazon.nova-2-sonic-v1:0)
+    endpointingSensitivity = MEDIUM
+    시스템 프롬프트 = **앱의 `nova.SYSTEM_PROMPT`** (2339자) — 통제 대조. 스파이크 전용 프롬프트를 쓰지 않는다
+    toolConfiguration 포함 — tool=report_pronunciation_coaching (앱 상수: 필드 4개 · required 2개 · outcome enum=['pending', 'correct', 'incorrect', 'unclear'])
+[5/6] 초기화 시퀀스 + 오디오 전송
+    … 20/115 프레임
+  [userSpeechStart] {"inputAudioOffsetMs": 680, "promptName": "e1a03e73-21c1-4ed5-869c-ed44d439e746", "sessionId": "5e3b67b1-427b-418c-85fc-cf315fbf2ae7"}
+    … 40/115 프레임
+    … 60/115 프레임
+    … 80/115 프레임
+    … 100/115 프레임
+  [completionStart] {"completionId": "1c076dc9-bd3a-442f-8274-a2b6a85bb22d", "promptName": "e1a03e73-21c1-4ed5-869c-ed44d439e746", "sessionId": "5e3b67b1-427b-4
+  [userSpeechEnd] {"inputAudioDetectionOffsetMs": 3000, "inputAudioOffsetMs": 2840, "promptName": "e1a03e73-21c1-4ed5-869c-ed44d439e746", "sessionId": "5e3b67
+  [contentStart] type=TEXT USER/{"generationStage":"FINAL"}
+  [textOutput]   USER/{"generationStage":"FINAL"}  'イニットセンドペナルポートで'
+  [contentEnd]   type=TEXT stopReason=PARTIAL_TURN
+    발화 115프레임 전송 완료
+  [contentStart] type=TEXT ASSISTANT/{"generationStage":"SPECULATIVE"}
+  [textOutput]   ASSISTANT/{"generationStage":"SPECULATIVE"}  'I’m sorry, I didn’t catch that. Could you please repeat what you said?'
+  [contentEnd]   type=TEXT stopReason=PARTIAL_TURN
+  [contentStart] type=AUDIO ASSISTANT/
+  [audioOutput]  2528B  앞 4바이트=b'\xed\xff\xe1\xff' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x80\x03\xdd\x01' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x10\xe8w\xe5' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'w\x07\xb4\x06' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'~\x05;\x03' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xf6\xfe\xcb\xff' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x0c\x01T\x02' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xdc\x07\xd5\x07' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xdc\xefr\xf2' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'M\x06\xdc\x05' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'O\x05\xcc\x01' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x1f\x1fi\x1e' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xca\xff\xcd\xff' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'{\x06\xbe\t' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x96\xffd\xff' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x7f\x03p\xfb' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'e\xfd\xb8\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xed\xfc\xc4\xfd' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\r\x00\x0b\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\n\x00\n\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x13\x00\x11\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x1f\x01\xe1\xfd' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xfa\xfc\xee\xfc' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x92\x00G\xfe' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x14\x00\x14\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xba\x00\x06\x01' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xec\xf6[\xf5' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'E\x04\x1d\xfd' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'3\xfc\xda\xf9' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xcb\xff\xcc\xff' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'W\n8\x05' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x11\x00\x07\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'y\x03D\x03' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'J\xff\xbf\xff' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b"'\xfa\xef\xf8" (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x12\x0f\x7f\xf5' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xef!\x19\x17' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xf7\xf8\x99\xf8' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  6432B  앞 4바이트=b'\t\x00\x05\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [contentEnd]   type=AUDIO stopReason=END_TURN
+    무음 50프레임(1600ms) 전송 — endpointing 유도
+[6/6] 출력 대기 (최대 30s) — 세션은 아직 닫지 않는다
+    종료 시퀀스 전송 (contentEnd → promptEnd → sessionEnd)
+  [completionEnd] stopReason=END_TURN
+
+관측 이벤트: {'usageEvent': 15, 'userSpeechStart': 1, 'completionStart': 1, 'userSpeechEnd': 1, 'contentStart': 3, 'textOutput': 2, 'contentEnd': 3, 'audioOutput': 39, 'completionEnd': 1}
+전사문/텍스트 2건: ['イニットセンドペナルポートで', 'I’m sorry, I didn’t catch that. Could you please repeat what you said?']
+raw -> ../../.harness/evidence/PQ-pq02-20260910T140332Z.json
+
+[tool use 판정] tool 관련 이벤트: 없음
+→ tool 이벤트가 오지 않았다. promptStart는 거부되지 않았으나(오류 없음)
+  Nova가 tool을 호출하지 않았다. 프롬프트 강제력·스키마 형태·모델 지원
+  세 가능성이 남는다 — 설계는 보조 신호 축소안으로 가야 한다.
+
+PASS: Nova가 초기화 시퀀스를 받아들이고 텍스트 이벤트를 돌려줬다.
