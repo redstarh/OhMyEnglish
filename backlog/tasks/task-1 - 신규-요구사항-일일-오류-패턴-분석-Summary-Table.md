@@ -1,10 +1,10 @@
 ---
 id: TASK-1
 title: '신규 요구사항: 일일 오류 패턴 분석 Summary Table'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-06 00:11'
-updated_date: '2026-09-10 23:43'
+updated_date: '2026-09-10 23:44'
 labels:
   - caps-req
 dependencies: []
@@ -24,7 +24,7 @@ ordinal: 1000
 - [x] #3 표 스키마(컬럼·키·보존기간)를 설계서에 반영하고 마이그레이션 번호를 지정
 - [x] #4 읽는 화면 또는 소비자를 함께 정의(reader 0곳 재발 금지)
 - [x] #5 마이그레이션 012 를 data-first §5 절차(백업 · 적용 전후 행 수 대조)로 적용하고 표 생성과 기존 행 수 무변을 직접 조회로 확인함
-- [ ] #6 저장 · 조회 · 화면이 같은 커밋으로 나가고 게이트(pytest · ruff · ty · tsc · eslint)를 통과함
+- [x] #6 저장 · 조회 · 화면이 같은 커밋으로 나가고 게이트(pytest · ruff · ty · tsc · eslint)를 통과함
 <!-- AC:END -->
 
 ## Implementation Notes
