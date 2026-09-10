@@ -76,10 +76,12 @@ def main() -> None:
     # 접두를 인자로 받는다 — `D50`(p2m 회차, 기본값) · `D50k`(p2k 회차). 두 회차를 «같은 코드»로
     # 판정해야 대조가 정확하다. ⛔ 판정 논리를 회차마다 복사하지 않는다.
     prefix = sys.argv[1] if len(sys.argv) > 1 else "D50"
+    # 팔 A 의 접미도 인자로 받는다 — `app`(AS4 프롬프트) · `prod`(제품 조립 프롬프트, TASK-98).
+    arm_a = sys.argv[2] if len(sys.argv) > 2 else "app"
     ev = ".harness/evidence/"
-    app = [read(p) for p in sorted(glob.glob(f"{ev}{prefix}-app-*.json"))]
+    app = [read(p) for p in sorted(glob.glob(f"{ev}{prefix}-{arm_a}-*.json"))]
     base = [read(p) for p in sorted(glob.glob(f"{ev}{prefix}-base-*.json"))]
-    print(f"접두 `{prefix}` — 팔 A `{prefix}-app-*` · 팔 B `{prefix}-base-*`")
+    print(f"접두 `{prefix}` — 팔 A `{prefix}-{arm_a}-*` · 팔 B `{prefix}-base-*`")
 
     # ⛔ 팔 A 를 「앱 프롬프트」로 부르지 않는다 — `--app-prompt` 는 `nova.SYSTEM_PROMPT`(규칙
     # 전문 2,339자)만 싣고, 앱이 실제로 보내는 것은 `build_system_prompt()` 가 계획·무대·초점을

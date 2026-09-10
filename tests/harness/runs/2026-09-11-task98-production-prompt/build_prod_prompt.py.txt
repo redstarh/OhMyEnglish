@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+"""TASK-98 — 앱과 «같은 함수·같은 인자»로 제품 프롬프트를 조립한다.
+
+⛔ 인자를 손으로 지어내지 않는다. `api/ws.py:286~293` 이 쓰는 로더를 그대로 부른다 —
+그것이 제품 경로이고, 조립 규칙은 `nova.build_system_prompt` 가 소유한다.
+
+⛔ DB 는 SELECT 만 한다.
+"""
+
+import asyncio
+
+from app.api.ws import (
+    _load_known_sounds_or_empty,
+    _load_prepared_plan_or_none,
+    _load_scenario_or_none,
+)
+from app.audio_gateway.nova import SYSTEM_PROMPT, build_system_prompt
+from app.config import get_settings
+from app.db import close_pool, pool
+
+
+async def main() -> None:
+    settings = get_settings()
+    conn_pool = await pool()
+
+    known = await _load_known_sounds_or_empty(conn_pool)
+    prepared = await _load_prepared_plan_or_none(conn_pool)
+    plan = prepared.instruction if prepared is not None else None
+    questions = prepared.questions if prepared is not None else []
+
+    # scenario 는 session_id 를 요구한다 — 계획이 실린 세션 가운데 최신을 쓴다.
+    sid = await conn_pool.fetchval(
+        "select session_id from session_plans order by created_at desc limit 1"
+    )
+    scenario = await _load_scenario_or_none(conn_pool, sid) if sid else None
+
+    kw = {
+        "drill_count": settings.drill_count,
+        "drill_turns_min": settings.drill_turns_min,
+    }
+    production = build_system_prompt(known, plan, questions, scenario, **kw)
+    as4 = build_system_prompt((), None, [], None, **kw)
+
+    print("=== AC#2 실증: 인자 넷이 전부 비면 SYSTEM_PROMPT 그 자체인가 ===")
+    print(f"  as4 == SYSTEM_PROMPT : {as4 == SYSTEM_PROMPT}")
+    print(f"  as4 길이 {len(as4)} · SYSTEM_PROMPT 길이 {len(SYSTEM_PROMPT)}")
+    print()
+    print("=== 인자의 출처와 값 (회차 기록에 그대로 옮긴다) ===")
+    print(f"  known_sounds       : {list(known)}")
+    print(f"  plan               : {'있음' if plan else '없음'}")
+    if plan:
+        print(f"      target_level   : {plan.target_level}")
+        print(f"      focus          : {[f.pattern_key for f in plan.focus]}")
+        print(f"      sentence_length: {plan.sentence_length!r}")
+    print(f"  questions          : {len(questions)}건")
+    print(f"  scenario           : {scenario.title if scenario else None!r}")
+    print(f"  session_id(무대용) : {sid}")
+    print(f"  drill_count        : {settings.drill_count}")
+    print(f"  drill_turns_min    : {settings.drill_turns_min}")
+    print()
+    print(f"제품 프롬프트 {len(production)}자 · AS4 {len(as4)}자 · 차이 {len(production) - len(as4)}자")
+
+    with open("/tmp/prompt_production.txt", "w", encoding="utf-8") as fh:
+        fh.write(production)
+    print("→ /tmp/prompt_production.txt")
+
+    await close_pool()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
