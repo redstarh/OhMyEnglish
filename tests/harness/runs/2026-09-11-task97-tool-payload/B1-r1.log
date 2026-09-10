@@ -1,0 +1,60 @@
+[1/6] 자격증명 준비 (앱과 같은 이음새)
+[2/6] 입력 준비: p2m.wav+p2a.wav → raw LPCM 243030B, 238프레임 × 1024B(32ms), 7.59초 · 발화 2개를 무음 1600ms 로 이었다
+[3/6] 클라이언트 생성 (region=us-west-2)
+[4/6] 스트림 열기 (amazon.nova-2-sonic-v1:0)
+    endpointingSensitivity = MEDIUM
+    시스템 프롬프트 = 주입 파일 `/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-11-task97-tool-payload/prompt-B1-strengthened.txt` (448자) · 앱 프롬프트(2339자)와의 길이 차 -1891자 · 동일=False
+    toolConfiguration 포함 — tool=report_pronunciation_coaching (앱 상수: 필드 4개 · required 2개 · outcome enum=['pending', 'correct', 'incorrect', 'unclear'])
+[5/6] 초기화 시퀀스 + 오디오 전송
+    … 20/238 프레임
+    … 40/238 프레임
+    … 60/238 프레임
+    … 80/238 프레임
+    … 100/238 프레임
+    … 120/238 프레임
+    … 140/238 프레임
+    … 160/238 프레임
+    … 180/238 프레임
+    … 200/238 프레임
+    … 220/238 프레임
+    발화 238프레임 전송 완료
+    무음 50프레임(1600ms) 전송 — endpointing 유도
+[6/6] 출력 대기 (최대 30s) — 세션은 아직 닫지 않는다
+    종료 시퀀스 전송 (contentEnd → promptEnd → sessionEnd)
+Traceback (most recent call last):
+  File "/Users/redstar/MyProject/OhMyEnglish/app/backend/../../tests/harness/spike_nova_protocol.py", line 665, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/Users/redstar/MyProject/OhMyEnglish/app/backend/../../tests/harness/spike_nova_protocol.py", line 649, in main
+    return asyncio.run(
+           ~~~~~~~~~~~^
+        run(
+        ^^^^
+    ...<9 lines>...
+        )
+        ^
+    )
+    ^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.12_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.12_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.12_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/Users/redstar/MyProject/OhMyEnglish/app/backend/../../tests/harness/spike_nova_protocol.py", line 493, in run
+    await asyncio.wait_for(asyncio.shield(pump), 10.0)
+  File "/opt/homebrew/Cellar/python@3.13/3.13.12_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/Users/redstar/MyProject/OhMyEnglish/app/backend/../../tests/harness/spike_nova_protocol.py", line 433, in await_and_pump
+    await pump_output(receiver, observed)
+  File "/Users/redstar/MyProject/OhMyEnglish/app/backend/../../tests/harness/spike_nova_protocol.py", line 296, in pump_output
+    chunk = await receiver.receive()
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/redstar/MyProject/OhMyEnglish/app/backend/.venv/lib/python3.13/site-packages/smithy_aws_event_stream/aio/__init__.py", line 154, in receive
+    raise value
+aws_sdk_bedrock_runtime.models.ValidationException: RequestId=05c7b05f-64ce-4157-b582-23c85450b01b : Error(s):
+Error 1 : This request has been blocked by our content filters.

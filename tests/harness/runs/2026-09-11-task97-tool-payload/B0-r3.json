@@ -1,0 +1,793 @@
+[
+ {
+  "usageEvent": {
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 22
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 22
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    }
+   },
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a",
+   "totalInputTokens": 22,
+   "totalOutputTokens": 0,
+   "totalTokens": 22
+  }
+ },
+ {
+  "userSpeechStart": {
+   "inputAudioOffsetMs": 0,
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a"
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 150,
+      "textTokens": 0
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 150,
+      "textTokens": 22
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    }
+   },
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a",
+   "totalInputTokens": 172,
+   "totalOutputTokens": 0,
+   "totalTokens": 172
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 1
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 150,
+      "textTokens": 23
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    }
+   },
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a",
+   "totalInputTokens": 173,
+   "totalOutputTokens": 0,
+   "totalTokens": 173
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 43
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 150,
+      "textTokens": 66
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    }
+   },
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a",
+   "totalInputTokens": 216,
+   "totalOutputTokens": 0,
+   "totalTokens": 216
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 86,
+      "textTokens": 0
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 236,
+      "textTokens": 66
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    }
+   },
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a",
+   "totalInputTokens": 302,
+   "totalOutputTokens": 0,
+   "totalTokens": 302
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 3
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 236,
+      "textTokens": 69
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    }
+   },
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a",
+   "totalInputTokens": 305,
+   "totalOutputTokens": 0,
+   "totalTokens": 305
+  }
+ },
+ {
+  "completionStart": {
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a"
+  }
+ },
+ {
+  "userSpeechEnd": {
+   "inputAudioDetectionOffsetMs": 3440,
+   "inputAudioOffsetMs": 3040,
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a"
+  }
+ },
+ {
+  "contentStart": {
+   "additionalModelFields": "{\"generationStage\":\"FINAL\"}",
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "contentId": "5b943aaf-10e4-4cdd-9e77-bf3d7a5d4142",
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "role": "USER",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a",
+   "textOutputConfiguration": {
+    "mediaType": "text/plain"
+   },
+   "type": "TEXT"
+  }
+ },
+ {
+  "textOutput": {
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "content": "i finished the la porte en chaille de lesseps with my team.",
+   "contentId": "5b943aaf-10e4-4cdd-9e77-bf3d7a5d4142",
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "role": "USER",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a"
+  }
+ },
+ {
+  "contentEnd": {
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "contentId": "5b943aaf-10e4-4cdd-9e77-bf3d7a5d4142",
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a",
+   "stopReason": "PARTIAL_TURN",
+   "type": "TEXT"
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 1
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 236,
+      "textTokens": 70
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    }
+   },
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a",
+   "totalInputTokens": 306,
+   "totalOutputTokens": 0,
+   "totalTokens": 306
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 339
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 236,
+      "textTokens": 409
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    }
+   },
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a",
+   "totalInputTokens": 645,
+   "totalOutputTokens": 0,
+   "totalTokens": 645
+  }
+ },
+ {
+  "userSpeechStart": {
+   "inputAudioOffsetMs": 4760,
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a"
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 1
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 236,
+      "textTokens": 410
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    }
+   },
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a",
+   "totalInputTokens": 646,
+   "totalOutputTokens": 0,
+   "totalTokens": 646
+  }
+ },
+ {
+  "contentStart": {
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "contentId": "ce21e0c6-59b2-4cd4-9568-b04b21ad308c",
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "role": "TOOL",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a",
+   "toolUseOutputConfiguration": {
+    "mediaType": "application/json"
+   },
+   "type": "TOOL"
+  }
+ },
+ {
+  "toolUse": {
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "content": "{\"target_form\":\"I finished the port of Shell of Lesseps with my team.\",\"outcome\":\"pending\"}",
+   "contentId": "ce21e0c6-59b2-4cd4-9568-b04b21ad308c",
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "role": "TOOL",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a",
+   "toolName": "report_pronunciation_coaching",
+   "toolUseId": "10f32946-bb89-45bf-8b71-4beda4d5d9cd"
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 0
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 126
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 236,
+      "textTokens": 410
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 126
+     }
+    }
+   },
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a",
+   "totalInputTokens": 646,
+   "totalOutputTokens": 126,
+   "totalTokens": 772
+  }
+ },
+ {
+  "contentEnd": {
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "contentId": "ce21e0c6-59b2-4cd4-9568-b04b21ad308c",
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a",
+   "stopReason": "TOOL_USE",
+   "type": "TOOL"
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 100,
+      "textTokens": 0
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 336,
+      "textTokens": 410
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 126
+     }
+    }
+   },
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a",
+   "totalInputTokens": 746,
+   "totalOutputTokens": 126,
+   "totalTokens": 872
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 3
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 336,
+      "textTokens": 413
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 126
+     }
+    }
+   },
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a",
+   "totalInputTokens": 749,
+   "totalOutputTokens": 126,
+   "totalTokens": 875
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 0
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 20
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 336,
+      "textTokens": 413
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 146
+     }
+    }
+   },
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a",
+   "totalInputTokens": 749,
+   "totalOutputTokens": 146,
+   "totalTokens": 895
+  }
+ },
+ {
+  "contentStart": {
+   "additionalModelFields": "{\"generationStage\":\"FINAL\"}",
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "contentId": "21d5ac85-c801-41e8-9348-dc0c0669f5de",
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "role": "USER",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a",
+   "textOutputConfiguration": {
+    "mediaType": "text/plain"
+   },
+   "type": "TEXT"
+  }
+ },
+ {
+  "textOutput": {
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "content": "i finished the report and shared the results with my team.",
+   "contentId": "21d5ac85-c801-41e8-9348-dc0c0669f5de",
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "role": "USER",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a"
+  }
+ },
+ {
+  "contentEnd": {
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "contentId": "21d5ac85-c801-41e8-9348-dc0c0669f5de",
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a",
+   "stopReason": "PARTIAL_TURN",
+   "type": "TEXT"
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 4,
+      "textTokens": 0
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 340,
+      "textTokens": 413
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 146
+     }
+    }
+   },
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a",
+   "totalInputTokens": 753,
+   "totalOutputTokens": 146,
+   "totalTokens": 899
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 3
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 340,
+      "textTokens": 416
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 146
+     }
+    }
+   },
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a",
+   "totalInputTokens": 756,
+   "totalOutputTokens": 146,
+   "totalTokens": 902
+  }
+ },
+ {
+  "userSpeechEnd": {
+   "inputAudioDetectionOffsetMs": 7880,
+   "inputAudioOffsetMs": 7560,
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a"
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 1
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 340,
+      "textTokens": 417
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 146
+     }
+    }
+   },
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a",
+   "totalInputTokens": 757,
+   "totalOutputTokens": 146,
+   "totalTokens": 903
+  }
+ },
+ {
+  "contentStart": {
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "contentId": "c4490eb7-8e5b-4cc9-8bdf-4dcfd626e702",
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "role": "TOOL",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a",
+   "toolUseOutputConfiguration": {
+    "mediaType": "application/json"
+   },
+   "type": "TOOL"
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 0
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 50
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 340,
+      "textTokens": 417
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 196
+     }
+    }
+   },
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a",
+   "totalInputTokens": 757,
+   "totalOutputTokens": 196,
+   "totalTokens": 953
+  }
+ },
+ {
+  "toolUse": {
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "content": "{\"target_form\":\"I finished the report and shared the results with my team.\",\"outcome\":\"pending\"}",
+   "contentId": "c4490eb7-8e5b-4cc9-8bdf-4dcfd626e702",
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "role": "TOOL",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a",
+   "toolName": "report_pronunciation_coaching",
+   "toolUseId": "31d593f4-ce90-409d-b150-59844dce12e6"
+  }
+ },
+ {
+  "contentEnd": {
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "contentId": "c4490eb7-8e5b-4cc9-8bdf-4dcfd626e702",
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a",
+   "stopReason": "TOOL_USE",
+   "type": "TOOL"
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 1
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 0
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 340,
+      "textTokens": 418
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 196
+     }
+    }
+   },
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a",
+   "totalInputTokens": 758,
+   "totalOutputTokens": 196,
+   "totalTokens": 954
+  }
+ },
+ {
+  "usageEvent": {
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "details": {
+    "delta": {
+     "input": {
+      "speechTokens": 0,
+      "textTokens": 0
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 16
+     }
+    },
+    "total": {
+     "input": {
+      "speechTokens": 340,
+      "textTokens": 418
+     },
+     "output": {
+      "speechTokens": 0,
+      "textTokens": 212
+     }
+    }
+   },
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a",
+   "totalInputTokens": 758,
+   "totalOutputTokens": 212,
+   "totalTokens": 970
+  }
+ },
+ {
+  "completionEnd": {
+   "completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05",
+   "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0",
+   "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a",
+   "stopReason": "END_TURN"
+  }
+ }
+]

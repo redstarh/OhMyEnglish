@@ -1,0 +1,90 @@
+[1/6] 자격증명 준비 (앱과 같은 이음새)
+[2/6] 입력 준비: p2m.wav+p2a.wav → raw LPCM 243030B, 238프레임 × 1024B(32ms), 7.59초 · 발화 2개를 무음 1600ms 로 이었다
+[3/6] 클라이언트 생성 (region=us-west-2)
+[4/6] 스트림 열기 (amazon.nova-2-sonic-v1:0)
+    endpointingSensitivity = MEDIUM
+    시스템 프롬프트 = 주입 파일 `/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-11-task97-tool-payload/prompt-B1-strengthened-v2.txt` (435자) · 앱 프롬프트(2339자)와의 길이 차 -1904자 · 동일=False
+    toolConfiguration 포함 — tool=report_pronunciation_coaching (앱 상수: 필드 4개 · required 2개 · outcome enum=['pending', 'correct', 'incorrect', 'unclear'])
+[5/6] 초기화 시퀀스 + 오디오 전송
+  [userSpeechStart] {"inputAudioOffsetMs": 0, "promptName": "e463e5f0-8adc-42e0-93c1-77fb99289be4", "sessionId": "8b07540b-c3cd-4df4-9df3-41506321ff90"}
+    … 20/238 프레임
+    … 40/238 프레임
+    … 60/238 프레임
+    … 80/238 프레임
+    … 100/238 프레임
+  [completionStart] {"completionId": "158658f2-03f2-4d35-bd70-708c9a1a4188", "promptName": "e463e5f0-8adc-42e0-93c1-77fb99289be4", "sessionId": "8b07540b-c3cd-4
+  [userSpeechEnd] {"inputAudioDetectionOffsetMs": 3440, "inputAudioOffsetMs": 3040, "promptName": "e463e5f0-8adc-42e0-93c1-77fb99289be4", "sessionId": "8b0754
+  [contentStart] type=TEXT USER/{"generationStage":"FINAL"}
+  [textOutput]   USER/{"generationStage":"FINAL"}  'i finished the la porte en chaille de lesseps with my team.'
+  [contentEnd]   type=TEXT stopReason=PARTIAL_TURN
+    … 120/238 프레임
+  [contentStart] type=TEXT ASSISTANT/{"generationStage":"SPECULATIVE"}
+  [textOutput]   ASSISTANT/{"generationStage":"SPECULATIVE"}  'Great! Let\'s focus on the pronunciation of the "th" sound in "the".'
+  [contentEnd]   type=TEXT stopReason=PARTIAL_TURN
+  [contentStart] type=AUDIO ASSISTANT/
+  [audioOutput]  2528B  앞 4바이트=b'\x00\x00F\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xc7\xef!\xee' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'Q\xef\xa4\xe7' (RIFF면 컨테이너, 아니면 raw LPCM)
+    … 140/238 프레임
+  [audioOutput]  2560B  앞 4바이트=b'\x8d\xfd\xbf\xfe' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b')\xfc\x04\xfb' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xa2\x01r\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x13\x00\x0c\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x03\x00\x04\x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x00\x00\xfe\xff' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xc3\xf2s\xef' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xca\x00\x8a\xff' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'h\xfeD\x01' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'F3A4' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\n\xff\r\xff' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x07\xf2o\xf2' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x9a\xff \x00' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'$\x03J\x02' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x9e\xfb\x8b\xfb' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xf8\xfe\x00\xff' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x13\x02\x0e\x02' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xfe\x01\x98\x01' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x06\x08\xe4\xfd' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xff\xee\xb4\xeb' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xb0\xfd\x8b\x01' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\x1f\x04\xd2\xf3' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xd5\x149\x15' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [audioOutput]  2560B  앞 4바이트=b'\xcc\xfc\xe9\xfb' (RIFF면 컨테이너, 아니면 raw LPCM)
+  [userSpeechStart] {"inputAudioOffsetMs": 4760, "promptName": "e463e5f0-8adc-42e0-93c1-77fb99289be4", "sessionId": "8b07540b-c3cd-4df4-9df3-41506321ff90"}
+  [contentEnd]   type=AUDIO stopReason=PARTIAL_TURN
+  [contentStart] type=TOOL TOOL/
+  [toolUse] {"completionId": "158658f2-03f2-4d35-bd70-708c9a1a4188", "content": "{\"target_form\":\"I finished the laporte en chaille de lesseps with my
+  [contentEnd]   type=TOOL stopReason=TOOL_USE
+  [contentStart] type=TEXT ASSISTANT/{"generationStage":"FINAL"}
+  [textOutput]   ASSISTANT/{"generationStage":"FINAL"}  '{ "interrupted" : true }'
+  [contentEnd]   type=TEXT stopReason=INTERRUPTED
+  [contentStart] type=TEXT ASSISTANT/{"generationStage":"FINAL"}
+  [textOutput]   ASSISTANT/{"generationStage":"FINAL"}  'Great! Let\'s focus on the pronunciation of the "th" sound in "the".'
+  [contentEnd]   type=TEXT stopReason=PARTIAL_TURN
+    … 160/238 프레임
+    … 180/238 프레임
+    … 200/238 프레임
+    … 220/238 프레임
+    발화 238프레임 전송 완료
+  [contentStart] type=TEXT USER/{"generationStage":"FINAL"}
+  [textOutput]   USER/{"generationStage":"FINAL"}  'i finished the report and shared the results with my team.'
+  [contentEnd]   type=TEXT stopReason=PARTIAL_TURN
+  [userSpeechEnd] {"inputAudioDetectionOffsetMs": 7880, "inputAudioOffsetMs": 7560, "promptName": "e463e5f0-8adc-42e0-93c1-77fb99289be4", "sessionId": "8b0754
+  [contentStart] type=TOOL TOOL/
+  [toolUse] {"completionId": "158658f2-03f2-4d35-bd70-708c9a1a4188", "content": "{\"target_form\":\"I finished the report and shared the results with my
+  [contentEnd]   type=TOOL stopReason=TOOL_USE
+    무음 50프레임(1600ms) 전송 — endpointing 유도
+[6/6] 출력 대기 (최대 30s) — 세션은 아직 닫지 않는다
+    종료 시퀀스 전송 (contentEnd → promptEnd → sessionEnd)
+  [completionEnd] stopReason=END_TURN
+
+관측 이벤트: {'usageEvent': 24, 'userSpeechStart': 2, 'completionStart': 1, 'userSpeechEnd': 2, 'contentStart': 8, 'textOutput': 5, 'contentEnd': 8, 'audioOutput': 27, 'toolUse': 2, 'completionEnd': 1}
+전사문/텍스트 5건: ['i finished the la porte en chaille de lesseps with my team.', 'Great! Let\'s focus on the pronunciation of the "th" sound in "the".', '{ "interrupted" : true }', 'Great! Let\'s focus on the pronunciation of the "th" sound in "the".', 'i finished the report and shared the results with my team.']
+raw -> /Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-11-task97-tool-payload/B1v2-r2.json
+
+[tool use 판정] tool 관련 이벤트: {'toolUse': 2}
+  [toolUse] {"completionId": "158658f2-03f2-4d35-bd70-708c9a1a4188", "content": "{\"target_form\":\"I finished the laporte en chaille de lesseps with my team.\",\"outcome\":\"pending\"}", "contentId": "6f69268e-c801-4ab2-86b7-aec7575f9adb", "promptName": "e463e5f0-8adc-42e0-93c1-77fb99289be4", "role": "TOOL", "sessionId": "8b07540b-c3cd-4df4-9df3-41506321ff90", "toolName": "report_pronunciation_coaching", "to
+  [toolUse] {"completionId": "158658f2-03f2-4d35-bd70-708c9a1a4188", "content": "{\"target_form\":\"I finished the report and shared the results with my team.\",\"outcome\":\"pending\"}", "contentId": "320d9b10-af12-40d7-b3d9-408926f94560", "promptName": "e463e5f0-8adc-42e0-93c1-77fb99289be4", "role": "TOOL", "sessionId": "8b07540b-c3cd-4df4-9df3-41506321ff90", "toolName": "report_pronunciation_coaching", "to
+→ Nova가 toolConfiguration을 받아들이고 tool 이벤트를 냈다.
+
+PASS: Nova가 초기화 시퀀스를 받아들이고 텍스트 이벤트를 돌려줬다.

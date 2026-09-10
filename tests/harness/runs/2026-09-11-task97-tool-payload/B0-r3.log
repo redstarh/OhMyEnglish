@@ -1,0 +1,52 @@
+[1/6] 자격증명 준비 (앱과 같은 이음새)
+[2/6] 입력 준비: p2m.wav+p2a.wav → raw LPCM 243030B, 238프레임 × 1024B(32ms), 7.59초 · 발화 2개를 무음 1600ms 로 이었다
+[3/6] 클라이언트 생성 (region=us-west-2)
+[4/6] 스트림 열기 (amazon.nova-2-sonic-v1:0)
+    endpointingSensitivity = MEDIUM
+    시스템 프롬프트 = 주입 파일 `/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-11-task97-tool-payload/prompt-B0-baseline.txt` (317자) · 앱 프롬프트(2339자)와의 길이 차 -2022자 · 동일=False
+    toolConfiguration 포함 — tool=report_pronunciation_coaching (앱 상수: 필드 4개 · required 2개 · outcome enum=['pending', 'correct', 'incorrect', 'unclear'])
+[5/6] 초기화 시퀀스 + 오디오 전송
+  [userSpeechStart] {"inputAudioOffsetMs": 0, "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0", "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a"}
+    … 20/238 프레임
+    … 40/238 프레임
+    … 60/238 프레임
+    … 80/238 프레임
+    … 100/238 프레임
+  [completionStart] {"completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05", "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0", "sessionId": "5388c30c-b542-4
+  [userSpeechEnd] {"inputAudioDetectionOffsetMs": 3440, "inputAudioOffsetMs": 3040, "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0", "sessionId": "5388c3
+  [contentStart] type=TEXT USER/{"generationStage":"FINAL"}
+  [textOutput]   USER/{"generationStage":"FINAL"}  'i finished the la porte en chaille de lesseps with my team.'
+  [contentEnd]   type=TEXT stopReason=PARTIAL_TURN
+    … 120/238 프레임
+    … 140/238 프레임
+  [userSpeechStart] {"inputAudioOffsetMs": 4760, "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0", "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a"}
+    … 160/238 프레임
+  [contentStart] type=TOOL TOOL/
+  [toolUse] {"completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05", "content": "{\"target_form\":\"I finished the port of Shell of Lesseps with my team
+  [contentEnd]   type=TOOL stopReason=TOOL_USE
+    … 180/238 프레임
+    … 200/238 프레임
+    … 220/238 프레임
+    발화 238프레임 전송 완료
+  [contentStart] type=TEXT USER/{"generationStage":"FINAL"}
+  [textOutput]   USER/{"generationStage":"FINAL"}  'i finished the report and shared the results with my team.'
+  [contentEnd]   type=TEXT stopReason=PARTIAL_TURN
+  [userSpeechEnd] {"inputAudioDetectionOffsetMs": 7880, "inputAudioOffsetMs": 7560, "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0", "sessionId": "5388c3
+  [contentStart] type=TOOL TOOL/
+  [toolUse] {"completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05", "content": "{\"target_form\":\"I finished the report and shared the results with my
+  [contentEnd]   type=TOOL stopReason=TOOL_USE
+    무음 50프레임(1600ms) 전송 — endpointing 유도
+[6/6] 출력 대기 (최대 30s) — 세션은 아직 닫지 않는다
+    종료 시퀀스 전송 (contentEnd → promptEnd → sessionEnd)
+  [completionEnd] stopReason=END_TURN
+
+관측 이벤트: {'usageEvent': 19, 'userSpeechStart': 2, 'completionStart': 1, 'userSpeechEnd': 2, 'contentStart': 4, 'textOutput': 2, 'contentEnd': 4, 'toolUse': 2, 'completionEnd': 1}
+전사문/텍스트 2건: ['i finished the la porte en chaille de lesseps with my team.', 'i finished the report and shared the results with my team.']
+raw -> /Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-11-task97-tool-payload/B0-r3.json
+
+[tool use 판정] tool 관련 이벤트: {'toolUse': 2}
+  [toolUse] {"completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05", "content": "{\"target_form\":\"I finished the port of Shell of Lesseps with my team.\",\"outcome\":\"pending\"}", "contentId": "ce21e0c6-59b2-4cd4-9568-b04b21ad308c", "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0", "role": "TOOL", "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a", "toolName": "report_pronunciation_coaching", "toolUse
+  [toolUse] {"completionId": "fb9ee9f9-d347-407c-aef8-66426715fc05", "content": "{\"target_form\":\"I finished the report and shared the results with my team.\",\"outcome\":\"pending\"}", "contentId": "c4490eb7-8e5b-4cc9-8bdf-4dcfd626e702", "promptName": "2d85c5cc-2a9c-4ce6-afa9-a8605b09ddb0", "role": "TOOL", "sessionId": "5388c30c-b542-492d-ae01-4e8beaef816a", "toolName": "report_pronunciation_coaching", "to
+→ Nova가 toolConfiguration을 받아들이고 tool 이벤트를 냈다.
+
+PASS: Nova가 초기화 시퀀스를 받아들이고 텍스트 이벤트를 돌려줬다.
