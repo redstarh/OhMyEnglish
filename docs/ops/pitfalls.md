@@ -9,7 +9,13 @@
 > **추가 규칙**: 항목마다 ① 무엇이 일어났는가 ② 어떻게 알았는가(실측) ③ 대응. 재현 근거가
 > 없으면 넣지 않는다. 번호는 재사용하지 않는다(다른 문서가 `H-x`로 인용한다).
 >
-> 최종 갱신 **2026-09-09** (**H-AS 신설** — 문서에 적힌 백엔드 기동 명령을 그대로 쓰면 **워커가
+> 최종 갱신 **2026-09-10** — `TASK-82` P계층 회차가 신설한 셋: **H-AW**(다른 세션이 소스를 쓰는 중에
+> 정적 검사를 돌리면 유령 실패가 난다 · 원인을 cwd 로 귀속하지 마라) · **H-AX**(`analysis_jobs` 를
+> 세션으로 되짚는 정본은 `utterance_id` 경유다 — 보존 방어가 술어 하나로 무력해졌다) ·
+> **H-AY**(「drift 0」이 「되돌아왔다」를 뜻하지 않는다 — 스냅샷이 안 보는 컬럼은 대조도 안 된다).
+> 셋 다 **번호를 붙이기 직전에** 그 순간의 최대값을 grep 으로 확인해 발급했다(아래 경쟁 경고 참조).
+>
+> 이전 갱신 **2026-09-09** (**H-AS 신설** — 문서에 적힌 백엔드 기동 명령을 그대로 쓰면 **워커가
 > 켜진다**. `worker_enabled` 기본값이 `True` 이고 `.env` 에 그 키가 없다. 하네스 문서 3곳의
 > 명령을 고쳤다. **H-AR 신설** — `ruff format --check` 의 「N files」가 `.md` 를 함께
 > 세므로 회차 기록을 추가하면 늘어난다. 그리고 **`H-AO` 번호 충돌을 정리했다** — `[skip ci]`
@@ -53,6 +59,7 @@
 
 | # | 함정 | 대응 |
 |---|---|---|
+| **H-AY** | ⛔ **「drift 0」이 「되돌아왔다」를 뜻하지 않는다 — 스냅샷이 보지 않는 컬럼은 대조도 하지 않는다.** 실측(2026-09-10 · `TASK-82` P6 회차 · `TASK-83` 이 구조를 소유). `browser_leg.md` §8 의 teardown 이 8개 표를 baseline 으로 되돌리고 `harness_pattern_baseline` drift 대조가 **0 을 냈으며 그것은 참이었다.** 그런데 **학습자의 복습 시계는 움직인 채 남았다**: `error_patterns` 에 행이 생기고(`review_tasks` 로 cascade), 기존 1단계 복습 과제가 **`pending` → `done`**(`completed_at` = 회차 발화 시각) 이 되고 2단계 과제가 새로 생기고, 기존 패턴의 **`next_review_at` 이 다시 쓰였다.** 원인은 스냅샷 스키마의 공백이다 — 그 표는 `id`·`pattern_key`·`frequency`·`last_seen_at` **넷만** 담아 `next_review_at`·`mastery_score` 가 없었고 **`review_tasks` 에는 baseline 표가 아예 없었다.** ⛔ **그래서 `next_review_at` 은 복원하지 못했다** — 회차 전 값을 아무도 뜨지 않았고, `last_seen_at + 1일` 규칙에서 유도하는 것은 **계산이지 측정**이라 §8-② 가 금지한다. 동료 세션이 대화로 원래 값을 말했으나 **그 세션이 마감해 대조할 상대가 사라졌다.** 남은 불일치: **1단계 과제가 `pending` 인데 그 패턴의 예정일은 2단계 간격만큼 밀려 있다.** ⚠️ **표 건수로도 안 보인다** — 기존 행의 `status` 변경은 `count(*)` 를 바꾸지 않는다 | ⛔ **되돌릴 대상을 먼저 정하고 그것을 담는 스냅샷을 뜨는 순서로 한다.** 순서를 뒤집으면 「무엇을 잃었는지」조차 모른다. `browser_leg.md` §8-0 을 그 형태로 고쳤다(2026-09-10) — `next_review_at`·`mastery_score` 를 담고 **`harness_review_task_baseline`** 을 함께 뜨며 drift 대조가 `status`·`completed_at`·`due_at` 까지 본다. ⚠️ **그 두 표는 마이그레이션이 아니다**(`db/migrations/**` 에 없고 문서가 `create table as` 로 만든다) — **컬럼을 늘리는 데 승인이 필요하지 않다.** ⛔ **분석 워커를 지나갈 회차는 파일 스냅샷을 «회차 디렉터리»에 뜨고 커밋한다** — `/tmp` 에 두면 사라진다(`p5_worker_leg.py` 의 `restore` 가 죽은 회차에서 회차 디렉터리 사본이 유일한 근거였다). ⚠️ **`error_occurrences` 로 `frequency` 를 검산하지 않는다** — 발음 패턴은 `pronunciation_attempts` 에서 센다(`H-AX`) |
 | **H-B** | `python3 scripts/migrate.py`는 **돌지 않는다** — 시스템 python에 asyncpg가 없다 | `app/backend/.venv/bin/python scripts/migrate.py` |
 | **H-E** | `db_conn` 픽스처는 테스트 하나를 **트랜잭션 하나**로 감싼다. CHECK 위반이 트랜잭션을 abort시켜 **한 테스트에 `pytest.raises`를 두 번 넣을 수 없다** | 음성 케이스마다 테스트를 쪼갠다 |
 | **H-I** | **`db_conn` 픽스처는 마이그레이션만 적용하고 시드는 하지 않는다.** `select id from users limit 1`은 `None`을 돌려주고 not-null 위반으로 죽는다. 시드는 `scripts/migrate.py`의 `seed()`가 하고 `test_schema.py`만 그걸 명시 호출한다 | `db_conn` 테스트는 사용자·세션을 **직접 insert**한다(리포 관례 — `test_schema.py`·`test_utterances.py`·`test_jobs.py` 전부 자기 헬퍼를 쓴다). 커밋된 행이 필요하면 `db_pool`+`committed_session` |

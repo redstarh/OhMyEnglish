@@ -538,6 +538,22 @@ select n.nspname, pg_get_userbyid(n.nspowner) from pg_namespace n
 
 **0. 회차 시작 전에 baseline을 뜬다** (없으면 캡틴의 패턴을 함께 지울 위험을 배제할 수 없다). `frequency`·`last_seen_at`을 함께 뜬다 — 마지막 대조(④)와 **복원(②)**이 그 두 값을 요구한다.
 
+> ## ⛔ 「drift 0」이 「되돌아왔다」를 뜻하지 않는다 — 2026-09-10 실측 (`TASK-82` · `TASK-83`)
+>
+> **분석 워커를 지나가는 회차는 아래 baseline 으로 원상복구되지 않는다.** 실제로 일어난 일:
+> 이 절의 drift 대조가 **0 을 냈고 그것은 참이었는데** 학습자의 **복습 시계가 움직인 채 남았다** —
+> `error_patterns` 에 행이 생기고, `review_tasks` 의 기존 1단계 과제가 `done` 이 되고 2단계가 생기고,
+> 기존 패턴의 `next_review_at` 이 다시 쓰였다. **스냅샷이 보지 않는 컬럼은 대조도 하지 않는다.**
+>
+> ⛔ **`next_review_at` 은 그때 복원하지 못했다** — 회차 전 값을 아무도 뜨지 않았고 `last_seen_at + 1일`
+> 규칙에서 유도하는 것은 **계산이지 측정이라** ②가 금지한다. 그 불일치는 되돌릴 수 없이 남았다.
+> 경위는 `runs/2026-09-10-task82-p5-p6.md` §6-2·§9 와 `TASK-83` 노트가 갖는다.
+>
+> **그래서 순서가 바뀐다: 되돌릴 대상을 먼저 정하고 그것을 담는 스냅샷을 뜬다.**
+> 아래 SQL 이 `next_review_at`·`mastery_score` 를 담고 `review_tasks` baseline 을 함께 뜨는 이유다.
+> ⚠️ **`error_occurrences` 로 `frequency` 를 검산하지 않는다** — 발음 패턴은 `pronunciation_attempts`
+> 에서 세므로 두 writer 의 규약이 다르다(`H-AX`·`H-AT`).
+
 ⛔ **무조건 `drop`하지 않는다 (2026-09-06 정정).** 이전 판은 `drop table if exists`로 시작했다.
 그러면 **앞 회차의 teardown이 ②를 못 끝내고 죽은 경우**(파괴적 UPDATE는 이미 실행됨) 새 회차가
 **오염된 값을 새 baseline으로 스냅샷**하고, 그 순간 원값의 사본이 **영구히 사라진다.**
@@ -548,27 +564,72 @@ baseline은 DB 표라서 그 표가 유일한 사본이다.
 ```sql
 -- 앞 회차가 정상 종료했으면 0이다. 0이 아니면 미완 teardown 이고, 그 상태에서 재스냅샷하면
 -- 오염된 값이 진실이 된다.
+-- ⛔ 네 컬럼을 전부 본다 — frequency·last_seen_at 만 보던 판이 복습 시계 변동을 놓쳤다.
 select count(*) from harness_pattern_baseline b join error_patterns p on p.id = b.id
- where p.frequency <> b.frequency or p.last_seen_at is distinct from b.last_seen_at;
+ where p.frequency        <>            b.frequency
+    or p.last_seen_at     is distinct from b.last_seen_at
+    or p.next_review_at   is distinct from b.next_review_at
+    or p.mastery_score    <>            b.mastery_score;
 ```
 
-- 표가 **없으면** → 아래로 진행한다(첫 회차).
+**`review_tasks` 도 함께 본다** — 그 표에는 baseline 이 아예 없었고, 그래서 「1단계 과제가 `done` 이
+됐다」가 표 건수로도 drift 로도 보이지 않았다:
+
+```sql
+select count(*) from harness_review_task_baseline b join review_tasks r on r.id = b.id
+ where r.status is distinct from b.status
+    or r.completed_at is distinct from b.completed_at
+    or r.due_at is distinct from b.due_at;
+```
+
+- 표가 **없으면** → 아래로 진행한다(첫 회차). `harness_review_task_baseline` 은 **2026-09-10 에
+  신설했으므로 그 표가 없는 것이 정상이다** — 처음 뜨는 회차가 만든다.
 - 표가 있고 **drift 0** → 아래로 진행한다(재스냅샷해도 같은 값이다).
 - 표가 있고 **drift > 0** → ⛔ **`ERROR`로 멈춘다.** 먼저 §8-②의 복원을 돌려 drift를 0으로 만든
   뒤에 회차를 연다. **재스냅샷으로 덮지 않는다.**
 
+> ⛔ **컬럼을 늘린 «첫» 회차는 위 drift 쿼리가 못 돈다 — 그것을 「멈춤」으로 읽지 마라.**
+> 2026-09-10 에 직접 확인했다: 그 시점 `harness_pattern_baseline` 의 컬럼은
+> `id,pattern_key,frequency,last_seen_at` 넷이고, 새 쿼리를 그 표에 걸면
+> **`ERROR: column b.next_review_at does not exist`** 가 난다.
+>
+> **전이 절차 (한 번만 한다)**: ① **옛 컬럼 둘로만** drift 를 본다(`frequency`·`last_seen_at`) →
+> ② 그것이 **0 이면** 새 스키마로 재스냅샷한다 → ③ 0 이 아니면 §8-② 복원을 먼저 돌린다.
+> ⚠️ **①에서 0 이어도 복습 시계가 어긋나 있을 수 있다**(그것이 `H-AY` 의 내용이다) — 재스냅샷은
+> 「지금 값을 새 기준선으로 삼는다」는 선언이므로 **그 선언을 회차 기록에 남긴다.**
+> ⚠️ 실제로 2026-09-10 시점에 `verb_tense_past_simple_for_past_events` 의 `next_review_at` 이
+> 복원 불가로 어긋난 채 남아 있다 — 그 값을 새 기준선으로 굳히는 것이 지금의 유일한 선택이고
+> 경위는 `TASK-83` 노트가 갖는다.
+
 ```sql
 drop table if exists harness_pattern_baseline;
 create table harness_pattern_baseline as
-  select id, pattern_key, frequency, last_seen_at from error_patterns
+  select id, pattern_key, frequency, last_seen_at, next_review_at, mastery_score
+    from error_patterns
    where user_id = '00000000-0000-0000-0000-000000000001';
+
+drop table if exists harness_review_task_baseline;
+create table harness_review_task_baseline as
+  select r.id, r.pattern_id, r.review_stage, r.status, r.due_at, r.completed_at, r.cycle_started_at
+    from review_tasks r join error_patterns p on p.id = r.pattern_id
+   where p.user_id = '00000000-0000-0000-0000-000000000001';
 ```
+
+⚠️ **이 둘은 마이그레이션이 아니다** — `db/migrations/**` 에 없고 이 문서가 `create table as` 로 만드는
+하네스 표다(2026-09-10 확인). **그래서 컬럼을 늘리는 데 승인이 필요하지 않다.** ⛔ 다만 `drop` 전에
+위 drift 대조를 통과해야 한다는 규칙은 두 표에 **똑같이** 적용된다 — 그 표가 유일한 DB 사본이다.
 
 **그리고 파일로도 뜬다** — DB 표 하나에 진실을 걸지 않는다. 마지막으로 검증된 사본:
 **`tests/harness/runs/2026-09-06-pattern-baseline-v2.tsv`**(추적됨 · **8행** · drift 0에서 떴다).
 값이 정당하게 바뀌면(앱이 실제 학습으로 갱신) 새 날짜로 새 파일을 뜨고 이 줄을 갱신한다.
 ⚠️ **v2 로 올린 이유**: T4가 실물 분석 1회로 만든 패턴이 §9 보존 세션의 교정 근거라서 남는다(7 → 8행).
 이전 사본 `2026-09-06-pattern-baseline.tsv`(7행)도 추적된 채로 둔다 — 지우면 그 시점 값의 사본이 없어진다.
+
+⛔ **분석 워커를 지나갈 회차는 파일 스냅샷을 «회차 디렉터리»에 뜨고 그것을 커밋한다.**
+`runs/<회차>/error-patterns-before-*.json` · `review-tasks-before-*.json` 형태다(2026-09-10 실측 형식).
+**`/tmp` 에 두지 않는다** — 그 파일이 사라지면 복원 근거가 없어진다. `p5_worker_leg.py` 의 `guard`
+스냅샷이 `/tmp` 기본값이었고 `restore` 가 죽은 그 회차에서 **회차 디렉터리에 둔 것이 유일한 복원
+근거였다**(`runs/2026-09-10-task82-p5-p6.md` §2-2).
 
 **①-a 세션을 시간창 스윕으로 등록한다** (자동 등록 훅이 없다 — §3):
 

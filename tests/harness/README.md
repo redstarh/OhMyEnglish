@@ -42,6 +42,9 @@ ps -o lstart= -p $(lsof -nP -iTCP:8002 -sTCP:LISTEN -t)
 find app/backend/app -name '*.py' -newermt '<위 시각>'   # 결과가 있으면 재기동하고 시작한다
 
 # 3) 회차를 열고 패턴 baseline을 뜬다 (teardown의 복원 기준)
+# ⛔ 정본은 browser_leg.md §8-0 이다 — 아래 블록은 예시이고 컬럼이 낡을 수 있다.
+#    그 절이 next_review_at·mastery_score 와 harness_review_task_baseline 을 함께 요구한다
+#    (2026-09-10 · TASK-83). ⚠️ 아래 podman 명령도 낡았다 — dev DB 는 homebrew :5432 다(H-T).
 podman exec -i ohmy-pg psql -U ohmy -d ohmyenglish -tAc \
   "insert into harness_runs (git_commit, note) values ('<커밋>','<메모>') returning id" \
   | tr -d ' \n' > .harness/run_id.txt
