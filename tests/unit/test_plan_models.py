@@ -303,6 +303,43 @@ def test_prose_wrapped_fenced_json_is_rejected():
         )
 
 
+# TASK-100 — 거부 사유가 **「잘림」과 「파서 불일치」를 가를 수 있어야** 한다. 이전 판은 앞 200자만
+# 담아서 두 원인을 구별하지 못했다: 실물 실패의 `last_error`가 `'{\n  "focus": [...'`에서 끊겨
+# 있었고 그것이 응답이 잘린 것인지 이 슬라이스가 자른 것인지 아무도 알 수 없었다(회차 기록
+# `runs/2026-09-11-task98-production-prompt.md` §8). 그래서 **원문 길이 · 디코드 사유 · 끝부분**을
+# 사유에 담는다 — 다음 실패가 스스로 원인을 말한다.
+def test_undecodable_response_reports_length_and_decode_reason():
+    truncated = _payload()[:150]
+
+    with pytest.raises(PlanValidationError) as caught:
+        parse_plan(
+            truncated,
+            current_level="A2",
+            allowed_pattern_ids=_ALLOWED,
+            deepest_pattern_id=_DEEPEST,
+        )
+
+    message = str(caught.value)
+    assert "chars=150" in message, "원문 길이가 없으면 잘림을 판정할 수 없다"
+    # 디코드 사유는 파이썬이 이미 갈라 준다 — 잘림은 `Unterminated`·`Expecting`, 뒤에 붙은
+    # 산문은 `Extra data`다. 그 문구를 우리가 발명하지 않고 그대로 싣는다.
+    assert "json_error=" in message
+    assert truncated[-40:] in message, "끝부분이 없으면 어디서 끊겼는지 볼 수 없다"
+
+
+# TASK-100 — 같은 사유 문구가 **뒤에 산문이 붙은** 경우를 잘림과 다르게 말해야 한다.
+def test_trailing_prose_is_reported_as_extra_data():
+    with pytest.raises(PlanValidationError) as caught:
+        parse_plan(
+            _payload() + "\n확인해 주세요.",
+            current_level="A2",
+            allowed_pattern_ids=_ALLOWED,
+            deepest_pattern_id=_DEEPEST,
+        )
+
+    assert "Extra data" in str(caught.value)
+
+
 # M7(리뷰 2026-09-04) — 하위 모델의 `extra="forbid"`도 실제로 걸리는지 확인한다.
 # `test_unknown_field_is_rejected`는 최상위 `PlanOutput`만 재므로 `instruction`·
 # `questions` 항목의 `model_config`가 지워져도 잡지 못한다.

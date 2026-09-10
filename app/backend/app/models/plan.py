@@ -190,6 +190,27 @@ def _json_candidates(raw: str) -> list[str]:
     return candidates
 
 
+def _not_json_message(raw: str, error: json.JSONDecodeError | None) -> str:
+    """전 후보가 JSON 디코드에 실패했을 때의 사유 — **원인을 가를 수 있는 형태로** 만든다.
+
+    이전 판은 `raw[:200]`만 담았고 그래서 실물 실패에서 **「응답이 잘렸다」와 「파서가 찾는 형태와
+    어긋난다」를 구별할 수 없었다**(`TASK-100`. 관측 정본은 회차 기록
+    `tests/harness/runs/2026-09-11-task98-production-prompt.md` §8). `last_error`에 남은 문자열이
+    JSON 중간에서 끊겨 있었는데 그것이 응답의 끝인지 이 슬라이스의 끝인지 알 방법이 없었다.
+
+    셋을 담으면 갈린다: **원문 길이**(잘림이면 예산 상한 근처거나 짧다) · **파이썬이 낸 디코드
+    사유**(잘림은 `Unterminated string`·`Expecting ...`, 뒤에 산문이 붙은 것은 `Extra data`) ·
+    **끝부분**(어디서 끊겼는지). 사유 문구를 우리가 발명하지 않는 것이 요점이다.
+
+    ⚠️ 이것은 진단이고 관용이 아니다 — 파서가 받아들이는 형태는 넓히지 않았다(`_json_candidates`).
+    """
+    reason = f"{error.msg} at pos {error.pos}" if error is not None else "no json candidate"
+    return (
+        f"plan response was not JSON (chars={len(raw)}, json_error={reason!r}): "
+        f"head={raw[:120]!r} tail={raw[-120:]!r}"
+    )
+
+
 def _one_step_or_same(current: str, target: str) -> bool:
     """수준 이동이 한 칸 이내인지. 두 칸 도약을 **구조로** 막는다 (설계서 §7).
 
@@ -245,10 +266,14 @@ def parse_plan(
     if current_level not in CEFR_LEVELS:
         raise PlanValidationError(f"unknown current_level: {current_level!r}")
 
+    # 첫 후보의 디코드 오류를 들고 간다 — 사유를 가르는 것이 그 값이다(`_not_json_message`).
+    first_error: json.JSONDecodeError | None = None
     for candidate in _json_candidates(raw):
         try:
             payload = json.loads(candidate)
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as exc:
+            if first_error is None:
+                first_error = exc
             continue
         try:
             result = PlanOutput.model_validate(payload)
@@ -282,4 +307,4 @@ def parse_plan(
                 "skips more than one CEFR step"
             )
         return result
-    raise PlanValidationError(f"plan response was not JSON: {raw[:200]!r}")
+    raise PlanValidationError(_not_json_message(raw, first_error))
