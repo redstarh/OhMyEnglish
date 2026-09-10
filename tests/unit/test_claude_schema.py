@@ -117,6 +117,12 @@ def test_parse_analysis_rejects_unknown_severity():
 
 
 # ④ confidence:1.5 → 거부 (numeric(3,2) check between 0 and 1)
+#
+# ✅ **뮤테이션 KILL 확인 — W7** (`TASK-73`. 2026-09-10 직접 관측).
+# `models/analysis.py` 의 `confidence: float = pydantic.Field(ge=0, le=1)` 에서 범위 제약만 떼고
+# `confidence: float` 로 두니 **이 테스트가 두 파라미터(`1.5`·`-0.1`)에서 전부 FAIL** 했다.
+# ⚠️ 파라미터가 둘인 것이 여기서 값어치를 한다 — 상한만 검사하면 하한 제약(`ge=0`)을 떼는 변이가
+# 살아남는다.
 @pytest.mark.parametrize("confidence", [1.5, -0.1])
 def test_parse_analysis_rejects_out_of_range_confidence(confidence: float):
     with pytest.raises(AnalysisValidationError):

@@ -195,6 +195,21 @@ async def test_same_pattern_in_two_utterances_merges_into_one_pattern(
 
 
 # ② 결과 저장 후 status 갱신 전에 죽은 job을 재실행 → 중복 없음, last_seen_at 불변 (W3)
+#
+# ✅ **뮤테이션 KILL 확인 — W3 과 W2 를 여기서 함께 잰다** (`TASK-73` · 결정 48.
+# 2026-09-10 직접 관측). 두 변이가 겹치는 자리라 한 기록에 적는다.
+#   ⑴ **W3(replace 계약)** — `services/analysis.py` 의
+#      `delete from error_occurrences where utterance_id = $1 returning pattern_id` 를
+#      `select pattern_id from …` 으로(삭제를 없애 append 로) 바꾸니 **4건 FAIL**: 이 테스트 ·
+#      `..._zero_findings_completes_the_job_and_clears_previous_occurrences` ·
+#      `..._blank_transcript_still_replaces_previous_occurrences` ·
+#      `..._reanalysis_replaces_the_stored_suggested_contexts`.
+#   ⑵ **W2(frequency 재계산)** — `_RECOUNT_PATTERN_SQL` 의 `frequency = agg.occurrences` 를
+#      `frequency = p.frequency + 1` 로 바꾸니 **5건 FAIL**(위 넷 가운데 셋 + 이 테스트 +
+#      `..._two_findings_of_one_pattern_in_a_single_utterance_are_both_kept` +
+#      `..._pattern_target_form_is_not_any_occurrence_correction`).
+# ⚠️ 두 변이의 FAIL 집합이 **다르다** — 겹치는 세 테스트는 두 계약을 함께 지키고, 나머지는 한쪽만
+# 지킨다. 그래서 「이 파일이 W2·W3 을 덮는다」로 뭉개지 않고 변이별 집합을 적어 둔다.
 async def test_reprocessing_the_same_utterance_is_idempotent(
     db_pool: asyncpg.Pool, committed_session, fake_claude
 ):
@@ -285,6 +300,14 @@ async def test_existing_patterns_exclude_the_pronunciation_category(db_pool, com
         '"original_span": "x", "correction": "y", "severity": "critical", "confidence": 0.5}]}',
     ],
 )
+# ✅ **뮤테이션 KILL 확인 — W7 의 나머지 절반** (`TASK-73`. 2026-09-10 직접 관측).
+# W7 은 요구가 둘이다: **저장 전에 거부**되고, **job 이 `last_error` 와 함께 실패 처리**된다.
+# 앞쪽은 `test_claude_schema.py` 의 confidence 범위 단정이 잡고(그 자리에 기록이 있다), 뒤쪽을
+# 여기서 잡는다 — `process_analysis` 의 `except ValueError` 블록에서 `report_failure` 호출만 떼고
+# `return` 만 남기니 **4건이 FAIL** 했다(이 테스트의 파라미터 3건 +
+# `..._new_pattern_key_violating_the_format_is_rejected`).
+# ⛔ **한쪽만 재면 W7 의 절반이 무보호다** — 검증이 거부해도 큐에 보고하지 않으면 job 이
+# `running` 에 남아 lease 만료까지 갔다가 「lease expired without report」라는 거짓 사유로 종결된다.
 async def test_invalid_claude_output_sends_the_job_through_fail_or_retry(
     db_pool: asyncpg.Pool, committed_session, fake_claude, raw: str
 ):

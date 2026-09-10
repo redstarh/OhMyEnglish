@@ -285,6 +285,17 @@ def test_resolve_pattern_keys_returns_empty_findings_unchanged():
 # 그래서 **행동이 아니라 텍스트를 단정한다.** 계획이 바뀌어 실제 어순이 깨지는 것은
 # 못 잡지만, 진짜 위험인 "정리 중에 조용히 지워지는 것"은 정확히 잡는다. 이 리포는
 # 이미 소스 텍스트를 단정하는 선례가 있다(`test_gateway.py`의 어댑터 격리 검사).
+# ✅ **뮤테이션 KILL 확인 — W1** (`TASK-73` · 결정 48).
+# `TASK-76` 에서 관측했고 기록을 여기로 옮겼다 — AC#1 이 요구하는 자리는
+# 태스크 노트가 아니라 **테스트**다.
+# 두 변이를 각각 걸었다:
+#   ⑴ flush 묶음 정렬을 뒤집었다(`order by … sequence_no` → `desc`) → **FAIL 2건**: 이 테스트와
+#      `test_utterances.py::test_agent_speech_between_finals_splits_the_run_in_two`.
+#   ⑵ 회복 스윕이 `failed` 세션을 건너뛰게 했다(`ENDED_SESSION_STATUSES` 를 `completed` 만) →
+#      **FAIL 2건**: `test_utterances.py::test_sweep_covers_sessions_closed_as_failed` 와
+#      `test_worker.py::test_worker_reaps_an_orphan_session_and_then_recovers_its_run`.
+# ⚠️ W1 은 요구가 셋(전사문 원자성 · 묶음 끝 job 1건 · 등록 실패가 묶음을 잃지 않음)이라 단정
+# 하나로 덮이지 않는다 — 두 변이가 각각 「묶음 경계」와 「회복 경로」를 잡는다.
 def test_merge_sql_keeps_its_explicit_ordering():
     # ⚠️ 단정은 **집계식 전체**를 본다. 두 SQL에는 "지우지 말 것" 경고 주석이 같은
     # 문자열 안에 들어 있어서, `"order by u.sequence_no"`만 찾으면 실제 `order by`를

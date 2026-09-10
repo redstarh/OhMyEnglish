@@ -4,7 +4,7 @@ title: W/R/G AC 테스트에 뮤테이션 KILL 확인을 붙인다 (결정 48 �
 status: In Progress
 assignee: []
 created_date: '2026-09-09 14:39'
-updated_date: '2026-09-10 00:58'
+updated_date: '2026-09-10 01:08'
 labels: []
 dependencies: []
 ordinal: 76000
@@ -37,10 +37,10 @@ ordinal: 76000
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 W1~W7 각 항목의 테스트에 뮤테이션 KILL 확인을 붙이고 어떤 변이를 어떻게 걸었는지 기록한다
+- [x] #1 W1~W7 각 항목의 테스트에 뮤테이션 KILL 확인을 붙이고 어떤 변이를 어떻게 걸었는지 기록한다
 - [x] #2 R1~R3 각 항목에 같은 것을 한다
 - [x] #3 G1~G4 각 항목에 같은 것을 한다
-- [ ] #4 뮤테이션이 SURVIVED 하는 자리는 KILL 로 위장하지 않고 그 사실과 이유를 남긴다 — 기존 SURVIVED 주석을 지우지 않는다
+- [x] #4 뮤테이션이 SURVIVED 하는 자리는 KILL 로 위장하지 않고 그 사실과 이유를 남긴다 — 기존 SURVIVED 주석을 지우지 않는다
 - [ ] #5 붙인 뒤 게이트 넷을 다시 재고 AC 문서 「선언 자리」 표의 항목 4 를 갱신한다
 <!-- AC:END -->
 

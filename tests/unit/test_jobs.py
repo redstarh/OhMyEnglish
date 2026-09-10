@@ -169,6 +169,14 @@ async def test_claim_next_rejects_naive_now(db_conn: asyncpg.Connection):
 
 
 # ③ lease 만료된 running job은 회수되고, 이전 token의 complete는 False (W4)
+#
+# ✅ **뮤테이션 KILL 확인 — W4** (`TASK-73` · 결정 48. 2026-09-10 직접 관측).
+# `services/jobs.complete` 의 `where … and locked_by = $2` 를 `and ($2 = $2)` 로(인자 수를 유지한
+# 항진식) 바꿔 **소유자 검증만** 무력화하니 **3건이 FAIL** 했다: 이 테스트 ·
+# `test_pipeline.py::test_result_write_is_rolled_back_when_the_lease_was_lost` ·
+# `test_plan_pipeline.py::test_a_lost_lease_rolls_everything_back_without_reporting_failure`.
+# ⚠️ 단위 하나가 아니라 **세 계층이 같은 술어에 걸려 있다** — 분석·계획 두 파이프라인이 이 가드로
+# 롤백을 판정한다.
 async def test_expired_lease_is_reclaimed_and_stale_token_cannot_complete(
     db_conn: asyncpg.Connection,
 ):
@@ -246,6 +254,17 @@ async def test_expired_lease_below_attempt_limit_is_still_reclaimed(
 
 
 # ④ attempts 상한 도달 실패 → failed + last_error, 재claim 안 됨 (W5)
+#
+# ✅ **뮤테이션 KILL 확인 — W5. ⛔ 그런데 두 변이가 서로 다른 테스트에 걸린다**
+# (`TASK-73`. 2026-09-10 직접 관측 — 이것이 이 회차에서 가장 값어치 있는 발견이다).
+#   ⑴ `MAX_ATTEMPTS` 를 `5` → `500` 으로 바꾸면 **이 테스트는 통과하고**
+#      `test_queue_constants_are_the_documented_design_values` 만 FAIL 한다. 이 테스트가 상수를
+#      참조해 기대값을 만들기 때문에 **상수를 따라가 버린다.**
+#   ⑵ 상수를 그대로 두고 `fail_or_retry` 의 `attempts::int >= $4::int` 를 `>` 로 바꾸면(상한이 1
+#      늘어난다) **이 테스트가 FAIL** 하고 상수 단정은 통과한다.
+# ⛔ **그래서 둘 중 하나만 있으면 W5 의 절반이 무보호다.** 상수 단정은 「값이 5인가」를 지키고 이
+# 테스트는 「경계 연산이 맞는가」를 지킨다 — 누군가 상수와 그 단정을 **함께** 고치면 이 테스트만
+# 남고, 반대로 이 테스트만 있으면 상수가 조용히 바뀌어도 통과한다.
 async def test_failure_at_attempt_limit_marks_failed_and_is_never_reclaimed(
     db_conn: asyncpg.Connection,
 ):

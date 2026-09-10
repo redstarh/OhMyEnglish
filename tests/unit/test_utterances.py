@@ -211,6 +211,13 @@ async def test_agent_speech_between_finals_splits_the_run_in_two(db_conn: asyncp
 
 
 # 분석 대상이 아닌 발화는 묶음을 닫기만 하고 자신은 job을 받지 않는다 (W6 유지)
+#
+# ✅ **뮤테이션 KILL 확인 — W6** (`TASK-73`. 2026-09-10 직접 관측).
+# `_RUN_END_FLUSH_TEMPLATE` 의 `(u.speaker = $1 and u.utterance_type = $2)` 에서 타입 조건만
+# 항진식으로 바꾸니(`and ($2 = $2)`) **이 테스트가 FAIL** 했다.
+# ⛔ **W6 을 지키는 것은 이 테스트 하나다** — 같은 회차에서 위쪽 「`voice_command` 발화는 저장되지만
+# job 은 등록되지 않는다」 테스트는 **통과했다**(그쪽은 저장 경로를 재고 flush 묶음 정의를 재지
+# 않는다). 항목당 대상 테스트를 이름으로 특정해야 하는 이유가 이것이다.
 async def test_flush_never_enqueues_agent_or_command_speech(db_conn: asyncpg.Connection):
     session_id = await _new_session(db_conn)
     await save_final_transcript(db_conn, session_id, AGENT_REPLY, speaker="agent")
