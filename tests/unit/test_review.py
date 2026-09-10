@@ -662,7 +662,14 @@ async def test_due_list_returns_only_patterns_whose_review_is_due(db_conn: async
         )
         for key, due in (
             ("article_older", T0 - _days(9)),
-            ("article_future", T0 + _days(9)),
+            # ⛔ **「미래」는 고정 `T0` 오프셋으로 만들지 않는다** (`TASK-85` — 2026-09-10 04:13 UTC
+            # 에 실제로 터졌다). `load_due_reviews` 는 `clock_timestamp()` 로 판정하므로
+            # `T0 + 9일`(= UTC 2026-09-10 03:00)이 그 시각을 지나면서 **미래가 과거가 됐고** 이
+            # 행이 due 목록에 들어와 아래 단정이 깨졌다. 판정 기준이 흐르는 시각이면 기대값도
+            # 흐르는 시각에 상대적이어야 한다.
+            # ⚠️ **비대칭이다 — 「과거」는 고정 `T0` 로 안전하다.** `T0` 는 이미 지난 시각이라 더
+            # 지날 뿐이다. 그래서 위 `article_older` 는 그대로 두고 이 줄만 고쳤다.
+            ("article_future", datetime.now(T0.tzinfo) + _days(9)),
             ("article_none", None),
         )
     ]
