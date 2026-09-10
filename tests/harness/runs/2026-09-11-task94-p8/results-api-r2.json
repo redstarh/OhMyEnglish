@@ -1,0 +1,1 @@
+{"status":"no_utterances","partial_failure":false,"pronunciation":[{"target_form":"I think the report is ready for the meeting.","spoken_form":"sink","outcome":"incorrect","signal_source":"nova_tool"},{"target_form":"I think the report is ready for the meeting.","spoken_form":"sinking","outcome":"incorrect","signal_source":"nova_tool"}],"awaiting_analysis":true}

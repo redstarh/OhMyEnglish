@@ -1,0 +1,130 @@
+{
+ "session_id": "897e5f42-3d6f-494b-a995-2dd50bf2c7a5",
+ "sound": "th_as_s",
+ "pattern_key": "pronunciation_th_as_s",
+ "utterance_id": "fc5bff24-8e63-4753-9d1d-e868e4c2560d",
+ "after_pending": {
+  "pattern": null,
+  "attempts": [
+   {
+    "id": "2cc7908b-fc74-4d6c-b0d9-4b2cebfc1a58",
+    "attempt_seq": 18,
+    "target_form": "th_as_s",
+    "target_sound": "th_as_s",
+    "outcome": "pending",
+    "signal_source": "nova_tool",
+    "pattern_id": null,
+    "resolved_at": null
+   }
+  ]
+ },
+ "after_incorrect": {
+  "pattern": {
+   "id": "ee7f768e-69e8-44d1-98b9-19321226861a",
+   "pattern_key": "pronunciation_th_as_s",
+   "category": "pronunciation_intonation",
+   "target_form": "th_as_s",
+   "frequency": 1,
+   "last_seen_at": "2026-09-10T22:03:41.004457+00:00",
+   "next_review_at": "2026-09-11T22:03:41.004457+00:00",
+   "mastery_score": "0.00"
+  },
+  "attempts": [
+   {
+    "id": "2cc7908b-fc74-4d6c-b0d9-4b2cebfc1a58",
+    "attempt_seq": 18,
+    "target_form": "th_as_s",
+    "target_sound": "th_as_s",
+    "outcome": "incorrect",
+    "signal_source": "nova_tool",
+    "pattern_id": "ee7f768e-69e8-44d1-98b9-19321226861a",
+    "resolved_at": "2026-09-10T22:03:41.004457+00:00"
+   }
+  ],
+  "review_tasks": [
+   {
+    "id": "0ab0bcb1-97f2-4c17-b4af-5a69cfc427dc",
+    "task_type": "rephrase",
+    "review_stage": 1,
+    "status": "pending",
+    "due_at": "2026-09-11T22:03:41.004457+00:00",
+    "completed_at": null,
+    "cycle_started_at": "2026-09-10T22:03:41.004457+00:00"
+   }
+  ],
+  "occurrences": 0
+ },
+ "cross_occurrence_id": "273c64ef-9bff-4315-9298-a99089ec6bd0",
+ "after_occurrence_insert": {
+  "pattern": {
+   "id": "ee7f768e-69e8-44d1-98b9-19321226861a",
+   "pattern_key": "pronunciation_th_as_s",
+   "category": "pronunciation_intonation",
+   "target_form": "th_as_s",
+   "frequency": 1,
+   "last_seen_at": "2026-09-10T22:03:41.004457+00:00",
+   "next_review_at": "2026-09-11T22:03:41.004457+00:00",
+   "mastery_score": "0.00"
+  },
+  "attempts": [
+   {
+    "id": "2cc7908b-fc74-4d6c-b0d9-4b2cebfc1a58",
+    "attempt_seq": 18,
+    "target_form": "th_as_s",
+    "target_sound": "th_as_s",
+    "outcome": "incorrect",
+    "signal_source": "nova_tool",
+    "pattern_id": "ee7f768e-69e8-44d1-98b9-19321226861a",
+    "resolved_at": "2026-09-10T22:03:41.004457+00:00"
+   }
+  ],
+  "review_tasks": [
+   {
+    "id": "0ab0bcb1-97f2-4c17-b4af-5a69cfc427dc",
+    "task_type": "rephrase",
+    "review_stage": 1,
+    "status": "pending",
+    "due_at": "2026-09-11T22:03:41.004457+00:00",
+    "completed_at": null,
+    "cycle_started_at": "2026-09-10T22:03:41.004457+00:00"
+   }
+  ],
+  "occurrences": 1
+ },
+ "after_grammar_recount": {
+  "pattern": {
+   "id": "ee7f768e-69e8-44d1-98b9-19321226861a",
+   "pattern_key": "pronunciation_th_as_s",
+   "category": "pronunciation_intonation",
+   "target_form": "th_as_s",
+   "frequency": 1,
+   "last_seen_at": "2026-09-10T22:03:40.998401+00:00",
+   "next_review_at": "2026-09-11T22:03:41.004457+00:00",
+   "mastery_score": "0.00"
+  },
+  "attempts": [
+   {
+    "id": "2cc7908b-fc74-4d6c-b0d9-4b2cebfc1a58",
+    "attempt_seq": 18,
+    "target_form": "th_as_s",
+    "target_sound": "th_as_s",
+    "outcome": "incorrect",
+    "signal_source": "nova_tool",
+    "pattern_id": "ee7f768e-69e8-44d1-98b9-19321226861a",
+    "resolved_at": "2026-09-10T22:03:41.004457+00:00"
+   }
+  ],
+  "review_tasks": [
+   {
+    "id": "0ab0bcb1-97f2-4c17-b4af-5a69cfc427dc",
+    "task_type": "rephrase",
+    "review_stage": 1,
+    "status": "pending",
+    "due_at": "2026-09-11T22:03:41.004457+00:00",
+    "completed_at": null,
+    "cycle_started_at": "2026-09-10T22:03:41.004457+00:00"
+   }
+  ],
+  "occurrences": 1
+ }
+}

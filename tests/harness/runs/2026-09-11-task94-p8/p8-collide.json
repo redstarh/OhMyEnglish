@@ -1,0 +1,112 @@
+{
+ "after_second_attempt": {
+  "pattern": {
+   "id": "ee7f768e-69e8-44d1-98b9-19321226861a",
+   "pattern_key": "pronunciation_th_as_s",
+   "category": "pronunciation_intonation",
+   "target_form": "th_as_s",
+   "frequency": 2,
+   "last_seen_at": "2026-09-10T22:04:22.885601+00:00",
+   "next_review_at": "2026-09-11T22:04:22.885601+00:00",
+   "mastery_score": "0.00"
+  },
+  "attempts": [
+   {
+    "id": "2cc7908b-fc74-4d6c-b0d9-4b2cebfc1a58",
+    "attempt_seq": 18,
+    "target_form": "th_as_s",
+    "target_sound": "th_as_s",
+    "outcome": "incorrect",
+    "signal_source": "nova_tool",
+    "pattern_id": "ee7f768e-69e8-44d1-98b9-19321226861a",
+    "resolved_at": "2026-09-10T22:03:41.004457+00:00"
+   },
+   {
+    "id": "e8e356de-a2c6-4072-8aa9-480b7a5e8cc4",
+    "attempt_seq": 19,
+    "target_form": "th_as_s",
+    "target_sound": "th_as_s",
+    "outcome": "incorrect",
+    "signal_source": "nova_tool",
+    "pattern_id": "ee7f768e-69e8-44d1-98b9-19321226861a",
+    "resolved_at": "2026-09-10T22:04:22.885601+00:00"
+   }
+  ],
+  "review_tasks": [
+   {
+    "id": "0ab0bcb1-97f2-4c17-b4af-5a69cfc427dc",
+    "task_type": "rephrase",
+    "review_stage": 1,
+    "status": "abandoned",
+    "due_at": "2026-09-11T22:03:41.004457+00:00",
+    "completed_at": null,
+    "cycle_started_at": "2026-09-10T22:03:41.004457+00:00"
+   },
+   {
+    "id": "7926e6da-fd32-4c61-8b9a-f71df5d1d592",
+    "task_type": "rephrase",
+    "review_stage": 1,
+    "status": "pending",
+    "due_at": "2026-09-11T22:04:22.885601+00:00",
+    "completed_at": null,
+    "cycle_started_at": "2026-09-10T22:04:22.885601+00:00"
+   }
+  ],
+  "occurrences": 1
+ },
+ "after_grammar_recount": {
+  "pattern": {
+   "id": "ee7f768e-69e8-44d1-98b9-19321226861a",
+   "pattern_key": "pronunciation_th_as_s",
+   "category": "pronunciation_intonation",
+   "target_form": "th_as_s",
+   "frequency": 1,
+   "last_seen_at": "2026-09-10T22:03:40.998401+00:00",
+   "next_review_at": "2026-09-11T22:04:22.885601+00:00",
+   "mastery_score": "0.00"
+  },
+  "attempts": [
+   {
+    "id": "2cc7908b-fc74-4d6c-b0d9-4b2cebfc1a58",
+    "attempt_seq": 18,
+    "target_form": "th_as_s",
+    "target_sound": "th_as_s",
+    "outcome": "incorrect",
+    "signal_source": "nova_tool",
+    "pattern_id": "ee7f768e-69e8-44d1-98b9-19321226861a",
+    "resolved_at": "2026-09-10T22:03:41.004457+00:00"
+   },
+   {
+    "id": "e8e356de-a2c6-4072-8aa9-480b7a5e8cc4",
+    "attempt_seq": 19,
+    "target_form": "th_as_s",
+    "target_sound": "th_as_s",
+    "outcome": "incorrect",
+    "signal_source": "nova_tool",
+    "pattern_id": "ee7f768e-69e8-44d1-98b9-19321226861a",
+    "resolved_at": "2026-09-10T22:04:22.885601+00:00"
+   }
+  ],
+  "review_tasks": [
+   {
+    "id": "0ab0bcb1-97f2-4c17-b4af-5a69cfc427dc",
+    "task_type": "rephrase",
+    "review_stage": 1,
+    "status": "abandoned",
+    "due_at": "2026-09-11T22:03:41.004457+00:00",
+    "completed_at": null,
+    "cycle_started_at": "2026-09-10T22:03:41.004457+00:00"
+   },
+   {
+    "id": "7926e6da-fd32-4c61-8b9a-f71df5d1d592",
+    "task_type": "rephrase",
+    "review_stage": 1,
+    "status": "pending",
+    "due_at": "2026-09-11T22:04:22.885601+00:00",
+    "completed_at": null,
+    "cycle_started_at": "2026-09-10T22:04:22.885601+00:00"
+   }
+  ],
+  "occurrences": 1
+ }
+}

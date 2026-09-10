@@ -600,6 +600,19 @@ select count(*) from harness_review_task_baseline b join review_tasks r on r.id 
 > ⚠️ 실제로 2026-09-10 시점에 `verb_tense_past_simple_for_past_events` 의 `next_review_at` 이
 > 복원 불가로 어긋난 채 남아 있다 — 그 값을 새 기준선으로 굳히는 것이 지금의 유일한 선택이고
 > 경위는 `TASK-83` 노트가 갖는다.
+>
+> ### ✅ 그 전이를 **2026-09-11 에 실행했다** (`TASK-94` · `runs/2026-09-11-task94-p8.md` §7)
+>
+> 위 절차를 그대로 밟았다: 옛 컬럼 둘로 drift → **0**(행 수 9 = 9) → 여섯 컬럼으로 재스냅샷 →
+> `harness_review_task_baseline`(15행)을 **신설**했다. 그 표는 그때까지 **존재하지 않았다.**
+> ⇒ **지금은 위 drift 쿼리 둘이 그대로 돈다. 다음 회차가 이 전이를 다시 할 필요가 없다.**
+> ⚠️ 그 재스냅샷이 굳힌 값에 위 `next_review_at` `2026-09-12 23:59:37+00` 이 포함된다.
+>
+> ⛔ **왜 전이가 하루 남아 있었나 — 절차의 산출물이 둘로 갈려 있었다.** `TASK-91` P7 회차는 이 절을
+> **파일 스냅샷**(회차 디렉터리의 JSON)으로 만족시켰고 **DB baseline 표는 갱신하지 않았다.**
+> 그래서 「§8-0 을 따랐다」가 참인데도 다음 회차가 옛 스키마 오류를 만났다.
+> ⇒ **두 산출물을 함께 낸다**: 회차 디렉터리의 JSON 은 **그 회차의 증거**이고, DB baseline 표는
+> **drift 대조의 기준**이다. 한쪽만 하면 다른 쪽이 낡는다.
 
 ```sql
 drop table if exists harness_pattern_baseline;

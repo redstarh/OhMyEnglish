@@ -1,0 +1,9 @@
+article_missing_before_noun | article | 7 | 2026-09-03 13:56:38.186958+00 | 2026-09-04 13:56:38.186958+00 | 0.00
+article_missing_the_before_place_noun | article | 5 | 2026-09-08 19:54:39.449652+00 | 2026-09-09 19:54:39.449652+00 | 0.00
+article_wrong_definite_article | article | 2 | 2026-09-02 23:15:01.903223+00 | 2026-09-03 23:15:01.903223+00 | 0.00
+business_expression_verb_noun_collocation | business_expression | 3 | 2026-08-31 22:21:03.123308+00 | 2026-09-01 22:21:03.123308+00 | 0.00
+preposition_missing_to_after_go | preposition | 1 | 2026-09-03 13:07:28.002052+00 | 2026-09-09 14:36:53.838781+00 | 0.00
+preposition_time_expression_ago | preposition | 3 | 2026-09-02 23:15:01.903223+00 | 2026-09-03 23:15:01.903223+00 | 0.00
+pronunciation_an_as_a | pronunciation_intonation | 2 | 2026-09-03 13:51:26.680389+00 | 2026-09-04 13:51:26.680389+00 | 0.00
+verb_tense_past_simple_for_past_events | verb_tense | 2 | 2026-09-08 19:54:47.841249+00 | 2026-09-12 23:59:37.666124+00 | 0.00
+word_order_time_adverb_placement | word_order | 1 | 2026-09-03 13:50:47.323905+00 | 2026-09-09 14:36:53.838781+00 | 0.00

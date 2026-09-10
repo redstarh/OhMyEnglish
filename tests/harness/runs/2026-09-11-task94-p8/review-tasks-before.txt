@@ -1,0 +1,15 @@
+fcc040e4-9471-42ae-b304-a1de83ec655b | article_missing_before_noun | 1 | pending | 2026-09-04 13:56:38.186958+00 | 
+0ca722b5-1473-450f-b8f9-6df450e6df45 | article_missing_before_noun | 2 | superseded | 2026-09-11 23:16:37.719347+00 | 
+76114646-e439-40bc-a8b7-c7ff51812b9e | article_missing_the_before_place_noun | 1 | abandoned | 2026-09-07 14:36:53.838781+00 | 
+985b147b-822f-4583-ad6f-c034f21cc82a | article_missing_the_before_place_noun | 1 | pending | 2026-09-09 19:54:39.449652+00 | 
+1cdb9395-5a85-47db-8eb1-0578ef62c8cc | article_missing_the_before_place_noun | 1 | abandoned | 2026-09-09 19:54:32.159162+00 | 
+ddac274d-c4c7-4da2-b5d0-7726abede1d8 | article_wrong_definite_article | 1 | pending | 2026-09-03 23:15:01.903223+00 | 
+824d6519-8f18-4e2c-9116-af973524f09a | business_expression_verb_noun_collocation | 1 | pending | 2026-09-01 22:21:03.123308+00 | 
+4fa6575a-ed4e-4005-a7f8-b06f6965d116 | preposition_missing_to_after_go | 1 | done | 2026-09-04 13:07:28.002052+00 | 2026-09-06 14:36:53.838781+00
+cf3978e8-8120-4eae-82f9-1829dc812beb | preposition_missing_to_after_go | 2 | pending | 2026-09-09 14:36:53.838781+00 | 
+29f1446a-2122-4882-9a9f-3d94fbe8d79a | preposition_time_expression_ago | 1 | pending | 2026-09-03 23:15:01.903223+00 | 
+a0ccb09d-5022-4608-8235-873c54141fd5 | pronunciation_an_as_a | 1 | pending | 2026-09-04 13:51:26.680389+00 | 
+ede30660-9e7e-4a5f-9cec-c53080dd5478 | verb_tense_past_simple_for_past_events | 1 | pending | 2026-09-09 19:54:47.841249+00 | 
+b0170ca1-941d-4fda-8fc4-09b2ced90fe2 | verb_tense_past_simple_for_past_events | 1 | superseded | 2026-09-09 23:18:06.810833+00 | 
+1c50ba6f-8276-4cb2-b66b-eda0e61befa7 | word_order_time_adverb_placement | 1 | done | 2026-09-04 13:50:47.323905+00 | 2026-09-06 14:36:53.838781+00
+dd9bb8f2-d2e8-41c2-a759-5c3f55aae588 | word_order_time_adverb_placement | 2 | pending | 2026-09-09 14:36:53.838781+00 | 

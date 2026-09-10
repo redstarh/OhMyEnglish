@@ -1,0 +1,112 @@
+{
+ "after_second_attempt": {
+  "pattern": {
+   "id": "cb1d2b09-3daf-4ee5-af22-28f6a3f3a95d",
+   "pattern_key": "pronunciation_th_as_s",
+   "category": "pronunciation_intonation",
+   "target_form": "th_as_s",
+   "frequency": 2,
+   "last_seen_at": "2026-09-10T22:07:36.412036+00:00",
+   "next_review_at": "2026-09-11T22:07:36.412036+00:00",
+   "mastery_score": "0.00"
+  },
+  "attempts": [
+   {
+    "id": "2ccb1846-c391-4ea6-8ffd-db2618c09546",
+    "attempt_seq": 20,
+    "target_form": "I think the report is ready for the meeting.",
+    "target_sound": "th_as_s",
+    "outcome": "incorrect",
+    "signal_source": "nova_tool",
+    "pattern_id": "cb1d2b09-3daf-4ee5-af22-28f6a3f3a95d",
+    "resolved_at": "2026-09-10T22:07:36.151703+00:00"
+   },
+   {
+    "id": "2ffdb123-17cd-4316-bb3e-426479fc85ca",
+    "attempt_seq": 21,
+    "target_form": "I think the report is ready for the meeting.",
+    "target_sound": "th_as_s",
+    "outcome": "incorrect",
+    "signal_source": "nova_tool",
+    "pattern_id": "cb1d2b09-3daf-4ee5-af22-28f6a3f3a95d",
+    "resolved_at": "2026-09-10T22:07:36.412036+00:00"
+   }
+  ],
+  "review_tasks": [
+   {
+    "id": "6144d185-ad78-43cb-8ec7-6d111071eedb",
+    "task_type": "rephrase",
+    "review_stage": 1,
+    "status": "abandoned",
+    "due_at": "2026-09-11T22:07:36.151703+00:00",
+    "completed_at": null,
+    "cycle_started_at": "2026-09-10T22:07:36.151703+00:00"
+   },
+   {
+    "id": "2395cf30-1424-4634-b393-71960f0a6663",
+    "task_type": "rephrase",
+    "review_stage": 1,
+    "status": "pending",
+    "due_at": "2026-09-11T22:07:36.412036+00:00",
+    "completed_at": null,
+    "cycle_started_at": "2026-09-10T22:07:36.412036+00:00"
+   }
+  ],
+  "occurrences": 1
+ },
+ "after_grammar_recount": {
+  "pattern": {
+   "id": "cb1d2b09-3daf-4ee5-af22-28f6a3f3a95d",
+   "pattern_key": "pronunciation_th_as_s",
+   "category": "pronunciation_intonation",
+   "target_form": "th_as_s",
+   "frequency": 1,
+   "last_seen_at": "2026-09-10T22:07:36.146237+00:00",
+   "next_review_at": "2026-09-11T22:07:36.412036+00:00",
+   "mastery_score": "0.00"
+  },
+  "attempts": [
+   {
+    "id": "2ccb1846-c391-4ea6-8ffd-db2618c09546",
+    "attempt_seq": 20,
+    "target_form": "I think the report is ready for the meeting.",
+    "target_sound": "th_as_s",
+    "outcome": "incorrect",
+    "signal_source": "nova_tool",
+    "pattern_id": "cb1d2b09-3daf-4ee5-af22-28f6a3f3a95d",
+    "resolved_at": "2026-09-10T22:07:36.151703+00:00"
+   },
+   {
+    "id": "2ffdb123-17cd-4316-bb3e-426479fc85ca",
+    "attempt_seq": 21,
+    "target_form": "I think the report is ready for the meeting.",
+    "target_sound": "th_as_s",
+    "outcome": "incorrect",
+    "signal_source": "nova_tool",
+    "pattern_id": "cb1d2b09-3daf-4ee5-af22-28f6a3f3a95d",
+    "resolved_at": "2026-09-10T22:07:36.412036+00:00"
+   }
+  ],
+  "review_tasks": [
+   {
+    "id": "6144d185-ad78-43cb-8ec7-6d111071eedb",
+    "task_type": "rephrase",
+    "review_stage": 1,
+    "status": "abandoned",
+    "due_at": "2026-09-11T22:07:36.151703+00:00",
+    "completed_at": null,
+    "cycle_started_at": "2026-09-10T22:07:36.151703+00:00"
+   },
+   {
+    "id": "2395cf30-1424-4634-b393-71960f0a6663",
+    "task_type": "rephrase",
+    "review_stage": 1,
+    "status": "pending",
+    "due_at": "2026-09-11T22:07:36.412036+00:00",
+    "completed_at": null,
+    "cycle_started_at": "2026-09-10T22:07:36.412036+00:00"
+   }
+  ],
+  "occurrences": 1
+ }
+}
