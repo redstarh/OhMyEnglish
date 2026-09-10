@@ -1,10 +1,10 @@
 ---
 id: TASK-73
 title: W/R/G AC 테스트에 뮤테이션 KILL 확인을 붙인다 (결정 48 의 등가 증거)
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-09 14:39'
-updated_date: '2026-09-10 01:08'
+updated_date: '2026-09-10 01:09'
 labels: []
 dependencies: []
 ordinal: 76000
@@ -41,7 +41,7 @@ ordinal: 76000
 - [x] #2 R1~R3 각 항목에 같은 것을 한다
 - [x] #3 G1~G4 각 항목에 같은 것을 한다
 - [x] #4 뮤테이션이 SURVIVED 하는 자리는 KILL 로 위장하지 않고 그 사실과 이유를 남긴다 — 기존 SURVIVED 주석을 지우지 않는다
-- [ ] #5 붙인 뒤 게이트 넷을 다시 재고 AC 문서 「선언 자리」 표의 항목 4 를 갱신한다
+- [x] #5 붙인 뒤 게이트 넷을 다시 재고 AC 문서 「선언 자리」 표의 항목 4 를 갱신한다
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -98,4 +98,20 @@ AC 항목은 열넷임 — W1~W7 · R1~R3 · G1~G4. 각 항목마다 **그 항�
 게이트: pytest 897 passed · 게이트 밖 ruff 0건 · format 100 files · ty 통과.
 
 남은 것은 AC#1(W1~W7 — W1 은 이전 세션에서 완료)과 AC#5(게이트 재측정 + AC 문서 항목 4 갱신)다.
+
+2026-09-10 완료 — AC 항목 열넷 전부에 뮤테이션 KILL 확인을 붙였다.
+
+W1(TASK-76 기록을 테스트로 옮김) · W2 · W3 · W4 · W5 · W6 · W7 · R1 · R2 · R3 · G1 · G2 · G3 · G4.
+
+⛔ 이 회차에서 가장 값어치 있는 발견 — W5 의 두 변이가 서로 다른 테스트에 걸린다. MAX_ATTEMPTS 를 5에서 500으로 바꾸면 거동 테스트는 통과하고 상수 단정만 FAIL 한다(거동 테스트가 상수를 참조해 기대값을 만들기 때문에 상수를 따라간다). 상수를 그대로 두고 비교를 >= 에서 > 로 바꾸면 거동 테스트가 FAIL 하고 상수 단정은 통과한다. 즉 둘 중 하나만 있으면 W5 의 절반이 무보호다.
+
+같은 구조가 W7 에도 있다 — 저장 전 거부는 claude_schema 의 confidence 범위 단정이 잡고 큐 보고는 pipeline 의 fail_or_retry 단정이 잡는다. 한쪽만 재면 job 이 running 에 남아 「lease expired without report」라는 거짓 사유로 종결되는 경로가 무보호로 남는다.
+
+⚠️ 노트가 예정한 대상과 내가 고른 대상이 다른 자리 둘을 밝힌다. W3 은 노트가 「같은 (session_id, sequence_no) 재insert → unique 위반」을 골랐는데 그것은 W3 정의의 «추가 거동»이고, 나는 주 요구인 replace 계약을 골랐다. W7 은 노트가 통합 쪽만 골랐는데 정의가 둘을 요구하므로 양쪽을 다 쟀다.
+
+⚠️ 노트의 줄 번호가 편집으로 밀려 있었다 — G3 는 1128 이 아니라 1391 근처였고 W7 의 277 은 다른 테스트가 됐다. 이름으로 다시 찾았다. 원칙 2(줄 번호로 가리키지 않는다)가 태스크뿐 아니라 테스트에도 적용된다는 사례다.
+
+게이트 넷을 다시 쟀다: pytest 897 passed · ruff check exit 0 · format 34 files already formatted(백엔드) · 게이트 밖 ruff 0건 · format 100 files · ty check 통과 · 프론트 tsc exit 0 · eslint exit 0.
+
+AC 문서 「선언 자리」 표의 항목 4 를 ✅ 충족으로 갱신했고, 그 위 판정 문장도 함께 고쳤다 — 남은 미충족이 항목 6 하나임을 명시했다. ⛔ 항목 6 은 재리뷰 HIGH 를 고친 뒤 재확인이 미수신이라 판정을 기록하지 못했다(TASK-70 소유). 「HIGH 를 고쳤다」는 Approve 가 아니다.
 <!-- SECTION:NOTES:END -->
