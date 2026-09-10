@@ -164,12 +164,27 @@ so do not rank these against the grammar counts above):"""
 # 갈리는 지점이 그 상한이다.
 # ⚠️ 닫는 `"""`를 새 줄에 두지 않는다(`_PRONUNCIATION_NOTE`와 같은 이유 — `"\n".join`이 개행을
 # 하나 더 얹어 절 사이 간격이 이 절만 달라진다).
+#
+# ⛔ **셋째 줄은 「초점 자리를 내주는 것」만으로 부족하다는 관측에서 나왔다**
+# (캡틴 지시 2026-09-10 · 안 1). 초점 자리를 내주고 세션 지시문의 소리 줄이 규칙 9·4 를
+# 대체하게까지 했는데도 실물 왕복에서
+# 발음 코칭이 나지 않았다(`runs/2026-09-10-task75-rule9-rule11-replacement.md`). 그 회차가 찾은
+# 이유는 **계획 블록의 나머지가 소리 줄을 압도한다**는 것이다 — 초점·힌트 시점·질문 다섯이 전부
+# 관사를 가리키면 코치가 관사로 가는 것이 **다수 지시를 따르는 행동**이 된다.
+# 그래서 계획 블록 전체가 한 방향을 가리키게 하고, 질문이 그 소리를 반복해 만들어 **어긋날 기회
+# 자체를 만든다.**
+# ⚠️ **문법 초점을 밀어내지 않는다** — 질문이 둘을 함께 담을 수 있고 그 사실을 규칙이 말한다.
+# 캡틴이 감수한 비용은 「그 세션에서 문법 연습 질문이 줄어드는 것」이고
+# 「문법이 사라지는 것」이 아니다.
 _PRONUNCIATION_FOCUS_RULE = """\
 Pronunciation focus for today:
 - A pronunciation pattern is due for review in the list above. Give it
   one of the two focus slots, and keep the other slot for a grammar pattern from those two lists.
 - Do not drop the grammar focus to make room — the learner works on both today. If those two
-  lists carry no grammar pattern, the pronunciation pattern alone is fine."""
+  lists carry no grammar pattern, the pronunciation pattern alone is fine.
+- Write the questions so they give that sound repeated chances to come up: build them around
+  words that contain it, so the learner says it several times. Where you can, let the same
+  question still exercise the grammar focus — one sentence can carry both."""
 
 # 키 이름은 Task 5(`app.models.plan.PlanOutput`, `extra="forbid"`)와 글자 그대로 같아야 한다 —
 # 하나만 어긋나면 실물 모델 응답이 검증 단계에서 전부 거부된다. 초점 1~2개·질문 3~5개는

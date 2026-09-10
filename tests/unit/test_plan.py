@@ -333,6 +333,35 @@ def test_prompt_gives_a_focus_slot_to_a_pronunciation_pattern_due_for_review(pla
     assert "Do not drop the grammar focus" in rule
 
 
+def test_the_pronunciation_rule_also_aims_the_questions_at_that_sound(plan_input_factory):
+    """캡틴 지시 2026-09-10(안 1) — **질문도 그 소리를 겨냥해 만들게 한다.**
+
+    ⚠️ **이것은 추측이 아니라 관측에서 나왔다.** 초점 자리를 내주고 세션 지시문의 소리 줄이 규칙
+    9·4 를 대체하게까지 했는데도 실물 왕복에서 발음 코칭이 나지 않았다
+    (`runs/2026-09-10-task75-rule9-rule11-replacement.md`). 그 회차가 찾은 이유는 **계획 블록의
+    나머지가 소리 줄을 압도한다**는 것이다 — 초점·힌트 시점·질문 다섯이 전부 관사를 가리키면
+    코치가 관사로 가는 것이 다수 지시를 따르는 행동이 된다.
+
+    그래서 **계획 블록 전체가 한 방향을 가리키게** 한다. 질문이 그 소리를 반복해서 만들면 학습자가
+    그 소리를 여러 번 말하고, 어긋날 기회 자체가 생긴다.
+
+    ⛔ **범위는 발음 초점이 지정된 세션으로 한정된다** — 이 규칙 블록 자체가 조건부이므로
+    (`due_reviews` 에 발음 카테고리가 있을 때만 붙는다) 평소 계획은 그대로다. 캡틴 지시가 그 한정을
+    명시했다.
+    """
+    data = plan_input_factory(
+        due_keys=["article_missing"],
+        due_pronunciation=["pronunciation_an_as_a"],
+    )
+
+    prompt = build_plan_prompt(data)
+
+    rule = _pronunciation_focus_rule(prompt)
+    assert "give that sound repeated chances" in rule
+    # 문법 초점이 여전히 남으므로 질문이 **둘 다** 담을 수 있어야 한다 — 그 사실을 규칙이 말한다.
+    assert "still exercise the grammar focus" in rule
+
+
 def test_prompt_omits_the_pronunciation_focus_rule_when_none_is_due(plan_input_factory):
     """음성 케이스 — AC#1의 조건은 「복습 예정일에 걸릴 때」다. 시도 집계만으로는 붙지 않는다.
 

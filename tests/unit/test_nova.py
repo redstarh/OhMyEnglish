@@ -1107,7 +1107,8 @@ def test_the_sound_line_replaces_grammar_first_and_spends_the_one_correction():
     """`TASK-75` — 소리 줄이 **규칙 9 와 규칙 4 를 명시로 대체**해야 발음이 실제로 다뤄진다.
 
     ⚠️ **자리를 내주는 것만으로는 부족하다는 것이 실물로 확정됐다** (`TASK-81` · 왕복 28회 ·
-    조건 넷 전부 0 — `runs/2026-09-10-task81-pronunciation-focus.md`). 남은 층이 고정부의 두 규칙이고
+    조건 넷 전부 0 — `runs/2026-09-10-task81-pronunciation-focus.md`).
+    남은 층이 고정부의 두 규칙이고
     **겹치지 않는 두 경로로 막는다**:
       * 규칙 9 `Grammar first … leave pronunciation alone` — 문법 교정이 **없는** 턴에서도 막는다.
       * 규칙 11 `A pronunciation correction is a correction … never add it on top of a grammar
@@ -1134,7 +1135,8 @@ def test_the_sound_line_replaces_grammar_first_and_spends_the_one_correction():
     )
 
     sound_line = _line_starting_with(block, _SOUND_LINE)
-    # 규칙 9 축 — 이 소리가 먼저다. 「같은 축을 말하는 줄은 대체를 문장으로 적는다」는 이 함수의 규약.
+    # 규칙 9 축 — 이 소리가 먼저다.
+    # 「같은 축을 말하는 줄은 대체를 문장으로 적는다」는 이 함수의 규약.
     assert "instead of the Grammar first rule" in sound_line
     # 규칙 4·11 축 — 예산을 늘리지 않고 그 한 자리를 발음이 쓴다.
     assert "spend the one correction" in sound_line
