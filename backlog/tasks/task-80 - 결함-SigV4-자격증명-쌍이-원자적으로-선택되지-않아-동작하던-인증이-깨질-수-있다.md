@@ -4,7 +4,7 @@ title: '결함: SigV4 자격증명 쌍이 원자적으로 선택되지 않아 �
 status: Done
 assignee: []
 created_date: '2026-09-09 22:55'
-updated_date: '2026-09-10 00:34'
+updated_date: '2026-09-10 00:46'
 labels: []
 dependencies: []
 ordinal: 83000
@@ -48,4 +48,22 @@ AC#3 무력화 확인 — 두 방향을 각각 잡았다.
 ⚠️ 두 방향을 모두 테스트한 이유: 구현이 AWS_ACCESS_KEY_ID 의 존재만 보고 분기하면 secret 만 있는 케이스가 조용히 통과한다.
 
 게이트: pytest 895 passed · ruff check exit 0 · format 34 files already formatted · ty check 통과 · 게이트 밖 ruff 0건.
+
+2026-09-10 재리뷰 HIGH 1건을 받아 고쳤다 — 첫 판이 못 막은 반대 방향이다.
+
+⛔ 첫 판의 결함: 「환경이 정본인가」를 access·secret 만 보고 판정했다. 환경에 AWS_SESSION_TOKEN 만 잔류한 상태(이전 SSO 세션 찌꺼기)에서 .env 의 영구 IAM user 키 쌍을 올리면, 그 쌍에 잔류 임시 토큰이 붙어 삼중값이 섞이고 missing_sigv4 는 토큰을 보지 않으므로 SigV4 준비 완료로 판단해 bearer 를 지웠다. 내가 직접 재현했다 — .venv/bin/python 으로 그 상태를 만들어 돌리니 AWS_SESSION_TOKEN=stale-leftover-token 이 남고 BEARER 가 None 이 됐다.
+
+⛔ 그것은 알고 남긴 축소였다. 첫 판 docstring 이 「환경에 남아 있는 잔여 토큰은 건드리지 않는다 — 환경을 지우는 것은 이 함수의 몫이 아니다」고 스스로 적었고, 그 문장이 가리키는 상태가 정확히 이 결함이다. 리뷰어가 그 문장과 결함이 같은 자리라는 것을 지적했다.
+
+고침: 판정 키 집합을 _SIGV4_SOURCE_KEYS 로 분리했다(_SIGV4_ENV_KEYS + AWS_SESSION_TOKEN). 잔류 토큰이 환경을 「부분 자격증명」으로 만들어 아무것도 빌려 오지 않는다. 토큰 주입도 setdefault 에서 대입으로 바꿨다 — 그 분기는 세 키가 환경에 하나도 없음을 보장하므로 setdefault 는 「환경이 이길 수 있다」를 시사해 게이트의 뜻만 흐린다.
+
+⛔ 두 상수를 합치지 않은 것이 핵심이다. _SIGV4_ENV_KEYS 에 토큰을 넣으면 missing_sigv4 가 장기 IAM user 키 쌍을 불완전으로 판정해 SigV4 경로가 통째로 죽는다. 무력화로 확인했다 — 합치면 기존 테스트 4건이 FAIL 한다.
+
+무력화 확인 두 방향(직접 관측):
+⑴ _SIGV4_SOURCE_KEYS 를 _SIGV4_ENV_KEYS 로 되돌리면 새 테스트 2건이 FAIL 한다.
+⑵ 두 상수를 합치면 기존 테스트 4건이 FAIL 한다(injects_dotenv_credentials · preserves_existing_environ · removes_bearer_once_sigv4 · pair_does_not_take_a_session_token).
+
+게이트: pytest 897 passed · ruff check exit 0 · format 34 files already formatted · ty check 통과 · 게이트 밖 ruff 0건 · format 100 files.
+
+⚠️ 리뷰 판정 자체의 기록은 TASK-70 이 소유한다 — 이 태스크는 지적을 닫는 몫만 갖는다.
 <!-- SECTION:NOTES:END -->

@@ -42,6 +42,15 @@ _BEARER_ENV_KEY = "AWS_BEARER_TOKEN_BEDROCK"
 # 필요하므로 필수 목록에 넣지 않는다.
 _SIGV4_ENV_KEYS = ("AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY")
 
+# **「환경이 자격증명의 정본인가」를 판정하는 키 집합.**
+# `_SIGV4_ENV_KEYS`와 **다르고, 달라야 한다** —
+# 그쪽은 「서명에 필수인 키」이고 이쪽은 「환경에 있으면 다른 출처를 섞는 키」다. 세션 토큰은 서명에
+# 항상 필요하지는 않지만, 환경에 잔류한 채 `.env`의 영구 키 쌍이 올라오면 **영구 쌍 + 임시 토큰**
+# 이라는 섞인 삼중값을 만든다(`TASK-80` 재리뷰 HIGH — 직접 재현했다).
+# ⛔ 두 상수를 합치지 마라: `_SIGV4_ENV_KEYS`에 토큰을 넣으면 `missing_sigv4`가 장기 IAM user 키
+# 쌍을 **불완전으로 판정**해 SigV4 경로가 통째로 죽는다(장기 키에는 토큰이 없다).
+_SIGV4_SOURCE_KEYS = (*_SIGV4_ENV_KEYS, "AWS_SESSION_TOKEN")
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
@@ -150,18 +159,25 @@ def prepare_bedrock_credentials(settings: Settings) -> None:
     `.env`에서 아무것도 빌려 오지 않는다. 환경에 하나도 없을 때만 `.env`의 **완전한 쌍**을
     올린다 — 한쪽만 있는 `.env`도 쌍이 아니므로 올리지 않는다.
 
-    ⚠️ **세션 토큰도 쌍과 같은 출처여야 한다.** 임시 자격증명은 셋이 한 세트라, 셸의 영구 키
-    쌍에 `.env`의 임시 토큰이 붙으면 서명이 거부된다. `TASK-80`의 AC 는 access·secret 만 이름을
+    ⚠️ **세션 토큰도 쌍과 같은 출처여야 한다.** 임시 자격증명은 셋이 한 세트라, 한쪽의 영구 키
+    쌍에 다른 쪽의 임시 토큰이 붙으면 서명이 거부된다. `TASK-80`의 AC 는 access·secret 만 이름을
     들지만 같은 함수의 같은 기전이고 「동작하던 인증을 깨지 않는다」는 그 기준에 그대로 걸린다.
+
+    ⛔ **그래서 판정 키 집합이 `_SIGV4_SOURCE_KEYS`다** (재리뷰 HIGH 로 고친 자리). 첫 판은 access·
+    secret 만 보고 「환경이 정본인가」를 판정했는데, 환경에 **토큰만 잔류**한 상태(이전 SSO 세션의
+    찌꺼기)에서 `.env`의 영구 키 쌍을 올려 **영구 쌍 + 임시 토큰**을 만들고 bearer 까지 지웠다.
+    ⚠️ 그 결함은 **알고 남긴 축소였다** — 첫 판이 *"환경에 남아 있는 잔여 토큰은 건드리지 않는다"*고
+    스스로 적었고 그 문장이 가리키는 상태가 정확히 그것이다. 지금은 잔류 토큰이 환경을 「부분
+    자격증명」으로 만들어 아무것도 빌려 오지 않는다.
     """
-    if not any(os.environ.get(key) for key in _SIGV4_ENV_KEYS):
+    if not any(os.environ.get(key) for key in _SIGV4_SOURCE_KEYS):
         if settings.aws_access_key_id and settings.aws_secret_access_key:
+            # 이 분기는 세 키가 환경에 **하나도** 없음을 보장하므로 `setdefault`가 아니라 대입이다 —
+            # `setdefault`는 「환경이 이길 수 있다」를 시사해 위 게이트의 뜻을 흐린다.
             os.environ["AWS_ACCESS_KEY_ID"] = settings.aws_access_key_id
             os.environ["AWS_SECRET_ACCESS_KEY"] = settings.aws_secret_access_key
-            # 쌍을 `.env`에서 올리는 이 자리에서만 토큰도 같은 출처에서 온다. 환경에 남아 있는
-            # 잔여 토큰은 건드리지 않는다 — 환경을 지우는 것은 이 함수의 몫이 아니다.
             if settings.aws_session_token:
-                os.environ.setdefault("AWS_SESSION_TOKEN", settings.aws_session_token)
+                os.environ["AWS_SESSION_TOKEN"] = settings.aws_session_token
 
     missing_sigv4 = [key for key in _SIGV4_ENV_KEYS if not os.environ.get(key)]
 

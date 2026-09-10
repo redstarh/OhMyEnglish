@@ -314,6 +314,68 @@ def test_environ_sigv4_pair_does_not_take_a_session_token_from_dotenv(monkeypatc
     assert "AWS_SESSION_TOKEN" not in os.environ
 
 
+def test_a_stale_environ_session_token_blocks_borrowing_a_dotenv_pair(monkeypatch):
+    """`TASK-80` 재리뷰 HIGH — **반대 방향의 섞임.** 이전 고침이 이 경로를 못 막았다.
+
+    입력: 셸에 `AWS_SESSION_TOKEN`만 잔류하고(이전 SSO 임시 자격증명에서 access·secret 은 지웠지만
+    토큰을 안 지운 상태) `.env`에는 **영구 IAM user 키 쌍**이 있다 — 장기 키에는 세션 토큰이 없는
+    것이 정상이다(`Settings.aws_session_token` 주석).
+
+    이전 판의 사고 경로: 환경의 access·secret 이 둘 다 없으므로 쌍 주입 분기에 들어가고, `.env`에
+    토큰이 없어 주입을 건너뛰므로 **잔류 토큰이 그대로 남는다.** 그러면 영구 키 쌍 + 임시 토큰이라는
+    삼중값이 만들어지고, `missing_sigv4`는 그 토큰을 보지 않으므로 SigV4 준비 완료로 판단해
+    **동작 중인 bearer 를 지운다.** 결과는 잘못된 서명이고 이 SDK 는 그것을 무응답 타임아웃으로만
+    드러낸다(설계서 §4.2).
+
+    ⛔ **이것은 알고 남긴 축소였다.** 이전 판 docstring 이 *"환경에 남아 있는 잔여 토큰은 건드리지
+    않는다"*고 스스로 적었고, 그 문장이 가리키는 상태가 정확히 이 결함이다. 「환경이 정본인가」를
+    판정하는 키 집합에 세션 토큰을 넣어 닫는다.
+    """
+    _clear_ambient_env()
+    os.environ["AWS_SESSION_TOKEN"] = "stale-leftover-token"
+    os.environ["AWS_BEARER_TOKEN_BEDROCK"] = "working-bearer-token"
+    monkeypatch.setattr(config_module, "get_settings", _settings_with_credentials)
+    _stub_boto3(monkeypatch)
+
+    config_module.bedrock_client()
+
+    # `.env` 의 쌍을 빌려 오지 않는다 — 잔류 토큰이 이미 환경을 「부분 자격증명」으로 만들었다.
+    assert "AWS_ACCESS_KEY_ID" not in os.environ
+    assert "AWS_SECRET_ACCESS_KEY" not in os.environ
+    assert os.environ["AWS_SESSION_TOKEN"] == "stale-leftover-token"
+    # AC#2 — 동작하던 인증을 깨지 않는다.
+    assert os.environ["AWS_BEARER_TOKEN_BEDROCK"] == "working-bearer-token"
+
+
+def test_a_stale_environ_session_token_is_not_beaten_by_a_dotenv_token(monkeypatch):
+    """같은 게이트의 둘째 방향 — `.env`가 **삼종 전부**를 가져도 잔류 토큰이 있으면
+    빌려 오지 않는다.
+
+    이전 판은 토큰을 `setdefault`로 올렸다. 그러면 `.env`의 **정확히 짝이 맞는** 토큰조차 주입되지
+    않고 잔류 토큰이 이겨서, *"쌍은 한 출처에서만 온다"*는 그 커밋이 세운 계약을 이 경로에서 스스로
+    어긴다(재리뷰가 지목한 두 번째 자리).
+
+    ⚠️ 이 케이스는 위 테스트와 **다른 것을 잡는다**: 위는 「빌려 오지 않는다」이고 이것은 「짝이
+    맞아도 빌려 오지 않는다」다. 게이트를 토큰 유무로 두면 둘 다 닫히지만, 토큰 주입만 `setdefault`
+    에서 대입으로 바꾸면 위 케이스가 남는다.
+    """
+    _clear_ambient_env()
+    os.environ["AWS_SESSION_TOKEN"] = "stale-leftover-token"
+    os.environ["AWS_BEARER_TOKEN_BEDROCK"] = "working-bearer-token"
+    monkeypatch.setattr(
+        config_module,
+        "get_settings",
+        lambda: _settings_with_credentials(session_token="dotenv-session-token"),
+    )
+    _stub_boto3(monkeypatch)
+
+    config_module.bedrock_client()
+
+    assert "AWS_ACCESS_KEY_ID" not in os.environ
+    assert os.environ["AWS_SESSION_TOKEN"] == "stale-leftover-token"
+    assert os.environ["AWS_BEARER_TOKEN_BEDROCK"] == "working-bearer-token"
+
+
 def test_bedrock_client_fails_fast_when_no_credentials_of_any_kind(monkeypatch):
     """설계서 §4.2 — 이 SDK는 자격증명 실패를 예외가 아니라 무응답(타임아웃)으로
     드러낸다. 원인을 추적할 수 있게 클라이언트를 만들기 전에 즉시 실패한다.
