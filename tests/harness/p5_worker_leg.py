@@ -12,6 +12,14 @@ import 하지 않으므로 경로 ②를 **구조적으로** 지나가지 않는
 `available_at` 을 미래로 비켜 두고 원래 값을 JSON 으로 뜬다(`claim_next` 가
 `available_at <= now()` 를 요구한다). `restore` 가 그것을 되돌린다.
 
+⛔ **소유 세션은 `coalesce(j.session_id, u.session_id)` 로 해소한다 — `j.session_id` 만 보면
+`analyze_utterance` 를 통째로 놓친다.** 2026-09-10 에 초판이 그 결함을 갖고 있었고, 위임된 회차가
+`claim` 을 돌리기 «전에» SELECT 로 찾아 멈춰서 `C3a`(`210233be`) 손상을 면했다. 근거와 판별
+출력은 `runs/2026-09-10-task82-p5-p6.md` §2 가 소유한다.
+
+⛔ **스냅샷을 `/tmp` 에 두지 않는다.** 지워지면 보존 job 이 **영구히 30일 뒤로 밀린 채** 남고
+되돌릴 근거가 사라진다. 회차 디렉터리에 두고 커밋한다.
+
 방어를 규율이 아니라 코드에 둔다: `claim` 팔은 **보존 세션 job 이 전부 비켜져 있는지
 먼저 검사하고, 하나라도 claim 가능하면 실행을 거부한다.** guard 를 잊는 것이 이 절차의
 유일한 치명적 실수라서 그렇게 했다.
@@ -32,6 +40,7 @@ import asyncio
 import json
 import sys
 import urllib.request
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 from uuid import UUID
@@ -56,11 +65,22 @@ PRESERVED = (
     "e0c5e580",
 )
 
+# ⛔ **`analyze_utterance` 는 `session_id` 가 NULL 이고 `utterance_id` 로만 세션에 매인다**
+# (2026-09-10 실측: `analyze_utterance` 43건 **전부** 그렇다. `plan_next_session` 6건은 반대다).
+# 그래서 `j.session_id` 만 보는 술어는 **보존 세션의 `analyze_utterance` 를 통째로 놓친다** —
+# 초판이 그랬고, 그 상태로 `claim` 을 돌리면 `claim_next` 가 `order by available_at limit 1` 로
+# **C3a(`210233be`) 의 가장 오래된 job 을 먼저 집어** `attempts` 를 태우고 `running` 으로 만든다.
+# ⚠️ **그 손상은 `verify` 로 안 보인다** — `results.py` 가 `pending`·`running` 을 함께
+# non_terminal 로 세므로 결과 API 는 그대로 `analyzing` 을 낸다
+# (`H-AT` 의 「피해가 눈에 안 보인다」와 같은 형태다).
+# → **소유 세션은 `coalesce(j.session_id, u.session_id)` 로 해소한다.**
 _PRESERVED_JOBS_SQL = """
-select j.id, j.session_id, j.job_type, j.status, j.attempts, j.available_at,
+select j.id, coalesce(j.session_id, u.session_id) as session_id, j.job_type, j.status,
+       j.attempts, j.available_at,
        (j.available_at <= now()) as claimable_now
   from analysis_jobs j
- where left(j.session_id::text, 8) = any($1::text[])
+  left join utterances u on u.id = j.utterance_id
+ where left(coalesce(j.session_id, u.session_id)::text, 8) = any($1::text[])
  order by j.created_at
 """
 
@@ -101,11 +121,14 @@ async def cmd_guard(args: argparse.Namespace) -> int:
         for item in snapshot:
             print(f"  {item['session']} {item['job_type']} {item['status']} {item['available_at']}")
 
+        # ⛔ **술어를 복제하지 않고 «스냅샷의 id» 를 쓴다.** 초판은 같은 집합을 두 곳에서
+        #    각자 계산했고 한쪽만 좁아서 결함이 났다. id 로 묶으면 **스냅샷과 UPDATE 가
+        #    갈릴 수 없다** — 되돌릴 근거가 없는 행을 비켜 두는 일이 구조적으로 사라진다.
         async with pool.acquire() as conn:
             moved = await conn.execute(
                 "update analysis_jobs set available_at = now() + interval '30 days' "
-                "where left(session_id::text, 8) = any($1::text[])",
-                list(PRESERVED),
+                "where id = any($1::uuid[])",
+                [item["job_id"] for item in snapshot],
             )
         print(f"비켜 둠: {moved}")
 
@@ -127,10 +150,17 @@ async def cmd_restore(args: argparse.Namespace) -> int:
     try:
         async with pool.acquire() as conn:
             for item in snapshot:
+                # ⛔ **`$2::timestamptz` 에 문자열을 넘기면 asyncpg 가 거부한다** — 캐스트를
+                #    보고 파라미터 타입을 timestamptz 로 «먼저» 정하므로 `str` 이 들어갈
+                #    자리가 없다. 2026-09-10 실측: `DataError: invalid input for query
+                #    argument $2 … got 'str'`.
+                #    ⚠️ 초판이 그랬고, 그래서 **`guard` 는 성공하는데 `restore` 만 죽었다** —
+                #    스냅샷한 보존 job 전건이 +30일로 밀린 채 남는 가장 위험한 상태다
+                #    (그 회차의 스냅샷은 15건이었다). aware datetime 으로 바꾼다.
                 await conn.execute(
-                    "update analysis_jobs set available_at = $2::timestamptz where id = $1::uuid",
+                    "update analysis_jobs set available_at = $2 where id = $1::uuid",
                     item["job_id"],
-                    item["available_at"],
+                    datetime.fromisoformat(item["available_at"]),
                 )
         print(f"복원 {len(snapshot)}건")
         for r in await _preserved_jobs(pool):
@@ -160,7 +190,16 @@ async def cmd_claim(args: argparse.Namespace) -> int:
             print("claim 할 job 이 없다 — 아무것도 하지 않았다")
             return 0
 
-        sess = str(job.session_id)[:8] if job.session_id else None
+        # ⛔ **`ClaimedJob.session_id` 만 보면 `analyze_utterance` 에 대해 눈이 먼다** — 그 job 은
+        #    `session_id` 가 NULL 이다. 여기서 해소하지 않으면 아래 `exit 3` 방어가 **보존 세션의
+        #    `analyze_utterance` 를 영구히 통과시킨다.** ①과 같은 결함이 이 자리에도 있었다.
+        owner = job.session_id
+        if owner is None and job.utterance_id is not None:
+            async with pool.acquire() as conn:
+                owner = await conn.fetchval(
+                    "select session_id from utterances where id = $1", job.utterance_id
+                )
+        sess = str(owner)[:8] if owner else None
         print(f"claim: job={job.id} type={job.job_type} session={sess}")
         if sess in PRESERVED:
             print(

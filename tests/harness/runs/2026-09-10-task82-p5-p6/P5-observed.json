@@ -1,0 +1,360 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3000/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/p2k.wav",
+  "bytes": 0,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 3.792,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 4,
+   "final": 2,
+   "audio": 137,
+   "session_ended": 0,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 1,
+   "speech_end": 1,
+   "interrupted": 0
+  },
+  "sent": {
+   "audio": 446,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 1
+  },
+  "startedSessionId": "9da2a311-b334-4be6-b5c0-fd7a62f47d7f",
+  "fixture": {
+   "url": "/harness/p2k.wav",
+   "bytes": 0,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 3.792,
+   "startedAt": 138,
+   "endedAt": 3923,
+   "micCalls": 1
+  },
+  "started": {
+   "count": 138,
+   "when": [
+    0,
+    5.48,
+    5.559,
+    5.639,
+    5.719,
+    5.799,
+    5.8790000000000004,
+    5.9590000000000005,
+    6.039000000000001,
+    6.119000000000001,
+    6.199000000000001,
+    6.279000000000001,
+    6.359000000000001,
+    6.439000000000001,
+    6.519000000000001,
+    6.599000000000001,
+    6.679000000000001,
+    6.759000000000001,
+    6.839000000000001,
+    6.919000000000001,
+    6.999000000000001,
+    7.0790000000000015,
+    7.159000000000002,
+    7.239000000000002,
+    7.319000000000002,
+    7.399000000000002,
+    7.479000000000002,
+    7.559000000000002,
+    7.639000000000002,
+    7.719000000000002,
+    7.799000000000002,
+    7.999000000000002,
+    8.000000000000002,
+    8.079000000000002,
+    8.159000000000002,
+    8.239000000000003,
+    8.319000000000003,
+    8.399000000000003,
+    8.479000000000003,
+    8.559000000000003,
+    8.639000000000003,
+    8.719000000000003,
+    8.799000000000003,
+    8.879000000000003,
+    8.959000000000003,
+    9.039000000000003,
+    9.119000000000003,
+    9.199000000000003,
+    9.279000000000003,
+    9.359000000000004,
+    9.439000000000004,
+    9.519000000000004,
+    9.599000000000004,
+    9.679000000000004,
+    9.759000000000004,
+    9.839000000000004,
+    9.919000000000004,
+    9.999000000000004,
+    10.079000000000004,
+    10.159000000000004,
+    10.239000000000004,
+    10.319000000000004,
+    10.399000000000004,
+    10.479000000000005,
+    10.559000000000005,
+    10.639000000000005,
+    10.719000000000005,
+    10.799000000000005,
+    10.879000000000005,
+    10.959000000000005,
+    11.039000000000005,
+    11.119000000000005,
+    11.199000000000005,
+    11.279000000000005,
+    11.359000000000005,
+    11.560000000000006,
+    11.639000000000006,
+    11.719000000000007,
+    11.799000000000007,
+    11.879000000000007,
+    11.959000000000007,
+    12.039000000000007,
+    12.119000000000007,
+    12.199000000000007,
+    12.279000000000007,
+    12.359000000000007,
+    12.439000000000007,
+    12.519000000000007,
+    12.599000000000007,
+    12.679000000000007,
+    12.759000000000007,
+    12.839000000000008,
+    12.919000000000008,
+    12.999000000000008,
+    13.079000000000008,
+    13.159000000000008,
+    13.239000000000008,
+    13.319000000000008,
+    13.399000000000008,
+    13.479000000000008,
+    13.559000000000008,
+    13.639000000000008,
+    13.719000000000008,
+    13.799000000000008,
+    13.879000000000008,
+    14.079000000000008,
+    14.080000000000007,
+    14.159000000000008,
+    14.239000000000008,
+    14.319000000000008,
+    14.399000000000008,
+    14.479000000000008,
+    14.559000000000008,
+    14.639000000000008,
+    14.719000000000008,
+    14.799000000000008,
+    14.879000000000008,
+    14.959000000000009,
+    15.039000000000009,
+    15.119000000000009,
+    15.199000000000009,
+    15.279000000000009,
+    15.359000000000009,
+    15.439000000000009,
+    15.519000000000009,
+    15.599000000000009,
+    15.67900000000001,
+    15.75900000000001,
+    15.83900000000001,
+    15.91900000000001,
+    15.99900000000001,
+    16.079000000000008,
+    16.159000000000006,
+    16.239000000000004,
+    16.319000000000003,
+    16.399,
+    16.479,
+    16.679
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 95,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 4722,
+    "count": 1,
+    "texts": [
+     "답변: 아이티니시프트 리포트 n c o d 더 이절치위드 마이팀"
+    ]
+   },
+   {
+    "ts": 5470,
+    "count": 2,
+    "texts": [
+     "답변: 아이티니시프트 리포트 n c o d 더 이절치위드 마이팀",
+     "질문: I see you want to talk about a report with your team."
+    ]
+   },
+   {
+    "ts": 6194,
+    "count": 2,
+    "texts": [
+     "답변: 아이티니시프트 리포트 n c o d 더 이절치위드 마이팀",
+     "질문:  Let’s start with a simple weekend plan.\nWhat do you want to do this weekend?"
+    ]
+   },
+   {
+    "ts": 6996,
+    "count": 2,
+    "texts": [
+     "답변: 아이티니시프트 리포트 n c o d 더 이절치위드 마이팀",
+     "질문:   Try to say: I want to make a plan."
+    ]
+   },
+   {
+    "ts": 7539,
+    "count": 2,
+    "texts": [
+     "답변: 아이티니시프트 리포트 n c o d 더 이절치위드 마이팀",
+     "질문:  or I want to make a new plan."
+    ]
+   },
+   {
+    "ts": 8227,
+    "count": 2,
+    "texts": [
+     "답변: 아이티니시프트 리포트 n c o d 더 이절치위드 마이팀",
+     "질문: I see you want to talk about a report with your team. Let’s start with a simple weekend plan.\nWhat do you want to do this weekend?  Try to say: I want to make a plan. or I want to make a new plan."
+    ]
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 14.266666666666667
+  },
+  "meta": {
+   "hookedAt": "2026-09-09T23:59:06.069Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1788998346070,
+     "before": "suspended",
+     "afterSync": "suspended",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1788998346081,
+     "before": "suspended",
+     "afterSync": "suspended",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3000/_next/hmr?id=sRB2RHR4WuAhLFFqbwXB1",
+    "ws://localhost:8002/ws/session"
+   ]
+  },
+  "lines": [
+   "답변: 아이티니시프트 리포트 n c o d 더 이절치위드 마이팀",
+   "질문: I see you want to talk about a report with your team. Let’s start with a simple weekend plan.\nWhat do you want to do this weekend?  Try to say: I want to make a plan. or I want to make a new plan."
+  ],
+  "url": "http://localhost:3000/",
+  "log": [
+   {
+    "at": 102,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 4751,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 14291,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 4,
+     "final": 2,
+     "audio": 137,
+     "session_ended": 0,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 1,
+     "speech_end": 1,
+     "interrupted": 0
+    }
+   }
+  ]
+ },
+ "screenshot_session": "../../tests/harness/runs/2026-09-10-task82-p5-p6/P5-session.png",
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3000/results/9da2a311-b334-4be6-b5c0-fd7a62f47d7f",
+  "recv": {
+   "session_started": 1,
+   "partial": 4,
+   "final": 2,
+   "audio": 137,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 1,
+   "speech_end": 1,
+   "interrupted": 0
+  },
+  "sent": {
+   "audio": 480,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "finalLinesAtTerminal": [
+   "답변: 아이티니시프트 리포트 n c o d 더 이절치위드 마이팀",
+   "질문: I see you want to talk about a report with your team. Let’s start with a simple weekend plan.\nWhat do you want to do this weekend?  Try to say: I want to make a plan. or I want to make a new plan."
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "관찰된 신호",
+   "(전사문이 한국어로 인식되었습니다)",
+   "← 학습 시작 화면으로"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><div style=\"margin-top: 1.5rem;\"><h2 style=\"font-size: 1rem;\">발음</h2><div style=\"border-left: 3px solid var(--foreground-muted); padding-left: 0.75rem; margin: 0.75rem 0px;\"><p style=\"margin: 0.25rem 0px 0px; font-size: 0.8rem; color: var(--foreground-muted);\">관찰된 신호</p><p style=\"margin: 0.25rem 0px; color: var(--foreground-muted);\">(전사문이 한국어로 인식되었습니다)</p></div></div><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p>"
+ },
+ "screenshot_results": "../../tests/harness/runs/2026-09-10-task82-p5-p6/P5-results.png"
+}

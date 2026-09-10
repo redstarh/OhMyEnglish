@@ -1,0 +1,388 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3000/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/p2m.wav",
+  "bytes": 0,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 3.038,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 4,
+   "final": 2,
+   "audio": 167,
+   "session_ended": 0,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 1,
+   "speech_end": 1,
+   "interrupted": 0
+  },
+  "sent": {
+   "audio": 460,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 1
+  },
+  "startedSessionId": "34a9ab73-04a7-451f-b4a1-bd140227abfc",
+  "fixture": {
+   "url": "/harness/p2m.wav",
+   "bytes": 0,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 3.038,
+   "startedAt": 106,
+   "endedAt": 3134,
+   "micCalls": 1
+  },
+  "started": {
+   "count": 168,
+   "when": [
+    0,
+    5.032,
+    5.111,
+    5.191,
+    5.271,
+    5.351,
+    5.431,
+    5.511,
+    5.591,
+    5.671,
+    5.751,
+    5.831,
+    5.9110000000000005,
+    5.9910000000000005,
+    6.071000000000001,
+    6.151000000000001,
+    6.231000000000001,
+    6.311000000000001,
+    6.391000000000001,
+    6.471000000000001,
+    6.551000000000001,
+    6.631000000000001,
+    6.711000000000001,
+    6.791000000000001,
+    6.871000000000001,
+    6.951000000000001,
+    7.0310000000000015,
+    7.1110000000000015,
+    7.191000000000002,
+    7.271000000000002,
+    7.351000000000002,
+    7.591000000000002,
+    7.592000000000002,
+    7.671000000000002,
+    7.751000000000002,
+    7.831000000000002,
+    7.911000000000002,
+    7.991000000000002,
+    8.071000000000002,
+    8.151000000000002,
+    8.231000000000002,
+    8.311000000000002,
+    8.391000000000002,
+    8.471000000000002,
+    8.551000000000002,
+    8.631000000000002,
+    8.711000000000002,
+    8.791000000000002,
+    8.871000000000002,
+    8.951000000000002,
+    9.031000000000002,
+    9.111000000000002,
+    9.191000000000003,
+    9.271000000000003,
+    9.351000000000003,
+    9.431000000000003,
+    9.511000000000003,
+    9.591000000000003,
+    9.671000000000003,
+    9.751000000000003,
+    9.831000000000003,
+    9.911000000000003,
+    9.991000000000003,
+    10.071000000000003,
+    10.151000000000003,
+    10.231000000000003,
+    10.311000000000003,
+    10.391000000000004,
+    10.471000000000004,
+    10.551000000000004,
+    10.631000000000004,
+    10.711000000000004,
+    10.912000000000004,
+    10.991000000000005,
+    11.071000000000005,
+    11.151000000000005,
+    11.231000000000005,
+    11.311000000000005,
+    11.391000000000005,
+    11.471000000000005,
+    11.551000000000005,
+    11.631000000000006,
+    11.711000000000006,
+    11.791000000000006,
+    11.871000000000006,
+    11.951000000000006,
+    12.031000000000006,
+    12.111000000000006,
+    12.191000000000006,
+    12.271000000000006,
+    12.351000000000006,
+    12.431000000000006,
+    12.511000000000006,
+    12.591000000000006,
+    12.671000000000006,
+    12.751000000000007,
+    12.831000000000007,
+    12.911000000000007,
+    12.991000000000007,
+    13.071000000000007,
+    13.151000000000007,
+    13.231000000000007,
+    13.311000000000007,
+    13.391000000000007,
+    13.471000000000007,
+    13.551000000000007,
+    13.631000000000007,
+    13.711000000000007,
+    13.791000000000007,
+    13.871000000000008,
+    13.951000000000008,
+    14.031000000000008,
+    14.111000000000008,
+    14.191000000000008,
+    14.271000000000008,
+    14.351000000000008,
+    14.431000000000008,
+    14.511000000000008,
+    14.591000000000008,
+    14.671000000000008,
+    14.751000000000008,
+    14.831000000000008,
+    14.911000000000008,
+    15.112000000000009,
+    15.19100000000001,
+    15.27100000000001,
+    15.35100000000001,
+    15.43100000000001,
+    15.51100000000001,
+    15.59100000000001,
+    15.67100000000001,
+    15.75100000000001,
+    15.83100000000001,
+    15.91100000000001,
+    15.99100000000001,
+    16.07100000000001,
+    16.151000000000007,
+    16.231000000000005,
+    16.311000000000003,
+    16.391000000000002,
+    16.471,
+    16.551,
+    16.630999999999997,
+    16.710999999999995,
+    16.790999999999993,
+    16.87099999999999,
+    16.95099999999999,
+    17.030999999999988,
+    17.110999999999986,
+    17.190999999999985,
+    17.270999999999983,
+    17.35099999999998,
+    17.43099999999998,
+    17.510999999999978,
+    17.590999999999976,
+    17.670999999999975,
+    17.750999999999973,
+    17.83099999999997,
+    17.91099999999997,
+    17.990999999999968,
+    18.070999999999966,
+    18.150999999999964,
+    18.230999999999963,
+    18.31099999999996,
+    18.39099999999996,
+    18.470999999999957,
+    18.550999999999956,
+    18.790999999999954
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 92,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 4146,
+    "count": 1,
+    "texts": [
+     "답변: i finished the la porte en chaille de lesseps with my team."
+    ]
+   },
+   {
+    "ts": 4991,
+    "count": 2,
+    "texts": [
+     "답변: i finished the la porte en chaille de lesseps with my team.",
+     "질문: I see you mentioned finishing a project with your team."
+    ]
+   },
+   {
+    "ts": 5632,
+    "count": 2,
+    "texts": [
+     "답변: i finished the la porte en chaille de lesseps with my team.",
+     "질문:  Let's talk about plans for this weekend.\nWhat do you want to do this weekend?"
+    ]
+   },
+   {
+    "ts": 6506,
+    "count": 2,
+    "texts": [
+     "답변: i finished the la porte en chaille de lesseps with my team.",
+     "질문:   Try to use \"I want to make a plan\" or \"I want to make a new plan.\""
+    ]
+   },
+   {
+    "ts": 7674,
+    "count": 2,
+    "texts": [
+     "답변: i finished the la porte en chaille de lesseps with my team.",
+     "질문: \nRemember to use \"a\" or \"an\" before the noun if you need it."
+    ]
+   },
+   {
+    "ts": 8555,
+    "count": 2,
+    "texts": [
+     "답변: i finished the la porte en chaille de lesseps with my team.",
+     "질문: I see you mentioned finishing a project with your team. Let's talk about plans for this weekend.\nWhat do you want to do this weekend?  Try to use \"I want to make a plan\" or \"I want to make a new plan.\"\nRemember to use \"a\" or \"an\" before the noun if you need it."
+    ]
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 14.725333333333333
+  },
+  "meta": {
+   "hookedAt": "2026-09-09T23:59:33.612Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1788998373613,
+     "before": "suspended",
+     "afterSync": "suspended",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1788998373623,
+     "before": "suspended",
+     "afterSync": "suspended",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3000/_next/hmr?id=qBXuekSSVJ8Pb4-di9_8E",
+    "ws://localhost:8002/ws/session"
+   ]
+  },
+  "lines": [
+   "답변: i finished the la porte en chaille de lesseps with my team.",
+   "질문: I see you mentioned finishing a project with your team. Let's talk about plans for this weekend.\nWhat do you want to do this weekend?  Try to use \"I want to make a plan\" or \"I want to make a new plan.\"\nRemember to use \"a\" or \"an\" before the noun if you need it."
+  ],
+  "url": "http://localhost:3000/",
+  "log": [
+   {
+    "at": 101,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 4114,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 14719,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 4,
+     "final": 2,
+     "audio": 167,
+     "session_ended": 0,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 1,
+     "speech_end": 1,
+     "interrupted": 0
+    }
+   }
+  ]
+ },
+ "screenshot_session": "../../tests/harness/runs/2026-09-10-task82-p5-p6/P6-session.png",
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3000/results/34a9ab73-04a7-451f-b4a1-bd140227abfc",
+  "recv": {
+   "session_started": 1,
+   "partial": 4,
+   "final": 2,
+   "audio": 167,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 1,
+   "speech_end": 1,
+   "interrupted": 0
+  },
+  "sent": {
+   "audio": 494,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "finalLinesAtTerminal": [
+   "답변: i finished the la porte en chaille de lesseps with my team.",
+   "질문: I see you mentioned finishing a project with your team. Let's talk about plans for this weekend.\nWhat do you want to do this weekend?  Try to use \"I want to make a plan\" or \"I want to make a new plan.\"\nRemember to use \"a\" or \"an\" before the noun if you need it."
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "← 학습 시작 화면으로"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p>"
+ },
+ "screenshot_results": "../../tests/harness/runs/2026-09-10-task82-p5-p6/P6-results.png"
+}
