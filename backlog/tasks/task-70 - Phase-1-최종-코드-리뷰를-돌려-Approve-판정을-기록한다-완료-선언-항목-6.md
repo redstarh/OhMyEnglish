@@ -4,7 +4,7 @@ title: Phase 1 최종 코드 리뷰를 돌려 Approve 판정을 기록한다 (�
 status: In Progress
 assignee: []
 created_date: '2026-09-09 14:22'
-updated_date: '2026-09-09 22:56'
+updated_date: '2026-09-10 01:14'
 labels: []
 dependencies: []
 ordinal: 73000
@@ -50,4 +50,21 @@ AC2 — 1차의 HIGH 3건을 고치고 재리뷰했음. 재리뷰가 그 셋을 
 
 게이트(마감 시점 직접 측정): pytest 884 passed · ruff check exit 0 · format unformatted 0 · ty check All checks passed · 게이트 밖 ruff All checks passed · format unformatted 0 · 프론트 tsc·eslint exit 0.
 남은 것: TASK-79·TASK-80 을 닫고 **범위를 좁혀** 재리뷰. Approve 를 받으면 AC 문서 「선언 자리」 표의 항목 6 을 갱신함.
+
+2026-09-10 재리뷰 2라운드 — 판정 미수신 상태로 남긴다.
+
+1차(좁힌 범위 · TASK-79·TASK-80 이 건드린 자리와 이웃): HIGH 1건 · TASK-79 는 지적 없음. 그래서 approve 가 아니다.
+- HIGH: config.py 의 prepare_bedrock_credentials 가 환경에 세션 토큰만 잔류한 상태에서 .env 의 영구 키 쌍을 올려 섞인 삼중값을 만들고 bearer 를 지운다. 내가 직접 재현했다.
+- TASK-79: 리뷰어가 awaiting_analysis 판정 논증을 재구성해 반례를 찾았고 없었다. 프론트 영구 폴링 회귀도 없고 응답 키 추가가 기존 소비자를 깨지 않는다.
+
+2차(재확인 요청 · f31ce3c · 범위를 config.py 와 test_config.py 로 더 좁힘): ⛔ **미수신이다.** 두 번 물었고 그 에이전트는 idle 이다.
+
+⛔ 그래서 AC#3 을 체크하지 않고 이 태스크를 Done 으로 올리지 않는다. 「HIGH 를 고쳤다」는 Approve 가 아니고, idle 은 「끝났다」가 아니다.
+
+다음 세션이 할 것: 같은 범위로 재확인을 다시 돌린다. ⛔ 전체 Phase 1 재리뷰로 넓히지 않는다 — 1·2차 판정이 나머지를 덮었고 전체 범위는 너무 길다. 물을 것 셋을 그대로 쓰면 된다.
+1. 잔류 AWS_SESSION_TOKEN 만 있는 상태에서 SigV4 를 포기하고 bearer 로 가는 것이 「동작하던 인증을 깨지 않는다」는 기준에 맞는가.
+2. 환경에 AWS_SESSION_TOKEN 과 AWS_ACCESS_KEY_ID 만 있고 secret 이 없는 조합에서 새 게이트가 막지 못하는 자리가 남았는가.
+3. 세 키가 환경에 하나도 없다는 게이트의 보장이 대입으로 바꾼 세 줄에 실제로 성립하는가.
+
+⚠️ AC 문서 「선언 자리」 표의 판정 문장을 이 상태에 맞춰 이미 고쳤다 — 남은 미충족이 항목 6 하나이고 그것이 재확인 미수신 때문이라고 적었다. 그 문서를 다시 쓰지 않아도 된다.
 <!-- SECTION:NOTES:END -->
