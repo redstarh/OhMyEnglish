@@ -1,10 +1,10 @@
 ---
 id: TASK-84
 title: '판정 대기: 발음 문제가 business_expression 패턴으로 기록되는 것이 결함인가'
-status: Awaiting Decision
+status: Done
 assignee: []
 created_date: '2026-09-10 00:21'
-updated_date: '2026-09-10 00:21'
+updated_date: '2026-09-10 13:49'
 labels: []
 dependencies: []
 ordinal: 87000
@@ -18,6 +18,12 @@ TASK-82 AC#4(P6) 회차의 관측이다. p2m(발음만 나쁘고 문법은 완�
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 사용자 판정을 받는다 — 이 기록이 의도된 거동인지, 발음 기원 오류를 구별해야 하는지
-- [ ] #2 판정과 근거를 docs/design 에 남기고 원장에 상태를 두 벌 쓰지 않는다
+- [x] #1 사용자 판정을 받는다 — 이 기록이 의도된 거동인지, 발음 기원 오류를 구별해야 하는지
+- [x] #2 판정과 근거를 docs/design 에 남기고 원장에 상태를 두 벌 쓰지 않는다
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+판정 2026-09-10 (사용자): 결함임 — 구별이 필요함. 정본은 docs/design/2026-09-10-pronunciation-origin-error-attribution.md §2 다. 구현 소유자는 TASK-88 이고 이 태스크에 의존을 걸었음. ⚠️ 이 태스크는 판정만 소유하므로 판정과 기록이 끝나 닫음 — 구현 상태를 여기에 두 벌 쓰지 않음.
+<!-- SECTION:NOTES:END -->
