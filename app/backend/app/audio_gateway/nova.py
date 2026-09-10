@@ -220,8 +220,10 @@ _SOUND_INSTRUCTION = (
     '- Sound to coach today: "{sound}" — this is a pronunciation focus, not a grammar one; '
     "the learner's problem is how the word sounds, not which word to pick. When it is off, take it "
     "up on that turn instead of the Grammar first rule 9, and spend the one correction of rule 4 "
-    "on this sound rather than on grammar. Stop and have them say just that word again, then "
-    'report the attempt with the {tool} tool using "{sound}" as target_sound.'
+    "on this sound rather than on grammar. Stop and have them say just that word again. "
+    "Rule 10 still applies unchanged: call the {tool} tool twice — once with outcome "
+    '"pending" right after you model it, and again with the judgement once you have heard the '
+    'repeat — and put "{sound}" in target_sound both times.'
 )
 
 

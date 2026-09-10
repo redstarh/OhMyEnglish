@@ -1,9 +1,10 @@
 ---
 id: TASK-86
 title: '결함: 발음 코칭이 일어나도 tool 이 오지 않는다 — 피드백은 있고 기록이 없다'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-10 04:29'
+updated_date: '2026-09-10 04:39'
 labels: []
 dependencies: []
 ordinal: 89000
@@ -25,7 +26,7 @@ ordinal: 89000
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 코칭이 난 회차에서 tool 이 오지 않는 이유를 규칙 10 의 조건으로 설명하거나 반증한다
+- [x] #1 코칭이 난 회차에서 tool 이 오지 않는 이유를 규칙 10 의 조건으로 설명하거나 반증한다
 - [ ] #2 고친 뒤 코칭 회차에서 tool 이 오는 것을 실물 왕복으로 확인한다 — 최소 2회 같은 방향
 - [ ] #3 ⛔ 우회로를 걷어내지 않는다 — 이 태스크가 닫히기 전에는 보조 신호가 유일한 기록 경로다
 <!-- AC:END -->

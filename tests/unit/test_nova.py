@@ -1144,6 +1144,43 @@ def test_the_sound_line_replaces_grammar_first_and_spends_the_one_correction():
     assert "two corrections" not in sound_line
 
 
+def test_the_sound_line_keeps_rule_10_alive():
+    """`TASK-86` — 대체가 **규칙 10 까지 삼키지 않게** 한다.
+
+    ⚠️ **관측에서 나왔다.** 규칙 9·4 를 대체한 뒤 발음 코칭이 실제로 났는데(누적 15회 중 2건)
+    **두 건 모두 `toolUse` 가 0**이었다 — 학습자는 피드백을 받았는데 기록이 없다
+    (`runs/2026-09-10-task75-rule9-rule11-replacement.md` §8.6).
+
+    ⛔ **규칙 10 의 조건이 원인이 아니라는 것을 먼저 확인했다.** 그 규칙은 *"right after you have
+    modeled the sentence"* 를 조건으로 거는데, 관측된 두 코칭 **모두 문장을 시범했다.** 그래서
+    조건 미달이 아니다.
+
+    남은 가설: 이 줄이 *"instead of the Grammar first rule 9"* 로 대체를 선언하면서 모델이 **규칙
+    9~11 묶음 전체가 대체된 것으로** 읽었다. 이 줄은 tool 이름을 말하지만 규칙 10 의 절차(두 번
+    호출 · `pending` → 판정)를 축약했다. 그래서 **규칙 10 이 그대로 살아 있다고 명시한다.**
+
+    ⚠️ 이 테스트는 문면만 고정한다 — tool 이 실제로 오는지는 실물 왕복이 판정한다(AC#2).
+    """
+    block = _plan_block(
+        _prompt(
+            ("an_as_a",),
+            _instruction(
+                focus=[
+                    InstructionFocus(pattern_key="pronunciation_an_as_a", target_form="an_as_a"),
+                    InstructionFocus(pattern_key="article_missing", target_form="a/an/the"),
+                ]
+            ),
+        )
+    )
+
+    sound_line = _line_starting_with(block, _SOUND_LINE)
+    # 대체 범위를 규칙 9·4 로 좁혀 말한다 — 규칙 10 은 산다.
+    # ⚠️ 문장 시작이라 대문자다. 프롬프트 문면을 그대로 잰다(소문자로 찾으면 어긋난다).
+    assert "Rule 10 still applies unchanged" in sound_line
+    # 그 절차의 핵심(두 번 부른다)을 이 줄에서도 되짚는다 — 축약이 오해를 만들었다.
+    assert "twice" in sound_line
+
+
 def test_plan_block_has_no_sound_line_when_the_focus_is_all_grammar():
     """음성 케이스 — 발음 초점이 없으면 그 줄이 붙지 않는다.
 
