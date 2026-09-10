@@ -102,6 +102,8 @@ async def test_001_migration_creates_expected_tables(db_conn: asyncpg.Connection
         # ⚠️ 이 단정이 **표 이름 집합을 정확히** 비교하므로 새 표는 반드시 여기 들어와야 한다 —
         # 그 설계서 §6이 「이 자리가 깨진다」고 미리 지목한 자산이다(빠뜨리면 red 로 즉시 드러난다).
         "shadowing_items",
+        # 012 — 일일 오류 요약 (docs/design/2026-09-11-daily-error-summary-design.md §3)
+        "daily_error_summary",
     }
 
 

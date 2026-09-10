@@ -93,6 +93,60 @@ export async function fetchNextPlan(): Promise<NextPlanSummary> {
   return (await response.json()) as NextPlanSummary;
 }
 
+/** 그날 그 패턴을 틀린 자리 1건 (PRD §13 R13-2). 전부가 아니라 예시 하나다. */
+export interface DailyErrorExample {
+  original_span: string;
+  correction: string;
+  reason: string;
+}
+
+/** 그날 패턴 1종의 집계. 판정(만성 여부·개선 여부)은 이 계약에 없다 — R13-5. */
+export interface DailyErrorPattern {
+  pattern_key: string;
+  category: string;
+  target_form: string;
+  occurrences: number;
+  example: DailyErrorExample;
+}
+
+/**
+ * 오늘(학습자 타임존) 오류 요약 (PRD §13). 계약의 정본은
+ * `app/backend/app/api/daily.py` + `app/backend/app/services/daily_summary.py`다.
+ *
+ * `analyzed`가 「그날 분석이 돌고 오류 0건」과 「그날 학습이 없었다」를 가른다(R13-7) — 두 개수만
+ * 보면 구별되지 않는다. `patterns`·두 개수는 항상 있다(비면 `[]`·`0`).
+ */
+export interface DailySummaryPayload {
+  summary_date: string;
+  analyzed: boolean;
+  occurrence_count: number;
+  pattern_count: number;
+  patterns: DailyErrorPattern[];
+}
+
+/**
+ * `fetchNextPlan`과 같은 규약으로 **던지지 않는다** — 하루 요약은 세션 교정 표시를 막지 않는다.
+ * 실패하면 `analyzed: false`를 돌려주고 화면은 그 절을 그리지 않는다.
+ *
+ * ⚠️ 그래서 조회 실패와 「그날 학습이 없었다」가 화면에서 같은 결과를 낸다. 의도한 것이다 —
+ * 결과 화면의 주 내용은 방금 세션의 교정이고, 하루 요약을 못 읽었다고 그것을 가리지 않는다.
+ */
+export async function fetchDailySummary(): Promise<DailySummaryPayload> {
+  const empty: DailySummaryPayload = {
+    summary_date: "",
+    analyzed: false,
+    occurrence_count: 0,
+    pattern_count: 0,
+    patterns: [],
+  };
+  // 하루 요약은 분석이 끝날 때마다 바뀐다 — 캐시에 걸리면 지난 판독이 남는다.
+  const response = await fetch(`${API_BASE}/api/daily-summary`, { cache: "no-store" });
+  if (!response.ok) {
+    return empty;
+  }
+  return (await response.json()) as DailySummaryPayload;
+}
+
 /**
  * 결과 API가 실패 상태를 응답했을 때 던진다 (TASK-55·TASK-56).
  *

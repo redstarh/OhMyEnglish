@@ -1,0 +1,305 @@
+"""일일 오류 요약 — PRD §13 · 설계서 `docs/design/2026-09-11-daily-error-summary-design.md`.
+
+이 파일이 단정하는 것 넷.
+
+* 요약의 날짜가 **사용자 타임존의 달력 날짜**다(R13-3 · AC13-2). 한국 시각 자정 직후의 발화가
+  UTC 날짜로 하루 앞의 요약에 들어가지 않는다.
+* 앵커가 **발화 시각**이다(설계서 §6). `error_occurrences.created_at`(분석 저장 시각)을 쓰면
+  새벽에 돌아간 분석이 발화를 다음 날짜로 밀어 넣는다.
+* 다시 계산해도 값이 부풀지 않는다(R13-6 · AC13-3) — 재분석이 같은 함수를 지난다.
+* 「분석이 돌고 오류 0건」과 「그날 학습이 없음」이 구별된다(R13-7).
+"""
+
+from __future__ import annotations
+
+from datetime import date, datetime
+from uuid import UUID, uuid4
+from zoneinfo import ZoneInfo
+
+import asyncpg
+import pytest
+
+from app.services.daily_summary import load_daily_summary, refresh_summary_for_utterance
+
+USER_ID = UUID("00000000-0000-0000-0000-000000000001")
+KST = ZoneInfo("Asia/Seoul")
+
+_SEQ = iter(range(1, 10_000))
+
+
+async def _seed_user(conn: asyncpg.Connection, *, tz: str = "Asia/Seoul") -> None:
+    await conn.execute(
+        "insert into users (id, display_name, timezone, current_level) "
+        "values ($1, 'Daily Summary Test', $2, 'A2')",
+        USER_ID,
+        tz,
+    )
+
+
+async def _seed_session(conn: asyncpg.Connection) -> UUID:
+    return await conn.fetchval(
+        "insert into learning_sessions (user_id, mode) values ($1, 'speaking') returning id",
+        USER_ID,
+    )
+
+
+async def _seed_pattern(
+    conn: asyncpg.Connection,
+    *,
+    key: str,
+    category: str = "article",
+    target_form: str = "the + 명사",
+) -> UUID:
+    return await conn.fetchval(
+        "insert into error_patterns (user_id, category, pattern_key, target_form) "
+        "values ($1, $2, $3, $4) returning id",
+        USER_ID,
+        category,
+        key,
+        target_form,
+    )
+
+
+async def _said_wrong(
+    conn: asyncpg.Connection,
+    session_id: UUID,
+    pattern_id: UUID,
+    at: datetime,
+    *,
+    original_span: str = "I sent report",
+    correction: str = "I sent the report",
+    explanation: str = "특정 문서를 가리키므로 the 가 필요합니다.",
+) -> UUID:
+    """지정한 시각에 그 패턴의 오류를 1건 말했다 — 발화 + occurrence 한 벌. 발화 id를 준다."""
+    utterance_id = await conn.fetchval(
+        "insert into utterances (session_id, speaker, transcript, sequence_no, created_at) "
+        "values ($1, 'user', $2, $3, $4) returning id",
+        session_id,
+        original_span,
+        next(_SEQ),
+        at,
+    )
+    await conn.execute(
+        "insert into error_occurrences "
+        "(utterance_id, pattern_id, original_span, correction, explanation, severity, confidence) "
+        "values ($1, $2, $3, $4, $5, 'medium', 0.9)",
+        utterance_id,
+        pattern_id,
+        original_span,
+        correction,
+        explanation,
+    )
+    return utterance_id
+
+
+# ① 기본 — 그 발화의 날짜 1건이 기록되고 두 개수가 실제 행 수와 같다 (AC13-1).
+async def test_refresh_records_counts_for_the_utterance_local_date(
+    db_conn: asyncpg.Connection,
+) -> None:
+    await _seed_user(db_conn)
+    session_id = await _seed_session(db_conn)
+    pattern_id = await _seed_pattern(db_conn, key="article_missing_before_singular_noun")
+    utterance_id = await _said_wrong(
+        db_conn, session_id, pattern_id, datetime(2026, 9, 9, 10, 0, tzinfo=KST)
+    )
+
+    await refresh_summary_for_utterance(db_conn, USER_ID, utterance_id)
+
+    row = await db_conn.fetchrow(
+        "select summary_date, timezone, occurrence_count, pattern_count "
+        "from daily_error_summary where user_id = $1",
+        USER_ID,
+    )
+    assert row is not None
+    assert row["summary_date"] == date(2026, 9, 9)
+    assert row["timezone"] == "Asia/Seoul"
+    assert row["occurrence_count"] == 1
+    assert row["pattern_count"] == 1
+
+
+# ② AC13-2 — 한국 시각 자정 직후의 발화는 **그날** 요약에 들어간다. UTC 로 세면 하루 앞이다.
+async def test_summary_date_follows_user_timezone_not_utc(db_conn: asyncpg.Connection) -> None:
+    await _seed_user(db_conn)
+    session_id = await _seed_session(db_conn)
+    pattern_id = await _seed_pattern(db_conn, key="article_missing_before_place_noun")
+    # 2026-09-11 00:30 KST = 2026-09-10 15:30 UTC — UTC 날짜와 KST 날짜가 갈리는 시각이다.
+    utterance_id = await _said_wrong(
+        db_conn, session_id, pattern_id, datetime(2026, 9, 11, 0, 30, tzinfo=KST)
+    )
+
+    await refresh_summary_for_utterance(db_conn, USER_ID, utterance_id)
+
+    dates = [
+        record["summary_date"]
+        for record in await db_conn.fetch(
+            "select summary_date from daily_error_summary where user_id = $1", USER_ID
+        )
+    ]
+    assert dates == [date(2026, 9, 11)]
+
+
+# ③ AC13-3 — 두 번 계산해도 부풀지 않는다. 재분석이 이 함수를 다시 지난다.
+async def test_refresh_is_idempotent(db_conn: asyncpg.Connection) -> None:
+    await _seed_user(db_conn)
+    session_id = await _seed_session(db_conn)
+    pattern_id = await _seed_pattern(db_conn, key="preposition_on_vs_in_for_month")
+    utterance_id = await _said_wrong(
+        db_conn, session_id, pattern_id, datetime(2026, 9, 9, 21, 0, tzinfo=KST)
+    )
+
+    await refresh_summary_for_utterance(db_conn, USER_ID, utterance_id)
+    await refresh_summary_for_utterance(db_conn, USER_ID, utterance_id)
+
+    rows = await db_conn.fetch(
+        "select occurrence_count from daily_error_summary where user_id = $1", USER_ID
+    )
+    assert [row["occurrence_count"] for row in rows] == [1]
+
+
+# ④ R13-2 — 패턴별 상세와 예시 문장. 정렬은 발생 수 내림차순이고 예시는 그날 가장 이른 발화다.
+async def test_patterns_hold_details_sorted_by_occurrences(db_conn: asyncpg.Connection) -> None:
+    await _seed_user(db_conn)
+    session_id = await _seed_session(db_conn)
+    article = await _seed_pattern(
+        db_conn, key="article_missing_before_singular_noun", target_form="the + 단수 명사"
+    )
+    tense = await _seed_pattern(
+        db_conn, key="past_tense_in_work_update", category="verb_tense", target_form="동사 과거형"
+    )
+    utterance_id = await _said_wrong(
+        db_conn,
+        session_id,
+        article,
+        datetime(2026, 9, 9, 9, 0, tzinfo=KST),
+        original_span="I sent report",
+        correction="I sent the report",
+        explanation="특정 문서를 가리키므로 the 가 필요합니다.",
+    )
+    await _said_wrong(
+        db_conn,
+        session_id,
+        article,
+        datetime(2026, 9, 9, 20, 0, tzinfo=KST),
+        original_span="I opened ticket",
+        correction="I opened the ticket",
+    )
+    await _said_wrong(
+        db_conn,
+        session_id,
+        tense,
+        datetime(2026, 9, 9, 21, 0, tzinfo=KST),
+        original_span="Yesterday I work on API",
+        correction="Yesterday I worked on the API",
+        explanation="어제 일이므로 과거형을 씁니다.",
+    )
+
+    await refresh_summary_for_utterance(db_conn, USER_ID, utterance_id)
+
+    summary = await load_daily_summary(
+        db_conn, USER_ID, now=datetime(2026, 9, 9, 23, 0, tzinfo=KST)
+    )
+    assert summary.occurrence_count == 3
+    assert summary.pattern_count == 2
+    assert [item.pattern_key for item in summary.patterns] == [
+        "article_missing_before_singular_noun",
+        "past_tense_in_work_update",
+    ]
+    first = summary.patterns[0]
+    assert first.category == "article"
+    assert first.target_form == "the + 단수 명사"
+    assert first.occurrences == 2
+    # 예시는 그날 가장 이른 발화다 — 학습자가 하루를 되짚을 때 처음 틀린 자리가 기준이다.
+    assert first.example.original_span == "I sent report"
+    assert first.example.correction == "I sent the report"
+    assert first.example.reason == "특정 문서를 가리키므로 the 가 필요합니다."
+
+
+# ⑤ R13-7 — 요약 행이 없으면 「그날 학습이 없었다」다. 0건 요약과 같은 모양으로 뭉개지 않는다.
+async def test_load_returns_zero_summary_when_no_row_exists(db_conn: asyncpg.Connection) -> None:
+    await _seed_user(db_conn)
+
+    summary = await load_daily_summary(
+        db_conn, USER_ID, now=datetime(2026, 9, 11, 8, 0, tzinfo=KST)
+    )
+
+    assert summary.summary_date == date(2026, 9, 11)
+    assert summary.timezone == "Asia/Seoul"
+    assert summary.occurrence_count == 0
+    assert summary.pattern_count == 0
+    assert summary.patterns == []
+    assert summary.computed_at is None
+
+
+# ⑥ 타임존의 정본이 없으면 조용히 UTC 로 떨어지지 않는다 — `load_chronic_metrics` 와 같은 판단.
+async def test_load_raises_when_user_is_unknown(db_conn: asyncpg.Connection) -> None:
+    with pytest.raises(LookupError):
+        await load_daily_summary(db_conn, uuid4(), now=datetime(2026, 9, 11, 8, 0, tzinfo=KST))
+
+
+# ⑦ naive datetime 을 받지 않는다 — 서버 오프셋만큼 날짜가 밀린다(`recordings.py` 와 같은 규약).
+async def test_load_rejects_naive_now(db_conn: asyncpg.Connection) -> None:
+    await _seed_user(db_conn)
+
+    with pytest.raises(ValueError):
+        await load_daily_summary(db_conn, USER_ID, now=datetime(2026, 9, 11, 8, 0))
+
+
+# ⑧ 발화가 사라졌으면(재분석 중 삭제) 아무 것도 쓰지 않고 조용히 지난다 — 저장 트랜잭션을
+#    이 집계 때문에 실패시키지 않는다.
+async def test_refresh_does_nothing_for_unknown_utterance(db_conn: asyncpg.Connection) -> None:
+    await _seed_user(db_conn)
+
+    await refresh_summary_for_utterance(db_conn, USER_ID, uuid4())
+
+    assert await db_conn.fetchval("select count(*) from daily_error_summary") == 0
+
+
+# ⑨ 다른 날짜를 건드리지 않는다 — 갱신 범위는 그 발화의 날짜 1건이다(설계서 §4).
+async def test_refresh_touches_only_the_utterance_date(db_conn: asyncpg.Connection) -> None:
+    await _seed_user(db_conn)
+    session_id = await _seed_session(db_conn)
+    pattern_id = await _seed_pattern(db_conn, key="word_order_in_question")
+    older = await _said_wrong(
+        db_conn, session_id, pattern_id, datetime(2026, 9, 8, 10, 0, tzinfo=KST)
+    )
+    newer = await _said_wrong(
+        db_conn, session_id, pattern_id, datetime(2026, 9, 9, 10, 0, tzinfo=KST)
+    )
+
+    await refresh_summary_for_utterance(db_conn, USER_ID, older)
+    await refresh_summary_for_utterance(db_conn, USER_ID, newer)
+
+    rows = await db_conn.fetch(
+        "select summary_date, occurrence_count from daily_error_summary "
+        "where user_id = $1 order by summary_date",
+        USER_ID,
+    )
+    assert [(row["summary_date"], row["occurrence_count"]) for row in rows] == [
+        (date(2026, 9, 8), 1),
+        (date(2026, 9, 9), 1),
+    ]
+
+
+# ⑩ 발생이 0건으로 줄면 요약도 0건이 된다 — 재분석으로 교정이 사라진 날이 그대로 남지 않는다.
+async def test_refresh_records_zero_when_occurrences_are_gone(
+    db_conn: asyncpg.Connection,
+) -> None:
+    await _seed_user(db_conn)
+    session_id = await _seed_session(db_conn)
+    pattern_id = await _seed_pattern(db_conn, key="verb_form_after_modal")
+    utterance_id = await _said_wrong(
+        db_conn, session_id, pattern_id, datetime(2026, 9, 9, 10, 0, tzinfo=KST)
+    )
+    await refresh_summary_for_utterance(db_conn, USER_ID, utterance_id)
+
+    await db_conn.execute("delete from error_occurrences where utterance_id = $1", utterance_id)
+    await refresh_summary_for_utterance(db_conn, USER_ID, utterance_id)
+
+    summary = await load_daily_summary(
+        db_conn, USER_ID, now=datetime(2026, 9, 9, 23, 0, tzinfo=KST)
+    )
+    assert summary.occurrence_count == 0
+    assert summary.pattern_count == 0
+    assert summary.patterns == []
+    # 행 자체는 남는다 — 「분석이 돌고 0건」이므로 「학습이 없었다」와 다르다(R13-7).
+    assert summary.computed_at is not None

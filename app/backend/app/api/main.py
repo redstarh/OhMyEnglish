@@ -24,6 +24,7 @@ from uuid import UUID
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.daily import router as daily_router
 from app.api.results import router as results_router
 from app.api.ws import router as ws_router
 from app.config import get_settings
@@ -108,6 +109,7 @@ def create_app() -> FastAPI:
     # 이 미들웨어는 결과 조회 같은 HTTP GET만을 위한 것이라 methods를 GET으로 좁힌다.
     app.add_middleware(CORSMiddleware, allow_origins=[FRONTEND_ORIGIN], allow_methods=["GET"])
     app.include_router(results_router)
+    app.include_router(daily_router)
     app.include_router(ws_router)
 
     @app.get("/health")

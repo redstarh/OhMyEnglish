@@ -40,6 +40,7 @@ from app.models.analysis import (
     is_valid_new_pattern_key,
     parse_analysis,
 )
+from app.services.daily_summary import refresh_summary_for_utterance
 from app.services.jobs import JOB_TYPE_ANALYZE, ClaimedJob, complete, report_failure
 from app.services.review import recompute, store_attempts
 from app.services.utterances import ANALYZED_SPEAKER, ANALYZED_UTTERANCE_TYPE
@@ -465,6 +466,12 @@ async def _replace_occurrences(
         # 주석은 있지도 않은 의존을 단정하고 있었다). **참인 순서 제약은 하나다**:
         # `store_attempts`가 `recompute`보다 먼저 와야 한다(설계서 §9 Dependency).
         await recompute(conn, pattern_id)
+
+    # 일일 요약(PRD §13)을 **같은 트랜잭션에서** 다시 센다. 여기 있는 이유: 발생 행이 바뀌는
+    # 유일한 자리이므로 스냅샷이 원본과 어긋난 채 남는 경로가 없다. `touched`가 비어도 부른다 —
+    # 발생이 0건으로 줄어든 날의 요약도 0건으로 내려야 한다(재분석에서 교정이 사라진 경우).
+    # 정본은 `services/daily_summary.py`이고, 그 함수는 `+1`이 아니라 그 날짜를 다시 센다.
+    await refresh_summary_for_utterance(conn, user_id, utterance_id)
 
     if not await complete(conn, job.id, job.lease_token):
         raise _LeaseLost

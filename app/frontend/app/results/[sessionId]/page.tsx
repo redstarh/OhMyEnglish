@@ -4,8 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
+  fetchDailySummary,
   fetchSessionResults,
   SessionResultsError,
+  type DailySummaryPayload,
   type PronunciationAttempt,
   type SessionResultPayload,
   type SessionResultStatus,
@@ -130,6 +132,21 @@ const OUTCOME_COLOR: Record<PronunciationAttempt["outcome"], string> = {
   unclear: "var(--foreground-muted)",
 };
 
+// 오늘 요약 절 (PRD §13 R13-4 · AC13-4). 어휘는 세션 교정 카드와 같은 것을 쓴다 — 같은 화면에서
+// 두 절이 다른 낱말로 같은 것을 부르면 학습자가 다른 개념으로 읽는다.
+const DAILY_HEADING = "오늘 무엇을 틀렸는지";
+// 반복은 사실 진술이라 적는다 — 학습자가 무엇을 되풀이했는지 알아야 다음 초점이 이해된다.
+// **1번일 때는 쓰지 않는다**: 「오늘 1번」은 아무것도 말하지 않으면서 개수 표시만 남긴다.
+const dailyRepeatNotice = (occurrences: number) => `오늘 ${occurrences}번 나왔어요`;
+
+const DAILY_CARD_STYLE = {
+  // 세션 교정 카드(사각 테두리)와 발음 카드(왼쪽 규칙선) 사이의 위계를 새로 만들지 않는다 —
+  // 하루 요약은 방금 세션보다 뒤에 오고 무게가 가벼워야 하므로 발음 카드와 같은 모양을 쓴다.
+  borderLeft: "3px solid var(--foreground-muted)",
+  paddingLeft: "0.75rem",
+  margin: "0.75rem 0",
+} as const;
+
 const PRONUNCIATION_CARD_STYLE = {
   // 문법 교정 카드와 나란히 두되 한 덩어리로 읽히게 왼쪽 규칙선만 쓴다 — 색 토큰이
   // 4개뿐이어서 muted로 사각 테두리를 두르면 위계상 문법 카드보다 무거워진다.
@@ -161,6 +178,7 @@ export default function ResultsPage() {
   const sessionId = resolveSessionId(params.sessionId);
 
   const [result, setResult] = useState<SessionResultPayload | null>(null);
+  const [daily, setDaily] = useState<DailySummaryPayload | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -196,6 +214,22 @@ export default function ResultsPage() {
     };
   }, [sessionId]);
 
+  // 하루 요약은 **분석이 끝난 뒤** 읽는다 (PRD §13). 폴링에 같이 태우지 않는 이유: 요약은
+  // 분석 저장 트랜잭션에서 갱신되므로 분석 중에 반복해 읽어도 같은 값이고 요청만 2초마다 는다.
+  // 판독 상태가 terminal 로 바뀔 때마다 한 번 읽으므로 `no_utterances` → `final` 회복 경로에서도
+  // 다시 읽힌다(그 회복은 `shouldKeepPolling`이 소유한다).
+  const status = result?.status;
+  useEffect(() => {
+    if (!status || !TERMINAL_STATUSES.has(status)) return;
+    let cancelled = false;
+    void fetchDailySummary().then((data) => {
+      if (!cancelled) setDaily(data);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [status]);
+
   const showCorrections = result?.status === "final" || result?.status === "partial_failure";
   // `corrections`는 상태에 따라 키가 없다(R2 규칙 1·2·3) — 여기서 한 번만 빈 배열로 정리한다.
   const corrections = result?.corrections ?? [];
@@ -209,6 +243,10 @@ export default function ResultsPage() {
   // "키를 뺀다"이지만 그 계약이 깨졌을 때 화면이 예외로 죽는 것이 가장 나쁜 결과다.
   const drill = result?.drill;
   const drillFellShort = drill ? drill.exchanges_observed < drill.exchanges_expected : false;
+  // 그날 분석이 돌고 오류가 0건이면 **아무것도 그리지 않는다**(AC13-5). 결정 10이 드릴 달성
+  // 문구에 내린 판단과 같다 — 달성을 알리는 문장은 그 자체로 점수판이 된다. `analyzed`가 거짓인
+  // 경우(그날 학습이 없었다 · 조회 실패)도 같은 결과이고, 그 뜻의 정본은 `lib/api.ts`가 갖는다.
+  const dailyPatterns = daily?.analyzed ? daily.patterns : [];
 
   return (
     <main style={{ maxWidth: 640, margin: "0 auto", padding: "2rem", fontFamily: "sans-serif" }}>
@@ -304,6 +342,33 @@ export default function ResultsPage() {
                   </div>
                 )
               )}
+            </div>
+          )}
+
+          {/* 오늘 요약 — 방금 세션의 교정·발음 **아래**에 붙는다. 위계가 그 순서다: 학습자가
+              먼저 보는 것은 방금 말한 것이고, 하루 전체는 그 뒤에 되짚는 것이다.
+              key 에 `pattern_key`를 쓴다 — 하루 안에서 패턴 1종은 1행이므로 유일하다. */}
+          {dailyPatterns.length > 0 && (
+            <div style={{ marginTop: "1.5rem" }}>
+              <h2 style={{ fontSize: "1rem" }}>{DAILY_HEADING}</h2>
+              {dailyPatterns.map((item) => (
+                <div key={item.pattern_key} style={DAILY_CARD_STYLE}>
+                  <p style={{ margin: "0.25rem 0" }}>
+                    <strong>원문:</strong> {item.example.original_span}
+                  </p>
+                  <p style={{ margin: "0.25rem 0" }}>
+                    <strong>교정문:</strong> {item.example.correction}
+                  </p>
+                  <p style={{ margin: "0.25rem 0", color: "var(--foreground-muted)" }}>
+                    {item.example.reason}
+                  </p>
+                  {item.occurrences > 1 && (
+                    <p style={{ margin: "0.25rem 0", color: "var(--foreground-muted)" }}>
+                      {dailyRepeatNotice(item.occurrences)}
+                    </p>
+                  )}
+                </div>
+              ))}
             </div>
           )}
         </>
