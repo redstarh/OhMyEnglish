@@ -109,8 +109,21 @@
 | 3 | 게이트 | `pytest` **900 passed**(12.04s) · `ruff check` exit 0 · format **unformatted 0** · `ty` 통과 · 게이트 밖 `ruff` **0건** · 프론트 `tsc`·`eslint` exit 0 |
 | 4 | 착수 전 필수 | **6개**(위 ③). 요지: 복습 시계 불일치 1칸 · 백엔드가 낡은 코드 · 워커 절차 · 다중 세션 · 첫 발화 규약 · 공유 DB. `TASK-91` 의 `dependencies` **0건** · 미충족 AC **4건** |
 
-⚠️ **DB 수치는 지표 4개에 없으므로 필요할 때 직접 잰다.** 이 마감 시점 값:
-`error_patterns` **9** · `review_tasks` **15** · `error_occurrences` **24** · `learning_sessions` **13** ·
-`utterances` **120** · `pronunciation_attempts` **4** · `analysis_jobs` **49** — 전부 기준선.
-보존 세션 6개 전건 생존(`210233be` `analyzing` · `6225ddaf` `final` · `b2f0d169` `partial_failure` ·
-`76d9ef31` `connection_failed` · `d127dece` `no_utterances` · `e0c5e580` `final`).
+### ④-2 ⛔ DB 표 건수를 여기에 적지 않는다 — 적는 순간 낡는다
+
+**이 갈래는 그것을 실측했다.** 마감 시점에 8개 표 건수를 「전부 기준선」으로 적었는데, 몇 시간 뒤
+`learning_sessions`·`utterances`·`pronunciation_attempts`·`analysis_jobs` 넷이 **기준선보다 높아졌다.**
+원인은 회귀도 내 잔여도 아니라 **다른 세션이 앱 경로 세션을 돌리는 중**이었다. 그 수치를 적어 둔
+탓에 다음 세션이 그것을 **회귀로 오독할** 자리가 만들어졌다(에이전트가 그 위험을 지적했다).
+
+**그래서 세지 않는 서술로 바꾼다. 다음 세션이 직접 재고 이렇게 가른다:**
+
+1. **내 잔여인지 먼저 가른다** — 회차 기록의 세션 ID 를 명시로 조회한다. 0건이면 내 것이 아니다
+2. **시각창으로 남의 것을 본다** — `select left(id::text,8), status, started_at from learning_sessions
+   where started_at > '<내 마감 시각>' order by started_at`. ⛔ **잡힌 것을 지우지 않는다**
+3. **불변이어야 하는 것만 단정으로 쓴다** — `schema_migrations` · **보존 세션 6개의 결과 API 상태**
+   (`210233be` `analyzing` · `6225ddaf` `final` · `b2f0d169` `partial_failure` · `76d9ef31`
+   `connection_failed` · `d127dece` `no_utterances` · `e0c5e580` `final`). 응답 전문 기준선은
+   `runs/2026-09-10-task82-p5-p6/results-api-baseline.json` 이다
+4. **`error_patterns`·`review_tasks` 는 이 갈래가 기준선으로 되돌렸다**(사용자 판정 실행) — 그 값이
+   다르면 그때는 **의미가 있다.** 되돌리기 전 증거는 같은 디렉터리의 `*-before-revert.json` 둘이다
