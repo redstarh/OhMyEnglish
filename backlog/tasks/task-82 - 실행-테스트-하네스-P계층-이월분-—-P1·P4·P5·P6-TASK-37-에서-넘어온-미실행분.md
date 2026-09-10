@@ -4,7 +4,7 @@ title: '실행: 테스트 하네스 P계층 이월분 — P1·P4·P5·P6 (TASK-3
 status: Done
 assignee: []
 created_date: '2026-09-09 23:25'
-updated_date: '2026-09-10 00:22'
+updated_date: '2026-09-10 14:02'
 labels: []
 dependencies: []
 ordinal: 85000
@@ -122,4 +122,14 @@ category business_expression · pattern_key business_expression_unclear_work_nou
 AC#3·AC#4 결과: P5 = ① findings 0건으로 done(기대 거동 · 표본 1개 · 부정 관측이라 미재현). P6 = 평가 불가. teardown 잔여는 TASK-83 으로 분리했음 — harness_pattern_baseline 이 next_review_at·mastery_score 를 담지 않고 review_tasks 에 baseline 표가 없어 복원 불가임. 「drift 0」이 「되돌아왔다」를 뜻하지 않는 것이 이 회차의 가장 값어치 있는 발견임.
 
 드라이버 결함 B 도 기록함 — restore 가 asyncpg DataError 로 죽어 보존 job 15건이 +30일로 밀린 채 남았음. 스냅샷을 /tmp 가 아니라 회차 디렉터리에 두게 한 지시가 복원 근거를 살렸음. SELECT 로는 안 보이는 결함이었음.
+
+⛔ 정정 5 — 위에 두 번 적은 「P6 의 원 단정은 평가 불가」를 철회함. 최종 판정은 FAIL 임.
+
+기전: 내가 시나리오 문면을 다시 읽어 「문법적으로 옳은 문장」이 픽스처 «발화» 를 가리키고 전사문이 아님을 확인했고(scenarios-P-pronunciation.md §3 · runs/2026-08-26-run-4.md 의 P6 행 「문법적으로 옳은 p1m 문장에 대해」), 그 정정을 에이전트가 회차 기록 §4 에 반영해 판정을 FAIL 로 재구성했음. 사용자 판정(TASK-84 = 결함임)도 그것과 정합함.
+
+그래서 P6 는 「입력이 조건을 충족하지 못해 평가할 수 없었던 것」이 아니라 「조건을 충족한 강한 시험에서 실패한 것」임. 4차수의 p1m 은 원문으로 복원돼 분석기가 옳은 전사문을 받았으므로 약한 시험이었고, p2m 이 처음으로 강한 시험이었음 — 4차수 PASS 를 뒤집지 않고 「덮지 못한 구간이 있었다」로 적었음.
+
+⚠️ FAIL 이지만 환각은 아님. 분석기가 받은 텍스트에 그 구절이 실재하고 reason 이 전달 실패를 명시함 — 오탐이 되는 것은 파이프라인 수준임. 그리고 카테고리가 pronunciation_intonation 이 아니라 business_expression 이므로 금지 카테고리 방어가 이 경로를 막지 못함.
+
+⚠️ 이 정정이 필요했던 이유가 이 리포의 지배 실패 모드임 — 회차 기록 본문과 제목은 FAIL 로 고쳐졌는데 그것을 설명하는 내 원장 노트와 handoff 는 「평가 불가」로 남아 있었음. 커밋 d7499e1·411252c 의 메시지에도 낡은 서술이 들어갔고 그것은 히스토리라 고칠 수 없어 여기에 정정을 남김.
 <!-- SECTION:NOTES:END -->
