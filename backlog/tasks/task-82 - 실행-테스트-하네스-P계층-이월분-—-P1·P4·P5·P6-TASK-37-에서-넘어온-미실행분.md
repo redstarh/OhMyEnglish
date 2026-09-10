@@ -4,7 +4,7 @@ title: '실행: 테스트 하네스 P계층 이월분 — P1·P4·P5·P6 (TASK-3
 status: In Progress
 assignee: []
 created_date: '2026-09-09 23:25'
-updated_date: '2026-09-09 23:46'
+updated_date: '2026-09-10 00:00'
 labels: []
 dependencies: []
 ordinal: 85000
@@ -78,4 +78,18 @@ agent 발화 전문: 「I see you want to talk about a report. Let's start with 
 ⚠️ TASK-74(보조 신호에서 복습 시계를 돌릴지) 판정의 직접 재료임 — 보조 신호 행은 pattern_id 와 target_sound 가 둘 다 NULL 이고, 대조로 기존 nova_tool 행은 둘 다 가짐(target_sound=an_as_a). 이 세션에서 error_patterns·error_occurrences 델타가 0임(9 · 24 그대로). 즉 보조 신호는 시도를 기록하지만 복습 시계를 걸 재료를 만들지 못함. ⛔ 표본 1건이라 단서이고 확정이 아님 — 판정은 TASK-74 소유임.
 
 보존 세션 job 무변동 확인 — 5건 전건의 created_at 이 09-06·09-08 그대로이고 새로 만들어진 것 0건임. H-AT 경로 ② 징후 없음(워커를 켜지 않았으므로 예상대로임).
+
+⛔ 정정 2 — 위에 적은 「보존 세션 job 5건」과 「H-AT 경로 ② 징후 없음」의 근거가 불완전했음. 실제 보존 세션 job 은 8건임.
+
+기전: analyze_utterance job 은 session_id 가 NULL 이고 utterance_id 로만 세션에 매임. 내가 쓴 술어 left(j.session_id::text,8) = any(...) 가 NULL 비교로 그 행들을 조용히 버렸음. 이 턴에 직접 센 값 — analyze_utterance 43건 전부 session_id NULL · utterance_id 만 있음. plan_next_session 6건은 그 반대임.
+
+그 결함이 p5_worker_leg.py 의 guard 에도 그대로 들어갔음. 위임 에이전트가 claim 을 돌리기 «전에» 발견해 멈췄음. utterance 경유로 해소하니 claim 가능한 보존 job 이 8건이고, claim_next 가 집을 첫 job(order by available_at limit 1 — jobs.py:203~204 직접 확인)이 210233be(C3a)의 analyze_utterance d3272c2c 였음. guard 가 잡은 plan job 들보다 5ms 이름.
+
+⛔ 그 손상은 verify 로도 안 보였을 것임 — results.py 의 _JOB_COUNTS_SQL 이 status in ('pending','running') 를 함께 non_terminal 로 세므로 pending→running 으로 바뀌어도 세션이 계속 analyzing 임. H-AT 가 말한 「피해가 눈에 안 보인다」의 또 다른 형태임.
+
+⚠️ 앱에는 정답이 이미 있었음 — 그 SQL 자신이 join utterances u on u.id = j.utterance_id 로 세션을 해소함. 내 새 스크립트가 그 관례를 따르지 않은 것이 원인임. 함정 H-AX 로 등록했음.
+
+⚠️ 그리고 이 사고의 정확한 기전은 「틀린 술어가 자기 자신을 통과시킨 것」임 — guard 의 사후 검사도 같은 술어였으므로 「전건 claim 불가」라는 거짓 안심을 출력했음. 보호 대상을 세는 방어는 다른 술어로 교차 검산해야 함.
+
+AC#3·AC#4 는 에이전트가 스크립트를 고친 뒤 진행함. 검증은 내가 함 — 작성과 검증을 같은 눈으로 하지 않기 위해 내가 원저자인 파일의 수정을 에이전트에 맡겼음.
 <!-- SECTION:NOTES:END -->
