@@ -4,7 +4,7 @@ title: W/R/G AC 테스트에 뮤테이션 KILL 확인을 붙인다 (결정 48 �
 status: In Progress
 assignee: []
 created_date: '2026-09-09 14:39'
-updated_date: '2026-09-09 22:35'
+updated_date: '2026-09-10 00:53'
 labels: []
 dependencies: []
 ordinal: 76000
@@ -38,7 +38,7 @@ ordinal: 76000
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [ ] #1 W1~W7 각 항목의 테스트에 뮤테이션 KILL 확인을 붙이고 어떤 변이를 어떻게 걸었는지 기록한다
-- [ ] #2 R1~R3 각 항목에 같은 것을 한다
+- [x] #2 R1~R3 각 항목에 같은 것을 한다
 - [ ] #3 G1~G4 각 항목에 같은 것을 한다
 - [ ] #4 뮤테이션이 SURVIVED 하는 자리는 KILL 로 위장하지 않고 그 사실과 이유를 남긴다 — 기존 SURVIVED 주석을 지우지 않는다
 - [ ] #5 붙인 뒤 게이트 넷을 다시 재고 AC 문서 「선언 자리」 표의 항목 4 를 갱신한다
@@ -72,4 +72,19 @@ AC 항목은 열넷임 — W1~W7 · R1~R3 · G1~G4. 각 항목마다 **그 항�
 ⚠️ 기존 SURVIVED 주석을 KILL 로 바꾸려 하지 않음 — 그것은 「이 자리는 뮤테이션으로 잴 수 없다」를 근거와 함께 남긴 것임. 그 자리는 다른 단정을 고르거나 SURVIVED 를 유지하고 이유를 적음.
 
 ⛔ 착수 조건 하나 — **codex 재리뷰가 도는 동안 소스를 변이시키지 않음.** 리뷰어가 리포를 읽으므로 변이된 코드를 리뷰하게 되고 판정이 무효가 됨. 2026-09-10 에 그것을 알아채고 변이를 리뷰 뒤로 미뤘음. 같은 이유로 `pytest` 동시 실행도 금지임(H-X).
+
+2026-09-10 R1~R3 완료 (AC#2). 변이를 직접 걸어 FAIL 을 관측하고 무엇을 걸었는지 대상 테스트에 기록했다.
+
+- R1: 두 축을 각각 잼. MAX_CORRECTIONS 2→3(개수) · severity ordinal case 식을 max(severity)로(정렬). 둘 다 test_top_two_corrections_ranked_by_severity_ordinal_not_text 가 FAIL.
+- R2 규칙 1(연결 실패 최우선): 조건을 False 로 → 2건 FAIL.
+- R2 규칙 3(analyzing 잠정 노출 금지): 조건을 False 로 → 4건 FAIL.
+- R3: partial_failure=True 를 False 로 → FAIL.
+
+⚠️ AC#4 를 함께 지켰다 — SURVIVED 를 KILL 로 위장하지 않았다. R1 변이 둘에 tiebreak 테스트가 통과하고 R3 변이에 drill 동승 테스트가 통과한다는 사실을 각 기록에 적었다. 대상 항목은 KILL 이지만 이웃 테스트는 그 축을 안 잡는다.
+
+⚠️ 부수 관측 — R2 두 변이에서 「드릴 exchange 미달」 경고 로그가 실제로 났다. 즉 규칙 1·3 이 막는 것이 잠정 교정 노출만이 아니라 미달 로그 오염까지다. 모듈 docstring 이 그 이유를 이미 서술하는데, 그것이 관측으로 확인된 것은 이번이 처음이다.
+
+⚠️ R2 규칙 1 의 「최우선」을 순서 이동으로 재지는 않았다 — 그 편집이 sed 로 안전하지 않아서다. 대신 이 테스트의 픽스처가 job 을 done 으로 두므로 규칙 1 이 없으면 규칙 5(final)로 떨어지고 그것이 「최우선이 아니면 실패한다」를 보인다. 그 한계를 기록에 적었다.
+
+게이트: pytest 897 passed · 게이트 밖 ruff 0건 · format 100 files.
 <!-- SECTION:NOTES:END -->

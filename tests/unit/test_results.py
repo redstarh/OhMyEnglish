@@ -113,6 +113,14 @@ async def _occurrence(
 
 # ① 3패턴 검출 세션 → 정확히 2개, high가 medium보다 먼저 (R1 ordinal — 텍스트 desc면
 # 'medium' > 'low' > 'high'로 순서가 뒤집히는 함정을 여기서 잡는다).
+#
+# ✅ **뮤테이션 KILL 확인 — R1** (`TASK-73` · 결정 48 의 등가 증거. 2026-09-10 직접 관측).
+# 두 변이를 **각각** 걸어 이 테스트가 FAIL 하는 것을 봤다 — 한 변이만 재면 다른 축이 무보호다:
+#   ⑴ `services/results.MAX_CORRECTIONS` 를 `2` → `3` (개수 축) → FAIL. 「정확히 2개」가 살아 있다.
+#   ⑵ `_TOP_CORRECTIONS_SQL` 의 `max(case severity when 'high' then 3 …)` 를 `max(severity)` 로
+#      (정렬 축 — 이 테스트 이름이 경계하는 텍스트 정렬로 되돌림) → FAIL.
+# ⚠️ 같은 회차에서 `..._tiebreak_by_occurrence_count_…` 는 두 변이 모두에 **통과**했다. 그 테스트가
+# 지키는 것은 3차 정렬이고 위 두 축이 아니다 — 항목당 대상 테스트를 이름으로 특정해야 하는 이유다.
 async def test_top_two_corrections_ranked_by_severity_ordinal_not_text(
     api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session
 ):
@@ -195,6 +203,15 @@ async def test_top_two_corrections_ranked_by_severity_ordinal_not_text(
 
 
 # ② non-terminal job 존재 → analyzing + corrections 키 자체 없음 (R2 규칙 3)
+#
+# ✅ **뮤테이션 KILL 확인 — R2 규칙 3** (`TASK-73`. 2026-09-10 직접 관측).
+# `get_session_result` 의 `if counts["non_terminal"] > 0:` 를 `if False:` 로 무력화하니 **4건이
+# FAIL** 했다: 이 테스트 · `..._analyzing_hides_already_available_corrections` ·
+# `..._pronunciation_is_included_while_grammar_is_still_analyzing` ·
+# `..._drill_key_and_log_are_absent_in_analyzing`.
+# ⚠️ 그 회차에서 「드릴 exchange 미달」 경고 로그가 실제로 났다 — 규칙 3 이 막는 것이 잠정 교정
+# 노출만이 아니라 **미달 로그 오염**까지라는 것이 그 출력으로 드러났다(모듈 docstring 이 그 이유를
+# 이미 서술한다). 즉 이 규칙 하나에 네 계약이 걸려 있다.
 async def test_non_terminal_job_yields_analyzing_without_corrections_key(
     api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session
 ):
@@ -291,6 +308,16 @@ async def test_awaiting_analysis_is_false_once_a_job_exists(
 
 
 # ④ learning_sessions.status='failed' → connection_failed (job이 done이어도 우선한다)
+#
+# ✅ **뮤테이션 KILL 확인 — R2 규칙 1 의 «최우선»** (`TASK-73`. 2026-09-10 직접 관측).
+# `if session["status"] == "failed":` 를 `if False:` 로 무력화하니 **2건이 FAIL** 했다: 이 테스트와
+# `..._drill_key_and_log_are_absent_in_connection_failed`. 그 회차에서도 「드릴 exchange 미달」
+# 경고가 났다 — 규칙 1 이 막는 것에 **연결 실패 세션의 미달 로그**가 포함된다는 것이 출력으로
+# 확인됐다(결정 10 이 정한 「지시문을 고치는 입력」을 오염시키는 자리다).
+# ⚠️ 이 변이는 「규칙이 존재하는가」와 「그것이 최우선인가」를 한꺼번에 무력화한다. 순서만 재려면
+# 규칙 1 블록을 아래로 **옮기는** 변이가 필요한데, 그 편집은 sed 로 안전하지 않아 하지 않았다 —
+# 이 테스트의 픽스처가 job 을 `done` 으로 두므로 규칙 1 이 없으면 규칙 5(`final`)로 떨어지고,
+# 그것이 곧 「최우선이 아니면 실패한다」를 보인다.
 async def test_failed_session_yields_connection_failed_even_with_done_job(
     api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session
 ):
@@ -331,6 +358,12 @@ async def test_failed_session_yields_connection_failed_even_with_done_job(
 
 
 # ⑤ failed job 1 + done 2 → partial_failure + 성공분 교정 포함 (R2 규칙 4, R3)
+#
+# ✅ **뮤테이션 KILL 확인 — R3** (`TASK-73`. 2026-09-10 직접 관측).
+# 규칙 4 분기의 `partial_failure=True` 를 `False` 로 바꾸니 이 테스트가 `assert False is True` 로
+# FAIL 했다. 즉 R3 의 플래그가 실제로 이 단정에 걸려 있다.
+# ⚠️ 같은 회차에서 `..._drill_key_rides_with_partial_failure_like_corrections` 는 **통과**했다 —
+# 그 테스트가 지키는 것은 `drill` 키의 동승 규약이고 플래그 값이 아니다.
 async def test_partial_failure_includes_successful_corrections(
     api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session
 ):
