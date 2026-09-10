@@ -1,10 +1,10 @@
 ---
 id: TASK-82
 title: '실행: 테스트 하네스 P계층 이월분 — P1·P4·P5·P6 (TASK-37 에서 넘어온 미실행분)'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-09 23:25'
-updated_date: '2026-09-10 00:00'
+updated_date: '2026-09-10 00:22'
 labels: []
 dependencies: []
 ordinal: 85000
@@ -20,8 +20,8 @@ TASK-37(5차수)이 Done 으로 닫혔으나 P계층 네 시나리오가 앱 경
 <!-- AC:BEGIN -->
 - [x] #1 P4(p2k): 강한 억양 픽스처를 세션의 «첫» 발화로 주어 앱 경로에서 관측하고 원자료를 회차 파일에 남긴다 — 다른 발화 뒤에 두면 구조적으로 관측 불가다
 - [x] #2 P1(p2a): 정확 발음 기준선을 앱 경로에서 얻는다 — 4차수는 p1 쌍만 돌렸고 p2a·p2k 는 앱 경로 미통과다
-- [ ] #3 P5: 한글 전사문의 분석 처리를 관측한다. 워커가 필요하므로 H-AT 를 먼저 읽고 구간을 좁혀 켜고 즉시 되돌린다
-- [ ] #4 P6: error_patterns 에 발음 오류 오탐이 생기는지 같은 세션에서 확인한다 — 생기면 frequency 오염이다
+- [x] #3 P5: 한글 전사문의 분석 처리를 관측한다. 워커가 필요하므로 H-AT 를 먼저 읽고 구간을 좁혀 켜고 즉시 되돌린다
+- [x] #4 P6: error_patterns 에 발음 오류 오탐이 생기는지 같은 세션에서 확인한다 — 생기면 frequency 오염이다
 - [x] #5 teardown: 시각창으로 잡고 7개 표를 기준선과 대조한다. 보존 세션 6개(210233be·6225ddaf·b2f0d169·76d9ef31·d127dece·e0c5e580) 전건 생존을 확인한다
 <!-- AC:END -->
 
@@ -92,4 +92,34 @@ agent 발화 전문: 「I see you want to talk about a report. Let's start with 
 ⚠️ 그리고 이 사고의 정확한 기전은 「틀린 술어가 자기 자신을 통과시킨 것」임 — guard 의 사후 검사도 같은 술어였으므로 「전건 claim 불가」라는 거짓 안심을 출력했음. 보호 대상을 세는 방어는 다른 술어로 교차 검산해야 함.
 
 AC#3·AC#4 는 에이전트가 스크립트를 고친 뒤 진행함. 검증은 내가 함 — 작성과 검증을 같은 눈으로 하지 않기 위해 내가 원저자인 파일의 수정을 에이전트에 맡겼음.
+
+⛔ P6 오탐 관측 — 팀리드가 DB 에서 직접 읽음 (2026-09-10 00:06 UTC). 에이전트 보고 전에 발견했음.
+
+error_patterns 가 기준선 9 에서 10 이 됐고 teardown 뒤에도 남음. 나머지 표는 전부 기준선임(learning_sessions 13 · utterances 120 · pronunciation_attempts 4 · error_occurrences 24 · analysis_jobs 49).
+
+새 패턴 전문:
+category business_expression · pattern_key business_expression_unclear_work_noun · target_form 「I finished + the + 업무 명사(report, design, test) + with my team」 · frequency 1 · error_occurrences 0행 · last_seen_at 2026-09-09 23:59:37.666124+00 · next_review_at 2026-09-10 23:59:37+00.
+
+판정: P6 의 단정이 FAIL 임. 학습자가 문법적으로 옳게 말했는데(p2m 픽스처 문장) 발음 열화로 전사가 「i finished the la porte en chaille de lesseps with my team.」 로 무너졌고, 분석기가 그 전사문에서 표현 패턴을 발명하고 복습 과제까지 예약했음. frequency 오염 + next_review_at 생성 둘 다 일어났음.
+
+⛔ 되돌릴 수 없는 오염이 함께 일어났음 — verb_tense_past_simple_for_past_events 의 next_review_at 이 2026-09-12 23:59:37.666124+00 로 밀렸음. 그 마이크로초가 새 패턴의 last_seen_at 과 정확히 같아 이 회차가 갱신한 것이 확정됨. last_seen_at 은 2026-09-08 그대로인데 예정일만 3일 뒤로 갔음 — 다른 패턴은 전부 next_review_at = last_seen_at + 1일 형태임.
+
+⛔ harness_pattern_baseline 에 next_review_at 컬럼이 없음(id · pattern_key · frequency · last_seen_at 뿐 — \d 로 확인). 그래서 원래 값의 복원 근거가 없음. 이것이 그 표의 설계 공백임 — 복습 주기가 도입되기 전에 만들어진 스냅샷 스키마임.
+
+⚠️ 이 오염은 P6 가 재려던 피해 그 자체이므로 증거임. 지울지 되돌릴지는 에이전트 보고를 받고 판단함. 에이전트에게 error_patterns 쓰기와 harness_pattern_baseline 재스냅샷을 금지했음 — 후자는 오염된 상태를 기준선으로 굳힘.
+
+⛔ 정정 3 — 위에 적은 「P6 의 단정이 FAIL 임 · 분석기가 표현 패턴을 발명했음」을 철회함. 에이전트 회차가 내가 못 본 증거 둘을 갖고 있었음.
+
+⑴ 그 패턴에 error_occurrences 가 1건 있었음(original_span 「the la porte en chaille de lesseps」 → correction 「the report」). 내가 occ 0 을 본 것은 teardown 이 끝난 뒤라 cascade 로 사라진 상태였음 — 조회 시점을 확인하지 않고 「occurrence 0 이므로 발명」이라 추론한 것이 오류임.
+⑵ 결과 API 의 reason 이 「무엇을 끝냈는지 알 수 있는 업무 명사를 넣어야 상대방이 이해할 수 있어요. 지금 부분은 영어 단어로 전달되지 않았습니다.」 임 — 분석기가 입력 상태를 명시하므로 입력에 충실한 판정이고 발명이 아님.
+
+그리고 내가 낸 「출력 형식 압력」 가설도 반증됐음 — analysis.py:159 가 「오류가 없으면 {"findings": []} 를 출력한다」로 빈 배열을 명시 허용하고, 4차수 P1 이 실제로 findings 0건을 얻었음(runs/2026-08-26-run-4.md:34).
+
+정확한 서술: P6 의 원 단정은 평가 불가임(입력이 문법적으로 옳은 문장이 아니었음). 남는 사실은 종단 결과 — 발음 문제가 pronunciation_intonation 이 아니라 business_expression 카테고리로 기록되고 그 주기를 탐. 결함 여부는 요구사항 판단이라 TASK-84 로 분리했음.
+
+⛔ 정정 4 — 위에 적은 「보존 세션 job 8건」도 단위 혼합이었음. 보존 job 은 상태 무관 15건(done 7 · failed 1 · pending 7)이고 claim 가능한 pending 이 7건임. 내가 「analyze 3 + plan 5」로 센 것은 pending 수와 전체 수를 섞은 값임. 에이전트가 잡았음.
+
+AC#3·AC#4 결과: P5 = ① findings 0건으로 done(기대 거동 · 표본 1개 · 부정 관측이라 미재현). P6 = 평가 불가. teardown 잔여는 TASK-83 으로 분리했음 — harness_pattern_baseline 이 next_review_at·mastery_score 를 담지 않고 review_tasks 에 baseline 표가 없어 복원 불가임. 「drift 0」이 「되돌아왔다」를 뜻하지 않는 것이 이 회차의 가장 값어치 있는 발견임.
+
+드라이버 결함 B 도 기록함 — restore 가 asyncpg DataError 로 죽어 보존 job 15건이 +30일로 밀린 채 남았음. 스냅샷을 /tmp 가 아니라 회차 디렉터리에 두게 한 지시가 복원 근거를 살렸음. SELECT 로는 안 보이는 결함이었음.
 <!-- SECTION:NOTES:END -->
