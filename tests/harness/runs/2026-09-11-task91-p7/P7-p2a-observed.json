@@ -1,0 +1,333 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3000/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/p2a.wav",
+  "bytes": 0,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 2.957,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 3,
+   "final": 2,
+   "audio": 120,
+   "session_ended": 0,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 1,
+   "speech_end": 1,
+   "interrupted": 0
+  },
+  "sent": {
+   "audio": 419,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 1
+  },
+  "startedSessionId": "050f1852-2cda-4de3-a8c1-3cbb4b0d5618",
+  "fixture": {
+   "url": "/harness/p2a.wav",
+   "bytes": 0,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 2.957,
+   "startedAt": 134,
+   "endedAt": 3093,
+   "micCalls": 1
+  },
+  "started": {
+   "count": 121,
+   "when": [
+    0,
+    4.864,
+    4.943,
+    5.023,
+    5.103,
+    5.183,
+    5.263,
+    5.343,
+    5.423,
+    5.503,
+    5.583,
+    5.663,
+    5.743,
+    5.823,
+    5.9030000000000005,
+    5.9830000000000005,
+    6.063000000000001,
+    6.143000000000001,
+    6.223000000000001,
+    6.303000000000001,
+    6.383000000000001,
+    6.463000000000001,
+    6.543000000000001,
+    6.623000000000001,
+    6.703000000000001,
+    6.783000000000001,
+    6.863000000000001,
+    6.943000000000001,
+    7.0230000000000015,
+    7.1030000000000015,
+    7.183000000000002,
+    7.263000000000002,
+    7.343000000000002,
+    7.423000000000002,
+    7.503000000000002,
+    7.583000000000002,
+    7.663000000000002,
+    7.743000000000002,
+    7.823000000000002,
+    7.903000000000002,
+    7.983000000000002,
+    8.063000000000002,
+    8.143000000000002,
+    8.223000000000003,
+    8.303000000000003,
+    8.383000000000003,
+    8.463000000000003,
+    8.543000000000003,
+    8.623000000000003,
+    8.703000000000003,
+    8.783000000000003,
+    8.863000000000003,
+    8.943000000000003,
+    9.023000000000003,
+    9.103000000000003,
+    9.304000000000004,
+    9.383000000000004,
+    9.463000000000005,
+    9.543000000000005,
+    9.623000000000005,
+    9.703000000000005,
+    9.783000000000005,
+    9.863000000000005,
+    9.943000000000005,
+    10.023000000000005,
+    10.103000000000005,
+    10.183000000000005,
+    10.263000000000005,
+    10.343000000000005,
+    10.423000000000005,
+    10.503000000000005,
+    10.583000000000006,
+    10.663000000000006,
+    10.743000000000006,
+    10.823000000000006,
+    10.903000000000006,
+    10.983000000000006,
+    11.063000000000006,
+    11.143000000000006,
+    11.223000000000006,
+    11.303000000000006,
+    11.383000000000006,
+    11.463000000000006,
+    11.543000000000006,
+    11.623000000000006,
+    11.703000000000007,
+    11.783000000000007,
+    11.863000000000007,
+    11.943000000000007,
+    12.023000000000007,
+    12.103000000000007,
+    12.183000000000007,
+    12.263000000000007,
+    12.343000000000007,
+    12.423000000000007,
+    12.503000000000007,
+    12.744000000000007,
+    12.823000000000008,
+    12.903000000000008,
+    12.983000000000008,
+    13.063000000000008,
+    13.143000000000008,
+    13.223000000000008,
+    13.303000000000008,
+    13.383000000000008,
+    13.463000000000008,
+    13.543000000000008,
+    13.623000000000008,
+    13.703000000000008,
+    13.783000000000008,
+    13.863000000000008,
+    13.943000000000008,
+    14.023000000000009,
+    14.103000000000009,
+    14.183000000000009,
+    14.263000000000009,
+    14.343000000000009,
+    14.423000000000009,
+    14.503000000000009,
+    14.583000000000009,
+    14.82300000000001
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 110,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 4177,
+    "count": 1,
+    "texts": [
+     "답변: i finished the report and shared the results with my team."
+    ]
+   },
+   {
+    "ts": 4843,
+    "count": 2,
+    "texts": [
+     "답변: i finished the report and shared the results with my team.",
+     "질문: Great job sharing the report with your team! Let’s practice a sentence about your weekend plans."
+    ]
+   },
+   {
+    "ts": 6092,
+    "count": 2,
+    "texts": [
+     "답변: i finished the report and shared the results with my team.",
+     "질문: \nWhat do you want to do this weekend?  Try to use \"I want to make a plan.\""
+    ]
+   },
+   {
+    "ts": 6970,
+    "count": 2,
+    "texts": [
+     "답변: i finished the report and shared the results with my team.",
+     "질문:  or \"I want to make a new plan.\""
+    ]
+   },
+   {
+    "ts": 7423,
+    "count": 2,
+    "texts": [
+     "답변: i finished the report and shared the results with my team.",
+     "질문: Great job sharing the report with your team! Let’s practice a sentence about your weekend plans.\nWhat do you want to do this weekend?  Try to use \"I want to make a plan.\" or \"I want to make a new plan.\""
+    ]
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 13.408
+  },
+  "meta": {
+   "hookedAt": "2026-09-10T17:18:00.127Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789060680128,
+     "before": "suspended",
+     "afterSync": "suspended",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789060680140,
+     "before": "suspended",
+     "afterSync": "suspended",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3000/_next/hmr?id=N3laO1iRhdMAFhgJsWn1x",
+    "ws://localhost:8002/ws/session"
+   ]
+  },
+  "lines": [
+   "답변: i finished the report and shared the results with my team.",
+   "질문: Great job sharing the report with your team! Let’s practice a sentence about your weekend plans.\nWhat do you want to do this weekend?  Try to use \"I want to make a plan.\" or \"I want to make a new plan.\""
+  ],
+  "url": "http://localhost:3000/",
+  "log": [
+   {
+    "at": 100,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 4083,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 13397,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 3,
+     "final": 2,
+     "audio": 120,
+     "session_ended": 0,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 1,
+     "speech_end": 1,
+     "interrupted": 0
+    }
+   }
+  ]
+ },
+ "screenshot_session": "../../tests/harness/runs/2026-09-11-task91-p7/P7-p2a-session.png",
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3000/results/050f1852-2cda-4de3-a8c1-3cbb4b0d5618",
+  "recv": {
+   "session_started": 1,
+   "partial": 3,
+   "final": 2,
+   "audio": 120,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 1,
+   "speech_end": 1,
+   "interrupted": 0
+  },
+  "sent": {
+   "audio": 453,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "finalLinesAtTerminal": [
+   "답변: i finished the report and shared the results with my team.",
+   "질문: Great job sharing the report with your team! Let’s practice a sentence about your weekend plans.\nWhat do you want to do this weekend?  Try to use \"I want to make a plan.\" or \"I want to make a new plan.\""
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "← 학습 시작 화면으로"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p>"
+ },
+ "screenshot_results": "../../tests/harness/runs/2026-09-11-task91-p7/P7-p2a-results.png"
+}

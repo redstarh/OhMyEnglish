@@ -1,0 +1,125 @@
+{
+ "api": {
+  "p7-p2a": {
+   "status": "final",
+   "partial_failure": false,
+   "pronunciation": [],
+   "awaiting_analysis": false,
+   "corrections": [],
+   "drill": {
+    "exchanges_observed": 0,
+    "exchanges_expected": 20
+   }
+  },
+  "p7-p2m": {
+   "status": "final",
+   "partial_failure": false,
+   "pronunciation": [],
+   "awaiting_analysis": false,
+   "corrections": [
+    {
+     "pattern_key": "business_expression_unclear_object_noun",
+     "category": "business_expression",
+     "original_span": "the la porte en chaillet de lesseps",
+     "correction": "the report",
+     "reason": "무엇을 끝냈는지가 분명하지 않게 들려요. 회의에서는 the report, the project처럼 짧고 분명한 업무 명사를 쓰면 좋습니다.",
+     "target_form": "I finished the + 업무 명사(report/project 등) + with my team",
+     "occurrences": 1
+    }
+   ],
+   "drill": {
+    "exchanges_observed": 0,
+    "exchanges_expected": 20
+   }
+  }
+ },
+ "dom": {
+  "p7-p2a": {
+   "url": "http://localhost:3000/results/050f1852-2cda-4de3-a8c1-3cbb4b0d5618",
+   "directPCount": 3,
+   "firstDirectP": {
+    "text": "확정",
+    "outerHTML": "<p style=\"font-size: 1.25rem; font-weight: bold;\">확정</p>"
+   },
+   "directPTexts": [
+    "확정",
+    "오늘은 드릴이 계획보다 짧았어요.",
+    "← 학습 시작 화면으로"
+   ],
+   "prefixCounts": {
+    "원문": 0,
+    "교정문": 0
+   },
+   "cards": [],
+   "bodyHasPartialNotice": false,
+   "labelsAnywhere": [
+    "확정"
+   ],
+   "bodyText": "학습 결과확정오늘은 드릴이 계획보다 짧았어요.표시할 교정이 없습니다.← 학습 시작 화면으로self.__next_r=\"4SyCf3DhYWDnBgr7KniGU\";if(document.cookie.indexOf('next-instant-navigation-testing=')>-1){self.__next_instant_test=fetch(location.pathname+'?_rsc=xhdorIanPcIpYSsE',{credentials:'same-origin',headers:{'rsc':'1','next-router-prefetch':'1",
+   "mainText": "학습 결과확정오늘은 드릴이 계획보다 짧았어요.표시할 교정이 없습니다.← 학습 시작 화면으로",
+   "screenshot": ".harness/evidence/c3-p7-p2a.png"
+  },
+  "p7-p2m": {
+   "url": "http://localhost:3000/results/6bae6fc2-d8a7-4135-924b-8888078b7fb2",
+   "directPCount": 3,
+   "firstDirectP": {
+    "text": "확정",
+    "outerHTML": "<p style=\"font-size: 1.25rem; font-weight: bold;\">확정</p>"
+   },
+   "directPTexts": [
+    "확정",
+    "오늘은 드릴이 계획보다 짧았어요.",
+    "← 학습 시작 화면으로"
+   ],
+   "prefixCounts": {
+    "원문": 1,
+    "교정문": 1
+   },
+   "cards": [
+    {
+     "pCount": 3,
+     "strongs": [
+      "원문:",
+      "교정문:",
+      null
+     ],
+     "texts": [
+      "원문: the la porte en chaillet de lesseps",
+      "교정문: the report",
+      "무엇을 끝냈는지가 분명하지 않게 들려요. 회의에서는 the report, the project처럼 짧고 분명한 업무 명사를 쓰면 좋습니다."
+     ],
+     "outerHTML": "<div style=\"border: 1px solid rgb(221, 221, 221); border-radius: 8px; padding: 1rem; margin: 0.75rem 0px;\"><p style=\"margin: 0.25rem 0px;\"><strong>원문:</strong> the la porte en chaillet de lesseps</p><p style=\"margin: 0.25rem 0px;\"><strong>교정문:</strong> the report</p><p style=\"margin: 0.25rem 0px; color: var(--foreground-muted);\">무엇을 끝냈는지가 분명하지 않게 들려요. 회의에서는 the report, the project처럼 짧고 분명한 업무 명사를 쓰면 좋습니다.</p></div>"
+    }
+   ],
+   "bodyHasPartialNotice": false,
+   "labelsAnywhere": [
+    "확정"
+   ],
+   "bodyText": "학습 결과확정오늘은 드릴이 계획보다 짧았어요.원문: the la porte en chaillet de lesseps교정문: the report무엇을 끝냈는지가 분명하지 않게 들려요. 회의에서는 the report, the project처럼 짧고 분명한 업무 명사를 쓰면 좋습니다.← 학습 시작 화면으로self.__next_r=\"qgYN9fc_cej9OJgL7b17X\";if(document.cookie.indexOf('next-instant-navigation-testing=')>-1){self.__next_instant_test=fe",
+   "mainText": "학습 결과확정오늘은 드릴이 계획보다 짧았어요.원문: the la porte en chaillet de lesseps교정문: the report무엇을 끝냈는지가 분명하지 않게 들려요. 회의에서는 the report, the project처럼 짧고 분명한 업무 명사를 쓰면 좋습니다.← 학습 시작 화면으로",
+   "screenshot": ".harness/evidence/c3-p7-p2m.png"
+  }
+ },
+ "missing": {
+  "url": "http://localhost:3000/results/00000000-0000-0000-0000-0000000000ff",
+  "directPCount": 2,
+  "firstDirectP": {
+   "text": "그 학습 결과를 찾을 수 없습니다.",
+   "outerHTML": "<p style=\"color: var(--danger);\">그 학습 결과를 찾을 수 없습니다.</p>"
+  },
+  "directPTexts": [
+   "그 학습 결과를 찾을 수 없습니다.",
+   "← 학습 시작 화면으로"
+  ],
+  "prefixCounts": {
+   "원문": 0,
+   "교정문": 0
+  },
+  "cards": [],
+  "bodyHasPartialNotice": false,
+  "labelsAnywhere": [],
+  "bodyText": "학습 결과그 학습 결과를 찾을 수 없습니다.← 학습 시작 화면으로self.__next_r=\"WM-ci7SqfPz6700xzK6vr\";if(document.cookie.indexOf('next-instant-navigation-testing=')>-1){self.__next_instant_test=fetch(location.pathname+'?_rsc=xhdorIanPcIpYSsE',{credentials:'same-origin',headers:{'rsc':'1','next-router-prefetch':'1','next-router",
+  "mainText": "학습 결과그 학습 결과를 찾을 수 없습니다.← 학습 시작 화면으로",
+  "screenshot": ".harness/evidence/c3-missing.png"
+ }
+}
