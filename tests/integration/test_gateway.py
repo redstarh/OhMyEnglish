@@ -606,6 +606,12 @@ async def test_turn_signals_in_a_speaking_session_are_ignored(
 
 
 # ① 픽스처 완주 → 사용자 final 3행 + job 3건 (G4)
+#
+# ✅ **뮤테이션 KILL 확인 — G4** (`TASK-73` · 결정 48. 2026-09-10 직접 관측).
+# `audio_gateway/session._flush_analysis` 의 본문 앞에 `if True: return` 을 넣어 job 등록을 통째로
+# 건너뛰게 하니 **2건이 FAIL** 했다: 이 테스트와 `test_ws.py` 의
+# `..._ws_session_stores_user_finals_and_enqueues_jobs`. 후자가 `assert 0 == 3` 으로 떨어졌다.
+# ⚠️ 두 계층(러너·소켓)이 같은 변이에 함께 반응한다 — G4 가 한 계층만 지키는 단정이 아니다.
 async def test_fixture_run_saves_user_finals_and_enqueues_three_jobs(db_pool, committed_session):
     adapter = StubVoiceAdapter()
     client = FakeClient()
@@ -778,6 +784,14 @@ async def test_fixture_run_broadcasts_the_full_protocol(db_pool, committed_sessi
 
 
 # ② 무응답 어댑터 → status='failed' + 실패 이벤트, 무한 대기 없음 (G2)
+#
+# ✅ **뮤테이션 KILL 확인 — G2** (`TASK-73`. 2026-09-10 직접 관측).
+# `TimeoutError` 핸들러의 `return CONNECT_TIMEOUT_REASON` 을 `return None` 으로 바꿔 **타임아웃을
+# 실패로 보고하지 않게** 하니 이 테스트가 FAIL 했다.
+# ⛔ **`wait_for` 자체를 제거하는 변이는 쓰지 않았다** — 이 리포에 `pytest-timeout` 이 없어서 무한
+# 대기가 그대로 테스트를 매달리게 한다. 그 회차 로그에서 주입 타임아웃이 **0.1초**로 확인됐고
+# (무응답 스텁은 영원히 응답하지 않는다) 그 판단이 맞았다. 변이는 「감지」가 아니라 「보고」를 끊는
+# 쪽으로 골랐고, 그것으로도 이 단정이 반응한다.
 async def test_unresponsive_adapter_fails_the_session_without_hanging(db_pool, committed_session):
     adapter = StubVoiceAdapter(mode="unresponsive")
     client = FakeClient()
@@ -806,6 +820,13 @@ async def test_unresponsive_adapter_fails_the_session_without_hanging(db_pool, c
 
 
 # ③ 정상 종료 → close가 종료 기록보다 먼저 (G1) + ended_at·completed
+#
+# ✅ **뮤테이션 KILL 확인 — G1** (`TASK-73`. 2026-09-10 직접 관측).
+# `_close_and_record` 의 종료 기록 블록(`end_session` + `resolve_dangling`)을 `adapter.close()`
+# **앞으로 옮기니** 이 테스트가 FAIL 했다 — 실패 메시지가 `At index 0 diff: 'session.end_record'
+# != 'adapter.close'` 로, 순서 자체를 잡는다는 것이 그 출력에 그대로 드러난다.
+# ⚠️ 「close 를 아예 부르지 않는」 변이가 아니라 **순서만 바꾼** 변이를 골랐다 — 전자는 「호출
+# 여부」를 재고 G1 이 요구하는 것은 순서다.
 async def test_adapter_close_precedes_the_session_end_record(
     db_pool, committed_session, monkeypatch: pytest.MonkeyPatch
 ):
@@ -1387,6 +1408,13 @@ def _imported_names(module: ModuleType) -> list[str]:
     return names
 
 
+# ✅ **뮤테이션 KILL 확인 — G3** (`TASK-73`. 2026-09-10 직접 관측).
+# `audio_gateway/session.py` 에 `from app.audio_gateway.nova import SYSTEM_PROMPT` 를 넣고 그 값을
+# 모듈 상수에 대입하니 아래 nova 판정이 **`[session]` 파라미터에서만** FAIL 했다(`ws` 는 통과).
+# 즉 이 단정이 모듈별로 정확히 나뉘어 반응한다 — 한 모듈의 오염이 다른
+# 모듈 이름으로 보고되지 않는다.
+# ⚠️ import 그래프 단정은 **소스 텍스트를 읽는** 방식이라 런타임 뮤테이션으로는 재지 못한다. 변이를
+# import 문 자체로 준 것이 그 이유다.
 @pytest.mark.parametrize("module", [session_module, ws_module], ids=["session", "ws"])
 def test_gateway_core_does_not_import_the_stub(module: ModuleType):
     """스텁은 **주입**된다. 러너·소켓이 스텁을 import하면 테스트 대역이 프로덕션

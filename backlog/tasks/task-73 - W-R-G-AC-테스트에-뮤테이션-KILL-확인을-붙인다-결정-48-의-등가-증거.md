@@ -4,7 +4,7 @@ title: W/R/G AC 테스트에 뮤테이션 KILL 확인을 붙인다 (결정 48 �
 status: In Progress
 assignee: []
 created_date: '2026-09-09 14:39'
-updated_date: '2026-09-10 00:53'
+updated_date: '2026-09-10 00:58'
 labels: []
 dependencies: []
 ordinal: 76000
@@ -39,7 +39,7 @@ ordinal: 76000
 <!-- AC:BEGIN -->
 - [ ] #1 W1~W7 각 항목의 테스트에 뮤테이션 KILL 확인을 붙이고 어떤 변이를 어떻게 걸었는지 기록한다
 - [x] #2 R1~R3 각 항목에 같은 것을 한다
-- [ ] #3 G1~G4 각 항목에 같은 것을 한다
+- [x] #3 G1~G4 각 항목에 같은 것을 한다
 - [ ] #4 뮤테이션이 SURVIVED 하는 자리는 KILL 로 위장하지 않고 그 사실과 이유를 남긴다 — 기존 SURVIVED 주석을 지우지 않는다
 - [ ] #5 붙인 뒤 게이트 넷을 다시 재고 AC 문서 「선언 자리」 표의 항목 4 를 갱신한다
 <!-- AC:END -->
@@ -87,4 +87,15 @@ AC 항목은 열넷임 — W1~W7 · R1~R3 · G1~G4. 각 항목마다 **그 항�
 ⚠️ R2 규칙 1 의 「최우선」을 순서 이동으로 재지는 않았다 — 그 편집이 sed 로 안전하지 않아서다. 대신 이 테스트의 픽스처가 job 을 done 으로 두므로 규칙 1 이 없으면 규칙 5(final)로 떨어지고 그것이 「최우선이 아니면 실패한다」를 보인다. 그 한계를 기록에 적었다.
 
 게이트: pytest 897 passed · 게이트 밖 ruff 0건 · format 100 files.
+
+2026-09-10 G1~G4 완료 (AC#3). 변이를 직접 걸어 FAIL 을 관측하고 기록했다.
+
+- G1(close 가 종료 기록보다 먼저): _close_and_record 의 종료 기록 블록을 adapter.close() 앞으로 옮겼다 → FAIL. 실패 메시지가 At index 0 diff: session.end_record != adapter.close 라 순서 자체를 잡는 것이 출력에 드러난다. ⛔ 「close 를 아예 부르지 않는」 변이가 아니라 순서만 바꾼 변이를 골랐다 — 전자는 호출 여부를 재고 G1 이 요구하는 것은 순서다.
+- G2(연결 실패 가시화): TimeoutError 핸들러의 return CONNECT_TIMEOUT_REASON 을 return None 으로 → FAIL. ⛔ wait_for 자체를 제거하는 변이는 버렸다 — 이 리포에 pytest-timeout 이 없어 무한 대기가 테스트를 매달린다. 그 회차 로그에서 주입 타임아웃이 0.1초로 확인돼 그 판단이 맞았다.
+- G3(포트 계약 · import 격리): session.py 에 nova import 를 넣으니 [session] 파라미터에서만 FAIL 하고 ws 는 통과했다 — 모듈별로 정확히 나뉘어 반응한다. ⚠️ import 그래프 단정은 소스 텍스트를 읽는 방식이라 런타임 변이로는 못 잰다. 변이를 import 문으로 준 이유가 그것이다.
+- G4(시나리오 완주): _flush_analysis 본문 앞에 if True: return 을 넣어 job 등록을 건너뛰니 2건 FAIL(게이트웨이·소켓 양 계층). 후자가 assert 0 == 3 으로 떨어졌다.
+
+게이트: pytest 897 passed · 게이트 밖 ruff 0건 · format 100 files · ty 통과.
+
+남은 것은 AC#1(W1~W7 — W1 은 이전 세션에서 완료)과 AC#5(게이트 재측정 + AC 문서 항목 4 갱신)다.
 <!-- SECTION:NOTES:END -->
