@@ -1,0 +1,7 @@
+instrument.js sha256(파일): cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac  (44552B)
+대상 탭: http://localhost:3000/
+마이크 교체 완료: {'url': '/harness/pq08.wav', 'bytes': 0, 'ctxSampleRate': 16000, 'bufferSampleRate': 16000, 'durationSec': 3.28, 'startedAt': None, 'endedAt': None, 'micCalls': 0}
+관통: recv={'session_started': 1, 'partial': 3, 'final': 2, 'audio': 113, 'session_ended': 0, 'session_failed': 0, 'pronunciation': 0, 'speech_start': 1, 'speech_end': 1, 'interrupted': 0} · session_id=dbb7e360-d0fd-44b6-bde3-f738163eb06b
+      화면 줄=['답변: he finished the first version of the pile.', '질문: I see you mentioned finishing the first version. Could you tell me more about what you finished?  For example, you could say "I finished a project" or "I finished an email." What did you finish?']
+종료: url=http://localhost:3000/results/dbb7e360-d0fd-44b6-bde3-f738163eb06b · recv={'session_started': 1, 'partial': 3, 'final': 2, 'audio': 113, 'session_ended': 1, 'session_failed': 0, 'pronunciation': 0, 'speech_start': 1, 'speech_end': 1, 'interrupted': 0}
+기록: /Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-11-task92-pq08-repro/app-pq08-r2.json

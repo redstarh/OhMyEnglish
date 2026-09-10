@@ -1,0 +1,323 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3000/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/pq08.wav",
+  "bytes": 0,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 3.28,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 3,
+   "final": 2,
+   "audio": 112,
+   "session_ended": 0,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 1,
+   "speech_end": 1,
+   "interrupted": 0
+  },
+  "sent": {
+   "audio": 410,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 1
+  },
+  "startedSessionId": "06852478-d6c7-4597-a0f8-0fb597d5e532",
+  "fixture": {
+   "url": "/harness/pq08.wav",
+   "bytes": 0,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 3.28,
+   "startedAt": 114,
+   "endedAt": 3394,
+   "micCalls": 1
+  },
+  "started": {
+   "count": 113,
+   "when": [
+    0,
+    4.696,
+    4.7749999999999995,
+    4.8549999999999995,
+    4.935,
+    5.015,
+    5.095,
+    5.175,
+    5.255,
+    5.335,
+    5.415,
+    5.495,
+    5.575,
+    5.655,
+    5.735,
+    5.815,
+    5.8950000000000005,
+    5.9750000000000005,
+    6.055000000000001,
+    6.135000000000001,
+    6.215000000000001,
+    6.295000000000001,
+    6.375000000000001,
+    6.455000000000001,
+    6.535000000000001,
+    6.615000000000001,
+    6.695000000000001,
+    6.775000000000001,
+    6.855000000000001,
+    6.935000000000001,
+    7.0150000000000015,
+    7.0950000000000015,
+    7.175000000000002,
+    7.255000000000002,
+    7.335000000000002,
+    7.415000000000002,
+    7.495000000000002,
+    7.575000000000002,
+    7.655000000000002,
+    7.735000000000002,
+    7.815000000000002,
+    7.895000000000002,
+    7.975000000000002,
+    8.055000000000001,
+    8.135000000000002,
+    8.215000000000002,
+    8.416000000000002,
+    8.495000000000003,
+    8.575000000000003,
+    8.655000000000003,
+    8.735000000000003,
+    8.815000000000003,
+    8.895000000000003,
+    8.975000000000003,
+    9.055000000000003,
+    9.135000000000003,
+    9.215000000000003,
+    9.295000000000003,
+    9.375000000000004,
+    9.455000000000004,
+    9.535000000000004,
+    9.615000000000004,
+    9.695000000000004,
+    9.775000000000004,
+    9.855000000000004,
+    9.935000000000004,
+    10.015000000000004,
+    10.095000000000004,
+    10.175000000000004,
+    10.255000000000004,
+    10.335000000000004,
+    10.415000000000004,
+    10.495000000000005,
+    10.575000000000005,
+    10.655000000000005,
+    10.735000000000005,
+    10.815000000000005,
+    10.895000000000005,
+    10.975000000000005,
+    11.055000000000005,
+    11.135000000000005,
+    11.215000000000005,
+    11.295000000000005,
+    11.375000000000005,
+    11.455000000000005,
+    11.535000000000005,
+    11.615000000000006,
+    11.695000000000006,
+    11.775000000000006,
+    11.855000000000006,
+    11.935000000000006,
+    12.015000000000006,
+    12.095000000000006,
+    12.175000000000006,
+    12.255000000000006,
+    12.335000000000006,
+    12.415000000000006,
+    12.656000000000006,
+    12.735000000000007,
+    12.815000000000007,
+    12.895000000000007,
+    12.975000000000007,
+    13.055000000000007,
+    13.135000000000007,
+    13.215000000000007,
+    13.295000000000007,
+    13.375000000000007,
+    13.455000000000007,
+    13.535000000000007,
+    13.615000000000007,
+    13.695000000000007,
+    13.775000000000007,
+    13.975000000000007
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 107,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 3799,
+    "count": 1,
+    "texts": [
+     "답변: he finished the first version of the pile."
+    ]
+   },
+   {
+    "ts": 4688,
+    "count": 2,
+    "texts": [
+     "답변: he finished the first version of the pile.",
+     "질문: I see you mentioned finishing the first version. Could you tell me more about what you finished?"
+    ]
+   },
+   {
+    "ts": 5632,
+    "count": 2,
+    "texts": [
+     "답변: he finished the first version of the pile.",
+     "질문:   For example, you could say \"I finished a project\" or \"I finished an email.\""
+    ]
+   },
+   {
+    "ts": 6796,
+    "count": 2,
+    "texts": [
+     "답변: he finished the first version of the pile.",
+     "질문:  What did you finish?"
+    ]
+   },
+   {
+    "ts": 7098,
+    "count": 2,
+    "texts": [
+     "답변: he finished the first version of the pile.",
+     "질문: I see you mentioned finishing the first version. Could you tell me more about what you finished?  For example, you could say \"I finished a project\" or \"I finished an email.\" What did you finish?"
+    ]
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 13.12
+  },
+  "meta": {
+   "hookedAt": "2026-09-10T22:47:19.545Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789080439546,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789080439553,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3000/_next/hmr?id=HwoT349TxaBRshc2Jr1-7",
+    "ws://localhost:8002/ws/session"
+   ]
+  },
+  "lines": [
+   "답변: he finished the first version of the pile.",
+   "질문: I see you mentioned finishing the first version. Could you tell me more about what you finished?  For example, you could say \"I finished a project\" or \"I finished an email.\" What did you finish?"
+  ],
+  "url": "http://localhost:3000/",
+  "log": [
+   {
+    "at": 0,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 3823,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 13134,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 3,
+     "final": 2,
+     "audio": 112,
+     "session_ended": 0,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 1,
+     "speech_end": 1,
+     "interrupted": 0
+    }
+   }
+  ]
+ },
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3000/results/06852478-d6c7-4597-a0f8-0fb597d5e532",
+  "recv": {
+   "session_started": 1,
+   "partial": 3,
+   "final": 2,
+   "audio": 112,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 1,
+   "speech_end": 1,
+   "interrupted": 0
+  },
+  "sent": {
+   "audio": 442,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "finalLinesAtTerminal": [
+   "답변: he finished the first version of the pile.",
+   "질문: I see you mentioned finishing the first version. Could you tell me more about what you finished?  For example, you could say \"I finished a project\" or \"I finished an email.\" What did you finish?"
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "← 학습 시작 화면으로"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p>"
+ }
+}

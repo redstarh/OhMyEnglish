@@ -1,0 +1,527 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3000/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/pq08.wav",
+  "bytes": 0,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 3.28,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 7,
+   "final": 7,
+   "audio": 242,
+   "session_ended": 0,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 1,
+   "speech_end": 1,
+   "interrupted": 0
+  },
+  "sent": {
+   "audio": 888,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 1
+  },
+  "startedSessionId": "121137f4-d366-4caa-b879-8629ca0698e7",
+  "fixture": {
+   "url": "/harness/pq08.wav",
+   "bytes": 0,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 3.28,
+   "startedAt": 118,
+   "endedAt": 3395,
+   "micCalls": 1
+  },
+  "started": {
+   "count": 243,
+   "when": [
+    0,
+    5.288,
+    5.367,
+    5.447,
+    5.527,
+    5.607,
+    5.687,
+    5.767,
+    5.847,
+    5.9270000000000005,
+    6.007000000000001,
+    6.087000000000001,
+    6.167000000000001,
+    6.247000000000001,
+    6.327000000000001,
+    6.407000000000001,
+    6.487000000000001,
+    6.567000000000001,
+    6.647000000000001,
+    6.727000000000001,
+    6.807000000000001,
+    6.887000000000001,
+    6.967000000000001,
+    7.0470000000000015,
+    7.127000000000002,
+    7.287000000000002,
+    7.367000000000002,
+    7.447000000000002,
+    7.527000000000002,
+    7.607000000000002,
+    7.687000000000002,
+    7.767000000000002,
+    7.847000000000002,
+    7.927000000000002,
+    8.007000000000001,
+    8.208000000000002,
+    8.287000000000003,
+    8.367000000000003,
+    8.447000000000003,
+    8.527000000000003,
+    8.607000000000003,
+    8.687000000000003,
+    8.767000000000003,
+    8.847000000000003,
+    8.927000000000003,
+    9.007000000000003,
+    9.087000000000003,
+    9.167000000000003,
+    9.247000000000003,
+    9.327000000000004,
+    9.407000000000004,
+    9.487000000000004,
+    9.567000000000004,
+    9.647000000000004,
+    9.727000000000004,
+    9.807000000000004,
+    9.887000000000004,
+    9.967000000000004,
+    10.047000000000004,
+    10.127000000000004,
+    10.207000000000004,
+    10.407000000000004,
+    10.408000000000003,
+    10.487000000000004,
+    10.567000000000004,
+    10.647000000000004,
+    10.727000000000004,
+    10.887000000000004,
+    10.967000000000004,
+    11.047000000000004,
+    11.127000000000004,
+    11.207000000000004,
+    11.287000000000004,
+    11.367000000000004,
+    11.447000000000005,
+    11.527000000000005,
+    11.607000000000005,
+    11.687000000000005,
+    11.767000000000005,
+    11.847000000000005,
+    11.927000000000005,
+    12.007000000000005,
+    12.087000000000005,
+    12.167000000000005,
+    12.247000000000005,
+    12.327000000000005,
+    12.407000000000005,
+    12.487000000000005,
+    12.567000000000005,
+    12.647000000000006,
+    12.727000000000006,
+    12.807000000000006,
+    12.887000000000006,
+    12.967000000000006,
+    13.047000000000006,
+    13.127000000000006,
+    13.207000000000006,
+    13.287000000000006,
+    13.367000000000006,
+    13.608000000000006,
+    13.687000000000006,
+    13.767000000000007,
+    13.847000000000007,
+    13.927000000000007,
+    14.007000000000007,
+    14.087000000000007,
+    14.167000000000007,
+    14.247000000000007,
+    14.327000000000007,
+    14.407000000000007,
+    14.487000000000007,
+    14.567000000000007,
+    14.647000000000007,
+    14.727000000000007,
+    14.807000000000007,
+    14.887000000000008,
+    14.967000000000008,
+    15.047000000000008,
+    15.127000000000008,
+    15.207000000000008,
+    15.287000000000008,
+    15.367000000000008,
+    15.447000000000008,
+    15.527000000000008,
+    15.607000000000008,
+    15.687000000000008,
+    15.767000000000008,
+    15.847000000000008,
+    15.927000000000008,
+    16.00700000000001,
+    16.087000000000007,
+    16.167000000000005,
+    16.247000000000003,
+    16.327,
+    16.407,
+    16.487,
+    16.566999999999997,
+    16.646999999999995,
+    16.726999999999993,
+    16.96699999999999,
+    16.967999999999993,
+    17.046999999999993,
+    17.126999999999992,
+    17.20699999999999,
+    17.28699999999999,
+    17.366999999999987,
+    17.446999999999985,
+    17.526999999999983,
+    17.60699999999998,
+    17.68699999999998,
+    17.766999999999978,
+    17.846999999999976,
+    17.926999999999975,
+    18.006999999999973,
+    18.08699999999997,
+    18.16699999999997,
+    18.246999999999968,
+    18.326999999999966,
+    18.406999999999965,
+    18.486999999999963,
+    18.56699999999996,
+    18.64699999999996,
+    18.726999999999958,
+    18.806999999999956,
+    18.886999999999954,
+    18.966999999999953,
+    19.04699999999995,
+    19.12699999999995,
+    19.206999999999947,
+    19.286999999999946,
+    19.366999999999944,
+    19.446999999999942,
+    19.52699999999994,
+    19.60699999999994,
+    19.686999999999937,
+    19.766999999999936,
+    19.846999999999934,
+    19.926999999999932,
+    20.00699999999993,
+    20.08699999999993,
+    20.166999999999927,
+    20.246999999999925,
+    20.326999999999924,
+    20.406999999999922,
+    20.48699999999992,
+    20.56699999999992,
+    20.646999999999917,
+    20.726999999999915,
+    20.806999999999913,
+    20.88699999999991,
+    20.96699999999991,
+    21.20799999999991,
+    21.28699999999991,
+    21.36699999999991,
+    21.446999999999907,
+    21.526999999999905,
+    21.606999999999903,
+    21.6869999999999,
+    21.7669999999999,
+    21.8469999999999,
+    21.926999999999897,
+    22.006999999999895,
+    22.086999999999893,
+    22.16699999999989,
+    22.24699999999989,
+    22.326999999999888,
+    22.406999999999886,
+    22.486999999999885,
+    22.566999999999883,
+    22.64699999999988,
+    22.72699999999988,
+    22.806999999999878,
+    22.886999999999876,
+    22.966999999999874,
+    23.046999999999873,
+    23.12699999999987,
+    23.20699999999987,
+    23.286999999999868,
+    23.366999999999866,
+    23.606999999999864,
+    23.607999999999866,
+    23.686999999999866,
+    23.766999999999864,
+    23.846999999999863,
+    23.92699999999986,
+    24.00699999999986,
+    24.086999999999858,
+    24.166999999999856,
+    24.246999999999854,
+    24.326999999999853,
+    24.40699999999985,
+    24.48699999999985,
+    24.566999999999847,
+    24.646999999999846,
+    24.726999999999844,
+    24.806999999999842,
+    24.88699999999984,
+    24.96699999999984,
+    25.046999999999837,
+    25.126999999999835,
+    25.206999999999834,
+    25.286999999999832,
+    25.52699999999983
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 106,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 4171,
+    "count": 1,
+    "texts": [
+     "답변: i finished the first version of the pile."
+    ]
+   },
+   {
+    "ts": 5224,
+    "count": 2,
+    "texts": [
+     "답변: i finished the first version of the pile.",
+     "질문: It sounds like you finished the first version of something."
+    ]
+   },
+   {
+    "ts": 6009,
+    "count": 2,
+    "texts": [
+     "답변: i finished the first version of the pile.",
+     "질문:  Can you tell me more about what you finished?"
+    ]
+   },
+   {
+    "ts": 6597,
+    "count": 2,
+    "texts": [
+     "답변: i finished the first version of the pile.",
+     "질문:   For example, did you finish a plan or a project?"
+    ]
+   },
+   {
+    "ts": 7476,
+    "count": 2,
+    "texts": [
+     "답변: i finished the first version of the pile.",
+     "질문:   \n\nLet's try to make a simple sentence about your weekend."
+    ]
+   },
+   {
+    "ts": 8214,
+    "count": 2,
+    "texts": [
+     "답변: i finished the first version of the pile.",
+     "질문:  What do you want to do this weekend?  You can say, \"I want to make a plan.\""
+    ]
+   },
+   {
+    "ts": 9389,
+    "count": 2,
+    "texts": [
+     "답변: i finished the first version of the pile.",
+     "질문: It sounds like you finished the first version of something."
+    ]
+   },
+   {
+    "ts": 9392,
+    "count": 3,
+    "texts": [
+     "답변: i finished the first version of the pile.",
+     "질문: It sounds like you finished the first version of something.",
+     "질문:  or \"I want to make a new plan.\""
+    ]
+   },
+   {
+    "ts": 9967,
+    "count": 3,
+    "texts": [
+     "답변: i finished the first version of the pile.",
+     "질문: It sounds like you finished the first version of something.",
+     "질문:  \n\nWhat would you like to say?"
+    ]
+   },
+   {
+    "ts": 10408,
+    "count": 2,
+    "texts": [
+     "답변: i finished the first version of the pile.",
+     "질문: It sounds like you finished the first version of something.  or \"I want to make a new plan.\" \n\nWhat would you like to say?"
+    ]
+   },
+   {
+    "ts": 10838,
+    "count": 2,
+    "texts": [
+     "답변: i finished the first version of the pile.",
+     "질문: It sounds like you finished the first version of something.  or \"I want to make a new plan.\" \n\nWhat would you like to say?  Can you tell me more about what you finished?"
+    ]
+   },
+   {
+    "ts": 14295,
+    "count": 2,
+    "texts": [
+     "답변: i finished the first version of the pile.",
+     "질문: It sounds like you finished the first version of something.  or \"I want to make a new plan.\" \n\nWhat would you like to say?  Can you tell me more about what you finished?   For example, did you finish a plan or a project?"
+    ]
+   },
+   {
+    "ts": 17815,
+    "count": 2,
+    "texts": [
+     "답변: i finished the first version of the pile.",
+     "질문: It sounds like you finished the first version of something.  or \"I want to make a new plan.\" \n\nWhat would you like to say?  Can you tell me more about what you finished?   For example, did you finish a plan or a project?   \n\nLet's try to make a simple sentence about your weekend."
+    ]
+   },
+   {
+    "ts": 22298,
+    "count": 2,
+    "texts": [
+     "답변: i finished the first version of the pile.",
+     "질문: It sounds like you finished the first version of something.  or \"I want to make a new plan.\" \n\nWhat would you like to say?  Can you tell me more about what you finished?   For example, did you finish a plan or a project?   \n\nLet's try to make a simple sentence about your weekend.  What do you want to do this weekend?  You can say, \"I want to make a plan.\""
+    ]
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 28.442666666666668
+  },
+  "meta": {
+   "hookedAt": "2026-09-10T22:47:56.439Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789080476440,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789080476452,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3000/_next/hmr?id=mr9lPP9prk_7sZtttlfRy",
+    "ws://localhost:8002/ws/session"
+   ]
+  },
+  "lines": [
+   "답변: i finished the first version of the pile.",
+   "질문: It sounds like you finished the first version of something.  or \"I want to make a new plan.\" \n\nWhat would you like to say?  Can you tell me more about what you finished?   For example, did you finish a plan or a project?   \n\nLet's try to make a simple sentence about your weekend.  What do you want to do this weekend?  You can say, \"I want to make a plan.\""
+  ],
+  "url": "http://localhost:3000/",
+  "log": [
+   {
+    "at": 0,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 4134,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 28423,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 7,
+     "final": 7,
+     "audio": 242,
+     "session_ended": 0,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 1,
+     "speech_end": 1,
+     "interrupted": 0
+    }
+   }
+  ]
+ },
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3000/results/121137f4-d366-4caa-b879-8629ca0698e7",
+  "recv": {
+   "session_started": 1,
+   "partial": 7,
+   "final": 7,
+   "audio": 242,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 1,
+   "speech_end": 1,
+   "interrupted": 0
+  },
+  "sent": {
+   "audio": 920,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "finalLinesAtTerminal": [
+   "답변: i finished the first version of the pile.",
+   "질문: It sounds like you finished the first version of something.  or \"I want to make a new plan.\" \n\nWhat would you like to say?  Can you tell me more about what you finished?   For example, did you finish a plan or a project?   \n\nLet's try to make a simple sentence about your weekend.  What do you want to do this weekend?  You can say, \"I want to make a plan.\""
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "← 학습 시작 화면으로"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p>"
+ }
+}

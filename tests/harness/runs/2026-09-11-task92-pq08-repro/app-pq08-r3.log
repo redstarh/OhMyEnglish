@@ -1,0 +1,7 @@
+instrument.js sha256(파일): cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac  (44552B)
+대상 탭: http://localhost:3000/
+마이크 교체 완료: {'url': '/harness/pq08.wav', 'bytes': 0, 'ctxSampleRate': 16000, 'bufferSampleRate': 16000, 'durationSec': 3.28, 'startedAt': None, 'endedAt': None, 'micCalls': 0}
+관통: recv={'session_started': 1, 'partial': 7, 'final': 7, 'audio': 242, 'session_ended': 0, 'session_failed': 0, 'pronunciation': 0, 'speech_start': 1, 'speech_end': 1, 'interrupted': 0} · session_id=121137f4-d366-4caa-b879-8629ca0698e7
+      화면 줄=['답변: i finished the first version of the pile.', '질문: It sounds like you finished the first version of something.  or "I want to make a new plan." \n\nWhat would you like to say?  Can you tell me more about what you finished?   For example, did you finish a plan or a project?   \n\nLet\'s try to make a simple sentence about your weekend.  What do you want to do this weekend?  You can say, "I want to make a plan."']
+종료: url=http://localhost:3000/results/121137f4-d366-4caa-b879-8629ca0698e7 · recv={'session_started': 1, 'partial': 7, 'final': 7, 'audio': 242, 'session_ended': 1, 'session_failed': 0, 'pronunciation': 0, 'speech_start': 1, 'speech_end': 1, 'interrupted': 0}
+기록: /Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-11-task92-pq08-repro/app-pq08-r3.json
