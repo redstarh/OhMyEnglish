@@ -1103,6 +1103,45 @@ def test_plan_block_pulls_a_pronunciation_focus_out_of_the_grammar_focus_line():
     assert PRONUNCIATION_TOOL_NAME in sound_line
 
 
+def test_the_sound_line_replaces_grammar_first_and_spends_the_one_correction():
+    """`TASK-75` — 소리 줄이 **규칙 9 와 규칙 4 를 명시로 대체**해야 발음이 실제로 다뤄진다.
+
+    ⚠️ **자리를 내주는 것만으로는 부족하다는 것이 실물로 확정됐다** (`TASK-81` · 왕복 28회 ·
+    조건 넷 전부 0 — `runs/2026-09-10-task81-pronunciation-focus.md`). 남은 층이 고정부의 두 규칙이고
+    **겹치지 않는 두 경로로 막는다**:
+      * 규칙 9 `Grammar first … leave pronunciation alone` — 문법 교정이 **없는** 턴에서도 막는다.
+      * 규칙 11 `A pronunciation correction is a correction … never add it on top of a grammar
+        correction in the same turn` — 문법 교정이 **있는** 턴에서 상호배제로 막는다.
+    하나만 풀면 다른 하나가 남으므로 이 줄이 둘을 함께 대체한다.
+
+    ⛔ **one-per-turn 예산을 늘리지 않는다** (`TASK-75` AC#3). 규칙 11 을 「같은 턴에 둘 다」로 풀면
+    그 계약이 깨진다 — 대신 **그 턴의 한 교정을 발음이 차지한다**(순서만 뒤집고 예산은 그대로).
+    그래서 이 줄은 `two corrections` 류의 문구를 **말하지 않아야** 한다.
+
+    ⚠️ 대체 범위가 **소리 줄이 있는 세션으로 한정된다** — 계획이 발음 초점을 지정하지 않으면 이 줄이
+    아예 없고(아래 음성 테스트) 고정부의 규칙 9·11 이 그대로 산다. 그것이 사용자가 승인한 안이다.
+    """
+    block = _plan_block(
+        _prompt(
+            ("an_as_a",),
+            _instruction(
+                focus=[
+                    InstructionFocus(pattern_key="pronunciation_an_as_a", target_form="an_as_a"),
+                    InstructionFocus(pattern_key="article_missing", target_form="a/an/the"),
+                ]
+            ),
+        )
+    )
+
+    sound_line = _line_starting_with(block, _SOUND_LINE)
+    # 규칙 9 축 — 이 소리가 먼저다. 「같은 축을 말하는 줄은 대체를 문장으로 적는다」는 이 함수의 규약.
+    assert "instead of the Grammar first rule" in sound_line
+    # 규칙 4·11 축 — 예산을 늘리지 않고 그 한 자리를 발음이 쓴다.
+    assert "spend the one correction" in sound_line
+    # ⛔ 예산을 늘리는 문구가 새어 들어오지 않는다(AC#3 의 음성 대조).
+    assert "two corrections" not in sound_line
+
+
 def test_plan_block_has_no_sound_line_when_the_focus_is_all_grammar():
     """음성 케이스 — 발음 초점이 없으면 그 줄이 붙지 않는다.
 
