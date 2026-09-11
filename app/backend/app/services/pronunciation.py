@@ -401,10 +401,11 @@ returning id
 # 지시문에 주입할 기존 소리 (G-3, 캡틴 결정 B-4). `target_form`은 발음 패턴에서
 # `btrim(target_sound)`이므로(위 upsert) 이 컬럼이 곧 재사용할 키다.
 #
-# **문법 쪽 조회(`analysis.load_existing_patterns`)를 재사용하지 않는다.** 그쪽
-# `_EXISTING_PATTERNS_SQL`에는 카테고리 필터가 없고, 그 부재가 `frequency` 이중 writer
-# 문제(B-10 → G-8)의 뿌리다. 거기에 필터를 넣는 것은 아직 캡틴 판단을 기다리는 그 결정을
-# 미리 정하는 일이라, 발음 경로는 자기 필터를 갖는다 — "규칙은 서비스가 소유한다"(§3.1a).
+# **문법 쪽 조회(`analysis.load_existing_patterns`)를 재사용하지 않는다.** 이유가 **바뀌었다**:
+# 예전에는 그쪽 `_EXISTING_PATTERNS_SQL`에 카테고리 필터가 없어서였는데(B-10), **G-8이 그
+# 필터를 넣었다** — 지금은 `UNJUDGEABLE_CATEGORY`를 제외한다. 그래도 여기서 그 조회를 쓰지 않는
+# 이유는 **필요한 것이 정반대**이기 때문이다: 이 쿼리는 발음 카테고리만 **골라야** 하고 그쪽은
+# 그것을 **버린다.** "규칙은 서비스가 소유한다"(§3.1a)가 그 분리를 그대로 지탱한다.
 _KNOWN_SOUNDS_SQL = """
 select target_form
   from error_patterns
@@ -469,11 +470,22 @@ async def link_pattern(conn: asyncpg.Connection, attempt_id: UUID) -> UUID | Non
     `frequency`만 오르거나 `pattern_id`가 null인 부분 실행이 없다(설계서 §7 Failure).
 
     ⚠️ `frequency` 재계산은 **발음 시도 수만** 센다. 같은 `pattern_key`를 문법 경로가 만지면
-    두 재계산이 서로의 값을 덮는다. **신규** 문법 키는 그 카테고리가 프롬프트에서 금지돼
-    (`analysis.py:49` `UNJUDGEABLE_CATEGORY`) `pronunciation_`으로 시작할 수 없다. 남은 구멍은
-    **재사용 경로**다 — `_EXISTING_PATTERNS_SQL`(`analysis.py:188`)에 카테고리 필터가 없어
-    발음 키가 문법 프롬프트에 실리고, 모델이 그것을 글자 그대로 재사용하면 한 행을 두 writer가
-    번갈아 덮는다. 필터는 그 모듈의 몫이라 여기서 고치지 않는다(`TASKS.md` B-10).
+    두 재계산이 서로의 값을 덮는다(`TASK-99`가 그것을 독립 2회 재현했다).
+
+    ✅ **재사용 경로는 닫혔다** (`TASK-99` 정정 · 이 문단의 이전 판은 "`_EXISTING_PATTERNS_SQL`에
+    카테고리 필터가 없다"고 적었는데 **G-8이 그 필터를 넣은 뒤라 낡은 서술이었다**).
+    `analysis.load_existing_patterns`가 `UNJUDGEABLE_CATEGORY`를 제외하므로 발음 키는 문법
+    프롬프트에 실리지 않고, `tests/integration/test_pipeline.py`의 제외 테스트가 그것을 지킨다.
+
+    ⛔ **남은 구멍은 「모델이 지어내는 것」이고 검증은 절반만 막는다.** `resolve_pattern_keys`가
+    신규 키에 `^{category}_`를 강제하므로 문법 카테고리로 온 `pronunciation_…` 키는 upsert에
+    닿지 못한다 — 대신 그 발화의 **분석 전체가 실패**한다(`AnalysisValidationError`). 그런데
+    `ErrorFinding.category`는 `UNJUDGEABLE_CATEGORY`를 **값역에 갖고** 금지는 프롬프트 문구뿐이라,
+    모델이 그 카테고리로 `pronunciation_intonation_<x>`를 내면 **통과해서 문법 경로가 발음
+    카테고리 행을 만든다.** 도달성 관측은 실물 18회에서 0건이었고(판별력 4/4)
+    `tests/harness/runs/2026-09-11-task99-reachability/`가 그 회차의 정본이다 — 그래서 등급이
+    **잠재**로 내려갔다. ⚠️ 지금 충돌 대상이 없는 것은 `target_sound` 값역이
+    `intonation_`으로 시작하지 않기 때문일 뿐이다.
     """
     pattern_id = await conn.fetchval(
         _UPSERT_PRONUNCIATION_PATTERN_SQL, attempt_id, PRONUNCIATION_CATEGORY
@@ -544,7 +556,11 @@ async def refresh_review(
     target_form = excluded.target_form`이 **이 함수보다 먼저 같은 트랜잭션에서 그 값을
     복원한다**(팀리드가 문장 순서를 직접 확인했다). 남는 실제 구멍은 **`correct` 경로**다 —
     거기서는 `link_pattern`이 no-op이라 넘길 id가 없고 폴백 조회만 남는다. 그 구멍의 뿌리는
-    B-10(`analysis._EXISTING_PATTERNS_SQL`에 카테고리 필터 없음)이고 이 함수가 아니다.
+    이 함수가 아니라 **문법 경로가 같은 행을 집는 것**이고, 그 도달성은 `TASK-99`가 **잠재로
+    등급을 내렸다**(근거는 `link_pattern`의 ⛔ 문단과
+    `tests/harness/runs/2026-09-11-task99-reachability/`). ⚠️ 이전 판은 뿌리를
+    "B-10(`_EXISTING_PATTERNS_SQL`에 카테고리 필터 없음)"으로 적었는데 **G-8이 그 필터를 넣은
+    뒤라 낡은 서술이었다.**
 
     돌려주는 것은 재계산한 패턴 id이고, 그 소리에 패턴이 없으면 `None`이다 — **no-op이
     정상 경로다.** 한 번도 틀린 적 없는 소리를 맞힌 것(관측: `am_as_i_m` `correct`)은
