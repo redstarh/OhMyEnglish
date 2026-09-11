@@ -4,7 +4,7 @@ title: '결함 후보: 발음 tool 의 내용이 쓸 수 없다 — target_form 
 status: In Progress
 assignee: []
 created_date: '2026-09-10 17:54'
-updated_date: '2026-09-11 02:04'
+updated_date: '2026-09-11 13:20'
 labels: []
 dependencies:
   - TASK-103
@@ -69,4 +69,14 @@ TASK-93·TASK-95 회차가 관측했음. 정본은 tests/harness/runs/2026-09-11
 ⇒ **§1 의 정정과 §6 의 한계가 둘 다 더 단단해졌다.** ⑴ 「payload 의 질 관측은 기준 팔의 성질이다」는 표본이 49회로 늘어도 유지된다 — 제품 경로에서 tool 이 오지 않으므로 비교할 payload 가 생기지 않는다. ⑵ 그래서 **AC#2·AC#3 의 판정을 제품 경로로 옮길 때 다시 봐야 한다**는 유보가 여전히 필요하다.
 
 ⚠️ 그 세션이 변수를 하나씩 바꿔 설명 셋을 반증했고(소리 불일치 · 문법 초점 · 놓친 소리 목록) 「an 지시」의 출처를 **계획의 질문 5개**로 확정했다(질문을 빼면 사라진다). 남은 후보 둘은 구별 관측이 없어 **사용자 결정으로 올라갔다** — 그 답이 오면 결정 54 의 ③ 조건과 함께 읽어야 한다.
+
+2026-09-11 세션 ohmyenglish-7f 후속 — 이 태스크의 두 축 가운데 **target_sound 축은 제품 문면 문제가 아니었음**. 정본은 tests/harness/runs/2026-09-11-task86-dedicated-session.md 임.
+
+실측: 제품 문면(규칙 8~11 + 소리 줄)을 그대로 두고 프롬프트를 짧게만 만든 프로토타입에서 tool 6건이 왔고 **target_sound 가 전부 th_as_s** 로 정확했음 — 계획이 지목한 소리 키 그대로임. 반대로 스파이크 짧은 문면 대조군은 5회 중 4회에서 target_sound 가 **아예 없고** 1회는 지어낸 키(ch_as_sh · t_as_ch)였음.
+
+⇒ 「target_sound 에 오류가 아닌 키가 온다」는 이 태스크의 서술은 **대조군 관측에서 온 것이고 제품 문면에는 해당하지 않음**. 제품 문면은 그 자리를 제대로 채움.
+
+⛔ 남은 축은 그대로임 — target_form 에 **무너진 전사**가 실림(I finished the laporte en chaille de lesseps with my team.). 6건 중 pending 쪽 전부가 그 모양임. 즉 이 태스크가 실제로 고쳐야 하는 것은 target_form 하나로 좁혀졌음.
+
+⚠️ AC#3(종단으로 pronunciation_attempts·error_patterns·next_review_at 이 생기는지)은 이 관측으로 닫히지 않음 — 프로토타입은 하네스 팔이고 DB 에 쓰지 않았음.
 <!-- SECTION:NOTES:END -->

@@ -1,0 +1,62 @@
+#!/usr/bin/env python3
+"""`TASK-86` 결정 61 — 팔 P1(dedicated). 발음 전용 세션의 **프로토타입 프롬프트**를 조립한다.
+
+⛔ 제품 코드를 고치지 않는다. 제품 상수(`nova.SYSTEM_PROMPT` · `nova._SOUND_INSTRUCTION`)에서
+**발음 관련 문면만 오려** 짧은 판을 만든다 — 문면은 한 자도 새로 쓰지 않는다.
+
+담는 것: 역할 문단(제품 첫 문단) · 규칙 8~11(제품 문면 그대로) · 소리 줄(제품 문면 그대로).
+⛔ 빼는 것: 규칙 1~7 · 놓친 소리 목록 · 무대 블록 · 계획 블록·질문 5개.
+
+**이 팔이 답하는 질문 하나**: 짧은 프롬프트가 작동하는 것(대조군 17회에 16건)이 «스파이크 문구»
+때문인가 «짧다는 것» 때문인가. 제품 문면을 그대로 두고 짧게만 만들었으므로, tool 이 오면 답은
+「짧다는 것」이고 0 이면 「문구」다.
+
+⚠️ 규칙 번호를 재배치하지 않는다 — 규칙 11 이 **번호로** 규칙 4 를 가리키고 소리 줄이 규칙 9·10 을
+가리킨다. 규칙 4 가 빠지므로 그 참조가 허공을 가리키는 것은 **알고 남긴다**(문면을 고치면 변수가
+둘이 된다). 그 사실을 회차 기록 §0 이 적는다.
+"""
+
+from pathlib import Path
+
+from app.audio_gateway.nova import (
+    PRONUNCIATION_TOOL_NAME,
+    SYSTEM_PROMPT,
+    _SOUND_INSTRUCTION,
+)
+
+OUT = Path("/tmp/prompt_dedicated.txt")
+SOUND = "th_as_s"
+HEAD = "Pronunciation coaching:"
+
+
+def main() -> None:
+    if HEAD not in SYSTEM_PROMPT:
+        raise SystemExit("제품 지시문에 발음 절 제목이 없다 — 문면이 바뀌었으므로 멈춘다")
+    intro, pronunciation = SYSTEM_PROMPT.split(HEAD, 1)
+    # 역할 문단 = 첫 빈 줄까지(`You are OhMyEnglish ...` 한 문단). 학습자 프로필 문단과 규칙
+    # 1~7 은 뺀다.
+    role = intro.split("\n\n", 1)[0].strip()
+    rules = pronunciation.strip()
+
+    sound_line = _SOUND_INSTRUCTION.format(sound=SOUND, tool=PRONUNCIATION_TOOL_NAME)
+
+    prompt = "\n".join([role, "", HEAD, rules, "", sound_line])
+    OUT.write_text(prompt, encoding="utf-8")
+
+    print(f"제품 전문 {len(SYSTEM_PROMPT)}자 · 프로토타입 {len(prompt)}자")
+    print(f"  역할 문단 {len(role)}자 · 규칙 8~11 {len(rules)}자 · 소리 줄 {len(sound_line)}자")
+    for kept in ("Call report_pronunciation_coaching twice", "Always include target_sound", HEAD):
+        print(f"  남았나? {kept!r}: {kept in prompt}")
+    for dropped in (
+        "Ask one question at a time",
+        "Aim for the learner to speak at least 65%",
+        "Today's setting:",
+        "Thursday evening",
+        "Grammar first",
+    ):
+        print(f"  빠졌나? {dropped!r}: {dropped not in prompt}")
+    print(f"→ {OUT}")
+
+
+if __name__ == "__main__":
+    main()

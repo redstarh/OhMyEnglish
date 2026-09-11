@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+"""회차 증거에서 **판정 재료만** 뽑는다 — 원본을 메인 컨텍스트에 올리지 않기 위한 전처리.
+
+세는 것 셋: ⑴ `toolUse` 도착 여부와 `target_sound` ⑵ 코치 발화에 소리 언급이 있는지
+⑶ 코치 발화에 관사 드릴 문구가 있는지. ⛔ 코칭 발생과 tool 도착을 갈라 센다.
+"""
+
+import json
+import re
+import sys
+from pathlib import Path
+
+# ⛔ 맨 `th` 를 넣지 않는다 — `that`·`the`·`with` 에 걸려 발음 언급이 없는 회차를 있다고 센다
+# (첫 세션에서 실제로 오탐이 났다). 판정어는 **발음 코칭 행위**를 가리키는 것만 남긴다.
+SOUND_HINTS = (
+    "sound",
+    "say it again",
+    "repeat",
+    "pronounce",
+    "/θ/",
+    "th sound",
+    "tongue",
+    "listen to me",
+)
+ARTICLE_HINTS = ("an update", "an action plan", '"an"', "'an'", "an apple", "an email")
+
+
+def assistant_text(events: list) -> str:
+    out = []
+    for event in events:
+        block = event.get("textOutput") if isinstance(event, dict) else None
+        if block and block.get("role") == "ASSISTANT":
+            out.append(block.get("content", ""))
+    return " ".join(out)
+
+
+def main() -> None:
+    rows = []
+    for path in sorted(Path("/Users/redstar/MyProject/OhMyEnglish/.harness/evidence").glob(sys.argv[1])):
+        events = json.load(path.open())
+        raw = json.dumps(events, ensure_ascii=False)
+        tool = raw.count('"toolUse"')
+        sounds = re.findall(r'"target_sound"\s*:\s*"([^"]*)"', raw)
+        text = assistant_text(events)
+        low = text.lower()
+        rows.append(
+            {
+                "file": path.name,
+                "tool": tool,
+                "target_sound": sorted(set(sounds)),
+                "sound_words": sorted({h for h in SOUND_HINTS if h in low}),
+                "article_words": sorted({h for h in ARTICLE_HINTS if h in low}),
+                "text": text[:300],
+            }
+        )
+    for row in rows:
+        print(f"--- {row['file']}")
+        print(
+            f"    tool={row['tool']} target_sound={row['target_sound']} "
+            f"소리어={row['sound_words']} 관사어={row['article_words']}"
+        )
+        print(f"    발화: {row['text']}")
+    print(f"=== 합계: {len(rows)}건 · tool 도착 {sum(1 for r in rows if r['tool'])}건")
+
+
+if __name__ == "__main__":
+    main()
