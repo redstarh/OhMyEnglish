@@ -47,14 +47,23 @@ claim 자체를 막지 못한다. 그리고 남의 job 을 손으로 밀고 나�
 먼저 검사하고, 하나라도 claim 가능하면 실행을 거부한다.** guard 를 잊는 것이 이 절차의
 유일한 치명적 실수라서 그렇게 했다.
 
+**결함 3 — 종류를 지목할 수 없어 «항상 분석 job» 이 당겨졌다** (2026-09-11 · `TASK-105` 회차가
+실측했다). `guard` 는 내 job 중 **가장 이른 것**을 당기는데, 비보존 세션 넷 전부
+`analyze_utterance` 가 `plan_next_session` 보다 이르다. 그러면 「계획 job 만 처리한다」를
+표현할 수 없고, 분석을 지나가면 `error_patterns`·`review_tasks` 가 움직여 **필요 없는 `H-AY` 가
+재현된다**(그 회차가 실제로 그 자리를 밟고 `restore` 로 되돌렸다). → `guard --job-type` 을 더했다.
+⚠️ **그 옵션은 «좁히기만» 한다** — 남의 job 을 후보에 넣지 않으므로 위 단정 셋이 그대로 산다.
+
     P5=../../tests/harness/p5_worker_leg.py
-    .venv/bin/python $P5 guard   --expect-session <uuid> --out <회차>/p5-guard.json
+    .venv/bin/python $P5 guard   --expect-session <uuid> --out <회차>/p5-guard.json \
+                                 [--job-type analyze_utterance|plan_next_session]
     .venv/bin/python $P5 claim   --expect-session <uuid>
     .venv/bin/python $P5 restore --in <회차>/p5-guard.json
     .venv/bin/python $P5 verify
 
 ⛔ **`--expect-session` 은 `guard`·`claim` 둘 다에서 필수다.** 없이 돌 수 있게 두면 「부분만
 막고 통과하는」 초판의 결함이 되살아난다.
+⚠️ **처리할 종류가 정해져 있으면 `--job-type` 을 «항상» 준다** — 빠뜨리면 결함 3 을 다시 밟는다.
 
 cwd 는 `app/backend` 다(`H-A` 와 같은 이유 — 설정과 `.env` 가 거기 있다).
 ⚠️ `verify` 는 백엔드가 `:8002` 에 떠 있어야 한다. 상태는 결과 API 로만 읽는다.
@@ -237,7 +246,7 @@ async def cmd_guard(args: argparse.Namespace) -> int:
         if wanted is not None:
             mine = [r for r in mine if r["job_type"] == wanted]
         if not mine:
-            kind = "" if wanted is None else f" 종류 {wanted} 인 "
+            kind = "" if wanted is None else f" 종류 {wanted} 인"
             print(
                 f"⛔ 거부한다 — 기대 세션({expect8})의{kind} claim 가능한 job 이 0건이다. "
                 "당길 대상이 없으므로 guard 는 아무 의미가 없다 "
