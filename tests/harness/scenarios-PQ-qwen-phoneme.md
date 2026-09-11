@@ -132,6 +132,29 @@ afconvert -f WAVE -d LEI16@16000 -c 1 /tmp/qwen_out_pq/pqNN_000.wav <DEST>/pqNN.
 | `pq11` | I think we need to fix this bug today. | `pq01` 의 정답판 |
 | `pq12` | I think three things are ready for the demo. | `pq06` 의 정답판 |
 
+### 4.5 그룹 E — 그룹 A·B 의 «정답판» (`TASK-114` · 사용자 지시 2026-09-12)
+
+⛔ **왜 뒤늦게 필요해졌나**: 발음 코칭은 「시범 → 다시 말하기 → 판정」이고 그 「다시 말하기」에 쓸
+정확판이 그룹 A·B 여덟 가운데 **둘**(`pq01`⟺`pq11` · `pq06`⟺`pq12`)에만 있었다. 나머지 여섯은
+오류판만 있어 왕복의 뒷부분을 만들 수 없었다. **전용 모드(`TASK-10.1`)가 규칙 9 의 유보를 걷어
+이 중간 지대가 처음으로 측정 대상이 되면서** 그 짝이 필요해졌다.
+
+| ID | 철자 | 대응 오류판 |
+|---|---|---|
+| `pq02a` | I need to send the final report today. | `pq02` |
+| `pq03a` | The meeting was very helpful for our team. | `pq03` |
+| `pq04a` | I want to review the code with you. | `pq04` |
+| `pq05a` | It is easy to understand the new process. | `pq05` |
+| `pq07a` | I will review the report and share the results. | `pq07` |
+| `pq08a` | I finished the first version of the file. | `pq08` |
+
+⚠️ **이름 규약**: 「오류판 ID + `a`」 = 그 정답판. ⛔ `pq11`·`pq12` 는 이 규약보다 **먼저** 만들어진
+것이고 각각 `pq01`·`pq06` 의 정답판이다 — **이름을 바꾸지 않는다**(앞 회차 기록들이 그 ID 로
+인용하므로 바꾸면 그 인용이 낡는다).
+
+⚠️ **`pq09`·`pq10` 에는 정답판을 만들지 않았다** — 그 둘의 대조 대상은 `p1m`·`p2m` 이고 그쪽에는
+`p1a`·`p2a` 가 이미 있다.
+
 ## 5. 판정선 — 모든 케이스에 같은 네 축을 적용함
 
 ⛔ **판정 어휘를 실행 전에 정함.** 4차수 절차 교훈 3(*「판정 기준이 미승인이면 판정에 그 사실을
