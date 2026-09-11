@@ -78,6 +78,17 @@ async def main() -> None:
     # 그 소리가 학습자의 목록에도 있어야 자연스럽다 — 제품에서는 발음 패턴이 곧 목록의 원천이다.
     if MATCHED_SOUND not in known:
         known.append(MATCHED_SOUND)
+    # `--matched-known-only` — 「놓친 소리 목록」에서 `an_as_a` 를 뺀다(§5 의 팔 A4). A3 에서
+    # 문법 초점을 없앴는데도 모델이 `an` 지시를 8/8 로 냈고, 그 프롬프트에서 `an_as_a` 가 남아
+    # 있던 자리가 **그 목록 하나**였다. 그래서 이 팔이 바꾸는 변수도 하나다.
+    if "--matched-known-only" in sys.argv:
+        known = [MATCHED_SOUND]
+
+    # `--no-questions` — 계획의 질문 5개를 뺀다(§6 의 팔 A5). A4 까지 셋을 반증한 뒤 프롬프트를
+    # 직접 읽어 남은 출처를 찾았고 그것이 **질문 목록**이었다: 5개가 전부 관사 드릴이고
+    # 지시문이 「하나씩 4교대 이상」을 요구한다. 이 팔이 바꾸는 변수도 그 하나다.
+    if "--no-questions" in sys.argv:
+        questions = []
 
     kw = {"drill_count": settings.drill_count, "drill_turns_min": settings.drill_turns_min}
     hsound = build_system_prompt(known, instruction, questions, scenario, **kw)
@@ -94,7 +105,14 @@ async def main() -> None:
         if "- Sound to coach today:" in line:
             print(f"  소리 줄: {line[:150]}")
 
-    out = "/tmp/prompt_onlysound.txt" if only_sound else "/tmp/prompt_hsound.txt"
+    if "--no-questions" in sys.argv:
+        out = "/tmp/prompt_noq.txt"
+    elif "--matched-known-only" in sys.argv:
+        out = "/tmp/prompt_nolist.txt"
+    elif only_sound:
+        out = "/tmp/prompt_onlysound.txt"
+    else:
+        out = "/tmp/prompt_hsound.txt"
     with open(out, "w", encoding="utf-8") as fh:
         fh.write(hsound)
     print(f"→ {out}")
