@@ -362,6 +362,58 @@ def test_the_pronunciation_rule_also_aims_the_questions_at_that_sound(plan_input
     assert "still exercise the grammar focus" in rule
 
 
+def test_the_pronunciation_rule_forbids_shaping_the_questions_as_a_form_drill(plan_input_factory):
+    """결정 57 (`TASK-86`) — 질문이 **형태 사용 드릴**이 되는 것을 막는다.
+
+    ⚠️ **관측에서 나왔다.** 「소리를 담은 낱말로 질문을 만들어라」(캡틴 지시 2026-09-10 안 1)는
+    이미 규칙에 있었고 실제 계획이 그것을 따랐다 — 최신 계획의 질문 다섯이 전부 `an` 낱말로
+    짜였다. 그런데 그 모양이 *"Use 'an update' or 'an action plan'. Example: I want to make an
+    action plan."* 였고, 코치는 그것을 **관사 드릴로 수행**했다. 제품·하네스 계열 57회에서
+    `toolUse` 0 이고 대화의 관사 지시 출처가 **그 질문 5개**로 확정됐다
+    (`runs/2026-09-11-task106-matched-sound.md` §7 · `runs/2026-09-11-task86-priority-line.md` §3).
+
+    ⇒ 「그 소리를 담은 낱말」과 「그 소리를 연습하는 질문」은 다르다. 앞의 규칙은 낱말만 정했고
+    질문의 **모양**을 정하지 않아서 모델이 형태 사용 지시로 채웠다. 이 규칙이 그 모양을 막는다.
+
+    ⛔ **프롬프트 안의 모순 하나도 함께 닫는다** — `_OUTPUT_SPEC`의 `questions:` 불릿이
+    *"Same target form, different situations"* 를 무조건 요구한다. 발음 초점에서는 고정되는 것이
+    **형태가 아니라 소리**다. 그 문구를 지우지 않는 이유는 문법 계획에서는 맞는 요구이기
+    때문이고(발음 초점이 없는 계획에는 이 블록 자체가 붙지 않는다), 그래서 조건부인 이 자리에서
+    **그 자리에만** 예외를 말한다.
+    """
+    data = plan_input_factory(
+        due_keys=["article_missing"],
+        due_pronunciation=["pronunciation_an_as_a"],
+    )
+
+    prompt = build_plan_prompt(data)
+
+    rule = _pronunciation_focus_rule(prompt)
+    # 질문의 **모양**을 정한다 — 형태를 고르는 연습이 아니라 말하기 연습이다.
+    assert "not as an exercise in which form to use" in rule
+    # 예시 문장을 그대로 읽게 하면 코치가 그 문장을 낭독 과제로 수행한다(관측된 모양).
+    assert "do not hand them a sentence to read back" in rule
+    # `_OUTPUT_SPEC`의 "Same target form" 을 발음 초점에서 소리로 되돌린다.
+    assert "the constant is the sound" in rule
+
+
+def test_the_output_spec_still_asks_grammar_plans_for_the_same_target_form(plan_input_factory):
+    """결정 57 의 예외가 **발음 초점이 있는 계획에만** 걸리는 것을 잰다.
+
+    ⚠️ 이 음성 케이스가 판별력을 만든다 — `_OUTPUT_SPEC`에서 *"Same target form"* 을 지워서
+    위 테스트를 통과시키면 문법 계획의 질문 다섯이 서로 다른 형태를 연습해도 되는 것이 되고,
+    그것은 이 태스크가 요청받지 않은 거동 변경이다.
+    """
+    data = plan_input_factory(due_keys=["article_missing"])
+
+    prompt = build_plan_prompt(data)
+
+    assert _PRONUNCIATION_FOCUS_HEADER not in prompt
+    # ⚠️ 줄바꿈을 넘어 이어지는 문구다 — `_OUTPUT_SPEC`이 `situations.` 앞에서 감기므로
+    # 문장 전체로 단정하면 문구가 살아 있는데도 실패한다.
+    assert "Same target form, different" in prompt
+
+
 def test_prompt_omits_the_pronunciation_focus_rule_when_none_is_due(plan_input_factory):
     """음성 케이스 — AC#1의 조건은 「복습 예정일에 걸릴 때」다. 시도 집계만으로는 붙지 않는다.
 

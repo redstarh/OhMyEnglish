@@ -176,6 +176,23 @@ so do not rank these against the grammar counts above):"""
 # ⚠️ **문법 초점을 밀어내지 않는다** — 질문이 둘을 함께 담을 수 있고 그 사실을 규칙이 말한다.
 # 캡틴이 감수한 비용은 「그 세션에서 문법 연습 질문이 줄어드는 것」이고
 # 「문법이 사라지는 것」이 아니다.
+#
+# ⛔ **넷째·다섯째 줄은 결정 57(`TASK-86`)이 더했고, 셋째 줄이 «지켜졌는데도» 안 됐다는 관측에서
+# 나왔다.** 셋째 줄(「그 소리를 담은 낱말로 질문을 만들어라」)은 실제로 지켜졌다 — 커밋 `00c7d39`
+# 뒤에 생성된 제품 계획의 질문 다섯이 전부 `an` 낱말로 짜였다. 그런데 그 **모양**이 형태 사용
+# 지시였고(`Use "an update" or "an action plan". Example: "I want to make an action plan."`) 코치는
+# 그것을 **관사 드릴로 수행**했다. 제품·하네스 계열 57회에서 `toolUse` 0 이고, 대화의 관사 지시
+# 출처가 **그 질문 5개**로 확정됐다(질문을 빼면 사라졌다 —
+# `runs/2026-09-11-task106-matched-sound.md` §7 · `runs/2026-09-11-task86-priority-line.md` §3).
+# ⇒ 「그 소리를 담은 낱말」과 「그 소리를 연습하는 질문」은 다르다. 셋째 줄은 **낱말**만 정하고
+# 질문의 **모양**을 열어 뒀고, 모델은 그 자리를 형태 사용 지시로 채웠다.
+#
+# ⛔ **다섯째 줄은 프롬프트 안의 모순을 닫는다.** `_OUTPUT_SPEC`의 `questions:` 불릿이
+# *"Same target form, different situations"* 를 **무조건** 요구한다 — 발음 초점에서 고정되는 것은
+# 형태가 아니라 **소리**이므로 그 요구가 그대로면 모델이 형태 드릴로 가는 것이 **지시를 따르는
+# 행동**이 된다. ⚠️ 그 문구를 `_OUTPUT_SPEC`에서 지우지 않는 이유: 문법 계획에서는 맞는 요구이고
+# (발음 초점이 없으면 이 블록 자체가 붙지 않는다) 지우면 요청받지 않은 거동 변경이 된다. 그래서
+# **조건부인 이 자리에서만** 예외를 말한다 — `test_plan.py`의 음성 케이스가 그 경계를 잰다.
 _PRONUNCIATION_FOCUS_RULE = """\
 Pronunciation focus for today:
 - A pronunciation pattern is due for review in the list above. Give it
@@ -184,7 +201,14 @@ Pronunciation focus for today:
   lists carry no grammar pattern, the pronunciation pattern alone is fine.
 - Write the questions so they give that sound repeated chances to come up: build them around
   words that contain it, so the learner says it several times. Where you can, let the same
-  question still exercise the grammar focus — one sentence can carry both."""
+  question still exercise the grammar focus — one sentence can carry both.
+- Shape each of those questions as speaking practice for the sound. Write them
+  not as an exercise in which form to use: the learner already knows which word belongs there,
+  so do not tell them to "use" a form and do not hand them a sentence to read back. Ask for
+  something of their own that contains those words, so the sound is the part they have to get
+  right.
+- The output spec below asks the questions to share one target form. For a pronunciation focus
+  read it this way: the constant is the sound, and the situations around it change."""
 
 # 키 이름은 Task 5(`app.models.plan.PlanOutput`, `extra="forbid"`)와 글자 그대로 같아야 한다 —
 # 하나만 어긋나면 실물 모델 응답이 검증 단계에서 전부 거부된다. 초점 1~2개·질문 3~5개는
