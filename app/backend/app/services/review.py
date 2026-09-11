@@ -185,6 +185,7 @@ sound_attempts as (
         join learning_sessions s on s.id = a.session_id
         join pattern p on p.user_id = s.user_id
        where a.resolved_at is not null
+         and a.signal_source = 'nova_tool'
          and btrim(a.target_sound) = p.sound
 ),
 relapse as (
@@ -203,16 +204,32 @@ context as (
                (select sound from pattern)
              ) as scenario_context
 )
--- ⚠️ `signal_source`를 **거르지 않는다 — 설계서 §3.2 를 그대로 따른 것이고, 대칭이 깨진 것을
--- 알고 남긴다**(코드 리뷰 MEDIUM-3). `AssistOutcome`(`pronunciation.py`)이 `correct`를 허용하고
--- `record_signal`이 `target_sound`를 받으므로, **보조 신호 행이 단계 전진으로 셀 수 있다.**
--- 지금은 도달 불가다: 유일한 보조 신호 생산자 `note_transcript`가 `unclear` + `target_sound=None`
--- 만 낸다(팀리드 직접 확인). ⛔ **다음 감지기가 `agent_reprompt` 로 `outcome='correct'` +
--- `target_sound` 를 남기는 순간 학습자가 다시 말하지 않았는데 단계가 접힌다** — 그리고
--- `record_signal` 은 `refresh_review` 를 부르지 않으므로(§5.5 가 두 진입점만 배선했다) 즉시가
--- 아니라 **나중에 조용히** 반영돼 진단이 더 어렵다. 필터를 지금 넣지 않는 이유: 설계가 정하지
--- 않은 동작을 발명하지 않는다. **그 감지기를 만드는 태스크가 이 줄을 함께 판정한다** —
--- 소유자는 `TASK-24`(agent_reprompt)이고 그 노트가 이 요구를 갖는다.
+-- ⛔ `signal_source = 'nova_tool'` 이 **보조 신호를 단계 전진에서 배제한다** (위 `sound_attempts`).
+-- 사용자 판정 2026-09-11 · `TASK-74` · 캡틴 지시 대장 결정 59. **이전 판은 이 필터를 두지 않았고
+-- 그 이유를 「설계가 정하지 않은 동작을 발명하지 않는다」로 적어 두었다** — 그 판단이 이 판정으로
+-- 뒤집혔다. 뒤집은 근거: 한글 전사는 「학습자가 어느 소리를 틀렸다」가 아니라 「ASR 이 언어 판별을
+-- 뒤집었다」는 관측이라 소리를 지목하지 못하므로 복습 단계를 전진시킬 자격이 없다. 같은 축의
+-- 원칙을 결정 54 ①이 먼저 정했다 — 틀린 기록으로 시계를 돌리면 **엉뚱한 소리에** 걸린다.
+--
+-- ⚠️ **필터가 없어도 지금은 도달 불가였다. 그것이 필터를 넣은 이유다** — 도달 불가의 근거가
+-- 전부 호출자 쪽 관례(유일한 생산자 `note_transcript`가 `unclear` + `target_sound=None`만 낸다)
+-- 여서 이 쿼리 자체에는 방어가 0이었다. `AssistOutcome`(`pronunciation.py`)의 타입 잠금은 절반만
+-- 막는다 — `incorrect`는 값역에 없지만 **`correct`는 허용된다.** 새 생산자가 `outcome='correct'`
+-- + `target_sound`를 주는 순간 학습자가 다시 말하지 않았는데 단계가 접히고, `record_signal`이
+-- `refresh_review`를 부르지 않으므로(§5.5 가 두 진입점만 배선했다) **나중에 조용히** 반영돼
+-- 진단이 더 어렵다. 이제 그 경로가 쿼리에서 닫힌다.
+--
+-- **허용 목록으로 쓴다(`= 'nova_tool'`)** — `signal_source` 값역에 값이 늘면 새 값은 **기본으로
+-- 배제**된다. 배제 목록(`not in (…)`)으로 쓰면 값을 더할 때마다 이 줄을 같이 고쳐야 하고 그것을
+-- 빠뜨리는 것이 원래 결함의 모양이다.
+--
+-- ⚠️ 이 필터는 relapse 쪽(`outcome='incorrect'`)에도 걸리는데 **가리는 것이 없다**: 보조 신호는
+-- `incorrect`가 될 수 없고(같은 타입 잠금) `resolve_dangling`의 수렴 대상도 아니다
+-- (`record_signal`이 행을 이미 판정된 상태로 만든다).
+--
+-- ✅ 「그 감지기를 만드는 태스크가 이 줄을 함께 판정한다」는 요구가 **이 판정으로 해소됐다.**
+-- 그 요구가 지목했던 소유자 `TASK-24`는 `agent_reprompt`를 **만들지 않는다**로 2026-09-09 에
+-- 실측 판정하고 닫혔다(감지할 되묻기 문구가 사각 3턴 전부에 없었다) — 즉 그 감지기는 계획에 없다.
 select r.at as relapse_at,
        ctx.scenario_context,
        coalesce(

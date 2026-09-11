@@ -100,6 +100,7 @@ async def _attempt(
     pattern_id: UUID | None = None,
     sound: str = SOUND,
     sentence: str = SENTENCE,
+    signal_source: str = "nova_tool",
 ) -> UUID:
     """발음 시도 1행.
 
@@ -107,17 +108,21 @@ async def _attempt(
     **영원히 null**이고(§2의 ④) 그래서 이력 쿼리가 `target_sound`로 이어야 한다.
     ⚠️ 발화 행을 만들지 않는다(`utterance_id` null). 앵커가 `resolved_at`이라는 §3.3의
     판정이 이 부재로 증명된다 — `created_at`을 읽으면 이 테스트들이 통과할 수 없다.
+
+    `signal_source`의 기본값은 표의 기본값과 같은 `nova_tool`이다 — 이 인자를 주는 테스트는
+    **보조 신호 배제**를 재는 것 하나뿐이다(`TASK-74`, 사용자 판정 2026-09-11).
     """
     attempt_id = await conn.fetchval(
         "insert into pronunciation_attempts "
-        "(session_id, pattern_id, target_form, target_sound, outcome, resolved_at) "
-        "values ($1, $2, $3, $4, $5, $6) returning id",
+        "(session_id, pattern_id, target_form, target_sound, outcome, resolved_at, signal_source) "
+        "values ($1, $2, $3, $4, $5, $6, $7) returning id",
         session_id,
         pattern_id,
         sentence,
         sound,
         outcome,
         at,
+        signal_source,
     )
     assert isinstance(attempt_id, UUID)
     return attempt_id
@@ -182,6 +187,32 @@ async def test_a_correct_attempt_without_a_pattern_id_still_advances_the_stage(
 
     assert state.stage == 2
     assert state.next_review_at == due + timedelta(days=STAGE_DAYS[1])
+
+
+# ⛔ **보조 신호는 복습 단계를 전진시키지 않는다** (사용자 판정 2026-09-11 · `TASK-74` ·
+# 캡틴 지시 대장 결정 59). 위 테스트와 **한 글자만 다르다** — `signal_source` 하나다.
+#
+# ⚠️ 이 상태는 제품 경로에서 아직 도달 불가다: 유일한 보조 신호 생산자 `note_transcript`가
+# `unclear` + `target_sound=None`만 내고 `AssistOutcome`에 `incorrect`가 없다. 그런데 그
+# 도달 불가의 근거가 **전부 호출자 쪽 관례**여서 이력 쿼리 자체에는 방어가 0이었다 — 새
+# 생산자가 `outcome='correct'` + `target_sound`를 주는 순간 **학습자가 다시 말하지 않았는데
+# 단계가 접힌다.** 이 테스트가 그 경로를 손으로 만들어 쿼리 쪽 방어를 재는 유일한 자리다.
+#
+# ⚠️ 그래서 이 테스트는 `record_signal`을 부르지 않고 행을 직접 넣는다 — 그 함수를 쓰면
+# 지금의 도달 불가 때문에 필터를 지워도 통과해 **판별력이 0이 된다.**
+@pytest.mark.asyncio
+async def test_an_assist_signal_does_not_advance_the_stage(db_conn: asyncpg.Connection):
+    session_id = await _seed(db_conn)
+    pattern_id = await _pronunciation_pattern(db_conn)
+    await _attempt(db_conn, session_id, "incorrect", T0, pattern_id=pattern_id)
+    due = T0 + timedelta(days=STAGE_DAYS[0])
+    # 보조 신호가 소리를 짚고 `correct`로 온 경우 — 학습자는 Nova에게 다시 말하지 않았다
+    await _attempt(db_conn, session_id, "correct", due, signal_source="korean_transcript")
+
+    state = await recompute(db_conn, pattern_id)
+
+    assert state.stage == 1
+    assert state.next_review_at == T0 + timedelta(days=STAGE_DAYS[0])
 
 
 # `pending`·`unclear`는 양쪽에서 빠진다(§3.2). `pending`은 CHECK 때문에 `resolved_at`이 null이다.

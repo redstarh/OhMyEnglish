@@ -109,6 +109,25 @@ attempt_seq | target_sound | outcome   | linked(pattern_id is not null)
 정의되지 않는다. 한글 전사 보조 신호(`pronunciation.py:89`, `outcome='unclear'`)가 그 경우이고
 `unclear` 규칙과 이중으로 걸린다.
 
+⛔ **네 번째 규칙 — 보조 신호는 복습 단계를 전진시키지 않는다** (사용자 판정 2026-09-11 ·
+`TASK-74` · 캡틴 지시 대장 결정 59). 이력 쿼리가 `signal_source = 'nova_tool'` 로 **허용 목록**을
+걸어 집행한다. **복습 시계는 tool 경로에만 걸린다.**
+
+- **왜 필요한가.** 위 세 규칙과 `target_sound` 규칙만으로도 지금은 보조 신호가 걸러지지만, 그
+  근거가 **전부 호출자 쪽 관례**다 — 유일한 생산자 `note_transcript` 가 `unclear` +
+  `target_sound=None` 만 낸다는 사실 하나다. `AssistOutcome` 의 타입 잠금은 절반만 막는다:
+  `incorrect` 는 값역에 없지만 **`correct` 는 허용된다.** 새 생산자가 `outcome='correct'` +
+  `target_sound` 를 주는 순간 학습자가 다시 말하지 않았는데 단계가 접힌다.
+- **왜 자격이 없는가.** 한글 전사는 「학습자가 어느 소리를 틀렸다」가 아니라 「ASR 이 언어 판별을
+  뒤집었다」는 관측이라 소리를 지목하지 못한다. 같은 축의 원칙을 결정 54 ①이 먼저 정했다 —
+  틀린 기록으로 시계를 돌리면 엉뚱한 소리에 걸린다.
+- **기록은 그대로 남는다.** R10-4 의 관측·기록은 영향을 받지 않고, 계획 입력
+  (`plan_input.py`)과 빈도 재계산도 이미 `target_sound`·`pattern_id` 로 같은 행을 거른다.
+  즉 이 규칙이 바꾸는 것은 **단계 전진 자격** 하나다.
+- **허용 목록으로 쓴 이유.** `signal_source` 값역에 값이 늘면 새 값이 기본으로 배제된다.
+  배제 목록으로 쓰면 값을 더할 때마다 이 줄을 같이 고쳐야 하고, 그것을 빠뜨리는 것이 원래
+  결함의 모양이다.
+
 ### 3.3 시각 축은 `resolved_at`이다 — `utterances.created_at`이 아니다
 
 문법 경로는 **발화 시각**을 쓴다. 그 이유는 `analyze_utterance` job이 재시도되고 결과가 발화 단위
