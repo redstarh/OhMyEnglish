@@ -56,8 +56,15 @@ SessionEndStatus = Literal["completed", "failed"]
 # **live 가드**와 함께만 안전하다 (`reap_orphan_sessions` 참조).
 ORPHAN_IDLE_GRACE = timedelta(seconds=60)
 
+# `TASK-10.2` — 001 의 `learning_source` 기본값을 코드가 **한 번** 복제한다. 왜 복제하는가:
+# `$3` 이 null 일 때 컬럼을 아예 빼려면 SQL 이 둘로 갈라지고(같은 INSERT 를 두 벌 유지한다) 그쪽
+# 비용이 더 크다. ⛔ **그 복제의 대가는 게이트 테스트로 갚는다** —
+# `test_the_default_learning_source_matches_the_migration` 이 이 상수와 `information_schema` 의
+# `column_default` 가 같은지 잰다. 어긋나면 그 테스트가 깨진다.
+_DEFAULT_LEARNING_SOURCE = "recommended"
+
 _CREATE_SESSION_SQL = """
-insert into learning_sessions (user_id, scenario_id, mode)
+insert into learning_sessions (user_id, scenario_id, mode, learning_source)
 values ($1,
         coalesce(
           -- 학습자 수준에 맞는 시나리오를 먼저 찾는다 (설계서 §3.3).
@@ -70,7 +77,8 @@ values ($1,
           -- `scenario_id`는 null 로 남는다(컬럼 nullable) — 세션은 그대로 진행된다.
           (select s.id from learning_scenarios s order by s.created_at, s.id limit 1)
         ),
-        $2)
+        $2,
+        $3)
 returning id
 """
 
@@ -323,7 +331,13 @@ async def record_drill_turns_expected(
     return expected
 
 
-async def create_session(pool: asyncpg.Pool, user_id: UUID, *, mode: str = "speaking") -> UUID:
+async def create_session(
+    pool: asyncpg.Pool,
+    user_id: UUID,
+    *,
+    mode: str = "speaking",
+    learning_source: str | None = None,
+) -> UUID:
     """연결 하나에 대응하는 `active` 세션 행을 만든다.
 
     `mode`는 **키워드 전용이고 기본값이 `'speaking'`**이다 (`TASK-45` · 결정 11이 미뤄 둔
@@ -331,14 +345,32 @@ async def create_session(pool: asyncpg.Pool, user_id: UUID, *, mode: str = "spea
     `api/ws.py`와 하네스는 인자를 주지 않고 지금 그대로 말하기 세션을 연다.
     값역은 001의 `learning_sessions_mode_check`(`speaking`·`shadowing`·`review`)가 가둔다 —
     이 함수가 목록을 복제하지 않는다(두 곳이 갈라지지 않게).
+
+    `learning_source` 는 **추가 학습 진입이 자기를 표시하는 자리**다 (`TASK-10.2` · 진입점 설계서
+    §4). `None` 이면 001 의 기본값(`recommended`)이 그대로 쓰인다.
+    ⚠️ **그 기본값 때문에 지금까지 모든 세션이 「추천 세션」으로 기록됐다** — `PRD.md:76` 이
+    요구하는 「추천 과제와 자유 과제를 구분해 번아웃 분석에 쓴다」가 그래서 성립하지 않았다.
+    값역은 001 의 `learning_sessions_learning_source_check` 가 가둔다 — 여기서 열거하지 않는다.
+
+    ⛔ **`started_via` 는 인자로 받지 않는다.** 001 의 기본값이 이미 `'ui'` 이고 지금 이 함수를
+    부르는 경로(앱 소켓·하네스)가 전부 그 값이므로 인자를 늘리면 **항상 같은 값을 넘기는 인자**가
+    된다. 음성 명령 진입(`voice_command`)이 생기는 턴에 그때 더한다 — 그 시점이 이 결정을 뒤집을
+    유일한 근거다.
     """
     async with pool.acquire() as conn:
-        session_id = await conn.fetchval(_CREATE_SESSION_SQL, user_id, mode)
+        session_id = await conn.fetchval(
+            _CREATE_SESSION_SQL,
+            user_id,
+            mode,
+            learning_source or _DEFAULT_LEARNING_SOURCE,
+        )
     assert session_id is not None, "insert ... returning produced no row"
     return session_id
 
 
-async def start_shadowing_session(pool: asyncpg.Pool, user_id: UUID) -> UUID:
+async def start_shadowing_session(
+    pool: asyncpg.Pool, user_id: UUID, *, learning_source: str | None = None
+) -> UUID:
     """쉐도잉 세션을 열고 **학습자 수준에 맞는 클립 1개를 붙인다** (`TASK-45`).
 
     설계서 `2026-09-08-shadowing-task-design.md` §12가 진입점에 요구한 것 중 **1·2·3**을
@@ -361,12 +393,22 @@ async def start_shadowing_session(pool: asyncpg.Pool, user_id: UUID) -> UUID:
     클립)을 강제하지 않는 것과 같은 판단이다 — 여기서 예외를 던지면 시드가 비어 있는 DB에서
     쉐도잉 진입이 **전부** 막힌다. `shadowing_item_id`는 그때 null로 남는다.
 
+    `learning_source` 는 `create_session` 과 **같은 뜻이고 같은 기본값**이다 (`TASK-10.2`) —
+    쉐도잉도 추가 학습 메뉴의 한 항목이므로 그 진입이 자기를 `additional` 로 표시할 수 있어야 한다.
+    ⛔ 여기서 `'additional'` 을 **하드코딩하지 않는다**: 진입 경로를 아는 것은 소켓 계층이고, 이
+    함수는 쉐도잉이 어느 문으로 들어왔는지 모른다.
+
     **한 트랜잭션이다** — 세션을 만든 뒤 클립을 붙이기 전에 죽으면 클립 없는 쉐도잉 세션이
     남는데, 그것은 위 문장대로 정상 상태이므로 부분 실행이 손상이 아니다. 그래도 한 단위로
     묶는 이유는 **선택이 세션과 함께 보이는 것**이 재접속 복원의 전제이기 때문이다.
     """
     async with pool.acquire() as conn, conn.transaction():
-        session_id = await conn.fetchval(_CREATE_SESSION_SQL, user_id, "shadowing")
+        session_id = await conn.fetchval(
+            _CREATE_SESSION_SQL,
+            user_id,
+            "shadowing",
+            learning_source or _DEFAULT_LEARNING_SOURCE,
+        )
         assert session_id is not None, "insert ... returning produced no row"
         await conn.execute(_ATTACH_SHADOWING_CLIP_SQL, session_id, user_id)
     return session_id

@@ -16,7 +16,7 @@
  * 자동 테스트로 덮이지 않아 실물 마이크 1회로 검증한다(G-4).
  */
 
-import { sessionSocketUrl } from "./config";
+import { sessionSocketUrl, type SessionEntry } from "./config";
 
 export type Speaker = "user" | "agent";
 
@@ -47,7 +47,21 @@ export interface ShadowingSetup {
 }
 
 export type ServerEvent =
-  | { type: "session_started"; session_id: string; shadowing?: ShadowingSetup }
+  | {
+      type: "session_started";
+      session_id: string;
+      shadowing?: ShadowingSetup;
+      /**
+       * 발음 전용 모드가 실제로 열렸을 때의 **오늘의 소리** (`TASK-10.2`).
+       *
+       * ⛔ **키가 없는 것이 「폴백」의 신호다.** 서버는 오늘의 소리를 고를 수 없으면 조용히
+       * 말하기 세션으로 떨어뜨린다(`api/ws.py` 의 기존 규약) — 화면이 이 키의 부재로 그것을 알고
+       * 사용자에게 말해야 한다. `shadowing` 과 같은 규약이다: 없는 것과 「비었다」를 구분한다.
+       * ⚠️ 소리 키(`th_as_s`)는 기계 키다 — 그대로 렌더하지 않고 「발음 연습으로 시작했어요」
+       * 같은 사람 말로 바꾼다(설계서 §10 미결 4 와 같은 판단).
+       */
+      pronunciation_focus?: string;
+    }
   | { type: "partial"; text: string; speaker: Speaker }
   | { type: "final"; text: string; speaker: Speaker; sequence_no: number }
   | { type: "audio"; data: string }
@@ -84,8 +98,8 @@ export interface SessionSocketHandlers {
 export class SessionSocket {
   private readonly socket: WebSocket;
 
-  constructor(handlers: SessionSocketHandlers) {
-    this.socket = new WebSocket(sessionSocketUrl());
+  constructor(handlers: SessionSocketHandlers, entry: SessionEntry = {}) {
+    this.socket = new WebSocket(sessionSocketUrl(entry));
     this.socket.onmessage = (message: MessageEvent<string>) => {
       let parsed: unknown;
       try {

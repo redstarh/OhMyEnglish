@@ -12,6 +12,14 @@
 * 클라이언트→서버: `{"type":"audio","data":<base64>}` · `{"type":"end_session"}` ·
   `{"type":"shadowing_turn_start"}` · `{"type":"shadowing_turn_end"}`
 
+**발음 전용 진입** (`TASK-10.1`·`TASK-10.2` · 결정 64): `?mode=pronunciation` 으로 붙으면 지시문이
+전용 판으로 바뀌고 `session_started` 에 `pronunciation_focus`(오늘의 소리)가 실린다.
+⛔ 오늘의 소리를 고를 수 없으면 **말하기로 떨어지고 그 키가 없다** — 화면은 그 부재로 폴백을 안다.
+⛔ 세션 행의 `mode` 는 바뀌지 않는다(001 값역 밖이다 · `TASK-112`).
+
+**추가 학습 표시** (`TASK-10.2`): `?source=additional` 이 `learning_sessions.learning_source` 에
+남는다. 주지 않으면 001 의 기본값(`recommended`)이다.
+
 **쉐도잉 진입** (`TASK-45` · 결정 35): `?mode=shadowing` 으로 붙으면 세션이 그 모드로 열리고
 클립 1개가 붙으며 `session_started` 에 `shadowing`(클립 + 재생 속도·반복 횟수)이 실린다. 말하기
 세션에는 그 키가 **없다**. 낭독 턴 신호 둘은 그 모드에서만 뜻을 갖는다 — 아니면 무시된다.
@@ -293,11 +301,16 @@ async def session_socket(websocket: WebSocket) -> None:
         # 경고하지 않는다(2026-09-09 리뷰 지적). 경고는 오타·낡은 링크만 가리켜야 값을 한다.
         logger.warning("알 수 없는 mode=%r — 말하기 세션으로 진행한다", requested_mode)
 
+    # `TASK-10.2` — 추가 학습 진입이 자기를 표시하는 자리(`?source=additional`). ⛔ **값역을
+    # 여기서 열거하지 않는다**: 001 의 `learning_sessions_learning_source_check` 가 가두고, 값이
+    # 그 값역 밖이면 아래 `asyncpg.PostgresError` 경로로 떨어져 세션 실패를 알린다. 넘기지 않으면
+    # 001 의 기본값(`recommended`)이 쓰인다 — 즉 **모르는 값을 조용히 추천으로 바꾸지 않는다.**
+    requested_source = websocket.query_params.get("source")
     try:
         session_id = (
-            await start_shadowing_session(pool, FIXED_USER_ID)
+            await start_shadowing_session(pool, FIXED_USER_ID, learning_source=requested_source)
             if shadowing_requested
-            else await create_session(pool, FIXED_USER_ID)
+            else await create_session(pool, FIXED_USER_ID, learning_source=requested_source)
         )
     except asyncpg.PostgresError:
         # 시드가 없으면(고정 사용자 부재) 여기서 걸린다 — 연결을 조용히 매달아두지
@@ -382,7 +395,14 @@ async def session_socket(websocket: WebSocket) -> None:
             if shadowing_requested
             else None
         )
-        runner = SessionRunner(adapter, pool, session_id, client=channel, shadowing=shadowing)
+        runner = SessionRunner(
+            adapter,
+            pool,
+            session_id,
+            client=channel,
+            shadowing=shadowing,
+            pronunciation_sound=pronunciation_sound,
+        )
         try:
             await runner.run()
         except Exception:

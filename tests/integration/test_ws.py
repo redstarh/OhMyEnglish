@@ -919,3 +919,85 @@ async def test_ws_speaking_mode_never_asks_for_a_pronunciation_prompt(
     # 놓친 소리 목록에 값이 있어도 **모드가 아니면** 전용 지시문을 쓰지 않는다.
     assert seen.get("known_sounds") == ["th_as_s"]
     assert seen.get("pronunciation_sound") is None
+
+
+# 추가 학습 진입 표시 (`TASK-10.2` · 진입점 설계서 §4) — `?source=additional` 이 세션 행에 남는다.
+#
+# ⚠️ **왜 필요한가**: 001 의 `learning_source` 가 `not null default 'recommended'` 라서 지금까지
+# **모든 세션이 추천 세션으로 기록됐다.** `PRD.md:76` 이 요구하는 「추천 과제와 자유 과제를 구분해
+# 번아웃 분석에 쓴다」가 그래서 성립하지 않았다.
+async def test_ws_records_the_additional_learning_source(
+    ws_app: FastAPI, seeded_fixed_user: UUID, db_pool: asyncpg.Pool
+):
+    async with (
+        ws_app.router.lifespan_context(ws_app),
+        ASGIWebSocket(ws_app, query_string=b"source=additional") as client,
+    ):
+        started = await client.receive_event()
+
+    assert started is not None and started["type"] == "session_started"
+    async with db_pool.acquire() as conn:
+        source = await conn.fetchval(
+            "select learning_source from learning_sessions where id = $1",
+            UUID(started["session_id"]),
+        )
+    assert source == "additional"
+
+
+# ⚠️ 음성 케이스 — 값을 무조건 `additional` 로 쓰면 **추천 세션까지 자유 학습으로** 기록된다.
+async def test_ws_keeps_the_recommended_source_without_the_query(
+    ws_app: FastAPI, seeded_fixed_user: UUID, db_pool: asyncpg.Pool
+):
+    async with ws_app.router.lifespan_context(ws_app), ASGIWebSocket(ws_app) as client:
+        started = await client.receive_event()
+
+    assert started is not None
+    async with db_pool.acquire() as conn:
+        source = await conn.fetchval(
+            "select learning_source from learning_sessions where id = $1",
+            UUID(started["session_id"]),
+        )
+    assert source == "recommended"
+
+
+# ⛔ **오늘의 소리를 `session_started` 에 실어야 화면이 「떨어졌다」를 알 수 있다**
+# (`TASK-10.2` AC#2).
+# 서버는 소리를 못 고르면 조용히 말하기로 떨어뜨리므로(그 판단은 `ws.py` 의 기존 규약이다) 화면이
+# 그 사실을 모르면 **사용자가 다른 세션을 받은 것을 모른다.** 쉐도잉의 `shadowing` payload 와 같은
+# 규약을 쓴다 — **없는 것과 「비었다」를 프론트가 구분해야 하므로 키 자체를 넣지 않는다.**
+async def test_ws_pronunciation_mode_puts_todays_sound_in_session_started(
+    ws_app: FastAPI, seeded_fixed_user: UUID, monkeypatch: pytest.MonkeyPatch
+):
+    async def one_sound(pool: object) -> list[str]:
+        return ["th_as_s"]
+
+    monkeypatch.setattr(ws_module, "_load_known_sounds_or_empty", one_sound)
+
+    async with (
+        ws_app.router.lifespan_context(ws_app),
+        ASGIWebSocket(ws_app, query_string=b"mode=pronunciation") as client,
+    ):
+        started = await client.receive_event()
+
+    assert started is not None and started["type"] == "session_started"
+    assert started["pronunciation_focus"] == "th_as_s"
+
+
+async def test_ws_omits_the_focus_key_when_the_mode_falls_back(
+    ws_app: FastAPI, seeded_fixed_user: UUID, monkeypatch: pytest.MonkeyPatch
+):
+    """⚠️ 이 음성 케이스가 화면의 판별 근거다 — 키가 **없는 것**이 「떨어졌다」의 신호다."""
+
+    async def no_sounds(pool: object) -> list[str]:
+        return []
+
+    monkeypatch.setattr(ws_module, "_load_known_sounds_or_empty", no_sounds)
+
+    async with (
+        ws_app.router.lifespan_context(ws_app),
+        ASGIWebSocket(ws_app, query_string=b"mode=pronunciation") as client,
+    ):
+        started = await client.receive_event()
+
+    assert started is not None and started["type"] == "session_started"
+    assert "pronunciation_focus" not in started

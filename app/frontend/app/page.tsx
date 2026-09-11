@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { fetchNextPlan, type NextPlanSummary } from "@/lib/api";
+import type { SessionEntry } from "@/lib/config";
 import { VoiceIo, base64ToBytes, bytesToBase64 } from "@/lib/audio";
 import {
   SessionSocket,
@@ -37,6 +38,41 @@ const PRONUNCIATION_BADGE_COLOR: Record<PronunciationOutcome, string> = {
 // 추천 이유 한 줄의 머리말 (R11-3). "왜 이 연습인지"를 학습자 말로 붙인다 — 이유 문장은
 // 계획이 소유하므로 여기서 문구를 만들지 않는다.
 const NEXT_PLAN_PREFIX = "오늘 이걸 연습해요:";
+
+// 추가 학습 메뉴 (`TASK-10.2` · 진입점 설계서
+// `docs/design/2026-09-12-additional-learning-entry-design.md` §2).
+//
+// ⛔ **항목이 다섯이 아니라 여섯이다.** PRD §7(:74)은 다섯을 열거하는데 R10-5(:145)가
+// *"발음 집중 연습은 §7 Additional Learning 메뉴의 «독립 항목»으로 둔다"*를 글자로 요구한다.
+// 설계서 §1 이 그 어긋남을 적었고 여기서 여섯으로 둔다 — 접으면 그 요구가 조용히 사라진다.
+//
+// ⛔ **`entry: null` 은 「아직 표면이 없다」다.** 항목을 지우지 않는 이유가 설계서 §2 에 있다:
+// 지우면 다음 사람이 「원래 다섯이었다」로 읽고 위 어긋남이 되살아난다. 비활성 버튼이 그 사실을
+// 화면에서도 말한다.
+//
+// ⚠️ **셋이 같은 표면(모드 없음)을 쓰는 것은 의도다** — 그 셋의 차이는 지시문이 아니라 **계획
+// 데이터**에 있다(초점·질문·무대). 모드로 갈라도 조립되는 지시문이 같으므로 값역만 늘어난다.
+const ADDITIONAL_LEARNING: ReadonlyArray<{
+  label: string;
+  entry: SessionEntry | null;
+  note?: string;
+}> = [
+  { label: "자유 대화", entry: { source: "additional" } },
+  { label: "약점 패턴 집중", entry: { source: "additional" } },
+  { label: "질문 답변 5개", entry: { source: "additional" } },
+  { label: "발음 집중", entry: { mode: "pronunciation", source: "additional" } },
+  { label: "쉐도잉", entry: { mode: "shadowing", source: "additional" } },
+  { label: "업무 역할극", entry: null, note: "무대를 고르는 화면이 아직 없어요" },
+];
+
+// 발음 집중을 골랐을 때 화면이 말해야 하는 두 가지 (`TASK-10.2` AC#2).
+//
+// ⛔ **서버는 오늘의 소리를 못 고르면 조용히 말하기로 떨어뜨린다.** 화면이 침묵하면 사용자는
+// **다른 세션을 받은 것을 모른다** — 그래서 `session_started` 의 `pronunciation_focus` 유무로
+// 갈라 말한다. ⚠️ 소리 키(`th_as_s`)는 기계 키라 렌더하지 않는다(설계서 §10 미결 4).
+const PRONUNCIATION_ENTERED = "발음 연습으로 시작했어요. 소리를 시범하고 다시 말하기를 부탁할 거예요.";
+const PRONUNCIATION_FELL_BACK =
+  "오늘 다룰 소리가 아직 없어서 일반 대화로 시작했어요. 대화에서 소리가 모이면 이 연습이 열려요.";
 
 interface TranscriptLine {
   id: number;
@@ -74,12 +110,18 @@ export default function SessionPage() {
   // 다음 세션의 추천 이유 (R11-3). 초기값이 "계획 없음"이라 조회가 끝나기 전에는 그 자리가
   // 비어 있다 — 로딩 문구를 두지 않는다: 이유는 시작 버튼을 막지 않는 부가 정보다.
   const [nextPlan, setNextPlan] = useState<NextPlanSummary>({ reason: null, target_level: null });
+  // 진입 안내 한 줄 (`TASK-10.2` AC#2). 발음 집중을 고른 세션에만 값이 생긴다 — 그 밖에는 `null`
+  // 이고 아무것도 렌더하지 않는다(추천 이유와 같은 규약: 빈 자리가 「해당 없음」의 표현이다).
+  const [entryNotice, setEntryNotice] = useState<string | null>(null);
 
   const socketRef = useRef<SessionSocket | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const voiceRef = useRef<VoiceIo | null>(null);
   const sessionIdRef = useRef<string | null>(null);
   const terminalHandledRef = useRef(false);
+  // 이 세션이 **요청한** 모드. `session_started` 가 오면 그것과 서버가 실제로 준 것을 대조한다 —
+  // 요청하지 않았으면 대조할 것이 없다.
+  const requestedModeRef = useRef<SessionEntry["mode"]>(undefined);
 
   const stopMedia = useCallback(() => {
     const voice = voiceRef.current;
@@ -102,6 +144,13 @@ export default function SessionPage() {
       switch (event.type) {
         case "session_started":
           sessionIdRef.current = event.session_id;
+          // ⛔ **키의 «부재»가 폴백의 신호다** (`lib/ws.ts` 의 `pronunciation_focus` 주석).
+          // 요청하지 않은 세션에서는 이 자리를 건드리지 않는다.
+          if (requestedModeRef.current === "pronunciation") {
+            setEntryNotice(
+              event.pronunciation_focus ? PRONUNCIATION_ENTERED : PRONUNCIATION_FELL_BACK,
+            );
+          }
           break;
         case "partial":
           setPartialLine({ id: -1, speaker: event.speaker, text: event.text });
@@ -163,13 +212,15 @@ export default function SessionPage() {
     [goToResults, stopMedia],
   );
 
-  const startSession = useCallback(async () => {
+  const startSession = useCallback(async (entry: SessionEntry = {}) => {
     setFailureReason(null);
     setLines([]);
     setPartialLine(null);
     setListening(false);
+    setEntryNotice(null);
     terminalHandledRef.current = false;
     sessionIdRef.current = null;
+    requestedModeRef.current = entry.mode;
     setState("connecting");
 
     let stream: MediaStream;
@@ -182,21 +233,26 @@ export default function SessionPage() {
     }
     streamRef.current = stream;
 
-    const socket = new SessionSocket({
-      onEvent: handleServerEvent,
-      onClose: () => {
-        if (terminalHandledRef.current) return;
-        terminalHandledRef.current = true;
-        stopMedia();
-        const sessionId = sessionIdRef.current;
-        if (sessionId) {
-          goToResults(sessionId);
-        } else {
-          setFailureReason("connection_lost");
-          setState("failed");
-        }
+    const socket = new SessionSocket(
+      {
+        onEvent: handleServerEvent,
+        onClose: () => {
+          if (terminalHandledRef.current) return;
+          terminalHandledRef.current = true;
+          stopMedia();
+          const sessionId = sessionIdRef.current;
+          if (sessionId) {
+            goToResults(sessionId);
+          } else {
+            setFailureReason("connection_lost");
+            setState("failed");
+          }
+        },
       },
-    });
+      // 진입 정보는 소켓을 열 때 쿼리로 실린다 — 세션 행과 지시문이 그 값으로 갈리므로
+      // 첫 프레임으로 보낼 수 없다(`lib/config.ts` 의 `sessionSocketUrl` 주석).
+      entry,
+    );
     socketRef.current = socket;
 
     // Nova는 raw LPCM(16kHz·16bit·mono, 32ms 프레임)만 받는다 — `MediaRecorder`의
@@ -281,9 +337,41 @@ export default function SessionPage() {
               {nextPlan.target_level ? ` (${nextPlan.target_level})` : null}
             </p>
           )}
-          <button onClick={() => void startSession()} style={{ padding: "0.75rem 1.5rem" }}>
+          {/* 추천 학습. ⛔ `source` 를 «명시»한다 — 001 의 기본값이 `recommended` 라 넘기지 않아도
+              같은 값이 되지만, 그러면 「기본값이라 그렇게 됐다」와 「이 문으로 들어왔다」가
+              구분되지 않는다. 진입점 설계서 §4 가 두 값을 문으로 가른다. */}
+          <button
+            onClick={() => void startSession({ source: "recommended" })}
+            style={{ padding: "0.75rem 1.5rem" }}
+          >
             학습 시작
           </button>
+
+          {/* 추가 학습 (PRD §7 · `TASK-10.2`). ⛔ **권장량 완료와 무관하게 항상 보인다** —
+              `PRD.md:73` 이 「완료 여부와 무관하게 항상 제공한다」를 글자로 정했고, 진입점 설계서
+              §3 이 그것을 「이 문은 게이트가 아니다」로 못박았다. */}
+          <section style={{ marginTop: "2rem" }}>
+            <h2 style={{ fontSize: "1rem", marginBottom: "0.5rem" }}>추가 학습</h2>
+            <p style={{ color: "var(--foreground-muted)", marginTop: 0, marginBottom: "0.75rem" }}>
+              권장량과 상관없이 언제든 골라도 돼요.
+            </p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+              {ADDITIONAL_LEARNING.map((item) => (
+                <button
+                  key={item.label}
+                  onClick={() => {
+                    if (item.entry) void startSession(item.entry);
+                  }}
+                  disabled={item.entry === null}
+                  title={item.note}
+                  style={{ padding: "0.5rem 1rem" }}
+                >
+                  {item.label}
+                  {item.note ? ` (${item.note})` : null}
+                </button>
+              ))}
+            </div>
+          </section>
         </>
       )}
 
@@ -300,6 +388,17 @@ export default function SessionPage() {
               marginTop: "1rem",
             }}
           >
+            {/* 진입 안내 (`TASK-10.2` AC#2). 발음 집중을 골랐을 때 **무엇을 받았는지** 말한다 —
+                서버가 소리를 못 골라 말하기로 떨어뜨렸을 때 화면이 침묵하면 사용자가 다른 세션을
+                받은 것을 모른다. `aria-live` 는 발음 배지와 같은 이유로 붙인다. */}
+            {entryNotice && (
+              <p
+                aria-live="polite"
+                style={{ color: "var(--foreground-muted)", margin: "0 0 0.6rem" }}
+              >
+                {entryNotice}
+              </p>
+            )}
             {lines.length === 0 && !partialLine && !listening && (
               <p style={{ color: "var(--foreground-muted)" }}>대화를 기다리는 중...</p>
             )}

@@ -1,0 +1,21 @@
+"""검증 전용 ASGI 래퍼 — 앱 코드를 고치지 않고 `:3001` 프론트의 CORS 를 허용한다.
+
+⛔ **제품 코드를 고치지 않는 것이 이 파일의 존재 이유다** (`H-BC`). `api/main.py` 의
+`FRONTEND_ORIGIN` 이 `http://localhost:3000` 하드코딩이고, 공유 dev 프론트가 그 포트를 이미
+쓰고 있으므로 사본 프론트를 `:3001` 로 띄운다. 그 조회를 막지 않으려고 미들웨어를 **하나 더**
+얹는다.
+
+⚠️ 이 파일은 `/tmp` 에 둔다 — 리포에 두면 게이트(`ty`·`ruff`) 대상이 되고, 검증용 사본이
+제품 코드처럼 보인다.
+"""
+
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.api.main import create_app
+
+app = create_app()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3001"],
+    allow_methods=["GET"],
+)

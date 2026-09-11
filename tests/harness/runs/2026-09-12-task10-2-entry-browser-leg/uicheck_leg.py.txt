@@ -1,0 +1,157 @@
+#!/usr/bin/env python3
+"""브라우저 레그 — 추가 학습 메뉴의 「발음 집중」이 실제로 전용 세션을 여는지 본다 (`TASK-10.2` AC#3).
+
+⛔ **단위·통합 테스트로 닫지 않는 이유**: 그 둘은 서버 쪽 배선만 잰다. 「버튼이 있고 눌리고 그
+클릭이 `?mode=pronunciation&source=additional` 로 붙는다」는 화면 쪽 사실이라 브라우저가 필요하다.
+
+**두 함정을 우회한다**:
+* `H-AE` — 합성 클릭(`element.click()`)은 user activation 을 만들지 않아 `AudioContext.resume()` 이
+  영원히 pending 이다. ⇒ **CDP 입력으로** 무해한 요소를 한 번 클릭해 sticky activation 을 얻는다.
+* `H-BD` — CDP 에서 `getUserMedia` 가 응답하지 않는다. ⇒ Chrome 을
+  `--use-fake-device-for-media-stream --use-fake-ui-for-media-stream` 으로 띄운다.
+
+⛔ 공유 스택(:3000·:8002)을 건드리지 않는다 — 사본 프론트(:3001) + 래퍼 백엔드(:8012) +
+검증 전용 DB 다(`H-BC`).
+"""
+
+from __future__ import annotations
+
+import asyncio
+import json
+import sys
+import urllib.request
+
+CDP = "http://127.0.0.1:9333"
+PAGE = "http://localhost:3001/"
+
+
+def open_tab() -> str:
+    """전용 탭을 만들고 그 WS 주소를 돌려준다 (`browser_leg.md` 의 `PUT /json/new` 관례)."""
+    request = urllib.request.Request(f"{CDP}/json/new?{PAGE}", method="PUT")
+    with urllib.request.urlopen(request, timeout=10) as response:
+        target = json.load(response)
+    return target["webSocketDebuggerUrl"]
+
+
+class Session:
+    def __init__(self, ws) -> None:
+        self._ws = ws
+        self._next = 0
+
+    async def call(self, method: str, params: dict | None = None) -> dict:
+        self._next += 1
+        message_id = self._next
+        await self._ws.send(json.dumps({"id": message_id, "method": method, "params": params or {}}))
+        while True:
+            raw = await asyncio.wait_for(self._ws.recv(), 30)
+            payload = json.loads(raw)
+            if payload.get("id") == message_id:
+                if "error" in payload:
+                    raise SystemExit(f"{method} 실패: {payload['error']}")
+                return payload.get("result", {})
+
+    async def eval(self, expression: str) -> object:
+        result = await self.call(
+            "Runtime.evaluate",
+            {"expression": expression, "returnByValue": True, "awaitPromise": True},
+        )
+        return result.get("result", {}).get("value")
+
+    async def click_center_of(self, selector: str) -> None:
+        """CDP 입력으로 클릭한다 — `element.click()` 은 user activation 을 만들지 않는다(`H-AE`)."""
+        box = await self.eval(
+            "(() => { const el = " + selector + ";"
+            " if (!el) return null; const r = el.getBoundingClientRect();"
+            " return {x: r.left + r.width / 2, y: r.top + r.height / 2}; })()"
+        )
+        if not isinstance(box, dict):
+            raise SystemExit(f"클릭 대상을 찾지 못했다: {selector}")
+        for event_type in ("mousePressed", "mouseReleased"):
+            await self.call(
+                "Input.dispatchMouseEvent",
+                {
+                    "type": event_type,
+                    "x": box["x"],
+                    "y": box["y"],
+                    "button": "left",
+                    "clickCount": 1,
+                },
+            )
+
+
+BUTTON = (
+    "[...document.querySelectorAll('button')].find(b => b.textContent.trim().startsWith('발음 집중'))"
+)
+
+
+async def main() -> None:
+    from websockets.asyncio.client import connect
+
+    ws_url = open_tab()
+    async with connect(ws_url, max_size=None) as ws:
+        session = Session(ws)
+        await session.call("Page.enable")
+        await session.call("Runtime.enable")
+        await asyncio.sleep(2.5)
+
+        labels = await session.eval(
+            "[...document.querySelectorAll('button')].map(b => b.textContent.trim())"
+        )
+        print(f"버튼 목록: {labels}")
+        disabled = await session.eval(
+            "[...document.querySelectorAll('button')]"
+            ".filter(b => b.disabled).map(b => b.textContent.trim())"
+        )
+        print(f"비활성 버튼: {disabled}")
+
+        # ① sticky activation — 세션을 여는 요소가 아닌 것을 고른다(`H-AE` 의 대응 ②).
+        await session.click_center_of("document.querySelector('h1')")
+        activated = await session.eval("navigator.userActivation.hasBeenActive")
+        print(f"hasBeenActive: {activated}")
+
+        # ⚠️ **클릭 «전»에 관찰자를 심는다** — 스텁 어댑터가 세션을 곧 끝내므로 안내 줄이 떠 있는
+        # 창이 짧고, 폴링으로는 그 창을 놓친다. 결과 화면 이동은 **클라이언트 라우팅**이라 같은
+        # 문서가 유지되므로 전역에 모아 둔 스냅샷이 살아남는다.
+        await session.eval(
+            "window.__snaps = [];"
+            "new MutationObserver(() => window.__snaps.push(document.body.innerText))"
+            ".observe(document.body, {subtree: true, childList: true, characterData: true});"
+            "'installed'"
+        )
+
+        # ② 발음 집중 클릭. ⚠️ **빠르게 훑는다** — 스텁 어댑터는 세션을 곧 끝내고 화면이 결과로
+        # 넘어가므로, 안내 줄이 떠 있는 창이 짧다. 그 창을 놓치면 「안내가 없다」로 오독한다.
+        await session.click_center_of(BUTTON)
+        seen: str | None = None
+        for _ in range(120):
+            await asyncio.sleep(0.2)
+            text = await session.eval("document.body.innerText")
+            if not isinstance(text, str):
+                continue
+            for needle in ("발음 연습으로", "일반 대화로"):
+                if needle in text:
+                    seen = next(
+                        line for line in text.splitlines() if needle in line
+                    )
+                    break
+            if seen:
+                break
+        if seen is None:
+            # 관찰자가 모은 스냅샷에서 찾는다 — 폴링이 놓친 창을 여기서 잡는다.
+            snaps = await session.eval("window.__snaps || []")
+            if isinstance(snaps, list):
+                print(f"스냅샷 {len(snaps)}건")
+                for snap in snaps:
+                    if isinstance(snap, str) and ("발음 연습으로" in snap or "일반 대화로" in snap):
+                        seen = next(
+                            line
+                            for line in snap.splitlines()
+                            if "발음 연습으로" in line or "일반 대화로" in line
+                        )
+                        break
+        print(f"진입 안내: {seen!r}")
+        print(f"최종 화면 머리: {(await session.eval('document.body.innerText') or '')[:40]!r}")
+
+
+if __name__ == "__main__":
+    sys.exit(asyncio.run(main()) or 0)

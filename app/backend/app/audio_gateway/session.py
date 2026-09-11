@@ -111,6 +111,7 @@ class SessionRunner:
         connect_timeout: float = CONNECT_TIMEOUT,
         drain_timeout: float = DRAIN_TIMEOUT,
         shadowing: ShadowingTurns | None = None,
+        pronunciation_sound: str | None = None,
     ) -> None:
         self._adapter = adapter
         self._pool = pool
@@ -124,6 +125,10 @@ class SessionRunner:
         # 쉐도잉 재료. **`None` 이면 낭독 턴 신호를 무시한다** — 모드를 러너가 다시 판정하지
         # 않는 것이 두 곳에서 갈라지지 않는 방법이다 (`TASK-45` · 결정 35).
         self._shadowing = shadowing
+        # `TASK-10.2` — 발음 전용 모드의 **오늘의 소리**. `session_started` 에 실어 화면이
+        # 「전용 세션을 받았는가」를 알 수 있게 한다. ⛔ 러너가 모드를 다시 판정하지 않는 것은
+        # 위 `_shadowing` 과 같은 규약이다 — 판정은 소켓 계층 한 곳에만 둔다.
+        self._pronunciation_sound = pronunciation_sound
         self._recording_turn: _RecordingTurn | None = None
 
     async def run(self) -> None:
@@ -132,6 +137,11 @@ class SessionRunner:
             "type": "session_started",
             "session_id": str(self._session_id),
         }
+        if self._pronunciation_sound is not None:
+            # ⛔ **말하기 세션에는 키 자체를 넣지 않는다** — 아래 `shadowing` 과 같은 규약이다.
+            # 서버가 소리를 못 골라 말하기로 떨어뜨렸을 때 화면이 그것을 «키의 부재»로 안다
+            # (`api/ws.py` 가 그 폴백과 경고를 소유한다).
+            started["pronunciation_focus"] = self._pronunciation_sound
         if self._shadowing is not None:
             # 요구 5 — 화면은 자기 기본값을 갖지 않고 **전달만** 받는다. ⛔ 말하기 세션에는
             # 키 자체를 넣지 않는다: 없는 것과 「비었다」를 프론트가 구분해야 한다

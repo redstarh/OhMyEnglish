@@ -37,6 +37,7 @@ from conftest import plan_json
 
 from app.models.plan import PlanQuestion, SessionInstruction
 from app.services.sessions import (
+    _DEFAULT_LEARNING_SOURCE,
     ORPHAN_IDLE_GRACE,
     create_session,
     end_session,
@@ -713,3 +714,58 @@ async def test_create_session_still_defaults_to_speaking(
     assert await _session_mode(db_pool, session_id) == "speaking"
     # 말하기 세션에는 클립이 붙지 않는다 — 011 의 CHECK 가 그것을 막기도 한다.
     assert await _attached_clip(db_pool, session_id) is None
+
+
+async def _session_source(pool: asyncpg.Pool, session_id: UUID) -> str:
+    async with pool.acquire() as conn:
+        source = await conn.fetchval(
+            "select learning_source from learning_sessions where id = $1", session_id
+        )
+    assert source is not None
+    return source
+
+
+# `TASK-10.2` — 추가 학습 진입은 `learning_source='additional'` 로 남는다.
+#
+# ⚠️ **왜 필요한가**: 001 의 컬럼이 `not null default 'recommended'` 라서 **지금까지 모든 세션이
+# 추천 세션으로 기록됐다.** PRD.md:76 이 요구하는 「추천 과제와 자유 과제를 구분해 번아웃 분석에
+# 쓴다」가 그 기본값 때문에 성립하지 않았다. 진입점 설계서
+# (`docs/design/2026-09-12-additional-learning-entry-design.md` §4)가 그 값을 배정했다.
+async def test_create_session_records_the_learning_source_when_given(
+    db_pool: asyncpg.Pool, seed_shadowing_clips
+):
+    user_id, _ = await seed_shadowing_clips(level="A2", clips=[])
+
+    session_id = await create_session(db_pool, user_id, learning_source="additional")
+
+    assert await _session_source(db_pool, session_id) == "additional"
+
+
+# ⚠️ **이 음성 케이스가 판별력을 만든다.** 인자를 무시하고 항상 `'additional'` 을 쓰면
+# 위 테스트만으로는 통과하는데, 그러면 **추천 세션까지 자유 학습으로 기록**돼
+# 번아웃 분석이 정확히 반대로 읽힌다.
+async def test_create_session_keeps_the_default_learning_source_when_not_given(
+    db_pool: asyncpg.Pool, seed_shadowing_clips
+):
+    user_id, _ = await seed_shadowing_clips(level="A2", clips=[])
+
+    session_id = await create_session(db_pool, user_id)
+
+    assert await _session_source(db_pool, session_id) == "recommended"
+
+
+# ⛔ **복제한 기본값이 마이그레이션과 갈라지는 것을 이 테스트가 막는다** (`TASK-10.2`).
+# `services/sessions._DEFAULT_LEARNING_SOURCE` 는 001 의 `default 'recommended'` 를 코드에 한 번
+# 복제한 값이다 — SQL 을 두 벌로 갈라 유지하는 비용을 피한 대가이고, 그 대가를 여기서 갚는다.
+async def test_the_default_learning_source_matches_the_migration(db_pool: asyncpg.Pool):
+    async with db_pool.acquire() as conn:
+        column_default = await conn.fetchval(
+            "select column_default from information_schema.columns "
+            "where table_name = 'learning_sessions' and column_name = 'learning_source'"
+        )
+
+    assert column_default is not None, "learning_source 컬럼에 기본값이 없다"
+    # `'recommended'::text` 처럼 캐스트가 붙어 오므로 값만 뽑아 비교한다.
+    assert column_default.split("::")[0].strip("'") == _DEFAULT_LEARNING_SOURCE, (
+        f"코드의 기본값과 마이그레이션이 갈라졌다: {column_default!r}"
+    )
