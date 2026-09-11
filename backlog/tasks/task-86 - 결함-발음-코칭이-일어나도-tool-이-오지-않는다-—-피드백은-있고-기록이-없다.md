@@ -4,7 +4,7 @@ title: '결함: 발음 코칭이 일어나도 tool 이 오지 않는다 — 피�
 status: In Progress
 assignee: []
 created_date: '2026-09-10 04:29'
-updated_date: '2026-09-11 13:39'
+updated_date: '2026-09-11 15:53'
 labels: []
 dependencies: []
 ordinal: 89000
@@ -224,4 +224,14 @@ below: pause the current question, coach the sound, then come back to the questi
 ③ 일반 세션 지시문 축약 방향은 닫힘 — 두 목적을 한 지시문에 담을 수 없음.
 
 오늘 이 세션이 쓴 Nova 47세션(누적 117).
+
+2026-09-12 KST 증거 사슬을 세 조각으로 이었음 — 그런데 **AC#2 는 여전히 열려 있고 남은 고리가 하나임**.
+
+① 제품 함수가 조립한 지시문이 4/4 를 얻은 문면과 **바이트 단위로 같음**: build_pronunciation_prompt('th_as_s') == runs/2026-09-11-task86-dedicated-session/prompt_dedicated_cut.txt (1,702자 · 직접 대조했음). 그 사슬이 조용히 끊기지 않게 **테스트로 고정했음**(test_the_pronunciation_prompt_is_byte_identical_to_the_measured_one) — 변이 검사로 확인했음: 규칙 11 의 「rule 4」 참조를 지우자 그 테스트만 깨졌고 되돌리니 통과했음.
+② 통합 테스트가 ?mode=pronunciation → 팩토리 → 어댑터 생성자까지 그 지시문이 도달하는 것을 잼.
+③ Nova 실물 왕복이 그 문면에서 tool 6/8 을 냈고 같은 방향 2회 이상임(P2 4/4 · P1 2/4).
+
+⛔ **그래도 AC#2 를 체크하지 않음.** 셋을 이어 붙인 것이고 «한 경로로 끝까지» 돌린 것이 아님 — 실물 Nova 호출이 NovaVoiceAdapter 가 아니라 스파이크 클라이언트로 났음. 결정 50 이 「스파이크만으로 닫지 않는다」를 명시했고 TASK-81 AC#4 도 앱 레그를 요구함.
+
+⚠️ **남은 고리 하나가 지금 막혀 있음**: 앱 레그(브라우저)는 H-BD 로 막힘 — CDP 에서 getUserMedia 가 응답하지 않아 음성 세션이 시작되지 않음. 그 함정의 우회로(서비스 함수로 전사문을 남기는 것)는 «음성 경로 자체를 재는 회차에는 쓸 수 없음» 이라 이 자리에 쓸 수 없음. ⇒ 마이크가 열리는 경로를 확보하는 것이 AC#2 의 선행이고, 그것은 사람이 실제 마이크로 한 세션을 여는 것으로도 됨(결정 38·39 가 그런 세션을 승인한 선례임).
 <!-- SECTION:NOTES:END -->

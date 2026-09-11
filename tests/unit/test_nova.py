@@ -16,6 +16,7 @@ import asyncio
 import base64
 import json
 from collections.abc import Sequence
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -1635,3 +1636,27 @@ def test_the_two_prompts_carry_the_same_tool_contract_word_for_word():
     # 규칙 9 는 갈라진 것이 **의도**다. 그 사실을 테스트가 명시해
     # 「같아야 한다」로 오독되지 않게 한다.
     assert rule(PRONUNCIATION_MODE_PROMPT, "9") != rule(SYSTEM_PROMPT, "9")
+
+
+def test_the_pronunciation_prompt_is_byte_identical_to_the_measured_one():
+    """⛔ **이 테스트가 제품 산출물을 그 «증거»에 묶는다.**
+
+    `PRONUNCIATION_MODE_PROMPT` 의 형태는 추론이 아니라 실물 왕복 **4/4** 로 얻은 것이다. 문면을
+    한 자라도 고치면 그 수치는 **고친 판에 붙지 않는다** — 그런데 그 사실은 코드만 읽어서는 보이지
+    않는다. 그래서 회차 디렉터리에 남은 프롬프트 파일과 **바이트 단위로** 대조한다.
+
+    이 테스트가 깨지면 선택지는 둘뿐이다: 문면을 되돌리거나, **회차를 다시 돌려** 새 문면의 수치를
+    얻고 그 파일과 이 테스트를 함께 갱신하는 것. ⛔ 「읽기 좋아졌다」로 갱신하지 않는다.
+    """
+    measured = (
+        Path(__file__).resolve().parents[1]
+        / "harness"
+        / "runs"
+        / "2026-09-11-task86-dedicated-session"
+        / "prompt_dedicated_cut.txt"
+    )
+
+    assert build_pronunciation_prompt("th_as_s") == measured.read_text(encoding="utf-8"), (
+        "전용 모드 지시문이 실측된 문면과 달라졌다 — 4/4 수치가 이 판에 붙지 않는다. "
+        "되돌리거나 회차를 다시 돌려라"
+    )
