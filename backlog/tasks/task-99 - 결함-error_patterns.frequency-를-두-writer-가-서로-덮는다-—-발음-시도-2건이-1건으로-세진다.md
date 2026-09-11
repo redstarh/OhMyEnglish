@@ -4,7 +4,7 @@ title: '결함: error_patterns.frequency 를 두 writer 가 서로 덮는다 —
 status: Done
 assignee: []
 created_date: '2026-09-10 22:13'
-updated_date: '2026-09-11 13:16'
+updated_date: '2026-09-11 13:17'
 labels: []
 dependencies: []
 ordinal: 102000
@@ -60,4 +60,6 @@ AC#3 — last_seen_at 을 함께 다뤘음. ⛔ 별도 수정을 넣지 않았�
 게이트 (app/backend cwd 에서 직접 돌림): pytest 943 passed(12.82s · 이 태스크가 3건을 더했음) · ruff check 안·밖 exit 0 · unformatted 0 · ty All checks passed · 프론트 tsc·eslint exit 0.
 
 ⚠️ 미이행 하나 — 캡틴 지시 대장의 «결정 62» 항목을 아직 붙이지 않았음. 이유는 동료 세션이 결정 61 을 미커밋으로 열어 두어 같은 파일을 지금 담으면 남의 판이 내 커밋에 섞이기 때문임. 코드 주석과 테스트 주석에는 이미 «결정 62» 로 번호를 박아 뒀으므로 그 번호로 붙여야 함. 동료가 커밋하는 즉시 붙임.
+
+2026-09-11 미이행 해소 — 대장의 결정 62 항목을 1a52397 로 붙였음. 동료 세션이 결정 61 을 f0c550d 로 커밋한 뒤에 넣어 두 판이 한 워킹 카피에 섞이는 것을 피했음. ⇒ 이 태스크에 남은 미이행이 0건임.
 <!-- SECTION:NOTES:END -->
