@@ -41,9 +41,16 @@
 오는 것을 실물 왕복으로 확인 · 최소 2회 같은 방향"*)를 **이제 잴 수 있음.** 프로토타입 6/8 은
 하네스 팔이라 그것으로 닫지 않았음.
 
-**진행 순서 제안**: ⑴ `?mode=pronunciation` 으로 앱 경로 왕복(브라우저 레그 · `H-BD` 우회 필요) →
-⑵ tool 이 오면 `pronunciation_attempts`·`error_patterns`·`next_review_at` 까지 종단 확인
-(그것이 `TASK-97` AC#3 이기도 함) → ⑶ `TASK-86` AC#2 체크.
+⛔ **막힌 고리를 여는 도구를 이 세션이 만들었음** — `tests/harness/ws_session.py --mode pronunciation
+--wav p2m.wav,p2a.wav`. 브라우저·마이크 없이 `ws → factory → NovaVoiceAdapter → 실물 Nova` 를
+지나감(`H-BD` 우회). ⚠️ **부분 검증만 했음**: 프레임 자르기(208프레임 · 재생 6.66초)는 직접
+확인했고 **살아 있는 서버에 붙여 돌린 적은 없음.**
+
+**진행 순서**: ⑴ 검증 전용 DB + 별 포트로 백엔드를 띄움(`H-BC` 의 방법 · 공유 dev DB 를 쓰지 않음 ·
+`--no-register` 를 씀) → ⑵ 그 DB 에 발음 `error_patterns` 1행을 심어 **오늘의 소리가 골라지게 함**
+(없으면 서버가 말하기로 떨어뜨림) → ⑶ 회차 2회 이상 → ⑷ tool 이 오면
+`pronunciation_attempts`·`error_patterns`·`next_review_at` 까지 종단 확인(그것이 `TASK-97` AC#3
+이기도 함) → ⑸ `TASK-86` AC#2 체크.
 
 ⛔ **그 전에 `TASK-10` AC#1 을 정해야 화면이 붙음** — 발음·쉐도잉·자유 추가 학습이 **같은 문**을
 쓰는지의 판정이고 `TASK-10.2` 가 그 결정을 구현함. 지금은 `TASK-10` 이 `In Progress` 임.
