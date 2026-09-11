@@ -1,10 +1,10 @@
 ---
 id: TASK-86
 title: '결함: 발음 코칭이 일어나도 tool 이 오지 않는다 — 피드백은 있고 기록이 없다'
-status: In Progress
+status: Awaiting Decision
 assignee: []
 created_date: '2026-09-10 04:29'
-updated_date: '2026-09-11 02:06'
+updated_date: '2026-09-11 02:19'
 labels: []
 dependencies: []
 ordinal: 89000
@@ -118,4 +118,23 @@ ordinal: 89000
 유효하게 남는 것: 회차 기록 tests/harness/runs/2026-09-10-task86-reminder-control.md 의 관측임. 규칙 10 리마인더가 코칭을 줄인다는 가설을 같은 시점 대조군으로 반증했고(계획 통제 시 Fisher 양측 p=1.0), 팔이 넷인 것을 원자료 stem 으로 확정했음. 그 두 가지는 시점과 무관한 관측임.
 
 ⚠️ 무효가 된 것과 유효한 것을 갈라 읽어야 함 — 「코칭률이 낮다」는 관측은 맞고 「그래서 빈도를 먼저 올려야 한다」는 추론이 결정 52 로 기각됐음.
+
+2026-09-11 셋째 시도 (세션 `ohmyenglish-7f`) — 결정 56 을 프롬프트에 넣고 재봤고 **바뀌지 않았음**.
+정본은 `tests/harness/runs/2026-09-11-task86-priority-line.md` 임.
+
+바꾼 것은 문장 하나임: 소리 줄에 *「This outranks the question list and the sentence-shape target
+below: pause the current question, coach the sound, then come back to the question you paused.」* 를
+넣었음(결정 56 의 문면을 그대로 옮김 · 수치 없음).
+
+결과: 팔 A6 8회 **tool 0/8** · 코칭 문구도 앞 회차와 그대로(전부 관사 드릴) · 같은 시각 대조군
+2회 **tool 2/2**. ⛔ 그 대조는 **한 문장만** 다름(같은 픽스처·소리·초점·놓친 소리 목록·질문 5개)
+이므로 성립함 — `D106-hsound` 0/8 대 `D86-prio` 0/8.
+⚠️ 「문구가 무효」로 단정하지 않음 — 8회는 낮은 비율을 배제하지 못함(`P(0 in 8 | 0.13)=0.33`).
+말할 수 있는 것은 「문구 하나로 높은 비율(≥40%)이 되지는 않았음」임.
+
+⛔ 세 회차가 같은 것을 가리킴: **모델은 계획의 질문 5개를 충실히 수행함.** 그래서 지렛대는 프롬프트
+문구가 아니라 **계획 생성**임 — 발음 초점이 선택됐을 때 그 소리를 유발하는 질문을 만들게 하는 것.
+그것을 후보 ⑸ 로 사용자에게 올렸음(Slack · 후보 ⑴ 은 위 실측으로 사실상 배제됐음).
+
+⇒ AC#2 는 여전히 미충족이고 다음 갈래는 **사용자 결정**임. 그래서 다시 `Awaiting Decision` 임.
 <!-- SECTION:NOTES:END -->
