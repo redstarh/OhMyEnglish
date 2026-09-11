@@ -1,10 +1,10 @@
 ---
 id: TASK-99
 title: '결함: error_patterns.frequency 를 두 writer 가 서로 덮는다 — 발음 시도 2건이 1건으로 세진다'
-status: Awaiting Decision
+status: Done
 assignee: []
 created_date: '2026-09-10 22:13'
-updated_date: '2026-09-11 11:58'
+updated_date: '2026-09-11 13:16'
 labels: []
 dependencies: []
 ordinal: 102000
@@ -19,8 +19,8 @@ ordinal: 102000
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [x] #1 도달성을 먼저 판정한다 — 모델이 pronunciation_ 접두 pattern_key 를 지어내는지 실물 분석 회차로 관측한다. 도달하지 않으면 잠재 결함으로 등급을 내리고 그 근거를 적는다
-- [ ] #2 고치는 층을 고르고 근거를 적는다 — 후보는 upsert 에서 발음 카테고리 행을 문법 경로가 집지 못하게 하는 것과 두 재계산이 카테고리로 갈리게 하는 것이다. ⛔ 새 추상화를 만들지 않는다
-- [ ] #3 last_seen_at 도 함께 다룬다 — frequency 만 고치면 앵커가 서로 다른 두 값이 같은 컬럼을 계속 덮는다
+- [x] #2 고치는 층을 고르고 근거를 적는다 — 후보는 upsert 에서 발음 카테고리 행을 문법 경로가 집지 못하게 하는 것과 두 재계산이 카테고리로 갈리게 하는 것이다. ⛔ 새 추상화를 만들지 않는다
+- [x] #3 last_seen_at 도 함께 다룬다 — frequency 만 고치면 앵커가 서로 다른 두 값이 같은 컬럼을 계속 덮는다
 - [x] #4 pronunciation.link_pattern 의 낡은 주석을 정정한다 — _EXISTING_PATTERNS_SQL 에 카테고리 필터가 이미 있다
 <!-- AC:END -->
 
@@ -44,4 +44,20 @@ AC#4 완료 — services/pronunciation.py 의 낡은 서술 세 곳을 정정했
 게이트 (app/backend cwd 에서 직접 돌림): pytest 940 passed(12.13s) · ruff check 안·밖 exit 0 · unformatted 0 · ty All checks passed. ⚠️ ty 가 tests/harness/runs/** 까지 본다는 것을 실측했음 — Settings() 에 # ty: ignore[missing-argument] 를 붙이는 것이 이 리포의 확립된 관용임(spike_nova_protocol.py · scripts/smoke_analysis.py 가 같은 주석을 씀).
 
 ⇒ 남은 AC#2·#3 은 앱 코드 수정이라 이 갈래가 단독으로 정하지 않음. 등급이 잠재로 내려갔으므로 «고칠지 자체»가 판단 대상이 됐음.
+
+2026-09-11 AC#2·#3 완료 — 사용자가 「finding 하나만 버린다」를 골랐음(선택지 셋 중 ①). 나머지 둘은 「그 발화를 전부 실패시킨다」와 「고치지 않고 가드만 둔다」였음.
+
+AC#2 — 고친 층과 근거. resolve_pattern_keys 안에서 category == UNJUDGEABLE_CATEGORY 인 finding 을 버리고 경고 로그를 남김. ⛔ 자리가 신규 키 형식 검사 «앞»이어야 함 — 뒤에 두면 그 finding 의 키가 규격 밖일 때 버려지지 않고 AnalysisValidationError 가 나서 그 발화의 교정 전체가 날아감. 그 순서를 고정하는 테스트를 따로 뒀음(test_a_dropped_unjudgeable_finding_does_not_fail_the_utterance).
+
+⛔ 새 추상화를 만들지 않았음(AC#2 의 금지 조항). 버리기를 이미 attempts 미매치 키를 버리는 같은 함수 안에 뒀고 상수도 같은 모듈의 UNJUDGEABLE_CATEGORY 를 그대로 씀. 모델 계층에 넣지 않은 이유는 그 상수가 services 에 있어 models 가 services 를 import 하는 역전이 생기기 때문임.
+
+근거 — 왜 실패가 아니라 버리기인가. 같은 함수가 이미 비대칭을 정해 뒀고 그 주석이 「성질이 다른 두 실패를 같은 강도로 다루면 저가치 필드 하나가 그 발화의 교정 전체를 태운다」임. 버릴 대상은 우리가 프롬프트로 «내지 말라고 지시한» 산출이라 값어치 판단 근거가 이미 프롬프트에 있음. 그 세 강도를 docstring 표로 남겼음.
+
+AC#3 — last_seen_at 을 함께 다뤘음. ⛔ 별도 수정을 넣지 않았고 대신 «도달 불가가 됐음»을 확정했음: 발음 행의 pattern_key 는 pronunciation_ + target_sound 이고, 신규 키는 ^{category}_ 를 강제받으며 허용 카테고리 6개 중 그 접두를 만들 수 있는 것이 없음. 재사용 키는 G-8 필터가 발음 행을 목록에서 빼므로 나올 수 없음. ⇒ 문법 경로가 발음 행을 집을 수 없어 frequency 와 last_seen_at 이 둘 다 단일 writer 가 됨(앵커가 발화 시각과 resolved_at 으로 갈리는 문제 자체가 사라짐).
+
+그 근거를 지키는 가드를 넣었음 — test_no_promptable_category_can_produce_a_pronunciation_pattern_key. 판별력 단정을 테스트 «안»에 뒀음(가짜 카테고리 pronunciation_stress 를 넣으면 잡히는 것을 먼저 단정함) — 0건만 단정하면 그 0 을 통과로 읽을 수 없음. 깨지는 유일한 길은 ErrorCategory 에 pronunciation_ 로 시작하는 새 카테고리를 프롬프트 허용 집합에 더하는 것이고 그때 이 테스트가 먼저 실패함.
+
+게이트 (app/backend cwd 에서 직접 돌림): pytest 943 passed(12.82s · 이 태스크가 3건을 더했음) · ruff check 안·밖 exit 0 · unformatted 0 · ty All checks passed · 프론트 tsc·eslint exit 0.
+
+⚠️ 미이행 하나 — 캡틴 지시 대장의 «결정 62» 항목을 아직 붙이지 않았음. 이유는 동료 세션이 결정 61 을 미커밋으로 열어 두어 같은 파일을 지금 담으면 남의 판이 내 커밋에 섞이기 때문임. 코드 주석과 테스트 주석에는 이미 «결정 62» 로 번호를 박아 뒀으므로 그 번호로 붙여야 함. 동료가 커밋하는 즉시 붙임.
 <!-- SECTION:NOTES:END -->

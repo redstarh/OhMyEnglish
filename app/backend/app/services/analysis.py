@@ -359,10 +359,32 @@ def resolve_pattern_keys(
     그것을 거부하면 재사용 우선 규칙과 정면으로 충돌한다. 반대로 형식 위반 **신규**
     key는 이 발화의 분석 전체를 실패시킨다: 규격 밖 key를 그냥 저장하면 다음 세션에
     병합되지 않는 쌍둥이 패턴이 생겨 그 약속이 조용히 무너진다.
+
+    ⛔ **이 함수는 세 강도를 쓴다 — 섞지 말 것** (`TASK-99` AC#2가 첫째를 더했다).
+    가르는 축은 「버리면 무엇을 잃는가」다.
+
+    1. `UNJUDGEABLE_CATEGORY` finding → **버린다.** 우리가 프롬프트로 **내지 말라고 지시한**
+       산출이라 버려도 잃는 것이 없다. 남기면 문법 경로가 발음 카테고리 행을 만들고
+       (R10-3 위반) 그것이 `frequency` 이중 writer의 씨앗이 된다.
+    2. 형식 위반 **신규** key → **예외.** 저장되면 병합되지 않는 쌍둥이 패턴이 영구히 남는다.
+    3. 목록에 없는 **attempt** key → **버린다.** 부가 신호라 손상되는 데이터가 없다.
+
+    성질이 다른 실패를 같은 강도로 다루면 **저가치 산출 하나가 그 발화의 교정 전체를 태운다.**
     """
     canonical_by_fold = {row.pattern_key.casefold(): row.pattern_key for row in existing_patterns}
     findings: list[ErrorFinding] = []
     for finding in result.findings:
+        # ⛔ 발음 카테고리 finding 은 **버린다** — 신규 키 형식 검사 **앞**이어야 한다
+        # (사용자 판정 2026-09-11 · `TASK-99` AC#2). 뒤에 두면 그 finding 의 키가 규격 밖일 때
+        # 버려지지 않고 아래 예외가 나서 **그 발화의 교정 전체가 날아간다.**
+        if finding.category == UNJUDGEABLE_CATEGORY:
+            logger.warning(
+                "dropping finding in category %r (pattern_key %r) — the transcript path does "
+                "not judge pronunciation (R10-3)",
+                finding.category,
+                finding.pattern_key,
+            )
+            continue
         canonical = canonical_by_fold.get(finding.pattern_key.casefold())
         if canonical is None:
             if not is_valid_new_pattern_key(finding.category, finding.pattern_key):
