@@ -28,7 +28,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
@@ -149,6 +149,66 @@ select count(*) as completed_scenarios
    and status = 'completed'
    and ended_at is not null
    and (ended_at at time zone $2)::date = $3
+"""
+
+# 연속 학습일 (PRD §15 · `TASK-107`). 설계의 정본은
+# `docs/design/2026-09-11-streak-and-history-design.md` 다.
+#
+# gaps and islands — 날짜에서 행 번호를 빼면 **연속 구간이 같은 값**이 된다. 그 값으로 묶으면
+# 구간의 시작·끝·길이가 한 조회로 나온다.
+# ⛔ 「학습한 날」의 술어를 `_COMPLETION_SQL` 과 **같게** 둔다 — 두 곳이 갈리면 화면의 연속일과
+# 완료 문구가 서로 어긋난다(R15-1). 조건을 고칠 때 둘을 함께 고친다.
+# ⚠️ 누적 컬럼을 두지 않는 근거는 설계서 §3 이다: 입력이 불변이고(종료 UPDATE 가 `status='active'`
+# 로 막힘) 누적은 갱신 누락으로 조용히 틀리는 자리를 만든다(`H-AX` 가 그 형태의 실패다).
+_STREAK_SQL = """
+with days as (
+      select distinct (ended_at at time zone $2)::date as day
+        from learning_sessions
+       where user_id = $1
+         and scenario_id is not null
+         and status = 'completed'
+         and ended_at is not null
+),
+grouped as (
+      select day, day - (row_number() over (order by day))::int as island
+        from days
+)
+select min(day) as from_day, max(day) as to_day, count(*)::int as length
+  from grouped
+ group by island
+ order by from_day
+"""
+
+# 날짜별 히스토리 (PRD §15 R15-5). `generate_series` 로 **빈 날짜도 행을 만든다** — 학습이 없던
+# 날이 보이지 않으면 연속이 어디서 끊겼는지 알 수 없다.
+# ⛔ `learned` 와 `analyzed` 를 **갈라** 준다: 2026-09-11 에 생긴 `daily_error_summary` 는 그 이전
+# 날짜에 행이 없으므로 「학습은 했는데 요약이 없다」가 실재한다(설계서 §6 의 미결 ⑴).
+_HISTORY_SQL = """
+with span as (
+      select ($3::date - ($4::int - 1)) as from_day, $3::date as to_day
+),
+days as (
+      select generate_series(span.from_day, span.to_day, interval '1 day')::date as day
+        from span
+),
+completed as (
+      select (ended_at at time zone $2)::date as day, count(*)::int as scenarios
+        from learning_sessions
+       where user_id = $1
+         and scenario_id is not null
+         and status = 'completed'
+         and ended_at is not null
+       group by 1
+)
+select d.day,
+       coalesce(c.scenarios, 0) as completed_scenarios,
+       s.occurrence_count,
+       s.pattern_count,
+       s.computed_at
+  from days d
+  left join completed c on c.day = d.day
+  left join daily_error_summary s on s.user_id = $1 and s.summary_date = d.day
+ order by d.day desc
 """
 
 
@@ -308,3 +368,82 @@ async def load_daily_completion(
         completed_today=completed > 0,
         completed_scenarios=completed,
     )
+
+
+@dataclass(frozen=True, slots=True)
+class Streak:
+    """연속 학습일 (PRD §15).
+
+    `current` 는 마지막 학습일이 **오늘이거나 어제**일 때만 살아 있다 — 「오늘 아직 안 했다」를
+    끊김으로 세면 사실이 아니고(그날이 끝나지 않았다) 아침에 0을 본 학습자가 그날을 포기한다.
+    `today_done` 을 함께 내는 이유: 화면이 「N일 연속 학습 중」과 「어제까지 N일 연속」을 갈라
+    써야 자정 직후의 값이 오해되지 않는다(설계서 §6).
+    """
+
+    current: int
+    longest: int
+    today_done: bool
+
+
+@dataclass(frozen=True, slots=True)
+class HistoryDay:
+    """히스토리 한 줄.
+
+    ⛔ `learned` 와 `analyzed` 는 **다른 사실**이다. `daily_error_summary` 는 2026-09-11 에
+    생겼으므로 그 이전 날짜는 학습했어도 요약이 없다 — 두 값을 합치면 그 날들이 「학습 없음」으로
+    보인다(설계서 §6 의 미결 ⑴. 백필하지 않기로 한 근거도 그 문서가 갖는다).
+    """
+
+    day: date
+    learned: bool
+    completed_scenarios: int
+    analyzed: bool
+    occurrence_count: int
+    pattern_count: int
+
+
+async def load_streak(
+    conn: asyncpg.Connection, user_id: UUID, *, now: datetime | None = None
+) -> Streak:
+    """현재·최장 연속 학습일. 기록이 없으면 둘 다 0이고 그것은 오류가 아니다."""
+    timezone = await _timezone_of(conn, user_id)
+    today = _today_in(timezone, now)
+    islands = await conn.fetch(_STREAK_SQL, user_id, timezone)
+    if not islands:
+        return Streak(current=0, longest=0, today_done=False)
+
+    longest = max(record["length"] for record in islands)
+    last = islands[-1]
+    # 마지막 구간이 오늘이나 어제에 닿아 있으면 그것이 현재 연속이다. 그보다 오래면 끊겼다.
+    alive = last["to_day"] in (today, today - timedelta(days=1))
+    return Streak(
+        current=last["length"] if alive else 0,
+        longest=longest,
+        today_done=last["to_day"] == today,
+    )
+
+
+async def load_history(
+    conn: asyncpg.Connection, user_id: UUID, *, days: int = 30, now: datetime | None = None
+) -> list[HistoryDay]:
+    """오늘부터 거꾸로 `days` 일의 히스토리. **학습이 없던 날도 행으로 낸다.**
+
+    `days` 를 인자로 받는 이유는 화면이 범위를 정하기 때문이고, 기본 30일은 「최근을 되짚는다」는
+    용도에 맞춘 값이다 — 요구사항이 정한 수가 아니므로 화면이 필요하면 넓힌다.
+    """
+    if days < 1:
+        raise ValueError("`days` must be at least 1")
+    timezone = await _timezone_of(conn, user_id)
+    today = _today_in(timezone, now)
+    records = await conn.fetch(_HISTORY_SQL, user_id, timezone, today, days)
+    return [
+        HistoryDay(
+            day=record["day"],
+            learned=record["completed_scenarios"] > 0,
+            completed_scenarios=record["completed_scenarios"],
+            analyzed=record["computed_at"] is not None,
+            occurrence_count=record["occurrence_count"] or 0,
+            pattern_count=record["pattern_count"] or 0,
+        )
+        for record in records
+    ]

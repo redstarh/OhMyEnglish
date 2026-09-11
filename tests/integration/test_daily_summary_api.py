@@ -304,3 +304,39 @@ async def test_endpoint_ignores_sessions_without_a_scenario(
     payload = (await api_client.get(DAILY_SUMMARY_PATH)).json()
 
     assert payload["completed_today"] is False
+
+
+# ── TASK-107 · PRD §15 — 히스토리 엔드포인트 ────────────────────────────────────
+
+HISTORY_PATH = "/api/history"
+
+
+# ⑨ 연속일과 날짜별 줄을 함께 준다 — 두 조회를 화면이 따로 하지 않게 한다(자정에 갈릴 수 있다).
+async def test_history_endpoint_carries_streak_and_days(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_fixed_user
+) -> None:
+    await _completed_session(db_pool, FIXED_USER_ID, with_scenario=True)
+
+    response = await api_client.get(HISTORY_PATH)
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["streak"]["current"] == 1
+    assert payload["streak"]["longest"] == 1
+    assert payload["streak"]["today_done"] is True
+    assert len(payload["days"]) == 30, "기본 범위는 30일이다 — 학습이 없던 날도 행으로 온다"
+    today = payload["days"][0]
+    assert today["learned"] is True
+    assert today["completed_scenarios"] == 1
+    # 분석은 돌지 않았으므로 요약이 없다 — 두 사실이 갈라져 온다(설계서 §6 의 미결 ⑴).
+    assert today["analyzed"] is False
+
+
+# ⑩ 기록이 없어도 200 이고 0이다 — 첫 사용자의 화면이 비는 것이 정상이다.
+async def test_history_endpoint_is_empty_not_an_error(
+    api_client: httpx.AsyncClient, committed_fixed_user
+) -> None:
+    payload = (await api_client.get(HISTORY_PATH)).json()
+
+    assert payload["streak"] == {"current": 0, "longest": 0, "today_done": False}
+    assert all(row["learned"] is False for row in payload["days"])

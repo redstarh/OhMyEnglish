@@ -188,3 +188,42 @@ export async function fetchSessionResults(sessionId: string): Promise<SessionRes
   }
   return (await response.json()) as SessionResultPayload;
 }
+
+/** 연속 학습일 (PRD §15). `today_done` 이 자정 직후의 `current` 를 오해 없이 쓰게 한다. */
+export interface Streak {
+  current: number;
+  longest: number;
+  today_done: boolean;
+}
+
+/**
+ * 히스토리 한 줄. `learned` 와 `analyzed` 는 **다른 사실**이다 — `daily_error_summary` 가
+ * 2026-09-11 에 생겼으므로 그 이전 날짜는 학습했어도 요약이 없다. 합쳐 읽으면 그 날들이
+ * 「학습 없음」으로 보인다(설계서 `2026-09-11-streak-and-history-design.md` §6).
+ */
+export interface HistoryDay {
+  day: string;
+  learned: boolean;
+  completed_scenarios: number;
+  analyzed: boolean;
+  occurrence_count: number;
+  pattern_count: number;
+}
+
+export interface HistoryPayload {
+  streak: Streak;
+  days: HistoryDay[];
+}
+
+/**
+ * 히스토리 조회. 실패하면 **`null`** 이다 — 빈 히스토리를 돌려주면 화면이 「학습 기록이 없다」는
+ * 거짓을 그린다. 전용 화면이므로 실패를 실패로 말해야 한다(`fetchDailySummary` 와 반대인 이유:
+ * 그쪽은 결과 화면의 곁가지라 조용히 비우는 편이 낫다).
+ */
+export async function fetchHistory(): Promise<HistoryPayload | null> {
+  const response = await fetch(`${API_BASE}/api/history`, { cache: "no-store" });
+  if (!response.ok) {
+    return null;
+  }
+  return (await response.json()) as HistoryPayload;
+}

@@ -45,6 +45,9 @@ const RETRYING_NOTICE = "결과를 불러오지 못했습니다. 다시 시도�
 // 결과 화면에서 빠져나갈 인앱 수단 (TASK-55). 조회가 실패한 화면에서는 이것이 유일한 출구다 —
 // 그전에는 학습자가 브라우저 뒤로가기 말고는 나갈 방법이 없었다.
 const HOME_LINK_LABEL = "← 학습 시작 화면으로";
+// 히스토리 진입점 (PRD §15 · `TASK-107`). ⛔ 링크를 두지 않으면 그 화면에 **도달할 길이 없다** —
+// 이 리포가 네 번 낸 「reader 0곳」의 화면 버전이다. 세션을 마친 자리가 되짚기 좋은 자리다.
+const HISTORY_LINK_LABEL = "학습 히스토리 보기 →";
 
 /**
  * 폴링을 이어갈지 정한다. **판정을 여기 한 곳에 모아 두는 것이 계약이다** — 흩어 두면
@@ -406,6 +409,11 @@ export default function ResultsPage() {
             이 화면 밖의 링크까지 바꾸는 결정이라 이 태스크의 범위가 아니다. */}
         <Link href="/" style={{ textDecoration: "underline" }}>
           {HOME_LINK_LABEL}
+        </Link>
+      </p>
+      <p style={{ marginTop: "0.5rem" }}>
+        <Link href="/history" style={{ textDecoration: "underline" }}>
+          {HISTORY_LINK_LABEL}
         </Link>
       </p>
     </main>

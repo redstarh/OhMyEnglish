@@ -22,6 +22,8 @@ import pytest
 from app.services.daily_summary import (
     load_daily_completion,
     load_daily_summary,
+    load_history,
+    load_streak,
     refresh_summary_for_utterance,
 )
 
@@ -445,3 +447,134 @@ async def test_completion_follows_the_same_today_rules(db_conn: asyncpg.Connecti
         await load_daily_completion(db_conn, uuid4(), now=datetime(2026, 9, 11, 8, 0, tzinfo=KST))
     with pytest.raises(ValueError):
         await load_daily_completion(db_conn, USER_ID, now=datetime(2026, 9, 11, 8, 0))
+
+
+# ── TASK-107 · PRD §15 — 연속 학습일과 히스토리 ────────────────────────────────
+#
+# 「학습한 날」의 술어는 완료 판정과 **같다** — 두 곳에서 갈리면 화면의 연속일과 완료 문구가
+# 서로 어긋난다(R15-1). 그래서 같은 모듈이 둘을 소유한다.
+
+
+async def _completed_on(conn: asyncpg.Connection, scenario_id: UUID, *days: int) -> None:
+    """2026-09-11 을 기준으로 `days` 만큼 «이전» 날짜에 완료 세션을 하나씩 심는다."""
+    for offset in days:
+        await _ended_session(
+            conn,
+            ended_at=datetime(2026, 9, 11, 21, 0, tzinfo=KST) - timedelta(days=offset),
+            scenario_id=scenario_id,
+        )
+
+
+# ⑰ AC15-1 — 이틀 연속이면 현재 연속일이 2다.
+async def test_two_consecutive_days_make_a_streak_of_two(db_conn: asyncpg.Connection) -> None:
+    await _seed_user(db_conn)
+    scenario_id = await _seed_scenario(db_conn)
+    await _completed_on(db_conn, scenario_id, 0, 1)
+
+    streak = await load_streak(db_conn, USER_ID, now=datetime(2026, 9, 11, 23, 0, tzinfo=KST))
+
+    assert streak.current == 2
+    assert streak.longest == 2
+    assert streak.today_done is True
+
+
+# ⑱ AC15-2 — 마지막 학습일이 어제면 오늘 아직 안 했어도 연속이 «살아 있다».
+async def test_yesterday_keeps_the_streak_alive(db_conn: asyncpg.Connection) -> None:
+    await _seed_user(db_conn)
+    scenario_id = await _seed_scenario(db_conn)
+    await _completed_on(db_conn, scenario_id, 1, 2)
+
+    streak = await load_streak(db_conn, USER_ID, now=datetime(2026, 9, 11, 9, 0, tzinfo=KST))
+
+    assert streak.current == 2, "「오늘 아직 안 했다」를 끊김으로 세면 0이 된다"
+    assert streak.today_done is False
+
+
+# ⑲ AC15-3 — 마지막 학습일이 그저께면 현재 연속일은 0이다(최장은 남는다).
+async def test_the_day_before_yesterday_breaks_the_streak(db_conn: asyncpg.Connection) -> None:
+    await _seed_user(db_conn)
+    scenario_id = await _seed_scenario(db_conn)
+    await _completed_on(db_conn, scenario_id, 2, 3, 4)
+
+    streak = await load_streak(db_conn, USER_ID, now=datetime(2026, 9, 11, 9, 0, tzinfo=KST))
+
+    assert streak.current == 0
+    assert streak.longest == 3
+
+
+# ⑳ AC15-4 — 하루에 셋을 마쳐도 1일로 센다.
+async def test_three_sessions_in_one_day_count_as_one_day(db_conn: asyncpg.Connection) -> None:
+    await _seed_user(db_conn)
+    scenario_id = await _seed_scenario(db_conn)
+    await _completed_on(db_conn, scenario_id, 0, 0, 0)
+
+    streak = await load_streak(db_conn, USER_ID, now=datetime(2026, 9, 11, 23, 0, tzinfo=KST))
+
+    assert streak.current == 1
+    assert streak.longest == 1
+
+
+# ㉑ 기록이 없으면 0이고 오류가 아니다 — 첫 사용자의 화면이 비는 것이 정상이다.
+async def test_no_history_is_zero_not_an_error(db_conn: asyncpg.Connection) -> None:
+    await _seed_user(db_conn)
+
+    streak = await load_streak(db_conn, USER_ID, now=datetime(2026, 9, 11, 9, 0, tzinfo=KST))
+
+    assert streak.current == 0
+    assert streak.longest == 0
+    assert streak.today_done is False
+
+
+# ㉒ AC15-5 — 히스토리는 날짜별로 「학습했는가」와 그날 오류 요약을 함께 준다.
+async def test_history_pairs_learning_with_that_days_summary(db_conn: asyncpg.Connection) -> None:
+    await _seed_user(db_conn)
+    scenario_id = await _seed_scenario(db_conn)
+    session_id = await _seed_session(db_conn)
+    pattern_id = await _seed_pattern(db_conn, key="article_missing_before_singular_noun")
+    await _completed_on(db_conn, scenario_id, 1)
+    # 어제 오류 1건을 분석해 요약을 만든다.
+    utterance_id = await _said_wrong(
+        db_conn, session_id, pattern_id, datetime(2026, 9, 10, 20, 0, tzinfo=KST)
+    )
+    await refresh_summary_for_utterance(db_conn, USER_ID, utterance_id)
+
+    history = await load_history(
+        db_conn, USER_ID, days=3, now=datetime(2026, 9, 11, 9, 0, tzinfo=KST)
+    )
+
+    assert [row.day for row in history] == [date(2026, 9, 11), date(2026, 9, 10), date(2026, 9, 9)]
+    today, yesterday, before = history
+    assert today.learned is False and today.analyzed is False
+    assert yesterday.learned is True and yesterday.completed_scenarios == 1
+    assert yesterday.analyzed is True and yesterday.occurrence_count == 1
+    # ⛔ 학습은 했는데 요약이 없는 날이 실재한다(012 이전) — 두 값을 **갈라** 준다.
+    assert before.learned is False and before.analyzed is False
+
+
+# ㉓ 「학습은 했는데 요약이 없다」와 「학습이 없었다」가 구별된다 — 설계서 §6 의 미결 ⑴.
+async def test_history_separates_learned_from_analyzed(db_conn: asyncpg.Connection) -> None:
+    await _seed_user(db_conn)
+    scenario_id = await _seed_scenario(db_conn)
+    await _completed_on(db_conn, scenario_id, 1)
+
+    history = await load_history(
+        db_conn, USER_ID, days=2, now=datetime(2026, 9, 11, 9, 0, tzinfo=KST)
+    )
+
+    yesterday = history[1]
+    assert yesterday.learned is True, "완료 세션이 있으므로 학습한 날이다"
+    assert yesterday.analyzed is False, "요약 행이 없으므로 분석 기록은 없다"
+
+
+# ㉔ 최장 연속일이 **마지막 구간이 아닐 때**를 잰다 — 그 표본이 없으면 `longest` 를 마지막 구간
+#    길이로 바꾼 변이가 통과한다(2026-09-11 실측: 실제로 통과했다).
+async def test_longest_streak_can_be_an_earlier_island(db_conn: asyncpg.Connection) -> None:
+    await _seed_user(db_conn)
+    scenario_id = await _seed_scenario(db_conn)
+    # 10·9·8일 전에 3일 연속, 그리고 2일 전에 하루.
+    await _completed_on(db_conn, scenario_id, 10, 9, 8, 2)
+
+    streak = await load_streak(db_conn, USER_ID, now=datetime(2026, 9, 11, 9, 0, tzinfo=KST))
+
+    assert streak.longest == 3, "마지막 구간(1일)이 아니라 앞 구간이 최장이다"
+    assert streak.current == 0, "마지막 학습일이 그저께보다 오래됐다"

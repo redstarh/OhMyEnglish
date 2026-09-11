@@ -28,8 +28,12 @@ from app.services.daily_summary import (
     DailyCompletion,
     DailyPattern,
     DailySummary,
+    HistoryDay,
+    Streak,
     load_daily_completion,
     load_daily_summary,
+    load_history,
+    load_streak,
 )
 
 router = APIRouter(prefix="/api", tags=["daily"])
@@ -74,3 +78,47 @@ async def get_daily_summary(request: Request) -> dict[str, object]:
         summary = await load_daily_summary(conn, FIXED_USER_ID)
         completion = await load_daily_completion(conn, FIXED_USER_ID)
     return _summary_payload(summary, completion)
+
+
+# 히스토리 범위. 요구사항이 정한 수가 아니라 「최근을 되짚는다」는 용도에 맞춘 값이다 —
+# 화면이 넓히려면 서비스 함수의 `days` 인자를 쓴다.
+HISTORY_DAYS = 30
+
+
+def _history_payload(streak: Streak, days: list[HistoryDay]) -> dict[str, object]:
+    return {
+        "streak": {
+            "current": streak.current,
+            "longest": streak.longest,
+            # 화면이 「N일 연속 학습 중」과 「어제까지 N일 연속」을 갈라 쓰게 하는 값이다 —
+            # 자정 직후의 `current` 가 어제까지의 값이라는 것을 그 문구가 감춰서는 안 된다.
+            "today_done": streak.today_done,
+        },
+        "days": [
+            {
+                "day": row.day.isoformat(),
+                # ⛔ 두 사실을 갈라 싣는다 — 학습은 했는데 그날 요약이 없는 날이 실재한다
+                # (`daily_error_summary` 는 2026-09-11 에 생겼다).
+                "learned": row.learned,
+                "completed_scenarios": row.completed_scenarios,
+                "analyzed": row.analyzed,
+                "occurrence_count": row.occurrence_count,
+                "pattern_count": row.pattern_count,
+            }
+            for row in days
+        ],
+    }
+
+
+@router.get("/history")
+async def get_history(request: Request) -> dict[str, object]:
+    """학습 히스토리 — 연속일과 날짜별 줄 (PRD §15 R15-5).
+
+    연속일을 별 엔드포인트로 빼지 않는다: 두 판독이 자정을 걸치면 화면이 「오늘」을 두 날짜로
+    그린다(`/api/daily-summary` 가 완료 여부를 함께 싣는 것과 같은 판단).
+    """
+    pool: asyncpg.Pool = request.app.state.db_pool
+    async with pool.acquire() as conn:
+        streak = await load_streak(conn, FIXED_USER_ID)
+        days = await load_history(conn, FIXED_USER_ID, days=HISTORY_DAYS)
+    return _history_payload(streak, days)
