@@ -4,7 +4,7 @@ title: '결함: 발음 코칭이 일어나도 tool 이 오지 않는다 — 피�
 status: In Progress
 assignee: []
 created_date: '2026-09-10 04:29'
-updated_date: '2026-09-11 15:53'
+updated_date: '2026-09-11 15:57'
 labels: []
 dependencies: []
 ordinal: 89000
@@ -234,4 +234,16 @@ below: pause the current question, coach the sound, then come back to the questi
 ⛔ **그래도 AC#2 를 체크하지 않음.** 셋을 이어 붙인 것이고 «한 경로로 끝까지» 돌린 것이 아님 — 실물 Nova 호출이 NovaVoiceAdapter 가 아니라 스파이크 클라이언트로 났음. 결정 50 이 「스파이크만으로 닫지 않는다」를 명시했고 TASK-81 AC#4 도 앱 레그를 요구함.
 
 ⚠️ **남은 고리 하나가 지금 막혀 있음**: 앱 레그(브라우저)는 H-BD 로 막힘 — CDP 에서 getUserMedia 가 응답하지 않아 음성 세션이 시작되지 않음. 그 함정의 우회로(서비스 함수로 전사문을 남기는 것)는 «음성 경로 자체를 재는 회차에는 쓸 수 없음» 이라 이 자리에 쓸 수 없음. ⇒ 마이크가 열리는 경로를 확보하는 것이 AC#2 의 선행이고, 그것은 사람이 실제 마이크로 한 세션을 여는 것으로도 됨(결정 38·39 가 그런 세션을 승인한 선례임).
+
+2026-09-12 KST 막힌 고리를 여는 «도구» 를 만들었음 — 아직 돌리지는 않았음.
+
+tests/harness/ws_session.py 에 --mode 와 --wav 를 더했음. 근거: 앱 레그의 유일한 길이던 브라우저가 H-BD(CDP 에서 마이크가 열리지 않음)로 막혀 있는데 /ws/session 프로토콜 자체가 base64 오디오 프레임을 받으므로 **마이크·브라우저 없이** 제품 경로(ws → factory → NovaVoiceAdapter → 실물 Nova)를 지나갈 수 있음.
+
+⛔ 프레임 크기·박자를 스파이크와 같게 뒀음(32ms · 1024B) — 다르게 두면 오디오 도착 속도가 달라져 두 팔의 비교가 깨짐.
+
+**부분 검증만 했음(정직하게 적음)**: 서버 없이 되는 부분을 직접 돌려 확인했음 — slice_frames(['p2m.wav','p2a.wav'], 640) 이 **208프레임 · 212,310B · 재생 6.66초**를 냈고 p2m 단독이 3.04초임(스파이크가 쓰는 픽스처 길이와 맞음). ⛔ **살아 있는 서버에 붙여 돌린 적은 없음** — 그것이 이 도구의 첫 사용이 될 것이고, 그때 확인해야 하는 것 셋: ① ?mode=pronunciation 이 서버 로그에서 전용 지시문을 고르는지 ② tool 이 오는지 ③ pronunciation_attempts·error_patterns·next_review_at 이 실제로 생기는지(TASK-97 AC#3).
+
+⚠️ **공유 dev DB 에 쓰지 않도록** 검증 전용 DB + 별 포트로 띄워야 함(H-BC 의 방법) — 그래서 --no-register 를 함께 넣었음(그 DB 에는 harness_sessions 표가 없음).
+
+게이트: pytest 957 passed · ruff·format·ty exit 0.
 <!-- SECTION:NOTES:END -->
