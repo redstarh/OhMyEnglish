@@ -1,9 +1,10 @@
 ---
 id: TASK-105
 title: '하네스: 소리 줄이 실린 제품 프롬프트로 21회를 돌려 코칭 발생과 tool 도착을 잰다 (결정 53)'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-10 23:59'
+updated_date: '2026-09-11 00:01'
 labels: []
 dependencies: []
 ordinal: 108000

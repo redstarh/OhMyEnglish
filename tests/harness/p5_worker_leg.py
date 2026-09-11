@@ -79,6 +79,7 @@ import asyncpg  # noqa: E402
 from app.config import get_settings  # noqa: E402
 from app.services.analysis import process_analysis  # noqa: E402
 from app.services.jobs import (  # noqa: E402
+    JOB_TYPE_ANALYZE,
     JOB_TYPE_PLAN,
     LEASE,
     MAX_ATTEMPTS,
@@ -231,9 +232,14 @@ async def cmd_guard(args: argparse.Namespace) -> int:
             print(f"  {'*' if _owner8(r) == expect8 else ' '} {_describe(r)}")
 
         mine = [r for r in rows if _owner8(r) == expect8]
+        # `--job-type` 은 **좁히기만** 한다 — 남의 job 을 후보에 넣지 않는다.
+        wanted = getattr(args, "job_type", None)
+        if wanted is not None:
+            mine = [r for r in mine if r["job_type"] == wanted]
         if not mine:
+            kind = "" if wanted is None else f" 종류 {wanted} 인 "
             print(
-                f"⛔ 거부한다 — 기대 세션({expect8})의 claim 가능한 job 이 0건이다. "
+                f"⛔ 거부한다 — 기대 세션({expect8})의{kind} claim 가능한 job 이 0건이다. "
                 "당길 대상이 없으므로 guard 는 아무 의미가 없다 "
                 "(job 이 running·임대유효이거나 available_at 이 미래일 수 있다)",
                 file=sys.stderr,
@@ -431,6 +437,15 @@ def main() -> int:
     p_guard = sub.add_parser("guard", help="내 job 하나를 전역 최소로 당기고 원값을 스냅샷한다")
     p_guard.add_argument("--expect-session", required=True, help="이 세션의 job 을 당긴다")
     p_guard.add_argument("--out", required=True, help="⛔ /tmp 에 두지 마라 — 회차 디렉터리에 둔다")
+    # `TASK-105` — 종류를 지목하지 못하면 「계획 job 만 처리한다」를 표현할 수 없다. 실측: 비보존
+    # 세션 넷 전부 `analyze_utterance` 가 `plan_next_session` 보다 이르므로 종류 없이는 **항상
+    # 분석 job 이 당겨진다.** 분석을 지나가면 `error_patterns`·`review_tasks` 가 움직여
+    # baseline 이 drift 하고(`H-AY`) 그것은 이 회차가 필요로 하지 않는 변경이다.
+    p_guard.add_argument(
+        "--job-type",
+        choices=(JOB_TYPE_ANALYZE, JOB_TYPE_PLAN),
+        help="당길 job 의 종류를 좁힌다 (없으면 그 세션의 가장 이른 job)",
+    )
     p_guard.set_defaults(fn=cmd_guard)
 
     p_restore = sub.add_parser("restore", help="스냅샷을 되돌린다")

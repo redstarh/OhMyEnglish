@@ -1,0 +1,3 @@
+id,session_id,focus_pattern_ids,target_level,source,created_at
+20f9fcba-fbdf-44c7-b61e-6908dbcac32a,7952ba19-b696-4a00-b066-e9de08ed0fb0,"{70ad1279-cfaf-4a57-b37b-c28f561baeaa,09ed5f7f-bdf7-49b6-a0b0-46db2c36dd4e}",A2,agent,2026-09-06 01:00:17.422986+00
+87a51db9-18bb-4dbf-9dd6-29735eb22665,e0c5e580-dfc0-4793-b02d-54cf4346c3c5,"{70ad1279-cfaf-4a57-b37b-c28f561baeaa,a719446a-2ec7-464d-bdbd-e46a2eaa723a}",A2,agent,2026-09-08 22:58:09.591812+00
