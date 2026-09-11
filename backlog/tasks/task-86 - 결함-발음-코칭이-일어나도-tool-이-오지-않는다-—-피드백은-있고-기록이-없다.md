@@ -4,7 +4,7 @@ title: '결함: 발음 코칭이 일어나도 tool 이 오지 않는다 — 피�
 status: In Progress
 assignee: []
 created_date: '2026-09-10 04:29'
-updated_date: '2026-09-11 13:33'
+updated_date: '2026-09-11 13:39'
 labels: []
 dependencies: []
 ordinal: 89000
@@ -211,4 +211,17 @@ below: pause the current question, coach the sound, then come back to the questi
 ③ ⇒ 전용 모드가 필요하고 그 모드는 규칙 1~7 을 대체하는 «짧은 대화 규칙» 을 따로 가져야 함. TASK-10 이 그 자리임.
 
 다음에 재야 할 것: 규칙 1~7 을 하나씩 되돌려 어느 규칙이 덮는지 가름(규칙 4 가 첫 후보). ⛔ 이 회차 상한으로는 하지 않았음.
+
+2026-09-11 팔 S3(규칙 4 만 뺌 · 2,644자) 4회 → tool 0/4 · 코칭 1/4. 대조군 1/1.
+
+⛔ 규칙 4 하나가 아님. 그리고 **부분 제거가 새 고장을 만들었음** — 한 회차에서 모델이 자기 절차를 소리 내어 낭독했음(발화 1,175자 · 다른 회차는 246~298자). 원문: 「Wait for the learner to respond, then: If they said ... that's the target sound th_ as_s. After they speak, ... issue the tool call for pending ...」. ⚠️ 규칙 6(메타데이터를 읽지 말라)이 살아 있는데도 났음 — 규칙을 부분적으로 걷으면 남은 규칙이 지키던 경계도 흔들림. ⚠️ 동시에 모델이 tool 규약과 target_sound 를 정확히 이해하고 있다는 증거임(실행하지 않고 설명했음).
+
+덮는 순위(전부 표본 4 · 절대 비율이 아님): 없음 4/4 > 계획 블록 1/4 > 규칙 4 만 뺌 0/4 > 규칙 1~7 전부 0/4.
+
+⇒ 전용 모드 설계 결론 셋(TASK-10 이 받음):
+① 규칙 1~7 을 «통째로 대체» 함. 골라서 빼지 않음 — 부분 제거는 tool 을 살리지 못하고 낭독 고장을 더함. 작동이 확인된 형태는 역할 문단 + 규칙 8~11 + 소리 줄(1,702자 · 4/4)임.
+② 계획 블록·질문은 실을 수 있음(코칭 2/4 · tool 1/4 · target_sound 정확). 다만 없는 쪽이 더 잘 작동함(4/4 대 1/4).
+③ 일반 세션 지시문 축약 방향은 닫힘 — 두 목적을 한 지시문에 담을 수 없음.
+
+오늘 이 세션이 쓴 Nova 47세션(누적 117).
 <!-- SECTION:NOTES:END -->
