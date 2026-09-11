@@ -17,6 +17,7 @@
 """
 
 import asyncio
+import sys
 
 from app.api.ws import (
     _load_known_sounds_or_empty,
@@ -61,6 +62,17 @@ async def main() -> None:
             )
         else:
             swapped.append(item)
+    # `--only-sound` — 문법 초점을 뺀다(§4 의 팔 A3). 바꾸는 변수를 하나로 두기 위한 것이고,
+    # `SessionInstruction.focus` 의 `min_length=1` 이 그것을 허용한다.
+    only_sound = "--only-sound" in sys.argv
+    if only_sound:
+        swapped = [
+            item
+            for item in swapped
+            if item.pattern_key.startswith(PRONUNCIATION_PATTERN_KEY_PREFIX)
+        ]
+        if not swapped:
+            raise SystemExit("발음 초점이 없어 --only-sound 를 적용할 수 없다")
     instruction = prepared.instruction.model_copy(update={"focus": swapped})
 
     # 그 소리가 학습자의 목록에도 있어야 자연스럽다 — 제품에서는 발음 패턴이 곧 목록의 원천이다.
@@ -82,9 +94,10 @@ async def main() -> None:
         if "- Sound to coach today:" in line:
             print(f"  소리 줄: {line[:150]}")
 
-    with open("/tmp/prompt_hsound.txt", "w", encoding="utf-8") as fh:
+    out = "/tmp/prompt_onlysound.txt" if only_sound else "/tmp/prompt_hsound.txt"
+    with open(out, "w", encoding="utf-8") as fh:
         fh.write(hsound)
-    print("→ /tmp/prompt_hsound.txt")
+    print(f"→ {out}")
 
     await close_pool()
 
