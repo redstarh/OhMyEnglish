@@ -98,6 +98,13 @@ Qwen3-TTS 생성 8건(**로컬 모델 · API 비용 0**).
 ⛔ **공유 dev DB 에 남긴 변경 0건** — 검증 전용 DB **다섯**
 (`pronmode`·`uicheck`·`pqmild`·`pqsounds`·`pq13`)을 만들어 쓴 뒤 전부 지웠고 회차 앞뒤 행 수
 (`17`·`7`·`9`)를 대조했음.
+⚠️ **그 셋은 «내 회차 앞뒤 대조용 스냅샷»이고 불변이 아님** — 동료 세션 `ohmyenglish-40` 이
+`TASK-104`(pending 계획 job 소화)를 사용자 승인으로 돌리므로 `session_plans`·`learner_notes`·
+`analysis_jobs` 가 바뀜. ⛔ **그 변화를 drift 로 읽지 않음.** 마감 시점에 내가 직접 센 값:
+`session_plans` **3** · `learner_notes` **4** · `analysis_jobs` **57**(pending: 계획 **6** · 분석 **7**).
+⚠️ 그 소화는 **`TASK-108`·`TASK-109` 의 재현 표본**이 됨 — 나는 같은 재료로 계획 생성을 두 번 돌려
+두 번 다 거부됐고 사유가 서로 달랐음(없는 키 · `deepest recurrence` 미포함). 거부되면 계획 행이
+생기지 않으므로 「job 소화 수 = 계획 행 수」가 아님.
 
 ## ⑤ 이 세션이 얻은 규율
 
