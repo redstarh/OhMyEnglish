@@ -7,7 +7,7 @@
 > ⛔ **다른 갈래의 handoff 를 건드리지 않았음** — `HANDOFF-test-harness.md`(세션 `ohmyenglish-40`) ·
 > `HANDOFF-implementation.md` · `HANDOFF-audit.md` 는 그쪽 소유임.
 
-최종 갱신 **2026-09-11 10:20 KST** · 브랜치 `design/first-vertical-slice`
+최종 갱신 **2026-09-11 11:0x KST** · 브랜치 `design/first-vertical-slice`
 
 ---
 
@@ -16,8 +16,9 @@
 사용자 지시 둘 — 「handoff 를 읽고 4지표를 대조한 뒤 `TASK-1` 의 접근을 골라 이어가라」 →
 「결정이 필요한 것만 Slack 으로 보내고 계속 진행하라(자리 비움)」.
 
-**닫은 태스크 다섯**: `TASK-1`(일일 오류 요약 표 012 + 학습자 화면) · `TASK-100`(계획 거부 사유가
-원인을 말하게 함) · `TASK-98`(AC#4 판정) · `TASK-105`(소리 줄 팔 21회) · `TASK-106`(네 팔로 후보 셋 반증).
+**닫은 태스크 여섯**: `TASK-1`(일일 오류 요약 표 012 + 학습자 화면) · `TASK-100`(계획 거부 사유가
+원인을 말하게 함) · `TASK-98`(AC#4 판정) · `TASK-105`(소리 줄 팔 21회) · `TASK-106`(네 팔로 후보 셋
+반증) · `TASK-2`(시나리오 1개 완주 = 그날 학습 완료 · PRD §14 신설).
 **등록한 태스크 셋**: `TASK-104`(정체의 실제 원인) · `TASK-105`(닫음) · `TASK-106`(닫음).
 **`TASK-86` 을 `Awaiting Decision` 으로 올렸음** — 아래 ②가 그 결정을 가리킴.
 **받은 결정 하나**: 사용자가 `TASK-1` 을 **접근 B** 로 확정.
@@ -55,9 +56,9 @@ Slack `#clawair` 로 실측과 후보 넷을 올렸음(2026-09-11 10:1x KST). �
 
 ⚠️ **다시 재기 전에 배제된 것들을 다시 재지 않음** — 소리 줄 도달 · 대조군 정상 · 위 반증 셋.
 
-**그 사이에 진행할 갈래**(전부 `To Do`): `TASK-2`(신규 요구사항 — 정의가 「시나리오 하나를 마치면
-그날 학습 완료」로 바뀌었고 사용자 확정임) · `TASK-3` · `TASK-104`(pending 14건 소화 — 비용과
-시점을 먼저 적어야 함).
+**그 사이에 진행할 갈래**: `TASK-3`(연속 학습일·히스토리 화면 — `TASK-2` 가 만든 판정과
+`TASK-1` 의 요약을 그대로 씀) · `TASK-102`(시나리오 사전 생성 — 사용자가 UI 로 등록한 것) ·
+`TASK-104`(pending 14건 소화 — 비용과 시점을 먼저 적어야 함).
 
 ## ③ 착수 전 필수
 
@@ -75,6 +76,11 @@ Slack `#clawair` 로 실측과 후보 넷을 올렸음(2026-09-11 10:1x KST). �
 7. ⚠️ **공유 DB 백업은 `-U ohmy` 로 막힘**(`H-BB`) — `pg_dump -d ohmyenglish -n public` 으로 뜸.
    `harness_*_baseline` 조회도 `ohmy` 롤로는 막힘(같은 원인).
 8. ⚠️ **CDP 에서 마이크가 열리지 않음**(`H-BD`) — 화면만 볼 때는 서비스 함수로 전사문을 남김.
+9. ⛔ **화면 확인용 프론트 사본(`/tmp/uicheck-frontend`)은 리포 수정을 자동으로 받지 않음** —
+   고친 뒤 `cp -R app lib` 로 사본을 갱신해야 반영됨(이 세션이 한 번 헛봤음).
+10. ⚠️ **공유 표에 테스트 행을 남기지 않음** — `learning_scenarios` 에 남긴 행 하나가
+   `test_sessions.py` 의 선택 단정 6건을 깨뜨렸음(실측). 픽스처 teardown 에서 사용자 → 시나리오
+   순서로 지움(FK 가 cascade 가 아님).
 
 그 밖의 실측 함정은 `docs/ops/pitfalls.md` 가 소유함 — 여기에 복제하지 않음.
 
@@ -82,10 +88,10 @@ Slack `#clawair` 로 실측과 후보 넷을 올렸음(2026-09-11 10:1x KST). �
 
 | # | 지표 | 이 마감 시점 값 |
 |--:|---|---|
-| 1 | 기준 커밋 | **`00b0ce7` 이상**(등호를 요구하지 않음 — 동료 세션이 커밋·푸시함) |
-| 2 | 다음 걸음 | **`TASK-86`**(`Awaiting Decision` — Slack 으로 물었음) · 그 사이 갈래는 `TASK-2` |
-| 3 | 게이트 | `pytest` **917 passed**(15.70s) · `ruff check` 안·밖 **exit 0** · `format --check` **exit 0** · `ty` **All checks passed** · 프론트 `tsc`·`eslint` **exit 0**(파이프 없이) |
-| 4 | 착수 전 필수 | **8개**(위 ③). `TASK-2` 의 `dependencies` **0건** · `TASK-86` 은 미충족 AC **2건** |
+| 1 | 기준 커밋 | **`d3cf713` 이상**(등호를 요구하지 않음 — 동료 세션이 커밋·푸시함) |
+| 2 | 다음 걸음 | **`TASK-86`**(`Awaiting Decision` — Slack 으로 물었음) · 그 사이 갈래는 `TASK-3` |
+| 3 | 게이트 | `pytest` **926 passed**(16.4s) · `ruff check` 안·밖 **exit 0** · `format --check` **exit 0** · `ty` **All checks passed** · 프론트 `tsc`·`eslint` **exit 0**(파이프 없이) |
+| 4 | 착수 전 필수 | **8개**(위 ③). `TASK-3` 의 `dependencies` **0건** · `TASK-86` 은 미충족 AC **2건** |
 
 ⚠️ **format 의 「N files」는 `.md` 를 세므로 지표로 적지 않음**(`H-AR`).
 ⚠️ **DB**(공유 dev · 이 세션 마감 시점): `error_patterns` **9** · `review_tasks` **15** ·
