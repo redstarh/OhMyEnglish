@@ -1,0 +1,401 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3000/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/p2k.wav",
+  "bytes": 0,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 3.792,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 4,
+   "final": 2,
+   "audio": 180,
+   "session_ended": 0,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 1,
+   "speech_end": 1,
+   "interrupted": 0
+  },
+  "sent": {
+   "audio": 473,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 1
+  },
+  "startedSessionId": "24597f0f-22db-452e-94ab-842d8a10f6eb",
+  "fixture": {
+   "url": "/harness/p2k.wav",
+   "bytes": 0,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 3.792,
+   "startedAt": 128,
+   "endedAt": 3930,
+   "micCalls": 1
+  },
+  "started": {
+   "count": 181,
+   "when": [
+    0,
+    5.664,
+    5.742999999999999,
+    5.8229999999999995,
+    5.903,
+    5.983,
+    6.063,
+    6.143,
+    6.223,
+    6.303,
+    6.383,
+    6.463,
+    6.543,
+    6.623,
+    6.703,
+    6.783,
+    6.863,
+    6.9430000000000005,
+    7.023000000000001,
+    7.103000000000001,
+    7.183000000000001,
+    7.263000000000001,
+    7.343000000000001,
+    7.423000000000001,
+    7.503000000000001,
+    7.583000000000001,
+    7.663000000000001,
+    7.743000000000001,
+    7.823000000000001,
+    7.903000000000001,
+    7.983000000000001,
+    8.063,
+    8.143,
+    8.223,
+    8.303,
+    8.383000000000001,
+    8.463000000000001,
+    8.543000000000001,
+    8.623000000000001,
+    8.703000000000001,
+    8.783000000000001,
+    8.863000000000001,
+    8.943000000000001,
+    9.023000000000001,
+    9.103000000000002,
+    9.183000000000002,
+    9.263000000000002,
+    9.343000000000002,
+    9.423000000000002,
+    9.503000000000002,
+    9.583000000000002,
+    9.663000000000002,
+    9.904000000000002,
+    9.983000000000002,
+    10.063000000000002,
+    10.143000000000002,
+    10.223000000000003,
+    10.303000000000003,
+    10.383000000000003,
+    10.463000000000003,
+    10.543000000000003,
+    10.623000000000003,
+    10.703000000000003,
+    10.783000000000003,
+    10.863000000000003,
+    10.943000000000003,
+    11.023000000000003,
+    11.103000000000003,
+    11.183000000000003,
+    11.263000000000003,
+    11.343000000000004,
+    11.423000000000004,
+    11.503000000000004,
+    11.583000000000004,
+    11.663000000000004,
+    11.743000000000004,
+    11.823000000000004,
+    11.903000000000004,
+    11.983000000000004,
+    12.063000000000004,
+    12.143000000000004,
+    12.223000000000004,
+    12.303000000000004,
+    12.383000000000004,
+    12.463000000000005,
+    12.543000000000005,
+    12.623000000000005,
+    12.703000000000005,
+    12.783000000000005,
+    12.863000000000005,
+    12.943000000000005,
+    13.023000000000005,
+    13.103000000000005,
+    13.183000000000005,
+    13.263000000000005,
+    13.343000000000005,
+    13.423000000000005,
+    13.503000000000005,
+    13.583000000000006,
+    13.663000000000006,
+    13.743000000000006,
+    13.944000000000006,
+    14.023000000000007,
+    14.103000000000007,
+    14.183000000000007,
+    14.263000000000007,
+    14.343000000000007,
+    14.423000000000007,
+    14.503000000000007,
+    14.583000000000007,
+    14.663000000000007,
+    14.743000000000007,
+    14.823000000000008,
+    14.903000000000008,
+    14.983000000000008,
+    15.063000000000008,
+    15.143000000000008,
+    15.223000000000008,
+    15.303000000000008,
+    15.383000000000008,
+    15.463000000000008,
+    15.543000000000008,
+    15.623000000000008,
+    15.703000000000008,
+    15.783000000000008,
+    15.863000000000008,
+    15.943000000000008,
+    16.023000000000007,
+    16.103000000000005,
+    16.183000000000003,
+    16.263,
+    16.343,
+    16.423,
+    16.502999999999997,
+    16.582999999999995,
+    16.662999999999993,
+    16.74299999999999,
+    16.82299999999999,
+    16.902999999999988,
+    16.982999999999986,
+    17.062999999999985,
+    17.142999999999983,
+    17.22299999999998,
+    17.30299999999998,
+    17.382999999999978,
+    17.462999999999976,
+    17.542999999999974,
+    17.742999999999974,
+    17.743999999999975,
+    17.822999999999976,
+    17.902999999999974,
+    17.982999999999972,
+    18.06299999999997,
+    18.14299999999997,
+    18.222999999999967,
+    18.302999999999965,
+    18.382999999999964,
+    18.462999999999962,
+    18.54299999999996,
+    18.62299999999996,
+    18.702999999999957,
+    18.782999999999955,
+    18.862999999999953,
+    18.94299999999995,
+    19.02299999999995,
+    19.10299999999995,
+    19.182999999999947,
+    19.262999999999945,
+    19.342999999999943,
+    19.42299999999994,
+    19.50299999999994,
+    19.582999999999938,
+    19.662999999999936,
+    19.742999999999935,
+    19.822999999999933,
+    19.90299999999993,
+    19.98299999999993,
+    20.062999999999928,
+    20.142999999999926,
+    20.222999999999924,
+    20.462999999999923
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 105,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 4735,
+    "count": 1,
+    "texts": [
+     "답변: 마이티니시트더리포트엔쉬어드더리절치위드마이팀"
+    ]
+   },
+   {
+    "ts": 5640,
+    "count": 2,
+    "texts": [
+     "답변: 마이티니시트더리포트엔쉬어드더리절치위드마이팀",
+     "질문: I see you mentioned a meeting sheet report. Let’s start with a simple weekend plan."
+    ]
+   },
+   {
+    "ts": 6623,
+    "count": 2,
+    "texts": [
+     "답변: 마이티니시트더리포트엔쉬어드더리절치위드마이팀",
+     "질문: \nWhat do you want to do this weekend?  Try to say: I want to make a plan."
+    ]
+   },
+   {
+    "ts": 7663,
+    "count": 2,
+    "texts": [
+     "답변: 마이티니시트더리포트엔쉬어드더리절치위드마이팀",
+     "질문:  \n\nRemember to use a or an before a singular noun."
+    ]
+   },
+   {
+    "ts": 8457,
+    "count": 2,
+    "texts": [
+     "답변: 마이티니시트더리포트엔쉬어드더리절치위드마이팀",
+     "질문:  If you’re stuck, I can give you a small hint."
+    ]
+   },
+   {
+    "ts": 9116,
+    "count": 2,
+    "texts": [
+     "답변: 마이티니시트더리포트엔쉬어드더리절치위드마이팀",
+     "질문: I see you mentioned a meeting sheet report. Let’s start with a simple weekend plan.\nWhat do you want to do this weekend?  Try to say: I want to make a plan. \n\nRemember to use a or an before a singular noun. If you’re stuck, I can give you a small hint."
+    ]
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 15.146666666666667
+  },
+  "meta": {
+   "hookedAt": "2026-09-10T07:49:29.291Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789026569292,
+     "before": "suspended",
+     "afterSync": "suspended",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789026569300,
+     "before": "suspended",
+     "afterSync": "suspended",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3000/_next/hmr?id=Cbt5uBmAGzxEEGJBxGtNO",
+    "ws://localhost:8002/ws/session"
+   ]
+  },
+  "lines": [
+   "답변: 마이티니시트더리포트엔쉬어드더리절치위드마이팀",
+   "질문: I see you mentioned a meeting sheet report. Let’s start with a simple weekend plan.\nWhat do you want to do this weekend?  Try to say: I want to make a plan. \n\nRemember to use a or an before a singular noun. If you’re stuck, I can give you a small hint."
+  ],
+  "url": "http://localhost:3000/",
+  "log": [
+   {
+    "at": 105,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 4759,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 15138,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 4,
+     "final": 2,
+     "audio": 180,
+     "session_ended": 0,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 1,
+     "speech_end": 1,
+     "interrupted": 0
+    }
+   }
+  ]
+ },
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3000/results/24597f0f-22db-452e-94ab-842d8a10f6eb",
+  "recv": {
+   "session_started": 1,
+   "partial": 4,
+   "final": 2,
+   "audio": 180,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 1,
+   "speech_end": 1,
+   "interrupted": 0
+  },
+  "sent": {
+   "audio": 505,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "finalLinesAtTerminal": [
+   "답변: 마이티니시트더리포트엔쉬어드더리절치위드마이팀",
+   "질문: I see you mentioned a meeting sheet report. Let’s start with a simple weekend plan.\nWhat do you want to do this weekend?  Try to say: I want to make a plan. \n\nRemember to use a or an before a singular noun. If you’re stuck, I can give you a small hint."
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "관찰된 신호",
+   "(전사문이 한국어로 인식되었습니다)",
+   "← 학습 시작 화면으로"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><div style=\"margin-top: 1.5rem;\"><h2 style=\"font-size: 1rem;\">발음</h2><div style=\"border-left: 3px solid var(--foreground-muted); padding-left: 0.75rem; margin: 0.75rem 0px;\"><p style=\"margin: 0.25rem 0px 0px; font-size: 0.8rem; color: var(--foreground-muted);\">관찰된 신호</p><p style=\"margin: 0.25rem 0px; color: var(--foreground-muted);\">(전사문이 한국어로 인식되었습니다)</p></div></div><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p>"
+ }
+}

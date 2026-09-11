@@ -1,0 +1,340 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3000/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/p2k.wav",
+  "bytes": 0,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 3.792,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 3,
+   "final": 2,
+   "audio": 127,
+   "session_ended": 0,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 1,
+   "speech_end": 1,
+   "interrupted": 0
+  },
+  "sent": {
+   "audio": 448,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 1
+  },
+  "startedSessionId": "d727f79d-ffc4-4bf0-a37a-f7551f0f9f25",
+  "fixture": {
+   "url": "/harness/p2k.wav",
+   "bytes": 0,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 3.792,
+   "startedAt": 120,
+   "endedAt": 3903,
+   "micCalls": 1
+  },
+  "started": {
+   "count": 128,
+   "when": [
+    0,
+    5.496,
+    5.575,
+    5.655,
+    5.735,
+    5.815,
+    5.8950000000000005,
+    5.9750000000000005,
+    6.055000000000001,
+    6.135000000000001,
+    6.215000000000001,
+    6.295000000000001,
+    6.375000000000001,
+    6.455000000000001,
+    6.535000000000001,
+    6.615000000000001,
+    6.695000000000001,
+    6.775000000000001,
+    6.855000000000001,
+    6.935000000000001,
+    7.0150000000000015,
+    7.0950000000000015,
+    7.175000000000002,
+    7.255000000000002,
+    7.335000000000002,
+    7.415000000000002,
+    7.495000000000002,
+    7.575000000000002,
+    7.655000000000002,
+    7.735000000000002,
+    7.815000000000002,
+    7.895000000000002,
+    7.975000000000002,
+    8.055000000000001,
+    8.135000000000002,
+    8.215000000000002,
+    8.295000000000002,
+    8.375000000000002,
+    8.455000000000002,
+    8.535000000000002,
+    8.615000000000002,
+    8.695000000000002,
+    8.775000000000002,
+    8.855000000000002,
+    8.935000000000002,
+    9.015000000000002,
+    9.095000000000002,
+    9.175000000000002,
+    9.255000000000003,
+    9.335000000000003,
+    9.415000000000003,
+    9.495000000000003,
+    9.575000000000003,
+    9.655000000000003,
+    9.735000000000003,
+    9.815000000000003,
+    9.895000000000003,
+    9.975000000000003,
+    10.176000000000004,
+    10.255000000000004,
+    10.335000000000004,
+    10.415000000000004,
+    10.495000000000005,
+    10.575000000000005,
+    10.655000000000005,
+    10.735000000000005,
+    10.815000000000005,
+    10.895000000000005,
+    10.975000000000005,
+    11.055000000000005,
+    11.135000000000005,
+    11.215000000000005,
+    11.295000000000005,
+    11.375000000000005,
+    11.455000000000005,
+    11.535000000000005,
+    11.615000000000006,
+    11.695000000000006,
+    11.775000000000006,
+    11.855000000000006,
+    11.935000000000006,
+    12.015000000000006,
+    12.095000000000006,
+    12.175000000000006,
+    12.255000000000006,
+    12.335000000000006,
+    12.415000000000006,
+    12.495000000000006,
+    12.575000000000006,
+    12.655000000000006,
+    12.735000000000007,
+    12.815000000000007,
+    12.895000000000007,
+    12.975000000000007,
+    13.055000000000007,
+    13.135000000000007,
+    13.215000000000007,
+    13.295000000000007,
+    13.375000000000007,
+    13.455000000000007,
+    13.535000000000007,
+    13.615000000000007,
+    13.695000000000007,
+    13.936000000000007,
+    14.015000000000008,
+    14.095000000000008,
+    14.175000000000008,
+    14.255000000000008,
+    14.335000000000008,
+    14.415000000000008,
+    14.495000000000008,
+    14.575000000000008,
+    14.655000000000008,
+    14.735000000000008,
+    14.815000000000008,
+    14.895000000000008,
+    14.975000000000009,
+    15.055000000000009,
+    15.135000000000009,
+    15.215000000000009,
+    15.295000000000009,
+    15.375000000000009,
+    15.455000000000009,
+    15.535000000000009,
+    15.615000000000009,
+    15.69500000000001,
+    15.77500000000001,
+    16.015000000000008
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 103,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 4746,
+    "count": 1,
+    "texts": [
+     "답변: 아이티니시트 더리포트 엔쉐어드 더리절치우이드 마이팀"
+    ]
+   },
+   {
+    "ts": 5468,
+    "count": 2,
+    "texts": [
+     "답변: 아이티니시트 더리포트 엔쉐어드 더리절치우이드 마이팀",
+     "질문: I see you mentioned a report and sharing research. Let’s start with a simple weekend plan."
+    ]
+   },
+   {
+    "ts": 6684,
+    "count": 2,
+    "texts": [
+     "답변: 아이티니시트 더리포트 엔쉐어드 더리절치우이드 마이팀",
+     "질문: \nWhat do you want to do this weekend?  Try to say: I want to make a plan."
+    ]
+   },
+   {
+    "ts": 7711,
+    "count": 2,
+    "texts": [
+     "답변: 아이티니시트 더리포트 엔쉐어드 더리절치우이드 마이팀",
+     "질문:  or I want to make a new plan."
+    ]
+   },
+   {
+    "ts": 8160,
+    "count": 2,
+    "texts": [
+     "답변: 아이티니시트 더리포트 엔쉐어드 더리절치우이드 마이팀",
+     "질문: I see you mentioned a report and sharing research. Let’s start with a simple weekend plan.\nWhat do you want to do this weekend?  Try to say: I want to make a plan. or I want to make a new plan."
+    ]
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 14.330666666666668
+  },
+  "meta": {
+   "hookedAt": "2026-09-10T07:53:12.928Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789026792929,
+     "before": "suspended",
+     "afterSync": "suspended",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789026792941,
+     "before": "suspended",
+     "afterSync": "suspended",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3000/_next/hmr?id=df1_zr4UjWSNnlKL7-911",
+    "ws://localhost:8002/ws/session"
+   ]
+  },
+  "lines": [
+   "답변: 아이티니시트 더리포트 엔쉐어드 더리절치우이드 마이팀",
+   "질문: I see you mentioned a report and sharing research. Let’s start with a simple weekend plan.\nWhat do you want to do this weekend?  Try to say: I want to make a plan. or I want to make a new plan."
+  ],
+  "url": "http://localhost:3000/",
+  "log": [
+   {
+    "at": 102,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 4718,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 14328,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 3,
+     "final": 2,
+     "audio": 127,
+     "session_ended": 0,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 1,
+     "speech_end": 1,
+     "interrupted": 0
+    }
+   }
+  ]
+ },
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3000/results/d727f79d-ffc4-4bf0-a37a-f7551f0f9f25",
+  "recv": {
+   "session_started": 1,
+   "partial": 3,
+   "final": 2,
+   "audio": 127,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 1,
+   "speech_end": 1,
+   "interrupted": 0
+  },
+  "sent": {
+   "audio": 479,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "finalLinesAtTerminal": [
+   "답변: 아이티니시트 더리포트 엔쉐어드 더리절치우이드 마이팀",
+   "질문: I see you mentioned a report and sharing research. Let’s start with a simple weekend plan.\nWhat do you want to do this weekend?  Try to say: I want to make a plan. or I want to make a new plan."
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "관찰된 신호",
+   "(전사문이 한국어로 인식되었습니다)",
+   "← 학습 시작 화면으로"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><div style=\"margin-top: 1.5rem;\"><h2 style=\"font-size: 1rem;\">발음</h2><div style=\"border-left: 3px solid var(--foreground-muted); padding-left: 0.75rem; margin: 0.75rem 0px;\"><p style=\"margin: 0.25rem 0px 0px; font-size: 0.8rem; color: var(--foreground-muted);\">관찰된 신호</p><p style=\"margin: 0.25rem 0px; color: var(--foreground-muted);\">(전사문이 한국어로 인식되었습니다)</p></div></div><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p>"
+ }
+}
