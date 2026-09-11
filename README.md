@@ -21,7 +21,10 @@ OhMyEnglish/
 
 ## 핵심 문서
 
-- [PRD](docs/PRD.md) — **요구사항 정본 v1.1**
+- [PRD](docs/PRD.md) — **요구사항 정본 v1.4** (§13 v1.2 · §14 v1.3 · §15 v1.4 가 뒤에 붙었다)
+- [**요구사항-구현 추적 체크리스트**](docs/requirements-tracking.html) — 요구사항 ID 별 판정과 근거.
+  ⛔ **위 현황 보고와 성질이 다르다**: 그쪽은 고치지 않는 스냅샷이고 이쪽은 **갱신되는 살아 있는
+  추적표**다. ⚠️ **갱신은 사람이 한다** — 구현이 판정을 바꾸는 커밋에서 함께 고친다(그 문서의 「갱신 규약」)
 - [핵심 요구사항 요약](docs/requirements-summary.md) — 학습자 관점 요약, PRD와 같은 버전
 - [데이터베이스 스키마](docs/database-schema.md)
 - [Agent 시스템 프롬프트](docs/agent-system-prompt.md)
@@ -32,7 +35,12 @@ OhMyEnglish/
   - **형식 규약**: [docs/ops/status-report-convention.md](docs/ops/status-report-convention.md) — 다음 보고는 **이 형식으로만** 쓴다(절 순서 · 판정 어휘 4개 · 근거 규칙 · 색 검증)
   - **템플릿**: [docs/templates/status-report-template.html](docs/templates/status-report-template.html) — 복사해서 `{{…}}`를 채운다
   - 이전 판(2026-08-29 등 4건)은 [`docs/backup/2026-09-05-superseded/`](docs/backup/2026-09-05-superseded/README.md)
-- [Handoff](handoff/HANDOFF.md)
+- Handoff — ⛔ **`handoff/HANDOFF.md` 는 없다.** 갈래별로 갈렸다:
+  [`handoff/HANDOFF-test-harness.md`](handoff/HANDOFF-test-harness.md) ·
+  [`handoff/HANDOFF-pronunciation.md`](handoff/HANDOFF-pronunciation.md) ·
+  [`handoff/HANDOFF-implementation.md`](handoff/HANDOFF-implementation.md) ·
+  [`handoff/HANDOFF-audit.md`](handoff/HANDOFF-audit.md). 이전 판은 `handoff/archive/`.
+  ⚠️ **자기 갈래만 읽는다** — 인계 원칙은 `~/.claude/rules/session-handoff.md` 가 소유한다
 
 ### 폐기 문서
 

@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>요구사항-구현 추적 체크리스트 — OhMyEnglish</title>
+<style>
+  :root {
+    --ink: #16181d; --muted: #5b6472; --line: #d8dce3; --bg: #fbfcfd;
+    --ok: #0b7a4b; --ok-bg: #e7f5ee; --part: #8a5a00; --part-bg: #fdf3e0;
+    --no: #a4262c; --no-bg: #fbeced; --unk: #4a5464; --unk-bg: #eef1f5;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 2rem 1.25rem 5rem; background: var(--bg); color: var(--ink);
+    font: 15px/1.65 -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; }
+  main { max-width: 1180px; margin: 0 auto; }
+  h1 { font-size: 1.6rem; margin: 0 0 .35rem; letter-spacing: -.01em; }
+  h2 { font-size: 1.15rem; margin: 2.6rem 0 .6rem; padding-bottom: .3rem;
+    border-bottom: 2px solid var(--ink); }
+  h3 { font-size: 1rem; margin: 1.6rem 0 .4rem; color: var(--muted); }
+  .sub { color: var(--muted); margin: 0 0 1.4rem; font-size: .92rem; }
+  .box { border: 1px solid var(--line); border-left: 4px solid var(--ink);
+    background: #fff; padding: .85rem 1rem; margin: 1rem 0; border-radius: 3px; }
+  .box.warn { border-left-color: var(--no); }
+  .box p { margin: .35rem 0; }
+  table { width: 100%; border-collapse: collapse; margin: .5rem 0 1.2rem; background: #fff;
+    font-size: .89rem; }
+  th, td { border: 1px solid var(--line); padding: .45rem .6rem; text-align: left;
+    vertical-align: top; }
+  th { background: #eef1f5; font-weight: 600; }
+  td.id { white-space: nowrap; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: .86rem; }
+  td.v { white-space: nowrap; text-align: center; }
+  .b { display: inline-block; padding: .08rem .45rem; border-radius: 3px; font-size: .8rem;
+    font-weight: 600; white-space: nowrap; }
+  .b.ok { color: var(--ok); background: var(--ok-bg); }
+  .b.part { color: var(--part); background: var(--part-bg); }
+  .b.no { color: var(--no); background: var(--no-bg); }
+  .b.unk { color: var(--unk); background: var(--unk-bg); }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .86em;
+    background: #eef1f5; padding: .05rem .25rem; border-radius: 2px; }
+  .kpi { display: flex; flex-wrap: wrap; gap: .6rem; margin: 1rem 0 1.4rem; }
+  .kpi div { flex: 1 1 150px; border: 1px solid var(--line); background: #fff;
+    padding: .6rem .75rem; border-radius: 3px; }
+  .kpi b { display: block; font-size: 1.5rem; line-height: 1.2; }
+  .kpi span { color: var(--muted); font-size: .82rem; }
+</style>
+</head>
+<body>
+<main>
+
+<h1>요구사항-구현 추적 체크리스트</h1>
+<p class="sub">
+  OhMyEnglish · 기준 시점 <b>2026-09-12</b> · 브랜치 <code>design/first-vertical-slice</code> ·
+  기준 커밋 <code>9bfc76d</code> · 요구사항 정본 <code>docs/PRD.md</code> v1.4 ·
+  소유 태스크 <code>TASK-40</code>(캡틴 요청)
+</p>
+
+<div class="box warn">
+  <p><b>⛔ 이 문서는 스냅샷 보고서가 아니다 — 성질이 다르다.</b>
+  <code>docs/status-report-*.html</code> 은 <b>만든 뒤에 고치지 않는</b> 스냅샷이고
+  (규약: <code>docs/ops/status-report-convention.md</code>), 이 문서는 <b>구현이 진행될 때마다
+  갱신되는 살아 있는 추적표</b>다. 형식만 그 규약을 참고했다.</p>
+  <p><b>⚠️ 갱신은 사람이 한다 — 그래서 낡을 수 있다.</b> 이 표를 만들 때 「기계로 생산할까 사람이
+  판정할까」를 물었고 <b>사람이 판정하는 쪽</b>으로 정했다(2026-09-12 사용자 결정). 대가가 이것이다:
+  <b>다음 구현에서 이 표를 함께 고치지 않으면 조용히 틀린다.</b></p>
+  <p><b>정본은 이 문서가 아니다.</b> 요구사항은 <code>docs/PRD.md</code>, 상태는 Backlog.md
+  (<code>backlog task list --plain</code>), 다음 한 걸음은 <code>handoff/</code> 다.
+  <b>값이 다르면 정본이 맞다.</b></p>
+</div>
+
+<h2>읽는 법 — 두 열의 뜻이 다르다</h2>
+
+<div class="box">
+  <p><b>판정</b>은 <b>사람이 근거를 보고 쓴 것</b>이다. 근거 없이 ✅ 를 쓰지 않았다 — 확인하지
+  못한 것은 <span class="b unk">미판정</span> 으로 두고 <b>무엇이 있어야 판정되는지</b>를 적었다.</p>
+  <p>⛔ <b>「추적」 열은 구현 여부가 아니다.</b> 그 요구사항 ID 를 <b>이름으로 가리키는</b>
+  코드·테스트·DB 파일 수다. <b>0건이 「구현이 없다」를 뜻하지 않는다</b> — 코드가 요구사항 ID 를
+  주석에 적는 관례가 없는 자리도 많다. 이 열이 재는 것은 <b>추적 가능성</b> 하나다.</p>
+  <p>⚠️ 그래도 값어치가 있다: <b>PRD 밖에서 아무도 언급하지 않는 요구</b>는 설계서도 태스크도
+  없다는 뜻이고, 그것이 다음 계획에서 누락되는 자리다. 아래 표의 「고아」 표시가 그것이다.</p>
+</div>
+
+<table>
+  <tr><th>판정</th><th>뜻</th></tr>
+  <tr><td class="v"><span class="b ok">충족</span></td>
+      <td>코드·테스트·마이그레이션 근거를 확인했다. 근거를 같은 행에 적었다</td></tr>
+  <tr><td class="v"><span class="b part">부분</span></td>
+      <td>일부만 성립한다. <b>무엇이 남았는지</b>를 같은 행에 적었다</td></tr>
+  <tr><td class="v"><span class="b no">미충족</span></td>
+      <td>성립하지 않는다. <b>의도된 축소인지 결함인지</b>를 구별해 적었다</td></tr>
+  <tr><td class="v"><span class="b unk">미판정</span></td>
+      <td>이 판에서 확인하지 못했다. <b>무엇이 있어야 판정되는지</b>를 적었다.
+          ⛔ 추측으로 채우지 않는다</td></tr>
+</table>
+
+<h2>한눈에</h2>
+
+<div class="kpi">
+  <div><b>64</b><span>번호 있는 요구사항 (§10·§11·§13·§14·§15)</span></div>
+  <div><b>3</b><span>⚪ 미판정 — <code>R10-5</code>·<code>R10-8</code>·<code>AC10-4</code></span></div>
+  <div><b>1</b><span>⛔ 미충족 — <code>AC11-5</code>(번호 요구사항 중 유일)</span></div>
+  <div><b>6</b><span>고아 — PRD 밖 언급 0건 (§14·§15)</span></div>
+  <div><b>3</b><span>§7 절 중 번호 요구를 0건 가진 것</span></div>
+</div>
+
+<div class="box">
+  <p>⚠️ <b>판정 분포를 비율로 적지 않았다.</b> §7 의 세 절이 번호를 갖지 못해 <b>분모가 정의되지
+  않는다</b> — 위 「⛔ 이 표가 말하지 않는 것」 3번이 그 이유를 소유한다.</p>
+  <p>⚠️ <b>「미판정 3건」이 이 표의 정직한 부분이다.</b> 셋 다 <b>실물 음성 세션의 계측</b>이 있어야
+  닫힌다(개입 빈도 · 발화 비중 · 한 턴에 두 오류). 추측으로 채우면 그 셋이 ✅ 가 되고
+  <b>표의 신뢰가 통째로 사라진다.</b></p>
+</div>
+
+<div class="box">
+  <p><b>가장 중요한 한 문장</b>: <b>§13·§14·§15(일일 요약 · 완료 판정 · 연속일)는 코드와 테스트가
+  함께 있어 판정이 단단하고, §10·§11(발음 · 학습 코치)은 «실물 음성 회차가 있어야 닫히는 자리»가
+  남아 있다.</b> ⛔ 그 경계가 이 표의 실제 내용이다 — 스텁으로 판정할 수 있는 것과 실물 Nova 가
+  있어야 판정되는 것이 갈린다.</p>
+</div>
+
+<h2>§7 기능 요구 사항 — 번호가 없는 요구는 어디로 갔나</h2>
+
+<div class="box">
+  <p>PRD §7 은 <b>v1.0 의 산문</b>이고 번호가 없다. §10~§15 가 그것을 번호로 구체화한 것이다.
+  ⛔ <b>그래서 §7 에만 있고 번호를 얻지 못한 요구가 추적에서 빠진다</b> — 이 절이 그 자리를 드러낸다.</p>
+  <p>⚠️ <b>§7 의 항목에 새 ID 를 만들지 않았다.</b> 만들면 PRD 와 갈라지는 두 번째 ID 공간이
+  생긴다 — 요구사항 ID 의 유일한 권위는 <code>docs/PRD.md</code> 다.</p>
+</div>
+
+<table>
+  <tr><th>§7 절</th><th>번호로 구체화된 자리</th><th>판정</th><th>⛔ 번호를 얻지 못한 것</th></tr>
+  <tr><td>Speaking Coach</td>
+      <td><code>R11-7</code>(한 단계씩·하향 허용) · <code>R10-8</code>(1~2개 교정·65%)</td>
+      <td class="v"><span class="b unk">미판정</span></td>
+      <td>「한 번에 하나의 질문」·「교정 5단계 순서」는 <code>docs/agent-system-prompt.md</code> 와
+          <code>nova.py</code> 의 프롬프트 상수가 갖고 <b>번호가 없다</b></td></tr>
+  <tr><td>Daily Conversation &amp; Q&amp;A Drills</td>
+      <td>드릴 4턴은 <code>drill_turns_expected</code>(009 · 캡틴 결정 16)</td>
+      <td class="v"><span class="b part">부분</span></td>
+      <td><b>주제 9종과 일상→업무 전이</b>가 번호를 얻지 못했다 — 원장의 <code>TASK-4</code> 가
+          그 자리를 소유하고 <b>아직 <code>To Do</code></b></td></tr>
+  <tr><td>Additional Learning</td>
+      <td><code>AC10-5</code>(발음 집중 진입점)</td>
+      <td class="v"><span class="b part">부분</span></td>
+      <td>추가 학습 <b>메뉴 구조</b>는 <code>TASK-10</code> 이 소유하고 열려 있다</td></tr>
+  <tr><td>Voice Control</td>
+      <td>없음 — 번호 요구사항이 <b>0건</b></td>
+      <td class="v"><span class="b no">미충족</span></td>
+      <td>스키마만 있다(<code>learning_sessions.started_via='voice_command'</code>).
+          구현은 <code>TASK-61</code> <code>To Do</code></td></tr>
+  <tr><td>Error Memory &amp; Review</td>
+      <td><code>R11-1</code>·<code>R11-6</code>·<code>R13-*</code>·<code>R15-*</code></td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td>—</td></tr>
+  <tr><td>Business English</td>
+      <td>없음 — 번호 요구사항이 <b>0건</b></td>
+      <td class="v"><span class="b unk">미판정</span></td>
+      <td>「일상 → 업무 전이」가 §7 산문에만 있다. 계획 프롬프트의
+          <code>_SUGGESTED_CONTEXTS_RULES</code> 가 그 순서를 담지만 <b>요구로 추적되지 않는다</b></td></tr>
+  <tr><td>Shadowing &amp; Content</td>
+      <td>없음 — 번호 요구사항이 <b>0건</b></td>
+      <td class="v"><span class="b part">부분</span></td>
+      <td>표와 시드는 있다(<code>shadowing_items</code> · 011). 세션 경로는
+          <code>TASK-27</code>·<code>TASK-66</code> 이 소유</td></tr>
+</table>
+
+<div class="box warn">
+  <p>⛔ <b>이 표에서 가장 중요한 것</b>: <b>Voice Control · Business English · Shadowing 세 절이
+  번호 요구사항을 하나도 갖지 못했다.</b> 즉 §10~§15 만 훑으면 이 셋이 <b>보이지 않는다.</b>
+  원장에는 소유 태스크가 있으므로 유실은 아니지만, <b>「요구사항 충족률」을 번호만으로 세면 이 셋이
+  분모에서 빠진다.</b></p>
+</div>
+
+<h2>§10 발음 시범·재발화 (v1.1)</h2>
+
+<table>
+  <tr><th>ID</th><th>문구 요지</th><th>판정</th><th>근거 / 무엇이 남았나</th></tr>
+  <tr><td class="id">R10-1</td><td>틀린 소리를 지목하고 올바른 발음으로 문장을 다시 읽어 준다</td>
+      <td class="v"><span class="b part">부분</span></td>
+      <td>앱 경로에서 tool 이 오는 것과 복습 시계가 도는 것을 2026-09-12 에 확인했다
+          (<code>TASK-86</code> · <code>runs/2026-09-12-task86-app-leg.md</code>).
+          ⛔ 남은 것: <code>target_form</code> 에 <b>무너진 전사</b>가 실려 화면의 「시범 문장」
+          자리에 뜬다(<code>TASK-103</code> 열림)</td></tr>
+  <tr><td class="id">R10-2</td><td>재발화 결과를 성공/실패/판정불가 세 값으로 기록한다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td><code>pronunciation_attempts.outcome</code> CHECK
+          (<code>pending</code>·<code>correct</code>·<code>incorrect</code>·<code>unclear</code>) ·
+          003~005 · <code>tests/unit/test_schema.py</code></td></tr>
+  <tr><td class="id">R10-3</td><td>발음 판정 주체는 오디오를 듣는 실시간 음성 모델이다.
+          전사문 경로는 발음을 판정하지 않는다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td>2026-09-12 에 <b>코드로 집행됐다</b> — <code>resolve_pattern_keys</code> 가 발음 카테고리
+          finding 을 버린다(결정 62 · <code>TASK-99</code>). 그전에는 <b>프롬프트 문구뿐</b>이었다</td></tr>
+  <tr><td class="id">R10-4</td><td>판정 보조 신호 2개(한국어 전사 · Agent 재요청)를 관측·기록한다</td>
+      <td class="v"><span class="b part">부분</span></td>
+      <td><b>의도된 절반 미충족</b> — <code>korean_transcript</code> 만 구현하고
+          <code>agent_reprompt</code> 는 「만들지 않는다」가 캡틴 결정(2026-08-28)이며
+          <code>TASK-24</code> 가 2026-09-09 실측으로 <b>유지</b> 판정했다(감지할 되묻기 문구가
+          사각 3턴 전부에 없었다)</td></tr>
+  <tr><td class="id">R10-5</td><td>보조 신호가 뜬 경우에만 즉시 개입한다 — 문법 교정과 예산을
+          다투지 않는다</td>
+      <td class="v"><span class="b unk">미판정</span></td>
+      <td>판정에 필요한 것: <b>실물 세션에서의 개입 빈도</b>. 결정 52 가 「빈도를 숫자로 정하지
+          않는다」로 정했고 결정 55 가 그 판정을 <b>보류</b>했다(기록을 먼저 고친다)</td></tr>
+  <tr><td class="id">R10-6</td><td>발음 오류도 재사용 가능한 패턴으로 저장해 이후 학습에 재등장한다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td><code>TASK-44</code> 가 복습 주기를 배선했고(<code>_PRONUNCIATION_HISTORY_SQL</code>),
+          2026-09-11 에 그 경계를 확정했다 — <b>보조 신호는 단계를 전진시키지 않는다</b>
+          (결정 59 · <code>TASK-74</code>)</td></tr>
+  <tr><td class="id">R10-7</td><td>오디오 원본은 기본 저장하지 않는다. 남는 것은 판정 결과와 시범 문장</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td>예외 하나가 CHECK 로 좁혀져 있다 — <code>utterances.audio_url</code> 은
+          <code>utterance_type='shadowing_recording' and speaker='user'</code> 일 때만 허용(011).
+          근거는 <code>database-schema.md</code> 의 <code>utterances</code> 절</td></tr>
+  <tr><td class="id">R10-8</td><td>발음 개입이 있어도 「한 턴에 1~2개 교정」·「사용자 발화 65%」를 깨지 않는다</td>
+      <td class="v"><span class="b unk">미판정</span></td>
+      <td>판정에 필요한 것: <b>실물 세션의 발화 비중 계측</b>. 스텁으로는 성립하지 않는다</td></tr>
+  <tr><td class="id">AC10-1</td><td>개입 시 문장 전체를 다시 읽어 주고 따라 말하기를 요청한다</td>
+      <td class="v"><span class="b part">부분</span></td>
+      <td>2/2 세션에서 tool 이 오는 것을 확인했다(<code>TASK-86</code>).
+          ⛔ 「문장 전체」의 <b>내용 질</b>은 <code>TASK-103</code> 이 열려 있어 닫히지 않았다</td></tr>
+  <tr><td class="id">AC10-2</td><td>재발화 결과가 기록되어 다음 세션 계획이 읽을 수 있다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td><code>plan_input.py</code> 의 발음 절이 <code>pronunciation_attempts</code> 를 집계한다
+          (<code>target_sound is not null</code> 필터 · <code>tests/unit/test_plan_input.py</code>)</td></tr>
+  <tr><td class="id">AC10-3</td><td>전사문이 한국어가 되면 보조 신호로 기록되고 분석 파이프라인은
+          실패하지 않는다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td><code>note_transcript</code> → <code>record_signal</code>
+          (<code>outcome='unclear'</code> · <code>signal_source='korean_transcript'</code>) ·
+          <code>tests/integration/test_pronunciation_service.py</code>.
+          ⚠️ 그 행은 <b>복습 단계를 전진시키지 않는다</b>(결정 59) — 기록 요구는 그대로 유지된다</td></tr>
+  <tr><td class="id">AC10-4</td><td>한 턴에 문법·발음 오류가 함께 있어도 개입이 1~2건을 넘지 않는다</td>
+      <td class="v"><span class="b unk">미판정</span></td>
+      <td>판정에 필요한 것: <b>두 오류가 같은 턴에 있는 실물 회차</b>. 지금 회차 기록에 그 조건이 없다</td></tr>
+  <tr><td class="id">AC10-5</td><td>추가 학습에서 발음 집중을 고르면 시범·재발화가 주 활동이 된다</td>
+      <td class="v"><span class="b part">부분</span></td>
+      <td>2026-09-12 에 <b>제품 코드에 전용 모드가 생겼다</b> — <code>?mode=pronunciation</code> ·
+          <code>build_pronunciation_prompt</code>(결정 64). 남은 것: 화면 진입점
+          (<code>TASK-10.2</code>)과 <code>mode</code> 값역 결정(<code>TASK-112</code>)</td></tr>
+</table>
+
+<h2>§11 학습 이력 기반 추천 학습 루틴 (v1.1)</h2>
+
+<table>
+  <tr><th>ID</th><th>문구 요지</th><th>판정</th><th>근거 / 무엇이 남았나</th></tr>
+  <tr><td class="id">R11-1</td><td>오류 이력을 영속 저장한다 — 패턴 · 발생과 교정 · 재발화 정답 여부 · 발음 시도</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td>네 표가 각각 담는다 — <code>error_patterns</code> · <code>error_occurrences</code> ·
+          <code>pattern_attempts</code> · <code>pronunciation_attempts</code>.
+          명세는 <code>database-schema.md</code> 의 각 절</td></tr>
+  <tr><td class="id">R11-2</td><td>초점 패턴 1~2개 · 질문 3~5개 · 난이도 · 추천 이유를 이력에서 정한다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td>DB 가 강제한다 — <code>session_plans_focus_len</code>(1~2) ·
+          <code>session_plans_questions_len</code>(3~5) · 007.
+          ⚠️ <code>cardinality</code> 를 쓴 이유가 그 절에 있다(빈 배열이 통과하는 함정)</td></tr>
+  <tr><td class="id">R11-3</td><td>추천 이유는 필수다 — 화면에서 왜 이 연습인지 확인할 수 있어야 한다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td><code>reason not null</code> + 공백만 거부 CHECK(007) ·
+          <code>api/results.py</code> 의 <code>next_plan</code> 이 그 값을 화면에 낸다</td></tr>
+  <tr><td class="id">R11-4</td><td>계획 생성을 학습자가 기다리는 경로에 두지 않는다 — 앞선 세션 종료에 비동기로</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td><code>end_session</code> 이 종료 UPDATE 와 <code>plan_next_session</code> job 등록을
+          <b>한 트랜잭션</b>에서 한다. 2026-09-12 에 스모크가 그 경로를 실제로 태워 확인했다
+          (<code>TASK-110</code> · 단정 「세션 종료가 계획 job 을 걸었다」)</td></tr>
+  <tr><td class="id">R11-5</td><td>계획이 없거나 실패해도 학습은 시작된다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td><code>learning_scenarios</code> 폴백 · <code>tests/unit/test_sessions.py</code>.
+          ⚠️ <b>퇴화의 모양이 문서와 달랐다</b> — 폴백이 아니라 <b>그 앞 세션의 계획이 다시
+          읽힌다</b>(<code>_PREPARED_PLAN_SQL</code> 이 최신 1행). 2026-09-11 에 설계서 §3.4 를
+          그렇게 정정했다(<code>TASK-48</code>)</td></tr>
+  <tr><td class="id">R11-6</td><td>복습 주기 1·3·7일을 실제로 갱신하고 다시 틀린 패턴은 주기를 되돌린다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td><code>review.py</code> 의 <code>STAGE_DAYS=(1,3,7)</code> · <code>fold_stages</code> ·
+          <code>tests/unit/test_review.py</code>. 010 이 사이클 사다리를 보존한다</td></tr>
+  <tr><td class="id">R11-7</td><td>난이도는 한 번에 한 단계씩만 이동하고 하향도 허용한다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td><code>models/plan.py</code> 의 <code>_one_step_or_same</code> 가 두 단계 도약을
+          <code>PlanValidationError</code> 로 거부한다 · <code>tests/unit/test_plan_models.py</code></td></tr>
+  <tr><td class="id">R11-8</td><td>만성 판정 임계값을 제품이 발명하지 않는다 — 조회는 사실만, 판단은 Agent</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td><code>chronic.py</code> 가 재발 세션 수·재발 일수·지속 기간·최대 공백을 <b>사실로만</b>
+          낸다. 프롬프트 조립부(<code>plan.py</code>)가 「만성이다」를 선언하지 않는 것을
+          그 자리 주석이 소유한다</td></tr>
+  <tr><td class="id">R11-9</td><td>발음 시도 이력도 계획 입력에 포함되고 발음 패턴도 초점이 될 수 있다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td>앞은 <code>plan_input.py</code> 의 발음 절, 뒤는 <code>TASK-44</code> 가 연 복습 목록
+          경로다(초점 허용 집합이 <code>{복습 예정} ∪ {만성}</code> 이고 복습 쪽에 카테고리
+          필터가 없다). 2026-09-11 에 AS11 로 시나리오화했다(<code>TASK-48</code>)</td></tr>
+  <tr><td class="id">R11-10</td><td>Agent 의 관찰 기록을 덧붙이기만 하고 지우지 않아 되돌릴 수 있다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td><code>learner_notes</code> — <code>updated_at</code> 이 <b>없다</b>(덧붙이기 전용) ·
+          최신 행이 현행 노트 · <code>idx_learner_notes_latest</code>.
+          명세는 <code>database-schema.md</code> 의 <code>learner_notes</code> 절
+          (2026-09-12 <code>TASK-72</code> 가 추가)</td></tr>
+  <tr><td class="id">AC11-1</td><td>복습일이 지난 패턴 전부가 계획 입력에 포함된다 — 하나라도 누락되면 실패</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td>AS1 이 그 시나리오이고 <code>_DUE_REVIEWS_SQL</code> 에 <b>카테고리 필터가 없다</b> ·
+          <code>tests/unit/test_pronunciation_review.py</code> 가 누락 없음을 잰다</td></tr>
+  <tr><td class="id">AC11-2</td><td>재발이 가장 심한 패턴이 초점에 들어가고 이유가 비어 있지 않다</td>
+      <td class="v"><span class="b part">부분</span></td>
+      <td>검증은 있다 — <code>parse_plan</code> 이 초점에 <code>deepest_pattern_id</code> 포함을
+          강제한다. ⛔ <b>그런데 프롬프트가 어느 것이 「가장 깊은 재발」인지 지목하지 않아 모델이
+          추측해야 한다</b>(<code>TASK-108</code> 열림). 2026-09-12 실측: 만성이 1건이면 통과하고
+          <b>2건 이상에서 재현된다</b></td></tr>
+  <tr><td class="id">AC11-3</td><td>계획 생성이 실패해도 폴백으로 정상 시작된다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td>AS4 · <code>tests/unit/test_sessions.py</code>. R11-5 와 같은 근거이고
+          같은 정정(§3.4)이 걸린다</td></tr>
+  <tr><td class="id">AC11-4</td><td>잘못된 계획(이유 없음 / 질문 수 위반 / 두 단계 도약)은 저장을 거부한다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td>두 겹이다 — <code>parse_plan</code>(앱)과 007 의 CHECK(DB) ·
+          <code>tests/unit/test_plan_models.py</code>.
+          ⚠️ <b>거부가 과하게 걸리는 자리도 있다</b>(<code>TASK-108</code>·<code>TASK-109</code>)</td></tr>
+  <tr><td class="id">AC11-5</td><td>같은 패턴을 두 세션 연속 틀렸을 때 두 번째 세션의 대화가 구별된다</td>
+      <td class="v"><span class="b no">미충족</span></td>
+      <td>⛔ <b>이 슬라이스에서 충족되지 않는다 — 캡틴 결정 2026-09-04 로 이월됐다.</b>
+          실제 음성 응대가 달라지는 것을 요구하므로 <b>스텁으로는 판정할 수 없다</b>.
+          2026-09-11 에 설계서 §11 이월에 그 사실을 명시했다(<code>TASK-48</code> AC#2) ·
+          근거는 <code>docs/consistency-audit-2026-09-04.md</code></td></tr>
+  <tr><td class="id">AC11-6</td><td>발음 재발화에 반복 실패한 패턴이 다음 계획의 초점에 포함될 수 있다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td>2026-09-11 에 <b>AS11 을 신설해 시나리오화했다</b>(<code>TASK-48</code> AC#1 ·
+          학습 코치 설계서 §10). 두 경로를 함께 잰다 — §4.4 발음 절 분리와 복습 목록 진입.
+          ⚠️ 복습 목록 경로는 <b>tool 경로에서 온 시도</b>에 한정된다(결정 59)</td></tr>
+</table>
+
+<h2>§13 일일 오류 요약 (v1.2)</h2>
+
+<div class="box">
+  <p>구현 자리가 한곳에 모여 있어 판정이 단단하다 — 표 <code>daily_error_summary</code>(012) ·
+  서비스 <code>services/daily_summary.py</code> · API <code>GET /api/daily-summary</code> ·
+  프론트 결과 화면 · 테스트 <code>tests/unit/test_daily_summary.py</code> ·
+  <code>tests/integration/test_daily_summary_api.py</code>. 소유 태스크 <code>TASK-1</code>(Done).</p>
+</div>
+
+<table>
+  <tr><th>ID</th><th>문구 요지</th><th>판정</th><th>근거 / 무엇이 남았나</th></tr>
+  <tr><td class="id">R13-1</td><td>사용자 타임존 기준 달력 날짜 1일 단위로 그날 오류 요약을 기록한다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td><code>daily_error_summary</code> · <code>unique(user_id, summary_date)</code> ·
+          <code>_UPSERT_SQL</code></td></tr>
+  <tr><td class="id">R13-2</td><td>발생 수 · 패턴 종 수 · 패턴별 상세 + 그날 예시 1건(원문·교정문·이유)</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td><code>occurrence_count</code> · <code>pattern_count</code> · <code>patterns</code> jsonb.
+          ⚠️ 두 수를 따로 담은 이유가 있다 — <code>patterns</code> 목록이 상위 20종에서 잘려
+          그것을 세면 전체 수와 어긋난다</td></tr>
+  <tr><td class="id">R13-3</td><td>날짜 경계는 <code>users.timezone</code> 으로 구한다.
+          <code>current_date</code> 를 쓰지 않는다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td><code>_TIMEZONE_SQL</code> 로 그 컬럼을 읽고 <code>_today_in(timezone, now)</code> 가
+          날짜를 만든다. ⚠️ 그 타임존을 <b>행에 스냅샷으로 남긴다</b>(<code>timezone</code> 컬럼) —
+          컬럼이 나중에 바뀌면 과거 요약의 경계를 복원할 수 없다</td></tr>
+  <tr><td class="id">R13-4</td><td>학습자가 결과 화면에서 「오늘 무엇을 틀렸는지」를 확인할 수 있다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td><code>GET /api/daily-summary</code> → 결과 화면
+          (<code>app/results/[sessionId]/page.tsx</code>) ·
+          <code>tests/integration/test_daily_summary_api.py</code></td></tr>
+  <tr><td class="id">R13-5</td><td>요약은 사실만 담고 판정을 담지 않는다 — 만성·개선·점수는 이 요약의 것이 아니다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td>표에 판정 컬럼이 <b>없다</b>. R11-8 의 경계를 그대로 이어받는다</td></tr>
+  <tr><td class="id">R13-6</td><td>같은 발화가 재분석되면 그 날짜의 요약이 다시 계산된다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td><code>refresh_summary_for_utterance</code> · upsert 의 conflict 대상이
+          <code>(user_id, summary_date)</code> 이고 <code>computed_at</code> 이 함께 갱신된다</td></tr>
+  <tr><td class="id">R13-7</td><td>「분석이 돌고 오류 0건」과 「학습이 없었다」를 구별한다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td><b>행의 부재</b>가 「학습 없음」이고 <code>occurrence_count = 0</code> 인 <b>행</b>이
+          「오류 0건」이다. 그 구별이 이 요구의 전부다</td></tr>
+  <tr><td class="id">AC13-1</td><td>그날 오류가 있으면 요약 1행이 생긴다</td>
+      <td class="v"><span class="b ok">충족</span></td><td><code>tests/unit/test_daily_summary.py</code></td></tr>
+  <tr><td class="id">AC13-2</td><td>재분석 후에도 요약이 원본과 어긋나지 않는다</td>
+      <td class="v"><span class="b ok">충족</span></td><td>같은 테스트가 재계산 경로를 잰다</td></tr>
+  <tr><td class="id">AC13-3</td><td>타임존 경계에서 날짜가 밀리지 않는다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td><code>_today_in</code> 에 <code>now</code> 를 주입할 수 있어 <b>테스트가 시각을 정한다</b></td></tr>
+  <tr><td class="id">AC13-4</td><td>요약에 판정 문구가 들어가지 않는다</td>
+      <td class="v"><span class="b ok">충족</span></td><td>스키마가 그것을 담을 자리를 주지 않는다</td></tr>
+  <tr><td class="id">AC13-5</td><td>결과 화면에서 그날 요약을 볼 수 있다</td>
+      <td class="v"><span class="b ok">충족</span></td><td>API 통합 테스트 + 프론트 화면</td></tr>
+</table>
+
+<h2>§14 일일 학습 완료 판정 (v1.3) · §15 연속 학습일과 히스토리 (v1.4)</h2>
+
+<div class="box">
+  <p>구현 자리 — <code>load_daily_completion</code> · <code>load_streak</code> ·
+  <code>load_history</code>(<code>services/daily_summary.py</code>) · <code>GET /api/history</code> ·
+  프론트 <code>app/history/page.tsx</code>. 소유 태스크 <code>TASK-2</code>(§14) ·
+  <code>TASK-3</code>·<code>TASK-107</code>(§15 — 코드 주석이 <code>TASK-107</code> 을 지목한다).
+  <b>§15 는 전용 설계서를 갖는다</b>: <code>docs/design/2026-09-11-streak-and-history-design.md</code>.</p>
+  <p>⛔ <b>§15 R15-1 이 두 절을 묶는다</b> — 「학습한 날」의 단위가 §14 의 완료 판정과 <b>같아야</b>
+  한다. 같은 모듈이 두 함수를 갖는 것이 그 단위를 하나로 유지하는 방법이다.</p>
+</div>
+
+<table>
+  <tr><th>ID</th><th>문구 요지</th><th>판정</th><th>근거 / 무엇이 남았나</th></tr>
+  <tr><td class="id">R14-1</td><td>시나리오 하나를 마치면 그날 학습을 완료한 것으로 판정한다</td>
+      <td class="v"><span class="b ok">충족</span></td><td><code>_COMPLETION_SQL</code> · <code>load_daily_completion</code></td></tr>
+  <tr><td class="id">R14-2</td><td>「마쳤다」는 시나리오를 갖고 정상 종료된 것이다 — 드릴 교대 수를 조건에 넣지 않는다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td>캡틴 결정 10 — 미달의 주어가 학습자가 아니라 대화 모델이다.
+          그래서 <code>drill_turns_expected</code> 가 완료 조건에 들어가지 않는다</td></tr>
+  <tr><td class="id">R14-3</td><td>날짜 경계는 <code>users.timezone</code>, 앵커는 <b>마친 시각</b>이다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td><code>ended_at</code> 을 앵커로 쓰고 <code>at time zone</code> 으로 날짜를 만든다.
+          ⚠️ 이 ID 는 <b>PRD 밖 언급 0건</b>이다(아래 고아 목록) — 판정은 코드로 했다</td></tr>
+  <tr><td class="id">R14-4</td><td>세션을 마친 자리에서 「오늘 학습을 마쳤는지」를 확인할 수 있다</td>
+      <td class="v"><span class="b ok">충족</span></td><td>결과 화면이 그 문구를 낸다</td></tr>
+  <tr><td class="id">R14-5</td><td>하루에 여러 개를 마쳐도 완료 판정은 바뀌지 않는다 — 개수는 사실로 보일 수 있다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td>판정은 불리언이고 개수는 따로 낸다 · <code>TASK-2</code> 가 AC14-5 를 지목해 닫았다</td></tr>
+  <tr><td class="id">R14-6</td><td>시나리오 사전 생성과 「어느 시나리오를 마쳤는가」 현황은 이 요구의 범위가 아니다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td><b>범위 선언이라 구현 대상이 아니다.</b> 그 자리는 <code>TASK-102</code>(시나리오 생성)가
+          소유한다. ⚠️ PRD 밖 언급 0건(고아)</td></tr>
+  <tr><td class="id">AC14-1~5</td><td>정상 종료 → 완료 · 짧은 드릴로 취소되지 않음 · 실패는 세지 않음 ·
+          자정 넘김은 끝난 날 · 완료 없으면 문구를 쓰지 않음</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td>다섯 다 <code>tests/unit/test_daily_summary.py</code>·
+          <code>test_daily_summary_api.py</code> 가 잰다. ⚠️ <b>AC14-2 는 PRD 밖 언급 0건</b>이지만
+          완료 조건에 드릴 수가 없다는 사실 자체가 그것을 성립시킨다</td></tr>
+  <tr><td class="id">R15-1</td><td>「학습한 날」의 단위가 §14 의 완료 판정과 같아야 한다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td><code>_STREAK_SQL</code> 과 <code>_COMPLETION_SQL</code> 이 같은 모듈에 있고 같은 조건을
+          쓴다 — 두 곳에서 갈리면 연속일과 완료 문구가 어긋난다</td></tr>
+  <tr><td class="id">R15-2</td><td>연속일은 하루도 비지 않고 이어진 구간의 길이다. 하루 여러 개는 1일</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td><code>_STREAK_SQL</code> · 날짜 <code>distinct</code>. ⚠️ PRD 밖 언급 0건(고아)</td></tr>
+  <tr><td class="id">R15-3</td><td>현재 연속일은 마지막 학습일이 <b>오늘이거나 어제</b>일 때 살아 있다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td>「오늘 아직 안 했다」를 끊김으로 세지 않는다 — 프론트가 그 구분을
+          <code>streak.today_done</code> 으로 받아 문구를 가른다</td></tr>
+  <tr><td class="id">R15-4</td><td>최장 연속일을 함께 보여야 한다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td><code>streak.longest</code> → <code>longestNotice</code>(<code>history/page.tsx</code>).
+          ⚠️ PRD 밖 언급 0건(고아)</td></tr>
+  <tr><td class="id">R15-5</td><td>히스토리 화면은 날짜별 학습 여부와 그날의 오류 요약(§13)을 함께 보여야 한다</td>
+      <td class="v"><span class="b part">부분</span></td>
+      <td><code>load_history</code> → <code>GET /api/history</code> →
+          <code>app/history/page.tsx</code>. <code>generate_series</code> 로 <b>빈 날짜도 행을 만든다</b>
+          — 학습이 없던 날이 안 보이면 연속이 어디서 끊겼는지 알 수 없다.
+          ⛔ <b>남은 것</b>: <code>_HISTORY_SQL</code> 이 <code>learned</code> 와
+          <code>analyzed</code> 를 <b>갈라</b> 주는데, <code>daily_error_summary</code> 가
+          2026-09-11 에 생겨 <b>그 이전 날짜에는 「학습은 했는데 요약이 없다」가 실재한다</b>
+          (그 설계서 §6 의 미결 ⑴)</td></tr>
+  <tr><td class="id">R15-6</td><td>날짜 경계는 <code>users.timezone</code> 으로 구한다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td>§13·§14 와 같은 <code>_today_in</code> 을 공유한다. ⚠️ PRD 밖 언급 0건(고아)</td></tr>
+  <tr><td class="id">R15-7</td><td>연속일을 다른 점수·등급의 근거로 쓰지 않는다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td><b>금지 요구다</b> — 연속일을 읽는 곳이 히스토리 화면 하나이고 계획·수준 판단 경로에
+          들어가지 않는다. §5 비범위의 톤 계약이 근거</td></tr>
+  <tr><td class="id">AC15-1~5</td><td>이틀 연속 → 2 · 마지막이 어제면 유지 · 그저께면 0 ·
+          하루 세 개는 1일 · 히스토리에서 여부와 요약을 함께</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td>다섯 다 <code>tests/unit/test_daily_summary.py</code> 가 잰다
+          (<code>now</code> 주입으로 시각을 테스트가 정한다)</td></tr>
+</table>
+
+<h2>⛔ 고아 — PRD 밖에서 아무도 언급하지 않는 요구 6건</h2>
+
+<div class="box warn">
+  <p><b>무엇을 뜻하나</b>: 그 ID 를 <b>이름으로 가리키는</b> 설계서·태스크·코드·테스트가 하나도
+  없다. ⛔ <b>「구현이 없다」가 아니다</b> — 위 표에서 여섯 다 코드 근거로 <b>충족</b> 판정을 받았다.
+  뜻하는 것은 <b>추적의 구멍</b>이다: 이 여섯은 <b>다음 계획에서 근거 없이 사라질 수 있다.</b></p>
+  <p><code>R14-3</code> · <code>R14-6</code> · <code>AC14-2</code> · <code>R15-2</code> ·
+  <code>R15-4</code> · <code>R15-6</code> — 여섯 다 §14·§15 다.</p>
+  <p>⛔ <b>원인을 「설계서가 없다」로 적으려 했고 그것은 틀렸다.</b> §15 는 전용 설계서를 갖는다
+  (<code>docs/design/2026-09-11-streak-and-history-design.md</code>). 실제 원인은 <b>그 설계서가
+  인용한 ID 가 셋뿐</b>이라는 것이다 — <code>R14-2</code>·<code>R14-5</code>·<code>R15-5</code>.
+  즉 설계서의 <b>존재</b>가 추적을 만들지 않고 <b>ID 인용</b>이 만든다.</p>
+  <p><b>대응</b>: 이 여섯을 지금 고칠 필요는 없다. ⚠️ <b>§14·§15 를 다시 건드릴 때 그 태스크·설계서가
+  이 ID 들을 명시적으로 인용하게 하는 것</b>이 값싼 대응이다.</p>
+  <p>⚠️ <b>이 문서 자신이 이제 두 번째 언급이 됐다.</b> 고아 여부를 다시 셀 때
+  <code>docs/requirements-tracking.html</code> 을 <b>제외</b>해야 한다 — 안 그러면 여섯이
+  「고아가 아니다」로 보인다. 세는 명령:
+  <code>grep -rl "R15-2" . | grep -v backup | grep -v PRD.md | grep -v requirements-tracking</code></p>
+</div>
+
+<h2>갱신 규약 — 이 문서를 낡지 않게 하는 방법</h2>
+
+<div class="box">
+  <p>⛔ <b>구현이 요구사항 판정을 바꾸는 커밋에서 이 문서를 함께 고친다.</b> 사람이 갱신하는
+  선택을 했으므로(2026-09-12) 그 대가를 갚는 자리가 여기다.</p>
+  <p>⚠️ <b>줄 번호로 가리키지 않는다</b>(<code>H-H</code>) — 요구사항은 <code>R11-2</code> 같은
+  <b>ID</b>로, 문서는 <b>절 이름</b>으로 가리킨다. <code>TASK-113</code> 이 그 이유를 실측했다:
+  <code>database-schema.md</code> 인용 39자리 가운데 확인한 것이 전부 다른 내용을 가리키고 있었다.</p>
+  <p>⚠️ <b>「기준 시점」과 「기준 커밋」을 함께 고친다.</b> 그 둘이 없으면 이 표가 언제의 사실인지
+  읽을 수 없다.</p>
+  <p>⛔ <b>추측으로 ✅ 를 채우지 않는다.</b> 확인하지 못한 것은 <span class="b unk">미판정</span> 으로
+  두고 <b>무엇이 있어야 판정되는지</b>를 적는다 — 이 판에서 <code>R10-5</code>·<code>R10-8</code>·
+  <code>AC10-4</code> 셋이 그 상태다.</p>
+</div>
+
+<h2>⛔ 이 표가 말하지 않는 것</h2>
+
+<div class="box warn">
+  <p>1. <b>「충족」이 「실물에서 확인됐다」를 뜻하지 않는다.</b> 대부분은 코드·테스트 근거이고
+  스텁 경로다. <b>실물 Nova 가 있어야 닫히는 자리</b>는 판정에 그 사실을 적었다.</p>
+  <p>2. <b>「추적 0건」이 「구현 없음」이 아니다.</b> 위 고아 절이 그 구분을 소유한다.</p>
+  <p>3. <b>충족률을 숫자 하나로 세지 않았다.</b> §7 의 세 절이 번호를 갖지 못해 분모가 정의되지
+  않는다 — 그 사실이 §7 표의 결론이다. <b>비율을 만들면 그 셋이 조용히 빠진다.</b></p>
+  <p>4. <b>미결정은 이 표의 것이 아니다.</b> 사람의 결정을 기다리는 것은 원장의
+  <code>Awaiting Decision</code> 과 <code>docs/ops/captain-instruction-register.md</code> 가 갖는다.</p>
+</div>
+
+</main>
+</body>
+</html>
