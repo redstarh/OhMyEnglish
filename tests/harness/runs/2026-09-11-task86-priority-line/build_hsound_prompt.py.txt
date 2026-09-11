@@ -1,0 +1,124 @@
+#!/usr/bin/env python3
+"""TASK-106 — **하네스 팔**의 프롬프트를 조립한다. ⛔ 제품 팔이 아니다.
+
+저장된 계획의 초점 가운데 **발음 항목의 소리 키만** 픽스처의 실제 오류(`th_as_s`)로 바꾼다.
+다른 인자(무대·질문·수준·문장 길이·문법 초점)는 제품 로더가 준 값을 **그대로** 쓴다 —
+바꾸는 변수를 하나로 두는 것이 이 팔의 전부다.
+
+왜 필요한가: `TASK-105` 가 21회를 돌렸는데 계획이 지목한 소리(`an_as_a`)가 픽스처 오디오에
+**없어서**(`p2m` 의 오류는 f→p·r→l·θ→s) tool 0/21 이 프롬프트가 아니라 픽스처로 예측됐다.
+근거는 `runs/2026-09-11-task105-sound-line.md` §3.
+
+⛔ **이 프롬프트를 「제품이 보내는 것」으로 부르지 않는다.** DB 의 발음 패턴은 `an_as_a` 하나뿐이라
+제품 계획은 그 소리만 고른다. 이 팔은 「소리가 오디오와 맞으면 코칭·tool 이 오는가」라는
+**기전 질문**만 답한다.
+
+⛔ DB 는 SELECT 만 한다.
+"""
+
+import asyncio
+import sys
+
+from app.api.ws import (
+    _load_known_sounds_or_empty,
+    _load_prepared_plan_or_none,
+    _load_scenario_or_none,
+)
+from app.audio_gateway.nova import build_system_prompt
+from app.config import get_settings
+from app.db import close_pool, pool
+from app.models.plan import InstructionFocus
+from app.models.pronunciation import PRONUNCIATION_PATTERN_KEY_PREFIX
+
+# 픽스처 `p2m.wav` 의 실제 오류 셋(f→p · r→l · θ→s) 가운데 하나. `wis my team`(with→wis)이
+# 그 소리이고, `scenarios-P-pronunciation.md:75~76` 이 픽스처 문장의 정본이다.
+MATCHED_SOUND = "th_as_s"
+
+
+async def main() -> None:
+    settings = get_settings()
+    conn_pool = await pool()
+
+    known = list(await _load_known_sounds_or_empty(conn_pool))
+    prepared = await _load_prepared_plan_or_none(conn_pool)
+    if prepared is None:
+        raise SystemExit("저장된 계획이 없다 — 이 팔은 계획 위에 선다")
+    questions = prepared.questions
+
+    sid = await conn_pool.fetchval(
+        "select session_id from session_plans order by created_at desc limit 1"
+    )
+    scenario = await _load_scenario_or_none(conn_pool, sid) if sid else None
+
+    # 발음 초점의 **소리 키만** 바꾼다. 문법 초점은 건드리지 않는다.
+    swapped = []
+    for item in prepared.instruction.focus:
+        if item.pattern_key.startswith(PRONUNCIATION_PATTERN_KEY_PREFIX):
+            swapped.append(
+                InstructionFocus(
+                    pattern_key=f"{PRONUNCIATION_PATTERN_KEY_PREFIX}{MATCHED_SOUND}",
+                    target_form=MATCHED_SOUND,
+                )
+            )
+        else:
+            swapped.append(item)
+    # `--only-sound` — 문법 초점을 뺀다(§4 의 팔 A3). 바꾸는 변수를 하나로 두기 위한 것이고,
+    # `SessionInstruction.focus` 의 `min_length=1` 이 그것을 허용한다.
+    only_sound = "--only-sound" in sys.argv
+    if only_sound:
+        swapped = [
+            item
+            for item in swapped
+            if item.pattern_key.startswith(PRONUNCIATION_PATTERN_KEY_PREFIX)
+        ]
+        if not swapped:
+            raise SystemExit("발음 초점이 없어 --only-sound 를 적용할 수 없다")
+    instruction = prepared.instruction.model_copy(update={"focus": swapped})
+
+    # 그 소리가 학습자의 목록에도 있어야 자연스럽다 — 제품에서는 발음 패턴이 곧 목록의 원천이다.
+    if MATCHED_SOUND not in known:
+        known.append(MATCHED_SOUND)
+    # `--matched-known-only` — 「놓친 소리 목록」에서 `an_as_a` 를 뺀다(§5 의 팔 A4). A3 에서
+    # 문법 초점을 없앴는데도 모델이 `an` 지시를 8/8 로 냈고, 그 프롬프트에서 `an_as_a` 가 남아
+    # 있던 자리가 **그 목록 하나**였다. 그래서 이 팔이 바꾸는 변수도 하나다.
+    if "--matched-known-only" in sys.argv:
+        known = [MATCHED_SOUND]
+
+    # `--no-questions` — 계획의 질문 5개를 뺀다(§6 의 팔 A5). A4 까지 셋을 반증한 뒤 프롬프트를
+    # 직접 읽어 남은 출처를 찾았고 그것이 **질문 목록**이었다: 5개가 전부 관사 드릴이고
+    # 지시문이 「하나씩 4교대 이상」을 요구한다. 이 팔이 바꾸는 변수도 그 하나다.
+    if "--no-questions" in sys.argv:
+        questions = []
+
+    kw = {"drill_count": settings.drill_count, "drill_turns_min": settings.drill_turns_min}
+    hsound = build_system_prompt(known, instruction, questions, scenario, **kw)
+
+    print("=== 하네스 팔 인자 (제품 로더 값 + 소리 키 하나만 교체) ===")
+    print(f"  known_sounds   : {known}")
+    print(f"  focus          : {[(f.pattern_key, f.target_form) for f in instruction.focus]}")
+    print(f"  questions      : {len(questions)}건")
+    print(f"  scenario       : {scenario.title if scenario else None!r}")
+    print(f"  target_level   : {instruction.target_level}")
+    print()
+    print(f"프롬프트 {len(hsound)}자 · 소리 줄 {hsound.count('- Sound to coach today:')}건")
+    for line in hsound.splitlines():
+        if "- Sound to coach today:" in line:
+            print(f"  소리 줄: {line[:150]}")
+
+    if "--no-questions" in sys.argv:
+        out = "/tmp/prompt_noq.txt"
+    elif "--matched-known-only" in sys.argv:
+        out = "/tmp/prompt_nolist.txt"
+    elif only_sound:
+        out = "/tmp/prompt_onlysound.txt"
+    else:
+        out = "/tmp/prompt_hsound.txt"
+    with open(out, "w", encoding="utf-8") as fh:
+        fh.write(hsound)
+    print(f"→ {out}")
+
+    await close_pool()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

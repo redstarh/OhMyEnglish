@@ -1144,6 +1144,42 @@ def test_the_sound_line_replaces_grammar_first_and_spends_the_one_correction():
     assert "two corrections" not in sound_line
 
 
+def test_the_sound_line_outranks_the_plan_questions_and_sentence_shape():
+    """사용자 결정 56 — 문턱을 넘은 소리는 **문장 단축·계획 질문보다 앞**이다.
+
+    ⚠️ **순서만으로는 부족하다는 것이 실물로 확정됐다.** 소리 줄은 이미 질문 목록보다 **위에**
+    있었는데도 제품 계열 49회에서 tool 이 0 이었고, 대화에 나온 관사 지시의 출처가 **계획의 질문
+    5개**였다(질문을 빼면 사라졌다 · `runs/2026-09-11-task106-matched-sound.md` §7).
+    질문 다섯은 예시까지 달고 「하나씩 4교대 이상」을 요구하므로 **질량으로 이긴다.**
+
+    그래서 이 줄이 **무엇을 이기는지 문장으로** 말해야 한다 — 질문 목록과 문장 모양 목표를
+    이름으로 부르고, 소리를 다룬 뒤 질문으로 **돌아오라**고 적는다(질문을 버리는 것이 아니다).
+
+    ⛔ 수치를 넣지 않는다 — 결정 56 이 「수치 목표를 정하지 않는다」를 명시했다.
+    """
+    block = _plan_block(
+        _prompt(
+            ("th_as_s",),
+            _instruction(
+                focus=[
+                    InstructionFocus(pattern_key="pronunciation_th_as_s", target_form="th_as_s"),
+                    InstructionFocus(pattern_key="article_missing", target_form="a/an/the"),
+                ]
+            ),
+        )
+    )
+
+    sound_line = _line_starting_with(block, _SOUND_LINE)
+    # 무엇을 이기는지 이름으로 부른다 — 질문 목록과 문장 모양 목표.
+    assert "question list" in sound_line
+    assert "sentence-shape" in sound_line
+    # 버리는 것이 아니라 뒤로 미룬다 — 소리를 다룬 뒤 그 질문으로 돌아온다.
+    assert "come back to the question" in sound_line
+    # ⛔ 수치를 발명하지 않는다(결정 56).
+    assert "at least once" not in sound_line
+    assert "every turn" not in sound_line
+
+
 def test_the_sound_line_keeps_rule_10_alive():
     """`TASK-86` — 대체가 **규칙 10 까지 삼키지 않게** 한다.
 

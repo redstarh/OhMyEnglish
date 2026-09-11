@@ -221,6 +221,15 @@ _SOUND_INSTRUCTION = (
     "the learner's problem is how the word sounds, not which word to pick. When it is off, take it "
     "up on that turn instead of the Grammar first rule 9, and spend the one correction of rule 4 "
     "on this sound rather than on grammar. Stop and have them say just that word again. "
+    # 사용자 결정 56 — 문턱을 넘은 소리는 **문장 단축·계획 질문보다 앞**이다. ⚠️ 순서만으로는
+    # 부족했다: 이 줄은 이미 질문 목록 **위**에 있었는데도 제품 계열 49회에서 tool 이 0 이었고,
+    # 대화의 관사 지시가 **계획의 질문 5개**에서 왔다(질문을 빼면 사라졌다 —
+    # `runs/2026-09-11-task106-matched-sound.md` §7). 질문 다섯은 예시까지 달고 「하나씩 4교대
+    # 이상」을 요구하므로 **질량으로 이긴다.** 그래서 무엇을 이기는지 **이름으로** 부른다.
+    # ⛔ 질문을 버리라고 하지 않는다 — 미루고 **돌아오라**고 한다(계획이 소유한 질문이다).
+    # ⛔ 수치를 넣지 않는다(결정 56 이 「수치 목표를 정하지 않는다」를 명시했다).
+    "This outranks the question list and the sentence-shape target below: pause the current "
+    "question, coach the sound, then come back to the question you paused. "
     "Rule 10 still applies unchanged: call the {tool} tool twice — once with outcome "
     '"pending" right after you model it, and again with the judgement once you have heard the '
     'repeat — and put "{sound}" in target_sound both times.'

@@ -1,10 +1,10 @@
 ---
 id: TASK-86
 title: '결함: 발음 코칭이 일어나도 tool 이 오지 않는다 — 피드백은 있고 기록이 없다'
-status: Awaiting Decision
+status: In Progress
 assignee: []
 created_date: '2026-09-10 04:29'
-updated_date: '2026-09-11 02:02'
+updated_date: '2026-09-11 02:06'
 labels: []
 dependencies: []
 ordinal: 89000
