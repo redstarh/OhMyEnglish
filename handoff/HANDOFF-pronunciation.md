@@ -101,7 +101,6 @@ Slack `#clawair` 에 두 번 올렸고(10:1x · 12:0x) **후보가 갱신됐음*
 | 3 | 게이트 | `pytest` **937 passed**(16.4s) · `ruff check` 안·밖 **exit 0** · `format --check` **exit 0** · `ty` **All checks passed** · 프론트 `tsc`·`eslint` **exit 0**(파이프 없이) |
 | 4 | 착수 전 필수 | **6개**(위 ③). `TASK-4` 의 선행(`TASK-25`) **Done** · `TASK-86` 은 미충족 AC **2건** |
 
-⚠️ **format 의 「N files」는 `.md` 를 세므로 지표로 적지 않음**(`H-AR`).
 ⚠️ **DB**(공유 dev · 마감 시점): `error_patterns` 9 · `review_tasks` 15 · `session_plans` **3**
 (2026-09-11 00:08 UTC 최신 · 초점 첫 자리가 발음) · `learner_notes` 4 · `analysis_jobs` 57(pending 14) ·
 `learning_sessions` 17 · `utterances` 128 · `pronunciation_attempts` 7 · `daily_error_summary` 0 ·
