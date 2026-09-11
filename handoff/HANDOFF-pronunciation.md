@@ -4,8 +4,9 @@
 > **태스크 조회와 회차 기록을 가리킴**(`backlog task view <ID> --plain`).
 >
 > **이전 판**: `handoff/archive/HANDOFF-pronunciation-2026-09-12-0807.md`(그 앞은 `…-0215` · `…-0043`).
-> ⛔ **다른 갈래의 handoff 를 건드리지 않았음** — `HANDOFF-test-harness.md`(세션 `ohmyenglish-40`) ·
-> `HANDOFF-implementation.md` · `HANDOFF-audit.md` 는 그쪽 소유임.
+> ⛔ **다른 갈래의 handoff 를 건드리지 않았음** — `HANDOFF-test-harness.md`(세션 `ohmyenglish-40`) 는
+> 그쪽 소유임. ⚠️ **구현·감사 갈래는 미사용으로 판정해 `handoff/backup/2026-09-12/` 로 내렸음**
+> (사용자 지시 2026-09-12 · 근거는 그 폴더 `README.md` · `TASK-117`).
 
 최종 갱신 **2026-09-12 08:07 KST**(`date` 로 확인함) · 브랜치 `design/first-vertical-slice`
 

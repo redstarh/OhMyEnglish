@@ -37,9 +37,9 @@ OhMyEnglish/
   - 이전 판(2026-08-29 등 4건)은 [`docs/backup/2026-09-05-superseded/`](docs/backup/2026-09-05-superseded/README.md)
 - Handoff — ⛔ **`handoff/HANDOFF.md` 는 없다.** 갈래별로 갈렸다:
   [`handoff/HANDOFF-test-harness.md`](handoff/HANDOFF-test-harness.md) ·
-  [`handoff/HANDOFF-pronunciation.md`](handoff/HANDOFF-pronunciation.md) ·
-  [`handoff/HANDOFF-implementation.md`](handoff/HANDOFF-implementation.md) ·
-  [`handoff/HANDOFF-audit.md`](handoff/HANDOFF-audit.md). 이전 판은 `handoff/archive/`.
+  [`handoff/HANDOFF-pronunciation.md`](handoff/HANDOFF-pronunciation.md). 이전 판은 `handoff/archive/`.
+  ⚠️ **구현·감사 갈래는 2026-09-12 에 미사용으로 판정해 내렸다** —
+  [`handoff/backup/2026-09-12/`](handoff/backup/2026-09-12/README.md)(판정 근거는 그 `README.md`).
   ⚠️ **자기 갈래만 읽는다** — 인계 원칙은 `~/.claude/rules/session-handoff.md` 가 소유한다
 
 ### 폐기 문서
