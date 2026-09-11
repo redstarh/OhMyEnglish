@@ -45,9 +45,8 @@
    오디오의 θ→s 를 오류로 인지하지 않음(전사가 `with my team` 으로 정상임).
    ⚠️ **PRD §10.1 의 설명이 이 픽스처에서 반증됐음**(규칙·초점·소리 줄이 다 있는데 코칭 0).
 
-**관측 정본**: `runs/2026-09-11-task105-sound-line.md` §2·§3(측정과 판별력) ·
-`runs/2026-09-11-task98-production-prompt.md` §9 · 태스크 노트 `TASK-1`·`TASK-100`.
-**새 함정 넷**: `H-BB`·`H-BC`·`H-BD`·`H-BE`.
+**관측 정본**: `runs/2026-09-11-{task105-sound-line,task106-matched-sound,task86-priority-line}.md` ·
+`…task98-production-prompt.md` §9 · 태스크 노트 `TASK-1`·`TASK-100`. **새 함정 넷**: `H-BB`~`H-BE`.
 **실물 호출**: Nova **70세션**(`TASK-105` 26 · `TASK-106` 34 · `TASK-86` 10 — 각 팔의 상한을 회차
 기록에 먼저 적고 지켰음) · Claude **6회**. ⛔ **누적 tool 도착: 제품·하네스 계열 57회에 0 · 대조군
 13회에 12.**
@@ -104,10 +103,10 @@ Slack `#clawair` 에 두 번 올렸고(10:1x · 12:0x) **후보가 갱신됐음*
 | 4 | 착수 전 필수 | **6개**(위 ③). `TASK-4` 의 선행(`TASK-25`) **Done** · `TASK-86` 은 미충족 AC **2건** |
 
 ⚠️ **format 의 「N files」는 `.md` 를 세므로 지표로 적지 않음**(`H-AR`).
-⚠️ **DB**(공유 dev · 이 세션 마감 시점): `error_patterns` **9** · `review_tasks` **15** ·
-`session_plans` **3**(2026-09-11 00:08 UTC 가 최신 · 초점 첫 자리가 발음) · `learner_notes` **4** ·
-`analysis_jobs` **57**(pending 14) · `learning_sessions` **17** · `utterances` **128** ·
-`pronunciation_attempts` **7** · `daily_error_summary` **0** · 표 **19개**(012 적용).
+⚠️ **DB**(공유 dev · 마감 시점): `error_patterns` 9 · `review_tasks` 15 · `session_plans` **3**
+(2026-09-11 00:08 UTC 최신 · 초점 첫 자리가 발음) · `learner_notes` 4 · `analysis_jobs` 57(pending 14) ·
+`learning_sessions` 17 · `utterances` 128 · `pronunciation_attempts` 7 · `daily_error_summary` 0 ·
+표 **19개**(012).
 ⛔ **baseline drift 0·0** · 보존 세션 여섯 전건 기대와 같음.
 ⚠️ **이 세션이 공유 DB 에 남긴 변경은 둘뿐임** — 계획 1행 · 노트 1행(결정 53 범위).
 ⚠️ **미커밋에 내 것은 0건**임 — `runs/2026-09-10-*` 셋만 남고 그것은 세션 `ohmyenglish-40` 것임.
