@@ -25,6 +25,7 @@ Critical-1(pattern_id)·Important-1(제약 3개)·Important-4(최근 창)·Impor
 → **양성만 재지 않는다** — 표식·placeholder는 붙지 **않아야** 하는 경우도 함께 잰다.
 """
 
+from app.services.chronic import deepest_recurrence
 from app.services.plan import build_plan_prompt
 
 
@@ -499,6 +500,98 @@ def test_prompt_renders_a_missing_max_gap_as_not_applicable(plan_input_factory):
     ]
     assert "longest gap n/a" in chronic_section
     assert "None" not in chronic_section
+
+
+_DEEPEST_MARKER = "[deepest recurrence]"
+_DEEPEST_FOCUS_HEADER = "Deepest recurrence:"
+
+
+def _deepest_focus_rule(prompt: str) -> str:
+    """가장 깊은 재발 규칙 블록만 잘라낸다 — 제목부터 다음 빈 줄까지.
+
+    `_pronunciation_focus_rule`과 같은 이유로 프롬프트 전체를 대상으로 재지 않는다(이 파일의
+    지배 규칙) — `recurrence`·`focus`는 만성 절과 출력 규격에도 있어 창을 넓히면 판별력을 잃는다.
+    """
+    assert _DEEPEST_FOCUS_HEADER in prompt, "가장 깊은 재발 규칙 블록이 없다"
+    body = prompt[prompt.index(_DEEPEST_FOCUS_HEADER) :]
+    end = body.find("\n\n")
+    return body[:end] if end != -1 else body
+
+
+def test_prompt_marks_the_deepest_recurrence_in_the_chronic_list(plan_input_factory):
+    """`TASK-108` — 검증이 거부하는 근거를 프롬프트가 말한다.
+
+    `parse_plan`은 초점이 `deepest_recurrence`를 포함하지 않으면 계획 전체를 거부하는데
+    (`models/plan.py`의 AC11-2 가드) 조립된 프롬프트에는 `deepest`가 **0건**이었다 — 2026-09-11
+    실측으로 14,030자를 직접 grep 했다(`runs/2026-09-11-task86-sound-shaped-questions.md` §1).
+    즉 모델이 `chronic.py`의 순위 규칙을 **추측**해야 했고, 틀리면 정당한 응답이 거부됐다.
+
+    ⚠️ 두 만성 항목의 **깊이를 갈라 놓는다** — 픽스처 기본값은 세 축이 전부 같아서 `max`가
+    첫 항목을 돌려주고, 그러면 「첫 줄에 표식을 붙인다」는 뮤테이션이 통과한다(판별력 0).
+    """
+    data = plan_input_factory(
+        chronic_flagged=["article_missing"],
+        chronic_unflagged=["verb_tense_past"],
+        chronic_frequency={"verb_tense_past": 7},
+    )
+    deepest = deepest_recurrence(data.chronic)
+    # 픽스처가 깊이를 갈라 놓았는지 먼저 확인한다 — 동률이면 이 테스트는 아무것도 재지 않는다.
+    assert deepest is not None
+    assert deepest.pattern_key == "verb_tense_past"
+
+    prompt = build_plan_prompt(data)
+    chronic_section = prompt[
+        prompt.index("Chronic metrics") : prompt.index("Pronunciation attempts")
+    ]
+    lines = [line for line in chronic_section.splitlines() if line.startswith("- ")]
+    marked = [line for line in lines if _DEEPEST_MARKER in line]
+
+    assert len(lines) == 2
+    assert len(marked) == 1
+    # 표식이 붙은 줄의 id 가 검증이 요구하는 그 id 여야 한다 — 순위 규칙의 정본은
+    # `chronic.py` 하나이고 프롬프트와 `parse_plan`이 **같은 함수**를 부른다.
+    assert str(deepest.pattern_id) in marked[0]
+
+
+def test_the_deepest_recurrence_rule_requires_the_focus_to_include_that_pattern(
+    plan_input_factory,
+):
+    """규칙 블록이 표식을 이름으로 인용하고 초점 포함을 요구한다.
+
+    표식만 붙이고 요구를 말하지 않으면 모델은 그 표식을 **사실 하나**로 읽는다 — 만성 절의
+    제목이 *"facts only"*라고 선언하므로 그 절 안의 표식은 지시로 읽히지 않는다.
+    """
+    data = plan_input_factory(
+        chronic_flagged=["article_missing"],
+        chronic_unflagged=["verb_tense_past"],
+        chronic_frequency={"verb_tense_past": 7},
+    )
+
+    rule = _deepest_focus_rule(build_plan_prompt(data))
+
+    assert _DEEPEST_MARKER in rule
+    assert "must include" in rule
+    # 발음 초점 규칙과 자리 배분이 충돌하지 않는다는 것을 이 블록이 말한다 — 초점 상한이
+    # 2개이므로(PRD.md:188 R11-2) 발음이 한 자리를 가져가면 남은 자리가 이 패턴이다.
+    assert "pronunciation" in rule
+
+
+def test_prompt_omits_the_deepest_recurrence_rule_when_no_chronic_metric_exists(
+    plan_input_factory,
+):
+    """콜드스타트 — 만성 목록이 비면 `deepest_recurrence`가 `None`이고 `parse_plan`도 이 규칙을
+    적용하지 않는다(`models/plan.py` docstring). 프롬프트도 그때 요구하지 않아야 한다.
+
+    ⚠️ 음성 케이스가 없으면 「만성이 있을 때만 붙인다」를 「항상 붙인다」로 바꿔도 통과한다 —
+    그러면 콜드스타트 학습자에게 **존재하지 않는 패턴**을 초점에 넣으라고 요구하게 된다.
+    """
+    data = plan_input_factory(due_keys=["article_missing"])
+    assert deepest_recurrence(data.chronic) is None  # 픽스처가 콜드스타트인지 먼저 확인한다
+
+    prompt = build_plan_prompt(data)
+
+    assert _DEEPEST_FOCUS_HEADER not in prompt
+    assert _DEEPEST_MARKER not in prompt
 
 
 def test_prompt_includes_recent_utterances_and_their_corrections(plan_input_factory):

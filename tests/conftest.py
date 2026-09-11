@@ -593,6 +593,12 @@ def plan_input_factory() -> Callable[..., PlanInput]:
       신호가 전 패턴에 붙어 소음이 되는 것을 막는 음성 케이스가 이 파라미터로 성립한다.
     * `chronic_max_gap` — `max_gap`이 `None`인 패턴(발생이 1건뿐일 때 `chronic.py`가 그렇게
       낸다). 고정값이라 `"n/a"` 분기가 한 번도 실행되지 않았다.
+
+    **`TASK-108`이 요구한 파라미터 1개** — `chronic_frequency`(key → `frequency`). 기본값은
+    전 패턴이 `frequency=3`·`recurring_sessions=2`·`recurring_days=2`로 **깊이 세 축이 전부
+    같다.** 그러면 `deepest_recurrence`의 `max`가 **첫 항목**을 돌려주므로, 「가장 깊은 재발에
+    표식을 붙인다」를 「첫 줄에 표식을 붙인다」로 바꾼 뮤테이션이 **통과한다**(판별력 0).
+    깊이를 갈라 놓아야 그 뮤테이션이 실패로 반응한다.
     """
 
     def make(
@@ -601,6 +607,7 @@ def plan_input_factory() -> Callable[..., PlanInput]:
         due_pronunciation: Sequence[str] = (),
         chronic_flagged: Sequence[str] = (),
         chronic_unflagged: Sequence[str] = (),
+        chronic_frequency: dict[str, int] | None = None,
         chronic_max_gap: timedelta | None = timedelta(days=3),
         pronunciation: Sequence[tuple[str, str, int]] = (),
         recent: Sequence[tuple[str, Sequence[tuple[str, str, str, str, str, str, float]]]] = (),
@@ -634,7 +641,7 @@ def plan_input_factory() -> Callable[..., PlanInput]:
                 pattern_id=pattern_ids[key],
                 pattern_key=key,
                 category="grammar",
-                frequency=3,
+                frequency=(chronic_frequency or {}).get(key, 3),
                 mastery_score=0.0,
                 next_review_at=now - timedelta(days=1),
                 recurring_sessions=2,

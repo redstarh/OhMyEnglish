@@ -210,6 +210,40 @@ Pronunciation focus for today:
 - The output spec below asks the questions to share one target form. For a pronunciation focus
   read it this way: the constant is the sound, and the situations around it change."""
 
+# `TASK-108` — **검증이 요구하는 것을 프롬프트가 말하게 한다.** `models/plan.py`의 AC11-2 가드는
+# 초점이 `deepest_recurrence`를 포함하지 않으면 계획 전체를 거부하는데, 조립된 프롬프트에는
+# `deepest`가 **0건**이었다(2026-09-11 실측 — 14,030자를 직접 grep 했다.
+# `runs/2026-09-11-task86-sound-shaped-questions.md` §1의 거부 사유가 그것이다). 만성 절은 사실만
+# 싣고 어느 것이 「가장 깊은 재발」인지 지목하지 않으므로 모델이 `chronic.py`의 순위 규칙을
+# **추측**해야 했고, 틀리면 정당한 응답이 거부됐다.
+#
+# ⛔ **검증에서 요구를 내리는 쪽을 고르지 않았다** — AC11-2는 캡틴 결정이고(`TASK-108` AC#3)
+# 이 태스크가 정하는 것은 그 규칙을 **어디서 집행하는가**다. 가드를 지우면 요구사항이 아무 데서도
+# 집행되지 않고, 실물 1건이 우연히 최다 빈도를 고른 것과 재현성을 다시 구분할 수 없게 된다
+# (`parse_plan` docstring이 그 판정 되돌림의 경위를 소유한다).
+#
+# ⛔ **순위를 여기서 다시 계산하지 않는다** — 표식을 붙일 대상은 `services/chronic.py`의
+# `deepest_recurrence`가 정하고, `process_plan`이 `parse_plan`에 넘기는 값도 **같은 함수**의
+# 결과다. 두 곳이 같은 함수를 부르는 것이 「프롬프트와 검증이 갈라지지 않는다」의 구현이다.
+# ⚠️ 그래서 `build_plan_prompt`의 인자 목록은 바뀌지 않는다(순수 함수도 유지된다) — 재료가
+# `PlanInput.chronic` 안에 이미 있고 `deepest_recurrence`도 순수 함수다.
+#
+# ⚠️ **조건은 「만성 목록이 비지 않을 때」다** — 비면 `deepest_recurrence`가 `None`이고 그때
+# `parse_plan`은 이 규칙을 적용하지 않는다(콜드스타트). 프롬프트가 무조건 요구하면 존재하지 않는
+# 패턴을 초점에 넣으라고 말하게 된다.
+# ⚠️ **셋째 줄이 발음 초점 규칙과의 자리 배분을 닫는다.** 초점 상한이 2개이므로(PRD.md:188
+# R11-2) 발음이 한 자리를 가져가면 남은 자리가 이 패턴이다 — 그 말을 하지 않으면 위 블록의
+# *"keep the other slot for a grammar pattern"*이 **아무 문법 패턴이나** 되는 것으로 읽히고,
+# 그 선택이 `parse_plan`에서 거부된다.
+_DEEPEST_FOCUS_RULE = """\
+Deepest recurrence:
+- One line in the chronic list above is marked [deepest recurrence]. That marking is computed from
+  the facts in that list, so you do not rank them yourself.
+- Today's focus must include that pattern_id. A plan that leaves it out is rejected — copy it into
+  focus even if another pattern looks more urgent to you.
+- If a pronunciation pattern is also due for review above, those two are today's focus: the marked
+  chronic pattern and that pronunciation pattern."""
+
 # 키 이름은 Task 5(`app.models.plan.PlanOutput`, `extra="forbid"`)와 글자 그대로 같아야 한다 —
 # 하나만 어긋나면 실물 모델 응답이 검증 단계에서 전부 거부된다. 초점 1~2개·질문 3~5개는
 # PRD.md:188(R11-2)의 문서 근거가 있는 값이고, 그 외 임계값은 넣지 않는다(발명하지 않는다).
@@ -291,7 +325,12 @@ def _format_recent(recent: list[RecentUtterance]) -> str:
     return "\n".join(lines)
 
 
-def _format_chronic(chronic: list[ChronicMetric], chronic_pattern_ids: set[UUID]) -> str:
+def _format_chronic(
+    chronic: list[ChronicMetric],
+    chronic_pattern_ids: set[UUID],
+    *,
+    deepest_pattern_id: UUID | None,
+) -> str:
     """설계서 §6.1/§6.2 — 만성 지표는 사실만 담는다. 판정 문구는 결정론적 신호 하나뿐이다:
     3단계(1·3·7일)를 완주한 뒤 재발한 패턴에 사실 문장을 덧붙인다. 만성 여부의 최종 판단은
     모델이 한다 — 여기서 "만성이다"라고 선언하지 않는다.
@@ -300,6 +339,11 @@ def _format_chronic(chronic: list[ChronicMetric], chronic_pattern_ids: set[UUID]
     `timedelta`를 `str()`로 새면 `"9 days, 0:00:00"`처럼 나와 `0:00:00`이 별개 필드로 읽힐 수
     있다(리뷰 Important-6) — 그래서 `.days` 정수만 낸다. `max_gap`은 발생이 1건뿐인 패턴이면
     `None`이다(`chronic.py`).
+
+    `deepest_pattern_id`는 `build_plan_prompt`가 `deepest_recurrence`로 계산해 넘긴다 — **여기서
+    순위를 다시 내지 않는다**(`TASK-108`, `_DEEPEST_FOCUS_RULE` 위 주석이 근거를 소유한다).
+    **키워드 인자를 필수로 둔다**: `None`이 "만성 목록이 비었다"는 **유효한 값**이라 기본값을 주면
+    잊은 호출자와 구분되지 않는다 — `parse_plan`의 같은 인자와 같은 이유다.
     """
     if not chronic:
         return "(no chronic metrics yet)"
@@ -314,6 +358,8 @@ def _format_chronic(chronic: list[ChronicMetric], chronic_pattern_ids: set[UUID]
         )
         if metric.pattern_id in chronic_pattern_ids:
             line += "  [completed all three review stages before, then came back]"
+        if deepest_pattern_id is not None and metric.pattern_id == deepest_pattern_id:
+            line += "  [deepest recurrence]"
         lines.append(line)
     return "\n".join(lines)
 
@@ -338,7 +384,14 @@ def build_plan_prompt(data: PlanInput) -> str:
     절 순서는 §4의 3계층 그대로다: ① 오늘 다뤄야 하는 목록 → ② 최근 창 → ③ 만성 사실 →
     ④ 발음 시도(별도 절) → ⑤ 출력 규격. 출력 규격의 키 이름은 Task 5의 검증 계약과 같아야
     하고(모듈 docstring 참조), 지시문 크기 상한은 아직 넣지 않는다(§3.4).
+
+    ⑤ 앞에 **조건부 규칙 블록 둘**이 붙는다 — 발음 초점(`TASK-81`, 발음이 복습 예정일 때) ·
+    가장 깊은 재발(`TASK-108`, 만성 목록이 비지 않을 때). 둘 다 조건이 있는 이유는 각 상수 위
+    주석이 소유한다. **무조건 붙이면 요구가 거짓이 되는 경우가 있다**는 것이 공통 근거다.
     """
+    # `TASK-108` — 순위는 만성 목록을 소유한 쪽이 낸다(`chronic.py`). `process_plan`이
+    # `parse_plan`에 넘기는 값도 같은 함수의 결과라 프롬프트와 검증이 갈라지지 않는다.
+    deepest = deepest_recurrence(data.chronic)
     sections = [
         _PROMPT_HEADER,
         "Due for review today (facts, already computed — do not recompute):",
@@ -349,7 +402,11 @@ def build_plan_prompt(data: PlanInput) -> str:
         _format_recent(data.recent),
         "",
         "Chronic metrics (facts only — you decide whether a pattern counts as chronic):",
-        _format_chronic(data.chronic, data.chronic_pattern_ids),
+        _format_chronic(
+            data.chronic,
+            data.chronic_pattern_ids,
+            deepest_pattern_id=None if deepest is None else deepest.pattern_id,
+        ),
         "",
         _PRONUNCIATION_NOTE,
         _format_pronunciation(data.pronunciation),
@@ -361,6 +418,11 @@ def build_plan_prompt(data: PlanInput) -> str:
     # `category`인 이유는 상수 위 주석이 소유한다(시도 집계에는 `pattern_id`가 없다).
     if any(review.category == PRONUNCIATION_CATEGORY for review in data.due_reviews):
         sections += [_PRONUNCIATION_FOCUS_RULE, ""]
+    # `TASK-108` — 만성 목록이 비면 강제할 대상이 없고 `parse_plan`도 그때 이 규칙을 적용하지
+    # 않는다(콜드스타트). 발음 규칙 **뒤에** 두는 이유: 남은 초점 자리를 좁히는 더 구체적인
+    # 말이라 나중에 읽히는 자리가 맞다.
+    if deepest is not None:
+        sections += [_DEEPEST_FOCUS_RULE, ""]
     sections.append(_OUTPUT_SPEC)
     return "\n".join(sections)
 
