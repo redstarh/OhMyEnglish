@@ -1,0 +1,6 @@
+210233be analyzing corrections=키없음
+6225ddaf final corrections=1
+76d9ef31 connection_failed corrections=키없음
+b2f0d169 partial_failure corrections=0
+d127dece no_utterances corrections=키없음
+e0c5e580 final corrections=2

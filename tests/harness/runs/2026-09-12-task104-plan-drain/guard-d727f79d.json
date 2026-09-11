@@ -1,0 +1,10 @@
+[
+  {
+    "job_id": "f2872cde-9b97-48bf-b13b-5b8e4e372dc2",
+    "session": "d727f79d",
+    "job_type": "plan_next_session",
+    "status": "pending",
+    "attempts": 0,
+    "available_at": "2026-09-10T07:53:28.282535+00:00"
+  }
+]

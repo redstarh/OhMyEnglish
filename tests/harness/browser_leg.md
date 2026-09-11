@@ -799,6 +799,44 @@ select count(*) from learning_sessions s join harness_sessions h on h.session_id
 ⚠️ **`corrections` 키는 상태에 따라 응답에 아예 없다**(`api/results.py:11~12` — `null`도 아니다).
 `analyzing`·`connection_failed`·`no_utterances`가 그렇다. 직접 확인했다.
 
+### 9-1. ⛔ 「pending job 이 쌓였다」는 관측과 이 절이 **충돌한다** — 조사를 다시 시작하지 말 것
+
+**같은 조사가 두 번 일어났다**(`TASK-100` → `TASK-104`). 증상은 *"개발 DB 에 pending job 이 쌓여
+있고 계획이 갱신되지 않는다"* 이고, **원인의 절반이 이 절이다.** 2026-09-12 에 그 소화를 실제로
+돌려 확정한 것을 여기 남긴다 — 정본은 `runs/2026-09-12-task104-plan-drain/`.
+
+⛔ **보존 세션의 pending 분석 job 은 잔여물이 아니라 픽스처를 «떠받치는» 것이다.** 위 표의
+**C3a 가 `analyzing` 인 이유가 그 job 3건이 `pending` 에 머무는 것**이다(그 행이 그렇게 적혀 있다).
+소화하면 그 세션은 `final` 이 되고 **C3a 픽스처가 사라진다.** C3e 도 같은 부류다(job 을 지워
+`no_utterances` 를 만들었고 워커가 켜지면 `flush_ended_sessions` 가 되돌린다).
+
+⛔ **그래서 `p5_worker_leg.py` 가 보존 세션의 job 을 «거부»한다** — 규약이 아니라 집행이다.
+2026-09-12 실측 출력: *"⛔ 거부한다 — 210233be 는 보존 세션이다. 그 job 은 어떤 경우에도
+처리하지 않는다 (browser_leg.md §9)"*. **사람이 잊는 것을 막는 코드이므로 우회하지 않는다.**
+
+**그 결과 남는 상태**: 보존 세션 4개(`210233be`·`76d9ef31`·`b2f0d169`·`d127dece`)가 **계획 job 을
+영구히 `pending` 으로 들고 있다.** `attempts=0` 이라 재시도 상한에도 걸리지 않아 **큐에서 사라지지
+않는다.** ⚠️ **이것을 「워커가 고장났다」로 읽으면 세 번째 조사가 시작된다.**
+
+**pending 을 볼 때는 보존 세션 몫을 빼고 읽는다:**
+
+```sql
+select j.job_type, count(*)
+  from analysis_jobs j
+  left join utterances u on u.id = j.utterance_id
+ where j.status = 'pending'
+   and left(coalesce(j.session_id, u.session_id)::text, 8) not in
+       ('210233be','6225ddaf','76d9ef31','b2f0d169','d127dece','e0c5e580')
+ group by 1;
+```
+
+⚠️ **`coalesce` 를 빼지 말 것** — `analyze_utterance` 는 `session_id` 가 NULL 이고 `utterance_id` 만
+갖는다(`H-AX`). 한쪽만 보는 술어는 분석 job 을 통째로 빠뜨린다.
+
+✅ **비보존 세션의 계획 job 은 소화해도 안전하다** — 2026-09-12 에 3건을 소화해 `session_plans`
+3 → 6 · `learner_notes` 4 → 7 을 얻었고 **보존 세션 기준선 drift 는 0건**이었다(`verify` 전후 diff).
+근거: `results-api-baseline.json` 이 고정하는 필드에 **`next_plan` 이 없다.**
+
 | **C3f** | `final` | `e0c5e580-dfc0-4793-b02d-54cf4346c3c5` | **2** | **실물 Nova 앱 경로 세션**(2026-09-09 · 결정 38) + 워커로 분석 3건. **A4-2 의 primary 다** — 서로 다른 패턴 2개(`article_missing_the_before_place_noun` occ 2 · `verb_tense_past_simple_for_past_events` occ 2)를 가져 결과 API 가 **교정 2건**을 낸다 |
 
 ✅ **A4-2 의 「표본이 없다」가 2026-09-09 에 해소됐다.** 이 절 아래 ⛔ 문단이 *"교정 2건 이상인
