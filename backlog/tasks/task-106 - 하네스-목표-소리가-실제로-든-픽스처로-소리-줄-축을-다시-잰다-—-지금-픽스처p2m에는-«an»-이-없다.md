@@ -1,9 +1,10 @@
 ---
 id: TASK-106
 title: '하네스: 목표 소리가 실제로 든 픽스처로 소리 줄 축을 다시 잰다 — 지금 픽스처(p2m)에는 «an» 이 없다'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-11 00:35'
+updated_date: '2026-09-11 00:38'
 labels: []
 dependencies: []
 ordinal: 109000
