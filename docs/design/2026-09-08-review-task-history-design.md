@@ -14,7 +14,7 @@
 ## 1. 현재 재계산의 해부 (AC1) — 무엇을 지우고 무엇을 다시 넣는가
 
 전부 `app/backend/app/services/review.py` 하나가 한다. 이 표에 행을 쓰는 코드는 그것뿐이고
-(`docs/database-schema.md:230`이 그렇게 지목한다), **읽는 코드는 앱 전체에 0곳이다** —
+(`docs/database-schema.md`의 `review_tasks` 절이 그렇게 지목한다), **읽는 코드는 앱 전체에 0곳이다** —
 직접 확인한 것: `grep -rn "review_tasks" app/`의 결과가 `services/review.py`의 4줄
 (`:21`·`:145`·`:149`·`:252`)뿐이다. `load_due_reviews`(`review.py:298`)조차 이 표를 읽지 않고
 `error_patterns`를 읽는다(`_DUE_REVIEWS_SQL`, `review.py:131-139`).
@@ -132,7 +132,7 @@ A에서는 각 사이클이 자기 재발 시각을 들고 있어 남의 번호�
 ### 3.1 판별 기준은 "재계산이 다시 만들 수 있는가"다
 
 2026-09-03 결정이 삭제를 허용한 근거는 *"완주·재발 여부가 `pattern_attempts`·`error_occurrences`에서
-언제든 다시 계산된다"*였다(`review.py:22-24` · `database-schema.md:232-235`). **그 근거는 파생값에
+언제든 다시 계산된다"*였다(`review.py:22-24` · `database-schema.md`의 `review_tasks` 절). **그 근거는 파생값에
 대해서는 지금도 참이다.** 이 설계는 그것을 반박하지 않고, 근거가 **닿지 않는 값 세 개**를 분리한다:
 `id` · `created_at` · 학습자가 손으로 만든 상태. 이 셋은 이력에 없으므로 재계산이 복원하지 못한다.
 
@@ -338,7 +338,7 @@ dev DB에도 0행이다(실측: `status` 집계가 `pending 7`). 남겨 두면 `
 | `tests/unit/test_review.py:343` | 근거 없는 패턴은 여전히 0행이다. 그대로 통과한다 |
 | `tests/unit/test_review.py:354`·`572` | `scenario_context` 검증. §7 약점 3의 동결 규칙과 함께 본다 |
 | `tests/integration/test_pipeline.py:823`·`847`·`874`·`939` | `_review_stages`(`:796-803`)의 기대값이 사다리 전체로 바뀐다 |
-| `docs/database-schema.md:212-246` | 표 정의 · `:230`의 유일 writer 서술 · `:232-235`의 "0행 또는 1행" 규약 · `done`의 뜻 |
+| `docs/database-schema.md`의 `review_tasks` 절 | 표 정의 · 유일 writer 서술 · "0행 또는 1행" 규약 · `done`의 뜻 |
 | `app/backend/app/services/review.py:5-24` | 모듈 docstring이 "지우고 다시 넣는다"를 규약으로 적고 있다 |
 | `docs/design/2026-08-25-learning-coach-agent-design.md:146-151` | "재발 시 상위 단계 행은 삭제한다"(공백 1)가 이 설계로 뒤집힌다. **조용히 덮지 말고 뒤집힌 사실과 근거를 함께 남긴다** |
 

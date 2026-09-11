@@ -4,7 +4,7 @@
 - 트랙: A (풀) — 새 서브시스템, 세션 시작 경로 변경
 - 상태: ✅ **정본 — 2026-08-27 캡틴 승격.** ~~초안 — 검토 전~~
 - **요구사항 근거**: `docs/PRD.md` **v1.1 §11** (R11-1~10, AC11-1~6) · `requirements-summary.md` v1.1 `학습 이력으로 다음 학습을 만드는 것`. v1.1이 이 설계를 정식 요구사항으로 올렸고, 이 문서가 그 구현 방법이다
-- 단계: **3단계**로 배정. `database-schema.md:161`이 이미 "`review_tasks` — 도입: Phase1(스키마) / 우선순위 계산·생성 로직: 3단계(복습)"로 정해 두었다 (2026-08-27 정정: 원래 `:151`이라 적혀 있었으나 그 줄은 `created_at` 컬럼 행이다 — 실측으로 확인)
+- 단계: **3단계**로 배정. `database-schema.md`의 `review_tasks` 절이 이미 "`review_tasks` — 도입: Phase1(스키마) / 우선순위 계산·생성 로직: 3단계(복습)"로 정해 두었다 (2026-08-27 정정: 원래 `:151`이라 적혀 있었으나 그 줄은 `created_at` 컬럼 행이다 — 실측으로 확인)
 - 선행: `2026-08-24-first-vertical-slice-design.md`(승인), `2026-08-25-first-slice-acceptance-criteria.md`(확정), `nova-sonic-claude-architecture.md`, `agent-system-prompt.md`
 - 자매 설계: `2026-08-27-pronunciation-echo-design.md` — 발음 시도를 기록하는 쪽. 접합면은 `error_patterns`의 `pronunciation_intonation` 행 하나다
 - 캡틴 승인 이력

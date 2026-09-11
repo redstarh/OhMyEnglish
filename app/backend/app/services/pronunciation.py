@@ -369,8 +369,9 @@ async def resolve_dangling(conn: asyncpg.Connection, session_id: UUID) -> int:
 #
 # 적용 조건이 `where`에 있어서, 조건에 안 맞는 행에 불러도 0행을 돌려준다(무해한 no-op).
 #
-# `target_form`(not null)에 **시범 문장을 넣지 않는다.** `docs/database-schema.md:120`이
-# 이 컬럼을 "패턴 수준의 일반화된 목표 형태 — **문장이 아니다**"로 정의하고, 그 근거는
+# `target_form`(not null)에 **시범 문장을 넣지 않는다.** `docs/database-schema.md`의
+# **`error_patterns` 절**이 이 컬럼을 "패턴 수준의 일반화된 목표 형태 — **문장이 아니다**"로
+# 정의하고(⚠️ 줄 번호로 가리키지 않는다 — 그 문서는 절이 삽입될 때마다 밀린다 · `H-H`), 그 근거는
 # 관측된 결함이다(1차수 F-2: 결과 조회가 대표 occurrence와 패턴 `target_form`을 독립적으로
 # 골라 카드의 두 값이 서로 다른 문장을 가리켰다). 발음도 같은 구조다 — 한 패턴에 시도가
 # 여럿이면 "마지막 시도의 문장"이 목표 형태로 굳는다. 문장은 이미 시도 행이 갖고 있다
@@ -575,7 +576,8 @@ async def refresh_review(
     복습 목록(`_DUE_REVIEWS_SQL`)에 못 들어오고 초점 허용 집합에서도 구조적으로 빠졌다.
 
     ⚠️ `next_review_at`·`mastery_score`의 **유일한 writer는 `review.py`다**
-    (`docs/database-schema.md:145`) — 이 함수는 그 컬럼을 직접 쓰지 않고 `recompute`에 맡긴다.
+    (`docs/database-schema.md`의 **`error_patterns` 절**) — 이 함수는 그 컬럼을 직접 쓰지 않고
+    `recompute`에 맡긴다.
     그 불변조건을 여기서 깨면 두 writer가 서로의 값을 덮는다.
 
     호출자의 트랜잭션 안에서 돈다 — 시도 기록과 상태 갱신이 갈라지면 판정은 남고 예정일은

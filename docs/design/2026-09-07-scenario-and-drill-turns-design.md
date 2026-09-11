@@ -51,7 +51,7 @@
 > | # | 막는 것 | 무엇이 틀렸나 | 고친 곳 |
 > |--:|---|---|---|
 > | **C-1** | **재료 미도달** | `ws.py:135`가 `prepared.instruction`만 돌려주고 `PreparedPlan`을 버리는데 인자를 3개로 올렸다 → **`questions`가 갈 길이 없었다** | §2.1 · 머리말 1·3 |
-> | **H-2** | `summary` **소유권** | `database-schema.md:76-78`이 그 컬럼을 `summarize_session`의 것으로 **이미 지정**했고 `007:70-71`이 그 job을 열어 뒀다. *"앱 참조 0곳"*은 코드엔 참이나 **결론으로 틀렸다** | §2.3 · §7 유도 2 |
+> | **H-2** | `summary` **소유권** | `database-schema.md`의 `learning_sessions` 절이 그 컬럼을 `summarize_session`의 것으로 **이미 지정**했고 `007:70-71`이 그 job을 열어 뒀다. *"앱 참조 0곳"*은 코드엔 참이나 **결론으로 틀렸다** | §2.3 · §7 유도 2 |
 > | **H-3** | 지표 **오염** | 규칙 2·5가 *"침묵 뒤 힌트 한 문장"*을 **명령**한다 → 사용자 턴을 안 닫는 agent 행이 생겨 지표가 부푼다. §4의 "닫힌 사용자 턴 수"는 **등가가 아니라 상한**이었다 | §2.3 · §4 |
 > | **H-4** | **산식 어긋남** | 2판 문구의 코치 턴은 **3개**인데 기대값은 **×4** → 모델이 완벽히 지켜도 매 세션 미달 | §2.2 · §2.3 |
 > | **H-5** | `drill_count`가 **대화에 안 닿는다** | 문구는 질문을 전부 열거하고 기대값만 깎았다 → 통과 문턱만 바꾸는 노브 | §2.2 · §2.3 |
@@ -94,7 +94,7 @@
 | 리포 자신이 질문이라 부른다 — *"learning_scenarios 3행(**질문 3개**)"* | `tests/unit/test_schema.py:145` |
 | 시드 원본은 `SEED_SCENARIOS`이고 주석이 *"3 daily_life **questions** … verbatim from the task brief"*라 자백한다 | `scripts/migrate.py:33-55` |
 | ⚠️ `on conflict (id) do nothing`이라 **상수만 고쳐도 기존 3행은 안 바뀐다**(고정 id) ⛔ **이 행은 시드 교체(`3cd12ba`) 전 상태다** — 지금은 `learning_scenarios`만 **`do update`**로 바뀌어 재실행이 `title`·`prompt_template`을 덮는다(`users`는 여전히 `do nothing`). 근거: §7 유도 8 · `migrate.py` 모듈 docstring | `scripts/migrate.py:109` |
-| `learning_sessions.summary jsonb not null default '{}'` — **앱 참조 0곳** ⛔ **그러나 「미사용」이 아니다**: `database-schema.md:76-78`이 `summarize_session`의 것으로 지정했고 `007:70-71`이 그 job을 열어 뒀다. **코드 grep이 참이어도 결론은 틀릴 수 있다**(2판의 H-2) | `001_initial_schema.sql:46` · grep 0건 · `database-schema.md:76-78` · `007:70-71` |
+| `learning_sessions.summary jsonb not null default '{}'` — **앱 참조 0곳** ⛔ **그러나 「미사용」이 아니다**: `database-schema.md`의 `learning_sessions` 절이 `summarize_session`의 것으로 지정했고 `007:70-71`이 그 job을 열어 뒀다. **코드 grep이 참이어도 결론은 틀릴 수 있다**(2판의 H-2) | `001_initial_schema.sql:46` · grep 0건 · `database-schema.md`의 `learning_sessions` 절 · `007:70-71` |
 | 턴 경계 감지 = *"agent가 말을 시작했다 = 사용자 턴이 닫혔다"* | `app/backend/app/audio_gateway/session.py:322-326` |
 | 마이그레이션 **008은 주간 리포트(`TASK-26`)에 예약**됐다 | `captain-decisions.md` §3 유도 1 |
 
@@ -292,7 +292,7 @@ Today's setting:
 - 실패 규약: UPDATE 실패 → 로그 + 세션 진행(부가 정보 — 기존 규약과 같다).
 
 ⛔ **2판은 이 값을 `summary` jsonb에 넣으려 했고 그것이 H-2다.** 세 가지가 함께 틀렸다:
-1. **`summary`에는 문서화된 다음 소유자가 있다** — `docs/database-schema.md:76-78`이
+1. **`summary`에는 문서화된 다음 소유자가 있다** — `docs/database-schema.md`의 `learning_sessions` 절이
    *"`summary`(세션 총평)는 `summarize_session`과 함께 다음 슬라이스에서 채워진다"*고 **이미 지정**했고
    `007:70-71`이 `analysis_jobs.job_type` CHECK에 `summarize_session`을 **열어 뒀다.**
    §1의 *"앱 참조 0곳"*은 **코드에 대해 참이지만 결론으로는 틀렸다** — 미사용 컬럼이 아니라

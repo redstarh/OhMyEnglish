@@ -29,7 +29,7 @@ P9~P12)는 **`TASK-37`**이다.
 
 → 보관본 A절. 요지: ① `record_attempt`가 `async with conn.transaction():`을 직접 연다(`resolve_dangling`도
 같다) ② 적용 조건은 `link_pattern`의 SQL `where`에 둔다 ③ `target_form`은 **정규화한 `target_sound`**다
-— ③은 뒤집힌 결정이고 **문장으로 되돌리지 마라**(근거: `docs/database-schema.md:120`).
+— ③은 뒤집힌 결정이고 **문장으로 되돌리지 마라**(근거: `docs/database-schema.md`의 `error_patterns` 절).
 
 ### A-2. Task 8 착수 전 캡틴 결정 — 판정↔시범 짝짓기에 상관키가 없다
 

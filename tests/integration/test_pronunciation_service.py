@@ -379,7 +379,8 @@ async def test_incorrect_with_target_sound_creates_a_pattern(db_conn: asyncpg.Co
     pattern = patterns[0]
     assert pattern["category"] == "pronunciation_intonation"
     assert pattern["pattern_key"] == "pronunciation_th_as_s"
-    # 패턴의 target_form은 **일반형**이지 시범 문장이 아니다 (`docs/database-schema.md:120`).
+    # 패턴의 target_form은 **일반형**이지 시범 문장이 아니다
+    # (`docs/database-schema.md`의 `error_patterns` 절 — ⚠️ 줄 번호로 가리키지 않는다 · `H-H`).
     # 문장은 시도 행이 갖는다 — 여기 넣으면 중복이고, 한 패턴에 시도가 여럿일 때 결과 카드의
     # 두 값이 서로 다른 문장을 가리키는 관측된 결함(1차수 F-2)이 재현된다.
     assert pattern["target_form"] == SOUND

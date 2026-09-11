@@ -101,7 +101,7 @@ attempt_seq | target_sound | outcome   | linked(pattern_id is not null)
 - `incorrect`가 재발인 것 — `review.py:93`이 문법에서도 `pattern_attempts.outcome='incorrect'`를
   재발에 넣는다.
 - `correct`만 전진시키는 것 — `review.py:113`.
-- `unclear`를 양쪽에서 빼는 것 — `docs/database-schema.md:339`("판정할 수 없는 발화를
+- `unclear`를 양쪽에서 빼는 것 — `docs/database-schema.md`의 `pattern_attempts` 절("판정할 수 없는 발화를
   `incorrect`로 강제하면 숙련도가 부당하게 깎인다"). `pending`은 계획 입력에서도 이미
   제외된다(`plan_input.py:72`).
 
@@ -135,12 +135,12 @@ replace라서 벽시계를 쓰면 재실행마다 예정일이 밀리는 것이�
 그 이유가 없다** — 시도 행은 웹소켓 이벤트에서 **한 번 쓰이고 다시 계산되지 않는다.**
 `resolved_at`은 그 한 번에 확정되므로 앵커로서 안정적이다.
 
-그리고 이것은 새 경계가 아니다. `docs/database-schema.md:139-140`이 **이미**
+그리고 이것은 새 경계가 아니다. `docs/database-schema.md`의 `error_patterns` 절이 **이미**
 "문법 경로의 `last_seen_at`은 발화 시각, 발음 경로는 시도의 판정 시각(`resolved_at`)"이라고
 정해 두었다 — 같은 결정을 재사용한다.
 
 `utterance_id`를 쓰지 않는 두 번째 이유: 그 컬럼은 nullable이고 `on delete set null`이다
-(`docs/database-schema.md:281`) → join하면 발화가 지워진 판정 기록이 **조용히 사라진다.**
+(`docs/database-schema.md`의 `pronunciation_attempts` 절) → join하면 발화가 지워진 판정 기록이 **조용히 사라진다.**
 
 ---
 
@@ -153,7 +153,7 @@ replace라서 벽시계를 쓰면 재실행마다 예정일이 밀리는 것이�
 
 ### 4.2 근거 — 다른 값을 쓰면 그것이 발명값이다
 
-- 1·3·7일은 **문서로 확정된 값이다**: `docs/database-schema.md:377`("최소 1일, 3일, 7일 간격
+- 1·3·7일은 **문서로 확정된 값이다**: `docs/database-schema.md`의 「복습 우선순위」 절("최소 1일, 3일, 7일 간격
   3단계") · `review.py:41-42`가 그 근거를 명시한다. 이 리포에서 근거가 있는 유일한 주기 숫자다.
 - §3의 차이는 **무엇을 세는가**의 차이이고 **간격의 차이가 아니다.** 재발 판정이 다르다는 사실은
   "며칠 뒤에 다시 물어야 하는가"에 대해 아무 것도 말해 주지 않는다.
@@ -163,7 +163,7 @@ replace라서 벽시계를 쓰면 재실행마다 예정일이 밀리는 것이�
 ### 4.3 그래서 완주 조건이 같다
 
 - 3단계를 재발 없이 완주 → `mastery_score = 100`, 재발 → `0`. 중간값 없음
-  (`docs/database-schema.md:147-150`, 캡틴 결정 2026-09-03). **발음도 같은 상태 마커를 쓴다** —
+  (`docs/database-schema.md`의 `error_patterns` 절, 캡틴 결정 2026-09-03). **발음도 같은 상태 마커를 쓴다** —
   발음용 점수 체계를 만들지 않는다(`requirements-summary.md`가 발음 점수·등급을 "하지 않는 것"에
   두었고, 2026-09-04 캡틴 결정이 발음 성과를 난이도 판단에 넣는 것을 MVP 이후로 미뤘다).
 - 예정일 **전**의 정답은 단계를 올리지 않는다 → 한 세션에서 세 번 맞혀 11일을 건너뛰는 경로가
@@ -204,7 +204,7 @@ replace라서 벽시계를 쓰면 재실행마다 예정일이 밀리는 것이�
 ### 5.2 배선 — 상태 계산을 카테고리로 분기한다
 
 **`next_review_at`·`mastery_score`의 유일한 writer는 `review.py`다**
-(`docs/database-schema.md:145`) — 그 불변조건을 지킨다. `pronunciation.py`가 그 컬럼을 쓰지 않는다
+(`docs/database-schema.md`의 `error_patterns` 절) — 그 불변조건을 지킨다. `pronunciation.py`가 그 컬럼을 쓰지 않는다
 (자매 설계도 `2026-08-27-pronunciation-echo-design.md:196`에서 "이 설계는 값을 쓰지 않는다"고
 스스로 정했다).
 
@@ -253,7 +253,7 @@ select (select max(a.resolved_at)
 그것을 고치는 대안(정답 시도도 연결한다)은 §9-2에서 기각했다.
 
 ⚠️ **`btrim(a.target_sound) = error_patterns.target_form`이 이 쿼리의 전제조건이다.** 근거는
-발명이 아니라 두 곳의 확정 서술이다: `docs/database-schema.md:162-166`("발음 패턴의 일반형은
+발명이 아니라 두 곳의 확정 서술이다: `docs/database-schema.md`의 `error_patterns` 절("발음 패턴의 일반형은
 `target_sound`다") · `pronunciation.py:371-385`의 upsert가 `target_form`에 `btrim(target_sound)`를
 넣고 conflict에서도 같은 값을 다시 쓴다. **`'pronunciation_' || …` 접두사 리터럴을 두 번째
 장소에 복사하지 않기 위해** `pattern_key`가 아니라 `target_form`으로 잇는다.
@@ -262,15 +262,15 @@ select (select max(a.resolved_at)
 
 | 컬럼 | 값 | 근거 |
 |---|---|---|
-| `task_type` | `'rephrase'` | CHECK 값역 3개 중 유일하게 지금 쓰는 값(`docs/database-schema.md:240`). "다시 말해보기"는 발음 재발화의 문자 그대로의 뜻이다. **마이그레이션이 필요 없다** |
+| `task_type` | `'rephrase'` | CHECK 값역 3개 중 유일하게 지금 쓰는 값(`docs/database-schema.md`의 `review_tasks` 절). "다시 말해보기"는 발음 재발화의 문자 그대로의 뜻이다. **마이그레이션이 필요 없다** |
 | `scenario_context` | 가장 최근 `incorrect` 시도의 **`pronunciation_attempts.target_form`** (시범 문장) | 문법이 최신 `original_span`을 쓰는 것과 같은 자리다(`review.py:96-106`). 실측값: `"I had a project meeting yesterday."` |
 | `review_stage`·`due_at`·`status` | `fold_stages` 결과 그대로 | 공유 경로 |
 
 ⛔ **패턴의 `target_form`(= `an_as_a`)을 `scenario_context`에 넣지 않는다** — 소리 키는 연습할
-문장이 아니다. 이것은 1차수 F-2와 같은 종류의 오류다(`docs/database-schema.md:152-166`).
+문장이 아니다. 이것은 1차수 F-2와 같은 종류의 오류다(`docs/database-schema.md`의 `error_patterns` 절).
 
 **발음 과제임은 `pattern_id → category`로 유도한다.** `review_tasks`에 새 컬럼을 두지 않는다 —
-`user_id`를 두지 않은 것과 같은 규약(`docs/database-schema.md:226-227`).
+`user_id`를 두지 않은 것과 같은 규약(`docs/database-schema.md`의 `review_tasks` 절).
 
 ### 5.5 재계산 트리거 — 여기가 ④를 닫는 자리
 
@@ -340,7 +340,7 @@ Phase1부터 있고, `task_type='rephrase'`는 기존 값역, 필요한 시도 �
 있다. 그래서 `010`을 발급하지 않는다(008은 `TASK-26` 예약).
 
 **인덱스도 추가하지 않는다.** 신설 쿼리는 `pronunciation_attempts`를 `target_sound`·`outcome`으로
-거르는데 그 표는 지금 4행이고 인덱스 2개는 다른 경로용이다(`docs/database-schema.md:297`).
+거르는데 그 표는 지금 4행이고 인덱스 2개는 다른 경로용이다(`docs/database-schema.md`의 `pronunciation_attempts` 절).
 관측 없이 성능을 추측해 인덱스를 만들지 않는다 — 필요해지는 시점은 §9-5에 적었다.
 
 ---
@@ -374,7 +374,7 @@ Phase1부터 있고, `task_type='rephrase'`는 기존 값역, 필요한 시도 �
 - **`refresh_review(conn, attempt_id)`** — 사후: 패턴이 없으면 아무 것도 바뀌지 않는다(no-op).
   ⛔ **패턴을 만들지 않는다**가 계약이다. 만들면 `correct` 한 번으로 오류 패턴이 태어난다.
 - **불변조건 유지**: `next_review_at`·`mastery_score`의 writer는 `review.py` 하나
-  (`docs/database-schema.md:145`). `frequency`의 writer 2개 구도도 그대로다 — 이 설계는
+  (`docs/database-schema.md`의 `error_patterns` 절). `frequency`의 writer 2개 구도도 그대로다 — 이 설계는
   `frequency`를 쓰지 않는다.
 
 ### L2. Boundary
@@ -524,11 +524,11 @@ Then 그 패턴이 「Due for review today」 목록에 `pattern_id`와 함께 �
 
 | # | 유도 | 근거의 성격 | **뒤집으면** |
 |--:|---|---|---|
-| **D1** | 재발 = `incorrect`의 `resolved_at`, 전진 = `correct`의 `resolved_at`, `unclear`·`pending` 제외 | 문법 규칙(`review.py:93`·`:113`)과 `docs/database-schema.md:339`에서 **이전**했다. 발음 고유 근거는 없다 | `unclear`를 재발로 세면 안 들린 시도가 숙련도를 깎고 예정일이 계속 리셋된다. 발음 패턴이 1단계에서 못 벗어날 확률이 크게 오른다 |
-| **D2** | 시각 축을 `resolved_at`으로 (발화 시각이 아니라) | `docs/database-schema.md:139-140`의 기존 결정 재사용 + "시도 행은 재계산되지 않는다"는 관측 | `utterance_id` join으로 바꾸면 `utterance_id is null`인 판정 기록이 이력에서 **조용히 사라진다**(`on delete set null`). 예정일이 과거 값으로 되돌아간다 |
+| **D1** | 재발 = `incorrect`의 `resolved_at`, 전진 = `correct`의 `resolved_at`, `unclear`·`pending` 제외 | 문법 규칙(`review.py:93`·`:113`)과 `docs/database-schema.md`의 `pattern_attempts` 절에서 **이전**했다. 발음 고유 근거는 없다 | `unclear`를 재발로 세면 안 들린 시도가 숙련도를 깎고 예정일이 계속 리셋된다. 발음 패턴이 1단계에서 못 벗어날 확률이 크게 오른다 |
+| **D2** | 시각 축을 `resolved_at`으로 (발화 시각이 아니라) | `docs/database-schema.md`의 `error_patterns` 절의 기존 결정 재사용 + "시도 행은 재계산되지 않는다"는 관측 | `utterance_id` join으로 바꾸면 `utterance_id is null`인 판정 기록이 이력에서 **조용히 사라진다**(`on delete set null`). 예정일이 과거 값으로 되돌아간다 |
 | **D3** | 주기를 1·3·7일로 (발음 전용 곡선을 만들지 않는다) | 문서 확정값 인용. **다른 값을 고르지 않은 것 자체가 판단이다** | 예: 0.5·2·5일로 하면 완주가 11일 → 7.5일로 짧아지고, `RECENT_WINDOW_DAYS=14`("최장 간격의 2배", `plan_input.py:20-21`)의 유도 근거도 함께 바뀐다 |
 | **D4** | 만성 경로를 열지 않고 **복습 경로 하나**로 들어온다 | §4.4 주의 2(빈도 축을 섞지 않는다)에서 이전. 캡틴 결정으로 확정된 것은 아니다 | 만성에도 넣으면 `deepest_recurrence`가 발음을 최상위로 뽑을 수 있고 AC11-2의 강제 대상이 바뀐다. 발음이 초점을 **차지하게** 되어 "될 수 있다"가 "된다"로 변한다 |
-| **D5** | 정체성을 `btrim(target_sound) = target_form`으로 잇는다(정답 시도를 연결하지 않는다) | `docs/database-schema.md:162-166` + upsert 규약. `frequency` 오염을 피하려는 **내 판단** | 정답도 연결하면 join이 단순해지지만 `frequency`가 부풀고 깊이 축이 뒤집힌다(§9-2). 되돌리려면 recount에 `outcome='incorrect'`를 더해야 하고 그것은 `frequency`의 문서상 정의("시도 수")를 고치는 일이다 |
+| **D5** | 정체성을 `btrim(target_sound) = target_form`으로 잇는다(정답 시도를 연결하지 않는다) | `docs/database-schema.md`의 `error_patterns` 절 + upsert 규약. `frequency` 오염을 피하려는 **내 판단** | 정답도 연결하면 join이 단순해지지만 `frequency`가 부풀고 깊이 축이 뒤집힌다(§9-2). 되돌리려면 recount에 `outcome='incorrect'`를 더해야 하고 그것은 `frequency`의 문서상 정의("시도 수")를 고치는 일이다 |
 | **D6** | 발음 줄을 `target sound "…"`로 표시한다(§5.6-④) | 관측 0건. 오독 방지 추측 | 그대로 `target form`이면 모델이 소리 키를 연습 문장으로 오독할 수 있다. 반대로 바꾼 뒤 다른 오독이 생길 수도 있다 — 실물 1회에서 관측할 항목이다 |
 
 **유도가 아닌 것**(문서·코드·데이터에서 직접 온 것): §2의 네 겹 · §5.1의 "카테고리 필터가 없다" ·
@@ -538,7 +538,7 @@ Then 그 패턴이 「Due for review today」 목록에 `pattern_id`와 함께 �
 
 ## 12. 범위 밖 발견 — 고치지 않고 적는다
 
-1. **`docs/database-schema.md:137-138`·`:303-305`의 "발음 `frequency`는 시도 수"가 코드와
+1. **`docs/database-schema.md`의 `error_patterns` 절·`pronunciation_attempts` 절의 "발음 `frequency`는 시도 수"가 코드와
    어긋난다.** `_RECOUNT_PATTERN_FROM_ATTEMPTS_SQL`은 `where pattern_id = $1`로 세고 `pattern_id`는
    `incorrect`에만 붙으므로(§2의 ④) 실제로는 **`incorrect` 시도 수**다. 실측이 일치한다:
    `an_as_a` frequency 2 = incorrect 2건, `am_as_i_m`·`w_as_vw`는 correct라 패턴조차 없다.

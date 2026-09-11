@@ -285,7 +285,7 @@ upsert한다**(§4.3) — **수렴으로 `incorrect`가 된 경우도 포함한�
 
 ### 6.5 스키마 문서 정합화 (모순 2 해소)
 
-`database-schema.md:137`이 "`pronunciation_intonation` — 텍스트 전사문만 다루는 첫 슬라이스 워커는 산출하지 않음"이라 적었다. **거짓이 아니지만 범위 한정 서술이다** — 이 설계가 산출 주체를 정하므로 단계 표기를 갱신한다: *워커는 산출하지 않는다(전사문에 흔적이 0). Nova tool 경로가 산출한다.*
+`database-schema.md`의 `error_patterns` 절이 "`pronunciation_intonation` — 텍스트 전사문만 다루는 첫 슬라이스 워커는 산출하지 않음"이라 적었다. **거짓이 아니지만 범위 한정 서술이다** — 이 설계가 산출 주체를 정하므로 단계 표기를 갱신한다: *워커는 산출하지 않는다(전사문에 흔적이 0). Nova tool 경로가 산출한다.*
 
 같은 취지로 `2026-08-25-first-slice-acceptance-criteria.md:108`과 `2026-08-24-first-vertical-slice-design.md:229`에도 "그 판단은 Phase 1 범위에 대한 것"임을 명시한다. **두 문서의 원래 문장을 부정하지 않는다** — 당시 진술은 옳았다.
 

@@ -24,8 +24,8 @@
 | 계획 조회는 항상 **"이 사용자의 최신 1건"**이다 — 세션을 새로 만들면 별도 계획 생성(워커 왕복) 없이 이미 있는 최신 계획을 그대로 읽는다 | `app/backend/app/services/sessions.py:124-131`(`_PREPARED_PLAN_SQL`) |
 | **시스템 프롬프트는 생성자 인자로 한 번 굳는다 — setter가 없다.** 세션 도중에 질문·시나리오를 갈아 끼우는 경로가 코드에 없다 | `app/backend/app/audio_gateway/factory.py:63-70`(`create_voice_adapter`가 `instructions`를 만들어 어댑터 **생성자**에 넘긴다) |
 | **기대 exchange 수는 계획이 있는 모든 세션에서 이미 자동 계산된다** — `len(questions[:drill_count]) × drill_turns_min`, 세션 시작 시 `learning_sessions.drill_turns_expected`(009)에 쓴다. 진입 경로(추천/추가)와 무관하게 같은 계산이다 | `docs/design/2026-09-07-scenario-and-drill-turns-design.md` §2.3① |
-| `learning_sessions.learning_source`(`recommended`·`additional`·`user_requested`)·`started_via`(`ui`·`voice_command`·`schedule`)는 **이미 CHECK로 열려 있다** — 새 값 없이 이 용도를 표현할 수 있다 | `docs/database-schema.md:73-74` |
-| `mode`는 `speaking`·`shadowing`·`review` 셋뿐이다 — "드릴"용 네 번째 모드는 없다 | `docs/database-schema.md:72` |
+| `learning_sessions.learning_source`(`recommended`·`additional`·`user_requested`)·`started_via`(`ui`·`voice_command`·`schedule`)는 **이미 CHECK로 열려 있다** — 새 값 없이 이 용도를 표현할 수 있다 | `docs/database-schema.md`의 `learning_sessions` 절 |
+| `mode`는 `speaking`·`shadowing`·`review` 셋뿐이다 — "드릴"용 네 번째 모드는 없다 | `docs/database-schema.md`의 `learning_sessions` 절 |
 
 ---
 
