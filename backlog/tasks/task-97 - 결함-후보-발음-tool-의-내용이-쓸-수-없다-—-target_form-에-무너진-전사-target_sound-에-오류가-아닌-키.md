@@ -4,7 +4,7 @@ title: '결함 후보: 발음 tool 의 내용이 쓸 수 없다 — target_form 
 status: In Progress
 assignee: []
 created_date: '2026-09-10 17:54'
-updated_date: '2026-09-11 13:20'
+updated_date: '2026-09-11 16:06'
 labels: []
 dependencies:
   - TASK-103
@@ -79,4 +79,12 @@ TASK-93·TASK-95 회차가 관측했음. 정본은 tests/harness/runs/2026-09-11
 ⛔ 남은 축은 그대로임 — target_form 에 **무너진 전사**가 실림(I finished the laporte en chaille de lesseps with my team.). 6건 중 pending 쪽 전부가 그 모양임. 즉 이 태스크가 실제로 고쳐야 하는 것은 target_form 하나로 좁혀졌음.
 
 ⚠️ AC#3(종단으로 pronunciation_attempts·error_patterns·next_review_at 이 생기는지)은 이 관측으로 닫히지 않음 — 프로토타입은 하네스 팔이고 DB 에 쓰지 않았음.
+
+2026-09-12 KST 앱 경로 회차가 이 태스크의 남은 절반에 증거를 하나 더 보탰음. 정본은 tests/harness/runs/2026-09-12-task86-app-leg.md 임.
+
+제품 경로(검증 전용 DB)에 남은 pronunciation_attempts 4행의 target_form 이 **무너진 전사 그대로** 임 — 예: 「I finished the laporte en chaille de lesseps」. 즉 target_form 결함은 스파이크 관측이 아니라 **제품 경로에서도 재현됨**.
+
+⚠️ 반면 target_sound 는 4/4 가 th_as_s 로 정확했고 pattern_id 연결도 4/4 임 — 그 축이 제품 문면 문제가 아니라는 앞 판정을 제품 경로가 확인했음.
+
+⚠️ outcome 은 4행 전부 incorrect 였고 unclear 가 0행임 ⇒ 이 경로에서 pending 강등이 일어나지 않았음(모델이 두 호출 모두 실제 판정을 실었음).
 <!-- SECTION:NOTES:END -->

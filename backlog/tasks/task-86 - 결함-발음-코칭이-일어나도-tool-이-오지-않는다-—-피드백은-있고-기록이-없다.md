@@ -1,10 +1,10 @@
 ---
 id: TASK-86
 title: '결함: 발음 코칭이 일어나도 tool 이 오지 않는다 — 피드백은 있고 기록이 없다'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-10 04:29'
-updated_date: '2026-09-11 15:57'
+updated_date: '2026-09-11 16:06'
 labels: []
 dependencies: []
 ordinal: 89000
@@ -27,8 +27,8 @@ ordinal: 89000
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [x] #1 코칭이 난 회차에서 tool 이 오지 않는 이유를 규칙 10 의 조건으로 설명하거나 반증한다
-- [ ] #2 고친 뒤 코칭 회차에서 tool 이 오는 것을 실물 왕복으로 확인한다 — 최소 2회 같은 방향
-- [ ] #3 ⛔ 우회로를 걷어내지 않는다 — 이 태스크가 닫히기 전에는 보조 신호가 유일한 기록 경로다
+- [x] #2 고친 뒤 코칭 회차에서 tool 이 오는 것을 실물 왕복으로 확인한다 — 최소 2회 같은 방향
+- [x] #3 ⛔ 우회로를 걷어내지 않는다 — 이 태스크가 닫히기 전에는 보조 신호가 유일한 기록 경로다
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -246,4 +246,24 @@ tests/harness/ws_session.py 에 --mode 와 --wav 를 더했음. 근거: 앱 레�
 ⚠️ **공유 dev DB 에 쓰지 않도록** 검증 전용 DB + 별 포트로 띄워야 함(H-BC 의 방법) — 그래서 --no-register 를 함께 넣었음(그 DB 에는 harness_sessions 표가 없음).
 
 게이트: pytest 957 passed · ruff·format·ty exit 0.
+
+2026-09-12 KST **AC#2 를 앱 경로로 닫았음.** 정본은 tests/harness/runs/2026-09-12-task86-app-leg.md 임.
+
+브라우저·마이크 없이 제품 경로를 지나갔음(ws_session.py --mode pronunciation --wav p2m.wav,p2a.wav · 검증 전용 DB + :8012 · Nova 어댑터 · 워커 꺼짐).
+
+결과 — 2/2 세션에서 tool 이 왔고 **기록이 남았음**:
+- pronunciation 이벤트 세션마다 2건.
+- pronunciation_attempts **4행** · 세션 2개 · pattern_id 연결 4/4 · target_sound 전부 th_as_s.
+- error_patterns frequency **4** · **next_review_at 2026-09-12 16:03:22+00** ⇒ 복습 시계가 돌았음.
+- 백엔드 로그에 「말하기 세션으로 진행한다」 경고 0건 ⇒ 모드가 받아들여지고 소리가 골라졌음.
+
+⇒ 「피드백은 있고 기록이 없다」는 이 태스크의 결함이 **해소됐음**.
+
+⛔ **일반 세션(모드 없음)은 여전히 tool 이 오지 않고 그것은 설계로 남음** — PRD.md:145(R10-5)가 「일반 세션에서 발음 개입은 보조 신호가 뜬 경우에만 · 발음 집중 연습은 Additional Learning 의 독립 항목」을 이미 요구했음. 즉 요구사항이 원하던 구조에 도달한 것이고 「일반 세션 0/76」은 결함이 아님.
+
+⛔ **이 태스크가 닫혀도 결정 50 의 ③(우회로 제거)을 실행하지 않음** — 결정 54 가 TASK-103 을 선행으로 걸었고 그것이 아직 열려 있음. AC#3 을 체크한 것은 「이 태스크가 그 규칙을 지켰다」는 뜻이고 「이제 걷어내도 된다」가 아님.
+
+⚠️ 남은 것 둘은 다른 태스크가 가짐: target_form 에 무너진 전사가 실림(TASK-97) · 이 모드로 들어가는 화면이 없음(TASK-10.2).
+
+정리: uvicorn 종료·dropdb 확인했고 공유 dev DB 는 회차 앞뒤가 같음(learning_sessions 17 · pronunciation_attempts 7 · error_patterns 9). Nova 2세션을 썼음(상한 3).
 <!-- SECTION:NOTES:END -->

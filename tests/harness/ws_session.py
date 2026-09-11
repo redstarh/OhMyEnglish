@@ -25,6 +25,8 @@ from websockets.asyncio.client import connect
 
 HARNESS = Path(__file__).resolve().parent.parent.parent / ".harness"
 RUN_ID = (HARNESS / "run_id.txt").read_text().strip()
+# ⚠️ **기본 포트는 공유 dev 백엔드(:8002)다.** 검증 전용 스택으로 몰 때는 `--url` 로 바꾼다 —
+# 그러지 않으면 회차가 공유 dev DB 에 세션·발음 시도를 남긴다(`H-BC` 가 그 오염을 이름 붙였다).
 URL = "ws://localhost:8002/ws/session"
 
 # `TASK-86` — **앱 경로로 실제 발화를 흘리기 위한 것**(`--wav`). 왜 필요한가: 발음 tool 판정이
@@ -93,11 +95,13 @@ async def run(
     wavs: list[str] | None = None,
     silence_ms: int = 640,
     register_session: bool = True,
+    url_override: str | None = None,
 ) -> dict:
     frames: list[dict] = []
     started = time.monotonic()
     session_id = None
-    url = URL if mode is None else f"{URL}?mode={mode}"
+    base = url_override or URL
+    url = base if mode is None else f"{base}?mode={mode}"
     audio_frames = slice_frames(wavs, silence_ms) if wavs else []
     async with connect(url, max_size=None) as ws:
         if junk:
@@ -180,6 +184,7 @@ def main() -> int:
     ap.add_argument("--mode", default=None, help="?mode= 로 붙일 값 (pronunciation·shadowing)")
     ap.add_argument("--wav", default=None, help="픽스처 wav 이름들 (쉼표 구분)")
     ap.add_argument("--silence-ms", type=int, default=640)
+    ap.add_argument("--url", default=None, help="ws URL 을 바꾼다 (검증 전용 스택으로 몰 때)")
     ap.add_argument(
         "--no-register",
         action="store_true",
@@ -196,6 +201,7 @@ def main() -> int:
             wavs=[name.strip() for name in args.wav.split(",")] if args.wav else None,
             silence_ms=args.silence_ms,
             register_session=not args.no_register,
+            url_override=args.url,
         )
     )
     out = HARNESS / "evidence" / f"{args.scenario}-frames.json"

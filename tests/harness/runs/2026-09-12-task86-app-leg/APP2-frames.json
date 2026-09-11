@@ -1,0 +1,60 @@
+{
+ "scenario": "APP2",
+ "session_id": "958a747e-10b9-4d58-bc4d-6bfe3bb5b0ea",
+ "elapsed": 45.002,
+ "junk_sent": 0,
+ "audio_sent": 208,
+ "mode": "pronunciation",
+ "wavs": [
+  "p2m.wav",
+  "p2a.wav"
+ ],
+ "frames": [
+  {
+   "t": 7.642,
+   "type": "session_started",
+   "session_id": "958a747e-10b9-4d58-bc4d-6bfe3bb5b0ea"
+  },
+  {
+   "t": 7.642,
+   "type": "speech_start"
+  },
+  {
+   "t": 7.642,
+   "type": "speech_end"
+  },
+  {
+   "t": 7.642,
+   "type": "final",
+   "speaker": "user",
+   "text": "i finished the la porte en chaille de lesseps with my team.",
+   "sequence_no": 1
+  },
+  {
+   "t": 7.642,
+   "type": "speech_start"
+  },
+  {
+   "t": 7.642,
+   "type": "pronunciation"
+  },
+  {
+   "t": 7.751,
+   "type": "speech_end"
+  },
+  {
+   "t": 7.754,
+   "type": "final",
+   "speaker": "user",
+   "text": "i finished the report and shared the results with my team.",
+   "sequence_no": 2
+  },
+  {
+   "t": 8.239,
+   "type": "pronunciation"
+  },
+  {
+   "_harness": "timeout"
+  }
+ ]
+}
