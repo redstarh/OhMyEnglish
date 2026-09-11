@@ -4,7 +4,7 @@ title: '결함 후보: 모델이 없는 키 하나를 붙이면 계획 전체가
 status: Done
 assignee: []
 created_date: '2026-09-11 11:35'
-updated_date: '2026-09-11 22:48'
+updated_date: '2026-09-11 22:55'
 labels: []
 dependencies: []
 ordinal: 112000
@@ -49,4 +49,10 @@ AC#3(사후 처리 시 기록) — 사후 처리를 **쓰지 않기로** 정했�
 ⚠️ 위 AC#1 문장에서 키 이름 둘이 빠졌음 — 노트를 붙일 때 셸이 백틱을 명령 치환으로 먹었음(zsh · 이중 인용 안의 백틱). 값을 여기 다시 적음: 내 관측은 level.reason_note (값 null) 이고 동료 세션 관측은 level.reason_en 임. 그 둘이 다른 것이 이 태스크의 핵심 좁힘임.
 
 ⛔ 도구 함정 하나로 남김: backlog task edit --append-notes 에 이중 인용을 쓰면 백틱이 치환됨. 단일 인용을 쓰거나 백틱을 쓰지 않음.
+
+⚠️ 2026-09-12 팀리드 검증 — H-BI 의 대응이 정정됐고 그 형태를 «직접» 시험했음. 이 노트 자체가 그 시험임.
+
+이 문장에 담은 것 넷이 살아 있으면 통과임: `level.reason_en` · `extra="forbid"` · `<<'EOF'` · `--append-notes "$(cat <<'EOF' … EOF)"`. 그리고 셸 변수 꼴 `$1` 과 `${HOME}` 도 리터럴로 남아야 함(과한 이스케이프의 반대 방향 — H-BI 가 그것도 같은 가족으로 적었음).
+
+⛔ 내가 앞서 H-BI 에 적은 「heredoc 은 --append-notes 의 인자로 바로 들어가지 않는다」는 **틀렸음** — 같은 항목의 ⚠️ 절과 어긋났고 동료 세션 ohmyenglish-40 이 f47e6d7 로 고쳤음. 되는 형태는 따옴표 붙인 heredoc 을 «명령 치환으로 감싸는» 것임.
 <!-- SECTION:NOTES:END -->
