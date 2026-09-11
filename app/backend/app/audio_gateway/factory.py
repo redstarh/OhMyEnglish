@@ -12,7 +12,11 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from app.audio_gateway.nova import NovaVoiceAdapter, build_system_prompt
+from app.audio_gateway.nova import (
+    NovaVoiceAdapter,
+    build_pronunciation_prompt,
+    build_system_prompt,
+)
 from app.audio_gateway.port import VoiceAdapter
 from app.audio_gateway.stub import StubVoiceAdapter
 from app.config import Settings
@@ -36,6 +40,7 @@ def create_voice_adapter(
     plan: SessionInstruction | None = None,
     questions: Sequence[PlanQuestion],
     scenario: SessionScenario | None,
+    pronunciation_sound: str | None = None,
 ) -> VoiceAdapter:
     """넷 다 **데이터**다 — 조립된 지시문이 아니다 (G-3).
 
@@ -60,13 +65,25 @@ def create_voice_adapter(
     (설계서 AS6). 생성 후 대입이 아니라 **생성자 인자**로 넘기는 것이 계약이다 — 스텁의
     `instructions`는 setter 없는 property다.
     """
-    instructions = build_system_prompt(
-        known_sounds,
-        plan,
-        questions,
-        scenario,
-        drill_count=settings.drill_count,
-        drill_turns_min=settings.drill_turns_min,
+    # `TASK-10.1` — 발음 전용 모드. **소리 키가 오면 그 모드다**: 계획·무대·질문·놓친 소리 목록을
+    # 싣지 않고 규칙 1~7 도 없는 짧은 지시문을 쓴다. 형태의 근거는 `nova.PRONUNCIATION_MODE_PROMPT`
+    # 위 주석이 소유한다(실측 4/4 대 일반 세션 규모 0/76).
+    #
+    # ⛔ **여기서 소리 키를 «고르지» 않는다** — 어느 소리를 오늘의 초점으로 삼을지는 제품 정책이고
+    # 소켓 계층이 계획·놓친 소리 목록을 읽어 정한다. 이 모듈은 「소리가 주어졌으면 그 지시문」만
+    # 안다. 고르는 규칙을 여기 두면 팩토리가 `services` 의 판단을 흡수해 G3 의 이음매가 흐려진다.
+    # ⚠️ 소리 없이 이 모드로 붙는 경로는 만들지 않는다 — 소켓이 그때 말하기로 떨어뜨린다.
+    instructions = (
+        build_pronunciation_prompt(pronunciation_sound)
+        if pronunciation_sound is not None
+        else build_system_prompt(
+            known_sounds,
+            plan,
+            questions,
+            scenario,
+            drill_count=settings.drill_count,
+            drill_turns_min=settings.drill_turns_min,
+        )
     )
     if settings.voice_adapter == STUB_ADAPTER:
         return StubVoiceAdapter("fixture", instructions=instructions)

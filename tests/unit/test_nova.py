@@ -23,9 +23,11 @@ import pytest
 from app.audio_gateway.nova import (
     _BASE_LEVEL_RANGE,
     FRAME_BYTES,
+    PRONUNCIATION_MODE_PROMPT,
     SYSTEM_PROMPT,
     NovaEventTranslator,
     NovaVoiceAdapter,
+    build_pronunciation_prompt,
     build_system_prompt,
 )
 from app.audio_gateway.port import (
@@ -1535,3 +1537,101 @@ def test_the_drill_lines_never_pin_an_order_for_the_questions():
     assert "in this order" not in prompt.lower(), (
         "질문 순서를 지정했다 — 규칙 3(일상 → 업무)과 부딪힌다"
     )
+
+
+# ── 발음 전용 모드의 지시문 (`TASK-10.1` · 사용자 결정 64) ────────────────────────────
+#
+# ⛔ **문면을 다듬어 고치지 말 것.** 이 형태는 실측으로 정해졌다 — 역할 문단 + 규칙 8~11
+# (9·11 은 유보를 걷은 판) + 소리 줄로 짠 1,702자 판이 Nova 실물 왕복 **4/4** 로 tool 을 불렀고
+# `target_sound` 가 계획이 준 키 그대로 실렸다. 같은 문면이 5,078자 판에서는 **0/76** 이다.
+# 정본: `tests/harness/runs/2026-09-11-task86-dedicated-session.md` ·
+# `tests/harness/runs/2026-09-11-task86-length-boundary.md` §4.
+#
+# ⛔ **규칙 1~7 을 「골라서」 빼지 않는다** — 규칙 4 만 뺀 판은 tool 0/4 였고 모델이 자기 절차를
+# 소리 내어 낭독하는 **새 고장**이 났다(발화 1,175자 · 규칙 6 이 살아 있는데도 났다). 그래서 이
+# 모드는 그 묶음을 **통째로 대체**한다.
+_PRONUNCIATION_MODE_SOUND = "th_as_s"
+
+
+def test_the_pronunciation_mode_prompt_drops_the_conversation_rules():
+    prompt = build_pronunciation_prompt(_PRONUNCIATION_MODE_SOUND)
+
+    # 남는 것: 역할 문단 · 발음 절 · 규칙 10 · 소리 줄.
+    assert prompt.startswith("You are OhMyEnglish,")
+    assert "Pronunciation coaching:" in prompt
+    assert f"Call {PRONUNCIATION_TOOL_NAME} twice" in prompt
+    assert f'"{_PRONUNCIATION_MODE_SOUND}"' in prompt
+    # 빠지는 것: 대화 규칙 1~7 과 계획·무대 블록.
+    for dropped in (
+        "Ask one question at a time",
+        "Start from daily-life topics",
+        "Do not correct every mistake",
+        "Never read JSON",
+        "Aim for the learner to speak at least 65%",
+        "Today's setting:",
+        "Today's plan:",
+    ):
+        assert dropped not in prompt, f"대화 규칙·계획 블록이 남았다: {dropped!r}"
+
+
+def test_the_pronunciation_mode_prompt_drops_the_grammar_first_hedge():
+    """전용 모드가 「대개는 발음을 건드리지 말라」고 말하면 그 모드의 목적과 부딪힌다.
+
+    ⚠️ 유보를 남긴 판(P1)도 tool 2/4 로 왔고 걷은 판(P2)이 4/4 였다 — Fisher 양측 `p=0.43` 이라
+    **통계로는 갈리지 않는다.** 걷는 근거는 그 수치가 아니라 **뜻**이다: 발음만 다루는 세션이
+    「대개는 문법을 고치고 발음은 두라」를 실으면 서로 모순이다.
+    """
+    prompt = build_pronunciation_prompt(_PRONUNCIATION_MODE_SOUND)
+
+    for hedge in ("Grammar first.", "leave pronunciation alone", "never for a mild accent"):
+        assert hedge not in prompt, f"유보 문면이 남았다: {hedge!r}"
+    # 코칭 «행동»은 남아야 한다 — 유보만 걷는 것이지 지시를 없애는 것이 아니다.
+    assert "name the sound that was off" in prompt
+    assert "ask the learner to repeat it" in prompt
+
+
+def test_the_speaking_prompt_still_carries_the_conversation_rules():
+    """⚠️ 이 음성 케이스가 판별력을 만든다.
+
+    위 두 테스트는 `SYSTEM_PROMPT` 에서 규칙 1~7 을 지워도 통과한다 — 그러면 **일반 세션이
+    같이 무너진다.** 그 회귀를 이 테스트가 막는다.
+    """
+    prompt = build_system_prompt((), None, (), None, drill_count=5, drill_turns_min=4)
+
+    for kept in (
+        "Ask one question at a time",
+        "Do not correct every mistake",
+        "Aim for the learner to speak at least 65%",
+        "Grammar first.",
+    ):
+        assert kept in prompt, f"일반 세션의 지시문이 무너졌다: {kept!r}"
+
+
+def test_the_two_prompts_carry_the_same_tool_contract_word_for_word():
+    """⛔ tool 규약(규칙 8·10)이 두 프롬프트에 있으므로 **한쪽이 낡는 것**을 이 테스트가 막는다.
+
+    `SYSTEM_PROMPT` 를 평문 리터럴로 두는 것이 이 모듈의 방침이라(전문을 grep·통독할 수 있게 한다)
+    전용 모드 지시문도 리터럴로 뒀다. 그 대가가 중복이고, 그 대가를 여기서 갚는다 — 규칙 9·11 은
+    **일부러 다르므로** 대조하지 않는다(전용 모드는 유보를 걷은 판이다).
+    """
+
+    def rule(prompt: str, number: str) -> str:
+        lines = prompt.splitlines()
+        start = next(i for i, line in enumerate(lines) if line.startswith(f"{number}. "))
+        end = next(
+            (
+                i
+                for i in range(start + 1, len(lines))
+                if lines[i][:1].isdigit() or not lines[i].strip()
+            ),
+            len(lines),
+        )
+        return "\n".join(lines[start:end])
+
+    for number in ("8", "10"):
+        assert rule(PRONUNCIATION_MODE_PROMPT, number) == rule(SYSTEM_PROMPT, number), (
+            f"규칙 {number} 가 두 프롬프트에서 갈라졌다 — tool 규약의 정본이 둘이 됐다"
+        )
+    # 규칙 9 는 갈라진 것이 **의도**다. 그 사실을 테스트가 명시해
+    # 「같아야 한다」로 오독되지 않게 한다.
+    assert rule(PRONUNCIATION_MODE_PROMPT, "9") != rule(SYSTEM_PROMPT, "9")

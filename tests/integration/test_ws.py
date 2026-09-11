@@ -363,15 +363,20 @@ async def test_ws_passes_assembled_instructions_to_the_adapter(
         plan: SessionInstruction | None = None,
         questions: Sequence[PlanQuestion],
         scenario: SessionScenario | None,
+        # `TASK-10.1` — 발음 전용 모드의 소리 키. ⛔ **기본값을 두지 않는다**(위 대역의 규약) —
+        # 두면 소켓이 이 인자를 아예 넘기지 않아도 대역이 조용히 받아들인다.
+        pronunciation_sound: str | None,
     ) -> object:
         seen["known_sounds"] = list(known_sounds)
         seen["plan"] = plan
+        seen["pronunciation_sound"] = pronunciation_sound
         return real_factory(
             settings,
             known_sounds=known_sounds,
             plan=plan,
             questions=questions,
             scenario=scenario,
+            pronunciation_sound=pronunciation_sound,
         )
 
     monkeypatch.setattr(ws_module, "create_voice_adapter", spy)
@@ -446,9 +451,13 @@ def _capture_factory_args(monkeypatch: pytest.MonkeyPatch) -> dict[str, object]:
         plan: SessionInstruction | None | object = _PLAN_NOT_PASSED,
         questions: Sequence[PlanQuestion],
         scenario: SessionScenario | None,
+        # `TASK-10.1` — 발음 전용 모드의 소리 키. ⛔ **기본값을 두지 않는다**(위 대역의 규약) —
+        # 두면 소켓이 이 인자를 아예 넘기지 않아도 대역이 조용히 받아들인다.
+        pronunciation_sound: str | None,
     ) -> object:
         seen["known_sounds"] = list(known_sounds)
         seen["plan"] = plan
+        seen["pronunciation_sound"] = pronunciation_sound
         seen["questions"] = list(questions)
         seen["scenario"] = scenario
         forwarded = plan if isinstance(plan, SessionInstruction) else None
@@ -458,6 +467,7 @@ def _capture_factory_args(monkeypatch: pytest.MonkeyPatch) -> dict[str, object]:
             plan=forwarded,
             questions=questions,
             scenario=scenario,
+            pronunciation_sound=pronunciation_sound,
         )
 
     monkeypatch.setattr(ws_module, "create_voice_adapter", spy)
@@ -841,3 +851,71 @@ async def test_ws_falls_back_to_speaking_for_an_unknown_mode(
             "select mode from learning_sessions where id = $1", UUID(started["session_id"])
         )
     assert mode == "speaking"
+
+
+# 발음 전용 모드 (`TASK-10.1` · 사용자 결정 64) — `?mode=pronunciation` 이 **소리 키**를 팩토리까지
+# 넘긴다. 지시문 자체의 형태는 `test_nova.py`·`test_gateway.py` 가 재고,
+# 여기서는 **진입 표면**만 잰다.
+async def test_ws_pronunciation_mode_passes_the_sound_to_the_adapter(
+    ws_app: FastAPI,
+    seeded_fixed_user: UUID,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    async def one_sound(pool: object) -> list[str]:
+        return ["th_as_s"]
+
+    monkeypatch.setattr(ws_module, "_load_known_sounds_or_empty", one_sound)
+    seen = _capture_factory_args(monkeypatch)
+
+    async with (
+        ws_app.router.lifespan_context(ws_app),
+        ASGIWebSocket(ws_app, query_string=b"mode=pronunciation") as client,
+    ):
+        first = await client.receive_event()
+
+    assert first is not None and first["type"] == "session_started"
+    assert seen.get("pronunciation_sound") == "th_as_s"
+
+
+# ⚠️ 음성 케이스 둘 — 이 둘이 판별력을 만든다. 없으면 「항상 전용 지시문」으로 고쳐도 위 테스트가
+# 통과하고, 그러면 **모든 세션이** 발음 세션이 된다.
+async def test_ws_pronunciation_mode_falls_back_when_no_sound_is_available(
+    ws_app: FastAPI,
+    seeded_fixed_user: UUID,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """소리를 못 고르면 말하기로 떨어진다 — 알 수 없는 mode 를 떨어뜨리는 기존 규약과 같다."""
+
+    async def no_sounds(pool: object) -> list[str]:
+        return []
+
+    monkeypatch.setattr(ws_module, "_load_known_sounds_or_empty", no_sounds)
+    seen = _capture_factory_args(monkeypatch)
+
+    async with (
+        ws_app.router.lifespan_context(ws_app),
+        ASGIWebSocket(ws_app, query_string=b"mode=pronunciation") as client,
+    ):
+        first = await client.receive_event()
+
+    assert first is not None and first["type"] == "session_started"
+    assert seen.get("pronunciation_sound") is None
+
+
+async def test_ws_speaking_mode_never_asks_for_a_pronunciation_prompt(
+    ws_app: FastAPI,
+    seeded_fixed_user: UUID,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    async def one_sound(pool: object) -> list[str]:
+        return ["th_as_s"]
+
+    monkeypatch.setattr(ws_module, "_load_known_sounds_or_empty", one_sound)
+    seen = _capture_factory_args(monkeypatch)
+
+    async with ws_app.router.lifespan_context(ws_app), ASGIWebSocket(ws_app) as client:
+        await client.receive_event()
+
+    # 놓친 소리 목록에 값이 있어도 **모드가 아니면** 전용 지시문을 쓰지 않는다.
+    assert seen.get("known_sounds") == ["th_as_s"]
+    assert seen.get("pronunciation_sound") is None

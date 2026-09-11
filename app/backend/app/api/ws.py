@@ -34,7 +34,8 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from app.audio_gateway.factory import create_voice_adapter
 from app.audio_gateway.session import SessionRunner
 from app.config import Settings, get_settings
-from app.models.plan import PlanQuestion
+from app.models.plan import PlanQuestion, SessionInstruction
+from app.models.pronunciation import PRONUNCIATION_PATTERN_KEY_PREFIX
 from app.models.scenario import SessionScenario
 from app.services.pronunciation import load_known_sounds
 from app.services.recordings import ShadowingTurns, load_session_clip
@@ -61,6 +62,13 @@ SHADOWING_MODE = "shadowing"
 # `?mode=speaking` 은 명시적 선택이므로 「알 수 없는 mode」로 경고하면 안 된다. ⛔ 이 둘이
 # 값역 전체는 아니다 — `review` 는 아직 진입점이 없고, 값역의 정본은 여전히 001 의 CHECK 다.
 SPEAKING_MODE = "speaking"
+# `TASK-10.1` — 발음 전용 모드로 붙는 값. ⛔ **세션 행의 `mode` 를 바꾸지 않는다**: 001 의
+# `learning_sessions_mode_check` 값역에 이 값이 없고, 값역을 늘리는 것은 마이그레이션이라
+# 이 태스크의 범위 밖이다(모드 리터럴의 소유자는 결정 11 이 `TASK-27` 로 지목했다). 이 상수가
+# 바꾸는 것은 **지시문 하나**이고, 세션 행은 그대로 말하기로 남는다.
+# ⚠️ 그 대가를 적는다 — 결과 화면·집계가 이 세션을 말하기 세션으로 센다. 그 값역을 늘릴지는
+# 원장의 후속 태스크가 정한다.
+PRONUNCIATION_MODE = "pronunciation"
 
 SESSION_CREATE_FAILED_REASON = "session_create_failed"
 ADAPTER_UNAVAILABLE_REASON = "voice_adapter_unavailable"
@@ -137,6 +145,31 @@ async def _load_known_sounds_or_empty(pool: asyncpg.Pool) -> list[str]:
     except Exception:
         logger.exception("기존 발음 소리를 읽지 못해 기본 지시문으로 진행한다")
         return []
+
+
+def _pronunciation_sound_or_none(
+    plan: SessionInstruction | None, known_sounds: Sequence[str]
+) -> str | None:
+    """발음 전용 모드가 다룰 **오늘의 소리** — 없으면 `None` (`TASK-10.1`).
+
+    출처의 순서가 규칙이다: ① **계획의 발음 초점** ② **놓친 소리 목록**의 첫 항목.
+    계획이 먼저인 이유는 그것이 복습 예정일을 근거로 «오늘» 다룰 소리를 이미 골라 둔 값이기
+    때문이다(`TASK-44` 이후 발음 패턴이 `next_review_at` 을 받아 초점 후보가 된다). 목록은
+    「전에 놓친 것들」이라 오늘의 우선순위를 담지 않으므로 뒤에 둔다.
+
+    ⛔ **`None` 을 소리 없는 전용 세션으로 번역하지 않는다** — 호출자가 그때 말하기로 떨어뜨린다.
+    소리 없이 이 모드를 열면 지시문이 *"Sound to coach today: "* 로 빈 값을 말하게 되고, 그것은
+    모델에게 있지도 않은 초점을 찾게 시키는 것이다.
+
+    ⚠️ **순수 함수로 둔 이유**: 이 선택이 정책이라 회귀를 단위 테스트로 잡아야 한다. DB 를 타면
+    같은 판정에 통합 픽스처가 필요해지고, 그러면 「어느 출처가 이기는가」가 조용히 바뀌어도
+    통과한다.
+    """
+    if plan is not None:
+        for item in plan.focus:
+            if item.pattern_key.startswith(PRONUNCIATION_PATTERN_KEY_PREFIX):
+                return item.target_form
+    return known_sounds[0] if known_sounds else None
 
 
 async def _load_shadowing_turns_or_none(
@@ -252,7 +285,10 @@ async def session_socket(websocket: WebSocket) -> None:
     # ⚠️ 대가를 명시한다 — 오타 난 링크로 붙으면 조용히 말하기 세션을 받으므로 경고를 남긴다.
     requested_mode = websocket.query_params.get("mode")
     shadowing_requested = requested_mode == SHADOWING_MODE
-    if requested_mode not in (None, SHADOWING_MODE, SPEAKING_MODE):
+    # `TASK-10.1` — 발음 전용 모드는 **세션 행을 바꾸지 않고 지시문만 바꾼다**(상수 위 주석).
+    # 그래서 위 `shadowing_requested` 와 달리 `create_session` 분기에 끼어들지 않는다.
+    pronunciation_requested = requested_mode == PRONUNCIATION_MODE
+    if requested_mode not in (None, SHADOWING_MODE, SPEAKING_MODE, PRONUNCIATION_MODE):
         # ⚠️ `?mode=speaking` 은 **알 수 없는 값이 아니다** — 명시적으로 그것을 고른 것이므로
         # 경고하지 않는다(2026-09-09 리뷰 지적). 경고는 오타·낡은 링크만 가리켜야 값을 한다.
         logger.warning("알 수 없는 mode=%r — 말하기 세션으로 진행한다", requested_mode)
@@ -298,9 +334,25 @@ async def session_socket(websocket: WebSocket) -> None:
         # `TASK-36`(기대 exchange 상한이 10분 세션에서 실현 가능한지)이 읽는다 — 쉐도잉에 쓰면
         # 아직 돌리지도 않은 관측이 오염된 데이터를 본다. null 이 「관측 대상 아님」을 뜻하는 것은
         # 결정 16 이 이미 세운 계약이므로 여기서는 그 계약을 그대로 쓰는 것이다.
-        if not shadowing_requested:
+        # `TASK-10.1` — 발음 전용 모드에도 쓰지 않는다. 근거가 쉐도잉과 **같다**(결정 37): 이 모드의
+        # 지시문에는 **질문이 실리지 않으므로** 기대 exchange 수가 애초에 성립하지 않고, 그 값을
+        # 쓰면 `TASK-36`(기대 상한이 10분 세션에서 실현 가능한가)이 아직 돌리지도 않은 관측이
+        # 오염된 데이터를 본다. null 이 「관측 대상 아님」인 것은 결정 16 이 세운 계약이다.
+        if not shadowing_requested and not pronunciation_requested:
             await _record_drill_turns_or_continue(
                 pool, session_id, questions=questions, settings=settings
+            )
+
+        # 오늘의 소리를 못 고르면 **말하기로 떨어진다** — 알 수 없는 mode 를 말하기로 떨어뜨리는
+        # 이 파일의 기존 규약과 같은 판단이고, 대가(조용히 다른 세션을 받는 것)를 경고로 갚는다.
+        pronunciation_sound = (
+            _pronunciation_sound_or_none(plan, known_sounds) if pronunciation_requested else None
+        )
+        if pronunciation_requested and pronunciation_sound is None:
+            logger.warning(
+                "mode=%s 로 붙었으나 오늘의 소리를 고를 수 없어 말하기 세션으로 진행한다 — "
+                "계획에 발음 초점이 없고 놓친 소리 목록도 비었다",
+                PRONUNCIATION_MODE,
             )
 
         try:
@@ -310,6 +362,7 @@ async def session_socket(websocket: WebSocket) -> None:
                 plan=plan,
                 questions=questions,
                 scenario=scenario,
+                pronunciation_sound=pronunciation_sound,
             )
         except Exception:
             # 어댑터를 만들지도 못했다(설정 오타/구현 부재). 세션 행은 이미 있으므로

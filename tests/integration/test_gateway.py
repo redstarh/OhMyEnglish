@@ -1660,3 +1660,40 @@ async def test_stub_mode_produces_no_pronunciation_rows(db_pool, committed_sessi
 
     assert await _pronunciation_rows(db_pool, committed_session.session_id) == []
     assert client.of_type("pronunciation") == []
+
+
+# 발음 전용 모드 (`TASK-10.1` · 사용자 결정 64) — 팩토리가 **다른 지시문**을 조립한다.
+#
+# ⛔ 형태의 근거는 `nova.PRONUNCIATION_MODE_PROMPT` 위 주석이 소유한다(실측 4/4 대 일반 세션
+# 규모 0/76). 여기서 재는 것은 **배선 하나**다: 소리 키가 오면 그 지시문이 어댑터까지 도달하는가.
+def test_factory_builds_the_pronunciation_prompt_when_a_sound_is_given():
+    adapter = create_voice_adapter(
+        _settings(voice_adapter=STUB_ADAPTER),
+        known_sounds=["an_as_a"],
+        questions=(),
+        scenario=None,
+        pronunciation_sound="th_as_s",
+    )
+
+    assert isinstance(adapter, StubVoiceAdapter)
+    instructions = adapter.instructions
+    assert instructions is not None
+    assert '"th_as_s"' in instructions
+    # 전용 모드는 대화 규칙을 싣지 않는다 — 그것이 이 모드의 전부다.
+    assert "Ask one question at a time" not in instructions
+    assert "Aim for the learner to speak at least 65%" not in instructions
+
+
+def test_factory_keeps_the_speaking_prompt_when_no_sound_is_given():
+    """⚠️ 음성 케이스 — 인자를 무조건 전용 지시문으로 읽으면 **모든 세션이** 발음 세션이 된다."""
+    adapter = create_voice_adapter(
+        _settings(voice_adapter=STUB_ADAPTER),
+        known_sounds=["an_as_a"],
+        questions=(),
+        scenario=None,
+    )
+
+    assert isinstance(adapter, StubVoiceAdapter)
+    instructions = adapter.instructions
+    assert instructions is not None
+    assert "Ask one question at a time" in instructions

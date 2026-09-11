@@ -236,6 +236,62 @@ _SOUND_INSTRUCTION = (
 )
 
 
+# `TASK-10.1` — **발음 전용 모드의 지시문.** 사용자 결정 64 가 승인했고 **형태가 실측으로
+# 정해졌다.** 정본: `tests/harness/runs/2026-09-11-task86-dedicated-session.md` ·
+# `…-length-boundary.md` §4.
+#
+# ⛔ **다듬어 고치지 말 것.** 이 문면 그대로 Nova 실물 왕복 **4/4** 로 tool 이 왔고 `target_sound`
+# 가 계획이 준 키 그대로 실렸다. 같은 문면이 일반 세션 규모(5,078자)에서는 **0/76** 이다.
+#
+# ⛔ **규칙 1~7 을 「골라서」 빼는 것이 아니라 통째로 뺀다.** 규칙 4 만 뺀 판은 tool 0/4 였고
+# 게다가 모델이 **자기 절차를 소리 내어 낭독**했다(발화 1,175자 · 규칙 6 이 살아 있는데도 났다).
+# 즉 부분 제거는 tool 을 살리지 못하고 새 고장을 더한다.
+#
+# ⚠️ **규칙 9 의 유보를 걷은 근거는 통계가 아니라 뜻이다** — 유보를 남긴 판도 2/4 로 왔고
+# Fisher 양측 `p=0.43` 이라 갈리지 않는다. 걷는 이유는 **발음만 다루는 세션이 「대개는 문법을
+# 고치고 발음은 두라」를 실으면 서로 모순**이라는 것이다.
+#
+# ⚠️ **알고 남긴 결함 하나**: 규칙 11 이 *"the one correction for that turn in rule 4"* 로 **이
+# 프롬프트에 없는 규칙 4** 를 가리킨다. 측정된 문면이 그것이므로 **그대로 옮겼다** — 문구를
+# 다듬으면 4/4 의 근거가 그 판에 붙지 않는다. 정리는 회차로 다시 재야 하는 일이고 원장이
+# 그 태스크를 갖는다. ⛔ **여기서 조용히 고치지 말 것.**
+#
+# ⚠️ **규칙 8·10 은 `SYSTEM_PROMPT` 와 글자 그대로 같아야 한다** — tool 규약(2회 호출 ·
+# `target_sound`)이 두 곳에 있으면 한쪽이 낡는다. 그 동일성은 `test_nova.py` 가 잰다.
+PRONUNCIATION_MODE_PROMPT = """\
+You are OhMyEnglish, a warm, practical English speaking coach for a Korean learner.
+
+Pronunciation coaching:
+8. You hear the learner's actual audio. The transcript does not show pronunciation
+   errors, so you are the only one who can notice them.
+9. When a sound is off, take it up on that turn: name the sound that was off, say the
+   whole sentence back with correct pronunciation, and ask the learner to repeat it.
+10. Call report_pronunciation_coaching twice: once with outcome "pending" right after you
+    have modeled the sentence, and again with correct, incorrect, or unclear once you have
+    heard the learner repeat it. Always include target_sound - a short reusable key for the
+    sound that was off, such as th_as_s or f_as_p - so the app can group repeat offenders.
+11. A pronunciation correction is the one correction for that turn in rule 4. Spend it on
+    the sound rather than on repeating the sentence back for grammar."""
+
+
+def build_pronunciation_prompt(sound: str) -> str:
+    """발음 전용 모드의 지시문 = 고정 문면 + **오늘의 소리 줄** (`TASK-10.1`).
+
+    `build_system_prompt` 과 **다른 함수**인 이유: 이 모드는 계획·무대·질문·놓친 소리 목록을
+    싣지 않고 규칙 1~7 도 없다. 인자를 늘려 한 함수로 겸하면 그 함수의 계약(넷 다 데이터로
+    받는다 · 기본값을 두지 않는다)이 모드마다 갈라져 조용히 빈 프롬프트를 만들 여지가 생긴다.
+
+    ⚠️ **소리 줄은 `_SOUND_INSTRUCTION` 을 그대로 쓴다** — 일반 세션과 같은 문면이어야
+    「무엇을 어느 이름으로 보고할지」가 한 곳에서만 정해진다.
+    """
+    return "\n\n".join(
+        [
+            PRONUNCIATION_MODE_PROMPT,
+            _SOUND_INSTRUCTION.format(sound=sound, tool=PRONUNCIATION_TOOL_NAME),
+        ]
+    )
+
+
 def build_system_prompt(
     known_sounds: Sequence[str],
     plan: SessionInstruction | None,
