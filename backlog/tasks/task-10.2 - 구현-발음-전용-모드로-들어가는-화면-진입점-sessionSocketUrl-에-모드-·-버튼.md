@@ -4,6 +4,7 @@ title: '구현: 발음 전용 모드로 들어가는 화면 진입점 (sessionSo
 status: To Do
 assignee: []
 created_date: '2026-09-11 15:42'
+updated_date: '2026-09-11 15:50'
 labels: []
 dependencies: []
 parent_task_id: TASK-10
@@ -21,4 +22,5 @@ ordinal: 115000
 - [ ] #1 TASK-10 AC#1 이 정한 배치대로 진입 버튼을 만들고 sessionSocketUrl 이 모드를 붙이게 한다
 - [ ] #2 소리를 고를 수 없는 사용자에게 이 버튼이 무엇을 보이는지 정한다 — 서버는 말하기로 떨어뜨리므로 화면이 침묵하면 사용자가 다른 세션을 받은 것을 모른다
 - [ ] #3 브라우저 레그로 실제 진입을 확인한다 — 단위·통합만으로 닫지 않는다
+- [ ] #4 create_session 에 learning_source='additional' 과 started_via='ui' 를 넘긴다 — 두 컬럼은 001 의 CHECK 로 열려 있으나 쓰는 코드가 0건이다(진입점 설계서 §4)
 <!-- AC:END -->
