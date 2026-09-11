@@ -84,17 +84,13 @@ Slack `#clawair` 에 두 번 올렸고(10:1x · 12:0x) **후보가 갱신됐음*
    `TASK-103` 이 닫히기 전에 열리지 않음.
 4. ⛔ **워커 구간은 `p5_worker_leg.py` 를 쓰고 `--job-type` 을 «항상» 줌**(그 도구 docstring 의
    결함 3). 스냅샷은 회차 디렉터리에 두고 `restore` 로 되돌림.
-5. ⚠️ **게이트는 `app/backend` cwd 에서만 판정함**(`H-A`). `tests`·`scripts` 는 그 cwd 에서 경로를
-   지정해 따로 돌림(`H-L`). 파이프 뒤 `$?` 를 판정에 쓰지 않음(`H-AZ`).
-6. ⚠️ **`git add <디렉터리>/` 를 쓰지 않음**(`H-BE` · 이 세션이 밟았음) — 파일을 열거함.
-7. ⚠️ **공유 DB 백업은 `-U ohmy` 로 막힘**(`H-BB`) — `pg_dump -d ohmyenglish -n public` 으로 뜸.
-   `harness_*_baseline` 조회도 `ohmy` 롤로는 막힘(같은 원인).
-8. ⚠️ **CDP 에서 마이크가 열리지 않음**(`H-BD`) — 화면만 볼 때는 서비스 함수로 전사문을 남김.
-9. ⛔ **화면 확인용 프론트 사본(`/tmp/uicheck-frontend`)은 리포 수정을 자동으로 받지 않음** —
-   고친 뒤 `cp -R app lib` 로 사본을 갱신해야 반영됨(이 세션이 한 번 헛봤음).
-10. ⚠️ **공유 표에 테스트 행을 남기지 않음** — `learning_scenarios` 에 남긴 행 하나가
-   `test_sessions.py` 의 선택 단정 6건을 깨뜨렸음(실측). 픽스처 teardown 에서 사용자 → 시나리오
-   순서로 지움(FK 가 cascade 가 아님).
+5. ⚠️ **게이트·git 규율 셋**: 게이트는 `app/backend` cwd 에서만 판정함(`H-A`) · `tests`·`scripts` 는
+   경로를 지정해 따로 돌림(`H-L`) · 파이프 뒤 `$?` 를 판정에 쓰지 않음(`H-AZ`) ·
+   `git add <디렉터리>/` 를 쓰지 않고 파일을 열거함(`H-BE` · 이 세션이 밟았음).
+6. ⚠️ **공유 자원 셋**: 공유 DB 백업과 `harness_*_baseline` 조회는 `-U ohmy` 로 막힘(`H-BB` —
+   `pg_dump -d ohmyenglish -n public`) · CDP 에서 마이크가 안 열림(`H-BD`) · 화면 확인용 프론트
+   사본은 `cp -R app lib` 로 갱신해야 반영됨 · 테스트가 `learning_scenarios` 에 행을 남기면
+   `test_sessions.py` 6건이 깨짐(teardown 에서 사용자 → 시나리오 순서로 지움).
 
 그 밖의 실측 함정은 `docs/ops/pitfalls.md` 가 소유함 — 여기에 복제하지 않음.
 
@@ -105,7 +101,7 @@ Slack `#clawair` 에 두 번 올렸고(10:1x · 12:0x) **후보가 갱신됐음*
 | 1 | 기준 커밋 | **`a4c9f52` 이상**(푸시 완료 — `origin` 과 동기)(등호를 요구하지 않음 — 동료 세션이 커밋·푸시함) |
 | 2 | 다음 걸음 | **`TASK-86`**(`Awaiting Decision` — Slack 으로 물었음) · 그 사이 갈래는 `TASK-4` |
 | 3 | 게이트 | `pytest` **937 passed**(16.4s) · `ruff check` 안·밖 **exit 0** · `format --check` **exit 0** · `ty` **All checks passed** · 프론트 `tsc`·`eslint` **exit 0**(파이프 없이) |
-| 4 | 착수 전 필수 | **8개**(위 ③). `TASK-4` 의 선행(`TASK-25`) **Done** · `TASK-86` 은 미충족 AC **2건** |
+| 4 | 착수 전 필수 | **6개**(위 ③). `TASK-4` 의 선행(`TASK-25`) **Done** · `TASK-86` 은 미충족 AC **2건** |
 
 ⚠️ **format 의 「N files」는 `.md` 를 세므로 지표로 적지 않음**(`H-AR`).
 ⚠️ **DB**(공유 dev · 이 세션 마감 시점): `error_patterns` **9** · `review_tasks` **15** ·
