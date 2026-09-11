@@ -12,14 +12,18 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from uuid import UUID, uuid4
 from zoneinfo import ZoneInfo
 
 import asyncpg
 import pytest
 
-from app.services.daily_summary import load_daily_summary, refresh_summary_for_utterance
+from app.services.daily_summary import (
+    load_daily_completion,
+    load_daily_summary,
+    refresh_summary_for_utterance,
+)
 
 USER_ID = UUID("00000000-0000-0000-0000-000000000001")
 KST = ZoneInfo("Asia/Seoul")
@@ -303,3 +307,141 @@ async def test_refresh_records_zero_when_occurrences_are_gone(
     assert summary.patterns == []
     # 행 자체는 남는다 — 「분석이 돌고 0건」이므로 「학습이 없었다」와 다르다(R13-7).
     assert summary.computed_at is not None
+
+
+# ── TASK-2 · PRD §14 — 일일 학습 완료 판정 ─────────────────────────────────────
+#
+# 「마쳤다」는 **시나리오가 붙은 세션이 정상 종료된 것**이다(R14-2). 드릴 교대 수를 조건에 넣지
+# 않는다 — 미달의 주어가 학습자가 아니라 대화 모델이기 때문이고(캡틴 결정 10) 그 근거는
+# `docs/design/2026-09-11-daily-completion-design.md` §3.1 이 소유한다.
+
+
+async def _seed_scenario(conn: asyncpg.Connection) -> UUID:
+    return await conn.fetchval(
+        "insert into learning_scenarios (category, level, title, prompt_template) "
+        "values ('daily_life', 'A2', 'Completion Test', 'chat with a colleague') returning id"
+    )
+
+
+async def _ended_session(
+    conn: asyncpg.Connection,
+    *,
+    ended_at: datetime,
+    status: str = "completed",
+    scenario_id: UUID | None,
+) -> UUID:
+    """⛔ `started_at` 을 **끝난 날과 다른 날**로 박는다 — 그것이 앵커 단정의 판별력이다.
+
+    기본값(`now()`)에 맡기면 시작·종료가 같은 날짜가 되어 `ended_at` 을 `started_at` 으로 바꾼
+    변이가 테스트를 그대로 통과한다(2026-09-11 실측: 실제로 통과했다).
+    """
+    return await conn.fetchval(
+        "insert into learning_sessions (user_id, mode, scenario_id, status, started_at, ended_at) "
+        "values ($1, 'speaking', $2, $3, $4, $5) returning id",
+        USER_ID,
+        scenario_id,
+        status,
+        ended_at - timedelta(days=3),
+        ended_at,
+    )
+
+
+# ⑪ AC14-1 — 시나리오가 붙은 세션이 정상 종료되면 그날은 완료다.
+async def test_completed_scenario_session_marks_the_day_done(db_conn: asyncpg.Connection) -> None:
+    await _seed_user(db_conn)
+    scenario_id = await _seed_scenario(db_conn)
+    await _ended_session(
+        db_conn, ended_at=datetime(2026, 9, 11, 21, 0, tzinfo=KST), scenario_id=scenario_id
+    )
+
+    completion = await load_daily_completion(
+        db_conn, USER_ID, now=datetime(2026, 9, 11, 23, 0, tzinfo=KST)
+    )
+
+    assert completion.completed_today is True
+    assert completion.completed_scenarios == 1
+    assert completion.summary_date == date(2026, 9, 11)
+
+
+# ⑫ AC14-3 — 실패로 끝난 세션은 완료로 세지 않는다.
+async def test_failed_session_does_not_count(db_conn: asyncpg.Connection) -> None:
+    await _seed_user(db_conn)
+    scenario_id = await _seed_scenario(db_conn)
+    await _ended_session(
+        db_conn,
+        ended_at=datetime(2026, 9, 11, 21, 0, tzinfo=KST),
+        status="failed",
+        scenario_id=scenario_id,
+    )
+
+    completion = await load_daily_completion(
+        db_conn, USER_ID, now=datetime(2026, 9, 11, 23, 0, tzinfo=KST)
+    )
+
+    assert completion.completed_today is False
+    assert completion.completed_scenarios == 0
+
+
+# ⑬ 시나리오가 없는 세션은 세지 않는다 — 요구사항이 「시나리오를 마치면」이다(R14-1).
+async def test_session_without_scenario_does_not_count(db_conn: asyncpg.Connection) -> None:
+    await _seed_user(db_conn)
+    await _ended_session(
+        db_conn, ended_at=datetime(2026, 9, 11, 21, 0, tzinfo=KST), scenario_id=None
+    )
+
+    completion = await load_daily_completion(
+        db_conn, USER_ID, now=datetime(2026, 9, 11, 23, 0, tzinfo=KST)
+    )
+
+    assert completion.completed_today is False
+
+
+# ⑭ AC14-4 — 한국 시각 자정을 넘겨 끝난 세션은 «끝난 날»의 것으로 센다.
+async def test_completion_is_counted_on_the_day_it_ended(db_conn: asyncpg.Connection) -> None:
+    await _seed_user(db_conn)
+    scenario_id = await _seed_scenario(db_conn)
+    # 2026-09-11 00:30 KST = 2026-09-10 15:30 UTC — UTC 날짜와 KST 날짜가 갈리는 시각이다.
+    await _ended_session(
+        db_conn, ended_at=datetime(2026, 9, 11, 0, 30, tzinfo=KST), scenario_id=scenario_id
+    )
+
+    on_the_day = await load_daily_completion(
+        db_conn, USER_ID, now=datetime(2026, 9, 11, 9, 0, tzinfo=KST)
+    )
+    day_before = await load_daily_completion(
+        db_conn, USER_ID, now=datetime(2026, 9, 10, 23, 0, tzinfo=KST)
+    )
+
+    assert on_the_day.completed_today is True
+    assert day_before.completed_today is False, "UTC 날짜로 세면 하루 앞으로 밀린다"
+
+
+# ⑮ R14-5 — 여러 개를 마쳐도 판정은 그대로이고 개수는 사실로 남는다.
+async def test_multiple_completions_keep_the_verdict_and_count(
+    db_conn: asyncpg.Connection,
+) -> None:
+    await _seed_user(db_conn)
+    scenario_id = await _seed_scenario(db_conn)
+    for hour in (10, 21):
+        await _ended_session(
+            db_conn,
+            ended_at=datetime(2026, 9, 11, hour, 0, tzinfo=KST),
+            scenario_id=scenario_id,
+        )
+
+    completion = await load_daily_completion(
+        db_conn, USER_ID, now=datetime(2026, 9, 11, 23, 0, tzinfo=KST)
+    )
+
+    assert completion.completed_today is True
+    assert completion.completed_scenarios == 2
+
+
+# ⑯ 「오늘」의 규약은 요약과 같은 모듈이 소유한다 — 사용자 부재는 `LookupError`, naive 는 거부다.
+async def test_completion_follows_the_same_today_rules(db_conn: asyncpg.Connection) -> None:
+    await _seed_user(db_conn)
+
+    with pytest.raises(LookupError):
+        await load_daily_completion(db_conn, uuid4(), now=datetime(2026, 9, 11, 8, 0, tzinfo=KST))
+    with pytest.raises(ValueError):
+        await load_daily_completion(db_conn, USER_ID, now=datetime(2026, 9, 11, 8, 0))

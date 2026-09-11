@@ -24,7 +24,13 @@ import asyncpg
 from fastapi import APIRouter, Request
 
 from app.api.ws import FIXED_USER_ID
-from app.services.daily_summary import DailyPattern, DailySummary, load_daily_summary
+from app.services.daily_summary import (
+    DailyCompletion,
+    DailyPattern,
+    DailySummary,
+    load_daily_completion,
+    load_daily_summary,
+)
 
 router = APIRouter(prefix="/api", tags=["daily"])
 
@@ -43,7 +49,7 @@ def _pattern_payload(item: DailyPattern) -> dict[str, object]:
     }
 
 
-def _summary_payload(summary: DailySummary) -> dict[str, object]:
+def _summary_payload(summary: DailySummary, completion: DailyCompletion) -> dict[str, object]:
     return {
         "summary_date": summary.summary_date.isoformat(),
         # 행이 있으면 그날 분석이 돌았다 — `computed_at`이 그 사실의 정본이다.
@@ -51,6 +57,11 @@ def _summary_payload(summary: DailySummary) -> dict[str, object]:
         "occurrence_count": summary.occurrence_count,
         "pattern_count": summary.pattern_count,
         "patterns": [_pattern_payload(item) for item in summary.patterns],
+        # `TASK-2` · PRD §14 — 「오늘 학습을 마쳤는지」. 두 키를 **항상** 싣는다(위 `analyzed` 와
+        # 같은 규약). 별 엔드포인트로 빼지 않는 이유는 설계서 §4 가 소유한다: 두 판독이 자정을
+        # 걸쳐 갈릴 수 있고, 그러면 화면이 「오늘」을 두 날짜로 그린다.
+        "completed_today": completion.completed_today,
+        "completed_scenarios": completion.completed_scenarios,
     }
 
 
@@ -59,5 +70,7 @@ async def get_daily_summary(request: Request) -> dict[str, object]:
     """이 학습자의 오늘(학습자 타임존) 오류 요약. 단일 사용자 로컬 도구라 사용자는 고정이다."""
     pool: asyncpg.Pool = request.app.state.db_pool
     async with pool.acquire() as conn:
+        # 한 커넥션에서 둘을 읽는다 — 두 조회가 «같은 오늘»을 봐야 한다.
         summary = await load_daily_summary(conn, FIXED_USER_ID)
-    return _summary_payload(summary)
+        completion = await load_daily_completion(conn, FIXED_USER_ID)
+    return _summary_payload(summary, completion)

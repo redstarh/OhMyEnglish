@@ -132,6 +132,25 @@ select summary_date, timezone, occurrence_count, pattern_count, patterns, comput
    and summary_date = $2
 """
 
+# 그날 마친 시나리오 수 (PRD §14 · `TASK-2`). 설계의 정본은
+# `docs/design/2026-09-11-daily-completion-design.md` 다.
+#
+# ⛔ 세 조건이 전부 요구사항이다: 시나리오가 붙어 있고(`scenario_id is not null`) · **정상**
+# 종료이고(`status = 'completed'` — 실패 세션은 세지 않는다) · 그 날짜에 **끝났다**.
+# ⚠️ 앵커가 `ended_at` 인 이유: 「마쳤다」는 사실의 시각이 그것이다. 자정을 넘겨 끝난 세션은
+# **끝난 날**의 완료다(AC14-4).
+# ⛔ 드릴 교대 수를 조건에 넣지 않는다 — 미달의 주어가 학습자가 아니라 대화 모델이므로
+# (캡틴 결정 10) 넣으면 학습자가 손쓸 수 없는 수로 완료가 취소된다. 근거는 설계서 §3.1.
+_COMPLETION_SQL = """
+select count(*) as completed_scenarios
+  from learning_sessions
+ where user_id = $1
+   and scenario_id is not null
+   and status = 'completed'
+   and ended_at is not null
+   and (ended_at at time zone $2)::date = $3
+"""
+
 
 @dataclass(frozen=True, slots=True)
 class DailyExample:
@@ -168,6 +187,24 @@ class DailySummary:
     pattern_count: int
     patterns: list[DailyPattern]
     computed_at: datetime | None
+
+
+@dataclass(frozen=True, slots=True)
+class DailyCompletion:
+    """그날 학습을 마쳤는지 (PRD §14 · `TASK-2`).
+
+    `completed_today` 는 `completed_scenarios >= 1` 이다 — 요구사항이 *「하나라도 마치면」*
+    이므로 개수가 아니라 그 판정이 계약이다(R14-5). 개수는 사실로 함께 낸다.
+
+    ⛔ 이 값은 저장되지 않는다 — `learning_sessions` 에서 읽을 때 센다. 스냅샷 표를 두지 않는
+    근거는 설계서 §2 다: 종료 UPDATE 가 `status = 'active'` 로 막혀 있어 한 번 끝난 세션의
+    `status`·`ended_at` 을 다시 쓸 수 없고 `scenario_id` 를 고치는 코드도 없다.
+    """
+
+    summary_date: date
+    timezone: str
+    completed_today: bool
+    completed_scenarios: int
 
 
 async def _timezone_of(conn: asyncpg.Connection, user_id: UUID) -> str:
@@ -219,12 +256,8 @@ async def load_daily_summary(
     naive datetime을 거부한다 — 조용히 바인딩되면 서버 오프셋만큼 날짜가 밀린다
     (`services/recordings.py`와 같은 규약).
     """
-    resolved_now = now if now is not None else datetime.now(ZoneInfo("UTC"))
-    if resolved_now.tzinfo is None:
-        raise ValueError("`now` must be timezone-aware (naive datetime is not allowed)")
-
     timezone = await _timezone_of(conn, user_id)
-    today = resolved_now.astimezone(ZoneInfo(timezone)).date()
+    today = _today_in(timezone, now)
 
     record = await conn.fetchrow(_LOAD_SQL, user_id, today)
     if record is None:
@@ -243,4 +276,35 @@ async def load_daily_summary(
         pattern_count=record["pattern_count"],
         patterns=_parse_patterns(record["patterns"]),
         computed_at=record["computed_at"],
+    )
+
+
+def _today_in(timezone: str, now: datetime | None) -> date:
+    """사용자 타임존의 오늘. naive `now` 를 거부하는 자리를 **한 곳으로** 모은다.
+
+    두 조회(`load_daily_summary`·`load_daily_completion`)가 같은 규약을 써야 「오늘」의 정의가
+    갈라지지 않는다 — 그것이 이 모듈이 두 값을 함께 소유하는 이유다.
+    """
+    resolved = now if now is not None else datetime.now(ZoneInfo("UTC"))
+    if resolved.tzinfo is None:
+        raise ValueError("`now` must be timezone-aware (naive datetime is not allowed)")
+    return resolved.astimezone(ZoneInfo(timezone)).date()
+
+
+async def load_daily_completion(
+    conn: asyncpg.Connection, user_id: UUID, *, now: datetime | None = None
+) -> DailyCompletion:
+    """오늘(사용자 타임존) 마친 시나리오 수와 그 판정.
+
+    사용자가 없으면 `LookupError` 다 — 타임존의 정본이 없으면 날짜를 그을 수 없고, 조용히 UTC 로
+    떨어지면 자정 앞뒤에서 판정이 하루씩 어긋난다(`load_daily_summary` 와 같은 판단).
+    """
+    timezone = await _timezone_of(conn, user_id)
+    today = _today_in(timezone, now)
+    completed = await conn.fetchval(_COMPLETION_SQL, user_id, timezone, today)
+    return DailyCompletion(
+        summary_date=today,
+        timezone=timezone,
+        completed_today=completed > 0,
+        completed_scenarios=completed,
     )

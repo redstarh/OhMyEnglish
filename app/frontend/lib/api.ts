@@ -122,6 +122,16 @@ export interface DailySummaryPayload {
   occurrence_count: number;
   pattern_count: number;
   patterns: DailyErrorPattern[];
+  /**
+   * 오늘(학습자 타임존) 시나리오를 하나라도 마쳤는가 (PRD §14 R14-1 · `TASK-2`).
+   *
+   * 기준은 「시나리오가 붙은 세션이 정상 종료됐다」이고 **드릴 교대 수는 조건이 아니다** —
+   * 미달의 주어가 학습자가 아니라 대화 모델이기 때문이다(캡틴 결정 10). 근거의 정본은
+   * `docs/design/2026-09-11-daily-completion-design.md` §3.1 이다.
+   */
+  completed_today: boolean;
+  /** 오늘 마친 시나리오 수. 판정은 `completed_today` 가 갖는다 — 1개로 충분하다(R14-5). */
+  completed_scenarios: number;
 }
 
 /**
@@ -138,6 +148,8 @@ export async function fetchDailySummary(): Promise<DailySummaryPayload> {
     occurrence_count: 0,
     pattern_count: 0,
     patterns: [],
+    completed_today: false,
+    completed_scenarios: 0,
   };
   // 하루 요약은 분석이 끝날 때마다 바뀐다 — 캐시에 걸리면 지난 판독이 남는다.
   const response = await fetch(`${API_BASE}/api/daily-summary`, { cache: "no-store" });

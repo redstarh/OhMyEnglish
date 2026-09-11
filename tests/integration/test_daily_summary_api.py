@@ -58,7 +58,10 @@ async def committed_fixed_user(db_pool: asyncpg.Pool) -> AsyncIterator[None]:
         yield
     finally:
         async with db_pool.acquire() as conn:
+            # 순서가 계약이다 — 사용자 삭제가 세션을 cascade 로 걷어간 **뒤에** 시나리오를 지운다
+            # (`learning_sessions.scenario_id` FK 는 cascade 가 아니다).
             await conn.execute("delete from users where id = $1", FIXED_USER_ID)
+            await conn.execute("delete from learning_scenarios where title = $1", _SCENARIO_TITLE)
 
 
 def _response(*findings: dict[str, Any]) -> str:
@@ -236,3 +239,68 @@ async def test_endpoint_ignores_another_learners_summary(
     finally:
         async with db_pool.acquire() as conn:
             await conn.execute("delete from users where id = $1", other)
+
+
+# ── TASK-2 · PRD §14 — 「오늘 학습을 마쳤는지」가 같은 응답에 실린다 ─────────────
+#
+# 별 엔드포인트로 빼지 않는 이유는 설계서 §4 가 소유한다: 두 판독이 자정을 걸쳐 갈릴 수 있다.
+
+
+# ⛔ 이 제목으로 심은 시나리오는 픽스처 teardown 이 지운다 — `learning_scenarios` 는 **공유 표**라
+# 남기면 `test_sessions.py` 의 「수준에 맞는 시나리오를 고른다」 단정이 깨진다
+# (2026-09-11 실측: 6건 FAIL).
+_SCENARIO_TITLE = "API Completion Test"
+
+
+async def _completed_session(pool: asyncpg.Pool, user_id: UUID, *, with_scenario: bool) -> None:
+    """정상 종료된 세션 1건을 **오늘**(사용자 타임존) 끝난 것으로 심는다."""
+    async with pool.acquire() as conn:
+        scenario_id = (
+            await conn.fetchval(
+                "insert into learning_scenarios (category, level, title, prompt_template) "
+                "values ('daily_life', 'A2', $1, 'chat') returning id",
+                _SCENARIO_TITLE,
+            )
+            if with_scenario
+            else None
+        )
+        await conn.execute(
+            "insert into learning_sessions (user_id, mode, scenario_id, status, started_at, "
+            "ended_at) values ($1, 'speaking', $2, 'completed', now() - interval '1 hour', now())",
+            user_id,
+            scenario_id,
+        )
+
+
+# ⑥ 오늘 시나리오를 마쳤으면 그 사실이 응답에 실린다 (R14-4).
+async def test_endpoint_reports_today_as_done(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_fixed_user
+) -> None:
+    await _completed_session(db_pool, FIXED_USER_ID, with_scenario=True)
+
+    payload = (await api_client.get(DAILY_SUMMARY_PATH)).json()
+
+    assert payload["completed_today"] is True
+    assert payload["completed_scenarios"] == 1
+
+
+# ⑦ 두 키는 **항상** 실린다 — 화면이 키 존재를 갈라 읽지 않게 한다
+#    (`awaiting_analysis` 와 같은 규약).
+async def test_endpoint_always_carries_the_completion_keys(
+    api_client: httpx.AsyncClient, committed_fixed_user
+) -> None:
+    payload = (await api_client.get(DAILY_SUMMARY_PATH)).json()
+
+    assert payload["completed_today"] is False
+    assert payload["completed_scenarios"] == 0
+
+
+# ⑧ 시나리오 없이 끝난 세션은 완료로 세지 않는다.
+async def test_endpoint_ignores_sessions_without_a_scenario(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_fixed_user
+) -> None:
+    await _completed_session(db_pool, FIXED_USER_ID, with_scenario=False)
+
+    payload = (await api_client.get(DAILY_SUMMARY_PATH)).json()
+
+    assert payload["completed_today"] is False

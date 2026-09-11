@@ -132,6 +132,14 @@ const OUTCOME_COLOR: Record<PronunciationAttempt["outcome"], string> = {
   unclear: "var(--foreground-muted)",
 };
 
+// 오늘 학습 완료 문구 (PRD §14 R14-4 · AC14-5). 사용자가 확정한 요구사항이 「하나의 학습
+// 시나리오를 마치면 그날 학습을 완료한 것으로 봄」이고, 그 표시를 보고 **이어 갈지 종료할지**
+// 학습자가 판단한다. 그래서 이 문장은 점수판이 아니라 **판단 재료**다 — 드릴 미달 문구를
+// 「달성은 그리지 않는다」로 둔 결정 10 과 어긋나지 않는다(그쪽은 학습자가 손쓸 수 없는 수였다).
+// ⚠️ 개수는 2개 이상일 때만 붙인다 — `시나리오 1개`는 판정과 같은 말을 두 번 하는 것이다.
+const dailyDoneNotice = (scenarios: number) =>
+  scenarios > 1 ? `오늘 학습을 마쳤어요 — 시나리오 ${scenarios}개` : "오늘 학습을 마쳤어요";
+
 // 오늘 요약 절 (PRD §13 R13-4 · AC13-4). 어휘는 세션 교정 카드와 같은 것을 쓴다 — 같은 화면에서
 // 두 절이 다른 낱말로 같은 것을 부르면 학습자가 다른 개념으로 읽는다.
 const DAILY_HEADING = "오늘 무엇을 틀렸는지";
@@ -214,13 +222,16 @@ export default function ResultsPage() {
     };
   }, [sessionId]);
 
-  // 하루 요약은 **분석이 끝난 뒤** 읽는다 (PRD §13). 폴링에 같이 태우지 않는 이유: 요약은
-  // 분석 저장 트랜잭션에서 갱신되므로 분석 중에 반복해 읽어도 같은 값이고 요청만 2초마다 는다.
-  // 판독 상태가 terminal 로 바뀔 때마다 한 번 읽으므로 `no_utterances` → `final` 회복 경로에서도
-  // 다시 읽힌다(그 회복은 `shouldKeepPolling`이 소유한다).
+  // 하루 값은 **상태가 바뀔 때마다 한 번** 읽는다. 폴링(2초)에 태우지 않는 이유: 오류 요약은
+  // 분석 저장 트랜잭션에서만 갱신되므로 분석 중에 반복해 읽어도 같은 값이고 요청만 는다.
+  //
+  // ⛔ **terminal 을 기다리지 않는다** (`TASK-2`). 이전 판은 `TERMINAL_STATUSES` 를 조건으로 걸어서
+  // 분석이 `analyzing` 에 머무는 동안 **「오늘 학습을 마쳤어요」가 아예 뜨지 않았다** — 화면을 열어
+  // 직접 확인했다. 완료 여부는 **분석과 독립**이다(세션이 끝난 순간의 DB 사실이고 PRD §14 의
+  // 요구사항은 그 자리에서 이어 갈지 판단하는 것이다). `status` 가 바뀔 때 다시 읽으므로 분석이
+  // 끝난 뒤의 오류 절도 같은 효과가 채운다.
   const status = result?.status;
   useEffect(() => {
-    if (!status || !TERMINAL_STATUSES.has(status)) return;
     let cancelled = false;
     void fetchDailySummary().then((data) => {
       if (!cancelled) setDaily(data);
@@ -247,6 +258,8 @@ export default function ResultsPage() {
   // 문구에 내린 판단과 같다 — 달성을 알리는 문장은 그 자체로 점수판이 된다. `analyzed`가 거짓인
   // 경우(그날 학습이 없었다 · 조회 실패)도 같은 결과이고, 그 뜻의 정본은 `lib/api.ts`가 갖는다.
   const dailyPatterns = daily?.analyzed ? daily.patterns : [];
+  // AC14-5 — 마치지 않았으면 **문구를 쓰지 않는다**(0개를 알리는 문장도 쓰지 않는다).
+  const completedToday = daily?.completed_today ?? false;
 
   return (
     <main style={{ maxWidth: 640, margin: "0 auto", padding: "2rem", fontFamily: "sans-serif" }}>
@@ -270,6 +283,15 @@ export default function ResultsPage() {
               라벨과 위계를 다투지 않도록 muted로 둔다. */}
           {drillFellShort && (
             <p style={{ color: "var(--foreground-muted)" }}>{DRILL_SHORTFALL_NOTICE}</p>
+          )}
+
+          {/* 오늘 학습 완료 — 교정보다 **먼저** 온다. 「오늘 다 했나」가 그 아래를 읽는 틀이고,
+              학습자가 이어 갈지 정하는 자리이기 때문이다(R14-4). 상태 라벨과 위계를 다투지
+              않도록 muted 로 둔다 — 색 토큰은 `globals.css` 의 4개만 쓴다. */}
+          {completedToday && (
+            <p style={{ color: "var(--foreground-muted)" }}>
+              {dailyDoneNotice(daily?.completed_scenarios ?? 0)}
+            </p>
           )}
 
           {showCorrections && (
