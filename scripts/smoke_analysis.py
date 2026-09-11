@@ -13,16 +13,22 @@ Task 정본: `.superpowers/sdd/2026-08-25-phase1-implementation-plan/task-11-bri
 래퍼(`_RecordingClaudeClient`, 실제 호출은 그대로 위임)뿐이다.
 
 **dev DB(`ohmyenglish`)·test DB(`ohmyenglish_test`)를 쓰지 않는다** — 매 실행마다
-`ohmyenglish_smoke`를 drop/create해 001 마이그레이션을 새로 적용한다. 실행이 끝난
-뒤에도 DB를 지우지 않는다 — 실패 시 `psql`로 상태를 들여다볼 수 있어야 증거로서
-의미가 있다(다음 실행이 다시 drop/create한다).
+`ohmyenglish_smoke`를 drop/create해 **`db/migrations/*.sql` 전부**를 새로 적용한다
+(⚠️ 이전 판은 "001 마이그레이션"이라 적었는데 `recreate_database`는 전부 적용한다).
+실행이 끝난 뒤에도 DB를 지우지 않는다 — 실패 시 `psql`로 상태를 들여다볼 수 있어야
+증거로서 의미가 있다(다음 실행이 다시 drop/create한다).
 
-흐름은 AC 문서가 명시한 순서 그대로다: 세션 생성 → 발화 1 저장 → claim →
-(실제 Claude) process_analysis → 발화 2 저장 → claim → (실제 Claude)
-process_analysis → 단정. **재시도 없음** — 실제 Claude 출력은 비결정적이므로
-이 스크립트를 1회 실행하면 1회 판정으로 끝낸다. 실행:
+흐름: 세션 생성 → 발화 1 저장 → claim → (실제 Claude) process_analysis → 발화 2 →
+claim → (실제 Claude) process_analysis → **세션 종료 → 계획 job claim → (실제 Claude)
+process_plan → 스텁 어댑터 조립** → 단정. **재시도 없음** — 실제 Claude 출력은
+비결정적이므로 이 스크립트를 1회 실행하면 1회 판정으로 끝낸다. 실행:
 
     cd app/backend && .venv/bin/python ../../scripts/smoke_analysis.py
+
+**슬라이스 2 단정 넷은 `TASK-110`이 더했다**(계획서 Task 12 Step 3). ⛔ 그 넷은
+`TASK-108`·`TASK-109`(계획 생성이 `parse_plan`에서 거부된다)에 걸려 있으므로 **실패하면
+먼저 계획 job의 `last_error`를 본다** — 스모크가 깨진 것과 제품이 깨진 것은 다르다.
+그 구분을 위해 계획 job의 status·last_error를 증거로 항상 찍는다.
 """
 
 from __future__ import annotations
@@ -47,13 +53,16 @@ MIGRATIONS_DIR = REPO_ROOT / "db" / "migrations"
 # 파일 경로에서 backend 디렉터리를 계산해 넣는다 — cwd에 의존하지 않는다.
 sys.path.insert(0, str(BACKEND_DIR))
 
+from app.audio_gateway.factory import STUB_ADAPTER, create_voice_adapter  # noqa: E402
 from app.audio_gateway.fixtures import FIXTURE_TURNS  # noqa: E402
 from app.config import Settings, get_settings, prepare_bedrock_credentials  # noqa: E402
 from app.db import close_pool  # noqa: E402
 from app.db import pool as get_db_pool  # noqa: E402
 from app.models.analysis import ATTEMPT_OUTCOMES  # noqa: E402
 from app.services.analysis import process_analysis  # noqa: E402
-from app.services.jobs import ClaimedJob  # noqa: E402
+from app.services.jobs import JOB_TYPE_PLAN, ClaimedJob  # noqa: E402
+from app.services.plan import process_plan  # noqa: E402
+from app.services.sessions import load_prepared_plan, mark_session_ended  # noqa: E402
 from app.services.utterances import (  # noqa: E402
     flush_pending_analysis,
     save_final_transcript,
@@ -217,7 +226,9 @@ async def main() -> int:
         print(f"ERROR: {type(exc).__name__}: {exc}", file=sys.stderr)
         return 1
 
-    print(f"[1/4] {SMOKE_DB_NAME} drop/create + 001 마이그레이션 적용")
+    # ⚠️ 「001 마이그레이션」이라 적혀 있었는데 `recreate_database`는 `migrations_dir/*.sql`을
+    # **전부** 적용한다(2026-09-11 직접 확인). 출력이 거짓을 말하고 있었다.
+    print(f"[1/5] {SMOKE_DB_NAME} drop/create + 전 마이그레이션 적용")
     try:
         smoke_dsn = await recreate_database(SMOKE_DB_NAME, MIGRATIONS_DIR)
     except (OSError, asyncpg.PostgresError) as exc:
@@ -253,7 +264,7 @@ async def main() -> int:
         turn1_answer = FIXTURE_TURNS[0][1]
         turn2_answer = FIXTURE_TURNS[1][1]
 
-        print(f"[2/4] 발화 1 저장 → claim → process_analysis (실제 Claude): {turn1_answer!r}")
+        print(f"[2/5] 발화 1 저장 → claim → process_analysis (실제 Claude): {turn1_answer!r}")
         await _save_user_turn(db_pool, session_id, turn1_answer)
         job1 = await _claim(db_pool)
         await process_analysis(db_pool, claude, job1)
@@ -261,7 +272,7 @@ async def main() -> int:
         _report("job1", job1_row, claude, 0)
         patterns_after_1 = await _patterns(db_pool, user_id)
 
-        print(f"[3/4] 발화 2 저장 → claim → process_analysis (실제 Claude): {turn2_answer!r}")
+        print(f"[3/5] 발화 2 저장 → claim → process_analysis (실제 Claude): {turn2_answer!r}")
         await _save_user_turn(db_pool, session_id, turn2_answer)
         job2 = await _claim(db_pool)
         await process_analysis(db_pool, claude, job2)
@@ -299,7 +310,62 @@ async def main() -> int:
             (r["cycle_started_at"], r["review_stage"], r["status"]) for r in review_rows
         ]
 
-        print("[4/4] 단정 검사")
+        # ── [4/5] 학습 코치 슬라이스 2 (007) — `TASK-110`, 계획서 Task 12 Step 3 ──────────
+        #
+        # ⛔ **세션 종료가 계획 job 을 등록한다** — `end_session` 이 종료 UPDATE 와 job INSERT
+        # 두 쓰기를 한 트랜잭션에서 한다(`mark_session_ended` 가 그 트랜잭션을 연다). 그래서
+        # 이 스모크는 job 을 손으로 넣지 않는다: 손으로 넣으면 **등록 경로가 끊겨도 통과한다.**
+        print("[4/5] 세션 종료 → 계획 job claim → process_plan (실제 Claude) → 스텁 지시문")
+        await mark_session_ended(db_pool, session_id, "completed")
+        plan_job = await claim_one(db_pool)
+        plan_job_row = None
+        plan_rows: list[asyncpg.Record] = []
+        note_rows: list[asyncpg.Record] = []
+        prepared = None
+        stub_instructions: str | None = None
+        if plan_job is not None and plan_job.job_type == JOB_TYPE_PLAN:
+            await process_plan(db_pool, claude, plan_job)
+            plan_job_row = await _job_row(db_pool, plan_job.id)
+            print(
+                f"  plan_job: status={plan_job_row['status']} "
+                f"attempts={plan_job_row['attempts']}"
+                + (
+                    f" last_error={plan_job_row['last_error']!r}"
+                    if plan_job_row["last_error"]
+                    else ""
+                )
+            )
+            async with db_pool.acquire() as conn:
+                plan_rows = await conn.fetch(
+                    "select sp.id, sp.reason, sp.target_level from session_plans sp "
+                    "  join learning_sessions ls on ls.id = sp.session_id "
+                    " where ls.user_id = $1",
+                    user_id,
+                )
+                note_rows = await conn.fetch(
+                    "select note, created_at from learner_notes where user_id = $1", user_id
+                )
+                prepared = await load_prepared_plan(conn, user_id)
+            # ④ 다음 세션이 그 계획을 지시문으로 받는지 — **조립 지점을 그대로 쓴다.**
+            # ⛔ 문구를 손으로 만들지 않는다: `build_system_prompt` 를 직접 부르면 팩토리가
+            # 계획을 어댑터에 넘기는 이음매(AS6)를 건너뛴다. `voice_adapter` 만 스텁으로
+            # 덮는다 — dev `.env` 는 `nova` 이고 여기서 Nova 에 붙을 이유가 없다.
+            if prepared is not None:
+                stub_settings = settings.model_copy(update={"voice_adapter": STUB_ADAPTER})
+                adapter = create_voice_adapter(
+                    stub_settings,
+                    plan=prepared.instruction,
+                    questions=prepared.questions,
+                    scenario=None,
+                )
+                stub_instructions = adapter.instructions
+        else:
+            print(
+                f"  ⛔ 계획 job 을 claim 하지 못했다 — claim 된 것: "
+                f"{None if plan_job is None else plan_job.job_type!r}"
+            )
+
+        print("[5/5] 단정 검사")
         checks = [
             Check(
                 "error_patterns 1행",
@@ -404,6 +470,41 @@ async def main() -> int:
                 all(row["outcome"] in ATTEMPT_OUTCOMES for row in attempt_rows),
                 f"실제 {[r['outcome'] for r in attempt_rows]!r} (값역 {list(ATTEMPT_OUTCOMES)})",
             ),
+            # ── 학습 코치 슬라이스 2 (007) · `TASK-110` ────────────────────────────────
+            # ⛔ 넷 중 첫째만 Claude 와 무관하다 — 나머지 셋은 계획 생성이 «성공해야» 통과한다.
+            # 실패하면 위 `plan_job: last_error` 를 먼저 본다(`TASK-108`·`TASK-109`).
+            #
+            # ⛔ **이 넷이 PASS 인 것을 「계획 생성이 건강하다」로 읽지 마라.** 이 스모크의 DB 는
+            # 매 실행 새로 만들어져 **만성 패턴이 정확히 1건**이다(2026-09-11 직접 조회:
+            # `chronic=1` · `deepest_recurrence`가 그 하나). `parse_plan`은 초점에
+            # `deepest_pattern_id` 포함을 요구하는데 **후보가 하나면 모델이 틀릴 수 없다** —
+            # 즉 `TASK-108`(프롬프트가 어느 것이 가장 깊은 재발인지 지목하지 않는다)은
+            # **만성 2건 이상**에서만 재현되고 이 스모크는 그 조건을 만들지 않는다.
+            # `TASK-109`(모델이 없는 키를 붙인다)는 비결정적이라 통과가 부재를 뜻하지 않는다.
+            Check(
+                "세션 종료가 계획 job 을 걸었다",
+                plan_job is not None and plan_job.job_type == JOB_TYPE_PLAN,
+                f"claim 된 job_type={None if plan_job is None else plan_job.job_type!r} "
+                f"(기대 {JOB_TYPE_PLAN!r})",
+            ),
+            Check(
+                "session_plans 1행",
+                len(plan_rows) == 1,
+                f"실제 {len(plan_rows)}행 · plan_job status="
+                f"{None if plan_job_row is None else plan_job_row['status']}",
+            ),
+            Check(
+                "learner_notes 1행",
+                len(note_rows) == 1,
+                f"실제 {len(note_rows)}행",
+            ),
+            Check(
+                "다음 세션 스텁 지시문에 'Today's plan:' 이 있다",
+                stub_instructions is not None and "Today's plan:" in stub_instructions,
+                f"prepared={'있음' if prepared is not None else '없음'} · "
+                f"instructions 길이="
+                f"{0 if stub_instructions is None else len(stub_instructions)}",
+            ),
         ]
         all_passed = _print_checks(checks)
 
@@ -422,6 +523,12 @@ async def main() -> int:
                 f"suggested_contexts={'null' if stored is None else json.loads(stored)!r}"
             )
         print(f"pattern_attempts: {[r['outcome'] for r in attempt_rows]!r}")
+        for row in plan_rows:
+            print(f"session_plan: target_level={row['target_level']!r} reason={row['reason']!r}")
+        for row in note_rows:
+            print(f"learner_note: {row['note']!r}")
+        if stub_instructions is not None:
+            print(f"스텁 지시문 앞 200자: {stub_instructions[:200]!r}")
         print(
             f"review_tasks: {review_detail!r} · "
             f"next_review_at={pattern['next_review_at'] if pattern else 'N/A'}"
