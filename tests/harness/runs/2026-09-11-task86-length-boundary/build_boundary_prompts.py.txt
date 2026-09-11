@@ -1,0 +1,100 @@
+#!/usr/bin/env python3
+"""`TASK-86` 결정 62 — 「짧다」의 경계를 이분한다. ⛔ 제품 코드를 고치지 않는다.
+
+기준은 **P2**(1,702자 · tool 4/4)다. 거기에 빠져 있던 블록을 **한 번에 하나만** 되돌려 붙여
+어느 블록이 tool 을 죽이는지 본다.
+
+| 팔 | = P2 + 무엇 |
+|---|---|
+| **S1(+rules)** | 학습자 프로필 문단 + 규칙 **1~7** (계획 블록은 없다) |
+| **S2(+plan)** | 놓친 소리 목록 + 무대 + 계획 블록·질문 5개 (규칙 1~7 은 없다) |
+
+두 팔 모두 규칙 9·11 의 유보 문면은 **걷은 상태**를 유지한다(P2 와 같게) — 그 변수를 고정해야
+이 회차가 재는 것이 「블록의 질량」 하나가 된다.
+
+⛔ 문면을 새로 쓰지 않는다. A7 프롬프트(`prompt_soundq.txt`)를 줄 단위로 오려 붙인다.
+⛔ 치환·슬라이스가 기대와 다르면 조용히 통과시키지 않고 죽는다.
+"""
+
+from pathlib import Path
+
+A7 = Path(
+    "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/"
+    "2026-09-11-task86-sound-shaped-questions/prompt_soundq.txt"
+)
+S1_OUT = Path("/tmp/prompt_bound_rules.txt")
+S2_OUT = Path("/tmp/prompt_bound_plan.txt")
+
+RULE9_OLD = """9. Grammar first. On most turns, correct grammar and leave pronunciation alone. Take up
+   pronunciation only when a sound is so far off that the sentence is hard to understand —
+   never for a mild accent. When you do take it up, name the sound that was off, say the
+   whole sentence back with correct pronunciation, and ask the learner to repeat it."""
+RULE9_NEW = """9. When a sound is off, take it up on that turn: name the sound that was off, say the
+   whole sentence back with correct pronunciation, and ask the learner to repeat it."""
+RULE11_OLD = """11. A pronunciation correction is a correction. It counts against the one-per-turn limit
+    in rule 4 — never add it on top of a grammar correction in the same turn."""
+RULE11_NEW = """11. A pronunciation correction is the one correction for that turn in rule 4. Spend it on
+    the sound rather than on repeating the sentence back for grammar."""
+
+SOUND_MARK = "- Sound to coach today:"
+PRON_HEAD = "Pronunciation coaching:"
+SOUNDS_HEAD = "Sounds this learner has missed before:"
+
+
+def cut(text: str) -> str:
+    for old in (RULE9_OLD, RULE11_OLD):
+        if old not in text:
+            raise SystemExit(f"치환 대상이 없다: {old[:50]!r}")
+    return text.replace(RULE9_OLD, RULE9_NEW).replace(RULE11_OLD, RULE11_NEW)
+
+
+def main() -> None:
+    lines = cut(A7.read_text(encoding="utf-8")).splitlines()
+
+    def index_of(needle: str) -> int:
+        hits = [i for i, line in enumerate(lines) if line.startswith(needle)]
+        if len(hits) != 1:
+            raise SystemExit(f"{needle!r} 가 {len(hits)}건이다 — 1건이어야 오릴 수 있다")
+        return hits[0]
+
+    pron = index_of(PRON_HEAD)
+    sounds = index_of(SOUNDS_HEAD)
+    sound_line = [line for line in lines if SOUND_MARK in line]
+    if len(sound_line) != 1:
+        raise SystemExit("소리 줄이 1건이 아니다")
+
+    role = lines[0]
+    system_block = lines[:sounds]  # 역할 + 프로필 + 규칙 1~11
+    pron_block = lines[pron:sounds]  # 발음 절만(규칙 8~11)
+    plan_block = lines[sounds:]  # 놓친 소리 + 무대 + 계획 블록(소리 줄 포함)
+
+    # S1 = 규칙 전문(1~11) + 소리 줄. 계획 블록 없음.
+    s1 = "\n".join([*system_block, "", *sound_line])
+    # S2 = 역할 + 발음 절 + 계획 블록 전체. 규칙 1~7·프로필 없음.
+    s2 = "\n".join([role, "", *pron_block, *plan_block])
+
+    S1_OUT.write_text(s1, encoding="utf-8")
+    S2_OUT.write_text(s2, encoding="utf-8")
+
+    print("기준: P2 1,702자(tool 4/4) · A7 5,078자(tool 0/7)")
+    print(f"S1(+rules 1~7) {len(s1)}자 → {S1_OUT}")
+    print(f"S2(+plan)      {len(s2)}자 → {S2_OUT}")
+    checks = {
+        "S1 에 규칙 2 가 있나": "Ask one question at a time" in s1,
+        "S1 에 계획 블록이 없나": "Today's plan:" not in s1,
+        "S1 에 질문이 없나": "Thursday evening" not in s1,
+        "S1 에 소리 줄이 있나": SOUND_MARK in s1,
+        "S2 에 규칙 2 가 없나": "Ask one question at a time" not in s2,
+        "S2 에 계획·질문이 있나": "Thursday evening" in s2,
+        "S2 에 규칙 10 이 있나": "Call report_pronunciation_coaching twice" in s2,
+        "둘 다 유보가 걷혔나": ("leave pronunciation alone" not in s1)
+        and ("leave pronunciation alone" not in s2),
+    }
+    for label, ok in checks.items():
+        print(f"  {label}: {ok}")
+    if not all(checks.values()):
+        raise SystemExit("슬라이스가 기대와 다르다 — 돌리지 않는다")
+
+
+if __name__ == "__main__":
+    main()

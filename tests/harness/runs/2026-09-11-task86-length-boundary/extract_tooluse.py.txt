@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+"""회차 증거에서 **tool 도착과 payload** 를 읽는다 — 정규식을 쓰지 않는다.
+
+⛔ 앞 판(`extract_soundq.py`)의 `target_sound` 열은 **틀렸다.** `toolUse.content` 가 JSON
+**문자열**이라 따옴표가 이스케이프되는데 `"target_sound"\\s*:\\s*"..."` 로 찾았으므로 값이 있어도
+못 찾는다. 여기서는 `content` 를 `json.loads` 로 **파싱해서** 읽는다.
+
+세는 것 넷: tool 건수 · `target_sound` 값 · `outcome` 값 · 코치 발화에 소리 언급이 있는지.
+⛔ 코칭 발생과 tool 도착을 갈라 센다. 되말하기는 코칭이 아니다(결정 51).
+"""
+
+import json
+import sys
+from pathlib import Path
+
+EV = Path("/Users/redstar/MyProject/OhMyEnglish/.harness/evidence")
+# ⛔ 맨 `th` 를 넣지 않는다 — `that`·`the`·`with` 에 걸려 오탐이 난다(실측).
+SOUND_HINTS = ("sound", "say it again", "repeat", "pronounce", "/θ/", "tongue", "listen to me")
+
+
+def main() -> None:
+    total = arrived = 0
+    for path in sorted(EV.glob(sys.argv[1])):
+        events = json.load(path.open())
+        uses = [e["toolUse"] for e in events if isinstance(e, dict) and "toolUse" in e]
+        text = " ".join(
+            e["textOutput"]["content"]
+            for e in events
+            if isinstance(e, dict) and e.get("textOutput", {}).get("role") == "ASSISTANT"
+        )
+        payloads = []
+        for use in uses:
+            try:
+                payloads.append(json.loads(use.get("content") or "{}"))
+            except json.JSONDecodeError:
+                payloads.append({"_parse_error": str(use.get("content"))[:80]})
+        low = text.lower()
+        total += 1
+        arrived += 1 if uses else 0
+        print(f"--- {path.name[-22:]}  tool {len(uses)}건")
+        for item in payloads:
+            print(
+                f"      target_sound={item.get('target_sound')!r} "
+                f"outcome={item.get('outcome')!r} target_form={str(item.get('target_form'))[:70]!r}"
+            )
+        print(f"      소리어={sorted(h for h in SOUND_HINTS if h in low)} 발화 {len(text)}자")
+    print(f"=== {sys.argv[1]}: 세션 {total} · tool 도착 {arrived}")
+
+
+if __name__ == "__main__":
+    main()
