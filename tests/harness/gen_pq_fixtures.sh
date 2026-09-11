@@ -63,6 +63,17 @@ gen pq05a "It is easy to understand the new process."
 gen pq07a "I will review the report and share the results."
 gen pq08a "I finished the first version of the file."
 
+# ── 그룹 F — pq04 대체 (TASK-115)
+#
+# ⛔ 왜 새 ID 인가: pq04 의 문장이 「I want to review the code with you.」인데 그 «내용» 이 모델을
+# 코딩 조수 역할로 끌어당겨 발음 축을 잴 수 없었다(실측 — runs/2026-09-12-task114-mild-band-dedicated.md
+# §2.5). pq04 를 덮지 않는다: PQ 정본과 TASK-90 회차가 그 ID 로 인용한다.
+#
+# ⚠️ 문장을 고를 때 «도구 지시로 읽히는 낱말» 을 피한다 — code·review·debug·run·file 계열.
+# 일상 문장으로 두고 /r/ 을 여러 자리에 넣는다(brother·arrive·early·tomorrow·morning).
+gen pq13 "My blother will allive ealy tomollow molning."
+gen pq13a "My brother will arrive early tomorrow morning."
+
 echo "=== 생성 끝 — 길이를 잰다 (빈 파일 검출) ==="
 for f in "$DEST"/pq*.wav; do
   [ -e "$f" ] || continue
