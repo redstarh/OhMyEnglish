@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+"""`TASK-86` 결정 60 — 팔 A9(soundfirst). ⛔ 제품 지시문을 고치지 않는다.
+
+**바꾸는 변수는 «위치» 하나이고 문면은 한 자도 바꾸지 않는다.** A7 프롬프트에서
+`- Sound to coach today: ...` 줄을 **제자리에서 떼어 프롬프트 맨 앞으로** 옮긴다.
+
+왜: 결정 60 이 지목한 축이 *「규칙 10 을 앞으로 올리는」* 것이다. 대조군(짧은 프롬프트)은 **첫
+문장**에서 자신을 발음 코치로 규정하고 *"you MUST call"* 을 말하며 14/15 로 tool 을 부른다.
+제품 프롬프트는 같은 내용을 **계획 블록 안쪽**에 둔다. A7·A8 이 문면을 고쳐도 0 이었으므로 남은
+후보가 위치다.
+
+⛔ 기준을 A7 로 잡는다(규칙 9·11 문면이 살아 있는 판) — A8 위에 얹으면 변수가 둘이 된다.
+⛔ 치환 실패 시 조용히 통과시키지 않고 죽는다.
+"""
+
+from pathlib import Path
+
+SRC = Path(
+    "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/"
+    "2026-09-11-task86-sound-shaped-questions/prompt_soundq.txt"
+)
+OUT = Path("/tmp/prompt_soundfirst.txt")
+MARK = "- Sound to coach today:"
+
+
+def main() -> None:
+    text = SRC.read_text(encoding="utf-8")
+    lines = text.splitlines()
+    hits = [i for i, line in enumerate(lines) if MARK in line]
+    if len(hits) != 1:
+        raise SystemExit(f"소리 줄이 {len(hits)}건이다 — 1건이어야 위치만 바꿀 수 있다")
+    index = hits[0]
+    moved = lines.pop(index)
+    # 맨 앞으로 올린다. 줄 자체는 그대로 두고 뒤에 빈 줄 하나만 둔다(블록 경계).
+    swapped = "\n".join([moved, ""] + lines)
+    OUT.write_text(swapped, encoding="utf-8")
+
+    print(f"A7 {len(text)}자 → A9 {len(swapped)}자 ({len(swapped) - len(text):+d})")
+    print(f"  옮긴 줄이 원래 있던 자리: {index + 1}번째 줄 → 1번째 줄")
+    print(f"  소리 줄 수: {swapped.count(MARK)}건")
+    print(f"  문면 보존: {sorted(text.split()) == sorted(swapped.split())}")
+    print("  새 첫 두 줄:")
+    for line in swapped.splitlines()[:2]:
+        print(f"    {line[:120]}")
+    print(f"→ {OUT}")
+
+
+if __name__ == "__main__":
+    main()

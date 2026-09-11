@@ -1,0 +1,69 @@
+#!/usr/bin/env python3
+"""`TASK-86` 결정 60 — 팔 A8(rule9cut). ⛔ 제품 지시문을 고치지 않는다.
+
+A7 프롬프트(`prompt_soundq.txt`)에서 **규칙 9·11 두 블록의 문장만** 갈아 넣는다. 바꾸는 변수가
+하나여야 하므로 ⑴ 번호를 재배치하지 않고 ⑵ 규칙 10 을 한 자도 건드리지 않는다.
+
+왜: `_SOUND_INSTRUCTION` 이 *"instead of the Grammar first rule 9"* 라고 **말하지만** 규칙 9 의
+본문(`leave pronunciation alone` · `never for a mild accent`)이 프롬프트에 그대로 남아 있다.
+`TASK-75` 가 잰 것은 그 **선언**이 실린 판이고 문면을 걷어낸 판은 아직 없다.
+
+⛔ 치환이 실패하면(문면이 바뀌었으면) **조용히 통과시키지 않고 죽는다** — 그러면 이 팔이 A7 과
+같은 프롬프트를 돌려 「변수 없음」을 변수로 착각하게 된다.
+"""
+
+from pathlib import Path
+
+SRC = Path(
+    "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/"
+    "2026-09-11-task86-sound-shaped-questions/prompt_soundq.txt"
+)
+OUT = Path("/tmp/prompt_rule9cut.txt")
+
+RULE9_OLD = """9. Grammar first. On most turns, correct grammar and leave pronunciation alone. Take up
+   pronunciation only when a sound is so far off that the sentence is hard to understand —
+   never for a mild accent. When you do take it up, name the sound that was off, say the
+   whole sentence back with correct pronunciation, and ask the learner to repeat it."""
+
+RULE9_NEW = """9. When a sound is off, take it up on that turn: name the sound that was off, say the
+   whole sentence back with correct pronunciation, and ask the learner to repeat it."""
+
+RULE11_OLD = """11. A pronunciation correction is a correction. It counts against the one-per-turn limit
+    in rule 4 — never add it on top of a grammar correction in the same turn."""
+
+RULE11_NEW = """11. A pronunciation correction is the one correction for that turn in rule 4. Spend it on
+    the sound rather than on repeating the sentence back for grammar."""
+
+
+def main() -> None:
+    text = SRC.read_text(encoding="utf-8")
+    for old in (RULE9_OLD, RULE11_OLD):
+        if old not in text:
+            raise SystemExit(
+                "치환 대상 문면이 프롬프트에 없다 — 지시문이 바뀌었다. "
+                "이 팔을 돌리면 A7 과 같은 프롬프트가 되므로 멈춘다.\n"
+                f"찾던 것: {old[:60]!r}"
+            )
+    swapped = text.replace(RULE9_OLD, RULE9_NEW).replace(RULE11_OLD, RULE11_NEW)
+    OUT.write_text(swapped, encoding="utf-8")
+
+    print(f"A7 {len(text)}자 → A8 {len(swapped)}자 ({len(swapped) - len(text):+d})")
+    for banned in (
+        "Grammar first",
+        "leave pronunciation alone",
+        "never for a mild accent",
+        "never add it on top of a grammar correction",
+    ):
+        print(f"  걷힘? {banned!r}: {banned not in swapped}")
+    for kept in (
+        "Call report_pronunciation_coaching twice",
+        "Always include target_sound",
+        "Thursday evening",
+        "- Sound to coach today:",
+    ):
+        print(f"  남았나? {kept!r}: {kept in swapped}")
+    print(f"→ {OUT}")
+
+
+if __name__ == "__main__":
+    main()
