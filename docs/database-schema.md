@@ -420,6 +420,85 @@ Nova가 판정해 `pronunciation_attempts`로 간다.
 발화 단위 replace다 — `delete from pattern_attempts where utterance_id = :id` 후 새 판정 insert.
 이 인덱스가 `pattern_id` 선두라 복습 재계산의 조회 경로도 겸하므로 **별도 인덱스를 두지 않았다**.
 
+### `session_plans` — 도입: 007(학습 코치 슬라이스 2)
+
+| 컬럼 | 타입 | 제약 |
+|---|---|---|
+| `id` | uuid | PK, `default gen_random_uuid()` |
+| `session_id` | uuid | not null, **UNIQUE**, FK → `learning_sessions`, `on delete cascade` |
+| `focus_pattern_ids` | uuid[] | not null, CHECK `cardinality between 1 and 2` |
+| `questions` | jsonb | not null, CHECK 배열이고 길이 `3~5` |
+| `target_level` | text | not null, CHECK (`A1`, `A2`, `B1`, `B2`, `C1`, `C2`) |
+| `reason` | text | not null, CHECK 공백만인 값 거부 |
+| `instruction` | jsonb | not null |
+| `source` | text | not null, CHECK (`agent`, `fallback`) |
+| `created_at` | timestamptz | not null, default `now()` |
+
+⛔ **`session_id`는 「이 계획을 **만든** 세션」이다 — 「이 계획을 **쓸** 세션」이 아니다.** 계획은
+세션이 끝날 때 만들어지고 **다음** 세션이 읽으므로, 읽는 쪽은 세션으로 찾지 않고 그 학습자의
+**최신 1행**을 읽는다(`services/sessions.py`의 `_PREPARED_PLAN_SQL`). 그 귀결은 학습 코치 설계서
+§3.4가 소유한다 — 직전 세션의 계획이 아직 없으면 **그 앞 세션의 계획이 다시 읽힌다.**
+
+`unique(session_id)`: 한 세션이 계획을 두 번 만들지 않는다. `on delete cascade`인 이유는 조회가
+`session_id`로 찾기 때문이다 — 만든 세션이 사라지면 그 계획을 찾을 길이 없다.
+
+⚠️ **`focus_pattern_ids`의 길이 CHECK에 `cardinality`를 쓴다** — `array_length('{}', 1)`은 NULL이고
+CHECK 식이 NULL이면 Postgres가 만족으로 취급해 **빈 배열이 통과한다**(2026-09-04 실측: 통과 1행).
+`questions`가 같은 함정에 안 걸리는 것은 `jsonb_array_length('[]')`가 0을 돌려주기 때문이다 —
+두 함수의 빈값 처리가 달라서 생긴 비대칭이다.
+
+`focus_pattern_ids`를 연결 표로 만들지 않은 이유: 순서가 의미를 갖고 행이 최대 2개다(YAGNI).
+`source`가 `fallback`인 행은 **「계획 생성은 됐지만 뱅크 내용을 썼다」**는 뜻이다 — 폴백으로 시작한
+세션은 애초에 이 행이 없다.
+
+### `learner_notes` — 도입: 007(학습 코치 슬라이스 2)
+
+| 컬럼 | 타입 | 제약 |
+|---|---|---|
+| `id` | uuid | PK, `default gen_random_uuid()` |
+| `user_id` | uuid | not null, FK → `users`, `on delete cascade` |
+| `note` | jsonb | not null |
+| `window_from` | timestamptz | not null |
+| `window_to` | timestamptz | not null |
+| `created_at` | timestamptz | not null, default `now()` |
+| — | — | CHECK `window_from <= window_to` |
+| — | — | INDEX `idx_learner_notes_latest` (`user_id`, `created_at desc`) |
+
+**덧붙이기만 한다** — 갱신·삭제하지 않으므로 `updated_at`이 없다. **최신 행이 현행 노트**이고
+(학습 코치 설계서 §6.3) 그래서 별도 이력 표를 만들지 않는다. 되돌리기는 이전 행이 그대로 남아 있는
+것으로 성립한다(AS8).
+
+`window_from`·`window_to`는 **이 노트가 읽은 발화 범위**다 — 어떤 근거로 쓰인 노트인지 추적한다.
+`note`는 관찰 항목 배열과 수준 변경 사유를 담는다(§7의 수준 갱신이 그 사유를 여기 남긴다).
+
+### `daily_error_summary` — 도입: **012**(일일 오류 요약)
+
+| 컬럼 | 타입 | 제약 |
+|---|---|---|
+| `id` | uuid | PK, `default gen_random_uuid()` |
+| `user_id` | uuid | not null, FK → `users`, `on delete cascade` |
+| `summary_date` | **date** | not null |
+| `timezone` | text | not null, CHECK 공백만인 값 거부 |
+| `occurrence_count` | integer | not null, CHECK `>= 0` |
+| `pattern_count` | integer | not null, CHECK `>= 0` |
+| `patterns` | jsonb | not null |
+| `computed_at` | timestamptz | not null, default `now()` |
+| — | — | UNIQUE(`user_id`, `summary_date`) |
+
+⚠️ **`summary_date`가 `date`인 것은 예외가 아니다** — 전역 시각 규약의 「이벤트 시각은
+`timestamptz`」는 **절대 시각**에 걸리는 규칙이고 이 컬럼은 **달력 날짜**다. 그 날짜를 그은
+타임존을 `timezone`에 **스냅샷으로 함께 남긴다**: `users.timezone`이 나중에 바뀌면 과거 요약이
+어느 경계로 그어졌는지 복원할 수 없다. ⛔ `users.timezone`에는 CHECK가 없어(001) 무효값이 실재할
+수 있고 **그 거부는 조회 시점의 앱이 한다** — 이 표는 빈 문자열만 막는다.
+
+`occurrence_count`·`pattern_count`를 따로 담는 이유: `patterns` 목록이 상위 20종에서 잘릴 수 있어
+그것을 세면 전체 수와 어긋난다. `patterns`를 표로 나누지 않은 이유는 스냅샷이 **통째로 읽히고
+부분 갱신이 없기** 때문이다(같은 관용을 `learning_sessions.summary`·`learner_notes.note`·
+`error_occurrences.suggested_contexts`가 이미 쓴다). 대가는 패턴별 SQL 집계·인덱스가 안 되는 것이다.
+
+`unique(user_id, summary_date)`가 upsert의 conflict 대상이고 조회 인덱스도 겸한다 — **별도 인덱스를
+두지 않은 이유**다. 재분석으로 다시 쓰이면 `computed_at`이 함께 갱신된다.
+
 ### 아직 SQL에 없는 테이블
 
 | 테이블 | 도입 | 비고 |
