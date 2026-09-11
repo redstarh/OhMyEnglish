@@ -1,0 +1,89 @@
+#!/usr/bin/env python3
+"""`TASK-86` 결정 57 — 2단계 팔(A7 soundq)의 세션 지시문을 조립한다. ⛔ 제품 팔이 아니다.
+
+1단계가 새 규칙으로 **다시 생성한 계획**(`/tmp/soundq_plan.json`)의 질문과 지시를 싣고,
+나머지 인자(놓친 소리 목록 · 무대 · 드릴 설정)는 제품 로더 값을 그대로 쓴다.
+
+⚠️ **바뀐 것은 「계획 생성 산출물 전체」다** — 질문 5개와 함께 문법 초점도 바뀌었다
+(`article_missing_before_noun` → `article_missing_the_before_place_noun`). 모델이 두 초점을 한
+문장에 담으려고 그렇게 골랐고, 그 둘을 갈라 실으면 지시문 안에서 초점과 질문이 서로 다른 것을
+가리킨다. 그래서 이 팔의 변수는 **질문 문면 하나가 아니라 계획 생성의 산출물**이고, 회차 기록이
+그 사실을 먼저 적는다.
+
+⛔ **DB 는 SELECT 만 한다.** 이 계획을 `session_plans` 에 쓰지 않는다 — 하네스 팔이다.
+"""
+
+import asyncio
+import json
+from pathlib import Path
+
+from app.api.ws import (
+    _load_known_sounds_or_empty,
+    _load_prepared_plan_or_none,
+    _load_scenario_or_none,
+)
+from app.audio_gateway.nova import build_system_prompt
+from app.config import get_settings
+from app.db import close_pool, pool
+from app.models.plan import PlanQuestion, SessionInstruction
+
+SOUND = "th_as_s"
+_PLAN = Path("/tmp/soundq_plan.json")
+_OUT = Path("/tmp/prompt_soundq.txt")
+
+
+async def main() -> None:
+    settings = get_settings()
+    conn_pool = await pool()
+
+    payload = json.loads(_PLAN.read_text(encoding="utf-8"))
+    instruction = SessionInstruction.model_validate(payload["instruction"])
+    questions = [PlanQuestion.model_validate(item) for item in payload["questions"]]
+
+    known = list(await _load_known_sounds_or_empty(conn_pool))
+    # 앞 팔들과 같은 처리 — 오늘의 소리가 학습자의 목록에도 있어야 자연스럽다.
+    if SOUND not in known:
+        known.append(SOUND)
+
+    sid = await conn_pool.fetchval(
+        "select session_id from session_plans order by created_at desc limit 1"
+    )
+    scenario = await _load_scenario_or_none(conn_pool, sid) if sid else None
+    # 저장된 계획은 **읽기만** 한다 — 앞 팔들과 무대·설정이 같은지 대조하기 위한 것이다.
+    stored = await _load_prepared_plan_or_none(conn_pool)
+
+    prompt = build_system_prompt(
+        known,
+        instruction,
+        questions,
+        scenario,
+        drill_count=settings.drill_count,
+        drill_turns_min=settings.drill_turns_min,
+    )
+    _OUT.write_text(prompt, encoding="utf-8")
+
+    print("=== 팔 A7(soundq) 인자")
+    print(f"  known_sounds : {known}")
+    print(f"  focus        : {[(f.pattern_key, f.target_form) for f in instruction.focus]}")
+    print(f"  questions    : {len(questions)}건 (새 규칙이 만든 것)")
+    print(f"  scenario     : {scenario.title if scenario else None!r}")
+    print(f"  target_level : {instruction.target_level}")
+    if stored is not None:
+        print(f"  (대조) 저장된 계획 질문 {len(stored.questions)}건 · 첫 질문:")
+        print(f"    {stored.questions[0].prompt[:110]}")
+    print()
+    print(f"프롬프트 {len(prompt)}자 · 소리 줄 {prompt.count('- Sound to coach today:')}건")
+    for line in prompt.splitlines():
+        if "- Sound to coach today:" in line:
+            print(f"  소리 줄: {line[:130]}")
+    print("=== 실린 질문 줄")
+    for line in prompt.splitlines():
+        if line.strip()[:2] in {"1.", "2.", "3.", "4.", "5."}:
+            print(f"  {line.strip()[:120]}")
+    print(f"→ {_OUT}")
+
+    await close_pool()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

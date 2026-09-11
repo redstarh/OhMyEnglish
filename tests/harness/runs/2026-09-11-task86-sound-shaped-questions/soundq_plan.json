@@ -1,0 +1,50 @@
+{
+  "questions": [
+    {
+      "prompt": "It is Thursday evening and work is over. Where do you go? Tell me two or three places.",
+      "context": "After-work routine on a weekday"
+    },
+    {
+      "prompt": "A friend asks about this weekend. Tell me where you go on Saturday and who is with you.",
+      "context": "Small talk about weekend plans"
+    },
+    {
+      "prompt": "Think about your morning. Where do you go first, and how do you get there?",
+      "context": "Morning commute"
+    },
+    {
+      "prompt": "Tell me about your birthday. Where do you go with your family that day?",
+      "context": "A birthday outing"
+    },
+    {
+      "prompt": "A new teammate does not know this area. Tell them three good places near your office.",
+      "context": "Helping a new teammate find places near the office"
+    }
+  ],
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "pronunciation_th_as_s",
+        "target_form": "th_as_s"
+      },
+      {
+        "pattern_key": "article_missing_the_before_place_noun",
+        "target_form": "go to the + 장소 명사"
+      }
+    ],
+    "sentence_length": "short single-clause sentences, about 5-8 words; add a second clause only when the learner sounds ready",
+    "hint_timing": "wait for one full try, then hint after a second try or a 3-second pause",
+    "contexts": [
+      "after-work routine on a weekday",
+      "weekend plans with a friend",
+      "morning commute",
+      "birthday outing with family",
+      "showing a new teammate places near the office"
+    ]
+  },
+  "target_level": "A2",
+  "reason": "'the', 'Thursday', 'think'처럼 th 소리가 [s]로 나오는 습관이 있고, 'go to gym'처럼 장소 앞 the를 자주 빼셔서 오늘은 둘을 한 문장에서 같이 연습해요.",
+  "parse_plan": "거부: PlanValidationError: focus must include the deepest recurrence 70ad1279-cfaf-4a57-b37b-c28f561baeaa, but it lists 99fc908f-e25c-4c19-86ed-a4720cf8eb2b, e648ad11-2bf5-43cf-96b0-eb9d7b6e329e",
+  "validated": false
+}

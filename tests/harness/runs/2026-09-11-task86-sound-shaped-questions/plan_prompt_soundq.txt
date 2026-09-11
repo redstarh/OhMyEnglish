@@ -1,0 +1,161 @@
+You plan the next English speaking session for one Korean learner.
+
+Learner profile: can handle greetings, small talk, and simple daily-life sentences; mostly uses
+short patterns such as "I want to...", "I need to...", "I'd like to...". Long-term goal is to
+join business meetings and report project status. Start from daily life and move toward work
+topics — do not write examples at the long-term goal level.
+
+Sentence length: default to short, single-clause sentences built on patterns like the ones above.
+Extend length and clause count gradually as the learner is ready — never jump straight to the
+long-term goal level. This applies to instruction.sentence_length and to the example questions.
+
+You decide what the weakness really is, which situations to practise it in, and the difficulty.
+The lists below are **facts**, already computed. Do not recompute them and do not drop any of them.
+
+Due for review today (facts, already computed — do not recompute):
+- business_expression_verb_noun_collocation [pattern_id: a719446a-2ec7-464d-bdbd-e46a2eaa723a] (business_expression): target form "make / prepare + an + 계획 명사", due since 2026-09-01T22:21:03.123308+00:00, mastery 0.0
+- preposition_time_expression_ago [pattern_id: 09ed5f7f-bdf7-49b6-a0b0-46db2c36dd4e] (preposition): target form "숫자/a few + 기간 명사 + ago", due since 2026-09-03T23:15:01.903223+00:00, mastery 0.0
+- article_wrong_definite_article [pattern_id: 9db5f7d4-e676-46d1-968d-be86b656134a] (article): target form "a/an + 처음 언급하는 단수 명사", due since 2026-09-03T23:15:01.903223+00:00, mastery 0.0
+- pronunciation_th_as_s [pattern_id: 99fc908f-e25c-4c19-86ed-a4720cf8eb2b] (pronunciation_intonation): target sound "th_as_s", due since 2026-09-04T13:51:26.680389+00:00, mastery 0.0
+- article_missing_before_noun [pattern_id: 70ad1279-cfaf-4a57-b37b-c28f561baeaa] (article): target form "a/an + 단수 명사", due since 2026-09-04T13:56:38.186958+00:00, mastery 0.0
+- word_order_time_adverb_placement [pattern_id: eff9d7c5-fc1b-486f-8155-3d58e764697a] (word_order): target form "주어 + 동사 + 목적어 + 시간 표현(yesterday 등)", due since 2026-09-09T14:36:53.838781+00:00, mastery 0.0
+- preposition_missing_to_after_go [pattern_id: e76b8e82-3068-4333-a7b7-4baadd046b54] (preposition): target form "go to the + 장소 명사", due since 2026-09-09T14:36:53.838781+00:00, mastery 0.0
+- article_missing_the_before_place_noun [pattern_id: e648ad11-2bf5-43cf-96b0-eb9d7b6e329e] (article): target form "go to the + 장소 명사", due since 2026-09-09T19:54:39.449652+00:00, mastery 0.0
+
+Recent learner utterances (context only, never a focus source — 2026-08-28T11:33:05.574415+00:00 to 2026-09-11T11:33:05.574415+00:00):
+- [2026-08-31T22:17:50.585555+00:00] "ah"
+- [2026-08-31T22:17:58.244132+00:00] "i'm good."
+- [2026-08-31T22:18:00.298379+00:00] "how about you?"
+- [2026-08-31T22:18:15.108236+00:00] "i'm going to"
+- [2026-08-31T22:18:17.650052+00:00] "have a meeting"
+- [2026-08-31T22:18:32.589360+00:00] "i'm going to have a meeting."
+- [2026-08-31T22:18:54.126854+00:00] "yes, i prepared."
+- [2026-08-31T22:18:55.715271+00:00] "a report."
+- [2026-08-31T22:18:56.763043+00:00] "for the meeting."
+- [2026-08-31T22:19:07.681905+00:00] "no, nothing."
+- [2026-08-31T22:19:20.757352+00:00] "i will talk about architecture."
+- [2026-08-31T22:19:35.302594+00:00] "i will talk about architecture."
+- [2026-08-31T22:19:55.597027+00:00] "i don't know."
+- [2026-08-31T22:20:17.874652+00:00] "i will plan the"
+- [2026-08-31T22:20:19.170790+00:00] "active plan."
+- [2026-08-31T22:20:32.677715+00:00] "i plan the action plan."
+    correction: business_expression_verb_noun_collocation (business_expression) — "plan the action plan" -> "make an action plan" (medium, confidence 0.75)
+    correction: article_wrong_definite_article (article) — "the action plan" -> "an action plan" (low, confidence 0.6)
+- [2026-08-31T22:20:50.392252+00:00] "i will plan on action plan."
+    correction: business_expression_verb_noun_collocation (business_expression) — "plan on action plan" -> "make an action plan" (high, confidence 0.8)
+    correction: article_missing_before_noun (article) — "action plan" -> "an action plan" (medium, confidence 0.85)
+- [2026-08-31T22:21:03.123308+00:00] "i will plan on action plan."
+    correction: business_expression_verb_noun_collocation (business_expression) — "will plan on action plan" -> "will make an action plan" (medium, confidence 0.85)
+    correction: article_missing_before_noun (article) — "action plan" -> "an action plan" (medium, confidence 0.9)
+- [2026-09-02T23:14:17.053669+00:00] "she enjoyed joke before some night"
+    correction: article_missing_before_noun (article) — "joke" -> "a joke" (medium, confidence 0.9)
+    correction: preposition_time_expression_ago (preposition) — "before some night" -> "a few nights ago" (high, confidence 0.6)
+- [2026-09-02T23:14:43.426653+00:00] "i uh"
+- [2026-09-02T23:14:47.477790+00:00] "she enjoyed a joke before some night"
+    correction: preposition_time_expression_ago (preposition) — "before some night" -> "a few nights ago" (high, confidence 0.85)
+- [2026-09-02T23:14:58.562280+00:00] "yes she enjoyed"
+- [2026-09-02T23:15:01.903223+00:00] "a joke before some night"
+    correction: article_wrong_definite_article (article) — "a joke" -> "the joke" (low, confidence 0.45)
+    correction: preposition_time_expression_ago (preposition) — "before some night" -> "a few nights ago" (high, confidence 0.85)
+- [2026-09-02T23:15:15.303254+00:00] "she enjoyed joke one night"
+    correction: article_missing_before_noun (article) — "enjoyed joke" -> "enjoyed a joke" (medium, confidence 0.9)
+- [2026-09-02T23:15:32.750668+00:00] "she enjoyed a joke one night"
+- [2026-09-03T13:06:35.408889+00:00] "i had a meeting yesterday."
+- [2026-09-03T13:07:27.416817+00:00] "i'm going to go the"
+- [2026-09-03T13:07:28.002052+00:00] "art gallery"
+    correction: preposition_missing_to_after_go (preposition) — "go the art gallery" -> "go to the art gallery" (medium, confidence 0.95)
+- [2026-09-03T13:50:22.522943+00:00] "i had a meeting yesterday."
+- [2026-09-03T13:50:45.571732+00:00] "i had a project meeting."
+- [2026-09-03T13:50:47.323905+00:00] "yesterday."
+    correction: word_order_time_adverb_placement (word_order) — "i had a project meeting. yesterday." -> "I had a project meeting yesterday." (medium, confidence 0.9)
+- [2026-09-03T13:51:11.599626+00:00] "i had a project meeting yesterday."
+- [2026-09-03T13:56:05.552925+00:00] "i had a meeting yesterday"
+- [2026-09-03T13:56:35.945529+00:00] "this meeting was"
+- [2026-09-03T13:56:38.186958+00:00] "project architecture meeting"
+    correction: article_missing_before_noun (article) — "was project architecture meeting" -> "was a project architecture meeting" (medium, confidence 0.93)
+- [2026-09-06T14:36:53.838781+00:00] "I usually go to gym after work."
+    correction: article_missing_the_before_place_noun (article) — "go to gym" -> "go to the gym" (low, confidence 0.9)
+- [2026-09-06T14:39:30.939916+00:00] "I usually go to gym after work."
+- [2026-09-06T14:39:30.942340+00:00] "I usually go to office by subway."
+- [2026-09-06T14:39:30.944682+00:00] "I need to finish my homework tonight."
+- [2026-09-06T14:39:31.046601+00:00] "I usually go to gym after work."
+- [2026-09-06T14:39:31.048402+00:00] "I usually go to office by subway."
+- [2026-09-06T14:39:31.050095+00:00] "I need to finish my homework tonight."
+- [2026-09-06T14:39:31.154411+00:00] "I usually go to gym after work."
+    correction: article_missing_the_before_place_noun (article) — "go to gym" -> "go to the gym" (medium, confidence 0.95)
+- [2026-09-06T14:39:31.156464+00:00] "I usually go to office by subway."
+    correction: article_missing_the_before_place_noun (article) — "go to office" -> "go to the office" (medium, confidence 0.95)
+- [2026-09-06T14:39:31.157855+00:00] "I need to finish my homework tonight."
+- [2026-09-08T19:54:32.159162+00:00] "i usually go to gym after work."
+    correction: article_missing_the_before_place_noun (article) — "go to gym" -> "go to the gym" (medium, confidence 0.95)
+- [2026-09-08T19:54:39.449652+00:00] "i usually go to office by subway."
+    correction: article_missing_the_before_place_noun (article) — "go to office" -> "go to the office" (medium, confidence 0.9)
+- [2026-09-08T19:54:47.841249+00:00] "yesterday i go to the client meeting and present the project's details."
+    correction: verb_tense_past_simple_for_past_events (verb_tense) — "and present the project's details" -> "and presented the project details" (high, confidence 0.9)
+    correction: verb_tense_past_simple_for_past_events (verb_tense) — "i go to the client meeting" -> "I went to the client meeting" (high, confidence 0.95)
+- [2026-09-10T07:49:33.910445+00:00] "마이티니시트더리포트엔쉬어드더리절치위드마이팀"
+- [2026-09-10T07:52:47.781956+00:00] "아이피니시프트리포트엔씨어드리절치위드마이팀"
+- [2026-09-10T07:53:17.566398+00:00] "아이티니시트 더리포트 엔쉐어드 더리절치우이드 마이팀"
+- [2026-09-10T14:28:23.442299+00:00] "he finished the first version of the pile."
+
+Chronic metrics (facts only — you decide whether a pattern counts as chronic):
+- article_missing_before_noun [pattern_id: 70ad1279-cfaf-4a57-b37b-c28f561baeaa] (article): frequency 7, seen in 4 sessions across 3 days, span 9 days, longest gap 6 days
+- article_missing_the_before_place_noun [pattern_id: e648ad11-2bf5-43cf-96b0-eb9d7b6e329e] (article): frequency 5, seen in 3 sessions across 2 days, span 2 days, longest gap 2 days
+- article_wrong_definite_article [pattern_id: 9db5f7d4-e676-46d1-968d-be86b656134a] (article): frequency 2, seen in 2 sessions across 2 days, span 2 days, longest gap 2 days
+- business_expression_verb_noun_collocation [pattern_id: a719446a-2ec7-464d-bdbd-e46a2eaa723a] (business_expression): frequency 3, seen in 1 sessions across 1 days, span 0 days, longest gap 0 days
+- preposition_missing_to_after_go [pattern_id: e76b8e82-3068-4333-a7b7-4baadd046b54] (preposition): frequency 1, seen in 1 sessions across 1 days, span 0 days, longest gap n/a
+- preposition_time_expression_ago [pattern_id: 09ed5f7f-bdf7-49b6-a0b0-46db2c36dd4e] (preposition): frequency 3, seen in 1 sessions across 1 days, span 0 days, longest gap 0 days
+- verb_tense_past_simple_for_past_events [pattern_id: b1069217-d5ec-4761-b6a3-e57cc2a795cb] (verb_tense): frequency 2, seen in 1 sessions across 1 days, span 0 days, longest gap 0 days
+- word_order_time_adverb_placement [pattern_id: eff9d7c5-fc1b-486f-8155-3d58e764697a] (word_order): frequency 1, seen in 1 sessions across 1 days, span 0 days, longest gap n/a
+
+Pronunciation attempts (context only — these tallies carry no pattern_id, so do not pick a focus
+from this section; a pronunciation pattern that is ready to revisit appears in
+"Due for review today" above with its pattern_id. Counted per attempt, not per error occurrence,
+so do not rank these against the grammar counts above):
+- am_as_i_m: correct, 1 attempts, last seen 2026-08-31T22:18:33.388648+00:00
+- an_as_a: incorrect, 2 attempts, last seen 2026-09-03T13:51:12.114771+00:00
+- w_as_vw: correct, 1 attempts, last seen 2026-08-31T22:19:36.417320+00:00
+
+Current level: A2
+
+Pronunciation focus for today:
+- A pronunciation pattern is due for review in the list above. Give it
+  one of the two focus slots, and keep the other slot for a grammar pattern from those two lists.
+- Do not drop the grammar focus to make room — the learner works on both today. If those two
+  lists carry no grammar pattern, the pronunciation pattern alone is fine.
+- Write the questions so they give that sound repeated chances to come up: build them around
+  words that contain it, so the learner says it several times. Where you can, let the same
+  question still exercise the grammar focus — one sentence can carry both.
+- Shape each of those questions as speaking practice for the sound. Write them
+  not as an exercise in which form to use: the learner already knows which word belongs there,
+  so do not tell them to "use" a form and do not hand them a sentence to read back. Ask for
+  something of their own that contains those words, so the sound is the part they have to get
+  right.
+- The output spec below asks the questions to share one target form. For a pronunciation focus
+  read it this way: the constant is the sound, and the situations around it change.
+
+Return one JSON object and nothing else. Keys:
+- focus: one or two patterns, each {pattern_id, pattern_key, target_form}. Pick only from the
+  "Due for review today" list or the "Chronic metrics" list above — they are
+  the only two lists that carry pattern_id, and a pattern taken from anywhere else is rejected.
+  Copy pattern_id exactly as given there; never invent one.
+- questions: three to five items, each {prompt, context}. Same target form, different
+  situations.
+- target_level: one CEFR code (A1|A2|B1|B2|C1|C2). It must equal level.target_level and
+  instruction.target_level — all three must match.
+- reason: one short sentence **in Korean**, addressed to the learner, saying why today's practice
+  is this. Never leave it empty.
+- instruction: {target_level, focus:[{pattern_key, target_form}], sentence_length, hint_timing,
+  contexts}. instruction.target_level must equal the top-level target_level. instruction.focus
+  also has one or two items (pattern_key and target_form only — no pattern_id here).
+  sentence_length and hint_timing are short English phrases spliced into the tutor's
+  instructions and must not be empty. contexts is the list of situations for today.
+- level: {action: keep|up|down, target_level, reason}. Move at most one CEFR step from the current
+  level, in either direction. Going down is allowed and is better than staying too hard. reason
+  must not be empty.
+- notes: observations worth keeping that numbers cannot hold — for example "adds articles in short
+  sentences but drops them once the sentence gets longer". An empty list is fine here.
+
+Do not add any key that is not listed above — one unknown key makes the whole response invalid.
+Empty lists are allowed where said above; empty strings are not — every string anywhere in the
+object must be non-empty.

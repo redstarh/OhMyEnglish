@@ -1,0 +1,144 @@
+#!/usr/bin/env python3
+"""`TASK-86` 결정 57 — **새 규칙으로 계획을 다시 생성해 질문의 «모양»이 바뀌는지 본다.**
+
+⛔ 이것은 Nova 팔이 아니다. Nova 세션을 쓰기 **전에** 값싼 단계로 규칙이 먹혔는지 확인하는
+실행체다 — 앞 회차들이 소리 줄·초점·목록을 고칠 때마다 8회씩 태우고 「문구가 그대로였다」를
+관측했으므로, 이번에는 **프롬프트 산출물을 먼저 눈으로 본다.**
+
+무엇을 바꾸는가: `load_plan_input` 이 준 실제 재료에서 **복습 예정 목록의 발음 항목 소리 키만**
+픽스처의 실제 오류(`th_as_s`)로 바꾼다. `pattern_id` 는 그대로 둔다 — 그것을 바꾸면
+`process_plan` 의 허용 집합과 어긋나 계획이 하드 거부된다.
+
+왜 소리를 바꾸는가: 개발 DB 의 발음 패턴은 `an_as_a` 하나뿐이고 그 소리는 픽스처 오디오에
+아예 없다(`runs/2026-09-11-task105-sound-line.md` §3). 소리를 맞추지 않으면 이 회차의 0건이
+프롬프트가 아니라 픽스처로 예측된다.
+
+⛔ **「제품이 보내는 것」이라고 부르지 않는다.** 조립 규칙은 제품 함수(`build_plan_prompt`)가
+소유하지만 인자 하나를 하네스가 바꿨다.
+
+⛔ DB 는 SELECT 만 한다. 계획 행·노트 행을 쓰지 않는다 — `process_plan` 을 부르지 않고
+`build_plan_prompt` → Claude 1회 → `parse_plan` 까지만 한다.
+"""
+
+import asyncio
+import dataclasses
+import json
+from pathlib import Path
+
+from app.config import get_settings
+from app.db import close_pool, pool
+from app.models.analysis import PRONUNCIATION_CATEGORY
+from app.models.pronunciation import PRONUNCIATION_PATTERN_KEY_PREFIX
+from app.services.chronic import deepest_recurrence
+from app.services.plan import build_plan_prompt
+from app.services.plan_input import load_plan_input
+from app.models.plan import parse_plan
+from app.workers.claude_client import BedrockClaudeClient
+
+# 픽스처 `p2m.wav` 의 실제 오류 셋(f→p · r→l · θ→s) 가운데 하나. `with` → `wis` 가 그 소리이고
+# `tests/harness/scenarios-P-pronunciation.md:75~76` 이 픽스처 문장의 정본이다.
+MATCHED_SOUND = "th_as_s"
+
+_OUT = Path("/tmp/soundq_plan.json")
+_PROMPT_OUT = Path("/tmp/plan_prompt_soundq.txt")
+
+
+async def main() -> None:
+    settings = get_settings()
+    conn_pool = await pool()
+
+    async with conn_pool.acquire() as conn:
+        # 최신 계획이 붙은 세션의 소유자를 그대로 쓴다 — 값의 출처를 회차 기록에 적기 위함이다.
+        user_id = await conn.fetchval(
+            "select ls.user_id from session_plans sp "
+            "join learning_sessions ls on ls.id = sp.session_id "
+            "order by sp.created_at desc limit 1"
+        )
+        if user_id is None:
+            raise SystemExit("계획이 붙은 세션이 없다 — 이 팔은 제품 재료 위에 선다")
+        data = await load_plan_input(conn, user_id)
+
+    swapped = []
+    for review in data.due_reviews:
+        if review.category == PRONUNCIATION_CATEGORY:
+            swapped.append(
+                dataclasses.replace(
+                    review,
+                    pattern_key=f"{PRONUNCIATION_PATTERN_KEY_PREFIX}{MATCHED_SOUND}",
+                    target_form=MATCHED_SOUND,
+                )
+            )
+        else:
+            swapped.append(review)
+    data = dataclasses.replace(data, due_reviews=swapped)
+
+    if not any(r.category == PRONUNCIATION_CATEGORY for r in data.due_reviews):
+        raise SystemExit("복습 예정에 발음 항목이 없다 — 발음 초점 규칙 블록이 붙지 않는다")
+
+    prompt = build_plan_prompt(data)
+    _PROMPT_OUT.write_text(prompt, encoding="utf-8")
+    print(f"=== 계획 프롬프트 {len(prompt)}자 → {_PROMPT_OUT}")
+    print(f"  due_reviews    : {[(r.pattern_key, r.target_form) for r in data.due_reviews]}")
+    print(f"  chronic        : {len(data.chronic)}건 · recent {len(data.recent)}건")
+    print(f"  current_level  : {data.current_level}")
+    head = "Pronunciation focus for today:"
+    block = prompt[prompt.index(head) :]
+    print("--- 발음 초점 규칙 블록 ---")
+    print(block[: block.find("\n\n")])
+    print("---")
+
+    allowed = {r.pattern_id for r in data.due_reviews} | {m.pattern_id for m in data.chronic}
+    deepest = deepest_recurrence(data.chronic)
+
+    print(f"=== Claude 1회 호출 ({settings.claude_model_id})")
+    raw = await BedrockClaudeClient(settings).analyze(prompt)
+    Path("/tmp/soundq_raw.json").write_text(raw, encoding="utf-8")
+
+    # ⚠️ **원문을 먼저 낸다.** 1단계가 재는 것은 「질문의 모양」이고, 검증이 **다른 키** 때문에
+    # 거부되면(실측: 모델이 `level.reason_note: null` 을 붙였다) 그 산출물을 못 보게 된다.
+    # 거부 사유는 그대로 남기되 질문은 원문에서 읽는다 — 이 회차의 판정 재료가 그것이다.
+    payload = json.loads(raw)
+    print("=== 생성된 초점 (원문)")
+    for item in payload.get("focus", []):
+        print(f"  - {item.get('pattern_key')} ({item.get('target_form')})")
+    questions = payload.get("questions", [])
+    print(f"=== 생성된 질문 {len(questions)}건 (원문)")
+    for number, question in enumerate(questions, start=1):
+        print(f"  {number}. {question.get('prompt')}")
+        print(f"     ({question.get('context')})")
+
+    verdict = "통과"
+    try:
+        plan = parse_plan(
+            raw,
+            current_level=data.current_level,
+            allowed_pattern_ids=allowed,
+            deepest_pattern_id=None if deepest is None else deepest.pattern_id,
+        )
+    except Exception as exc:  # noqa: BLE001 — 사유를 회차 기록에 그대로 옮긴다
+        plan = None
+        verdict = f"거부: {type(exc).__name__}: {exc}"
+    print(f"=== 제품 검증(`parse_plan`) — {verdict}")
+
+    _OUT.write_text(
+        json.dumps(
+            {
+                "questions": questions,
+                "instruction": payload.get("instruction"),
+                "target_level": payload.get("target_level"),
+                "reason": payload.get("reason"),
+                "parse_plan": verdict,
+                "validated": plan is not None,
+            },
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+    print(f"→ {_OUT}")
+
+    await close_pool()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
