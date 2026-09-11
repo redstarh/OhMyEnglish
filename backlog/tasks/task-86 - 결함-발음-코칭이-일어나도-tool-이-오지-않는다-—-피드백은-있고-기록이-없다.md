@@ -1,10 +1,10 @@
 ---
 id: TASK-86
 title: '결함: 발음 코칭이 일어나도 tool 이 오지 않는다 — 피드백은 있고 기록이 없다'
-status: Awaiting Decision
+status: In Progress
 assignee: []
 created_date: '2026-09-10 04:29'
-updated_date: '2026-09-11 02:19'
+updated_date: '2026-09-11 11:21'
 labels: []
 dependencies: []
 ordinal: 89000
@@ -137,4 +137,15 @@ below: pause the current question, coach the sound, then come back to the questi
 그것을 후보 ⑸ 로 사용자에게 올렸음(Slack · 후보 ⑴ 은 위 실측으로 사실상 배제됐음).
 
 ⇒ AC#2 는 여전히 미충족이고 다음 갈래는 **사용자 결정**임. 그래서 다시 `Awaiting Decision` 임.
+
+2026-09-11 결정 57 을 받아 Awaiting Decision 을 닫음 (세션 ohmyenglish-7f 후속 · AskUserQuestion 으로 직접 물었음). 사용자가 후보 넷 중 ⑸ 를 골랐음 — 계획 생성이 발음 초점일 때 그 소리를 유발하는 질문을 만들게 함.
+
+정본은 docs/ops/captain-instruction-register.md 의 결정 57 임 — 근거·배제된 후보·열리지 않는 것 셋을 그 자리가 소유하고 여기 옮기지 않음.
+
+이 태스크에 들어오는 제약 셋만 적음.
+1. ⛔ toolChoice 강제(후보 ⑶)를 쓰지 않음 — 사용자가 고르지 않았으므로 결정 49·50 의 금지가 그대로임.
+2. ⛔ 보조 신호로 축소(후보 ⑷)도 승인되지 않았음 — AC#3 의 「우회로를 걷어내지 않는다」는 그대로 유지임.
+3. ⚠️ 후보 ⑵(발음 전용 세션)는 폐기가 아니고 TASK-10 의 자리임 — 이 태스크의 경로가 아닐 뿐임.
+
+⇒ AC#2(코칭 회차에서 tool 이 오는 것을 실물 왕복 최소 2회로 확인)를 계획 생성 경로의 변경으로 만들어야 함. 계획 블록 축은 TASK-81 이 이미 열려 있으므로 그쪽과 범위를 먼저 가름.
 <!-- SECTION:NOTES:END -->
