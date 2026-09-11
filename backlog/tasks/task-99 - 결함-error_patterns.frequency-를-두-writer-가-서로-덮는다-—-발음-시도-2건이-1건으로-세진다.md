@@ -1,9 +1,10 @@
 ---
 id: TASK-99
 title: '결함: error_patterns.frequency 를 두 writer 가 서로 덮는다 — 발음 시도 2건이 1건으로 세진다'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-10 22:13'
+updated_date: '2026-09-11 11:42'
 labels: []
 dependencies: []
 ordinal: 102000
