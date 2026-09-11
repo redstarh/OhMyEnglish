@@ -4,7 +4,7 @@ title: '운영: 개발 DB 에 job 15건이 집히지 않은 채 쌓였다 — �
 status: Done
 assignee: []
 created_date: '2026-09-10 23:54'
-updated_date: '2026-09-11 22:51'
+updated_date: '2026-09-11 22:54'
 labels: []
 dependencies: []
 ordinal: 107000
@@ -81,4 +81,6 @@ AC#3 — 규약 충돌을 tests/harness/browser_leg.md §9-1 에 넣었음. ⛔ 
 ⚠️ 나머지 값은 동료가 독립으로 세어 일치했음 — session_plans 6 · learner_notes 7 · pending 11(계획 4 · 분석 7) · 세션 17.
 
 동료가 이 회차의 산출을 받아 TASK-109 를 닫았음(결정 65 — extra=forbid 계약을 «유지» 하고 없는 키는 재시도가 흡수하게 둠). 그 근거 셋 중 둘이 이 회차의 것임: 1회차 거부 → 2회차 성공이 관측됐다는 것과, 키 이름이 매번 다르므로(level.reason_en 대 level.reason_note) 「스키마에 그 키를 더한다」로는 닫히지 않는다는 것임. 심각도도 「늦게 생기고 재시도 예산을 먹는다」로 다시 읽혔고 다시 열 조건은 「재시도 예산이 소진돼 계획 없는 세션이 관측되는 것」으로 못박혔음.
+
+2026-09-12 H-BI 대응 형태를 직접 시험함 — 이 노트 자체가 그 시험임. 백틱 넷을 담음: `level.reason_en` · `extra="forbid"` · `<<'EOF'` · `$(cat …)`. 붙인 뒤 다시 읽어 넷이 살아 있는지 확인함(그 확인이 H-BI 가 요구하는 것임).
 <!-- SECTION:NOTES:END -->
