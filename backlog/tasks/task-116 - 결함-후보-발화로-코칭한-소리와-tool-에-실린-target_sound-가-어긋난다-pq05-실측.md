@@ -4,10 +4,10 @@ title: '결함(확정): 발화로 코칭한 소리와 tool 에 실린 target_sou
 status: In Progress
 assignee: []
 created_date: '2026-09-11 17:14'
-updated_date: '2026-09-12 00:23'
+updated_date: '2026-09-12 03:37'
 labels: []
 dependencies:
-  - TASK-123
+  - TASK-128
 priority: high
 ordinal: 121000
 ---
@@ -64,4 +64,6 @@ KEY 팔(pq05→pq05a · z_as_j · 3회): 코치가 세 번 다 process 의 어�
 ⛔ V3(조건부 키 규칙)는 «막지 못함이 실측됨». 되돌리지는 않았음 — 되돌리면 바이트 게이트 때문에 회차를 또 돌려야 하고 REG 4/4 는 V3 가 든 판에서 얻은 값임. 대신 nova.py 주석과 test_nova.py 독스트링에 «3/3 으로 막지 못했음» 을 적었음. ⛔ 그 문장을 「작동한다」의 근거로 인용하지 말 것.
 
 선행을 TASK-120 에서 TASK-123 으로 바꿨음(TASK-120 은 Done). TASK-123 이 재는 것은 «덜어내는» 방향임 — 소리 줄에서 키 강제를 아예 빼는 것. ⛔ 「지시문으로는 못 막는다」로 아직 단정하지 않음 — 더하는 방향만 반증됐음.
+
+2026-09-12 KST — 선행을 TASK-123 에서 TASK-128 로 바꿨음(TASK-123 은 Done). 이유: 결정 70 으로 키 강제를 «아예 빼도» 3/3 으로 계획 키가 실렸음(runs/2026-09-12-task123-118-subtract-key-forcing.md ARM-B). ⇒ 지시문의 두 방향이 모두 반증됐고 이 축은 지시문 밖(기록 경로 또는 제품 요구사항)으로 나갔음. TASK-128 이 그것을 갖고 그 AC#3 이 사용자 결정을 요구함.
 <!-- SECTION:NOTES:END -->

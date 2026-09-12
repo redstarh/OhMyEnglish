@@ -222,9 +222,13 @@ _SOUND_INSTRUCTION = (
     "the learner's problem is how the word sounds, not which word to pick. When it is off, take it "
     # `TASK-111` — *"the one correction of rule 4"* 에서 번호 참조를 걷었다. 전용 모드 지시문에는
     # 규칙 4 가 없어 그 참조가 허공을 가리켰다(`build_pronunciation_prompt` 가 이 줄을 그대로 쓴다).
-    # ⚠️ 앞의 *"instead of the Grammar first rule 9"* 는 **일부러 남겼다** — `TASK-75` 승인 문면이고
-    # 되돌리는 결정이 필요하다(`TASK-118`).
-    "up on that turn instead of the Grammar first rule 9, and spend the one correction you "
+    #
+    # `{grammar_first}` 는 **사용자 결정 71 이 연 유일한 모드별 칸**이다(`TASK-118`). 일반 세션에는
+    # 규칙 9(`Grammar first`)가 실재하므로 그 이름을 부르는 것이 참이고, 전용 모드에는 그 절이 없어
+    # 부르면 **없는 규칙을 가리키는 자기모순**이 된다. ⇒ 값을 **호출부가 명시로 준다.**
+    # ⛔ **칸을 더 열지 마라** — 이 줄을 한 곳에 두는 이유(「무엇을 어느 이름으로 보고할지가 한
+    # 곳에서만 정해진다」)가 칸마다 약해진다. 결정 71 은 그 대가를 **한 구절만큼** 치른 것이다.
+    "up on that turn{grammar_first}, and spend the one correction you "
     "make that turn on this sound rather than on grammar. Stop and have them say just that "
     "word again. "
     # 사용자 결정 56 — 문턱을 넘은 소리는 **문장 단축·계획 질문보다 앞**이다. ⚠️ 순서만으로는
@@ -236,36 +240,36 @@ _SOUND_INSTRUCTION = (
     # ⛔ 수치를 넣지 않는다(결정 56 이 「수치 목표를 정하지 않는다」를 명시했다).
     "This outranks the question list and the sentence-shape target below: pause the current "
     "question, coach the sound, then come back to the question you paused. "
-    # `TASK-116` — **키를 조건부로 준다.** 이전 판은 *"put `{sound}` in target_sound both times"* 로
-    # **계획이 준 키를 강제**했고, 그래서 코치가 다른 소리를 코칭한 턴에도 그 키가 실렸다(`pq05`
-    # 실측 — 의도는 `easy` 의 /z/ 인데 코치는 `process` 의 어말 `s` 를 다뤘다 ·
-    # `runs/2026-09-12-task114-mild-band-dedicated.md` §2.5). ⇒ **학습자가 들은 코칭과 기록이
-    # 어긋난다.** 그리고 `review.py` 는 `pattern_id` 가 아니라 `target_sound` 로 매칭하므로
-    # **연습하지 않은 소리가 복습 이력이 된다.**
+    # ⛔ **이 줄은 `target_sound` 에 무엇을 넣을지 «말하지 않는다» — 사용자 결정 70**(`TASK-123`).
+    # 그 계약의 정본은 고정부 규칙 10 하나다(*"Always include target_sound - a short reusable key
+    # for the sound that was off"*). 여기서 다시 말하지 않는 것이 이 결정의 내용이다.
     #
-    # ⚠️ **강제 자체는 의도였다** — 반복 오류를 한 키로 묶으려는 것이고(규칙 10 본문이 그 이유를
-    # 적는다) 그 목적은 유효하다. 그래서 버리지 않고 **조건을 붙였다.**
+    # **왜 덜어냈는가 — 더하는 방향이 반증됐다.** 이전 두 판이 모두 계획의 키를 밀었다:
+    # ① 강제판 *"put `{sound}` in target_sound both times"* → 코치가 다른 소리를 코칭한 턴에도
+    #    그 키가 실렸다(`pq05` · `runs/2026-09-12-task114-mild-band-dedicated.md` §2.5).
+    # ② 조건판 *"…both times when `{sound}` is the sound you coached; if you coached a different
+    #    sound instead, put a short reusable key…"* → **3/3 으로 여전히 계획의 키가 실렸다.**
+    #    판별 조건이 정본이다(`runs/2026-09-12-task120-absent-planted-sound.md`): 오디오에 /f/ 가
+    #    한 자리도 없는 문장에 `f_as_p` 를 심었더니 코치는 `early` 의 `er` 을 코칭하면서(참조
+    #    낱말까지 댔다) `target_sound` 에는 `f_as_p` 를 세 번 실었다.
+    # ⇒ 모델이 계획의 키를 **매우 강하게** 따른다. 조건을 더 붙이는 방향은 값이 낮다.
     #
-    # ⛔ **「위에 이름 붙인 그 소리만 코칭하라」로 좁히지 않았다** — 코치가 무엇을 코칭하는지를
-    # 바꾸는 것이라 제품 요구사항 변경이고 사용자 결정 사안이다(`TASK-116` 노트의 갈래 ①).
-    # 이 조건부 판은 그것을 막지 않는다 — 나중에 얹을 수 있다.
+    # ⛔ **왜 그 어긋남이 심각한가**: `review.py` 는 `pattern_id` 가 아니라 `target_sound` 로
+    # 매칭하므로 어긋난 키가 그대로 이력이 되고 **연습하지 않은 소리가 복습 큐에서 전진한다**
+    # (`TASK-116` 이 실증했다 — `frequency` 1→3 · `next_review_at` 이 섰다).
     #
-    # ⛔ **그런데 이 조건절은 실측에서 «작동하지 않았다» — 3/3 으로 계획의 키가 실렸다.**
-    # 정본: `runs/2026-09-12-task120-absent-planted-sound.md`. 오디오에 /f/ 가 한 자리도 없는
-    # 문장에 `f_as_p` 를 심었더니 코치는 `early` 의 `er` 소리를 코칭하면서(참조 낱말까지 댔다)
-    # `target_sound` 에는 **`f_as_p` 를 세 번 실었다.** ⇒ 모델이 계획의 키를 매우 강하게 따른다.
-    # ⛔ **이 문장을 「기록이 코칭과 맞는다」의 근거로 인용하지 마라.**
-    #
-    # ⚠️ **되돌리지 않은 이유**: 이 문면은 아래 `PRONUNCIATION_MODE_PROMPT` 와 함께 바이트 게이트로
-    # 실측 판에 묶여 있고 REG **4/4** 는 이 조건절이 «든» 판에서 얻은 값이다. 되돌리면 회차를 또
-    # 돌려야 한다. 남은 가설은 **조건을 더하는 것이 아니라 키 강제를 덜어내는 것**이고 `TASK-123`
-    # 이 그것을 갖는다 — ⛔ 그때 이 조건절도 **같은 회차에서 함께** 걷어 게이트를 한 번만 갱신한다.
+    # ⛔ **감수한 대가를 적는다**(결정 70 이 명시했다): 규칙 10 의 「반복 오류를 한 키로 묶는다」가
+    # 약해져 **같은 소리가 여러 키로 흩어질 수 있다.** 그 대가가 위 오염보다 작다는 판단이다.
+    # ⚠️ 그래서 그 흩어짐은 **관측 대상**이다 — 회차가 키 분포를 함께 센다.
     "Rule 10 still applies unchanged: call the {tool} tool twice — once with outcome "
     '"pending" right after you model it, and again with the judgement once you have heard the '
-    'repeat. Put "{sound}" in target_sound both times when "{sound}" is the sound you '
-    "coached; if you coached a different sound instead, put a short reusable key for the sound "
-    "you actually coached, so the record matches what you said out loud."
+    "repeat."
 )
+
+
+# 사용자 결정 71 — 소리 줄의 **모드별 칸 하나**. 일반 세션에만 실린다.
+# ⛔ 전용 모드는 빈 문자열을 준다(그 모드의 규칙 9 에는 `Grammar first` 절이 없다).
+_GRAMMAR_FIRST_CLAUSE = " instead of the Grammar first rule 9"
 
 
 # `TASK-10.1` — **발음 전용 모드의 지시문.** 사용자 결정 64 가 승인했고 **형태가 실측으로
@@ -275,8 +279,9 @@ _SOUND_INSTRUCTION = (
 # ⛔ **다듬어 고치지 말 것 — 문면이 수치에 묶여 있다.** 첫 판(규칙 11 이 없는 규칙 4 를 가리키던
 # 판)은 Nova 실물 왕복 **4/4** 로 tool 이 왔고 `target_sound` 가 계획이 준 키 그대로 실렸다. 같은
 # 문면이 일반 세션 규모(5,078자)에서는 **0/76** 이다. **지금 판의 수치는 그 회차가 아니라**
-# `tests/harness/runs/2026-09-12-task111-116-selfcontained-key.md` **가 갖는다**(`TASK-111`·
-# `TASK-116`). 고치려면 **회차를 다시 돌려** 새 수치를 얻고 아래 바이트 게이트를 함께 갱신한다.
+# `tests/harness/runs/2026-09-12-task123-118-subtract-key-forcing.md` **가 갖는다**(ARM-A **4/4** ·
+# 사용자 결정 70·71). 고치려면 **회차를 다시 돌려** 새 수치를 얻고 바이트 게이트를 함께 갱신한다.
+# ⚠️ 문면 이력은 그 게이트의 독스트링이 세 판으로 갖는다 — 여기서 재서술하지 않는다.
 #
 # ⛔ **규칙 1~7 을 「골라서」 빼는 것이 아니라 통째로 뺀다.** 규칙 4 만 뺀 판은 tool 0/4 였고
 # 게다가 모델이 **자기 절차를 소리 내어 낭독**했다(발화 1,175자 · 규칙 6 이 살아 있는데도 났다).
@@ -328,7 +333,9 @@ def build_pronunciation_prompt(sound: str) -> str:
     return "\n\n".join(
         [
             PRONUNCIATION_MODE_PROMPT,
-            _SOUND_INSTRUCTION.format(sound=sound, tool=PRONUNCIATION_TOOL_NAME),
+            # ⛔ `grammar_first=""` — 이 모드의 규칙 9 에는 `Grammar first` 절이 없으므로 그 이름을
+            # 부르지 않는다(사용자 결정 71 · `TASK-118`).
+            _SOUND_INSTRUCTION.format(sound=sound, tool=PRONUNCIATION_TOOL_NAME, grammar_first=""),
         ]
     )
 
@@ -509,7 +516,13 @@ def build_system_prompt(
         forms = ", ".join(f"{item.pattern_key} ({item.target_form})" for item in grammar)
         lines.append(f"- Focus on: {forms}")
     lines.extend(
-        _SOUND_INSTRUCTION.format(sound=item.target_form, tool=PRONUNCIATION_TOOL_NAME)
+        # ⚠️ 일반 세션에는 규칙 9 가 실재하므로 그 구절을 **그대로 싣는다** — `TASK-75` 의 승인이
+        # 그것이 참인 모드에서 그대로 산다(사용자 결정 71).
+        _SOUND_INSTRUCTION.format(
+            sound=item.target_form,
+            tool=PRONUNCIATION_TOOL_NAME,
+            grammar_first=_GRAMMAR_FIRST_CLAUSE,
+        )
         for item in sounds
     )
     lines.append(f"- Aim for the learner's sentences to be this shape: {plan.sentence_length}")

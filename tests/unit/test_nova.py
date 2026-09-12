@@ -1265,6 +1265,58 @@ def test_the_sound_line_replaces_grammar_first_and_spends_the_one_correction():
     assert "two corrections" not in sound_line
 
 
+# 사용자 결정 71 (`TASK-118`) — **모드별로 가른다.** 위 테스트가 «일반 세션»에서 그 구절을 요구하고
+# 이 테스트가 «전용 모드»에서 그것이 **없어야** 한다고 요구한다. 두 단정이 같은 문장을 반대 방향으로
+# 재는 것이 이 결정의 내용이다.
+#
+# ⛔ 왜 전용 모드에서 틀린가: 전용 프롬프트의 규칙 9 에는 `Grammar first` 절이 **없다**(유보를 걷은
+# 판이다). 그런데 소리 줄이 「그 규칙 9 «대신»」이라고 그 이름을 부르면 **없는 규칙을 가리키는
+# 자기모순**이다. 일반 세션에는 그 규칙이 실재하므로 그쪽 문면은 그대로 둔다 — `TASK-75` 의 승인이
+# 그것이 참인 모드에서 그대로 산다.
+def test_the_dedicated_prompt_never_names_the_grammar_first_rule():
+    dedicated = build_pronunciation_prompt("th_as_s")
+
+    assert "Grammar first" not in dedicated, (
+        "전용 모드가 없는 규칙 9 를 이름으로 부른다 — 사용자 결정 71 이 그 구절을 버렸다"
+    )
+    # ⚠️ **음성 대조 — 줄을 통째로 지운 것이 아니다.** 이 둘이 없으면 소리 줄 자체가 사라져도
+    # 위 단정이 조용히 통과한다.
+    assert "Sound to coach today" in dedicated
+    assert "spend the one correction" in dedicated
+
+
+# 사용자 결정 70 (`TASK-123`) — **소리 줄은 `target_sound` 에 무엇을 넣을지 «말하지 않는다».**
+#
+# ⛔ 왜 덜어내는가: 조건을 **더하는** 방향이 실측에서 **3/3 으로 실패했다** — 오디오에 /f/ 가 한
+# 자리도 없는 문장에 `f_as_p` 를 심었더니 코치는 `early` 의 `er` 을 코칭하면서(참조 낱말까지 댔다)
+# `target_sound` 에는 계획의 키를 세 번 실었다(`runs/2026-09-12-task120-absent-planted-sound.md`).
+# 모델이 계획의 키를 **매우 강하게** 따르므로 조건절로는 막지 못한다.
+#
+# ⛔ **감수한 대가**: 반복 오류를 한 키로 묶는 것이 약해져 같은 소리가 여러 키로 흩어질 수 있다.
+# 결정 70 이 그것을 **복습 큐 오염보다 작다**고 판단했다(`TASK-116` 이 그 오염을 실증했다).
+def test_the_sound_line_does_not_dictate_the_target_sound_key():
+    block = _plan_block(
+        _prompt(
+            ("th_as_s",),
+            _instruction(
+                focus=[
+                    InstructionFocus(pattern_key="pronunciation_th_as_s", target_form="th_as_s"),
+                    InstructionFocus(pattern_key="article_missing", target_form="a/an/the"),
+                ]
+            ),
+        )
+    )
+
+    sound_line = _line_starting_with(block, _SOUND_LINE)
+    assert "target_sound" not in sound_line, (
+        "소리 줄이 아직 키를 지시한다 — 사용자 결정 70 이 그 강제를 뺐다"
+    )
+    # ⚠️ **키가 사라지는 것이 아니다.** 규칙 10 이 그대로 살아 있고 «그쪽이» 키를 요구한다 —
+    # 이 둘이 그 이관을 잰다. 없으면 「강제를 뺐다」가 「키를 안 받는다」로 조용히 바뀐다.
+    assert "Rule 10 still applies unchanged" in sound_line
+    assert "Always include target_sound" in SYSTEM_PROMPT
+
+
 def test_the_sound_line_outranks_the_plan_questions_and_sentence_shape():
     """사용자 결정 56 — 문턱을 넘은 소리는 **문장 단축·계획 질문보다 앞**이다.
 
@@ -1766,24 +1818,28 @@ def test_the_pronunciation_prompt_is_byte_identical_to_the_measured_one():
     이 테스트가 깨지면 선택지는 둘뿐이다: 문면을 되돌리거나, **회차를 다시 돌려** 새 문면의 수치를
     얻고 그 파일과 이 테스트를 함께 갱신하는 것. ⛔ 「읽기 좋아졌다」로 갱신하지 않는다.
 
-    ⚠️ **가리키는 회차가 2026-09-12 에 바뀌었다** (`TASK-111`·`TASK-116`). 이전 정본은
-    `2026-09-11-task86-dedicated-session/prompt_dedicated_cut.txt`(1,702자 · 4/4)였고, 그 판의 규칙
-    11 이 **이 프롬프트에 없는 규칙 4** 를 가리켰다. 자기완결로 고친 뒤 같은 앱 경로에서 다시 재
-    **REG 팔 4/4**(`pq06`→`pq12` · `th_as_s`)를 얻었으므로 그 문면(1,927자)이 지금 정본이다.
+    **가리키는 회차가 2026-09-12 에 두 번 바뀌었다.** 이력을 짧게 남긴다 — 어느 문면이 어느 수치를
+    갖는지가 이 게이트의 전부이기 때문이다:
 
-    ⛔ **이 파일에 묶인 수치는 REG 4/4 «뿐»이다.** 같은 변경 묶음에 들어간 조건부 `target_sound` 키
-    규칙(`TASK-116` · V3)은 그 회차가 시험하지 못했고(`pq05` 가 판별 조건을 만들지 못했다),
-    **그 뒤 회차가 «막지 못함»을 3/3 으로 확정했다** —
-    `runs/2026-09-12-task120-absent-planted-sound.md`. ⛔ **그 규칙이 작동한다는 근거로 이 게이트를
-    인용하지 마라.** 남은 가설(키 강제를 덜어낸다)은 `TASK-123` 이 갖고, 그것이 이기면 V3 도 같은
-    회차에서 걷어 이 게이트를 **한 번만** 갱신한다.
+    1. `2026-09-11-task86-dedicated-session/prompt_dedicated_cut.txt` (1,702자 · **4/4**) — 규칙 11 이
+       이 프롬프트에 **없는 규칙 4** 를 가리켰다.
+    2. `2026-09-12-task111-116-selfcontained-key/prompt_dedicated_v2.txt` (1,927자 · **REG 4/4**) —
+       번호 참조를 걷고 `target_sound` 키를 **조건부**로 줬다.
+    3. **지금**: `2026-09-12-task123-118-subtract-key-forcing/prompt_dedicated_v3.txt`
+       (1,660자 · **ARM-A 4/4**) — 사용자 **결정 70**(키 강제를 **뺀다**)과 **결정 71**(전용 모드에서만
+       `Grammar first` 구절을 버린다)을 이행했다.
+
+    ⛔ **이 파일에 묶인 수치는 ARM-A 4/4 «뿐»이다 — 「기록이 코칭과 맞는다」가 아니다.** 그 축은 두
+    방향 모두 반증됐다: 조건을 **더한** 판이 3/3 실패(`…task120-absent-planted-sound.md`), 강제를
+    **덜어낸** 이 판도 3/3 실패(`…task123-118-subtract-key-forcing.md` ARM-B — 강제가 없는데도 계획의
+    키가 그대로 실렸다). ⛔ **이 게이트를 그 축의 근거로 인용하지 마라.**
     """
     measured = (
         Path(__file__).resolve().parents[1]
         / "harness"
         / "runs"
-        / "2026-09-12-task111-116-selfcontained-key"
-        / "prompt_dedicated_v2.txt"
+        / "2026-09-12-task123-118-subtract-key-forcing"
+        / "prompt_dedicated_v3.txt"
     )
 
     assert build_pronunciation_prompt("th_as_s") == measured.read_text(encoding="utf-8"), (
