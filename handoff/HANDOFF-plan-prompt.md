@@ -66,7 +66,7 @@
 
 | # | 지표 | 값 |
 |--:|---|---|
-| 1 | 기준 커밋 | `d129cb6` · `origin/design/first-vertical-slice` 와 **동기**(`git rev-list --left-right --count` → `0 0`) · 미커밋 **0건** |
+| 1 | 기준 커밋 | **`d129cb6` 이상** · `origin/design/first-vertical-slice` 와 **동기**(`git rev-list --left-right --count` → `0 0`) · 미커밋 **0건**. ⚠️ 이 표를 담은 커밋(`eb5282b`)이 그 뒤에 붙으므로 **등호를 요구하지 않음** — 발음 갈래가 같은 브랜치에 커밋하면 더 앞설 수 있음 |
 | 2 | 다음 걸음 | ⛔ **내 갈래에 열린 태스크가 없음**(②). `TASK-4` 가 `Done` 이라 `TASK-5` 의 선행이 풀렸음. `Awaiting Decision` 0건 |
 | 3 | 게이트 | **여섯 다 `exit 0`**: `pytest` **1023 passed**(11.74s) · `ruff check .` 0 · `format --check .` 39 files · 게이트 밖 `ruff check` 0 · 게이트 밖 `format --check` 155 files · `ty` 0 — 파이프 없이 종료 코드로 확인 |
 | 4 | 착수 전 필수 | 6개(③) |
