@@ -1265,7 +1265,16 @@ async def test_utterance_type_domain_includes_shadowing_recording(db_conn: async
     )
     assert definition is not None
     for value in ("learning", "voice_command", "command_confirmation", "shadowing_recording"):
-        assert value in definition, f"{value}가 값역에서 빠졌다"
+        # ⛔ **따옴표까지 맞춘다** (`TASK-131`) — 맨 부분 일치는 «다른 값이 그 문자열을 품으면»
+        # 통과한다. 직접 잼: `learning` 이 사라지고 `learning_drill` 이 들어온 가짜 정의로
+        # `'learning' in definition` 은 **True**, `"'learning'" in definition` 은 **False** 였다.
+        # ⚠️ 이 값역 넷은 서로의 부분 문자열이 아니라 **아직** 안전하다 — 고치는 이유는 값역을
+        # 늘리는 일이 이미 세 번 있었다는 것이다(014·017·018).
+        assert f"'{value}'" in definition, (
+            f"{value!r}가 값역에서 빠졌다 — `drop`+`add` 로 목록을 «대체»하며 흘렸을 자리다. "
+            "dev DB 의 실제 행은 `learning` 뿐이므로(직접 조회: 128행) 나머지 셋은 «데이터로는» "
+            "아무도 그 삭제를 알아채지 못한다"
+        )
 
 
 # ── 016 scenario_pick (대화 상황 배치 · `TASK-4` · 결정 73·74) ─────────────────
