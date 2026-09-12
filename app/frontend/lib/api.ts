@@ -51,6 +51,23 @@ export interface DrillTurns {
   exchanges_expected: number;
 }
 
+/**
+ * 세션 총평 (`TASK-62` · 설계서 `docs/design/2026-09-13-session-summary-design.md`).
+ *
+ * ⛔ **점수·등급 필드가 «없는 것이 계약»이다.** `R11-8` 이 *"임계값을 제품이 발명하지 않는다"* 이고
+ * `R13-5` 가 *"점수는 이 요약의 것이 아님"* 이다 — 값역을 좁혀 구조가 그 경계를 강제한다.
+ * ⚠️ `quote` 는 **부차**이고 학습자가 말한 영어 원문 그대로다(번역하지 않는다). 문구는 한국어다.
+ */
+export interface SummaryWeakPoint {
+  point: string;
+  quote?: string;
+}
+
+export interface SessionSummary {
+  went_well: string[];
+  weak_points: SummaryWeakPoint[];
+}
+
 export interface SessionResultPayload {
   status: SessionResultStatus;
   partial_failure: boolean;
@@ -67,6 +84,11 @@ export interface SessionResultPayload {
   // 버텼는데 스윕이 언제 도는지 보장하는 계약이 없어 어떤 값도 맞을 수 없었다.
   // `pronunciation`처럼 **항상 있다** — 상태마다 키 존재를 갈라 읽지 않게 한다.
   awaiting_analysis: boolean;
+  // `TASK-62` — 세션 총평. `corrections`·`drill` 과 **같은 규약**으로 빠진다: 총평 job 이 아직
+  // 돌지 않았으면 키가 없다.
+  // ⛔ **두 배열이 비어 있는 채로 오는 것은 「없음」이 아니다** — 「만들었고 담을 것이 없었다」다
+  //   (발화 0건 세션이 그 모양이다). 그 구별을 화면이 지운다면 API 가 애써 가른 것이 사라진다.
+  summary?: SessionSummary;
 }
 
 /**

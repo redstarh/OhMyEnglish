@@ -109,6 +109,16 @@ function failureNotice(err: unknown): string {
 // 주어로 쓰면 손쓸 수 없는 수를 자기 잘못으로 읽는다. 문구는 설계서 §2.3의 예시 그대로다.
 const DRILL_SHORTFALL_NOTICE = "오늘은 드릴이 계획보다 짧았어요.";
 
+// 세션 총평 문구 (`TASK-62` · 설계서 §2.1). ⛔ **점수·등급을 표시하는 자리를 만들지 않는다** —
+// `R11-8`·`R13-5` 의 경계이고 이 화면의 톤 계약("채점하지 않습니다, 시범합니다")과도 같은 방향이다.
+// ⚠️ **「담을 것이 없었다」에도 문구를 준다** — 발화 0건 세션이 그 모양이고, 아무것도 그리지 않으면
+// 「총평이 아직 없는 세션」과 구별되지 않는다(API 가 애써 가른 것을 화면이 지우게 된다).
+const SUMMARY_HEADING = "오늘 세션 총평";
+const SUMMARY_WENT_WELL_LABEL = "잘한 점";
+const SUMMARY_WEAK_LABEL = "다음에 볼 것";
+const SUMMARY_QUOTE_LABEL = "그때 말한 문장";
+const SUMMARY_EMPTY_NOTICE = "이번 세션에서는 총평을 만들 만한 대화가 없었어요.";
+
 // 발음 카드 문구 (Task 8). 어휘는 `docs/storyboard.html` 03b(:129-133)를 따른다 —
 // "채점하지 않습니다. 시범합니다"(:101)가 이 화면의 톤 계약이라 점수·정답률을 쓰지 않는다.
 const PRONUNCIATION_HEADING = "발음";
@@ -256,6 +266,9 @@ export default function ResultsPage() {
   // 키 부재(`undefined`)와 `null`을 함께 막는다 — HTTP 응답은 외부 경계이고, 서버 계약은
   // "키를 뺀다"이지만 그 계약이 깨졌을 때 화면이 예외로 죽는 것이 가장 나쁜 결과다.
   const drill = result?.drill;
+  // `TASK-62` — 총평. ⛔ **`?? {}` 로 정리하지 않는다**: 키의 «부재»와 「빈 총평」이 다른 뜻이라
+  // 기본값을 씌우면 그 구별이 화면에서 사라진다(API 가 그것을 가르는 이유는 `lib/api.ts` 주석).
+  const summary = result?.summary;
   const drillFellShort = drill ? drill.exchanges_observed < drill.exchanges_expected : false;
   // 그날 분석이 돌고 오류가 0건이면 **아무것도 그리지 않는다**(AC13-5). 결정 10이 드릴 달성
   // 문구에 내린 판단과 같다 — 달성을 알리는 문장은 그 자체로 점수판이 된다. `analyzed`가 거짓인
@@ -366,6 +379,46 @@ export default function ResultsPage() {
                     </p>
                   </div>
                 )
+              )}
+            </div>
+          )}
+
+          {/* 세션 총평 — 발음 카드 **아래**, 오늘 요약 **위**다. 위계가 그 순서다: 방금 말한
+              것(교정·발음) → 이번 세션 전체(총평) → 하루 전체(오늘 요약).
+              ⛔ 점수·등급을 그리지 않는다(상수 위 주석이 근거를 갖는다).
+              ⚠️ 두 배열이 비어 있으면 「담을 것이 없었다」이므로 안내 한 문장을 그린다 — 절을
+              통째로 숨기면 「총평이 아직 없는 세션」과 구별되지 않는다. */}
+          {summary && (
+            <div style={{ marginTop: "1.5rem" }}>
+              <h2 style={{ fontSize: "1rem" }}>{SUMMARY_HEADING}</h2>
+              {summary.went_well.length === 0 && summary.weak_points.length === 0 && (
+                <p style={{ color: "var(--foreground-muted)" }}>{SUMMARY_EMPTY_NOTICE}</p>
+              )}
+              {summary.went_well.length > 0 && (
+                <div style={{ marginTop: "0.5rem" }}>
+                  <p style={PRONUNCIATION_LABEL_STYLE}>{SUMMARY_WENT_WELL_LABEL}</p>
+                  {summary.went_well.map((line, index) => (
+                    <p key={index} style={{ margin: "0.25rem 0" }}>
+                      {line}
+                    </p>
+                  ))}
+                </div>
+              )}
+              {summary.weak_points.length > 0 && (
+                <div style={{ marginTop: "0.5rem" }}>
+                  <p style={PRONUNCIATION_LABEL_STYLE}>{SUMMARY_WEAK_LABEL}</p>
+                  {summary.weak_points.map((item, index) => (
+                    <div key={index} style={PRONUNCIATION_CARD_STYLE}>
+                      <p style={{ margin: "0.25rem 0" }}>{item.point}</p>
+                      {item.quote && (
+                        <>
+                          <p style={PRONUNCIATION_LABEL_STYLE}>{SUMMARY_QUOTE_LABEL}</p>
+                          <p style={{ margin: "0.25rem 0" }}>{item.quote}</p>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           )}
