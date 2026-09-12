@@ -7,7 +7,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from app.services.scenario_rotation import (
@@ -20,7 +20,7 @@ from app.services.scenario_rotation import (
     pick_scenario,
 )
 
-_T0 = datetime(2026, 9, 1, tzinfo=timezone.utc)
+_T0 = datetime(2026, 9, 1, tzinfo=UTC)
 
 
 def _sid(n: int) -> UUID:
