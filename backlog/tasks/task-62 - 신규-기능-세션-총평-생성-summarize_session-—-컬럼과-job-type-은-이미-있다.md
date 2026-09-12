@@ -1,9 +1,10 @@
 ---
 id: TASK-62
 title: '신규 기능: 세션 총평 생성 (summarize_session) — 컬럼과 job type 은 이미 있다'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-09 13:11'
+updated_date: '2026-09-12 16:05'
 labels: []
 dependencies: []
 ordinal: 65000
@@ -24,3 +25,16 @@ learning_sessions.summary 컬럼과 analysis_jobs.job_type 의 summarize_session
 - [ ] #3 재생성이 원자적이게 만든다 — 부분 실패로 반쯤 덮이지 않고 동시 요청이 충돌로 드러난다
 - [ ] #4 TASK-60 과 함께 토큰 사용량을 기록한다 — 총평 생성도 돈이 나가는 호출이다
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+착수 2026-09-13 (세션 ohmyenglish-f4) — 사용자 결정 87 로 이 태스크가 다음 기능으로 정해졌음. 기각된 후보는 TASK-26·TASK-61·TASK-88 임.
+
+⛔ 자산을 직접 확인했음 — 새 마이그레이션이 필요하지 않음:
+- learning_sessions.summary jsonb not null default '{}' (001_initial_schema.sql:46)
+- analysis_jobs.job_type 의 summarize_session (001:138 · 007:71 · 018:51 의 CHECK)
+- analysis_jobs_target_matches_job_type 의 그 분기 (001:152 · 007:77 · 018:64)
+
+⚠️ 방금 닫은 generate_scenario job 경로와 같은 모양임(세션 종료 → job → 워커 → 트랜잭션 밖 Claude → 저장 + complete). 그 경로의 규약과 함정은 services/scenario_generator.process_scenario 와 회차 runs/2026-09-13-task102-intake-pipeline/ 이 가짐 — 특히 워커 실행체의 분기를 «종류마다 지목» 하도록 고쳐 둔 것이 이 job 에도 필요함(p5_worker_leg.py 에 summarize_session 분기가 아직 없음).
+<!-- SECTION:NOTES:END -->
