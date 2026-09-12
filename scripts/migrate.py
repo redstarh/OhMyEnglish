@@ -126,6 +126,15 @@ SEED_SCENARIOS: list[tuple[UUID, str, str, str, str]] = [
         "Daily update in a short stand-up",
         "You are a teammate listening to the learner's short daily update.",
     ),
+    # 여행 6종 — 017 이 값역에 `travel` 을 더했다(결정 77). 캡틴 예시 *"여행중 사고를 당한 상황"*
+    # 이 이 계열의 첫 행이다. ⛔ `level` 은 `A2` 로 둔다 — 무대가 낯설수록 문형은 쉬워야 한다.
+    (
+        UUID("00000000-0000-0000-0000-000000000116"),
+        "travel",
+        "A2",
+        "Getting help after an accident",
+        "You are a passer-by helping the learner after a small accident.",
+    ),
     (
         UUID("00000000-0000-0000-0000-000000000104"),
         "daily_life",
@@ -139,6 +148,14 @@ SEED_SCENARIOS: list[tuple[UUID, str, str, str, str]] = [
         "A2",
         "Sharing a blocker",
         "You are a teammate the learner tells about something blocking their work.",
+    ),
+    # 쇼핑 3종 — 캡틴 예시 *"쇼핑중 물건을 교환하는 상황"* 이 이 계열의 첫 행이다.
+    (
+        UUID("00000000-0000-0000-0000-000000000122"),
+        "shopping",
+        "A2",
+        "Exchanging something you bought",
+        "You are a shop assistant the learner asks to exchange an item.",
     ),
     (
         UUID("00000000-0000-0000-0000-000000000105"),
@@ -155,6 +172,13 @@ SEED_SCENARIOS: list[tuple[UUID, str, str, str, str]] = [
         "You are a teammate the learner asks to move a deadline.",
     ),
     (
+        UUID("00000000-0000-0000-0000-000000000117"),
+        "travel",
+        "A2",
+        "Checking in at a hotel",
+        "You are a hotel receptionist checking the learner in.",
+    ),
+    (
         UUID("00000000-0000-0000-0000-000000000106"),
         "daily_life",
         "A2",
@@ -167,6 +191,15 @@ SEED_SCENARIOS: list[tuple[UUID, str, str, str, str]] = [
         "A2",
         "Agreeing what comes first",
         "You are a teammate deciding with the learner which task comes first.",
+    ),
+    # 진료·건강 3종 — 017 이 값역에 `health` 를 더했다. ⚠️ 셋째 행(잠·피로)은 일상의 「감정」과
+    # 가까우나 몸 상태를 말하는 어휘가 달라 갈라 두었다.
+    (
+        UUID("00000000-0000-0000-0000-000000000125"),
+        "health",
+        "A2",
+        "Describing a symptom at a pharmacy",
+        "You are a pharmacist the learner describes a symptom to.",
     ),
     (
         UUID("00000000-0000-0000-0000-000000000107"),
@@ -183,6 +216,13 @@ SEED_SCENARIOS: list[tuple[UUID, str, str, str, str]] = [
         "You are a teammate the learner reports a small service problem to.",
     ),
     (
+        UUID("00000000-0000-0000-0000-000000000118"),
+        "travel",
+        "A2",
+        "Missing a train",
+        "You are a station staff member the learner asks about a train they missed.",
+    ),
+    (
         UUID("00000000-0000-0000-0000-000000000108"),
         "daily_life",
         "A2",
@@ -197,11 +237,87 @@ SEED_SCENARIOS: list[tuple[UUID, str, str, str, str]] = [
         "You are a manager listening to the learner's short project report.",
     ),
     (
+        UUID("00000000-0000-0000-0000-000000000123"),
+        "shopping",
+        "A2",
+        "Asking for a different size",
+        "You are a shop assistant the learner asks for another size.",
+    ),
+    (
         UUID("00000000-0000-0000-0000-000000000109"),
         "daily_life",
         "A2",
         "Giving an opinion about a film",
         "You are a friend asking the learner what they thought about a film.",
+    ),
+    # ── 여기부터가 30개를 채우는 뒷부분이다 (`TASK-102` AC#3 · 결정 77) ─────────────
+    # ⛔ 계열이 둘 연달아 오지 않게 이어 붙였다 — 앞부분과 같은 규약이고
+    # `test_seed_interleaves_business_stages_early` 가 배열 전체에 그것을 강제한다.
+    # ⚠️ 업무 셋(`…128`~`…130`)은 `h-doc` 프로필의 목표 수준(회의 참여·프로젝트 설명·보고)에
+    # 직접 걸리는 무대다. 캡틴 예시 *"회의 중 보고상황"* · *"주제를 정한 회의에서 회의진행"* 이
+    # 앞의 둘이다.
+    (
+        UUID("00000000-0000-0000-0000-000000000128"),
+        "business",
+        "A2",
+        "Reporting in a team meeting",
+        "You are a colleague listening to the learner report in a team meeting.",
+    ),
+    (
+        UUID("00000000-0000-0000-0000-000000000119"),
+        "travel",
+        "A2",
+        "Ordering at a restaurant abroad",
+        "You are a waiter taking the learner's order.",
+    ),
+    (
+        UUID("00000000-0000-0000-0000-000000000126"),
+        "health",
+        "A2",
+        "Making a clinic appointment",
+        "You are a clinic receptionist taking the learner's appointment.",
+    ),
+    (
+        UUID("00000000-0000-0000-0000-000000000120"),
+        "travel",
+        "A2",
+        "Asking about a day tour",
+        "You are a tour desk staff member answering the learner's questions.",
+    ),
+    (
+        UUID("00000000-0000-0000-0000-000000000129"),
+        "business",
+        "A2",
+        "Running a meeting from an agenda",
+        "You are a teammate in a meeting the learner runs from an agenda.",
+    ),
+    (
+        UUID("00000000-0000-0000-0000-000000000121"),
+        "travel",
+        "A2",
+        "Reporting lost luggage",
+        "You are an airline staff member the learner reports lost luggage to.",
+    ),
+    (
+        UUID("00000000-0000-0000-0000-000000000124"),
+        "shopping",
+        "A2",
+        "Paying and asking for a receipt",
+        "You are a cashier serving the learner.",
+    ),
+    (
+        UUID("00000000-0000-0000-0000-000000000130"),
+        "business",
+        "A2",
+        "Explaining what a project does",
+        "You are a new teammate the learner explains their project to.",
+    ),
+    (
+        UUID("00000000-0000-0000-0000-000000000127"),
+        "health",
+        "A2",
+        "Talking about sleep and tiredness",
+        "You are a friend asking the learner about their sleep.",
     ),
 ]
 

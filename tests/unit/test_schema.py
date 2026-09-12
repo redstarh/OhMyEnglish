@@ -344,7 +344,10 @@ async def test_seed_creates_fixed_user_and_fifteen_scenarios_idempotently(
         "select title from learning_scenarios where category = 'business' order by title"
     )
     assert len(daily) == 9, "PRD §7 Daily Conversation 의 주제 9종"
-    assert len(business) == 6, "PRD §7 Business English 의 시나리오 6종 (캡틴 결정 §1 항목 5)"
+    # ⚠️ 업무는 **6개보다 늘 수 있다** — PRD §7 의 6종이 하한이고 `TASK-102` AC#3 이 30개를
+    # 요구하면서 회의 보고·회의 진행·프로젝트 설명 셋이 더해졌다(결정 77). 등호로 고정하면
+    # 목표 수준(회의 참여·보고)에 맞는 무대를 더할 때마다 이 단정이 걸린다.
+    assert len(business) >= 6, "PRD §7 Business English 의 시나리오 6종이 하한이다"
 
     # ⛔ 업무 6종의 `level` 을 올리지 않는다 — 결정 75 의 완화 조항이고, 이 단정이 그것을
     # 지킨다. 무대는 업무이고 문형 난이도는 일상과 같다.
@@ -384,6 +387,49 @@ def test_seed_interleaves_business_stages_early() -> None:
     tail = categories[3:]
     for i in range(len(tail) - 1):
         assert tail[i] != tail[i + 1], f"배열 {i + 4}~{i + 5}번째가 같은 직종이다: {tail[i]}"
+
+
+# ── 017 category 값역 확장 (분야 · `TASK-102` AC#3 · 결정 77) ──────────────────
+#
+# ⛔ **새 컬럼을 만들지 않고 기존 값역을 늘린 것이 결정 77 이다.** 그 대가로 `category` 가 두 축을
+# 섞어 담는다 — `shadowing` 은 학습 **방식**이고 나머지는 **무대**다. 그 혼재가 이 결정으로 굳었고,
+# 「무대별 통계」와 「방식별 통계」를 따로 내야 할 때 되돌려질 자리다.
+@pytest.mark.asyncio
+async def test_scenario_category_domain_includes_the_new_fields(db_conn: asyncpg.Connection):
+    """캡틴 예시가 담기는지 잰다 — 여행·쇼핑이 값역에 없으면 30개를 채울 수 없다."""
+    definition = await db_conn.fetchval(
+        "select pg_get_constraintdef(oid) from pg_constraint "
+        "where conname = 'learning_scenarios_category_check'"
+    )
+    assert definition is not None, "CHECK 가 없다 (001 미적용)"
+    for value in ("daily_life", "business", "shadowing", "travel", "shopping", "health"):
+        assert value in definition, f"{value}가 값역에서 빠졌다"
+
+    # 값역 밖은 여전히 거부한다 — 늘리는 것이 «아무 값이나 받는 것»은 아니다.
+    with pytest.raises(asyncpg.CheckViolationError):
+        async with db_conn.transaction():
+            await db_conn.execute(
+                "insert into learning_scenarios (category, level, title, prompt_template) "
+                "values ('cooking', 'A2', 't', 'You are someone.')"
+            )
+
+
+@pytest.mark.asyncio
+async def test_seed_covers_at_least_thirty_stages_across_fields(db_conn: asyncpg.Connection):
+    """캡틴 요구는 「분야별 30개 이상」이다 (`TASK-102` AC#3).
+
+    ⚠️ 개수와 **분야 수**를 함께 잰다 — 30개를 두 분야에 몰아 담으면 「분야별」이 아니다.
+    """
+    await migrate.seed(db_conn)
+
+    rows = await db_conn.fetch("select category, count(*) as n from learning_scenarios group by 1")
+    counts = {row["category"]: row["n"] for row in rows}
+
+    assert sum(counts.values()) >= 30, f"상황이 {sum(counts.values())}개다 — 30개 이상이어야 한다"
+    assert len(counts) >= 4, f"분야가 {len(counts)}개다 — 「분야별」이 성립하지 않는다"
+
+    # ⛔ 업무를 지운 채 개수만 채우지 않는다 — h-doc 의 목표 수준이 업무·보고다.
+    assert counts.get("business", 0) >= 6, "업무 상황이 줄었다"
 
 
 # ⑤-2 시드 3행은 **무대**다 — 질문이 아니고 `title`과 `prompt_template`이 갈라져 있다.

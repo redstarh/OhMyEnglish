@@ -19,7 +19,7 @@ from app.services.sessions import create_session
 
 DSN = "postgresql://ohmy:ohmy@localhost:5432/ohmyenglish"
 PROBE_USER = UUID("00000000-0000-0000-0000-0000000009f4")
-ROUNDS = 30
+ROUNDS = 40
 
 _UPSERT_SCENARIO = """
 insert into learning_scenarios (id, category, level, title, prompt_template)
@@ -71,8 +71,14 @@ async def main() -> None:
         print(f"서로 다른 상황 {len(set(titles))}종")
         back_to_back = sum(1 for a, b in zip(titles, titles[1:], strict=False) if a == b)
         print(f"연달아 같은 상황 {back_to_back}회")
-        business = sum(1 for row in rows if row["category"] == "business")
-        print(f"업무 상황 {business}회")
+        by_category: dict[str, int] = {}
+        for row in rows:
+            by_category[row["category"]] = by_category.get(row["category"], 0) + 1
+        print(f"계열별 등장: {dict(sorted(by_category.items()))}")
+
+        # ⚠️ 노출 속도를 함께 낸다 — 상황을 30개 담아도 신규는 주기 11회에 3개씩만 열린다.
+        total_stages = await conn.fetchval("select count(*) from learning_scenarios")
+        print(f"전체 상황 {total_stages}개 중 {len(set(titles))}종이 {ROUNDS}회 안에 나왔다")
 
         # 정리 — 실험 사용자와 그 세션만 지운다(세션은 cascade).
         await conn.execute("delete from users where id = $1", PROBE_USER)

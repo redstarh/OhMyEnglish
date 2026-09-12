@@ -4,6 +4,7 @@ title: '설계 결함: 대화 상황의 노출 순서가 created_at 에 얹혀 �
 status: To Do
 assignee: []
 created_date: '2026-09-12 12:18'
+updated_date: '2026-09-12 12:30'
 labels: []
 dependencies: []
 ordinal: 138000
@@ -26,3 +27,17 @@ ordinal: 138000
 - [ ] #3 DB 의 실제 created_at 이 배열 순서와 같은지 재는 단정을 만든다 — 지금 test_seed_interleaves_business_stages_early 는 상수만 보고 DB 를 보지 않는다
 - [ ] #4 seed() 를 트랜잭션으로 감쌌을 때 순서가 무너지는 것을 재현해 그 위험이 실재함을 실측으로 남긴다
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+⛔ 이 결함의 «두 번째 얼굴» 을 2026-09-12 에 실측했다 (세션 ohmyenglish-f4 · TASK-102 AC#3 작업 중).
+
+시드 배열을 15 → 30행으로 늘리고 upsert 로 dev DB 에 넣었더니 새 15행의 created_at 이 「지금」이라 전부 배열 뒤로 밀렸고, 여행·쇼핑·진료 계열이 40회 세션에서 0회였다. ⇒ 시드 배열을 고쳐도 이미 시드된 DB 에는 순서가 반영되지 않는다. 참조 0인 행을 지우고 다시 넣어야 했다.
+
+즉 이 결함은 두 갈래로 나타난다: ⑴ seed() 를 트랜잭션으로 감싸면 순서가 뭉개진다 ⑵ 이미 시드된 DB 에서 배열을 고쳐도 순서가 갱신되지 않는다. AC#1 의 판단은 그 둘을 함께 봐야 한다 — 명시적 순서 컬럼은 ⑵ 도 함께 닫는다(upsert 의 set 목록에 그 컬럼을 넣으면 되므로).
+
+⚠️ 이 리포에 이미 있는 선례: services/pronunciation.py 가 같은 함정을 문장으로 갖고 정렬을 attempt_seq(명시적 순서 열)로 강제하며 resolved_at 에 clock_timestamp() 를 쓴다(동료 세션 ohmyenglish-19 가 대조해 확인). review.py 도 clock_timestamp() 를 쓴다. ⇒ 「명시 컬럼으로 옮기는 안」의 비용이 그 선례만큼 낮다.
+
+회차 정본: tests/harness/runs/2026-09-12-task4-rotation-app-path.md §3-2.
+<!-- SECTION:NOTES:END -->
