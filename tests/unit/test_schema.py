@@ -389,6 +389,81 @@ def test_seed_interleaves_business_stages_early() -> None:
         assert tail[i] != tail[i + 1], f"배열 {i + 4}~{i + 5}번째가 같은 직종이다: {tail[i]}"
 
 
+# ⑤-6 그 순서가 **DB 의 실제 `created_at`** 에도 있는지 잰다 (`TASK-130` AC#3).
+#
+# ⛔ **위 ⑤-5 는 상수 배열만 본다 — 제품이 읽는 값은 DB 의 컬럼이다.** 그 둘이 갈리는 경로가
+# 실재하고(⑤-7 이 재현한다) 그래서 「배열이 맞다」가 「노출 순서가 맞다」를 뜻하지 않는다.
+# ⚠️ **`db_pool` 을 쓰는 이유는 감싸는 트랜잭션이 없어야** 각 INSERT 가 자기 `now()` 를 받기
+# 때문이다 — `db_conn` 은 트랜잭션 하나로 감싸므로 이 단정을 그 픽스처로는 세울 수 없다.
+# ⛔ `db_pool` 은 커밋되고 아무것도 정리하지 않는다 — **사용자를 먼저** 지워 세션이 cascade 된 뒤에
+# 무대를 지운다(반대 순서는 FK 위반이다).
+@pytest.mark.asyncio
+async def test_seeded_created_at_carries_the_array_order(db_pool: asyncpg.Pool):
+    """DB 에 박힌 `created_at` 의 순서가 `SEED_SCENARIOS` 배열 순서와 같다 (결정 76)."""
+    seed_ids = [scenario_id for scenario_id, *_ in migrate.SEED_SCENARIOS]
+    clip_ids = [clip.id for clip in migrate.SEED_SHADOWING_ITEMS]
+    try:
+        async with db_pool.acquire() as conn:
+            await migrate.seed(conn)
+            rows = await conn.fetch(
+                "select id, created_at from learning_scenarios "
+                "where id = any($1::uuid[]) order by created_at, id",
+                seed_ids,
+            )
+
+        assert [row["id"] for row in rows] == seed_ids, (
+            "DB 의 created_at 순서가 배열 순서와 다르다 — 결정 76 의 노출 순서가 무너졌다"
+        )
+
+        # ⛔ 「순서가 같다」는 값이 서로 **다를 때만** 뜻이 있다. 겹치는 값이 있으면 그 구간의
+        # 정렬이 뒷키(`id`)로 넘어가고 그 순서는 배열과 무관하다(⑤-7 이 그 극단을 잰다).
+        stamps = [row["created_at"] for row in rows]
+        overlap = len(stamps) - len(set(stamps))
+        assert overlap == 0, f"created_at 이 {overlap}건 겹친다 — 그 구간의 순서가 id 로 넘어간다"
+    finally:
+        async with db_pool.acquire() as conn:
+            await conn.execute("delete from users where id = $1", migrate.USER_ID)
+            await conn.execute(
+                "delete from learning_scenarios where id = any($1::uuid[])", seed_ids
+            )
+            await conn.execute("delete from shadowing_items where id = any($1::uuid[])", clip_ids)
+
+
+# ⑤-7 `seed()` 를 트랜잭션 하나로 감싸면 그 순서가 무너진다 (`TASK-130` AC#4).
+#
+# 기전: `created_at` 의 기본값이 `now()`(`001_initial_schema.sql:29`)이고 PostgreSQL 의 `now()` 는
+# **트랜잭션 시작 시각에 고정**된다 ⇒ 30행이 같은 값을 받고 정렬이 뒷키(`id`)로 넘어간다.
+# ⚠️ **그 조건이 `db_conn` 픽스처 자체로 재현된다** — 그 픽스처가 테스트 하나를 트랜잭션 하나로
+# 감싸므로 별도 배선이 필요 없다.
+# ⛔ **이것이 ⑤-6 의 반증 조건이다** — 그 단정이 무엇을 잡는지를 이 테스트가 확정한다. 게이트가
+# 초록인 채 노출 순서만 무너지는 부류라 「재는 축」을 이렇게 둘로 세워야 한다.
+# ⚠️ 지금 `scripts/migrate.py` 의 `main()` 은 `seed()` 를 감싸지 않으므로 제품은 안전하다 — 이
+# 테스트는 그 안전이 **우연한 의존**임을 실측으로 남기는 것이다(`TASK-130`).
+@pytest.mark.asyncio
+async def test_wrapping_seed_in_one_transaction_collapses_the_order(db_conn: asyncpg.Connection):
+    """트랜잭션 하나로 감싸면 30행의 created_at 이 같아지고 순서가 배열과 갈린다."""
+    await migrate.seed(db_conn)
+
+    seed_ids = [scenario_id for scenario_id, *_ in migrate.SEED_SCENARIOS]
+    rows = await db_conn.fetch(
+        "select id, created_at from learning_scenarios "
+        "where id = any($1::uuid[]) order by created_at, id",
+        seed_ids,
+    )
+
+    stamps = {row["created_at"] for row in rows}
+    assert len(stamps) == 1, (
+        f"트랜잭션 안인데 created_at 이 {len(stamps)}종이다 — now() 가 트랜잭션 시작에 "
+        "고정된다는 전제가 틀렸다"
+    )
+
+    # 값이 하나면 정렬이 id 로 넘어가고 그 순서는 배열 순서가 아니다 — 그것이 결함의 실체다.
+    assert [row["id"] for row in rows] != seed_ids, (
+        "created_at 이 전부 같은데 순서가 배열과 같다 — 시드 UUID 순서가 배열 순서와 같아졌다면 "
+        "이 테스트의 판별력이 사라진 것이므로 ⑤-6 과 함께 재설계한다"
+    )
+
+
 # ── 017 category 값역 확장 (분야 · `TASK-102` AC#3 · 결정 77) ──────────────────
 #
 # ⛔ **새 컬럼을 만들지 않고 기존 값역을 늘린 것이 결정 77 이다.** 그 대가로 `category` 가 두 축을
