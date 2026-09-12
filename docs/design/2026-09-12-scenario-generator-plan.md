@@ -409,3 +409,48 @@ git diff --cached --name-only
 git commit -m "feat(TASK-5): 사용자가 만든 상황을 신규 차례 맨 앞으로 올렸음 (결정 80)"
 git show --stat HEAD
 ```
+
+---
+
+## 남은 태스크 개요 — Task 3~6
+
+⛔ **Task 6 만 `nova.py` 를 만진다.** 그 파일을 소유한 갈래와 조율했고 「먼저 해도 된다」는 답을
+받았다(설계서 §6 Dependency). 앞의 셋은 그 파일과 무관하므로 순서를 그렇게 두었다.
+
+| # | 무엇 | `nova.py` | DB |
+|--:|---|---|---|
+| 3 | 파서 `parse_scenario` — 모델 출력 검증 (순수 함수) | 안 만짐 | 안 탐 |
+| 4 | 프롬프트 조립 `build_scenario_prompt` (순수 함수) | 안 만짐 | 안 탐 |
+| 5 | job 처리 `process_scenario` + 세션 종료 시 job 등록 | 안 만짐 | 탐 |
+| 6 | 질문 5개 블록을 시스템 프롬프트에 · 진입 배선 | **만짐** | 탐 |
+
+---
+
+### Task 3: 파서 `parse_scenario` — 모델 출력을 검증한다 (AC#3)
+
+**Files:**
+- Create: `app/backend/app/models/scenario_draft.py`
+- Test: `tests/unit/test_scenario_draft.py`
+
+**Interfaces:**
+- Consumes: 없음 (DB·모델 호출을 모른다)
+- Produces: `ScenarioValidationError(ValueError)` · `ScenarioDraft(category: str, title: str, prompt_template: str)` · `parse_scenario(raw: str, *, allowed_categories: frozenset[str], existing_titles: frozenset[str]) -> ScenarioDraft` · `normalize_title(title: str) -> str`
+
+⛔ **`level` 과 `source` 가 반환에 없는 것이 이 파서의 계약이다**(AC#3 · 설계서 §5). 둘은 모델이
+만들 수 없는 값이라 호출자가 붙인다 — `parse_plan` 이 `current_level` 을 인자로 받는 것과 같은 형태다.
+
+- [ ] **Step 1: 실패하는 테스트를 쓴다**
+
+`tests/unit/test_scenario_draft.py` — 거부 조건 여섯과 통과 하나를 각각 잰다. 값역·중복 목록을
+**인자로 받는다**는 것이 계약이므로 테스트가 그 인자를 직접 준다(DB 를 타지 않는다).
+
+- [ ] **Step 2: 실패를 확인한다**
+
+Run: `cd app/backend && .venv/bin/python -m pytest -c pyproject.toml ../../tests/unit/test_scenario_draft.py -q`
+Expected: FAIL — `ModuleNotFoundError: No module named 'app.models.scenario_draft'`
+
+- [ ] **Step 3: 파서를 쓴다** — `models/plan.py` 의 `_json_candidates` 를 재사용한다(복제하지 않는다).
+
+- [ ] **Step 4: 통과를 확인한다** — 그 파일만 돌린다(DB 를 타지 않으므로 다른 세션의 게이트와 겹치지 않는다).
+
+- [ ] **Step 5: 커밋한다**
