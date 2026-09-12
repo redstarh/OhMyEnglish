@@ -1,12 +1,13 @@
 ---
 id: TASK-102
 title: 학습 시나리오 생성
-status: In Progress
+status: To Do
 assignee: []
 created_date: '2026-09-10 22:38'
-updated_date: '2026-09-12 12:30'
+updated_date: '2026-09-12 12:34'
 labels: []
-dependencies: []
+dependencies:
+  - TASK-5
 type: task
 ordinal: 105000
 ---

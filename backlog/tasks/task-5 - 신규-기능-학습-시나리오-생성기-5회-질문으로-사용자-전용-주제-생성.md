@@ -1,10 +1,10 @@
 ---
 id: TASK-5
 title: '신규 기능: 학습 시나리오 생성기 (5회 질문으로 사용자 전용 주제 생성)'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-06 00:12'
-updated_date: '2026-09-12 12:11'
+updated_date: '2026-09-12 12:34'
 labels:
   - caps-req
 dependencies:
