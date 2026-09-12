@@ -62,6 +62,13 @@ BACKOFF = timedelta(minutes=1)
 
 JOB_TYPE_ANALYZE = "analyze_utterance"
 JOB_TYPE_PLAN = "plan_next_session"
+# `TASK-5` · 결정 79 — 「질문 답변 5개」 세션이 끝난 뒤 그 전사문에서 무대를 만든다.
+# ⚠️ 018 의 `analysis_jobs_job_type_check` 가 값역의 정본이다 — 여기 상수는 그 값을 코드가 부르는
+# 이름일 뿐이고 목록을 복제하지 않는다.
+# ⛔ 새 종류를 더할 때 `workers/analysis_worker.py` 의 분기도 함께 고친다 — 그 파일은
+# `JOB_TYPE_PLAN` 만 갈라내고 나머지를 `process_analysis` 로 보내며, 그 함수는 종류가 다르면
+# **실패로 보고한다.** 분기를 빼면 job 이 걸리기만 하고 5회 재시도 뒤 영원히 `failed` 가 된다.
+JOB_TYPE_GENERATE_SCENARIO = "generate_scenario"
 
 # reaper가 좀비 job에 남기는 사유 (아래 `_REAP_ZOMBIES_SQL` 참조).
 LEASE_EXPIRED_ERROR = "max attempts exceeded (lease expired without report)"
@@ -140,6 +147,23 @@ async def enqueue_plan_next_session(conn: asyncpg.Connection, session_id: UUID) 
     분리하면 그 사이 크래시에서 다음 계획이 영구히 만들어지지 않는다.
     """
     return await conn.fetchval(_ENQUEUE_PLAN_SQL, JOB_TYPE_PLAN, session_id)
+
+
+async def enqueue_generate_scenario(conn: asyncpg.Connection, session_id: UUID) -> UUID | None:
+    """끝난 「질문 답변 5개」 세션의 전사문에서 무대를 만들 job 을 건다 (`TASK-5` · 결정 79).
+
+    ⚠️ **위 `_ENQUEUE_PLAN_SQL` 을 그대로 쓴다** — 상수 이름에 `PLAN` 이 있지만 그 문장은
+    `job_type` 을 파라미터로 받는 **세션 단위 job 공용**이다. 복제하면 `on conflict do nothing`
+    같은 규약이 두 곳으로 갈라진다. ⛔ 상수 이름을 바꾸지 않은 이유: 기존 호출자·테스트가 그
+    이름을 가리키고, 이름 변경은 이 태스크의 범위가 아니다.
+
+    `None` 은 실패가 아니라 **이미 걸려 있다**는 뜻이다 — `enqueue_plan_next_session` 과 같은
+    partial unique 가 `(job_type, session_id)` 를 pending/running 동안 하나로 묶는다.
+
+    ⚠️ 연결을 받는다(pool 이 아니다). 세션 종료 기록과 **한 트랜잭션**이어야 한다 — 분리하면
+    그 사이 크래시에서 5회 대화가 무대 없이 버려진다.
+    """
+    return await conn.fetchval(_ENQUEUE_PLAN_SQL, JOB_TYPE_GENERATE_SCENARIO, session_id)
 
 
 async def claim_next(conn: asyncpg.Connection, *, now: datetime | None = None) -> ClaimedJob | None:

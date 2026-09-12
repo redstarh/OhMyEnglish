@@ -4,8 +4,14 @@
 
 1. **I-4 고아 세션 리퍼** (`reap_orphan_sessions`·`end_session`) — 파일 대부분.
 2. **Task 8: 세션 시작** (`load_prepared_plan`·`create_session`) — 파일 끝의 절.
-   그 절은 `db_pool`도 쓴다(`create_session`이 pool 을 받는다) — 커밋하므로 픽스처가
-   teardown 에서 지운다.
+   그 절은 `db_pool`도 쓴다(`create_session`이 pool 을 받는다).
+
+⛔⛔ **`db_pool` 은 아무것도 정리하지 않는다 — 손으로 지워야 한다.** 그 픽스처 docstring 이
+*"Writes here **commit** — pair it with `committed_session` (or clean up by hand)"* 로 그것을
+명시한다. ⚠️ **이 줄이 한때 「픽스처가 teardown 에서 지운다」로 잘못 적혀 있었고**(2026-09-12 정정)
+그 오해 때문에 `TASK-4` 절이 사용자를 커밋으로 남겼다 — `test_schema.py` 의 `user_count == 1` 이
+파일 순서가 바뀌면 깨지는 상태였다(알파벳순에서는 `test_schema` 가 먼저 와서 **전체 실행에서는
+초록이었다**). 아래 `_cleanup_task4_rows` 가 그 절이 만든 사용자와 무대만 지운다.
 
 **I-4가 왜 필요한가**: 종료 기록 전에 프로세스가 죽으면 `end_session`이 돌지 않아 세션이
 `active`로 영구히 남는다. I-1 회복 스윕(`flush_ended_sessions`)은 **정의상 `active`를
@@ -32,6 +38,7 @@ from uuid import UUID, uuid4
 
 import asyncpg
 import pytest
+import pytest_asyncio
 from conftest import backdate_session as _backdate
 from conftest import plan_json
 
@@ -51,6 +58,32 @@ from app.services.utterances import save_final_transcript
 
 ANSWER = "I usually go to gym after work."
 AGENT_REPLY = "That sounds good. How often do you go?"
+
+# `TASK-4` 절이 `db_pool` 로 만드는 사용자의 표지. ⛔ 정리가 이 값에 걸리므로 다른 파일과 겹치지
+# 않는 이름이어야 한다.
+TASK4_USER_MARK = "task4-rotation"
+
+# `TASK-4` 절이 만드는 무대 제목. ⛔ 이것도 지워야 한다 — 남으면 `test_schema.py` 의
+# 「일상 9종」 단정이 11 을 세고 깨진다(2026-09-12 실측: 사용자만 지우고 무대를 남겼을 때).
+TASK4_STAGE_TITLES = ("one", "two", "three", "only", "seeded first", "made by user")
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def _cleanup_task4_rows(db_pool: asyncpg.Pool):
+    """⛔ `TASK-4` 절이 커밋한 행을 지운다 — `db_pool` 은 정리하지 않는다.
+
+    **순서가 중요하다**: 사용자를 먼저 지워야 세션 → 발화 → job 이 cascade 되고, 그 뒤에야
+    무대를 지울 수 있다(세션이 `scenario_id` 로 참조하므로 반대 순서는 FK 위반이다).
+    ⚠️ 표지로 좁혀 **남의 행을 건드리지 않는다.**
+    """
+    yield
+    async with db_pool.acquire() as conn:
+        await conn.execute("delete from users where display_name = $1", TASK4_USER_MARK)
+        await conn.execute(
+            "delete from learning_scenarios where title = any($1::text[])",
+            list(TASK4_STAGE_TITLES),
+        )
+
 
 # 유예를 확실히 넘기는 값과 확실히 못 넘기는 값. 경계 자체(정확히 60초)는 재지 않는다 —
 # `now()`가 트랜잭션에 고정되어 있어도 두 UPDATE 사이의 마이크로초 차이가 남기 때문이다.
@@ -787,7 +820,8 @@ async def test_consecutive_sessions_do_not_repeat_the_same_scenario(db_pool: asy
     async with db_pool.acquire() as conn:
         user_id = await conn.fetchval(
             "insert into users (display_name, timezone, current_level) "
-            "values ('rotation', 'Asia/Seoul', 'A2') returning id"
+            "values ($1, 'Asia/Seoul', 'A2') returning id",
+            TASK4_USER_MARK,
         )
         seeded = []
         for label in ("one", "two", "three"):
@@ -824,7 +858,8 @@ async def test_session_without_any_scenario_row_still_opens(db_pool: asyncpg.Poo
         await conn.execute("delete from learning_scenarios")
         user_id = await conn.fetchval(
             "insert into users (display_name, timezone, current_level) "
-            "values ('empty', 'Asia/Seoul', 'A2') returning id"
+            "values ($1, 'Asia/Seoul', 'A2') returning id",
+            TASK4_USER_MARK,
         )
 
     session_id = await create_session(db_pool, user_id)
@@ -847,7 +882,8 @@ async def test_level_mismatch_falls_back_to_every_scenario(db_pool: asyncpg.Pool
         await conn.execute("delete from learning_scenarios")
         user_id = await conn.fetchval(
             "insert into users (display_name, timezone, current_level) "
-            "values ('c1', 'Asia/Seoul', 'C1') returning id"
+            "values ($1, 'Asia/Seoul', 'C1') returning id",
+            TASK4_USER_MARK,
         )
         only = await conn.fetchval(
             "insert into learning_scenarios (category, level, title, prompt_template) "
@@ -876,7 +912,8 @@ async def test_generated_stage_is_picked_before_seeded_ones(db_pool: asyncpg.Poo
         await conn.execute("delete from learning_scenarios")
         user_id = await conn.fetchval(
             "insert into users (display_name, timezone, current_level) "
-            "values ('made', 'Asia/Seoul', 'A2') returning id"
+            "values ($1, 'Asia/Seoul', 'A2') returning id",
+            TASK4_USER_MARK,
         )
         await conn.fetchval(
             "insert into learning_scenarios (category, level, title, prompt_template) "

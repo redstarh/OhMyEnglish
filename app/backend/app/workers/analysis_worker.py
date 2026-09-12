@@ -29,9 +29,15 @@ from uuid import UUID
 import asyncpg
 
 from app.services.analysis import process_analysis
-from app.services.jobs import JOB_TYPE_PLAN, ClaimedJob, claim_next
+from app.services.jobs import (
+    JOB_TYPE_GENERATE_SCENARIO,
+    JOB_TYPE_PLAN,
+    ClaimedJob,
+    claim_next,
+)
 from app.services.plan import process_plan
 from app.services.recordings import purge_expired_recordings, sweep_orphan_recording_files
+from app.services.scenario_generator import process_scenario
 from app.services.sessions import ORPHAN_IDLE_GRACE, reap_orphan_sessions
 from app.services.utterances import flush_ended_sessions
 from app.workers.claude_client import ClaudeClient
@@ -209,6 +215,12 @@ async def run_worker(
                 continue
             if job.job_type == JOB_TYPE_PLAN:
                 await process_plan(pool, claude, job)
+            elif job.job_type == JOB_TYPE_GENERATE_SCENARIO:
+                # `TASK-5` · 결정 79. ⛔ **이 분기를 빼면 기능이 아예 돌지 않는다** — 아래 `else`
+                # 가 `process_analysis` 로 보내고 그 함수는 종류가 다르면 실패로 보고하므로
+                # (`analysis.py` 의 그 가드 주석이 근거) job 이 5회 재시도 뒤 영원히 `failed` 가
+                # 된다. 조용히 잘못 처리되지는 않지만 **무대가 한 번도 만들어지지 않는다.**
+                await process_scenario(pool, claude, job)
             else:
                 await process_analysis(pool, claude, job)
         except Exception:

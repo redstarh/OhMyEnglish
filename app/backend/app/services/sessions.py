@@ -49,7 +49,7 @@ import pydantic
 
 from app.models.plan import PlanQuestion, SessionInstruction
 from app.models.scenario import SessionScenario
-from app.services.jobs import enqueue_plan_next_session
+from app.services.jobs import enqueue_generate_scenario, enqueue_plan_next_session
 from app.services.scenario_rotation import (
     WINDOW,
     Candidate,
@@ -74,6 +74,13 @@ ORPHAN_IDLE_GRACE = timedelta(seconds=60)
 # `test_the_default_learning_source_matches_the_migration` 이 이 상수와 `information_schema` 의
 # `column_default` 가 같은지 잰다. 어긋나면 그 테스트가 깨진다.
 _DEFAULT_LEARNING_SOURCE = "recommended"
+
+# `TASK-5` · 결정 79 — 「질문 답변 5개」 진입의 표지. ⛔ **값역의 정본은 018 의
+# `learning_sessions_mode_check` 다** — 이 상수는 그 값을 코드가 부르는 이름일 뿐이고 목록을
+# 복제하지 않는다(`create_session` docstring 이 같은 이유로 목록을 안 갖는다).
+# ⚠️ `learning_source='additional'` 로 이 진입을 가릴 수 없어서 생긴 값이다 — 추가 학습 메뉴 여섯
+# 중 다섯이 그 값이고 그중 셋이 `mode` 를 갖지 않아 서로 구별되지 않는다(설계서 §5).
+SCENARIO_INTAKE_MODE = "scenario_intake"
 
 # ⛔ **시나리오를 여기서 고르지 않는다** (`TASK-4` · 결정 73). 이전 판은 이 안에서
 # `where s.level = (…) order by s.created_at, s.id limit 1` 로 골랐고, 그래서 **같은 사용자가
@@ -150,13 +157,17 @@ returning id
 
 # `and status = 'active'`는 **캡틴 결정(2026-09-03)**이다 — `end_session`이 리퍼의 판정을 덮지
 # 못하게 막는다. `returning id`는 그 가드가 걸렸는지(0행)를 호출자가 알기 위한 것이다.
+# ⚠️ **`mode` 를 함께 돌려준다** (`TASK-5` · 결정 79). 종료 경로가 「이 세션이 무대 정하기였나」를
+# 알아야 `generate_scenario` job 을 걸 수 있고, 그것을 별도 조회로 하면 같은 트랜잭션에서 쿼리가
+# 하나 늘 뿐 얻는 것이 없다. ⛔ 호출자는 `fetchrow` 로 받는다 — `fetchval` 로 받으면 첫 열(`id`)만
+# 와서 `closed["mode"]` 가 조용히 깨진다.
 _END_SESSION_SQL = """
 update learning_sessions
    set status = $2,
        ended_at = now()
  where id = $1
    and status = 'active'
-returning id
+returning id, mode
 """
 
 # `status = 'failed'`는 `SessionEndStatus`의 한 값이다 — 리터럴로 박은 이유는 리퍼가
@@ -542,7 +553,7 @@ async def end_session(conn: asyncpg.Connection, session_id: UUID, status: Sessio
     경고를 `warning`으로 찍는 이유는 함정 **H-Z**다 — 문서가 지정한 실행 명령에서 INFO는
     보이지 않는다. 이 로그가 가드 고장의 유일한 신호이므로 안 보이면 없는 것과 같다.
     """
-    closed = await conn.fetchval(_END_SESSION_SQL, session_id, status)
+    closed = await conn.fetchrow(_END_SESSION_SQL, session_id, status)
     if closed is None:
         logger.warning(
             "세션 %s를 %s로 닫으려 했지만 이미 `active`가 아니다 — 최초 판정을 유지한다. "
@@ -554,6 +565,16 @@ async def end_session(conn: asyncpg.Connection, session_id: UUID, status: Sessio
     # 설계서 §3.1: 같은 트랜잭션에서 다음 계획 job을 건다. `closed`가 있을 때만 거는 이유는
     # 이미 닫힌 세션 재호출(리퍼가 먼저 닫은 경우)에서 job이 중복되지 않게 하려는 것이다.
     await enqueue_plan_next_session(conn, session_id)
+
+    # `TASK-5` · 결정 79 — 「질문 답변 5개」 세션은 **한 job 을 더** 건다. 그 세션의 전사문에서
+    # 무대를 만드는 job 이다.
+    # ⛔ **`learning_source` 로 이 진입을 가릴 수 없다** — 추가 학습 메뉴 여섯 중 다섯이
+    # `additional` 이고 그중 셋이 `mode` 를 갖지 않아 서로 구별되지 않는다(설계서 §5). 그래서
+    # 018 이 `mode` 값역에 `scenario_intake` 를 더했고 이 줄이 그 값을 읽는다.
+    # ⚠️ **계획 job 을 «대신» 걸지 않고 «함께» 건다** — intake 세션에도 학습 발화가 있으므로
+    # 다음 계획의 근거가 된다. 그 대화가 계획에 어떻게 읽히는지는 관측 항목이다.
+    if closed["mode"] == SCENARIO_INTAKE_MODE:
+        await enqueue_generate_scenario(conn, session_id)
 
 
 async def reap_orphan_sessions(

@@ -454,3 +454,48 @@ Expected: FAIL — `ModuleNotFoundError: No module named 'app.models.scenario_dr
 - [ ] **Step 4: 통과를 확인한다** — 그 파일만 돌린다(DB 를 타지 않으므로 다른 세션의 게이트와 겹치지 않는다).
 
 - [ ] **Step 5: 커밋한다**
+
+---
+
+### Task 5: job 처리와 세션 종료 시 등록
+
+**Files:**
+- Modify: `app/backend/app/services/jobs.py` (상수 · `enqueue_generate_scenario`)
+- Modify: `app/backend/app/services/scenario_generator.py` (`process_scenario` · 조회 SQL)
+- Modify: `app/backend/app/services/sessions.py` (종료 경로에서 job 등록)
+- Modify: `app/backend/app/workers/analysis_worker.py` (분기 추가)
+- Test: `tests/unit/test_scenario_generation.py`
+
+**Interfaces:**
+- Consumes: Task 1 의 `source`·job 종류·`scenario_intake` / Task 3 의 `parse_scenario`·`normalize_title` / Task 4 의 `build_scenario_prompt`
+- Produces: `JOB_TYPE_GENERATE_SCENARIO = "generate_scenario"` · `enqueue_generate_scenario(conn, session_id) -> UUID | None` · `process_scenario(pool, claude, job) -> None`
+
+⛔ **워커 분기를 반드시 더한다.** 지금 `analysis_worker.py` 는 `JOB_TYPE_PLAN` 만 갈라내고 나머지를
+`process_analysis` 로 보내며, 그 함수는 종류가 다르면 **실패로 보고한다**(그 파일 주석이 그 설계를
+적었다). ⇒ 분기를 안 더하면 job 이 걸리기만 하고 **5회 재시도 뒤 영원히 `failed`** 가 된다.
+⚠️ 조용히 잘못 처리되지는 않지만 **기능이 아예 돌지 않는다** — 그것을 재는 단정이 이 태스크의 핵심이다.
+
+⛔ **Claude 호출을 트랜잭션 «밖»에서 한다** — `process_plan` 의 규약이다. 안에서 부르면 커넥션을
+잡고 모델을 기다린다.
+
+⛔ **모든 실패를 `report_failure` 로 보고하고 예외를 올리지 않는다.** 워커 루프가 한 job 때문에
+죽으면 그 기능이 영구히 멈춘다.
+
+**흐름**: `job.session_id` 검사 → 입력 읽기(전사문 · `users.current_level` · 기존 `generated` 제목 ·
+`category` 값역) → 트랜잭션 밖 Claude → `parse_scenario` → 저장 트랜잭션 + `complete`.
+
+**⛔ 즉시 종결(재시도 없음) 조건 하나**: 전사문이 비었다. 재시도해도 입력이 같으므로 재시도가
+무의미하다(설계서 §6 Failure). ⚠️ 그것을 어떻게 표현할지는 구현에서 정한다 — `fail_or_retry` 는
+5회까지 재시도하므로 그 경로를 그대로 쓰면 5회를 헛돈다.
+
+- [ ] **Step 1: 테스트를 쓴다** — 아래 여덟을 잰다.
+  1. `scenario_intake` 세션이 끝나면 `generate_scenario` job 이 걸린다.
+  2. ⛔ **일반 세션이 끝나면 그 job 이 걸리지 «않는다»**(판별력 — 1번만 있으면 늘 거는 구현도 통과).
+  3. 워커가 이 job 을 `process_analysis` 로 보내지 않는다.
+  4. 정상 응답 → `learning_scenarios` 에 `source='generated'` 행 하나.
+  5. ⛔ `level` 이 `users.current_level` 과 같다 — 모델이 준 값을 무시한다.
+  6. 파서 거부 → 저장 0행 · `last_error` 채워짐.
+  7. 전사문이 비면 즉시 종결(재시도 대기 상태로 남지 않는다).
+  8. 이미 같은 제목의 `generated` 행이 있으면 거부.
+
+- [ ] **Step 2~5**: 실패 확인 → 구현 → 통과 → 커밋. ⚠️ DB 를 타므로 게이트 전에 다른 세션에 알린다.

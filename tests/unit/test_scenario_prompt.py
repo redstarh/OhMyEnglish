@@ -98,3 +98,15 @@ def test_says_the_stage_must_not_be_a_question() -> None:
 def test_is_deterministic_for_the_same_input() -> None:
     """같은 입력에 같은 프롬프트 — 회차 기록의 바이트 대조가 그것에 걸린다."""
     assert _prompt() == _prompt()
+
+
+def test_names_the_speakers_that_the_transcript_actually_uses() -> None:
+    """⛔ 화자 이름이 `utterances_speaker_check` 값역과 같아야 한다 — `user`·`agent`.
+
+    ⚠️ 이 단정이 실측에서 나왔다. 프롬프트가 처음 「학습자와 코치가 말한」이라 적었는데 실제
+    전사문은 `user:`·`agent:` 로 조립된다(그 값역에 `coach` 가 없다 — dev DB 직접 조회).
+    ⇒ 없는 화자 이름을 안내하면 모델이 전사문에서 그것을 찾는다.
+    """
+    got = _prompt()
+    assert "`user:`" in got and "`agent:`" in got, "화자 이름 안내가 없거나 값역과 다르다"
+    assert "코치" not in got, "값역에 없는 화자 이름(코치)이 프롬프트에 있다"
