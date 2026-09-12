@@ -1,0 +1,71 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "Last night at home — did you eat an apple, an orange, or something else? Tell me in one short sentence.",
+      "context": "집에서 저녁 간식 이야기하기"
+    },
+    {
+      "prompt": "Tell me one short thing you eat or drink in the morning: an egg, an apple, an iced coffee — your choice.",
+      "context": "아침 식사 루틴 말하기"
+    },
+    {
+      "prompt": "You have an hour free after work today. In one short sentence, what do you want to do in an hour?",
+      "context": "퇴근 후 자유 시간 계획 말하기"
+    },
+    {
+      "prompt": "Yesterday you got an email from a friend. Say in one short sentence what the email was about.",
+      "context": "친구에게서 받은 이메일 이야기하기"
+    },
+    {
+      "prompt": "Your team has a small task this week. In one short sentence, tell me one idea you want to share — an idea, an example, anything of yours.",
+      "context": "팀의 작은 업무에 대해 한 가지 아이디어 말하기"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "짧은 문장에서도 a/an을 자주 빠뜨리시고, 'an'을 'a'처럼 발음하셔서 오늘은 이 두 가지를 한 문장 안에서 같이 연습해요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "one short single-clause sentence; add a second short clause only when the learner answers smoothly",
+    "hint_timing": "let the learner finish one full attempt first, then give a short hint and ask for one repeat",
+    "contexts": [
+      "집에서 저녁 간식 이야기",
+      "아침 식사 루틴",
+      "퇴근 후 한 시간 계획",
+      "친구에게 받은 이메일",
+      "팀의 작은 업무에 대한 아이디어 한 가지"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "짧은 일상 문장은 만들 수 있지만 관사와 an 발음이 아직 자동화되지 않아 같은 단계에서 정확도를 다듬는 편이 좋습니다."
+  },
+  "notes": [
+    "Articles appear when the learner repeats a corrected sentence, but disappear again in the first spontaneous try (e.g. 'was project architecture meeting').",
+    "Compound nouns like 'action plan', 'project meeting' are the weakest spot for a/an — the extra modifier seems to push the article out.",
+    "'an' is produced as 'a' even when the learner clearly knows the article is needed, so treat it as a sound issue, not a grammar gap.",
+    "Learner leans heavily on 'I want to / I need to / I'm going to'; short answers are fluent, so pushing one extra clause is realistic soon."
+  ]
+}

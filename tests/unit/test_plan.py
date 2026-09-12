@@ -133,6 +133,29 @@ def test_prompt_requires_matching_target_level_and_valid_cefr(plan_input_factory
     assert "A1|A2|B1|B2|C1|C2" in prompt
 
 
+def test_the_level_bullet_forbids_a_translation_or_note_key_next_to_reason(plan_input_factory):
+    """`TASK-121` — 여분 키를 **국소로** 막는다. 전역 문장은 이미 있고 지켜지지 않았다.
+
+    실측 누적 9회에 4건(`runs/2026-09-12-task119-extra-keys.md` §1): `level.reason_en`(영어 번역)
+    · `level.reason_note: null` · 빈 키 `"": ""` · 무인용 키 `reason: ""`. **넷이 전부
+    `level.reason` 다음 자리다.** 생산 경로에서도 1건이 `attempts=2`를 썼다.
+
+    ⛔ **전역 문장(*"Do not add any key that is not listed above"*)을 강화하지 않는다** — 그것이
+    이미 있는데 어긋났으므로 같은 층에 문장을 더하는 것은 실패한 처방의 반복이다. 이 리포의 선례도
+    같다: `_PRONUNCIATION_FOCUS_RULE` 다섯째 줄이 규격과의 모순을 **그 자리에서** 닫았다.
+
+    ⚠️ **불릿 범위로 좁혀 잰다**(이 파일 머리말의 지배 규칙) — `reason`은 최상위 불릿에도 있어
+    프롬프트 전체를 대상으로 하면 판별력을 잃는다.
+    """
+    bullet = _bullet(build_plan_prompt(plan_input_factory()), "level")
+
+    # 관측된 이름을 그대로 인용한다 — 부류를 추상적으로만 금지하면 모델이 새 이름을 만든다.
+    assert "reason_en" in bullet
+    assert "reason_note" in bullet
+    # 세 키가 전부라는 것과 「하나만 있어도 무효」를 이 자리에서 말한다.
+    assert "all of level" in bullet
+
+
 def test_prompt_requires_instruction_focus_count_and_non_empty_fields(plan_input_factory):
     prompt = build_plan_prompt(plan_input_factory())
 

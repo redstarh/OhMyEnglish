@@ -1,0 +1,71 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "Tell me about your snack yesterday in one short sentence. Was it an apple, an orange, or an egg?",
+      "context": "Small talk about food at home yesterday"
+    },
+    {
+      "prompt": "Morning things: what do you carry or use before you leave home? Say one short sentence about an umbrella, an alarm, or an iced coffee.",
+      "context": "Daily morning routine"
+    },
+    {
+      "prompt": "You have one hour free after work today. Say in one or two short sentences what you want to do in an hour like that.",
+      "context": "Free time after work"
+    },
+    {
+      "prompt": "At the office today, what small thing did you write or send? Tell me in a short sentence about an email or an answer to your team.",
+      "context": "Light work talk about today's office tasks"
+    },
+    {
+      "prompt": "Your team needs one new idea for next week. Say your own idea in one short sentence — start with 'I have...' or 'I want to share...'.",
+      "context": "Sharing an idea with a teammate"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "짧은 문장에서도 'a/an'을 자주 빠뜨리고, 'an'을 'a'처럼 발음하고 있어서 오늘은 이 두 가지를 함께 연습해요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "short single-clause sentences; allow a second short clause only when the learner sounds ready",
+    "hint_timing": "wait for one full attempt, then hint after a short pause or a second try",
+    "contexts": [
+      "food and snacks yesterday",
+      "morning routine before leaving home",
+      "free time after work",
+      "small office tasks today",
+      "sharing an idea with a teammate"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "기본 단문은 만들 수 있지만 관사와 발음이 아직 불안정해서 A2에서 더 다지는 것이 좋습니다."
+  },
+  "notes": [
+    "Articles appear when the sentence is very short and familiar ('I had a meeting yesterday') but disappear with longer noun phrases ('was project architecture meeting').",
+    "Learner self-corrects when given a second try, so short waiting time before hints works well.",
+    "Speaks in fragments and finishes the sentence in a second turn; encourage one complete sentence per turn.",
+    "Recent Korean-script attempts suggest reading aloud is hard; prompts asking for own content work better."
+  ]
+}

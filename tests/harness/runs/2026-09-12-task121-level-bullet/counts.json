@@ -1,0 +1,50 @@
+{
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "prompt_chars": 14735,
+  "rounds": [
+    {
+      "kind": "통과",
+      "detail": "",
+      "verdict": "통과"
+    },
+    {
+      "kind": "통과",
+      "detail": "",
+      "verdict": "통과"
+    },
+    {
+      "kind": "통과",
+      "detail": "",
+      "verdict": "통과"
+    },
+    {
+      "kind": "통과",
+      "detail": "",
+      "verdict": "통과"
+    },
+    {
+      "kind": "통과",
+      "detail": "",
+      "verdict": "통과"
+    },
+    {
+      "kind": "통과",
+      "detail": "",
+      "verdict": "통과"
+    },
+    {
+      "kind": "통과",
+      "detail": "",
+      "verdict": "통과"
+    },
+    {
+      "kind": "여분키",
+      "detail": "level.",
+      "verdict": "PlanValidationError: plan response failed validation: 1 validation error for PlanOutput\nlevel.\n  Extra inputs are not permitted [type=extra_forbidden, input_value='', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden"
+    }
+  ],
+  "tally": {
+    "통과": 7,
+    "여분키": 1
+  }
+}

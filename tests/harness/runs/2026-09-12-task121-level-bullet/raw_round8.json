@@ -1,0 +1,71 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "Tell me about your breakfast this morning. Name two or three things you ate, one thing at a time. (an apple, an egg, an orange...)",
+      "context": "아침 식사 이야기하기"
+    },
+    {
+      "prompt": "You are at a small shop after work. Tell me three things you want to buy there. Say each thing in its own short sentence. (an umbrella, an eraser, an ice cream...)",
+      "context": "퇴근 후 가게에서 물건 사기"
+    },
+    {
+      "prompt": "Talk about your free time yesterday. What did you watch, read, or listen to? (an action movie, an English drama, an old song...)",
+      "context": "어제 저녁 여가 시간"
+    },
+    {
+      "prompt": "Tell me one thing you have to do tomorrow morning at your desk, in two short sentences. (an email, an update, an idea...)",
+      "context": "내일 아침 간단한 업무 계획"
+    },
+    {
+      "prompt": "Your team member asks you for help. Tell them one small thing you can give them today. (an example, an answer, an hour of my time...)",
+      "context": "동료에게 간단한 도움 주기"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "짧은 문장에서도 명사 앞 a/an이 자주 빠지고 있어서, 오늘은 an을 정확히 발음하면서 a/an + 단수 명사를 몸에 익히는 연습을 합니다.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "short single-clause sentences, one idea each; allow two short sentences in a row only when the learner sounds comfortable",
+    "hint_timing": "wait about three seconds after the learner stops, then give a short hint; correct the missing article or the dropped /n/ in 'an' right after the sentence ends",
+    "contexts": [
+      "아침 식사 이야기하기",
+      "퇴근 후 가게에서 물건 사기",
+      "어제 저녁 여가 시간",
+      "내일 아침 간단한 업무 계획",
+      "동료에게 간단한 도움 주기"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "짧은 문장은 만들 수 있지만 관사와 발음이 아직 불안정해서 A2에서 더 다지는 것이 좋습니다.",
+    "": ""
+  },
+  "notes": [
+    "관사를 넣더라도 an을 '어'처럼 발음해 a와 구분되지 않는다 ('a joke'는 되지만 'an action plan'은 무너짐).",
+    "문장이 조각으로 끊길 때 관사와 시간 표현이 함께 빠진다: 'project architecture meeting', 'yesterday'를 따로 붙임.",
+    "익숙한 패턴(I want to / I need to / I had a meeting)에서는 정확도가 높아, 이 틀 안에서 명사만 바꾸게 하면 관사 연습이 잘 된다."
+  ]
+}

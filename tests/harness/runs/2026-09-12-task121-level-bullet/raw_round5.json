@@ -1,0 +1,71 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an + 모음으로 시작하는 단수 명사 (an을 [언]으로 또렷하게)"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "Tell me one small thing you eat in the morning. Say it in one short sentence, like \"I eat ... every morning.\"",
+      "context": "아침 식사 이야기 — an apple, an egg, an orange 같은 단어가 자연스럽게 나오는 상황"
+    },
+    {
+      "prompt": "It is raining today. What do you take with you? Answer in one short sentence about your own day.",
+      "context": "비 오는 날 외출 준비 — an umbrella, an extra bag 같은 단어를 말하는 상황"
+    },
+    {
+      "prompt": "How long do you wait for the subway or the bus? Tell me in one short sentence.",
+      "context": "출퇴근 이동 시간 이야기 — an hour, an hour and a half 같은 표현이 나오는 상황"
+    },
+    {
+      "prompt": "Tell me one thing you wrote or sent at work today. One short sentence is enough.",
+      "context": "가벼운 업무 이야기 — an email, an answer 같은 단어를 말하는 상황"
+    },
+    {
+      "prompt": "You want to fix one small thing in your team's work. What is your first step? Say it in one short sentence.",
+      "context": "간단한 업무 계획 이야기 — an idea, an action plan 같은 표현이 나오는 상황"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "짧은 문장에서도 관사 a/an을 자꾸 빼고, an을 \"a\"처럼 발음해서 오늘은 an + 모음 명사를 말하면서 두 가지를 함께 잡아요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an + 모음으로 시작하는 단수 명사 (an을 [언]으로 또렷하게)"
+      }
+    ],
+    "sentence_length": "one short single-clause sentence per answer; add a second short sentence only if the learner answers smoothly",
+    "hint_timing": "wait until the learner finishes the whole sentence, then repeat their phrase with the correct a/an and the clear [an] sound, and let them say it once more",
+    "contexts": [
+      "아침 식사와 하루 시작",
+      "비 오는 날 외출 준비",
+      "지하철·버스 이동 시간",
+      "가벼운 업무 이메일 이야기",
+      "간단한 업무 계획 첫 단계"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "짧은 단문은 스스로 만들 수 있지만 관사와 발음이 아직 불안정해서 A2에서 더 다져야 합니다."
+  },
+  "notes": [
+    "문장을 끊어서 말하는 습관이 있어 명사구가 따로 튀어나올 때 관사가 사라진다 (\"project architecture meeting\").",
+    "an 자리에서 거의 항상 a로 발음하며, 특히 action plan 같은 업무 단어에서 반복된다.",
+    "짧은 문장에서는 a meeting을 정확히 쓰는데, 명사가 두 단어 이상으로 길어지면 관사를 놓친다.",
+    "go to + 장소에서 the를 빠뜨리는 습관도 남아 있으니 오늘 대화 중 자연스럽게 다시 들려주면 좋다."
+  ]
+}

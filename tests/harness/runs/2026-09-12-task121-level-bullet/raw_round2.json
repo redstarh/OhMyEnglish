@@ -1,0 +1,71 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an + 모음으로 시작하는 단수 명사 (an을 a로 줄이지 않고 [ən] 으로)"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "It is morning and you just opened your laptop. What do you need to write first? Answer in one short sentence.",
+      "context": "morning at your desk"
+    },
+    {
+      "prompt": "Your team is talking in the group chat. You have something small you want to share with them. What is it? One short sentence, please.",
+      "context": "team chat with coworkers"
+    },
+    {
+      "prompt": "It is 3 p.m. and you are a little hungry. What do you want to eat right now? Say it in one short sentence.",
+      "context": "afternoon snack break"
+    },
+    {
+      "prompt": "You meet your manager tomorrow morning. What do you need to prepare today? Tell me in one short sentence.",
+      "context": "the day before a short meeting with your manager"
+    },
+    {
+      "prompt": "You are at home after work and you have one free hour. What do you want to do with it? One short sentence.",
+      "context": "evening at home"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "짧은 문장에서도 a/an을 자주 빼먹고 an을 a처럼 약하게 발음하시니, 오늘은 일상 상황에서 'an + 명사'를 소리와 함께 같이 연습해요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an + 모음으로 시작하는 단수 명사 (an을 a로 줄이지 않고 [ən] 으로)"
+      }
+    ],
+    "sentence_length": "one short single-clause sentence, about five to eight words; add a second short sentence only if the learner answers easily",
+    "hint_timing": "let the learner finish the sentence first, then give a short hint only after one try",
+    "contexts": [
+      "morning at your desk",
+      "team chat with coworkers",
+      "afternoon snack break",
+      "the day before a short meeting with your manager",
+      "evening at home"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "짧은 일상 문장은 잘 만들지만 관사와 기본 발음이 아직 불안정해서 A2에서 더 다져야 합니다."
+  },
+  "notes": [
+    "Articles appear when the sentence is very short and rehearsed, but disappear as soon as the noun phrase grows (\"was project architecture meeting\").",
+    "Self-corrects after repetition: repeated the same sentence two or three times before producing \"she enjoyed a joke one night\".",
+    "Writes 'an' but says it like 'a' — the vowel-linking in an email / an idea / an action plan needs slow, repeated speaking practice.",
+    "Work vocabulary (meeting, report, action plan) is already familiar, so daily-life prompts can borrow those nouns without raising the difficulty."
+  ]
+}

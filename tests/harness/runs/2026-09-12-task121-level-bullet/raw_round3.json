@@ -1,0 +1,70 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "You had breakfast this morning. Was there an apple, an egg, or an orange on your table? Tell me in one short sentence what you ate.",
+      "context": "Morning breakfast at home"
+    },
+    {
+      "prompt": "You wait for your friend near the gym for an hour. Tell me in two short sentences what you do for an hour.",
+      "context": "Waiting for a friend after work"
+    },
+    {
+      "prompt": "Your friend asks about Saturday, and you have an idea. Tell me your idea in one or two short sentences.",
+      "context": "Weekend plan with a friend"
+    },
+    {
+      "prompt": "This morning you opened an email from your teammate. Tell me in one short sentence what you did after that.",
+      "context": "Simple office routine"
+    },
+    {
+      "prompt": "Tomorrow you have one small task at work. Tell me in one short sentence what you will make first, and then one thing you need.",
+      "context": "Getting ready for a small work task"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "짧은 문장에서도 'a/an'을 빼고 말하는 경우가 계속 보이고, 'an'을 'a'처럼 발음하고 있어서 오늘은 이 두 가지를 같이 연습해요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "short single-clause sentences; at most two short sentences in a row",
+    "hint_timing": "let the learner finish one full attempt first, then hint; hint after about five seconds of silence",
+    "contexts": [
+      "Morning breakfast at home",
+      "Waiting for a friend after work",
+      "Weekend plan with a friend",
+      "Simple office routine (reading an email)",
+      "Getting ready for a small work task"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "짧은 일상 문장은 만들 수 있지만 관사와 발음이 아직 불안정해서 A2에서 더 다지는 편이 좋습니다."
+  },
+  "notes": [
+    "Articles appear correctly in memorized chunks like 'a meeting' and 'a report', but disappear when the noun is longer, e.g. 'was project architecture meeting'.",
+    "Speaks in fragments and adds the time word as a separate piece ('...meeting.' + 'yesterday.'); joining them into one sentence still needs prompting.",
+    "'an' is reduced to 'a' before vowel-initial nouns; words like an hour, an apple, an email give good repetition."
+  ]
+}

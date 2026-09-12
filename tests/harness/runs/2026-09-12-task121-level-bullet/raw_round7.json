@@ -1,0 +1,70 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "Tell me about one small thing you ate last night. Was it an apple, an egg, or an orange? Give me one or two short sentences.",
+      "context": "Chatting with a friend about last night's snack at home"
+    },
+    {
+      "prompt": "You are going shopping this evening. Tell me one small item you need — an umbrella, an eraser, an onion? Say it in a short sentence.",
+      "context": "Planning a quick trip to a shop near home"
+    },
+    {
+      "prompt": "How do you spend an hour of free time? Tell me what you do in an hour after dinner.",
+      "context": "Small talk about free time in the evening"
+    },
+    {
+      "prompt": "Your team leader asks what you will do tomorrow morning. Tell me one thing you will write or make — an email, an action plan, an idea for your team. Keep it short.",
+      "context": "A short morning check-in with your team leader"
+    },
+    {
+      "prompt": "Tell me about an old friend or an old teacher you remember. Two short sentences are enough.",
+      "context": "Telling a coworker about a person from your past"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "짧은 문장에서도 'a/an'을 자주 빠뜨리고, 'an'을 'a'처럼 발음하고 있어서 오늘은 an 소리와 관사를 같이 연습해요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "short single-clause sentences, about 5-8 words, patterns like 'I need to...' or 'I ate...'; add a second short sentence only when the learner sounds comfortable",
+    "hint_timing": "let the learner finish first, then hint only after one full try",
+    "contexts": [
+      "food and snacks at home",
+      "shopping for one small item",
+      "free time after dinner",
+      "a short check-in with a team leader",
+      "talking about a person you remember"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "짧은 일상 문장은 만들지만 관사와 발음이 아직 불안정해서 A2에서 더 다져야 해요."
+  },
+  "notes": [
+    "Articles appear when the phrase is memorized ('a meeting', 'a joke' after correction) but disappear with longer noun phrases like 'project architecture meeting'.",
+    "'an' before vowel sounds is pronounced like 'a', so 'an action plan' loses the /n/ link — worth drilling with an+vowel nouns.",
+    "Learner often produces answers in fragments across separate turns; encourage one complete short sentence per turn."
+  ]
+}

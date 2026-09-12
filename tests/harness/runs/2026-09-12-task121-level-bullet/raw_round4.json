@@ -1,0 +1,71 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "What did you eat this morning? Tell me each food in its own short sentence — an egg, an apple, an orange, whatever it really was.",
+      "context": "Breakfast talk at the start of the session"
+    },
+    {
+      "prompt": "Tell me about one hour of your evening yesterday. What did you do for an hour? Say two or three short sentences.",
+      "context": "Daily routine after work"
+    },
+    {
+      "prompt": "You want to see a friend this weekend. Tell me an idea you have — one short sentence for each idea.",
+      "context": "Weekend plan with a friend"
+    },
+    {
+      "prompt": "Tell me about an email you sent at work today. Who got it, and what was inside? Keep each sentence short.",
+      "context": "A small everyday task at the office"
+    },
+    {
+      "prompt": "This week you have one small job to finish. Tell me about it — is it an email, an update, or an action plan? Say it in two short sentences.",
+      "context": "Talking about one small work task for this week"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "관사 a/an을 빼고 말하는 습관이 9일 동안 계속 보여서요. 오늘은 짧은 문장에서 a/an을 붙이는 연습과 함께, an을 'a'처럼 발음하는 부분도 같이 잡아 봐요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "short single-clause sentences, about five to eight words each",
+    "hint_timing": "wait about five seconds of silence, then give a short hint; correct the missing a/an or the dropped -n sound right after the learner finishes the sentence",
+    "contexts": [
+      "breakfast and food this morning",
+      "evening routine after work",
+      "weekend plan with a friend",
+      "sending a short email at the office",
+      "one small work task this week"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "짧은 문장은 잘 만들지만 관사와 발음이 아직 불안정해서 A2에서 더 다지는 편이 좋습니다."
+  },
+  "notes": [
+    "Articles appear when the learner repeats a memorized chunk ('a meeting', 'a report'), but disappear with new or compound nouns ('project architecture meeting', 'action plan').",
+    "The learner often speaks in fragments and adds the time word in a separate breath ('I had a project meeting.' + 'yesterday.'); joining it into one sentence helps both word order and articles.",
+    "'an' is pronounced as 'a', so the -n disappears before vowel-initial nouns; words like an hour, an egg, an email give it repeated chances.",
+    "Self-repair is good — after feedback the learner retries and usually fixes it within two attempts."
+  ]
+}

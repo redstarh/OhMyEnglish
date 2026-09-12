@@ -248,6 +248,18 @@ Deepest recurrence:
 # 하나만 어긋나면 실물 모델 응답이 검증 단계에서 전부 거부된다. 초점 1~2개·질문 3~5개는
 # PRD.md:188(R11-2)의 문서 근거가 있는 값이고, 그 외 임계값은 넣지 않는다(발명하지 않는다).
 # ⚠️ 지시문 크기 상한도 넣지 않는다 — 설계서 §3.4가 그 수치는 실측 후에 정한다고 했다.
+#
+# ⛔ **`- level:` 불릿의 마지막 문장은 `TASK-121`이 더했고, 전역 금지 문장이 «이미 있는데»
+# 어긋난다는 실측에서 나왔다.** 규격 끝의 *"Do not add any key that is not listed above"*가
+# 그것인데, 누적 9회에 4건이 `level.reason` **다음 자리**에 키를 만들었다
+# (`runs/2026-09-12-task119-extra-keys.md` §1 — `reason_en`(영어 번역) · `reason_note: null` ·
+# 빈 키 `""` · 무인용 키 `reason: ""`). 생산 경로에서도 1건이 `attempts=2`를 썼다.
+# ⇒ **같은 층에 문장을 더하지 않고 그 불릿 안에서 말한다** — 전역 문장을 강화하는 것은 이미
+# 실패한 처방의 반복이다. `_PRONUNCIATION_FOCUS_RULE` 다섯째 줄이 규격과의 모순을 **그 자리에서**
+# 닫은 것과 같은 구조다.
+# ⚠️ **관측된 이름을 그대로 인용한다** — 부류만 추상적으로 금지하면 모델이 새 이름을 만든다.
+# ⛔ **`extra="forbid"`를 푸는 쪽으로 가지 않는다**(`TASK-119` AC#3) — 지어낸 키가 조용히
+# 저장되는 것을 막는 가드이고, 그것을 풀면 이 결함이 결함이 아니게 되는 대신 더 나쁜 것이 된다.
 _OUTPUT_SPEC = """\
 Return one JSON object and nothing else. Keys:
 - focus: one or two patterns, each {pattern_id, pattern_key, target_form}. Pick only from the
@@ -267,7 +279,9 @@ Return one JSON object and nothing else. Keys:
   instructions and must not be empty. contexts is the list of situations for today.
 - level: {action: keep|up|down, target_level, reason}. Move at most one CEFR step from the current
   level, in either direction. Going down is allowed and is better than staying too hard. reason
-  must not be empty.
+  must not be empty. Those three keys are all of level: do not put a translation or a note next to
+  reason (no reason_en, no reason_note, no blank key) — one extra key inside level makes the whole
+  response invalid.
 - notes: observations worth keeping that numbers cannot hold — for example "adds articles in short
   sentences but drops them once the sentence gets longer". An empty list is fine here.
 
