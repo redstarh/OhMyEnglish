@@ -354,6 +354,38 @@ async def test_seed_creates_fixed_user_and_fifteen_scenarios_idempotently(
     assert [row["level"] for row in business_levels] == ["A2"]
 
 
+# ⑤-5 시드 배열의 **순서**가 제품 동작이다 (`TASK-4` · 결정 76).
+#
+# ⛔ **이 테스트는 「비율이 맞는다」와 다른 것을 잰다.** 배치 규칙은 신규를 고를 때 `created_at` 이
+# 가장 이른 후보를 집고, 그 컬럼은 시드 배열의 삽입 순서다. 업무 6종을 배열 뒤에 몰아 두었던 첫
+# 판은 **결정 75(「처음부터 섞는다」)를 문면만 이행했고** 실제로는 일상 9종을 다 소진한 뒤에야
+# 업무가 나왔다 — dev DB 에서 실제 앱 경로(`create_session`)로 12회를 열어 **업무 0회**를 관측했다.
+# ⚠️ **단위 테스트가 그것을 못 잡았다** — 비율과 고갈은 셌지만 「무엇이 먼저 오는가」를 세지 않았다.
+# 이 테스트가 그 구멍이다.
+def test_seed_interleaves_business_stages_early() -> None:
+    """업무 상황이 배열 앞쪽에 들어와 있다 — 창(10) 안에 최소 하나는 온다."""
+    categories = [category for _, category, _, _, _ in migrate.SEED_SCENARIOS]
+
+    first_business = categories.index("business")
+    # 창이 10 이므로 첫 업무가 10번째 이후면 도입 첫 창에서 업무를 못 본다.
+    assert first_business < 5, (
+        f"첫 업무 상황이 배열 {first_business + 1}번째다 — 결정 76 이 요구한 「번갈아」가 아니다"
+    )
+
+    # 뒤쪽 절반에 업무가 몰려 있지 않다. 균등하지 않으면 후반부만 업무가 된다.
+    half = len(categories) // 2
+    front = categories[:half].count("business")
+    assert front >= 2, f"앞 절반에 업무가 {front}개뿐이다 — 뒤로 몰렸다"
+
+    # ⛔ **4번째부터는 같은 직종이 둘 연달아 오지 않는다** — 그것이 「번갈아」의 기계적 정의다.
+    # ⚠️ 앞 3개를 제외하는 이유: `…101`·`…102`·`…103` 은 이 태스크 전부터 있던 행이고 `…101` 은
+    # 세션 17건이 참조한다(dev DB 직접 조회). `created_at` 이 이미 박혀 있어 배열에서 앞으로
+    # 당길 수 없다. 그 셋이 일상인 것은 PRD §7 의 「일상부터 연습한 뒤 업무로 전이」와도 맞는다.
+    tail = categories[3:]
+    for i in range(len(tail) - 1):
+        assert tail[i] != tail[i + 1], f"배열 {i + 4}~{i + 5}번째가 같은 직종이다: {tail[i]}"
+
+
 # ⑤-2 시드 3행은 **무대**다 — 질문이 아니고 `title`과 `prompt_template`이 갈라져 있다.
 #
 # 캡틴 결정 14 (2026-09-07). 근거: 결정 9가 「시나리오 = 무대(상황·역할) · 계획 = 목표(질문)」로

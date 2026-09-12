@@ -70,6 +70,15 @@ USER_ID = UUID("00000000-0000-0000-0000-000000000001")
 # 그 값이고, 15가 10 이하로 줄면 신규가 마른다. 그 경계는 실측했다
 # (`tests/unit/test_scenario_rotation.py::test_starvation_returns_when_topics_only_match_the_window`
 # 이 후보 10에서 6회 마르는 것을 센다).
+#
+# ⛔⛔ **이 리스트의 «순서»가 제품 동작이다** (`TASK-4` · 결정 76). 배치 규칙은 신규를 고를 때
+# 「한 번도 안 쓴 것 가운데 `created_at` 이 가장 이른 것」을 집고, 그 컬럼은 **이 배열의 삽입
+# 순서**다. ⇒ **배열 끝에 붙인 상황은 「가장 늦게 나오는 상황」이 된다.**
+# ⚠️ 그래서 업무 6종을 뒤에 몰아 두었던 첫 판은 **결정 75(「처음부터 섞는다」)를 문면만 이행했고**
+# 실제로는 일상 9종을 다 소진한 뒤에야 업무가 나왔다 — dev DB 에서 실제 앱 경로로 12회를 열어
+# **업무 0회**를 관측했다. 지금 순서가 그 관측의 결과다.
+# ⛔ **새 상황을 그냥 끝에 붙이지 마라** — 어느 자리에 넣을지가 노출 순서를 정한다.
+# `tests/unit/test_schema.py::test_seed_interleaves_business_stages_early` 가 이 계약을 지킨다.
 SEED_SCENARIOS: list[tuple[UUID, str, str, str, str]] = [
     # 일상 9종 — 이름은 `docs/PRD.md` §7 Daily Conversation 그대로다(v1.0 · 2026-08-24).
     # ⚠️ 캡틴 노트 항목 7이 새로 요구한 것은 이 이름 목록이 아니라 **배치 비율**이다.
@@ -96,49 +105,8 @@ SEED_SCENARIOS: list[tuple[UUID, str, str, str, str]] = [
         "Deciding what to eat tonight",
         "You are a housemate deciding with the learner what to eat tonight.",
     ),
-    (
-        UUID("00000000-0000-0000-0000-000000000104"),
-        "daily_life",
-        "A2",
-        "Meeting someone for the first time",
-        "You are someone the learner has just met. Keep the small talk short and friendly.",
-    ),
-    (
-        UUID("00000000-0000-0000-0000-000000000105"),
-        "daily_life",
-        "A2",
-        "Talking about a hobby",
-        "You are a friend asking the learner about a hobby they enjoy.",
-    ),
-    (
-        UUID("00000000-0000-0000-0000-000000000106"),
-        "daily_life",
-        "A2",
-        "How the day felt",
-        "You are a close friend asking the learner how their day felt.",
-    ),
-    (
-        UUID("00000000-0000-0000-0000-000000000107"),
-        "daily_life",
-        "A2",
-        "Asking the way to a station",
-        "You are a passer-by the learner stops to ask for directions.",
-    ),
-    (
-        UUID("00000000-0000-0000-0000-000000000108"),
-        "daily_life",
-        "A2",
-        "Asking a small favour",
-        "You are a neighbour the learner asks for a small favour.",
-    ),
-    (
-        UUID("00000000-0000-0000-0000-000000000109"),
-        "daily_life",
-        "A2",
-        "Giving an opinion about a film",
-        "You are a friend asking the learner what they thought about a film.",
-    ),
-    # 업무 6종 — 이름은 `docs/PRD.md` §7 Business English 그대로다. 캡틴 결정
+    # ── 여기서부터 업무·일상을 번갈아 놓는다 (결정 76) ──────────────────────────
+    # 업무 6종의 이름은 `docs/PRD.md` §7 Business English 그대로다. 캡틴 결정
     # (`docs/design/2026-09-06-captain-decisions.md` §1 항목 5)이 「주제 9종에 더한다」로 정했다.
     # ⛔ **`level`을 `A2`로 둔다 — 올리지 않는다**(결정 75의 완화 조항). 무대는 업무이고 문형
     # 난이도는 일상과 같다. `h-doc` 프로필이 경고한 실패(AWS 보고 수준 문형으로 예문을 만들면
@@ -151,11 +119,25 @@ SEED_SCENARIOS: list[tuple[UUID, str, str, str, str]] = [
         "You are a teammate listening to the learner's short daily update.",
     ),
     (
+        UUID("00000000-0000-0000-0000-000000000104"),
+        "daily_life",
+        "A2",
+        "Meeting someone for the first time",
+        "You are someone the learner has just met. Keep the small talk short and friendly.",
+    ),
+    (
         UUID("00000000-0000-0000-0000-000000000111"),
         "business",
         "A2",
         "Sharing a blocker",
         "You are a teammate the learner tells about something blocking their work.",
+    ),
+    (
+        UUID("00000000-0000-0000-0000-000000000105"),
+        "daily_life",
+        "A2",
+        "Talking about a hobby",
+        "You are a friend asking the learner about a hobby they enjoy.",
     ),
     (
         UUID("00000000-0000-0000-0000-000000000112"),
@@ -165,11 +147,25 @@ SEED_SCENARIOS: list[tuple[UUID, str, str, str, str]] = [
         "You are a teammate the learner asks to move a deadline.",
     ),
     (
+        UUID("00000000-0000-0000-0000-000000000106"),
+        "daily_life",
+        "A2",
+        "How the day felt",
+        "You are a close friend asking the learner how their day felt.",
+    ),
+    (
         UUID("00000000-0000-0000-0000-000000000113"),
         "business",
         "A2",
         "Agreeing what comes first",
         "You are a teammate deciding with the learner which task comes first.",
+    ),
+    (
+        UUID("00000000-0000-0000-0000-000000000107"),
+        "daily_life",
+        "A2",
+        "Asking the way to a station",
+        "You are a passer-by the learner stops to ask for directions.",
     ),
     (
         UUID("00000000-0000-0000-0000-000000000114"),
@@ -179,11 +175,25 @@ SEED_SCENARIOS: list[tuple[UUID, str, str, str, str]] = [
         "You are a teammate the learner reports a small service problem to.",
     ),
     (
+        UUID("00000000-0000-0000-0000-000000000108"),
+        "daily_life",
+        "A2",
+        "Asking a small favour",
+        "You are a neighbour the learner asks for a small favour.",
+    ),
+    (
         UUID("00000000-0000-0000-0000-000000000115"),
         "business",
         "A2",
         "Short report to a manager",
         "You are a manager listening to the learner's short project report.",
+    ),
+    (
+        UUID("00000000-0000-0000-0000-000000000109"),
+        "daily_life",
+        "A2",
+        "Giving an opinion about a film",
+        "You are a friend asking the learner what they thought about a film.",
     ),
 ]
 
