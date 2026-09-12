@@ -1285,6 +1285,41 @@ def test_the_dedicated_prompt_never_names_the_grammar_first_rule():
     assert "spend the one correction" in dedicated
 
 
+# 사용자 결정 71 — **두 모드의 소리 줄이 「그 구절 하나만」 달라야 한다.**
+#
+# ⛔ **이 단정이 없으면 게이트가 이 축에 대해 «침묵한다».** 위 두 테스트는 부분 문자열만 보므로
+# `{grammar_first}` 템플릿이 공백을 흔들거나 다른 곳을 함께 바꿔도 **둘 다 통과한다.** 전용 모드
+# 프롬프트는 바이트 게이트가 지키지만 **일반 세션 소리 줄에는 그런 게이트가 없다** — 그 자리를
+# 이 테스트가 메운다.
+#
+# ⚠️ **이 테스트는 사후에 붙였다.** 구현 시점에는 이 축을 재지 않았고, 나중에 직접 렌더해 보고
+# 「이음매가 깨끗한 것이 측정된 사실이 아니라 운」이었음을 알았다(동료 세션이 자기 갈래에서 같은
+# 부류를 겪고 넘긴 교훈이다: **재지 않는 축에 대해 초록은 아무 말도 하지 않는다**).
+def test_the_two_sound_lines_differ_by_exactly_the_grammar_first_clause():
+    block = _plan_block(
+        _prompt(
+            ("th_as_s",),
+            _instruction(
+                focus=[
+                    InstructionFocus(pattern_key="pronunciation_th_as_s", target_form="th_as_s"),
+                    InstructionFocus(pattern_key="article_missing", target_form="a/an/the"),
+                ]
+            ),
+        )
+    )
+    general_line = _line_starting_with(block, _SOUND_LINE)
+    dedicated_line = _line_starting_with(build_pronunciation_prompt("th_as_s"), _SOUND_LINE)
+
+    clause = " instead of the Grammar first rule 9"
+    assert general_line.replace(clause, "") == dedicated_line, (
+        "두 모드의 소리 줄이 그 구절 «말고도» 다르다 — 모드별 칸이 다른 곳까지 흔들었다"
+    )
+    # ⛔ 이음매에 공백이 겹치지 않는다 — `{grammar_first}` 가 앞 공백을 스스로 갖기 때문에
+    # 템플릿 쪽에 공백을 하나 더 두면 여기서 잡힌다.
+    assert "  " not in general_line
+    assert "  " not in dedicated_line
+
+
 # 사용자 결정 70 (`TASK-123`) — **소리 줄은 `target_sound` 에 무엇을 넣을지 «말하지 않는다».**
 #
 # ⛔ 왜 덜어내는가: 조건을 **더하는** 방향이 실측에서 **3/3 으로 실패했다** — 오디오에 /f/ 가 한
