@@ -4,7 +4,7 @@ title: '신규 기능: 학습 시나리오 생성기 (5회 질문으로 사용�
 status: To Do
 assignee: []
 created_date: '2026-09-06 00:12'
-updated_date: '2026-09-07 22:27'
+updated_date: '2026-09-12 12:11'
 labels:
   - caps-req
 dependencies:
@@ -26,6 +26,16 @@ ordinal: 5000
 - [ ] #3 생성 주체(글 모델인지 규칙인지)와 거부 경계 정의 — 모델이 만들 수 없는 값을 요구하지 않는다
 - [ ] #4 요구사항 상세화 + 설계 반영. 트랙 A(풀)이므로 4 Lenses 전체를 설계서에 담는다
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+관계 정리 2026-09-12 (세션 ohmyenglish-f4). ⛔ 이 태스크는 TASK-102 의 AC#2 (사용자와 대화형 시나리오 생성) 와 같은 것이다. TASK-102 가 캡틴 요구사항 원문(2026-09-10)이고 이 태스크가 그 조각의 실행체다 — 둘을 따로 설계하면 갈라진다.
+
+선행이 풀렸다: TASK-25·TASK-4 둘 다 Done 이다(TASK-4 는 2026-09-12 · 커밋 f2e9d83). TASK-4 가 정한 것이 이 태스크의 착지 지점이다 — 생성된 시나리오는 learning_scenarios 의 행 하나가 되고, 배치 규칙(결정 73·74)이 그것을 신규 후보로 집는다.
+
+⛔ 착수 전에 읽을 것: docs/design/2026-09-12-scenario-rotation-70-30-design.md §3(시드 배열 순서가 제품 동작이다 · 결정 76) 과 §9(범위 밖 — 이 태스크가 그 자리를 가진다).
+<!-- SECTION:NOTES:END -->
 
 ## Comments
 
