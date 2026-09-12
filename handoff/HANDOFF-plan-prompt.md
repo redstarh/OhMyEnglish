@@ -15,6 +15,7 @@
 ## ① 이 세션이 한 것 — 검증과 프롬프트의 어긋남을 닫고 비용을 볼 수단을 만듦
 
 닫은 태스크 여섯: `TASK-117` · `TASK-108` · `TASK-119` · `TASK-121` · `TASK-112` · `TASK-60`.
+부분 진행 하나: `TASK-39`(AC#1 닫음 — 재시도·타임아웃 명시 · AC#2 는 운영 관찰 항목으로 남김).
 판정과 근거는 각 태스크 노트가 정본임.
 
 회차 기록 셋이 이 세션의 관측 정본임.
@@ -22,6 +23,8 @@
 1. `runs/2026-09-12-task108-deepest-marker.md` — 표식 대상 초점 포함 3/3 · `parse_plan` 통과 2/3.
 2. `runs/2026-09-12-task119-extra-keys.md` — 여분 키 2/5 · 전역 금지 문장이 이미 있었음.
 3. `runs/2026-09-12-task121-level-bullet.md` — 이름 있는 형태 0/8 · 이름 없는 빈 키 1/8.
+4. `runs/2026-09-12-task39-retry-policy.md` — 전송 5회 → 2회 · `max_attempts` 키가 실제 전송 수와
+   1 어긋남(`total_max_attempts` 는 정확히 일치) · 계획 크기 호출의 실제 소요 30.27초·18.25초.
 
 제품에 들어간 것: 만성 줄의 `[deepest recurrence]` 표식 + 조건부 `_DEEPEST_FOCUS_RULE` ·
 `- level:` 불릿의 국소 금지 문장 · `set_session_mode` 로 `mode=pronunciation` 기록 ·
@@ -34,18 +37,18 @@
 받은 결정 둘: `66`(사용량은 새 표 `llm_calls`) · `67`(`mode` 값역에 `pronunciation`).
 정본은 `docs/ops/captain-instruction-register.md` 임.
 
-## ② 다음 한 걸음 — `TASK-39` 를 먼저, `TASK-124` 는 나란히
+## ② 다음 한 걸음 — `TASK-124`
 
-- `TASK-39`(botocore 재시도 정책 · `To Do`) — 이 세션이 그 노트에 실측과 새 사실을 넣었음:
-  기본값은 connect/read 60초 · `retries None` 이고, ⛔ 재시도가 SDK 안에서 나므로 방금 만든
-  `llm_calls` 가 재시도분을 못 봄. 그래서 그 태스크의 AC#2(중복 과금이 사라지는지)는 이 표로
-  잴 수 없음 — 재는 방법을 회차 설계에서 먼저 정해야 함.
-- `TASK-124`(Nova 호출도 적기 · `To Do`) — 지금 `llm_calls` 는 「비용을 볼 수 있다」를 절반만
-  이룸. ⚠️ `nova.py` 를 건드리므로 세션 `ohmyenglish-19` 와 겹침 — 착수 전에 그쪽에 알림.
+- `TASK-124`(Nova 호출도 `llm_calls` 에 적기 · `To Do`) — 지금 그 표는 「비용을 볼 수 있다」를
+  절반만 이룸. 동료 세션이 하루에 Nova 10세션(누적 143)을 돌렸고 그 비용이 표에 0건임.
+  ⚠️ `nova.py` 를 건드리므로 세션 `ohmyenglish-19` 와 겹침 — 착수 전에 그쪽에 알림.
 - 나란히 가능: `TASK-41`(전용 스키마 이관 검토 · 공유 DB 라 검토만) · `TASK-122`(빈 이름 키 ·
   `low` 로 내렸고 되살릴 조건을 그 노트에 적었음).
+- ⛔ **`TASK-39` 의 AC#2 는 「닫을 수 있는 작업」이 아님** — 스로틀을 재현하지 않기로 정했고
+  (회차 §0) 운영에서 관측될 때 세는 항목임. 세는 방법은 그 회차의 실행체가 보여 줌
+  (`before-send` 계수기). ⛔ `llm_calls` 로는 못 봄 — SDK 안의 재전송이 1건으로 보임.
 
-## ③ 착수 전 필수 — 5개
+## ③ 착수 전 필수 — 6개
 
 1. ⛔ 태스크를 새로 열기 전에 결정 대장을 `grep` 함. 이 세션이 `결정 65` 를 못 보고 같은 부류를
    다시 열어 Claude 13회를 썼음(경위는 그 대장의 「결정 65 의 사후 기록」 절).
@@ -56,15 +59,19 @@
    9건 전부 그렇게 확인했고 남의 파일이 섞인 건 0건임.
 5. ⚠️ 공유 dev DB 는 SELECT 만 함. 스키마를 바꿀 것이면 마이그레이션 번호를 그 순간의
    `schema_migrations` 조회로 발급함(`H-AL`) — 지금 최대는 `014` 임.
+6. ⛔ 게이트를 **다섯 개 다** 돌림 — `pytest` · `ruff check .` · `ruff format --check .` ·
+   게이트 밖 `ruff check ../../tests ../../scripts` · 게이트 밖 `ruff format --check ../../tests` ·
+   `ty check`. ⚠️ 이 세션이 마감 게이트에서 **게이트 밖 `format --check` 를 빠뜨려** 내 파일 둘의
+   미포맷을 다음 작업에서야 발견했음. 빠뜨린 항목은 「초록」이 아니라 「보지 않은 것」임.
 
 ## ④ 인계 지표 — 이 마감 시점에 직접 돌려 얻음
 
 | # | 지표 | 값 |
 |--:|---|---|
-| 1 | 기준 커밋 | `e17c7a4` 이상 · `origin` 에 푸시 완료(`dbc09f5..e17c7a4` · 직후 `0 0` 확인) · 내 미커밋 0건. ⚠️ 이 표를 고친 커밋 1건이 뒤에 붙으므로 등호를 요구하지 않음 |
-| 2 | 다음 걸음 | `TASK-39`(`To Do`) · 나란히 `TASK-124`(`To Do`). 내 갈래의 `In Progress` 는 0건임 |
-| 3 | 게이트 | `pytest` 984 passed(12.80s) · `ruff check` 0 · `format --check` 38 files · 게이트 밖 `ruff` 0 · `ty` 0 — 전부 파이프 없이 종료 코드로 확인 |
-| 4 | 착수 전 필수 | 5개(위 ③) |
+| 1 | 기준 커밋 | `a0e7a73` 이상 · `origin` 에 푸시 완료(`48761ed..a0e7a73` · 직후 `0 0` 확인) · 내 미커밋 0건. ⚠️ 이 표를 고친 커밋 1건이 뒤에 붙으므로 등호를 요구하지 않음 |
+| 2 | 다음 걸음 | `TASK-124`(`To Do`) — 위 ②. 내 갈래의 `In Progress` 는 0건임 |
+| 3 | 게이트 | `pytest` **987 passed**(12.66s) · `ruff check` 0 · `format --check` 38 files · 게이트 밖 `ruff` 0 · `ty` 0 — 전부 파이프 없이 종료 코드로 확인. ⚠️ 게이트 밖 `format --check` 에 1건이 남아 있고 **내 파일이 아님**(동료 세션의 `test_pronunciation_service.py`) |
+| 4 | 착수 전 필수 | 6개(위 ③) |
 
 ⚠️ 게이트를 돌린 워킹트리에 동료 세션의 미커밋 3건이 있었음(`services/pronunciation.py` ·
 `test_pronunciation_service.py` · `task-103` 노트). 그 상태로도 초록이었음 — 즉 위 수치는
