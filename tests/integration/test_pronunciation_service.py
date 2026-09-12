@@ -237,9 +237,7 @@ async def test_verdict_target_form_replaces_the_broken_transcript(
     session_id = await _session(db_conn)
     broken = "I think Sri sings are ready for the demo."
     modeled = "I think three things are ready for the demo."
-    attempt_id = await record_attempt(
-        db_conn, session_id, target_form=broken, outcome="pending"
-    )
+    attempt_id = await record_attempt(db_conn, session_id, target_form=broken, outcome="pending")
 
     await record_attempt(db_conn, session_id, target_form=modeled, outcome="correct")
 
@@ -300,9 +298,7 @@ async def test_two_pendings_leave_the_broken_target_form_on_the_older_row(
     stale = await db_conn.fetchval(
         "select target_form from pronunciation_attempts where id = $1", older
     )
-    assert stale == broken, (
-        "구멍이 «닫혔다» — 좋은 일이지만 이 단정과 위 주석을 함께 고쳐야 한다"
-    )
+    assert stale == broken, "구멍이 «닫혔다» — 좋은 일이지만 이 단정과 위 주석을 함께 고쳐야 한다"
 
 
 # ⑦ 세션 종료 수렴 — 남은 pending 전부가 incorrect가 되고 spoken_form은 비워진다.
