@@ -12,6 +12,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 import re
 from collections.abc import Sequence
@@ -1217,3 +1218,81 @@ async def test_drill_key_rides_with_partial_failure_like_corrections(
     assert body["status"] == "partial_failure"
     assert "corrections" in body
     assert body["drill"] == {"exchanges_observed": 2, "exchanges_expected": 8}
+
+
+# ── 세션 총평이 결과에 실린다 (`TASK-62` 계획 Task 4) ──────────────────────────
+#
+# ⛔ **`corrections`·`drill` 과 «같은 규약»이다**: 없으면 키가 아예 없다. 새 방식을 발명하지 않는다.
+# ⚠️ 그런데 이 키에는 갈래가 **셋**이다 — `{}`(아직 없음) · 빈 배열 둘(만들었고 담을 것이 없었음) ·
+# 내용 있음. 앞의 둘을 같은 것으로 읽으면 화면이 「총평 없는 세션」과 「총평이 빈 세션」을 구별하지
+# 못한다(`R13-7` 이 일일 요약에서 세운 구별을 잇는다).
+async def test_summary_is_carried_when_the_job_wrote_one(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session
+):
+    async with db_pool.acquire() as conn:
+        utterance_ids = await _turns(conn, committed_session.session_id, [COACH, LEARNER])
+        await _job(conn, utterance_ids[-1], "done")
+        await conn.execute(
+            "update learning_sessions set summary = $2::jsonb where id = $1",
+            committed_session.session_id,
+            json.dumps(
+                {
+                    "went_well": ["문장을 끝까지 말했어요."],
+                    "weak_points": [{"point": "관사를 빼먹어요.", "quote": "I go to gym."}],
+                },
+                ensure_ascii=False,
+            ),
+        )
+
+    response = await api_client.get(f"/api/sessions/{committed_session.session_id}/results")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["summary"]["went_well"] == ["문장을 끝까지 말했어요."]
+    assert body["summary"]["weak_points"][0]["quote"] == "I go to gym."
+
+
+async def test_summary_key_is_absent_when_the_job_has_not_run(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session
+):
+    """⛔ 판별력 — `{}` 는 「아직 없음」이고 키가 **아예 없어야** 한다.
+
+    `corrections` 가 실려 있는 것을 함께 단정한다 — 부재 단정 하나로는 응답이 깨졌을 때도
+    공허하게 통과한다(같은 파일의 `drill` 부재 테스트와 같은 규약).
+    """
+    async with db_pool.acquire() as conn:
+        utterance_ids = await _turns(conn, committed_session.session_id, [COACH, LEARNER])
+        await _job(conn, utterance_ids[-1], "done")
+        # `summary` 를 건드리지 않는다 — 001 의 기본값 `{}` 그대로다.
+
+    response = await api_client.get(f"/api/sessions/{committed_session.session_id}/results")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert "corrections" in body
+    assert "summary" not in body, "총평이 없는데 키가 실렸다 — `{}` 는 「아직 없음」이다"
+
+
+async def test_an_empty_summary_still_carries_the_key(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session
+):
+    """⛔ 「만들었고 담을 것이 없었다」가 화면에 **도달해야** 한다.
+
+    발화 0건 세션에 job 이 빈 배열 둘을 쓴다(`session_summary.process_summary`). 그것을 위
+    테스트와 같이 「키 없음」으로 뭉개면 그 구별이 API 에서 사라진다.
+    """
+    async with db_pool.acquire() as conn:
+        utterance_ids = await _turns(conn, committed_session.session_id, [COACH, LEARNER])
+        await _job(conn, utterance_ids[-1], "done")
+        await conn.execute(
+            "update learning_sessions set summary = $2::jsonb where id = $1",
+            committed_session.session_id,
+            json.dumps({"went_well": [], "weak_points": []}),
+        )
+
+    response = await api_client.get(f"/api/sessions/{committed_session.session_id}/results")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert "summary" in body, "빈 총평인데 키가 사라졌다 — 「담을 것이 없었다」를 잃는다"
+    assert body["summary"] == {"went_well": [], "weak_points": []}

@@ -129,6 +129,13 @@ def _result_payload(result: SessionResult) -> dict[str, object]:
     # `services/results.py`가 끝냈고(`drill=None`), 여기서는 그것을 키 유무로 옮기기만 한다.
     if result.drill is not None:
         payload["drill"] = _drill_payload(result.drill)
+    # `TASK-62` — 세션 총평. **`corrections`·`drill` 과 같은 모양**으로 뺀다(새 방식을 발명하지
+    # 않는다). ⛔ 판정은 이미 `services/results` 와 `models/session_summary.summary_from_row` 가
+    # 끝냈고 여기서는 그것을 키 유무로 옮기기만 한다.
+    # ⚠️ **빈 배열 둘은 키가 «있다»** — 「만들었고 담을 것이 없었다」가 화면에 도달해야 한다.
+    # 그 구별이 `None` 인지 아닌지에 있으므로 여기서 값의 내용을 보지 않는다.
+    if result.summary is not None:
+        payload["summary"] = result.summary
     return payload
 
 

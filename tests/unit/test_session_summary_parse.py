@@ -95,3 +95,18 @@ def test_row_reader_separates_never_generated_from_nothing_to_say() -> None:
     assert summary_from_row({}) is None
     assert summary_from_row(EMPTY_SUMMARY) == EMPTY_SUMMARY
     assert summary_from_row(None) is None
+
+
+def test_row_reader_accepts_the_string_asyncpg_actually_returns() -> None:
+    """⛔ **asyncpg 는 jsonb 를 «문자열»로 준다** — 이 리포에 jsonb 코덱이 없다.
+
+    ⚠️ 이 단정이 실측에서 나왔다: `dict` 만 받게 뒀더니 결과 API 가 총평을 **한 번도** 싣지
+    않았고(`isinstance(value, dict)` 가 늘 거짓) 테스트 둘이 그것을 잡았다. 그 변환을 모양의
+    소유자가 흡수하는 것이 계약이다 — 호출자마다 `json.loads` 를 적으면 한 곳이 빠뜨렸을 때
+    화면이 조용히 빈다.
+    """
+    payload = summary_payload(parse_summary(_raw(), max_points=MAX_POINTS))
+
+    assert summary_from_row(json.dumps(payload, ensure_ascii=False)) == payload
+    # ⛔ 문자열이지만 JSON 이 아니면 `None` 이다 — 화면을 죽이지 않는다.
+    assert summary_from_row("not json at all") is None

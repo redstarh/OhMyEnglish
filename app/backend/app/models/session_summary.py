@@ -171,7 +171,17 @@ def summary_from_row(value: object) -> dict[str, object] | None:
     하나 때문에 세션 결과 전체를 잃는다. 두 키의 **존재만** 본다.
     ⚠️ `None` 을 돌려주는 것이 `{}`(아직 없음)와 `EMPTY_SUMMARY`(담을 것이 없었음)를 가르는 자리다 —
     그 구별이 값의 모양에 있으므로 호출자가 job 상태를 조회하지 않아도 된다.
+
+    ⛔ **`str` 도 받는다 — asyncpg 가 jsonb 를 «문자열»로 준다.** 이 리포에 jsonb 코덱이 없어
+    `session_plans.instruction`·`questions` 도 같은 처리를 한다(`services/sessions` 가 그 함정을
+    적어 뒀다). ⇒ 그 변환을 **모양의 소유자가 흡수한다** — 호출자마다 `json.loads` 를 적으면
+    한 곳이 빠뜨렸을 때 화면이 조용히 빈다.
     """
+    if isinstance(value, str):
+        try:
+            value = json.loads(value)
+        except json.JSONDecodeError:
+            return None
     if not isinstance(value, dict):
         return None
     # ⚠️ `isinstance` 만으로 좁히면 `dict[Unknown, Unknown]` 이 되어 **`str` 키를 거부한다**

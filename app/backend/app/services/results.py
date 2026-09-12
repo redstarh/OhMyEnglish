@@ -81,6 +81,7 @@ import asyncpg
 # 묶음 정의의 정본은 `services/utterances.py`다 — 두 값을 여기서 리터럴로 다시 적으면 스윕이 걸
 # 대상과 이 응답이 말하는 대상이 갈라진다(`_ANALYZABLE_UTTERANCES_SQL` 주석). 순환은 없다:
 # `utterances.py`는 `jobs`·`sessions`만 import 한다.
+from app.models.session_summary import summary_from_row
 from app.services.utterances import ANALYZED_SPEAKER, ANALYZED_UTTERANCE_TYPE
 
 logger = logging.getLogger(__name__)
@@ -151,6 +152,12 @@ class SessionResult:
     # R2 규칙 1·2·3에서 그렇게 된다. 계획 없이 시작한 세션(기대값 null)도 `None`이다 —
     # 그 세션은 관측 대상이 아니다(009: null = 기대가 없었다).
     drill: DrillTurns | None
+    # `TASK-62` — 세션 총평. `None` 은 「응답에 `summary` 키 자체가 없다」는 뜻이고 그것이
+    # 「아직 만들지 않았다」(`{}`)를 옮긴 것이다. ⚠️ **빈 배열 둘은 `None` 이 아니다** —
+    # 「만들었고 담을 것이 없었다」이고 그 구별은 `models/session_summary` 의
+    # `summary_from_row` 가 갖는다.
+    # ⛔ `corrections`·`drill` 처럼 R2 상태로 지우지 않는다 — 총평 job 은 분석 job 과 독립이다.
+    summary: dict[str, object] | None
     # `TASK-79` — **분석 대상 발화는 있는데 그 job 이 아직 하나도 없다.** 종료 flush 가 실패한
     # 세션의 모양이고(`api/ws._flush_analysis`가 예외를 삼킨다), `flush_ended_sessions`가
     # 나중에 그 묶음을 걷으므로 **그 `no_utterances`는 영구가 아니다.**
@@ -175,7 +182,7 @@ class SessionResult:
 
 
 _SESSION_ROW_SQL = """
-select status, drill_turns_expected
+select status, drill_turns_expected, summary
   from learning_sessions
  where id = $1
 """
@@ -374,6 +381,11 @@ async def get_session_result(conn: asyncpg.Connection, session_id: UUID) -> Sess
         return None
 
     pronunciation = await _load_pronunciation(conn, session_id)
+    # `TASK-62` — 총평은 **R2 판정과 독립**이다: 그 job 은 분석 job 과 따로 돌므로 `analyzing`
+    # 상태에서도 이미 써 있을 수 있다. ⇒ `pronunciation` 과 같은 규약으로 **사슬 밖에서 한 번**
+    # 읽어 모든 분기에 같은 값으로 싣는다.
+    # ⛔ 모양의 정본은 `models/session_summary` 다 — 키 이름을 여기서 다시 적지 않는다.
+    summary = summary_from_row(session["summary"])
 
     # 규칙 1 — 연결 실패는 job 상태를 보지 않고 최우선한다.
     #
@@ -388,6 +400,7 @@ async def get_session_result(conn: asyncpg.Connection, session_id: UUID) -> Sess
             corrections=None,
             partial_failure=False,
             pronunciation=pronunciation,
+            summary=summary,
             drill=None,
             awaiting_analysis=False,
         )
@@ -409,6 +422,7 @@ async def get_session_result(conn: asyncpg.Connection, session_id: UUID) -> Sess
             corrections=None,
             partial_failure=False,
             pronunciation=pronunciation,
+            summary=summary,
             drill=None,
             awaiting_analysis=analyzable > 0,
         )
@@ -423,6 +437,7 @@ async def get_session_result(conn: asyncpg.Connection, session_id: UUID) -> Sess
             corrections=None,
             partial_failure=False,
             pronunciation=pronunciation,
+            summary=summary,
             drill=None,
             # 여기 아래는 전부 `counts["total"] > 0`이라 정의상 거짓이다(규칙 2 주석).
             awaiting_analysis=False,
@@ -440,6 +455,7 @@ async def get_session_result(conn: asyncpg.Connection, session_id: UUID) -> Sess
             corrections=corrections,
             partial_failure=True,
             pronunciation=pronunciation,
+            summary=summary,
             drill=drill,
             awaiting_analysis=False,
         )
@@ -451,6 +467,7 @@ async def get_session_result(conn: asyncpg.Connection, session_id: UUID) -> Sess
         corrections=corrections,
         partial_failure=False,
         pronunciation=pronunciation,
+        summary=summary,
         drill=drill,
         awaiting_analysis=False,
     )
