@@ -1,0 +1,64 @@
+#!/usr/bin/env python3
+"""`TASK-103` — 두 가지를 «한 번에» 하는 씨앗.
+
+⑴ **이 화면 검사가 반증할 수 있는지** 보여 준다 — 저장된 `target_form` 이 무너진 전사일 때
+   화면이 그것을 「시범 문장」 자리에 «실제로» 드러내는가. 드러나지 않으면 앞의 초록은
+   판별력 없는 관측이다.
+⑵ 그것이 곧 **남은 구멍의 사용자 눈 증거**다 — 두 tool 호출이 «모두 pending» 으로 오는 봉투
+   (관측 12/12)에서는 판정 UPDATE 가 돌지 않아 무너진 전사가 살아남는다(`⑥-3` 테스트).
+"""
+
+from __future__ import annotations
+
+import asyncio
+import os
+import sys
+
+import asyncpg
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "app", "backend"))
+
+from app.services.pronunciation import record_attempt, resolve_dangling  # noqa: E402
+
+BROKEN = "I think Sri sings are ready for the demo."
+MODELED = "I think three things are ready for the demo."
+HEARD = "i think sri, sings are ready for the demo."
+
+
+async def main() -> None:
+    conn = await asyncpg.connect(os.environ["DATABASE_URL"])
+    try:
+        user_id = await conn.fetchval(
+            "insert into users (display_name, timezone, current_level) "
+            "values ('TASK-103 residual', 'Asia/Seoul', 'A2') returning id"
+        )
+        session_id = await conn.fetchval(
+            "insert into learning_sessions (user_id, mode, ended_at) "
+            "values ($1, 'speaking', now()) returning id",
+            user_id,
+        )
+        await conn.execute(
+            "insert into utterances (session_id, speaker, transcript, sequence_no) "
+            "values ($1, 'user', $2, 1)",
+            session_id,
+            HEARD,
+        )
+        # ⛔ 판정이 «오지 않는다» — 두 호출이 모두 pending 인 봉투를 그대로 흉내낸다.
+        await record_attempt(conn, session_id, target_form=BROKEN, outcome="pending")
+        await record_attempt(conn, session_id, target_form=MODELED, outcome="pending")
+        await resolve_dangling(conn, session_id)
+
+        rows = await conn.fetch(
+            "select target_form, outcome from pronunciation_attempts "
+            "where session_id = $1 order by attempt_seq",
+            session_id,
+        )
+        print(f"session_id = {session_id}")
+        for row in rows:
+            print(f"  target_form = {row['target_form']!r} · outcome = {row['outcome']}")
+    finally:
+        await conn.close()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

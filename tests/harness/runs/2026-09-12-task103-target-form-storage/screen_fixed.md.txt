@@ -1,0 +1,24 @@
+# OhMyEnglish
+
+# 학습 결과
+
+분석 대상 없음
+
+## 발음
+
+시범 문장
+
+I think three things are ready for the demo.
+
+내 발화
+
+i think sri, sings are ready for the demo.
+
+✓ 좋아요
+
+← 학습 시작 화면으로
+
+[← 학습 시작 화면으로](http://localhost:3000/)
+학습 히스토리 보기 →
+
+[학습 히스토리 보기 →](http://localhost:3000/history)

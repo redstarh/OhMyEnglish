@@ -216,6 +216,95 @@ async def test_verdict_attaches_values_when_given(db_conn: asyncpg.Connection) -
     assert row["utterance_id"] == utterance_id
 
 
+# ⑥-1 판정의 `target_form`이 그 행의 최종값이 된다 (`TASK-103`).
+#
+# ⛔ **관측에서 나왔다.** Nova는 규칙 10의 두 호출에 **다른 것**을 싣는다 — 시범 호출의
+# `target_form`은 학습자 발화의 **무너진 전사**이고 판정 호출의 것이 **옳은 목표 문장**이다.
+# 실물 왕복 6회(`runs/2026-09-11-task97-tool-payload.md` §3)와 이 세션의 REG 팔 4회
+# (`runs/2026-09-12-task111-116-selfcontained-key.md` §1)가 같은 모양을 냈다. 아래 두 값은
+# **후자에서 직접 옮긴 것**이다.
+#
+# ⚠️ **이 값이 학습자 화면의 「시범 문장」 자리에 렌더된다**
+# (`app/frontend/app/results/[sessionId]/page.tsx`). 즉 고치지 않으면 「이렇게 말하세요」 자리에
+# 학습자의 오발음이 뜬다.
+#
+# ⛔ **규칙 10의 문면으로는 고쳐지지 않는다** — tool 스키마의 필드 설명이 이미
+# *"The full sentence you modeled with correct pronunciation."*이고 `TASK-97` 회차가 교차 3쌍으로
+# 확인했다. 그래서 저장 쪽을 고친다.
+async def test_verdict_target_form_replaces_the_broken_transcript(
+    db_conn: asyncpg.Connection,
+) -> None:
+    session_id = await _session(db_conn)
+    broken = "I think Sri sings are ready for the demo."
+    modeled = "I think three things are ready for the demo."
+    attempt_id = await record_attempt(
+        db_conn, session_id, target_form=broken, outcome="pending"
+    )
+
+    await record_attempt(db_conn, session_id, target_form=modeled, outcome="correct")
+
+    stored = await db_conn.fetchval(
+        "select target_form from pronunciation_attempts where id = $1", attempt_id
+    )
+    assert stored == modeled, (
+        "판정이 가져온 옳은 문장이 버려졌다 — 이 값이 화면의 「시범 문장」 자리에 뜬다"
+    )
+
+
+# ⑥-2 그런데 판정이 **빈 값**을 주면 시범 시점의 값을 지우지 않는다.
+#
+# ⚠️ ⑤의 `coalesce` 계약과 같은 축이다 — *"빈 판정이 기록을 지우지 않는다"*. `target_form`은
+# 인자가 `str`(옵셔널이 아님)이라 `coalesce`만으로는 부족하고 **빈 문자열도 걸러야** 한다.
+# 이것이 없으면 ⑥-1의 갱신이 「판정이 문장을 안 실어 온 턴」에서 기록을 **비운다.**
+async def test_verdict_with_a_blank_target_form_keeps_the_modeled_sentence(
+    db_conn: asyncpg.Connection,
+) -> None:
+    session_id = await _session(db_conn)
+    attempt_id = await record_attempt(db_conn, session_id, target_form=TARGET, outcome="pending")
+
+    await record_attempt(db_conn, session_id, target_form="   ", outcome="incorrect")
+
+    stored = await db_conn.fetchval(
+        "select target_form from pronunciation_attempts where id = $1", attempt_id
+    )
+    assert stored == TARGET, "빈 판정이 시범 문장을 지웠다"
+
+
+# ⑥-3 ⛔ **남은 구멍을 «지금 거동으로» 못박는다** — ⑥-1 이 이 경우를 닫지 못한다 (`TASK-103` AC#3).
+#
+# 관측된 봉투 하나에서는 **두 호출이 모두 `pending`** 이었다(12/12 ·
+# `runs/2026-09-11-task97-tool-payload.md`). 그러면 판정 UPDATE 가 아예 돌지 않으므로 ⑥-1 의
+# 갱신 경로를 타지 못하고, 열린 행이 **둘** 남는다. 세션 종료의 `resolve_dangling` 이 둘 다
+# `incorrect` 로 수렴시키므로 **무너진 전사를 가진 행이 결과 화면에 그대로 뜬다.**
+#
+# ⚠️ **이 테스트는 「고쳐졌다」가 아니라 「여기까지만 고쳐졌다」를 잰다.** 뒤 태스크가 이 구멍을
+# 닫으면 이 단정을 **의도적으로 뒤집어야** 한다 — 그때 이 주석이 그 근거를 준다.
+# ⛔ 이 거동을 「정상」으로 읽지 마라.
+async def test_two_pendings_leave_the_broken_target_form_on_the_older_row(
+    db_conn: asyncpg.Connection,
+) -> None:
+    session_id = await _session(db_conn)
+    broken = "I think Sri sings are ready for the demo."
+    modeled = "I think three things are ready for the demo."
+    older = await record_attempt(db_conn, session_id, target_form=broken, outcome="pending")
+    await record_attempt(db_conn, session_id, target_form=modeled, outcome="pending")
+
+    await resolve_dangling(db_conn, session_id)
+
+    rows = await db_conn.fetch(
+        "select target_form, outcome from pronunciation_attempts "
+        "where session_id = $1 order by attempt_seq",
+        session_id,
+    )
+    assert [row["outcome"] for row in rows] == ["incorrect", "incorrect"]
+    stale = await db_conn.fetchval(
+        "select target_form from pronunciation_attempts where id = $1", older
+    )
+    assert stale == broken, (
+        "구멍이 «닫혔다» — 좋은 일이지만 이 단정과 위 주석을 함께 고쳐야 한다"
+    )
+
+
 # ⑦ 세션 종료 수렴 — 남은 pending 전부가 incorrect가 되고 spoken_form은 비워진다.
 #    "대답을 못 한 것은 못 한 것"이고 이후 학습도 그냥 틀림으로 본다(캡틴 결정 2026-08-28).
 async def test_resolve_dangling_converges_pending_to_incorrect(

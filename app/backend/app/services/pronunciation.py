@@ -144,6 +144,10 @@ async def record_attempt(
     것이 없으면 그 값으로 새 행을 만든다 — Nova가 시범 없이 판정만 보내도 기록을 잃지
     않는다(설계서 §3.2의 "없으면 새 행을 그 outcome으로 INSERT").
 
+    ⚠️ **판정은 `target_form`을 덮는다** (`TASK-103`) — 다른 필드의 `coalesce` 계약과 다르다.
+    Nova가 시범 호출에는 무너진 전사를, 판정 호출에는 옳은 목표 문장을 싣기 때문이다. 근거와
+    공백 처리는 아래 UPDATE 위 주석이 갖는다.
+
     기록과 **패턴 연결이 한 트랜잭션**이다 — 이 함수가 직접 연다(모듈 주석 "트랜잭션
     소유권"). 호출자가 autocommit이라 맡기면 부분 실행이 생긴다.
     """
@@ -165,6 +169,25 @@ async def record_attempt(
         # 판정값 — 가장 최근 pending을 닫는다. `coalesce`라서 판정이 값을 안 주면 시범
         # 시점의 값이 남는다(빈 판정이 기록을 지우지 않는다).
         #
+        # ⛔ **`target_form`은 판정값으로 «덮는다» — `coalesce`가 아니다** (`TASK-103`).
+        # 관측이 이유다: Nova는 규칙 10의 두 호출에 **다른 것**을 싣는다. 시범 호출의
+        # `target_form`은 학습자 발화의 **무너진 전사**(`I think Sri sings are ready for the
+        # demo.`)이고 판정 호출의 것이 **옳은 목표 문장**(`I think three things are ready for the
+        # demo.`)이다. 실물 왕복 6회(`runs/2026-09-11-task97-tool-payload.md` §3)와 REG 팔 4회
+        # (`runs/2026-09-12-task111-116-selfcontained-key.md` §1)가 같은 모양을 냈다.
+        # ⇒ 첫 값을 최종값으로 두면 **학습자 화면의 「시범 문장」 자리에 학습자의 오발음이 뜬다.**
+        #
+        # ⚠️ 규칙 10의 문면은 두 호출을 **시점으로만** 구별하고 `target_form`의 뜻을 고정하지
+        # 않으므로 이것이 모델의 규약 위반이 아니다. tool 스키마의 필드 설명은 이미
+        # *"The full sentence you modeled with correct pronunciation."*이고 `TASK-97` 회차가
+        # 교차 3쌍으로 「프롬프트로는 고쳐지지 않는다」를 확인했다. 그래서 저장 쪽에서 고친다.
+        #
+        # ⛔ **`coalesce`로 쓰지 못하는 이유**: 인자가 `str`(옵셔널이 아님)이라 `null`이 오지
+        # 않는다. 그런데 003의 CHECK가 `length(btrim(target_form)) > 0`이므로 **공백만 실린
+        # 판정은 UPDATE를 죽인다** — `coalesce`도 무조건 대입도 안 되고 **공백을 걸러야** 한다
+        # (직접 확인: 무조건 대입한 판은 `pronunciation_attempts_target_form_check` 위반으로
+        # 판정 트랜잭션이 통째로 깨졌다). 그래서 `case`로 그 한 경우만 옛 값에 남긴다.
+        #
         # `signal_source`를 **필터하지 않는다.** 005 제약이 "pending은 nova_tool만"을 표에서
         # 강제하므로 열린 행은 정의상 Nova 것이다 — 앱에서 한 번 더 거르면 같은 규칙이 두 층에
         # 흩어진다.
@@ -181,6 +204,7 @@ async def record_attempt(
                 spoken_form  = coalesce($3, spoken_form),
                 target_sound = coalesce($4, target_sound),
                 utterance_id = coalesce($5, utterance_id),
+                target_form  = case when btrim($6) = '' then target_form else $6 end,
                 resolved_at  = clock_timestamp()
             where id = (
                 select id from pronunciation_attempts
@@ -196,6 +220,7 @@ async def record_attempt(
             spoken_form,
             target_sound,
             utterance_id,
+            target_form,
         )
         if attempt_id is None:
             logger.info("닫을 pending 시도가 없어 판정값으로 새 행을 만든다 (세션 %s)", session_id)
