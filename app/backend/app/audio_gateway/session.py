@@ -139,8 +139,10 @@ class SessionRunner:
         }
         if self._pronunciation_sound is not None:
             # ⛔ **말하기 세션에는 키 자체를 넣지 않는다** — 아래 `shadowing` 과 같은 규약이다.
-            # 서버가 소리를 못 골라 말하기로 떨어뜨렸을 때 화면이 그것을 «키의 부재»로 안다
-            # (`api/ws.py` 가 그 폴백과 경고를 소유한다).
+            # ⚠️ **키의 부재가 뜻하는 것이 결정 72 로 좁아졌다** — 이전에는 「서버가 소리를 못 골라
+            # 말하기로 떨어뜨렸다」였고 화면이 그것으로 갈라 말했다. 그 폴백이 사라졌으므로 이제는
+            # **「후보가 아직 없다」**만 뜻한다(`api/ws.py` 가 그 판정을 소유한다). 화면 문구를 그
+            # 뜻으로 고치는 것은 `TASK-128.4` 다 — ⛔ 그 전까지 화면은 거짓을 말한다.
             started["pronunciation_focus"] = self._pronunciation_sound
         if self._shadowing is not None:
             # 요구 5 — 화면은 자기 기본값을 갖지 않고 **전달만** 받는다. ⛔ 말하기 세션에는

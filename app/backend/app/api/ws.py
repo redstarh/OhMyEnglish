@@ -13,11 +13,13 @@
   `{"type":"shadowing_turn_start"}` · `{"type":"shadowing_turn_end"}`
 
 **발음 전용 진입** (`TASK-10.1`·`TASK-10.2` · 결정 64): `?mode=pronunciation` 으로 붙으면 지시문이
-전용 판으로 바뀌고 `session_started` 에 `pronunciation_focus`(오늘의 소리)가 실린다.
-⛔ 오늘의 소리를 고를 수 없으면 **말하기로 떨어지고 그 키가 없다** — 화면은 그 부재로 폴백을 안다.
+전용 판으로 바뀌고, 오늘의 소리 후보가 있으면 `session_started` 에 `pronunciation_focus` 가 실린다.
 세션 행의 `mode` 도 `pronunciation` 으로 적힌다 (`TASK-112` · 결정 67 · 014 가 값역을 열었다).
-⛔ **적는 시점은 「요청받은 때」가 아니라 「오늘의 소리가 정해진 때」다** — 폴백으로 말하기가 된
-세션까지 발음으로 집계하면 이 결정이 닫으려던 결함의 반대 방향 변종이 된다.
+⛔ **폴백이 없다** (`TASK-128.2` · 사용자 결정 72): 소리를 고를 수 없어도 전용 모드로 간다 —
+그 결정이 이 모드의 뜻을 「오늘의 소리를 다룬다」에서 **「발음만 다룬다」**로 바꿨다. 그래서 `mode`
+를 적는 시점도 **「요청받은 때」**다(이전 판은 「소리가 정해진 때」였고 그 근거가 폴백이었다).
+⚠️ 계획이 고른 소리는 **이름으로 지목되지 않고 후보 목록 앞에** 실린다 — 단수 지목이 되풀이의
+구동부였고 그 실측은 `audio_gateway/nova._SOUND_INSTRUCTION` 위 주석이 소유한다.
 
 **추가 학습 표시** (`TASK-10.2`): `?source=additional` 이 `learning_sessions.learning_source` 에
 남는다. 주지 않으면 001 의 기본값(`recommended`)이다.
@@ -160,29 +162,43 @@ async def _load_known_sounds_or_empty(pool: asyncpg.Pool) -> list[str]:
         return []
 
 
-def _pronunciation_sound_or_none(
+def _pronunciation_candidates(
     plan: SessionInstruction | None, known_sounds: Sequence[str]
-) -> str | None:
-    """발음 전용 모드가 다룰 **오늘의 소리** — 없으면 `None` (`TASK-10.1`).
+) -> list[str]:
+    """발음 전용 모드에 내려보낼 **소리 후보 목록** (`TASK-128.2` · 사용자 결정 72).
 
-    출처의 순서가 규칙이다: ① **계획의 발음 초점** ② **놓친 소리 목록**의 첫 항목.
-    계획이 먼저인 이유는 그것이 복습 예정일을 근거로 «오늘» 다룰 소리를 이미 골라 둔 값이기
-    때문이다(`TASK-44` 이후 발음 패턴이 `next_review_at` 을 받아 초점 후보가 된다). 목록은
-    「전에 놓친 것들」이라 오늘의 우선순위를 담지 않으므로 뒤에 둔다.
+    출처의 순서가 규칙이다: ① **계획의 발음 초점** ② **놓친 소리 목록**. 계획이 앞인 이유는 그것이
+    복습 예정일을 근거로 «오늘» 다룰 소리를 이미 골라 둔 값이기 때문이다(`TASK-44` 이후 발음 패턴이
+    `next_review_at` 을 받아 초점 후보가 된다). 목록은 「전에 놓친 것들」이라 오늘의 우선순위를 담지
+    않으므로 뒤에 둔다.
 
-    ⛔ **`None` 을 소리 없는 전용 세션으로 번역하지 않는다** — 호출자가 그때 말하기로 떨어뜨린다.
-    소리 없이 이 모드를 열면 지시문이 *"Sound to coach today: "* 로 빈 값을 말하게 되고, 그것은
-    모델에게 있지도 않은 초점을 찾게 시키는 것이다.
+    ⛔ **계획의 소리는 «앞에 오는 것»으로만 이긴다 — 이름으로 지목되지 않는다.** 이전 판
+    (`_pronunciation_sound_or_none`)은 소리 하나를 골라 돌려주고 그것이 프롬프트에서
+    `- Sound to coach today: "키"` 로 지목됐다. 그 단수 지목이 되풀이의 구동부였고 **더하는 방향과
+    덜어내는 방향이 모두 반증됐다** — 실측의 정본은 `audio_gateway/nova._SOUND_INSTRUCTION` 위
+    주석이다. ⇒ 지시문이 아니라 **재료**를 바꾼 것이 결정 72 다.
+
+    ⛔ **목록을 계획의 소리로 덮지 않는다.** 후보 기제의 조건이 *"If one of them is off again"* 이라
+    목록이 넓을수록 「실제로 들은 소리」를 그 안에서 찾을 확률이 높아진다 — 하나만 남기면 결정 72 가
+    노린 값이 줄어든다.
+
+    ⛔ **같은 키를 두 번 싣지 않는다.** 두 출처가 같은 표(`error_patterns`)에서 오므로 겹치는 것이
+    평시다. 두 번 실리면 「후보가 둘」이 아니라 **그 키를 강조한 것**으로 읽혀 지금 걷어 낸 단수
+    지목이 다른 모양으로 되살아난다.
+
+    ⛔ **빈 목록을 「말하기로 떨어뜨려라」로 번역하지 않는다** — 결정 72 가 그 폴백을 없앴다. 후보가
+    0건이면 조립기가 그 블록을 아예 빼고, 코치는 **실제로 들은 소리**로 시작한다.
 
     ⚠️ **순수 함수로 둔 이유**: 이 선택이 정책이라 회귀를 단위 테스트로 잡아야 한다. DB 를 타면
-    같은 판정에 통합 픽스처가 필요해지고, 그러면 「어느 출처가 이기는가」가 조용히 바뀌어도
-    통과한다.
+    같은 판정에 통합 픽스처가 필요해지고, 그러면 「어느 출처가 앞인가」가 조용히 바뀌어도 통과한다.
     """
-    if plan is not None:
-        for item in plan.focus:
-            if item.pattern_key.startswith(PRONUNCIATION_PATTERN_KEY_PREFIX):
-                return item.target_form
-    return known_sounds[0] if known_sounds else None
+    focus = [
+        item.target_form
+        for item in (plan.focus if plan is not None else ())
+        if item.pattern_key.startswith(PRONUNCIATION_PATTERN_KEY_PREFIX)
+    ]
+    # `dict.fromkeys` — 순서를 지키면서 중복만 걷는다(`set` 은 순서를 잃고, 그 순서가 규칙이다).
+    return list(dict.fromkeys([*focus, *known_sounds]))
 
 
 async def _load_shadowing_turns_or_none(
@@ -361,23 +377,23 @@ async def session_socket(websocket: WebSocket) -> None:
                 pool, session_id, questions=questions, settings=settings
             )
 
-        # 오늘의 소리를 못 고르면 **말하기로 떨어진다** — 알 수 없는 mode 를 말하기로 떨어뜨리는
-        # 이 파일의 기존 규약과 같은 판단이고, 대가(조용히 다른 세션을 받는 것)를 경고로 갚는다.
-        pronunciation_sound = (
-            _pronunciation_sound_or_none(plan, known_sounds) if pronunciation_requested else None
+        # 결정 72 — 계획이 고른 소리를 **이름으로 주지 않고** 후보 목록 앞에 더한다.
+        # ⛔ **후보가 0건이어도 말하기로 떨어뜨리지 않는다** — 그 폴백을 없앤 것이 이 결정이다.
+        pronunciation_candidates = (
+            _pronunciation_candidates(plan, known_sounds) if pronunciation_requested else []
         )
-        if pronunciation_requested and pronunciation_sound is None:
-            logger.warning(
-                "mode=%s 로 붙었으나 오늘의 소리를 고를 수 없어 말하기 세션으로 진행한다 — "
-                "계획에 발음 초점이 없고 놓친 소리 목록도 비었다",
-                PRONUNCIATION_MODE,
-            )
-        # `TASK-112`(결정 67) — 세션 행이 자기가 발음 세션임을 적는다. ⛔ **소리가 정해진 뒤에
-        # 적는다**: 위 폴백으로 말하기가 된 세션까지 발음으로 집계하면 이 결정이 닫으려던 결함의
-        # 반대 방향 변종이 된다. 실패해도 대화를 막지 않는다(`_record_drill_turns_or_continue` 와
-        # 같은 규약) — 다만 `exception`·`warning` 으로 갚는다. 값역 밖 값은 애초에 상수라 오지 않고,
-        # 그런 일이 나면 그것은 값역이 갈라졌다는 신호이므로 로그가 그것을 가리켜야 한다.
-        if pronunciation_sound is not None:
+        # 화면에 실을 **오늘의 소리**는 후보의 첫 항목이다(`session_started`). ⚠️ 이 값이 없는 것은
+        # 이제 「말하기로 떨어졌다」가 아니라 **「후보가 아직 없다」**만 뜻한다 — 화면이 아직 그것을
+        # 폴백으로 읽으므로 문구를 고치는 것은 `TASK-128.4` 가 갖는다.
+        pronunciation_focus = pronunciation_candidates[0] if pronunciation_candidates else None
+        # `TASK-112`(결정 67) — 세션 행이 자기가 발음 세션임을 적는다. ⛔ **적는 조건이 결정 72 로
+        # 「요청받았는가」가 됐다.** 이전 판은 「소리가 정해졌는가」였고 근거는 **폴백의 존재**였다
+        # (폴백으로 말하기가 된 세션까지 발음으로 집계하면 결정 67 이 닫으려던 결함의 반대 방향
+        # 변종이 됐다). 폴백이 사라졌으므로 그 근거도 사라졌다 — 요청한 세션은 실제로 발음 세션이다.
+        # 실패해도 대화를 막지 않는다(`_record_drill_turns_or_continue` 와 같은 규약) — 다만
+        # `exception`·`warning` 으로 갚는다. 값역 밖 값은 애초에 상수라 오지 않고, 그런 일이 나면
+        # 그것은 값역이 갈라졌다는 신호이므로 로그가 그것을 가리켜야 한다.
+        if pronunciation_requested:
             try:
                 if not await set_session_mode(pool, session_id, mode=PRONUNCIATION_MODE):
                     logger.warning(
@@ -395,11 +411,14 @@ async def session_socket(websocket: WebSocket) -> None:
         try:
             adapter = create_voice_adapter(
                 settings,
-                known_sounds=known_sounds,
+                # ⚠️ **전용 모드에는 후보 목록을 넘긴다**(결정 72) — 일반 세션은 계획 블록이 소리를
+                # 따로 싣지 않게 됐으므로 놓친 소리 목록을 그대로 준다. 즉 이 인자의 «내용»이
+                # 모드마다 다르고, 조립기는 그것을 「후보」로만 읽는다.
+                known_sounds=pronunciation_candidates if pronunciation_requested else known_sounds,
                 plan=plan,
                 questions=questions,
                 scenario=scenario,
-                pronunciation_sound=pronunciation_sound,
+                pronunciation_mode=pronunciation_requested,
                 # ⛔ **이 인자를 빼면 Nova 토큰 기록이 조용히 꺼진다** (`TASK-124` · 결정 68).
                 # 어댑터의 기본값이 `None`(기록 없음)이고 실물 배선은 여기 하나뿐이다 — `main.py` 의
                 # `usage_sink` 와 같은 부류의 위험이고 같은 방식으로 게이트 테스트가 못 박는다.
@@ -429,7 +448,7 @@ async def session_socket(websocket: WebSocket) -> None:
             session_id,
             client=channel,
             shadowing=shadowing,
-            pronunciation_sound=pronunciation_sound,
+            pronunciation_sound=pronunciation_focus,
         )
         try:
             await runner.run()

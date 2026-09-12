@@ -1707,26 +1707,53 @@ async def test_stub_mode_produces_no_pronunciation_rows(db_pool, committed_sessi
 # 발음 전용 모드 (`TASK-10.1` · 사용자 결정 64) — 팩토리가 **다른 지시문**을 조립한다.
 #
 # ⛔ 형태의 근거는 `nova.PRONUNCIATION_MODE_PROMPT` 위 주석이 소유한다(실측 4/4 대 일반 세션
-# 규모 0/76). 여기서 재는 것은 **배선 하나**다: 소리 키가 오면 그 지시문이 어댑터까지 도달하는가.
-def test_factory_builds_the_pronunciation_prompt_when_a_sound_is_given():
+# 규모 0/76). 여기서 재는 것은 **배선 하나**다: 모드 플래그가 오면 그 지시문이 어댑터까지 가는가.
+#
+# ⛔ **판정 재료가 결정 72(`TASK-128.2`)로 바뀌었다** — 「소리 키가 오면 그 모드다」에서
+# 「`pronunciation_mode` 면 그 모드다」로. 소리는 이제 모드를 여는 조건이 아니라 **후보**다.
+def test_factory_builds_the_pronunciation_prompt_when_the_mode_is_asked_for():
     adapter = create_voice_adapter(
         _settings(voice_adapter=STUB_ADAPTER),
         known_sounds=["an_as_a"],
         questions=(),
         scenario=None,
-        pronunciation_sound="th_as_s",
+        pronunciation_mode=True,
     )
 
     assert isinstance(adapter, StubVoiceAdapter)
     instructions = adapter.instructions
     assert instructions is not None
-    assert '"th_as_s"' in instructions
+    assert "Pronunciation coaching:" in instructions
+    # ⛔ **후보 목록이 전용 지시문까지 도달한다** — 결정 72 이전에는 팩토리가 이 목록을 **뺐고**
+    # 그래서 전용 모드에는 소리 재료가 하나도 없었다. 그 자리를 이 단정이 잰다.
+    assert "an_as_a" in instructions
     # 전용 모드는 대화 규칙을 싣지 않는다 — 그것이 이 모드의 전부다.
     assert "Ask one question at a time" not in instructions
     assert "Aim for the learner to speak at least 65%" not in instructions
 
 
-def test_factory_keeps_the_speaking_prompt_when_no_sound_is_given():
+def test_factory_builds_the_pronunciation_prompt_even_without_candidates():
+    """⛔ 결정 72 — **소리가 없어도 전용 모드가 열린다.** 그 뜻이 뒤집힌 자리다.
+
+    이전 규약은 「소리를 못 고르면 말하기로 떨어진다」였다. 결정 72 가 전용 모드의 뜻을 「오늘의
+    소리를 다룬다」에서 **「발음만 다룬다」**로 바꿨으므로 소리의 유무가 모드를 정하지 않는다.
+    """
+    adapter = create_voice_adapter(
+        _settings(voice_adapter=STUB_ADAPTER),
+        known_sounds=[],
+        questions=(),
+        scenario=None,
+        pronunciation_mode=True,
+    )
+
+    assert isinstance(adapter, StubVoiceAdapter)
+    instructions = adapter.instructions
+    assert instructions is not None
+    assert "Pronunciation coaching:" in instructions
+    assert "Ask one question at a time" not in instructions
+
+
+def test_factory_keeps_the_speaking_prompt_when_the_mode_is_not_asked_for():
     """⚠️ 음성 케이스 — 인자를 무조건 전용 지시문으로 읽으면 **모든 세션이** 발음 세션이 된다."""
     adapter = create_voice_adapter(
         _settings(voice_adapter=STUB_ADAPTER),

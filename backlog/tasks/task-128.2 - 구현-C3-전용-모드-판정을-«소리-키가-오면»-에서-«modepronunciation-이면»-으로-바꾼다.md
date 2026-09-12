@@ -1,10 +1,10 @@
 ---
 id: TASK-128.2
 title: '구현 C3: 전용 모드 판정을 «소리 키가 오면» 에서 «mode=pronunciation 이면» 으로 바꾼다'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-12 03:54'
-updated_date: '2026-09-12 13:06'
+updated_date: '2026-09-12 14:04'
 labels: []
 dependencies:
   - TASK-128.1
@@ -22,9 +22,9 @@ ordinal: 135000
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 TDD — mode=pronunciation 이고 소리가 «없어도» 전용 지시문이 조립되는 것을 먼저 단정한다
-- [ ] #2 음성 대조 — mode 가 없으면 여전히 일반 지시문인 것을 단정한다(모든 세션이 발음 세션이 되지 않게)
-- [ ] #3 factory.py·ws.py 의 계약 주석을 함께 고친다 — 「소리 키가 오면 그 모드」 서술이 낡는다
+- [x] #1 TDD — mode=pronunciation 이고 소리가 «없어도» 전용 지시문이 조립되는 것을 먼저 단정한다
+- [x] #2 음성 대조 — mode 가 없으면 여전히 일반 지시문인 것을 단정한다(모든 세션이 발음 세션이 되지 않게)
+- [x] #3 factory.py·ws.py 의 계약 주석을 함께 고친다 — 「소리 키가 오면 그 모드」 서술이 낡는다
 <!-- AC:END -->
 
 ## Implementation Notes

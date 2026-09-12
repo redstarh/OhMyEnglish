@@ -364,22 +364,23 @@ async def test_ws_passes_assembled_instructions_to_the_adapter(
         plan: SessionInstruction | None = None,
         questions: Sequence[PlanQuestion],
         scenario: SessionScenario | None,
-        # `TASK-10.1` — 발음 전용 모드의 소리 키. ⛔ **기본값을 두지 않는다**(위 대역의 규약) —
-        # 두면 소켓이 이 인자를 아예 넘기지 않아도 대역이 조용히 받아들인다.
-        pronunciation_sound: str | None,
+        # `TASK-128.2`(결정 72) — 발음 전용 «모드» 플래그. 이전 판은 소리 키(`str | None`)였고
+        # 그것이 모드를 열었다. ⛔ **기본값을 두지 않는다**(위 대역의 규약) — 두면 소켓이 이 인자를
+        # 아예 넘기지 않아도 대역이 조용히 받아들인다.
+        pronunciation_mode: bool,
         # `TASK-124` — 아래 대역과 같은 규약으로 기본값을 두지 않는다.
         usage_sink: object,
     ) -> object:
         seen["known_sounds"] = list(known_sounds)
         seen["plan"] = plan
-        seen["pronunciation_sound"] = pronunciation_sound
+        seen["pronunciation_mode"] = pronunciation_mode
         return real_factory(
             settings,
             known_sounds=known_sounds,
             plan=plan,
             questions=questions,
             scenario=scenario,
-            pronunciation_sound=pronunciation_sound,
+            pronunciation_mode=pronunciation_mode,
             usage_sink=usage_sink,  # ty: ignore[invalid-argument-type]
         )
 
@@ -455,16 +456,17 @@ def _capture_factory_args(monkeypatch: pytest.MonkeyPatch) -> dict[str, object]:
         plan: SessionInstruction | None | object = _PLAN_NOT_PASSED,
         questions: Sequence[PlanQuestion],
         scenario: SessionScenario | None,
-        # `TASK-10.1` — 발음 전용 모드의 소리 키. ⛔ **기본값을 두지 않는다**(위 대역의 규약) —
-        # 두면 소켓이 이 인자를 아예 넘기지 않아도 대역이 조용히 받아들인다.
-        pronunciation_sound: str | None,
+        # `TASK-128.2`(결정 72) — 발음 전용 «모드» 플래그. 이전 판은 소리 키(`str | None`)였고
+        # 그것이 모드를 열었다. ⛔ **기본값을 두지 않는다**(위 대역의 규약) — 두면 소켓이 이 인자를
+        # 아예 넘기지 않아도 대역이 조용히 받아들인다.
+        pronunciation_mode: bool,
         # `TASK-124`(결정 68) — Nova 토큰 기록 sink. ⛔ **기본값을 두지 않는다**(위 두 인자와 같은
         # 규약) — 두면 소켓이 넘기지 않아도 대역이 조용히 받아들여 배선 누락이 초록으로 지나간다.
         usage_sink: object,
     ) -> object:
         seen["known_sounds"] = list(known_sounds)
         seen["plan"] = plan
-        seen["pronunciation_sound"] = pronunciation_sound
+        seen["pronunciation_mode"] = pronunciation_mode
         seen["questions"] = list(questions)
         seen["scenario"] = scenario
         seen["usage_sink"] = usage_sink
@@ -475,7 +477,7 @@ def _capture_factory_args(monkeypatch: pytest.MonkeyPatch) -> dict[str, object]:
             plan=forwarded,
             questions=questions,
             scenario=scenario,
-            pronunciation_sound=pronunciation_sound,
+            pronunciation_mode=pronunciation_mode,
             usage_sink=usage_sink,  # ty: ignore[invalid-argument-type]
         )
 
@@ -862,10 +864,13 @@ async def test_ws_falls_back_to_speaking_for_an_unknown_mode(
     assert mode == "speaking"
 
 
-# 발음 전용 모드 (`TASK-10.1` · 사용자 결정 64) — `?mode=pronunciation` 이 **소리 키**를 팩토리까지
-# 넘긴다. 지시문 자체의 형태는 `test_nova.py`·`test_gateway.py` 가 재고,
+# 발음 전용 모드 (`TASK-10.1` · 사용자 결정 64) — `?mode=pronunciation` 이 **모드 플래그와 후보
+# 목록**을 팩토리까지 넘긴다. 지시문 자체의 형태는 `test_nova.py`·`test_gateway.py` 가 재고,
 # 여기서는 **진입 표면**만 잰다.
-async def test_ws_pronunciation_mode_passes_the_sound_to_the_adapter(
+#
+# ⛔ **넘기는 것이 결정 72 로 바뀌었다**(`TASK-128.2`): 이전에는 소리 키 하나였고 그 키가 프롬프트에
+# 이름으로 지목됐다. 이제는 「모드」와 「후보 목록」 둘이고 소리는 그 목록의 한 항목일 뿐이다.
+async def test_ws_pronunciation_mode_passes_the_mode_and_candidates_to_the_adapter(
     ws_app: FastAPI,
     seeded_fixed_user: UUID,
     monkeypatch: pytest.MonkeyPatch,
@@ -883,7 +888,9 @@ async def test_ws_pronunciation_mode_passes_the_sound_to_the_adapter(
         first = await client.receive_event()
 
     assert first is not None and first["type"] == "session_started"
-    assert seen.get("pronunciation_sound") == "th_as_s"
+    assert seen.get("pronunciation_mode") is True
+    # ⛔ 후보 목록이 함께 가야 한다 — 모드만 넘기면 전용 지시문에 소리 재료가 하나도 없다.
+    assert seen.get("known_sounds") == ["th_as_s"]
 
 
 async def test_ws_gives_the_adapter_a_usage_sink_that_actually_writes(
@@ -930,9 +937,14 @@ async def test_ws_gives_the_adapter_a_usage_sink_that_actually_writes(
 
 # `TASK-112`(사용자 결정 67) — 값역이 열렸으므로 세션 행이 자기가 발음 세션임을 **기록한다**.
 # 그전에는 `mode` 가 `speaking` 으로 남아 결과 화면·집계·일일 완료 판정이 발음 세션을 말하기로 셌다.
-# ⛔ **기록 시점이 「요청받은 때」가 아니라 「소리가 실제로 정해진 때」다** — 소리를 못 고르면 이
-# 파일의 기존 규약대로 말하기로 떨어지고(아래 음성 케이스), 그때 `pronunciation` 으로 적으면
-# 세션 행이 **실제와 다른 것**을 말한다.
+#
+# ⛔ **기록 시점의 근거가 결정 72(`TASK-128.2`)로 바뀌었다.** 이전 판은 「소리가 정해진 때」에
+# 적었고 그 근거는 **폴백의 존재**였다(소리를 못 고르면 말하기로 떨어졌으므로 요청만 보고 적으면
+# 세션 행이 실제와 달라졌다). 결정 72 가 그 폴백을 없앴으므로 이제는 **요청받은 때**가 옳다 —
+# 「발음만 다룬다」가 모드의 뜻이고 소리의 유무가 그것을 바꾸지 않는다(아래 음성 케이스).
+# ⚠️ 판별력은 「소리 없음」이 아니라 **「모드를 요청하지 않았을 때」**가 만든다:
+# `test_ws_falls_back_to_speaking_for_an_unknown_mode` 와
+# `test_ws_speaking_mode_never_asks_for_a_pronunciation_prompt` 가 그 자리를 잰다.
 async def test_ws_pronunciation_mode_records_that_mode_on_the_session_row(
     ws_app: FastAPI,
     seeded_fixed_user: UUID,
@@ -959,14 +971,22 @@ async def test_ws_pronunciation_mode_records_that_mode_on_the_session_row(
     assert mode == "pronunciation"
 
 
-async def test_ws_pronunciation_fallback_leaves_the_session_as_speaking(
+async def test_ws_records_the_pronunciation_mode_even_without_a_sound(
     ws_app: FastAPI,
     seeded_fixed_user: UUID,
     db_pool: asyncpg.Pool,
     monkeypatch: pytest.MonkeyPatch,
 ):
-    """⚠️ 이 음성 케이스가 위 테스트의 판별력을 만든다 — 없으면 「요청만 보고 적는」 구현이 통과하고
-    소리를 못 고른 세션까지 발음 세션으로 집계된다."""
+    """⛔ **사용자 결정 72 가 이 단정을 뒤집었다** — 이전 판은 여기서 `speaking` 을 요구했다.
+
+    뒤집힌 이유: 결정 72 가 전용 모드의 뜻을 「오늘의 소리를 다룬다」에서 **「발음만 다룬다」**로
+    바꿨다. 그러면 소리를 못 골랐다는 것이 「이 세션은 발음 세션이 아니다」를 뜻하지 않는다.
+    ⚠️ **뒤집힌 사실을 지우지 않고 남긴다** — 이전 판정의 근거(폴백의 존재)가 사라졌다는 것이
+    이 테스트가 담은 정보다.
+
+    ⚠️ 이 경로는 예외가 아니라 **지금 dev DB 의 상태**다(발음 기록 0건). 즉 폴백이 남아 있으면
+    발음 집중을 골라도 **평시에** 말하기 세션을 받는다.
+    """
 
     async def no_sounds(pool: object) -> list[str]:
         return []
@@ -985,17 +1005,24 @@ async def test_ws_pronunciation_fallback_leaves_the_session_as_speaking(
         mode = await conn.fetchval(
             "select mode from learning_sessions where id = $1", UUID(started["session_id"])
         )
-    assert mode == "speaking"
+    assert mode == "pronunciation", (
+        "소리가 없다고 말하기로 떨어뜨렸다 — 사용자 결정 72 가 그 폴백을 없앴다"
+    )
 
 
-# ⚠️ 음성 케이스 둘 — 이 둘이 판별력을 만든다. 없으면 「항상 전용 지시문」으로 고쳐도 위 테스트가
-# 통과하고, 그러면 **모든 세션이** 발음 세션이 된다.
-async def test_ws_pronunciation_mode_falls_back_when_no_sound_is_available(
+# ⚠️ 판별력을 만드는 자리가 결정 72 로 **옮겨졌다.** 이전에는 「소리가 없으면 전용 지시문을 쓰지
+# 않는다」가 그 자리였고, 이제는 **「모드를 요청하지 않으면 쓰지 않는다」**가 그 자리다(아래 둘째).
+# 없으면 「항상 전용 지시문」으로 고쳐도 통과하고, 그러면 **모든 세션이** 발음 세션이 된다.
+async def test_ws_asks_for_the_dedicated_prompt_even_without_a_sound(
     ws_app: FastAPI,
     seeded_fixed_user: UUID,
     monkeypatch: pytest.MonkeyPatch,
 ):
-    """소리를 못 고르면 말하기로 떨어진다 — 알 수 없는 mode 를 떨어뜨리는 기존 규약과 같다."""
+    """⛔ 결정 72 — 소리를 못 골라도 팩토리에 **전용 모드**를 요청한다.
+
+    ⚠️ 후보 목록이 비어 가는 것을 함께 잰다 — 팩토리가 그 목록으로 후보 블록을 만드는데, 빈
+    목록이면 블록을 아예 넣지 않는 것이 규약이다(`test_nova.py` 가 그 자리를 갖는다).
+    """
 
     async def no_sounds(pool: object) -> list[str]:
         return []
@@ -1010,7 +1037,10 @@ async def test_ws_pronunciation_mode_falls_back_when_no_sound_is_available(
         first = await client.receive_event()
 
     assert first is not None and first["type"] == "session_started"
-    assert seen.get("pronunciation_sound") is None
+    assert seen.get("pronunciation_mode") is True, (
+        "소리가 없다고 전용 지시문을 포기했다 — 결정 72 가 그 조건을 없앴다"
+    )
+    assert seen.get("known_sounds") == []
 
 
 async def test_ws_speaking_mode_never_asks_for_a_pronunciation_prompt(
@@ -1029,7 +1059,7 @@ async def test_ws_speaking_mode_never_asks_for_a_pronunciation_prompt(
 
     # 놓친 소리 목록에 값이 있어도 **모드가 아니면** 전용 지시문을 쓰지 않는다.
     assert seen.get("known_sounds") == ["th_as_s"]
-    assert seen.get("pronunciation_sound") is None
+    assert not seen.get("pronunciation_mode")
 
 
 # 추가 학습 진입 표시 (`TASK-10.2` · 진입점 설계서 §4) — `?source=additional` 이 세션 행에 남는다.
@@ -1071,11 +1101,13 @@ async def test_ws_keeps_the_recommended_source_without_the_query(
     assert source == "recommended"
 
 
-# ⛔ **오늘의 소리를 `session_started` 에 실어야 화면이 「떨어졌다」를 알 수 있다**
-# (`TASK-10.2` AC#2).
-# 서버는 소리를 못 고르면 조용히 말하기로 떨어뜨리므로(그 판단은 `ws.py` 의 기존 규약이다) 화면이
-# 그 사실을 모르면 **사용자가 다른 세션을 받은 것을 모른다.** 쉐도잉의 `shadowing` payload 와 같은
-# 규약을 쓴다 — **없는 것과 「비었다」를 프론트가 구분해야 하므로 키 자체를 넣지 않는다.**
+# ⛔ **오늘의 소리를 `session_started` 에 실어 화면이 그것을 말할 수 있게 한다** (`TASK-10.2` AC#2).
+# 쉐도잉의 `shadowing` payload 와 같은 규약을 쓴다 — **없는 것과 「비었다」를 프론트가 구분해야
+# 하므로 키 자체를 넣지 않는다.**
+#
+# ⚠️ **이 키의 «뜻»이 결정 72 로 좁아졌다.** 이전에는 키의 부재가 「말하기로 떨어졌다」의 신호였고
+# 화면이 그것으로 갈라 말했다. 폴백이 사라졌으므로 이제 부재는 **「후보가 아직 없다」**만 뜻한다 —
+# 화면 문구를 그 뜻으로 고치는 것은 `TASK-128.4` 가 갖는다(그 전까지 화면은 거짓을 말한다).
 async def test_ws_pronunciation_mode_puts_todays_sound_in_session_started(
     ws_app: FastAPI, seeded_fixed_user: UUID, monkeypatch: pytest.MonkeyPatch
 ):
@@ -1094,10 +1126,15 @@ async def test_ws_pronunciation_mode_puts_todays_sound_in_session_started(
     assert started["pronunciation_focus"] == "th_as_s"
 
 
-async def test_ws_omits_the_focus_key_when_the_mode_falls_back(
+async def test_ws_omits_the_focus_key_when_there_is_no_candidate(
     ws_app: FastAPI, seeded_fixed_user: UUID, monkeypatch: pytest.MonkeyPatch
 ):
-    """⚠️ 이 음성 케이스가 화면의 판별 근거다 — 키가 **없는 것**이 「떨어졌다」의 신호다."""
+    """⚠️ 음성 대조 — 후보가 0건이면 키 자체를 넣지 않는다(빈 문자열을 넣지 않는다).
+
+    ⛔ **이 부재를 「말하기로 떨어졌다」로 읽지 않는다** — 결정 72 이후 그 폴백은 없다. 세션은
+    전용 모드로 열리고(위 `…_records_the_pronunciation_mode_even_without_a_sound`) 다만 오늘의
+    소리가 아직 정해지지 않은 것이다.
+    """
 
     async def no_sounds(pool: object) -> list[str]:
         return []

@@ -28,6 +28,7 @@ from app.audio_gateway.nova import (
     SYSTEM_PROMPT,
     NovaEventTranslator,
     NovaVoiceAdapter,
+    _known_sounds_block,
     build_pronunciation_prompt,
     build_system_prompt,
 )
@@ -1173,7 +1174,10 @@ def test_plan_block_carries_level_focus_length_and_contexts():
     assert "weekend plan" in block
 
 
-_SOUND_LINE = "- Sound to coach today:"
+# 사용자 결정 72 (`TASK-128.1`) — 이 접두어가 바뀐 것이 결정의 내용이다. 이전 판은
+# `- Sound to coach today: "{sound}"` 로 계획이 고른 키를 **단수로 지목**했고 그것이 되풀이의
+# 구동부였다(세 판 모두 계획의 키를 실었다 · `runs/2026-09-12-task123-118-subtract-key-forcing.md`).
+_SOUND_LINE = "- Pronunciation is today's focus:"
 
 
 def _line_starting_with(block: str, prefix: str) -> str:
@@ -1196,17 +1200,16 @@ def test_plan_block_pulls_a_pronunciation_focus_out_of_the_grammar_focus_line():
     0회 · `toolUse` 0. `an`이 관사라서 **소리 키가 관사 지시로 읽힌다.**
     회차 기록: `tests/harness/runs/2026-09-10-task81-pronunciation-focus.md`.
     """
-    block = _plan_block(
-        _prompt(
-            ("an_as_a",),
-            _instruction(
-                focus=[
-                    InstructionFocus(pattern_key="pronunciation_an_as_a", target_form="an_as_a"),
-                    InstructionFocus(pattern_key="article_missing", target_form="a/an/the"),
-                ]
-            ),
-        )
+    prompt = _prompt(
+        ("an_as_a",),
+        _instruction(
+            focus=[
+                InstructionFocus(pattern_key="pronunciation_an_as_a", target_form="an_as_a"),
+                InstructionFocus(pattern_key="article_missing", target_form="a/an/the"),
+            ]
+        ),
     )
+    block = _plan_block(prompt)
 
     focus_line = _line_starting_with(block, "- Focus on:")
     # 발음 초점은 문법 초점 줄에서 **빠진다** — 남으면 위에서 관측한 오독 경로가 그대로 산다.
@@ -1216,12 +1219,16 @@ def test_plan_block_pulls_a_pronunciation_focus_out_of_the_grammar_focus_line():
     assert "article_missing" in focus_line
     assert "a/an/the" in focus_line
 
-    # 발음은 자기 줄에서 **소리로** 불린다. ⛔ 키를 파싱해 풀어 쓰지 않는다 — `X_as_Y` 형태는
-    # Nova 가 지어내는 값이라 규약이 아니고(`known_sounds` 규약은 「같은 소리를 한 키로 묶는다」
-    # 뿐이다), 파싱하면 다음 키 모양에서 조용히 깨진다. 그대로 인용하고 tool 이름을 함께 준다.
+    # 발음은 자기 줄로 갈라져 나가지만 **그 줄이 소리를 이름으로 부르지 않는다**
+    # (`TASK-128.1` · 사용자 결정 72). 단수 지목이 되풀이의 구동부였다.
     sound_line = _line_starting_with(block, _SOUND_LINE)
-    assert "an_as_a" in sound_line
+    assert "an_as_a" not in sound_line, (
+        "소리 줄이 아직 오늘의 소리를 이름으로 지목한다 — 결정 72 가 그 단수 지목을 뺐다"
+    )
     assert PRONUNCIATION_TOOL_NAME in sound_line
+    # ⛔ **키가 사라지는 것이 아니라 후보로 내려간다.** 이 반대 방향 단정이 없으면 「지목을 뺐다」가
+    # 「소리를 아예 주지 않는다」로 조용히 바뀐다. 창이 다르다 — 후보 블록은 계획 블록 **밖**이다.
+    assert "an_as_a" in prompt[: prompt.index("Today's plan:")]
 
 
 def test_the_sound_line_replaces_grammar_first_and_spends_the_one_correction():
@@ -1274,14 +1281,14 @@ def test_the_sound_line_replaces_grammar_first_and_spends_the_one_correction():
 # 자기모순**이다. 일반 세션에는 그 규칙이 실재하므로 그쪽 문면은 그대로 둔다 — `TASK-75` 의 승인이
 # 그것이 참인 모드에서 그대로 산다.
 def test_the_dedicated_prompt_never_names_the_grammar_first_rule():
-    dedicated = build_pronunciation_prompt("th_as_s")
+    dedicated = build_pronunciation_prompt(["th_as_s"])
 
     assert "Grammar first" not in dedicated, (
         "전용 모드가 없는 규칙 9 를 이름으로 부른다 — 사용자 결정 71 이 그 구절을 버렸다"
     )
     # ⚠️ **음성 대조 — 줄을 통째로 지운 것이 아니다.** 이 둘이 없으면 소리 줄 자체가 사라져도
     # 위 단정이 조용히 통과한다.
-    assert "Sound to coach today" in dedicated
+    assert _SOUND_LINE in dedicated
     assert "spend the one correction" in dedicated
 
 
@@ -1308,7 +1315,7 @@ def test_the_two_sound_lines_differ_by_exactly_the_grammar_first_clause():
         )
     )
     general_line = _line_starting_with(block, _SOUND_LINE)
-    dedicated_line = _line_starting_with(build_pronunciation_prompt("th_as_s"), _SOUND_LINE)
+    dedicated_line = _line_starting_with(build_pronunciation_prompt(["th_as_s"]), _SOUND_LINE)
 
     clause = " instead of the Grammar first rule 9"
     assert general_line.replace(clause, "") == dedicated_line, (
@@ -1760,13 +1767,14 @@ _PRONUNCIATION_MODE_SOUND = "th_as_s"
 
 
 def test_the_pronunciation_mode_prompt_drops_the_conversation_rules():
-    prompt = build_pronunciation_prompt(_PRONUNCIATION_MODE_SOUND)
+    prompt = build_pronunciation_prompt([_PRONUNCIATION_MODE_SOUND])
 
-    # 남는 것: 역할 문단 · 발음 절 · 규칙 10 · 소리 줄.
+    # 남는 것: 역할 문단 · 발음 절 · 규칙 10 · 소리 줄 · 후보 블록.
     assert prompt.startswith("You are OhMyEnglish,")
     assert "Pronunciation coaching:" in prompt
     assert f"Call {PRONUNCIATION_TOOL_NAME} twice" in prompt
-    assert f'"{_PRONUNCIATION_MODE_SOUND}"' in prompt
+    # ⚠️ 소리는 **후보로만** 실린다(사용자 결정 72) — 이전 판은 `"th_as_s"` 로 단수 지목했다.
+    assert _PRONUNCIATION_MODE_SOUND in prompt
     # 빠지는 것: 대화 규칙 1~7 과 계획·무대 블록.
     for dropped in (
         "Ask one question at a time",
@@ -1787,13 +1795,94 @@ def test_the_pronunciation_mode_prompt_drops_the_grammar_first_hedge():
     **통계로는 갈리지 않는다.** 걷는 근거는 그 수치가 아니라 **뜻**이다: 발음만 다루는 세션이
     「대개는 문법을 고치고 발음은 두라」를 실으면 서로 모순이다.
     """
-    prompt = build_pronunciation_prompt(_PRONUNCIATION_MODE_SOUND)
+    prompt = build_pronunciation_prompt([_PRONUNCIATION_MODE_SOUND])
 
     for hedge in ("Grammar first.", "leave pronunciation alone", "never for a mild accent"):
         assert hedge not in prompt, f"유보 문면이 남았다: {hedge!r}"
     # 코칭 «행동»은 남아야 한다 — 유보만 걷는 것이지 지시를 없애는 것이 아니다.
     assert "name the sound that was off" in prompt
     assert "ask the learner to repeat it" in prompt
+
+
+# --- `TASK-128.1` · 사용자 결정 72 — 소리를 «이름으로» 주지 않고 «후보»로 내려받는다 ---
+
+
+def test_the_dedicated_prompt_carries_candidates_and_names_no_single_sound():
+    """⛔ **결정 72 의 두 방향을 한 자리에서 반대로 잰다.**
+
+    ⚠️ **덜어내는 쪽만 재면 안 되는 이유**: 단수 지목을 빼는 것만으로 끝내면 전용 모드에는 소리
+    재료가 **하나도 남지 않는다**(팩토리가 놓친 소리 목록을 빼고 계획 블록도 싣지 않으므로). 그러면
+    코치가 아무 재료 없이 시작한다 — 그래서 후보 블록이 «있다»를 함께 요구한다.
+
+    ⚠️ 단수 지목이 되풀이의 **구동부**였다는 것은 두 방향 반증으로 확정됐다: 키 강제를 **더한** 판이
+    3/3 실패(`runs/2026-09-12-task120-absent-planted-sound.md`) · **덜어낸** 판도 3/3 실패
+    (`…task123-118-subtract-key-forcing.md` ARM-B). ⇒ 지시문이 아니라 **재료**를 바꾼 판이다.
+    """
+    prompt = build_pronunciation_prompt(["th_as_s", "f_as_p"])
+
+    # ① 후보가 «있다».
+    assert "Sounds this learner has missed before:" in prompt
+    assert "th_as_s, f_as_p" in prompt
+    assert "reuse that exact key" in prompt
+    # ② 단수 지목이 «없다» — 이전 판의 문면과 인용 형태 둘 다 재서 되살아나는 것을 막는다.
+    assert "Sound to coach today" not in prompt
+    assert '"th_as_s"' not in prompt, "소리가 아직 단수로 지목된다 — 결정 72 가 그것을 뺐다"
+
+
+def test_the_dedicated_prompt_omits_the_candidate_block_when_there_are_none():
+    """⚠️ **음성 대조** — 후보가 0건이면 블록을 아예 넣지 않는다.
+
+    빈 목록에 제목만 남기면 Nova 가 「목록이 비었다」를 지시로 오해할 여지가 생긴다 —
+    `build_system_prompt` 의 「값이 없는 줄은 아예 넣지 않는다」와 **같은 처리**다. ⛔ 그리고 이
+    경로는 예외가 아니라 **지금 dev DB 의 상태**다(발음 기록 0건).
+    """
+    prompt = build_pronunciation_prompt([])
+
+    assert "Sounds this learner has missed before" not in prompt
+    # 블록만 빠진다 — 소리 줄과 규칙은 그대로다.
+    assert _SOUND_LINE in prompt
+    assert f"Call {PRONUNCIATION_TOOL_NAME} twice" in prompt
+    # ⛔ 이음매에 빈 칸이 남지 않는다 — 블록을 빈 문자열로 이어 붙이면 여기서 잡힌다.
+    assert "\n\n\n" not in prompt
+
+
+def test_both_prompts_render_the_candidate_block_word_for_word():
+    """⛔ 후보 블록이 **두 프롬프트**에 실리므로 한쪽이 낡는 것을 이 테스트가 막는다.
+
+    결정 72 이전에는 이 블록이 일반 세션에만 있었고 그래서 이 축에 게이트가 필요 없었다. 전용
+    모드에도 실리는 순간 문면이 둘이 될 수 있다 — 헬퍼 하나로 뽑은 것이 그 답이고 이 테스트가
+    그 사실을 잰다.
+    """
+    sounds = ["th_as_s", "f_as_p"]
+    block = _known_sounds_block(sounds)
+
+    # ⚠️ 헬퍼가 빈 문자열을 돌려주면 아래 둘이 항진명제가 된다 — 그 자리를 먼저 막는다.
+    assert block
+    assert block in _prompt(sounds)
+    assert block in build_pronunciation_prompt(sounds)
+
+
+def test_many_pronunciation_focuses_still_make_exactly_one_sound_line():
+    """⛔ `{sound}` 를 뺀 뒤에도 초점마다 한 줄을 내면 **글자 그대로 같은 줄이 두 번** 실린다.
+
+    이전 판은 초점마다 소리를 이름으로 넣었으므로 줄이 여럿인 것이 뜻을 가졌다. 지목이 사라진
+    지금은 같은 줄의 복제일 뿐이고, 프롬프트 길이만 늘어 전용 모드의 길이 경계 실측
+    (`runs/2026-09-11-task86-length-boundary.md`)을 흔든다.
+    """
+    block = _plan_block(
+        _prompt(
+            (),
+            _instruction(
+                focus=[
+                    InstructionFocus(pattern_key="pronunciation_th_as_s", target_form="th_as_s"),
+                    InstructionFocus(pattern_key="pronunciation_f_as_p", target_form="f_as_p"),
+                ]
+            ),
+        )
+    )
+
+    # `_line_starting_with` 이 개수가 1 이 아니면 그 개수를 들고 실패한다.
+    _line_starting_with(block, _SOUND_LINE)
 
 
 def test_the_speaking_prompt_still_carries_the_conversation_rules():
@@ -1860,24 +1949,32 @@ def test_the_pronunciation_prompt_is_byte_identical_to_the_measured_one():
        규칙 11 이 이 프롬프트에 **없는 규칙 4** 를 가리켰다.
     2. `2026-09-12-task111-116-selfcontained-key/prompt_dedicated_v2.txt` (1,927자 · **REG 4/4**) —
        번호 참조를 걷고 `target_sound` 키를 **조건부**로 줬다.
-    3. **지금**: `2026-09-12-task123-118-subtract-key-forcing/prompt_dedicated_v3.txt`
+    3. `2026-09-12-task123-118-subtract-key-forcing/prompt_dedicated_v3.txt`
        (1,660자 · **ARM-A 4/4**) — 사용자 **결정 70**(키 강제를 **뺀다**)과 **결정 71**(전용
        모드에서만 `Grammar first` 구절을 버린다)을 이행했다.
+    4. **지금**: `2026-09-12-task128-sound-as-candidate/prompt_dedicated_v4.txt`
+       (후보 1건에서 1,825자 · **ARM-A 4/4**) — 사용자 **결정 72**(소리를 이름으로 지목하지 않고
+       **후보로만** 내려받는다)를 이행했다. 단수 지목이 사라지고 후보 블록이 들어왔다.
 
-    ⛔ **이 파일에 묶인 수치는 ARM-A 4/4 «뿐»이다 — 「기록이 코칭과 맞는다」가 아니다.** 그 축은 두
-    방향 모두 반증됐다: 조건을 **더한** 판이 3/3 실패(`…task120-absent-planted-sound.md`), 강제를
-    **덜어낸** 이 판도 3/3 실패(`…task123-118-subtract-key-forcing.md` ARM-B — 강제가 없는데도
-    계획의 키가 그대로 실렸다). ⛔ **이 게이트를 그 축의 근거로 인용하지 마라.**
+    ⛔ **이 파일에 묶인 수치는 ARM-A 4/4 «뿐»이다 — 「기록이 코칭과 맞는다」가 아니다.** 그 축은
+    **세 방향 모두** 반증됐다: 조건을 **더한** 판 3/3 실패(`…task120-absent-planted-sound.md`) ·
+    강제를 **덜어낸** 판 3/3 실패(`…task123-118-subtract-key-forcing.md` ARM-B) · 지목을 걷고
+    **재료만 후보로 바꾼** 이 판도 3/3 실패(`…task128-sound-as-candidate.md` ARM-B — 후보였을
+    뿐인데도 그 키가 그대로 실렸고 한 세션은 코치가 **없는 /f/ 를 발명**했다).
+    ⛔ **이 게이트를 그 축의 근거로 인용하지 마라.**
+
+    ⚠️ **인자가 후보 «목록»이므로 이 게이트는 후보 1건 판을 고정한다.** ARM-A 가 그 조건이었다 —
+    후보 개수가 늘면 길이가 달라지고 그 판의 수치는 이 파일에 없다.
     """
     measured = (
         Path(__file__).resolve().parents[1]
         / "harness"
         / "runs"
-        / "2026-09-12-task123-118-subtract-key-forcing"
-        / "prompt_dedicated_v3.txt"
+        / "2026-09-12-task128-sound-as-candidate"
+        / "prompt_dedicated_v4.txt"
     )
 
-    assert build_pronunciation_prompt("th_as_s") == measured.read_text(encoding="utf-8"), (
+    assert build_pronunciation_prompt(["th_as_s"]) == measured.read_text(encoding="utf-8"), (
         "전용 모드 지시문이 실측된 문면과 달라졌다 — REG 4/4 수치가 이 판에 붙지 않는다. "
         "되돌리거나 회차를 다시 돌려라"
     )

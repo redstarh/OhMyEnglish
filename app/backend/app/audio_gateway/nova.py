@@ -197,12 +197,19 @@ _FOCUS_BEATS_SETTING = (
 # 것만으로는 부족하고 「문법이 아니라 소리다」를 문장으로 말해야 한다.
 # 회차 기록: `tests/harness/runs/2026-09-10-task81-pronunciation-focus.md`.
 #
-# ⛔ **소리 키를 파싱해 풀어 쓰지 않는다.** `an_as_a` 를 「`an` 을 `a` 로」로 바꿔 주면 읽기는
-# 좋아지지만 `X_as_Y` 형태는 **Nova 가 지어내는 값**이라 규약이 아니다 — 고정부가 요구하는
-# 규약은 「같은 소리에 같은 키를 다시 쓴다」 하나이고 키의 **모양**은 아무것도 보장하지 않는다.
-# 파싱하면 다음 키 모양(`th_as_s` 는 맞지만 `vowel_length` 같은 것이 오면)에서 조용히 깨진다.
-# ⚠️ **한 줄로 낸다.** `tool` 이름과 소리 키가 같은 줄에 있어야 「무엇을 어느 이름으로 보고할지」가
-# 한 눈에 붙는다 — 그리고 테스트가 줄 단위로 그것을 잰다.
+# ⛔ **이 줄은 오늘의 소리를 «이름으로» 지목하지 않는다** (`TASK-128.1` · 사용자 결정 72).
+# 이전 판은 `- Sound to coach today: "{sound}"` 로 계획이 고른 키를 단수로 지목했고 **그것이
+# 되풀이의 구동부였다.** 세 판이 전부 계획의 키를 `target_sound` 에 실었고 — 강제판·조건판·제거판 —
+# 오디오에 그 소리가 **한 자리도 없을 때도** 그랬다
+# (`runs/2026-09-12-task120-absent-planted-sound.md` ·
+#  `…task123-118-subtract-key-forcing.md` ARM-B).
+# ⇒ **더하는 방향과 덜어내는 방향이 모두 반증됐으므로 지시문이 아니라 재료를 바꿨다.**
+# 소리는 이제 `_known_sounds_block` 의 **후보**로만 내려간다 — 그 블록의 조건이
+# *"If one of them is off again"* 이라 **실제로 어긋났을 때만** 재사용을 요구하고, 그래서 모델이
+# 없는 오류를 발명할 이유가 없다.
+# ⚠️ **그 대가는 결정 72 항목이 소유한다**(간격 반복이 느슨해진다) — 여기서 재서술하지 않는다.
+# ⚠️ **한 줄로 낸다.** `tool` 이름이 이 줄에 있어야 「무엇을 어느 이름으로 보고할지」가 한 눈에
+# 붙는다 — 그리고 테스트가 줄 단위로 그것을 잰다.
 #
 # ⛔ **이 줄은 고정부의 규칙 9 와 규칙 4·11 을 대체한다** (`TASK-75` · 사용자 승인 2026-09-10).
 # 자리를 내주는 것만으로는 부족하다는 것이 실물로 확정됐다 — `TASK-81` 이 왕복 28회를 조건 넷으로
@@ -218,8 +225,8 @@ _FOCUS_BEATS_SETTING = (
 # 사용자가 승인한 안이고, 조건을 프롬프트가 아니라 **계획 데이터**가 정한다 —
 # 그것이 이 설계의 핵심이다.
 _SOUND_INSTRUCTION = (
-    '- Sound to coach today: "{sound}" — this is a pronunciation focus, not a grammar one; '
-    "the learner's problem is how the word sounds, not which word to pick. When it is off, take it "
+    "- Pronunciation is today's focus: the learner's problem is how words sound, not which "
+    "word to pick. When a sound is off in what you actually hear, take it "
     # `TASK-111` — *"the one correction of rule 4"* 에서 번호 참조를 걷었다. 전용 모드 지시문에는
     # 규칙 4 가 없어 그 참조가 허공을 가리켰다(`build_pronunciation_prompt` 가 이 줄을 그대로 쓴다).
     #
@@ -279,8 +286,9 @@ _GRAMMAR_FIRST_CLAUSE = " instead of the Grammar first rule 9"
 # ⛔ **다듬어 고치지 말 것 — 문면이 수치에 묶여 있다.** 첫 판(규칙 11 이 없는 규칙 4 를 가리키던
 # 판)은 Nova 실물 왕복 **4/4** 로 tool 이 왔고 `target_sound` 가 계획이 준 키 그대로 실렸다. 같은
 # 문면이 일반 세션 규모(5,078자)에서는 **0/76** 이다. **지금 판의 수치는 그 회차가 아니라**
-# `tests/harness/runs/2026-09-12-task123-118-subtract-key-forcing.md` **가 갖는다**(ARM-A **4/4** ·
-# 사용자 결정 70·71). 고치려면 **회차를 다시 돌려** 새 수치를 얻고 바이트 게이트를 함께 갱신한다.
+# `tests/harness/runs/2026-09-12-task128-sound-as-candidate.md` **가 갖는다**(후보 1건 · 1,825자 ·
+# ARM-A **4/4** · 사용자 결정 72). 고치려면 **회차를 다시 돌려** 새 수치를 얻고 바이트 게이트를
+# 함께 갱신한다.
 # ⚠️ 문면 이력은 그 게이트의 독스트링이 세 판으로 갖는다 — 여기서 재서술하지 않는다.
 #
 # ⛔ **규칙 1~7 을 「골라서」 빼는 것이 아니라 통째로 뺀다.** 규칙 4 만 뺀 판은 tool 0/4 였고
@@ -320,24 +328,60 @@ Pronunciation coaching:
     back for grammar."""
 
 
-def build_pronunciation_prompt(sound: str) -> str:
-    """발음 전용 모드의 지시문 = 고정 문면 + **오늘의 소리 줄** (`TASK-10.1`).
+def _known_sounds_block(known_sounds: Sequence[str]) -> str:
+    """놓친 소리 **후보** 블록. 목록이 비면 **빈 문자열** — 호출부가 그 자리를 아예 뺀다.
 
-    `build_system_prompt` 과 **다른 함수**인 이유: 이 모드는 계획·무대·질문·놓친 소리 목록을
-    싣지 않고 규칙 1~7 도 없다. 인자를 늘려 한 함수로 겸하면 그 함수의 계약(넷 다 데이터로
-    받는다 · 기본값을 두지 않는다)이 모드마다 갈라져 조용히 빈 프롬프트를 만들 여지가 생긴다.
+    ⛔ **두 프롬프트가 이 함수 하나를 쓴다** (`TASK-128.1` · 사용자 결정 72). 전용 모드에도 후보를
+    싣게 되면서 같은 문면이 두 곳에 생길 수 있었고, 그러면 한쪽이 조용히 낡는다. 그 동일성은
+    `test_nova.py` 가 잰다.
+
+    ⛔ **이 블록은 고리의 구동부가 아니다.** 조건이 *"If one of them is off again"* — **실제로
+    어긋났을 때만** 재사용하라는 것이므로 모델이 없는 오류를 발명할 이유가 없다. 결정 72 의
+    「소리를 이름으로 주지 않고 후보로만 내려받는다」가 정확히 이 모양이다.
+
+    ⚠️ **빈 목록에 제목만 남기지 않는다** — Nova 가 「목록이 비었다」를 지시로 오해할 여지가 생긴다.
+    「값이 없는 줄은 아예 넣지 않는다」는 `build_system_prompt` 의 규약이고 전용 모드도 같은 처리를
+    받는다. ⚠️ 그 경로는 예외가 아니라 **지금 dev DB 의 상태**다(발음 기록 0건).
+    """
+    if not known_sounds:
+        return ""
+    return (
+        "Sounds this learner has missed before:\n"
+        f"{', '.join(known_sounds)}\n"
+        "If one of them is off again, reuse that exact key as target_sound instead of\n"
+        "inventing a new one — repeat offenders must group under one key."
+    )
+
+
+def build_pronunciation_prompt(known_sounds: Sequence[str]) -> str:
+    """발음 전용 모드의 지시문 = 고정 문면 + **후보 블록** + 소리 줄 (`TASK-10.1` · 결정 72).
+
+    `build_system_prompt` 과 **다른 함수**인 이유: 이 모드는 계획·무대·질문을 싣지 않고 규칙 1~7 도
+    없다. 인자를 늘려 한 함수로 겸하면 그 함수의 계약(넷 다 데이터로 받는다 · 기본값을 두지
+    않는다)이 모드마다 갈라져 조용히 빈 프롬프트를 만들 여지가 생긴다.
+
+    ⛔ **인자가 소리 하나에서 후보 목록으로 바뀌었다** (`TASK-128.1` · 사용자 결정 72). 이전 판은
+    `sound: str` 을 받아 그것을 **이름으로 지목**했고, 그 지목이 되풀이의 구동부였다(그 실측은
+    `_SOUND_INSTRUCTION` 위 주석이 소유한다). ⚠️ 이 모드에는 그전까지 후보가 **하나도 없었다** —
+    팩토리가 놓친 소리 목록을 뺐다. 단수 지목만 걷으면 코치가 아무 재료 없이 시작하므로 그 목록을
+    여기서 싣는다.
 
     ⚠️ **소리 줄은 `_SOUND_INSTRUCTION` 을 그대로 쓴다** — 일반 세션과 같은 문면이어야
     「무엇을 어느 이름으로 보고할지」가 한 곳에서만 정해진다.
+
+    ⚠️ **블록 순서를 일반 세션과 같게 둔다**(고정부 → 후보 → 소리 줄). 두 모드가 다른 순서를 쓰면
+    실측 문면을 서로의 근거로 인용할 수 없게 된다.
     """
-    return "\n\n".join(
-        [
-            PRONUNCIATION_MODE_PROMPT,
-            # ⛔ `grammar_first=""` — 이 모드의 규칙 9 에는 `Grammar first` 절이 없으므로 그 이름을
-            # 부르지 않는다(사용자 결정 71 · `TASK-118`).
-            _SOUND_INSTRUCTION.format(sound=sound, tool=PRONUNCIATION_TOOL_NAME, grammar_first=""),
-        ]
-    )
+    parts = [
+        PRONUNCIATION_MODE_PROMPT,
+        _known_sounds_block(known_sounds),
+        # ⛔ `grammar_first=""` — 이 모드의 규칙 9 에는 `Grammar first` 절이 없으므로 그 이름을
+        # 부르지 않는다(사용자 결정 71 · `TASK-118`).
+        _SOUND_INSTRUCTION.format(tool=PRONUNCIATION_TOOL_NAME, grammar_first=""),
+    ]
+    # ⛔ 빈 블록을 걸러 내고 이어 붙인다 — 그대로 join 하면 이음매에 빈 줄이 하나 더 생기고,
+    # 그 프롬프트는 실측된 문면과 **바이트가 다르다**(게이트가 그것을 잡는다).
+    return "\n\n".join(part for part in parts if part)
 
 
 def build_system_prompt(
@@ -481,15 +525,10 @@ def build_system_prompt(
     `services/sessions.record_drill_turns_expected`가 **같은 슬라이스**로 센다.
     """
     prompt = SYSTEM_PROMPT
-    if known_sounds:
-        listed = ", ".join(known_sounds)
-        prompt = (
-            f"{prompt}\n\n"
-            "Sounds this learner has missed before:\n"
-            f"{listed}\n"
-            "If one of them is off again, reuse that exact key as target_sound instead of\n"
-            "inventing a new one — repeat offenders must group under one key."
-        )
+    # ⛔ 문면의 정본은 `_known_sounds_block` 하나다 — 전용 모드도 같은 블록을 싣는다(결정 72).
+    sounds_block = _known_sounds_block(known_sounds)
+    if sounds_block:
+        prompt = f"{prompt}\n\n{sounds_block}"
     if scenario is not None:
         prompt = f"{prompt}\n\n{_SETTING_HEADER}\n{scenario.prompt_template}"
     if plan is None:
@@ -515,16 +554,21 @@ def build_system_prompt(
     if grammar:
         forms = ", ".join(f"{item.pattern_key} ({item.target_form})" for item in grammar)
         lines.append(f"- Focus on: {forms}")
-    lines.extend(
+    # ⛔ **초점이 여럿이어도 줄은 하나다** (`TASK-128.1` · 사용자 결정 72). 이전 판은 초점마다 한
+    # 줄을 냈고 그 줄이 소리를 **이름으로** 지목했으므로 여럿인 것이 뜻을 가졌다. 지목이 사라진
+    # 지금 초점마다 내면 **글자 그대로 같은 줄의 복제**이고, 길이만 늘어 전용 모드의 길이 경계
+    # 실측을 흔든다.
+    # ⚠️ **계획이 고른 소리는 여기서 사라지지 않는다** — 소켓 계층이 그것을 후보 목록 앞에 더한다
+    # (`api/ws.py._pronunciation_candidates`).
+    if sounds:
         # ⚠️ 일반 세션에는 규칙 9 가 실재하므로 그 구절을 **그대로 싣는다** — `TASK-75` 의 승인이
         # 그것이 참인 모드에서 그대로 산다(사용자 결정 71).
-        _SOUND_INSTRUCTION.format(
-            sound=item.target_form,
-            tool=PRONUNCIATION_TOOL_NAME,
-            grammar_first=_GRAMMAR_FIRST_CLAUSE,
+        lines.append(
+            _SOUND_INSTRUCTION.format(
+                tool=PRONUNCIATION_TOOL_NAME,
+                grammar_first=_GRAMMAR_FIRST_CLAUSE,
+            )
         )
-        for item in sounds
-    )
     lines.append(f"- Aim for the learner's sentences to be this shape: {plan.sentence_length}")
     if plan.contexts:
         lines.append(f"- Situations to use today: {', '.join(plan.contexts)}")

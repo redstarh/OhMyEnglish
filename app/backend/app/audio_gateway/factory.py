@@ -41,7 +41,7 @@ def create_voice_adapter(
     plan: SessionInstruction | None = None,
     questions: Sequence[PlanQuestion],
     scenario: SessionScenario | None,
-    pronunciation_sound: str | None = None,
+    pronunciation_mode: bool = False,
     usage_sink: UsageSink | None = None,
 ) -> VoiceAdapter:
     """넷 다 **데이터**다 — 조립된 지시문이 아니다 (G-3).
@@ -73,17 +73,23 @@ def create_voice_adapter(
     어댑터의 기본값이 `None`(기록 없음)이고, 그 기본값은 스트림 대역만으로 도는 단위 테스트를 위한
     것이다. 실물 배선은 소켓 계층 한 곳뿐이고 그 자리를 게이트 테스트가 못 박는다.
     """
-    # `TASK-10.1` — 발음 전용 모드. **소리 키가 오면 그 모드다**: 계획·무대·질문·놓친 소리 목록을
-    # 싣지 않고 규칙 1~7 도 없는 짧은 지시문을 쓴다. 형태의 근거는 `nova.PRONUNCIATION_MODE_PROMPT`
+    # `TASK-10.1` — 발음 전용 모드. **`pronunciation_mode` 면 그 모드다**: 계획·무대·질문을 싣지
+    # 않고 규칙 1~7 도 없는 짧은 지시문을 쓴다. 형태의 근거는 `nova.PRONUNCIATION_MODE_PROMPT`
     # 위 주석이 소유한다(실측 4/4 대 일반 세션 규모 0/76).
     #
-    # ⛔ **여기서 소리 키를 «고르지» 않는다** — 어느 소리를 오늘의 초점으로 삼을지는 제품 정책이고
-    # 소켓 계층이 계획·놓친 소리 목록을 읽어 정한다. 이 모듈은 「소리가 주어졌으면 그 지시문」만
-    # 안다. 고르는 규칙을 여기 두면 팩토리가 `services` 의 판단을 흡수해 G3 의 이음매가 흐려진다.
-    # ⚠️ 소리 없이 이 모드로 붙는 경로는 만들지 않는다 — 소켓이 그때 말하기로 떨어뜨린다.
+    # ⛔ **판정 재료가 사용자 결정 72 로 바뀌었다** (`TASK-128.2`). 이전 계약은 「소리 키가 오면 그
+    # 모드다」였고 그래서 소리를 못 고르면 이 모드가 **열리지 않았다.** 결정 72 가 전용 모드의 뜻을
+    # 「오늘의 소리를 다룬다」에서 **「발음만 다룬다」**로 바꿨으므로 소리의 유무가 모드를 정하지
+    # 않는다 — 모드는 소켓 계층이 `?mode=` 로 판정해 **명시 플래그**로 준다.
+    #
+    # ⛔ **여기서 소리 키를 «고르지» 않는다** — 어느 소리를 후보로 줄지는 제품 정책이고 소켓 계층이
+    # 계획·놓친 소리 목록을 읽어 정한다. 고르는 규칙을 여기 두면 팩토리가 `services` 의 판단을
+    # 흡수해 G3 의 이음매가 흐려진다.
+    # ⚠️ **전용 모드에도 `known_sounds` 를 싣는다**(결정 72). 이전 판은 이 목록을 **뺐고** 그래서
+    # 그 모드에는 소리 재료가 하나도 없었다 — 단수 지목을 걷은 뒤에는 그것이 「재료 0」이 된다.
     instructions = (
-        build_pronunciation_prompt(pronunciation_sound)
-        if pronunciation_sound is not None
+        build_pronunciation_prompt(known_sounds)
+        if pronunciation_mode
         else build_system_prompt(
             known_sounds,
             plan,
