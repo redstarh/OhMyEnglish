@@ -56,7 +56,7 @@
 
 | # | 지표 | 값 |
 |--:|---|---|
-| 1 | 기준 커밋 | **`765c98e`** · `origin` 과 **동기**(`rev-list --left-right --count` → `0 0`) · **미커밋 0건** |
+| 1 | 기준 커밋 | **이 handoff 를 담은 커밋 이상** — 그 앞이 **`765c98e`** 이고 그 시점에 `origin` 과 **동기**였음(`rev-list --left-right --count` → `0 0`) · **미커밋 0건**. ⚠️ **등호를 요구하지 않음**: 이 표를 담은 커밋이 뒤에 붙고, 같은 브랜치에 발음 축이 커밋하면 더 앞섬. 다르면 `git log --oneline 765c98e..HEAD` 로 그 사이를 봄 |
 | 2 | 다음 걸음 | **`TASK-102.1` AC#1** (스텁으로 파이프라인만). `Awaiting Decision` 1건 = `TASK-132` |
 | 3 | 게이트 | **전부 초록 · 종료코드까지 확인함** — `pytest` **1088 passed**(exit 0) · `ruff check .` 0 · 게이트 밖 `ruff check` 0 · `ruff format --check` 0(204 files) · `ty` 0 · 프런트 `tsc --noEmit` exit 0 · `eslint` exit 0 |
 | 4 | 착수 전 필수 | 7개(③) · 원장 집계 To Do 11 · In Progress 7 · Awaiting Decision 1 · Done 125 |
