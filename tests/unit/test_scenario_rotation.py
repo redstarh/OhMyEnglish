@@ -35,8 +35,10 @@ def _cands(
 ) -> list[Candidate]:
     """`count` 개의 후보. `used[n] = 일수` 면 그만큼 전에 쓴 것으로 둔다.
 
-    `created_at` 은 `n` 순서로 준다 — 번호가 작은 것이 먼저 만들어진 행이다. 한 번도 안 쓴
-    후보끼리의 순서를 그것이 가른다(기존 계약 「가장 이른 행」).
+    `display_order` 를 `n` 으로 준다 — 번호가 작은 것이 배열에서 앞자리다. 한 번도 안 쓴
+    후보끼리의 순서를 그것이 가른다(기존 계약 「먼저 나올 차례인 행」 · 019 · 결정 81).
+    `created_at` 도 같은 방향으로 주지만 **그것이 순서를 정하지 않는다** — 두 축을 갈라 재는
+    것은 `test_display_order_decides_not_created_at` 이다.
 
     `generated` 에 든 번호는 **사용자가 대화로 만든 상황**으로 둔다(`TASK-5` · 결정 80).
     """
@@ -51,6 +53,7 @@ def _cands(
                 scenario_id=_sid(n),
                 last_used_at=last,
                 created_at=_T0 + timedelta(seconds=n),
+                display_order=n,
                 is_generated=n in generated,
             )
         )
@@ -78,7 +81,7 @@ def test_user_made_stage_does_not_break_the_ratio() -> None:
 
 
 def test_earliest_row_contract_survives_the_new_front_slot() -> None:
-    """⚠️ 앞자리를 하나 끼워도 「가장 이른 행」 계약이 살아 있다.
+    """⚠️ 앞자리를 하나 끼워도 「먼저 나올 차례인 행」 계약이 살아 있다.
 
     생성 상황이 **없으면** 정렬이 이전과 같아야 한다 — 그렇지 않으면 결정 80 이 기존 계약
     (`test_session_creation_falls_back_to_the_earliest_scenario`)을 밀어낸 것이 된다.
@@ -86,6 +89,60 @@ def test_earliest_row_contract_survives_the_new_front_slot() -> None:
     got = pick_scenario(recent=[], candidates=_cands(3))
     assert got is not None
     assert got.scenario_id == _sid(1), "생성 상황이 없을 때 순서가 바뀌었다"
+
+
+def test_display_order_decides_not_created_at() -> None:
+    """⛔ 순서의 정본이 `display_order` 다 (019 · 결정 81 · `TASK-130`).
+
+    두 축을 **일부러 어긋나게** 준다 — `created_at` 은 `_sid(1)` 이 가장 이르고
+    `display_order` 는 `_sid(2)` 가 앞이다. `_sid(2)` 가 나와야 한다.
+    ⚠️ **`_cands` 는 두 축을 같은 방향으로 주므로 이 자리를 재지 못한다** — 그래서 후보를 손으로
+    만든다. 019 전 코드는 이 입력에서 `_sid(1)` 을 내므로 이 테스트가 그 판을 반증한다.
+    """
+    cands = [
+        Candidate(
+            scenario_id=_sid(1),
+            last_used_at=None,
+            created_at=_T0,
+            display_order=9,
+        ),
+        Candidate(
+            scenario_id=_sid(2),
+            last_used_at=None,
+            created_at=_T0 + timedelta(days=30),
+            display_order=1,
+        ),
+    ]
+    got = pick_scenario(recent=[], candidates=cands)
+    assert got is not None
+    assert got.scenario_id == _sid(2), "created_at 이 순서를 정하고 있다 — 019 가 옮긴 자리다"
+
+
+def test_created_at_still_orders_user_made_stages() -> None:
+    """⚠️ 생성 행끼리는 `created_at` 이 계속 가른다 — 그 값이 전부 0 인 축을 대신한다.
+
+    사용자가 만든 행은 `display_order` 가 0 으로 동률이므로(019 의 기본값) 그 묶음 안에서는
+    **먼저 만든 것이 먼저** 나와야 한다. 그러지 않으면 순서가 UUID 로 넘어가 무작위가 된다.
+    """
+    cands = [
+        Candidate(
+            scenario_id=_sid(7),
+            last_used_at=None,
+            created_at=_T0 + timedelta(days=2),
+            display_order=0,
+            is_generated=True,
+        ),
+        Candidate(
+            scenario_id=_sid(6),
+            last_used_at=None,
+            created_at=_T0 + timedelta(days=1),
+            display_order=0,
+            is_generated=True,
+        ),
+    ]
+    got = pick_scenario(recent=[], candidates=cands)
+    assert got is not None
+    assert got.scenario_id == _sid(6), "생성 행끼리의 순서가 생성 시각을 따르지 않는다"
 
 
 def test_empty_history_picks_new() -> None:
@@ -124,8 +181,9 @@ def test_never_used_beats_long_unused() -> None:
             scenario_id=_sid(1),
             last_used_at=_T0 - timedelta(days=99),
             created_at=_T0,
+            display_order=1,
         ),
-        Candidate(scenario_id=_sid(2), last_used_at=None, created_at=_T0),
+        Candidate(scenario_id=_sid(2), last_used_at=None, created_at=_T0, display_order=2),
     ]
     got = pick_scenario(recent=[], candidates=cands)
     assert got == Pick(scenario_id=_sid(2), pick=NEW)
@@ -176,6 +234,7 @@ def _simulate(rounds: int, topics: int) -> tuple[list[str], int, int]:
                 if _sid(n) not in last_used
                 else _T0 + timedelta(days=last_used[_sid(n)]),
                 created_at=_T0 + timedelta(seconds=n),
+                display_order=n,
             )
             for n in range(1, topics + 1)
         ]

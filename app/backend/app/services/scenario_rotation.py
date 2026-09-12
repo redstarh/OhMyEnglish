@@ -45,11 +45,17 @@ class RecentPick:
 class Candidate:
     """고를 수 있는 상황 한 건. `last_used_at` 이 `None` 이면 한 번도 쓰이지 않았다.
 
-    ⚠️ `created_at` 을 함께 받는 이유는 **기존 계약 하나를 지키기 위해서다.** 세션 시작은
-    이전부터 *"수준 일치가 0행이면 가장 이른 행으로 떨어진다"* 를 계약으로 갖고 있고
+    ⚠️ `display_order` 를 함께 받는 이유는 **기존 계약 하나를 지키기 위해서다.** 세션 시작은
+    이전부터 *"수준 일치가 0행이면 «먼저 나올 차례인» 행으로 떨어진다"* 를 계약으로 갖고 있고
     (`tests/harness/scenarios-E-agent-learning.md` 가 문서에 못 박은 값이다), 그것을
     `test_session_creation_falls_back_to_the_earliest_scenario` 가 지킨다. 한 번도 안 쓴
-    후보끼리는 「오래 안 씀」으로 순서를 가릴 수 없으므로 **그때 생성 순서가 가른다.**
+    후보끼리는 「오래 안 씀」으로 순서를 가릴 수 없으므로 **그때 이 값이 가른다.**
+
+    ⛔ **그 자리에 있던 것이 `created_at` 이었고 019 가 `display_order` 로 옮겼다**(결정 81 ·
+    `TASK-130`). 기전은 `now()` 가 트랜잭션 시작 시각에 고정되는 것이고, 그래서 시드를 한
+    트랜잭션으로 감싸면 순서가 조용히 무너졌다. `created_at` 은 사라지지 않고 **생성 행끼리의
+    순서**를 가르는 뒷키로 남는다 — 그 자리에서 그 값은 실제 생성 시각이므로 정직하다.
+    ⚠️ `display_order` 가 0 인 것은 「시드 배열의 자리가 없는 행」이고 사용자가 만든 행이 그것이다.
 
     ⚠️ `is_generated` 는 **사용자가 대화로 만든 무대**를 뜻한다(`TASK-5` · 결정 80). `_staleness` 의
     맨 앞자리가 그것이므로 **신규 차례에서 시드보다 먼저 집힌다.** 그러지 않으면 방금 만든 무대를
@@ -60,6 +66,7 @@ class Candidate:
     scenario_id: UUID
     last_used_at: datetime | None
     created_at: datetime
+    display_order: int
     is_generated: bool = False
 
 
@@ -71,21 +78,31 @@ class Pick:
     pick: str
 
 
-def _staleness(candidate: Candidate) -> tuple[int, int, float, str]:
+def _staleness(candidate: Candidate) -> tuple[int, int, int, float, str]:
     """오래 안 쓴 것이 앞서는 정렬 키. **맨 앞자리는 「사용자가 만든 것인가」다**(결정 80).
 
-    자리 넷의 뜻: ⑴ 사용자 생성이 먼저 ⑵ 한 번도 안 쓴 것이 먼저 ⑶ 오래된 것이 먼저
-    ⑷ 동률을 결정론으로 가르는 UUID 문자열.
+    자리 다섯의 뜻: ⑴ 사용자 생성이 먼저 ⑵ 한 번도 안 쓴 것이 먼저 ⑶ 배열 자리가 앞인 것이
+    먼저 ⑷ 오래된 것이 먼저 ⑸ 동률을 결정론으로 가르는 UUID 문자열.
 
     ⑵ 가 필요한 이유: `datetime` 과 `None` 을 직접 비교할 수 없어 앞자리 정수로 가른다.
-    ⚠️ **⑶ 이 「수준 일치가 0행이면 가장 이른 행」이라는 기존 계약을 계속 지킨다** — 자리를 앞에
-    끼워도 그 계약이 살아 있는 것이 이 배치의 조건이고
+    ⚠️ **⑶ 이 「수준 일치가 0행이면 먼저 나올 차례인 행」이라는 기존 계약을 계속 지킨다** — 자리를
+    앞에 끼워도 그 계약이 살아 있는 것이 이 배치의 조건이고
     `test_earliest_row_contract_survives_the_new_front_slot` 이 그것을 잰다.
+    ⛔ **⑶ 이 019 전에는 `created_at` 이었다**(결정 81). 쓴 적 있는 후보에는 배열 자리가 뜻이
+    없으므로 그 갈래는 ⑶ 에 상수 0 을 둔다 — 자리마다 타입이 같아야 튜플 비교가 성립한다.
+    ⚠️ **⑷ 가 두 갈래에서 다른 값을 담는다**: 안 쓴 후보는 생성 시각(생성 행끼리의 순서를 그것이
+    가른다) · 쓴 적 있는 후보는 마지막 사용 시각이다.
     """
     made_first = 0 if candidate.is_generated else 1
     if candidate.last_used_at is None:
-        return (made_first, 0, candidate.created_at.timestamp(), str(candidate.scenario_id))
-    return (made_first, 1, candidate.last_used_at.timestamp(), str(candidate.scenario_id))
+        return (
+            made_first,
+            0,
+            candidate.display_order,
+            candidate.created_at.timestamp(),
+            str(candidate.scenario_id),
+        )
+    return (made_first, 1, 0, candidate.last_used_at.timestamp(), str(candidate.scenario_id))
 
 
 def pick_scenario(

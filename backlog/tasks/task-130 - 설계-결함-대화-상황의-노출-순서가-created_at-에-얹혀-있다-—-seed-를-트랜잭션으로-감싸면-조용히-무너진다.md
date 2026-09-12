@@ -1,10 +1,10 @@
 ---
 id: TASK-130
 title: '설계 결함: 대화 상황의 노출 순서가 created_at 에 얹혀 있다 — seed() 를 트랜잭션으로 감싸면 조용히 무너진다'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-12 12:18'
-updated_date: '2026-09-12 14:12'
+updated_date: '2026-09-12 14:43'
 labels: []
 dependencies: []
 ordinal: 138000
@@ -22,7 +22,7 @@ ordinal: 138000
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 created_at 에 순서를 얹는 것을 그만두고 명시적 순서 컬럼(예: display_order)을 둘지, 지금 구조를 유지하고 「트랜잭션으로 감싸지 마라」를 테스트로 못박을지 사용자 결정을 받는다
+- [x] #1 created_at 에 순서를 얹는 것을 그만두고 명시적 순서 컬럼(예: display_order)을 둘지, 지금 구조를 유지하고 「트랜잭션으로 감싸지 마라」를 테스트로 못박을지 사용자 결정을 받는다
 - [x] #2 고르는 규칙(scenario_rotation._staleness)이 created_at 을 읽는 자리와 Candidate.created_at 필드가 함께 바뀌는지 확인한다 — 「수준 일치 0행이면 가장 이른 행」 기존 계약이 그 필드에 걸려 있다
 - [x] #3 DB 의 실제 created_at 이 배열 순서와 같은지 재는 단정을 만든다 — 지금 test_seed_interleaves_business_stages_early 는 상수만 보고 DB 를 보지 않는다
 - [x] #4 seed() 를 트랜잭션으로 감쌌을 때 순서가 무너지는 것을 재현해 그 위험이 실재함을 실측으로 남긴다
@@ -60,4 +60,6 @@ AC#2 — created_at 을 순서 신호로 읽는 자리가 앱 3 · 계약 문서
 ⚠️ migrate.py 주석 한 줄이 부정확함 — 「순서가 id(랜덤 UUID)로 정해져」라고 적혀 있으나 시드 행의 id 는 고정 상수임. 랜덤인 것은 TASK-5 가 만들 generated 행임. 무너진 순서는 무작위가 아니라 「일상이 앞으로 몰리는 특정 순서」이고 그 차이가 AC#1 판단에 걸림. 문면 정정은 AC#1 결정과 함께 함.
 
 게이트(이 턴 직접 실행 · cwd app/backend): pytest 1 failed · 1077 passed — 유일한 실패는 발음 축 TASK-128.3 이 소유한 바이트 게이트임(내 변경과 무관). ruff check 안 0 · 밖 0 · format 0 · ty 0.
+
+닫음 2026-09-12 (세션 ohmyenglish-f4). AC 4건 전부 충족이고 이 태스크의 몫은 「결정을 받는 것」까지임 — 결정 81 을 받았고 원문은 docs/ops/captain-instruction-register.md 가 가짐. ⛔ 결정의 «실행»은 TASK-130.1 이 소유함(019 마이그레이션 · 앱 4자리 · 계약 문면 · 재는 축 뒤집기). 부모를 열어 둔 채로는 게이트 G2 가 다른 세션의 턴까지 막으므로(동료 세션 ohmyenglish-d9 가 관측해 알림) 여기서 닫음.
 <!-- SECTION:NOTES:END -->

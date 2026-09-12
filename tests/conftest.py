@@ -1077,11 +1077,16 @@ async def seed_scenarios_for_level(db_pool: asyncpg.Pool) -> AsyncIterator[Calla
     `committed_session`과 같은 규약으로 teardown 에서 직접 지운다 — **남기면 두 곳이 깨진다**:
     `tests/unit/test_schema.py`의 `count(*) from users == 1`, 그리고 남은 시나리오가 다른
     테스트의 시나리오 선택을 조용히 바꾼다 — 선택은 사용자 수준으로 좁힌 뒤에도 결국
-    `order by created_at, id`로 한 행을 고르므로 남은 행이 그 앞에 끼면 다른 행이 붙는다.
+    한 행을 고르므로 남은 행이 그 앞에 끼면 다른 행이 붙는다.
     사용자를 먼저 지우고(세션이 cascade 로 따라간다) 그 다음에 시나리오를 지운다 —
     `learning_sessions.scenario_id`에는 cascade 가 없어(001) 순서를 뒤집으면 FK 에 막힌다.
 
     `scenarios`는 `(level, days_ago)` 목록이고 `days_ago`가 `created_at`을 과거로 민다.
+
+    ⛔ **`display_orders`를 주면 그것이 노출 순서다**(019 · 결정 81). 주지 않으면 심는 순서대로
+    1부터 매겨져 `created_at` 순서와 **같은 방향**이 된다 — 그래서 기본값으로는 「어느 축이
+    순서를 정하는가」를 잴 수 없다. 두 축을 어긋나게 주는 것이 그 판별력이고
+    `test_session_creation_honours_display_order_over_created_at`이 그렇게 쓴다.
 
     ⚠️ **인자 조합이 곧 이 픽스처의 판별력이다 — 무엇이 부족한지는 실측으로 정해져 있다.**
     "수준이 **안 맞는** 행을 하나 더 이르게 심는다"는 배치는 **부족하다**: 그러면 일치 행이
@@ -1097,7 +1102,19 @@ async def seed_scenarios_for_level(db_pool: asyncpg.Pool) -> AsyncIterator[Calla
     user_ids: list[UUID] = []
     scenario_ids: list[UUID] = []
 
-    async def make(*, level: str, scenarios: Sequence[tuple[str, int]]) -> tuple[UUID, list[UUID]]:
+    async def make(
+        *,
+        level: str,
+        scenarios: Sequence[tuple[str, int]],
+        display_orders: Sequence[int] | None = None,
+    ) -> tuple[UUID, list[UUID]]:
+        assert display_orders is None or len(display_orders) == len(scenarios), (
+            "display_orders 는 scenarios 와 길이가 같아야 한다 — 짧으면 남은 행이 조용히 0 이 된다"
+        )
+        if display_orders is None:
+            orders = list(range(1, len(scenarios) + 1))
+        else:
+            orders = list(display_orders)
         created: list[UUID] = []
         async with db_pool.acquire() as conn:
             user_id = await conn.fetchval(
@@ -1106,14 +1123,16 @@ async def seed_scenarios_for_level(db_pool: asyncpg.Pool) -> AsyncIterator[Calla
                 level,
             )
             user_ids.append(user_id)
-            for scenario_level, days_ago in scenarios:
+            for (scenario_level, days_ago), display_order in zip(scenarios, orders, strict=True):
                 scenario_id = await conn.fetchval(
                     "insert into learning_scenarios "
-                    "(category, level, title, prompt_template, created_at) "
-                    "values ('business', $1, $2, 'Tell me about your project.', $3) returning id",
+                    "(category, level, title, prompt_template, created_at, display_order) "
+                    "values ('business', $1, $2, 'Tell me about your project.', $3, $4) "
+                    "returning id",
                     scenario_level,
                     f"{scenario_level} scenario",
                     datetime.now(UTC) - timedelta(days=days_ago),
+                    display_order,
                 )
                 scenario_ids.append(scenario_id)
                 created.append(scenario_id)

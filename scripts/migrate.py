@@ -72,21 +72,25 @@ USER_ID = UUID("00000000-0000-0000-0000-000000000001")
 # 이 후보 10에서 6회 마르는 것을 센다).
 #
 # ⛔⛔ **이 리스트의 «순서»가 제품 동작이다** (`TASK-4` · 결정 76). 배치 규칙은 신규를 고를 때
-# 「한 번도 안 쓴 것 가운데 `created_at` 이 가장 이른 것」을 집고, 그 컬럼은 **이 배열의 삽입
-# 순서**다. ⇒ **배열 끝에 붙인 상황은 「가장 늦게 나오는 상황」이 된다.**
+# 「한 번도 안 쓴 것 가운데 `display_order` 가 가장 작은 것」을 집고, 그 컬럼은 **이 배열의 자리**다
+# (`seed()` 가 1부터 매긴다). ⇒ **배열 끝에 붙인 상황은 「가장 늦게 나오는 상황」이 된다.**
 # ⚠️ 그래서 업무 6종을 뒤에 몰아 두었던 첫 판은 **결정 75(「처음부터 섞는다」)를 문면만 이행했고**
 # 실제로는 일상 9종을 다 소진한 뒤에야 업무가 나왔다 — dev DB 에서 실제 앱 경로로 12회를 열어
 # **업무 0회**를 관측했다. 지금 순서가 그 관측의 결과다.
 # ⛔ **새 상황을 그냥 끝에 붙이지 마라** — 어느 자리에 넣을지가 노출 순서를 정한다.
 # `tests/unit/test_schema.py::test_seed_interleaves_business_stages_early` 가 이 계약을 지킨다.
 #
-# ⛔⛔ **그 순서는 `seed()` 가 트랜잭션 «밖»에서 도는 것에 걸려 있다** (2026-09-12 실측).
-# `created_at` 의 기본값이 `now()` 이고 PostgreSQL 의 `now()` 는 **트랜잭션 시작 시각에 고정**된다
-# ⇒ `seed()` 를 한 트랜잭션으로 감싸면 **15행의 `created_at` 이 전부 같아지고** 순서가 `id`(랜덤
-# UUID)로 정해져 **결정 76 이 조용히 무너진다.** `main()` 은 지금 감싸지 않으므로 각 INSERT 가
-# 자기 트랜잭션이고 순서가 유지된다 — ⚠️ **그것이 우연한 의존이라는 사실을 여기 적어 둔다.**
-# ⛔ 성능이나 원자성을 이유로 `seed()` 를 트랜잭션으로 감싸려면 **먼저 순서를 명시 컬럼으로 옮겨야
-# 한다**(`TASK-130`). 감싸는 것만 하면 게이트는 초록인 채 노출 순서가 뒤섞인다.
+# 📌 **그 순서가 `created_at` 에 얹혀 있던 것을 019 가 명시 컬럼으로 옮겼다** (결정 81).
+# 옮기기 전에는 순서가 **`seed()` 가 트랜잭션 «밖»에서 도는 것에 걸려 있었다**: `created_at` 의
+# 기본값이 `now()` 이고 PostgreSQL 의 `now()` 는 트랜잭션 시작 시각에 고정되므로, 한 트랜잭션으로
+# 감싸면 30행이 같은 값을 받고 정렬이 뒷키로 넘어갔다.
+# ⚠️ **그때 나오는 순서는 「무작위」가 아니었다** — 시드 `id` 는 고정 상수(`…101`~`…130`)이고 그 값이
+# 일상 9종에 연속 배정돼 있어 **창 10 이 일상으로 채워지는 특정 순서**가 됐다(회차 §3-3 이 실측:
+# 「일상 5·업무 3·여행 1·쇼핑 1」 → 「일상 9·업무 1」). 무작위인 것은 사용자가 만든 행의 `id` 다.
+# 📌 이제 `seed()` 를 트랜잭션으로 감싸도 순서가 유지된다 — `display_order` 를 배열이 직접 준다.
+# ⛔ 그래도 `created_at` 을 순서 신호로 되돌리지 않는다: 그 컬럼은 upsert 로 갱신할 수 없어(고치면
+# 생성 시각이 거짓이 된다) **배열을 고쳐도 이미 시드된 DB 에 반영되지 않는다**(그 얼굴로 §3-2 가
+# 회차 하나를 버렸다).
 SEED_SCENARIOS: list[tuple[UUID, str, str, str, str]] = [
     # 일상 9종 — 이름은 `docs/PRD.md` §7 Daily Conversation 그대로다(v1.0 · 2026-08-24).
     # ⚠️ 캡틴 노트 항목 7이 새로 요구한 것은 이 이름 목록이 아니라 **배치 비율**이다.
@@ -430,26 +434,37 @@ async def seed(conn: asyncpg.Connection) -> None:
         """,
         USER_ID,
     )
-    for scenario_id, category, level, title, prompt_template in SEED_SCENARIOS:
+    # ⛔ **`display_order` 는 배열의 자리(1부터)이고 upsert 가 매번 다시 쓴다** (019 · 결정 81).
+    # 그것이 「이미 시드된 DB 에서도 배열 수정이 반영된다」를 만드는 자리다 — `created_at` 으로는
+    # 할 수 없었다(고치면 생성 시각이 거짓이 된다). 0 은 시드가 아닌 행의 값으로 비워 둔다.
+    for position, (scenario_id, category, level, title, prompt_template) in enumerate(
+        SEED_SCENARIOS, start=1
+    ):
         await conn.execute(
             """
-            insert into learning_scenarios (id, category, level, title, prompt_template)
-            values ($1, $2, $3, $4, $5)
+            insert into learning_scenarios
+                (id, category, level, title, prompt_template, display_order)
+            values ($1, $2, $3, $4, $5, $6)
             -- ⚠️ `do nothing` 이 아니라 **`do update`** 다 (캡틴 결정 14 · 설계서 §7 유도 8).
             -- id 가 고정이므로 `do nothing` 이면 **상수를 고쳐도 이미 시드된 행은 영원히 낡은
             -- 값으로 남는다** — 2026-09-07 에 실제로 그랬다(개발 DB 3행이 질문 문구인 채였다).
             -- ⛔ `category`·`level` 은 갱신 대상에서 뺀다. 그 둘은 세션 시작이 시나리오를 고르는
             -- 키이고(`_CREATE_SESSION_SQL` 이 `users.current_level` 로 고른다), 여기서 덮으면
             -- 학습자 수준과 시나리오 값역의 관계를 시드가 조용히 바꾼다.
+            -- ⚠️ `display_order` 는 갱신 **대상**이다 — `category`·`level` 과 반대다. 그 둘은
+            -- 학습자 수준과의 관계라서 시드가 덮으면 안 되고, 이 컬럼은 **배열이 정본**이라
+            -- 덮는 것이 요구다(019 · 결정 81).
             on conflict (id) do update
                set title = excluded.title,
-                   prompt_template = excluded.prompt_template
+                   prompt_template = excluded.prompt_template,
+                   display_order = excluded.display_order
             """,
             scenario_id,
             category,
             level,
             title,
             prompt_template,
+            position,
         )
     for clip in SEED_SHADOWING_ITEMS:
         await conn.execute(

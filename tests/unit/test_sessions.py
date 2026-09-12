@@ -387,8 +387,12 @@ async def test_session_creation_prefers_a_scenario_matching_the_learners_level(
     assert scenario_id != newest, "수준을 무시하고 가장 최신 행을 골랐다"
 
 
-# AS4 / §9 Failure — 수준 일치가 0행이어도 시작이 실패하지 않고 **기존 동작(가장 이른 행)**
+# AS4 / §9 Failure — 수준 일치가 0행이어도 시작이 실패하지 않고 **기존 동작(먼저 나올 차례인 행)**
 # 으로 떨어진다. 시드가 `A2` 3행뿐이라 수준이 올라가면 실제로 이 경로로 온다.
+#
+# ⚠️ **이 배치는 두 축이 같은 방향이라 「어느 축이 순서를 정하는가」를 재지 못한다** — 픽스처가
+# `display_orders` 를 주지 않으면 심는 순서대로 1부터 매기고 그것이 `created_at` 순서와 같아진다.
+# 두 축을 어긋나게 재는 것은 아래 `..._honours_display_order_over_created_at` 이다.
 #
 # ⚠️ `scenario_id is not null`로 재지 않는다 — 그 컬럼은 nullable 이고, 폴백 절을 지운
 # 구현에서도 null 이 들어가 **단정이 어느 쪽이든 통과하지 않는다**. 붙은 행을 직접 지목한다.
@@ -406,8 +410,32 @@ async def test_session_creation_falls_back_to_the_earliest_scenario(
     session_id = await create_session(db_pool, user_id)
 
     scenario_id = await _attached_scenario(db_pool, session_id)
-    assert scenario_id == earliest, "수준 일치가 0행일 때 가장 이른 시나리오로 떨어지지 않았다"
+    assert scenario_id == earliest, "수준 일치가 0행인데 먼저 나올 차례인 행으로 떨어지지 않았다"
     assert scenario_id != later
+
+
+# ⛔ 019 · 결정 81 (`TASK-130`) — **노출 순서의 정본이 `display_order` 다.** 두 축을 일부러
+# 어긋나게 심어 앱 경로가 어느 것을 보는지 잰다: `late_but_first` 는 **가장 늦게 만들어졌는데**
+# 배열 자리가 앞이고, `early_but_last` 는 가장 이른데 자리가 뒤다.
+#
+# ⚠️ **순수 함수 테스트로는 이 자리를 못 지킨다** — `test_scenario_rotation` 의
+# `test_display_order_decides_not_created_at` 이 규칙을 재지만, `_SCENARIO_CANDIDATES_SQL` 이 그
+# 컬럼을 고르지 않거나 `Candidate` 로 넘기는 줄이 빠지면 규칙이 늘 0 을 받는다. 그 두 자리를
+# 지키는 것이 이 테스트다(H-AV 의 「틈」과 같은 부류다).
+async def test_session_creation_honours_display_order_over_created_at(
+    db_pool: asyncpg.Pool, seed_scenarios_for_level
+):
+    user_id, (early_but_last, late_but_first) = await seed_scenarios_for_level(
+        level="C2", scenarios=[("A2", 30), ("A2", 1)], display_orders=[9, 1]
+    )
+
+    session_id = await create_session(db_pool, user_id)
+
+    scenario_id = await _attached_scenario(db_pool, session_id)
+    assert scenario_id == late_but_first, (
+        "created_at 이 순서를 정하고 있다 — 019 가 display_order 로 옮긴 자리다"
+    )
+    assert scenario_id != early_but_last
 
 
 # ── TASK-25 Batch B: 질문 목록이 계획과 함께 온다 (설계서 §2.1) ────────────────

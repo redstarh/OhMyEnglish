@@ -169,6 +169,13 @@ occurrence 1(`Yesterday I go` → `Yesterday I went`)인데 `target_form`은 `an
    `(select id from learning_scenarios order by created_at, id limit 1)`. 학습자 이력과
    무관하게 **항상 시드된 첫 행**이 붙는다. 같은 파일 docstring이 "첫 슬라이스에는 추천
    로직이 없다(YAGNI)"고 명시한다.
+   > ⚠️ **이 관측은 그 회차 시점의 것이고 이후 두 번 바뀌었다 — 위 SQL 을 현재 계약으로 읽지
+   > 말 것.** ① `TASK-4`(결정 73·74·76)가 고정 선택을 배치 규칙으로 바꿨다
+   > (`services/scenario_rotation`). ② 019(결정 81 · `TASK-130`)가 순서의 정본을
+   > `created_at` 에서 `display_order` 로 옮겼다. **지금 계약은 「수준 일치가 0행이면 전체에서
+   > 고르고, 한 번도 안 쓴 후보 가운데 `display_order` 가 가장 작은 행」이다.** 그것을
+   > `test_session_creation_falls_back_to_the_earliest_scenario` 와
+   > `test_earliest_row_contract_survives_the_new_front_slot` 이 지킨다.
 2. **Nova 지시문이 정적 문자열이다.** `app/backend/app/audio_gateway/nova.py:77`의
    `SYSTEM_PROMPT`는 학습자 프로필을 **하드코딩**했고 과거 오류가 주입되는 인자가 없다.
    `port.py:84`의 `async def start(self) -> None:` — **지시문 파라미터가 없다.**

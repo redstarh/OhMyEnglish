@@ -129,6 +129,52 @@ UUID 정렬로 이 턴에 직접 돌렸다):
 「무작위」가 아니라 **「일상이 앞으로 몰리는 특정 순서」**라는 것이 위 표의 요지이므로 그 차이가
 판단에 걸린다. 문면 정정은 AC#1 의 결정과 함께 한다.
 
+## §3-4. 5회차 — 결정 81 을 실행하고 두 얼굴이 닫혔는지 실측했다 (`TASK-130.1`)
+
+같은 세션이 같은 날 이어서 돌렸다. **사용자가 「명시 컬럼으로 옮김」을 골랐다**(결정 81) — 기각한 둘은
+「테스트로만 못박음」과 「`created_at` 에 순서를 심음」이다.
+
+**넣은 것**: 019 가 `learning_scenarios.display_order int not null default 0` 을 더하고, `seed()` 가
+배열 자리를 1부터 매겨 upsert 의 `set` 목록에 넣는다. 읽는 자리 넷을 함께 옮겼다 —
+`_SCENARIO_CANDIDATES_SQL` · `Candidate`→`_staleness` 의 자리 ⑶ · `scenario_progress` 의 정렬.
+
+**① 첫 얼굴(트랜잭션)이 닫혔다** — 재현 테스트의 **뜻을 뒤집었다.** ⑤-7 은 이전 판에서
+*"감싸면 무너진다"* 를 재는 테스트였고 이제 *"감싸도 유지된다"* 를 잰다. ⛔ 조건이 성립했는지를 함께
+단정한다: 같은 트랜잭션 안에서 `created_at` 이 **1종**인 것을 확인하고도 순서가 배열과 같아야 통과다 —
+그 확인이 없으면 「`now()` 가 안 고정된 판」에서도 초록이 나온다.
+
+**② 두 번째 얼굴(upsert 가 순서를 갱신하지 못함)이 닫혔다 — dev DB 에서 직접 확인했다.**
+
+| 단계 | 명령 | 관측 |
+|---|---|---|
+| 019 적용 | `.venv/bin/python ../../scripts/migrate.py` | `schema_migrations` 최대가 **019** |
+| 자리 확인 | `order by display_order, id` 상위 8 | `1 0101 · 2 0102 · 3 0103 · 4 0110 · 5 0116 · 6 0104 · 7 0111 · 8 0122` — 배열과 같다 |
+| 일부러 깨뜨림 | `update … set display_order = 99 where id = …0110` | `99` |
+| 재실행 | 같은 `migrate.py` | 그 행이 **`4` 로 복원**됐다 |
+| 전수 | `count · min · max · count(distinct)` | `30 · 1 · 30 · 30` — 겹침도 빈 자리도 없다 |
+
+⚠️ **이 DB 에서는 `created_at` 순서도 지금 배열과 같다** — §3-2 가 참조 0인 행을 지우고 다시 넣어
+그렇게 됐다. ⛔ 그래서 **dev DB 만 보고는 두 축을 가를 수 없다.** 가르는 것은 위 복원 관측과, 두 축을
+일부러 어긋나게 심는 테스트 셋이다(`test_display_order_decides_not_created_at` ·
+`test_session_creation_honours_display_order_over_created_at` · `test_rows_follow_the_display_order`).
+
+**판별력을 셋 다 무력화로 확인했다** — 초록을 믿기 전에 red 를 봤다.
+
+| 무력화한 것 | 결과 |
+|---|---|
+| `_staleness` 의 자리 ⑶ 을 상수 `0` 으로 | `test_display_order_decides_not_created_at` 만 red · **나머지 16건은 초록** ⇒ 그 축이 이전에 무보호였다 |
+| `sessions.py` 의 `display_order=row[…]` 를 `0` 으로 | `..._honours_display_order_over_created_at` red |
+| (⑤-6) `seed()` 를 트랜잭션으로 감싸기 | §3-3 에서 이미 red 확인 |
+
+⛔ **여기서 한 번 잘못 읽었고 그것을 남긴다.** 두 번째 무력화를 `-k "scenario"` 로 돌렸더니 **9 passed**
+가 나와 「판별력이 없다」고 판정할 뻔했다. 원인은 새 테스트 이름에 `scenario` 가 없어 **선택에서 빠진
+것**이었다. 이름으로 다시 지목하니 red 였다. ⇒ **필터가 무엇을 배제하는지 먼저 확인한다 — 통과 개수가
+그대로면 「안 깨졌다」가 아니라 「안 돌았다」일 수 있다.**
+
+⚠️ **전건 초록이 이행을 뜻하지 않은 자리가 이 회차에도 있었다.** 019 를 넣고 앱 넷을 옮긴 직후
+`pytest` 가 **1080 passed · 0 failed** 였는데, 그때 기존 단정들은 여전히 **옛 축(`created_at`)**을
+재고 있었다. 옛 축을 재는 단정은 통과해도 아무것도 지키지 않는다 — 축을 옮길 때 남겨 두지 않는다.
+
 ## §4. 정리
 
 실험 사용자와 그 세션을 지웠다 — 스크립트가 끝에 `delete from users where id = …09f4` 를 돌리고

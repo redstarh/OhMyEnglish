@@ -12,9 +12,11 @@
 UTC 자정~09:00(KST) 구간에서 하루 어긋난다. 사용자가 없으면 **조용히 기본값을 쓰지 않고 실패한다**
 (`usage.load_usage_summary` 와 같은 규약).
 
-⚠️ **정렬이 `created_at` 인 것은 의도다** — 그 컬럼이 시드 배열의 삽입 순서이고 배치 규칙이 신규를
-고르는 순서다(결정 76). ⇒ 이 목록의 순서가 **다음에 나올 순서**를 함께 보여 준다.
+⚠️ **정렬이 `display_order` 인 것은 의도다** — 그 컬럼이 시드 배열의 자리이고 배치 규칙이 신규를
+고르는 순서다(결정 76 · 019 · 결정 81). ⇒ 이 목록의 순서가 **다음에 나올 순서**를 함께 보여 준다.
 ⛔ 제목순으로 정렬하지 않는다. 그러면 그 정보가 사라진다.
+⚠️ **`created_at` 을 둘째 키로 남긴다** — 사용자가 만든 행은 `display_order` 가 0 이라 서로 동률이고,
+그 묶음 안의 순서를 생성 시각이 가른다(`scenario_rotation._staleness` 의 자리 ⑷ 와 같은 규약이다).
 """
 
 from __future__ import annotations
@@ -45,8 +47,8 @@ select s.id,
   left join learning_sessions ls
          on ls.scenario_id = s.id
         and ls.user_id = $1
- group by s.id, s.category, s.level, s.title, s.created_at
- order by s.created_at, s.id
+ group by s.id, s.category, s.level, s.title, s.display_order, s.created_at
+ order by s.display_order, s.created_at, s.id
 """
 
 
