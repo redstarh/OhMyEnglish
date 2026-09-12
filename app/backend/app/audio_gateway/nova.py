@@ -182,6 +182,31 @@ _DRILL_INSTRUCTION = """\
   way. That repeat is practice, not a correction — it does not count against the
   one-correction-per-turn limit in rule 4."""
 
+# 질문 5개 블록 (`TASK-5` Task 6 · 사용자 결정 79 · 설계서 §3).
+#
+# ⛔ **다섯이 «다른 것»을 좁힌다 — 되물으면 다섯 번을 써도 한 가지만 알게 된다.** 좁히는 축과 접히는
+# 컬럼은 설계서 §3 의 표가 갖는다(무대→`category` · 상대·초점·어조→`prompt_template`
+# · 목표→`title`).
+# ⛔ **문장을 A2 단문으로 둔다** — 학습자 프로필(h-doc)의 현재 수준이 그것이고, 물음이 길면 답이
+# 짧아지는 것이 아니라 **되묻기가 늘어난다.**
+# ⚠️ **순서가 뜻을 가진다** — 무대를 모르면 상대를 물을 수 없고 상대를 모르면 어조를 물을 수 없다.
+# ⛔ **「하나씩」과 「지어내지 마라」 둘이 함께 있어야 성립한다.** 한 번에 다 물으면 학습자가 한
+# 문장으로 답해 다섯 축이 섞이고, 빈 축을 모델이 채우면 그 무대는 학습자의 것이 아니다 —
+# `models/scenario_draft.parse_scenario` 가 빈 축을 «빼는» 것과 짝이다.
+# ⚠️ **고정 규칙을 대체하지 않는다.** 규칙 2(하나씩 묻고 멈춘다)와 같은 방향이라 **강화**이고 나머지
+# 규칙과는 축이 다르다 — `build_system_prompt` docstring 의 「대체하는 축 셋」을 늘리지 않는다.
+_SCENARIO_INTAKE_INSTRUCTION = """\
+Today's job: find out what the learner needs English for.
+Ask these five questions, one at a time, in this order. Wait for the answer before you
+ask the next one.
+  1. Where do you need English soon? Tell me the place.
+  2. Who will you talk to there? A colleague? A stranger?
+  3. What do you want to get done in that talk?
+  4. What part feels hardest for you there?
+  5. Is it a formal talk or a relaxed one?
+If the learner does not know, say that is fine and move to the next question.
+Do not invent an answer for them."""
+
 # 결정 9의 예외 — *"시나리오 문구가 패턴을 지정하는 경우만"* 계획이 이긴다. 무대 문구가 짧아
 # 실제로 드물지만, 프롬프트에 적어 두는 것이 «드물기를 바라는 것»보다 낫다.
 _FOCUS_BEATS_SETTING = (
@@ -384,20 +409,41 @@ def build_pronunciation_prompt(known_sounds: Sequence[str]) -> str:
     return "\n\n".join(part for part in parts if part)
 
 
+def _with_scenario_intake(prompt: str, scenario_intake: bool) -> str:
+    """질문 5개 블록을 **맨 뒤에** 붙인다 (`TASK-5` Task 6).
+
+    ⛔ **반환 지점이 둘이라 이 함수가 필요하다.** `build_system_prompt` 는 계획이 없으면 일찍
+    반환하는데, 그 갈래에도 이 블록이 실려야 한다(무대 정하기는 첫 세션일 수 있다). 두 자리에
+    같은 문장을 쓰면 한쪽이 조용히 낡는다.
+    ⚠️ **맨 뒤인 이유**: 이 세션이 할 일이 마지막에 읽혀야 하고, 앞에 두면 계획 블록의 마지막 줄
+    (`_FOCUS_BEATS_SETTING`)이 이미 지나간 지시를 가리킨다.
+    """
+    if not scenario_intake:
+        return prompt
+    return f"{prompt}\n\n{_SCENARIO_INTAKE_INSTRUCTION}"
+
+
 def build_system_prompt(
     known_sounds: Sequence[str],
     plan: SessionInstruction | None,
     questions: Sequence[PlanQuestion],
     scenario: SessionScenario | None,
     *,
+    scenario_intake: bool,
     drill_count: int,
     drill_turns_min: int,
 ) -> str:
     """세션용 지시문 = 기본 문구 + 놓친 소리 목록 + **오늘의 무대** + **오늘의 계획** (G-3).
 
-    **블록 순서: `SYSTEM_PROMPT` → 놓친 소리 → `Today's setting:` → `Today's plan:`**
-    (설계서 §2.2). 무대가 목표보다 **먼저** 읽혀야 하고, 계획 블록의 마지막 줄이 앞의 setting을
-    **되짚어** 우선순위를 말할 수 있다. 뒤집으면 그 줄이 아직 나오지 않은 블록을 가리킨다.
+    **블록 순서: `SYSTEM_PROMPT` → 놓친 소리 → `Today's setting:` → `Today's plan:`
+    → 질문 5개**(설계서 §2.2 · `TASK-5` 설계서 §3). 무대가 목표보다 **먼저** 읽혀야 하고, 계획
+    블록의 마지막 줄이 앞의 setting을 **되짚어** 우선순위를 말할 수 있다. 뒤집으면 그 줄이 아직
+    나오지 않은 블록을 가리킨다.
+
+    ⚠️ **`scenario_intake` 는 「무엇을 실을지」가 아니라 「무대 정하기 세션인가」다** — 그 판단은
+    소켓 계층이 `?mode=` 로 하고 여기로 **데이터로** 온다(`TASK-5` 설계서 §6 조립 규약 ⑵).
+    ⛔ **기본값을 두지 않는다**(아래 C-1) — 두면 호출부가 빠뜨려도 조용히 통과해 **「질문이 안 실린
+    무대 정하기 세션」**이 정상처럼 보인다. 그것이 이 기능의 유일한 실패 모드다.
 
     넷 중 아무것도 없으면 결과는 `SYSTEM_PROMPT` **그 자체**다 — 계획 없이 시작하는
     경로(AS4)에는 이 함수가 아무것도 덧붙이지 않는다. ⚠️ `SYSTEM_PROMPT` **자체는 이
@@ -533,7 +579,10 @@ def build_system_prompt(
         prompt = f"{prompt}\n\n{_SETTING_HEADER}\n{scenario.prompt_template}"
     if plan is None:
         # 계획이 없으면 `questions`도 무시한다 — 드릴 줄은 계획 블록 **안**에 있다.
-        return prompt
+        # ⛔ **여기서 바로 반환하지 않는다** — 질문 5개 블록은 계획과 무관하고, 무대 정하기 진입은
+        # **첫 세션일 수 있다**(계획은 직전 세션이 만든다). 이전 판이 이 자리에서 반환했고 그것이
+        # 「계획 없는 무대 정하기 세션에 질문이 안 실린다」를 만들 자리였다.
+        return _with_scenario_intake(prompt, scenario_intake)
     # `TASK-81` — 발음 초점과 문법 초점을 **가른다**. 가르는 재료는 `pattern_key` 접두어 하나다
     # (`PRONUNCIATION_PATTERN_KEY_PREFIX` 의 주석이 왜 `category` 가 아닌지를 소유한다).
     sounds = [
@@ -585,7 +634,7 @@ def build_system_prompt(
     if scenario is not None:
         # 무대가 없으면 이 줄은 아직 나오지 않은 블록을 가리킨다 — 그래서 넣지 않는다.
         lines.append(_FOCUS_BEATS_SETTING)
-    return f"{prompt}\n\n" + "\n".join(lines)
+    return _with_scenario_intake(f"{prompt}\n\n" + "\n".join(lines), scenario_intake)
 
 
 def _pronunciation_tool_configuration() -> dict[str, Any]:

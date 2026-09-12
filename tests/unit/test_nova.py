@@ -1057,14 +1057,22 @@ def _prompt(
     questions: Sequence[PlanQuestion] = (),
     scenario: SessionScenario | None = None,
     *,
+    scenario_intake: bool = False,
     drill_count: int = _TEST_DRILL_COUNT,
     drill_turns_min: int = _TEST_DRILL_TURNS_MIN,
 ) -> str:
+    """⚠️ **여기서만 `scenario_intake` 에 기본값을 둔다** — 조립기 자체는 요구한다.
+
+    C-1(기본값 금지)이 막으려는 것은 **제품 호출부의 누락**이고 그 자리는 `factory.py` 하나다.
+    이 헬퍼에 기본값을 두지 않으면 이 파일의 프롬프트 테스트 수십 건이 재료와 무관한 인자를
+    되풀어 적어야 하고, 그 되풀기가 오히려 「무엇을 재는 테스트인지」를 흐린다.
+    """
     return build_system_prompt(
         known_sounds,
         plan,
         questions,
         scenario,
+        scenario_intake=scenario_intake,
         drill_count=drill_count,
         drill_turns_min=drill_turns_min,
     )
@@ -1891,7 +1899,9 @@ def test_the_speaking_prompt_still_carries_the_conversation_rules():
     위 두 테스트는 `SYSTEM_PROMPT` 에서 규칙 1~7 을 지워도 통과한다 — 그러면 **일반 세션이
     같이 무너진다.** 그 회귀를 이 테스트가 막는다.
     """
-    prompt = build_system_prompt((), None, (), None, drill_count=5, drill_turns_min=4)
+    prompt = build_system_prompt(
+        (), None, (), None, scenario_intake=False, drill_count=5, drill_turns_min=4
+    )
 
     for kept in (
         "Ask one question at a time",
@@ -1978,3 +1988,81 @@ def test_the_pronunciation_prompt_is_byte_identical_to_the_measured_one():
         "전용 모드 지시문이 실측된 문면과 달라졌다 — REG 4/4 수치가 이 판에 붙지 않는다. "
         "되돌리거나 회차를 다시 돌려라"
     )
+
+
+# ── 질문 5개 블록 (`TASK-5` Task 6 · 결정 79 · 설계서 §3) ──────────────────────
+#
+# ⛔ **블록을 하나 더 붙이는 것이고 tool 보고 계약의 칸을 여는 것이 아니다** (설계서 §6). 그래서
+# `_SOUND_INSTRUCTION` 의 「칸을 더 열지 마라」가 이 자리에 걸리지 않는다.
+#
+# ⛔ **고정 규칙을 «대체하지» 않는다.** 규칙 2(하나씩 묻고 멈춘다)와는 같은 방향이라 **강화**이고,
+# 나머지 규칙과는 축이 다르다. ⇒ `build_system_prompt` docstring 의 「대체하는 축 셋」에 이 블록을
+# 더하지 않는다(더하려면 사용자 결정이 필요하다고 그 문단이 못 박았다).
+#
+# ⚠️ **어느 세션에 실을지는 소켓이 정한다** — 조립기는 `scenario_intake` 를 데이터로 받는다
+# (설계서 §6 조립 규약 ⑵). 그 판단을 여기 두면 팩토리가 `services` 의 정책을 흡수한다.
+
+
+def test_the_scenario_intake_block_is_carried_when_asked_for():
+    """⛔ 다섯 질문이 **순서대로** 실린다 — 축이 다섯이므로 순서가 뜻을 가진다(설계서 §3)."""
+    prompt = _prompt(scenario_intake=True)
+
+    positions = [
+        prompt.find(question)
+        for question in (
+            "Where do you need English soon?",
+            "Who will you talk to there?",
+            "What do you want to get done in that talk?",
+            "What part feels hardest for you there?",
+            "Is it a formal talk or a relaxed one?",
+        )
+    ]
+    assert all(index >= 0 for index in positions), f"다섯 중 빠진 질문이 있다: {positions}"
+    assert positions == sorted(positions), f"질문 순서가 설계서 §3 과 다르다: {positions}"
+
+
+def test_the_scenario_intake_block_asks_one_at_a_time_and_does_not_invent():
+    """⛔ 두 지시가 함께 있어야 이 기능이 성립한다 (설계서 §3 의 ⚠️ 와 ⛔).
+
+    한 번에 다 물으면 학습자가 한 문장으로 답해 **다섯 축이 섞인다.** 그리고 답을 못 받은 축을
+    모델이 지어내면 그 무대는 학습자의 것이 아니다 — 파서가 그 축을 빼는 것과 짝이다.
+    """
+    prompt = _prompt(scenario_intake=True)
+
+    assert "one at a time" in prompt, "하나씩 묻는 지시가 없다 — 다섯 축이 섞인다"
+    assert "Do not invent" in prompt, "지어내지 말라는 지시가 없다 — 빈 축을 모델이 채운다"
+
+
+def test_the_scenario_intake_block_is_absent_without_the_flag():
+    """⛔ 판별력 — 이것이 없으면 「늘 싣는 구현」도 위 둘을 통과한다.
+
+    ⚠️ 그리고 이 단정이 실제로 막는 것은 오배치다: 추가 학습 메뉴 여섯 중 다섯이
+    `learning_source='additional'` 이라 그 값으로 가르면 자유 대화 세션에도 질문이 샌다(설계서 §5).
+    """
+    prompt = _prompt(scenario_intake=False)
+
+    assert "Where do you need English soon?" not in prompt
+    assert prompt == SYSTEM_PROMPT, "재료가 없는데 기본 문구에 무언가 붙었다"
+
+
+def test_the_scenario_intake_block_is_carried_without_a_plan():
+    """⚠️ 계획 없이 열린 세션에도 실린다 — 이 진입은 **첫 세션**일 수 있다.
+
+    ⛔ 조립기가 계획이 없을 때 조기 반환하던 구조라 이 자리가 실제로 빠질 수 있었다.
+    """
+    prompt = _prompt(plan=None, scenario_intake=True)
+
+    assert "Where do you need English soon?" in prompt
+
+
+def test_the_scenario_intake_block_comes_after_the_plan_block():
+    """블록 순서 — 이 세션이 할 일이 **마지막에** 읽혀야 한다.
+
+    ⚠️ 계획 블록이 함께 실리는 경로가 남아 있다(소켓이 계획은 그대로 넘긴다 — 수준·힌트 시점은
+    질문하는 동안에도 유효하다). 그때 질문 블록이 계획보다 **앞**에 오면 계획 블록의 마지막 줄이
+    이미 지나간 지시를 가리킨다.
+    """
+    prompt = _prompt(plan=_instruction(), scenario_intake=True)
+
+    assert "Today's plan:" in prompt
+    assert prompt.index("Today's plan:") < prompt.index("Where do you need English soon?")

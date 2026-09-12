@@ -42,6 +42,7 @@ def create_voice_adapter(
     questions: Sequence[PlanQuestion],
     scenario: SessionScenario | None,
     pronunciation_mode: bool = False,
+    scenario_intake: bool = False,
     usage_sink: UsageSink | None = None,
 ) -> VoiceAdapter:
     """넷 다 **데이터**다 — 조립된 지시문이 아니다 (G-3).
@@ -95,6 +96,10 @@ def create_voice_adapter(
             plan,
             questions,
             scenario,
+            # `TASK-5` Task 6(결정 79) — 무대 정하기 진입이면 질문 5개 블록이 실린다. ⛔ **여기서
+            # `mode` 를 읽어 판단하지 않는다** — 소켓 계층이 `?mode=` 로 판정해 데이터로 준다
+            # (그 설계서 §6 조립 규약 ⑵ · `pronunciation_mode` 와 같은 이음매다).
+            scenario_intake=scenario_intake,
             drill_count=settings.drill_count,
             drill_turns_min=settings.drill_turns_min,
         )

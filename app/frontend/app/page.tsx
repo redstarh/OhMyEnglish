@@ -59,7 +59,9 @@ const ADDITIONAL_LEARNING: ReadonlyArray<{
 }> = [
   { label: "자유 대화", entry: { source: "additional" } },
   { label: "약점 패턴 집중", entry: { source: "additional" } },
-  { label: "질문 답변 5개", entry: { source: "additional" } },
+  // `TASK-5` Task 6(사용자 결정 79) — 이 항목이 **무대 정하기 진입**이다. ⛔ 이전에는 `mode` 가 없어
+  // 위 둘과 구별되지 않았고, 그래서 백엔드가 이 세션을 가릴 수단이 없었다(그 설계서 §5).
+  { label: "질문 답변 5개", entry: { mode: "scenario_intake", source: "additional" } },
   { label: "발음 집중", entry: { mode: "pronunciation", source: "additional" } },
   { label: "쉐도잉", entry: { mode: "shadowing", source: "additional" } },
   { label: "업무 역할극", entry: null, note: "무대를 고르는 화면이 아직 없어요" },

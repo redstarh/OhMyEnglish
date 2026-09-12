@@ -368,12 +368,15 @@ async def test_ws_passes_assembled_instructions_to_the_adapter(
         # 그것이 모드를 열었다. ⛔ **기본값을 두지 않는다**(위 대역의 규약) — 두면 소켓이 이 인자를
         # 아예 넘기지 않아도 대역이 조용히 받아들인다.
         pronunciation_mode: bool,
+        # `TASK-5` Task 6(결정 79) — 아래 대역과 같은 규약으로 기본값을 두지 않는다.
+        scenario_intake: bool,
         # `TASK-124` — 아래 대역과 같은 규약으로 기본값을 두지 않는다.
         usage_sink: object,
     ) -> object:
         seen["known_sounds"] = list(known_sounds)
         seen["plan"] = plan
         seen["pronunciation_mode"] = pronunciation_mode
+        seen["scenario_intake"] = scenario_intake
         return real_factory(
             settings,
             known_sounds=known_sounds,
@@ -381,6 +384,7 @@ async def test_ws_passes_assembled_instructions_to_the_adapter(
             questions=questions,
             scenario=scenario,
             pronunciation_mode=pronunciation_mode,
+            scenario_intake=scenario_intake,
             usage_sink=usage_sink,  # ty: ignore[invalid-argument-type]
         )
 
@@ -460,6 +464,10 @@ def _capture_factory_args(monkeypatch: pytest.MonkeyPatch) -> dict[str, object]:
         # 그것이 모드를 열었다. ⛔ **기본값을 두지 않는다**(위 대역의 규약) — 두면 소켓이 이 인자를
         # 아예 넘기지 않아도 대역이 조용히 받아들인다.
         pronunciation_mode: bool,
+        # `TASK-5` Task 6(결정 79) — 무대 정하기 플래그. ⛔ **기본값을 두지 않는다**(위와 같은
+        # 규약). 팩토리 쪽에는 기본값 `False` 가 있으므로 **소켓이 이 인자를 빼면 질문 5개 블록이
+        # 조용히 꺼진다** — 그 누락을 잡는 자리가 이 대역이다.
+        scenario_intake: bool,
         # `TASK-124`(결정 68) — Nova 토큰 기록 sink. ⛔ **기본값을 두지 않는다**(위 두 인자와 같은
         # 규약) — 두면 소켓이 넘기지 않아도 대역이 조용히 받아들여 배선 누락이 초록으로 지나간다.
         usage_sink: object,
@@ -467,6 +475,7 @@ def _capture_factory_args(monkeypatch: pytest.MonkeyPatch) -> dict[str, object]:
         seen["known_sounds"] = list(known_sounds)
         seen["plan"] = plan
         seen["pronunciation_mode"] = pronunciation_mode
+        seen["scenario_intake"] = scenario_intake
         seen["questions"] = list(questions)
         seen["scenario"] = scenario
         seen["usage_sink"] = usage_sink
@@ -478,6 +487,7 @@ def _capture_factory_args(monkeypatch: pytest.MonkeyPatch) -> dict[str, object]:
             questions=questions,
             scenario=scenario,
             pronunciation_mode=pronunciation_mode,
+            scenario_intake=scenario_intake,
             usage_sink=usage_sink,  # ty: ignore[invalid-argument-type]
         )
 
@@ -891,6 +901,64 @@ async def test_ws_pronunciation_mode_passes_the_mode_and_candidates_to_the_adapt
     assert seen.get("pronunciation_mode") is True
     # ⛔ 후보 목록이 함께 가야 한다 — 모드만 넘기면 전용 지시문에 소리 재료가 하나도 없다.
     assert seen.get("known_sounds") == ["th_as_s"]
+
+
+# ── 무대 정하기 진입 (`TASK-5` Task 6 · 결정 79 · 그 설계서 §5) ────────────────
+#
+# ⛔ **`?source=additional` 로 가리지 못한다**는 것이 이 진입의 설계 근거다 — 추가 학습 메뉴 여섯 중
+# 다섯이 그 값이고 그중 셋이 `mode` 를 갖지 않는다. 그래서 `mode` 값역에 값 하나를 더했다(018).
+async def test_ws_scenario_intake_mode_wires_the_questions_and_drops_the_stage(
+    ws_app: FastAPI,
+    db_pool: asyncpg.Pool,
+    seeded_fixed_user: UUID,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """넷을 한꺼번에 잰다 — 이 진입이 성립하려면 넷이 **모두** 참이어야 한다.
+
+    ⛔ **세션 행의 `mode` 까지 재는 이유**: 종료 경로가 그 값을 읽어 `generate_scenario` job 을
+    걸으므로(설계서 §5 흐름 3) 적히지 않으면 **질문은 했는데 무대가 만들어지지 않는다.** 지시문만
+    재면 그 침묵을 못 잡는다.
+    """
+    seen = _capture_factory_args(monkeypatch)
+
+    async with (
+        ws_app.router.lifespan_context(ws_app),
+        ASGIWebSocket(ws_app, query_string=b"mode=scenario_intake&source=additional") as client,
+    ):
+        first = await client.receive_event()
+
+    assert first is not None and first["type"] == "session_started"
+    assert seen.get("scenario_intake") is True, "소켓이 플래그를 넘기지 않았다 — 질문이 안 실린다"
+    # ⛔ 드릴 질문과 무대를 함께 걷는다 — 남기면 「하나씩 물어라」를 받는 목록이 둘이 되고 코치가
+    # 역할극으로 들어간다(그 판단은 소켓의 몫이다 · 설계서 §6 조립 규약 ⑵).
+    assert seen.get("questions") == [], "드릴 질문이 함께 실렸다 — 다섯 축이 섞인다"
+    assert seen.get("scenario") is None, "무대가 함께 실렸다 — 코치가 역할극으로 들어간다"
+
+    session_id = UUID(first["session_id"])
+    async with db_pool.acquire() as conn:
+        mode = await conn.fetchval("select mode from learning_sessions where id = $1", session_id)
+    assert mode == "scenario_intake", f"세션 행의 mode 가 {mode!r} 다 — 종료 경로가 job 을 못 건다"
+
+
+async def test_ws_a_normal_session_does_not_ask_for_scenario_intake(
+    ws_app: FastAPI,
+    seeded_fixed_user: UUID,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """⛔ 판별력 — 이것이 없으면 「늘 켜는 구현」도 위 테스트를 통과한다.
+
+    ⚠️ 그리고 이 단정이 막는 것이 실제 위험이다: 이 진입이 켜지면 **자유 대화 세션이 질문 다섯을
+    묻는 세션으로 바뀐다.** 그 오배치가 `additional` 로 가르려던 안이 기각된 이유였다(설계서 §5).
+    """
+    seen = _capture_factory_args(monkeypatch)
+
+    async with (
+        ws_app.router.lifespan_context(ws_app),
+        ASGIWebSocket(ws_app, query_string=b"source=additional") as client,
+    ):
+        await client.receive_event()
+
+    assert seen.get("scenario_intake") is False, "모드를 요청하지 않았는데 질문 블록이 켜졌다"
 
 
 async def test_ws_gives_the_adapter_a_usage_sink_that_actually_writes(

@@ -1,10 +1,10 @@
 ---
 id: TASK-130.1
 title: '구현: 노출 순서를 display_order 로 옮긴다 (결정 81)'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-12 14:26'
-updated_date: '2026-09-12 14:46'
+updated_date: '2026-09-12 14:47'
 labels: []
 dependencies: []
 parent_task_id: TASK-130

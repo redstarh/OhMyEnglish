@@ -52,6 +52,7 @@ from app.models.scenario import SessionScenario
 from app.services.pronunciation import load_known_sounds
 from app.services.recordings import ShadowingTurns, load_session_clip
 from app.services.sessions import (
+    SCENARIO_INTAKE_MODE,
     PreparedPlan,
     create_session,
     load_prepared_plan,
@@ -84,6 +85,20 @@ SPEAKING_MODE = "speaking"
 # ⛔ 모드 리터럴의 소유자는 여전히 결정 11 이 지목한 `TASK-27` 이다 — 014 는 값역 한 칸만 열었고
 # 소유를 옮기지 않았다.
 PRONUNCIATION_MODE = "pronunciation"
+# `TASK-5` Task 6 — 무대 정하기 진입 (사용자 결정 79 · 마이그레이션 018 이 값역을 열었다).
+# ⛔ **`?source=additional` 로는 이 진입을 가릴 수 없다** — 추가 학습 메뉴 여섯 가운데 다섯이 그
+# 값이고 그중 셋(자유 대화 · 약점 패턴 집중 · 질문 답변 5개)이 `mode` 를 갖지 않아 서로 구별되지
+# 않는다(그 설계서 §5 가 코드로 확인한 목록을 갖는다). 그 값으로 가르면 **자유 대화 세션에 질문
+# 5개 지시가 샌다.**
+# ⛔ **세션 행의 `mode` 를 반드시 적는다** — 발음 모드와 달리 이 값은 지시문만 바꾸는 것이 아니다.
+# 종료 경로가 `mode` 를 읽어 `generate_scenario` job 을 걸므로(설계서 §5 흐름 3) 적지 못하면
+# **질문은 했는데 무대가 만들어지지 않는다.**
+#
+# ⛔ **이 값만 위 셋과 달리 «import 한다».** 위 셋은 이 파일이 아는 것이 「그 모드인가」 하나여서
+# 지역 상수로 두는 것이 맞다. 이 값은 다르다 — **소켓이 쓰고 종료 경로가 읽는다**
+# (`services/sessions.end_session` 이 `closed["mode"] == SCENARIO_INTAKE_MODE` 로 job 을 건다).
+# 두 곳에 리터럴을 두면 한쪽이 바뀔 때 **쓰는 값과 읽는 값이 갈라지고 게이트가 침묵한다**: 세션은
+# 정상으로 열리고 질문도 실리는데 job 만 안 걸린다. ⇒ 정본을 그 모듈 하나로 둔다.
 
 SESSION_CREATE_FAILED_REASON = "session_create_failed"
 ADAPTER_UNAVAILABLE_REASON = "voice_adapter_unavailable"
@@ -271,6 +286,26 @@ async def _load_scenario_or_none(pool: asyncpg.Pool, session_id: UUID) -> Sessio
         return None
 
 
+async def _record_session_mode_or_continue(pool: asyncpg.Pool, session_id: UUID, mode: str) -> None:
+    """세션 행에 자기 진입을 적는다 — 실패하면 로그만 남기고 진행한다 (결정 67 의 규약).
+
+    ⚠️ **호출자가 둘이 되면서 함수로 뽑았다** (`TASK-5` Task 6). 발음 모드(결정 67)와 무대 정하기
+    (결정 79)가 같은 절차를 쓰고, 복제해 두면 한쪽의 로그·예외 처리만 고쳐져 갈라진다.
+    ⛔ **대가는 모드마다 다르고 그 차이는 호출자 쪽 주석이 갖는다** — 여기서 열거하면 모드가 늘 때
+    이 docstring 이 낡는다. 발음은 집계가 말하기로 세는 것이고, 무대 정하기는 job 이 안 걸리는
+    것이다.
+    ⚠️ `exception` 으로 찍는 이유는 이웃과 같다 — 지정된 실행이 `--log-level warning` 이라 그 아래는
+    한 줄도 보이지 않는다(`H-Z`).
+    """
+    try:
+        if not await set_session_mode(pool, session_id, mode=mode):
+            logger.warning(
+                "세션 %s 의 mode 를 %s 로 적지 못했다 — 그 사이 세션이 닫혔다", session_id, mode
+            )
+    except asyncpg.PostgresError:
+        logger.exception("세션 %s 의 mode 를 %s 로 적을 수 없다", session_id, mode)
+
+
 async def _record_drill_turns_or_continue(
     pool: asyncpg.Pool,
     session_id: UUID,
@@ -317,7 +352,16 @@ async def session_socket(websocket: WebSocket) -> None:
     # `TASK-10.1` — 발음 전용 모드는 **세션 행을 바꾸지 않고 지시문만 바꾼다**(상수 위 주석).
     # 그래서 위 `shadowing_requested` 와 달리 `create_session` 분기에 끼어들지 않는다.
     pronunciation_requested = requested_mode == PRONUNCIATION_MODE
-    if requested_mode not in (None, SHADOWING_MODE, SPEAKING_MODE, PRONUNCIATION_MODE):
+    # `TASK-5` Task 6 — 무대 정하기 진입. `shadowing` 과 달리 `create_session` 분기에 끼어들지 않고
+    # (세션은 평범하게 열린다) 세션 행의 `mode` 를 **뒤에** 적는다 — 발음 모드와 같은 형태다.
+    scenario_intake_requested = requested_mode == SCENARIO_INTAKE_MODE
+    if requested_mode not in (
+        None,
+        SHADOWING_MODE,
+        SPEAKING_MODE,
+        PRONUNCIATION_MODE,
+        SCENARIO_INTAKE_MODE,
+    ):
         # ⚠️ `?mode=speaking` 은 **알 수 없는 값이 아니다** — 명시적으로 그것을 고른 것이므로
         # 경고하지 않는다(2026-09-09 리뷰 지적). 경고는 오타·낡은 링크만 가리켜야 값을 한다.
         logger.warning("알 수 없는 mode=%r — 말하기 세션으로 진행한다", requested_mode)
@@ -394,19 +438,14 @@ async def session_socket(websocket: WebSocket) -> None:
         # `exception`·`warning` 으로 갚는다. 값역 밖 값은 애초에 상수라 오지 않고, 그런 일이 나면
         # 그것은 값역이 갈라졌다는 신호이므로 로그가 그것을 가리켜야 한다.
         if pronunciation_requested:
-            try:
-                if not await set_session_mode(pool, session_id, mode=PRONUNCIATION_MODE):
-                    logger.warning(
-                        "세션 %s 의 mode 를 %s 로 적지 못했다 — 그 사이 세션이 닫혔다",
-                        session_id,
-                        PRONUNCIATION_MODE,
-                    )
-            except asyncpg.PostgresError:
-                logger.exception(
-                    "세션 %s 의 mode 를 %s 로 적을 수 없다 — 집계가 이 세션을 말하기로 센다",
-                    session_id,
-                    PRONUNCIATION_MODE,
-                )
+            await _record_session_mode_or_continue(pool, session_id, PRONUNCIATION_MODE)
+        # `TASK-5` Task 6(결정 79) — 무대 정하기 세션도 자기 진입을 적는다. ⛔ **여기서 적지 못하면
+        # 종료 경로가 `generate_scenario` job 을 걸지 못한다**(설계서 §5 흐름 3) — 즉 학습자가 질문
+        # 다섯에 답했는데 무대가 만들어지지 않는다. 발음 모드의 대가(집계가 말하기로 센다)보다
+        # 무거운데도 **대화를 막지 않는 것은 같다**: 여기서 세션을 닫으면 확실히 잃고, 열어 두면
+        # 최소한 대화는 남는다(전사문이 남으므로 job 을 나중에 손으로 걸 수 있다).
+        if scenario_intake_requested:
+            await _record_session_mode_or_continue(pool, session_id, SCENARIO_INTAKE_MODE)
 
         try:
             adapter = create_voice_adapter(
@@ -416,9 +455,20 @@ async def session_socket(websocket: WebSocket) -> None:
                 # 모드마다 다르고, 조립기는 그것을 「후보」로만 읽는다.
                 known_sounds=pronunciation_candidates if pronunciation_requested else known_sounds,
                 plan=plan,
-                questions=questions,
-                scenario=scenario,
+                # ⛔ **무대 정하기 세션에는 드릴 질문과 무대를 넘기지 않는다** (`TASK-5` Task 6).
+                # 둘 다 이 진입과 **정면으로 부딪힌다**: 드릴 질문은 「하나씩 물어라」를 받는 두
+                # 번째 질문 목록이 되어 다섯 축이 섞이고, 무대(`Today's setting:`)는 코치에게
+                # 역할극을 지시하는데 이 세션은 학습자의 **실제** 필요를 묻는 자리다.
+                # ⚠️ **계획은 그대로 넘긴다** — 목표 수준·힌트 시점은 질문하는 동안에도 유효하다.
+                # ⛔ **이 판단이 조립기에 없는 것이 규약이다**(그 설계서 §6 조립 규약 ⑵) — 소켓이
+                # 「실을지 말지」를 정해 데이터로 준다. 조립기는 받은 것만 싣는다.
+                questions=() if scenario_intake_requested else questions,
+                scenario=None if scenario_intake_requested else scenario,
                 pronunciation_mode=pronunciation_requested,
+                # `TASK-5` Task 6(결정 79) — 질문 5개 블록이 실릴지를 이 인자가 정한다.
+                # ⛔ **팩토리의 기본값이 `False` 라 이 인자를 빼면 조용히 꺼진다** — `usage_sink` 와
+                # 같은 부류이고, 대역(`_capture_factory_args`)이 기본값 없이 받아 그것을 막는다.
+                scenario_intake=scenario_intake_requested,
                 # ⛔ **이 인자를 빼면 Nova 토큰 기록이 조용히 꺼진다** (`TASK-124` · 결정 68).
                 # 어댑터의 기본값이 `None`(기록 없음)이고 실물 배선은 여기 하나뿐이다 — `main.py` 의
                 # `usage_sink` 와 같은 부류의 위험이고 같은 방식으로 게이트 테스트가 못 박는다.

@@ -12,11 +12,17 @@ export const API_BASE: string = process.env.NEXT_PUBLIC_API_BASE ?? "http://loca
  * `learning_sessions_learning_source_check` 가 가둔다. 그 값역을 문자열 리터럴로 좁혀 두는 이유는
  * 오타가 **조용히 말하기 세션으로 떨어지는 것**을 타입 검사에서 잡기 위함이다.
  *
- * ⚠️ 세 표면만 있다: 모드 없음(자유 대화·약점 패턴 집중·질문 답변 5개) · `pronunciation` · `shadowing`.
- * 셋으로 갈리는 기준은 **지시문이 실제로 달라지는가**이고 그 판정은 설계서 §2 가 소유한다.
+ * ⚠️ 네 표면이 있다: 모드 없음(자유 대화·약점 패턴 집중) · `pronunciation` · `shadowing` ·
+ * `scenario_intake`. 갈리는 기준은 **지시문이 실제로 달라지는가**이고 그 판정은 설계서 §2 가
+ * 소유한다.
+ *
+ * ⛔ **`scenario_intake` 가 넷째로 갈라진 근거**(`TASK-5` Task 6 · 사용자 결정 79): 「질문 답변 5개」는
+ * 이전까지 모드가 없어 자유 대화·약점 패턴 집중과 **구별되지 않았다.** 그 셋이 모두
+ * `source: "additional"` 이라 그 값으로는 가릴 수 없고, 가르지 못하면 자유 대화 세션에 질문 다섯
+ * 지시가 샌다. 값역의 정본은 018 의 `learning_sessions_mode_check` 다.
  */
 export interface SessionEntry {
-  mode?: "pronunciation" | "shadowing";
+  mode?: "pronunciation" | "shadowing" | "scenario_intake";
   source?: "recommended" | "additional";
 }
 
