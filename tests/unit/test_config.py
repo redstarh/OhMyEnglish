@@ -20,6 +20,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 import pydantic
 import pytest
@@ -555,6 +556,78 @@ def test_shadowing_range_endpoints_are_accepted(rate: float, count: int):
     )
     assert accepted.shadowing_playback_rate == rate
     assert accepted.shadowing_repeat_count == count
+
+
+# ── `TASK-39` — 재시도·타임아웃 정책을 «불변식»으로 잰다 ─────────────────────────────
+#
+# 미설정이면 botocore 기본값이 쓰이고 실측으로 그것은 legacy 재시도(전송 5회)다. 정책이 조용히
+# 사라지는 것을 막는 자리가 여기다. 수치의 근거는 `runs/2026-09-12-task39-retry-policy.md` 다.
+
+
+def _boto_option(config: object, name: str) -> Any:
+    """botocore `Config` 의 옵션 하나를 읽는다.
+
+    ⛔ **억제를 한 자리로 모으는 함수다.** botocore 는 옵션을 `__init__`에서 **동적으로** 심으므로
+    `ty` 가 `config.read_timeout` 같은 속성을 보지 못한다(alpha 단계의 한계이고 이 리포에 같은
+    부류의 억제가 이미 있다 — `pydantic-settings` 의 합성 `__init__`). 줄마다 `ty: ignore` 를
+    붙이면 무엇을 왜 억제했는지 흩어지므로 이 함수 하나로 모은다.
+    """
+    return getattr(config, name)
+
+
+# 실측 최대 소요 시간(계획 크기 프롬프트 14,538자 · 입력 6,174 토큰 · 2026-09-12): 30.27초.
+# ⛔ 이 상수를 낮추지 마라 — 낮추면 아래 여유 단정이 무력해진다.
+_MEASURED_MAX_CALL_SECONDS = 30.27
+
+
+def test_bedrock_config_caps_the_number_of_billed_sends():
+    """⛔ 전송 수 상한이 명시돼 있어야 한다 — 미설정이면 legacy 기본이 **전송 5회**다.
+
+    ⛔ **`max_attempts` 키를 쓰지 않는다**: 무응답 서버로 직접 센 값이 `max_attempts=1`→2회 ·
+    `2`→3회 · `3`→4회로 **1 어긋난다.** `total_max_attempts=N`은 정확히 N회다. 그 어긋남은 비용을
+    실제보다 적게 세게 만들므로 키 이름 자체를 단정한다.
+    """
+    retries = _boto_option(config_module.bedrock_boto_config(), "retries")
+
+    assert retries == {"mode": "standard", "total_max_attempts": 2}
+    assert "max_attempts" not in retries, "뜻이 1 어긋나는 키다 — total_max_attempts 를 쓴다"
+
+
+def test_the_read_timeout_keeps_a_margin_over_the_measured_call_duration():
+    """⛔ 읽기 상한이 실측 소요 시간에 가까우면 **정상 호출이 다시 보내진다**(=중복 과금).
+
+    ⚠️ 여유를 3배로 두는 것은 표본 2에서 분포를 주장하지 않기 위해서다 — 관측값보다 넉넉하다는
+    것만 단정한다. 연결 상한은 별개다: 연결 수립이 느린 것은 재시도로 풀 문제이므로 짧게 둔다.
+    """
+    config = config_module.bedrock_boto_config()
+
+    read_timeout = _boto_option(config, "read_timeout")
+    assert read_timeout >= 3 * _MEASURED_MAX_CALL_SECONDS
+    assert _boto_option(config, "connect_timeout") <= read_timeout / 4
+
+
+def test_bedrock_client_actually_receives_that_config(monkeypatch):
+    """⛔ **배선 누락을 잡는 단정이다** — 정책을 만들어 두고 넘기지 않으면 기본값이 조용히 쓰인다.
+
+    ⚠️ 값이 있는지만 보지 않고 **팩토리가 받은 객체가 그 정책인지**까지 본다.
+    """
+    _clear_ambient_env()
+    monkeypatch.setattr(config_module, "get_settings", _settings_with_credentials)
+    captured: dict[str, object] = {}
+
+    def capture_client(*args: object, **kwargs: object) -> object:
+        captured.update(kwargs)
+        return object()
+
+    monkeypatch.setattr(config_module.boto3, "client", capture_client)
+
+    config_module.bedrock_client()
+
+    passed = captured.get("config")
+    assert passed is not None, "config= 를 넘기지 않았다 — botocore 기본값이 쓰인다"
+    expected = config_module.bedrock_boto_config()
+    assert _boto_option(passed, "retries") == _boto_option(expected, "retries")
+    assert _boto_option(passed, "read_timeout") == _boto_option(expected, "read_timeout")
 
 
 def test_credential_strings_isolated_to_config_module():

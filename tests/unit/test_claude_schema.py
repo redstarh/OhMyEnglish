@@ -427,9 +427,7 @@ async def test_bedrock_client_records_usage_with_the_attribution_it_was_given(
     settings = _test_settings()
     recorded: list[tuple[TokenUsage, str, str, UUID | None]] = []
 
-    async def sink(
-        usage: TokenUsage, *, model_id: str, purpose: str, job_id: UUID | None
-    ) -> None:
+    async def sink(usage: TokenUsage, *, model_id: str, purpose: str, job_id: UUID | None) -> None:
         recorded.append((usage, model_id, purpose, job_id))
 
     job_id = uuid4()

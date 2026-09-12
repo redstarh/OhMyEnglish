@@ -1,0 +1,108 @@
+#!/usr/bin/env python3
+"""`TASK-39` 팔 A — 「같은 호출이 몇 번 보내지는가」를 센다. ⛔ API 비용 0.
+
+무응답 TCP 서버를 띄워 요청을 받기만 하고 답하지 않는다. 그러면 botocore 가 `ReadTimeout` 을 보고
+자기 정책대로 **다시 보낸다**. 그 재전송 횟수가 곧 「한 번의 논리적 호출이 몇 번 청구될 수 있는가」다
+(실물에서는 서비스가 요청을 받은 뒤 응답이 늦은 경우가 같은 모양이다).
+
+⛔ 스로틀을 재현하지 않는다 — 회차 기록 §0 의 판정 규칙이 그 이유와 한계를 가진다.
+⛔ Bedrock 을 부르지 않는다. 엔드포인트가 `127.0.0.1` 이고 자격증명은 더미다.
+
+`before-send` 이벤트를 세는 이유: botocore 가 실제로 HTTP 요청을 만들어 보내는 지점이 그 훅이다.
+`needs-retry` 를 세면 「재시도 판정 횟수」이고 전송 횟수와 1 만큼 어긋난다.
+"""
+
+import asyncio
+import json
+import socket
+
+import boto3
+from botocore.config import Config
+
+from app.config import bedrock_boto_config
+
+_PROMPT_BODY = json.dumps(
+    {"anthropic_version": "bedrock-2023-05-31", "max_tokens": 16, "messages": []}
+)
+
+
+async def _no_response_server() -> tuple[asyncio.AbstractServer, int]:
+    """받기만 하고 답하지 않는 서버. 클라이언트는 `read_timeout` 에서 끊는다."""
+
+    async def handle(reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
+        try:
+            await reader.read(65536)  # 요청을 읽고 **답하지 않는다**
+            await asyncio.sleep(30)
+        except (ConnectionResetError, asyncio.CancelledError):
+            pass
+        finally:
+            writer.close()
+
+    server = await asyncio.start_server(handle, "127.0.0.1", 0)
+    port = server.sockets[0].getsockname()[1]
+    return server, port
+
+
+def _count_sends(port: int, config: Config) -> int:
+    """`invoke_model` 을 한 번 부르고 실제 전송 횟수를 센다."""
+    client = boto3.client(
+        "bedrock-runtime",
+        region_name="us-west-2",
+        endpoint_url=f"http://127.0.0.1:{port}",
+        aws_access_key_id="dummy-not-a-real-key",
+        aws_secret_access_key="dummy-not-a-real-secret",
+        config=config,
+    )
+    sends = 0
+
+    def on_before_send(**_: object) -> None:
+        nonlocal sends
+        sends += 1
+
+    client.meta.events.register("before-send.bedrock-runtime.InvokeModel", on_before_send)
+    try:
+        client.invoke_model(modelId="us.anthropic.claude-opus-5", body=_PROMPT_BODY)
+    except Exception as exc:  # noqa: BLE001 — 실패는 예정된 결과다(무응답 서버)
+        print(f"    (끝난 사유: {type(exc).__name__})")
+    return sends
+
+
+async def main() -> None:
+    server, port = await _no_response_server()
+    print(f"=== 무응답 서버 127.0.0.1:{port}")
+    # 소켓이 실제로 열렸는지 먼저 본다 — 열리지 않았다면 아래 수치는 연결 거부를 센 것이다.
+    with socket.create_connection(("127.0.0.1", port), timeout=1):
+        pass
+    print("    소켓 연결 확인됨")
+
+    # ⚠️ `read_timeout` 만 실행 시간을 위해 줄인다 — 재시도 «횟수»는 그 값과 무관하다(0.2초와
+    # 0.3초에서 같은 값을 얻었다). ⛔ 재시도 «정책» 은 제품 것을 그대로 쓴다:
+    # `bedrock_boto_config().retries` 를 읽어 넣으므로 제품이 바뀌면 이 회차도 함께 바뀐다.
+    product_retries = bedrock_boto_config().retries
+    cases = [
+        ("정책 전(botocore 기본 = legacy)", Config(read_timeout=0.3, connect_timeout=0.3)),
+        (
+            f"정책 후(제품 = {product_retries})",
+            Config(read_timeout=0.3, connect_timeout=0.3, retries=product_retries),
+        ),
+        # ⛔ 뜻이 1 어긋나는 키를 함께 재 둔다 — 이것이 이 회차의 값어치 있는 관측이다.
+        (
+            "대조: max_attempts=2 (뜻이 어긋나는 키)",
+            Config(
+                read_timeout=0.3,
+                connect_timeout=0.3,
+                retries={"mode": "standard", "max_attempts": 2},
+            ),
+        ),
+    ]
+    for name, config in cases:
+        sends = await asyncio.get_running_loop().run_in_executor(None, _count_sends, port, config)
+        print(f"  {name}: 전송 {sends}회")
+
+    server.close()
+    await server.wait_closed()
+    print("=== 서버 닫음")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

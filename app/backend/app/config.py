@@ -28,6 +28,7 @@ from functools import lru_cache
 from pathlib import Path
 
 import boto3
+from botocore.config import Config as BotocoreConfig
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -212,12 +213,53 @@ def prepare_bedrock_credentials(settings: Settings) -> None:
     )
 
 
+# `TASK-39` — 재시도·타임아웃을 **명시**한다. 미설정이면 botocore 1.43.78 의 기본값이 쓰이는데
+# 실측으로 그것은 `connect_timeout 60` · `read_timeout 60` · legacy 재시도(**전송 5회**)다.
+# 정본은 `runs/2026-09-12-task39-retry-policy.md` 다.
+#
+# ⛔ **`max_attempts` 를 쓰지 않는다 — 실제 전송 수와 «1» 어긋난다.** 무응답 서버로 직접 센 값:
+# `max_attempts=1`→전송 2회 · `2`→3회 · `3`→4회. 반면 `total_max_attempts=N`→정확히 N회다.
+# 즉 `max_attempts` 는 「재시도 수」처럼 동작하고, 그 어긋남은 **비용을 두 배로 적게 세게** 만든다.
+_BEDROCK_TOTAL_MAX_ATTEMPTS = 2
+# ⛔ **재시도를 0(=1회)으로 만들지 않는다** — 스로틀·일시 오류에서 계획 job 이 그대로 실패하면
+# 그 세션의 계획이 안 생긴다. ⚠️ 이 값은 job 재시도(`services/jobs.MAX_ATTEMPTS=5`)와 **곱해진다**:
+# 최대 청구 횟수가 legacy 기본에서는 5×5=25 였고 이 설정에서는 2×5=10 이다. 그 곱을 줄이는 것이
+# 이 태스크의 실질 목표다.
+#
+# `standard` 모드를 고른 이유: 스로틀(`ThrottlingException`)을 지수 백오프+jitter 로 재시도하고
+# 재시도 예산(quota)을 갖는다. legacy 는 재시도 대상이 좁고 예산이 없다.
+_BEDROCK_RETRY_MODE = "standard"
+# 연결 수립은 빠르다 — 여기서 오래 기다릴 이유가 없다.
+_BEDROCK_CONNECT_TIMEOUT = 10
+# ⚠️ **읽기 상한은 「짧게」가 아니라 「넉넉히」가 맞다.** 실측(2026-09-12, 계획 크기 프롬프트
+# 14,538자 · 입력 6,174 토큰): 한 호출이 **30.27초 · 18.25초**였다. 기본 60초는 그 최대의 2배뿐이고,
+# 넘으면 botocore 가 **같은 호출을 다시 보낸다** — 그것이 중복 과금의 기전이다. 그래서 4배로 둔다.
+# ⛔ **대가를 적는다**: 인터프리터 종료 시 `asyncio.to_thread` 의 워커 스레드가 진행 중 호출을
+# 최대 이 시간만큼 붙잡을 수 있다. lifespan 의 대기는 `WORKER_SHUTDOWN_TIMEOUT=15` 가 끊는다.
+_BEDROCK_READ_TIMEOUT = 120
+
+
+def bedrock_boto_config() -> BotocoreConfig:
+    """Bedrock 호출의 재시도·타임아웃 정책 (`TASK-39`).
+
+    함수로 빼는 이유: **불변식 테스트가 자격증명 없이 이 값을 잴 수 있어야 한다.**
+    `bedrock_client()`는 `prepare_bedrock_credentials`를 지나므로 단위 테스트에서 부를 수 없다.
+    """
+    return BotocoreConfig(
+        connect_timeout=_BEDROCK_CONNECT_TIMEOUT,
+        read_timeout=_BEDROCK_READ_TIMEOUT,
+        retries={"mode": _BEDROCK_RETRY_MODE, "total_max_attempts": _BEDROCK_TOTAL_MAX_ATTEMPTS},
+    )
+
+
 def bedrock_client():
     """Create a boto3 `bedrock-runtime` client for the configured region.
 
     자격증명 획득은 전부 `prepare_bedrock_credentials`에 있다 — 이 두 함수가
-    전략을 바꿀 단 하나의 이음새다.
+    전략을 바꿀 단 하나의 이음새다. 재시도·타임아웃은 `bedrock_boto_config`가 갖는다.
     """
     settings = get_settings()
     prepare_bedrock_credentials(settings)
-    return boto3.client("bedrock-runtime", region_name=settings.aws_region)
+    return boto3.client(
+        "bedrock-runtime", region_name=settings.aws_region, config=bedrock_boto_config()
+    )
