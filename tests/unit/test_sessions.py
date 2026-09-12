@@ -769,3 +769,96 @@ async def test_the_default_learning_source_matches_the_migration(db_pool: asyncp
     assert column_default.split("::")[0].strip("'") == _DEFAULT_LEARNING_SOURCE, (
         f"코드의 기본값과 마이그레이션이 갈라졌다: {column_default!r}"
     )
+
+
+# --- TASK-4: 대화 상황 배치 (결정 73·74·75) ---------------------------------
+#
+# ⛔ **첫 테스트가 결함 재현이다.** 이 절을 쓰기 전에는 `_CREATE_SESSION_SQL` 이 수준 일치 행 중
+# `order by created_at, id limit 1` 로 골라서 **같은 사용자가 몇 번을 열어도 같은 상황**을 받았다
+# (시드 3행 가운데 `…101` 하나만 쓰였다). 그 사실이 `TASK-4` 의 무게중심이었다.
+#
+# ⚠️ 이 절은 `db_pool` 을 쓴다(커밋된다) — 파일 앞머리 docstring 이 그 픽스처의 teardown 을
+# 이미 적어 두었다. 배치 규칙 자체는 DB 없이 `tests/unit/test_scenario_rotation.py` 가 센다.
+
+
+@pytest.mark.asyncio
+async def test_consecutive_sessions_do_not_repeat_the_same_scenario(db_pool: asyncpg.Pool):
+    """연달아 열면 다른 상황이 온다 — 이 단정이 없으면 `limit 1` 회귀가 조용히 돌아온다."""
+    async with db_pool.acquire() as conn:
+        user_id = await conn.fetchval(
+            "insert into users (display_name, timezone, current_level) "
+            "values ('rotation', 'Asia/Seoul', 'A2') returning id"
+        )
+        seeded = []
+        for label in ("one", "two", "three"):
+            seeded.append(
+                await conn.fetchval(
+                    "insert into learning_scenarios (category, level, title, prompt_template) "
+                    "values ('daily_life', 'A2', $1, 'You are someone.') returning id",
+                    label,
+                )
+            )
+
+    first = await create_session(db_pool, user_id)
+    second = await create_session(db_pool, user_id)
+
+    async with db_pool.acquire() as conn:
+        rows = await conn.fetch(
+            "select scenario_id, scenario_pick from learning_sessions "
+            "where id = any($1::uuid[]) order by started_at, id",
+            [first, second],
+        )
+
+    picked = [row["scenario_id"] for row in rows]
+    assert len(picked) == 2
+    assert picked[0] != picked[1], "같은 상황이 연달아 왔다 — `limit 1` 로 되돌아갔다"
+    assert all(row["scenario_pick"] == "new" for row in rows), "창이 비어 있으면 둘 다 신규다"
+    assert set(picked) <= set(seeded), "이 테스트가 만든 행 밖에서 골랐다"
+
+
+@pytest.mark.asyncio
+async def test_session_without_any_scenario_row_still_opens(db_pool: asyncpg.Pool):
+    """후보가 0행이면 `scenario_id` 는 null 이고 세션은 열린다 — 기존 폴백을 보존한다."""
+    async with db_pool.acquire() as conn:
+        await conn.execute("delete from learning_sessions")
+        await conn.execute("delete from learning_scenarios")
+        user_id = await conn.fetchval(
+            "insert into users (display_name, timezone, current_level) "
+            "values ('empty', 'Asia/Seoul', 'A2') returning id"
+        )
+
+    session_id = await create_session(db_pool, user_id)
+
+    async with db_pool.acquire() as conn:
+        row = await conn.fetchrow(
+            "select scenario_id, scenario_pick from learning_sessions where id = $1",
+            session_id,
+        )
+
+    assert row["scenario_id"] is None
+    assert row["scenario_pick"] is None
+
+
+@pytest.mark.asyncio
+async def test_level_mismatch_falls_back_to_every_scenario(db_pool: asyncpg.Pool):
+    """수준에 맞는 행이 0이면 전체에서 고른다 — 학습이 막히지 않는다(설계서 §9 Failure)."""
+    async with db_pool.acquire() as conn:
+        await conn.execute("delete from learning_sessions")
+        await conn.execute("delete from learning_scenarios")
+        user_id = await conn.fetchval(
+            "insert into users (display_name, timezone, current_level) "
+            "values ('c1', 'Asia/Seoul', 'C1') returning id"
+        )
+        only = await conn.fetchval(
+            "insert into learning_scenarios (category, level, title, prompt_template) "
+            "values ('daily_life', 'A2', 'only', 'You are someone.') returning id"
+        )
+
+    session_id = await create_session(db_pool, user_id)
+
+    async with db_pool.acquire() as conn:
+        got = await conn.fetchval(
+            "select scenario_id from learning_sessions where id = $1", session_id
+        )
+
+    assert got == only, "수준 일치가 0행인데 폴백이 돌지 않았다"

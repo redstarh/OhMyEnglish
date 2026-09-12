@@ -4,8 +4,13 @@
 여기 모은다 — 둘 다 `learning_sessions` 한 행의 생명주기 양끝일 뿐, 계층이
 다르다고 SQL을 갈라 둘 이유가 없다.
 
-* **생성**은 시나리오를 **학습자 수준에 맞는 행**에 붙이고, 맞는 행이 없으면
-  가장 이른 행으로 떨어진다(설계서 §3.3). 시나리오가 아예 없으면 `scenario_id`는
+* **생성**은 시나리오를 **배치 규칙**으로 고른다 — 반복 7 대 신규 3 (`TASK-4` · 결정 73).
+  규칙 자체는 `services/scenario_rotation`이 소유하고 이 모듈은 그 입력(직전 창·후보)을
+  읽어 넘긴다(`_pick_scenario_for_user`). ⚠️ **이전 판은 「학습자 수준에 맞는 행, 없으면
+  가장 이른 행」이 전부였고 그래서 같은 사용자가 늘 같은 무대를 받았다** — 시드 3행 가운데
+  하나만 쓰였다. 수준 일치와 그 폴백은 사라지지 않고 **후보를 좁히는 단계**로 남아 있다
+  (설계서 §3.3). 고른 쪽(`new`·`repeat`)은 `scenario_pick`(016)에 함께 적힌다 — 그 칸이
+  없으면 비율을 셀 수 없다. 시나리오가 아예 없으면 `scenario_id`는
   null로 남고(컬럼 nullable) 세션은 그대로 진행된다. 고정 사용자 id는 이 모듈이
   알지 못한다 — 호출자(`api/ws.py`)가 넘긴다: 단일 사용자 로컬 도구라는 사실은
   API 계층의 관심사이고, 이 모듈은 "누구의 세션인가"를 주입받기만 한다.
@@ -45,6 +50,13 @@ import pydantic
 from app.models.plan import PlanQuestion, SessionInstruction
 from app.models.scenario import SessionScenario
 from app.services.jobs import enqueue_plan_next_session
+from app.services.scenario_rotation import (
+    WINDOW,
+    Candidate,
+    Pick,
+    RecentPick,
+    pick_scenario,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -63,23 +75,43 @@ ORPHAN_IDLE_GRACE = timedelta(seconds=60)
 # `column_default` 가 같은지 잰다. 어긋나면 그 테스트가 깨진다.
 _DEFAULT_LEARNING_SOURCE = "recommended"
 
+# ⛔ **시나리오를 여기서 고르지 않는다** (`TASK-4` · 결정 73). 이전 판은 이 안에서
+# `where s.level = (…) order by s.created_at, s.id limit 1` 로 골랐고, 그래서 **같은 사용자가
+# 몇 번을 열어도 같은 행**을 받았다 — 시드 3행 가운데 `…101` 하나만 쓰였다. 배치 비율
+# (반복 7 대 신규 3)은 **이력을 봐야** 정해지므로 SQL 한 문장에 담기지 않는다.
+# ⇒ 규칙은 `services/scenario_rotation` 이 소유하고 그 입력은 `_pick_scenario_for_user` 가 읽는다.
+# ⚠️ **폴백은 사라지지 않고 그 함수로 옮겼다** — 수준 일치가 0행이면 전체에서 고르고, 시나리오가
+# 아예 없으면 `scenario_id`·`scenario_pick` 둘 다 null 로 세션이 열린다(컬럼 둘 다 nullable).
 _CREATE_SESSION_SQL = """
-insert into learning_sessions (user_id, scenario_id, mode, learning_source)
-values ($1,
-        coalesce(
-          -- 학습자 수준에 맞는 시나리오를 먼저 찾는다 (설계서 §3.3).
-          (select s.id from learning_scenarios s
-            where s.level = (select u.current_level from users u where u.id = $1)
-            order by s.created_at, s.id limit 1),
-          -- 없으면 가장 이른 행으로 떨어진다 — 시드가 `A2` 3행뿐이라 수준이 올라가면
-          -- 일치가 0행이 되고 실제로 이 경로로 온다. 학습이 막히는 것보다 시나리오가
-          -- 조금 쉬운 편이 낫다(§9 Failure). 시나리오가 아예 없으면 둘 다 null 이고
-          -- `scenario_id`는 null 로 남는다(컬럼 nullable) — 세션은 그대로 진행된다.
-          (select s.id from learning_scenarios s order by s.created_at, s.id limit 1)
-        ),
-        $2,
-        $3)
+insert into learning_sessions (user_id, scenario_id, mode, learning_source, scenario_pick)
+values ($1, $4, $2, $3, $5)
 returning id
+"""
+
+# 직전 창 (`scenario_rotation.WINDOW` 건). ⚠️ `scenario_id is null` 인 세션은 창에서 뺀다 —
+# 상황을 고르지 못한 세션은 「어느 상황을 했는가」에 대해 아무 말도 하지 않는다.
+# ⛔ `started_at` 동률에서 순서가 흔들리지 않게 `id` 를 둘째 키로 둔다(결정론이 요구다).
+_RECENT_PICKS_SQL = """
+select scenario_id, scenario_pick
+  from learning_sessions
+ where user_id = $1
+   and scenario_id is not null
+ order by started_at desc, id desc
+ limit $2
+"""
+
+# 후보와 **그 사용자의** 마지막 사용 시각. `$2` 가 null 이면 수준 조건 없이 전체를 준다.
+# ⛔ `category` 를 조건에 넣지 않는다 — 이전 판도 넣지 않았고 값역을 좁히는 것은 이 결정의
+# 범위가 아니다(설계서 §9).
+_SCENARIO_CANDIDATES_SQL = """
+select s.id,
+       s.created_at,
+       (select max(ls.started_at)
+          from learning_sessions ls
+         where ls.user_id = $1
+           and ls.scenario_id = s.id) as last_used_at
+  from learning_scenarios s
+ where $2::text is null or s.level = $2::text
 """
 
 # 세션이 고른 쉐도잉 클립을 붙인다 (`TASK-45` · 설계서 §12 요구 2·3).
@@ -347,6 +379,35 @@ async def record_drill_turns_expected(
     return expected
 
 
+async def _pick_scenario_for_user(conn: asyncpg.Connection, user_id: UUID) -> Pick | None:
+    """이력과 후보를 읽어 `pick_scenario` 에 넘긴다. ⛔ **규칙은 여기 없다.**
+
+    이 함수가 **DB 를 아는 유일한 자리**이고 고르는 규칙은 `services/scenario_rotation` 이
+    갖는다 — 그 분리가 비율 단정을 픽스처 없이 세게 한다
+    (`tests/unit/test_scenario_rotation.py` 가 30회 9건 · 40회 12건을 센다).
+    """
+    level = await conn.fetchval("select current_level from users where id = $1", user_id)
+    rows = await conn.fetch(_SCENARIO_CANDIDATES_SQL, user_id, level)
+    if not rows:
+        # 수준 일치가 0행 — 전체로 떨어진다. 학습이 막히는 것보다 시나리오가 조금 쉬운 편이
+        # 낫다. ⚠️ 이 폴백은 이전 판 SQL 의 `coalesce` 둘째 절을 그대로 계승한 것이고, 그
+        # 주석이 근거를 갖고 있었다(설계서 §9 Failure).
+        rows = await conn.fetch(_SCENARIO_CANDIDATES_SQL, user_id, None)
+    candidates = [
+        Candidate(
+            scenario_id=row["id"],
+            last_used_at=row["last_used_at"],
+            created_at=row["created_at"],
+        )
+        for row in rows
+    ]
+    recent_rows = await conn.fetch(_RECENT_PICKS_SQL, user_id, WINDOW)
+    recent = [
+        RecentPick(scenario_id=row["scenario_id"], pick=row["scenario_pick"]) for row in recent_rows
+    ]
+    return pick_scenario(recent=recent, candidates=candidates)
+
+
 async def create_session(
     pool: asyncpg.Pool,
     user_id: UUID,
@@ -376,12 +437,16 @@ async def create_session(
     유일한 근거다.
     """
     async with pool.acquire() as conn:
-        session_id = await conn.fetchval(
-            _CREATE_SESSION_SQL,
-            user_id,
-            mode,
-            learning_source or _DEFAULT_LEARNING_SOURCE,
-        )
+        async with conn.transaction():
+            picked = await _pick_scenario_for_user(conn, user_id)
+            session_id = await conn.fetchval(
+                _CREATE_SESSION_SQL,
+                user_id,
+                mode,
+                learning_source or _DEFAULT_LEARNING_SOURCE,
+                picked.scenario_id if picked is not None else None,
+                picked.pick if picked is not None else None,
+            )
     assert session_id is not None, "insert ... returning produced no row"
     return session_id
 
@@ -434,13 +499,21 @@ async def start_shadowing_session(
     **한 트랜잭션이다** — 세션을 만든 뒤 클립을 붙이기 전에 죽으면 클립 없는 쉐도잉 세션이
     남는데, 그것은 위 문장대로 정상 상태이므로 부분 실행이 손상이 아니다. 그래도 한 단위로
     묶는 이유는 **선택이 세션과 함께 보이는 것**이 재접속 복원의 전제이기 때문이다.
+
+    ⚠️ **시나리오도 배치 규칙을 통과한다** (`TASK-4` · 결정 73). 이 함수는 `create_session` 과
+    같은 INSERT 를 쓰므로 그 규칙을 공유하고, 그래서 쉐도잉 세션도 창에 들어간다 — 학습 세션의
+    한 종류이므로 그것이 맞다. ⛔ **클립 선택(`_ATTACH_SHADOWING_CLIP_SQL`)은 그 규칙 밖이다**
+    (설계서 §9) — 클립은 여전히 수준 일치 뒤 가장 이른 행이다.
     """
     async with pool.acquire() as conn, conn.transaction():
+        picked = await _pick_scenario_for_user(conn, user_id)
         session_id = await conn.fetchval(
             _CREATE_SESSION_SQL,
             user_id,
             "shadowing",
             learning_source or _DEFAULT_LEARNING_SOURCE,
+            picked.scenario_id if picked is not None else None,
+            picked.pick if picked is not None else None,
         )
         assert session_id is not None, "insert ... returning produced no row"
         await conn.execute(_ATTACH_SHADOWING_CLIP_SQL, session_id, user_id)

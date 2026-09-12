@@ -43,10 +43,18 @@ class RecentPick:
 
 @dataclass(frozen=True, slots=True)
 class Candidate:
-    """고를 수 있는 상황 한 건. `last_used_at` 이 `None` 이면 한 번도 쓰이지 않았다."""
+    """고를 수 있는 상황 한 건. `last_used_at` 이 `None` 이면 한 번도 쓰이지 않았다.
+
+    ⚠️ `created_at` 을 함께 받는 이유는 **기존 계약 하나를 지키기 위해서다.** 세션 시작은
+    이전부터 *"수준 일치가 0행이면 가장 이른 행으로 떨어진다"* 를 계약으로 갖고 있고
+    (`tests/harness/scenarios-E-agent-learning.md` 가 문서에 못 박은 값이다), 그것을
+    `test_session_creation_falls_back_to_the_earliest_scenario` 가 지킨다. 한 번도 안 쓴
+    후보끼리는 「오래 안 씀」으로 순서를 가릴 수 없으므로 **그때 생성 순서가 가른다.**
+    """
 
     scenario_id: UUID
     last_used_at: datetime | None
+    created_at: datetime
 
 
 @dataclass(frozen=True, slots=True)
@@ -61,10 +69,12 @@ def _staleness(candidate: Candidate) -> tuple[int, float, str]:
     """오래 안 쓴 것이 앞서는 정렬 키.
 
     `None`(한 번도 안 씀)을 가장 앞에 둔다 — `datetime` 과 `None` 을 직접 비교할 수 없어
-    앞자리 정수로 가른다. 마지막 자리는 **동률을 결정론으로 가르기 위한** UUID 문자열이다.
+    앞자리 정수로 가른다. ⚠️ **한 번도 안 쓴 것끼리는 `created_at` 이 가른다** — 그것이
+    「수준 일치가 0행이면 가장 이른 행」이라는 기존 계약을 지키는 자리다(`Candidate` 참조).
+    마지막 자리는 **동률을 결정론으로 가르기 위한** UUID 문자열이다.
     """
     if candidate.last_used_at is None:
-        return (0, 0.0, str(candidate.scenario_id))
+        return (0, candidate.created_at.timestamp(), str(candidate.scenario_id))
     return (1, candidate.last_used_at.timestamp(), str(candidate.scenario_id))
 
 

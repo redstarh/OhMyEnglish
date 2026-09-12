@@ -28,13 +28,23 @@ def _sid(n: int) -> UUID:
 
 
 def _cands(count: int, *, used: dict[int, int] | None = None) -> list[Candidate]:
-    """`count` 개의 후보. `used[n] = 일수` 면 그만큼 전에 쓴 것으로 둔다."""
+    """`count` 개의 후보. `used[n] = 일수` 면 그만큼 전에 쓴 것으로 둔다.
+
+    `created_at` 은 `n` 순서로 준다 — 번호가 작은 것이 먼저 만들어진 행이다. 한 번도 안 쓴
+    후보끼리의 순서를 그것이 가른다(기존 계약 「가장 이른 행」).
+    """
     used = used or {}
     out = []
     for n in range(1, count + 1):
         ago = used.get(n)
         last = None if ago is None else _T0 - timedelta(days=ago)
-        out.append(Candidate(scenario_id=_sid(n), last_used_at=last))
+        out.append(
+            Candidate(
+                scenario_id=_sid(n),
+                last_used_at=last,
+                created_at=_T0 + timedelta(seconds=n),
+            )
+        )
     return out
 
 
@@ -70,8 +80,12 @@ def test_null_pick_rows_are_not_counted_as_new() -> None:
 def test_never_used_beats_long_unused() -> None:
     """한 번도 안 쓴 후보가 가장 오래된 것보다 앞선다."""
     cands = [
-        Candidate(scenario_id=_sid(1), last_used_at=_T0 - timedelta(days=99)),
-        Candidate(scenario_id=_sid(2), last_used_at=None),
+        Candidate(
+            scenario_id=_sid(1),
+            last_used_at=_T0 - timedelta(days=99),
+            created_at=_T0,
+        ),
+        Candidate(scenario_id=_sid(2), last_used_at=None, created_at=_T0),
     ]
     got = pick_scenario(recent=[], candidates=cands)
     assert got == Pick(scenario_id=_sid(2), pick=NEW)
@@ -121,6 +135,7 @@ def _simulate(rounds: int, topics: int) -> tuple[list[str], int, int]:
                 last_used_at=None
                 if _sid(n) not in last_used
                 else _T0 + timedelta(days=last_used[_sid(n)]),
+                created_at=_T0 + timedelta(seconds=n),
             )
             for n in range(1, topics + 1)
         ]
