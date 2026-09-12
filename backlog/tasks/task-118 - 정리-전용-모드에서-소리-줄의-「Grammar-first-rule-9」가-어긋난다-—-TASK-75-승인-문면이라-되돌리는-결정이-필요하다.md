@@ -4,6 +4,7 @@ title: '정리: 전용 모드에서 소리 줄의 「Grammar first rule 9」가 
 status: To Do
 assignee: []
 created_date: '2026-09-11 23:49'
+updated_date: '2026-09-12 03:16'
 labels: []
 dependencies:
   - TASK-111
@@ -23,3 +24,9 @@ ordinal: 123000
 - [ ] #3 사용자 결정을 받는다 — TASK-75 승인 문면을 바꾸는 것이므로 팀리드가 정하지 않는다
 - [ ] #4 고치면 회차를 다시 돌려 바이트 게이트를 갱신한다
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-09-12 — 사용자 결정 71(AskUserQuestion · 세션 ohmyenglish-f4 가 받음): 「전용 모드에서만 구절을 버린다」. 정본은 docs/ops/captain-instruction-register.md 「결정 71」임. ⇒ 일반 세션 문면은 그대로 두므로 TASK-75 의 승인은 그것이 참인 모드에서 그대로 살고 자기모순만 사라짐. ⚠️ test_nova.py 가 그 문자열을 고정하므로 모드별로 가른 단정이 필요함. 구현은 nova.py 를 소유한 갈래(세션 ohmyenglish-19)에 전달했음.
+<!-- SECTION:NOTES:END -->

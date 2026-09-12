@@ -4,6 +4,7 @@ title: '구현 후보: 소리 줄에서 target_sound 키 강제를 «덜어낸�
 status: To Do
 assignee: []
 created_date: '2026-09-12 00:22'
+updated_date: '2026-09-12 03:16'
 labels: []
 dependencies: []
 ordinal: 128000
@@ -23,3 +24,9 @@ ordinal: 128000
 - [ ] #4 키가 흩어지는지 «함께» 센다 — 같은 소리가 여러 키로 오면 규칙 10 의 목적이 깨진 것이므로 그 대가를 수치로 적는다
 - [ ] #5 뺀 판이 이기면 V3(조건부 문장)도 «같은 회차에서» 걷어 프롬프트를 한 번에 정리한다 — 바이트 게이트를 두 번 갱신하지 않는다
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-09-12 — 사용자 결정 70(AskUserQuestion · 세션 ohmyenglish-f4 가 받음): 「강제를 뺀다」. 정본은 docs/ops/captain-instruction-register.md 「결정 70」임. ⛔ 감수한 대가가 명시됐음 — 반복 오류 묶기가 약해져 같은 소리가 여러 키로 흩어질 수 있음. 그것이 복습 큐 오염(TASK-116)보다 작다고 판단했음. ⚠️ 문면을 고치면 실물 4/4 의 근거가 고친 판에 붙지 않으므로 재측정이 따름 — 회차 설계는 이 태스크가 소유함. 구현은 nova.py 를 소유한 갈래(세션 ohmyenglish-19)에 전달했음.
+<!-- SECTION:NOTES:END -->
