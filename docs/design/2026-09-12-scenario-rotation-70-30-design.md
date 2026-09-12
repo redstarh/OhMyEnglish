@@ -100,7 +100,7 @@ order by s.created_at, s.id limit 1
 pick_scenario(
     *,
     recent: Sequence[RecentPick],   # 직전 10회 · 최신 먼저 · (scenario_id, pick)
-    candidates: Sequence[Candidate], # 후보 · (scenario_id, last_used_at | None)
+    candidates: Sequence[Candidate], # 후보 · (scenario_id, last_used_at | None, created_at)
 ) -> Pick | None                     # (scenario_id, pick) · 후보가 0이면 None
 ```
 
@@ -112,7 +112,11 @@ pick_scenario(
 4. **`new_count < 3` 이고 `new_candidates` 가 비지 않으면 신규**, 아니면 반복을 고른다.
 5. 고르려는 쪽이 비면 **다른 쪽으로 넘어간다**(멈추지 않는다).
 6. 고른 묶음 안에서는 **`last_used_at` 이 가장 이른 것** — `None`(한 번도 안 쓴 것)이 가장 이르다.
-   동률은 `scenario_id` 로 가른다(결정론을 위해).
+   ⚠️ **한 번도 안 쓴 것끼리는 `created_at` 이 가른다.** 구현 중에 드러난 요구다 — 세션 시작은
+   *"수준 일치가 0행이면 가장 이른 행으로 떨어진다"* 를 **기존 계약**으로 갖고 있고
+   (`tests/harness/scenarios-E-agent-learning.md` 가 문서에 못 박았고
+   `test_session_creation_falls_back_to_the_earliest_scenario` 가 지킨다), `scenario_id` 로 가르면
+   **그 계약이 깨진다**(UUID 순서는 생성 순서가 아니다). 마지막 동률만 `scenario_id` 로 가른다.
 7. `candidates` 가 0이면 `None` 을 낸다.
 
 ⛔ **난수를 쓰지 않는다.** 같은 입력에 같은 출력을 내는 것이 §6 의 검증을 가능하게 하는 조건이다.
@@ -124,11 +128,17 @@ pick_scenario(
 
 `create_session()` 이 **한 문장 insert 에서 두 단계**가 된다. ⚠️ 같은 트랜잭션 안에서 한다.
 
-1. `load_rotation_inputs(conn, user_id)` — 직전 10회와 후보 목록을 읽는다.
-   - 직전 10회: `learning_sessions` 를 `user_id` 로 `order by created_at desc limit 10`.
+1. `_pick_scenario_for_user(conn, user_id)` — 직전 10회와 후보 목록을 읽어 규칙에 넘긴다.
+   ⚠️ **이름이 이 문서의 초안과 다르다** — 초안은 `load_rotation_inputs` 였고 구현은 읽기만
+   하지 않고 **고른 결과를 돌려주므로** 이름을 그것에 맞췄다.
+   - 직전 10회: `learning_sessions` 를 `user_id` 로 `order by started_at desc, id desc limit 10`.
+     ⛔ **컬럼은 `started_at` 이다** — 이 문서의 초안이 `created_at` 이라 적었는데 그 표에는 그
+     컬럼이 없다(`information_schema` 직접 조회로 확인했다). 창 밖으로 뺄 것 하나: `scenario_id`
+     가 null 인 세션은 「어느 상황을 했는가」에 대해 아무 말도 하지 않는다.
    - 후보: `learning_scenarios` 에서 `level` 이 사용자 `current_level` 과 일치하는 행.
      **일치가 0행이면 전체 행으로 떨어진다** — 지금 SQL 의 폴백을 그대로 계승한다.
-   - `last_used_at`: `learning_sessions` 를 `scenario_id` 로 묶은 최대 `created_at`(사용자 단위).
+   - `last_used_at`: `learning_sessions` 를 `scenario_id` 로 묶은 최대 **`started_at`**(사용자 단위).
+   - `created_at`: `learning_scenarios.created_at` 을 그대로 싣는다(규칙 6 이 쓴다).
 2. `pick_scenario(...)` 로 하나를 고른다.
 3. `insert into learning_sessions (..., scenario_id, scenario_pick)` 에 **고른 값과 고른 쪽**을 넣는다.
 

@@ -10,6 +10,21 @@
 
 **Spec:** `docs/design/2026-09-12-scenario-rotation-70-30-design.md`
 
+> ⛔ **실행 중에 이 계획의 사실 오류 셋이 드러났다 — 아래 코드 블록을 그대로 베끼지 마라.**
+> 정정된 내용은 **설계서 §4 가 갖는다**(여기서 재서술하지 않는다). 실제로 들어간 형태는 커밋
+> `e057f55` 다.
+>
+> 1. `learning_sessions` 의 시각 컬럼은 `created_at` 이 아니라 **`started_at`** 이다. 이 계획의
+>    `_RECENT_PICKS_SQL`·`_SCENARIO_CANDIDATES_SQL` 과 Task 5 의 테스트 쿼리가 틀렸다.
+> 2. `Candidate` 에 **`created_at` 이 하나 더 필요하다.** 한 번도 안 쓴 후보끼리를 `scenario_id`
+>    로 가르면 「수준 일치가 0행이면 가장 이른 행」이라는 **기존 계약이 깨진다.**
+> 3. `_CREATE_SESSION_SQL` 을 쓰는 곳이 **둘**이다 — `create_session` 과 `start_shadowing_session`.
+>    파라미터를 늘리면 뒤쪽도 함께 고쳐야 한다(Task 5 는 앞쪽만 적었다).
+>
+> ⚠️ **부분 실행에 `-c pyproject.toml` 을 빼면 `asyncio` 모드가 안 걸려 기존 테스트가 거짓
+> 빨강이 된다** — Global Constraints 에 적어 두고도 한 번 어겼다. 「6 failed」를 회귀로 오독할
+> 자리였다.
+
 ## Global Constraints
 
 - 결정의 정본은 `docs/ops/captain-instruction-register.md` 의 **결정 73·74·75** 다. 계획이 그것과 어긋나면 계획이 틀린 것이다.
