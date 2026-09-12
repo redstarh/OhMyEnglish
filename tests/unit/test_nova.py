@@ -1821,18 +1821,18 @@ def test_the_pronunciation_prompt_is_byte_identical_to_the_measured_one():
     **가리키는 회차가 2026-09-12 에 두 번 바뀌었다.** 이력을 짧게 남긴다 — 어느 문면이 어느 수치를
     갖는지가 이 게이트의 전부이기 때문이다:
 
-    1. `2026-09-11-task86-dedicated-session/prompt_dedicated_cut.txt` (1,702자 · **4/4**) — 규칙 11 이
-       이 프롬프트에 **없는 규칙 4** 를 가리켰다.
+    1. `2026-09-11-task86-dedicated-session/prompt_dedicated_cut.txt` (1,702자 · **4/4**) —
+       규칙 11 이 이 프롬프트에 **없는 규칙 4** 를 가리켰다.
     2. `2026-09-12-task111-116-selfcontained-key/prompt_dedicated_v2.txt` (1,927자 · **REG 4/4**) —
        번호 참조를 걷고 `target_sound` 키를 **조건부**로 줬다.
     3. **지금**: `2026-09-12-task123-118-subtract-key-forcing/prompt_dedicated_v3.txt`
-       (1,660자 · **ARM-A 4/4**) — 사용자 **결정 70**(키 강제를 **뺀다**)과 **결정 71**(전용 모드에서만
-       `Grammar first` 구절을 버린다)을 이행했다.
+       (1,660자 · **ARM-A 4/4**) — 사용자 **결정 70**(키 강제를 **뺀다**)과 **결정 71**(전용
+       모드에서만 `Grammar first` 구절을 버린다)을 이행했다.
 
     ⛔ **이 파일에 묶인 수치는 ARM-A 4/4 «뿐»이다 — 「기록이 코칭과 맞는다」가 아니다.** 그 축은 두
     방향 모두 반증됐다: 조건을 **더한** 판이 3/3 실패(`…task120-absent-planted-sound.md`), 강제를
-    **덜어낸** 이 판도 3/3 실패(`…task123-118-subtract-key-forcing.md` ARM-B — 강제가 없는데도 계획의
-    키가 그대로 실렸다). ⛔ **이 게이트를 그 축의 근거로 인용하지 마라.**
+    **덜어낸** 이 판도 3/3 실패(`…task123-118-subtract-key-forcing.md` ARM-B — 강제가 없는데도
+    계획의 키가 그대로 실렸다). ⛔ **이 게이트를 그 축의 근거로 인용하지 마라.**
     """
     measured = (
         Path(__file__).resolve().parents[1]
