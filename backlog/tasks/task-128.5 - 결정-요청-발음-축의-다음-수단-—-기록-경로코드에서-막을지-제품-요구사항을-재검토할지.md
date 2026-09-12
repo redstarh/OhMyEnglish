@@ -1,10 +1,10 @@
 ---
 id: TASK-128.5
 title: '결정 요청: 발음 축의 다음 수단 — 기록 경로(코드)에서 막을지 제품 요구사항을 재검토할지'
-status: Awaiting Decision
+status: Done
 assignee: []
 created_date: '2026-09-12 14:20'
-updated_date: '2026-09-12 14:20'
+updated_date: '2026-09-12 14:32'
 labels: []
 dependencies: []
 parent_task_id: TASK-128
@@ -21,6 +21,6 @@ TASK-128.3 회차에서 세 방향(키 강제를 더한 판 · 덜어낸 판 · 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 사용자에게 두 수단을 올려 어느 쪽으로 갈지 받는다
-- [ ] #2 받은 결정과 근거를 docs/ops/captain-instruction-register.md 에 적는다
+- [x] #1 사용자에게 두 수단을 올려 어느 쪽으로 갈지 받는다
+- [x] #2 받은 결정과 근거를 docs/ops/captain-instruction-register.md 에 적는다
 <!-- AC:END -->

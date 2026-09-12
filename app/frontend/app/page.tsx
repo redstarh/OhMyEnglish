@@ -65,14 +65,18 @@ const ADDITIONAL_LEARNING: ReadonlyArray<{
   { label: "업무 역할극", entry: null, note: "무대를 고르는 화면이 아직 없어요" },
 ];
 
-// 발음 집중을 골랐을 때 화면이 말해야 하는 두 가지 (`TASK-10.2` AC#2).
+// 발음 집중을 골랐을 때 화면이 말해야 하는 두 가지 (`TASK-10.2` AC#2 · `TASK-128.4`).
 //
-// ⛔ **서버는 오늘의 소리를 못 고르면 조용히 말하기로 떨어뜨린다.** 화면이 침묵하면 사용자는
-// **다른 세션을 받은 것을 모른다** — 그래서 `session_started` 의 `pronunciation_focus` 유무로
-// 갈라 말한다. ⚠️ 소리 키(`th_as_s`)는 기계 키라 렌더하지 않는다(설계서 §10 미결 4).
+// ⛔ **둘 다 「발음 연습으로 시작했다」고 말한다** (사용자 결정 83). 이전 판은 `pronunciation_focus`
+// 키의 **부재**를 「말하기로 떨어졌다」로 읽었는데, 사용자 결정 72 가 그 폴백을 없앴으므로 그 문장은
+// **거짓**이 됐다 — 소리를 못 골라도 세션은 전용 모드로 열린다.
+// ⚠️ **그 경로가 예외가 아니라 평시다** — 발음 기록이 0건이면 후보가 비고 그것이 지금 dev DB 의
+// 상태다. 즉 거짓 문구가 **기본값으로** 뜨고 있었다.
+// ⛔ **두 상태를 한 문구로 합치지 않는다**(결정 83 이 그 안을 기각했다) — 둘은 실제로 다르고 둘 다
+// 참이다. ⚠️ 소리 키(`th_as_s`)는 기계 키라 렌더하지 않는다(설계서 §10 미결 4).
 const PRONUNCIATION_ENTERED = "발음 연습으로 시작했어요. 소리를 시범하고 다시 말하기를 부탁할 거예요.";
-const PRONUNCIATION_FELL_BACK =
-  "오늘 다룰 소리가 아직 없어서 일반 대화로 시작했어요. 대화에서 소리가 모이면 이 연습이 열려요.";
+const PRONUNCIATION_NO_CANDIDATE =
+  "발음 연습으로 시작했어요. 오늘 다룰 소리는 대화에서 듣고 고를 거예요.";
 
 interface TranscriptLine {
   id: number;
@@ -144,11 +148,12 @@ export default function SessionPage() {
       switch (event.type) {
         case "session_started":
           sessionIdRef.current = event.session_id;
-          // ⛔ **키의 «부재»가 폴백의 신호다** (`lib/ws.ts` 의 `pronunciation_focus` 주석).
-          // 요청하지 않은 세션에서는 이 자리를 건드리지 않는다.
+          // ⛔ **키의 «부재»는 「후보가 아직 없다」다 — 폴백이 아니다** (결정 72·83 ·
+          // `lib/ws.ts` 의 `pronunciation_focus` 주석). 요청하지 않은 세션에서는 이 자리를
+          // 건드리지 않는다.
           if (requestedModeRef.current === "pronunciation") {
             setEntryNotice(
-              event.pronunciation_focus ? PRONUNCIATION_ENTERED : PRONUNCIATION_FELL_BACK,
+              event.pronunciation_focus ? PRONUNCIATION_ENTERED : PRONUNCIATION_NO_CANDIDATE,
             );
           }
           break;
