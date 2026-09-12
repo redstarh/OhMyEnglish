@@ -1083,3 +1083,40 @@ async def test_utterance_type_domain_includes_shadowing_recording(db_conn: async
     assert definition is not None
     for value in ("learning", "voice_command", "command_confirmation", "shadowing_recording"):
         assert value in definition, f"{value}가 값역에서 빠졌다"
+
+
+# ── 016 scenario_pick (대화 상황 배치 · `TASK-4` · 결정 73·74) ─────────────────
+#
+# ⚠️ **nullable 이 요구다.** 016 이전 세션에는 이 값이 없고 소급해 채우지 않는다 — 과거 세션의
+# 신규 여부는 그 시점의 창에 달렸고 지금 창으로 다시 접으면 실제로 일어난 것과 다른 값이 된다
+# (설계서 §5). `scenario_rotation.pick_scenario` 가 `None` 을 세지 않는 것이 그 짝이다.
+@pytest.mark.asyncio
+async def test_scenario_pick_is_nullable_and_bounded(db_conn: asyncpg.Connection):
+    await _insert_user(db_conn)
+
+    # ⑴ 값을 주지 않아도 행이 만들어진다 — 과거 행과 같은 모양이다.
+    null_row = await db_conn.fetchval(
+        "insert into learning_sessions (user_id, mode) values ($1, 'speaking') "
+        "returning scenario_pick",
+        migrate.USER_ID,
+    )
+    assert null_row is None
+
+    # ⑵ 값역 안의 두 값은 받는다.
+    for value in ("new", "repeat"):
+        got = await db_conn.fetchval(
+            "insert into learning_sessions (user_id, mode, scenario_pick) "
+            "values ($1, 'speaking', $2) returning scenario_pick",
+            migrate.USER_ID,
+            value,
+        )
+        assert got == value
+
+    # ⑶ 값역 밖은 거부한다 — 오타가 조용히 집계를 틀리게 하는 것을 막는다.
+    with pytest.raises(asyncpg.CheckViolationError):
+        async with db_conn.transaction():
+            await db_conn.execute(
+                "insert into learning_sessions (user_id, mode, scenario_pick) "
+                "values ($1, 'speaking', 'fresh')",
+                migrate.USER_ID,
+            )
