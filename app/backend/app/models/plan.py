@@ -35,6 +35,20 @@
 `_json_candidates`의 관용 범위는 **`models/analysis.py`와 글자 그대로 같다** — 원문,
 그리고 전체가 코드펜스인 경우 그 본문뿐이다. 산문 중간의 JSON을 긁어내지 않는다.
 계약을 지키지 않은 응답은 실패로 보고하는 편이 낫다.
+
+⚠️ **위 문장을 재는 축이 이제 있다** — `tests/unit/test_json_candidates_parity.py` 가 두 구현의
+**출력**을 표본으로 비교한다(2026-09-12 · `TASK-132`). 그 전에는 주장만 있고 검사가 없어서, 한쪽의
+관용 범위를 넓히면 이 문장이 **조용히 거짓**이 될 자리였다.
+⛔ **`analysis.py` 가 자기 판을 따로 정의한다** — 하나로 합칠지 둘로 둘지는 `TASK-132` AC#1 의
+결정이고 아직 열려 있다.
+
+**이 파일의 `_json_candidates` 소비자 셋** (private 이지만 밖에서 쓴다 — 늘리거나 관용 범위를
+고칠 때 셋 다 본다):
+
+1. 같은 파일의 `parse_plan`.
+2. `models/scenario_draft.py` 의 `_loaded` — `parse_plan` 과 **같은 관대함**을 쓰기 위해
+   복제하지 않고 가져갔다(`TASK-5` · 그 파일 import 주석이 근거를 갖는다).
+3. `models/analysis.py` 는 **가져가지 않고 자기 판을 갖는다** — 위 ⛔ 가 그 사정이다.
 """
 
 from __future__ import annotations
