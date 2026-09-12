@@ -1,10 +1,10 @@
 ---
 id: TASK-66
 title: '구현: 합성한 쉐도잉 클립 오디오를 담을 자리를 만든다 — 지금 스키마에 자리가 0이다'
-status: To Do
+status: Awaiting Decision
 assignee: []
 created_date: '2026-09-09 14:16'
-updated_date: '2026-09-12 17:34'
+updated_date: '2026-09-12 23:00'
 labels: []
 dependencies:
   - TASK-63
