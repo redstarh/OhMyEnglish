@@ -1,0 +1,70 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "You are at a cafe now. Tell me one thing you want to order today — for example an iced coffee, an orange juice, or an egg sandwich. One short sentence, please.",
+      "context": "Ordering something at a cafe"
+    },
+    {
+      "prompt": "It is evening at home. Tell me one thing you need to do tonight — maybe an email, an exercise video, or an hour of study. Keep it to one short sentence.",
+      "context": "Talking about tonight's plan at home"
+    },
+    {
+      "prompt": "Tell me about one small thing you enjoyed this week — an ice cream, an old movie, an easy walk. Say it in one short sentence.",
+      "context": "Small talk about this week"
+    },
+    {
+      "prompt": "Your friend asks about your weekend. Tell me one place or thing you'd like to see — an art gallery, an animal cafe, an outdoor market. One short sentence.",
+      "context": "Weekend plan with a friend"
+    },
+    {
+      "prompt": "After a short team talk at work, tell me one thing you want to make or write first — an action plan, an agenda, an update. One short sentence.",
+      "context": "Light work talk after a team chat"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "명사 앞에 a/an을 빼먹는 습관이 가장 오래 반복되고 있고, 'an'을 'a'처럼 발음하는 문제도 함께 나오니 오늘은 이 둘을 한 문장에서 같이 연습해요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "one short single-clause sentence, about five to eight words",
+    "hint_timing": "wait about five seconds of silence, then give one short hint; correct the 'an' sound right after the learner finishes speaking",
+    "contexts": [
+      "ordering at a cafe",
+      "evening plans at home",
+      "small talk about this week",
+      "weekend plans with a friend",
+      "a light work chat with a teammate"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "짧은 단문은 잘 만들지만 관사와 'an' 발음이 아직 불안정해서 A2에서 더 다듬는 것이 좋아요."
+  },
+  "notes": [
+    "Says 'a meeting' correctly in memorized short patterns, but drops the article when a noun gets longer, like 'project architecture meeting'.",
+    "Often breaks one idea into separate fragments ('i had a project meeting.' + 'yesterday.'), so encourage finishing in one breath.",
+    "'an' before vowel sounds is pronounced like 'a'; needs the /n/ clearly linked to the next word."
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "You are at a cafe after work. What do you want to order today — an americano? an apple juice? an egg sandwich? Tell me in one short sentence.",
+      "context": "Ordering a drink at a cafe after work"
+    },
+    {
+      "prompt": "You have one free hour tonight. Tell me one thing you want to do with it. Maybe an old movie, an English podcast, or an easy book?",
+      "context": "Planning a free hour at home in the evening"
+    },
+    {
+      "prompt": "Something small and interesting happened to you yesterday — an animal on the street, an old friend on the subway, an email from someone. Tell me about one of them in one short sentence.",
+      "context": "Sharing a small event from yesterday"
+    },
+    {
+      "prompt": "Tomorrow morning you start early. Tell me the first thing you need to do. An email? An update? An apple for breakfast?",
+      "context": "Talking about tomorrow morning's first task"
+    },
+    {
+      "prompt": "Your team lead asks what you will write today. Tell me one short answer about one thing you want to make — an agenda, an action plan, or an idea list.",
+      "context": "Quick answer to a team lead about one small work item"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "짧은 문장에서 a/an을 자꾸 빼시고, 'an'을 '어'처럼 발음하셔서 오늘은 이 두 가지를 함께 연습해요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "short single-clause sentences of about 5 to 8 words; two short sentences at most",
+    "hint_timing": "wait about five seconds of silence, then give one short hint; correct the missing or mispronounced 'an' right after the learner finishes speaking",
+    "contexts": [
+      "ordering at a cafe after work",
+      "a free hour at home in the evening",
+      "telling a small story about yesterday",
+      "the first task of tomorrow morning",
+      "a one-sentence answer to a team lead"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "짧은 문장은 잘 만들지만 관사와 발음이 아직 불안정하므로 A2에서 더 다듬는 것이 좋아요.",
+    "": ""
+  },
+  "notes": [
+    "Produces 'a meeting', 'a joke' correctly when the sentence is very short, but drops the article once a noun phrase gets longer ('project architecture meeting').",
+    "Says 'an' as a reduced 'a' sound, so 'an action plan' comes out closer to 'a action plan' — the article may be intended but not heard.",
+    "Often builds an answer in fragments across several turns; encourage one complete short sentence in a single breath.",
+    "Recent Korean-script attempts suggest self-practice by ear; short words with 'an' are a good fit for that habit."
+  ]
+}

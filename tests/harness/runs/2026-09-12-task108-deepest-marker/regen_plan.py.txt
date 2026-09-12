@@ -1,0 +1,162 @@
+#!/usr/bin/env python3
+"""`TASK-108` AC#2 — 고친 프롬프트로 계획을 다시 생성해 `parse_plan` 이 통과하는지 본다.
+
+⛔ DB 는 SELECT 만 한다. `process_plan` 을 부르지 않고 `build_plan_prompt` → Claude →
+`parse_plan` 까지만 한다 — 계획 행·노트 행을 쓰지 않는다.
+
+⛔ 재료 조건: **만성 목록 2건 이상.** 1건이면 후보가 하나라 모델이 틀릴 수 없어 고치기 전에도
+통과한다(회차 기록 §0). 조건이 어긋나면 Claude 를 부르지 않고 죽는다.
+
+`DRY=1` 이면 재료와 프롬프트 산출물만 보고 Claude 를 부르지 않는다 — 상한을 쓰기 전에 재료
+조건과 표식을 확인하는 값싼 단계다.
+"""
+
+import asyncio
+import json
+import os
+from pathlib import Path
+
+from app.config import get_settings
+from app.db import close_pool, pool
+from app.models.plan import parse_plan
+from app.services.chronic import deepest_recurrence
+from app.services.plan import build_plan_prompt
+from app.services.plan_input import load_plan_input
+from app.workers.claude_client import BedrockClaudeClient
+
+MARKER = "[deepest recurrence]"
+RULE_HEADER = "Deepest recurrence:"
+ROUNDS = 3  # 회차 기록 §0 의 상한. ⛔ 여기서 늘리지 않는다.
+_OUT = Path("/tmp/task108_regen.json")
+
+
+async def main() -> None:
+    settings = get_settings()
+    conn_pool = await pool()
+
+    async with conn_pool.acquire() as conn:
+        # 최신 계획이 붙은 세션의 소유자 — 앞 회차(`build_soundq_plan.py.txt`)와 같은 고르기다.
+        user_id = await conn.fetchval(
+            "select ls.user_id from session_plans sp "
+            "join learning_sessions ls on ls.id = sp.session_id "
+            "order by sp.created_at desc limit 1"
+        )
+        if user_id is None:
+            raise SystemExit("계획이 붙은 세션이 없다 — 이 팔은 제품 재료 위에 선다")
+        data = await load_plan_input(conn, user_id)
+
+    deepest = deepest_recurrence(data.chronic)
+    print(f"=== 재료 (user {user_id})")
+    print(f"  chronic      : {len(data.chronic)}건")
+    for metric in data.chronic:
+        print(
+            f"    - {metric.pattern_key} [{metric.pattern_id}] freq {metric.frequency} "
+            f"· sessions {metric.recurring_sessions} · days {metric.recurring_days}"
+        )
+    print(f"  due_reviews  : {[(r.pattern_key, r.category) for r in data.due_reviews]}")
+    print(f"  recent       : {len(data.recent)}건 · current_level {data.current_level}")
+    print(f"  deepest      : {None if deepest is None else (deepest.pattern_key, deepest.pattern_id)}")
+
+    if len(data.chronic) < 2:
+        raise SystemExit(
+            f"만성 {len(data.chronic)}건 — 회차 기록 §0 의 재료 조건(2건 이상)에 어긋난다. "
+            "이 재료로 얻은 통과는 판별력이 0이므로 Claude 를 부르지 않는다"
+        )
+    if deepest is None:
+        raise SystemExit("deepest 가 None 이다 — 위 조건과 모순이다(코드를 먼저 본다)")
+
+    prompt = build_plan_prompt(data)
+    Path("/tmp/task108_prompt.txt").write_text(prompt, encoding="utf-8")
+    print(f"=== 조립된 프롬프트 {len(prompt)}자 → /tmp/task108_prompt.txt")
+
+    chronic_section = prompt[
+        prompt.index("Chronic metrics") : prompt.index("Pronunciation attempts")
+    ]
+    marked = [line for line in chronic_section.splitlines() if MARKER in line]
+    print(f"  표식이 붙은 만성 줄 {len(marked)}건")
+    for line in marked:
+        print(f"    {line.strip()}")
+    block = prompt[prompt.index(RULE_HEADER) :]
+    print("--- 규칙 블록 ---")
+    print(block[: block.find("\n\n")])
+    print("---")
+
+    if os.environ.get("DRY") == "1":
+        print("=== DRY=1 — Claude 를 부르지 않고 끝낸다")
+        await close_pool()
+        return
+
+    allowed = {r.pattern_id for r in data.due_reviews} | {m.pattern_id for m in data.chronic}
+    client = BedrockClaudeClient(settings)
+    rounds: list[dict[str, object]] = []
+
+    for number in range(1, ROUNDS + 1):
+        print(f"=== {number}/{ROUNDS} Claude 호출 ({settings.claude_model_id})")
+        raw = await client.analyze(prompt)
+        Path(f"/tmp/task108_raw_{number}.json").write_text(raw, encoding="utf-8")
+        # ⛔ 원문을 `json.loads` 로 직접 읽지 않는다 — 1차 실행에서 모델이 무인용 키
+        # (`reason: ""`)를 내 스파이크가 죽었고 회차 하나를 잃었다. 판정은 제품 경로가 낸다.
+        verdict = "통과"
+        plan = None
+        try:
+            plan = parse_plan(
+                raw,
+                current_level=data.current_level,
+                allowed_pattern_ids=allowed,
+                deepest_pattern_id=deepest.pattern_id,
+            )
+        except Exception as exc:  # noqa: BLE001 — 사유를 회차 기록에 그대로 옮긴다
+            verdict = f"거부: {type(exc).__name__}: {exc}"
+        if plan is not None:
+            focus = [(item.pattern_key, str(item.pattern_id)) for item in plan.focus]
+        else:
+            # 거부된 회차도 초점을 보고 싶다 — 읽히면 읽고, 안 읽히면 그 사실만 남긴다.
+            try:
+                payload = json.loads(raw)
+                focus = [
+                    (item.get("pattern_key"), item.get("pattern_id"))
+                    for item in payload.get("focus", [])
+                ]
+            except json.JSONDecodeError as exc:
+                focus = [("(원문이 JSON 으로 안 읽힘)", f"{exc}")]
+        includes_deepest = any(str(deepest.pattern_id) == pattern_id for _, pattern_id in focus)
+        print(f"  초점        : {focus}")
+        print(f"  표식 대상 포함: {includes_deepest}")
+        print(f"  parse_plan  : {verdict}")
+        rounds.append({"focus": focus, "includes_deepest": includes_deepest, "verdict": verdict})
+
+    passed = sum(1 for row in rounds if row["verdict"] == "통과")
+    with_deepest = sum(1 for row in rounds if row["includes_deepest"])
+    print(f"=== 집계 — parse_plan 통과 {passed}/{ROUNDS} · 표식 대상 포함 {with_deepest}/{ROUNDS}")
+    _OUT.write_text(
+        json.dumps(
+            {
+                "user_id": str(user_id),
+                "chronic": [
+                    {
+                        "pattern_key": m.pattern_key,
+                        "pattern_id": str(m.pattern_id),
+                        "frequency": m.frequency,
+                        "recurring_sessions": m.recurring_sessions,
+                        "recurring_days": m.recurring_days,
+                    }
+                    for m in data.chronic
+                ],
+                "deepest": {"pattern_key": deepest.pattern_key, "pattern_id": str(deepest.pattern_id)},
+                "prompt_chars": len(prompt),
+                "marked_lines": len(marked),
+                "rounds": rounds,
+                "passed": passed,
+                "with_deepest": with_deepest,
+            },
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+    print(f"→ {_OUT}")
+    await close_pool()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

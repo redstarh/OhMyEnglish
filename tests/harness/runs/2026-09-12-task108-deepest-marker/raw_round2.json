@@ -1,0 +1,71 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "Tell me about one thing you ate today. Say it in one short sentence, like \"I had ___ .\"",
+      "context": "Daily life: talking about a meal — words like an apple, an egg, an orange"
+    },
+    {
+      "prompt": "What is one small thing you want to buy this week? Tell me in one short sentence.",
+      "context": "Daily life: shopping — words like an umbrella, an eraser, an ice coffee"
+    },
+    {
+      "prompt": "Tell me about one thing you saw on your way home yesterday.",
+      "context": "Daily life: commute — words like an old cat, an open shop, an elevator"
+    },
+    {
+      "prompt": "You need one hour for something after work. What do you need it for? Tell me in one short sentence.",
+      "context": "Daily life to work: after-work time — words like an hour, an English class, an exercise video"
+    },
+    {
+      "prompt": "Tell me one thing you wrote or made at work today. Keep it to one short sentence.",
+      "context": "Light work topic: simple work task — words like an email, an answer, an idea"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "짧은 문장에서도 a/an이 자주 빠지고, an을 'a'처럼 발음해서 오늘은 이 두 가지를 같이 연습해요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "one short single-clause sentence, about 5-8 words",
+    "hint_timing": "wait about three seconds after the learner finishes, then hint only if a/an is missing or 'an' sounds like 'a'",
+    "contexts": [
+      "food and meals",
+      "small shopping",
+      "commute and things seen on the way home",
+      "after-work plans",
+      "one simple work task (email, idea)"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "짧은 문장은 만들 수 있지만 관사와 발음이 아직 불안정해서 A2에서 더 다져야 합니다."
+  },
+  "notes": [
+    "Produces 'a meeting', 'a joke' correctly when repeating a corrected sentence, but drops the article again in a new noun phrase (project architecture meeting).",
+    "Often breaks one sentence into fragments across turns ('this meeting was' / 'project architecture meeting'), which is where the article disappears.",
+    "Says 'an' as 'a' even right after a successful repetition — needs slow, isolated production of an + vowel nouns.",
+    "Recent Hangul-transcribed attempts suggest he is trying to sound out longer sentences by reading; keep prompts short and self-generated."
+  ]
+}

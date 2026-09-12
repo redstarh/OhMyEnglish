@@ -1,10 +1,10 @@
 ---
 id: TASK-108
 title: '결함: 계획 검증이 프롬프트가 요구하지 않은 것을 요구한다 — deepest recurrence 포함 규칙이 _OUTPUT_SPEC 에 없다'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-11 11:35'
-updated_date: '2026-09-11 22:48'
+updated_date: '2026-09-12 00:02'
 labels: []
 dependencies: []
 ordinal: 111000
@@ -18,9 +18,9 @@ ordinal: 111000
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 프롬프트가 deepest recurrence 요구를 말하게 하거나 검증에서 그 요구를 내린다 — 어느 쪽인지 근거와 함께 정한다
-- [ ] #2 고친 뒤 같은 재료로 계획 생성을 다시 돌려 parse_plan 이 통과하는 것을 실물로 확인한다
-- [ ] #3 ⛔ AC11-2 를 없애지 않는다 — 그 규칙은 캡틴 결정이고 이 태스크가 정하는 것은 그것을 «어디서» 집행하는가다
+- [x] #1 프롬프트가 deepest recurrence 요구를 말하게 하거나 검증에서 그 요구를 내린다 — 어느 쪽인지 근거와 함께 정한다
+- [x] #2 고친 뒤 같은 재료로 계획 생성을 다시 돌려 parse_plan 이 통과하는 것을 실물로 확인한다
+- [x] #3 ⛔ AC11-2 를 없애지 않는다 — 그 규칙은 캡틴 결정이고 이 태스크가 정하는 것은 그것을 «어디서» 집행하는가다
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -51,4 +51,16 @@ ordinal: 111000
 ⚠️ AC#2 의 판별력 경고가 더 강해졌음 — 앞 노트가 「만성 1건 재료로는 고치기 전에도 통과한다」를 적었고, 이제 「만성 2건 이상이어도 자주 통과한다」가 더해짐. ⇒ 그 AC 를 잴 때는 **회차 수를 미리 정하고** 통과를 「고쳐졌다」로 읽지 않아야 함.
 
 ⚠️ 값어치 있는 부수 사실: 이 결함이 나면 last_error 에 사유가 남으므로(services/plan.py:512) **소급 집계가 가능함** — analysis_jobs 의 last_error 를 훑어 「deepest recurrence」 문면을 세면 과거 발생률을 얻을 수 있음. 그것이 AC#1 의 값싼 경로임.
+
+2026-09-12 세션 ohmyenglish-f4 가 닫았음. 정본 회차 기록은 tests/harness/runs/2026-09-12-task108-deepest-marker.md 임.
+
+AC#1 판정 — 「프롬프트가 말하게 하는」 쪽을 골랐음. 근거 셋: ⑴ AC11-2 는 캡틴 결정이라 집행을 내릴 수 없음(AC#3) ⑵ 순위의 정본은 chronic.py 의 deepest_recurrence 하나이고 프롬프트와 parse_plan 이 «같은 함수» 를 부르면 두 곳이 갈라지지 않음 ⑶ 노트가 걱정한 「조립 함수가 순수 함수라는 성질과 인자 목록」 제약은 실제로 걸리지 않았음 — 재료가 PlanInput.chronic 안에 이미 있고 deepest_recurrence 도 순수 함수라 build_plan_prompt 의 인자 목록이 그대로임.
+
+구현(커밋 bee48cc): 만성 줄에 [deepest recurrence] 표식 + 조건부 블록 _DEEPEST_FOCUS_RULE. ⚠️ 만성 목록이 비면 붙이지 않음 — parse_plan 도 그때 이 규칙을 적용하지 않음(콜드스타트). 셋째 줄이 발음 초점 규칙과의 자리 배분을 닫음(초점 상한 2개).
+
+AC#2 실측 — 만성 8건 재료(§0 의 재료 조건 충족) · deepest 가 원래 거부 메시지의 그 id 70ad1279 임. Claude 3회에서 parse_plan 통과 2/3 · 표식 대상 초점 포함 3/3 · 「deepest recurrence」 사유 거부 0/3. ⛔ 표본 3으로 「거부가 사라졌음」을 주장하지 않음(동료 세션이 무수정 판에서 4/4 통과를 관측했음).
+
+⚠️ 이 노트의 값싼 경로(analysis_jobs.last_error 소급 집계)는 판별력이 0 이었음 — 문면이 0건인데 원래 관측이 스파이크에서 나 job 행을 만들지 않았기 때문임. 그 0건을 「과거에 발생하지 않았음」으로 읽지 않음.
+
+⇒ 남은 것은 TASK-119 로 분리했음 — 모델이 level 객체에 여분 키를 붙여 거부되는 부류(실측 3형태, 생산 경로 1건 포함).
 <!-- SECTION:NOTES:END -->

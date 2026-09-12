@@ -1,0 +1,113 @@
+{
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "chronic": [
+    {
+      "pattern_key": "article_missing_before_noun",
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "frequency": 7,
+      "recurring_sessions": 4,
+      "recurring_days": 3
+    },
+    {
+      "pattern_key": "article_missing_the_before_place_noun",
+      "pattern_id": "e648ad11-2bf5-43cf-96b0-eb9d7b6e329e",
+      "frequency": 5,
+      "recurring_sessions": 3,
+      "recurring_days": 2
+    },
+    {
+      "pattern_key": "article_wrong_definite_article",
+      "pattern_id": "9db5f7d4-e676-46d1-968d-be86b656134a",
+      "frequency": 2,
+      "recurring_sessions": 2,
+      "recurring_days": 2
+    },
+    {
+      "pattern_key": "business_expression_verb_noun_collocation",
+      "pattern_id": "a719446a-2ec7-464d-bdbd-e46a2eaa723a",
+      "frequency": 3,
+      "recurring_sessions": 1,
+      "recurring_days": 1
+    },
+    {
+      "pattern_key": "preposition_missing_to_after_go",
+      "pattern_id": "e76b8e82-3068-4333-a7b7-4baadd046b54",
+      "frequency": 1,
+      "recurring_sessions": 1,
+      "recurring_days": 1
+    },
+    {
+      "pattern_key": "preposition_time_expression_ago",
+      "pattern_id": "09ed5f7f-bdf7-49b6-a0b0-46db2c36dd4e",
+      "frequency": 3,
+      "recurring_sessions": 1,
+      "recurring_days": 1
+    },
+    {
+      "pattern_key": "verb_tense_past_simple_for_past_events",
+      "pattern_id": "b1069217-d5ec-4761-b6a3-e57cc2a795cb",
+      "frequency": 2,
+      "recurring_sessions": 1,
+      "recurring_days": 1
+    },
+    {
+      "pattern_key": "word_order_time_adverb_placement",
+      "pattern_id": "eff9d7c5-fc1b-486f-8155-3d58e764697a",
+      "frequency": 1,
+      "recurring_sessions": 1,
+      "recurring_days": 1
+    }
+  ],
+  "deepest": {
+    "pattern_key": "article_missing_before_noun",
+    "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa"
+  },
+  "prompt_chars": 14538,
+  "marked_lines": 1,
+  "rounds": [
+    {
+      "focus": [
+        [
+          "article_missing_before_noun",
+          "70ad1279-cfaf-4a57-b37b-c28f561baeaa"
+        ],
+        [
+          "pronunciation_an_as_a",
+          "99fc908f-e25c-4c19-86ed-a4720cf8eb2b"
+        ]
+      ],
+      "includes_deepest": true,
+      "verdict": "거부: PlanValidationError: plan response failed validation: 1 validation error for PlanOutput\nlevel.\n  Extra inputs are not permitted [type=extra_forbidden, input_value='', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden"
+    },
+    {
+      "focus": [
+        [
+          "article_missing_before_noun",
+          "70ad1279-cfaf-4a57-b37b-c28f561baeaa"
+        ],
+        [
+          "pronunciation_an_as_a",
+          "99fc908f-e25c-4c19-86ed-a4720cf8eb2b"
+        ]
+      ],
+      "includes_deepest": true,
+      "verdict": "통과"
+    },
+    {
+      "focus": [
+        [
+          "article_missing_before_noun",
+          "70ad1279-cfaf-4a57-b37b-c28f561baeaa"
+        ],
+        [
+          "pronunciation_an_as_a",
+          "99fc908f-e25c-4c19-86ed-a4720cf8eb2b"
+        ]
+      ],
+      "includes_deepest": true,
+      "verdict": "통과"
+    }
+  ],
+  "passed": 2,
+  "with_deepest": 3
+}
