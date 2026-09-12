@@ -59,10 +59,20 @@ USER_ID = UUID("00000000-0000-0000-0000-000000000001")
 # 짧게 쓴 이유는 짧을수록 모델이 무대를 덜 오해한다는 것뿐이다. 적용/비적용의 정본은
 # `docs/design/2026-09-07-scenario-and-drill-turns-design.md` §2.1 의 갈라 적기다.
 #
-# ⛔ `category`·`level`을 바꾸지 마라. `_CREATE_SESSION_SQL`이 `users.current_level`(=`A2`)로
-# 시나리오를 고르므로 `A2`가 아니면 그 경로가 폴백으로 떨어진다. 업무 시나리오 추가는
-# 캡틴 결정 5의 몫이고 `TASK-4`·`TASK-5`가 소유한다 — 여기서 행을 늘리지 않는다.
+# ⛔ `category`·`level`을 바꾸지 마라. 세션 시작이 `users.current_level`(=`A2`)로 시나리오를
+# 고르므로 `A2`가 아니면 그 경로가 폴백으로 떨어진다. `seed()`의 upsert가 그 두 열을 갱신
+# 대상에서 빼 두는 것도 같은 이유다.
+#
+# ⚠️ **행을 15개로 늘렸다** (`TASK-4` · 결정 73·74·75 · 2026-09-12). 이전 주석은 *"여기서 행을
+# 늘리지 않는다 — 업무 시나리오 추가는 캡틴 결정 5의 몫이고 `TASK-4`·`TASK-5`가 소유한다"* 였고,
+# **그 조건이 충족돼 이 태스크가 늘린 것이다.**
+# ⛔ **후보 수가 배치 규칙의 창보다 많아야 한다** — `services/scenario_rotation.WINDOW`(=10)가
+# 그 값이고, 15가 10 이하로 줄면 신규가 마른다. 그 경계는 실측했다
+# (`tests/unit/test_scenario_rotation.py::test_starvation_returns_when_topics_only_match_the_window`
+# 이 후보 10에서 6회 마르는 것을 센다).
 SEED_SCENARIOS: list[tuple[UUID, str, str, str, str]] = [
+    # 일상 9종 — 이름은 `docs/PRD.md` §7 Daily Conversation 그대로다(v1.0 · 2026-08-24).
+    # ⚠️ 캡틴 노트 항목 7이 새로 요구한 것은 이 이름 목록이 아니라 **배치 비율**이다.
     (
         UUID("00000000-0000-0000-0000-000000000101"),
         "daily_life",
@@ -77,12 +87,103 @@ SEED_SCENARIOS: list[tuple[UUID, str, str, str, str]] = [
         "Weekend plans with a friend",
         "You are a friend catching up with the learner about the weekend.",
     ),
+    # ⚠️ `…103`은 *"Tonight's plans at home"* 에서 「식사」로 옮겼다 — 집·오늘 밤이라는 무대를
+    # 유지하면서 9종의 한 자리를 채우는 가장 가까운 이동이다(설계서 §3).
     (
         UUID("00000000-0000-0000-0000-000000000103"),
         "daily_life",
         "A2",
-        "Tonight's plans at home",
-        "You are a housemate talking with the learner about tonight.",
+        "Deciding what to eat tonight",
+        "You are a housemate deciding with the learner what to eat tonight.",
+    ),
+    (
+        UUID("00000000-0000-0000-0000-000000000104"),
+        "daily_life",
+        "A2",
+        "Meeting someone for the first time",
+        "You are someone the learner has just met. Keep the small talk short and friendly.",
+    ),
+    (
+        UUID("00000000-0000-0000-0000-000000000105"),
+        "daily_life",
+        "A2",
+        "Talking about a hobby",
+        "You are a friend asking the learner about a hobby they enjoy.",
+    ),
+    (
+        UUID("00000000-0000-0000-0000-000000000106"),
+        "daily_life",
+        "A2",
+        "How the day felt",
+        "You are a close friend asking the learner how their day felt.",
+    ),
+    (
+        UUID("00000000-0000-0000-0000-000000000107"),
+        "daily_life",
+        "A2",
+        "Asking the way to a station",
+        "You are a passer-by the learner stops to ask for directions.",
+    ),
+    (
+        UUID("00000000-0000-0000-0000-000000000108"),
+        "daily_life",
+        "A2",
+        "Asking a small favour",
+        "You are a neighbour the learner asks for a small favour.",
+    ),
+    (
+        UUID("00000000-0000-0000-0000-000000000109"),
+        "daily_life",
+        "A2",
+        "Giving an opinion about a film",
+        "You are a friend asking the learner what they thought about a film.",
+    ),
+    # 업무 6종 — 이름은 `docs/PRD.md` §7 Business English 그대로다. 캡틴 결정
+    # (`docs/design/2026-09-06-captain-decisions.md` §1 항목 5)이 「주제 9종에 더한다」로 정했다.
+    # ⛔ **`level`을 `A2`로 둔다 — 올리지 않는다**(결정 75의 완화 조항). 무대는 업무이고 문형
+    # 난이도는 일상과 같다. `h-doc` 프로필이 경고한 실패(AWS 보고 수준 문형으로 예문을 만들면
+    # 첫 세션에서 얼어붙는다)를 그것으로 피한다.
+    (
+        UUID("00000000-0000-0000-0000-000000000110"),
+        "business",
+        "A2",
+        "Daily update in a short stand-up",
+        "You are a teammate listening to the learner's short daily update.",
+    ),
+    (
+        UUID("00000000-0000-0000-0000-000000000111"),
+        "business",
+        "A2",
+        "Sharing a blocker",
+        "You are a teammate the learner tells about something blocking their work.",
+    ),
+    (
+        UUID("00000000-0000-0000-0000-000000000112"),
+        "business",
+        "A2",
+        "Moving a deadline",
+        "You are a teammate the learner asks to move a deadline.",
+    ),
+    (
+        UUID("00000000-0000-0000-0000-000000000113"),
+        "business",
+        "A2",
+        "Agreeing what comes first",
+        "You are a teammate deciding with the learner which task comes first.",
+    ),
+    (
+        UUID("00000000-0000-0000-0000-000000000114"),
+        "business",
+        "A2",
+        "Reporting a small service problem",
+        "You are a teammate the learner reports a small service problem to.",
+    ),
+    (
+        UUID("00000000-0000-0000-0000-000000000115"),
+        "business",
+        "A2",
+        "Short report to a manager",
+        "You are a manager listening to the learner's short project report.",
     ),
 ]
 

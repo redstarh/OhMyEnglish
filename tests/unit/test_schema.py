@@ -317,7 +317,7 @@ async def test_review_tasks_unique_key_separates_cycles(db_conn: asyncpg.Connect
 # ⑤ 시드 후 users 1행 · learning_scenarios 3행(**무대** 3개 — 질문이 아니다. 캡틴 결정 14),
 #    재실행해도 중복 없음(멱등 — 이제 `do nothing` 이 아니라 `do update` 로 멱등이다)
 @pytest.mark.asyncio
-async def test_seed_creates_fixed_user_and_three_scenarios_idempotently(
+async def test_seed_creates_fixed_user_and_fifteen_scenarios_idempotently(
     db_conn: asyncpg.Connection,
 ):
     await migrate.seed(db_conn)
@@ -333,16 +333,25 @@ async def test_seed_creates_fixed_user_and_three_scenarios_idempotently(
     assert seeded_user["timezone"] == "Asia/Seoul"
     assert seeded_user["current_level"] == "A2"
 
-    scenario_rows = await db_conn.fetch(
+    # `TASK-4` · 결정 75 — 일상 9 + 업무 6 = 15 다. ⚠️ 개수를 세는 이유는 배치 규칙이
+    # 「창 10 보다 후보가 많다」에 걸려 있기 때문이다(설계서 §6 테스트 2 · `test_scenario_rotation`
+    # 의 `test_starvation_returns_when_topics_only_match_the_window` 가 그 경계를 실측했다) —
+    # 후보가 10 이하로 줄면 신규가 마른다.
+    daily = await db_conn.fetch(
         "select title from learning_scenarios where category = 'daily_life' order by title"
     )
-    assert len(scenario_rows) == 3
-    titles = {row["title"] for row in scenario_rows}
-    assert titles == {
-        "After work with a colleague",
-        "Weekend plans with a friend",
-        "Tonight's plans at home",
-    }
+    business = await db_conn.fetch(
+        "select title from learning_scenarios where category = 'business' order by title"
+    )
+    assert len(daily) == 9, "PRD §7 Daily Conversation 의 주제 9종"
+    assert len(business) == 6, "PRD §7 Business English 의 시나리오 6종 (캡틴 결정 §1 항목 5)"
+
+    # ⛔ 업무 6종의 `level` 을 올리지 않는다 — 결정 75 의 완화 조항이고, 이 단정이 그것을
+    # 지킨다. 무대는 업무이고 문형 난이도는 일상과 같다.
+    business_levels = await db_conn.fetch(
+        "select distinct level from learning_scenarios where category = 'business'"
+    )
+    assert [row["level"] for row in business_levels] == ["A2"]
 
 
 # ⑤-2 시드 3행은 **무대**다 — 질문이 아니고 `title`과 `prompt_template`이 갈라져 있다.
@@ -361,11 +370,15 @@ async def test_seeded_scenarios_are_stages_not_questions(
 ):
     await migrate.seed(db_conn)
 
+    # ⚠️ **범위를 `daily_life` 에서 전체로 넓혔다** (`TASK-4` · 2026-09-12). 이전 판은
+    # `where category = 'daily_life'` 로 좁히고 `len(rows) == 3` 을 함께 단정했는데, 위 주석이
+    # 말하는 이 테스트의 몫은 **내용의 종류**이고 개수는 ⑤가 지킨다 — 개수 단정이 여기 있으면
+    # 시드를 늘릴 때마다 두 곳이 함께 흔들린다. 업무 6종도 같은 규칙을 받아야 하므로
+    # 필터를 걷는 것이 커버리지를 넓히면서 그 어긋남을 없앤다.
     rows = await db_conn.fetch(
-        "select title, prompt_template from learning_scenarios "
-        "where category = 'daily_life' order by title"
+        "select title, prompt_template from learning_scenarios order by category, title"
     )
-    assert len(rows) == 3
+    assert rows, "시드가 0행이다"
 
     for row in rows:
         # 화면 라벨과 지시문 문구는 다른 문장이다.
