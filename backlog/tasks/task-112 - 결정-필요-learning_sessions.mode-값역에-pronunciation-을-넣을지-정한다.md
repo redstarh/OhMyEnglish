@@ -1,9 +1,10 @@
 ---
 id: TASK-112
 title: '결정 필요: learning_sessions.mode 값역에 pronunciation 을 넣을지 정한다'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-11 15:43'
+updated_date: '2026-09-12 00:25'
 labels: []
 dependencies: []
 ordinal: 117000

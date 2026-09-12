@@ -1,9 +1,10 @@
 ---
 id: TASK-60
 title: LLM 호출의 토큰 사용량을 기록한다 — 지금은 비용을 볼 수단이 없다
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-09 13:04'
+updated_date: '2026-09-12 00:25'
 labels: []
 dependencies: []
 ordinal: 63000
