@@ -14,6 +14,7 @@ import asyncpg
 import pytest
 
 from app.models.usage import PROVIDER_BEDROCK, PURPOSE_NOVA, PURPOSE_SPIKE, TokenUsage
+from app.services.jobs import JOB_TYPE_GENERATE_SCENARIO, JOB_TYPE_SUMMARIZE
 from app.services.usage import load_usage_summary, pool_usage_sink, record_llm_call
 
 pytestmark = pytest.mark.asyncio
@@ -125,6 +126,76 @@ async def test_the_purpose_value_range_is_guarded_by_the_migration_not_by_code(
             purpose="ㅁ분류없음",
             job_id=None,
         )
+
+
+# ── `TASK-134` — job 갈래의 기록이 «실제로 남는지» 잰다 ────────────────────────────
+#
+# ⛔ **「호출했다」를 재면 이 결함이 초록으로 지나간다.** `pool_usage_sink` 가 `PostgresError` 를
+# 삼키고 `exception` 으로만 찍으므로 값역 밖 `purpose` 는 **호출은 성공하고 기록만 사라진다.**
+# 실측(2026-09-13): 013 의 값역이 넷뿐인데 `scenario_generator` 가 `generate_scenario` 를 넘겨
+# 그 job 의 토큰 기록이 **0건**이었다 — 결정 66 이 요구한 것이 조용히 꺼져 있었다.
+# ⇒ 재는 축은 **`llm_calls` 에 행이 생기는가** 하나다.
+
+
+async def test_the_job_purposes_actually_land_a_row(db_pool: asyncpg.Pool):
+    """⛔ job 갈래 둘이 실제로 기록된다 — 021 이 값역에 넣은 값들이다.
+
+    ⚠️ `db_pool`(커밋되는 픽스처)을 쓰는 이유: sink 가 **풀에서 자기 연결을 잡는다.** 롤백
+    트랜잭션으로는 그 경로를 지나갈 수 없다. ⇒ 심은 행을 손으로 지운다.
+    """
+    sink = pool_usage_sink(db_pool)
+    model_id = f"task134-{uuid4().hex[:8]}"
+    try:
+        for purpose in (JOB_TYPE_GENERATE_SCENARIO, JOB_TYPE_SUMMARIZE):
+            await sink(
+                TokenUsage(input_tokens=7, output_tokens=3),
+                model_id=model_id,
+                purpose=purpose,
+                job_id=None,
+            )
+        async with db_pool.acquire() as conn:
+            landed = await conn.fetch(
+                "select purpose, input_tokens, output_tokens from llm_calls"
+                " where model_id = $1 order by purpose",
+                model_id,
+            )
+    finally:
+        async with db_pool.acquire() as conn:
+            await conn.execute("delete from llm_calls where model_id = $1", model_id)
+
+    assert [row["purpose"] for row in landed] == [
+        JOB_TYPE_GENERATE_SCENARIO,
+        JOB_TYPE_SUMMARIZE,
+    ], "job 갈래의 기록이 남지 않았다 — 값역이 그 값을 막고 sink 가 그것을 삼켰다"
+    assert [(row["input_tokens"], row["output_tokens"]) for row in landed] == [(7, 3), (7, 3)]
+
+
+async def test_the_sink_swallows_a_rejected_purpose_and_says_so(
+    db_pool: asyncpg.Pool, caplog: pytest.LogCaptureFixture
+):
+    """⛔ **삼키는 것을 유지하되 «말하게» 한다** (`TASK-134` AC#3 의 판단).
+
+    삼키는 이유는 바뀌지 않는다 — 기록 실패로 job 을 실패시키면 「비용은 나갔고 결과는 잃는다」가
+    된다. ⚠️ 다만 값역 위반은 **설정 오류**라 운영 중 조용히 넘길 것이 아니므로 `exception` 이
+    남는 것을 이 단정이 지킨다. 그 로그가 없으면 이 부류를 **다시** 눈으로 찾아야 한다.
+    """
+    sink = pool_usage_sink(db_pool)
+    with caplog.at_level("ERROR"):
+        await sink(
+            TokenUsage(input_tokens=1, output_tokens=1),
+            model_id="task134-rejected",
+            purpose="ㅁ분류없음",
+            job_id=None,
+        )
+
+    async with db_pool.acquire() as conn:
+        rows = await conn.fetchval(
+            "select count(*) from llm_calls where model_id = $1", "task134-rejected"
+        )
+    assert rows == 0, "값역 밖인데 행이 생겼다 — CHECK 가 막지 못했다"
+    assert any("사용량을 적지 못했다" in record.message for record in caplog.records), (
+        "삼키면서 아무 말도 하지 않았다 — 이 부류를 다시 눈으로 찾게 된다"
+    )
 
 
 # ── `TASK-126` — 읽는 쪽. ⛔ 날짜의 정본은 `users.timezone` 이다 ─────────────────────
