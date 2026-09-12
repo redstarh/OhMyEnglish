@@ -1,13 +1,14 @@
 ---
 id: TASK-116
-title: '결함 후보: 발화로 코칭한 소리와 tool 에 실린 target_sound 가 어긋난다 (pq05 실측)'
+title: '결함(확정): 발화로 코칭한 소리와 tool 에 실린 target_sound 가 어긋나고 복습 일정이 오염된다'
 status: In Progress
 assignee: []
 created_date: '2026-09-11 17:14'
-updated_date: '2026-09-12 00:12'
+updated_date: '2026-09-12 00:23'
 labels: []
 dependencies:
-  - TASK-120
+  - TASK-123
+priority: high
 ordinal: 121000
 ---
 
@@ -53,4 +54,14 @@ KEY 팔(pq05→pq05a · z_as_j · 3회): 코치가 세 번 다 process 의 어�
 ⇒ TASK-120 을 선행으로 걸었음(판별력 있는 픽스처). ⛔ 상한을 지금 늘리지 않았음 — 7/7 을 썼고 §0 이 늘리지 않는다고 적었음.
 
 ⛔ V3 를 「작동한다」의 근거로 인용하지 않을 것. test_nova.py 의 바이트 게이트 독스트링에도 그 경고를 적었음 — 그 게이트에 묶인 수치는 REG 4/4 뿐임.
+
+2026-09-12 KST — «결함 후보» 에서 «확정» 으로 올렸고 제목을 그렇게 고쳤음. 근거는 판별 조건을 세운 회차임: tests/harness/runs/2026-09-12-task120-absent-planted-sound.md.
+
+확정한 사실: 코치가 early 의 er 소리를 코칭했는데(참조 낱말 «er in bird» 까지 댐) 기록은 심은 키 f_as_p x3 였음. 그 문장에 /f/ 가 한 자리도 없으므로 「코치가 그것을 같은 소리로 부른다」가 성립할 수 없음 — pq05 관측을 무력화했던 애매함이 없음. TASK-114 §2.5 의 1회 관측과 방향이 같아 «누적 4/4» 임.
+
+⛔ 심각도가 올라간 이유 — 어긋남이 기록에서 멈추지 않음. error_patterns.f_as_p 의 frequency 1→3 이고 next_review_at 이 섰음. signal_source 가 nova_tool 이라 결정 59 의 필터를 통과함. ⇒ «복습 일정이 연습하지 않은 소리로 전진함». 그래서 priority high 로 올렸음.
+
+⛔ V3(조건부 키 규칙)는 «막지 못함이 실측됨». 되돌리지는 않았음 — 되돌리면 바이트 게이트 때문에 회차를 또 돌려야 하고 REG 4/4 는 V3 가 든 판에서 얻은 값임. 대신 nova.py 주석과 test_nova.py 독스트링에 «3/3 으로 막지 못했음» 을 적었음. ⛔ 그 문장을 「작동한다」의 근거로 인용하지 말 것.
+
+선행을 TASK-120 에서 TASK-123 으로 바꿨음(TASK-120 은 Done). TASK-123 이 재는 것은 «덜어내는» 방향임 — 소리 줄에서 키 강제를 아예 빼는 것. ⛔ 「지시문으로는 못 막는다」로 아직 단정하지 않음 — 더하는 방향만 반증됐음.
 <!-- SECTION:NOTES:END -->

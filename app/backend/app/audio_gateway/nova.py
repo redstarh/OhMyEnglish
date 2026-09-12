@@ -248,6 +248,17 @@ _SOUND_INSTRUCTION = (
     # ⛔ **「위에 이름 붙인 그 소리만 코칭하라」로 좁히지 않았다** — 코치가 무엇을 코칭하는지를
     # 바꾸는 것이라 제품 요구사항 변경이고 사용자 결정 사안이다(`TASK-116` 노트의 갈래 ①).
     # 이 조건부 판은 그것을 막지 않는다 — 나중에 얹을 수 있다.
+    #
+    # ⛔ **그런데 이 조건절은 실측에서 «작동하지 않았다» — 3/3 으로 계획의 키가 실렸다.**
+    # 정본: `runs/2026-09-12-task120-absent-planted-sound.md`. 오디오에 /f/ 가 한 자리도 없는
+    # 문장에 `f_as_p` 를 심었더니 코치는 `early` 의 `er` 소리를 코칭하면서(참조 낱말까지 댔다)
+    # `target_sound` 에는 **`f_as_p` 를 세 번 실었다.** ⇒ 모델이 계획의 키를 매우 강하게 따른다.
+    # ⛔ **이 문장을 「기록이 코칭과 맞는다」의 근거로 인용하지 마라.**
+    #
+    # ⚠️ **되돌리지 않은 이유**: 이 문면은 아래 `PRONUNCIATION_MODE_PROMPT` 와 함께 바이트 게이트로
+    # 실측 판에 묶여 있고 REG **4/4** 는 이 조건절이 «든» 판에서 얻은 값이다. 되돌리면 회차를 또
+    # 돌려야 한다. 남은 가설은 **조건을 더하는 것이 아니라 키 강제를 덜어내는 것**이고 `TASK-123`
+    # 이 그것을 갖는다 — ⛔ 그때 이 조건절도 **같은 회차에서 함께** 걷어 게이트를 한 번만 갱신한다.
     "Rule 10 still applies unchanged: call the {tool} tool twice — once with outcome "
     '"pending" right after you model it, and again with the judgement once you have heard the '
     'repeat. Put "{sound}" in target_sound both times when "{sound}" is the sound you '
