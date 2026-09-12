@@ -1,0 +1,105 @@
+#!/usr/bin/env python3
+"""`TASK-124` AC#3 — 실물 Nova 세션 1회로 `llm_calls` 에 행이 쌓이는지 본다.
+
+제품 경로를 그대로 쓴다: `NovaVoiceAdapter` + `services.usage.pool_usage_sink`.
+⛔ WS·프론트를 띄우지 않는다 — 그 구간은 통합 테스트가 잰다(회차 기록 §0).
+
+⛔ Nova 상한 1세션. 오디오는 픽스처 하나를 32ms 케이던스로 흘린다(실제 마이크와 같은 박자 —
+빠르게 몰아 넣으면 endpointing 이 다르게 돈다).
+
+실행: `cd app/backend && .venv/bin/python ../../tests/harness/runs/.../record_nova_session.py.txt`
+"""
+
+import asyncio
+import contextlib
+import wave
+from pathlib import Path
+
+from app.audio_gateway.nova import FRAME_BYTES, FRAME_MS, NovaVoiceAdapter
+from app.config import get_settings
+from app.db import close_pool, pool
+from app.services.usage import pool_usage_sink
+
+_FIXTURE = Path(__file__).resolve().parents[2] / "fixtures" / "voice" / "p2m.wav"
+# 다섯 표는 이 회차가 건드리지 않는다 — 전후로 대조한다(회차 기록 §0).
+_GUARDED_TABLES = (
+    "learning_sessions",
+    "pronunciation_attempts",
+    "error_patterns",
+    "session_plans",
+    "learner_notes",
+)
+
+
+def _read_lpcm(path: Path) -> bytes:
+    with wave.open(str(path)) as handle:
+        shape = (handle.getframerate(), handle.getsampwidth() * 8, handle.getnchannels())
+        if shape != (16_000, 16, 1):
+            raise SystemExit(f"16kHz/16bit/mono 가 아니다: {shape}")
+        return handle.readframes(handle.getnframes())
+
+
+async def _counts(conn: object) -> dict[str, int]:
+    return {
+        table: await conn.fetchval(f"select count(*) from {table}")  # type: ignore[attr-defined]
+        for table in _GUARDED_TABLES
+    }
+
+
+async def main() -> None:
+    settings = get_settings()
+    if settings.voice_adapter != "nova":
+        # ⛔ 스텁으로 이 회차를 돌리면 「행이 없다」가 스텁 때문인지 코드 때문인지 갈리지 않는다.
+        raise SystemExit(f"VOICE_ADAPTER 가 nova 가 아니다: {settings.voice_adapter!r}")
+
+    lpcm = _read_lpcm(_FIXTURE)
+    print(f"=== 픽스처 {_FIXTURE.name} · {len(lpcm)}바이트 · 모델 {settings.nova_model_id}")
+
+    conn_pool = await pool()
+    async with conn_pool.acquire() as conn:
+        before = await _counts(conn)
+        rows_before = await conn.fetchval("select count(*) from llm_calls")
+    print(f"    다섯 표(전): {before} · llm_calls {rows_before}행")
+
+    adapter = NovaVoiceAdapter(settings, usage_sink=pool_usage_sink(conn_pool))
+    print(f"    records_usage={adapter.records_usage}")
+
+    received: list[str] = []
+
+    async def drain() -> None:
+        async for event in adapter.events():
+            received.append(type(event).__name__)
+
+    await adapter.start()
+    drainer = asyncio.create_task(drain())
+    try:
+        for offset in range(0, len(lpcm), FRAME_BYTES):
+            await adapter.send_audio(lpcm[offset : offset + FRAME_BYTES])
+            await asyncio.sleep(FRAME_MS / 1000)
+        # 발화가 끝난 뒤 응답과 usageEvent 가 올 시간을 준다.
+        await asyncio.sleep(12)
+    finally:
+        await adapter.close()
+        drainer.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await drainer
+
+    print(f"=== 받은 포트 이벤트 {len(received)}건: {sorted(set(received))}")
+
+    async with conn_pool.acquire() as conn:
+        after = await _counts(conn)
+        rows = await conn.fetch(
+            "select purpose, model_id, input_tokens, output_tokens, input_speech_tokens,"
+            " input_text_tokens, output_speech_tokens, output_text_tokens, called_at"
+            " from llm_calls where purpose = 'nova' order by called_at desc limit 3"
+        )
+    print(f"=== purpose=nova 행 {len(rows)}건")
+    for row in rows:
+        print("   ", dict(row))
+    print(f"=== 다섯 표(후): {after}")
+    print(f"    무변경: {before == after}")
+    await close_pool()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

@@ -22,6 +22,7 @@ from app.audio_gateway.stub import StubVoiceAdapter
 from app.config import Settings
 from app.models.plan import PlanQuestion, SessionInstruction
 from app.models.scenario import SessionScenario
+from app.models.usage import UsageSink
 
 STUB_ADAPTER = "stub"
 # Nova 2 Sonic 실연동 (3차수). 어댑터 생성은 스트림을 열지 않는다 — 연결은 `start()`가
@@ -41,6 +42,7 @@ def create_voice_adapter(
     questions: Sequence[PlanQuestion],
     scenario: SessionScenario | None,
     pronunciation_sound: str | None = None,
+    usage_sink: UsageSink | None = None,
 ) -> VoiceAdapter:
     """넷 다 **데이터**다 — 조립된 지시문이 아니다 (G-3).
 
@@ -64,6 +66,12 @@ def create_voice_adapter(
     않지만, 조립 지점에서 어댑터까지 지시문이 실제로 도달했는지 판정할 수단이 그것뿐이다
     (설계서 AS6). 생성 후 대입이 아니라 **생성자 인자**로 넘기는 것이 계약이다 — 스텁의
     `instructions`는 setter 없는 property다.
+
+    `usage_sink`는 **Nova 에만** 전달된다 (`TASK-124` · 결정 68) — 스텁은 토큰을 쓰지 않으므로
+    넘기면 「쓰지 않은 비용」을 발명한다. ⚠️ 이 인자를 빼면 Nova 의 토큰 기록이 **조용히**
+    **꺼진다**:
+    어댑터의 기본값이 `None`(기록 없음)이고, 그 기본값은 스트림 대역만으로 도는 단위 테스트를 위한
+    것이다. 실물 배선은 소켓 계층 한 곳뿐이고 그 자리를 게이트 테스트가 못 박는다.
     """
     # `TASK-10.1` — 발음 전용 모드. **소리 키가 오면 그 모드다**: 계획·무대·질문·놓친 소리 목록을
     # 싣지 않고 규칙 1~7 도 없는 짧은 지시문을 쓴다. 형태의 근거는 `nova.PRONUNCIATION_MODE_PROMPT`
@@ -90,6 +98,8 @@ def create_voice_adapter(
     if settings.voice_adapter == STUB_UNRESPONSIVE_ADAPTER:
         return StubVoiceAdapter("unresponsive", instructions=instructions)
     if settings.voice_adapter == NOVA_ADAPTER:
-        return NovaVoiceAdapter(settings, instructions=instructions)
+        # `TASK-124`(결정 68) — 토큰 기록 sink 를 넘긴다. ⛔ **스텁에는 넘기지 않는다**: 스텁은
+        # 토큰을 쓰지 않으므로 행을 만들면 「쓰지 않은 비용」을 발명한다.
+        return NovaVoiceAdapter(settings, instructions=instructions, usage_sink=usage_sink)
     # 오타를 조용히 스텁으로 흘려보내면 "실물이라 믿었던 세션이 픽스처였다"가 된다.
     raise ValueError(f"알 수 없는 voice_adapter 설정: {settings.voice_adapter!r}")

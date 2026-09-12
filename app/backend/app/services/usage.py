@@ -25,8 +25,10 @@ logger = logging.getLogger(__name__)
 # ⛔ `called_at`을 넘기지 않는다 — 013 의 기본값 `now()`가 SoT다. 앱에서 시각을 만들어 넣으면
 # 서버 시계와 DB 시계가 갈라지고, 그 차이는 조용하다(전역 시각 규약).
 _INSERT_LLM_CALL_SQL = """
-insert into llm_calls (provider, model_id, purpose, job_id, input_tokens, output_tokens)
-values ($1, $2, $3, $4, $5, $6)
+insert into llm_calls (provider, model_id, purpose, job_id, input_tokens, output_tokens,
+                       input_speech_tokens, input_text_tokens,
+                       output_speech_tokens, output_text_tokens)
+values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 """
 
 
@@ -52,6 +54,11 @@ async def record_llm_call(
         job_id,
         usage.input_tokens,
         usage.output_tokens,
+        # 분해 넷은 Nova 만 채운다 — `None` 이 「분해 없음」이다(015 머리말 · `TokenUsage`).
+        usage.input_speech_tokens,
+        usage.input_text_tokens,
+        usage.output_speech_tokens,
+        usage.output_text_tokens,
     )
 
 

@@ -218,6 +218,26 @@ prompt cache(**우리 고정 프리픽스 2,469자 ≈ 617~1,646 토큰으로 �
 ⚠️ **결정 44 를 뒤집지 않는다.** 「참고 프로젝트 적용은 `TASK-59`·`TASK-60` 둘뿐」은 그대로다 —
 이 결정은 적용 항목을 늘리는 것이 아니라 **셋째 항목이 없음을 확인한 기록**이다.
 
+**결정 68 — Nova 사용량은 `llm_calls` 에 «토큰 열 넷을 더해» speech·text 를 나눠 담는다**
+(2026-09-12 KST · 사용자가 후보 셋 중 「토큰 열 넷을 더함」을 골랐다. 물은 주체는 세션
+`ohmyenglish-f4` 이고 `AskUserQuestion` 으로 직접 물었다. 기각한 둘은 ①합계만 적기(마이그레이션 0)
+②`details jsonb` 한 컬럼이다.)
+
+**무엇이 이 결정을 불렀는가** (`TASK-124`): `TASK-60` 이 만든 `llm_calls` 는 Claude 만 담고 Nova 는
+0건이다. 그런데 Nova 가 비용의 큰 쪽일 수 있다(동료 세션 하루 10세션 · 누적 143).
+⛔ **Nova 의 `usageEvent` 는 토큰을 `speechTokens`·`textTokens` 로 나눠 준다** — 실물 산출물에서 직접
+확인했다(`runs/2026-09-11-task97-tool-payload/B0-r2.json`):
+
+```
+"usageEvent": { "totalInputTokens": 22, "totalOutputTokens": 0, "totalTokens": 22,
+                "details": { "total": { "input": {"speechTokens": 0, "textTokens": 22},
+                                        "output": {"speechTokens": 0, "textTokens": 0} } } }
+```
+
+⇒ **합계만 담으면 금액을 재구성할 수 없다**(speech 와 text 의 단가가 다를 수 있다). 그래서 열 넷을
+`nullable` 로 더한다 — Claude 는 그 분해가 없으므로 `null` 이고, 그 `null` 이 「분해 없음」을 뜻한다.
+⛔ **단가를 저장하지 않는다** — 시점·리전에 따라 바뀌므로 읽을 때 곱한다(`TokenUsage` docstring).
+
 **결정 67 — `learning_sessions.mode` 값역에 `pronunciation` 을 «넣는다». 마이그레이션을 발급한다**
 (2026-09-12 KST · 사용자가 후보 둘 중 「값역을 늘림」을 골랐다. 물은 주체는 세션 `ohmyenglish-f4`
 이고 `AskUserQuestion` 으로 직접 물었다.)

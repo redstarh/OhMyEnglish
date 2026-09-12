@@ -41,6 +41,7 @@ from app.config import Settings
 from app.models.plan import InstructionFocus, PlanQuestion, SessionInstruction
 from app.models.pronunciation import PRONUNCIATION_PATTERN_KEY_PREFIX, PRONUNCIATION_TOOL_NAME
 from app.models.scenario import SessionScenario
+from app.models.usage import PURPOSE_NOVA, TokenUsage
 
 # --- N-1 실측에서 옮긴 값 ---
 
@@ -562,6 +563,123 @@ async def test_the_stream_time_limit_ends_the_event_stream_instead_of_hanging():
 
 async def _collect(adapter: NovaVoiceAdapter) -> list[Any]:
     return [event async for event in adapter.events()]
+
+
+# --- `TASK-124`(결정 68) — 세션이 쓴 토큰을 «한 번» 적는다 ---------------------------
+#
+# 아래 본문의 **모양**은 실물 산출물에서 그대로 옮겼다
+# (`tests/harness/runs/2026-09-11-task97-tool-payload/B0-r2.json`).
+# ⚠️ **값은 서로 구별되게 바꿨다** — 실물은 speech·text·delta·total 이 0 과 22 로 겹쳐 있어서
+# 「delta 를 읽는가 total 을 읽는가」·「input 과 output 을 뒤집었는가」를 가릴 수 없다.
+_USAGE_EVENT_BODY = {
+    "completionId": COMPLETION_ID,
+    "details": {
+        # ⛔ delta 를 읽으면 아래 단정이 깨진다 — 그것이 이 값들의 존재 이유다.
+        "delta": {
+            "input": {"speechTokens": 7, "textTokens": 3},
+            "output": {"speechTokens": 5, "textTokens": 1},
+        },
+        "total": {
+            "input": {"speechTokens": 150, "textTokens": 22},
+            "output": {"speechTokens": 30, "textTokens": 4},
+        },
+    },
+    "promptName": PROMPT_NAME,
+    "sessionId": SESSION_ID,
+    "totalInputTokens": 172,
+    "totalOutputTokens": 34,
+    "totalTokens": 206,
+}
+
+
+def test_the_translator_remembers_the_cumulative_totals_from_a_usage_event():
+    translator = NovaEventTranslator()
+
+    assert translator.translate("usageEvent", _USAGE_EVENT_BODY) == []
+    assert translator.last_usage == TokenUsage(
+        input_tokens=172,
+        output_tokens=34,
+        input_speech_tokens=150,
+        input_text_tokens=22,
+        output_speech_tokens=30,
+        output_text_tokens=4,
+    )
+
+
+def test_the_translator_keeps_the_last_totals_not_the_sum_of_events():
+    """⛔ `usageEvent` 는 한 세션에서 여러 번 오고 값이 **누적**이다 — 더하면 부풀어 오른다."""
+    translator = NovaEventTranslator()
+    later = {**_USAGE_EVENT_BODY, "totalInputTokens": 400, "totalOutputTokens": 90}
+
+    translator.translate("usageEvent", _USAGE_EVENT_BODY)
+    translator.translate("usageEvent", later)
+
+    assert translator.last_usage is not None
+    assert (translator.last_usage.input_tokens, translator.last_usage.output_tokens) == (400, 90)
+
+
+def test_the_translator_does_not_invent_totals_when_the_event_lacks_them():
+    """⛔ 총계가 없으면 갈아 두지 않는다 — 0 을 적으면 「0 토큰 세션」을 발명한다.
+
+    ⚠️ 이 모양은 이 파일의 `RECORDED_RUN` 이 담은 실물이다(`totalTokens` 만 있는 판).
+    """
+    translator = NovaEventTranslator()
+
+    translator.translate("usageEvent", _envelope(extra={"totalTokens": 42}))
+
+    assert translator.last_usage is None
+
+
+def test_the_translator_records_totals_even_without_the_split():
+    """분해가 없으면 넷은 `None` 이고 합계는 그대로다 — `None` 이 「분해 없음」이다."""
+    translator = NovaEventTranslator()
+
+    translator.translate(
+        "usageEvent", _envelope(extra={"totalInputTokens": 10, "totalOutputTokens": 2})
+    )
+
+    assert translator.last_usage == TokenUsage(input_tokens=10, output_tokens=2)
+
+
+async def test_close_records_the_session_usage_once_with_the_nova_purpose():
+    stream = _FakeStream({"event": {"usageEvent": _USAGE_EVENT_BODY}})
+    recorded: list[tuple[TokenUsage, str, str, object]] = []
+
+    async def sink(usage: TokenUsage, *, model_id: str, purpose: str, job_id: object) -> None:
+        recorded.append((usage, model_id, purpose, job_id))
+
+    adapter = _adapter(stream, usage_sink=sink)
+    await adapter.start()
+    await asyncio.wait_for(_collect(adapter), timeout=2.0)
+
+    await adapter.close()
+    await adapter.close()  # 두 번 닫아도 한 번만 적힌다(`_closed` 가드)
+
+    assert len(recorded) == 1
+    usage, model_id, purpose, job_id = recorded[0]
+    assert usage.input_tokens == 172
+    assert usage.input_speech_tokens == 150
+    assert model_id == _settings().nova_model_id
+    assert purpose == PURPOSE_NOVA
+    # 음성 세션은 job 경로가 아니다 — `None` 이 그 사실을 뜻한다(013 머리말).
+    assert job_id is None
+
+
+async def test_close_records_nothing_when_no_usage_event_arrived():
+    """⚠️ 이 음성 케이스가 위 테스트의 판별력을 만든다 — 없으면 「항상 0 을 적는」 구현이 통과하고
+    그러면 스트림이 초기화 전에 끊긴 세션이 「0 토큰 세션」으로 집계된다."""
+    stream = _FakeStream()
+    recorded: list[TokenUsage] = []
+
+    async def sink(usage: TokenUsage, **_: object) -> None:
+        recorded.append(usage)
+
+    adapter = _adapter(stream, usage_sink=sink)
+    await adapter.start()
+
+    await adapter.close()
+
+    assert recorded == []
 
 
 # --- 발음 tool (설계서 §4.2 · 계획 Task 5 · 2026-08-27 스파이크) ---

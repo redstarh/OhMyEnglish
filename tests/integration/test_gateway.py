@@ -1156,6 +1156,48 @@ def test_factory_builds_the_nova_adapter():
     assert isinstance(adapter, NovaVoiceAdapter)
 
 
+# `TASK-124`(결정 68) — 팩토리→어댑터 구간의 배선. ⚠️ **이 구간이 무보호였다**: 팩토리에서
+# `usage_sink` 인자를 떼는 뮤테이션에서 138건이 전부 초록이었다(2026-09-12 직접 확인).
+def test_factory_hands_the_usage_sink_to_the_nova_adapter():
+    async def sink(*_: object, **__: object) -> None:
+        return None
+
+    adapter = create_voice_adapter(
+        _settings(voice_adapter=NOVA_ADAPTER), questions=(), scenario=None, usage_sink=sink
+    )
+
+    assert isinstance(adapter, NovaVoiceAdapter)
+    assert adapter.records_usage is True
+
+
+def test_the_nova_adapter_records_nothing_when_the_factory_gets_no_sink():
+    """⚠️ 음성 케이스 — 없으면 「항상 기록」으로 바꿔도 위 테스트가 통과한다."""
+    adapter = create_voice_adapter(
+        _settings(voice_adapter=NOVA_ADAPTER), questions=(), scenario=None
+    )
+
+    assert isinstance(adapter, NovaVoiceAdapter)
+    assert adapter.records_usage is False
+
+
+def test_the_stub_never_gets_a_usage_sink():
+    """⛔ 스텁은 토큰을 쓰지 않는다 — 행을 만들면 「쓰지 않은 비용」을 발명한다.
+
+    스텁에 그 개념이 아예 없다는 것을 이 자리에서 못 박는다: 나중에 스텁이 sink 를 받게 되면
+    이 단정이 깨지고, 그때 「왜 안 되는가」를 다시 읽게 된다.
+    """
+
+    async def sink(*_: object, **__: object) -> None:
+        return None
+
+    adapter = create_voice_adapter(
+        _settings(voice_adapter=STUB_ADAPTER), questions=(), scenario=None, usage_sink=sink
+    )
+
+    assert isinstance(adapter, StubVoiceAdapter)
+    assert not hasattr(adapter, "records_usage")
+
+
 def test_factory_rejects_an_unknown_adapter():
     # 오타를 조용히 스텁으로 흘리면 "실물이라 믿었던 세션이 픽스처였다"가 된다.
     with pytest.raises(ValueError, match="voice_adapter"):

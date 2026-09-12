@@ -17,10 +17,13 @@ from dataclasses import dataclass
 from typing import Protocol
 from uuid import UUID
 
-# job 경로의 두 갈래. `nova`는 013 의 값역에 자리는 있으나 아직 기록하지 않는다 — 그 클라이언트는
-# 양방향 스트리밍이고 응답 모양이 달라서 같은 추출기로 읽히지 않는다(`TASK-60` 노트).
+# job 경로의 두 갈래.
 PURPOSE_PLAN = "plan"
 PURPOSE_ANALYSIS = "analysis"
+# 음성 세션 하나가 쓴 토큰(`TASK-124` · 결정 68). ⚠️ **호출이 아니라 «세션» 단위다** — Nova 의
+# `usageEvent` 는 세션 동안 여러 번 오고 값이 **누적 총계**이므로 마지막 값만 세션 끝에 적는다.
+# 이벤트마다 적으면 같은 토큰이 여러 행에 겹쳐 합계가 부풀어 오른다.
+PURPOSE_NOVA = "nova"
 # job 밖 호출의 기본값. ⚠️ **기본값을 「분석」으로 두지 않는 이유**: 갈래를 잘못 적은 행은 비용을
 # **틀린 축에** 얹고, 그 오류는 조용하다. 이름 없는 호출은 「임시 호출」이라고 말하는 쪽이 정직하다.
 PURPOSE_SPIKE = "spike"
@@ -30,14 +33,24 @@ PROVIDER_BEDROCK = "bedrock"
 
 @dataclass(frozen=True)
 class TokenUsage:
-    """한 호출이 쓴 토큰. Bedrock Anthropic 응답의 `usage` 두 값을 그대로 담는다.
+    """한 호출(또는 음성 세션 하나)이 쓴 토큰.
 
     ⛔ **파생값(비용·합계)을 여기서 계산하지 않는다.** 단가는 모델·리전·시점에 따라 바뀌므로
     저장된 토큰 수에서 **읽을 때** 곱한다 — 곱해서 저장하면 단가가 바뀔 때 과거 행이 거짓이 된다.
+
+    `input_tokens`·`output_tokens`는 **합계**다. 넷의 분해는 `TASK-124`(결정 68)가 더했고
+    **Nova 만 채운다** — `usageEvent.details.total` 이 `speechTokens`·`textTokens` 로 나눠 주기
+    때문이다. ⚠️ Claude(InvokeModel)는 그 축이 **아예 없으므로** `None` 이고, 그 `None` 이
+    「분해 없음」을 뜻한다. ⛔ **0 으로 채우지 않는다** — 0 은 「speech 토큰을 쓰지 않았다」는
+    주장이 되고 Claude 호출에는 그런 주장을 할 근거가 없다.
     """
 
     input_tokens: int
     output_tokens: int
+    input_speech_tokens: int | None = None
+    input_text_tokens: int | None = None
+    output_speech_tokens: int | None = None
+    output_text_tokens: int | None = None
 
 
 class UsageSink(Protocol):

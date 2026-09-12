@@ -20,7 +20,7 @@ import asyncio
 import base64
 import json
 from collections.abc import AsyncIterator, Callable, Iterator, MutableMapping, Sequence
-from typing import Any
+from typing import Any, cast
 from uuid import UUID, uuid4
 
 import asyncpg
@@ -38,6 +38,7 @@ from app.audio_gateway.fixtures import FIXTURE_TURNS, TONE_WAV_FRAME
 from app.config import Settings, get_settings
 from app.models.plan import PlanQuestion, SessionInstruction
 from app.models.scenario import SessionScenario
+from app.models.usage import PURPOSE_NOVA, TokenUsage, UsageSink
 
 RECEIVE_TIMEOUT = 5.0
 
@@ -366,6 +367,8 @@ async def test_ws_passes_assembled_instructions_to_the_adapter(
         # `TASK-10.1` — 발음 전용 모드의 소리 키. ⛔ **기본값을 두지 않는다**(위 대역의 규약) —
         # 두면 소켓이 이 인자를 아예 넘기지 않아도 대역이 조용히 받아들인다.
         pronunciation_sound: str | None,
+        # `TASK-124` — 아래 대역과 같은 규약으로 기본값을 두지 않는다.
+        usage_sink: object,
     ) -> object:
         seen["known_sounds"] = list(known_sounds)
         seen["plan"] = plan
@@ -377,6 +380,7 @@ async def test_ws_passes_assembled_instructions_to_the_adapter(
             questions=questions,
             scenario=scenario,
             pronunciation_sound=pronunciation_sound,
+            usage_sink=usage_sink,  # ty: ignore[invalid-argument-type]
         )
 
     monkeypatch.setattr(ws_module, "create_voice_adapter", spy)
@@ -454,12 +458,16 @@ def _capture_factory_args(monkeypatch: pytest.MonkeyPatch) -> dict[str, object]:
         # `TASK-10.1` — 발음 전용 모드의 소리 키. ⛔ **기본값을 두지 않는다**(위 대역의 규약) —
         # 두면 소켓이 이 인자를 아예 넘기지 않아도 대역이 조용히 받아들인다.
         pronunciation_sound: str | None,
+        # `TASK-124`(결정 68) — Nova 토큰 기록 sink. ⛔ **기본값을 두지 않는다**(위 두 인자와 같은
+        # 규약) — 두면 소켓이 넘기지 않아도 대역이 조용히 받아들여 배선 누락이 초록으로 지나간다.
+        usage_sink: object,
     ) -> object:
         seen["known_sounds"] = list(known_sounds)
         seen["plan"] = plan
         seen["pronunciation_sound"] = pronunciation_sound
         seen["questions"] = list(questions)
         seen["scenario"] = scenario
+        seen["usage_sink"] = usage_sink
         forwarded = plan if isinstance(plan, SessionInstruction) else None
         return real_factory(
             settings,
@@ -468,6 +476,7 @@ def _capture_factory_args(monkeypatch: pytest.MonkeyPatch) -> dict[str, object]:
             questions=questions,
             scenario=scenario,
             pronunciation_sound=pronunciation_sound,
+            usage_sink=usage_sink,  # ty: ignore[invalid-argument-type]
         )
 
     monkeypatch.setattr(ws_module, "create_voice_adapter", spy)
@@ -875,6 +884,48 @@ async def test_ws_pronunciation_mode_passes_the_sound_to_the_adapter(
 
     assert first is not None and first["type"] == "session_started"
     assert seen.get("pronunciation_sound") == "th_as_s"
+
+
+async def test_ws_gives_the_adapter_a_usage_sink_that_actually_writes(
+    ws_app: FastAPI,
+    db_pool: asyncpg.Pool,
+    seeded_fixed_user: UUID,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """⛔ **배선 누락을 잡는 단정이다** (`TASK-124` · 결정 68).
+
+    어댑터의 `usage_sink` 기본값이 `None`(기록 없음)이라 소켓이 넘기지 않으면 Nova 세션의 토큰
+    기록이 **조용히 꺼진다**. ⚠️ 인자가 있는지만 보지 않고 **쓰면 행이 생기는지**까지 본다 —
+    `lambda: None` 같은 no-op 을 넘겨도 「배선됨」으로 보이는 것을 막는다.
+    """
+    seen = _capture_factory_args(monkeypatch)
+
+    async with ws_app.router.lifespan_context(ws_app), ASGIWebSocket(ws_app) as client:
+        await client.receive_event()
+        # ⛔ **lifespan 안에서 부른다** — 그 sink 는 앱의 pool 을 잡고 있고 lifespan 이 닫히면
+        # `InterfaceError` 가 난다(실측). 조회는 아래에서 테스트 자기 pool 로 한다.
+        assert seen.get("usage_sink") is not None, (
+            "소켓이 usage_sink 를 넘기지 않았다 — Nova 토큰 기록이 꺼진다"
+        )
+        # `seen` 이 `dict[str, object]` 라 정적 타입 검사가 호출 가능성을 모른다 — 계약은
+        # `UsageSink` 이므로 그 이름으로 좁힌다(`ty: ignore` 를 흩뜨리지 않는다).
+        sink = cast(UsageSink, seen["usage_sink"])
+        await sink(
+            TokenUsage(input_tokens=11, output_tokens=12),
+            model_id="ws-wiring-probe",
+            purpose=PURPOSE_NOVA,
+            job_id=None,
+        )
+
+    async with db_pool.acquire() as conn:
+        row = await conn.fetchrow(
+            "select input_tokens, output_tokens, purpose from llm_calls where model_id = $1",
+            "ws-wiring-probe",
+        )
+        await conn.execute("delete from llm_calls where model_id = $1", "ws-wiring-probe")
+
+    assert row is not None, "sink 를 불렀는데 행이 없다 — no-op 이 넘어왔다"
+    assert (row["input_tokens"], row["output_tokens"], row["purpose"]) == (11, 12, PURPOSE_NOVA)
 
 
 # `TASK-112`(사용자 결정 67) — 값역이 열렸으므로 세션 행이 자기가 발음 세션임을 **기록한다**.

@@ -62,6 +62,7 @@ from app.models.pronunciation import (
     parse_tool_payload,
 )
 from app.models.scenario import SessionScenario
+from app.models.usage import PURPOSE_NOVA, TokenUsage, UsageSink
 
 logger = logging.getLogger(__name__)
 
@@ -614,6 +615,21 @@ def _offset_ms(body: dict[str, Any]) -> int | None:
     return offset if isinstance(offset, int) else None
 
 
+def _token_split(totals: Any, direction: str, key: str) -> int | None:
+    """`usageEvent.details.total.<direction>.<key>` 를 읽는다. 없으면 `None` (`TASK-124`).
+
+    ⛔ 없을 때 0 을 만들지 않는다 — 0 은 「그 축을 쓰지 않았다」는 주장이고, 필드가 없는 것과
+    0 인 것은 다른 사실이다. 분해가 없으면 `None` 이 그대로 저장돼 「분해 없음」을 뜻한다.
+    """
+    if not isinstance(totals, dict):
+        return None
+    side = totals.get(direction)
+    if not isinstance(side, dict):
+        return None
+    value = side.get(key)
+    return value if isinstance(value, int) else None
+
+
 class NovaEventTranslator:
     """Nova 출력 이벤트 → 포트 이벤트. 순수 상태기계다(I/O·시계를 보지 않는다).
 
@@ -633,6 +649,8 @@ class NovaEventTranslator:
         # 이번 턴에 **이미 한 행으로 올린** agent 청크들. Nova가 같은 텍스트를 FINAL로
         # 재전송하므로(I-6 실측) 그것을 알아보고 버리기 위한 기억이다.
         self._flushed_agent_chunks: set[str] = set()
+        # `TASK-124`(결정 68) — `usageEvent`의 **마지막** 누적 총계. 세션 끝에 한 행으로 적는다.
+        self.last_usage: TokenUsage | None = None
 
     def translate(self, name: str, body: dict[str, Any]) -> list[AdapterEvent]:
         if not isinstance(body, dict):
@@ -654,9 +672,41 @@ class NovaEventTranslator:
             return [SpeechBoundaryEvent(speaking=False, offset_ms=_offset_ms(body))]
         if name == "completionEnd":
             return self._flush_pending_agent_text()
-        # `usageEvent`·`completionStart`, 그리고 아직 문서에 없는 이벤트가 여기로 온다.
+        if name == "usageEvent":
+            self._remember_usage(body)
+            return []
+        # `completionStart`, 그리고 아직 문서에 없는 이벤트가 여기로 온다.
         logger.debug("Nova 이벤트 %s를 흘려보냈다", name)
         return []
+
+    def _remember_usage(self, body: dict[str, Any]) -> None:
+        """`usageEvent`의 **누적 총계**를 갈아 둔다 (`TASK-124` · 결정 68).
+
+        ⛔ **이벤트마다 행을 만들지 않는다.** 이 이벤트는 한 세션에서 여러 번 오고 값이 **누적**
+        이므로(실물 산출물 `runs/2026-09-11-task97-tool-payload/B0-r2.json` — 같은 `completionId`로
+        `total`이 자라며 반복된다) 매번 적으면 같은 토큰이 여러 행에 겹쳐 합계가 부풀어 오른다.
+        그래서 마지막 값만 남기고 **어댑터가 세션 끝에 한 번** 적는다.
+
+        ⚠️ **`delta`가 아니라 `total`을 읽는다** — 둘이 같은 이벤트에 함께 온다. `delta`를 합산하는
+        방식도 이론상 같은 값이 되지만, 이벤트 하나를 놓치면 조용히 적게 세고 그 오차를 알 수 없다.
+        ⛔ **없는 값을 0으로 만들지 않는다**(`extract_usage`와 같은 규약) — 총계가 없으면 갈아 두지
+        않는다. 그러면 이 세션은 「기록 없음」이 되고, 그것이 「0 토큰 세션」보다 정직하다.
+        """
+        total_input = body.get("totalInputTokens")
+        total_output = body.get("totalOutputTokens")
+        if not isinstance(total_input, int) or not isinstance(total_output, int):
+            logger.debug("usageEvent에 총계가 없어 넘겼다: %s", sorted(body))
+            return
+        totals = body.get("details", {})
+        totals = totals.get("total", {}) if isinstance(totals, dict) else {}
+        self.last_usage = TokenUsage(
+            input_tokens=total_input,
+            output_tokens=total_output,
+            input_speech_tokens=_token_split(totals, "input", "speechTokens"),
+            input_text_tokens=_token_split(totals, "input", "textTokens"),
+            output_speech_tokens=_token_split(totals, "output", "speechTokens"),
+            output_text_tokens=_token_split(totals, "output", "textTokens"),
+        )
 
     def _on_content_start(self, body: dict[str, Any]) -> list[AdapterEvent]:
         content_id = body.get("contentId")
@@ -815,6 +865,7 @@ class NovaVoiceAdapter:
         open_stream: StreamOpener | None = None,
         stream_limit_seconds: float = STREAM_LIMIT_SECONDS,
         instructions: str | None = None,
+        usage_sink: UsageSink | None = None,
     ) -> None:
         # 세션마다 조립된 지시문(G-3). `None`이면 기본 문구 — 스텁·기존 차수 재현이
         # 흔들리지 않게 "주지 않으면 이전과 같다"를 기본값으로 둔다.
@@ -831,6 +882,9 @@ class NovaVoiceAdapter:
         self._translator = NovaEventTranslator()
         self._audio_open = False
         self._closed = False
+        # `TASK-124`(결정 68) — 주입한다. 이 어댑터가 DB 를 알면 스트림 대역만으로 도는 단위
+        # 테스트가 DB 를 요구한다(`BedrockClaudeClient` 와 같은 이음새·같은 근거).
+        self._usage_sink = usage_sink
 
     # --- 포트 구현 ---
 
@@ -882,6 +936,10 @@ class NovaVoiceAdapter:
             return
         self._closed = True
         self._audio_open = False
+        # `TASK-124` — 세션이 쓴 토큰을 여기서 **한 번** 적는다. ⛔ 스트림을 닫기 **전에** 적는다:
+        # 아래 종료 절차가 예외로 빠지면(이미 끊긴 스트림·펌프 취소) 기록을 건너뛰게 되고, 그 세션의
+        # 비용이 표에서 통째로 사라진다. `_closed` 가 위에서 이미 서 있으므로 두 번 적히지 않는다.
+        await self._record_usage_or_continue()
         if self._stream is not None:
             for payload in self._termination_events():
                 # 이미 끊긴 스트림에 보내는 것은 오류가 아니다 — 종료를 막지 않는다.
@@ -893,6 +951,41 @@ class NovaVoiceAdapter:
                 await self._pump
         if self._stream is not None:
             await self._quiet_close(self._stream)
+
+    @property
+    def records_usage(self) -> bool:
+        """사용량 sink 가 붙어 있는가 (`TASK-124`).
+
+        공개 속성으로 두는 이유는 `BedrockClaudeClient.records_usage` 와 **같다**: 팩토리→어댑터
+        구간의 배선 누락을 잡는 게이트 테스트가 이것을 잰다. ⚠️ 그 구간이 실제로 무보호였음을
+        뮤테이션으로 확인했다(팩토리에서 인자를 떼도 138건이 전부 초록이었다) — 이 속성과 그
+        테스트가 그 구멍을 닫는다.
+        """
+        return self._usage_sink is not None
+
+    async def _record_usage_or_continue(self) -> None:
+        """이 세션이 쓴 토큰을 적는다. 실패하면 로그만 남기고 종료를 계속한다 (`TASK-124`).
+
+        ⚠️ **`usageEvent` 를 한 번도 못 받은 세션은 적지 않는다** — 0 을 적으면 「토큰을 쓰지 않은
+        세션」을 발명한다. 그 대신 `warning` 으로 남긴다: 세션은 있는데 기록이 없다는 사실 자체가
+        관측 대상이다(스트림이 초기화 전에 끊긴 경우가 그 모양이다).
+        """
+        if self._usage_sink is None:
+            return
+        usage = self._translator.last_usage
+        if usage is None:
+            logger.warning("Nova 세션이 usageEvent 없이 끝났다 — 토큰을 적지 않는다")
+            return
+        try:
+            await self._usage_sink(
+                usage,
+                model_id=self._settings.nova_model_id,
+                purpose=PURPOSE_NOVA,
+                # 음성 세션은 job 경로가 아니다 — `null` 이 그 사실을 뜻한다(013 머리말).
+                job_id=None,
+            )
+        except Exception:  # noqa: BLE001 — 기록 실패가 세션 종료를 막지 않는다
+            logger.exception("Nova 사용량을 적지 못했다 (이 비용은 복원할 수 없다)")
 
     # --- 내부 ---
 

@@ -59,6 +59,7 @@ from app.services.sessions import (
     set_session_mode,
     start_shadowing_session,
 )
+from app.services.usage import pool_usage_sink
 
 logger = logging.getLogger(__name__)
 
@@ -399,6 +400,10 @@ async def session_socket(websocket: WebSocket) -> None:
                 questions=questions,
                 scenario=scenario,
                 pronunciation_sound=pronunciation_sound,
+                # ⛔ **이 인자를 빼면 Nova 토큰 기록이 조용히 꺼진다** (`TASK-124` · 결정 68).
+                # 어댑터의 기본값이 `None`(기록 없음)이고 실물 배선은 여기 하나뿐이다 — `main.py` 의
+                # `usage_sink` 와 같은 부류의 위험이고 같은 방식으로 게이트 테스트가 못 박는다.
+                usage_sink=pool_usage_sink(pool),
             )
         except Exception:
             # 어댑터를 만들지도 못했다(설정 오타/구현 부재). 세션 행은 이미 있으므로
