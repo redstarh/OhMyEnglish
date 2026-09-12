@@ -15,7 +15,9 @@
 **발음 전용 진입** (`TASK-10.1`·`TASK-10.2` · 결정 64): `?mode=pronunciation` 으로 붙으면 지시문이
 전용 판으로 바뀌고 `session_started` 에 `pronunciation_focus`(오늘의 소리)가 실린다.
 ⛔ 오늘의 소리를 고를 수 없으면 **말하기로 떨어지고 그 키가 없다** — 화면은 그 부재로 폴백을 안다.
-⛔ 세션 행의 `mode` 는 바뀌지 않는다(001 값역 밖이다 · `TASK-112`).
+세션 행의 `mode` 도 `pronunciation` 으로 적힌다 (`TASK-112` · 결정 67 · 014 가 값역을 열었다).
+⛔ **적는 시점은 「요청받은 때」가 아니라 「오늘의 소리가 정해진 때」다** — 폴백으로 말하기가 된
+세션까지 발음으로 집계하면 이 결정이 닫으려던 결함의 반대 방향 변종이 된다.
 
 **추가 학습 표시** (`TASK-10.2`): `?source=additional` 이 `learning_sessions.learning_source` 에
 남는다. 주지 않으면 001 의 기본값(`recommended`)이다.
@@ -54,6 +56,7 @@ from app.services.sessions import (
     load_session_scenario,
     mark_session_ended,
     record_drill_turns_expected,
+    set_session_mode,
     start_shadowing_session,
 )
 
@@ -70,12 +73,13 @@ SHADOWING_MODE = "shadowing"
 # `?mode=speaking` 은 명시적 선택이므로 「알 수 없는 mode」로 경고하면 안 된다. ⛔ 이 둘이
 # 값역 전체는 아니다 — `review` 는 아직 진입점이 없고, 값역의 정본은 여전히 001 의 CHECK 다.
 SPEAKING_MODE = "speaking"
-# `TASK-10.1` — 발음 전용 모드로 붙는 값. ⛔ **세션 행의 `mode` 를 바꾸지 않는다**: 001 의
-# `learning_sessions_mode_check` 값역에 이 값이 없고, 값역을 늘리는 것은 마이그레이션이라
-# 이 태스크의 범위 밖이다(모드 리터럴의 소유자는 결정 11 이 `TASK-27` 로 지목했다). 이 상수가
-# 바꾸는 것은 **지시문 하나**이고, 세션 행은 그대로 말하기로 남는다.
-# ⚠️ 그 대가를 적는다 — 결과 화면·집계가 이 세션을 말하기 세션으로 센다. 그 값역을 늘릴지는
-# 원장의 후속 태스크가 정한다.
+# `TASK-10.1` — 발음 전용 모드로 붙는 값. 이 상수가 바꾸는 것은 **지시문**이고, `TASK-112`(결정 67 ·
+# 마이그레이션 014) 이후로는 **세션 행의 `mode` 도** 같은 값으로 적힌다.
+# ⚠️ **이 서술은 한 번 뒤집혔고 그 사실을 남긴다** — 처음에는 *"세션 행의 mode 를 바꾸지 않는다
+# (001 값역 밖이고 값역을 늘리는 것은 이 태스크 범위 밖이다)"* 였다. 그 대가(결과 화면·집계가
+# 발음 세션을 말하기로 세는 것)를 사용자가 결정 67 로 갚기로 정했다.
+# ⛔ 모드 리터럴의 소유자는 여전히 결정 11 이 지목한 `TASK-27` 이다 — 014 는 값역 한 칸만 열었고
+# 소유를 옮기지 않았다.
 PRONUNCIATION_MODE = "pronunciation"
 
 SESSION_CREATE_FAILED_REASON = "session_create_failed"
@@ -367,6 +371,25 @@ async def session_socket(websocket: WebSocket) -> None:
                 "계획에 발음 초점이 없고 놓친 소리 목록도 비었다",
                 PRONUNCIATION_MODE,
             )
+        # `TASK-112`(결정 67) — 세션 행이 자기가 발음 세션임을 적는다. ⛔ **소리가 정해진 뒤에
+        # 적는다**: 위 폴백으로 말하기가 된 세션까지 발음으로 집계하면 이 결정이 닫으려던 결함의
+        # 반대 방향 변종이 된다. 실패해도 대화를 막지 않는다(`_record_drill_turns_or_continue` 와
+        # 같은 규약) — 다만 `exception`·`warning` 으로 갚는다. 값역 밖 값은 애초에 상수라 오지 않고,
+        # 그런 일이 나면 그것은 값역이 갈라졌다는 신호이므로 로그가 그것을 가리켜야 한다.
+        if pronunciation_sound is not None:
+            try:
+                if not await set_session_mode(pool, session_id, mode=PRONUNCIATION_MODE):
+                    logger.warning(
+                        "세션 %s 의 mode 를 %s 로 적지 못했다 — 그 사이 세션이 닫혔다",
+                        session_id,
+                        PRONUNCIATION_MODE,
+                    )
+            except asyncpg.PostgresError:
+                logger.exception(
+                    "세션 %s 의 mode 를 %s 로 적을 수 없다 — 집계가 이 세션을 말하기로 센다",
+                    session_id,
+                    PRONUNCIATION_MODE,
+                )
 
         try:
             adapter = create_voice_adapter(

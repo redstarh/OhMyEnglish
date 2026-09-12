@@ -99,6 +99,22 @@ update learning_sessions
  where id = $1
 """
 
+# `TASK-112`(사용자 결정 67) — 세션이 «자기가 어떤 모드였는지» 뒤늦게 적는 자리.
+# ⛔ **`create_session`에 모드를 넘겨 처음부터 적지 않는 이유**: 발음 전용 진입은 오늘의 소리를 못
+# 고르면 말하기로 떨어지고(`api/ws.py`의 기존 규약), 그 판정이 세션 행 생성 **뒤에** 난다. 요청만
+# 보고 적으면 말하기로 떨어진 세션까지 발음으로 집계된다 — 그것이 이 결정이 닫으려던 결함의
+# **반대 방향 변종**이다.
+# ⛔ 값역을 여기서 열거하지 않는다 — 014의 `learning_sessions_mode_check`가 가두고, 값이 그 밖이면
+# `PostgresError`로 실패한다(조용히 다른 모드로 바꾸지 않는다).
+# `and status = 'active'`는 `_END_SESSION_SQL`과 같은 이유다 — 이미 닫힌 세션의 기록을 덮지 않는다.
+_SET_SESSION_MODE_SQL = """
+update learning_sessions
+   set mode = $2
+ where id = $1
+   and status = 'active'
+returning id
+"""
+
 # `and status = 'active'`는 **캡틴 결정(2026-09-03)**이다 — `end_session`이 리퍼의 판정을 덮지
 # 못하게 막는다. `returning id`는 그 가드가 걸렸는지(0행)를 호출자가 알기 위한 것이다.
 _END_SESSION_SQL = """
@@ -343,8 +359,10 @@ async def create_session(
     `mode`는 **키워드 전용이고 기본값이 `'speaking'`**이다 (`TASK-45` · 결정 11이 미뤄 둔
     파라미터화가 여기서 발화한다). ⛔ **기존 호출자를 깨뜨리지 않는 것이 그 형태의 이유다** —
     `api/ws.py`와 하네스는 인자를 주지 않고 지금 그대로 말하기 세션을 연다.
-    값역은 001의 `learning_sessions_mode_check`(`speaking`·`shadowing`·`review`)가 가둔다 —
-    이 함수가 목록을 복제하지 않는다(두 곳이 갈라지지 않게).
+    값역은 `learning_sessions_mode_check`가 가둔다 — 이 함수가 목록을 복제하지 않는다(두 곳이
+    갈라지지 않게). ⚠️ 그 값역은 001이 세우고 **014가 `pronunciation`을 더했다**(`TASK-112` ·
+    결정 67) — 그래서 여기에 목록을 적지 않는 것이 값을 한다. 발음 전용 세션은 이 함수가 아니라
+    `set_session_mode`가 뒤늦게 적는다(그 상수 위 주석이 시점의 근거를 갖는다).
 
     `learning_source` 는 **추가 학습 진입이 자기를 표시하는 자리**다 (`TASK-10.2` · 진입점 설계서
     §4). `None` 이면 001 의 기본값(`recommended`)이 그대로 쓰인다.
@@ -366,6 +384,21 @@ async def create_session(
         )
     assert session_id is not None, "insert ... returning produced no row"
     return session_id
+
+
+async def set_session_mode(pool: asyncpg.Pool, session_id: UUID, *, mode: str) -> bool:
+    """이미 열린 세션의 `mode`를 적는다. 갱신된 행이 없으면 `False` (`TASK-112` · 결정 67).
+
+    돌려주는 값이 `bool`인 이유: 세션이 그 사이 닫혔으면(`status != 'active'`) 0행이고, 호출자가
+    그 사실을 **로그로 갚아야** 한다 — 조용히 지나가면 「집계가 왜 이 세션을 말하기로 세는가」를
+    나중에 재현할 근거가 없다.
+
+    ⛔ 값역을 검사하지 않는다 — 014의 CHECK가 정본이다(상수 위 주석). 값역 밖 값은
+    `asyncpg.PostgresError`로 올라가고, 호출자는 그것을 삼키지 않는다.
+    """
+    async with pool.acquire() as conn:
+        updated = await conn.fetchval(_SET_SESSION_MODE_SQL, session_id, mode)
+    return updated is not None
 
 
 async def start_shadowing_session(

@@ -877,6 +877,66 @@ async def test_ws_pronunciation_mode_passes_the_sound_to_the_adapter(
     assert seen.get("pronunciation_sound") == "th_as_s"
 
 
+# `TASK-112`(사용자 결정 67) — 값역이 열렸으므로 세션 행이 자기가 발음 세션임을 **기록한다**.
+# 그전에는 `mode` 가 `speaking` 으로 남아 결과 화면·집계·일일 완료 판정이 발음 세션을 말하기로 셌다.
+# ⛔ **기록 시점이 「요청받은 때」가 아니라 「소리가 실제로 정해진 때」다** — 소리를 못 고르면 이
+# 파일의 기존 규약대로 말하기로 떨어지고(아래 음성 케이스), 그때 `pronunciation` 으로 적으면
+# 세션 행이 **실제와 다른 것**을 말한다.
+async def test_ws_pronunciation_mode_records_that_mode_on_the_session_row(
+    ws_app: FastAPI,
+    seeded_fixed_user: UUID,
+    db_pool: asyncpg.Pool,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    async def one_sound(pool: object) -> list[str]:
+        return ["th_as_s"]
+
+    monkeypatch.setattr(ws_module, "_load_known_sounds_or_empty", one_sound)
+    _capture_factory_args(monkeypatch)
+
+    async with (
+        ws_app.router.lifespan_context(ws_app),
+        ASGIWebSocket(ws_app, query_string=b"mode=pronunciation") as client,
+    ):
+        started = await client.receive_event()
+
+    assert started is not None
+    async with db_pool.acquire() as conn:
+        mode = await conn.fetchval(
+            "select mode from learning_sessions where id = $1", UUID(started["session_id"])
+        )
+    assert mode == "pronunciation"
+
+
+async def test_ws_pronunciation_fallback_leaves_the_session_as_speaking(
+    ws_app: FastAPI,
+    seeded_fixed_user: UUID,
+    db_pool: asyncpg.Pool,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """⚠️ 이 음성 케이스가 위 테스트의 판별력을 만든다 — 없으면 「요청만 보고 적는」 구현이 통과하고
+    소리를 못 고른 세션까지 발음 세션으로 집계된다."""
+
+    async def no_sounds(pool: object) -> list[str]:
+        return []
+
+    monkeypatch.setattr(ws_module, "_load_known_sounds_or_empty", no_sounds)
+    _capture_factory_args(monkeypatch)
+
+    async with (
+        ws_app.router.lifespan_context(ws_app),
+        ASGIWebSocket(ws_app, query_string=b"mode=pronunciation") as client,
+    ):
+        started = await client.receive_event()
+
+    assert started is not None
+    async with db_pool.acquire() as conn:
+        mode = await conn.fetchval(
+            "select mode from learning_sessions where id = $1", UUID(started["session_id"])
+        )
+    assert mode == "speaking"
+
+
 # ⚠️ 음성 케이스 둘 — 이 둘이 판별력을 만든다. 없으면 「항상 전용 지시문」으로 고쳐도 위 테스트가
 # 통과하고, 그러면 **모든 세션이** 발음 세션이 된다.
 async def test_ws_pronunciation_mode_falls_back_when_no_sound_is_available(

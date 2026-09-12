@@ -104,6 +104,9 @@ async def test_001_migration_creates_expected_tables(db_conn: asyncpg.Connection
         "shadowing_items",
         # 012 — 일일 오류 요약 (docs/design/2026-09-11-daily-error-summary-design.md §3)
         "daily_error_summary",
+        # 013 — LLM 호출 토큰 사용량 (결정 66 · `TASK-60`). 호출 1건 = 행 1건이고 job **밖**
+        # 호출(계획 스파이크·Nova·예열)까지 담는 것이 이 표의 존재 이유다.
+        "llm_calls",
     }
 
 
