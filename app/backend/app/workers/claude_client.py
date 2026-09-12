@@ -173,17 +173,42 @@ class FakeClaudeClient:
     올린다 — 테스트가 의도한 호출 횟수를 넘겼다는 사실 자체가 버그 신호다.
     """
 
-    def __init__(self, responses: list[str]) -> None:
+    def __init__(self, responses: list[str], *, by_purpose: dict[str, str] | None = None) -> None:
         self._responses = list(responses)
         self.prompts: list[str] = []
         # `TASK-60` — 받은 귀속을 그대로 기록한다. 테스트가 「job 호출자가 갈래를 넘겼는가」를
         # 이 자리에서 잴 수 있어야 한다: 안 넘기면 비용이 「임시 호출」로 적힌다.
         self.attributions: list[tuple[str, UUID | None]] = []
+        # `TASK-62` — **갈래별 응답**. 그 갈래로 온 호출은 순서 목록을 «꺼내지 않고» 이것을 받는다.
+        #
+        # ⛔ **왜 필요한가**: 워커 루프를 돌리는 통합 테스트는 자기가 세운 job 하나만 재는데,
+        # 세션 종료가 job 을 **여럿** 걸므로 큐에 그 테스트가 세우지 않은 호출이 섞인다. 순서
+        # 목록만 있으면 그 호출이 남의 응답을 꺼내가고 목록이 마르면 `AssertionError` 가 난다 —
+        # 2026-09-13 에 총평 job 을 더하면서 통합 테스트 다섯이 그렇게 깨졌다(원인은 라우팅이 아니라
+        # **대역의 모양**이었다).
+        # ⛔ **자동으로 추측하지 않는다** — 호출자가 준 갈래만 답한다. 대역이 스스로 그럴듯한 응답을
+        # 만들기 시작하면 「응답이 준비되지 않은 호출」을 테스트가 못 잡는다.
+        self._by_purpose = dict(by_purpose or {})
 
     async def analyze(
         self, prompt: str, *, purpose: str = PURPOSE_SPIKE, job_id: UUID | None = None
     ) -> str:
         self.prompts.append(prompt)
         self.attributions.append((purpose, job_id))
+        if purpose in self._by_purpose:
+            return self._by_purpose[purpose]
         assert self._responses, f"FakeClaudeClient responses exhausted (call #{len(self.prompts)})"
         return self._responses.pop(0)
+
+    def prompts_for(self, purpose: str) -> list[str]:
+        """그 갈래로 온 프롬프트만 돌려준다.
+
+        ⛔ **`len(self.prompts)` 로 「몇 번 불렸나」를 재지 않는다** — 큐에 다른 종류의 job 이
+        섞이면 그 수가 재려던 것과 무관하게 늘어난다. 재려는 것은 대개 **「내 갈래가 한 번
+        불렸나」**이므로 그 축을 이 함수가 갖는다.
+        """
+        return [
+            prompt
+            for prompt, (called_for, _) in zip(self.prompts, self.attributions, strict=True)
+            if called_for == purpose
+        ]

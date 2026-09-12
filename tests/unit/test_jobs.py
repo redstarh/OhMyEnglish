@@ -514,9 +514,14 @@ async def test_end_session_does_not_enqueue_when_already_closed(db_conn: asyncpg
 
     await end_session(db_conn, session_id, "completed")
 
+    # ⛔ **종류를 지목해 센다 — 세션의 job 전부를 세지 않는다.** `TASK-62` 가 종료 경로에 총평 job
+    # 을 더하면서 「전부 = 1」이 깨졌고, 그 실패는 이 테스트가 재려던 것(가드)과 **무관**했다.
+    # ⇒ 종류가 늘 때마다 이 수를 고치지 않게 대상을 좁힌다.
     assert (
         await db_conn.fetchval(
-            "select count(*) from analysis_jobs where session_id = $1", session_id
+            "select count(*) from analysis_jobs where session_id = $1 and job_type = $2",
+            session_id,
+            JOB_TYPE_PLAN,
         )
         == 1
     )

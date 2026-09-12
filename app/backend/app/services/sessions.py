@@ -49,7 +49,11 @@ import pydantic
 
 from app.models.plan import PlanQuestion, SessionInstruction
 from app.models.scenario import SessionScenario
-from app.services.jobs import enqueue_generate_scenario, enqueue_plan_next_session
+from app.services.jobs import (
+    enqueue_generate_scenario,
+    enqueue_plan_next_session,
+    enqueue_summarize_session,
+)
 from app.services.scenario_rotation import (
     WINDOW,
     Candidate,
@@ -570,6 +574,14 @@ async def end_session(conn: asyncpg.Connection, session_id: UUID, status: Sessio
     # 설계서 §3.1: 같은 트랜잭션에서 다음 계획 job을 건다. `closed`가 있을 때만 거는 이유는
     # 이미 닫힌 세션 재호출(리퍼가 먼저 닫은 경우)에서 job이 중복되지 않게 하려는 것이다.
     await enqueue_plan_next_session(conn, session_id)
+
+    # `TASK-62` — 세션 총평 job. ⛔ **모드 조건이 없다**: 아래 `generate_scenario` 와 달리
+    # `nova-sonic-claude-architecture.md` §4.3 이 *"세션 종료 후"* 로 지정했으므로 **모든 세션**이
+    # 대상이다. ⚠️ 그 형태를 베껴 조건을 붙이면 「말하기 세션에는 총평이 없다」가 되고 그것은
+    # 요구가 아니다 — `test_it_is_enqueued_for_every_mode_not_only_intake` 가 그 자리를 지킨다.
+    # ⚠️ 발화 0건 세션에도 걸린다 — 그 경로는 모델을 부르지 않고 「담을 것이 없었다」를 기록한다
+    # (`session_summary.process_summary` 가 그 판단을 갖는다).
+    await enqueue_summarize_session(conn, session_id)
 
     # `TASK-5` · 결정 79 — 「질문 답변 5개」 세션은 **한 job 을 더** 건다. 그 세션의 전사문에서
     # 무대를 만드는 job 이다.

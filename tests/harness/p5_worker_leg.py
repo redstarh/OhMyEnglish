@@ -91,12 +91,14 @@ from app.services.jobs import (  # noqa: E402
     JOB_TYPE_ANALYZE,
     JOB_TYPE_GENERATE_SCENARIO,
     JOB_TYPE_PLAN,
+    JOB_TYPE_SUMMARIZE,
     LEASE,
     MAX_ATTEMPTS,
     claim_next,
 )
 from app.services.plan import process_plan  # noqa: E402
 from app.services.scenario_generator import process_scenario  # noqa: E402
+from app.services.session_summary import process_summary  # noqa: E402
 from app.workers.claude_client import BedrockClaudeClient  # noqa: E402
 
 # `browser_leg.md` §9 의 보존 세션. 지우지도, 그 job 을 처리하지도 않는다.
@@ -399,6 +401,8 @@ async def cmd_claim(args: argparse.Namespace) -> int:
             await process_plan(pool, claude, job)
         elif job.job_type == JOB_TYPE_GENERATE_SCENARIO:
             await process_scenario(pool, claude, job)
+        elif job.job_type == JOB_TYPE_SUMMARIZE:
+            await process_summary(pool, claude, job)
         elif job.job_type == JOB_TYPE_ANALYZE:
             await process_analysis(pool, claude, job)
         else:
@@ -467,7 +471,12 @@ def main() -> int:
     # baseline 이 drift 하고(`H-AY`) 그것은 이 회차가 필요로 하지 않는 변경이다.
     p_guard.add_argument(
         "--job-type",
-        choices=(JOB_TYPE_ANALYZE, JOB_TYPE_PLAN, JOB_TYPE_GENERATE_SCENARIO),
+        choices=(
+            JOB_TYPE_ANALYZE,
+            JOB_TYPE_PLAN,
+            JOB_TYPE_GENERATE_SCENARIO,
+            JOB_TYPE_SUMMARIZE,
+        ),
         help="당길 job 의 종류를 좁힌다 (없으면 그 세션의 가장 이른 job)",
     )
     p_guard.set_defaults(fn=cmd_guard)

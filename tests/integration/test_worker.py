@@ -37,7 +37,7 @@ from app.api import main as main_module
 from app.api.main import create_app
 from app.audio_gateway.fixtures import FIXTURE_TURNS
 from app.config import get_settings
-from app.models.usage import PURPOSE_SPIKE, TokenUsage
+from app.models.usage import PURPOSE_PLAN, PURPOSE_SPIKE, TokenUsage
 from app.services.jobs import JOB_TYPE_PLAN
 from app.services.plan import PLAN_NO_FOCUS_CANDIDATES
 from app.services.recordings import recording_path, recording_url
@@ -394,8 +394,13 @@ async def test_worker_routes_a_plan_job_to_process_plan(
     assert level == "B1"
     # 받은 프롬프트가 **계획 프롬프트**여야 한다 — 분석 프롬프트에는 이 절 제목이 없으므로
     # 라우팅이 어긋나면 여기서도 걸린다.
-    assert len(claude.prompts) == 1
-    assert "Due for review today" in claude.prompts[0]
+    # ⛔ **갈래로 세어야 한다** — 세션 종료가 job 을 여럿 걸므로 `len(claude.prompts)` 는 이
+    # 테스트가 재려는 것과 무관하게 늘어난다(`TASK-62` 가 총평 job 을 더한 뒤 실측됐다).
+    # ⚠️ 축이 `job_type` 이 아니라 **`purpose`** 다 — 그 두 어휘가 다르다
+    # (`plan` ≠ `plan_next_session`).
+    plan_prompts = claude.prompts_for(PURPOSE_PLAN)
+    assert len(plan_prompts) == 1
+    assert "Due for review today" in plan_prompts[0]
 
 
 # ② stop 이벤트로 루프가 1초 내 종료된다

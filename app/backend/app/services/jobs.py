@@ -69,6 +69,11 @@ JOB_TYPE_PLAN = "plan_next_session"
 # `JOB_TYPE_PLAN` 만 갈라내고 나머지를 `process_analysis` 로 보내며, 그 함수는 종류가 다르면
 # **실패로 보고한다.** 분기를 빼면 job 이 걸리기만 하고 5회 재시도 뒤 영원히 `failed` 가 된다.
 JOB_TYPE_GENERATE_SCENARIO = "generate_scenario"
+# `TASK-62` — 세션이 끝나면 「잘한 점 · 핵심 약점」을 만든다. ⚠️ **값역이 001 부터 이미 열려 있다**
+# (`001:138` 이 `summarize_session` 을 담았고 007·018 이 그것을 옮겼다) — 첫 슬라이스 설계서가
+# *"스키마는 미리, 동작은 나중에"* 로 그렇게 뒀고 이 상수가 그 「나중」이다.
+# ⛔ 위 ⛔ 와 같은 규약: 워커 분기를 함께 고친다.
+JOB_TYPE_SUMMARIZE = "summarize_session"
 
 # reaper가 좀비 job에 남기는 사유 (아래 `_REAP_ZOMBIES_SQL` 참조).
 LEASE_EXPIRED_ERROR = "max attempts exceeded (lease expired without report)"
@@ -164,6 +169,25 @@ async def enqueue_generate_scenario(conn: asyncpg.Connection, session_id: UUID) 
     그 사이 크래시에서 5회 대화가 무대 없이 버려진다.
     """
     return await conn.fetchval(_ENQUEUE_PLAN_SQL, JOB_TYPE_GENERATE_SCENARIO, session_id)
+
+
+async def enqueue_summarize_session(conn: asyncpg.Connection, session_id: UUID) -> UUID | None:
+    """끝난 세션의 전사문에서 총평을 만들 job 을 건다 (`TASK-62`).
+
+    ⛔ **모드 조건이 없다** — `enqueue_generate_scenario` 는 「질문 답변 5개」 세션만 대상으로
+    하지만 총평은 **모든 세션**의 것이다(`nova-sonic-claude-architecture.md` §4.3 이 *"세션 종료
+    후"* 로 지정했다). 그 형태를 베껴 조건을 붙이면 「말하기 세션에는 총평이 없다」가 되고 그것은
+    요구가 아니다.
+
+    ⚠️ **위 `_ENQUEUE_PLAN_SQL` 을 그대로 쓴다** — 그 문장은 `job_type` 을 파라미터로 받는 세션 단위
+    job 공용이다(그 상수 위 주석이 이름을 안 바꾼 근거를 갖는다).
+
+    `None` 은 실패가 아니라 **이미 걸려 있다**는 뜻이다 — 같은 partial unique 가 `(job_type,
+    session_id)` 를 pending/running 동안 하나로 묶는다.
+
+    ⚠️ 연결을 받는다(pool 이 아니다). 세션 종료 기록과 **한 트랜잭션**이어야 한다.
+    """
+    return await conn.fetchval(_ENQUEUE_PLAN_SQL, JOB_TYPE_SUMMARIZE, session_id)
 
 
 async def claim_next(conn: asyncpg.Connection, *, now: datetime | None = None) -> ClaimedJob | None:

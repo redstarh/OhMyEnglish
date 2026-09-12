@@ -53,8 +53,8 @@ from app.services.chronic import ChronicMetric
 from app.services.jobs import (
     JOB_TYPE_ANALYZE,
     JOB_TYPE_PLAN,
+    JOB_TYPE_SUMMARIZE,
     ClaimedJob,
-    claim_next,
     enqueue_plan_next_session,
 )
 from app.services.plan_input import PlanInput, PronunciationTally, RecentCorrection, RecentUtterance
@@ -220,13 +220,33 @@ async def api_client(db_pool: asyncpg.Pool) -> AsyncIterator[httpx.AsyncClient]:
         yield client
 
 
+# `TASK-62` — 총평 갈래의 기본 응답. ⛔ **파서의 계약을 지키는 최소 형태**여야 한다(키 둘·
+# `weak_points` 1개 이상) — 어기면 그 job 이 실패해 다른 축을 재는 테스트가 그 실패에 걸린다.
+_SUMMARY_REPLY = json.dumps(
+    {
+        "went_well": ["문장을 끝까지 말했어요."],
+        "weak_points": [{"point": "관사를 빼먹어요.", "quote": "I go to gym."}],
+    },
+    ensure_ascii=False,
+)
+
+
 @pytest.fixture
 def fake_claude() -> Callable[..., FakeClaudeClient]:
     """Factory for the Claude 대역: `fake_claude(resp1, resp2)` answers the
-    calls in order and records the prompts it received (`.prompts`)."""
+    calls in order and records the prompts it received (`.prompts`).
+
+    ⛔ **총평 갈래(`summarize_session`)에는 기본 응답을 매어 둔다** (`TASK-62`). 세션 종료가 job 을
+    여럿 걸므로 워커 루프를 돌리는 테스트의 큐에는 **그 테스트가 세우지 않은 호출**이 섞인다 —
+    순서 목록만 있으면 그 호출이 남의 응답을 꺼내가고 목록이 마르면 job 이 실패한다(2026-09-13 에
+    통합 테스트 다섯이 그렇게 깨졌고 원인은 라우팅이 아니라 대역의 모양이었다).
+    ⚠️ **총평을 «재는» 테스트는 이 기본값에 기대지 않는다** —
+    `tests/unit/test_session_summary_job.py` 가 자기 대역을 따로 두고 응답을 직접 준다.
+    이 기본값은 **다른 축을 재는 테스트가 총평 때문에 깨지지 않게 하는 것**이 목적이다.
+    """
 
     def make(*responses: str) -> FakeClaudeClient:
-        return FakeClaudeClient(list(responses))
+        return FakeClaudeClient(list(responses), by_purpose={JOB_TYPE_SUMMARIZE: _SUMMARY_REPLY})
 
     return make
 
@@ -864,6 +884,24 @@ async def ended_session_with_due_only(db_pool: asyncpg.Pool) -> AsyncIterator[Du
             await conn.execute("delete from users where id = $1", user_id)
 
 
+# ⛔ **종류와 세션을 지목해 claim 한다** — `claim_next` 는 큐 전체에서 고르므로 같은 세션의 다른
+# 종류를 집는다(`TASK-62` 가 총평 job 을 더한 뒤 실측됐다). 술어는 제품의 claim 과 같은 모양이지만
+# 대상만 좁힌 것이고, 큐 로직 자체는 `claim_next` 의 테스트가 잰다.
+_CLAIM_BY_TYPE_SQL = """
+update analysis_jobs
+   set status = 'running',
+       locked_by = $3,
+       locked_at = now(),
+       attempts = attempts + 1
+ where id = (
+       select id from analysis_jobs
+        where job_type = $1 and session_id = $2 and status = 'pending'
+        limit 1
+       )
+returning id, job_type, utterance_id, session_id, attempts
+"""
+
+
 async def claim_plan_job(pool: asyncpg.Pool, session_id: UUID) -> ClaimedJob:
     """이 세션의 `plan_next_session` job 을 claim 한다 — 걸려 있지 않으면 먼저 등록한다.
 
@@ -872,17 +910,25 @@ async def claim_plan_job(pool: asyncpg.Pool, session_id: UUID) -> ClaimedJob:
     앞선 job 이 terminal(`done`/`failed`)이 된 뒤에는 새 job 이 걸린다 — 큐의 멱등 규약
     그대로다.
 
-    ⚠️ claim 한 것이 **이 세션의 계획 job 인지** 단정한다. `claim_next`는 큐 전체에서
-    하나를 고르므로, 다른 테스트가 남긴 job 을 집어오면 이 헬퍼가 조용히 엉뚱한 job 을
-    돌려주고 호출한 테스트가 이유 없이 초록이 된다.
+    ⛔ **`claim_next` 를 쓰지 않고 종류와 세션을 지목해 claim 한다.** 그 함수는 큐 전체에서
+    「다음 실행 가능한 job」을 고르므로 **같은 세션의 다른 종류**를 집는다 — `TASK-62` 가 종료
+    경로에 총평 job 을 더한 뒤 실제로 그렇게 됐다(`summarize_session` 을 집어 이 단정이 깨졌다).
+    ⚠️ 이 헬퍼는 큐 로직을 재지 않는다(그것은 `claim_next` 의 테스트가 잰다) — 여기서는 호출한
+    테스트가 재려는 job 하나로 대상을 고정하는 것이 목적이다.
     """
+    token = uuid4().hex
     async with pool.acquire() as conn:
         await enqueue_plan_next_session(conn, session_id)
-        job = await claim_next(conn)
-    assert job is not None, f"세션 {session_id} 의 계획 job 을 claim 하지 못했다"
-    assert job.job_type == JOB_TYPE_PLAN, f"claim 한 job 종류가 다르다: {job.job_type}"
-    assert job.session_id == session_id, f"claim 한 job 의 세션이 다르다: {job.session_id}"
-    return job
+        row = await conn.fetchrow(_CLAIM_BY_TYPE_SQL, JOB_TYPE_PLAN, session_id, token)
+    assert row is not None, f"세션 {session_id} 의 계획 job 을 claim 하지 못했다"
+    return ClaimedJob(
+        id=row["id"],
+        job_type=row["job_type"],
+        utterance_id=row["utterance_id"],
+        session_id=row["session_id"],
+        lease_token=token,
+        attempts=row["attempts"],
+    )
 
 
 def plan_json(

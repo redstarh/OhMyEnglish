@@ -32,12 +32,14 @@ from app.services.analysis import process_analysis
 from app.services.jobs import (
     JOB_TYPE_GENERATE_SCENARIO,
     JOB_TYPE_PLAN,
+    JOB_TYPE_SUMMARIZE,
     ClaimedJob,
     claim_next,
 )
 from app.services.plan import process_plan
 from app.services.recordings import purge_expired_recordings, sweep_orphan_recording_files
 from app.services.scenario_generator import process_scenario
+from app.services.session_summary import process_summary
 from app.services.sessions import ORPHAN_IDLE_GRACE, reap_orphan_sessions
 from app.services.utterances import flush_ended_sessions
 from app.workers.claude_client import ClaudeClient
@@ -221,6 +223,11 @@ async def run_worker(
                 # (`analysis.py` 의 그 가드 주석이 근거) job 이 5회 재시도 뒤 영원히 `failed` 가
                 # 된다. 조용히 잘못 처리되지는 않지만 **무대가 한 번도 만들어지지 않는다.**
                 await process_scenario(pool, claude, job)
+            elif job.job_type == JOB_TYPE_SUMMARIZE:
+                # `TASK-62`. 위 ⛔ 와 **같은 이유로** 이 분기가 필요하다 — 빼면 총평이 한 번도
+                # 만들어지지 않는다. ⚠️ 그리고 총평 job 은 **모든 세션**에 걸리므로(모드 조건이
+                # 없다) 빠뜨리면 `failed` 가 세션마다 하나씩 쌓인다.
+                await process_summary(pool, claude, job)
             else:
                 await process_analysis(pool, claude, job)
         except Exception:
