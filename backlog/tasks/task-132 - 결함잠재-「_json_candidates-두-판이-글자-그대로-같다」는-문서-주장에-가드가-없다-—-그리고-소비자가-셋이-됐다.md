@@ -4,7 +4,7 @@ title: '결함(잠재): 「_json_candidates 두 판이 글자 그대로 같다�
 status: Awaiting Decision
 assignee: []
 created_date: '2026-09-12 13:19'
-updated_date: '2026-09-12 13:23'
+updated_date: '2026-09-12 13:32'
 labels: []
 dependencies: []
 ordinal: 140000
@@ -34,3 +34,24 @@ ordinal: 140000
 - [x] #3 판별력을 잰다 — 한쪽의 관용 범위를 일부러 넓혀 그 테스트가 빨개지는지 본다. 초록만 보고 닫지 않는다
 - [x] #4 소비자 목록을 그 docstring 에 적는다 — 지금 plan.py 판의 소비자가 둘(plan·scenario_draft)이고 그것이 코드를 읽어도 한눈에 안 보인다
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+AC#1 판단 재료 — 소비자 전수 2026-09-12 (세션 ohmyenglish-f4).
+
+⛔ grep 을 이름 하나가 아니라 «부류» 로 걸었다(_json_candidates 와 _FENCED 둘 다 · --include 를 인용해 zsh 글롭 함정을 피했다). 그 결과 등록 시점에 보지 못한 것이 둘 나왔다.
+
+소비자 (앱 코드만):
+- plan.py 판: parse_plan(:285) · scenario_draft._loaded(:59) = 2
+- analysis.py 판: parse_analysis(:214) = 1
+- _FENCED 를 직접 쓰는 자리는 각 파일의 _json_candidates 안뿐이다(plan:201 · analysis:198). 세 번째 판은 없다.
+
+⇒ 하나로 합치는 비용이 낮다. analysis.py 의 한 자리를 import 로 바꾸고 그 파일의 정의·정규식을 지우면 된다.
+
+⚠️ 등록 시점에 못 본 것 ①: tests/unit/test_plan_models.py::test_fenced_regex_matches_analysis_module (M9 · 리뷰 2026-09-04) 이 «이미» 두 _FENCED 의 pattern 문자열을 비교한다. ⇒ 「그 주장을 재는 축이 0건」은 _json_candidates 에 대해 참이었고 인접 축(_FENCED)에는 이미 있었다. 내 전수도 이름 하나로 걸었으면 이것을 못 봤다.
+
+⚠️ 등록 시점에 못 본 것 ②: 그 M9 는 소스 문자열 비교라 함수 본문이 갈리면 못 잡는다 — 내 parity 테스트가 그 구멍을 메운다. 둘은 중복이 아니고 축이 다르며, 그 관계를 parity 파일 docstring 에 적었다.
+
+⛔ AC#1 이 「하나로 합친다」로 정해지면 M9 와 parity 테스트가 «둘 다» 무의미해진다(같은 함수를 자기와 비교). 그때는 둘을 함께 지운다 — 한쪽만 지우면 남은 쪽이 항진명제가 된다.
+<!-- SECTION:NOTES:END -->
