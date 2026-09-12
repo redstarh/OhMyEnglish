@@ -402,8 +402,11 @@ async def test_scenario_category_domain_includes_the_new_fields(db_conn: asyncpg
         "where conname = 'learning_scenarios_category_check'"
     )
     assert definition is not None, "CHECK 가 없다 (001 미적용)"
+    # ⛔ **따옴표까지 맞춰 비교한다** — 맨 문자열로 비교하면 부분 일치가 통과한다. 지금 값역에는
+    # 서로의 부분 문자열이 없어 안전하지만 `business_report` 같은 값이 들어오면 `business` 가
+    # 사라져도 이 단정이 통과한다. 값역을 늘린 일이 이미 세 번 있었다(014·017·018).
     for value in ("daily_life", "business", "shadowing", "travel", "shopping", "health"):
-        assert value in definition, f"{value}가 값역에서 빠졌다"
+        assert f"'{value}'" in definition, f"{value!r}가 값역에서 빠졌다"
 
     # 값역 밖은 여전히 거부한다 — 늘리는 것이 «아무 값이나 받는 것»은 아니다.
     with pytest.raises(asyncpg.CheckViolationError):
@@ -430,6 +433,95 @@ async def test_seed_covers_at_least_thirty_stages_across_fields(db_conn: asyncpg
 
     # ⛔ 업무를 지운 채 개수만 채우지 않는다 — h-doc 의 목표 수준이 업무·보고다.
     assert counts.get("business", 0) >= 6, "업무 상황이 줄었다"
+
+
+# ── 018 시나리오 출처 · 생성 job · 진입 모드 (`TASK-5` · 결정 79·80) ────────────
+#
+# ⛔ `default 'seed'` 가 요구다 — 기존 30행이 전부 시드이므로 소급 UPDATE 없이 참이 된다.
+@pytest.mark.asyncio
+async def test_scenario_source_defaults_to_seed_and_is_bounded(db_conn: asyncpg.Connection):
+    got = await db_conn.fetchval(
+        "insert into learning_scenarios (category, level, title, prompt_template) "
+        "values ('daily_life', 'A2', 'defaulted', 'You are someone.') returning source"
+    )
+    assert got == "seed", "기본값이 seed 가 아니면 기존 행이 출처 없이 남는다"
+
+    made = await db_conn.fetchval(
+        "insert into learning_scenarios (category, level, title, prompt_template, source) "
+        "values ('daily_life', 'A2', 'made', 'You are someone.', 'generated') returning source"
+    )
+    assert made == "generated"
+
+    with pytest.raises(asyncpg.CheckViolationError):
+        async with db_conn.transaction():
+            await db_conn.execute(
+                "insert into learning_scenarios "
+                "(category, level, title, prompt_template, source) "
+                "values ('daily_life', 'A2', 'bad', 'You are someone.', 'imported')"
+            )
+
+
+# ⛔ 값역만 늘리고 대상 제약을 안 고치면 job 을 «넣을 수 없다» — 007 이 그 함정을 적었다.
+@pytest.mark.asyncio
+async def test_generate_scenario_job_can_be_enqueued(db_conn: asyncpg.Connection):
+    await _insert_user(db_conn)
+    session_id = uuid4()
+    await _insert_session(db_conn, session_id)
+
+    job_id = await db_conn.fetchval(
+        "insert into analysis_jobs (job_type, session_id) "
+        "values ('generate_scenario', $1) returning id",
+        session_id,
+    )
+    assert job_id is not None
+
+    # 대상이 어긋나면 거부한다 — 발화 단위 job 이 아니다.
+    with pytest.raises(asyncpg.CheckViolationError):
+        async with db_conn.transaction():
+            await db_conn.execute(
+                "insert into analysis_jobs (job_type, utterance_id) "
+                "values ('generate_scenario', $1)",
+                uuid4(),
+            )
+
+
+# ⛔ 진입을 가릴 표지가 `learning_source` 로는 서지 않는다 — 추가 학습 메뉴 여섯 중 다섯이
+# `additional` 이고 그중 셋이 `mode` 를 갖지 않아 서로 구별되지 않는다(설계서 §5). 014 가
+# `pronunciation` 을 더한 것과 같은 형태로 `mode` 값역을 늘린다.
+#
+# ⚠️ **`review` 를 함께 잰다** — 018 이 `drop`+`add` 로 목록을 «대체»하므로 빠뜨린 값이 조용히
+# 사라진다. 이 계획의 초안이 실제로 그것을 빠뜨렸고 dev DB 조회가 잡았다. 그 값을 쓰는 행이
+# 지금 없어 이 단정이 없으면 게이트도 침묵한다.
+@pytest.mark.asyncio
+async def test_session_mode_domain_includes_scenario_intake(db_conn: asyncpg.Connection):
+    await _insert_user(db_conn)
+
+    got = await db_conn.fetchval(
+        "insert into learning_sessions (user_id, mode) values ($1, 'scenario_intake') "
+        "returning mode",
+        migrate.USER_ID,
+    )
+    assert got == "scenario_intake"
+
+    definition = await db_conn.fetchval(
+        "select pg_get_constraintdef(oid) from pg_constraint "
+        "where conname = 'learning_sessions_mode_check'"
+    )
+    assert definition is not None
+    # ⛔ **따옴표까지 맞춘다** — `pronunciation_drill` 같은 값이 나중에 들어오면 맨 문자열 비교는
+    # `pronunciation` 이 사라져도 통과한다. `ohmyenglish-19` 세션이 이 형태를 제안했고 근거가 맞다.
+    for value in ("speaking", "shadowing", "review", "pronunciation", "scenario_intake"):
+        assert f"'{value}'" in definition, (
+            f"{value!r}가 값역에서 사라졌다 — `drop`+`add` 가 목록을 대체한다. "
+            "쓰는 코드가 없는 값이라 다른 어떤 테스트도 이것을 잡지 않는다"
+        )
+
+    with pytest.raises(asyncpg.CheckViolationError):
+        async with db_conn.transaction():
+            await db_conn.execute(
+                "insert into learning_sessions (user_id, mode) values ($1, 'intake')",
+                migrate.USER_ID,
+            )
 
 
 # ⑤-2 시드 3행은 **무대**다 — 질문이 아니고 `title`과 `prompt_template`이 갈라져 있다.
