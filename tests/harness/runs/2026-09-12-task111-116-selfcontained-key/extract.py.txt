@@ -1,0 +1,41 @@
+#!/usr/bin/env python3
+"""회차 프레임에서 «코칭 발화»와 «tool 이벤트»만 뽑는다 (`TASK-111`+`TASK-116`).
+
+⚠️ 앞 세션이 이 자리에서 정규식 오류로 `target_sound` 열을 틀리게 적었다(회차 기록 §5 의 정정 ⑵).
+그래서 여기서는 **파싱하지 않고 프레임의 키를 그대로 옮긴다** — 값을 만들지 않는다.
+"""
+
+from __future__ import annotations
+
+import collections
+import json
+import sys
+from pathlib import Path
+
+EVIDENCE = Path(__file__).resolve().parents[4] / ".harness" / "evidence"
+
+
+def dump(name: str) -> None:
+    path = EVIDENCE / f"{name}-frames.json"
+    if not path.exists():
+        print(f"===== {name}: 파일 없음 ({path})")
+        return
+    data = json.loads(path.read_text(encoding="utf-8"))
+    kinds = collections.Counter(f.get("type") or f.get("_harness") for f in data["frames"])
+    print(f"===== {name} · elapsed={data.get('elapsed')}s · session={data.get('session_id')}")
+    print("  프레임:", {k: v for k, v in kinds.items() if k != "audio"})
+    for frame in data["frames"]:
+        kind = frame.get("type")
+        if kind in {"pronunciation", "error", "session_failed"}:
+            body = {k: v for k, v in frame.items() if k != "data"}
+            print(f"  [{kind}] {json.dumps(body, ensure_ascii=False)}")
+        elif kind in {"final", "transcript"}:
+            role = frame.get("role") or frame.get("speaker") or "?"
+            text = (frame.get("text") or frame.get("content") or "").strip()
+            if text:
+                print(f"  [{kind}/{role}] {text}")
+
+
+if __name__ == "__main__":
+    for arg in sys.argv[1:]:
+        dump(arg)

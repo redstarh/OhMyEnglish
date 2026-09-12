@@ -219,8 +219,13 @@ _FOCUS_BEATS_SETTING = (
 _SOUND_INSTRUCTION = (
     '- Sound to coach today: "{sound}" — this is a pronunciation focus, not a grammar one; '
     "the learner's problem is how the word sounds, not which word to pick. When it is off, take it "
-    "up on that turn instead of the Grammar first rule 9, and spend the one correction of rule 4 "
-    "on this sound rather than on grammar. Stop and have them say just that word again. "
+    # `TASK-111` — *"the one correction of rule 4"* 에서 번호 참조를 걷었다. 전용 모드 지시문에는
+    # 규칙 4 가 없어 그 참조가 허공을 가리켰다(`build_pronunciation_prompt` 가 이 줄을 그대로 쓴다).
+    # ⚠️ 앞의 *"instead of the Grammar first rule 9"* 는 **일부러 남겼다** — `TASK-75` 승인 문면이고
+    # 되돌리는 결정이 필요하다(`TASK-118`).
+    "up on that turn instead of the Grammar first rule 9, and spend the one correction you "
+    "make that turn on this sound rather than on grammar. Stop and have them say just that "
+    "word again. "
     # 사용자 결정 56 — 문턱을 넘은 소리는 **문장 단축·계획 질문보다 앞**이다. ⚠️ 순서만으로는
     # 부족했다: 이 줄은 이미 질문 목록 **위**에 있었는데도 제품 계열 49회에서 tool 이 0 이었고,
     # 대화의 관사 지시가 **계획의 질문 5개**에서 왔다(질문을 빼면 사라졌다 —
@@ -230,9 +235,24 @@ _SOUND_INSTRUCTION = (
     # ⛔ 수치를 넣지 않는다(결정 56 이 「수치 목표를 정하지 않는다」를 명시했다).
     "This outranks the question list and the sentence-shape target below: pause the current "
     "question, coach the sound, then come back to the question you paused. "
+    # `TASK-116` — **키를 조건부로 준다.** 이전 판은 *"put `{sound}` in target_sound both times"* 로
+    # **계획이 준 키를 강제**했고, 그래서 코치가 다른 소리를 코칭한 턴에도 그 키가 실렸다(`pq05`
+    # 실측 — 의도는 `easy` 의 /z/ 인데 코치는 `process` 의 어말 `s` 를 다뤘다 ·
+    # `runs/2026-09-12-task114-mild-band-dedicated.md` §2.5). ⇒ **학습자가 들은 코칭과 기록이
+    # 어긋난다.** 그리고 `review.py` 는 `pattern_id` 가 아니라 `target_sound` 로 매칭하므로
+    # **연습하지 않은 소리가 복습 이력이 된다.**
+    #
+    # ⚠️ **강제 자체는 의도였다** — 반복 오류를 한 키로 묶으려는 것이고(규칙 10 본문이 그 이유를
+    # 적는다) 그 목적은 유효하다. 그래서 버리지 않고 **조건을 붙였다.**
+    #
+    # ⛔ **「위에 이름 붙인 그 소리만 코칭하라」로 좁히지 않았다** — 코치가 무엇을 코칭하는지를
+    # 바꾸는 것이라 제품 요구사항 변경이고 사용자 결정 사안이다(`TASK-116` 노트의 갈래 ①).
+    # 이 조건부 판은 그것을 막지 않는다 — 나중에 얹을 수 있다.
     "Rule 10 still applies unchanged: call the {tool} tool twice — once with outcome "
     '"pending" right after you model it, and again with the judgement once you have heard the '
-    'repeat — and put "{sound}" in target_sound both times.'
+    'repeat. Put "{sound}" in target_sound both times when "{sound}" is the sound you '
+    "coached; if you coached a different sound instead, put a short reusable key for the sound "
+    "you actually coached, so the record matches what you said out loud."
 )
 
 
@@ -240,8 +260,11 @@ _SOUND_INSTRUCTION = (
 # 정해졌다.** 정본: `tests/harness/runs/2026-09-11-task86-dedicated-session.md` ·
 # `…-length-boundary.md` §4.
 #
-# ⛔ **다듬어 고치지 말 것.** 이 문면 그대로 Nova 실물 왕복 **4/4** 로 tool 이 왔고 `target_sound`
-# 가 계획이 준 키 그대로 실렸다. 같은 문면이 일반 세션 규모(5,078자)에서는 **0/76** 이다.
+# ⛔ **다듬어 고치지 말 것 — 문면이 수치에 묶여 있다.** 첫 판(규칙 11 이 없는 규칙 4 를 가리키던
+# 판)은 Nova 실물 왕복 **4/4** 로 tool 이 왔고 `target_sound` 가 계획이 준 키 그대로 실렸다. 같은
+# 문면이 일반 세션 규모(5,078자)에서는 **0/76** 이다. **지금 판의 수치는 그 회차가 아니라**
+# `tests/harness/runs/2026-09-12-task111-116-selfcontained-key.md` **가 갖는다**(`TASK-111`·
+# `TASK-116`). 고치려면 **회차를 다시 돌려** 새 수치를 얻고 아래 바이트 게이트를 함께 갱신한다.
 #
 # ⛔ **규칙 1~7 을 「골라서」 빼는 것이 아니라 통째로 뺀다.** 규칙 4 만 뺀 판은 tool 0/4 였고
 # 게다가 모델이 **자기 절차를 소리 내어 낭독**했다(발화 1,175자 · 규칙 6 이 살아 있는데도 났다).
@@ -251,10 +274,15 @@ _SOUND_INSTRUCTION = (
 # Fisher 양측 `p=0.43` 이라 갈리지 않는다. 걷는 이유는 **발음만 다루는 세션이 「대개는 문법을
 # 고치고 발음은 두라」를 실으면 서로 모순**이라는 것이다.
 #
-# ⚠️ **알고 남긴 결함 하나**: 규칙 11 이 *"the one correction for that turn in rule 4"* 로 **이
-# 프롬프트에 없는 규칙 4** 를 가리킨다. 측정된 문면이 그것이므로 **그대로 옮겼다** — 문구를
-# 다듬으면 4/4 의 근거가 그 판에 붙지 않는다. 정리는 회차로 다시 재야 하는 일이고 원장이
-# 그 태스크를 갖는다. ⛔ **여기서 조용히 고치지 말 것.**
+# ⚠️ **규칙 11 은 `TASK-111` 이 자기완결로 고쳤다.** 이전 판은 *"the one correction for that turn
+# in rule 4"* 로 **이 프롬프트에 없는 규칙 4** 를 가리켰다(이 프롬프트는 규칙 8~11 만 담는다).
+# 뜻은 그대로 뒀다 — **턴당 한 교정**이고 소리가 어긋난 턴에는 **그 한 자리를 발음이 쓴다.**
+# 번호 참조만 없앴다.
+#
+# ⛔ **남은 어긋남 하나는 일부러 뒀다** — 소리 줄의 *"instead of the Grammar first rule 9"* 는
+# 전용 모드의 규칙 9(유보를 걷은 판)를 **그 이름으로 부르지 못한다.** 그 문구는 `TASK-75`(사용자
+# 승인 2026-09-10)가 정한 대체 선언이고 `test_nova.py` 가 문자열로 고정한다 — 되돌리는 결정이
+# 필요하므로 `TASK-118` 이 갖는다. ⛔ **여기서 조용히 고치지 말 것.**
 #
 # ⚠️ **규칙 8·10 은 `SYSTEM_PROMPT` 와 글자 그대로 같아야 한다** — tool 규약(2회 호출 ·
 # `target_sound`)이 두 곳에 있으면 한쪽이 낡는다. 그 동일성은 `test_nova.py` 가 잰다.
@@ -270,8 +298,9 @@ Pronunciation coaching:
     have modeled the sentence, and again with correct, incorrect, or unclear once you have
     heard the learner repeat it. Always include target_sound - a short reusable key for the
     sound that was off, such as th_as_s or f_as_p - so the app can group repeat offenders.
-11. A pronunciation correction is the one correction for that turn in rule 4. Spend it on
-    the sound rather than on repeating the sentence back for grammar."""
+11. Make at most one correction per turn. When a sound is off, the pronunciation
+    correction is that one - spend it on the sound rather than on repeating the sentence
+    back for grammar."""
 
 
 def build_pronunciation_prompt(sound: str) -> str:

@@ -1647,16 +1647,26 @@ def test_the_pronunciation_prompt_is_byte_identical_to_the_measured_one():
 
     이 테스트가 깨지면 선택지는 둘뿐이다: 문면을 되돌리거나, **회차를 다시 돌려** 새 문면의 수치를
     얻고 그 파일과 이 테스트를 함께 갱신하는 것. ⛔ 「읽기 좋아졌다」로 갱신하지 않는다.
+
+    ⚠️ **가리키는 회차가 2026-09-12 에 바뀌었다** (`TASK-111`·`TASK-116`). 이전 정본은
+    `2026-09-11-task86-dedicated-session/prompt_dedicated_cut.txt`(1,702자 · 4/4)였고, 그 판의 규칙
+    11 이 **이 프롬프트에 없는 규칙 4** 를 가리켰다. 자기완결로 고친 뒤 같은 앱 경로에서 다시 재
+    **REG 팔 4/4**(`pq06`→`pq12` · `th_as_s`)를 얻었으므로 그 문면(1,927자)이 지금 정본이다.
+
+    ⛔ **이 파일에 묶인 수치는 REG 4/4 «뿐»이다.** 같은 변경 묶음에 들어간 조건부 `target_sound` 키
+    규칙(`TASK-116` · V3)은 **그 회차가 시험하지 못했다** — `pq05` 가 「코칭한 소리가 계획의 소리와
+    다른 소리」인 경우를 만들지 못했다(회차 기록 §2). 그 규칙이 작동한다는 근거로 이 게이트를
+    인용하지 마라.
     """
     measured = (
         Path(__file__).resolve().parents[1]
         / "harness"
         / "runs"
-        / "2026-09-11-task86-dedicated-session"
-        / "prompt_dedicated_cut.txt"
+        / "2026-09-12-task111-116-selfcontained-key"
+        / "prompt_dedicated_v2.txt"
     )
 
     assert build_pronunciation_prompt("th_as_s") == measured.read_text(encoding="utf-8"), (
-        "전용 모드 지시문이 실측된 문면과 달라졌다 — 4/4 수치가 이 판에 붙지 않는다. "
+        "전용 모드 지시문이 실측된 문면과 달라졌다 — REG 4/4 수치가 이 판에 붙지 않는다. "
         "되돌리거나 회차를 다시 돌려라"
     )
