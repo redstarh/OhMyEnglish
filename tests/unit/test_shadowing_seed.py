@@ -14,21 +14,27 @@
 
 from __future__ import annotations
 
+from uuid import UUID
+
 import asyncpg
 import pytest
 from migrate import SEED_SHADOWING_ITEMS, USER_ID, ShadowingSeedClip, seed
 
 # PRD §7 「30~90초의 짧은 오디오·영상 클립」. **범위는 요구사항이다** — 011 의
 # `shadowing_items_span_within_limit` 가 상한만 가두므로 하한은 이 테스트가 지킨다.
-#
-# ⚠️ **다만 시드 행의 값(30.00)은 실측이 아니라 이 하한을 그대로 쓴 것이다** — 자체 작성 문장이라
-# 출처 오디오가 없어 잴 대상이 없다(`scripts/migrate.py` 의 그 주석이 정본). 2026-09-09 정리 검토가
-# 「범위 안」이라는 이름이 그 값을 실측처럼 보이게 한다고 지적했고 그것은 맞다.
-# ⛔ **그래도 이 단정을 지우지 않는다**: PRD 가 30초를 요구하므로 그보다 짧은 클립은 요구 위반이고,
-# TTS 실측이 30초 미만을 내면 **값을 내리는 것이 아니라 전사문을 늘리는 것**이 옳은 대응이다.
-# 즉 그때 이 단정이 막는 것은 실측이 아니라 요구 위반이다.
 PRD_CLIP_MIN_SEC = 30
 PRD_CLIP_MAX_SEC = 90
+
+# ⛔ **하한을 깨는 시드를 «알려진 격차»로 기록한다** (사용자 결정 88 · 2026-09-13 ·
+# `docs/ops/captain-instruction-register.md`). ⚠️ **이 파일은 그 전까지 반대를 적어 뒀다** —
+# *"TTS 실측이 30초 미만을 내면 값을 내리는 것이 아니라 전사문을 늘리는 것이 옳은 대응이다"*.
+# 사용자가 그것을 뒤집었다: 시드 값은 **실측**으로 정직해지고 하한 미달은 고치는 것이 아니라
+# **기록**한다. 늘리는 쪽은 결정 25(*"분량은 늘리지 않는다"*)와 부딪히기 때문이다.
+#
+# ⚠️ **면제를 «규칙»으로 열지 않고 «id»로 준다.** 하한 단정을 지우면 앞으로 넣는 클립이 조용히
+# 짧아지고 아무 것도 실패하지 않는다 — 그것이 이 파일이 애초에 막던 실패다. 아래 두 단정이
+# 양방향으로 물려 있다: 목록에 없는 짧은 클립은 실패하고, 목록에 남은 긴 클립도 실패한다.
+KNOWN_SUB_MIN_CLIP_IDS = frozenset({UUID("00000000-0000-0000-0000-000000000201")})
 
 
 def test_seed_has_at_least_one_clip() -> None:
@@ -46,10 +52,48 @@ def test_every_seeded_clip_omits_an_external_source_url() -> None:
 
 
 @pytest.mark.parametrize("clip", SEED_SHADOWING_ITEMS, ids=lambda clip: clip.source_title)
-def test_seeded_clip_window_stays_inside_the_prd_range(clip: ShadowingSeedClip) -> None:
-    """클립 길이가 PRD §7 의 30~90초 안이다. 상한은 스키마가, 하한은 이 단정이 지킨다."""
+def test_seeded_clip_window_stays_under_the_prd_upper_bound(clip: ShadowingSeedClip) -> None:
+    """클립 길이가 PRD §7 의 상한 90초를 넘지 않고 창이 양수다.
+
+    ⚠️ 011 의 CHECK 둘(`span_within_limit`·`span_ordered`)이 같은 축을 DB 에서 가두지만 **시드
+    상수를 DB 없이 읽는 소비자가 있다** — 이 파일이 그렇고, 그래서 상수 자체에도 단정을 둔다.
+    """
     span_sec = clip.clip_end_sec - clip.clip_start_sec
-    assert PRD_CLIP_MIN_SEC <= span_sec <= PRD_CLIP_MAX_SEC
+    assert 0 < span_sec <= PRD_CLIP_MAX_SEC
+
+
+@pytest.mark.parametrize("clip", SEED_SHADOWING_ITEMS, ids=lambda clip: clip.source_title)
+def test_only_a_recorded_clip_falls_short_of_the_prd_lower_bound(clip: ShadowingSeedClip) -> None:
+    """하한 미달은 `KNOWN_SUB_MIN_CLIP_IDS` 에 **있는** 클립만 허용한다 (결정 88).
+
+    ⛔ 새로 넣는 클립이 30초를 못 채우면 그것은 기록된 격차가 아니라 **새 요구 위반**이다.
+    """
+    span_sec = clip.clip_end_sec - clip.clip_start_sec
+
+    if span_sec < PRD_CLIP_MIN_SEC:
+        assert clip.id in KNOWN_SUB_MIN_CLIP_IDS, (
+            f"{clip.source_title} 이 PRD 하한 {PRD_CLIP_MIN_SEC}초에 {span_sec}초로 미달인데 "
+            "알려진 격차로 기록되지 않았다 — 전사문을 늘리거나 결정을 받아 목록에 넣는다"
+        )
+
+
+def test_the_recorded_gap_does_not_outlive_the_shortfall() -> None:
+    """면제가 낡지 않는다 — 목록에 있는데 실제로는 하한을 채우거나 시드에 없으면 실패한다.
+
+    ⛔ **이 단정이 없으면 면제가 영구 통행권이 된다.** 전사문을 늘려 30초를 넘긴 뒤에도 목록에
+    남아 있으면 다음 사람은 그 클립이 아직 미달이라고 읽는다 — 기록이 조용히 거짓이 되는 자리다.
+    """
+    spans_by_id = {
+        clip.id: clip.clip_end_sec - clip.clip_start_sec for clip in SEED_SHADOWING_ITEMS
+    }
+
+    stale = {
+        clip_id
+        for clip_id in KNOWN_SUB_MIN_CLIP_IDS
+        if clip_id not in spans_by_id or spans_by_id[clip_id] >= PRD_CLIP_MIN_SEC
+    }
+
+    assert stale == frozenset(), f"면제가 낡았다 — `KNOWN_SUB_MIN_CLIP_IDS` 에서 지운다: {stale}"
 
 
 @pytest.mark.asyncio

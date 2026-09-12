@@ -345,12 +345,20 @@ SEED_SCENARIOS: list[tuple[UUID, str, str, str, str]] = [
 # `After that`)를 얹은 것은 규약이 아니라 판단이다 — 쉐도잉은 학습자가 짓지 않은 문장을 따라
 # 읽는 것이므로, 아직 스스로 만들지 못하는 **발화 순서**를 발판으로 주는 값어치가 있다.
 #
-# ⚠️ **`clip_end_sec` 는 실측 낭독 길이가 아니다 — 발명을 명시한다.** 자체 문장이라 출처 오디오가
-# 없어서 잴 대상이 아직 없다. 그래서 **PRD §7 의 하한 30초**를 그대로 썼다(요구사항 값이고 내가
-# 고른 숫자가 아니다). TTS 로 실물 오디오를 만드는 턴에 **실측으로 고친다.**
+# ⚠️ **`clip_end_sec` 는 이 전사문을 TTS 로 합성한 실측 길이다 — 16.64초**(2026-09-09 · Sohee·en ·
+# 24 kHz mono · `docs/design/2026-09-09-shadowing-synthetic-clip-review.md` 가 그 회차를 소유한다).
+# 합성음에서는 **시간 창이 곧 오디오 전체**이므로 창을 발명할 자리가 없다.
+#
+# ⛔ **그 값은 PRD §7 의 하한 30초에 미달이고 그것을 «알려진 격차»로 남긴 것이 결정 88 이다**
+# (2026-09-13 · `docs/ops/captain-instruction-register.md`). 이 자리는 그 전까지 하한 30초를 그대로
+# 쓰고 *"TTS 로 실물 오디오를 만드는 턴에 실측으로 고친다"* 로 적어 뒀는데, 정작 실측이 하한보다
+# 짧아 **요구를 지키는 길과 실측을 적는 길이 갈렸다.** 사용자가 실측 쪽을 골랐다.
+# ⚠️ 그 미달을 지키는 단정은 `tests/unit/test_shadowing_seed.py` 의 `KNOWN_SUB_MIN_CLIP_IDS` 다 —
+# **면제는 이 id 하나에만 걸리므로** 다음에 넣는 클립이 짧으면 거기서 실패한다.
 #
 # **분량은 늘리지 않는다** — 결정 25 가 *"학습 1회가 성립하는 최소"* 로 못 박았다. 선택 절이
 # `limit 1`이므로 행을 늘려도 첫 행만 쓰인다: 늘리는 것은 죽은 데이터를 만드는 것이다.
+# ⛔ 결정 88 이 기각한 대안이 바로 **전사문을 늘려 30초를 넘기는 것**이었고 그 이유가 이 줄이다.
 
 
 class ShadowingSeedClip(NamedTuple):
@@ -383,7 +391,7 @@ SEED_SHADOWING_ITEMS: list[ShadowingSeedClip] = [
             "It takes about thirty minutes to get to the office."
         ),
         clip_start_sec=Decimal("0.00"),
-        clip_end_sec=Decimal("30.00"),
+        clip_end_sec=Decimal("16.64"),
         level="A2",
     ),
 ]
