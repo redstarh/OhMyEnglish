@@ -65,6 +65,7 @@ import asyncpg
 
 from app.models.analysis import PRONUNCIATION_CATEGORY
 from app.models.plan import CEFR_LEVELS, LevelDecision, PlanOutput, PlanValidationError, parse_plan
+from app.models.usage import PURPOSE_PLAN
 from app.services.chronic import ChronicMetric, deepest_recurrence
 from app.services.jobs import ClaimedJob, complete, report_failure
 from app.services.plan_input import (
@@ -563,7 +564,9 @@ async def process_plan(pool: asyncpg.Pool, claude: ClaudeClient, job: ClaimedJob
         return
 
     try:
-        raw = await claude.analyze(build_plan_prompt(data))
+        # `TASK-60` — 갈래와 job 을 넘긴다(`models/usage.py`). 계획 생성이 이 리포에서 가장 비싼
+        # 단일 호출이므로 이 귀속이 비용 관측의 중심이다.
+        raw = await claude.analyze(build_plan_prompt(data), purpose=PURPOSE_PLAN, job_id=job.id)
     except Exception as exc:
         logger.exception("job %s: claude call failed", job.id)
         await report_failure(pool, job, f"{type(exc).__name__}: {exc}")

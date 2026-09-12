@@ -91,9 +91,10 @@ class _RecordingClaudeClient:
         self.prompts: list[str] = []
         self.raw_responses: list[str] = []
 
-    async def analyze(self, prompt: str) -> str:
+    # `TASK-60` — 귀속 인자를 **그대로 넘긴다**. 삼키면 스모크가 만든 행이 「임시 호출」로 적힌다.
+    async def analyze(self, prompt: str, **kwargs: object) -> str:
         self.prompts.append(prompt)
-        raw = await self._inner.analyze(prompt)
+        raw = await self._inner.analyze(prompt, **kwargs)  # ty: ignore[invalid-argument-type]
         self.raw_responses.append(raw)
         return raw
 

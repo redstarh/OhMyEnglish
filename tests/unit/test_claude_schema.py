@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 from typing import Any
+from uuid import UUID, uuid4
 
 import pytest
 from conftest import default_finding
@@ -29,6 +30,7 @@ from app.models.analysis import (
     is_valid_new_pattern_key,
     parse_analysis,
 )
+from app.models.usage import TokenUsage
 from app.workers import claude_client as claude_client_module
 from app.workers.claude_client import (
     ANTHROPIC_VERSION,
@@ -36,6 +38,7 @@ from app.workers.claude_client import (
     BedrockClaudeClient,
     FakeClaudeClient,
     extract_text,
+    extract_usage,
 )
 
 
@@ -386,6 +389,101 @@ async def test_bedrock_client_surfaces_truncation_as_a_validation_error(
 
     with pytest.raises(AnalysisValidationError, match="max_tokens"):
         await BedrockClaudeClient(_test_settings()).analyze("analyze this")
+
+
+# ── `TASK-60`(사용자 결정 66) — 호출마다 토큰 사용량을 적는다 ──────────────────────
+#
+# 이 리포는 Bedrock 호출의 토큰을 **어디에도** 적지 않아 비용을 볼 수단이 없었다. 아래 넷이 그
+# 기록의 계약을 잰다: 값을 읽는가 · 없을 때 지어내지 않는가 · 실패한 호출도 적는가 ·
+# 귀속을 넘기는가.
+
+
+def test_extract_usage_reads_both_token_counts():
+    payload = {"usage": {"input_tokens": 3690, "output_tokens": 412}, "content": []}
+
+    assert extract_usage(payload) == TokenUsage(input_tokens=3690, output_tokens=412)
+
+
+def test_extract_usage_returns_none_instead_of_inventing_zeros():
+    """⛔ `0` 은 「토큰을 쓰지 않았다」는 **주장**이고 그런 호출은 없다 — 적으면 합계가 낮아진다."""
+    assert extract_usage({"content": []}) is None
+    assert extract_usage({"usage": {}}) is None
+    assert extract_usage({"usage": {"input_tokens": 10}}) is None
+    # 문자열로 오는 판(스펙 변경·프록시)을 정수로 믿지 않는다.
+    assert extract_usage({"usage": {"input_tokens": "10", "output_tokens": "2"}}) is None
+
+
+async def test_bedrock_client_records_usage_with_the_attribution_it_was_given(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    stub = _StubBedrockRuntime(
+        {
+            "content": [{"type": "text", "text": '{"findings": []}'}],
+            "usage": {"input_tokens": 3690, "output_tokens": 412},
+        }
+    )
+    monkeypatch.setattr(claude_client_module, "bedrock_client", lambda: stub)
+    monkeypatch.delenv("CLAUDE_MODEL_ID", raising=False)
+    settings = _test_settings()
+    recorded: list[tuple[TokenUsage, str, str, UUID | None]] = []
+
+    async def sink(
+        usage: TokenUsage, *, model_id: str, purpose: str, job_id: UUID | None
+    ) -> None:
+        recorded.append((usage, model_id, purpose, job_id))
+
+    job_id = uuid4()
+    client = BedrockClaudeClient(settings, usage_sink=sink)
+
+    raw = await client.analyze("analyze this", purpose="plan", job_id=job_id)
+
+    assert raw == '{"findings": []}'
+    assert recorded == [
+        (TokenUsage(input_tokens=3690, output_tokens=412), settings.claude_model_id, "plan", job_id)
+    ]
+
+
+async def test_the_client_records_a_truncated_call_too_because_it_still_cost_money(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """⛔ 절단·거부도 **돈이 나간 호출**이다 — 기록을 `extract_text` 뒤에 두면 그 비용이 빠진다.
+
+    ⚠️ 이 음성 케이스가 순서의 판별력을 만든다. 없으면 기록을 예외 뒤로 옮겨도 초록이고, 그러면
+    「비용이 왜 늘었는가」를 설명할 수 없다(참고 프로젝트가 예열 호출까지 적은 이유와 같다).
+    """
+    stub = _StubBedrockRuntime(
+        {
+            "stop_reason": "max_tokens",
+            "content": [{"type": "text", "text": '{"findings": [{'}],
+            "usage": {"input_tokens": 3690, "output_tokens": 16000},
+        }
+    )
+    monkeypatch.setattr(claude_client_module, "bedrock_client", lambda: stub)
+    recorded: list[TokenUsage] = []
+
+    async def sink(usage: TokenUsage, **_: object) -> None:
+        recorded.append(usage)
+
+    with pytest.raises(AnalysisValidationError, match="max_tokens"):
+        await BedrockClaudeClient(_test_settings(), usage_sink=sink).analyze("analyze this")
+
+    assert recorded == [TokenUsage(input_tokens=3690, output_tokens=16000)]
+
+
+async def test_the_client_does_not_call_the_sink_when_the_response_omits_usage(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    stub = _StubBedrockRuntime({"content": [{"type": "text", "text": "{}"}]})
+    monkeypatch.setattr(claude_client_module, "bedrock_client", lambda: stub)
+    called = False
+
+    async def sink(usage: TokenUsage, **_: object) -> None:
+        nonlocal called
+        called = True
+
+    await BedrockClaudeClient(_test_settings(), usage_sink=sink).analyze("analyze this")
+
+    assert called is False, "usage 가 없는데 행을 만들면 0 토큰 호출을 발명한다"
 
 
 # ── 006/슬라이스 1 — suggested_contexts (설계서 §8.2, PRD.md:92) ────────────────

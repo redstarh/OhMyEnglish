@@ -39,6 +39,7 @@ from conftest import (
 )
 
 from app.models.plan import SessionInstruction
+from app.models.usage import PURPOSE_PLAN
 from app.services.chronic import deepest_recurrence
 from app.services.plan import PLAN_NO_FOCUS_CANDIDATES, process_plan
 from app.services.plan_input import RECENT_WINDOW_DAYS, load_plan_input
@@ -139,6 +140,26 @@ async def test_plan_note_and_level_all_land_and_the_job_is_done(
         row = await job_row(conn, job.id)
     assert row["status"] == "done"
     assert row["last_error"] is None
+
+
+async def test_process_plan_attributes_its_call_to_the_plan_purpose_and_the_job(
+    db_pool: asyncpg.Pool, fake_claude, ended_session_with_history: PlanHistory
+):
+    """`TASK-60`(결정 66) — 계획 호출이 자기 갈래와 job 을 넘긴다.
+
+    ⛔ **넘기지 않아도 계획은 정상 저장된다** — 그래서 위 행복 경로 테스트가 이것을 잡지 못한다.
+    빠지면 비용이 「임시 호출」로 적혀 갈래별 집계가 조용히 틀리고, 그 오류는 계획 결과를 보는
+    어떤 단정에도 나타나지 않는다.
+    """
+    history = ended_session_with_history
+    claude = fake_claude(
+        plan_json(history.pattern_id, deepest_pattern_id=history.chronic_pattern_id)
+    )
+    job = await claim_plan_job(db_pool, history.session_id)
+
+    await process_plan(db_pool, claude, job)
+
+    assert claude.attributions == [(PURPOSE_PLAN, job.id)]
 
 
 # AS8 — 노트는 덧붙이기만 한다. 세션이 둘이면 노트가 둘이고 **먼저 쓴 행이 남는다.**
@@ -542,7 +563,8 @@ class _PoolProbingClaude:
         self.prompts: list[str] = []
         self.pool_state: list[tuple[int, int]] = []
 
-    async def analyze(self, prompt: str) -> str:
+    # `**_` — `TASK-60` 의 귀속 인자(`purpose`·`job_id`)를 받되 이 대역이 재는 것과 무관하다.
+    async def analyze(self, prompt: str, **_: object) -> str:
         self.prompts.append(prompt)
         self.pool_state.append((self._pool.get_idle_size(), self._pool.get_size()))
         return self._response

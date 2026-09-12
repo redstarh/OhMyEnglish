@@ -23,6 +23,7 @@ import pytest
 from conftest import default_finding, job_row
 
 from app.audio_gateway.fixtures import FIXTURE_TURNS
+from app.models.usage import PURPOSE_ANALYSIS
 from app.services.analysis import PatternRow, build_prompt, load_existing_patterns, process_analysis
 from app.services.jobs import LEASE, ClaimedJob, enqueue_analyze
 from app.services.utterances import (
@@ -125,6 +126,23 @@ async def test_fragmented_finals_are_analyzed_as_one_merged_transcript(
 
     assert len(claude.prompts) == 1, "묶음 하나에 Claude 호출은 1회다"
     assert " ".join(fragments) in claude.prompts[0]
+
+
+async def test_process_analysis_attributes_its_call_to_the_analysis_purpose_and_the_job(
+    db_pool: asyncpg.Pool, committed_session, fake_claude
+):
+    """`TASK-60`(결정 66) — 분석 호출이 자기 갈래와 job 을 넘긴다.
+
+    ⛔ **넘기지 않아도 분석은 정상 저장된다** — 그래서 이 파일의 다른 단정이 이것을 잡지 못한다.
+    빠지면 비용이 「임시 호출」로 적혀 갈래별 집계가 조용히 틀린다.
+    """
+    await _save(db_pool, committed_session.session_id, GYM_ANSWER)
+    claude = fake_claude(_response())
+    job = await _claim(db_pool)
+
+    await process_analysis(db_pool, claude, job)
+
+    assert claude.attributions == [(PURPOSE_ANALYSIS, job.id)]
 
 
 # I-1 경계 — 분석 대상이 **아닌** 발화에 직접 등록된 job은 병합하지 않는다.
@@ -329,7 +347,7 @@ async def test_claude_call_failure_is_reported_to_the_queue(
     db_pool: asyncpg.Pool, committed_session
 ):
     class _ExplodingClaude:
-        async def analyze(self, prompt: str) -> str:
+        async def analyze(self, prompt: str, **_: object) -> str:
             raise TimeoutError("bedrock read timeout")
 
     await _save(db_pool, committed_session.session_id, GYM_ANSWER)
@@ -537,7 +555,7 @@ class _TransactionSpyClaude:
         self.idle_in_transaction: int | None = None
         self.prompts: list[str] = []
 
-    async def analyze(self, prompt: str) -> str:
+    async def analyze(self, prompt: str, **_: object) -> str:
         self.prompts.append(prompt)
         async with self._pool.acquire() as conn:
             self.idle_in_transaction = await conn.fetchval(_IDLE_IN_TRANSACTION_SQL)

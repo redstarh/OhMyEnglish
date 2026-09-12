@@ -29,6 +29,7 @@ from app.api.results import router as results_router
 from app.api.ws import router as ws_router
 from app.config import get_settings
 from app.db import close_pool, pool
+from app.services.usage import pool_usage_sink
 from app.workers.analysis_worker import run_worker
 from app.workers.claude_client import BedrockClaudeClient
 
@@ -59,7 +60,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         app.state.worker_task = asyncio.create_task(
             run_worker(
                 app.state.db_pool,
-                BedrockClaudeClient(settings),
+                # ⛔ **`usage_sink` 를 빼면 토큰 기록이 조용히 꺼진다** (`TASK-60` · 결정 66) —
+                # 클라이언트의 기본값이 `None`(기록 없음)인 것은 자격증명·DB 없이 도는 단위
+                # 테스트를 위한 것이고, **실물 배선은 여기 하나뿐이다.** 아래 `recording_root`
+                # 주석과 같은 부류의 위험이고 같은 방식으로 게이트 테스트가 못 박는다.
+                BedrockClaudeClient(settings, usage_sink=pool_usage_sink(app.state.db_pool)),
                 stop=app.state.worker_stop,
                 # 집합 **객체 자체**를 넘긴다 — 복사본을 넘기면 세션이 열려도 리퍼에게는
                 # 계속 비어 보여 진행 중 세션을 닫는다 (I-4).

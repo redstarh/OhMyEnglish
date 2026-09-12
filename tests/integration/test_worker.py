@@ -37,6 +37,7 @@ from app.api import main as main_module
 from app.api.main import create_app
 from app.audio_gateway.fixtures import FIXTURE_TURNS
 from app.config import get_settings
+from app.models.usage import PURPOSE_SPIKE, TokenUsage
 from app.services.jobs import JOB_TYPE_PLAN
 from app.services.plan import PLAN_NO_FOCUS_CANDIDATES
 from app.services.recordings import recording_path, recording_url
@@ -480,7 +481,11 @@ def app_settings(monkeypatch: pytest.MonkeyPatch, test_database: str):
         monkeypatch.setattr(db_module, "_pool", None)
         # 실물 Bedrock 클라이언트를 만들지 않는다(자격증명·실제 호출 금지).
         stand_in = claude if claude is not None else FakeClaudeClient([])
-        monkeypatch.setattr(main_module, "BedrockClaudeClient", lambda settings: stand_in)
+        # `**_` 로 배선 인자를 삼킨다 — `usage_sink`(`TASK-60`)처럼 인자가 늘 때마다 이 대역이
+        # 깨지면 배선과 무관한 테스트 수십 개가 함께 빨개진다. ⛔ **그 대가는 게이트 테스트로
+        # 갚는다**: `test_lifespan_gives_the_worker_a_client_that_records_token_usage` 가 그 인자를
+        # 직접 잡아 「진짜 sink 인가」까지 잰다(삼키는 것과 검사하지 않는 것은 다르다).
+        monkeypatch.setattr(main_module, "BedrockClaudeClient", lambda settings, **_: stand_in)
         if shutdown_timeout is not None:
             monkeypatch.setattr(main_module, "WORKER_SHUTDOWN_TIMEOUT", shutdown_timeout)
         get_settings.cache_clear()
@@ -527,7 +532,7 @@ async def test_lifespan_shutdown_cancels_a_worker_that_will_not_stop(
         def __init__(self) -> None:
             self.started = asyncio.Event()
 
-        async def analyze(self, prompt: str) -> str:
+        async def analyze(self, prompt: str, **_: object) -> str:
             self.started.set()
             await asyncio.sleep(3600)  # 응답이 오지 않는 호출
             raise AssertionError("unreachable")
@@ -751,3 +756,46 @@ async def test_lifespan_hands_the_recording_root_to_the_worker(app_settings, db_
         pass
 
     assert captured["recording_root"] == get_settings().shadowing_audio_root
+
+
+async def test_lifespan_gives_the_worker_a_client_that_records_token_usage(
+    app_settings, db_pool, monkeypatch
+):
+    """⛔ **배선 누락을 잡는 단정이다** (`TASK-60` · 사용자 결정 66).
+
+    `usage_sink` 의 기본값이 `None`(기록 없음)이므로 lifespan 이 넘기지 않으면 토큰 기록이
+    **조용히 꺼진다** — 그러면 비용을 볼 수단이 코드가 있는데도 없다. `recording_root` 와 같은
+    부류의 위험이고 같은 방식으로 잰다.
+
+    ⚠️ **인자가 있는지만 보지 않고 «쓰면 행이 생기는지»까지 본다** — `usage_sink=lambda: None` 같은
+    no-op 을 넘겨도 「배선됨」으로 보이는 것을 막는다.
+    """
+    app_settings(worker_enabled=True)
+    captured: dict[str, Any] = {}
+
+    def capture_client(settings: object, **kwargs: Any) -> object:
+        captured.update(kwargs)
+        return FakeClaudeClient([])
+
+    monkeypatch.setattr(main_module, "BedrockClaudeClient", capture_client)
+    app = create_app()
+
+    async with app.router.lifespan_context(app):
+        sink = captured.get("usage_sink")
+        assert sink is not None, "lifespan 이 usage_sink 를 넘기지 않았다 — 토큰 기록이 꺼진다"
+        await sink(
+            TokenUsage(input_tokens=7, output_tokens=8),
+            model_id="wiring-probe",
+            purpose=PURPOSE_SPIKE,
+            job_id=None,
+        )
+
+    async with db_pool.acquire() as conn:
+        row = await conn.fetchrow(
+            "select input_tokens, output_tokens, purpose from llm_calls where model_id = $1",
+            "wiring-probe",
+        )
+        await conn.execute("delete from llm_calls where model_id = $1", "wiring-probe")
+
+    assert row is not None, "sink 를 불렀는데 행이 없다 — no-op 이 넘어왔다"
+    assert (row["input_tokens"], row["output_tokens"], row["purpose"]) == (7, 8, PURPOSE_SPIKE)

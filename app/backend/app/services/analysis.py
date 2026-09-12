@@ -40,6 +40,7 @@ from app.models.analysis import (
     is_valid_new_pattern_key,
     parse_analysis,
 )
+from app.models.usage import PURPOSE_ANALYSIS
 from app.services.daily_summary import refresh_summary_for_utterance
 from app.services.jobs import JOB_TYPE_ANALYZE, ClaimedJob, complete, report_failure
 from app.services.review import recompute, store_attempts
@@ -537,7 +538,9 @@ async def process_analysis(pool: asyncpg.Pool, claude: ClaudeClient, job: Claime
     if loaded.transcript.strip():
         try:
             prompt = build_prompt(loaded.transcript, loaded.existing_patterns)
-            raw = await claude.analyze(prompt)
+            # `TASK-60` — 갈래와 job 을 넘긴다. 넘기지 않으면 비용이 「임시 호출」로 적혀
+            # 갈래별 집계가 조용히 틀린다(`models/usage.py`의 기본값 근거).
+            raw = await claude.analyze(prompt, purpose=PURPOSE_ANALYSIS, job_id=job.id)
             result = resolve_pattern_keys(parse_analysis(raw), loaded.existing_patterns)
         except ValueError as exc:
             # `AnalysisValidationError`(계약 위반)가 여기로 온다. 예상된 결과이므로

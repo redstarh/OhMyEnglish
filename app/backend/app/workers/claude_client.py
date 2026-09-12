@@ -29,9 +29,11 @@ from __future__ import annotations
 import asyncio
 import json
 from typing import Any, Protocol
+from uuid import UUID
 
 from app.config import Settings, bedrock_client
 from app.models.analysis import AnalysisValidationError
+from app.models.usage import PURPOSE_SPIKE, TokenUsage, UsageSink
 
 # Bedrock InvokeModel의 Anthropic Messages 본문 규격 (모델 버전이 아니라 본문 스키마 버전).
 ANTHROPIC_VERSION = "bedrock-2023-05-31"
@@ -48,9 +50,16 @@ STOP_REASON_REFUSAL = "refusal"
 
 
 class ClaudeClient(Protocol):
-    """분석 프롬프트를 넣고 **원문 텍스트**를 받는다 (JSON 파싱은 호출자의 몫)."""
+    """분석 프롬프트를 넣고 **원문 텍스트**를 받는다 (JSON 파싱은 호출자의 몫).
 
-    async def analyze(self, prompt: str) -> str: ...
+    `purpose`·`job_id`는 **사용량 기록의 귀속**에만 쓴다 (`TASK-60` · 결정 66). 기본값이 있어
+    기존 호출자를 깨뜨리지 않지만, ⛔ **job 경로의 두 호출자는 반드시 넘긴다** — 넘기지 않으면
+    비용이 「임시 호출」로 적혀 갈래별 집계가 조용히 틀린다.
+    """
+
+    async def analyze(
+        self, prompt: str, *, purpose: str = PURPOSE_SPIKE, job_id: UUID | None = None
+    ) -> str: ...
 
 
 def build_invoke_body(prompt: str) -> str:
@@ -92,22 +101,69 @@ def extract_text(payload: dict[str, Any]) -> str:
     return "".join(block.get("text", "") for block in blocks if block.get("type") == "text")
 
 
-class BedrockClaudeClient:
-    """`bedrock-runtime` InvokeModel로 Claude를 호출하는 실물 구현."""
+def extract_usage(payload: dict[str, Any]) -> TokenUsage | None:
+    """응답의 `usage`에서 토큰 둘. 없으면 `None` (`TASK-60` · 결정 66).
 
-    def __init__(self, settings: Settings) -> None:
+    ⛔ **없을 때 0 을 만들지 않는다.** `0` 은 「토큰을 쓰지 않았다」는 **주장**이고, 그런 호출은
+    없다 — 그것을 적으면 비용 합계가 조용히 낮아진다. 없으면 그 사실을 남기지 않고(행을 만들지
+    않고) 지나가는 쪽이 정직하다.
+    """
+    usage = payload.get("usage")
+    if not isinstance(usage, dict):
+        return None
+    input_tokens = usage.get("input_tokens")
+    output_tokens = usage.get("output_tokens")
+    if not isinstance(input_tokens, int) or not isinstance(output_tokens, int):
+        return None
+    return TokenUsage(input_tokens=input_tokens, output_tokens=output_tokens)
+
+
+class BedrockClaudeClient:
+    """`bedrock-runtime` InvokeModel로 Claude를 호출하는 실물 구현.
+
+    `usage_sink`는 **주입한다** (`TASK-60` · 결정 66) — 이 클래스가 DB 를 알면 자격증명·네트워크
+    없이 도는 단위 테스트가 DB 를 요구한다. 주지 않으면 기록하지 않는다: 그것이 「기록을 붙일지」를
+    **배선하는 쪽**(`api/main.py`·하네스)이 정하게 하는 형태다.
+    """
+
+    def __init__(self, settings: Settings, *, usage_sink: UsageSink | None = None) -> None:
         self._settings = settings
         self._client = bedrock_client()
+        self._usage_sink = usage_sink
 
-    async def analyze(self, prompt: str) -> str:
-        return await asyncio.to_thread(self._invoke, prompt)
+    @property
+    def records_usage(self) -> bool:
+        """사용량 sink 가 붙어 있는가.
 
-    def _invoke(self, prompt: str) -> str:
+        공개 속성으로 두는 이유: **배선 누락을 잡는 게이트 테스트가 이것을 잰다.** private 속성을
+        들여다보는 단정은 리팩터에 깨지고, 그 깨짐이 「배선이 사라졌다」와 구분되지 않는다.
+        """
+        return self._usage_sink is not None
+
+    async def analyze(
+        self, prompt: str, *, purpose: str = PURPOSE_SPIKE, job_id: UUID | None = None
+    ) -> str:
+        payload = await asyncio.to_thread(self._invoke, prompt)
+        # ⛔ **`extract_text`보다 «먼저» 적는다.** 예산 절단·거부는 `extract_text`가 예외로
+        # 올리는데 그 호출도 **돈이 나간 호출**이다. 뒤에 적으면 실패한 호출의 비용이 표에서
+        # 빠지고, 그러면 「비용이 왜 늘었는가」를 설명할 수 없다(참고 프로젝트가 예열 호출까지
+        # 적은 이유와 같다).
+        usage = extract_usage(payload)
+        if self._usage_sink is not None and usage is not None:
+            await self._usage_sink(
+                usage,
+                model_id=self._settings.claude_model_id,
+                purpose=purpose,
+                job_id=job_id,
+            )
+        return extract_text(payload)
+
+    def _invoke(self, prompt: str) -> dict[str, Any]:
         response = self._client.invoke_model(
             modelId=self._settings.claude_model_id,
             body=build_invoke_body(prompt),
         )
-        return extract_text(json.loads(response["body"].read()))
+        return json.loads(response["body"].read())
 
 
 class FakeClaudeClient:
@@ -120,8 +176,14 @@ class FakeClaudeClient:
     def __init__(self, responses: list[str]) -> None:
         self._responses = list(responses)
         self.prompts: list[str] = []
+        # `TASK-60` — 받은 귀속을 그대로 기록한다. 테스트가 「job 호출자가 갈래를 넘겼는가」를
+        # 이 자리에서 잴 수 있어야 한다: 안 넘기면 비용이 「임시 호출」로 적힌다.
+        self.attributions: list[tuple[str, UUID | None]] = []
 
-    async def analyze(self, prompt: str) -> str:
+    async def analyze(
+        self, prompt: str, *, purpose: str = PURPOSE_SPIKE, job_id: UUID | None = None
+    ) -> str:
         self.prompts.append(prompt)
+        self.attributions.append((purpose, job_id))
         assert self._responses, f"FakeClaudeClient responses exhausted (call #{len(self.prompts)})"
         return self._responses.pop(0)
