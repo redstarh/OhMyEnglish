@@ -1,0 +1,10 @@
+[
+  {
+    "job_id": "785a6fd5-4058-44df-b2fb-03b8eed07e90",
+    "session": "117b5f72",
+    "job_type": "generate_scenario",
+    "status": "pending",
+    "attempts": 0,
+    "available_at": "2026-09-12T15:18:15.631823+00:00"
+  }
+]
