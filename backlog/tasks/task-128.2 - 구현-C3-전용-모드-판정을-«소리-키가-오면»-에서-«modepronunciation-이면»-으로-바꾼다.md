@@ -4,6 +4,7 @@ title: '구현 C3: 전용 모드 판정을 «소리 키가 오면» 에서 «mod
 status: To Do
 assignee: []
 created_date: '2026-09-12 03:54'
+updated_date: '2026-09-12 13:06'
 labels: []
 dependencies:
   - TASK-128.1
@@ -25,3 +26,16 @@ ordinal: 135000
 - [ ] #2 음성 대조 — mode 가 없으면 여전히 일반 지시문인 것을 단정한다(모든 세션이 발음 세션이 되지 않게)
 - [ ] #3 factory.py·ws.py 의 계약 주석을 함께 고친다 — 「소리 키가 오면 그 모드」 서술이 낡는다
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-09-12 KST 착수 전 확인 — learning_sessions.mode 값역을 «조회로» 읽었음. 코드 상수에서 옮겨 적지 말 것.
+
+조회값: CHECK ((mode = ANY (ARRAY['speaking','shadowing','review','pronunciation',...]))) — 018 이 scenario_intake 를 더해 다섯임.
+⛔ 그 가운데 «review» 는 코드가 이름을 하나도 갖지 않음. ws.py 의 상수는 SPEAKING_MODE·SHADOWING_MODE·PRONUNCIATION_MODE 셋뿐이고 'review' 를 mode 값으로 쓰는 코드는 grep 0건임. 출처는 001_initial_schema.sql:36 이고 설계됐으나 구현되지 않은 모드임.
+⚠️ 공유 dev DB 의 실제 행은 speaking x17 뿐 — shadowing·review·pronunciation 은 0행임. 즉 그 값이 사라져도 «행으로는» 아무도 모름.
+⇒ 이 태스크가 ws.py 의 모드 판정을 만질 때 «코드 상수 셋» 을 값역으로 착각하지 않음. 값역은 조회가 정본이고 H-BH 가 같은 부류의 함정임.
+
+⚠️ 그 값역을 못박는 가드는 «이미 있음» — tests/unit/test_schema.py 의 test_session_mode_domain_includes_scenario_intake 가 다섯 값을 포함으로 재고 음성 대조까지 가짐(동료 세션이 018 과 함께 넣었음). ⛔ 나도 같은 가드를 썼다가 «중복이라 버렸음» — 같은 축을 두 곳에서 못박으면 한쪽이 조용히 낡음. 그 테스트를 고쳐야 할 일이 생기면 그 하나만 고침.
+<!-- SECTION:NOTES:END -->
