@@ -79,13 +79,14 @@
 
 | # | 지표 | 값 |
 |--:|---|---|
-| 1 | 기준 커밋 | **`b454e4f` 이상** · `origin` 과 **동기**(`0 0` · 이 브랜치는 push 사전 승인됨) · ⚠️ 동료 세션이 계속 커밋하므로 **등호를 요구하지 않음** |
-| 2 | 다음 걸음 | **`TASK-128.1`+`.2` 묶음**(둘 다 `To Do`). 내 `In Progress` 는 `TASK-116`(high) · `78` · `81` · `97` · `128` |
-| 3 | 게이트 | 전부 `app/backend` cwd · 파이프 없이 · **여섯 다 `exit 0`**: `pytest` **1053 passed**(12.04s) · `ruff check .` **0** · `format --check .` **41 files** · `ruff check ../../tests ../../scripts` **0** · `format --check ../../tests ../../scripts` **159 files** · `ty` **0** |
+| 1 | 기준 커밋 | **`ac628f5` 이상** · `origin` 과 **동기**(`0 0`) · 미커밋 **0건** · ⚠️ 동료 세션이 계속 커밋하므로 **등호를 요구하지 않음**(이 handoff 를 담는 커밋도 뒤에 붙음). 이 브랜치는 push 사전 승인됨 |
+| 2 | 다음 걸음 | **`TASK-128.1`+`.2` 묶음**(둘 다 `To Do`). 내 `In Progress` 는 `TASK-116`(high) · `78` · `81` · `97` · `128` — 다섯 다 발음 축임(`TASK-5` 는 동료 세션 것) |
+| 3 | 게이트 | 전부 `app/backend` cwd · 파이프 없이 · **여섯 다 `exit 0`**: `pytest` **1060 passed**(12.00s) · `ruff check .` **0** · `format --check .` **42 files** · `ruff check ../../tests ../../scripts` **0** · `format --check ../../tests ../../scripts` **160 files** · `ty` **0** |
 | 4 | 착수 전 필수 | **9개**(위 ③) |
 
-⚠️ **지표 3 은 `b454e4f` · 미커밋 0건 시점의 값임.** 그 직후 동료 세션의 미커밋(`scenario_generator.py`
-· `test_scenario_prompt.py`)이 들어왔으므로 **다시 재면 늘어남** — 그것을 회귀로 읽지 않음.
+⚠️ **수치가 자란 것을 회귀로 읽지 않음.** 이 세션 안에서 `1053 → 1060`(+7)이 됐고 원인은 동료 세션의
+`ac628f5`(`test_scenario_prompt.py`)임 — 커밋으로 확정했음. ⚠️ 그쪽 마지막 측정과 `format` 두 칸이 각각
+**1 작았음**(41/159) — 같은 커밋의 파일 둘을 그쪽이 재기 전이었음. ⛔ 차이가 설명되면 drift 가 아님.
 
 ⚠️ **이 트리에는 동료 세션(`ohmyenglish-f4`)의 것이 섞여 있음** — `TASK-5`(`In Progress`) ·
 `TASK-132`(`Awaiting Decision` · AC#1 을 그쪽이 가져갔음) · 마이그레이션 `016`~`018`. ⛔ **그 변화를
