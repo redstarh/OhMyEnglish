@@ -18,7 +18,7 @@
 `TASK-124`. 부분 진행 하나: `TASK-39`(AC#1 닫음 — 재시도·타임아웃 명시 · AC#2 는 운영 관찰 항목).
 판정과 근거는 각 태스크 노트가 정본임.
 
-회차 기록 셋이 이 세션의 관측 정본임.
+회차 기록이 이 세션의 관측 정본임(아래 목록 그대로).
 
 1. `runs/2026-09-12-task108-deepest-marker.md` — 표식 대상 초점 포함 3/3 · `parse_plan` 통과 2/3.
 2. `runs/2026-09-12-task119-extra-keys.md` — 여분 키 2/5 · 전역 금지 문장이 이미 있었음.
@@ -31,13 +31,16 @@
 
 제품에 들어간 것: 만성 줄의 `[deepest recurrence]` 표식 + 조건부 `_DEEPEST_FOCUS_RULE` ·
 `- level:` 불릿의 국소 금지 문장 · `set_session_mode` 로 `mode=pronunciation` 기록 ·
-`llm_calls` 표와 호출 단위 사용량 기록(`models/usage.py` · `services/usage.py`).
+`llm_calls` 와 사용량 기록(Claude 는 호출 단위 · Nova 는 세션 단위) · Bedrock 재시도·타임아웃
+명시(`config.bedrock_boto_config`).
 
-마이그레이션 둘을 발급·적용했음 — `013_llm_calls.sql` · `014_pronunciation_session_mode.sql`.
+마이그레이션을 발급·적용했음 — `013_llm_calls.sql` · `014_pronunciation_session_mode.sql` ·
+`015_llm_calls_token_split.sql`.
 ⛔ `scripts/migrate.py` 를 돌리지 않고 `psql` 로 파일 둘만 적용했음(그 스크립트의 시드 upsert 가
 공유 DB 의 가변 컬럼을 덮음). `schema_migrations` 행은 같은 트랜잭션에서 직접 넣었음.
 
-받은 결정 둘: `66`(사용량은 새 표 `llm_calls`) · `67`(`mode` 값역에 `pronunciation`).
+받은 결정: `66`(사용량은 새 표 `llm_calls`) · `67`(`mode` 값역에 `pronunciation`) ·
+`68`(Nova 는 토큰 열 넷으로 speech·text 를 나눠 담음).
 정본은 `docs/ops/captain-instruction-register.md` 임.
 
 ## ② 다음 한 걸음 — ⛔ 내 갈래에 열린 태스크가 없음. 사용자 판단이 먼저임
@@ -59,13 +62,14 @@
 
 1. ⛔ 태스크를 새로 열기 전에 결정 대장을 `grep` 함. 이 세션이 `결정 65` 를 못 보고 같은 부류를
    다시 열어 Claude 13회를 썼음(경위는 그 대장의 「결정 65 의 사후 기록」 절).
-2. ⛔ 회차 상한과 해석 규칙을 돌리기 전에 회차 기록에 적음. 위 회차 셋 전부 그렇게 했음.
+2. ⛔ 회차 상한과 해석 규칙을 돌리기 전에 회차 기록에 적음. 위 회차 전부 그렇게 했고, ⚠️ **미리
+   적은 조건과 어긋난 결과를 끼워 맞추지 않았음**(`TASK-124` 의 `output_tokens=0`).
 3. ⛔ 부분 실행에는 `-c pyproject.toml` 을 붙임(`H-AJ`) · 게이트는 `app/backend` cwd(`H-A`) ·
    `tests`·`scripts` 는 경로 지정(`H-L`) · 파이프 뒤 `$?` 금지(`H-AZ`).
-4. ⛔ `git add <디렉터리>` 금지(`H-BE`) · 커밋 뒤 `git show --stat` 확인(`H-BA`). 이 세션은 커밋
-   9건 전부 그렇게 확인했고 남의 파일이 섞인 건 0건임.
+4. ⛔ `git add <디렉터리>` 금지(`H-BE`) · 커밋 **전** `git diff --cached --name-only` · **뒤**
+   `git show --stat` 확인(`H-BA`). 이 세션은 커밋마다 그렇게 했고 남의 파일이 섞인 건 0건임.
 5. ⚠️ 공유 dev DB 는 SELECT 만 함. 스키마를 바꿀 것이면 마이그레이션 번호를 그 순간의
-   `schema_migrations` 조회로 발급함(`H-AL`) — 지금 최대는 `014` 임.
+   `schema_migrations` 조회로 발급함(`H-AL`) — 이 마감 시점의 최대는 `015` 임.
 6. ⛔ 게이트를 **다섯 개 다** 돌림 — `pytest` · `ruff check .` · `ruff format --check .` ·
    게이트 밖 `ruff check ../../tests ../../scripts` · 게이트 밖 `ruff format --check ../../tests` ·
    `ty check`. ⚠️ 이 세션이 마감 게이트에서 **게이트 밖 `format --check` 를 빠뜨려** 내 파일 둘의
@@ -80,13 +84,13 @@
 | 3 | 게이트 | **다섯 다 `exit 0`**: `pytest` **999 passed**(12.66s) · `ruff check` 0 · `format --check` 38 files · 게이트 밖 `ruff` 0 · `ty` 0 — 파이프 없이 종료 코드로 확인. ⚠️ 게이트 밖 `format --check` 에 1건이 남아 있고 **내 파일이 아님**(동료 세션의 `test_pronunciation_service.py`) |
 | 4 | 착수 전 필수 | 6개(위 ③) |
 
-⚠️ 게이트를 돌린 워킹트리에 동료 세션의 미커밋 3건이 있었음(`services/pronunciation.py` ·
-`test_pronunciation_service.py` · `task-103` 노트). 그 상태로도 초록이었음 — 즉 위 수치는
-「내 변경만」의 값이 아님. ⛔ 그 셋을 건드리지 않았음.
+⚠️ 이 마감 시점의 작업 트리는 **깨끗함**(미커밋 0건). 단 앞선 게이트 회차 일부는 동료 세션의
+미커밋이 트리에 있는 상태에서 돌았음 — 그때의 수치는 「내 변경만」의 값이 아니었음. ⛔ 그 파일들을
+건드리지 않았음.
 
-⚠️ 오늘 쓴 Claude: 이 세션 계획 생성 20회(스파이크 16 + 실물 확인 1 + 팔 A 1 + 배선 확인 2).
-`llm_calls` 에는 그중 1건만 있음 — 기록 배선이 그 뒤에 붙었기 때문임. ⛔ 그 1건을 「오늘 쓴 전부」로
-읽지 않음.
+⚠️ 이 세션이 쓴 모델 호출: Claude 계획 생성 **22회**(회차 기록 셋의 팔 + 타임아웃 측정 2 + 배선
+확인) · **Nova 1세션**. ⛔ **`llm_calls` 의 행 수를 「이 세션이 쓴 전부」로 읽지 않음** — 기록 배선이
+작업 도중에 붙었으므로 그 앞의 호출은 표에 없음(현재 `purpose=spike` 3 · `nova` 1).
 
 ## ⑤ 이 세션이 얻은 규율
 
