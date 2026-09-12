@@ -4,7 +4,7 @@ title: '검증 회차: 무대 정하기 세션이 실물 모델에서 다섯을 
 status: In Progress
 assignee: []
 created_date: '2026-09-12 15:04'
-updated_date: '2026-09-12 15:23'
+updated_date: '2026-09-12 15:44'
 labels: []
 dependencies: []
 parent_task_id: TASK-102
@@ -44,4 +44,18 @@ AC#3: _pick_scenario_for_user 를 그 DB 에 직접 돌려 pick=new · source=ge
 ⛔ AC#2 는 열려 있음 — 실물 Nova 1회가 필요하고 마이크가 있어야 하므로 사용자 승인 사안임(결정 38·39 의 선례).
 
 게이트(이 턴 직접 실행 · 종료코드 확인): pytest 1088 passed(exit 0 · 동료 세션이 독립으로 센 값과 일치) · ruff 안 0 · 밖 0 · format 0(206 files) · ty 0 · 두 실행체 --help exit 0.
+
+AC#2 진행 2026-09-13 — ⛔ 절반만 닫혔으므로 체크하지 않음. 회차 정본은 tests/harness/runs/2026-09-13-task102-intake-pipeline/README.md §4-2 임.
+
+사용자 승인(결정 85)을 받고 실물 Nova 세션 1회를 돌렸음. 격리는 검증 전용 DB ohmyenglish_v102b + :8022 · VOICE_ADAPTER=nova · WORKER_ENABLED=false 이고 teardown 뒤 dev DB 무오염을 확인했음(seed 30 · scenario_intake 세션 0건).
+
+닫힌 것: ⛔ 코치가 한 턴에 여러 질문을 묶지 않았음 — 2 턴 중 0 턴이고 물음표가 각각 0개·1개임. 그리고 그 1개가 질문 1(무대)을 프롬프트 문면 그대로 냈음(`Where do you need English soon? Tell me the place.`). 그것이 이 축의 가장 큰 위험이었음.
+
+닫히지 않은 것 둘: ⑴ 다섯을 끝까지 순서대로 묻는가 — 코치 턴이 둘뿐이었고(픽스처 WAV 가 둘이라 거기서 끝남) 질문 2~5 의 순서·단독성은 관측되지 않았음 ⑵ 답을 못 받은 축을 지어내는가 — 그 상황이 생기지 않았음(학습자가 「모르겠다」를 말한 적이 없음).
+
+⚠️ 관측 조건의 한계 둘: 픽스처가 발음 회차용 문장이라 질문의 답이 아니었고(그래서 첫 코치 턴이 방향을 잡는 데 쓰였음 — 지시문의 결함이 아니라 입력의 성질임) · 코치가 먼저 말하지 않았음(하네스가 곧바로 오디오를 흘리므로 「학습자 오디오 없는 첫 턴」 팔은 지나가지 않았음).
+
+⚠️ 첫 시도가 세션을 하나 더 만들고 죽었음 — ws_session.py 가 harness_sessions 표를 요구하는데 검증 DB 에 없었음(하네스 전용 표이고 마이그레이션에 없음). 오디오 전에 죽었으므로 관측 0이고 Nova 스트림도 열리지 않았음 ⇒ 실물 스트림이 실제로 돈 것은 1회임.
+
+⛔ 남은 둘을 재려면 실물 세션이 한 번 더 필요하고 그것은 다시 승인 사안임 — 승인은 「1회」였고 그 1회를 썼음.
 <!-- SECTION:NOTES:END -->

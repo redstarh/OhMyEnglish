@@ -1,0 +1,551 @@
+{
+ "scenario": "SI1",
+ "session_id": "3b9d70e5-d0d2-41ca-9b72-4c7b86cc91b5",
+ "elapsed": 64.377,
+ "junk_sent": 0,
+ "audio_sent": 255,
+ "mode": "scenario_intake",
+ "wavs": [
+  "pq11.wav",
+  "pq02a.wav"
+ ],
+ "frames": [
+  {
+   "t": 9.144,
+   "type": "session_started",
+   "session_id": "3b9d70e5-d0d2-41ca-9b72-4c7b86cc91b5"
+  },
+  {
+   "t": 9.183,
+   "type": "speech_start"
+  },
+  {
+   "t": 9.183,
+   "type": "speech_end"
+  },
+  {
+   "t": 9.183,
+   "type": "final",
+   "speaker": "user",
+   "text": "i think we need to fix this bug today.",
+   "sequence_no": 1
+  },
+  {
+   "t": 9.183,
+   "type": "partial",
+   "speaker": "agent",
+   "text": "I see you want to talk about work. Let us start with your English needs."
+  },
+  {
+   "t": 9.183,
+   "type": "audio",
+   "bytes": 2528,
+   "header": "âÿÙÿÛÿÖÿ"
+  },
+  {
+   "t": 9.183,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u001f\u0003\fþÜø\fú"
+  },
+  {
+   "t": 9.183,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ãî\u0018íAî¤ê"
+  },
+  {
+   "t": 9.184,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ô\u0005¨ùÄûV\u0002"
+  },
+  {
+   "t": 9.184,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "3\u0000\u0006ñø­\u0006"
+  },
+  {
+   "t": 9.184,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0001§þ\rý:\u0005"
+  },
+  {
+   "t": 9.184,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "û\u000bç\rT\u000e8\r"
+  },
+  {
+   "t": 9.184,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "pÖÇ×\u000fåtè"
+  },
+  {
+   "t": 9.184,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u001b\u0018\u0017ª\u000b\t\u0007"
+  },
+  {
+   "t": 9.184,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "û\u000e\u0006\r0ÿcý"
+  },
+  {
+   "t": 9.184,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "þlþ-þ\u0018þ"
+  },
+  {
+   "t": 9.184,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ªñ*ó÷Gù"
+  },
+  {
+   "t": 9.184,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "u\u0001Û\u0000¥þ`þ"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0004Z\u0004\u0002\u0002Ñ\u0000"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "hýCýÈ\u0002Z\f"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ÿ=\u0000a\u0001\u0007\u0002"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "q\u0003n\u0004Æ\u0006\u0007"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0014ýºýx÷|ô"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ÌýÝýÜþÿ"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "6\u0000ôÿ\u001f\u0000\u0000"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0014\u0000\u0003\u0000çÿìÿ"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ýÿ\u0013\u0000\u0006\u0000\u0004\u0000"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ñÿ\u0000\u0000\u0016\u0000ÿÿ"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0016\u0000\u0014\u0000\u0011\u0000\u0013\u0000"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ßý%ýTýiý"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "yøüò\u0004¹\u0005"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ÏýB\u0001\u0004P\u0005"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0014\r\u001dôV\nwú"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "S\u000bº\u001c^&6\u001b"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "½ÿ¬ÿeÿ`ÿ"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0017\u000be\b\u0001\f\b\u0011"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ÚþgþãüÓþ"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ÿ.ÿwþiþ"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\f\u0007\nÆ\b\u0015\b"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "áë\u000eìóÐö"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "áù\u0005û´þ\u000f\u0001"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "büÝûXýµü"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Xÿ:\u0000$ÿâ\u0001"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ú½ùBù«ù"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ÿvÿºÿàÿ"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 6432,
+   "header": "B\u0000F\u0000M\u0000N\u0000"
+  },
+  {
+   "t": 9.185,
+   "type": "partial",
+   "speaker": "agent",
+   "text": "\nWhere do you need English soon?  Tell me the place."
+  },
+  {
+   "t": 9.185,
+   "type": "speech_start"
+  },
+  {
+   "t": 9.185,
+   "type": "interrupted"
+  },
+  {
+   "t": 9.185,
+   "type": "final",
+   "speaker": "agent",
+   "text": "I see you want to talk about work. Let us start with your English needs.",
+   "sequence_no": 2
+  },
+  {
+   "t": 9.185,
+   "type": "final",
+   "speaker": "user",
+   "text": "i need to send the final report today.",
+   "sequence_no": 3
+  },
+  {
+   "t": 9.185,
+   "type": "speech_end"
+  },
+  {
+   "t": 9.185,
+   "type": "partial",
+   "speaker": "agent",
+   "text": "Good. Where do you need English soon?  Tell me the place."
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2528,
+   "header": "èÿæÿëÿÝÿ"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\nÝ\u00037ýÍø"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ã7å;©8Ý/"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0004²\u0004ü\u0004\u000b\u0005"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Öÿ×ÿÜÿÛÿ"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ïÿîÿïÿëÿ"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "äÿâÿäÿãÿ"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0002\u0000\u0002\u0000\u0007\u0000\u0006\u0000"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0019\u0000\u0016\u0000\u0010\u0000\u0013\u0000"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "W\u0002D\u0004¶\u0007\u001d\b"
+  },
+  {
+   "t": 9.185,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "{ÝÅß»ü²\u0002"
+  },
+  {
+   "t": 9.186,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "óôèò]ò"
+  },
+  {
+   "t": 9.186,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ÒùüT\u0005U\u0000"
+  },
+  {
+   "t": 9.187,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "µ\u0005Ð\u0005Û\u00058\u0004"
+  },
+  {
+   "t": 9.298,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Îþ\u0006þÍþ\u000e\u0000"
+  },
+  {
+   "t": 9.298,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Úþ\u0007ÿÜÿ\u001b\u0000"
+  },
+  {
+   "t": 9.298,
+   "type": "audio",
+   "bytes": 2560,
+   "header": ">æåëÊì"
+  },
+  {
+   "t": 9.298,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "°ú`ùöÆõ"
+  },
+  {
+   "t": 9.298,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "§\u0007o\u0003ûMù"
+  },
+  {
+   "t": 9.298,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0001,ý\u0001ý"
+  },
+  {
+   "t": 9.3,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Vü\u0003Eú\u0004"
+  },
+  {
+   "t": 9.317,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "0\u0018:\u0013û\b\u0007"
+  },
+  {
+   "t": 9.444,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "½\t~\b6\u0006$\u0003"
+  },
+  {
+   "t": 9.444,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0018þKÿ·\u00043\u0006"
+  },
+  {
+   "t": 9.444,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "rú¾ú¶û\u0011ü"
+  },
+  {
+   "t": 9.444,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "%\u0000\"\u0000!\u0000\u001f\u0000"
+  },
+  {
+   "t": 9.444,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "âÿâÿÜÿÛÿ"
+  },
+  {
+   "t": 9.444,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u001b\u0000Èÿ\u0000Ç\u0000"
+  },
+  {
+   "t": 9.444,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ñ\u0014Ã\u0011½\fÏ\f"
+  },
+  {
+   "t": 9.597,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0012ÿÿQ\u0002,\u0005"
+  },
+  {
+   "t": 9.597,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "j\tL\u0005\n\u0003Ñ\u0003"
+  },
+  {
+   "t": 9.597,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Jÿ\u0012ÿ\u0016ÿÿ"
+  },
+  {
+   "t": 9.597,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Wô\tõc÷x÷"
+  },
+  {
+   "t": 9.597,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "äÿ¢\u0000Y\u0000ïÿ"
+  },
+  {
+   "t": 9.597,
+   "type": "audio",
+   "bytes": 6400,
+   "header": "Z\u0001÷\u0000¼þÛ\u0002"
+  },
+  {
+   "t": 9.597,
+   "type": "audio",
+   "bytes": 32,
+   "header": "\u000e\u0000\r\u0000\u000f\u0000\u0011\u0000"
+  },
+  {
+   "t": 9.599,
+   "type": "final",
+   "speaker": "agent",
+   "text": "Good. Where do you need English soon?  Tell me the place.",
+   "sequence_no": 4
+  },
+  {
+   "t": 64.376,
+   "type": "session_ended"
+  }
+ ]
+}
