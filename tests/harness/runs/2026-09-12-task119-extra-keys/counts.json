@@ -1,0 +1,35 @@
+{
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "prompt_chars": 14538,
+  "rounds": [
+    {
+      "kind": "통과",
+      "detail": "",
+      "verdict": "통과"
+    },
+    {
+      "kind": "통과",
+      "detail": "",
+      "verdict": "통과"
+    },
+    {
+      "kind": "여분키",
+      "detail": "level.reason_note",
+      "verdict": "PlanValidationError: plan response failed validation: 1 validation error for PlanOutput\nlevel.reason_note\n  Extra inputs are not permitted [type=extra_forbidden, input_value=None, input_type=NoneType]\n    For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden"
+    },
+    {
+      "kind": "여분키",
+      "detail": "level.reason_en",
+      "verdict": "PlanValidationError: plan response failed validation: 1 validation error for PlanOutput\nlevel.reason_en\n  Extra inputs are not permitted [type=extra_forbidden, input_value=\"Short daily sentences wo...nstable, so stay at A2.\", input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden"
+    },
+    {
+      "kind": "통과",
+      "detail": "",
+      "verdict": "통과"
+    }
+  ],
+  "tally": {
+    "통과": 3,
+    "여분키": 2
+  }
+}

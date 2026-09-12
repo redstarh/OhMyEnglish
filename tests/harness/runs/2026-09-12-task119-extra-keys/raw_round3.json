@@ -1,0 +1,71 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an + 모음으로 시작하는 단수 명사 (an을 [ən] 소리로 끝까지)"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "It is 3 p.m. and you are hungry. What do you want to eat right now — an apple, an egg, an orange? Tell me in two short sentences.",
+      "context": "Snack time at home in the afternoon"
+    },
+    {
+      "prompt": "You have one free hour tonight. Tell me what you want to do in that hour. Two short sentences, please.",
+      "context": "Evening plan after dinner"
+    },
+    {
+      "prompt": "Tell me about one email you need to write today. Who is it for? Keep each sentence short.",
+      "context": "Morning at your desk before work starts"
+    },
+    {
+      "prompt": "You want to try something new this weekend. Tell me one idea of your own in two short sentences.",
+      "context": "Weekend plan with a friend"
+    },
+    {
+      "prompt": "On the way home you bought one small thing — maybe an umbrella, an ice cream, an onion. Tell me what you bought and why.",
+      "context": "Quick stop at the shop after work"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "짧은 문장에서도 'a/an'을 자주 빼고, 'an'을 '어'처럼 흘려서 발음하고 있어서 오늘은 an + 명사 형태와 소리를 같이 연습해요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an + 모음으로 시작하는 단수 명사 (an을 [ən] 소리로 끝까지)"
+      }
+    ],
+    "sentence_length": "short single-clause sentences of about 5-8 words; two sentences in a row once the learner is comfortable",
+    "hint_timing": "wait about five seconds of silence, then give one short hint; correct the article or the /n/ sound only after the learner finishes speaking",
+    "contexts": [
+      "afternoon snack at home",
+      "free hour in the evening",
+      "morning desk routine before work",
+      "weekend plan with a friend",
+      "small shopping stop after work"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "짧은 패턴 문장은 스스로 만들 수 있지만 관사와 an 발음이 아직 불안정해서 A2에서 더 다져야 해요.",
+    "reason_note": null
+  },
+  "notes": [
+    "Produces 'a meeting', 'a report' correctly in memorized chunks, but drops the article with two-word nouns like 'action plan', 'project architecture meeting'.",
+    "Often breaks one sentence into fragments across turns, which makes articles and time words fall out; encourage finishing the whole short sentence in one breath.",
+    "'an' is pronounced as a bare vowel, so the following vowel-initial noun blends in; slowing the /n/ link ('an-apple') helps."
+  ]
+}

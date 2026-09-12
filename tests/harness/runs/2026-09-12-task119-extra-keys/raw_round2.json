@@ -1,0 +1,71 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "Tell me about one thing you ate yesterday. Say it in two short sentences, like \"I had an apple.\" or \"I ate an egg.\"",
+      "context": "Daily life — talking about food you had"
+    },
+    {
+      "prompt": "What do you want to buy this week? Tell me two or three short sentences about small things — an umbrella, an eraser, an ice cream.",
+      "context": "Daily life — shopping plans"
+    },
+    {
+      "prompt": "Tell me about one hour of your evening. Use short sentences like \"I watched TV for an hour.\" What did you do for an hour last night?",
+      "context": "Daily life — evening routine and time"
+    },
+    {
+      "prompt": "Tell me about someone in your family or your team. Say what their job is in a short sentence, for example \"He is an engineer.\" or \"She is an office worker.\"",
+      "context": "Light work talk — introducing a person and their job"
+    },
+    {
+      "prompt": "You need to write down your work plan for tomorrow. Tell me in two short sentences what you want to make — an email, an action plan, an idea list.",
+      "context": "Light work talk — planning tomorrow's small tasks"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "짧은 문장에서 'a/an'이 자주 빠지고 있어서, 오늘은 'an'을 정확히 소리내며 단수 명사 앞 관사를 함께 연습해요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "short single-clause sentences (5-8 words), two or three of them per answer",
+    "hint_timing": "wait about five seconds, then give a short hint; correct the missing or mispronounced 'an' right after the learner finishes speaking",
+    "contexts": [
+      "food you ate yesterday",
+      "small things you want to buy",
+      "how you spend an hour in the evening",
+      "a person's job in your family or team",
+      "small work items you plan to make tomorrow"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "짧은 단문은 편하게 말하지만 관사와 'an' 발음이 아직 불안정해서 A2에서 더 다져야 해요."
+  },
+  "notes": [
+    "Articles appear when the learner repeats a memorized chunk (\"a meeting\", \"a report\") but disappear with new nouns like \"joke\", \"action plan\", \"project architecture meeting\".",
+    "Speaks in fragments and then joins them; the article is most often lost in the second fragment.",
+    "'an' is reduced to 'a' in speech even when the written form is correct — needs slow syllable-level repetition.",
+    "Longer answers trigger past-tense slips (\"yesterday i go\"), so keep sentences short for now."
+  ]
+}

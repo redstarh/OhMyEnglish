@@ -1,0 +1,70 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "What do you eat in the morning? Tell me one thing you want in one short sentence, like an apple, an egg, or an orange.",
+      "context": "Morning routine at home — breakfast food"
+    },
+    {
+      "prompt": "You have one free hour today. Say one short sentence about what you want to do in that hour.",
+      "context": "Free time after work — daily plan"
+    },
+    {
+      "prompt": "Think about one thing you need to buy soon — maybe an umbrella, an old book, or an ice cream. Say it in one short sentence.",
+      "context": "Shopping on the weekend"
+    },
+    {
+      "prompt": "You have a small idea for your team. Say it in one short sentence, starting with 'I have an idea about...'.",
+      "context": "Light work talk with a close coworker"
+    },
+    {
+      "prompt": "Tomorrow you need to write something at work. Say one short sentence about it — an email, an action plan, or an answer.",
+      "context": "Simple work task for tomorrow"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "짧은 문장에서도 관사 a/an이 자주 빠지고, 'an'을 'a'처럼 발음하고 있어서 오늘은 이 둘을 함께 연습해요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "short single-clause sentences, about 5-8 words, using patterns like 'I want to...', 'I need to...', 'I have an...'",
+    "hint_timing": "wait about 5 seconds after the learner stops, then give a short hint; correct the 'an' sound right after the sentence ends",
+    "contexts": [
+      "breakfast and food at home",
+      "free time after work",
+      "weekend shopping",
+      "light small talk with a coworker",
+      "one simple work task for tomorrow"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "짧은 일상 문장은 잘 만들지만 관사와 발음이 아직 불안정하므로 A2를 유지합니다."
+  },
+  "notes": [
+    "Articles appear when the phrase is memorized ('a meeting', 'a report'), but drop with new noun phrases like 'action plan' or 'project architecture meeting'.",
+    "Often splits one idea into two fragments ('I had a project meeting.' + 'yesterday.'); encourage finishing the sentence in one breath.",
+    "Tends to say 'a' where 'an' is needed, especially before 'action plan' — needs many repetitions of vowel-initial nouns."
+  ]
+}

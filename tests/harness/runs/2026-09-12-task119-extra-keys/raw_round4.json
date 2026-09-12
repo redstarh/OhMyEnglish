@@ -1,0 +1,72 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "What did you eat this morning? Tell me one or two short sentences about it. (an apple, an egg, an orange?)",
+      "context": "Breakfast small talk at the start of the session"
+    },
+    {
+      "prompt": "You have one free hour tonight. What do you want to do in that hour? Say it in short sentences.",
+      "context": "Evening plans after work"
+    },
+    {
+      "prompt": "Tell me about one thing you bought or want to buy — an umbrella, an air conditioner, an old book? Two short sentences are enough.",
+      "context": "Shopping in your neighborhood"
+    },
+    {
+      "prompt": "Yesterday you had an idea at work. What was it? Say it in one or two short sentences.",
+      "context": "Talking about your own day at the office"
+    },
+    {
+      "prompt": "You need to write one email today. Who is it for, and what do you need to say? Keep each sentence short.",
+      "context": "A small work task, easy daily-life language"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "짧은 문장에서도 'a/an'을 자주 빼시고 'an'을 'a'처럼 발음하셔서, 오늘은 an이 들어가는 짧은 문장으로 관사와 발음을 같이 연습해요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "short single-clause sentences (5-8 words), like 'I want to...' or 'I had...'; join two short clauses only when the learner sounds ready",
+    "hint_timing": "wait about three seconds after the learner finishes; if the article is missing or 'an' sounds like 'a', repeat the phrase correctly once and let them say it again",
+    "contexts": [
+      "breakfast and food small talk",
+      "evening free time plans",
+      "shopping in the neighborhood",
+      "one small thing that happened at work yesterday",
+      "writing one short email"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "짧은 일상 문장은 만들 수 있지만 관사와 발음이 아직 불안정해서 A2에서 더 다져야 해요.",
+    "reason_en": "Short daily sentences work, but articles and the 'an' sound are still unstable, so stay at A2."
+  },
+  "notes": [
+    "Articles appear correctly in memorized chunks like 'a meeting' and 'a report', but disappear in new noun phrases such as 'project architecture meeting' or 'action plan'.",
+    "'the' before place nouns after 'go to' is dropped repeatedly ('go to gym', 'go to office'), even right after correction.",
+    "Learner often breaks one sentence into fragments across turns, which is where time adverbs and articles get lost.",
+    "Some turns come in as Korean transcription of English sounds, suggesting low confidence in pronunciation — short repeated words with 'an' should help."
+  ]
+}
