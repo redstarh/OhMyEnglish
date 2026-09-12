@@ -27,13 +27,21 @@ def _sid(n: int) -> UUID:
     return UUID(f"00000000-0000-0000-0000-{n:012d}")
 
 
-def _cands(count: int, *, used: dict[int, int] | None = None) -> list[Candidate]:
+def _cands(
+    count: int,
+    *,
+    used: dict[int, int] | None = None,
+    generated: set[int] | None = None,
+) -> list[Candidate]:
     """`count` 개의 후보. `used[n] = 일수` 면 그만큼 전에 쓴 것으로 둔다.
 
     `created_at` 은 `n` 순서로 준다 — 번호가 작은 것이 먼저 만들어진 행이다. 한 번도 안 쓴
     후보끼리의 순서를 그것이 가른다(기존 계약 「가장 이른 행」).
+
+    `generated` 에 든 번호는 **사용자가 대화로 만든 상황**으로 둔다(`TASK-5` · 결정 80).
     """
     used = used or {}
+    generated = generated or set()
     out = []
     for n in range(1, count + 1):
         ago = used.get(n)
@@ -43,9 +51,41 @@ def _cands(count: int, *, used: dict[int, int] | None = None) -> list[Candidate]
                 scenario_id=_sid(n),
                 last_used_at=last,
                 created_at=_T0 + timedelta(seconds=n),
+                is_generated=n in generated,
             )
         )
     return out
+
+
+def test_user_made_stage_wins_the_new_slot() -> None:
+    """⛔ 결정 80 — 사용자가 만든 상황이 신규 차례에서 가장 먼저 집힌다.
+
+    `_sid(5)` 는 배열 맨 뒤(가장 늦게 만들어진 행)인데도 먼저 나와야 한다. 그러지 않으면
+    사용자가 만든 무대를 **넉 달 뒤에** 보게 된다 — 결정 78 의 노출 속도가 그 값이다.
+    """
+    got = pick_scenario(recent=[], candidates=_cands(5, generated={5}))
+    assert got is not None
+    assert got.scenario_id == _sid(5), "생성 상황이 시드보다 뒤로 밀렸다"
+    assert got.pick == NEW
+
+
+def test_user_made_stage_does_not_break_the_ratio() -> None:
+    """⛔ 결정 78 은 그대로다 — 생성 상황이 있어도 신규 몫이 3보다 늘지 않는다."""
+    recent = [RecentPick(scenario_id=_sid(n), pick=NEW) for n in (3, 2, 1)]
+    got = pick_scenario(recent=recent, candidates=_cands(5, used={1: 3, 2: 2, 3: 1}, generated={5}))
+    assert got is not None
+    assert got.pick == REPEAT, "생성 상황이 있다고 신규 문턱을 넘었다"
+
+
+def test_earliest_row_contract_survives_the_new_front_slot() -> None:
+    """⚠️ 앞자리를 하나 끼워도 「가장 이른 행」 계약이 살아 있다.
+
+    생성 상황이 **없으면** 정렬이 이전과 같아야 한다 — 그렇지 않으면 결정 80 이 기존 계약
+    (`test_session_creation_falls_back_to_the_earliest_scenario`)을 밀어낸 것이 된다.
+    """
+    got = pick_scenario(recent=[], candidates=_cands(3))
+    assert got is not None
+    assert got.scenario_id == _sid(1), "생성 상황이 없을 때 순서가 바뀌었다"
 
 
 def test_empty_history_picks_new() -> None:

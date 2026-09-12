@@ -106,6 +106,7 @@ select scenario_id, scenario_pick
 _SCENARIO_CANDIDATES_SQL = """
 select s.id,
        s.created_at,
+       s.source,
        (select max(ls.started_at)
           from learning_sessions ls
          where ls.user_id = $1
@@ -398,6 +399,10 @@ async def _pick_scenario_for_user(conn: asyncpg.Connection, user_id: UUID) -> Pi
             scenario_id=row["id"],
             last_used_at=row["last_used_at"],
             created_at=row["created_at"],
+            # ⛔ 이 줄과 위 SQL 의 `s.source` 는 **같은 커밋에서** 바뀌어야 한다 (`TASK-5` ·
+            # 결정 80). 필드만 더하면 기본값 `False` 가 항상 들어가 그 결정이 조용히 죽는다 —
+            # 설계서 §6 Dependency 가 그 자리를 미리 지목했다.
+            is_generated=row["source"] == "generated",
         )
         for row in rows
     ]

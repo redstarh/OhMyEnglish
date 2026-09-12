@@ -862,3 +862,39 @@ async def test_level_mismatch_falls_back_to_every_scenario(db_pool: asyncpg.Pool
         )
 
     assert got == only, "수준 일치가 0행인데 폴백이 돌지 않았다"
+
+
+@pytest.mark.asyncio
+async def test_generated_stage_is_picked_before_seeded_ones(db_pool: asyncpg.Pool):
+    """⛔ 결정 80 이 DB 경로에서도 성립한다 — 필드만 더하고 SQL 을 빼먹으면 여기서 깨진다.
+
+    ⚠️ 시드 행을 **먼저** 넣어 `created_at` 이 더 이르게 만든다. 그러면 `created_at` 만 보는
+    이전 정렬로는 시드가 이기므로, 이 단정이 통과하는 것은 **맨 앞자리가 실제로 걸렸다**는 뜻이다.
+    """
+    async with db_pool.acquire() as conn:
+        await conn.execute("delete from learning_sessions")
+        await conn.execute("delete from learning_scenarios")
+        user_id = await conn.fetchval(
+            "insert into users (display_name, timezone, current_level) "
+            "values ('made', 'Asia/Seoul', 'A2') returning id"
+        )
+        await conn.fetchval(
+            "insert into learning_scenarios (category, level, title, prompt_template) "
+            "values ('daily_life', 'A2', 'seeded first', 'You are someone.') returning id"
+        )
+        made = await conn.fetchval(
+            "insert into learning_scenarios (category, level, title, prompt_template, source) "
+            "values ('daily_life', 'A2', 'made by user', 'You are someone.', 'generated') "
+            "returning id"
+        )
+
+    session_id = await create_session(db_pool, user_id)
+
+    async with db_pool.acquire() as conn:
+        row = await conn.fetchrow(
+            "select scenario_id, scenario_pick from learning_sessions where id = $1",
+            session_id,
+        )
+
+    assert row["scenario_id"] == made, "시드 행이 먼저 집혔다 — SQL 에 source 가 안 실렸다"
+    assert row["scenario_pick"] == "new"

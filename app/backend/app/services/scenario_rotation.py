@@ -50,11 +50,17 @@ class Candidate:
     (`tests/harness/scenarios-E-agent-learning.md` 가 문서에 못 박은 값이다), 그것을
     `test_session_creation_falls_back_to_the_earliest_scenario` 가 지킨다. 한 번도 안 쓴
     후보끼리는 「오래 안 씀」으로 순서를 가릴 수 없으므로 **그때 생성 순서가 가른다.**
+
+    ⚠️ `is_generated` 는 **사용자가 대화로 만든 무대**를 뜻한다(`TASK-5` · 결정 80). `_staleness` 의
+    맨 앞자리가 그것이므로 **신규 차례에서 시드보다 먼저 집힌다.** 그러지 않으면 방금 만든 무대를
+    넉 달 뒤에 보게 된다(결정 78 의 노출 속도).
+    ⛔ 이 필드가 **비율을 바꾸지는 않는다** — 신규 문턱(`NEW_PER_WINDOW`)은 그대로다.
     """
 
     scenario_id: UUID
     last_used_at: datetime | None
     created_at: datetime
+    is_generated: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -65,17 +71,21 @@ class Pick:
     pick: str
 
 
-def _staleness(candidate: Candidate) -> tuple[int, float, str]:
-    """오래 안 쓴 것이 앞서는 정렬 키.
+def _staleness(candidate: Candidate) -> tuple[int, int, float, str]:
+    """오래 안 쓴 것이 앞서는 정렬 키. **맨 앞자리는 「사용자가 만든 것인가」다**(결정 80).
 
-    `None`(한 번도 안 씀)을 가장 앞에 둔다 — `datetime` 과 `None` 을 직접 비교할 수 없어
-    앞자리 정수로 가른다. ⚠️ **한 번도 안 쓴 것끼리는 `created_at` 이 가른다** — 그것이
-    「수준 일치가 0행이면 가장 이른 행」이라는 기존 계약을 지키는 자리다(`Candidate` 참조).
-    마지막 자리는 **동률을 결정론으로 가르기 위한** UUID 문자열이다.
+    자리 넷의 뜻: ⑴ 사용자 생성이 먼저 ⑵ 한 번도 안 쓴 것이 먼저 ⑶ 오래된 것이 먼저
+    ⑷ 동률을 결정론으로 가르는 UUID 문자열.
+
+    ⑵ 가 필요한 이유: `datetime` 과 `None` 을 직접 비교할 수 없어 앞자리 정수로 가른다.
+    ⚠️ **⑶ 이 「수준 일치가 0행이면 가장 이른 행」이라는 기존 계약을 계속 지킨다** — 자리를 앞에
+    끼워도 그 계약이 살아 있는 것이 이 배치의 조건이고
+    `test_earliest_row_contract_survives_the_new_front_slot` 이 그것을 잰다.
     """
+    made_first = 0 if candidate.is_generated else 1
     if candidate.last_used_at is None:
-        return (0, candidate.created_at.timestamp(), str(candidate.scenario_id))
-    return (1, candidate.last_used_at.timestamp(), str(candidate.scenario_id))
+        return (made_first, 0, candidate.created_at.timestamp(), str(candidate.scenario_id))
+    return (made_first, 1, candidate.last_used_at.timestamp(), str(candidate.scenario_id))
 
 
 def pick_scenario(
