@@ -187,6 +187,14 @@ sound_attempts as (
        where a.resolved_at is not null
          and a.signal_source = 'nova_tool'
          and btrim(a.target_sound) = p.sound
+         -- ⛔ **어긋남으로 표시된 기록은 단계를 전진시키지 못한다**(`TASK-116.1` · 결정 82).
+         -- 바로 위 `signal_source` 필터와 **같은 문장의 다른 사례**다: 「소리를 지목하지 못하는
+         -- 기록은 자격이 없다」(결정 59)가 「지목한 소리가 발화와 어긋난 기록」에도 걸린다.
+         -- ⚠️ **`null` 은 「어긋남」이 아니라 「아직 판정하지 않았다」다.** 판정은 세션 종료에서만
+         -- 붙으므로(설계서 §4-1 — tool 이 코칭 발화와 «동시에» 온다) 진행 중 세션의 행은 비어 있다.
+         -- ⛔ 그래서 조건을 「검증된 것만 포함」(`sound_check = 'matched'`)으로 쓰지 않는다. 그러면
+         -- 진행 중 기록과 020 이전의 모든 행이 배제되고 **발음 복습이 통째로 꺼진다.**
+         and (a.sound_check is null or a.sound_check <> 'mismatched')
 ),
 relapse as (
       select max(resolved_at) as at from sound_attempts where outcome = 'incorrect'

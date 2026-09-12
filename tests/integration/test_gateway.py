@@ -852,6 +852,39 @@ async def test_adapter_close_precedes_the_session_end_record(
     assert session["ended_at"] is not None
 
 
+# ⛔ **배선 가드 — 호출 여부가 아니라 «순서»를 잰다** (`TASK-116.1` · 사용자 결정 82).
+#
+# `check_recorded_sounds` 는 `resolve_dangling` **뒤**에 와야 한다: 그 함수가 남은 `pending` 을
+# `incorrect` 로 수렴시키므로 먼저 부르면 **수렴된 행이 판정을 못 받는다.** 그것은 「대답 없이 끝난
+# 시도」이고 어긋난 키를 담을 수 있으므로 빠뜨리면 이 변경이 절반만 돈다.
+# ⚠️ 「호출 여부」만 재면 **순서를 뒤집는 변이가 통과한다** — 바로 위 G1 가드가 같은 이유로 순서를
+# 골랐고 그 판단을 그대로 쓴다.
+async def test_the_sound_check_pass_runs_after_the_pending_convergence(
+    db_pool, committed_session, monkeypatch: pytest.MonkeyPatch
+):
+    calls: list[str] = []
+    original_resolve = session_module.resolve_dangling
+    original_check = session_module.check_recorded_sounds
+
+    async def resolve_spy(conn: asyncpg.Connection, session_id: UUID) -> int:
+        calls.append("resolve_dangling")
+        return await original_resolve(conn, session_id)
+
+    async def check_spy(conn: asyncpg.Connection, session_id: UUID) -> int:
+        calls.append("check_recorded_sounds")
+        return await original_check(conn, session_id)
+
+    monkeypatch.setattr(session_module, "resolve_dangling", resolve_spy)
+    monkeypatch.setattr(session_module, "check_recorded_sounds", check_spy)
+
+    await asyncio.wait_for(
+        _runner(ScriptedAdapter(), db_pool, committed_session.session_id, FakeClient()).run(),
+        timeout=5.0,
+    )
+
+    assert calls == ["resolve_dangling", "check_recorded_sounds"]
+
+
 # 빈/공백 final은 저장하지 않는다 — 분석 파이프라인의 "0건 done" 처리와 이중 방어
 async def test_blank_final_is_neither_stored_nor_broadcast(db_pool, committed_session):
     adapter = ScriptedAdapter(

@@ -38,6 +38,7 @@ import pytest
 
 from app.services import pronunciation as pronunciation_service
 from app.services.pronunciation import (
+    check_recorded_sounds,
     link_pattern,
     load_known_sounds,
     record_attempt,
@@ -803,3 +804,121 @@ async def test_load_known_sounds_is_empty_without_pronunciation_history(
     user_id = await _user(db_conn)
 
     assert await load_known_sounds(db_conn, user_id) == []
+
+
+# --- 세션 종료 패스: 실린 키가 코치의 발화와 어긋났는지 표시한다 (`TASK-116.1` · 결정 82) ---
+#
+# ⛔ **왜 «기록 시점»이 아니라 세션 종료인가**: tool 이 코칭 발화와 «동시에» 온다(`TASK-78`). 즉
+# `record_attempt` 시점에는 대조할 발화가 저장돼 있지 않을 수 있고, 그 경합은 조용히
+# 「어긋남 없음」으로 통과한다. 세션 종료 시점에는 러너가 `_pending_saves` 를 **종료 기록 전에**
+# 기다리므로 전사문이 저장돼 있다(설계서 §4-1).
+#
+# ⚠️ **창을 「그 세션의 코치 발화 전부」로 둔 것이 의도다.** 창이 넓으면 인용된 토큰이 늘어 `matched`
+# 가 되기 쉽고, 그래서 **배제가 줄어든다** — 이 함수의 계약이 「어긋남만 증명한다」이므로 넓은 창이
+# **안전한 쪽**이다. 좁히면 판별력은 오르지만 잘못된 배제(정상 기록을 지우는 것)가 늘어난다.
+
+
+async def _agent_utterance(conn: asyncpg.Connection, session_id: UUID, text: str) -> UUID:
+    """코치 발화 1행. ⚠️ `speaker='agent'` 가 이 함수가 읽는 창을 정한다."""
+    utterance_id = await conn.fetchval(
+        "insert into utterances (session_id, speaker, transcript, sequence_no) "
+        "values ($1, 'agent', $2, 1) returning id",
+        session_id,
+        text,
+    )
+    assert isinstance(utterance_id, UUID)
+    return utterance_id
+
+
+async def test_the_session_pass_marks_a_key_the_coach_never_named(
+    db_conn: asyncpg.Connection,
+) -> None:
+    """⛔ `TASK-128.3` ARM-B 의 B2·B3 모양 — 코치는 `er` 을 코칭했고 tool 에는 `f_as_p` 였다."""
+    session_id = await _session(db_conn)
+    await _agent_utterance(
+        db_conn, session_id, 'The "er" sound blended smoothly, and the word flowed naturally.'
+    )
+    attempt_id = await record_attempt(
+        db_conn, session_id, target_form=TARGET, outcome="incorrect", target_sound="f_as_p"
+    )
+
+    marked = await check_recorded_sounds(db_conn, session_id)
+
+    assert marked == 1
+    assert await _sound_check_of(db_conn, attempt_id) == "mismatched"
+
+
+async def test_the_session_pass_leaves_the_key_the_coach_named(
+    db_conn: asyncpg.Connection,
+) -> None:
+    """⚠️ **음성 대조** — 이것이 없으면 「전부 mismatched」로 고쳐도 위 테스트가 통과한다."""
+    session_id = await _session(db_conn)
+    await _agent_utterance(
+        db_conn, session_id, 'I noticed a small pronunciation issue with the "th" sound in "think."'
+    )
+    attempt_id = await record_attempt(
+        db_conn, session_id, target_form=TARGET, outcome="incorrect", target_sound=SOUND
+    )
+
+    marked = await check_recorded_sounds(db_conn, session_id)
+
+    assert marked == 1
+    assert await _sound_check_of(db_conn, attempt_id) == "matched"
+
+
+async def test_the_session_pass_leaves_no_verdict_without_a_quoted_sound(
+    db_conn: asyncpg.Connection,
+) -> None:
+    """코치가 소리를 인용하지 않으면 **판정하지 않는다** — `null` 로 남고 배제되지 않는다.
+
+    ⚠️ 실측에서 이 모양이 있었다: ARM-B 의 시범 턴은 `…detail in the word "early".` 로 소리를
+    인용하지 않았다. ⛔ 그것을 「어긋남」으로 표시하면 정상 기록이 복습에서 사라진다.
+    """
+    session_id = await _session(db_conn)
+    await _agent_utterance(db_conn, session_id, "Let us try that sentence one more time.")
+    attempt_id = await record_attempt(
+        db_conn, session_id, target_form=TARGET, outcome="incorrect", target_sound="f_as_p"
+    )
+
+    marked = await check_recorded_sounds(db_conn, session_id)
+
+    assert marked == 0
+    assert await _sound_check_of(db_conn, attempt_id) is None
+
+
+async def test_the_session_pass_pulls_back_a_clock_a_mismatched_key_advanced(
+    db_conn: asyncpg.Connection,
+) -> None:
+    """⛔⛔ **이 테스트가 이 변경의 값 전부다 — 순서 문제를 닫는다.**
+
+    복습 시계는 `review.py` 를 «읽을 때» 도는 것이 아니라 **기록 경로에서** 전진한다:
+    `record_attempt` 가 `link_pattern` → `refresh_review` 를 부르고 그것이 `next_review_at` 을
+    세운다. 즉 세션 종료에 판정을 붙이는 것만으로는 **이미 돌아 버린 시계**가 남는다.
+    ⇒ 그래서 이 패스가 어긋남을 표시한 뒤 **그 패턴의 복습 상태를 다시 계산한다**(`refresh_review`
+    가 증분이 아니라 재계산이라 그것이 성립한다).
+
+    ⚠️ 그러므로 이 단정은 「표시했다」가 아니라 **「시계가 되돌아왔다」**를 잰다.
+    """
+    session_id = await _session(db_conn)
+    await _agent_utterance(db_conn, session_id, 'The "er" sound was the one that slipped.')
+    await record_attempt(
+        db_conn, session_id, target_form=TARGET, outcome="incorrect", target_sound="f_as_p"
+    )
+    patterns = await _patterns(db_conn, session_id)
+    assert len(patterns) == 1, "선행 조건이 성립하지 않았다 — 패턴이 만들어져야 시계가 돈다"
+    assert patterns[0]["next_review_at"] is not None, (
+        "선행 조건이 성립하지 않았다 — 어긋난 키가 시계를 돌린 상태에서 시작해야 한다"
+    )
+
+    await check_recorded_sounds(db_conn, session_id)
+
+    after = await _patterns(db_conn, session_id)
+    assert after[0]["next_review_at"] is None, (
+        "어긋남을 표시했는데 복습 시계가 그대로다 — 재계산이 걸리지 않았다"
+    )
+
+
+async def _sound_check_of(conn: asyncpg.Connection, attempt_id: UUID) -> str | None:
+    return await conn.fetchval(
+        "select sound_check from pronunciation_attempts where id = $1", attempt_id
+    )

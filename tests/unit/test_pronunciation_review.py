@@ -101,6 +101,7 @@ async def _attempt(
     sound: str = SOUND,
     sentence: str = SENTENCE,
     signal_source: str = "nova_tool",
+    sound_check: str | None = None,
 ) -> UUID:
     """발음 시도 1행.
 
@@ -111,11 +112,16 @@ async def _attempt(
 
     `signal_source`의 기본값은 표의 기본값과 같은 `nova_tool`이다 — 이 인자를 주는 테스트는
     **보조 신호 배제**를 재는 것 하나뿐이다(`TASK-74`, 사용자 판정 2026-09-11).
+
+    ⚠️ **`sound_check`의 기본값 `None`이 표의 기본값과 같고 그것이 「미판정」이다**(020 · 결정 82).
+    판정은 세션 종료 패스에서만 붙으므로 진행 중 세션의 행은 비어 있다 — 그래서 이 기본값으로
+    도는 기존 테스트 전부가 **「미판정은 배제되지 않는다」의 음성 대조**를 겸한다.
     """
     attempt_id = await conn.fetchval(
         "insert into pronunciation_attempts "
-        "(session_id, pattern_id, target_form, target_sound, outcome, resolved_at, signal_source) "
-        "values ($1, $2, $3, $4, $5, $6, $7) returning id",
+        "(session_id, pattern_id, target_form, target_sound, outcome, resolved_at, signal_source, "
+        " sound_check) "
+        "values ($1, $2, $3, $4, $5, $6, $7, $8) returning id",
         session_id,
         pattern_id,
         sentence,
@@ -123,6 +129,7 @@ async def _attempt(
         outcome,
         at,
         signal_source,
+        sound_check,
     )
     assert isinstance(attempt_id, UUID)
     return attempt_id
@@ -212,6 +219,66 @@ async def test_an_assist_signal_does_not_advance_the_stage(db_conn: asyncpg.Conn
     state = await recompute(db_conn, pattern_id)
 
     assert state.stage == 1
+    assert state.next_review_at == T0 + timedelta(days=STAGE_DAYS[0])
+
+
+# ── 사용자 결정 82 (`TASK-116.1`) — 어긋난 키가 복습 시계를 돌리지 못한다 ──────────────
+#
+# ⛔ **왜 이 자리인가**: 「발화로 코칭한 소리와 tool 에 실린 `target_sound` 가 어긋난다」를
+# **프롬프트로 세 번 막으려 했고 세 방향이 모두 반증됐다**(강제를 더한 판·뺀 판·소리를 후보로만 준
+# 판이 각각 3/3 실패 — 정본은 `runs/2026-09-12-task128-sound-as-candidate.md` §2). 그래서
+# 경로로 옮겼고 **배제의 자리가 위 `TASK-74` 와 같다** — `signal_source` 필터(결정 59)가 「자격 없는
+# 기록을 단계 전진에서 배제한다」는 문장을 이미 세웠고 이것은 그 문장의 다른 사례다.
+#
+# ⚠️ **실측한 오염의 크기**: 오디오에 /f/ 가 없는 문장에서 코치가 `early` 의 `er` 을
+# 코칭했는데 기록은 `f_as_p` 였고, `frequency` 가 2 로 오르고 `next_review_at` 이 섰다(그 회차 §1).
+@pytest.mark.asyncio
+async def test_a_mismatched_sound_check_schedules_nothing(db_conn: asyncpg.Connection):
+    """어긋남으로 표시된 시도는 **혼자서 예정일을 만들지 못한다** — 결정 82 가 막는 것이다."""
+    session_id = await _seed(db_conn)
+    pattern_id = await _pronunciation_pattern(db_conn)
+    await _attempt(
+        db_conn, session_id, "incorrect", T0, pattern_id=pattern_id, sound_check="mismatched"
+    )
+
+    state = await recompute(db_conn, pattern_id)
+
+    assert state.next_review_at is None, (
+        "어긋난 키가 복습 시계를 돌렸다 — 연습하지 않은 소리가 큐에서 전진한다"
+    )
+    assert await _task_rows(db_conn, pattern_id) == []
+
+
+# ⚠️ **음성 대조 둘 — 이것들이 없으면 「전부 배제」로 고쳐도 위 테스트가 통과하고 발음 복습이 통째로
+# 꺼진다.** 그 회귀는 게이트가 초록인 채로 일어난다(전진하지 않는 것이 실패로 보이지 않는다).
+@pytest.mark.asyncio
+async def test_a_matched_sound_check_still_schedules(db_conn: asyncpg.Connection):
+    session_id = await _seed(db_conn)
+    pattern_id = await _pronunciation_pattern(db_conn)
+    await _attempt(
+        db_conn, session_id, "incorrect", T0, pattern_id=pattern_id, sound_check="matched"
+    )
+
+    state = await recompute(db_conn, pattern_id)
+
+    assert state.next_review_at == T0 + timedelta(days=STAGE_DAYS[0])
+
+
+@pytest.mark.asyncio
+async def test_an_unjudged_sound_check_still_schedules(db_conn: asyncpg.Connection):
+    """⛔ **`null` 은 「어긋남」이 아니라 「아직 판정하지 않았다」다** (020 · 설계서 §4-1).
+
+    판정은 **세션 종료 패스**에서만 붙는다 — tool 이 코칭 발화와 «동시에» 오므로 기록 시점에는
+    대조할 발화가 저장돼 있지 않을 수 있다. ⇒ 진행 중 세션의 행은 전부 `null` 이고, 조건을
+    「검증된 것만 포함」으로 쓰면 **그 행들이 전부 배제된다.** 그래서 조건의 방향이
+    「어긋남으로 표시된 것을 제외」여야 하고 이 테스트가 그 방향을 못 박는다.
+    """
+    session_id = await _seed(db_conn)
+    pattern_id = await _pronunciation_pattern(db_conn)
+    await _attempt(db_conn, session_id, "incorrect", T0, pattern_id=pattern_id)
+
+    state = await recompute(db_conn, pattern_id)
+
     assert state.next_review_at == T0 + timedelta(days=STAGE_DAYS[0])
 
 

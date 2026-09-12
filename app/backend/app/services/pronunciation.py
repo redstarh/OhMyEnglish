@@ -441,6 +441,83 @@ async def resolve_dangling(conn: asyncpg.Connection, session_id: UUID) -> int:
         return len(rows)
 
 
+# 코치 발화의 창. **그 세션의 `speaker='agent'` 전부**를 이어 붙인다.
+#
+# ⚠️ **창을 넓게 둔 것이 의도다.** 넓으면 인용된 토큰이 늘어 `matched` 가 되기 쉽고 그래서 **배제가
+# 줄어든다** — `sound_check_verdict` 의 계약이 「어긋남만 증명한다」이므로 넓은 창이 안전한 쪽이다.
+# 좁히면 판별력은 오르지만 잘못된 배제(정상 기록을 복습에서 지우는 것)가 늘어난다.
+# ⚠️ 그리고 좁게 둘 수 없는 실측 근거가 있다 — `TASK-128.3` ARM-B 에서 코치가 소리를 인용한 것은
+# **시범 턴이 아니라 판정 턴**이었다(`…detail in the word "early".` → `The "er" sound blended…`).
+# 창을 시범 턴 하나로 좁히면 그 회차의 어긋남을 **하나도 못 잡는다.**
+_SESSION_AGENT_SPEECH_SQL = """
+select coalesce(string_agg(transcript, ' ' order by created_at, sequence_no), '')
+  from utterances
+ where session_id = $1 and speaker = 'agent'
+"""
+
+# 아직 판정이 붙지 않은 Nova tool 시도. ⛔ `target_sound is not null` 을 여기서 걸러 두면
+# `sound_check_verdict` 의 `None` 두 사유(키 없음 · 인용 없음)가 섞이지 않는다.
+_UNCHECKED_ATTEMPTS_SQL = """
+select id, target_sound
+  from pronunciation_attempts
+ where session_id = $1
+   and signal_source = 'nova_tool'
+   and sound_check is null
+   and target_sound is not null
+ order by attempt_seq
+"""
+
+_SET_SOUND_CHECK_SQL = "update pronunciation_attempts set sound_check = $2 where id = $1"
+
+
+async def check_recorded_sounds(conn: asyncpg.Connection, session_id: UUID) -> int:
+    """실린 키가 코치의 발화와 어긋났는지 표시하고, 어긋난 것이 있으면 **복습 시계를 되돌린다.**
+
+    돌려주는 것은 판정이 붙은 행 수다(`matched`·`mismatched` 합).
+
+    **왜 세션 종료에서 도는가** (사용자 **결정 82** · 설계서 §4-1): tool 이 코칭 발화와 «동시에»
+    오므로(`TASK-78`) `record_attempt` 시점에는 대조할 발화가 저장돼 있지 않을 수 있고, 그 경합은
+    조용히 「어긋남 없음」으로 통과한다. 세션 종료 시점에는 러너가 `_pending_saves` 를 **종료 기록
+    전에** 기다리므로 전사문이 저장돼 있다. ⇒ 새 job·새 호출 지점을 만들지 않고 `resolve_dangling`
+    바로 뒤에 얹는다.
+
+    ⛔ **`resolve_dangling` «뒤»에 불러야 한다** — 그 함수가 남은 `pending` 을 `incorrect` 로 수렴
+    시키므로, 먼저 부르면 수렴된 행이 판정을 못 받는다.
+
+    ⛔ **표시만으로는 부족하다 — 시계를 다시 계산한다.** 복습 시계는 `review.py` 를 읽을 때 도는 게
+    아니라 **기록 경로에서** 전진한다(`record_attempt`·`resolve_dangling` 이 `refresh_review` 를
+    부른다). 즉 이 패스가 돌 때 이미 예정일이 서 있다. `refresh_review` 가 증분이 아니라 **이력에서
+    다시 계산**하는 함수라, 어긋남을 표시한 뒤 그것을 부르면 그 시도가 이력에서 빠진 상태로 다시
+    계산된다(`review.py` 의 `sound_attempts` 조건).
+
+    ⚠️ **`matched` 에는 재계산을 걸지 않는다** — 이력이 달라지지 않으므로 같은 값을 다시 쓰는 일이다.
+    """
+    async with conn.transaction():
+        speech = await conn.fetchval(_SESSION_AGENT_SPEECH_SQL, session_id) or ""
+        rows = await conn.fetch(_UNCHECKED_ATTEMPTS_SQL, session_id)
+        marked = 0
+        mismatched = 0
+        for row in rows:
+            verdict = sound_check_verdict(speech, row["target_sound"])
+            if verdict is None:
+                # 코치가 소리를 인용하지 않았다 — 어긋남을 증명할 수 없으므로 **비워 둔다.**
+                continue
+            await conn.execute(_SET_SOUND_CHECK_SQL, row["id"], verdict)
+            marked += 1
+            if verdict == SOUND_CHECK_MISMATCHED:
+                mismatched += 1
+                await refresh_review(conn, row["id"])
+        if mismatched:
+            # 운영에서 이 수치가 곧 「프롬프트가 여전히 어긋난 키를 낸다」의 크기다.
+            # ⚠️ `warning` 으로 낸다 — 문서가 정한 실행 명령에서 INFO 는 보이지 않는다(`H-Z`).
+            logger.warning(
+                "코치가 말하지 않은 소리로 기록된 발음 시도 %d건을 복습에서 제외했다 (세션 %s)",
+                mismatched,
+                session_id,
+            )
+        return marked
+
+
 # --- 패턴 연결 (R10-6 → R11-9, 설계서 §4.3, 계획 Task 7) ---
 
 # 패턴 재료를 **인자가 아니라 저장된 행**에서 읽는다. ① 판정 tool이 `target_sound`를 다시

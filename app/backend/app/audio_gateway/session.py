@@ -42,7 +42,12 @@ from app.audio_gateway.port import (
     TranscriptEvent,
     VoiceAdapter,
 )
-from app.services.pronunciation import note_transcript, record_attempt, resolve_dangling
+from app.services.pronunciation import (
+    check_recorded_sounds,
+    note_transcript,
+    record_attempt,
+    resolve_dangling,
+)
 from app.services.recordings import ShadowingTurns, finalize_recording, pending_recording_path
 from app.services.sessions import SessionEndStatus, end_session
 from app.services.utterances import flush_pending_analysis, save_final_transcript
@@ -226,6 +231,13 @@ class SessionRunner:
             async with self._pool.acquire() as conn, conn.transaction():
                 await end_session(conn, self._session_id, status)
                 await resolve_dangling(conn, self._session_id)
+                # `TASK-116.1`(사용자 **결정 82**) — 실린 키가 코치의 발화와 어긋났는지 여기서
+                # 표시한다. ⛔ **`resolve_dangling` «뒤»다**: 그 함수가 남은 `pending` 을
+                # `incorrect` 로 수렴시키므로 먼저 부르면 수렴된 행이 판정을 못 받는다.
+                # ⛔ **기록 시점에 두지 않는 이유**는 tool 이 코칭 발화와 «동시에» 오는 것이다
+                # (`TASK-78`) — 그 시점에는 대조할 발화가 저장돼 있지 않을 수 있고 경합이 조용히
+                # 「어긋남 없음」으로 통과한다. 여기서는 `_await_pending_saves` 가 이미 끝나 있다.
+                await check_recorded_sounds(conn, self._session_id)
 
     async def _await_pending_saves(self) -> None:
         """shield된 저장이 끝나기를 기다린다 — 기다리지 않으면 전사문이 세션 종료
