@@ -110,3 +110,30 @@ def test_names_the_speakers_that_the_transcript_actually_uses() -> None:
     got = _prompt()
     assert "`user:`" in got and "`agent:`" in got, "화자 이름 안내가 없거나 값역과 다르다"
     assert "코치" not in got, "값역에 없는 화자 이름(코치)이 프롬프트에 있다"
+
+
+def test_asks_for_an_english_title_and_leaves_the_stage_line_alone() -> None:
+    """⛔ `title` 의 언어를 프롬프트가 «말한다» (사용자 결정 84 · `TASK-133`).
+
+    ⚠️ **이 단정이 실측에서 나왔다.** 이 줄이 언어에 침묵했을 때 실물 Claude 가 만든 첫 무대의
+    제목이 **한국어**였고 시드 30행은 전부 영어다 — 학습 현황 목록이 두 언어를 한 목록에 냈다
+    (회차 `runs/2026-09-13-task102-intake-pipeline/README.md` §4).
+
+    ⛔ **이 테스트가 재는 것은 「출력이 영어인가」가 아니라 「프롬프트가 영어를 요구하는가」다.**
+    출력 언어를 싸게 재는 방법이 없고(고유명사가 든 정상 제목까지 걸린다) 파서 거부는 재시도
+    비용을 만든다 — 그래서 문면이 유일한 지렛대이고 이 단정이 그 지렛대를 지킨다. ⚠️ 문면을
+    넣은 «뒤에도» 한국어 제목이 관측되면 파서 거부로 간다(그 조건은 제품 코드 주석이 갖는다).
+
+    ⛔ **`prompt_template` 에는 언어를 적지 않는다는 것도 함께 잰다** — 그 키는 코치에게 주는
+    지시문이라 이미 `You are ...` 로 영어가 강제되고, 여기에 언어 문구를 또 넣으면 결정 84 의
+    범위(제목 하나)가 조용히 넓어진다.
+    """
+    got = _prompt()
+
+    title_line = next(line for line in got.splitlines() if line.startswith('- "title"'))
+    assert "영어" in title_line, f"title 줄이 언어에 침묵한다: {title_line!r}"
+
+    stage_line = next(line for line in got.splitlines() if line.startswith('- "prompt_template"'))
+    assert "영어" not in stage_line, (
+        f"prompt_template 줄에 언어 문구가 붙었다 — 결정 84 의 범위는 제목뿐이다: {stage_line!r}"
+    )
