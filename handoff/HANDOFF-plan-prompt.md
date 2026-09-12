@@ -14,8 +14,9 @@
 
 ## ① 이 세션이 한 것 — 검증과 프롬프트의 어긋남을 닫고 비용을 볼 수단을 만듦
 
-닫은 태스크 일곱: `TASK-117` · `TASK-108` · `TASK-119` · `TASK-121` · `TASK-112` · `TASK-60` ·
-`TASK-124`. 부분 진행 하나: `TASK-39`(AC#1 닫음 — 재시도·타임아웃 명시 · AC#2 는 운영 관찰 항목).
+닫은 태스크: `TASK-117` · `TASK-108` · `TASK-119` · `TASK-121` · `TASK-112` · `TASK-60` ·
+`TASK-124` · `TASK-126`. 부분 진행 하나: `TASK-39`(AC#1 닫음 — 재시도·타임아웃 명시 · AC#2 는
+운영 관찰 항목).
 판정과 근거는 각 태스크 노트가 정본임.
 
 회차 기록이 이 세션의 관측 정본임(아래 목록 그대로).
@@ -32,7 +33,8 @@
 제품에 들어간 것: 만성 줄의 `[deepest recurrence]` 표식 + 조건부 `_DEEPEST_FOCUS_RULE` ·
 `- level:` 불릿의 국소 금지 문장 · `set_session_mode` 로 `mode=pronunciation` 기록 ·
 `llm_calls` 와 사용량 기록(Claude 는 호출 단위 · Nova 는 세션 단위) · Bedrock 재시도·타임아웃
-명시(`config.bedrock_boto_config`).
+명시(`config.bedrock_boto_config`) · 사용량 집계와 보고 CLI(`load_usage_summary` ·
+`scripts/usage_report.py`).
 
 마이그레이션을 발급·적용했음 — `013_llm_calls.sql` · `014_pronunciation_session_mode.sql` ·
 `015_llm_calls_token_split.sql`.
@@ -43,11 +45,14 @@
 `68`(Nova 는 토큰 열 넷으로 speech·text 를 나눠 담음).
 정본은 `docs/ops/captain-instruction-register.md` 임.
 
-## ② 다음 한 걸음 — ⛔ 내 갈래에 열린 태스크가 없음. 사용자 판단이 먼저임
+## ② 다음 한 걸음 — `TASK-127` 의 결정을 받는 것
 
-**비용을 «적는» 쪽은 닫혔고 «보는» 쪽이 없음.** `llm_calls` 에 Claude·Nova 가 쌓이지만 그 값을
-읽는 경로가 하나도 없음(API·화면·집계 0건). 그것을 만들지, 만든다면 어디까지인지는 **제품 범위**라
-사용자가 정함 — ⛔ 태스크를 임의로 세우지 않았음.
+**`TASK-127`(`Awaiting Decision`)** — LLM 단가를 어디에 둘지. 지금 집계는 **토큰까지만** 내고
+금액을 내지 않음(`TASK-126` AC#4 가 그것을 금지했음). ⛔ 단가는 공개 문서 값이라 이 리포가
+**관측할 수 없음** — 사람이 줘야 하므로 결정 항목임. 후보 셋과 대가는 그 태스크가 가짐.
+
+⚠️ **비용을 보는 수단은 이제 있음** — `cd app/backend && .venv/bin/python ../../scripts/usage_report.py`.
+화면·API 를 붙일지는 아직 정하지 않았음(그 자리를 CLI 가 임시로 메움).
 
 - 나란히 가능(둘 다 조건이 붙음): `TASK-122`(빈 이름 키 · `low` · 되살릴 조건은 그 노트) ·
   `TASK-41`(전용 스키마 이관 — ⛔ **캡틴 결정 31 이 「모든 구현 뒤」로 미뤄 뒀음.** 지금 조사하면
@@ -80,17 +85,19 @@
 | # | 지표 | 값 |
 |--:|---|---|
 | 1 | 기준 커밋 | `9ef4f0c` 이상 · `origin` 에 푸시 완료(`e6bf0ac..9ef4f0c` · 직후 `0 0` 확인) · 내 미커밋 0건. ⚠️ 이 표를 고친 커밋 1건이 뒤에 붙으므로 등호를 요구하지 않음 |
-| 2 | 다음 걸음 | ⛔ **내 갈래에 열린 태스크가 없음** — 위 ②. 내 갈래의 `In Progress` 는 0건임 |
-| 3 | 게이트 | **다섯 다 `exit 0`**: `pytest` **999 passed**(12.66s) · `ruff check` 0 · `format --check` 38 files · 게이트 밖 `ruff` 0 · `ty` 0 — 파이프 없이 종료 코드로 확인. ⚠️ 게이트 밖 `format --check` 에 1건이 남아 있고 **내 파일이 아님**(동료 세션의 `test_pronunciation_service.py`) |
+| 2 | 다음 걸음 | **`TASK-127`**(`Awaiting Decision` — 단가의 자리) — 위 ②. 내 갈래의 `In Progress` 는 0건임 |
+| 3 | 게이트 | **다섯 다 `exit 0`**: `pytest` **1004 passed**(13.57s) · `ruff check` 0 · `format --check` 38 files · 게이트 밖 `ruff` 0 · `ty` 0 — 파이프 없이 종료 코드로 확인. ⚠️ 게이트 밖 `format --check` 에 1건이 남아 있고 **내 파일이 아님**(동료 세션의 `test_pronunciation_service.py`) |
 | 4 | 착수 전 필수 | 6개(위 ③) |
 
 ⚠️ 이 마감 시점의 작업 트리는 **깨끗함**(미커밋 0건). 단 앞선 게이트 회차 일부는 동료 세션의
 미커밋이 트리에 있는 상태에서 돌았음 — 그때의 수치는 「내 변경만」의 값이 아니었음. ⛔ 그 파일들을
 건드리지 않았음.
 
-⚠️ 이 세션이 쓴 모델 호출: Claude 계획 생성 **22회**(회차 기록 셋의 팔 + 타임아웃 측정 2 + 배선
-확인) · **Nova 1세션**. ⛔ **`llm_calls` 의 행 수를 「이 세션이 쓴 전부」로 읽지 않음** — 기록 배선이
-작업 도중에 붙었으므로 그 앞의 호출은 표에 없음(현재 `purpose=spike` 3 · `nova` 1).
+⚠️ 이 세션이 쓴 모델 호출: Claude 계획 생성 **22회** · **Nova 1세션**. ⛔ **`llm_calls` 의 행 수를
+「이 세션이 쓴 전부」로 읽지 않음** — 기록 배선이 작업 도중에 붙었으므로 그 앞의 호출은 표에 없음.
+마감 시점의 표는 `usage_report.py` 로 직접 읽었음: `nova` 1회(입력 216 · 분해 150/66) ·
+`spike` 3회(입력 12,378 · 출력 3,396 · 분해 없음). ⚠️ 그 `spike` 3건은 **배선 확인·측정용**이고
+제품이 쓴 비용이 아님.
 
 ## ⑤ 이 세션이 얻은 규율
 
