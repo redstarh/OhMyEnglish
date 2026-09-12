@@ -1,10 +1,10 @@
 ---
 id: TASK-5
 title: '신규 기능: 학습 시나리오 생성기 (5회 질문으로 사용자 전용 주제 생성)'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-06 00:12'
-updated_date: '2026-09-12 13:58'
+updated_date: '2026-09-12 15:04'
 labels:
   - caps-req
 dependencies:
@@ -21,10 +21,10 @@ ordinal: 5000
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 질문 5회의 흐름과 각 질문이 무엇을 좁히는지 정의
-- [ ] #2 생성된 시나리오의 저장 위치와 기존 learning_scenarios와의 관계 정의(별도 표인가 같은 표인가)
-- [ ] #3 생성 주체(글 모델인지 규칙인지)와 거부 경계 정의 — 모델이 만들 수 없는 값을 요구하지 않는다
-- [ ] #4 요구사항 상세화 + 설계 반영. 트랙 A(풀)이므로 4 Lenses 전체를 설계서에 담는다
+- [x] #1 질문 5회의 흐름과 각 질문이 무엇을 좁히는지 정의
+- [x] #2 생성된 시나리오의 저장 위치와 기존 learning_scenarios와의 관계 정의(별도 표인가 같은 표인가)
+- [x] #3 생성 주체(글 모델인지 규칙인지)와 거부 경계 정의 — 모델이 만들 수 없는 값을 요구하지 않는다
+- [x] #4 요구사항 상세화 + 설계 반영. 트랙 A(풀)이므로 4 Lenses 전체를 설계서에 담는다
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -47,6 +47,20 @@ ordinal: 5000
 ⛔ 조립 규약 둘을 지킨다(설계서 §6 Dependency): 재료를 인자로 받고 기본값을 두지 않는다 · 「실을지 말지」 판단을 조립기에 두지 않고 소켓이 데이터로 넘긴다.
 
 ⚠️ 진입 표지는 mode='scenario_intake' 다(018). learning_source='additional' 로는 가릴 수 없다 — 추가 학습 메뉴 여섯 중 다섯이 그 값이고 그중 셋이 mode 를 갖지 않는다.
+
+완료 2026-09-13 (세션 ohmyenglish-f4). 계획서 docs/design/2026-09-12-scenario-generator-plan.md 의 여섯이 모두 끝났음. Task 6 커밋은 2b7d2a4 임.
+
+Task 6 이 넣은 것: nova.py 의 _SCENARIO_INTAKE_INSTRUCTION(설계서 §3 의 다섯 축 그대로) · build_system_prompt 의 필수 인자 scenario_intake 와 _with_scenario_intake(반환 지점이 둘이라 뽑았음) · factory 가 그 값을 조립기로 옮김 · ws.py 의 SCENARIO_INTAKE_MODE 판정과 세션 행 mode 기록 · 프런트 「질문 답변 5개」 항목에 mode 추가와 SessionEntry 값역 확장.
+
+⛔ 무대 정하기 세션에는 드릴 질문과 무대를 넘기지 않음. 드릴 질문은 「하나씩 물어라」를 받는 두 번째 목록이 되어 다섯 축이 섞이고, 무대는 코치에게 역할극을 지시하는데 이 세션은 학습자의 실제 필요를 묻는 자리임. 계획은 그대로 넘김 — 목표 수준·힌트 시점은 질문하는 동안에도 유효함. ⚠️ 이 판단은 설계서가 명시하지 않은 자리이고 조립 규약 ⑵(소켓이 데이터로 정한다)에 따라 소켓에 뒀음.
+
+⛔ ws.py 가 SCENARIO_INTAKE_MODE 를 sessions.py 에서 import 함(위 셋과 달리 지역 상수로 두지 않음). 소켓이 쓰고 종료 경로가 읽는 값이라 리터럴을 두 곳에 두면 갈라지고, 갈라지면 세션은 정상으로 열리고 질문도 실리는데 job 만 안 걸림 — 게이트가 침묵하는 부류임.
+
+판별력을 무력화로 확인했음: 소켓이 플래그를 늘 False 로 넘기게 하니 진입 테스트가 red 였고 판별력 테스트는 초록으로 남았음. 대역 둘 다 기본값 없이 받아 배선 누락을 잡음.
+
+⚠️ 미검증으로 남은 것 하나 — 실물 모델이 다섯을 «하나씩» 묻는지는 재지 않았음. 조립·배선·job 경로는 게이트가 덮지만 「문면이 실제로 그 행동을 유도하는가」는 실물 세션이 필요함(결정 50 이 스파이크만으로 닫지 않기로 정한 부류임). TASK-102.1 이 그 회차를 갖음.
+
+게이트(이 턴 직접 실행): pytest 1088 passed · ruff 안 0 · 밖 0 · format 0 · ty 0 · 프런트 tsc exit 0 · eslint exit 0.
 <!-- SECTION:NOTES:END -->
 
 ## Comments
