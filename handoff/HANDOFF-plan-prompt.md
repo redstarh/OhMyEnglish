@@ -1,73 +1,54 @@
 # Handoff — 계획 프롬프트·배치·시나리오 생성 갈래 · 세션 `ohmyenglish-f4` (마감)
 
 > 인계 원칙의 정본은 `~/.claude/rules/session-handoff.md` 임. 짧게 씀 — 판정 근거를 옮기지 않고
-> 태스크 조회와 설계서를 가리킴(`backlog task view <ID> --plain`).
+> 태스크 조회와 회차를 가리킴(`backlog task view <ID> --plain`).
 >
-> 이전 판은 `handoff/archive/HANDOFF-plan-prompt-2026-09-12-2257.md` 임.
-> ⛔ 다른 갈래의 handoff 를 건드리지 않았음 — `HANDOFF-pronunciation.md` 는 발음 축 소유임
-> (지금 세션 `ohmyenglish-d9` 가 `TASK-128.1`·`.2` 진행 중).
+> 이전 판은 `handoff/archive/HANDOFF-plan-prompt-2026-09-13-0007.md` 임.
+> ⛔ 다른 갈래의 handoff 를 건드리지 않았음 — `HANDOFF-pronunciation.md` 는 발음 축 소유임.
 
-최종 갱신 2026-09-12 · 브랜치 `design/first-vertical-slice`
+최종 갱신 2026-09-13 · 브랜치 `design/first-vertical-slice`
 
 ---
 
 ## ① 이 세션이 한 것
 
-**닫은 태스크**: `TASK-4`(AC 4/4) · `TASK-102` AC#3·#4.
-**받은 사용자 결정 여섯**: 73(배치 단위는 대화 상황) · 74(신규는 최근 10회 안에 안 나온 상황 ·
-창 10 은 유도값) · 75(업무 6종을 처음부터 · `level` 은 `A2`) · 76(시드 배열 순서가 노출 순서) ·
-77(분야는 기존 `category` 값역을 늘려 담음) · 78(상황 30개가 돼도 비율은 그대로) ·
-79(5회 질문은 음성 대화 · 생성은 세션 뒤 job) · 80(사용자가 만든 상황은 신규 차례 맨 앞).
+**닫은 태스크 셋**: `TASK-130`(설계 결함 판정) · `TASK-130.1`(그 결정의 구현) · `TASK-5`(계획 여섯 완료).
+**받은 사용자 결정 하나**: **81** — 노출 순서를 `created_at` 에서 떼어내 `display_order` 로 옮김.
 정본은 `docs/ops/captain-instruction-register.md` 임.
 
-**제품에 들어간 것**: 대화 상황 시드 **3 → 30행**(일상 9 · 업무 9 · 여행 6 · 쇼핑 3 · 진료 3) ·
-배치 규칙 `services/scenario_rotation.py`(DB 를 모르는 순수 함수) · `sessions.py` 의 시나리오
-서브쿼리를 걷고 `_pick_scenario_for_user` 로 옮김 · 학습 현황 집계와 보고 CLI
-(`services/scenario_progress.py` · `scripts/scenario_report.py`) · 무대 파서
-`models/scenario_draft.py` · 생성 프롬프트·job 처리 `services/scenario_generator.py` ·
-워커 분기 하나. 마이그레이션 **016·017·018** 을 발급·적용했음.
+**제품에 들어간 것**: 마이그레이션 **019**(`display_order`) · 시드가 배열 자리를 1부터 매기고 upsert 가
+그것을 갱신함 · 읽는 자리 넷을 옮김(후보 SQL · `Candidate`→`_staleness` ⑶ · `scenario_progress` 정렬) ·
+`nova._SCENARIO_INTAKE_INSTRUCTION`(질문 다섯) · `build_system_prompt` 의 필수 인자 `scenario_intake` ·
+`ws.py` 의 무대 정하기 진입과 세션 행 `mode` 기록 · 프런트 「질문 답변 5개」에 `mode` 추가.
 
-**산출물**: 설계서 둘(`2026-09-12-scenario-rotation-70-30-design.md` ·
-`2026-09-12-scenario-generator-design.md`) · 계획서 둘 · 회차
-`tests/harness/runs/2026-09-12-task4-rotation-app-path.md`.
+**회차**: `tests/harness/runs/2026-09-12-task4-rotation-app-path.md` **§3-3·§3-4**(새로 씀).
+**등록한 함정**: `H-BR`(같은 파일을 두 세션이 고칠 때 나는 조용한 혼입 — 아래 ⑤).
 
-⛔ **이 세션의 핵심 교훈**: **초록 게이트가 「요구가 이행됐다」를 뜻하지 않음.** 같은 부류를 네 번
-밟았고 동료 갈래와 함께 `H-BP` 로 올렸음. 그 넷은 `TASK-4`(순서를 재는 축이 없었음) ·
-`TASK-118` · `TASK-131`(값역 단정이 부분 일치) · `TASK-132`(파서 동일성 주장에 가드 0건)임.
+## ② 다음 한 걸음 — `TASK-102.1` AC#1
 
-## ② 다음 한 걸음 — `TASK-5` Task 6 (여섯 중 마지막)
+`TASK-102` 는 AC#2(대화형 생성) 하나만 남았고 배선은 끝났음. 남은 것은 **실측**이고 그것을
+`TASK-102.1` 이 갖음. **AC#1 은 사람 없이 돌 수 있어 먼저 함** — 스텁 어댑터로 앱 경로를 열어
+`?mode=scenario_intake` 세션을 끝내고, `analysis_jobs` 에 `generate_scenario` 가 걸리는지와 워커가
+그것을 처리해 `source='generated'` 행이 생기는지를 봄.
 
-`TASK-5` 는 계획서 `docs/design/2026-09-12-scenario-generator-plan.md` 의 여섯 중 **다섯이 끝났음**
-(018 · 배치 앞자리 · 파서 · 프롬프트 조립 · job 처리). 남은 Task 6 은 **질문 5개 블록을 세션
-프롬프트에 싣고 진입을 배선**하는 것이고 그것만 `nova.py`·`factory.py`·`ws.py` 를 만짐.
+⛔ **착수 전에 `tests/harness/p5_worker_leg.py` 머리말을 끝까지 읽음.** `H-AT` 경로 둘이 보존 세션을
+파괴하고 그 파괴가 `learning_sessions.status` 에 드러나지 않음 — 이 회차가 그 함정의 사정권임.
 
-⛔ **착수 전에 발음 축이 커밋했는지 확인함.** `factory.create_voice_adapter` 가 유일한 겹침이고
-그쪽이 **먼저 닿기로 합의**했음. 그쪽이 넘긴 최종 시그니처(커밋 전 시점):
-- `pronunciation_sound: str | None = None` → **`pronunciation_mode: bool = False`**
-- 나머지 인자(`settings`·`known_sounds`·`plan`·`questions`·`scenario`·`usage_sink`)는 이름·순서·
-  기본값 **전부 그대로**. Task 6 의 블록 재료는 **그 뒤에** 붙이면 충돌하지 않음.
-- ⚠️ 전용 모드에서 `known_sounds` 의 **내용**이 달라짐(소켓이 후보 목록을 넘김) — 시그니처는
-  그대로지만 그 인자를 읽는 자리가 늘었음.
+**AC#2 는 실물 Nova 세션이라 사용자 승인이 필요함**(결정 38·39 의 선례 · 마이크가 있어야 함).
+그것 없이 「다섯을 하나씩 묻는다」를 참으로 적지 않음.
 
-**나란히 가능**: `TASK-132` AC#1(파서 두 판을 하나로 합칠지 · `Awaiting Decision`) ·
-`TASK-130`(노출 순서가 `created_at` 에 얹혀 있음) · `TASK-122`(빈 이름 키 · `low`).
-
-⚠️ **`TASK-102` 는 `TASK-5` 를 선행으로 기다림** — 남은 AC#1·#2 가 대화형 생성이라 그 태스크가
-끝나면 함께 닫힘.
+**나란히 가능**: `TASK-132` AC#1(`Awaiting Decision` · 파서 두 판을 합칠지) · `TASK-122`(빈 이름 키 · `low`).
 
 ## ③ 착수 전 필수 — 7개
 
-1. ⛔ 태스크를 새로 열기 전에 **결정 대장과 원장을 함께** `grep` 함. 이 세션이 `TASK-4` 를 끝낸
-   **뒤에야** `TASK-102`(같은 요구의 원문)를 발견했음.
-2. ⛔ **부분 실행에 `-c pyproject.toml`** 을 붙임(`H-AJ`). 빼면 `asyncio` 모드가 안 걸려 기존
-   테스트가 거짓 빨강이 됨.
+1. ⛔ 태스크를 새로 열기 전에 **결정 대장과 원장을 함께** `grep` 함(같은 요구가 두 태스크에 있었음).
+2. ⛔ **부분 실행에 `-c pyproject.toml`** 을 붙임(`H-AJ`). 빼면 `asyncio` 모드가 안 걸려 거짓 빨강임.
 3. ⛔ **게이트는 cwd `app/backend`**(`H-A`·`H-BN`). 리포 루트에서 부르면 `line-length` 를 88 로 잼.
 4. ⛔ **`ty` 는 절대경로 `/Users/redstar/.local/bin/ty`** — 이름만으로는 **exit 127** 임.
 5. ⛔ `git add <디렉터리>` 금지(`H-BE`) · 커밋 **전** `git diff --cached --name-only` · push **전**
-   `git log --oneline origin/<브랜치>..HEAD`(`H-BO`).
+   `git log --oneline origin/<브랜치>..HEAD`(`H-BO`). **그리고 공유 파일은 고친 턴에 커밋함**(`H-BR`).
 6. ⚠️ 마이그레이션 번호는 적용 직전 `schema_migrations` 조회로 발급함(`H-AL`) — **이 마감 시점의
-   최대는 `018`** 임. ⛔ `drop`+`add` 로 CHECK 를 다시 세울 때 **기존 값 전부를 조회로 읽어** 옮김
-   (초안이 `review` 를 빠뜨려 조용히 지울 자리였음).
+   최대는 `019`** 임(dev DB 에 적용됨).
 7. ⛔ **`db_pool` 픽스처는 아무것도 정리하지 않음** — 손으로 지움. **사용자를 먼저** 지워야
    세션·발화·job 이 cascade 되고 그 뒤에 무대를 지울 수 있음(반대 순서는 FK 위반).
 
@@ -75,29 +56,26 @@
 
 | # | 지표 | 값 |
 |--:|---|---|
-| 1 | 기준 커밋 | **`0de0b87` 이상**(그 앞이 `209070e`) · ⛔ **`origin` 보다 2 앞섬(미푸시)** · 내 미커밋 **0건**. ⚠️ 이 표를 담은 커밋이 뒤에 붙으므로 **등호를 요구하지 않음** — 발음 축이 같은 브랜치에 커밋하면 더 앞섬. 미푸시 이유는 아래 ⚠️ |
-| 2 | 다음 걸음 | **`TASK-5` Task 6** (계획서 여섯 중 마지막). `Awaiting Decision` 1건 = `TASK-132` AC#1 |
-| 3 | 게이트 | ⛔ **전체는 빨강임** — `pytest` **25 failed · 1051 passed** · `ruff check .` 1 · 게이트 밖 `check` 1 · `format` 1 · `ty` 4 diagnostics. ⚠️ **원인이 전부 발음 축의 미커밋임**(아래). **내 파일만 골라 잰 값은 전부 초록**: `tests/unit` 에서 그 둘 제외 **618 passed** · 내가 만진 앱 7파일·테스트 8파일·스크립트 2파일에 `ruff check` 0 · `format --check` 0 |
-| 4 | 착수 전 필수 | 7개(③) |
+| 1 | 기준 커밋 | **`765c98e`** · `origin` 과 **동기**(`rev-list --left-right --count` → `0 0`) · **미커밋 0건** |
+| 2 | 다음 걸음 | **`TASK-102.1` AC#1** (스텁으로 파이프라인만). `Awaiting Decision` 1건 = `TASK-132` |
+| 3 | 게이트 | **전부 초록 · 종료코드까지 확인함** — `pytest` **1088 passed**(exit 0) · `ruff check .` 0 · 게이트 밖 `ruff check` 0 · `ruff format --check` 0(204 files) · `ty` 0 · 프런트 `tsc --noEmit` exit 0 · `eslint` exit 0 |
+| 4 | 착수 전 필수 | 7개(③) · 원장 집계 To Do 11 · In Progress 7 · Awaiting Decision 1 · Done 125 |
 
-⚠️ **게이트 빨강의 원인을 갈라 적음 — 다음 세션이 회귀로 읽지 않게 함.** 실패한 파일은 넷이고
-전부 세션 `ohmyenglish-d9` 가 `TASK-128.1`·`.2` 로 편집 중인 것임: `tests/integration/test_ws.py`
-(23건) · `test_gateway.py` · `tests/unit/test_nova.py` · `test_ws_mode.py`. 수집 오류 둘은
-`_known_sounds_block`(`nova.py`) · `_pronunciation_candidates`(`ws.py`) import 실패임.
-
-⛔ **그래서 원경에 올리지 않았음.** 빨간 상태를 올리면 다음 사람이 회귀로 읽음. 그쪽이 커밋해
-초록으로 되돌린 뒤 push 하면 **`209070e` 도 같이 올라감**(같은 브랜치 · `H-BO` 의 기전). 그쪽이
-그때 커밋 열거를 이 창에 남기기로 했음.
+⚠️ **`In Progress` 7건 가운데 여섯은 발음 축 것임**(`TASK-116`·`78`·`81`·`97`·`128`·`128.4`). 내 것은
+`TASK-102` 하나임 — 그 축의 상태를 내가 고치지 않음.
 
 ## ⑤ 이 세션이 얻은 규율
 
-- ⛔ **비율이 맞는다는 것과 순서가 맞는다는 것은 다른 단정임.** `TASK-4` 에서 게이트 여섯이
-  초록인데 업무 상황이 12회 세션에서 0회였음 — 재는 축이 빠지면 게이트는 그 축에 침묵함.
-- ⛔ **지목과 전수는 다른 단정이고, 전수의 축도 이름이 아니라 «부류» 로 잡음.** `_json_candidates`
-  하나만 grep 하면 인접 축(`_FENCED`)의 기존 가드를 못 봄.
-- ⛔ **단정의 판별력을 따로 잼** — 무력화해서 red 를 본 뒤 초록을 믿음. `starved == 0` 은 후보가
-  창보다 많으면 구조적으로 늘 참이었음.
-- ⚠️ **좋은 문장을 다른 자리에 재사용할 때 그 자리에서 참인지 먼저 확인함.** 「쓰는 코드가 없는
-  값이라」가 한 값역에서 참이고 다른 값역에서 거짓이었음.
-- ⚠️ **테스트 격리가 파일 순서에 의존하면 그 순서도 재는 축의 일부임.** 전체 실행에서 초록이었고
-  순서를 바꿔 돌려서야 드러났음.
+- ⛔ **전건 초록이 이행을 뜻하지 않음 — 축을 옮길 때 «옛 축을 재는 단정»을 남기지 않음.** 019 를
+  넣고 앱 넷을 옮긴 직후 `pytest` 가 1080 passed 였는데 기존 단정들은 여전히 `created_at` 을 재고
+  있었음. 통과해도 아무것도 지키지 않는 단정임.
+- ⛔ **필터가 무엇을 배제하는지 먼저 봄.** 무력화 검증을 `-k "scenario"` 로 돌려 **9 passed** 를 보고
+  「판별력 없음」으로 판정할 뻔했음 — 새 테스트 이름에 그 낱말이 없어 **안 돌았던 것**임. 통과
+  개수가 그대로면 「안 깨졌다」가 아니라 「안 돌았다」일 수 있음.
+- ⛔ **같은 파일을 두 세션이 고치면 먼저 커밋하는 쪽이 남의 편집을 담아 감**(`H-BR`). `git add` 에
+  경로를 열거해도 그 파일 «안»의 남의 편집은 못 막고, 병합 충돌이 나지 않아 도구가 알려 주지 않음.
+  드러난 신호는 **내가 고친 파일이 `git status` 에 없었던 것** 하나였음.
+- ⚠️ **과거 감사 기록의 문면은 고치지 않고 «이후 변경»을 덧붙임.** 현재 코드에 맞추려 고치면 그
+  회차의 증거가 훼손됨(`scenarios-E-agent-learning.md:169`).
+- ⚠️ **설계서가 정하지 않은 자리를 만나면 규약이 가리키는 층에 둠.** 무대 정하기 세션에서 드릴
+  질문·무대를 걷는 판단이 그것이고, 조립 규약 ⑵(소켓이 데이터로 정함)에 따라 소켓에 뒀음.
