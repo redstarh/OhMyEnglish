@@ -1,0 +1,43 @@
+-- 020_pronunciation_sound_check.sql
+-- 기록된 `target_sound` 가 «코치가 그 턴에 말한 소리»와 어긋났는지를 담는 컬럼을 둔다.
+-- 결정: docs/ops/captain-instruction-register.md 「결정 82」(발음 축의 다음 수단은 기록 경로다 ·
+--   프롬프트를 더 고치지 않는다) · 소유 태스크: TASK-116.1 · 설계:
+--   docs/design/2026-09-13-decision82-record-path-verification.md
+--
+-- 번호: dev DB `schema_migrations` 직접 조회가 `001 · 003~007 · 009~019` 이므로 020 이다(`H-AL`).
+--
+-- ⛔⛔ **무엇을 고치는가 — 「연습하지 않은 소리」가 복습 큐에서 전진하는 것이다.**
+-- `services/review.py` 가 발음 이력을 `btrim(a.target_sound) = p.sound` 로 잇는다. 그래서 tool 에
+-- 실린 키가 코치가 실제로 코칭한 소리와 다르면 **그 다른 소리의 복습 시계가 돈다.** 실측한 크기
+-- (`tests/harness/runs/2026-09-12-task128-sound-as-candidate.md` §1): 오디오에 /f/ 가 한 자리도 없는
+-- 문장에서 코치가 `early` 의 `er` 을 코칭했는데 기록은 `f_as_p` 였고, `error_patterns` 의
+-- `frequency` 가 **2** 로 오르고 `next_review_at` 이 **2026-09-13** 으로 섰다.
+--
+-- ⛔ **프롬프트로는 닫히지 않는다는 것이 세 회차로 확정됐다** — 키 강제를 **더한** 판 3/3 실패
+-- (`…task120-absent-planted-sound.md`) · 강제를 **뺀** 판 3/3 실패
+-- (`…task123-118-subtract-key-forcing.md` ARM-B) · 소리를 **후보로만** 준 판도 3/3 실패
+-- (`…task128-sound-as-candidate.md` ARM-B). 그래서 이 컬럼이 있다.
+--
+-- ⛔ **`signal_source` 에 값을 더하는 안을 기각했다.** 그 컬럼은 「이 행이 **어느 신호**에서 왔는가」
+-- 이고(`nova_tool`·`korean_transcript`·`agent_reprompt`) 이 컬럼은 「그 기록이 **검증됐는가**」다 —
+-- **다른 축**이다. 한 컬럼에 섞으면 `nova_tool` **이면서** 어긋난 행을 표현할 수 없고, `review.py`
+-- 가 이미 `signal_source = 'nova_tool'` 로 보조 신호를 배제하고 있어(결정 59) 그 필터와 충돌한다.
+--
+-- ⚠️ **`null` 이 「미판정」이고 그것이 기본값이다 — `not null` 로 두지 않는다.**
+-- 판정은 **세션 종료 패스**에서만 붙는다(설계서 §4-1: tool 이 코칭 발화와 «동시에» 오므로 기록
+-- 시점에는 대조할 발화가 저장돼 있지 않을 수 있다). 그래서 진행 중 세션의 행은 비어 있고, 그
+-- 비어 있음을 「어긋남」으로 읽으면 **진행 중 기록이 전부 배제된다.**
+-- ⛔ 그래서 소비자의 조건은 **「어긋남으로 표시된 것을 제외」**여야 하고 「검증된 것만 포함」이면
+-- 안 된다. 기존 행 전부가 `null` 이 되는 것도 같은 이유로 옳다 — 뒤늦게 판정할 발화 창이 없다.
+--
+-- ⚠️ **값역을 둘로 둔다**(`matched`·`mismatched`). 「판정 못 함」을 세 번째 값으로 두지 않는 이유는
+-- 그것이 `null` 과 같은 뜻이고 두 표현이 생기면 소비자가 둘 다 봐야 한다는 것이다.
+--
+-- ⚠️ 인덱스를 만들지 않는다 — 이 컬럼은 `review.py` 의 이미 있는 조회에 조건으로 붙고 그 조회는
+-- 패턴 하나의 시도만 읽는다. 행이 늘면 그때 재는 것이 순서다.
+--
+-- 되돌리기: 이 컬럼을 drop 하고 `review.py` 의 조건 한 줄과 세션 종료 패스의 판정 호출을 걷는다.
+-- ⚠️ 되돌리면 위 오염이 그대로 되살아난다 — 되돌리기 비용이 낮은 것이 위험이 낮다는 뜻은 아니다.
+
+alter table pronunciation_attempts
+  add column sound_check text check (sound_check in ('matched', 'mismatched'));

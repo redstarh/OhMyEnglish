@@ -89,6 +89,61 @@ _HANGUL = re.compile(r"[가-힣]")
 # 보여주므로, 그 화면은 `signal_source`로 nova_tool 행과 구분해 렌더해야 한다.
 KOREAN_TRANSCRIPT_TARGET_FORM = "(전사문이 한국어로 인식되었습니다)"
 
+# `TASK-116.1`(사용자 **결정 82**) — 기록된 `target_sound` 가 코치의 발화와 어긋났는지의 판정값.
+# 값역의 정본은 020 의 CHECK 이고 이 상수가 그 문자열을 소유한다(리터럴을 두 곳에 두지 않는다).
+# ⛔ **`null` 이 「미판정」이고 그것이 기본이다** — 판정이 세션 종료 패스에서만 붙으므로 진행 중
+# 세션의 행은 비어 있다. 그 비어 있음을 「어긋남」으로 읽으면 진행 중 기록이 전부 배제된다.
+SOUND_CHECK_MATCHED = "matched"
+SOUND_CHECK_MISMATCHED = "mismatched"
+
+# 코치가 «인용한 소리»를 뽑는 자다. 곧은 따옴표와 둥근 따옴표를 함께 받는다 — Nova 실물 발화가
+# 둘을 섞어 낸다(`the "th" sound` · `the 'f' sound` · `’er’`).
+#
+# ⚠️ **길이 상한 3이 소리와 낱말을 가른다.** 실측 근거는 `TASK-128.3` 회차의 코치 발화 일곱이다:
+# 인용된 소리는 `th`·`er`·`f` 였고 낱말은 `early`·`think`·`fine` 처럼 4자 이상이었다. ⛔ 낱말을
+# 소리로 세면 키와 우연히 겹칠 확률이 올라가 오탐이 늘어난다.
+_QUOTED_SOUND_RE = re.compile(r"['\"‘’“”]([A-Za-z]{1,3})['\"‘’“”]")
+
+
+def sound_check_verdict(agent_speech: str, target_sound: str | None) -> str | None:
+    """코치의 발화와 실린 키가 어긋났는가 — `matched`·`mismatched`·`None`(판정 못 함).
+
+    **왜 이 함수가 있는가** (사용자 **결정 82**): 「발화로 코칭한 소리와 tool 에 실린
+    `target_sound` 가 어긋난다」를 **프롬프트로 세 번 막으려 했고 세 방향이 모두 반증됐다**(강제를
+    더한 판·뺀 판·소리를 후보로만 준 판이 각각 3/3 실패). 그래서 기록 경로로 옮겼다. 설계 정본은
+    `docs/design/2026-09-13-decision82-record-path-verification.md` 다.
+
+    ⛔ **「맞다」를 증명하지 않는다 — 「어긋났다」만 증명한다.** 두 실패의 비용이 다르다: 놓친 것은
+    오염 1건이고, 잘못된 배제는 **정상 기록을 복습에서 지우는 것**이다. 그래서 인용된 소리가 없으면
+    `None` 이고 호출부는 그것을 배제 사유로 쓰지 않는다.
+
+    ⛔ **키의 «모양»을 파싱하지 않는다.** `X_as_Y` 는 **모델이 지어내는 형태**라 규약이 아니고
+    (`audio_gateway/nova.py` 의 소리 줄 주석이 그 기각을 소유한다) 파싱하면 다음 키 모양에서 조용히
+    깨진다. 대신 **인용된 토큰이 키 «안에» 있는지**만 본다.
+    ⚠️ 그 대가로 알려진 오탐이 하나 있다 — 키에 `_as_` 가 들어가므로 인용된 `a`·`s` 는 어떤 키와도
+    일치한다. **그 방향이 안전한 쪽**이고(아무것도 배제하지 않는다) 그 오탐을
+    `test_pronunciation_sound_check.py` 가 단정으로 못 박아 둔다.
+
+    ⛔ **이 함수가 못 잡는 것 하나를 여기 적는다**: 코치가 **없는 소리를 발화로 발명**하면 발화와
+    기록이 «맞으면서 함께» 틀린다(`TASK-128.3` ARM-B 의 B1 — `early` 에 /f/ 가 없는데 *"the 'f'
+    sound in 'early'"* 라고 말했다). 이 함수는 「기록이 발화를 따르는가」만 재므로 그때
+    `matched` 다. 「발화가 오디오를 따르는가」는 오디오를 듣는 판정이 필요하고 설계서 §6 이
+    범위 밖으로 뒀다.
+
+    ⚠️ **순수 함수로 둔다** — 어느 발화를 창으로 삼는지는 호출부의 정책이고(설계서 §4-1) 그 정책이
+    조용히 바뀌는 것을 단위 테스트가 잡아야 한다.
+    """
+    if target_sound is None or not target_sound.strip():
+        # 키가 없으면 대조할 것이 없다. ⚠️ 그 행은 이미 `review.py` 에서 빠진다
+        # (`btrim(null) = x` 가 null 이라 조건이 참이 되지 않는다).
+        return None
+    tokens = {match.group(1).lower() for match in _QUOTED_SOUND_RE.finditer(agent_speech or "")}
+    if not tokens:
+        # 코치가 소리를 인용하지 않았다 — 어긋남을 «증명할 수 없다».
+        return None
+    key = target_sound.strip().lower()
+    return SOUND_CHECK_MATCHED if any(token in key for token in tokens) else SOUND_CHECK_MISMATCHED
+
 
 async def _insert_attempt(
     conn: asyncpg.Connection,
