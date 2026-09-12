@@ -14,6 +14,7 @@ import 하면 포트 구현이 DB 를 알게 되고, 그러면 자격증명·네
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import date
 from typing import Protocol
 from uuid import UUID
 
@@ -51,6 +52,31 @@ class TokenUsage:
     input_text_tokens: int | None = None
     output_speech_tokens: int | None = None
     output_text_tokens: int | None = None
+
+
+@dataclass(frozen=True)
+class UsageRollup:
+    """하루·한 갈래의 사용량 집계 (`TASK-126`).
+
+    `day`는 **사용자 타임존의 달력 날짜**다 — `users.timezone` 이 그 정본이고 `current_date` 를
+    쓰지 않는다(전역 시각 규약 3항: UTC 자정~09:00 KST 구간에서 하루 이른 값이 나온다).
+
+    분해 넷이 `None` 일 수 있는 이유는 `TokenUsage` 와 같다 — 그 갈래의 행이 전부 분해 없이
+    적혔다는 뜻이다(SQL `sum()` 은 전부 NULL 이면 NULL 을 낸다). ⛔ **0 으로 바꾸지 않는다**:
+    「분해가 없다」와 「분해가 0 이다」는 다른 사실이고, Nova 단가 계산이 그 차이에 걸린다.
+
+    ⛔ **금액을 담지 않는다** — 단가를 어디에 둘지는 아직 결정되지 않았다(`TASK-126` AC#4).
+    """
+
+    day: date
+    purpose: str
+    calls: int
+    input_tokens: int
+    output_tokens: int
+    input_speech_tokens: int | None
+    input_text_tokens: int | None
+    output_speech_tokens: int | None
+    output_text_tokens: int | None
 
 
 class UsageSink(Protocol):

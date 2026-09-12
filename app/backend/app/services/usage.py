@@ -18,7 +18,7 @@ from uuid import UUID
 
 import asyncpg
 
-from app.models.usage import PROVIDER_BEDROCK, TokenUsage, UsageSink
+from app.models.usage import PROVIDER_BEDROCK, TokenUsage, UsageRollup, UsageSink
 
 logger = logging.getLogger(__name__)
 
@@ -60,6 +60,69 @@ async def record_llm_call(
         usage.output_speech_tokens,
         usage.output_text_tokens,
     )
+
+
+# ⛔ **날짜의 정본은 `users.timezone` 컬럼이다** (`TASK-126` · 전역 시각 규약 3항).
+# `current_date` 를 쓰지 않는다 — 서버 세션 타임존의 날짜라 **UTC 자정~09:00(KST) 구간에서**
+# **하루 이른 값**을 낸다.
+# `daily_summary.py`·`chronic.py` 가 같은 판단을 이미 했고 그 이유를 그 파일들이 소유한다.
+_TIMEZONE_SQL = "select timezone from users where id = $1"
+
+# 하루·갈래별 집계. ⚠️ **분해 넷을 `coalesce` 로 0 으로 만들지 않는다** — `sum()` 이 전부 NULL 이면
+# NULL 을 내고 그것이 「그 갈래에 분해가 없다」는 사실이다(Claude 행). 0 으로 바꾸면 「분해가 0」과
+# 구분되지 않고 Nova 단가 계산이 거기서 어긋난다.
+# ⛔ 금액을 계산하지 않는다 — 단가의 자리는 아직 결정되지 않았다(`TASK-126` AC#4).
+_ROLLUP_SQL = """
+select (called_at at time zone $1)::date as day,
+       purpose,
+       count(*)                    as calls,
+       sum(input_tokens)           as input_tokens,
+       sum(output_tokens)          as output_tokens,
+       sum(input_speech_tokens)    as input_speech_tokens,
+       sum(input_text_tokens)      as input_text_tokens,
+       sum(output_speech_tokens)   as output_speech_tokens,
+       sum(output_text_tokens)     as output_text_tokens
+  from llm_calls
+ where (called_at at time zone $1)::date > (now() at time zone $1)::date - $2::int
+ group by 1, 2
+ order by 1 desc, 2
+"""
+
+
+async def load_usage_summary(
+    conn: asyncpg.Connection, user_id: UUID, *, days: int = 7
+) -> list[UsageRollup]:
+    """최근 `days` 일의 사용량을 **사용자 타임존 달력 날짜 × 갈래**로 집계한다 (`TASK-126`).
+
+    타임존을 인자로 받지 않고 **여기서 읽는 이유**: 인자로 받으면 호출자가 하드코딩한 값이나
+    호스트 시각을 넘길 수 있고, 그 어긋남은 조용하다. 정본은 컬럼이므로 이 함수가 컬럼을 본다
+    (`load_chronic_metrics`·`daily_summary` 와 같은 형태). 사용자가 없으면 조용히 UTC 로 떨어지지
+    않고 `LookupError` 를 올린다.
+
+    ⚠️ `llm_calls` 에는 `user_id` 가 없다 — 단일 사용자 로컬 도구의 **비용** 표이고 학습자별로
+    가르는 값이 아니다. 그래서 `user_id` 는 **날짜 경계를 정하는 용도**로만 쓴다.
+
+    `days=7` 은 「오늘을 포함한 최근 7일」이다(경계는 `> 오늘 - days`).
+    """
+    timezone = await conn.fetchval(_TIMEZONE_SQL, user_id)
+    if timezone is None:
+        raise LookupError(f"user {user_id} not found — no timezone source of truth")
+
+    records = await conn.fetch(_ROLLUP_SQL, timezone, days)
+    return [
+        UsageRollup(
+            day=record["day"],
+            purpose=record["purpose"],
+            calls=record["calls"],
+            input_tokens=record["input_tokens"],
+            output_tokens=record["output_tokens"],
+            input_speech_tokens=record["input_speech_tokens"],
+            input_text_tokens=record["input_text_tokens"],
+            output_speech_tokens=record["output_speech_tokens"],
+            output_text_tokens=record["output_text_tokens"],
+        )
+        for record in records
+    ]
 
 
 def pool_usage_sink(pool: asyncpg.Pool, *, provider: str = PROVIDER_BEDROCK) -> UsageSink:
