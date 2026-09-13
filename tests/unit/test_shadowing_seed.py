@@ -14,11 +14,21 @@
 
 from __future__ import annotations
 
+import subprocess
+import wave
+from decimal import Decimal
+from pathlib import Path
 from uuid import UUID
 
 import asyncpg
 import pytest
 from migrate import SEED_SHADOWING_ITEMS, USER_ID, ShadowingSeedClip, seed
+
+from app.config import get_settings
+
+# 설정의 뿌리는 백엔드 cwd 기준 상대경로다 — 이 파일이 어디서 불리든 같은 자리를 보게 한다.
+BACKEND_ROOT = Path(__file__).resolve().parents[2] / "app" / "backend"
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 # PRD §7 「30~90초의 짧은 오디오·영상 클립」. **범위는 요구사항이다** — 011 의
 # `shadowing_items_span_within_limit` 가 상한만 가두므로 하한은 이 테스트가 지킨다.
@@ -154,3 +164,57 @@ async def test_seeded_clip_level_matches_the_seeded_learner(db_conn: asyncpg.Con
     )
 
     assert matching > 0, f"시드 클립에 {learner_level} 수준이 없다 — 선택이 폴백으로 떨어진다"
+
+
+def test_every_seeded_clip_names_its_audio_by_the_id_convention() -> None:
+    """시드가 파일명을 규약대로 갖는다 — 022 의 CHECK 와 같은 규약을 상수에서도 지킨다.
+
+    ⚠️ DB 를 거치지 않고 상수를 직접 읽는 소비자가 있으므로(이 파일이 그렇다) 상수에도 단정을 둔다.
+    """
+    named = [clip for clip in SEED_SHADOWING_ITEMS if clip.audio_filename is not None]
+
+    assert named, "시드에 오디오를 가진 클립이 0건이다 — 화면에 들려줄 소리가 없다"
+    for clip in named:
+        assert clip.audio_filename == f"{clip.id}.wav"
+
+
+def test_seeded_clip_audio_files_exist_in_the_repository() -> None:
+    """⛔ **이것이 「제품 자산이 배포되는가」를 재는 유일한 단정이다** (설계서 §7).
+
+    파일이 있는 것과 **추적되는 것**은 다르므로 둘을 함께 잰다 — `.gitignore` 된 자리에 두면
+    clone 한 환경에서 소리가 사라지고, 그 실패는 배포 뒤에야 드러난다.
+    """
+    root = (BACKEND_ROOT / get_settings().shadowing_clip_audio_root).resolve()
+
+    for clip in SEED_SHADOWING_ITEMS:
+        if clip.audio_filename is None:
+            continue
+        path = root / clip.audio_filename
+        assert path.is_file(), f"{path} 가 없다 — 생성 절차는 2026-09-09 선행 검토 §7.1 이 소유한다"
+        # `check-ignore` 는 무시되면 0, 무시되지 않으면 1 이다 — 여기서 원하는 것은 1 이다.
+        ignored = subprocess.run(
+            ["git", "check-ignore", "-q", str(path)], cwd=REPO_ROOT, check=False
+        )
+        assert ignored.returncode == 1, f"{path} 가 .gitignore 에 걸려 있다 — 배포되지 않는다"
+
+
+def test_the_seeded_window_matches_the_committed_audio_length() -> None:
+    """⛔ **시간 창이 커밋된 오디오의 «실제» 길이다** (결정 88 · 설계서 §3).
+
+    합성음에서는 시간 창이 곧 오디오 전체이므로 둘이 어긋나면 화면이 없는 구간을 가리킨다.
+    ⚠️ **TTS 는 회차마다 같은 길이를 내지 않는다** — 2026-09-09 회차는 16.64초였고 2026-09-14
+    회차는 17.36초였다(같은 전사문·같은 화자). 그래서 값을 기억으로 적을 수 없고, **커밋된
+    파일에서 다시 읽어** 대조하는 것이 유일하게 낡지 않는 방법이다.
+    """
+    root = (BACKEND_ROOT / get_settings().shadowing_clip_audio_root).resolve()
+
+    for clip in SEED_SHADOWING_ITEMS:
+        if clip.audio_filename is None:
+            continue
+        with wave.open(str(root / clip.audio_filename)) as handle:
+            measured_sec = Decimal(handle.getnframes()) / Decimal(handle.getframerate())
+        # 스키마가 `numeric(6,2)` 이므로 같은 자리수로 내려 비교한다.
+        assert clip.clip_end_sec == measured_sec.quantize(Decimal("0.01")), (
+            f"{clip.source_title} 의 시간 창 {clip.clip_end_sec} 가 실측 {measured_sec} 와 다르다"
+        )
+        assert clip.clip_start_sec == Decimal("0.00"), "합성음의 창은 0 에서 시작한다"

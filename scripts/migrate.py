@@ -345,9 +345,14 @@ SEED_SCENARIOS: list[tuple[UUID, str, str, str, str]] = [
 # `After that`)를 얹은 것은 규약이 아니라 판단이다 — 쉐도잉은 학습자가 짓지 않은 문장을 따라
 # 읽는 것이므로, 아직 스스로 만들지 못하는 **발화 순서**를 발판으로 주는 값어치가 있다.
 #
-# ⚠️ **`clip_end_sec` 는 이 전사문을 TTS 로 합성한 실측 길이다 — 16.64초**(2026-09-09 · Sohee·en ·
-# 24 kHz mono · `docs/design/2026-09-09-shadowing-synthetic-clip-review.md` 가 그 회차를 소유한다).
+# ⚠️ **`clip_end_sec` 는 커밋된 오디오의 실측 길이다 — 17.36초**
+# (`assets/clips/00000000-0000-0000-0000-000000000201.wav` · 277760 frames / 16000 Hz · 2026-09-14).
 # 합성음에서는 **시간 창이 곧 오디오 전체**이므로 창을 발명할 자리가 없다.
+# ⛔ **TTS 는 회차마다 같은 길이를 내지 않는다** — 2026-09-09 회차는 **16.64초**였고 같은 전사문·
+# 같은 화자(`Sohee`·`en`)로 2026-09-14 에 다시 합성했더니 **17.36초**였다. 그래서 이 값은
+# 「그 전사문의 길이」가 아니라 **「리포에 담긴 그 파일의 길이」**다 — 파일을 다시 만들면 함께
+# 고친다. `tests/unit/test_shadowing_seed.py` 가 그 대조를 자동으로 한다(파일에서 다시 읽는다).
+# 회차 절차는 `docs/design/2026-09-09-shadowing-synthetic-clip-review.md` §7 이 소유한다.
 #
 # ⛔ **그 값은 PRD §7 의 하한 30초에 미달이고 그것을 «알려진 격차»로 남긴 것이 결정 88 이다**
 # (2026-09-13 · `docs/ops/captain-instruction-register.md`). 이 자리는 그 전까지 하한 30초를 그대로
@@ -377,6 +382,10 @@ class ShadowingSeedClip(NamedTuple):
     clip_start_sec: Decimal
     clip_end_sec: Decimal
     level: str
+    # 합성음 파일명. `None` = 오디오가 아직 없는 클립. ⛔ 값역은 `<id>.wav` 하나이고 022 의
+    # `shadowing_items_audio_filename_matches_id` 가 그것을 강제한다(`TASK-66` · 결정 90).
+    # ⚠️ 경로가 아니라 **파일명**이다 — 뿌리는 설정값 `shadowing_clip_audio_root` 가 갖는다.
+    audio_filename: str | None
 
 
 SEED_SHADOWING_ITEMS: list[ShadowingSeedClip] = [
@@ -391,8 +400,9 @@ SEED_SHADOWING_ITEMS: list[ShadowingSeedClip] = [
             "It takes about thirty minutes to get to the office."
         ),
         clip_start_sec=Decimal("0.00"),
-        clip_end_sec=Decimal("16.64"),
+        clip_end_sec=Decimal("17.36"),
         level="A2",
+        audio_filename="00000000-0000-0000-0000-000000000201.wav",
     ),
 ]
 
@@ -479,8 +489,8 @@ async def seed(conn: asyncpg.Connection) -> None:
             """
             insert into shadowing_items
                 (id, source_title, source_url, transcript,
-                 clip_start_sec, clip_end_sec, level)
-            values ($1, $2, $3, $4, $5, $6, $7)
+                 clip_start_sec, clip_end_sec, level, audio_filename)
+            values ($1, $2, $3, $4, $5, $6, $7, $8)
             -- `SEED_SCENARIOS` 와 **같은 규약**이다 (결정 14 · 설계서 §7 유도 8): 고정 id +
             -- `do update`. `do nothing` 이면 위 상수를 고쳐도 이미 시드된 행이 영원히 낡은 값으로
             -- 남는다 — 2026-09-07 에 시나리오 3행에서 실제로 그랬다.
@@ -492,7 +502,10 @@ async def seed(conn: asyncpg.Connection) -> None:
                    source_url = excluded.source_url,
                    transcript = excluded.transcript,
                    clip_start_sec = excluded.clip_start_sec,
-                   clip_end_sec = excluded.clip_end_sec
+                   clip_end_sec = excluded.clip_end_sec,
+                   -- ⚠️ 파일명도 갱신 대상이다 — 오디오를 다시 만들어 상수를 고쳤을 때 이미 시드된
+                   -- 행이 낡은 값(또는 null)으로 남으면 화면이 소리 없는 클립으로 읽는다.
+                   audio_filename = excluded.audio_filename
             """,
             # `ShadowingSeedClip` 의 필드 순서가 위 컬럼 순서다 — 그 묶음의 근거는 그 클래스의
             # docstring 이 갖는다. 순서를 뒤집으면 재시드 테스트가 `transcript` 대조에서 잡는다.
