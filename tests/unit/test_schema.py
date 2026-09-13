@@ -1389,3 +1389,63 @@ async def test_scenario_pick_is_nullable_and_bounded(db_conn: asyncpg.Connection
                 "values ($1, 'speaking', 'fresh')",
                 migrate.USER_ID,
             )
+
+
+# ⑥ 022 — 합성 클립 오디오의 자리와 예외 경계 (`TASK-66` · 결정 90 ·
+#      설계서 `2026-09-14-shadowing-clip-audio-design.md` §3).
+@pytest.mark.asyncio
+async def test_shadowing_clip_audio_filename_must_equal_the_row_id(
+    db_conn: asyncpg.Connection,
+):
+    """파일명 규약을 스키마가 강제한다 — 경로 구분자와 확장자 변경이 같은 CHECK 에 걸린다.
+
+    ⛔ **이 단정이 경로 이탈 방어의 첫 겹이다.** 서버는 경로를 `item_id` 로 조립하지만(둘째 겹),
+    DB 에 `../` 가 들어갈 수 있으면 그 조립을 신뢰하는 다음 사람이 뚫린다.
+    """
+    item_id = await db_conn.fetchval(
+        "insert into shadowing_items (source_title, transcript, clip_start_sec, "
+        "clip_end_sec, level) values ('Morning', 'I wake up at seven.', 0, 16.64, 'A2') "
+        "returning id"
+    )
+
+    # 규약대로면 받는다.
+    await db_conn.execute(
+        "update shadowing_items set audio_filename = $2 where id = $1", item_id, f"{item_id}.wav"
+    )
+    assert (
+        await db_conn.fetchval("select audio_filename from shadowing_items where id = $1", item_id)
+        == f"{item_id}.wav"
+    )
+
+    # 확장자가 다르거나 경로가 섞이거나 남의 이름이면 거부된다.
+    for bad in (f"{item_id}.opus", f"clips/{item_id}.wav", "../secrets.wav", "x.wav"):
+        with pytest.raises(asyncpg.CheckViolationError):
+            async with db_conn.transaction():
+                await db_conn.execute(
+                    "update shadowing_items set audio_filename = $2 where id = $1", item_id, bad
+                )
+
+
+@pytest.mark.asyncio
+async def test_shadowing_clip_audio_is_rejected_when_the_clip_has_a_source_url(
+    db_conn: asyncpg.Connection,
+):
+    """R10-7 예외의 경계 — 출처 링크가 있는 클립에는 오디오가 붙지 않는다.
+
+    결정 47 이 연 범위는 「합성한 쉐도잉 클립 오디오」 하나이고, 출처 링크가 있는 것은 외부
+    저작물이라 PRD §5(*"저작물 전체를 저장하지 않는다"*)가 막는다. 011 의
+    `utterances_audio_only_for_shadowing` 이 학습자 낭독 자리에서 한 일과 같다.
+    """
+    item_id = await db_conn.fetchval(
+        "insert into shadowing_items (source_title, source_url, transcript, clip_start_sec, "
+        "clip_end_sec, level) values ('Talk', 'https://example.com/v', 'I wake up.', 0, 40, 'A2') "
+        "returning id"
+    )
+
+    with pytest.raises(asyncpg.CheckViolationError):
+        async with db_conn.transaction():
+            await db_conn.execute(
+                "update shadowing_items set audio_filename = $2 where id = $1",
+                item_id,
+                f"{item_id}.wav",
+            )
