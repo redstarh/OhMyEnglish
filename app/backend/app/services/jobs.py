@@ -74,6 +74,11 @@ JOB_TYPE_GENERATE_SCENARIO = "generate_scenario"
 # *"스키마는 미리, 동작은 나중에"* 로 그렇게 뒀고 이 상수가 그 「나중」이다.
 # ⛔ 위 ⛔ 와 같은 규약: 워커 분기를 함께 고친다.
 JOB_TYPE_SUMMARIZE = "summarize_session"
+# `TASK-26` · 결정 91 — 세션이 끝나면 **지난 주** 리포트를 만든다. 대상이 세션인 이유는 그 종료가
+# 트리거이기 때문이고, 「어떤 주」는 워커가 세션 시각과 `users.timezone` 으로 다시 구한다
+# (설계서 §6 — 공용 큐 표에 종류별 컬럼을 더하지 않기 위한 선택이다).
+# ⛔ 위 ⛔ 와 같은 규약: 023 이 값역과 상호배타 CHECK 를 함께 늘렸고 워커 분기도 함께 고친다.
+JOB_TYPE_SUMMARIZE_WEEK = "summarize_week"
 
 # reaper가 좀비 job에 남기는 사유 (아래 `_REAP_ZOMBIES_SQL` 참조).
 LEASE_EXPIRED_ERROR = "max attempts exceeded (lease expired without report)"
@@ -188,6 +193,49 @@ async def enqueue_summarize_session(conn: asyncpg.Connection, session_id: UUID) 
     ⚠️ 연결을 받는다(pool 이 아니다). 세션 종료 기록과 **한 트랜잭션**이어야 한다.
     """
     return await conn.fetchval(_ENQUEUE_PLAN_SQL, JOB_TYPE_SUMMARIZE, session_id)
+
+
+# ⚠️ **위 `_ENQUEUE_PLAN_SQL` 을 쓰지 않는 이유**: 이 job 은 **조건부**다(결정 91 의 「지난 주
+# 리포트가 없으면」). 그 조건을 파이썬으로 옮겨 「조회 → 판단 → 삽입」으로 나누면 그 사이에 다른
+# 세션 종료가 같은 job 을 넣는다 — 한 문장 안에 두는 것이 그 창을 없앤다.
+#
+# ⛔ **주 경계 계산을 여기서 «복제»한다는 것을 알고 쓴다** — 정본은
+# `services/weekly_report.py:_LAST_WEEK_START_SQL` 이고 그 모듈이 소유한다. 이 자리가 SQL 한
+# 문장이어야
+# 해서 함수 호출로 대신할 수 없고, 두 자리가 갈리면 **가드가 다른 주를 보고 job 이 매번 걸린다.**
+# `tests/unit/test_weekly_report.py` 의 「다른 주의 행은 가드에 걸리지 않는다」가 그 갈림을 잡는다.
+_ENQUEUE_WEEK_SQL = """
+insert into analysis_jobs (job_type, session_id)
+select $1, s.id
+  from learning_sessions s
+  join users u on u.id = s.user_id
+ where s.id = $2
+   and not exists (
+         select 1
+           from weekly_reports w
+          where w.user_id = s.user_id
+            and w.week_start
+                = (date_trunc('week', now() at time zone u.timezone) - interval '7 days')::date
+       )
+on conflict do nothing
+returning id
+"""
+
+
+async def enqueue_summarize_week(conn: asyncpg.Connection, session_id: UUID) -> UUID | None:
+    """끝난 세션을 계기로 **지난 주** 리포트 job 을 건다 (`TASK-26` · 결정 91).
+
+    `None` 은 실패가 아니라 **걸 필요가 없었다**는 뜻이고 두 이유가 그 값으로 수렴한다:
+    ① 지난 주 리포트가 이미 있다 ② 같은 `(job_type, session_id)` job 이 pending/running 이다
+    (partial unique). ⚠️ 셋째로 **세션이 없으면** `select` 가 0행이라 같은 값이 된다.
+
+    ⛔ **모드 조건이 없다** — 주간 리포트는 모든 세션이 계기다. 그리고 이 리포에 스케줄러가 없어서
+    **세션 종료가 유일한 주기 신호**다: 한 주에 한 번도 학습하지 않으면 그 주 리포트가 생기지 않고,
+    그것은 결함이 아니라 이 트리거의 성질이다(결정 91 이 그 대가를 알고 골랐다).
+
+    ⚠️ 연결을 받는다(pool 이 아니다) — 세션 종료 기록과 **한 트랜잭션**이어야 한다.
+    """
+    return await conn.fetchval(_ENQUEUE_WEEK_SQL, JOB_TYPE_SUMMARIZE_WEEK, session_id)
 
 
 async def claim_next(conn: asyncpg.Connection, *, now: datetime | None = None) -> ClaimedJob | None:

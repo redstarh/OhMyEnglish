@@ -53,6 +53,7 @@ from app.services.jobs import (
     enqueue_generate_scenario,
     enqueue_plan_next_session,
     enqueue_summarize_session,
+    enqueue_summarize_week,
 )
 from app.services.scenario_rotation import (
     WINDOW,
@@ -592,6 +593,12 @@ async def end_session(conn: asyncpg.Connection, session_id: UUID, status: Sessio
     # 다음 계획의 근거가 된다. 그 대화가 계획에 어떻게 읽히는지는 관측 항목이다.
     if closed["mode"] == SCENARIO_INTAKE_MODE:
         await enqueue_generate_scenario(conn, session_id)
+
+    # `TASK-26` · 결정 91 — 주간 리포트. ⛔ **조건부다**: 지난 주 행이 이미 있으면 넣지 않는다(그
+    # 판정을 SQL 한 문장이 하므로 여기서 조회하지 않는다 — `enqueue_summarize_week` 의 docstring 이
+    # 근거를 갖는다). ⚠️ 이 리포에 스케줄러가 없어 **세션 종료가 유일한 주기 신호**이고, 한 주에 한
+    # 번도 학습하지 않으면 그 주 리포트가 생기지 않는다 — 결정 91 이 그 대가를 알고 골랐다.
+    await enqueue_summarize_week(conn, session_id)
 
 
 async def reap_orphan_sessions(
