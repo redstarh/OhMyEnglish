@@ -4,7 +4,7 @@ title: '구현: 합성한 쉐도잉 클립 오디오를 담을 자리를 만든�
 status: In Progress
 assignee: []
 created_date: '2026-09-09 14:16'
-updated_date: '2026-09-12 23:39'
+updated_date: '2026-09-13 13:05'
 labels: []
 dependencies:
   - TASK-63
@@ -74,4 +74,8 @@ AC#3 닫음 2026-09-13 (세션 ohmyenglish-f4 · 사용자 결정 88).
 ⚠️ 남은 것 하나 — **dev DB 행은 아직 `0.00|30.00` 임**(직접 조회로 확인). 시드 상수가 정본이고 upsert 가 `do update` 라 `seed()` 재실행이 동기화하지만 그것은 dev DB 쓰기라 승인 사안으로 사용자에게 올림. ⛔ `scripts/migrate.py` 를 스크립트로 통째 실행하면 미적용 마이그레이션 020·021 까지 적용될 수 있으므로 그 경로로 돌리지 않음.
 
 AC#1·#2·#4·#5 는 그대로 열려 있고 새 설계 주기(brainstorming → writing-plans)가 필요함 — 앞 노트의 사실 셋이 근거임.
+
+dev DB 동기화 완료 2026-09-13 (사용자 승인). `seed()` 만 불렀음 — `migrate.py` 를 스크립트로 실행하지 않았음.
+
+직접 읽은 전후: 클립 행 `0.00|30.00` → `0.00|16.64` · `schema_migrations` 최신 둘은 전후 모두 `019_scenario_display_order.sql`·`018_scenario_source_and_generate_job.sql` 임 ⇒ 020·021 은 여전히 미적용임(그 적용은 별개의 승인 사안).
 <!-- SECTION:NOTES:END -->
