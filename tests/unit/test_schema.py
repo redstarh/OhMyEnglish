@@ -13,7 +13,7 @@ import importlib.util
 import json
 import sys
 import types
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from itertools import count
 from pathlib import Path
 from uuid import uuid4
@@ -107,6 +107,9 @@ async def test_001_migration_creates_expected_tables(db_conn: asyncpg.Connection
         # 013 — LLM 호출 토큰 사용량 (결정 66 · `TASK-60`). 호출 1건 = 행 1건이고 job **밖**
         # 호출(계획 스파이크·Nova·예열)까지 담는 것이 이 표의 존재 이유다.
         "llm_calls",
+        # 023 — 주간 학습 리포트 (`TASK-26` · 결정 4·91). 사실(`metrics`)과 모델 판단(`insights`)을
+        # 한 행에 함께 담는 이유는 설계서 §5 가 갖는다 — 나누면 판단이 근거로 삼은 사실과 어긋난다.
+        "weekly_reports",
     }
 
 
@@ -1449,3 +1452,112 @@ async def test_shadowing_clip_audio_is_rejected_when_the_clip_has_a_source_url(
                 item_id,
                 f"{item_id}.wav",
             )
+
+
+# ⑦ 023 — 주간 리포트 (`TASK-26.1` · 결정 4·58·91 ·
+#      설계서 `2026-09-14-weekly-report-design.md` §3·§6).
+@pytest.mark.asyncio
+async def test_weekly_report_week_start_must_be_monday(db_conn: asyncpg.Connection):
+    """⛔ 결정 4·58 의 「월요일 시작」을 값역으로 새긴다.
+
+    계산은 `date_trunc('week', …)` 이고 Postgres 가 월요일을 주 시작으로 쓴다(ISO 8601). 이 CHECK 가
+    없으면 **일요일 기준으로 계산한 코드가 조용히 섞이고** 두 주가 겹친 행이 생긴다.
+    """
+    await _insert_user(db_conn)
+
+    # 2026-09-14 는 월요일이다.
+    await db_conn.execute(
+        "insert into weekly_reports (user_id, week_start, timezone) "
+        "values ($1, '2026-09-14', 'Asia/Seoul')",
+        migrate.USER_ID,
+    )
+
+    # ⚠️ asyncpg 는 `date` 파라미터에 문자열을 받지 않는다(`'str' object has no attribute
+    # 'toordinal'`) — 날짜는 `date` 객체로 준다.
+    for bad in (date(2026, 9, 13), date(2026, 9, 15)):  # 일요일 · 화요일
+        with pytest.raises(asyncpg.CheckViolationError):
+            async with db_conn.transaction():
+                await db_conn.execute(
+                    "insert into weekly_reports (user_id, week_start, timezone) "
+                    "values ($1, $2, 'Asia/Seoul')",
+                    migrate.USER_ID,
+                    bad,
+                )
+
+
+@pytest.mark.asyncio
+async def test_weekly_report_is_one_row_per_user_and_week(db_conn: asyncpg.Connection):
+    """재계산이 행을 늘리지 않는다 — `on conflict (user_id, week_start)` 가 이 키를 쓴다."""
+    await _insert_user(db_conn)
+    await db_conn.execute(
+        "insert into weekly_reports (user_id, week_start, timezone) "
+        "values ($1, '2026-09-14', 'Asia/Seoul')",
+        migrate.USER_ID,
+    )
+
+    with pytest.raises(asyncpg.UniqueViolationError):
+        async with db_conn.transaction():
+            await db_conn.execute(
+                "insert into weekly_reports (user_id, week_start, timezone) "
+                "values ($1, '2026-09-14', 'Asia/Seoul')",
+                migrate.USER_ID,
+            )
+
+
+@pytest.mark.asyncio
+async def test_weekly_job_targets_a_session_and_nothing_else(db_conn: asyncpg.Connection):
+    """⛔ `job_type` 값역만 늘리면 job 이 들어가지 않는다 — 상호배타 CHECK 를 함께 고쳐야 한다.
+
+    018 주석이 그 함정을 이미 적었다: *"분기를 함께 더해야 한다"*. 대상이 **세션**인 이유는 그
+    세션의 종료가 트리거이기 때문이고, 「어떤 주」는 워커가 다시 구한다(설계서 §6).
+    """
+    await _insert_user(db_conn)
+    session_id = await db_conn.fetchval(
+        "insert into learning_sessions (user_id, mode) values ($1, 'speaking') returning id",
+        migrate.USER_ID,
+    )
+
+    assert (
+        await db_conn.fetchval(
+            "insert into analysis_jobs (job_type, session_id) "
+            "values ('summarize_week', $1) returning id",
+            session_id,
+        )
+        is not None
+    )
+
+    # 대상이 없으면 거부된다.
+    with pytest.raises(asyncpg.CheckViolationError):
+        async with db_conn.transaction():
+            await db_conn.execute("insert into analysis_jobs (job_type) values ('summarize_week')")
+
+    # 발화를 함께 주는 것도 거부된다 — 상호배타다.
+    utterance_id = await db_conn.fetchval(
+        "insert into utterances (session_id, speaker, transcript, sequence_no) "
+        "values ($1, 'user', 'I worked on the API.', 1) returning id",
+        session_id,
+    )
+    with pytest.raises(asyncpg.CheckViolationError):
+        async with db_conn.transaction():
+            await db_conn.execute(
+                "insert into analysis_jobs (job_type, session_id, utterance_id) "
+                "values ('summarize_week', $1, $2)",
+                session_id,
+                utterance_id,
+            )
+
+
+@pytest.mark.asyncio
+async def test_llm_calls_accepts_the_weekly_purpose(db_conn: asyncpg.Connection):
+    """⚠️ `TASK-134` 가 이 자리에서 **조용한 소실**을 잡았다 — 값역이 좁아 토큰 기록이 사라졌고
+    `usage.py` 가 `PostgresError` 를 삼켜 아무도 몰랐다. 같은 실패를 반복하지 않는다.
+    """
+    await db_conn.execute(
+        "insert into llm_calls (provider, model_id, purpose, input_tokens, output_tokens) "
+        "values ('bedrock', 'us.anthropic.claude-opus-5', 'summarize_week', 10, 20)"
+    )
+
+    assert (
+        await db_conn.fetchval("select count(*) from llm_calls where purpose = 'summarize_week'")
+        == 1
+    )

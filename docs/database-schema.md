@@ -24,7 +24,9 @@ erDiagram
   SHADOWING_ITEMS ||--o{ LEARNING_SESSIONS : "picked by (011)"
 ```
 
-`weekly_reports`는 아직 SQL에 존재하지 않아 다이어그램에서 제외했다 — 아래 표에서 도입 단계만 안내한다.
+⚠️ **`weekly_reports`는 2026-09-14에 도입됐다**(023 · `TASK-26`). 이전 판이 *"아직 SQL에 존재하지
+않아 다이어그램에서 제외했다"*고 안내했으나 그 서술은 낡았다 — 명세는 아래 자기 절이 갖는다.
+그 표는 `users` 에만 매이므로(`user_id` FK 하나) 위 다이어그램의 관계 목록에 새 선을 더하지 않았다.
 ⚠️ **`shadowing_items`는 2026-09-09에 도입됐다**(011 · 캡틴 결정 36으로 개발 DB에 적용). 이전 판이
 그것을 미도입으로 안내했으나 그 서술은 낡았다 — 아래 자기 절에 명세가 있다.
 ⚠️ **마이그레이션 번호에 `002`는 없다** — 만들어진 적이 없고(파일·git 이력 각 0건) 003~005가 발음, **006이 학습 코치 슬라이스 1**이다. 이전 판이 미도입 표를 "002"로 안내했으나 그 번호는 이미 지나갔다.
@@ -499,15 +501,44 @@ CHECK 식이 NULL이면 Postgres가 만족으로 취급해 **빈 배열이 통�
 `unique(user_id, summary_date)`가 upsert의 conflict 대상이고 조회 인덱스도 겸한다 — **별도 인덱스를
 두지 않은 이유**다. 재분석으로 다시 쓰이면 `computed_at`이 함께 갱신된다.
 
+### `weekly_reports` — 도입: **023**(주간 학습 리포트)
+
+| 컬럼 | 타입 | 제약 |
+|---|---|---|
+| `id` | uuid | PK, `default gen_random_uuid()` |
+| `user_id` | uuid | not null, FK → `users`, `on delete cascade` |
+| `week_start` | **date** | not null, CHECK `extract(isodow) = 1`(**월요일**) |
+| `timezone` | text | not null, CHECK 공백만인 값 거부 |
+| `metrics` | jsonb | not null, default `'{}'` — **사실** |
+| `insights` | jsonb | not null, default `'{}'` — **모델 판단** |
+| `computed_at` | timestamptz | nullable — null = 아직 계산하지 않았다 |
+| `created_at` | timestamptz | not null, default `now()` |
+| — | — | UNIQUE(`user_id`, `week_start`) · INDEX(`user_id`, `week_start desc`) |
+
+⛔ **`metrics` 와 `insights` 를 가르는 것은 R11-8 이다** — *"조회는 **사실**을 제공하고 **판단은 학습
+분석 Agent** 가 한다"*. 그래서 제품이 개선 여부를 계산하지 않고, 사실을 모아 모델에게 주고 판단을
+받아 같은 행에 적재한다. ⚠️ **둘을 한 행에 두는 이유**: 사실만 조회로 두면 재분석에 따라 변해
+**같은 행의 판단과 어긋나고** 리포트가 스스로를 설명하지 못한다(설계서 §5).
+⛔ **점수·등급·달성률을 담지 않는다** — R13-5 의 톤 계약과 PRD §15.3 의 비범위이고, 프롬프트가
+그것을 요구하지 않으며 출력 규격에 그 키가 없다(`TASK-62` 가 총평에서 세운 방식).
+
+`week_start` 가 `date` 인 것과 `timezone` 을 스냅샷으로 남기는 것은 **`daily_error_summary` 와 같은
+이유**다(그 절이 근거를 갖는다): 달력 날짜는 절대 시각이 아니고, `users.timezone` 이 바뀌면 과거
+리포트가 어느 경계로 그어졌는지 복원할 수 없다.
+⚠️ 「다음 주 추천 시나리오」를 별 컬럼(`plan`)으로 두지 않았다 — 같은 모델 호출의 산출물이라 두
+컬럼으로 나누면 원자성이 두 자리로 번진다. 이전 판의 제안(`metrics_json`·`insights`·`plan`)과
+달라진 자리가 그 둘이다.
+
 ### 아직 SQL에 없는 테이블
 
-| 테이블 | 도입 | 비고 |
-|---|---|---|
-| `weekly_reports` | 주간 리포트 착수 시 | `id`, `user_id`, `week_start`, `metrics_json`, `insights`, `plan` — 주간 리포트 착수 시 추가 |
+**없다.** 이 절이 안내하던 표가 전부 도입됐다.
 
-⚠️ **`shadowing_items`가 이 표에서 빠진 것은 도입됐기 때문이다**(011 · 2026-09-09). 명세는 위
-자기 절이 갖는다 — 이 표에 남겨 두면 「설계 ↔ 실제 DB」가 갈라진다(그 위험은 010 때도 같았고
-그때는 마이그레이션과 이 문서를 한 커밋에서 함께 고쳤다).
+⚠️ **`shadowing_items`(011 · 2026-09-09)와 `weekly_reports`(023 · 2026-09-14)가 이 절에서 빠진 것은
+도입됐기 때문이다.** 명세는 각자 위의 자기 절이 갖는다 — 이 절에 남겨 두면 「설계 ↔ 실제 DB」가
+갈라진다(그 위험은 010 때도 같았고 그때는 마이그레이션과 이 문서를 한 커밋에서 함께 고쳤다).
+⛔ **새 표를 여기에 「제안 컬럼」으로 적어 두지 않는 것이 낫다** — `weekly_reports` 의 제안이
+`metrics_json`·`plan` 이었고 실제 도입은 `metrics`·`insights` 로 갔다. 착수 전 제안은 근거가
+쌓이기 전의 추정이라 그대로 굳으면 잘못된 권위가 된다.
 
 ## 오류 패턴 레코드 예시
 
