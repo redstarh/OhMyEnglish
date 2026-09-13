@@ -124,6 +124,15 @@ class Settings(BaseSettings):
     # `app/backend/assets/audio/`는 **추적 대상이 된다** → 학습자 녹음이 git 에 들어간다.
     # 이 값을 백엔드 트리 안으로 옮기면 개인정보가 커밋된다.
     shadowing_audio_root: Path = Path("../../assets/audio")
+    # 합성 클립 오디오의 뿌리 (`TASK-66` · 결정 90 · 설계서 §4).
+    # ⛔ **`shadowing_audio_root` 를 재사용하지 않는 것이 이 줄의 핵심이다**:
+    # `sweep_orphan_recording_files` 가 그 뿌리를 `iterdir()` 로 순회하며 걷으므로 같은 자리에
+    # 두면 **제품 자산이 스윕 대상이 된다.** 학습자 녹음은 당일이 지나면 지워지는 개인정보이고
+    # 이쪽은 리포와 함께 배포되는 제품 자산이라 **수명주기가 반대다.**
+    # ⚠️ 위 줄과 **정반대의 이유로** 이 경로다: 그쪽은 `.gitignore` 의 `assets/audio/` 안에
+    # 머물러 추적을 피하고, 이쪽은 그 형제 자리라 **추적된다** — 그것이 결정 90 의
+    # 「리포에 추적한다」이고, 여기서 벗어나면 clone 한 환경에 소리가 없다.
+    shadowing_clip_audio_root: Path = Path("../../assets/clips")
 
 
 @lru_cache

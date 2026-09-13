@@ -479,6 +479,7 @@ def test_declared_defaults_are_immune_to_the_environment():
     assert declared["shadowing_playback_rate"] == 1.0
     assert declared["shadowing_repeat_count"] == 1
     assert declared["shadowing_audio_root"] == Path("../../assets/audio")
+    assert declared["shadowing_clip_audio_root"] == Path("../../assets/clips")
     # 모델 ID도 같은 부류다 — `test_claude_schema.py`가 이 값을 리터럴로 단정한다.
     assert declared["claude_model_id"] == "us.anthropic.claude-opus-5"
 
@@ -511,6 +512,29 @@ def test_shadowing_audio_root_defaults_outside_the_backend_tree(_no_settings_env
     assert settings.shadowing_audio_root == Path("../../assets/audio")
     # 백엔드 트리 **안**을 가리키지 않는다 — 위 근거가 이 성질에 걸려 있다.
     assert not (BACKEND_ROOT / settings.shadowing_audio_root).resolve().is_relative_to(BACKEND_ROOT)
+
+
+# TASK-66 — 합성 클립 오디오의 뿌리 (결정 90).
+# 설계: `docs/design/2026-09-14-shadowing-clip-audio-design.md` §4.
+def test_shadowing_clip_audio_root_is_a_separate_root_from_learner_recordings(_no_settings_env):
+    """⛔ **두 오디오의 뿌리가 달라야 한다.**
+
+    `sweep_orphan_recording_files` 가 `shadowing_audio_root` 를 `iterdir()` 로 순회하며 걷으므로
+    같은 자리에 두면 **제품 자산이 스윕 대상이 된다.** 그리고 학습자 녹음 뿌리는 `.gitignore` 에
+    걸려 있어 그 아래 두면 클립이 **배포되지 않는다** — 두 성질이 같은 방향을 가리킨다.
+    ⚠️ 학습자 녹음 뿌리와 **정반대의 이유로** 이 경로다: 그쪽은 추적을 피하려고 리포루트 밖으로
+    나가고, 이쪽은 추적되려고 리포루트 안의 `assets/clips` 를 쓴다.
+    """
+    settings = _settings_with_credentials()
+
+    assert settings.shadowing_clip_audio_root == Path("../../assets/clips")
+    assert settings.shadowing_clip_audio_root != settings.shadowing_audio_root
+    # 학습자 녹음 뿌리의 **아래**가 아니다 — 스윕의 순회 범위 밖이라는 뜻이다.
+    assert (
+        not (BACKEND_ROOT / settings.shadowing_clip_audio_root)
+        .resolve()
+        .is_relative_to((BACKEND_ROOT / settings.shadowing_audio_root).resolve())
+    )
 
 
 @pytest.mark.parametrize("rate", [0.49, 2.01])
