@@ -82,7 +82,7 @@ update utterances
 # 세션이 고른 클립. **join 0행이 「클립 없음」의 유일한 표현이다** — 세션 부재·`shadowing_item_id`
 # null·클립 행 부재가 전부 여기로 수렴한다(`load_session_scenario` 와 같은 규약).
 _SELECT_SESSION_CLIP_SQL = """
-select i.id, i.source_title, i.transcript, i.clip_start_sec, i.clip_end_sec
+select i.id, i.source_title, i.transcript, i.clip_start_sec, i.clip_end_sec, i.audio_filename
   from learning_sessions s
   join shadowing_items i on i.id = s.shadowing_item_id
  where s.id = $1
@@ -132,6 +132,12 @@ class ShadowingClip:
     transcript: str
     clip_start_sec: Decimal
     clip_end_sec: Decimal
+    # 이 클립에 합성 오디오가 있는가 (`TASK-66` · 결정 90). ⛔ **파일명이 아니라 불린이다** —
+    # 경로는 서버의 것이고 화면이 알아야 하는 것은 「재생 버튼을 보일지」 하나다. `level` 을 담지
+    # 않은 것과 같은 규율이다: 화면이 쓰지 않는 것을 싣지 않는다.
+    # ⚠️ 파일의 존재가 아니라 **DB 포인터**를 뜻한다 — 접근 가능성의 정본이 DB 이고, 파일 부재는
+    # `load_clip_audio` 가 404 로 닫는다(설계서 §5·§6).
+    has_audio: bool
 
 
 @dataclass(frozen=True, slots=True)
@@ -165,6 +171,9 @@ class ShadowingTurns:
             "clip_end_sec": float(self.clip.clip_end_sec),
             "playback_rate": self.playback_rate,
             "repeat_count": self.repeat_count,
+            # ⛔ 파일명을 싣지 않는다 — 화면은 `/api/shadowing/clips/{item_id}/audio` 를 부르고
+            # 경로 조립은 서버가 한다(`TASK-66` · 설계서 §6).
+            "has_audio": self.clip.has_audio,
         }
 
 
@@ -188,6 +197,7 @@ async def load_session_clip(conn: asyncpg.Connection, session_id: UUID) -> Shado
         transcript=row["transcript"],
         clip_start_sec=row["clip_start_sec"],
         clip_end_sec=row["clip_end_sec"],
+        has_audio=row["audio_filename"] is not None,
     )
 
 

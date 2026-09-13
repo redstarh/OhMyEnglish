@@ -23,6 +23,8 @@ import pytest
 
 from app.services.recordings import (
     RECORDING_MEDIA_TYPE,
+    ShadowingClip,
+    ShadowingTurns,
     day_start_for,
     finalize_recording,
     load_recording,
@@ -909,6 +911,69 @@ async def test_loading_the_clip_of_a_session_that_picked_one(
     assert clip.id == clip_id
     assert clip.transcript == "I usually wake up at seven."
     assert (clip.clip_start_sec, clip.clip_end_sec) == (Decimal("0.00"), Decimal("30.00"))
+
+
+# TASK-66 — 화면이 재생 버튼을 보일지 정하는 신호 (결정 90 ·
+# 설계서 `2026-09-14-shadowing-clip-audio-design.md` §6).
+@pytest.mark.asyncio
+async def test_clip_reports_whether_its_audio_exists(db_conn: asyncpg.Connection) -> None:
+    """`has_audio` 가 두 상태를 정확히 가른다 — 404 를 기다려 정하지 않는다.
+
+    ⛔ **파일명을 프런트에 내려보내지 않는다.** 경로는 서버의 것이고, 화면이 알아야 하는 것은
+    「소리가 있는가」 하나다.
+    """
+    session_id = await _new_shadowing_session(db_conn)
+    clip_id = await db_conn.fetchval(
+        "insert into shadowing_items "
+        "(source_title, transcript, clip_start_sec, clip_end_sec, level) "
+        "values ('A morning routine', 'I usually wake up at seven.', 0, 17.36, 'A2') returning id"
+    )
+    await db_conn.execute(
+        "update learning_sessions set shadowing_item_id = $2 where id = $1", session_id, clip_id
+    )
+
+    silent = await load_session_clip(db_conn, session_id)
+    assert silent is not None
+    assert silent.has_audio is False
+
+    await db_conn.execute(
+        "update shadowing_items set audio_filename = $2 where id = $1", clip_id, f"{clip_id}.wav"
+    )
+
+    loud = await load_session_clip(db_conn, session_id)
+    assert loud is not None
+    assert loud.has_audio is True
+
+
+def test_event_payload_carries_has_audio_and_never_the_filename() -> None:
+    """payload 의 **키 집합**이 계약이다 — 파일명이 새어 나가면 이 단정이 깨진다.
+
+    ⚠️ 키를 하나씩 재지 않고 집합으로 재는 이유: 「없어야 하는 것이 없다」는 열거로 지킬 수 없다.
+    """
+    clip = ShadowingClip(
+        id=UUID("00000000-0000-0000-0000-000000000201"),
+        source_title="A morning routine",
+        transcript="I usually wake up at seven.",
+        clip_start_sec=Decimal("0.00"),
+        clip_end_sec=Decimal("17.36"),
+        has_audio=True,
+    )
+
+    payload = ShadowingTurns(
+        clip=clip, audio_root=Path("/tmp"), playback_rate=1.5, repeat_count=3
+    ).as_event_payload()
+
+    assert payload["has_audio"] is True
+    assert set(payload) == {
+        "item_id",
+        "source_title",
+        "transcript",
+        "clip_start_sec",
+        "clip_end_sec",
+        "playback_rate",
+        "repeat_count",
+        "has_audio",
+    }
 
 
 @pytest.mark.asyncio

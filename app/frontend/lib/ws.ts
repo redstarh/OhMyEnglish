@@ -44,6 +44,14 @@ export interface ShadowingSetup {
   clip_end_sec: number;
   playback_rate: number;
   repeat_count: number;
+  /**
+   * 이 클립에 합성 오디오가 있는가 (`TASK-66` · 결정 90).
+   *
+   * ⛔ **파일명이 아니다** — 경로는 서버의 것이고 화면은 재생 버튼을 보일지만 정한다. 소리를
+   * 받으려면 `/api/shadowing/clips/{item_id}/audio` 를 부른다.
+   * ⚠️ 이 값이 `false` 면 버튼을 **숨긴다** — 눌러 보고 404 를 받는 화면은 학습자를 기다리게 한다.
+   */
+  has_audio: boolean;
 }
 
 export type ServerEvent =

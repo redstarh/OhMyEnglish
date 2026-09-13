@@ -286,6 +286,9 @@ def _shadowing_turns(root: Path, **kw: Any) -> ShadowingTurns:
         transcript=SHADOWING_TRANSCRIPT,
         clip_start_sec=Decimal("0.00"),
         clip_end_sec=Decimal("30.00"),
+        # 기본을 `True` 로 둔다 — 시드 클립이 오디오를 갖게 된 뒤(`TASK-66`)의 정상 상태다.
+        # 뒤집어 재려면 `_shadowing_turns(root, has_audio=False)` 로 준다.
+        has_audio=kw.get("has_audio", True),
     )
     return ShadowingTurns(
         clip=clip,
@@ -319,6 +322,8 @@ async def test_session_started_carries_the_clip_and_the_settings(
         "clip_end_sec": 30.0,
         "playback_rate": 1.5,
         "repeat_count": 3,
+        # `TASK-66` — 소리가 있는가. ⛔ 파일명은 실리지 않는다(경로는 서버의 것이다).
+        "has_audio": True,
     }
 
 
