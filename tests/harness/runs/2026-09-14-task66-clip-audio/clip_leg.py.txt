@@ -1,0 +1,215 @@
+#!/usr/bin/env python3
+"""브라우저 레그 — 쉐도잉 클립 오디오가 실제 앱 경로에서 재생되는지 본다 (`TASK-66.7`).
+
+⛔ **단위·통합으로 닫지 않는 이유**: 그 둘은 서버가 바이트를 내주는 것까지만 잰다. 「패널이 뜨고
+버튼이 눌리고 그 클릭이 오디오를 «설정된 속도»로 열고 «반복»한다」는 화면 쪽 사실이다.
+
+**두 함정을 우회한다** (`H-AE`·`H-BD` · 정본 `tests/harness/runs/2026-09-12-task10-2-entry-browser-leg.md`):
+* 합성 클릭은 user activation 을 만들지 않는다 ⇒ CDP 입력으로 무해한 요소를 한 번 클릭한다.
+* 플러그인 Chrome 에는 오디오 장치가 없다 ⇒ `--use-fake-device-for-media-stream` 전용 Chrome 을 쓴다.
+
+⚠️ **반복을 23초 기다리지 않는다** — 클립이 17.36초이고 스텁 어댑터가 세션을 곧 끝내므로 창이
+짧다. 브라우저가 재생 끝에 하는 일(`ended` 발화)을 CDP 로 일으켜 **내 핸들러**를 잰다.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import base64
+import json
+import pathlib
+import sys
+import urllib.request
+
+CDP = "http://127.0.0.1:9333"
+PAGE = "http://localhost:3000/"
+OUT = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else "/tmp/clip_leg_out")
+EXPECTED_RATE = 1.5
+EXPECTED_REPEAT = 2
+
+
+def open_tab() -> str:
+    request = urllib.request.Request(f"{CDP}/json/new?{PAGE}", method="PUT")
+    with urllib.request.urlopen(request, timeout=10) as response:
+        return json.load(response)["webSocketDebuggerUrl"]
+
+
+class Session:
+    def __init__(self, ws) -> None:
+        self._ws = ws
+        self._next = 0
+
+    async def call(self, method: str, params: dict | None = None) -> dict:
+        self._next += 1
+        message_id = self._next
+        await self._ws.send(json.dumps({"id": message_id, "method": method, "params": params or {}}))
+        while True:
+            payload = json.loads(await asyncio.wait_for(self._ws.recv(), 30))
+            if payload.get("id") == message_id:
+                if "error" in payload:
+                    raise SystemExit(f"{method} 실패: {payload['error']}")
+                return payload.get("result", {})
+
+    async def eval(self, expression: str) -> object:
+        result = await self.call(
+            "Runtime.evaluate",
+            {"expression": expression, "returnByValue": True, "awaitPromise": True},
+        )
+        return result.get("result", {}).get("value")
+
+    async def click_center_of(self, selector: str) -> None:
+        box = await self.eval(
+            "(() => { const el = " + selector + ";"
+            " if (!el) return null; const r = el.getBoundingClientRect();"
+            " return {x: r.left + r.width / 2, y: r.top + r.height / 2}; })()"
+        )
+        if not isinstance(box, dict):
+            raise SystemExit(f"클릭 대상을 찾지 못했다: {selector}")
+        for event_type in ("mousePressed", "mouseReleased"):
+            await self.call(
+                "Input.dispatchMouseEvent",
+                {"type": event_type, "x": box["x"], "y": box["y"], "button": "left", "clickCount": 1},
+            )
+
+    async def shot(self, name: str) -> None:
+        data = await self.call("Page.captureScreenshot", {"format": "png"})
+        path = OUT / name
+        path.write_bytes(base64.b64decode(data["data"]))
+        print(f"스크린샷: {path}")
+
+
+SHADOWING_BUTTON = (
+    "[...document.querySelectorAll('button')].find(b => b.textContent.trim() === '쉐도잉')"
+)
+PLAY_BUTTON = (
+    "[...document.querySelectorAll('button')].find(b => b.textContent.trim() === '클립 듣기')"
+)
+
+# 재생 호출을 가로채 기록한다 — 원본을 그대로 부르므로 동작을 바꾸지 않는다.
+#
+# ⛔ **그리고 화면이 결과로 넘어가는 것을 붙잡는다.** 스텁 어댑터가 세션을 곧 닫아 패널이 뜬 창이
+# 1초를 못 넘기고, 그러면 재생을 누를 대상이 없다. 붙잡는 것은 **`session_ended` 프레임과 소켓
+# close 둘뿐**이고, 재는 대상(패널 렌더 · 오디오 HTTP GET · 재생 속도 · 반복)은 그 둘과 무관하다.
+# ⚠️ 이것이 회차의 개입이므로 기록에 남긴다 — 실물 세션(Nova)에서는 대화 동안 창이 열려 있다.
+INSTALL_HOOKS = """
+window.__plays = [];
+window.__snaps = [];
+window.__held = {ended: 0, closed: 0};
+const OrigWS = window.WebSocket;
+function PatchedWS(...args) {
+  const ws = new OrigWS(...args);
+  Object.defineProperty(ws, 'onmessage', {
+    configurable: true,
+    set(fn) {
+      ws.addEventListener('message', (event) => {
+        try {
+          if (JSON.parse(event.data).type === 'session_ended') {
+            window.__held.ended += 1;
+            return;
+          }
+        } catch (err) { /* 프레임이 JSON 이 아니면 그대로 넘긴다 */ }
+        fn(event);
+      });
+    },
+    get() { return null; },
+  });
+  Object.defineProperty(ws, 'onclose', {
+    configurable: true,
+    set() { ws.addEventListener('close', () => { window.__held.closed += 1; }); },
+    get() { return null; },
+  });
+  return ws;
+}
+PatchedWS.prototype = OrigWS.prototype;
+window.WebSocket = PatchedWS;
+const origPlay = HTMLMediaElement.prototype.play;
+HTMLMediaElement.prototype.play = function () {
+  window.__plays.push({src: this.src, rate: this.playbackRate, at: Date.now()});
+  window.__audio = this;
+  return origPlay.apply(this, arguments);
+};
+new MutationObserver(() => window.__snaps.push(document.body.innerText))
+  .observe(document.body, {subtree: true, childList: true, characterData: true});
+'installed'
+"""
+
+
+async def wait_for(session: Session, expression: str, label: str, tries: int = 120) -> object:
+    for _ in range(tries):
+        value = await session.eval(expression)
+        if value:
+            return value
+        await asyncio.sleep(0.25)
+    print(f"⛔ 기다렸으나 나타나지 않았다: {label}")
+    return None
+
+
+async def main() -> None:
+    from websockets.asyncio.client import connect
+
+    OUT.mkdir(parents=True, exist_ok=True)
+    async with connect(open_tab(), max_size=None) as ws:
+        session = Session(ws)
+        await session.call("Page.enable")
+        await session.call("Runtime.enable")
+        await asyncio.sleep(2.5)
+
+        print("=== ① sticky activation (H-AE) ===")
+        await session.click_center_of("document.querySelector('h1')")
+        print(f"hasBeenActive: {await session.eval('navigator.userActivation.hasBeenActive')}")
+
+        print(f"훅 설치: {await session.eval(INSTALL_HOOKS)}")
+
+        print("=== ② 쉐도잉 세션을 연다 ===")
+        await session.click_center_of(SHADOWING_BUTTON)
+
+        panel = await wait_for(
+            session,
+            "(() => { const h = [...document.querySelectorAll('h2')]"
+            ".find(x => x.textContent.includes('morning routine')); return h ? h.textContent : null; })()",
+            "패널 제목",
+        )
+        print(f"패널 제목: {panel}")
+        transcript = await session.eval(
+            "(() => { const h = [...document.querySelectorAll('h2')]"
+            ".find(x => x.textContent.includes('morning routine'));"
+            " return h && h.nextElementSibling ? h.nextElementSibling.textContent : null; })()"
+        )
+        print(f"전사문: {transcript}")
+        await session.shot("panel.png")
+
+        print("=== ③ 클립 듣기 를 CDP 입력으로 누른다 ===")
+        button = await wait_for(session, f"!!({PLAY_BUTTON})", "재생 버튼")
+        if not button:
+            print(f"본문: {await session.eval('document.body.innerText')}")
+            raise SystemExit("재생 버튼이 없다")
+        await session.click_center_of(PLAY_BUTTON)
+        await asyncio.sleep(1.5)
+
+        plays = await session.eval("window.__plays")
+        print(f"play 호출: {json.dumps(plays, ensure_ascii=False)}")
+        state = await session.eval(
+            "(() => { const a = window.__audio; return a ? {rate: a.playbackRate, "
+            "paused: a.paused, currentTime: a.currentTime, duration: a.duration, "
+            "readyState: a.readyState, src: a.src} : null; })()"
+        )
+        print(f"오디오 상태: {json.dumps(state, ensure_ascii=False)}")
+        print(f"버튼 문면: {await session.eval(f'({PLAY_BUTTON}) ? 1 : 0')} (0 이면 「멈추기」로 바뀜)")
+        await session.shot("playing.png")
+
+        print("=== ④ 반복 — 브라우저가 끝에서 하는 일(ended)을 일으켜 내 핸들러를 잰다 ===")
+        await session.eval(
+            "window.__audio.dispatchEvent(new Event('ended')); 'dispatched'"
+        )
+        await asyncio.sleep(1.0)
+        plays_after = await session.eval("window.__plays.length")
+        print(f"ended 뒤 play 호출 수: {plays_after} (기대 {EXPECTED_REPEAT})")
+        await session.eval("window.__audio.dispatchEvent(new Event('ended')); 'dispatched'")
+        await asyncio.sleep(1.0)
+        print(f"두 번째 ended 뒤 play 호출 수: {await session.eval('window.__plays.length')}")
+        print(f"멈춘 뒤 버튼 문면: {await session.eval('(' + PLAY_BUTTON + ') ? \"클립 듣기\" : \"멈추기 또는 없음\"')}")
+        print(f"본문 일부: {(await session.eval('document.body.innerText'))[:300]}")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

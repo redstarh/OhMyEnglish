@@ -1,0 +1,33 @@
+=== ① sticky activation (H-AE) ===
+hasBeenActive: True
+훅 설치: installed
+=== ② 쉐도잉 세션을 연다 ===
+패널 제목: A morning routine before work
+전사문: I usually wake up at seven. First, I check my phone for messages. Then I make a cup of coffee. After that, I get ready for work. The bus stop is close to my house. It takes about thirty minutes to get to the office.
+스크린샷: tests/harness/runs/2026-09-14-task66-clip-audio/panel.png
+=== ③ 클립 듣기 를 CDP 입력으로 누른다 ===
+play 호출: [{"src": "http://127.0.0.1:8012/api/shadowing/clips/00000000-0000-0000-0000-000000000201/audio", "rate": 1.5, "at": 1789340010323}]
+오디오 상태: {"rate": 1.5, "paused": false, "currentTime": 2.215661, "duration": 17.36, "readyState": 4, "src": "http://127.0.0.1:8012/api/shadowing/clips/00000000-0000-0000-0000-000000000201/audio"}
+버튼 문면: 0 (0 이면 「멈추기」로 바뀜)
+스크린샷: tests/harness/runs/2026-09-14-task66-clip-audio/playing.png
+=== ④ 반복 — 브라우저가 끝에서 하는 일(ended)을 일으켜 내 핸들러를 잰다 ===
+ended 뒤 play 호출 수: 2 (기대 2)
+두 번째 ended 뒤 play 호출 수: 2
+멈춘 뒤 버튼 문면: 클립 듣기
+본문 일부: OhMyEnglish — 학습 세션
+
+질문: What do you usually do after work?
+
+답변: I usually go to gym after work.
+
+질문: What do you usually do on weekends?
+
+답변: I usually go to office by subway.
+
+질문: What do you need to do tonight?
+
+답변: I need to finish my homework tonight.
+
+A morning routine before work
+
+I usually w

@@ -9,8 +9,10 @@ import {
   SessionSocket,
   type PronunciationOutcome,
   type ServerEvent,
+  type ShadowingSetup,
   type Speaker,
 } from "@/lib/ws";
+import { ShadowingPanel } from "./ShadowingPanel";
 
 type ScreenState = "idle" | "connecting" | "active" | "ending" | "failed";
 
@@ -119,6 +121,9 @@ export default function SessionPage() {
   // 진입 안내 한 줄 (`TASK-10.2` AC#2). 발음 집중을 고른 세션에만 값이 생긴다 — 그 밖에는 `null`
   // 이고 아무것도 렌더하지 않는다(추천 이유와 같은 규약: 빈 자리가 「해당 없음」의 표현이다).
   const [entryNotice, setEntryNotice] = useState<string | null>(null);
+  // 서버가 고른 쉐도잉 클립 (`TASK-66.7`). ⛔ **키의 부재는 「쉐도잉 세션이 아니다」다** —
+  // `pronunciation_focus` 가 세운 규약과 같아서 요청하지 않은 세션에서는 `null` 로 남는다.
+  const [shadowing, setShadowing] = useState<ShadowingSetup | null>(null);
 
   const socketRef = useRef<SessionSocket | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -130,6 +135,8 @@ export default function SessionPage() {
   const requestedModeRef = useRef<SessionEntry["mode"]>(undefined);
 
   const stopMedia = useCallback(() => {
+    // 클립 패널도 함께 내린다 — 언마운트가 소리를 끄므로 세션이 끝나면 재생이 멈춘다(`TASK-66.7`).
+    setShadowing(null);
     const voice = voiceRef.current;
     voiceRef.current = null;
     void voice?.close();
@@ -150,6 +157,9 @@ export default function SessionPage() {
       switch (event.type) {
         case "session_started":
           sessionIdRef.current = event.session_id;
+          // 쉐도잉 세션이면 클립이 실려 온다 (`TASK-66.7`). 키가 없으면 `null` 로 두어 패널을
+          // 렌더하지 않는다 — 「없음」과 「비었음」을 구분하는 이 리포의 규약이다.
+          setShadowing(event.shadowing ?? null);
           // ⛔ **키의 «부재»는 「후보가 아직 없다」다 — 폴백이 아니다** (결정 72·83 ·
           // `lib/ws.ts` 의 `pronunciation_focus` 주석). 요청하지 않은 세션에서는 이 자리를
           // 건드리지 않는다.
@@ -445,6 +455,9 @@ export default function SessionPage() {
               </p>
             )}
           </div>
+          {/* 쉐도잉 클립 (`TASK-66.7`). 대화 상자 **아래**에 두는 이유: 클립은 세션이 시작할 때
+              한 번 정해지는 재료이고 대화는 흐르는 것이라 위계가 다르다. */}
+          {shadowing ? <ShadowingPanel setup={shadowing} /> : null}
           <button
             onClick={endSession}
             disabled={state === "ending"}

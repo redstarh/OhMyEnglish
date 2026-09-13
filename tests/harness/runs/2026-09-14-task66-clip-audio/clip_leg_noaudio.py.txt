@@ -1,0 +1,63 @@
+#!/usr/bin/env python3
+"""브라우저 레그 둘째 갈래 — 오디오가 «없는» 클립에서 버튼이 숨는지 본다 (`TASK-66.7`).
+
+⛔ 눌러서 404 를 받는 버튼을 남기지 않는 것이 설계다(설계서 §6) — 그 성질을 화면에서 잰다.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import json
+import pathlib
+import sys
+
+sys.path.insert(0, "/tmp")
+from clip_leg import INSTALL_HOOKS, SHADOWING_BUTTON, Session, open_tab  # noqa: E402
+
+OUT = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else "/tmp/clip_leg_out")
+
+
+async def main() -> None:
+    from websockets.asyncio.client import connect
+
+    OUT.mkdir(parents=True, exist_ok=True)
+    async with connect(open_tab(), max_size=None) as ws:
+        session = Session(ws)
+        await session.call("Page.enable")
+        await session.call("Runtime.enable")
+        await asyncio.sleep(2.5)
+        await session.click_center_of("document.querySelector('h1')")
+        await session.eval(INSTALL_HOOKS)
+        await session.click_center_of(SHADOWING_BUTTON)
+
+        title = None
+        for _ in range(120):
+            title = await session.eval(
+                "(() => { const h = [...document.querySelectorAll('h2')]"
+                ".find(x => x.textContent.includes('morning routine'));"
+                " return h ? h.textContent : null; })()"
+            )
+            if title:
+                break
+            await asyncio.sleep(0.25)
+        print(f"패널 제목: {title}")
+
+        labels = await session.eval(
+            "[...document.querySelectorAll('button')].map(b => b.textContent.trim())"
+        )
+        print(f"버튼 목록: {json.dumps(labels, ensure_ascii=False)}")
+        notice = await session.eval(
+            "(() => { const p = [...document.querySelectorAll('p')]"
+            ".find(x => x.textContent.includes('소리가 아직 없어요'));"
+            " return p ? p.textContent : null; })()"
+        )
+        print(f"안내 문구: {notice}")
+        print(f"play 호출 수: {await session.eval('window.__plays.length')} (기대 0)")
+        data = await session.call("Page.captureScreenshot", {"format": "png"})
+        import base64
+
+        (OUT / "no-audio.png").write_bytes(base64.b64decode(data["data"]))
+        print(f"스크린샷: {OUT / 'no-audio.png'}")
+
+
+asyncio.run(main())
