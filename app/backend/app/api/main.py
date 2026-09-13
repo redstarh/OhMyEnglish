@@ -26,6 +26,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.daily import router as daily_router
 from app.api.results import router as results_router
+from app.api.shadowing import router as shadowing_router
 from app.api.ws import router as ws_router
 from app.config import get_settings
 from app.db import close_pool, pool
@@ -115,6 +116,8 @@ def create_app() -> FastAPI:
     app.add_middleware(CORSMiddleware, allow_origins=[FRONTEND_ORIGIN], allow_methods=["GET"])
     app.include_router(results_router)
     app.include_router(daily_router)
+    # 클립 오디오는 세션에 매이지 않은 제품 자산이라 `/api/shadowing` 을 따로 쓴다(`TASK-66`).
+    app.include_router(shadowing_router)
     app.include_router(ws_router)
 
     @app.get("/health")
