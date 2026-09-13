@@ -10,13 +10,14 @@
 
 from __future__ import annotations
 
+from datetime import date, timedelta
 from uuid import UUID
 
 import asyncpg
 import pytest
 
 from app.services.jobs import JOB_TYPE_SUMMARIZE_WEEK, enqueue_summarize_week
-from app.services.weekly_report import last_week_start
+from app.services.weekly_report import last_week_start, load_week_facts
 
 
 async def _insert_user(conn: asyncpg.Connection, timezone: str) -> UUID:
@@ -146,3 +147,123 @@ async def test_another_users_row_does_not_block_the_job(db_conn: asyncpg.Connect
     )
 
     assert await enqueue_summarize_week(db_conn, session_id) is not None
+
+
+# ─── 사실 모으기 (`TASK-26.3` · 설계서 §3 의 `metrics`) ───
+#
+# ⚠️ 발화 시각을 **사용자 타임존의 날짜**로 접어서 주에 넣는다 — 그 접기가 하루 밀리면 지난 주와
+# 이번 주가 섞인다. 아래 첫 단정이 그 경계를 양쪽에서 찌른다.
+async def _pattern(conn: asyncpg.Connection, user_id: UUID, key: str) -> UUID:
+    return await conn.fetchval(
+        "insert into error_patterns (user_id, category, pattern_key, target_form) "
+        "values ($1, 'verb_tense', $2, 'worked') returning id",
+        user_id,
+        key,
+    )
+
+
+async def _occurrence(
+    conn: asyncpg.Connection, user_id: UUID, pattern_id: UUID, *, day: date, seq: int
+) -> None:
+    """그 날짜(사용자 타임존 정오)에 발화 하나와 그 발생 하나를 심는다."""
+    session_id = await conn.fetchval(
+        "insert into learning_sessions (user_id, mode, started_at) "
+        "values ($1, 'speaking', ($2::date + time '12:00') at time zone 'Asia/Seoul') returning id",
+        user_id,
+        day,
+    )
+    utterance_id = await conn.fetchval(
+        "insert into utterances (session_id, speaker, transcript, sequence_no, created_at) "
+        "values ($1, 'user', 'Yesterday I work on API.', $2, "
+        "($3::date + time '12:00') at time zone 'Asia/Seoul') returning id",
+        session_id,
+        seq,
+        day,
+    )
+    await conn.execute(
+        "insert into error_occurrences "
+        "(utterance_id, pattern_id, original_span, correction, explanation, severity, confidence) "
+        "values ($1, $2, 'I work', 'I worked', '과거 시제', 'medium', 0.9)",
+        utterance_id,
+        pattern_id,
+    )
+
+
+@pytest.mark.asyncio
+async def test_week_facts_exclude_days_outside_the_week(db_conn: asyncpg.Connection) -> None:
+    """⛔ 경계가 이 단정의 축이다 — 양쪽 하루를 찔러 본다.
+
+    주 밖의 발생이 새면 「그 주에 무엇을 틀렸나」가 거짓이 되고, 그 사실 위에 서는 모델 판단까지
+    함께 틀린다.
+    """
+    user_id = await _insert_user(db_conn, "Asia/Seoul")
+    week = await last_week_start(db_conn, user_id)
+    pattern_id = await _pattern(db_conn, user_id, "tense_past_simple")
+
+    await _occurrence(db_conn, user_id, pattern_id, day=week - timedelta(days=1), seq=1)
+    await _occurrence(db_conn, user_id, pattern_id, day=week, seq=1)
+    await _occurrence(db_conn, user_id, pattern_id, day=week + timedelta(days=6), seq=1)
+    await _occurrence(db_conn, user_id, pattern_id, day=week + timedelta(days=7), seq=1)
+
+    facts = await load_week_facts(db_conn, user_id, week)
+
+    # 월요일과 일요일은 들어오고 그 앞·뒤 하루는 빠진다.
+    assert facts.occurrence_count == 2
+    assert facts.pattern_count == 1
+    assert facts.session_count == 2
+
+
+@pytest.mark.asyncio
+async def test_week_facts_rank_patterns_by_occurrences_then_key(
+    db_conn: asyncpg.Connection,
+) -> None:
+    """상위 오류가 발생 수 내림차순이고 동수는 `pattern_key` 로 갈린다.
+
+    ⚠️ 동수 가름이 없으면 순서가 실행마다 흔들려 화면이 이유 없이 달라진다 — 일일 요약의 `ranked`
+    CTE 가 같은 규약을 쓴다.
+    """
+    user_id = await _insert_user(db_conn, "Asia/Seoul")
+    week = await last_week_start(db_conn, user_id)
+    many = await _pattern(db_conn, user_id, "b_article_missing")
+    tie_a = await _pattern(db_conn, user_id, "a_tense_past")
+    tie_z = await _pattern(db_conn, user_id, "z_preposition")
+
+    for seq, day in enumerate((week, week + timedelta(days=1)), start=1):
+        await _occurrence(db_conn, user_id, many, day=day, seq=seq)
+    await _occurrence(db_conn, user_id, many, day=week + timedelta(days=2), seq=1)
+    await _occurrence(db_conn, user_id, tie_z, day=week + timedelta(days=3), seq=1)
+    await _occurrence(db_conn, user_id, tie_a, day=week + timedelta(days=4), seq=1)
+
+    facts = await load_week_facts(db_conn, user_id, week)
+
+    assert [(p.pattern_key, p.occurrences) for p in facts.top_patterns] == [
+        ("b_article_missing", 3),
+        ("a_tense_past", 1),
+        ("z_preposition", 1),
+    ]
+
+
+@pytest.mark.asyncio
+async def test_week_facts_are_empty_for_a_quiet_week(db_conn: asyncpg.Connection) -> None:
+    """⛔ 「0건」과 「아직 계산 안 됨」은 다르다 — 이 함수는 **0건을 값으로** 준다."""
+    user_id = await _insert_user(db_conn, "Asia/Seoul")
+    week = await last_week_start(db_conn, user_id)
+
+    facts = await load_week_facts(db_conn, user_id, week)
+
+    assert (facts.occurrence_count, facts.pattern_count, facts.session_count) == (0, 0, 0)
+    assert facts.top_patterns == []
+
+
+@pytest.mark.asyncio
+async def test_week_facts_do_not_leak_another_users_errors(db_conn: asyncpg.Connection) -> None:
+    """⛔ 남의 오류가 내 리포트에 새지 않는다 — 조회가 `user_id` 를 함께 봐야 한다."""
+    mine = await _insert_user(db_conn, "Asia/Seoul")
+    other = await _insert_user(db_conn, "Asia/Seoul")
+    week = await last_week_start(db_conn, mine)
+    theirs = await _pattern(db_conn, other, "tense_past_simple")
+    await _occurrence(db_conn, other, theirs, day=week, seq=1)
+
+    facts = await load_week_facts(db_conn, mine, week)
+
+    assert (facts.occurrence_count, facts.session_count) == (0, 0)
