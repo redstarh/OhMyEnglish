@@ -1,0 +1,24 @@
+---
+id: TASK-116.5
+title: '결함 후보: 문장 전체를 인용한 코치 발화는 어긋남 검사가 판정하지 못한다 — 그 모양에서 오염이 통과한다'
+status: To Do
+assignee: []
+created_date: '2026-09-14 17:19'
+labels: []
+dependencies: []
+parent_task_id: TASK-116
+ordinal: 173000
+---
+
+## Description
+
+<!-- SECTION:DESCRIPTION:BEGIN -->
+codex 리뷰(2026-09-15)가 MEDIUM 으로 지목하고 단위 테스트가 이름을 붙여 둔 구멍이다(test_a_whole_sentence_quote_is_still_not_judged). _QUOTED_TOKEN_RE 는 토큰에 공백을 넣지 않으므로 I hear you say "my brother will arrive early tomorrow morning." 같은 문장 전체 인용은 잡히지 않고 판정이 None 이 된다 ⇒ 그 세션의 어긋난 기록이 복습 시계를 그대로 전진시킨다. 실측에서 브라우저 레그 코치가 실제로 그 모양을 썼다(runs/2026-09-15-task81-app-leg §7). ⛔ 문장을 낱말로 쪼개 넣는 안은 기각했다 — 한 문장에는 낱말이 여럿이라 어느 낱말이든 키의 조각을 담을 확률이 높아지고 갈래 ②가 사실상 언제나 None 이 되어 판정력이 사라진다.
+<!-- SECTION:DESCRIPTION:END -->
+
+## Acceptance Criteria
+<!-- AC:BEGIN -->
+- [ ] #1 그 모양이 실제로 얼마나 자주 오는지 센다 — 이미 있는 회차 기록의 코치 발화를 세어 비율을 얻는다(새 회차를 돌리지 않는다)
+- [ ] #2 닫을 자리를 고른다 — 검사(문장에서 소리를 얻는 다른 수단)인지 프롬프트(코치가 소리를 인용하게 만드는 것)인지 가른다. ⛔ 후자는 결정 82 가 「프롬프트를 더 고치지 않는다」로 막은 방향이므로 뒤집으려면 사용자 판단이 필요하다
+- [ ] #3 정한 방향을 구현하고 반대 방향 두 단정으로 지킨다 — 문장 인용이 잡히는 것과 정상 기록이 배제되지 않는 것
+<!-- AC:END -->
