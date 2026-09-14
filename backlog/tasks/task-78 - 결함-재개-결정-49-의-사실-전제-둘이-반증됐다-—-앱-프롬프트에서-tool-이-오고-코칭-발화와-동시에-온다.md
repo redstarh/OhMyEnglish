@@ -1,10 +1,10 @@
 ---
 id: TASK-78
 title: '결함/재개: 결정 49 의 사실 전제 둘이 반증됐다 — 앱 프롬프트에서 tool 이 오고 코칭 발화와 동시에 온다'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-09 16:28'
-updated_date: '2026-09-09 23:01'
+updated_date: '2026-09-14 17:22'
 labels: []
 dependencies:
   - TASK-81
@@ -21,8 +21,8 @@ TASK-65 회차가 찾았다. 정본은 tests/harness/runs/2026-09-09-task65-sess
 <!-- AC:BEGIN -->
 - [x] #1 앱 경로에서 다중 턴으로 tool 이 오는지 확인한다 — 스파이크 직결에서만 관측했다. 브라우저 레그가 필요하고 백엔드를 VOICE_ADAPTER=nova 로 재기동해야 한다
 - [x] #2 다중 턴에서 tool 이 오는 조건과 오지 않는 조건을 가른다 — 4건 중 1건이 0이었다. 표본을 늘려 발음 오류의 심각도·순서·턴 수 중 무엇이 정하는지 좁힌다
-- [ ] #3 target_sound 가 실린 tool 이 실제로 pronunciation_attempts 행과 error_patterns 패턴과 next_review_at 을 만드는지 종단으로 확인한다 — 재료가 있다는 것과 복습 시계가 돈다는 것은 다르다
-- [ ] #4 결과를 사용자에게 올려 결정 49 를 유지할지 뒤집을지 받는다 — 제품 요구사항 판단이라 팀리드가 정하지 않는다. ⛔ 받기 전에 toolChoice 강제를 제품 경로에 넣지 않는다
+- [x] #3 target_sound 가 실린 tool 이 실제로 pronunciation_attempts 행과 error_patterns 패턴과 next_review_at 을 만드는지 종단으로 확인한다 — 재료가 있다는 것과 복습 시계가 돈다는 것은 다르다
+- [x] #4 결과를 사용자에게 올려 결정 49 를 유지할지 뒤집을지 받는다 — 제품 요구사항 판단이라 팀리드가 정하지 않는다. ⛔ 받기 전에 toolChoice 강제를 제품 경로에 넣지 않는다
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -43,4 +43,12 @@ AC#3 미착수 — 워커를 켜지 않았고(H-AT) tool 이 오는 앱 회차�
 AC#4 미착수 — 사용자 재결정. ⛔ 단순화의 순서가 바뀌었다: 지금 걷어내면 tool 도 우회로도 0 이 된다. ① 계획이 발음에 자리를 내주게 고침 → ② tool 도착률 재측정 → ③ 기준 넘으면 걷어냄. 동료 세션이 그 순서를 결정 50 에 적었다.
 
 정리: 7개 표가 기준선과 정확히 일치(13|120|4|9|24|15|49) · 보존 세션 여섯 생존 · 백엔드 기준선 복원(pid 58241).
+
+AC#3·#4 닫음 2026-09-15 (세션 ohmyenglish-65).
+
+AC#3(종단 확인) — TASK-129 회차가 이미 관측했음(tests/harness/runs/2026-09-14-task129-plan-review-key). target_sound 가 실린 tool 이 pronunciation_attempts 행을 만들고 error_patterns 패턴(pronunciation_f_as_p · frequency 4)과 next_review_at(하루 뒤)과 review_tasks 4행까지 만들었음. ⇒ 「재료가 있다」와 「복습 시계가 돈다」가 둘 다 참임이 확정됐음. ⚠️ 그 시계가 «어긋난 소리»에 걸린 것이 같은 회차의 결함 관측이고 그 방어는 TASK-116.3·116.4 가 넣었음.
+
+AC#4 — ⛔ 문면이 낡았음. 「결정 49 를 유지할지 뒤집을지 받는다」인데 결정 50 이 2026-09-10 에 이미 결정 49 를 대체했음(그 항목 첫 문장). 그래서 받을 판단이 남아 있지 않음. 대신 결정 50 이 남긴 ②(도착률 재측정)를 수치로 적고 ③(우회로 제거)을 「지금 하지 않음」으로 정한 것이 결정 100 이며, ③ 은 TASK-78.1 로 남겼음(문턱을 먼저 수치로 정하는 것이 그 첫 AC).
+
+⚠️ 이 판단은 사용자가 위임한 것이고 고른 것이 아님 — 결정 100 이 그 구분을 적음.
 <!-- SECTION:NOTES:END -->

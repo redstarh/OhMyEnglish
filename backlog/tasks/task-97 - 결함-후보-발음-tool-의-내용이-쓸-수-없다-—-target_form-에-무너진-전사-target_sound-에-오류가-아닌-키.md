@@ -1,10 +1,10 @@
 ---
 id: TASK-97
 title: '결함 후보: 발음 tool 의 내용이 쓸 수 없다 — target_form 에 무너진 전사, target_sound 에 오류가 아닌 키'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-10 17:54'
-updated_date: '2026-09-11 16:06'
+updated_date: '2026-09-14 17:22'
 labels: []
 dependencies:
   - TASK-103
@@ -33,7 +33,7 @@ TASK-93·TASK-95 회차가 관측했음. 정본은 tests/harness/runs/2026-09-11
 - [x] #1 결정 50 의 ③ 판정 기준에 「내용의 질」을 넣을지 판정한다 — tool 도착률만으로 우회로를 걷어내면 기록은 생기고 그 기록이 틀린 구간이 생긴다
 - [x] #2 target_form 에 무너진 전사가 들어가는 것이 프롬프트로 고쳐지는지 확인한다 — 규칙 10 이 target_form 의 내용을 지시하지 않는다
 - [x] #3 target_sound 가 오류가 아닌 키로 오는 것을 막을 수 있는지 확인한다 — services/pronunciation.py 의 SQL 이 빈 값만 거르고 내용은 검사하지 않는다
-- [ ] #4 ⛔ 이 태스크가 닫히기 전에 결정 50 의 ③(우회로 제거)을 실행하지 않는다
+- [x] #4 ⛔ 이 태스크가 닫히기 전에 결정 50 의 ③(우회로 제거)을 실행하지 않는다
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -87,4 +87,10 @@ TASK-93·TASK-95 회차가 관측했음. 정본은 tests/harness/runs/2026-09-11
 ⚠️ 반면 target_sound 는 4/4 가 th_as_s 로 정확했고 pattern_id 연결도 4/4 임 — 그 축이 제품 문면 문제가 아니라는 앞 판정을 제품 경로가 확인했음.
 
 ⚠️ outcome 은 4행 전부 incorrect 였고 unclear 가 0행임 ⇒ 이 경로에서 pending 강등이 일어나지 않았음(모델이 두 호출 모두 실제 판정을 실었음).
+
+AC#4 닫음 2026-09-15 (세션 ohmyenglish-65) — 제약을 지킨 상태로 닫음.
+
+AC#4 는 「이 태스크가 닫히기 전에 결정 50 의 ③(우회로 제거)을 실행하지 않는다」이고, 실행하지 않았음. 그리고 결정 100 이 ③ 을 「지금 하지 않음」으로 정했으므로 그 제약은 태스크가 닫힌 뒤에도 유효함 — 지킬 주체가 TASK-78.1 로 옮겨졌고 그 태스크의 첫 AC 가 「문턱을 먼저 수치로 못박는다」임.
+
+⚠️ 이 태스크가 판정한 것(AC#1~#3)은 그대로 살아 있음: tool 도착률만으로 우회로를 걷어내면 「기록은 생기고 그 기록이 틀린 구간」이 남고, target_form 의 무너진 전사는 프롬프트로 고쳐지지 않으며 SQL 은 내용을 검사하지 않음. 그 판정이 결정 100 의 첫째 근거로 인용됐음.
 <!-- SECTION:NOTES:END -->
