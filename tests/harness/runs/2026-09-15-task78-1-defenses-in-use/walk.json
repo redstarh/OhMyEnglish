@@ -1,0 +1,493 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3001/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/pq13.wav",
+  "urls": [
+   "/harness/pq13.wav",
+   "/harness/pq13a.wav"
+  ],
+  "count": 2,
+  "bytes": 287232,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 8.72,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0,
+  "plays": []
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 4,
+   "final": 4,
+   "audio": 204,
+   "session_ended": 0,
+   "session_failed": 0,
+   "pronunciation": 1,
+   "speech_start": 2,
+   "speech_end": 2,
+   "interrupted": 1
+  },
+  "sent": {
+   "audio": 677,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "startedSessionId": "e712e8f5-f8df-4a4f-bbd7-490225e6d3d0",
+  "fixture": {
+   "url": "/harness/pq13.wav",
+   "urls": [
+    "/harness/pq13.wav",
+    "/harness/pq13a.wav"
+   ],
+   "count": 2,
+   "bytes": 287232,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 8.72,
+   "startedAt": 210,
+   "endedAt": 13482,
+   "micCalls": 1,
+   "plays": [
+    {
+     "index": 0,
+     "url": "/harness/pq13.wav",
+     "startedAt": 210,
+     "endedAt": 4320,
+     "gate": null
+    },
+    {
+     "index": 1,
+     "url": "/harness/pq13a.wav",
+     "startedAt": 8845,
+     "endedAt": 13482,
+     "gate": {
+      "heardAgentAudio": true,
+      "audioAtGate": 107,
+      "finalAtGate": 2,
+      "waitedMs": 8636
+     }
+    }
+   ]
+  },
+  "started": {
+   "count": 206,
+   "when": [
+    0,
+    5.232,
+    5.311,
+    5.391,
+    5.471,
+    5.551,
+    5.631,
+    5.711,
+    5.791,
+    5.871,
+    5.9510000000000005,
+    6.031000000000001,
+    6.111000000000001,
+    6.191000000000001,
+    6.271000000000001,
+    6.351000000000001,
+    6.431000000000001,
+    6.511000000000001,
+    6.591000000000001,
+    6.671000000000001,
+    6.751000000000001,
+    6.831000000000001,
+    6.911000000000001,
+    6.991000000000001,
+    7.0710000000000015,
+    7.151000000000002,
+    7.231000000000002,
+    7.311000000000002,
+    7.391000000000002,
+    7.471000000000002,
+    7.551000000000002,
+    7.631000000000002,
+    7.711000000000002,
+    7.791000000000002,
+    7.871000000000002,
+    7.951000000000002,
+    8.031000000000002,
+    8.111000000000002,
+    8.191000000000003,
+    8.271000000000003,
+    8.351000000000003,
+    8.431000000000003,
+    8.511000000000003,
+    8.591000000000003,
+    8.671000000000003,
+    8.751000000000003,
+    8.831000000000003,
+    9.072000000000003,
+    9.151000000000003,
+    9.231000000000003,
+    9.311000000000003,
+    9.391000000000004,
+    9.471000000000004,
+    9.551000000000004,
+    9.631000000000004,
+    9.711000000000004,
+    9.791000000000004,
+    9.871000000000004,
+    9.951000000000004,
+    10.031000000000004,
+    10.111000000000004,
+    10.191000000000004,
+    10.271000000000004,
+    10.351000000000004,
+    10.431000000000004,
+    10.511000000000005,
+    10.591000000000005,
+    10.671000000000005,
+    10.751000000000005,
+    10.831000000000005,
+    10.911000000000005,
+    10.991000000000005,
+    11.071000000000005,
+    11.151000000000005,
+    11.231000000000005,
+    11.311000000000005,
+    11.391000000000005,
+    11.471000000000005,
+    11.551000000000005,
+    11.631000000000006,
+    11.711000000000006,
+    11.791000000000006,
+    11.871000000000006,
+    11.951000000000006,
+    12.031000000000006,
+    12.111000000000006,
+    12.191000000000006,
+    12.271000000000006,
+    12.351000000000006,
+    12.431000000000006,
+    12.511000000000006,
+    12.591000000000006,
+    12.671000000000006,
+    12.751000000000007,
+    12.831000000000007,
+    12.911000000000007,
+    12.991000000000007,
+    13.071000000000007,
+    13.151000000000007,
+    13.231000000000007,
+    13.311000000000007,
+    13.391000000000007,
+    13.471000000000007,
+    13.551000000000007,
+    13.631000000000007,
+    13.711000000000007,
+    13.791000000000007,
+    13.991000000000007,
+    0,
+    13.568,
+    13.647,
+    13.727,
+    13.807,
+    13.887,
+    13.967,
+    14.047,
+    14.127,
+    14.207,
+    14.287,
+    14.367,
+    14.447000000000001,
+    14.527000000000001,
+    14.607000000000001,
+    14.687000000000001,
+    14.767000000000001,
+    14.847000000000001,
+    14.927000000000001,
+    15.007000000000001,
+    15.087000000000002,
+    15.167000000000002,
+    15.247000000000002,
+    15.327000000000002,
+    15.407000000000002,
+    15.487000000000002,
+    15.567000000000002,
+    15.647000000000002,
+    15.727000000000002,
+    15.807000000000002,
+    15.887000000000002,
+    15.967000000000002,
+    16.047,
+    16.127,
+    16.206999999999997,
+    16.286999999999995,
+    16.366999999999994,
+    16.446999999999992,
+    16.52699999999999,
+    16.60699999999999,
+    16.686999999999987,
+    16.766999999999985,
+    16.846999999999984,
+    16.926999999999982,
+    17.00699999999998,
+    17.08699999999998,
+    17.166999999999977,
+    17.246999999999975,
+    17.326999999999973,
+    17.40699999999997,
+    17.48699999999997,
+    17.566999999999968,
+    17.807999999999968,
+    17.88699999999997,
+    17.966999999999967,
+    18.046999999999965,
+    18.126999999999963,
+    18.20699999999996,
+    18.28699999999996,
+    18.36699999999996,
+    18.446999999999957,
+    18.526999999999955,
+    18.606999999999953,
+    18.68699999999995,
+    18.76699999999995,
+    18.846999999999948,
+    18.926999999999946,
+    19.006999999999945,
+    19.086999999999943,
+    19.16699999999994,
+    19.24699999999994,
+    19.326999999999938,
+    19.406999999999936,
+    19.486999999999934,
+    19.566999999999933,
+    19.64699999999993,
+    19.72699999999993,
+    19.806999999999928,
+    19.886999999999926,
+    19.966999999999924,
+    20.046999999999922,
+    20.12699999999992,
+    20.20699999999992,
+    20.286999999999917,
+    20.366999999999916,
+    20.446999999999914,
+    20.526999999999912,
+    20.60699999999991,
+    20.68699999999991,
+    20.766999999999907,
+    20.846999999999905,
+    20.926999999999904,
+    21.006999999999902,
+    21.0869999999999,
+    21.1669999999999,
+    21.246999999999897,
+    21.326999999999895,
+    21.526999999999894
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 195,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 4468,
+    "count": 1,
+    "texts": [
+     "답변: my brother will early really tomorrow morning"
+    ]
+   },
+   {
+    "ts": 5360,
+    "count": 2,
+    "texts": [
+     "답변: my brother will early really tomorrow morning",
+     "질문: I hear you say \"my brother will early really tomorrow morning.\""
+    ]
+   },
+   {
+    "ts": 6335,
+    "count": 2,
+    "texts": [
+     "답변: my brother will early really tomorrow morning",
+     "질문:  Let's focus on the word \"early.\" Say just this word for me: early."
+    ]
+   },
+   {
+    "ts": 7372,
+    "count": 2,
+    "texts": [
+     "답변: my brother will early really tomorrow morning",
+     "질문: I hear you say \"my brother will early really tomorrow morning.\" Let's focus on the word \"early.\" Say just this word for me: early."
+    ]
+   },
+   {
+    "ts": 12896,
+    "count": 3,
+    "texts": [
+     "답변: my brother will early really tomorrow morning",
+     "질문: I hear you say \"my brother will early really tomorrow morning.\" Let's focus on the word \"early.\" Say just this word for me: early.",
+     "답변: my brother will arrive early tomorrow morning."
+    ]
+   },
+   {
+    "ts": 13681,
+    "count": 4,
+    "texts": [
+     "답변: my brother will early really tomorrow morning",
+     "질문: I hear you say \"my brother will early really tomorrow morning.\" Let's focus on the word \"early.\" Say just this word for me: early.",
+     "답변: my brother will arrive early tomorrow morning.",
+     "질문: \n\nGreat! You said \"early\" clearly. Now tell me about your breakfast today."
+    ]
+   },
+   {
+    "ts": 14709,
+    "count": 4,
+    "texts": [
+     "답변: my brother will early really tomorrow morning",
+     "질문: I hear you say \"my brother will early really tomorrow morning.\" Let's focus on the word \"early.\" Say just this word for me: early.",
+     "답변: my brother will arrive early tomorrow morning.",
+     "질문:  What food did you have?  Did you drink coffee or fruit juice?"
+    ]
+   },
+   {
+    "ts": 15604,
+    "count": 4,
+    "texts": [
+     "답변: my brother will early really tomorrow morning",
+     "질문: I hear you say \"my brother will early really tomorrow morning.\" Let's focus on the word \"early.\" Say just this word for me: early.",
+     "답변: my brother will arrive early tomorrow morning.",
+     "질문: \n\nGreat! You said \"early\" clearly. Now tell me about your breakfast today. What food did you have?  Did you drink coffee or fruit juice?"
+    ]
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 21.653333333333332
+  },
+  "meta": {
+   "hookedAt": "2026-09-14T22:02:37.095Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789423357166,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789423357181,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3001/_next/hmr?id=RH5kam06j4YaiABQsTQF7",
+    "ws://localhost:8012/ws/session?source=recommended"
+   ]
+  },
+  "lines": [
+   "답변: my brother will early really tomorrow morning",
+   "질문: I hear you say \"my brother will early really tomorrow morning.\" Let's focus on the word \"early.\" Say just this word for me: early.",
+   "답변: my brother will arrive early tomorrow morning.",
+   "질문: \n\nGreat! You said \"early\" clearly. Now tell me about your breakfast today. What food did you have?  Did you drink coffee or fruit juice?"
+  ],
+  "url": "http://localhost:3001/",
+  "log": [
+   {
+    "at": 0,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 4351,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 21699,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 4,
+     "final": 4,
+     "audio": 204,
+     "session_ended": 0,
+     "session_failed": 0,
+     "pronunciation": 1,
+     "speech_start": 2,
+     "speech_end": 2,
+     "interrupted": 1
+    }
+   }
+  ]
+ },
+ "screenshot_session": "../../tests/harness/runs/2026-09-15-task78-1-defenses-in-use/shot-session.png",
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3001/results/e712e8f5-f8df-4a4f-bbd7-490225e6d3d0",
+  "recv": {
+   "session_started": 1,
+   "partial": 4,
+   "final": 4,
+   "audio": 204,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 1,
+   "speech_start": 2,
+   "speech_end": 2,
+   "interrupted": 1
+  },
+  "sent": {
+   "audio": 711,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 3
+  },
+  "finalLinesAtTerminal": [
+   "답변: my brother will early really tomorrow morning",
+   "질문: I hear you say \"my brother will early really tomorrow morning.\" Let's focus on the word \"early.\" Say just this word for me: early.",
+   "답변: my brother will arrive early tomorrow morning.",
+   "질문: \n\nGreat! You said \"early\" clearly. Now tell me about your breakfast today. What food did you have?  Did you drink coffee or fruit juice?"
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "오늘 학습을 마쳤어요 — 시나리오 2개",
+   "시범 문장",
+   "early",
+   "내 발화",
+   "early",
+   "✓ 좋아요",
+   "기록만 했어요 · 복습에는 쓰지 않아요",
+   "← 학습 시작 화면으로",
+   "학습 히스토리 보기 →"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><p style=\"color: var(--foreground-muted);\">오늘 학습을 마쳤어요 — 시나리오 2개</p><div style=\"margin-top: 1.5rem;\"><h2 style=\"font-size: 1rem;\">발음</h2><div style=\"border-left: 3px solid var(--foreground-muted); padding-left: 0.75rem; margin: 0.75rem 0px;\"><p style=\"margin: 0.25rem 0px 0px; font-size: 0.8rem; color: var(--foreground-muted);\">시범 문장</p><p style=\"margin: 0.25rem 0px;\">early</p><p style=\"margin: 0.25rem 0px 0px; font-size: 0.8rem; color: var(--foreground-muted);\">내 발화</p><p style=\"margin: 0.25rem 0px;\">early</p><p style=\"margin: 0.25rem 0px; color: var(--foreground);\">✓ 좋아요</p><p style=\"margin: 0.25rem 0px 0px; font-size: 0.8rem; color: var(--foreground-muted);\">기록만 했어요 · 복습에는 쓰지 않아요</p></div></div><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p><p style=\"margin-top: 0.5rem;\"><a href=\"/history\" style=\"text-decoration: underline;\">학습 히스토리 보기 →</a></p>"
+ },
+ "screenshot_results": "../../tests/harness/runs/2026-09-15-task78-1-defenses-in-use/shot-results.png"
+}
