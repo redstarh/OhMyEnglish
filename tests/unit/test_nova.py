@@ -1084,6 +1084,25 @@ def test_build_system_prompt_without_known_sounds_is_exactly_the_base_prompt():
     assert _prompt([]) == SYSTEM_PROMPT
 
 
+# 학습자가 **먼저 부탁하는** 경우 — PRD Voice Control 의 「힌트 요청 · 반복 · 천천히 말하기」다.
+# ⛔ 이 셋은 코치가 **말로** 답하면 끝나므로 tool 도 표지도 확인 절차도 필요하지 않다
+# (`TASK-61` · 사용자 판단 2026-09-14). 앱 상태를 바꾸는 명령(종료·모드 변경)만 그것을 요구한다.
+# ⚠️ **규칙 번호를 새로 만들지 않고 기존 5번에 붙였다** — 사용자가 「안내문은 길지 않고 핵심만
+# 간결하게」를 원칙으로 줬고, 이 리포는 프롬프트가 길어지면 지시가 죽는 것을 여러 차수 관측했다.
+# ⛔ **이 테스트가 재는 것은 문면이고 거동이 아니다** — 코치가 실제로 부탁을 들어주는지는 실물
+# 통화로만 확인되며 그 회차는 아직 돌리지 않았다(`TASK-61` 노트가 그 미결을 갖는다).
+# ⚠️ 공백을 눕혀 비교하는 이유: 그 줄이 100자 제한 때문에 두 줄로 접혀 있어 문자열 그대로는
+# 걸리지 않는다. 줄바꿈 위치가 바뀌어도 이 단정은 살아 있어야 한다.
+def test_the_coach_answers_a_learners_request_to_repeat_slow_down_or_hint():
+    flat = " ".join(SYSTEM_PROMPT.split())
+
+    assert (
+        "If the learner is stuck or asks, offer a short sentence starter "
+        "instead of the full answer." in flat
+    )
+    assert "Repeat or slow down when asked." in flat
+
+
 # 재사용 규약(§5.6)을 발음 경로에서도 동작시키는 것이 B-4의 목적이다 — 키를 보여주는 것만으로는
 # 부족하고 **그 키를 다시 쓰라는 지시**가 함께 있어야 새 키가 계속 생긴다.
 def test_build_system_prompt_lists_past_sounds_and_asks_to_reuse_them():
