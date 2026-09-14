@@ -1,0 +1,19 @@
+코치가 말하지 않은 소리로 기록된 발음 시도 1건을 복습에서 제외했다 (세션 bc06e653-0515-4dd9-bd86-b0cc8586e4aa)
+
+===== A(재현)
+  인용 토큰(1~3자)      : []
+  순수 함수 판정        : None
+  표시된 행 수          : 0
+  시도 #3 sound=f_as_p outcome=incorrect sound_check=None
+  복습 전               : {'frequency': 3, 'next_review_at': datetime.datetime(2026, 9, 15, 15, 42, 54, 349305, tzinfo=datetime.timezone.utc)}
+  복습 후               : {'frequency': 3, 'next_review_at': datetime.datetime(2026, 9, 15, 15, 42, 54, 349305, tzinfo=datetime.timezone.utc)}
+
+===== B(판별력)
+  인용 토큰(1~3자)      : ['er']
+  순수 함수 판정        : mismatched
+  표시된 행 수          : 1
+  시도 #4 sound=f_as_p outcome=incorrect sound_check='mismatched'
+  복습 전               : {'frequency': 4, 'next_review_at': datetime.datetime(2026, 9, 15, 15, 42, 54, 370074, tzinfo=datetime.timezone.utc)}
+  복습 후               : {'frequency': 4, 'next_review_at': datetime.datetime(2026, 9, 15, 15, 42, 54, 349305, tzinfo=datetime.timezone.utc)}
+
+정규식: \['\\"‘’“”\]\(\[A\-Za\-z\]\{1,3\}\)\['\\"‘’“”\]

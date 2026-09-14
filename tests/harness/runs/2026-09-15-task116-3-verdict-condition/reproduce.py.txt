@@ -1,0 +1,120 @@
+#!/usr/bin/env python3
+"""TASK-116.3 AC#1·#2 — 결정 82 의 어긋남 검사가 «발화하지 못하는» 조건을 종단으로 재현한다.
+
+⛔ **Nova 를 쓰지 않는다.** 재는 것이 기록 경로이고 입력(코치 발화 · 실린 키)은 이미 실측돼 있다
+(`runs/2026-09-14-task129-plan-review-key` · `runs/2026-09-15-task81-app-leg`). 실물 왕복은 같은
+입력을 다시 만들 뿐이라 판정을 바꾸지 않는다.
+
+두 팔을 돌린다 — ⛔ **판별력을 재는 팔이 없으면 「비어 있음」이 코드 때문인지 입력 때문인지 못 가른다.**
+
+| 팔 | 코치 발화 | 기대 |
+|---|---|---|
+| A(재현) | 실측 발화 그대로(`"early"` · `"er-lee"` 를 인용) | `sound_check` 가 **비어 있고** 복습 예정일이 그대로 |
+| B(판별력) | 같은 발화에 `the "er" sound` 한 조각을 더함 | `mismatched` 로 표시되고 복습 예정일이 **물러남** |
+
+B 가 뒤집히지 않으면 「1~3자 인용이 문턱이다」라는 판정이 틀린 것이다.
+
+실행:
+    cd app/backend && DATABASE_URL=postgresql://ohmy:ohmy@localhost:5432/ohmyenglish_t1163 \
+      .venv/bin/python ../../tests/harness/runs/2026-09-15-task116-3-verdict-condition/reproduce.py.txt
+"""
+
+from __future__ import annotations
+
+import asyncio
+import os
+import re
+from uuid import UUID
+
+import asyncpg
+
+from app.services.pronunciation import (
+    _QUOTED_SOUND_RE,
+    check_recorded_sounds,
+    record_attempt,
+    sound_check_verdict,
+)
+from app.services.sessions import create_session
+from app.services.utterances import save_final_transcript
+
+OWNER = UUID("00000000-0000-0000-0000-000000000001")
+KEY = "f_as_p"
+
+# 실측 발화 — `runs/2026-09-15-task81-app-leg` ARM-3 의 코치 발화 원문이다(브라우저 레그).
+SPEECH_OBSERVED = (
+    'I hear you say "my brother will early vealy tomorrow morning." Let\'s focus on the word '
+    '"early." The correct pronunciation is "er-lee." Can you say just the word "early" for me? '
+    'Say it like "er-lee." | Great! You said "early" correctly.'
+)
+# 판별력 팔 — 전용 모드 회차(`TASK-128.3`)의 코치가 실제로 쓴 모양을 한 조각 더한다.
+SPEECH_WITH_SOUND = SPEECH_OBSERVED + ' The "er" sound was the one that slipped.'
+
+
+async def one_arm(pool: asyncpg.Pool, label: str, speech: str) -> dict[str, object]:
+    # ⚠️ `create_session` 은 **pool** 을 받고 UUID 를 돌려준다 — conn 을 주면 안 된다.
+    session_id = await create_session(pool, OWNER)
+    async with pool.acquire() as conn:
+        # 학습자 발화 → 코치 발화 → tool 두 번(pending → incorrect). 전부 제품 writer 다.
+        await save_final_transcript(conn, session_id, "my brother will early vealy tomorrow morning")
+        await save_final_transcript(conn, session_id, speech, speaker="agent")
+        await record_attempt(
+            conn, session_id, target_form="early", outcome="pending", target_sound=KEY
+        )
+        await record_attempt(
+            conn,
+            session_id,
+            target_form="early",
+            spoken_form="early",
+            outcome="incorrect",
+            target_sound=KEY,
+        )
+        before = await conn.fetchrow(
+            "select frequency, next_review_at from error_patterns"
+            " where pattern_key = 'pronunciation_' || $1",
+            KEY,
+        )
+        marked = await check_recorded_sounds(conn, session_id)
+        rows = await conn.fetch(
+            "select attempt_seq, target_sound, outcome, sound_check"
+            "  from pronunciation_attempts where session_id = $1 order by attempt_seq",
+            session_id,
+        )
+        after = await conn.fetchrow(
+            "select frequency, next_review_at from error_patterns"
+            " where pattern_key = 'pronunciation_' || $1",
+            KEY,
+        )
+    return {
+        "arm": label,
+        "quoted_tokens": sorted({m.group(1) for m in _QUOTED_SOUND_RE.finditer(speech)}),
+        "verdict_pure": sound_check_verdict(speech, KEY),
+        "marked_rows": marked,
+        "attempts": [dict(r) for r in rows],
+        "review_before": dict(before) if before else None,
+        "review_after": dict(after) if after else None,
+    }
+
+
+async def main() -> None:
+    pool = await asyncpg.create_pool(os.environ["DATABASE_URL"], min_size=1, max_size=3)
+    assert pool is not None
+    try:
+        for label, speech in (("A(재현)", SPEECH_OBSERVED), ("B(판별력)", SPEECH_WITH_SOUND)):
+            result = await one_arm(pool, label, speech)
+            print(f"\n===== {result['arm']}")
+            print(f"  인용 토큰(1~3자)      : {result['quoted_tokens']}")
+            print(f"  순수 함수 판정        : {result['verdict_pure']}")
+            print(f"  표시된 행 수          : {result['marked_rows']}")
+            for a in result["attempts"]:  # type: ignore[union-attr]
+                print(
+                    f"  시도 #{a['attempt_seq']} sound={a['target_sound']}"
+                    f" outcome={a['outcome']} sound_check={a['sound_check']!r}"
+                )
+            print(f"  복습 전               : {result['review_before']}")
+            print(f"  복습 후               : {result['review_after']}")
+        print(f"\n정규식: {re.escape(_QUOTED_SOUND_RE.pattern)}")
+    finally:
+        await pool.close()
+
+
+asyncio.run(main())
