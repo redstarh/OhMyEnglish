@@ -1,0 +1,566 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3001/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/pq13.wav",
+  "urls": [
+   "/harness/pq13.wav",
+   "/harness/pq13a.wav"
+  ],
+  "count": 2,
+  "bytes": 287232,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 8.72,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0,
+  "plays": []
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 6,
+   "final": 4,
+   "audio": 262,
+   "session_ended": 0,
+   "session_failed": 0,
+   "pronunciation": 2,
+   "speech_start": 2,
+   "speech_end": 2,
+   "interrupted": 1
+  },
+  "sent": {
+   "audio": 721,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "startedSessionId": "276d9eb2-12dd-4912-a3fe-9150b201e14a",
+  "fixture": {
+   "url": "/harness/pq13.wav",
+   "urls": [
+    "/harness/pq13.wav",
+    "/harness/pq13a.wav"
+   ],
+   "count": 2,
+   "bytes": 287232,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 8.72,
+   "startedAt": 226,
+   "endedAt": 15206,
+   "micCalls": 1,
+   "plays": [
+    {
+     "index": 0,
+     "url": "/harness/pq13.wav",
+     "startedAt": 226,
+     "endedAt": 4566,
+     "gate": null
+    },
+    {
+     "index": 1,
+     "url": "/harness/pq13a.wav",
+     "startedAt": 10574,
+     "endedAt": 15206,
+     "gate": {
+      "heardAgentAudio": true,
+      "audioAtGate": 161,
+      "finalAtGate": 2,
+      "waitedMs": 10348
+     }
+    }
+   ]
+  },
+  "started": {
+   "count": 264,
+   "when": [
+    0,
+    5.624,
+    5.702999999999999,
+    5.7829999999999995,
+    5.8629999999999995,
+    5.943,
+    6.023,
+    6.103,
+    6.183,
+    6.263,
+    6.343,
+    6.423,
+    6.503,
+    6.583,
+    6.663,
+    6.743,
+    6.823,
+    6.9030000000000005,
+    6.9830000000000005,
+    7.063000000000001,
+    7.143000000000001,
+    7.223000000000001,
+    7.303000000000001,
+    7.383000000000001,
+    7.463000000000001,
+    7.543000000000001,
+    7.623000000000001,
+    7.703000000000001,
+    7.783000000000001,
+    7.863000000000001,
+    7.943000000000001,
+    8.023000000000001,
+    8.103000000000002,
+    8.183000000000002,
+    8.263000000000002,
+    8.343000000000002,
+    8.423000000000002,
+    8.503000000000002,
+    8.583000000000002,
+    8.663000000000002,
+    8.743000000000002,
+    8.823000000000002,
+    8.903000000000002,
+    8.983000000000002,
+    9.183000000000002,
+    9.184000000000001,
+    9.263000000000002,
+    9.343000000000002,
+    9.423000000000002,
+    9.503000000000002,
+    9.583000000000002,
+    9.663000000000002,
+    9.743000000000002,
+    9.823000000000002,
+    9.903000000000002,
+    9.983000000000002,
+    10.063000000000002,
+    10.143000000000002,
+    10.223000000000003,
+    10.303000000000003,
+    10.383000000000003,
+    10.463000000000003,
+    10.543000000000003,
+    10.623000000000003,
+    10.703000000000003,
+    10.783000000000003,
+    10.863000000000003,
+    10.943000000000003,
+    11.023000000000003,
+    11.103000000000003,
+    11.183000000000003,
+    11.263000000000003,
+    11.343000000000004,
+    11.423000000000004,
+    11.503000000000004,
+    11.583000000000004,
+    11.663000000000004,
+    11.743000000000004,
+    11.823000000000004,
+    11.903000000000004,
+    11.983000000000004,
+    12.063000000000004,
+    12.143000000000004,
+    12.223000000000004,
+    12.303000000000004,
+    12.383000000000004,
+    12.463000000000005,
+    12.543000000000005,
+    12.623000000000005,
+    12.703000000000005,
+    12.783000000000005,
+    12.863000000000005,
+    12.943000000000005,
+    13.023000000000005,
+    13.103000000000005,
+    13.183000000000005,
+    13.263000000000005,
+    13.343000000000005,
+    13.423000000000005,
+    13.503000000000005,
+    13.583000000000006,
+    13.663000000000006,
+    13.743000000000006,
+    13.903000000000006,
+    13.983000000000006,
+    14.063000000000006,
+    14.304000000000006,
+    14.383000000000006,
+    14.463000000000006,
+    14.543000000000006,
+    14.623000000000006,
+    14.703000000000007,
+    14.783000000000007,
+    14.863000000000007,
+    14.943000000000007,
+    15.023000000000007,
+    15.103000000000007,
+    15.183000000000007,
+    15.263000000000007,
+    15.343000000000007,
+    15.423000000000007,
+    15.503000000000007,
+    15.583000000000007,
+    15.663000000000007,
+    15.743000000000007,
+    15.823000000000008,
+    15.903000000000008,
+    15.983000000000008,
+    16.063000000000006,
+    16.143000000000004,
+    16.223000000000003,
+    16.303,
+    16.383,
+    16.462999999999997,
+    16.542999999999996,
+    16.622999999999994,
+    16.702999999999992,
+    16.78299999999999,
+    16.86299999999999,
+    17.062999999999988,
+    17.06399999999999,
+    17.14299999999999,
+    17.22299999999999,
+    17.302999999999987,
+    17.382999999999985,
+    17.462999999999983,
+    17.54299999999998,
+    17.62299999999998,
+    17.702999999999978,
+    17.782999999999976,
+    17.862999999999975,
+    17.942999999999973,
+    18.02299999999997,
+    18.10299999999997,
+    18.182999999999968,
+    18.262999999999966,
+    18.342999999999964,
+    18.422999999999963,
+    18.50299999999996,
+    18.58299999999996,
+    18.662999999999958,
+    18.862999999999957,
+    0,
+    15.024,
+    15.103,
+    15.183,
+    15.263,
+    15.343,
+    15.423,
+    15.503,
+    15.583,
+    15.663,
+    15.743,
+    15.823,
+    15.903,
+    15.983,
+    16.063,
+    16.142999999999997,
+    16.222999999999995,
+    16.302999999999994,
+    16.382999999999992,
+    16.46299999999999,
+    16.54299999999999,
+    16.622999999999987,
+    16.702999999999985,
+    16.782999999999983,
+    16.862999999999982,
+    16.94299999999998,
+    17.02299999999998,
+    17.102999999999977,
+    17.182999999999975,
+    17.262999999999973,
+    17.34299999999997,
+    17.42299999999997,
+    17.502999999999968,
+    17.582999999999966,
+    17.662999999999965,
+    17.742999999999963,
+    17.82299999999996,
+    17.90299999999996,
+    17.982999999999958,
+    18.062999999999956,
+    18.142999999999954,
+    18.222999999999953,
+    18.30299999999995,
+    18.38299999999995,
+    18.462999999999948,
+    18.542999999999946,
+    18.622999999999944,
+    18.702999999999943,
+    18.78299999999994,
+    18.86299999999994,
+    18.942999999999937,
+    19.022999999999936,
+    19.102999999999934,
+    19.182999999999932,
+    19.26299999999993,
+    19.34299999999993,
+    19.422999999999927,
+    19.502999999999926,
+    19.582999999999924,
+    19.662999999999922,
+    19.74299999999992,
+    19.82299999999992,
+    19.902999999999917,
+    19.982999999999915,
+    20.183999999999916,
+    20.262999999999916,
+    20.342999999999915,
+    20.422999999999913,
+    20.50299999999991,
+    20.58299999999991,
+    20.662999999999908,
+    20.742999999999906,
+    20.822999999999904,
+    20.902999999999903,
+    20.9829999999999,
+    21.0629999999999,
+    21.142999999999898,
+    21.222999999999896,
+    21.302999999999894,
+    21.382999999999893,
+    21.46299999999989,
+    21.54299999999989,
+    21.622999999999887,
+    21.702999999999886,
+    21.782999999999884,
+    21.862999999999882,
+    21.94299999999988,
+    22.02299999999988,
+    22.102999999999877,
+    22.182999999999875,
+    22.262999999999874,
+    22.342999999999872,
+    22.42299999999987,
+    22.50299999999987,
+    22.582999999999867,
+    22.662999999999865,
+    22.742999999999864,
+    22.822999999999862,
+    22.90299999999986,
+    22.98299999999986,
+    23.062999999999857,
+    23.302999999999855
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 215,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 4915,
+    "count": 1,
+    "texts": [
+     "답변: my brother will early vealy tomorrow morning"
+    ]
+   },
+   {
+    "ts": 5973,
+    "count": 2,
+    "texts": [
+     "답변: my brother will early vealy tomorrow morning",
+     "질문: I hear you say \"my brother will early vealy tomorrow morning.\""
+    ]
+   },
+   {
+    "ts": 6866,
+    "count": 2,
+    "texts": [
+     "답변: my brother will early vealy tomorrow morning",
+     "질문:  Let's focus on the word \"early.\" The correct pronunciation is \"er-lee.\""
+    ]
+   },
+   {
+    "ts": 8020,
+    "count": 2,
+    "texts": [
+     "답변: my brother will early vealy tomorrow morning",
+     "질문:  Can you say just the word \"early\" for me?"
+    ]
+   },
+   {
+    "ts": 8698,
+    "count": 2,
+    "texts": [
+     "답변: my brother will early vealy tomorrow morning",
+     "질문:   Say it like \"er-lee.\""
+    ]
+   },
+   {
+    "ts": 9195,
+    "count": 2,
+    "texts": [
+     "답변: my brother will early vealy tomorrow morning",
+     "질문: I hear you say \"my brother will early vealy tomorrow morning.\" Let's focus on the word \"early.\" The correct pronunciation is \"er-lee.\" Can you say just the word \"early\" for me?  Say it like \"er-lee.\""
+    ]
+   },
+   {
+    "ts": 14541,
+    "count": 3,
+    "texts": [
+     "답변: my brother will early vealy tomorrow morning",
+     "질문: I hear you say \"my brother will early vealy tomorrow morning.\" Let's focus on the word \"early.\" The correct pronunciation is \"er-lee.\" Can you say just the word \"early\" for me?  Say it like \"er-lee.\"",
+     "답변: my brother will arrive early tomorrow morning"
+    ]
+   },
+   {
+    "ts": 15379,
+    "count": 4,
+    "texts": [
+     "답변: my brother will early vealy tomorrow morning",
+     "질문: I hear you say \"my brother will early vealy tomorrow morning.\" Let's focus on the word \"early.\" The correct pronunciation is \"er-lee.\" Can you say just the word \"early\" for me?  Say it like \"er-lee.\"",
+     "답변: my brother will arrive early tomorrow morning",
+     "질문:   Great! You said \"early\" correctly. Now, tell me what food you want to eat for breakfast tomorrow."
+    ]
+   },
+   {
+    "ts": 16692,
+    "count": 4,
+    "texts": [
+     "답변: my brother will early vealy tomorrow morning",
+     "질문: I hear you say \"my brother will early vealy tomorrow morning.\" Let's focus on the word \"early.\" The correct pronunciation is \"er-lee.\" Can you say just the word \"early\" for me?  Say it like \"er-lee.\"",
+     "답변: my brother will arrive early tomorrow morning",
+     "질문:  Say two or three short sentences with the food names."
+    ]
+   },
+   {
+    "ts": 17359,
+    "count": 4,
+    "texts": [
+     "답변: my brother will early vealy tomorrow morning",
+     "질문: I hear you say \"my brother will early vealy tomorrow morning.\" Let's focus on the word \"early.\" The correct pronunciation is \"er-lee.\" Can you say just the word \"early\" for me?  Say it like \"er-lee.\"",
+     "답변: my brother will arrive early tomorrow morning",
+     "질문:   Great! You said \"early\" correctly. Now, tell me what food you want to eat for breakfast tomorrow. Say two or three short sentences with the food names."
+    ]
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 23.088
+  },
+  "meta": {
+   "hookedAt": "2026-09-14T15:29:37.516Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789399777593,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789399777605,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3001/_next/hmr?id=i0Pq2cAL5TSaltchAMSJc",
+    "ws://localhost:8012/ws/session?source=recommended"
+   ]
+  },
+  "lines": [
+   "답변: my brother will early vealy tomorrow morning",
+   "질문: I hear you say \"my brother will early vealy tomorrow morning.\" Let's focus on the word \"early.\" The correct pronunciation is \"er-lee.\" Can you say just the word \"early\" for me?  Say it like \"er-lee.\"",
+   "답변: my brother will arrive early tomorrow morning",
+   "질문:   Great! You said \"early\" correctly. Now, tell me what food you want to eat for breakfast tomorrow. Say two or three short sentences with the food names."
+  ],
+  "url": "http://localhost:3001/",
+  "log": [
+   {
+    "at": 0,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 4729,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 23360,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 6,
+     "final": 4,
+     "audio": 262,
+     "session_ended": 0,
+     "session_failed": 0,
+     "pronunciation": 2,
+     "speech_start": 2,
+     "speech_end": 2,
+     "interrupted": 1
+    }
+   }
+  ]
+ },
+ "screenshot_session": "tests/harness/runs/2026-09-15-task81-app-leg/shot-arm3-session.png",
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3001/results/276d9eb2-12dd-4912-a3fe-9150b201e14a",
+  "recv": {
+   "session_started": 1,
+   "partial": 6,
+   "final": 4,
+   "audio": 262,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 2,
+   "speech_start": 2,
+   "speech_end": 2,
+   "interrupted": 1
+  },
+  "sent": {
+   "audio": 756,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 3
+  },
+  "finalLinesAtTerminal": [
+   "답변: my brother will early vealy tomorrow morning",
+   "질문: I hear you say \"my brother will early vealy tomorrow morning.\" Let's focus on the word \"early.\" The correct pronunciation is \"er-lee.\" Can you say just the word \"early\" for me?  Say it like \"er-lee.\"",
+   "답변: my brother will arrive early tomorrow morning",
+   "질문:   Great! You said \"early\" correctly. Now, tell me what food you want to eat for breakfast tomorrow. Say two or three short sentences with the food names."
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "오늘 학습을 마쳤어요 — 시나리오 2개",
+   "시범 문장",
+   "early",
+   "내 발화",
+   "early",
+   "✓ 좋아요",
+   "← 학습 시작 화면으로",
+   "학습 히스토리 보기 →"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><p style=\"color: var(--foreground-muted);\">오늘 학습을 마쳤어요 — 시나리오 2개</p><div style=\"margin-top: 1.5rem;\"><h2 style=\"font-size: 1rem;\">발음</h2><div style=\"border-left: 3px solid var(--foreground-muted); padding-left: 0.75rem; margin: 0.75rem 0px;\"><p style=\"margin: 0.25rem 0px 0px; font-size: 0.8rem; color: var(--foreground-muted);\">시범 문장</p><p style=\"margin: 0.25rem 0px;\">early</p><p style=\"margin: 0.25rem 0px 0px; font-size: 0.8rem; color: var(--foreground-muted);\">내 발화</p><p style=\"margin: 0.25rem 0px;\">early</p><p style=\"margin: 0.25rem 0px; color: var(--foreground);\">✓ 좋아요</p></div></div><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p><p style=\"margin-top: 0.5rem;\"><a href=\"/history\" style=\"text-decoration: underline;\">학습 히스토리 보기 →</a></p>"
+ },
+ "screenshot_results": "tests/harness/runs/2026-09-15-task81-app-leg/shot-arm3-results.png"
+}

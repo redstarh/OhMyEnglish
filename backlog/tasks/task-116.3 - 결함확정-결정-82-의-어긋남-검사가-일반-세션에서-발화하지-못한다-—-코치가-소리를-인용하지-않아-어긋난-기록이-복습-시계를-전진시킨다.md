@@ -6,7 +6,7 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2026-09-14 15:00'
-updated_date: '2026-09-14 15:09'
+updated_date: '2026-09-14 15:32'
 labels: []
 dependencies: []
 parent_task_id: TASK-116
@@ -31,4 +31,6 @@ ordinal: 169000
 
 <!-- SECTION:NOTES:BEGIN -->
 2026-09-15 — 결정 97 이 이 태스크를 「다음 수단」으로 지목했음(plan.py:320 은 고치지 않음). 즉 이 축의 우선순위가 관측 후보에서 실행 대상으로 올랐음.
+
+2026-09-15 브라우저 레그에서도 확인됐음(runs/2026-09-15-task81-app-leg §7). 코치가 early 의 er-lee 를 코칭했는데 기록된 target_sound 는 f_as_p 이고 outcome 이 correct 였음. sound_check 는 빈칸이고 sound_check_verdict 를 직접 돌려 None 을 얻었음 — 코치가 발음 표기를 인용했는데도 판정하지 못했음. ⇒ 한 번도 내지 않은 소리의 복습 일정이 「맞음」으로 전진했고 화면에는 ✓ 좋아요 배지가 붙었음. 재료가 일반 세션 3/3 + 브라우저 1/1 로 늘었음.
 <!-- SECTION:NOTES:END -->

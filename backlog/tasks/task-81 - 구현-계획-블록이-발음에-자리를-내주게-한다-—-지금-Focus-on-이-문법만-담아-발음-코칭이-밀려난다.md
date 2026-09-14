@@ -1,10 +1,10 @@
 ---
 id: TASK-81
 title: '구현: 계획 블록이 발음에 자리를 내주게 한다 — 지금 Focus on 이 문법만 담아 발음 코칭이 밀려난다'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-09 23:01'
-updated_date: '2026-09-14 15:21'
+updated_date: '2026-09-14 15:32'
 labels: []
 dependencies:
   - TASK-75
@@ -22,7 +22,7 @@ TASK-78 AC#1 이 통제 대조로 확정했다. 정본은 tests/harness/runs/202
 - [x] #1 발음 패턴이 복습 예정일에 걸릴 때 계획의 Focus on 에 그것을 싣는다 — 또는 다른 방법을 고르고 그 근거를 적는다. ⛔ 발명하지 않고 build_plan_prompt·build_system_prompt 의 기존 재료로 한다
 - [x] #2 실물 왕복으로 판정한다 — 단위 테스트로는 이 거동을 잴 수 없다(TASK-75 가 같은 제약을 적었다). 고친 조립 프롬프트를 --prompt-file 로 실어 같은 오디오로 재고 코칭 도착 여부를 회차 기록에 남긴다
 - [x] #3 ⛔ 문법 초점을 없애지 않는다 — 계획은 학습자의 오류 패턴에서 나온 것이고 규칙 9 의 Grammar first 는 B-2 결정의 구현이다. 발음에 자리를 내주는 것과 문법을 밀어내는 것을 가른다
-- [ ] #4 고친 뒤 앱 경로(브라우저 레그)에서 코칭이 실제로 나는지 확인한다 — 스파이크만으로 닫지 않는다(결정 50 이 그것을 명시했다)
+- [x] #4 고친 뒤 앱 경로(브라우저 레그)에서 코칭이 실제로 나는지 확인한다 — 스파이크만으로 닫지 않는다(결정 50 이 그것을 명시했다)
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -48,4 +48,6 @@ AC#4 회차 2026-09-15 (세션 ohmyenglish-65) — 정본은 tests/harness/runs/
 다음 수단 후보 둘을 회차 §4 에 적었고 사용자 판단으로 올림 — ① 드라이버가 픽스처 둘을 흘리게 확장(하네스를 고치는 것) ② WS 레그 증거로 AC#4 를 닫음(결정 50 의 「브라우저 레그」를 넓게 읽는 것).
 
 정리 실측: 셋 다 HTTP 000 · DB 둘 drop · dev DB 여섯 표 행 수가 회차 전후 같음 · 다른 세션의 Chrome(:9222)은 살아 있음.
+
+ARM-3 (드라이버 확장 뒤) 2026-09-15 — AC#4 충족. 브라우저 레그에서 발음 코칭이 실제로 났음: 코치가 「Let us focus on the word early. The correct pronunciation is er-lee」로 코칭하고 판정 턴까지 냈으며 pronunciation 프레임 2건 · 화면에 ✓ 좋아요 배지까지 렌더됐음(스크린샷을 직접 열어 봤음). 원인 후보 둘 가운데 「왕복 수」가 맞았고 브라우저 경로는 코칭을 막지 않음. 정본은 tests/harness/runs/2026-09-15-task81-app-leg/README.md §7 임.
 <!-- SECTION:NOTES:END -->

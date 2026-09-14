@@ -1,4 +1,10 @@
-"""P계층 앱 경로 드라이버 — 픽스처 WAV 한 개를 세션의 «첫» 발화로 흘린다.
+"""P계층 앱 경로 드라이버 — 픽스처 WAV 를 세션의 발화로 흘린다.
+
+⚠️ **2026-09-15(`TASK-81.1`) 에 「한 개」에서 「쉼표로 여러 개」로 늘렸다.** 둘째부터는 **코치의
+턴이 끝난 뒤**에 흘린다 — 근거는 `runs/2026-09-15-task81-app-leg` 이다: 발화가 하나면 코치의 첫 턴은
+대화이고, `TASK-129` 의 WS 레그에서 발음 코칭이 난 자리는 **둘째 턴** 이었다. 즉 발화 하나로는
+「앱 경로에서 코칭이 나는가」를 잴 조건 자체를 만들지 못한다. 문턱과 상한은 `--quiet-ms`·
+`--next-wait-ms` 이고 관측은 `fixture.plays[i].gate` 에 남는다.
 
 ⛔ **왜 이 파일이 필요한가.** `TASK-65` 가 *"파일이 아니라 순서가 ASR 언어를 정한다"* 를 확정했고
 `scenarios-P-pronunciation.md` §3.2 가 그래서 **`p2k` 를 세션의 첫 발화로 줄 것**을 요구한다.
@@ -60,22 +66,85 @@ MIC_JS = r"""
   // instrument.js 가 이미 갈아 둔 것을 보관한다 — 제스처 안에서 함께 불러 resumeLog 를 살린다.
   const instrumented = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
 
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
   const ctx = new AudioContext({ sampleRate: FIXTURE_RATE });
-  const res = await fetch(FIXTURE_URL, { cache: "no-store" });
-  if (!res.ok) throw new Error("픽스처 fetch 실패: " + FIXTURE_URL + " → " + res.status);
-  const bytes = await res.arrayBuffer();
-  const buf = await ctx.decodeAudioData(bytes);
+  const urls = FIXTURE_URLS;
+  const bufs = [];
+  let totalBytes = 0;
+  for (const url of urls) {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error("픽스처 fetch 실패: " + url + " → " + res.status);
+    const bytes = await res.arrayBuffer();
+    totalBytes += bytes.byteLength;
+    bufs.push(await ctx.decodeAudioData(bytes));
+  }
   const destination = ctx.createMediaStreamDestination();
 
   omy.fixture = {
-    url: FIXTURE_URL,
-    bytes: bytes.byteLength,
+    url: urls[0],
+    urls: urls,
+    count: bufs.length,
+    bytes: totalBytes,
     ctxSampleRate: ctx.sampleRate,
-    bufferSampleRate: buf.sampleRate,
-    durationSec: Math.round(buf.duration * 1000) / 1000,
+    bufferSampleRate: bufs[0].sampleRate,
+    durationSec: Math.round(bufs.reduce((s, b) => s + b.duration, 0) * 1000) / 1000,
     startedAt: null,
     endedAt: null,
     micCalls: 0,
+    plays: [],
+  };
+
+  const play = (i, gate) => {
+    const src = ctx.createBufferSource();
+    src.buffer = bufs[i];
+    src.connect(destination);
+    const rec = {
+      index: i,
+      url: urls[i],
+      startedAt: Math.round(performance.now()),
+      endedAt: null,
+      gate: gate || null,
+    };
+    src.onended = () => {
+      rec.endedAt = Math.round(performance.now());
+      omy.fixture.endedAt = rec.endedAt;
+    };
+    src.start();
+    omy.fixture.plays.push(rec);
+    if (omy.fixture.startedAt === null) omy.fixture.startedAt = rec.startedAt;
+  };
+
+  // ⛔ 둘째 이후 픽스처는 **코치의 턴이 끝난 뒤**에 흘린다 (`TASK-81.1`). 이유 둘:
+  // ① 한꺼번에 흘리면 두 발화가 **한 턴에 묶여** 왕복이 생기지 않는다 — `TASK-129` 의 WS 레그에서
+  //    코칭이 난 자리가 코치의 **둘째 턴** 이었고, 왕복이 없으면 그 자리를 만들 수 없다.
+  // ② 코치가 말하는 중에 흘리면 `interrupted` 가 나서 그 턴이 잘린다.
+  // ⚠️ 문턱은 「코치 오디오가 온 적 있고 그 뒤 QUIET_MS 동안 안 온다」다. 「final 이 늘었다」만
+  //    보면 **학습자 자신의 final** 에 걸려 코치가 말을 시작하기도 전에 흘린다.
+  const playRest = async () => {
+    for (let i = 1; i < bufs.length; i += 1) {
+      const audioAtStart = omy.recv.audio || 0;
+      const deadline = performance.now() + NEXT_WAIT_MS;
+      let heard = false;
+      let lastAudio = audioAtStart;
+      let quietSince = null;
+      while (performance.now() < deadline) {
+        const a = omy.recv.audio || 0;
+        if (a !== lastAudio) { lastAudio = a; heard = true; quietSince = null; }
+        else if (heard) {
+          if (quietSince === null) quietSince = performance.now();
+          else if (performance.now() - quietSince >= QUIET_MS) break;
+        }
+        if (omy.recv.session_failed > 0) return;
+        await sleep(150);
+      }
+      play(i, {
+        heardAgentAudio: heard,
+        audioAtGate: omy.recv.audio || 0,
+        finalAtGate: omy.recv.final || 0,
+        waitedMs: Math.round(performance.now() - (deadline - NEXT_WAIT_MS)),
+      });
+    }
   };
 
   navigator.mediaDevices.getUserMedia = async (...args) => {
@@ -84,12 +153,9 @@ MIC_JS = r"""
     // 반환 스트림은 버린다(톤이다). 실패해도 이 경로를 막지 않는다.
     try { await instrumented(...args); } catch (e) { omy.fixture.instrumentedError = String(e); }
     await ctx.resume();
-    const src = ctx.createBufferSource();
-    src.buffer = buf;
-    src.connect(destination);
-    src.onended = () => { omy.fixture.endedAt = Math.round(performance.now()); };
-    src.start();
-    omy.fixture.startedAt = Math.round(performance.now());
+    play(0, null);
+    // ⛔ `await` 하지 않는다 — 스트림을 지금 돌려줘야 앱이 세션을 연다.
+    if (bufs.length > 1) playRest();
     // ⚠️ WAV 뒤로는 무음이 흐른다 — 그것이 Nova 의 endpointing 을 발동시킨다.
     return destination.stream;
   };
@@ -232,10 +298,14 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
             raise SystemExit(f"계측 반환값이 'instrumented' 가 아니다: {installed!r}")
         out["instrument_page_sha256"] = page_sha
 
+        wavs = [name.strip() for name in args.wav.split(",") if name.strip()]
+        if not wavs:
+            raise SystemExit("--wav 가 비었다")
         mic = await cdp.eval(
-            MIC_JS.replace("FIXTURE_URL", json.dumps(f"/harness/{args.wav}")).replace(
-                "FIXTURE_RATE", str(args.fixture_rate)
-            ),
+            MIC_JS.replace("FIXTURE_URLS", json.dumps([f"/harness/{name}" for name in wavs]))
+            .replace("FIXTURE_RATE", str(args.fixture_rate))
+            .replace("NEXT_WAIT_MS", str(args.next_wait_ms))
+            .replace("QUIET_MS", str(args.quiet_ms)),
             await_promise=True,
         )
         if mic != "mic-ready":
@@ -319,7 +389,24 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="P계층 앱 경로 드라이버 (픽스처를 첫 발화로 흘린다)")
     ap.add_argument("--port", type=int, default=9222)
     ap.add_argument("--url", default="http://localhost:3000/")
-    ap.add_argument("--wav", required=True, help="public/harness/ 아래 파일명 (예: p2k.wav)")
+    ap.add_argument(
+        "--wav",
+        required=True,
+        help="public/harness/ 아래 파일명들 (쉼표 구분 · 예: pq13.wav,pq13a.wav). "
+        "둘 이상이면 둘째부터 «코치의 턴이 끝난 뒤» 흘린다 (`TASK-81.1`)",
+    )
+    ap.add_argument(
+        "--next-wait-ms",
+        type=int,
+        default=30000,
+        help="둘째 픽스처를 흘리기 전에 코치의 턴을 기다리는 상한",
+    )
+    ap.add_argument(
+        "--quiet-ms",
+        type=int,
+        default=1200,
+        help="코치 오디오가 이 시간 동안 안 오면 턴이 끝난 것으로 본다",
+    )
     ap.add_argument("--fixture-rate", type=int, default=16000)
     ap.add_argument("--walk-timeout-ms", type=int, default=45000)
     ap.add_argument("--settle-timeout-ms", type=int, default=60000)

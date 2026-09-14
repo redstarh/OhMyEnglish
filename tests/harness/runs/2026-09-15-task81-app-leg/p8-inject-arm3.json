@@ -1,0 +1,57 @@
+{
+ "session_id": "1ac86973-77b4-4e69-859e-83b41dc382ea",
+ "sound": "f_as_p",
+ "pattern_key": "pronunciation_f_as_p",
+ "utterance_id": "b06c7b5a-27d8-4d94-8dc3-fb155309118f",
+ "after_pending": {
+  "pattern": null,
+  "attempts": [
+   {
+    "id": "a3e688ba-0147-42fa-90d0-0f2826b58da9",
+    "attempt_seq": 1,
+    "target_form": "I think the report is ready for the meeting.",
+    "target_sound": "f_as_p",
+    "outcome": "pending",
+    "signal_source": "nova_tool",
+    "pattern_id": null,
+    "resolved_at": null
+   }
+  ]
+ },
+ "after_incorrect": {
+  "pattern": {
+   "id": "66eb4878-51f8-40dc-831d-a81de925a337",
+   "pattern_key": "pronunciation_f_as_p",
+   "category": "pronunciation_intonation",
+   "target_form": "f_as_p",
+   "frequency": 1,
+   "last_seen_at": "2026-09-14T15:28:14.738485+00:00",
+   "next_review_at": "2026-09-15T15:28:14.738485+00:00",
+   "mastery_score": "0.00"
+  },
+  "attempts": [
+   {
+    "id": "a3e688ba-0147-42fa-90d0-0f2826b58da9",
+    "attempt_seq": 1,
+    "target_form": "I think the report is ready for the meeting.",
+    "target_sound": "f_as_p",
+    "outcome": "incorrect",
+    "signal_source": "nova_tool",
+    "pattern_id": "66eb4878-51f8-40dc-831d-a81de925a337",
+    "resolved_at": "2026-09-14T15:28:14.738485+00:00"
+   }
+  ],
+  "review_tasks": [
+   {
+    "id": "6680faa0-a93a-46a1-81f5-b60f628e59a9",
+    "task_type": "rephrase",
+    "review_stage": 1,
+    "status": "pending",
+    "due_at": "2026-09-15T15:28:14.738485+00:00",
+    "completed_at": null,
+    "cycle_started_at": "2026-09-14T15:28:14.738485+00:00"
+   }
+  ],
+  "occurrences": 0
+ }
+}
