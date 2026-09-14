@@ -4,7 +4,7 @@ title: '신규 기능: 음성 명령으로 학습 제어 (PRD Voice Control) —
 status: In Progress
 assignee: []
 created_date: '2026-09-09 13:11'
-updated_date: '2026-09-14 08:02'
+updated_date: '2026-09-14 17:28'
 labels: []
 dependencies: []
 ordinal: 64000
@@ -94,4 +94,12 @@ AC#3 이 「시작·종료·반복부터」를 제안했으나 이 조각은 그
 ## 게이트 — 그 턴에 직접 돌린 출력
 
 `pytest` **1191 passed**(19.28s · exit 0) · `ruff check` 안·밖 exit 0 · `ruff format --check` 안·밖 exit 0 · `ty` All checks passed.
+
+2026-09-15 (세션 ohmyenglish-65) 착수하지 않음 — 판단과 근거를 남김.
+
+사용자가 자러 가며 남은 작업을 위임했으나, 이 태스크는 «신규 기능»이고 AC#1(명령 인식 수단) · AC#2(command_confirmation 로 오인식 방어) · AC#3(최소 명령 집합)이 제품 계약을 새로 만드는 판단임. ⛔ 내 권고는 사용자가 깨어 있을 때 brainstorming → writing-plans 절차로 시작하는 것임 — 위임이 「제품을 새로 설계해도 된다」로 넓어지지 않는다고 읽었음.
+
+⚠️ 그리고 이 세션이 발음 축의 오염 방어를 방금 넣었고(결정 82·95·98·99·100 이행) 그 방어가 실사용에서 도는 것을 아직 관측하지 않았음 — 새 기능을 얹기 전에 그 관측이 앞서는 것이 순서상 낫다고 판단했음(TASK-78.1 AC#2 가 같은 관측을 요구함).
+
+착수 전 조사는 이미 원장에 있음(AC#1 의 ⛔ 문장이 tool 이 실증됐다는 사실을 적었음).
 <!-- SECTION:NOTES:END -->

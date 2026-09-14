@@ -1,100 +1,106 @@
 # HANDOFF — OhMyEnglish
 
-> 최종 갱신 **2026-09-15 00:34 KST** · 세션 `ohmyenglish-65` · 리포 `~/MyProject/OhMyEnglish` ·
-> 브랜치 `design/first-vertical-slice`
-> ⛔ **이전 판은 `handoff/backup/2026-09-15/HANDOFF-2026-09-15-0034.md` 에 그대로 있음** — 지우지
-> 않는 이유는 뒤집힌 결정의 경위가 그 안에만 있을 수 있기 때문임.
+> 최종 갱신 **2026-09-15 02:29 KST** · 세션 `ohmyenglish-65` · 브랜치 `design/first-vertical-slice`
+> ⛔ **이전 판 둘은 `handoff/backup/2026-09-15/` 에 있음**(`…-0034.md` · `…-0229.md`).
 > 인계 원칙의 정본은 `~/.claude/rules/session-handoff.md` 임. 상태 정본은 원장(`backlog/`), 근거
 > 정본은 **태스크 노트 · `tests/harness/runs/**` · `docs/ops/captain-instruction-register.md`** 임 —
 > 여기서 수치를 다시 세지 않음.
+>
+> ⚠️ **이 세션은 사용자가 자러 간 뒤 위임을 받아 계속 진행했음**(원문은 결정 99 가 가짐).
+> ⛔ **위임으로 정한 것과 사용자가 «고른» 것을 결정 대장이 구분해 적었음** — 결정 99·100 이 위임분임.
+> 다음 세션은 그 둘을 사용자에게 확인받는 것으로 시작하는 것이 좋음(회수되면 결정이 바뀐 것이 아니라
+> 위임이 회수된 것임).
 
 ## 인계 지표 4개 (이 턴에 직접 돌린 출력)
 
 | # | 지표 | 값 |
 |--:|---|---|
-| 1 | 기준 커밋 | **`2257c33`** · `origin/design/first-vertical-slice` 와 **0/0** · 미커밋은 미추적 `paseo.json` 하나뿐(내 것이 아님). ⚠️ **이 판을 담은 커밋 `e1bb6cb` 이 그 다음이므로 새 세션의 `HEAD` 는 그것이거나 더 뒤임** |
-| 2 | 다음 한 걸음 | **`TASK-116.3`** AC#1·#2 — 결정 97 이 이 태스크를 「다음 수단」으로 지목했음. ⚠️ AC#3 은 사용자 판단이라 그 앞의 둘만 함 |
-| 3 | 게이트 | `app/backend` cwd · 파이프 없이 · **넷 다 exit 0**: `pytest` **1191 passed**(13.05s) · `ruff check .` · `ruff format --check .` **48 files** · `ty check` |
-| 4 | 착수 전 필수 | 아래 ③. 잔여 **13건**(To Do 5 · In Progress 8 · Awaiting Decision **0** · 전체 170 · 완료 157) |
+| 1 | 기준 커밋 | **`461c938`** · `origin` 과 **0/0** · 미커밋은 원장 파일 둘(이 마감이 담음)과 미추적 `paseo.json`(내 것 아님) |
+| 2 | 다음 한 걸음 | **`TASK-61`**(음성 명령) — ⛔ 착수하지 않았고 그 이유를 태스크 노트에 적었음(신규 기능이라 사용자가 깨어 있을 때 `brainstorming`→`writing-plans` 로 시작하는 것이 권고임) |
+| 3 | 게이트 | **여섯 다 exit 0** — `pytest` **1200 passed**(14.95s) · `ruff check .` · `ruff format --check .` **48 files** · `ty check` · 프론트 `npx tsc --noEmit` · `npx eslint .`(둘 다 출력 0줄) |
+| 4 | 착수 전 필수 | 아래 ③. 잔여 **6건**(To Do 5 · In Progress 1 · Awaiting Decision **0** · 전체 174 · 완료 **168 · 97%**) |
 
 ```bash
 cd ~/MyProject/OhMyEnglish
 git rev-parse --short HEAD && git rev-list --left-right --count HEAD...origin/design/first-vertical-slice
 backlog task list --exclude-status Done --plain
 cd app/backend && ./.venv/bin/pytest -q && ./.venv/bin/ruff check . && ~/.local/bin/ty check
+cd ../frontend && npx tsc --noEmit && npx eslint .
 ```
 
-## ① 이번 세션이 한 것 — 근거는 회차와 결정 대장이 가짐
+## ① 이번 세션이 한 것 — 발음 축을 닫았음
 
-- **사용자 판단 넷을 닫고 결정 95·96·97 로 등재했음**(`docs/ops/captain-instruction-register.md`).
-  handoff 이전 판이 「판단 셋」으로 적은 것 가운데 둘은 **이미 닫혀 있었음** — 낡은 서술을 정정했음.
-- **닫은 태스크 넷**: `TASK-116.1`(AC#5 승인) · `TASK-129`(관측 완료) · `TASK-81`(AC#4 충족) ·
-  `TASK-81.1`(하네스 확장).
-- **새로 등록한 태스크 셋**: `TASK-116.2`(결정 95 이행 · 화면 표시) · `TASK-116.3`(아래 ②) ·
-  `TASK-81.1`(닫음).
-- **회차 둘**: `tests/harness/runs/2026-09-14-task129-plan-review-key`(WS 레그 · Nova 4세션) ·
-  `tests/harness/runs/2026-09-15-task81-app-leg`(브라우저 레그 · Nova 3세션).
-- **하네스 확장**: `p_app_path.py` 가 `--wav` 를 쉼표 목록으로 받고 둘째부터 **코치 턴 뒤**에 흘림.
+**닫은 태스크 14건**: `TASK-116`(부모) · `116.1`·`116.2`·`116.3`·`116.4` · `TASK-128`(부모) ·
+`128.4` · `TASK-129` · `TASK-81`·`81.1` · `TASK-88`·`88.1` · `TASK-78` · `TASK-97` · `TASK-138`.
+**새로 등록 6건**: `116.2`·`116.3`·`116.4`·`116.5` · `78.1` · `88.1`(넷은 닫았고 `116.5`·`78.1` 는 파킹).
+**결정 등재 6건**: 95·96·97 (사용자가 고름) · 98 (사용자가 고름) · **99·100 (위임으로 정함)**.
 
-## ② 다음 한 걸음 — `TASK-116.3` 과 그 앞의 판단 하나
+**회차 6건** (`tests/harness/runs/`): `2026-09-14-task129-plan-review-key` ·
+`2026-09-15-task81-app-leg` · `2026-09-15-task116-3-verdict-condition` ·
+`2026-09-15-task116-2-review-excluded-card` · `2026-09-15-task88-p2m-end-to-end` ·
+`2026-09-15-task88-1-analysis-row-screen` · `2026-09-15-task116-5-quote-shapes`.
 
-**무엇이 관측됐나**: 계획이 고른 발음 키가 기록된 `target_sound` 를 되풀이하는데(일반 세션 3/3 ·
-브라우저 1/1), **결정 82 의 어긋남 검사가 한 건도 표시하지 못함** — 코치가 소리를 인용하지 않고
-낱말만 말하기 때문임(`sound_check_verdict` 를 실제 발화로 직접 돌려 `None` 확인). 그래서 **한 번도
-내지 않은 소리의 복습 일정이 전진하고 화면에 `✓ 좋아요` 가 붙음.**
+**실물 사용 합**: Nova **7세션**(`TASK-129` 4 · `TASK-81` 3) · Claude **5회**(계획 4 · 분석 1).
+⚠️ `llm_calls` 로는 셀 수 없음(하네스가 `usage_sink` 를 주입하지 않음) — 손으로 센 값임.
 
-- **AC#1·#2 는 재현과 조건 특정이라 지금 착수 가능함.** 회차 절차가 그 디렉터리에 그대로 있음.
-- ⛔ **AC#3 은 사용자 판단임** — 「인용이 없을 때도 배제할지」는 결정 82 의 전제(잘못된 배제가 더
-  비싸다)를 뒤집는 것이라 팀리드가 정하지 않음.
+**하네스 확장 하나**: `p_app_path.py` 가 `--wav` 를 쉼표 목록으로 받고 둘째부터 **코치 턴 뒤**에 흘림.
 
-**그 밖에 열린 것의 성격** — 주체를 가려서 잡음.
-`TASK-116.2` · `TASK-128.4` AC#1 은 **프론트 구현**임. `TASK-138` 은 AC#1·#2 열거가 먼저이고 AC#3 이
-사용자 승인임. `TASK-78` 은 선행(`TASK-81`)이 닫혀 **이제 `--ready` 에 있음**. `TASK-88` 은 AC#4
-(p2m 종단 재현)만 남았고 방향은 결정 94 가 정했음. `TASK-39`·`TASK-41`·`TASK-122` 는 대기가 정상임
-(`TASK-39` AC#2 는 결정 96 이 보류 · `TASK-41` 은 결정 31 이 마지막으로 미뤘음).
+## ② 지금 상태 — 발음 축의 오염 경로는 막혔고, 어긋남 자체는 남아 있음
+
+- **어긋남은 13/13 으로 거의 항상 남**(모드·레그 무관 · `TASK-116` AC#1 집계). 결정 82 가
+  「프롬프트를 더 고치지 않는다」로 정했으므로 그것이 현재 규약임.
+- **막은 것**: 복습 전진 배제(116.1) · 일반 세션에서 검사가 발화하게 함(116.3 · 결정 98) ·
+  증거 갈림에서 정상 기록 보호(116.4) · 화면이 그 사실을 말함(116.2 · 결정 95) ·
+  분석 기원 기록의 내용과 화면 갈래(88.1 · 결정 99).
+- ⛔ **아직 관측되지 않은 것**: 그 방어들이 **실사용에서** 도는 모습. `TASK-78.1` AC#2 가 그 관측을
+  요구하고, 그것이 우회로 제거(결정 50 ③)의 전건임.
+- **알려진 구멍 하나**: 문장 전체 인용은 검사가 판정하지 못함 — 세션 단위 **2/59** 로 재고 파킹함
+  (`TASK-116.5`).
 
 ## ③ 착수 전 필수 — 앞 판에서 유효한 것 + 이번 세션 실측
 
 1. ⛔ **게이트 도구는 `python3` 에 없음** — `app/backend/.venv/bin/` 이고 `ty` 만 `~/.local/bin` 임.
-   게이트는 **cwd `app/backend`** 에서 돌리고 `pytest` 에 경로를 주지 않음.
-   ⚠️ **툴 호출마다 cwd 가 초기화되지 않고 남음** — 상대 경로가 조용히 엉킴(이번 세션에 두 번 겪었음).
-   긴 절차에서는 **절대 경로**를 씀.
+   게이트는 cwd `app/backend` 에서 돌림. 프론트 게이트는 `app/frontend` 에서 `npx tsc --noEmit` ·
+   `npx eslint .` 임(이번 세션에 `tsc` 가 실제로 계약 구멍을 잡았음).
+   ⚠️ **툴 호출 사이에 cwd 가 남음** — 긴 절차에서는 절대 경로를 씀.
 2. ⛔ **파이프 뒤의 `$?` 는 마지막 명령 것임** — `cmd > /tmp/out 2>&1; echo "exit=$?"` 로 받음.
-3. ⛔ **`git add <디렉터리>` 금지** · 커밋 **전** `git diff --cached --name-only` · push **전**
-   `git log --oneline origin/<브랜치>..HEAD`.
-4. ⛔ **태스크를 열기 전에 결정 대장과 원장을 함께 `grep`** 함 — 이번 세션이 그것으로 「이미 닫힌
-   판단 둘」을 다시 묻지 않았음.
-5. ⛔ **검증 전용 스택 규약**: DB 소유자 `ohmy` · `WORKER_ENABLED=false` · 끝나면 죽이고 drop 한 뒤
-   dev DB 무오염을 조회로 확인. **dev DB 기준선(2026-09-15 실측)**: `learning_sessions=17` ·
-   `pronunciation_attempts=7` · `error_patterns=9` · `session_plans=6` · `utterances=128` ·
-   `review_tasks=15`.
-6. **브라우저 레그 조합이 이번 세션에 통했음** — 전용 Chrome `:9333`(`--use-fake-device-for-media-stream`
-   · `--user-data-dir`) + **프론트 사본** `/tmp/fe-t81`(`cp -Rc` 3초 · `.env.local` 로 백엔드 지정) +
-   래퍼 백엔드 `:8012`(`/tmp/t81_app.py` 가 `:3001` origin 을 CORS 에 더함 · 앱 코드를 고치지 않음).
-   ⛔ **`:9222` 의 Chrome 은 다른 세션 것임 — 그 탭을 빼앗지 않음.**
-7. ⚠️ **`p8_inject_pronunciation.py inject` 뒤 `next_review_at` 이 «내일»임** — 계획의 due 목록에
-   걸리게 하려면 검증 전용 DB 에서 SQL 로 당겨야 하고 **그 개입을 회차에 적음**(`review.py` 가 그
-   컬럼의 유일한 writer 라는 규약을 우회하는 것임). `summarize_*` job 은 `available_at` 을 밀어 둠.
-8. ⚠️ **`ws_session.py` 는 `--timeout 120`** 으로 돌림 — 기본 30 은 코칭 왕복을 담지 못함(실측).
-   `p_app_path.py` 는 이제 `--wav a.wav,b.wav` 로 왕복 2회를 만들 수 있음.
-9. ⚠️ **ASR 이 오류 오디오를 정답 문장으로 정규화하는 일이 있음**(`pq06`·`pq13` 에서 관측). 회차
-   판정이 그것에 걸리므로 **전사문을 먼저 읽고** 「코치가 들을 근거가 있었나」를 가름.
-10. ⚠️ **`llm_calls` 로 하네스 비용을 셀 수 없음** — `p5_worker_leg.py` 가 `usage_sink` 없이
-    클라이언트를 만듦(제품 결함 아님). 호출 수는 손으로 셈.
+   ⚠️ **`pytest` 에 파일 경로를 직접 주면 `asyncio_mode=auto` 가 안 걸림**(rootdir 이 바뀜) —
+   `-k` 로 고름(실측: async 테스트가 「plugin 없음」으로 실패했음).
+3. ⛔ **`git add <디렉터리>` 금지** · 커밋 전 `git diff --cached --name-only`.
+4. ⛔ **태스크를 열기 전에 결정 대장과 원장을 함께 `grep`** 함 — 이 세션이 그것으로 「이미 닫힌 판단
+   둘」과 「낡은 AC 문면 둘」(`TASK-78` AC#4 · `TASK-128.4` AC#1)을 찾았음.
+5. ⛔ **검증 전용 스택 규약**: DB 소유자 `ohmy` · `WORKER_ENABLED=false` · 끝나면 죽이고 drop.
+   **dev DB 기준선(2026-09-15 실측)**: `learning_sessions=17` · `pronunciation_attempts=7` ·
+   `error_patterns=9` · `session_plans=6` · `utterances=128` · `review_tasks=15`.
+6. **브라우저 레그 조합**(이번 세션에 네 번 통했음): 전용 Chrome `:9333`(마이크가 필요하면
+   `--use-fake-device-for-media-stream` 를 더함) + 프론트 사본 `/tmp/fe-*`(`cp -Rc` 3초 ·
+   `.env.local` 로 백엔드 지정) + 래퍼 백엔드 `:8012`(`/tmp/*_app.py` 가 `:3001` origin 을 CORS 에
+   더함 · 앱 코드를 고치지 않음). ⛔ `:9222` 는 다른 세션 것임.
+7. ⚠️ **화면 문구가 한순간만 페인트되면 폴링으로 못 잡음** — 클릭 «전»에 `MutationObserver` 를 걸음
+   (진입 안내를 그렇게 잡았음 · `runs/2026-09-15-task116-2-review-excluded-card/enter.py.txt`).
+8. ⚠️ **`p8_inject_pronunciation.py inject` 뒤 `next_review_at` 이 내일임** — 계획 due 목록에 걸려면
+   검증 전용 DB 에서 SQL 로 당기고 **그 개입을 회차에 적음**.
+9. ⚠️ **`ws_session.py` 는 `--timeout 120`**(기본 30 은 코칭 왕복을 못 담음) ·
+   `p_app_path.py` 는 이제 `--wav a.wav,b.wav` 로 왕복 2회를 만듦.
+10. ⚠️ **ASR 이 오류 오디오를 정답 문장으로 정규화하는 일이 있음** — 전사문을 먼저 읽고 「코치가 들을
+    근거가 있었나」를 가름.
 
-## ④ 열린 태스크 13건
+## ④ 열린 태스크 6건 — 전부 «지금 열 자리가 아닌» 이유가 적혀 있음
 
-**To Do 5**: `TASK-116.2`(프론트) · `TASK-116.3`(다음 걸음) · `TASK-39`(AC#2 보류) ·
-`TASK-41`(결정 31 로 마지막) · `TASK-122`(LOW).
-**In Progress 8**: `TASK-116`(HIGH · 부모) · `TASK-128`(부모) · `TASK-128.4`(AC#1 프론트) ·
-`TASK-78`(선행 풀림) · `TASK-88`(AC#4) · `TASK-97` · `TASK-61` · `TASK-138`(AC 넷 미충족).
+| 태스크 | 왜 열려 있나 |
+|---|---|
+| `TASK-61`(In Progress) | **신규 기능**이라 제품 판단 셋이 앞에 있음 — 사용자와 함께 시작 권고 |
+| `TASK-78.1` | 우회로 제거. 첫 AC 가 「문턱을 **먼저** 수치로 못박는다」이고 둘째가 실사용 관측임 |
+| `TASK-116.5` | 문장 인용 구멍 2/59 — 측정하고 파킹함. 다시 올릴 조건은 그 비율이 커지는 것 |
+| `TASK-122`(LOW) | AC#3 이 실물 8회 이상을 요구함. 재시도 1회로 흡수되는 부류 |
+| `TASK-39` | AC#2 를 결정 96 이 보류(Phase 2 운영 관찰 시점) |
+| `TASK-41` | 결정 31 이 「모든 구현이 끝난 뒤 다시 올린다」로 미룸 |
 
 ## ⑤ 착수 전 반드시 읽을 것
 
-- **결정 95·96·97** (`docs/ops/captain-instruction-register.md` 머리 근처) — 이번 세션의 판단 넷.
-  ⛔ 특히 **결정 97**: `plan.py:320` 을 고치지 않고 다음 수단은 기록 경로임.
-- **회차 정본 둘** — `runs/2026-09-14-task129-plan-review-key`(되풀이 3/3 · 결정 82 미표시) ·
-  `runs/2026-09-15-task81-app-leg`(브라우저 코칭 확인 · 같은 어긋남 재확인).
-- **결정 82·94** — 82: 다음 수단은 기록 경로 · 94: 발음 기원 오류는 기록만 남기고 복습을 만들지 않음.
+- **결정 95·96·97·98** (사용자가 고름) · **결정 99·100** (⚠️ **위임으로 정함** — 다음 세션이 확인받을
+  대상). 정본은 `docs/ops/captain-instruction-register.md` 머리 근처임.
+- **회차 여섯** — 위 ① 의 목록. 특히 `2026-09-15-task116-3-verdict-condition` 이 결정 98 의 이행과
+  codex 리뷰 처리(발견 5건을 갈라 셋은 이전부터·하나는 고침·하나는 태스크로)를 갖고 있음.
 - **영구 지식 `H-BQ`** — `backlog task edit --notes` 는 기존 노트를 덮음. 이어 쓸 때 `--append-notes`.
 - ⚠️ **개수를 적을 때 그 수가 낡을지 먼저 생각함** — 이 파일의 개수는 위 지표 표의 시점 값임.
