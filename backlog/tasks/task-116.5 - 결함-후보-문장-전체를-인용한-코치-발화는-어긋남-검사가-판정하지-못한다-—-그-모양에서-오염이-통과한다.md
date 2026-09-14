@@ -4,7 +4,7 @@ title: '결함 후보: 문장 전체를 인용한 코치 발화는 어긋남 검
 status: To Do
 assignee: []
 created_date: '2026-09-14 17:19'
-updated_date: '2026-09-14 17:27'
+updated_date: '2026-09-14 22:26'
 labels: []
 dependencies: []
 parent_task_id: TASK-116
@@ -34,4 +34,6 @@ AC#1 측정됨: 기존 프레임 증거 66파일의 코치 발화 120건을 제�
 AC#2 정했음(위임받음): ⛔ 지금 닫지 않음. 검사 쪽 안(문장을 낱말 자루로 쪼갬)은 이득이 0 임 — 낱말이 여럿이라 갈래 ②가 거의 항상 None 이 되어 지금과 같음. 프롬프트 쪽 안은 결정 82 가 막았고 2/59 로 그 판단을 요청할 근거가 약함. ⇒ 수치를 남기고 To Do 로 파킹함.
 
 ⛔ AC#3(구현)은 하지 않았으므로 체크하지 않았고 태스크를 닫지 않았음 — 결과에 맞춰 AC 문면을 고치지 않음. 다시 올릴 조건은 이 비율이 커지는 것이고 그때 같은 스크립트로 다시 셈.
+
+2026-09-15 표본 하나가 늘었음 (세션 ohmyenglish-65 · runs/2026-09-15-task78-1-defenses-in-use). 브라우저 레그 일반 세션에서 코치가 문장 전체 인용과 낱말 인용을 «한 발화에» 함께 썼음 — I hear you say "my brother will early really tomorrow morning." Let's focus on the word "early." ⇒ 낱말 인용이 판정을 살려 sound_check=mismatched 가 붙었음. 즉 이 태스크가 겨냥한 「문장 인용만 있어 막힌 세션」이 아니고 그 비율(2/59)을 늘리지 않음. 다시 올릴 조건은 그대로임.
 <!-- SECTION:NOTES:END -->
