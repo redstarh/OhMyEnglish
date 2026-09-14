@@ -34,7 +34,14 @@ export interface PronunciationAttempt {
   /** `null`이면 대답 없이 끝난 시도다 (종료 수렴). 키는 언제나 있다. */
   spoken_form: string | null;
   outcome: "correct" | "incorrect" | "unclear";
-  signal_source: "nova_tool" | "korean_transcript" | "agent_reprompt";
+  /**
+   * 이 행이 **무엇 때문에 생겼는지** (003 CHECK · 024 가 넷째 값을 더했다).
+   *
+   * ⚠️ **`transcript_analysis` 가 빠져 있었다** — 024(결정 93)로 백엔드 값역이 넓어졌는데 이 타입이
+   * 따라오지 않아, 그 값을 비교하는 코드가 `tsc` 에서 「겹치지 않는 비교」로 막혔다(`TASK-88.1`).
+   * 화면이 갈래를 가르는 근거가 이 값이므로 값역이 낡으면 새 신호가 조용히 남의 갈래로 간다.
+   */
+  signal_source: "nova_tool" | "transcript_analysis" | "korean_transcript" | "agent_reprompt";
   /**
    * 이 시도가 **복습에 쓰이지 않는가** (사용자 결정 95 · `TASK-116.2`).
    *

@@ -1047,6 +1047,43 @@ async def test_a_delivery_origin_finding_is_recorded_as_a_transcript_analysis_si
     ] == [("transcript_analysis", "incorrect", "the report", BROKEN_SPAN, utterance.id)]
 
 
+# ⛔ **발음 기록에는 «일반형»이 아니라 «교정문»이 실린다** (`TASK-88.1`).
+#
+# ⚠️ **위 픽스처는 이 축을 가르지 못한다** — `target_form` 과 `correction` 이 둘 다 `the report` 라서
+# 어느 필드를 실었는지 단정이 구별하지 못한다. 그래서 **가르는 픽스처**를 따로 둔다.
+#
+# 관측이 이유다(회차 `runs/2026-09-15-task88-1-analysis-row-screen`): 분석 프롬프트는 `target_form` 을
+# **일반형**으로 요구하고 그 예시가 자리표시자와 한국어다(`go to the + 장소 명사`). 그 값이 발음
+# 기록의 「시범 문장」 자리에 그대로 들어가 학습자가 **한국어 틀**을 봤다 —
+# `I finished the + 업무 산출물 명사 (report / presentation / draft)`.
+# ⇒ 같은 이름의 두 필드가 **계약이 다르다**: 문법의 `target_form` 은 연습 일반형이고 발음의
+# `target_form` 은 시범 «문장»이다. finding 은 문장을 이미 갖고 있다 — `correction` 이다.
+TEMPLATED_DELIVERY_FINDING = default_finding(
+    origin="delivery",
+    category="business_expression",
+    pattern_key="business_expression_unclear_work_noun",
+    target_form="I finished the + 업무 산출물 명사 (report / presentation / draft)",
+    original_span=BROKEN_SPAN,
+    correction="the report",
+)
+
+
+async def test_a_delivery_origin_finding_records_the_correction_not_the_general_form(
+    db_pool: asyncpg.Pool, committed_session, fake_claude
+):
+    """⛔ 한국어 자리표시자가 학습자 화면의 시범 문장 자리에 들어가지 않는다."""
+    await _save(db_pool, committed_session.session_id, GYM_ANSWER)
+
+    await process_analysis(
+        db_pool, fake_claude(_response(TEMPLATED_DELIVERY_FINDING)), await _claim(db_pool)
+    )
+
+    (row,) = await _pronunciation_rows(db_pool, committed_session.session_id)
+    assert row["target_form"] == "the report"
+    # ⚠️ 반대 방향 — 발화 조각은 그대로 남아야 한다(그것이 「내 발화」다).
+    assert row["spoken_form"] == BROKEN_SPAN
+
+
 # ⛔ **복습 과제를 만들지 않는다** (결정 94 가 결정 92 의 ②를 뒤집었다). 소리 이름이 없으므로
 # `_UPSERT_PRONUNCIATION_PATTERN_SQL`의 `target_sound` 조건이 0행을 내고 `pattern_id`가 비어야
 # 한다. ⚠️ 이 단정이 없으면 「기록만 남긴다」가 코드로 지켜지는지 아무도 재지 않는다 — 분석기는

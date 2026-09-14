@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+"""TASK-88.1 AC#1 — 분석 기원 발음 기록이 결과 화면에서 어떻게 보이는지 볼 픽스처.
+
+세션 하나에 세 행을 둔다 — ⛔ **셋을 함께 둬야 화면이 그 셋을 어떻게 «가르는지»가 보인다.**
+
+1. `nova_tool` (코치가 시범한 정상 시도)
+2. `transcript_analysis` (분석 기원 · `TASK-88` AC#4 회차가 실측한 값 그대로)
+3. `korean_transcript` (보조 신호 · 이 갈래가 원래 「관찰된 신호」의 주인이다)
+
+⛔ 값을 발명하지 않았다 — 2번의 두 값은 `runs/2026-09-15-task88-p2m-end-to-end` §2 가 적은 실측이다.
+
+실행:
+    cd app/backend && DATABASE_URL=postgresql://ohmy:ohmy@localhost:5432/ohmyenglish_t881 \
+      .venv/bin/python ../../tests/harness/runs/2026-09-15-task88-1-analysis-row-screen/seed.py.txt
+"""
+
+from __future__ import annotations
+
+import asyncio
+import os
+from uuid import UUID
+
+import asyncpg
+
+from app.services.pronunciation import KOREAN_TRANSCRIPT_TARGET_FORM
+from app.services.sessions import create_session
+
+OWNER = UUID("00000000-0000-0000-0000-000000000001")
+
+_INSERT = """
+insert into pronunciation_attempts
+    (session_id, target_form, spoken_form, target_sound, outcome, signal_source, resolved_at)
+values ($1, $2, $3, $4, $5, $6, now())
+"""
+
+# `TASK-88` AC#4 회차의 실측값(분석기가 만든 것).
+ANALYSIS_TARGET_FORM = "I finished the + 업무 산출물 명사 (report / presentation / draft)"
+ANALYSIS_SPOKEN_FORM = "the la porte en chaille de lesseps"
+
+
+async def main() -> None:
+    pool = await asyncpg.create_pool(os.environ["DATABASE_URL"], min_size=1, max_size=2)
+    assert pool is not None
+    try:
+        session_id = await create_session(pool, OWNER)
+        async with pool.acquire() as conn:
+            await conn.execute(
+                _INSERT,
+                session_id,
+                "I think it's three.",
+                "I sink it's sree.",
+                "th_as_s",
+                "incorrect",
+                "nova_tool",
+            )
+            await conn.execute(
+                _INSERT,
+                session_id,
+                ANALYSIS_TARGET_FORM,
+                ANALYSIS_SPOKEN_FORM,
+                None,
+                "incorrect",
+                "transcript_analysis",
+            )
+            await conn.execute(
+                _INSERT,
+                session_id,
+                KOREAN_TRANSCRIPT_TARGET_FORM,
+                None,
+                None,
+                "unclear",
+                "korean_transcript",
+            )
+            rows = await conn.fetch(
+                "select attempt_seq, signal_source, left(target_form, 30) target_form,"
+                " spoken_form is not null as has_spoken"
+                "  from pronunciation_attempts where session_id = $1 order by attempt_seq",
+                session_id,
+            )
+    finally:
+        await pool.close()
+    print(f"session_id = {session_id}")
+    for row in rows:
+        print(
+            f"  #{row['attempt_seq']} {row['signal_source']:<20}"
+            f" spoken={row['has_spoken']} {row['target_form']!r}"
+        )
+
+
+asyncio.run(main())

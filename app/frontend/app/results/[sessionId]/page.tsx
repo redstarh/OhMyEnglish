@@ -130,6 +130,10 @@ const NO_ANSWER_NOTICE = "대답 없이 끝났어요";
 // 신호 행(`korean_transcript`)은 Nova의 시범이 아니라 우리 감지기의 **관찰**이다.
 // 같은 라벨을 쓰면 그 설명 문구가 "이렇게 발음하세요"로 보인다(TASKS.md A-2 후단 ①).
 const SIGNAL_LABEL = "관찰된 신호";
+// 분석 기원 행의 첫 줄 (`TASK-88.1`). ⛔ **문법 교정 카드와 같은 낱말을 쓴다** — 그 카드가
+// `교정문:`을 쓰므로 같은 것을 여기서 다른 낱말로 부르지 않는다.
+// ⚠️ 「시범 문장」이 아닌 이유: 코치가 시범한 것이 아니라 **분석이 고친 것**이다.
+const CORRECTED_LABEL = "교정문";
 // 검증에 걸린 시도 (사용자 **결정 95** · `TASK-116.2`). 문구는 사용자가 2026-09-15에 승인했다.
 //
 // ⛔ **표시하고, 복습에 쓰지 않는다는 사실을 함께 말한다.** 숨기면 학습자의 시도 수가 실제보다
@@ -377,6 +381,34 @@ export default function ResultsPage() {
                     </p>
                     {/* 결정 95 — 판정 줄 **아래**에 붙인다. 위에 붙이면 판정보다 먼저 읽혀
                         「이 시도는 무효」로 보이는데, 시도 자체는 유효하고 기록도 남는다. */}
+                    {attempt.review_excluded && (
+                      <p style={PRONUNCIATION_LABEL_STYLE}>{REVIEW_EXCLUDED_NOTICE}</p>
+                    )}
+                  </div>
+                ) : attempt.signal_source === "transcript_analysis" ? (
+                  // 분석 기원 행 (`TASK-88.1`). ⛔ **보조 신호와 같은 취급을 하지 않는다** — 이 행은
+                  // 교정문과 학습자 발화를 **둘 다 갖는다**(`services/analysis.py`의 라우팅).
+                  // ⚠️ 앞 판은 이 행을 아래 「관찰된 신호」 갈래로 보냈고, 그래서 학습자가 **자기
+                  // 발화도 판정도 보지 못했다**(회차 `runs/2026-09-15-task88-1-analysis-row-screen`).
+                  // ⛔ 라벨을 「시범 문장」으로 쓰지 않는다 — 코치가 **시범한 것이 아니라** 분석이
+                  // 고친 것이다. 문법 교정 카드와 **같은 낱말**을 쓴다(같은 것을 다른 낱말로
+                  // 부르면 학습자가 다른 개념으로 읽는다).
+                  <div key={index} style={PRONUNCIATION_CARD_STYLE}>
+                    <p style={PRONUNCIATION_LABEL_STYLE}>{CORRECTED_LABEL}</p>
+                    <p style={{ margin: "0.25rem 0" }}>{attempt.target_form}</p>
+                    <p style={PRONUNCIATION_LABEL_STYLE}>{SPOKEN_LABEL}</p>
+                    <p
+                      style={{
+                        margin: "0.25rem 0",
+                        color:
+                          attempt.spoken_form === null ? "var(--foreground-muted)" : undefined,
+                      }}
+                    >
+                      {attempt.spoken_form ?? NO_ANSWER_NOTICE}
+                    </p>
+                    <p style={{ margin: "0.25rem 0", color: OUTCOME_COLOR[attempt.outcome] }}>
+                      {outcomeLabel(attempt.outcome)}
+                    </p>
                     {attempt.review_excluded && (
                       <p style={PRONUNCIATION_LABEL_STYLE}>{REVIEW_EXCLUDED_NOTICE}</p>
                     )}

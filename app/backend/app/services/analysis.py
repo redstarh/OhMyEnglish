@@ -514,10 +514,17 @@ async def _replace_occurrences(
             # 복습 전진에서 배제한다. **둘 다 이미 있으므로 여기에 방어를 더 쓰지 않는다.**
             # ⚠️ 「소리가 없으면 upsert가 0행」은 셋째 겹이지만 **이 경로에서는 도달하지 않는다**
             # (무력화 M2로 확인 — 그 함수의 docstring이 경위를 갖는다).
+            # ⛔ **`target_form` 이 아니라 `correction` 을 싣는다** (`TASK-88.1`). 같은 이름의 두
+            # 필드가 **계약이 다르다**: 문법의 `target_form` 은 연습 «일반형»이고(프롬프트가
+            # 자리표시자와 한국어를 좋은 예로 든다 — `_TARGET_FORM_RULES`) 발음 기록의
+            # `target_form` 은 학습자에게 「시범 문장」으로 보이는 **문장**이다.
+            # ⚠️ 실측: 일반형을 그대로 실어 결과 화면에
+            # `I finished the + 업무 산출물 명사 (report / presentation / draft)` 가 떴다
+            # (회차 `runs/2026-09-15-task88-1-analysis-row-screen`).
             await record_transcript_analysis_signal(
                 conn,
                 utterance_id=utterance_id,
-                target_form=finding.target_form,
+                target_form=finding.correction,
                 spoken_form=finding.original_span,
             )
             continue
