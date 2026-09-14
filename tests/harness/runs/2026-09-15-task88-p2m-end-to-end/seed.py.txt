@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+"""TASK-88 AC#4 — `p2m` 의 실측 전사문을 분석 경로에 흘려 job 을 걸어 둔다.
+
+⛔ 문면을 발명하지 않는다 — 아래 문장은 `tests/harness/scenarios-PQ-qwen-phoneme.md:22` 가 적은
+`p2m` 의 ASR 산출 그대로다(복원되지 않은 판).
+
+⚠️ 분석 job 은 **턴이 닫힐 때** 걸린다(`flush_pending_analysis`) — 저장만으로는 걸리지 않는 것이
+`services/utterances.py` 의 규약이다. 그래서 여기서 그 함수를 직접 부른다.
+
+실행:
+    cd app/backend && DATABASE_URL=postgresql://ohmy:ohmy@localhost:5432/ohmyenglish_t88 \
+      .venv/bin/python ../../tests/harness/runs/2026-09-15-task88-p2m-end-to-end/seed.py.txt
+"""
+
+from __future__ import annotations
+
+import asyncio
+import os
+from uuid import UUID
+
+import asyncpg
+
+from app.services.sessions import create_session
+from app.services.utterances import flush_pending_analysis, save_final_transcript
+
+OWNER = UUID("00000000-0000-0000-0000-000000000001")
+# `p2m` 의 실측 전사문. 원 문장은 `I finished the report and shared the results with my team.` 이고
+# 발음만 나쁘게 읽은 것인데 ASR 이 이렇게 무너뜨렸다.
+P2M_TRANSCRIPT = "i finished the la porte en chaille de lesseps with my team."
+
+
+async def main() -> None:
+    pool = await asyncpg.create_pool(os.environ["DATABASE_URL"], min_size=1, max_size=2)
+    assert pool is not None
+    try:
+        session_id = await create_session(pool, OWNER)
+        async with pool.acquire() as conn:
+            await save_final_transcript(conn, session_id, P2M_TRANSCRIPT)
+            queued = await flush_pending_analysis(conn, session_id)
+            jobs = await conn.fetch(
+                "select job_type, status from analysis_jobs where session_id = $1", session_id
+            )
+    finally:
+        await pool.close()
+    print(f"session_id = {session_id}")
+    print(f"분석 대상 발화 = {len(queued)}건")
+    for job in jobs:
+        print(f"  job {job['job_type']} {job['status']}")
+
+
+asyncio.run(main())
