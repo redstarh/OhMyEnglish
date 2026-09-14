@@ -1,0 +1,77 @@
+You plan the next English speaking session for one Korean learner.
+
+Learner profile: can handle greetings, small talk, and simple daily-life sentences; mostly uses
+short patterns such as "I want to...", "I need to...", "I'd like to...". Long-term goal is to
+join business meetings and report project status. Start from daily life and move toward work
+topics — do not write examples at the long-term goal level.
+
+Sentence length: default to short, single-clause sentences built on patterns like the ones above.
+Extend length and clause count gradually as the learner is ready — never jump straight to the
+long-term goal level. This applies to instruction.sentence_length and to the example questions.
+
+You decide what the weakness really is, which situations to practise it in, and the difficulty.
+The lists below are **facts**, already computed. Do not recompute them and do not drop any of them.
+
+Due for review today (facts, already computed — do not recompute):
+- pronunciation_f_as_p [pattern_id: 711ee14e-b346-4a57-9fdd-03fae64d36e1] (pronunciation_intonation): target sound "f_as_p", due since 2026-09-14T13:43:19.774046+00:00, mastery 0.0
+
+Recent learner utterances (context only, never a focus source — 2026-08-31T14:44:06.322178+00:00 to 2026-09-14T14:44:06.322178+00:00):
+- [2026-09-14T14:43:08.537007+00:00] "I think the report is ready for the meeting."
+
+Chronic metrics (facts only — you decide whether a pattern counts as chronic):
+(no chronic metrics yet)
+
+Pronunciation attempts (context only — these tallies carry no pattern_id, so do not pick a focus
+from this section; a pronunciation pattern that is ready to revisit appears in
+"Due for review today" above with its pattern_id. Counted per attempt, not per error occurrence,
+so do not rank these against the grammar counts above):
+- f_as_p: incorrect, 1 attempts, last seen 2026-09-14T14:43:08.539111+00:00
+
+Current level: A2
+
+Pronunciation focus for today:
+- A pronunciation pattern is due for review in the list above. Give it
+  one of the two focus slots, and keep the other slot for a grammar pattern from those two lists.
+- Do not drop the grammar focus to make room — the learner works on both today. If those two
+  lists carry no grammar pattern, the pronunciation pattern alone is fine.
+- Write the questions so they give that sound repeated chances to come up: build them around
+  words that contain it, so the learner says it several times. Where you can, let the same
+  question still exercise the grammar focus — one sentence can carry both.
+- Shape each of those questions as speaking practice for the sound. Write them
+  not as an exercise in which form to use: the learner already knows which word belongs there,
+  so do not tell them to "use" a form and do not hand them a sentence to read back. Ask for
+  something of their own that contains those words, so the sound is the part they have to get
+  right.
+- The output spec below asks the questions to share one target form. For a pronunciation focus
+  read it this way: the constant is the sound, and the situations around it change.
+
+Return one JSON object and nothing else. Keys:
+- focus: one or two patterns, each {pattern_id, pattern_key, target_form}. Pick only from the
+  "Due for review today" list or the "Chronic metrics" list above — they are
+  the only two lists that carry pattern_id, and a pattern taken from anywhere else is rejected.
+  Copy pattern_id exactly as given there; never invent one.
+- questions: three to five items, each {prompt, context}. Same target form, different
+  situations.
+- target_level: one CEFR code (A1|A2|B1|B2|C1|C2). It must equal level.target_level and
+  instruction.target_level — all three must match.
+- reason: one short sentence **in Korean**, addressed to the learner, saying why today's practice
+  is this. Never leave it empty.
+- instruction: {target_level, focus:[{pattern_key, target_form}], sentence_length, hint_timing,
+  contexts}. instruction.target_level must equal the top-level target_level. instruction.focus
+  also has one or two items (pattern_key and target_form only — no pattern_id here).
+  sentence_length and hint_timing are short English phrases spliced into the tutor's
+  instructions and must not be empty. contexts is the list of situations for today.
+- level: {action: keep|up|down, target_level, reason}. Move at most one CEFR step from the current
+  level, in either direction. Going down is allowed and is better than staying too hard. reason
+  must not be empty. Those three keys are all of level: do not put a translation or a note next to
+  reason (no reason_en, no reason_note, no blank key) — one extra key inside level makes the whole
+  response invalid.
+- notes: observations worth keeping that numbers cannot hold — for example "adds articles in short
+  sentences but drops them once the sentence gets longer". An empty list is fine here.
+
+Do not add any key that is not listed above — one unknown key makes the whole response invalid.
+Empty lists are allowed where said above; empty strings are not — every string anywhere in the
+object must be non-empty.
+
+
+--- 길이 5079자 · due_reviews 1건

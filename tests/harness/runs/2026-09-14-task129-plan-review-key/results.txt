@@ -1,0 +1,52 @@
+### pronunciation_attempts (검증 전용 DB ohmyenglish_t129 · 2026-09-14)
+   sess   | seq | target_sound | signal_source |  outcome  |          target_form           | sound_check | linked 
+----------+-----+--------------+---------------+-----------+--------------------------------+-------------+--------
+ 519a2ba3 |   1 | f_as_p       | nova_tool     | incorrect | I think the report is ready fo |             | t
+ 51c81e86 |   2 | f_as_p       | nova_tool     | incorrect | early                          |             | f
+ 485c8f42 |   3 | f_as_p       | nova_tool     | incorrect | early                          |             | f
+ 5117f28e |   4 | f_as_p       | nova_tool     | incorrect | early                          |             | f
+(4개 행)
+
+
+### error_patterns
+     pattern_key      |         category         | frequency | mastery_score |        next_review_at         |         last_seen_at          
+----------------------+--------------------------+-----------+---------------+-------------------------------+-------------------------------
+ pronunciation_f_as_p | pronunciation_intonation |         4 |          0.00 | 2026-09-15 14:56:18.900661+00 | 2026-09-14 14:56:18.900661+00
+(1개 행)
+
+
+### review_tasks
+   pat    |  status   |            due_at             |          created_at           
+----------+-----------+-------------------------------+-------------------------------
+ 711ee14e | abandoned | 2026-09-15 14:43:08.54315+00  | 2026-09-14 14:43:08.542814+00
+ 711ee14e | abandoned | 2026-09-15 14:54:01.278943+00 | 2026-09-14 14:54:01.277053+00
+ 711ee14e | abandoned | 2026-09-15 14:55:10.102367+00 | 2026-09-14 14:55:10.100584+00
+ 711ee14e | pending   | 2026-09-15 14:56:18.900661+00 | 2026-09-14 14:56:18.898865+00
+(4개 행)
+
+
+### learning_sessions
+    id    |  status   |   mode   |          started_at           |           ended_at            
+----------+-----------+----------+-------------------------------+-------------------------------
+ 519a2ba3 | completed | speaking | 2026-09-14 14:43:08.531189+00 | 2026-09-14 14:43:08.556827+00
+ 1861e872 | completed | speaking | 2026-09-14 14:50:53.098451+00 | 2026-09-14 14:51:24.103367+00
+ 51c81e86 | completed | speaking | 2026-09-14 14:52:55.326669+00 | 2026-09-14 14:54:01.277053+00
+ 485c8f42 | completed | speaking | 2026-09-14 14:54:04.442512+00 | 2026-09-14 14:55:10.100584+00
+ 5117f28e | completed | speaking | 2026-09-14 14:55:13.25002+00  | 2026-09-14 14:56:18.898865+00
+(5개 행)
+
+
+### 코치 발화 전체와 sound_check_verdict(speech, 'f_as_p')
+   sess   |                                                                      speech                                                                      
+----------+--------------------------------------------------------------------------------------------------------------------------------------------------
+ 519a2ba3 | 
+ 1861e872 | I hear you say "my brother will arrive early tomorrow morning." Good! Can you tell me one more time, but this time say just the word "early"?   +
+          |                                                                                                                                                 +
+          | Say: early                                                                                                                                      +
+          |                                                                                                                                                 +
+          | Ready?
+ 51c81e86 | I see. Your brother is arriving early tomorrow morning. | Sorry, I need to hear that word again. Can you say "early" one more time for me?
+ 485c8f42 | I see. Your brother is arriving early tomorrow morning.
+ 5117f28e | I see. Your brother is arriving early tomorrow morning. | Sorry, I need to hear that word again. Can you say "early" one more time for me?
+(5개 행)
+

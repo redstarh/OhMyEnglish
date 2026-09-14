@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+"""TASK-129 회차 — 계획 생성 프롬프트를 제품 로더로 그대로 재현한다 (Claude 를 부르지 않는다).
+
+`.py.txt` 확장자는 앞 회차(`TASK-105`)의 관례다 — ruff·pytest 가 수집하지 않게 한다.
+
+실행:
+    cd app/backend && DATABASE_URL=postgresql://ohmy:ohmy@localhost:5432/ohmyenglish_t129 \
+      .venv/bin/python ../../tests/harness/runs/2026-09-14-task129-plan-review-key/build_plan_prompt.py.txt
+"""
+
+from __future__ import annotations
+
+import asyncio
+import os
+from uuid import UUID
+
+import asyncpg
+
+from app.services.plan import build_plan_prompt, load_plan_input
+
+OWNER = UUID("00000000-0000-0000-0000-000000000001")
+
+
+async def main() -> None:
+    conn = await asyncpg.connect(os.environ["DATABASE_URL"])
+    try:
+        data = await load_plan_input(conn, OWNER)
+    finally:
+        await conn.close()
+    prompt = build_plan_prompt(data)
+    print(prompt)
+    print(f"\n--- 길이 {len(prompt)}자 · due_reviews {len(data.due_reviews)}건", flush=True)
+
+
+asyncio.run(main())

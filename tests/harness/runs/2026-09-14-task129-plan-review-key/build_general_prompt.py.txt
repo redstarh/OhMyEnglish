@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+"""TASK-129 회차 — 일반 세션(모드 없음)이 받을 시스템 프롬프트를 제품 로더로 재현한다.
+
+⛔ Nova 를 부르지 않는다. `ws.py` 의 일반 세션 경로와 «같은 인자»를 만든다 —
+`known_sounds` 는 원본 목록이고(후보 승격은 `pronunciation_requested` 에서만 돈다 · `ws.py:427`),
+`plan`·`questions` 는 저장된 계획에서 오고, 무대는 검증 전용 DB 에 없으므로 `None` 이다.
+
+실행:
+    cd app/backend && DATABASE_URL=postgresql://ohmy:ohmy@localhost:5432/ohmyenglish_t129 \
+      .venv/bin/python ../../tests/harness/runs/2026-09-14-task129-plan-review-key/build_general_prompt.py.txt
+"""
+
+from __future__ import annotations
+
+import asyncio
+import os
+
+import asyncpg
+
+from app.api.ws import _load_known_sounds_or_empty, _load_prepared_plan_or_none
+from app.audio_gateway.nova import build_system_prompt
+from app.config import get_settings
+
+
+async def main() -> None:
+    pool = await asyncpg.create_pool(os.environ["DATABASE_URL"], min_size=1, max_size=2)
+    assert pool is not None
+    try:
+        known_sounds = await _load_known_sounds_or_empty(pool)
+        prepared = await _load_prepared_plan_or_none(pool)
+    finally:
+        await pool.close()
+
+    plan = prepared.instruction if prepared is not None else None
+    questions = prepared.questions if prepared is not None else []
+    settings = get_settings()
+
+    prompt = build_system_prompt(
+        known_sounds,
+        plan,
+        questions,
+        None,
+        scenario_intake=False,
+        drill_count=settings.drill_count,
+        drill_turns_min=settings.drill_turns_min,
+    )
+    print(prompt)
+    print(
+        f"\n--- 길이 {len(prompt)}자 · known_sounds {list(known_sounds)}"
+        f" · 계획 있음 {plan is not None} · 질문 {len(questions)}개",
+        flush=True,
+    )
+
+
+asyncio.run(main())
