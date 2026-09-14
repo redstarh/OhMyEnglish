@@ -508,10 +508,12 @@ async def _replace_occurrences(
             #
             # ⚠️ **버리지 않는 것이 결정 92 ①의 반쪽이다** — 재료를 발음 기록으로 옮긴다.
             #
-            # ⛔ **복습 과제는 생기지 않고 그것이 의도다**(결정 94). 소리 이름이 없으므로
-            # `_UPSERT_PRONUNCIATION_PATTERN_SQL`이 0행을 내고, `review.py`의
-            # `signal_source = 'nova_tool'` 허용 목록(결정 59 ①)이 이 행을 복습 전진에서
-            # 배제한다. **두 조건이 이미 그것을 지키므로 여기에 방어를 더 쓰지 않는다.**
+            # ⛔ **복습 과제는 생기지 않고 그것이 의도다**(결정 94). 근거 둘 —
+            # `record_transcript_analysis_signal`이 `link_pattern`을 부르지 않아 패턴이 생기지
+            # 않고, `review.py`의 `signal_source = 'nova_tool'` 허용 목록(결정 59 ①)이 이 행을
+            # 복습 전진에서 배제한다. **둘 다 이미 있으므로 여기에 방어를 더 쓰지 않는다.**
+            # ⚠️ 「소리가 없으면 upsert가 0행」은 셋째 겹이지만 **이 경로에서는 도달하지 않는다**
+            # (무력화 M2로 확인 — 그 함수의 docstring이 경위를 갖는다).
             await record_transcript_analysis_signal(
                 conn,
                 utterance_id=utterance_id,

@@ -230,11 +230,14 @@ async def record_transcript_analysis_signal(
 
     ⛔ **`target_sound`를 주지 않는다 — 분석기는 오디오를 듣지 않는다.** 소리를 추정해 넣는 안은
     결정 59 ③과 결정 54 ①이 닫았다(추정값이 발명값이 되어 복습 시계가 엉뚱한 소리에 걸린다).
-    그 부재가 **결정 94의 집행체이기도 하다**: `_UPSERT_PRONUNCIATION_PATTERN_SQL`이
-    `target_sound`를 요구하므로 이 행은 패턴을 얻지 못하고 복습 과제도 생기지 않는다.
 
-    ⛔ **`link_pattern`을 부르지 않는다** — 위 이유로 언제나 0행이다. 부르면 「연결을 시도한다」는
-    거짓 신호가 코드에 남는다.
+    ⛔ **패턴과 복습 과제가 생기지 않는 «직접» 근거는 `link_pattern`을 부르지 않는 것이다**
+    (결정 94). ⚠️ **무력화로 확인했다 — 「소리가 없으면 upsert가 0행」은 이 경로에서 도달하지
+    않는다**: `target_sound`에 값을 넣어 봐도 `pattern_id`는 여전히 비어 있었다(변이 M2 ·
+    `TASK-88` 노트의 표). 그 조건은 **둘째 겹**이고
+    `test_incorrect_without_target_sound_makes_no_pattern`·`test_blank_target_sound_makes_no_pattern`
+    이 따로 지킨다. ⛔ **두 겹을 한 문장으로 합쳐 적지 않는다** — 그러면 도달하지 않는 방어를
+    근거로 들게 되고, 그것이 이 주석의 이전 판이 밟은 것이다.
 
     ⛔ **`record_attempt`를 재사용하지 않는다.** 그 함수의 판정 경로는 「같은 세션의 최신
     `pending`을 닫는다」이고, 그러면 이 신호가 **Nova tool이 열어 둔 `pending`을 잘못 닫는다** —

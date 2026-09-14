@@ -20,10 +20,12 @@
 -- **추가 코드 없이** 성립한다. ⛔ **그래서 이 값을 그 허용 목록에 더하지 않는다** —
 -- 더하면 결정 94 가 뒤집힌다.
 --
--- ⛔ **발음 패턴도 생기지 않는다.** `_UPSERT_PRONUNCIATION_PATTERN_SQL` 이
--- `length(btrim(coalesce(a.target_sound, ''))) > 0` 을 요구하고 이 신호는 `target_sound` 를
--- 갖지 않는다 — 분석기는 오디오를 듣지 않아 어느 소리가 틀렸는지 모르고, 그것을 산출하는 안은
--- 결정 59 ③ 과 결정 54 ① 이 이미 닫았다. ⇒ 결정 62 를 뒤집지 않는다.
+-- ⛔ **발음 패턴도 생기지 않는다.** 직접 근거는 `record_transcript_analysis_signal` 이
+-- `link_pattern` 을 부르지 않는 것이다. 이 신호가 `target_sound` 를 갖지 않는 것은 **둘째 겹**이고
+-- (분석기는 오디오를 듣지 않아 어느 소리가 틀렸는지 모른다 — 산출하는 안은 결정 59 ③ 과
+-- 결정 54 ① 이 닫았다) 그 겹은 `_UPSERT_PRONUNCIATION_PATTERN_SQL` 의 소리 조건이 지킨다.
+-- ⚠️ **두 겹을 한 문장으로 합쳐 적지 않는다** — 무력화 M2 에서 소리를 채워도 `pattern_id` 가 비어
+-- 있었다. 즉 그 SQL 조건에는 «도달하지 않는다». ⇒ 어느 쪽이든 결정 62 를 뒤집지 않는다.
 --
 -- ⚠️ `005` 의 `pronunciation_attempts_pending_is_nova_only` 는 고치지 않는다 — 이 신호는
 -- `pending` 을 쓰지 않고 `incorrect` 로 태어나므로 그 CHECK 를 그대로 통과한다.
