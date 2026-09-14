@@ -1,0 +1,72 @@
+#!/usr/bin/env python3
+"""TASK-116.2 — 결과 화면을 열어 발음 카드의 줄을 읽고 스크린샷을 남긴다.
+
+⛔ **판정하지 않는다** — 값을 인쇄하고 화면을 저장한다. 판정은 회차 기록이 한다
+(`c2_render_hierarchy.py` 가 「인쇄만 하고 판정하지 않았다」로 리뷰에서 뚫린 선례가 있으므로
+이 스크립트의 역할을 여기서 명시한다: 이것은 **관측 도구**이고 게이트가 아니다).
+
+⚠️ CDP 연결 수단은 `c2_render_hierarchy` 의 `Cdp`·`find_target` 을 **재사용**한다 — 새 수단을
+만들지 않는다.
+
+실행:
+    cd app/backend && .venv/bin/python \
+      ../../tests/harness/runs/2026-09-15-task116-2-review-excluded-card/shot.py.txt \
+      --port 9333 --url http://localhost:3001/results/<uuid> --out <경로>.png
+"""
+
+from __future__ import annotations
+
+import argparse
+import asyncio
+import base64
+import sys
+from pathlib import Path
+
+# `tests/harness` 를 경로에 넣는다 — 이 파일이 `tests/harness/runs/<회차>/` 에 있으므로 두 단계 위다.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+from c2_render_hierarchy import Cdp, find_target  # noqa: E402
+from websockets.asyncio.client import connect  # noqa: E402
+
+_LINES_JS = """
+(() => {
+  const cards = Array.from(document.querySelectorAll('div'))
+    .filter((el) => el.style && el.style.borderLeft && el.style.paddingLeft);
+  return JSON.stringify({
+    heading: Array.from(document.querySelectorAll('h2')).map((h) => h.textContent),
+    cards: cards.map((el) =>
+      Array.from(el.querySelectorAll('p')).map((p) => (p.textContent || '').trim())
+    ),
+  });
+})()
+"""
+
+
+async def main_async(args: argparse.Namespace) -> int:
+    # ⚠️ `find_target` 은 **정확 일치**만 하고 없으면 전용 탭을 새로 연다 — 남의 탭을 빼앗지 않는
+    # 것이 그 함수의 계약이다(그 docstring). 그래서 열려는 URL 을 그대로 넘긴다.
+    ws_url, _ = find_target(args.port, args.url)
+    async with connect(ws_url, max_size=None) as ws:
+        cdp = Cdp(ws)
+        await cdp.call("Page.enable")
+        await cdp.call("Page.navigate", {"url": args.url})
+        await asyncio.sleep(args.settle_ms / 1000)
+        payload = await cdp.eval(_LINES_JS)
+        print(payload)
+        shot = await cdp.call("Page.captureScreenshot", {"format": "png"})
+        Path(args.out).write_bytes(base64.b64decode(shot["data"]))
+        print(f"스크린샷: {args.out}")
+    return 0
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--port", type=int, default=9333)
+    ap.add_argument("--url", required=True)
+    ap.add_argument("--out", required=True)
+    ap.add_argument("--settle-ms", type=int, default=4000)
+    return asyncio.run(main_async(ap.parse_args()))
+
+
+if __name__ == "__main__":
+    sys.exit(main())

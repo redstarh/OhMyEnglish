@@ -35,6 +35,14 @@ export interface PronunciationAttempt {
   spoken_form: string | null;
   outcome: "correct" | "incorrect" | "unclear";
   signal_source: "nova_tool" | "korean_transcript" | "agent_reprompt";
+  /**
+   * 이 시도가 **복습에 쓰이지 않는가** (사용자 결정 95 · `TASK-116.2`).
+   *
+   * 코치가 말한 소리와 기록된 소리가 어긋난 시도는 복습 시계를 돌리지 않는다(결정 82).
+   * ⛔ 판정값 자체(`sound_check`)는 오지 않는다 — 기계 키이고 화면이 필요한 것은 이 한 가지다.
+   * ⚠️ **미판정이 평시라 기본이 `false`** 다. 진행 중 세션의 시도도 `false` 로 온다.
+   */
+  review_excluded: boolean;
 }
 
 /**

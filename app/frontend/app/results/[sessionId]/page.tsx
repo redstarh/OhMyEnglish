@@ -130,6 +130,13 @@ const NO_ANSWER_NOTICE = "대답 없이 끝났어요";
 // 신호 행(`korean_transcript`)은 Nova의 시범이 아니라 우리 감지기의 **관찰**이다.
 // 같은 라벨을 쓰면 그 설명 문구가 "이렇게 발음하세요"로 보인다(TASKS.md A-2 후단 ①).
 const SIGNAL_LABEL = "관찰된 신호";
+// 검증에 걸린 시도 (사용자 **결정 95** · `TASK-116.2`). 문구는 사용자가 2026-09-15에 승인했다.
+//
+// ⛔ **표시하고, 복습에 쓰지 않는다는 사실을 함께 말한다.** 숨기면 학습자의 시도 수가 실제보다
+// 적게 보이고, 아무 말 없이 그냥 보이면 그 시도가 복습에 안 나오는 이유를 화면이 설명하지 못한다.
+// ⛔ **왜 어긋났는지는 말하지 않는다** — 그것은 우리 내부 사정이고 이 화면의 톤 계약("채점하지
+// 않습니다. 시범합니다")과도 어긋난다. 기각된 안: 「코치가 말한 소리와 달라서…」.
+const REVIEW_EXCLUDED_NOTICE = "기록만 했어요 · 복습에는 쓰지 않아요";
 
 const OUTCOME_LABEL: Record<PronunciationAttempt["outcome"], string> = {
   correct: "✓ 좋아요",
@@ -368,6 +375,11 @@ export default function ResultsPage() {
                     <p style={{ margin: "0.25rem 0", color: OUTCOME_COLOR[attempt.outcome] }}>
                       {outcomeLabel(attempt.outcome)}
                     </p>
+                    {/* 결정 95 — 판정 줄 **아래**에 붙인다. 위에 붙이면 판정보다 먼저 읽혀
+                        「이 시도는 무효」로 보이는데, 시도 자체는 유효하고 기록도 남는다. */}
+                    {attempt.review_excluded && (
+                      <p style={PRONUNCIATION_LABEL_STYLE}>{REVIEW_EXCLUDED_NOTICE}</p>
+                    )}
                   </div>
                 ) : (
                   // 신호 행은 시범이 아니라 우리 감지기의 관찰이다 — `target_form`이 문장이

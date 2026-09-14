@@ -82,6 +82,7 @@ import asyncpg
 # 대상과 이 응답이 말하는 대상이 갈라진다(`_ANALYZABLE_UTTERANCES_SQL` 주석). 순환은 없다:
 # `utterances.py`는 `jobs`·`sessions`만 import 한다.
 from app.models.session_summary import summary_from_row
+from app.services.pronunciation import SOUND_CHECK_MISMATCHED
 from app.services.utterances import ANALYZED_SPEAKER, ANALYZED_UTTERANCE_TYPE
 
 logger = logging.getLogger(__name__)
@@ -122,6 +123,12 @@ class PronunciationAttempt:
     # 신호 행(`korean_transcript`)의 `target_form`은 시범 문장이 아니라 설명 문구다 —
     # 이 값 없이 렌더하면 그 문구가 "이렇게 발음하세요"로 보인다(TASKS.md A-2 후단 ①).
     signal_source: str
+    # 사용자 **결정 95**(`TASK-116.2`) — 이 시도가 **복습에 쓰이지 않는가**.
+    # ⛔ 판정값(`sound_check`) 자체를 담지 않는다: 그것도 기계 키이고, 화면이 필요한 것은
+    # 「복습에 쓰이는가」 하나다. 값역이 늘어도(다음 판정값이 생겨도) 이 계약은 그대로다.
+    # ⚠️ `sound_check` 가 비어 있는 것은 **미판정이고 그것이 평시**다 — 그때 이 값은 `False` 다
+    # (`review.py` 도 같은 방향으로 읽는다: `sound_check is null or <> 'mismatched'`).
+    review_excluded: bool
 
 
 @dataclass(frozen=True, slots=True)
@@ -296,7 +303,7 @@ select ep.pattern_key,
 # 구멍을 낸다 — 정렬에만 쓰고 값 자체는 응답에 싣지 않는다(004 경고). 학습자에게 보이는
 # 순번은 배열 위치가 만든다.
 _PRONUNCIATION_SQL = """
-select target_form, spoken_form, outcome, signal_source
+select target_form, spoken_form, outcome, signal_source, sound_check
   from pronunciation_attempts
  where session_id = $1
    and outcome <> 'pending'
@@ -314,6 +321,10 @@ async def _load_pronunciation(
             spoken_form=record["spoken_form"],
             outcome=record["outcome"],
             signal_source=record["signal_source"],
+            # ⛔ 값역을 여기서 열거하지 않는다 — 상수는 그 값을 소유한 모듈에서 가져온다
+            # (`pronunciation.SOUND_CHECK_MISMATCHED`). 리터럴을 두 곳에 두면 020 의 CHECK 가
+            # 늘어날 때 한쪽이 조용히 낡는다.
+            review_excluded=record["sound_check"] == SOUND_CHECK_MISMATCHED,
         )
         for record in records
     ]

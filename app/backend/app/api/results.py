@@ -103,6 +103,10 @@ def _pronunciation_payload(attempt: PronunciationAttempt) -> dict[str, object]:
         "spoken_form": attempt.spoken_form,
         "outcome": attempt.outcome,
         "signal_source": attempt.signal_source,
+        # 사용자 **결정 95**(`TASK-116.2`) — 검증에 걸린 시도를 화면이 «표시하되» 복습에 쓰지
+        # 않는다고 말해야 한다. ⛔ 판정값 자체는 싣지 않는다(그것도 기계 키다) — 실리는 것은
+        # 「복습에 쓰이는가」 하나이고, 그래서 다음 판정값이 생겨도 이 계약이 바뀌지 않는다.
+        "review_excluded": attempt.review_excluded,
     }
 
 

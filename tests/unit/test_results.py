@@ -672,17 +672,22 @@ async def _attempt(
     spoken_form: str | None = None,
     target_sound: str | None = None,
     signal_source: str = "nova_tool",
+    sound_check: str | None = None,
 ) -> UUID:
     """발음 시도 1행을 직접 만든다 (Nova 어댑터·세션 배선을 거치지 않는다).
 
     `resolved_at`은 003의 `pronunciation_attempts_resolved_consistency`가 `outcome`과
     짝을 강제하므로(pending이면 null, 판정됐으면 반드시 값) SQL 안에서 함께 정한다 —
     호출부가 매번 기억해야 하는 규약으로 남기지 않는다.
+
+    `sound_check`(`TASK-116.1` · 결정 82)는 **기본이 `None`**이다 — 판정은 세션 종료 패스에서만
+    붙으므로 그것이 평시 값이다. 결정 95 의 화면 표시를 재는 테스트만 값을 넘긴다.
     """
     attempt_id = await conn.fetchval(
         "insert into pronunciation_attempts (session_id, target_form, spoken_form, "
-        "target_sound, outcome, signal_source, resolved_at) "
-        "values ($1, $2, $3, $4, $5, $6, case when $5 = 'pending' then null else now() end) "
+        "target_sound, outcome, signal_source, sound_check, resolved_at) "
+        "values ($1, $2, $3, $4, $5, $6, $7, "
+        "case when $5 = 'pending' then null else now() end) "
         "returning id",
         session_id,
         target_form,
@@ -690,6 +695,7 @@ async def _attempt(
         target_sound,
         outcome,
         signal_source,
+        sound_check,
     )
     assert attempt_id is not None
     return attempt_id
@@ -724,11 +730,55 @@ async def test_pronunciation_attempts_appear_in_results_without_machine_key(
             "spoken_form": "I sink it's sree.",
             "outcome": "incorrect",
             "signal_source": "nova_tool",
+            # `TASK-116.2`(결정 95)로 키가 하나 늘었다. ⚠️ **미판정이 평시라 기본값이 `False`**이고
+            # 이 단정이 그것을 못 박는다 — 기본이 `True` 로 뒤집히면 모든 카드에
+            # 「복습에 쓰지 않아요」가 붙는다.
+            "review_excluded": False,
         }
     ]
     assert "th_as_s" not in response.text, (
         "기계 키는 응답에 실리지 않는다 (설계서 §10 미결 4 — 실물 왕복 0회라 "
         "표시 규칙이 발명값이다)"
+    )
+
+
+# ⑪-2 검증에 걸린 시도는 **표시하되** 복습에서 빠진 것을 화면이 말할 수 있어야 한다
+# (사용자 **결정 95** · `TASK-116.2`). ⛔ 화면에 «왜»를 위한 기계 키(`sound_check` 값 자체)를
+# 내보내지 않는다 — 필요한 것은 「이 시도가 복습에 쓰이는가」 하나이고 그것만 싣는다.
+async def test_a_mismatched_attempt_is_flagged_as_excluded_from_review(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session
+):
+    """⚠️ **반대 방향을 같은 테스트에서 잰다** — 정상 행이 `False` 로 오지 않으면 화면이 모든 카드에
+    「복습에 쓰지 않아요」를 붙이고, 그것은 결정 95 가 요구한 것이 아니다.
+    """
+    async with db_pool.acquire() as conn:
+        utterance_id = await _utterance(conn, committed_session.session_id, 1, "I think it's 3.")
+        await _job(conn, utterance_id, "done")
+        await _attempt(
+            conn,
+            committed_session.session_id,
+            target_form="early",
+            spoken_form="early",
+            target_sound="f_as_p",
+            outcome="correct",
+            sound_check="mismatched",
+        )
+        await _attempt(
+            conn,
+            committed_session.session_id,
+            target_form="I think it's three.",
+            spoken_form="I sink it's sree.",
+            target_sound="th_as_s",
+            outcome="incorrect",
+        )
+
+    response = await api_client.get(f"/api/sessions/{committed_session.session_id}/results")
+
+    assert response.status_code == 200
+    attempts = response.json()["pronunciation"]
+    assert [item["review_excluded"] for item in attempts] == [True, False]
+    assert "mismatched" not in response.text, (
+        "판정값 자체는 기계 키다 — 화면에 필요한 것은 「복습에 쓰이는가」 하나다"
     )
 
 

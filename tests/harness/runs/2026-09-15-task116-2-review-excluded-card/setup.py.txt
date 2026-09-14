@@ -1,0 +1,66 @@
+#!/usr/bin/env python3
+"""TASK-116.2 — 결과 화면 확인용 픽스처. 세션 하나에 «검증에 걸린 시도»와 «정상 시도»를 함께 둔다.
+
+⛔ **기록 경로를 다시 재는 회차가 아니다** — 그것은 `runs/2026-09-15-task116-3-verdict-condition`
+이 이미 했다. 이 스크립트가 만드는 것은 **화면을 볼 상태**이고, 그래서 `sound_check` 를 SQL 로 직접
+넣는다(하네스 개입이며 제품 경로가 만든 값이 아니다).
+
+실행:
+    cd app/backend && DATABASE_URL=postgresql://ohmy:ohmy@localhost:5432/ohmyenglish_t1162 \
+      .venv/bin/python ../../tests/harness/runs/2026-09-15-task116-2-review-excluded-card/setup.py.txt
+"""
+
+from __future__ import annotations
+
+import asyncio
+import os
+from uuid import UUID
+
+import asyncpg
+
+from app.services.sessions import create_session
+
+OWNER = UUID("00000000-0000-0000-0000-000000000001")
+
+_INSERT = """
+insert into pronunciation_attempts
+    (session_id, target_form, spoken_form, target_sound, outcome, signal_source,
+     sound_check, resolved_at)
+values ($1, $2, $3, $4, $5, 'nova_tool', $6, now())
+returning attempt_seq
+"""
+
+
+async def main() -> None:
+    pool = await asyncpg.create_pool(os.environ["DATABASE_URL"], min_size=1, max_size=2)
+    assert pool is not None
+    try:
+        session_id = await create_session(pool, OWNER)
+        async with pool.acquire() as conn:
+            # ① 검증에 걸린 시도 — 화면이 「기록만 했어요 · 복습에는 쓰지 않아요」를 붙여야 한다.
+            await conn.execute(
+                _INSERT, session_id, "early", "early", "f_as_p", "correct", "mismatched"
+            )
+            # ② 정상 시도 — ⛔ 같은 화면에 함께 둬야 「모든 카드에 문구가 붙는」 실패가 눈에 보인다.
+            await conn.execute(
+                _INSERT,
+                session_id,
+                "I think it's three.",
+                "I sink it's sree.",
+                "th_as_s",
+                "incorrect",
+                None,
+            )
+            rows = await conn.fetch(
+                "select attempt_seq, target_form, outcome, sound_check"
+                "  from pronunciation_attempts where session_id = $1 order by attempt_seq",
+                session_id,
+            )
+    finally:
+        await pool.close()
+    print(f"session_id = {session_id}")
+    for row in rows:
+        print(f"  #{row['attempt_seq']} {row['target_form']!r} {row['outcome']} {row['sound_check']!r}")
+
+
+asyncio.run(main())
