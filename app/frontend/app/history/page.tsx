@@ -9,6 +9,7 @@ const HEADING = "학습 히스토리";
 const LOADING_NOTICE = "히스토리를 불러오는 중입니다...";
 const FAILED_NOTICE = "히스토리를 불러오지 못했습니다.";
 const HOME_LINK_LABEL = "← 학습 시작 화면으로";
+const WEEKLY_LINK_LABEL = "주간 리포트 보기 →";
 
 // ⛔ 자정 직후의 `current` 는 «어제까지»의 값이다(PRD §15 R15-3) — 두 문구를 갈라 쓰지 않으면
 // 학습자가 오늘 이미 한 것으로 읽는다. 설계서 §6 이 이 구분을 요구한다.
@@ -93,7 +94,15 @@ export default function HistoryPage() {
         </>
       )}
 
-      <p style={{ marginTop: "2rem" }}>
+      {/* ⛔ 주간 리포트로 가는 길 (`TASK-26.6`). 화면이 있어도 닿는 길이 없으면 소비자가 0곳인
+          것과 같다 — 이 리포가 네 번 낸 실패가 그 형태다(`data-first` §3). */}
+      <p style={{ marginTop: "1.5rem" }}>
+        <Link href="/history/weekly" style={{ textDecoration: "underline" }}>
+          {WEEKLY_LINK_LABEL}
+        </Link>
+      </p>
+
+      <p style={{ marginTop: "0.5rem" }}>
         {/* 밑줄은 여기서 준다 — `globals.css` 의 전역 `a` 가 `text-decoration: none` 이다
             (결과 화면과 같은 이유). */}
         <Link href="/" style={{ textDecoration: "underline" }}>

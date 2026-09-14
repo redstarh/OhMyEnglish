@@ -249,3 +249,53 @@ export async function fetchHistory(): Promise<HistoryPayload | null> {
   }
   return (await response.json()) as HistoryPayload;
 }
+
+/** 주간 리포트의 상위 오류 한 종 (`TASK-26` · PRD:117). */
+export interface WeeklyTopPattern {
+  category: string;
+  pattern_key: string;
+  target_form: string;
+  occurrences: number;
+}
+
+/**
+ * 주간 리포트의 **사실**. ⛔ 판정을 담지 않는다 — R11-8 이 「조회는 사실을 제공하고 판단은 학습
+ * 분석 Agent 가 한다」로 그 경계를 정했다.
+ * ⚠️ 리포트가 아직 없으면 `{}` 로 온다(키는 항상 있다) — 그래서 필드가 전부 옵셔널이다.
+ */
+export interface WeeklyMetrics {
+  session_count?: number;
+  occurrence_count?: number;
+  pattern_count?: number;
+  top_patterns?: WeeklyTopPattern[];
+}
+
+/** 주간 리포트의 **모델 판단** 둘. 점수·등급을 담을 자리가 없다(값역이 계약이다). */
+export interface WeeklyInsights {
+  improving?: string[];
+  next_scenarios?: string[];
+}
+
+/**
+ * 주간 리포트 한 벌. `analyzed` 가 「아직 없음」과 「만들었다」를 가른다 — `week_start` 가 `null`
+ * 이면 한 주도 만들어지지 않았다는 뜻이다.
+ */
+export interface WeeklyReportPayload {
+  week_start: string | null;
+  analyzed: boolean;
+  metrics: WeeklyMetrics;
+  insights: WeeklyInsights;
+}
+
+/**
+ * 주간 리포트 조회. 실패하면 **`null`** 이다 — `fetchHistory` 와 같은 이유로 전용 화면이므로
+ * 실패를 실패로 말한다(빈 리포트를 돌려주면 「그 주에 아무 일도 없었다」는 거짓을 그린다).
+ * ⛔ 서버는 리포트가 없을 때도 **200** 을 주므로 `null` 은 오직 통신·서버 오류다.
+ */
+export async function fetchWeeklyReport(): Promise<WeeklyReportPayload | null> {
+  const response = await fetch(`${API_BASE}/api/weekly-report`, { cache: "no-store" });
+  if (!response.ok) {
+    return null;
+  }
+  return (await response.json()) as WeeklyReportPayload;
+}
