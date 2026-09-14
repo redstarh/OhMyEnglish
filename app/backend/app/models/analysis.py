@@ -61,9 +61,21 @@ ErrorCategory = Literal[
 ]
 Severity = Literal["low", "medium", "high"]
 
+# 이 오류가 **문법·표현에서 온 것인지 전달(발음)에서 온 것인지**. 값역을 좁히는 이유는
+# 이 값이 저장 경로를 가르기 때문이다 — 모르는 값이 통과하면 발음 기원 오류가 조용히
+# 문법 패턴으로 남아 `TASK-88`이 고치려는 결함 그대로가 된다.
+#
+# ⛔ **모델이 말해야 하는 이유는 구조적 판별이 실측으로 배제됐기 때문이다** — 발음 tool 기록
+# 4건 가운데 발화에 연결된 것이 0건이고, `audio_gateway/session.py`가 `record_attempt`에
+# `utterance_id`를 넘기지 않아 그 부재가 우연이 아니라 구조다(`TASK-88` 착수 조사).
+# 반면 분석기는 이미 알고 있다 — `reason`이 「이 부분은 영어 단어로 전달되지 않았습니다」로
+# 입력 상태를 명시한다(설계서 `2026-09-10-pronunciation-origin-error-attribution.md` §1).
+ErrorOrigin = Literal["grammar", "delivery"]
+
 # Literal에서 파생 — 코드값을 두 번 적지 않는다 (001 CHECK와의 일치는 테스트가 지킨다).
 ERROR_CATEGORIES: tuple[ErrorCategory, ...] = get_args(ErrorCategory)
 SEVERITIES: tuple[Severity, ...] = get_args(Severity)
+ERROR_ORIGINS: tuple[ErrorOrigin, ...] = get_args(ErrorOrigin)
 
 # 발음 패턴의 카테고리 코드값. **값역의 SoT인 여기 한 번만 적는다.**
 #
@@ -106,6 +118,11 @@ class ErrorFinding(pydantic.BaseModel):
     confidence: float = pydantic.Field(ge=0, le=1)
     # 기본값을 둔다 — 필드가 없는 응답은 계약 위반이 아니다(§8.2 nullable). 필수로 만들면
     # `conftest.default_finding`(8필드)과 하네스 시나리오가 전부 깨진다(무회귀).
+    # 기본값이 `grammar`인 이유는 `suggested_contexts`와 같다 — 필드가 없는 응답은 계약
+    # 위반이 아니다(§8.2 nullable). 필수로 만들면 `conftest.default_finding`과 하네스
+    # 시나리오가 전부 깨진다. 그리고 **기본값이 안전한 쪽이다**: 표시가 없으면 지금까지처럼
+    # 문법 경로로 저장되므로 이 필드를 더하는 것만으로는 거동이 바뀌지 않는다.
+    origin: ErrorOrigin = "grammar"
     suggested_contexts: list[SuggestedContext] = pydantic.Field(default_factory=list)
 
     @pydantic.field_validator("suggested_contexts", mode="before")

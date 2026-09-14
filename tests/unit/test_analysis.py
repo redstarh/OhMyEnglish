@@ -20,6 +20,7 @@ from conftest import default_finding
 
 from app.models.analysis import (
     ERROR_CATEGORIES,
+    ERROR_ORIGINS,
     AnalysisResult,
     AnalysisValidationError,
     ErrorFinding,
@@ -165,6 +166,26 @@ def test_prompt_lists_only_the_text_judgeable_categories():
         assert category in prompt
     assert UNJUDGEABLE_CATEGORY in prompt  # 제외 지시로 등장한다
     assert "판정할 수 없" in prompt
+
+
+# ⛔ **기원 표시는 프롬프트가 요청하지 않으면 오지 않는다** — 모델이 스스로 낼 이유가 없다.
+# 값역을 여기서 고정하는 이유는 위 카테고리 테스트와 같다: 프롬프트와 `ErrorOrigin`이 갈라지면
+# 모델이 우리가 모르는 값을 내고 그 finding 은 경계에서 거부된다(그 발화의 교정 전체가 날아간다).
+def test_prompt_asks_for_the_origin_of_each_finding():
+    prompt = build_prompt(TRANSCRIPT, [])
+
+    assert ERROR_ORIGINS == ("grammar", "delivery")
+    for origin in ERROR_ORIGINS:
+        assert origin in prompt
+
+
+# ⛔ **JSON 예시에 없는 필드는 모델이 빠뜨린다 — 형식 예시가 실질 계약이다.**
+# `origin`의 기본값이 `grammar`이므로 빠뜨려도 파싱은 통과하고, 그러면 발음 기원 오류가
+# 조용히 문법 패턴으로 남는다. 즉 이 결함은 **필드를 더하는 것만으로 닫히지 않는다.**
+def test_prompt_json_example_includes_the_origin_field():
+    prompt = build_prompt(TRANSCRIPT, [])
+
+    assert '"origin"' in prompt
 
 
 def _categories_that_could_collide(categories: tuple[str, ...]) -> list[str]:

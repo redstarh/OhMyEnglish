@@ -589,3 +589,26 @@ def test_findings_stay_strict_while_the_side_fields_are_lenient():
     규격 밖 신규 key를 그냥 저장하면 병합되지 않는 쌍둥이 패턴이 영구히 남기 때문이다."""
     with pytest.raises(AnalysisValidationError):
         parse_analysis(json.dumps({"findings": [default_finding(severity="critical")]}))
+
+
+# ⛔ **기원 표시가 발음 때문에 무너진 전사문의 오류를 갈라내는 유일한 신호다**
+# (사용자 판정 2026-09-10 · 캡틴 지시 대장 결정 92 ① · `TASK-88` AC#2).
+#
+# 왜 모델이 말해야 하는가: 구조적 판별이 **실측으로 배제됐다.** 발음 tool 기록 4건 가운데
+# 발화에 연결된 것이 0건이고 그 부재는 우연이 아니라 구조다 —
+# `audio_gateway/session.py`가 `record_attempt`에 `utterance_id`를 넘기지 않는다.
+# 반면 분석기는 이미 알고 있다: `reason`이 「이 부분은 영어 단어로 전달되지 않았습니다」로
+# 입력 상태를 명시한다(설계서 `2026-09-10-pronunciation-origin-error-attribution.md` §1).
+#
+# 기본값을 두는 이유는 `suggested_contexts`와 같다 — 필드가 없는 응답은 계약 위반이 아니다(§8.2).
+# 필수로 만들면 `conftest.default_finding`과 하네스 시나리오가 전부 깨진다(무회귀).
+def test_error_finding_defaults_origin_to_grammar():
+    finding = ErrorFinding.model_validate(default_finding())
+
+    assert finding.origin == "grammar"
+
+
+def test_error_finding_accepts_a_delivery_origin():
+    finding = ErrorFinding.model_validate(default_finding(origin="delivery"))
+
+    assert finding.origin == "delivery"

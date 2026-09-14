@@ -33,6 +33,7 @@ import asyncpg
 
 from app.models.analysis import (
     ERROR_CATEGORIES,
+    ERROR_ORIGINS,
     AnalysisResult,
     AnalysisValidationError,
     ErrorFinding,
@@ -143,6 +144,28 @@ _PATTERN_KEY_RULES = """\
 # 판정한다 (발음은 전사문에 흔적이 0이라 Nova가 판정해 `pronunciation_attempts`에 쌓인다 —
 # 자매 설계). 이 판정이 복습 단계 전이의 **유일한 신호원**이다 — 없으면 모든 패턴이
 # 1일 단계에 영원히 머문다.
+# ⛔ **발음 때문에 무너진 전사문의 오류를 문법·표현 패턴에서 갈라내는 유일한 신호다**
+# (사용자 판정 2026-09-10 · 캡틴 지시 대장 결정 92 ① · `TASK-88` AC#2).
+#
+# 왜 모델이 판정하는가: **구조적 판별이 실측으로 배제됐다** — 발음 tool 기록 4건 가운데 발화에
+# 연결된 것이 0건이고, `audio_gateway/session.py`가 `record_attempt`에 `utterance_id`를 넘기지
+# 않아 그 부재가 우연이 아니라 구조다. 반면 이 분석기는 이미 그 사실을 말하고 있다 — `reason`이
+# 「이 부분은 영어 단어로 전달되지 않았습니다」로 입력 상태를 명시한다(설계서 §1).
+#
+# ⚠️ **값을 리터럴로 적지 않고 `ERROR_ORIGINS`에서 언패킹한다** — 여기서 적으면 `ErrorOrigin`과
+# 갈라지고, 모델이 우리가 모르는 값을 내면 그 finding 이 경계에서 거부된다. 값역이 늘면 이
+# 언패킹이 깨지는 것이 **신호**다(문면을 함께 고쳐야 하는 자리라는 뜻).
+_ORIGIN_GRAMMAR, _ORIGIN_DELIVERY = ERROR_ORIGINS
+
+_ORIGIN_RULES = f"""\
+[origin — 이 오류가 어디서 왔는가]
+- {_ORIGIN_GRAMMAR}: 학습자가 문법이나 표현을 잘못 골랐다.
+  **기본값이므로 확실하지 않으면 이것을 쓴다.**
+- {_ORIGIN_DELIVERY}: 학습자가 옳은 말을 했는데 **발음이 전달되지 않아 전사문이 무너진 것**이다.
+  그 부분이 영어 단어로 옮겨지지 않았거나 뜻이 닿지 않는 낱말로 바뀐 흔적이 있으면 이것을 쓴다.
+- ⛔ {_ORIGIN_DELIVERY}로 표시한 오류는 **문법·표현 복습 과제를 만들지 않는다.** 그러므로 학습자가
+  문법을 실제로 틀린 경우에 이 값을 쓰면 그 오류는 끝까지 교정되지 않는다 — 확실할 때만 쓴다."""
+
 _ATTEMPT_RULES = """\
 [attempts — 기존 패턴을 다시 시도했는가]
 아래 [이 학습자의 기존 패턴] 목록의 패턴을 이번 발화에서 다시 시도했다면 그 결과를 적는다.
@@ -162,7 +185,7 @@ _OUTPUT_RULES = """\
 
 {"findings": [{"category": "...", "pattern_key": "...", "target_form": "...",
 "original_span": "...", "correction": "...", "explanation": "...", "severity": "...",
-"confidence": 0.0, "suggested_contexts": ["...", "...", "..."]}],
+"confidence": 0.0, "origin": "...", "suggested_contexts": ["...", "...", "..."]}],
 "attempts": [{"pattern_key": "...", "outcome": "..."}]}"""
 
 _NO_EXISTING_PATTERNS = "(없음 — 이 학습자의 첫 분석이다. 모두 새 key로 만든다.)"
@@ -197,6 +220,7 @@ def build_prompt(transcript: str, existing_patterns: list[PatternRow]) -> str:
             _TARGET_FORM_RULES,
             _SUGGESTED_CONTEXTS_RULES,
             _CATEGORIES,
+            _ORIGIN_RULES,
             _PATTERN_KEY_RULES,
             _ATTEMPT_RULES,
             _existing_patterns_section(existing_patterns),
