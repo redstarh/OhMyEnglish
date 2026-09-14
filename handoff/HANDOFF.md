@@ -12,7 +12,7 @@
 
 | # | 지표 | 값 |
 |--:|---|---|
-| 1 | 기준 커밋 | **`2257c33`** · `origin/design/first-vertical-slice` 와 **0/0** · 미커밋은 미추적 `paseo.json` 하나뿐(내 것이 아님) |
+| 1 | 기준 커밋 | **`2257c33`** · `origin/design/first-vertical-slice` 와 **0/0** · 미커밋은 미추적 `paseo.json` 하나뿐(내 것이 아님). ⚠️ **이 판을 담은 커밋 `e1bb6cb` 이 그 다음이므로 새 세션의 `HEAD` 는 그것이거나 더 뒤임** |
 | 2 | 다음 한 걸음 | **`TASK-116.3`** AC#1·#2 — 결정 97 이 이 태스크를 「다음 수단」으로 지목했음. ⚠️ AC#3 은 사용자 판단이라 그 앞의 둘만 함 |
 | 3 | 게이트 | `app/backend` cwd · 파이프 없이 · **넷 다 exit 0**: `pytest` **1191 passed**(13.05s) · `ruff check .` · `ruff format --check .` **48 files** · `ty check` |
 | 4 | 착수 전 필수 | 아래 ③. 잔여 **13건**(To Do 5 · In Progress 8 · Awaiting Decision **0** · 전체 170 · 완료 157) |
