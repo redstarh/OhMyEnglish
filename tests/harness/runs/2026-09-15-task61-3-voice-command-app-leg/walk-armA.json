@@ -1,0 +1,201 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3001/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/vc01_cmd_en.wav",
+  "urls": [
+   "/harness/vc01_cmd_en.wav",
+   "/harness/vc02_yes_en.wav"
+  ],
+  "count": 2,
+  "bytes": 124076,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 3.621,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0,
+  "plays": []
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 0,
+   "final": 1,
+   "audio": 0,
+   "session_ended": 0,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 1,
+   "speech_end": 1,
+   "interrupted": 0
+  },
+  "sent": {
+   "audio": 289,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "startedSessionId": "9c304d56-08fd-4e08-9134-73a4eeb46644",
+  "fixture": {
+   "url": "/harness/vc01_cmd_en.wav",
+   "urls": [
+    "/harness/vc01_cmd_en.wav",
+    "/harness/vc02_yes_en.wav"
+   ],
+   "count": 2,
+   "bytes": 124076,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 3.621,
+   "startedAt": 209,
+   "endedAt": 2185,
+   "micCalls": 1,
+   "plays": [
+    {
+     "index": 0,
+     "url": "/harness/vc01_cmd_en.wav",
+     "startedAt": 209,
+     "endedAt": 2185,
+     "gate": null
+    }
+   ]
+  },
+  "started": {
+   "count": 1,
+   "when": [
+    0
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 190,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 3322,
+    "count": 1,
+    "texts": [
+     "답변: all my english and the session"
+    ]
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 9.242666666666667
+  },
+  "meta": {
+   "hookedAt": "2026-09-14T23:06:12.169Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789427172246,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789427172265,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3001/_next/hmr?id=vERTo9fgWW_VeiMZojFd7",
+    "ws://localhost:8012/ws/session?source=recommended"
+   ]
+  },
+  "lines": [
+   "답변: all my english and the session"
+  ],
+  "url": "http://localhost:3001/",
+  "log": [
+   {
+    "at": 0,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 3200,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 9285,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 0,
+     "final": 1,
+     "audio": 0,
+     "session_ended": 0,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 1,
+     "speech_end": 1,
+     "interrupted": 0
+    }
+   }
+  ]
+ },
+ "screenshot_session": "../../tests/harness/runs/2026-09-15-task61-3-voice-command-app-leg/shot-armA-session.png",
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3001/results/9c304d56-08fd-4e08-9134-73a4eeb46644",
+  "recv": {
+   "session_started": 1,
+   "partial": 0,
+   "final": 1,
+   "audio": 0,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 1,
+   "speech_end": 1,
+   "interrupted": 0
+  },
+  "sent": {
+   "audio": 323,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 3
+  },
+  "finalLinesAtTerminal": [
+   "답변: all my english and the session"
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "오늘 학습을 마쳤어요",
+   "← 학습 시작 화면으로",
+   "학습 히스토리 보기 →"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><p style=\"color: var(--foreground-muted);\">오늘 학습을 마쳤어요</p><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p><p style=\"margin-top: 0.5rem;\"><a href=\"/history\" style=\"text-decoration: underline;\">학습 히스토리 보기 →</a></p>"
+ },
+ "screenshot_results": "../../tests/harness/runs/2026-09-15-task61-3-voice-command-app-leg/shot-armA-results.png"
+}

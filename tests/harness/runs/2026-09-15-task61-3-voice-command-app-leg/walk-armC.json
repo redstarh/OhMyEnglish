@@ -1,0 +1,293 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3001/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/vc05_nocmd_en.wav",
+  "urls": [
+   "/harness/vc05_nocmd_en.wav"
+  ],
+  "count": 1,
+  "bytes": 68988,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 2.028,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0,
+  "plays": []
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 2,
+   "final": 2,
+   "audio": 68,
+   "session_ended": 0,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 1,
+   "speech_end": 1,
+   "interrupted": 0
+  },
+  "sent": {
+   "audio": 481,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 1
+  },
+  "startedSessionId": "20b6fb28-d296-4358-a2f0-51c1d07b29b6",
+  "fixture": {
+   "url": "/harness/vc05_nocmd_en.wav",
+   "urls": [
+    "/harness/vc05_nocmd_en.wav"
+   ],
+   "count": 1,
+   "bytes": 68988,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 2.028,
+   "startedAt": 105,
+   "endedAt": 2135,
+   "micCalls": 1,
+   "plays": [
+    {
+     "index": 0,
+     "url": "/harness/vc05_nocmd_en.wav",
+     "startedAt": 105,
+     "endedAt": 2135,
+     "gate": null
+    }
+   ]
+  },
+  "started": {
+   "count": 69,
+   "when": [
+    0,
+    3.912,
+    3.991,
+    4.071,
+    4.151,
+    4.231,
+    4.311,
+    4.391,
+    4.471,
+    4.551,
+    4.631,
+    4.711,
+    4.791,
+    4.871,
+    4.9510000000000005,
+    5.031000000000001,
+    5.111000000000001,
+    5.191000000000001,
+    5.271000000000001,
+    5.351000000000001,
+    5.431000000000001,
+    5.511000000000001,
+    5.591000000000001,
+    5.671000000000001,
+    5.751000000000001,
+    5.831000000000001,
+    5.911000000000001,
+    5.991000000000001,
+    6.0710000000000015,
+    6.151000000000002,
+    6.231000000000002,
+    6.311000000000002,
+    6.391000000000002,
+    6.471000000000002,
+    6.551000000000002,
+    6.631000000000002,
+    6.711000000000002,
+    6.791000000000002,
+    6.871000000000002,
+    7.112000000000002,
+    7.191000000000002,
+    7.271000000000002,
+    7.351000000000002,
+    7.431000000000002,
+    7.511000000000002,
+    7.591000000000002,
+    7.671000000000002,
+    7.751000000000002,
+    7.831000000000002,
+    7.911000000000002,
+    7.991000000000002,
+    8.071000000000002,
+    8.151000000000002,
+    8.231000000000002,
+    8.311000000000002,
+    8.391000000000002,
+    8.471000000000002,
+    8.551000000000002,
+    8.631000000000002,
+    8.711000000000002,
+    8.791000000000002,
+    8.871000000000002,
+    8.951000000000002,
+    9.031000000000002,
+    9.111000000000002,
+    9.191000000000003,
+    9.271000000000003,
+    9.351000000000003,
+    9.551000000000002
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 96,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 3017,
+    "count": 1,
+    "texts": [
+     "답변: i want to end the meeting early tomorrow."
+    ]
+   },
+   {
+    "ts": 3857,
+    "count": 2,
+    "texts": [
+     "답변: i want to end the meeting early tomorrow.",
+     "질문: \n\nOh My English, I hear you want to end the meeting early."
+    ]
+   },
+   {
+    "ts": 4673,
+    "count": 2,
+    "texts": [
+     "답변: i want to end the meeting early tomorrow.",
+     "질문:  Is that right?  Please say yes to confirm."
+    ]
+   },
+   {
+    "ts": 5192,
+    "count": 2,
+    "texts": [
+     "답변: i want to end the meeting early tomorrow.",
+     "질문: \n\nOh My English, I hear you want to end the meeting early. Is that right?  Please say yes to confirm."
+    ]
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 15.429333333333334
+  },
+  "meta": {
+   "hookedAt": "2026-09-14T23:10:52.316Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789427452316,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789427452326,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3001/_next/hmr?id=ddvHXNHPK46o05m399erS",
+    "ws://localhost:8012/ws/session?source=recommended"
+   ]
+  },
+  "lines": [
+   "답변: i want to end the meeting early tomorrow.",
+   "질문: \n\nOh My English, I hear you want to end the meeting early. Is that right?  Please say yes to confirm."
+  ],
+  "url": "http://localhost:3001/",
+  "log": [
+   {
+    "at": 0,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 3060,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 15414,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 2,
+     "final": 2,
+     "audio": 68,
+     "session_ended": 0,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 1,
+     "speech_end": 1,
+     "interrupted": 0
+    }
+   }
+  ]
+ },
+ "screenshot_session": "../../tests/harness/runs/2026-09-15-task61-3-voice-command-app-leg/shot-armC-session.png",
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3001/results/20b6fb28-d296-4358-a2f0-51c1d07b29b6",
+  "recv": {
+   "session_started": 1,
+   "partial": 2,
+   "final": 2,
+   "audio": 68,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 1,
+   "speech_end": 1,
+   "interrupted": 0
+  },
+  "sent": {
+   "audio": 515,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "finalLinesAtTerminal": [
+   "답변: i want to end the meeting early tomorrow.",
+   "질문: \n\nOh My English, I hear you want to end the meeting early. Is that right?  Please say yes to confirm."
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "오늘 학습을 마쳤어요 — 시나리오 3개",
+   "← 학습 시작 화면으로",
+   "학습 히스토리 보기 →"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><p style=\"color: var(--foreground-muted);\">오늘 학습을 마쳤어요 — 시나리오 3개</p><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p><p style=\"margin-top: 0.5rem;\"><a href=\"/history\" style=\"text-decoration: underline;\">학습 히스토리 보기 →</a></p>"
+ },
+ "screenshot_results": "../../tests/harness/runs/2026-09-15-task61-3-voice-command-app-leg/shot-armC-results.png"
+}
