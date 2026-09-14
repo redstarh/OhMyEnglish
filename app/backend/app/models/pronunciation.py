@@ -37,11 +37,20 @@ PronunciationOutcome = Literal["pending", "correct", "incorrect", "unclear"]
 # 2026-08-28에 닫혔다. 지금 남아 있는 것은 판정이 아니라 **뒤집는 조건**이고, 그것은 설계서
 # §8 항목 2가 소유한다("Nova 가 놓쳤고 전사문도 한글이 아닌" 구간의 크기 — 크면 다시 본다).
 # 그 관측은 backlog `TASK-24` 가 소유한다. **이 값을 쓰는 코드를 만들기 전에 그 태스크를 본다.**
-SignalSource = Literal["nova_tool", "korean_transcript", "agent_reprompt"]
+# ⚠️ `transcript_analysis` 는 **전사문 분석이 발음 기원으로 판정한 오류**다(024 · `TASK-88` ·
+# 캡틴 지시 대장 결정 92 ① · 94). 위 셋과 같은 축이다 — 「이 행이 어느 신호에서 왔는가」.
+SignalSource = Literal["nova_tool", "korean_transcript", "agent_reprompt", "transcript_analysis"]
 
 # Literal 에서 파생 — 코드값을 두 번 적지 않는다 (`models/analysis.py` 와 같은 관례).
 PRONUNCIATION_OUTCOMES: tuple[PronunciationOutcome, ...] = get_args(PronunciationOutcome)
 SIGNAL_SOURCES: tuple[SignalSource, ...] = get_args(SignalSource)
+
+# 전사문 분석이 **발음 기원**으로 판정한 오류의 신호 (`TASK-88` · 024).
+# ⛔ **복습 단계를 전진시키지 않는다** — `services/review.py` 의 이력 쿼리가
+# `signal_source = 'nova_tool'` **허용 목록**을 쓰므로(결정 59 의 정한 것 ①) 이 값은 그대로
+# 배제된다. 그 배제가 결정 94(「기록만 남기고 복습 과제는 만들지 않는다」)의 집행체다.
+# ⛔ **그 허용 목록에 이 값을 더하지 않는다** — 더하면 결정 94 가 뒤집힌다.
+SIGNAL_TRANSCRIPT_ANALYSIS: SignalSource = "transcript_analysis"
 
 # 어댑터와 이 모듈이 같은 이름을 써야 한다 — 다르면 tool 이벤트가 조용히 버려진다.
 PRONUNCIATION_TOOL_NAME = "report_pronunciation_coaching"

@@ -36,9 +36,18 @@ def test_tool_name_is_stable() -> None:
 
 
 def test_outcome_and_signal_value_domains_match_the_migration() -> None:
-    """003 의 CHECK 와 같은 값역이어야 한다. 어긋나면 앱이 통과시킨 값을 DB가 거부한다."""
+    """마이그레이션의 CHECK 와 같은 값역이어야 한다. 어긋나면 앱이 통과시킨 값을 DB가 거부한다.
+
+    ⚠️ `signal_source` 의 정본은 **024** 다 — 003 이 셋으로 열었고 024 가 `transcript_analysis`
+    를 더했다(`TASK-88` · 캡틴 지시 대장 결정 92 ① · 93 · 94).
+    """
     assert PRONUNCIATION_OUTCOMES == ("pending", "correct", "incorrect", "unclear")
-    assert SIGNAL_SOURCES == ("nova_tool", "korean_transcript", "agent_reprompt")
+    assert SIGNAL_SOURCES == (
+        "nova_tool",
+        "korean_transcript",
+        "agent_reprompt",
+        "transcript_analysis",
+    )
 
 
 def test_tool_schema_is_a_json_string() -> None:

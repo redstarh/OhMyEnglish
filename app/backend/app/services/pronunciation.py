@@ -53,7 +53,11 @@ from uuid import UUID
 import asyncpg
 
 from app.models.analysis import PRONUNCIATION_CATEGORY
-from app.models.pronunciation import PronunciationOutcome, SignalSource
+from app.models.pronunciation import (
+    SIGNAL_TRANSCRIPT_ANALYSIS,
+    PronunciationOutcome,
+    SignalSource,
+)
 from app.services import review
 
 logger = logging.getLogger(__name__)
@@ -207,6 +211,49 @@ async def _insert_attempt(
     )
     assert attempt_id is not None, "insert ... returning produced no row"
     return attempt_id
+
+
+_SESSION_OF_UTTERANCE_SQL = "select session_id from utterances where id = $1"
+
+
+async def record_transcript_analysis_signal(
+    conn: asyncpg.Connection,
+    *,
+    utterance_id: UUID,
+    target_form: str,
+    spoken_form: str,
+) -> UUID | None:
+    """전사문 분석이 **발음 기원**으로 판정한 오류를 발음 기록으로 남긴다 (`TASK-88` · 결정 92 ①).
+
+    문법 경로(`services/analysis.py`)가 부른다 — 그쪽은 `session_id`를 갖지 않으므로 발화에서
+    유도한다. 발화가 없으면(재분석 도중 지워진 경우) `None`을 돌려주고 아무것도 쓰지 않는다.
+
+    ⛔ **`target_sound`를 주지 않는다 — 분석기는 오디오를 듣지 않는다.** 소리를 추정해 넣는 안은
+    결정 59 ③과 결정 54 ①이 닫았다(추정값이 발명값이 되어 복습 시계가 엉뚱한 소리에 걸린다).
+    그 부재가 **결정 94의 집행체이기도 하다**: `_UPSERT_PRONUNCIATION_PATTERN_SQL`이
+    `target_sound`를 요구하므로 이 행은 패턴을 얻지 못하고 복습 과제도 생기지 않는다.
+
+    ⛔ **`link_pattern`을 부르지 않는다** — 위 이유로 언제나 0행이다. 부르면 「연결을 시도한다」는
+    거짓 신호가 코드에 남는다.
+
+    ⛔ **`record_attempt`를 재사용하지 않는다.** 그 함수의 판정 경로는 「같은 세션의 최신
+    `pending`을 닫는다」이고, 그러면 이 신호가 **Nova tool이 열어 둔 `pending`을 잘못 닫는다** —
+    성질이 다른 두 신호가 한 행을 공유하면 학습자 화면의 시범 문장 자리가 뒤바뀐다(`TASK-125`가
+    그 부류의 화면 결함을 이미 겪었다).
+    """
+    session_id = await conn.fetchval(_SESSION_OF_UTTERANCE_SQL, utterance_id)
+    if session_id is None:
+        return None
+    return await _insert_attempt(
+        conn,
+        session_id,
+        target_form=target_form,
+        outcome="incorrect",
+        spoken_form=spoken_form,
+        target_sound=None,
+        utterance_id=utterance_id,
+        signal_source=SIGNAL_TRANSCRIPT_ANALYSIS,
+    )
 
 
 async def record_attempt(

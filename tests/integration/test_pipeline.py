@@ -104,6 +104,20 @@ async def _patterns(pool: asyncpg.Pool, user_id: UUID) -> list[asyncpg.Record]:
         )
 
 
+async def _pronunciation_rows(pool: asyncpg.Pool, session_id: UUID) -> list[asyncpg.Record]:
+    """`TASK-88` — 분석 경로가 남긴 발음 기록.
+
+    `attempt_seq`로 정렬한다 — 004의 `generated always` 컬럼이라 삽입 순서가 그대로 남는다.
+    """
+    async with pool.acquire() as conn:
+        return await conn.fetch(
+            "select id, utterance_id, pattern_id, target_form, spoken_form, target_sound, "
+            "outcome, signal_source, resolved_at from pronunciation_attempts "
+            "where session_id = $1 order by attempt_seq",
+            session_id,
+        )
+
+
 async def _job_row(pool: asyncpg.Pool, job_id: UUID) -> asyncpg.Record:
     async with pool.acquire() as conn:
         return await job_row(conn, job_id)
@@ -987,3 +1001,80 @@ async def test_reanalysis_that_drops_the_attempt_rewinds_the_stage(
     # Failure). 지우지 않는 이유는 미래에 그 행에 붙을 학습자 이력을 cascade로 날리지 않는 것이다.
     # 1단계는 근거가 살아 있으므로 `pending`으로 되돌아간다.
     assert await _review_stages(db_pool, row["id"]) == [(1, "pending"), (2, "superseded")]
+
+
+# ⛔ **발음 기원 오류는 문법·표현 패턴을 만들지 않고 발음 기록으로 간다**
+# (사용자 판정 2026-09-10 · 캡틴 지시 대장 결정 92 ① · 결정 94 · `TASK-88` AC#2).
+#
+# 관측이 이유다: `p2m`(발음만 나쁘고 문법은 **완전히 옳은** 픽스처)의 전사문이
+# `i finished the la porte en chaille de lesseps with my team.`으로 무너진 뒤 분석기가
+# `business_expression_unclear_work_noun` 패턴을 만들고 **복습 과제까지 예약했다** —
+# 학습자는 `report`를 옳게 말했는데 복습이 「업무 명사를 넣어라」를 연습시켰다
+# (설계서 `2026-09-10-pronunciation-origin-error-attribution.md` §1·§2).
+BROKEN_SPAN = "the la porte en chaille de lesseps"
+DELIVERY_FINDING = default_finding(
+    origin="delivery",
+    category="business_expression",
+    pattern_key="business_expression_unclear_work_noun",
+    target_form="the report",
+    original_span=BROKEN_SPAN,
+    correction="the report",
+)
+
+
+async def test_a_delivery_origin_finding_creates_no_grammar_pattern(
+    db_pool: asyncpg.Pool, committed_session, fake_claude
+):
+    await _save(db_pool, committed_session.session_id, GYM_ANSWER)
+
+    await process_analysis(db_pool, fake_claude(_response(DELIVERY_FINDING)), await _claim(db_pool))
+
+    assert await _patterns(db_pool, committed_session.user_id) == []
+
+
+# 「버리지 않는다」의 반쪽 — 재료가 **발음 기록으로 남는다**(결정 92 ①). 버리는 안은 기각됐다.
+async def test_a_delivery_origin_finding_is_recorded_as_a_transcript_analysis_signal(
+    db_pool: asyncpg.Pool, committed_session, fake_claude
+):
+    utterance = await _save(db_pool, committed_session.session_id, GYM_ANSWER)
+
+    await process_analysis(db_pool, fake_claude(_response(DELIVERY_FINDING)), await _claim(db_pool))
+
+    rows = await _pronunciation_rows(db_pool, committed_session.session_id)
+    assert [
+        (r["signal_source"], r["outcome"], r["target_form"], r["spoken_form"], r["utterance_id"])
+        for r in rows
+    ] == [("transcript_analysis", "incorrect", "the report", BROKEN_SPAN, utterance.id)]
+
+
+# ⛔ **복습 과제를 만들지 않는다** (결정 94 가 결정 92 의 ②를 뒤집었다). 소리 이름이 없으므로
+# `_UPSERT_PRONUNCIATION_PATTERN_SQL`의 `target_sound` 조건이 0행을 내고 `pattern_id`가 비어야
+# 한다. ⚠️ 이 단정이 없으면 「기록만 남긴다」가 코드로 지켜지는지 아무도 재지 않는다 — 분석기는
+# 오디오를 듣지 않아 소리를 모르고, 그것을 산출하는 안은 결정 59 ③ 과 결정 54 ① 이 닫았다.
+async def test_a_transcript_analysis_signal_carries_no_sound_and_no_pattern(
+    db_pool: asyncpg.Pool, committed_session, fake_claude
+):
+    await _save(db_pool, committed_session.session_id, GYM_ANSWER)
+
+    await process_analysis(db_pool, fake_claude(_response(DELIVERY_FINDING)), await _claim(db_pool))
+
+    (row,) = await _pronunciation_rows(db_pool, committed_session.session_id)
+    assert row["target_sound"] is None
+    assert row["pattern_id"] is None
+    assert row["resolved_at"] is not None, "resolved_consistency가 pending 아닌 행에 요구한다"
+
+
+# 같은 발화의 **문법** 교정은 살아남는다 — 라우팅이 그 발화의 교정 전체를 삼키지 않는다.
+# 근거는 `resolve_pattern_keys`가 이미 세운 비대칭이다: 성질이 다른 산출을 같은 강도로 다루면
+# 저가치 산출 하나가 그 발화의 교정 전체를 태운다.
+async def test_a_grammar_finding_survives_alongside_a_delivery_one(
+    db_pool: asyncpg.Pool, committed_session, fake_claude
+):
+    await _save(db_pool, committed_session.session_id, GYM_ANSWER)
+    claude = fake_claude(_response(DELIVERY_FINDING, default_finding()))
+
+    await process_analysis(db_pool, claude, await _claim(db_pool))
+
+    patterns = await _patterns(db_pool, committed_session.user_id)
+    assert [record["pattern_key"] for record in patterns] == [ARTICLE_PATTERN_KEY]
+    assert len(await _pronunciation_rows(db_pool, committed_session.session_id)) == 1

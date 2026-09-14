@@ -44,6 +44,7 @@ from app.models.analysis import (
 from app.models.usage import PURPOSE_ANALYSIS
 from app.services.daily_summary import refresh_summary_for_utterance
 from app.services.jobs import JOB_TYPE_ANALYZE, ClaimedJob, complete, report_failure
+from app.services.pronunciation import record_transcript_analysis_signal
 from app.services.review import recompute, store_attempts
 from app.services.utterances import ANALYZED_SPEAKER, ANALYZED_UTTERANCE_TYPE
 from app.workers.claude_client import ClaudeClient
@@ -499,6 +500,25 @@ async def _replace_occurrences(
     touched: set[UUID] = {record["pattern_id"] for record in removed}
 
     for finding in result.findings:
+        if finding.origin == _ORIGIN_DELIVERY:
+            # ⛔ **발음 기원 오류는 문법·표현 패턴을 만들지 않는다** — 학습자가 옳은 말을 했는데
+            # 전사문이 무너진 것이므로 문법 복습이 **엉뚱한 것을 연습시킨다**(사용자 판정
+            # 2026-09-10 · 결정 92 ①). `report`를 옳게 말한 학습자에게 「업무 명사를 넣어라」가
+            # 예약된 것이 그 결함의 관측이다.
+            #
+            # ⚠️ **버리지 않는 것이 결정 92 ①의 반쪽이다** — 재료를 발음 기록으로 옮긴다.
+            #
+            # ⛔ **복습 과제는 생기지 않고 그것이 의도다**(결정 94). 소리 이름이 없으므로
+            # `_UPSERT_PRONUNCIATION_PATTERN_SQL`이 0행을 내고, `review.py`의
+            # `signal_source = 'nova_tool'` 허용 목록(결정 59 ①)이 이 행을 복습 전진에서
+            # 배제한다. **두 조건이 이미 그것을 지키므로 여기에 방어를 더 쓰지 않는다.**
+            await record_transcript_analysis_signal(
+                conn,
+                utterance_id=utterance_id,
+                target_form=finding.target_form,
+                spoken_form=finding.original_span,
+            )
+            continue
         touched.add(await _store_finding(conn, utterance_id, user_id, finding))
 
     # 설계서 §9 Dependency: **정답 여부가 먼저 기록되고 그 다음 갱신이다.** 같은 트랜잭션
