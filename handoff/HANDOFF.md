@@ -15,7 +15,7 @@
 
 | # | 지표 | 값 |
 |--:|---|---|
-| 1 | 기준 커밋 | **`461c938`** · `origin` 과 **0/0** · 미커밋은 원장 파일 둘(이 마감이 담음)과 미추적 `paseo.json`(내 것 아님) |
+| 1 | 기준 커밋 | **`461c938`** · `origin` 과 **0/0** · 미커밋은 미추적 `paseo.json` 하나(내 것 아님). ⚠️ **이 판을 담은 커밋 `a09f3a8` 이 그 다음이므로 새 세션의 `HEAD` 는 그것이거나 더 뒤임** |
 | 2 | 다음 한 걸음 | **`TASK-61`**(음성 명령) — ⛔ 착수하지 않았고 그 이유를 태스크 노트에 적었음(신규 기능이라 사용자가 깨어 있을 때 `brainstorming`→`writing-plans` 로 시작하는 것이 권고임) |
 | 3 | 게이트 | **여섯 다 exit 0** — `pytest` **1200 passed**(14.95s) · `ruff check .` · `ruff format --check .` **48 files** · `ty check` · 프론트 `npx tsc --noEmit` · `npx eslint .`(둘 다 출력 0줄) |
 | 4 | 착수 전 필수 | 아래 ③. 잔여 **6건**(To Do 5 · In Progress 1 · Awaiting Decision **0** · 전체 174 · 완료 **168 · 97%**) |
