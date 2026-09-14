@@ -126,13 +126,48 @@ KOREAN_TRANSCRIPT_TARGET_FORM = "(전사문이 한국어로 인식되었습니�
 SOUND_CHECK_MATCHED = "matched"
 SOUND_CHECK_MISMATCHED = "mismatched"
 
-# 코치가 «인용한 소리»를 뽑는 자다. 곧은 따옴표와 둥근 따옴표를 함께 받는다 — Nova 실물 발화가
+# 코치가 «인용한 것»을 뽑는 자다. 곧은 따옴표와 둥근 따옴표를 함께 받는다 — Nova 실물 발화가
 # 둘을 섞어 낸다(`the "th" sound` · `the 'f' sound` · `’er’`).
 #
 # ⚠️ **길이 상한 3이 소리와 낱말을 가른다.** 실측 근거는 `TASK-128.3` 회차의 코치 발화 일곱이다:
-# 인용된 소리는 `th`·`er`·`f` 였고 낱말은 `early`·`think`·`fine` 처럼 4자 이상이었다. ⛔ 낱말을
-# 소리로 세면 키와 우연히 겹칠 확률이 올라가 오탐이 늘어난다.
-_QUOTED_SOUND_RE = re.compile(r"['\"‘’“”]([A-Za-z]{1,3})['\"‘’“”]")
+# 인용된 소리는 `th`·`er`·`f` 였고 낱말은 `early`·`think`·`fine` 처럼 4자 이상이었다.
+#
+# ⛔ **`TASK-116.3`(사용자 결정 98) 로 셋을 넓혔다.** 이전 판은 `[A-Za-z]{1,3}` 이었다.
+# ① **하이픈**을 받는다 — `"er-lee"` 같은 발음 표기를 통째로 놓쳤다.
+# ② **닫는 따옴표 «앞»의 문장부호**를 받는다 — 실측 발화가 `is "er-lee."` 였고 앞 판은 그 모양을
+#    통째로 놓쳤다(회차 `runs/2026-09-15-task116-3-verdict-condition`: 토큰이 `early` 하나였다).
+# ③ **낱말 안의 아포스트로피**를 낱말의 일부로 받는다(뒤에 글자가 올 때만) — codex 리뷰 HIGH.
+#    앞 판은 `"Sri's"` 의 `'` 를 **닫는 따옴표로 오인해** `Sri` 를 소리로 뽑았고, 그러면 키가
+#    `s_as_z` 인 **정상 기록이 배제된다**. ⚠️ 그 오추출은 결정 98 «이전»에도 있었다.
+# ⚠️ ①②를 놓친 결과가 **일반 세션에서 판정이 한 건도 안 붙는 것**이었다.
+#
+# ⛔ **문장 전체 인용은 여전히 잡지 않는다** — 토큰에 공백을 넣지 않기 때문이다. 그 구멍은 단위
+# 테스트가 이름을 붙여 두고, 닫는 자리는 이 함수가 아니다(그 테스트의 docstring 이 근거를 갖는다).
+_QUOTED_TOKEN_RE = re.compile(
+    r"['\"‘’“”]([A-Za-z](?:[A-Za-z-]|['’](?=[A-Za-z]))*)[.,!?;:]?['\"‘’“”]"
+)
+
+# 소리로 셀 최대 길이. 이 위는 «낱말»이고 아래 `_key_sound_segments` 경로로 간다.
+# ⛔ **하이픈이 있는 토큰은 길이와 무관하게 낱말이다.** 쪼개면 `"er-lee"` 에서 `er` 이 나오고
+# 그것은 키 `r_as_l` «안에» 없어서(`er` ⊄ `r_as_l`) **정상 기록을 배제한다** — 낱말로 두면 키의 조각
+# `r` 이 `er-lee` 안에 있어 배제하지 않는다. 단위 테스트가 그 두 방향을 함께 못 박는다.
+_SOUND_MAX_LEN = 3
+
+# 키를 소리 조각으로 나누는 자 — ⛔ **낱말만 인용됐을 때에만** 쓴다(아래 함수의 마지막 갈래).
+# `_as_` 같은 연결어를 떼야 `f_as_p` 에서 `f`·`p` 를 얻는다.
+_KEY_SEGMENT_SPLIT_RE = re.compile(r"[^a-z]+")
+_KEY_CONNECTOR_SEGMENTS = frozenset({"as", "to", "for", "vs", "instead"})
+
+
+def _key_sound_segments(target_sound: str) -> set[str]:
+    """키에서 연결어를 뗀 소리 조각들. 나누지 못하면 **빈 집합**을 돌려준다.
+
+    ⛔ **모양을 «계약으로» 쓰지 않는다.** `X_as_Y` 는 모델이 지어내는 형태라 규약이 아니므로
+    (`audio_gateway/nova.py` 의 소리 줄 주석) 조각이 **둘 미만이면 호출부가 판정을 포기한다** —
+    다음 키 모양에서 조용히 깨지는 대신 **아무것도 배제하지 않는 쪽**으로 떨어진다.
+    """
+    segments = {seg for seg in _KEY_SEGMENT_SPLIT_RE.split(target_sound) if seg}
+    return segments - _KEY_CONNECTOR_SEGMENTS
 
 
 def sound_check_verdict(agent_speech: str, target_sound: str | None) -> str | None:
@@ -144,15 +179,24 @@ def sound_check_verdict(agent_speech: str, target_sound: str | None) -> str | No
     `docs/design/2026-09-13-decision82-record-path-verification.md` 다.
 
     ⛔ **「맞다」를 증명하지 않는다 — 「어긋났다」만 증명한다.** 두 실패의 비용이 다르다: 놓친 것은
-    오염 1건이고, 잘못된 배제는 **정상 기록을 복습에서 지우는 것**이다. 그래서 인용된 소리가 없으면
+    오염 1건이고, 잘못된 배제는 **정상 기록을 복습에서 지우는 것**이다. 그래서 증명할 수 없으면
     `None` 이고 호출부는 그것을 배제 사유로 쓰지 않는다.
 
-    ⛔ **키의 «모양»을 파싱하지 않는다.** `X_as_Y` 는 **모델이 지어내는 형태**라 규약이 아니고
+    **갈래가 둘이다** (사용자 **결정 98** · `TASK-116.3`):
+
+    ① **소리를 인용했으면**(1~3자 · 하이픈이 없는 토큰) 그 토큰이 키 «안에» 있는지 본다.
+    ⛔ 이 갈래는 **키의 모양을 파싱하지 않는다.** `X_as_Y` 는 모델이 지어내는 형태라 규약이 아니고
     (`audio_gateway/nova.py` 의 소리 줄 주석이 그 기각을 소유한다) 파싱하면 다음 키 모양에서 조용히
-    깨진다. 대신 **인용된 토큰이 키 «안에» 있는지**만 본다.
-    ⚠️ 그 대가로 알려진 오탐이 하나 있다 — 키에 `_as_` 가 들어가므로 인용된 `a`·`s` 는 어떤 키와도
-    일치한다. **그 방향이 안전한 쪽**이고(아무것도 배제하지 않는다) 그 오탐을
-    `test_pronunciation_sound_check.py` 가 단정으로 못 박아 둔다.
+    깨진다. ⚠️ 그 대가로 알려진 오탐이 하나 있다 — 키에 `_as_` 가 들어가므로 인용된 `a`·`s` 는 어떤
+    키와도 일치한다. **그 방향이 안전한 쪽**이고 그 오탐을 단위 테스트가 못 박아 둔다.
+
+    ② **낱말만 인용했으면** 키의 소리 조각이 그 낱말에 한 자리도 없을 때에만 어긋남이다.
+    ⛔ **왜 앞 판을 뒤집었나**: 앞 판은 이 경우를 통째로 `None` 으로 뒀는데, 실측에서 **일반 세션의
+    코치는 소리를 이름으로 인용하지 않는다** — `"early"` · `"er-lee"` · 문장 전체만 인용했다. 그래서
+    판정이 한 건도 붙지 않고 오디오에 없는 소리가 복습 시계를 전진시켰다(회차
+    `runs/2026-09-15-task116-3-verdict-condition`). ⚠️ 이 갈래는 조건부로만 키를 나누고
+    **조각이 둘 미만이면 판정을 포기한다** — 모양을 계약으로 쓰지 않기 위한 안전판이다.
+    ⚠️ 그리고 이 갈래는 **`matched` 를 내지 않는다** — 낱말로는 옳음을 증명할 수 없다.
 
     ⛔ **이 함수가 못 잡는 것 하나를 여기 적는다**: 코치가 **없는 소리를 발화로 발명**하면 발화와
     기록이 «맞으면서 함께» 틀린다(`TASK-128.3` ARM-B 의 B1 — `early` 에 /f/ 가 없는데 *"the 'f'
@@ -167,12 +211,28 @@ def sound_check_verdict(agent_speech: str, target_sound: str | None) -> str | No
         # 키가 없으면 대조할 것이 없다. ⚠️ 그 행은 이미 `review.py` 에서 빠진다
         # (`btrim(null) = x` 가 null 이라 조건이 참이 되지 않는다).
         return None
-    tokens = {match.group(1).lower() for match in _QUOTED_SOUND_RE.finditer(agent_speech or "")}
-    if not tokens:
-        # 코치가 소리를 인용하지 않았다 — 어긋남을 «증명할 수 없다».
+    quoted = {match.group(1).lower() for match in _QUOTED_TOKEN_RE.finditer(agent_speech or "")}
+    if not quoted:
+        # 코치가 아무것도 인용하지 않았다 — 어긋남을 «증명할 수 없다».
         return None
     key = target_sound.strip().lower()
-    return SOUND_CHECK_MATCHED if any(token in key for token in tokens) else SOUND_CHECK_MISMATCHED
+
+    # ① 소리 토큰이 있으면 그것만 본다 — 하이픈이 있는 토큰은 소리로 세지 않는다(위 상수 주석).
+    sounds = {token for token in quoted if len(token) <= _SOUND_MAX_LEN and "-" not in token}
+    if sounds:
+        return (
+            SOUND_CHECK_MATCHED if any(sound in key for sound in sounds) else SOUND_CHECK_MISMATCHED
+        )
+
+    # ② 낱말만 인용됐다 (결정 98). 키의 소리 조각이 그 낱말에 **한 자리도 없으면** 어긋남이다.
+    # ⛔ 「맞다」를 내지 않는다 — 낱말로는 옳음을 증명할 수 없으므로 그때는 `None` 이다.
+    words = quoted - sounds
+    segments = _key_sound_segments(key)
+    if not words or len(segments) < 2:
+        return None
+    if any(segment in word for segment in segments for word in words):
+        return None
+    return SOUND_CHECK_MISMATCHED
 
 
 async def _insert_attempt(

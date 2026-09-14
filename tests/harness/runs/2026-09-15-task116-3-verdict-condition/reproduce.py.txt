@@ -29,7 +29,7 @@ from uuid import UUID
 import asyncpg
 
 from app.services.pronunciation import (
-    _QUOTED_SOUND_RE,
+    _QUOTED_TOKEN_RE,
     check_recorded_sounds,
     record_attempt,
     sound_check_verdict,
@@ -86,7 +86,7 @@ async def one_arm(pool: asyncpg.Pool, label: str, speech: str) -> dict[str, obje
         )
     return {
         "arm": label,
-        "quoted_tokens": sorted({m.group(1) for m in _QUOTED_SOUND_RE.finditer(speech)}),
+        "quoted_tokens": sorted({m.group(1) for m in _QUOTED_TOKEN_RE.finditer(speech)}),
         "verdict_pure": sound_check_verdict(speech, KEY),
         "marked_rows": marked,
         "attempts": [dict(r) for r in rows],
@@ -102,7 +102,7 @@ async def main() -> None:
         for label, speech in (("A(재현)", SPEECH_OBSERVED), ("B(판별력)", SPEECH_WITH_SOUND)):
             result = await one_arm(pool, label, speech)
             print(f"\n===== {result['arm']}")
-            print(f"  인용 토큰(1~3자)      : {result['quoted_tokens']}")
+            print(f"  인용 토큰              : {result['quoted_tokens']}")
             print(f"  순수 함수 판정        : {result['verdict_pure']}")
             print(f"  표시된 행 수          : {result['marked_rows']}")
             for a in result["attempts"]:  # type: ignore[union-attr]
@@ -112,7 +112,7 @@ async def main() -> None:
                 )
             print(f"  복습 전               : {result['review_before']}")
             print(f"  복습 후               : {result['review_after']}")
-        print(f"\n정규식: {re.escape(_QUOTED_SOUND_RE.pattern)}")
+        print(f"\n정규식: {re.escape(_QUOTED_TOKEN_RE.pattern)}")
     finally:
         await pool.close()
 

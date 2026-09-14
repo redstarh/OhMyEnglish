@@ -1,0 +1,20 @@
+코치가 말하지 않은 소리로 기록된 발음 시도 1건을 복습에서 제외했다 (세션 cae65793-10cf-4b43-80ca-469017d94a19)
+코치가 말하지 않은 소리로 기록된 발음 시도 1건을 복습에서 제외했다 (세션 e20b0684-16ee-4de9-80a5-3d8500d845e6)
+
+===== A(재현)
+  인용 토큰              : ['early', 'er-lee']
+  순수 함수 판정        : mismatched
+  표시된 행 수          : 1
+  시도 #1 sound=f_as_p outcome=incorrect sound_check='mismatched'
+  복습 전               : {'frequency': 1, 'next_review_at': datetime.datetime(2026, 9, 15, 15, 59, 46, 935582, tzinfo=datetime.timezone.utc)}
+  복습 후               : {'frequency': 1, 'next_review_at': None}
+
+===== B(판별력)
+  인용 토큰              : ['early', 'er', 'er-lee']
+  순수 함수 판정        : mismatched
+  표시된 행 수          : 1
+  시도 #2 sound=f_as_p outcome=incorrect sound_check='mismatched'
+  복습 전               : {'frequency': 2, 'next_review_at': datetime.datetime(2026, 9, 15, 15, 59, 46, 952417, tzinfo=datetime.timezone.utc)}
+  복습 후               : {'frequency': 2, 'next_review_at': None}
+
+정규식: \['\\"‘’“”\]\(\[A\-Za\-z\]\[A\-Za\-z\-\]\*\)\[\.,!\?;:\]\?\['\\"‘’“”\]
