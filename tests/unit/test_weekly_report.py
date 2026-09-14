@@ -16,8 +16,29 @@ from uuid import UUID
 import asyncpg
 import pytest
 
+from app.models.weekly_report import WeeklyValidationError, parse_weekly_insights
 from app.services.jobs import JOB_TYPE_SUMMARIZE_WEEK, enqueue_summarize_week
-from app.services.weekly_report import last_week_start, load_week_facts
+from app.services.weekly_report import (
+    TopPattern,
+    WeekFacts,
+    build_weekly_prompt,
+    last_week_start,
+    load_week_facts,
+)
+
+
+def _facts() -> WeekFacts:
+    """프롬프트 단정용 사실 한 벌 — DB 를 거치지 않는다."""
+    return WeekFacts(
+        week_start=date(2026, 9, 7),
+        session_count=4,
+        occurrence_count=7,
+        pattern_count=2,
+        top_patterns=[
+            TopPattern("article", "article_missing", "the report", 3),
+            TopPattern("verb_tense", "tense_past", "worked", 4),
+        ],
+    )
 
 
 async def _insert_user(conn: asyncpg.Connection, timezone: str) -> UUID:
@@ -267,3 +288,54 @@ async def test_week_facts_do_not_leak_another_users_errors(db_conn: asyncpg.Conn
     facts = await load_week_facts(db_conn, mine, week)
 
     assert (facts.occurrence_count, facts.session_count) == (0, 0)
+
+
+# ─── 프롬프트와 파서 (`TASK-26.4` · 설계서 §3 의 `insights`) ───
+def test_prompt_requires_korean_and_keeps_quotes_in_english() -> None:
+    """문구는 한국어이고 인용은 영어 원문이다 — 결정 89 가 총평에서 정한 규약과 같다."""
+    prompt = build_weekly_prompt(facts=_facts(), max_points=3)
+
+    assert "한국어" in prompt
+    assert "원문" in prompt
+
+
+def test_prompt_forbids_scores_in_two_axes() -> None:
+    """⛔ **두 축으로 잰다** — 금지 문장이 있는가, 그리고 출력 규격에 그 키가 «없는가».
+
+    ⚠️ `TASK-62` 가 이 자리에서 틀린 축을 쟀다: 「낱말의 부재」로만 재면 프롬프트가 점수를 **금지**
+    하는 문장을 넣은 것까지 위반으로 읽힌다. 그래서 재는 것을 갈랐다.
+    """
+    prompt = build_weekly_prompt(facts=_facts(), max_points=3)
+
+    # ① 금지가 문면에 있다.
+    assert "점수" in prompt
+    # ② 출력 규격의 키 목록에 점수·등급이 없다 — 규격 절만 떼어 본다.
+    spec = prompt.split("[출력]", 1)[1]
+    for forbidden in ('"score"', '"grade"', '"level_score"', '"rating"'):
+        assert forbidden not in spec, f"출력 규격에 {forbidden} 가 있다"
+
+
+def test_prompt_carries_the_facts_the_model_must_judge() -> None:
+    """사실이 프롬프트에 실린다 — 모델이 판단할 근거다(R11-8).
+
+    ⛔ 이 단정이 없으면 「프롬프트를 만들었지만 사실을 넣지 않은」 구현이 통과하고, 그러면 모델이
+    아무 근거 없이 개선 여부를 지어낸다.
+    """
+    prompt = build_weekly_prompt(facts=_facts(), max_points=3)
+
+    assert "article_missing" in prompt
+    assert "3" in prompt
+
+
+def test_parse_rejects_unknown_keys() -> None:
+    """정의되지 않은 키를 거부한다 — 판정이 항목 안으로 들어오는 길을 막는다."""
+    with pytest.raises(WeeklyValidationError):
+        parse_weekly_insights('{"improving": [], "next_scenarios": [], "score": 80}', max_points=3)
+
+
+def test_parse_caps_the_lists() -> None:
+    """상한을 넘기면 거부한다 — 프롬프트 문면과 같은 수를 본다."""
+    with pytest.raises(WeeklyValidationError):
+        parse_weekly_insights(
+            '{"improving": ["a", "b", "c", "d"], "next_scenarios": []}', max_points=3
+        )

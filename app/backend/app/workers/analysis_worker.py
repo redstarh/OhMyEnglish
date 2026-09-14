@@ -33,6 +33,7 @@ from app.services.jobs import (
     JOB_TYPE_GENERATE_SCENARIO,
     JOB_TYPE_PLAN,
     JOB_TYPE_SUMMARIZE,
+    JOB_TYPE_SUMMARIZE_WEEK,
     ClaimedJob,
     claim_next,
 )
@@ -42,6 +43,7 @@ from app.services.scenario_generator import process_scenario
 from app.services.session_summary import process_summary
 from app.services.sessions import ORPHAN_IDLE_GRACE, reap_orphan_sessions
 from app.services.utterances import flush_ended_sessions
+from app.services.weekly_report import process_weekly
 from app.workers.claude_client import ClaudeClient
 
 logger = logging.getLogger(__name__)
@@ -228,6 +230,11 @@ async def run_worker(
                 # 만들어지지 않는다. ⚠️ 그리고 총평 job 은 **모든 세션**에 걸리므로(모드 조건이
                 # 없다) 빠뜨리면 `failed` 가 세션마다 하나씩 쌓인다.
                 await process_summary(pool, claude, job)
+            elif job.job_type == JOB_TYPE_SUMMARIZE_WEEK:
+                # `TASK-26` · 결정 91. 위 ⛔ 와 같은 이유다. ⚠️ 이쪽은 **조건부로 걸리므로**
+                # (지난 주 리포트가 없을 때만) 빠뜨렸을 때의 신호가 더 드물다 — 주에 한 번
+                # `failed` 가 생기고 그것을 「모델이 실패했다」로 오독할 자리가 있다.
+                await process_weekly(pool, claude, job)
             else:
                 await process_analysis(pool, claude, job)
         except Exception:

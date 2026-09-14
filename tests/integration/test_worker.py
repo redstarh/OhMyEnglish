@@ -38,7 +38,7 @@ from app.api.main import create_app
 from app.audio_gateway.fixtures import FIXTURE_TURNS
 from app.config import get_settings
 from app.models.usage import PURPOSE_PLAN, PURPOSE_SPIKE, TokenUsage
-from app.services.jobs import JOB_TYPE_PLAN
+from app.services.jobs import JOB_TYPE_PLAN, JOB_TYPE_SUMMARIZE_WEEK
 from app.services.plan import PLAN_NO_FOCUS_CANDIDATES
 from app.services.recordings import recording_path, recording_url
 from app.services.sessions import end_session
@@ -804,3 +804,50 @@ async def test_lifespan_gives_the_worker_a_client_that_records_token_usage(
 
     assert row is not None, "sink 를 불렀는데 행이 없다 — no-op 이 넘어왔다"
     assert (row["input_tokens"], row["output_tokens"], row["purpose"]) == (7, 8, PURPOSE_SPIKE)
+
+
+# ⑨ 주간 리포트 job 이 워커 분기를 타고 `process_weekly` 로 간다 (`TASK-26.4`).
+#
+# ⛔ **이 단정이 없어서 분기가 재지지 않았다** — 2026-09-14 에 그 분기를 지우고 이 파일을 돌렸더니
+# 21건이 그대로 통과했다(무력화로 확인). 018 주석이 *"이 분기를 빼면 기능이 아예 돌지 않는다"* 로
+# 경고한 자리이므로 라우팅 자체를 재는 단정을 둔다.
+# ⚠️ 세션 종료로 job 을 걸지 않고 **손으로 넣는다** — 주간 job 은 조건부라(지난 주 행이 없을 때만)
+# 종료 경로에 기대면 이 테스트가 「그 조건」까지 함께 재게 되고 축이 둘로 늘어난다.
+async def test_worker_routes_a_weekly_job_to_process_weekly(
+    db_pool, committed_session, fake_claude
+):
+    async with db_pool.acquire() as conn:
+        job_id = await conn.fetchval(
+            "insert into analysis_jobs (job_type, session_id) values ($1, $2) returning id",
+            JOB_TYPE_SUMMARIZE_WEEK,
+            committed_session.session_id,
+        )
+        user_id = await conn.fetchval(
+            "select user_id from learning_sessions where id = $1", committed_session.session_id
+        )
+    claude = fake_claude()
+    stop = asyncio.Event()
+    task = asyncio.create_task(run_worker(db_pool, claude, stop=stop, poll_interval=0.01))
+
+    async def _is_done() -> bool:
+        async with db_pool.acquire() as conn:
+            row = await job_row(conn, job_id)
+        return bool(row["status"] == "done")
+
+    try:
+        await _wait_until(_is_done, what="주간 job 이 done 으로 수렴한다")
+    finally:
+        stop.set()
+        await asyncio.wait_for(task, timeout=1.0)
+
+    async with db_pool.acquire() as conn:
+        row = await job_row(conn, job_id)
+        report = await conn.fetchval(
+            "select count(*) from weekly_reports where user_id = $1", user_id
+        )
+
+    assert row["last_error"] is None
+    # ⛔ **행이 생겼는지를 잰다** — job 이 `done` 인 것만으로는 라우팅이 맞았다고 말할 수 없다
+    # (분기가 없으면 `process_analysis` 가 실패로 보고하므로 `done` 이 되지 않지만, 그 구별을
+    # 산출물로 다시 확인한다).
+    assert report == 1

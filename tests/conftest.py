@@ -54,6 +54,7 @@ from app.services.jobs import (
     JOB_TYPE_ANALYZE,
     JOB_TYPE_PLAN,
     JOB_TYPE_SUMMARIZE,
+    JOB_TYPE_SUMMARIZE_WEEK,
     ClaimedJob,
     enqueue_plan_next_session,
 )
@@ -230,6 +231,20 @@ _SUMMARY_REPLY = json.dumps(
     ensure_ascii=False,
 )
 
+# ⛔ **주간 갈래에도 기본 응답을 매어 둔다** (`TASK-26`).
+# 위 총평과 **같은 이유**다: `end_session` 이 주간 job 을 조건부로 걸어서,
+# 워커 루프를 돌리는 테스트의 큐에 **그 테스트가 세우지 않은 호출**이 섞인다.
+# 순서 목록만 있으면 그 호출이 남의 응답을 꺼내가고 목록이 마르면 job 이 실패한다.
+# ⚠️ 주간을 **재는** 테스트는 이 기본값에 기대지 않는다 —
+# `tests/unit/test_weekly_report_job.py` 가 자기 대역을 둔다.
+_WEEKLY_REPLY = json.dumps(
+    {
+        "improving": ["관사를 붙인 문장이 늘었어요."],
+        "next_scenarios": ["업무 상태 보고를 한 번 더 연습해요."],
+    },
+    ensure_ascii=False,
+)
+
 
 @pytest.fixture
 def fake_claude() -> Callable[..., FakeClaudeClient]:
@@ -246,7 +261,13 @@ def fake_claude() -> Callable[..., FakeClaudeClient]:
     """
 
     def make(*responses: str) -> FakeClaudeClient:
-        return FakeClaudeClient(list(responses), by_purpose={JOB_TYPE_SUMMARIZE: _SUMMARY_REPLY})
+        return FakeClaudeClient(
+            list(responses),
+            by_purpose={
+                JOB_TYPE_SUMMARIZE: _SUMMARY_REPLY,
+                JOB_TYPE_SUMMARIZE_WEEK: _WEEKLY_REPLY,
+            },
+        )
 
     return make
 
