@@ -1,9 +1,10 @@
 ---
 id: TASK-26.7
 title: '운영: dev DB 에 023 을 적용한다 — 승인 사안'
-status: To Do
+status: Awaiting Decision
 assignee: []
 created_date: '2026-09-13 23:36'
+updated_date: '2026-09-14 00:13'
 labels: []
 dependencies:
   - TASK-26.6
