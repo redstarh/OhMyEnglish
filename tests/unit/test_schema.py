@@ -754,7 +754,11 @@ async def test_pronunciation_attempts_signal_source_check(db_conn: asyncpg.Conne
 
     # 판정된 행으로 확인한다 — `pending`은 005가 nova_tool로만 허용하므로 값역 확인에
     # 쓰면 두 제약이 얽힌다. 이 테스트가 보는 것은 **출처 값역 하나**다.
-    for source in ("nova_tool", "korean_transcript", "agent_reprompt"):
+    #
+    # ⚠️ `transcript_analysis`는 **024**가 더했다(`TASK-88` · 결정 93). 전사문 분석이 발음
+    # 기원으로 판정한 오류가 그 값으로 들어온다. ⛔ **네 값을 전부 넣어 본다** — 아래 주석이 그
+    # 전수 삽입에 기대어 목록 재확인을 생략하는 근거를 갖는다.
+    for source in ("nova_tool", "korean_transcript", "agent_reprompt", "transcript_analysis"):
         await db_conn.execute(
             "insert into pronunciation_attempts "
             "(session_id, target_form, outcome, signal_source, resolved_at) "
@@ -762,6 +766,13 @@ async def test_pronunciation_attempts_signal_source_check(db_conn: asyncpg.Conne
             session_id,
             source,
         )
+
+    # ⛔ **`pg_get_constraintdef` 로 목록을 다시 확인하지 않는다 — 이 자리에서는 판별력이 0이다.**
+    # 2026-09-14에 그 단정을 넣었다가 무력화로 빼냈다: 024에서 `transcript_analysis`를 지우면
+    # **위 삽입 루프가 `CheckViolationError`로 먼저 실패**하므로 목록 단정에는 도달하지 않는다.
+    # ⚠️ 이 파일의 `learning_sessions_mode_check`(`:586`)·`learning_scenarios_category_check`
+    # (`:481`)는 같은 단정을 **정당하게** 갖는다 — 그쪽은 값역의 값을 **전부 삽입해 보지 않기**
+    # 때문이다. ⇒ 그 형태를 베낄 때는 「값을 다 넣어 보는가」를 먼저 본다.
     with pytest.raises(asyncpg.CheckViolationError):
         await db_conn.execute(
             "insert into pronunciation_attempts "
