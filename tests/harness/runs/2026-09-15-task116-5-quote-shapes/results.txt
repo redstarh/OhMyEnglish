@@ -1,0 +1,66 @@
+프레임 파일 66개 · 코치 발화 120건
+  sound          44/120
+  word           10/120
+  sentence_only  5/120
+  none           61/120
+
+파일별(발화가 있는 것만):
+  A1-frames.json                               {'none': 3}
+  A1-r2-frames.json                            {'none': 3}
+  A2-frames.json                               {'none': 3}
+  A2-junk-frames.json                          {'none': 3}
+  A2-r2-frames.json                            {'none': 3}
+  B2-frames.json                               {'none': 3}
+  B2-r2-frames.json                            {'none': 3}
+  C3a-analyzing-frames.json                    {'none': 3}
+  C3b-final-frames.json                        {'none': 3}
+  C3c-partial-frames.json                      {'none': 3}
+  C3e-noutt-frames.json                        {'none': 3}
+  PQ13-1-frames.json                           {'sound': 1}
+  PQ13-2-frames.json                           {'sound': 1}
+  PQBASE1-frames.json                          {'sound': 1, 'sentence_only': 1}
+  PQBASE2-frames.json                          {'sound': 1, 'sentence_only': 1}
+  PQMILD1-frames.json                          {'sound': 2}
+  PQMILD2-frames.json                          {'sound': 2}
+  PQMILD3-frames.json                          {'word': 1, 'sound': 1}
+  PQMILD4-frames.json                          {'sound': 2}
+  PQS-pq02-frames.json                         {'sound': 1}
+  PQS-pq03-frames.json                         {'sound': 1}
+  PQS-pq04-frames.json                         {'sentence_only': 2}
+  PQS-pq05-frames.json                         {'sound': 1}
+  Q3-A1-frames.json                            {'none': 3}
+  Q3-A2-frames.json                            {'none': 3}
+  SI1-frames.json                              {'none': 2}
+  SI2-frames.json                              {'none': 5}
+  T111KEY1-frames.json                         {'sound': 1}
+  T111KEY2-frames.json                         {'word': 1}
+  T111KEY3-frames.json                         {'sound': 1}
+  T111REG1-frames.json                         {'sound': 2}
+  T111REG2-frames.json                         {'word': 1}
+  T111REG3-frames.json                         {'sound': 1, 'word': 1}
+  T111REG4-frames.json                         {'sound': 1, 'word': 1}
+  T120T1-frames.json                           {'sound': 1}
+  T120T2-frames.json                           {'sound': 1}
+  T120T3-frames.json                           {'sound': 1}
+  T123A1-frames.json                           {'sound': 2}
+  T123A2-frames.json                           {'sound': 2}
+  T123A3-frames.json                           {'sound': 2}
+  T123A4-frames.json                           {'sound': 2}
+  T123B1-frames.json                           {'sentence_only': 1}
+  T123B2-frames.json                           {'sound': 2}
+  T123B3-frames.json                           {'sound': 1}
+  T128A1-frames.json                           {'sound': 2}
+  T128A2-frames.json                           {'sound': 2}
+  T128A3-frames.json                           {'sound': 2}
+  T128A4-frames.json                           {'sound': 1}
+  T128B1-frames.json                           {'sound': 1}
+  T128B2-frames.json                           {'sound': 1, 'word': 1}
+  T128B3-frames.json                           {'sound': 1, 'word': 1}
+  T129-B1-frames.json                          {'word': 1}
+  T129-B2-frames.json                          {'word': 1, 'none': 1}
+  T129-B3-frames.json                          {'none': 1}
+  T129-B4-frames.json                          {'word': 1, 'none': 1}
+  V020A-frames.json                            {'none': 3}
+  V020B-frames.json                            {'none': 3}
+  V137A-frames.json                            {'none': 3}
+  V137B-frames.json                            {'none': 3}
