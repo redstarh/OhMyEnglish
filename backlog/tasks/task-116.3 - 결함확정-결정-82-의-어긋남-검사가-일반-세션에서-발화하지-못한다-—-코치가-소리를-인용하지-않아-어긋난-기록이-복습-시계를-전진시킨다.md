@@ -6,6 +6,7 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2026-09-14 15:00'
+updated_date: '2026-09-14 15:09'
 labels: []
 dependencies: []
 parent_task_id: TASK-116
@@ -25,3 +26,9 @@ ordinal: 169000
 - [ ] #3 방향을 사용자 판단으로 올린다 — 인용이 없을 때도 배제할지는 제품 판단이다. ⛔ 잘못된 배제가 더 비싸다는 결정 82 의 전제를 뒤집는 것이므로 팀리드가 정하지 않는다
 - [ ] #4 정한 방향을 구현하고 반대 방향 두 단정으로 지킨다 — 인용 없는 어긋남과 정상 기록이 서로 다르게 처리되는 것을 각각 단정한다
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-09-15 — 결정 97 이 이 태스크를 「다음 수단」으로 지목했음(plan.py:320 은 고치지 않음). 즉 이 축의 우선순위가 관측 후보에서 실행 대상으로 올랐음.
+<!-- SECTION:NOTES:END -->
