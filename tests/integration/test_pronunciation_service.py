@@ -46,6 +46,30 @@ from app.services.pronunciation import (
     resolve_dangling,
 )
 
+
+async def _legacy_pending(
+    conn: asyncpg.Connection, session_id: UUID, *, target_form: str, target_sound: str | None = None
+) -> UUID:
+    """열린 `pending` 행을 **`record_attempt` 를 우회해** 하나 더 만든다.
+
+    ⛔ **왜 우회가 필요한가** (`TASK-125`): 그 함수는 이제 열린 pending 이 있으면 새 행을 열지 않고
+    접는다. 그래도 **DB 에 두 pending 이 실재할 수 있다** — 그 고침 «전»에 쓰인 행이 남아 있고,
+    `resolve_dangling` 과 판정 UPDATE 는 그 상태를 계속 처리해야 한다. 아래 테스트들이 재는 축이
+    그것이므로 setup 만 우회하고 **재는 대상은 그대로 둔다.**
+    ⚠️ 이 헬퍼로 만든 행은 「옛 데이터」를 뜻한다 — 지금 코드가 만들 수 있는 상태가 아니다.
+    """
+    return await pronunciation_service._insert_attempt(  # noqa: SLF001
+        conn,
+        session_id,
+        target_form=target_form,
+        outcome="pending",
+        spoken_form=None,
+        target_sound=target_sound,
+        utterance_id=None,
+        signal_source="nova_tool",
+    )
+
+
 TARGET = "I think I found three very useful videos."
 HEARD = "I sink I found sree very useful videos."
 SOUND = "th_as_s"
@@ -150,11 +174,16 @@ async def test_verdict_without_a_pending_row_inserts_one(db_conn: asyncpg.Connec
     assert row["resolved_at"] is not None
 
 
-# ④ 한 세션에 시도가 여러 번 있을 수 있다. 판정은 **가장 최근** pending을 닫는다
+# ④ 한 세션에 열린 pending 이 둘 있을 수 있다(옛 데이터). 판정은 **가장 최근** 것을 닫는다
+#
+# ⚠️ **setup 이 `_legacy_pending` 을 쓰는 이유** (`TASK-125`): `record_attempt` 는 이제 둘째
+# pending 을
+# 접으므로 그 경로로는 이 상태를 만들 수 없다. 그래도 **DB 에는 실재할 수 있고**(고침 전에 쓰인 행)
+# 판정 UPDATE 의 `order by attempt_seq desc` 는 그것을 계속 처리해야 한다 — 재는 축은 그대로다.
 async def test_two_pendings_resolve_newest_first(db_conn: asyncpg.Connection) -> None:
     session_id = await _session(db_conn)
     old = await record_attempt(db_conn, session_id, target_form="First.", outcome="pending")
-    new = await record_attempt(db_conn, session_id, target_form="Second.", outcome="pending")
+    new = await _legacy_pending(db_conn, session_id, target_form="Second.")
 
     closed = await record_attempt(db_conn, session_id, target_form="Second.", outcome="correct")
 
@@ -269,37 +298,49 @@ async def test_verdict_with_a_blank_target_form_keeps_the_modeled_sentence(
     assert stored == TARGET, "빈 판정이 시범 문장을 지웠다"
 
 
-# ⑥-3 ⛔ **남은 구멍을 «지금 거동으로» 못박는다** — ⑥-1 이 이 경우를 닫지 못한다 (`TASK-103` AC#3).
+# ⑥-3 ⛔ **두 호출이 모두 `pending`인 봉투도 행 하나로 접힌다** (`TASK-125`).
 #
-# 관측된 봉투 하나에서는 **두 호출이 모두 `pending`** 이었다(12/12 ·
-# `runs/2026-09-11-task97-tool-payload.md`). 그러면 판정 UPDATE 가 아예 돌지 않으므로 ⑥-1 의
-# 갱신 경로를 타지 못하고, 열린 행이 **둘** 남는다. 세션 종료의 `resolve_dangling` 이 둘 다
-# `incorrect` 로 수렴시키므로 **무너진 전사를 가진 행이 결과 화면에 그대로 뜬다.**
+# ⚠️⚠️ **이 단정은 «의도적으로 뒤집힌 것»이다 — 그 경위를 남긴다.** 이전 판은 같은 이름으로
+# `test_two_pendings_leave_the_broken_target_form_on_the_older_row` 였고 **지금 거동(행 둘 · 옛 행에
+# 무너진 전사가 남음)** 을 못박고 있었다. 그 주석이 *"뒤 태스크가 이 구멍을 닫으면 이 단정을
+# 의도적으로 뒤집어야 한다"* 로 이 자리를 미리 지목했고, `TASK-125` 가 그것을 닫았다.
 #
-# ⚠️ **이 테스트는 「고쳐졌다」가 아니라 「여기까지만 고쳐졌다」를 잰다.** 뒤 태스크가 이 구멍을
-# 닫으면 이 단정을 **의도적으로 뒤집어야** 한다 — 그때 이 주석이 그 근거를 준다.
-# ⛔ 이 거동을 「정상」으로 읽지 마라.
-async def test_two_pendings_leave_the_broken_target_form_on_the_older_row(
+# **무엇이 문제였나**: 관측된 봉투 하나에서 두 호출이 모두 `pending` 이었다(12/12 ·
+# `runs/2026-09-11-task97-tool-payload.md`). 그러면 판정 UPDATE 가 아예 돌지 않아 ⑥-1 의 갱신 경로를
+# 타지 못하고 열린 행이 **둘** 남는다. 세션 종료의 `resolve_dangling` 이 둘 다 `incorrect` 로
+# 수렴시키므로 ⛔ **학습자 화면의 「시범 문장」 자리에 학습자의 오발음이 떴고 카드가 두 장 났다**
+# (`runs/2026-09-12-task103-target-form-storage.md` §1-⑷ · 화면을 직접 열어 본 증거가 있다).
+#
+# **어떻게 닫았나**: 같은 세션에 열린 `pending` 이 있으면 새 행을 열지 않고 **그 행을 갱신한다.**
+# 근거 둘 — ① 규칙 10 은 한 코칭 사건을 「시범 + 재발화 판정」으로 짝지으므로 **열린 pending 은
+# 언제나 하나**여야 하고 둘은 이상 상태다 ② 관측이 **나중 호출이 옳은 문장**을 싣는다고 말한다
+# (첫 호출이 무너진 전사다) — 그것은 `TASK-103` 이 판정에 적용한 「나중 값이 `target_form` 을
+# 덮는다」
+# 와 **같은 규칙**이고 여기서 그 규칙을 pending 에도 적용한 것이다.
+# ⛔ **표시로 덮지 않은 이유**: 복습 시계(`next_review_at`)와 계획 프롬프트가 같은 행을 읽는다 —
+# 화면에서만 묶으면 그 둘이 여전히 오발음을 근거로 삼는다.
+async def test_a_second_pending_folds_into_the_open_row_with_the_later_target_form(
     db_conn: asyncpg.Connection,
 ) -> None:
     session_id = await _session(db_conn)
     broken = "I think Sri sings are ready for the demo."
     modeled = "I think three things are ready for the demo."
     older = await record_attempt(db_conn, session_id, target_form=broken, outcome="pending")
-    await record_attempt(db_conn, session_id, target_form=modeled, outcome="pending")
+    folded = await record_attempt(db_conn, session_id, target_form=modeled, outcome="pending")
 
     await resolve_dangling(db_conn, session_id)
 
     rows = await db_conn.fetch(
-        "select target_form, outcome from pronunciation_attempts "
+        "select id, target_form, outcome from pronunciation_attempts "
         "where session_id = $1 order by attempt_seq",
         session_id,
     )
-    assert [row["outcome"] for row in rows] == ["incorrect", "incorrect"]
-    stale = await db_conn.fetchval(
-        "select target_form from pronunciation_attempts where id = $1", older
-    )
-    assert stale == broken, "구멍이 «닫혔다» — 좋은 일이지만 이 단정과 위 주석을 함께 고쳐야 한다"
+    # ⛔ 행이 **하나**다 — 한 코칭 사건에 카드가 두 장 뜨던 것이 이 단정에 걸린다.
+    assert len(rows) == 1, f"행이 {len(rows)}개다 — 접히지 않았다"
+    assert folded == older, "새 행을 열었다 — 열린 pending 을 갱신해야 한다"
+    # ⛔ 그 행의 시범 문장은 **나중 값**이다 — 오발음이 「이렇게 말하세요」 자리에 남지 않는다.
+    assert rows[0]["target_form"] == modeled
+    assert rows[0]["outcome"] == "incorrect"
 
 
 # ⑦ 세션 종료 수렴 — 남은 pending 전부가 incorrect가 되고 spoken_form은 비워진다.
@@ -309,7 +350,9 @@ async def test_resolve_dangling_converges_pending_to_incorrect(
 ) -> None:
     session_id = await _session(db_conn)
     await record_attempt(db_conn, session_id, target_form=TARGET, outcome="pending")
-    await record_attempt(db_conn, session_id, target_form="Other.", outcome="pending")
+    # ⚠️ 둘째는 `_legacy_pending` 이다 — `record_attempt` 가 접으므로(`TASK-125`) 그 경로로는 두
+    # pending 을 만들 수 없지만, 이 함수는 **옛 데이터의 두 pending 을 계속 수렴시켜야** 한다.
+    await _legacy_pending(db_conn, session_id, target_form="Other.")
 
     changed = await resolve_dangling(db_conn, session_id)
 
@@ -669,9 +712,9 @@ async def test_resolve_dangling_merges_two_pendings_of_one_sound(
     await record_attempt(
         db_conn, session_id, target_form=TARGET, outcome="pending", target_sound=SOUND
     )
-    await record_attempt(
-        db_conn, session_id, target_form="Three things.", outcome="pending", target_sound=SOUND
-    )
+    # ⚠️ `_legacy_pending` 이다 — 위 ④ 와 같은 이유로 `record_attempt` 로는 두 pending 을 만들 수
+    # 없고, 이 테스트가 재는 것은 **한 소리의 두 시도가 패턴 하나로 합쳐지는가**다(그 축은 남는다).
+    await _legacy_pending(db_conn, session_id, target_form="Three things.", target_sound=SOUND)
 
     assert await resolve_dangling(db_conn, session_id) == 2
 

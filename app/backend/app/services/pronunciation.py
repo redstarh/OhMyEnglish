@@ -80,6 +80,32 @@ AssistOutcome = Literal["correct", "unclear"]
 
 _NOVA_TOOL: SignalSource = "nova_tool"
 
+# 같은 세션에 **열린 `pending` 이 있으면 그 행을 갱신한다** (`TASK-125`). 근거와 대가는
+# `record_attempt` 의 그 분기 주석이 갖는다.
+#
+# ⚠️ **아래 판정 UPDATE 와 «같은 모양»을 쓴다** — 다른 필드는 `coalesce`(값을 안 주면 옛 값이
+# 남는다)이고 `target_form` 만 `case` 로 덮는다(공백만 실린 값은 003 의 CHECK 를 깨므로 옛 값에
+# 남긴다). 두 자리가 갈리면 「pending 은 덮고 판정은 안 덮는다」 같은 어긋남이 조용히 생긴다.
+# ⛔ `outcome` 을 건드리지 않는다 — 여전히 `pending` 이고, 그것을 닫는 것은 판정이나
+#    `resolve_dangling` 의 몫이다.
+# ⚠️ `resolved_at` 도 건드리지 않는다 — 아직 해결되지 않았다.
+# ⚠️ `for update` 는 아래 판정 UPDATE 와 같은 이유로 둔다(두 호출이 같은 행을 동시에 잡는 것).
+_FOLD_PENDING_SQL = """
+update pronunciation_attempts set
+    spoken_form  = coalesce($3, spoken_form),
+    target_sound = coalesce($4, target_sound),
+    utterance_id = coalesce($5, utterance_id),
+    target_form  = case when btrim($2) = '' then target_form else $2 end
+where id = (
+    select id from pronunciation_attempts
+     where session_id = $1 and outcome = 'pending'
+     order by attempt_seq desc
+     limit 1
+     for update
+)
+returning id
+"""
+
 # 한글 음절 블록. ASR 언어 판별이 뒤집히면 영어 문장이 이렇게 전사된다 — 4차수 P4 실측
 # (`p1k` → '아이싱크 아이파운드 …'). 문구가 아니라 문자를 보므로 결정론적이다.
 _HANGUL = re.compile(r"[가-힣]")
@@ -208,6 +234,31 @@ async def record_attempt(
     """
     async with conn.transaction():
         if outcome == "pending":
+            # ⛔ **열린 `pending` 이 있으면 새 행을 열지 않고 그 행을 갱신한다** (`TASK-125`).
+            #
+            # 관측이 이유다: 봉투 하나에서 **두 호출이 모두 `pending`** 이었고(12/12 ·
+            # `runs/2026-09-11-task97-tool-payload.md`) 그러면 판정 UPDATE 가 아예 돌지 않아
+            # 행이 둘 남았다. `resolve_dangling` 이 둘 다 `incorrect` 로 수렴시키므로
+            # **학습자 화면의 「시범 문장」 자리에 학습자의 오발음이 뜨고 카드가 두 장 났다**
+            # (`runs/2026-09-12-task103-target-form-storage.md` §1-⑷ — 화면을 직접 열어 본 증거).
+            #
+            # 근거 둘: ① 규칙 10 이 한 코칭 사건을 「시범 + 재발화 판정」으로 짝지으므로 **열린
+            # pending 은 언제나 하나**여야 하고 둘은 이상 상태다 ② 관측이 **나중 호출이 옳은
+            # 문장**을 싣는다고 말한다(첫 호출이 무너진 전사다) — 그것은 아래 판정 경로가 쓰는
+            # 「나중 값이 `target_form` 을 덮는다」(`TASK-103`)와 **같은 규칙**이다.
+            #
+            # ⛔ **표시로 덮지 않은 이유**: 복습 시계(`next_review_at`)와 계획 프롬프트가 같은 행을
+            # 읽는다 — 화면에서만 묶으면 그 둘이 여전히 오발음을 근거로 삼는다.
+            # ⚠️ **대가를 적어 둔다**: 한 세션에 판정 없이 코칭이 두 번 일어나면 그 둘이 한 행으로
+            # 접혀 복습 시계가 하나로 센다. 그 대가를 택한 근거는 위 ①이다 — 판정 없는 둘째 코칭은
+            # 규칙 10 의 짝이 아니고, 반대쪽(행 둘)은 **사용자에게 보이는 오류**를 냈다.
+            # ⚠️ 공백만 실린 값은 옛 값을 남긴다 — 003 의 CHECK 가 빈 `target_form` 을 거부하므로
+            # 아래 판정 UPDATE 와 **같은 `case`** 를 쓴다.
+            folded = await conn.fetchval(
+                _FOLD_PENDING_SQL, session_id, target_form, spoken_form, target_sound, utterance_id
+            )
+            if folded is not None:
+                return folded
             # 아직 오류가 아니라 패턴을 만들지 않는다. 이 행은 판정이 오거나
             # `resolve_dangling`이 수렴할 때 패턴을 얻는다.
             return await _insert_attempt(

@@ -1666,6 +1666,13 @@ async def test_a_verdict_closes_the_same_attempt(db_pool, committed_session):
 # ③ PS4 + 캡틴 결정 — 대답 없이 끝나면 `incorrect`다. 이후 학습도 그냥 틀림으로 본다.
 #    `spoken_form`은 비운다: 재발화를 실제로 못 들었으므로 Nova의 placeholder 문구를
 #    "학습자가 이렇게 들렸다"로 남겨두면 결과 화면이 그 문구를 보여준다.
+#
+# ⚠️ **행 수 단정이 둘에서 하나로 바뀌었다** (`TASK-125`). 이 대본이 바로 그 결함의 봉투다 —
+# 두 호출이 모두 `pending` 이고 판정이 오지 않는다. 이제 둘째 pending 이 열린 행에 **접히므로**
+# 한 코칭 사건이 행 하나가 된다(그 전에는 둘이었고 화면에 카드가 두 장 떴다).
+# ⛔ **재는 축은 그대로다** — 「대답 없이 끝나면 `incorrect`」와 「`spoken_form` 을 비운다」.
+# ⚠️ 그리고 접힌 행의 `target_form` 이 **나중 값**임을 함께 잰다 — 그것이 없으면 「접혔지만 옛
+# 무너진 전사가 남았다」가 통과한다(그 잔재가 이 결함의 사용자에게 보이는 얼굴이었다).
 async def test_pending_converges_to_incorrect_when_the_session_ends(db_pool, committed_session):
     adapter = ScriptedAdapter(
         PronunciationEvent(
@@ -1681,8 +1688,9 @@ async def test_pending_converges_to_incorrect_when_the_session_ends(db_pool, com
     )
 
     rows = await _pronunciation_rows(db_pool, committed_session.session_id)
-    assert [row["outcome"] for row in rows] == ["incorrect", "incorrect"]
+    assert [row["outcome"] for row in rows] == ["incorrect"]
     assert all(row["spoken_form"] is None for row in rows)
+    assert rows[0]["target_form"] == "Other sentence."
 
 
 # ④ PS5 — 한글 전사문이 보조 신호로 기록되고, 저장·job 등록은 그대로 일어난다
