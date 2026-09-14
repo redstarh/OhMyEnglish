@@ -1,0 +1,457 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3001/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/pq06.wav",
+  "bytes": 0,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 4.48,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 5,
+   "final": 6,
+   "audio": 193,
+   "session_ended": 0,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 1,
+   "speech_end": 1,
+   "interrupted": 0
+  },
+  "sent": {
+   "audio": 832,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "startedSessionId": "79361a6c-a3f7-4177-a548-b5308a300557",
+  "fixture": {
+   "url": "/harness/pq06.wav",
+   "bytes": 0,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 4.48,
+   "startedAt": 218,
+   "endedAt": 4730,
+   "micCalls": 1
+  },
+  "started": {
+   "count": 194,
+   "when": [
+    0,
+    6.04,
+    6.119,
+    6.199,
+    6.279,
+    6.359,
+    6.439,
+    6.519,
+    6.599,
+    6.679,
+    6.759,
+    6.839,
+    6.9190000000000005,
+    6.9990000000000006,
+    7.079000000000001,
+    7.159000000000001,
+    7.239000000000001,
+    7.319000000000001,
+    7.399000000000001,
+    7.479000000000001,
+    7.559000000000001,
+    7.639000000000001,
+    7.719000000000001,
+    7.799000000000001,
+    7.879000000000001,
+    7.959000000000001,
+    8.039000000000001,
+    8.119000000000002,
+    8.199000000000002,
+    8.279000000000002,
+    8.359000000000002,
+    8.439000000000002,
+    8.639000000000001,
+    8.64,
+    8.719000000000001,
+    8.799000000000001,
+    8.879000000000001,
+    8.959000000000001,
+    9.039000000000001,
+    9.119000000000002,
+    9.199000000000002,
+    9.279000000000002,
+    9.359000000000002,
+    9.439000000000002,
+    9.519000000000002,
+    9.599000000000002,
+    9.679000000000002,
+    9.759000000000002,
+    9.839000000000002,
+    9.919000000000002,
+    9.999000000000002,
+    10.079000000000002,
+    10.159000000000002,
+    10.239000000000003,
+    10.319000000000003,
+    10.399000000000003,
+    10.479000000000003,
+    10.559000000000003,
+    10.639000000000003,
+    10.719000000000003,
+    10.799000000000003,
+    10.879000000000003,
+    10.959000000000003,
+    11.039000000000003,
+    11.119000000000003,
+    11.199000000000003,
+    11.279000000000003,
+    11.359000000000004,
+    11.439000000000004,
+    11.519000000000004,
+    11.599000000000004,
+    11.679000000000004,
+    11.759000000000004,
+    11.839000000000004,
+    11.919000000000004,
+    12.120000000000005,
+    12.199000000000005,
+    12.279000000000005,
+    12.359000000000005,
+    12.439000000000005,
+    12.519000000000005,
+    12.599000000000006,
+    12.679000000000006,
+    12.759000000000006,
+    12.839000000000006,
+    12.919000000000006,
+    12.999000000000006,
+    13.079000000000006,
+    13.159000000000006,
+    13.239000000000006,
+    13.319000000000006,
+    13.399000000000006,
+    13.479000000000006,
+    13.559000000000006,
+    13.639000000000006,
+    13.719000000000007,
+    13.799000000000007,
+    13.879000000000007,
+    13.959000000000007,
+    14.039000000000007,
+    14.119000000000007,
+    14.199000000000007,
+    14.279000000000007,
+    14.359000000000007,
+    14.439000000000007,
+    14.519000000000007,
+    14.599000000000007,
+    14.679000000000007,
+    14.759000000000007,
+    14.839000000000008,
+    15.039000000000007,
+    15.040000000000006,
+    15.119000000000007,
+    15.199000000000007,
+    15.279000000000007,
+    15.359000000000007,
+    15.439000000000007,
+    15.519000000000007,
+    15.599000000000007,
+    15.679000000000007,
+    15.759000000000007,
+    15.839000000000008,
+    15.919000000000008,
+    15.999000000000008,
+    16.079000000000008,
+    16.159000000000006,
+    16.239000000000004,
+    16.319000000000003,
+    16.399,
+    16.479,
+    16.558999999999997,
+    16.638999999999996,
+    16.718999999999994,
+    16.798999999999992,
+    16.87899999999999,
+    16.95899999999999,
+    17.038999999999987,
+    17.118999999999986,
+    17.198999999999984,
+    17.278999999999982,
+    17.35899999999998,
+    17.43899999999998,
+    17.518999999999977,
+    17.598999999999975,
+    17.678999999999974,
+    17.758999999999972,
+    17.83899999999997,
+    17.91899999999997,
+    17.998999999999967,
+    18.078999999999965,
+    18.158999999999963,
+    18.23899999999996,
+    18.31899999999996,
+    18.39899999999996,
+    18.478999999999957,
+    18.558999999999955,
+    18.638999999999953,
+    18.71899999999995,
+    18.79899999999995,
+    18.878999999999948,
+    18.958999999999946,
+    19.038999999999945,
+    19.118999999999943,
+    19.19899999999994,
+    19.27899999999994,
+    19.358999999999938,
+    19.438999999999936,
+    19.639999999999937,
+    19.718999999999937,
+    19.798999999999936,
+    19.878999999999934,
+    19.958999999999932,
+    20.03899999999993,
+    20.11899999999993,
+    20.198999999999927,
+    20.278999999999925,
+    20.358999999999924,
+    20.438999999999922,
+    20.51899999999992,
+    20.59899999999992,
+    20.678999999999917,
+    20.758999999999915,
+    20.838999999999913,
+    20.91899999999991,
+    20.99899999999991,
+    21.07899999999991,
+    21.158999999999907,
+    21.238999999999905,
+    21.318999999999903,
+    21.3989999999999,
+    21.4789999999999,
+    21.558999999999898,
+    21.638999999999896,
+    21.878999999999895
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 207,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 4684,
+    "count": 1,
+    "texts": [
+     "답변: i think three scenes are ready for the demo."
+    ]
+   },
+   {
+    "ts": 6167,
+    "count": 2,
+    "texts": [
+     "답변: i think three scenes are ready for the demo.",
+     "질문: I understand you are talking about three scenes for a demo."
+    ]
+   },
+   {
+    "ts": 6891,
+    "count": 2,
+    "texts": [
+     "답변: i think three scenes are ready for the demo.",
+     "질문:  Let's focus on talking about your plans for this Thursday first."
+    ]
+   },
+   {
+    "ts": 7718,
+    "count": 2,
+    "texts": [
+     "답변: i think three scenes are ready for the demo.",
+     "질문: \nCan you tell me three things you want to do this Thursday?"
+    ]
+   },
+   {
+    "ts": 8387,
+    "count": 2,
+    "texts": [
+     "답변: i think three scenes are ready for the demo.",
+     "질문:   For example, you could say: \"I want to meet a friend,\" or \"I need to buy some food.\""
+    ]
+   },
+   {
+    "ts": 9456,
+    "count": 2,
+    "texts": [
+     "답변: i think three scenes are ready for the demo.",
+     "질문: I understand you are talking about three scenes for a demo."
+    ]
+   },
+   {
+    "ts": 9458,
+    "count": 3,
+    "texts": [
+     "답변: i think three scenes are ready for the demo.",
+     "질문: I understand you are talking about three scenes for a demo.",
+     "질문: \nWhat are three things you want to do?"
+    ]
+   },
+   {
+    "ts": 9984,
+    "count": 2,
+    "texts": [
+     "답변: i think three scenes are ready for the demo.",
+     "질문: I understand you are talking about three scenes for a demo. \nWhat are three things you want to do?"
+    ]
+   },
+   {
+    "ts": 12726,
+    "count": 2,
+    "texts": [
+     "답변: i think three scenes are ready for the demo.",
+     "질문: I understand you are talking about three scenes for a demo. \nWhat are three things you want to do?  Let's focus on talking about your plans for this Thursday first."
+    ]
+   },
+   {
+    "ts": 15864,
+    "count": 2,
+    "texts": [
+     "답변: i think three scenes are ready for the demo.",
+     "질문: I understand you are talking about three scenes for a demo. \nWhat are three things you want to do?  Let's focus on talking about your plans for this Thursday first. \nCan you tell me three things you want to do this Thursday?"
+    ]
+   },
+   {
+    "ts": 20665,
+    "count": 2,
+    "texts": [
+     "답변: i think three scenes are ready for the demo.",
+     "질문: I understand you are talking about three scenes for a demo. \nWhat are three things you want to do?  Let's focus on talking about your plans for this Thursday first. \nCan you tell me three things you want to do this Thursday?   For example, you could say: \"I want to meet a friend,\" or \"I need to buy some food.\""
+    ]
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 26.624
+  },
+  "meta": {
+   "hookedAt": "2026-09-14T15:15:56.360Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789398956438,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789398956451,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3001/_next/hmr?id=taklhkbTZfypdY9D8_J2G",
+    "ws://localhost:8012/ws/session?source=recommended"
+   ]
+  },
+  "lines": [
+   "답변: i think three scenes are ready for the demo.",
+   "질문: I understand you are talking about three scenes for a demo. \nWhat are three things you want to do?  Let's focus on talking about your plans for this Thursday first. \nCan you tell me three things you want to do this Thursday?   For example, you could say: \"I want to meet a friend,\" or \"I need to buy some food.\""
+  ],
+  "url": "http://localhost:3001/",
+  "log": [
+   {
+    "at": 0,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 4596,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 26666,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 5,
+     "final": 6,
+     "audio": 193,
+     "session_ended": 0,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 1,
+     "speech_end": 1,
+     "interrupted": 0
+    }
+   }
+  ]
+ },
+ "screenshot_session": "tests/harness/runs/2026-09-15-task81-app-leg/shot-session.png",
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3001/results/79361a6c-a3f7-4177-a548-b5308a300557",
+  "recv": {
+   "session_started": 1,
+   "partial": 5,
+   "final": 6,
+   "audio": 193,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 1,
+   "speech_end": 1,
+   "interrupted": 0
+  },
+  "sent": {
+   "audio": 866,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 3
+  },
+  "finalLinesAtTerminal": [
+   "답변: i think three scenes are ready for the demo.",
+   "질문: I understand you are talking about three scenes for a demo. \nWhat are three things you want to do?  Let's focus on talking about your plans for this Thursday first. \nCan you tell me three things you want to do this Thursday?   For example, you could say: \"I want to meet a friend,\" or \"I need to buy some food.\""
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "오늘 학습을 마쳤어요 — 시나리오 2개",
+   "← 학습 시작 화면으로",
+   "학습 히스토리 보기 →"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><p style=\"color: var(--foreground-muted);\">오늘 학습을 마쳤어요 — 시나리오 2개</p><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p><p style=\"margin-top: 0.5rem;\"><a href=\"/history\" style=\"text-decoration: underline;\">학습 히스토리 보기 →</a></p>"
+ },
+ "screenshot_results": "tests/harness/runs/2026-09-15-task81-app-leg/shot-results.png"
+}

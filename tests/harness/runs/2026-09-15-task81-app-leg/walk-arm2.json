@@ -1,0 +1,367 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3001/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/pq13.wav",
+  "bytes": 0,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 4.08,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 4,
+   "final": 2,
+   "audio": 144,
+   "session_ended": 0,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 1,
+   "speech_end": 1,
+   "interrupted": 0
+  },
+  "sent": {
+   "audio": 454,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 1
+  },
+  "startedSessionId": "65c37641-392d-4a25-8a91-d7d70a44a6a8",
+  "fixture": {
+   "url": "/harness/pq13.wav",
+   "bytes": 0,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 4.08,
+   "startedAt": 118,
+   "endedAt": 4196,
+   "micCalls": 1
+  },
+  "started": {
+   "count": 145,
+   "when": [
+    0,
+    5.64,
+    5.718999999999999,
+    5.7989999999999995,
+    5.879,
+    5.959,
+    6.039,
+    6.119,
+    6.199,
+    6.279,
+    6.359,
+    6.439,
+    6.519,
+    6.599,
+    6.679,
+    6.759,
+    6.839,
+    6.9190000000000005,
+    6.9990000000000006,
+    7.079000000000001,
+    7.159000000000001,
+    7.239000000000001,
+    7.319000000000001,
+    7.399000000000001,
+    7.479000000000001,
+    7.559000000000001,
+    7.639000000000001,
+    7.719000000000001,
+    7.799000000000001,
+    7.879000000000001,
+    7.959000000000001,
+    8.039000000000001,
+    8.119000000000002,
+    8.199000000000002,
+    8.279000000000002,
+    8.359000000000002,
+    8.439000000000002,
+    8.519000000000002,
+    8.599000000000002,
+    8.679000000000002,
+    8.759000000000002,
+    8.839000000000002,
+    8.919000000000002,
+    8.999000000000002,
+    9.240000000000002,
+    9.319000000000003,
+    9.399000000000003,
+    9.479000000000003,
+    9.559000000000003,
+    9.639000000000003,
+    9.719000000000003,
+    9.799000000000003,
+    9.879000000000003,
+    9.959000000000003,
+    10.039000000000003,
+    10.119000000000003,
+    10.199000000000003,
+    10.279000000000003,
+    10.359000000000004,
+    10.439000000000004,
+    10.519000000000004,
+    10.599000000000004,
+    10.679000000000004,
+    10.759000000000004,
+    10.839000000000004,
+    10.919000000000004,
+    10.999000000000004,
+    11.079000000000004,
+    11.159000000000004,
+    11.239000000000004,
+    11.319000000000004,
+    11.559000000000005,
+    11.560000000000004,
+    11.639000000000005,
+    11.719000000000005,
+    11.799000000000005,
+    11.879000000000005,
+    11.959000000000005,
+    12.039000000000005,
+    12.119000000000005,
+    12.199000000000005,
+    12.279000000000005,
+    12.359000000000005,
+    12.439000000000005,
+    12.519000000000005,
+    12.599000000000006,
+    12.679000000000006,
+    12.759000000000006,
+    12.839000000000006,
+    12.919000000000006,
+    12.999000000000006,
+    13.079000000000006,
+    13.159000000000006,
+    13.239000000000006,
+    13.319000000000006,
+    13.399000000000006,
+    13.479000000000006,
+    13.559000000000006,
+    13.639000000000006,
+    13.719000000000007,
+    13.799000000000007,
+    13.879000000000007,
+    13.959000000000007,
+    14.039000000000007,
+    14.119000000000007,
+    14.319000000000006,
+    14.320000000000006,
+    14.399000000000006,
+    14.479000000000006,
+    14.559000000000006,
+    14.639000000000006,
+    14.719000000000007,
+    14.799000000000007,
+    14.879000000000007,
+    14.959000000000007,
+    15.039000000000007,
+    15.119000000000007,
+    15.199000000000007,
+    15.279000000000007,
+    15.359000000000007,
+    15.439000000000007,
+    15.519000000000007,
+    15.599000000000007,
+    15.679000000000007,
+    15.759000000000007,
+    15.839000000000008,
+    15.919000000000008,
+    15.999000000000008,
+    16.079000000000008,
+    16.159000000000006,
+    16.239000000000004,
+    16.319000000000003,
+    16.399,
+    16.479,
+    16.558999999999997,
+    16.638999999999996,
+    16.718999999999994,
+    16.798999999999992,
+    16.87899999999999,
+    16.95899999999999,
+    17.038999999999987,
+    17.118999999999986,
+    17.198999999999984,
+    17.278999999999982,
+    17.51899999999998
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 109,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 4541,
+    "count": 1,
+    "texts": [
+     "답변: my brother will arrive early tomorrow morning."
+    ]
+   },
+   {
+    "ts": 5597,
+    "count": 2,
+    "texts": [
+     "답변: my brother will arrive early tomorrow morning.",
+     "질문: Good morning! I hear you say \"my brother will arrive early tomorrow morning.\""
+    ]
+   },
+   {
+    "ts": 6453,
+    "count": 2,
+    "texts": [
+     "답변: my brother will arrive early tomorrow morning.",
+     "질문:  Can you tell me what time he will arrive?"
+    ]
+   },
+   {
+    "ts": 7000,
+    "count": 2,
+    "texts": [
+     "답변: my brother will arrive early tomorrow morning.",
+     "질문:   \n\nAlso, what would you like to eat or drink today?"
+    ]
+   },
+   {
+    "ts": 7649,
+    "count": 2,
+    "texts": [
+     "답변: my brother will arrive early tomorrow morning.",
+     "질문:   Try to name coffee, fruit, and one food you like."
+    ]
+   },
+   {
+    "ts": 8441,
+    "count": 2,
+    "texts": [
+     "답변: my brother will arrive early tomorrow morning.",
+     "질문: Good morning! I hear you say \"my brother will arrive early tomorrow morning.\" Can you tell me what time he will arrive?  \n\nAlso, what would you like to eat or drink today?  Try to name coffee, fruit, and one food you like."
+    ]
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 14.56
+  },
+  "meta": {
+   "hookedAt": "2026-09-14T15:18:56.442Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789399136442,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789399136451,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3001/_next/hmr?id=gVNAfkHC8XZ9LuvcHtJ7d",
+    "ws://localhost:8012/ws/session?source=recommended"
+   ]
+  },
+  "lines": [
+   "답변: my brother will arrive early tomorrow morning.",
+   "질문: Good morning! I hear you say \"my brother will arrive early tomorrow morning.\" Can you tell me what time he will arrive?  \n\nAlso, what would you like to eat or drink today?  Try to name coffee, fruit, and one food you like."
+  ],
+  "url": "http://localhost:3001/",
+  "log": [
+   {
+    "at": 0,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 4428,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 14551,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 4,
+     "final": 2,
+     "audio": 144,
+     "session_ended": 0,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 1,
+     "speech_end": 1,
+     "interrupted": 0
+    }
+   }
+  ]
+ },
+ "screenshot_session": "tests/harness/runs/2026-09-15-task81-app-leg/shot-arm2-session.png",
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3001/results/65c37641-392d-4a25-8a91-d7d70a44a6a8",
+  "recv": {
+   "session_started": 1,
+   "partial": 4,
+   "final": 2,
+   "audio": 144,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 1,
+   "speech_end": 1,
+   "interrupted": 0
+  },
+  "sent": {
+   "audio": 489,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "finalLinesAtTerminal": [
+   "답변: my brother will arrive early tomorrow morning.",
+   "질문: Good morning! I hear you say \"my brother will arrive early tomorrow morning.\" Can you tell me what time he will arrive?  \n\nAlso, what would you like to eat or drink today?  Try to name coffee, fruit, and one food you like."
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "오늘 학습을 마쳤어요 — 시나리오 2개",
+   "← 학습 시작 화면으로",
+   "학습 히스토리 보기 →"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><p style=\"color: var(--foreground-muted);\">오늘 학습을 마쳤어요 — 시나리오 2개</p><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p><p style=\"margin-top: 0.5rem;\"><a href=\"/history\" style=\"text-decoration: underline;\">학습 히스토리 보기 →</a></p>"
+ },
+ "screenshot_results": "tests/harness/runs/2026-09-15-task81-app-leg/shot-arm2-results.png"
+}
