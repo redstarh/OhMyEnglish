@@ -1804,3 +1804,39 @@ def test_factory_keeps_the_speaking_prompt_when_the_mode_is_not_asked_for():
     instructions = adapter.instructions
     assert instructions is not None
     assert "Ask one question at a time" in instructions
+
+
+# ⑩ ⛔ **부가 조회 실패가 종료 기록을 되돌리지 않는다** (`TASK-137` · 확정 결함).
+#
+# **확정 경위**: 발음 축이 두 팔로 갈라 재서 확정했다(2026-09-14) — `sound_check` 컬럼이 있으면
+# 세션이 `completed` 로 닫히고, 그 컬럼을 drop 해 019 상태를 재현하면 `UndefinedColumnError` 와 함께
+# **세션이 `active`·`ended_at` null 로 남았다.** 기전은 `check_recorded_sounds` 가 종료 기록과 같은
+# 트랜잭션에 있고 그 블록에 `try` 가 없다는 것이다.
+# ⛔ **020 을 적용해 그 컬럼의 직접 위험은 사라졌지만 구조는 그대로였다** — 그 조회에 어떤 이유로든
+# 오류가 나면(스키마 드리프트·일시 장애) 종료 기록이 함께 되돌아간다. 이 단정이 그것을 막는다.
+# ⚠️ **`resolve_dangling` 은 트랜잭션 안에 그대로 둔다** — 그것은 종료 «상태»의 일부다(남은
+# `pending` 이 학습 계산에 섞이는 것을 막는다는 그 함수의 근거). 부가 기록인 것은
+# `check_recorded_sounds`(결정 82 의 어긋남 표시)뿐이고, 그 실패는 복습 큐가 그 행을 유지하는
+# **되돌릴 수 있는 상태**로 끝난다 — 반면 종료 기록의 손실은 고아 세션을 만든다.
+async def test_a_failing_sound_check_still_records_the_session_end(
+    db_pool, committed_session, monkeypatch
+):
+    async def _boom(*_args: object, **_kwargs: object) -> int:
+        raise RuntimeError("sound check exploded")
+
+    # 러너가 부르는 이름을 그 모듈에서 갈아 끼운다 — 서비스 원본을 건드리지 않는다.
+    monkeypatch.setattr(session_module, "check_recorded_sounds", _boom)
+    adapter = ScriptedAdapter(
+        TranscriptEvent(kind="final", text="i sent the report.", speaker="user")
+    )
+
+    await asyncio.wait_for(
+        _runner(adapter, db_pool, committed_session.session_id, FakeClient()).run(),
+        timeout=5.0,
+    )
+
+    session = await _session_row(db_pool, committed_session.session_id)
+    assert session["status"] == "completed", "부가 조회 실패가 종료 기록을 되돌렸다"
+    assert session["ended_at"] is not None
+    # 전사문도 남는다 — 잃는 것은 어긋남 «표시» 하나뿐이다.
+    assert len(await _utterances(db_pool, committed_session.session_id)) == 1

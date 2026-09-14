@@ -230,14 +230,33 @@ class SessionRunner:
         finally:
             async with self._pool.acquire() as conn, conn.transaction():
                 await end_session(conn, self._session_id, status)
+                # ⚠️ **이것은 트랜잭션 안에 남는다** — 남은 `pending` 이 수렴되지 않으면 「세션은
+                # 끝났는데 대답 기다림이 영원히 남은」 행이 생기고 그것이 학습 계산에 섞인다(이
+                # 함수의 docstring 이 금지한 상태다). 즉 종료 «상태»의 일부다.
                 await resolve_dangling(conn, self._session_id)
-                # `TASK-116.1`(사용자 **결정 82**) — 실린 키가 코치의 발화와 어긋났는지 여기서
-                # 표시한다. ⛔ **`resolve_dangling` «뒤»다**: 그 함수가 남은 `pending` 을
-                # `incorrect` 로 수렴시키므로 먼저 부르면 수렴된 행이 판정을 못 받는다.
-                # ⛔ **기록 시점에 두지 않는 이유**는 tool 이 코칭 발화와 «동시에» 오는 것이다
-                # (`TASK-78`) — 그 시점에는 대조할 발화가 저장돼 있지 않을 수 있고 경합이 조용히
-                # 「어긋남 없음」으로 통과한다. 여기서는 `_await_pending_saves` 가 이미 끝나 있다.
-                await check_recorded_sounds(conn, self._session_id)
+            # `TASK-116.1`(사용자 **결정 82**) — 실린 키가 코치의 발화와 어긋났는지 표시한다.
+            # ⛔ **트랜잭션 «밖»이고 실패를 삼킨다** (`TASK-137` · 확정 결함). 이전 판은 위 블록
+            # 안에 있었고, 그래서 이 조회가 던진 `UndefinedColumnError` 하나가 **종료 기록까지
+            # 되돌려 세션이 `active` 고아로 남았다** — 발음 축이 두 팔로 갈라(컬럼 있음/없음) 재서
+            # 확정했다(2026-09-14).
+            # ⚠️ **감싸는 범위를 이 한 줄로 좁힌 것이 판단이다**: 종료 기록과 `resolve_dangling` 을
+            # 함께 감싸면 「기록은 됐는데 상태가 수렴되지 않았다」가 조용해진다. 반대로 이 표시의
+            # 실패는 **되돌릴 수 있다** — 복습 큐가 그 행을 유지할 뿐이고(결정 82 가 빼는 것은
+            # 어긋난 기록이다) 다음 세션 종료가 다시 표시한다.
+            # ⛔ **기록 시점에 두지 않는 이유**는 tool 이 코칭 발화와 «동시에» 오는 것이다
+            # (`TASK-78`) — 그 시점에는 대조할 발화가 저장돼 있지 않을 수 있고 경합이 조용히
+            # 「어긋남 없음」으로 통과한다. 여기서는 `_await_pending_saves` 가 이미 끝나 있다.
+            # ⚠️ `warning` 으로 찍는 이유는 `H-Z` 다 — 문서가 지정한 실행 명령에서 INFO 는 보이지
+            # 않으므로 이 로그가 표시 누락의 유일한 신호다.
+            try:
+                async with self._pool.acquire() as conn:
+                    await check_recorded_sounds(conn, self._session_id)
+            except Exception:
+                logger.warning(
+                    "어긋난 소리 표시가 실패했다 — 세션 종료 기록은 남는다 (세션 %s · TASK-137)",
+                    self._session_id,
+                    exc_info=True,
+                )
 
     async def _await_pending_saves(self) -> None:
         """shield된 저장이 끝나기를 기다린다 — 기다리지 않으면 전사문이 세션 종료
