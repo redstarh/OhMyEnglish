@@ -4,7 +4,7 @@ title: '설정: botocore 재시도 정책 설정 (Phase 2 운영 관찰 대상)'
 status: To Do
 assignee: []
 created_date: '2026-09-07 17:50'
-updated_date: '2026-09-12 01:30'
+updated_date: '2026-09-14 14:27'
 labels: []
 dependencies: []
 ordinal: 42000
@@ -42,4 +42,6 @@ read_timeout 을 «늘린» 근거: 계획 크기 호출(14,538자 · 입력 6,1
 ⛔ AC#2 는 닫지 않음. 회차 기록 §0 이 미리 정한 대로 스로틀을 재현하지 않았음 — 잰 것은 기전과 상한이고 「중복 과금이 사라졌다」는 관측이 아님. 재시도 1회는 의도적으로 남김(스로틀에서 계획 job 을 살리는 값). 이 AC 는 태스크 제목대로 «운영 관찰» 항목으로 남김. ⚠️ llm_calls 로는 못 봄(SDK 안의 재전송은 1건으로 보임) — 운영에서 세려면 before-send 계수기를 붙여야 하고 그 형태는 이 회차의 실행체가 보여 줌.
 
 게이트: pytest 987 passed(12.66s) · ruff check 0 · format --check 38 files · 게이트 밖 ruff 0 · ty 0. ⚠️ 게이트 밖 format --check 에서 내 파일 둘이 걸렸고 고쳤음 — 앞 마감 게이트에서 그 항목을 빠뜨렸던 것임(남은 1건은 동료 세션 파일).
+
+2026-09-14 KST 세션 ohmyenglish-65 — AC#2(스로틀 재현·관찰)를 사용자가 보류했음(결정 96). Phase 2 운영 관찰 시점의 사안이고 그때까지 To Do 로 둠.
 <!-- SECTION:NOTES:END -->

@@ -4,6 +4,7 @@ title: '관측: 계획 블록의 복습 목록이 발음 키를 이름으로 내
 status: To Do
 assignee: []
 created_date: '2026-09-12 03:54'
+updated_date: '2026-09-14 14:27'
 labels: []
 dependencies: []
 ordinal: 137000
@@ -24,3 +25,9 @@ plan.py:319-321 이 due 패턴을 계획 블록에 실을 때 발음이면 «tar
 - [ ] #2 되풀이가 있으면 그것이 결정 72 의 구멍인지(같은 고리) 아니면 조건부 재사용의 정상 작동인지 가른다 — 오디오에 «없는» 소리를 계획에 실어 판별한다
 - [ ] #3 결과에 따라 그 줄을 고칠지 정한다 — ⛔ 고치는 안은 카테고리 공용 기제를 깨지 않는 것이어야 한다
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-09-14 KST 세션 ohmyenglish-65 — 실물 Nova 왕복 비용을 사용자가 승인했음(결정 96). 승인은 비용에 대한 것이고 관측 방법은 이 태스크의 AC 셋이 가짐. 착수 주체는 정해지지 않았음.
+<!-- SECTION:NOTES:END -->
