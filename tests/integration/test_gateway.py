@@ -1867,8 +1867,12 @@ async def _typed_utterances(pool: asyncpg.Pool, session_id: UUID) -> list[asyncp
 
 
 async def test_a_confirmed_end_command_closes_the_session(db_pool, committed_session):
+    """⚠️ 표지가 든 발화가 **앞에** 있어야 한다 — `TASK-61.4`(사용자 결정 104)가 그 검사를 더했다."""
     adapter = ScriptedAdapter(
-        SessionCommandEvent(command="end", stage="confirmed", heard="네 종료해"),
+        TranscriptEvent(kind="final", text="Oh My English, end the session.", speaker="user"),
+        SessionCommandEvent(command="end", stage="requested"),
+        TranscriptEvent(kind="final", text="Yes, end it now.", speaker="user"),
+        SessionCommandEvent(command="end", stage="confirmed"),
         hold_open=True,
     )
     client = FakeClient()
@@ -1888,14 +1892,22 @@ async def test_a_confirmed_end_command_closes_the_session(db_pool, committed_ses
     assert client.types[-1] == "session_ended"
     assert (await _session_row(db_pool, committed_session.session_id))["status"] == "completed"
     assert client.of_type("voice_command") == [
-        {"type": "voice_command", "command": "end", "stage": "confirmed"}
+        {"type": "voice_command", "command": "end", "stage": "requested"},
+        {"type": "voice_command", "command": "end", "stage": "confirmed"},
     ]
 
 
 async def test_the_confirmation_is_stored_as_a_command_confirmation(db_pool, committed_session):
-    """스키마가 `command_confirmation` 을 둔 이유가 오인식 방어의 «기록»이다."""
+    """스키마가 `command_confirmation` 을 둔 이유가 오인식 방어의 «기록»이다.
+
+    ⛔ **행이 발화마다 하나여야 한다** (`TASK-61.4` D1·D2). 앞 판은 전사문 경로와 tool 경로가
+    각각 적어 같은 발화가 두 행이 됐고, 확인 답이 `learning` 으로도 남아 분석 대상이 됐다.
+    """
     adapter = ScriptedAdapter(
-        SessionCommandEvent(command="end", stage="confirmed", heard="네 종료해"),
+        TranscriptEvent(kind="final", text="오마이 잉글리시, 종료할게.", speaker="user"),
+        SessionCommandEvent(command="end", stage="requested"),
+        TranscriptEvent(kind="final", text="네 종료해 주세요.", speaker="user"),
+        SessionCommandEvent(command="end", stage="confirmed"),
         hold_open=True,
     )
 
@@ -1912,14 +1924,16 @@ async def test_the_confirmation_is_stored_as_a_command_confirmation(db_pool, com
 
     rows = await _typed_utterances(db_pool, committed_session.session_id)
     assert [(row["speaker"], row["utterance_type"], row["transcript"]) for row in rows] == [
-        ("user", "command_confirmation", "네 종료해")
+        ("user", "voice_command", "오마이 잉글리시, 종료할게."),
+        ("user", "command_confirmation", "네 종료해 주세요."),
     ]
 
 
 async def test_a_requested_end_command_does_not_close_the_session(db_pool, committed_session):
     """⛔ 확인 전에 닫히면 결정 102 ③이 무너진다 — 뒤에 온 발화가 저장되는 것으로 확인한다."""
     adapter = ScriptedAdapter(
-        SessionCommandEvent(command="end", stage="requested", heard="오마이 잉글리시 종료"),
+        TranscriptEvent(kind="final", text="오마이 잉글리시 종료", speaker="user"),
+        SessionCommandEvent(command="end", stage="requested"),
         TranscriptEvent(kind="final", text="Actually let's keep going.", speaker="user"),
     )
 
@@ -1937,7 +1951,8 @@ async def test_a_requested_end_command_does_not_close_the_session(db_pool, commi
     rows = await _typed_utterances(db_pool, committed_session.session_id)
     assert [(row["utterance_type"], row["transcript"]) for row in rows] == [
         ("voice_command", "오마이 잉글리시 종료"),
-        ("learning", "Actually let's keep going."),
+        # 확인을 기다리는 중에 온 답이므로 `learning` 이 아니다 — 물린 답도 확인의 기록이다.
+        ("command_confirmation", "Actually let's keep going."),
     ]
 
 
@@ -1969,4 +1984,67 @@ async def test_a_marked_user_final_is_stored_as_a_command_not_learning(
     assert [(row["utterance_type"], row["transcript"]) for row in rows] == [
         ("voice_command", "Oh My English, end the session."),
         ("learning", "I need to finish the report."),
+    ]
+
+
+async def test_a_tool_call_without_the_marker_in_the_turn_is_ignored(db_pool, committed_session):
+    """⛔ 사용자 결정 104(D5) — 모델이 표지 없는 학습 발화를 명령으로 읽은 것이 실측이다.
+
+    실측 근거: `runs/2026-09-15-task61-3-voice-command-app-leg` ARM-C 에서 코치가
+    `i want to end the meeting early tomorrow.` 에 확인을 물었고 tool 을 불렀다. 그때 세션이
+    닫히지 않은 것은 확인이 오지 않았기 때문이고, 이 검사는 **그 한 겹을 더 두는 것**이다.
+    """
+    adapter = ScriptedAdapter(
+        TranscriptEvent(
+            kind="final", text="I want to end the meeting early tomorrow.", speaker="user"
+        ),
+        SessionCommandEvent(command="end", stage="requested"),
+        SessionCommandEvent(command="end", stage="confirmed"),
+        TranscriptEvent(kind="final", text="Anyway, about the report.", speaker="user"),
+    )
+
+    await asyncio.wait_for(
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            client := FakeClient(),
+            drain_timeout=FAST_DRAIN_TIMEOUT,
+        ).run(),
+        timeout=5.0,
+    )
+
+    rows = await _typed_utterances(db_pool, committed_session.session_id)
+    assert [(row["utterance_type"], row["transcript"]) for row in rows] == [
+        ("learning", "I want to end the meeting early tomorrow."),
+        ("learning", "Anyway, about the report."),
+    ], "표지가 없는 턴의 tool 이 발화 유형을 바꿨다"
+    assert client.of_type("voice_command") == [], "무시한 명령을 화면에 알렸다"
+
+
+async def test_a_command_utterance_is_broadcast_so_the_screen_can_show_it(
+    db_pool, committed_session
+):
+    """⛔ `TASK-61.4` D4 — 앞 판은 명령 발화에 프레임을 보내지 않아 화면이 비었다.
+
+    실측: ARM-A2·ARM-B 의 화면 줄이 빈 배열이었고 학습자는 명령이 접수됐는지 알 수 없었다.
+    """
+    adapter = ScriptedAdapter(
+        TranscriptEvent(kind="final", text="Oh My English, end the session.", speaker="user"),
+    )
+
+    await asyncio.wait_for(
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            client := FakeClient(),
+            drain_timeout=FAST_DRAIN_TIMEOUT,
+        ).run(),
+        timeout=5.0,
+    )
+
+    finals = client.of_type("final")
+    assert [(event["text"], event.get("utterance_type")) for event in finals] == [
+        ("Oh My English, end the session.", "voice_command")
     ]

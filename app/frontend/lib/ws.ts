@@ -74,7 +74,22 @@ export type ServerEvent =
       pronunciation_focus?: string;
     }
   | { type: "partial"; text: string; speaker: Speaker }
-  | { type: "final"; text: string; speaker: Speaker; sequence_no: number }
+  /**
+   * 확정된 전사문 한 줄.
+   *
+   * `utterance_type` 은 서버가 정한 발화의 종류다 — `learning`(학습 발화) · `voice_command`
+   * (표지가 붙은 명령) · `command_confirmation`(확인 답). ⛔ 화면이 이 값을 **다시 판정하지
+   * 않는다**: 표지 판정은 앱(서버)이 소유한다(`TASK-61.1` · 결정 102 ①).
+   * ⚠️ 지금 화면은 이 값으로 갈라 그리지 않고 **줄을 남기는 것까지만** 한다 — 앞 판은 명령 발화에
+   * 프레임 자체를 보내지 않아 화면이 비었고(`TASK-61.4` D4) 그 결함의 고침이 프레임의 존재다.
+   */
+  | {
+      type: "final";
+      text: string;
+      speaker: Speaker;
+      sequence_no: number;
+      utterance_type?: string;
+    }
   | { type: "audio"; data: string }
   | { type: "speech_start"; offset_ms: number | null }
   | { type: "speech_end"; offset_ms: number | null }

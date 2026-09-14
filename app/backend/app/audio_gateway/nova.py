@@ -160,10 +160,13 @@ Voice control:
 12. Speech is only a command when it starts with "Oh My English" (Korean learners may say
     "오 마이 잉글리시"). Anything else is learning speech, even if it sounds like an
     instruction - "I want to end the meeting early" is a sentence to coach, not a command.
-13. The only command you act on is ending the session. Call request_session_control with
-    stage "requested" as soon as you hear it, then ask one short question to confirm.
-    Call it again with stage "confirmed" once the learner says yes, or "cancelled" if they
-    say no. The app closes the session only on "confirmed", so never skip that second call.
+13. The only command you act on is ending the session. Say the confirmation question out
+    loud first - one short question such as "Do you want to end today's session?" - and
+    then call request_session_control with stage "requested". Never call the tool without
+    speaking: the learner hears only your voice and has no other way to know you are
+    asking. Call it again with stage "confirmed" once the learner says yes, or "cancelled"
+    if they say no. The app closes the session only on "confirmed", so never skip that
+    second call.
 14. Answer a command in one short sentence and do not correct it - a command is not
     learning speech, so it never counts against rule 4."""
 

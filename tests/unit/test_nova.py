@@ -2164,3 +2164,20 @@ def test_system_prompt_tells_the_coach_the_command_marker_and_the_confirmation()
     # 확인 단계의 이름이 프롬프트에 있어야 모델이 두 번 부르는 것을 안다.
     assert "requested" in SYSTEM_PROMPT
     assert "confirmed" in SYSTEM_PROMPT
+
+
+def test_the_prompt_tells_the_coach_to_ask_out_loud_before_calling_the_tool():
+    """⛔ `TASK-61.4` D3(사용자 결정 104) — 실측에서 코치가 tool 만 부르고 **한 마디도 하지 않았다**.
+
+    ARM-A2·ARM-B 의 `recv.audio` 가 0 이었고, 그래서 학습자는 무엇을 확인해야 하는지 듣지 못했다.
+    ⚠️ 문면만으로 거동이 보장되지 않는다 — 실물 관측은 `TASK-61.4` AC#6 의 회차가 한다.
+    """
+    # ⚠️ 공백을 눕혀 비교한다 — 그 줄이 길이 제한으로 두 줄로 접혀 있다(같은 파일의 규칙 5 단정과
+    # 같은 처리).
+    lowered = " ".join(SYSTEM_PROMPT.lower().split())
+    # ⚠️ 「out loud」만 찾으면 규칙 6(「JSON 을 소리로 읽지 마라」)에 걸려 **거짓 양성**이 된다 —
+    # 처음 쓴 단정이 실제로 그렇게 통과했다. 그래서 이 결함을 겨냥한 문면을 그대로 못 박는다.
+    marker = "say the confirmation question out loud first"
+    assert marker in lowered, "확인을 먼저 소리로 물으라는 요구가 프롬프트에 없다"
+    # 순서를 못 박는다 — 「먼저 말하고 그 다음 부른다」가 이 결함의 고침이다.
+    assert lowered.index(marker) < lowered.index('call it again with stage "confirmed"')

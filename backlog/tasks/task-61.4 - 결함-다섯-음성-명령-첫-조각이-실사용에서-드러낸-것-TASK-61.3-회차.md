@@ -1,9 +1,10 @@
 ---
 id: TASK-61.4
 title: '결함 다섯: 음성 명령 첫 조각이 실사용에서 드러낸 것 (TASK-61.3 회차)'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-14 23:15'
+updated_date: '2026-09-14 23:24'
 labels: []
 dependencies: []
 parent_task_id: TASK-61
@@ -26,10 +27,28 @@ D5 모델이 표지 없이도 명령으로 읽고 앱이 tool 을 그대로 신�
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 D1 을 고친다 — 명령·확인 발화의 writer 를 하나로 만들고 중복 행이 생기지 않는 것을 단정으로 못 박는다
-- [ ] #2 D2 를 고친다 — 확인 답이 learning 으로 남지 않는 것을 단정으로 못 박는다
-- [ ] #3 D4 를 고친다 — 명령으로 분류된 발화도 화면에 남는다(프레임 계약을 정하고 프론트까지 확인한다)
-- [ ] #4 D3 의 방향을 사용자에게 받는다 — 프롬프트로 먼저 말하게 할지, 앱이 화면 문구로 대신할지
-- [ ] #5 D5 의 방향을 사용자에게 받는다 — tool 에도 표지를 요구할지, 그 대가(정상 명령 차단)를 받아들일지
+- [x] #1 D1 을 고친다 — 명령·확인 발화의 writer 를 하나로 만들고 중복 행이 생기지 않는 것을 단정으로 못 박는다
+- [x] #2 D2 를 고친다 — 확인 답이 learning 으로 남지 않는 것을 단정으로 못 박는다
+- [x] #3 D4 를 고친다 — 명령으로 분류된 발화도 화면에 남는다(프레임 계약을 정하고 프론트까지 확인한다)
+- [x] #4 D3 의 방향을 사용자에게 받는다 — 프롬프트로 먼저 말하게 할지, 앱이 화면 문구로 대신할지
+- [x] #5 D5 의 방향을 사용자에게 받는다 — tool 에도 표지를 요구할지, 그 대가(정상 명령 차단)를 받아들일지
 - [ ] #6 고친 뒤 실물 회차를 다시 돌려 D1·D2·D4 가 사라진 것과 D3·D5 의 결정이 이행된 것을 관측한다
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-09-15 D1·D2·D4 를 고쳤고 D3·D5 의 방향을 사용자에게 받았음(결정 104). 세션 ohmyenglish-65 · TDD.
+
+고친 것:
+- D1·D2: 기록의 writer 를 전사문 경로 하나로 만들었음. tool 경로가 heard 를 저장하지 않고, requested 뒤 «한 발화»를 확인 답으로 읽어 command_confirmation 으로 적음(_classify_user_final). ⇒ 중복 행 0 · 확인 답이 learning 으로 남지 않음.
+- D4: 명령·확인 발화도 final 프레임으로 방송하고 utterance_type 을 함께 실었음. 프론트 ServerEvent 에 그 필드를 더했고 화면 로직은 바꾸지 않았음(줄이 남는 것까지가 이 AC 의 요구임).
+- D5(결정 104): 표지가 없는 턴의 tool 을 실행하지 않음(_marker_seen). 막을 때 warning 을 남겨 그 크기를 셀 수 있게 했음.
+- D3(결정 104): 프롬프트 규칙 13 을 「확인 질문을 소리로 먼저 하고 그 다음 tool 을 부른다」로 고쳤음.
+
+게이트 여섯: pytest 1222 passed(13.6s) · ruff · ruff format --check 49 files · ty · tsc --noEmit · eslint(둘 다 0줄).
+무력화 셋을 직접 돌려 전부 잡히는 것을 확인했음 — ① 표지 검사를 끔 → without_the_marker 실패 ② 확인 대기 상태를 없앰 → command_confirmation 실패 ③ utterance_type 을 프레임에서 뺌 → broadcast_so_the_screen 실패.
+⚠️ 프롬프트 단정을 처음 「out loud」로 썼다가 규칙 6(JSON 을 소리로 읽지 마라)에 걸려 곧 통과하는 «거짓 양성»이 됐음 — 결함을 겨냥한 문면으로 고쳤음.
+
+⛔ AC#6(실물 회차 재확인)은 남았음 — D3 은 문면만 고친 것이고 코치가 실제로 말하는지는 실물로만 확인됨.
+<!-- SECTION:NOTES:END -->

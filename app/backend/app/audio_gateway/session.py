@@ -67,6 +67,9 @@ COMMAND_UTTERANCE_TYPE = "voice_command"
 # 확인 답의 표시. 명령과 **가르는 이유**가 오인식 방어의 기록이다 — 「무엇을 확인했는가」가
 # 남지 않으면 되돌릴 수 없는 종료가 왜 실행됐는지 사후에 알 수 없다.
 CONFIRMATION_UTTERANCE_TYPE = "command_confirmation"
+# 학습 발화 — 분석·교정·계획 입력이 이 값 하나로 거른다. `save_final_transcript` 의 기본값과
+# 같은 값이고, 여기서 이름을 갖는 이유는 위 둘과 **대조하는 조건**이 이 모듈에 있기 때문이다.
+LEARNING_UTTERANCE_TYPE = "learning"
 
 
 @dataclass(slots=True)
@@ -144,6 +147,14 @@ class SessionRunner:
         # 위 `_shadowing` 과 같은 규약이다 — 판정은 소켓 계층 한 곳에만 둔다.
         self._pronunciation_sound = pronunciation_sound
         self._recording_turn: _RecordingTurn | None = None
+        # 음성 명령의 상태 둘 (`TASK-61.1` · `TASK-61.4`).
+        # `_marker_seen` — 이 교환에서 학습자가 표지를 말했는가. ⛔ 이것이 **tool 을 실행할 자격**
+        # 이다(사용자 결정 104): 모델이 표지 없는 학습 발화를 명령으로 읽는 것이 실측이므로
+        # (`runs/2026-09-15-task61-3-voice-command-app-leg` ARM-C) 앱이 따로 검사한다.
+        # `_awaiting_confirmation` — `requested` 뒤 **한 발화**를 확인 답으로 읽는가. 확인 답에는
+        # 표지가 없어서 이 상태 없이는 그 발화를 학습 발화와 가를 수 없다.
+        self._marker_seen = False
+        self._awaiting_confirmation = False
 
     async def run(self) -> None:
         """세션 하나를 끝까지 수행한다. 반환 시점에 세션은 DB에서 닫혀 있다."""
@@ -400,13 +411,30 @@ class SessionRunner:
         깨어나 기존 종료 경로(`_close_and_record('completed')` → `session_ended`)를 그대로 탄다.
         클라이언트의 `end_session` 과 같은 길이므로 종료 상태·프레임 순서가 갈리지 않는다.
         """
-        utterance_type = (
-            CONFIRMATION_UTTERANCE_TYPE if event.stage == "confirmed" else COMMAND_UTTERANCE_TYPE
-        )
-        if event.heard is not None:
-            # ⚠️ `heard` 가 없으면 아무것도 적지 않는다 — 발명한 문장을 학습 기록에 남기지 않는다.
-            await self._save_command_utterance(event.heard, utterance_type)
+        if not self._marker_seen:
+            # ⛔ **사용자 결정 104(D5)** — 표지가 없는 턴의 tool 은 실행하지 않는다. 실측에서 모델이
+            # `I want to end the meeting early tomorrow.` 를 명령으로 읽고 tool 을 불렀다
+            # (`runs/2026-09-15-task61-3-voice-command-app-leg` ARM-C).
+            # ⚠️ **대가를 알고 받는다** — 표지의 ASR 이 불안정해(같은 픽스처 2회 중 1회는
+            # `all my english`) 정상 명령도 막힌다. 그래서 `warning` 으로 남겨 그 크기를 센다.
+            logger.warning(
+                "표지가 없는 턴의 음성 명령 %r 을 실행하지 않았다 (들은 말 %r · 세션 %s)",
+                event.command,
+                event.heard,
+                self._session_id,
+            )
+            return False
         await self._send({"type": "voice_command", "command": event.command, "stage": event.stage})
+        if event.stage == "requested":
+            # 다음 학습자 발화가 **확인 답**이다 — 유형은 `_classify_user_final` 이 바꾼다.
+            # ⛔ tool 이 실어 온 `heard` 를 따로 저장하지 않는다: 같은 발화가 두 행이 됐던 것이
+            #    `TASK-61.4` D1 이다. 기록의 writer 는 전사문 경로 하나다.
+            self._awaiting_confirmation = True
+            return False
+        # `confirmed`·`cancelled` — 교환이 끝났으므로 표지의 효력도 끝난다. 남겨 두면 뒤에
+        # 온 오인식 tool 이 그 표지에 얹혀 실행된다.
+        self._marker_seen = False
+        self._awaiting_confirmation = False
         if event.stage != "confirmed":
             return False
         logger.info(
@@ -414,23 +442,23 @@ class SessionRunner:
         )
         return True
 
-    async def _save_command_utterance(self, text: str, utterance_type: str) -> None:
-        """명령·확인 발화를 저장한다. **분석에 걸리지 않는 유형으로 적는다.**
+    def _classify_user_final(self, text: str) -> str:
+        """학습자 final 하나의 `utterance_type` 을 정한다 (`TASK-61.1` · `TASK-61.4`).
 
-        ⛔ 저장 실패가 대화를 끊지 않는다 — 이 모듈의 다른 기록 경로와 같은 규약이다
-        (`_record_pronunciation` · `_write_recording_frame`).
+        ⛔ **판정을 앱이 한다** — 모델의 규율에 맡기면 명령이 `learning` 으로 저장되고 분석기가
+        그것을 교정 대상으로 본다. `utterance_type='learning'` 이 분석 대상의 유일한 조건이므로
+        (`services/utterances.py`) 값을 바꾸는 것만으로 그 경로에서 빠진다.
+
+        ⚠️ 확인 답에는 표지가 없다 — 그래서 `requested` 뒤 **한 발화**를 확인으로 읽는다.
+        물린 답(`아니야`)도 확인의 기록이라 같은 유형으로 적는다.
         """
-        try:
-            async with self._pool.acquire() as conn:
-                await save_final_transcript(
-                    conn,
-                    self._session_id,
-                    text,
-                    speaker="user",
-                    utterance_type=utterance_type,
-                )
-        except Exception:
-            logger.exception("음성 명령 발화를 저장하지 못했다 (세션 %s)", self._session_id)
+        if is_wake_command(text):
+            self._marker_seen = True
+            return COMMAND_UTTERANCE_TYPE
+        if self._awaiting_confirmation:
+            self._awaiting_confirmation = False
+            return CONFIRMATION_UTTERANCE_TYPE
+        return LEARNING_UTTERANCE_TYPE
 
     async def _store_final(self, event: TranscriptEvent) -> None:
         """final을 저장한다 — **취소가 저장을 찢지 못하게** shield로 감싼다.
@@ -449,30 +477,36 @@ class SessionRunner:
         await asyncio.shield(save)
 
     async def _save_final(self, event: TranscriptEvent) -> None:
-        # 표지가 붙은 학습자 발화는 **명령**이고 학습 발화가 아니다 (`TASK-61.1` · 결정 102 ①).
-        # ⛔ 판정을 앱이 한다 — 모델의 규율에 맡기면 명령이 `learning` 으로 저장되고 분석기가
-        # 그것을 교정 대상으로 본다. `utterance_type='learning'` 이 분석 대상의 유일한 조건이므로
-        # (`services/utterances.py`) 여기서 값을 바꾸는 것만으로 그 경로에서 빠진다.
-        if event.speaker == "user" and is_wake_command(event.text):
-            await self._save_command_utterance(event.text, COMMAND_UTTERANCE_TYPE)
-            return
+        utterance_type = (
+            self._classify_user_final(event.text)
+            if event.speaker == "user"
+            else LEARNING_UTTERANCE_TYPE
+        )
         async with self._pool.acquire() as conn:
             utterance = await save_final_transcript(
-                conn, self._session_id, event.text, speaker=event.speaker
+                conn,
+                self._session_id,
+                event.text,
+                speaker=event.speaker,
+                utterance_type=utterance_type,
             )
             if event.speaker == "user":
-                # 발음 신호가 보이는지 **서비스가** 본다. 무엇을 어떻게 보는지는 이 모듈의
-                # 관심사가 아니다 — 감지기가 늘거나 줄어도 여기는 바뀌지 않는다.
-                # 실패해도 전사문 저장을 되돌리지 않는다: 신호는 부가 정보다.
-                try:
-                    await note_transcript(
-                        conn,
-                        self._session_id,
-                        transcript=utterance.transcript,
-                        utterance_id=utterance.id,
-                    )
-                except Exception:
-                    logger.exception("발음 신호 기록에 실패했다 (세션 %s)", self._session_id)
+                # ⛔ 명령·확인 발화에는 걸지 않는다 — 학습 발화가 아니므로 발음 신호를 찾을 자리가
+                # 아니다(`TASK-61.4`). ⚠️ 이 조건을 `else` 로 묶지 않는 이유가 있다: 묶으면 명령
+                # 발화가 **agent 갈래**로 떨어져 분석 flush 를 부른다.
+                if utterance_type == LEARNING_UTTERANCE_TYPE:
+                    # 발음 신호가 보이는지 **서비스가** 본다. 무엇을 어떻게 보는지는 이 모듈의
+                    # 관심사가 아니다 — 감지기가 늘거나 줄어도 여기는 바뀌지 않는다.
+                    # 실패해도 전사문 저장을 되돌리지 않는다: 신호는 부가 정보다.
+                    try:
+                        await note_transcript(
+                            conn,
+                            self._session_id,
+                            transcript=utterance.transcript,
+                            utterance_id=utterance.id,
+                        )
+                    except Exception:
+                        logger.exception("발음 신호 기록에 실패했다 (세션 %s)", self._session_id)
             else:
                 # agent가 말을 시작했다 = 사용자 턴이 닫혔다. 그 직전까지의 사용자
                 # final 묶음을 하나로 묶어 분석 job 1건을 건다 (I-1). 이 모듈은
@@ -480,12 +514,17 @@ class SessionRunner:
                 await self._flush_analysis(conn)
         # 방송하는 `sequence_no`는 DB가 부여한 값이다 — 어댑터가 보낸 번호가 아니라
         # 실제로 저장된 순번이라야 클라이언트가 결과 조회와 대조할 수 있다.
+        #
+        # ⛔ **명령 발화도 방송한다** (`TASK-61.4` D4). 앞 판은 명령을 저장만 하고 프레임을 보내지
+        # 않아 **화면에 아무 줄도 남지 않았고** 학습자는 접수됐는지 알 수 없었다(실측: ARM-A2·ARM-B
+        # 의 화면 줄이 빈 배열). `utterance_type` 을 함께 실어 화면이 나중에 갈라 그릴 수 있게 둔다.
         await self._send(
             {
                 "type": "final",
                 "text": utterance.transcript,
                 "speaker": utterance.speaker,
                 "sequence_no": utterance.sequence_no,
+                "utterance_type": utterance.utterance_type,
             }
         )
 
