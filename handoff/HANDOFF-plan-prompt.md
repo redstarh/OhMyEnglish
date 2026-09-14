@@ -68,7 +68,7 @@
 
 | # | 지표 | 값 |
 |--:|---|---|
-| 1 | 기준 커밋 | **`867e890`** — 이 handoff 를 담은 커밋이 그 뒤임. 미커밋 0건 · origin 과 동기 (⚠️ 리포 루트의 미추적 `paseo.json` 은 내 것이 아니라 담지 않았음) |
+| 1 | 기준 커밋 | **`9bb5b8e`**(이 handoff 를 담은 커밋) — 그 뒤에 이 줄을 고친 커밋 하나가 더 붙음. `git rev-list --left-right --count HEAD...origin/<브랜치>` 가 **`0 0`** 이고 내 미커밋 0건임 (⚠️ 리포 루트의 미추적 `paseo.json` 은 내 것이 아니라 담지 않았음) |
 | 2 | 다음 걸음 | ②의 판단 셋이 앞에 있고, 판단 없이 갈 수 있는 것은 `TASK-61` 임 · `Awaiting Decision` **2건** |
 | 3 | 게이트 | 여섯 전부 exit 0 — `pytest` **1182 passed** · `ruff check` · `ruff format` **227 files** · `ty` · 프런트 `tsc` · `eslint` |
 | 4 | 착수 전 필수 | 10개(③) · 원장 To Do **5** · In Progress **7**(전부 발음 축) · Awaiting Decision **2** · Done **152**(frontmatter 직접 집계) |
