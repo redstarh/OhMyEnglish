@@ -35,6 +35,7 @@ from app.services.daily_summary import (
     load_history,
     load_streak,
 )
+from app.services.weekly_report import load_latest_report
 
 router = APIRouter(prefix="/api", tags=["daily"])
 
@@ -122,3 +123,27 @@ async def get_history(request: Request) -> dict[str, object]:
         streak = await load_streak(conn, FIXED_USER_ID)
         days = await load_history(conn, FIXED_USER_ID, days=HISTORY_DAYS)
     return _history_payload(streak, days)
+
+
+@router.get("/weekly-report")
+async def get_weekly_report(request: Request) -> dict[str, object]:
+    """가장 최근 주간 리포트 (`TASK-26` · 결정 91 · PRD:117).
+
+    ⛔ **행이 없어도 404 가 아니다** — 위 두 라우트와 같은 규약이다. 404 로 만들면 화면이 「오류」와
+    「아직 없음」을 구별해야 하고 그 구별은 화면의 일이 아니다. `analyzed` 가 그것을 값으로 말한다.
+    ⚠️ **판정을 여기서 하지 않는다** — 「최근이 어느 주인가」와 jsonb 변환은 `services.weekly_report`
+    가 갖는다(이 파일 머리말의 규약이고, 그래서 여기에 날짜 계산이 없다).
+    """
+    pool: asyncpg.Pool = request.app.state.db_pool
+    async with pool.acquire() as conn:
+        report = await load_latest_report(conn, FIXED_USER_ID)
+    if report is None:
+        # 「아직 한 주도 만들어지지 않았다」의 모양. ⚠️ 키를 빼지 않고 **빈 값**으로 싣는다 —
+        # 화면이 키 유무를 분기하지 않게 한다(`daily-summary` 가 같은 규약이다).
+        return {"week_start": None, "analyzed": False, "metrics": {}, "insights": {}}
+    return {
+        "week_start": report.week_start.isoformat(),
+        "analyzed": report.analyzed,
+        "metrics": report.metrics,
+        "insights": report.insights,
+    }

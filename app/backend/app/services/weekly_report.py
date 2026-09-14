@@ -15,6 +15,7 @@ import json
 import logging
 from dataclasses import dataclass
 from datetime import date
+from typing import cast
 from uuid import UUID
 
 import asyncpg
@@ -395,9 +396,69 @@ async def process_weekly(pool: asyncpg.Pool, claude: ClaudeClient, job: ClaimedJ
 __all__ = [
     "TOP_PATTERN_LIMIT",
     "TopPattern",
+    "StoredReport",
     "WeekFacts",
     "build_weekly_prompt",
     "last_week_start",
+    "load_latest_report",
     "load_week_facts",
     "process_weekly",
 ]
+
+
+# 가장 최근에 만든 리포트 한 행. ⚠️ **`computed_at` 이 null 인 행도 준다** — 「행은 만들었지만 아직
+# 채우지 않았다」를 화면이 말할 수 있어야 하고, 그 구별은 `analyzed` 가 싣는다.
+# ⛔ `order by week_start desc` 가 계약이다 — 「아무 한 행」을 주면 화면이 몇 주 전 리포트를
+# 최신처럼 보인다. 023 의 `(user_id, week_start desc)` 인덱스가 이 조회를 위한 것이다.
+_LATEST_REPORT_SQL = """
+select week_start, metrics, insights, computed_at
+  from weekly_reports
+ where user_id = $1
+ order by week_start desc
+ limit 1
+"""
+
+
+@dataclass(frozen=True, slots=True)
+class StoredReport:
+    """적재된 리포트 한 벌. 행이 없으면 호출자가 `None` 을 받는다.
+
+    ⚠️ `metrics`·`insights` 를 **dict 로** 들고 있다 — asyncpg 가 jsonb 를 문자열로 주므로 그 변환을
+    **모양의 소유자인 이 계층**이 흡수한다(`TASK-62` 가 그 자리에서 API 가 총평을 한 번도 싣지 못한
+    결함을 겪었다).
+    """
+
+    week_start: date
+    metrics: dict[str, object]
+    insights: dict[str, object]
+    analyzed: bool
+
+
+def _as_dict(value: object) -> dict[str, object]:
+    """jsonb 한 칸을 dict 로. ⛔ 문자열로 오는 경로를 여기서 닫는다.
+
+    ⚠️ dict 가 아닌 값은 **빈 dict 로 접는다** — 그 자리에 배열이나 스칼라가 들어오는 것은 스키마가
+    허락하지만(jsonb 는 무엇이든 담는다) 화면의 계약은 객체다.
+    """
+    loaded: object = json.loads(value) if isinstance(value, str) else value
+    if not isinstance(loaded, dict):
+        return {}
+    return cast("dict[str, object]", loaded)
+
+
+async def load_latest_report(conn: asyncpg.Connection, user_id: UUID) -> StoredReport | None:
+    """가장 최근 리포트, 없으면 `None`.
+
+    ⚠️ 여기서 `None` 이 정상인 이유: 리포트는 **주에 한 번** 만들어지므로 첫 주에는 없다. 그 부재를
+    HTTP 404 로 옮기지 않는 것이 `daily.py` 가 세운 규약이다 — 화면이 「오류」와 「아직 없음」을
+    구별하지 않아도 되게 한다.
+    """
+    row = await conn.fetchrow(_LATEST_REPORT_SQL, user_id)
+    if row is None:
+        return None
+    return StoredReport(
+        week_start=row["week_start"],
+        metrics=_as_dict(row["metrics"]),
+        insights=_as_dict(row["insights"]),
+        analyzed=row["computed_at"] is not None,
+    )
