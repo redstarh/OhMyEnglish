@@ -317,10 +317,15 @@ async def test_review_tasks_unique_key_separates_cycles(db_conn: asyncpg.Connect
             await _insert(first_cycle)  # 같은 사이클의 같은 단계는 여전히 하나다
 
 
-# ⑤ 시드 후 users 1행 · learning_scenarios 3행(**무대** 3개 — 질문이 아니다. 캡틴 결정 14),
+# ⑤ 시드 후 users 1행 · learning_scenarios 는 **무대**다(질문이 아니다 — 캡틴 결정 14),
 #    재실행해도 중복 없음(멱등 — 이제 `do nothing` 이 아니라 `do update` 로 멱등이다)
+#
+# ⚠️ **무대 개수를 이 주석과 테스트 이름에 적지 않는다.** 시드가 3 → 15 → 30 으로 늘면서 두 자리가
+# 함께 낡았다(2026-09-14 감사가 잡았다). 옛 이름은 `…_fifteen_scenarios_…` 였고 계획서
+# `docs/design/2026-09-12-scenario-rotation-70-30-plan.md:523` 이 그 이름을 인용하므로 그 문서를
+# 읽을 때 이 자리를 함께 본다. 개수는 아래 단정이 지키고, 업무는 등호가 아니라 하한이다.
 @pytest.mark.asyncio
-async def test_seed_creates_fixed_user_and_fifteen_scenarios_idempotently(
+async def test_seed_creates_the_fixed_user_and_the_scenarios_idempotently(
     db_conn: asyncpg.Connection,
 ):
     await migrate.seed(db_conn)
@@ -336,7 +341,9 @@ async def test_seed_creates_fixed_user_and_fifteen_scenarios_idempotently(
     assert seeded_user["timezone"] == "Asia/Seoul"
     assert seeded_user["current_level"] == "A2"
 
-    # `TASK-4` · 결정 75 — 일상 9 + 업무 6 = 15 다. ⚠️ 개수를 세는 이유는 배치 규칙이
+    # `TASK-4` · 결정 75 — 일상과 업무가 **섞여** 있어야 한다. ⚠️ **합계를 여기서 적지 않는다** —
+    # 일상은 등호로, 업무는 하한으로 지킨다(바로 아래 두 단정). 이전 판은 「일상 9 + 업무 6 = 15」
+    # 로 적었고 업무가 9로 늘면서 낡았다. ⚠️ 개수를 세는 이유는 배치 규칙이
     # 「창 10 보다 후보가 많다」에 걸려 있기 때문이다(설계서 §6 테스트 2 · `test_scenario_rotation`
     # 의 `test_starvation_returns_when_topics_only_match_the_window` 가 그 경계를 실측했다) —
     # 후보가 10 이하로 줄면 신규가 마른다.
@@ -604,7 +611,9 @@ async def test_session_mode_domain_includes_scenario_intake(db_conn: asyncpg.Con
             )
 
 
-# ⑤-2 시드 3행은 **무대**다 — 질문이 아니고 `title`과 `prompt_template`이 갈라져 있다.
+# ⑤-2 시드 행은 **무대**다 — 질문이 아니고 `title`과 `prompt_template`이 갈라져 있다.
+# ⚠️ 머리 문장에서 개수를 뺐다 — 이 테스트의 범위가 `daily_life` 3행에서 전체로 넓어졌는데
+# (아래 주석) 머리만 「3행」으로 남아 있었다(2026-09-14 감사).
 #
 # 캡틴 결정 14 (2026-09-07). 근거: 결정 9가 「시나리오 = 무대(상황·역할) · 계획 = 목표(질문)」로
 # 역할을 갈랐는데 시드 3행은 **질문**이었고 두 컬럼이 **바이트 동일**이었다(psql 직접 조회).

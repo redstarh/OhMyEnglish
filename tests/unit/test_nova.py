@@ -1568,7 +1568,12 @@ _FOCUS_WINS = (
 
 
 def _scenario(**overrides: str) -> SessionScenario:
-    """무대 1건 — 값은 시드 3행 중 하나(`…103`)를 그대로 쓴다(`scripts/migrate.py`).
+    """무대 1건 — 값의 출처는 옛 시드(`…103`)이지만 **지금 시드에는 없다.**
+
+    ⚠️ `scripts/migrate.py:111` 이 그 이동을 적었다 — `…103` 은 「식사」로 옮겨졌고 여기 쓰는
+    `Tonight's plans at home` 은 시드에서 사라졌다(2026-09-14 감사가 잡았다). ⛔ **그래도 값을
+    바꾸지 않는다**: 이 헬퍼의 계약은 아래 tripwire 조건이고 시드와의 일치가 아니다. 시드 값을
+    따라가면 시드를 고칠 때마다 그 조건을 다시 확인해야 한다.
 
     ⚠️ **`title`에 `prompt_template`에 없는 낱말이 있어야** 규칙 6 tripwire가 실질을 갖는다.
     여기서 그 낱말은 `at home`이고 고정부·계획 블록·`_instruction()`의 어느 값에도 없다
