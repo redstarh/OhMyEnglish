@@ -137,6 +137,26 @@ def test_a_quoted_word_does_not_exclude_a_record_that_names_that_word_s_own_soun
     assert sound_check_verdict(_GENERAL_SESSION_SPEECH_WORD_ONLY, "r_as_l") is None
 
 
+def test_a_short_sound_does_not_preempt_word_evidence_for_another_key():
+    """⛔ **codex 리뷰 HIGH · `TASK-116.4`** — 한 발화에 소리와 낱말이 함께 인용되면 **짧은 소리가
+    낱말 증거를 선점**해 정상 기록이 배제된다.
+
+    실패 시나리오(실측): 발화가 `First practice the "er" sound. Later repeat "fine".` 이고 시도의
+    키가 `f_as_p` 일 때 앞 판은 `mismatched` 를 냈다 — `er` 이 그 키 «안에» 없기 때문이다. 그런데
+    같은 발화에서 낱말 `fine` 은 키의 소리 `f` 를 담고 있다. ⇒ **증거가 갈리는데 배제로 기울었다.**
+    ⚠️ 낱말만 인용된 판(`Later repeat "fine".`)은 이미 `None` 이었으므로, 소리 토큰이 **더 있는 것이
+    판정을 나쁘게** 만들었다.
+
+    ⇒ 증거가 갈리면 **배제하지 않는다** — 이 함수의 계약이 「어긋남을 증명할 수 있을 때만」이다.
+    """
+    split_evidence = 'First practice the "er" sound. Later repeat "fine".'
+
+    assert sound_check_verdict(split_evidence, "f_as_p") is None
+    # ⛔ 음성 대조 — 이 단정이 없으면 「낱말이 하나라도 있으면 None」으로 고쳐도 위가 통과한다.
+    # `fine` 은 `th_as_s` 의 소리를 담지 않으므로 그 키는 여전히 어긋남이다.
+    assert sound_check_verdict(split_evidence, "th_as_s") == "mismatched"
+
+
 def test_a_possessive_is_not_chopped_into_a_sound_token():
     """⛔ **codex 리뷰 HIGH — 소유격의 아포스트로피를 «닫는 따옴표»로 오인하면 정상 기록이 배제된다.**
 

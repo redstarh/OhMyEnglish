@@ -190,6 +190,10 @@ def sound_check_verdict(agent_speech: str, target_sound: str | None) -> str | No
     깨진다. ⚠️ 그 대가로 알려진 오탐이 하나 있다 — 키에 `_as_` 가 들어가므로 인용된 `a`·`s` 는 어떤
     키와도 일치한다. **그 방향이 안전한 쪽**이고 그 오탐을 단위 테스트가 못 박아 둔다.
 
+    ⛔ **증거가 갈리면 배제하지 않는다**(`TASK-116.4`): 소리 토큰이 어긋나도 **같은 발화의 낱말이
+    키의 소리를 담고 있으면** `None` 이다. 한 발화에 소리와 낱말이 함께 인용될 때 짧은 소리가 낱말
+    증거를 **선점**해 정상 기록이 배제된 것이 codex 리뷰가 찾은 실패다.
+
     ② **낱말만 인용했으면** 키의 소리 조각이 그 낱말에 한 자리도 없을 때에만 어긋남이다.
     ⛔ **왜 앞 판을 뒤집었나**: 앞 판은 이 경우를 통째로 `None` 으로 뒀는데, 실측에서 **일반 세션의
     코치는 소리를 이름으로 인용하지 않는다** — `"early"` · `"er-lee"` · 문장 전체만 인용했다. 그래서
@@ -217,20 +221,33 @@ def sound_check_verdict(agent_speech: str, target_sound: str | None) -> str | No
         return None
     key = target_sound.strip().lower()
 
-    # ① 소리 토큰이 있으면 그것만 본다 — 하이픈이 있는 토큰은 소리로 세지 않는다(위 상수 주석).
     sounds = {token for token in quoted if len(token) <= _SOUND_MAX_LEN and "-" not in token}
+    words = quoted - sounds
+    segments = _key_sound_segments(key)
+    # 낱말이 키의 소리를 담고 있는가 — 담고 있으면 **어긋남을 증명할 수 없다.**
+    # ⛔ 조각이 둘 미만이면 키를 나누지 못한 것이므로 이 증거를 쓰지 않는다(`_key_sound_segments`).
+    word_supports_key = (
+        bool(words)
+        and len(segments) >= 2
+        and any(segment in word for segment in segments for word in words)
+    )
+
+    # ① 소리 토큰이 있으면 먼저 본다 — 하이픈이 있는 토큰은 소리로 세지 않는다(위 상수 주석).
     if sounds:
-        return (
-            SOUND_CHECK_MATCHED if any(sound in key for sound in sounds) else SOUND_CHECK_MISMATCHED
-        )
+        if any(sound in key for sound in sounds):
+            return SOUND_CHECK_MATCHED
+        # ⛔ **증거가 갈리면 배제하지 않는다** (`TASK-116.4` · codex 리뷰 HIGH). 한 발화에 소리와
+        # 낱말이 함께 인용되면 짧은 소리가 낱말 증거를 **선점**해 정상 기록이 배제됐다 — 실측:
+        # `First practice the "er" sound. Later repeat "fine".` 에 키 `f_as_p` 가 `mismatched` 였고,
+        # ⚠️ **낱말만 인용된 판은 이미 `None`** 이었다 — 소리 토큰이 더 있는 것이 판정을 나쁘게 했다.
+        # 이 함수의 계약이 「어긋남을 증명할 수 있을 때만」이므로 갈린 증거는 증명이 아니다.
+        if word_supports_key:
+            return None
+        return SOUND_CHECK_MISMATCHED
 
     # ② 낱말만 인용됐다 (결정 98). 키의 소리 조각이 그 낱말에 **한 자리도 없으면** 어긋남이다.
     # ⛔ 「맞다」를 내지 않는다 — 낱말로는 옳음을 증명할 수 없으므로 그때는 `None` 이다.
-    words = quoted - sounds
-    segments = _key_sound_segments(key)
-    if not words or len(segments) < 2:
-        return None
-    if any(segment in word for segment in segments for word in words):
+    if not words or len(segments) < 2 or word_supports_key:
         return None
     return SOUND_CHECK_MISMATCHED
 
