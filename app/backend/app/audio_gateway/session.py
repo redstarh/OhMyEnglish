@@ -38,10 +38,12 @@ import asyncpg
 from app.audio_gateway.port import (
     InterruptionEvent,
     PronunciationEvent,
+    SessionCommandEvent,
     SpeechBoundaryEvent,
     TranscriptEvent,
     VoiceAdapter,
 )
+from app.models.voice_command import is_wake_command
 from app.services.pronunciation import (
     check_recorded_sounds,
     note_transcript,
@@ -58,6 +60,13 @@ logger = logging.getLogger(__name__)
 # 것만으로 **오류 분석·교정 표시·계획 입력에서 자동으로 빠진다**(설계서 §4.1 이 grep 으로 확인한
 # 4자리가 `utterance_type='learning'` 으로 거른다). 목록을 복제하지 않고 이 상수 하나만 둔다.
 SHADOWING_UTTERANCE_TYPE = "shadowing_recording"
+
+# 음성 명령 발화의 표시 (`TASK-61.1` · 결정 102). 011 의 CHECK 가 이 값을 가두고 있고, 001 부터
+# 값역에 있었다 — 없던 것은 **경로**뿐이다. 위 낭독 상수와 같은 이유로 목록을 복제하지 않는다.
+COMMAND_UTTERANCE_TYPE = "voice_command"
+# 확인 답의 표시. 명령과 **가르는 이유**가 오인식 방어의 기록이다 — 「무엇을 확인했는가」가
+# 남지 않으면 되돌릴 수 없는 종료가 왜 실행됐는지 사후에 알 수 없다.
+CONFIRMATION_UTTERANCE_TYPE = "command_confirmation"
 
 
 @dataclass(slots=True)
@@ -339,6 +348,9 @@ class SessionRunner:
                 await self._send({"type": "interrupted"})
             elif isinstance(event, PronunciationEvent):
                 await self._record_pronunciation(event)
+            elif isinstance(event, SessionCommandEvent):
+                if await self._handle_command(event):
+                    return
             elif event.kind == "partial":
                 await self._send({"type": "partial", "text": event.text, "speaker": event.speaker})
             else:
@@ -378,6 +390,48 @@ class SessionRunner:
             }
         )
 
+    async def _handle_command(self, event: SessionCommandEvent) -> bool:
+        """음성 명령을 기록·방송한다. **세션을 닫아야 하면 `True`** (`TASK-61.1` · 결정 102).
+
+        ⛔ **닫는 것은 `confirmed` 하나다.** `requested` 로 닫으면 오인식 한 번이 세션을 끝내고,
+        그것이 결정 102 ③이 확인 절차를 둔 이유다. `cancelled` 는 기록만 남기고 대화를 잇는다.
+
+        ⚠️ **닫는 방법을 새로 만들지 않는다** — 이 펌프에서 돌아가면 `_relay` 의 `asyncio.wait` 가
+        깨어나 기존 종료 경로(`_close_and_record('completed')` → `session_ended`)를 그대로 탄다.
+        클라이언트의 `end_session` 과 같은 길이므로 종료 상태·프레임 순서가 갈리지 않는다.
+        """
+        utterance_type = (
+            CONFIRMATION_UTTERANCE_TYPE if event.stage == "confirmed" else COMMAND_UTTERANCE_TYPE
+        )
+        if event.heard is not None:
+            # ⚠️ `heard` 가 없으면 아무것도 적지 않는다 — 발명한 문장을 학습 기록에 남기지 않는다.
+            await self._save_command_utterance(event.heard, utterance_type)
+        await self._send({"type": "voice_command", "command": event.command, "stage": event.stage})
+        if event.stage != "confirmed":
+            return False
+        logger.info(
+            "음성 명령 %r 이 확인을 거쳐 세션 %s 를 닫는다", event.command, self._session_id
+        )
+        return True
+
+    async def _save_command_utterance(self, text: str, utterance_type: str) -> None:
+        """명령·확인 발화를 저장한다. **분석에 걸리지 않는 유형으로 적는다.**
+
+        ⛔ 저장 실패가 대화를 끊지 않는다 — 이 모듈의 다른 기록 경로와 같은 규약이다
+        (`_record_pronunciation` · `_write_recording_frame`).
+        """
+        try:
+            async with self._pool.acquire() as conn:
+                await save_final_transcript(
+                    conn,
+                    self._session_id,
+                    text,
+                    speaker="user",
+                    utterance_type=utterance_type,
+                )
+        except Exception:
+            logger.exception("음성 명령 발화를 저장하지 못했다 (세션 %s)", self._session_id)
+
     async def _store_final(self, event: TranscriptEvent) -> None:
         """final을 저장한다 — **취소가 저장을 찢지 못하게** shield로 감싼다.
 
@@ -395,6 +449,13 @@ class SessionRunner:
         await asyncio.shield(save)
 
     async def _save_final(self, event: TranscriptEvent) -> None:
+        # 표지가 붙은 학습자 발화는 **명령**이고 학습 발화가 아니다 (`TASK-61.1` · 결정 102 ①).
+        # ⛔ 판정을 앱이 한다 — 모델의 규율에 맡기면 명령이 `learning` 으로 저장되고 분석기가
+        # 그것을 교정 대상으로 본다. `utterance_type='learning'` 이 분석 대상의 유일한 조건이므로
+        # (`services/utterances.py`) 여기서 값을 바꾸는 것만으로 그 경로에서 빠진다.
+        if event.speaker == "user" and is_wake_command(event.text):
+            await self._save_command_utterance(event.text, COMMAND_UTTERANCE_TYPE)
+            return
         async with self._pool.acquire() as conn:
             utterance = await save_final_transcript(
                 conn, self._session_id, event.text, speaker=event.speaker

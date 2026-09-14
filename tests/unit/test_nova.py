@@ -35,12 +35,14 @@ from app.audio_gateway.nova import (
 from app.audio_gateway.port import (
     InterruptionEvent,
     PronunciationEvent,
+    SessionCommandEvent,
     SpeechBoundaryEvent,
     TranscriptEvent,
 )
 from app.config import Settings
 from app.models.plan import InstructionFocus, PlanQuestion, SessionInstruction
 from app.models.pronunciation import PRONUNCIATION_PATTERN_KEY_PREFIX, PRONUNCIATION_TOOL_NAME
+from app.models.voice_command import CONTROL_TOOL_NAME
 from app.models.scenario import SessionScenario
 from app.models.usage import PURPOSE_NOVA, TokenUsage
 
@@ -759,7 +761,8 @@ async def test_prompt_start_carries_the_pronunciation_tool():
     await adapter.close()
 
     tools = stream.payloads("promptStart")[0]["toolConfiguration"]["tools"]
-    assert len(tools) == 1
+    # ⚠️ `TASK-61.1` 로 tool 이 둘이 됐다 — 이 단정은 **발음 tool 이 실려 있는지**만 본다.
+    # 목록 전체의 계약은 `test_prompt_start_carries_the_control_tool_too` 가 갖는다.
     spec = tools[0]["toolSpec"]
     assert spec["name"] == PRONUNCIATION_TOOL_NAME
     assert spec["description"]
@@ -2090,3 +2093,74 @@ def test_the_scenario_intake_block_comes_after_the_plan_block():
 
     assert "Today's plan:" in prompt
     assert prompt.index("Today's plan:") < prompt.index("Where do you need English soon?")
+
+
+# --- 음성 명령 제어 tool (`TASK-61.1` · 결정 102) ---
+
+
+async def test_prompt_start_carries_the_control_tool_too():
+    """tool 이 둘이어야 한다 — 발음 보고와 세션 제어다.
+
+    ⛔ 제어 tool 을 선언하지 않으면 모델이 그것을 부를 수 없고, 그러면 종료 명령이 **말로만**
+    처리되어 앱은 아무것도 알지 못한다.
+    """
+    stream = _FakeStream()
+    adapter = _adapter(stream)
+
+    await adapter.start()
+    await adapter.close()
+
+    tools = stream.payloads("promptStart")[0]["toolConfiguration"]["tools"]
+    names = [tool["toolSpec"]["name"] for tool in tools]
+    assert names == [PRONUNCIATION_TOOL_NAME, CONTROL_TOOL_NAME]
+    spec = tools[1]["toolSpec"]
+    assert isinstance(spec["inputSchema"]["json"], str)
+
+
+def test_a_confirmed_control_tool_use_becomes_a_session_command_event():
+    translated = _translate_all(
+        [
+            _tool_content_start(),
+            _tool_use('{"command":"end","stage":"confirmed"}', tool_name=CONTROL_TOOL_NAME),
+            _content_end(TOOL_CONTENT_ID, "TOOL_USE"),
+        ]
+    )
+
+    assert translated == [SessionCommandEvent(command="end", stage="confirmed")]
+
+
+def test_the_requested_stage_is_relayed_and_does_not_end_anything_by_itself():
+    """확인 절차의 첫 단계다 — 이 이벤트로 세션이 닫히면 결정 102 ③이 무너진다."""
+    translated = _translate_all(
+        [
+            _tool_content_start(),
+            _tool_use(
+                '{"command":"end","stage":"requested","heard":"Oh My English, stop"}',
+                tool_name=CONTROL_TOOL_NAME,
+            ),
+            _content_end(TOOL_CONTENT_ID, "TOOL_USE"),
+        ]
+    )
+
+    assert translated == [
+        SessionCommandEvent(command="end", stage="requested", heard="Oh My English, stop")
+    ]
+
+
+def test_a_broken_control_payload_produces_no_event():
+    """⛔ 모호한 페이로드로 세션을 닫지 않는다 — 명령을 잃는 쪽이 안전한 쪽이다."""
+    translated = _translate_all(
+        [_tool_use('{"command":"end","stage":"whenever"}', tool_name=CONTROL_TOOL_NAME)]
+    )
+
+    assert translated == []
+
+
+def test_system_prompt_tells_the_coach_the_command_marker_and_the_confirmation():
+    """결정 102 ①③ — 표지가 없으면 명령이 아니고, 종료는 확인을 거친다."""
+    assert CONTROL_TOOL_NAME in SYSTEM_PROMPT
+    lowered = SYSTEM_PROMPT.lower()
+    assert "oh my english" in lowered
+    # 확인 단계의 이름이 프롬프트에 있어야 모델이 두 번 부르는 것을 안다.
+    assert "requested" in SYSTEM_PROMPT
+    assert "confirmed" in SYSTEM_PROMPT

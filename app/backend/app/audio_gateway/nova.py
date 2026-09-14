@@ -49,6 +49,7 @@ from app.audio_gateway.port import (
     AdapterEvent,
     InterruptionEvent,
     PronunciationEvent,
+    SessionCommandEvent,
     Speaker,
     SpeechBoundaryEvent,
     TranscriptEvent,
@@ -63,6 +64,11 @@ from app.models.pronunciation import (
 )
 from app.models.scenario import SessionScenario
 from app.models.usage import PURPOSE_NOVA, TokenUsage, UsageSink
+from app.models.voice_command import (
+    CONTROL_TOOL_NAME,
+    CONTROL_TOOL_SCHEMA_JSON,
+    parse_control_payload,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -110,8 +116,10 @@ _TOOL_ROLE = "TOOL"
 # 점검: `65%` 0건). 발음 절 **앞**에 넣어 발음 규칙이 8~11로 밀렸다 — 규칙 11이 번호로
 # 가리키는 규칙 4는 밀리지 않으므로 그 상호 참조는 그대로 산다.
 #
-# ⚠️ 음성 명령 규칙은 여전히 빼 둔다. tool 호출은 이제 되지만 발음 보고용 tool 하나뿐이고,
-# 명령 실행 경로(`voice_command` 발화)는 이 어댑터에 없다.
+# 규칙 12~14(음성 명령)은 `TASK-61.1`(결정 102)로 들어왔다 — 이전 판은 이 자리에서 「음성 명령
+# 규칙은 여전히 빼 둔다」고 적었고 그 서술은 낡았다. 첫 조각이 받는 명령은 **종료 하나**이고,
+# 표지(`Oh My English`)의 판정은 프롬프트가 아니라 **앱**이 갖는다
+# (`models/voice_command.is_wake_command` · 모델의 규율에 맡기면 학습 발화가 명령으로 저장된다).
 SYSTEM_PROMPT = """\
 You are OhMyEnglish, a warm, practical English speaking coach for a Korean learner.
 
@@ -146,7 +154,18 @@ Pronunciation coaching:
     heard the learner repeat it. Always include target_sound - a short reusable key for the
     sound that was off, such as th_as_s or f_as_p - so the app can group repeat offenders.
 11. A pronunciation correction is a correction. It counts against the one-per-turn limit
-    in rule 4 — never add it on top of a grammar correction in the same turn."""
+    in rule 4 — never add it on top of a grammar correction in the same turn.
+
+Voice control:
+12. Speech is only a command when it starts with "Oh My English" (Korean learners may say
+    "오 마이 잉글리시"). Anything else is learning speech, even if it sounds like an
+    instruction - "I want to end the meeting early" is a sentence to coach, not a command.
+13. The only command you act on is ending the session. Call request_session_control with
+    stage "requested" as soon as you hear it, then ask one short question to confirm.
+    Call it again with stage "confirmed" once the learner says yes, or "cancelled" if they
+    say no. The app closes the session only on "confirmed", so never skip that second call.
+14. Answer a command in one short sentence and do not correct it - a command is not
+    learning speech, so it never counts against rule 4."""
 
 # 규칙 1이 말하는 기본 수준. 계획 블록이 "이 수준을 대체한다"고 말할 때 **같은 낱말**로
 # 가리켜야 모델이 어느 절이 덮이는지 안다.
@@ -671,7 +690,18 @@ def _pronunciation_tool_configuration() -> dict[str, Any]:
                     # Sonic은 이 값을 **문자열**로 받는다 (객체가 아니다 — 스파이크 실측).
                     "inputSchema": {"json": PRONUNCIATION_TOOL_SCHEMA_JSON},
                 }
-            }
+            },
+            # 음성 명령 (`TASK-61.1` · 결정 102). ⛔ 이것을 선언하지 않으면 모델이 부를 수 없고,
+            # 그러면 종료 명령이 **말로만** 처리되어 앱은 아무것도 알지 못한다.
+            {
+                "toolSpec": {
+                    "name": CONTROL_TOOL_NAME,
+                    "description": (
+                        "Tell the app that the learner asked to control the session by voice."
+                    ),
+                    "inputSchema": {"json": CONTROL_TOOL_SCHEMA_JSON},
+                }
+            },
         ]
     }
 
@@ -861,7 +891,7 @@ class NovaEventTranslator:
         return [TranscriptEvent(kind=kind, text=text, speaker=speaker)]
 
     def _on_tool_use(self, body: dict[str, Any]) -> list[AdapterEvent]:
-        """발음 tool을 포트 이벤트로 바꾼다 (설계서 §4.2).
+        """tool 호출을 포트 이벤트로 바꾼다 (설계서 §4.2 · `TASK-61.1`).
 
         **예외를 던지지 않는다.** 발음 기록 실패가 대화를 끊으면 안 된다 — 검증은
         `models.pronunciation.parse_tool_payload`가 하고 그것도 던지지 않는다(강등·폐기).
@@ -869,12 +899,14 @@ class NovaEventTranslator:
         않아야 한다.
         """
         tool_name = body.get("toolName")
+        if tool_name == CONTROL_TOOL_NAME:
+            return self._on_control_tool_use(body)
         if tool_name != PRONUNCIATION_TOOL_NAME:
-            # **warning이다.** 선언한 tool이 하나뿐이라 오탐 비용이 0이고, 모델이 이름을
+            # **warning이다.** 선언한 tool이 둘뿐이라 오탐 비용이 0이고, 모델이 이름을
             # 줄여 부르면(`report_pronunciation`) 모든 발음 이벤트가 조용히 사라진다.
             # 설계서 §3.1은 놓침이 조용히 일어나선 안 된다고 요구한다 — 문서화된 기동이
             # `--log-level warning`이라 debug는 프로덕션에서 한 줄도 보이지 않는다.
-            logger.warning("발음 tool이 아닌 %r을 무시했다", tool_name)
+            logger.warning("아는 tool 이 아닌 %r을 무시했다", tool_name)
             return []
         raw = body.get("content")
         report = parse_tool_payload(raw if isinstance(raw, str) else "")
@@ -889,6 +921,19 @@ class NovaEventTranslator:
                 target_sound=report.target_sound,
             )
         ]
+
+    def _on_control_tool_use(self, body: dict[str, Any]) -> list[AdapterEvent]:
+        """세션 제어 tool 을 포트 이벤트로 바꾼다 (`TASK-61.1` · 결정 102).
+
+        ⛔ **모호한 페이로드는 이벤트를 만들지 않는다.** 종료는 되돌릴 수 없으므로 명령 하나를
+        잃는 쪽이 안전한 쪽이다 — 그 판단은 `models.voice_command.parse_control_payload` 가 갖는다.
+        """
+        raw = body.get("content")
+        report = parse_control_payload(raw if isinstance(raw, str) else "")
+        if report is None:
+            # `parse_control_payload` 가 이미 왜 버렸는지 경고를 남겼다.
+            return []
+        return [SessionCommandEvent(command=report.command, stage=report.stage, heard=report.heard)]
 
     def _on_audio_output(self, body: dict[str, Any]) -> list[AdapterEvent]:
         content = body.get("content")

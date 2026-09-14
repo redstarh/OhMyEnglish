@@ -48,6 +48,7 @@ from typing import Literal, Protocol
 import pydantic
 
 from app.models.pronunciation import PronunciationOutcome
+from app.models.voice_command import ControlCommand, ControlStage
 
 Speaker = Literal["user", "agent"]
 
@@ -107,10 +108,35 @@ class PronunciationEvent(pydantic.BaseModel):
     target_sound: str | None = None
 
 
+class SessionCommandEvent(pydantic.BaseModel):
+    """학습자가 음성으로 요청한 세션 제어 (`TASK-61.1` · 결정 102).
+
+    **어댑터만 만들 수 있다** — 명령을 알아듣는 것이 어댑터(모델)이고, 전사문만 보고 게이트웨이가
+    판정하면 학습 발화를 명령으로 실행할 위험이 생긴다.
+
+    ⛔ **`stage='confirmed'` 에서만 세션이 닫힌다.** `requested` 는 「명령을 들었고 확인을
+    묻는다」이고 `cancelled` 는 「학습자가 물렸다」다 — 결정 102 ③이 그 절차를 요구한다.
+
+    `heard` 는 코치가 들은 말 그대로다. 없으면 `None` 이고, 그때 게이트웨이는 명령 발화를 기록하지
+    않는다 — 발명한 문장을 학습 기록에 남기지 않는 쪽이 옳다.
+    """
+
+    model_config = pydantic.ConfigDict(extra="forbid", frozen=True)
+
+    command: ControlCommand
+    stage: ControlStage
+    heard: str | None = None
+
+
 # 어댑터가 흘리는 이벤트: 전사문, 오디오 응답 프레임(raw bytes), 발화 경계, barge-in 통보,
-# 발음 판정.
+# 발음 판정, 음성 명령.
 AdapterEvent = (
-    TranscriptEvent | SpeechBoundaryEvent | InterruptionEvent | PronunciationEvent | bytes
+    TranscriptEvent
+    | SpeechBoundaryEvent
+    | InterruptionEvent
+    | PronunciationEvent
+    | SessionCommandEvent
+    | bytes
 )
 
 

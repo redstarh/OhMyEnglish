@@ -43,6 +43,7 @@ from app.audio_gateway.port import (
     AdapterEvent,
     InterruptionEvent,
     PronunciationEvent,
+    SessionCommandEvent,
     SpeechBoundaryEvent,
     TranscriptEvent,
     VoiceAdapter,
@@ -1848,3 +1849,124 @@ async def test_a_failing_sound_check_still_records_the_session_end(
     assert session["ended_at"] is not None
     # 전사문도 남는다 — 잃는 것은 어긋남 «표시» 하나뿐이다.
     assert len(await _utterances(db_pool, committed_session.session_id)) == 1
+
+
+# ── 음성 명령 (`TASK-61.1` · 결정 102) ─────────────────────────────────────────────
+#
+# ⛔ **닫는 것은 `confirmed` 하나다.** 결정 102 ③이 확인 절차를 요구하므로, `requested` 로 닫히면
+# 오인식 한 번이 세션을 끝낸다 — 그것이 이 두 테스트가 반대 방향으로 못 박는 것이다.
+
+
+async def _typed_utterances(pool: asyncpg.Pool, session_id: UUID) -> list[asyncpg.Record]:
+    async with pool.acquire() as conn:
+        return await conn.fetch(
+            "select speaker, utterance_type, transcript from utterances "
+            "where session_id = $1 order by sequence_no",
+            session_id,
+        )
+
+
+async def test_a_confirmed_end_command_closes_the_session(db_pool, committed_session):
+    adapter = ScriptedAdapter(
+        SessionCommandEvent(command="end", stage="confirmed", heard="네 종료해"),
+        hold_open=True,
+    )
+    client = FakeClient()
+
+    await asyncio.wait_for(
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            client,
+            drain_timeout=FAST_DRAIN_TIMEOUT,
+        ).run(),
+        timeout=5.0,
+    )
+
+    assert adapter.closed
+    assert client.types[-1] == "session_ended"
+    assert (await _session_row(db_pool, committed_session.session_id))["status"] == "completed"
+    assert client.of_type("voice_command") == [
+        {"type": "voice_command", "command": "end", "stage": "confirmed"}
+    ]
+
+
+async def test_the_confirmation_is_stored_as_a_command_confirmation(db_pool, committed_session):
+    """스키마가 `command_confirmation` 을 둔 이유가 오인식 방어의 «기록»이다."""
+    adapter = ScriptedAdapter(
+        SessionCommandEvent(command="end", stage="confirmed", heard="네 종료해"),
+        hold_open=True,
+    )
+
+    await asyncio.wait_for(
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            FakeClient(),
+            drain_timeout=FAST_DRAIN_TIMEOUT,
+        ).run(),
+        timeout=5.0,
+    )
+
+    rows = await _typed_utterances(db_pool, committed_session.session_id)
+    assert [(row["speaker"], row["utterance_type"], row["transcript"]) for row in rows] == [
+        ("user", "command_confirmation", "네 종료해")
+    ]
+
+
+async def test_a_requested_end_command_does_not_close_the_session(db_pool, committed_session):
+    """⛔ 확인 전에 닫히면 결정 102 ③이 무너진다 — 뒤에 온 발화가 저장되는 것으로 확인한다."""
+    adapter = ScriptedAdapter(
+        SessionCommandEvent(command="end", stage="requested", heard="오마이 잉글리시 종료"),
+        TranscriptEvent(kind="final", text="Actually let's keep going.", speaker="user"),
+    )
+
+    await asyncio.wait_for(
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            FakeClient(),
+            drain_timeout=FAST_DRAIN_TIMEOUT,
+        ).run(),
+        timeout=5.0,
+    )
+
+    rows = await _typed_utterances(db_pool, committed_session.session_id)
+    assert [(row["utterance_type"], row["transcript"]) for row in rows] == [
+        ("voice_command", "오마이 잉글리시 종료"),
+        ("learning", "Actually let's keep going."),
+    ]
+
+
+async def test_a_marked_user_final_is_stored_as_a_command_not_learning(
+    db_pool, committed_session
+):
+    """표지가 붙은 발화는 학습 발화가 아니다 — 분석에 넘기면 명령을 교정하게 된다.
+
+    ⛔ 이 판정은 **앱이** 한다(결정 102 ①). 모델의 규율에 맡기면 명령이 `learning` 으로 저장되고
+    분석기가 그것을 교정 대상으로 본다.
+    """
+    adapter = ScriptedAdapter(
+        TranscriptEvent(kind="final", text="Oh My English, end the session.", speaker="user"),
+        TranscriptEvent(kind="final", text="I need to finish the report.", speaker="user"),
+    )
+
+    await asyncio.wait_for(
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            FakeClient(),
+            drain_timeout=FAST_DRAIN_TIMEOUT,
+        ).run(),
+        timeout=5.0,
+    )
+
+    rows = await _typed_utterances(db_pool, committed_session.session_id)
+    assert [(row["utterance_type"], row["transcript"]) for row in rows] == [
+        ("voice_command", "Oh My English, end the session."),
+        ("learning", "I need to finish the report."),
+    ]
