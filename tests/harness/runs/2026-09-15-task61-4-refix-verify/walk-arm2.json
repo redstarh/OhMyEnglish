@@ -1,0 +1,460 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3001/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/vc05_nocmd_en.wav",
+  "urls": [
+   "/harness/vc05_nocmd_en.wav"
+  ],
+  "count": 1,
+  "bytes": 68988,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 2.028,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0,
+  "plays": []
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 4,
+   "final": 5,
+   "audio": 192,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 1,
+   "speech_end": 1,
+   "interrupted": 0
+  },
+  "sent": {
+   "audio": 702,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "startedSessionId": "7a7db73d-09ba-4227-aa79-b0e357825634",
+  "fixture": {
+   "url": "/harness/vc05_nocmd_en.wav",
+   "urls": [
+    "/harness/vc05_nocmd_en.wav"
+   ],
+   "count": 1,
+   "bytes": 68988,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 2.028,
+   "startedAt": 111,
+   "endedAt": 2141,
+   "micCalls": 1,
+   "plays": [
+    {
+     "index": 0,
+     "url": "/harness/vc05_nocmd_en.wav",
+     "startedAt": 111,
+     "endedAt": 2141,
+     "gate": null
+    }
+   ]
+  },
+  "started": {
+   "count": 193,
+   "when": [
+    0,
+    4.04,
+    4.199,
+    4.279,
+    4.359,
+    4.439,
+    4.519,
+    4.679,
+    4.759,
+    4.839,
+    4.9190000000000005,
+    4.9990000000000006,
+    5.079000000000001,
+    5.159000000000001,
+    5.239000000000001,
+    5.319000000000001,
+    5.399000000000001,
+    5.479000000000001,
+    5.559000000000001,
+    5.639000000000001,
+    5.719000000000001,
+    5.799000000000001,
+    5.879000000000001,
+    6.1190000000000015,
+    6.199000000000002,
+    6.279000000000002,
+    6.560000000000001,
+    6.639000000000001,
+    6.719000000000001,
+    6.799000000000001,
+    6.879000000000001,
+    6.959000000000001,
+    7.0390000000000015,
+    7.1190000000000015,
+    7.199000000000002,
+    7.279000000000002,
+    7.359000000000002,
+    7.439000000000002,
+    7.519000000000002,
+    7.599000000000002,
+    7.679000000000002,
+    7.759000000000002,
+    7.839000000000002,
+    7.919000000000002,
+    7.999000000000002,
+    8.079000000000002,
+    8.159000000000002,
+    8.239000000000003,
+    8.319000000000003,
+    8.479000000000003,
+    8.559000000000003,
+    8.639000000000003,
+    8.719000000000003,
+    8.799000000000003,
+    8.879000000000003,
+    8.959000000000003,
+    9.039000000000003,
+    9.119000000000003,
+    9.199000000000003,
+    9.279000000000003,
+    9.359000000000004,
+    9.439000000000004,
+    9.519000000000004,
+    9.599000000000004,
+    9.679000000000004,
+    9.759000000000004,
+    9.839000000000004,
+    9.919000000000004,
+    9.999000000000004,
+    10.240000000000004,
+    10.319000000000004,
+    10.399000000000004,
+    10.479000000000005,
+    10.559000000000005,
+    10.639000000000005,
+    10.719000000000005,
+    10.799000000000005,
+    10.879000000000005,
+    10.959000000000005,
+    11.039000000000005,
+    11.119000000000005,
+    11.199000000000005,
+    11.279000000000005,
+    11.359000000000005,
+    11.439000000000005,
+    11.519000000000005,
+    11.599000000000006,
+    11.679000000000006,
+    11.759000000000006,
+    11.839000000000006,
+    11.919000000000006,
+    11.999000000000006,
+    12.079000000000006,
+    12.159000000000006,
+    12.239000000000006,
+    12.319000000000006,
+    12.399000000000006,
+    12.479000000000006,
+    12.559000000000006,
+    12.639000000000006,
+    12.719000000000007,
+    12.799000000000007,
+    12.879000000000007,
+    12.959000000000007,
+    13.039000000000007,
+    13.119000000000007,
+    13.199000000000007,
+    13.279000000000007,
+    13.359000000000007,
+    13.439000000000007,
+    13.519000000000007,
+    13.599000000000007,
+    13.679000000000007,
+    13.759000000000007,
+    13.839000000000008,
+    13.919000000000008,
+    13.999000000000008,
+    14.079000000000008,
+    14.159000000000008,
+    14.239000000000008,
+    14.319000000000008,
+    14.399000000000008,
+    14.479000000000008,
+    14.559000000000008,
+    14.639000000000008,
+    14.719000000000008,
+    14.799000000000008,
+    14.879000000000008,
+    14.959000000000009,
+    15.039000000000009,
+    15.119000000000009,
+    15.199000000000009,
+    15.279000000000009,
+    15.359000000000009,
+    15.439000000000009,
+    15.519000000000009,
+    15.599000000000009,
+    15.67900000000001,
+    15.75900000000001,
+    15.83900000000001,
+    15.91900000000001,
+    15.99900000000001,
+    16.079000000000008,
+    16.159000000000006,
+    16.239000000000004,
+    16.319000000000003,
+    16.399,
+    16.479,
+    16.558999999999997,
+    16.638999999999996,
+    16.718999999999994,
+    16.798999999999992,
+    16.87899999999999,
+    16.95899999999999,
+    17.038999999999987,
+    17.118999999999986,
+    17.198999999999984,
+    17.278999999999982,
+    17.35899999999998,
+    17.43899999999998,
+    17.518999999999977,
+    17.598999999999975,
+    17.678999999999974,
+    17.879999999999974,
+    17.958999999999975,
+    18.038999999999973,
+    18.11899999999997,
+    18.19899999999997,
+    18.278999999999968,
+    18.358999999999966,
+    18.438999999999965,
+    18.518999999999963,
+    18.59899999999996,
+    18.67899999999996,
+    18.758999999999958,
+    18.838999999999956,
+    18.918999999999954,
+    18.998999999999953,
+    19.07899999999995,
+    19.15899999999995,
+    19.238999999999947,
+    19.318999999999946,
+    19.398999999999944,
+    19.478999999999942,
+    19.55899999999994,
+    19.63899999999994,
+    19.718999999999937,
+    19.798999999999936,
+    19.878999999999934,
+    19.958999999999932,
+    20.03899999999993,
+    20.11899999999993,
+    20.318999999999928
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 103,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 3003,
+    "count": 1,
+    "texts": [
+     "답변: i want to end the meeting early tomorrow."
+    ]
+   },
+   {
+    "ts": 3950,
+    "count": 2,
+    "texts": [
+     "답변: i want to end the meeting early tomorrow.",
+     "질문: Oh, I see you are talking about ending a meeting."
+    ]
+   },
+   {
+    "ts": 4559,
+    "count": 2,
+    "texts": [
+     "답변: i want to end the meeting early tomorrow.",
+     "질문:  But remember, you said \"Oh My English\" to use a command."
+    ]
+   },
+   {
+    "ts": 5480,
+    "count": 2,
+    "texts": [
+     "답변: i want to end the meeting early tomorrow.",
+     "질문:  Did you want to end today's session? \nIf you did say that by mistake, I can help you practice the sentence for work: \"I want to end the meeting early"
+    ]
+   },
+   {
+    "ts": 7176,
+    "count": 2,
+    "texts": [
+     "답변: i want to end the meeting early tomorrow.",
+     "질문: Oh, I see you are talking about ending a meeting."
+    ]
+   },
+   {
+    "ts": 7178,
+    "count": 3,
+    "texts": [
+     "답변: i want to end the meeting early tomorrow.",
+     "질문: Oh, I see you are talking about ending a meeting.",
+     "질문:  tomorrow.\" Can you say that sentence for me?"
+    ]
+   },
+   {
+    "ts": 7695,
+    "count": 2,
+    "texts": [
+     "답변: i want to end the meeting early tomorrow.",
+     "질문: Oh, I see you are talking about ending a meeting.  tomorrow.\" Can you say that sentence for me?"
+    ]
+   },
+   {
+    "ts": 10751,
+    "count": 2,
+    "texts": [
+     "답변: i want to end the meeting early tomorrow.",
+     "질문: Oh, I see you are talking about ending a meeting.  tomorrow.\" Can you say that sentence for me?  But remember, you said \"Oh My English\" to use a command."
+    ]
+   },
+   {
+    "ts": 18589,
+    "count": 2,
+    "texts": [
+     "답변: i want to end the meeting early tomorrow.",
+     "질문: Oh, I see you are talking about ending a meeting.  tomorrow.\" Can you say that sentence for me?  But remember, you said \"Oh My English\" to use a command.  Did you want to end today's session? \nIf you did say that by mistake, I can help you practice the sentence for work: \"I want to end the meeting early"
+    ]
+   },
+   {
+    "ts": 22600,
+    "count": 0,
+    "texts": []
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 30.709333333333333
+  },
+  "meta": {
+   "hookedAt": "2026-09-14T23:27:57.939Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789428477940,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789428477949,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3001/_next/hmr?id=NHCJMiiBNxpiUnxWJsTqe",
+    "ws://localhost:8012/ws/session?source=recommended"
+   ]
+  },
+  "lines": [],
+  "url": "http://localhost:3001/results/7a7db73d-09ba-4227-aa79-b0e357825634",
+  "log": [
+   {
+    "at": 0,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 2918,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 30696,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 4,
+     "final": 5,
+     "audio": 192,
+     "session_ended": 1,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 1,
+     "speech_end": 1,
+     "interrupted": 0
+    }
+   }
+  ]
+ },
+ "screenshot_session": "../../tests/harness/runs/2026-09-15-task61-4-refix-verify/shot-arm2-session.png",
+ "end_click": {
+  "attempted": true,
+  "ok": false,
+  "error": "클릭 대상을 찾지 못했다: 학습 종료 (None)"
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3001/results/7a7db73d-09ba-4227-aa79-b0e357825634",
+  "recv": {
+   "session_started": 1,
+   "partial": 4,
+   "final": 5,
+   "audio": 192,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 1,
+   "speech_end": 1,
+   "interrupted": 0
+  },
+  "sent": {
+   "audio": 702,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "finalLinesAtTerminal": [
+   "답변: i want to end the meeting early tomorrow.",
+   "질문: Oh, I see you are talking about ending a meeting.  tomorrow.\" Can you say that sentence for me?  But remember, you said \"Oh My English\" to use a command.  Did you want to end today's session? \nIf you did say that by mistake, I can help you practice the sentence for work: \"I want to end the meeting early"
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "오늘 학습을 마쳤어요 — 시나리오 3개",
+   "← 학습 시작 화면으로",
+   "학습 히스토리 보기 →"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><p style=\"color: var(--foreground-muted);\">오늘 학습을 마쳤어요 — 시나리오 3개</p><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p><p style=\"margin-top: 0.5rem;\"><a href=\"/history\" style=\"text-decoration: underline;\">학습 히스토리 보기 →</a></p>"
+ },
+ "screenshot_results": "../../tests/harness/runs/2026-09-15-task61-4-refix-verify/shot-arm2-results.png"
+}
