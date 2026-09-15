@@ -1,0 +1,476 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3001/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/vc13_learning_en.wav",
+  "urls": [
+   "/harness/vc13_learning_en.wav",
+   "/harness/vc23_modeonly_en.wav",
+   "/harness/vc25_kind_en.wav"
+  ],
+  "count": 3,
+  "bytes": 223324,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 6.595,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0,
+  "plays": []
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 2,
+   "partial": 3,
+   "final": 5,
+   "audio": 164,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 3,
+   "speech_end": 3,
+   "interrupted": 2,
+   "voice_command": 2
+  },
+  "sent": {
+   "audio": 1361,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "startedSessionId": "7f2c8dd1-6cac-4cc8-bd26-b3aae38e7ee9",
+  "fixture": {
+   "url": "/harness/vc13_learning_en.wav",
+   "urls": [
+    "/harness/vc13_learning_en.wav",
+    "/harness/vc23_modeonly_en.wav",
+    "/harness/vc25_kind_en.wav"
+   ],
+   "count": 3,
+   "bytes": 223324,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 6.595,
+   "startedAt": 228,
+   "endedAt": 22173,
+   "micCalls": 2,
+   "plays": [
+    {
+     "index": 0,
+     "url": "/harness/vc13_learning_en.wav",
+     "startedAt": 228,
+     "endedAt": 2205,
+     "gate": null
+    },
+    {
+     "index": 1,
+     "url": "/harness/vc23_modeonly_en.wav",
+     "startedAt": 6333,
+     "endedAt": 8813,
+     "gate": {
+      "heardAgentAudio": true,
+      "audioAtGate": 50,
+      "finalAtGate": 2,
+      "waitedMs": 6105
+     }
+    },
+    {
+     "index": 2,
+     "url": "/harness/vc25_kind_en.wav",
+     "startedAt": 15499,
+     "endedAt": 17672,
+     "gate": {
+      "heardAgentAudio": true,
+      "audioAtGate": 164,
+      "finalAtGate": 4,
+      "waitedMs": 9165
+     }
+    },
+    {
+     "index": 0,
+     "url": "/harness/vc13_learning_en.wav",
+     "startedAt": 20230,
+     "endedAt": 22173,
+     "gate": null
+    }
+   ]
+  },
+  "started": {
+   "count": 168,
+   "when": [
+    0,
+    3.72,
+    3.7990000000000004,
+    3.8790000000000004,
+    3.9590000000000005,
+    4.039000000000001,
+    4.119000000000001,
+    4.199000000000001,
+    4.279000000000001,
+    4.359000000000001,
+    4.439000000000001,
+    4.519000000000001,
+    4.599000000000001,
+    4.679000000000001,
+    4.759000000000001,
+    4.839000000000001,
+    4.919000000000001,
+    4.999000000000001,
+    5.0790000000000015,
+    5.159000000000002,
+    5.239000000000002,
+    5.319000000000002,
+    5.399000000000002,
+    5.479000000000002,
+    5.559000000000002,
+    5.639000000000002,
+    5.719000000000002,
+    5.799000000000002,
+    5.879000000000002,
+    5.959000000000002,
+    6.039000000000002,
+    6.119000000000002,
+    6.1990000000000025,
+    6.279000000000003,
+    6.359000000000003,
+    6.439000000000003,
+    6.519000000000003,
+    6.599000000000003,
+    6.679000000000003,
+    6.759000000000003,
+    6.839000000000003,
+    6.919000000000003,
+    6.999000000000003,
+    7.079000000000003,
+    7.159000000000003,
+    7.239000000000003,
+    7.3190000000000035,
+    7.399000000000004,
+    7.479000000000004,
+    7.559000000000004,
+    7.759000000000004,
+    0,
+    11.432,
+    11.511000000000001,
+    11.591000000000001,
+    11.671000000000001,
+    11.751000000000001,
+    11.831000000000001,
+    11.911000000000001,
+    11.991000000000001,
+    12.071000000000002,
+    12.151000000000002,
+    12.231000000000002,
+    12.311000000000002,
+    12.391000000000002,
+    12.471000000000002,
+    12.551000000000002,
+    12.631000000000002,
+    12.711000000000002,
+    12.791000000000002,
+    12.871000000000002,
+    12.951000000000002,
+    13.031000000000002,
+    13.111000000000002,
+    13.191000000000003,
+    13.271000000000003,
+    13.351000000000003,
+    13.431000000000003,
+    13.511000000000003,
+    13.591000000000003,
+    13.671000000000003,
+    13.751000000000003,
+    13.831000000000003,
+    13.911000000000003,
+    13.991000000000003,
+    14.071000000000003,
+    14.151000000000003,
+    14.231000000000003,
+    14.311000000000003,
+    14.391000000000004,
+    14.471000000000004,
+    14.551000000000004,
+    14.631000000000004,
+    14.711000000000004,
+    14.791000000000004,
+    14.871000000000004,
+    14.951000000000004,
+    15.031000000000004,
+    15.111000000000004,
+    15.191000000000004,
+    15.271000000000004,
+    15.351000000000004,
+    15.431000000000004,
+    15.511000000000005,
+    15.591000000000005,
+    15.671000000000005,
+    15.751000000000005,
+    15.831000000000005,
+    15.911000000000005,
+    15.991000000000005,
+    16.232000000000006,
+    16.311000000000007,
+    16.391000000000005,
+    16.471000000000004,
+    16.551000000000002,
+    16.631,
+    16.711,
+    16.790999999999997,
+    16.870999999999995,
+    16.950999999999993,
+    17.03099999999999,
+    17.11099999999999,
+    17.19099999999999,
+    17.270999999999987,
+    17.350999999999985,
+    17.430999999999983,
+    17.51099999999998,
+    17.59099999999998,
+    17.670999999999978,
+    17.750999999999976,
+    17.830999999999975,
+    17.910999999999973,
+    17.99099999999997,
+    18.07099999999997,
+    18.150999999999968,
+    18.230999999999966,
+    18.310999999999964,
+    18.390999999999963,
+    18.47099999999996,
+    18.55099999999996,
+    18.630999999999958,
+    18.710999999999956,
+    18.790999999999954,
+    18.870999999999952,
+    18.95099999999995,
+    19.03099999999995,
+    19.110999999999947,
+    19.190999999999946,
+    19.270999999999944,
+    19.350999999999942,
+    19.43099999999994,
+    19.51099999999994,
+    19.590999999999937,
+    19.670999999999935,
+    19.750999999999934,
+    19.830999999999932,
+    19.91099999999993,
+    19.99099999999993,
+    20.070999999999927,
+    20.150999999999925,
+    20.230999999999923,
+    20.310999999999922,
+    20.39099999999992,
+    20.47099999999992,
+    20.550999999999917,
+    20.630999999999915,
+    0,
+    0
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 207,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 3193,
+    "count": 1,
+    "texts": [
+     "답변: i usually take the subway to work."
+    ]
+   },
+   {
+    "ts": 3848,
+    "count": 2,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: That is very useful. Can you tell me what line you take on the subway?"
+    ]
+   },
+   {
+    "ts": 9725,
+    "count": 3,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: That is very useful. Can you tell me what line you take on the subway?",
+     "답변: oh my english! change to practice mode."
+    ]
+   },
+   {
+    "ts": 11570,
+    "count": 4,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: That is very useful. Can you tell me what line you take on the subway?",
+     "답변: oh my english! change to practice mode.",
+     "질문: I understand you want to change to practice mode. Let me ask you: which kind of practice would you like?"
+    ]
+   },
+   {
+    "ts": 12910,
+    "count": 4,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: That is very useful. Can you tell me what line you take on the subway?",
+     "답변: oh my english! change to practice mode.",
+     "질문:   We can do conversation, scenario intake, pronunciation, or shadowing."
+    ]
+   },
+   {
+    "ts": 14100,
+    "count": 4,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: That is very useful. Can you tell me what line you take on the subway?",
+     "답변: oh my english! change to practice mode.",
+     "질문: I understand you want to change to practice mode. Let me ask you: which kind of practice would you like?  We can do conversation, scenario intake, pronunciation, or shadowing."
+    ]
+   },
+   {
+    "ts": 18644,
+    "count": 5,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: That is very useful. Can you tell me what line you take on the subway?",
+     "답변: oh my english! change to practice mode.",
+     "질문: I understand you want to change to practice mode. Let me ask you: which kind of practice would you like?  We can do conversation, scenario intake, pronunciation, or shadowing.",
+     "답변: pronunciation practice, please."
+    ]
+   },
+   {
+    "ts": 20236,
+    "count": 0,
+    "texts": []
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 43.536
+  },
+  "meta": {
+   "hookedAt": "2026-09-15T22:40:53.672Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789512053747,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789512053767,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789512073771,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 3,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3001/_next/hmr?id=plVl7WKoiJUrNgIzMRdUl",
+    "ws://localhost:8012/ws/session?source=recommended",
+    "ws://localhost:8012/ws/session?mode=pronunciation&source=additional"
+   ]
+  },
+  "lines": [],
+  "url": "http://localhost:3001/",
+  "log": [
+   {
+    "at": 0,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 3053,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 43576,
+    "what": "settled",
+    "recv": {
+     "session_started": 2,
+     "partial": 3,
+     "final": 5,
+     "audio": 164,
+     "session_ended": 1,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 3,
+     "speech_end": 3,
+     "interrupted": 2,
+     "voice_command": 2
+    }
+   }
+  ]
+ },
+ "screenshot_session": "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-16-task61-13-requested-stall/shot-a1-en-session.png",
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3001/results/57b30681-0228-4149-bf0b-97052a598806",
+  "recv": {
+   "session_started": 2,
+   "partial": 3,
+   "final": 5,
+   "audio": 164,
+   "session_ended": 2,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 3,
+   "speech_end": 3,
+   "interrupted": 2,
+   "voice_command": 2
+  },
+  "sent": {
+   "audio": 1394,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 3
+  },
+  "finalLinesAtTerminal": [
+   "답변: i usually take the subway to work.",
+   "질문: That is very useful. Can you tell me what line you take on the subway?",
+   "답변: oh my english! change to practice mode.",
+   "질문: I understand you want to change to practice mode. Let me ask you: which kind of practice would you like?  We can do conversation, scenario intake, pronunciation, or shadowing.",
+   "답변: pronunciation practice, please."
+  ],
+  "resultParagraphs": [
+   "분석 대상 없음",
+   "오늘 학습을 마쳤어요 — 시나리오 2개",
+   "← 학습 시작 화면으로",
+   "학습 히스토리 보기 →"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 대상 없음</p><p style=\"color: var(--foreground-muted);\">오늘 학습을 마쳤어요 — 시나리오 2개</p><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p><p style=\"margin-top: 0.5rem;\"><a href=\"/history\" style=\"text-decoration: underline;\">학습 히스토리 보기 →</a></p>"
+ },
+ "screenshot_results": "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-16-task61-13-requested-stall/shot-a1-en-results.png"
+}

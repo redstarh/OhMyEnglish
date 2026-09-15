@@ -1,0 +1,438 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3001/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/vc15_learning_ko.wav",
+  "urls": [
+   "/harness/vc15_learning_ko.wav",
+   "/harness/vc24_modeonly_ko.wav",
+   "/harness/vc26_kind_ko.wav",
+   "/harness/vc18_yes_ko.wav"
+  ],
+  "count": 4,
+  "bytes": 271516,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 7.973,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0,
+  "plays": []
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 2,
+   "partial": 3,
+   "final": 5,
+   "audio": 124,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 3,
+   "speech_end": 3,
+   "interrupted": 2,
+   "voice_command": 2
+  },
+  "sent": {
+   "audio": 1334,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 1
+  },
+  "startedSessionId": "a8a0ad81-07a6-4d30-b258-77a429becac1",
+  "fixture": {
+   "url": "/harness/vc15_learning_ko.wav",
+   "urls": [
+    "/harness/vc15_learning_ko.wav",
+    "/harness/vc24_modeonly_ko.wav",
+    "/harness/vc26_kind_ko.wav",
+    "/harness/vc18_yes_ko.wav"
+   ],
+   "count": 4,
+   "bytes": 271516,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 7.973,
+   "startedAt": 115,
+   "endedAt": 20899,
+   "micCalls": 2,
+   "plays": [
+    {
+     "index": 0,
+     "url": "/harness/vc15_learning_ko.wav",
+     "startedAt": 115,
+     "endedAt": 2462,
+     "gate": null
+    },
+    {
+     "index": 1,
+     "url": "/harness/vc24_modeonly_ko.wav",
+     "startedAt": 6601,
+     "endedAt": 9443,
+     "gate": {
+      "heardAgentAudio": true,
+      "audioAtGate": 46,
+      "finalAtGate": 2,
+      "waitedMs": 6486
+     }
+    },
+    {
+     "index": 2,
+     "url": "/harness/vc26_kind_ko.wav",
+     "startedAt": 15293,
+     "endedAt": 16910,
+     "gate": {
+      "heardAgentAudio": true,
+      "audioAtGate": 124,
+      "finalAtGate": 4,
+      "waitedMs": 8692
+     }
+    },
+    {
+     "index": 0,
+     "url": "/harness/vc15_learning_ko.wav",
+     "startedAt": 18555,
+     "endedAt": 20899,
+     "gate": null
+    }
+   ]
+  },
+  "started": {
+   "count": 128,
+   "when": [
+    0,
+    4.12,
+    4.199,
+    4.279,
+    4.359,
+    4.439,
+    4.519,
+    4.599,
+    4.679,
+    4.759,
+    4.839,
+    4.9190000000000005,
+    4.9990000000000006,
+    5.079000000000001,
+    5.159000000000001,
+    5.239000000000001,
+    5.319000000000001,
+    5.399000000000001,
+    5.479000000000001,
+    5.559000000000001,
+    5.639000000000001,
+    5.719000000000001,
+    5.799000000000001,
+    5.879000000000001,
+    5.959000000000001,
+    6.0390000000000015,
+    6.1190000000000015,
+    6.199000000000002,
+    6.279000000000002,
+    6.359000000000002,
+    6.439000000000002,
+    6.519000000000002,
+    6.599000000000002,
+    6.679000000000002,
+    6.759000000000002,
+    6.839000000000002,
+    6.919000000000002,
+    6.999000000000002,
+    7.079000000000002,
+    7.1590000000000025,
+    7.2390000000000025,
+    7.319000000000003,
+    7.399000000000003,
+    7.479000000000003,
+    7.559000000000003,
+    7.639000000000003,
+    7.719000000000003,
+    0,
+    12.4,
+    12.479000000000001,
+    12.559000000000001,
+    12.639000000000001,
+    12.719000000000001,
+    12.799000000000001,
+    12.879000000000001,
+    12.959000000000001,
+    13.039000000000001,
+    13.119000000000002,
+    13.199000000000002,
+    13.279000000000002,
+    13.359000000000002,
+    13.439000000000002,
+    13.519000000000002,
+    13.599000000000002,
+    13.679000000000002,
+    13.759000000000002,
+    13.839000000000002,
+    13.919000000000002,
+    13.999000000000002,
+    14.079000000000002,
+    14.159000000000002,
+    14.239000000000003,
+    14.319000000000003,
+    14.519000000000002,
+    14.520000000000001,
+    14.599000000000002,
+    14.679000000000002,
+    14.759000000000002,
+    14.839000000000002,
+    14.919000000000002,
+    14.999000000000002,
+    15.079000000000002,
+    15.159000000000002,
+    15.239000000000003,
+    15.319000000000003,
+    15.399000000000003,
+    15.479000000000003,
+    15.559000000000003,
+    15.639000000000003,
+    15.719000000000003,
+    15.799000000000003,
+    15.879000000000003,
+    15.959000000000003,
+    16.039,
+    16.119,
+    16.198999999999998,
+    16.278999999999996,
+    16.358999999999995,
+    16.438999999999993,
+    16.51899999999999,
+    16.59899999999999,
+    16.678999999999988,
+    16.758999999999986,
+    16.838999999999984,
+    16.918999999999983,
+    16.99899999999998,
+    17.07899999999998,
+    17.158999999999978,
+    17.238999999999976,
+    17.318999999999974,
+    17.398999999999972,
+    17.47899999999997,
+    17.55899999999997,
+    17.638999999999967,
+    17.718999999999966,
+    17.798999999999964,
+    17.878999999999962,
+    17.95899999999996,
+    18.03899999999996,
+    18.118999999999957,
+    18.198999999999955,
+    18.278999999999954,
+    18.358999999999952,
+    18.43899999999995,
+    18.51899999999995,
+    18.598999999999947,
+    0,
+    0
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 101,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 3456,
+    "count": 1,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요"
+    ]
+   },
+   {
+    "ts": 4068,
+    "count": 2,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: That is a good sentence. Can you tell me what time you usually leave for work?"
+    ]
+   },
+   {
+    "ts": 10386,
+    "count": 3,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: That is a good sentence. Can you tell me what time you usually leave for work?",
+     "답변: 오마이잉글리시, 연습 모드 바꿔줘."
+    ]
+   },
+   {
+    "ts": 12353,
+    "count": 4,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: That is a good sentence. Can you tell me what time you usually leave for work?",
+     "답변: 오마이잉글리시, 연습 모드 바꿔줘.",
+     "질문: I need to know which kind of extra practice you want."
+    ]
+   },
+   {
+    "ts": 12931,
+    "count": 4,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: That is a good sentence. Can you tell me what time you usually leave for work?",
+     "답변: 오마이잉글리시, 연습 모드 바꿔줘.",
+     "질문:  Do you want conversation, scenario intake, pronunciation, or shadowing?"
+    ]
+   },
+   {
+    "ts": 13886,
+    "count": 4,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: That is a good sentence. Can you tell me what time you usually leave for work?",
+     "답변: 오마이잉글리시, 연습 모드 바꿔줘.",
+     "질문: I need to know which kind of extra practice you want. Do you want conversation, scenario intake, pronunciation, or shadowing?"
+    ]
+   },
+   {
+    "ts": 17710,
+    "count": 5,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: That is a good sentence. Can you tell me what time you usually leave for work?",
+     "답변: 오마이잉글리시, 연습 모드 바꿔줘.",
+     "질문: I need to know which kind of extra practice you want. Do you want conversation, scenario intake, pronunciation, or shadowing?",
+     "답변: 발음 연습으로 해주세요."
+    ]
+   },
+   {
+    "ts": 18562,
+    "count": 0,
+    "texts": []
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 42.736
+  },
+  "meta": {
+   "hookedAt": "2026-09-15T22:46:02.472Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789512362473,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789512362487,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789512380928,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 3,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3001/_next/hmr?id=QseW_sTwvTi01zjmQM2so",
+    "ws://localhost:8012/ws/session?source=recommended",
+    "ws://localhost:8012/ws/session?mode=pronunciation&source=additional"
+   ]
+  },
+  "lines": [],
+  "url": "http://localhost:3001/",
+  "log": [
+   {
+    "at": 0,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 3406,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 42718,
+    "what": "settled",
+    "recv": {
+     "session_started": 2,
+     "partial": 3,
+     "final": 5,
+     "audio": 124,
+     "session_ended": 1,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 3,
+     "speech_end": 3,
+     "interrupted": 2,
+     "voice_command": 2
+    }
+   }
+  ]
+ },
+ "screenshot_session": "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-16-task61-13-requested-stall/shot-a6-ko-yes-session.png",
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3001/results/a69c9121-66d7-4485-8b5f-3c048ed873c6",
+  "recv": {
+   "session_started": 2,
+   "partial": 3,
+   "final": 5,
+   "audio": 124,
+   "session_ended": 2,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 3,
+   "speech_end": 3,
+   "interrupted": 2,
+   "voice_command": 2
+  },
+  "sent": {
+   "audio": 1368,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "finalLinesAtTerminal": [
+   "답변: 저는 보통 지하철로 출근해요",
+   "질문: That is a good sentence. Can you tell me what time you usually leave for work?",
+   "답변: 오마이잉글리시, 연습 모드 바꿔줘.",
+   "질문: I need to know which kind of extra practice you want. Do you want conversation, scenario intake, pronunciation, or shadowing?",
+   "답변: 발음 연습으로 해주세요."
+  ],
+  "resultParagraphs": [
+   "분석 대상 없음",
+   "오늘 학습을 마쳤어요 — 시나리오 9개",
+   "← 학습 시작 화면으로",
+   "학습 히스토리 보기 →"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 대상 없음</p><p style=\"color: var(--foreground-muted);\">오늘 학습을 마쳤어요 — 시나리오 9개</p><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p><p style=\"margin-top: 0.5rem;\"><a href=\"/history\" style=\"text-decoration: underline;\">학습 히스토리 보기 →</a></p>"
+ },
+ "screenshot_results": "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-16-task61-13-requested-stall/shot-a6-ko-yes-results.png"
+}

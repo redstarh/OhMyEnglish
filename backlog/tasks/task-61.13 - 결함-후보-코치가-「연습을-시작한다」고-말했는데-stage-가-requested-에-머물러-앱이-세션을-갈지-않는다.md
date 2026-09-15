@@ -1,9 +1,10 @@
 ---
 id: TASK-61.13
 title: '결함 후보: 코치가 「연습을 시작한다」고 말했는데 stage 가 requested 에 머물러 앱이 세션을 갈지 않는다'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-15 18:46'
+updated_date: '2026-09-15 22:51'
 labels: []
 dependencies: []
 parent_task_id: TASK-61
@@ -18,7 +19,25 @@ ordinal: 188000
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 그 모양의 크기를 실물 회차로 센다 — 종류를 답한 뒤 confirmed 까지 가는 비율
+- [x] #1 그 모양의 크기를 실물 회차로 센다 — 종류를 답한 뒤 confirmed 까지 가는 비율
 - [ ] #2 고치는 자리를 정한다: 문면을 더 세게 할지, 앱이 requested 를 받은 상태를 화면에 드러낼지
 - [ ] #3 고치면 실물 회차로 관측한다
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+## 회차 1 — 크기 측정 (2026-09-16 KST · 세션 ohmyenglish-42)
+
+정본 `tests/harness/runs/2026-09-16-task61-13-requested-stall/README.md`. 코드 변경 0건 · 검증 전용 스택(DB `ohmyenglish_t6113` · 백엔드 :8012 · 프론트 :3001 · Chrome :9333) · Nova 9세션 · Claude 0회.
+
+AC#1 을 닫았음. **종류를 답한 뒤 `confirmed` 까지 가는 비율 = 4/8** (이 회차 3/6 + 앞 회차 answer-en·answer-ko 2건). 표본 8이므로 기전으로 단정하지 않음.
+
+무엇이 갈랐는가: **코치가 종류를 되물었는가.** 되묻거나 질문으로 물은 4팔 전부 `confirmed`(4/4) · 스스로 `conversation` 을 골라 예고한 4팔 전부 `requested` 에서 정지(0/4). ⚠️ 언어와 엉켜 있으나 a6-ko-yes 가 한국어인데 되묻고 성립했으므로 언어 단독으로는 설명되지 않음.
+
+새 findings 1건: **학습자의 명시적 「예」가 정지를 풀지 못함**(a5-ko-yes · 1/1). 코치가 그 「예」를 확인으로 받지 않고 다음 연습 문장으로 넘어갔음. 별도 태스크로 쪼개지 않고 AC#2 의 재료로 회차 기록에 둠.
+
+해악의 모양: 발음 드릴이 `speaking`·`recommended` 세션 안에서 진행되고 결과 화면에 발음 신호로 남음. 화면에 모드가 바뀌지 않았다는 표시가 없음(스크린샷 둘을 직접 열어 확인했음).
+
+AC#2·#3 은 열려 있음 — AC#2 는 설계 판단이라 통합 테스트 세션이 닫지 않음. ⚠️ 문면을 더 세게 하는 쪽이 이것을 닫는다는 근거는 없음: 앞 회차가 문면을 고쳐 되묻기를 0/4 → 3/5 로 옮겼고 그 뒤에도 이 모양이 4팔에서 났음.
+<!-- SECTION:NOTES:END -->

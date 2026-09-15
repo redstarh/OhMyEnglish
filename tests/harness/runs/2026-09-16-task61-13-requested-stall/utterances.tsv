@@ -1,0 +1,41 @@
+session_id	sequence_no	speaker	utterance_type	transcript
+7f2c8dd1-6cac-4cc8-bd26-b3aae38e7ee9	1	user	learning	i usually take the subway to work.
+7f2c8dd1-6cac-4cc8-bd26-b3aae38e7ee9	2	agent	learning	That is very useful. Can you tell me what line you take on the subway?
+7f2c8dd1-6cac-4cc8-bd26-b3aae38e7ee9	3	user	voice_command	oh my english! change to practice mode.
+7f2c8dd1-6cac-4cc8-bd26-b3aae38e7ee9	4	agent	learning	I understand you want to change to practice mode. Let me ask you: which kind of practice would you like?  We can do conversation, scenario intake, pronunciation, or shadowing.
+7f2c8dd1-6cac-4cc8-bd26-b3aae38e7ee9	5	user	command_confirmation	pronunciation practice, please.
+d341fb20-5264-439e-bafe-a718490aa77f	1	user	learning	i usually take the subway to work.
+d341fb20-5264-439e-bafe-a718490aa77f	2	agent	learning	That's a good sentence. Can you tell me what time you usually leave for work in the morning?
+d341fb20-5264-439e-bafe-a718490aa77f	3	user	voice_command	oh my english! change to practice mode.
+d341fb20-5264-439e-bafe-a718490aa77f	4	agent	learning	I understand you want to change to practice mode. But I need you to tell me which kind of practice you want. Do you want conversation, scenario intake, pronunciation, or shadowing practice?  Please tell me one, and I will start it for you.
+d341fb20-5264-439e-bafe-a718490aa77f	5	user	command_confirmation	pronunciation practice, please.
+914800f7-a77a-47e3-9f02-c7ede4440812	1	user	learning	저는 보통 지하철로 출근해요
+914800f7-a77a-47e3-9f02-c7ede4440812	2	agent	learning	That’s a useful sentence for daily life. Can you tell me more about your commute?  How long does it take to get to work by subway?
+914800f7-a77a-47e3-9f02-c7ede4440812	3	user	voice_command	오마이잉글리시 연습 모드 바꿔줘
+914800f7-a77a-47e3-9f02-c7ede4440812	4	agent	learning	Sure, let’s switch to conversation practice. I’ll ask you some questions about your weekend. Ready?  Tell me, what did you do this weekend?
+914800f7-a77a-47e3-9f02-c7ede4440812	5	user	command_confirmation	발음 연습으로 해주세요
+914800f7-a77a-47e3-9f02-c7ede4440812	6	agent	learning	Okay, we’ll do pronunciation practice. Let’s start with a simple sentence. Can you repeat this after me?  I go to work by subway.
+c49a88a6-7556-490d-856b-1837e9fb6030	1	user	learning	저는 보통 지하철로 출근해요
+c49a88a6-7556-490d-856b-1837e9fb6030	2	agent	learning	That is a good sentence. Can you tell me what time you usually leave for work?
+c49a88a6-7556-490d-856b-1837e9fb6030	3	user	voice_command	오마이잉글리시 연습 모드 바꿔줘
+c49a88a6-7556-490d-856b-1837e9fb6030	4	agent	learning	I will switch to conversation practice. Do you want to talk about daily life or work topics today?
+c49a88a6-7556-490d-856b-1837e9fb6030	5	user	command_confirmation	발음 연습으로 해주세요
+c49a88a6-7556-490d-856b-1837e9fb6030	6	agent	learning	Okay, we will do pronunciation practice. Let us start with a simple sentence. Repeat after me: "I go to work by subway."
+b122bae3-28ad-4521-8d4e-eb2aabd627e0	1	user	learning	저는 보통 지하철로 출근해요
+b122bae3-28ad-4521-8d4e-eb2aabd627e0	2	agent	learning	That is a good sentence. You are saying "I usually go to work by subway".  
+
+Can you say that sentence again for me, please?  
+
+Say: "I usually go to work by subway."
+b122bae3-28ad-4521-8d4e-eb2aabd627e0	3	user	voice_command	오마이잉글리시 연습 모드 바꿔줘.
+b122bae3-28ad-4521-8d4e-eb2aabd627e0	4	agent	learning	I will switch to conversation practice mode. Do you want to talk about daily activities or work topics today?
+b122bae3-28ad-4521-8d4e-eb2aabd627e0	5	user	command_confirmation	발음 연습으로 해주세요.
+b122bae3-28ad-4521-8d4e-eb2aabd627e0	6	agent	learning	Okay, we will do pronunciation practice. Let us start with a simple sentence. Please repeat after me: "I go to work by subway every day".
+b122bae3-28ad-4521-8d4e-eb2aabd627e0	7	user	command_confirmation	네 해주세요.
+b122bae3-28ad-4521-8d4e-eb2aabd627e0	8	agent	learning	Let us practice this sentence: "I need to finish the report today".  Say this sentence after me, please.
+a8a0ad81-07a6-4d30-b258-77a429becac1	1	user	learning	저는 보통 지하철로 출근해요
+a8a0ad81-07a6-4d30-b258-77a429becac1	2	agent	learning	That is a good sentence. Can you tell me what time you usually leave for work?
+a8a0ad81-07a6-4d30-b258-77a429becac1	3	user	voice_command	오마이잉글리시, 연습 모드 바꿔줘.
+a8a0ad81-07a6-4d30-b258-77a429becac1	4	agent	learning	I need to know which kind of extra practice you want. Do you want conversation, scenario intake, pronunciation, or shadowing?
+a8a0ad81-07a6-4d30-b258-77a429becac1	5	user	command_confirmation	발음 연습으로 해주세요.
+(35개 행)
