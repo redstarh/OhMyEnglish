@@ -2264,6 +2264,24 @@ def test_the_prompt_names_the_additional_learning_command_and_asks_for_a_target(
     assert "target set to what the learner asked for" in squeezed
 
 
+def test_the_prompt_folds_mode_change_into_the_additional_learning_command():
+    """결정 111 — PRD:82 의 「모드 변경」은 별도 명령이 아니고 이 명령이 `target` 으로 수행한다.
+
+    ⛔ **문면이 없으면 「모드 바꿔줘」가 이 명령으로 잡힌다는 보장이 없다** — 규칙 13 은 이것을
+    *"starting extra practice"* 로만 말하고, 학습자의 낱말은 「모드」·「연습 바꿔」 쪽이다.
+    ⛔ **어느 것으로 바꿀지 먼저 묻게 하는 것이 이 문면의 나머지 절반이다** — `target` 이 없으면
+    `parse_control_payload` 가 페이로드를 **버리고**(그 모듈의 `TARGET_REQUIRED`) 학습자는 아무
+    반응도 받지 못한다. 명령을 잃는 것이 조용해서 더 나쁘다.
+    ⚠️ 문면만으로 거동이 보장되지 않는다 — 실물 관측은 `TASK-61.10` AC#3 의 회차가 한다.
+    """
+    squeezed = " ".join(SYSTEM_PROMPT.split()).lower()
+
+    assert "asking to switch the mode or the kind of practice is this same command" in squeezed
+    assert "ask which one before you call the tool" in squeezed
+    # 흡수의 뜻은 명령이 **하나**라는 것이다 — 별도 명령 이름이 문면에 새면 모델이 없는 tool 을 부른다.
+    assert "change_mode" not in SYSTEM_PROMPT
+
+
 def test_the_prompt_makes_confirmation_free_commands_speak_after_the_tool_result():
     """⛔ `TASK-61.5`(결정 109 후속) — 결과를 돌려보내기 시작하자 영어에서 코치가 **같은 말을
     두 번** 했다(회차 세션 `af8a8594`: 명령 뒤 agent 발화 2행). tool 앞에서 이미 말했고 결과를

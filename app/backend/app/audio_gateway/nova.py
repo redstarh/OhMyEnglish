@@ -123,8 +123,9 @@ _TOOL_ROLE = "TOOL"
 # 가리키는 규칙 4는 밀리지 않으므로 그 상호 참조는 그대로 산다.
 #
 # 규칙 12~14(음성 명령)은 `TASK-61.1`(결정 102)로 들어왔다 — 이전 판은 이 자리에서 「음성 명령
-# 규칙은 여전히 빼 둔다」고 적었고 그 서술은 낡았다. 받는 명령은 **종료·주간 리포트 보기·다음 문제
-# 셋**이고(`TASK-61.6`·`TASK-61.7` · 결정 107·108), 표지(`Oh My English`)의 판정은 앱이 갖는다
+# 규칙은 여전히 빼 둔다」고 적었고 그 서술은 낡았다. ⛔ **받는 명령의 정본은
+# `models/voice_command.ControlCommand` 다** — 이 자리에 열거하면 명령이 늘 때마다 낡는다(실제로
+# 「종료·리포트·다음 문제 셋」이라 적힌 채 넷이 됐다). 표지(`Oh My English`)의 판정은 앱이 갖는다
 # (`models/voice_command.is_wake_command` · 모델의 규율에 맡기면 학습 발화가 명령으로 저장된다).
 # ⛔ **규칙 13 안에서 두 명령을 가른 이유는 번호를 밀지 않는 것이다** — 새 규칙으로 떼면 규칙 14 가
 # 15 가 되고 이 주석과 `tests/unit/test_nova.py` 의 참조가 조용히 낡는다.
@@ -179,6 +180,9 @@ Voice control:
     a new one opens. Ask out loud first, then call request_session_control with command
     "start_additional", stage "requested", and target set to what the learner asked for -
     the tool lists the choices. Call it again with stage "confirmed" once they say yes.
+    Asking to switch the mode or the kind of practice is this same command - there is no
+    separate one for that. If the learner does not say which kind they want, ask which one
+    before you call the tool, because the tool needs a target.
     The other two commands need no confirmation. For those, call the tool first and speak
     only after you get the tool result - one short sentence, once. Do not say the same
     thing twice. For the weekly report use command "show_report" with stage "requested",
