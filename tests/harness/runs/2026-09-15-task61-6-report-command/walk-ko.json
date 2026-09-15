@@ -1,0 +1,340 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3001/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/vc11_report_ko.wav",
+  "urls": [
+   "/harness/vc11_report_ko.wav",
+   "/harness/vc12_learning_ko.wav"
+  ],
+  "count": 2,
+  "bytes": 165940,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 4.93,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0,
+  "plays": []
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 2,
+   "final": 3,
+   "audio": 88,
+   "session_ended": 0,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 2,
+   "speech_end": 2,
+   "interrupted": 0,
+   "voice_command": 1
+  },
+  "sent": {
+   "audio": 1140,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "startedSessionId": "58ac4d9c-8e9f-4e6f-8c5c-7c0f5f2f3bc5",
+  "fixture": {
+   "url": "/harness/vc11_report_ko.wav",
+   "urls": [
+    "/harness/vc11_report_ko.wav",
+    "/harness/vc12_learning_ko.wav"
+   ],
+   "count": 2,
+   "bytes": 165940,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 4.93,
+   "startedAt": 282,
+   "endedAt": 8385,
+   "micCalls": 1,
+   "plays": [
+    {
+     "index": 0,
+     "url": "/harness/vc11_report_ko.wav",
+     "startedAt": 282,
+     "endedAt": 3218,
+     "gate": null
+    },
+    {
+     "index": 1,
+     "url": "/harness/vc12_learning_ko.wav",
+     "startedAt": 6407,
+     "endedAt": 8385,
+     "gate": {
+      "heardAgentAudio": false,
+      "audioAtGate": 0,
+      "finalAtGate": 1,
+      "waitedMs": 6124
+     }
+    }
+   ]
+  },
+  "started": {
+   "count": 90,
+   "when": [
+    0,
+    0,
+    9.616,
+    9.695,
+    9.775,
+    9.855,
+    9.935,
+    10.015,
+    10.095,
+    10.175,
+    10.255,
+    10.335,
+    10.415000000000001,
+    10.495000000000001,
+    10.575000000000001,
+    10.655000000000001,
+    10.735000000000001,
+    10.815000000000001,
+    10.895000000000001,
+    10.975000000000001,
+    11.055000000000001,
+    11.135000000000002,
+    11.215000000000002,
+    11.295000000000002,
+    11.375000000000002,
+    11.455000000000002,
+    11.535000000000002,
+    11.615000000000002,
+    11.695000000000002,
+    11.775000000000002,
+    11.855000000000002,
+    11.935000000000002,
+    12.015000000000002,
+    12.095000000000002,
+    12.175000000000002,
+    12.255000000000003,
+    12.335000000000003,
+    12.415000000000003,
+    12.495000000000003,
+    12.575000000000003,
+    12.655000000000003,
+    12.735000000000003,
+    12.815000000000003,
+    12.895000000000003,
+    12.975000000000003,
+    13.055000000000003,
+    13.256000000000004,
+    13.335000000000004,
+    13.415000000000004,
+    13.495000000000005,
+    13.575000000000005,
+    13.655000000000005,
+    13.735000000000005,
+    13.815000000000005,
+    13.895000000000005,
+    13.975000000000005,
+    14.055000000000005,
+    14.135000000000005,
+    14.215000000000005,
+    14.295000000000005,
+    14.375000000000005,
+    14.455000000000005,
+    14.535000000000005,
+    14.615000000000006,
+    14.695000000000006,
+    14.775000000000006,
+    14.855000000000006,
+    14.935000000000006,
+    15.015000000000006,
+    15.095000000000006,
+    15.175000000000006,
+    15.255000000000006,
+    15.335000000000006,
+    15.415000000000006,
+    15.495000000000006,
+    15.575000000000006,
+    15.655000000000006,
+    15.735000000000007,
+    15.815000000000007,
+    15.895000000000007,
+    15.975000000000007,
+    16.055000000000007,
+    16.135000000000005,
+    16.215000000000003,
+    16.295,
+    16.375,
+    16.455,
+    16.534999999999997,
+    16.614999999999995,
+    16.694999999999993
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 203,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 4230,
+    "count": 1,
+    "texts": [
+     "답변: 오마이잉글리시 주간 리포트 보여줘"
+    ]
+   },
+   {
+    "ts": 9189,
+    "count": 1,
+    "texts": [
+     "답변: 오마이잉글리시 주간 리포트 보여줘 이번 주는 회사 일이 많았어요"
+    ]
+   },
+   {
+    "ts": 9759,
+    "count": 2,
+    "texts": [
+     "답변: 오마이잉글리시 주간 리포트 보여줘 이번 주는 회사 일이 많았어요",
+     "질문: 이번 주는 회사 일이 많았어요. 그럼, 어떤 일이 많았나요?"
+    ]
+   },
+   {
+    "ts": 10721,
+    "count": 2,
+    "texts": [
+     "답변: 오마이잉글리시 주간 리포트 보여줘 이번 주는 회사 일이 많았어요",
+     "질문:  예를 들어, 미팅이 많았나요, 아니면 프로젝트가 있었나요?"
+    ]
+   },
+   {
+    "ts": 11508,
+    "count": 2,
+    "texts": [
+     "답변: 오마이잉글리시 주간 리포트 보여줘 이번 주는 회사 일이 많았어요",
+     "질문: 이번 주는 회사 일이 많았어요. 그럼, 어떤 일이 많았나요? 예를 들어, 미팅이 많았나요, 아니면 프로젝트가 있었나요?"
+    ]
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 36.46933333333333
+  },
+  "meta": {
+   "hookedAt": "2026-09-15T13:00:26.146Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789477226220,
+     "before": "suspended",
+     "afterSync": "suspended",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789477226230,
+     "before": "suspended",
+     "afterSync": "suspended",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3001/_next/hmr?id=RuTYctIjx0ieVijh2zGJn",
+    "ws://localhost:8012/ws/session?source=recommended"
+   ]
+  },
+  "lines": [
+   "답변: 오마이잉글리시 주간 리포트 보여줘 이번 주는 회사 일이 많았어요",
+   "질문: 이번 주는 회사 일이 많았어요. 그럼, 어떤 일이 많았나요? 예를 들어, 미팅이 많았나요, 아니면 프로젝트가 있었나요?"
+  ],
+  "url": "http://localhost:3001/",
+  "log": [
+   {
+    "at": 103,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 4082,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 36529,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 2,
+     "final": 3,
+     "audio": 88,
+     "session_ended": 0,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 2,
+     "speech_end": 2,
+     "interrupted": 0,
+     "voice_command": 1
+    }
+   }
+  ]
+ },
+ "screenshot_session": "/tmp/t616r-ko-session.png",
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3001/results/58ac4d9c-8e9f-4e6f-8c5c-7c0f5f2f3bc5",
+  "recv": {
+   "session_started": 1,
+   "partial": 2,
+   "final": 3,
+   "audio": 88,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 2,
+   "speech_end": 2,
+   "interrupted": 0,
+   "voice_command": 1
+  },
+  "sent": {
+   "audio": 1174,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 3
+  },
+  "finalLinesAtTerminal": [
+   "답변: 오마이잉글리시 주간 리포트 보여줘 이번 주는 회사 일이 많았어요",
+   "질문: 이번 주는 회사 일이 많았어요. 그럼, 어떤 일이 많았나요? 예를 들어, 미팅이 많았나요, 아니면 프로젝트가 있었나요?"
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "오늘 학습을 마쳤어요",
+   "관찰된 신호",
+   "(전사문이 한국어로 인식되었습니다)",
+   "← 학습 시작 화면으로",
+   "학습 히스토리 보기 →"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><p style=\"color: var(--foreground-muted);\">오늘 학습을 마쳤어요</p><div style=\"margin-top: 1.5rem;\"><h2 style=\"font-size: 1rem;\">발음</h2><div style=\"border-left: 3px solid var(--foreground-muted); padding-left: 0.75rem; margin: 0.75rem 0px;\"><p style=\"margin: 0.25rem 0px 0px; font-size: 0.8rem; color: var(--foreground-muted);\">관찰된 신호</p><p style=\"margin: 0.25rem 0px; color: var(--foreground-muted);\">(전사문이 한국어로 인식되었습니다)</p></div></div><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p><p style=\"margin-top: 0.5rem;\"><a href=\"/history\" style=\"text-decoration: underline;\">학습 히스토리 보기 →</a></p>"
+ },
+ "screenshot_results": "/tmp/t616r-ko-results.png"
+}
