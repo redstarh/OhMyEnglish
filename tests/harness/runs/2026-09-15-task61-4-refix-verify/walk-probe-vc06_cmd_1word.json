@@ -1,0 +1,304 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3001/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/vc06_cmd_1word.wav",
+  "urls": [
+   "/harness/vc06_cmd_1word.wav"
+  ],
+  "count": 1,
+  "bytes": 66338,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 1.945,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0,
+  "plays": []
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 2,
+   "final": 2,
+   "audio": 81,
+   "session_ended": 0,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 1,
+   "speech_end": 1,
+   "interrupted": 0
+  },
+  "sent": {
+   "audio": 490,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "startedSessionId": "22bf8863-c61d-4b5a-a7e3-67c8fc7cb59b",
+  "fixture": {
+   "url": "/harness/vc06_cmd_1word.wav",
+   "urls": [
+    "/harness/vc06_cmd_1word.wav"
+   ],
+   "count": 1,
+   "bytes": 66338,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 1.945,
+   "startedAt": 213,
+   "endedAt": 2197,
+   "micCalls": 1,
+   "plays": [
+    {
+     "index": 0,
+     "url": "/harness/vc06_cmd_1word.wav",
+     "startedAt": 213,
+     "endedAt": 2197,
+     "gate": null
+    }
+   ]
+  },
+  "started": {
+   "count": 82,
+   "when": [
+    0,
+    3.992,
+    4.071,
+    4.151,
+    4.231,
+    4.311,
+    4.391,
+    4.471,
+    4.551,
+    4.631,
+    4.711,
+    4.791,
+    4.871,
+    4.9510000000000005,
+    5.031000000000001,
+    5.111000000000001,
+    5.191000000000001,
+    5.271000000000001,
+    5.351000000000001,
+    5.431000000000001,
+    5.511000000000001,
+    5.591000000000001,
+    5.671000000000001,
+    5.751000000000001,
+    5.831000000000001,
+    5.911000000000001,
+    5.991000000000001,
+    6.0710000000000015,
+    6.151000000000002,
+    6.231000000000002,
+    6.311000000000002,
+    6.391000000000002,
+    6.471000000000002,
+    6.551000000000002,
+    6.631000000000002,
+    6.711000000000002,
+    6.791000000000002,
+    6.871000000000002,
+    6.951000000000002,
+    7.031000000000002,
+    7.111000000000002,
+    7.1910000000000025,
+    7.271000000000003,
+    7.351000000000003,
+    7.431000000000003,
+    7.511000000000003,
+    7.712000000000002,
+    7.791000000000002,
+    7.871000000000002,
+    7.951000000000002,
+    8.031000000000002,
+    8.111000000000002,
+    8.191000000000003,
+    8.271000000000003,
+    8.351000000000003,
+    8.431000000000003,
+    8.511000000000003,
+    8.591000000000003,
+    8.671000000000003,
+    8.751000000000003,
+    8.831000000000003,
+    8.911000000000003,
+    8.991000000000003,
+    9.071000000000003,
+    9.151000000000003,
+    9.231000000000003,
+    9.311000000000003,
+    9.391000000000004,
+    9.471000000000004,
+    9.551000000000004,
+    9.631000000000004,
+    9.711000000000004,
+    9.791000000000004,
+    9.871000000000004,
+    9.951000000000004,
+    10.031000000000004,
+    10.111000000000004,
+    10.191000000000004,
+    10.271000000000004,
+    10.351000000000004,
+    10.431000000000004,
+    10.671000000000005
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 204,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 3313,
+    "count": 1,
+    "texts": [
+     "답변: all my english and the session"
+    ]
+   },
+   {
+    "ts": 4120,
+    "count": 2,
+    "texts": [
+     "답변: all my english and the session",
+     "질문: Do you want to end today's session? \nIf you say yes, I will end it right now."
+    ]
+   },
+   {
+    "ts": 4954,
+    "count": 2,
+    "texts": [
+     "답변: all my english and the session",
+     "질문:  If not, we can keep talking and practicing English."
+    ]
+   },
+   {
+    "ts": 5730,
+    "count": 2,
+    "texts": [
+     "답변: all my english and the session",
+     "질문: Do you want to end today's session? \nIf you say yes, I will end it right now. If not, we can keep talking and practicing English."
+    ]
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 15.696
+  },
+  "meta": {
+   "hookedAt": "2026-09-15T04:53:32.688Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789448012770,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789448012779,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3001/_next/hmr?id=B8PgCIBHeAvtYQhpdmtqM",
+    "ws://localhost:8012/ws/session?source=recommended"
+   ]
+  },
+  "lines": [
+   "답변: all my english and the session",
+   "질문: Do you want to end today's session? \nIf you say yes, I will end it right now. If not, we can keep talking and practicing English."
+  ],
+  "url": "http://localhost:3001/",
+  "log": [
+   {
+    "at": 0,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 3097,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 15744,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 2,
+     "final": 2,
+     "audio": 81,
+     "session_ended": 0,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 1,
+     "speech_end": 1,
+     "interrupted": 0
+    }
+   }
+  ]
+ },
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3001/results/22bf8863-c61d-4b5a-a7e3-67c8fc7cb59b",
+  "recv": {
+   "session_started": 1,
+   "partial": 2,
+   "final": 2,
+   "audio": 81,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 1,
+   "speech_end": 1,
+   "interrupted": 0
+  },
+  "sent": {
+   "audio": 522,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 3
+  },
+  "finalLinesAtTerminal": [
+   "답변: all my english and the session",
+   "질문: Do you want to end today's session? \nIf you say yes, I will end it right now. If not, we can keep talking and practicing English."
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "오늘 학습을 마쳤어요",
+   "← 학습 시작 화면으로",
+   "학습 히스토리 보기 →"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><p style=\"color: var(--foreground-muted);\">오늘 학습을 마쳤어요</p><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p><p style=\"margin-top: 0.5rem;\"><a href=\"/history\" style=\"text-decoration: underline;\">학습 히스토리 보기 →</a></p>"
+ }
+}

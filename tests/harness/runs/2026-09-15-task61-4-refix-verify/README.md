@@ -115,13 +115,32 @@ Nova **3세션**(ARM-1 · ARM-1b · ARM-2 — 예비 1회를 §0 의 규칙대�
 학습 발화가 명령으로 분류될 수 있음) ② 표지 요구를 유지하고 그대로 감수함(대가: 영어 음성 종료가
 대개 안 먹힘). ⛔ 어느 쪽도 내가 고르지 않음 — 제품 판단임.
 
+## 6-1. 프로브 — 「한 낱말 `OhMyEnglish`」로 말하면 달라지는가 (사용자 질문 2026-09-15)
+
+사용자가 §6 의 후보 대신 **표지를 한 낱말로 말하는 것**을 물었음. 규칙과 상한을 대화에서 먼저 적고
+돌렸음 — 상한 **Nova 2세션**, 재는 것은 전사문 하나, 픽스처는 목소리 둘로 새로 만들었음
+(`vc06_cmd_1word` = Samantha · `vc07_cmd_1word_alex` = Alex · 둘 다 `"OhMyEnglish, end the session."`).
+
+| 픽스처 | 전사문 | 표지 인식 |
+|---|---|---|
+| `vc06_cmd_1word`(Samantha) | `all my english and the session` | 실패 |
+| `vc07_cmd_1word_alex`(Alex) | `all my english and the session` | 실패 |
+
+⇒ **한 낱말로 말해도 같음.** 코드 쪽은 이미 그 형태를 받음(`_squeeze` 가 공백·문장부호를 지우므로
+`ohmyenglish` 로 정규화됨) — 막는 것은 **전사**이고 목소리를 바꿔도 같았음.
+
+**누적 집계**: 영어 표지가 살아난 것은 **6회 중 1회**임(ARM-A2 뿐 · 목소리 Samantha 5 · Alex 1).
+⚠️ 그리고 실패는 무작위가 아니라 **`all my english` 로 일정함** — 그것이 §6 후보 ①(변이를 표지에
+더함)의 효과를 크게 만드는 사실임.
+⚠️ 이 프로브에서도 코치는 확인을 소리로 물었음(누적 4/4) — D3 의 고침이 계속 유효함.
+
 ## 7. 정리와 무변경 확인 — 직접 돌려 얻은 값
 
 | 무엇 | 확인 |
 |---|---|
 | `:9333` · `:3001` · `:8012` | 전부 HTTP `000` |
-| 검증 전용 DB | `drop database ohmyenglish_t614` 완료 · 남은 DB 는 `ohmyenglish` · `_smoke` · `_test` 뿐 |
-| `/tmp` 사본 | `fe-t614` · `chrome-t614` · `t614_app.py` 삭제 |
+| 검증 전용 DB | `ohmyenglish_t614` · 프로브의 `ohmyenglish_t615` 둘 다 drop · 남은 DB 는 `ohmyenglish` · `_smoke` · `_test` 뿐 |
+| `/tmp` 사본 | `fe-t614`·`chrome-t614`·`t614_app.py` · 프로브의 `fe-t615`·`chrome-t615`·`t615_app.py`·`vc_tts2` 삭제 |
 | 공유 dev DB | 회차 전후가 같음 — `17 · 7 · 9 · 6 · 128 · 15` |
 | 다른 세션의 Chrome | `:9222` 가 여전히 200 |
-| 실물 사용 | Nova 3세션 · Claude 0회 |
+| 실물 사용 | Nova **5세션** — 회차 3 + 프로브 2(§6-1) · Claude 0회 |
