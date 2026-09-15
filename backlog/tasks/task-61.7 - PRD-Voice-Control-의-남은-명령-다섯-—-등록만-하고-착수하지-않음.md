@@ -1,10 +1,10 @@
 ---
 id: TASK-61.7
 title: PRD Voice Control 의 남은 명령 다섯 — 등록만 하고 착수하지 않음
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-15 13:07'
-updated_date: '2026-09-15 13:22'
+updated_date: '2026-09-15 13:31'
 labels: []
 dependencies: []
 parent_task_id: TASK-61
@@ -25,5 +25,13 @@ ordinal: 182000
 <!-- AC:BEGIN -->
 - [x] #1 어느 명령을 다음 조각으로 할지 사용자 판단을 받는다 — 결정 107 의 기각 근거를 근거로 다시 제시한다
 - [x] #2 정한 명령을 계약대로 만든다 — 표지 요구·확인 필요 여부(requires_confirmation)·기록 유형
-- [ ] #3 실물 회차로 관측하고 영어·한국어 둘을 함께 본다
+- [x] #3 실물 회차로 관측하고 영어·한국어 둘을 함께 본다
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-09-15 AC 셋 다 닫음. 구현 커밋 abf3210. 회차 tests/harness/runs/2026-09-15-task61-7-next-question — ARM-EN PASS(명령 뒤 코치가 계획의 둘째 질문을 축자로 냈고 드릴 exchange 최소값을 깨고 넘어갔음. 결정 108 ③ 의 문면이 실물 거동을 만들었음) · ARM-KO 는 tool 과 기록은 오지만 코치가 다음 질문을 말하지 않아 기능이 성립하지 않음(결정 106 의 침묵 재현). 화면 무반응은 결정 108 ② 대로임. 공유 dev DB 는 계획 한 행을 읽기만 했고 기준선 그대로임(세션 17 · 계획 6 · 마이그레이션 22).
+
+⛔ 남은 명령의 판단을 바꾸는 발견: 결정 106 의 대가 크기가 「명령을 누가 수행하는가」로 갈림. 화면이 수행하면 한국어에서 성립하고(리포트 보기) 코치가 수행하면 성립하지 않음(다음 문제·종료). 회차 §3 이 그 표를 가짐.
+<!-- SECTION:NOTES:END -->
