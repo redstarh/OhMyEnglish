@@ -1,0 +1,400 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3001/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/vc15_learning_ko.wav",
+  "urls": [
+   "/harness/vc15_learning_ko.wav",
+   "/harness/vc16_next_ko.wav"
+  ],
+  "count": 2,
+  "bytes": 154842,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 4.583,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0,
+  "plays": []
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 3,
+   "final": 3,
+   "audio": 136,
+   "session_ended": 0,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 2,
+   "speech_end": 2,
+   "interrupted": 1,
+   "voice_command": 1
+  },
+  "sent": {
+   "audio": 1166,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 1
+  },
+  "startedSessionId": "c7957d75-2d2a-40f0-8be1-b0d472092a92",
+  "fixture": {
+   "url": "/harness/vc15_learning_ko.wav",
+   "urls": [
+    "/harness/vc15_learning_ko.wav",
+    "/harness/vc16_next_ko.wav"
+   ],
+   "count": 2,
+   "bytes": 154842,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 4.583,
+   "startedAt": 131,
+   "endedAt": 11030,
+   "micCalls": 1,
+   "plays": [
+    {
+     "index": 0,
+     "url": "/harness/vc15_learning_ko.wav",
+     "startedAt": 131,
+     "endedAt": 2481,
+     "gate": null
+    },
+    {
+     "index": 1,
+     "url": "/harness/vc16_next_ko.wav",
+     "startedAt": 8798,
+     "endedAt": 11030,
+     "gate": {
+      "heardAgentAudio": true,
+      "audioAtGate": 136,
+      "finalAtGate": 2,
+      "waitedMs": 8667
+     }
+    }
+   ]
+  },
+  "started": {
+   "count": 138,
+   "when": [
+    0,
+    4.536,
+    4.614999999999999,
+    4.694999999999999,
+    4.7749999999999995,
+    4.8549999999999995,
+    4.935,
+    5.015,
+    5.095,
+    5.175,
+    5.255,
+    5.335,
+    5.415,
+    5.495,
+    5.575,
+    5.655,
+    5.735,
+    5.815,
+    5.8950000000000005,
+    5.9750000000000005,
+    6.055000000000001,
+    6.135000000000001,
+    6.215000000000001,
+    6.295000000000001,
+    6.375000000000001,
+    6.455000000000001,
+    6.535000000000001,
+    6.615000000000001,
+    6.695000000000001,
+    6.775000000000001,
+    6.855000000000001,
+    6.935000000000001,
+    7.0150000000000015,
+    7.0950000000000015,
+    7.175000000000002,
+    7.255000000000002,
+    7.335000000000002,
+    7.415000000000002,
+    7.495000000000002,
+    7.575000000000002,
+    7.655000000000002,
+    7.735000000000002,
+    7.976000000000002,
+    8.055000000000001,
+    8.135000000000002,
+    8.215000000000002,
+    8.295000000000002,
+    8.375000000000002,
+    8.455000000000002,
+    8.535000000000002,
+    8.615000000000002,
+    8.695000000000002,
+    8.775000000000002,
+    8.855000000000002,
+    8.935000000000002,
+    9.015000000000002,
+    9.095000000000002,
+    9.175000000000002,
+    9.255000000000003,
+    9.335000000000003,
+    9.415000000000003,
+    9.495000000000003,
+    9.575000000000003,
+    9.655000000000003,
+    9.735000000000003,
+    9.815000000000003,
+    9.895000000000003,
+    9.975000000000003,
+    10.055000000000003,
+    10.135000000000003,
+    10.215000000000003,
+    10.295000000000003,
+    10.375000000000004,
+    10.455000000000004,
+    10.535000000000004,
+    10.615000000000004,
+    10.695000000000004,
+    10.775000000000004,
+    11.015000000000004,
+    11.016000000000004,
+    11.095000000000004,
+    11.175000000000004,
+    11.255000000000004,
+    11.335000000000004,
+    11.415000000000004,
+    11.495000000000005,
+    11.575000000000005,
+    11.655000000000005,
+    11.735000000000005,
+    11.815000000000005,
+    11.895000000000005,
+    11.975000000000005,
+    12.055000000000005,
+    12.135000000000005,
+    12.215000000000005,
+    12.295000000000005,
+    12.375000000000005,
+    12.455000000000005,
+    12.535000000000005,
+    12.615000000000006,
+    12.695000000000006,
+    12.775000000000006,
+    12.855000000000006,
+    12.935000000000006,
+    13.015000000000006,
+    13.095000000000006,
+    13.175000000000006,
+    13.255000000000006,
+    13.335000000000006,
+    13.415000000000006,
+    13.495000000000006,
+    13.575000000000006,
+    13.655000000000006,
+    13.735000000000007,
+    13.815000000000007,
+    13.895000000000007,
+    13.975000000000007,
+    14.055000000000007,
+    14.135000000000007,
+    14.215000000000007,
+    14.295000000000007,
+    14.375000000000007,
+    14.455000000000007,
+    14.535000000000007,
+    14.615000000000007,
+    14.695000000000007,
+    14.775000000000007,
+    14.855000000000008,
+    14.935000000000008,
+    15.015000000000008,
+    15.095000000000008,
+    15.175000000000008,
+    15.255000000000008,
+    15.335000000000008,
+    15.415000000000008,
+    15.495000000000008,
+    15.735000000000008,
+    0
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 113,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 3484,
+    "count": 1,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요"
+    ]
+   },
+   {
+    "ts": 4526,
+    "count": 2,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: Oh, nice! Let's talk about your morning. What do you eat in the morning?"
+    ]
+   },
+   {
+    "ts": 5471,
+    "count": 2,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문:   Try a short sentence like \"I want to eat an apple.\""
+    ]
+   },
+   {
+    "ts": 6217,
+    "count": 2,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문:  Remember to use \"an\" before apple.\n\nSay: \"I want to eat an apple.\""
+    ]
+   },
+   {
+    "ts": 7409,
+    "count": 2,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: Oh, nice! Let's talk about your morning. What do you eat in the morning?  Try a short sentence like \"I want to eat an apple.\" Remember to use \"an\" before apple.\n\nSay: \"I want to eat an apple.\""
+    ]
+   },
+   {
+    "ts": 12131,
+    "count": 3,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: Oh, nice! Let's talk about your morning. What do you eat in the morning?  Try a short sentence like \"I want to eat an apple.\" Remember to use \"an\" before apple.\n\nSay: \"I want to eat an apple.\"",
+     "답변: 오 마이 잉글리시 다음 문제"
+    ]
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 37.31733333333333
+  },
+  "meta": {
+   "hookedAt": "2026-09-15T13:41:19.426Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789479679427,
+     "before": "suspended",
+     "afterSync": "suspended",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789479679437,
+     "before": "suspended",
+     "afterSync": "suspended",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3001/_next/hmr?id=B3EcYHszinRs33C_hQCkh",
+    "ws://localhost:8012/ws/session?source=recommended"
+   ]
+  },
+  "lines": [
+   "답변: 저는 보통 지하철로 출근해요",
+   "질문: Oh, nice! Let's talk about your morning. What do you eat in the morning?  Try a short sentence like \"I want to eat an apple.\" Remember to use \"an\" before apple.\n\nSay: \"I want to eat an apple.\"",
+   "답변: 오 마이 잉글리시 다음 문제"
+  ],
+  "url": "http://localhost:3001/",
+  "log": [
+   {
+    "at": 100,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 3460,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 37314,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 3,
+     "final": 3,
+     "audio": 136,
+     "session_ended": 0,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 2,
+     "speech_end": 2,
+     "interrupted": 1,
+     "voice_command": 1
+    }
+   }
+  ]
+ },
+ "screenshot_session": "/tmp/t618b-ko-session.png",
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3001/results/c7957d75-2d2a-40f0-8be1-b0d472092a92",
+  "recv": {
+   "session_started": 1,
+   "partial": 3,
+   "final": 3,
+   "audio": 136,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 2,
+   "speech_end": 2,
+   "interrupted": 1,
+   "voice_command": 1
+  },
+  "sent": {
+   "audio": 1200,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "finalLinesAtTerminal": [
+   "답변: 저는 보통 지하철로 출근해요",
+   "질문: Oh, nice! Let's talk about your morning. What do you eat in the morning?  Try a short sentence like \"I want to eat an apple.\" Remember to use \"an\" before apple.\n\nSay: \"I want to eat an apple.\"",
+   "답변: 오 마이 잉글리시 다음 문제"
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "오늘 학습을 마쳤어요 — 시나리오 2개",
+   "관찰된 신호",
+   "(전사문이 한국어로 인식되었습니다)",
+   "← 학습 시작 화면으로",
+   "학습 히스토리 보기 →"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><p style=\"color: var(--foreground-muted);\">오늘 학습을 마쳤어요 — 시나리오 2개</p><div style=\"margin-top: 1.5rem;\"><h2 style=\"font-size: 1rem;\">발음</h2><div style=\"border-left: 3px solid var(--foreground-muted); padding-left: 0.75rem; margin: 0.75rem 0px;\"><p style=\"margin: 0.25rem 0px 0px; font-size: 0.8rem; color: var(--foreground-muted);\">관찰된 신호</p><p style=\"margin: 0.25rem 0px; color: var(--foreground-muted);\">(전사문이 한국어로 인식되었습니다)</p></div></div><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p><p style=\"margin-top: 0.5rem;\"><a href=\"/history\" style=\"text-decoration: underline;\">학습 히스토리 보기 →</a></p>"
+ },
+ "screenshot_results": "/tmp/t618b-ko-results.png"
+}

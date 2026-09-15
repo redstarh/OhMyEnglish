@@ -1,0 +1,480 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3001/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/vc13_learning_en.wav",
+  "urls": [
+   "/harness/vc13_learning_en.wav",
+   "/harness/vc14_next_en.wav"
+  ],
+  "count": 2,
+  "bytes": 136814,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 4.019,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0,
+  "plays": []
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 4,
+   "final": 4,
+   "audio": 194,
+   "session_ended": 0,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 2,
+   "speech_end": 2,
+   "interrupted": 1,
+   "voice_command": 1
+  },
+  "sent": {
+   "audio": 1203,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 1
+  },
+  "startedSessionId": "0faeae61-2a72-4b4b-be6b-ce377bc6b9d8",
+  "fixture": {
+   "url": "/harness/vc13_learning_en.wav",
+   "urls": [
+    "/harness/vc13_learning_en.wav",
+    "/harness/vc14_next_en.wav"
+   ],
+   "count": 2,
+   "bytes": 136814,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 4.019,
+   "startedAt": 116,
+   "endedAt": 9529,
+   "micCalls": 1,
+   "plays": [
+    {
+     "index": 0,
+     "url": "/harness/vc13_learning_en.wav",
+     "startedAt": 116,
+     "endedAt": 2057,
+     "gate": null
+    },
+    {
+     "index": 1,
+     "url": "/harness/vc14_next_en.wav",
+     "startedAt": 7450,
+     "endedAt": 9529,
+     "gate": {
+      "heardAgentAudio": true,
+      "audioAtGate": 105,
+      "finalAtGate": 2,
+      "waitedMs": 7334
+     }
+    }
+   ]
+  },
+  "started": {
+   "count": 196,
+   "when": [
+    0,
+    3.704,
+    3.7830000000000004,
+    3.8630000000000004,
+    3.9430000000000005,
+    4.023000000000001,
+    4.103000000000001,
+    4.183000000000001,
+    4.263000000000001,
+    4.343000000000001,
+    4.423000000000001,
+    4.503000000000001,
+    4.583000000000001,
+    4.663000000000001,
+    4.743000000000001,
+    4.823000000000001,
+    4.903000000000001,
+    4.983000000000001,
+    5.0630000000000015,
+    5.143000000000002,
+    5.223000000000002,
+    5.303000000000002,
+    5.383000000000002,
+    5.463000000000002,
+    5.543000000000002,
+    5.623000000000002,
+    5.703000000000002,
+    5.783000000000002,
+    5.863000000000002,
+    5.943000000000002,
+    6.023000000000002,
+    6.103000000000002,
+    6.1830000000000025,
+    6.263000000000003,
+    6.343000000000003,
+    6.423000000000003,
+    6.503000000000003,
+    6.583000000000003,
+    6.663000000000003,
+    6.743000000000003,
+    6.823000000000003,
+    6.903000000000003,
+    6.983000000000003,
+    7.063000000000003,
+    7.143000000000003,
+    7.223000000000003,
+    7.3030000000000035,
+    7.383000000000004,
+    7.463000000000004,
+    7.543000000000004,
+    7.784000000000003,
+    7.863000000000003,
+    7.943000000000003,
+    8.023000000000003,
+    8.103000000000003,
+    8.183000000000003,
+    8.263000000000003,
+    8.343000000000004,
+    8.423000000000004,
+    8.503000000000004,
+    8.583000000000004,
+    8.663000000000004,
+    8.743000000000004,
+    8.823000000000004,
+    8.903000000000004,
+    8.983000000000004,
+    9.063000000000004,
+    9.143000000000004,
+    9.223000000000004,
+    9.303000000000004,
+    9.383000000000004,
+    9.463000000000005,
+    9.543000000000005,
+    9.623000000000005,
+    9.703000000000005,
+    9.783000000000005,
+    9.863000000000005,
+    9.943000000000005,
+    10.023000000000005,
+    10.103000000000005,
+    10.183000000000005,
+    10.263000000000005,
+    10.343000000000005,
+    10.423000000000005,
+    10.503000000000005,
+    10.583000000000006,
+    10.663000000000006,
+    10.743000000000006,
+    10.823000000000006,
+    10.903000000000006,
+    10.983000000000006,
+    11.063000000000006,
+    11.143000000000006,
+    11.223000000000006,
+    11.303000000000006,
+    11.383000000000006,
+    11.463000000000006,
+    11.543000000000006,
+    11.623000000000006,
+    11.703000000000007,
+    11.783000000000007,
+    11.863000000000007,
+    11.943000000000007,
+    12.023000000000007,
+    12.103000000000007,
+    12.183000000000007,
+    0,
+    11.552,
+    11.631,
+    11.711,
+    11.791,
+    11.871,
+    11.951,
+    12.031,
+    12.111,
+    12.191,
+    12.271,
+    12.351,
+    12.431000000000001,
+    12.511000000000001,
+    12.591000000000001,
+    12.671000000000001,
+    12.751000000000001,
+    12.831000000000001,
+    12.911000000000001,
+    12.991000000000001,
+    13.071000000000002,
+    13.151000000000002,
+    13.231000000000002,
+    13.311000000000002,
+    13.391000000000002,
+    13.471000000000002,
+    13.551000000000002,
+    13.631000000000002,
+    13.711000000000002,
+    13.791000000000002,
+    13.871000000000002,
+    13.951000000000002,
+    14.031000000000002,
+    14.111000000000002,
+    14.191000000000003,
+    14.271000000000003,
+    14.351000000000003,
+    14.431000000000003,
+    14.511000000000003,
+    14.591000000000003,
+    14.671000000000003,
+    14.751000000000003,
+    14.831000000000003,
+    14.911000000000003,
+    14.991000000000003,
+    15.071000000000003,
+    15.312000000000003,
+    15.391000000000004,
+    15.471000000000004,
+    15.551000000000004,
+    15.631000000000004,
+    15.711000000000004,
+    15.791000000000004,
+    15.871000000000004,
+    15.951000000000004,
+    16.031000000000002,
+    16.111,
+    16.191,
+    16.270999999999997,
+    16.350999999999996,
+    16.430999999999994,
+    16.510999999999992,
+    16.59099999999999,
+    16.67099999999999,
+    16.750999999999987,
+    16.830999999999985,
+    16.910999999999984,
+    16.990999999999982,
+    17.07099999999998,
+    17.15099999999998,
+    17.230999999999977,
+    17.310999999999975,
+    17.390999999999973,
+    17.47099999999997,
+    17.55099999999997,
+    17.63099999999997,
+    17.710999999999967,
+    17.790999999999965,
+    17.870999999999963,
+    17.95099999999996,
+    18.03099999999996,
+    18.110999999999958,
+    18.190999999999956,
+    18.270999999999955,
+    18.350999999999953,
+    18.43099999999995,
+    18.51099999999995,
+    18.590999999999948,
+    18.670999999999946,
+    18.910999999999945
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 103,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 2952,
+    "count": 1,
+    "texts": [
+     "답변: i usually take the subway to work."
+    ]
+   },
+   {
+    "ts": 3676,
+    "count": 2,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: I see, the subway is very useful. Can you tell me about your morning?"
+    ]
+   },
+   {
+    "ts": 4755,
+    "count": 2,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문:   What do you usually eat for breakfast?  Please use a short sentence like \"I want to eat ...\"."
+    ]
+   },
+   {
+    "ts": 5963,
+    "count": 2,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: I see, the subway is very useful. Can you tell me about your morning?  What do you usually eat for breakfast?  Please use a short sentence like \"I want to eat ...\"."
+    ]
+   },
+   {
+    "ts": 10468,
+    "count": 3,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: I see, the subway is very useful. Can you tell me about your morning?  What do you usually eat for breakfast?  Please use a short sentence like \"I want to eat ...\".",
+     "답변: oh my english! next question."
+    ]
+   },
+   {
+    "ts": 11524,
+    "count": 4,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: I see, the subway is very useful. Can you tell me about your morning?  What do you usually eat for breakfast?  Please use a short sentence like \"I want to eat ...\".",
+     "답변: oh my english! next question.",
+     "질문: Okay, let's move to the next question. What do you eat in the morning?"
+    ]
+   },
+   {
+    "ts": 12537,
+    "count": 4,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: I see, the subway is very useful. Can you tell me about your morning?  What do you usually eat for breakfast?  Please use a short sentence like \"I want to eat ...\".",
+     "답변: oh my english! next question.",
+     "질문:   Please use one short sentence, like \"I want to eat ...\"."
+    ]
+   },
+   {
+    "ts": 13426,
+    "count": 4,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: I see, the subway is very useful. Can you tell me about your morning?  What do you usually eat for breakfast?  Please use a short sentence like \"I want to eat ...\".",
+     "답변: oh my english! next question.",
+     "질문: Okay, let's move to the next question. What do you eat in the morning?  Please use one short sentence, like \"I want to eat ...\"."
+    ]
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 38.51733333333333
+  },
+  "meta": {
+   "hookedAt": "2026-09-15T13:58:19.416Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789480699417,
+     "before": "suspended",
+     "afterSync": "suspended",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789480699426,
+     "before": "suspended",
+     "afterSync": "suspended",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3001/_next/hmr?id=PpGQdRpyUWWbAlNvfxrny",
+    "ws://localhost:8012/ws/session?source=recommended"
+   ]
+  },
+  "lines": [
+   "답변: i usually take the subway to work.",
+   "질문: I see, the subway is very useful. Can you tell me about your morning?  What do you usually eat for breakfast?  Please use a short sentence like \"I want to eat ...\".",
+   "답변: oh my english! next question.",
+   "질문: Okay, let's move to the next question. What do you eat in the morning?  Please use one short sentence, like \"I want to eat ...\"."
+  ],
+  "url": "http://localhost:3001/",
+  "log": [
+   {
+    "at": 100,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 2858,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 38511,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 4,
+     "final": 4,
+     "audio": 194,
+     "session_ended": 0,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 2,
+     "speech_end": 2,
+     "interrupted": 1,
+     "voice_command": 1
+    }
+   }
+  ]
+ },
+ "screenshot_session": "/tmp/t618d-en-session.png",
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3001/results/0faeae61-2a72-4b4b-be6b-ce377bc6b9d8",
+  "recv": {
+   "session_started": 1,
+   "partial": 4,
+   "final": 4,
+   "audio": 194,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 2,
+   "speech_end": 2,
+   "interrupted": 1,
+   "voice_command": 1
+  },
+  "sent": {
+   "audio": 1238,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "finalLinesAtTerminal": [
+   "답변: i usually take the subway to work.",
+   "질문: I see, the subway is very useful. Can you tell me about your morning?  What do you usually eat for breakfast?  Please use a short sentence like \"I want to eat ...\".",
+   "답변: oh my english! next question.",
+   "질문: Okay, let's move to the next question. What do you eat in the morning?  Please use one short sentence, like \"I want to eat ...\"."
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "오늘 학습을 마쳤어요 — 시나리오 5개",
+   "← 학습 시작 화면으로",
+   "학습 히스토리 보기 →"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><p style=\"color: var(--foreground-muted);\">오늘 학습을 마쳤어요 — 시나리오 5개</p><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p><p style=\"margin-top: 0.5rem;\"><a href=\"/history\" style=\"text-decoration: underline;\">학습 히스토리 보기 →</a></p>"
+ },
+ "screenshot_results": "/tmp/t618d-en-results.png"
+}

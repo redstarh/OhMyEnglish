@@ -2147,6 +2147,74 @@ def test_the_requested_stage_is_relayed_and_does_not_end_anything_by_itself():
     ]
 
 
+async def test_a_control_tool_use_gets_a_tool_result_so_the_coach_can_keep_talking():
+    """⛔ `TASK-61.5`(결정 109) — 제어 tool 은 턴 **끝**에 오고 `stopReason` 이 `TOOL_USE` 라,
+    결과를 돌려주지 않으면 **모델이 그 턴을 이어 말할 기회가 없다.**
+
+    회차 계측(`runs/2026-09-15-task61-5-toolresult`)에서 `toolUse` 뒤에 온 것은 `usageEvent`
+    뿐이고 assistant `TEXT`·`AUDIO` 가 0건이었다. 그것이 한국어 명령의 침묵이다.
+    프로토콜은 공식 문서의 `toolResultInputConfiguration.toolUseId` 형태를 따른다.
+    """
+    events = [
+        _tool_content_start(),
+        _tool_use(
+            '{"command":"next_question","stage":"requested"}', tool_name=CONTROL_TOOL_NAME
+        ),
+        _content_end(TOOL_CONTENT_ID, "TOOL_USE"),
+    ]
+    stream = _FakeStream(
+        *({"event": {name: body}} for name, body in events), output_requires_input=False
+    )
+    adapter = _adapter(stream)
+    await adapter.start()
+
+    await _collect(adapter)
+    await adapter.close()
+
+    starts = [
+        payload
+        for payload in stream.payloads("contentStart")
+        if "toolResultInputConfiguration" in payload
+    ]
+    assert len(starts) == 1
+    assert starts[0]["toolResultInputConfiguration"]["toolUseId"] == TOOL_USE_ID
+    assert starts[0]["type"] == "TOOL"
+    assert starts[0]["role"] == "TOOL"
+    results = stream.payloads("toolResult")
+    assert len(results) == 1
+    # `content` 는 **문자열화한 JSON** 이다 (문서의 계약).
+    assert isinstance(results[0]["content"], str)
+    # ⛔ **명령 이름을 함께 담는다** — 결과만 「받았다」로 보내면 모델이 «무엇을» 받았는지 모르고
+    #    엉뚱한 문장으로 이어 말할 수 있다. 이 조각의 목적이 「이어 말하게 하는 것」이므로
+    #    그 문장이 맥락에 맞아야 목적이 달성된다.
+    assert json.loads(results[0]["content"]) == {
+        "status": "accepted",
+        "command": "next_question",
+    }
+
+
+async def test_a_pronunciation_tool_use_is_left_alone():
+    """⛔ 결정 109 가 범위를 제어 tool 하나로 좁힌 근거다 — 발음 tool 은 **지금 정상으로 도는
+    경로**이고(TOOL 블록이 ASSISTANT 텍스트보다 앞에 와서 결과 없이도 발화가 온다) 결과를
+    보내면 그 거동이 바뀔 위험만 생긴다.
+    """
+    events = [
+        _tool_content_start(),
+        _tool_use('{"outcome":"pending","target_form":"an apple"}'),
+        _content_end(TOOL_CONTENT_ID, "TOOL_USE"),
+    ]
+    stream = _FakeStream(
+        *({"event": {name: body}} for name, body in events), output_requires_input=False
+    )
+    adapter = _adapter(stream)
+    await adapter.start()
+
+    await _collect(adapter)
+    await adapter.close()
+
+    assert stream.payloads("toolResult") == []
+
+
 def test_a_broken_control_payload_produces_no_event():
     """⛔ 모호한 페이로드로 세션을 닫지 않는다 — 명령을 잃는 쪽이 안전한 쪽이다."""
     translated = _translate_all(
@@ -2178,7 +2246,22 @@ def test_the_prompt_names_both_commands_and_only_end_needs_confirmation():
     assert "show_report" in SYSTEM_PROMPT
     assert "the only command you act on is ending the session" not in squeezed
     # 확인이 필요 없다는 것을 문면이 말해야 한다 — 안 그러면 모델이 조회에도 확인을 묻는다.
-    assert "without asking for confirmation" in squeezed
+    assert "need no confirmation" in squeezed
+
+
+def test_the_prompt_makes_confirmation_free_commands_speak_after_the_tool_result():
+    """⛔ `TASK-61.5`(결정 109 후속) — 결과를 돌려보내기 시작하자 영어에서 코치가 **같은 말을
+    두 번** 했다(회차 세션 `af8a8594`: 명령 뒤 agent 발화 2행). tool 앞에서 이미 말했고 결과를
+    받고 또 말한 것이다.
+
+    ⚠️ **결정 104 D3(「확인을 소리로 먼저 묻는다」)은 확인이 필요한 명령의 규약이라 종료에만
+    남는다** — 확인을 기다리지 않는 명령은 먼저 말할 이유가 없고, 그것이 중복의 원인이었다.
+    ⚠️ 문면만으로 거동이 보장되지 않는다 — 실물 관측은 `TASK-61.5` AC#3 의 회차가 한다.
+    """
+    squeezed = " ".join(SYSTEM_PROMPT.split()).lower()
+
+    assert "call the tool first and speak only after you get the tool result" in squeezed
+    assert "do not say the same thing twice" in squeezed
 
 
 def test_the_prompt_names_next_question_and_puts_the_learner_before_the_plan():

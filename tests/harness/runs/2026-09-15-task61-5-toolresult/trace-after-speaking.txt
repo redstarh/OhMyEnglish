@@ -1,0 +1,14 @@
+TRACE toolUse {'role': 'TOOL', 'toolName': 'request_session_control', 'contentId': '6124be64-e5cb-4eff-84fb-ead9d3e055f4', 'toolUseId': 'ae7da5d5-5b5a-433a-98f5-cdaf35b902d7'}
+TRACE contentEnd {'type': 'TOOL', 'stopReason': 'TOOL_USE', 'contentId': '6124be64-e5cb-4eff-84fb-ead9d3e055f4'}
+TRACE usageEvent {}
+TRACE usageEvent {}
+TRACE usageEvent {}
+TRACE usageEvent {}
+TRACE contentStart {'role': 'ASSISTANT', 'type': 'TEXT', 'contentId': 'd49cd1ba-83e0-474a-bff9-a8a982f16bf1'}
+TRACE textOutput {'role': 'ASSISTANT', 'contentId': 'd49cd1ba-83e0-474a-bff9-a8a982f16bf1'}
+TRACE contentEnd {'type': 'TEXT', 'stopReason': 'PARTIAL_TURN', 'contentId': 'd49cd1ba-83e0-474a-bff9-a8a982f16bf1'}
+TRACE usageEvent {}
+TRACE contentStart {'role': 'ASSISTANT', 'type': 'AUDIO', 'contentId': '7c5d3f6f-9565-46b4-abcb-c7c3ef128d5c'}
+TRACE usageEvent {}
+TRACE audioOutput #325
+TRACE usageEvent {}

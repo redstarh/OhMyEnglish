@@ -21,9 +21,15 @@
    `toolUse` → `contentEnd(stopReason=TOOL_USE)` 순서로 온다. `inputSchema.json`은
    **JSON 문자열**이다(객체가 아니다). TOOL 블록은 ASSISTANT 텍스트보다 **앞**에 오고,
    Nova는 재발화 **전에** tool을 부른다(`outcome: "pending"`) — 그래서 tool 호출 1건이
-   판정된 시도 1건이 아니다(설계서 F3). `toolResult`는 **돌려보내지 않는다**: 안 보내도
-   `END_TURN`으로 정상 종료했다(캡틴 결정 2026-08-28). 그 관측은 1회뿐이라 다중 턴
-   거동은 5차수 관측 대상이다.
+   판정된 시도 1건이 아니다(설계서 F3).
+   ⛔ **`toolResult` 규약이 2026-09-15 에 갈렸다 (결정 109 · `TASK-61.5`).** 이전 서술은
+   *"돌려보내지 않는다: 안 보내도 `END_TURN`으로 정상 종료했다"*(캡틴 결정 2026-08-28)였고
+   **그 관측 자체는 지금도 참이다** — 발음 tool 은 TOOL 블록이 ASSISTANT 텍스트보다 **앞**에
+   와서 결과 없이도 발화가 온다. 그러나 **제어 tool 은 턴 끝에 와서 `stopReason=TOOL_USE`로
+   닫히고, 결과를 안 보내면 모델이 그 턴을 이어 말할 기회가 없다**(회차
+   `runs/2026-09-15-task61-5-toolresult` 계측: `toolUse` 뒤 assistant TEXT·AUDIO 0건).
+   ⇒ **제어 tool 에만 결과를 돌려보낸다.** 그 서술이 스스로 남긴 *"관측은 1회뿐이라 다중 턴
+   거동은 미검증"*(설계서 F6 · §9 미결 1)이 바로 이 자리였다.
 
 **무음 프레임은 만들지 않는다.** 스파이크는 WAV가 끝나면 프레임이 끊겨 endpointing을
 유도할 무음을 넣어야 했지만, 실제 마이크는 사용자가 말을 멈춘 뒤에도 계속 흐른다.
@@ -162,18 +168,18 @@ Voice control:
 12. Speech is only a command when it starts with "Oh My English" (Korean learners may say
     "오 마이 잉글리시"). Anything else is learning speech, even if it sounds like an
     instruction - "I want to end the meeting early" is a sentence to coach, not a command.
-13. You act on three commands. To end the session, say the confirmation question out loud
-    first - one short question such as "Do you want to end today's session?" - and then
-    call request_session_control with command "end" and stage "requested". Never call the
-    tool without speaking: the learner hears only your voice and has no other way to know
-    you are asking. Call it again with stage "confirmed" once the learner says yes, or
-    "cancelled" if they say no. The app closes the session only on "confirmed", so never
-    skip that second call. To show the weekly report, call request_session_control once
-    with command "show_report" and stage "requested", without asking for confirmation -
-    the report only appears on screen and the session keeps going, so there is nothing to
-    undo. Say one short sentence such as "Here is your weekly report." as you call it.
-    To move on to the next question, call request_session_control once with command
-    "next_question" and stage "requested", then ask the next question - even if the plan
+13. You act on three commands. Ending the session needs the learner's confirmation, so for
+    that one say the confirmation question out loud first - one short question such as "Do
+    you want to end today's session?" - and then call request_session_control with command
+    "end" and stage "requested". Never call the tool without speaking: the learner hears
+    only your voice and has no other way to know you are asking. Call it again with stage
+    "confirmed" once the learner says yes, or "cancelled" if they say no. The app closes
+    the session only on "confirmed", so never skip that second call.
+    The other two commands need no confirmation. For those, call the tool first and speak
+    only after you get the tool result - one short sentence, once. Do not say the same
+    thing twice. For the weekly report use command "show_report" with stage "requested",
+    then say something like "Here is your weekly report." To move on use command
+    "next_question" with stage "requested", then ask the next question - even if the plan
     asks you to stay on that question longer. The learner's request comes first.
 14. Answer a command in one short sentence and do not correct it - a command is not
     learning speech, so it never counts against rule 4."""
@@ -1045,6 +1051,12 @@ class NovaVoiceAdapter:
         self._translator = NovaEventTranslator()
         self._audio_open = False
         self._closed = False
+        # 결과를 돌려줄 제어 tool 호출 — `(toolUseId, command)` (`TASK-61.5` · 결정 109).
+        #
+        # ⛔ **제어 tool 만 담는다.** 발음 tool 은 TOOL 블록이 ASSISTANT 텍스트보다 **앞**에 와서
+        # (이 모듈 머리말 5) 결과 없이도 발화가 오고, 지금 정상으로 도는 경로다 — 결과를 보내면
+        # 그 거동이 바뀔 위험만 생긴다. 그 범위 판단이 결정 109 다.
+        self._pending_tool_results: list[tuple[str, str]] = []
         # `TASK-124`(결정 68) — 주입한다. 이 어댑터가 DB 를 알면 스트림 대역만으로 도는 단위
         # 테스트가 DB 를 요구한다(`BedrockClaudeClient` 와 같은 이음새·같은 근거).
         self._usage_sink = usage_sink
@@ -1178,6 +1190,9 @@ class NovaVoiceAdapter:
                     return
                 for event in self._translate_chunk(chunk):
                     self._queue.put_nowait(event)
+                # 제어 tool 결과는 **번역 직후** 보낸다 (결정 109) — 모델이 그 턴을 이어 말하려면
+                # 결과가 필요하고, 세션 계층의 처리를 기다리면 그 사이 턴이 닫힌다.
+                await self._flush_tool_results()
         except asyncio.CancelledError:
             raise
         except Exception:
@@ -1195,7 +1210,88 @@ class NovaVoiceAdapter:
         except (AttributeError, KeyError, StopIteration, TypeError, ValueError):
             logger.warning("Nova 출력을 해석할 수 없다: %r", raw[:120])
             return []
-        return self._translator.translate(name, body)
+        events = self._translator.translate(name, body)
+        if name == "toolUse" and body.get("toolName") == CONTROL_TOOL_NAME:
+            self._remember_control_tool_use(body, events)
+        return events
+
+    def _remember_control_tool_use(self, body: dict[str, Any], events: list[AdapterEvent]) -> None:
+        """제어 tool 호출에 결과를 돌려줄 것을 적어 둔다 (`TASK-61.5` · 결정 109).
+
+        ⛔ **번역 결과에서 명령을 읽는다 — 페이로드를 다시 파싱하지 않는다.** 두 곳이 파싱하면
+        검증 규약이 갈리고, 번역기가 버린 페이로드에 결과를 보내는 일이 생긴다.
+
+        ⚠️ **모호한 페이로드에는 결과를 보내지 않는다** — 이벤트가 만들어지지 않았다는 것은 명령을
+        실행하지 않았다는 뜻이고, 그때 「받았다」를 돌려주면 모델이 실행됐다고 믿는다. 그 턴에서
+        모델이 이어 말하지 못하는 것은 **알고 받는 대가**다(그 경우는 애초에 명령이 아니다).
+        """
+        tool_use_id = body.get("toolUseId")
+        command = next(
+            (event.command for event in events if isinstance(event, SessionCommandEvent)), None
+        )
+        if not isinstance(tool_use_id, str) or not tool_use_id or command is None:
+            logger.warning(
+                "제어 tool 결과를 보낼 수 없다 — toolUseId=%r · command=%r", tool_use_id, command
+            )
+            return
+        self._pending_tool_results.append((tool_use_id, command))
+
+    async def _flush_tool_results(self) -> None:
+        """적어 둔 제어 tool 결과를 Nova 로 돌려보낸다 (결정 109).
+
+        ⛔ **이 전송이 실패해도 세션을 끊지 않는다.** 결과를 못 보내면 모델이 그 턴을 이어 말하지
+        못할 뿐이고, 그것은 이 고침이 없던 상태와 같다 — 대화를 끊는 것보다 낫다.
+
+        모양의 정본은 공식 문서(`nova/latest/userguide/input-events.html`)다:
+        `contentStart`(`type`·`role` 이 `TOOL` · `toolResultInputConfiguration.toolUseId`) →
+        `toolResult`(`content` 는 **문자열화한 JSON**) → `contentEnd`.
+        """
+        while self._pending_tool_results:
+            tool_use_id, command = self._pending_tool_results.pop(0)
+            content_name = f"toolresult-{uuid.uuid4()}"
+            payloads = [
+                {
+                    "event": {
+                        "contentStart": {
+                            "promptName": self._prompt_name,
+                            "contentName": content_name,
+                            "interactive": False,
+                            "type": "TOOL",
+                            "role": "TOOL",
+                            "toolResultInputConfiguration": {
+                                "toolUseId": tool_use_id,
+                                "type": "TEXT",
+                                "textInputConfiguration": {"mediaType": "text/plain"},
+                            },
+                        }
+                    }
+                },
+                {
+                    "event": {
+                        "toolResult": {
+                            "promptName": self._prompt_name,
+                            "contentName": content_name,
+                            # 명령 이름을 함께 싣는다 — 「받았다」만 보내면 모델이 무엇을 받았는지
+                            # 모르고 맥락에 맞지 않는 문장으로 이어 말할 수 있다.
+                            "content": json.dumps({"status": "accepted", "command": command}),
+                        }
+                    }
+                },
+                {
+                    "event": {
+                        "contentEnd": {
+                            "promptName": self._prompt_name,
+                            "contentName": content_name,
+                        }
+                    }
+                },
+            ]
+            try:
+                for payload in payloads:
+                    await self._send_event(payload)
+            except Exception:
+                logger.exception("제어 tool 결과를 보내지 못했다 (toolUseId=%s)", tool_use_id)
+                return
 
     async def _send_event(self, payload: dict[str, Any]) -> None:
         from aws_sdk_bedrock_runtime.models import (

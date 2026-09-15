@@ -1,0 +1,3 @@
+TRACE toolUse {'role': 'TOOL', 'toolName': 'request_session_control', 'contentId': '10894caa-17ae-42e6-a11a-c7dccdd15793', 'toolUseId': '9ea99f00-0866-4592-915c-0e462d57382a'}
+TRACE contentEnd {'type': 'TOOL', 'stopReason': 'TOOL_USE', 'contentId': '10894caa-17ae-42e6-a11a-c7dccdd15793'}
+TRACE usageEvent {}
