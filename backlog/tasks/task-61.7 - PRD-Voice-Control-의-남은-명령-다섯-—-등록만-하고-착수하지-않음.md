@@ -1,9 +1,10 @@
 ---
 id: TASK-61.7
 title: PRD Voice Control 의 남은 명령 다섯 — 등록만 하고 착수하지 않음
-status: To Do
+status: Awaiting Decision
 assignee: []
 created_date: '2026-09-15 13:07'
+updated_date: '2026-09-15 13:08'
 labels: []
 dependencies: []
 parent_task_id: TASK-61
