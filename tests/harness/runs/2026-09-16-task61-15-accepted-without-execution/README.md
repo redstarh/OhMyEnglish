@@ -100,6 +100,8 @@ a5  Okay, the session has been ended as requested. If you need any more help in 
 
 - **AC#1(크기)**: `confirmed` 를 부른 팔에서 **4/4**. 앞 회차 1건을 더하면 **5/5**.
   ⛔ 「가끔」이 아니라 **그 조건에서는 늘 그렇다**로 읽힘 — 다만 표본 5임.
+  ⚠️ **둘째 회차(§4)가 나머지 두 명령에서도 4/4 로 같은 버려짐을 관측했음** — 다만 학습자가 겪는
+  크기는 명령마다 다르고 `next_question` 은 화면 갈림이 없음.
 - **AC#2(가름)**: 지시문 낭독은 **0/5** 로 이 조건이 결정하지 않음. 거짓 주장과 낭독은 **다른
   현상**이고 이 회차가 그 둘을 갈랐음.
 - **AC#3(고치는 자리)**: ⛔ 닫지 않음 — 설계 판단이고 통합 테스트 세션의 몫이 아님. 재료만 적음:
@@ -113,12 +115,44 @@ a5  Okay, the session has been ended as requested. If you need any more help in 
 
 ---
 
-## 4. teardown — 이 턴에 직접 돌린 출력
+## 4. 둘째 회차 — 되돌릴 수 있는 명령 둘에서도 같은 갈림이 남 (AC#1 의 범위 안임)
+
+첫 회차가 `end` 하나만 밟았으므로 **고치는 층을 정하는 데 걸리는 수치**를 위해 나머지 두 명령을
+같은 조건으로 밟았음. 스택은 새로 세웠고(`ohmyenglish_t6115b` · 주간 리포트 1행을 심었음 ·
+래퍼 `/tmp/t6115b_app.py`) 상한은 Nova **4세션** · Claude **0회** 임.
+새 픽스처 넷: `vc29_report_nomarker_en` · `vc30_report_nomarker_ko` · `vc31_next_nomarker_en` ·
+`vc32_next_nomarker_ko`(전부 표지 없음).
+
+| 팔 | 제어 이벤트 | warning | 프레임 | 코치가 한 말 | 앱이 한 일 |
+|---|---|---|---|---|---|
+| `b1-report-nomarker-en` | `show_report/requested` | **1** | **0** | *"Here is your weekly report. It shows your progress …"* | ⛔ 패널이 **뜨지 않았음**(스크린샷을 직접 봤음) |
+| `b2-report-nomarker-ko` | `show_report/requested` | **1** | **0** | *"Here is your weekly report."* | ⛔ 같음 |
+| `b3-next-nomarker-en` | `next_question/requested` | **1** | **0** | *"Okay, I will move to the next question. …"* | 화면 변화가 **애초에 없는** 명령임(아래) |
+| `b4-next-nomarker-ko` | `next_question/requested` | **1** | **0** | *"Okay, let's move to the next question. …"* | 같음 |
+
+제어 이벤트 **4건** · warning **4건** · 발화 유형은 **`learning` 17 · `voice_command` 0** 임.
+
+**갈림의 크기가 명령마다 다름 — 이것이 이 회차가 더한 값어치임**:
+
+| 명령 | 프레임이 버려졌을 때 학습자가 겪는 것 | 크기 |
+|---|---|---|
+| `end` | 「종료됐다」고 듣고 세션이 살아 있음 | 되돌릴 수 없는 것을 됐다고 들음 |
+| `start_additional` | 「바꿨다」고 듣고 세션이 안 갈림(`TASK-61.13`) | 기록이 엉뚱한 세션에 쌓임 |
+| `show_report` | 「리포트를 보여준다」고 듣는데 **패널이 없음** | 볼 수 없는 것을 봤다고 들음 |
+| `next_question` | 코치가 실제로 다음 질문을 함 ⇒ **화면 갈림이 없음** | 기록 유형만 바뀜 |
+
+⇒ ⛔ **네 명령이 같은 층에서 같은 이유로 버려지는데 학습자가 겪는 것은 다름.** `next_question` 은
+프레임이 화면을 바꾸지 않으므로(앞 회차 `task61-7` 이 「화면 변화 없음」을 관측했음) 버려져도
+대화가 맞게 이어짐. ⇒ **고치는 자리를 명령별로 나누는 안이 성립할 수 있고, 그 판단은 AC#3 임.**
+
+---
+
+## 5. teardown — 이 턴에 직접 돌린 출력 (두 회차 모두)
 
 | 대상 | 결과 |
 |---|---|
-| `:8012` · `:3001` · `:9333` | 전부 HTTP **000** |
-| 검증 전용 DB | `dropdb ohmyenglish_t6115` 성공 · 남은 DB 는 `ohmyenglish` · `ohmyenglish_smoke` · `ohmyenglish_test` |
-| `/tmp` 사본 | `fe-t6115` · `chrome-t6115` · `t6115_app.py` · 회차 로그 삭제 · 잔여 **0건** |
+| `:8012` · `:3001` · `:9333` | 두 회차 뒤 전부 HTTP **000** |
+| 검증 전용 DB | `dropdb ohmyenglish_t6115` · `dropdb ohmyenglish_t6115b` 성공 · 남은 DB 는 `ohmyenglish` · `ohmyenglish_smoke` · `ohmyenglish_test` |
+| `/tmp` 사본 | `fe-t6115`·`fe-t6115b` · `chrome-t6115`·`chrome-t6115b` · 래퍼 둘 · 회차 로그 삭제 · 잔여 **0건** |
 | 공유 dev DB | 손대지 않았음 — `learning_sessions` **17** · `schema_migrations` **22** 로 기준선과 같음 |
-| 리포에 남긴 것 | 픽스처 둘(`vc27` · `vc28`) · 이 디렉터리(관측 JSON 6 · `control-events.log` · `marker-drop-warnings.log` · `sessions.tsv` · `utterances.tsv` · 스크린샷 12) |
+| 리포에 남긴 것 | 픽스처 여섯(`vc27`~`vc32`) · 이 디렉터리(관측 JSON 10 · `control-events.log`·`control-events-round2.log` · `marker-drop-warnings*.log` · `sessions.tsv` · `utterances.tsv`·`utterances-round2.tsv` · 스크린샷 20) |

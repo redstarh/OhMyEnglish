@@ -1,0 +1,21 @@
+session_id	sequence_no	speaker	utterance_type	transcript
+f7081d97-803b-498d-8298-4b3d4d568125	1	user	learning	i had a busy week at work.
+f7081d97-803b-498d-8298-4b3d4d568125	2	agent	learning	That sounds like a full week! Can you tell me one good thing that happened at work this week?
+f7081d97-803b-498d-8298-4b3d4d568125	3	user	learning	show my weekly report.
+f7081d97-803b-498d-8298-4b3d4d568125	4	agent	learning	Here is your weekly report. It shows your progress on speaking English. Would you like to hear some details about it?
+d620ba0b-f3ec-4393-96a5-01f24ea2302d	1	user	learning	이번 주는 회사 일이 많았어요
+d620ba0b-f3ec-4393-96a5-01f24ea2302d	2	agent	learning	I see. You had a busy week at work. Can you tell me a little more about it?  What kind of work did you do this week?
+d620ba0b-f3ec-4393-96a5-01f24ea2302d	3	user	learning	주간 리포트 보여줘.
+d620ba0b-f3ec-4393-96a5-01f24ea2302d	4	agent	learning	Here is your weekly report.
+2c74df06-31c3-4793-a9f6-ceae1580471e	1	user	learning	i usually take the subway to work.
+2c74df06-31c3-4793-a9f6-ceae1580471e	2	agent	learning	That's a good sentence. Can you tell me what time you usually leave for work in the morning?
+2c74df06-31c3-4793-a9f6-ceae1580471e	3	user	learning	next question, please.
+2c74df06-31c3-4793-a9f6-ceae1580471e	4	agent	learning	Okay, I will move to the next question. What do you usually have for breakfast before work?
+907e4ebd-7c57-44d0-9189-2ca3ea7c5d9b	1	user	learning	저는 보통 지하철로 출근해요
+907e4ebd-7c57-44d0-9189-2ca3ea7c5d9b	2	agent	learning	That is a good sentence. Can you tell me what time you usually leave for work?
+907e4ebd-7c57-44d0-9189-2ca3ea7c5d9b	3	user	learning	다음 문제로 넘어가주세요
+907e4ebd-7c57-44d0-9189-2ca3ea7c5d9b	4	agent	learning	
+
+Okay, let's move to the next question. How do you usually get to your office?  Do you walk, take the bus, or use the subway?
+907e4ebd-7c57-44d0-9189-2ca3ea7c5d9b	5	agent	learning	Okay, let's move to the next question. How do you usually get to your office?  Do you walk, take the bus, or use the subway?
+(17개 행)

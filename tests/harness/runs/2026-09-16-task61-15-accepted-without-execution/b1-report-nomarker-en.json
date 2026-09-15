@@ -1,0 +1,395 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3001/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/vc10_learning_en.wav",
+  "urls": [
+   "/harness/vc10_learning_en.wav",
+   "/harness/vc29_report_nomarker_en.wav"
+  ],
+  "count": 2,
+  "bytes": 100518,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 2.885,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0,
+  "plays": []
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 3,
+   "final": 4,
+   "audio": 125,
+   "session_ended": 0,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 2,
+   "speech_end": 2,
+   "interrupted": 1,
+   "voice_command": 0
+  },
+  "sent": {
+   "audio": 962,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "startedSessionId": "f7081d97-803b-498d-8298-4b3d4d568125",
+  "fixture": {
+   "url": "/harness/vc10_learning_en.wav",
+   "urls": [
+    "/harness/vc10_learning_en.wav",
+    "/harness/vc29_report_nomarker_en.wav"
+   ],
+   "count": 2,
+   "bytes": 100518,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 2.885,
+   "startedAt": 223,
+   "endedAt": 7294,
+   "micCalls": 1,
+   "plays": [
+    {
+     "index": 0,
+     "url": "/harness/vc10_learning_en.wav",
+     "startedAt": 223,
+     "endedAt": 1721,
+     "gate": null
+    },
+    {
+     "index": 1,
+     "url": "/harness/vc29_report_nomarker_en.wav",
+     "startedAt": 5867,
+     "endedAt": 7294,
+     "gate": {
+      "heardAgentAudio": true,
+      "audioAtGate": 55,
+      "finalAtGate": 2,
+      "waitedMs": 5644
+     }
+    }
+   ]
+  },
+  "started": {
+   "count": 127,
+   "when": [
+    0,
+    3.224,
+    3.3030000000000004,
+    3.3830000000000005,
+    3.4630000000000005,
+    3.5430000000000006,
+    3.6230000000000007,
+    3.7030000000000007,
+    3.783000000000001,
+    3.863000000000001,
+    3.943000000000001,
+    4.023000000000001,
+    4.103000000000001,
+    4.183000000000001,
+    4.263000000000001,
+    4.343000000000001,
+    4.423000000000001,
+    4.503000000000001,
+    4.583000000000001,
+    4.663000000000001,
+    4.743000000000001,
+    4.823000000000001,
+    4.903000000000001,
+    4.983000000000001,
+    5.0630000000000015,
+    5.143000000000002,
+    5.223000000000002,
+    5.303000000000002,
+    5.383000000000002,
+    5.463000000000002,
+    5.543000000000002,
+    5.623000000000002,
+    5.703000000000002,
+    5.783000000000002,
+    5.863000000000002,
+    5.943000000000002,
+    6.023000000000002,
+    6.103000000000002,
+    6.1830000000000025,
+    6.263000000000003,
+    6.343000000000003,
+    6.423000000000003,
+    6.503000000000003,
+    6.583000000000003,
+    6.663000000000003,
+    6.743000000000003,
+    6.823000000000003,
+    6.903000000000003,
+    6.983000000000003,
+    7.063000000000003,
+    7.143000000000003,
+    7.223000000000003,
+    7.3030000000000035,
+    7.383000000000004,
+    7.463000000000004,
+    7.543000000000004,
+    0,
+    9.152,
+    9.231,
+    9.311,
+    9.391,
+    9.471,
+    9.551,
+    9.631,
+    9.711,
+    9.791,
+    9.871,
+    9.951,
+    10.031,
+    10.111,
+    10.191,
+    10.271,
+    10.351,
+    10.431000000000001,
+    10.511000000000001,
+    10.591000000000001,
+    10.671000000000001,
+    10.751000000000001,
+    10.831000000000001,
+    10.911000000000001,
+    10.991000000000001,
+    11.071000000000002,
+    11.151000000000002,
+    11.231000000000002,
+    11.311000000000002,
+    11.391000000000002,
+    11.471000000000002,
+    11.551000000000002,
+    11.631000000000002,
+    11.711000000000002,
+    11.791000000000002,
+    11.871000000000002,
+    11.951000000000002,
+    12.031000000000002,
+    12.111000000000002,
+    12.191000000000003,
+    12.271000000000003,
+    12.351000000000003,
+    12.431000000000003,
+    12.511000000000003,
+    12.591000000000003,
+    12.671000000000003,
+    12.872000000000003,
+    12.951000000000004,
+    13.031000000000004,
+    13.111000000000004,
+    13.191000000000004,
+    13.271000000000004,
+    13.351000000000004,
+    13.431000000000004,
+    13.511000000000005,
+    13.591000000000005,
+    13.671000000000005,
+    13.751000000000005,
+    13.831000000000005,
+    13.911000000000005,
+    13.991000000000005,
+    14.071000000000005,
+    14.151000000000005,
+    14.231000000000005,
+    14.311000000000005,
+    14.391000000000005,
+    14.471000000000005,
+    14.551000000000005,
+    14.631000000000006,
+    14.711000000000006,
+    14.951000000000006
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 211,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 2600,
+    "count": 1,
+    "texts": [
+     "답변: i had a busy week at work."
+    ]
+   },
+   {
+    "ts": 3363,
+    "count": 2,
+    "texts": [
+     "답변: i had a busy week at work.",
+     "질문: That sounds like a full week! Can you tell me one good thing that happened at work this week?"
+    ]
+   },
+   {
+    "ts": 8077,
+    "count": 3,
+    "texts": [
+     "답변: i had a busy week at work.",
+     "질문: That sounds like a full week! Can you tell me one good thing that happened at work this week?",
+     "답변: show my weekly report."
+    ]
+   },
+   {
+    "ts": 9294,
+    "count": 4,
+    "texts": [
+     "답변: i had a busy week at work.",
+     "질문: That sounds like a full week! Can you tell me one good thing that happened at work this week?",
+     "답변: show my weekly report.",
+     "질문: Here is your weekly report. It shows your progress on speaking English."
+    ]
+   },
+   {
+    "ts": 10235,
+    "count": 4,
+    "texts": [
+     "답변: i had a busy week at work.",
+     "질문: That sounds like a full week! Can you tell me one good thing that happened at work this week?",
+     "답변: show my weekly report.",
+     "질문:  Would you like to hear some details about it?"
+    ]
+   },
+   {
+    "ts": 10776,
+    "count": 4,
+    "texts": [
+     "답변: i had a busy week at work.",
+     "질문: That sounds like a full week! Can you tell me one good thing that happened at work this week?",
+     "답변: show my weekly report.",
+     "질문: Here is your weekly report. It shows your progress on speaking English. Would you like to hear some details about it?"
+    ]
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 30.778666666666666
+  },
+  "meta": {
+   "hookedAt": "2026-09-15T23:31:21.985Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789515082062,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789515082075,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3001/_next/hmr?id=ulHWvX6QaoJxADelLMb42",
+    "ws://localhost:8012/ws/session?source=recommended"
+   ]
+  },
+  "lines": [
+   "답변: i had a busy week at work.",
+   "질문: That sounds like a full week! Can you tell me one good thing that happened at work this week?",
+   "답변: show my weekly report.",
+   "질문: Here is your weekly report. It shows your progress on speaking English. Would you like to hear some details about it?"
+  ],
+  "url": "http://localhost:3001/",
+  "log": [
+   {
+    "at": 0,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 2437,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 30825,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 3,
+     "final": 4,
+     "audio": 125,
+     "session_ended": 0,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 2,
+     "speech_end": 2,
+     "interrupted": 1,
+     "voice_command": 0
+    }
+   }
+  ]
+ },
+ "screenshot_session": "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-16-task61-15-accepted-without-execution/shot-b1-report-nomarker-en-session.png",
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3001/results/f7081d97-803b-498d-8298-4b3d4d568125",
+  "recv": {
+   "session_started": 1,
+   "partial": 3,
+   "final": 4,
+   "audio": 125,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 2,
+   "speech_end": 2,
+   "interrupted": 1,
+   "voice_command": 0
+  },
+  "sent": {
+   "audio": 996,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 3
+  },
+  "finalLinesAtTerminal": [
+   "답변: i had a busy week at work.",
+   "질문: That sounds like a full week! Can you tell me one good thing that happened at work this week?",
+   "답변: show my weekly report.",
+   "질문: Here is your weekly report. It shows your progress on speaking English. Would you like to hear some details about it?"
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "오늘 학습을 마쳤어요",
+   "← 학습 시작 화면으로",
+   "학습 히스토리 보기 →"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><p style=\"color: var(--foreground-muted);\">오늘 학습을 마쳤어요</p><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p><p style=\"margin-top: 0.5rem;\"><a href=\"/history\" style=\"text-decoration: underline;\">학습 히스토리 보기 →</a></p>"
+ },
+ "screenshot_results": "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-16-task61-15-accepted-without-execution/shot-b1-report-nomarker-en-results.png"
+}

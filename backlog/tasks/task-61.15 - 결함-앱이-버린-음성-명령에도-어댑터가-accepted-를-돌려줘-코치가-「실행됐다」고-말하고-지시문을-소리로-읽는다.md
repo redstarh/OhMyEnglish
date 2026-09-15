@@ -4,7 +4,7 @@ title: '결함: 앱이 버린 음성 명령에도 어댑터가 accepted 를 돌�
 status: In Progress
 assignee: []
 created_date: '2026-09-15 23:17'
-updated_date: '2026-09-15 23:28'
+updated_date: '2026-09-15 23:36'
 labels: []
 dependencies: []
 parent_task_id: TASK-61
@@ -24,3 +24,15 @@ ordinal: 190000
 - [ ] #3 고치는 자리를 정한다: accepted 를 앱의 실행 판정 뒤로 미룰지, 버린 턴에 실패를 돌려줄지
 - [ ] #4 고치면 실물 회차로 관측한다
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+## 회차 2 — 되돌릴 수 있는 명령 둘 (2026-09-16 KST · 같은 세션)
+
+정본은 같은 회차 디렉터리 §4 임. 팔 넷(`show_report`·`next_question` × 두 언어)을 표지 없는 새 픽스처로 밟았음 — 제어 이벤트 4건 · warning 4건 · 프레임 0건 · 발화 유형은 전부 `learning`.
+
+⛔ **네 명령이 같은 층에서 같은 이유로 버려지는데 학습자가 겪는 것은 다름**: `end` 는 되돌릴 수 없는 것을 됐다고 듣고 · `show_report` 는 볼 수 없는 것을 봤다고 듣고(패널이 없는 것을 화면에서 직접 확인했음) · `next_question` 은 코치가 실제로 다음 질문을 하므로 화면 갈림이 없음. ⇒ AC#3(고치는 자리)에 「명령별로 나누는 안」이 재료로 들어감.
+
+새 픽스처 넷을 리포에 남겼음: vc29_report_nomarker_en · vc30_report_nomarker_ko · vc31_next_nomarker_en · vc32_next_nomarker_ko.
+<!-- SECTION:NOTES:END -->
