@@ -1,6 +1,6 @@
 # HANDOFF — OhMyEnglish
 
-> 최종 갱신 **2026-09-15 14:13 KST** · 세션 `ohmyenglish-65` · 브랜치 `design/first-vertical-slice`
+> 최종 갱신 **2026-09-15 21:24 KST**(마감 `session-wrap`) · 세션 `ohmyenglish-65` · 브랜치 `design/first-vertical-slice`
 > ⛔ **이전 판 셋은 `handoff/backup/2026-09-15/` 에 있음**(`…-0034.md` · `…-0229.md` · `…-1413.md`).
 > 인계 원칙의 정본은 `~/.claude/rules/session-handoff.md` 임. 상태 정본은 원장(`backlog/`), 근거
 > 정본은 **태스크 노트 · `tests/harness/runs/**` · `docs/ops/captain-instruction-register.md`** 임 —
@@ -13,9 +13,9 @@
 
 | # | 지표 | 값 |
 |--:|---|---|
-| 1 | 기준 커밋 | **`47c7b5e`** · `origin` 과 **0/0** · 미커밋은 미추적 `paseo.json` 하나(내 것 아님 · 3바이트 `{}` · 사용자가 「그대로 둠」으로 정했음). ⚠️ **이 판을 담은 커밋이 그 뒤에 오므로 새 세션의 `HEAD` 는 더 뒤일 수 있음** — 그 차이는 handoff 갱신 커밋 하나임 |
+| 1 | 기준 커밋 | **`bc1ce9e`** · `origin` 과 **0/0** · 미커밋은 미추적 `paseo.json` 하나(내 것 아님 · 3바이트 `{}` · 사용자가 「그대로 둠」으로 정했음). ⚠️ **이 판을 담은 커밋이 그 뒤에 오므로 새 세션의 `HEAD` 는 더 뒤일 수 있음** — 그 차이는 handoff 갱신 커밋 하나임 |
 | 2 | 다음 한 걸음 | **없음 — 잔여 7건이 전부 파킹임.** 마지막으로 닫은 것은 `TASK-61.5` 의 원인 가르기이고 사용자가 결정 106 으로 「그대로 둠」을 골랐음. 착수하려면 `TASK-61.6`(PRD 의 남은 명령)의 첫 AC 가 사용자 판단을 요구함 |
-| 3 | 게이트 | **여섯 다 초록** — `pytest` **1222 passed**(15.8s) · `ruff check .` · `ruff format --check .` **49 files** · `ty check` · 프론트 `npx tsc --noEmit` · `npx eslint .`(둘 다 0줄) |
+| 3 | 게이트 | **여섯 다 초록** — `pytest` **1222 passed**(13.89s · exit 0) · `ruff check .` · `ruff format --check .` **49 files** · `ty check` · 프론트 `npx tsc --noEmit` · `npx eslint .`(둘 다 0줄) |
 | 4 | 착수 전 필수 | 아래 ③. 잔여 **7건**(전부 `To Do` · In Progress 0 · 전체 **181** · 완료 **174**) |
 
 ```bash
@@ -103,5 +103,8 @@ cd ../frontend && npx tsc --noEmit && npx eslint .
   (역할 경계)과 **105**(표지의 대가를 받아들인 근거).
 - **회차 여섯** — 위 ① 의 목록. 특히 `task61-3` §3(결함 다섯의 재현 절차)과 `task61-4` §6-3
   (D2 를 닫은 팔) · `task61-5` §3(되돌린 프롬프트와 그 근거).
-- ⚠️ **미해결로 남긴 관측 하나**: `paseo.json` 이 미추적으로 떠 있음(3바이트 `{}` · 2026-09-14 생성 ·
-  내 것 아님). In Progress 태스크가 0건이면 원장 게이트 G1 이 이것으로 발동함 — 사용자 판단 대상임.
+- ⚠️ **알고 남긴 것 하나**: `paseo.json` 이 미추적으로 떠 있음(3바이트 `{}` · 2026-09-14 생성 · 내 것
+  아님). **사용자가 「그대로 둠」을 골랐음** — 그래서 In Progress 태스크가 0건이면 원장 게이트 G1 이
+  매 턴 이 파일로 발동함. 조용히 만들려면 `.gitignore` 에 한 줄을 더하는 것이 가장 싸고, 세션 단위로
+  내리려면 `BACKLOG_GATE=0` 임(`task-management.md` §9). ⛔ 태스크를 억지로 In Progress 로 올려
+  통과시키지 않음 — 원장이 사실과 어긋나게 됨.
