@@ -1,0 +1,396 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3001/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/vc08_ko_learning.wav",
+  "urls": [
+   "/harness/vc08_ko_learning.wav"
+  ],
+  "count": 1,
+  "bytes": 77624,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 2.298,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0,
+  "plays": []
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 4,
+   "final": 2,
+   "audio": 150,
+   "session_ended": 0,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 1,
+   "speech_end": 1,
+   "interrupted": 0,
+   "voice_command": 0
+  },
+  "sent": {
+   "audio": 692,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "startedSessionId": "0b36951e-7f0b-44b9-a4a3-da8c48fc8b79",
+  "fixture": {
+   "url": "/harness/vc08_ko_learning.wav",
+   "urls": [
+    "/harness/vc08_ko_learning.wav"
+   ],
+   "count": 1,
+   "bytes": 77624,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 2.298,
+   "startedAt": 199,
+   "endedAt": 2536,
+   "micCalls": 1,
+   "plays": [
+    {
+     "index": 0,
+     "url": "/harness/vc08_ko_learning.wav",
+     "startedAt": 199,
+     "endedAt": 2536,
+     "gate": null
+    }
+   ]
+  },
+  "started": {
+   "count": 151,
+   "when": [
+    0,
+    4.32,
+    4.399,
+    4.479,
+    4.559,
+    4.639,
+    4.719,
+    4.799,
+    4.8790000000000004,
+    4.9590000000000005,
+    5.039000000000001,
+    5.119000000000001,
+    5.199000000000001,
+    5.279000000000001,
+    5.359000000000001,
+    5.439000000000001,
+    5.519000000000001,
+    5.599000000000001,
+    5.679000000000001,
+    5.759000000000001,
+    5.839000000000001,
+    5.919000000000001,
+    5.999000000000001,
+    6.0790000000000015,
+    6.159000000000002,
+    6.239000000000002,
+    6.319000000000002,
+    6.399000000000002,
+    6.479000000000002,
+    6.559000000000002,
+    6.639000000000002,
+    6.719000000000002,
+    6.799000000000002,
+    6.879000000000002,
+    6.959000000000002,
+    7.039000000000002,
+    7.119000000000002,
+    7.360000000000002,
+    7.439000000000002,
+    7.519000000000002,
+    7.599000000000002,
+    7.679000000000002,
+    7.759000000000002,
+    7.839000000000002,
+    7.919000000000002,
+    7.999000000000002,
+    8.079000000000002,
+    8.159000000000002,
+    8.239000000000003,
+    8.319000000000003,
+    8.399000000000003,
+    8.479000000000003,
+    8.559000000000003,
+    8.639000000000003,
+    8.719000000000003,
+    8.799000000000003,
+    8.879000000000003,
+    8.959000000000003,
+    9.039000000000003,
+    9.119000000000003,
+    9.199000000000003,
+    9.279000000000003,
+    9.359000000000004,
+    9.439000000000004,
+    9.519000000000004,
+    9.599000000000004,
+    9.679000000000004,
+    9.759000000000004,
+    9.839000000000004,
+    9.919000000000004,
+    9.999000000000004,
+    10.079000000000004,
+    10.159000000000004,
+    10.239000000000004,
+    10.319000000000004,
+    10.399000000000004,
+    10.599000000000004,
+    10.600000000000003,
+    10.679000000000004,
+    10.759000000000004,
+    10.839000000000004,
+    10.919000000000004,
+    10.999000000000004,
+    11.079000000000004,
+    11.159000000000004,
+    11.239000000000004,
+    11.319000000000004,
+    11.399000000000004,
+    11.479000000000005,
+    11.559000000000005,
+    11.639000000000005,
+    11.719000000000005,
+    11.799000000000005,
+    11.879000000000005,
+    11.959000000000005,
+    12.039000000000005,
+    12.119000000000005,
+    12.199000000000005,
+    12.279000000000005,
+    12.359000000000005,
+    12.439000000000005,
+    12.519000000000005,
+    12.599000000000006,
+    12.679000000000006,
+    12.759000000000006,
+    12.839000000000006,
+    12.919000000000006,
+    12.999000000000006,
+    13.079000000000006,
+    13.159000000000006,
+    13.239000000000006,
+    13.319000000000006,
+    13.399000000000006,
+    13.479000000000006,
+    13.559000000000006,
+    13.639000000000006,
+    13.719000000000007,
+    13.799000000000007,
+    13.879000000000007,
+    13.959000000000007,
+    14.039000000000007,
+    14.119000000000007,
+    14.199000000000007,
+    14.399000000000006,
+    14.400000000000006,
+    14.479000000000006,
+    14.559000000000006,
+    14.639000000000006,
+    14.719000000000007,
+    14.799000000000007,
+    14.879000000000007,
+    14.959000000000007,
+    15.039000000000007,
+    15.119000000000007,
+    15.199000000000007,
+    15.279000000000007,
+    15.359000000000007,
+    15.439000000000007,
+    15.519000000000007,
+    15.599000000000007,
+    15.679000000000007,
+    15.759000000000007,
+    15.839000000000008,
+    15.919000000000008,
+    15.999000000000008,
+    16.079000000000008,
+    16.159000000000006,
+    16.239000000000004,
+    16.319000000000003,
+    16.399,
+    16.599
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 189,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 3552,
+    "count": 1,
+    "texts": [
+     "답변: 저는 어제 회의에서 보고를 했어요"
+    ]
+   },
+   {
+    "ts": 4440,
+    "count": 2,
+    "texts": [
+     "답변: 저는 어제 회의에서 보고를 했어요",
+     "질문: Great job! You said you reported at a meeting yesterday."
+    ]
+   },
+   {
+    "ts": 5153,
+    "count": 2,
+    "texts": [
+     "답변: 저는 어제 회의에서 보고를 했어요",
+     "질문:  Let's make it a little more natural for business English."
+    ]
+   },
+   {
+    "ts": 5923,
+    "count": 2,
+    "texts": [
+     "답변: 저는 어제 회의에서 보고를 했어요",
+     "질문: \nTry saying: \"I gave a report at the meeting yesterday.\""
+    ]
+   },
+   {
+    "ts": 6818,
+    "count": 2,
+    "texts": [
+     "답변: 저는 어제 회의에서 보고를 했어요",
+     "질문: \nCan you say that sentence for me?"
+    ]
+   },
+   {
+    "ts": 7199,
+    "count": 2,
+    "texts": [
+     "답변: 저는 어제 회의에서 보고를 했어요",
+     "질문: Great job! You said you reported at a meeting yesterday. Let's make it a little more natural for business English.\nTry saying: \"I gave a report at the meeting yesterday.\"\nCan you say that sentence for me?"
+    ]
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 22.133333333333333
+  },
+  "meta": {
+   "hookedAt": "2026-09-15T06:35:37.470Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789454137539,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789454137549,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3001/_next/hmr?id=Y2xSJhkPujeLCjn-lUbHw",
+    "ws://localhost:8012/ws/session?source=recommended"
+   ]
+  },
+  "lines": [
+   "답변: 저는 어제 회의에서 보고를 했어요",
+   "질문: Great job! You said you reported at a meeting yesterday. Let's make it a little more natural for business English.\nTry saying: \"I gave a report at the meeting yesterday.\"\nCan you say that sentence for me?"
+  ],
+  "url": "http://localhost:3001/",
+  "log": [
+   {
+    "at": 0,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 3420,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 22184,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 4,
+     "final": 2,
+     "audio": 150,
+     "session_ended": 0,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 1,
+     "speech_end": 1,
+     "interrupted": 0,
+     "voice_command": 0
+    }
+   }
+  ]
+ },
+ "screenshot_session": "../../tests/harness/runs/2026-09-15-task61-5-korean-voice/shot-ko-learning-session.png",
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3001/results/0b36951e-7f0b-44b9-a4a3-da8c48fc8b79",
+  "recv": {
+   "session_started": 1,
+   "partial": 4,
+   "final": 2,
+   "audio": 150,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 1,
+   "speech_end": 1,
+   "interrupted": 0,
+   "voice_command": 0
+  },
+  "sent": {
+   "audio": 726,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 3
+  },
+  "finalLinesAtTerminal": [
+   "답변: 저는 어제 회의에서 보고를 했어요",
+   "질문: Great job! You said you reported at a meeting yesterday. Let's make it a little more natural for business English.\nTry saying: \"I gave a report at the meeting yesterday.\"\nCan you say that sentence for me?"
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "오늘 학습을 마쳤어요",
+   "관찰된 신호",
+   "(전사문이 한국어로 인식되었습니다)",
+   "← 학습 시작 화면으로",
+   "학습 히스토리 보기 →"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><p style=\"color: var(--foreground-muted);\">오늘 학습을 마쳤어요</p><div style=\"margin-top: 1.5rem;\"><h2 style=\"font-size: 1rem;\">발음</h2><div style=\"border-left: 3px solid var(--foreground-muted); padding-left: 0.75rem; margin: 0.75rem 0px;\"><p style=\"margin: 0.25rem 0px 0px; font-size: 0.8rem; color: var(--foreground-muted);\">관찰된 신호</p><p style=\"margin: 0.25rem 0px; color: var(--foreground-muted);\">(전사문이 한국어로 인식되었습니다)</p></div></div><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p><p style=\"margin-top: 0.5rem;\"><a href=\"/history\" style=\"text-decoration: underline;\">학습 히스토리 보기 →</a></p>"
+ },
+ "screenshot_results": "../../tests/harness/runs/2026-09-15-task61-5-korean-voice/shot-ko-learning-results.png"
+}
