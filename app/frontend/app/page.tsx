@@ -13,6 +13,7 @@ import {
   type Speaker,
 } from "@/lib/ws";
 import { ShadowingPanel } from "./ShadowingPanel";
+import { WeeklyReportPanel } from "./WeeklyReportPanel";
 
 type ScreenState = "idle" | "connecting" | "active" | "ending" | "failed";
 
@@ -124,6 +125,9 @@ export default function SessionPage() {
   // 서버가 고른 쉐도잉 클립 (`TASK-66.7`). ⛔ **키의 부재는 「쉐도잉 세션이 아니다」다** —
   // `pronunciation_focus` 가 세운 규약과 같아서 요청하지 않은 세션에서는 `null` 로 남는다.
   const [shadowing, setShadowing] = useState<ShadowingSetup | null>(null);
+  // 음성 명령으로 열리는 주간 리포트 패널 (`TASK-61.6` · 결정 107). 화면을 옮기지 않는 이유는
+  // `WeeklyReportPanel` 의 머리말이 갖는다 — 이동하면 소켓이 닫혀 세션이 끝난다.
+  const [reportOpen, setReportOpen] = useState(false);
 
   const socketRef = useRef<SessionSocket | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -211,6 +215,15 @@ export default function SessionPage() {
         case "pronunciation":
           // `target_sound`는 기계 키라 읽지 않는다 (설계서 §10 미결 4).
           setPronunciation(event.outcome);
+          break;
+        case "voice_command":
+          // ⛔ **화면이 수행하는 명령은 `show_report` 하나다** — 종료는 서버가 `session_ended` 로
+          // 알리는 것이 정본이고, 화면이 앞질러 처리하면 확인 절차가 두 곳에 생긴다(`lib/ws.ts`).
+          // ⚠️ **`requested` 만 본다**: 확인을 타지 않는 명령이라 뒤 단계가 오지 않는 것이
+          // 정상이고, 모델이 `confirmed` 를 덧붙여 불러도 패널이 두 번 열리지 않는다(결정 107 ③).
+          if (event.command === "show_report" && event.stage === "requested") {
+            setReportOpen(true);
+          }
           break;
         case "session_failed":
           if (terminalHandledRef.current) return;
@@ -458,6 +471,9 @@ export default function SessionPage() {
           {/* 쉐도잉 클립 (`TASK-66.7`). 대화 상자 **아래**에 두는 이유: 클립은 세션이 시작할 때
               한 번 정해지는 재료이고 대화는 흐르는 것이라 위계가 다르다. */}
           {shadowing ? <ShadowingPanel setup={shadowing} /> : null}
+          {/* 주간 리포트 (`TASK-61.6`). 음성 명령으로만 열리고 **버튼으로 닫는다** — 닫기까지
+              음성으로 두면 명령이 둘로 늘고 그것은 이 조각의 범위가 아니다(결정 107 ①). */}
+          {reportOpen ? <WeeklyReportPanel onClose={() => setReportOpen(false)} /> : null}
           <button
             onClick={endSession}
             disabled={state === "ending"}

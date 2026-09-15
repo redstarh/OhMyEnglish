@@ -1956,6 +1956,74 @@ async def test_a_requested_end_command_does_not_close_the_session(db_pool, commi
     ]
 
 
+async def test_a_report_command_runs_at_once_and_keeps_the_session_open(
+    db_pool, committed_session
+):
+    """둘째 조각의 명령은 확인을 거치지 않는다 (`TASK-61.6` · 결정 107 ③).
+
+    ⛔ **판별력은 셋째 발화에 있다** — 종료였다면 그 발화가 `command_confirmation` 으로 저장된다
+    (위 `test_a_requested_end_command_does_not_close_the_session`). 리포트는 확인을 기다리지
+    않으므로 **`learning` 으로 남아야** 한다. 그것이 「확인 절차를 타지 않는다」의 관측 가능한 형태다.
+    """
+    adapter = ScriptedAdapter(
+        TranscriptEvent(kind="final", text="Oh My English, show my weekly report.", speaker="user"),
+        SessionCommandEvent(command="show_report", stage="requested"),
+        TranscriptEvent(kind="final", text="I had a busy week at work.", speaker="user"),
+    )
+    client = FakeClient()
+
+    await asyncio.wait_for(
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            client,
+            drain_timeout=FAST_DRAIN_TIMEOUT,
+        ).run(),
+        timeout=5.0,
+    )
+
+    assert client.of_type("voice_command") == [
+        {"type": "voice_command", "command": "show_report", "stage": "requested"},
+    ]
+    rows = await _typed_utterances(db_pool, committed_session.session_id)
+    assert [(row["utterance_type"], row["transcript"]) for row in rows] == [
+        ("voice_command", "Oh My English, show my weekly report."),
+        ("learning", "I had a busy week at work."),
+    ]
+
+
+async def test_an_unmarked_report_command_is_not_run_either(db_pool, committed_session):
+    """표지 요구(사용자 결정 104 D5)가 **둘째 명령에도** 걸린다 (`TASK-61.6` AC#2).
+
+    ⛔ 확인 절차가 없는 명령이라 표지가 유일한 방어다 — 종료는 확인이 한 겹 더 있지만 리포트는
+    이 검사를 통과하면 그대로 수행된다. 그래서 표지 없는 tool 은 방송조차 되지 않아야 한다.
+    ⚠️ 이 단정은 무력화로 판별력을 확인했다 — `_handle_command` 의 표지 검사를 끄면 실패한다.
+    """
+    adapter = ScriptedAdapter(
+        TranscriptEvent(kind="final", text="Show me my report from last week.", speaker="user"),
+        SessionCommandEvent(command="show_report", stage="requested"),
+    )
+    client = FakeClient()
+
+    await asyncio.wait_for(
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            client,
+            drain_timeout=FAST_DRAIN_TIMEOUT,
+        ).run(),
+        timeout=5.0,
+    )
+
+    assert client.of_type("voice_command") == []
+    rows = await _typed_utterances(db_pool, committed_session.session_id)
+    assert [(row["utterance_type"], row["transcript"]) for row in rows] == [
+        ("learning", "Show me my report from last week."),
+    ]
+
+
 async def test_a_marked_user_final_is_stored_as_a_command_not_learning(
     db_pool, committed_session
 ):

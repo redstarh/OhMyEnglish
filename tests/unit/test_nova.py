@@ -2166,6 +2166,21 @@ def test_system_prompt_tells_the_coach_the_command_marker_and_the_confirmation()
     assert "confirmed" in SYSTEM_PROMPT
 
 
+def test_the_prompt_names_both_commands_and_only_end_needs_confirmation():
+    """결정 107 — 둘째 명령이 지시문에 들어오고 확인은 종료에만 붙는다.
+
+    ⛔ **「종료가 유일한 명령」이라는 문면이 남아 있으면 모델이 리포트 명령을 부르지 않는다** —
+    tool 스키마에 값을 더하는 것만으로는 부르지 않고, 지시문이 그 명령을 알려야 한다.
+    ⚠️ 문면만으로 거동이 보장되지 않는다 — 실물 관측은 `TASK-61.6` AC#3 의 회차가 한다.
+    """
+    squeezed = " ".join(SYSTEM_PROMPT.split()).lower()
+
+    assert "show_report" in SYSTEM_PROMPT
+    assert "the only command you act on is ending the session" not in squeezed
+    # 확인이 필요 없다는 것을 문면이 말해야 한다 — 안 그러면 모델이 조회에도 확인을 묻는다.
+    assert "without asking for confirmation" in squeezed
+
+
 def test_the_prompt_tells_the_coach_to_ask_out_loud_before_calling_the_tool():
     """⛔ `TASK-61.4` D3(사용자 결정 104) — 실측에서 코치가 tool 만 부르고 **한 마디도 하지 않았다**.
 

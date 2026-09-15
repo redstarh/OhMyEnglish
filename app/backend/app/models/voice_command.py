@@ -21,9 +21,9 @@ logger = logging.getLogger(__name__)
 # 어댑터와 이 모듈이 같은 이름을 써야 한다.
 CONTROL_TOOL_NAME = "request_session_control"
 
-# 첫 조각이 받는 명령은 「종료」 하나다 (결정 102 ②). 되돌릴 수 없는 부류의 대표라
-# `command_confirmation` 을 같은 조각에서 실증할 수 있는 유일한 명령이다.
-ControlCommand = Literal["end"]
+# 받는 명령 둘. `end` 는 첫 조각(결정 102 ②)이고 `show_report` 는 둘째 조각(결정 107)이다 —
+# 되돌릴 수 있는 부류의 첫 명령이라 확인 절차를 타지 않는다.
+ControlCommand = Literal["end", "show_report"]
 
 # `requested` 는 「명령을 들었고 확인을 묻는다」, `confirmed` 는 「학습자가 확인했다」,
 # `cancelled` 는 「학습자가 물렸다」다. ⛔ 앱은 `confirmed` 에서만 세션을 닫는다.
@@ -31,6 +31,13 @@ ControlStage = Literal["requested", "confirmed", "cancelled"]
 
 CONTROL_COMMANDS: tuple[ControlCommand, ...] = get_args(ControlCommand)
 CONTROL_STAGES: tuple[ControlStage, ...] = get_args(ControlStage)
+
+# 확인을 거쳐야 하는 명령 (결정 107 ③). PRD:85 가 「학습 종료·녹음 삭제 등 **결과가 큰** 명령」에만
+# 확인을 요구하므로 조회는 이 집합에 들지 않는다.
+#
+# ⛔ **판정을 앱이 갖는다** — 모델의 규율에 맡기면 조회에도 확인을 묻거나(대화가 늘어진다) 종료를
+# 확인 없이 부른다(결정 102 ③이 막으려던 것이다). `is_wake_command` 를 앱에 둔 것과 같은 규약이다.
+CONFIRMATION_REQUIRED: frozenset[ControlCommand] = frozenset({"end"})
 
 # Nova Sonic 의 `inputSchema.json` 은 JSON **문자열**이다 (객체가 아니다 — 스파이크 F1).
 CONTROL_TOOL_SCHEMA_JSON = json.dumps(
@@ -84,6 +91,15 @@ def is_wake_command(text: str) -> bool:
     """
     squeezed = _squeeze(text)
     return any(squeezed.startswith(form) for form in _WAKE_FORMS)
+
+
+def requires_confirmation(command: str) -> bool:
+    """이 명령이 확인을 거쳐야 하는가 (결정 107 ③).
+
+    모르는 명령은 `parse_control_payload` 가 이미 버리므로 여기까지 오지 않는다 — 그래도
+    `in` 검사로 두어 **모르는 값이 확인 없이 통과하는 쪽으로 기울지 않게** 한다.
+    """
+    return command in CONFIRMATION_REQUIRED
 
 
 class ControlReport(pydantic.BaseModel):

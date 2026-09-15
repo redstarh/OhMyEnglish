@@ -43,7 +43,7 @@ from app.audio_gateway.port import (
     TranscriptEvent,
     VoiceAdapter,
 )
-from app.models.voice_command import is_wake_command
+from app.models.voice_command import is_wake_command, requires_confirmation
 from app.services.pronunciation import (
     check_recorded_sounds,
     note_transcript,
@@ -404,8 +404,12 @@ class SessionRunner:
     async def _handle_command(self, event: SessionCommandEvent) -> bool:
         """음성 명령을 기록·방송한다. **세션을 닫아야 하면 `True`** (`TASK-61.1` · 결정 102).
 
-        ⛔ **닫는 것은 `confirmed` 하나다.** `requested` 로 닫으면 오인식 한 번이 세션을 끝내고,
-        그것이 결정 102 ③이 확인 절차를 둔 이유다. `cancelled` 는 기록만 남기고 대화를 잇는다.
+        ⛔ **닫는 것은 종료 명령의 `confirmed` 하나다.** `requested` 로 닫으면 오인식 한 번이
+        세션을 끝내고, 그것이 결정 102 ③이 확인 절차를 둔 이유다. `cancelled` 는 기록만 남기고
+        대화를 잇는다.
+
+        ⚠️ **확인이 필요한지는 명령마다 다르고 그 판정은 `requires_confirmation` 이 갖는다**
+        (결정 107 ③). 되돌릴 수 있는 명령은 `requested` 하나로 끝나고 세션에 손대지 않는다.
 
         ⚠️ **닫는 방법을 새로 만들지 않는다** — 이 펌프에서 돌아가면 `_relay` 의 `asyncio.wait` 가
         깨어나 기존 종료 경로(`_close_and_record('completed')` → `session_ended`)를 그대로 탄다.
@@ -425,6 +429,16 @@ class SessionRunner:
             )
             return False
         await self._send({"type": "voice_command", "command": event.command, "stage": event.stage})
+        if not requires_confirmation(event.command):
+            # 되돌릴 수 있는 명령은 `requested` 하나로 끝난다 (결정 107 ③) — 화면이 이 프레임을
+            # 받아 수행하고, 서버 상태는 바뀌지 않는다.
+            # ⛔ **확인을 기다리지 않는 것이 관측 가능해야 한다** — 여기서 `_awaiting_confirmation`
+            #    을 세우면 다음 학습 발화가 `command_confirmation` 으로 저장되어 분석에서 빠진다.
+            # ⚠️ 모델이 이 명령에 `confirmed` 를 덧붙여 불러도 방송만 되고 아무것도 두 번 되지
+            #    않는다 — 화면은 `requested` 만 보고 움직인다(`frontend/app/page.tsx`).
+            self._marker_seen = False
+            self._awaiting_confirmation = False
+            return False
         if event.stage == "requested":
             # 다음 학습자 발화가 **확인 답**이다 — 유형은 `_classify_user_final` 이 바꾼다.
             # ⛔ tool 이 실어 온 `heard` 를 따로 저장하지 않는다: 같은 발화가 두 행이 됐던 것이

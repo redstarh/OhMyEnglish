@@ -5,7 +5,28 @@
 닫는 것이 기록 하나를 잃는 것보다 나쁘다(결정 102 ③이 확인 절차를 둔 이유와 같다).
 """
 
-from app.models.voice_command import is_wake_command, parse_control_payload
+from app.models.voice_command import (
+    is_wake_command,
+    parse_control_payload,
+    requires_confirmation,
+)
+
+
+def test_a_report_command_payload_becomes_a_report() -> None:
+    """둘째 조각의 명령은 「주간 리포트 보기」다 (`TASK-61.6` · 결정 107)."""
+    report = parse_control_payload('{"command": "show_report", "stage": "requested"}')
+
+    assert report is not None
+    assert report.command == "show_report"
+    assert report.stage == "requested"
+
+
+def test_only_a_command_that_cannot_be_undone_needs_confirmation() -> None:
+    """⛔ 확인 필요 여부를 **앱이** 판정한다 — 모델의 규율에 맡기면 조회에도 확인을 묻거나
+    종료를 확인 없이 부른다. PRD:85 는 「결과가 큰 명령」에만 확인을 요구한다(결정 107 ③).
+    """
+    assert requires_confirmation("end") is True
+    assert requires_confirmation("show_report") is False
 
 
 def test_a_confirmed_end_payload_becomes_a_report() -> None:

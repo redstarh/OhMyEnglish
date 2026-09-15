@@ -103,12 +103,21 @@ export type ServerEvent =
       target_form: string;
       target_sound: string | null;
     }
-  // 음성 명령 (`TASK-61.1` · 결정 102). 서버가 명령을 **들었다는 사실**을 알린다.
+  // 음성 명령 (`TASK-61.1` · 결정 102 · `TASK-61.6` · 결정 107). 서버가 명령을 **들었다는
+  // 사실**을 알린다.
   //
   // ⛔ 화면이 이 프레임으로 세션을 끝내지 않는다 — 종료는 서버가 `stage: "confirmed"` 뒤에
   // 보내는 `session_ended` 가 정본이다. 확인을 화면이 앞질러 처리하면 확인 절차(결정 102 ③)가
   // 두 곳에 생긴다.
-  | { type: "voice_command"; command: "end"; stage: "requested" | "confirmed" | "cancelled" }
+  //
+  // ⚠️ **`show_report` 는 화면이 수행하는 유일한 명령이다** — 서버 상태가 바뀌지 않으므로
+  // 서버가 뒤이어 보낼 프레임이 없다(결정 107 ②). 화면은 `stage: "requested"` 하나만 보고
+  // 움직인다 — 확인을 타지 않는 명령이라 뒤 단계가 오지 않는 것이 정상이다(결정 107 ③).
+  | {
+      type: "voice_command";
+      command: "end" | "show_report";
+      stage: "requested" | "confirmed" | "cancelled";
+    }
   | { type: "session_failed"; reason: string }
   | { type: "session_ended"; session_id: string };
 
