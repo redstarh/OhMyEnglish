@@ -1,0 +1,363 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3001/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/vc09_report_en.wav",
+  "urls": [
+   "/harness/vc09_report_en.wav",
+   "/harness/vc10_learning_en.wav"
+  ],
+  "count": 2,
+  "bytes": 136070,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 3.996,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0,
+  "plays": []
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 3,
+   "final": 4,
+   "audio": 93,
+   "session_ended": 0,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 2,
+   "speech_end": 2,
+   "interrupted": 1,
+   "voice_command": 1
+  },
+  "sent": {
+   "audio": 1110,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "startedSessionId": "393e16f3-a2b9-46d7-ba82-7979d9d5601d",
+  "fixture": {
+   "url": "/harness/vc09_report_en.wav",
+   "urls": [
+    "/harness/vc09_report_en.wav",
+    "/harness/vc10_learning_en.wav"
+   ],
+   "count": 2,
+   "bytes": 136070,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 3.996,
+   "startedAt": 213,
+   "endedAt": 7854,
+   "micCalls": 1,
+   "plays": [
+    {
+     "index": 0,
+     "url": "/harness/vc09_report_en.wav",
+     "startedAt": 213,
+     "endedAt": 2815,
+     "gate": null
+    },
+    {
+     "index": 1,
+     "url": "/harness/vc10_learning_en.wav",
+     "startedAt": 6330,
+     "endedAt": 7854,
+     "gate": {
+      "heardAgentAudio": true,
+      "audioAtGate": 19,
+      "finalAtGate": 2,
+      "waitedMs": 6117
+     }
+    }
+   ]
+  },
+  "started": {
+   "count": 95,
+   "when": [
+    0,
+    4.896,
+    4.975,
+    5.055,
+    5.135,
+    5.215,
+    5.295,
+    5.375,
+    5.455,
+    5.535,
+    5.615,
+    5.695,
+    5.775,
+    5.855,
+    5.9350000000000005,
+    6.015000000000001,
+    6.095000000000001,
+    6.175000000000001,
+    6.255000000000001,
+    6.455000000000001,
+    0,
+    9.048,
+    9.127,
+    9.207,
+    9.287,
+    9.367,
+    9.447000000000001,
+    9.527000000000001,
+    9.607000000000001,
+    9.687000000000001,
+    9.767000000000001,
+    9.847000000000001,
+    9.927000000000001,
+    10.007000000000001,
+    10.087000000000002,
+    10.167000000000002,
+    10.247000000000002,
+    10.327000000000002,
+    10.407000000000002,
+    10.487000000000002,
+    10.567000000000002,
+    10.647000000000002,
+    10.727000000000002,
+    10.807000000000002,
+    10.887000000000002,
+    10.967000000000002,
+    11.047000000000002,
+    11.127000000000002,
+    11.207000000000003,
+    11.287000000000003,
+    11.367000000000003,
+    11.447000000000003,
+    11.527000000000003,
+    11.607000000000003,
+    11.687000000000003,
+    11.767000000000003,
+    11.847000000000003,
+    11.927000000000003,
+    12.007000000000003,
+    12.087000000000003,
+    12.167000000000003,
+    12.368000000000004,
+    12.447000000000005,
+    12.527000000000005,
+    12.607000000000005,
+    12.687000000000005,
+    12.767000000000005,
+    12.847000000000005,
+    12.927000000000005,
+    13.007000000000005,
+    13.087000000000005,
+    13.167000000000005,
+    13.247000000000005,
+    13.327000000000005,
+    13.407000000000005,
+    13.487000000000005,
+    13.567000000000005,
+    13.647000000000006,
+    13.727000000000006,
+    13.807000000000006,
+    13.887000000000006,
+    13.967000000000006,
+    14.047000000000006,
+    14.127000000000006,
+    14.207000000000006,
+    14.287000000000006,
+    14.367000000000006,
+    14.447000000000006,
+    14.527000000000006,
+    14.607000000000006,
+    14.687000000000006,
+    14.767000000000007,
+    14.847000000000007,
+    14.927000000000007,
+    15.167000000000007
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 200,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 3766,
+    "count": 1,
+    "texts": [
+     "답변: oh my english, show my weekly report."
+    ]
+   },
+   {
+    "ts": 5053,
+    "count": 2,
+    "texts": [
+     "답변: oh my english, show my weekly report.",
+     "질문: Here is your weekly report."
+    ]
+   },
+   {
+    "ts": 8676,
+    "count": 3,
+    "texts": [
+     "답변: oh my english, show my weekly report.",
+     "질문: Here is your weekly report.",
+     "답변: i had a busy week at work."
+    ]
+   },
+   {
+    "ts": 9251,
+    "count": 4,
+    "texts": [
+     "답변: oh my english, show my weekly report.",
+     "질문: Here is your weekly report.",
+     "답변: i had a busy week at work.",
+     "질문: That sounds like a full week! What kind of work did you do this week?"
+    ]
+   },
+   {
+    "ts": 10074,
+    "count": 4,
+    "texts": [
+     "답변: oh my english, show my weekly report.",
+     "질문: Here is your weekly report.",
+     "답변: i had a busy week at work.",
+     "질문:   Did you have any big meetings or projects?"
+    ]
+   },
+   {
+    "ts": 10714,
+    "count": 4,
+    "texts": [
+     "답변: oh my english, show my weekly report.",
+     "질문: Here is your weekly report.",
+     "답변: i had a busy week at work.",
+     "질문: That sounds like a full week! What kind of work did you do this week?  Did you have any big meetings or projects?"
+    ]
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 35.472
+  },
+  "meta": {
+   "hookedAt": "2026-09-15T23:00:57.816Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789513257893,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789513257906,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3001/_next/hmr?id=9-CQABfJ0pk93txrIbLM-",
+    "ws://localhost:8012/ws/session?source=recommended"
+   ]
+  },
+  "lines": [
+   "답변: oh my english, show my weekly report.",
+   "질문: Here is your weekly report.",
+   "답변: i had a busy week at work.",
+   "질문: That sounds like a full week! What kind of work did you do this week?  Did you have any big meetings or projects?"
+  ],
+  "url": "http://localhost:3001/",
+  "log": [
+   {
+    "at": 0,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 3673,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 35650,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 3,
+     "final": 4,
+     "audio": 93,
+     "session_ended": 0,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 2,
+     "speech_end": 2,
+     "interrupted": 1,
+     "voice_command": 1
+    }
+   }
+  ]
+ },
+ "screenshot_session": "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-16-task61-14-prompt-change-regression/shot-report-en-session.png",
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3001/results/393e16f3-a2b9-46d7-ba82-7979d9d5601d",
+  "recv": {
+   "session_started": 1,
+   "partial": 3,
+   "final": 4,
+   "audio": 93,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 2,
+   "speech_end": 2,
+   "interrupted": 1,
+   "voice_command": 1
+  },
+  "sent": {
+   "audio": 1145,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 3
+  },
+  "finalLinesAtTerminal": [
+   "답변: oh my english, show my weekly report.",
+   "질문: Here is your weekly report.",
+   "답변: i had a busy week at work.",
+   "질문: That sounds like a full week! What kind of work did you do this week?  Did you have any big meetings or projects?"
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "오늘 학습을 마쳤어요",
+   "← 학습 시작 화면으로",
+   "학습 히스토리 보기 →"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><p style=\"color: var(--foreground-muted);\">오늘 학습을 마쳤어요</p><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p><p style=\"margin-top: 0.5rem;\"><a href=\"/history\" style=\"text-decoration: underline;\">학습 히스토리 보기 →</a></p>"
+ },
+ "screenshot_results": "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-16-task61-14-prompt-change-regression/shot-report-en-results.png"
+}

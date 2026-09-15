@@ -1,0 +1,317 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3001/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/vc11_report_ko.wav",
+  "urls": [
+   "/harness/vc11_report_ko.wav",
+   "/harness/vc12_learning_ko.wav"
+  ],
+  "count": 2,
+  "bytes": 165940,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 4.93,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0,
+  "plays": []
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 2,
+   "final": 4,
+   "audio": 65,
+   "session_ended": 0,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 2,
+   "speech_end": 2,
+   "interrupted": 1,
+   "voice_command": 1
+  },
+  "sent": {
+   "audio": 1129,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 1
+  },
+  "startedSessionId": "b0cae1f5-a487-4743-b6bd-938b83f74c9e",
+  "fixture": {
+   "url": "/harness/vc11_report_ko.wav",
+   "urls": [
+    "/harness/vc11_report_ko.wav",
+    "/harness/vc12_learning_ko.wav"
+   ],
+   "count": 2,
+   "bytes": 165940,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 4.93,
+   "startedAt": 116,
+   "endedAt": 8130,
+   "micCalls": 1,
+   "plays": [
+    {
+     "index": 0,
+     "url": "/harness/vc11_report_ko.wav",
+     "startedAt": 116,
+     "endedAt": 3069,
+     "gate": null
+    },
+    {
+     "index": 1,
+     "url": "/harness/vc12_learning_ko.wav",
+     "startedAt": 6147,
+     "endedAt": 8130,
+     "gate": {
+      "heardAgentAudio": true,
+      "audioAtGate": 16,
+      "finalAtGate": 2,
+      "waitedMs": 6031
+     }
+    }
+   ]
+  },
+  "started": {
+   "count": 67,
+   "when": [
+    0,
+    5.488,
+    5.567,
+    5.647,
+    5.727,
+    5.807,
+    5.8870000000000005,
+    5.9670000000000005,
+    6.047000000000001,
+    6.127000000000001,
+    6.207000000000001,
+    6.287000000000001,
+    6.367000000000001,
+    6.447000000000001,
+    6.527000000000001,
+    6.607000000000001,
+    6.807000000000001,
+    0,
+    9.824,
+    9.903,
+    9.983,
+    10.063,
+    10.143,
+    10.223,
+    10.303,
+    10.383000000000001,
+    10.463000000000001,
+    10.543000000000001,
+    10.623000000000001,
+    10.703000000000001,
+    10.783000000000001,
+    10.863000000000001,
+    10.943000000000001,
+    11.023000000000001,
+    11.103000000000002,
+    11.183000000000002,
+    11.263000000000002,
+    11.343000000000002,
+    11.423000000000002,
+    11.503000000000002,
+    11.583000000000002,
+    11.663000000000002,
+    11.743000000000002,
+    11.823000000000002,
+    11.903000000000002,
+    11.983000000000002,
+    12.063000000000002,
+    12.143000000000002,
+    12.223000000000003,
+    12.303000000000003,
+    12.383000000000003,
+    12.463000000000003,
+    12.543000000000003,
+    12.623000000000003,
+    12.703000000000003,
+    12.783000000000003,
+    12.863000000000003,
+    12.943000000000003,
+    13.023000000000003,
+    13.103000000000003,
+    13.183000000000003,
+    13.263000000000003,
+    13.343000000000004,
+    13.423000000000004,
+    13.503000000000004,
+    13.583000000000004,
+    13.663000000000004
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 105,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 4082,
+    "count": 1,
+    "texts": [
+     "답변: 오마이잉글리시 주간 리포트 보여줘"
+    ]
+   },
+   {
+    "ts": 5459,
+    "count": 2,
+    "texts": [
+     "답변: 오마이잉글리시 주간 리포트 보여줘",
+     "질문: Here is your weekly report."
+    ]
+   },
+   {
+    "ts": 8982,
+    "count": 3,
+    "texts": [
+     "답변: 오마이잉글리시 주간 리포트 보여줘",
+     "질문: Here is your weekly report.",
+     "답변: 이번 주는 회사 일이 많았어요"
+    ]
+   },
+   {
+    "ts": 9799,
+    "count": 4,
+    "texts": [
+     "답변: 오마이잉글리시 주간 리포트 보여줘",
+     "질문: Here is your weekly report.",
+     "답변: 이번 주는 회사 일이 많았어요",
+     "질문: I hear you had a busy week at work. Can you tell me one good thing that happened this week?"
+    ]
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 36.144
+  },
+  "meta": {
+   "hookedAt": "2026-09-15T23:01:39.377Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789513299378,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789513299389,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3001/_next/hmr?id=JhKu1IDeGMKIjl7HN7q7V",
+    "ws://localhost:8012/ws/session?source=recommended"
+   ]
+  },
+  "lines": [
+   "답변: 오마이잉글리시 주간 리포트 보여줘",
+   "질문: Here is your weekly report.",
+   "답변: 이번 주는 회사 일이 많았어요",
+   "질문: I hear you had a busy week at work. Can you tell me one good thing that happened this week?"
+  ],
+  "url": "http://localhost:3001/",
+  "log": [
+   {
+    "at": 0,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 4037,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 36128,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 2,
+     "final": 4,
+     "audio": 65,
+     "session_ended": 0,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 2,
+     "speech_end": 2,
+     "interrupted": 1,
+     "voice_command": 1
+    }
+   }
+  ]
+ },
+ "screenshot_session": "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-16-task61-14-prompt-change-regression/shot-report-ko-session.png",
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3001/results/b0cae1f5-a487-4743-b6bd-938b83f74c9e",
+  "recv": {
+   "session_started": 1,
+   "partial": 2,
+   "final": 4,
+   "audio": 65,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 2,
+   "speech_end": 2,
+   "interrupted": 1,
+   "voice_command": 1
+  },
+  "sent": {
+   "audio": 1163,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "finalLinesAtTerminal": [
+   "답변: 오마이잉글리시 주간 리포트 보여줘",
+   "질문: Here is your weekly report.",
+   "답변: 이번 주는 회사 일이 많았어요",
+   "질문: I hear you had a busy week at work. Can you tell me one good thing that happened this week?"
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "오늘 학습을 마쳤어요 — 시나리오 2개",
+   "관찰된 신호",
+   "(전사문이 한국어로 인식되었습니다)",
+   "← 학습 시작 화면으로",
+   "학습 히스토리 보기 →"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><p style=\"color: var(--foreground-muted);\">오늘 학습을 마쳤어요 — 시나리오 2개</p><div style=\"margin-top: 1.5rem;\"><h2 style=\"font-size: 1rem;\">발음</h2><div style=\"border-left: 3px solid var(--foreground-muted); padding-left: 0.75rem; margin: 0.75rem 0px;\"><p style=\"margin: 0.25rem 0px 0px; font-size: 0.8rem; color: var(--foreground-muted);\">관찰된 신호</p><p style=\"margin: 0.25rem 0px; color: var(--foreground-muted);\">(전사문이 한국어로 인식되었습니다)</p></div></div><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p><p style=\"margin-top: 0.5rem;\"><a href=\"/history\" style=\"text-decoration: underline;\">학습 히스토리 보기 →</a></p>"
+ },
+ "screenshot_results": "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-16-task61-14-prompt-change-regression/shot-report-ko-results.png"
+}

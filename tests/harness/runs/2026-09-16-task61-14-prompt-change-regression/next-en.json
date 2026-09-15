@@ -1,0 +1,360 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3001/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/vc13_learning_en.wav",
+  "urls": [
+   "/harness/vc13_learning_en.wav",
+   "/harness/vc14_next_en.wav"
+  ],
+  "count": 2,
+  "bytes": 136814,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 4.019,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0,
+  "plays": []
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 2,
+   "final": 4,
+   "audio": 110,
+   "session_ended": 0,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 2,
+   "speech_end": 2,
+   "interrupted": 1,
+   "voice_command": 1
+  },
+  "sent": {
+   "audio": 1068,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 1
+  },
+  "startedSessionId": "b813dd6c-46b5-4996-b9fe-6c03017b2110",
+  "fixture": {
+   "url": "/harness/vc13_learning_en.wav",
+   "urls": [
+    "/harness/vc13_learning_en.wav",
+    "/harness/vc14_next_en.wav"
+   ],
+   "count": 2,
+   "bytes": 136814,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 4.019,
+   "startedAt": 109,
+   "endedAt": 9279,
+   "micCalls": 1,
+   "plays": [
+    {
+     "index": 0,
+     "url": "/harness/vc13_learning_en.wav",
+     "startedAt": 109,
+     "endedAt": 2058,
+     "gate": null
+    },
+    {
+     "index": 1,
+     "url": "/harness/vc14_next_en.wav",
+     "startedAt": 7207,
+     "endedAt": 9279,
+     "gate": {
+      "heardAgentAudio": true,
+      "audioAtGate": 50,
+      "finalAtGate": 2,
+      "waitedMs": 7098
+     }
+    }
+   ]
+  },
+  "started": {
+   "count": 112,
+   "when": [
+    0,
+    4.76,
+    4.8389999999999995,
+    4.919,
+    4.999,
+    5.079,
+    5.159,
+    5.239,
+    5.319,
+    5.399,
+    5.479,
+    5.559,
+    5.639,
+    5.719,
+    5.799,
+    5.8790000000000004,
+    5.9590000000000005,
+    6.039000000000001,
+    6.119000000000001,
+    6.199000000000001,
+    6.279000000000001,
+    6.359000000000001,
+    6.439000000000001,
+    6.519000000000001,
+    6.599000000000001,
+    6.679000000000001,
+    6.759000000000001,
+    6.839000000000001,
+    6.919000000000001,
+    6.999000000000001,
+    7.0790000000000015,
+    7.159000000000002,
+    7.239000000000002,
+    7.319000000000002,
+    7.399000000000002,
+    7.479000000000002,
+    7.559000000000002,
+    7.639000000000002,
+    7.719000000000002,
+    7.799000000000002,
+    7.879000000000002,
+    7.959000000000002,
+    8.039000000000001,
+    8.119000000000002,
+    8.199000000000002,
+    8.279000000000002,
+    8.359000000000002,
+    8.439000000000002,
+    8.519000000000002,
+    8.599000000000002,
+    8.679000000000002,
+    0,
+    12.864,
+    12.943000000000001,
+    13.023000000000001,
+    13.103000000000002,
+    13.183000000000002,
+    13.263000000000002,
+    13.343000000000002,
+    13.423000000000002,
+    13.503000000000002,
+    13.583000000000002,
+    13.663000000000002,
+    13.743000000000002,
+    13.823000000000002,
+    13.903000000000002,
+    13.983000000000002,
+    14.063000000000002,
+    14.143000000000002,
+    14.223000000000003,
+    14.303000000000003,
+    14.383000000000003,
+    14.463000000000003,
+    14.543000000000003,
+    14.623000000000003,
+    14.703000000000003,
+    14.783000000000003,
+    14.863000000000003,
+    14.943000000000003,
+    15.023000000000003,
+    15.103000000000003,
+    15.183000000000003,
+    15.263000000000003,
+    15.343000000000004,
+    15.423000000000004,
+    15.503000000000004,
+    15.583000000000004,
+    15.663000000000004,
+    15.743000000000004,
+    15.823000000000004,
+    15.903000000000004,
+    15.983000000000004,
+    16.063000000000002,
+    16.143,
+    16.223,
+    16.302999999999997,
+    16.382999999999996,
+    16.462999999999994,
+    16.542999999999992,
+    16.62299999999999,
+    16.70299999999999,
+    16.782999999999987,
+    16.862999999999985,
+    16.942999999999984,
+    17.022999999999982,
+    17.10299999999998,
+    17.18299999999998,
+    17.262999999999977,
+    17.342999999999975,
+    17.422999999999973,
+    17.50299999999997,
+    17.58299999999997
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 98,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 3581,
+    "count": 1,
+    "texts": [
+     "답변: i usually take the subway to work."
+    ]
+   },
+   {
+    "ts": 4712,
+    "count": 2,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: That's a good sentence. Can you tell me what time you usually leave for work in the morning?"
+    ]
+   },
+   {
+    "ts": 10279,
+    "count": 3,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: That's a good sentence. Can you tell me what time you usually leave for work in the morning?",
+     "답변: oh my english! next question."
+    ]
+   },
+   {
+    "ts": 12831,
+    "count": 4,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: That's a good sentence. Can you tell me what time you usually leave for work in the morning?",
+     "답변: oh my english! next question.",
+     "질문: Okay, I will move to the next question. What do you usually have for breakfast before going to work?"
+    ]
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 34.202666666666666
+  },
+  "meta": {
+   "hookedAt": "2026-09-15T23:02:30.925Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789513350926,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789513350937,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3001/_next/hmr?id=lzm7r1HFBYEWZXHbBTrJg",
+    "ws://localhost:8012/ws/session?source=recommended"
+   ]
+  },
+  "lines": [
+   "답변: i usually take the subway to work.",
+   "질문: That's a good sentence. Can you tell me what time you usually leave for work in the morning?",
+   "답변: oh my english! next question.",
+   "질문: Okay, I will move to the next question. What do you usually have for breakfast before going to work?"
+  ],
+  "url": "http://localhost:3001/",
+  "log": [
+   {
+    "at": 0,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 3561,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 34187,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 2,
+     "final": 4,
+     "audio": 110,
+     "session_ended": 0,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 2,
+     "speech_end": 2,
+     "interrupted": 1,
+     "voice_command": 1
+    }
+   }
+  ]
+ },
+ "screenshot_session": "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-16-task61-14-prompt-change-regression/shot-next-en-session.png",
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3001/results/b813dd6c-46b5-4996-b9fe-6c03017b2110",
+  "recv": {
+   "session_started": 1,
+   "partial": 2,
+   "final": 4,
+   "audio": 110,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 2,
+   "speech_end": 2,
+   "interrupted": 1,
+   "voice_command": 1
+  },
+  "sent": {
+   "audio": 1103,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "finalLinesAtTerminal": [
+   "답변: i usually take the subway to work.",
+   "질문: That's a good sentence. Can you tell me what time you usually leave for work in the morning?",
+   "답변: oh my english! next question.",
+   "질문: Okay, I will move to the next question. What do you usually have for breakfast before going to work?"
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "오늘 학습을 마쳤어요 — 시나리오 3개",
+   "← 학습 시작 화면으로",
+   "학습 히스토리 보기 →"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><p style=\"color: var(--foreground-muted);\">오늘 학습을 마쳤어요 — 시나리오 3개</p><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p><p style=\"margin-top: 0.5rem;\"><a href=\"/history\" style=\"text-decoration: underline;\">학습 히스토리 보기 →</a></p>"
+ },
+ "screenshot_results": "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-16-task61-14-prompt-change-regression/shot-next-en-results.png"
+}

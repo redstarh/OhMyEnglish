@@ -1,0 +1,69 @@
+session_id	sequence_no	speaker	utterance_type	transcript
+393e16f3-a2b9-46d7-ba82-7979d9d5601d	1	user	voice_command	oh my english, show my weekly report.
+393e16f3-a2b9-46d7-ba82-7979d9d5601d	2	agent	learning	Here is your weekly report.
+393e16f3-a2b9-46d7-ba82-7979d9d5601d	3	user	learning	i had a busy week at work.
+393e16f3-a2b9-46d7-ba82-7979d9d5601d	4	agent	learning	That sounds like a full week! What kind of work did you do this week?  Did you have any big meetings or projects?
+b0cae1f5-a487-4743-b6bd-938b83f74c9e	1	user	voice_command	오마이잉글리시 주간 리포트 보여줘
+b0cae1f5-a487-4743-b6bd-938b83f74c9e	2	agent	learning	Here is your weekly report.
+b0cae1f5-a487-4743-b6bd-938b83f74c9e	3	user	learning	이번 주는 회사 일이 많았어요
+b0cae1f5-a487-4743-b6bd-938b83f74c9e	4	agent	learning	I hear you had a busy week at work. Can you tell me one good thing that happened this week?
+b813dd6c-46b5-4996-b9fe-6c03017b2110	1	user	learning	i usually take the subway to work.
+b813dd6c-46b5-4996-b9fe-6c03017b2110	2	agent	learning	That's a good sentence. Can you tell me what time you usually leave for work in the morning?
+b813dd6c-46b5-4996-b9fe-6c03017b2110	3	user	voice_command	oh my english! next question.
+b813dd6c-46b5-4996-b9fe-6c03017b2110	4	agent	learning	Okay, I will move to the next question. What do you usually have for breakfast before going to work?
+7e00b2b6-50b9-4919-a0b4-d81ecbe13657	1	user	learning	저는 보통 지하철로 출근해요
+7e00b2b6-50b9-4919-a0b4-d81ecbe13657	2	agent	learning	That is a good sentence. You are saying "I usually go to work by subway".  
+
+Can you tell me what time you usually leave home for work?
+7e00b2b6-50b9-4919-a0b4-d81ecbe13657	3	user	voice_command	오마이잉글리시 다음 문제
+7e00b2b6-50b9-4919-a0b4-d81ecbe13657	4	agent	learning	Okay, let's try a new question. Tell me about your typical morning before work. What do you usually do?
+061d9864-2564-4dad-a5e7-fc5403261c66	1	user	learning	all my english and the session.
+061d9864-2564-4dad-a5e7-fc5403261c66	2	agent	learning	Do you want to end today's session?
+061d9864-2564-4dad-a5e7-fc5403261c66	3	user	learning	yes please end it now.
+061d9864-2564-4dad-a5e7-fc5403261c66	4	agent	learning	Okay, the session has been ended as requested. The learner said "yes please end it now," and I confirmed by calling the end command with stage "confirmed."
+061d9864-2564-4dad-a5e7-fc5403261c66	5	agent	learning	 Now, since the session is ended, there's nothing more to do here.
+061d9864-2564-4dad-a5e7-fc5403261c66	6	agent	learning	 I should let the learner know that the session is over and perhaps offer a friendly sign-off.
+061d9864-2564-4dad-a5e7-fc5403261c66	7	agent	learning	
+Wait, but the tool call was already made, and the app closes the session. The instruction says: "The app closes the session only on 'confirmed', so never skip that second call." Now that it's confirmed, the session is ended. But as the assistant, I should inform the learner that it's done. So I'll say a friendly closing remark
+061d9864-2564-4dad-a5e7-fc5403261c66	8	agent	learning	 But according to the rules, after confirming the end, I don't need to say anything else unless the learner responds again.
+061d9864-2564-4dad-a5e7-fc5403261c66	9	agent	learning	 However, since the tool call was successful, I can just acknowledge that the session is ended.
+061d9864-2564-4dad-a5e7-fc5403261c66	10	agent	learning	 But the user might expect a verbal confirmation. Let me check the instructions again.
+061d9864-2564-4dad-a5e7-fc5403261c66	11	agent	learning	
+The instructions say: for ending the session, say the confirmation question out loud first, then call the tool.
+061d9864-2564-4dad-a5e7-fc5403261c66	12	agent	learning	 After the tool returns, I should say one short sentence once.
+061d9864-2564-4dad-a5e7-fc5403261c66	13	agent	learning	 The tool has been called and returned, so now I should say something like "Your session has ended.
+061d9864-2564-4dad-a5e7-fc5403261c66	14	agent	learning	 Thank you for learning today!" But wait, the rule says: "Answer a command in one short sentence and do not correct it -  a command is not learning speech, so it
+061d9864-2564-4dad-a5e7-fc5403261c66	15	agent	learning	 never counts against rule 4." So after the tool call, I should just say a short sentence confirming the action.
+061d9864-2564-4dad-a5e7-fc5403261c66	16	agent	learning	
+But looking back, the tool call was made, and now the tool_ results show that the command was processed.
+061d9864-2564-4dad-a5e7-fc5403261c66	17	agent	learning	 The next step is to respond to the learner.
+061d9864-2564-4dad-a5e7-fc5403261c66	18	agent	learning	 The learner said "yes please end it now," and I called the tool with confirmed.
+061d9864-2564-4dad-a5e7-fc5403261c66	19	agent	learning	 Now I should probably say "Your session has ended.
+061d9864-2564-4dad-a5e7-fc5403261c66	20	agent	learning	 Thank you for learning today!" to wrap up.
+576858ef-c3cc-4a51-9b38-ab6e9f584be2	1	user	voice_command	오마이잉글리시 학습 종료할게
+576858ef-c3cc-4a51-9b38-ab6e9f584be2	2	agent	learning	Do you want to end today's session?
+576858ef-c3cc-4a51-9b38-ab6e9f584be2	3	user	command_confirmation	네 종료해주세요
+de6ad848-d2ed-4a74-b3b3-1424695e8b70	1	user	voice_command	oh my english, show my weekly report.
+de6ad848-d2ed-4a74-b3b3-1424695e8b70	2	agent	learning	Here is your weekly report.
+de6ad848-d2ed-4a74-b3b3-1424695e8b70	3	user	learning	i had a busy week at work.
+de6ad848-d2ed-4a74-b3b3-1424695e8b70	4	agent	learning	That sounds like a full week. Can you tell me one thing you need at work today?  For example, you could say, "I need an answer" or "I need an idea."
+90a7bd97-7dab-43b5-95dc-599b7466dac4	1	user	learning	i usually take the subway to work.
+90a7bd97-7dab-43b5-95dc-599b7466dac4	2	agent	learning	I see, you usually take the subway to work. That’s a good way to start your day.
+Now, let’s talk about your morning. What do you eat in the morning?  Please use a short sentence like I want to eat …  and tell me one thing.
+90a7bd97-7dab-43b5-95dc-599b7466dac4	3	user	voice_command	oh my english! next question.
+90a7bd97-7dab-43b5-95dc-599b7466dac4	4	agent	learning	Okay, let’s move to the next question. Tell me one thing you need at work today —  it could be an email, an idea, an answer, or an extra hour. Give me two or three short sentences of your own.
+0db4f4b7-b6f9-4378-9466-0509769780ae	1	user	learning	저는 보통 지하철로 출근해요
+0db4f4b7-b6f9-4378-9466-0509769780ae	2	agent	learning	Oh, I see. You usually take the subway to work.
+0db4f4b7-b6f9-4378-9466-0509769780ae	3	agent	learning	
+Remember, we want to use "a" or "an" before the noun. If the word starts with a vowel sound, we use "an".
+0db4f4b7-b6f9-4378-9466-0509769780ae	4	agent	learning	 That's very common in many cities. 
+
+Let's practice talking about your morning routine.
+0db4f4b7-b6f9-4378-9466-0509769780ae	5	agent	learning	 What do you eat in the morning?  Please use a short sentence like "I want to eat ...".
+0db4f4b7-b6f9-4378-9466-0509769780ae	6	user	voice_command	오마이잉글리시 다음 문제
+0db4f4b7-b6f9-4378-9466-0509769780ae	7	agent	learning	Okay, let's move to the next question.
+Tell me one thing you need at work today. You can say "email", "idea", "answer",  or "extra hour".  Please give me two or three short sentences of your own.
+78053042-1fbe-479a-9afc-7c291082040a	1	user	voice_command	oh my english and the session.
+78053042-1fbe-479a-9afc-7c291082040a	2	agent	learning	Do you want to end today's session?
+78053042-1fbe-479a-9afc-7c291082040a	3	user	command_confirmation	yes please end it now.
+(57개 행)

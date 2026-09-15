@@ -4,7 +4,7 @@ title: '결함 후보: 코치가 「연습을 시작한다」고 말했는데 st
 status: To Do
 assignee: []
 created_date: '2026-09-15 18:46'
-updated_date: '2026-09-15 22:57'
+updated_date: '2026-09-15 23:17'
 labels: []
 dependencies: []
 parent_task_id: TASK-61
@@ -63,4 +63,10 @@ AC#2·#3 은 열려 있음 — AC#2 는 설계 판단이라 통합 테스트 세
 `pytest` 1239 passed(13.99s) · `ruff check` · `ruff format --check` 49 files · `ty check` · 프론트 `npx tsc --noEmit` · `npx eslint .` 여섯 다 초록임.
 
 ⛔ 「이렇게 고쳐라」는 이 요청에 없음 — 고침의 설계는 개발 세션 것임. AC#3(고친 뒤 실물 회차 관측)은 통합 테스트 세션이 받음.
+
+## 상호 참조 — 같은 부류의 두 번째 원인 (2026-09-16 KST · 회귀 회차에서 나옴)
+
+`TASK-61.14` 회차(`runs/2026-09-16-task61-14-prompt-change-regression` §3-②)가 「코치의 말과 앱 상태가 갈린다」의 **두 번째 원인**을 관측했음 — 표지가 인식되지 않아 앱이 명령을 버린 턴에서 어댑터가 이미 `{status:accepted}` 를 돌려줬고, 코치가 「종료됐다」고 말하고 지시문까지 소리로 읽었음. `TASK-61.15` 로 등재했음.
+
+⇒ **결정 112(고치는 자리는 앱)의 근거가 넓어졌음** — 갈림이 이 태스크의 정지(`requested` 에 머묾) 하나에서만 나는 것이 아님. 표면이 필요한 이유가 원인 둘에서 같음.
 <!-- SECTION:NOTES:END -->
