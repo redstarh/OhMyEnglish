@@ -1,0 +1,227 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3001/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/vc03_cmd_ko.wav",
+  "urls": [
+   "/harness/vc03_cmd_ko.wav",
+   "/harness/vc04_yes_ko.wav"
+  ],
+  "count": 2,
+  "bytes": 140676,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 4.14,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0,
+  "plays": []
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 0,
+   "final": 2,
+   "audio": 0,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 2,
+   "speech_end": 2,
+   "interrupted": 0,
+   "voice_command": 2
+  },
+  "sent": {
+   "audio": 276,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 3
+  },
+  "startedSessionId": "07746adb-59fe-4086-92b0-e2ca687fb4dc",
+  "fixture": {
+   "url": "/harness/vc03_cmd_ko.wav",
+   "urls": [
+    "/harness/vc03_cmd_ko.wav",
+    "/harness/vc04_yes_ko.wav"
+   ],
+   "count": 2,
+   "bytes": 140676,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 4.14,
+   "startedAt": 200,
+   "endedAt": 7687,
+   "micCalls": 1,
+   "plays": [
+    {
+     "index": 0,
+     "url": "/harness/vc03_cmd_ko.wav",
+     "startedAt": 200,
+     "endedAt": 2903,
+     "gate": null
+    },
+    {
+     "index": 1,
+     "url": "/harness/vc04_yes_ko.wav",
+     "startedAt": 6224,
+     "endedAt": 7687,
+     "gate": {
+      "heardAgentAudio": false,
+      "audioAtGate": 0,
+      "finalAtGate": 1,
+      "waitedMs": 6024
+     }
+    }
+   ]
+  },
+  "started": {
+   "count": 2,
+   "when": [
+    0,
+    0
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 189,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 4070,
+    "count": 1,
+    "texts": [
+     "답변: 오마이잉글리시 학습 종료할게"
+    ]
+   },
+   {
+    "ts": 8539,
+    "count": 1,
+    "texts": [
+     "답변: 오마이잉글리시 학습 종료할게 네 종료해주세요"
+    ]
+   },
+   {
+    "ts": 9316,
+    "count": 0,
+    "texts": []
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 33.504
+  },
+  "meta": {
+   "hookedAt": "2026-09-15T05:03:05.856Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789448585927,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789448585938,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3001/_next/hmr?id=_mjwjDrLkwI9qCc-QkbPW",
+    "ws://localhost:8012/ws/session?source=recommended"
+   ]
+  },
+  "lines": [],
+  "url": "http://localhost:3001/results/07746adb-59fe-4086-92b0-e2ca687fb4dc",
+  "log": [
+   {
+    "at": 0,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 4010,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 33549,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 0,
+     "final": 2,
+     "audio": 0,
+     "session_ended": 1,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 2,
+     "speech_end": 2,
+     "interrupted": 0,
+     "voice_command": 2
+    }
+   }
+  ]
+ },
+ "screenshot_session": "../../tests/harness/runs/2026-09-15-task61-4-refix-verify/shot-arm4d2-session.png",
+ "end_click": {
+  "attempted": true,
+  "ok": false,
+  "error": "클릭 대상을 찾지 못했다: 학습 종료 (None)"
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3001/results/07746adb-59fe-4086-92b0-e2ca687fb4dc",
+  "recv": {
+   "session_started": 1,
+   "partial": 0,
+   "final": 2,
+   "audio": 0,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 2,
+   "speech_end": 2,
+   "interrupted": 0,
+   "voice_command": 2
+  },
+  "sent": {
+   "audio": 276,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 3
+  },
+  "finalLinesAtTerminal": [
+   "답변: 오마이잉글리시 학습 종료할게 네 종료해주세요"
+  ],
+  "resultParagraphs": [
+   "분석 대상 없음",
+   "오늘 학습을 마쳤어요",
+   "← 학습 시작 화면으로",
+   "학습 히스토리 보기 →"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 대상 없음</p><p style=\"color: var(--foreground-muted);\">오늘 학습을 마쳤어요</p><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p><p style=\"margin-top: 0.5rem;\"><a href=\"/history\" style=\"text-decoration: underline;\">학습 히스토리 보기 →</a></p>"
+ },
+ "screenshot_results": "../../tests/harness/runs/2026-09-15-task61-4-refix-verify/shot-arm4d2-results.png"
+}
