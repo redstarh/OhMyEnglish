@@ -1,7 +1,7 @@
 ---
 id: TASK-61.15
 title: '결함: 앱이 버린 음성 명령에도 어댑터가 accepted 를 돌려줘 코치가 「실행됐다」고 말하고 지시문을 소리로 읽는다'
-status: In Progress
+status: To Do
 assignee: []
 created_date: '2026-09-15 23:17'
 updated_date: '2026-09-15 23:36'
