@@ -43,7 +43,7 @@ from app.audio_gateway.port import (
     TranscriptEvent,
     VoiceAdapter,
 )
-from app.models.voice_command import is_wake_command, requires_confirmation
+from app.models.voice_command import closes_session, is_wake_command, requires_confirmation
 from app.services.pronunciation import (
     check_recorded_sounds,
     note_transcript,
@@ -428,7 +428,17 @@ class SessionRunner:
                 self._session_id,
             )
             return False
-        await self._send({"type": "voice_command", "command": event.command, "stage": event.stage})
+        frame: dict[str, object] = {
+            "type": "voice_command",
+            "command": event.command,
+            "stage": event.stage,
+        }
+        if event.target is not None:
+            # ⛔ **없으면 키를 넣지 않는다** — 「없음」과 「빈 값」을 가르는 이 리포의 규약이고
+            # (`session_started` 의 `shadowing`·`pronunciation_focus` 와 같음) 화면이 이 키로
+            # 새 세션의 진입을 정하므로 빈 값이 흘러가면 엉뚱한 세션이 열린다.
+            frame["target"] = event.target
+        await self._send(frame)
         if not requires_confirmation(event.command):
             # 되돌릴 수 있는 명령은 `requested` 하나로 끝난다 (결정 107 ③) — 화면이 이 프레임을
             # 받아 수행하고, 서버 상태는 바뀌지 않는다.
@@ -451,10 +461,16 @@ class SessionRunner:
         self._awaiting_confirmation = False
         if event.stage != "confirmed":
             return False
+        # ⛔ **「확인을 거쳤다」와 「세션을 닫는다」는 다른 물음이다** (결정 110 ④) — 지금은 두
+        # 집합의 값이 같지만 분기를 두지 않고 판정을 돌려주어, 갈리는 순간 이 자리가 따라간다.
+        closing = closes_session(event.command)
         logger.info(
-            "음성 명령 %r 이 확인을 거쳐 세션 %s 를 닫는다", event.command, self._session_id
+            "음성 명령 %r 이 확인을 거쳤다 (세션 닫음=%s · 세션 %s)",
+            event.command,
+            closing,
+            self._session_id,
         )
-        return True
+        return closing
 
     def _classify_user_final(self, text: str) -> str:
         """학습자 final 하나의 `utterance_type` 을 정한다 (`TASK-61.1` · `TASK-61.4`).

@@ -1993,6 +1993,59 @@ async def test_a_report_command_runs_at_once_and_keeps_the_session_open(
     ]
 
 
+async def test_a_confirmed_additional_learning_command_closes_the_session_with_its_target(
+    db_pool, committed_session
+):
+    """넷째 조각 (`TASK-61.8` · 결정 110) — 확인을 거쳐 세션을 닫고 **대상을 화면에 알린다.**
+
+    ⛔ **`target` 은 이 명령에만 실린다 — 없으면 키를 아예 넣지 않는다.** 「없음」과 「빈 값」을
+    가르는 이 리포의 규약이고(`session_started` 의 `shadowing`·`pronunciation_focus` 와 같음),
+    화면이 그 키로 새 세션의 진입을 정하므로 빈 값이 흘러가면 엉뚱한 세션이 열린다.
+    """
+    adapter = ScriptedAdapter(
+        TranscriptEvent(kind="final", text="오마이 잉글리시, 쉐도잉 추가 학습.", speaker="user"),
+        SessionCommandEvent(command="start_additional", stage="requested", target="shadowing"),
+        TranscriptEvent(kind="final", text="네 해 주세요.", speaker="user"),
+        SessionCommandEvent(command="start_additional", stage="confirmed", target="shadowing"),
+        hold_open=True,
+    )
+    client = FakeClient()
+
+    await asyncio.wait_for(
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            client,
+            drain_timeout=FAST_DRAIN_TIMEOUT,
+        ).run(),
+        timeout=5.0,
+    )
+
+    assert adapter.closed
+    assert client.types[-1] == "session_ended"
+    assert (await _session_row(db_pool, committed_session.session_id))["status"] == "completed"
+    assert client.of_type("voice_command") == [
+        {
+            "type": "voice_command",
+            "command": "start_additional",
+            "stage": "requested",
+            "target": "shadowing",
+        },
+        {
+            "type": "voice_command",
+            "command": "start_additional",
+            "stage": "confirmed",
+            "target": "shadowing",
+        },
+    ]
+    rows = await _typed_utterances(db_pool, committed_session.session_id)
+    assert [(row["utterance_type"], row["transcript"]) for row in rows] == [
+        ("voice_command", "오마이 잉글리시, 쉐도잉 추가 학습."),
+        ("command_confirmation", "네 해 주세요."),
+    ]
+
+
 async def test_an_unmarked_report_command_is_not_run_either(db_pool, committed_session):
     """표지 요구(사용자 결정 104 D5)가 **둘째 명령에도** 걸린다 (`TASK-61.6` AC#2).
 

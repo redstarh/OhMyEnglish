@@ -2249,6 +2249,21 @@ def test_the_prompt_names_both_commands_and_only_end_needs_confirmation():
     assert "need no confirmation" in squeezed
 
 
+def test_the_prompt_names_the_additional_learning_command_and_asks_for_a_target():
+    """결정 110 — 넷째 명령이 지시문에 들어오고 **확인 절차와 대상**을 함께 요구한다.
+
+    ⛔ 이 명령은 지금 세션을 닫으므로 확인이 필수다 — 그 문면이 없으면 모델이 확인 없이 부르고
+    학습자가 원하지 않은 순간에 세션이 끝난다.
+    ⚠️ **대상의 값역은 프롬프트가 아니라 tool 스키마가 갖는다** — 두 곳에 적으면 한쪽이 낡는다.
+    그래서 문면은 「학습자가 말한 것을 target 에 담아라」까지만 말한다.
+    """
+    squeezed = " ".join(SYSTEM_PROMPT.split()).lower()
+
+    assert "start_additional" in SYSTEM_PROMPT
+    assert "starting extra practice also needs confirmation" in squeezed
+    assert "target set to what the learner asked for" in squeezed
+
+
 def test_the_prompt_makes_confirmation_free_commands_speak_after_the_tool_result():
     """⛔ `TASK-61.5`(결정 109 후속) — 결과를 돌려보내기 시작하자 영어에서 코치가 **같은 말을
     두 번** 했다(회차 세션 `af8a8594`: 명령 뒤 agent 발화 2행). tool 앞에서 이미 말했고 결과를

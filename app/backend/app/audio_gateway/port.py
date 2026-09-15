@@ -48,7 +48,7 @@ from typing import Literal, Protocol
 import pydantic
 
 from app.models.pronunciation import PronunciationOutcome
-from app.models.voice_command import ControlCommand, ControlStage
+from app.models.voice_command import AdditionalTarget, ControlCommand, ControlStage
 
 Speaker = Literal["user", "agent"]
 
@@ -126,6 +126,9 @@ class SessionCommandEvent(pydantic.BaseModel):
     command: ControlCommand
     stage: ControlStage
     heard: str | None = None
+    # 「추가 학습」이 열 대상 (`TASK-61.8` · 결정 110 ②). **그 명령에만 실린다** — 나머지 명령에서는
+    # `None` 이고, 게이트웨이도 화면 프레임에 그 키를 넣지 않는다(「없음」과 「빈 값」을 가른다).
+    target: AdditionalTarget | None = None
 
 
 # 어댑터가 흘리는 이벤트: 전사문, 오디오 응답 프레임(raw bytes), 발화 경계, barge-in 통보,

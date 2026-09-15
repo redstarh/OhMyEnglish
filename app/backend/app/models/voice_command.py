@@ -21,12 +21,18 @@ logger = logging.getLogger(__name__)
 # 어댑터와 이 모듈이 같은 이름을 써야 한다.
 CONTROL_TOOL_NAME = "request_session_control"
 
-# 받는 명령 셋. `end` 는 첫 조각(결정 102 ②) · `show_report` 는 둘째(결정 107) · `next_question`
-# 은 셋째(결정 108)다. 뒤 둘은 되돌릴 수 있는 부류라 확인 절차를 타지 않는다.
+# 받는 명령 넷. `end`(결정 102 ②) · `show_report`(결정 107) · `next_question`(결정 108) ·
+# `start_additional`(결정 110). 가운데 둘은 되돌릴 수 있어 확인 절차를 타지 않는다.
 #
-# ⛔ **명령을 더하면 `CONFIRMATION_REQUIRED` 를 함께 본다** — 이 Literal 에만 더하면 확인 없이
-# 도는 것이 기본값이 되고, 되돌릴 수 없는 명령이 그렇게 새면 결정 102 ③이 무너진다.
-ControlCommand = Literal["end", "show_report", "next_question"]
+# ⛔ **명령을 더하면 아래 두 집합을 함께 본다** — 이 Literal 에만 더하면 「확인 없이 돌고 세션도
+# 닫지 않는다」가 기본값이 되고, 되돌릴 수 없는 명령이 그렇게 새면 결정 102 ③이 무너진다.
+ControlCommand = Literal["end", "show_report", "next_question", "start_additional"]
+
+# 「추가 학습」이 열 수 있는 것 (결정 110 ②). 값역의 근거는 **화면이 실제로 가르는 표면**이다 —
+# `frontend/app/page.tsx` 의 `ADDITIONAL_LEARNING` 여섯 가운데 「업무 역할극」은 비활성이고
+# (무대를 고르는 화면이 없다) 「자유 대화」·「약점 패턴 집중」은 같은 entry 를 쓴다.
+# ⛔ **화면이 가르지 못하는 값을 여기에 두지 않는다** — 두면 모델이 고른 값이 조용히 버려진다.
+AdditionalTarget = Literal["conversation", "scenario_intake", "pronunciation", "shadowing"]
 
 # `requested` 는 「명령을 들었고 확인을 묻는다」, `confirmed` 는 「학습자가 확인했다」,
 # `cancelled` 는 「학습자가 물렸다」다. ⛔ 앱은 `confirmed` 에서만 세션을 닫는다.
@@ -34,13 +40,22 @@ ControlStage = Literal["requested", "confirmed", "cancelled"]
 
 CONTROL_COMMANDS: tuple[ControlCommand, ...] = get_args(ControlCommand)
 CONTROL_STAGES: tuple[ControlStage, ...] = get_args(ControlStage)
+ADDITIONAL_TARGETS: tuple[AdditionalTarget, ...] = get_args(AdditionalTarget)
 
 # 확인을 거쳐야 하는 명령 (결정 107 ③). PRD:85 가 「학습 종료·녹음 삭제 등 **결과가 큰** 명령」에만
 # 확인을 요구하므로 조회는 이 집합에 들지 않는다.
 #
 # ⛔ **판정을 앱이 갖는다** — 모델의 규율에 맡기면 조회에도 확인을 묻거나(대화가 늘어진다) 종료를
 # 확인 없이 부른다(결정 102 ③이 막으려던 것이다). `is_wake_command` 를 앱에 둔 것과 같은 규약이다.
-CONFIRMATION_REQUIRED: frozenset[ControlCommand] = frozenset({"end"})
+CONFIRMATION_REQUIRED: frozenset[ControlCommand] = frozenset({"end", "start_additional"})
+
+# 세션을 닫는 명령 (결정 110 ④). ⛔ **위 집합과 값이 같아도 합치지 않는다** — 「확인이 필요한가」와
+# 「세션을 닫는가」는 다른 물음이고, 한 이름으로 쓰면 둘이 갈리는 순간 조용히 틀린다.
+# (예: 녹음 삭제는 확인이 필요하지만 세션을 닫지 않는다.)
+CLOSES_SESSION: frozenset[ControlCommand] = frozenset({"end", "start_additional"})
+
+# `target` 을 반드시 받아야 하는 명령. 없으면 무엇을 열지 모르므로 페이로드를 버린다.
+TARGET_REQUIRED: frozenset[ControlCommand] = frozenset({"start_additional"})
 
 # Nova Sonic 의 `inputSchema.json` 은 JSON **문자열**이다 (객체가 아니다 — 스파이크 F1).
 CONTROL_TOOL_SCHEMA_JSON = json.dumps(
@@ -64,6 +79,16 @@ CONTROL_TOOL_SCHEMA_JSON = json.dumps(
             "heard": {
                 "type": "string",
                 "description": "What the learner said, as you heard it.",
+            },
+            # ⛔ `required` 에 넣지 않는다 — 다른 명령에는 필요 없고, 필수로 두면 모델이
+            # 종료·조회에도 아무 값이나 채운다. 「이 명령에는 필수」는 앱이 검증한다.
+            "target": {
+                "type": "string",
+                "enum": list(ADDITIONAL_TARGETS),
+                "description": (
+                    "Which extra practice to start. Required when command is "
+                    "start_additional, and left out otherwise."
+                ),
             },
         },
         "required": ["command", "stage"],
@@ -105,6 +130,14 @@ def requires_confirmation(command: str) -> bool:
     return command in CONFIRMATION_REQUIRED
 
 
+def closes_session(command: str) -> bool:
+    """이 명령이 세션을 닫는가 (결정 110 ④).
+
+    ⛔ `requires_confirmation` 과 **다른 물음**이다 — 값이 같아도 하나로 합치지 않는다.
+    """
+    return command in CLOSES_SESSION
+
+
 class ControlReport(pydantic.BaseModel):
     """검증을 통과한 제어 명령. 여기까지 오면 실행해도 되는 값이다."""
 
@@ -113,6 +146,8 @@ class ControlReport(pydantic.BaseModel):
     command: ControlCommand
     stage: ControlStage
     heard: str | None = None
+    # 「추가 학습」이 열 대상 (결정 110 ②). 그 명령에만 실리고 나머지는 `None` 이다.
+    target: AdditionalTarget | None = None
 
 
 def parse_control_payload(raw: str) -> ControlReport | None:
@@ -136,9 +171,22 @@ def parse_control_payload(raw: str) -> ControlReport | None:
         logger.warning("모르는 확인 단계 %r 이라 명령을 실행하지 않고 버렸다", stage)
         return None
 
+    target = data.get("target")
+    if command in TARGET_REQUIRED:
+        # ⛔ **모르는 대상으로 세션을 닫지 않는다.** 이 모듈의 「모르는 값은 버린다」 규약이 가장
+        # 강하게 걸리는 자리다 — 잘못 열면 학습자가 원하지 않은 세션이 시작되고 앞 세션은 닫혔다.
+        if target not in ADDITIONAL_TARGETS:
+            logger.warning("추가 학습 대상 %r 을 알 수 없어 명령을 버렸다", target)
+            return None
+    elif target is not None:
+        # 대상이 필요 없는 명령에 실려 오면 **명령을 버리지 않고 대상만 무시한다** — 명령 자체는
+        # 유효하고, 모델이 여분 필드를 붙였다는 이유로 종료·조회를 잃는 것이 더 나쁘다.
+        target = None
+
     heard = data.get("heard")
     return ControlReport(
         command=command,
         stage=stage,
         heard=heard.strip() if isinstance(heard, str) and heard.strip() else None,
+        target=target,
     )

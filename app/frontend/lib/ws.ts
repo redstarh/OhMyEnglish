@@ -28,6 +28,15 @@ export type Speaker = "user" | "agent";
 export type PronunciationOutcome = "pending" | "correct" | "incorrect" | "unclear";
 
 /**
+ * 「추가 학습」 음성 명령이 열 수 있는 것 (`TASK-61.8` · 결정 110 ②).
+ *
+ * ⛔ **값역의 정본은 백엔드 `app/models/voice_command.py:AdditionalTarget` 이다** — 서버가 그
+ * 값역으로 tool 페이로드를 검증하고 모르는 값은 버린다. 여기 목록이 그보다 넓으면 화면이 서버가
+ * 절대 보내지 않는 갈래를 들고 있게 되고, 좁으면 타입 검사가 정상 프레임을 거부한다.
+ */
+export type AdditionalTarget = "conversation" | "scenario_intake" | "pronunciation" | "shadowing";
+
+/**
  * 쉐도잉 세션이 시작될 때 서버가 넘기는 재료 (`TASK-45` · 설계서 §12 요구 5).
  *
  * ⛔ **화면은 자기 기본값을 갖지 않는다** — 재생 속도·반복 횟수의 정본은 서버 `Settings` 이고
@@ -117,10 +126,20 @@ export type ServerEvent =
   // ⛔ **`next_question` 에 화면이 반응하지 않는 것은 «누락이 아니라 계약»이다**(결정 108 ②) —
   // 코치가 다음 질문을 말하므로 학습자가 들어서 안다. 화면 표시를 더하면 같은 사실을 두 곳이
   // 말하게 되고, 그 둘이 갈릴 때 어느 쪽이 참인지 정할 근거가 없다.
+  //
+  // ⛔ **`start_additional` 만 `target` 을 갖는다 — 갈래를 나눠 두는 이유가 그것이다.** 하나의
+  // 모양에 옵셔널 키로 두면 화면이 `target` 이 없는 상태로도 새 세션을 열 수 있게 되고, 그것은
+  // 「어느 학습을 열지 모르는 채 여는 것」이다(서버는 그 페이로드를 이미 버린다).
   | {
       type: "voice_command";
       command: "end" | "show_report" | "next_question";
       stage: "requested" | "confirmed" | "cancelled";
+    }
+  | {
+      type: "voice_command";
+      command: "start_additional";
+      stage: "requested" | "confirmed" | "cancelled";
+      target: AdditionalTarget;
     }
   | { type: "session_failed"; reason: string }
   | { type: "session_ended"; session_id: string };

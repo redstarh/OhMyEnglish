@@ -6,10 +6,48 @@
 """
 
 from app.models.voice_command import (
+    closes_session,
     is_wake_command,
     parse_control_payload,
     requires_confirmation,
 )
+
+
+def test_an_additional_learning_payload_carries_its_target() -> None:
+    """넷째 조각의 명령은 「추가 학습」이고 **어느 학습인지**를 함께 받는다 (결정 110 ②)."""
+    report = parse_control_payload(
+        '{"command": "start_additional", "stage": "requested", "target": "shadowing"}'
+    )
+
+    assert report is not None
+    assert report.command == "start_additional"
+    assert report.target == "shadowing"
+
+
+def test_an_additional_learning_payload_without_a_target_is_dropped() -> None:
+    """⛔ 어느 학습을 열지 모르는 채 세션을 닫지 않는다 — 이 모듈의 「모르는 값은 버린다」 규약이
+    가장 강하게 걸리는 자리다(세션이 닫히는 명령이다).
+    """
+    assert parse_control_payload('{"command": "start_additional", "stage": "requested"}') is None
+
+
+def test_an_unknown_additional_target_is_dropped() -> None:
+    assert (
+        parse_control_payload(
+            '{"command": "start_additional", "stage": "requested", "target": "karaoke"}'
+        )
+        is None
+    )
+
+
+def test_only_the_commands_that_close_the_session_do_so() -> None:
+    """⛔ 「확인이 필요한가」와 「세션을 닫는가」를 **두 집합으로** 둔 이유가 이 단정이다
+    (결정 110 ④) — 지금은 값이 같지만 개념이 다르고, 한 이름으로 쓰면 갈릴 때 조용히 틀린다.
+    """
+    assert closes_session("end") is True
+    assert closes_session("start_additional") is True
+    assert closes_session("show_report") is False
+    assert closes_session("next_question") is False
 
 
 def test_a_report_command_payload_becomes_a_report() -> None:

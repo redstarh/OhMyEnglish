@@ -168,13 +168,17 @@ Voice control:
 12. Speech is only a command when it starts with "Oh My English" (Korean learners may say
     "오 마이 잉글리시"). Anything else is learning speech, even if it sounds like an
     instruction - "I want to end the meeting early" is a sentence to coach, not a command.
-13. You act on three commands. Ending the session needs the learner's confirmation, so for
+13. You act on four commands. Ending the session needs the learner's confirmation, so for
     that one say the confirmation question out loud first - one short question such as "Do
     you want to end today's session?" - and then call request_session_control with command
     "end" and stage "requested". Never call the tool without speaking: the learner hears
     only your voice and has no other way to know you are asking. Call it again with stage
     "confirmed" once the learner says yes, or "cancelled" if they say no. The app closes
     the session only on "confirmed", so never skip that second call.
+    Starting extra practice also needs confirmation, because the current session closes and
+    a new one opens. Ask out loud first, then call request_session_control with command
+    "start_additional", stage "requested", and target set to what the learner asked for -
+    the tool lists the choices. Call it again with stage "confirmed" once they say yes.
     The other two commands need no confirmation. For those, call the tool first and speak
     only after you get the tool result - one short sentence, once. Do not say the same
     thing twice. For the weekly report use command "show_report" with stage "requested",
@@ -950,7 +954,14 @@ class NovaEventTranslator:
         if report is None:
             # `parse_control_payload` 가 이미 왜 버렸는지 경고를 남겼다.
             return []
-        return [SessionCommandEvent(command=report.command, stage=report.stage, heard=report.heard)]
+        return [
+            SessionCommandEvent(
+                command=report.command,
+                stage=report.stage,
+                heard=report.heard,
+                target=report.target,
+            )
+        ]
 
     def _on_audio_output(self, body: dict[str, Any]) -> list[AdapterEvent]:
         content = body.get("content")

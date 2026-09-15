@@ -7,6 +7,7 @@ import type { SessionEntry } from "@/lib/config";
 import { VoiceIo, base64ToBytes, bytesToBase64 } from "@/lib/audio";
 import {
   SessionSocket,
+  type AdditionalTarget,
   type PronunciationOutcome,
   type ServerEvent,
   type ShadowingSetup,
@@ -55,20 +56,38 @@ const NEXT_PLAN_PREFIX = "오늘 이걸 연습해요:";
 //
 // ⚠️ **셋이 같은 표면(모드 없음)을 쓰는 것은 의도다** — 그 셋의 차이는 지시문이 아니라 **계획
 // 데이터**에 있다(초점·질문·무대). 모드로 갈라도 조립되는 지시문이 같으므로 값역만 늘어난다.
+// ⚠️ **`target` 은 음성 명령이 이 목록을 가리키는 키다** (`TASK-61.8` · 결정 110 ②). 매핑을 따로
+// 두지 않고 이 목록에서 유도한다 — 두 곳에 적으면 화면 버튼과 음성 명령이 서로 다른 세션을 연다.
+// ⚠️ 앞 두 항목이 **같은 `target`** 인 것은 의도다(entry 가 같고 차이가 계획 데이터에 있다 — 위 주석).
+// ⛔ 「업무 역할극」에는 `target` 을 주지 않는다 — 열 수 없는 것을 음성으로 고를 수 있게 하면 안 된다.
 const ADDITIONAL_LEARNING: ReadonlyArray<{
   label: string;
   entry: SessionEntry | null;
+  target?: AdditionalTarget;
   note?: string;
 }> = [
-  { label: "자유 대화", entry: { source: "additional" } },
-  { label: "약점 패턴 집중", entry: { source: "additional" } },
+  { label: "자유 대화", target: "conversation", entry: { source: "additional" } },
+  { label: "약점 패턴 집중", target: "conversation", entry: { source: "additional" } },
   // `TASK-5` Task 6(사용자 결정 79) — 이 항목이 **무대 정하기 진입**이다. ⛔ 이전에는 `mode` 가 없어
   // 위 둘과 구별되지 않았고, 그래서 백엔드가 이 세션을 가릴 수단이 없었다(그 설계서 §5).
-  { label: "질문 답변 5개", entry: { mode: "scenario_intake", source: "additional" } },
-  { label: "발음 집중", entry: { mode: "pronunciation", source: "additional" } },
-  { label: "쉐도잉", entry: { mode: "shadowing", source: "additional" } },
+  {
+    label: "질문 답변 5개",
+    target: "scenario_intake",
+    entry: { mode: "scenario_intake", source: "additional" },
+  },
+  {
+    label: "발음 집중",
+    target: "pronunciation",
+    entry: { mode: "pronunciation", source: "additional" },
+  },
+  { label: "쉐도잉", target: "shadowing", entry: { mode: "shadowing", source: "additional" } },
   { label: "업무 역할극", entry: null, note: "무대를 고르는 화면이 아직 없어요" },
 ];
+
+/** 음성 명령이 고른 대상의 진입 정보. 없으면 `null` — 화면은 그때 새 세션을 열지 않는다. */
+function entryForTarget(target: AdditionalTarget): SessionEntry | null {
+  return ADDITIONAL_LEARNING.find((item) => item.target === target)?.entry ?? null;
+}
 
 // 발음 집중을 골랐을 때 화면이 말해야 하는 두 가지 (`TASK-10.2` AC#2 · `TASK-128.4`).
 //
@@ -128,6 +147,14 @@ export default function SessionPage() {
   // 음성 명령으로 열리는 주간 리포트 패널 (`TASK-61.6` · 결정 107). 화면을 옮기지 않는 이유는
   // `WeeklyReportPanel` 의 머리말이 갖는다 — 이동하면 소켓이 닫혀 세션이 끝난다.
   const [reportOpen, setReportOpen] = useState(false);
+  // 「추가 학습」 음성 명령이 확인을 거치면 **다음 세션의 진입**을 여기 담는다 (결정 110 ③).
+  const pendingEntryRef = useRef<SessionEntry | null>(null);
+  // ⛔ **`startSession` 을 ref 로 잡는 이유** — `session_ended` 처리에서 직접 부르려면
+  // `handleServerEvent` 가 `startSession` 에 의존해야 하고 `startSession` 은 다시
+  // `handleServerEvent` 에 의존해 순환이 된다. ⚠️ **effect 로 여는 판을 먼저 썼고 그것은
+  // `react-hooks/set-state-in-effect` 에 막혔다**(실측: `startSession` 이 첫머리에서 동기로
+  // `setState` 를 부르므로 lint 가 effect 본문의 setState 로 본다). 그래서 ref 로 끊는다.
+  const startSessionRef = useRef<((entry: SessionEntry) => Promise<void>) | null>(null);
 
   const socketRef = useRef<SessionSocket | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -224,6 +251,12 @@ export default function SessionPage() {
           if (event.command === "show_report" && event.stage === "requested") {
             setReportOpen(true);
           }
+          // 추가 학습 — 확인이 끝난 뒤에만 기억한다. ⛔ **세션을 화면이 닫지 않는다**: 서버가
+          // `confirmed` 에서 닫고 `session_ended` 를 보내며, 그때 아래 처리가 결과 화면 대신
+          // 새 세션을 연다(결정 110 ③). `requested` 에서 기억하면 학습자가 물렸을 때도 열린다.
+          if (event.command === "start_additional" && event.stage === "confirmed") {
+            pendingEntryRef.current = entryForTarget(event.target);
+          }
           break;
         case "session_failed":
           if (terminalHandledRef.current) return;
@@ -232,11 +265,22 @@ export default function SessionPage() {
           setFailureReason(event.reason);
           setState("failed");
           break;
-        case "session_ended":
+        case "session_ended": {
           if (terminalHandledRef.current) return;
           terminalHandledRef.current = true;
+          const next = pendingEntryRef.current;
+          if (next) {
+            // ⛔ **결과 화면으로 가지 않는다** (결정 110 ③) — 학습자가 「추가 학습」을 말한 것은
+            // 계속하겠다는 뜻이고, 여기서 결과 화면으로 보내면 화면을 다시 눌러야 해서
+            // 「음성으로 제어한다」가 중단된다. 지난 세션의 분석 job 은 종료 시점에 걸려 그대로 돈다.
+            pendingEntryRef.current = null;
+            stopMedia();
+            void startSessionRef.current?.(next);
+            return;
+          }
           goToResults(event.session_id || sessionIdRef.current || "");
           break;
+        }
       }
     },
     [goToResults, stopMedia],
@@ -248,6 +292,9 @@ export default function SessionPage() {
     setPartialLine(null);
     setListening(false);
     setEntryNotice(null);
+    // 리포트 패널은 세션 사이에 남기지 않는다 — 앞 세션의 수치를 새 세션 화면에 띄워 두면
+    // 그것이 이번 세션의 것으로 읽힌다.
+    setReportOpen(false);
     terminalHandledRef.current = false;
     sessionIdRef.current = null;
     requestedModeRef.current = entry.mode;
@@ -267,6 +314,11 @@ export default function SessionPage() {
       {
         onEvent: handleServerEvent,
         onClose: () => {
+          // ⛔ **자기 소켓이 아직 현재 것인지 먼저 본다** (결정 110 ③의 경합). 추가 학습이 새
+          // 세션을 열면 `startSession` 이 `terminalHandledRef` 를 `false` 로 되돌리므로, 그
+          // 뒤에 도착한 **이전 소켓의 close** 가 아래 처리를 통과해 **새 세션을 종료 처리한다.**
+          // ⚠️ 프론트에 테스트 러너가 없어 이 경합은 회차가 판별력을 갖는다.
+          if (socketRef.current !== socket) return;
           if (terminalHandledRef.current) return;
           terminalHandledRef.current = true;
           stopMedia();
@@ -308,6 +360,17 @@ export default function SessionPage() {
     setState("ending");
     socketRef.current?.endSession();
   }, []);
+
+  // 「추가 학습」 명령이 확인을 거친 뒤 **새 세션을 여는 자리** (결정 110 ③).
+  //
+  // ⛔ **`session_ended` 처리 안에서 바로 열지 않는다** — 그러면 `handleServerEvent` 가
+  // `startSession` 에 의존하고 `startSession` 이 다시 `handleServerEvent` 에 의존해 순환이 된다.
+  // 상태를 한 번 거치면 그 사슬이 끊기고, 여는 시점이 「앞 세션의 정리가 끝난 뒤」로 분명해진다.
+  // `startSession` 의 최신 판을 ref 에 담아 둔다 — `session_ended` 처리가 그것을 부른다.
+  // ⚠️ effect 본문이 **ref 대입 하나**여서 `set-state-in-effect` 에 걸리지 않는다.
+  useEffect(() => {
+    startSessionRef.current = startSession;
+  }, [startSession]);
 
   // 시작 화면에 보여줄 추천 이유를 **마운트당 한 번** 읽는다 (R11-3). 폴링하지 않는다.
   // ⚠️ **근거를 2026-09-06에 정정했다.** 원래 "계획은 세션 *사이*에만 바뀌고 이 화면은 세션이
