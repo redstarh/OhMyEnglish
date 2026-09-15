@@ -1,0 +1,465 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3001/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/vc15_learning_ko.wav",
+  "urls": [
+   "/harness/vc15_learning_ko.wav",
+   "/harness/vc21_mode_ko.wav",
+   "/harness/vc18_yes_ko.wav"
+  ],
+  "count": 3,
+  "bytes": 229072,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 6.775,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0,
+  "plays": []
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 2,
+   "partial": 3,
+   "final": 5,
+   "audio": 153,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 3,
+   "speech_end": 3,
+   "interrupted": 2,
+   "voice_command": 2
+  },
+  "sent": {
+   "audio": 1344,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 1
+  },
+  "startedSessionId": "08d1e3f3-ef19-449e-8407-84680ffe1a6a",
+  "fixture": {
+   "url": "/harness/vc15_learning_ko.wav",
+   "urls": [
+    "/harness/vc15_learning_ko.wav",
+    "/harness/vc21_mode_ko.wav",
+    "/harness/vc18_yes_ko.wav"
+   ],
+   "count": 3,
+   "bytes": 229072,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 6.775,
+   "startedAt": 130,
+   "endedAt": 20983,
+   "micCalls": 2,
+   "plays": [
+    {
+     "index": 0,
+     "url": "/harness/vc15_learning_ko.wav",
+     "startedAt": 130,
+     "endedAt": 2477,
+     "gate": null
+    },
+    {
+     "index": 1,
+     "url": "/harness/vc21_mode_ko.wav",
+     "startedAt": 6761,
+     "endedAt": 10023,
+     "gate": {
+      "heardAgentAudio": true,
+      "audioAtGate": 56,
+      "finalAtGate": 2,
+      "waitedMs": 6631
+     }
+    },
+    {
+     "index": 2,
+     "url": "/harness/vc18_yes_ko.wav",
+     "startedAt": 15851,
+     "endedAt": 17021,
+     "gate": {
+      "heardAgentAudio": true,
+      "audioAtGate": 153,
+      "finalAtGate": 4,
+      "waitedMs": 9090
+     }
+    },
+    {
+     "index": 0,
+     "url": "/harness/vc15_learning_ko.wav",
+     "startedAt": 18636,
+     "endedAt": 20983,
+     "gate": null
+    }
+   ]
+  },
+  "started": {
+   "count": 157,
+   "when": [
+    0,
+    4.264,
+    4.343,
+    4.423,
+    4.503,
+    4.583,
+    4.663,
+    4.743,
+    4.823,
+    4.9030000000000005,
+    4.9830000000000005,
+    5.063000000000001,
+    5.143000000000001,
+    5.223000000000001,
+    5.303000000000001,
+    5.383000000000001,
+    5.463000000000001,
+    5.543000000000001,
+    5.623000000000001,
+    5.703000000000001,
+    5.783000000000001,
+    5.863000000000001,
+    5.943000000000001,
+    6.0230000000000015,
+    6.1030000000000015,
+    6.183000000000002,
+    6.263000000000002,
+    6.343000000000002,
+    6.423000000000002,
+    6.503000000000002,
+    6.583000000000002,
+    6.663000000000002,
+    6.743000000000002,
+    6.823000000000002,
+    6.903000000000002,
+    6.983000000000002,
+    7.063000000000002,
+    7.1430000000000025,
+    7.2230000000000025,
+    7.303000000000003,
+    7.383000000000003,
+    7.463000000000003,
+    7.543000000000003,
+    7.623000000000003,
+    7.703000000000003,
+    7.783000000000003,
+    7.863000000000003,
+    7.943000000000003,
+    8.023000000000003,
+    8.103000000000003,
+    8.183000000000003,
+    8.263000000000003,
+    8.343000000000004,
+    8.423000000000004,
+    8.503000000000004,
+    8.583000000000004,
+    8.663000000000004,
+    0,
+    12.536,
+    12.615,
+    12.695,
+    12.775,
+    12.855,
+    12.935,
+    13.015,
+    13.095,
+    13.175,
+    13.255,
+    13.335,
+    13.415000000000001,
+    13.495000000000001,
+    13.575000000000001,
+    13.655000000000001,
+    13.735000000000001,
+    13.815000000000001,
+    13.895000000000001,
+    13.975000000000001,
+    14.055000000000001,
+    14.135000000000002,
+    14.215000000000002,
+    14.295000000000002,
+    14.375000000000002,
+    14.455000000000002,
+    14.535000000000002,
+    14.615000000000002,
+    14.695000000000002,
+    14.775000000000002,
+    14.855000000000002,
+    14.935000000000002,
+    15.015000000000002,
+    15.095000000000002,
+    15.175000000000002,
+    15.255000000000003,
+    15.335000000000003,
+    15.415000000000003,
+    15.495000000000003,
+    15.575000000000003,
+    15.655000000000003,
+    15.735000000000003,
+    15.815000000000003,
+    15.895000000000003,
+    15.975000000000003,
+    16.055000000000003,
+    16.135,
+    16.215,
+    16.294999999999998,
+    16.374999999999996,
+    16.454999999999995,
+    16.534999999999993,
+    16.61499999999999,
+    16.69499999999999,
+    16.774999999999988,
+    16.97599999999999,
+    17.05499999999999,
+    17.134999999999987,
+    17.214999999999986,
+    17.294999999999984,
+    17.374999999999982,
+    17.45499999999998,
+    17.53499999999998,
+    17.614999999999977,
+    17.694999999999975,
+    17.774999999999974,
+    17.854999999999972,
+    17.93499999999997,
+    18.01499999999997,
+    18.094999999999967,
+    18.174999999999965,
+    18.254999999999963,
+    18.33499999999996,
+    18.41499999999996,
+    18.49499999999996,
+    18.574999999999957,
+    18.654999999999955,
+    18.734999999999953,
+    18.81499999999995,
+    18.89499999999995,
+    18.974999999999948,
+    19.054999999999946,
+    19.134999999999945,
+    19.214999999999943,
+    19.29499999999994,
+    19.37499999999994,
+    19.454999999999938,
+    19.534999999999936,
+    19.614999999999934,
+    19.694999999999933,
+    19.77499999999993,
+    19.85499999999993,
+    19.934999999999928,
+    20.014999999999926,
+    20.094999999999924,
+    20.174999999999923,
+    20.25499999999992,
+    20.49499999999992,
+    0,
+    0
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 115,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 3443,
+    "count": 1,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요"
+    ]
+   },
+   {
+    "ts": 4242,
+    "count": 2,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: That is a useful sentence for daily life. Can you tell me what time you usually leave home for work?"
+    ]
+   },
+   {
+    "ts": 10410,
+    "count": 3,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: That is a useful sentence for daily life. Can you tell me what time you usually leave home for work?",
+     "답변: 오마이잉글리시 발음 연습 모드로 바꿔주세요"
+    ]
+   },
+   {
+    "ts": 12512,
+    "count": 4,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: That is a useful sentence for daily life. Can you tell me what time you usually leave home for work?",
+     "답변: 오마이잉글리시 발음 연습 모드로 바꿔주세요",
+     "질문: Okay, I will switch to pronunciation practice mode. Let's start with a simple sentence."
+    ]
+   },
+   {
+    "ts": 13550,
+    "count": 4,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: That is a useful sentence for daily life. Can you tell me what time you usually leave home for work?",
+     "답변: 오마이잉글리시 발음 연습 모드로 바꿔주세요",
+     "질문:  Can you repeat after me? \"I go to work by subway.\""
+    ]
+   },
+   {
+    "ts": 14327,
+    "count": 4,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: That is a useful sentence for daily life. Can you tell me what time you usually leave home for work?",
+     "답변: 오마이잉글리시 발음 연습 모드로 바꿔주세요",
+     "질문: Okay, I will switch to pronunciation practice mode. Let's start with a simple sentence. Can you repeat after me? \"I go to work by subway.\""
+    ]
+   },
+   {
+    "ts": 17884,
+    "count": 5,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: That is a useful sentence for daily life. Can you tell me what time you usually leave home for work?",
+     "답변: 오마이잉글리시 발음 연습 모드로 바꿔주세요",
+     "질문: Okay, I will switch to pronunciation practice mode. Let's start with a simple sentence. Can you repeat after me? \"I go to work by subway.\"",
+     "답변: 네 해주세요"
+    ]
+   },
+   {
+    "ts": 18640,
+    "count": 0,
+    "texts": []
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 43.029333333333334
+  },
+  "meta": {
+   "hookedAt": "2026-09-15T18:21:30.419Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789496490420,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789496490436,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789496508942,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 3,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:8012/ws/session?source=recommended",
+    "ws://localhost:3001/_next/hmr?id=Gy3HzOHGZXoTP_aqwTaP_",
+    "ws://localhost:8012/ws/session?mode=pronunciation&source=additional"
+   ]
+  },
+  "lines": [],
+  "url": "http://localhost:3001/",
+  "log": [
+   {
+    "at": 0,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 3407,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 43009,
+    "what": "settled",
+    "recv": {
+     "session_started": 2,
+     "partial": 3,
+     "final": 5,
+     "audio": 153,
+     "session_ended": 1,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 3,
+     "speech_end": 3,
+     "interrupted": 2,
+     "voice_command": 2
+    }
+   }
+  ]
+ },
+ "screenshot_session": "tests/harness/runs/2026-09-16-task61-10-mode-change/shot-ko-session.png",
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3001/results/4cbe8029-e3be-4b2b-b1a8-4378f56fc663",
+  "recv": {
+   "session_started": 2,
+   "partial": 3,
+   "final": 5,
+   "audio": 153,
+   "session_ended": 2,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 3,
+   "speech_end": 3,
+   "interrupted": 2,
+   "voice_command": 2
+  },
+  "sent": {
+   "audio": 1377,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "finalLinesAtTerminal": [
+   "답변: 저는 보통 지하철로 출근해요",
+   "질문: That is a useful sentence for daily life. Can you tell me what time you usually leave home for work?",
+   "답변: 오마이잉글리시 발음 연습 모드로 바꿔주세요",
+   "질문: Okay, I will switch to pronunciation practice mode. Let's start with a simple sentence. Can you repeat after me? \"I go to work by subway.\"",
+   "답변: 네 해주세요"
+  ],
+  "resultParagraphs": [
+   "분석 대상 없음",
+   "오늘 학습을 마쳤어요 — 시나리오 4개",
+   "← 학습 시작 화면으로",
+   "학습 히스토리 보기 →"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 대상 없음</p><p style=\"color: var(--foreground-muted);\">오늘 학습을 마쳤어요 — 시나리오 4개</p><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p><p style=\"margin-top: 0.5rem;\"><a href=\"/history\" style=\"text-decoration: underline;\">학습 히스토리 보기 →</a></p>"
+ },
+ "screenshot_results": "tests/harness/runs/2026-09-16-task61-10-mode-change/shot-ko-results.png"
+}
