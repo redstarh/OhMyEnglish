@@ -4,6 +4,7 @@ title: PRD Voice Control 의 남은 명령 넷 — 등록만 하고 착수하지
 status: To Do
 assignee: []
 created_date: '2026-09-15 13:31'
+updated_date: '2026-09-15 14:05'
 labels: []
 dependencies: []
 parent_task_id: TASK-61
@@ -32,3 +33,9 @@ ordinal: 183000
 - [ ] #2 정한 명령을 계약대로 만든다 — 표지 요구·확인 필요 여부(requires_confirmation)·기록 유형
 - [ ] #3 실물 회차로 관측하고 영어·한국어 둘을 함께 본다
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-09-15 설명에 적은 판정 축이 낡았음 — 결정 109 가 그것을 해소했음. 「코치가 수행하는 명령은 한국어에서 성립하지 않는다」는 toolResult 미회신이 원인이었고 고쳐졌음(회차 tests/harness/runs/2026-09-15-task61-5-toolresult). ⇒ 남은 넷을 고를 때 그 축은 더 쓰지 않고 비용(마이그레이션·계약 신설·아키텍처 충돌)만 본다.
+<!-- SECTION:NOTES:END -->
