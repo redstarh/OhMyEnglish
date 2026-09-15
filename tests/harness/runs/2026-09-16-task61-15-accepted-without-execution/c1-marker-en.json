@@ -1,0 +1,348 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3001/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/vc13_learning_en.wav",
+  "urls": [
+   "/harness/vc13_learning_en.wav",
+   "/harness/vc01_cmd_en.wav",
+   "/harness/vc02_yes_en.wav"
+  ],
+  "count": 3,
+  "bytes": 190464,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 5.568,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0,
+  "plays": []
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 2,
+   "final": 5,
+   "audio": 71,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 3,
+   "speech_end": 3,
+   "interrupted": 1,
+   "voice_command": 1
+  },
+  "sent": {
+   "audio": 461,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "startedSessionId": "5f3ce6d9-dd09-4b28-ba66-358e894be9ad",
+  "fixture": {
+   "url": "/harness/vc13_learning_en.wav",
+   "urls": [
+    "/harness/vc13_learning_en.wav",
+    "/harness/vc01_cmd_en.wav",
+    "/harness/vc02_yes_en.wav"
+   ],
+   "count": 3,
+   "bytes": 190464,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 5.568,
+   "startedAt": 100,
+   "endedAt": 13514,
+   "micCalls": 1,
+   "plays": [
+    {
+     "index": 0,
+     "url": "/harness/vc13_learning_en.wav",
+     "startedAt": 100,
+     "endedAt": 2048,
+     "gate": null
+    },
+    {
+     "index": 1,
+     "url": "/harness/vc01_cmd_en.wav",
+     "startedAt": 6442,
+     "endedAt": 8395,
+     "gate": {
+      "heardAgentAudio": true,
+      "audioAtGate": 50,
+      "finalAtGate": 2,
+      "waitedMs": 6342
+     }
+    },
+    {
+     "index": 2,
+     "url": "/harness/vc02_yes_en.wav",
+     "startedAt": 11839,
+     "endedAt": 13514,
+     "gate": {
+      "heardAgentAudio": true,
+      "audioAtGate": 71,
+      "finalAtGate": 4,
+      "waitedMs": 5397
+     }
+    }
+   ]
+  },
+  "started": {
+   "count": 74,
+   "when": [
+    0,
+    3.872,
+    3.951,
+    4.031,
+    4.111,
+    4.191,
+    4.271,
+    4.351,
+    4.431,
+    4.511,
+    4.591,
+    4.671,
+    4.751,
+    4.831,
+    4.9110000000000005,
+    4.9910000000000005,
+    5.071000000000001,
+    5.151000000000001,
+    5.231000000000001,
+    5.311000000000001,
+    5.391000000000001,
+    5.471000000000001,
+    5.551000000000001,
+    5.631000000000001,
+    5.711000000000001,
+    5.791000000000001,
+    5.871000000000001,
+    5.951000000000001,
+    6.0310000000000015,
+    6.1110000000000015,
+    6.191000000000002,
+    6.271000000000002,
+    6.351000000000002,
+    6.431000000000002,
+    6.511000000000002,
+    6.591000000000002,
+    6.671000000000002,
+    6.751000000000002,
+    6.831000000000002,
+    6.911000000000002,
+    6.991000000000002,
+    7.071000000000002,
+    7.1510000000000025,
+    7.2310000000000025,
+    7.311000000000003,
+    7.391000000000003,
+    7.471000000000003,
+    7.551000000000003,
+    7.631000000000003,
+    7.711000000000003,
+    7.791000000000003,
+    0,
+    9.904,
+    9.983,
+    10.063,
+    10.143,
+    10.223,
+    10.303,
+    10.383000000000001,
+    10.463000000000001,
+    10.543000000000001,
+    10.623000000000001,
+    10.703000000000001,
+    10.783000000000001,
+    10.863000000000001,
+    10.943000000000001,
+    11.023000000000001,
+    11.103000000000002,
+    11.183000000000002,
+    11.263000000000002,
+    11.343000000000002,
+    11.423000000000002,
+    11.623000000000001,
+    0
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 88,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 3066,
+    "count": 1,
+    "texts": [
+     "답변: i usually take the subway to work."
+    ]
+   },
+   {
+    "ts": 3838,
+    "count": 2,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: That's a good sentence. Can you tell me what time you usually leave for work in the morning?"
+    ]
+   },
+   {
+    "ts": 9296,
+    "count": 3,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: That's a good sentence. Can you tell me what time you usually leave for work in the morning?",
+     "답변: oh my english! end the session."
+    ]
+   },
+   {
+    "ts": 9871,
+    "count": 4,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: That's a good sentence. Can you tell me what time you usually leave for work in the morning?",
+     "답변: oh my english! end the session.",
+     "질문: Do you want to end today's session?"
+    ]
+   },
+   {
+    "ts": 14345,
+    "count": 5,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: That's a good sentence. Can you tell me what time you usually leave for work in the morning?",
+     "답변: oh my english! end the session.",
+     "질문: Do you want to end today's session?",
+     "답변: yes, please end it now."
+    ]
+   },
+   {
+    "ts": 14942,
+    "count": 0,
+    "texts": []
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 34.458666666666666
+  },
+  "meta": {
+   "hookedAt": "2026-09-15T23:25:13.049Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789514713050,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789514713063,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3001/_next/hmr?id=EH-fa9Bcwkgq3deH-AqhI",
+    "ws://localhost:8012/ws/session?source=recommended"
+   ]
+  },
+  "lines": [],
+  "url": "http://localhost:3001/results/5f3ce6d9-dd09-4b28-ba66-358e894be9ad",
+  "log": [
+   {
+    "at": 0,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 3113,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 34439,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 2,
+     "final": 5,
+     "audio": 71,
+     "session_ended": 1,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 3,
+     "speech_end": 3,
+     "interrupted": 1,
+     "voice_command": 1
+    }
+   }
+  ]
+ },
+ "screenshot_session": "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-16-task61-15-accepted-without-execution/shot-c1-marker-en-session.png",
+ "end_click": {
+  "attempted": true,
+  "ok": false,
+  "error": "클릭 대상을 찾지 못했다: 학습 종료 (None)"
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3001/results/5f3ce6d9-dd09-4b28-ba66-358e894be9ad",
+  "recv": {
+   "session_started": 1,
+   "partial": 2,
+   "final": 5,
+   "audio": 71,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 3,
+   "speech_end": 3,
+   "interrupted": 1,
+   "voice_command": 1
+  },
+  "sent": {
+   "audio": 461,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "finalLinesAtTerminal": [
+   "답변: i usually take the subway to work.",
+   "질문: That's a good sentence. Can you tell me what time you usually leave for work in the morning?",
+   "답변: oh my english! end the session.",
+   "질문: Do you want to end today's session?",
+   "답변: yes, please end it now."
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "오늘 학습을 마쳤어요 — 시나리오 6개",
+   "← 학습 시작 화면으로",
+   "학습 히스토리 보기 →"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><p style=\"color: var(--foreground-muted);\">오늘 학습을 마쳤어요 — 시나리오 6개</p><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p><p style=\"margin-top: 0.5rem;\"><a href=\"/history\" style=\"text-decoration: underline;\">학습 히스토리 보기 →</a></p>"
+ },
+ "screenshot_results": "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-16-task61-15-accepted-without-execution/shot-c1-marker-en-results.png"
+}

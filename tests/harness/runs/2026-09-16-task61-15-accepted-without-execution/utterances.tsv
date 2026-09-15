@@ -1,0 +1,35 @@
+session_id	sequence_no	speaker	utterance_type	transcript
+ab81326f-ee71-4b31-8779-5324d450a4a0	1	user	learning	i usually take the subway to work.
+ab81326f-ee71-4b31-8779-5324d450a4a0	2	agent	learning	That is very useful! Can you tell me what time you usually take the subway?
+ab81326f-ee71-4b31-8779-5324d450a4a0	3	user	learning	end the session now, please.
+ab81326f-ee71-4b31-8779-5324d450a4a0	4	agent	learning	Do you want to end today's session?
+ab81326f-ee71-4b31-8779-5324d450a4a0	5	agent	learning	Okay, the session has ended. Thank you for chatting today! Have a great evening!
+e1b360ca-1673-4c18-a54d-1fb91f381597	1	user	learning	i usually take the subway to work.
+e1b360ca-1673-4c18-a54d-1fb91f381597	2	agent	learning	That is a good sentence. Can you tell me what time you usually leave for work?
+e1b360ca-1673-4c18-a54d-1fb91f381597	3	user	learning	end the session now, please.
+e1b360ca-1673-4c18-a54d-1fb91f381597	4	agent	learning	Do you want to end today's session?
+6fa590e9-cd5c-47a1-82ef-c24de44a79e9	1	user	learning	i usually take the subway to work.
+6fa590e9-cd5c-47a1-82ef-c24de44a79e9	2	agent	learning	That's a good sentence. Can you tell me what time you usually leave for work in the morning?
+6fa590e9-cd5c-47a1-82ef-c24de44a79e9	3	user	learning	end the session now, please.
+6fa590e9-cd5c-47a1-82ef-c24de44a79e9	4	agent	learning	Do you want to end today's session?
+6fa590e9-cd5c-47a1-82ef-c24de44a79e9	5	user	learning	yes, please do.
+6fa590e9-cd5c-47a1-82ef-c24de44a79e9	6	agent	learning	Okay, the session is ending now. Thank you for talking with me today. See you next time!
+05780747-9800-4592-b86c-3948c5af81c3	1	user	learning	i usually take the subway to work.
+05780747-9800-4592-b86c-3948c5af81c3	2	agent	learning	Great! That is a useful sentence for daily life.  
+Can you say that sentence again for me, please?  Say: "I usually take the subway to work."
+05780747-9800-4592-b86c-3948c5af81c3	3	user	learning	end the session now, please.
+05780747-9800-4592-b86c-3948c5af81c3	4	agent	learning	Do you want to end today's session?
+05780747-9800-4592-b86c-3948c5af81c3	5	user	learning	yes, please do.
+05780747-9800-4592-b86c-3948c5af81c3	6	agent	learning	Okay, the session is ending now. Thank you for talking with me today! Have a good evening!
+0d3a0a2c-1d23-416f-9619-bf59c4478798	1	user	learning	저는 보통 지하철로 출근해요
+0d3a0a2c-1d23-416f-9619-bf59c4478798	2	agent	learning	That is a good sentence. Can you tell me what time you usually leave for work?
+0d3a0a2c-1d23-416f-9619-bf59c4478798	3	user	learning	학습 종료해주세요
+0d3a0a2c-1d23-416f-9619-bf59c4478798	4	agent	learning	Do you want to end today's session?
+0d3a0a2c-1d23-416f-9619-bf59c4478798	5	user	learning	네, 해주세요
+0d3a0a2c-1d23-416f-9619-bf59c4478798	6	agent	learning	Okay, the session has been ended as requested. If you need any more help in the future, just let me know. Have a great day!
+5f3ce6d9-dd09-4b28-ba66-358e894be9ad	1	user	learning	i usually take the subway to work.
+5f3ce6d9-dd09-4b28-ba66-358e894be9ad	2	agent	learning	That's a good sentence. Can you tell me what time you usually leave for work in the morning?
+5f3ce6d9-dd09-4b28-ba66-358e894be9ad	3	user	voice_command	oh my english! end the session.
+5f3ce6d9-dd09-4b28-ba66-358e894be9ad	4	agent	learning	Do you want to end today's session?
+5f3ce6d9-dd09-4b28-ba66-358e894be9ad	5	user	learning	yes, please end it now.
+(32개 행)

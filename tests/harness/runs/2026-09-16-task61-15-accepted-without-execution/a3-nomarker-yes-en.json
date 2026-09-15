@@ -1,0 +1,455 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3001/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/vc13_learning_en.wav",
+  "urls": [
+   "/harness/vc13_learning_en.wav",
+   "/harness/vc27_end_nomarker_en.wav",
+   "/harness/vc20_yes_en.wav"
+  ],
+  "count": 3,
+  "bytes": 173066,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 5.024,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0,
+  "plays": []
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 4,
+   "final": 6,
+   "audio": 139,
+   "session_ended": 0,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 3,
+   "speech_end": 3,
+   "interrupted": 1,
+   "voice_command": 0
+  },
+  "sent": {
+   "audio": 1200,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 1
+  },
+  "startedSessionId": "6fa590e9-cd5c-47a1-82ef-c24de44a79e9",
+  "fixture": {
+   "url": "/harness/vc13_learning_en.wav",
+   "urls": [
+    "/harness/vc13_learning_en.wav",
+    "/harness/vc27_end_nomarker_en.wav",
+    "/harness/vc20_yes_en.wav"
+   ],
+   "count": 3,
+   "bytes": 173066,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 5.024,
+   "startedAt": 97,
+   "endedAt": 14350,
+   "micCalls": 1,
+   "plays": [
+    {
+     "index": 0,
+     "url": "/harness/vc13_learning_en.wav",
+     "startedAt": 97,
+     "endedAt": 2046,
+     "gate": null
+    },
+    {
+     "index": 1,
+     "url": "/harness/vc27_end_nomarker_en.wav",
+     "startedAt": 6707,
+     "endedAt": 8462,
+     "gate": {
+      "heardAgentAudio": true,
+      "audioAtGate": 57,
+      "finalAtGate": 2,
+      "waitedMs": 6610
+     }
+    },
+    {
+     "index": 2,
+     "url": "/harness/vc20_yes_en.wav",
+     "startedAt": 13024,
+     "endedAt": 14350,
+     "gate": {
+      "heardAgentAudio": true,
+      "audioAtGate": 79,
+      "finalAtGate": 4,
+      "waitedMs": 6317
+     }
+    }
+   ]
+  },
+  "started": {
+   "count": 142,
+   "when": [
+    0,
+    4.008,
+    4.087,
+    4.167,
+    4.247,
+    4.327,
+    4.407,
+    4.487,
+    4.567,
+    4.647,
+    4.727,
+    4.807,
+    4.8870000000000005,
+    4.9670000000000005,
+    5.047000000000001,
+    5.127000000000001,
+    5.207000000000001,
+    5.287000000000001,
+    5.367000000000001,
+    5.447000000000001,
+    5.527000000000001,
+    5.607000000000001,
+    5.687000000000001,
+    5.767000000000001,
+    5.847000000000001,
+    5.927000000000001,
+    6.0070000000000014,
+    6.0870000000000015,
+    6.167000000000002,
+    6.247000000000002,
+    6.327000000000002,
+    6.407000000000002,
+    6.487000000000002,
+    6.567000000000002,
+    6.647000000000002,
+    6.727000000000002,
+    6.807000000000002,
+    6.887000000000002,
+    6.967000000000002,
+    7.047000000000002,
+    7.1270000000000024,
+    7.2070000000000025,
+    7.287000000000003,
+    7.367000000000003,
+    7.447000000000003,
+    7.527000000000003,
+    7.607000000000003,
+    7.687000000000003,
+    7.767000000000003,
+    7.847000000000003,
+    7.927000000000003,
+    8.007000000000003,
+    8.087000000000003,
+    8.167000000000003,
+    8.247000000000003,
+    8.327000000000004,
+    8.407000000000004,
+    8.487000000000004,
+    0,
+    10.952,
+    11.031,
+    11.111,
+    11.191,
+    11.271,
+    11.351,
+    11.431000000000001,
+    11.511000000000001,
+    11.591000000000001,
+    11.671000000000001,
+    11.751000000000001,
+    11.831000000000001,
+    11.911000000000001,
+    11.991000000000001,
+    12.071000000000002,
+    12.151000000000002,
+    12.231000000000002,
+    12.311000000000002,
+    12.391000000000002,
+    12.471000000000002,
+    12.551000000000002,
+    12.751000000000001,
+    0,
+    17.08,
+    17.159,
+    17.238999999999997,
+    17.318999999999996,
+    17.398999999999994,
+    17.478999999999992,
+    17.55899999999999,
+    17.63899999999999,
+    17.718999999999987,
+    17.798999999999985,
+    17.878999999999984,
+    17.958999999999982,
+    18.03899999999998,
+    18.11899999999998,
+    18.198999999999977,
+    18.278999999999975,
+    18.358999999999973,
+    18.43899999999997,
+    18.51899999999997,
+    18.59899999999997,
+    18.678999999999967,
+    18.758999999999965,
+    18.838999999999963,
+    18.91899999999996,
+    18.99899999999996,
+    19.078999999999958,
+    19.158999999999956,
+    19.238999999999955,
+    19.318999999999953,
+    19.39899999999995,
+    19.47899999999995,
+    19.558999999999948,
+    19.638999999999946,
+    19.718999999999944,
+    19.798999999999943,
+    19.87899999999994,
+    19.95899999999994,
+    20.038999999999938,
+    20.118999999999936,
+    20.198999999999934,
+    20.278999999999932,
+    20.35899999999993,
+    20.43899999999993,
+    20.518999999999927,
+    20.598999999999926,
+    20.798999999999925,
+    20.799999999999926,
+    20.878999999999927,
+    20.958999999999925,
+    21.038999999999923,
+    21.11899999999992,
+    21.19899999999992,
+    21.278999999999918,
+    21.358999999999916,
+    21.438999999999915,
+    21.518999999999913,
+    21.59899999999991,
+    21.67899999999991,
+    21.758999999999908,
+    21.958999999999907
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 88,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 3045,
+    "count": 1,
+    "texts": [
+     "답변: i usually take the subway to work."
+    ]
+   },
+   {
+    "ts": 3975,
+    "count": 2,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: That's a good sentence. Can you tell me what time you usually leave for work in the morning?"
+    ]
+   },
+   {
+    "ts": 9537,
+    "count": 3,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: That's a good sentence. Can you tell me what time you usually leave for work in the morning?",
+     "답변: end the session now, please."
+    ]
+   },
+   {
+    "ts": 10917,
+    "count": 4,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: That's a good sentence. Can you tell me what time you usually leave for work in the morning?",
+     "답변: end the session now, please.",
+     "질문: Do you want to end today's session?"
+    ]
+   },
+   {
+    "ts": 15821,
+    "count": 5,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: That's a good sentence. Can you tell me what time you usually leave for work in the morning?",
+     "답변: end the session now, please.",
+     "질문: Do you want to end today's session?",
+     "답변: yes, please do."
+    ]
+   },
+   {
+    "ts": 17049,
+    "count": 6,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: That's a good sentence. Can you tell me what time you usually leave for work in the morning?",
+     "답변: end the session now, please.",
+     "질문: Do you want to end today's session?",
+     "답변: yes, please do.",
+     "질문: Okay, the session is ending now. Thank you for talking with me today."
+    ]
+   },
+   {
+    "ts": 18139,
+    "count": 6,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: That's a good sentence. Can you tell me what time you usually leave for work in the morning?",
+     "답변: end the session now, please.",
+     "질문: Do you want to end today's session?",
+     "답변: yes, please do.",
+     "질문:  See you next time!"
+    ]
+   },
+   {
+    "ts": 18435,
+    "count": 6,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: That's a good sentence. Can you tell me what time you usually leave for work in the morning?",
+     "답변: end the session now, please.",
+     "질문: Do you want to end today's session?",
+     "답변: yes, please do.",
+     "질문: Okay, the session is ending now. Thank you for talking with me today. See you next time!"
+    ]
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 38.44266666666667
+  },
+  "meta": {
+   "hookedAt": "2026-09-15T23:22:50.348Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789514570348,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789514570358,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3001/_next/hmr?id=kKuLUaoI_tP1tC1RU4Ud4",
+    "ws://localhost:8012/ws/session?source=recommended"
+   ]
+  },
+  "lines": [
+   "답변: i usually take the subway to work.",
+   "질문: That's a good sentence. Can you tell me what time you usually leave for work in the morning?",
+   "답변: end the session now, please.",
+   "질문: Do you want to end today's session?",
+   "답변: yes, please do.",
+   "질문: Okay, the session is ending now. Thank you for talking with me today. See you next time!"
+  ],
+  "url": "http://localhost:3001/",
+  "log": [
+   {
+    "at": 0,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 3077,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 38430,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 4,
+     "final": 6,
+     "audio": 139,
+     "session_ended": 0,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 3,
+     "speech_end": 3,
+     "interrupted": 1,
+     "voice_command": 0
+    }
+   }
+  ]
+ },
+ "screenshot_session": "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-16-task61-15-accepted-without-execution/shot-a3-nomarker-yes-en-session.png",
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3001/results/6fa590e9-cd5c-47a1-82ef-c24de44a79e9",
+  "recv": {
+   "session_started": 1,
+   "partial": 4,
+   "final": 6,
+   "audio": 139,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 3,
+   "speech_end": 3,
+   "interrupted": 1,
+   "voice_command": 0
+  },
+  "sent": {
+   "audio": 1234,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "finalLinesAtTerminal": [
+   "답변: i usually take the subway to work.",
+   "질문: That's a good sentence. Can you tell me what time you usually leave for work in the morning?",
+   "답변: end the session now, please.",
+   "질문: Do you want to end today's session?",
+   "답변: yes, please do.",
+   "질문: Okay, the session is ending now. Thank you for talking with me today. See you next time!"
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "오늘 학습을 마쳤어요 — 시나리오 3개",
+   "← 학습 시작 화면으로",
+   "학습 히스토리 보기 →"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><p style=\"color: var(--foreground-muted);\">오늘 학습을 마쳤어요 — 시나리오 3개</p><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p><p style=\"margin-top: 0.5rem;\"><a href=\"/history\" style=\"text-decoration: underline;\">학습 히스토리 보기 →</a></p>"
+ },
+ "screenshot_results": "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-16-task61-15-accepted-without-execution/shot-a3-nomarker-yes-en-results.png"
+}
