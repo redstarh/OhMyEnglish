@@ -113,9 +113,13 @@ export type ServerEvent =
   // ⚠️ **`show_report` 는 화면이 수행하는 유일한 명령이다** — 서버 상태가 바뀌지 않으므로
   // 서버가 뒤이어 보낼 프레임이 없다(결정 107 ②). 화면은 `stage: "requested"` 하나만 보고
   // 움직인다 — 확인을 타지 않는 명령이라 뒤 단계가 오지 않는 것이 정상이다(결정 107 ③).
+  //
+  // ⛔ **`next_question` 에 화면이 반응하지 않는 것은 «누락이 아니라 계약»이다**(결정 108 ②) —
+  // 코치가 다음 질문을 말하므로 학습자가 들어서 안다. 화면 표시를 더하면 같은 사실을 두 곳이
+  // 말하게 되고, 그 둘이 갈릴 때 어느 쪽이 참인지 정할 근거가 없다.
   | {
       type: "voice_command";
-      command: "end" | "show_report";
+      command: "end" | "show_report" | "next_question";
       stage: "requested" | "confirmed" | "cancelled";
     }
   | { type: "session_failed"; reason: string }

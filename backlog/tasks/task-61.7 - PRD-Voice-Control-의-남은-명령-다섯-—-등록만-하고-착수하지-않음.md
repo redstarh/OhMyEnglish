@@ -1,10 +1,10 @@
 ---
 id: TASK-61.7
 title: PRD Voice Control 의 남은 명령 다섯 — 등록만 하고 착수하지 않음
-status: Awaiting Decision
+status: In Progress
 assignee: []
 created_date: '2026-09-15 13:07'
-updated_date: '2026-09-15 13:08'
+updated_date: '2026-09-15 13:22'
 labels: []
 dependencies: []
 parent_task_id: TASK-61
@@ -23,7 +23,7 @@ ordinal: 182000
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 어느 명령을 다음 조각으로 할지 사용자 판단을 받는다 — 결정 107 의 기각 근거를 근거로 다시 제시한다
-- [ ] #2 정한 명령을 계약대로 만든다 — 표지 요구·확인 필요 여부(requires_confirmation)·기록 유형
+- [x] #1 어느 명령을 다음 조각으로 할지 사용자 판단을 받는다 — 결정 107 의 기각 근거를 근거로 다시 제시한다
+- [x] #2 정한 명령을 계약대로 만든다 — 표지 요구·확인 필요 여부(requires_confirmation)·기록 유형
 - [ ] #3 실물 회차로 관측하고 영어·한국어 둘을 함께 본다
 <!-- AC:END -->

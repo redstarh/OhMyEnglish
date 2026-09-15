@@ -21,12 +21,25 @@ def test_a_report_command_payload_becomes_a_report() -> None:
     assert report.stage == "requested"
 
 
+def test_a_next_question_command_payload_becomes_a_report() -> None:
+    """셋째 조각의 명령은 「다음 문제」다 (`TASK-61.7` · 결정 108)."""
+    report = parse_control_payload('{"command": "next_question", "stage": "requested"}')
+
+    assert report is not None
+    assert report.command == "next_question"
+    assert report.stage == "requested"
+
+
 def test_only_a_command_that_cannot_be_undone_needs_confirmation() -> None:
     """⛔ 확인 필요 여부를 **앱이** 판정한다 — 모델의 규율에 맡기면 조회에도 확인을 묻거나
     종료를 확인 없이 부른다. PRD:85 는 「결과가 큰 명령」에만 확인을 요구한다(결정 107 ③).
+
+    ⚠️ **명령을 더할 때 이 목록을 함께 늘린다** — 새 명령이 어느 쪽인지 정하지 않고 넘어가면
+    확인 없이 도는 것이 기본값이 된다(결정 108 ① 이 「다음 문제」를 그렇게 판정했다).
     """
     assert requires_confirmation("end") is True
     assert requires_confirmation("show_report") is False
+    assert requires_confirmation("next_question") is False
 
 
 def test_a_confirmed_end_payload_becomes_a_report() -> None:

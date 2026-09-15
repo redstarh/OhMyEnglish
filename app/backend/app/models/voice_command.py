@@ -21,9 +21,12 @@ logger = logging.getLogger(__name__)
 # 어댑터와 이 모듈이 같은 이름을 써야 한다.
 CONTROL_TOOL_NAME = "request_session_control"
 
-# 받는 명령 둘. `end` 는 첫 조각(결정 102 ②)이고 `show_report` 는 둘째 조각(결정 107)이다 —
-# 되돌릴 수 있는 부류의 첫 명령이라 확인 절차를 타지 않는다.
-ControlCommand = Literal["end", "show_report"]
+# 받는 명령 셋. `end` 는 첫 조각(결정 102 ②) · `show_report` 는 둘째(결정 107) · `next_question`
+# 은 셋째(결정 108)다. 뒤 둘은 되돌릴 수 있는 부류라 확인 절차를 타지 않는다.
+#
+# ⛔ **명령을 더하면 `CONFIRMATION_REQUIRED` 를 함께 본다** — 이 Literal 에만 더하면 확인 없이
+# 도는 것이 기본값이 되고, 되돌릴 수 없는 명령이 그렇게 새면 결정 102 ③이 무너진다.
+ControlCommand = Literal["end", "show_report", "next_question"]
 
 # `requested` 는 「명령을 들었고 확인을 묻는다」, `confirmed` 는 「학습자가 확인했다」,
 # `cancelled` 는 「학습자가 물렸다」다. ⛔ 앱은 `confirmed` 에서만 세션을 닫는다.

@@ -2181,6 +2181,19 @@ def test_the_prompt_names_both_commands_and_only_end_needs_confirmation():
     assert "without asking for confirmation" in squeezed
 
 
+def test_the_prompt_names_next_question_and_puts_the_learner_before_the_plan():
+    """결정 108 ③ — 학습자 요청이 계획의 exchange 최소값보다 우선한다 (PRD:77).
+
+    ⛔ **이 문면이 없으면 모델이 명령을 무시할 여지가 크다** — `_DRILL_INSTRUCTION` 이
+    *"stay on each one for at least N exchanges"* 로 강하게 적혀 있어 두 요구가 맞물린다.
+    ⚠️ 문면만으로 거동이 보장되지 않는다 — 실물 관측은 `TASK-61.7` AC#3 의 회차가 한다.
+    """
+    squeezed = " ".join(SYSTEM_PROMPT.split()).lower()
+
+    assert "next_question" in SYSTEM_PROMPT
+    assert "even if the plan asks you to stay on that question longer" in squeezed
+
+
 def test_the_prompt_tells_the_coach_to_ask_out_loud_before_calling_the_tool():
     """⛔ `TASK-61.4` D3(사용자 결정 104) — 실측에서 코치가 tool 만 부르고 **한 마디도 하지 않았다**.
 

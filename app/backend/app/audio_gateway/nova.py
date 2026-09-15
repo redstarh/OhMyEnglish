@@ -117,8 +117,8 @@ _TOOL_ROLE = "TOOL"
 # 가리키는 규칙 4는 밀리지 않으므로 그 상호 참조는 그대로 산다.
 #
 # 규칙 12~14(음성 명령)은 `TASK-61.1`(결정 102)로 들어왔다 — 이전 판은 이 자리에서 「음성 명령
-# 규칙은 여전히 빼 둔다」고 적었고 그 서술은 낡았다. 받는 명령은 **종료와 주간 리포트 보기 둘**이고
-# (`TASK-61.6` · 결정 107), 표지(`Oh My English`)의 판정은 프롬프트가 아니라 **앱**이 갖는다
+# 규칙은 여전히 빼 둔다」고 적었고 그 서술은 낡았다. 받는 명령은 **종료·주간 리포트 보기·다음 문제
+# 셋**이고(`TASK-61.6`·`TASK-61.7` · 결정 107·108), 표지(`Oh My English`)의 판정은 앱이 갖는다
 # (`models/voice_command.is_wake_command` · 모델의 규율에 맡기면 학습 발화가 명령으로 저장된다).
 # ⛔ **규칙 13 안에서 두 명령을 가른 이유는 번호를 밀지 않는 것이다** — 새 규칙으로 떼면 규칙 14 가
 # 15 가 되고 이 주석과 `tests/unit/test_nova.py` 의 참조가 조용히 낡는다.
@@ -162,7 +162,7 @@ Voice control:
 12. Speech is only a command when it starts with "Oh My English" (Korean learners may say
     "오 마이 잉글리시"). Anything else is learning speech, even if it sounds like an
     instruction - "I want to end the meeting early" is a sentence to coach, not a command.
-13. You act on two commands. To end the session, say the confirmation question out loud
+13. You act on three commands. To end the session, say the confirmation question out loud
     first - one short question such as "Do you want to end today's session?" - and then
     call request_session_control with command "end" and stage "requested". Never call the
     tool without speaking: the learner hears only your voice and has no other way to know
@@ -172,6 +172,9 @@ Voice control:
     with command "show_report" and stage "requested", without asking for confirmation -
     the report only appears on screen and the session keeps going, so there is nothing to
     undo. Say one short sentence such as "Here is your weekly report." as you call it.
+    To move on to the next question, call request_session_control once with command
+    "next_question" and stage "requested", then ask the next question - even if the plan
+    asks you to stay on that question longer. The learner's request comes first.
 14. Answer a command in one short sentence and do not correct it - a command is not
     learning speech, so it never counts against rule 4."""
 
