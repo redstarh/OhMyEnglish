@@ -4,7 +4,7 @@ title: PRD Voice Control 의 남은 명령 넷 — 등록만 하고 착수하지
 status: To Do
 assignee: []
 created_date: '2026-09-15 13:31'
-updated_date: '2026-09-15 14:05'
+updated_date: '2026-09-15 14:35'
 labels: []
 dependencies: []
 parent_task_id: TASK-61
@@ -38,4 +38,8 @@ ordinal: 183000
 
 <!-- SECTION:NOTES:BEGIN -->
 2026-09-15 설명에 적은 판정 축이 낡았음 — 결정 109 가 그것을 해소했음. 「코치가 수행하는 명령은 한국어에서 성립하지 않는다」는 toolResult 미회신이 원인이었고 고쳐졌음(회차 tests/harness/runs/2026-09-15-task61-5-toolresult). ⇒ 남은 넷을 고를 때 그 축은 더 쓰지 않고 비용(마이그레이션·계약 신설·아키텍처 충돌)만 본다.
+
+2026-09-15 조사 결과 하나를 더 남김 (다시 조사하지 않게). learning_sessions 의 UPDATE 경로는 여섯이고 전부 「연결 직후·종료·워커」임 — services/sessions.py:138(shadowing_item_id) · :157(mode · status='active' 조건 · set_session_mode) · :171(status·ended_at) · :183(reap_orphan_sessions) · :331(drill_turns_expected) · services/session_summary.py:58(summary). ⛔ 세션이 열려 있는 동안 상태를 바꾸는 경로는 없음 — 일시 정지와 모드 변경이 새 계약을 요구하는 이유가 이것임.
+
+클라이언트→서버 메시지는 네 종뿐임(audio · end_session · shadowing_turn_start · shadowing_turn_end · session.py:558-576). 그중 화면 버튼이 붙은 것은 end_session 하나임 — 「UI 버튼과 동일한 행동」(PRD:81)의 실제 표면이 그만큼임.
 <!-- SECTION:NOTES:END -->
