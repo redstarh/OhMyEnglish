@@ -161,7 +161,7 @@ MIC_JS = r"""
   };
 
   // `recv` 키 보강 — instrument 의 계수기는 자기 키만 센다.
-  for (const k of ["pronunciation", "speech_start", "speech_end", "interrupted"]) {
+  for (const k of ["pronunciation", "speech_start", "speech_end", "interrupted", "voice_command"]) {
     if (!(k in omy.recv)) omy.recv[k] = 0;
   }
   return "mic-ready";
