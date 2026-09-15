@@ -2269,15 +2269,24 @@ def test_the_prompt_folds_mode_change_into_the_additional_learning_command():
 
     ⛔ **문면이 없으면 「모드 바꿔줘」가 이 명령으로 잡힌다는 보장이 없다** — 규칙 13 은 이것을
     *"starting extra practice"* 로만 말하고, 학습자의 낱말은 「모드」·「연습 바꿔」 쪽이다.
-    ⛔ **어느 것으로 바꿀지 먼저 묻게 하는 것이 이 문면의 나머지 절반이다** — `target` 이 없으면
-    `parse_control_payload` 가 페이로드를 **버리고**(그 모듈의 `TARGET_REQUIRED`) 학습자는 아무
-    반응도 받지 못한다. 명령을 잃는 것이 조용해서 더 나쁘다.
-    ⚠️ 문면만으로 거동이 보장되지 않는다 — 실물 관측은 `TASK-61.10` AC#3 의 회차가 한다.
+    ⛔ **어느 것으로 바꿀지 먼저 묻게 하는 것이 이 문면의 나머지 절반이다** — 종류를 말하지 않은
+    요청에 모델이 값을 **스스로 고르면** 학습자가 고르지 않은 모드로 세션이 열린다.
+
+    ⚠️ **뒤쪽 절반의 문구가 한 번 뒤집혔다 — 측정해서 뒤집었다**(`TASK-61.12` · 회차
+    `runs/2026-09-16-task61-12-unspecified-mode`). 처음 문구는 *"ask which one before you call the
+    tool, because the tool needs a target"* 였고 기준선에서 **4회 중 0회**만 되물었다(한국어 두 번은
+    「conversation 연습으로 바꾼다」고 말까지 했다). 바꾼 뒤 **5회 중 3회** 되물었다.
+    ⛔ **결정적이지 않다** — 문면은 거동의 확률을 옮길 뿐이고 그 회차 §3 이 크기를 갖는다.
+    ⚠️ **「tool 을 부르지 마라」는 지켜지지 않았다** — 어댑터 계측에서 모델이 종류를 못 들은 채
+    `requested` 를 추측한 `conversation` 으로 부르는 것을 **3/3** 관측했다. 그 추측이 세션을 열지
+    못하는 것은 **앱이 `confirmed` 에서만 열기 때문**이다(`CONFIRMATION_REQUIRED`) — 즉 안전은
+    문면이 아니라 앱이 지킨다. 남은 구멍은 `TASK-61.13` 이 갖는다.
     """
     squeezed = " ".join(SYSTEM_PROMPT.split()).lower()
 
     assert "asking to switch the mode or the kind of practice is this same command" in squeezed
-    assert "ask which one before you call the tool" in squeezed
+    assert "never guess which kind they want" in squeezed
+    assert "do not call the tool at all until they answer" in squeezed
     # 흡수의 뜻은 명령이 **하나**라는 것이다 — 별도 명령 이름이 문면에 새면 모델이 없는 tool 을 부른다.
     assert "change_mode" not in SYSTEM_PROMPT
 

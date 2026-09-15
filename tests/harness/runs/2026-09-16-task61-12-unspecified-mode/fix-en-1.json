@@ -1,0 +1,419 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3001/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/vc13_learning_en.wav",
+  "urls": [
+   "/harness/vc13_learning_en.wav",
+   "/harness/vc23_modeonly_en.wav"
+  ],
+  "count": 2,
+  "bytes": 149816,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 4.426,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0,
+  "plays": []
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 3,
+   "final": 4,
+   "audio": 151,
+   "session_ended": 0,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 2,
+   "speech_end": 2,
+   "interrupted": 1,
+   "voice_command": 1
+  },
+  "sent": {
+   "audio": 1210,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 1
+  },
+  "startedSessionId": "df066767-13a4-4c50-b53a-f55f20a570b8",
+  "fixture": {
+   "url": "/harness/vc13_learning_en.wav",
+   "urls": [
+    "/harness/vc13_learning_en.wav",
+    "/harness/vc23_modeonly_en.wav"
+   ],
+   "count": 2,
+   "bytes": 149816,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 4.426,
+   "startedAt": 95,
+   "endedAt": 9392,
+   "micCalls": 1,
+   "plays": [
+    {
+     "index": 0,
+     "url": "/harness/vc13_learning_en.wav",
+     "startedAt": 95,
+     "endedAt": 2043,
+     "gate": null
+    },
+    {
+     "index": 1,
+     "url": "/harness/vc23_modeonly_en.wav",
+     "startedAt": 6914,
+     "endedAt": 9392,
+     "gate": {
+      "heardAgentAudio": true,
+      "audioAtGate": 47,
+      "finalAtGate": 2,
+      "waitedMs": 6819
+     }
+    }
+   ]
+  },
+  "started": {
+   "count": 153,
+   "when": [
+    0,
+    4.504,
+    4.582999999999999,
+    4.662999999999999,
+    4.742999999999999,
+    4.8229999999999995,
+    4.903,
+    4.983,
+    5.063,
+    5.143,
+    5.223,
+    5.303,
+    5.383,
+    5.463,
+    5.543,
+    5.623,
+    5.703,
+    5.783,
+    5.863,
+    5.9430000000000005,
+    6.023000000000001,
+    6.103000000000001,
+    6.183000000000001,
+    6.263000000000001,
+    6.343000000000001,
+    6.423000000000001,
+    6.503000000000001,
+    6.583000000000001,
+    6.663000000000001,
+    6.743000000000001,
+    6.823000000000001,
+    6.903000000000001,
+    6.983000000000001,
+    7.0630000000000015,
+    7.143000000000002,
+    7.223000000000002,
+    7.303000000000002,
+    7.383000000000002,
+    7.463000000000002,
+    7.543000000000002,
+    7.623000000000002,
+    7.703000000000002,
+    7.783000000000002,
+    7.863000000000002,
+    7.943000000000002,
+    8.023000000000001,
+    8.103000000000002,
+    8.183000000000002,
+    0,
+    11.6,
+    11.679,
+    11.759,
+    11.839,
+    11.919,
+    11.999,
+    12.079,
+    12.159,
+    12.239,
+    12.319,
+    12.399000000000001,
+    12.479000000000001,
+    12.559000000000001,
+    12.639000000000001,
+    12.719000000000001,
+    12.799000000000001,
+    12.879000000000001,
+    12.959000000000001,
+    13.039000000000001,
+    13.119000000000002,
+    13.199000000000002,
+    13.279000000000002,
+    13.359000000000002,
+    13.439000000000002,
+    13.519000000000002,
+    13.599000000000002,
+    13.679000000000002,
+    13.759000000000002,
+    13.839000000000002,
+    13.919000000000002,
+    13.999000000000002,
+    14.079000000000002,
+    14.159000000000002,
+    14.239000000000003,
+    14.319000000000003,
+    14.399000000000003,
+    14.479000000000003,
+    14.680000000000003,
+    14.759000000000004,
+    14.839000000000004,
+    14.919000000000004,
+    14.999000000000004,
+    15.079000000000004,
+    15.159000000000004,
+    15.239000000000004,
+    15.319000000000004,
+    15.399000000000004,
+    15.479000000000005,
+    15.559000000000005,
+    15.639000000000005,
+    15.719000000000005,
+    15.799000000000005,
+    15.879000000000005,
+    15.959000000000005,
+    16.039000000000005,
+    16.119000000000003,
+    16.199,
+    16.279,
+    16.358999999999998,
+    16.438999999999997,
+    16.518999999999995,
+    16.598999999999993,
+    16.67899999999999,
+    16.75899999999999,
+    16.838999999999988,
+    16.918999999999986,
+    16.998999999999985,
+    17.078999999999983,
+    17.15899999999998,
+    17.23899999999998,
+    17.318999999999978,
+    17.398999999999976,
+    17.478999999999974,
+    17.558999999999973,
+    17.63899999999997,
+    17.71899999999997,
+    17.798999999999968,
+    17.878999999999966,
+    17.958999999999964,
+    18.038999999999962,
+    18.11899999999996,
+    18.19899999999996,
+    18.278999999999957,
+    18.358999999999956,
+    18.438999999999954,
+    18.518999999999952,
+    18.59899999999995,
+    18.67899999999995,
+    18.758999999999947,
+    18.838999999999945,
+    18.918999999999944,
+    18.998999999999942,
+    19.07899999999994,
+    19.15899999999994,
+    19.238999999999937,
+    19.318999999999935,
+    19.398999999999933,
+    19.47899999999993,
+    19.55899999999993,
+    19.63899999999993,
+    19.718999999999927,
+    19.798999999999925,
+    19.878999999999923,
+    19.95899999999992
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 86,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 3573,
+    "count": 1,
+    "texts": [
+     "답변: i usually take the subway to work."
+    ]
+   },
+   {
+    "ts": 4449,
+    "count": 2,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: Good! Let’s talk about your weekend.\nDid you do anything special this weekend?"
+    ]
+   },
+   {
+    "ts": 10305,
+    "count": 3,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: Good! Let’s talk about your weekend.\nDid you do anything special this weekend?",
+     "답변: oh my english! change to practice mode."
+    ]
+   },
+   {
+    "ts": 11553,
+    "count": 4,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: Good! Let’s talk about your weekend.\nDid you do anything special this weekend?",
+     "답변: oh my english! change to practice mode.",
+     "질문: Sorry, I need you to tell me which kind of practice you want."
+    ]
+   },
+   {
+    "ts": 12358,
+    "count": 4,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: Good! Let’s talk about your weekend.\nDid you do anything special this weekend?",
+     "답변: oh my english! change to practice mode.",
+     "질문: \nDo you want conversation, scenario intake, pronunciation, or shadowing practice?"
+    ]
+   },
+   {
+    "ts": 13498,
+    "count": 4,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: Good! Let’s talk about your weekend.\nDid you do anything special this weekend?",
+     "답변: oh my english! change to practice mode.",
+     "질문: Sorry, I need you to tell me which kind of practice you want.\nDo you want conversation, scenario intake, pronunciation, or shadowing practice?"
+    ]
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 38.74666666666667
+  },
+  "meta": {
+   "hookedAt": "2026-09-15T18:36:15.082Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789497375082,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789497375092,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3001/_next/hmr?id=EklfGvXIPUqapQWOGAylG",
+    "ws://localhost:8012/ws/session?source=recommended"
+   ]
+  },
+  "lines": [
+   "답변: i usually take the subway to work.",
+   "질문: Good! Let’s talk about your weekend.\nDid you do anything special this weekend?",
+   "답변: oh my english! change to practice mode.",
+   "질문: Sorry, I need you to tell me which kind of practice you want.\nDo you want conversation, scenario intake, pronunciation, or shadowing practice?"
+  ],
+  "url": "http://localhost:3001/",
+  "log": [
+   {
+    "at": 0,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 3579,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 38731,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 3,
+     "final": 4,
+     "audio": 151,
+     "session_ended": 0,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 2,
+     "speech_end": 2,
+     "interrupted": 1,
+     "voice_command": 1
+    }
+   }
+  ]
+ },
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3001/results/df066767-13a4-4c50-b53a-f55f20a570b8",
+  "recv": {
+   "session_started": 1,
+   "partial": 3,
+   "final": 4,
+   "audio": 151,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 2,
+   "speech_end": 2,
+   "interrupted": 1,
+   "voice_command": 1
+  },
+  "sent": {
+   "audio": 1242,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "finalLinesAtTerminal": [
+   "답변: i usually take the subway to work.",
+   "질문: Good! Let’s talk about your weekend.\nDid you do anything special this weekend?",
+   "답변: oh my english! change to practice mode.",
+   "질문: Sorry, I need you to tell me which kind of practice you want.\nDo you want conversation, scenario intake, pronunciation, or shadowing practice?"
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "오늘 학습을 마쳤어요 — 시나리오 5개",
+   "← 학습 시작 화면으로",
+   "학습 히스토리 보기 →"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><p style=\"color: var(--foreground-muted);\">오늘 학습을 마쳤어요 — 시나리오 5개</p><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p><p style=\"margin-top: 0.5rem;\"><a href=\"/history\" style=\"text-decoration: underline;\">학습 히스토리 보기 →</a></p>"
+ }
+}

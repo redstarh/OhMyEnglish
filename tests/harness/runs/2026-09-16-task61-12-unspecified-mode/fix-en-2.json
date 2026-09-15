@@ -1,0 +1,458 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3001/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/vc13_learning_en.wav",
+  "urls": [
+   "/harness/vc13_learning_en.wav",
+   "/harness/vc23_modeonly_en.wav"
+  ],
+  "count": 2,
+  "bytes": 149816,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 4.426,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0,
+  "plays": []
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 4,
+   "final": 4,
+   "audio": 180,
+   "session_ended": 0,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 2,
+   "speech_end": 2,
+   "interrupted": 1,
+   "voice_command": 1
+  },
+  "sent": {
+   "audio": 1230,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 1
+  },
+  "startedSessionId": "ea60af2c-5718-487f-a029-977354266af3",
+  "fixture": {
+   "url": "/harness/vc13_learning_en.wav",
+   "urls": [
+    "/harness/vc13_learning_en.wav",
+    "/harness/vc23_modeonly_en.wav"
+   ],
+   "count": 2,
+   "bytes": 149816,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 4.426,
+   "startedAt": 97,
+   "endedAt": 9220,
+   "micCalls": 1,
+   "plays": [
+    {
+     "index": 0,
+     "url": "/harness/vc13_learning_en.wav",
+     "startedAt": 97,
+     "endedAt": 2046,
+     "gate": null
+    },
+    {
+     "index": 1,
+     "url": "/harness/vc23_modeonly_en.wav",
+     "startedAt": 6749,
+     "endedAt": 9220,
+     "gate": {
+      "heardAgentAudio": true,
+      "audioAtGate": 50,
+      "finalAtGate": 2,
+      "waitedMs": 6652
+     }
+    }
+   ]
+  },
+  "started": {
+   "count": 182,
+   "when": [
+    0,
+    4.208,
+    4.287,
+    4.367,
+    4.527,
+    4.607,
+    4.687,
+    4.767,
+    4.847,
+    4.9270000000000005,
+    5.007000000000001,
+    5.087000000000001,
+    5.167000000000001,
+    5.247000000000001,
+    5.327000000000001,
+    5.407000000000001,
+    5.487000000000001,
+    5.567000000000001,
+    5.647000000000001,
+    5.727000000000001,
+    5.807000000000001,
+    5.887000000000001,
+    5.967000000000001,
+    6.0470000000000015,
+    6.127000000000002,
+    6.207000000000002,
+    6.287000000000002,
+    6.367000000000002,
+    6.447000000000002,
+    6.527000000000002,
+    6.607000000000002,
+    6.687000000000002,
+    6.767000000000002,
+    6.847000000000002,
+    6.927000000000002,
+    7.007000000000002,
+    7.087000000000002,
+    7.1670000000000025,
+    7.2470000000000026,
+    7.327000000000003,
+    7.407000000000003,
+    7.487000000000003,
+    7.567000000000003,
+    7.647000000000003,
+    7.727000000000003,
+    7.807000000000003,
+    7.887000000000003,
+    7.967000000000003,
+    8.047000000000002,
+    8.127000000000002,
+    8.207000000000003,
+    0,
+    11.568,
+    11.647,
+    11.727,
+    11.807,
+    11.887,
+    11.967,
+    12.047,
+    12.127,
+    12.207,
+    12.287,
+    12.367,
+    12.447000000000001,
+    12.527000000000001,
+    12.607000000000001,
+    12.687000000000001,
+    12.767000000000001,
+    12.847000000000001,
+    12.927000000000001,
+    13.007000000000001,
+    13.087000000000002,
+    13.167000000000002,
+    13.247000000000002,
+    13.327000000000002,
+    13.407000000000002,
+    13.487000000000002,
+    13.567000000000002,
+    13.647000000000002,
+    13.727000000000002,
+    13.807000000000002,
+    13.887000000000002,
+    13.967000000000002,
+    14.047000000000002,
+    14.127000000000002,
+    14.207000000000003,
+    14.287000000000003,
+    14.367000000000003,
+    14.447000000000003,
+    14.527000000000003,
+    14.607000000000003,
+    14.687000000000003,
+    14.767000000000003,
+    14.847000000000003,
+    14.927000000000003,
+    15.007000000000003,
+    15.087000000000003,
+    15.167000000000003,
+    15.247000000000003,
+    15.327000000000004,
+    15.407000000000004,
+    15.487000000000004,
+    15.567000000000004,
+    15.647000000000004,
+    15.727000000000004,
+    15.807000000000004,
+    15.887000000000004,
+    15.967000000000004,
+    16.047000000000004,
+    16.288000000000004,
+    16.367000000000004,
+    16.447000000000003,
+    16.527,
+    16.607,
+    16.686999999999998,
+    16.766999999999996,
+    16.846999999999994,
+    16.926999999999992,
+    17.00699999999999,
+    17.08699999999999,
+    17.166999999999987,
+    17.246999999999986,
+    17.326999999999984,
+    17.406999999999982,
+    17.48699999999998,
+    17.56699999999998,
+    17.646999999999977,
+    17.726999999999975,
+    17.806999999999974,
+    17.886999999999972,
+    17.96699999999997,
+    18.04699999999997,
+    18.126999999999967,
+    18.206999999999965,
+    18.286999999999964,
+    18.366999999999962,
+    18.44699999999996,
+    18.52699999999996,
+    18.606999999999957,
+    18.686999999999955,
+    18.766999999999953,
+    18.84699999999995,
+    18.92699999999995,
+    19.006999999999948,
+    19.086999999999946,
+    19.166999999999945,
+    19.246999999999943,
+    19.32699999999994,
+    19.40699999999994,
+    19.486999999999938,
+    19.566999999999936,
+    19.646999999999935,
+    19.726999999999933,
+    19.80699999999993,
+    19.88699999999993,
+    19.966999999999928,
+    20.046999999999926,
+    20.126999999999924,
+    20.206999999999923,
+    20.28699999999992,
+    20.36699999999992,
+    20.446999999999917,
+    20.526999999999916,
+    20.606999999999914,
+    20.686999999999912,
+    20.76699999999991,
+    20.84699999999991,
+    21.04799999999991,
+    21.12699999999991,
+    21.20699999999991,
+    21.286999999999907,
+    21.366999999999905,
+    21.446999999999903,
+    21.5269999999999,
+    21.6069999999999,
+    21.686999999999898,
+    21.766999999999896,
+    21.846999999999895,
+    21.926999999999893,
+    22.00699999999989,
+    22.08699999999989,
+    22.28699999999989
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 88,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 3464,
+    "count": 1,
+    "texts": [
+     "답변: i usually take the subway to work."
+    ]
+   },
+   {
+    "ts": 4141,
+    "count": 2,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: That's a good sentence. Can you tell me what time you usually leave for work in the morning?"
+    ]
+   },
+   {
+    "ts": 10257,
+    "count": 3,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: That's a good sentence. Can you tell me what time you usually leave for work in the morning?",
+     "답변: oh my english! change to practice mode."
+    ]
+   },
+   {
+    "ts": 11515,
+    "count": 4,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: That's a good sentence. Can you tell me what time you usually leave for work in the morning?",
+     "답변: oh my english! change to practice mode.",
+     "질문: I understand you want to change to practice mode. But I need you to tell me which kind of practice you want."
+    ]
+   },
+   {
+    "ts": 12763,
+    "count": 4,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: That's a good sentence. Can you tell me what time you usually leave for work in the morning?",
+     "답변: oh my english! change to practice mode.",
+     "질문:  Do you want conversation, scenario intake, pronunciation, or shadowing practice?"
+    ]
+   },
+   {
+    "ts": 13937,
+    "count": 4,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: That's a good sentence. Can you tell me what time you usually leave for work in the morning?",
+     "답변: oh my english! change to practice mode.",
+     "질문:   Please tell me one."
+    ]
+   },
+   {
+    "ts": 14235,
+    "count": 4,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: That's a good sentence. Can you tell me what time you usually leave for work in the morning?",
+     "답변: oh my english! change to practice mode.",
+     "질문: I understand you want to change to practice mode. But I need you to tell me which kind of practice you want. Do you want conversation, scenario intake, pronunciation, or shadowing practice?  Please tell me one."
+    ]
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 39.38133333333333
+  },
+  "meta": {
+   "hookedAt": "2026-09-15T18:36:59.292Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789497419293,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789497419303,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3001/_next/hmr?id=INI1rDQ6s-4YDj_DzAVcq",
+    "ws://localhost:8012/ws/session?source=recommended"
+   ]
+  },
+  "lines": [
+   "답변: i usually take the subway to work.",
+   "질문: That's a good sentence. Can you tell me what time you usually leave for work in the morning?",
+   "답변: oh my english! change to practice mode.",
+   "질문: I understand you want to change to practice mode. But I need you to tell me which kind of practice you want. Do you want conversation, scenario intake, pronunciation, or shadowing practice?  Please tell me one."
+  ],
+  "url": "http://localhost:3001/",
+  "log": [
+   {
+    "at": 0,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 3425,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 39367,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 4,
+     "final": 4,
+     "audio": 180,
+     "session_ended": 0,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 2,
+     "speech_end": 2,
+     "interrupted": 1,
+     "voice_command": 1
+    }
+   }
+  ]
+ },
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3001/results/ea60af2c-5718-487f-a029-977354266af3",
+  "recv": {
+   "session_started": 1,
+   "partial": 4,
+   "final": 4,
+   "audio": 180,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 2,
+   "speech_end": 2,
+   "interrupted": 1,
+   "voice_command": 1
+  },
+  "sent": {
+   "audio": 1262,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "finalLinesAtTerminal": [
+   "답변: i usually take the subway to work.",
+   "질문: That's a good sentence. Can you tell me what time you usually leave for work in the morning?",
+   "답변: oh my english! change to practice mode.",
+   "질문: I understand you want to change to practice mode. But I need you to tell me which kind of practice you want. Do you want conversation, scenario intake, pronunciation, or shadowing practice?  Please tell me one."
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "오늘 학습을 마쳤어요 — 시나리오 6개",
+   "← 학습 시작 화면으로",
+   "학습 히스토리 보기 →"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><p style=\"color: var(--foreground-muted);\">오늘 학습을 마쳤어요 — 시나리오 6개</p><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p><p style=\"margin-top: 0.5rem;\"><a href=\"/history\" style=\"text-decoration: underline;\">학습 히스토리 보기 →</a></p>"
+ }
+}

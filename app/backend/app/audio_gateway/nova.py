@@ -181,8 +181,8 @@ Voice control:
     "start_additional", stage "requested", and target set to what the learner asked for -
     the tool lists the choices. Call it again with stage "confirmed" once they say yes.
     Asking to switch the mode or the kind of practice is this same command - there is no
-    separate one for that. If the learner does not say which kind they want, ask which one
-    before you call the tool, because the tool needs a target.
+    separate one for that. Never guess which kind they want: if they did not name one, ask
+    them which kind and do not call the tool at all until they answer.
     The other two commands need no confirmation. For those, call the tool first and speak
     only after you get the tool result - one short sentence, once. Do not say the same
     thing twice. For the weekly report use command "show_report" with stage "requested",

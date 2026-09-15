@@ -1,0 +1,467 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3001/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/vc15_learning_ko.wav",
+  "urls": [
+   "/harness/vc15_learning_ko.wav",
+   "/harness/vc24_modeonly_ko.wav"
+  ],
+  "count": 2,
+  "bytes": 174162,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 5.187,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0,
+  "plays": []
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 4,
+   "final": 4,
+   "audio": 181,
+   "session_ended": 0,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 2,
+   "speech_end": 2,
+   "interrupted": 1,
+   "voice_command": 1
+  },
+  "sent": {
+   "audio": 1242,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 1
+  },
+  "startedSessionId": "8f0a72d6-48fc-4309-8812-6171a43d9718",
+  "fixture": {
+   "url": "/harness/vc15_learning_ko.wav",
+   "urls": [
+    "/harness/vc15_learning_ko.wav",
+    "/harness/vc24_modeonly_ko.wav"
+   ],
+   "count": 2,
+   "bytes": 174162,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 5.187,
+   "startedAt": 97,
+   "endedAt": 10357,
+   "micCalls": 1,
+   "plays": [
+    {
+     "index": 0,
+     "url": "/harness/vc15_learning_ko.wav",
+     "startedAt": 97,
+     "endedAt": 2448,
+     "gate": null
+    },
+    {
+     "index": 1,
+     "url": "/harness/vc24_modeonly_ko.wav",
+     "startedAt": 7515,
+     "endedAt": 10357,
+     "gate": {
+      "heardAgentAudio": true,
+      "audioAtGate": 85,
+      "finalAtGate": 2,
+      "waitedMs": 7418
+     }
+    }
+   ]
+  },
+  "started": {
+   "count": 183,
+   "when": [
+    0,
+    4.248,
+    4.327,
+    4.407,
+    4.487,
+    4.567,
+    4.647,
+    4.727,
+    4.807,
+    4.8870000000000005,
+    4.9670000000000005,
+    5.047000000000001,
+    5.127000000000001,
+    5.207000000000001,
+    5.287000000000001,
+    5.367000000000001,
+    5.447000000000001,
+    5.527000000000001,
+    5.607000000000001,
+    5.687000000000001,
+    5.767000000000001,
+    5.847000000000001,
+    5.927000000000001,
+    6.0070000000000014,
+    6.0870000000000015,
+    6.167000000000002,
+    6.247000000000002,
+    6.327000000000002,
+    6.407000000000002,
+    6.487000000000002,
+    6.567000000000002,
+    6.647000000000002,
+    6.727000000000002,
+    6.807000000000002,
+    6.887000000000002,
+    6.967000000000002,
+    7.047000000000002,
+    7.1270000000000024,
+    7.2070000000000025,
+    7.287000000000003,
+    7.367000000000003,
+    7.447000000000003,
+    7.527000000000003,
+    7.607000000000003,
+    7.687000000000003,
+    7.767000000000003,
+    7.847000000000003,
+    7.927000000000003,
+    8.007000000000003,
+    8.208000000000004,
+    8.287000000000004,
+    8.367000000000004,
+    8.447000000000005,
+    8.527000000000005,
+    8.607000000000005,
+    8.687000000000005,
+    8.767000000000005,
+    8.847000000000005,
+    8.927000000000005,
+    9.007000000000005,
+    9.087000000000005,
+    9.167000000000005,
+    9.247000000000005,
+    9.327000000000005,
+    9.407000000000005,
+    9.487000000000005,
+    9.567000000000005,
+    9.647000000000006,
+    9.727000000000006,
+    9.807000000000006,
+    9.887000000000006,
+    9.967000000000006,
+    10.047000000000006,
+    10.127000000000006,
+    10.207000000000006,
+    10.287000000000006,
+    10.367000000000006,
+    10.447000000000006,
+    10.527000000000006,
+    10.607000000000006,
+    10.687000000000006,
+    10.767000000000007,
+    10.847000000000007,
+    10.927000000000007,
+    11.007000000000007,
+    11.247000000000007,
+    0,
+    12.664,
+    12.743,
+    12.823,
+    12.903,
+    12.983,
+    13.063,
+    13.143,
+    13.223,
+    13.303,
+    13.383000000000001,
+    13.463000000000001,
+    13.543000000000001,
+    13.623000000000001,
+    13.703000000000001,
+    13.783000000000001,
+    13.863000000000001,
+    13.943000000000001,
+    14.023000000000001,
+    14.103000000000002,
+    14.183000000000002,
+    14.263000000000002,
+    14.343000000000002,
+    14.423000000000002,
+    14.503000000000002,
+    14.583000000000002,
+    14.663000000000002,
+    14.743000000000002,
+    14.823000000000002,
+    14.903000000000002,
+    14.983000000000002,
+    15.063000000000002,
+    15.143000000000002,
+    15.223000000000003,
+    15.303000000000003,
+    15.383000000000003,
+    15.463000000000003,
+    15.543000000000003,
+    15.703000000000003,
+    15.783000000000003,
+    15.863000000000003,
+    15.943000000000003,
+    16.023000000000003,
+    16.103,
+    16.183,
+    16.262999999999998,
+    16.342999999999996,
+    16.422999999999995,
+    16.502999999999993,
+    16.58299999999999,
+    16.66299999999999,
+    16.742999999999988,
+    16.822999999999986,
+    17.063999999999986,
+    17.142999999999986,
+    17.222999999999985,
+    17.302999999999983,
+    17.38299999999998,
+    17.46299999999998,
+    17.542999999999978,
+    17.622999999999976,
+    17.702999999999975,
+    17.782999999999973,
+    17.86299999999997,
+    17.94299999999997,
+    18.022999999999968,
+    18.102999999999966,
+    18.182999999999964,
+    18.262999999999963,
+    18.34299999999996,
+    18.42299999999996,
+    18.502999999999957,
+    18.582999999999956,
+    18.662999999999954,
+    18.742999999999952,
+    18.82299999999995,
+    18.90299999999995,
+    18.982999999999947,
+    19.062999999999946,
+    19.142999999999944,
+    19.222999999999942,
+    19.30299999999994,
+    19.38299999999994,
+    19.462999999999937,
+    19.542999999999935,
+    19.622999999999934,
+    19.702999999999932,
+    19.78299999999993,
+    19.86299999999993,
+    19.942999999999927,
+    20.022999999999925,
+    20.102999999999923,
+    20.18299999999992,
+    20.26299999999992,
+    20.34299999999992,
+    20.422999999999917,
+    20.662999999999915
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 89,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 3443,
+    "count": 1,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요"
+    ]
+   },
+   {
+    "ts": 4185,
+    "count": 2,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: That is a good sentence. You are saying \"I usually go to work by subway\"."
+    ]
+   },
+   {
+    "ts": 5264,
+    "count": 2,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문:   \n\nCan you tell me what time you usually leave home for work?"
+    ]
+   },
+   {
+    "ts": 6008,
+    "count": 2,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: That is a good sentence. You are saying \"I usually go to work by subway\".  \n\nCan you tell me what time you usually leave home for work?"
+    ]
+   },
+   {
+    "ts": 11177,
+    "count": 3,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: That is a good sentence. You are saying \"I usually go to work by subway\".  \n\nCan you tell me what time you usually leave home for work?",
+     "답변: 오마이잉글리시 연습 모드 바꿔줘"
+    ]
+   },
+   {
+    "ts": 12607,
+    "count": 4,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: That is a good sentence. You are saying \"I usually go to work by subway\".  \n\nCan you tell me what time you usually leave home for work?",
+     "답변: 오마이잉글리시 연습 모드 바꿔줘",
+     "질문: I will switch to conversation practice mode. Let's have a conversation about your work day."
+    ]
+   },
+   {
+    "ts": 13788,
+    "count": 4,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: That is a good sentence. You are saying \"I usually go to work by subway\".  \n\nCan you tell me what time you usually leave home for work?",
+     "답변: 오마이잉글리시 연습 모드 바꿔줘",
+     "질문:  Tell me, what time do you usually leave home for work?"
+    ]
+   },
+   {
+    "ts": 14679,
+    "count": 4,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: That is a good sentence. You are saying \"I usually go to work by subway\".  \n\nCan you tell me what time you usually leave home for work?",
+     "답변: 오마이잉글리시 연습 모드 바꿔줘",
+     "질문: I will switch to conversation practice mode. Let's have a conversation about your work day. Tell me, what time do you usually leave home for work?"
+    ]
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 39.74933333333333
+  },
+  "meta": {
+   "hookedAt": "2026-09-15T18:33:48.741Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789497228742,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789497228750,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3001/_next/hmr?id=zjAsla-LOxSMZUqwPZ7C7",
+    "ws://localhost:8012/ws/session?source=recommended"
+   ]
+  },
+  "lines": [
+   "답변: 저는 보통 지하철로 출근해요",
+   "질문: That is a good sentence. You are saying \"I usually go to work by subway\".  \n\nCan you tell me what time you usually leave home for work?",
+   "답변: 오마이잉글리시 연습 모드 바꿔줘",
+   "질문: I will switch to conversation practice mode. Let's have a conversation about your work day. Tell me, what time do you usually leave home for work?"
+  ],
+  "url": "http://localhost:3001/",
+  "log": [
+   {
+    "at": 0,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 3406,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 39734,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 4,
+     "final": 4,
+     "audio": 181,
+     "session_ended": 0,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 2,
+     "speech_end": 2,
+     "interrupted": 1,
+     "voice_command": 1
+    }
+   }
+  ]
+ },
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3001/results/8f0a72d6-48fc-4309-8812-6171a43d9718",
+  "recv": {
+   "session_started": 1,
+   "partial": 4,
+   "final": 4,
+   "audio": 181,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 2,
+   "speech_end": 2,
+   "interrupted": 1,
+   "voice_command": 1
+  },
+  "sent": {
+   "audio": 1273,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "finalLinesAtTerminal": [
+   "답변: 저는 보통 지하철로 출근해요",
+   "질문: That is a good sentence. You are saying \"I usually go to work by subway\".  \n\nCan you tell me what time you usually leave home for work?",
+   "답변: 오마이잉글리시 연습 모드 바꿔줘",
+   "질문: I will switch to conversation practice mode. Let's have a conversation about your work day. Tell me, what time do you usually leave home for work?"
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "오늘 학습을 마쳤어요 — 시나리오 4개",
+   "관찰된 신호",
+   "(전사문이 한국어로 인식되었습니다)",
+   "← 학습 시작 화면으로",
+   "학습 히스토리 보기 →"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><p style=\"color: var(--foreground-muted);\">오늘 학습을 마쳤어요 — 시나리오 4개</p><div style=\"margin-top: 1.5rem;\"><h2 style=\"font-size: 1rem;\">발음</h2><div style=\"border-left: 3px solid var(--foreground-muted); padding-left: 0.75rem; margin: 0.75rem 0px;\"><p style=\"margin: 0.25rem 0px 0px; font-size: 0.8rem; color: var(--foreground-muted);\">관찰된 신호</p><p style=\"margin: 0.25rem 0px; color: var(--foreground-muted);\">(전사문이 한국어로 인식되었습니다)</p></div></div><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p><p style=\"margin-top: 0.5rem;\"><a href=\"/history\" style=\"text-decoration: underline;\">학습 히스토리 보기 →</a></p>"
+ }
+}

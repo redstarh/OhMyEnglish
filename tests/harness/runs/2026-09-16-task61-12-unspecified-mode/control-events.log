@@ -1,0 +1,10 @@
+[T6112] 제어 이벤트 — command='start_additional' stage='requested' target='conversation' heard=None
+[T6112] toolUse — name='request_session_control' content='{"stage":"requested","command":"start_additional","target":"conversation"}'
+[T6112] 제어 이벤트 — command='start_additional' stage='confirmed' target='pronunciation' heard=None
+[T6112] toolUse — name='request_session_control' content='{"stage":"confirmed","command":"start_additional","target":"pronunciation"}'
+[T6112] 제어 이벤트 — command='start_additional' stage='requested' target='conversation' heard='oh my english! change to practice mode.'
+[T6112] toolUse — name='request_session_control' content='{"stage":"requested","command":"start_additional","heard":"oh my english! change to practice mode.","target":"conversation"}'
+[T6112] 제어 이벤트 — command='start_additional' stage='requested' target='conversation' heard=None
+[T6112] toolUse — name='request_session_control' content='{"stage":"requested","command":"start_additional","target":"conversation"}'
+[T6112] 제어 이벤트 — command='start_additional' stage='requested' target='pronunciation' heard=None
+[T6112] toolUse — name='request_session_control' content='{"stage":"requested","command":"start_additional","target":"pronunciation"}'
