@@ -1,10 +1,10 @@
 ---
 id: TASK-61.8
 title: PRD Voice Control 의 남은 명령 넷 — 등록만 하고 착수하지 않음
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-15 13:31'
-updated_date: '2026-09-15 16:10'
+updated_date: '2026-09-15 16:17'
 labels: []
 dependencies: []
 parent_task_id: TASK-61
@@ -31,7 +31,7 @@ ordinal: 183000
 <!-- AC:BEGIN -->
 - [x] #1 어느 명령을 다음 조각으로 할지 사용자 판단을 받는다 — 수행 주체(화면인가 코치인가)를 함께 제시한다
 - [x] #2 정한 명령을 계약대로 만든다 — 표지 요구·확인 필요 여부(requires_confirmation)·기록 유형
-- [ ] #3 실물 회차로 관측하고 영어·한국어 둘을 함께 본다
+- [x] #3 실물 회차로 관측하고 영어·한국어 둘을 함께 본다
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -42,4 +42,12 @@ ordinal: 183000
 2026-09-15 조사 결과 하나를 더 남김 (다시 조사하지 않게). learning_sessions 의 UPDATE 경로는 여섯이고 전부 「연결 직후·종료·워커」임 — services/sessions.py:138(shadowing_item_id) · :157(mode · status='active' 조건 · set_session_mode) · :171(status·ended_at) · :183(reap_orphan_sessions) · :331(drill_turns_expected) · services/session_summary.py:58(summary). ⛔ 세션이 열려 있는 동안 상태를 바꾸는 경로는 없음 — 일시 정지와 모드 변경이 새 계약을 요구하는 이유가 이것임.
 
 클라이언트→서버 메시지는 네 종뿐임(audio · end_session · shadowing_turn_start · shadowing_turn_end · session.py:558-576). 그중 화면 버튼이 붙은 것은 end_session 하나임 — 「UI 버튼과 동일한 행동」(PRD:81)의 실제 표면이 그만큼임.
+
+2026-09-16 AC 셋 다 닫고 Done. 구현 커밋 ab99533 · 회차 tests/harness/runs/2026-09-16-task61-8-additional-learning.
+
+두 팔 모두 세션을 갈아 열었음(session_started 2 · 둘째 세션 learning_source=additional). ARM-EN 에서 target 이 mode=shadowing 으로 반영되고 쉐도잉 클립까지 실렸음 — 인자 경로의 판별력은 그 팔이 가짐. ARM-KO 는 ASR 이 「쉐도잉」을 「최도인」으로 들어 모델이 conversation 을 골랐고, 그것은 결함이 아니라 결정 105 가 적은 대가와 같은 부류임.
+
+화면을 직접 열어 확인했음 — 결과 화면을 거치지 않고 쉐도잉 세션이 열렸음(결정 110 ③).
+
+⚠️ 프론트 경합 방어(onClose 의 소켓 동일성 검사)는 거동만 관측했고 무력화로 판별력을 재지 않았음. 남은 명령 셋은 TASK-61.9·61.10·61.11 로 각각 등록했음 — 착수 조건이 서로 달라 묶지 않았음.
 <!-- SECTION:NOTES:END -->

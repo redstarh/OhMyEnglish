@@ -1,0 +1,401 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3001/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/vc13_learning_en.wav",
+  "urls": [
+   "/harness/vc13_learning_en.wav",
+   "/harness/vc19_additional_en.wav",
+   "/harness/vc20_yes_en.wav"
+  ],
+  "count": 3,
+  "bytes": 203096,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 5.963,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0,
+  "plays": []
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 2,
+   "partial": 2,
+   "final": 5,
+   "audio": 109,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 3,
+   "speech_end": 3,
+   "interrupted": 2,
+   "voice_command": 2
+  },
+  "sent": {
+   "audio": 1292,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 1
+  },
+  "startedSessionId": "3b080788-d7c1-4a03-9ba9-30f6e001dcd9",
+  "fixture": {
+   "url": "/harness/vc13_learning_en.wav",
+   "urls": [
+    "/harness/vc13_learning_en.wav",
+    "/harness/vc19_additional_en.wav",
+    "/harness/vc20_yes_en.wav"
+   ],
+   "count": 3,
+   "bytes": 203096,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 5.963,
+   "startedAt": 146,
+   "endedAt": 18811,
+   "micCalls": 2,
+   "plays": [
+    {
+     "index": 0,
+     "url": "/harness/vc13_learning_en.wav",
+     "startedAt": 146,
+     "endedAt": 2096,
+     "gate": null
+    },
+    {
+     "index": 1,
+     "url": "/harness/vc19_additional_en.wav",
+     "startedAt": 6412,
+     "endedAt": 9104,
+     "gate": {
+      "heardAgentAudio": true,
+      "audioAtGate": 38,
+      "finalAtGate": 2,
+      "waitedMs": 6266
+     }
+    },
+    {
+     "index": 2,
+     "url": "/harness/vc20_yes_en.wav",
+     "startedAt": 14044,
+     "endedAt": 15371,
+     "gate": {
+      "heardAgentAudio": true,
+      "audioAtGate": 109,
+      "finalAtGate": 4,
+      "waitedMs": 7632
+     }
+    },
+    {
+     "index": 0,
+     "url": "/harness/vc13_learning_en.wav",
+     "startedAt": 16863,
+     "endedAt": 18811,
+     "gate": null
+    }
+   ]
+  },
+  "started": {
+   "count": 113,
+   "when": [
+    0,
+    4.16,
+    4.239,
+    4.319,
+    4.399,
+    4.479,
+    4.559,
+    4.639,
+    4.719,
+    4.799,
+    4.8790000000000004,
+    4.9590000000000005,
+    5.039000000000001,
+    5.119000000000001,
+    5.199000000000001,
+    5.279000000000001,
+    5.359000000000001,
+    5.439000000000001,
+    5.519000000000001,
+    5.599000000000001,
+    5.679000000000001,
+    5.759000000000001,
+    5.839000000000001,
+    5.919000000000001,
+    5.999000000000001,
+    6.0790000000000015,
+    6.159000000000002,
+    6.239000000000002,
+    6.319000000000002,
+    6.399000000000002,
+    6.479000000000002,
+    6.559000000000002,
+    6.639000000000002,
+    6.719000000000002,
+    6.799000000000002,
+    6.879000000000002,
+    6.959000000000002,
+    7.039000000000002,
+    7.119000000000002,
+    0,
+    11.136,
+    11.215,
+    11.295,
+    11.375,
+    11.455,
+    11.535,
+    11.615,
+    11.695,
+    11.775,
+    11.855,
+    11.935,
+    12.015,
+    12.095,
+    12.175,
+    12.255,
+    12.335,
+    12.415000000000001,
+    12.495000000000001,
+    12.575000000000001,
+    12.655000000000001,
+    12.735000000000001,
+    12.815000000000001,
+    12.895000000000001,
+    12.975000000000001,
+    13.055000000000001,
+    13.135000000000002,
+    13.215000000000002,
+    13.295000000000002,
+    13.375000000000002,
+    13.455000000000002,
+    13.535000000000002,
+    13.615000000000002,
+    13.695000000000002,
+    13.775000000000002,
+    13.855000000000002,
+    13.935000000000002,
+    14.015000000000002,
+    14.095000000000002,
+    14.175000000000002,
+    14.255000000000003,
+    14.335000000000003,
+    14.415000000000003,
+    14.495000000000003,
+    14.575000000000003,
+    14.655000000000003,
+    14.735000000000003,
+    14.815000000000003,
+    14.895000000000003,
+    14.975000000000003,
+    15.055000000000003,
+    15.135000000000003,
+    15.215000000000003,
+    15.295000000000003,
+    15.375000000000004,
+    15.455000000000004,
+    15.535000000000004,
+    15.615000000000004,
+    15.695000000000004,
+    15.775000000000004,
+    15.855000000000004,
+    15.935000000000004,
+    16.015000000000004,
+    16.095000000000002,
+    16.175,
+    16.255,
+    16.334999999999997,
+    16.414999999999996,
+    16.494999999999994,
+    16.574999999999992,
+    16.65499999999999,
+    16.73499999999999,
+    0,
+    0
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 122,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 3464,
+    "count": 1,
+    "texts": [
+     "답변: i usually take the subway to work."
+    ]
+   },
+   {
+    "ts": 4158,
+    "count": 2,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: Good! Let’s talk about your work day.  \nWhat time do you usually start work?"
+    ]
+   },
+   {
+    "ts": 9943,
+    "count": 3,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: Good! Let’s talk about your work day.  \nWhat time do you usually start work?",
+     "답변: oh my english! start shadowing practice."
+    ]
+   },
+   {
+    "ts": 11143,
+    "count": 4,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: Good! Let’s talk about your work day.  \nWhat time do you usually start work?",
+     "답변: oh my english! start shadowing practice.",
+     "질문: Sorry, I need your confirmation before I start.  \nDo you want to end today’s session and start shadowing practice instead?"
+    ]
+   },
+   {
+    "ts": 16299,
+    "count": 5,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: Good! Let’s talk about your work day.  \nWhat time do you usually start work?",
+     "답변: oh my english! start shadowing practice.",
+     "질문: Sorry, I need your confirmation before I start.  \nDo you want to end today’s session and start shadowing practice instead?",
+     "답변: yes, please do."
+    ]
+   },
+   {
+    "ts": 16867,
+    "count": 0,
+    "texts": []
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 41.38666666666666
+  },
+  "meta": {
+   "hookedAt": "2026-09-15T16:14:29.089Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789488869090,
+     "before": "suspended",
+     "afterSync": "suspended",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789488869101,
+     "before": "suspended",
+     "afterSync": "suspended",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789488885831,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 3,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:8012/ws/session?source=recommended",
+    "ws://localhost:3001/_next/hmr?id=fYsTwFerGpGQ9ZiZhrD_8",
+    "ws://localhost:8012/ws/session?mode=shadowing&source=additional"
+   ]
+  },
+  "lines": [],
+  "url": "http://localhost:3001/",
+  "log": [
+   {
+    "at": 101,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 3464,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 41385,
+    "what": "settled",
+    "recv": {
+     "session_started": 2,
+     "partial": 2,
+     "final": 5,
+     "audio": 109,
+     "session_ended": 1,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 3,
+     "speech_end": 3,
+     "interrupted": 2,
+     "voice_command": 2
+    }
+   }
+  ]
+ },
+ "screenshot_session": "/tmp/t620-en-session.png",
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3001/results/1c150a6c-8788-4252-a66f-35245a223c49",
+  "recv": {
+   "session_started": 2,
+   "partial": 2,
+   "final": 5,
+   "audio": 109,
+   "session_ended": 2,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 3,
+   "speech_end": 3,
+   "interrupted": 2,
+   "voice_command": 2
+  },
+  "sent": {
+   "audio": 1326,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "finalLinesAtTerminal": [
+   "답변: i usually take the subway to work.",
+   "질문: Good! Let’s talk about your work day.  \nWhat time do you usually start work?",
+   "답변: oh my english! start shadowing practice.",
+   "질문: Sorry, I need your confirmation before I start.  \nDo you want to end today’s session and start shadowing practice instead?",
+   "답변: yes, please do."
+  ],
+  "resultParagraphs": [
+   "분석 대상 없음",
+   "오늘 학습을 마쳤어요 — 시나리오 4개",
+   "← 학습 시작 화면으로",
+   "학습 히스토리 보기 →"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 대상 없음</p><p style=\"color: var(--foreground-muted);\">오늘 학습을 마쳤어요 — 시나리오 4개</p><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p><p style=\"margin-top: 0.5rem;\"><a href=\"/history\" style=\"text-decoration: underline;\">학습 히스토리 보기 →</a></p>"
+ },
+ "screenshot_results": "/tmp/t620-en-results.png"
+}
