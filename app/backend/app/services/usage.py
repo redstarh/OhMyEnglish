@@ -19,6 +19,7 @@ from uuid import UUID
 import asyncpg
 
 from app.models.usage import PROVIDER_BEDROCK, TokenUsage, UsageRollup, UsageSink
+from app.services.user_timezone import timezone_of
 
 logger = logging.getLogger(__name__)
 
@@ -66,8 +67,6 @@ async def record_llm_call(
 # `current_date` 를 쓰지 않는다 — 서버 세션 타임존의 날짜라 **UTC 자정~09:00(KST) 구간에서**
 # **하루 이른 값**을 낸다.
 # `daily_summary.py`·`chronic.py` 가 같은 판단을 이미 했고 그 이유를 그 파일들이 소유한다.
-_TIMEZONE_SQL = "select timezone from users where id = $1"
-
 # 하루·갈래별 집계. ⚠️ **분해 넷을 `coalesce` 로 0 으로 만들지 않는다** — `sum()` 이 전부 NULL 이면
 # NULL 을 내고 그것이 「그 갈래에 분해가 없다」는 사실이다(Claude 행). 0 으로 바꾸면 「분해가 0」과
 # 구분되지 않고 Nova 단가 계산이 거기서 어긋난다.
@@ -104,9 +103,7 @@ async def load_usage_summary(
 
     `days=7` 은 「오늘을 포함한 최근 7일」이다(경계는 `> 오늘 - days`).
     """
-    timezone = await conn.fetchval(_TIMEZONE_SQL, user_id)
-    if timezone is None:
-        raise LookupError(f"user {user_id} not found — no timezone source of truth")
+    timezone = await timezone_of(conn, user_id)
 
     records = await conn.fetch(_ROLLUP_SQL, timezone, days)
     return [

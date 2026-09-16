@@ -34,11 +34,13 @@ from zoneinfo import ZoneInfo
 
 import asyncpg
 
+# ⚠️ **`timezone_of` 를 여기서 재수출한다** (`TASK-146`) — 정본은 `services/user_timezone` 이고
+# `api/daily.py` 가 이 모듈의 이름으로 불러 온다. 정의를 두 곳에 두지 않기 위해 import 만 한다.
+from app.services.user_timezone import timezone_of
+
 # `patterns` 배열의 상한. 단일 사용자 규모에서 하루에 20종을 넘길 일이 없지만 jsonb가 무한히
 # 자라는 길을 열어 두지 않는다. 잘려도 두 개수 컬럼은 **전체 수**를 유지한다(설계서 §3.3).
 PATTERN_LIMIT = 20
-
-_TIMEZONE_SQL = "select timezone from users where id = $1"
 
 # 그 발화의 날짜 1건을 다시 세어 upsert한다. 한 문장인 이유: 세는 것과 쓰는 것이 갈리면 그
 # 사이에 다른 트랜잭션이 발생 행을 바꿀 수 있다.
@@ -267,20 +269,6 @@ class DailyCompletion:
     timezone: str
     completed_today: bool
     completed_scenarios: int
-
-
-async def timezone_of(conn: asyncpg.Connection, user_id: UUID) -> str:
-    """이 사용자의 타임존 정본(`users.timezone`). 없으면 `LookupError`다.
-
-    라우터가 한 요청에서 이 모듈의 조회를 두 개 묶어 부를 때(`api/daily.py`의
-    `get_daily_summary`·`get_history`) 이 값을 **한 번만** 읽어 각 함수의 `timezone` 인자로
-    넘긴다 — 넘기지 않으면 `load_daily_summary`+`load_daily_completion`,
-    `load_streak`+`load_history`처럼 같은 조회가 요청마다 두 번씩 나간다.
-    """
-    timezone = await conn.fetchval(_TIMEZONE_SQL, user_id)
-    if timezone is None:
-        raise LookupError(f"user {user_id} not found — no timezone source of truth")
-    return timezone
 
 
 def _parse_patterns(raw: str | None) -> list[DailyPattern]:

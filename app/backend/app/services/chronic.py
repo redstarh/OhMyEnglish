@@ -32,7 +32,7 @@ from uuid import UUID
 
 import asyncpg
 
-_TIMEZONE_SQL = "select timezone from users where id = $1"
+from app.services.user_timezone import timezone_of
 
 # `lag()`로 인접 발생의 간격을 내고 그 최대값을 취한다 — `frequency=5`가 하루에 몰린 것과
 # 3개월에 흩어진 것은 완전히 다르고, 그중 **한동안 사라졌다가 다시 나온 것**이 가장 위험한
@@ -134,9 +134,7 @@ async def load_chronic_metrics(conn: asyncpg.Connection, user_id: UUID) -> list[
     조용히 UTC로 떨어지지 않고 `LookupError`를 올린다 — 조용한 폴백은 재발 일수를 하루씩
     어긋나게 만들고, 그 오차는 복습 주기와 일일 계획으로 번진다(H-S).
     """
-    timezone = await conn.fetchval(_TIMEZONE_SQL, user_id)
-    if timezone is None:
-        raise LookupError(f"user {user_id} not found — no timezone source of truth")
+    timezone = await timezone_of(conn, user_id)
 
     records = await conn.fetch(_METRICS_SQL, user_id, timezone)
     return [

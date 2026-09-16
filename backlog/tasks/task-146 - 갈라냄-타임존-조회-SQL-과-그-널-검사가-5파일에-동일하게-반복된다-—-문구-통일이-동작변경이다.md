@@ -1,9 +1,10 @@
 ---
 id: TASK-146
 title: '갈라냄: 타임존 조회 SQL 과 그 널 검사가 5파일에 동일하게 반복된다 — 문구 통일이 동작변경이다'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-16 15:29'
+updated_date: '2026-09-16 22:38'
 labels: []
 dependencies: []
 ordinal: 207000
@@ -17,5 +18,21 @@ R1(재사용) 리뷰 발견. _TIMEZONE_SQL = 'select timezone from users where i
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 문구를 통일할지, 파일별 문구를 유지하며 SQL 만 공유할지 사용자가 고른다
+- [x] #1 문구를 통일할지, 파일별 문구를 유지하며 SQL 만 공유할지 사용자가 고른다
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+## 완료 (2026-09-17 · 사용자 결정: 합쳐)
+
+신설: services/user_timezone.py — SQL 과 널 검사의 정본. 다섯 자리가 그것을 부름
+(chronic · scenario_progress · usage · daily_summary · weekly_report). daily_summary 는 자기 정의를
+지우고 재수출만 함(api/daily.py 가 그 이름으로 부름). weekly_report 의 last_week_start 도 사용자
+없음 판정을 정본에 맡김.
+
+⚠️ 예외 문면이 하나로 통일됐음 — 사용자가 알고 고른 대가임. 전수 확인: 이제 SQL 1건 · 문면 1건.
+⛔ plan_input.py 는 대상 밖 — 그 SQL 은 current_level 까지 함께 읽어 같은 조회가 아님(합치면 왕복이 늘어남).
+
+게이트: pytest 1274 passed · ruff exit 0 · format exit 0 · ty exit 0. 줄 수는 57줄 줄었음.
+<!-- SECTION:NOTES:END -->

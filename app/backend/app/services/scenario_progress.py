@@ -27,10 +27,10 @@ from uuid import UUID
 
 import asyncpg
 
+from app.services.user_timezone import timezone_of
+
 # ⛔ 타임존의 정본은 이 컬럼 하나다. `usage.py`·`recordings.py` 도 같은 한 줄을 쓴다 — 공유
 # 헬퍼를 만들지 않은 것은 이 리포의 기존 관행이고, 복제되는 것은 **SQL 한 줄뿐**이다.
-_TIMEZONE_SQL = "select timezone from users where id = $1"
-
 # `count(ls.id)` 를 쓰는 이유: `left join` 이라 매칭이 없으면 `ls.*` 가 null 이고 `count(*)` 는
 # **1 을 낸다**(행이 하나 나오므로). `count(ls.id)` 만 0 이 된다.
 # `filter (where ls.scenario_pick = 'new')` 는 null 을 세지 않는다 — 016 이전 세션에는 그 값이
@@ -73,9 +73,7 @@ async def load_scenario_progress(conn: asyncpg.Connection, user_id: UUID) -> lis
 
     `last_studied_on` 은 **사용자 타임존의 달력 날짜**다. 한 번도 안 했으면 `None`.
     """
-    timezone = await conn.fetchval(_TIMEZONE_SQL, user_id)
-    if timezone is None:
-        raise LookupError(f"user {user_id} not found — no timezone source of truth")
+    timezone = await timezone_of(conn, user_id)
 
     rows = await conn.fetch(_PROGRESS_SQL, user_id, timezone)
     return [

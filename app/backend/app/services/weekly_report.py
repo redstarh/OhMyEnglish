@@ -33,6 +33,7 @@ from app.services.jobs import (
     complete,
     report_failure,
 )
+from app.services.user_timezone import timezone_of
 from app.workers.claude_client import ClaudeClient
 
 # 화면에 실을 상위 오류의 상한. ⚠️ **발명값이다** — PRD 가 개수를 정하지 않았다. 근거는 하나뿐이다:
@@ -64,10 +65,7 @@ async def last_week_start(conn: asyncpg.Connection, user_id: UUID) -> date:
     아니고(세션이 사용자에 매여 있다), `None` 을 돌려주면 호출자가 그것을 날짜처럼 쓰다가 뒤에서
     터진다. `load_session_clip` 이 `None` 을 쓰는 것은 그쪽의 부재가 **정상**이기 때문이다.
     """
-    week_start = await conn.fetchval(_LAST_WEEK_START_SQL, user_id)
-    if week_start is None:
-        raise LookupError(f"user {user_id} not found — 주 경계를 구할 수 없다")
-    return week_start
+    return await _last_week_start_for_timezone(conn, await timezone_of(conn, user_id))
 
 
 # `last_week_start` 와 같은 계산이지만 `users` 를 다시 읽지 않는다 — 호출자가 타임존을 이미 갖고
@@ -166,8 +164,6 @@ select (select count(*)
                    from ranked), '[]'::jsonb) as top_patterns
 """
 
-_TIMEZONE_SQL = "select timezone from users where id = $1"
-
 
 def _load_jsonb(value: object) -> Any:
     """asyncpg jsonb 한 칸을 파이썬 값으로 되돌린다. 문자열로 오는 경로를 여기서 닫는다.
@@ -191,9 +187,7 @@ async def load_week_facts(conn: asyncpg.Connection, user_id: UUID, week_start: d
     부재로 표현하면 호출자가 「아직 계산 안 됨」과 구별할 수 없다 — 그 구별은 `computed_at` 이
     갖는다.
     """
-    timezone = await conn.fetchval(_TIMEZONE_SQL, user_id)
-    if timezone is None:
-        raise LookupError(f"user {user_id} not found — 주간 사실을 읽을 수 없다")
+    timezone = await timezone_of(conn, user_id)
 
     row = await conn.fetchrow(_WEEK_FACTS_SQL, user_id, week_start, timezone)
     assert row is not None  # 집계 조회는 항상 1행이다 (모든 열이 스칼라 부질의다)
