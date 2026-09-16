@@ -42,9 +42,9 @@ from app.audio_gateway.port import (
 from app.config import Settings
 from app.models.plan import InstructionFocus, PlanQuestion, SessionInstruction
 from app.models.pronunciation import PRONUNCIATION_PATTERN_KEY_PREFIX, PRONUNCIATION_TOOL_NAME
-from app.models.voice_command import CONTROL_TOOL_NAME
 from app.models.scenario import SessionScenario
 from app.models.usage import PURPOSE_NOVA, TokenUsage
+from app.models.voice_command import CONTROL_TOOL_NAME
 
 # --- N-1 실측에서 옮긴 값 ---
 
@@ -2151,9 +2151,7 @@ async def _control_tool_stream():
     """제어 tool 호출 하나를 흘리는 대역. 결정 118 의 세 단정이 이것을 공유한다."""
     events = [
         _tool_content_start(),
-        _tool_use(
-            '{"command":"next_question","stage":"requested"}', tool_name=CONTROL_TOOL_NAME
-        ),
+        _tool_use('{"command":"next_question","stage":"requested"}', tool_name=CONTROL_TOOL_NAME),
         _content_end(TOOL_CONTENT_ID, "TOOL_USE"),
     ]
     stream = _FakeStream(
@@ -2177,9 +2175,7 @@ async def test_a_control_tool_result_waits_for_the_gateways_report():
     adapter, stream, collected = await _control_tool_stream()
     await adapter.close()
 
-    assert [(event.command, event.stage) for event in collected] == [
-        ("next_question", "requested")
-    ]
+    assert [(event.command, event.stage) for event in collected] == [("next_question", "requested")]
     assert stream.payloads("toolResult") == []
 
 

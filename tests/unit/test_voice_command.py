@@ -103,7 +103,7 @@ def test_a_payload_that_is_not_json_is_dropped() -> None:
 
 
 def test_the_wake_phrase_marks_an_utterance_as_a_command() -> None:
-    assert is_wake_command('Oh My English, end the session.') is True
+    assert is_wake_command("Oh My English, end the session.") is True
 
 
 def test_the_korean_wake_phrase_is_accepted() -> None:

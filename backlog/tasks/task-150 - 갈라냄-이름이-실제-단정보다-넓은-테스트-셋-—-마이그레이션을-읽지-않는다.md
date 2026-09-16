@@ -1,9 +1,10 @@
 ---
 id: TASK-150
 title: '갈라냄: 이름이 실제 단정보다 넓은 테스트 셋 — 마이그레이션을 읽지 않는다'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-16 15:36'
+updated_date: '2026-09-16 22:45'
 labels: []
 dependencies: []
 ordinal: 211000
@@ -17,5 +18,26 @@ R5(도구 낡음) 리뷰 발견. ① test_claude_schema.py::test_category_and_se
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 ①②를 마이그레이션 CHECK 를 읽는 단정으로 넓히고 변이로 검출력을 확인한다
+- [x] #1 ①②를 마이그레이션 CHECK 를 읽는 단정으로 넓히고 변이로 검출력을 확인한다
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+## 완료 (2026-09-17 · 사용자 결정: 넓히고 DB 규칙과 일치 확인)
+
+새로 만든 단정 넷(tests/unit/test_schema.py): error_patterns_category_check ·
+error_occurrences_severity_check · pronunciation_attempts_outcome_check ·
+pronunciation_attempts_signal_source_check 를 pg_get_constraintdef 로 읽어 파이썬 값역과 집합 비교함.
+
+⛔ 삽입을 하지 않는 형태로 만들었음 — 이 파일의 기존 주석이 「값역의 값을 전부 삽입해 보면 그 루프가
+먼저 CheckViolationError 로 실패해 목록 단정에 도달하지 않는다」는 무력화를 기록해 뒀기 때문임.
+
+검출력 확인: SignalSource 에서 transcript_analysis 를 빼는 변이에서 해당 단정이 FAIL 했고 되돌리면 통과함.
+
+이름도 실제와 맞췄음: test_category_and_severity_codes_are_pinned_to_the_known_values ·
+test_outcome_and_signal_value_domains_are_pinned_to_the_known_values. 두 자리에 「DB 대조는 어디가
+하는가」를 주석으로 가리켜 뒀음 — 한 방향은 파이썬 변경을, 다른 방향은 DB 변경을 잡음.
+
+게이트: 수집 1274 → 1278 · pytest 1278 passed · ruff exit 0 · format exit 0 · ty exit 0.
+<!-- SECTION:NOTES:END -->

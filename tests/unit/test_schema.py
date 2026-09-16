@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import re
 import sys
 import types
 from datetime import UTC, date, datetime, timedelta
@@ -1599,4 +1600,68 @@ async def test_llm_calls_accepts_the_weekly_purpose(db_conn: asyncpg.Connection)
     assert (
         await db_conn.fetchval("select count(*) from llm_calls where purpose = 'summarize_week'")
         == 1
+    )
+
+
+# ── 파이썬 값역과 DB CHECK 의 «양방향» 대조 (`TASK-150` · 사용자 결정 122) ──────────
+#
+# ⛔ **닫는 것은 한 방향뿐이다 — 「DB 가 바뀌고 파이썬이 안 바뀐 경우」다.** 반대 방향
+# (파이썬만 바뀜)은 이미 `tests/unit/test_claude_schema.py` 와 `test_pronunciation.py` 의 리터럴
+# 단정이 잡는다. 그 두 단정의 **이름**이 「마이그레이션과 일치」를 약속하면서 실제로는
+# 마이그레이션을
+# 한 번도 읽지 않는다는 것이 정리 회차(`TASK-144`)의 R5 각도가 찾은 것이고, 이 절이 그 약속을
+# 실제로 이행한다.
+#
+# ⚠️ **`pg_get_constraintdef` 단정이 판별력을 갖는 조건이 있다** — 같은 테스트가 값역의 값을 **전부
+# 삽입해 보면** 그 루프가 먼저 `CheckViolationError` 로 실패해서 목록 단정에 도달하지 않는다
+# (이 파일 `test_pronunciation_attempts_signal_source_check` 의 주석이 그 무력화를 기록한다).
+# ⇒ 그래서 이 절의 단정들은 **삽입을 하지 않는다.** 읽고 대조만 한다.
+_CHECK_VALUE_RE = re.compile(r"'([a-z_0-9]+)'::text")
+
+
+async def _check_values(conn: asyncpg.Connection, constraint: str) -> set[str]:
+    """그 CHECK 제약이 허용하는 문자열 값 집합. 제약이 없으면 실패한다(이름 오타를 잡는다)."""
+    definition = await conn.fetchval(
+        "select pg_get_constraintdef(oid) from pg_constraint where conname = $1", constraint
+    )
+    assert definition is not None, (
+        f"제약 {constraint} 이 없다 — 이름이 바뀌었거나 마이그레이션이 빠졌다"
+    )
+    values = set(_CHECK_VALUE_RE.findall(definition))
+    assert values, f"제약 {constraint} 의 정의에서 값을 뽑지 못했다: {definition}"
+    return values
+
+
+@pytest.mark.asyncio
+async def test_error_category_check_matches_the_python_value_domain(db_conn: asyncpg.Connection):
+    from app.models.analysis import ERROR_CATEGORIES
+
+    assert await _check_values(db_conn, "error_patterns_category_check") == set(ERROR_CATEGORIES)
+
+
+@pytest.mark.asyncio
+async def test_severity_check_matches_the_python_value_domain(db_conn: asyncpg.Connection):
+    from app.models.analysis import SEVERITIES
+
+    assert await _check_values(db_conn, "error_occurrences_severity_check") == set(SEVERITIES)
+
+
+@pytest.mark.asyncio
+async def test_pronunciation_outcome_check_matches_the_python_value_domain(
+    db_conn: asyncpg.Connection,
+):
+    from app.models.pronunciation import PRONUNCIATION_OUTCOMES
+
+    assert await _check_values(db_conn, "pronunciation_attempts_outcome_check") == set(
+        PRONUNCIATION_OUTCOMES
+    )
+
+
+@pytest.mark.asyncio
+async def test_signal_source_check_matches_the_python_value_domain(db_conn: asyncpg.Connection):
+    """⚠️ 024 가 `transcript_analysis` 를 더한 자리다 — 그 값이 파이썬 쪽에도 있는지 여기서 잰다."""
+    from app.models.pronunciation import SIGNAL_SOURCES
+
+    assert await _check_values(db_conn, "pronunciation_attempts_signal_source_check") == set(
+        SIGNAL_SOURCES
     )

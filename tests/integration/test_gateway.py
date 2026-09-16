@@ -1949,9 +1949,7 @@ async def test_a_requested_end_command_does_not_close_the_session(db_pool, commi
     ]
 
 
-async def test_a_report_command_runs_at_once_and_keeps_the_session_open(
-    db_pool, committed_session
-):
+async def test_a_report_command_runs_at_once_and_keeps_the_session_open(db_pool, committed_session):
     """둘째 조각의 명령은 확인을 거치지 않는다 (`TASK-61.6` · 결정 107 ③).
 
     ⛔ **판별력은 셋째 발화에 있다** — 종료였다면 그 발화가 `command_confirmation` 으로 저장된다
@@ -2218,9 +2216,7 @@ async def test_a_dropped_command_is_surfaced_to_the_screen(db_pool, committed_se
     ]
 
 
-async def test_a_dropped_command_is_reported_to_the_adapter_as_rejected(
-    db_pool, committed_session
-):
+async def test_a_dropped_command_is_reported_to_the_adapter_as_rejected(db_pool, committed_session):
     """결정 118 (`TASK-61.15`) — 앱이 버린 명령은 어댑터에 **거절로** 보고된다.
 
     ⛔ **그 보고가 코치의 「됐다」를 막는 유일한 수단이다.** 이전에는 어댑터가 번역 직후 「받았다」를
@@ -2329,9 +2325,7 @@ async def test_a_marked_command_is_not_surfaced_as_ignored(db_pool, committed_se
     assert client.of_type("voice_command_ignored") == []
 
 
-async def test_a_marked_user_final_is_stored_as_a_command_not_learning(
-    db_pool, committed_session
-):
+async def test_a_marked_user_final_is_stored_as_a_command_not_learning(db_pool, committed_session):
     """표지가 붙은 발화는 학습 발화가 아니다 — 분석에 넘기면 명령을 교정하게 된다.
 
     ⛔ 이 판정은 **앱이** 한다(결정 102 ①). 모델의 규율에 맡기면 명령이 `learning` 으로 저장되고
@@ -2439,7 +2433,8 @@ async def test_a_cancelled_command_lets_the_next_utterance_be_learning_again(
     adapter = ScriptedAdapter(
         TranscriptEvent(kind="final", text="오마이 잉글리시 종료", speaker="user"),
         SessionCommandEvent(command="end", stage="requested"),
-        # 학습자 발화 없이 물러난다 — 모델이 스스로 물리는 형태이고, 그때 확인 대기가 남으면 안 된다.
+        # 학습자 발화 없이 물러난다 — 모델이 스스로 물리는 형태이고,
+        # 그때 확인 대기가 남으면 안 된다.
         SessionCommandEvent(command="end", stage="cancelled"),
         TranscriptEvent(kind="final", text="I had a busy week at work.", speaker="user"),
     )

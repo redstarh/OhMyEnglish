@@ -35,8 +35,15 @@ def test_tool_name_is_stable() -> None:
     assert PRONUNCIATION_TOOL_NAME == "report_pronunciation_coaching"
 
 
-def test_outcome_and_signal_value_domains_match_the_migration() -> None:
-    """마이그레이션의 CHECK 와 같은 값역이어야 한다. 어긋나면 앱이 통과시킨 값을 DB가 거부한다.
+def test_outcome_and_signal_value_domains_are_pinned_to_the_known_values() -> None:
+    """값역을 **알려진 값에 고정**한다 — 파이썬 쪽이 조용히 바뀌는 것을 잡는다.
+
+    ⛔ **이 단정은 마이그레이션을 읽지 않는다 — 이름이 그렇게 약속하지 않도록 바꿨다**
+    (`TASK-150` · 결정 122). 이전 이름은 `..._match_the_migration` 이었고 그 약속을 이행하지
+    않았다(정리 회차 `TASK-144` 의 R5 각도가 찾았다). **DB CHECK 와의 대조는**
+    `tests/unit/test_schema.py::test_signal_source_check_matches_the_python_value_domain` 과
+    그 이웃 셋이 한다 — 그쪽은 `pg_get_constraintdef` 를 읽고 이 값역과 집합으로 비교하며,
+    파이썬 값역에서 값을 하나 빼는 변이로 검출력을 확인했다.
 
     ⚠️ `signal_source` 의 정본은 **024** 다 — 003 이 셋으로 열었고 024 가 `transcript_analysis`
     를 더했다(`TASK-88` · 캡틴 지시 대장 결정 92 ① · 93 · 94).

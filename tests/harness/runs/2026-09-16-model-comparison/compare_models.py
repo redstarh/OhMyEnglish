@@ -167,7 +167,8 @@ async def main() -> None:
     print(
         f"=== 재료 user={user_id} 복습예정={len(data.due_reviews)} 만성={len(data.chronic)} "
         f"발화={len(data.recent)} 프롬프트={len(prompt)}자 허용id={len(allowed)} "
-        f"현재레벨={data.current_level} 최다재발={'없음' if deepest is None else deepest.pattern_key}"
+        f"현재레벨={data.current_level} "
+        f"최다재발={'없음' if deepest is None else deepest.pattern_key}"
     )
     print(f"=== 앱 설정 모델 ID = {settings.claude_model_id} · region={settings.aws_region}")
 

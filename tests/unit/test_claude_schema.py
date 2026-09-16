@@ -51,7 +51,13 @@ def _raw(*findings: dict[str, Any]) -> str:
 
 # 코드값은 001 스키마의 CHECK와 반드시 일치해야 한다 — 어긋나면 저장 시점에
 # CHECK 위반으로 터진다. 두 곳이 갈라지지 않도록 값 자체를 고정한다.
-def test_category_and_severity_codes_match_the_schema_check():
+#
+# ⛔ **이 단정은 DB 를 읽지 않는다 — 이름이 그렇게 약속하지 않도록 바꿨다**(`TASK-150` · 결정 122).
+# 이전 이름은 `..._match_the_schema_check` 였고 그 약속을 이행하지 않았다. **DB CHECK 와의 대조는**
+# `tests/unit/test_schema.py::test_error_category_check_matches_the_python_value_domain` 과 그 이웃
+# 셋이 한다(그쪽은 `pg_get_constraintdef` 를 읽는다). 이 자리는 **파이썬 쪽이 조용히 바뀌는 것**을
+# 잡고, 그쪽은 **DB 가 바뀌고 파이썬이 안 바뀌는 것**을 잡는다 — 두 방향이 각자 필요하다.
+def test_category_and_severity_codes_are_pinned_to_the_known_values():
     assert ERROR_CATEGORIES == (
         "verb_tense",
         "article",
@@ -774,9 +780,7 @@ def test_extract_text_reports_an_openai_refusal():
 
 def test_extract_usage_reads_the_openai_token_names():
     """⛔ 키가 다르면 `llm_calls` 가 조용히 빈다 — 비용의 큰 쪽을 못 세게 된다."""
-    assert extract_usage(_openai_payload("{}")) == TokenUsage(
-        input_tokens=4102, output_tokens=1004
-    )
+    assert extract_usage(_openai_payload("{}")) == TokenUsage(input_tokens=4102, output_tokens=1004)
 
 
 # --- openai 계열은 bearer 키로 붙는다 (`TASK-142` · 사용자 지시 2026-09-16) --------

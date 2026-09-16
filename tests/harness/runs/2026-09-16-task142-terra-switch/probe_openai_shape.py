@@ -53,7 +53,9 @@ def main() -> None:
         "message_keys": sorted(payload["choices"][0]["message"].keys())
         if payload.get("choices")
         else None,
-        "finish_reason": payload["choices"][0].get("finish_reason") if payload.get("choices") else None,
+        "finish_reason": payload["choices"][0].get("finish_reason")
+        if payload.get("choices")
+        else None,
         "text": payload["choices"][0]["message"].get("content") if payload.get("choices") else None,
         "usage": payload.get("usage"),
     }

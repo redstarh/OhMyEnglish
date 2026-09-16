@@ -5,7 +5,8 @@
 프롬프트도 앱의 `build_plan_prompt` 가 만들고 검증도 앱의 `parse_plan` 이 한다.
 
     cd app/backend && DATABASE_URL=…/ohmyenglish_t142 \
-      ./.venv/bin/python ../../tests/harness/runs/2026-09-16-task142-terra-switch/p_plan_job_end_to_end.py
+      ./.venv/bin/python \
+        ../../tests/harness/runs/2026-09-16-task142-terra-switch/p_plan_job_end_to_end.py
 """
 
 from __future__ import annotations
@@ -110,9 +111,7 @@ async def main() -> None:
             )
         result = {
             "job": dict(job_row) if job_row else None,
-            "plan": {
-                key: plan[key] for key in ("target_level", "source", "questions", "focus")
-            }
+            "plan": {key: plan[key] for key in ("target_level", "source", "questions", "focus")}
             if plan
             else None,
             "instruction_keys": sorted(json.loads(plan["instruction"]).keys()) if plan else None,

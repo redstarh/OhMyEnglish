@@ -83,7 +83,9 @@ async def main() -> None:
         boundary = day_start_for("Asia/Seoul", now=now)
         # 학습자의 「오늘」이 시작하기 전에 만든 녹음이어야 만료 판정을 탄다.
         created_at = boundary - timedelta(hours=2)
-        print(f"now={now.isoformat()} 경계={boundary.isoformat()} 녹음시각={created_at.isoformat()}")
+        print(
+            f"now={now.isoformat()} 경계={boundary.isoformat()} 녹음시각={created_at.isoformat()}"
+        )
 
         seeded = {}
         for status in ARMS:
@@ -99,7 +101,9 @@ async def main() -> None:
 
         print("\n[3] 스윕 뒤 — 포인터와 파일")
         for status, (session_id, utterance_id) in seeded.items():
-            url = await conn.fetchval("select audio_url from utterances where id = $1", utterance_id)
+            url = await conn.fetchval(
+                "select audio_url from utterances where id = $1", utterance_id
+            )
             path = recording_path(root, session_id, utterance_id)
             print(
                 f"  {status:<9} 선택됨={utterance_id in purged!s:<5} "

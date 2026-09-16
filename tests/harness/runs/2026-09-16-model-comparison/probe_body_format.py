@@ -43,6 +43,7 @@ def measuring_client(region: str):
         raise SystemExit("AWS_BEARER_TOKEN_BEDROCK 이 셸 환경에 없다 — 측정 경로가 붙지 않는다")
     return boto3.client("bedrock-runtime", region_name=region, config=bedrock_boto_config())
 
+
 MODELS = [
     "us.anthropic.claude-opus-5",
     "us.anthropic.claude-sonnet-5",
