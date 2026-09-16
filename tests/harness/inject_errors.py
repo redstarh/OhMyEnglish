@@ -51,9 +51,9 @@ sys.path.insert(0, str(BACKEND_DIR))
 # 그 폴백(:5433)은 2026-09-17에 지웠다(`TASK-149`).
 from psql_cli import psql  # noqa: E402
 
-from app.api.ws import FIXED_USER_ID  # noqa: E402
 from app.db import close_pool  # noqa: E402
 from app.db import pool as get_db_pool  # noqa: E402
+from app.models.user import FIXED_USER_ID  # noqa: E402
 from app.services.jobs import enqueue_analyze  # noqa: E402
 from app.services.sessions import create_session, mark_session_ended  # noqa: E402
 from app.services.utterances import (  # noqa: E402

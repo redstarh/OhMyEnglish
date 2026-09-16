@@ -25,8 +25,8 @@ import httpx
 import pytest_asyncio
 from conftest import default_finding
 
-from app.api.ws import FIXED_USER_ID
 from app.audio_gateway.fixtures import FIXTURE_TURNS
+from app.models.user import FIXED_USER_ID
 from app.services.analysis import process_analysis
 from app.services.jobs import ClaimedJob, enqueue_analyze
 from app.services.utterances import UtteranceRow, flush_pending_analysis, save_final_transcript

@@ -46,13 +46,18 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from app.audio_gateway.factory import create_voice_adapter
 from app.audio_gateway.session import SessionRunner
 from app.config import Settings, get_settings
-from app.models.plan import PlanQuestion, SessionInstruction
-from app.models.pronunciation import PRONUNCIATION_PATTERN_KEY_PREFIX
+from app.models.plan import PlanQuestion
 from app.models.scenario import SessionScenario
-from app.services.pronunciation import load_known_sounds
+from app.models.session import (
+    PRONUNCIATION_MODE,
+    SCENARIO_INTAKE_MODE,
+    SHADOWING_MODE,
+    SPEAKING_MODE,
+)
+from app.models.user import FIXED_USER_ID
+from app.services.pronunciation import load_known_sounds, pronunciation_candidates
 from app.services.recordings import ShadowingTurns, load_session_clip
 from app.services.sessions import (
-    SCENARIO_INTAKE_MODE,
     PreparedPlan,
     create_session,
     load_prepared_plan,
@@ -70,43 +75,38 @@ router = APIRouter()
 
 WS_SESSION_PATH = "/ws/session"
 
-# 쉐도잉으로 붙는 유일한 값. ⛔ **모드 값역을 여기서 열거하지 않는다** — 그것은 001 의
-# `learning_sessions_mode_check` 가 가둔다. 이 상수가 아는 것은 「쉐도잉인가」 하나다.
-SHADOWING_MODE = "shadowing"
-# `create_session` 의 기본값과 같은 값이다. **여기 있는 이유는 경고 하나 때문이다**:
-# `?mode=speaking` 은 명시적 선택이므로 「알 수 없는 mode」로 경고하면 안 된다. ⛔ 이 둘이
-# 값역 전체는 아니다 — `review` 는 아직 진입점이 없고, 값역의 정본은 여전히 001 의 CHECK 다.
-SPEAKING_MODE = "speaking"
-# `TASK-10.1` — 발음 전용 모드로 붙는 값. 이 상수가 바꾸는 것은 **지시문**이고, `TASK-112`(결정 67 ·
-# 마이그레이션 014) 이후로는 **세션 행의 `mode` 도** 같은 값으로 적힌다.
+# 소켓이 받는 **진입 모드** 목록. ⛔ **값역이 아니다** — 값역의 정본은 018 의
+# `learning_sessions_mode_check` 이고 그것을 파이썬에서 부르는 이름은 `models/session` 이 갖는다
+# (`TASK-148` ③ · 결정 122 로 그리 옮겼다. 이전에는 네 값이 이 파일과 `services/sessions` 로
+# 흩어져 있었다). 여기 없는 값역 하나는 `review` 다 — 진입점이 없어 그 값으로 붙으면 아래 경고가
+# 뜨고 말하기로 진행한다.
+# ⚠️ **`speaking` 이 이 목록에 있는 이유는 경고 하나 때문이다** — `?mode=speaking` 은 명시적
+# 선택이므로 「알 수 없는 mode」로 경고하면 안 된다(2026-09-09 리뷰 지적).
+ENTRY_MODES = (SPEAKING_MODE, SHADOWING_MODE, PRONUNCIATION_MODE, SCENARIO_INTAKE_MODE)
+
+# 모드마다 무엇이 달라지는지는 아래 `session_socket` 의 분기와 그 주석이 갖는다. 각 값이 걸고 있는
+# 결정을 여기 한 번에 남긴다 — 값 자체는 `models/session` 것이고 **그 뜻은 이 경로의 것**이다.
+#
+# `pronunciation` (`TASK-10.1`): 바꾸는 것은 **지시문**이고, `TASK-112`(결정 67 · 마이그레이션 014)
+# 이후로는 **세션 행의 `mode` 도** 같은 값으로 적힌다.
 # ⚠️ **이 서술은 한 번 뒤집혔고 그 사실을 남긴다** — 처음에는 *"세션 행의 mode 를 바꾸지 않는다
 # (001 값역 밖이고 값역을 늘리는 것은 이 태스크 범위 밖이다)"* 였다. 그 대가(결과 화면·집계가
 # 발음 세션을 말하기로 세는 것)를 사용자가 결정 67 로 갚기로 정했다.
-# ⛔ 모드 리터럴의 소유자는 여전히 결정 11 이 지목한 `TASK-27` 이다 — 014 는 값역 한 칸만 열었고
-# 소유를 옮기지 않았다.
-PRONUNCIATION_MODE = "pronunciation"
-# `TASK-5` Task 6 — 무대 정하기 진입 (사용자 결정 79 · 마이그레이션 018 이 값역을 열었다).
+#
+# `scenario_intake` (`TASK-5` Task 6 · 사용자 결정 79 · 마이그레이션 018 이 값역을 열었다):
 # ⛔ **`?source=additional` 로는 이 진입을 가릴 수 없다** — 추가 학습 메뉴 여섯 가운데 다섯이 그
 # 값이고 그중 셋(자유 대화 · 약점 패턴 집중 · 질문 답변 5개)이 `mode` 를 갖지 않아 서로 구별되지
 # 않는다(그 설계서 §5 가 코드로 확인한 목록을 갖는다). 그 값으로 가르면 **자유 대화 세션에 질문
 # 5개 지시가 샌다.**
 # ⛔ **세션 행의 `mode` 를 반드시 적는다** — 발음 모드와 달리 이 값은 지시문만 바꾸는 것이 아니다.
 # 종료 경로가 `mode` 를 읽어 `generate_scenario` job 을 걸므로(설계서 §5 흐름 3) 적지 못하면
-# **질문은 했는데 무대가 만들어지지 않는다.**
-#
-# ⛔ **이 값만 위 셋과 달리 «import 한다».** 위 셋은 이 파일이 아는 것이 「그 모드인가」 하나여서
-# 지역 상수로 두는 것이 맞다. 이 값은 다르다 — **소켓이 쓰고 종료 경로가 읽는다**
-# (`services/sessions.end_session` 이 `closed["mode"] == SCENARIO_INTAKE_MODE` 로 job 을 건다).
-# 두 곳에 리터럴을 두면 한쪽이 바뀔 때 **쓰는 값과 읽는 값이 갈라지고 게이트가 침묵한다**: 세션은
-# 정상으로 열리고 질문도 실리는데 job 만 안 걸린다. ⇒ 정본을 그 모듈 하나로 둔다.
+# **질문은 했는데 무대가 만들어지지 않는다.** 그래서 **쓰는 값과 읽는 값이 같은 이름이어야 한다**:
+# `services/sessions.end_session` 이 `closed["mode"] == SCENARIO_INTAKE_MODE` 로 job 을 걸고, 그
+# 모듈도 이제 `models/session` 에서 그 이름을 받는다. 리터럴이 두 곳에 있으면 세션은 정상으로
+# 열리고 질문도 실리는데 **job 만 안 걸리고 게이트는 침묵한다.**
 
 SESSION_CREATE_FAILED_REASON = "session_create_failed"
 ADAPTER_UNAVAILABLE_REASON = "voice_adapter_unavailable"
-
-# 단일 사용자 로컬 도구다(설계서 §2) — 인증 계층이 없어 연결의 주인이 고정이다.
-# 값은 시드가 만드는 사용자 id와 같다(`scripts/migrate.py`의 `USER_ID`). 시드
-# 스크립트는 앱 패키지를 import하지 않는 독립 ops 스크립트라 상수를 공유하지 못한다.
-FIXED_USER_ID = UUID("00000000-0000-0000-0000-000000000001")
 
 
 async def _safe_close(websocket: WebSocket) -> None:
@@ -175,45 +175,6 @@ async def _load_known_sounds_or_empty(pool: asyncpg.Pool) -> list[str]:
     except Exception:
         logger.exception("기존 발음 소리를 읽지 못해 기본 지시문으로 진행한다")
         return []
-
-
-def _pronunciation_candidates(
-    plan: SessionInstruction | None, known_sounds: Sequence[str]
-) -> list[str]:
-    """발음 전용 모드에 내려보낼 **소리 후보 목록** (`TASK-128.2` · 사용자 결정 72).
-
-    출처의 순서가 규칙이다: ① **계획의 발음 초점** ② **놓친 소리 목록**. 계획이 앞인 이유는 그것이
-    복습 예정일을 근거로 «오늘» 다룰 소리를 이미 골라 둔 값이기 때문이다(`TASK-44` 이후 발음 패턴이
-    `next_review_at` 을 받아 초점 후보가 된다). 목록은 「전에 놓친 것들」이라 오늘의 우선순위를 담지
-    않으므로 뒤에 둔다.
-
-    ⛔ **계획의 소리는 «앞에 오는 것»으로만 이긴다 — 이름으로 지목되지 않는다.** 이전 판
-    (`_pronunciation_sound_or_none`)은 소리 하나를 골라 돌려주고 그것이 프롬프트에서
-    `- Sound to coach today: "키"` 로 지목됐다. 그 단수 지목이 되풀이의 구동부였고 **더하는 방향과
-    덜어내는 방향이 모두 반증됐다** — 실측의 정본은 `audio_gateway/nova._SOUND_INSTRUCTION` 위
-    주석이다. ⇒ 지시문이 아니라 **재료**를 바꾼 것이 결정 72 다.
-
-    ⛔ **목록을 계획의 소리로 덮지 않는다.** 후보 기제의 조건이 *"If one of them is off again"* 이라
-    목록이 넓을수록 「실제로 들은 소리」를 그 안에서 찾을 확률이 높아진다 — 하나만 남기면 결정 72 가
-    노린 값이 줄어든다.
-
-    ⛔ **같은 키를 두 번 싣지 않는다.** 두 출처가 같은 표(`error_patterns`)에서 오므로 겹치는 것이
-    평시다. 두 번 실리면 「후보가 둘」이 아니라 **그 키를 강조한 것**으로 읽혀 지금 걷어 낸 단수
-    지목이 다른 모양으로 되살아난다.
-
-    ⛔ **빈 목록을 「말하기로 떨어뜨려라」로 번역하지 않는다** — 결정 72 가 그 폴백을 없앴다. 후보가
-    0건이면 조립기가 그 블록을 아예 빼고, 코치는 **실제로 들은 소리**로 시작한다.
-
-    ⚠️ **순수 함수로 둔 이유**: 이 선택이 정책이라 회귀를 단위 테스트로 잡아야 한다. DB 를 타면
-    같은 판정에 통합 픽스처가 필요해지고, 그러면 「어느 출처가 앞인가」가 조용히 바뀌어도 통과한다.
-    """
-    focus = [
-        item.target_form
-        for item in (plan.focus if plan is not None else ())
-        if item.pattern_key.startswith(PRONUNCIATION_PATTERN_KEY_PREFIX)
-    ]
-    # `dict.fromkeys` — 순서를 지키면서 중복만 걷는다(`set` 은 순서를 잃고, 그 순서가 규칙이다).
-    return list(dict.fromkeys([*focus, *known_sounds]))
 
 
 async def _load_shadowing_turns_or_none(
@@ -355,13 +316,7 @@ async def session_socket(websocket: WebSocket) -> None:
     # `TASK-5` Task 6 — 무대 정하기 진입. `shadowing` 과 달리 `create_session` 분기에 끼어들지 않고
     # (세션은 평범하게 열린다) 세션 행의 `mode` 를 **뒤에** 적는다 — 발음 모드와 같은 형태다.
     scenario_intake_requested = requested_mode == SCENARIO_INTAKE_MODE
-    if requested_mode not in (
-        None,
-        SHADOWING_MODE,
-        SPEAKING_MODE,
-        PRONUNCIATION_MODE,
-        SCENARIO_INTAKE_MODE,
-    ):
+    if requested_mode is not None and requested_mode not in ENTRY_MODES:
         # ⚠️ `?mode=speaking` 은 **알 수 없는 값이 아니다** — 명시적으로 그것을 고른 것이므로
         # 경고하지 않는다(2026-09-09 리뷰 지적). 경고는 오타·낡은 링크만 가리켜야 값을 한다.
         logger.warning("알 수 없는 mode=%r — 말하기 세션으로 진행한다", requested_mode)
@@ -423,13 +378,14 @@ async def session_socket(websocket: WebSocket) -> None:
 
         # 결정 72 — 계획이 고른 소리를 **이름으로 주지 않고** 후보 목록 앞에 더한다.
         # ⛔ **후보가 0건이어도 말하기로 떨어뜨리지 않는다** — 그 폴백을 없앤 것이 이 결정이다.
-        pronunciation_candidates = (
-            _pronunciation_candidates(plan, known_sounds) if pronunciation_requested else []
+        # ⚠️ 지역 이름을 함수 이름과 다르게 둔다 — 같으면 import 가 섀도잉돼 `UnboundLocalError` 다.
+        sound_candidates = (
+            pronunciation_candidates(plan, known_sounds) if pronunciation_requested else []
         )
         # 화면에 실을 **오늘의 소리**는 후보의 첫 항목이다(`session_started`). ⚠️ 이 값이 없는 것은
         # 이제 「말하기로 떨어졌다」가 아니라 **「후보가 아직 없다」**만 뜻한다 — 화면이 아직 그것을
         # 폴백으로 읽으므로 문구를 고치는 것은 `TASK-128.4` 가 갖는다.
-        pronunciation_focus = pronunciation_candidates[0] if pronunciation_candidates else None
+        pronunciation_focus = sound_candidates[0] if sound_candidates else None
         # `TASK-112`(결정 67) — 세션 행이 자기가 발음 세션임을 적는다. ⛔ **적는 조건이 결정 72 로
         # 「요청받았는가」가 됐다.** 이전 판은 「소리가 정해졌는가」였고 근거는 **폴백의 존재**였다
         # (폴백으로 말하기가 된 세션까지 발음으로 집계하면 결정 67 이 닫으려던 결함의 반대 방향
@@ -453,7 +409,7 @@ async def session_socket(websocket: WebSocket) -> None:
                 # ⚠️ **전용 모드에는 후보 목록을 넘긴다**(결정 72) — 일반 세션은 계획 블록이 소리를
                 # 따로 싣지 않게 됐으므로 놓친 소리 목록을 그대로 준다. 즉 이 인자의 «내용»이
                 # 모드마다 다르고, 조립기는 그것을 「후보」로만 읽는다.
-                known_sounds=pronunciation_candidates if pronunciation_requested else known_sounds,
+                known_sounds=sound_candidates if pronunciation_requested else known_sounds,
                 plan=plan,
                 # ⛔ **무대 정하기 세션에는 드릴 질문과 무대를 넘기지 않는다** (`TASK-5` Task 6).
                 # 둘 다 이 진입과 **정면으로 부딪힌다**: 드릴 질문은 「하나씩 물어라」를 받는 두

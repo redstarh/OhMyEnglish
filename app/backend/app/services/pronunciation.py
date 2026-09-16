@@ -48,12 +48,15 @@ from __future__ import annotations
 
 import logging
 import re
+from collections.abc import Sequence
 from uuid import UUID
 
 import asyncpg
 
 from app.models.analysis import PRONUNCIATION_CATEGORY
+from app.models.plan import SessionInstruction
 from app.models.pronunciation import (
+    PRONUNCIATION_PATTERN_KEY_PREFIX,
     SIGNAL_TRANSCRIPT_ANALYSIS,
     PronunciationOutcome,
     SignalSource,
@@ -659,6 +662,49 @@ async def load_known_sounds(conn: asyncpg.Connection, user_id: UUID) -> list[str
     """이 학습자가 전에 놓친 소리 키. 기록이 없으면 빈 목록 — 조립기가 블록을 생략한다."""
     records = await conn.fetch(_KNOWN_SOUNDS_SQL, user_id, PRONUNCIATION_CATEGORY)
     return [record["target_form"] for record in records]
+
+
+def pronunciation_candidates(
+    plan: SessionInstruction | None, known_sounds: Sequence[str]
+) -> list[str]:
+    """발음 전용 모드에 내려보낼 **소리 후보 목록** (`TASK-128.2` · 사용자 결정 72).
+
+    ⚠️ **`api/ws.py` 에서 이리로 옮겼다** (`TASK-148` ① · 결정 122). 그 파일은 「얇다」고 선언한
+    전송 계층인데 이 함수는 **순수 도메인 정책**이라 자리가 어긋나 있었다. 바로 위
+    `load_known_sounds` 가 두 출처 가운데 하나를 읽으므로 판정과 재료가 같은 모듈에 있다.
+
+    출처의 순서가 규칙이다: ① **계획의 발음 초점** ② **놓친 소리 목록**. 계획이 앞인 이유는 그것이
+    복습 예정일을 근거로 «오늘» 다룰 소리를 이미 골라 둔 값이기 때문이다(`TASK-44` 이후 발음 패턴이
+    `next_review_at` 을 받아 초점 후보가 된다). 목록은 「전에 놓친 것들」이라 오늘의 우선순위를 담지
+    않으므로 뒤에 둔다.
+
+    ⛔ **계획의 소리는 «앞에 오는 것»으로만 이긴다 — 이름으로 지목되지 않는다.** 이전 판
+    (`_pronunciation_sound_or_none`)은 소리 하나를 골라 돌려주고 그것이 프롬프트에서
+    `- Sound to coach today: "키"` 로 지목됐다. 그 단수 지목이 되풀이의 구동부였고 **더하는 방향과
+    덜어내는 방향이 모두 반증됐다** — 실측의 정본은 `audio_gateway/nova._SOUND_INSTRUCTION` 위
+    주석이다. ⇒ 지시문이 아니라 **재료**를 바꾼 것이 결정 72 다.
+
+    ⛔ **목록을 계획의 소리로 덮지 않는다.** 후보 기제의 조건이 *"If one of them is off again"* 이라
+    목록이 넓을수록 「실제로 들은 소리」를 그 안에서 찾을 확률이 높아진다 — 하나만 남기면 결정 72 가
+    노린 값이 줄어든다.
+
+    ⛔ **같은 키를 두 번 싣지 않는다.** 두 출처가 같은 표(`error_patterns`)에서 오므로 겹치는 것이
+    평시다. 두 번 실리면 「후보가 둘」이 아니라 **그 키를 강조한 것**으로 읽혀 지금 걷어 낸 단수
+    지목이 다른 모양으로 되살아난다.
+
+    ⛔ **빈 목록을 「말하기로 떨어뜨려라」로 번역하지 않는다** — 결정 72 가 그 폴백을 없앴다. 후보가
+    0건이면 조립기가 그 블록을 아예 빼고, 코치는 **실제로 들은 소리**로 시작한다.
+
+    ⚠️ **순수 함수로 둔 이유**: 이 선택이 정책이라 회귀를 단위 테스트로 잡아야 한다. DB 를 타면
+    같은 판정에 통합 픽스처가 필요해지고, 그러면 「어느 출처가 앞인가」가 조용히 바뀌어도 통과한다.
+    """
+    focus = [
+        item.target_form
+        for item in (plan.focus if plan is not None else ())
+        if item.pattern_key.startswith(PRONUNCIATION_PATTERN_KEY_PREFIX)
+    ]
+    # `dict.fromkeys` — 순서를 지키면서 중복만 걷는다(`set` 은 순서를 잃고, 그 순서가 규칙이다).
+    return list(dict.fromkeys([*focus, *known_sounds]))
 
 
 _LINK_ATTEMPT_SQL = "update pronunciation_attempts set pattern_id = $2 where id = $1"

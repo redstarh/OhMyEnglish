@@ -49,6 +49,7 @@ import pydantic
 
 from app.models.plan import PlanQuestion, SessionInstruction
 from app.models.scenario import SessionScenario
+from app.models.session import SCENARIO_INTAKE_MODE
 from app.services.jobs import (
     enqueue_generate_scenario,
     enqueue_plan_next_session,
@@ -81,11 +82,12 @@ ORPHAN_IDLE_GRACE = timedelta(seconds=60)
 _DEFAULT_LEARNING_SOURCE = "recommended"
 
 # `TASK-5` · 결정 79 — 「질문 답변 5개」 진입의 표지. ⛔ **값역의 정본은 018 의
-# `learning_sessions_mode_check` 다** — 이 상수는 그 값을 코드가 부르는 이름일 뿐이고 목록을
-# 복제하지 않는다(`create_session` docstring 이 같은 이유로 목록을 안 갖는다).
+# `learning_sessions_mode_check` 이고 파이썬 쪽 이름은 `models/session` 이 갖는다**
+# (`TASK-148` ③ · 결정 122). 이 모듈이 그것을 **다시 정의하지 않고 받아쓰는** 이유는 아래
+# `end_session` 이 `closed["mode"] == SCENARIO_INTAKE_MODE` 로 job 을 걸기 때문이다 — 소켓이 쓰는
+# 값과 여기서 읽는 값이 갈라지면 세션은 정상으로 열리고 job 만 안 걸린다.
 # ⚠️ `learning_source='additional'` 로 이 진입을 가릴 수 없어서 생긴 값이다 — 추가 학습 메뉴 여섯
 # 중 다섯이 그 값이고 그중 셋이 `mode` 를 갖지 않아 서로 구별되지 않는다(설계서 §5).
-SCENARIO_INTAKE_MODE = "scenario_intake"
 
 # ⛔ **시나리오를 여기서 고르지 않는다** (`TASK-4` · 결정 73). 이전 판은 이 안에서
 # `where s.level = (…) order by s.created_at, s.id limit 1` 로 골랐고, 그래서 **같은 사용자가

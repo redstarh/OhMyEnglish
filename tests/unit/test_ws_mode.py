@@ -1,7 +1,10 @@
 """발음 전용 모드가 소리를 «후보로» 내려보내는 규칙 (`TASK-128.2` · 사용자 결정 72).
 
-`_pronunciation_candidates` 는 순수 함수다 — DB 를 타지 않는다. 그래서 여기서 잰다:
+`pronunciation_candidates` 는 순수 함수다 — DB 를 타지 않는다. 그래서 여기서 잰다:
 DB 를 타면 「어느 출처가 앞인가」가 조용히 바뀌어도 통합 픽스처가 통과할 수 있다.
+
+⚠️ **그 함수는 `services/pronunciation` 으로 옮겼다** (`TASK-148` ① · 결정 122) — 파일 이름이
+`test_ws_mode` 인 이유는 재는 대상이 여전히 **`?mode=pronunciation` 진입의 규칙**이기 때문이다.
 
 ⛔ **결정 72 가 이 함수의 뜻을 바꿨다.** 이전 판(`_pronunciation_sound_or_none`)은 소리 **하나**를
 골라 돌려주고 그것이 프롬프트에서 `- Sound to coach today: "키"` 로 **이름으로** 지목됐다. 그 단수
@@ -11,15 +14,15 @@ DB 를 타면 「어느 출처가 앞인가」가 조용히 바뀌어도 통합 
 ⇒ 이제 이 함수는 **후보 목록**을 만든다. 계획의 초점은 «앞에 오는 것»으로만 이긴다.
 
 ⛔ **빈 목록은 「말하기로 떨어뜨려라」가 아니다** — 그것이 결정 72 가 뒤집은 자리다. 소리가 없어도
-`?mode=pronunciation` 이면 전용 모드로 간다(그 판정은 `_pronunciation_candidates` 가 아니라
+`?mode=pronunciation` 이면 전용 모드로 간다(그 판정은 `pronunciation_candidates` 가 아니라
 `pronunciation_requested` 가 갖는다).
 """
 
 from __future__ import annotations
 
-from app.api.ws import _pronunciation_candidates
 from app.models.plan import InstructionFocus, SessionInstruction
 from app.models.pronunciation import PRONUNCIATION_PATTERN_KEY_PREFIX
+from app.services.pronunciation import pronunciation_candidates
 
 
 def _instruction(*focus: tuple[str, str]) -> SessionInstruction:
@@ -44,7 +47,7 @@ def test_the_plan_pronunciation_focus_comes_first_and_the_list_survives():
         ("article_missing_before_noun", "a/an + 단수 명사"),
     )
 
-    assert _pronunciation_candidates(plan, ["an_as_a", "f_as_p"]) == [
+    assert pronunciation_candidates(plan, ["an_as_a", "f_as_p"]) == [
         "th_as_s",
         "an_as_a",
         "f_as_p",
@@ -59,7 +62,7 @@ def test_the_plan_focus_is_not_repeated_when_the_list_already_has_it():
     """
     plan = _instruction((f"{PRONUNCIATION_PATTERN_KEY_PREFIX}f_as_p", "f_as_p"))
 
-    assert _pronunciation_candidates(plan, ["an_as_a", "f_as_p"]) == ["f_as_p", "an_as_a"]
+    assert pronunciation_candidates(plan, ["an_as_a", "f_as_p"]) == ["f_as_p", "an_as_a"]
 
 
 def test_every_pronunciation_focus_of_the_plan_is_a_candidate():
@@ -73,17 +76,17 @@ def test_every_pronunciation_focus_of_the_plan_is_a_candidate():
         (f"{PRONUNCIATION_PATTERN_KEY_PREFIX}v_as_b", "v_as_b"),
     )
 
-    assert _pronunciation_candidates(plan, []) == ["th_as_s", "v_as_b"]
+    assert pronunciation_candidates(plan, []) == ["th_as_s", "v_as_b"]
 
 
 def test_the_missed_sound_list_is_used_when_the_plan_has_no_pronunciation_focus():
     plan = _instruction(("article_missing_before_noun", "a/an + 단수 명사"))
 
-    assert _pronunciation_candidates(plan, ["an_as_a", "f_as_p"]) == ["an_as_a", "f_as_p"]
+    assert pronunciation_candidates(plan, ["an_as_a", "f_as_p"]) == ["an_as_a", "f_as_p"]
 
 
 def test_no_plan_leaves_the_missed_sound_list_alone():
-    assert _pronunciation_candidates(None, ["f_as_p"]) == ["f_as_p"]
+    assert pronunciation_candidates(None, ["f_as_p"]) == ["f_as_p"]
 
 
 def test_neither_source_gives_an_empty_list():
@@ -95,5 +98,5 @@ def test_neither_source_gives_an_empty_list():
     """
     grammar_only = _instruction(("article_missing_before_noun", "a/an"))
 
-    assert _pronunciation_candidates(None, []) == []
-    assert _pronunciation_candidates(grammar_only, []) == []
+    assert pronunciation_candidates(None, []) == []
+    assert pronunciation_candidates(grammar_only, []) == []

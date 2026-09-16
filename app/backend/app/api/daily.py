@@ -23,7 +23,7 @@ from __future__ import annotations
 import asyncpg
 from fastapi import APIRouter, Request
 
-from app.api.ws import FIXED_USER_ID
+from app.models.user import FIXED_USER_ID
 from app.services.daily_summary import (
     DailyCompletion,
     DailyPattern,

@@ -42,9 +42,9 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 BACKEND_DIR = REPO_ROOT / "app" / "backend"
 sys.path.insert(0, str(BACKEND_DIR))
 
-from app.api.ws import FIXED_USER_ID  # noqa: E402
 from app.db import close_pool  # noqa: E402
 from app.db import pool as get_db_pool  # noqa: E402
+from app.models.user import FIXED_USER_ID  # noqa: E402
 from app.services.analysis import _RECOUNT_PATTERN_SQL  # noqa: E402
 from app.services.pronunciation import record_attempt  # noqa: E402
 from app.services.sessions import create_session, mark_session_ended  # noqa: E402

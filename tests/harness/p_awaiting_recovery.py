@@ -52,9 +52,9 @@ sys.path.insert(0, str(HARNESS.parent.parent / "app" / "backend"))
 from c2_render_hierarchy import Cdp, find_target  # noqa: E402
 from websockets.asyncio.client import connect  # noqa: E402
 
-from app.api.ws import FIXED_USER_ID  # noqa: E402
 from app.db import close_pool  # noqa: E402
 from app.db import pool as get_db_pool  # noqa: E402
+from app.models.user import FIXED_USER_ID  # noqa: E402
 from app.services.sessions import create_session  # noqa: E402
 from app.services.utterances import flush_pending_analysis, save_final_transcript  # noqa: E402
 

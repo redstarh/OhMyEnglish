@@ -20,7 +20,7 @@ import asyncpg
 import httpx
 import pytest_asyncio
 
-from app.api.ws import FIXED_USER_ID
+from app.models.user import FIXED_USER_ID
 
 # 월요일 하나를 고정으로 쓴다 — 2026-09-07 은 월요일이다(023 의 CHECK 가 그것을 요구한다).
 # ⚠️ 이 값이 「지난 주」일 필요는 없다: 라우터는 **가장 최근에 계산된 주**를 주므로 어느 월요일이든

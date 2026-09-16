@@ -22,6 +22,9 @@ from uuid import uuid4
 import asyncpg
 import pytest
 
+from app.models.session import SESSION_MODES
+from app.models.user import FIXED_USER_ID
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPTS_DIR = REPO_ROOT / "scripts"
 MIGRATE_PATH = SCRIPTS_DIR / "migrate.py"
@@ -387,6 +390,18 @@ async def test_seed_creates_the_fixed_user_and_the_scenarios_idempotently(
     assert [row["level"] for row in business_levels] == ["A2"]
 
 
+# ⑤-8 앱의 고정 사용자와 시드가 **같은 UUID** 여야 한다 (`TASK-148` ④ · 결정 122).
+#
+# ⛔ **값이 두 곳에 적혀 있다.** `scripts/migrate.py` 는 앱 패키지를 import 하지 않는 독립 ops
+# 스크립트라(`db_utils` 만 쓴다) `models/user` 의 상수를 공유할 수 없다. 그 복제의 대가를 이 단정이
+# 갚는다 — `services/sessions._DEFAULT_LEARNING_SOURCE` 가 `column_default` 와 대조되는 것과 같은
+# 부류다.
+# ⚠️ **이 단정이 없으면 어긋남이 조용하다**: 앱이 없는 사용자로 세션을 만들려 해 외래키 위반으로
+# 떨어지고, 그 실패가 「시드를 안 돌렸다」와 구별되지 않는다.
+def test_the_fixed_user_matches_the_seed() -> None:
+    assert FIXED_USER_ID == migrate.USER_ID
+
+
 # ⑤-5 시드 배열의 **순서**가 제품 동작이다 (`TASK-4` · 결정 76).
 #
 # ⛔ **이 테스트는 「비율이 맞는다」와 다른 것을 잰다.** 배치 규칙은 신규를 고를 때 `created_at` 이
@@ -615,9 +630,17 @@ async def test_session_mode_domain_includes_scenario_intake(db_conn: asyncpg.Con
         "where conname = 'learning_sessions_mode_check'"
     )
     assert definition is not None
+    # ⛔ **파이썬 값역을 여기서 함께 잰다** (`TASK-148` ③). `models/session.SESSION_MODES` 가 이
+    # CHECK 의 파이썬 짝이고, 어긋나면 코드가 값역 밖 값을 쓰거나 열린 값을 못 쓴다.
+    # ⛔ **아래 목록을 `SESSION_MODES` 로 대체하지 않는다 — 그러면 판별력이 사라진다**: 양쪽에서
+    # 같은 값을 지우면 통과해 버린다. 목록을 손으로 적어 두면 어느 한쪽이 빠질 때 반드시 깨진다.
+    expected = ("speaking", "shadowing", "review", "pronunciation", "scenario_intake")
+    assert SESSION_MODES == expected, (
+        "파이썬 값역이 018 의 CHECK 와 갈라졌다 — 어느 쪽을 고칠지 정하고 둘을 함께 고친다"
+    )
     # ⛔ **따옴표까지 맞춘다** — `pronunciation_drill` 같은 값이 나중에 들어오면 맨 문자열 비교는
     # `pronunciation` 이 사라져도 통과한다. `ohmyenglish-19` 세션이 이 형태를 제안했고 근거가 맞다.
-    for value in ("speaking", "shadowing", "review", "pronunciation", "scenario_intake"):
+    for value in expected:
         assert f"'{value}'" in definition, (
             f"{value!r}가 값역에서 사라졌다 — `drop`+`add` 가 목록을 대체한다. "
             "쓰는 코드가 없는 값이라 다른 어떤 테스트도 이것을 잡지 않는다"

@@ -32,8 +32,8 @@ from uuid import UUID
 import asyncpg
 from fastapi import APIRouter, HTTPException, Request, Response
 
-from app.api.ws import FIXED_USER_ID
 from app.config import get_settings
+from app.models.user import FIXED_USER_ID
 from app.services.recordings import RECORDING_MEDIA_TYPE, load_recording
 from app.services.results import (
     Correction,

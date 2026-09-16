@@ -31,7 +31,7 @@ import httpx
 import pytest_asyncio
 from conftest import plan_json
 
-from app.api.ws import FIXED_USER_ID
+from app.models.user import FIXED_USER_ID
 
 # `asyncio_mode = "auto"`(pyproject.toml)라 `async def test_` 에 마커를 붙이지 않는다.
 

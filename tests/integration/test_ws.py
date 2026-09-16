@@ -33,12 +33,13 @@ from fastapi import FastAPI
 from app import db as db_module
 from app.api import ws as ws_module
 from app.api.main import FRONTEND_ORIGIN, create_app
-from app.api.ws import FIXED_USER_ID, WS_SESSION_PATH
+from app.api.ws import WS_SESSION_PATH
 from app.audio_gateway.fixtures import FIXTURE_TURNS, TONE_WAV_FRAME
 from app.config import Settings, get_settings
 from app.models.plan import PlanQuestion, SessionInstruction
 from app.models.scenario import SessionScenario
 from app.models.usage import PURPOSE_NOVA, TokenUsage, UsageSink
+from app.models.user import FIXED_USER_ID
 
 RECEIVE_TIMEOUT = 5.0
 

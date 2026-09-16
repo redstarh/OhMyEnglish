@@ -6,9 +6,12 @@ import 하면 포트 구현이 DB 를 알게 되고, 그러면 자격증명·네
 요구한다(`audio_gateway`가 `app.models`만 아는 것과 같은 경계다).
 
 ⛔ **`purpose` 값역을 여기서 열거하지 않는다.** 정본은 013 의 `llm_calls_purpose_check` 이고, 아래
-상수는 **이 코드가 실제로 쓰는 값만** 이름 붙인 것이다 — `api/ws.py`가 `SHADOWING_MODE`·
-`PRONUNCIATION_MODE`만 두고 값역 전체를 두지 않는 것과 같은 규약이다. 값역 밖 값은
-`asyncpg.PostgresError`로 올라간다(조용히 다른 갈래로 바뀌지 않는다).
+상수는 **이 코드가 실제로 쓰는 값만** 이름 붙인 것이다 — `models/session`이 `review` 에 상수를 두지
+않는 것과 같은 규약이다(진입점이 없어 부를 자리가 없다). 값역 밖 값은 `asyncpg.PostgresError`로
+올라간다(조용히 다른 갈래로 바뀌지 않는다).
+⚠️ **그 규약과 「값역 전체를 파이썬에 두지 않는다」는 다른 말이다** — `mode` 는 `TASK-148` ③ 으로
+`SESSION_MODES` 를 갖게 됐고, 그것이 DB CHECK 와 대조되는 근거가 된다. 여기 `purpose` 는 아직
+그 대조가 없다.
 """
 
 from __future__ import annotations
