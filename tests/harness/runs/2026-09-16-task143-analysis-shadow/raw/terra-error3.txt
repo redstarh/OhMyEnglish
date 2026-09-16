@@ -1,0 +1,1 @@
+{"findings":[{"category":"verb_form","pattern_key":"verb_form_do_support_negation","target_form":"don't/doesn't + 동사원형","original_span":"I know not","correction":"I don't know","explanation":"일반 동사 know를 부정할 때는 don't know를 씁니다.","severity":"medium","confidence":0.98,"origin":"grammar","suggested_contexts":["친구에게 지각 이유 말하기","동료에게 문제 원인 말하기","회의에서 실패 원인 보고하기"]}],"attempts":[]}

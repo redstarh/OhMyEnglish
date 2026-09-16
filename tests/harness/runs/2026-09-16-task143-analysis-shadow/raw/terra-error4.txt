@@ -1,0 +1,1 @@
+{"findings":[{"category":"verb_form","pattern_key":"verb_form_have_finished","target_form":"have/has + 동사 과거분사","original_span":"have finish","correction":"have finished","explanation":"have 뒤에는 동사의 과거분사 finished를 씁니다.","severity":"medium","confidence":0.99,"origin":"grammar","suggested_contexts":["집안일을 이미 끝냈다고 말하기","동료에게 작업 완료 알리기","회의에서 테스트 완료 보고"]}],"attempts":[]}

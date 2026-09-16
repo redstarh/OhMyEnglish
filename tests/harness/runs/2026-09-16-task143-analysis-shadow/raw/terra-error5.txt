@@ -1,0 +1,1 @@
+{"findings":[{"category":"article","pattern_key":"article_the_before_place","target_form":"go to the + 장소 명사","original_span":"go to gym","correction":"go to the gym","explanation":"gym 같은 장소 앞에는 보통 the를 씁니다.","severity":"low","confidence":0.9,"origin":"grammar","suggested_contexts":["퇴근 후 운동 계획 말하기","동료에게 점심 전 일정 말하기","회의 전 준비 장소 말하기"]}],"attempts":[]}

@@ -1,0 +1,1 @@
+{"findings":[{"category":"article","pattern_key":"article_missing_before_office","target_form":"go to the office","original_span":"go to office","correction":"go to the office","explanation":"office 앞에는 보통 the를 붙여서 the office라고 말합니다.","severity":"medium","confidence":0.95,"origin":"grammar","suggested_contexts":["아침 출근 말하기","동료에게 이동 일정 알리기","회의에서 출근 시간 보고하기"]}],"attempts":[]}

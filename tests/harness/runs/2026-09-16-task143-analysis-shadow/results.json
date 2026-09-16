@@ -1,0 +1,326 @@
+{
+  "summary": {
+    "opus5": {
+      "calls": 11,
+      "schema_pass": 11,
+      "schema_pass_pct": 100.0,
+      "detected_on_error_sentences": 8,
+      "false_positive_on_clean": 0,
+      "median_ms": 6490,
+      "input_tokens_total": 31211,
+      "output_tokens_total": 4517
+    },
+    "terra": {
+      "calls": 11,
+      "schema_pass": 11,
+      "schema_pass_pct": 100.0,
+      "detected_on_error_sentences": 8,
+      "false_positive_on_clean": 0,
+      "median_ms": 2445,
+      "input_tokens_total": 18616,
+      "output_tokens_total": 1998
+    }
+  },
+  "rows": [
+    {
+      "elapsed_ms": 7036,
+      "input_tokens": 2842,
+      "output_tokens": 485,
+      "schema_ok": true,
+      "reason": null,
+      "findings": 2,
+      "categories": [
+        "verb_tense"
+      ],
+      "kind": "error",
+      "arm": "opus5",
+      "sentence": "Yesterday I go to the client meeting and present the project status."
+    },
+    {
+      "elapsed_ms": 2445,
+      "input_tokens": 1695,
+      "output_tokens": 219,
+      "schema_ok": true,
+      "reason": null,
+      "findings": 2,
+      "categories": [
+        "verb_tense"
+      ],
+      "kind": "error",
+      "arm": "terra",
+      "sentence": "Yesterday I go to the client meeting and present the project status."
+    },
+    {
+      "elapsed_ms": 7046,
+      "input_tokens": 2843,
+      "output_tokens": 461,
+      "schema_ok": true,
+      "reason": null,
+      "findings": 2,
+      "categories": [
+        "preposition"
+      ],
+      "kind": "error",
+      "arm": "opus5",
+      "sentence": "I will discuss about the deployment risk with my manager on next week."
+    },
+    {
+      "elapsed_ms": 3832,
+      "input_tokens": 1696,
+      "output_tokens": 291,
+      "schema_ok": true,
+      "reason": null,
+      "findings": 2,
+      "categories": [
+        "preposition"
+      ],
+      "kind": "error",
+      "arm": "terra",
+      "sentence": "I will discuss about the deployment risk with my manager on next week."
+    },
+    {
+      "elapsed_ms": 6490,
+      "input_tokens": 2837,
+      "output_tokens": 397,
+      "schema_ok": true,
+      "reason": null,
+      "findings": 1,
+      "categories": [
+        "word_order"
+      ],
+      "kind": "error",
+      "arm": "opus5",
+      "sentence": "I know not why the migration failed during the last release."
+    },
+    {
+      "elapsed_ms": 6921,
+      "input_tokens": 1694,
+      "output_tokens": 420,
+      "schema_ok": true,
+      "reason": null,
+      "findings": 1,
+      "categories": [
+        "verb_form"
+      ],
+      "kind": "error",
+      "arm": "terra",
+      "sentence": "I know not why the migration failed during the last release."
+    },
+    {
+      "elapsed_ms": 18153,
+      "input_tokens": 2834,
+      "output_tokens": 1273,
+      "schema_ok": true,
+      "reason": null,
+      "findings": 2,
+      "categories": [
+        "verb_form"
+      ],
+      "kind": "error",
+      "arm": "opus5",
+      "sentence": "The team have finish the integration test already."
+    },
+    {
+      "elapsed_ms": 2154,
+      "input_tokens": 1691,
+      "output_tokens": 117,
+      "schema_ok": true,
+      "reason": null,
+      "findings": 1,
+      "categories": [
+        "verb_form"
+      ],
+      "kind": "error",
+      "arm": "terra",
+      "sentence": "The team have finish the integration test already."
+    },
+    {
+      "elapsed_ms": 4425,
+      "input_tokens": 2840,
+      "output_tokens": 237,
+      "schema_ok": true,
+      "reason": null,
+      "findings": 1,
+      "categories": [
+        "article"
+      ],
+      "kind": "error",
+      "arm": "opus5",
+      "sentence": "I usually go to gym before the daily standup meeting."
+    },
+    {
+      "elapsed_ms": 3533,
+      "input_tokens": 1694,
+      "output_tokens": 235,
+      "schema_ok": true,
+      "reason": null,
+      "findings": 1,
+      "categories": [
+        "article"
+      ],
+      "kind": "error",
+      "arm": "terra",
+      "sentence": "I usually go to gym before the daily standup meeting."
+    },
+    {
+      "elapsed_ms": 6655,
+      "input_tokens": 2834,
+      "output_tokens": 423,
+      "schema_ok": true,
+      "reason": null,
+      "findings": 1,
+      "categories": [
+        "article"
+      ],
+      "kind": "error",
+      "arm": "opus5",
+      "sentence": "I go to office by subway every morning."
+    },
+    {
+      "elapsed_ms": 2038,
+      "input_tokens": 1691,
+      "output_tokens": 113,
+      "schema_ok": true,
+      "reason": null,
+      "findings": 1,
+      "categories": [
+        "article"
+      ],
+      "kind": "error",
+      "arm": "terra",
+      "sentence": "I go to office by subway every morning."
+    },
+    {
+      "elapsed_ms": 6490,
+      "input_tokens": 2837,
+      "output_tokens": 438,
+      "schema_ok": true,
+      "reason": null,
+      "findings": 2,
+      "categories": [
+        "article",
+        "verb_form"
+      ],
+      "kind": "error",
+      "arm": "opus5",
+      "sentence": "She go to gym after work on Tuesday."
+    },
+    {
+      "elapsed_ms": 5111,
+      "input_tokens": 1691,
+      "output_tokens": 227,
+      "schema_ok": true,
+      "reason": null,
+      "findings": 2,
+      "categories": [
+        "article",
+        "verb_form"
+      ],
+      "kind": "error",
+      "arm": "terra",
+      "sentence": "She go to gym after work on Tuesday."
+    },
+    {
+      "elapsed_ms": 10024,
+      "input_tokens": 2838,
+      "output_tokens": 755,
+      "schema_ok": true,
+      "reason": null,
+      "findings": 2,
+      "categories": [
+        "article",
+        "verb_tense"
+      ],
+      "kind": "error",
+      "arm": "opus5",
+      "sentence": "We go to airport by taxi tomorrow."
+    },
+    {
+      "elapsed_ms": 4130,
+      "input_tokens": 1690,
+      "output_tokens": 346,
+      "schema_ok": true,
+      "reason": null,
+      "findings": 2,
+      "categories": [
+        "article",
+        "verb_tense"
+      ],
+      "kind": "error",
+      "arm": "terra",
+      "sentence": "We go to airport by taxi tomorrow."
+    },
+    {
+      "elapsed_ms": 1754,
+      "input_tokens": 2836,
+      "output_tokens": 16,
+      "schema_ok": true,
+      "reason": null,
+      "findings": 0,
+      "categories": [],
+      "kind": "clean",
+      "arm": "opus5",
+      "sentence": "I went to the gym after work yesterday."
+    },
+    {
+      "elapsed_ms": 1260,
+      "input_tokens": 1691,
+      "output_tokens": 10,
+      "schema_ok": true,
+      "reason": null,
+      "findings": 0,
+      "categories": [],
+      "kind": "clean",
+      "arm": "terra",
+      "sentence": "I went to the gym after work yesterday."
+    },
+    {
+      "elapsed_ms": 1842,
+      "input_tokens": 2835,
+      "output_tokens": 16,
+      "schema_ok": true,
+      "reason": null,
+      "findings": 0,
+      "categories": [],
+      "kind": "clean",
+      "arm": "opus5",
+      "sentence": "She usually takes the subway to the office."
+    },
+    {
+      "elapsed_ms": 1126,
+      "input_tokens": 1691,
+      "output_tokens": 10,
+      "schema_ok": true,
+      "reason": null,
+      "findings": 0,
+      "categories": [],
+      "kind": "clean",
+      "arm": "terra",
+      "sentence": "She usually takes the subway to the office."
+    },
+    {
+      "elapsed_ms": 2050,
+      "input_tokens": 2835,
+      "output_tokens": 16,
+      "schema_ok": true,
+      "reason": null,
+      "findings": 0,
+      "categories": [],
+      "kind": "clean",
+      "arm": "opus5",
+      "sentence": "We need to finish the migration before the release."
+    },
+    {
+      "elapsed_ms": 1196,
+      "input_tokens": 1692,
+      "output_tokens": 10,
+      "schema_ok": true,
+      "reason": null,
+      "findings": 0,
+      "categories": [],
+      "kind": "clean",
+      "arm": "terra",
+      "sentence": "We need to finish the migration before the release."
+    }
+  ]
+}
