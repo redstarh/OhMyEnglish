@@ -152,16 +152,15 @@ def test_only_three_commands_are_surfaced_when_the_marker_is_missing() -> None:
 
 
 def test_the_short_wake_words_are_accepted() -> None:
-    """결정 114 — 표지를 「헤이」·「헬로」 계열로 단순화했다 (`TASK-61.17`).
+    """결정 114 — 표지를 짧은 형태로 단순화했다 (`TASK-61.17`). 결정 116 이 그 값역을 좁혔다.
 
     ⛔ **바꾼 것은 표지의 «형태» 하나다** — 「표지를 앱이 판정한다」(결정 102 ①·104 D5)는 그대로다.
     근거: 앱 이름 표지가 영어에서 2회 중 1회 인식되지 않았고
     (`runs/2026-09-16-task61-15-accepted-without-execution` §3-①) 그 실패가 결함의 트리거였다.
+    ⚠️ **「헬로」계열은 이 목록에 없다** — 결정 116 이 뺐다(아래 단정이 그것을 지킨다).
     """
     assert is_wake_command("Hey, end the session.") is True
-    assert is_wake_command("Hello, show my weekly report.") is True
     assert is_wake_command("헤이, 학습 종료할게.") is True
-    assert is_wake_command("헬로, 다음 문제.") is True
 
 
 def test_the_korean_hey_transcription_variant_is_accepted() -> None:
@@ -176,13 +175,19 @@ def test_the_korean_hey_transcription_variant_is_accepted() -> None:
     assert is_wake_command("해이 발음 연습 모드로 바꿔줘") is True
 
 
-def test_the_hello_variant_with_a_trailing_vowel_is_accepted() -> None:
-    """ASR 이 「헬로우」로 적는 경우 — 앞자리 검사가 그것을 함께 받는다.
+def test_hello_is_not_a_wake_word_after_the_narrowing() -> None:
+    """결정 116 (`TASK-61.18`) — 「Hello」·「헬로」를 표지에서 뺐다.
 
-    ⚠️ `잉글리시`·`잉글리쉬` 를 둘 다 받은 것과 같은 이유다: 한 표기만 받으면 다른 표기가 조용히
-    학습 발화로 저장된다.
+    ⛔ **실측이 그 대가를 확인했기 때문이다**: `Hello, my name is Jin and I work at a bank.` 가
+    `voice_command` 로 저장되어 **오류 분석에서 빠졌다**(1/1 ·
+    `runs/2026-09-16-task61-16-divergence-surface` §3-②). 「Hello」로 시작하는 자기소개·인사는
+    학습자가 가장 자주 말하는 문장이라 그 손실이 반복된다.
+    ⚠️ **명령이 아예 안 되는 것이 아니다** — 학습자가 「Hello, end the session」이라 말하면 모델이
+    tool 을 부를 수 있고 앱이 그것을 버리며, 그 자리는 `TASK-61.16` 이 만든 화면 알림이 덮는다.
     """
-    assert is_wake_command("헬로우 학습 종료.") is True
+    assert is_wake_command("Hello, show my weekly report.") is False
+    assert is_wake_command("헬로, 다음 문제.") is False
+    assert is_wake_command("헬로우 학습 종료.") is False
 
 
 def test_the_app_name_wake_phrase_still_works_after_the_simplification() -> None:
@@ -198,20 +203,22 @@ def test_the_app_name_wake_phrase_still_works_after_the_simplification() -> None
 def test_a_short_wake_word_in_the_middle_is_still_not_a_marker() -> None:
     """⛔ 맨 앞 검사는 단순화 뒤에도 유지된다 — 이것이 이 값역의 판별력이다.
 
-    「헤이」·「헬로」는 짧아서 문장 가운데 들어갈 확률이 앱 이름보다 훨씬 높다. 포함 검사로 바꾸면
-    이 두 발화가 명령이 되고, 대화 도중에 세션이 닫힌다.
+    「헤이」는 짧아서 문장 가운데 들어갈 확률이 앱 이름보다 훨씬 높다. 포함 검사로 바꾸면 이 발화가
+    명령이 되고, 대화 도중에 세션이 닫힌다.
+    ⚠️ `hello` 줄은 **두 이유로** 참이다(맨 앞이 아니고, 결정 116 뒤로는 표지도 아니다) — 그래서
+    이 단정 하나로 앞자리 규칙을 확인하지 않는다. 한국어 줄이 그 몫을 맡는다.
     """
     assert is_wake_command("I said hello to my boss this morning.") is False
-    assert is_wake_command("친구에게 헬로라고 인사했어요.") is False
+    assert is_wake_command("친구에게 헤이라고 인사했어요.") is False
 
 
-def test_a_greeting_now_counts_as_a_marker_and_that_cost_is_accepted() -> None:
-    """⚠️ **결정 114 가 알고 받은 대가를 여기 못 박는다 — 숨기지 않는다.**
+def test_a_hey_greeting_still_counts_as_a_marker_and_that_cost_remains() -> None:
+    """⚠️ **결정 116 이 대가를 «줄였을 뿐 없애지 않았다» — 남은 것을 여기 못 박는다.**
 
-    「Hello」·「Hey」는 영어 학습자가 가장 자주 말하는 첫마디라 학습 발화가 표지를 얻는다. 표지만으로는
-    아무것도 실행되지 않지만(모델이 tool 을 불러야 한다) 그 발화는 `voice_command` 로 저장되어
-    **분석에서 빠진다**(`services/utterances.py` 가 `learning` 만 분석 대상으로 본다).
-    ⇒ 이 단정이 깨지는 방향으로 값역을 좁히려면 **그 크기를 먼저 실물 회차로 재고** 결정 114 를
-    다시 올린다(`TASK-61.17` AC#4).
+    「Hey, how are you?」 같은 발화는 여전히 표지를 얻어 `voice_command` 로 저장되고 **분석에서
+    빠진다**(`services/utterances.py` 가 `learning` 만 분석 대상으로 본다). 「Hello」를 뺀 근거는
+    그 형태가 **자기소개·인사의 첫마디로 훨씬 흔하다**는 것이고(실측 1/1), 「헤이」가 안전하다는
+    주장이 아니다.
+    ⇒ 이 단정이 깨지는 방향으로 더 좁히려면 **그 크기를 먼저 실물 회차로 재고** 결정을 다시 올린다.
     """
-    assert is_wake_command("Hello, my name is Jin.") is True
+    assert is_wake_command("Hey, how are you today?") is True

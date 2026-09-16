@@ -2246,7 +2246,10 @@ def test_the_prompt_names_the_simplified_wake_words_and_excludes_a_bare_greeting
     lowered = " ".join(SYSTEM_PROMPT.lower().split())
 
     assert '"hey"' in lowered
-    assert '"hello"' in lowered
+    # ⛔ **결정 116 이 「Hello」를 값역에서 뺐고 문면도 함께 좁혀야 한다** — 지시문이 그것을 표지로
+    # 알려 두면 학습자가 「Hello, …」로 명령을 걸고 앱이 그것을 버린다(그 자리는 알림이 덮지만
+    # 명령은 수행되지 않는다). 값역의 정본은 `models/voice_command._WAKE_FORMS` 다.
+    assert '"hello"' not in lowered
     # 기존 표지도 남는다 — 픽스처와 이전 회차의 관측이 그것에 걸려 있다.
     assert "oh my english" in lowered
     assert "a greeting alone is not a command" in lowered
