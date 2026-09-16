@@ -131,6 +131,14 @@ cd app/frontend && npx eslint .; echo "exit=$?"
 5. ⛔ **주석은 자산이다** — `⛔`·`⚠️` 가 붙은 자리는 실측 근거·뒤집힌 판정·함정이다. 옮길 때 함께
    옮기고 지우지 않는다.
 6. ⚠️ **정리로 줄 수가 늘 수 있다** — 근거 주석을 새 함수로 옮기면 그렇다. 줄 수를 지표로 쓰지 않는다.
+7. ⛔ **문면을 정본으로 검사하는 단정이 여덟 건 있다 — FAIL 하면 검사를 고치지 말고 내 변경을 고친다.**
+   동료 세션이 같은 부류를 밟아 알려 준 함정이고, **나도 오늘 밟았다**: `TASK-142` 에서 새 예외 문면에
+   자격증명 환경변수 이름을 적었더니 `test_config.py::test_credential_strings_isolated_to_config_module`
+   이 FAIL 했다(F5 규약을 `grep` 으로 판정하는 검사다). 검사를 고치지 않고 문면을 바꿨다.
+   착수 전에 뽑아 둘 목록: `test_config.py`(자격증명 문자열) · `test_nova.py` 둘(상수 대 SQL · 상수 대
+   **프롬프트 문장**) · `test_weekly_report_job.py`(상한 대 프롬프트) · `test_sessions.py`(상수 대
+   `information_schema`) · `test_shadowing_seed.py` 둘 · 그 외 하나.
+   ⚠️ **프롬프트 문장을 정본으로 검사하는 둘이 A4·A5 의 사정권**이다 — 그 묶음에서 위험이 실재한다.
 
 ## 7. 착수하면 등록할 것
 
