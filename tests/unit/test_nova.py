@@ -2147,14 +2147,8 @@ def test_the_requested_stage_is_relayed_and_does_not_end_anything_by_itself():
     ]
 
 
-async def test_a_control_tool_use_gets_a_tool_result_so_the_coach_can_keep_talking():
-    """⛔ `TASK-61.5`(결정 109) — 제어 tool 은 턴 **끝**에 오고 `stopReason` 이 `TOOL_USE` 라,
-    결과를 돌려주지 않으면 **모델이 그 턴을 이어 말할 기회가 없다.**
-
-    회차 계측(`runs/2026-09-15-task61-5-toolresult`)에서 `toolUse` 뒤에 온 것은 `usageEvent`
-    뿐이고 assistant `TEXT`·`AUDIO` 가 0건이었다. 그것이 한국어 명령의 침묵이다.
-    프로토콜은 공식 문서의 `toolResultInputConfiguration.toolUseId` 형태를 따른다.
-    """
+async def _control_tool_stream():
+    """제어 tool 호출 하나를 흘리는 대역. 결정 118 의 세 단정이 이것을 공유한다."""
     events = [
         _tool_content_start(),
         _tool_use(
@@ -2167,8 +2161,53 @@ async def test_a_control_tool_use_gets_a_tool_result_so_the_coach_can_keep_talki
     )
     adapter = _adapter(stream)
     await adapter.start()
+    collected = await _collect(adapter)
+    return adapter, stream, collected
 
-    await _collect(adapter)
+
+async def test_a_control_tool_result_waits_for_the_gateways_report():
+    """⛔ 결정 118 (`TASK-61.15`) — **실행 보고가 오기 전에는 결과를 보내지 않는다.**
+
+    이전 판은 번역 직후 「받았다」를 보냈고(결정 109) 실행 판정은 그 뒤 앱이 했다. 그 순서가
+    **앱이 버린 명령에도 코치가 완료로 말하게** 했다 — 실물 4/4
+    (`tests/harness/runs/2026-09-16-task61-15-accepted-without-execution` §2-1).
+    ⚠️ 이 단정이 지키는 것은 「보내지 않는다」이고, 결정 109 의 요구(결과가 없으면 그 턴이 조용해진다)는
+    **아래 두 단정**이 지킨다 — 셋을 함께 읽어야 계약이 온전하다.
+    """
+    adapter, stream, collected = await _control_tool_stream()
+    await adapter.close()
+
+    assert [(event.command, event.stage) for event in collected] == [
+        ("next_question", "requested")
+    ]
+    assert stream.payloads("toolResult") == []
+
+
+async def test_the_event_carries_the_tool_use_id_so_the_gateway_can_report():
+    """게이트웨이가 그 명령을 가리켜 보고할 수 있어야 한다 — 그 손잡이가 `tool_use_id` 다.
+
+    ⛔ 이 값이 없으면 게이트웨이는 보고할 수 없고, 보고가 없으면 결과가 영원히 나가지 않는다.
+    ⚠️ **이 필드는 모델 등호에 들어간다** — 위 단정이 `SessionCommandEvent(...)` 전체와 비교하다가
+    실패해서 알았다(pydantic 등호는 모든 필드를 본다). 그래서 위는 필요한 필드만 비교한다.
+    """
+    adapter, _stream, collected = await _control_tool_stream()
+    await adapter.close()
+
+    assert [event.tool_use_id for event in collected] == [TOOL_USE_ID]
+
+
+async def test_a_reported_control_tool_use_gets_an_accepted_result():
+    """⛔ `TASK-61.5`(결정 109) — 제어 tool 은 턴 **끝**에 오고 `stopReason` 이 `TOOL_USE` 라,
+    결과를 돌려주지 않으면 **모델이 그 턴을 이어 말할 기회가 없다.**
+
+    회차 계측(`runs/2026-09-15-task61-5-toolresult`)에서 `toolUse` 뒤에 온 것은 `usageEvent`
+    뿐이고 assistant `TEXT`·`AUDIO` 가 0건이었다. 그것이 한국어 명령의 침묵이다.
+    프로토콜은 공식 문서의 `toolResultInputConfiguration.toolUseId` 형태를 따른다.
+    ⚠️ 결정 118 이 **시점만** 바꿨다 — 게이트웨이가 「실행했다」를 보고한 뒤에 같은 모양이 나간다.
+    """
+    adapter, stream, _collected = await _control_tool_stream()
+
+    await adapter.report_command_outcome(TOOL_USE_ID, executed=True)
     await adapter.close()
 
     starts = [
@@ -2191,6 +2230,44 @@ async def test_a_control_tool_use_gets_a_tool_result_so_the_coach_can_keep_talki
         "status": "accepted",
         "command": "next_question",
     }
+
+
+async def test_a_rejected_control_tool_use_says_rejected_not_accepted():
+    """⛔ 결정 118 — **앱이 버린 명령에는 「거절」을 돌려준다.** 이것이 이 변경의 값어치다.
+
+    「받았다」를 보내면 모델은 실행됐다고 믿고 완료로 말한다 — 실물 4/4 로 관측했고 그 문장이
+    학습자에게 그대로 들렸다(`…task61-15-accepted-without-execution` §2-1).
+    ⚠️ **이유를 함께 싣는다** — 표지 누락과 상태 기록 실패는 학습자가 할 일이 다르다(다시 말하기 vs
+    다시 시도). ⛔ 그래도 **학습자에게 무엇이 들리는지는 보장하지 않는다**(결정 112): 보이는 보장은
+    화면 알림이 갖는다(결정 113).
+    """
+    adapter, stream, _collected = await _control_tool_stream()
+
+    await adapter.report_command_outcome(TOOL_USE_ID, executed=False, reason="no_wake_word")
+    await adapter.close()
+
+    results = stream.payloads("toolResult")
+    assert len(results) == 1
+    assert json.loads(results[0]["content"]) == {
+        "status": "rejected",
+        "command": "next_question",
+        "reason": "no_wake_word",
+    }
+
+
+async def test_reporting_twice_sends_one_result():
+    """⚠️ 같은 id 로 두 번 보고해도 결과는 한 번 나간다 — 모델이 명령을 두 번 부르는 것이 실측된
+    거동이고(결정 107 ③ 주석) 게이트웨이의 `finally` 도 경로에 따라 두 번 돌 수 있다.
+
+    ⛔ 두 번 보내면 Nova 가 같은 `toolUseId` 에 두 결과를 받는다 — 프로토콜이 정한 모양이 아니다.
+    """
+    adapter, stream, _collected = await _control_tool_stream()
+
+    await adapter.report_command_outcome(TOOL_USE_ID, executed=True)
+    await adapter.report_command_outcome(TOOL_USE_ID, executed=False, reason="no_wake_word")
+    await adapter.close()
+
+    assert len(stream.payloads("toolResult")) == 1
 
 
 async def test_a_pronunciation_tool_use_is_left_alone():
@@ -2247,6 +2324,20 @@ def test_the_prompt_names_pause_and_resume_and_tells_the_coach_to_wait():
     assert '"pause"' in squeezed
     assert '"resume"' in squeezed
     assert "do not ask questions until" in squeezed
+
+
+def test_the_prompt_tells_the_coach_what_a_rejected_result_means():
+    """결정 118 — 어댑터가 「거절」을 돌려주므로 **문면이 그 값을 읽는 법을 말해야** 한다.
+
+    ⛔ 값만 바꾸고 문면을 두면 모델은 그 키를 모르고 여전히 완료로 말한다 — 그러면 이 변경이
+    「모델에게 맞는 사실을 준다」는 목적을 달성하지 못한다.
+    ⚠️ **문면으로 거동을 보장하지 않는다**(결정 112) — 학습자에게 보이는 보장은 화면 알림(결정 113)이
+    갖고, 이 문면은 소리 쪽의 확률을 옮기는 것까지다.
+    """
+    squeezed = " ".join(SYSTEM_PROMPT.split()).lower()
+
+    assert '"rejected"' in squeezed
+    assert "did not happen" in squeezed
 
 
 def test_the_prompt_does_not_count_the_commands():

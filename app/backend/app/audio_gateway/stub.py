@@ -80,5 +80,18 @@ class StubVoiceAdapter:
             yield TranscriptEvent(kind="final", text=answer, speaker="user")
             yield TONE_WAV_FRAME
 
+    async def report_command_outcome(
+        self, tool_use_id: str, *, executed: bool, reason: str | None = None
+    ) -> None:
+        """스텁은 tool 결과를 기다리지 않으므로 **아무것도 하지 않는다** (결정 118).
+
+        ⛔ 그래도 메서드를 두는 이유는 포트 계약이기 때문이다 — 없으면 게이트웨이가 어댑터마다
+        `hasattr` 로 갈라야 하고, 그 분기가 「어느 어댑터가 무엇을 지원하는가」를 두 곳에 적게
+        만든다.
+        ⚠️ 스텁이 만드는 제어 이벤트에는 `tool_use_id` 가 없으므로 게이트웨이가 이 함수를 부르지도
+        않는다(그 판정은 게이트웨이가 `None` 검사로 한다).
+        """
+        return None
+
     async def close(self) -> None:
         self.closed = True

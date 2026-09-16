@@ -413,7 +413,41 @@ class SessionRunner:
         )
 
     async def _handle_command(self, event: SessionCommandEvent) -> bool:
-        """음성 명령을 기록·방송한다. **세션을 닫아야 하면 `True`** (`TASK-61.1` · 결정 102).
+        """음성 명령을 처리하고 **실행했는지 어댑터에 보고한다** (결정 118 · `TASK-61.15`).
+
+        ⛔ **`finally` 로 보고하는 것이 이 함수의 존재 이유다.** 어댑터는 이 보고를 받을 때 tool
+        결과를 보내므로(결정 118) 빠뜨리면 그 턴이 조용해진다 — 결정 109 가 고친 침묵이 되돌아온다.
+        ⛔ **보고가 실패해도 세션을 끊지 않는다** — 명령은 이미 처리했고, 실패는 모델이 그 턴을 이어
+        말하지 못하는 것으로 끝난다.
+        ⚠️ **`tool_use_id` 가 없으면 보고하지 않는다** — 그 어댑터는 결과를 기다리지 않는다(스텁).
+        """
+        executed = False
+        reason: str | None = None
+        try:
+            closing, executed, reason = await self._decide_command(event)
+            return closing
+        finally:
+            if event.tool_use_id is not None:
+                try:
+                    await self._adapter.report_command_outcome(
+                        event.tool_use_id, executed=executed, reason=reason
+                    )
+                except Exception:
+                    logger.exception(
+                        "제어 명령 결과를 어댑터에 보고하지 못했다 (명령 %r · 세션 %s)",
+                        event.command,
+                        self._session_id,
+                    )
+
+    async def _decide_command(self, event: SessionCommandEvent) -> tuple[bool, bool, str | None]:
+        """명령을 기록·방송하고 **(닫는가, 실행했는가, 실행하지 않은 이유)** 를 돌려준다.
+
+        ⚠️ 셋을 한 번에 돌려주는 이유: 「닫는가」는 호출자의 흐름 제어이고 나머지 둘은 **어댑터에
+        보낼 사실**이다. 상태로 두면(`self._last_...`) 두 경로가 갈릴 때 조용히 틀린 값을 보고한다.
+
+        ⛔ **닫는 것은 종료 명령의 `confirmed` 하나다.** `requested` 로 닫으면 오인식 한 번이
+        세션을 끝내고, 그것이 결정 102 ③이 확인 절차를 둔 이유다. `cancelled` 는 기록만 남기고
+        대화를 잇는다.
 
         ⛔ **닫는 것은 종료 명령의 `confirmed` 하나다.** `requested` 로 닫으면 오인식 한 번이
         세션을 끝내고, 그것이 결정 102 ③이 확인 절차를 둔 이유다. `cancelled` 는 기록만 남기고
@@ -447,7 +481,8 @@ class SessionRunner:
             # ⛔ 대상은 `SURFACED_ON_MARKER_MISS` 가 갖는다 — `next_question` 은 들지 않는다.
             if event.command in SURFACED_ON_MARKER_MISS:
                 await self._send({"type": "voice_command_ignored", "command": event.command})
-            return False
+            # ⛔ 어댑터에 **거절**로 보고한다 (결정 118) — 이 이유가 그대로 모델에게 간다.
+            return False, False, "no_wake_word"
         frame: dict[str, object] = {
             "type": "voice_command",
             "command": event.command,
@@ -464,7 +499,7 @@ class SessionRunner:
             # 고친 갈림이다. 적지 못했으면 **아무것도 방송하지 않는다** — 학습자는 알림을 못 받지만
             # 기록은 계속되므로 안전한 쪽이다(정지의 실패는 「기록이 멈추지 않는 것」이다).
             if not await self._apply_pause(paused=event.command == "pause"):
-                return False
+                return False, False, "pause_state_not_written"
         await self._send(frame)
         if not requires_confirmation(event.command):
             # 되돌릴 수 있는 명령은 `requested` 하나로 끝난다 (결정 107 ③) — 화면이 이 프레임을
@@ -475,19 +510,19 @@ class SessionRunner:
             #    않는다 — 화면은 `requested` 만 보고 움직인다(`frontend/app/page.tsx`).
             self._marker_seen = False
             self._awaiting_confirmation = False
-            return False
+            return False, True, None
         if event.stage == "requested":
             # 다음 학습자 발화가 **확인 답**이다 — 유형은 `_classify_user_final` 이 바꾼다.
             # ⛔ tool 이 실어 온 `heard` 를 따로 저장하지 않는다: 같은 발화가 두 행이 됐던 것이
             #    `TASK-61.4` D1 이다. 기록의 writer 는 전사문 경로 하나다.
             self._awaiting_confirmation = True
-            return False
+            return False, True, None
         # `confirmed`·`cancelled` — 교환이 끝났으므로 표지의 효력도 끝난다. 남겨 두면 뒤에
         # 온 오인식 tool 이 그 표지에 얹혀 실행된다.
         self._marker_seen = False
         self._awaiting_confirmation = False
         if event.stage != "confirmed":
-            return False
+            return False, True, None
         # ⛔ **「확인을 거쳤다」와 「세션을 닫는다」는 다른 물음이다** (결정 110 ④) — 지금은 두
         # 집합의 값이 같지만 분기를 두지 않고 판정을 돌려주어, 갈리는 순간 이 자리가 따라간다.
         closing = closes_session(event.command)
@@ -497,7 +532,7 @@ class SessionRunner:
             closing,
             self._session_id,
         )
-        return closing
+        return closing, True, None
 
     async def _apply_pause(self, *, paused: bool) -> bool:
         """정지 상태를 DB 와 이 러너에 함께 적는다. 적지 못했으면 `False` (결정 117).

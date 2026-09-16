@@ -151,6 +151,8 @@ class ScriptedAdapter:
         self.start_error = start_error
         self.frames: list[bytes] = []
         self.closed = False
+        # 결정 118 — 게이트웨이가 「실행했는가」를 보고한 내역.
+        self.outcomes: list[tuple[str, bool, str | None]] = []
 
     async def start(self) -> None:
         if self.start_error is not None:
@@ -158,6 +160,12 @@ class ScriptedAdapter:
 
     async def send_audio(self, frame: bytes) -> None:
         self.frames.append(frame)
+
+    async def report_command_outcome(
+        self, tool_use_id: str, *, executed: bool, reason: str | None = None
+    ) -> None:
+        """게이트웨이의 실행 보고를 **기록한다** (결정 118) — 단정이 이 목록을 읽는다."""
+        self.outcomes.append((tool_use_id, executed, reason))
 
     async def events(self) -> AsyncIterator[AdapterEvent]:
         for event in self.script:
@@ -203,6 +211,11 @@ class OrderSpyAdapter:
 
     async def send_audio(self, frame: bytes) -> None:
         await self._inner.send_audio(frame)
+
+    async def report_command_outcome(
+        self, tool_use_id: str, *, executed: bool, reason: str | None = None
+    ) -> None:
+        await self._inner.report_command_outcome(tool_use_id, executed=executed, reason=reason)
 
     def events(self) -> AsyncIterator[AdapterEvent]:
         return self._inner.events()
@@ -272,6 +285,11 @@ class AudioSpyAdapter:
     async def send_audio(self, frame: bytes) -> None:
         self.frames.append(frame)
         await self._inner.send_audio(frame)
+
+    async def report_command_outcome(
+        self, tool_use_id: str, *, executed: bool, reason: str | None = None
+    ) -> None:
+        await self._inner.report_command_outcome(tool_use_id, executed=executed, reason=reason)
 
     def events(self) -> AsyncIterator[AdapterEvent]:
         return self._inner.events()
@@ -2223,6 +2241,64 @@ async def test_a_dropped_command_is_surfaced_to_the_screen(db_pool, committed_se
     assert client.of_type("voice_command_ignored") == [
         {"type": "voice_command_ignored", "command": "end"},
     ]
+
+
+async def test_a_dropped_command_is_reported_to_the_adapter_as_rejected(
+    db_pool, committed_session
+):
+    """결정 118 (`TASK-61.15`) — 앱이 버린 명령은 어댑터에 **거절로** 보고된다.
+
+    ⛔ **그 보고가 코치의 「됐다」를 막는 유일한 수단이다.** 이전에는 어댑터가 번역 직후 「받았다」를
+    보냈고 앱의 판정이 그 뒤였다 — 실물에서 코치가 4/4 로 완료를 말했다
+    (`runs/2026-09-16-task61-15-accepted-without-execution` §2-1).
+    ⚠️ **이유를 함께 보고한다** — 학습자가 할 일이 다르다(표지를 붙여 다시 말하기).
+    """
+    adapter = ScriptedAdapter(
+        TranscriptEvent(kind="final", text="End the session now, please.", speaker="user"),
+        SessionCommandEvent(command="end", stage="requested", tool_use_id="tool-1"),
+    )
+    client = FakeClient()
+
+    await asyncio.wait_for(
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            client,
+            drain_timeout=FAST_DRAIN_TIMEOUT,
+        ).run(),
+        timeout=5.0,
+    )
+
+    assert adapter.outcomes == [("tool-1", False, "no_wake_word")]
+
+
+async def test_an_executed_command_is_reported_to_the_adapter_as_executed(
+    db_pool, committed_session
+):
+    """정상 명령은 **실행했다**로 보고된다 — 그때 어댑터가 `accepted` 를 보낸다 (결정 118).
+
+    ⛔ 이 단정이 없으면 위 거절 단정만으로 「전부 거절로 보고한다」는 구현이 통과한다. 그러면 결정
+    109 가 고친 침묵(결과가 없어 코치가 그 턴을 이어 말하지 못하는 것)이 다른 모양으로 되돌아온다.
+    """
+    adapter = ScriptedAdapter(
+        TranscriptEvent(kind="final", text="Hey, show my weekly report.", speaker="user"),
+        SessionCommandEvent(command="show_report", stage="requested", tool_use_id="tool-2"),
+    )
+    client = FakeClient()
+
+    await asyncio.wait_for(
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            client,
+            drain_timeout=FAST_DRAIN_TIMEOUT,
+        ).run(),
+        timeout=5.0,
+    )
+
+    assert adapter.outcomes == [("tool-2", True, None)]
 
 
 async def test_a_dropped_next_question_is_not_surfaced(db_pool, committed_session):

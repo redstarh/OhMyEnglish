@@ -197,6 +197,9 @@ Voice control:
     until they come back. Nothing they say while paused is kept, so do not coach it. When
     they ask to continue, use command "resume" with stage "requested" and pick the same
     lesson up where you stopped.
+    Read the tool result before you speak. A result of "rejected" means the app did not do
+    it - say one short sentence that it did not happen and ask the learner to say it again
+    starting with "Hey". Never say it is done when the result is "rejected".
 14. Answer a command in one short sentence and do not correct it - a command is not
     learning speech, so it never counts against rule 4."""
 
@@ -1079,7 +1082,10 @@ class NovaVoiceAdapter:
         # ⛔ **제어 tool 만 담는다.** 발음 tool 은 TOOL 블록이 ASSISTANT 텍스트보다 **앞**에 와서
         # (이 모듈 머리말 5) 결과 없이도 발화가 오고, 지금 정상으로 도는 경로다 — 결과를 보내면
         # 그 거동이 바뀔 위험만 생긴다. 그 범위 판단이 결정 109 다.
-        self._pending_tool_results: list[tuple[str, str]] = []
+        # 게이트웨이의 **실행 보고를 기다리는** 제어 tool 호출 (결정 118 · `TASK-61.15`).
+        # ⛔ 이전 판은 번역 직후 「받았다」를 보냈고(결정 109) 그러면 실행 판정보다 앞서 나가
+        # **앱이 버린 명령에도 코치가 완료로 말했다**(실물 4/4). 지금은 보고가 올 때 보낸다.
+        self._awaiting_outcome: dict[str, str] = {}
         # `TASK-124`(결정 68) — 주입한다. 이 어댑터가 DB 를 알면 스트림 대역만으로 도는 단위
         # 테스트가 DB 를 요구한다(`BedrockClaudeClient` 와 같은 이음새·같은 근거).
         self._usage_sink = usage_sink
@@ -1213,14 +1219,26 @@ class NovaVoiceAdapter:
                     return
                 for event in self._translate_chunk(chunk):
                     self._queue.put_nowait(event)
-                # 제어 tool 결과는 **번역 직후** 보낸다 (결정 109) — 모델이 그 턴을 이어 말하려면
-                # 결과가 필요하고, 세션 계층의 처리를 기다리면 그 사이 턴이 닫힌다.
-                await self._flush_tool_results()
+                # ⛔ **여기서 tool 결과를 보내지 않는다** — 결정 118 이 결정 109 의 «시점»을
+                # 뒤집었다.
+                # 번역 직후에 보내면 실행 판정보다 앞서 나가 앱이 버린 명령에도 코치가 완료로
+                # 말한다(실물 4/4). 결과는 게이트웨이가 `report_command_outcome` 으로 알릴 때
+                # 나간다.
+                # ⚠️ 결정 109 의 요구(결과가 없으면 그 턴이 조용해진다)는 그대로 살아 있다 —
+                # 게이트웨이가 `finally` 로 보고하고, 보고 없이 스트림이 끝나면 아래에서 경고한다.
         except asyncio.CancelledError:
             raise
         except Exception:
             logger.exception("Nova 출력 스트림이 예외로 끝났다 — 세션을 닫는다")
         finally:
+            if self._awaiting_outcome:
+                # ⚠️ **보고 없이 스트림이 끝났다** (결정 118). 그 턴은 조용했을 것이다 — 결정 109 가
+                # 고친 침묵이 이 경로로 되돌아온 것이므로 크기를 세야 한다. 게이트웨이가 `finally`
+                # 로 보고하므로 정상 흐름에서는 비어 있다.
+                logger.warning(
+                    "실행 보고를 못 받은 제어 tool 이 남았다 — %s",
+                    sorted(self._awaiting_outcome.values()),
+                )
             self._queue.put_nowait(None)
 
     def _translate_chunk(self, chunk: Any) -> list[AdapterEvent]:
@@ -1235,10 +1253,14 @@ class NovaVoiceAdapter:
             return []
         events = self._translator.translate(name, body)
         if name == "toolUse" and body.get("toolName") == CONTROL_TOOL_NAME:
-            self._remember_control_tool_use(body, events)
+            # ⛔ 돌려받은 목록을 쓴다 — 여기서 버리면 `tool_use_id` 가 실리지 않아 게이트웨이가
+            # 실행 보고를 할 수 없고, 그러면 그 턴의 tool 결과가 영원히 나가지 않는다(결정 118).
+            events = self._remember_control_tool_use(body, events)
         return events
 
-    def _remember_control_tool_use(self, body: dict[str, Any], events: list[AdapterEvent]) -> None:
+    def _remember_control_tool_use(
+        self, body: dict[str, Any], events: list[AdapterEvent]
+    ) -> list[AdapterEvent]:
         """제어 tool 호출에 결과를 돌려줄 것을 적어 둔다 (`TASK-61.5` · 결정 109).
 
         ⛔ **번역 결과에서 명령을 읽는다 — 페이로드를 다시 파싱하지 않는다.** 두 곳이 파싱하면
@@ -1256,11 +1278,45 @@ class NovaVoiceAdapter:
             logger.warning(
                 "제어 tool 결과를 보낼 수 없다 — toolUseId=%r · command=%r", tool_use_id, command
             )
-            return
-        self._pending_tool_results.append((tool_use_id, command))
+            return events
+        self._awaiting_outcome[tool_use_id] = command
+        # 이벤트에 id 를 실어 **게이트웨이가 그 명령을 가리켜 보고할 수 있게** 한다 (결정 118).
+        # 모델이 frozen 이라 새로 만든다 — 그것이 「어댑터만 이벤트를 만든다」(포트 규약)와 어긋나지
+        # 않는다: 여기가 어댑터다.
+        return [
+            event.model_copy(update={"tool_use_id": tool_use_id})
+            if isinstance(event, SessionCommandEvent)
+            else event
+            for event in events
+        ]
 
-    async def _flush_tool_results(self) -> None:
-        """적어 둔 제어 tool 결과를 Nova 로 돌려보낸다 (결정 109).
+    async def report_command_outcome(
+        self, tool_use_id: str, *, executed: bool, reason: str | None = None
+    ) -> None:
+        """게이트웨이가 그 명령을 실행했는지 알린다 — 그때 tool 결과가 나간다 (결정 118).
+
+        ⛔ **`accepted` 를 실행 판정 «뒤»로 미룬 것이 이 함수의 전부다.** 결정 109 의 요구(결과가
+        없으면 모델이 그 턴을 이어 말하지 못한다)는 그대로다 — 바뀐 것은 시점이다.
+        ⚠️ **모르는 id 는 조용히 넘긴다** — 발음 tool 이나 이미 보고한 명령이고, 여기서 예외를 올리면
+        게이트웨이의 `finally` 가 세션을 끊는다.
+        ⚠️ **이 함수가 학습자에게 무엇이 들리는지를 보장하지 않는다**(결정 112) — 모델에게 맞는
+        사실을
+        주는 것까지다. 보이는 보장은 화면 알림(결정 113)이 갖는다.
+        """
+        command = self._awaiting_outcome.pop(tool_use_id, None)
+        if command is None:
+            logger.debug("보고할 제어 tool 이 없다 (toolUseId=%s)", tool_use_id)
+            return
+        content: dict[str, Any] = (
+            {"status": "accepted", "command": command}
+            if executed
+            # ⛔ **버린 것을 「받았다」로 적지 않는다** — 그 한 줄이 코치의 「됐다」를 만들었다.
+            else {"status": "rejected", "command": command, "reason": reason or "not_executed"}
+        )
+        await self._send_tool_result(tool_use_id, content)
+
+    async def _send_tool_result(self, tool_use_id: str, content: dict[str, Any]) -> None:
+        """제어 tool 결과 하나를 Nova 로 돌려보낸다.
 
         ⛔ **이 전송이 실패해도 세션을 끊지 않는다.** 결과를 못 보내면 모델이 그 턴을 이어 말하지
         못할 뿐이고, 그것은 이 고침이 없던 상태와 같다 — 대화를 끊는 것보다 낫다.
@@ -1269,52 +1325,50 @@ class NovaVoiceAdapter:
         `contentStart`(`type`·`role` 이 `TOOL` · `toolResultInputConfiguration.toolUseId`) →
         `toolResult`(`content` 는 **문자열화한 JSON**) → `contentEnd`.
         """
-        while self._pending_tool_results:
-            tool_use_id, command = self._pending_tool_results.pop(0)
-            content_name = f"toolresult-{uuid.uuid4()}"
-            payloads = [
-                {
-                    "event": {
-                        "contentStart": {
-                            "promptName": self._prompt_name,
-                            "contentName": content_name,
-                            "interactive": False,
-                            "type": "TOOL",
-                            "role": "TOOL",
-                            "toolResultInputConfiguration": {
-                                "toolUseId": tool_use_id,
-                                "type": "TEXT",
-                                "textInputConfiguration": {"mediaType": "text/plain"},
-                            },
-                        }
+        content_name = f"toolresult-{uuid.uuid4()}"
+        payloads = [
+            {
+                "event": {
+                    "contentStart": {
+                        "promptName": self._prompt_name,
+                        "contentName": content_name,
+                        "interactive": False,
+                        "type": "TOOL",
+                        "role": "TOOL",
+                        "toolResultInputConfiguration": {
+                            "toolUseId": tool_use_id,
+                            "type": "TEXT",
+                            "textInputConfiguration": {"mediaType": "text/plain"},
+                        },
                     }
-                },
-                {
-                    "event": {
-                        "toolResult": {
-                            "promptName": self._prompt_name,
-                            "contentName": content_name,
-                            # 명령 이름을 함께 싣는다 — 「받았다」만 보내면 모델이 무엇을 받았는지
-                            # 모르고 맥락에 맞지 않는 문장으로 이어 말할 수 있다.
-                            "content": json.dumps({"status": "accepted", "command": command}),
-                        }
+                }
+            },
+            {
+                "event": {
+                    "toolResult": {
+                        "promptName": self._prompt_name,
+                        "contentName": content_name,
+                        # 명령 이름을 함께 싣는다 — 상태만 보내면 모델이 무엇에 대한 결과인지
+                        # 모르고 맥락에 맞지 않는 문장으로 이어 말할 수 있다.
+                        "content": json.dumps(content),
                     }
-                },
-                {
-                    "event": {
-                        "contentEnd": {
-                            "promptName": self._prompt_name,
-                            "contentName": content_name,
-                        }
+                }
+            },
+            {
+                "event": {
+                    "contentEnd": {
+                        "promptName": self._prompt_name,
+                        "contentName": content_name,
                     }
-                },
-            ]
-            try:
-                for payload in payloads:
-                    await self._send_event(payload)
-            except Exception:
-                logger.exception("제어 tool 결과를 보내지 못했다 (toolUseId=%s)", tool_use_id)
-                return
+                }
+            },
+        ]
+        try:
+            for payload in payloads:
+                await self._send_event(payload)
+        except Exception:
+            logger.exception("제어 tool 결과를 보내지 못했다 (toolUseId=%s)", tool_use_id)
+            return
 
     async def _send_event(self, payload: dict[str, Any]) -> None:
         from aws_sdk_bedrock_runtime.models import (
