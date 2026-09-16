@@ -138,7 +138,17 @@ cd app/frontend && npx eslint .; echo "exit=$?"
    착수 전에 뽑아 둘 목록: `test_config.py`(자격증명 문자열) · `test_nova.py` 둘(상수 대 SQL · 상수 대
    **프롬프트 문장**) · `test_weekly_report_job.py`(상한 대 프롬프트) · `test_sessions.py`(상수 대
    `information_schema`) · `test_shadowing_seed.py` 둘 · 그 외 하나.
-   ⚠️ **프롬프트 문장을 정본으로 검사하는 둘이 A4·A5 의 사정권**이다 — 그 묶음에서 위험이 실재한다.
+   ⛔ **그중 «프롬프트 문면» 검사는 성격이 다르다 — FAIL 하면 문면을 맞추지 말고 「내가 프롬프트를
+   건드렸는가」를 먼저 본다.** 문서·주석은 고쳐도 동작이 그대로지만 프롬프트 문장을 고치면 **모델
+   출력이 바뀐다** — 즉 그 FAIL 은 `동작변경=예` 영역에 들어갔다는 신호이고, 건드렸다면 정리 범위
+   밖으로 갈라낸다(동료 세션의 지적이고 이 리포에서 확인했다).
+   ⚠️ **그 부류는 하나다 — 둘이 아니다**(직접 읽어 정정했다): 진짜 프롬프트 문면 검사는
+   `test_nova.py::test_the_base_level_range_constant_matches_the_fixed_prompt`
+   (`f"at {_BASE_LEVEL_RANGE} level" in SYSTEM_PROMPT`) 하나다.
+   `test_weekly_report_job.py::test_the_insight_cap_matches_the_prompt` 는 이름과 docstring 이
+   「프롬프트와 파서가 같은 수」를 주장하지만 **단정은 `MAX_INSIGHT_POINTS == 3` 뿐**이다 — 그 값이
+   프롬프트와 파서에 **인자로 함께 흘러** 어긋날 수 없는 구조라서 그렇다.
+   ⇒ 그 자리는 **R5(도구 낡음) 각도의 후보**다: 이름이 실제 단정보다 넓어 **거짓 안심**을 준다.
 
 ## 7. 착수하면 등록할 것
 
