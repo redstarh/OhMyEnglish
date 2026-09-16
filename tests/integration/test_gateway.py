@@ -1712,48 +1712,23 @@ async def test_pending_converges_to_incorrect_when_the_session_ends(db_pool, com
     assert rows[0]["target_form"] == "Other sentence."
 
 
-# ④ PS5 — 한글 전사문이 보조 신호로 기록되고, 저장·job 등록은 그대로 일어난다
-async def test_korean_transcript_records_an_assist_signal(db_pool, committed_session):
+# ④ 한글 전사문에는 **아무 행도 생기지 않는다** — 보조 신호 경로를 지웠다(`TASK-78.1` · 결정 120)
+#
+# ⛔ **이 단정이 「지운 상태」를 지킨다.** 이전 판은 같은 입력에 `korean_transcript` 행 1건을
+# 단정했고(PS5), 그 감지기가 51세션에서 한 번도 입력을 받지 못해 사용자가 제거를 결정했다.
+# 되살리려면 이 단정을 먼저 뒤집어야 한다 — 조용히 되돌아오지 않게 하는 것이 목적이다.
+# ⚠️ 저장·job 등록은 **그대로** 일어나야 한다. 감지기를 걷어낸 것이 전사문 경로를 건드리지
+# 않았다는 증거가 그 두 줄이다.
+async def test_korean_transcript_records_no_pronunciation_row(db_pool, committed_session):
     adapter = ScriptedAdapter(TranscriptEvent(kind="final", text=KOREAN_TRANSCRIPT, speaker="user"))
 
     await asyncio.wait_for(
         _runner(adapter, db_pool, committed_session.session_id, FakeClient()).run(), timeout=5.0
     )
 
-    rows = await _pronunciation_rows(db_pool, committed_session.session_id)
-    assert len(rows) == 1
-    assert rows[0]["signal_source"] == "korean_transcript"
-    assert rows[0]["outcome"] == "unclear"
-    assert rows[0]["spoken_form"] == KOREAN_TRANSCRIPT
-    # 파이프라인이 죽지 않았다는 증거 — 전사문도 남고 분석 job도 붙는다
+    assert await _pronunciation_rows(db_pool, committed_session.session_id) == []
     assert len(await _utterances(db_pool, committed_session.session_id)) == 1
     assert await _job_count(db_pool, committed_session.session_id) == 1
-
-
-# ⑤ 정상 영어 전사문에는 신호가 붙지 않는다 — 오탐 방지
-async def test_ascii_transcript_records_no_assist_signal(db_pool, committed_session):
-    adapter = ScriptedAdapter(
-        TranscriptEvent(kind="final", text=FIXTURE_TURNS[0][1], speaker="user")
-    )
-
-    await asyncio.wait_for(
-        _runner(adapter, db_pool, committed_session.session_id, FakeClient()).run(), timeout=5.0
-    )
-
-    assert await _pronunciation_rows(db_pool, committed_session.session_id) == []
-
-
-# ⑥ 한글이 섞여도 **agent** 발화에는 신호를 붙이지 않는다 — 신호는 학습자 발음에 대한 것이다
-async def test_korean_in_agent_text_records_no_assist_signal(db_pool, committed_session):
-    adapter = ScriptedAdapter(
-        TranscriptEvent(kind="final", text="좋아요, " + KOREAN_TRANSCRIPT, speaker="agent")
-    )
-
-    await asyncio.wait_for(
-        _runner(adapter, db_pool, committed_session.session_id, FakeClient()).run(), timeout=5.0
-    )
-
-    assert await _pronunciation_rows(db_pool, committed_session.session_id) == []
 
 
 # ⑦ PS8 — 스텁 모드는 발음 행을 만들지 않는다. 스텁 화면 판정(1·2차수 C2)이 바뀌면 안 된다

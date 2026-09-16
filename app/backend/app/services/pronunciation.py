@@ -18,14 +18,15 @@
 쌓여 숙련도 계산을 왜곡한다. 학습자가 대답하지 않고 세션을 끝낸 것도 정보이므로
 없는 일로 만들지 않는다.
 
-**진입점이 둘인 이유.** `record_attempt`는 위 생명주기이고, `record_signal`은 보조
-신호 1건(설계서 §7 Failure: "tool이 오지 않음 → 보조 신호가 떴다면 unclear 행을
-남긴다")이다. 보조 신호는 열린 pending을 닫지 않는다 — 닫으면 그 행의 `signal_source`가
-`nova_tool`로 남아 "Nova가 놓쳐서 보조 신호로 잡았다"는 사실이 사라지고,
-`signal_source`를 둔 이유(R10-4)가 무의미해진다. 이 판단을 인자값으로 분기하지 않고
-**함수 이름으로** 표현하는 이유는 호출부(`session.py`, 계획 Task 6)에서 무엇이 일어나는지
-보이게 하기 위해서다. 설계서 §6.1이 `signal_source`를 "이 행이 무엇 때문에 생겼는지"라는
-**서술 컬럼**으로 정의한 것과도 맞는다 — 제어 흐름 의미를 얹지 않는다.
+⛔ **보조 신호 경로를 지웠다** (`TASK-78.1` · 결정 120 · 결정 50 ③의 이행). 한글 전사 감지기
+(`note_transcript`)와 그 writer(`record_signal`)가 있던 자리다 — 51세션에서 **입력을 한 번도
+받지 못했고**(0/51) 그 사이 정식 경로의 tool 도착률이 코칭 세션 11/11 로 관측됐다. 사용자가
+문턱을 세우지 않고 지금 지우는 쪽을 골랐고, 근거와 뒤집힌 결정(50 ① · 101)은 캡틴 지시 대장이
+갖는다. 남은 쓰기 진입점은 `record_attempt`(2단계 생명주기) · `resolve_dangling`(종료 수렴) ·
+`record_transcript_analysis_signal`(024 · 결정 94, 기록만 남기고 복습은 만들지 않는다)이다.
+⚠️ **읽는 쪽은 지우지 않았다** — `signal_source` 값역(`korean_transcript` 포함)과 결과 화면의
+구분 렌더는 그대로다. 그 값을 가진 **과거 행이 실재하기 때문**이고(dev DB 3건 실측) 값역을
+좁히면 그 행을 읽는 경로가 깨진다.
 
 **정렬은 `attempt_seq`가 강제한다** (004 마이그레이션). `created_at`은 `now()`, 즉
 트랜잭션 시각이라 한 트랜잭션에서 만든 두 행이 동값이고 "최신 pending"을 고를 수 없다 —
@@ -47,7 +48,6 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Literal
 from uuid import UUID
 
 import asyncpg
@@ -66,21 +66,6 @@ logger = logging.getLogger(__name__)
 # 박지 않고 bind 파라미터로 넘긴다 — 값역의 SoT가 그 모듈이고(001 CHECK와 짝) 타입이 붙어 있어
 # 오타를 `ty`가 잡는다. ⛔ **모듈 사설 별칭을 다시 만들지 마라**(코드 리뷰 LOW-1) — 같은 값에
 # 이름이 둘이 되고 `pronunciation_intonation`을 grep하는 사람이 이름 두 개를 추적한다.
-
-# 보조 신호의 값역. `nova_tool`은 **여기 없다** — 그것은 2단계 생명주기를 갖는
-# `record_attempt`의 것이고, 단발 행으로 새면 판정이 오지 않는 시도가 조용히 쌓인다.
-# 값역의 SoT는 `models/pronunciation.SignalSource`(003 CHECK와 짝)이고 이것은 그 부분집합이다.
-AssistSignal = Literal["korean_transcript", "agent_reprompt"]
-
-# 보조 신호는 이미 일어난 관측이라 `pending`이 될 수 없다. 값역에서 빼는 이유는
-# `signal_source`를 좁힌 것과 같다 — 열린 보조 신호 행이 생기면 Nova 판정이 그것을
-# 닫아버려 함수를 나눈 목적이 무너진다(코드 리뷰가 실측으로 재현).
-#
-# **`incorrect`도 없다** (Task 7 리뷰 MEDIUM-2). 설계서 §3.2는 "`incorrect`가 되는 순간
-# 패턴을 만든다"인데 보조 신호에는 `target_sound`가 없어 키를 만들 수 없다. 값역에 남겨두면
-# 다음 감지기가 `incorrect`를 넘기는 순간 그 규칙이 **조용히** 깨지므로, 주석이 아니라
-# 타입으로 막는다 — 005가 "규칙을 앱에 흩지 말고 제약으로"라 판정한 것과 같은 방향이다.
-AssistOutcome = Literal["correct", "unclear"]
 
 _NOVA_TOOL: SignalSource = "nova_tool"
 
@@ -109,15 +94,6 @@ where id = (
 )
 returning id
 """
-
-# 한글 음절 블록. ASR 언어 판별이 뒤집히면 영어 문장이 이렇게 전사된다 — 4차수 P4 실측
-# (`p1k` → '아이싱크 아이파운드 …'). 문구가 아니라 문자를 보므로 결정론적이다.
-_HANGUL = re.compile(r"[가-힣]")
-
-# 한글 전사 신호 행의 `target_form`. Nova가 시범한 문장이 아니라 "왜 이 행이 생겼는지"라서
-# 문장 자리에 설명이 들어간다. ⚠️ 결과 화면(계획 Task 8)이 `target_form`을 학습자에게
-# 보여주므로, 그 화면은 `signal_source`로 nova_tool 행과 구분해 렌더해야 한다.
-KOREAN_TRANSCRIPT_TARGET_FORM = "(전사문이 한국어로 인식되었습니다)"
 
 # `TASK-116.1`(사용자 **결정 82**) — 기록된 `target_sound` 가 코치의 발화와 어긋났는지의 판정값.
 # 값역의 정본은 020 의 CHECK 이고 이 상수가 그 문자열을 소유한다(리터럴을 두 곳에 두지 않는다).
@@ -483,78 +459,6 @@ async def record_attempt(
         # `None`이라 `refresh_review`가 소리로 찾는다(그 경로가 ④를 닫는 자리다).
         await refresh_review(conn, attempt_id, pattern_id=linked)
         return attempt_id
-
-
-async def record_signal(
-    conn: asyncpg.Connection,
-    session_id: UUID,
-    *,
-    target_form: str,
-    outcome: AssistOutcome,
-    signal_source: AssistSignal,
-    spoken_form: str | None = None,
-    target_sound: str | None = None,
-    utterance_id: UUID | None = None,
-) -> UUID:
-    """Nova가 놓쳤을 때 잡은 보조 신호 1건을 남긴다 (R10-4, 설계서 §7 Failure).
-
-    **열린 pending을 닫지 않는다** — 이 행은 Nova 시도의 판정이 아니라 별개의 관측이다.
-    Nova의 pending은 `resolve_dangling`이 세션 종료 때 처리한다.
-
-    **이 행은 항상 판정된 상태로 태어난다** (`AssistOutcome`에 `pending`이 없다). 열린
-    보조 신호 행을 만들면 `record_attempt`가 그것을 닫아 이 분리의 목적이 무너진다.
-
-    **패턴을 만들지 않는다.** 설계서 §3.2의 "경로 불문"은 Nova 판정과 종료 수렴 두 경로를
-    말한다. 보조 신호는 "어떤 소리가 틀렸다"를 짚지 못하고 "이 전사문이 이상하다"만 말하므로
-    패턴 키를 만들 재료(`target_sound`)가 없다 — 설계서 §11:413이 같은 이유로 신호 행을
-    nova_tool 행과 구분해 렌더하라고 요구한다.
-    이 불변조건은 `AssistOutcome`이 **타입으로 잠근다** — `incorrect`가 값역에 없어서 보조
-    신호는 애초에 오류 판정이 될 수 없다. 주석으로만 두면 다음 감지기가 조용히 깬다.
-    """
-    return await _insert_attempt(
-        conn,
-        session_id,
-        target_form=target_form,
-        outcome=outcome,
-        spoken_form=spoken_form,
-        target_sound=target_sound,
-        utterance_id=utterance_id,
-        signal_source=signal_source,
-    )
-
-
-async def note_transcript(
-    conn: asyncpg.Connection,
-    session_id: UUID,
-    *,
-    transcript: str,
-    utterance_id: UUID,
-) -> UUID | None:
-    """확정된 **학습자** 전사문을 보고, 발음 신호가 보이면 시도 1건을 남긴다.
-
-    감지기를 늘리거나 줄이는 일이 `session.py`에 닿지 않게 하는 단일 진입점이다 —
-    호출자는 "이 전사문을 봐 달라"만 하고 무엇을 어떻게 보는지는 이 모듈이 안다.
-    신호가 없으면 `None`을 돌려준다.
-
-    **agent 발화는 넣지 않는다.** 신호는 학습자 발음에 대한 것이고, agent 문구를 보고
-    판단하는 감지기는 두지 않는다(캡틴 결정 2026-08-28: 문구 매칭은 케이스가 불어난다).
-
-    지금 감지기는 하나다 — 한글 전사. 4차수 P4 실측: 한국어 억양이 강하면 ASR 언어
-    판별이 뒤집혀 영어 문장이 `'아이싱크 아이파운드 …'`로 전사된다. 글자만 보면 되므로
-    결정론적이고, 모델 문구가 바뀌어도 깨지지 않는다.
-    """
-    if not _HANGUL.search(transcript):
-        return None
-    logger.info("전사문이 한글로 인식됐다 — 발음 신호로 기록한다 (세션 %s)", session_id)
-    return await record_signal(
-        conn,
-        session_id,
-        target_form=KOREAN_TRANSCRIPT_TARGET_FORM,
-        outcome="unclear",
-        signal_source="korean_transcript",
-        spoken_form=transcript,
-        utterance_id=utterance_id,
-    )
 
 
 async def resolve_dangling(conn: asyncpg.Connection, session_id: UUID) -> int:

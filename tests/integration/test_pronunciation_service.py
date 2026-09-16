@@ -14,10 +14,10 @@ savepoint가 아니라 최상위 트랜잭션이라 코드 경로가 다르다. 
 (= 진짜 회귀가 난 순간) 정리가 건너뛰어지면 세션 스코프 DB가 오염돼 뒤 테스트의
 무회귀 신호까지 함께 무너진다.
 
-**두 진입점이 나뉘어 있다.** `record_attempt`는 Nova tool 생명주기(pending → 판정)이고
-`record_signal`은 보조 신호 1건이다 — 후자는 열린 pending을 닫지 않는다. 함수를 나눈
-이유는 호출부에서 무엇이 일어나는지 보이게 하는 것이다: 인자값(`signal_source`)이
-생명주기 동작을 바꾸면 `session.py`를 읽는 사람이 호출 이름만으로 알 수 없다.
+**쓰기 진입점은 `record_attempt`(Nova tool 생명주기 — pending → 판정)와 `resolve_dangling`
+(종료 수렴)이다.** ⛔ 이전 판에는 보조 신호 writer(`record_signal`)가 하나 더 있었고
+`TASK-78.1`(결정 120)이 그 경로를 지웠다 — 51세션에서 입력을 한 번도 받지 못했다.
+⚠️ 그 값(`korean_transcript`)을 가진 **과거 행은 남아 있으므로** 읽는 쪽 단정은 지우지 않았다.
 
 DB가 필요해서 integration이다. `db_conn`은 마이그레이션만 적용된 테스트 DB를
 **롤백되는 트랜잭션 하나**로 감싸 넘긴다 — 시드는 하지 않으므로 사용자·세션을
@@ -42,7 +42,6 @@ from app.services.pronunciation import (
     link_pattern,
     load_known_sounds,
     record_attempt,
-    record_signal,
     resolve_dangling,
 )
 
@@ -436,54 +435,10 @@ async def test_verdict_does_not_close_another_sessions_pending(
     )
 
 
-# ⑫ 보조 신호로 만든 행을 구분할 수 있어야 한다 (R10-4)
-async def test_signal_source_is_stored(db_conn: asyncpg.Connection) -> None:
-    session_id = await _session(db_conn)
-
-    attempt_id = await record_signal(
-        db_conn,
-        session_id,
-        target_form="(전사문이 한국어로 인식되었습니다)",
-        outcome="unclear",
-        signal_source="korean_transcript",
-    )
-
-    assert (
-        await db_conn.fetchval(
-            "select signal_source from pronunciation_attempts where id = $1", attempt_id
-        )
-        == "korean_transcript"
-    )
-
-
-# ⑬ 보조 신호는 열린 pending을 닫지 않고 **자기 행**을 만든다 (설계서 §7 Failure:
-#    "tool이 오지 않음 → 보조 신호가 떴다면 unclear 행을 남긴다"). 닫아버리면 그 행의
-#    signal_source가 'nova_tool'로 남아 "Nova가 놓쳐서 보조 신호로 잡았다"는 사실이
-#    사라진다 — signal_source를 둔 이유(R10-4) 자체가 무의미해진다.
-#    Nova의 pending은 세션 종료 수렴이 처리한다.
-async def test_assist_signal_does_not_close_a_nova_pending(db_conn: asyncpg.Connection) -> None:
-    session_id = await _session(db_conn)
-    nova_pending = await record_attempt(db_conn, session_id, target_form=TARGET, outcome="pending")
-
-    assist = await record_signal(
-        db_conn,
-        session_id,
-        target_form="(전사문이 한국어로 인식되었습니다)",
-        outcome="unclear",
-        signal_source="korean_transcript",
-    )
-
-    assert assist != nova_pending
-    rows = {
-        row["id"]: row
-        for row in await db_conn.fetch(
-            "select id, outcome, signal_source from pronunciation_attempts where session_id = $1",
-            session_id,
-        )
-    }
-    assert rows[nova_pending]["outcome"] == "pending"
-    assert rows[nova_pending]["signal_source"] == "nova_tool"
-    assert rows[assist]["signal_source"] == "korean_transcript"
+# ⑫⑬ 삭제 — 보조 신호 writer(`record_signal`)를 지웠다 (`TASK-78.1` · 결정 120).
+#    두 단정은 「보조 신호 행이 구분되고 Nova 의 pending 을 닫지 않는다」를 쟀고, 그 행을
+#    만드는 생산자가 없어졌으므로 잴 대상이 없다. ⚠️ **읽는 쪽 단정은 남아 있다** —
+#    과거 행의 `signal_source` 값역과 결과 화면의 구분 렌더는 그대로다(`test_results.py`).
 
 
 # --- Task 7: 패턴 연결 (R10-6 → R11-9, 설계서 §4.3) ---

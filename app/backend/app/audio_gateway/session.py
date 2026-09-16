@@ -52,7 +52,6 @@ from app.models.voice_command import (
 )
 from app.services.pronunciation import (
     check_recorded_sounds,
-    note_transcript,
     record_attempt,
     resolve_dangling,
 )
@@ -629,24 +628,11 @@ class SessionRunner:
                 speaker=event.speaker,
                 utterance_type=utterance_type,
             )
-            if event.speaker == "user":
-                # ⛔ 명령·확인 발화에는 걸지 않는다 — 학습 발화가 아니므로 발음 신호를 찾을 자리가
-                # 아니다(`TASK-61.4`). ⚠️ 이 조건을 `else` 로 묶지 않는 이유가 있다: 묶으면 명령
-                # 발화가 **agent 갈래**로 떨어져 분석 flush 를 부른다.
-                if utterance_type == LEARNING_UTTERANCE_TYPE:
-                    # 발음 신호가 보이는지 **서비스가** 본다. 무엇을 어떻게 보는지는 이 모듈의
-                    # 관심사가 아니다 — 감지기가 늘거나 줄어도 여기는 바뀌지 않는다.
-                    # 실패해도 전사문 저장을 되돌리지 않는다: 신호는 부가 정보다.
-                    try:
-                        await note_transcript(
-                            conn,
-                            self._session_id,
-                            transcript=utterance.transcript,
-                            utterance_id=utterance.id,
-                        )
-                    except Exception:
-                        logger.exception("발음 신호 기록에 실패했다 (세션 %s)", self._session_id)
-            else:
+            # ⛔ **학습자 발화에서 하는 일이 없다** (`TASK-78.1` · 결정 120). 이 자리에 한글 전사
+            # 감지기(`note_transcript`)가 있었고 그 경로를 지웠다 — 51세션에서 입력을 한 번도 받지
+            # 못했다. ⚠️ **조건을 `speaker != "user"` 로 두는 것이 계약이다**: `if/else` 로 묶으면
+            # 명령·확인 발화가 **agent 갈래**로 떨어져 분석 flush 를 부른다(`TASK-61.4`).
+            if event.speaker != "user":
                 # agent가 말을 시작했다 = 사용자 턴이 닫혔다. 그 직전까지의 사용자
                 # final 묶음을 하나로 묶어 분석 job 1건을 건다 (I-1). 이 모듈은
                 # learning 발화만 저장하므로 speaker가 유일한 판별자다.

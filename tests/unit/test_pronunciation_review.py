@@ -199,14 +199,13 @@ async def test_a_correct_attempt_without_a_pattern_id_still_advances_the_stage(
 # ⛔ **보조 신호는 복습 단계를 전진시키지 않는다** (사용자 판정 2026-09-11 · `TASK-74` ·
 # 캡틴 지시 대장 결정 59). 위 테스트와 **한 글자만 다르다** — `signal_source` 하나다.
 #
-# ⚠️ 이 상태는 제품 경로에서 아직 도달 불가다: 유일한 보조 신호 생산자 `note_transcript`가
-# `unclear` + `target_sound=None`만 내고 `AssistOutcome`에 `incorrect`가 없다. 그런데 그
-# 도달 불가의 근거가 **전부 호출자 쪽 관례**여서 이력 쿼리 자체에는 방어가 0이었다 — 새
-# 생산자가 `outcome='correct'` + `target_sound`를 주는 순간 **학습자가 다시 말하지 않았는데
-# 단계가 접힌다.** 이 테스트가 그 경로를 손으로 만들어 쿼리 쪽 방어를 재는 유일한 자리다.
-#
-# ⚠️ 그래서 이 테스트는 `record_signal`을 부르지 않고 행을 직접 넣는다 — 그 함수를 쓰면
-# 지금의 도달 불가 때문에 필터를 지워도 통과해 **판별력이 0이 된다.**
+# ⚠️ 이 상태는 제품 경로에서 도달 불가다 — **이제는 생산자가 아예 없다**: 한글 전사 감지기와
+# 그 writer 를 `TASK-78.1`(결정 120)이 지웠고, 남은 비-`nova_tool` 생산자는
+# `record_transcript_analysis_signal`(024 · 결정 94) 하나이며 그것은 `target_sound` 를 주지 않는다.
+# ⛔ **그래도 이 단정을 지운다는 뜻이 아니다** — 도달 불가의 근거가 전부 **생산자 쪽 관례**여서
+# 이력 쿼리 자체에는 방어가 0이었다. 새 생산자가 `outcome='correct'` + `target_sound` 를 주는 순간
+# **학습자가 다시 말하지 않았는데 단계가 접힌다.** 이 테스트가 그 경로를 손으로 만들어 쿼리 쪽
+# 방어를 재는 유일한 자리이고, 생산자가 사라진 지금 **판별력이 오히려 커졌다.**
 @pytest.mark.asyncio
 async def test_an_assist_signal_does_not_advance_the_stage(db_conn: asyncpg.Connection):
     session_id = await _seed(db_conn)
