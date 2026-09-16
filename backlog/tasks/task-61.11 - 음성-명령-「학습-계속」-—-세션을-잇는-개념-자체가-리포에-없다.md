@@ -1,10 +1,10 @@
 ---
 id: TASK-61.11
 title: 음성 명령 「학습 계속」 — 세션을 잇는 개념 자체가 리포에 없다
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-15 16:17'
-updated_date: '2026-09-16 04:52'
+updated_date: '2026-09-16 05:00'
 labels: []
 dependencies: []
 parent_task_id: TASK-61
@@ -25,11 +25,13 @@ PRD §Voice Control 의 남은 명령 셋 가운데 하나다.
 <!-- AC:BEGIN -->
 - [x] #1 「계속」의 뜻을 사용자 판단으로 확정한다 — 문맥 이어받기인가 정지 세션 되살리기인가
 - [x] #2 정한 뜻에 맞는 수단을 설계한다 (문맥 주입이면 그 계약을 정본 문서에 적는다)
-- [ ] #3 명령을 만들면 실물 회차로 관측한다
+- [x] #3 명령을 만들면 실물 회차로 관측한다
 <!-- AC:END -->
 
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
 2026-09-16 — 결정 117 로 뜻을 확정했음(정지된 그 세션을 그대로 이음) ⇒ TASK-61.9 와 한 기능이고 구현도 그쪽에 함께 들어갔음. AC#1·#2 를 닫았음. AC#3(실물 회차)은 61.9 AC#3 과 같은 회차가 닫음.
+
+2026-09-16 — AC#3 을 닫았음. 같은 회차(runs/2026-09-16-task61-9-pause-resume)가 두 언어에서 재개를 관측했고 새 세션이 열리지 않았음(recv.session_started 1). 한국어 표지는 「해이 학습 계속해줘」로 전사됐고 warning 0 이었음.
 <!-- SECTION:NOTES:END -->

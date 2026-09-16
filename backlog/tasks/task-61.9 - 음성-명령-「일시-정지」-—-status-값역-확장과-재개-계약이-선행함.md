@@ -1,10 +1,10 @@
 ---
 id: TASK-61.9
 title: 음성 명령 「일시 정지」 — status 값역 확장과 재개 계약이 선행함
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-15 16:17'
-updated_date: '2026-09-16 04:52'
+updated_date: '2026-09-16 05:00'
 labels: []
 dependencies: []
 parent_task_id: TASK-61
@@ -25,7 +25,7 @@ PRD §Voice Control 의 남은 명령 셋 가운데 하나다(결정 110 이 넷
 <!-- AC:BEGIN -->
 - [x] #1 status 값역 확장 마이그레이션을 발급하고 dev DB 적용 여부를 사용자 판단으로 받는다
 - [x] #2 재개 계약을 정한다 — 누가 어떤 신호로 재개하는가
-- [ ] #3 명령을 계약대로 만들고 실물 회차로 영어·한국어 둘을 관측한다
+- [x] #3 명령을 계약대로 만들고 실물 회차로 영어·한국어 둘을 관측한다
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -38,4 +38,8 @@ PRD §Voice Control 의 남은 명령 셋 가운데 하나다(결정 110 이 넷
 AC#2 재개 계약(결정 117): 학습자가 「헤이, 학습 계속」이라 말하면 **그 세션을 그대로 잇는다.** 정지는 «부드러운 정지» 임 — 소켓과 어댑터는 살아 있고(코치가 재개를 들어야 함) 앱이 지키는 계약은 「정지 중 학습 발화를 저장하지 않는다」 하나임. 그 단정이 tests/integration/test_gateway.py 에 셋 있음.
 
 함께 고친 자리 둘: end_session 과 리퍼의 가드가 active 만 보고 있어 정지 중 종료가 영구히 paused 로 남을 자리였음(_LIVE_SESSION_STATUSES 로 묶었음). 지시문 규칙 13 에 pause·resume 을 넣고 「명령의 개수」 서술을 없앴음 — 세면 값역이 늘 때마다 낡음.
+
+2026-09-16 — AC#3 을 닫았음. 정본은 runs/2026-09-16-task61-9-pause-resume 임. 정지 중 미저장 3/3 · 같은 세션 잇기 2/2(영어·한국어 · 새 세션 0건) · 정지 중 종료 3/3 completed · 화면 두 표면을 스크린샷으로 확인했음.
+⛔ 회차가 고친 것 하나: 정지 중 미저장 로그가 info 라 보이지 않아(H-Z) warning 으로 올렸음 — 그 크기가 이 기능의 대가라 세지 못하면 안 됨.
+⚠️ 부수 관측: 모델이 정지 뒤 첫 학습 발화를 resume 으로 부른 것이 2/3 이고 표지 게이트가 막았음 — 결정 104 의 표지 요구가 오탐을 실제로 막은 첫 관측임.
 <!-- SECTION:NOTES:END -->

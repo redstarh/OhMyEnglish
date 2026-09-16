@@ -1,0 +1,23 @@
+session_id	sequence_no	speaker	utterance_type	transcript
+19e37bce-e8d1-459a-8a0d-8a7613a69409	1	user	learning	i usually take the subway to work.
+19e37bce-e8d1-459a-8a0d-8a7613a69409	2	agent	learning	That is very good. You said, "I usually take the subway to work." Can you say that one more time for me?
+19e37bce-e8d1-459a-8a0d-8a7613a69409	3	user	voice_command	hey, pause for a moment.
+19e37bce-e8d1-459a-8a0d-8a7613a69409	4	agent	learning	Okay, I will wait.
+19e37bce-e8d1-459a-8a0d-8a7613a69409	5	agent	learning	That sounds busy. Can you tell me one thing you did this week at work?
+2f4d553a-b92f-4772-b603-290fe8881fac	1	user	learning	i usually take the subway to work.
+2f4d553a-b92f-4772-b603-290fe8881fac	2	agent	learning	That is a good sentence. Can you tell me what time you usually leave for work?
+2f4d553a-b92f-4772-b603-290fe8881fac	3	user	voice_command	hey, pause for a moment.
+2f4d553a-b92f-4772-b603-290fe8881fac	4	agent	learning	Okay, I will wait.
+2f4d553a-b92f-4772-b603-290fe8881fac	5	agent	learning	I am glad you are back. You said you had a busy week at work. Can you tell me one thing you did this week?
+2f4d553a-b92f-4772-b603-290fe8881fac	6	user	voice_command	hey, let us continue the lesson.
+2f4d553a-b92f-4772-b603-290fe8881fac	7	agent	learning	Okay, we will continue. Tell me, what did you do this weekend?
+9ccae365-99e2-43e0-af9f-afb37d555a30	1	user	learning	저는 보통 지하철로 출근해요
+9ccae365-99e2-43e0-af9f-afb37d555a30	2	agent	learning	That is good to know. Can you tell me what time you usually leave home for work?
+9ccae365-99e2-43e0-af9f-afb37d555a30	3	user	voice_command	해이 잠깐 멈춰줘
+9ccae365-99e2-43e0-af9f-afb37d555a30	4	agent	learning	
+
+Okay, I will wait. Please let me know when you are ready to continue.
+9ccae365-99e2-43e0-af9f-afb37d555a30	5	agent	learning	I understand. When you have a busy week at work, it can be tiring. Do you want to talk about your work tasks or would you like to practice some work-related English?
+9ccae365-99e2-43e0-af9f-afb37d555a30	6	user	voice_command	해이 학습 계속해줘
+9ccae365-99e2-43e0-af9f-afb37d555a30	7	agent	learning	Okay, we will continue. Can you tell me one good thing that happened at work this week?
+(19개 행)
