@@ -67,6 +67,14 @@ class Settings(BaseSettings):
     # 전환기 폴백. SigV4가 채워지면 이 값은 무시되고 프로세스 환경에서도 제거된다.
     aws_bearer_token_bedrock: str | None = None
     claude_model_id: str = "us.anthropic.claude-opus-5"
+    # 학습 추천(plan) job 만 쓰는 모델 (`TASK-142` · 사용자 결정 121).
+    # ⛔ **위 값을 바꾸지 않고 값을 하나 더 두는 것이 이 설정의 요지다** — `claude_model_id` 는
+    # job 다섯(plan · analysis · summarize · summarize_week · generate_scenario)을 덮으므로
+    # 거기서 바꾸면 문법 분석과 총평까지 함께 옮겨 가고 그것은 결정 121 의 범위가 아니다.
+    # 사용자가 고른 근거는 품질 상한이 아니라 **간결함과 속도**다(같은 결정).
+    # ⚠️ openai 계열이므로 본문·응답·usage 규격이 Claude 와 다르다 — 그 분기는
+    # `workers/claude_client.py` 가 소유하고 값역의 판정은 `is_openai_model` 하나다.
+    plan_model_id: str = "us.openai.gpt-5.6-terra"
     # 분석 워커 기동 플래그. 기본은 켜짐 — API만 띄우고 큐를 일부러 쌓아두는
     # 시나리오(E2E-S 3단계)에서만 끈다. 자격증명이 아직 없을 때 백엔드를
     # 기동하려면 이 값을 false로 둔다(워커만 Bedrock 클라이언트를 만든다).

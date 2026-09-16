@@ -33,7 +33,7 @@ from uuid import UUID
 
 from app.config import Settings, bedrock_client
 from app.models.analysis import AnalysisValidationError
-from app.models.usage import PURPOSE_SPIKE, TokenUsage, UsageSink
+from app.models.usage import PURPOSE_PLAN, PURPOSE_SPIKE, TokenUsage, UsageSink
 
 # Bedrock InvokeModel의 Anthropic Messages 본문 규격 (모델 버전이 아니라 본문 스키마 버전).
 ANTHROPIC_VERSION = "bedrock-2023-05-31"
@@ -47,6 +47,11 @@ MAX_TOKENS = 16000
 # 응답이 온전하지 않다는 서버 신고. 그대로 파서에 넘기면 원인이 뭉개진다.
 STOP_REASON_TRUNCATED = "max_tokens"
 STOP_REASON_REFUSAL = "refusal"
+
+# 같은 사실의 openai 계열 이름 (`TASK-142` · 실측 `openai_shape.json`). 정상 종료는 `stop` 이다.
+# ⛔ 두 값역을 한 상수로 합치지 않는다 — 계열마다 규격이 따로 바뀌므로 합치면 한쪽 변경이
+# 다른 쪽 판정을 조용히 옮긴다.
+OPENAI_FINISH_TRUNCATED = "length"
 
 
 class ClaudeClient(Protocol):
@@ -63,7 +68,7 @@ class ClaudeClient(Protocol):
 
 
 def build_invoke_body(prompt: str) -> str:
-    """Bedrock InvokeModel 본문 (JSON 문자열)."""
+    """Bedrock InvokeModel 본문 (JSON 문자열) — **Anthropic 규격**."""
     return json.dumps(
         {
             "anthropic_version": ANTHROPIC_VERSION,
@@ -71,6 +76,51 @@ def build_invoke_body(prompt: str) -> str:
             "messages": [{"role": "user", "content": prompt}],
         }
     )
+
+
+def build_openai_invoke_body(prompt: str) -> str:
+    """같은 InvokeModel 의 **OpenAI 규격** 본문 (`TASK-142` · 결정 121).
+
+    ⛔ **`anthropic_version` 을 싣지 않는다** — openai 계열이 그 키를 `unknown_parameter` 로
+    **거부한다**(실측: `runs/2026-09-16-model-comparison` §3 의 표에서 luna·terra 둘 다 거부).
+    출력 상한의 키 이름도 `max_completion_tokens` 로 다르다.
+
+    ⚠️ **Converse 로 옮기지 않은 것이 판단이다.** 네 모델이 모두 받는 모양은 Converse 하나지만
+    같은 회차가 Opus 5 를 두 경로로 재서 **Converse 가 5.2초 느린 것**을 관측했다(18.4초 → 23.6초).
+    지금 바꾸는 것은 job 하나이므로 계열별 분기가 더 좁은 변경이다.
+    """
+    return json.dumps(
+        {
+            "messages": [{"role": "user", "content": prompt}],
+            "max_completion_tokens": MAX_TOKENS,
+        }
+    )
+
+
+def is_openai_model(model_id: str) -> bool:
+    """이 모델 ID 가 openai 계열인가 — **규격 분기의 유일한 판정자**.
+
+    ⛔ 값역을 열거하지 않는다(`us.openai.gpt-5.6-terra`·`…-luna`·`…-sol`·다음 판). 계열이
+    이름에 박혀 있고 그것이 Bedrock 의 모델 ID 규약이다 — 열거하면 모델이 늘 때마다 조용히 틀린다.
+    """
+    return "openai." in model_id
+
+
+def body_for(model_id: str, prompt: str) -> str:
+    """이 모델이 받는 본문. 계열 판정은 `is_openai_model` 하나가 한다."""
+    if is_openai_model(model_id):
+        return build_openai_invoke_body(prompt)
+    return build_invoke_body(prompt)
+
+
+def model_for_purpose(settings: Settings, purpose: str) -> str:
+    """이 목적이 쓸 모델 (`TASK-142` · 결정 121).
+
+    ⛔ **학습 추천(plan)만 다른 모델을 쓴다.** 사용자 결정 121 의 범위가 「학습 추천」이고
+    `claude_model_id` 하나가 job 다섯을 덮으므로, 목적으로 가르지 않으면 문법 분석과 총평까지
+    함께 옮겨 간다. ⚠️ 목적이 늘 때 이 함수가 유일하게 고칠 자리다 — 호출부는 목적만 넘긴다.
+    """
+    return settings.plan_model_id if purpose == PURPOSE_PLAN else settings.claude_model_id
 
 
 def extract_text(payload: dict[str, Any]) -> str:
@@ -85,6 +135,8 @@ def extract_text(payload: dict[str, Any]) -> str:
     정상 종료인데 text 블록이 없는 경우는 빈 문자열을 돌려준다 —
     `parse_analysis`의 단일 거부 경로로 흘려보낸다.
     """
+    if "choices" in payload:
+        return _extract_openai_text(payload)
     stop_reason = payload.get("stop_reason")
     if stop_reason == STOP_REASON_TRUNCATED:
         raise AnalysisValidationError(
@@ -101,6 +153,33 @@ def extract_text(payload: dict[str, Any]) -> str:
     return "".join(block.get("text", "") for block in blocks if block.get("type") == "text")
 
 
+def _extract_openai_text(payload: dict[str, Any]) -> str:
+    """openai 계열 응답에서 텍스트 (`TASK-142`).
+
+    실측 모양(`runs/2026-09-16-task142-terra-switch/openai_shape.json`): 텍스트는
+    `choices[0].message.content` · 종료 사유는 `choices[0].finish_reason`(정상은 `stop`) ·
+    거부는 같은 message 의 `refusal` 이다.
+
+    ⛔ **절단과 거부를 Anthropic 갈래와 «같은 예외»로 올린다** — 호출자가 두 계열을 가르지 않아야
+    한다. `length` 를 그냥 넘기면 잘린 JSON 이 파서로 내려가 사유가 「JSON 아님」으로 뭉개진다.
+    """
+    choices = payload.get("choices") or []
+    if not choices:
+        return ""
+    choice = choices[0]
+    message = choice.get("message") or {}
+    if choice.get("finish_reason") == OPENAI_FINISH_TRUNCATED:
+        raise AnalysisValidationError(
+            f"openai response hit the output budget (finish_reason={OPENAI_FINISH_TRUNCATED}, "
+            f"max_completion_tokens={MAX_TOKENS}) — the JSON is incomplete"
+        )
+    refusal = message.get("refusal")
+    if refusal:
+        raise AnalysisValidationError(f"openai model declined the request (refusal={refusal!r})")
+    content = message.get("content")
+    return content if isinstance(content, str) else ""
+
+
 def extract_usage(payload: dict[str, Any]) -> TokenUsage | None:
     """응답의 `usage`에서 토큰 둘. 없으면 `None` (`TASK-60` · 결정 66).
 
@@ -111,8 +190,11 @@ def extract_usage(payload: dict[str, Any]) -> TokenUsage | None:
     usage = payload.get("usage")
     if not isinstance(usage, dict):
         return None
-    input_tokens = usage.get("input_tokens")
-    output_tokens = usage.get("output_tokens")
+    # ⚠️ **계열마다 키 이름이 다르다** (`TASK-142` · 실측): Anthropic 은 `input_tokens`·
+    # `output_tokens`, openai 는 `prompt_tokens`·`completion_tokens` 다. ⛔ 이 갈림을 빼면
+    # `llm_calls` 가 조용히 비고, 그러면 비용의 큰 쪽을 세지 못한다(`TASK-124` 가 같은 부류다).
+    input_tokens = usage.get("input_tokens", usage.get("prompt_tokens"))
+    output_tokens = usage.get("output_tokens", usage.get("completion_tokens"))
     if not isinstance(input_tokens, int) or not isinstance(output_tokens, int):
         return None
     return TokenUsage(input_tokens=input_tokens, output_tokens=output_tokens)
@@ -143,7 +225,11 @@ class BedrockClaudeClient:
     async def analyze(
         self, prompt: str, *, purpose: str = PURPOSE_SPIKE, job_id: UUID | None = None
     ) -> str:
-        payload = await asyncio.to_thread(self._invoke, prompt)
+        # ⛔ **모델을 목적으로 고른다** (`TASK-142` · 결정 121) — 그 판정은 `model_for_purpose`
+        # 하나가 갖고, 아래 usage 기록도 **같은 값**을 적어야 한다(다르게 적으면 비용이 엉뚱한
+        # 모델에 귀속된다).
+        model_id = model_for_purpose(self._settings, purpose)
+        payload = await asyncio.to_thread(self._invoke, prompt, model_id)
         # ⛔ **`extract_text`보다 «먼저» 적는다.** 예산 절단·거부는 `extract_text`가 예외로
         # 올리는데 그 호출도 **돈이 나간 호출**이다. 뒤에 적으면 실패한 호출의 비용이 표에서
         # 빠지고, 그러면 「비용이 왜 늘었는가」를 설명할 수 없다(참고 프로젝트가 예열 호출까지
@@ -152,16 +238,16 @@ class BedrockClaudeClient:
         if self._usage_sink is not None and usage is not None:
             await self._usage_sink(
                 usage,
-                model_id=self._settings.claude_model_id,
+                model_id=model_id,
                 purpose=purpose,
                 job_id=job_id,
             )
         return extract_text(payload)
 
-    def _invoke(self, prompt: str) -> dict[str, Any]:
+    def _invoke(self, prompt: str, model_id: str) -> dict[str, Any]:
         response = self._client.invoke_model(
-            modelId=self._settings.claude_model_id,
-            body=build_invoke_body(prompt),
+            modelId=model_id,
+            body=body_for(model_id, prompt),
         )
         return json.loads(response["body"].read())
 

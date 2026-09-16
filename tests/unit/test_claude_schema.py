@@ -30,15 +30,18 @@ from app.models.analysis import (
     is_valid_new_pattern_key,
     parse_analysis,
 )
-from app.models.usage import TokenUsage
+from app.models.usage import PURPOSE_ANALYSIS, PURPOSE_PLAN, PURPOSE_SPIKE, TokenUsage
 from app.workers import claude_client as claude_client_module
 from app.workers.claude_client import (
     ANTHROPIC_VERSION,
     MAX_TOKENS,
     BedrockClaudeClient,
     FakeClaudeClient,
+    body_for,
     extract_text,
     extract_usage,
+    is_openai_model,
+    model_for_purpose,
 )
 
 
@@ -433,11 +436,57 @@ async def test_bedrock_client_records_usage_with_the_attribution_it_was_given(
     job_id = uuid4()
     client = BedrockClaudeClient(settings, usage_sink=sink)
 
-    raw = await client.analyze("analyze this", purpose="plan", job_id=job_id)
+    raw = await client.analyze("analyze this", purpose=PURPOSE_ANALYSIS, job_id=job_id)
 
     assert raw == '{"findings": []}'
     assert recorded == [
-        (TokenUsage(input_tokens=3690, output_tokens=412), settings.claude_model_id, "plan", job_id)
+        (
+            TokenUsage(input_tokens=3690, output_tokens=412),
+            settings.claude_model_id,
+            PURPOSE_ANALYSIS,
+            job_id,
+        )
+    ]
+
+
+async def test_the_recorded_model_is_the_one_actually_called_for_the_plan_purpose(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """⛔ **비용은 «부른 모델»에 귀속돼야 한다** (`TASK-142` · 결정 121).
+
+    앞 단정과 짝이다: 추천 job 은 terra 로 나가므로 `llm_calls` 도 terra 로 적혀야 한다.
+    설정값(`claude_model_id`)을 적으면 표가 「Opus 5 가 비쌌다」고 말하고, 그 표를 보고 내리는
+    다음 결정이 통째로 틀린다.
+    """
+    stub = _StubBedrockRuntime(
+        {
+            "choices": [{"finish_reason": "stop", "message": {"content": '{"questions": []}'}}],
+            "usage": {"prompt_tokens": 4102, "completion_tokens": 1004},
+        }
+    )
+    monkeypatch.setattr(claude_client_module, "bedrock_client", lambda: stub)
+    for name in ("CLAUDE_MODEL_ID", "PLAN_MODEL_ID"):
+        monkeypatch.delenv(name, raising=False)
+    settings = _test_settings()
+    recorded: list[tuple[TokenUsage, str, str, UUID | None]] = []
+
+    async def sink(usage: TokenUsage, *, model_id: str, purpose: str, job_id: UUID | None) -> None:
+        recorded.append((usage, model_id, purpose, job_id))
+
+    raw = await BedrockClaudeClient(settings, usage_sink=sink).analyze(
+        "plan this", purpose=PURPOSE_PLAN
+    )
+
+    assert raw == '{"questions": []}'
+    assert stub.calls[0]["modelId"] == "us.openai.gpt-5.6-terra"
+    assert "anthropic_version" not in stub.calls[0]["body"]
+    assert recorded == [
+        (
+            TokenUsage(input_tokens=4102, output_tokens=1004),
+            "us.openai.gpt-5.6-terra",
+            PURPOSE_PLAN,
+            None,
+        )
     ]
 
 
@@ -612,3 +661,98 @@ def test_error_finding_accepts_a_delivery_origin():
     finding = ErrorFinding.model_validate(default_finding(origin="delivery"))
 
     assert finding.origin == "delivery"
+
+
+# --- 목적별 모델 · 계열별 규격 (`TASK-142` · 결정 121) ---------------------------
+#
+# 사용자가 **학습 추천만** terra 로 옮겼다. `claude_model_id` 하나가 job 다섯을 덮으므로
+# 목적으로 갈라야 하고, ⛔ **그 갈림이 없으면 문법 분석과 총평까지 함께 옮겨 간다** —
+# 그것은 지시의 범위가 아니다. 아래 넷이 그 계약을 잰다.
+
+
+def test_the_plan_purpose_gets_terra_and_every_other_purpose_stays_on_opus(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    for name in ("CLAUDE_MODEL_ID", "PLAN_MODEL_ID"):
+        monkeypatch.delenv(name, raising=False)
+    settings = _test_settings()
+
+    assert model_for_purpose(settings, PURPOSE_PLAN) == "us.openai.gpt-5.6-terra"
+    assert model_for_purpose(settings, PURPOSE_ANALYSIS) == "us.anthropic.claude-opus-5"
+    assert model_for_purpose(settings, PURPOSE_SPIKE) == "us.anthropic.claude-opus-5"
+
+
+def test_the_openai_body_omits_anthropic_version():
+    """⛔ 실측: openai 계열은 그 키를 `unknown_parameter` 로 **거부한다**.
+
+    근거는 `runs/2026-09-16-model-comparison` §3 의 표다 — 같은 본문으로 luna·terra 가 둘 다
+    거부됐다. 출력 상한의 키 이름도 다르다(`max_completion_tokens`).
+    """
+    body = json.loads(body_for("us.openai.gpt-5.6-terra", "plan this"))
+
+    assert "anthropic_version" not in body
+    assert body == {
+        "messages": [{"role": "user", "content": "plan this"}],
+        "max_completion_tokens": MAX_TOKENS,
+    }
+
+
+def test_the_anthropic_body_is_unchanged_for_claude_models():
+    body = json.loads(body_for("us.anthropic.claude-opus-5", "analyze this"))
+
+    assert body == {
+        "anthropic_version": ANTHROPIC_VERSION,
+        "max_tokens": MAX_TOKENS,
+        "messages": [{"role": "user", "content": "analyze this"}],
+    }
+
+
+def test_the_family_is_decided_by_the_model_id():
+    assert is_openai_model("us.openai.gpt-5.6-terra")
+    assert is_openai_model("openai.gpt-5.6-luna")
+    assert not is_openai_model("us.anthropic.claude-opus-5")
+
+
+# --- openai 계열 응답 추출 (`TASK-142`) -----------------------------------------
+#
+# 실측 정본: `runs/2026-09-16-task142-terra-switch/openai_shape.json` — terra 를 한 번 불러
+# 얻은 모양이다. ⛔ **추정으로 쓰지 않았다**: 텍스트는 `choices[0].message.content` 이고
+# 종료 사유는 `finish_reason`(`stop`), usage 는 `prompt_tokens`·`completion_tokens` 다.
+
+
+def _openai_payload(text: str, *, finish_reason: str = "stop") -> dict[str, Any]:
+    return {
+        "choices": [
+            {"finish_reason": finish_reason, "message": {"role": "assistant", "content": text}}
+        ],
+        "usage": {"prompt_tokens": 4102, "completion_tokens": 1004, "total_tokens": 5106},
+    }
+
+
+def test_extract_text_reads_the_openai_choices_shape():
+    assert extract_text(_openai_payload('{"questions": []}')) == '{"questions": []}'
+
+
+def test_extract_text_reports_openai_truncation_as_a_validation_error():
+    """⛔ `length` 는 openai 계열의 예산 절단이다 — Anthropic 의 `max_tokens` 와 같은 사실이다.
+
+    이 갈래가 없으면 잘린 JSON 이 파서로 내려가 사유가 「JSON 아님」으로 뭉개지고,
+    예산을 올려야 하는 상황인지 프롬프트를 고쳐야 하는 상황인지 로그로 가릴 수 없다.
+    """
+    with pytest.raises(AnalysisValidationError):
+        extract_text(_openai_payload('{"questions": [', finish_reason="length"))
+
+
+def test_extract_text_reports_an_openai_refusal():
+    payload = _openai_payload("", finish_reason="stop")
+    payload["choices"][0]["message"] = {"role": "assistant", "refusal": "I can't help with that"}
+
+    with pytest.raises(AnalysisValidationError):
+        extract_text(payload)
+
+
+def test_extract_usage_reads_the_openai_token_names():
+    """⛔ 키가 다르면 `llm_calls` 가 조용히 빈다 — 비용의 큰 쪽을 못 세게 된다."""
+    assert extract_usage(_openai_payload("{}")) == TokenUsage(
+        input_tokens=4102, output_tokens=1004
+    )
