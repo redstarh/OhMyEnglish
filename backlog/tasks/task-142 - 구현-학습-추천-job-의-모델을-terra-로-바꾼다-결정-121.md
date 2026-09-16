@@ -1,10 +1,10 @@
 ---
 id: TASK-142
 title: '구현: 학습 추천 job 의 모델을 terra 로 바꾼다 (결정 121)'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-16 06:43'
-updated_date: '2026-09-16 06:50'
+updated_date: '2026-09-16 07:03'
 labels:
   - caps-req
 dependencies: []
@@ -24,8 +24,8 @@ ordinal: 196000
 - [x] #2 본문 규격을 모델 계열로 분기한다 — openai 계열에 anthropic_version 을 싣지 않는다
 - [x] #3 응답 추출을 분기한다 — choices 형식에서 텍스트가 나오고 parse_plan 이 통과한다
 - [x] #4 usage 추출을 분기해 llm_calls 에 입출력 토큰이 실제로 남는 것을 확인한다
-- [ ] #5 IAM 권한 부여는 사용자 승인 사항이므로 승인을 받고 그 뒤 실물 호출로 확인한다
-- [ ] #6 종단 확인: 추천 job 이 terra 로 돌아 session_plans 행이 저장되고 화면 계약이 깨지지 않는다
+- [x] #5 IAM 권한 부여는 사용자 승인 사항이므로 승인을 받고 그 뒤 실물 호출로 확인한다
+- [x] #6 종단 확인: 추천 job 이 terra 로 돌아 session_plans 행이 저장되고 화면 계약이 깨지지 않는다
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -50,4 +50,21 @@ RED 를 먼저 봤음(ImportError → 함수 부재). 게이트: pytest 1271 pas
 
 AC#5 차단 확인(내가 직접 돌림): 앱 자격증명으로 us.openai.gpt-5.6-terra 는 AccessDeniedException,
 us.anthropic.claude-opus-5 는 통과. ⇒ 권한 없이는 추천 job 이 5회 재시도 뒤 failed 로 떨어짐.
+
+## AC#5·#6 완료 — bearer 경로로 종단 확인 (2026-09-16)
+
+AC#5 는 IAM 권한 부여가 아니라 사용자 지시대로 bearer 키 경로로 닫혔음: 「zshrc 내의 Bedrock API
+Key 로 권한 획득해서 진행해」. 앱 IAM 사용자는 여전히 이 프로필을 못 부름(AccessDenied 직접 관측).
+
+boto3 로 그 키를 쓸 수 없음을 실측 둘로 확인했음(생성 시점 주입 → 호출 시점 NoCredentialsError ·
+토큰 provider 주입 → 환경 SigV4 가 이겨 AccessDenied). 그래서 openai 계열만 HTTPS 직접 호출
+(invoke_openai_model)이고 ⛔ 환경변수를 만지지 않음 — 올리면 Nova 가 403 으로 죽음.
+
+AC#6 종단: 검증 전용 DB ohmyenglish_t142 에서 앱 job 경로로 돌렸음 —
+job status=done attempts=1 · session_plans(A2 · source=agent · 질문 4 · 초점 2) ·
+llm_calls 1건(us.openai.gpt-5.6-terra · purpose=plan · 입력 1085 · 출력 479).
+⇒ 본문·텍스트·usage 세 분기가 전부 실제로 걸렸음. 회차 정본은
+tests/harness/runs/2026-09-16-task142-terra-switch/README.md.
+
+게이트: pytest 1273 passed · ruff · ruff format 49 files · ty 통과.
 <!-- SECTION:NOTES:END -->

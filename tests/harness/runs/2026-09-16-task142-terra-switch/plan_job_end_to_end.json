@@ -1,0 +1,36 @@
+{
+  "job": {
+    "status": "done",
+    "attempts": 1,
+    "last_error": null
+  },
+  "plan": {
+    "target_level": "A2",
+    "source": "agent",
+    "questions": 4,
+    "focus": 2
+  },
+  "instruction_keys": [
+    "contexts",
+    "focus",
+    "hint_timing",
+    "sentence_length",
+    "target_level"
+  ],
+  "llm_calls": [
+    {
+      "model_id": "us.openai.gpt-5.6-terra",
+      "purpose": "plan",
+      "input_tokens": 1085,
+      "output_tokens": 479
+    }
+  ],
+  "usage_sink_calls": [
+    [
+      1085,
+      479,
+      "us.openai.gpt-5.6-terra",
+      "plan"
+    ]
+  ]
+}

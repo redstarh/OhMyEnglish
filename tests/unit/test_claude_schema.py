@@ -283,7 +283,7 @@ class _StubBedrockRuntime:
         return {"body": _StubBody(self._payload)}
 
 
-def _test_settings() -> Settings:
+def _test_settings(*, bearer: str | None = None) -> Settings:
     # ⛔ `_env_file=None` — 이것 없이는 `app/backend/.env`가 이 인스턴스를 먹인다 (TASK-35).
     # 실측(2026-09-08): 그 파일에 `CLAUDE_MODEL_ID=bogus-from-dotenv`를 넣으면 아래
     # `test_bedrock_client_sends_the_messages_api_body_for_the_configured_model`이 **깨졌다.**
@@ -295,6 +295,8 @@ def _test_settings() -> Settings:
         _env_file=None,  # ty: ignore[unknown-argument]
         database_url="postgresql://fake:fake@localhost/fake",
         aws_region="us-west-2",
+        # openai 계열은 bearer 키로만 부를 수 있다 (`TASK-142`) — 그 경로를 재는 단정만 값을 준다.
+        aws_bearer_token_bedrock=bearer,
     )
 
 
@@ -458,16 +460,33 @@ async def test_the_recorded_model_is_the_one_actually_called_for_the_plan_purpos
     설정값(`claude_model_id`)을 적으면 표가 「Opus 5 가 비쌌다」고 말하고, 그 표를 보고 내리는
     다음 결정이 통째로 틀린다.
     """
-    stub = _StubBedrockRuntime(
-        {
-            "choices": [{"finish_reason": "stop", "message": {"content": '{"questions": []}'}}],
-            "usage": {"prompt_tokens": 4102, "completion_tokens": 1004},
-        }
-    )
+    stub = _StubBedrockRuntime({"content": [{"type": "text", "text": "should not be used"}]})
     monkeypatch.setattr(claude_client_module, "bedrock_client", lambda: stub)
     for name in ("CLAUDE_MODEL_ID", "PLAN_MODEL_ID"):
         monkeypatch.delenv(name, raising=False)
-    settings = _test_settings()
+    posted: dict[str, Any] = {}
+
+    def fake_post(url: str, *, headers: dict[str, str], content: bytes, timeout: Any) -> Any:
+        posted.update(url=url, body=json.loads(content))
+
+        class _Response:
+            @staticmethod
+            def json() -> dict[str, Any]:
+                return {
+                    "choices": [
+                        {"finish_reason": "stop", "message": {"content": '{"questions": []}'}}
+                    ],
+                    "usage": {"prompt_tokens": 4102, "completion_tokens": 1004},
+                }
+
+            @staticmethod
+            def raise_for_status() -> None:
+                return None
+
+        return _Response()
+
+    monkeypatch.setattr(claude_client_module, "_http_post", fake_post)
+    settings = _test_settings(bearer="key-for-openai")
     recorded: list[tuple[TokenUsage, str, str, UUID | None]] = []
 
     async def sink(usage: TokenUsage, *, model_id: str, purpose: str, job_id: UUID | None) -> None:
@@ -478,8 +497,10 @@ async def test_the_recorded_model_is_the_one_actually_called_for_the_plan_purpos
     )
 
     assert raw == '{"questions": []}'
-    assert stub.calls[0]["modelId"] == "us.openai.gpt-5.6-terra"
-    assert "anthropic_version" not in stub.calls[0]["body"]
+    # ⛔ **boto3 경로를 타지 않는다** — 그 경로의 자격증명으로는 이 프로필이 `AccessDenied` 다.
+    assert stub.calls == []
+    assert "us.openai.gpt-5.6-terra" in posted["url"]
+    assert "anthropic_version" not in posted["body"]
     assert recorded == [
         (
             TokenUsage(input_tokens=4102, output_tokens=1004),
@@ -756,3 +777,60 @@ def test_extract_usage_reads_the_openai_token_names():
     assert extract_usage(_openai_payload("{}")) == TokenUsage(
         input_tokens=4102, output_tokens=1004
     )
+
+
+# --- openai 계열은 bearer 키로 붙는다 (`TASK-142` · 사용자 지시 2026-09-16) --------
+#
+# ⛔ **SigV4 로는 부를 수 없다** — 앱 IAM 사용자에게 그 추론 프로필 권한이 없다(`AccessDenied` 를
+# 직접 관측했고 Opus 5 는 통과했다). 사용자가 「zshrc 의 Bedrock API Key 로 권한 획득해서 진행」을
+# 지시했다.
+# ⚠️ **boto3 로는 그 키를 못 쓴다** — 실측 둘: 클라이언트 생성 시점에 환경변수를 넣고 지우면
+# 호출 시점에 `NoCredentialsError` 이고(토큰은 호출 시점에 읽힌다), 토큰 provider 를 클라이언트에
+# 직접 꽂아도 SigV4 자격증명이 이겨 `AccessDenied` 가 났다. 그래서 이 경로만 HTTPS 직접 호출이다.
+
+
+def test_the_openai_endpoint_and_bearer_header_are_what_bedrock_expects(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    sent: dict[str, Any] = {}
+
+    def fake_post(url: str, *, headers: dict[str, str], content: bytes, timeout: Any) -> Any:
+        sent.update(url=url, headers=headers, content=content, timeout=timeout)
+
+        class _Response:
+            status_code = 200
+
+            @staticmethod
+            def json() -> dict[str, Any]:
+                return {"choices": [{"finish_reason": "stop", "message": {"content": "{}"}}]}
+
+            @staticmethod
+            def raise_for_status() -> None:
+                return None
+
+        return _Response()
+
+    monkeypatch.setattr(claude_client_module, "_http_post", fake_post)
+
+    payload = claude_client_module.invoke_openai_model(
+        "us.openai.gpt-5.6-terra", '{"messages": []}', region="us-west-2", token="secret-key"
+    )
+
+    assert payload == {"choices": [{"finish_reason": "stop", "message": {"content": "{}"}}]}
+    assert sent["url"] == (
+        "https://bedrock-runtime.us-west-2.amazonaws.com/model/us.openai.gpt-5.6-terra/invoke"
+    )
+    assert sent["headers"]["Authorization"] == "Bearer secret-key"
+    assert sent["headers"]["Content-Type"] == "application/json"
+    assert sent["content"] == b'{"messages": []}'
+
+
+def test_the_openai_path_refuses_to_call_without_a_key():
+    """⛔ 키가 없으면 **부르지 않는다** — 빈 Authorization 헤더는 401 로 돌아오고 그 실패가
+    「모델이 거부했다」로 뭉개진다. 없다는 사실을 그 자리에서 말한다."""
+    # ⚠️ 키의 **이름**을 여기서 단정하지 않는다 — 자격증명 문자열은 `config.py` 밖에 두지 않는
+    # 규약(F5)이 있고 `test_config.py` 가 그것을 잰다. 그래서 사실만 잰다: 「키가 없다」를 말한다.
+    with pytest.raises(RuntimeError, match="bearer"):
+        claude_client_module.invoke_openai_model(
+            "us.openai.gpt-5.6-terra", "{}", region="us-west-2", token=None
+        )

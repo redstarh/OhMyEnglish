@@ -31,7 +31,14 @@ import json
 from typing import Any, Protocol
 from uuid import UUID
 
-from app.config import Settings, bedrock_client
+import httpx
+
+from app.config import (
+    BEDROCK_CONNECT_TIMEOUT,
+    BEDROCK_READ_TIMEOUT,
+    Settings,
+    bedrock_client,
+)
 from app.models.analysis import AnalysisValidationError
 from app.models.usage import PURPOSE_PLAN, PURPOSE_SPIKE, TokenUsage, UsageSink
 
@@ -111,6 +118,43 @@ def body_for(model_id: str, prompt: str) -> str:
     if is_openai_model(model_id):
         return build_openai_invoke_body(prompt)
     return build_invoke_body(prompt)
+
+
+def _http_post(url: str, *, headers: dict[str, str], content: bytes, timeout: Any) -> Any:
+    """이음새 하나 — 테스트가 이 이름을 바꿔 끼운다(네트워크를 타지 않기 위해)."""
+    return httpx.post(url, headers=headers, content=content, timeout=timeout)
+
+
+def invoke_openai_model(model_id: str, body: str, *, region: str, token: str | None) -> Any:
+    """openai 계열을 **bearer 키**로 부른다 (`TASK-142` · 사용자 지시 2026-09-16).
+
+    ⛔ **왜 boto3 가 아닌가 — 실측 둘.** ① 앱 IAM 사용자에게 그 추론 프로필 권한이 없다
+    (`AccessDenied`. 같은 클라이언트로 Opus 5 는 통과한다). ② 그 키를 boto3 로 쓸 수 없었다:
+    클라이언트 생성 시점에 환경변수를 올리고 지우면 **호출 시점**에 `NoCredentialsError` 이고
+    (토큰은 호출 시점에 읽힌다), 토큰 provider 를 클라이언트에 직접 꽂아도 환경의 SigV4 가 이겨
+    `AccessDenied` 가 났다. ⇒ 이 경로만 HTTPS 직접 호출이다.
+
+    ⛔ **환경변수를 만지지 않는다.** bearer 를 프로세스 환경에 올리면 boto3 의 Bedrock 호출 전부가
+    그것을 쓰고 **Nova 양방향이 403 으로 죽는다** — `config.prepare_bedrock_credentials` 가 SigV4 가
+    준비되면 그 값을 지우는 이유가 그것이다. 토큰은 인자로만 흐른다.
+
+    ⚠️ 타임아웃은 boto 경로와 같은 수를 쓴다(`config` 의 두 상수) — 두 경로가 다른 시간에 죽으면
+    실패의 모양이 갈려 원인을 가리기 어렵다. 재시도는 job 큐가 갖는다(`services/jobs.MAX_ATTEMPTS`).
+    """
+    if not token:
+        raise RuntimeError(
+            "openai 계열 모델을 부를 bearer 키가 없다 — Bedrock API 키를 셸에 export 하거나 "
+            "app/backend/.env 에 넣어라(키의 «이름»은 app/config.py 가 소유한다 — F5). "
+            "SigV4 로는 이 추론 프로필을 부를 수 없다."
+        )
+    response = _http_post(
+        f"https://bedrock-runtime.{region}.amazonaws.com/model/{model_id}/invoke",
+        headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+        content=body.encode("utf-8"),
+        timeout=httpx.Timeout(BEDROCK_READ_TIMEOUT, connect=BEDROCK_CONNECT_TIMEOUT),
+    )
+    response.raise_for_status()
+    return response.json()
 
 
 def model_for_purpose(settings: Settings, purpose: str) -> str:
@@ -245,10 +289,18 @@ class BedrockClaudeClient:
         return extract_text(payload)
 
     def _invoke(self, prompt: str, model_id: str) -> dict[str, Any]:
-        response = self._client.invoke_model(
-            modelId=model_id,
-            body=body_for(model_id, prompt),
-        )
+        body = body_for(model_id, prompt)
+        if is_openai_model(model_id):
+            # ⛔ **자격증명 경로가 계열마다 다르다** (`TASK-142`) — openai 계열은 bearer 키로만
+            # 부를 수 있다(그 함수의 docstring 이 실측 근거를 갖는다). 토큰은 `Settings` 에서
+            # 오고 **프로세스 환경을 거치지 않는다** — 환경에 올리면 Nova 가 403 으로 죽는다.
+            return invoke_openai_model(
+                model_id,
+                body,
+                region=self._settings.aws_region,
+                token=self._settings.aws_bearer_token_bedrock,
+            )
+        response = self._client.invoke_model(modelId=model_id, body=body)
         return json.loads(response["body"].read())
 
 

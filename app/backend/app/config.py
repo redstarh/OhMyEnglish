@@ -247,13 +247,13 @@ _BEDROCK_TOTAL_MAX_ATTEMPTS = 2
 # 재시도 예산(quota)을 갖는다. legacy 는 재시도 대상이 좁고 예산이 없다.
 _BEDROCK_RETRY_MODE = "standard"
 # 연결 수립은 빠르다 — 여기서 오래 기다릴 이유가 없다.
-_BEDROCK_CONNECT_TIMEOUT = 10
+BEDROCK_CONNECT_TIMEOUT = 10
 # ⚠️ **읽기 상한은 「짧게」가 아니라 「넉넉히」가 맞다.** 실측(2026-09-12, 계획 크기 프롬프트
 # 14,538자 · 입력 6,174 토큰): 한 호출이 **30.27초 · 18.25초**였다. 기본 60초는 그 최대의 2배뿐이고,
 # 넘으면 botocore 가 **같은 호출을 다시 보낸다** — 그것이 중복 과금의 기전이다. 그래서 4배로 둔다.
 # ⛔ **대가를 적는다**: 인터프리터 종료 시 `asyncio.to_thread` 의 워커 스레드가 진행 중 호출을
 # 최대 이 시간만큼 붙잡을 수 있다. lifespan 의 대기는 `WORKER_SHUTDOWN_TIMEOUT=15` 가 끊는다.
-_BEDROCK_READ_TIMEOUT = 120
+BEDROCK_READ_TIMEOUT = 120
 
 
 def bedrock_boto_config() -> BotocoreConfig:
@@ -263,8 +263,8 @@ def bedrock_boto_config() -> BotocoreConfig:
     `bedrock_client()`는 `prepare_bedrock_credentials`를 지나므로 단위 테스트에서 부를 수 없다.
     """
     return BotocoreConfig(
-        connect_timeout=_BEDROCK_CONNECT_TIMEOUT,
-        read_timeout=_BEDROCK_READ_TIMEOUT,
+        connect_timeout=BEDROCK_CONNECT_TIMEOUT,
+        read_timeout=BEDROCK_READ_TIMEOUT,
         retries={"mode": _BEDROCK_RETRY_MODE, "total_max_attempts": _BEDROCK_TOTAL_MAX_ATTEMPTS},
     )
 
