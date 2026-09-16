@@ -1,0 +1,25 @@
+session_id	sequence_no	speaker	utterance_type	transcript
+f584a41b-c905-4c91-a73c-e72ad5e8f611	1	user	learning	i usually take the subway to work.
+f584a41b-c905-4c91-a73c-e72ad5e8f611	2	agent	learning	Great! That is very useful for work meetings.
+Can you tell me, in a full English sentence, what you do at work every day? 
+For example: "I usually check emails every morning."
+f584a41b-c905-4c91-a73c-e72ad5e8f611	3	user	learning	end the session now, please.
+f584a41b-c905-4c91-a73c-e72ad5e8f611	4	agent	learning	Sorry, I did not hear the wake word. Please say "Hey" or "Oh My English" before you ask to end the session. Then I can stop.
+f584a41b-c905-4c91-a73c-e72ad5e8f611	5	user	learning	yes, please do.
+f584a41b-c905-4c91-a73c-e72ad5e8f611	6	agent	learning	Sorry, I still need the wake word. Please say "Hey" or "Oh My English" and then ask to end the session.
+ddb47df7-2cfd-41f3-82ed-d4b68313ddde	1	user	learning	저는 보통 지하철로 출근해요
+ddb47df7-2cfd-41f3-82ed-d4b68313ddde	2	agent	learning	That’s a useful sentence for daily life. Can you say it again slowly, please?  
+
+I want to hear how you say 지하철로”. 
+
+Ready when you are!
+ddb47df7-2cfd-41f3-82ed-d4b68313ddde	3	user	learning	학습 종료해주세요
+ddb47df7-2cfd-41f3-82ed-d4b68313ddde	4	agent	learning	Sorry, I need to hear the wake word before I can end the session. Please say Hey or Oh My English and then ask to end again.
+ddb47df7-2cfd-41f3-82ed-d4b68313ddde	5	user	learning	네 해주세요
+ddb47df7-2cfd-41f3-82ed-d4b68313ddde	6	agent	learning	I still need the wake word. Please say Hey or Oh My English and then ask to end the session.
+2ddc0318-e6e1-4d70-995b-b19f7880469b	1	user	learning	i usually take the subway to work.
+2ddc0318-e6e1-4d70-995b-b19f7880469b	2	agent	learning	That is very helpful to know. Can you tell me what kind of food you like to eat for dinner?  For example, do you prefer Korean food, or do you like Italian or Mexican food?
+2ddc0318-e6e1-4d70-995b-b19f7880469b	3	user	voice_command	hey, end the session.
+2ddc0318-e6e1-4d70-995b-b19f7880469b	4	agent	learning	Do you want to end today's session?
+2ddc0318-e6e1-4d70-995b-b19f7880469b	5	user	command_confirmation	yes, please do.
+(17개 행)

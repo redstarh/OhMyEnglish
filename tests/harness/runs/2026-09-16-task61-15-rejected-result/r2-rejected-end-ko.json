@@ -1,0 +1,599 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3001/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/vc15_learning_ko.wav",
+  "urls": [
+   "/harness/vc15_learning_ko.wav",
+   "/harness/vc28_end_nomarker_ko.wav",
+   "/harness/vc18_yes_ko.wav"
+  ],
+  "count": 3,
+  "bytes": 169206,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 4.904,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0,
+  "plays": []
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 6,
+   "final": 6,
+   "audio": 257,
+   "session_ended": 0,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 3,
+   "speech_end": 3,
+   "interrupted": 2,
+   "voice_command": 0
+  },
+  "sent": {
+   "audio": 1267,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 1
+  },
+  "startedSessionId": "ddb47df7-2cfd-41f3-82ed-d4b68313ddde",
+  "fixture": {
+   "url": "/harness/vc15_learning_ko.wav",
+   "urls": [
+    "/harness/vc15_learning_ko.wav",
+    "/harness/vc28_end_nomarker_ko.wav",
+    "/harness/vc18_yes_ko.wav"
+   ],
+   "count": 3,
+   "bytes": 169206,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 4.904,
+   "startedAt": 118,
+   "endedAt": 16064,
+   "micCalls": 1,
+   "plays": [
+    {
+     "index": 0,
+     "url": "/harness/vc15_learning_ko.wav",
+     "startedAt": 118,
+     "endedAt": 2469,
+     "gate": null
+    },
+    {
+     "index": 1,
+     "url": "/harness/vc28_end_nomarker_ko.wav",
+     "startedAt": 7659,
+     "endedAt": 9045,
+     "gate": {
+      "heardAgentAudio": true,
+      "audioAtGate": 99,
+      "finalAtGate": 2,
+      "waitedMs": 7540
+     }
+    },
+    {
+     "index": 2,
+     "url": "/harness/vc18_yes_ko.wav",
+     "startedAt": 14888,
+     "endedAt": 16064,
+     "gate": {
+      "heardAgentAudio": true,
+      "audioAtGate": 194,
+      "finalAtGate": 4,
+      "waitedMs": 7228
+     }
+    }
+   ]
+  },
+  "started": {
+   "count": 260,
+   "when": [
+    0,
+    4.264,
+    4.343,
+    4.423,
+    4.503,
+    4.583,
+    4.663,
+    4.743,
+    4.823,
+    4.9030000000000005,
+    4.9830000000000005,
+    5.063000000000001,
+    5.143000000000001,
+    5.223000000000001,
+    5.303000000000001,
+    5.383000000000001,
+    5.463000000000001,
+    5.543000000000001,
+    5.623000000000001,
+    5.703000000000001,
+    5.783000000000001,
+    5.863000000000001,
+    5.943000000000001,
+    6.0230000000000015,
+    6.1030000000000015,
+    6.183000000000002,
+    6.263000000000002,
+    6.343000000000002,
+    6.423000000000002,
+    6.503000000000002,
+    6.583000000000002,
+    6.663000000000002,
+    6.743000000000002,
+    6.823000000000002,
+    6.903000000000002,
+    6.983000000000002,
+    7.063000000000002,
+    7.1430000000000025,
+    7.2230000000000025,
+    7.303000000000003,
+    7.383000000000003,
+    7.463000000000003,
+    7.543000000000003,
+    7.623000000000003,
+    7.703000000000003,
+    7.783000000000003,
+    7.863000000000003,
+    7.943000000000003,
+    8.023000000000003,
+    8.103000000000003,
+    8.183000000000003,
+    8.384000000000004,
+    8.463000000000005,
+    8.543000000000005,
+    8.623000000000005,
+    8.703000000000005,
+    8.783000000000005,
+    8.863000000000005,
+    8.943000000000005,
+    9.023000000000005,
+    9.103000000000005,
+    9.183000000000005,
+    9.263000000000005,
+    9.343000000000005,
+    9.423000000000005,
+    9.503000000000005,
+    9.583000000000006,
+    9.663000000000006,
+    9.743000000000006,
+    9.823000000000006,
+    9.903000000000006,
+    9.983000000000006,
+    10.063000000000006,
+    10.143000000000006,
+    10.223000000000006,
+    10.303000000000006,
+    10.383000000000006,
+    10.463000000000006,
+    10.543000000000006,
+    10.623000000000006,
+    10.703000000000007,
+    10.783000000000007,
+    10.863000000000007,
+    10.943000000000007,
+    11.143000000000006,
+    11.144000000000005,
+    11.223000000000006,
+    11.303000000000006,
+    11.383000000000006,
+    11.463000000000006,
+    11.543000000000006,
+    11.623000000000006,
+    11.703000000000007,
+    11.783000000000007,
+    11.863000000000007,
+    11.943000000000007,
+    12.023000000000007,
+    12.103000000000007,
+    12.183000000000007,
+    12.423000000000007,
+    0,
+    11.712,
+    11.791,
+    11.871,
+    11.951,
+    12.031,
+    12.111,
+    12.191,
+    12.271,
+    12.351,
+    12.431000000000001,
+    12.511000000000001,
+    12.591000000000001,
+    12.671000000000001,
+    12.751000000000001,
+    12.831000000000001,
+    12.911000000000001,
+    12.991000000000001,
+    13.071000000000002,
+    13.151000000000002,
+    13.231000000000002,
+    13.311000000000002,
+    13.391000000000002,
+    13.471000000000002,
+    13.551000000000002,
+    13.631000000000002,
+    13.711000000000002,
+    13.791000000000002,
+    13.871000000000002,
+    13.951000000000002,
+    14.031000000000002,
+    14.111000000000002,
+    14.191000000000003,
+    14.271000000000003,
+    14.351000000000003,
+    14.431000000000003,
+    14.511000000000003,
+    14.591000000000003,
+    14.671000000000003,
+    14.751000000000003,
+    14.831000000000003,
+    15.072000000000003,
+    15.151000000000003,
+    15.231000000000003,
+    15.311000000000003,
+    15.391000000000004,
+    15.471000000000004,
+    15.551000000000004,
+    15.631000000000004,
+    15.711000000000004,
+    15.791000000000004,
+    15.871000000000004,
+    15.951000000000004,
+    16.031000000000002,
+    16.111,
+    16.191,
+    16.270999999999997,
+    16.350999999999996,
+    16.430999999999994,
+    16.510999999999992,
+    16.59099999999999,
+    16.67099999999999,
+    16.750999999999987,
+    16.830999999999985,
+    16.910999999999984,
+    16.990999999999982,
+    17.07099999999998,
+    17.15099999999998,
+    17.230999999999977,
+    17.310999999999975,
+    17.390999999999973,
+    17.47099999999997,
+    17.55099999999997,
+    17.63099999999997,
+    17.710999999999967,
+    17.790999999999965,
+    17.870999999999963,
+    17.95099999999996,
+    18.03099999999996,
+    18.110999999999958,
+    18.190999999999956,
+    18.270999999999955,
+    18.350999999999953,
+    18.43099999999995,
+    18.51099999999995,
+    18.590999999999948,
+    18.670999999999946,
+    18.750999999999944,
+    18.830999999999943,
+    18.91099999999994,
+    18.99099999999994,
+    19.070999999999938,
+    19.150999999999936,
+    19.230999999999934,
+    19.310999999999932,
+    19.55099999999993,
+    0,
+    19.352,
+    19.431,
+    19.511,
+    19.590999999999998,
+    19.670999999999996,
+    19.750999999999994,
+    19.830999999999992,
+    19.91099999999999,
+    19.99099999999999,
+    20.070999999999987,
+    20.150999999999986,
+    20.230999999999984,
+    20.310999999999982,
+    20.39099999999998,
+    20.47099999999998,
+    20.550999999999977,
+    20.630999999999975,
+    20.710999999999974,
+    20.790999999999972,
+    20.87099999999997,
+    20.95099999999997,
+    21.030999999999967,
+    21.110999999999965,
+    21.190999999999963,
+    21.27099999999996,
+    21.35099999999996,
+    21.43099999999996,
+    21.510999999999957,
+    21.590999999999955,
+    21.670999999999953,
+    21.75099999999995,
+    21.83099999999995,
+    21.910999999999948,
+    21.990999999999946,
+    22.070999999999945,
+    22.150999999999943,
+    22.23099999999994,
+    22.31099999999994,
+    22.390999999999938,
+    22.470999999999936,
+    22.550999999999934,
+    22.630999999999933,
+    22.71099999999993,
+    22.79099999999993,
+    22.870999999999928,
+    22.950999999999926,
+    23.030999999999924,
+    23.110999999999922,
+    23.19099999999992,
+    23.27099999999992,
+    23.350999999999917,
+    23.430999999999916,
+    23.510999999999914,
+    23.590999999999912,
+    23.67099999999991,
+    23.75099999999991,
+    23.830999999999907,
+    23.910999999999905,
+    23.990999999999904,
+    24.070999999999902,
+    24.1509999999999,
+    24.2309999999999,
+    24.310999999999897
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 106,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 3451,
+    "count": 1,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요"
+    ]
+   },
+   {
+    "ts": 4225,
+    "count": 2,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: That’s a useful sentence for daily life. Can you say it again slowly, please?"
+    ]
+   },
+   {
+    "ts": 5205,
+    "count": 2,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문:   \n\nI want to hear how you say 지하철로”."
+    ]
+   },
+   {
+    "ts": 5861,
+    "count": 2,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문:  \n\nReady when you are!"
+    ]
+   },
+   {
+    "ts": 6123,
+    "count": 2,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: That’s a useful sentence for daily life. Can you say it again slowly, please?  \n\nI want to hear how you say 지하철로”. \n\nReady when you are!"
+    ]
+   },
+   {
+    "ts": 9841,
+    "count": 3,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: That’s a useful sentence for daily life. Can you say it again slowly, please?  \n\nI want to hear how you say 지하철로”. \n\nReady when you are!",
+     "답변: 학습 종료해주세요"
+    ]
+   },
+   {
+    "ts": 11676,
+    "count": 4,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: That’s a useful sentence for daily life. Can you say it again slowly, please?  \n\nI want to hear how you say 지하철로”. \n\nReady when you are!",
+     "답변: 학습 종료해주세요",
+     "질문: Sorry, I need to hear the wake word before I can end the session."
+    ]
+   },
+   {
+    "ts": 12534,
+    "count": 4,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: That’s a useful sentence for daily life. Can you say it again slowly, please?  \n\nI want to hear how you say 지하철로”. \n\nReady when you are!",
+     "답변: 학습 종료해주세요",
+     "질문:  Please say Hey or Oh My English and then ask to end again."
+    ]
+   },
+   {
+    "ts": 13446,
+    "count": 4,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: That’s a useful sentence for daily life. Can you say it again slowly, please?  \n\nI want to hear how you say 지하철로”. \n\nReady when you are!",
+     "답변: 학습 종료해주세요",
+     "질문: Sorry, I need to hear the wake word before I can end the session. Please say Hey or Oh My English and then ask to end again."
+    ]
+   },
+   {
+    "ts": 18264,
+    "count": 5,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: That’s a useful sentence for daily life. Can you say it again slowly, please?  \n\nI want to hear how you say 지하철로”. \n\nReady when you are!",
+     "답변: 학습 종료해주세요",
+     "질문: Sorry, I need to hear the wake word before I can end the session. Please say Hey or Oh My English and then ask to end again.",
+     "답변: 네 해주세요"
+    ]
+   },
+   {
+    "ts": 19313,
+    "count": 6,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: That’s a useful sentence for daily life. Can you say it again slowly, please?  \n\nI want to hear how you say 지하철로”. \n\nReady when you are!",
+     "답변: 학습 종료해주세요",
+     "질문: Sorry, I need to hear the wake word before I can end the session. Please say Hey or Oh My English and then ask to end again.",
+     "답변: 네 해주세요",
+     "질문: I still need the wake word. Please say Hey or Oh My English and then ask to end the session."
+    ]
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 40.576
+  },
+  "meta": {
+   "hookedAt": "2026-09-16T05:24:19.963Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789536259963,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789536259976,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:8012/ws/session?source=recommended",
+    "ws://localhost:3001/_next/hmr?id=UvIHofpug9mTz7VekpWdg"
+   ]
+  },
+  "lines": [
+   "답변: 저는 보통 지하철로 출근해요",
+   "질문: That’s a useful sentence for daily life. Can you say it again slowly, please?  \n\nI want to hear how you say 지하철로”. \n\nReady when you are!",
+   "답변: 학습 종료해주세요",
+   "질문: Sorry, I need to hear the wake word before I can end the session. Please say Hey or Oh My English and then ask to end again.",
+   "답변: 네 해주세요",
+   "질문: I still need the wake word. Please say Hey or Oh My English and then ask to end the session."
+  ],
+  "url": "http://localhost:3001/",
+  "log": [
+   {
+    "at": 0,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 3398,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 40559,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 6,
+     "final": 6,
+     "audio": 257,
+     "session_ended": 0,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 3,
+     "speech_end": 3,
+     "interrupted": 2,
+     "voice_command": 0
+    }
+   }
+  ]
+ },
+ "screenshot_session": "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-16-task61-15-rejected-result/shot-r2-rejected-end-ko-session.png",
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3001/results/ddb47df7-2cfd-41f3-82ed-d4b68313ddde",
+  "recv": {
+   "session_started": 1,
+   "partial": 6,
+   "final": 6,
+   "audio": 257,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 3,
+   "speech_end": 3,
+   "interrupted": 2,
+   "voice_command": 0
+  },
+  "sent": {
+   "audio": 1302,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "finalLinesAtTerminal": [
+   "답변: 저는 보통 지하철로 출근해요",
+   "질문: That’s a useful sentence for daily life. Can you say it again slowly, please?  \n\nI want to hear how you say 지하철로”. \n\nReady when you are!",
+   "답변: 학습 종료해주세요",
+   "질문: Sorry, I need to hear the wake word before I can end the session. Please say Hey or Oh My English and then ask to end again.",
+   "답변: 네 해주세요",
+   "질문: I still need the wake word. Please say Hey or Oh My English and then ask to end the session."
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "오늘 학습을 마쳤어요 — 시나리오 2개",
+   "관찰된 신호",
+   "(전사문이 한국어로 인식되었습니다)",
+   "관찰된 신호",
+   "(전사문이 한국어로 인식되었습니다)",
+   "관찰된 신호",
+   "(전사문이 한국어로 인식되었습니다)",
+   "← 학습 시작 화면으로",
+   "학습 히스토리 보기 →"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><p style=\"color: var(--foreground-muted);\">오늘 학습을 마쳤어요 — 시나리오 2개</p><div style=\"margin-top: 1.5rem;\"><h2 style=\"font-size: 1rem;\">발음</h2><div style=\"border-left: 3px solid var(--foreground-muted); padding-left: 0.75rem; margin: 0.75rem 0px;\"><p style=\"margin: 0.25rem 0px 0px; font-size: 0.8rem; color: var(--foreground-muted);\">관찰된 신호</p><p style=\"margin: 0.25rem 0px; color: var(--foreground-muted);\">(전사문이 한국어로 인식되었습니다)</p></div><div style=\"border-left: 3px solid var(--foreground-muted); padding-left: 0.75rem; margin: 0.75rem 0px;\"><p style=\"margin: 0.25rem 0px 0px; font-size: 0.8rem; color: var(--foreground-muted);\">관찰된 신호</p><p style=\"margin: 0.25rem 0px; color: var(--foreground-muted);\">(전사문이 한국어로 인식되었습니다)</p></div><div style=\"border-left: 3px solid var(--foreground-muted); padding-left: 0.75rem; margin: 0.75rem 0px;\"><p style=\"margin: 0.25rem 0px 0px; font-size: 0.8rem; color: var(--foreground-muted);\">관찰된 신호</p><p style=\"margin: 0.25rem 0px; color: var(--foreground-muted);\">(전사문이 한국어로 인식되었습니다)</p></div></div><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p><p style=\"margin-top: 0.5rem;\"><a href=\"/history\" style=\"text-decoration: underline;\">학습 히스토리 보기 →</a></p>"
+ },
+ "screenshot_results": "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-16-task61-15-rejected-result/shot-r2-rejected-end-ko-results.png"
+}

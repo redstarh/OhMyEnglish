@@ -1,0 +1,423 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3001/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/vc13_learning_en.wav",
+  "urls": [
+   "/harness/vc13_learning_en.wav",
+   "/harness/vc33_hey_end_en.wav",
+   "/harness/vc20_yes_en.wav"
+  ],
+  "count": 3,
+  "bytes": 161764,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 4.671,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0,
+  "plays": []
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 3,
+   "final": 5,
+   "audio": 130,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 3,
+   "speech_end": 3,
+   "interrupted": 1,
+   "voice_command": 2
+  },
+  "sent": {
+   "audio": 505,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "startedSessionId": "2ddc0318-e6e1-4d70-995b-b19f7880469b",
+  "fixture": {
+   "url": "/harness/vc13_learning_en.wav",
+   "urls": [
+    "/harness/vc13_learning_en.wav",
+    "/harness/vc33_hey_end_en.wav",
+    "/harness/vc20_yes_en.wav"
+   ],
+   "count": 3,
+   "bytes": 161764,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 4.671,
+   "startedAt": 107,
+   "endedAt": 14218,
+   "micCalls": 1,
+   "plays": [
+    {
+     "index": 0,
+     "url": "/harness/vc13_learning_en.wav",
+     "startedAt": 107,
+     "endedAt": 2058,
+     "gate": null
+    },
+    {
+     "index": 1,
+     "url": "/harness/vc33_hey_end_en.wav",
+     "startedAt": 7643,
+     "endedAt": 9045,
+     "gate": {
+      "heardAgentAudio": true,
+      "audioAtGate": 112,
+      "finalAtGate": 2,
+      "waitedMs": 7536
+     }
+    },
+    {
+     "index": 2,
+     "url": "/harness/vc20_yes_en.wav",
+     "startedAt": 12896,
+     "endedAt": 14218,
+     "gate": {
+      "heardAgentAudio": true,
+      "audioAtGate": 130,
+      "finalAtGate": 4,
+      "waitedMs": 5253
+     }
+    }
+   ]
+  },
+  "started": {
+   "count": 133,
+   "when": [
+    0,
+    4.024,
+    4.103,
+    4.183,
+    4.263,
+    4.343,
+    4.423,
+    4.503,
+    4.583,
+    4.663,
+    4.743,
+    4.823,
+    4.9030000000000005,
+    4.9830000000000005,
+    5.063000000000001,
+    5.143000000000001,
+    5.223000000000001,
+    5.303000000000001,
+    5.383000000000001,
+    5.463000000000001,
+    5.543000000000001,
+    5.623000000000001,
+    5.703000000000001,
+    5.783000000000001,
+    5.863000000000001,
+    5.943000000000001,
+    6.0230000000000015,
+    6.1030000000000015,
+    6.183000000000002,
+    6.263000000000002,
+    6.343000000000002,
+    6.423000000000002,
+    6.503000000000002,
+    6.583000000000002,
+    6.663000000000002,
+    6.743000000000002,
+    6.823000000000002,
+    6.903000000000002,
+    6.983000000000002,
+    7.063000000000002,
+    7.1430000000000025,
+    7.2230000000000025,
+    7.303000000000003,
+    7.383000000000003,
+    7.463000000000003,
+    7.543000000000003,
+    7.623000000000003,
+    7.703000000000003,
+    7.783000000000003,
+    7.863000000000003,
+    7.943000000000003,
+    8.023000000000003,
+    8.264000000000003,
+    8.343000000000004,
+    8.423000000000004,
+    8.503000000000004,
+    8.583000000000004,
+    8.663000000000004,
+    8.743000000000004,
+    8.823000000000004,
+    8.903000000000004,
+    8.983000000000004,
+    9.063000000000004,
+    9.143000000000004,
+    9.223000000000004,
+    9.303000000000004,
+    9.383000000000004,
+    9.463000000000005,
+    9.543000000000005,
+    9.623000000000005,
+    9.703000000000005,
+    9.783000000000005,
+    9.863000000000005,
+    9.943000000000005,
+    10.023000000000005,
+    10.103000000000005,
+    10.183000000000005,
+    10.263000000000005,
+    10.343000000000005,
+    10.423000000000005,
+    10.503000000000005,
+    10.583000000000006,
+    10.663000000000006,
+    10.743000000000006,
+    10.823000000000006,
+    10.903000000000006,
+    10.983000000000006,
+    11.063000000000006,
+    11.143000000000006,
+    11.223000000000006,
+    11.303000000000006,
+    11.383000000000006,
+    11.463000000000006,
+    11.543000000000006,
+    11.623000000000006,
+    11.703000000000007,
+    11.783000000000007,
+    11.863000000000007,
+    11.943000000000007,
+    12.023000000000007,
+    12.103000000000007,
+    12.183000000000007,
+    12.263000000000007,
+    12.343000000000007,
+    12.423000000000007,
+    12.503000000000007,
+    12.583000000000007,
+    12.663000000000007,
+    12.743000000000007,
+    12.823000000000008,
+    12.903000000000008,
+    12.983000000000008,
+    13.063000000000008,
+    0,
+    11.064,
+    11.143,
+    11.223,
+    11.303,
+    11.383000000000001,
+    11.463000000000001,
+    11.543000000000001,
+    11.623000000000001,
+    11.703000000000001,
+    11.783000000000001,
+    11.863000000000001,
+    11.943000000000001,
+    12.023000000000001,
+    12.103000000000002,
+    12.183000000000002,
+    12.263000000000002,
+    12.343000000000002,
+    12.543000000000001,
+    0
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 97,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 3170,
+    "count": 1,
+    "texts": [
+     "답변: i usually take the subway to work."
+    ]
+   },
+   {
+    "ts": 3972,
+    "count": 2,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: That is very helpful to know. Can you tell me what kind of food you like to eat for dinner?"
+    ]
+   },
+   {
+    "ts": 4969,
+    "count": 2,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문:   For example, do you prefer Korean food, or do you like Italian or Mexican food?"
+    ]
+   },
+   {
+    "ts": 6142,
+    "count": 2,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: That is very helpful to know. Can you tell me what kind of food you like to eat for dinner?  For example, do you prefer Korean food, or do you like Italian or Mexican food?"
+    ]
+   },
+   {
+    "ts": 9857,
+    "count": 3,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: That is very helpful to know. Can you tell me what kind of food you like to eat for dinner?  For example, do you prefer Korean food, or do you like Italian or Mexican food?",
+     "답변: hey, end the session."
+    ]
+   },
+   {
+    "ts": 11015,
+    "count": 4,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: That is very helpful to know. Can you tell me what kind of food you like to eat for dinner?  For example, do you prefer Korean food, or do you like Italian or Mexican food?",
+     "답변: hey, end the session.",
+     "질문: Do you want to end today's session?"
+    ]
+   },
+   {
+    "ts": 15723,
+    "count": 5,
+    "texts": [
+     "답변: i usually take the subway to work.",
+     "질문: That is very helpful to know. Can you tell me what kind of food you like to eat for dinner?  For example, do you prefer Korean food, or do you like Italian or Mexican food?",
+     "답변: hey, end the session.",
+     "질문: Do you want to end today's session?",
+     "답변: yes, please do."
+    ]
+   },
+   {
+    "ts": 16297,
+    "count": 0,
+    "texts": []
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 35.717333333333336
+  },
+  "meta": {
+   "hookedAt": "2026-09-16T05:25:06.167Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789536306168,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789536306178,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3001/_next/hmr?id=dgHtatKnzWM-Op3UiWmhL",
+    "ws://localhost:8012/ws/session?source=recommended"
+   ]
+  },
+  "lines": [],
+  "url": "http://localhost:3001/results/2ddc0318-e6e1-4d70-995b-b19f7880469b",
+  "log": [
+   {
+    "at": 0,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 3065,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 35700,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 3,
+     "final": 5,
+     "audio": 130,
+     "session_ended": 1,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 3,
+     "speech_end": 3,
+     "interrupted": 1,
+     "voice_command": 2
+    }
+   }
+  ]
+ },
+ "screenshot_session": "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-16-task61-15-rejected-result/shot-r3-accepted-end-en-session.png",
+ "end_click": {
+  "attempted": true,
+  "ok": false,
+  "error": "클릭 대상을 찾지 못했다: 학습 종료 (None)"
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3001/results/2ddc0318-e6e1-4d70-995b-b19f7880469b",
+  "recv": {
+   "session_started": 1,
+   "partial": 3,
+   "final": 5,
+   "audio": 130,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 3,
+   "speech_end": 3,
+   "interrupted": 1,
+   "voice_command": 2
+  },
+  "sent": {
+   "audio": 505,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "finalLinesAtTerminal": [
+   "답변: i usually take the subway to work.",
+   "질문: That is very helpful to know. Can you tell me what kind of food you like to eat for dinner?  For example, do you prefer Korean food, or do you like Italian or Mexican food?",
+   "답변: hey, end the session.",
+   "질문: Do you want to end today's session?",
+   "답변: yes, please do."
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "오늘 학습을 마쳤어요 — 시나리오 3개",
+   "← 학습 시작 화면으로",
+   "학습 히스토리 보기 →"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><p style=\"color: var(--foreground-muted);\">오늘 학습을 마쳤어요 — 시나리오 3개</p><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p><p style=\"margin-top: 0.5rem;\"><a href=\"/history\" style=\"text-decoration: underline;\">학습 히스토리 보기 →</a></p>"
+ },
+ "screenshot_results": "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-16-task61-15-rejected-result/shot-r3-accepted-end-en-results.png"
+}

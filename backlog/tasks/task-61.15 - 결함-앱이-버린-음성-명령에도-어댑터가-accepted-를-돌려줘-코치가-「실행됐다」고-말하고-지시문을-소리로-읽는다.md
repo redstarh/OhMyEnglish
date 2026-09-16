@@ -1,10 +1,10 @@
 ---
 id: TASK-61.15
 title: '결함: 앱이 버린 음성 명령에도 어댑터가 accepted 를 돌려줘 코치가 「실행됐다」고 말하고 지시문을 소리로 읽는다'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-15 23:17'
-updated_date: '2026-09-16 05:21'
+updated_date: '2026-09-16 05:27'
 labels: []
 dependencies: []
 parent_task_id: TASK-61
@@ -51,4 +51,9 @@ ordinal: 190000
 단정 다섯 신설: 보고 전에는 결과가 안 나감 · 이벤트가 tool_use_id 를 실음 · 보고 뒤 accepted · 거절 시 rejected+reason · 두 번 보고해도 결과는 한 번. 통합 단정 둘: 버린 명령이 거절로 보고됨 · 정상 명령이 실행으로 보고됨.
 게이트 여섯 초록 — pytest 1263 passed · ruff · format 49 files · ty · tsc 0 · eslint 0.
 AC#4(고치면 실물 회차로 관측)는 다음 단계임.
+
+2026-09-16 — AC#4 를 닫고 태스크를 닫았음. 정본은 runs/2026-09-16-task61-15-rejected-result 임.
+같은 조건·같은 픽스처로 앞 회차와 대조했음: 코치의 말이 「Okay, the session has ended」(4/4) 에서 「I still need the wake word …」(2/2) 로 바뀌었고 앱의 상태와 일치함. 정상 경로도 살아 있음 — 표지 있는 팔에서 executed=True 두 건이 나가고 세션이 실제로 닫혔음(결정 109 가 고친 침묵이 되돌아오지 않았음).
+보고 누락 0건(제어 이벤트 5 = 실행 보고 5 · 「실행 보고를 못 받은 제어 tool」 warning 0건).
+⚠️ 표본은 팔 셋이고 결정 112 는 그대로임 — 보이는 보장은 화면 알림이 갖음.
 <!-- SECTION:NOTES:END -->
