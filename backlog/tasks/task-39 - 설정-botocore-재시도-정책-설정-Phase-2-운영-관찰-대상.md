@@ -4,7 +4,7 @@ title: '설정: botocore 재시도 정책 설정 (Phase 2 운영 관찰 대상)'
 status: To Do
 assignee: []
 created_date: '2026-09-07 17:50'
-updated_date: '2026-09-14 14:27'
+updated_date: '2026-09-16 00:56'
 labels: []
 dependencies: []
 ordinal: 42000
@@ -44,4 +44,6 @@ read_timeout 을 «늘린» 근거: 계획 크기 호출(14,538자 · 입력 6,1
 게이트: pytest 987 passed(12.66s) · ruff check 0 · format --check 38 files · 게이트 밖 ruff 0 · ty 0. ⚠️ 게이트 밖 format --check 에서 내 파일 둘이 걸렸고 고쳤음 — 앞 마감 게이트에서 그 항목을 빠뜨렸던 것임(남은 1건은 동료 세션 파일).
 
 2026-09-14 KST 세션 ohmyenglish-65 — AC#2(스로틀 재현·관찰)를 사용자가 보류했음(결정 96). Phase 2 운영 관찰 시점의 사안이고 그때까지 To Do 로 둠.
+
+2026-09-16 — 사용자 판단으로 AC#2 를 「운영 관찰 시점」에 하는 것으로 확정했음(결정 115 의 「같은 턴에 함께 정한 것」). 지금 스로틀을 재현하지 않고 그대로 파킹함.
 <!-- SECTION:NOTES:END -->

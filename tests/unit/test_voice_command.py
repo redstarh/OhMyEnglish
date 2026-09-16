@@ -136,3 +136,58 @@ def test_the_korean_transcription_variant_is_accepted() -> None:
     못 박는다 — 한 표기만 받으면 다른 표기가 조용히 학습 발화로 저장된다.
     """
     assert is_wake_command("오마이 잉글리쉬, 종료.") is True
+
+
+def test_the_short_wake_words_are_accepted(
+) -> None:
+    """결정 114 — 표지를 「헤이」·「헬로」 계열로 단순화했다 (`TASK-61.17`).
+
+    ⛔ **바꾼 것은 표지의 «형태» 하나다** — 「표지를 앱이 판정한다」(결정 102 ①·104 D5)는 그대로다.
+    근거: 앱 이름 표지가 영어에서 2회 중 1회 인식되지 않았고
+    (`runs/2026-09-16-task61-15-accepted-without-execution` §3-①) 그 실패가 결함의 트리거였다.
+    """
+    assert is_wake_command("Hey, end the session.") is True
+    assert is_wake_command("Hello, show my weekly report.") is True
+    assert is_wake_command("헤이, 학습 종료할게.") is True
+    assert is_wake_command("헬로, 다음 문제.") is True
+
+
+def test_the_hello_variant_with_a_trailing_vowel_is_accepted() -> None:
+    """ASR 이 「헬로우」로 적는 경우 — 앞자리 검사가 그것을 함께 받는다.
+
+    ⚠️ `잉글리시`·`잉글리쉬` 를 둘 다 받은 것과 같은 이유다: 한 표기만 받으면 다른 표기가 조용히
+    학습 발화로 저장된다.
+    """
+    assert is_wake_command("헬로우 학습 종료.") is True
+
+
+def test_the_app_name_wake_phrase_still_works_after_the_simplification() -> None:
+    """⛔ 단순화가 기존 표지를 깨지 않는다 (`TASK-61.17` AC#2).
+
+    이미 만들어 둔 픽스처(`vc01`·`vc03` 계열)와 이전 회차의 관측이 앱 이름 표지에 걸려 있어,
+    그것을 떨어뜨리면 **회귀를 회귀로 알아볼 수 없게 된다.**
+    """
+    assert is_wake_command("Oh My English, end the session.") is True
+    assert is_wake_command("오 마이 잉글리시, 학습 종료할게.") is True
+
+
+def test_a_short_wake_word_in_the_middle_is_still_not_a_marker() -> None:
+    """⛔ 맨 앞 검사는 단순화 뒤에도 유지된다 — 이것이 이 값역의 판별력이다.
+
+    「헤이」·「헬로」는 짧아서 문장 가운데 들어갈 확률이 앱 이름보다 훨씬 높다. 포함 검사로 바꾸면
+    이 두 발화가 명령이 되고, 대화 도중에 세션이 닫힌다.
+    """
+    assert is_wake_command("I said hello to my boss this morning.") is False
+    assert is_wake_command("친구에게 헬로라고 인사했어요.") is False
+
+
+def test_a_greeting_now_counts_as_a_marker_and_that_cost_is_accepted() -> None:
+    """⚠️ **결정 114 가 알고 받은 대가를 여기 못 박는다 — 숨기지 않는다.**
+
+    「Hello」·「Hey」는 영어 학습자가 가장 자주 말하는 첫마디라 학습 발화가 표지를 얻는다. 표지만으로는
+    아무것도 실행되지 않지만(모델이 tool 을 불러야 한다) 그 발화는 `voice_command` 로 저장되어
+    **분석에서 빠진다**(`services/utterances.py` 가 `learning` 만 분석 대상으로 본다).
+    ⇒ 이 단정이 깨지는 방향으로 값역을 좁히려면 **그 크기를 먼저 실물 회차로 재고** 결정 114 를
+    다시 올린다(`TASK-61.17` AC#4).
+    """
+    assert is_wake_command("Hello, my name is Jin.") is True

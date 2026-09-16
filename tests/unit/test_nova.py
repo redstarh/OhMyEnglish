@@ -2234,6 +2234,24 @@ def test_system_prompt_tells_the_coach_the_command_marker_and_the_confirmation()
     assert "confirmed" in SYSTEM_PROMPT
 
 
+def test_the_prompt_names_the_simplified_wake_words_and_excludes_a_bare_greeting():
+    """결정 114 (`TASK-61.17`) — 표지가 「헤이」·「헬로」 계열로 단순화됐고 지시문이 그것을 알아야 한다.
+
+    ⛔ **앱만 고치면 명령이 조용히 사라진다** — 표지 판정은 앱이 갖지만 tool 을 부르는 주체는 모델이다.
+    두 곳의 값역이 갈리면 학습자가 표지를 말했는데 tool 이 오지 않는다.
+    ⚠️ 그리고 **인사만 있는 발화는 명령이 아니라는 것**을 문면이 말해야 한다 — 그것이 결정 114 가
+    알고 받은 대가(오탐)를 모델 층에서 줄이는 수단이다. 앱 층에서는 줄일 수 없다: 표지 검사는
+    「맨 앞에 왔는가」만 보고 뒤에 무엇이 오는지 해석하지 않는다.
+    """
+    lowered = " ".join(SYSTEM_PROMPT.lower().split())
+
+    assert '"hey"' in lowered
+    assert '"hello"' in lowered
+    # 기존 표지도 남는다 — 픽스처와 이전 회차의 관측이 그것에 걸려 있다.
+    assert "oh my english" in lowered
+    assert "a greeting alone is not a command" in lowered
+
+
 def test_the_prompt_names_both_commands_and_only_end_needs_confirmation():
     """결정 107 — 둘째 명령이 지시문에 들어오고 확인은 종료에만 붙는다.
 
