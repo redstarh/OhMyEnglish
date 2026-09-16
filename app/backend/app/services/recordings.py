@@ -27,6 +27,8 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import asyncpg
 
+from app.services.sessions import LIVE_SESSION_STATUSES, LIVE_SESSION_STATUSES_SQL
+
 logger = logging.getLogger(__name__)
 
 # 헤더가 없으므로 파라미터를 Content-Type 이 싣는다 (§4.4). 프론트는 `<audio src>` 가 아니라
@@ -47,27 +49,37 @@ update utterances
 
 # 녹음이 남아 있는 사용자와 그 타임존. **사용자별로 경계를 따로 계산하기 위한 목록이다**
 # (§5.2 의 이유 1 — 잘못된 tz 값이 한 사람만 막게 한다).
-_SELECT_PURGE_USERS_SQL = """
+#
+# ⛔ **「끝난 세션」을 `<> 'active'` 로 재지 않는다** (`TASK-140`). 025(결정 117)가 `paused` 를
+# 더해 살아 있는 상태가 둘이 됐고, 정지는 §5.4 의 예외가 지키려던 바로 그 상황이다 —
+# 학습자가 자리를 비웠다 돌아와 이어 한다. `<> 'active'` 로 두었을 때 자정을 넘겨 정지 중인
+# 세션의 녹음이 `completed` 와 똑같이 지워지는 것을 실물로 관측했다
+# (`runs/2026-09-16-task140-paused-recording-purge`). 값역의 정본은 `services/sessions.py` 다.
+_SELECT_PURGE_USERS_SQL = f"""
 select distinct usr.id as user_id, usr.timezone
   from utterances u
   join learning_sessions s on s.id = u.session_id
   join users usr on usr.id = s.user_id
  where u.audio_url is not null
    and u.utterance_type = 'shadowing_recording'
-   and s.status <> 'active'
+   and s.status not in {LIVE_SESSION_STATUSES_SQL}
  order by usr.id
 """
 
 # `created_at < $2` 가 011 의 부분 인덱스(`utterances_stored_audio_idx`)를 탄다 — 그것이 경계를
 # SQL 의 `AT TIME ZONE` 으로 구하지 않은 둘째 이유다(§5.2).
-_SELECT_EXPIRED_RECORDINGS_SQL = """
+#
+# ⛔ **살아 있는 상태를 위 목록과 «각자» 판정한다** — 그래서 여기도 같은 정본을 읽어야 한다.
+# 끝난 세션 하나가 학습자를 목록에 올리면 그 학습자의 **정지 세션 녹음까지** 이 조회가 고른다
+# (`TASK-140` · 진행 중 세션에 같은 형태의 단정이 이미 있었다).
+_SELECT_EXPIRED_RECORDINGS_SQL = f"""
 select u.id, u.session_id
   from utterances u
   join learning_sessions s on s.id = u.session_id
  where u.audio_url is not null
    and u.utterance_type = 'shadowing_recording'
    and s.user_id = $1
-   and s.status <> 'active'
+   and s.status not in {LIVE_SESSION_STATUSES_SQL}
    and u.created_at < $2
  order by u.created_at, u.id
  limit $3
@@ -311,8 +323,11 @@ async def load_recording(
     기동 여부에 걸린 약속**이 된다. 그래서 조회가 **스윕과 같은 함수**(`day_start_for`)를 다시
     계산해 스스로 닫는다 — 두 곳에서 각자 계산하면 갈라진다.
 
-    ⚠️ **§5.4 의 예외를 여기서 함께 적용한다**: 세션이 `active` 면 만료를 재지 않는다. 자정을
+    ⚠️ **§5.4 의 예외를 여기서 함께 적용한다**: 세션이 **살아 있으면** 만료를 재지 않는다. 자정을
     넘기며 진행되는 세션의 녹음을 막으면 학습자가 **지금 비교하려는 것**이 사라진다.
+    ⛔ **`active` 하나로 재지 않는다** (`TASK-140`) — 025 가 `paused` 를 더했고 정지는 「자리를
+    비웠다 돌아온다」이므로 이 예외가 지키려는 상황 그 자체다. 값역의 정본은 `services/sessions.py`
+    의 `LIVE_SESSION_STATUSES` 이고 스윕도 같은 이름을 읽는다 — 두 곳이 각자 적으면 다시 갈린다.
 
     ⛔ **④ 는 닫는 쪽으로 넘어진다.** `users.timezone` 에 CHECK 가 없어 잘못된 값이 실재할 수
     있고, 그때 바이트를 내주면 삭제 약속이 설정값 하나로 무력화된다. **삭제 스윕은 반대로 그
@@ -325,7 +340,7 @@ async def load_recording(
     row = await conn.fetchrow(_SELECT_RECORDING_SQL, session_id, utterance_id)
     if row is None or row["audio_url"] is None:
         return None
-    if row["status"] != "active" and _has_expired(row, now=now):
+    if row["status"] not in LIVE_SESSION_STATUSES and _has_expired(row, now=now):
         return None
     path = recording_path(root, session_id, utterance_id)
     if not path.is_file():

@@ -423,6 +423,26 @@ async def test_load_still_serves_a_past_day_recording_while_the_session_runs(
 
 
 @pytest.mark.asyncio
+async def test_load_still_serves_a_past_day_recording_while_the_session_is_paused(
+    db_conn: asyncpg.Connection, tmp_path: Path
+) -> None:
+    """⛔ **정지도 「진행 중」이다** — 025(결정 117)가 살아 있는 상태를 둘로 넓혔다.
+
+    정지는 「잠깐 자리를 비운다」이고 학습자는 **돌아와 이어 한다**(소켓이 살아 있어 고아 리퍼도
+    걷지 않는다). 그 사이 자정이 지나면 이 판정이 걸리는데, `active` 하나로 재면 **학습자가 지금
+    비교하려는 녹음이 사라진다** — 위 단정이 막으려던 것과 같은 손실이다.
+    `TASK-140` 회차가 실물로 관측했다(`runs/2026-09-16-task140-paused-recording-purge`).
+    """
+    session_id = await _new_shadowing_session(db_conn, status="paused")
+    utterance_id = await _new_recording_utterance(
+        db_conn, session_id, created_at=datetime(2026, 9, 7, 14, 58, tzinfo=UTC)
+    )
+    await _stored(db_conn, tmp_path, session_id, utterance_id)
+
+    assert await load_recording(db_conn, tmp_path, session_id, utterance_id, now=NOON_KST) == FRAMES
+
+
+@pytest.mark.asyncio
 async def test_load_serves_a_recording_made_today_in_the_learner_timezone(
     db_conn: asyncpg.Connection, tmp_path: Path
 ) -> None:
@@ -545,6 +565,52 @@ async def test_purge_spares_a_running_session(db_conn: asyncpg.Connection, tmp_p
     audio_url, exists = await _pointer_and_file(db_conn, tmp_path, session_id, utterance_id)
     assert audio_url is not None
     assert exists
+
+
+@pytest.mark.asyncio
+async def test_purge_spares_a_paused_session(db_conn: asyncpg.Connection, tmp_path: Path) -> None:
+    """⛔ **정지 세션도 §5.4 의 예외다** (025 · 결정 117).
+
+    사용자 목록 조회가 「끝난 세션」을 `status <> 'active'` 로 재면 정지 세션만 가진 학습자가
+    목록에 올라오고, 그 뒤 대상 조회가 그 녹음을 골라 **바이트를 지운다** — 되돌릴 수 없다.
+    """
+    session_id = await _new_shadowing_session(db_conn, status="paused")
+    utterance_id = await _new_recording_utterance(
+        db_conn, session_id, created_at=datetime(2026, 9, 6, 3, 0, tzinfo=UTC)
+    )
+    await _stored(db_conn, tmp_path, session_id, utterance_id)
+
+    assert await purge_expired_recordings(db_conn, tmp_path, now=NOON_KST) == []
+    audio_url, exists = await _pointer_and_file(db_conn, tmp_path, session_id, utterance_id)
+    assert audio_url is not None
+    assert exists
+
+
+@pytest.mark.asyncio
+async def test_purge_spares_the_paused_session_of_a_learner_who_also_has_a_finished_one(
+    db_conn: asyncpg.Connection, tmp_path: Path
+) -> None:
+    """⛔ **정지 예외를 대상 조회 쪽에도 둔다** — 위 단정만으로는 그 자리가 지켜지지 않는다.
+
+    끝난 세션이 학습자를 목록에 올리므로, 대상 조회가 `status <> 'active'` 로 남아 있으면 같은
+    학습자의 **정지 세션 녹음까지 함께 지워진다.** 진행 중 세션에 같은 배치의 단정이 있는 이유와
+    같다(바로 위 짝) — 두 조회가 각자 판정하므로 한쪽만 고치면 조용히 새어 나간다.
+    """
+    learner = await _new_learner(db_conn, timezone="Asia/Seoul", uuid_prefix="00000004")
+    finished = await _new_shadowing_session(db_conn, status="completed", user_id=learner)
+    paused = await _new_shadowing_session(db_conn, status="paused", user_id=learner)
+    long_ago = datetime(2026, 9, 6, 3, 0, tzinfo=UTC)
+    finished_utterance = await _new_recording_utterance(db_conn, finished, created_at=long_ago)
+    paused_utterance = await _new_recording_utterance(db_conn, paused, created_at=long_ago)
+    await _stored(db_conn, tmp_path, finished, finished_utterance)
+    await _stored(db_conn, tmp_path, paused, paused_utterance)
+
+    assert await purge_expired_recordings(db_conn, tmp_path, now=NOON_KST) == [finished_utterance]
+    paused_pointer, paused_file = await _pointer_and_file(
+        db_conn, tmp_path, paused, paused_utterance
+    )
+    assert paused_pointer is not None
+    assert paused_file
 
 
 @pytest.mark.asyncio

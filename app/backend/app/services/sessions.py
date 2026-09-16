@@ -171,7 +171,13 @@ returning id
 # 않는 것**이고(리퍼가 찍은 `failed`) `paused` 는 같은 소켓이 소유한 **살아 있는** 상태다. 이 값을
 # 빼면 정지 중에 「학습 종료」를 누른 세션이 **영구히 `paused` 로 남는다** — 회복 스윕은 그것을 끝난
 # 세션으로 보지 않으므로(허용 목록) 분석도 걸리지 않는다.
-_LIVE_SESSION_STATUSES = "('active', 'paused')"
+#
+# ⛔ **정본은 이 튜플이고 SQL 조각은 그것에서 유도된다 — 문자열을 두 곳에 적지 않는다.**
+# 025 가 값역을 넓힐 때 세션 층만 고치고 **녹음 층을 지나쳐** 정지 중인 세션의 녹음이 지워졌다
+# (`TASK-140` · `runs/2026-09-16-task140-paused-recording-purge`). 그래서 두 이름을 공개로 두고
+# `services/recordings.py` 가 이것을 읽는다 — 상태를 더할 때 고칠 자리가 하나여야 한다.
+LIVE_SESSION_STATUSES: tuple[str, ...] = ("active", "paused")
+LIVE_SESSION_STATUSES_SQL = "(" + ", ".join(f"'{status}'" for status in LIVE_SESSION_STATUSES) + ")"
 
 # 「일시 정지」·「학습 계속」의 UPDATE (결정 117 · 025). ⛔ 살아 있는 상태에서만 옮긴다 — 리퍼가
 # `failed` 로 닫은 세션을 정지 명령이 되살리면 그 판정이 사라진다. `returning id` 는 그 가드가
@@ -180,7 +186,7 @@ _SET_SESSION_PAUSED_SQL = f"""
 update learning_sessions
    set status = $2
  where id = $1
-   and status in {_LIVE_SESSION_STATUSES}
+   and status in {LIVE_SESSION_STATUSES_SQL}
 returning id
 """
 
@@ -189,7 +195,7 @@ update learning_sessions
    set status = $2,
        ended_at = now()
  where id = $1
-   and status in {_LIVE_SESSION_STATUSES}
+   and status in {LIVE_SESSION_STATUSES_SQL}
 returning id, mode
 """
 
@@ -200,7 +206,7 @@ _REAP_ORPHAN_SESSIONS_SQL = f"""
 update learning_sessions s
    set status = 'failed',
        ended_at = now()
- where s.status in {_LIVE_SESSION_STATUSES}
+ where s.status in {LIVE_SESSION_STATUSES_SQL}
    and not (s.id = any($1::uuid[]))
    and coalesce(
          (select max(u.created_at) from utterances u where u.session_id = s.id),
@@ -515,7 +521,7 @@ async def set_session_paused(conn: asyncpg.Connection, session_id: UUID, *, paus
     **연결을 받는 쪽이 원시 함수다** — 부르는 자리가 세션 러너의 이벤트 펌프이고 그 안에서 이미
     연결을 들고 있다(`end_session`·`save_final_transcript` 와 같은 규약).
 
-    ⛔ **살아 있는 상태에서만 옮긴다**(`_LIVE_SESSION_STATUSES`) — 리퍼가 `failed` 로 닫은 세션을
+    ⛔ **살아 있는 상태에서만 옮긴다**(`LIVE_SESSION_STATUSES`) — 리퍼가 `failed` 로 닫은 세션을
     정지 명령이 되살리면 그 판정이 사라진다. 0행이면 호출자가 **로그로 갚고 화면에 알리지 않는다**:
     상태가 안 바뀐 채 화면이 「멈췄어요」라고 말하면 결정 112 가 고친 갈림이 그대로 되돌아온다.
 

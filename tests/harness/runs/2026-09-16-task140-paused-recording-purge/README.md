@@ -107,3 +107,22 @@ rm -rf /tmp/t140-audio
 ```
 
 ⚠️ **뿌리를 인자로 준다** — 기본값을 쓰면 실물 `assets/audio` 를 지운다.
+
+## 6. 마감 — 고침과 단정 (결정 119)
+
+사용자가 **「세 자리 함께 + 단정 추가」**를 골랐고 **이 세션이 TDD 로 구현**했다(결정 119).
+
+- **정본을 하나로** 뒀다: `services/sessions.py` 의 `LIVE_SESSION_STATUSES` 튜플이 값역이고
+  `LIVE_SESSION_STATUSES_SQL` 이 그것에서 **유도**된다 — 문자열을 두 곳에 적지 않는다.
+- **고친 세 자리**: `_SELECT_PURGE_USERS_SQL` · `_SELECT_EXPIRED_RECORDINGS_SQL` ·
+  `load_recording`. 앞의 둘은 `not in {LIVE_SESSION_STATUSES_SQL}`, 마지막은 파이썬 쪽 검사다.
+- **박은 단정 셋**(RED 를 먼저 봤다 — 셋 다 기대한 이유로 실패했다):
+  `test_load_still_serves_a_past_day_recording_while_the_session_is_paused` ·
+  `test_purge_spares_a_paused_session` ·
+  `test_purge_spares_the_paused_session_of_a_learner_who_also_has_a_finished_one`.
+  ⛔ **셋째가 없으면 대상 조회 쪽이 지켜지지 않는다** — 끝난 세션이 학습자를 목록에 올리므로
+  둘째 단정만으로는 그 자리를 지우고도 통과한다(진행 중 세션의 같은 짝이 그 근거다).
+
+게이트(고친 뒤 직접 돌린 출력): `pytest` **1266 passed**(14.95s · 앞 판 1263 + 단정 3) ·
+`ruff check` 통과 · `ruff format --check` **49 files** · `ty check` 통과 ·
+`npx tsc --noEmit` **exit 0** · `npx eslint .` **exit 0**.
