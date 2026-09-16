@@ -1,10 +1,10 @@
 ---
 id: TASK-148
 title: '갈라냄: api/ws.py 의 도메인 정책 셋을 경계 밖으로 옮긴다 (고도 리뷰)'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-16 15:36'
-updated_date: '2026-09-16 23:36'
+updated_date: '2026-09-16 23:46'
 labels: []
 dependencies: []
 ordinal: 209000
@@ -18,7 +18,7 @@ R4(고도) 리뷰 발견 셋. ① _pronunciation_candidates(180-216)가 순수 �
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 셋 중 어느 것을 언제 할지 사용자가 정한다
+- [x] #1 셋 중 어느 것을 언제 할지 사용자가 정한다
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -64,4 +64,40 @@ R4(고도) 리뷰 발견 셋. ① _pronunciation_candidates(180-216)가 순수 �
 `ty` exit 0. ⚠️ `tests` 트리의 E501 17건은 그대로임 — `TASK-151` 의 범위임(파일별 개수까지 대조함).
 
 **남은 ②**: `session_socket` 의 모드별 정책을 services 쪽 표로 옮기는 것. ③ 이 그 준비였음.
+
+## ② 를 닫았음 (2026-09-17) — 정책 표와 그 표를 지키는 단정
+
+**`app/services/session_modes.py` 신설**: `SessionModePolicy`(frozen dataclass) + 진입 모드 넷의
+표 + `policy_for`. 필드 이름을 **소켓이 하는 일**로 두고 모드 이름으로 두지 않았음 —
+`opens_shadowing_session` · `writes_mode_to_row` · `records_drill_turns` ·
+`pronunciation_prompt` · `scenario_intake_prompt`.
+- `api/ws.py` 는 이제 `policy_for(requested_mode)` 한 번을 부르고 필드를 읽음. 모드 비교(`==`)가
+  0곳이 됐고 파일이 **513줄 → 418줄**이 됐음.
+- 「알 수 없는 mode」 경고는 소켓에 남겼음 — 오타 난 링크·낡은 화면은 전송 쪽 사건임. 표는
+  `None` 만 돌려주고 판단하지 않음.
+- 결정 이력(35·37·67·72·79)을 그 표의 주석으로 옮겼고 소켓에는 가리키는 한 줄만 남겼음.
+
+**⚠️ 이 회차의 실제 산출물은 표가 아니라 단정 하나임.** 표로 옮긴 뒤 필드를 하나씩 뒤집어
+게이트가 잡는지 계측했고, 「발음 모드가 드릴 턴을 기록하게」 뒤집은 변이가 **1279건 전부 통과**했음.
+쉐도잉 쪽 쌍둥이 단정만 있었고 발음 쪽이 비어 있었음 — 즉 결정 37 의 절반은 코드에만 있었음.
+`test_ws_does_not_record_the_exchange_count_for_a_pronunciation_session` 을 세웠고, 같은 변이를
+다시 걸어 **FAIL 하는 것을 확인**했음.
+
+**필드별 판별력 계측 (직접 돌린 결과)**:
+
+| 변이 | 결과 |
+|---|---|
+| 쉐도잉이 쉐도잉 세션을 안 연다 | 1 failed |
+| 발음이 전용 지시문을 안 쓴다 | 3 failed |
+| 무대 정하기가 질문 블록을 안 쓴다 | 1 failed |
+| 말하기가 드릴 턴을 안 적는다 | 1 failed |
+| 발음이 드릴 턴을 적는다 | **통과했음 → 단정을 세운 뒤 1 failed** |
+| 말하기가 세션 행에 mode 를 적는다 | 통과함 — ⛔ **구멍이 아님**: 001 의 기본값과 같은 값을 덮는 무해한 UPDATE 라 관측할 차이가 없음. 그래서 단정을 세우지 않았음 |
+
+**동작 보존 근거**: 네 진입 모드와 폴백이 전부 소켓을 지나가는 통합 테스트를 갖고 있음을 먼저
+확인했음(`test_ws.py` 의 쉐도잉 · 명시적 말하기 무경고 · 알 수 없는 모드 · 발음 · 무대 정하기).
+그 다섯이 없었으면 「1280 passed」는 거짓 신호였음.
+
+**게이트 일곱**: 수집 1280 · `pytest` 1280 passed · `ruff` 0 · `ruff format` 0 · `ty` 0 ·
+`tsc` 0 · `eslint` 0.
 <!-- SECTION:NOTES:END -->

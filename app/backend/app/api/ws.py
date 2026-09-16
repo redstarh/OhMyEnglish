@@ -48,15 +48,10 @@ from app.audio_gateway.session import SessionRunner
 from app.config import Settings, get_settings
 from app.models.plan import PlanQuestion
 from app.models.scenario import SessionScenario
-from app.models.session import (
-    PRONUNCIATION_MODE,
-    SCENARIO_INTAKE_MODE,
-    SHADOWING_MODE,
-    SPEAKING_MODE,
-)
 from app.models.user import FIXED_USER_ID
 from app.services.pronunciation import load_known_sounds, pronunciation_candidates
 from app.services.recordings import ShadowingTurns, load_session_clip
+from app.services.session_modes import DEFAULT_POLICY, policy_for
 from app.services.sessions import (
     PreparedPlan,
     create_session,
@@ -75,35 +70,9 @@ router = APIRouter()
 
 WS_SESSION_PATH = "/ws/session"
 
-# 소켓이 받는 **진입 모드** 목록. ⛔ **값역이 아니다** — 값역의 정본은 018 의
-# `learning_sessions_mode_check` 이고 그것을 파이썬에서 부르는 이름은 `models/session` 이 갖는다
-# (`TASK-148` ③ · 결정 122 로 그리 옮겼다. 이전에는 네 값이 이 파일과 `services/sessions` 로
-# 흩어져 있었다). 여기 없는 값역 하나는 `review` 다 — 진입점이 없어 그 값으로 붙으면 아래 경고가
-# 뜨고 말하기로 진행한다.
-# ⚠️ **`speaking` 이 이 목록에 있는 이유는 경고 하나 때문이다** — `?mode=speaking` 은 명시적
-# 선택이므로 「알 수 없는 mode」로 경고하면 안 된다(2026-09-09 리뷰 지적).
-ENTRY_MODES = (SPEAKING_MODE, SHADOWING_MODE, PRONUNCIATION_MODE, SCENARIO_INTAKE_MODE)
-
-# 모드마다 무엇이 달라지는지는 아래 `session_socket` 의 분기와 그 주석이 갖는다. 각 값이 걸고 있는
-# 결정을 여기 한 번에 남긴다 — 값 자체는 `models/session` 것이고 **그 뜻은 이 경로의 것**이다.
-#
-# `pronunciation` (`TASK-10.1`): 바꾸는 것은 **지시문**이고, `TASK-112`(결정 67 · 마이그레이션 014)
-# 이후로는 **세션 행의 `mode` 도** 같은 값으로 적힌다.
-# ⚠️ **이 서술은 한 번 뒤집혔고 그 사실을 남긴다** — 처음에는 *"세션 행의 mode 를 바꾸지 않는다
-# (001 값역 밖이고 값역을 늘리는 것은 이 태스크 범위 밖이다)"* 였다. 그 대가(결과 화면·집계가
-# 발음 세션을 말하기로 세는 것)를 사용자가 결정 67 로 갚기로 정했다.
-#
-# `scenario_intake` (`TASK-5` Task 6 · 사용자 결정 79 · 마이그레이션 018 이 값역을 열었다):
-# ⛔ **`?source=additional` 로는 이 진입을 가릴 수 없다** — 추가 학습 메뉴 여섯 가운데 다섯이 그
-# 값이고 그중 셋(자유 대화 · 약점 패턴 집중 · 질문 답변 5개)이 `mode` 를 갖지 않아 서로 구별되지
-# 않는다(그 설계서 §5 가 코드로 확인한 목록을 갖는다). 그 값으로 가르면 **자유 대화 세션에 질문
-# 5개 지시가 샌다.**
-# ⛔ **세션 행의 `mode` 를 반드시 적는다** — 발음 모드와 달리 이 값은 지시문만 바꾸는 것이 아니다.
-# 종료 경로가 `mode` 를 읽어 `generate_scenario` job 을 걸므로(설계서 §5 흐름 3) 적지 못하면
-# **질문은 했는데 무대가 만들어지지 않는다.** 그래서 **쓰는 값과 읽는 값이 같은 이름이어야 한다**:
-# `services/sessions.end_session` 이 `closed["mode"] == SCENARIO_INTAKE_MODE` 로 job 을 걸고, 그
-# 모듈도 이제 `models/session` 에서 그 이름을 받는다. 리터럴이 두 곳에 있으면 세션은 정상으로
-# 열리고 질문도 실리는데 **job 만 안 걸리고 게이트는 침묵한다.**
+# 모드별 정책은 `services/session_modes` 의 표가 갖는다 (`TASK-148` ② · 결정 122). 이 파일이 아는
+# 것은 「질의 문자열을 그 표에 물어본다」 하나이고, 각 모드가 무엇을 바꾸는지와 그 결정 이력
+# (결정 35·37·67·72·79)은 그 모듈의 주석이 소유한다 — 여기서 재서술하지 않는다.
 
 SESSION_CREATE_FAILED_REASON = "session_create_failed"
 ADAPTER_UNAVAILABLE_REASON = "voice_adapter_unavailable"
@@ -304,22 +273,18 @@ async def session_socket(websocket: WebSocket) -> None:
     # `active` 고아를 남기지 않는다 — 뒤로 밀면 행을 만든 뒤 터져서 고아가 생긴다.
     live_sessions: set[UUID] = websocket.app.state.live_sessions
 
-    # 쉐도잉 진입 (`TASK-45` · 결정 35). ⛔ **값역을 여기서 복제하지 않는다** — 아는 것은
-    # 「쉐도잉인가 아닌가」 하나고, 나머지는 `learning_sessions_mode_check` 가 가둔다. 알 수 없는
-    # 값은 말하기로 떨어진다: 거부하면 그 값역이 이 파일에 복제되고 두 곳이 갈라진다.
-    # ⚠️ 대가를 명시한다 — 오타 난 링크로 붙으면 조용히 말하기 세션을 받으므로 경고를 남긴다.
+    # 진입 모드는 **정책 표에 물어본다** — 이 파일은 어느 모드가 무엇을 바꾸는지 알지 않는다.
+    # ⛔ **값역을 여기서 복제하지 않는다**: 표에 없는 값은 말하기로 떨어진다. 거부하면 그 값역이
+    # 이 파일에 복제되고 두 곳이 갈라진다.
     requested_mode = websocket.query_params.get("mode")
-    shadowing_requested = requested_mode == SHADOWING_MODE
-    # `TASK-10.1` — 발음 전용 모드는 **세션 행을 바꾸지 않고 지시문만 바꾼다**(상수 위 주석).
-    # 그래서 위 `shadowing_requested` 와 달리 `create_session` 분기에 끼어들지 않는다.
-    pronunciation_requested = requested_mode == PRONUNCIATION_MODE
-    # `TASK-5` Task 6 — 무대 정하기 진입. `shadowing` 과 달리 `create_session` 분기에 끼어들지 않고
-    # (세션은 평범하게 열린다) 세션 행의 `mode` 를 **뒤에** 적는다 — 발음 모드와 같은 형태다.
-    scenario_intake_requested = requested_mode == SCENARIO_INTAKE_MODE
-    if requested_mode is not None and requested_mode not in ENTRY_MODES:
-        # ⚠️ `?mode=speaking` 은 **알 수 없는 값이 아니다** — 명시적으로 그것을 고른 것이므로
-        # 경고하지 않는다(2026-09-09 리뷰 지적). 경고는 오타·낡은 링크만 가리켜야 값을 한다.
+    policy = policy_for(requested_mode)
+    if policy is None:
+        # ⚠️ 대가를 명시한다 — 오타 난 링크로 붙으면 조용히 말하기 세션을 받으므로 경고를 남긴다.
+        # `?mode=speaking` 은 **알 수 없는 값이 아니다**: 명시적으로 그것을 고른 것이므로 표가
+        # 정책을 돌려주고 이 자리로 오지 않는다(2026-09-09 리뷰 지적). 경고는 오타·낡은 링크와
+        # **진입점이 없는 값역**(`review`)만 가리켜야 값을 한다.
         logger.warning("알 수 없는 mode=%r — 말하기 세션으로 진행한다", requested_mode)
+        policy = DEFAULT_POLICY
 
     # `TASK-10.2` — 추가 학습 진입이 자기를 표시하는 자리(`?source=additional`). ⛔ **값역을
     # 여기서 열거하지 않는다**: 001 의 `learning_sessions_learning_source_check` 가 가두고, 값이
@@ -329,7 +294,7 @@ async def session_socket(websocket: WebSocket) -> None:
     try:
         session_id = (
             await start_shadowing_session(pool, FIXED_USER_ID, learning_source=requested_source)
-            if shadowing_requested
+            if policy.opens_shadowing_session
             else await create_session(pool, FIXED_USER_ID, learning_source=requested_source)
         )
     except asyncpg.PostgresError:
@@ -362,16 +327,9 @@ async def session_socket(websocket: WebSocket) -> None:
         questions = prepared.questions if prepared is not None else []
         settings = get_settings()
         # 질문 수를 알아야 계산하므로 계획 조회 **뒤**다. 계획이 없으면 아무것도 쓰지 않는다 →
-        # 컬럼이 null로 남고 그것이 「관측 대상 아님」이다(캡틴 결정 16).
-        # ⛔ **쉐도잉 세션에는 쓰지 않는다** (캡틴 결정 37). 그 값은 **말하기 관측 지표**이고
-        # `TASK-36`(기대 exchange 상한이 10분 세션에서 실현 가능한지)이 읽는다 — 쉐도잉에 쓰면
-        # 아직 돌리지도 않은 관측이 오염된 데이터를 본다. null 이 「관측 대상 아님」을 뜻하는 것은
-        # 결정 16 이 이미 세운 계약이므로 여기서는 그 계약을 그대로 쓰는 것이다.
-        # `TASK-10.1` — 발음 전용 모드에도 쓰지 않는다. 근거가 쉐도잉과 **같다**(결정 37): 이 모드의
-        # 지시문에는 **질문이 실리지 않으므로** 기대 exchange 수가 애초에 성립하지 않고, 그 값을
-        # 쓰면 `TASK-36`(기대 상한이 10분 세션에서 실현 가능한가)이 아직 돌리지도 않은 관측이
-        # 오염된 데이터를 본다. null 이 「관측 대상 아님」인 것은 결정 16 이 세운 계약이다.
-        if not shadowing_requested and not pronunciation_requested:
+        # 컬럼이 null로 남고 그것이 「관측 대상 아님」이다(캡틴 결정 16). **어느 모드가 이 값을
+        # 쓰지 않는지와 그 근거(결정 37)는 정책 표가 갖는다.**
+        if policy.records_drill_turns:
             await _record_drill_turns_or_continue(
                 pool, session_id, questions=questions, settings=settings
             )
@@ -380,28 +338,19 @@ async def session_socket(websocket: WebSocket) -> None:
         # ⛔ **후보가 0건이어도 말하기로 떨어뜨리지 않는다** — 그 폴백을 없앤 것이 이 결정이다.
         # ⚠️ 지역 이름을 함수 이름과 다르게 둔다 — 같으면 import 가 섀도잉돼 `UnboundLocalError` 다.
         sound_candidates = (
-            pronunciation_candidates(plan, known_sounds) if pronunciation_requested else []
+            pronunciation_candidates(plan, known_sounds) if policy.pronunciation_prompt else []
         )
         # 화면에 실을 **오늘의 소리**는 후보의 첫 항목이다(`session_started`). ⚠️ 이 값이 없는 것은
         # 이제 「말하기로 떨어졌다」가 아니라 **「후보가 아직 없다」**만 뜻한다 — 화면이 아직 그것을
         # 폴백으로 읽으므로 문구를 고치는 것은 `TASK-128.4` 가 갖는다.
         pronunciation_focus = sound_candidates[0] if sound_candidates else None
-        # `TASK-112`(결정 67) — 세션 행이 자기가 발음 세션임을 적는다. ⛔ **적는 조건이 결정 72 로
-        # 「요청받았는가」가 됐다.** 이전 판은 「소리가 정해졌는가」였고 근거는 **폴백의 존재**였다
-        # (폴백으로 말하기가 된 세션까지 발음으로 집계하면 결정 67 이 닫으려던 결함의 반대 방향
-        # 변종이 됐다). 폴백이 사라졌으므로 그 근거도 사라졌다 — 요청한 세션은 실제로 발음 세션이다.
-        # 실패해도 대화를 막지 않는다(`_record_drill_turns_or_continue` 와 같은 규약) — 다만
-        # `exception`·`warning` 으로 갚는다. 값역 밖 값은 애초에 상수라 오지 않고, 그런 일이 나면
-        # 그것은 값역이 갈라졌다는 신호이므로 로그가 그것을 가리켜야 한다.
-        if pronunciation_requested:
-            await _record_session_mode_or_continue(pool, session_id, PRONUNCIATION_MODE)
-        # `TASK-5` Task 6(결정 79) — 무대 정하기 세션도 자기 진입을 적는다. ⛔ **여기서 적지 못하면
-        # 종료 경로가 `generate_scenario` job 을 걸지 못한다**(설계서 §5 흐름 3) — 즉 학습자가 질문
-        # 다섯에 답했는데 무대가 만들어지지 않는다. 발음 모드의 대가(집계가 말하기로 센다)보다
-        # 무거운데도 **대화를 막지 않는 것은 같다**: 여기서 세션을 닫으면 확실히 잃고, 열어 두면
-        # 최소한 대화는 남는다(전사문이 남으므로 job 을 나중에 손으로 걸 수 있다).
-        if scenario_intake_requested:
-            await _record_session_mode_or_continue(pool, session_id, SCENARIO_INTAKE_MODE)
+        # 세션 행이 자기 진입을 적는다 — **어느 모드가 적고 그 대가가 무엇인지는 정책 표가 갖는다**
+        # (발음은 결정 67, 무대 정하기는 결정 79). 실패해도 대화를 막지 않는다
+        # (`_record_drill_turns_or_continue` 와 같은 규약) — 다만 `exception`·`warning` 으로 갚는다.
+        # 값역 밖 값은 애초에 표의 상수라 오지 않고, 그런 일이 나면 값역이 갈라졌다는 신호이므로
+        # 로그가 그것을 가리켜야 한다.
+        if policy.writes_mode_to_row:
+            await _record_session_mode_or_continue(pool, session_id, policy.mode)
 
         try:
             adapter = create_voice_adapter(
@@ -409,7 +358,7 @@ async def session_socket(websocket: WebSocket) -> None:
                 # ⚠️ **전용 모드에는 후보 목록을 넘긴다**(결정 72) — 일반 세션은 계획 블록이 소리를
                 # 따로 싣지 않게 됐으므로 놓친 소리 목록을 그대로 준다. 즉 이 인자의 «내용»이
                 # 모드마다 다르고, 조립기는 그것을 「후보」로만 읽는다.
-                known_sounds=sound_candidates if pronunciation_requested else known_sounds,
+                known_sounds=sound_candidates if policy.pronunciation_prompt else known_sounds,
                 plan=plan,
                 # ⛔ **무대 정하기 세션에는 드릴 질문과 무대를 넘기지 않는다** (`TASK-5` Task 6).
                 # 둘 다 이 진입과 **정면으로 부딪힌다**: 드릴 질문은 「하나씩 물어라」를 받는 두
@@ -418,13 +367,13 @@ async def session_socket(websocket: WebSocket) -> None:
                 # ⚠️ **계획은 그대로 넘긴다** — 목표 수준·힌트 시점은 질문하는 동안에도 유효하다.
                 # ⛔ **이 판단이 조립기에 없는 것이 규약이다**(그 설계서 §6 조립 규약 ⑵) — 소켓이
                 # 「실을지 말지」를 정해 데이터로 준다. 조립기는 받은 것만 싣는다.
-                questions=() if scenario_intake_requested else questions,
-                scenario=None if scenario_intake_requested else scenario,
-                pronunciation_mode=pronunciation_requested,
+                questions=() if policy.scenario_intake_prompt else questions,
+                scenario=None if policy.scenario_intake_prompt else scenario,
+                pronunciation_mode=policy.pronunciation_prompt,
                 # `TASK-5` Task 6(결정 79) — 질문 5개 블록이 실릴지를 이 인자가 정한다.
                 # ⛔ **팩토리의 기본값이 `False` 라 이 인자를 빼면 조용히 꺼진다** — `usage_sink` 와
                 # 같은 부류이고, 대역(`_capture_factory_args`)이 기본값 없이 받아 그것을 막는다.
-                scenario_intake=scenario_intake_requested,
+                scenario_intake=policy.scenario_intake_prompt,
                 # ⛔ **이 인자를 빼면 Nova 토큰 기록이 조용히 꺼진다** (`TASK-124` · 결정 68).
                 # 어댑터의 기본값이 `None`(기록 없음)이고 실물 배선은 여기 하나뿐이다 — `main.py` 의
                 # `usage_sink` 와 같은 부류의 위험이고 같은 방식으로 게이트 테스트가 못 박는다.
@@ -445,7 +394,7 @@ async def session_socket(websocket: WebSocket) -> None:
         # `services` 를 더 깊이 알게 되어 의존 방향이 뒤집힌다(`ShadowingTurns` docstring).
         shadowing = (
             await _load_shadowing_turns_or_none(pool, session_id, settings)
-            if shadowing_requested
+            if policy.opens_shadowing_session
             else None
         )
         runner = SessionRunner(

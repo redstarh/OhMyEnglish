@@ -904,6 +904,42 @@ async def test_ws_pronunciation_mode_passes_the_mode_and_candidates_to_the_adapt
     assert seen.get("known_sounds") == ["th_as_s"]
 
 
+async def test_ws_does_not_record_the_exchange_count_for_a_pronunciation_session(
+    ws_app: FastAPI,
+    db_pool: asyncpg.Pool,
+    seeded_fixed_user: UUID,
+    seed_plan_for_session: Callable[..., Any],
+):
+    """⛔ **캡틴 결정 37** — 발음 전용 세션에도 `drill_turns_expected` 를 쓰지 않는다.
+
+    근거가 쉐도잉과 **같다**: 그 값은 결정 16 이 만든 말하기 관측 지표이고 `TASK-36` 이 읽는다.
+    이 모드의 지시문에는 **질문이 실리지 않으므로** 기대 exchange 수가 애초에 성립하지 않는다.
+
+    ⚠️ **이 단정이 없었다** (`TASK-148` ② 에서 발견). 정책을 표로 옮기면서 「발음 모드가 드릴 턴을
+    기록하게」 일부러 뒤집어 봤더니 **1279건이 그대로 통과했다** — 쉐도잉 쪽 쌍둥이 단정만 있었고
+    발음 쪽이 비어 있었다. 즉 이 규약은 코드에만 있었고 게이트가 지키지 않았다.
+
+    ⚠️ **판별력을 위해 계획을 심는다** — 계획이 없으면 말하기 세션에서도 null 이라 아무것도 재지
+    못한다(쉐도잉 쌍둥이가 같은 이유로 같은 픽스처를 쓴다).
+    """
+    async with db_pool.acquire() as conn:
+        await seed_plan_for_session(conn, user_id=FIXED_USER_ID)
+
+    async with (
+        ws_app.router.lifespan_context(ws_app),
+        ASGIWebSocket(ws_app, query_string=b"mode=pronunciation") as client,
+    ):
+        started = await client.receive_event()
+
+    assert started is not None
+    async with db_pool.acquire() as conn:
+        expected = await conn.fetchval(
+            "select drill_turns_expected from learning_sessions where id = $1",
+            UUID(started["session_id"]),
+        )
+    assert expected is None, "발음 전용 세션에 말하기 관측 지표가 써져 TASK-36 이 오염된다"
+
+
 # ── 무대 정하기 진입 (`TASK-5` Task 6 · 결정 79 · 그 설계서 §5) ────────────────
 #
 # ⛔ **`?source=additional` 로 가리지 못한다**는 것이 이 진입의 설계 근거다 — 추가 학습 메뉴 여섯 중
