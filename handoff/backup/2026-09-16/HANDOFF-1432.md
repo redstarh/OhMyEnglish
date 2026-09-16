@@ -1,9 +1,7 @@
 # HANDOFF — OhMyEnglish
 
-> 최종 갱신 **2026-09-16 14:32 KST** · 세션 `ohmyenglish-42` · 브랜치 `design/first-vertical-slice`
-> ⛔ **이전 판은 `handoff/backup/2026-09-16/HANDOFF-1432.md` 에 있음**(그 앞 판들도 같은 폴더).
-> ⚠️ **백업 이름 하나가 시각과 어긋남** — `HANDOFF-1435.md` 는 **14:02 판**이고, 그 이름을 붙인
-> 갱신에서 시각을 실제(14:32)보다 앞서 적었음. 이름이 아니라 파일 머리말의 「최종 갱신」을 믿음.
+> 최종 갱신 **2026-09-16 14:35 KST** · 세션 `ohmyenglish-42` · 브랜치 `design/first-vertical-slice`
+> ⛔ **이전 판은 `handoff/backup/2026-09-16/HANDOFF-1435.md` 에 있음**(그 앞 판들도 같은 폴더).
 > 인계 원칙의 정본은 `~/.claude/rules/session-handoff.md` 임. 상태 정본은 원장(`backlog/`), 근거
 > 정본은 **태스크 노트 · `tests/harness/runs/**` · `docs/ops/captain-instruction-register.md`** 임.
 >
@@ -19,7 +17,7 @@
 
 | # | 지표 | 값 |
 |--:|---|---|
-| 1 | 기준 커밋 | 게이트를 돌린 시점은 **`b676477`** 이고 `origin` 과 **0/0** · 미커밋 **0건** 이었음. ⚠️ 새 세션 `HEAD` 는 그보다 뒤임 — 그 뒤 커밋은 **이 handoff 와 원장뿐이고 코드가 아니므로** 게이트 수치가 같으면 실질 일치임. ⛔ 자기 커밋 해시를 여기 적지 않는 이유는 **반드시 낡기 때문임** |
+| 1 | 기준 커밋 | 게이트를 돌린 시점은 **`0cf036c`** 이고 `origin` 과 **0/0** · 미커밋 **0건** 이었음. ⚠️ 새 세션 `HEAD` 는 그보다 뒤임 — 그 뒤 커밋은 **이 handoff 와 원장뿐이고 코드가 아니므로** 게이트 수치가 같으면 실질 일치임. ⛔ 자기 커밋 해시를 여기 적지 않는 이유는 **반드시 낡기 때문임** |
 | 2 | 다음 한 걸음 | **없음 — 잔여 5건이 전부 파킹이거나 사용자 판단 대기임.** 아래 ④ |
 | 3 | 게이트 | **여섯 다 초록** — `pytest` **1263 passed**(15.10s) · `ruff check` · `ruff format --check` **49 files** · `ty check` · `npx tsc --noEmit` **exit 0** · `npx eslint .` **exit 0** |
 | 4 | 착수 전 필수 | 아래 ③. 잔여 **5건**(전부 `To Do` · In Progress **0** · 전체 **193** · 완료 **188**) |
