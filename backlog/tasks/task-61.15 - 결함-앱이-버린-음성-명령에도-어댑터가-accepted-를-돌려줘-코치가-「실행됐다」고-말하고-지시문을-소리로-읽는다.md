@@ -4,7 +4,7 @@ title: '결함: 앱이 버린 음성 명령에도 어댑터가 accepted 를 돌�
 status: To Do
 assignee: []
 created_date: '2026-09-15 23:17'
-updated_date: '2026-09-16 00:56'
+updated_date: '2026-09-16 01:24'
 labels: []
 dependencies: []
 parent_task_id: TASK-61
@@ -22,7 +22,7 @@ ordinal: 190000
 - [x] #1 그 모양의 크기를 실물 회차로 센다 — 표지가 버려진 턴에서 코치가 실행됐다고 말하는 비율
 - [x] #2 지시문·내부 추론이 학습자에게 읽히는 것이 그 팔에서만 나는지, 표지 정상 팔에서도 나는지 가른다
 - [x] #3 고치는 자리를 정한다: accepted 를 앱의 실행 판정 뒤로 미룰지, 버린 턴에 실패를 돌려줄지
-- [ ] #4 고치면 실물 회차로 관측한다
+- [x] #4 고치면 실물 회차로 관측한다
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -35,4 +35,6 @@ ordinal: 190000
 ⛔ **네 명령이 같은 층에서 같은 이유로 버려지는데 학습자가 겪는 것은 다름**: `end` 는 되돌릴 수 없는 것을 됐다고 듣고 · `show_report` 는 볼 수 없는 것을 봤다고 듣고(패널이 없는 것을 화면에서 직접 확인했음) · `next_question` 은 코치가 실제로 다음 질문을 하므로 화면 갈림이 없음. ⇒ AC#3(고치는 자리)에 「명령별로 나누는 안」이 재료로 들어감.
 
 새 픽스처 넷을 리포에 남겼음: vc29_report_nomarker_en · vc30_report_nomarker_ko · vc31_next_nomarker_en · vc32_next_nomarker_ko.
+
+2026-09-16 — AC#4 를 닫았음(정본 runs/2026-09-16-task61-16-divergence-surface). 팔 s7(표지 없는 end + 「예」)과 s2(표지 없는 show_report)에서 화면 알림이 뜨는 것을 스크린샷으로 확인했음. ⛔ AC#3(고치는 자리 — accepted 를 앱의 판정 뒤로 미룰지)은 그대로 열려 있음: 이 회차가 만든 것은 알림이고 어댑터가 「받았다」를 먼저 돌려주는 구조는 바뀌지 않았음. ⚠️ 지시문 낭독이 s5b 에서 다시 났고 표본이 하나 늘었음(그 팔의 audio 1004).
 <!-- SECTION:NOTES:END -->

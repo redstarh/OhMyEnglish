@@ -164,6 +164,18 @@ def test_the_short_wake_words_are_accepted() -> None:
     assert is_wake_command("헬로, 다음 문제.") is True
 
 
+def test_the_korean_hey_transcription_variant_is_accepted() -> None:
+    """⚠️ **실물 ASR 이 「헤이」를 「해이」로 적었다** — 2026-09-16 회차에서 직접 관측했다.
+
+    `runs/2026-09-16-task61-16-divergence-surface` 팔 `s5-hey-mode-ko`: 픽스처는 「헤이, 발음 연습
+    모드로 바꿔 줘」인데 전사문이 `해이 발음 연습 모드로 바꿔줘` 였고, 그래서 표지가 인식되지 않아
+    명령이 버려졌다(warning 2건 · 세션이 갈리지 않았음).
+    ⇒ `잉글리시`·`잉글리쉬` 를 둘 다 받은 것과 **같은 이유로** 두 표기를 받는다.
+    ⛔ 관측하지 않은 표기를 추측으로 넣지 않는다 — 넣으면 무엇이 실물에서 오는지 알 수 없게 된다.
+    """
+    assert is_wake_command("해이 발음 연습 모드로 바꿔줘") is True
+
+
 def test_the_hello_variant_with_a_trailing_vowel_is_accepted() -> None:
     """ASR 이 「헬로우」로 적는 경우 — 앞자리 검사가 그것을 함께 받는다.
 

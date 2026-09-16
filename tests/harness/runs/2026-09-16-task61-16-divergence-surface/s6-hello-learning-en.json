@@ -1,0 +1,389 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3001/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/vc35_hello_learning_en.wav",
+  "urls": [
+   "/harness/vc35_hello_learning_en.wav",
+   "/harness/vc13_learning_en.wav"
+  ],
+  "count": 2,
+  "bytes": 158412,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 4.694,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0,
+  "plays": []
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 3,
+   "final": 4,
+   "audio": 123,
+   "session_ended": 0,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 2,
+   "speech_end": 2,
+   "interrupted": 1,
+   "voice_command": 0
+  },
+  "sent": {
+   "audio": 1022,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 1
+  },
+  "startedSessionId": "9a832ba3-bf02-4b29-b38d-ce7755fed3fa",
+  "fixture": {
+   "url": "/harness/vc35_hello_learning_en.wav",
+   "urls": [
+    "/harness/vc35_hello_learning_en.wav",
+    "/harness/vc13_learning_en.wav"
+   ],
+   "count": 2,
+   "bytes": 158412,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 4.694,
+   "startedAt": 107,
+   "endedAt": 9960,
+   "micCalls": 1,
+   "plays": [
+    {
+     "index": 0,
+     "url": "/harness/vc35_hello_learning_en.wav",
+     "startedAt": 107,
+     "endedAt": 2857,
+     "gate": null
+    },
+    {
+     "index": 1,
+     "url": "/harness/vc13_learning_en.wav",
+     "startedAt": 8012,
+     "endedAt": 9960,
+     "gate": {
+      "heardAgentAudio": true,
+      "audioAtGate": 58,
+      "finalAtGate": 2,
+      "waitedMs": 7905
+     }
+    }
+   ]
+  },
+  "started": {
+   "count": 125,
+   "when": [
+    0,
+    5.424,
+    5.503,
+    5.583,
+    5.663,
+    5.743,
+    5.823,
+    5.9030000000000005,
+    5.9830000000000005,
+    6.063000000000001,
+    6.143000000000001,
+    6.223000000000001,
+    6.303000000000001,
+    6.383000000000001,
+    6.463000000000001,
+    6.543000000000001,
+    6.623000000000001,
+    6.703000000000001,
+    6.783000000000001,
+    6.863000000000001,
+    6.943000000000001,
+    7.0230000000000015,
+    7.1030000000000015,
+    7.183000000000002,
+    7.263000000000002,
+    7.343000000000002,
+    7.423000000000002,
+    7.503000000000002,
+    7.583000000000002,
+    7.663000000000002,
+    7.743000000000002,
+    7.943000000000002,
+    7.944000000000003,
+    8.023000000000003,
+    8.103000000000003,
+    8.183000000000003,
+    8.263000000000003,
+    8.343000000000004,
+    8.423000000000004,
+    8.503000000000004,
+    8.583000000000004,
+    8.663000000000004,
+    8.743000000000004,
+    8.823000000000004,
+    8.903000000000004,
+    8.983000000000004,
+    9.063000000000004,
+    9.143000000000004,
+    9.223000000000004,
+    9.303000000000004,
+    9.383000000000004,
+    9.463000000000005,
+    9.543000000000005,
+    9.623000000000005,
+    9.703000000000005,
+    9.783000000000005,
+    9.863000000000005,
+    9.943000000000005,
+    10.183000000000005,
+    0,
+    11.336,
+    11.415000000000001,
+    11.495000000000001,
+    11.575000000000001,
+    11.655000000000001,
+    11.735000000000001,
+    11.815000000000001,
+    11.895000000000001,
+    11.975000000000001,
+    12.055000000000001,
+    12.135000000000002,
+    12.215000000000002,
+    12.295000000000002,
+    12.375000000000002,
+    12.455000000000002,
+    12.535000000000002,
+    12.615000000000002,
+    12.695000000000002,
+    12.775000000000002,
+    12.855000000000002,
+    12.935000000000002,
+    13.015000000000002,
+    13.095000000000002,
+    13.175000000000002,
+    13.255000000000003,
+    13.335000000000003,
+    13.415000000000003,
+    13.495000000000003,
+    13.575000000000003,
+    13.655000000000003,
+    13.735000000000003,
+    13.815000000000003,
+    13.895000000000003,
+    13.975000000000003,
+    14.055000000000003,
+    14.135000000000003,
+    14.215000000000003,
+    14.295000000000003,
+    14.375000000000004,
+    14.455000000000004,
+    14.535000000000004,
+    14.615000000000004,
+    14.695000000000004,
+    14.775000000000004,
+    14.855000000000004,
+    14.935000000000004,
+    15.015000000000004,
+    15.095000000000004,
+    15.175000000000004,
+    15.255000000000004,
+    15.335000000000004,
+    15.415000000000004,
+    15.495000000000005,
+    15.575000000000005,
+    15.655000000000005,
+    15.735000000000005,
+    15.815000000000005,
+    15.895000000000005,
+    15.975000000000005,
+    16.055000000000003,
+    16.135,
+    16.215,
+    16.294999999999998,
+    16.374999999999996,
+    16.454999999999995
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 97,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 4539,
+    "count": 1,
+    "texts": [
+     "답변: hello, my name is jin and i work at a bank."
+    ]
+   },
+   {
+    "ts": 5384,
+    "count": 2,
+    "texts": [
+     "답변: hello, my name is jin and i work at a bank.",
+     "질문: Hello Jin! Nice to meet you. How was your weekend?"
+    ]
+   },
+   {
+    "ts": 6102,
+    "count": 2,
+    "texts": [
+     "답변: hello, my name is jin and i work at a bank.",
+     "질문:   Did you do anything fun or interesting?"
+    ]
+   },
+   {
+    "ts": 6500,
+    "count": 2,
+    "texts": [
+     "답변: hello, my name is jin and i work at a bank.",
+     "질문: Hello Jin! Nice to meet you. How was your weekend?  Did you do anything fun or interesting?"
+    ]
+   },
+   {
+    "ts": 10787,
+    "count": 3,
+    "texts": [
+     "답변: hello, my name is jin and i work at a bank.",
+     "질문: Hello Jin! Nice to meet you. How was your weekend?  Did you do anything fun or interesting?",
+     "답변: i usually take the subway to work."
+    ]
+   },
+   {
+    "ts": 11291,
+    "count": 4,
+    "texts": [
+     "답변: hello, my name is jin and i work at a bank.",
+     "질문: Hello Jin! Nice to meet you. How was your weekend?  Did you do anything fun or interesting?",
+     "답변: i usually take the subway to work.",
+     "질문: That's good. The subway is very convenient. Do you usually take the subway at the same time every day?"
+    ]
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 32.72533333333333
+  },
+  "meta": {
+   "hookedAt": "2026-09-16T01:18:16.623Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789521496624,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789521496635,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3001/_next/hmr?id=YjkZkakeHMBTcNhCA2tFd",
+    "ws://localhost:8012/ws/session?source=recommended"
+   ]
+  },
+  "lines": [
+   "답변: hello, my name is jin and i work at a bank.",
+   "질문: Hello Jin! Nice to meet you. How was your weekend?  Did you do anything fun or interesting?",
+   "답변: i usually take the subway to work.",
+   "질문: That's good. The subway is very convenient. Do you usually take the subway at the same time every day?"
+  ],
+  "url": "http://localhost:3001/",
+  "log": [
+   {
+    "at": 0,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 4527,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 32706,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 3,
+     "final": 4,
+     "audio": 123,
+     "session_ended": 0,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 2,
+     "speech_end": 2,
+     "interrupted": 1,
+     "voice_command": 0
+    }
+   }
+  ]
+ },
+ "screenshot_session": "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-16-task61-16-divergence-surface/shot-s6-hello-learning-en-session.png",
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3001/results/9a832ba3-bf02-4b29-b38d-ce7755fed3fa",
+  "recv": {
+   "session_started": 1,
+   "partial": 3,
+   "final": 4,
+   "audio": 123,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 2,
+   "speech_end": 2,
+   "interrupted": 1,
+   "voice_command": 0
+  },
+  "sent": {
+   "audio": 1056,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "finalLinesAtTerminal": [
+   "답변: hello, my name is jin and i work at a bank.",
+   "질문: Hello Jin! Nice to meet you. How was your weekend?  Did you do anything fun or interesting?",
+   "답변: i usually take the subway to work.",
+   "질문: That's good. The subway is very convenient. Do you usually take the subway at the same time every day?"
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "오늘 학습을 마쳤어요 — 시나리오 8개",
+   "← 학습 시작 화면으로",
+   "학습 히스토리 보기 →"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><p style=\"color: var(--foreground-muted);\">오늘 학습을 마쳤어요 — 시나리오 8개</p><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p><p style=\"margin-top: 0.5rem;\"><a href=\"/history\" style=\"text-decoration: underline;\">학습 히스토리 보기 →</a></p>"
+ },
+ "screenshot_results": "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-16-task61-16-divergence-surface/shot-s6-hello-learning-en-results.png"
+}

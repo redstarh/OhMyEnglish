@@ -1,0 +1,388 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3001/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/vc15_learning_ko.wav",
+  "urls": [
+   "/harness/vc15_learning_ko.wav",
+   "/harness/vc36_hey_end_ko.wav"
+  ],
+  "count": 2,
+  "bytes": 139878,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 4.115,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0,
+  "plays": []
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 4,
+   "final": 4,
+   "audio": 112,
+   "session_ended": 0,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 2,
+   "speech_end": 2,
+   "interrupted": 1,
+   "voice_command": 1
+  },
+  "sent": {
+   "audio": 1001,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 1
+  },
+  "startedSessionId": "adb2143a-ff63-4815-87c2-5c6859432b8a",
+  "fixture": {
+   "url": "/harness/vc15_learning_ko.wav",
+   "urls": [
+    "/harness/vc15_learning_ko.wav",
+    "/harness/vc36_hey_end_ko.wav"
+   ],
+   "count": 2,
+   "bytes": 139878,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 4.115,
+   "startedAt": 108,
+   "endedAt": 9421,
+   "micCalls": 1,
+   "plays": [
+    {
+     "index": 0,
+     "url": "/harness/vc15_learning_ko.wav",
+     "startedAt": 108,
+     "endedAt": 2456,
+     "gate": null
+    },
+    {
+     "index": 1,
+     "url": "/harness/vc36_hey_end_ko.wav",
+     "startedAt": 7648,
+     "endedAt": 9421,
+     "gate": {
+      "heardAgentAudio": true,
+      "audioAtGate": 93,
+      "finalAtGate": 2,
+      "waitedMs": 7539
+     }
+    }
+   ]
+  },
+  "started": {
+   "count": 114,
+   "when": [
+    0,
+    4.416,
+    4.495,
+    4.575,
+    4.655,
+    4.735,
+    4.815,
+    4.8950000000000005,
+    4.9750000000000005,
+    5.055000000000001,
+    5.135000000000001,
+    5.215000000000001,
+    5.295000000000001,
+    5.375000000000001,
+    5.455000000000001,
+    5.535000000000001,
+    5.615000000000001,
+    5.695000000000001,
+    5.775000000000001,
+    5.855000000000001,
+    5.935000000000001,
+    6.0150000000000015,
+    6.0950000000000015,
+    6.175000000000002,
+    6.255000000000002,
+    6.335000000000002,
+    6.415000000000002,
+    6.495000000000002,
+    6.575000000000002,
+    6.655000000000002,
+    6.735000000000002,
+    6.815000000000002,
+    6.895000000000002,
+    6.975000000000002,
+    7.055000000000002,
+    7.1350000000000025,
+    7.2150000000000025,
+    7.295000000000003,
+    7.375000000000003,
+    7.455000000000003,
+    7.535000000000003,
+    7.736000000000002,
+    7.815000000000002,
+    7.895000000000002,
+    7.975000000000002,
+    8.055000000000001,
+    8.135000000000002,
+    8.215000000000002,
+    8.295000000000002,
+    8.375000000000002,
+    8.455000000000002,
+    8.535000000000002,
+    8.615000000000002,
+    8.695000000000002,
+    8.775000000000002,
+    8.855000000000002,
+    8.935000000000002,
+    9.015000000000002,
+    9.095000000000002,
+    9.175000000000002,
+    9.255000000000003,
+    9.335000000000003,
+    9.415000000000003,
+    9.495000000000003,
+    9.575000000000003,
+    9.655000000000003,
+    9.735000000000003,
+    9.815000000000003,
+    9.895000000000003,
+    9.975000000000003,
+    10.055000000000003,
+    10.135000000000003,
+    10.215000000000003,
+    10.295000000000003,
+    10.375000000000004,
+    10.455000000000004,
+    10.655000000000003,
+    10.656000000000002,
+    10.735000000000003,
+    10.815000000000003,
+    10.895000000000003,
+    10.975000000000003,
+    11.055000000000003,
+    11.135000000000003,
+    11.215000000000003,
+    11.295000000000003,
+    11.375000000000004,
+    11.455000000000004,
+    11.535000000000004,
+    11.615000000000004,
+    11.695000000000004,
+    11.775000000000004,
+    11.855000000000004,
+    12.055000000000003,
+    0,
+    11.656,
+    11.735000000000001,
+    11.815000000000001,
+    11.895000000000001,
+    11.975000000000001,
+    12.055000000000001,
+    12.135000000000002,
+    12.215000000000002,
+    12.295000000000002,
+    12.375000000000002,
+    12.455000000000002,
+    12.535000000000002,
+    12.615000000000002,
+    12.695000000000002,
+    12.775000000000002,
+    12.855000000000002,
+    12.935000000000002,
+    13.015000000000002,
+    13.255000000000003
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 98,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 3444,
+    "count": 1,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요"
+    ]
+   },
+   {
+    "ts": 4372,
+    "count": 2,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: That is a good sentence! Let’s make it a little longer for work talk."
+    ]
+   },
+   {
+    "ts": 5201,
+    "count": 2,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문:  Try this: \"I usually take the subway to work.\""
+    ]
+   },
+   {
+    "ts": 5836,
+    "count": 2,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문:  Can you say that?"
+    ]
+   },
+   {
+    "ts": 6130,
+    "count": 2,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: That is a good sentence! Let’s make it a little longer for work talk. Try this: \"I usually take the subway to work.\" Can you say that?"
+    ]
+   },
+   {
+    "ts": 10413,
+    "count": 3,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: That is a good sentence! Let’s make it a little longer for work talk. Try this: \"I usually take the subway to work.\" Can you say that?",
+     "답변: 해이 학습 종료했죠"
+    ]
+   },
+   {
+    "ts": 11615,
+    "count": 4,
+    "texts": [
+     "답변: 저는 보통 지하철로 출근해요",
+     "질문: That is a good sentence! Let’s make it a little longer for work talk. Try this: \"I usually take the subway to work.\" Can you say that?",
+     "답변: 해이 학습 종료했죠",
+     "질문: Do you want to end today’s session?"
+    ]
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 32.05866666666667
+  },
+  "meta": {
+   "hookedAt": "2026-09-16T01:21:14.906Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789521674906,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789521674916,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3001/_next/hmr?id=2s-iB0uYnbL0Er7_ShIRz",
+    "ws://localhost:8012/ws/session?source=recommended"
+   ]
+  },
+  "lines": [
+   "답변: 저는 보통 지하철로 출근해요",
+   "질문: That is a good sentence! Let’s make it a little longer for work talk. Try this: \"I usually take the subway to work.\" Can you say that?",
+   "답변: 해이 학습 종료했죠",
+   "질문: Do you want to end today’s session?"
+  ],
+  "url": "http://localhost:3001/",
+  "log": [
+   {
+    "at": 0,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 3390,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 32257,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 4,
+     "final": 4,
+     "audio": 112,
+     "session_ended": 0,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 2,
+     "speech_end": 2,
+     "interrupted": 1,
+     "voice_command": 1
+    }
+   }
+  ]
+ },
+ "screenshot_session": "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-16-task61-16-divergence-surface/shot-s8-pending-end-ko-session.png",
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3001/results/adb2143a-ff63-4815-87c2-5c6859432b8a",
+  "recv": {
+   "session_started": 1,
+   "partial": 4,
+   "final": 4,
+   "audio": 112,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 2,
+   "speech_end": 2,
+   "interrupted": 1,
+   "voice_command": 1
+  },
+  "sent": {
+   "audio": 1036,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "finalLinesAtTerminal": [
+   "답변: 저는 보통 지하철로 출근해요",
+   "질문: That is a good sentence! Let’s make it a little longer for work talk. Try this: \"I usually take the subway to work.\" Can you say that?",
+   "답변: 해이 학습 종료했죠",
+   "질문: Do you want to end today’s session?"
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "오늘 학습을 마쳤어요 — 시나리오 10개",
+   "관찰된 신호",
+   "(전사문이 한국어로 인식되었습니다)",
+   "← 학습 시작 화면으로",
+   "학습 히스토리 보기 →"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><p style=\"color: var(--foreground-muted);\">오늘 학습을 마쳤어요 — 시나리오 10개</p><div style=\"margin-top: 1.5rem;\"><h2 style=\"font-size: 1rem;\">발음</h2><div style=\"border-left: 3px solid var(--foreground-muted); padding-left: 0.75rem; margin: 0.75rem 0px;\"><p style=\"margin: 0.25rem 0px 0px; font-size: 0.8rem; color: var(--foreground-muted);\">관찰된 신호</p><p style=\"margin: 0.25rem 0px; color: var(--foreground-muted);\">(전사문이 한국어로 인식되었습니다)</p></div></div><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p><p style=\"margin-top: 0.5rem;\"><a href=\"/history\" style=\"text-decoration: underline;\">학습 히스토리 보기 →</a></p>"
+ },
+ "screenshot_results": "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-16-task61-16-divergence-surface/shot-s8-pending-end-ko-results.png"
+}

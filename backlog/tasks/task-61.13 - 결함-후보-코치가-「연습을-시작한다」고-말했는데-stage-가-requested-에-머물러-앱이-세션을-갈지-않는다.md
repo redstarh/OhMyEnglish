@@ -1,10 +1,10 @@
 ---
 id: TASK-61.13
 title: '결함 후보: 코치가 「연습을 시작한다」고 말했는데 stage 가 requested 에 머물러 앱이 세션을 갈지 않는다'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-15 18:46'
-updated_date: '2026-09-15 23:17'
+updated_date: '2026-09-16 01:24'
 labels: []
 dependencies: []
 parent_task_id: TASK-61
@@ -21,7 +21,7 @@ ordinal: 188000
 <!-- AC:BEGIN -->
 - [x] #1 그 모양의 크기를 실물 회차로 센다 — 종류를 답한 뒤 confirmed 까지 가는 비율
 - [x] #2 고치는 자리를 정한다: 문면을 더 세게 할지, 앱이 requested 를 받은 상태를 화면에 드러낼지
-- [ ] #3 고치면 실물 회차로 관측한다
+- [x] #3 고치면 실물 회차로 관측한다
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -69,4 +69,6 @@ AC#2·#3 은 열려 있음 — AC#2 는 설계 판단이라 통합 테스트 세
 `TASK-61.14` 회차(`runs/2026-09-16-task61-14-prompt-change-regression` §3-②)가 「코치의 말과 앱 상태가 갈린다」의 **두 번째 원인**을 관측했음 — 표지가 인식되지 않아 앱이 명령을 버린 턴에서 어댑터가 이미 `{status:accepted}` 를 돌려줬고, 코치가 「종료됐다」고 말하고 지시문까지 소리로 읽었음. `TASK-61.15` 로 등재했음.
 
 ⇒ **결정 112(고치는 자리는 앱)의 근거가 넓어졌음** — 갈림이 이 태스크의 정지(`requested` 에 머묾) 하나에서만 나는 것이 아님. 표면이 필요한 이유가 원인 둘에서 같음.
+
+2026-09-16 — AC#3 을 닫았음. 정본은 runs/2026-09-16-task61-16-divergence-surface §1-1 임. 팔 s5-hey-mode-ko 에서 코치가 「Now we are in pronunciation practice mode … repeat after me」라 말하는 동안 화면이 「연습 변경을 알아듣지 못해 지금 세션을 그대로 두었어요」를 띄운 것을 스크린샷으로 직접 확인했음. ⛔ 고친 것은 「코치가 틀리게 말하는 것」이 아니라 「학습자가 그것을 알 수 없던 것」임 — 말과 상태가 갈리는 것 자체는 결정 112 가 그대로 두기로 정했음.
 <!-- SECTION:NOTES:END -->

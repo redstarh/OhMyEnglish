@@ -1,0 +1,342 @@
+{
+ "instrument_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "target_url": "http://localhost:3001/",
+ "instrument_page_sha256": "cbc19fb69a89eb7868420a9ea1b9245103518dfeaebddec29fcfea3ee19b55ac",
+ "fixture_pre": {
+  "url": "/harness/vc10_learning_en.wav",
+  "urls": [
+   "/harness/vc10_learning_en.wav",
+   "/harness/vc29_report_nomarker_en.wav"
+  ],
+  "count": 2,
+  "bytes": 100518,
+  "ctxSampleRate": 16000,
+  "bufferSampleRate": 16000,
+  "durationSec": 2.885,
+  "startedAt": null,
+  "endedAt": null,
+  "micCalls": 0,
+  "plays": []
+ },
+ "user_activation": {
+  "hasBeenActive": true
+ },
+ "walk": {
+  "phase": "walk",
+  "recv": {
+   "session_started": 1,
+   "partial": 2,
+   "final": 4,
+   "audio": 92,
+   "session_ended": 0,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 2,
+   "speech_end": 2,
+   "interrupted": 1,
+   "voice_command": 0
+  },
+  "sent": {
+   "audio": 932,
+   "end_session": 0,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 1
+  },
+  "startedSessionId": "71d37418-0de7-4239-bb28-fdc0bd51b0bf",
+  "fixture": {
+   "url": "/harness/vc10_learning_en.wav",
+   "urls": [
+    "/harness/vc10_learning_en.wav",
+    "/harness/vc29_report_nomarker_en.wav"
+   ],
+   "count": 2,
+   "bytes": 100518,
+   "ctxSampleRate": 16000,
+   "bufferSampleRate": 16000,
+   "durationSec": 2.885,
+   "startedAt": 117,
+   "endedAt": 6917,
+   "micCalls": 1,
+   "plays": [
+    {
+     "index": 0,
+     "url": "/harness/vc10_learning_en.wav",
+     "startedAt": 117,
+     "endedAt": 1579,
+     "gate": null
+    },
+    {
+     "index": 1,
+     "url": "/harness/vc29_report_nomarker_en.wav",
+     "startedAt": 5483,
+     "endedAt": 6917,
+     "gate": {
+      "heardAgentAudio": true,
+      "audioAtGate": 45,
+      "finalAtGate": 2,
+      "waitedMs": 5365
+     }
+    }
+   ]
+  },
+  "started": {
+   "count": 94,
+   "when": [
+    0,
+    3.176,
+    3.2550000000000003,
+    3.3350000000000004,
+    3.4150000000000005,
+    3.4950000000000006,
+    3.5750000000000006,
+    3.6550000000000007,
+    3.7350000000000008,
+    3.815000000000001,
+    3.895000000000001,
+    3.975000000000001,
+    4.055000000000001,
+    4.135000000000001,
+    4.215000000000001,
+    4.295000000000001,
+    4.375000000000001,
+    4.455000000000001,
+    4.535000000000001,
+    4.615000000000001,
+    4.695000000000001,
+    4.775000000000001,
+    4.855000000000001,
+    4.935000000000001,
+    5.0150000000000015,
+    5.0950000000000015,
+    5.175000000000002,
+    5.255000000000002,
+    5.335000000000002,
+    5.415000000000002,
+    5.495000000000002,
+    5.575000000000002,
+    5.655000000000002,
+    5.735000000000002,
+    5.815000000000002,
+    5.895000000000002,
+    5.975000000000002,
+    6.055000000000002,
+    6.1350000000000025,
+    6.2150000000000025,
+    6.295000000000003,
+    6.375000000000003,
+    6.455000000000003,
+    6.535000000000003,
+    6.615000000000003,
+    6.695000000000003,
+    0,
+    8.832,
+    8.911000000000001,
+    8.991000000000001,
+    9.071000000000002,
+    9.151000000000002,
+    9.231000000000002,
+    9.311000000000002,
+    9.391000000000002,
+    9.471000000000002,
+    9.551000000000002,
+    9.631000000000002,
+    9.711000000000002,
+    9.791000000000002,
+    9.871000000000002,
+    9.951000000000002,
+    10.031000000000002,
+    10.111000000000002,
+    10.191000000000003,
+    10.271000000000003,
+    10.351000000000003,
+    10.431000000000003,
+    10.511000000000003,
+    10.591000000000003,
+    10.671000000000003,
+    10.751000000000003,
+    10.831000000000003,
+    10.911000000000003,
+    10.991000000000003,
+    11.071000000000003,
+    11.151000000000003,
+    11.231000000000003,
+    11.311000000000003,
+    11.391000000000004,
+    11.471000000000004,
+    11.551000000000004,
+    11.631000000000004,
+    11.711000000000004,
+    11.791000000000004,
+    11.871000000000004,
+    11.951000000000004,
+    12.031000000000004,
+    12.111000000000004,
+    12.191000000000004,
+    12.271000000000004,
+    12.431000000000004,
+    12.511000000000005,
+    12.671000000000005
+   ]
+  },
+  "snapshots": [
+   {
+    "ts": 109,
+    "count": 0,
+    "texts": []
+   },
+   {
+    "ts": 2529,
+    "count": 1,
+    "texts": [
+     "답변: i had a busy week at work."
+    ]
+   },
+   {
+    "ts": 3141,
+    "count": 2,
+    "texts": [
+     "답변: i had a busy week at work.",
+     "질문: That sounds busy! Can you tell me one thing you did at work this week?"
+    ]
+   },
+   {
+    "ts": 7783,
+    "count": 3,
+    "texts": [
+     "답변: i had a busy week at work.",
+     "질문: That sounds busy! Can you tell me one thing you did at work this week?",
+     "답변: show my weekly report."
+    ]
+   },
+   {
+    "ts": 8796,
+    "count": 4,
+    "texts": [
+     "답변: i had a busy week at work.",
+     "질문: That sounds busy! Can you tell me one thing you did at work this week?",
+     "답변: show my weekly report.",
+     "질문: Here is your weekly report. Would you like to talk about anything specific from the report?"
+    ]
+   }
+  ],
+  "contextState": {
+   "state": "running",
+   "currentTime": 29.834666666666667
+  },
+  "meta": {
+   "hookedAt": "2026-09-16T01:11:51.950Z",
+   "onmessageOwner": "WebSocket",
+   "sendOwner": "WebSocket",
+   "startOwner": "AudioBufferSourceNode",
+   "createBufferSourceOwner": "BaseAudioContext",
+   "audioContextState": "running",
+   "resumeLog": [
+    {
+     "at": 1789521111951,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    },
+    {
+     "at": 1789521111960,
+     "before": "running",
+     "afterSync": "running",
+     "afterAwait": "running"
+    }
+   ],
+   "resumeAttempts": 2,
+   "resumeErrors": [],
+   "appHandlerAttached": true,
+   "appSocketPath": "/ws/session",
+   "socketUrls": [
+    "ws://localhost:3001/_next/hmr?id=ZPLnp5_GU-Ijj5Bu6auMP",
+    "ws://localhost:8012/ws/session?source=recommended"
+   ]
+  },
+  "lines": [
+   "답변: i had a busy week at work.",
+   "질문: That sounds busy! Can you tell me one thing you did at work this week?",
+   "답변: show my weekly report.",
+   "질문: Here is your weekly report. Would you like to talk about anything specific from the report?"
+  ],
+  "url": "http://localhost:3001/",
+  "log": [
+   {
+    "at": 0,
+    "what": "appHandlerAttached"
+   },
+   {
+    "at": 2464,
+    "what": "first-final-or-timeout",
+    "final": 1,
+    "failed": 0
+   },
+   {
+    "at": 29817,
+    "what": "settled",
+    "recv": {
+     "session_started": 1,
+     "partial": 2,
+     "final": 4,
+     "audio": 92,
+     "session_ended": 0,
+     "session_failed": 0,
+     "pronunciation": 0,
+     "speech_start": 2,
+     "speech_end": 2,
+     "interrupted": 1,
+     "voice_command": 0
+    }
+   }
+  ]
+ },
+ "screenshot_session": "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-16-task61-16-divergence-surface/shot-s2-ignored-report-en-session.png",
+ "end_click": {
+  "attempted": true,
+  "ok": true,
+  "error": null
+ },
+ "end": {
+  "phase": "end",
+  "url": "http://localhost:3001/results/71d37418-0de7-4239-bb28-fdc0bd51b0bf",
+  "recv": {
+   "session_started": 1,
+   "partial": 2,
+   "final": 4,
+   "audio": 92,
+   "session_ended": 1,
+   "session_failed": 0,
+   "pronunciation": 0,
+   "speech_start": 2,
+   "speech_end": 2,
+   "interrupted": 1,
+   "voice_command": 0
+  },
+  "sent": {
+   "audio": 966,
+   "end_session": 1,
+   "unparsed": 0,
+   "other": 0,
+   "foreign": 2
+  },
+  "finalLinesAtTerminal": [
+   "답변: i had a busy week at work.",
+   "질문: That sounds busy! Can you tell me one thing you did at work this week?",
+   "답변: show my weekly report.",
+   "질문: Here is your weekly report. Would you like to talk about anything specific from the report?"
+  ],
+  "resultParagraphs": [
+   "분석 중",
+   "오늘 학습을 마쳤어요 — 시나리오 2개",
+   "← 학습 시작 화면으로",
+   "학습 히스토리 보기 →"
+  ],
+  "resultH1": [
+   "학습 결과"
+  ],
+  "buttons": [],
+  "mainInnerHTML": "<h1>학습 결과</h1><p style=\"font-size: 1.25rem; font-weight: bold;\">분석 중</p><p style=\"color: var(--foreground-muted);\">오늘 학습을 마쳤어요 — 시나리오 2개</p><p style=\"margin-top: 2rem;\"><a href=\"/\" style=\"text-decoration: underline;\">← 학습 시작 화면으로</a></p><p style=\"margin-top: 0.5rem;\"><a href=\"/history\" style=\"text-decoration: underline;\">학습 히스토리 보기 →</a></p>"
+ },
+ "screenshot_results": "/Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-16-task61-16-divergence-surface/shot-s2-ignored-report-en-results.png"
+}

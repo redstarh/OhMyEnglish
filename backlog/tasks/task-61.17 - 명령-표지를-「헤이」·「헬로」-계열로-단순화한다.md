@@ -1,10 +1,10 @@
 ---
 id: TASK-61.17
 title: 명령 표지를 「헤이」·「헬로」 계열로 단순화한다
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-16 00:56'
-updated_date: '2026-09-16 01:00'
+updated_date: '2026-09-16 01:24'
 labels: []
 dependencies: []
 parent_task_id: TASK-61
@@ -22,5 +22,11 @@ ordinal: 192000
 - [x] #1 새 표지 값역을 정하고 단정으로 지킨다 — 맨 앞 검사와 공백·문장부호 무시는 유지한다
 - [x] #2 기존 표지(앱 이름)를 받는 팔을 깨지 않는 것을 단정으로 지킨다
 - [x] #3 게이트 여섯이 초록인 것을 직접 돌려 확인한다
-- [ ] #4 실물 회차로 두 언어를 관측하고 오탐(학습 발화가 표지를 얻는 것)의 크기를 함께 센다
+- [x] #4 실물 회차로 두 언어를 관측하고 오탐(학습 발화가 표지를 얻는 것)의 크기를 함께 센다
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-09-16 — AC#4 를 닫았음(정본 runs/2026-09-16-task61-16-divergence-surface §2·§3). 한국어는 s5b 에서 requested→confirmed 로 모드가 실제로 바뀌었고 영어는 s4 에서 발화가 voice_command 로 저장됐음. ⛔ 회차 중에 값역을 한 번 늘렸음 — ASR 이 「헤이」를 「해이」로 적어 명령이 버려졌고(s5) 그 표기를 더한 뒤 warning 0 이 됐음(s5b). ⚠️ 오탐이 실물에서 확인됐음 — 「Hello, my name is Jin and I work at a bank.」가 voice_command 로 저장돼 분석에서 빠짐(1/1). 값역을 좁히는 것은 제품 판단이라 결정 114 를 다시 올려야 함.
+<!-- SECTION:NOTES:END -->

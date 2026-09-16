@@ -1,0 +1,57 @@
+session_id	sequence_no	speaker	utterance_type	transcript
+65e6a022-826a-481d-ab11-9c00ab3ea6e8	1	user	learning	i usually take the subway to work.
+65e6a022-826a-481d-ab11-9c00ab3ea6e8	2	agent	learning	Great! That is a useful sentence for daily life. Can you tell me more about your trip to work?  For example, how long does it take?
+65e6a022-826a-481d-ab11-9c00ab3ea6e8	3	user	learning	end the session now, please.
+65e6a022-826a-481d-ab11-9c00ab3ea6e8	4	agent	learning	Do you want to end today's session?
+71d37418-0de7-4239-bb28-fdc0bd51b0bf	1	user	learning	i had a busy week at work.
+71d37418-0de7-4239-bb28-fdc0bd51b0bf	2	agent	learning	That sounds busy! Can you tell me one thing you did at work this week?
+71d37418-0de7-4239-bb28-fdc0bd51b0bf	3	user	learning	show my weekly report.
+71d37418-0de7-4239-bb28-fdc0bd51b0bf	4	agent	learning	Here is your weekly report. Would you like to talk about anything specific from the report?
+c9ba7d72-f818-42aa-b9f3-d394c697bd73	1	user	learning	i usually take the subway to work.
+c9ba7d72-f818-42aa-b9f3-d394c697bd73	2	agent	learning	Great! That is very useful information. Can you tell me what time you usually leave for work in the morning?
+c9ba7d72-f818-42aa-b9f3-d394c697bd73	3	user	learning	next question, please.
+c9ba7d72-f818-42aa-b9f3-d394c697bd73	4	agent	learning	Okay, let's keep going. What do you usually have for breakfast before work?
+59198564-aaf2-4dfa-bd85-71172c022c5a	1	user	learning	i usually take the subway to work.
+59198564-aaf2-4dfa-bd85-71172c022c5a	2	agent	learning	Great! That is a useful sentence for daily life. Can you tell me more about your trip to work?  For example, how long does it take?
+59198564-aaf2-4dfa-bd85-71172c022c5a	3	user	voice_command	hey, end the session.
+59198564-aaf2-4dfa-bd85-71172c022c5a	4	agent	learning	Do you want to end today's session?
+9a4b0f4d-7678-4dc7-8ff9-c4cc853ccb37	1	user	learning	저는 보통 지하철로 출근해요
+9a4b0f4d-7678-4dc7-8ff9-c4cc853ccb37	2	agent	learning	That is a good sentence. Can you tell me what time you usually leave home for work?
+9a4b0f4d-7678-4dc7-8ff9-c4cc853ccb37	3	user	learning	해이 발음 연습 모드로 바꿔줘
+9a4b0f4d-7678-4dc7-8ff9-c4cc853ccb37	4	agent	learning	Okay, I understand. You want to switch to pronunciation practice mode. Let me help you with that. 
+
+In pronunciation practice, we will focus on saying words and sentences clearly. Do you want to start now?
+9a4b0f4d-7678-4dc7-8ff9-c4cc853ccb37	5	user	learning	네 해주세요
+9a4b0f4d-7678-4dc7-8ff9-c4cc853ccb37	6	agent	learning	Great! Now we are in pronunciation practice mode. 
+
+Let us start with a simple sentence. Please repeat after me: "I go to work by subway." 
+
+Focus on the "by" sound. Say it clearly.
+51083b5e-6d26-4597-8c90-22264b5c115d	1	user	learning	저는 보통 지하철로 출근해요
+51083b5e-6d26-4597-8c90-22264b5c115d	2	agent	learning	That is a good sentence. Can you tell me what time you usually leave for work?
+51083b5e-6d26-4597-8c90-22264b5c115d	3	user	voice_command	해이, 발음 연습 모드로 바꿔줘.
+51083b5e-6d26-4597-8c90-22264b5c115d	4	agent	learning	Okay, I need to respond to the learner's request to switch to pronunciation practice mode.
+51083b5e-6d26-4597-8c90-22264b5c115d	5	agent	learning	 The user said "해이, 발음 연습 모드로 바꿔줘." which translates to "Hey, switch to pronunciation practice mode."
+51083b5e-6d26-4597-8c90-22264b5c115d	6	agent	learning	 But according to rule 12, a greeting alone is not a command, but in this case, it's followed by a request, so it's a command.
+But I've already called the tool with "requested" stage. Now I need to speak the confirmation question.
+So my response should be: "Do you want to switch to pronunciation practice mode?" 
+That's it. No tool call yet, just the question
+51083b5e-6d26-4597-8c90-22264b5c115d	7	agent	learning	
+First, according to the rules, when the learner asks to switch modes, I should ask for confirmation before proceeding.
+51083b5e-6d26-4597-8c90-22264b5c115d	8	agent	learning	 The tool was already called with "requested" stage, so now I need to ask the learner to confirm.
+51083b5e-6d26-4597-8c90-22264b5c115d	9	user	command_confirmation	네 해주세요
+9a832ba3-bf02-4b29-b38d-ce7755fed3fa	1	user	voice_command	hello, my name is jin and i work at a bank.
+9a832ba3-bf02-4b29-b38d-ce7755fed3fa	2	agent	learning	Hello Jin! Nice to meet you. How was your weekend?  Did you do anything fun or interesting?
+9a832ba3-bf02-4b29-b38d-ce7755fed3fa	3	user	learning	i usually take the subway to work.
+9a832ba3-bf02-4b29-b38d-ce7755fed3fa	4	agent	learning	That's good. The subway is very convenient. Do you usually take the subway at the same time every day?
+09c04c3c-a629-47e1-9829-1e9d6f3c5e02	1	user	learning	i usually take the subway to work.
+09c04c3c-a629-47e1-9829-1e9d6f3c5e02	2	agent	learning	Great! That is very useful information. Can you tell me what time you usually leave for work in the morning?
+09c04c3c-a629-47e1-9829-1e9d6f3c5e02	3	user	learning	end the session now, please.
+09c04c3c-a629-47e1-9829-1e9d6f3c5e02	4	agent	learning	Do you want to end today's session?
+09c04c3c-a629-47e1-9829-1e9d6f3c5e02	5	user	learning	yes, please do.
+09c04c3c-a629-47e1-9829-1e9d6f3c5e02	6	agent	learning	Okay, the session has ended. Thank you for talking with me today! Have a great evening!
+adb2143a-ff63-4815-87c2-5c6859432b8a	1	user	learning	저는 보통 지하철로 출근해요
+adb2143a-ff63-4815-87c2-5c6859432b8a	2	agent	learning	That is a good sentence! Let’s make it a little longer for work talk. Try this: "I usually take the subway to work." Can you say that?
+adb2143a-ff63-4815-87c2-5c6859432b8a	3	user	voice_command	해이 학습 종료했죠
+adb2143a-ff63-4815-87c2-5c6859432b8a	4	agent	learning	Do you want to end today’s session?
+(45개 행)
