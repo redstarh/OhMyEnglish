@@ -1,0 +1,64 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "What do you need on a rainy day?",
+      "context": "You are leaving home, and it is raining."
+    },
+    {
+      "prompt": "What would you like for a quick snack?",
+      "context": "You are at a small café after work."
+    },
+    {
+      "prompt": "What is one item you want to buy today?",
+      "context": "You are making a short shopping list."
+    },
+    {
+      "prompt": "What do you want to do this evening?",
+      "context": "You have a free evening at home."
+    }
+  ],
+  "target_level": "A2",
+  "reason": "오늘은 단수 명사 앞의 a/an을 자연스럽게 말하고, an 발음도 함께 연습해 봅시다.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "Short single-clause answers.",
+    "hint_timing": "Give a hint after one attempt.",
+    "contexts": [
+      "Leaving home on a rainy day",
+      "Ordering a snack at a café",
+      "Making a shopping list",
+      "Planning a free evening"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "The learner can answer familiar daily-life questions with short sentences and needs accuracy practice at this level."
+  },
+  "notes": [
+    "Keep answers personal and short, then prompt for one clearer repeat if the article is missing.",
+    "Listen closely for the contrast between an and a, especially before vowel sounds."
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "What did you have for breakfast today: an egg, an apple, or something else?",
+      "context": "Breakfast"
+    },
+    {
+      "prompt": "Tell me about an animal you like. What animal is it?",
+      "context": "Animals"
+    },
+    {
+      "prompt": "Do you want to take an art class? What class do you want?",
+      "context": "Free-time plans"
+    },
+    {
+      "prompt": "You need a gift for a friend. What gift do you want to buy?",
+      "context": "Shopping"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "오늘은 짧은 문장에서 a/an을 자연스럽게 붙이고 an 소리를 또렷하게 말하는 연습을 해요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "Short single-clause answers first.",
+    "hint_timing": "Give a short hint after one pause or error.",
+    "contexts": [
+      "Breakfast",
+      "Animals",
+      "Free-time plans",
+      "Shopping"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "The learner can answer daily-life questions but needs steady practice with articles in short spoken sentences."
+  },
+  "notes": [
+    "Article omission before singular nouns is the deepest recurring pattern.",
+    "Keep answers short and personal while giving repeated chances to say an before vowel sounds."
+  ]
+}

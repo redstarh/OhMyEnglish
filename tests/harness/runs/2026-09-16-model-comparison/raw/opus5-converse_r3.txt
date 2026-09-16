@@ -1,0 +1,70 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "What do you usually eat in the morning? Tell me one thing you ate today — an apple, an egg, or an orange?",
+      "context": "Morning routine at home, talking about breakfast food"
+    },
+    {
+      "prompt": "You waited for someone yesterday. How long did you wait — an hour? Tell me in one short sentence.",
+      "context": "Daily life: waiting for a friend or a bus"
+    },
+    {
+      "prompt": "Tell me about one message you got today. Was it an email, an invitation, or an answer from someone?",
+      "context": "Checking your phone after work"
+    },
+    {
+      "prompt": "You have one small idea for the weekend. Say it to me: \"I have an idea. I want to...\"",
+      "context": "Weekend plans with family or friends"
+    },
+    {
+      "prompt": "Where do you work now? Say one sentence about your workplace — is it an office, an old building, or an open space?",
+      "context": "Light work small talk about your workplace"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "관사 'a/an'을 빠뜨리는 실수가 9일 동안 계속 나왔고, 'an'을 'a'처럼 발음하는 부분도 오늘 다시 볼 때가 되어서 두 가지를 함께 연습해요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "short single-clause sentences of about 5 to 8 words; allow a second short sentence only when the learner sounds comfortable",
+    "hint_timing": "wait about five seconds of silence first, then give one short hint; correct the missing or mispronounced 'an' right after the learner finishes the sentence",
+    "contexts": [
+      "breakfast and food at home",
+      "waiting for a bus or a friend",
+      "checking email and messages after work",
+      "weekend plans with family or friends",
+      "light small talk about your workplace"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "짧은 문장은 잘 만들지만 관사와 과거형이 아직 불안정해서 A2에서 더 다지는 것이 좋아요."
+  },
+  "notes": [
+    "Adds the article correctly on the second or third try after a correction, but drops it again when the noun phrase gets longer (e.g. 'was project architecture meeting').",
+    "Says 'an' as 'a' before vowel sounds; only one attempt recorded so far, so today needs many repeated chances.",
+    "Some attempts were typed in Korean transcription of English sounds, which suggests low confidence in speaking longer strings aloud — keep sentences short and spoken."
+  ]
+}

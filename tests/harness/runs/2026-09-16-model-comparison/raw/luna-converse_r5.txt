@@ -1,0 +1,64 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-bb7b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "What do you want for breakfast? Tell me one short sentence with an apple, an egg, or another food.",
+      "context": "Breakfast at home"
+    },
+    {
+      "prompt": "What do you need for your room? Tell me one short sentence with an alarm, an umbrella, or another item.",
+      "context": "Getting ready at home"
+    },
+    {
+      "prompt": "What do you want to buy today? Tell me one short sentence with an onion, an orange, or another item.",
+      "context": "Shopping at a store"
+    },
+    {
+      "prompt": "What do you need for today's work? Tell me one short sentence with an email, an idea, or another item.",
+      "context": "Simple preparation for work"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "오늘은 자주 빠뜨리는 단수 명사의 관사와 an의 자연스러운 발음을 함께 연습해요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "Use short, single-clause sentences.",
+    "hint_timing": "Give a brief hint after one error.",
+    "contexts": [
+      "Breakfast at home",
+      "Getting ready at home",
+      "Shopping at a store",
+      "Simple preparation for work"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "짧은 일상 문장으로 관사와 발음을 안정적으로 연습한 뒤 문장을 조금씩 늘리는 것이 좋아요."
+  },
+  "notes": [
+    "The learner has repeatedly omitted articles before singular nouns.",
+    "The learner has one recorded difficulty pronouncing an naturally."
+  ]
+}

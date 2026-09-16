@@ -1,0 +1,70 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an + 모음으로 시작하는 단수 명사 (an을 [ən]으로 또렷하게)"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "Tell me about your breakfast this morning. Say one short sentence about one fruit or one egg you ate.",
+      "context": "Morning small talk with a coworker in the office kitchen."
+    },
+    {
+      "prompt": "It is raining outside today. Say one short sentence about one thing you need to buy on the way home.",
+      "context": "Talking with a friend near a convenience store on a rainy evening."
+    },
+    {
+      "prompt": "You waited for something yesterday — a bus, a doctor, a delivery. Say one short sentence about how long you waited.",
+      "context": "Telling a friend about a slow day yesterday."
+    },
+    {
+      "prompt": "Tonight you have to write something. Say one short sentence about the one thing you want to write first.",
+      "context": "Planning your evening at home after work."
+    },
+    {
+      "prompt": "You thought of something new for your team lunch. Say one short sentence about it.",
+      "context": "Chatting with a teammate before lunch."
+    }
+  ],
+  "target_level": "A2",
+  "reason": "짧은 문장에서도 명사 앞 a/an이 자주 빠지고 있어서, 오늘은 a/an을 붙이는 연습과 an을 [ən]으로 또렷하게 발음하는 연습을 함께 해요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an + 모음으로 시작하는 단수 명사 (an을 [ən]으로 또렷하게)"
+      }
+    ],
+    "sentence_length": "one short single-clause sentence of about five to eight words; allow a second short sentence only when the learner answers smoothly",
+    "hint_timing": "wait about five seconds after the learner stops, then give one short hint; repeat the an-word slowly only after a second try",
+    "contexts": [
+      "breakfast and food small talk",
+      "shopping on a rainy day",
+      "telling a friend about yesterday",
+      "evening plans at home",
+      "light chat with a teammate before lunch"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "짧은 일상 문장은 만들 수 있지만 관사와 발음이 아직 불안정하므로 A2에서 더 다듬는 것이 좋아요."
+  },
+  "notes": [
+    "Articles appear when the sentence is very short and rehearsed, but drop as soon as a longer noun phrase comes up ('was project architecture meeting').",
+    "Learner self-corrects across repeated attempts within one session — repetition works, so give the same sound several chances per topic.",
+    "Some attempts came back as Korean transcription of English sentences, suggesting the learner is reading aloud from memory; keep asking for original content instead of read-back."
+  ]
+}

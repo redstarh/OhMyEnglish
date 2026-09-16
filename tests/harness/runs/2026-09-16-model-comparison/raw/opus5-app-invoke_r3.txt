@@ -1,0 +1,70 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "Tell me about one thing you ate yesterday. Say it in one short sentence, like \"I ate an apple.\"",
+      "context": "Daily life: food and snacks"
+    },
+    {
+      "prompt": "What do you want to buy this week? Name one small thing you need, for example an umbrella, an eraser, or an orange bag.",
+      "context": "Daily life: shopping"
+    },
+    {
+      "prompt": "You are late for work. Tell me one short sentence about waiting for an elevator or an early bus.",
+      "context": "Daily life: morning commute"
+    },
+    {
+      "prompt": "Tell me about one hour of your free time. Say something like \"I need an hour for exercise.\"",
+      "context": "Daily life: after-work routine"
+    },
+    {
+      "prompt": "You are at your desk. Say one short sentence about one office thing you want — an email, an answer, or an extra chair.",
+      "context": "Light work topic: things at your desk"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "짧은 문장에서도 명사 앞의 a/an이 자주 빠지고, an을 a처럼 발음하고 있어서 오늘은 이 두 가지를 함께 연습해요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "short single-clause sentences of about 5-8 words, one extra time or place word only when the learner is comfortable",
+    "hint_timing": "wait about five seconds after the learner stops, then give a short hint; correct the article or the /an/ sound right after the sentence ends, not in the middle",
+    "contexts": [
+      "Daily life: food and snacks",
+      "Daily life: shopping",
+      "Daily life: morning commute",
+      "Daily life: after-work routine",
+      "Light work topic: things at your desk"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "짧은 일상 문장은 만들 수 있지만 관사와 발음이 아직 불안정하므로 A2에서 더 다지는 것이 좋습니다."
+  },
+  "notes": [
+    "Articles appear correctly after a repair prompt (\"she enjoyed a joke\"), but drop again as soon as the noun phrase gets longer (\"was project architecture meeting\").",
+    "Self-corrects when given a second try, so short repeated attempts on the same sentence work well.",
+    "Recent Hangul-transcribed attempts suggest the learner is still sounding out longer sentences; keep target sentences short so the /an/ sound stays audible."
+  ]
+}

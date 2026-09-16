@@ -1,0 +1,45 @@
+=== 재료 user=00000000-0000-0000-0000-000000000001 복습예정=9 만성=8 발화=34 프롬프트=12930자 허용id=9 현재레벨=A2 최다재발=article_missing_before_noun
+=== 앱 설정 모델 ID = us.anthropic.claude-opus-5 · region=us-west-2
+=== 예열 (회차에 넣지 않는다)
+  opus5-converse warmup 통과 wall=25851.8ms out_tok=1823 
+  sonnet5-converse warmup 통과 wall=26322.7ms out_tok=2373 
+  luna-converse warmup 통과 wall=6803.0ms out_tok=1090 
+  terra-converse warmup 통과 wall=11090.7ms out_tok=946 
+  opus5-app-invoke warmup 통과 wall=17818.9ms out_tok=1210 
+=== 회차 1/5
+  opus5-converse r1 통과 wall=19631.5ms out_tok=1410 
+  sonnet5-converse r1 통과 wall=34084.4ms out_tok=2792 
+  luna-converse r1 통과 wall=6759.6ms out_tok=1076 
+  terra-converse r1 통과 wall=7207.0ms out_tok=751 
+  opus5-app-invoke r1 통과 wall=26189.7ms out_tok=1924 
+=== 회차 2/5
+  opus5-converse r2 통과 wall=23620.6ms out_tok=1689 
+  sonnet5-converse r2 통과 wall=22153.9ms out_tok=1908 
+  luna-converse r2 통과 wall=10341.8ms out_tok=1570 
+  terra-converse r2 통과 wall=11581.1ms out_tok=1005 
+  opus5-app-invoke r2 통과 wall=18372.5ms out_tok=1269 
+=== 회차 3/5
+  opus5-converse r3 통과 wall=21128.1ms out_tok=1489 
+  sonnet5-converse r3 통과 wall=33882.2ms out_tok=2689 
+  luna-converse r3 통과 wall=10501.3ms out_tok=1634 
+  terra-converse r3 통과 wall=11303.0ms out_tok=1004 
+  opus5-app-invoke r3 통과 wall=16007.2ms out_tok=1172 
+=== 회차 4/5
+  opus5-converse r4 통과 wall=24439.7ms out_tok=1696 
+  sonnet5-converse r4 통과 wall=25220.0ms out_tok=2256 
+  luna-converse r4 통과 wall=8334.3ms out_tok=1326 
+  terra-converse r4 통과 wall=16508.8ms out_tok=1471 
+  opus5-app-invoke r4 통과 wall=29619.1ms out_tok=2145 
+=== 회차 5/5
+  opus5-converse r5 통과 wall=37447.5ms out_tok=2607 
+  sonnet5-converse r5 통과 wall=25294.8ms out_tok=2244 
+  luna-converse r5 그외 wall=10416.2ms out_tok=1610 PlanValidationError: focus references pattern_id that was not offered in the prompt: 70ad1279-cfaf-4a57-bb7b-c
+  terra-converse r5 통과 wall=10639.2ms out_tok=924 
+  opus5-app-invoke r5 통과 wall=17680.2ms out_tok=1246 
+=== 집계
+  opus5-converse       통과 5/5 지연중앙 23620.6ms 최대 37447.5ms 출력토큰중앙 1689 {'통과': 5}
+  sonnet5-converse     통과 5/5 지연중앙 25294.8ms 최대 34084.4ms 출력토큰중앙 2256 {'통과': 5}
+  luna-converse        통과 4/5 지연중앙 10341.8ms 최대 10501.3ms 출력토큰중앙 1570 {'통과': 4, '그외': 1}
+  terra-converse       통과 5/5 지연중앙 11303.0ms 최대 16508.8ms 출력토큰중앙 1004 {'통과': 5}
+  opus5-app-invoke     통과 5/5 지연중앙 18372.5ms 최대 29619.1ms 출력토큰중앙 1269 {'통과': 5}
+-> /Users/redstar/MyProject/OhMyEnglish/tests/harness/runs/2026-09-16-model-comparison/results.json

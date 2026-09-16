@@ -1,0 +1,71 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an + 모음 시작 단수 명사 (an을 [ən]으로 또렷하게)"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "You are hungry in the morning. Say two short sentences about what you eat first. Choose your own food from these ideas: apple, orange, egg, ice cream.",
+      "context": "Morning kitchen chat about breakfast"
+    },
+    {
+      "prompt": "It is raining and you must go outside. Say two short sentences about what you carry with you. Ideas: umbrella, old jacket, extra bag.",
+      "context": "Rainy day before leaving home"
+    },
+    {
+      "prompt": "Tell me one thing you want to buy this week, and say where you buy it. Keep it to two short sentences. Ideas: electric fan, orange cup, umbrella.",
+      "context": "Weekend shopping plan"
+    },
+    {
+      "prompt": "You have ten free minutes at work. Say two short sentences about what you do in that time. Ideas: apple, email, easy walk.",
+      "context": "Short break at the office"
+    },
+    {
+      "prompt": "Tell me one plan for this weekend with a friend. Two short sentences, please. Ideas: Italian restaurant, ice cream shop, old movie.",
+      "context": "Making weekend plans with a friend"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "짧은 문장에서도 명사 앞 a/an을 자주 빼시고, 특히 an을 a처럼 발음하셔서 오늘은 an + 모음 명사를 소리와 함께 연습합니다.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an + 모음 시작 단수 명사 (an을 [ən]으로 또렷하게)"
+      }
+    ],
+    "sentence_length": "short single-clause sentences; at most two short sentences, joined with 'and' only if needed",
+    "hint_timing": "wait about five seconds after a stall or a dropped article, then give one short hint and let the learner say the whole sentence again",
+    "contexts": [
+      "breakfast and food at home",
+      "leaving home on a rainy day",
+      "small shopping plan for the week",
+      "a short break at the office",
+      "weekend plans with a friend"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "짧은 일상 문장은 만들 수 있지만 관사와 발음이 아직 불안정해서 A2에서 더 다지는 것이 좋습니다."
+  },
+  "notes": [
+    "Articles appear more often after a correction, but disappear again when a noun phrase gets longer (e.g. 'was project architecture meeting').",
+    "Repeats the same sentence several times to self-correct; short repeat drills seem to help.",
+    "Recent attempts were typed in Korean transcription of English sounds, which suggests low confidence in pronunciation — reading-free speaking prompts fit better today.",
+    "Relies heavily on 'I want to / I need to / I usually'; will need gentle nudges to vary the verb frame later."
+  ]
+}

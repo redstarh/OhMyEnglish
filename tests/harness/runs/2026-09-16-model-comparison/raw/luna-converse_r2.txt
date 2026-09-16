@@ -1,0 +1,64 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "What did you eat yesterday? Tell me about one egg and one apple.",
+      "context": "Daily food"
+    },
+    {
+      "prompt": "What did you use this morning? Tell me about one app and one email.",
+      "context": "Morning routine"
+    },
+    {
+      "prompt": "What did you see at the store? Tell me about one animal and one orange.",
+      "context": "Shopping"
+    },
+    {
+      "prompt": "What did you do at work yesterday? Tell me about one email and one update.",
+      "context": "Simple workplace routine"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "오늘은 처음 말하는 단수 명사 앞의 a/an과 an의 자연스러운 발음을 함께 연습해요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "Use short, single-clause sentences.",
+    "hint_timing": "Give a brief hint after one attempt.",
+    "contexts": [
+      "Daily food",
+      "Morning routine",
+      "Shopping",
+      "Simple workplace routine"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "기초 문장에서는 연습할 수 있으므로 A2를 유지하고, 일상에서 간단한 업무 상황으로만 조금씩 확장해요."
+  },
+  "notes": [
+    "The learner often drops articles before singular nouns.",
+    "The learner needs repeated practice with the reduced pronunciation of an."
+  ]
+}

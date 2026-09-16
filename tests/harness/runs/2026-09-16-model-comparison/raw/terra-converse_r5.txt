@@ -1,0 +1,64 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "Tell me about an appointment you had recently.",
+      "context": "A doctor, dentist, or personal appointment"
+    },
+    {
+      "prompt": "What is an easy meal you like to make?",
+      "context": "Cooking at home"
+    },
+    {
+      "prompt": "Tell me about an online video you watched this week.",
+      "context": "Watching videos at home"
+    },
+    {
+      "prompt": "What is an activity you want to try this month?",
+      "context": "Weekend plans"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "오늘은 짧은 일상 문장에서 단수 명사 앞의 a/an과 an 발음을 함께 연습해요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "Short single-clause sentences.",
+    "hint_timing": "Give a hint after one pause or error.",
+    "contexts": [
+      "A doctor, dentist, or personal appointment",
+      "Cooking at home",
+      "Watching videos at home",
+      "Weekend plans"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "The learner can make simple daily-life sentences but needs steady accuracy with articles and pronunciation."
+  },
+  "notes": [
+    "Keep the topics personal and daily-life based.",
+    "Ask for one short answer first, then invite one extra detail if the learner is comfortable."
+  ]
+}

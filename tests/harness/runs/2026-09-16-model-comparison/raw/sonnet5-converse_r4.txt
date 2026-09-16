@@ -1,0 +1,72 @@
+```json
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "What do you usually eat for breakfast?",
+      "context": "daily routine, morning meal"
+    },
+    {
+      "prompt": "What did you bring for lunch yesterday?",
+      "context": "daily routine, lunch talk"
+    },
+    {
+      "prompt": "What do you want to buy for your desk?",
+      "context": "daily life moving toward workspace items"
+    },
+    {
+      "prompt": "What do you need to send to your team today?",
+      "context": "simple work task, email"
+    },
+    {
+      "prompt": "What idea do you want to share next time?",
+      "context": "simple work talk, sharing an idea"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "관사를 반복적으로 빠뜨리는 패턴이 가장 오래 이어지고 있고, 마침 'an' 발음 복습 시점도 겹쳐서 오늘은 이 두 가지를 함께 짧은 문장으로 연습해요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "short, single-clause sentences using patterns like 'I want to...' or 'I need to...'",
+    "hint_timing": "let the learner try first, then give the article or sound hint right after",
+    "contexts": [
+      "morning meal",
+      "lunch talk",
+      "desk items",
+      "sending an email to the team",
+      "sharing an idea in a meeting"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "모든 관련 패턴의 mastery가 아직 0.0이라 현재 난이도를 유지하며 반복 연습이 필요해요."
+  },
+  "notes": [
+    "짧은 문장에서는 관사를 넣다가도 문장이 길어지거나 장소 명사(gym, office) 앞에서는 자주 빠뜨림",
+    "an 발음이 a로 축약되는 경향이 있어 an이 들어가는 단어를 여러 번 말해볼 필요가 있음",
+    "업무 관련 문장(회의, 보고)에서 과거시제와 시간 표현 어순 오류도 함께 나타나므로 다음 세션 후보로 유지"
+  ]
+}
+```

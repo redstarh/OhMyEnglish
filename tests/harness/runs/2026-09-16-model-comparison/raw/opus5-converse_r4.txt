@@ -1,0 +1,70 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "Tell me about your breakfast today. What did you eat or drink? Say two or three short sentences, and mention things like an egg, an apple, or an orange juice.",
+      "context": "morning routine at home"
+    },
+    {
+      "prompt": "Look at your desk. Name two or three things on it, one short sentence each — maybe an umbrella, an eraser, an old cup, or an empty bottle.",
+      "context": "describing your desk at work"
+    },
+    {
+      "prompt": "You have one free hour after work today. What do you want to do? Say it in short sentences, for example something with an hour, an exhibition, or an ice cream.",
+      "context": "free time after work"
+    },
+    {
+      "prompt": "A coworker asks about your weekend. Tell them one place you'd like to visit and one thing you'd like to see — like an aquarium, an art gallery, or an animal park.",
+      "context": "small talk with a coworker"
+    },
+    {
+      "prompt": "You need help with something small today. Say what you need in one short sentence each — for example an answer, an address, an extra chair, or an hour more.",
+      "context": "asking for small help at the office"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "짧은 문장에서 'a/an'을 자주 빼먹고, 'an'을 'a'처럼 발음하는 습관이 계속 보여서 오늘은 이 둘을 함께 연습해요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "short single-clause sentences of about 5 to 8 words; let the learner add a second short sentence only after the first one comes out clean",
+    "hint_timing": "let the learner finish first, then hint only after one full try",
+    "contexts": [
+      "morning routine at home",
+      "describing your desk at work",
+      "free time after work",
+      "small talk with a coworker",
+      "asking for small help at the office"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "짧은 일상 문장은 만들 수 있지만 관사와 기본 발음이 아직 불안정해서 A2에서 더 다져야 합니다."
+  },
+  "notes": [
+    "Self-corrects when repeating: dropped article appears, then reappears correctly on the second or third try — repetition drills work well.",
+    "Articles disappear as the noun phrase grows longer ('a project architecture meeting'), even though short phrases like 'a meeting' are fine.",
+    "Pronunciation attempts written in Hangul suggest the learner is reciting by sound memory; ask for self-generated sentences instead of read-back."
+  ]
+}

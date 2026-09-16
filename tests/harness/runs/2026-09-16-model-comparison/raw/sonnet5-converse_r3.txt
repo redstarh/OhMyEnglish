@@ -1,0 +1,72 @@
+```json
+{
+  "focus": [
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    },
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "Did you have an apple or an egg for breakfast today?",
+      "context": "morning breakfast small talk"
+    },
+    {
+      "prompt": "Do you think you'll need an umbrella tomorrow?",
+      "context": "weather small talk"
+    },
+    {
+      "prompt": "Was your last meeting an hour long?",
+      "context": "recalling a recent meeting"
+    },
+    {
+      "prompt": "Did you have an idea to share with your team this week?",
+      "context": "sharing simple work updates"
+    },
+    {
+      "prompt": "Did you send an email before you left the office yesterday?",
+      "context": "end-of-day office routine"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "an 발음과 명사 앞 a/an 빠뜨리는 습관이 반복되고 있어서 오늘은 이 두 가지를 집중적으로 연습해요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      },
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      }
+    ],
+    "sentence_length": "short single-clause sentences",
+    "hint_timing": "give a gentle hint only after the learner's first attempt",
+    "contexts": [
+      "morning breakfast small talk",
+      "weather small talk",
+      "recalling a recent meeting",
+      "sharing simple work updates",
+      "end-of-day office routine"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "두 패턴 모두 mastery가 0.0이라 현재 단계에서 반복 연습이 더 필요해요."
+  },
+  "notes": [
+    "article_missing_before_noun는 9일에 걸쳐 7회 반복 등장한 가장 만성적인 패턴이라 오늘도 반드시 다룸.",
+    "an_as_a 발음 오류는 아직 시도 횟수가 적어 다양한 단어로 반복 노출이 필요함.",
+    "짧은 문장에서는 article을 잘 쓰다가 문장이 길어지면 다시 빠뜨리는 경향이 보임."
+  ]
+}
+```

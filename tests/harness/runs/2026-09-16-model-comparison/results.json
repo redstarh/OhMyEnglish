@@ -1,0 +1,1013 @@
+{
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "prompt_chars": 12930,
+  "current_level": "A2",
+  "allowed_pattern_ids": 9,
+  "app_model_id": "us.anthropic.claude-opus-5",
+  "region": "us-west-2",
+  "max_tokens": 16000,
+  "rounds": 5,
+  "summary": {
+    "opus5-converse": {
+      "model_id": "us.anthropic.claude-opus-5",
+      "route": "converse",
+      "n": 5,
+      "warmup_wall_ms": 25851.8,
+      "wall_ms_median": 23620.6,
+      "wall_ms_min": 19631.5,
+      "wall_ms_max": 37447.5,
+      "output_tokens_median": 1689,
+      "output_tokens_max": 2607,
+      "input_tokens": 5418,
+      "pass_n": 5,
+      "kinds": {
+        "통과": 5
+      }
+    },
+    "sonnet5-converse": {
+      "model_id": "us.anthropic.claude-sonnet-5",
+      "route": "converse",
+      "n": 5,
+      "warmup_wall_ms": 26322.7,
+      "wall_ms_median": 25294.8,
+      "wall_ms_min": 22153.9,
+      "wall_ms_max": 34084.4,
+      "output_tokens_median": 2256,
+      "output_tokens_max": 2792,
+      "input_tokens": 5418,
+      "pass_n": 5,
+      "kinds": {
+        "통과": 5
+      }
+    },
+    "luna-converse": {
+      "model_id": "us.openai.gpt-5.6-luna",
+      "route": "converse",
+      "n": 5,
+      "warmup_wall_ms": 6803.0,
+      "wall_ms_median": 10341.8,
+      "wall_ms_min": 6759.6,
+      "wall_ms_max": 10501.3,
+      "output_tokens_median": 1570,
+      "output_tokens_max": 1634,
+      "input_tokens": 2,
+      "pass_n": 4,
+      "kinds": {
+        "통과": 4,
+        "그외": 1
+      }
+    },
+    "terra-converse": {
+      "model_id": "us.openai.gpt-5.6-terra",
+      "route": "converse",
+      "n": 5,
+      "warmup_wall_ms": 11090.7,
+      "wall_ms_median": 11303.0,
+      "wall_ms_min": 7207.0,
+      "wall_ms_max": 16508.8,
+      "output_tokens_median": 1004,
+      "output_tokens_max": 1471,
+      "input_tokens": 2,
+      "pass_n": 5,
+      "kinds": {
+        "통과": 5
+      }
+    },
+    "opus5-app-invoke": {
+      "model_id": "us.anthropic.claude-opus-5",
+      "route": "invoke_anthropic",
+      "n": 5,
+      "warmup_wall_ms": 17818.9,
+      "wall_ms_median": 18372.5,
+      "wall_ms_min": 16007.2,
+      "wall_ms_max": 29619.1,
+      "output_tokens_median": 1269,
+      "output_tokens_max": 2145,
+      "input_tokens": 5418,
+      "pass_n": 5,
+      "kinds": {
+        "통과": 5
+      }
+    }
+  },
+  "calls": [
+    {
+      "arm": "opus5-converse",
+      "model_id": "us.anthropic.claude-opus-5",
+      "route": "converse",
+      "round": "warmup",
+      "wall_ms": 25851.8,
+      "bedrock_latency_ms": 25384,
+      "input_tokens": 5418,
+      "output_tokens": 1823,
+      "usage_raw": {
+        "inputTokens": 5418,
+        "outputTokens": 1823,
+        "totalTokens": 7241,
+        "cacheReadInputTokens": 0,
+        "cacheWriteInputTokens": 0
+      },
+      "stop_reason": "end_turn",
+      "text_chars": 3035,
+      "verdict": "통과",
+      "kind": "통과",
+      "observed": {
+        "focus_n": 2,
+        "questions_n": 5,
+        "distinct_contexts": 5,
+        "notes_n": 4,
+        "reason_korean": true,
+        "reason_chars": 80,
+        "level_action": "keep",
+        "instruction_contexts_n": 5
+      }
+    },
+    {
+      "arm": "sonnet5-converse",
+      "model_id": "us.anthropic.claude-sonnet-5",
+      "route": "converse",
+      "round": "warmup",
+      "wall_ms": 26322.7,
+      "bedrock_latency_ms": 26169,
+      "input_tokens": 5418,
+      "output_tokens": 2373,
+      "usage_raw": {
+        "inputTokens": 5418,
+        "outputTokens": 2373,
+        "totalTokens": 7791,
+        "cacheReadInputTokens": 0,
+        "cacheWriteInputTokens": 0
+      },
+      "stop_reason": "end_turn",
+      "text_chars": 2098,
+      "verdict": "통과",
+      "kind": "통과",
+      "observed": {}
+    },
+    {
+      "arm": "luna-converse",
+      "model_id": "us.openai.gpt-5.6-luna",
+      "route": "converse",
+      "round": "warmup",
+      "wall_ms": 6803.0,
+      "bedrock_latency_ms": 6628,
+      "input_tokens": 2,
+      "output_tokens": 1090,
+      "usage_raw": {
+        "inputTokens": 2,
+        "outputTokens": 1090,
+        "totalTokens": 5194,
+        "cacheReadInputTokens": 0,
+        "cacheWriteInputTokens": 4102
+      },
+      "stop_reason": "end_turn",
+      "text_chars": 1984,
+      "verdict": "통과",
+      "kind": "통과",
+      "observed": {
+        "focus_n": 2,
+        "questions_n": 4,
+        "distinct_contexts": 4,
+        "notes_n": 3,
+        "reason_korean": true,
+        "reason_chars": 50,
+        "level_action": "keep",
+        "instruction_contexts_n": 4
+      }
+    },
+    {
+      "arm": "terra-converse",
+      "model_id": "us.openai.gpt-5.6-terra",
+      "route": "converse",
+      "round": "warmup",
+      "wall_ms": 11090.7,
+      "bedrock_latency_ms": 10936,
+      "input_tokens": 2,
+      "output_tokens": 946,
+      "usage_raw": {
+        "inputTokens": 2,
+        "outputTokens": 946,
+        "totalTokens": 5050,
+        "cacheReadInputTokens": 0,
+        "cacheWriteInputTokens": 4102
+      },
+      "stop_reason": "end_turn",
+      "text_chars": 1894,
+      "verdict": "통과",
+      "kind": "통과",
+      "observed": {
+        "focus_n": 2,
+        "questions_n": 4,
+        "distinct_contexts": 4,
+        "notes_n": 2,
+        "reason_korean": true,
+        "reason_chars": 48,
+        "level_action": "keep",
+        "instruction_contexts_n": 4
+      }
+    },
+    {
+      "arm": "opus5-app-invoke",
+      "model_id": "us.anthropic.claude-opus-5",
+      "route": "invoke_anthropic",
+      "round": "warmup",
+      "wall_ms": 17818.9,
+      "bedrock_latency_ms": null,
+      "input_tokens": 5418,
+      "output_tokens": 1210,
+      "usage_raw": {
+        "input_tokens": 5418,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 1210,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        },
+        "service_tier": "standard"
+      },
+      "stop_reason": "end_turn",
+      "text_chars": 2997,
+      "verdict": "통과",
+      "kind": "통과",
+      "observed": {
+        "focus_n": 2,
+        "questions_n": 5,
+        "distinct_contexts": 5,
+        "notes_n": 4,
+        "reason_korean": true,
+        "reason_chars": 68,
+        "level_action": "keep",
+        "instruction_contexts_n": 5
+      }
+    },
+    {
+      "arm": "opus5-converse",
+      "model_id": "us.anthropic.claude-opus-5",
+      "route": "converse",
+      "round": "r1",
+      "wall_ms": 19631.5,
+      "bedrock_latency_ms": 19476,
+      "input_tokens": 5418,
+      "output_tokens": 1410,
+      "usage_raw": {
+        "inputTokens": 5418,
+        "outputTokens": 1410,
+        "totalTokens": 6828,
+        "cacheReadInputTokens": 0,
+        "cacheWriteInputTokens": 0
+      },
+      "stop_reason": "end_turn",
+      "text_chars": 3299,
+      "verdict": "통과",
+      "kind": "통과",
+      "observed": {
+        "focus_n": 2,
+        "questions_n": 5,
+        "distinct_contexts": 5,
+        "notes_n": 4,
+        "reason_korean": true,
+        "reason_chars": 78,
+        "level_action": "keep",
+        "instruction_contexts_n": 5
+      }
+    },
+    {
+      "arm": "sonnet5-converse",
+      "model_id": "us.anthropic.claude-sonnet-5",
+      "route": "converse",
+      "round": "r1",
+      "wall_ms": 34084.4,
+      "bedrock_latency_ms": 33929,
+      "input_tokens": 5418,
+      "output_tokens": 2792,
+      "usage_raw": {
+        "inputTokens": 5418,
+        "outputTokens": 2792,
+        "totalTokens": 8210,
+        "cacheReadInputTokens": 0,
+        "cacheWriteInputTokens": 0
+      },
+      "stop_reason": "end_turn",
+      "text_chars": 1950,
+      "verdict": "통과",
+      "kind": "통과",
+      "observed": {}
+    },
+    {
+      "arm": "luna-converse",
+      "model_id": "us.openai.gpt-5.6-luna",
+      "route": "converse",
+      "round": "r1",
+      "wall_ms": 6759.6,
+      "bedrock_latency_ms": 6605,
+      "input_tokens": 2,
+      "output_tokens": 1076,
+      "usage_raw": {
+        "inputTokens": 2,
+        "outputTokens": 1076,
+        "totalTokens": 5180,
+        "cacheReadInputTokens": 4102,
+        "cacheWriteInputTokens": 0
+      },
+      "stop_reason": "end_turn",
+      "text_chars": 1957,
+      "verdict": "통과",
+      "kind": "통과",
+      "observed": {
+        "focus_n": 2,
+        "questions_n": 4,
+        "distinct_contexts": 4,
+        "notes_n": 2,
+        "reason_korean": true,
+        "reason_chars": 54,
+        "level_action": "keep",
+        "instruction_contexts_n": 4
+      }
+    },
+    {
+      "arm": "terra-converse",
+      "model_id": "us.openai.gpt-5.6-terra",
+      "route": "converse",
+      "round": "r1",
+      "wall_ms": 7207.0,
+      "bedrock_latency_ms": 7053,
+      "input_tokens": 2,
+      "output_tokens": 751,
+      "usage_raw": {
+        "inputTokens": 2,
+        "outputTokens": 751,
+        "totalTokens": 4855,
+        "cacheReadInputTokens": 4102,
+        "cacheWriteInputTokens": 0
+      },
+      "stop_reason": "end_turn",
+      "text_chars": 1765,
+      "verdict": "통과",
+      "kind": "통과",
+      "observed": {
+        "focus_n": 2,
+        "questions_n": 4,
+        "distinct_contexts": 4,
+        "notes_n": 2,
+        "reason_korean": true,
+        "reason_chars": 48,
+        "level_action": "keep",
+        "instruction_contexts_n": 4
+      }
+    },
+    {
+      "arm": "opus5-app-invoke",
+      "model_id": "us.anthropic.claude-opus-5",
+      "route": "invoke_anthropic",
+      "round": "r1",
+      "wall_ms": 26189.7,
+      "bedrock_latency_ms": null,
+      "input_tokens": 5418,
+      "output_tokens": 1924,
+      "usage_raw": {
+        "input_tokens": 5418,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 1924,
+        "output_tokens_details": {
+          "thinking_tokens": 706
+        },
+        "service_tier": "standard"
+      },
+      "stop_reason": "end_turn",
+      "text_chars": 2889,
+      "verdict": "통과",
+      "kind": "통과",
+      "observed": {
+        "focus_n": 2,
+        "questions_n": 5,
+        "distinct_contexts": 5,
+        "notes_n": 4,
+        "reason_korean": true,
+        "reason_chars": 92,
+        "level_action": "keep",
+        "instruction_contexts_n": 5
+      }
+    },
+    {
+      "arm": "opus5-converse",
+      "model_id": "us.anthropic.claude-opus-5",
+      "route": "converse",
+      "round": "r2",
+      "wall_ms": 23620.6,
+      "bedrock_latency_ms": 23466,
+      "input_tokens": 5418,
+      "output_tokens": 1689,
+      "usage_raw": {
+        "inputTokens": 5418,
+        "outputTokens": 1689,
+        "totalTokens": 7107,
+        "cacheReadInputTokens": 0,
+        "cacheWriteInputTokens": 0
+      },
+      "stop_reason": "end_turn",
+      "text_chars": 2315,
+      "verdict": "통과",
+      "kind": "통과",
+      "observed": {
+        "focus_n": 2,
+        "questions_n": 5,
+        "distinct_contexts": 5,
+        "notes_n": 3,
+        "reason_korean": true,
+        "reason_chars": 90,
+        "level_action": "keep",
+        "instruction_contexts_n": 5
+      }
+    },
+    {
+      "arm": "sonnet5-converse",
+      "model_id": "us.anthropic.claude-sonnet-5",
+      "route": "converse",
+      "round": "r2",
+      "wall_ms": 22153.9,
+      "bedrock_latency_ms": 21999,
+      "input_tokens": 5418,
+      "output_tokens": 1908,
+      "usage_raw": {
+        "inputTokens": 5418,
+        "outputTokens": 1908,
+        "totalTokens": 7326,
+        "cacheReadInputTokens": 0,
+        "cacheWriteInputTokens": 0
+      },
+      "stop_reason": "end_turn",
+      "text_chars": 1984,
+      "verdict": "통과",
+      "kind": "통과",
+      "observed": {}
+    },
+    {
+      "arm": "luna-converse",
+      "model_id": "us.openai.gpt-5.6-luna",
+      "route": "converse",
+      "round": "r2",
+      "wall_ms": 10341.8,
+      "bedrock_latency_ms": 10187,
+      "input_tokens": 2,
+      "output_tokens": 1570,
+      "usage_raw": {
+        "inputTokens": 2,
+        "outputTokens": 1570,
+        "totalTokens": 5674,
+        "cacheReadInputTokens": 4102,
+        "cacheWriteInputTokens": 0
+      },
+      "stop_reason": "end_turn",
+      "text_chars": 1804,
+      "verdict": "통과",
+      "kind": "통과",
+      "observed": {
+        "focus_n": 2,
+        "questions_n": 4,
+        "distinct_contexts": 4,
+        "notes_n": 2,
+        "reason_korean": true,
+        "reason_chars": 48,
+        "level_action": "keep",
+        "instruction_contexts_n": 4
+      }
+    },
+    {
+      "arm": "terra-converse",
+      "model_id": "us.openai.gpt-5.6-terra",
+      "route": "converse",
+      "round": "r2",
+      "wall_ms": 11581.1,
+      "bedrock_latency_ms": 11426,
+      "input_tokens": 2,
+      "output_tokens": 1005,
+      "usage_raw": {
+        "inputTokens": 2,
+        "outputTokens": 1005,
+        "totalTokens": 5109,
+        "cacheReadInputTokens": 4102,
+        "cacheWriteInputTokens": 0
+      },
+      "stop_reason": "end_turn",
+      "text_chars": 2041,
+      "verdict": "통과",
+      "kind": "통과",
+      "observed": {
+        "focus_n": 2,
+        "questions_n": 4,
+        "distinct_contexts": 4,
+        "notes_n": 2,
+        "reason_korean": true,
+        "reason_chars": 43,
+        "level_action": "keep",
+        "instruction_contexts_n": 4
+      }
+    },
+    {
+      "arm": "opus5-app-invoke",
+      "model_id": "us.anthropic.claude-opus-5",
+      "route": "invoke_anthropic",
+      "round": "r2",
+      "wall_ms": 18372.5,
+      "bedrock_latency_ms": null,
+      "input_tokens": 5418,
+      "output_tokens": 1269,
+      "usage_raw": {
+        "input_tokens": 5418,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 1269,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        },
+        "service_tier": "standard"
+      },
+      "stop_reason": "end_turn",
+      "text_chars": 2932,
+      "verdict": "통과",
+      "kind": "통과",
+      "observed": {
+        "focus_n": 2,
+        "questions_n": 5,
+        "distinct_contexts": 5,
+        "notes_n": 4,
+        "reason_korean": true,
+        "reason_chars": 83,
+        "level_action": "keep",
+        "instruction_contexts_n": 5
+      }
+    },
+    {
+      "arm": "opus5-converse",
+      "model_id": "us.anthropic.claude-opus-5",
+      "route": "converse",
+      "round": "r3",
+      "wall_ms": 21128.1,
+      "bedrock_latency_ms": 20974,
+      "input_tokens": 5418,
+      "output_tokens": 1489,
+      "usage_raw": {
+        "inputTokens": 5418,
+        "outputTokens": 1489,
+        "totalTokens": 6907,
+        "cacheReadInputTokens": 0,
+        "cacheWriteInputTokens": 0
+      },
+      "stop_reason": "end_turn",
+      "text_chars": 2905,
+      "verdict": "통과",
+      "kind": "통과",
+      "observed": {
+        "focus_n": 2,
+        "questions_n": 5,
+        "distinct_contexts": 5,
+        "notes_n": 3,
+        "reason_korean": true,
+        "reason_chars": 84,
+        "level_action": "keep",
+        "instruction_contexts_n": 5
+      }
+    },
+    {
+      "arm": "sonnet5-converse",
+      "model_id": "us.anthropic.claude-sonnet-5",
+      "route": "converse",
+      "round": "r3",
+      "wall_ms": 33882.2,
+      "bedrock_latency_ms": 33729,
+      "input_tokens": 5418,
+      "output_tokens": 2689,
+      "usage_raw": {
+        "inputTokens": 5418,
+        "outputTokens": 2689,
+        "totalTokens": 8107,
+        "cacheReadInputTokens": 0,
+        "cacheWriteInputTokens": 0
+      },
+      "stop_reason": "end_turn",
+      "text_chars": 2042,
+      "verdict": "통과",
+      "kind": "통과",
+      "observed": {}
+    },
+    {
+      "arm": "luna-converse",
+      "model_id": "us.openai.gpt-5.6-luna",
+      "route": "converse",
+      "round": "r3",
+      "wall_ms": 10501.3,
+      "bedrock_latency_ms": 10346,
+      "input_tokens": 2,
+      "output_tokens": 1634,
+      "usage_raw": {
+        "inputTokens": 2,
+        "outputTokens": 1634,
+        "totalTokens": 5738,
+        "cacheReadInputTokens": 4102,
+        "cacheWriteInputTokens": 0
+      },
+      "stop_reason": "end_turn",
+      "text_chars": 2212,
+      "verdict": "통과",
+      "kind": "통과",
+      "observed": {
+        "focus_n": 2,
+        "questions_n": 4,
+        "distinct_contexts": 4,
+        "notes_n": 3,
+        "reason_korean": true,
+        "reason_chars": 41,
+        "level_action": "keep",
+        "instruction_contexts_n": 4
+      }
+    },
+    {
+      "arm": "terra-converse",
+      "model_id": "us.openai.gpt-5.6-terra",
+      "route": "converse",
+      "round": "r3",
+      "wall_ms": 11303.0,
+      "bedrock_latency_ms": 11151,
+      "input_tokens": 2,
+      "output_tokens": 1004,
+      "usage_raw": {
+        "inputTokens": 2,
+        "outputTokens": 1004,
+        "totalTokens": 5108,
+        "cacheReadInputTokens": 4102,
+        "cacheWriteInputTokens": 0
+      },
+      "stop_reason": "end_turn",
+      "text_chars": 1833,
+      "verdict": "통과",
+      "kind": "통과",
+      "observed": {
+        "focus_n": 2,
+        "questions_n": 4,
+        "distinct_contexts": 4,
+        "notes_n": 2,
+        "reason_korean": true,
+        "reason_chars": 51,
+        "level_action": "keep",
+        "instruction_contexts_n": 4
+      }
+    },
+    {
+      "arm": "opus5-app-invoke",
+      "model_id": "us.anthropic.claude-opus-5",
+      "route": "invoke_anthropic",
+      "round": "r3",
+      "wall_ms": 16007.2,
+      "bedrock_latency_ms": null,
+      "input_tokens": 5418,
+      "output_tokens": 1172,
+      "usage_raw": {
+        "input_tokens": 5418,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 1172,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        },
+        "service_tier": "standard"
+      },
+      "stop_reason": "end_turn",
+      "text_chars": 2801,
+      "verdict": "통과",
+      "kind": "통과",
+      "observed": {
+        "focus_n": 2,
+        "questions_n": 5,
+        "distinct_contexts": 5,
+        "notes_n": 3,
+        "reason_korean": true,
+        "reason_chars": 66,
+        "level_action": "keep",
+        "instruction_contexts_n": 5
+      }
+    },
+    {
+      "arm": "opus5-converse",
+      "model_id": "us.anthropic.claude-opus-5",
+      "route": "converse",
+      "round": "r4",
+      "wall_ms": 24439.7,
+      "bedrock_latency_ms": 24284,
+      "input_tokens": 5418,
+      "output_tokens": 1696,
+      "usage_raw": {
+        "inputTokens": 5418,
+        "outputTokens": 1696,
+        "totalTokens": 7114,
+        "cacheReadInputTokens": 0,
+        "cacheWriteInputTokens": 0
+      },
+      "stop_reason": "end_turn",
+      "text_chars": 2961,
+      "verdict": "통과",
+      "kind": "통과",
+      "observed": {
+        "focus_n": 2,
+        "questions_n": 5,
+        "distinct_contexts": 5,
+        "notes_n": 3,
+        "reason_korean": true,
+        "reason_chars": 69,
+        "level_action": "keep",
+        "instruction_contexts_n": 5
+      }
+    },
+    {
+      "arm": "sonnet5-converse",
+      "model_id": "us.anthropic.claude-sonnet-5",
+      "route": "converse",
+      "round": "r4",
+      "wall_ms": 25220.0,
+      "bedrock_latency_ms": 25064,
+      "input_tokens": 5418,
+      "output_tokens": 2256,
+      "usage_raw": {
+        "inputTokens": 5418,
+        "outputTokens": 2256,
+        "totalTokens": 7674,
+        "cacheReadInputTokens": 0,
+        "cacheWriteInputTokens": 0
+      },
+      "stop_reason": "end_turn",
+      "text_chars": 2090,
+      "verdict": "통과",
+      "kind": "통과",
+      "observed": {}
+    },
+    {
+      "arm": "luna-converse",
+      "model_id": "us.openai.gpt-5.6-luna",
+      "route": "converse",
+      "round": "r4",
+      "wall_ms": 8334.3,
+      "bedrock_latency_ms": 8178,
+      "input_tokens": 2,
+      "output_tokens": 1326,
+      "usage_raw": {
+        "inputTokens": 2,
+        "outputTokens": 1326,
+        "totalTokens": 5430,
+        "cacheReadInputTokens": 4102,
+        "cacheWriteInputTokens": 0
+      },
+      "stop_reason": "end_turn",
+      "text_chars": 2021,
+      "verdict": "통과",
+      "kind": "통과",
+      "observed": {
+        "focus_n": 2,
+        "questions_n": 4,
+        "distinct_contexts": 4,
+        "notes_n": 2,
+        "reason_korean": true,
+        "reason_chars": 61,
+        "level_action": "keep",
+        "instruction_contexts_n": 4
+      }
+    },
+    {
+      "arm": "terra-converse",
+      "model_id": "us.openai.gpt-5.6-terra",
+      "route": "converse",
+      "round": "r4",
+      "wall_ms": 16508.8,
+      "bedrock_latency_ms": 16353,
+      "input_tokens": 2,
+      "output_tokens": 1471,
+      "usage_raw": {
+        "inputTokens": 2,
+        "outputTokens": 1471,
+        "totalTokens": 5575,
+        "cacheReadInputTokens": 4102,
+        "cacheWriteInputTokens": 0
+      },
+      "stop_reason": "end_turn",
+      "text_chars": 1888,
+      "verdict": "통과",
+      "kind": "통과",
+      "observed": {
+        "focus_n": 2,
+        "questions_n": 4,
+        "distinct_contexts": 4,
+        "notes_n": 1,
+        "reason_korean": true,
+        "reason_chars": 55,
+        "level_action": "keep",
+        "instruction_contexts_n": 4
+      }
+    },
+    {
+      "arm": "opus5-app-invoke",
+      "model_id": "us.anthropic.claude-opus-5",
+      "route": "invoke_anthropic",
+      "round": "r4",
+      "wall_ms": 29619.1,
+      "bedrock_latency_ms": null,
+      "input_tokens": 5418,
+      "output_tokens": 2145,
+      "usage_raw": {
+        "input_tokens": 5418,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 2145,
+        "output_tokens_details": {
+          "thinking_tokens": 906
+        },
+        "service_tier": "standard"
+      },
+      "stop_reason": "end_turn",
+      "text_chars": 2988,
+      "verdict": "통과",
+      "kind": "통과",
+      "observed": {
+        "focus_n": 2,
+        "questions_n": 5,
+        "distinct_contexts": 5,
+        "notes_n": 3,
+        "reason_korean": true,
+        "reason_chars": 81,
+        "level_action": "keep",
+        "instruction_contexts_n": 5
+      }
+    },
+    {
+      "arm": "opus5-converse",
+      "model_id": "us.anthropic.claude-opus-5",
+      "route": "converse",
+      "round": "r5",
+      "wall_ms": 37447.5,
+      "bedrock_latency_ms": 37292,
+      "input_tokens": 5418,
+      "output_tokens": 2607,
+      "usage_raw": {
+        "inputTokens": 5418,
+        "outputTokens": 2607,
+        "totalTokens": 8025,
+        "cacheReadInputTokens": 0,
+        "cacheWriteInputTokens": 0
+      },
+      "stop_reason": "end_turn",
+      "text_chars": 3066,
+      "verdict": "통과",
+      "kind": "통과",
+      "observed": {
+        "focus_n": 2,
+        "questions_n": 5,
+        "distinct_contexts": 5,
+        "notes_n": 4,
+        "reason_korean": true,
+        "reason_chars": 74,
+        "level_action": "keep",
+        "instruction_contexts_n": 5
+      }
+    },
+    {
+      "arm": "sonnet5-converse",
+      "model_id": "us.anthropic.claude-sonnet-5",
+      "route": "converse",
+      "round": "r5",
+      "wall_ms": 25294.8,
+      "bedrock_latency_ms": 25140,
+      "input_tokens": 5418,
+      "output_tokens": 2244,
+      "usage_raw": {
+        "inputTokens": 5418,
+        "outputTokens": 2244,
+        "totalTokens": 7662,
+        "cacheReadInputTokens": 0,
+        "cacheWriteInputTokens": 0
+      },
+      "stop_reason": "end_turn",
+      "text_chars": 1911,
+      "verdict": "통과",
+      "kind": "통과",
+      "observed": {}
+    },
+    {
+      "arm": "luna-converse",
+      "model_id": "us.openai.gpt-5.6-luna",
+      "route": "converse",
+      "round": "r5",
+      "wall_ms": 10416.2,
+      "bedrock_latency_ms": 10262,
+      "input_tokens": 2,
+      "output_tokens": 1610,
+      "usage_raw": {
+        "inputTokens": 2,
+        "outputTokens": 1610,
+        "totalTokens": 5714,
+        "cacheReadInputTokens": 4102,
+        "cacheWriteInputTokens": 0
+      },
+      "stop_reason": "end_turn",
+      "text_chars": 1976,
+      "verdict": "PlanValidationError: focus references pattern_id that was not offered in the prompt: 70ad1279-cfaf-4a57-bb7b-c28f561baeaa",
+      "kind": "그외",
+      "observed": {
+        "focus_n": 2,
+        "questions_n": 4,
+        "distinct_contexts": 4,
+        "notes_n": 2,
+        "reason_korean": true,
+        "reason_chars": 45,
+        "level_action": "keep",
+        "instruction_contexts_n": 4
+      }
+    },
+    {
+      "arm": "terra-converse",
+      "model_id": "us.openai.gpt-5.6-terra",
+      "route": "converse",
+      "round": "r5",
+      "wall_ms": 10639.2,
+      "bedrock_latency_ms": 10486,
+      "input_tokens": 2,
+      "output_tokens": 924,
+      "usage_raw": {
+        "inputTokens": 2,
+        "outputTokens": 924,
+        "totalTokens": 5028,
+        "cacheReadInputTokens": 4102,
+        "cacheWriteInputTokens": 0
+      },
+      "stop_reason": "end_turn",
+      "text_chars": 1835,
+      "verdict": "통과",
+      "kind": "통과",
+      "observed": {
+        "focus_n": 2,
+        "questions_n": 4,
+        "distinct_contexts": 4,
+        "notes_n": 2,
+        "reason_korean": true,
+        "reason_chars": 45,
+        "level_action": "keep",
+        "instruction_contexts_n": 4
+      }
+    },
+    {
+      "arm": "opus5-app-invoke",
+      "model_id": "us.anthropic.claude-opus-5",
+      "route": "invoke_anthropic",
+      "round": "r5",
+      "wall_ms": 17680.2,
+      "bedrock_latency_ms": null,
+      "input_tokens": 5418,
+      "output_tokens": 1246,
+      "usage_raw": {
+        "input_tokens": 5418,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 1246,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        },
+        "service_tier": "standard"
+      },
+      "stop_reason": "end_turn",
+      "text_chars": 2931,
+      "verdict": "통과",
+      "kind": "통과",
+      "observed": {
+        "focus_n": 2,
+        "questions_n": 5,
+        "distinct_contexts": 5,
+        "notes_n": 4,
+        "reason_korean": true,
+        "reason_chars": 87,
+        "level_action": "keep",
+        "instruction_contexts_n": 5
+      }
+    }
+  ]
+}

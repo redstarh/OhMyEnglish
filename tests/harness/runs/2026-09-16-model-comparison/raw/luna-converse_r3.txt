@@ -1,0 +1,65 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "What do you want to buy for breakfast? Say one short sentence about an apple, an orange, or an egg.",
+      "context": "Breakfast shopping"
+    },
+    {
+      "prompt": "What do you need at home today? Say one short sentence about an umbrella, an item, or an outfit.",
+      "context": "Getting ready at home"
+    },
+    {
+      "prompt": "What do you want to send at work? Say one short sentence about an email, an attachment, or an update.",
+      "context": "Sending a simple work message"
+    },
+    {
+      "prompt": "What do you want to share with a friend? Say one short sentence about an idea, an event, or an activity.",
+      "context": "Making a simple plan"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "오늘은 단수 명사 앞의 관사와 ‘an’의 자연스러운 발음을 함께 연습해요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "Use short, single-clause sentences.",
+    "hint_timing": "Give a brief hint after one attempt.",
+    "contexts": [
+      "Breakfast shopping",
+      "Getting ready at home",
+      "Sending a simple work message",
+      "Making a simple plan"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "The learner can produce short daily-life sentences, but articles and the pronunciation of “an” still need repeated practice."
+  },
+  "notes": [
+    "Article errors recur across sessions, especially before newly mentioned singular nouns.",
+    "The learner often produces correct short sentences but may need support when adding new noun phrases.",
+    "Use clear contrastive modeling of “an” and “a” without increasing sentence length too quickly."
+  ]
+}

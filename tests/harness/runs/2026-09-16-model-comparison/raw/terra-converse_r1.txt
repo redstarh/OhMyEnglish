@@ -1,0 +1,64 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "What is an app you use every day?",
+      "context": "daily phone use"
+    },
+    {
+      "prompt": "Did you buy an item online recently?",
+      "context": "online shopping"
+    },
+    {
+      "prompt": "Tell me about an easy meal you like.",
+      "context": "food at home"
+    },
+    {
+      "prompt": "Do you need an umbrella today?",
+      "context": "weather and going out"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "오늘은 단수 명사 앞의 a/an을 자연스럽게 넣고 an 발음을 또렷하게 연습해 봅시다.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "Short, single-clause answers.",
+    "hint_timing": "Give a hint after one pause or error.",
+    "contexts": [
+      "daily phone use",
+      "online shopping",
+      "food at home",
+      "weather and going out"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "The learner can answer familiar daily-life questions but needs stable article use in short spoken sentences."
+  },
+  "notes": [
+    "The learner repeatedly drops articles before singular nouns, including in otherwise simple sentences.",
+    "Keep pronunciation feedback brief and contrast the full word an with a."
+  ]
+}

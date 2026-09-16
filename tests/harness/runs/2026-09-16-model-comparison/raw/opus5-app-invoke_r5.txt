@@ -1,0 +1,71 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "What do you eat in the morning? Tell me two or three short sentences, like \"I eat an apple\" or \"I want an egg sandwich.\"",
+      "context": "Breakfast at home"
+    },
+    {
+      "prompt": "You are at a cafe. Order two things you want today in short sentences, for example \"I'd like an iced americano.\"",
+      "context": "Ordering at a cafe"
+    },
+    {
+      "prompt": "Tell me about one hour of your free time yesterday. Say what you watched or read, like \"I watched an old movie.\"",
+      "context": "Free time after work"
+    },
+    {
+      "prompt": "What is in your bag right now? Name three things one by one in short sentences, for example \"I have an umbrella.\"",
+      "context": "Things you carry every day"
+    },
+    {
+      "prompt": "You need help with one small thing at work today. Say what you need in short sentences, like \"I need an extra chair\" or \"I need an email address.\"",
+      "context": "Small request at the office"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "'a/an'을 빠뜨리는 실수가 9일 동안 계속 나왔고, 특히 'an'을 'a'처럼 발음하는 습관도 있어서 오늘은 짧은 문장으로 이 두 가지를 함께 연습해요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "short single-clause sentences, about 5-8 words, patterns like 'I want an...' or 'I ate an...'",
+    "hint_timing": "wait for the learner to finish the sentence, then give the hint only if the article is missing or 'an' sounded like 'a'",
+    "contexts": [
+      "Breakfast at home",
+      "Ordering at a cafe",
+      "Free time after work",
+      "Things you carry every day",
+      "Small request at the office"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "짧은 문장은 잘 만들지만 관사가 아직 불안정하니 A2에서 기초를 더 다지는 것이 좋아요."
+  },
+  "notes": [
+    "Articles appear correctly after a repair turn ('she enjoyed a joke one night'), but drop again in the first attempt of a new sentence — the form is known, not yet automatic.",
+    "Longer noun phrases ('project architecture meeting') are where the article disappears most; short two-word objects are safer.",
+    "Recent turns in Korean transcription (마이티니시트더리포트...) suggest the learner sometimes rehearses English through Korean sounds — worth watching how that affects 'an'.",
+    "Place nouns after 'go to' still lack 'the' repeatedly; queue that pattern next once a/an is steadier."
+  ]
+}

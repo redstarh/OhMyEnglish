@@ -1,0 +1,64 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "What do you want to buy today? Tell me about an apple or an orange.",
+      "context": "At a grocery store"
+    },
+    {
+      "prompt": "What do you want to eat for breakfast? Tell me about an egg or an avocado.",
+      "context": "At home in the morning"
+    },
+    {
+      "prompt": "What do you need to send today? Tell me about an email or an attachment.",
+      "context": "At work"
+    },
+    {
+      "prompt": "What do you want to make this week? Tell me about an idea or an easy plan.",
+      "context": "Planning a simple work task"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "짧은 문장에서 단수 명사 앞에 a/an을 넣고 an의 자연스러운 발음을 함께 연습하기 위해서예요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "Use short, single-clause sentences.",
+    "hint_timing": "Give a brief hint after one attempt.",
+    "contexts": [
+      "At a grocery store",
+      "At home in the morning",
+      "At work",
+      "Planning a simple work task"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "The learner can produce short daily-life sentences, so A2 practice is suitable while articles and pronunciation still need focused review."
+  },
+  "notes": [
+    "The learner often drops a before singular nouns.",
+    "The learner may produce an like the letter name, so short an phrases need repeated speaking practice."
+  ]
+}

@@ -1,0 +1,72 @@
+```json
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "What is an activity you enjoy after work?",
+      "context": "daily routine - leisure activity"
+    },
+    {
+      "prompt": "Is there an email you need to send today?",
+      "context": "work daily task"
+    },
+    {
+      "prompt": "What is an idea you want to try this week?",
+      "context": "personal goal or plan"
+    },
+    {
+      "prompt": "Is there an item you want to buy soon?",
+      "context": "shopping / errands"
+    },
+    {
+      "prompt": "What is an interesting article you read recently?",
+      "context": "reading habit"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "관사를 자주 빠뜨리는 습관이 여러 세션에 걸쳐 반복되고 있고, 'an' 발음도 오늘 복습할 차례라서 두 가지를 함께 연습해요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "short, single-clause sentences",
+    "hint_timing": "give a gentle hint only after the learner finishes speaking",
+    "contexts": [
+      "daily routine - leisure activity",
+      "work daily task",
+      "personal goal or plan",
+      "shopping / errands",
+      "reading habit"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "모든 목표 패턴의 mastery가 아직 0이라 현재 난이도를 유지하는 것이 적절해요."
+  },
+  "notes": [
+    "짧은 문장에서는 관사를 빠뜨리는 빈도가 높고, 특히 처음 언급하는 단수 명사 앞에서 자주 누락됨.",
+    "an 발음이 a로 축약되는 경향이 있어 반복 노출이 필요함.",
+    "장소 명사 앞 the 누락과 시제 오류도 최근 반복적으로 나타나 다음 세션에서 다룰 후보로 남겨둠."
+  ]
+}
+```

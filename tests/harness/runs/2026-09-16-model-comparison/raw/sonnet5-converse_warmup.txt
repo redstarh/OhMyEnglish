@@ -1,0 +1,72 @@
+```json
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "What fruit do you usually eat for breakfast?",
+      "context": "talking about a morning snack"
+    },
+    {
+      "prompt": "How long does it usually take you to get to work?",
+      "context": "describing your daily commute time"
+    },
+    {
+      "prompt": "What do you check first when you start work?",
+      "context": "describing your morning routine at the office"
+    },
+    {
+      "prompt": "Do you have any idea for your next vacation?",
+      "context": "small talk about weekend or vacation plans"
+    },
+    {
+      "prompt": "What do you bring with you when it rains?",
+      "context": "talking about rainy day habits"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "관사를 빠뜨리는 실수가 여러 세션에서 계속 반복되고 있고 마침 'an' 발음도 복습할 때가 되었으니, 오늘은 이 두 가지를 짧은 문장으로 함께 연습해 봐요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "short, single-clause sentences like 'I eat an apple'",
+    "hint_timing": "let the learner finish the sentence first, then offer the article or sound correction",
+    "contexts": [
+      "breakfast routine",
+      "daily commute time",
+      "morning work routine",
+      "weekend or vacation planning",
+      "rainy day habits"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "관사 관련 패턴들의 mastery가 아직 0에 머물러 있어 같은 난이도에서 반복 연습이 필요해요."
+  },
+  "notes": [
+    "짧은 문장에서도 단수 명사 앞에 a/an을 자주 빠뜨림 (예: 'she enjoyed joke')",
+    "장소 명사 앞 the 누락도 반복되어 관사 관련 패턴이 전반적으로 취약함",
+    "'an'을 말할 때 종종 'a'처럼 발음하는 경향이 관찰됨"
+  ]
+}
+```

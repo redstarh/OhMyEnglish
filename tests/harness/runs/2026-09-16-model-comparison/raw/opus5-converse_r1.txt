@@ -1,0 +1,72 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an + 모음 소리 명사 (an office, an email, an idea)"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "What did you eat yesterday? Tell me in two short sentences. Try to say things like \"an apple\", \"an egg\", or \"an orange\".",
+      "context": "daily life - food and meals"
+    },
+    {
+      "prompt": "Tell me about one hour of your evening at home. Say one thing you did with an object — for example \"I watched an old movie\" or \"I read an easy book\".",
+      "context": "daily life - evening routine"
+    },
+    {
+      "prompt": "You go somewhere on the weekend. Say two short sentences about it. Use words like \"an art gallery\", \"an ice cream shop\", or \"an hour\".",
+      "context": "daily life - weekend outing"
+    },
+    {
+      "prompt": "Talk about your morning at work in two short sentences. Say something with \"an email\", \"an office\", or \"an elevator\".",
+      "context": "light work talk - morning at the office"
+    },
+    {
+      "prompt": "Tell me about one small thing you want to change at work. Say it with \"an idea\" or \"an example\" — for example \"I have an idea.\"",
+      "context": "light work talk - sharing a small idea"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "관사 a/an을 빼고 말하는 습관이 9일 동안 계속 보였고, an을 a처럼 발음하는 점도 오늘 같이 잡으면 짧은 문장이 훨씬 자연스러워져요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an + 모음 소리 명사 (an office, an email, an idea)"
+      }
+    ],
+    "sentence_length": "short single-clause sentences, about 5-8 words; let the learner join two of them only when it comes easily",
+    "hint_timing": "wait about three seconds after the learner finishes; if the article is missing or 'an' sounds like 'a', repeat the phrase clearly once and let them say it again",
+    "contexts": [
+      "daily life - food and meals",
+      "daily life - evening routine",
+      "daily life - weekend outing",
+      "light work talk - morning at the office",
+      "light work talk - sharing a small idea"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "짧은 단문은 안정적으로 만들지만 관사와 시간 표현이 아직 흔들려서 A2에서 더 다지는 것이 좋아요.",
+    "reason": "짧은 단문은 안정적으로 만들지만 관사와 시간 표현이 아직 흔들려서 A2에서 더 다지는 것이 좋아요."
+  },
+  "notes": [
+    "Self-corrects when given a second try: 'enjoyed joke' became 'enjoyed a joke' after one repeat, so short re-attempts work well.",
+    "Articles appear in memorized chunks ('I had a meeting yesterday') but disappear in longer noun phrases ('project architecture meeting').",
+    "Time expressions and place articles slip in the same sentences ('go to gym', 'before some night'); worth touching lightly even when they are not today's focus.",
+    "Some attempts came in as Korean transcription of English sounds, which suggests reduced words like 'an' and 'the' are hard to hear as separate units."
+  ]
+}

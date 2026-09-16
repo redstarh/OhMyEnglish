@@ -1,0 +1,64 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "What did you eat this morning? Tell me one short sentence with “an egg” or “an apple.”",
+      "context": "Breakfast"
+    },
+    {
+      "prompt": "What did you buy yesterday? Tell me one short sentence with “an umbrella.”",
+      "context": "Shopping"
+    },
+    {
+      "prompt": "What do you need for tonight? Tell me one short sentence with “an email” or another item.",
+      "context": "Evening plans"
+    },
+    {
+      "prompt": "What is on your desk today? Tell me one short sentence with “an eraser” or another item.",
+      "context": "Simple workplace routine"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "짧은 문장에서 처음 나오는 단수 명사 앞에 a/an을 넣고, an의 발음을 자연스럽게 말하는 연습이 필요해요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "Use short, single-clause sentences.",
+    "hint_timing": "Give a hint after one attempt.",
+    "contexts": [
+      "Breakfast",
+      "Shopping",
+      "Evening plans",
+      "Simple workplace routine"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "The learner can produce short daily-life sentences, so the same level is suitable for focused article and pronunciation practice."
+  },
+  "notes": [
+    "The learner often drops articles before singular nouns, especially in short spoken sentences.",
+    "The learner also drops the before place nouns and needs repeated practice with a/an before moving to longer sentences."
+  ]
+}

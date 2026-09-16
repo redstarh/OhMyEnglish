@@ -1,0 +1,71 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "Tell me about one thing you eat in the morning. Say it in one short sentence, like \"I want an apple\" or \"I need an egg.\"",
+      "context": "Breakfast at home"
+    },
+    {
+      "prompt": "You are at a small cafe. Order one thing you really want today. Try words like an iced tea, an orange juice, an americano.",
+      "context": "Ordering at a cafe"
+    },
+    {
+      "prompt": "Talk about one hour of your evening. What do you do for an hour after dinner? One short sentence is enough.",
+      "context": "Evening routine"
+    },
+    {
+      "prompt": "You need one small thing today. Tell me what it is — for example an umbrella, an eraser, an extra bag.",
+      "context": "Shopping for one small item"
+    },
+    {
+      "prompt": "Tomorrow morning you have one short plan. Tell me about it in a short sentence, like \"I'd like to meet an old friend\" or \"I need an early breakfast.\"",
+      "context": "A simple plan for tomorrow"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "관사 a/an 빼먹는 실수가 9일 동안 계속 나오고 있어요. 오늘은 짧은 문장에서 a/an을 넣고, an을 [언]으로 또박또박 발음하는 연습을 해요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "short single-clause sentences, about 5-8 words, built on patterns like \"I want...\" / \"I need...\" / \"I'd like to...\"",
+    "hint_timing": "wait for the learner to finish the sentence, then hint only if the article is missing or 'an' sounded like 'a'",
+    "contexts": [
+      "Breakfast at home",
+      "Ordering at a cafe",
+      "Evening routine",
+      "Shopping for one small item",
+      "A simple plan for tomorrow"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "짧은 일상 문장은 잘 만들지만 관사와 발음이 아직 불안정해서 A2에서 더 다지는 게 좋아요."
+  },
+  "notes": [
+    "Self-corrects when given a second try: 'enjoyed joke' -> 'enjoyed a joke' after a hint, so recognition is there but production is not automatic.",
+    "Articles appear reliably in memorized chunks ('I had a meeting yesterday') but drop out as soon as the noun phrase gets longer ('was project architecture meeting').",
+    "Wrote several turns in Korean phonetic script instead of English words — may be avoiding speaking; keep prompts short enough to say aloud in one breath.",
+    "'an' has only been attempted once and was wrong; needs many repeated chances before vowel-initial nouns."
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "You need a phone tool today. What kind of app do you need?",
+      "context": "Choosing an app for daily life"
+    },
+    {
+      "prompt": "It may rain today. What do you want to take with you?",
+      "context": "Leaving home on a rainy day"
+    },
+    {
+      "prompt": "You are hungry this morning. What do you want to eat?",
+      "context": "Choosing a simple breakfast"
+    },
+    {
+      "prompt": "You want to relax after work. What class do you want to join?",
+      "context": "Choosing an after-work activity"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "처음 말하는 단수 명사 앞의 a/an을 자주 빼므로, 오늘은 an 소리와 함께 짧게 연습해 보세요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "Short single-clause answers with one detail.",
+    "hint_timing": "Give a hint after one pause or one error.",
+    "contexts": [
+      "Choosing an app for daily life",
+      "Leaving home on a rainy day",
+      "Choosing a simple breakfast",
+      "Choosing an after-work activity"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "The learner can handle short daily-life sentences and needs more accurate articles and pronunciation."
+  },
+  "notes": [
+    "Keep responses short and personal, with repeated chances to say an before a singular noun."
+  ]
+}

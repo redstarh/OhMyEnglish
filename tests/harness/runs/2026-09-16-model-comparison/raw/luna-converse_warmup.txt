@@ -1,0 +1,65 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 처음 언급하는 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "What is an easy breakfast you want to make this weekend? Answer in one short sentence.",
+      "context": "Weekend breakfast"
+    },
+    {
+      "prompt": "What is an activity you want to try after work? Answer in one short sentence.",
+      "context": "After-work plans"
+    },
+    {
+      "prompt": "What is an important appointment you have this week? Answer in one short sentence.",
+      "context": "Weekly schedule"
+    },
+    {
+      "prompt": "What is an email you need to write today? Answer in one short sentence.",
+      "context": "A simple work task"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "오늘은 처음 말하는 단수 명사 앞에 관사를 붙이고 an을 자연스럽게 발음하는 연습을 해요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 처음 언급하는 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "Use short, single-clause sentences.",
+    "hint_timing": "Give a brief hint after one attempt.",
+    "contexts": [
+      "Weekend breakfast",
+      "After-work plans",
+      "Weekly schedule",
+      "A simple work task"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "짧은 일상 문장에 관사와 발음을 안정적으로 넣은 뒤 문장을 조금씩 늘리는 것이 좋아요."
+  },
+  "notes": [
+    "The learner often drops a before a newly mentioned singular noun.",
+    "The learner may pronounce an like a, so repeat an in natural short phrases.",
+    "Move from daily-life topics to a simple work task without using long meeting-level sentences."
+  ]
+}

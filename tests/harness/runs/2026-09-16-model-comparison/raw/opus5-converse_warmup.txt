@@ -1,0 +1,71 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an + 모음 시작 단수 명사 (an을 /ən/으로 또렷하게)"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "What did you eat this morning? Name one food — an apple, an egg, an orange — in one short sentence.",
+      "context": "Breakfast at home, talking about today's small routine"
+    },
+    {
+      "prompt": "You have one free hour today. Tell me what you want to do in that hour, in one short sentence.",
+      "context": "Free time after work or after class"
+    },
+    {
+      "prompt": "You want to buy one small thing after work. What is it — an umbrella? an ice cream? Tell me, and say why you need it.",
+      "context": "Shopping on the way home"
+    },
+    {
+      "prompt": "You have an idea for this weekend. Tell me your idea in one short sentence.",
+      "context": "Weekend plans with a friend"
+    },
+    {
+      "prompt": "Today you send one message at work. Who gets an email from you, and what do you ask?",
+      "context": "A small daily task at the office"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "짧은 문장에서도 명사 앞 a/an이 자주 빠지고, an을 a처럼 발음하는 습관이 있어서 오늘은 'an + 모음 명사'를 말로 여러 번 연습해요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an + 모음 시작 단수 명사 (an을 /ən/으로 또렷하게)"
+      }
+    ],
+    "sentence_length": "short single-clause sentences of about five to eight words; allow a second short clause with 'and' only when the learner sounds comfortable",
+    "hint_timing": "wait about five seconds of silence, then give one short hint; correct the missing article or the dropped 'n' right after the learner finishes speaking",
+    "contexts": [
+      "breakfast and morning routine at home",
+      "one free hour in the day",
+      "buying a small thing after work",
+      "weekend plans with a friend",
+      "sending one short email at the office"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "짧은 일상 문장은 만들 수 있지만 관사와 과거형이 아직 불안정해서 A2에서 더 다듬는 것이 좋아요."
+  },
+  "notes": [
+    "Gets the article right on the second or third retry, but drops it again in a new sentence — needs production, not correction repetition.",
+    "Articles disappear as soon as the noun phrase grows longer ('a project architecture meeting', 'the gym'), while short phrases like 'a meeting' are usually fine.",
+    "'an' before a vowel was reduced to 'a' in the one recorded attempt; worth checking whether the /n/ links to the next word.",
+    "Time expressions are still literal translations from Korean ('before some night'); 'ago' and end-position time adverbs can be folded into later sessions."
+  ]
+}

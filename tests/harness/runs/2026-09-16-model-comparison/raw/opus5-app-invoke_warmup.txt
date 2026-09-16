@@ -1,0 +1,71 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "What do you eat in the morning? Tell me one thing you had today, in one short sentence.",
+      "context": "Talking about breakfast at home — words like an apple, an egg, an orange give the 'an' sound several chances."
+    },
+    {
+      "prompt": "You have one free hour after work. What do you want to do? Say it in one short sentence.",
+      "context": "Free time plans — an hour, an English class, an art gallery."
+    },
+    {
+      "prompt": "Tell me about one thing you need to buy this week, and say why in one more short sentence.",
+      "context": "Shopping talk — an umbrella, an easy bag, an old phone."
+    },
+    {
+      "prompt": "Who did you meet yesterday? Say one short sentence about that person's job.",
+      "context": "Small talk about people — an engineer, an office worker, an old friend."
+    },
+    {
+      "prompt": "You want to study English more. What do you need? Answer in one or two short sentences.",
+      "context": "Learning plans — an app, an easy book, an online class."
+    }
+  ],
+  "target_level": "A2",
+  "reason": "짧은 문장에서 'a/an'을 자주 빼먹고 'an'을 'a'로 발음해서, 오늘은 일상 이야기로 이 두 가지를 같이 연습해요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "one short single-clause sentence; let the learner add a second short sentence only when the first one comes out clean",
+    "hint_timing": "wait until the learner finishes the sentence, then repeat the noun phrase with a clear 'an' and let them say it again",
+    "contexts": [
+      "breakfast and food at home",
+      "free time after work",
+      "shopping this week",
+      "people you met yesterday",
+      "plans for studying English"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "짧은 문장은 만들지만 관사가 아직 불안정해서 A2에서 더 다져야 해요."
+  },
+  "notes": [
+    "Self-corrects when given a second try: 'enjoyed joke' -> 'enjoyed a joke' after one repeat, so short retry loops work well.",
+    "Articles appear in memorized chunks ('I had a meeting yesterday') but drop as soon as the noun phrase grows ('was project architecture meeting').",
+    "'an' is produced as 'a' — likely never heard as a separate form; worth modelling the linking sound (an-apple) rather than the spelling.",
+    "Some turns come out as Korean transliteration of English sentences, suggesting the learner rehearses sound before speaking; keep sentences short enough to say in one breath."
+  ]
+}

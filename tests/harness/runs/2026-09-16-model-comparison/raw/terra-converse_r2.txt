@@ -1,0 +1,64 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "On a rainy day, what item do you want to take with you?",
+      "context": "Getting ready to leave home on a rainy morning."
+    },
+    {
+      "prompt": "For a quick snack, what fruit do you want to eat today?",
+      "context": "Choosing food at a small shop."
+    },
+    {
+      "prompt": "This weekend, what animal do you want to see?",
+      "context": "Planning a visit to a zoo or aquarium."
+    },
+    {
+      "prompt": "What app do you want to try on your phone?",
+      "context": "Talking about a useful phone app."
+    }
+  ],
+  "target_level": "A2",
+  "reason": "오늘은 단수 명사 앞의 a/an을 자연스럽게 넣고 an 발음도 함께 연습해요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "Short single-clause answers, then one brief reason.",
+    "hint_timing": "Give a hint after one independent attempt.",
+    "contexts": [
+      "Getting ready to leave home on a rainy morning.",
+      "Choosing food at a small shop.",
+      "Planning a visit to a zoo or aquarium.",
+      "Talking about a useful phone app."
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "The learner can discuss familiar daily topics but needs steady accuracy with articles in short sentences."
+  },
+  "notes": [
+    "Keep the topic in daily life and elicit vowel-starting singular nouns so article accuracy and the sound in an can be practised together.",
+    "Ask for short answers first before inviting one extra detail."
+  ]
+}

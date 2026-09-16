@@ -1,0 +1,72 @@
+```json
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "What did you eat this morning?",
+      "context": "breakfast talk"
+    },
+    {
+      "prompt": "What do you want to buy at the store today?",
+      "context": "shopping plans"
+    },
+    {
+      "prompt": "What's one idea you have for this weekend?",
+      "context": "weekend planning"
+    },
+    {
+      "prompt": "How long is your lunch break usually?",
+      "context": "daily routine"
+    },
+    {
+      "prompt": "What do you need to pack for a trip?",
+      "context": "travel preparation"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "관사를 자주 빠뜨리는 패턴이 계속 반복되고 있고, 'an' 발음도 복습할 때가 되어서 오늘은 이 두 가지를 함께 연습해요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "short single-clause sentences, e.g. I want to / I need to / I have",
+    "hint_timing": "give a gentle hint only after the learner finishes speaking, not mid-sentence",
+    "contexts": [
+      "breakfast talk",
+      "shopping plans",
+      "weekend planning",
+      "daily routine",
+      "travel preparation"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "기본 문장은 잘 만들지만 관사 실수가 계속 반복되어 현재 레벨에서 더 다져야 해요."
+  },
+  "notes": [
+    "짧은 문장에서도 'a/an'을 자주 빠뜨림 (예: 'was project meeting')",
+    "'an'이 필요한 단어에서도 'a'처럼 발음하는 경향이 있음",
+    "장소 명사 앞의 'the'도 자주 빠짐 (go to gym/office)"
+  ]
+}
+```

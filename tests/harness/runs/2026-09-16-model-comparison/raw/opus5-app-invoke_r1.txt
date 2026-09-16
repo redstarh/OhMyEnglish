@@ -1,0 +1,71 @@
+{
+  "focus": [
+    {
+      "pattern_id": "70ad1279-cfaf-4a57-b37b-c28f561baeaa",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/an + 단수 명사"
+    },
+    {
+      "pattern_id": "99fc908f-e25c-4c19-86ed-a4720cf8eb2b",
+      "pattern_key": "pronunciation_an_as_a",
+      "target_form": "an_as_a"
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "You ate something this morning. Tell me in one short sentence what it was — an apple? an egg? an orange? Say your real answer.",
+      "context": "breakfast at home"
+    },
+    {
+      "prompt": "A friend asks how long you exercise after work. Answer in one short sentence with your real time — an hour? half an hour?",
+      "context": "exercise after work"
+    },
+    {
+      "prompt": "You are at a small shop. Tell me in one short sentence one thing you want to buy — an umbrella? an eraser? an ice cream?",
+      "context": "shopping for small daily items"
+    },
+    {
+      "prompt": "You opened your inbox this morning. In one short sentence, tell me what you found there — an email? an invitation? an answer from someone?",
+      "context": "checking messages in the morning"
+    },
+    {
+      "prompt": "Tomorrow evening is free. Tell me in one short sentence one plan of your own — an art gallery? an online class? an easy walk?",
+      "context": "free evening plans"
+    }
+  ],
+  "target_level": "A2",
+  "reason": "관사 빠뜨리는 습관이 9일 동안 계속 나와서 오늘은 'a/an + 단수 명사'를 짧은 문장으로 연습하고, 동시에 'an'을 'a'로 발음하는 습관도 같이 잡아볼게요.",
+  "instruction": {
+    "target_level": "A2",
+    "focus": [
+      {
+        "pattern_key": "article_missing_before_noun",
+        "target_form": "a/an + 단수 명사"
+      },
+      {
+        "pattern_key": "pronunciation_an_as_a",
+        "target_form": "an_as_a"
+      }
+    ],
+    "sentence_length": "short single-clause sentences of about 5 to 8 words, built on patterns like 'I want to...' or 'I need to...'",
+    "hint_timing": "let the learner finish the whole sentence first, then give a short hint only if the article or the /n/ sound was missing",
+    "contexts": [
+      "breakfast at home",
+      "exercise after work",
+      "shopping for small daily items",
+      "checking messages in the morning",
+      "free evening plans"
+    ]
+  },
+  "level": {
+    "action": "keep",
+    "target_level": "A2",
+    "reason": "짧은 일상 문장은 잘 만들지만 관사와 과거형이 아직 흔들려서 A2에서 더 다지는 것이 좋습니다."
+  },
+  "notes": [
+    "Self-corrects when given a second try (\"enjoyed joke\" → \"enjoyed a joke\"), so a short pause before correcting may be enough.",
+    "Articles disappear as soon as the noun phrase grows longer (\"was project architecture meeting\").",
+    "Place nouns after 'go to' are a separate weak spot (gym/office) — keep for a later session.",
+    "Some attempts came in as Korean transcription of English sounds, which suggests the learner is still shaky about hearing consonant endings like /n/."
+  ]
+}
