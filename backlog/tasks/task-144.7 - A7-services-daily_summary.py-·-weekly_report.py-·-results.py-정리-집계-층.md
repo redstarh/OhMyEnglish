@@ -1,10 +1,10 @@
 ---
 id: TASK-144.7
 title: 'A7: services/daily_summary.py · weekly_report.py · results.py 정리 (집계 층)'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-16 15:27'
-updated_date: '2026-09-16 15:39'
+updated_date: '2026-09-16 15:44'
 labels: []
 dependencies: []
 parent_task_id: TASK-144
