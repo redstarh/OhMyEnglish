@@ -2421,3 +2421,42 @@ async def test_a_command_utterance_is_broadcast_so_the_screen_can_show_it(
     assert [(event["text"], event.get("utterance_type")) for event in finals] == [
         ("Oh My English, end the session.", "voice_command")
     ]
+
+
+# ⛔ **`cancelled` 뒤의 다음 학습 발화가 `learning` 으로 남아야 한다** (`TASK-144.5` 정리 회차).
+#
+# **왜 이 단정이 새로 필요했나 — 변이로 확인한 구멍이다.** 정리에서 `_marker_seen`·
+# `_awaiting_confirmation` 을 함께 끄는 두 줄을 `_end_command_exchange()` 로 묶은 뒤, 그 헬퍼에서
+# 확인 대기 리셋을 **일부러 빼 보았더니 217건이 그대로 통과했다** — 즉 그 방어를 재는 단정이
+# 없었다. 이 파일에 `cancelled` 단계를 밟는 테스트가 **0건**이었던 것이 원인이다.
+#
+# 그 구멍이 실제로 무엇을 잃게 하나: `requested` 로 확인 대기가 세워진 뒤 학습자 발화 없이
+# `cancelled` 가 오면 대기가 남고, **다음 학습 발화가 `command_confirmation` 으로 저장되어 오류
+# 분석에서 통째로 빠진다**(`utterance_type='learning'` 이 분석 대상의 유일한 조건이다).
+async def test_a_cancelled_command_lets_the_next_utterance_be_learning_again(
+    db_pool, committed_session
+):
+    adapter = ScriptedAdapter(
+        TranscriptEvent(kind="final", text="오마이 잉글리시 종료", speaker="user"),
+        SessionCommandEvent(command="end", stage="requested"),
+        # 학습자 발화 없이 물러난다 — 모델이 스스로 물리는 형태이고, 그때 확인 대기가 남으면 안 된다.
+        SessionCommandEvent(command="end", stage="cancelled"),
+        TranscriptEvent(kind="final", text="I had a busy week at work.", speaker="user"),
+    )
+
+    await asyncio.wait_for(
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            FakeClient(),
+            drain_timeout=FAST_DRAIN_TIMEOUT,
+        ).run(),
+        timeout=5.0,
+    )
+
+    rows = await _typed_utterances(db_pool, committed_session.session_id)
+    assert [(row["utterance_type"], row["transcript"]) for row in rows] == [
+        ("voice_command", "오마이 잉글리시 종료"),
+        ("learning", "I had a busy week at work."),
+    ]

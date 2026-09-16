@@ -448,10 +448,6 @@ class SessionRunner:
         세션을 끝내고, 그것이 결정 102 ③이 확인 절차를 둔 이유다. `cancelled` 는 기록만 남기고
         대화를 잇는다.
 
-        ⛔ **닫는 것은 종료 명령의 `confirmed` 하나다.** `requested` 로 닫으면 오인식 한 번이
-        세션을 끝내고, 그것이 결정 102 ③이 확인 절차를 둔 이유다. `cancelled` 는 기록만 남기고
-        대화를 잇는다.
-
         ⚠️ **확인이 필요한지는 명령마다 다르고 그 판정은 `requires_confirmation` 이 갖는다**
         (결정 107 ③). 되돌릴 수 있는 명령은 `requested` 하나로 끝나고 세션에 손대지 않는다.
 
@@ -507,8 +503,7 @@ class SessionRunner:
             #    을 세우면 다음 학습 발화가 `command_confirmation` 으로 저장되어 분석에서 빠진다.
             # ⚠️ 모델이 이 명령에 `confirmed` 를 덧붙여 불러도 방송만 되고 아무것도 두 번 되지
             #    않는다 — 화면은 `requested` 만 보고 움직인다(`frontend/app/page.tsx`).
-            self._marker_seen = False
-            self._awaiting_confirmation = False
+            self._end_command_exchange()
             return False, True, None
         if event.stage == "requested":
             # 다음 학습자 발화가 **확인 답**이다 — 유형은 `_classify_user_final` 이 바꾼다.
@@ -518,8 +513,7 @@ class SessionRunner:
             return False, True, None
         # `confirmed`·`cancelled` — 교환이 끝났으므로 표지의 효력도 끝난다. 남겨 두면 뒤에
         # 온 오인식 tool 이 그 표지에 얹혀 실행된다.
-        self._marker_seen = False
-        self._awaiting_confirmation = False
+        self._end_command_exchange()
         if event.stage != "confirmed":
             return False, True, None
         # ⛔ **「확인을 거쳤다」와 「세션을 닫는다」는 다른 물음이다** (결정 110 ④) — 지금은 두
@@ -532,6 +526,19 @@ class SessionRunner:
             self._session_id,
         )
         return closing, True, None
+
+    def _end_command_exchange(self) -> None:
+        """표지와 확인 대기를 **함께** 끈다 — 명령 교환이 끝났다는 뜻이다.
+
+        ⛔ **둘을 따로 끄지 않는다.** 표지만 남으면 뒤에 온 오인식 tool 이 그 표지에 얹혀 실행되고
+        (사용자 결정 104 D5 가 막으려던 것), 확인 대기만 남으면 다음 학습 발화가
+        `command_confirmation` 으로 저장되어 분석에서 빠진다. 두 줄이 손으로 두 자리에 적혀
+        있었고, 분기가 하나 늘 때 한쪽만 끄면 그 방어가 **조용히** 새는 형태였다.
+        ⚠️ 생성자(`__init__`)는 이 헬퍼를 부르지 않는다 — 그 자리는 속성을 **선언**하는 곳이고
+        헬퍼로 감추면 타입 검사가 속성의 출처를 잃는다.
+        """
+        self._marker_seen = False
+        self._awaiting_confirmation = False
 
     async def _apply_pause(self, *, paused: bool) -> bool:
         """정지 상태를 DB 와 이 러너에 함께 적는다. 적지 못했으면 `False` (결정 117).
