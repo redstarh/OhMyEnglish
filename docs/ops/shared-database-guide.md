@@ -4,6 +4,10 @@
 > **작성 2026-08-30.** 아래 값은 이 문서를 쓴 턴에 코드·스크립트에서 직접 확인한 것이다
 > (`scripts/dev_db.sh`, `scripts/db_utils.py`, `app/backend/app/config.py`,
 > `db/migrations/001_initial_schema.sql`, `tests/conftest.py`).
+>
+> ⛔ **2026-09-17 재실측 (`TASK-152`)**: §2.1·§2.3 은 그날 **살아 있는 서버에 직접 붙어** 다시 얻은
+> 값이고 **§2.3 은 결론이 뒤집혔다**(비밀번호가 필수가 아니다). 나머지 절의 수치는 2026-08-30 것이라
+> 낡을 수 있다 — 그 자리마다 어느 날짜의 값인지 적어 두었다.
 
 ---
 
@@ -13,48 +17,48 @@
 |---|:--:|---|
 | `DATABASE_URL` | ✅ **있다** | 앱의 **필수** 설정. `app/backend/app/config.py:47` |
 | `AUTH_TOKEN` | ❌ **없다** | 리포 전체 검색 결과 0건. **인증 계층 자체가 없다** — 첫 슬라이스는 localhost 전용·인증 없음이 승인된 범위다 |
-| `AUTH_USER_ID` | ❌ **없다** | 환경변수가 아니라 **코드에 박힌 상수**다: `app/backend/app/api/ws.py:44` `FIXED_USER_ID = UUID("00000000-0000-0000-0000-000000000001")` |
+| `AUTH_USER_ID` | ❌ **없다** | 환경변수가 아니라 **코드에 박힌 상수**다: `app/models/user.py` 의 `FIXED_USER_ID = UUID("00000000-0000-0000-0000-000000000001")` (2026-09-17에 `api/ws.py` 에서 옮겼다 — `TASK-148`) |
 
 **그래서 토큰으로 사용자를 구분하는 방식은 지금 이 앱에 없다.** 세션은 위 고정 UUID
-하나로만 생성된다(`ws.py:107`). 다른 앱이 사용자 개념을 공유하려면 그 UUID를 알고 있어야
+하나로만 생성된다(`api/ws.py` 의 `session_socket`). 다른 앱이 사용자 개념을 공유하려면 그 UUID를 알고 있어야
 하고, 사용자를 늘리려면 인증 도입이 **선행 결정**이다(범위 밖).
 
 ---
 
 ## 2. 연결 정보
 
-### 2.1 dev DB (podman 컨테이너)
+### 2.1 dev DB (homebrew `postgresql@17`) — 2026-09-17 재실측
 
-> 이 머신에 **`psql` 클라이언트가 없다**(실측: `command -v psql` → 없음). `docker`는
-> **podman 별칭**이다. 그래서 아래 SQL은 전부 `podman exec`로 컨테이너 안에서 돌린다.
+📌 **경로가 두 번 바뀌었다.** 2026-08-31에 podman 컨테이너(`ohmy-pg` · `:5433`)에서 homebrew
+`postgresql@17`(`:5432`)로 옮겼고(함정 **H-T** — podman 가상머신이 내려가면 게이트가
+`192 passed · 155 errors`로 무너졌다), 2026-09-17에 그 폴백을 도구에서 **지웠다**(`TASK-149`).
+컨테이너 데이터가 이관 시점의 사본이라 되살리면 앱이 보지 않는 DB를 고치고 「통과」로 보고하게 된다.
 
-📌 **2026-08-31: dev DB의 기본 경로가 바뀌었다 — homebrew `postgresql@17`(:5432)다.**
-아래 컨테이너(:5433)는 **폴백으로만 남아 있고 데이터는 이관 시점의 사본**이다.
-현재 접속정보는 `docs/ops/local-run.md`와 `shared-database-naming-rules.md` §2가 소유한다.
-옮긴 이유: podman 가상머신이 내려가 있으면 게이트가 `192 passed · 155 errors`로 무너졌다(함정 **H-T**).
-
-`scripts/dev_db.sh`가 만드는 컨테이너의 실제 값:
-
-| 항목 | 값 |
+| 항목 | 값 (2026-09-17 직접 조회) |
 |---|---|
-| 컨테이너 / 볼륨 | `ohmy-pg` / `ohmy-pg-data` |
-| 이미지 | `postgres:16-alpine` |
-| 호스트 포트 | **5433** (5432가 아니다) |
+| 서버 | homebrew `postgresql@17` — `server_version` **17.9 (Homebrew)** · launchd가 부팅 시 띄운다 |
+| 포트 | **5432** |
 | 사용자 / 비밀번호 | `ohmy` / `ohmy` |
-| 데이터베이스 | `ohmyenglish` |
+| 데이터베이스 | `ohmyenglish` (소유자 `ohmy`) |
+| `psql` | **PATH에 없다** — keg-only다. `/opt/homebrew/opt/postgresql@17/bin/psql` |
 
 ```bash
-scripts/dev_db.sh start     # 없으면 create, 있으면 start
-scripts/dev_db.sh stop
+scripts/dev_db.sh status    # 서버·버전·마이그레이션 건수 (내려가 있으면 dev_db.sh start)
 ```
+
+⛔ **`stop`·`reset`은 그 스크립트에 없다** — 이 서버를 StockAgent(`stockagent`·`stocknews`)와
+En-Coach(`en_coach` 스키마 · `en_coach_harness_test`)가 함께 쓴다. 인스턴스를 세우면 남의 앱이 함께
+멈추고, dev DB를 재생성하면 `en_coach` 스키마까지 사라진다(§4.5).
+
+SQL을 던질 때는 위 절대경로를 쓰거나 `tests/harness/psql_cli.py`를 쓴다 — 그 헬퍼는
+`DATABASE_URL`을 따라가므로 **앱이 보는 DB**에 붙는다(`scripts/db_utils.base_dsn`).
 
 ### 2.2 `DATABASE_URL`
 
 ```bash
 # 기본값 (환경변수를 주지 않으면 이것이 쓰인다 — scripts/db_utils.py:DEFAULT_DEV_DSN)
 DATABASE_URL=postgresql://ohmy:ohmy@localhost:5432/ohmyenglish
-# 폴백(podman 컨테이너)을 쓸 때만 5433으로 바꾼다
-# DATABASE_URL=postgresql://ohmy:ohmy@localhost:5433/ohmyenglish
+# ⛔ 폴백은 없다 — :5433 컨테이너 경로는 2026-09-17에 지웠다 (`TASK-149`)
 ```
 
 - 앱은 `app/backend/.env`(gitignore 대상)에서 읽는다. 셸 export가 `.env`보다 우선한다.
@@ -63,34 +67,32 @@ DATABASE_URL=postgresql://ohmy:ohmy@localhost:5432/ohmyenglish
 - ⚠️ 이 자격증명은 **로컬 개발 전용**이다(비밀번호가 `ohmy`). 공유 환경·원격에 그대로
   쓰지 않는다.
 
-### 2.3 인증 — **어디서 붙느냐로 갈린다** (2026-08-30 실측)
+### 2.3 인증 — **비밀번호를 보지 않는다** (2026-09-17 재실측 · ⛔ 이전 판과 결론이 반대다)
 
-컨테이너의 `pg_hba.conf`가 이렇게 돼 있다(postgres 공식 이미지 기본값):
+⛔ **이 절은 뒤집혔다.** 이전 판은 podman 컨테이너를 재고 *"호스트 → `localhost:5433`은 비밀번호가
+**필수**"*라고 적었다(2026-08-30 실측 · 컨테이너 포트 포워딩이 `scram-sha-256` 줄에 걸렸기 때문).
+homebrew 서버는 그렇지 않다 — 아래는 그 서버에 직접 붙어 얻은 값이다.
 
-```
-local   all  all                     trust            ← 컨테이너 내부 유닉스 소켓
-host    all  all  127.0.0.1/32       trust            ← 컨테이너 내부 TCP
-host    all  all  ::1/128            trust
-host    all  all  all                scram-sha-256    ← 그 밖의 전부 = 비밀번호 필요
-```
+| 어떻게 붙었나 | 결과 (직접 실행) |
+|---|---|
+| `PGPASSWORD=COMPLETELY_WRONG` + `-h 127.0.0.1 -p 5432 -U ohmy` | ✅ **접속됐다** — 틀린 비밀번호를 아예 보지 않는다 |
+| `postgresql://ohmy@localhost:5432/ohmyenglish` (비밀번호 없음) | ✅ **접속됐다** |
 
-| 어디서 | 비밀번호 | 실측 결과 |
-|---|:--:|---|
-| **컨테이너 내부** (`podman exec … psql -U ohmy`) | **불필요** | `PGPASSWORD=COMPLETELY_WRONG`을 줘도 접속됐다 — `trust`는 비밀번호를 아예 보지 않는다 |
-| **호스트 → `localhost:5433`** | **필수** | 비밀번호 없이·틀린 값으로 4가지 조합 전부 `InvalidPasswordError` |
+즉 **호스트 TCP 접속이 `trust`로 열려 있다.** `pg_hba.conf` 원문은 확인하지 못했다 —
+`pg_hba_file_rules` 뷰가 `permission denied`다(`ohmy`가 superuser가 아니다, 아래).
+⚠️ 그래서 **「trust다」는 관측된 동작이고 설정 파일로 대조한 것은 아니다.**
 
-**왜 `127.0.0.1/32 trust`가 호스트에는 안 걸리는가**: podman이 포트를 포워딩하면 서버가 보는
-접속 주소가 `127.0.0.1`이 아니라 **컨테이너 네트워크 게이트웨이**다(실측: `inet_client_addr()`
-→ `10.88.0.2`). 그래서 마지막 줄 `scram-sha-256`이 적용된다.
+**사용자(role)는 여전히 필요하다.** 로그인 가능한 역할은 `ohmy` · `en_coach` · `redstar` ·
+`stockagent` 넷이다(직접 조회).
 
-**사용자(role)는 언제나 필요하다.** 생략하면 클라이언트가 OS 사용자명으로 시도하고
-(`redstar`), 그런 역할이 없어 실패한다. 즉 "user·password 없이 접근"은 불가능하고,
-정확히는 **"컨테이너 내부에서는 user만 있으면 password가 불필요"**하다.
+⛔ **`ohmy`는 superuser가 아니다** — `rolsuper=f` · `rolcreaterole=f` · `rolcreatedb=t`(직접 조회).
+superuser이면서 `CREATEROLE`인 역할은 **`redstar`와 `stockagent`** 다. §4.3의 SQL이 이 사실에
+걸린다(그 절이 정정을 갖는다).
 
-> ⚠️ **보안 함의**: `podman exec` 권한이 있으면 **비밀번호 없이 DB 전체에 접근된다.**
-> 이 가이드의 §4.1 SQL이 비밀번호 없이 돌아가는 이유가 그것이다. 로컬 개발 전용 구성이므로
-> 수용하지만, 원격·공유 환경으로 옮길 때는 `local`·`127.0.0.1` 줄을 `scram-sha-256`으로
-> 바꾸고(`POSTGRES_HOST_AUTH_METHOD=scram-sha-256`) 비밀번호를 `ohmy`가 아닌 값으로 돌린다.
+> ⚠️ **보안 함의**: 이 머신에서 `:5432`에 닿을 수 있으면 **비밀번호 없이 세 앱의 DB 전체에
+> 접근된다** — OhMyEnglish · StockAgent(`stockagent`·`stocknews`) · En-Coach가 같은 인스턴스다.
+> 로컬 개발 전용 구성이므로 수용하지만, 원격·공유 환경으로 옮길 때는 `pg_hba.conf`의 `local`·
+> `127.0.0.1` 줄을 `scram-sha-256`으로 바꾸고 비밀번호를 `ohmy`가 아닌 값으로 돌린다.
 
 ### 2.4 참고: 다른 앱이 백엔드 API를 부를 경우
 
@@ -127,8 +129,9 @@ postgres
 ### (2) 우리 테이블은 전부 **`public` 스키마**에 있다
 
 `db/migrations/**`에 `create schema`도 `search_path` 설정도 없다(검색 결과 0건). 즉
-기본 스키마를 쓴다. 실측으로도 스키마는 `public` 하나뿐이고 로그인 가능한 역할은 `ohmy`
-하나뿐이다(`\dn` · `pg_roles`). 다른 앱이 그대로 `public`에 테이블을 만들면 **이름 충돌 위험**이
+기본 스키마를 쓴다. ⚠️ **이 절의 실측값은 2026-08-30 것이고 그 뒤 바뀌었다** — 지금 스키마는
+`public` 과 `en_coach` 둘이고 로그인 가능한 역할은 넷이다(§2.3). 즉 §4 가 이미 적용됐다는 뜻이고,
+아래 위험 서술은 **새로 붙는 앱에 대해** 여전히 유효하다. 다른 앱이 그대로 `public`에 테이블을 만들면 **이름 충돌 위험**이
 생기고, 무엇이 누구 것인지 구분이 사라진다. → §4가 그 해결이다.
 
 `public`에 있는 우리 객체(001·003):
@@ -167,10 +170,10 @@ pronunciation_attempts · schema_migrations
 | `public`에 만들기 | **불가** (PG16 기본값이 PUBLIC에 USAGE만 준다 — 실측 확인) |
 
 ```bash
-DATABASE_URL=postgresql://otherapp:<비밀번호>@localhost:5433/ohmyenglish
+DATABASE_URL=postgresql://otherapp:<비밀번호>@localhost:5432/ohmyenglish
 # 역할 기본 search_path가 otherapp이라 옵션 없이도 자기 스키마를 먼저 본다.
 # 커넥션마다 못 박고 싶으면 (권장 — 명시적):
-DATABASE_URL=postgresql://otherapp:<비밀번호>@localhost:5433/ohmyenglish?options=-csearch_path%3Dotherapp
+DATABASE_URL=postgresql://otherapp:<비밀번호>@localhost:5432/ohmyenglish?options=-csearch_path%3Dotherapp
 ```
 
 `?options=-csearch_path%3Dotherapp`의 `%3D`는 `=`의 URL 인코딩이다. libpq 기반
@@ -180,7 +183,7 @@ DATABASE_URL=postgresql://otherapp:<비밀번호>@localhost:5433/ohmyenglish?opt
 
 | # | 확인 | 결과 |
 |--:|---|---|
-| ① | 호스트에서 `otherapp` 접속 | ✅ (비밀번호 필요 — §2.3) |
+| ① | 호스트에서 `otherapp` 접속 | ✅ ⚠️ **「비밀번호 필요」는 그때 컨테이너(`:5433`)의 동작이다** — homebrew 서버는 `trust` 로 열려 있다(§2.3 재실측) |
 | ② | `show search_path` | ✅ `otherapp` |
 | ③ | 자기 테이블 생성 | ✅ **`otherapp` 스키마**에 만들어진다(`public` 아님) |
 | ④ | `select count(*) from public.error_patterns` | ✅ 우리 실제 행이 보인다 |
@@ -202,8 +205,15 @@ DATABASE_URL=postgresql://otherapp:<비밀번호>@localhost:5433/ohmyenglish?opt
 ### 4.3 만든 SQL (재현용)
 
 ```sql
--- superuser(= ohmy)로. ⚠️ 이 머신에 psql이 없다 → podman exec로 컨테이너 안에서:
---   podman exec -i ohmy-pg psql -U ohmy -d ohmyenglish
+-- ⛔ **`ohmy`로는 전부 돌아가지 않는다.** 실측한 것은 권한 속성이다(2026-09-17 직접 조회):
+--    `ohmy` 는 rolsuper=f · rolcreaterole=f · rolcreatedb=t 이고 superuser 는 `redstar`·`stockagent`
+--    다(§2.3). 거기서 갈라지는 것 — `create role` 과 `alter role … set` 은 CREATEROLE 을 요구하므로
+--    **`redstar` 로** 돌리고, `grant`·`create schema` 는 DB·표 소유자인 `ohmy` 로 된다.
+--    ⚠️ 이 갈라짐은 권한 모델에서 유도한 것이고 이 서버에서 한 문장씩 돌려 본 것은 아니다 —
+--    공유 서버에 시험용 역할을 만들지 않기 위해서다.
+-- psql 은 PATH 에 없다(keg-only) — 절대경로를 쓴다:
+--   PGPASSWORD=ohmy /opt/homebrew/opt/postgresql@17/bin/psql -h 127.0.0.1 -p 5432 \
+--     -U redstar -d ohmyenglish
 create role otherapp login password '<강한 비밀번호>';
 grant connect on database ohmyenglish to otherapp;
 create schema otherapp authorization otherapp;
@@ -309,21 +319,27 @@ cd app/backend && .venv/bin/pytest -q && .venv/bin/ruff check . \
 #   2026-08-30 구축 후 실측: 327 passed (영향 없음)
 
 # ② 스키마와 역할이 실제로 있나
-podman exec -i ohmy-pg psql -U ohmy -d ohmyenglish -c "\dn"
-podman exec -i ohmy-pg psql -U otherapp -d ohmyenglish -c "show search_path"   # → otherapp
+# psql 은 keg-only 라 절대경로다. ⛔ 변수(`PSQL='psql -h …'`)로 묶지 마라 — zsh 는 변수를 단어로
+#    쪼개지 않아 `command not found` 가 난다(2026-09-17 에 직접 밟았다). 함수로 묶는다.
+pg() { PGPASSWORD=ohmy /opt/homebrew/opt/postgresql@17/bin/psql -h 127.0.0.1 -p 5432 \
+         -d ohmyenglish "$@"; }
+pg -U ohmy -c "\dn"
+pg -U otherapp -c "show search_path"   # → otherapp
 
 # ③ 다른 App이 public에 테이블을 못 만드는가 — **ERROR가 정답이다**
-podman exec -i ohmy-pg psql -U otherapp -d ohmyenglish \
-  -c "create table public.should_fail(x int)"
+pg -U otherapp -c "create table public.should_fail(x int)"
 #   기대: permission denied for schema public
 
 # ④ 권한 안 준 표는 못 읽는가 — 이것도 ERROR가 정답이다
-podman exec -i ohmy-pg psql -U otherapp -d ohmyenglish -c "select count(*) from public.users"
+pg -U otherapp -c "select count(*) from public.users"
 #   기대: permission denied for table users
 ```
 
+⚠️ `PGPASSWORD` 를 넣어 두지만 이 서버는 그 값을 보지 않는다(§2.3) — 다른 머신·원격으로 옮겨도
+같은 블록이 돌게 남겨 둔 것이다.
+
 ③·④가 **성공하면** 최소 권한이 안 걸린 것이다. `grant`를 과하게 준 적이 없는지 확인한다:
-`podman exec -i ohmy-pg psql -U ohmy -d ohmyenglish -c "\dp public.*"`
+`pg -U ohmy -c "\dp public.*"`
 
 ---
 

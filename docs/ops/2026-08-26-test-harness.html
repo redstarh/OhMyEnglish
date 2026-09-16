@@ -113,8 +113,8 @@
   <h1>자동 테스트 하네스 — runner를 띄워 사람 역할을 대행하는 절차</h1>
   <p class="lede">
     tmux 한쪽 세션에 <strong>테스트 러너 에이전트</strong>를 띄우고, 다른 쪽에서 이미 돌고 있는
-    OhMyEnglish 스택(백엔드 <code>:8002</code> · 프론트 <code>:3000</code> · podman PostgreSQL
-    <code>:5433</code>)을 <strong>사람 대신 끝까지 조작해</strong> 첫 수직 슬라이스 전체를 검증한다.
+    OhMyEnglish 스택(백엔드 <code>:8002</code> · 프론트 <code>:3000</code> · homebrew PostgreSQL
+    <code>:5432</code>)을 <strong>사람 대신 끝까지 조작해</strong> 첫 수직 슬라이스 전체를 검증한다.
     러너는 자기가 테스트 중인 줄 알고, orchestrator는 시나리오마다 증거를 직접 읽고 승인한다.
   </p>
   <div class="meta">
@@ -199,9 +199,12 @@
 </tr>
 <tr>
   <td>DB</td>
-  <td>podman <code>ohmy-pg</code> Up, <code>:5433</code>, <code>ohmy/ohmy/ohmyenglish</code>.
-      <strong><code>psql</code> 바이너리는 없다</strong></td>
-  <td>DB 확인은 <code>podman exec ohmy-pg psql -U ohmy -d ohmyenglish</code>로 한다 (실행 확인됨)</td>
+  <td>homebrew <code>postgresql@17</code> started, <code>:5432</code>,
+      <code>ohmy/ohmy/ohmyenglish</code>. <strong><code>psql</code>이 PATH에 없다</strong> —
+      keg-only라 절대경로를 쓴다</td>
+  <td>DB 확인은 <code>scripts/dev_db.sh status</code>로 한다. SQL을 던질 때는
+      <code>tests/harness/psql_cli.py</code>를 쓴다 — <code>DATABASE_URL</code>을 따라가므로 앱이
+      보는 DB에 붙는다</td>
 </tr>
 <tr>
   <td>테스트 DB</td>
@@ -343,8 +346,9 @@ tmux capture-pane -p -t omy_runner:0.0 -S -300</code></pre>
 <thead><tr><th class="nowrap" style="width:8%">#</th><th style="width:46%">확인 명령</th><th>단정</th></tr></thead>
 <tbody>
 <tr><td><code>P1</code></td>
-  <td><code>podman ps --format '{{.Names}} {{.Status}} {{.Ports}}'</code></td>
-  <td><code>ohmy-pg</code> Up + <code>0.0.0.0:5433-&gt;5432</code></td></tr>
+  <td><code>scripts/dev_db.sh status</code></td>
+  <td><code>server_version 17.9 (Homebrew)</code> + 마이그레이션 건수.
+    <strong>16.x가 나오면 지운 podman 폴백에 붙은 것이다</strong></td></tr>
 <tr><td><code>P2</code></td>
   <td><code>curl -s localhost:8002/health</code></td>
   <td><code>{"status":"ok"}</code> — <strong><code>version</code> 키가 있으면 StockAgent다.</strong>
@@ -568,7 +572,7 @@ tmux display-message -p '#{session_name}:#{window_index}.#{pane_index}'   <span 
         superpowers-chrome 플러그인이 전역 <code>enabledPlugins</code>에 있어서,
         <code>--setting-sources project</code>로 좁히면 <code>use_browser</code>를 잃는다</td></tr>
 <tr><td><code>--permission-mode bypassPermissions</code></td>
-    <td>러너는 <code>curl</code>·<code>podman exec psql</code>·백엔드 재기동을 수십 번 한다.
+    <td>러너는 <code>curl</code>·<code>psql</code>·백엔드 재기동을 수십 번 한다.
         승인 프롬프트가 뜨면 무인 실행이 첫 홉에서 멈춘다</td></tr>
 <tr><td><code>--disallowedTools Agent</code></td>
     <td>러너도 전역 <code>CLAUDE.md</code>를 상속해 "위임하라"는 지시를 받는다. 서브에이전트를
@@ -622,7 +626,7 @@ tmux display-message -p '#{session_name}:#{window_index}.#{pane_index}'   <span 
 <tbody>
 <tr><td><strong>A</strong> 프로토콜</td>
   <td><code>app/backend/.venv/bin/python</code> + <code>websockets</code> 클라이언트,
-      <code>curl</code>, <code>podman exec psql</code></td>
+      <code>curl</code>, <code>tests/harness/psql_cli.py</code></td>
   <td>WS 프레임 계약 · 저장 규칙 · 패턴 병합</td>
   <td>브라우저를 끼우지 않아 <strong>결정적</strong>이다. 프레임 순서와 행 수는 여기서 못 박고
       브라우저 계층은 화면만 본다</td></tr>
@@ -1068,8 +1072,11 @@ curl -s localhost:8002/health    <span class="c"># {"status":"ok"} 확인 후 �
   증거를 직접 읽는다.</strong>
 </p>
 <pre><code>cat .harness/evidence/A1.md                                    <span class="c"># 러너가 쓴 명령·출력·판정</span>
-podman exec ohmy-pg psql -U ohmy -d ohmyenglish -tAc \
-  "select scenario, session_id from harness_sessions order by created_at desc limit 5"
+cd app/backend &amp;&amp; .venv/bin/python -c "
+import sys; sys.path.insert(0, '../../tests/harness')
+from psql_cli import psql
+print(psql('select scenario, session_id from harness_sessions order by created_at desc limit 5'))
+"
 ls -t ~/.claude/projects/*/                                     <span class="c"># CDP 자동 캡처(.png/.html/-console.txt)</span></code></pre>
 <div class="box stop">
   <span class="label">러너의 자기 보고를 그대로 믿지 않는다</span>
@@ -1202,8 +1209,9 @@ delete from error_patterns p
   <li><strong>두 번째 프론트를 띄울 수 없다.</strong> <code>main.py</code>의
       <code>FRONTEND_ORIGIN</code>이 <code>http://localhost:3000</code> 하드코딩이라
       <code>:3001</code> origin은 결과 조회 fetch가 CORS로 막힌다.</li>
-  <li><strong><code>psql</code>이 없다.</strong> <code>podman exec ohmy-pg psql -U ohmy -d
-      ohmyenglish</code>를 쓴다.</li>
+  <li><strong><code>psql</code>이 PATH에 없다.</strong> homebrew <code>postgresql@17</code>이
+      keg-only라서다 — <code>tests/harness/psql_cli.py</code>가 PATH → keg 순으로 찾아 준다.
+      ⛔ <code>podman exec</code> 경로는 <strong>지웠다</strong>(2026-09-17 · <code>TASK-149</code>).</li>
   <li><strong>백엔드가 <code>--reload</code> 없이 떠 있다.</strong> 22시간 전에 뜬 프로세스는
       그 시점의 코드다. <code>ps -o lstart= -p &lt;pid&gt;</code>가 마지막 소스 수정 시각보다
       이전이면 <strong>낡은 코드를 테스트하는 것</strong>이므로 재기동하고 시작한다.</li>
@@ -1249,7 +1257,7 @@ delete from error_patterns p
   <li><strong><code>capture-pane</code>은 판정 근거가 아니다.</strong> TUI 덮어그리기로 서로 다른
       프레임의 글자가 한 줄에 포개진다. 판정은 증거 파일과 <code>transcript_path</code>로 한다.</li>
   <li><strong>도구 승인을 켜두면 첫 홉에서 멈춘다.</strong> 러너는 <code>curl</code>·
-      <code>podman</code>·프로세스 기동을 수십 번 한다 —
+      <code>psql</code>·프로세스 기동을 수십 번 한다 —
       <code>--permission-mode bypassPermissions</code>로 띄운다.</li>
 </ul>
 
@@ -1332,8 +1340,12 @@ delete from error_patterns p
 <footer class="doc">
   <p>
     <strong>이 문서의 근거.</strong> 1절의 실측값, 6-3의 훅 payload, tmux 크로스세션
-    <code>send-keys</code>/<code>capture-pane</code> 동작, <code>podman exec psql</code> 경로는
-    2026-08-26 이 기계에서 직접 실행해 확인했다. 시나리오의 단정은 <code>app/backend/app/**</code>,
+    <code>send-keys</code>/<code>capture-pane</code> 동작, 그리고 <strong>그때의</strong> DB 접근
+    경로(<code>podman exec psql</code>)는 2026-08-26 이 기계에서 직접 실행해 확인했다.
+    ⛔ <strong>그 DB 경로는 그 뒤 두 번 바뀌었다</strong> — 2026-08-31에 dev DB가 homebrew
+    <code>postgresql@17</code>(<code>:5432</code>)로 옮겨졌고(함정 H-T), 2026-09-17에 podman 폴백을
+    도구에서 지웠다(<code>TASK-149</code>). 이 문서의 명령은 그때 함께 고쳤으나
+    <strong>고친 뒤 이 기계에서 다시 돌려 확인한 것은 <code>dev_db.sh status</code> 하나다.</strong> 시나리오의 단정은 <code>app/backend/app/**</code>,
     <code>app/frontend/**</code>, <code>db/migrations/001_initial_schema.sql</code>,
     <code>docs/design/2026-08-25-first-slice-acceptance-criteria.md</code>를 읽고 도출했다.
   </p>
