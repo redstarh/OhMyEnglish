@@ -21,12 +21,17 @@ logger = logging.getLogger(__name__)
 # 어댑터와 이 모듈이 같은 이름을 써야 한다.
 CONTROL_TOOL_NAME = "request_session_control"
 
-# 받는 명령 넷. `end`(결정 102 ②) · `show_report`(결정 107) · `next_question`(결정 108) ·
-# `start_additional`(결정 110). 가운데 둘은 되돌릴 수 있어 확인 절차를 타지 않는다.
+# 받는 명령 여섯. `end`(결정 102 ②) · `show_report`(결정 107) · `next_question`(결정 108) ·
+# `start_additional`(결정 110) · `pause`·`resume`(결정 117). 종료와 추가 학습만 확인을 탄다.
 #
-# ⛔ **명령을 더하면 아래 두 집합을 함께 본다** — 이 Literal 에만 더하면 「확인 없이 돌고 세션도
+# ⛔ **명령을 더하면 아래 집합들을 함께 본다** — 이 Literal 에만 더하면 「확인 없이 돌고 세션도
 # 닫지 않는다」가 기본값이 되고, 되돌릴 수 없는 명령이 그렇게 새면 결정 102 ③이 무너진다.
-ControlCommand = Literal["end", "show_report", "next_question", "start_additional"]
+#
+# **`pause`·`resume` 이 한 쌍인 이유(결정 117)**: 「학습 계속」이 **정지된 그 세션을 그대로 잇는다**
+# 로 정해졌으므로 정지가 재개 없이 성립하지 않는다. 둘 다 되돌릴 수 있어 확인을 타지 않는다.
+ControlCommand = Literal[
+    "end", "show_report", "next_question", "start_additional", "pause", "resume"
+]
 
 # 「추가 학습」이 열 수 있는 것 (결정 110 ②). 값역의 근거는 **화면이 실제로 가르는 표면**이다 —
 # `frontend/app/page.tsx` 의 `ADDITIONAL_LEARNING` 여섯 가운데 「업무 역할극」은 비활성이고
@@ -57,6 +62,11 @@ CLOSES_SESSION: frozenset[ControlCommand] = frozenset({"end", "start_additional"
 # `target` 을 반드시 받아야 하는 명령. 없으면 무엇을 열지 모르므로 페이로드를 버린다.
 TARGET_REQUIRED: frozenset[ControlCommand] = frozenset({"start_additional"})
 
+# 세션의 정지 상태를 옮기는 명령 (결정 117 · `TASK-61.9`). ⛔ **이 둘만
+# `learning_sessions.status` 를 쓴다** — 다른 명령은 상태를 건드리지 않고, 종료는 `end_session`
+# 이 따로 갖는다.
+PAUSE_COMMANDS: frozenset[ControlCommand] = frozenset({"pause", "resume"})
+
 # 표지가 없어 **실행하지 않은** 것을 화면에 알리는 명령 (결정 113 ② · `TASK-61.16`).
 #
 # ⛔ **`next_question` 은 넣지 않는다.** 그 명령은 프레임이 버려져도 코치가 실제로 다음 질문을
@@ -66,8 +76,11 @@ TARGET_REQUIRED: frozenset[ControlCommand] = frozenset({"start_additional"})
 #
 # ⚠️ **이 집합은 「실행 여부」와 무관하다** — 실행하지 않는 것은 표지 검사가 정하고 그것은 바뀌지
 # 않았다(결정 104 D5). 이 집합이 정하는 것은 **버린 사실을 말하는가** 하나다.
+# ⚠️ **`pause`·`resume` 도 든다**(결정 117). 결정 113 은 그 시점의 명령 셋을 적었고 판별 규칙은
+# 「화면이 어긋나는 명령만」이다 — 정지는 학습 발화 저장을 멈추므로 버려지면 코치는 「멈췄다」고
+# 말하고 앱은 계속 기록한다. 그 갈림이 화면에 보이지 않으면 결정 112 가 고친 것이 되돌아간다.
 SURFACED_ON_MARKER_MISS: frozenset[ControlCommand] = frozenset(
-    {"end", "start_additional", "show_report"}
+    {"end", "start_additional", "show_report", "pause", "resume"}
 )
 
 # Nova Sonic 의 `inputSchema.json` 은 JSON **문자열**이다 (객체가 아니다 — 스파이크 F1).

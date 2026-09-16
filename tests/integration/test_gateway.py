@@ -2077,6 +2077,122 @@ async def test_an_unmarked_report_command_is_not_run_either(db_pool, committed_s
     ]
 
 
+async def _session_status(pool: asyncpg.Pool, session_id: UUID) -> str:
+    async with pool.acquire() as conn:
+        return await conn.fetchval("select status from learning_sessions where id = $1", session_id)
+
+
+async def test_a_pause_command_stops_saving_learning_speech(db_pool, committed_session):
+    """결정 117 (`TASK-61.9`) — 정지 중에는 학습 발화를 저장하지 않는다.
+
+    ⛔ **이 단정이 이 기능의 값어치 전부다.** 코치가 조용히 기다리는 것은 문면이고 문면은 거동을
+    보장하지 않는다(결정 112) — 앱이 지키는 것은 「정지 중 말한 것이 학습 기록에 남지 않는다」 하나다.
+    학습자가 「잠깐」이라 말하는 상황은 옆 사람과 말하거나 자리를 비우는 것이고, 그것이 교정 대상
+    발화로 저장되면 오류 패턴과 복습 시계가 오염된다.
+    ⚠️ 정지는 **부드러운 정지**다 — 소켓과 어댑터는 살아 있다. 코치가 「학습 계속」을 들어야 하기
+    때문이고, 그래서 표지가 든 발화는 정지 중에도 저장된다(다음 테스트가 그것을 쓴다).
+    """
+    adapter = ScriptedAdapter(
+        TranscriptEvent(kind="final", text="Hey, pause the session.", speaker="user"),
+        SessionCommandEvent(command="pause", stage="requested"),
+        TranscriptEvent(kind="final", text="I went to the store yesterday.", speaker="user"),
+    )
+    client = FakeClient()
+
+    await asyncio.wait_for(
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            client,
+            drain_timeout=FAST_DRAIN_TIMEOUT,
+        ).run(),
+        timeout=5.0,
+    )
+
+    assert client.of_type("voice_command") == [
+        {"type": "voice_command", "command": "pause", "stage": "requested"},
+    ]
+    rows = await _typed_utterances(db_pool, committed_session.session_id)
+    assert [(row["utterance_type"], row["transcript"]) for row in rows] == [
+        ("voice_command", "Hey, pause the session."),
+    ]
+
+
+async def test_a_resume_command_puts_the_session_back_to_active(db_pool, committed_session):
+    """결정 117 — 「학습 계속」은 **그 세션을 그대로 잇는다**(새 세션을 열지 않는다).
+
+    ⛔ 재개 뒤 학습 발화가 다시 저장되는 것까지 한 단정에서 본다 — 상태만 되돌리고 저장 게이트가
+    남아 있으면 학습자는 「계속됐다」고 듣고 기록은 비는, 결정 112 가 고친 그 갈림이 된다.
+    """
+    adapter = ScriptedAdapter(
+        TranscriptEvent(kind="final", text="Hey, pause the session.", speaker="user"),
+        SessionCommandEvent(command="pause", stage="requested"),
+        TranscriptEvent(kind="final", text="This one must not be saved.", speaker="user"),
+        TranscriptEvent(kind="final", text="Hey, resume the session.", speaker="user"),
+        SessionCommandEvent(command="resume", stage="requested"),
+        TranscriptEvent(kind="final", text="I went to the store yesterday.", speaker="user"),
+    )
+    client = FakeClient()
+
+    await asyncio.wait_for(
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            client,
+            drain_timeout=FAST_DRAIN_TIMEOUT,
+        ).run(),
+        timeout=5.0,
+    )
+
+    rows = await _typed_utterances(db_pool, committed_session.session_id)
+    assert [(row["utterance_type"], row["transcript"]) for row in rows] == [
+        ("voice_command", "Hey, pause the session."),
+        ("voice_command", "Hey, resume the session."),
+        ("learning", "I went to the store yesterday."),
+    ]
+    # 세션은 러너가 끝에 `completed` 로 닫으므로 여기서 `active` 를 볼 수 없다 — 재개가 상태를
+    # 되돌렸다는 것은 **닫힌 상태가 `completed`** 라는 사실이 보증한다(정지 상태로 남았으면
+    # `end_session` 이 그것을 덮지 않고 `paused` 가 남는다).
+    assert await _session_status(db_pool, committed_session.session_id) == "completed"
+
+
+async def test_a_pause_command_without_the_marker_is_not_applied(db_pool, committed_session):
+    """표지 요구(결정 104 D5)가 새 명령 둘에도 걸린다 — 그리고 그 버려짐은 화면에 뜬다.
+
+    ⛔ 정지가 표지 없이 걸리면 **오인식 한 번이 학습 기록을 조용히 멈춘다** — 종료와 방향은 다르지만
+    되돌릴 수 없는 손실이라는 점이 같다(정지 중 말한 것은 저장되지 않는다).
+    """
+    adapter = ScriptedAdapter(
+        TranscriptEvent(kind="final", text="Let us pause for a moment.", speaker="user"),
+        SessionCommandEvent(command="pause", stage="requested"),
+        TranscriptEvent(kind="final", text="I went to the store yesterday.", speaker="user"),
+    )
+    client = FakeClient()
+
+    await asyncio.wait_for(
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            client,
+            drain_timeout=FAST_DRAIN_TIMEOUT,
+        ).run(),
+        timeout=5.0,
+    )
+
+    assert client.of_type("voice_command") == []
+    assert client.of_type("voice_command_ignored") == [
+        {"type": "voice_command_ignored", "command": "pause"},
+    ]
+    rows = await _typed_utterances(db_pool, committed_session.session_id)
+    assert [(row["utterance_type"], row["transcript"]) for row in rows] == [
+        ("learning", "Let us pause for a moment."),
+        ("learning", "I went to the store yesterday."),
+    ]
+
+
 async def test_a_dropped_command_is_surfaced_to_the_screen(db_pool, committed_session):
     """결정 113 (`TASK-61.16`) — 표지가 없어 버린 명령을 **화면이 알 수 있게** 방송한다.
 

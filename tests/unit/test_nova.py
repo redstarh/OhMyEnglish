@@ -2234,6 +2234,34 @@ def test_system_prompt_tells_the_coach_the_command_marker_and_the_confirmation()
     assert "confirmed" in SYSTEM_PROMPT
 
 
+def test_the_prompt_names_pause_and_resume_and_tells_the_coach_to_wait():
+    """결정 117 (`TASK-61.9`) — 명령 둘이 지시문에 들어오고 「정지 중에 기다린다」를 함께 말한다.
+
+    ⛔ **문면이 정지 중 거동을 보장하지는 않는다**(결정 112) — 앱이 지키는 것은 「정지 중 학습 발화를
+    저장하지 않는다」 하나다. 문면이 필요한 이유는 다른 것이다: 이것이 없으면 모델이 애초에 tool 을
+    부르지 않아 **정지가 성립하지 않는다**(tool 스키마에 값을 더하는 것만으로는 부르지 않는다 —
+    `test_the_prompt_names_both_commands_and_only_end_needs_confirmation` 이 그 선례를 적었다).
+    """
+    squeezed = " ".join(SYSTEM_PROMPT.split()).lower()
+
+    assert '"pause"' in squeezed
+    assert '"resume"' in squeezed
+    assert "do not ask questions until" in squeezed
+
+
+def test_the_prompt_does_not_count_the_commands():
+    """⛔ **지시문이 명령의 «개수»를 말하지 않는다** — 세면 값역이 늘 때마다 낡는다.
+
+    실제로 낡았다: `nova.py` 의 주석이 *"「종료·리포트·다음 문제 셋」이라 적힌 채 넷이 됐다"* 를
+    적어 뒀고, 결정 117 이 여섯으로 늘리면서 「four commands」가 다시 낡을 자리였다.
+    ⇒ 개수를 지우고 **tool 이 값역의 정본**이라고 말하게 했다(`ControlCommand`).
+    """
+    squeezed = " ".join(SYSTEM_PROMPT.split()).lower()
+
+    for stale in ("three commands", "four commands", "five commands", "six commands"):
+        assert stale not in squeezed
+
+
 def test_the_prompt_names_the_simplified_wake_words_and_excludes_a_bare_greeting():
     """결정 114 (`TASK-61.17`) — 표지가 「헤이」·「헬로」 계열로 단순화됐고 지시문이 그것을 알아야 한다.
 

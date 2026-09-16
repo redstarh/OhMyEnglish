@@ -147,6 +147,25 @@ async def test_error_patterns_category_check_rejects_unknown_code(db_conn: async
         )
 
 
+# ④-0 025 `learning_sessions.status='paused'` 허용 (결정 115·117)
+@pytest.mark.asyncio
+async def test_learning_sessions_status_check_accepts_paused(db_conn: asyncpg.Connection):
+    """「일시 정지」의 상태가 값역에 있다 — 025 가 더했다.
+
+    ⛔ **이 값이 행에 남아야 하는 이유**: 정지 판정을 메모리에만 두면 프로세스가 죽은 뒤 그 세션이
+    무엇이었는지 알 수 없고 리퍼가 걷을 근거도 없다(025 머리말).
+    """
+    await _insert_user(db_conn)
+
+    session_id = await db_conn.fetchval(
+        "insert into learning_sessions (user_id, mode, status) "
+        "values ($1, 'speaking', 'paused') returning id",
+        migrate.USER_ID,
+    )
+
+    assert session_id is not None
+
+
 # ④ learning_sessions.status='wrong' 거부
 @pytest.mark.asyncio
 async def test_learning_sessions_status_check_rejects_invalid_value(db_conn: asyncpg.Connection):

@@ -130,9 +130,11 @@ export type ServerEvent =
   // ⛔ **`start_additional` 만 `target` 을 갖는다 — 갈래를 나눠 두는 이유가 그것이다.** 하나의
   // 모양에 옵셔널 키로 두면 화면이 `target` 이 없는 상태로도 새 세션을 열 수 있게 되고, 그것은
   // 「어느 학습을 열지 모르는 채 여는 것」이다(서버는 그 페이로드를 이미 버린다).
+  // ⚠️ **`pause`·`resume` 은 결정 117 이 더했다** — 「학습 계속」이 정지된 그 세션을 그대로 이으므로
+  // 둘이 한 쌍이다. 확인을 타지 않아 `requested` 하나로 끝난다.
   | {
       type: "voice_command";
-      command: "end" | "show_report" | "next_question";
+      command: "end" | "show_report" | "next_question" | "pause" | "resume";
       stage: "requested" | "confirmed" | "cancelled";
     }
   | {
@@ -155,7 +157,7 @@ export type ServerEvent =
   // 같은 근거다: 그 명령은 버려져도 코치가 다음 질문을 하므로 화면이 어긋나지 않는다.
   | {
       type: "voice_command_ignored";
-      command: "end" | "start_additional" | "show_report";
+      command: "end" | "start_additional" | "show_report" | "pause" | "resume";
     }
   | { type: "session_failed"; reason: string }
   | { type: "session_ended"; session_id: string };

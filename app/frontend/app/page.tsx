@@ -111,12 +111,25 @@ const PRONUNCIATION_NO_CANDIDATE =
 //
 // ⚠️ 문구가 **다음에 할 말**을 담는다: 무엇이 안 됐는지만 말하면 학습자가 빠져나갈 길이 없다.
 // 실측에서 학습자의 「네」가 정지를 풀지 못했으므로(1/1) 「다시 말해 달라」가 유일한 출구다.
-const COMMAND_IGNORED_NOTICE: Record<"end" | "start_additional" | "show_report", string> = {
+const COMMAND_IGNORED_NOTICE: Record<
+  "end" | "start_additional" | "show_report" | "pause" | "resume",
+  string
+> = {
   end: "학습 종료를 알아듣지 못해 세션을 그대로 두었어요. 「헤이, 학습 종료」처럼 다시 말해 주세요.",
   start_additional:
     "연습 변경을 알아듣지 못해 지금 세션을 그대로 두었어요. 「헤이, 발음 연습으로 바꿔 줘」처럼 다시 말해 주세요.",
   show_report: "리포트 요청을 알아듣지 못했어요. 「헤이, 주간 리포트 보여 줘」처럼 다시 말해 주세요.",
+  // ⚠️ 정지·재개가 버려진 경우의 문구가 **방향까지 말한다** — 「멈추지 못했다」와 「잇지 못했다」는
+  // 학습자가 다음에 해야 할 일이 다르고, 기록이 계속되는지 멈춰 있는지도 다르다.
+  pause: "일시 정지를 알아듣지 못해 계속 기록하고 있어요. 「헤이, 일시 정지」처럼 다시 말해 주세요.",
+  resume:
+    "학습 계속을 알아듣지 못해 아직 정지 중이에요. 「헤이, 학습 계속」처럼 다시 말해 주세요.",
 };
+
+// 정지 중임을 계속 말하는 줄 (결정 117). ⛔ **한 번 뜨고 사라지는 알림으로 두지 않는다** — 정지는
+// 상태이고, 그 상태에서 학습자가 말한 것은 저장되지 않는다. 화면이 그 사실을 계속 말하지 않으면
+// 학습자는 자기 발화가 사라진 이유를 알 수 없다.
+const PAUSED_NOTICE = "일시 정지 중이에요. 지금 말하는 것은 기록하지 않아요 — 「헤이, 학습 계속」이라고 말하면 이어서 해요.";
 
 // 확인을 기다리는 중임을 말하는 문구 둘. 대상은 확인을 거치는 명령 둘이다 — `show_report` 는
 // 확인을 타지 않으므로(결정 107 ③) 이 자리에 오지 않는다.
@@ -169,6 +182,9 @@ export default function SessionPage() {
   // 진입 안내는 세션이 열릴 때 한 번 쓰이고 이 자리는 세션 중에 여러 번 바뀐다. 한 상태로 두면
   // 명령 알림이 진입 안내를 덮고 그 안내는 다시 돌아오지 않는다.
   const [commandNotice, setCommandNotice] = useState<string | null>(null);
+  // 정지 중인가 (결정 117). ⛔ `commandNotice` 와 **가른다** — 그것은 한 번 말하고 마는 알림이고
+  // 이것은 **상태**다. 합치면 다른 알림이 정지 표시를 덮고 학습자는 기록이 멈춘 것을 잊는다.
+  const [paused, setPaused] = useState(false);
   // 서버가 고른 쉐도잉 클립 (`TASK-66.7`). ⛔ **키의 부재는 「쉐도잉 세션이 아니다」다** —
   // `pronunciation_focus` 가 세운 규약과 같아서 요청하지 않은 세션에서는 `null` 로 남는다.
   const [shadowing, setShadowing] = useState<ShadowingSetup | null>(null);
@@ -295,6 +311,15 @@ export default function SessionPage() {
               event.stage === "requested" ? COMMAND_PENDING_NOTICE[event.command] : null,
             );
           }
+          // 정지·재개 (결정 117). ⛔ **서버가 상태를 적은 뒤에만 이 프레임이 온다** — 앱이 DB 를
+          // 못 적으면 프레임을 보내지 않으므로 화면이 앞질러 「멈췄다」고 말하지 않는다.
+          // ⚠️ `requested` 하나만 보는 것은 확인을 타지 않는 명령의 규약이다(결정 107 ③).
+          if (
+            (event.command === "pause" || event.command === "resume") &&
+            event.stage === "requested"
+          ) {
+            setPaused(event.command === "pause");
+          }
           break;
         case "voice_command_ignored":
           // 서버가 표지를 못 찾아 **실행하지 않은** 명령이다. 코치는 이미 「됐다」고 말한 뒤이므로
@@ -339,6 +364,9 @@ export default function SessionPage() {
     // 명령 알림도 세션 사이에 남기지 않는다 — 「아직 안 바뀜」이 **바뀐 뒤의 새 세션**에 남으면
     // 화면이 정확히 거꾸로 말한다(추가 학습이 확인되면 이 함수가 새 세션을 연다).
     setCommandNotice(null);
+    // 정지 상태도 세션 사이에 남기지 않는다 — 새 세션은 정지가 아니고, 남으면 화면이 「기록하지
+    // 않는다」고 말하는 채 기록이 돈다.
+    setPaused(false);
     // 리포트 패널은 세션 사이에 남기지 않는다 — 앞 세션의 수치를 새 세션 화면에 띄워 두면
     // 그것이 이번 세션의 것으로 읽힌다.
     setReportOpen(false);
@@ -548,6 +576,16 @@ export default function SessionPage() {
                 style={{ color: "var(--foreground)", fontWeight: 600, margin: "0 0 0.6rem" }}
               >
                 {commandNotice}
+              </p>
+            )}
+            {/* 정지 중 표시 (결정 117). 상태이므로 **정지가 풀릴 때까지 남는다** — 그 사이 학습자가
+                말한 것은 저장되지 않고, 화면이 그 이유를 계속 말해야 학습자가 사라진 줄을 이해한다. */}
+            {paused && (
+              <p
+                aria-live="polite"
+                style={{ color: "var(--foreground)", fontWeight: 600, margin: "0 0 0.6rem" }}
+              >
+                {PAUSED_NOTICE}
               </p>
             )}
             {lines.length === 0 && !partialLine && !listening && (

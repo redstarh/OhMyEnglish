@@ -44,6 +44,7 @@ from app.audio_gateway.port import (
     VoiceAdapter,
 )
 from app.models.voice_command import (
+    PAUSE_COMMANDS,
     SURFACED_ON_MARKER_MISS,
     closes_session,
     is_wake_command,
@@ -56,7 +57,7 @@ from app.services.pronunciation import (
     resolve_dangling,
 )
 from app.services.recordings import ShadowingTurns, finalize_recording, pending_recording_path
-from app.services.sessions import SessionEndStatus, end_session
+from app.services.sessions import SessionEndStatus, end_session, set_session_paused
 from app.services.utterances import flush_pending_analysis, save_final_transcript
 
 logger = logging.getLogger(__name__)
@@ -160,6 +161,11 @@ class SessionRunner:
         # 표지가 없어서 이 상태 없이는 그 발화를 학습 발화와 가를 수 없다.
         self._marker_seen = False
         self._awaiting_confirmation = False
+        # 「일시 정지」의 상태 (결정 117). ⛔ **이 값이 하는 일은 하나다** — 정지 중 학습 발화를
+        # 저장하지 않는다. 소켓과 어댑터는 살아 있다(코치가 「학습 계속」을 들어야 한다).
+        # ⚠️ DB 의 `status='paused'` 와 **두 곳에 있다**: 이 값은 매 발화 판정에 쓰이고 DB 값은
+        # 프로세스가 죽은 뒤 그 세션이 무엇이었는지 남기는 자리다(025 머리말).
+        self._paused = False
 
     async def run(self) -> None:
         """세션 하나를 끝까지 수행한다. 반환 시점에 세션은 DB에서 닫혀 있다."""
@@ -452,6 +458,13 @@ class SessionRunner:
             # (`session_started` 의 `shadowing`·`pronunciation_focus` 와 같음) 화면이 이 키로
             # 새 세션의 진입을 정하므로 빈 값이 흘러가면 엉뚱한 세션이 열린다.
             frame["target"] = event.target
+        if event.command in PAUSE_COMMANDS:
+            # 「일시 정지」·「학습 계속」 (결정 117) — **상태를 먼저 적고 그 뒤에 화면에 말한다.**
+            # ⛔ 순서를 뒤집으면 DB 가 안 바뀐 채 화면이 「멈췄어요」라고 말하고, 그것이 결정 112 가
+            # 고친 갈림이다. 적지 못했으면 **아무것도 방송하지 않는다** — 학습자는 알림을 못 받지만
+            # 기록은 계속되므로 안전한 쪽이다(정지의 실패는 「기록이 멈추지 않는 것」이다).
+            if not await self._apply_pause(paused=event.command == "pause"):
+                return False
         await self._send(frame)
         if not requires_confirmation(event.command):
             # 되돌릴 수 있는 명령은 `requested` 하나로 끝난다 (결정 107 ③) — 화면이 이 프레임을
@@ -485,6 +498,33 @@ class SessionRunner:
             self._session_id,
         )
         return closing
+
+    async def _apply_pause(self, *, paused: bool) -> bool:
+        """정지 상태를 DB 와 이 러너에 함께 적는다. 적지 못했으면 `False` (결정 117).
+
+        ⛔ **DB 가 먼저다** — 러너 상태만 바꾸고 DB 를 못 적으면 프로세스가 죽은 뒤 그 세션이
+        정지였다는 사실이 사라지고 리퍼가 걷을 근거도 없어진다(025 머리말).
+        ⛔ **예외를 올리지 않는다** — 이 펌프가 죽으면 세션 전체가 끝난다. 정지 하나를 잃는 쪽이
+        대화를 끊는 것보다 낫고, 잃었다는 사실은 `warning` 이 남긴다(함정 `H-Z` — 문서가 지정한
+        실행에서 INFO 는 보이지 않는다).
+        """
+        try:
+            async with self._pool.acquire() as conn:
+                moved = await set_session_paused(conn, self._session_id, paused=paused)
+        except Exception:
+            logger.exception(
+                "세션 정지 상태를 적지 못했다 (paused=%s · 세션 %s)", paused, self._session_id
+            )
+            return False
+        if not moved:
+            logger.warning(
+                "세션 정지 상태를 옮길 수 없었다 — 이미 닫힌 세션이다 (paused=%s · 세션 %s)",
+                paused,
+                self._session_id,
+            )
+            return False
+        self._paused = paused
+        return True
 
     def _classify_user_final(self, text: str) -> str:
         """학습자 final 하나의 `utterance_type` 을 정한다 (`TASK-61.1` · `TASK-61.4`).
@@ -526,6 +566,20 @@ class SessionRunner:
             if event.speaker == "user"
             else LEARNING_UTTERANCE_TYPE
         )
+        if self._paused and event.speaker == "user" and utterance_type == LEARNING_UTTERANCE_TYPE:
+            # 결정 117 — **정지 중에는 학습 발화를 저장하지 않는다. 이것이 이 기능의 계약이다.**
+            # 「잠깐」이라 말한 학습자는 옆 사람과 말하거나 자리를 비운다 — 그것을 교정 대상으로
+            # 저장하면 오류 패턴과 복습 시계가 오염된다.
+            # ⛔ **분류는 먼저 돌린다** — `_classify_user_final` 이 표지를 보고 `_marker_seen` 을
+            # 세우므로, 건너뛰면 정지 중에 「헤이, 학습 계속」을 말해도 재개가 실행되지 않는다.
+            # ⛔ **방송도 하지 않는다**(이 함수가 끝에서 프레임을 보낸다) — 저장하지 않은 줄을
+            # 화면에 남기면 학습자는 기록됐다고 읽는다. 정지 중임은 정지 알림이 말한다.
+            logger.info(
+                "정지 중 학습 발화를 저장하지 않았다 (세션 %s · %d자)",
+                self._session_id,
+                len(event.text),
+            )
+            return
         async with self._pool.acquire() as conn:
             utterance = await save_final_transcript(
                 conn,

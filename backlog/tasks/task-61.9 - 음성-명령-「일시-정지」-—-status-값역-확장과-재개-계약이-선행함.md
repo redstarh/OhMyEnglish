@@ -1,9 +1,10 @@
 ---
 id: TASK-61.9
 title: 음성 명령 「일시 정지」 — status 값역 확장과 재개 계약이 선행함
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-15 16:17'
+updated_date: '2026-09-16 04:52'
 labels: []
 dependencies: []
 parent_task_id: TASK-61
@@ -22,7 +23,19 @@ PRD §Voice Control 의 남은 명령 셋 가운데 하나다(결정 110 이 넷
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 status 값역 확장 마이그레이션을 발급하고 dev DB 적용 여부를 사용자 판단으로 받는다
-- [ ] #2 재개 계약을 정한다 — 누가 어떤 신호로 재개하는가
+- [x] #1 status 값역 확장 마이그레이션을 발급하고 dev DB 적용 여부를 사용자 판단으로 받는다
+- [x] #2 재개 계약을 정한다 — 누가 어떤 신호로 재개하는가
 - [ ] #3 명령을 계약대로 만들고 실물 회차로 영어·한국어 둘을 관측한다
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-09-16 — 결정 117 로 TASK-61.11 과 한 기능이 됐음(「학습 계속」은 정지된 그 세션을 그대로 이음). 마이그레이션 025 를 발급했고 적용 승인은 결정 115 임.
+
+2026-09-16 — AC#1·#2 를 닫았음. 마이그레이션 **025** 를 발급하고 공유 dev DB 에 적용했음(결정 115 승인) — schema_migrations 22 → 23 · CHECK 에 paused 가 들어갔음 · learning_sessions 17 · session_plans 6 · learning_scenarios 30 은 전후 같음.
+
+AC#2 재개 계약(결정 117): 학습자가 「헤이, 학습 계속」이라 말하면 **그 세션을 그대로 잇는다.** 정지는 «부드러운 정지» 임 — 소켓과 어댑터는 살아 있고(코치가 재개를 들어야 함) 앱이 지키는 계약은 「정지 중 학습 발화를 저장하지 않는다」 하나임. 그 단정이 tests/integration/test_gateway.py 에 셋 있음.
+
+함께 고친 자리 둘: end_session 과 리퍼의 가드가 active 만 보고 있어 정지 중 종료가 영구히 paused 로 남을 자리였음(_LIVE_SESSION_STATUSES 로 묶었음). 지시문 규칙 13 에 pause·resume 을 넣고 「명령의 개수」 서술을 없앴음 — 세면 값역이 늘 때마다 낡음.
+<!-- SECTION:NOTES:END -->

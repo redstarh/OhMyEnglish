@@ -139,15 +139,23 @@ def test_the_korean_transcription_variant_is_accepted() -> None:
     assert is_wake_command("오마이 잉글리쉬, 종료.") is True
 
 
-def test_only_three_commands_are_surfaced_when_the_marker_is_missing() -> None:
-    """결정 113 ② (`TASK-61.16`) — 버려짐을 화면에 알리는 명령은 셋이고 `next_question` 은 아니다.
+def test_only_the_screen_changing_commands_are_surfaced_when_the_marker_is_missing() -> None:
+    """결정 113 ② (`TASK-61.16`) — 버려짐을 화면에 알리는 명령은 **화면이 어긋나는 것들**이다.
 
     ⛔ **넓히면 알림이 잡음이 된다.** `next_question` 은 프레임이 버려져도 코치가 실제로 다음 질문을
     하므로 화면이 어긋나지 않는다 — 실측이 그것을 갈랐다
     (`tests/harness/runs/2026-09-16-task61-15-accepted-without-execution` §4 의 표).
+    ⚠️ **`pause`·`resume` 은 든다**(결정 117): 정지는 학습 발화 저장을 멈추므로 버려지면 코치는
+    「멈췄다」고 말하고 앱은 계속 기록한다.
     ⚠️ 이 집합은 「실행 여부」와 무관하다 — 실행하지 않는 것은 표지 검사가 정하고 그것은 결정 104 다.
     """
-    assert SURFACED_ON_MARKER_MISS == {"end", "start_additional", "show_report"}
+    assert SURFACED_ON_MARKER_MISS == {
+        "end",
+        "start_additional",
+        "show_report",
+        "pause",
+        "resume",
+    }
     assert "next_question" not in SURFACED_ON_MARKER_MISS
 
 

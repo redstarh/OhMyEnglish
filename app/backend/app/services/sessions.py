@@ -167,23 +167,40 @@ returning id
 # 알아야 `generate_scenario` job 을 걸 수 있고, 그것을 별도 조회로 하면 같은 트랜잭션에서 쿼리가
 # 하나 늘 뿐 얻는 것이 없다. ⛔ 호출자는 `fetchrow` 로 받는다 — `fetchval` 로 받으면 첫 열(`id`)만
 # 와서 `closed["mode"]` 가 조용히 깨진다.
-_END_SESSION_SQL = """
+# ⚠️ **`paused` 도 닫을 수 있다** (결정 117 · `TASK-61.9`). 가드의 목적은 **terminal 판정을 덮지
+# 않는 것**이고(리퍼가 찍은 `failed`) `paused` 는 같은 소켓이 소유한 **살아 있는** 상태다. 이 값을
+# 빼면 정지 중에 「학습 종료」를 누른 세션이 **영구히 `paused` 로 남는다** — 회복 스윕은 그것을 끝난
+# 세션으로 보지 않으므로(허용 목록) 분석도 걸리지 않는다.
+_LIVE_SESSION_STATUSES = "('active', 'paused')"
+
+# 「일시 정지」·「학습 계속」의 UPDATE (결정 117 · 025). ⛔ 살아 있는 상태에서만 옮긴다 — 리퍼가
+# `failed` 로 닫은 세션을 정지 명령이 되살리면 그 판정이 사라진다. `returning id` 는 그 가드가
+# 걸렸는지(0행)를 호출자가 알기 위한 것이고 `_SET_SESSION_MODE_SQL` 과 같은 규약이다.
+_SET_SESSION_PAUSED_SQL = f"""
+update learning_sessions
+   set status = $2
+ where id = $1
+   and status in {_LIVE_SESSION_STATUSES}
+returning id
+"""
+
+_END_SESSION_SQL = f"""
 update learning_sessions
    set status = $2,
        ended_at = now()
  where id = $1
-   and status = 'active'
+   and status in {_LIVE_SESSION_STATUSES}
 returning id, mode
 """
 
 # `status = 'failed'`는 `SessionEndStatus`의 한 값이다 — 리터럴로 박은 이유는 리퍼가
 # 닫는 방식이 하나뿐이기 때문이다(정상 종료로 위장하지 않는다). 시각은 `_END_SESSION_SQL`과
 # 같은 규약으로 DB 시계에서 찍는다.
-_REAP_ORPHAN_SESSIONS_SQL = """
+_REAP_ORPHAN_SESSIONS_SQL = f"""
 update learning_sessions s
    set status = 'failed',
        ended_at = now()
- where s.status = 'active'
+ where s.status in {_LIVE_SESSION_STATUSES}
    and not (s.id = any($1::uuid[]))
    and coalesce(
          (select max(u.created_at) from utterances u where u.session_id = s.id),
@@ -489,6 +506,25 @@ async def set_session_mode(pool: asyncpg.Pool, session_id: UUID, *, mode: str) -
     """
     async with pool.acquire() as conn:
         updated = await conn.fetchval(_SET_SESSION_MODE_SQL, session_id, mode)
+    return updated is not None
+
+
+async def set_session_paused(conn: asyncpg.Connection, session_id: UUID, *, paused: bool) -> bool:
+    """열려 있는 세션을 `paused`↔`active` 로 옮긴다. 갱신된 행이 없으면 `False` (결정 117).
+
+    **연결을 받는 쪽이 원시 함수다** — 부르는 자리가 세션 러너의 이벤트 펌프이고 그 안에서 이미
+    연결을 들고 있다(`end_session`·`save_final_transcript` 와 같은 규약).
+
+    ⛔ **살아 있는 상태에서만 옮긴다**(`_LIVE_SESSION_STATUSES`) — 리퍼가 `failed` 로 닫은 세션을
+    정지 명령이 되살리면 그 판정이 사라진다. 0행이면 호출자가 **로그로 갚고 화면에 알리지 않는다**:
+    상태가 안 바뀐 채 화면이 「멈췄어요」라고 말하면 결정 112 가 고친 갈림이 그대로 되돌아온다.
+
+    ⚠️ 같은 값으로 두 번 불러도 0행이 아니다(이미 `paused` 인 세션을 다시 `paused` 로 적는다) —
+    모델이 명령을 두 번 부르는 것이 실측된 거동이라(결정 107 ③ 주석) 멱등이 안전한 쪽이다.
+    """
+    updated = await conn.fetchval(
+        _SET_SESSION_PAUSED_SQL, session_id, "paused" if paused else "active"
+    )
     return updated is not None
 
 
