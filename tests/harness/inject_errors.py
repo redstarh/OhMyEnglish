@@ -46,8 +46,9 @@ BACKEND_DIR = REPO_ROOT / "app" / "backend"
 HARNESS = REPO_ROOT / ".harness"
 sys.path.insert(0, str(BACKEND_DIR))
 
-# DATABASE_URL을 따라가는 psql 헬퍼 (:5432 기본, :5433 폴백). 이전에는 이 파일이
+# DATABASE_URL을 따라가는 psql 헬퍼 (dev DB 는 homebrew :5432 하나다). 이전에는 이 파일이
 # `podman exec`를 하드코딩해 폴백 컨테이너의 사본을 건드렸다 — 함정 H-T.
+# 그 폴백(:5433)은 2026-09-17에 지웠다(`TASK-149`).
 from psql_cli import psql  # noqa: E402
 
 from app.api.ws import FIXED_USER_ID  # noqa: E402

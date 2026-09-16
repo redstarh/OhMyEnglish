@@ -41,22 +41,27 @@ curl -s localhost:8002/health          # {"status":"ok"} 여야 한다
 ps -o lstart= -p $(lsof -nP -iTCP:8002 -sTCP:LISTEN -t)
 find app/backend/app -name '*.py' -newermt '<위 시각>'   # 결과가 있으면 재기동하고 시작한다
 
-# 3) 회차를 열고 패턴 baseline을 뜬다 (teardown의 복원 기준)
-# ⛔ 정본은 browser_leg.md §8-0 이다 — 아래 블록은 예시이고 컬럼이 낡을 수 있다.
-#    그 절이 next_review_at·mastery_score 와 harness_review_task_baseline 을 함께 요구한다
-#    (2026-09-10 · TASK-83). ⚠️ 아래 podman 명령도 낡았다 — dev DB 는 homebrew :5432 다(H-T).
-podman exec -i ohmy-pg psql -U ohmy -d ohmyenglish -tAc \
-  "insert into harness_runs (git_commit, note) values ('<커밋>','<메모>') returning id" \
-  | tr -d ' \n' > .harness/run_id.txt
-podman exec -i ohmy-pg psql -U ohmy -d ohmyenglish -c \
-  "drop table if exists harness_pattern_baseline;
-   create table harness_pattern_baseline as
-     select id, pattern_key, frequency, last_seen_at from error_patterns
-      where user_id='00000000-0000-0000-0000-000000000001';"
+# 3) 회차를 연다 — .harness/run_id.txt (ws_session.py·inject_errors.py 가 이 파일을 읽는다)
+# ⛔ DB 접근은 psql_cli.py 하나로 한다. podman exec 를 쓰지 않는다 — dev DB 는 homebrew :5432 이고
+#    podman 폴백(:5433)은 2026-09-17 에 지웠다(함정 H-T · TASK-149). 그 헬퍼는 DATABASE_URL 을
+#    따라가므로 앱이 보는 DB 에 붙는다(정본은 browser_leg.md §7).
+cd app/backend && .venv/bin/python -c "
+import sys; sys.path.insert(0, '../../tests/harness')
+from psql_cli import psql
+run_id = psql(\"insert into harness_runs (git_commit, note) values ('<커밋>','<메모>') returning id\")
+open('../../.harness/run_id.txt', 'w').write(run_id)
+print(run_id)
+"
 ```
 
+⛔ **패턴 baseline SQL 은 이 문서에 옮겨 적지 않는다 — 정본은 `browser_leg.md` §8-0 이다.**
+옮겨 적었던 판이 낡아 `next_review_at`·`mastery_score` 와 `harness_review_task_baseline` 을
+빠뜨렸고, 그래서 「§8-0 을 따랐다」가 참인데도 복습 시계가 움직인 채 남았다(2026-09-10 · `TASK-83`).
+회차를 열었으면 그 절의 SQL 을 위와 같은 방식으로 `psql_cli.py` 에 던진다.
+
 `run_id.txt`에 **개행이나 psql 부산물이 섞이면 안 된다** — 스크립트가 그 값을 SQL에 그대로
-넣는다(1회차에서 실제로 `INSERT01`이 섞여 세션 하나가 미등록으로 남았다).
+넣는다(1회차에서 실제로 `INSERT01`이 섞여 세션 하나가 미등록으로 남았다). `psql_cli.psql()` 은
+stdout 을 `strip()` 해서 돌려주므로 위 방식은 그 오염을 만들지 않는다.
 
 ## 실행
 

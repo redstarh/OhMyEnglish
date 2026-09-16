@@ -6,12 +6,11 @@
 **폴백 컨테이너에 남은 사본**을 건드리게 됐다 — 주입은 성공하는데 앱이 보는 DB에는 없는
 상태가 되어 하네스가 조용히 잘못된 판정을 낸다(함정 H-T).
 
-지금은 `DATABASE_URL`을 그대로 psql에 넘기므로 설정이 가리키는 DB를 따라간다. 호스트에서
-:5432·:5433 **둘 다** 접속되는 것을 2026-08-31에 실측했으므로 폴백으로 되돌려도 이 헬퍼는
-그대로 동작한다.
+지금은 `DATABASE_URL`을 그대로 psql에 넘기므로 설정이 가리키는 DB를 따라간다. 그 폴백 컨테이너는
+2026-09-17에 도구에서 지웠다(`TASK-149`) — dev DB 는 homebrew :5432 하나다.
 
 ⚠️ `DATABASE_URL`은 **환경변수**로 읽는다(`db_utils.base_dsn`). `app/backend/.env`만 고치면
-이 헬퍼에는 반영되지 않는다 — 폴백을 쓸 때는 `export DATABASE_URL=...`로 넘긴다.
+이 헬퍼에는 반영되지 않는다 — 다른 DB를 겨눌 때는 `export DATABASE_URL=...`로 넘긴다.
 """
 
 from __future__ import annotations

@@ -22,7 +22,8 @@ import asyncpg
 
 # :5432는 homebrew `postgresql@17` (launchd로 부팅 시 자동 기동)이다. 2026-08-31에
 # podman `ohmy-pg`(:5433)에서 이리로 옮겼다 — podman 가상머신이 내려가면 게이트가
-# 155 errors로 무너지던 의존을 없애기 위해서다(함정 H-T). :5433 컨테이너는 폴백으로 남아 있다.
+# 155 errors로 무너지던 의존을 없애기 위해서다(함정 H-T). :5433 폴백은 2026-09-17에 지웠다
+# (`TASK-149`) — 그 컨테이너 데이터가 이관 시점의 사본이라 되살리면 거짓 신호가 된다.
 # ⚠️ 이 인스턴스는 StockAgent와 **공유**한다(`stockagent`·`stocknews*` DB). 인스턴스 단위
 #    조작(재시작·ALTER SYSTEM)은 남의 서비스를 건드린다 — DB 단위로만 다룬다.
 # ⚠️ 인스턴스 기본 TimeZone은 `Asia/Seoul`이지만 역할 `ohmy`에 UTC를 고정해 두었다

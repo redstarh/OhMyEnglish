@@ -235,9 +235,8 @@ async def main() -> int:
     except (OSError, asyncpg.PostgresError) as exc:
         print(
             f"ERROR: 스모크 DB 준비 실패 — {type(exc).__name__}: {exc}\n"
-            "DB가 기동 중인지 확인하라 — 기본은 homebrew :5432"
-            " (brew services list | grep postgresql@17)."
-            " 폴백은 podman :5433 (scripts/dev_db.sh status).",
+            "DB가 기동 중인지 확인하라 — homebrew :5432 하나다"
+            " (scripts/dev_db.sh status · 내려가 있으면 scripts/dev_db.sh start).",
             file=sys.stderr,
         )
         return 1

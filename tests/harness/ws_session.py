@@ -18,8 +18,9 @@ import time
 import wave
 from pathlib import Path
 
-# psql_cli — DATABASE_URL을 따라가는 psql 헬퍼 (:5432 기본, :5433 폴백). 이전에는 이 파일이
+# psql_cli — DATABASE_URL을 따라가는 psql 헬퍼 (dev DB 는 homebrew :5432 하나다). 이전에는 이 파일이
 # `podman exec`를 하드코딩해 폴백 컨테이너의 사본에 하네스 세션을 등록했다 — 함정 H-T.
+# 그 폴백(:5433)은 2026-09-17에 지웠다(`TASK-149`).
 from psql_cli import psql
 from websockets.asyncio.client import connect
 
