@@ -141,6 +141,22 @@ export type ServerEvent =
       stage: "requested" | "confirmed" | "cancelled";
       target: AdditionalTarget;
     }
+  // 표지가 없어 서버가 **실행하지 않은** 명령 (결정 113 · `TASK-61.16`).
+  //
+  // ⛔ **왜 `voice_command` 에 플래그로 붙이지 않는가** — 그 프레임의 처리부는 `show_report` 를
+  // 열고 `start_additional` 을 기억한다. 같은 모양에 「실행 안 됨」 키를 두면 그 검사를 빠뜨리는
+  // 순간 **버린 명령이 수행된다.** 별도 종류는 빠뜨려도 아무것도 수행되지 않는다.
+  //
+  // ⚠️ **이 프레임은 알림이고 명령이 아니다.** 화면이 할 일은 「되지 않았다」고 말하는 것 하나다 —
+  // 코치는 이 시점에 이미 「됐다」고 말한 뒤다(어댑터가 tool 결과를 앱의 판정보다 먼저 돌려준다).
+  //
+  // ⛔ **`next_question` 은 오지 않는다** — 값역의 정본은 백엔드
+  // `models/voice_command.SURFACED_ON_MARKER_MISS` 다. 위 「화면이 반응하지 않는 것은 계약이다」와
+  // 같은 근거다: 그 명령은 버려져도 코치가 다음 질문을 하므로 화면이 어긋나지 않는다.
+  | {
+      type: "voice_command_ignored";
+      command: "end" | "start_additional" | "show_report";
+    }
   | { type: "session_failed"; reason: string }
   | { type: "session_ended"; session_id: string };
 

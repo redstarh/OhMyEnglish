@@ -2077,6 +2077,91 @@ async def test_an_unmarked_report_command_is_not_run_either(db_pool, committed_s
     ]
 
 
+async def test_a_dropped_command_is_surfaced_to_the_screen(db_pool, committed_session):
+    """결정 113 (`TASK-61.16`) — 표지가 없어 버린 명령을 **화면이 알 수 있게** 방송한다.
+
+    ⛔ 여기까지 오면 코치는 이미 「됐다」고 말한 뒤다 — 어댑터가 `{"status":"accepted"}` 를 tool 결과로
+    돌려주는 자리가 앱의 이 판정보다 **앞**이기 때문이다(`audio_gateway/nova.py`
+    `_flush_tool_results`). 그래서 warning 만 남기면 학습자는 되지 않은 것을 됐다고 듣는다 —
+    실물로 4/4 관측했다(`runs/2026-09-16-task61-15-accepted-without-execution` §2-1).
+    ⚠️ **실행하지 않는 것은 그대로다** — 이 프레임은 알림이고 명령이 아니다.
+    """
+    adapter = ScriptedAdapter(
+        TranscriptEvent(kind="final", text="End the session now, please.", speaker="user"),
+        SessionCommandEvent(command="end", stage="requested"),
+    )
+    client = FakeClient()
+
+    await asyncio.wait_for(
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            client,
+            drain_timeout=FAST_DRAIN_TIMEOUT,
+        ).run(),
+        timeout=5.0,
+    )
+
+    assert client.of_type("voice_command") == []
+    assert client.of_type("voice_command_ignored") == [
+        {"type": "voice_command_ignored", "command": "end"},
+    ]
+
+
+async def test_a_dropped_next_question_is_not_surfaced(db_pool, committed_session):
+    """결정 113 ② — `next_question` 은 두 표면 어디에도 들어가지 않는다 (`TASK-61.16` AC#3).
+
+    ⛔ **이것이 이 표면의 판별력이다** — 「전부 알린다」로 넓히면 알림이 잡음이 되고, 잡음이 되면
+    학습자가 그 자리를 보지 않는다. 근거는 실측이다: 이 명령은 프레임이 버려져도 코치가 실제로 다음
+    질문을 하므로 화면이 어긋나지 않는다(`runs/2026-09-16-task61-15-accepted-without-execution` §4).
+    """
+    adapter = ScriptedAdapter(
+        TranscriptEvent(kind="final", text="Next question, please.", speaker="user"),
+        SessionCommandEvent(command="next_question", stage="requested"),
+    )
+    client = FakeClient()
+
+    await asyncio.wait_for(
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            client,
+            drain_timeout=FAST_DRAIN_TIMEOUT,
+        ).run(),
+        timeout=5.0,
+    )
+
+    assert client.of_type("voice_command") == []
+    assert client.of_type("voice_command_ignored") == []
+
+
+async def test_a_marked_command_is_not_surfaced_as_ignored(db_pool, committed_session):
+    """표지가 있는 정상 명령에는 알림이 붙지 않는다 — 안 그러면 매 명령마다 잡음이 뜬다."""
+    adapter = ScriptedAdapter(
+        TranscriptEvent(kind="final", text="Hey, end the session.", speaker="user"),
+        SessionCommandEvent(command="end", stage="requested"),
+    )
+    client = FakeClient()
+
+    await asyncio.wait_for(
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            client,
+            drain_timeout=FAST_DRAIN_TIMEOUT,
+        ).run(),
+        timeout=5.0,
+    )
+
+    assert client.of_type("voice_command") == [
+        {"type": "voice_command", "command": "end", "stage": "requested"},
+    ]
+    assert client.of_type("voice_command_ignored") == []
+
+
 async def test_a_marked_user_final_is_stored_as_a_command_not_learning(
     db_pool, committed_session
 ):

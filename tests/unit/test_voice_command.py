@@ -6,6 +6,7 @@
 """
 
 from app.models.voice_command import (
+    SURFACED_ON_MARKER_MISS,
     closes_session,
     is_wake_command,
     parse_control_payload,
@@ -138,8 +139,19 @@ def test_the_korean_transcription_variant_is_accepted() -> None:
     assert is_wake_command("오마이 잉글리쉬, 종료.") is True
 
 
-def test_the_short_wake_words_are_accepted(
-) -> None:
+def test_only_three_commands_are_surfaced_when_the_marker_is_missing() -> None:
+    """결정 113 ② (`TASK-61.16`) — 버려짐을 화면에 알리는 명령은 셋이고 `next_question` 은 아니다.
+
+    ⛔ **넓히면 알림이 잡음이 된다.** `next_question` 은 프레임이 버려져도 코치가 실제로 다음 질문을
+    하므로 화면이 어긋나지 않는다 — 실측이 그것을 갈랐다
+    (`tests/harness/runs/2026-09-16-task61-15-accepted-without-execution` §4 의 표).
+    ⚠️ 이 집합은 「실행 여부」와 무관하다 — 실행하지 않는 것은 표지 검사가 정하고 그것은 결정 104 다.
+    """
+    assert SURFACED_ON_MARKER_MISS == {"end", "start_additional", "show_report"}
+    assert "next_question" not in SURFACED_ON_MARKER_MISS
+
+
+def test_the_short_wake_words_are_accepted() -> None:
     """결정 114 — 표지를 「헤이」·「헬로」 계열로 단순화했다 (`TASK-61.17`).
 
     ⛔ **바꾼 것은 표지의 «형태» 하나다** — 「표지를 앱이 판정한다」(결정 102 ①·104 D5)는 그대로다.

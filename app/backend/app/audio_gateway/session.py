@@ -43,7 +43,12 @@ from app.audio_gateway.port import (
     TranscriptEvent,
     VoiceAdapter,
 )
-from app.models.voice_command import closes_session, is_wake_command, requires_confirmation
+from app.models.voice_command import (
+    SURFACED_ON_MARKER_MISS,
+    closes_session,
+    is_wake_command,
+    requires_confirmation,
+)
 from app.services.pronunciation import (
     check_recorded_sounds,
     note_transcript,
@@ -427,6 +432,15 @@ class SessionRunner:
                 event.heard,
                 self._session_id,
             )
+            # 결정 113 (`TASK-61.16`) — **버린 사실을 화면에 알린다.** warning 만 남기면 학습자는
+            # 되지 않은 것을 됐다고 듣는다: 어댑터가 tool 결과로 `{"status":"accepted"}` 를 돌려주는
+            # 자리가 이 판정보다 **앞**이라(`nova.py` `_flush_tool_results`) 코치는 이미
+            # 완료로 말했다.
+            # 실물로 4/4 관측했다(`runs/2026-09-16-task61-15-accepted-without-execution` §2-1).
+            # ⛔ **실행하지 않는 것은 그대로다** — 이 프레임은 알림이고 명령이 아니다.
+            # ⛔ 대상은 `SURFACED_ON_MARKER_MISS` 가 갖는다 — `next_question` 은 들지 않는다.
+            if event.command in SURFACED_ON_MARKER_MISS:
+                await self._send({"type": "voice_command_ignored", "command": event.command})
             return False
         frame: dict[str, object] = {
             "type": "voice_command",

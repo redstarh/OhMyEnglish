@@ -102,6 +102,30 @@ const PRONUNCIATION_ENTERED = "발음 연습으로 시작했어요. 소리를 �
 const PRONUNCIATION_NO_CANDIDATE =
   "발음 연습으로 시작했어요. 오늘 다룰 소리는 대화에서 듣고 고를 거예요.";
 
+// 음성 명령의 어긋남을 말하는 문구 셋 (결정 113 · `TASK-61.16`).
+//
+// ⛔ **이 자리가 있는 이유는 코치의 말이 앱의 상태를 보장하지 않기 때문이다.** 실측: 표지가 없어
+// 버려진 명령에 코치가 「됐다」고 말한 것이 4/4 이고(`runs/2026-09-16-task61-15-…` §2-1) 확인이
+// 오지 않아 세션이 갈리지 않은 것이 4/8 이다(`runs/2026-09-16-task61-13-…` §2-2). 학습자는 그
+// 어긋남을 **들어서는** 알 수 없다 — 그래서 화면이 말한다.
+//
+// ⚠️ 문구가 **다음에 할 말**을 담는다: 무엇이 안 됐는지만 말하면 학습자가 빠져나갈 길이 없다.
+// 실측에서 학습자의 「네」가 정지를 풀지 못했으므로(1/1) 「다시 말해 달라」가 유일한 출구다.
+const COMMAND_IGNORED_NOTICE: Record<"end" | "start_additional" | "show_report", string> = {
+  end: "학습 종료를 알아듣지 못해 세션을 그대로 두었어요. 「헤이, 학습 종료」처럼 다시 말해 주세요.",
+  start_additional:
+    "연습 변경을 알아듣지 못해 지금 세션을 그대로 두었어요. 「헤이, 발음 연습으로 바꿔 줘」처럼 다시 말해 주세요.",
+  show_report: "리포트 요청을 알아듣지 못했어요. 「헤이, 주간 리포트 보여 줘」처럼 다시 말해 주세요.",
+};
+
+// 확인을 기다리는 중임을 말하는 문구 둘. 대상은 확인을 거치는 명령 둘이다 — `show_report` 는
+// 확인을 타지 않으므로(결정 107 ③) 이 자리에 오지 않는다.
+const COMMAND_PENDING_NOTICE: Record<"end" | "start_additional", string> = {
+  end: "학습 종료를 확인하고 있어요. 「네」라고 답하면 종료해요 — 아직 종료되지 않았어요.",
+  start_additional:
+    "연습 변경을 확인하고 있어요. 「네」라고 답하면 바꿔요 — 아직 바뀌지 않았어요.",
+};
+
 interface TranscriptLine {
   id: number;
   speaker: Speaker;
@@ -141,6 +165,10 @@ export default function SessionPage() {
   // 진입 안내 한 줄 (`TASK-10.2` AC#2). 발음 집중을 고른 세션에만 값이 생긴다 — 그 밖에는 `null`
   // 이고 아무것도 렌더하지 않는다(추천 이유와 같은 규약: 빈 자리가 「해당 없음」의 표현이다).
   const [entryNotice, setEntryNotice] = useState<string | null>(null);
+  // 음성 명령의 어긋남 한 줄 (결정 113 · `TASK-61.16`). ⛔ `entryNotice` 와 **합치지 않는다** —
+  // 진입 안내는 세션이 열릴 때 한 번 쓰이고 이 자리는 세션 중에 여러 번 바뀐다. 한 상태로 두면
+  // 명령 알림이 진입 안내를 덮고 그 안내는 다시 돌아오지 않는다.
+  const [commandNotice, setCommandNotice] = useState<string | null>(null);
   // 서버가 고른 쉐도잉 클립 (`TASK-66.7`). ⛔ **키의 부재는 「쉐도잉 세션이 아니다」다** —
   // `pronunciation_focus` 가 세운 규약과 같아서 요청하지 않은 세션에서는 `null` 로 남는다.
   const [shadowing, setShadowing] = useState<ShadowingSetup | null>(null);
@@ -257,6 +285,22 @@ export default function SessionPage() {
           if (event.command === "start_additional" && event.stage === "confirmed") {
             pendingEntryRef.current = entryForTarget(event.target);
           }
+          // 확인 대기를 화면이 말한다 (결정 113 · `TASK-61.16`). ⛔ **확인을 거치는 둘만이다** —
+          // `show_report` 는 뒤 단계가 오지 않는 것이 정상이라(결정 107 ③) 그 문구를 띄우면
+          // 영원히 남는다. `next_question` 도 같은 이유로 이 자리에 오지 않는다(결정 108 ②).
+          // ⚠️ **`confirmed`·`cancelled` 에서 지운다** — 지우지 않으면 실제로 바뀐 뒤에도 화면이
+          // 「아직 안 바뀜」을 말한다. 실측이 잡은 것은 그 반대 방향이었지만(정지) 같은 자리다.
+          if (event.command === "end" || event.command === "start_additional") {
+            setCommandNotice(
+              event.stage === "requested" ? COMMAND_PENDING_NOTICE[event.command] : null,
+            );
+          }
+          break;
+        case "voice_command_ignored":
+          // 서버가 표지를 못 찾아 **실행하지 않은** 명령이다. 코치는 이미 「됐다」고 말한 뒤이므로
+          // (어댑터가 tool 결과를 앱의 판정보다 먼저 돌려준다) 이 한 줄이 학습자가 그것을 알 수 있는
+          // 유일한 자리다. ⛔ 여기서 아무 명령도 수행하지 않는다.
+          setCommandNotice(COMMAND_IGNORED_NOTICE[event.command]);
           break;
         case "session_failed":
           if (terminalHandledRef.current) return;
@@ -292,6 +336,9 @@ export default function SessionPage() {
     setPartialLine(null);
     setListening(false);
     setEntryNotice(null);
+    // 명령 알림도 세션 사이에 남기지 않는다 — 「아직 안 바뀜」이 **바뀐 뒤의 새 세션**에 남으면
+    // 화면이 정확히 거꾸로 말한다(추가 학습이 확인되면 이 함수가 새 세션을 연다).
+    setCommandNotice(null);
     // 리포트 패널은 세션 사이에 남기지 않는다 — 앞 세션의 수치를 새 세션 화면에 띄워 두면
     // 그것이 이번 세션의 것으로 읽힌다.
     setReportOpen(false);
@@ -490,6 +537,17 @@ export default function SessionPage() {
                 style={{ color: "var(--foreground-muted)", margin: "0 0 0.6rem" }}
               >
                 {entryNotice}
+              </p>
+            )}
+            {/* 음성 명령의 어긋남 (결정 113 · `TASK-61.16`). ⛔ **muted 로 두지 않는다** — 이 줄은
+                코치의 말을 «정정»하는 자리라 전사문보다 약하게 보이면 읽히지 않는다. `aria-live` 는
+                위 안내와 같은 이유로 붙인다(소리로는 알 수 없는 사실이다). */}
+            {commandNotice && (
+              <p
+                aria-live="polite"
+                style={{ color: "var(--foreground)", fontWeight: 600, margin: "0 0 0.6rem" }}
+              >
+                {commandNotice}
               </p>
             )}
             {lines.length === 0 && !partialLine && !listening && (

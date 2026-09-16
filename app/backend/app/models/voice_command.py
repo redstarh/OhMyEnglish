@@ -57,6 +57,19 @@ CLOSES_SESSION: frozenset[ControlCommand] = frozenset({"end", "start_additional"
 # `target` 을 반드시 받아야 하는 명령. 없으면 무엇을 열지 모르므로 페이로드를 버린다.
 TARGET_REQUIRED: frozenset[ControlCommand] = frozenset({"start_additional"})
 
+# 표지가 없어 **실행하지 않은** 것을 화면에 알리는 명령 (결정 113 ② · `TASK-61.16`).
+#
+# ⛔ **`next_question` 은 넣지 않는다.** 그 명령은 프레임이 버려져도 코치가 실제로 다음 질문을
+# 하므로 화면이 어긋나지 않는다 — 실측이 그것을 갈랐다
+# (`tests/harness/runs/2026-09-16-task61-15-accepted-without-execution` §4 의 표).
+# 「전부 알린다」로 넓히면 알림이 잡음이 되고, 잡음이 되면 학습자가 그 자리를 보지 않는다.
+#
+# ⚠️ **이 집합은 「실행 여부」와 무관하다** — 실행하지 않는 것은 표지 검사가 정하고 그것은 바뀌지
+# 않았다(결정 104 D5). 이 집합이 정하는 것은 **버린 사실을 말하는가** 하나다.
+SURFACED_ON_MARKER_MISS: frozenset[ControlCommand] = frozenset(
+    {"end", "start_additional", "show_report"}
+)
+
 # Nova Sonic 의 `inputSchema.json` 은 JSON **문자열**이다 (객체가 아니다 — 스파이크 F1).
 CONTROL_TOOL_SCHEMA_JSON = json.dumps(
     {
