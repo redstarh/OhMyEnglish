@@ -1,9 +1,10 @@
 ---
 id: TASK-145
 title: '갈라냄: db.tx() 가 주입된 pool 을 받지 않아 트랜잭션 경계 9곳이 그것을 못 쓴다 — 설계 판단 필요'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-16 15:29'
+updated_date: '2026-09-16 22:35'
 labels: []
 dependencies: []
 ordinal: 206000
@@ -17,5 +18,17 @@ R1(재사용) 리뷰가 「경계 9곳이 db.tx() 를 재구현한다」로 지�
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 세 길 중 하나를 사용자가 고른다
+- [x] #1 세 길 중 하나를 사용자가 고른다
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+## 완료 (2026-09-17 · 사용자 결정: 안 쓰는 함수 지움)
+
+지운 것: app/db.py 의 tx() 와 그에만 쓰이던 import 둘(contextlib · AsyncIterator).
+함께 고친 것: services/__init__.py 의 머리말이 그 함수를 「경계를 여는 수단」으로 지목하고 있었음 —
+실제와 맞추고, 다시 만들려면 pool 을 인자로 받아야 하는 이유를 남겼음.
+
+게이트: pytest 1274 passed · ruff exit 0 · format exit 0 · ty exit 0.
+<!-- SECTION:NOTES:END -->

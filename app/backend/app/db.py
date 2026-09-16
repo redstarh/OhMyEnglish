@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import contextlib
-from collections.abc import AsyncIterator
 
 import asyncpg
 
@@ -38,11 +36,3 @@ async def close_pool() -> None:
     if _pool is not None:
         await _pool.close()
         _pool = None
-
-
-@contextlib.asynccontextmanager
-async def tx() -> AsyncIterator[asyncpg.Connection]:
-    """Acquire a pooled connection and run the block inside a transaction."""
-    p = await pool()
-    async with p.acquire() as conn, conn.transaction():
-        yield conn
