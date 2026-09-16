@@ -1,0 +1,11 @@
+Nova 출력 스트림이 예외로 끝났다 — 세션을 닫는다
+Traceback (most recent call last):
+  File "/Users/redstar/MyProject/OhMyEnglish/app/backend/app/audio_gateway/nova.py", line 1215, in _pump_output
+    chunk = await asyncio.wait_for(receiver.receive(), remaining)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.12_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/asyncio/tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/Users/redstar/MyProject/OhMyEnglish/app/backend/.venv/lib/python3.13/site-packages/smithy_aws_event_stream/aio/__init__.py", line 154, in receive
+    raise value
+aws_sdk_bedrock_runtime.models.ValidationException: RequestId=95200187-c0fb-4403-ac7f-304870e3ecf9 : Timed out waiting for audio bytes or interactive content. Please ensure gaps between audio bytes and interactive content are less than 55 seconds.

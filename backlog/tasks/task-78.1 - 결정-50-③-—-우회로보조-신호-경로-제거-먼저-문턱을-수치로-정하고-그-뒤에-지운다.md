@@ -1,10 +1,10 @@
 ---
 id: TASK-78.1
 title: '결정 50 ③ — 우회로(보조 신호 경로) 제거: 먼저 문턱을 수치로 정하고 그 뒤에 지운다'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-14 17:22'
-updated_date: '2026-09-16 06:29'
+updated_date: '2026-09-16 06:34'
 labels: []
 dependencies: []
 parent_task_id: TASK-78
@@ -21,7 +21,7 @@ ordinal: 174000
 <!-- AC:BEGIN -->
 - [x] #1 문턱을 «먼저» 수치로 못박는다 — tool 도착률과 target_sound 실림률의 최소값, 그리고 표본 수. ⛔ 이미 나온 값을 보고 문턱을 맞추지 않는다(결정 50 1항)
 - [x] #2 오염 방어가 실사용에서 도는 것을 먼저 관측한다 — 결정 82·95·98·99 의 이행이 방금 끝났고 아직 관측되지 않았다
-- [ ] #3 문턱을 넘으면 보조 신호 경로를 지우고, 지운 뒤 발음 신호가 0 이 되지 않는 것을 종단으로 확인한다
+- [x] #3 문턱을 넘으면 보조 신호 경로를 지우고, 지운 뒤 발음 신호가 0 이 되지 않는 것을 종단으로 확인한다
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -52,4 +52,20 @@ RED 를 먼저 봤음: 한글 전사문에 발음 행이 0 건이라는 단정�
 tsc exit 0 · eslint exit 0.
 
 AC#3(종단 확인) 남음 — 지운 뒤 nova_tool 경로가 여전히 신호를 내는지 실물로 본다.
+
+## AC#3 종단 확인 완료 (2026-09-16 · 실물 Nova 1세션)
+
+정본: tests/harness/runs/2026-09-16-task78-1-after-removal/. 검증 전용 DB ohmyenglish_t781b
+(schema_migrations 23 · 회차 뒤 drop) · 백엔드 :8013 VOICE_ADAPTER=nova WORKER_ENABLED=false ·
+브라우저 없이 ws_session.py --wav 로 앱 경로를 지났음.
+
+관측: 코치가 「r」 소리를 코칭했고 앱이 nova_tool 행 1건을 남겼음(target_sound=r_as_l ·
+sound_check=matched · 패턴 연결됨 · next_review_at 설정됨). 비-nova_tool 행 0건 ·
+학습 발화 3건 저장 · 분석 job 4건 · 백엔드 warning 0건.
+
+⇒ 우회로를 지운 뒤에도 발음 신호가 0 이 아님. 그리고 게이트웨이 갈래 재구성
+(speaker == 'user' → speaker != 'user')이 저장·flush 를 깨지 않은 것을 그 두 수치가 반증함.
+
+표본 1세션이므로 tool 도착률을 다시 재지 않았음 — 그 값은 제거 전 측정치(코칭 세션 11/11)이고
+제거가 Nova 어댑터를 건드리지 않았음.
 <!-- SECTION:NOTES:END -->

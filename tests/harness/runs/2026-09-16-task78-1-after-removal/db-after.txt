@@ -1,0 +1,5 @@
+ signal_source |  outcome  | target_sound | sound_check | linked 
+---------------+-----------+--------------+-------------+--------
+ nova_tool     | incorrect | r_as_l       | matched     | t
+(1개 행)
+
