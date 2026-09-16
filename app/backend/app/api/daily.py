@@ -34,6 +34,7 @@ from app.services.daily_summary import (
     load_daily_summary,
     load_history,
     load_streak,
+    timezone_of,
 )
 from app.services.weekly_report import load_latest_report
 
@@ -57,8 +58,7 @@ def _pattern_payload(item: DailyPattern) -> dict[str, object]:
 def _summary_payload(summary: DailySummary, completion: DailyCompletion) -> dict[str, object]:
     return {
         "summary_date": summary.summary_date.isoformat(),
-        # 행이 있으면 그날 분석이 돌았다 — `computed_at`이 그 사실의 정본이다.
-        "analyzed": summary.computed_at is not None,
+        "analyzed": summary.analyzed,
         "occurrence_count": summary.occurrence_count,
         "pattern_count": summary.pattern_count,
         "patterns": [_pattern_payload(item) for item in summary.patterns],
@@ -75,9 +75,11 @@ async def get_daily_summary(request: Request) -> dict[str, object]:
     """이 학습자의 오늘(학습자 타임존) 오류 요약. 단일 사용자 로컬 도구라 사용자는 고정이다."""
     pool: asyncpg.Pool = request.app.state.db_pool
     async with pool.acquire() as conn:
-        # 한 커넥션에서 둘을 읽는다 — 두 조회가 «같은 오늘»을 봐야 한다.
-        summary = await load_daily_summary(conn, FIXED_USER_ID)
-        completion = await load_daily_completion(conn, FIXED_USER_ID)
+        # 한 커넥션에서 둘을 읽는다 — 두 조회가 «같은 오늘»을 봐야 한다. 타임존도 한 번만 읽어
+        # 넘긴다 — 안 넘기면 두 조회가 같은 `users.timezone` 을 각자 다시 읽는다.
+        timezone = await timezone_of(conn, FIXED_USER_ID)
+        summary = await load_daily_summary(conn, FIXED_USER_ID, timezone=timezone)
+        completion = await load_daily_completion(conn, FIXED_USER_ID, timezone=timezone)
     return _summary_payload(summary, completion)
 
 
@@ -120,8 +122,10 @@ async def get_history(request: Request) -> dict[str, object]:
     """
     pool: asyncpg.Pool = request.app.state.db_pool
     async with pool.acquire() as conn:
-        streak = await load_streak(conn, FIXED_USER_ID)
-        days = await load_history(conn, FIXED_USER_ID, days=HISTORY_DAYS)
+        # 타임존을 한 번만 읽어 넘긴다 — `get_daily_summary`와 같은 이유다.
+        timezone = await timezone_of(conn, FIXED_USER_ID)
+        streak = await load_streak(conn, FIXED_USER_ID, timezone=timezone)
+        days = await load_history(conn, FIXED_USER_ID, days=HISTORY_DAYS, timezone=timezone)
     return _history_payload(streak, days)
 
 

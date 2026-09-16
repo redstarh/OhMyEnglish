@@ -1,9 +1,10 @@
 ---
 id: TASK-144.2
 title: 'A2: services/pronunciation.py · review.py 정리'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-16 15:22'
+updated_date: '2026-09-16 15:34'
 labels: []
 dependencies: []
 parent_task_id: TASK-144

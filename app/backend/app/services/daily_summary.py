@@ -238,7 +238,8 @@ class DailySummary:
 
     `computed_at`이 `None`인 것은 **그날 요약 행이 없다**는 뜻이다 — 「분석이 돌고 오류 0건」과
     「그날 학습이 없었다」를 구별하는 유일한 신호다(PRD R13-7). 두 개수가 0인 것만으로는
-    갈리지 않는다.
+    갈리지 않는다. `analyzed`가 그 판정을 값으로 낸다(`computed_at is not None`) — 판정은 이
+    계층이 갖고 라우터는 통과만 한다(`weekly_report.StoredReport.analyzed`와 같은 모양).
     """
 
     summary_date: date
@@ -246,6 +247,7 @@ class DailySummary:
     occurrence_count: int
     pattern_count: int
     patterns: list[DailyPattern]
+    analyzed: bool
     computed_at: datetime | None
 
 
@@ -267,7 +269,14 @@ class DailyCompletion:
     completed_scenarios: int
 
 
-async def _timezone_of(conn: asyncpg.Connection, user_id: UUID) -> str:
+async def timezone_of(conn: asyncpg.Connection, user_id: UUID) -> str:
+    """이 사용자의 타임존 정본(`users.timezone`). 없으면 `LookupError`다.
+
+    라우터가 한 요청에서 이 모듈의 조회를 두 개 묶어 부를 때(`api/daily.py`의
+    `get_daily_summary`·`get_history`) 이 값을 **한 번만** 읽어 각 함수의 `timezone` 인자로
+    넘긴다 — 넘기지 않으면 `load_daily_summary`+`load_daily_completion`,
+    `load_streak`+`load_history`처럼 같은 조회가 요청마다 두 번씩 나간다.
+    """
     timezone = await conn.fetchval(_TIMEZONE_SQL, user_id)
     if timezone is None:
         raise LookupError(f"user {user_id} not found — no timezone source of truth")
@@ -304,19 +313,27 @@ async def refresh_summary_for_utterance(
     호출자의 트랜잭션 안에서 돈다(`_replace_occurrences`). 여기서 트랜잭션을 열지 않는 이유:
     발생 행의 교체와 이 스냅샷이 갈라져 커밋되면 요약이 원본과 어긋난 채 남는다.
     """
-    await conn.execute(_UPSERT_SQL, user_id, utterance_id, await _timezone_of(conn, user_id))
+    await conn.execute(_UPSERT_SQL, user_id, utterance_id, await timezone_of(conn, user_id))
 
 
 async def load_daily_summary(
-    conn: asyncpg.Connection, user_id: UUID, *, now: datetime | None = None
+    conn: asyncpg.Connection,
+    user_id: UUID,
+    *,
+    now: datetime | None = None,
+    timezone: str | None = None,
 ) -> DailySummary:
     """이 학습자의 **오늘**(사용자 타임존) 요약. 행이 없으면 두 개수가 0인 요약을 돌려준다.
 
     `now`를 인자로 받는 이유는 테스트가 날짜 경계를 지목할 수 있어야 하기 때문이다.
     naive datetime을 거부한다 — 조용히 바인딩되면 서버 오프셋만큼 날짜가 밀린다
     (`services/recordings.py`와 같은 규약).
+
+    `timezone`을 주면 그 값을 쓰고 스스로 조회하지 않는다 — 한 요청에서 `load_daily_completion`과
+    함께 부를 때(`api/daily.py`의 `get_daily_summary`) 같은 타임존 조회를 두 번 내지 않기
+    위해서다. 주지 않으면 `timezone_of`로 스스로 읽는다.
     """
-    timezone = await _timezone_of(conn, user_id)
+    timezone = timezone if timezone is not None else await timezone_of(conn, user_id)
     today = _today_in(timezone, now)
 
     record = await conn.fetchrow(_LOAD_SQL, user_id, today)
@@ -327,6 +344,7 @@ async def load_daily_summary(
             occurrence_count=0,
             pattern_count=0,
             patterns=[],
+            analyzed=False,
             computed_at=None,
         )
     return DailySummary(
@@ -335,6 +353,8 @@ async def load_daily_summary(
         occurrence_count=record["occurrence_count"],
         pattern_count=record["pattern_count"],
         patterns=_parse_patterns(record["patterns"]),
+        # 행이 있으면 그날 분석이 돌았다 — `computed_at`이 그 사실의 정본이다(라우터에서 옮김).
+        analyzed=record["computed_at"] is not None,
         computed_at=record["computed_at"],
     )
 
@@ -352,14 +372,20 @@ def _today_in(timezone: str, now: datetime | None) -> date:
 
 
 async def load_daily_completion(
-    conn: asyncpg.Connection, user_id: UUID, *, now: datetime | None = None
+    conn: asyncpg.Connection,
+    user_id: UUID,
+    *,
+    now: datetime | None = None,
+    timezone: str | None = None,
 ) -> DailyCompletion:
     """오늘(사용자 타임존) 마친 시나리오 수와 그 판정.
 
     사용자가 없으면 `LookupError` 다 — 타임존의 정본이 없으면 날짜를 그을 수 없고, 조용히 UTC 로
     떨어지면 자정 앞뒤에서 판정이 하루씩 어긋난다(`load_daily_summary` 와 같은 판단).
+
+    `timezone`을 주면 스스로 조회하지 않는다 — `load_daily_summary`와 같은 규약이다.
     """
-    timezone = await _timezone_of(conn, user_id)
+    timezone = timezone if timezone is not None else await timezone_of(conn, user_id)
     today = _today_in(timezone, now)
     completed = await conn.fetchval(_COMPLETION_SQL, user_id, timezone, today)
     return DailyCompletion(
@@ -403,10 +429,18 @@ class HistoryDay:
 
 
 async def load_streak(
-    conn: asyncpg.Connection, user_id: UUID, *, now: datetime | None = None
+    conn: asyncpg.Connection,
+    user_id: UUID,
+    *,
+    now: datetime | None = None,
+    timezone: str | None = None,
 ) -> Streak:
-    """현재·최장 연속 학습일. 기록이 없으면 둘 다 0이고 그것은 오류가 아니다."""
-    timezone = await _timezone_of(conn, user_id)
+    """현재·최장 연속 학습일. 기록이 없으면 둘 다 0이고 그것은 오류가 아니다.
+
+    `timezone`을 주면 스스로 조회하지 않는다 — 한 요청에서 `load_history`와 함께 부를 때
+    (`api/daily.py`의 `get_history`) 같은 조회를 두 번 내지 않기 위해서다.
+    """
+    timezone = timezone if timezone is not None else await timezone_of(conn, user_id)
     today = _today_in(timezone, now)
     islands = await conn.fetch(_STREAK_SQL, user_id, timezone)
     if not islands:
@@ -424,16 +458,23 @@ async def load_streak(
 
 
 async def load_history(
-    conn: asyncpg.Connection, user_id: UUID, *, days: int = 30, now: datetime | None = None
+    conn: asyncpg.Connection,
+    user_id: UUID,
+    *,
+    days: int = 30,
+    now: datetime | None = None,
+    timezone: str | None = None,
 ) -> list[HistoryDay]:
     """오늘부터 거꾸로 `days` 일의 히스토리. **학습이 없던 날도 행으로 낸다.**
 
     `days` 를 인자로 받는 이유는 화면이 범위를 정하기 때문이고, 기본 30일은 「최근을 되짚는다」는
     용도에 맞춘 값이다 — 요구사항이 정한 수가 아니므로 화면이 필요하면 넓힌다.
+
+    `timezone`을 주면 스스로 조회하지 않는다 — `load_streak`와 같은 규약이다.
     """
     if days < 1:
         raise ValueError("`days` must be at least 1")
-    timezone = await _timezone_of(conn, user_id)
+    timezone = timezone if timezone is not None else await timezone_of(conn, user_id)
     today = _today_in(timezone, now)
     records = await conn.fetch(_HISTORY_SQL, user_id, timezone, today, days)
     return [

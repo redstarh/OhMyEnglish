@@ -15,7 +15,7 @@ import json
 import logging
 from dataclasses import dataclass
 from datetime import date
-from typing import cast
+from typing import Any, cast
 from uuid import UUID
 
 import asyncpg
@@ -67,6 +67,24 @@ async def last_week_start(conn: asyncpg.Connection, user_id: UUID) -> date:
     week_start = await conn.fetchval(_LAST_WEEK_START_SQL, user_id)
     if week_start is None:
         raise LookupError(f"user {user_id} not found — 주 경계를 구할 수 없다")
+    return week_start
+
+
+# `last_week_start` 와 같은 계산이지만 `users` 를 다시 읽지 않는다 — 호출자가 타임존을 이미 갖고
+# 있을 때(예: `process_weekly` 가 `_SESSION_OWNER_SQL` 로 이미 읽은 뒤) 쓴다.
+_LAST_WEEK_START_FROM_TIMEZONE_SQL = """
+select (date_trunc('week', now() at time zone $1) - interval '7 days')::date
+"""
+
+
+async def _last_week_start_for_timezone(conn: asyncpg.Connection, timezone: str) -> date:
+    """이미 알고 있는 타임존으로 지난 주 월요일을 구한다. `last_week_start` 의 내부 계산과 같다.
+
+    ⛔ `last_week_start` 의 시그니처는 공개 계약(`__all__`)이라 바꾸지 않는다 — 이 함수는 그것을
+    대체하지 않고, **타임존을 이미 아는 호출자**를 위한 사설 경로다.
+    """
+    week_start = await conn.fetchval(_LAST_WEEK_START_FROM_TIMEZONE_SQL, timezone)
+    assert week_start is not None  # 표현식뿐인 조회라 항상 값을 준다 (테이블 조인이 없다)
     return week_start
 
 
@@ -151,6 +169,21 @@ select (select count(*)
 _TIMEZONE_SQL = "select timezone from users where id = $1"
 
 
+def _load_jsonb(value: object) -> Any:
+    """asyncpg jsonb 한 칸을 파이썬 값으로 되돌린다. 문자열로 오는 경로를 여기서 닫는다.
+
+    ⛔ **반환형이 `Any` 인 것은 의도다** — jsonb 는 무엇이든 담고 두 호출자가 **다르게 좁힌다**:
+    `load_week_facts` 는 리스트로 순회하고 `_as_dict` 는 dict 가 아니면 `{}` 로 접는다. `object` 로
+    두면 순회하는 쪽이 타입 검사에서 막히고(2026-09-17 정리 회차에서 `ty` 가 실제로 그것을 잡았다)
+    그 자리에 `cast` 를 넣으면 **좁히는 책임이 호출자에 흩어진다.**
+
+    ⚠️ **asyncpg 가 jsonb 를 문자열로 준다** — `TASK-62` 가 이 자리에서 API 가 총평을 한 번도
+    싣지 못한 결함을 겪었다. 그래서 **모양의 소유자인 이 함수가** 변환을 흡수한다: 호출자마다
+    `json.loads` 를 적으면 한 곳이 반드시 빠뜨린다.
+    """
+    return json.loads(value) if isinstance(value, str) else value
+
+
 async def load_week_facts(conn: asyncpg.Connection, user_id: UUID, week_start: date) -> WeekFacts:
     """그 주의 사실. 오류가 0건이어도 **값을 준다** — 0 은 정상이고 부재가 아니다.
 
@@ -165,11 +198,7 @@ async def load_week_facts(conn: asyncpg.Connection, user_id: UUID, week_start: d
     row = await conn.fetchrow(_WEEK_FACTS_SQL, user_id, week_start, timezone)
     assert row is not None  # 집계 조회는 항상 1행이다 (모든 열이 스칼라 부질의다)
 
-    # ⚠️ **asyncpg 가 jsonb 를 문자열로 준다** — `TASK-62` 가 이 자리에서 API 가 총평을 한 번도
-    # 싣지 못한 결함을 겪었다. 그래서 **모양의 소유자인 이 함수가** 변환을 흡수한다: 호출자마다
-    # `json.loads` 를 적으면 한 곳이 반드시 빠뜨린다.
-    raw = row["top_patterns"]
-    patterns = json.loads(raw) if isinstance(raw, str) else raw
+    patterns = _load_jsonb(row["top_patterns"])
     return WeekFacts(
         week_start=week_start,
         session_count=row["session_count"],
@@ -345,7 +374,7 @@ async def process_weekly(pool: asyncpg.Pool, claude: ClaudeClient, job: ClaimedJ
             if owner is None:
                 await report_failure(pool, job, f"weekly job {job.id}: session is gone")
                 return
-            week_start = await last_week_start(conn, owner["user_id"])
+            week_start = await _last_week_start_for_timezone(conn, owner["timezone"])
             facts = await load_week_facts(conn, owner["user_id"], week_start)
     except Exception as exc:  # DB 장애 — 큐에 보고하고 재시도에 맡긴다
         logger.exception("job %s: loading the weekly facts failed", job.id)
@@ -435,12 +464,12 @@ class StoredReport:
 
 
 def _as_dict(value: object) -> dict[str, object]:
-    """jsonb 한 칸을 dict 로. ⛔ 문자열로 오는 경로를 여기서 닫는다.
+    """jsonb 한 칸을 dict 로. ⛔ 문자열로 오는 경로는 `_load_jsonb` 가 닫는다.
 
     ⚠️ dict 가 아닌 값은 **빈 dict 로 접는다** — 그 자리에 배열이나 스칼라가 들어오는 것은 스키마가
     허락하지만(jsonb 는 무엇이든 담는다) 화면의 계약은 객체다.
     """
-    loaded: object = json.loads(value) if isinstance(value, str) else value
+    loaded = _load_jsonb(value)
     if not isinstance(loaded, dict):
         return {}
     return cast("dict[str, object]", loaded)
