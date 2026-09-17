@@ -1,0 +1,5 @@
+in=   10.005..20.994    HTTP=201 {"id":"d0f3dea3-90f1-45e8-a31b-df575cc68ac1","transcript":"rounding probe 10.005","clip_start_sec":10.01,"clip_end_sec":20.99}
+in=   30.995..40.996    HTTP=201 {"id":"3f937e67-bdac-451a-9351-6c2d5d582ec3","transcript":"rounding probe 30.995","clip_start_sec":31.0,"clip_end_sec":41.0}
+in=  50.4449..60.4451   HTTP=201 {"id":"f8915221-af2a-4713-abff-ec17f3175022","transcript":"rounding probe 50.4449","clip_start_sec":50.44,"clip_end_sec":60.45}
+in=    0.001..0.009     HTTP=201 {"id":"06cf98b5-f693-4257-be6e-f6bff9ac8c9b","transcript":"rounding probe 0.001","clip_start_sec":0.0,"clip_end_sec":0.01}
+in=   70.125..70.135    HTTP=201 {"id":"aabdfa6f-02f7-49c9-8dbf-e4ac3d906cb6","transcript":"rounding probe 70.125","clip_start_sec":70.13,"clip_end_sec":70.14}

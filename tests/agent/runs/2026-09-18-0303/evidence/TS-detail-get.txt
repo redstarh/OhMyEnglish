@@ -1,0 +1,7 @@
+HTTP200
+keys = ['channel_name', 'id', 'metadata_stale', 'phrases', 'title', 'youtube_id']
+video = {"id": "62abbd06-b283-4720-bd31-8a152064f161", "youtube_id": "dQw4w9WgXcQ", "title": "Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster)", "channel_name": "Rick Astley", "metadata_stale": false}
+phrase_count = 11
+   {"id": "06cf98b5-f693-4257-be6e-f6bff9ac8c9b", "transcript": "rounding probe 0.001", "clip_start_sec": 0.0, "clip_end_sec": 0.01}
+   {"id": "420a0436-1d8e-40fe-84a8-a97ca034e5f6", "transcript": "span-round probe 0.0049->89.999", "clip_start_sec": 0.0, "clip_end_sec": 90.0}
+   {"id": "776d49d4-21c2-4ae2-8e98-94119ed6c7f3", "transcript": "span-round probe 0.004->90.0", "clip_start_sec": 0.0, "clip_end_sec": 90.0}

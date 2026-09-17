@@ -1,0 +1,14 @@
+-[ RECORD 1 ]------+---------------------------------------------------------------------
+id                 | 756753df-032a-442f-a47f-5b17a5eca2d3
+transcript         | Never gonna give you up, never gonna let you down
+level              | A2
+user_current_level | A2
+level_matches      | t
+source_title       | Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster)
+source_url         | https://www.youtube.com/watch?v=dQw4w9WgXcQ
+clip_start_sec     | 1.23
+clip_end_sec       | 5.68
+audio_filename     | 
+youtube_video_id   | 62abbd06-b283-4720-bd31-8a152064f161
+youtube_id         | dQw4w9WgXcQ
+

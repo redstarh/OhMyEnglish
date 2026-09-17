@@ -1,0 +1,22 @@
+HTTP=422  span > 90s (0 -> 90.01)
+         resp={"detail":[{"type":"value_error","loc":["body"],"msg":"Value error, clip span must not exceed 90 seconds","input":{"transcript":"range probe: span > 90s (0 -> 90.01)","clip_start_sec":0,"clip_end_sec":90.01},"ctx":{"error":{}}}]}
+HTTP=422  span > 90s (10 -> 200)
+         resp={"detail":[{"type":"value_error","loc":["body"],"msg":"Value error, clip span must not exceed 90 seconds","input":{"transcript":"range probe: span > 90s (10 -> 200)","clip_start_sec":10,"clip_end_sec":200},"ctx":{"error":{}}}]}
+HTTP=201  span == 90s exactly (allowed?)
+         resp={"id":"f479ae87-c929-48a3-af93-1668da877c86","transcript":"range probe: span == 90s exactly (allowed?)","clip_start_sec":0.0,"clip_end_sec":90.0}
+HTTP=422  end < start
+         resp={"detail":[{"type":"value_error","loc":["body"],"msg":"Value error, clip_end_sec must be greater than clip_start_sec","input":{"transcript":"range probe: end < start","clip_start_sec":30,"clip_end_sec":20},"ctx":{"error":{}}}]}
+HTTP=422  end == start
+         resp={"detail":[{"type":"value_error","loc":["body"],"msg":"Value error, clip_end_sec must be greater than clip_start_sec","input":{"transcript":"range probe: end == start","clip_start_sec":15,"clip_end_sec":15},"ctx":{"error":{}}}]}
+HTTP=422  negative start
+         resp={"detail":[{"type":"greater_than_equal","loc":["body","clip_start_sec"],"msg":"Input should be greater than or equal to 0","input":-1,"ctx":{"ge":0}}]}
+HTTP=422  negative both
+         resp={"detail":[{"type":"greater_than_equal","loc":["body","clip_start_sec"],"msg":"Input should be greater than or equal to 0","input":-5,"ctx":{"ge":0}},{"type":"greater_than_equal","loc":["body","clip_end_sec"],"msg":"Input should be greater than or equal to 0","input":-1,"ctx":{"ge":0}}]}
+HTTP=422  empty transcript
+         resp={"detail":[{"type":"string_too_short","loc":["body","transcript"],"msg":"String should have at least 1 character","input":"","ctx":{"min_length":1}}]}
+HTTP=422  whitespace transcript
+         resp={"detail":[{"type":"string_too_short","loc":["body","transcript"],"msg":"String should have at least 1 character","input":"     ","ctx":{"min_length":1}}]}
+HTTP=422  transcript 1001 chars
+         resp={"detail":[{"type":"string_too_long","loc":["body","transcript"],"msg":"String should have at most 1000 characters","input":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+HTTP=201  transcript 1000 chars (allowed?)
+         resp={"id":"f839b731-ceed-4a86-97fe-2809f6c86b9d","transcript":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb

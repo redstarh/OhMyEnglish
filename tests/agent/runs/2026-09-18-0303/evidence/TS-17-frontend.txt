@@ -1,0 +1,5 @@
+=== TS-17: 프론트 라우트 ===
+http://localhost:3000/videos                       HTTP 200  0.018831s
+http://localhost:3000/videos/62abbd06-b283-4720-bd31-8a152064f161 HTTP 200  0.027164s
+http://localhost:3000/videos/86d0623b-3bb2-4153-a914-a55b9fc29c33 HTTP 200  0.012850s
+http://localhost:3000/                             HTTP 200  0.011474s

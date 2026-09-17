@@ -1,0 +1,15 @@
+=== TS-15: 교차 삭제 — B 경로로 A 의 문장 지우기 ===
+DELETE /api/videos/B/phrases/PA  -> HTTP 404
+=== 교차 삭제 반대 방향 — A 경로로 B 의 문장 지우기 ===
+DELETE /api/videos/A/phrases/PB  -> HTTP 404
+=== 없는 영상 id 경로 ===
+DELETE /api/videos/<random uuid>/phrases/PA -> HTTP 404
+=== 두 문장이 DB 에 그대로 남았는가 ===
+756753df-032a-442f-a47f-5b17a5eca2d3|Never gonna give you up, never gonna let you down
+004995e1-a9ab-4061-9368-26ee3187819f|Oppa Gangnam Style
+=== 정상 경로 삭제 (B 경로로 B 의 문장) ===
+DELETE /api/videos/B/phrases/PB   -> HTTP 204
+=== 같은 삭제를 한 번 더 (멱등/404) ===
+DELETE 같은 것 재요청        -> HTTP 404
+=== 삭제 후 DB ===
+0

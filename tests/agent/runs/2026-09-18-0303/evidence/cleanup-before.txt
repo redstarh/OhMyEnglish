@@ -1,0 +1,30 @@
+=== 정리 전 전체 상태 ===
+ youtube_id  |                  id                  |                                                                                                  title                                                                                                   |          created_at           
+-------------+--------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------
+ jNQXAC9IVRw | 78a06e34-0db5-427c-b8b9-dd4c58912f1a | Me at the zoo                                                                                                                                                                                            | 2026-09-17 17:59:20.787862+00
+ 9bZkp7q19f0 | 86d0623b-3bb2-4153-a914-a55b9fc29c33 | PSY - GANGNAM STYLE(강남스타일) M/V                                                                                                                                                                      | 2026-09-17 18:08:22.985664+00
+ aaaaaaaaaaa | f4594dcf-9d5c-4954-a41c-4885147e296c | yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy | 2026-09-17 18:10:06.917504+00
+(3개 행)
+
+                  id                  |                 transcript                 |                 source_url                  |           youtube_video_id           |          created_at           
+--------------------------------------+--------------------------------------------+---------------------------------------------+--------------------------------------+-------------------------------
+ 00000000-0000-0000-0000-000000000201 | I usually wake up at seven. First, I check |                                             |                                      | 2026-09-08 16:52:37.162494+00
+ 44ff7403-8917-4678-b17f-23a95e2bc8c3 | All right, so here we are in front of the  | https://www.youtube.com/watch?v=jNQXAC9IVRw | 78a06e34-0db5-427c-b8b9-dd4c58912f1a | 2026-09-17 17:59:20.835632+00
+ 756753df-032a-442f-a47f-5b17a5eca2d3 | Never gonna give you up, never gonna let y | https://www.youtube.com/watch?v=dQw4w9WgXcQ |                                      | 2026-09-17 18:05:54.265335+00
+ d7253103-910d-440e-9ae7-8926997af286 | The elephants have really really really lo | https://www.youtube.com/watch?v=jNQXAC9IVRw | 78a06e34-0db5-427c-b8b9-dd4c58912f1a | 2026-09-17 18:06:19.607585+00
+ d0f3dea3-90f1-45e8-a31b-df575cc68ac1 | rounding probe 10.005                      | https://www.youtube.com/watch?v=dQw4w9WgXcQ |                                      | 2026-09-17 18:06:23.157822+00
+ 3f937e67-bdac-451a-9351-6c2d5d582ec3 | rounding probe 30.995                      | https://www.youtube.com/watch?v=dQw4w9WgXcQ |                                      | 2026-09-17 18:06:23.160075+00
+ f8915221-af2a-4713-abff-ec17f3175022 | rounding probe 50.4449                     | https://www.youtube.com/watch?v=dQw4w9WgXcQ |                                      | 2026-09-17 18:06:23.161384+00
+ 06cf98b5-f693-4257-be6e-f6bff9ac8c9b | rounding probe 0.001                       | https://www.youtube.com/watch?v=dQw4w9WgXcQ |                                      | 2026-09-17 18:06:23.162831+00
+ aabdfa6f-02f7-49c9-8dbf-e4ac3d906cb6 | rounding probe 70.125                      | https://www.youtube.com/watch?v=dQw4w9WgXcQ |                                      | 2026-09-17 18:06:23.16399+00
+ f479ae87-c929-48a3-af93-1668da877c86 | range probe: span == 90s exactly (allowed? | https://www.youtube.com/watch?v=dQw4w9WgXcQ |                                      | 2026-09-17 18:06:46.827565+00
+ f839b731-ceed-4a86-97fe-2809f6c86b9d | bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb | https://www.youtube.com/watch?v=dQw4w9WgXcQ |                                      | 2026-09-17 18:06:46.832327+00
+ 776d49d4-21c2-4ae2-8e98-94119ed6c7f3 | span-round probe 0.004->90.0               | https://www.youtube.com/watch?v=dQw4w9WgXcQ |                                      | 2026-09-17 18:07:26.889137+00
+ 420a0436-1d8e-40fe-84a8-a97ca034e5f6 | span-round probe 0.0049->89.999            | https://www.youtube.com/watch?v=dQw4w9WgXcQ |                                      | 2026-09-17 18:07:26.890699+00
+ c5fbfe80-385a-403d-a74c-515c8481824d | span-round probe 0.001->90.0               | https://www.youtube.com/watch?v=dQw4w9WgXcQ |                                      | 2026-09-17 18:07:26.891761+00
+(14개 행)
+
+=== 다른 주체의 최근 활동 (프론트 로그 마지막 요청 시각) ===
+ GET /videos/78a06e34-0db5-427c-b8b9-dd4c58912f1a 200 in 9ms (next.js: 2ms, application-code: 7ms)
+✓ Compiled in 5ms
+ GET /videos/78a06e34-0db5-427c-b8b9-dd4c58912f1a 200 in 10ms (next.js: 3ms, application-code: 7ms)

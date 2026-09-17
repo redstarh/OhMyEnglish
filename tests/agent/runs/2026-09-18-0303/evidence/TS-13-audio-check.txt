@@ -1,0 +1,8 @@
+=== TS-13: 영상에서 담은 문장에 audio_filename 을 붙이려는 UPDATE (파일명 규약을 맞춘 값) ===
+ERROR:  new row for relation "shadowing_items" violates check constraint "shadowing_items_audio_only_for_synthetic"
+상세정보:  Failing row contains (756753df-032a-442f-a47f-5b17a5eca2d3, Rick Astley - Never Gonna Give You Up (Official Video) (4K Remas..., https://www.youtube.com/watch?v=dQw4w9WgXcQ, Never gonna give you up, never gonna let you down, 1.23, 5.68, A2, 2026-09-17 18:05:54.265335+00, 756753df-032a-442f-a47f-5b17a5eca2d3.wav, 62abbd06-b283-4720-bd31-8a152064f161).
+--- exit=1 ---
+=== 대조: 시드 합성 클립(source_url is null)에는 이미 붙어 있음 ===
+00000000-0000-0000-0000-000000000201|t|00000000-0000-0000-0000-000000000201.wav
+=== UPDATE 후에도 그 문장의 audio_filename 은 null 인가 ===
+756753df-032a-442f-a47f-5b17a5eca2d3|t

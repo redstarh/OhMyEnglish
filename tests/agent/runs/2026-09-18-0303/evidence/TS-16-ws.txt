@@ -1,0 +1,30 @@
+--- designated-item
+    url=ws://127.0.0.1:8002/ws/session?mode=shadowing&source=additional&item=756753df-032a-442f-a47f-5b17a5eca2d3
+    type=session_started
+    session_id=547c3c46-21c4-49b4-aafa-557b4a50ed63
+    shadowing.keys=['clip_end_sec', 'clip_start_sec', 'has_audio', 'item_id', 'playback_rate', 'repeat_count', 'source_title', 'transcript']
+    shadowing={"item_id": "756753df-032a-442f-a47f-5b17a5eca2d3", "source_title": "Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster)", "transcript": "Never gonna give you up, never gonna let you down", "clip_start_sec": 1.23, "clip_end_sec": 5.68, "playback_rate": 1.0, "repeat_count": 1, "has_audio": false}
+--- nonexistent-item
+    url=ws://127.0.0.1:8002/ws/session?mode=shadowing&source=additional&item=00000000-0000-0000-0000-0000000000ff
+    type=session_started
+    session_id=cb0276d5-eaa8-4aa5-947b-79f39782cd73
+    shadowing.keys=['clip_end_sec', 'clip_start_sec', 'has_audio', 'item_id', 'playback_rate', 'repeat_count', 'source_title', 'transcript']
+    shadowing={"item_id": "00000000-0000-0000-0000-000000000201", "source_title": "A morning routine before work", "transcript": "I usually wake up at seven. First, I check my phone for messages. Then I make a cup of coffee. After that, I get ready for work. The bus stop is close to my house. It takes about thirty minutes to get to the office.", "clip_start_sec": 0.0, "clip_end_sec": 17.36, "playback_rate": 1.0, "repeat_count": 1, "has_audio": true}
+--- malformed-item
+    url=ws://127.0.0.1:8002/ws/session?mode=shadowing&source=additional&item=not-a-uuid
+    type=session_started
+    session_id=9f022547-86ca-4e5b-88ab-8b2701e87417
+    shadowing.keys=['clip_end_sec', 'clip_start_sec', 'has_audio', 'item_id', 'playback_rate', 'repeat_count', 'source_title', 'transcript']
+    shadowing={"item_id": "00000000-0000-0000-0000-000000000201", "source_title": "A morning routine before work", "transcript": "I usually wake up at seven. First, I check my phone for messages. Then I make a cup of coffee. After that, I get ready for work. The bus stop is close to my house. It takes about thirty minutes to get to the office.", "clip_start_sec": 0.0, "clip_end_sec": 17.36, "playback_rate": 1.0, "repeat_count": 1, "has_audio": true}
+--- no-item
+    url=ws://127.0.0.1:8002/ws/session?mode=shadowing&source=additional
+    type=session_started
+    session_id=1483e725-8383-4e26-b017-5c06bdfaff61
+    shadowing.keys=['clip_end_sec', 'clip_start_sec', 'has_audio', 'item_id', 'playback_rate', 'repeat_count', 'source_title', 'transcript']
+    shadowing={"item_id": "00000000-0000-0000-0000-000000000201", "source_title": "A morning routine before work", "transcript": "I usually wake up at seven. First, I check my phone for messages. Then I make a cup of coffee. After that, I get ready for work. The bus stop is close to my house. It takes about thirty minutes to get to the office.", "clip_start_sec": 0.0, "clip_end_sec": 17.36, "playback_rate": 1.0, "repeat_count": 1, "has_audio": true}
+
+=== session ids ===
+designated-item -> 547c3c46-21c4-49b4-aafa-557b4a50ed63
+nonexistent-item -> cb0276d5-eaa8-4aa5-947b-79f39782cd73
+malformed-item -> 9f022547-86ca-4e5b-88ab-8b2701e87417
+no-item -> 1483e725-8383-4e26-b017-5c06bdfaff61

@@ -1,0 +1,39 @@
+=== TS-14 삭제 전 상태 ===
+                  id                  |                    transcript                     |                 source_url                  | clip_start_sec | clip_end_sec | level |           youtube_video_id           
+--------------------------------------+---------------------------------------------------+---------------------------------------------+----------------+--------------+-------+--------------------------------------
+ 756753df-032a-442f-a47f-5b17a5eca2d3 | Never gonna give you up, never gonna let you down | https://www.youtube.com/watch?v=dQw4w9WgXcQ |           1.23 |         5.68 | A2    | 62abbd06-b283-4720-bd31-8a152064f161
+ d0f3dea3-90f1-45e8-a31b-df575cc68ac1 | rounding probe 10.005                             | https://www.youtube.com/watch?v=dQw4w9WgXcQ |          10.01 |        20.99 | A2    | 62abbd06-b283-4720-bd31-8a152064f161
+ 3f937e67-bdac-451a-9351-6c2d5d582ec3 | rounding probe 30.995                             | https://www.youtube.com/watch?v=dQw4w9WgXcQ |          31.00 |        41.00 | A2    | 62abbd06-b283-4720-bd31-8a152064f161
+(3개 행)
+
+11
+=== 그 문장을 참조하는 세션 ===
+547c3c46-21c4-49b4-aafa-557b4a50ed63|756753df-032a-442f-a47f-5b17a5eca2d3
+
+=== DELETE /api/videos/62abbd06-b283-4720-bd31-8a152064f161 ===
+HTTP 204
+=== 같은 삭제 재요청 ===
+HTTP 404
+
+=== 삭제 후: 영상 행 ===
+0
+=== 삭제 후: 그 문장 행 (⛔ 남아 있어야 함) ===
+-[ RECORD 1 ]----+---------------------------------------------------------------------
+id               | 756753df-032a-442f-a47f-5b17a5eca2d3
+transcript       | Never gonna give you up, never gonna let you down
+source_url       | https://www.youtube.com/watch?v=dQw4w9WgXcQ
+source_title     | Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster)
+clip_start_sec   | 1.23
+clip_end_sec     | 5.68
+level            | A2
+youtube_video_id | 
+audio_filename   | 
+
+=== 단정 ===
+t|t|t|t
+=== 그 영상에서 담은 문장 전체가 남았는가 (직전 11건) ===
+11
+=== 그 문장을 참조한 세션도 남았는가 ===
+547c3c46-21c4-49b4-aafa-557b4a50ed63|756753df-032a-442f-a47f-5b17a5eca2d3
+=== 삭제 후 GET /api/videos/A ===
+HTTP 404

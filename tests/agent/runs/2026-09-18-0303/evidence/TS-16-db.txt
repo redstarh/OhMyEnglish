@@ -1,0 +1,11 @@
+=== TS-16 DB 대조: learning_sessions.shadowing_item_id ===
+                  id                  |   mode    | learning_source |          shadowing_item_id           |  status   |          started_at           
+--------------------------------------+-----------+-----------------+--------------------------------------+-----------+-------------------------------
+ 547c3c46-21c4-49b4-aafa-557b4a50ed63 | shadowing | additional      | 756753df-032a-442f-a47f-5b17a5eca2d3 | completed | 2026-09-17 18:08:00.408767+00
+ cb0276d5-eaa8-4aa5-947b-79f39782cd73 | shadowing | additional      | 00000000-0000-0000-0000-000000000201 | completed | 2026-09-17 18:08:00.421657+00
+ 9f022547-86ca-4e5b-88ab-8b2701e87417 | shadowing | additional      | 00000000-0000-0000-0000-000000000201 | completed | 2026-09-17 18:08:00.436296+00
+ 1483e725-8383-4e26-b017-5c06bdfaff61 | shadowing | additional      | 00000000-0000-0000-0000-000000000201 | completed | 2026-09-17 18:08:00.444929+00
+(4개 행)
+
+=== 단정: 지정 세션의 shadowing_item_id 가 내가 담은 문장인가 ===
+t

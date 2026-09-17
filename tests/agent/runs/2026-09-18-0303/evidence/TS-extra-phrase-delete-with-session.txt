@@ -1,0 +1,9 @@
+=== 추가 경계: 세션이 참조하는 문장을 지우면 세션 이력이 어떻게 되는가 ===
+PX=17f88dab-d7ee-4775-a374-e44b0be1e3d2
+    session_id=8b2944fa-7971-4ff8-b3d9-f2d56d603c02
+    shadowing.keys=['clip_end_sec', 'clip_start_sec', 'has_audio', 'item_id', 'playback_rate', 'repeat_count', 'source_title', 'transcript']
+    shadowing={"item_id": "17f88dab-d7ee-4775-a374-e44b0be1e3d2", "source_title": "PSY - GANGNAM STYLE(강남스타일) M/V", "transcript": "session-linked phrase probe", "clip_start_sec": 1.0, "clip_end_sec": 3.0, "playback_rate": 1.0, "repeat_count": 1, "has_audio": false}
+세션 SX=8b2944fa-7971-4ff8-b3d9-f2d56d603c02
+DELETE phrase PX -> HTTP 204
+--- 세션 행이 남았는가 / shadowing_item_id 가 null 이 됐는가 ---
+8b2944fa-7971-4ff8-b3d9-f2d56d603c02|shadowing|t|completed

@@ -1,0 +1,90 @@
+=== 추가: 출처 영상을 잃은 문장으로도 연습이 열리는가 (설계 §1 질문1 의 대가) ===
+    type=session_started
+    shadowing.keys=['clip_end_sec', 'clip_start_sec', 'has_audio', 'item_id', 'playback_rate', 'repeat_count', 'source_title', 'transcript']
+    shadowing={"item_id": "756753df-032a-442f-a47f-5b17a5eca2d3", "source_title": "Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster)", "transcript": "Never gonna give you up, never gonna let you down", "clip_start_sec": 1.23, "clip_end_sec": 5.68, "playback_rate": 1.0, "repeat_count": 1, "has_audio": false}
+
+=== 추가: title·channel_name 값역 ===
+OK(422)            422  non-YouTube host (vimeo)
+                       url='https://vimeo.com/watch?v=dQw4w9WgXcQ'
+                       resp={"detail":"no youtube video in that link"}
+OK(422)            422  non-YouTube host (example)
+                       url='https://example.com/watch?v=dQw4w9WgXcQ'
+                       resp={"detail":"no youtube video in that link"}
+OK(422)            422  id 5 chars
+                       url='https://www.youtube.com/watch?v=short'
+                       resp={"detail":"no youtube video in that link"}
+OK(422)            422  id 10 chars
+                       url='https://www.youtube.com/watch?v=dQw4w9WgX'
+                       resp={"detail":"no youtube video in that link"}
+OK(422)            422  id 12 chars
+                       url='https://www.youtube.com/watch?v=dQw4w9WgXcQZ'
+                       resp={"detail":"no youtube video in that link"}
+OK(422)            422  id has '.' (invalid char)
+                       url='https://www.youtube.com/watch?v=dQw4w9WgX.Q'
+                       resp={"detail":"no youtube video in that link"}
+OK(422)            422  SUFFIX-DOMAIN youtube.com.attacker.test
+                       url='https://youtube.com.attacker.test/watch?v=dQw4w9WgXcQ'
+                       resp={"detail":"no youtube video in that link"}
+OK(422)            422  SUFFIX-DOMAIN www.youtube.com.attacker.test
+                       url='https://www.youtube.com.attacker.test/watch?v=dQw4w9WgXcQ'
+                       resp={"detail":"no youtube video in that link"}
+OK(422)            422  SUFFIX-DOMAIN youtu.be.attacker.test
+                       url='https://youtu.be.attacker.test/dQw4w9WgXcQ'
+                       resp={"detail":"no youtube video in that link"}
+OK(422)            422  PREFIX-DOMAIN notyoutube.com
+                       url='https://notyoutube.com/watch?v=dQw4w9WgXcQ'
+                       resp={"detail":"no youtube video in that link"}
+OK(422)            422  PREFIX-DOMAIN evilyoutu.be
+                       url='https://evilyoutu.be/dQw4w9WgXcQ'
+                       resp={"detail":"no youtube video in that link"}
+OK(422)            422  userinfo trick
+                       url='https://www.youtube.com@attacker.test/watch?v=dQw4w9WgXcQ'
+                       resp={"detail":"no youtube video in that link"}
+OK(422)            422  open redirect param
+                       url='https://attacker.test/?u=https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+                       resp={"detail":"no youtube video in that link"}
+OK(422)            422  empty url
+                       url=''
+                       resp={"detail":[{"type":"string_too_short","loc":["body","url"],"msg":"String should have at least 1 character","input":"","ctx":{"min_length":1}}]}
+OK(422)            422  whitespace url
+                       url='   '
+                       resp={"detail":[{"type":"string_too_short","loc":["body","url"],"msg":"String should have at least 1 character","input":"   ","ctx":{"min_length":1}}]}
+OK(422)            422  no video id
+                       url='https://www.youtube.com/'
+                       resp={"detail":"no youtube video in that link"}
+OK(422)            422  javascript scheme
+                       url='javascript:alert(1)//www.youtube.com/watch?v=dQw4w9WgXcQ'
+                       resp={"detail":"no youtube video in that link"}
+OK(422)            422  bare id, no scheme
+                       url='dQw4w9WgXcQ'
+                       resp={"detail":"no youtube video in that link"}
+
+non-422 cases: 0 / 18
+  422  blank title
+  422  whitespace title
+  422  title 201 chars
+  201  title 200 chars (allowed?)
+  422  blank channel
+  422  channel 201 chars
+
+=== 추가: 경로 파라미터 형 검사 ===
+http://127.0.0.1:8002/api/videos/not-a-uuid                            HTTP 422
+http://127.0.0.1:8002/api/videos/../../etc/passwd                      HTTP 404
+http://127.0.0.1:8002/api/videos/86d0623b-3bb2-4153-a914-a55b9fc29c33/phrases/not-a-uuid HTTP 405
+DELETE .../phrases/not-a-uuid                                          HTTP 422
+
+=== 추가: metadata_stale 30일 경계 (내 테스트 행의 시각을 밀어 확인) ===
+UPDATE 1
+aaaaaaaaaaa metadata_stale= False phrase_count= 0
+9bZkp7q19f0 metadata_stale= True phrase_count= 0
+jNQXAC9IVRw metadata_stale= False phrase_count= 2
+UPDATE 1
+aaaaaaaaaaa metadata_stale= False
+9bZkp7q19f0 metadata_stale= False
+jNQXAC9IVRw metadata_stale= False
+--- 다시 담기(갱신)로 stale 이 풀리는가 ---
+UPDATE 1
+(31일로 되돌린 뒤 재담기)
+aaaaaaaaaaa metadata_stale= False
+9bZkp7q19f0 metadata_stale= False
+jNQXAC9IVRw metadata_stale= False

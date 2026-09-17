@@ -1,0 +1,57 @@
+OK(422)            422  non-YouTube host (vimeo)
+                       url='https://vimeo.com/watch?v=dQw4w9WgXcQ'
+                       resp={"detail":"no youtube video in that link"}
+OK(422)            422  non-YouTube host (example)
+                       url='https://example.com/watch?v=dQw4w9WgXcQ'
+                       resp={"detail":"no youtube video in that link"}
+OK(422)            422  id 5 chars
+                       url='https://www.youtube.com/watch?v=short'
+                       resp={"detail":"no youtube video in that link"}
+OK(422)            422  id 10 chars
+                       url='https://www.youtube.com/watch?v=dQw4w9WgX'
+                       resp={"detail":"no youtube video in that link"}
+OK(422)            422  id 12 chars
+                       url='https://www.youtube.com/watch?v=dQw4w9WgXcQZ'
+                       resp={"detail":"no youtube video in that link"}
+OK(422)            422  id has '.' (invalid char)
+                       url='https://www.youtube.com/watch?v=dQw4w9WgX.Q'
+                       resp={"detail":"no youtube video in that link"}
+OK(422)            422  SUFFIX-DOMAIN youtube.com.attacker.test
+                       url='https://youtube.com.attacker.test/watch?v=dQw4w9WgXcQ'
+                       resp={"detail":"no youtube video in that link"}
+OK(422)            422  SUFFIX-DOMAIN www.youtube.com.attacker.test
+                       url='https://www.youtube.com.attacker.test/watch?v=dQw4w9WgXcQ'
+                       resp={"detail":"no youtube video in that link"}
+OK(422)            422  SUFFIX-DOMAIN youtu.be.attacker.test
+                       url='https://youtu.be.attacker.test/dQw4w9WgXcQ'
+                       resp={"detail":"no youtube video in that link"}
+OK(422)            422  PREFIX-DOMAIN notyoutube.com
+                       url='https://notyoutube.com/watch?v=dQw4w9WgXcQ'
+                       resp={"detail":"no youtube video in that link"}
+OK(422)            422  PREFIX-DOMAIN evilyoutu.be
+                       url='https://evilyoutu.be/dQw4w9WgXcQ'
+                       resp={"detail":"no youtube video in that link"}
+OK(422)            422  userinfo trick
+                       url='https://www.youtube.com@attacker.test/watch?v=dQw4w9WgXcQ'
+                       resp={"detail":"no youtube video in that link"}
+OK(422)            422  open redirect param
+                       url='https://attacker.test/?u=https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+                       resp={"detail":"no youtube video in that link"}
+OK(422)            422  empty url
+                       url=''
+                       resp={"detail":[{"type":"string_too_short","loc":["body","url"],"msg":"String should have at least 1 character","input":"","ctx":{"min_length":1}}]}
+OK(422)            422  whitespace url
+                       url='   '
+                       resp={"detail":[{"type":"string_too_short","loc":["body","url"],"msg":"String should have at least 1 character","input":"   ","ctx":{"min_length":1}}]}
+OK(422)            422  no video id
+                       url='https://www.youtube.com/'
+                       resp={"detail":"no youtube video in that link"}
+OK(422)            422  javascript scheme
+                       url='javascript:alert(1)//www.youtube.com/watch?v=dQw4w9WgXcQ'
+                       resp={"detail":"no youtube video in that link"}
+OK(422)            422  bare id, no scheme
+                       url='dQw4w9WgXcQ'
+                       resp={"detail":"no youtube video in that link"}
+
+non-422 cases: 0 / 18
+(200, '{"id":"62abbd06-b283-4720-bd31-8a152064f161","youtube_id":"dQw4w9WgXcQ","title":"T","channel_name":"C","created":false}')

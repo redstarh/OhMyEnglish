@@ -1,0 +1,44 @@
+=== TS-18: CORS 프리플라이트 ===
+--- OPTIONS /api/videos  Access-Control-Request-Method: POST
+    HTTP/1.1 200 OK
+    vary: Origin
+    access-control-allow-methods: GET, POST, DELETE
+    access-control-max-age: 600
+    access-control-allow-headers: Accept, Accept-Language, Content-Language, Content-Type
+    access-control-allow-origin: http://localhost:3000
+--- OPTIONS /api/videos  Access-Control-Request-Method: DELETE
+    HTTP/1.1 200 OK
+    vary: Origin
+    access-control-allow-methods: GET, POST, DELETE
+    access-control-max-age: 600
+    access-control-allow-headers: Accept, Accept-Language, Content-Language, Content-Type
+    access-control-allow-origin: http://localhost:3000
+--- OPTIONS /api/videos  Access-Control-Request-Method: GET
+    HTTP/1.1 200 OK
+    vary: Origin
+    access-control-allow-methods: GET, POST, DELETE
+    access-control-max-age: 600
+    access-control-allow-headers: Accept, Accept-Language, Content-Language, Content-Type
+    access-control-allow-origin: http://localhost:3000
+--- OPTIONS /api/videos  Access-Control-Request-Method: PATCH
+    HTTP/1.1 400 Bad Request
+    vary: Origin
+    access-control-allow-methods: GET, POST, DELETE
+    access-control-max-age: 600
+    access-control-allow-headers: Accept, Accept-Language, Content-Language, Content-Type
+    access-control-allow-origin: http://localhost:3000
+--- OPTIONS /api/videos/86d0623b-3bb2-4153-a914-a55b9fc29c33/phrases  (하위 자원 경로) POST
+    HTTP/1.1 200 OK
+    access-control-allow-methods: GET, POST, DELETE
+    access-control-max-age: 600
+    access-control-allow-headers: Accept, Accept-Language, Content-Language, Content-Type
+    access-control-allow-origin: http://localhost:3000
+--- 실제 요청에 붙는 헤더 (GET /api/videos with Origin)
+    HTTP/1.1 200 OK
+    access-control-allow-origin: http://localhost:3000
+    vary: Origin
+--- 허용되지 않은 Origin 은 어떻게 되나 (http://evil.test)
+    HTTP/1.1 400 Bad Request
+    access-control-allow-methods: GET, POST, DELETE
+    access-control-max-age: 600
+    access-control-allow-headers: Accept, Accept-Language, Content-Language, Content-Type

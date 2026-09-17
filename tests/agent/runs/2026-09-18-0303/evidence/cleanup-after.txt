@@ -1,0 +1,25 @@
+=== 정리: 내가 만든 행만 지움 (다른 주체가 동시에 :3000 화면으로 jNQXAC9IVRw 를 쓰는 중이라 일괄 delete 를 쓰지 않음) ===
+DELETE 11
+DELETE 2
+
+=== 정리 후 행 수 ===
+ learning_sessions | shadowing_items | youtube_videos 
+-------------------+-----------------+----------------
+                23 |               3 |              1
+(1개 행)
+
+=== 정리 후 남은 것이 무엇인가 ===
+ youtube_id  |                  id                  |     title     
+-------------+--------------------------------------+---------------
+ jNQXAC9IVRw | 78a06e34-0db5-427c-b8b9-dd4c58912f1a | Me at the zoo
+(1개 행)
+
+                  id                  |                  transcript                   |                 source_url                  | has_audio 
+--------------------------------------+-----------------------------------------------+---------------------------------------------+-----------
+ 00000000-0000-0000-0000-000000000201 | I usually wake up at seven. First, I check my |                                             | t
+ 44ff7403-8917-4678-b17f-23a95e2bc8c3 | All right, so here we are in front of the ele | https://www.youtube.com/watch?v=jNQXAC9IVRw | f
+ d7253103-910d-440e-9ae7-8926997af286 | The elephants have really really really long  | https://www.youtube.com/watch?v=jNQXAC9IVRw | f
+(3개 행)
+
+=== 시드 합성 클립이 온전한가 ===
+t

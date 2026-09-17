@@ -1,0 +1,6 @@
+in=0.001..0.004  HTTP=500  Internal Server Error
+in=1.001..1.002  HTTP=500  Internal Server Error
+in=12.3401..12.3449  HTTP=500  Internal Server Error
+in=5.0..5.001  HTTP=500  Internal Server Error
+1 (500, 'Internal Server Error')
+2 (500, 'Internal Server Error')
