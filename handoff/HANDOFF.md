@@ -1,44 +1,37 @@
 # HANDOFF — OhMyEnglish
 
-> 최종 갱신 **2026-09-18 01:42 KST**(같은 세션이 세 번째로 마감함) · 세션 `ohmyenglish-42` · 브랜치 `design/first-vertical-slice`
-> ⛔ **이전 판은 `handoff/backup/2026-09-17/HANDOFF-1305.md` 에 있음**(그 앞 판들은 같은 폴더의
-> `HANDOFF-1245.md`·`HANDOFF-0947.md`·`HANDOFF-0801.md`). 인계 원칙의 정본은 `~/.claude/rules/session-handoff.md` 임.
-> 상태 정본은 원장(`backlog/`), 근거 정본은 **태스크 노트 · `tests/harness/runs/**` ·
-> `docs/ops/captain-instruction-register.md` · `docs/ops/pitfalls.md`** 임.
+> 최종 갱신 **2026-09-18 03:30 KST** · 세션 `ohmyenglish-42` · 브랜치 `design/first-vertical-slice`
+> ⛔ **이전 판은 `handoff/backup/2026-09-18/HANDOFF-0328.md` 에 있음**(그 앞 판들은
+> `handoff/backup/2026-09-17/`). 인계 원칙의 정본은 `~/.claude/rules/session-handoff.md` 임.
+> 상태 정본은 원장(`backlog/`), 근거 정본은 **태스크 노트 · `docs/design/2026-09-18-video-learning-*.md`
+> · `tests/agent/runs/2026-09-18-0303/` · `docs/ops/captain-instruction-register.md`** 임.
 
 ## ⛔ 먼저 챙길 것 — 첫 코드블록보다 앞에 둠
 
-1. ⛔ **이 세션은 개발 세션임**(사용자 지시 2026-09-17). 살아 있는 지시 셋: ⑴ 꼭 필요한 것 외에는
-   묻지 않고 권고대로 감 ⑵ 개발이 끝나면 테스트를 필수로 돌림(게이트 수치로 대체하지 않음)
-   ⑶ 짧게 핵심만 보고함. ⛔ **En-Coach 는 고치지 않음** — 관련 수정은 OhMyEnglish 가 흡수함.
+1. ⛔ **이 세션은 개발 세션임**(사용자 지시 2026-09-17·18). 살아 있는 지시 다섯: ⑴ 묻지 않고 권고대로
+   감 ⑵ 개발이 끝나면 테스트를 필수로 돌림 ⑶ 짧게 핵심만 보고함 ⑷ **기능은 심플하게** ⑸ 주요 개발
+   뒤 `/simplify`. ⛔ **En-Coach 는 고치지 않음.**
 2. ⛔⛔ **결정 124 는 반증됐음 — 「소리를 따옴표로 «따로» 인용하라」를 프롬프트에 다시 넣지 말 것.**
-   실물 회차 7세션이 그것을 뒤집었음: 그 요구가 있으면 코치가 **오디오 오류가 아닌 낱말**을 집고
-   tool 호출이 **2 → 1** 로 줄어 재발화 판정이 사라짐. 같은 날 앞 문면은 3/3 으로 제 오류를 집음
-   (모델 변화가 아님). 정본은 `runs/2026-09-17-task154-dedicated-quote/README.md` 이고
-   `nova.py` 규칙 9 위 주석과 `test_neither_prompt_asks_the_coach_to_quote_the_sound_on_its_own`
-   이 그 금지를 지킴. ⇒ **결정 82 의 「이 축에서 프롬프트를 더 고치지 않는다」가 되살아났음.**
-3. ⛔ **DB 배치**: 우리 표는 `public` 이 아니라 스키마 **`ohmyenglish`** 에 있음. 역할 `ohmy` 의
-   `search_path` 가 `ohmyenglish, public` 이라 **비수식 이름이 정상 경로**임. `pg_dump` 는
-   **`-n ohmyenglish`** 를 씀(`-n public` 은 호환 뷰 셋만 떠서 **데이터 0줄**). `public` 에는
-   En-Coach 호환 뷰 셋만 남았고 `harness_*` 은 하나도 없음(`TASK-153`).
-4. ⛔ **`information_schema` 조회에 `current_schema()` 를 반드시 건다** — `public` 에 동명 호환 뷰가
-   있어 안 걸면 두 스키마 행이 섞이고 **뷰는 모든 컬럼을 nullable 로 보고함**(`H-BX`).
-5. ⛔ **긴 문서는 절 단위로 나눠 쓰고 합침** · **커밋 메시지에 백틱 식별자를 넣을 때 `-m` 을 쓰지
-   않음**(인용된 heredoc 을 씀).
-6. ⚠️ **백엔드가 떠 있음**(pid **71188** · `:8002` · `WORKER_ENABLED=false VOICE_ADAPTER=stub
-   --log-level info` · 로그 `/tmp/omy-backend.log`). 소스를 고쳤으면 **재기동해야 함**(`--reload` 없음).
-   ⚠️ **레벨은 `info`·`warning` 둘 다 됨**(`TASK-156` — P5 의 신원 확인이 로그 내용이 아니라
-   **`lsof` 의 fd** 를 봄). `warning` 으로 내리면 「로그 0줄」을 근거로 쓰기 전에 그 채널이 오류를
-   잡는지 먼저 증명해야 함.
+   정본은 `runs/2026-09-17-task154-dedicated-quote/README.md` 이고 `nova.py` 규칙 9 위 주석과
+   `test_neither_prompt_asks_the_coach_to_quote_the_sound_on_its_own` 이 그 금지를 지킴.
+3. ⛔ **자막을 얻으려 하지 말 것** (결정 126). `captions.download` 는 영상 편집 권한을 요구하고
+   스크래핑은 Developer Policies **III.E.6** 이 금지함(「남이 스크래핑한 데이터를 받는 것」까지).
+   IFrame API 로도 자막 **텍스트**는 못 읽음. ⇒ 그 자리를 **사용자가 받아 적는 것**이 대신함.
+4. ⛔ **DB 배치**: 우리 표는 스키마 **`ohmyenglish`** 에 있고 비수식 이름이 정상 경로임. `pg_dump` 는
+   **`-n ohmyenglish`**. `information_schema` 조회에 **`current_schema()` 를 반드시 걺**(`H-BX`).
+5. ⚠️ **앱이 떠 있음** — 백엔드 **47873**(`:8002` · `WORKER_ENABLED=false VOICE_ADAPTER=stub
+   --log-level info` · 로그 `/tmp/omy-backend.log`) · 프론트 **81310**(`:3000` · `next dev` ·
+   로그 `/tmp/omy-frontend.log`). ⛔ 백엔드는 `--reload` 가 없어 **소스를 고쳤으면 재기동**함.
+6. ⛔ **원격보다 12 커밋 앞섬**(`ahead 12`). push 는 이 브랜치 한정 사전 승인이 있음.
 
 ## 인계 지표 4개 (이 턴에 직접 돌린 출력)
 
 | # | 지표 | 값 |
 |--:|---|---|
-| 1 | 기준 커밋 | 게이트를 돌린 시점은 **`fc0cec8`** 이고 `origin` 과 **0/0** 이었음. ⛔ 자기 커밋 해시를 여기 적지 않는 이유는 반드시 낡기 때문임 — 새 세션 `HEAD` 가 한 커밋 뒤면 그것은 **이 handoff 뿐**임 |
-| 2 | 다음 한 걸음 | ⛔ **원장이 완전히 닫혔음 — 열린 태스크가 0건임**(`To Do` 0 · `In Progress` 0 · `Awaiting Decision` 0). ⇒ **다음 걸음은 사용자의 방향 지시뿐임.** 지시를 받으면 태스크로 등록하고 착수함 |
-| 3 | 게이트 | **일곱 다 exit 0** — 수집 **1294** · `pytest` **1294 passed** · `ruff` 0 · `ruff format` **273 files** · `ty` 0 · `tsc` 0 · `eslint` 0 |
-| 4 | 착수 전 필수 | 전체 **217** · 완료 **217** · 열린 것 **0** · **미충족 AC 0건**. ⇒ 착수 전 조건이 없음 |
+| 1 | 기준 커밋 | **`5f88afc`** · 작업트리 clean · `origin` 대비 **ahead 12 / behind 0** |
+| 2 | 다음 한 걸음 | ⛔ **원장이 완전히 닫혔음 — 열린 태스크 0건**(`To Do` 0 · `In Progress` 0 · `Awaiting Decision` 0 · 전체 **232**). ⇒ 다음 걸음은 **사용자의 방향 지시**임. ⚠️ 열린 축 둘을 아래 ④ 에 적어 뒀음 |
+| 3 | 게이트 | **여덟 다 exit 0** — 수집 **1343** · `pytest` **1343 passed** · `ruff` 0 · `ruff format` **291 files** · `ty` 0 · `tsc` 0 · `eslint` 0 · **`next build` 0** |
+| 4 | 착수 전 필수 | 전체 **232** · 완료 **232** · **미충족 AC 0건**. ⇒ 착수 전 조건 없음 |
 
 ```bash
 cd ~/MyProject/OhMyEnglish
@@ -47,74 +40,80 @@ backlog task list --plain
 cd app/backend && ./.venv/bin/pytest -q --collect-only && ./.venv/bin/pytest -q
 cd app/backend && ./.venv/bin/ruff check . ../../tests ../../scripts \
   && ./.venv/bin/ruff format --check . ../../tests ../../scripts && ~/.local/bin/ty check
-cd app/frontend && npx tsc --noEmit && npx eslint .
+cd app/frontend && npx tsc --noEmit && npx eslint . && npx next build
 ```
 
-## ① 이 세션이 한 것 — 원장을 비웠음
+## ① 이 세션이 한 것 — 「영상으로 배우기」 갈래를 처음부터 끝까지 만들었음
 
-닫은 것: `TASK-153`·`116.5`·`154`·`155`·`156`·`122`. 근거는 각 태스크 노트가 가짐
-(`backlog task view <ID> --plain`) — 여기 옮겨 적지 않음.
+사용자 지시(2026-09-18)를 받아 조사 → 스토리보드 → 설계 → 구현 여덟 → `/simplify` → 통합 테스트를
+순서대로 돌렸음. 닫은 태스크: `TASK-157`~`TASK-171` (**15건**) + 시나리오 `TS-8`~`TS-18`.
 
-⛔ **이 세션의 값은 넣은 것보다 «되돌린 것» 에 있음.** 결정 124 를 이행했다가 실물 회차가 반증해
-두 프롬프트에서 걷었음. 그 판정을 만든 것은 **회차 중간에 더한 짝 대조 팔** 하나임 — 그것이 없으면
-「모델이 바뀐 듯하다」로 잘못 닫았음(상한을 4 → 7 세션으로 늘렸고 그 사실을 회차에 적었음).
+**사용자가 쓸 수 있는 상태임** — 링크를 담고, 구간을 잡아 들은 대로 적고, 그 문장으로 쉐도잉을 여는
+한 바퀴가 실물 HTTP·WebSocket·DB·**브라우저 화면**에서 이어지는 것을 관측했음.
+
+⛔ **이 세션의 값은 「만든 것」보다 «찾은 것 셋» 에 있음**:
+
+1. **테스트가 초록인데 브라우저에서만 막히는 구멍** — CORS `allow_methods=["GET"]`. `api_client` 가
+   ASGI 로 붙어 preflight 를 거치지 않아 단정 열 개가 다 통과했음. ⇒ preflight 를 직접 보내는 단정을
+   두고 **`["GET"]` 으로 되돌려 red 가 되는 것까지 확인**했음.
+2. **게이트가 못 잡는 Next.js 함정** — 문서가 *"In development … things may appear to work without
+   `Suspense`"* 라 경고함. ⇒ `useSearchParams` 를 피하고 `next build` 로 `/` 가 Static 인 것을 확인.
+3. **통합 테스트가 찾은 `500`**(`TASK-170`) — 검증이 **원본 값**으로 순서를 보고 접기는 그 뒤였음.
+   ⇒ 접기를 값역 층으로 올렸고 백엔드 로그의 `CheckViolationError` 가 **0건**임.
 
 ## ② 지금 상태 — 새로 생긴 계약
 
-- **하네스 기준선 표**: `ohmyenglish` 스키마 · 소유자 `ohmy` · 9행·15행. 파일 사본 둘이
-  `runs/2026-09-17-*-baseline*.tsv` 임. ⛔ §8-0 의 SQL 을 **비수식으로** 씀(`public.` 을 붙이면 없음).
-- **P5 프리플라이트**: 로그 신원을 `lsof -nP -p <pid> -Fn` 의 열린 fd 로 세움(`realpath` 도 함께 봄 —
-  macOS 의 `/tmp` 가 심볼릭 링크임).
-- **프롬프트**: 두 프롬프트의 규칙 9 가 **결정 124 이전 문면**임. 바이트 게이트가 `prompt_dedicated_v4`
-  를 가리키고 초록임 — 그것이 「되돌렸다」의 기계 증거임.
-- **계획 파서**: `parse_plan` 이 `PlanOutput` 검증 «전에» **이름이 빈 키 중 값도 빈 것**만 걷음
-  (`TASK-122`). ⛔ 그 관용을 넓히지 말 것 — 이름이 있는 모르는 키와, 이름이 비어도 값이 있는 키는
-  **여전히 거부**하고 그 두 경계를 단정이 지킴.
-- **함정 신설**: `H-BZ`(프롬프트 회차를 tool 도착만으로 검수하면 「무엇을 코칭하는가」가 조용히 깨짐).
-  `H-BT` 는 원인이 사라져 `-T 'harness_*'` 우회를 ⟨보관⟩ 으로 내렸음.
+- **`youtube_videos`**(027) — 제목·채널만 담고 **썸네일 URL 을 저장하지 않음**(`youtube_id` 로 조립).
+  `metadata_fetched_at` 이 30일 보관 제한을 지키는 자리이고 `POST /api/videos` 가 담기와 갱신을 겸함
+  (`created` 불린이 화면 문구를 가름).
+- **문장은 새 표가 아니라 `shadowing_items`** 에 들어감 — `youtube_video_id` 가 `on delete set null`.
+  ⛔ **영상을 지워도 문장이 남는 것이 이 갈래의 가장 값비싼 계약임**(테스트 셋이 그것을 못 박음).
+- **오디오 저장 금지를 기존 CHECK 가 지킴** — `youtube_video_id` 가 있으면 `source_url` 이 필수이고,
+  그러면 `shadowing_items_audio_only_for_synthetic` 이 자동으로 막음. 새 방어를 만들지 않았음.
+- **`?item=<문장 id>`** 가 연습할 문장을 지정함(`coalesce` 맨 앞 항). 없는 id 는 조용히 자동 선택으로
+  떨어짐. `/videos/[id]` 의 [연습하기] → `/?mode=…&item=…` → 대시보드가 `entryFromQuery` 로 받음.
+- **상한·정밀도를 응답이 실어 줌**(`clip_max_span_sec`·`clip_precision_sec`) — 화면에 사본을 두지 않음.
+- **MVP 는 YouTube Data API 를 쓰지 않음** — oEmbed 가 키 없이 되고 CORS 를 허용함. 새 비밀값 0개.
 
 ## ③ 착수 전 필수 — 이 세션 실측
 
-1. ⛔ **`pytest`·`ruff` 는 `app/backend` 에서 돌림**(루트에서 돌리면 기본 규칙셋으로 떨어져 「0건」이
-   나옴 · `H-BN`). 부분 실행은 `-o asyncio_mode=auto`. 툴 호출 사이에 cwd 가 남으므로 절대 경로를 씀.
-2. ⛔ **한글 주석을 쓴 직후 `ruff check` 를 한 번 돌림** — `E501` 은 문자 수가 아니라 표시 폭이라
-   한글이 2열임(`H-BW`). 이 세션이 그 자리에서 반복해서 걸렸음.
-3. ⛔ **종료 코드를 판정에 쓸 때 파이프를 걸지 않음** — `> /tmp/out 2>&1; echo $?`(`H-AZ`).
-   그리고 zsh 는 변수에 담은 명령을 쪼개지 않고, **함수 호출을 `$(...)` 에 중첩하면 파싱이 깨짐**.
-4. ⚠️ **실물 Nova 회차는 전용 검증 DB 에서 돌림** — `createdb` → `scripts/migrate.py` →
-   `p8_inject_pronunciation.py inject` → 백엔드를 **다른 포트**(`:8014`)에 `VOICE_ADAPTER=nova` 로.
-   끝나고 `dropdb` 하고 **공유 dev DB 표를 다시 읽어** 무변경을 대조함.
-5. ⚠️ **불변 지표(이 세션 마지막 실측)**: dev `learning_sessions` **17** · `utterances` **128** ·
-   `error_patterns` **9** · `review_tasks` **15** · `analysis_jobs` **57** ·
-   `pronunciation_attempts` **7** · `schema_migrations` **24** · `harness_runs` **28** ·
-   `harness_sessions` **100**.
-6. ⛔ **`git add <디렉터리>` 금지** · 커밋 뒤 `git show --stat` 으로 담긴 것 전체를 봄(`H-BE`·`H-BR`).
+1. ⛔ **`pytest`·`ruff` 는 `app/backend` 에서 돌림**(`H-BN`). **부분 실행은 `-o asyncio_mode=auto`** —
+   `test_ws.py` 는 마커 없이 auto 에 의존하므로 빼면 기존 테스트가 「async 미지원」으로 죽음.
+2. ⛔ **한글 주석을 쓴 직후 `ruff check`** — `E501` 은 표시 폭이라 한글이 2열임(`H-BW`). 이 세션에서
+   **다섯 번** 걸렸음.
+3. ⛔ **종료 코드 판정에 파이프를 걸지 않음**(`H-AZ`). 이 세션에서 `eslint | tail` 로 `exit=0` 을 읽었는데
+   실제는 **`exit=1`** 이었고 오류가 하나 있었음.
+4. ⛔ **`db_conn` 에서 CHECK 위반을 여러 번 내려면 중첩 `transaction()`(savepoint)로 감쌈** — 안 감싸면
+   뒤따르는 문장이 `InFailedSQLTransactionError` 로 죽음.
+5. ⚠️ **`api_client` 는 커밋된 행만 봄** — `db_pool` 을 쓰고 **정리 책임이 테스트에 있음**. 그리고
+   `FIXED_USER_ID` 를 **내가 만든 경우에만** 지움(무조건 지우면 cascade 로 남의 데이터를 걷음).
+6. ⚠️ **불변 지표(이 세션 마지막 실측)**: `learning_sessions` **23** · `utterances` **164** ·
+   `error_patterns` **9** · `review_tasks` **15** · `analysis_jobs` **93** ·
+   `pronunciation_attempts` **7** · `schema_migrations` **25** · `shadowing_items` **1**(시드 합성 클립
+   하나) · `youtube_videos` **0** · `harness_runs` **28** · `harness_sessions` **100**.
+   ⚠️ 세션·발화·job 이 늘어난 것은 통합 테스트가 실물 소켓을 여섯 번 연 결과임.
+7. ⛔ **`git add <디렉터리>` 금지** · 커밋 뒤 `git show --stat` 으로 담긴 것 전체를 봄.
 
-⚠️ **나머지 일반 함정은 여기에 옮겨 적지 않음** — 정본은 `docs/ops/pitfalls.md` 임.
+⚠️ **나머지 일반 함정의 정본은 `docs/ops/pitfalls.md` 임.**
 
-## ④ 열린 태스크 — **0건**
+## ④ 열린 태스크 0건 — 다만 열린 «축» 둘
 
-원장이 완전히 닫혔음(전체 217 · 완료 217). ⛔ **다음 세션의 첫 행동은 태스크를 고르는 것이 아니라
-사용자의 방향을 받는 것임.** 지시를 받으면 `rules/session-handoff.md` 3항대로 **계획 직후 전체를
-원장에 등록**하고 착수함.
+⛔ **다음 세션의 첫 행동은 태스크를 고르는 것이 아니라 사용자의 방향을 받는 것임.**
 
-⚠️ **원장이 비었다는 것이 「할 일이 없다」는 뜻은 아님** — 이 세션이 남긴 열린 축 하나를 적어 둠:
-문장 전체만 인용한 코치 발화는 어긋남 검사가 여전히 판정하지 못함(세션 2/59). 검사 쪽은 이득이
-구조적으로 0 이고 프롬프트 쪽은 반증됐으므로, 남은 후보는 **오디오를 듣는 판정**이고 설계서 §6 이
-범위 밖에 뒀음. 그것을 열려면 사용자 결정이 필요함 — 그래서 태스크로 등록하지 않았음.
+1. **영상 학습의 다음 조각** — 검색·추천(PRD §5 가 「무제한 자동 수집」을 비범위로 둠) · 낱말 사전 ·
+   재생목록 담기 · 임베드 차단 안내의 실물 확인. 스토리보드 §6 이 **뺀 것 열 가지와 근거**를 가짐.
+2. **코치 발화·오디오 어긋남 판정** — 이전 세션이 남긴 축. 남은 후보가 「오디오를 듣는 판정」이고
+   설계서 §6 이 범위 밖에 뒀으므로 **사용자 결정이 필요**함.
 
-## ④-1 이 세션이 남긴 산출물 하나 (git 추적 대상 아님)
-
-`.harness/reports/feature-and-usage.html` — 구현된 기능과 사용 방법을 한 장으로 정리한 보고서임
-(사용자 요청 2026-09-18). 기능은 코드에서 확인해 파일 경로를 함께 적었고 **미구현 항목도 따로**
-두었음. ⚠️ **기능 판정의 정본이 아님** — 정본은 `docs/PRD.md`·`docs/design/`·이 파일임. 그 보고서는
-`fc0cec8` 시점의 사본이라 코드가 바뀌면 낡음. 다시 필요하면 그 시점 코드로 다시 만듦.
+⚠️ **이 세션이 확인하지 못한 것 셋**(태스크로 등록하지 않았음 — 관측값이고 끝낼 사람이 정해지지
+않았음): 임베드가 막힌 영상의 `101`·`150` 안내(그런 영상 id 를 갖고 있지 않음) · 실물 음성 연습 왕복
+(`VOICE_ADAPTER=stub` 임) · 30일 stale 갱신의 **화면** 거동(서버 쪽은 확인했음).
 
 ## ⑤ 착수 전 반드시 읽을 것
 
-- **결정 124 와 그 반증 절**(지시 대장) — 위 「먼저 챙길 것」 2번의 근거. 그것을 읽지 않고 프롬프트
-  문면을 만지면 반증된 변경을 되살림.
-- **`runs/2026-09-17-task154-dedicated-quote/README.md` §7** — 이 세션이 배운 것 둘.
-- **함정 `H-BZ`·`H-BT`·`H-BX`·`H-BW`** — 앞 둘은 이 세션이 세우거나 고쳤음.
-- ⚠️ **가장 값 있는 관찰**: 게이트가 초록이고 tool 이 4/4 로 와도 **제품이 나빠질 수 있음.**
-  깨진 축은 「무엇을 코칭하는가」와 「몇 번 보고하는가」였고 그 둘은 판정선에 없었음.
+- **`docs/design/2026-09-18-video-learning-design.md` §1** — 갈림길 다섯의 답과 **되돌리는 비용**.
+  ⚠️ 질문 4 의 답이 한 번 뒤집혔고 그 경위가 그 자리에 있음(`TASK-170`).
+- **스토리보드 §6** — 뺀 기능 열과 근거. 그것을 읽지 않고 기능을 더하면 「심플하게」가 무너짐.
+- **결정 125·126** (지시 대장) — PRD 범위를 넓히지 않았다는 판정과 자막을 포기한 근거.
+- ⚠️ **가장 값 있는 관찰**: 게이트 여덟이 초록이어도 **브라우저에서만 막히는 것**과 **정책이 금지하는
+  것**은 잡히지 않음. 이 세션은 그 둘을 각각 preflight 단정과 스키마 CHECK 로 옮겼음.
