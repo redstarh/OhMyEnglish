@@ -89,14 +89,31 @@ _DELETE_ATTEMPTS_SQL = """
 delete from pattern_attempts where utterance_id = $1 returning pattern_id
 """
 
-# pattern_key → pattern_id 해석을 insert 안에서 한다: 목록에 없는 key는 select가 0행을
-# 돌려주어 **행이 생기지 않는다**. 별도 조회 없이 "조용히 버린다"가 성립한다.
-_INSERT_ATTEMPT_SQL = """
-insert into pattern_attempts (pattern_id, utterance_id, outcome)
-select p.id, $2, $3
-  from error_patterns p
- where p.user_id = $1 and p.pattern_key = $4
-returning pattern_id
+# pattern_key → pattern_id 해석을 insert 안에서 한다: 목록에 없는 key는 join이 0행을 돌려주어
+# **행이 생기지 않는다**. 별도 조회 없이 "조용히 버린다"가 성립한다.
+#
+# ⛔ **재시도 전체를 한 문장으로 쓴다** (`TASK-147` · R3 효율 리뷰). 건당 보내면 왕복이 재시도
+# 수만큼 늘어난다. ⚠️ **배치의 조건은 건당 `warning` 을 잃지 않는 것이었다**(AC#2) — 사라진 패턴을
+# **이름으로** 남기는 로그가 이 리포의 지표다(함정 `H-Z`). 그래서 `left join` 으로 입력 키 전부를
+# 돌려주고 파이썬이 `pattern_id is null` 인 키를 찍는다: 배치가 되면서 로그 충실도는 그대로다. ⛔
+# **키 해석과 insert 를 두 문장으로 나누지 않는다.** 나누면 그 사이에 패턴이 사라질 수 있고
+# (재분석이 occurrence 0 인 패턴을 정리한다) 그때는 「경고하고 계속」이 아니라 **외래키 위반으로
+# 호출자의 트랜잭션이 통째로 깨진다** — 그 발화의 교정까지 함께 사라진다. 한 문장은 스냅샷이 하나라
+# 그 창이 없다.
+# ⚠️ 데이터를 바꾸는 CTE 는 참조되지 않아도 **항상 끝까지 실행된다**(PostgreSQL 규약) — 그래서
+# 바깥 select 가 `inserted` 를 읽지 않아도 insert 가 빠지지 않는다.
+_STORE_ATTEMPTS_SQL = """
+with resolved as (
+  select i.pattern_key, i.outcome, p.id as pattern_id
+    from unnest($3::text[], $4::text[]) as i(pattern_key, outcome)
+    left join error_patterns p on p.user_id = $1 and p.pattern_key = i.pattern_key
+),
+inserted as (
+  insert into pattern_attempts (pattern_id, utterance_id, outcome)
+  select r.pattern_id, $2, r.outcome from resolved r where r.pattern_id is not null
+  returning pattern_id
+)
+select pattern_key, pattern_id from resolved
 """
 
 # 접기에 필요한 이력만 읽는다. 단계 전이는 파이썬(`fold_stages`)이 한다 — 각 단계의 통과
@@ -291,10 +308,20 @@ _ALL_PATTERNS_SQL = "select id from error_patterns where user_id = $1 order by p
 #
 # `task_type`은 `do update`에 넣지 않는다 — 유형이 바뀌는 경로가 없고, 넣으면 미래에 유형을
 # 손으로 바꾼 행을 재계산이 되돌린다.
-_UPSERT_TASK_SQL = """
+#
+# ⛔ **사다리 전체를 한 문장으로 쓴다** (`TASK-147` · R3 효율 리뷰). 칸마다 보내면 왕복이 사다리
+# 길이만큼 늘고, `analysis` 가 touched 패턴마다 `recompute` 를 불러 그 증가가 곱해진다.
+# ⚠️ **배치가 안전한 이유는 conflict target 이 `review_stage` 를 품기 때문이다** — 한 문장 안에서
+# 같은 conflict target 을 두 번 건드리면 PostgreSQL 이 *"ON CONFLICT DO UPDATE command cannot
+# affect row a second time"* 로 거부한다. `fold_stages` 가 `stage=1` 부터 `+1` 로만 append 하므로
+# 단계는 **정확히 `1..L` 연속**이고 중복이 나올 수 없다. ⛔ 그 성질이 깨지면(같은 단계를 두 번
+# 담는 사다리) 이 문장이 런타임에 터진다 — 칸마다 보내던 판은 조용히 마지막 값으로 덮었다.
+_UPSERT_TASKS_SQL = """
 insert into review_tasks (pattern_id, task_type, scenario_context, cycle_started_at,
                           review_stage, due_at, status, completed_at)
-values ($1, $2, $3, $4, $5, $6, $7, $8)
+select $1, $2, $3, $4, ladder.stage, ladder.due_at, ladder.status, ladder.completed_at
+  from unnest($5::smallint[], $6::timestamptz[], $7::text[], $8::timestamptz[])
+       as ladder(stage, due_at, status, completed_at)
 on conflict (pattern_id, cycle_started_at, review_stage) do update
    set status           = excluded.status,
        completed_at     = excluded.completed_at,
@@ -462,18 +489,25 @@ async def store_attempts(
     """
     removed = await conn.fetch(_DELETE_ATTEMPTS_SQL, utterance_id)
     touched: set[UUID] = {record["pattern_id"] for record in removed}
-    for attempt in attempts:
-        pattern_id = await conn.fetchval(
-            _INSERT_ATTEMPT_SQL, user_id, utterance_id, attempt.outcome, attempt.pattern_key
-        )
-        if pattern_id is None:
+    if not attempts:
+        # 배치 문장을 보내지 않는다 — 빈 배열로 보내도 0행이지만 왕복 하나가 그냥 나간다.
+        return touched
+    stored = await conn.fetch(
+        _STORE_ATTEMPTS_SQL,
+        user_id,
+        utterance_id,
+        [attempt.pattern_key for attempt in attempts],
+        [attempt.outcome for attempt in attempts],
+    )
+    for record in stored:
+        if record["pattern_id"] is None:
             # `resolve_pattern_keys`의 정규화를 통과했는데도 행이 없다 = 그 사이 패턴이
             # 사라졌다(재분석으로 occurrence가 0이 되어 정리된 경우). 버리고 계속한다.
             logger.warning(
-                "attempt for pattern_key %r stored no row — pattern is gone", attempt.pattern_key
+                "attempt for pattern_key %r stored no row — pattern is gone", record["pattern_key"]
             )
             continue
-        touched.add(pattern_id)
+        touched.add(record["pattern_id"])
     return touched
 
 
@@ -518,18 +552,17 @@ async def recompute(conn: asyncpg.Connection, pattern_id: UUID) -> ReviewState:
 
     # 사다리를 먼저 쓴다. 각 칸이 자기 예정일과 완주 시각을 들고 있어 `next_review_at or anchor`
     # 폴백이 필요 없다 — 완주한 3단계 행도 실제 예정일(2단계를 접은 시각 + 7일)을 갖는다.
-    for row in state.ladder:
-        await conn.execute(
-            _UPSERT_TASK_SQL,
-            pattern_id,
-            REVIEW_TASK_TYPE,
-            state.scenario_context,
-            state.cycle_started_at,
-            row.stage,
-            row.due_at,
-            "done" if row.completed_at is not None else "pending",
-            row.completed_at,
-        )
+    await conn.execute(
+        _UPSERT_TASKS_SQL,
+        pattern_id,
+        REVIEW_TASK_TYPE,
+        state.scenario_context,
+        state.cycle_started_at,
+        [row.stage for row in state.ladder],
+        [row.due_at for row in state.ladder],
+        ["done" if row.completed_at is not None else "pending" for row in state.ladder],
+        [row.completed_at for row in state.ladder],
+    )
     # 그 다음에 은퇴·중단을 정리한다.
     # ⚠️ **순서가 방벽이 아니다 — 세 문장이 건드리는 행 집합이 서로소다** (코드 리뷰 MEDIUM-1이
     # 이전 주석의 "순서가 중요하다"를 반박했고, `where` 절 대조로 확인했다). `C`를 현재

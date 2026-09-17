@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import asyncio
 from datetime import datetime, timedelta
+from typing import cast
 from uuid import UUID
 
 import asyncpg
@@ -774,3 +775,131 @@ async def test_scenario_context_takes_the_latest_occurrence_not_the_first(
     await recompute(db_conn, pattern_id)
 
     assert (await _task_rows(db_conn, pattern_id))[0]["scenario_context"] == "go to office"
+
+
+# ⑳ 왕복 수를 단정한다 (`TASK-147` — R3 효율 리뷰의 실측을 게이트로 옮긴 것이다).
+#
+# ⛔ **이 단정이 재는 것은 성능이 아니라 «형태»다.** 초를 재면 기계와 부하에 흔들려 회귀를
+#    구별하지 못한다. 왕복 수는 결정적이고, 이 경로가 **최빈 쓰기 경로**라서(발화 하나 분석에
+#    touched 패턴마다 `recompute` 가 돈다) 한 번 늘어나면 곱해져서 돌아온다.
+# ⚠️ **상한이 아니라 등호로 잰다** — 상한으로 두면 「6 이하」를 만족하는 5회 구현이 들어와도
+#    통과하고, 그러면 이 단정이 「무엇이 정상인가」를 더 이상 말하지 않는다.
+class _CountingConnection:
+    """`review.py` 가 쓰는 넷만 넘기며 호출 수를 세는 얇은 대역.
+
+    ⚠️ **`asyncpg.Connection` 을 상속하지 않는다** — 그 클래스는 C 확장이라 상속이 막혀 있고,
+    상속하면 이 대역이 실제 연결의 상태 기계까지 흉내내야 한다. 필요한 것은 네 메서드뿐이다.
+    """
+
+    def __init__(self, conn: asyncpg.Connection) -> None:
+        self._conn = conn
+        self.calls: list[str] = []
+
+    def _note(self, kind: str, sql: str) -> None:
+        self.calls.append(f"{kind} {' '.join(str(sql).split())[:60]}")
+
+    async def execute(self, sql: str, *args: object) -> str:
+        self._note("execute", sql)
+        return await self._conn.execute(sql, *args)
+
+    async def fetch(self, sql: str, *args: object) -> list[asyncpg.Record]:
+        self._note("fetch", sql)
+        return await self._conn.fetch(sql, *args)
+
+    async def fetchrow(self, sql: str, *args: object) -> asyncpg.Record | None:
+        self._note("fetchrow", sql)
+        return await self._conn.fetchrow(sql, *args)
+
+    async def fetchval(self, sql: str, *args: object) -> object:
+        self._note("fetchval", sql)
+        return await self._conn.fetchval(sql, *args)
+
+
+@pytest.mark.asyncio
+async def test_recompute_round_trips_do_not_grow_with_the_ladder(db_conn: asyncpg.Connection):
+    """사다리가 3칸이어도 왕복은 **6회**다 — 칸마다 한 번씩 나가지 않는다.
+
+    구성: category · history · apply · 사다리 upsert(**한 문장**) · supersede · abandon.
+    ⛔ **사다리를 칸마다 보내면 여기서 8회가 되고 이 단정이 깨진다** — 그것이 `TASK-147` 전의
+    형태였다(칸 수만큼 늘어났다).
+    """
+    session_id, pattern_id = await _seed(db_conn)
+    await _occurrence(db_conn, await _utterance(db_conn, session_id, T0), pattern_id)
+    await _review_on_time(db_conn, session_id, pattern_id, T0)  # 사다리 3칸을 만든다
+
+    counting = _CountingConnection(db_conn)
+    state = await recompute(cast("asyncpg.Connection", counting), pattern_id)
+
+    assert len(state.ladder) == FINAL_STAGE, "사다리가 3칸이 아니면 이 단정의 판별력이 없다"
+    assert len(counting.calls) == 6, counting.calls
+
+
+@pytest.mark.asyncio
+async def test_store_attempts_round_trips_do_not_grow_with_the_attempts(
+    db_conn: asyncpg.Connection,
+):
+    """재시도가 3건이어도 왕복은 **2회**다 — delete 하나와 배치 insert 하나다.
+
+    ⛔ **건당 `warning` 을 잃지 않는 것이 배치의 조건이었다**(`TASK-147` AC#2). 그래서 배치 문장이
+    입력 키 전부를 `pattern_id` 와 함께 돌려주고, 파이썬이 `null` 인 키를 이름으로 찍는다 —
+    사라진 패턴을 이름으로 남기는 로그가 이 리포의 지표다(함정 `H-Z`).
+    """
+    session_id, pattern_id = await _seed(db_conn)
+    utterance_id = await _utterance(db_conn, session_id, T0)
+    attempts = [PatternAttempt(pattern_key=PATTERN_KEY, outcome="correct")] * 1
+    # ⚠️ 같은 키를 여러 번 넣을 수 없다(`unique(pattern_id, utterance_id)`) — 그래서 키가 다른
+    #    패턴 둘을 더 만들어 3건으로 잰다. 그 제약이 이 함수의 전제조건이기도 하다.
+    for suffix in ("second", "third"):
+        await db_conn.execute(
+            "insert into error_patterns (user_id, pattern_key, category, target_form, frequency) "
+            "values ($1, $2, 'article', 'a/an + 명사', 1)",
+            USER_ID,
+            f"{PATTERN_KEY}_{suffix}",
+        )
+        attempts.append(PatternAttempt(pattern_key=f"{PATTERN_KEY}_{suffix}", outcome="incorrect"))
+
+    counting = _CountingConnection(db_conn)
+    touched = await store_attempts(
+        cast("asyncpg.Connection", counting), utterance_id, USER_ID, attempts
+    )
+
+    assert len(attempts) == 3, "3건으로 재지 않으면 「늘어나지 않는다」를 보이지 못한다"
+    assert len(touched) == 3
+    assert len(counting.calls) == 2, counting.calls
+
+
+# ㉑ 사라진 패턴은 **이름으로** 경고되고 나머지는 그대로 저장된다 (`TASK-147` AC#2).
+#
+# ⛔ **배치화의 조건이 이것이었다.** 건당 왕복을 한 문장으로 합치면 「어느 키가 사라졌는가」를 잃기
+#    쉽고, 이 리포는 로그 건수·문면을 지표로 쓴다(함정 `H-Z`). 그래서 배치 문장이 입력 키 전부를
+#    `pattern_id` 와 함께 돌려주고 파이썬이 `null` 인 키를 찍는다.
+# ⚠️ **이 경로에 단정이 없었다** — 배치화하면서 처음 세웠다. 없으면 「경고를 잃었다」가 조용하다:
+#    저장은 나머지 건으로 성공하고 왕복 수도 그대로라 어느 게이트도 울지 않는다.
+@pytest.mark.asyncio
+async def test_a_vanished_pattern_key_is_warned_by_name_and_the_rest_are_stored(
+    db_conn: asyncpg.Connection, caplog: pytest.LogCaptureFixture
+):
+    session_id, pattern_id = await _seed(db_conn)
+    utterance_id = await _utterance(db_conn, session_id, T0)
+    gone_key = f"{PATTERN_KEY}_that_no_longer_exists"
+
+    with caplog.at_level("WARNING", logger="app.services.review"):
+        touched = await store_attempts(
+            db_conn,
+            utterance_id,
+            USER_ID,
+            [
+                PatternAttempt(pattern_key=gone_key, outcome="incorrect"),
+                PatternAttempt(pattern_key=PATTERN_KEY, outcome="correct"),
+            ],
+        )
+
+    # 살아 있는 패턴은 저장됐다 — 사라진 키 하나가 나머지를 버리게 하지 않는다.
+    assert touched == {pattern_id}
+    stored = await db_conn.fetch(
+        "select pattern_id, outcome from pattern_attempts where utterance_id = $1", utterance_id
+    )
+    assert [(row["pattern_id"], row["outcome"]) for row in stored] == [(pattern_id, "correct")]
+    # ⛔ 키 이름이 로그에 있어야 한다 — 「몇 건 사라졌다」로는 무엇이 사라졌는지 추적할 수 없다.
+    assert gone_key in caplog.text
+    assert "pattern is gone" in caplog.text
