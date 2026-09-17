@@ -1,10 +1,10 @@
 ---
 id: TASK-177
 title: 없는 영상·비공개 영상에서 사용자가 영어 오류만 보는 것을 그대로 둘지 결정한다
-status: Awaiting Decision
+status: Done
 assignee: []
 created_date: '2026-09-17 22:35'
-updated_date: '2026-09-17 22:36'
+updated_date: '2026-09-17 23:00'
 labels: []
 dependencies: []
 ordinal: 238000
@@ -18,5 +18,14 @@ TASK-176 실측: 없는 videoId 는 IFrame API 가 onReady·onError·onStateChan
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 타임아웃 추론을 넣을지 사용자가 결정함
+- [x] #1 타임아웃 추론을 넣을지 사용자가 결정함
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+## 결정 2026-09-18 (사용자)
+
+**그대로 둔다** — 타임아웃 추론을 넣지 않음. 근거: 감지 방법이 「장시간 준비되지 않는 것을 보고 추정하는 것」밖에 없고, 느린 회선에서 정상 영상에 오류 안내가 뜨는 오탐이 지금의 침묵보다 나쁨.
+⇒ 재생 불가 안내는 `onError` 가 오는 경우에만 뜨고(TASK-176 이 코드 구분을 없앴음), 이벤트가 아예 오지 않는 삭제·비공개 영상은 YouTube 자체 오류 화면에 맡김. 근거는 함정 `H-CB`.
+<!-- SECTION:NOTES:END -->

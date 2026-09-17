@@ -447,6 +447,24 @@ export default function SessionPage() {
     socketRef.current?.endSession();
   }, []);
 
+  /**
+   * 낭독 턴을 열고 닫는다 (설계서 `2026-09-08-shadowing-task-design.md` §12 요구 4).
+   *
+   * ⛔ **여는 신호와 닫는 신호가 파일 수명을 정한다.** 서버는 열린 동안 들어온 오디오를 Nova 로
+   * 보내지 않고 파일에 쌓으므로(`session.py` `_forward_audio`), 닫아 주지 않으면 **세션 전체가
+   * 녹음된다.** 그래서 조작 주체를 `ShadowingPanel` 에 두고 여기서는 신호만 넘긴다.
+   *
+   * ⚠️ 두 함수를 `useCallback` 으로 안정화하는 것이 계약이다 — 패널이 언마운트 정리에서 이것을
+   * 부르므로, 매 렌더에 새 함수를 주면 그 정리가 렌더마다 돌아 **녹음이 끊긴다.**
+   */
+  const startShadowingTurn = useCallback(() => {
+    socketRef.current?.startShadowingTurn();
+  }, []);
+
+  const endShadowingTurn = useCallback(() => {
+    socketRef.current?.endShadowingTurn();
+  }, []);
+
   // 「추가 학습」 명령이 확인을 거친 뒤 **새 세션을 여는 자리** (결정 110 ③).
   //
   // ⛔ **`session_ended` 처리 안에서 바로 열지 않는다** — 그러면 `handleServerEvent` 가
@@ -678,7 +696,13 @@ export default function SessionPage() {
           </div>
           {/* 쉐도잉 클립 (`TASK-66.7`). 대화 상자 **아래**에 두는 이유: 클립은 세션이 시작할 때
               한 번 정해지는 재료이고 대화는 흐르는 것이라 위계가 다르다. */}
-          {shadowing ? <ShadowingPanel setup={shadowing} /> : null}
+          {shadowing ? (
+            <ShadowingPanel
+              setup={shadowing}
+              onRecordingStart={startShadowingTurn}
+              onRecordingEnd={endShadowingTurn}
+            />
+          ) : null}
           {/* 주간 리포트 (`TASK-61.6`). 음성 명령으로만 열리고 **버튼으로 닫는다** — 닫기까지
               음성으로 두면 명령이 둘로 늘고 그것은 이 조각의 범위가 아니다(결정 107 ①). */}
           {reportOpen ? <WeeklyReportPanel onClose={() => setReportOpen(false)} /> : null}
