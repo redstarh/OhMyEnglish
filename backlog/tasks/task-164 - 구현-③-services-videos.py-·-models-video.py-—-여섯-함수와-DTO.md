@@ -1,10 +1,10 @@
 ---
 id: TASK-164
 title: '구현 ③: services/videos.py · models/video.py — 여섯 함수와 DTO'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-17 17:16'
-updated_date: '2026-09-17 17:17'
+updated_date: '2026-09-17 17:26'
 labels: []
 dependencies:
   - TASK-162

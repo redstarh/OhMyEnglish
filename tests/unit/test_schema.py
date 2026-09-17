@@ -118,6 +118,10 @@ async def test_001_migration_creates_expected_tables(db_conn: asyncpg.Connection
         # 023 — 주간 학습 리포트 (`TASK-26` · 결정 4·91). 사실(`metrics`)과 모델 판단(`insights`)을
         # 한 행에 함께 담는 이유는 설계서 §5 가 갖는다 — 나누면 판단이 근거로 삼은 사실과 어긋난다.
         "weekly_reports",
+        # 027 — 담아 둔 YouTube 영상 (`TASK-162` · 결정 125·126). 담은 문장(`shadowing_items`)과
+        # 갈라 두는 이유는 **수명이 다르기 때문**이다 — 제목·채널은 YouTube 에서 온 값이라 정책이
+        # 보관을 30일로 제한하고, 문장은 사용자가 만든 학습 자산이라 그 제한 밖이다.
+        "youtube_videos",
     }
 
 
@@ -1698,3 +1702,125 @@ async def test_signal_source_check_matches_the_python_value_domain(db_conn: asyn
     assert await _check_values(db_conn, "pronunciation_attempts_signal_source_check") == set(
         SIGNAL_SOURCES
     )
+
+
+# ⑤ 027 `youtube_videos` + `shadowing_items.youtube_video_id` (`TASK-162`)
+#
+# 설계: `docs/design/2026-09-18-video-learning-design.md` §2.
+# ⛔ **`youtube_id` 의 형태를 스키마가 가두는 이유**: 그 값이 **URL 조립에 쓰인다**
+# (`https://i.ytimg.com/vi/<id>/hqdefault.jpg` · `https://www.youtube.com/watch?v=<id>`).
+# 파싱이 뚫려 임의 문자열이 들어오면 화면이 만드는 URL 이 우리 통제 밖으로 나간다 — 값역이 첫 겹이고
+# `services/video_url.parse_youtube_id` 가 둘째 겹이다.
+# ⚠️ **`youtube_video_id` 가 있으면 `source_url` 이 필수인 것이 정책 방어와 이어진다** — 기존
+# `shadowing_items_audio_only_for_synthetic`(`audio_filename is null or source_url is null`)이
+# 그러면 **오디오 저장을 자동으로 막는다**(YouTube Developer Policies III.E.1).
+async def _insert_video(conn: asyncpg.Connection, youtube_id: str = "dQw4w9WgXcQ"):
+    return await conn.fetchval(
+        "insert into youtube_videos (youtube_id, title, channel_name) "
+        "values ($1, 'A title', 'A channel') returning id",
+        youtube_id,
+    )
+
+
+@pytest.mark.asyncio
+async def test_youtube_videos_accepts_an_eleven_character_id(db_conn: asyncpg.Connection):
+    video_id = await _insert_video(db_conn)
+
+    assert video_id is not None
+
+
+@pytest.mark.asyncio
+async def test_youtube_videos_rejects_an_id_that_is_not_eleven_characters(
+    db_conn: asyncpg.Connection,
+):
+    # ⚠️ 위반을 여러 번 내므로 각각을 **savepoint 안에서** 낸다 — 근거는 위
+    # `test_drill_turns_expected_is_nullable_and_rejects_non_positive` 의 주석과 같다.
+    for bad in ("dQw4w9WgXc", "dQw4w9WgXcQQ", "dQw4w9WgXc!", ""):
+        with pytest.raises(asyncpg.CheckViolationError):
+            async with db_conn.transaction():
+                await _insert_video(db_conn, bad)
+
+
+@pytest.mark.asyncio
+async def test_youtube_videos_rejects_blank_title_and_channel(db_conn: asyncpg.Connection):
+    for title, channel in (("   ", "A channel"), ("A title", "   ")):
+        with pytest.raises(asyncpg.CheckViolationError):
+            async with db_conn.transaction():
+                await db_conn.execute(
+                    "insert into youtube_videos (youtube_id, title, channel_name) "
+                    "values ('dQw4w9WgXcQ', $1, $2)",
+                    title,
+                    channel,
+                )
+
+
+@pytest.mark.asyncio
+async def test_youtube_videos_rejects_the_same_video_twice(db_conn: asyncpg.Connection):
+    await _insert_video(db_conn)
+
+    with pytest.raises(asyncpg.UniqueViolationError):
+        await _insert_video(db_conn)
+
+
+@pytest.mark.asyncio
+async def test_a_shadowing_item_from_a_video_must_carry_its_source_url(
+    db_conn: asyncpg.Connection,
+):
+    """⛔ 출처 링크 없이 영상에 매달 수 없다 — 기존 오디오 금지 CHECK 가 그 위에 선다."""
+    video_id = await _insert_video(db_conn)
+
+    with pytest.raises(asyncpg.CheckViolationError):
+        await db_conn.execute(
+            "insert into shadowing_items "
+            "(source_title, transcript, clip_start_sec, clip_end_sec, level, youtube_video_id) "
+            "values ('A title', 'Hello there', 0, 3, 'A2', $1)",
+            video_id,
+        )
+
+
+@pytest.mark.asyncio
+async def test_a_shadowing_item_from_a_video_cannot_carry_audio(db_conn: asyncpg.Connection):
+    """정책 III.E.1(오디오 저장 금지)을 **기존** CHECK 가 지킨다 — 새 방어를 더하지 않았다."""
+    video_id = await _insert_video(db_conn)
+    item_id = await db_conn.fetchval(
+        "insert into shadowing_items "
+        "(source_title, source_url, transcript, clip_start_sec, clip_end_sec, level, "
+        " youtube_video_id) "
+        "values ('A title', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'Hello there', "
+        "        0, 3, 'A2', $1) returning id",
+        video_id,
+    )
+
+    with pytest.raises(asyncpg.CheckViolationError):
+        await db_conn.execute(
+            "update shadowing_items set audio_filename = $2 where id = $1",
+            item_id,
+            f"{item_id}.wav",
+        )
+
+
+@pytest.mark.asyncio
+async def test_deleting_a_video_keeps_the_phrases_and_clears_the_link(
+    db_conn: asyncpg.Connection,
+):
+    """⛔ 설계서 §1 질문 1 의 답이다 — 문장은 사용자가 만든 학습 자산이므로 남는다."""
+    video_id = await _insert_video(db_conn)
+    item_id = await db_conn.fetchval(
+        "insert into shadowing_items "
+        "(source_title, source_url, transcript, clip_start_sec, clip_end_sec, level, "
+        " youtube_video_id) "
+        "values ('A title', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'Hello there', "
+        "        0, 3, 'A2', $1) returning id",
+        video_id,
+    )
+
+    await db_conn.execute("delete from youtube_videos where id = $1", video_id)
+
+    row = await db_conn.fetchrow(
+        "select transcript, source_url, youtube_video_id from shadowing_items where id = $1",
+        item_id,
+    )
+    assert row is not None, "영상을 지웠는데 문장이 함께 사라졌다"
+    assert row["transcript"] == "Hello there"
+    assert row["source_url"] == "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    assert row["youtube_video_id"] is None, "연결이 null 로 끊기지 않았다"
