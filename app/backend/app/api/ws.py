@@ -131,6 +131,23 @@ class WebSocketChannel:
         return payload
 
 
+def _requested_item_or_none(raw: str | None) -> UUID | None:
+    """`?item=` 이 가리키는 쉐도잉 문장 — 형태가 틀리면 `None` (`TASK-166`).
+
+    ⛔ **형태 오류를 연결 실패로 번역하지 않는다.** 아래 `_load_*_or_none` 들과 같은 판단이다 —
+    이 값은 「어느 문장을 연습할까」이고, 없으면 자동 선택이 그 자리를 메운다.
+    ⚠️ **없는 id 를 여기서 조회하지 않는다** — 존재 판정은 `_ATTACH_SHADOWING_CLIP_SQL` 의
+    `coalesce` 가 한 문장에서 하므로, 여기서 또 조회하면 그 사이에 지워지는 창이 생긴다.
+    """
+    if raw is None:
+        return None
+    try:
+        return UUID(raw)
+    except ValueError:
+        logger.warning("UUID 로 해석할 수 없는 item 을 무시했다")
+        return None
+
+
 async def _load_known_sounds_or_empty(pool: asyncpg.Pool) -> list[str]:
     """학습자가 전에 놓친 소리 — 실패하면 빈 목록 (G-3, 캡틴 결정 B-4).
 
@@ -291,9 +308,18 @@ async def session_socket(websocket: WebSocket) -> None:
     # 그 값역 밖이면 아래 `asyncpg.PostgresError` 경로로 떨어져 세션 실패를 알린다. 넘기지 않으면
     # 001 의 기본값(`recommended`)이 쓰인다 — 즉 **모르는 값을 조용히 추천으로 바꾸지 않는다.**
     requested_source = websocket.query_params.get("source")
+    # `TASK-166` — 영상 학습의 [연습하기] 가 연습할 문장을 지정하는 자리(`?item=<uuid>`).
+    # ⛔ **형태가 틀리면 오류로 만들지 않고 `None` 으로 둔다** — 아래 `_load_*_or_none` 들과 같은
+    # 관례이고, 없는 id 는 `start_shadowing_session` 이 자동 선택으로 떨어뜨린다.
+    requested_item = _requested_item_or_none(websocket.query_params.get("item"))
     try:
         session_id = (
-            await start_shadowing_session(pool, FIXED_USER_ID, learning_source=requested_source)
+            await start_shadowing_session(
+                pool,
+                FIXED_USER_ID,
+                learning_source=requested_source,
+                item_id=requested_item,
+            )
             if policy.opens_shadowing_session
             else await create_session(pool, FIXED_USER_ID, learning_source=requested_source)
         )

@@ -24,6 +24,16 @@ export const API_BASE: string = process.env.NEXT_PUBLIC_API_BASE ?? "http://loca
 export interface SessionEntry {
   mode?: "pronunciation" | "shadowing" | "scenario_intake";
   source?: "recommended" | "additional";
+  /**
+   * 연습할 쉐도잉 문장 (`TASK-166` — 영상 학습의 [연습하기] 가 이것을 쓴다).
+   *
+   * ⛔ **이것이 없으면 영상에서 담은 문장을 연습할 수 없다** — 그때까지 클립 선택은 자동이었고
+   * (`_ATTACH_SHADOWING_CLIP_SQL`) 사용자가 고를 표면이 없었다.
+   * ⚠️ **`mode: "shadowing"` 일 때만 뜻이 있다.** 다른 모드에서는 서버가 읽지 않는다 — 타입으로
+   * 묶지 않은 이유는 그 제약이 서버 쪽 정책이고, 여기서 다시 표현하면 두 곳이 갈리기 때문이다.
+   * ⚠️ 없는 id 를 주면 서버가 **조용히 자동 선택으로 떨어뜨린다**(설계서 §6).
+   */
+  itemId?: string;
 }
 
 /**
@@ -37,6 +47,7 @@ export function sessionSocketUrl(entry: SessionEntry = {}): string {
   const params = new URLSearchParams();
   if (entry.mode) params.set("mode", entry.mode);
   if (entry.source) params.set("source", entry.source);
+  if (entry.itemId) params.set("item", entry.itemId);
   const query = params.toString();
   return query ? `${base}?${query}` : base;
 }

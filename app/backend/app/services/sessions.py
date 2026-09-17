@@ -136,9 +136,17 @@ select s.id,
 # 적었다. 수준 일치 우선 → 없으면 가장 이른 행 → 클립이 아예 없으면 **0행이 되어 update가
 # 아무 것도 하지 않는다**(`shadowing_item_id`는 null로 남고 세션은 그대로 진행된다).
 # ⛔ `mode`를 조건에 넣지 않는다 — 011의 CHECK가 이미 그것을 가둔다. 두 곳에 두면 갈라진다.
+#
+# ⚠️ **`TASK-166` 이 맨 앞에 항을 하나 더했다 — 사용자가 문장을 지정하는 경로다.** 그때까지 선택은
+# 자동뿐이었고, 영상에서 담은 문장을 연습하려면 그 문장을 **가리킬 수 있어야** 한다
+# (`docs/design/2026-09-18-video-learning-design.md` §6).
+# ⛔ **없는 id 를 주면 그 select 가 0행이 되어 `coalesce` 가 다음 항으로 간다** — 예외를 던지지
+# 않는 것이 `api/ws.py` 의 `_load_*_or_none` 들과 같은 관례다. 사용자가 방금 지운 문장을 다시
+# 눌렀을 때 학습 자체가 막히면 안 된다. 그 대가(다른 문장이 열린다)는 그 설계서 §6이 적었다.
 _ATTACH_SHADOWING_CLIP_SQL = """
 update learning_sessions
    set shadowing_item_id = coalesce(
+         (select i.id from shadowing_items i where i.id = $3),
          (select i.id from shadowing_items i
            where i.level = (select u.current_level from users u where u.id = $2)
            order by i.created_at, i.id limit 1),
@@ -537,7 +545,11 @@ async def set_session_paused(conn: asyncpg.Connection, session_id: UUID, *, paus
 
 
 async def start_shadowing_session(
-    pool: asyncpg.Pool, user_id: UUID, *, learning_source: str | None = None
+    pool: asyncpg.Pool,
+    user_id: UUID,
+    *,
+    learning_source: str | None = None,
+    item_id: UUID | None = None,
 ) -> UUID:
     """쉐도잉 세션을 열고 **학습자 수준에 맞는 클립 1개를 붙인다** (`TASK-45`).
 
@@ -560,6 +572,11 @@ async def start_shadowing_session(
     ⛔ **클립이 0행이어도 세션을 연다.** 011의 CHECK가 역방향(`mode='shadowing'`이면 반드시
     클립)을 강제하지 않는 것과 같은 판단이다 — 여기서 예외를 던지면 시드가 비어 있는 DB에서
     쉐도잉 진입이 **전부** 막힌다. `shadowing_item_id`는 그때 null로 남는다.
+
+    ⚠️ **2026-09-18 추가 — `item_id` 로 연습할 문장을 지정할 수 있다** (`TASK-166`). 그때까지 선택은
+    자동뿐이어서 **사용자가 문장을 고를 표면이 없었고**, 영상 학습의 [연습하기] 가 그것을 요구한다
+    (`docs/design/2026-09-18-video-learning-design.md` §6). ⛔ **없는 id 는 조용히 자동 선택으로
+    떨어진다** — 위 SQL 주석이 그 근거를 갖는다.
 
     `learning_source` 는 `create_session` 과 **같은 뜻이고 같은 기본값**이다 (`TASK-10.2`) —
     쉐도잉도 추가 학습 메뉴의 한 항목이므로 그 진입이 자기를 `additional` 로 표시할 수 있어야 한다.
@@ -586,7 +603,7 @@ async def start_shadowing_session(
             picked.pick if picked is not None else None,
         )
         assert session_id is not None, "insert ... returning produced no row"
-        await conn.execute(_ATTACH_SHADOWING_CLIP_SQL, session_id, user_id)
+        await conn.execute(_ATTACH_SHADOWING_CLIP_SQL, session_id, user_id, item_id)
     return session_id
 
 

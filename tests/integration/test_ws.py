@@ -1254,3 +1254,124 @@ async def test_ws_omits_the_focus_key_when_there_is_no_candidate(
 
     assert started is not None and started["type"] == "session_started"
     assert "pronunciation_focus" not in started
+
+
+@pytest_asyncio.fixture
+async def two_committed_clips(db_pool: asyncpg.Pool) -> AsyncIterator[tuple[UUID, UUID]]:
+    """클립 **둘**을 커밋해두고 teardown 에서 지운다 (`TASK-166`).
+
+    ⛔ **둘이어야 판별력이 생긴다.** 하나만 두면 자동 선택도 그것을 고르므로 「지정한 클립이
+    붙었다」는 단정이 아무것도 가리지 못한다. 자동 선택은 `_ATTACH_SHADOWING_CLIP_SQL` 대로
+    **수준 일치 뒤 가장 이른 행**이므로, `created_at` 을 벌려 두고 **나중 것**을 지정한다.
+
+    ⛔ 남기면 `tests/unit/test_sessions.py` 의 `seed_shadowing_clips` 가 시끄럽게 실패한다 —
+    `committed_clip` 의 docstring 이 그 근거를 갖는다.
+    """
+    async with db_pool.acquire() as conn:
+        earlier = await conn.fetchval(
+            "insert into shadowing_items "
+            "(source_title, transcript, clip_start_sec, clip_end_sec, level, created_at) "
+            "values ('Earlier clip', 'The earlier one.', 0, 5, 'A2', now() - interval '1 hour') "
+            "returning id"
+        )
+        later = await conn.fetchval(
+            "insert into shadowing_items "
+            "(source_title, transcript, clip_start_sec, clip_end_sec, level, created_at) "
+            "values ('Later clip', 'The later one.', 0, 5, 'A2', now()) returning id"
+        )
+    try:
+        yield earlier, later
+    finally:
+        async with db_pool.acquire() as conn:
+            await conn.execute(
+                "delete from shadowing_items where id = any($1::uuid[])", [earlier, later]
+            )
+
+
+async def test_ws_opens_the_shadowing_session_on_the_requested_clip(
+    ws_app: FastAPI,
+    seeded_fixed_user: UUID,
+    two_committed_clips: tuple[UUID, UUID],
+    db_pool: asyncpg.Pool,
+):
+    """`?item=` 이 연습할 문장을 고른다 (`TASK-166` — 영상 학습의 [연습하기] 가 이것을 쓴다).
+
+    ⛔ **이 경로가 없으면 영상에서 담은 문장을 연습할 수 없다** — 지금까지 클립 선택은 자동뿐이었고
+    사용자가 고를 표면이 없었다.
+    ⚠️ **나중 클립을 지정한다** — 자동 선택은 이른 것을 고르므로 그래야 둘이 갈린다.
+    """
+    earlier, later = two_committed_clips
+
+    async with (
+        ws_app.router.lifespan_context(ws_app),
+        ASGIWebSocket(ws_app, query_string=f"mode=shadowing&item={later}".encode()) as client,
+    ):
+        started = await client.receive_event()
+
+    assert started is not None and started["type"] == "session_started"
+    assert started["shadowing"]["transcript"] == "The later one."
+
+    async with db_pool.acquire() as conn:
+        chosen = await conn.fetchval(
+            "select shadowing_item_id from learning_sessions where id = $1",
+            UUID(started["session_id"]),
+        )
+    assert chosen == later, "지정한 클립이 아니라 자동 선택이 붙었다"
+    assert chosen != earlier
+
+
+async def test_ws_falls_back_to_the_automatic_choice_when_the_requested_clip_is_unknown(
+    ws_app: FastAPI,
+    seeded_fixed_user: UUID,
+    two_committed_clips: tuple[UUID, UUID],
+    db_pool: asyncpg.Pool,
+):
+    """없는 클립을 지정해도 **세션은 열린다** — 기존 관례를 따른다.
+
+    ⛔ `api/ws.py` 의 `_load_*_or_none` 들이 조회 실패를 세션 실패로 번역하지 않는 것과 같은
+    판단이다. 사용자가 방금 지운 문장을 다시 눌렀을 때 학습 자체가 막히면 안 된다.
+    ⚠️ 그 대가(다른 문장이 열린다)는 설계서 §6 이 적었다.
+    """
+    earlier, _later = two_committed_clips
+
+    async with (
+        ws_app.router.lifespan_context(ws_app),
+        ASGIWebSocket(
+            ws_app, query_string=b"mode=shadowing&item=00000000-0000-0000-0000-0000000009f9"
+        ) as client,
+    ):
+        started = await client.receive_event()
+
+    assert started is not None and started["type"] == "session_started"
+
+    async with db_pool.acquire() as conn:
+        chosen = await conn.fetchval(
+            "select shadowing_item_id from learning_sessions where id = $1",
+            UUID(started["session_id"]),
+        )
+    assert chosen == earlier, "자동 선택으로 떨어지지 않았다"
+
+
+async def test_ws_ignores_an_item_that_is_not_a_uuid(
+    ws_app: FastAPI,
+    seeded_fixed_user: UUID,
+    two_committed_clips: tuple[UUID, UUID],
+    db_pool: asyncpg.Pool,
+):
+    """⛔ 형태가 틀린 `?item=` 을 오류로 만들지 않는다 — 같은 관례다."""
+    earlier, _later = two_committed_clips
+
+    async with (
+        ws_app.router.lifespan_context(ws_app),
+        ASGIWebSocket(ws_app, query_string=b"mode=shadowing&item=not-a-uuid") as client,
+    ):
+        started = await client.receive_event()
+
+    assert started is not None and started["type"] == "session_started"
+
+    async with db_pool.acquire() as conn:
+        chosen = await conn.fetchval(
+            "select shadowing_item_id from learning_sessions where id = $1",
+            UUID(started["session_id"]),
+        )
+    assert chosen == earlier
