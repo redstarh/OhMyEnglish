@@ -61,11 +61,18 @@
 
 ### 질문 4. 구간 시각의 정밀도
 
-**답: 소수 둘째 자리. 서버가 반올림함.**
+**답: 소수 둘째 자리. ⛔ 접기를 «값역 층»이 하고 검증은 «접힌 값»을 봄** (`TASK-170` 이 정정함).
 
 - 근거: 기존 시드 행이 `0.00`~`17.36` 으로 둘째 자리임 — 발명이 아니라 선례를 따름.
-- 플레이어의 `getCurrentTime()` 이 부동소수를 주므로 **서버가 받아 반올림함**(값역을 서버가 소유하는
-  관례). 프론트가 반올림하면 두 곳이 갈림.
+- 플레이어의 `getCurrentTime()` 이 부동소수를 주므로 **서버가 받아 접음**(값역을 서버가 소유하는 관례).
+- ⚠️ **이 답의 첫 판은 「서비스가 저장 직전에 반올림한다」였고 그것이 결함을 만들었음** — 검증이
+  **원본 값**으로 순서를 보면 `5.0 → 5.001` 처럼 원본은 순서가 맞는데 접으면 같아지는 구간이 값역을
+  통과해 스키마 CHECK 에서 터지고 사용자는 **`500`** 을 봄. 통합 테스트가 그것을 재현했음(`TASK-170`).
+  ⇒ `PhraseCreateRequest` 의 필드 검증이 먼저 접고 모델 검증이 그 값으로 판정함. 정밀도의 정본은
+  `models/video.CLIP_PRECISION` 이고 서비스의 접기는 **라우터 없이 불릴 때를 위한 이중 방어**로 남음.
+- ⚠️ **화면도 접힌 값으로 비교함** — 그러지 않으면 화면이 통과시킨 요청을 서버가 거부해 사용자가
+  「구간 끝이 시작보다 뒤여야 해요」 대신 일반 실패 문구를 봄. 그 정밀도는 응답의
+  `clip_precision_sec` 로 내려보내므로 **화면에 사본을 두지 않음.**
 
 ### 질문 5. `ADDITIONAL_LEARNING` 자료구조를 어떻게 넓히나
 
@@ -158,8 +165,8 @@ drop table youtube_videos;
 | 1 | `GET /api/videos` | — | 영상 목록 (각 항목에 `phrase_count`·`metadata_stale`) | S2 목록 |
 | 2 | `POST /api/videos` | `{url, title, channel_name}` | `{id, youtube_id, title, channel_name, created}` | S2 담기·갱신 |
 | 3 | `DELETE /api/videos/{video_id}` | — | `204` | S2 지우기 |
-| 4 | `GET /api/videos/{video_id}` | — | 영상 하나 + **담은 문장 목록** | S3 진입 |
-| 5 | `POST /api/videos/{video_id}/phrases` | `{transcript, start_sec, end_sec}` | 담은 문장 하나 | S3 문장 담기 |
+| 4 | `GET /api/videos/{video_id}` | — | 영상 하나 + **담은 문장 목록** + `clip_max_span_sec`·`clip_precision_sec` | S3 진입 |
+| 5 | `POST /api/videos/{video_id}/phrases` | `{transcript, clip_start_sec, clip_end_sec}` | 담은 문장 하나 | S3 문장 담기 |
 | 6 | `DELETE /api/videos/{video_id}/phrases/{item_id}` | — | `204` | S3 문장 지우기 |
 
 **여섯인 이유**: 화면 동작 하나에 하나씩임. ⛔ 4 가 영상과 문장 목록을 **함께** 주는 것이 요청을
@@ -171,7 +178,7 @@ drop table youtube_videos;
 |---|---|---|
 | `url` | videoId 를 뽑지 못하면 거부 | `422` |
 | `title`·`channel_name` | 공백만이면 거부 · 상한 200자 | `422` |
-| `start_sec`·`end_sec` | `0 <= start < end` · `end - start <= 90` · 둘째 자리로 반올림 | `422` |
+| `clip_start_sec`·`clip_end_sec` | **둘째 자리로 먼저 접고** 그 값으로 `0 <= start < end` · `end - start <= 90` | `422` |
 | `transcript` | 공백만이면 거부 · 상한 1000자 | `422` |
 | `video_id`·`item_id` | 경로에서 `UUID` 로 받음 | `422` (FastAPI 가 함) |
 

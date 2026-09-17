@@ -23,7 +23,12 @@ import asyncpg
 from fastapi import APIRouter, HTTPException, Request, Response
 
 from app.models.user import FIXED_USER_ID
-from app.models.video import CLIP_MAX_SPAN_SECONDS, PhraseCreateRequest, VideoCreateRequest
+from app.models.video import (
+    CLIP_MAX_SPAN_SECONDS,
+    CLIP_PRECISION,
+    PhraseCreateRequest,
+    VideoCreateRequest,
+)
 from app.services.video_url import parse_youtube_id
 from app.services.videos import (
     UpsertedVideo,
@@ -84,6 +89,10 @@ def _detail_payload(detail: VideoDetail) -> dict[str, object]:
         **_video_core(detail),
         "metadata_stale": detail.metadata_stale,
         "clip_max_span_sec": float(CLIP_MAX_SPAN_SECONDS),
+        # ⚠️ **정밀도도 함께 내려보낸다** (`TASK-170`). 화면이 구간 순서를 미리 판정하려면
+        # **접힌 값**으로 봐야 하고(접으면 같아지는 구간이 있다), 그 정밀도를 화면이 자기 상수로
+        # 두면 상한과 같은 부류의 사본이 다시 생긴다.
+        "clip_precision_sec": float(CLIP_PRECISION),
         "phrases": [_phrase_payload(phrase) for phrase in detail.phrases],
     }
 

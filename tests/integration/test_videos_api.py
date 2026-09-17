@@ -23,7 +23,7 @@ import pytest_asyncio
 
 from app.api.main import FRONTEND_ORIGIN, create_app
 from app.models.user import FIXED_USER_ID
-from app.models.video import CLIP_MAX_SPAN_SECONDS, TRANSCRIPT_MAX_LENGTH
+from app.models.video import CLIP_MAX_SPAN_SECONDS, CLIP_PRECISION, TRANSCRIPT_MAX_LENGTH
 
 _ID = "dQw4w9WgXcQ"
 _OTHER_ID = "jNQXAC9IVRw"
@@ -312,3 +312,47 @@ async def test_the_detail_response_carries_the_clip_span_limit(
 
     assert detail.status_code == 200
     assert detail.json()["clip_max_span_sec"] == float(CLIP_MAX_SPAN_SECONDS)
+    # ⛔ 정밀도도 함께 닿아야 한다 (`TASK-170`) — 화면이 구간 순서를 **접힌 값**으로 판정하려면
+    #    이 값이 필요하고, 없으면 화면이 자기 상수를 두게 된다.
+    assert detail.json()["clip_precision_sec"] == float(CLIP_PRECISION)
+
+
+@pytest.mark.asyncio
+async def test_a_span_that_collapses_when_rounded_is_refused_not_crashed(
+    api_client: httpx.AsyncClient, clean_videos: None
+) -> None:
+    """⛔ `TASK-170` — 접으면 시작과 끝이 같아지는 구간이 `500` 이었다.
+
+    기전: 값역 검증이 **원본 값**으로 순서를 보고 반올림은 그 뒤 서비스가 했다. 원본은 순서가 맞아도
+    둘째 자리로 접으면 같은 값이 되어 스키마 CHECK(`shadowing_items_span_ordered`)가 잡고, 사용자는
+    「구간 끝이 시작보다 뒤여야 해요」가 아니라 일반 실패 문구를 봤다.
+
+    ⚠️ **이 단정의 값은 `422` 가 아니라 「`500` 이 아님」에 있다** — 검증이 저장될 값을 보지 않으면
+    같은 부류의 구멍이 다시 생긴다.
+    """
+    stored = await _store_video(api_client)
+
+    for start, end in ((5.0, 5.001), (0.001, 0.004), (1.001, 1.002), (12.3401, 12.3449)):
+        response = await api_client.post(
+            f"/api/videos/{stored['id']}/phrases",
+            json={"transcript": "collapse probe", "clip_start_sec": start, "clip_end_sec": end},
+        )
+        assert response.status_code == 422, f"{start}..{end} 가 {response.status_code} 를 냈다"
+        assert "clip_end_sec" in response.text, response.text
+
+
+@pytest.mark.asyncio
+async def test_a_normal_span_still_rounds_and_stores(
+    api_client: httpx.AsyncClient, clean_videos: None
+) -> None:
+    """⚠️ 위 단정이 정상 구간을 함께 막지 않는지 잰다 — 막으면 기능이 죽는다."""
+    stored = await _store_video(api_client)
+
+    created = await api_client.post(
+        f"/api/videos/{stored['id']}/phrases",
+        json={"transcript": "Hello there", "clip_start_sec": 1.234, "clip_end_sec": 5.678},
+    )
+
+    assert created.status_code == 201, created.text
+    assert created.json()["clip_start_sec"] == 1.23
+    assert created.json()["clip_end_sec"] == 5.68

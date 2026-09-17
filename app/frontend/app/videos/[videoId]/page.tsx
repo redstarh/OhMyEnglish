@@ -128,14 +128,23 @@ export default function VideoLearningPage() {
       return;
     }
     const at = playerRef.current?.currentTime() ?? 0;
-    if (at <= draft.start) {
+    // ⛔ **저장될 정밀도로 접은 뒤 비교한다** (`TASK-170`). 원본으로만 보면 `5.0 → 5.001` 같은 구간이
+    //    통과하고 서버가 그것을 거부해, 사용자는 「구간 끝이 시작보다 뒤여야 해요」가 아니라 일반 실패
+    //    문구를 본다. ⚠️ 정밀도도 서버가 준 값이다 — 화면이 자기 상수를 두면 그것만 갈라진다.
+    const precision = detail?.clip_precision_sec;
+    const fold = (value: number) =>
+      precision === undefined || precision <= 0
+        ? value
+        : Math.round(value / precision) * precision;
+    const start = fold(draft.start);
+    const end = fold(at);
+    if (end <= start) {
       setNotice(SPAN_BACKWARDS_NOTICE);
       return;
     }
-    // ⚠️ 상한은 서버가 준 값이다. 아직 안 왔으면(로드 전) 서버 검사에만 맡긴다 — 화면이 자기 값을
-    //    발명하지 않는다.
+    // ⚠️ 상한도 서버가 준 값이다. 아직 안 왔으면(로드 전) 서버 검사에만 맡긴다.
     const limit = detail?.clip_max_span_sec;
-    if (limit !== undefined && at - draft.start > limit) {
+    if (limit !== undefined && end - start > limit) {
       setNotice(`구간은 ${limit}초까지 담을 수 있어요.`);
       return;
     }

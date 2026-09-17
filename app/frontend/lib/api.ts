@@ -350,6 +350,13 @@ export interface VideoDetail {
    * 백엔드 사본은 테스트가 대조하는데, **프런트 사본만 대조 장치가 없어** 조용히 갈라질 자리였다.
    */
   clip_max_span_sec: number;
+  /**
+   * 구간 시각을 저장하는 정밀도(초). **서버가 내려준다** (`TASK-170`).
+   *
+   * ⛔ 화면이 구간 순서를 미리 판정할 때 **이 값으로 접은 뒤** 비교해야 한다 — 접으면 같아지는
+   * 구간이 있고, 원본으로만 비교하면 화면이 통과시킨 요청이 서버에서 거부된다.
+   */
+  clip_precision_sec: number;
   phrases: VideoPhrase[];
 }
 

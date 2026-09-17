@@ -1,9 +1,10 @@
 ---
 id: TASK-171
 title: 설계서 §3 의 문장 담기 요청 필드 이름이 구현과 다름 — start_sec vs clip_start_sec
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-17 18:11'
+updated_date: '2026-09-17 18:24'
 labels: []
 dependencies: []
 ordinal: 232000
@@ -32,5 +33,24 @@ HEAD: 29aeaeb
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 설계서 §3 표 5행의 몸통 필드 이름이 구현과 같다
+- [x] #1 설계서 §3 표 5행의 몸통 필드 이름이 구현과 같다
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+## 고침 (2026-09-18)
+
+`docs/design/2026-09-18-video-learning-design.md` §3 표의 5행을
+`{transcript, clip_start_sec, clip_end_sec}` 로 고쳤음. 값역 표의 행 이름도 함께 고쳤음.
+
+그리고 같은 손질에서 **두 자리를 더 정정했음**:
+
+- §3 표 4행 — `GET /api/videos/{video_id}` 가 `clip_max_span_sec`·`clip_precision_sec` 를 함께 싣는
+  사실을 적었음(그 둘은 이 세션의 `/simplify` 반영과 `TASK-170` 고침으로 생겼음).
+- §1 질문 4 — 「서비스가 반올림한다」를 「값역 층이 접고 검증이 접힌 값을 본다」로 고치고 **그 첫 판이
+  `TASK-170` 을 만든 경위를 남겼음.**
+
+⚠️ **구현을 고치지 않았음** — `models/video.py` 의 docstring 이 `clip_*` 를 고른 근거(쉐도잉 이벤트
+payload 와 이름을 맞춤)를 이미 적어 뒀고, 프런트·모델·구현 셋이 일치함. 낡은 것은 문서 한 줄이었음.
+<!-- SECTION:NOTES:END -->

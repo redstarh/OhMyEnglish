@@ -22,13 +22,16 @@ from uuid import UUID
 
 import asyncpg
 
+from app.models.video import CLIP_PRECISION
+
 # YouTube Developer Policies III.E.4.c·d 가 「Authorized 아닌 데이터」의 보관을 30일로 제한한다.
 # ⛔ 이 값을 프런트에 두지 않는다 — 시각 판정이 두 곳에 있으면 갈라진다(설계서 §3).
 METADATA_MAX_AGE_DAYS = 30
 
-# 구간 시각의 정밀도. 기존 시드 행이 `0.00`~`17.36` 으로 둘째 자리이므로 **선례를 따른다**
-# (설계서 §1 질문 4). ⛔ 반올림을 프런트에서 하지 않는다 — 값역은 서버의 것이다.
-_CLIP_PRECISION = Decimal("0.01")
+# ⛔ **정밀도의 정본은 `models/video.CLIP_PRECISION` 이다** — 값역 층이 접은 뒤 순서를 판정하기
+# 때문이고, 그 순서가 `TASK-170` 의 고침이다. 여기서 다시 접는 것은 **라우터 없이 불릴 때를 위한
+# 이중 방어**다(테스트·스크립트). ⚠️ 두 값을 갈라 두지 않는다 — 갈리면 라우터를 거친 값과 안 거친
+# 값이 다른 정밀도로 저장된다.
 
 # ⚠️ **`source_url` 을 한 형태로 정규화해 저장한다.** 사용자가 `youtu.be` 로 넣어도 저장은 이
 # 형태다 — 그래야 나중에 문자열로 비교할 수 있다.
@@ -170,7 +173,7 @@ class UpsertedVideo:
 
 
 def _round_seconds(value: Decimal) -> Decimal:
-    return value.quantize(_CLIP_PRECISION, rounding=ROUND_HALF_UP)
+    return value.quantize(CLIP_PRECISION, rounding=ROUND_HALF_UP)
 
 
 async def list_videos(conn: asyncpg.Connection) -> tuple[VideoSummary, ...]:
