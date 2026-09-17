@@ -45,9 +45,18 @@ def psql_binary() -> str:
 
 
 def psql(sql: str) -> str:
-    """`DATABASE_URL`이 가리키는 DB에 SQL 한 줄을 던지고 stdout(strip)을 돌려준다."""
+    """`DATABASE_URL`이 가리키는 DB에 SQL 한 줄을 던지고 stdout(strip)을 돌려준다.
+
+    ⛔ **`-q` 가 없으면 `insert … returning` 의 반환값 뒤에 명령 태그가 붙는다.** 2026-09-17 실측:
+    `.harness/run_id.txt` 가 `<uuid>\\nINSERT 0 1` **47바이트**로 적혔다(36바이트여야 한다).
+    `strip()` 은 앞뒤 «공백»만 걷으므로 그 태그를 걷지 못한다 — 그 파일을 SQL 에 그대로 넣는
+    `ws_session.py`·`inject_errors.py` 가 1회차에서 실제로 그 오염(`INSERT01`)에 걸렸고
+    `tests/harness/README.md` 가 경고로 남겨 두었다.
+    ⚠️ **`select` 로만 확인하면 이 결함이 드러나지 않는다** — `select` 에는 태그가 없다. 그래서 이
+    함수를 고칠 때는 반드시 **`insert … returning` 으로** 재현해 본다.
+    """
     out = subprocess.run(
-        [psql_binary(), base_dsn(), "-tAc", sql],
+        [psql_binary(), base_dsn(), "-q", "-tAc", sql],
         check=True,
         capture_output=True,
         text=True,
