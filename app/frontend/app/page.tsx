@@ -60,9 +60,15 @@ const NEXT_PLAN_PREFIX = "오늘 이걸 연습해요:";
 // 두지 않고 이 목록에서 유도한다 — 두 곳에 적으면 화면 버튼과 음성 명령이 서로 다른 세션을 연다.
 // ⚠️ 앞 두 항목이 **같은 `target`** 인 것은 의도다(entry 가 같고 차이가 계획 데이터에 있다 — 위 주석).
 // ⛔ 「업무 역할극」에는 `target` 을 주지 않는다 — 열 수 없는 것을 음성으로 고를 수 있게 하면 안 된다.
+// ⚠️ **`href` 는 `TASK-168` 이 더했다 — 세션을 열지 않고 «화면으로 가는» 항목의 자리다.** 영상 학습은
+// 지시문이 달라지는 갈래가 아니라 화면과 자산 관리가 다른 갈래라서 세션 모드를 새로 만들지 않았다
+// (`docs/design/2026-09-18-video-learning-design.md` §1 질문 5).
+// ⛔ 그래서 항목의 상태가 셋이 됐다: `entry` 가 있으면 세션 · `href` 가 있으면 이동 · 둘 다 없으면
+// 비활성(「업무 역할극」). 아래 렌더의 `disabled` 조건이 그 셋을 가른다.
 const ADDITIONAL_LEARNING: ReadonlyArray<{
   label: string;
   entry: SessionEntry | null;
+  href?: string;
   target?: AdditionalTarget;
   note?: string;
 }> = [
@@ -81,6 +87,11 @@ const ADDITIONAL_LEARNING: ReadonlyArray<{
     entry: { mode: "pronunciation", source: "additional" },
   },
   { label: "쉐도잉", target: "shadowing", entry: { mode: "shadowing", source: "additional" } },
+  // ⛔ **「업무 역할극」의 빈 칸을 재사용하지 않았다** — 그 칸은 무대 선택 화면의 부재를 가리키는
+  // 표식이고 소유가 `TASK-102`·`TASK-5` 다. 영상 학습은 **일곱째** 로 붙는다.
+  // ⛔ `target` 을 주지 않는다 — 음성 명령으로 이 화면에 가려면 `AdditionalTarget` 값역과 백엔드
+  // `ADDITIONAL_TARGETS` 를 함께 열어야 하고, 그것은 이 갈래의 요구가 아니다(설계서 §1 질문 5).
+  { label: "영상으로 배우기", entry: null, href: "/videos" },
   { label: "업무 역할극", entry: null, note: "무대를 고르는 화면이 아직 없어요" },
 ];
 
@@ -447,6 +458,36 @@ export default function SessionPage() {
     startSessionRef.current = startSession;
   }, [startSession]);
 
+  // 영상 학습의 [연습하기] 가 이 화면에 **문장을 지정해** 들어오는 자리 (`TASK-168`).
+  //
+  // ⛔ **세션 화면을 영상 화면에 복제하지 않는 대신 여기로 보낸다** — 소켓을 여는 코드가 둘이 되면
+  // 한쪽만 고쳐질 자리가 생긴다. 그래서 `/videos/[id]` 의 [연습하기] 는
+  // `/?mode=shadowing&source=additional&item=<문장 id>` 로 이동하고 이 effect 가 그것을 받는다.
+  //
+  // ⛔ **`useSearchParams` 를 쓰지 않는 이유**: prerender 된 경로에서 그 훅은 가장 가까운
+  // `Suspense` 경계까지를 클라이언트 렌더로 떨어뜨린다. ⚠️ 그런데 **개발에서는 그것이 드러나지
+  // 않아**(Next.js 문서: *"In development, routes are rendered on-demand, so `useSearchParams`
+  // doesn't suspend and things may appear to work without `Suspense`"*) 우리 게이트(`tsc`·`eslint`)
+  // 로는 잡히지 않는다. effect 안의 `location.search` 는 클라이언트에서만 도므로 그 함정을 비껀다.
+  //
+  // ⚠️ **URL 을 즉시 비운다** — 비우지 않으면 새로고침이 세션을 또 연다. `history.replaceState` 를
+  // 쓰는 것은 라우터 이동을 일으키지 않아 이 화면이 다시 그려지지 않기 때문이다.
+  const autoStartedRef = useRef(false);
+  useEffect(() => {
+    if (autoStartedRef.current) {
+      return;
+    }
+    const query = new URLSearchParams(window.location.search);
+    const mode = query.get("mode");
+    const item = query.get("item");
+    if (mode !== "shadowing" || !item) {
+      return;
+    }
+    autoStartedRef.current = true;
+    window.history.replaceState({}, "", "/");
+    void startSessionRef.current?.({ mode: "shadowing", source: "additional", itemId: item });
+  }, []);
+
   // 시작 화면에 보여줄 추천 이유를 **마운트당 한 번** 읽는다 (R11-3). 폴링하지 않는다.
   // ⚠️ **근거를 2026-09-06에 정정했다.** 원래 "계획은 세션 *사이*에만 바뀌고 이 화면은 세션이
   // 끝나면 언마운트된다"고 적었는데, 계획이 **쓰이는** 시점이 바로 그 "세션 사이"라서 근거가
@@ -528,9 +569,16 @@ export default function SessionPage() {
                 <button
                   key={item.label}
                   onClick={() => {
-                    if (item.entry) void startSession(item.entry);
+                    if (item.entry) {
+                      void startSession(item.entry);
+                    } else if (item.href) {
+                      router.push(item.href);
+                    }
                   }}
-                  disabled={item.entry === null}
+                  // ⚠️ **조건을 좁혔다**(`TASK-168`) — 이전에는 `item.entry === null` 하나였고, 그러면
+                  // 화면으로 가는 새 항목이 비활성으로 그려진다. 「업무 역할극」의 비활성과 `note` 는
+                  // 그대로다: 그 칸은 `entry` 도 `href` 도 없다.
+                  disabled={item.entry === null && item.href === undefined}
                   title={item.note}
                   style={{ padding: "0.5rem 1rem" }}
                 >
