@@ -1,0 +1,102 @@
+#!/usr/bin/env python3
+"""`TASK-39` AC#2 — **스로틀 분기**에서 같은 호출이 몇 번 보내지는가. ⛔ API 비용 0.
+
+⚠️ **이전 회차(2026-09-12)는 스로틀 재현을 기각하고 시간초과 분기로 «유추»했다** — *"스로틀 재시도는
+같은 정책의 다른 분기이므로 시도 수 상한이 곧 그쪽 상한이다"*. 그 유추가 맞는지 재는 것이 이 실행체다.
+기각의 이유는 **실물 한도를 넘기는 비용**이었고, 여기서는 그것을 넘기지 않는다: 로컬 서버가
+`429 ThrottlingException` 을 돌려주므로 botocore 의 판정 경로만 타고 Bedrock 은 부르지 않는다.
+
+⛔ **이 실행체가 세우지 못하는 것을 먼저 적는다.** ① 실물 한도의 거동(백오프 간격·재시도 예산 소진)은
+재지 않는다 ② 「서비스가 첫 시도를 청구했는가」는 클라이언트에서 관측할 수 없다. 세우는 것은 하나다 —
+**정책이 스로틀 응답에 몇 번까지 다시 보내는가.**
+
+`before-send` 를 세는 이유는 이전 회차와 같다: botocore 가 실제로 HTTP 요청을 만드는 지점이다.
+"""
+
+import asyncio
+import json
+import sys
+from pathlib import Path
+
+import boto3
+from botocore.config import Config
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "app" / "backend"))
+
+from app.config import bedrock_boto_config  # noqa: E402
+
+_PROMPT_BODY = json.dumps(
+    {"anthropic_version": "bedrock-2023-05-31", "max_tokens": 16, "messages": []}
+)
+
+# `x-amzn-errortype` 로 오류 코드를 준다 — botocore 가 그 헤더를 먼저 본다. 상태 코드 429 만으로도
+# standard 모드는 transient 로 보지만, 코드 이름까지 주어야 legacy 모드도 같은 판정을 한다.
+_BODY = b'{"message":"Rate exceeded"}'
+_RESPONSE = (
+    b"HTTP/1.1 429 Too Many Requests\r\n"
+    b"x-amzn-errortype: ThrottlingException:http://internal.amazon.com/coral/\r\n"
+    b"Content-Type: application/json\r\n"
+    b"Content-Length: " + str(len(_BODY)).encode() + b"\r\n"
+    b"Connection: close\r\n\r\n" + _BODY
+)
+
+
+async def _throttling_server() -> tuple[asyncio.AbstractServer, int]:
+    """요청마다 429 ThrottlingException 을 돌려주는 서버."""
+
+    async def handle(reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
+        try:
+            await reader.read(65536)
+            writer.write(_RESPONSE)
+            await writer.drain()
+        except (ConnectionResetError, asyncio.CancelledError):
+            pass
+        finally:
+            writer.close()
+
+    server = await asyncio.start_server(handle, "127.0.0.1", 0)
+    return server, server.sockets[0].getsockname()[1]
+
+
+def _count_sends(port: int, config: Config) -> tuple[int, str]:
+    client = boto3.client(
+        "bedrock-runtime",
+        region_name="us-west-2",
+        endpoint_url=f"http://127.0.0.1:{port}",
+        aws_access_key_id="dummy-not-a-real-key",
+        aws_secret_access_key="dummy-not-a-real-secret",
+        config=config,
+    )
+    sends = 0
+
+    def note(**_kwargs: object) -> None:
+        nonlocal sends
+        sends += 1
+
+    client.meta.events.register("before-send.bedrock-runtime.*", note)
+    try:
+        client.invoke_model(modelId="anthropic.claude-3-haiku-20240307-v1:0", body=_PROMPT_BODY)
+    except Exception as exc:  # noqa: BLE001 — 무엇으로 끝났는지도 관측값이다
+        return sends, type(exc).__name__
+    return sends, "no-exception"
+
+
+async def main() -> int:
+    server, port = await _throttling_server()
+    cases = [
+        ("제품 정책 (standard · total_max_attempts=2)", bedrock_boto_config()),
+        ("정책 전 (botocore 기본 = legacy)", Config()),
+        ("대조 (standard · total_max_attempts=1)", Config(retries={"mode": "standard", "total_max_attempts": 1})),
+        ("대조 (standard · total_max_attempts=3)", Config(retries={"mode": "standard", "total_max_attempts": 3})),
+    ]
+    print(f"{'설정':46} {'전송':>4}  끝난 방식")
+    for label, config in cases:
+        sends, ending = await asyncio.to_thread(_count_sends, port, config)
+        print(f"{label:46} {sends:>4}  {ending}")
+    server.close()
+    await server.wait_closed()
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(asyncio.run(main()))
