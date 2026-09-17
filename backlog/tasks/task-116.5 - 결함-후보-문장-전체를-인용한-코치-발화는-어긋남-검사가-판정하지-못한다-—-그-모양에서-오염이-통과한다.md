@@ -1,10 +1,10 @@
 ---
 id: TASK-116.5
 title: '결함 후보: 문장 전체를 인용한 코치 발화는 어긋남 검사가 판정하지 못한다 — 그 모양에서 오염이 통과한다'
-status: To Do
+status: Awaiting Decision
 assignee: []
 created_date: '2026-09-14 17:19'
-updated_date: '2026-09-14 22:26'
+updated_date: '2026-09-17 01:15'
 labels: []
 dependencies: []
 parent_task_id: TASK-116
@@ -36,4 +36,20 @@ AC#2 정했음(위임받음): ⛔ 지금 닫지 않음. 검사 쪽 안(문장을
 ⛔ AC#3(구현)은 하지 않았으므로 체크하지 않았고 태스크를 닫지 않았음 — 결과에 맞춰 AC 문면을 고치지 않음. 다시 올릴 조건은 이 비율이 커지는 것이고 그때 같은 스크립트로 다시 셈.
 
 2026-09-15 표본 하나가 늘었음 (세션 ohmyenglish-65 · runs/2026-09-15-task78-1-defenses-in-use). 브라우저 레그 일반 세션에서 코치가 문장 전체 인용과 낱말 인용을 «한 발화에» 함께 썼음 — I hear you say "my brother will early really tomorrow morning." Let's focus on the word "early." ⇒ 낱말 인용이 판정을 살려 sound_check=mismatched 가 붙었음. 즉 이 태스크가 겨냥한 「문장 인용만 있어 막힌 세션」이 아니고 그 비율(2/59)을 늘리지 않음. 다시 올릴 조건은 그대로임.
+
+2026-09-17 (세션 clear 후) — **착수하지 않았고, 대신 파킹의 «전제» 를 코드로 검사했음.**
+노트만 읽고 같은 논의를 되풀이하지 않기 위함임(이 태스크는 이번이 세 번째 재검토임).
+
+⛔ **기각된 「검사 쪽」 안이 왜 이득 0 인지를 함수의 형태로 확정했음** — 앞 노트는 확률로 말했으나
+`services/pronunciation.py:203-225` 을 읽으면 **확률이 아니라 단조성**임:
+`mismatched` 는 `word_supports_key` 가 **거짓**일 때만 나오고, 그 값은
+`any(segment in word for segment in segments for word in words)` 이므로 **인용 범위를 넓히면 참이
+되기만 함**(낱말이 늘어도 줄지 않음). ⇒ 문장 전체를 낱말 자루로 넣든 한 덩어리로 넣든 갈래 ②는
+`None` 으로 떨어짐. **이득이 「작다」가 아니라 「구조적으로 0」임.**
+
+⇒ 남은 방향은 프롬프트 쪽 하나이고 그것은 결정 82 를 뒤집어야 하므로 **사용자 판단이 필요함**
+(AC#2 가 그렇게 적어 둠). 비율 2/59 는 이 세션에서 바뀌지 않았음(새 회차를 돌리지 않았음).
+
+⇒ 상태를 `To Do` → `Awaiting Decision` 으로 고쳤음. 근거는 `rules/task-management.md` §2 임 —
+「`To Do` 에 섞이면 왜 안 하고 있나를 매 세션 다시 조사하게 된다」가 이 태스크에서 실제로 일어났음.
 <!-- SECTION:NOTES:END -->
