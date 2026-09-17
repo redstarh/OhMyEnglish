@@ -204,6 +204,53 @@ def _json_candidates(raw: str) -> list[str]:
     return candidates
 
 
+# `TASK-122`(사용자 결정 2026-09-17) — 모델이 남기는 **이름 없는 빈 키** 하나만 걷는다.
+#
+# 관측: 계획 응답의 `level` 안에 `"": ""` 가 남아 `LevelDecision` 의 `extra="forbid"` 가 계획을
+# 통째로 거부했다(누적 4회 팔에서 1건 · 8회 팔에서 1건 · 정본
+# `runs/2026-09-12-task121-level-bullet.md`
+# §2). `services/jobs.py` 의 `MAX_ATTEMPTS = 5` 가 재시도로 흡수하므로 사용자 장에는 드러나지 않고
+# 물리는 대가는 **지연**뿐이다 — 그래서 LOW 였다.
+#
+# ⛔ **왜 프롬프트가 아니라 여기서 닫는가**: `TASK-121` 이 그 자리에 국소 금지를 넣어 «이름 있는»
+# 형태를 0/8 로 만들었으나 **이름 없는 것에는 먹히지 않았다** — 그 문장에 `no blank key` 가 «이미»
+# 있었다. 그리고 프롬프트로 모델 «거동»을 옮기려는 시도의 대가가 같은 날 실측됐다(`H-BZ` ·
+# `TASK-154`). 코드 가드는 결정적이라 단정으로 증명된다.
+#
+# ⛔ **관용의 범위를 좁게 묶는다 — 두 경계를 `tests/unit/test_plan_models.py` 가 지킨다**:
+#   ① 이름이 «있는» 모르는 키는 여전히 거부한다 — `extra="forbid"` 를 깎지 않는다.
+#   ② 이름이 비어도 **값이 비어 있지 않으면 거부**한다. 그 모양은 관측되지 않았고, 내용이 있는 값을
+#      조용히 버리는 것보다 실패가 낫다(이 모듈의 「틀린 계획보다 실패가 낫다」와 같은 방향).
+# ⚠️ **`_json_candidates` 의 관용을 넓히는 것이 아니다** — 그쪽은 `models/analysis.py` 와 글자
+# 그대로 같아야 하고(위 docstring · `test_json_candidates_parity.py`) 이 함수는 그 뒤 단계다.
+def _is_blank_value(value: object) -> bool:
+    """「비었다」의 판정 — `null` · 공백뿐인 문자열 · 빈 열거."""
+    if value is None:
+        return True
+    if isinstance(value, str):
+        return value.strip() == ""
+    if isinstance(value, list | dict):
+        return len(value) == 0
+    return False
+
+
+def _without_blank_named_empty_keys(value: object) -> object:
+    """이름이 빈 키 중 **값도 빈 것**만 걷은 사본. 그 밖은 한 자도 바꾸지 않는다.
+
+    ⚠️ 중첩까지 훑는 이유: 관측된 자리는 `level` 이지만 **규약에는 이름 없는 키가 어디에도 없다.**
+    자리를 하나만 특정하면 다음에 다른 블록에서 같은 모양이 나올 때 또 막힌다.
+    """
+    if isinstance(value, dict):
+        return {
+            key: _without_blank_named_empty_keys(item)
+            for key, item in value.items()
+            if not (isinstance(key, str) and key.strip() == "" and _is_blank_value(item))
+        }
+    if isinstance(value, list):
+        return [_without_blank_named_empty_keys(item) for item in value]
+    return value
+
+
 def _not_json_message(raw: str, error: json.JSONDecodeError | None) -> str:
     """전 후보가 JSON 디코드에 실패했을 때의 사유 — **원인을 가를 수 있는 형태로** 만든다.
 
@@ -289,6 +336,8 @@ def parse_plan(
             if first_error is None:
                 first_error = exc
             continue
+        # ⛔ 이름 없는 빈 키만 걷는다 (`TASK-122` · 위 함수의 주석이 경계를 소유한다).
+        payload = _without_blank_named_empty_keys(payload)
         try:
             result = PlanOutput.model_validate(payload)
         except pydantic.ValidationError as exc:

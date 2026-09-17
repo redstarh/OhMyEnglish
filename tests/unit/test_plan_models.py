@@ -685,3 +685,97 @@ def test_the_allowed_set_guard_is_reported_before_the_deepest_guard():
             allowed_pattern_ids=_ALLOWED,
             deepest_pattern_id=_IDS[1],  # 초점에 없다 — 두 가드가 함께 걸리는 입력이다
         )
+
+
+# ── `TASK-122` — **이름 없는 빈 키 하나만** 무시한다 (사용자 결정 2026-09-17) ──────────────
+#
+# 관측(정본 `runs/2026-09-12-task121-level-bullet.md` §2): 모델이 `level` 안에 `"": ""` 를 남겨
+# `LevelDecision` 의 `extra="forbid"` 가 계획을 거부했다. 누적 발생률은 4회 팔에서 1건 ·
+# 8회 팔에서 1건이고, `services/jobs.py` 의 `MAX_ATTEMPTS = 5` 가 재시도로 흡수하므로 사용자
+# 장에는 드러나지 않는다 — 물리는 대가는 **지연**뿐이다.
+#
+# ⛔ **왜 프롬프트가 아니라 코드에서 닫는가**: `TASK-121` 이 그 불릿에 국소 금지를 넣어 «이름 있는»
+# 형태(`reason_en`·`reason_note`)를 0/8 로 만들었으나 **이름 없는 것에는 먹히지 않았다** — 그 문장에
+# `no blank key` 가 «이미» 있었다. 그리고 같은 날 `TASK-154` 회차가 프롬프트로 모델 «거동»을
+# 옮기려는 시도의 대가를 실측했다(`H-BZ`). 코드 쪽 가드는 결정적이라 단정으로 증명된다.
+#
+# ⛔ **관용의 범위를 이 둘로 «좁게» 묶는다** — 아래 두 반대 방향 단정이 그 경계다:
+#   ① 이름이 있는 모르는 키는 **여전히 거부**한다(`extra="forbid"` 를 깎지 않는다).
+#   ② 이름이 빈 키라도 **값이 비어 있지 않으면 거부**한다 — 그 모양은 관측되지 않았고, 내용이 있는
+#      값을 조용히 버리는 것보다 실패가 낫다 — 이 모듈의 「틀린 계획보다 실패가 낫다」와 같음.
+@pytest.mark.parametrize("blank_key", ["", " ", "\t"])
+def test_a_blank_named_empty_key_is_ignored(blank_key: str):
+    level = {"action": "keep", "target_level": "A2", "reason": "정답률이 아직 낮습니다."}
+    level[blank_key] = ""
+
+    result = parse_plan(
+        _payload(level=level),
+        current_level="A2",
+        allowed_pattern_ids=_ALLOWED,
+        deepest_pattern_id=_DEEPEST,
+    )
+
+    assert result.level.action == "keep"
+
+
+# 관측된 자리는 `level` 이지만 규약에는 이름 없는 키가 **어디에도** 없다 — 그래서 중첩까지 훑는다.
+def test_a_blank_named_empty_key_is_ignored_anywhere_in_the_payload():
+    instruction = {
+        "target_level": "A2",
+        "focus": [{"pattern_key": "article_missing", "target_form": "a/an/the", "": ""}],
+        "sentence_length": "two short clauses",
+        "hint_timing": "offer a starter after one long pause",
+        "contexts": ["work update", "daily life", "plan"],
+        "": None,
+    }
+
+    result = parse_plan(
+        _payload(instruction=instruction),
+        current_level="A2",
+        allowed_pattern_ids=_ALLOWED,
+        deepest_pattern_id=_DEEPEST,
+    )
+
+    assert result.instruction.focus[0].pattern_key == "article_missing"
+
+
+@pytest.mark.parametrize("unknown_value", ["accuracy is still low", "", None])
+def test_a_named_unknown_key_is_still_rejected(unknown_value: object):
+    """⛔ 반대 방향 ① — `extra="forbid"` 를 깎지 않는다.
+
+    ⚠️ **값이 «빈» 경우도 함께 잰다.** 값만 보고 걷는 고침(이름을 안 보는 판)은 내용이 있는 값에
+    대해서는 여전히 거부하므로, 값이 비지 않은 표본 하나로는 그 고침을 잡지 못한다 — 판별력을
+    무력화로 재면서 그 구멍이 드러났다.
+    """
+    level = {
+        "action": "keep",
+        "target_level": "A2",
+        "reason": "정답률이 아직 낮습니다.",
+        "reason_en": unknown_value,
+    }
+
+    with pytest.raises(PlanValidationError, match="failed validation"):
+        parse_plan(
+            _payload(level=level),
+            current_level="A2",
+            allowed_pattern_ids=_ALLOWED,
+            deepest_pattern_id=_DEEPEST,
+        )
+
+
+def test_a_blank_named_key_that_carries_content_is_still_rejected():
+    """⛔ 반대 방향 ② — 값이 있으면 버리지 않고 실패한다. 관측되지 않은 모양이다."""
+    level = {
+        "action": "keep",
+        "target_level": "A2",
+        "reason": "정답률이 아직 낮습니다.",
+        "": "up",
+    }
+
+    with pytest.raises(PlanValidationError, match="failed validation"):
+        parse_plan(
+            _payload(level=level),
+            current_level="A2",
+            allowed_pattern_ids=_ALLOWED,
+            deepest_pattern_id=_DEEPEST,
+        )
