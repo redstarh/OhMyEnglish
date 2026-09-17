@@ -1824,3 +1824,24 @@ async def test_deleting_a_video_keeps_the_phrases_and_clears_the_link(
     assert row["transcript"] == "Hello there"
     assert row["source_url"] == "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
     assert row["youtube_video_id"] is None, "연결이 null 로 끊기지 않았다"
+
+
+@pytest.mark.asyncio
+async def test_clip_span_limit_matches_the_python_constant(db_conn: asyncpg.Connection):
+    """⛔ 구간 상한이 스키마와 파이썬에 **둘 다** 있으므로 갈라지지 않는지 잰다 (`TASK-165`).
+
+    스키마의 `shadowing_items_span_within_limit` 이 정본이고, `app.models.video` 의 상수는
+    **사용자에게 문구를 주기 위한** 사본이다. 두 값이 갈리면 사용자는 「담았다」고 보는데 DB 가
+    거부하거나(사본이 큼), 담을 수 있는 구간을 화면이 막는다(사본이 작음).
+    ⚠️ `models/video.py` 의 주석이 이 단정을 가리킨다 — 지우면 그 주석이 거짓이 된다.
+    """
+    from app.models.video import CLIP_MAX_SPAN_SECONDS
+
+    definition = await db_conn.fetchval(
+        "select pg_get_constraintdef(oid) from pg_constraint "
+        "where conname = 'shadowing_items_span_within_limit'"
+    )
+    assert definition is not None, "구간 상한 CHECK 가 사라졌다"
+    found = re.search(r"<=\s*\((\d+)\)", definition)
+    assert found is not None, f"CHECK 의 모양이 바뀌어 상한을 못 읽는다: {definition!r}"
+    assert int(found.group(1)) == int(CLIP_MAX_SPAN_SECONDS)

@@ -27,6 +27,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.daily import router as daily_router
 from app.api.results import router as results_router
 from app.api.shadowing import router as shadowing_router
+from app.api.videos import router as videos_router
 from app.api.ws import router as ws_router
 from app.config import get_settings
 from app.db import close_pool, pool
@@ -112,12 +113,24 @@ def create_app() -> FastAPI:
     # 있어야 한다 — 없으면 첫 연결이 AttributeError로 죽는다.
     app.state.live_sessions = set[UUID]()
     # WebSocket에는 CORS가 적용되지 않는다(브라우저가 preflight를 보내지 않는다) —
-    # 이 미들웨어는 결과 조회 같은 HTTP GET만을 위한 것이라 methods를 GET으로 좁힌다.
-    app.add_middleware(CORSMiddleware, allow_origins=[FRONTEND_ORIGIN], allow_methods=["GET"])
+    # 이 미들웨어는 HTTP 라우터만을 위한 것이다.
+    # ⚠️ **`GET` 만 허용했던 이전 판을 `TASK-165` 가 넓혔다.** 그때는 HTTP 표면이 조회뿐이라 맞는
+    # 값이었으나 영상 학습이 첫 쓰기 REST(`/api/videos`)를 들여왔다.
+    # ⛔ **이 한 줄을 빼먹으면 테스트는 전부 통과하고 브라우저에서만 담기·지우기가 막힌다** —
+    # `api_client` 는 ASGI 로 직접 붙어 preflight 를 거치지 않는다. 그래서
+    # `tests/integration/test_videos_api.py` 가 preflight 를 **직접 보내** 이 값을 잰다.
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[FRONTEND_ORIGIN],
+        allow_methods=["GET", "POST", "DELETE"],
+        allow_headers=["Content-Type"],
+    )
     app.include_router(results_router)
     app.include_router(daily_router)
     # 클립 오디오는 세션에 매이지 않은 제품 자산이라 `/api/shadowing` 을 따로 쓴다(`TASK-66`).
     app.include_router(shadowing_router)
+    # 담아 둔 영상과 그 영상에서 담은 문장 (`TASK-165` · 결정 125·126).
+    app.include_router(videos_router)
     app.include_router(ws_router)
 
     @app.get("/health")

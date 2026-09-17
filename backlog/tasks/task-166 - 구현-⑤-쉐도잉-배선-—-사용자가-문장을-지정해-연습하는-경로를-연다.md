@@ -1,10 +1,10 @@
 ---
 id: TASK-166
 title: '구현 ⑤: 쉐도잉 배선 — 사용자가 문장을 지정해 연습하는 경로를 연다'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-17 17:16'
-updated_date: '2026-09-17 17:17'
+updated_date: '2026-09-17 17:40'
 labels: []
 dependencies:
   - TASK-162
