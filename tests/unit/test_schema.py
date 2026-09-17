@@ -83,7 +83,11 @@ async def _insert_utterance(conn: asyncpg.Connection, utterance_id, session_id, 
 async def test_001_migration_creates_expected_tables(db_conn: asyncpg.Connection):
     rows = await db_conn.fetch(
         "select table_name from information_schema.tables "
-        "where table_schema = 'public' order by table_name"
+        # ⛔ `public` 이 아니라 `current_schema()` 다 — 026 이 우리 표를 `ohmyenglish` 로 옮겼고
+        #    `public` 에는 En-Coach 호환 뷰 셋만 남았다(`TASK-41`). 스키마를 이름으로 박으면 이
+        #    단정이 그 뷰 셋을 「우리 표」로 세거나, 스키마 이름을 바꿀 때 조용히 0행이 된다.
+        "where table_schema = current_schema() and table_type = 'BASE TABLE' "
+        "order by table_name"
     )
     table_names = {row["table_name"] for row in rows}
     assert table_names == {
@@ -711,7 +715,11 @@ async def test_pronunciation_attempts_column_nullability(db_conn: asyncpg.Connec
         row["column_name"]: row["is_nullable"]
         for row in await db_conn.fetch(
             "select column_name, is_nullable from information_schema.columns "
-            "where table_name = 'pronunciation_attempts'"
+            # ⛔ **스키마를 걸어야 한다** — `public` 에 같은 이름의 호환 뷰가 있고(026) 뷰는 모든
+            #    컬럼을 `is_nullable=YES` 로 보고한다. 걸지 않으면 두 행이 섞여 판정이 뒤집힌다
+            #    (`TASK-41` 에서 실제로 이 단정이 그렇게 깨졌다).
+            "where table_name = 'pronunciation_attempts' "
+            "and table_schema = current_schema()"
         )
     }
     assert columns, "pronunciation_attempts 테이블이 없다 (003 미적용)"
@@ -999,7 +1007,9 @@ async def test_error_occurrences_has_nullable_jsonb_suggested_contexts(
 ):
     column = await db_conn.fetchrow(
         "select data_type, is_nullable from information_schema.columns "
-        "where table_name = 'error_occurrences' and column_name = 'suggested_contexts'"
+        # ⛔ 스키마를 건다 — `public` 의 호환 뷰와 이름이 같다(026 · 위 단정의 주석 참조).
+        "where table_name = 'error_occurrences' and column_name = 'suggested_contexts' "
+        "and table_schema = current_schema()"
     )
     assert column is not None, "suggested_contexts 컬럼이 없다 (006 미적용)"
     assert column["data_type"] == "jsonb"

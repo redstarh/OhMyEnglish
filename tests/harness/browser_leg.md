@@ -522,7 +522,7 @@ print(psql_binary()); print(psql('select current_database()'))
 
 작성자가 직접 돌린 출력(2026-09-06): `/opt/homebrew/opt/postgresql@17/bin/psql` · `ohmyenglish`. 세 사실이 여기 걸린다 — **백엔드 venv가 필요하다**(`db_utils`가 최상단에서 `asyncpg`를 import한다) · **`DATABASE_URL`은 환경변수로만 읽는다**(`app/backend/.env`만 고쳐도 반영되지 않는다. 기본값 `postgresql://ohmy:ohmy@localhost:5432/ohmyenglish`가 현재 `.env`와 일치한다) · **homebrew `postgresql@17`은 keg-only라 `psql`이 PATH에 없다**(`psql_binary()`가 keg를 찾는다).
 
-⚠️ **DB 공유가 스키마 수준이다.** 같은 데이터베이스 `ohmyenglish` 안에 다른 프로젝트의 `en_coach` 스키마가 있고 소유자가 다르다(직접 확인: `en_coach:en_coach` · `public:pg_database_owner` · `current_user = ohmy`). **우리 것은 `public` 하나뿐이다** → `pg_dump`를 범위 없이 돌리면 `permission denied for schema en_coach`로 막힌다. **`-n public`을 붙인다.**
+⚠️ **DB 공유가 스키마 수준이다.** 같은 데이터베이스 `ohmyenglish` 안에 다른 프로젝트의 `en_coach` 스키마가 있고 소유자가 다르다(직접 확인: `en_coach:en_coach` · `public:pg_database_owner` · `current_user = ohmy`). ⛔ **2026-09-17에 바뀌었다** — 우리 표는 `public`이 아니라 스키마 **`ohmyenglish`** 에 있다(`TASK-41` · 마이그레이션 026). `public`에 남은 것은 En-Coach 호환 뷰 셋과 `redstar` 소유의 하네스 기준선 표 둘뿐이다. ⇒ **`pg_dump -n ohmyenglish`** 를 붙인다. `pg_dump`를 범위 없이 돌리면 여전히 `permission denied for schema en_coach`로 막히므로 **범위를 붙이는 규약 자체는 그대로다** — 바뀐 것은 어느 스키마인가다. ⚠️ `-n public`을 그대로 쓰면 **데이터가 한 줄도 안 들어온 백업**을 「떴다」고 믿게 된다.
 
 ⛔ **이 사실을 `information_schema.schemata`로 확인하지 마라 — 거짓 「없다」를 낸다** (2026-09-06 실측).
 그 뷰는 **현재 롤이 소유한 스키마만** 보여주므로 `ohmy`로 물으면 `public` **하나만** 나온다.

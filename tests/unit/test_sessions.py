@@ -822,7 +822,10 @@ async def test_the_default_learning_source_matches_the_migration(db_pool: asyncp
     async with db_pool.acquire() as conn:
         column_default = await conn.fetchval(
             "select column_default from information_schema.columns "
-            "where table_name = 'learning_sessions' and column_name = 'learning_source'"
+            # ⛔ 스키마를 건다 — 026 이 표를 `ohmyenglish` 로 옮겼다(`TASK-41`). 이 표에는 호환 뷰가
+            #    없지만, 스키마를 안 걸면 같은 이름의 표가 다른 스키마에 생길 때 조용히 섞인다.
+            "where table_name = 'learning_sessions' and column_name = 'learning_source' "
+            "and table_schema = current_schema()"
         )
 
     assert column_default is not None, "learning_source 컬럼에 기본값이 없다"

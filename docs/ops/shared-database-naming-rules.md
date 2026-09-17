@@ -311,10 +311,27 @@ podman exec -i ohmy-pg psql -U en_coach -d ohmyenglish   # 컨테이너 안은 �
 
 ---
 
-## 5. 참고 — OhMyEnglish 쪽 숙제 (En-Coach가 할 일은 아니다)
+## 5. ✅ OhMyEnglish 쪽 숙제는 끝났다 — **En-Coach는 아무것도 고치지 않는다** (2026-09-17)
 
-지금은 En-Coach만 전용 스키마를 갖고 우리는 `public`에 있다. **비대칭이라 우리 표가
-"기본값 자리"를 차지한다** — W1이 위험한 이유가 그것이다. 우리 표도 전용 스키마
-(`ohmyenglish`)로 옮기고 `public`을 비우면 두 앱이 대칭이 되고 R2가 없어도 안전해진다.
-지금 하지 않는 이유는 우리 SQL이 전부 한정자 없이 쓰여 있어 범위가 크기 때문이다 —
-`TASKS.md` E절 후속으로 남긴다.
+이전 판은 *"우리 표도 전용 스키마(`ohmyenglish`)로 옮기고 `public`을 비우면 대칭이 된다.
+지금 하지 않는 이유는 우리 SQL이 전부 한정자 없이 쓰여 있어 범위가 크기 때문"*이라고 적었다.
+**옮겼다** (`TASK-41` · 마이그레이션 026). ⚠️ 미뤄 둔 이유가 **거꾸로였다** — 한정자가 하나도
+없으므로 고칠 곳이 882자리가 아니라 `search_path` 한 곳이었다(한정자가 섞여 있었다면 그쪽이
+비쌌다).
+
+⛔ **En-Coach가 할 일은 없다.** 그쪽이 읽는 표 셋에 대해 `public`에 **같은 이름의 뷰**를 남겼다:
+
+| `public` 이름 | 실제 |
+|---|---|
+| `public.error_patterns` | `ohmyenglish.error_patterns` 를 읽는 뷰 |
+| `public.error_occurrences` | `ohmyenglish.error_occurrences` 를 읽는 뷰 |
+| `public.pronunciation_attempts` | `ohmyenglish.pronunciation_attempts` 를 읽는 뷰 |
+
+뷰는 **소유자(`ohmy`) 권한으로** 기반 표를 읽으므로 En-Coach는 새 스키마에 `usage`가 필요 없다.
+실측(2026-09-17, `set role en_coach`): 셋 다 읽혔고(`9`·`24`·`7`행)
+`ohmyenglish.error_patterns` 직접 접근은 `permission denied for schema ohmyenglish`로 막혔다 —
+**그 막힘이 정답이다**(그것이 대칭이다).
+
+⚠️ **R3(자기 스키마에 감싸는 뷰를 만든다)은 여전히 권고다.** 실측으로 En-Coach는 아직 그 뷰를
+만들지 않았다(우리 표에 의존하는 다른 스키마 객체가 0건이었다). 만들어 두면 다음에 우리가 이름을
+바꿀 때 고칠 곳이 한 군데다 — 지금은 우리가 남긴 호환 뷰가 그 역할을 대신하고 있다.

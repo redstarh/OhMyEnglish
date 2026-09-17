@@ -110,6 +110,14 @@ cd app/backend && .venv/bin/pytest -c pyproject.toml ../../tests/integration/tes
 나눌 수는 없다(그러려면 코드를 고쳐야 한다). 두 DB는 매 실행마다 drop/create되는 **파괴 대상**이고
 `ohmyenglish`는 아니다.
 
+⛔ **2026-09-17: 우리 표는 `public`이 아니라 스키마 `ohmyenglish`에 있다** (`TASK-41` ·
+마이그레이션 026). 그래서 백업 범위가 바뀌었다 — **`pg_dump -n ohmyenglish`** 를 쓴다.
+`-n public`은 이제 En-Coach 호환 뷰 셋만 뜬다(데이터가 한 줄도 안 들어온다).
+⚠️ 역할 `ohmy`의 `search_path`가 `ohmyenglish, public`이다. **`public`을 빼지 마라** —
+`pgcrypto`가 `public`에 설치돼 있어(실측) 빼면 `gen_random_uuid()`를 쓰는 DDL이 깨진다.
+⚠️ `public`에 `redstar` 소유의 하네스 기준선 표 둘이 남아 있다 — 그것 때문에 `ohmy`로 뜨는
+`pg_dump -n public`은 `permission denied`다(`TASK-153`).
+
 ⚠️ **역할 `ohmy`에 `TimeZone=UTC`가 걸려 있다.** :5432 인스턴스 기본값은 `Asia/Seoul`인데,
 그대로 쓰면 `current_date`가 KST와 같아져 **함정 H-S가 화면에서 사라진다** — §11 복습 주기 코드가
 로컬에서만 맞고 UTC 서버에서 깨진다. 역할 단위라 새로 만드는 DB에도 자동 적용된다.
