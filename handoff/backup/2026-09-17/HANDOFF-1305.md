@@ -1,8 +1,8 @@
 # HANDOFF — OhMyEnglish
 
-> 최종 갱신 **2026-09-18 01:42 KST**(같은 세션이 세 번째로 마감함) · 세션 `ohmyenglish-42` · 브랜치 `design/first-vertical-slice`
-> ⛔ **이전 판은 `handoff/backup/2026-09-17/HANDOFF-1305.md` 에 있음**(그 앞 판들은 같은 폴더의
-> `HANDOFF-1245.md`·`HANDOFF-0947.md`·`HANDOFF-0801.md`). 인계 원칙의 정본은 `~/.claude/rules/session-handoff.md` 임.
+> 최종 갱신 **2026-09-17 13:05 KST**(같은 세션이 두 번째로 마감함) · 세션 `ohmyenglish-42` · 브랜치 `design/first-vertical-slice`
+> ⛔ **이전 판은 `handoff/backup/2026-09-17/HANDOFF-1245.md` 에 있음**(그 앞 판들은 같은 폴더의
+> `HANDOFF-0947.md`·`HANDOFF-0801.md`). 인계 원칙의 정본은 `~/.claude/rules/session-handoff.md` 임.
 > 상태 정본은 원장(`backlog/`), 근거 정본은 **태스크 노트 · `tests/harness/runs/**` ·
 > `docs/ops/captain-instruction-register.md` · `docs/ops/pitfalls.md`** 임.
 
@@ -35,7 +35,7 @@
 
 | # | 지표 | 값 |
 |--:|---|---|
-| 1 | 기준 커밋 | 게이트를 돌린 시점은 **`fc0cec8`** 이고 `origin` 과 **0/0** 이었음. ⛔ 자기 커밋 해시를 여기 적지 않는 이유는 반드시 낡기 때문임 — 새 세션 `HEAD` 가 한 커밋 뒤면 그것은 **이 handoff 뿐**임 |
+| 1 | 기준 커밋 | 게이트를 돌린 시점은 **`e775812`** 이고 `origin` 과 **0/0** 이었음. ⛔ 자기 커밋 해시를 여기 적지 않는 이유는 반드시 낡기 때문임 — 새 세션 `HEAD` 가 한 커밋 뒤면 그것은 **이 handoff 뿐**임 |
 | 2 | 다음 한 걸음 | ⛔ **원장이 완전히 닫혔음 — 열린 태스크가 0건임**(`To Do` 0 · `In Progress` 0 · `Awaiting Decision` 0). ⇒ **다음 걸음은 사용자의 방향 지시뿐임.** 지시를 받으면 태스크로 등록하고 착수함 |
 | 3 | 게이트 | **일곱 다 exit 0** — 수집 **1294** · `pytest` **1294 passed** · `ruff` 0 · `ruff format` **273 files** · `ty` 0 · `tsc` 0 · `eslint` 0 |
 | 4 | 착수 전 필수 | 전체 **217** · 완료 **217** · 열린 것 **0** · **미충족 AC 0건**. ⇒ 착수 전 조건이 없음 |
@@ -50,21 +50,26 @@ cd app/backend && ./.venv/bin/ruff check . ../../tests ../../scripts \
 cd app/frontend && npx tsc --noEmit && npx eslint .
 ```
 
-## ① 이 세션이 한 것 — 원장을 비웠음
+## ① 이 세션이 한 것 — 태스크 6건을 닫아 원장을 비웠고 회차 둘을 돌렸음
 
-닫은 것: `TASK-153`·`116.5`·`154`·`155`·`156`·`122`. 근거는 각 태스크 노트가 가짐
-(`backlog task view <ID> --plain`) — 여기 옮겨 적지 않음.
+**닫은 것**: `TASK-153`(기준선 표 둘을 `ohmy` 소유·`ohmyenglish` 스키마로) ·
+`TASK-116.5`(결정 124 이행) · `TASK-155`(통합 회차 — 위임) · `TASK-156`(P5 의 신원 확인을 fd 로) ·
+`TASK-154`(**결정 124 반증 · 되돌림**). 새로 등록한 것 셋은 `TASK-154`·`155`·`156` 이고 전부 닫았음.
+`TASK-122`(**사용자가 코드 쪽 고침을 골라 닫았음** — `parse_plan` 이 이름 없는 빈 키 하나만 무시함).
+⇒ **열린 태스크가 0건임.**
 
 ⛔ **이 세션의 값은 넣은 것보다 «되돌린 것» 에 있음.** 결정 124 를 이행했다가 실물 회차가 반증해
 두 프롬프트에서 걷었음. 그 판정을 만든 것은 **회차 중간에 더한 짝 대조 팔** 하나임 — 그것이 없으면
-「모델이 바뀐 듯하다」로 잘못 닫았음(상한을 4 → 7 세션으로 늘렸고 그 사실을 회차에 적었음).
+「모델이 바뀐 듯하다」로 잘못 닫았음(그래서 상한을 4 → 7 세션으로 늘렸고 그 사실을 회차에 적었음).
 
 ## ② 지금 상태 — 새로 생긴 계약
 
-- **하네스 기준선 표**: `ohmyenglish` 스키마 · 소유자 `ohmy` · 9행·15행. 파일 사본 둘이
-  `runs/2026-09-17-*-baseline*.tsv` 임. ⛔ §8-0 의 SQL 을 **비수식으로** 씀(`public.` 을 붙이면 없음).
-- **P5 프리플라이트**: 로그 신원을 `lsof -nP -p <pid> -Fn` 의 열린 fd 로 세움(`realpath` 도 함께 봄 —
-  macOS 의 `/tmp` 가 심볼릭 링크임).
+- **하네스 기준선 표**: `ohmyenglish.harness_pattern_baseline`(9행) ·
+  `harness_review_task_baseline`(15행) · 소유자 `ohmy`. 파일 사본 둘이
+  `runs/2026-09-17-pattern-baseline-v3.tsv`·`2026-09-17-review-task-baseline.tsv` 임.
+  ⛔ `browser_leg.md` §8-0 의 SQL 을 **비수식으로** 씀(`public.` 을 붙이면 그 자리에 표가 없음).
+- **P5 프리플라이트**: 로그 신원을 `lsof -nP -p <pid> -Fn` 의 열린 fd 로 세움. `realpath` 를 함께
+  보는 이유는 macOS 의 `/tmp` 가 `/private/tmp` 심볼릭 링크라서임.
 - **프롬프트**: 두 프롬프트의 규칙 9 가 **결정 124 이전 문면**임. 바이트 게이트가 `prompt_dedicated_v4`
   를 가리키고 초록임 — 그것이 「되돌렸다」의 기계 증거임.
 - **계획 파서**: `parse_plan` 이 `PlanOutput` 검증 «전에» **이름이 빈 키 중 값도 빈 것**만 걷음
@@ -75,22 +80,22 @@ cd app/frontend && npx tsc --noEmit && npx eslint .
 
 ## ③ 착수 전 필수 — 이 세션 실측
 
-1. ⛔ **`pytest`·`ruff` 는 `app/backend` 에서 돌림**(루트에서 돌리면 기본 규칙셋으로 떨어져 「0건」이
-   나옴 · `H-BN`). 부분 실행은 `-o asyncio_mode=auto`. 툴 호출 사이에 cwd 가 남으므로 절대 경로를 씀.
-2. ⛔ **한글 주석을 쓴 직후 `ruff check` 를 한 번 돌림** — `E501` 은 문자 수가 아니라 표시 폭이라
-   한글이 2열임(`H-BW`). 이 세션이 그 자리에서 반복해서 걸렸음.
-3. ⛔ **종료 코드를 판정에 쓸 때 파이프를 걸지 않음** — `> /tmp/out 2>&1; echo $?`(`H-AZ`).
-   그리고 zsh 는 변수에 담은 명령을 쪼개지 않고, **함수 호출을 `$(...)` 에 중첩하면 파싱이 깨짐**.
-4. ⚠️ **실물 Nova 회차는 전용 검증 DB 에서 돌림** — `createdb` → `scripts/migrate.py` →
+1. ⛔ **`pytest` 는 `app/backend` 에서 인자 없이 돌림.** 부분 실행은 `-o asyncio_mode=auto`.
+   툴 호출 사이에 cwd 가 남으므로 **절대 경로**를 씀.
+2. ⛔ **`ruff` 를 리포 루트에서 돌리지 않음**(`H-BN`) · **`E501` 은 문자 수가 아니라 표시 폭임**
+   (한글 2열 · `H-BW`). 이 세션이 한글 주석에서 **반복해서** 이 함정에 걸렸음 — 주석을 쓴 직후
+   `ruff check` 를 한 번 돌리는 것이 가장 값싼 방어임.
+3. ⛔ **zsh 는 변수에 담은 명령을 단어로 쪼개지 않음** — 셸 함수로 묶음. 그리고 **함수 호출을
+   `$(...)` 안에 중첩하면 파싱이 깨짐**(이 세션에서 밟았음).
+4. ⛔ **`pg_dump`·`pytest` 를 파이프에 걸면 `$?` 가 뒤쪽 명령의 것임** — `> /tmp/out 2>&1; echo $?`.
+5. ⚠️ **실물 Nova 회차는 전용 검증 DB 에서 돌림** — `createdb` → `scripts/migrate.py` →
    `p8_inject_pronunciation.py inject` → 백엔드를 **다른 포트**(`:8014`)에 `VOICE_ADAPTER=nova` 로.
-   끝나고 `dropdb` 하고 **공유 dev DB 표를 다시 읽어** 무변경을 대조함.
-5. ⚠️ **불변 지표(이 세션 마지막 실측)**: dev `learning_sessions` **17** · `utterances` **128** ·
+   끝나고 `dropdb` 하고 **공유 dev DB 여덟 표를 다시 읽어** 무변경을 대조함.
+6. ⚠️ **불변 지표(이 세션 마지막 실측)**: dev `learning_sessions` **17** · `utterances` **128** ·
    `error_patterns` **9** · `review_tasks` **15** · `analysis_jobs` **57** ·
    `pronunciation_attempts` **7** · `schema_migrations` **24** · `harness_runs` **28** ·
    `harness_sessions` **100**.
-6. ⛔ **`git add <디렉터리>` 금지** · 커밋 뒤 `git show --stat` 으로 담긴 것 전체를 봄(`H-BE`·`H-BR`).
-
-⚠️ **나머지 일반 함정은 여기에 옮겨 적지 않음** — 정본은 `docs/ops/pitfalls.md` 임.
+7. ⛔ **`git add <디렉터리>` 금지** · 커밋 뒤 `git show --stat` 으로 담긴 것 전체를 봄.
 
 ## ④ 열린 태스크 — **0건**
 
@@ -102,13 +107,6 @@ cd app/frontend && npx tsc --noEmit && npx eslint .
 문장 전체만 인용한 코치 발화는 어긋남 검사가 여전히 판정하지 못함(세션 2/59). 검사 쪽은 이득이
 구조적으로 0 이고 프롬프트 쪽은 반증됐으므로, 남은 후보는 **오디오를 듣는 판정**이고 설계서 §6 이
 범위 밖에 뒀음. 그것을 열려면 사용자 결정이 필요함 — 그래서 태스크로 등록하지 않았음.
-
-## ④-1 이 세션이 남긴 산출물 하나 (git 추적 대상 아님)
-
-`.harness/reports/feature-and-usage.html` — 구현된 기능과 사용 방법을 한 장으로 정리한 보고서임
-(사용자 요청 2026-09-18). 기능은 코드에서 확인해 파일 경로를 함께 적었고 **미구현 항목도 따로**
-두었음. ⚠️ **기능 판정의 정본이 아님** — 정본은 `docs/PRD.md`·`docs/design/`·이 파일임. 그 보고서는
-`fc0cec8` 시점의 사본이라 코드가 바뀌면 낡음. 다시 필요하면 그 시점 코드로 다시 만듦.
 
 ## ⑤ 착수 전 반드시 읽을 것
 
