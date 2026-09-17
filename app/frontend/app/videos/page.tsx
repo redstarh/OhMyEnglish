@@ -2,14 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import {
-  fetchVideos,
-  removeVideo,
-  storeVideo,
-  type VideoSummary,
-  type WriteFailure,
-} from "@/lib/api";
-import { fetchVideoMeta, thumbnailUrl } from "@/lib/youtube";
+import { fetchVideos, removeVideo, storeVideo, type VideoSummary } from "@/lib/api";
+import { fetchVideoMeta, thumbnailUrl, watchUrl } from "@/lib/youtube";
 
 /**
  * 영상 목록 (`TASK-168` · 스토리보드 S2).
@@ -24,7 +18,10 @@ import { fetchVideoMeta, thumbnailUrl } from "@/lib/youtube";
  * 그 규약을 이미 적었다).
  */
 
-const HOME_LINK_LABEL = "← 대시보드";
+// ⚠️ 라벨과 레이아웃 값을 기존 화면들에 맞춘다 — `results`·`history` 가 같은 목적지에
+// 같은 라벨을 쓰고, 폭·여백은 네 화면이 이미 공유하는 값이다. 새 값을 정하면 같은 앱의
+// 화면 폭이 두 벌이 된다.
+const HOME_LINK_LABEL = "← 학습 시작 화면으로";
 const HEADING = "영상으로 배우기";
 const LEAD =
   "YouTube 링크를 붙여넣어 영상을 담고, 안 들리는 구간을 받아 적어 쉐도잉 연습에 쓸 수 있어요.";
@@ -43,9 +40,15 @@ const ALREADY_STORED_NOTICE = "이미 담아 둔 영상이에요. 정보를 새�
 const STORED_NOTICE = "담았어요.";
 const REMOVE_CONFIRM = "이 영상을 목록에서 지울까요? 담아 둔 문장은 그대로 남아요.";
 
-function noticeFor(reason: WriteFailure): string {
-  return reason === "refused" ? NOT_FOUND_NOTICE : UNAVAILABLE_NOTICE;
-}
+// 갱신을 동시에 몇 건까지 도나. 브라우저의 호스트당 연결 상한과 같은 자리에 둔다.
+const REFRESH_CONCURRENCY = 6;
+
+const PAGE_STYLE = {
+  maxWidth: 640,
+  margin: "0 auto",
+  padding: "2rem",
+  fontFamily: "sans-serif",
+} as const;
 
 interface Preview {
   url: string;
@@ -75,43 +78,67 @@ export default function VideosPage() {
   // 담은 지 30일이 지난 메타데이터를 조용히 새로 받는다 (설계서 §1 질문 2).
   // ⛔ **사용자에게 알리지 않는다** — 정책을 지키기 위한 내부 동작이고 학습과 무관하다. 실패해도
   //    넘어간다: 낡은 제목이 보이는 것이 목록이 깨지는 것보다 낫다.
-  // ⚠️ 보통 0건이다. 담아 둔 영상 전부를 매번 다시 받지 않는 이유가 `metadata_stale` 이다.
-  const refreshStale = useCallback(async (rows: VideoSummary[]) => {
-    const stale = rows.filter((row) => row.metadata_stale);
-    if (stale.length === 0) {
-      return;
-    }
-    for (const row of stale) {
-      const watchUrl = `https://www.youtube.com/watch?v=${row.youtube_id}`;
-      const meta = await fetchVideoMeta(watchUrl);
-      if (meta) {
-        await storeVideo({ url: watchUrl, title: meta.title, channelName: meta.channelName });
+  // ⛔ **화면 상태를 건드리지 않고 「갱신한 것이 있는가」만 돌려준다** — 목록을 다시 읽는 자리는
+  //    `reload` 하나여야 한다. 여기서 또 읽으면 그 코드가 두 벌이 된다.
+  // ⚠️ 보통 0건이지만 **영상을 몰아 담고 한 달 뒤에 오면 전부 한꺼번에 stale** 이 된다. 그때
+  //    직렬로 돌면 건당 약 170 ms(oEmbed 왕복 실측)가 쌓이므로 **조각 병렬**로 돈다.
+  // ⚠️ 상한을 두는 이유 둘: 브라우저가 호스트당 연결을 6개 안으로 이미 제한하므로 그 위로는 얻는
+  //    것이 없고, 무제한이면 우리 백엔드 커넥션 풀을 한 번에 채운다.
+  const refreshStale = useCallback(
+    async (rows: VideoSummary[], alive: () => boolean): Promise<boolean> => {
+      const stale = rows.filter((row) => row.metadata_stale);
+      for (let at = 0; at < stale.length; at += REFRESH_CONCURRENCY) {
+        if (!alive()) {
+          return false;
+        }
+        await Promise.all(
+          stale.slice(at, at + REFRESH_CONCURRENCY).map(async (row) => {
+            const url = watchUrl(row.youtube_id);
+            const meta = await fetchVideoMeta(url);
+            if (meta) {
+              await storeVideo({ url, title: meta.title, channelName: meta.channelName });
+            }
+          }),
+        );
       }
-    }
-    const rows2 = await fetchVideos();
-    if (rows2 !== null) {
-      setVideos(rows2);
-    }
-  }, []);
+      return stale.length > 0;
+    },
+    [],
+  );
 
   useEffect(() => {
+    // ⚠️ 화면을 떠난 뒤 `setVideos` 를 부르지 않도록 살아 있는지 확인한다 — 갱신 루프가 길어질 수
+    //    있고(위 주석), 그 사이에 사용자가 영상 화면으로 들어갈 수 있다.
+    let alive = true;
     void (async () => {
       const rows = await reload();
-      if (rows) {
-        await refreshStale(rows);
+      if (rows && (await refreshStale(rows, () => alive)) && alive) {
+        await reload();
       }
     })();
+    return () => {
+      alive = false;
+    };
   }, [reload, refreshStale]);
+
+  // ⛔ `setBusy(true)`/`setBusy(false)` 짝을 손으로 맞추지 않는다 — 쓰기 경로를 새로 붙일 때
+  //    `finally` 를 빠뜨리면 화면이 영구히 잠긴다.
+  const runBusy = useCallback(async <T,>(fn: () => Promise<T>): Promise<T> => {
+    setBusy(true);
+    try {
+      return await fn();
+    } finally {
+      setBusy(false);
+    }
+  }, []);
 
   const check = useCallback(async () => {
     const trimmed = url.trim();
     if (!trimmed) {
       return;
     }
-    setBusy(true);
     setNotice(null);
-    const meta = await fetchVideoMeta(trimmed);
-    setBusy(false);
+    const meta = await runBusy(() => fetchVideoMeta(trimmed));
     if (!meta) {
       // ⚠️ oEmbed 는 없는 영상에 **400** 을 준다 — 「링크가 아니다」와 「영상이 없다」를 가르지
       //    않으므로 한 문구로 옮긴다(설계서 §7).
@@ -119,37 +146,35 @@ export default function VideosPage() {
       return;
     }
     setPreview({ url: trimmed, title: meta.title, channelName: meta.channelName });
-  }, [url]);
+  }, [url, runBusy]);
 
   const store = useCallback(async () => {
     if (!preview) {
       return;
     }
-    setBusy(true);
-    const result = await storeVideo({
-      url: preview.url,
-      title: preview.title,
-      channelName: preview.channelName,
-    });
-    setBusy(false);
+    const result = await runBusy(() =>
+      storeVideo({
+        url: preview.url,
+        title: preview.title,
+        channelName: preview.channelName,
+      }),
+    );
     if (!result.ok) {
-      setNotice(noticeFor(result.reason));
+      setNotice(result.reason === "refused" ? NOT_FOUND_NOTICE : UNAVAILABLE_NOTICE);
       return;
     }
     setNotice(result.value.created ? STORED_NOTICE : ALREADY_STORED_NOTICE);
     setPreview(null);
     setUrl("");
     await reload();
-  }, [preview, reload]);
+  }, [preview, reload, runBusy]);
 
   const remove = useCallback(
     async (videoId: string) => {
       if (!window.confirm(REMOVE_CONFIRM)) {
         return;
       }
-      setBusy(true);
-      const result = await removeVideo(videoId);
-      setBusy(false);
+      const result = await runBusy(() => removeVideo(videoId));
       if (!result.ok) {
         setNotice(UNAVAILABLE_NOTICE);
         return;
@@ -157,11 +182,11 @@ export default function VideosPage() {
       setNotice(null);
       await reload();
     },
-    [reload],
+    [reload, runBusy],
   );
 
   return (
-    <main style={{ padding: "2rem", maxWidth: "48rem", margin: "0 auto" }}>
+    <main style={PAGE_STYLE}>
       <Link href="/">{HOME_LINK_LABEL}</Link>
       <h1>{HEADING}</h1>
       <p>{LEAD}</p>

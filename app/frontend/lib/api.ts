@@ -343,6 +343,13 @@ export interface VideoDetail {
   title: string;
   channel_name: string;
   metadata_stale: boolean;
+  /**
+   * 담을 수 있는 구간의 최대 길이(초). **서버가 내려준다.**
+   *
+   * ⛔ 화면이 자기 상수를 두지 않는 이유: 정본은 스키마의 `shadowing_items_span_within_limit` 이고
+   * 백엔드 사본은 테스트가 대조하는데, **프런트 사본만 대조 장치가 없어** 조용히 갈라질 자리였다.
+   */
+  clip_max_span_sec: number;
   phrases: VideoPhrase[];
 }
 
@@ -376,11 +383,18 @@ export type WriteResult<T> = { ok: true; value: T } | { ok: false; reason: Write
  */
 export type WriteFailure = "refused" | "unavailable";
 
-async function writeJson<T>(
+/**
+ * 쓰기 요청 하나를 보내고 응답 상태만 판정한다.
+ *
+ * ⛔ **몸통을 읽지 않는다** — 읽는 것은 `postJson` 이 한다. 처음 판은 한 함수가 둘을 겸했고 그
+ * 대가가 `undefined as T` 캐스트였다(204 에는 몸통이 없어 `json()` 이 던진다). 계약이 둘이면
+ * 함수도 둘인 편이 타입 검사를 비껄 이유가 없다.
+ */
+async function sendWrite(
   path: string,
   method: "POST" | "DELETE",
   body?: unknown,
-): Promise<WriteResult<T>> {
+): Promise<{ ok: true; response: Response } | { ok: false; reason: WriteFailure }> {
   try {
     const response = await fetch(`${API_BASE}${path}`, {
       method,
@@ -392,14 +406,25 @@ async function writeJson<T>(
     if (!response.ok) {
       return { ok: false, reason: response.status === 422 ? "refused" : "unavailable" };
     }
-    // 204 에는 몸통이 없다 — `json()` 을 부르면 던진다.
-    if (response.status === 204) {
-      return { ok: true, value: undefined as T };
-    }
-    return { ok: true, value: (await response.json()) as T };
+    return { ok: true, response };
   } catch {
     return { ok: false, reason: "unavailable" };
   }
+}
+
+/** 몸통이 있는 쓰기 — 생성·갱신. */
+async function postJson<T>(path: string, body: unknown): Promise<WriteResult<T>> {
+  const sent = await sendWrite(path, "POST", body);
+  if (!sent.ok) {
+    return sent;
+  }
+  return { ok: true, value: (await sent.response.json()) as T };
+}
+
+/** 몸통이 없는 쓰기 — 삭제(`204`). */
+async function deleteNothing(path: string): Promise<WriteResult<void>> {
+  const sent = await sendWrite(path, "DELETE");
+  return sent.ok ? { ok: true, value: undefined } : sent;
 }
 
 /** 담아 둔 영상 전부. 실패하면 `null` — 전용 화면이므로 빈 목록으로 거짓을 그리지 않는다. */
@@ -430,7 +455,7 @@ export async function storeVideo(input: {
   title: string;
   channelName: string;
 }): Promise<WriteResult<StoredVideo>> {
-  return writeJson<StoredVideo>("/api/videos", "POST", {
+  return postJson<StoredVideo>("/api/videos", {
     url: input.url,
     title: input.title,
     channel_name: input.channelName,
@@ -439,7 +464,7 @@ export async function storeVideo(input: {
 
 /** 영상만 지운다. **담은 문장은 남는다**(설계서 §1 질문 1). */
 export async function removeVideo(videoId: string): Promise<WriteResult<void>> {
-  return writeJson<void>(`/api/videos/${videoId}`, "DELETE");
+  return deleteNothing(`/api/videos/${videoId}`);
 }
 
 /** 구간과 들은 문장을 담는다. */
@@ -447,7 +472,7 @@ export async function storePhrase(
   videoId: string,
   input: { transcript: string; clipStartSec: number; clipEndSec: number },
 ): Promise<WriteResult<VideoPhrase>> {
-  return writeJson<VideoPhrase>(`/api/videos/${videoId}/phrases`, "POST", {
+  return postJson<VideoPhrase>(`/api/videos/${videoId}/phrases`, {
     transcript: input.transcript,
     clip_start_sec: input.clipStartSec,
     clip_end_sec: input.clipEndSec,
@@ -459,5 +484,5 @@ export async function removePhrase(
   videoId: string,
   phraseId: string,
 ): Promise<WriteResult<void>> {
-  return writeJson<void>(`/api/videos/${videoId}/phrases/${phraseId}`, "DELETE");
+  return deleteNothing(`/api/videos/${videoId}/phrases/${phraseId}`);
 }

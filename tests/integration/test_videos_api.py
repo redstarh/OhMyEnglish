@@ -21,6 +21,7 @@ import httpx
 import pytest
 import pytest_asyncio
 
+from app.api.main import FRONTEND_ORIGIN, create_app
 from app.models.user import FIXED_USER_ID
 from app.models.video import CLIP_MAX_SPAN_SECONDS, TRANSCRIPT_MAX_LENGTH
 
@@ -63,7 +64,7 @@ async def _store_video(client: httpx.AsyncClient, youtube_id: str = _ID) -> dict
     response = await client.post(
         "/api/videos",
         json={
-            "url": f"https://www.youtube.com/watch?v={youtube_id}",
+            "url": _URL if youtube_id == _ID else f"https://www.youtube.com/watch?v={youtube_id}",
             "title": "A title",
             "channel_name": "A channel",
         },
@@ -250,8 +251,6 @@ async def test_the_browser_is_allowed_to_send_the_write_methods(
     되는데, ASGI 로 붙는 다른 단정은 preflight 를 거치지 않아 **전부 통과한다.**
     ⇒ 그래서 여기서 preflight 를 직접 보낸다.
     """
-    from app.api.main import FRONTEND_ORIGIN
-
     for method in ("POST", "DELETE"):
         response = await api_client.request(
             "OPTIONS",
@@ -263,3 +262,53 @@ async def test_the_browser_is_allowed_to_send_the_write_methods(
         )
         allowed = response.headers.get("access-control-allow-methods", "")
         assert method in allowed, f"{method} 가 preflight 에서 허용되지 않았다: {allowed!r}"
+
+
+@pytest.mark.asyncio
+async def test_every_http_method_the_routers_use_survives_preflight(
+    api_client: httpx.AsyncClient,
+) -> None:
+    """⛔ CORS 의 `allow_methods` 는 **라우터의 사본**이고 그 사본은 이미 한 번 갈라졌다.
+
+    `TASK-165` 가 첫 쓰기 라우터를 넣을 때까지 그 값은 `["GET"]` 이었고, 그것을 잡은 것은 값역이
+    아니라 위의 preflight 단정이었다. 다음 메서드(`PUT`·`PATCH`)에서 같은 실패가 같은 방식으로
+    반복되므로, **메서드 목록을 라우터에서 뽑아** 전부 시험한다.
+
+    ⚠️ 그래서 이 단정은 새 메서드를 쓰는 라우터가 생기면 **CORS 를 함께 넓히라고 red 로 말한다.**
+    `OPTIONS`·`HEAD` 는 Starlette 가 스스로 붙이는 것이라 뺀다.
+    """
+    app = create_app()
+    used: set[str] = set()
+    for route in app.routes:
+        for method in getattr(route, "methods", None) or ():
+            used.add(method)
+    used -= {"OPTIONS", "HEAD"}
+    assert used, "라우터에서 메서드를 하나도 못 읽었다 — 이 단정이 아무것도 재지 않는다"
+
+    for method in sorted(used):
+        response = await api_client.request(
+            "OPTIONS",
+            "/api/videos",
+            headers={"Origin": FRONTEND_ORIGIN, "Access-Control-Request-Method": method},
+        )
+        allowed = response.headers.get("access-control-allow-methods", "")
+        assert method in allowed, f"라우터가 {method} 를 쓰는데 preflight 가 막는다: {allowed!r}"
+
+
+@pytest.mark.asyncio
+async def test_the_detail_response_carries_the_clip_span_limit(
+    api_client: httpx.AsyncClient, clean_videos: None
+) -> None:
+    """⛔ 구간 상한이 **화면까지 닿는지** 잰다.
+
+    이 값은 스키마가 정본이고 `CLIP_MAX_SPAN_SECONDS` 가 사본이며 그 둘은
+    `tests/unit/test_schema.py` 가 대조한다. ⚠️ 그런데 **화면이 자기 사본을 두면 그것만 대조 장치가
+    없다** — 첫 판이 그랬다(`MAX_SPAN_SECONDS = 90` 이 화면에 있었고 아무 것도 그것을 묶지 않았다).
+    이 단정이 사라지면 화면이 다시 자기 값을 발명할 자리가 생긴다.
+    """
+    stored = await _store_video(api_client)
+
+    detail = await api_client.get(f"/api/videos/{stored['id']}")
+
+    assert detail.status_code == 200
+    assert detail.json()["clip_max_span_sec"] == float(CLIP_MAX_SPAN_SECONDS)

@@ -50,6 +50,30 @@ async def _a_video(conn: asyncpg.Connection, youtube_id: str = _ID):
     )
 
 
+async def _a_phrase(
+    conn: asyncpg.Connection,
+    video_id: UUID,
+    user_id: UUID,
+    *,
+    transcript: str = "Hello there",
+    start: str = "0",
+    end: str = "3",
+):
+    """구간·문장의 기본값을 여기 한 자리에 둔다.
+
+    ⚠️ 그래야 각 테스트에서 **무엇이 그 테스트의 변수인가**가 보인다 — 정밀도를 재는 테스트만
+    `start`·`end` 를 덮어쓰고, 나머지는 채움값을 되풀이하지 않는다.
+    """
+    return await add_phrase(
+        conn,
+        video_id,
+        user_id=user_id,
+        transcript=transcript,
+        start_sec=Decimal(start),
+        end_sec=Decimal(end),
+    )
+
+
 @pytest.mark.asyncio
 async def test_a_stored_video_shows_up_in_the_list(db_conn: asyncpg.Connection):
     stored = await _a_video(db_conn)
@@ -137,14 +161,7 @@ async def test_a_phrase_stores_a_normalised_watch_url_and_the_video_link(
     user_id = await _a_user(db_conn)
     video = await _a_video(db_conn)
 
-    phrase = await add_phrase(
-        db_conn,
-        video.id,
-        user_id=user_id,
-        transcript="Hello there",
-        start_sec=Decimal("0"),
-        end_sec=Decimal("3"),
-    )
+    phrase = await _a_phrase(db_conn, video.id, user_id)
 
     assert phrase is not None
     row = await db_conn.fetchrow(
@@ -196,14 +213,7 @@ async def test_deleting_a_video_keeps_its_phrases(db_conn: asyncpg.Connection):
     """⛔ 계약 1 — 이 단정이 뒤집히면 사용자의 복습 이력이 지워진다."""
     user_id = await _a_user(db_conn)
     video = await _a_video(db_conn)
-    phrase = await add_phrase(
-        db_conn,
-        video.id,
-        user_id=user_id,
-        transcript="Hello there",
-        start_sec=Decimal("0"),
-        end_sec=Decimal("3"),
-    )
+    phrase = await _a_phrase(db_conn, video.id, user_id)
     assert phrase is not None
 
     assert await delete_video(db_conn, video.id) is True
@@ -224,14 +234,7 @@ async def test_a_phrase_can_only_be_deleted_through_its_own_video(db_conn: async
     user_id = await _a_user(db_conn)
     video = await _a_video(db_conn)
     other = await _a_video(db_conn, _OTHER_ID)
-    phrase = await add_phrase(
-        db_conn,
-        video.id,
-        user_id=user_id,
-        transcript="Hello there",
-        start_sec=Decimal("0"),
-        end_sec=Decimal("3"),
-    )
+    phrase = await _a_phrase(db_conn, video.id, user_id)
     assert phrase is not None
 
     assert await delete_phrase(db_conn, other.id, phrase.id) is False

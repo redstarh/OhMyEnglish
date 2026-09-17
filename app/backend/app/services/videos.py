@@ -37,16 +37,22 @@ _CLIP_PRECISION = Decimal("0.01")
 # `shadowing_items_audio_only_for_synthetic` 이 선다(정책 III.E.1).
 _WATCH_URL_PREFIX = "https://www.youtube.com/watch?v="
 
+# ⚠️ **`count(i.youtube_video_id)` 이지 `count(i.id)` 가 아니다.** 조인 조건이 그 열의 non-null 을
+# 보장하므로 계산값은 같은데, 그 열은 027 의 부분 인덱스에 들어 있어 **Index Only Scan** 이 된다.
+# 실측(영상 40건 · 매인 문장 400건): `count(i.id)` 는 버퍼 **191**·0.160 ms,
+# 이쪽은 버퍼 **3**·0.086 ms. 목록은 화면 진입·담기·지우기마다 다시 부르므로 그 차이가 배수가 된다.
+# ⚠️ `group by` 에 `v.id` 하나만 적는다 — 기본 키의 함수 종속으로 같은 표의 나머지 열이 허용된다.
+# 여섯 칸을 적으면 「`select` 에 열을 더할 때마다 여기도 더해야 한다」로 잘못 읽힌다(실제로는 아님).
 _LIST_VIDEOS_SQL = """
 select v.id,
        v.youtube_id,
        v.title,
        v.channel_name,
-       count(i.id) as phrase_count,
+       count(i.youtube_video_id) as phrase_count,
        (v.metadata_fetched_at < now() - make_interval(days => $1)) as metadata_stale
   from youtube_videos v
   left join shadowing_items i on i.youtube_video_id = v.id
- group by v.id, v.youtube_id, v.title, v.channel_name, v.metadata_fetched_at, v.created_at
+ group by v.id
  order by v.created_at desc, v.id
 """
 
@@ -191,6 +197,9 @@ async def upsert_video(
     ⛔ **중복을 오류로 만들지 않는 것이 계약이다.** 정책이 메타데이터 보관을 30일로 제한하므로 갱신
     경로가 있어야 하고, 그 경로를 새 엔드포인트가 아니라 이 호출이 겸한다(설계서 §1 질문 2).
     """
+    # ⚠️ `.strip()` 이 값역 층과 **의도적으로 겹친다** — 요청 모델이 `str_strip_whitespace=True` 로
+    # 이미 다듬으므로 라우터를 거친 값에는 두 번째 수행이다. 서비스는 라우터 없이도 불릴 수 있고
+    # (테스트·스크립트) 그때 공백이 그대로 저장되면 CHECK 가 잡지 못하는 앞뒤 공백이 남는다.
     row = await conn.fetchrow(_UPSERT_VIDEO_SQL, youtube_id, title.strip(), channel_name.strip())
     assert row is not None, "upsert ... returning produced no row"
     return UpsertedVideo(

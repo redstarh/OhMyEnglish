@@ -57,6 +57,16 @@ export function thumbnailUrl(youtubeId: string): string {
   return `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`;
 }
 
+/**
+ * 그 영상의 watch 주소. **화면 둘이 각자 조립하지 않고 여기서 만든다.**
+ *
+ * ⚠️ 백엔드도 같은 형태를 `services/videos._WATCH_URL_PREFIX` 로 소유하고 `source_url` 에 그 형태로
+ * 저장한다 — 화면이 만드는 링크와 저장된 출처가 같은 모양이어야 하므로 프런트 쪽도 한 자리로 모은다.
+ */
+export function watchUrl(youtubeId: string): string {
+  return `https://www.youtube.com/watch?v=${youtubeId}`;
+}
+
 /** 플레이어 상태값. IFrame Player API 가 정한 것이라 우리가 발명하지 않는다. */
 export const PLAYER_ENDED = 0;
 export const PLAYER_PLAYING = 1;
@@ -72,16 +82,15 @@ export const PLAYER_EMBED_BLOCKED = [101, 150] as const;
 /**
  * 우리가 실제로 부르는 플레이어 메서드만 담은 최소 타입.
  *
- * ⛔ **`@types/youtube` 를 의존성으로 들이지 않는다** — 쓰는 것이 여섯 개뿐이라 그 패키지의
- * 값어치가 그것을 관리하는 비용을 넘지 않는다. ⚠️ 여기 없는 메서드를 부르려면 이 타입을 먼저
- * 넓혀야 한다 — 그것이 「무엇을 쓰는지」를 한자리에 남기는 장치다.
+ * ⛔ **`@types/youtube` 를 의존성으로 들이지 않는다** — 그 패키지의 값어치가 관리 비용을 넘지
+ * 않는다. ⚠️ 여기 없는 메서드를 부르려면 이 타입을 먼저 넓혀야 한다 — 그것이 「무엇을 쓰는지」를
+ * 한자리에 남기는 장치다. ⚠️ **이 목록이 실제 호출과 어긋나면 그 장치가 죽는다** — 처음 판이
+ * `getDuration`·`pauseVideo` 를 적어 두고 부르지 않아 「쓰는 것이 여섯」이라는 주석이 거짓이었다.
  */
 export interface YouTubePlayer {
   seekTo(seconds: number, allowSeekAhead: boolean): void;
   getCurrentTime(): number;
-  getDuration(): number;
   playVideo(): void;
-  pauseVideo(): void;
   destroy(): void;
 }
 
@@ -89,7 +98,7 @@ interface YouTubePlayerEvent {
   data: number;
 }
 
-export interface YouTubePlayerOptions {
+interface YouTubePlayerOptions {
   videoId: string;
   events?: {
     onReady?: () => void;

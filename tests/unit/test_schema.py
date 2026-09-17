@@ -1722,6 +1722,19 @@ async def _insert_video(conn: asyncpg.Connection, youtube_id: str = "dQw4w9WgXcQ
     )
 
 
+async def _insert_video_phrase(conn: asyncpg.Connection, video_id):
+    """영상에 매달린 문장 1행. ⚠️ 컬럼 목록과 값을 두 테스트에 되풀이하지 않는다 — 027 의 NOT NULL
+    집합이나 CHECK 가 바뀌면 한 자리만 고치면 된다."""
+    return await conn.fetchval(
+        "insert into shadowing_items "
+        "(source_title, source_url, transcript, clip_start_sec, clip_end_sec, level, "
+        " youtube_video_id) "
+        "values ('A title', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'Hello there', "
+        "        0, 3, 'A2', $1) returning id",
+        video_id,
+    )
+
+
 @pytest.mark.asyncio
 async def test_youtube_videos_accepts_an_eleven_character_id(db_conn: asyncpg.Connection):
     video_id = await _insert_video(db_conn)
@@ -1782,14 +1795,7 @@ async def test_a_shadowing_item_from_a_video_must_carry_its_source_url(
 async def test_a_shadowing_item_from_a_video_cannot_carry_audio(db_conn: asyncpg.Connection):
     """정책 III.E.1(오디오 저장 금지)을 **기존** CHECK 가 지킨다 — 새 방어를 더하지 않았다."""
     video_id = await _insert_video(db_conn)
-    item_id = await db_conn.fetchval(
-        "insert into shadowing_items "
-        "(source_title, source_url, transcript, clip_start_sec, clip_end_sec, level, "
-        " youtube_video_id) "
-        "values ('A title', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'Hello there', "
-        "        0, 3, 'A2', $1) returning id",
-        video_id,
-    )
+    item_id = await _insert_video_phrase(db_conn, video_id)
 
     with pytest.raises(asyncpg.CheckViolationError):
         await db_conn.execute(
@@ -1805,14 +1811,7 @@ async def test_deleting_a_video_keeps_the_phrases_and_clears_the_link(
 ):
     """⛔ 설계서 §1 질문 1 의 답이다 — 문장은 사용자가 만든 학습 자산이므로 남는다."""
     video_id = await _insert_video(db_conn)
-    item_id = await db_conn.fetchval(
-        "insert into shadowing_items "
-        "(source_title, source_url, transcript, clip_start_sec, clip_end_sec, level, "
-        " youtube_video_id) "
-        "values ('A title', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'Hello there', "
-        "        0, 3, 'A2', $1) returning id",
-        video_id,
-    )
+    item_id = await _insert_video_phrase(db_conn, video_id)
 
     await db_conn.execute("delete from youtube_videos where id = $1", video_id)
 

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { fetchNextPlan, type NextPlanSummary } from "@/lib/api";
-import type { SessionEntry } from "@/lib/config";
+import { entryFromQuery, type SessionEntry } from "@/lib/config";
 import { VoiceIo, base64ToBytes, bytesToBase64 } from "@/lib/audio";
 import {
   SessionSocket,
@@ -477,15 +477,16 @@ export default function SessionPage() {
     if (autoStartedRef.current) {
       return;
     }
-    const query = new URLSearchParams(window.location.search);
-    const mode = query.get("mode");
-    const item = query.get("item");
-    if (mode !== "shadowing" || !item) {
+    // ⛔ 질의 필드 이름을 여기서 적지 않는다 — `entryFromQuery` 가 `sessionSocketUrl` 과 **같은 표**를
+    //    본다. 첫 판은 이 자리가 `mode`·`item` 만 읽고 `source` 를 다시 하드코딩했고, 그러면 진입
+    //    정보를 만드는 쪽과 읽는 쪽이 조용히 갈린다.
+    const entry = entryFromQuery(window.location.search);
+    if (entry === null) {
       return;
     }
     autoStartedRef.current = true;
     window.history.replaceState({}, "", "/");
-    void startSessionRef.current?.({ mode: "shadowing", source: "additional", itemId: item });
+    void startSessionRef.current?.(entry);
   }, []);
 
   // 시작 화면에 보여줄 추천 이유를 **마운트당 한 번** 읽는다 (R11-3). 폴링하지 않는다.

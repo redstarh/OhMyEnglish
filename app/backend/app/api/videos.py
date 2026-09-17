@@ -23,7 +23,7 @@ import asyncpg
 from fastapi import APIRouter, HTTPException, Request, Response
 
 from app.models.user import FIXED_USER_ID
-from app.models.video import PhraseCreateRequest, VideoCreateRequest
+from app.models.video import CLIP_MAX_SPAN_SECONDS, PhraseCreateRequest, VideoCreateRequest
 from app.services.video_url import parse_youtube_id
 from app.services.videos import (
     UpsertedVideo,
@@ -41,13 +41,19 @@ from app.services.videos import (
 router = APIRouter(prefix="/api/videos", tags=["videos"])
 
 
-def _summary_payload(video: VideoSummary) -> dict[str, object]:
-    """⛔ 썸네일 URL 을 싣지 않는다 — 화면이 `youtube_id` 로 조립한다(설계서 §2)."""
+def _video_core(video: VideoSummary | VideoDetail | UpsertedVideo) -> dict[str, object]:
+    """세 응답이 공통으로 싣는 넷. ⛔ 썸네일 URL 은 없다 — 화면이 `youtube_id` 로 조립한다(§2)."""
     return {
         "id": str(video.id),
         "youtube_id": video.youtube_id,
         "title": video.title,
         "channel_name": video.channel_name,
+    }
+
+
+def _summary_payload(video: VideoSummary) -> dict[str, object]:
+    return {
+        **_video_core(video),
         "phrase_count": video.phrase_count,
         "metadata_stale": video.metadata_stale,
     }
@@ -68,24 +74,22 @@ def _phrase_payload(phrase: VideoPhrase) -> dict[str, object]:
 
 
 def _detail_payload(detail: VideoDetail) -> dict[str, object]:
+    """⚠️ **구간 상한을 함께 내려보낸다.**
+
+    이 값은 스키마의 `shadowing_items_span_within_limit` 이 정본이고 `CLIP_MAX_SPAN_SECONDS` 가 그
+    사본이다(그 둘은 `tests/unit/test_schema.py` 가 대조한다). ⛔ 화면이 **자기 사본을 두지 않게**
+    여기서 실어 준다 — 세 번째 사본만 대조 장치가 없어 조용히 갈라질 자리였다.
+    """
     return {
-        "id": str(detail.id),
-        "youtube_id": detail.youtube_id,
-        "title": detail.title,
-        "channel_name": detail.channel_name,
+        **_video_core(detail),
         "metadata_stale": detail.metadata_stale,
+        "clip_max_span_sec": float(CLIP_MAX_SPAN_SECONDS),
         "phrases": [_phrase_payload(phrase) for phrase in detail.phrases],
     }
 
 
 def _upserted_payload(video: UpsertedVideo) -> dict[str, object]:
-    return {
-        "id": str(video.id),
-        "youtube_id": video.youtube_id,
-        "title": video.title,
-        "channel_name": video.channel_name,
-        "created": video.created,
-    }
+    return {**_video_core(video), "created": video.created}
 
 
 @router.get("")

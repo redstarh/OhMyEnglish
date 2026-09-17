@@ -45,9 +45,51 @@ export interface SessionEntry {
 export function sessionSocketUrl(entry: SessionEntry = {}): string {
   const base = `${API_BASE.replace(/^http/, "ws")}/ws/session`;
   const params = new URLSearchParams();
-  if (entry.mode) params.set("mode", entry.mode);
-  if (entry.source) params.set("source", entry.source);
-  if (entry.itemId) params.set("item", entry.itemId);
+  for (const [key, value] of Object.entries(entryQuery(entry))) {
+    params.set(key, value);
+  }
   const query = params.toString();
   return query ? `${base}?${query}` : base;
+}
+
+/**
+ * 진입 정보의 질의 표현 — **인코더와 디코더가 같은 표를 본다** (`TASK-168`).
+ *
+ * ⛔ 화면이 이 이름들을 직접 적지 않게 하는 것이 이 함수의 목적이다. 영상 학습의 [연습하기] 가
+ * `/?mode=…&source=…&item=…` 로 대시보드에 들어오는데, 만드는 쪽과 읽는 쪽이 각자 필드를 적으면
+ * **한쪽이 조용히 다른 부분집합을 다룬다** — 실제로 첫 판이 그랬다(만드는 쪽은 셋을 실었고 읽는
+ * 쪽은 둘만 읽으며 `source` 를 다시 하드코딩했다).
+ */
+function entryQuery(entry: SessionEntry): Record<string, string> {
+  const query: Record<string, string> = {};
+  if (entry.mode) query.mode = entry.mode;
+  if (entry.source) query.source = entry.source;
+  if (entry.itemId) query.item = entry.itemId;
+  return query;
+}
+
+/**
+ * `entryQuery` 의 역함수 — 질의 문자열에서 진입 정보를 읽는다. 진입 정보가 없으면 `null`.
+ *
+ * ⛔ **`mode` 가 없으면 `null` 이다.** 세션을 여는 뜻이 담긴 질의만 받아들이고, 그 밖의 질의
+ * (추적 파라미터 등)로 세션이 열리지 않게 한다.
+ * ⚠️ 값역을 여기서 좁히지 않는다 — 알 수 없는 `mode` 는 서버가 경고하고 말하기로 떨어뜨린다
+ * (`services/session_modes.policy_for`). 화면이 먼저 거부하면 그 규약이 두 곳에 갈린다.
+ */
+export function entryFromQuery(search: string): SessionEntry | null {
+  const params = new URLSearchParams(search);
+  const mode = params.get("mode");
+  if (!mode) {
+    return null;
+  }
+  const entry: SessionEntry = { mode: mode as SessionEntry["mode"] };
+  const source = params.get("source");
+  if (source) {
+    entry.source = source as SessionEntry["source"];
+  }
+  const item = params.get("item");
+  if (item) {
+    entry.itemId = item;
+  }
+  return entry;
 }

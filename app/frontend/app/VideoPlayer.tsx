@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef } from "react";
 import {
   PLAYER_EMBED_BLOCKED,
   PLAYER_ENDED,
+  PLAYER_PLAYING,
   loadPlayerApi,
   type YouTubePlayer,
 } from "@/lib/youtube";
@@ -61,6 +62,28 @@ export function VideoPlayer({
     }
   }, []);
 
+  /**
+   * 재생 시각 감시를 **재생 중일 때만** 돌린다.
+   *
+   * ⛔ 처음 판은 `playSpan` 에서 타이머를 걸고 `stopSpan`·언마운트까지 두었다. 그러면 이 화면의
+   * 중심 동작인 「멈추고 받아 적기」 동안에도 초당 10회씩 `getCurrentTime()` 을 부른다 — 20분 자리면
+   * 약 12,000회이고 그 대부분이 정지 상태다. 상태 전이에 묶으면 정지·버퍼링 중에는 아예 깨지 않고
+   * 감시 간격은 그대로라 구간 정확도가 변하지 않는다.
+   */
+  const startWatching = useCallback(() => {
+    clearTimer();
+    timerRef.current = setInterval(() => {
+      const span = spanRef.current;
+      const live = playerRef.current;
+      if (!span || !live) {
+        return;
+      }
+      if (live.getCurrentTime() >= span.end) {
+        live.seekTo(span.start, true);
+      }
+    }, WATCH_INTERVAL_MS);
+  }, [clearTimer]);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -87,17 +110,7 @@ export function VideoPlayer({
                   }
                   current.seekTo(startSec, true);
                   current.playVideo();
-                  clearTimer();
-                  timerRef.current = setInterval(() => {
-                    const span = spanRef.current;
-                    const live = playerRef.current;
-                    if (!span || !live) {
-                      return;
-                    }
-                    if (live.getCurrentTime() >= span.end) {
-                      live.seekTo(span.start, true);
-                    }
-                  }, WATCH_INTERVAL_MS);
+                  // ⚠️ 감시는 `onStateChange` 가 켠다 — 여기서 켜면 아직 버퍼링 중일 수 있다.
                 },
                 stopSpan: () => {
                   spanRef.current = null;
@@ -106,10 +119,20 @@ export function VideoPlayer({
               });
             },
             onStateChange: (event) => {
-              // 영상이 끝까지 갔는데 반복 구간이 살아 있으면 되돌린다 — 끝점이 영상 끝과 같을 때
-              // `getCurrentTime()` 감시가 그 자리를 못 잡는 경우가 있다.
               const span = spanRef.current;
-              if (event.data === PLAYER_ENDED && span && playerRef.current) {
+              // 반복 구간이 없으면 감시할 것이 없다 — 사용자가 그냥 영상을 보는 경우다.
+              if (!span) {
+                clearTimer();
+                return;
+              }
+              if (event.data === PLAYER_PLAYING) {
+                startWatching();
+                return;
+              }
+              clearTimer();
+              // 영상이 끝까지 갔는데 반복 구간이 살아 있으면 되돌린다 — 끝점이 영상 끝과 같을 때
+              // 시각 감시가 그 자리를 못 잡는 경우가 있다.
+              if (event.data === PLAYER_ENDED && playerRef.current) {
                 playerRef.current.seekTo(span.start, true);
                 playerRef.current.playVideo();
               }
@@ -142,7 +165,7 @@ export function VideoPlayer({
     // ⛔ `onReady`·`onEmbedBlocked` 를 의존성에 넣지 않는다 — 부모가 매 렌더에 새 함수를 만들면
     // 플레이어가 그때마다 파괴되고 다시 만들어져 **재생이 끊긴다.** 영상이 바뀔 때만 다시 만든다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [youtubeId, clearTimer]);
+  }, [youtubeId, clearTimer, startWatching]);
 
   return <div ref={hostRef} />;
 }
