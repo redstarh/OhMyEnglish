@@ -38,7 +38,9 @@ const EMPTY_PHRASES = "아직 담은 문장이 없어요. 안 들리는 자리�
 const LOAD_FAILED_NOTICE = "이 영상을 찾을 수 없어요.";
 const UNAVAILABLE_NOTICE = "지금 저장할 수 없어요. 잠시 뒤 다시 시도해 주세요.";
 const REFUSED_NOTICE = "이 구간이나 문장을 담을 수 없어요. 구간과 문장을 다시 확인해 주세요.";
-const EMBED_BLOCKED_NOTICE = "이 영상은 앱 안에서 재생할 수 없어요.";
+// ⚠️ **「지금」을 빼지 않는다** — 임베드 차단은 영구적이지만 없는 영상·일시 오류도 이 문구로
+// 모이므로(`VideoPlayer` 의 `onUnplayable`), 영구적이라고 단정하면 틀리는 경우가 생긴다.
+const UNPLAYABLE_NOTICE = "지금 이 영상을 앱 안에서 재생할 수 없어요.";
 const OPEN_ON_YOUTUBE_LABEL = "YouTube 에서 보기";
 const SPAN_BACKWARDS_NOTICE = "구간 끝이 시작보다 뒤여야 해요.";
 
@@ -78,7 +80,7 @@ export default function VideoLearningPage() {
   const [loadFailed, setLoadFailed] = useState(false);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [embedBlocked, setEmbedBlocked] = useState(false);
+  const [unplayable, setUnplayable] = useState(false);
   const [busy, setBusy] = useState(false);
 
   // ⛔ 플레이어 핸들을 상태가 아니라 ref 에 담는다 — 상태로 두면 핸들이 도착할 때 화면이 다시
@@ -116,7 +118,7 @@ export default function VideoLearningPage() {
     playerRef.current = handle;
   }, []);
 
-  const onEmbedBlocked = useCallback(() => setEmbedBlocked(true), []);
+  const onUnplayable = useCallback(() => setUnplayable(true), []);
 
   const markStart = useCallback(() => {
     setDraft({ start: playerRef.current?.currentTime() ?? 0, end: null, transcript: "" });
@@ -251,13 +253,13 @@ export default function VideoLearningPage() {
             <VideoPlayer
               youtubeId={detail.youtube_id}
               onReady={onPlayerReady}
-              onEmbedBlocked={onEmbedBlocked}
+              onUnplayable={onUnplayable}
             />
           ) : null}
 
-          {embedBlocked && detail ? (
+          {unplayable && detail ? (
             <p role="alert">
-              {EMBED_BLOCKED_NOTICE}{" "}
+              {UNPLAYABLE_NOTICE}{" "}
               <a href={watchUrl(detail.youtube_id)} target="_blank" rel="noreferrer">
                 {OPEN_ON_YOUTUBE_LABEL}
               </a>

@@ -1,13 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
-import {
-  PLAYER_EMBED_BLOCKED,
-  PLAYER_ENDED,
-  PLAYER_PLAYING,
-  loadPlayerApi,
-  type YouTubePlayer,
-} from "@/lib/youtube";
+import { PLAYER_ENDED, PLAYER_PLAYING, loadPlayerApi, type YouTubePlayer } from "@/lib/youtube";
 
 /**
  * YouTube 영상을 앱 안에서 재생하고 **구간을 반복**한다 (`TASK-167`).
@@ -43,12 +37,17 @@ const WATCH_INTERVAL_MS = 100;
 export function VideoPlayer({
   youtubeId,
   onReady,
-  onEmbedBlocked,
+  onUnplayable,
 }: {
   youtubeId: string;
   onReady?: (handle: VideoPlayerHandle) => void;
-  /** 임베드가 막혔을 때 — 화면이 「앱 안에서 재생할 수 없어요」와 외부 링크를 보인다. */
-  onEmbedBlocked?: () => void;
+  /**
+   * 앱 안에서 재생할 수 없을 때 — 화면이 그 문구와 외부 링크를 보인다.
+   *
+   * ⚠️ **임베드 차단에 한정하지 않는다**(이전 이름이 `onEmbedBlocked` 라 그렇게 읽혔다). 없는
+   * 영상·HTML5 오류·스크립트 적재 실패까지 여기로 모인다 — 사용자가 할 수 있는 일이 같다.
+   */
+  onUnplayable?: () => void;
 }) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const playerRef = useRef<YouTubePlayer | null>(null);
@@ -137,20 +136,19 @@ export function VideoPlayer({
                 playerRef.current.playVideo();
               }
             },
-            onError: (event) => {
-              if (PLAYER_EMBED_BLOCKED.some((code) => code === event.data)) {
-                onEmbedBlocked?.();
-              }
-            },
+            // ⛔ **코드를 보지 않는다.** 어느 오류든 사용자가 할 수 있는 일은 「YouTube 에서 보기」
+            // 하나이고, 코드를 가르면 목록 밖의 오류에서 화면이 조용해진다(`lib/youtube.ts` 의
+            // 같은 자리 주석 · `TASK-176`).
+            onError: () => onUnplayable?.(),
           },
         });
         playerRef.current = player;
       })
       .catch(() => {
-        // 스크립트를 못 실었다. ⚠️ 임베드 차단과 같은 자리로 모은다 — 사용자가 할 수 있는 일이
+        // 스크립트를 못 실었다. ⚠️ 재생 오류와 같은 자리로 모은다 — 사용자가 할 수 있는 일이
         // 「YouTube 에서 보기」 하나로 같다.
         if (!cancelled) {
-          onEmbedBlocked?.();
+          onUnplayable?.();
         }
       });
 
@@ -162,7 +160,7 @@ export function VideoPlayer({
       playerRef.current = null;
       player?.destroy();
     };
-    // ⛔ `onReady`·`onEmbedBlocked` 를 의존성에 넣지 않는다 — 부모가 매 렌더에 새 함수를 만들면
+    // ⛔ `onReady`·`onUnplayable` 을 의존성에 넣지 않는다 — 부모가 매 렌더에 새 함수를 만들면
     // 플레이어가 그때마다 파괴되고 다시 만들어져 **재생이 끊긴다.** 영상이 바뀔 때만 다시 만든다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [youtubeId, clearTimer, startWatching]);

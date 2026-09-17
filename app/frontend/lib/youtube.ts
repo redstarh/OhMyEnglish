@@ -24,8 +24,8 @@ export interface VideoMeta {
  *
  * ⚠️ **없는 영상은 404 가 아니라 400 이다**(2026-09-18 실측). 「404 면 없는 영상」으로 판정하면
  * 틀리므로 `response.ok` 하나로 본다 — 어느 쪽이든 화면 문구는 같다(설계서 §7).
- * ⚠️ 그리고 200 을 받았다는 것이 **임베드 가능을 보장하지 않는다** — 임베드를 막은 영상은 플레이어가
- * `onError`(`101`·`150`)로 알린다.
+ * ⚠️ 그리고 200 을 받았다는 것이 **재생 가능을 보장하지 않는다** — 임베드를 막았거나 그 밖의 이유로
+ * 재생이 안 되는 것은 플레이어가 `onError` 로 알린다.
  */
 export async function fetchVideoMeta(url: string): Promise<VideoMeta | null> {
   const endpoint = `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`;
@@ -71,13 +71,11 @@ export function watchUrl(youtubeId: string): string {
 export const PLAYER_ENDED = 0;
 export const PLAYER_PLAYING = 1;
 
-/**
- * 임베드를 막은 영상이 내는 오류 코드 — 화면이 이 둘만 따로 안내한다.
- *
- * ⚠️ 나머지 코드(`2` 잘못된 파라미터 · `5` HTML5 오류 · `100` 영상 없음)는 사용자가 손쓸 수 없는
- * 것이라 같은 문구로 모은다.
- */
-export const PLAYER_EMBED_BLOCKED = [101, 150] as const;
+// ⛔ **오류 코드 목록을 두지 않는다.** 이전 판은 `PLAYER_EMBED_BLOCKED = [101, 150]` 을 두고 그
+// 둘만 안내했는데, **사용자가 할 수 있는 일이 어느 코드에서나 「YouTube 에서 보기」 하나로 같다.**
+// 코드를 가르는 목록이 있으면 목록 밖의 오류에서 화면이 조용해진다 — 실측(2026-09-18 `TASK-176`):
+// 없는 영상에 재생을 걸면 플레이어가 **영어로** "An error occurred…" 를 보이는데 우리 안내는
+// 0건이었다. 판정은 `VideoPlayer` 의 `onError` 가 코드를 보지 않는 것으로 대신한다.
 
 /**
  * 우리가 실제로 부르는 플레이어 메서드만 담은 최소 타입.
