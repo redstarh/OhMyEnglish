@@ -72,12 +72,13 @@ def test_the_blind_spot_is_named_here_and_not_hidden():
 def test_speech_that_quotes_nothing_gives_no_verdict():
     """코치가 **아무것도** 인용하지 않으면 판정하지 않는다 — `None` 이고 배제 사유가 아니다.
 
-    ⛔ **이 테스트의 앞 판이 뒤집혔다 — 뒤집힌 사실과 근거를 함께 남긴다**(`rules/session-handoff.md`
-    §4 의 규율 3). 앞 판은 *'…detail in the word "early".'* 도 **`None`** 이라고 단정했고 그 근거는
-    「소리를 인용하지 않았다」였다. **사용자 결정 98 이 그것을 뒤집었다**: 실측에서 일반 세션의 코치는
-    소리를 이름으로 인용하지 않아 그 규칙 아래에서는 판정이 **한 건도 붙지 않았고**(일반 세션 3/3 ·
-    브라우저 1/1) 오디오에 없는 소리가 복습 시계를 전진시켰다. ⇒ 낱말 인용도 대조 재료로 쓴다.
-    그 자리는 위 `test_a_quoted_word_alone_can_prove_a_mismatch` 가 가진다.
+    ⛔ **이 테스트의 앞 판이 뒤집혔다 — 뒤집힌 사실과 근거를 함께
+    남긴다**(`rules/session-handoff.md` §4 의 규율 3). 앞 판은 *'…detail in the word "early".'* 도
+    **`None`** 이라고 단정했고 그 근거는 「소리를 인용하지 않았다」였다. **사용자 결정 98 이 그것을
+    뒤집었다**: 실측에서 일반 세션의 코치는 소리를 이름으로 인용하지 않아 그 규칙 아래에서는 판정이
+    **한 건도 붙지 않았고**(일반 세션 3/3 · 브라우저 1/1) 오디오에 없는 소리가 복습 시계를
+    전진시켰다. ⇒ 낱말 인용도 대조 재료로 쓴다. 그 자리는 위
+    `test_a_quoted_word_alone_can_prove_a_mismatch` 가 가진다.
 
     ⚠️ 여기 남는 것은 **인용이 0개인 경우**뿐이다 — 그때는 재료가 없어 여전히 판정하지 않는다.
     """
@@ -94,9 +95,9 @@ def test_a_missing_key_gives_no_verdict():
     assert sound_check_verdict(_ARM_A_SPEECH, "   ") is None
 
 
-# `TASK-116.3` 회차(`runs/2026-09-15-task116-3-verdict-condition`)에서 실측한 **일반 세션** 코치 발화.
-# ⛔ 문면을 발명하지 않았다 — 위 ARM 문면과 같은 규율이다.
-# WS 레그 B2·B4(`runs/2026-09-14-task129-plan-review-key` §1)의 원문 — 낱말만 인용했다.
+# `TASK-116.3` 회차(`runs/2026-09-15-task116-3-verdict-condition`)에서 실측한 **일반 세션** 코치
+# 발화. ⛔ 문면을 발명하지 않았다 — 위 ARM 문면과 같은 규율이다. WS 레그
+# B2·B4(`runs/2026-09-14-task129-plan-review-key` §1)의 원문 — 낱말만 인용했다.
 _GENERAL_SESSION_SPEECH_WORD_ONLY = (
     "I see. Your brother is arriving early tomorrow morning. | "
     'Sorry, I need to hear that word again. Can you say "early" one more time for me?'
@@ -129,7 +130,8 @@ def test_a_quoted_word_alone_can_prove_a_mismatch():
 
 
 def test_a_quoted_word_does_not_exclude_a_record_that_names_that_word_s_own_sound():
-    """⚠️ **결정 98 이 감수한 대가를 여기서 막는다 — 이 단정이 없으면 넓힌 문턱이 정상 기록을 지운다.**
+    """⚠️ **결정 98 이 감수한 대가를 여기서 막는다 — 이 단정이 없으면 넓힌 문턱이
+    정상 기록을 지운다.**
 
     코치가 `"early"` 를 인용했고 키가 **`r_as_l`** 이면 그 낱말에 `r` 이 있으므로 어긋남을 증명할 수
     없다 ⇒ **`None`**(배제하지 않는다). ⛔ 여기서 `mismatched` 가 나오면 발음 복습이 통째로 꺼진다.
@@ -158,7 +160,8 @@ def test_a_short_sound_does_not_preempt_word_evidence_for_another_key():
 
 
 def test_a_possessive_is_not_chopped_into_a_sound_token():
-    """⛔ **codex 리뷰 HIGH — 소유격의 아포스트로피를 «닫는 따옴표»로 오인하면 정상 기록이 배제된다.**
+    """⛔ **codex 리뷰 HIGH — 소유격의 아포스트로피를 «닫는 따옴표»로 오인하면
+    정상 기록이 배제된다.**
 
     `"Sri's"` 에서 앞 판은 `Sri` 를 3자 소리 토큰으로 뽑았다. 키가 `s_as_z` 인 **정상 기록**에서
     `sri` ⊄ `s_as_z` 이므로 `mismatched` 가 되고 복습 이력에서 빠진다.
@@ -179,8 +182,9 @@ def test_a_word_whose_spelling_hides_the_sound_is_a_known_cost():
     **정상 기록이 배제된다.**
 
     ⛔ **이 단정을 「고쳐야 할 실패」로 읽지 마라.** 고치려면 낱말에서 소리를 얻는 사전·규칙이
-    필요하고 **사용자가 그 후보를 기각했다**(결정 98 의 기각 ② — 결정 54·59 가 경계한 추정값이 된다).
-    ⇒ 남는 선택은 「이 대가를 알고 쓰는 것」이고, 이 테스트가 **그 대가의 크기를 눈에 보이게** 둔다.
+    필요하고 **사용자가 그 후보를 기각했다**(결정 98 의 기각 ② — 결정 54·59 가 경계한 추정값이
+    된다). ⇒ 남는 선택은 「이 대가를 알고 쓰는 것」이고, 이 테스트가 **그 대가의 크기를 눈에
+    보이게** 둔다.
     """
     assert sound_check_verdict('Please repeat "laugh".', "f_as_p") == "mismatched"
 

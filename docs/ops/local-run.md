@@ -63,20 +63,22 @@ cd app/backend && .venv/bin/python ../../tests/harness/spike_nova_protocol.py --
 ## 검증 게이트
 
 ```bash
-cd app/backend && .venv/bin/pytest -q && .venv/bin/ruff check . \
-  && .venv/bin/ruff format --check . && ty check
+cd app/backend && .venv/bin/pytest -q \
+  && .venv/bin/ruff check . ../../tests ../../scripts \
+  && .venv/bin/ruff format --check . ../../tests ../../scripts && ty check
 ```
 
 ⚠️ **cwd가 게이트의 일부다.** ruff 설정은 `app/backend/pyproject.toml` 하나뿐이고
 리포루트에는 없다 → 리포루트에서 돌리면 ruff 기본 규칙이 적용돼 수십 건이 난다. 그건
-회귀가 아니라 다른 규칙셋이다. 반드시 `app/backend` cwd에서 판정한다(함정 H-A).
+회귀가 아니라 다른 규칙셋이다. 반드시 `app/backend` cwd에서 판정한다(함정 H-A·H-BN).
 
-`tests/`와 `scripts/`는 위 `ruff check .` **범위 밖**이라 따로 돌린다(함정 H-L):
+⛔ **`../../tests ../../scripts` 를 2026-09-17에 게이트 명령 안으로 넣었다**(`TASK-151`).
+그 전에는 「테스트를 건드린 커밋 전에 따로 돌린다」는 **권고**였고, 지켜지지 않아 `E501` 이
+17건까지 무증상으로 쌓였다(함정 **H-L**). 두 경로의 기준선은 **0** 이다 — 늘어나면 회귀다.
+⚠️ `ty` 는 경로 인자를 주지 않는다 — 리포루트 `ty.toml` 이 이미 범위를 갖는다(함정 **H-AN**).
 
-```bash
-cd app/backend && .venv/bin/ruff check ../../tests ../../scripts   # 베이스라인 6건 잔존
-cd app/backend && .venv/bin/ruff format --check ../../tests        # 베이스라인 4 files
-```
+⚠️ **이전 판은 그 두 경로를 「따로 돌린다」로 적고 베이스라인을 `6건`·`4 files` 로 적어 두었다** —
+둘 다 낡았다(2026-09-09 에 0 이 됐다). 세는 서술을 지우고 위 한 줄에 합쳤다.
 
 하위 경로를 직접 주면 `-c pyproject.toml`을 함께 준다 — rootdir이 리포 루트로 잡혀
 `asyncio_mode=auto`를 못 찾는다:

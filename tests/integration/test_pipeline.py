@@ -1052,12 +1052,12 @@ async def test_a_delivery_origin_finding_is_recorded_as_a_transcript_analysis_si
 # ⚠️ **위 픽스처는 이 축을 가르지 못한다** — `target_form` 과 `correction` 이 둘 다 `the report` 라서
 # 어느 필드를 실었는지 단정이 구별하지 못한다. 그래서 **가르는 픽스처**를 따로 둔다.
 #
-# 관측이 이유다(회차 `runs/2026-09-15-task88-1-analysis-row-screen`): 분석 프롬프트는 `target_form` 을
-# **일반형**으로 요구하고 그 예시가 자리표시자와 한국어다(`go to the + 장소 명사`). 그 값이 발음
-# 기록의 「시범 문장」 자리에 그대로 들어가 학습자가 **한국어 틀**을 봤다 —
-# `I finished the + 업무 산출물 명사 (report / presentation / draft)`.
-# ⇒ 같은 이름의 두 필드가 **계약이 다르다**: 문법의 `target_form` 은 연습 일반형이고 발음의
-# `target_form` 은 시범 «문장»이다. finding 은 문장을 이미 갖고 있다 — `correction` 이다.
+# 관측이 이유다(회차 `runs/2026-09-15-task88-1-analysis-row-screen`): 분석 프롬프트는 `target_form`
+# 을 **일반형**으로 요구하고 그 예시가 자리표시자와 한국어다(`go to the + 장소 명사`). 그 값이 발음
+# 기록의 「시범 문장」 자리에 그대로 들어가 학습자가 **한국어 틀**을 봤다 — `I finished the + 업무
+# 산출물 명사 (report / presentation / draft)`. ⇒ 같은 이름의 두 필드가 **계약이 다르다**: 문법의
+# `target_form` 은 연습 일반형이고 발음의 `target_form` 은 시범 «문장»이다. finding 은 문장을 이미
+# 갖고 있다 — `correction` 이다.
 TEMPLATED_DELIVERY_FINDING = default_finding(
     origin="delivery",
     category="business_expression",

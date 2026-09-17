@@ -1952,9 +1952,9 @@ async def test_a_requested_end_command_does_not_close_the_session(db_pool, commi
 async def test_a_report_command_runs_at_once_and_keeps_the_session_open(db_pool, committed_session):
     """둘째 조각의 명령은 확인을 거치지 않는다 (`TASK-61.6` · 결정 107 ③).
 
-    ⛔ **판별력은 셋째 발화에 있다** — 종료였다면 그 발화가 `command_confirmation` 으로 저장된다
-    (위 `test_a_requested_end_command_does_not_close_the_session`). 리포트는 확인을 기다리지
-    않으므로 **`learning` 으로 남아야** 한다. 그것이 「확인 절차를 타지 않는다」의 관측 가능한 형태다.
+    ⛔ **판별력은 셋째 발화에 있다** — 종료였다면 그 발화가 `command_confirmation` 으로 저장된다 (위
+    `test_a_requested_end_command_does_not_close_the_session`). 리포트는 확인을 기다리지 않으므로
+    **`learning` 으로 남아야** 한다. 그것이 「확인 절차를 타지 않는다」의 관측 가능한 형태다.
     """
     adapter = ScriptedAdapter(
         TranscriptEvent(kind="final", text="Oh My English, show my weekly report.", speaker="user"),
@@ -2077,11 +2077,11 @@ async def test_a_pause_command_stops_saving_learning_speech(db_pool, committed_s
     """결정 117 (`TASK-61.9`) — 정지 중에는 학습 발화를 저장하지 않는다.
 
     ⛔ **이 단정이 이 기능의 값어치 전부다.** 코치가 조용히 기다리는 것은 문면이고 문면은 거동을
-    보장하지 않는다(결정 112) — 앱이 지키는 것은 「정지 중 말한 것이 학습 기록에 남지 않는다」 하나다.
-    학습자가 「잠깐」이라 말하는 상황은 옆 사람과 말하거나 자리를 비우는 것이고, 그것이 교정 대상
-    발화로 저장되면 오류 패턴과 복습 시계가 오염된다.
-    ⚠️ 정지는 **부드러운 정지**다 — 소켓과 어댑터는 살아 있다. 코치가 「학습 계속」을 들어야 하기
-    때문이고, 그래서 표지가 든 발화는 정지 중에도 저장된다(다음 테스트가 그것을 쓴다).
+    보장하지 않는다(결정 112) — 앱이 지키는 것은 「정지 중 말한 것이 학습 기록에 남지 않는다」
+    하나다. 학습자가 「잠깐」이라 말하는 상황은 옆 사람과 말하거나 자리를 비우는 것이고, 그것이 교정
+    대상 발화로 저장되면 오류 패턴과 복습 시계가 오염된다. ⚠️ 정지는 **부드러운 정지**다 — 소켓과
+    어댑터는 살아 있다. 코치가 「학습 계속」을 들어야 하기 때문이고, 그래서 표지가 든 발화는 정지
+    중에도 저장된다(다음 테스트가 그것을 쓴다).
     """
     adapter = ScriptedAdapter(
         TranscriptEvent(kind="final", text="Hey, pause the session.", speaker="user"),
@@ -2187,11 +2187,11 @@ async def test_a_pause_command_without_the_marker_is_not_applied(db_pool, commit
 async def test_a_dropped_command_is_surfaced_to_the_screen(db_pool, committed_session):
     """결정 113 (`TASK-61.16`) — 표지가 없어 버린 명령을 **화면이 알 수 있게** 방송한다.
 
-    ⛔ 여기까지 오면 코치는 이미 「됐다」고 말한 뒤다 — 어댑터가 `{"status":"accepted"}` 를 tool 결과로
-    돌려주는 자리가 앱의 이 판정보다 **앞**이기 때문이다(`audio_gateway/nova.py`
-    `_flush_tool_results`). 그래서 warning 만 남기면 학습자는 되지 않은 것을 됐다고 듣는다 —
-    실물로 4/4 관측했다(`runs/2026-09-16-task61-15-accepted-without-execution` §2-1).
-    ⚠️ **실행하지 않는 것은 그대로다** — 이 프레임은 알림이고 명령이 아니다.
+    ⛔ 여기까지 오면 코치는 이미 「됐다」고 말한 뒤다 — 어댑터가 `{"status":"accepted"}` 를 tool
+    결과로 돌려주는 자리가 앱의 이 판정보다 **앞**이기 때문이다(`audio_gateway/nova.py`
+    `_flush_tool_results`). 그래서 warning 만 남기면 학습자는 되지 않은 것을 됐다고 듣는다 — 실물로
+    4/4 관측했다(`runs/2026-09-16-task61-15-accepted-without-execution` §2-1). ⚠️ **실행하지 않는
+    것은 그대로다** — 이 프레임은 알림이고 명령이 아니다.
     """
     adapter = ScriptedAdapter(
         TranscriptEvent(kind="final", text="End the session now, please.", speaker="user"),
@@ -2219,10 +2219,10 @@ async def test_a_dropped_command_is_surfaced_to_the_screen(db_pool, committed_se
 async def test_a_dropped_command_is_reported_to_the_adapter_as_rejected(db_pool, committed_session):
     """결정 118 (`TASK-61.15`) — 앱이 버린 명령은 어댑터에 **거절로** 보고된다.
 
-    ⛔ **그 보고가 코치의 「됐다」를 막는 유일한 수단이다.** 이전에는 어댑터가 번역 직후 「받았다」를
-    보냈고 앱의 판정이 그 뒤였다 — 실물에서 코치가 4/4 로 완료를 말했다
-    (`runs/2026-09-16-task61-15-accepted-without-execution` §2-1).
-    ⚠️ **이유를 함께 보고한다** — 학습자가 할 일이 다르다(표지를 붙여 다시 말하기).
+    ⛔ **그 보고가 코치의 「됐다」를 막는 유일한 수단이다.** 이전에는 어댑터가 번역 직후
+    「받았다」를 보냈고 앱의 판정이 그 뒤였다 — 실물에서 코치가 4/4 로 완료를 말했다
+    (`runs/2026-09-16-task61-15-accepted-without-execution` §2-1). ⚠️ **이유를 함께 보고한다** —
+    학습자가 할 일이 다르다(표지를 붙여 다시 말하기).
     """
     adapter = ScriptedAdapter(
         TranscriptEvent(kind="final", text="End the session now, please.", speaker="user"),

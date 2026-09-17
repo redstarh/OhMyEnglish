@@ -2166,11 +2166,11 @@ async def _control_tool_stream():
 async def test_a_control_tool_result_waits_for_the_gateways_report():
     """⛔ 결정 118 (`TASK-61.15`) — **실행 보고가 오기 전에는 결과를 보내지 않는다.**
 
-    이전 판은 번역 직후 「받았다」를 보냈고(결정 109) 실행 판정은 그 뒤 앱이 했다. 그 순서가
-    **앱이 버린 명령에도 코치가 완료로 말하게** 했다 — 실물 4/4
-    (`tests/harness/runs/2026-09-16-task61-15-accepted-without-execution` §2-1).
-    ⚠️ 이 단정이 지키는 것은 「보내지 않는다」이고, 결정 109 의 요구(결과가 없으면 그 턴이 조용해진다)는
-    **아래 두 단정**이 지킨다 — 셋을 함께 읽어야 계약이 온전하다.
+    이전 판은 번역 직후 「받았다」를 보냈고(결정 109) 실행 판정은 그 뒤 앱이 했다. 그 순서가 **앱이
+    버린 명령에도 코치가 완료로 말하게** 했다 — 실물 4/4
+    (`tests/harness/runs/2026-09-16-task61-15-accepted-without-execution` §2-1). ⚠️ 이 단정이 지키는
+    것은 「보내지 않는다」이고, 결정 109 의 요구(결과가 없으면 그 턴이 조용해진다)는 **아래 두
+    단정**이 지킨다 — 셋을 함께 읽어야 계약이 온전하다.
     """
     adapter, stream, collected = await _control_tool_stream()
     await adapter.close()
@@ -2310,10 +2310,11 @@ def test_system_prompt_tells_the_coach_the_command_marker_and_the_confirmation()
 def test_the_prompt_names_pause_and_resume_and_tells_the_coach_to_wait():
     """결정 117 (`TASK-61.9`) — 명령 둘이 지시문에 들어오고 「정지 중에 기다린다」를 함께 말한다.
 
-    ⛔ **문면이 정지 중 거동을 보장하지는 않는다**(결정 112) — 앱이 지키는 것은 「정지 중 학습 발화를
-    저장하지 않는다」 하나다. 문면이 필요한 이유는 다른 것이다: 이것이 없으면 모델이 애초에 tool 을
-    부르지 않아 **정지가 성립하지 않는다**(tool 스키마에 값을 더하는 것만으로는 부르지 않는다 —
-    `test_the_prompt_names_both_commands_and_only_end_needs_confirmation` 이 그 선례를 적었다).
+    ⛔ **문면이 정지 중 거동을 보장하지는 않는다**(결정 112) — 앱이 지키는 것은 「정지 중 학습
+    발화를 저장하지 않는다」 하나다. 문면이 필요한 이유는 다른 것이다: 이것이 없으면 모델이 애초에
+    tool 을 부르지 않아 **정지가 성립하지 않는다**(tool 스키마에 값을 더하는 것만으로는 부르지
+    않는다 — `test_the_prompt_names_both_commands_and_only_end_needs_confirmation` 이 그 선례를
+    적었다).
     """
     squeezed = " ".join(SYSTEM_PROMPT.split()).lower()
 
@@ -2350,13 +2351,14 @@ def test_the_prompt_does_not_count_the_commands():
 
 
 def test_the_prompt_names_the_simplified_wake_words_and_excludes_a_bare_greeting():
-    """결정 114 (`TASK-61.17`) — 표지가 「헤이」·「헬로」 계열로 단순화됐고 지시문이 그것을 알아야 한다.
+    """결정 114 (`TASK-61.17`) — 표지가 「헤이」·「헬로」 계열로 단순화됐고 지시문이 그것을
+    알아야 한다.
 
-    ⛔ **앱만 고치면 명령이 조용히 사라진다** — 표지 판정은 앱이 갖지만 tool 을 부르는 주체는 모델이다.
-    두 곳의 값역이 갈리면 학습자가 표지를 말했는데 tool 이 오지 않는다.
-    ⚠️ 그리고 **인사만 있는 발화는 명령이 아니라는 것**을 문면이 말해야 한다 — 그것이 결정 114 가
-    알고 받은 대가(오탐)를 모델 층에서 줄이는 수단이다. 앱 층에서는 줄일 수 없다: 표지 검사는
-    「맨 앞에 왔는가」만 보고 뒤에 무엇이 오는지 해석하지 않는다.
+    ⛔ **앱만 고치면 명령이 조용히 사라진다** — 표지 판정은 앱이 갖지만 tool 을 부르는 주체는
+    모델이다. 두 곳의 값역이 갈리면 학습자가 표지를 말했는데 tool 이 오지 않는다. ⚠️ 그리고 **인사만
+    있는 발화는 명령이 아니라는 것**을 문면이 말해야 한다 — 그것이 결정 114 가 알고 받은
+    대가(오탐)를 모델 층에서 줄이는 수단이다. 앱 층에서는 줄일 수 없다: 표지 검사는 「맨 앞에
+    왔는가」만 보고 뒤에 무엇이 오는지 해석하지 않는다.
     """
     lowered = " ".join(SYSTEM_PROMPT.lower().split())
 
@@ -2423,7 +2425,8 @@ def test_the_prompt_folds_mode_change_into_the_additional_learning_command():
     assert "asking to switch the mode or the kind of practice is this same command" in squeezed
     assert "never guess which kind they want" in squeezed
     assert "do not call the tool at all until they answer" in squeezed
-    # 흡수의 뜻은 명령이 **하나**라는 것이다 — 별도 명령 이름이 문면에 새면 모델이 없는 tool 을 부른다.
+    # 흡수의 뜻은 명령이 **하나**라는 것이다 — 별도 명령 이름이 문면에 새면 모델이 없는 tool 을
+    # 부른다.
     assert "change_mode" not in SYSTEM_PROMPT
 
 
@@ -2456,7 +2459,8 @@ def test_the_prompt_names_next_question_and_puts_the_learner_before_the_plan():
 
 
 def test_the_prompt_tells_the_coach_to_ask_out_loud_before_calling_the_tool():
-    """⛔ `TASK-61.4` D3(사용자 결정 104) — 실측에서 코치가 tool 만 부르고 **한 마디도 하지 않았다**.
+    """⛔ `TASK-61.4` D3(사용자 결정 104) — 실측에서 코치가 tool 만 부르고
+    **한 마디도 하지 않았다**.
 
     ARM-A2·ARM-B 의 `recv.audio` 가 0 이었고, 그래서 학습자는 무엇을 확인해야 하는지 듣지 못했다.
     ⚠️ 문면만으로 거동이 보장되지 않는다 — 실물 관측은 `TASK-61.4` AC#6 의 회차가 한다.
