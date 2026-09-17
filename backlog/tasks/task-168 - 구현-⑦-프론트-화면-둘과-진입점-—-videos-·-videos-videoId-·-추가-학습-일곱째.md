@@ -1,10 +1,10 @@
 ---
 id: TASK-168
 title: '구현 ⑦: 프론트 화면 둘과 진입점 — /videos · /videos/[videoId] · 추가 학습 일곱째'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-17 17:17'
-updated_date: '2026-09-17 17:17'
+updated_date: '2026-09-17 17:49'
 labels: []
 dependencies:
   - TASK-166

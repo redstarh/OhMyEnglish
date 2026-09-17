@@ -314,3 +314,150 @@ export async function fetchWeeklyReport(): Promise<WeeklyReportPayload | null> {
   }
   return (await response.json()) as WeeklyReportPayload;
 }
+
+/* ─── 영상으로 배우기 (`TASK-167` · 설계서 `docs/design/2026-09-18-video-learning-design.md` §3) ─── */
+
+/** 목록 화면의 카드 하나. ⛔ 썸네일 URL 이 없다 — `thumbnailUrl(youtube_id)` 로 조립한다. */
+export interface VideoSummary {
+  id: string;
+  youtube_id: string;
+  title: string;
+  channel_name: string;
+  phrase_count: number;
+  /** 제목·채널을 받은 지 30일이 지났는가. 서버가 계산한다 — 화면이 날짜를 비교하지 않는다. */
+  metadata_stale: boolean;
+}
+
+/** 담은 문장 하나. 이름이 쉐도잉 payload 와 같다(`ShadowingSetup` 과 맞춘 것이다). */
+export interface VideoPhrase {
+  id: string;
+  transcript: string;
+  clip_start_sec: number;
+  clip_end_sec: number;
+}
+
+/** 학습 화면이 한 번의 왕복으로 받는 것. */
+export interface VideoDetail {
+  id: string;
+  youtube_id: string;
+  title: string;
+  channel_name: string;
+  metadata_stale: boolean;
+  phrases: VideoPhrase[];
+}
+
+/**
+ * 담기·갱신의 결과. `created` 가 **화면 문구를 가른다** — 담았다 vs 이미 담아 둔 영상이다.
+ *
+ * ⛔ 중복은 오류가 아니라 갱신이다(설계서 §1 질문 2) — 정책이 메타데이터 보관을 30일로 제한하므로
+ * 갱신 경로가 있어야 하고, 그것을 담기와 같은 요청이 겸한다.
+ */
+export interface StoredVideo {
+  id: string;
+  youtube_id: string;
+  title: string;
+  channel_name: string;
+  created: boolean;
+}
+
+/**
+ * 쓰기 요청의 결과 — **실패의 종류를 화면에 알린다.**
+ *
+ * ⛔ 이 리포의 기존 조회 함수는 실패에 `null` 을 주는데(전용 화면) 쓰기는 그럴 수 없다: 설계서 §7 이
+ * 문구를 **갈라** 정했고(「이 링크에서 영상을 찾지 못했어요」 vs 「지금 확인할 수 없어요」) `null`
+ * 하나로는 그 둘을 가릴 수 없다. 그래서 이 갈래만 결과형을 쓴다.
+ */
+export type WriteResult<T> = { ok: true; value: T } | { ok: false; reason: WriteFailure };
+
+/**
+ * `refused` = 서버가 값역으로 거부했다(422) · `unavailable` = 그 밖(네트워크·서버 오류·404).
+ *
+ * ⚠️ 404 를 따로 두지 않는다 — 목록에서 지운 직후에만 생기고 화면이 이미 그 카드를 지웠다.
+ */
+export type WriteFailure = "refused" | "unavailable";
+
+async function writeJson<T>(
+  path: string,
+  method: "POST" | "DELETE",
+  body?: unknown,
+): Promise<WriteResult<T>> {
+  try {
+    const response = await fetch(`${API_BASE}${path}`, {
+      method,
+      cache: "no-store",
+      ...(body === undefined
+        ? {}
+        : { headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }),
+    });
+    if (!response.ok) {
+      return { ok: false, reason: response.status === 422 ? "refused" : "unavailable" };
+    }
+    // 204 에는 몸통이 없다 — `json()` 을 부르면 던진다.
+    if (response.status === 204) {
+      return { ok: true, value: undefined as T };
+    }
+    return { ok: true, value: (await response.json()) as T };
+  } catch {
+    return { ok: false, reason: "unavailable" };
+  }
+}
+
+/** 담아 둔 영상 전부. 실패하면 `null` — 전용 화면이므로 빈 목록으로 거짓을 그리지 않는다. */
+export async function fetchVideos(): Promise<VideoSummary[] | null> {
+  const response = await fetch(`${API_BASE}/api/videos`, { cache: "no-store" });
+  if (!response.ok) {
+    return null;
+  }
+  return ((await response.json()) as { videos: VideoSummary[] }).videos;
+}
+
+/** 영상 하나와 담은 문장 전부. 없거나 실패하면 `null`. */
+export async function fetchVideo(videoId: string): Promise<VideoDetail | null> {
+  const response = await fetch(`${API_BASE}/api/videos/${videoId}`, { cache: "no-store" });
+  if (!response.ok) {
+    return null;
+  }
+  return (await response.json()) as VideoDetail;
+}
+
+/**
+ * 영상을 담거나 이미 담은 것의 메타데이터를 갱신한다.
+ *
+ * ⚠️ **URL 을 그대로 넘긴다** — 식별자를 뽑는 것은 서버의 일이다(`parse_youtube_id`).
+ */
+export async function storeVideo(input: {
+  url: string;
+  title: string;
+  channelName: string;
+}): Promise<WriteResult<StoredVideo>> {
+  return writeJson<StoredVideo>("/api/videos", "POST", {
+    url: input.url,
+    title: input.title,
+    channel_name: input.channelName,
+  });
+}
+
+/** 영상만 지운다. **담은 문장은 남는다**(설계서 §1 질문 1). */
+export async function removeVideo(videoId: string): Promise<WriteResult<void>> {
+  return writeJson<void>(`/api/videos/${videoId}`, "DELETE");
+}
+
+/** 구간과 들은 문장을 담는다. */
+export async function storePhrase(
+  videoId: string,
+  input: { transcript: string; clipStartSec: number; clipEndSec: number },
+): Promise<WriteResult<VideoPhrase>> {
+  return writeJson<VideoPhrase>(`/api/videos/${videoId}/phrases`, "POST", {
+    transcript: input.transcript,
+    clip_start_sec: input.clipStartSec,
+    clip_end_sec: input.clipEndSec,
+  });
+}
+
+/** 담은 문장 하나를 지운다. ⚠️ 경로에 영상 id 가 필요하다 — 문장은 그 영상의 하위 자원이다. */
+export async function removePhrase(
+  videoId: string,
+  phraseId: string,
+): Promise<WriteResult<void>> {
+  return writeJson<void>(`/api/videos/${videoId}/phrases/${phraseId}`, "DELETE");
+}
