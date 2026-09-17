@@ -70,13 +70,16 @@ pids = sorted({int(x) for x in out.stdout.split()})
 assert len(pids) == 1, f"8002 를 듣는 프로세스가 정확히 1개여야 한다 — {pids}"
 pid = pids[0]
 # ② 로그가 **그 프로세스의 것**인지 (신원 확인). 이것이 없으면 ③이 뜻을 갖지 않는다.
+#    ⛔ **로그 «내용» 으로 묻지 않는다 (2026-09-17 정정).** 이전 판은
+#    `Started server process [pid]` 를 찾았는데 그것은 uvicorn **INFO** 라 `--log-level warning`
+#    스택에서는 애초에 찍히지 않고, 그 판은 그 자리에서 죽었다(실측: 로그가 0바이트였다).
+#    fd 로 물으면 **레벨과 무관**하고 「그 파일이 이 프로세스의 stdout·stderr 인가」를 직접 답한다.
 log = "/tmp/omy-backend.log"
 assert os.path.exists(log), f"{log} 이 없다 — 백엔드를 어느 로그로 띄웠는지 확인해라"
-started = re.findall(r"Started server process \[(\d+)\]",
-                     open(log, encoding="utf-8", errors="replace").read())
-assert started, "로그에 'Started server process' 가 없다 — 백엔드 로그가 아니다"
-assert started[-1] == str(pid), (
-    f"로그가 지금 도는 백엔드의 것이 아니다: 로그 pid={started[-1]} · 실행 pid={pid}"
+real = os.path.realpath(log)   # macOS 의 /tmp 는 /private/tmp 심볼릭 링크다
+fds = subprocess.run(["lsof","-nP","-p",str(pid),"-Fn"],capture_output=True,text=True).stdout
+assert real in fds or log in fds, (
+    f"{log} 이 pid {pid} 의 열린 파일에 없다 — 그 로그는 지금 도는 백엔드의 것이 아니다"
 )
 # ③ 기동 시각은 **프로세스에서** 얻는다 (로그 파일 생성 시각을 쓰지 않는다 — 위 4차 정정).
 et = subprocess.run(["ps","-p",str(pid),"-o","etime="],capture_output=True,text=True).stdout.strip()
@@ -96,7 +99,8 @@ PY
 
 **⚠️ 이 검사의 핵심 단정 넷 — 하나라도 빠지면 공허 통과가 된다.** (셋이었고 4차 정정으로 넷이 됐다)
 1. **`len(pids) == 1`** — 듣는 프로세스를 `lsof`로 찾는다. **명령줄 스캔 금지**(셸 자기 자신이 잡힌다).
-2. **로그 pid == 실행 pid** — 로그가 그 프로세스의 것임을 세운 **뒤에야** 시각 비교가 뜻을 갖는다.
+2. **그 로그 파일이 그 pid 의 열린 fd 다** — 로그가 그 프로세스의 것임을 세운 **뒤에야** 시각
+   비교가 뜻을 갖는다. ⛔ **로그 내용으로 세우지 않는다**(위 ② 주석 · 2026-09-17 정정).
 3. **기동 시각은 `ps -o etime=`에서** 얻는다. **`stat %B` 금지** — `>`가 inode 를 유지해 낡는다.
 4. **`assert srcs`** + **검사한 개수 출력** — 0건을 검사하고 통과를 단정하는 것이 이 절이 막으려는
    바로 그 실패다. 개수가 없으면 공허 통과를 구별할 수 없다.
@@ -128,11 +132,19 @@ PY
 단정만 평가하고 나머지를 **`BLOCKED`(미평가)** 로 보고한다 — **평가하지 못한 것을 `PASS` 로
 올리지 않는 것이 이 규약의 값어치다.** 실물 호출이 0회이므로 회차를 두 번 여는 비용은 시간뿐이다.
 
-⛔ **로그는 `/tmp/omy-backend.log` 로 보내고 레벨은 `info` 여야 한다.** 위 ②의 신원 확인이
-`Started server process [pid]` 를 찾는데 그것은 uvicorn **INFO** 라 `--log-level warning` 으로
-띄우면 **나오지 않고 P5 가 그 assert 에서 죽는다**(2026-09-09 확인 — 같은 문서의 「기동 순서」가
-`warning` 을 적고 있었다). 실측 형태:
+⛔ **로그는 `/tmp/omy-backend.log` 로 보낸다.** ⚠️ **레벨 요구는 2026-09-17 에 걷혔다 —
+`warning` 으로 띄워도 P5 가 돈다.** 그 요구는 위 ②가 로그 «내용»(`Started server process [pid]`,
+uvicorn **INFO**)으로 신원을 세웠기 때문에만 있었고, ②를 **fd 검사**로 갈아탄 뒤에는 레벨과 무관하다.
+경위를 남긴다: 2026-09-09 에는 이 자리가 *"레벨은 `info` 여야 한다"* 였고 그 판은 옳았다(그때의 ②가
+그 줄을 요구했다). 2026-09-17 회차가 **`warning` 스택에서 로그가 0바이트**인 것을 만나 그 요구가
+`tests/harness/README.md:93` 의 기동 형태(`--log-level warning`)와 **정면으로 어긋나는 것**을
+드러냈고, 두 문서를 맞추는 대신 **검사를 레벨에 의존하지 않게** 고쳤다.
+⇒ 두 형태가 **둘 다** 성립한다:
 `WORKER_ENABLED=false VOICE_ADAPTER=stub nohup .venv/bin/uvicorn app.api.main:app --port 8002 --log-level info > /tmp/omy-backend.log 2>&1 &`
+`WORKER_ENABLED=false VOICE_ADAPTER=stub nohup .venv/bin/uvicorn app.api.main:app --port 8002 --log-level warning > /tmp/omy-backend.log 2>&1 &`
+⚠️ **레벨을 내리면 잃는 것이 있다** — 앱의 INFO 는 어차피 안 보이지만(`H-Z`) uvicorn 의 기동·요청
+줄이 사라진다. ⛔ 그래서 **「로그 0줄」을 통과 근거로 쓰기 전에 그 채널이 오류를 잡는지 먼저
+증명한다**(2026-09-17 회차 §3 이 값역 밖 입력으로 32줄을 만들어 그것을 세웠다).
 
 ⚠️ **P9는 표의 마지막 행이다** — 2026-09-06까지 이 산문 아래에 홀로 떨어져 있어 표로 렌더되지 않았다.
 표 안으로 되돌렸다. **프리플라이트는 P1~P9 아홉 건이고 여덟 건이 아니다.**
@@ -157,8 +169,10 @@ PY
 
 ```bash
 # ⛔ WORKER_ENABLED=false 를 빼지 마라 — 기본값이 True 다 (함정 H-AS).
-# ⛔ --log-level info + /tmp/omy-backend.log 도 필수다 — P5 의 신원 확인이 그 로그의
-#    "Started server process [pid]" 를 찾고 그것은 INFO 다 (warning 으로 띄우면 P5 가 죽는다).
+# ⛔ /tmp/omy-backend.log 로 보내는 것은 여전히 필수다 — P5 의 신원 확인이 그 경로를 본다.
+# ⚠️ 레벨은 info·warning 둘 다 된다 (2026-09-17 정정 — P5 의 ②가 로그 내용이 아니라 fd 를 본다).
+#    warning 으로 내리면 uvicorn 기동·요청 줄이 사라지므로 「로그 0줄」을 근거로 쓰기 전에
+#    그 채널이 오류를 잡는지 먼저 증명한다.
 cd app/backend && WORKER_ENABLED=false VOICE_ADAPTER=stub \
   nohup .venv/bin/uvicorn app.api.main:app --port 8002 --log-level info \
   > /tmp/omy-backend.log 2>&1 &                                        # --reload 없음

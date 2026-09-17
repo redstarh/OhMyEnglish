@@ -5,7 +5,10 @@
 #   메운다. 대조 규약은 browser_leg.md §8-0 이 갖는다.
 # ⚠️ TASK-153 이 그 표의 스키마·소유자를 옮기기 «전에» 떴다. drift 0 에서 떴다 (15=15).
 # ⚠️ id 대신 pattern_key 로 적는다 — id 는 회차마다 새로 나므로 사람이 대조할 수 없다.
-#   pattern_key 하나에 stage 가 여럿인 행이 있어 stage 를 함께 정렬 키로 쓴다.
+# ⛔ 정렬 키: order by pattern_key, review_stage. ⚠️ 그 둘로도 «동순위» 가 남는다 —
+#   article_missing_the_before_place_noun 의 stage 1 이 3행이다. 그래서 행 순서를 그대로 비교하면
+#   값이 같은데도 차이가 나 보인다. **정렬해서(집합으로) 비교한다.** 2026-09-17 통합 회차가 이
+#   자리에서 1분을 썼고 그 경위로 이 줄을 적었다.
 pattern_key	review_stage	status	due_at	completed_at	cycle_started_at
 article_missing_before_noun	1	pending	2026-09-04 13:56:38.186958+00		2026-09-03 13:56:38.186958+00
 article_missing_before_noun	2	superseded	2026-09-11 23:16:37.719347+00		2026-09-03 13:56:38.186958+00
