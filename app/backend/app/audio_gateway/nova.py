@@ -130,25 +130,33 @@ _TOOL_ROLE = "TOOL"
 # ⛔ **규칙 13 안에서 두 명령을 가른 이유는 번호를 밀지 않는 것이다** — 새 규칙으로 떼면 규칙 14 가
 # 15 가 되고 이 주석과 `tests/unit/test_nova.py` 의 참조가 조용히 낡는다.
 #
-# ⛔ **규칙 9 가 「소리를 따옴표로 «따로» 인용하라」를 요구한다** (`TASK-116.5` · 사용자 결정
-# 2026-09-17 — **결정 82 를 이 축에서만 뒤집었다**). 실측: 코치 발화 120건 중 5건이 문장 전체만
-# 인용했고 세션 단위로 **2/59** 가 그 모양 때문에 어긋남 검사에서 판정 불가였다
-# (`tests/harness/runs/2026-09-15-task116-5-quote-shapes/README.md`).
-# `services/pronunciation._QUOTED_TOKEN_RE` 는 토큰에 공백을 넣지 않으므로 문장 인용에서는
-# **토큰이 0개**가 되고 `sound_check_verdict` 가 `None` 으로 떨어진다.
+# ⛔⛔ **규칙 9 에 「소리를 따옴표로 «따로» 인용하라」를 넣지 마라 — 2026-09-17 에 넣어 보고
+# 실물 회차가 반증했다** (`TASK-116.5`·`TASK-154` · 사용자 결정 124 → **반증됨**). 이것이 이 축의
+# **네 번째** 반증이고 결정 82 의 「프롬프트를 이 축의 근거로 더 고치지 않는다」를 되살렸다.
+# 정본은 `tests/harness/runs/2026-09-17-task154-dedicated-quote/README.md` 다.
 #
-# ⛔ **왜 이것이 결정 82 의 기각과 «다른 축» 인가 — 바꾸기 전에 읽을 것.** 82 가 세 방향 3/3 으로
-# 반증한 것은 프롬프트로 **`target_sound` 의 «내용»** 을 맞추려는 시도다(강제판·조건판·후보판).
-# 이 줄은 내용을 한 자도 건드리지 않고 **인용의 «형태»** 만 요구한다 — 검사가 읽을 수 있는 모양으로
-# 말하게 하는 것이고, 그래서 82 의 근거가 이 변경을 반증하지 않는다.
-# ⚠️ **검사 쪽 대안은 이득이 «구조적으로» 0 이라서 기각됐다** — `mismatched` 는
-# `word_supports_key` 가 거짓일 때만 나오고 그 값은 인용 범위를 넓히면 참이 되기만 한다(단조).
+# **무엇을 재려 했나**: 코치가 문장 전체만 인용하면 `services/pronunciation._QUOTED_TOKEN_RE` 가
+# 토큰을 0개 뽑아 `sound_check_verdict` 가 `None` 이 된다(측정된 구멍 세션 **2/59**). 그래서 소리를
+# 따옴표로 따로 인용하게 만들려 했다. 「내용이 아니라 형태만 요구하므로 82 와 다른 축」이라 봤다.
 #
-# ⛔ **전용 모드(`PRONUNCIATION_MODE_PROMPT`)의 규칙 9 에는 아직 넣지 않았다** — 그 문면은
-# `test_the_pronunciation_prompt_is_byte_identical_to_the_measured_one` 이 실측 산출물에 바이트로
-# 묶어 두었고, 고치려면 **실물 회차를 다시 돌려** 그 파일과 테스트를 함께 갱신해야 한다. 그 비용을
-# 이 변경에 묶지 않았고 별 태스크가 갖는다. ⚠️ 두 프롬프트의 규칙 9 는 이미 다르다
-# (전용 모드는 `Grammar first` 절이 없다) — 같아야 하는 것은 규칙 8·10(tool 규약)뿐이다.
+# ⛔ **무엇이 실제로 일어났나 — 짝 대조로 문면을 특정했다.** 같은 픽스처(`pq06`→`pq12`) · 같은
+# 후보(`th_as_s`) · 같은 검증 DB 에서:
+#   · **요구를 넣은 판 4/4**: 코치가 오디오의 오류(/θ/→/s/)가 아니라 **`"are"`** 를 집었고
+#     tool 호출이 **2 → 1** 로 줄어 「재발화 판정」 호출이 사라졌다. 판정은 `mismatched` 4/4.
+#   · **요구를 뺀 판(같은 날) 3/3**: `"th"` 를 집고 tool 이 2회 오고 판정이 `matched` 였다.
+#   ⇒ 같은 날 대조가 있으므로 **모델 변화가 아니라 이 문면이 원인이다.**
+#
+# ⚠️ **기전(가설)**: 「인용할 수 있는 형태로 말하라」가 코치를 **인용하기 쉬운 낱말**로 끌어당긴다 —
+# 문장 안의 `are` 가 그것이다. 즉 이 요구는 검사의 눈을 뜨게 하는 대신 **코치의 조준을 옮긴다.**
+# ⛔ 그리고 **없는 오류를 연습시키는 것**이므로 놓친 판정 하나보다 비싸다. 그래서 2/59 의 이득으로
+# 정당화되지 않는다.
+#
+# ⚠️ **그 구멍은 여전히 열려 있다** — 닫는 자리는 프롬프트가 아니고, 검사 쪽 대안도 이득이
+# **구조적으로 0** 이다(`mismatched` 는 `word_supports_key` 가 거짓일 때만 나오고 그 값은 범위를
+# 넓히면 참이 되기만 한다 — 단조). 남은 후보는 오디오를 듣는 판정이고 설계서 §6 이 범위 밖에 뒀다.
+#
+# ⚠️ 두 프롬프트의 규칙 9 는 원래부터 다르다(전용 모드는 `Grammar first` 절이 없다) — 같아야 하는
+# 것은 규칙 8·10(tool 규약)뿐이다.
 SYSTEM_PROMPT = """\
 You are OhMyEnglish, a warm, practical English speaking coach for a Korean learner.
 
@@ -176,10 +184,8 @@ Pronunciation coaching:
    errors, so you are the only one who can notice them.
 9. Grammar first. On most turns, correct grammar and leave pronunciation alone. Take up
    pronunciation only when a sound is so far off that the sentence is hard to understand —
-   never for a mild accent. When you do take it up, name the sound that was off and put it
-   in quotes on its own - the "th" sound, the "er" sound - then say the whole sentence back
-   with correct pronunciation, and ask the learner to repeat it. Quoting only the whole
-   sentence does not name the sound.
+   never for a mild accent. When you do take it up, name the sound that was off, say the
+   whole sentence back with correct pronunciation, and ask the learner to repeat it.
 10. Call report_pronunciation_coaching twice: once with outcome "pending" right after you
     have modeled the sentence, and again with correct, incorrect, or unclear once you have
     heard the learner repeat it. Always include target_sound - a short reusable key for the

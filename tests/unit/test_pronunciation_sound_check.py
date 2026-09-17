@@ -201,37 +201,38 @@ def test_a_whole_sentence_quote_is_still_not_judged():
     `any(segment in word …)` 이므로 **인용 범위를 넓히면 참이 되기만 한다.** ⇒ 문장을 낱말 자루로
     넣든 한 덩어리로 넣든 갈래 ②는 `None` 이다 — 이득이 「작다」가 아니라 **구조적으로 0** 이다.
 
-    ⇒ 그래서 이 구멍은 **코치가 소리를 인용하게 만드는 쪽**에서 닫혔다 (`TASK-116.5` · 사용자 결정
-    2026-09-17 로 **결정 82 를 이 축에서만 뒤집었다**). `SYSTEM_PROMPT` 규칙 9 가 소리를 따옴표로
-    «따로» 인용하라고 요구하고, 그 요구를 `test_nova.py` 의
-    `test_system_prompt_makes_the_coach_quote_the_off_sound_on_its_own` 이 잰다.
-    ⛔ **이 함수의 거동은 그 결정으로 바뀌지 않았다** — 문장만 인용된 발화는 여전히 `None` 이다.
-    바뀐 것은 「그 모양이 «유일한» 증거로 남는 일을 프롬프트가 줄인다」이고, 아래 두 단정이 그
-    새 모양을 고정한다.
-    ⚠️ **전용 모드 프롬프트에는 아직 그 요구가 없다**(실측 산출물에 바이트로 묶여 있어 실물 회차가
-    필요하다) — 그 절반은 열려 있고 별 태스크가 갖는다.
+    ⛔ **이 구멍은 열린 채로 남는다 — 프롬프트로 닫으려 했고 2026-09-17 실물 회차가 반증했다**
+    (`TASK-116.5`·`TASK-154` · 사용자 결정 124 → **반증됨** · 정본
+    `tests/harness/runs/2026-09-17-task154-dedicated-quote/README.md`). 규칙 9 에 「소리를 따옴표로
+    «따로» 인용하라」를 넣은 판에서 코치가 **오디오의 오류 대신 인용하기 쉬운 낱말**(`"are"`)을 집고
+    tool 호출이 **2 → 1** 로 줄었다(4/4). 같은 날 요구를 뺀 판은 3/3 으로 제 오류를 집었다.
+    ⇒ 검사의 눈을 뜨게 하는 대신 **코치의 조준이 옮겨졌고**, 없는 오류를 연습시키는 것이 놓친 판정
+    하나보다 비싸다. 그 축의 금지는 `nova.py` 의 규칙 9 위 주석이 소유한다.
+    ⚠️ 남은 후보는 오디오를 듣는 판정이고 설계서 §6 이 범위 밖으로 두었다.
     """
     sentence_quote = 'I hear you say "my brother will arrive early tomorrow morning."'
 
     assert sound_check_verdict(sentence_quote, "f_as_p") is None
 
 
-# ⚠️ **아래 두 문면은 관측된 조각 «둘을 합친 것»이고 그 자체로 관측된 발화가 아니다** — 문장 인용은
+# ⚠️ **아래 문면은 관측된 조각 «둘을 합친 것»이고 그 자체로 관측된 발화가 아니다** — 문장 인용은
 # `runs/2026-09-15-task81-app-leg` §7 의 실측이고 소리 인용 어법(`The "er" sound …`)은
-# `_ARM_B_JUDGEMENT_SPEECH` 의 실측이다. 합친 이유는 **프롬프트가 방금 그 모양을 요구했기 때문**이고
-# (규칙 9), 그 모양의 실측은 다음 회차가 만든다. ⛔ 회차가 돌면 이 문면을 실측으로 바꾼다.
+# `_ARM_B_JUDGEMENT_SPEECH` 의 실측이다.
 #
-# ⛔ **두 단정은 red 로 태어나지 않았다** — 검사 코드를 고치지 않았으므로 프롬프트 변경 전에도
-# 통과한다(`H-M`). 무엇을 막는가를 적어 둔다: 나중에 누가 `_QUOTED_TOKEN_RE` 에 공백을 넣어 문장을
-# 토큰으로 삼으면 **첫 단정이 red 가 된다**(문장이 `words` 로 들어와 `word_supports_key` 가 참이
-# 되고 판정이 `None` 으로 떨어진다 — 인용 문장에 `r`·`l` 이 있다). 그 무력화로 판별력을 확인했다.
+# ⛔ **두 단정은 프롬프트에 걸려 있지 않다 — 순수 함수의 거동을 잰다.** 결정 124 가 반증돼 요구가
+# 걷혔어도 이 둘은 유효하다: 코치가 «스스로» 그 모양으로 말할 때(v4 문면에서도 그랬다 —
+# `T128A*` 가 `"th"` 를 따로 인용했다) 판정이 살아야 하고 정상 기록이 배제되지 않아야 한다.
+#
+# ⛔ **red 로 태어나지 않았다**(`H-M`). 무엇을 막는가: 나중에 누가 `_QUOTED_TOKEN_RE` 에 공백을 넣어
+# 문장을 토큰으로 삼으면 **첫 단정이 red 가 된다**(문장이 `words` 로 들어와 `word_supports_key` 가
+# 참이 되고 판정이 `None` 으로 떨어진다 — 인용 문장에 `r`·`l` 이 있다). 그 무력화로 확인했다.
 _SENTENCE_QUOTE_WITH_SOUND = (
     'I hear you say "my brother will arrive early tomorrow morning." The "th" sound was off.'
 )
 
 
 def test_a_quoted_sound_beside_a_sentence_quote_is_judged():
-    """규칙 9 가 요구하는 모양 — 문장 인용 **옆에** 소리가 따로 인용되면 판정이 산다."""
+    """문장 인용 **옆에** 소리가 따로 인용되면 판정이 산다 — 코치가 그렇게 말할 때의 거동."""
     assert sound_check_verdict(_SENTENCE_QUOTE_WITH_SOUND, "r_as_l") == "mismatched"
 
 

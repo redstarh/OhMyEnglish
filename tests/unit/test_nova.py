@@ -1005,29 +1005,34 @@ def test_system_prompt_narrows_pronunciation_to_hard_to_understand_speech():
     )
 
 
-# `TASK-116.5` (사용자 결정 2026-09-17 — **결정 82 를 이 축에서만 뒤집었다**) — 어긋남 검사가
-# 판정하려면 코치가 **소리를 따옴표로 «따로»** 인용해야 한다. 실측: 코치 발화 120건 중 5건이
-# 문장 전체만 인용했고 세션 단위로 **2/59** 가 그 모양 때문에 판정 불가였다
-# (`runs/2026-09-15-task116-5-quote-shapes/README.md`).
+# ⛔⛔ **「소리를 따옴표로 «따로» 인용하라」를 두 프롬프트 어디에도 넣지 않는다 — 넣어 보고
+# 실물 회차가 반증했다** (`TASK-116.5`·`TASK-154` · 사용자 결정 124 → **반증됨** · 정본
+# `runs/2026-09-17-task154-dedicated-quote/README.md`). 이 테스트는 그 요구가 **다시 들어오는 것**을
+# 막는다 — 이전 판은 그 요구가 «있는지»를 쟀고, 회차가 방향을 뒤집었으므로 단정도 뒤집었다.
 #
-# ⛔ **왜 이것이 결정 82 의 기각과 «다른 축» 인가**: 82 가 막은 것은 프롬프트로
-# **`target_sound` 의 «내용»** 을 맞추려는 시도다(세 방향 3/3 실패). 이 줄은 내용을 건드리지 않고
-# **인용의 «형태»** 만 요구한다 — 검사가 읽을 수 있는 모양으로 말하게 하는 것이다.
+# **회차가 잰 것** (같은 픽스처 `pq06`→`pq12` · 같은 후보 `th_as_s` · 같은 검증 DB):
+#   · 요구를 **넣은** 판 4/4 — 코치가 오디오 오류(/θ/→/s/) 대신 **`"are"`** 를 집고
+#     tool 호출이 **2 → 1** 로 줄어 재발화 판정 호출이 사라졌다.
+#   · 요구를 **뺀** 판(같은 날) 3/3 — `"th"` 를 집고 tool 이 2회 왔다.
+#   ⇒ 같은 날 짝 대조이므로 모델 변화가 아니라 **문면이 원인이다.**
 #
-# ⚠️ **이 테스트는 「지시가 있다」만 보증한다.** 지켜지는지는 실물 회차가 본다(위 대기 지시 테스트와
-# 같은 규율). ⚠️ 공백을 정규화해서 본다 — 원문은 줄 길이 때문에 문장 중간에서 줄바꿈된다.
-def test_system_prompt_makes_the_coach_quote_the_off_sound_on_its_own():
-    lowered = " ".join(SYSTEM_PROMPT.lower().split())
-
-    assert "in quotes on its own" in lowered, (
-        "소리를 따옴표로 따로 인용하라는 지시가 없다 — 문장 전체만 인용한 발화는 어긋남 검사가 "
-        "판정하지 못한다 (TASK-116.5)"
-    )
-    # 예시가 없으면 「따옴표」를 문장에 걸 여지가 남는다 — 짧은 소리 토큰의 모양을 함께 준다.
-    assert '"th" sound' in SYSTEM_PROMPT
-    # ⛔ 반대 방향: 문장만 인용하는 것이 **불충분함을 말하는 문장**이 있어야 한다. 요구만 있고
-    # 이 문장이 없으면 모델이 사전 규칙 4(학습자 말을 인용하라)로 그 자리를 채운다.
-    assert "quoting only the whole sentence" in lowered
+# ⚠️ 겨냥했던 구멍(문장 전체만 인용해 판정 불가 · 세션 2/59)은 **여전히 열려 있다.** 그 사실을
+# `tests/unit/test_pronunciation_sound_check.py` 의
+# `test_a_whole_sentence_quote_is_still_not_judged` 가 이름으로 갖는다.
+# ⛔ 되살리려면 이 회차를 먼저 읽어라 — 「읽기 좋아졌다」나 「검사가 눈을 뜬다」로 되살리지 않는다.
+def test_neither_prompt_asks_the_coach_to_quote_the_sound_on_its_own():
+    for label, prompt in (
+        ("일반 세션", SYSTEM_PROMPT),
+        ("전용 모드", build_pronunciation_prompt([_PRONUNCIATION_MODE_SOUND])),
+    ):
+        flat = " ".join(prompt.lower().split())
+        assert "in quotes on its own" not in flat, (
+            f"{label}에 반증된 인용 형태 요구가 들어왔다 — 코치가 실제 오류 대신 인용하기 쉬운 "
+            "낱말을 집고 tool 호출이 2→1 로 줄었다 (TASK-154 · 결정 124 반증)"
+        )
+        assert "quoting only the whole sentence" not in flat, (
+            f"{label}에 반증된 문장 인용 금지 문장이 들어왔다 (TASK-154 · 결정 124 반증)"
+        )
 
 
 # I-7 (캡틴 관측 2026-09-03) — 튜터가 학습자를 기다리지 않았다. 마이크 2회 계측에서 한 턴에
@@ -2017,6 +2022,13 @@ def test_the_pronunciation_prompt_is_byte_identical_to_the_measured_one():
     4. **지금**: `2026-09-12-task128-sound-as-candidate/prompt_dedicated_v4.txt`
        (후보 1건에서 1,825자 · **ARM-A 4/4**) — 사용자 **결정 72**(소리를 이름으로 지목하지 않고
        **후보로만** 내려받는다)를 이행했다. 단수 지목이 사라지고 후보 블록이 들어왔다.
+    5. ⛔ **v5 는 «시도했고 되돌렸다» — 그래서 이 게이트가 아직 4번을 가리킨다**
+       (`2026-09-17-task154-dedicated-quote/prompt_dedicated_v5.txt` · 1,959자 · `TASK-154` ·
+       결정 124 **반증**). 규칙 9 에 「소리를 따옴표로 «따로» 인용하라」를 넣은 판이고, 회차에서
+       **tool 은 4/4 로 왔으나** 코치가 오디오 오류(/θ/→/s/) 대신 **`"are"`** 를 집고 tool 호출이
+       **2 → 1** 로 줄었다. 같은 날 v4 팔은 3/3 으로 `"th"` 를 집었다 ⇒ 모델 변화가 아니다.
+       ⚠️ **그 파일은 «갱신 후보»가 아니라 반증의 증거다** — 이 목록의 1~4 와 성격이 다르다.
+       ⛔ 되살리려면 그 회차 README 를 먼저 읽어라.
 
     ⛔ **이 파일에 묶인 수치는 ARM-A 4/4 «뿐»이다 — 「기록이 코칭과 맞는다」가 아니다.** 그 축은
     **세 방향 모두** 반증됐다: 조건을 **더한** 판 3/3 실패(`…task120-absent-planted-sound.md`) ·
