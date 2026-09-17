@@ -634,11 +634,30 @@ create table harness_review_task_baseline as
 하네스 표다(2026-09-10 확인). **그래서 컬럼을 늘리는 데 승인이 필요하지 않다.** ⛔ 다만 `drop` 전에
 위 drift 대조를 통과해야 한다는 규칙은 두 표에 **똑같이** 적용된다 — 그 표가 유일한 DB 사본이다.
 
-**그리고 파일로도 뜬다** — DB 표 하나에 진실을 걸지 않는다. 마지막으로 검증된 사본:
-**`tests/harness/runs/2026-09-06-pattern-baseline-v2.tsv`**(추적됨 · **8행** · drift 0에서 떴다).
+> ### ⛔ 그 두 표는 `ohmyenglish` 스키마에 있고 소유자가 `ohmy` 다 — 2026-09-17 에 그렇게 됐다 (`TASK-153`)
+>
+> 위 SQL 이 이름을 수식하지 않는 것은 **의도다.** 역할 `ohmy` 의 `search_path` 가
+> `ohmyenglish, public` 이므로 조회는 두 스키마를 함께 찾고 **`create` 는 앞자리인 `ohmyenglish` 에
+> 만든다**(026). ⛔ **`public.` 을 붙이지 마라** — 그 자리에는 이제 그 표가 없다.
+>
+> **왜 이 줄이 필요한가**: 그 두 표는 그때까지 `public` 에 있었고 소유자가 **`redstar`** 였다(앞선
+> 회차를 superuser `psql` 로 돌린 세션이 만들었다). 결과가 둘이었다 — ⑴ `ohmy` 로는 **읽지도
+> 지우지도 못했다**(`permission denied for table harness_pattern_baseline`) ⑵ 그 표 하나가
+> **`pg_dump -n public` 전체를 막았다**(`H-BT`). 026 이 소유자로 걸러 옮기므로(R5) 그 둘만 남았다.
+> ⇒ 소유자를 `ohmy` 로 옮기고, 아래 `drop`/`create` 를 `ohmy` 로 한 번 돌려 새 스키마로 옮겼다.
+> **drift 0 에서 했고**(9=9 · 15=15 · 네 컬럼 대조 0) 옮긴 뒤 값이 파일 사본과 같은 것을 대조했다.
+> ⚠️ **소유자 변경은 superuser 가 필요하다** — 같은 일이 또 생기면 `alter table … owner to ohmy` 다.
+> ⛔ **그래서 하네스 SQL 을 superuser 로 돌리지 않는다** — 그 순간 다음 회차가 못 지우는 표가 생긴다.
+
+**그리고 파일로도 뜬다** — DB 표 하나에 진실을 걸지 않는다. 마지막으로 검증된 사본 **둘**:
+**`tests/harness/runs/2026-09-17-pattern-baseline-v3.tsv`**(추적됨 · **9행**) ·
+**`tests/harness/runs/2026-09-17-review-task-baseline.tsv`**(추적됨 · **15행**). 둘 다 drift 0에서 떴다.
 값이 정당하게 바뀌면(앱이 실제 학습으로 갱신) 새 날짜로 새 파일을 뜨고 이 줄을 갱신한다.
-⚠️ **v2 로 올린 이유**: T4가 실물 분석 1회로 만든 패턴이 §9 보존 세션의 교정 근거라서 남는다(7 → 8행).
-이전 사본 `2026-09-06-pattern-baseline.tsv`(7행)도 추적된 채로 둔다 — 지우면 그 시점 값의 사본이 없어진다.
+⚠️ **`review_tasks` 는 그때까지 파일 사본이 아예 없었다** — DB 표 하나가 유일한 사본이었고
+`TASK-153` 이 그것을 메웠다. 그 파일은 `id` 대신 `pattern_key` 로 적는다(id 는 회차마다 새로 난다).
+⚠️ **v3 로 올린 이유**: `verb_tense_past_simple_for_past_events` 가 2026-09-08 회차에서 생겼다(8 → 9행).
+이전 사본 `2026-09-06-pattern-baseline-v2.tsv`(8행) · `2026-09-06-pattern-baseline.tsv`(7행)도 추적된
+채로 둔다 — 지우면 그 시점 값의 사본이 없어진다.
 
 ⛔ **분석 워커를 지나갈 회차는 파일 스냅샷을 «회차 디렉터리»에 뜨고 그것을 커밋한다.**
 `runs/<회차>/error-patterns-before-*.json` · `review-tasks-before-*.json` 형태다(2026-09-10 실측 형식).
