@@ -196,14 +196,48 @@ def test_a_whole_sentence_quote_is_still_not_judged():
     **공백을 토큰에 넣지 않으므로** 그 인용은 잡히지 않고 판정이 `None` 이다 — 즉 그 모양에서는
     오염이 그대로 통과한다.
 
-    ⛔ 문장을 낱말로 쪼개 넣지 않는 이유: 한 문장에는 낱말이 여럿이라 **어느 낱말이든 키의 조각을
-    담을 확률**이 높아지고, 그러면 갈래 ②가 사실상 언제나 `None` 이 되어 판정력이 사라진다.
-    ⇒ 이 구멍은 「검사」가 아니라 **코치가 소리를 인용하게 만드는 쪽**에서 닫는 것이 맞고, 그 판단은
-    이 태스크 밖이다.
+    ⛔ 문장을 낱말로 쪼개 넣지 않는 이유는 **확률이 아니라 단조성**이다: `mismatched` 는
+    `word_supports_key` 가 **거짓**일 때만 나오고 그 값은
+    `any(segment in word …)` 이므로 **인용 범위를 넓히면 참이 되기만 한다.** ⇒ 문장을 낱말 자루로
+    넣든 한 덩어리로 넣든 갈래 ②는 `None` 이다 — 이득이 「작다」가 아니라 **구조적으로 0** 이다.
+
+    ⇒ 그래서 이 구멍은 **코치가 소리를 인용하게 만드는 쪽**에서 닫혔다 (`TASK-116.5` · 사용자 결정
+    2026-09-17 로 **결정 82 를 이 축에서만 뒤집었다**). `SYSTEM_PROMPT` 규칙 9 가 소리를 따옴표로
+    «따로» 인용하라고 요구하고, 그 요구를 `test_nova.py` 의
+    `test_system_prompt_makes_the_coach_quote_the_off_sound_on_its_own` 이 잰다.
+    ⛔ **이 함수의 거동은 그 결정으로 바뀌지 않았다** — 문장만 인용된 발화는 여전히 `None` 이다.
+    바뀐 것은 「그 모양이 «유일한» 증거로 남는 일을 프롬프트가 줄인다」이고, 아래 두 단정이 그
+    새 모양을 고정한다.
+    ⚠️ **전용 모드 프롬프트에는 아직 그 요구가 없다**(실측 산출물에 바이트로 묶여 있어 실물 회차가
+    필요하다) — 그 절반은 열려 있고 별 태스크가 갖는다.
     """
     sentence_quote = 'I hear you say "my brother will arrive early tomorrow morning."'
 
     assert sound_check_verdict(sentence_quote, "f_as_p") is None
+
+
+# ⚠️ **아래 두 문면은 관측된 조각 «둘을 합친 것»이고 그 자체로 관측된 발화가 아니다** — 문장 인용은
+# `runs/2026-09-15-task81-app-leg` §7 의 실측이고 소리 인용 어법(`The "er" sound …`)은
+# `_ARM_B_JUDGEMENT_SPEECH` 의 실측이다. 합친 이유는 **프롬프트가 방금 그 모양을 요구했기 때문**이고
+# (규칙 9), 그 모양의 실측은 다음 회차가 만든다. ⛔ 회차가 돌면 이 문면을 실측으로 바꾼다.
+#
+# ⛔ **두 단정은 red 로 태어나지 않았다** — 검사 코드를 고치지 않았으므로 프롬프트 변경 전에도
+# 통과한다(`H-M`). 무엇을 막는가를 적어 둔다: 나중에 누가 `_QUOTED_TOKEN_RE` 에 공백을 넣어 문장을
+# 토큰으로 삼으면 **첫 단정이 red 가 된다**(문장이 `words` 로 들어와 `word_supports_key` 가 참이
+# 되고 판정이 `None` 으로 떨어진다 — 인용 문장에 `r`·`l` 이 있다). 그 무력화로 판별력을 확인했다.
+_SENTENCE_QUOTE_WITH_SOUND = (
+    'I hear you say "my brother will arrive early tomorrow morning." The "th" sound was off.'
+)
+
+
+def test_a_quoted_sound_beside_a_sentence_quote_is_judged():
+    """규칙 9 가 요구하는 모양 — 문장 인용 **옆에** 소리가 따로 인용되면 판정이 산다."""
+    assert sound_check_verdict(_SENTENCE_QUOTE_WITH_SOUND, "r_as_l") == "mismatched"
+
+
+def test_a_matching_quoted_sound_beside_a_sentence_quote_is_not_excluded():
+    """반대 방향 — 소리가 키와 맞으면 `matched` 다. **정상 기록을 배제하지 않는다.**"""
+    assert sound_check_verdict(_SENTENCE_QUOTE_WITH_SOUND, "th_as_s") == "matched"
 
 
 def test_a_letter_that_the_key_connector_contains_lands_on_the_safe_side():

@@ -129,6 +129,26 @@ _TOOL_ROLE = "TOOL"
 # (`models/voice_command.is_wake_command` · 모델의 규율에 맡기면 학습 발화가 명령으로 저장된다).
 # ⛔ **규칙 13 안에서 두 명령을 가른 이유는 번호를 밀지 않는 것이다** — 새 규칙으로 떼면 규칙 14 가
 # 15 가 되고 이 주석과 `tests/unit/test_nova.py` 의 참조가 조용히 낡는다.
+#
+# ⛔ **규칙 9 가 「소리를 따옴표로 «따로» 인용하라」를 요구한다** (`TASK-116.5` · 사용자 결정
+# 2026-09-17 — **결정 82 를 이 축에서만 뒤집었다**). 실측: 코치 발화 120건 중 5건이 문장 전체만
+# 인용했고 세션 단위로 **2/59** 가 그 모양 때문에 어긋남 검사에서 판정 불가였다
+# (`tests/harness/runs/2026-09-15-task116-5-quote-shapes/README.md`).
+# `services/pronunciation._QUOTED_TOKEN_RE` 는 토큰에 공백을 넣지 않으므로 문장 인용에서는
+# **토큰이 0개**가 되고 `sound_check_verdict` 가 `None` 으로 떨어진다.
+#
+# ⛔ **왜 이것이 결정 82 의 기각과 «다른 축» 인가 — 바꾸기 전에 읽을 것.** 82 가 세 방향 3/3 으로
+# 반증한 것은 프롬프트로 **`target_sound` 의 «내용»** 을 맞추려는 시도다(강제판·조건판·후보판).
+# 이 줄은 내용을 한 자도 건드리지 않고 **인용의 «형태»** 만 요구한다 — 검사가 읽을 수 있는 모양으로
+# 말하게 하는 것이고, 그래서 82 의 근거가 이 변경을 반증하지 않는다.
+# ⚠️ **검사 쪽 대안은 이득이 «구조적으로» 0 이라서 기각됐다** — `mismatched` 는
+# `word_supports_key` 가 거짓일 때만 나오고 그 값은 인용 범위를 넓히면 참이 되기만 한다(단조).
+#
+# ⛔ **전용 모드(`PRONUNCIATION_MODE_PROMPT`)의 규칙 9 에는 아직 넣지 않았다** — 그 문면은
+# `test_the_pronunciation_prompt_is_byte_identical_to_the_measured_one` 이 실측 산출물에 바이트로
+# 묶어 두었고, 고치려면 **실물 회차를 다시 돌려** 그 파일과 테스트를 함께 갱신해야 한다. 그 비용을
+# 이 변경에 묶지 않았고 별 태스크가 갖는다. ⚠️ 두 프롬프트의 규칙 9 는 이미 다르다
+# (전용 모드는 `Grammar first` 절이 없다) — 같아야 하는 것은 규칙 8·10(tool 규약)뿐이다.
 SYSTEM_PROMPT = """\
 You are OhMyEnglish, a warm, practical English speaking coach for a Korean learner.
 
@@ -156,8 +176,10 @@ Pronunciation coaching:
    errors, so you are the only one who can notice them.
 9. Grammar first. On most turns, correct grammar and leave pronunciation alone. Take up
    pronunciation only when a sound is so far off that the sentence is hard to understand —
-   never for a mild accent. When you do take it up, name the sound that was off, say the
-   whole sentence back with correct pronunciation, and ask the learner to repeat it.
+   never for a mild accent. When you do take it up, name the sound that was off and put it
+   in quotes on its own - the "th" sound, the "er" sound - then say the whole sentence back
+   with correct pronunciation, and ask the learner to repeat it. Quoting only the whole
+   sentence does not name the sound.
 10. Call report_pronunciation_coaching twice: once with outcome "pending" right after you
     have modeled the sentence, and again with correct, incorrect, or unclear once you have
     heard the learner repeat it. Always include target_sound - a short reusable key for the

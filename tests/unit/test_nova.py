@@ -1005,6 +1005,31 @@ def test_system_prompt_narrows_pronunciation_to_hard_to_understand_speech():
     )
 
 
+# `TASK-116.5` (사용자 결정 2026-09-17 — **결정 82 를 이 축에서만 뒤집었다**) — 어긋남 검사가
+# 판정하려면 코치가 **소리를 따옴표로 «따로»** 인용해야 한다. 실측: 코치 발화 120건 중 5건이
+# 문장 전체만 인용했고 세션 단위로 **2/59** 가 그 모양 때문에 판정 불가였다
+# (`runs/2026-09-15-task116-5-quote-shapes/README.md`).
+#
+# ⛔ **왜 이것이 결정 82 의 기각과 «다른 축» 인가**: 82 가 막은 것은 프롬프트로
+# **`target_sound` 의 «내용»** 을 맞추려는 시도다(세 방향 3/3 실패). 이 줄은 내용을 건드리지 않고
+# **인용의 «형태»** 만 요구한다 — 검사가 읽을 수 있는 모양으로 말하게 하는 것이다.
+#
+# ⚠️ **이 테스트는 「지시가 있다」만 보증한다.** 지켜지는지는 실물 회차가 본다(위 대기 지시 테스트와
+# 같은 규율). ⚠️ 공백을 정규화해서 본다 — 원문은 줄 길이 때문에 문장 중간에서 줄바꿈된다.
+def test_system_prompt_makes_the_coach_quote_the_off_sound_on_its_own():
+    lowered = " ".join(SYSTEM_PROMPT.lower().split())
+
+    assert "in quotes on its own" in lowered, (
+        "소리를 따옴표로 따로 인용하라는 지시가 없다 — 문장 전체만 인용한 발화는 어긋남 검사가 "
+        "판정하지 못한다 (TASK-116.5)"
+    )
+    # 예시가 없으면 「따옴표」를 문장에 걸 여지가 남는다 — 짧은 소리 토큰의 모양을 함께 준다.
+    assert '"th" sound' in SYSTEM_PROMPT
+    # ⛔ 반대 방향: 문장만 인용하는 것이 **불충분함을 말하는 문장**이 있어야 한다. 요구만 있고
+    # 이 문장이 없으면 모델이 사전 규칙 4(학습자 말을 인용하라)로 그 자리를 채운다.
+    assert "quoting only the whole sentence" in lowered
+
+
 # I-7 (캡틴 관측 2026-09-03) — 튜터가 학습자를 기다리지 않았다. 마이크 2회 계측에서 한 턴에
 # 질문 + 예시 질문이 함께 실렸고, 노브(`NOVA_ENDPOINTING_SENSITIVITY`)는 **이미 `LOW`**로 끝까지
 # 내려가 있다(`.env`). 남은 레버가 지시문이므로 **대기 지시가 실제로 있는지** 못박는다.
