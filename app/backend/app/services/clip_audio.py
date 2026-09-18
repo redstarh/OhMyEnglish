@@ -20,9 +20,9 @@ from uuid import UUID
 import asyncpg
 
 # WAV 는 RIFF 헤더가 표본율·채널을 싣는다 — 그래서 프런트가 `new Audio()` 로 그대로 디코드한다.
-# ⚠️ 낭독의 `RECORDING_MEDIA_TYPE`(`audio/L16; rate=16000; channels=1`)과 **다른 이유가 이것이다**:
-# 그쪽은 헤더가 없어 파라미터를 Content-Type 이 말해야 하고 `fetch()` + `VoiceIo` 로만 재생된다.
-# 두 값을 섞으면 재생 경로가 조용히 틀어진다(설계서 §6 이 그 차이에 기대어 화면을 정했다).
+# ⚠️ **낭독의 `RECORDING_MEDIA_TYPE` 과 이제 같은 값이다** (결정 128 이 그쪽을 `audio/L16` 에서
+# 바꿨다 — 그 파라미터를 읽어 재생하는 브라우저 API 가 없었다). 값이 같아졌어도 **상수를 합치지
+# 않는다**: 위 docstring 의 이유로 두 모듈이 갈라져 있고, 합치면 만료 판정이 제품 자산으로 번진다.
 CLIP_AUDIO_MEDIA_TYPE = "audio/wav"
 
 _SELECT_CLIP_AUDIO_FILENAME_SQL = """

@@ -401,6 +401,46 @@ async def test_a_shadowing_turn_stores_the_recording_and_its_pointer(
     assert list(recording_dir(tmp_path, committed_session.session_id).glob("*.part")) == []
 
 
+async def test_a_closed_shadowing_turn_announces_the_recording(
+    db_pool, committed_session, tmp_path: Path
+):
+    """턴이 닫히면 **그 녹음의 주소를 화면에 알린다** (`TASK-181` · 결정 128 ③).
+
+    ⛔ **이 프레임이 없으면 화면은 자기가 방금 만든 녹음을 찾을 수 없다.** 발화 목록을 다시 조회해
+    마지막 `shadowing_recording` 을 고르는 길은 서버와 화면이 「어느 것이 방금 것인가」를 각자
+    판정하게 만든다 — 한 세션에서 여러 번 낭독하면 그 판정이 갈린다.
+
+    ⚠️ **세션 주소는 싣지 않는다** — 화면이 `session_started` 에서 이미 받았다. `ShadowingSetup` 이
+    파일명을 싣지 않는 것과 같은 규약이다: 화면이 이미 가진 것을 다시 싣지 않는다.
+    """
+    client = FakeClient(
+        {"type": "shadowing_turn_start"},
+        {"type": "audio", "data": base64.b64encode(b"\x33\x44" * 160).decode()},
+        {"type": "shadowing_turn_end"},
+        None,
+    )
+
+    await asyncio.wait_for(
+        _runner(
+            StubVoiceAdapter(),
+            db_pool,
+            committed_session.session_id,
+            client,
+            shadowing=_shadowing_turns(tmp_path),
+        ).run(),
+        timeout=5.0,
+    )
+
+    async with db_pool.acquire() as conn:
+        utterance_id = await conn.fetchval(
+            "select id from utterances "
+            "where session_id = $1 and utterance_type = 'shadowing_recording'",
+            committed_session.session_id,
+        )
+    announced = [event for event in client.sent if event["type"] == "shadowing_recording"]
+    assert announced == [{"type": "shadowing_recording", "utterance_id": str(utterance_id)}]
+
+
 async def test_shadowing_frames_do_not_reach_the_voice_adapter(
     db_pool, committed_session, tmp_path: Path
 ):
@@ -470,6 +510,8 @@ async def test_a_failed_recording_save_does_not_kill_the_session(
     )
 
     assert client.types[-1] == "session_ended", "녹음 저장 실패가 세션을 통째로 죽였다"
+    # ⛔ 저장이 실패했는데 주소를 알리면 화면이 404 를 받는 재생 버튼을 보인다 (`TASK-181`).
+    assert "shadowing_recording" not in client.types
 
 
 async def test_frames_are_dropped_not_forwarded_when_the_file_cannot_be_opened(
@@ -516,6 +558,8 @@ async def test_frames_are_dropped_not_forwarded_when_the_file_cannot_be_opened(
             committed_session.session_id,
         )
     assert stored == 0, "저장된 바이트가 없는데 발화 행이 생겼다 — 비교할 수 없는 낭독이 남는다"
+    # ⛔ 행이 없으면 알릴 주소도 없다 (`TASK-181`).
+    assert "shadowing_recording" not in client.types
 
 
 async def test_a_turn_left_open_is_abandoned_with_a_warning(

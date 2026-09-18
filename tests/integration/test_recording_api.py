@@ -9,6 +9,8 @@
 
 from __future__ import annotations
 
+import io
+import wave
 from collections.abc import AsyncIterator
 from pathlib import Path
 from uuid import UUID, uuid4
@@ -65,10 +67,15 @@ async def _stored_recording(
     return utterance_id
 
 
-async def test_stored_recording_is_served_as_raw_pcm(
+async def test_stored_recording_is_served_as_decodable_wav(
     api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session, audio_root: Path
 ) -> None:
-    """바이트를 그대로 내보내고 **표본율·채널을 Content-Type 이 싣는다** (§4.4)."""
+    """**브라우저가 `new Audio()` 로 디코드할 수 있는 형태로 나간다** (결정 128).
+
+    ⚠️ **디스크의 바이트는 헤더 없는 PCM 그대로다** — 이 테스트가 그것도 함께 잰다. 변환을 읽을
+    때만 하는 것이 계약이고, 저장 쪽에 헤더를 넣으면 §6 의 스윕·고아 파일 판정이 바이트 길이를
+    다시 계산해야 한다.
+    """
     async with db_pool.acquire() as conn:
         utterance_id = await _stored_recording(conn, audio_root, committed_session.session_id)
 
@@ -77,8 +84,12 @@ async def test_stored_recording_is_served_as_raw_pcm(
     )
 
     assert response.status_code == 200
-    assert response.content == FRAMES
     assert response.headers["content-type"] == RECORDING_MEDIA_TYPE
+    with wave.open(io.BytesIO(response.content)) as decoded:
+        assert decoded.getframerate() == 16_000
+        assert decoded.readframes(decoded.getnframes()) == FRAMES
+    stored = recording_path(audio_root, committed_session.session_id, utterance_id)
+    assert stored.read_bytes() == FRAMES
 
 
 async def test_recording_without_a_pointer_is_404(

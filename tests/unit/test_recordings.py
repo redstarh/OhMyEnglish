@@ -12,6 +12,8 @@
 
 from __future__ import annotations
 
+import io
+import wave
 from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
@@ -35,6 +37,7 @@ from app.services.recordings import (
     recording_path,
     recording_url,
     sweep_orphan_recording_files,
+    wav_from_pcm,
 )
 
 # raw LPCM 16kHz·16bit·mono 바이트 (헤더 없음). ⚠️ **실물 프레임 크기가 아니다** — 프론트가 보내는
@@ -1058,10 +1061,34 @@ async def test_loading_the_clip_of_a_session_that_has_none(
     assert await load_session_clip(db_conn, uuid4()) is None
 
 
-def test_media_type_declares_the_raw_pcm_parameters() -> None:
-    """헤더가 없으므로 **표본율·채널을 Content-Type 이 말해야 한다** (§4.4).
+def test_media_type_is_wav_so_the_browser_decodes_it() -> None:
+    """⚠️ **앞 판은 `audio/L16; rate=16000; channels=1` 이었다** (결정 128 이 바꿨다).
 
-    `lib/audio.ts` 가 실측으로 적어 둔 사실이 그 근거다: 헤더 없는 PCM 은 `new Audio()` 로
-    디코드되지 않으므로 프론트가 이 파라미터를 읽어 재생 큐에 넣는다.
+    바꾼 이유: 그 파라미터를 읽어 재생하는 브라우저 API 가 없다. `lib/audio.ts` 의 `VoiceIo` 로
+    넣는 길은 있었지만 그 큐는 **코치 발화의 것**이라 낭독이 발화와 섞이고 barge-in 이 낭독을
+    끊는다. RIFF 헤더가 표본율·채널을 실으면 `new Audio()` 가 그대로 디코드한다 —
+    `services/clip_audio.py` 가 이미 그 길을 쓴다.
     """
-    assert RECORDING_MEDIA_TYPE == "audio/L16; rate=16000; channels=1"
+    assert RECORDING_MEDIA_TYPE == "audio/wav"
+
+
+def test_wav_from_pcm_carries_the_recording_parameters() -> None:
+    """⛔ **표준 `wave` 모듈로 되읽어 잰다** — 내가 조립한 헤더를 내가 쓴 파서로 재면 판별력이 없다.
+
+    브라우저가 하는 일(헤더를 읽어 표본율·채널을 정하고 본문을 디코드한다)과 같은 순서로 잰다.
+    """
+    with wave.open(io.BytesIO(wav_from_pcm(FRAMES))) as decoded:
+        assert decoded.getnchannels() == 1
+        assert decoded.getsampwidth() == 2
+        assert decoded.getframerate() == 16_000
+        assert decoded.readframes(decoded.getnframes()) == FRAMES
+
+
+def test_wav_from_pcm_keeps_an_empty_recording_decodable() -> None:
+    """프레임이 0인 낭독도 유효한 WAV 다 — 핸들은 열렸고 프레임이 오지 않은 턴이 실재한다.
+
+    ⚠️ 그 턴은 `_close_recording_turn` 의 「바이트가 없어 행을 만들지 않는다」에 걸리지 **않는다** —
+    그 갈래는 핸들을 못 열었을 때다. 여기서 터뜨리면 학습자가 500 을 본다.
+    """
+    with wave.open(io.BytesIO(wav_from_pcm(b""))) as decoded:
+        assert decoded.getnframes() == 0

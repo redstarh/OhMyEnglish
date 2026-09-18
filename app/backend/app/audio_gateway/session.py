@@ -842,6 +842,11 @@ class SessionRunner:
                 )
         except Exception:
             logger.exception("낭독 녹음 저장에 실패했다 (세션 %s)", self._session_id)
+            return
+        # ⛔ **저장이 끝난 뒤에만 주소를 알린다** (`TASK-181` · 결정 128 ③). 실패한 녹음의 주소를
+        # 주면 화면이 404 를 받는 재생 버튼을 보인다. 세션 주소는 싣지 않는다 — 화면이
+        # `session_started` 에서 이미 받았다.
+        await self._send({"type": "shadowing_recording", "utterance_id": str(utterance.id)})
 
     def _abandon_open_recording_turn(self) -> None:
         """세션이 낭독 턴을 열어 둔 채 끝났다 — **핸들만 닫고 `.part` 는 남긴다.**

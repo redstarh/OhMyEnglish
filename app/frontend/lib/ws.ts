@@ -159,6 +159,17 @@ export type ServerEvent =
       type: "voice_command_ignored";
       command: "end" | "start_additional" | "show_report" | "pause" | "resume";
     }
+  /**
+   * 낭독 턴이 닫히고 녹음이 저장됐다 (`TASK-181` · 결정 128 ③).
+   *
+   * ⛔ **저장에 실패한 턴에는 오지 않는다** — 그래서 화면은 이 프레임을 받은 뒤에만 재생 버튼을
+   * 보인다. 「저장됐다」를 화면이 추론하면(예: 「읽기 끝」을 누른 것으로) 404 를 받는 버튼이 뜬다.
+   *
+   * ⚠️ **세션 주소는 실려 오지 않는다** — `session_started` 에서 이미 받았다. 소리를 받으려면
+   * `/api/sessions/{session_id}/recordings/{utterance_id}` 를 부른다(`ShadowingSetup.has_audio` 가
+   * 파일명을 싣지 않는 것과 같은 규약: 경로 조립은 화면이 하고 정본은 서버의 라우터다).
+   */
+  | { type: "shadowing_recording"; utterance_id: string }
   | { type: "session_failed"; reason: string }
   | { type: "session_ended"; session_id: string };
 

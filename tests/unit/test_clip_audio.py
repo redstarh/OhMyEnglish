@@ -33,12 +33,11 @@ async def _insert_clip(conn: asyncpg.Connection, *, with_audio: bool) -> UUID:
 
 
 def test_media_type_declares_wav_not_raw_pcm() -> None:
-    """⛔ 학습자 낭독의 `audio/L16` 과 **다른 값이어야 한다** (설계서 §6).
+    """RIFF 헤더가 표본율·채널을 실어 `new Audio()` 가 그대로 디코드한다 (설계서 §6).
 
-    낭독은 헤더가 없어 표본율·채널을 Content-Type 이 말해야 하고 `fetch()` + `VoiceIo` 로만
-    재생된다(`RECORDING_MEDIA_TYPE` 의 주석이 그 사실을 실측으로 적어 두었다). 클립은 RIFF
-    헤더가 있어 `new Audio()` 가 그대로 디코드한다 — 그 차이가 프런트 설계의 근거이므로 값이
-    섞이면 재생 경로가 조용히 틀어진다.
+    ⚠️ **이 테스트는 앞서 「낭독의 `audio/L16` 과 달라야 한다」를 재고 있었다** — 결정 128 이
+    낭독도 WAV 로 바꿔 그 대비가 사라졌다. 두 값은 이제 같고, 그래도 **상수를 합치지 않는다**:
+    수명주기가 반대라 한 모듈에 두지 않는 것이 `services/clip_audio.py` 의 결정이다.
     """
     assert CLIP_AUDIO_MEDIA_TYPE == "audio/wav"
 

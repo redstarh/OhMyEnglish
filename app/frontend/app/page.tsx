@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { fetchNextPlan, type NextPlanSummary } from "@/lib/api";
-import { entryFromQuery, type SessionEntry } from "@/lib/config";
+import { API_BASE, entryFromQuery, type SessionEntry } from "@/lib/config";
 import { VoiceIo, base64ToBytes, bytesToBase64 } from "@/lib/audio";
 import {
   SessionSocket,
@@ -199,6 +199,10 @@ export default function SessionPage() {
   // 서버가 고른 쉐도잉 클립 (`TASK-66.7`). ⛔ **키의 부재는 「쉐도잉 세션이 아니다」다** —
   // `pronunciation_focus` 가 세운 규약과 같아서 요청하지 않은 세션에서는 `null` 로 남는다.
   const [shadowing, setShadowing] = useState<ShadowingSetup | null>(null);
+  // 방금 저장된 낭독의 주소 (`TASK-182` · 결정 128). ⛔ **서버가 알린 뒤에만 채운다** —
+  // 「읽기 끝」을 누른 것으로 추론하면 저장이 실패한 턴에도 404 를 받는 버튼이 뜬다.
+  // ⚠️ 주소 조립이 여기 있는 이유: 세션 id 를 아는 것이 이 화면이고 패널은 클립만 안다.
+  const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
   // 음성 명령으로 열리는 주간 리포트 패널 (`TASK-61.6` · 결정 107). 화면을 옮기지 않는 이유는
   // `WeeklyReportPanel` 의 머리말이 갖는다 — 이동하면 소켓이 닫혀 세션이 끝난다.
   const [reportOpen, setReportOpen] = useState(false);
@@ -223,6 +227,9 @@ export default function SessionPage() {
   const stopMedia = useCallback(() => {
     // 클립 패널도 함께 내린다 — 언마운트가 소리를 끄므로 세션이 끝나면 재생이 멈춘다(`TASK-66.7`).
     setShadowing(null);
+    // ⛔ 낭독 주소도 함께 버린다 — 녹음은 학습자의 당일이 지나면 지워지므로(§6.4) 세션을 넘겨
+    // 살려 두면 화면이 언젠가 404 를 받는 버튼을 들고 있게 된다.
+    setRecordingUrl(null);
     const voice = voiceRef.current;
     voiceRef.current = null;
     void voice?.close();
@@ -337,6 +344,13 @@ export default function SessionPage() {
           // (어댑터가 tool 결과를 앱의 판정보다 먼저 돌려준다) 이 한 줄이 학습자가 그것을 알 수 있는
           // 유일한 자리다. ⛔ 여기서 아무 명령도 수행하지 않는다.
           setCommandNotice(COMMAND_IGNORED_NOTICE[event.command]);
+          break;
+        case "shadowing_recording":
+          // 낭독이 저장됐다 (`TASK-182` · 결정 128). 세션 주소는 실려 오지 않으므로 여기서
+          // 조립한다 — `sessionIdRef` 는 `session_started` 가 채운다.
+          setRecordingUrl(
+            `${API_BASE}/api/sessions/${sessionIdRef.current}/recordings/${event.utterance_id}`,
+          );
           break;
         case "session_failed":
           if (terminalHandledRef.current) return;
@@ -458,6 +472,9 @@ export default function SessionPage() {
    * 부르므로, 매 렌더에 새 함수를 주면 그 정리가 렌더마다 돌아 **녹음이 끊긴다.**
    */
   const startShadowingTurn = useCallback(() => {
+    // ⛔ **앞 낭독의 주소를 먼저 버린다** (`TASK-182`) — 남겨 두면 새 낭독을 읽는 동안 「내 낭독
+    // 듣기」가 **앞 회차**를 가리키고, 학습자는 방금 읽은 것을 듣는다고 믿는다.
+    setRecordingUrl(null);
     socketRef.current?.startShadowingTurn();
   }, []);
 
@@ -699,6 +716,7 @@ export default function SessionPage() {
           {shadowing ? (
             <ShadowingPanel
               setup={shadowing}
+              recordingUrl={recordingUrl}
               onRecordingStart={startShadowingTurn}
               onRecordingEnd={endShadowingTurn}
             />
