@@ -28,6 +28,7 @@ from app.api.daily import router as daily_router
 from app.api.results import router as results_router
 from app.api.shadowing import router as shadowing_router
 from app.api.videos import router as videos_router
+from app.api.vocab import router as vocab_router
 from app.api.ws import router as ws_router
 from app.config import get_settings
 from app.db import close_pool, pool
@@ -58,15 +59,22 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     # 꺼진 경우 태스크를 아예 만들지 않는다 — None이 "워커 없음"의 표현이다.
     app.state.worker_task = None
 
+    # ⛔ **`worker_enabled` 분기 «밖»에서 만든다** (`TASK-194` · 결정 130) — 낱말 뜻 조회가 HTTP
+    # 요청 경로에서 이 클라이언트를 쓰므로 `WORKER_ENABLED=false` 로 띄운 서버에서도 있어야 한다.
+    # ⚠️ **요청마다 만들지 않는 이유**: `__init__` 이 boto3 `bedrock-runtime` 클라이언트를 만든다.
+    # ⛔ **`usage_sink` 를 빼면 토큰 기록이 조용히 꺼진다** (`TASK-60` · 결정 66) — 클라이언트의
+    # 기본값이 `None`(기록 없음)인 것은 자격증명·DB 없이 도는 단위 테스트를 위한 것이고,
+    # **실물 배선은 여기 하나뿐이다.** 아래 `recording_root` 와 같은 부류의 위험이고 같은 방식으로
+    # 게이트 테스트가 못 박는다(`test_claude_client_is_wired_even_when_the_worker_is_off`).
+    app.state.claude = BedrockClaudeClient(settings, usage_sink=pool_usage_sink(app.state.db_pool))
+
     if settings.worker_enabled:
         app.state.worker_task = asyncio.create_task(
             run_worker(
                 app.state.db_pool,
-                # ⛔ **`usage_sink` 를 빼면 토큰 기록이 조용히 꺼진다** (`TASK-60` · 결정 66) —
-                # 클라이언트의 기본값이 `None`(기록 없음)인 것은 자격증명·DB 없이 도는 단위
-                # 테스트를 위한 것이고, **실물 배선은 여기 하나뿐이다.** 아래 `recording_root`
-                # 주석과 같은 부류의 위험이고 같은 방식으로 게이트 테스트가 못 박는다.
-                BedrockClaudeClient(settings, usage_sink=pool_usage_sink(app.state.db_pool)),
+                # 워커와 요청 경로가 **같은 객체를 쓴다** — 둘을 따로 만들면 boto3 클라이언트가
+                # 둘이 되고 배선을 고칠 자리도 둘이 된다.
+                app.state.claude,
                 stop=app.state.worker_stop,
                 # 집합 **객체 자체**를 넘긴다 — 복사본을 넘기면 세션이 열려도 리퍼에게는
                 # 계속 비어 보여 진행 중 세션을 닫는다 (I-4).
@@ -131,6 +139,7 @@ def create_app() -> FastAPI:
     app.include_router(shadowing_router)
     # 담아 둔 영상과 그 영상에서 담은 문장 (`TASK-165` · 결정 125·126).
     app.include_router(videos_router)
+    app.include_router(vocab_router)
     app.include_router(ws_router)
 
     @app.get("/health")

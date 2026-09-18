@@ -512,6 +512,37 @@ async def test_lifespan_does_not_start_the_worker_when_disabled(app_settings):
     assert get_settings().worker_enabled is False
 
 
+async def test_claude_client_is_wired_even_when_the_worker_is_off(app_settings, monkeypatch):
+    """⛔ **낱말 뜻 조회는 워커와 무관하게 돌아야 한다** (`TASK-194` · 결정 130).
+
+    앞 판은 `BedrockClaudeClient` 를 `worker_enabled` **분기 안에서** 만들었다 — 그러면
+    `WORKER_ENABLED=false` 로 띄운 서버에서 낱말 조회가 클라이언트를 찾지 못한다.
+
+    ⚠️ **`app.state.claude.records_usage` 를 재려 했고 그것은 판별력이 없었다** — `app_settings` 가
+    실물 클래스를 `FakeClaudeClient` 로 갈아 끼우므로 그 단정은 **대역을 재는 셈**이다. 그래서
+    아래 게이트와 같은 형태로 **생성 인자를 직접 잡는다.**
+    ⚠️ **「sink 를 쓰면 행이 생기는지」는 여기서 다시 재지 않는다** —
+    `test_lifespan_gives_the_worker_a_client_that_records_token_usage` 가 같은 팩토리로 그것을
+    이미 잰다. 이 테스트가 더하는 것은 **worker off 라는 조건** 하나다.
+    """
+    app_settings(worker_enabled=False)
+    captured: dict[str, Any] = {}
+
+    def capture_client(settings: object, **kwargs: Any) -> object:
+        captured.update(kwargs)
+        return FakeClaudeClient([])
+
+    monkeypatch.setattr(main_module, "BedrockClaudeClient", capture_client)
+    app = create_app()
+
+    async with app.router.lifespan_context(app):
+        assert app.state.worker_task is None
+        assert app.state.claude is not None, "worker off 에서 낱말 조회가 쓸 클라이언트가 없다"
+        assert captured.get("usage_sink") is not None, (
+            "worker off 경로에 usage_sink 가 넘어가지 않았다 — 낱말 조회 비용이 조용히 사라진다"
+        )
+
+
 # 기본값(true)에서는 워커가 뜨고, lifespan 종료가 루프를 멈춘다
 async def test_lifespan_starts_and_stops_the_worker_by_default(app_settings):
     app_settings(worker_enabled=True)
