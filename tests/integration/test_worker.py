@@ -543,6 +543,51 @@ async def test_claude_client_is_wired_even_when_the_worker_is_off(app_settings, 
         )
 
 
+async def test_missing_credentials_still_boot_when_the_worker_is_off(app_settings, monkeypatch):
+    """⛔ **`WORKER_ENABLED=false` 로 자격증명 없이 띄우는 길을 지킨다** (`TASK-197` 회귀 수정).
+
+    그 길은 발명이 아니라 **제품이 스스로 안내하는 것**이다 — `config.py` 의 `RuntimeError` 문구가
+    *"자격증명 없이 백엔드만 띄우려면 WORKER_ENABLED=false로 기동하라"* 고 말하고 `worker_enabled`
+    필드 주석도 같은 말을 한다.
+
+    ⚠️ **`TASK-194` 가 그것을 깼고 실측으로 확정했다** — 생성을 `worker_enabled` 분기 밖으로
+    옮기면서, 자격증명이 없을 때 `bedrock_client()` 가 던지는 `RuntimeError` 가 기동을 막았다
+    (`.env` 를 치우고 `AWS_*` 를 모두 지운 셸에서 재현했다).
+    ⇒ 자격증명이 없으면 `app.state.claude` 를 `None` 으로 두고 라우터가 503 으로 답한다.
+    """
+    app_settings(worker_enabled=False)
+
+    def no_credentials(settings: object, **kwargs: Any) -> object:
+        raise RuntimeError("Bedrock 자격증명이 없다")
+
+    monkeypatch.setattr(main_module, "BedrockClaudeClient", no_credentials)
+    app = create_app()
+
+    async with app.router.lifespan_context(app):
+        assert app.state.claude is None, "자격증명이 없으면 None 이어야 한다 — 기동은 막지 않는다"
+        assert app.state.worker_task is None
+
+
+async def test_missing_credentials_still_fail_fast_when_the_worker_is_on(app_settings, monkeypatch):
+    """⛔ **워커를 켠 채 자격증명이 없으면 «여전히» 즉시 실패한다.**
+
+    `config.py` 의 그 `RuntimeError` docstring 이 근거를 갖는다: 이 SDK 는 자격증명 실패를 예외가
+    아니라 **무응답(타임아웃)** 으로 드러내므로, 삼키면 원인 불명의 무한 대기가 된다. 위 테스트의
+    관용을 워커 경로까지 넓히면 그 방어가 사라진다.
+    """
+    app_settings(worker_enabled=True)
+
+    def no_credentials(settings: object, **kwargs: Any) -> object:
+        raise RuntimeError("Bedrock 자격증명이 없다")
+
+    monkeypatch.setattr(main_module, "BedrockClaudeClient", no_credentials)
+    app = create_app()
+
+    with pytest.raises(RuntimeError):
+        async with app.router.lifespan_context(app):
+            pass
+
+
 # 기본값(true)에서는 워커가 뜨고, lifespan 종료가 루프를 멈춘다
 async def test_lifespan_starts_and_stops_the_worker_by_default(app_settings):
     app_settings(worker_enabled=True)

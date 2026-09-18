@@ -66,15 +66,25 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     # 기본값이 `None`(기록 없음)인 것은 자격증명·DB 없이 도는 단위 테스트를 위한 것이고,
     # **실물 배선은 여기 하나뿐이다.** 아래 `recording_root` 와 같은 부류의 위험이고 같은 방식으로
     # 게이트 테스트가 못 박는다(`test_claude_client_is_wired_even_when_the_worker_is_off`).
-    app.state.claude = BedrockClaudeClient(settings, usage_sink=pool_usage_sink(app.state.db_pool))
-
+    # ⛔ **자격증명이 없으면 `None` 으로 두고 기동을 막지 않는다** (`TASK-197` 회귀 수정).
+    # 그 길은 발명이 아니라 **제품이 스스로 안내하는 것**이다 — `config.py` 의 `RuntimeError` 문구가
+    # *"자격증명 없이 백엔드만 띄우려면 WORKER_ENABLED=false로 기동하라"* 고 말한다.
+    # ⚠️ 첫 판이 그 안내를 깼고 실측으로 확정했다(`.env` 를 치우고 `AWS_*` 를 모두 지운 셸에서 재현).
+    # ⛔ **워커를 켠 경우에는 그대로 터뜨린다** — 그 `RuntimeError` 의 근거가 「이 SDK 는 자격증명
+    # 실패를 무응답으로 드러낸다」이고, 삼키면 워커가 원인 불명의 무한 대기에 걸린다.
+    # ⚠️ **두 갈래에서 각자 만드는 것이 판단이다** — 한 번 만들고 `None` 검사를 워커 분기에 두면
+    # 「워커를 켰는데 클라이언트가 없다」는 닿을 수 없는 상태를 타입이 계속 물어본다. 갈래를 나누면
+    # 워커 쪽은 `None` 일 수 없음이 **구조로** 보장된다.
     if settings.worker_enabled:
+        # 워커가 돌 것이므로 자격증명이 없으면 **그대로 터뜨린다**(기존 동작).
+        claude = BedrockClaudeClient(settings, usage_sink=pool_usage_sink(app.state.db_pool))
+        app.state.claude = claude
         app.state.worker_task = asyncio.create_task(
             run_worker(
                 app.state.db_pool,
                 # 워커와 요청 경로가 **같은 객체를 쓴다** — 둘을 따로 만들면 boto3 클라이언트가
                 # 둘이 되고 배선을 고칠 자리도 둘이 된다.
-                app.state.claude,
+                claude,
                 stop=app.state.worker_stop,
                 # 집합 **객체 자체**를 넘긴다 — 복사본을 넘기면 세션이 열려도 리퍼에게는
                 # 계속 비어 보여 진행 중 세션을 닫는다 (I-4).
@@ -88,6 +98,17 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         )
     else:
         logger.info("WORKER_ENABLED=false — 분석 워커를 기동하지 않는다")
+        # ⛔ **이 값은 `config.py` 가 「자격증명 없이 띄우는 길」로 안내하는 것이다** — 그 안내를
+        # 지키려면 여기서만 실패를 삼킨다. 낱말 조회 경로는 `None` 을 받아 503 으로 답한다.
+        try:
+            app.state.claude = BedrockClaudeClient(
+                settings, usage_sink=pool_usage_sink(app.state.db_pool)
+            )
+        except RuntimeError:
+            logger.warning(
+                "Bedrock 자격증명이 없어 낱말 뜻 조회를 끈 채 기동한다 — 그 경로는 503 으로 답한다"
+            )
+            app.state.claude = None
 
     try:
         yield

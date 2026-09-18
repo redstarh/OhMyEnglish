@@ -26,23 +26,28 @@ function cleanWord(token: string): string {
   return token.replace(/^[^\p{L}\p{N}'-]+|[^\p{L}\p{N}'-]+$/gu, "");
 }
 
+/**
+ * 조회 상태. ⛔ **한 값으로 두는 것이 「닿을 수 없는 조합」을 없앤다** — `selected`·`meaning`·`looking`
+ * 세 변수로 두었던 첫 판은 셋을 매 호출에 올바른 순서로 맞춰야 했고, 그 규율을 타입이 아니라 관행이
+ * 지켰다(2026-09-18 `/simplify` 가 잡았다).
+ */
+type Lookup =
+  | { kind: "idle" }
+  | { kind: "looking"; word: string }
+  | { kind: "done"; word: string; meaning: string | null };
+
 export function WordLookup({ sentence }: { sentence: string }) {
-  const [selected, setSelected] = useState<string | null>(null);
-  const [meaning, setMeaning] = useState<string | null>(null);
-  const [looking, setLooking] = useState(false);
+  const [lookup, setLookup] = useState<Lookup>({ kind: "idle" });
 
   const ask = useCallback(
     async (token: string) => {
       const word = cleanWord(token);
       // 구두점만 있는 조각은 조회하지 않는다 — 돈을 쓰면서 뜻 없는 답을 받는다.
       if (!word) return;
-      setSelected(word);
-      setMeaning(null);
-      setLooking(true);
+      setLookup({ kind: "looking", word });
       const result = await lookupWord({ word, sentence });
-      setLooking(false);
-      // ⛔ 실패(`ok: false`)와 「뜻을 못 얻었다」(`meaning: null`)를 같은 문구로 모은다.
-      setMeaning(result.ok ? result.value.meaning : null);
+      // ⛔ 실패(`ok: false`)와 「뜻을 못 얻었다」(`meaning: null`)를 같은 값으로 모은다.
+      setLookup({ kind: "done", word, meaning: result.ok ? result.value.meaning : null });
     },
     [sentence],
   );
@@ -68,7 +73,10 @@ export function WordLookup({ sentence }: { sentence: string }) {
                 font: "inherit",
                 color: "inherit",
                 cursor: "pointer",
-                textDecoration: selected === cleanWord(token) ? "underline" : "none",
+                textDecoration:
+                  lookup.kind !== "idle" && lookup.word === cleanWord(token)
+                    ? "underline"
+                    : "none",
               }}
             >
               {token}
@@ -78,11 +86,11 @@ export function WordLookup({ sentence }: { sentence: string }) {
       </p>
       {/* ⛔ 아직 누르지 않았으면 **안내만** 보인다 — 없는 뜻을 빈 줄로 그리지 않는다. */}
       <p role="status" style={{ margin: "0 0 0.25rem", color: "var(--foreground-muted)" }}>
-        {selected === null
+        {lookup.kind === "idle"
           ? LOOKUP_HINT
-          : looking
-            ? LOOKING_UP
-            : `${selected} — ${meaning ?? NO_MEANING}`}
+          : lookup.kind === "looking"
+            ? `${lookup.word} — ${LOOKING_UP}`
+            : `${lookup.word} — ${lookup.meaning ?? NO_MEANING}`}
       </p>
     </div>
   );

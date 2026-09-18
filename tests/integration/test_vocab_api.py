@@ -73,6 +73,24 @@ async def test_a_blank_word_is_rejected_by_validation(api_client: httpx.AsyncCli
     assert response.status_code == 422
 
 
+async def test_no_credentials_answers_503_not_500(api_client: httpx.AsyncClient) -> None:
+    """⛔ **자격증명 없이 띄운 서버에서 이 경로는 503 으로 답한다** (`TASK-197`).
+
+    `app.state.claude` 가 `None` 인 것은 **정상적인 기동 상태**다 — `config.py` 가 안내하는
+    `WORKER_ENABLED=false` 경로이고 `api/main.py` 가 그때 `None` 을 둔다. 500 으로 새어 나가면
+    「서버가 깨졌다」로 읽히고, 200 + `meaning=null` 로 답하면 **자격증명 문제가 「뜻을 모른다」로
+    위장된다** — 그 위장이 이 갈래에서 가장 비싼 오독이다.
+    """
+    app.state.claude = None
+
+    response = await api_client.post(
+        "/api/vocab/lookup",
+        json={"word": "book", "sentence": "I read a book."},
+    )
+
+    assert response.status_code == 503
+
+
 async def test_an_overlong_sentence_is_rejected(api_client: httpx.AsyncClient) -> None:
     """⚠️ 길이 상한은 **모델 호출 비용의 상한**이다 — 문장 하나를 넘는 입력을 받지 않는다."""
     app.state.claude = _StubClaude("무언가")
