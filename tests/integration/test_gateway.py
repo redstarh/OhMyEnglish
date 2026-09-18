@@ -15,7 +15,6 @@ WebSocket 계층은 여기에 없다. `SessionRunner`를 어댑터 대역과 가
 
 from __future__ import annotations
 
-import ast
 import asyncio
 import base64
 import inspect
@@ -28,6 +27,7 @@ from uuid import UUID, uuid4
 
 import asyncpg
 import pytest
+from conftest import imported_names
 
 from app.api import ws as ws_module
 from app.audio_gateway import factory as factory_module
@@ -1347,6 +1347,19 @@ def test_factory_builds_a_transcribe_only_nova_adapter():
     assert adapter.instructions == TRANSCRIPTION_ONLY_PROMPT
 
 
+@pytest.mark.parametrize("adapter_setting", [STUB_ADAPTER, STUB_UNRESPONSIVE_ADAPTER])
+def test_create_transcriber_refuses_a_setting_without_a_transcriber(adapter_setting: str):
+    """⛔ **불변식을 주장하는 함수가 그 불변식을 스스로 지킨다** (`TASK-220`).
+
+    `create_transcriber` 의 docstring 이 「어느 구현이 전사하는지」의 소유를 주장하는데, 가드가
+    호출자(`api/results.py`)에만 있으면 그 주장이 빈다. ⚠️ **픽스처는 학습자 문장을 발명하고**,
+    전사가 있으면 다시 계산하지 않으므로(결정 131) 그 오염이 **영구**다 — 가드를 잊은 둘째 호출자가
+    생기는 순간 조용히 일어난다.
+    """
+    with pytest.raises(ValueError, match="전사기가 없는"):
+        create_transcriber(_settings(voice_adapter=adapter_setting), usage_sink=None)
+
+
 async def test_create_transcriber_asks_for_the_transcribe_only_mode():
     """⛔ **낭독 전사는 «언제나» 전사 전용이다** (`TASK-217`).
 
@@ -1626,16 +1639,9 @@ def test_the_default_drill_count_lists_every_question_a_plan_can_carry(
 # ④ import 그래프 — 러너와 소켓 계층은 스텁을 모른다 (G3)
 
 
-def _imported_names(module: ModuleType) -> list[str]:
-    tree = ast.parse(inspect.getsource(module))
-    names: list[str] = []
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Import):
-            names.extend(alias.name for alias in node.names)
-        elif isinstance(node, ast.ImportFrom):
-            names.append(node.module or "")
-            names.extend(alias.name for alias in node.names)
-    return names
+# ⛔ **걸음걸이는 `conftest.imported_names` 한 벌이다** (`TASK-220`) — 같은 단정이
+# `test_readback_api.py` 에도 생겨 복사본이 둘이 됐고, 그러면 한쪽만 강화되고 다른 쪽 게이트는 약한
+# 판으로 계속 통과한다. 그 함수의 docstring 이 뮤테이션 요령까지 가진다.
 
 
 # ✅ **뮤테이션 KILL 확인 — G3** (`TASK-73`. 2026-09-10 직접 관측).
@@ -1653,7 +1659,7 @@ def test_gateway_core_does_not_import_the_stub(module: ModuleType):
     `StubVoiceAdapter`라는 식별자 자체를 원문에서 금지한다 — 주석·docstring에
     적어두는 것도 결국 그 모듈을 아는 상태라, 검사를 우회할 여지를 남기지 않는다.
     """
-    assert all("stub" not in name.lower() for name in _imported_names(module))
+    assert all("stub" not in name.lower() for name in imported_names(module))
     assert "StubVoiceAdapter" not in inspect.getsource(module)
 
 
@@ -1662,7 +1668,7 @@ def test_gateway_core_does_not_import_the_stub(module: ModuleType):
 # 모른다"가 깨진다. 그래서 팩토리가 데이터를 받아 조립한다 — 이 테스트가 그 결정을 지킨다.
 @pytest.mark.parametrize("module", [session_module, ws_module], ids=["session", "ws"])
 def test_gateway_core_does_not_import_the_nova_adapter(module: ModuleType):
-    assert all("nova" not in name.lower() for name in _imported_names(module))
+    assert all("nova" not in name.lower() for name in imported_names(module))
     assert "NovaVoiceAdapter" not in inspect.getsource(module)
 
 

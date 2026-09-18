@@ -43,7 +43,6 @@ from app.config import get_settings  # noqa: E402
 from app.db import close_pool  # noqa: E402
 from app.db import pool as get_db_pool  # noqa: E402
 from app.services.recordings import (  # noqa: E402
-    PURGE_LIMIT_PER_CYCLE,
     recording_dir,
     remove_orphan_recordings_in,
     remove_recording_dir_if_empty,
@@ -80,22 +79,21 @@ def _remove_recordings(session_id: UUID) -> int:
     밖의 파일은 남는다. 그러면 디렉터리도 남고, **그 남은 디렉터리가 조사의 신호다.**
 
     ⛔ **살아 있는 포인터를 빈 집합으로 준다** — 호출 시점에 발화 행이 **이미 지워져 있으므로**
-    (위 순서 주석) 그 세션의 우리 파일은 전부 고아다. ⚠️ 순서가 뒤집히면 이 빈 집합이 거짓이
-    되는 것이 아니라 **그 세션의 살아 있는 녹음까지 지운다** — 순서가 계약인 이유가 하나 늘었다.
-    ⚠️ **한 번 부르는 것으로 끝내지 않는다** — 그 함수는 사이클 상한(`PURGE_LIMIT_PER_CYCLE`)에서
-    멈추고 남은 것을 다음 호출에 넘긴다(멱등). 회차가 원하는 것은 **그 세션의 전량**이므로 상한에
-    닿는 동안 이어 부르고 개수를 더한다.
+    (`teardown` 의 순서 주석) 그 세션의 우리 파일은 전부 고아다. ⚠️ 순서가 뒤집히면 이 빈 집합이
+    거짓이 되는 것이 아니라 **그 세션의 살아 있는 녹음까지 지운다** — 순서가 계약인 이유가 하나
+    늘었다.
+    ⚠️ **상한을 사실상 없앤다.** 그 함수의 `PURGE_LIMIT_PER_CYCLE` 기본값은 **유휴 워커 사이클이
+    삭제로 오래 붙잡히지 않게** 하는 값이고(`services/recordings` 가 근거를 가진다) 회차에는 그런
+    사이클이 없다. 회차가 원하는 것은 **그 세션의 전량**이므로 한 번에 다 걷는다 — 상한까지 세고
+    이어 부르는 형태도 같은 결과지만 디렉터리를 여러 번 훑고 셈이 늘어난다.
+    ⛔ **그 함수에 「무제한」 스위치를 새로 만들지 않는다** — 정책 함수에 호출자의 사정을 넣는
+    것이고, 이미 있는 인자로 뜻이 전달된다.
     """
     settings = get_settings()
     directory = recording_dir(settings.shadowing_audio_root, session_id)
     if not directory.is_dir():
         return 0
-    removed = 0
-    while True:
-        batch = remove_orphan_recordings_in(directory, set(), limit=PURGE_LIMIT_PER_CYCLE)
-        removed += batch
-        if batch < PURGE_LIMIT_PER_CYCLE:
-            break
+    removed = remove_orphan_recordings_in(directory, set(), limit=sys.maxsize)
     remove_recording_dir_if_empty(directory)
     return removed
 
@@ -136,10 +134,14 @@ async def teardown(session_id: UUID) -> dict[str, Any]:
                     "select count(*) from d",
                     session_id,
                 ),
-                # ⛔ 행을 지운 «뒤» 파일을 지운다 — 순서가 뒤집히면 행이 남은 채 파일만 없어져
-                #    「포인터만 있는 상태」가 되고, 그것은 앱이 정상으로 인정하는 상태라 조용하다.
-                "recordings_removed": _remove_recordings(session_id),
             }
+        # ⛔ **행을 지운 «뒤» 파일을 지운다.** 두 가지가 이 순서에 걸린다: ⑴ 순서가 뒤집히면 행이
+        #    남은 채 파일만 없어져 「포인터만 있는 상태」가 되고, 그것은 앱이 정상으로 인정하는
+        #    상태라 조용하다 ⑵ `_remove_recordings` 가 「살아 있는 포인터 없음」을 전제하므로,
+        #    뒤집히면 **그 세션의 살아 있는 녹음까지 지운다**(그 함수의 docstring 이 근거를 가진다).
+        # ⛔ **그래서 dict 리터럴 안에 두지 않는다** — 그 안에서는 순서가 「키의 위치」에 실리고,
+        #    키를 옮기는 편집이 되돌릴 수 없는 삭제의 전제를 조용히 깬다. 여기서는 문장 순서다.
+        report["recordings_removed"] = _remove_recordings(session_id)
         return report
     finally:
         await close_pool()

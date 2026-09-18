@@ -782,7 +782,7 @@ async def test_전사_전용_모드는_tool_스펙을_아예_싣지_않는다():
     고치지 않는다(그 판단은 `_initialization_events` 가 가진다).
     """
     stream = _FakeStream()
-    adapter = _adapter(stream, transcribe_only=True)
+    adapter = _adapter(stream, declare_tools=False)
 
     await adapter.start()
     await adapter.close()
@@ -799,7 +799,7 @@ async def test_전사_전용_모드의_지시문은_코치_규칙을_담지_않�
     아니라 **무엇이 실리지 않는가**다. 코치 페르소나(`OhMyEnglish`)와 규칙 번호가 그 표지다.
     """
     stream = _FakeStream()
-    adapter = _adapter(stream, transcribe_only=True, instructions=TRANSCRIPTION_ONLY_PROMPT)
+    adapter = _adapter(stream, declare_tools=False, instructions=TRANSCRIPTION_ONLY_PROMPT)
 
     await adapter.start()
     await adapter.close()

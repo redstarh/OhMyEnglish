@@ -27,20 +27,19 @@ import argparse
 import asyncio
 import json
 import sys
-import wave
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
 HARNESS = Path(__file__).resolve().parent
 REPO = HARNESS.parent.parent
+sys.path.insert(0, str(HARNESS))
 sys.path.insert(0, str(REPO / "app" / "backend"))
 
-from app.audio_gateway.nova import (  # noqa: E402
-    TRANSCRIPTION_ONLY_PROMPT,
-    NovaVoiceAdapter,
-    build_system_prompt,
-)
+from ws_session import read_lpcm  # noqa: E402
+
+from app.audio_gateway.factory import create_voice_adapter, transcriber_available  # noqa: E402
+from app.audio_gateway.port import VoiceAdapter  # noqa: E402
 from app.audio_gateway.transcribe import transcribe_readback  # noqa: E402
 from app.config import get_settings  # noqa: E402
 from app.db import close_pool  # noqa: E402
@@ -57,41 +56,22 @@ FIXTURE = REPO / "app" / "frontend" / "public" / "harness" / "readback.wav"
 
 @dataclass(frozen=True)
 class Arm:
-    """한 팔 = 지시문 하나 + 봉투 하나."""
+    """한 팔 = `transcribe_only` 값 하나.
+
+    ⛔ **지시문을 담지 않는다** — 담으면 이 파일이 팩토리의 조립을 다시 구현하게 되고, A 팔이
+    「`TASK-217` 전의 낭독 경로 그대로」라는 주장이 **아무것도 강제하지 않는 주석**이 된다.
+    조립이 바뀌면 A 팔은 조용히 기준선이 아니게 되면서도 수치는 계속 보고한다.
+    """
 
     key: str
     label: str
-    instructions: str
     transcribe_only: bool
 
 
-def _arms() -> list[Arm]:
-    settings = get_settings()
-    # A 팔은 **`TASK-217` 전의 낭독 경로 그대로**다 — 팩토리가 빈 재료로 코치 지시문을 조립했다.
-    baseline = build_system_prompt(
-        (),
-        None,
-        (),
-        None,
-        scenario_intake=False,
-        drill_count=settings.drill_count,
-        drill_turns_min=settings.drill_turns_min,
-    )
-    return [
-        Arm("A", "코치 지시문 + tool 스펙 (이전 판)", baseline, False),
-        Arm("B", "전사 전용 지시문 · tool 스펙 없음", TRANSCRIPTION_ONLY_PROMPT, True),
-    ]
-
-
-def _load_pcm(path: Path) -> bytes:
-    """픽스처를 헤더 없는 PCM 으로 읽는다 — 저장된 녹음과 같은 규격이어야 한다."""
-    with wave.open(str(path), "rb") as wav:
-        if (wav.getnchannels(), wav.getsampwidth(), wav.getframerate()) != (1, 2, 16_000):
-            raise SystemExit(
-                f"픽스처 규격이 다르다: 채널 {wav.getnchannels()} · "
-                f"표본폭 {wav.getsampwidth()} · 표본율 {wav.getframerate()}"
-            )
-        return wav.readframes(wav.getnframes())
+ARMS = (
+    Arm("A", "코치 지시문 + tool 스펙 (이전 판)", False),
+    Arm("B", "전사 전용 지시문 · tool 스펙 없음", True),
+)
 
 
 async def _clip_transcript(conn: Any) -> str:
@@ -116,31 +96,37 @@ async def _run_arm(arm: Arm, pcm: bytes, pool: Any) -> dict[str, Any]:
         seen.append(usage)
         await record(usage, **kwargs)
 
-    def make_adapter() -> NovaVoiceAdapter:
-        return NovaVoiceAdapter(
+    # ⛔ **어댑터를 직접 조립하지 않고 «팩토리» 를 부른다.** 그래야 A 팔이 제품의 낭독 경로와 같은
+    #    지시문을 받는 것이 강제된다 — 손으로 조립하면 팩토리가 바뀌어도 이 파일은 조용히 옛 형태를
+    #    계속 쓰고, 그러면 「두 팔이 프롬프트만 다르다」는 A/B 의 전제가 무너진다.
+    # ⚠️ **대가**: 팩토리는 `settings.voice_adapter` 를 따르므로 설정이 스텁이면 스텁이 나온다.
+    #    실물 비용을 태우는 드라이버이므로 위 `main_async` 가 착수 전에 그것을 거절한다.
+    adapters: list[VoiceAdapter] = []
+
+    def make_adapter() -> VoiceAdapter:
+        adapter = create_voice_adapter(
             settings,
-            instructions=arm.instructions,
-            usage_sink=sink,
+            questions=(),
+            scenario=None,
             transcribe_only=arm.transcribe_only,
+            usage_sink=sink,
         )
+        adapters.append(adapter)
+        return adapter
 
     text = await transcribe_readback(pcm, make_adapter=make_adapter)
     usage = seen[-1] if seen else None
+    # 지시문 길이는 **어댑터가 실제로 받은 값**에서 읽는다 — 우리가 계산한 값을 적으면 팩토리가
+    # 무엇을 실었는지가 아니라 우리 믿음을 보고하게 된다.
+    instructions = getattr(adapters[-1], "instructions", "") if adapters else ""
     return {
         "arm": arm.key,
         "label": arm.label,
-        "instruction_chars": len(arm.instructions),
+        "instruction_chars": len(instructions),
         "transcript": text,
-        "usage": None
-        if usage is None
-        else {
-            "input_tokens": usage.input_tokens,
-            "output_tokens": usage.output_tokens,
-            "input_speech_tokens": usage.input_speech_tokens,
-            "input_text_tokens": usage.input_text_tokens,
-            "output_speech_tokens": usage.output_speech_tokens,
-            "output_text_tokens": usage.output_text_tokens,
-        },
+        # `TokenUsage` 는 frozen dataclass 이므로 필드를 손으로 옮기지 않는다 — 옮기면 새 필드가
+        # 이 보고에서 조용히 빠진다.
+        "usage": None if usage is None else asdict(usage),
     }
 
 
@@ -157,7 +143,16 @@ def _quality(clip: str, spoken: str) -> dict[str, Any]:
 
 
 async def main_async(args: argparse.Namespace) -> int:
-    pcm = _load_pcm(FIXTURE)
+    # ⛔ **스텁 설정으로는 돌지 않는다.** 아래가 팩토리를 부르므로 설정이 스텁이면 스텁 어댑터가
+    #    나오고, 그러면 **픽스처가 발명한 문장**이 전사문으로 보고돼 A/B 가 통째로 거짓이 된다.
+    if not transcriber_available(get_settings()):
+        raise SystemExit(
+            f"VOICE_ADAPTER 가 {get_settings().voice_adapter!r} 다 — "
+            "실물 A/B 는 nova 에서만 뜻이 있다"
+        )
+    # 픽스처 읽기는 하네스의 기존 헬퍼를 쓴다 — 같은 규격 검사를 세 번째로 복제하면 두 도구가 같은
+    # 파일을 다르게 받아들일 여지가 생긴다(`ws_session.read_lpcm` 의 머리말이 그 근거를 가진다).
+    pcm = read_lpcm(str(FIXTURE))
     pool = await get_db_pool()
     try:
         async with pool.acquire() as conn:
@@ -168,14 +163,15 @@ async def main_async(args: argparse.Namespace) -> int:
             "clip_words": len(clip.split()),
             "arms": [],
         }
-        for arm in _arms():
-            if args.only and arm.key != args.only:
-                continue
+        arms = [arm for arm in ARMS if not args.only or arm.key == args.only]
+        for index, arm in enumerate(arms):
+            if index:
+                # ⚠️ **팔 «사이» 만 띄운다** — 앞 회차의 스트림 정리가 뒤 회차의 연결과 겹치지 않게
+                #    한다. 마지막 뒤에 두면 아무것도 기다리지 않는 1초를 버린다.
+                await asyncio.sleep(1.0)
             result = await _run_arm(arm, pcm, pool)
             result["quality"] = _quality(clip, result["transcript"])
             report["arms"].append(result)
-            # ⚠️ **팔 사이를 띄운다** — 앞 회차의 스트림 정리가 뒤 회차의 연결과 겹치지 않게 한다.
-            await asyncio.sleep(1.0)
         print(json.dumps(report, ensure_ascii=False, indent=1))
         return 0
     finally:

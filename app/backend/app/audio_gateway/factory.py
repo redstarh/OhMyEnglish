@@ -65,7 +65,17 @@ def create_transcriber(settings: Settings, *, usage_sink: UsageSink | None) -> T
     ⛔ **`transcribe_only=True` 를 여기서 못 박는다** (`TASK-217`) — 낭독 전사는 **언제나** 전사
     전용이므로 호출자가 고를 값이 아니다. 인자로 열면 코치 지시문을 실은 전사기가 만들어질 수 있고,
     그것이 줄이려던 비용을 그대로 되돌린다.
+
+    ⛔ **전사기가 없는 설정이면 여기서 거절한다** — 이 함수가 「어느 구현이 전사하는지」의 소유를
+    주장하는데, 그 불변식(`transcriber_available`)을 지키는 자리가 호출자뿐이면 주장이 빈다.
+    ⚠️ **픽스처는 전사기가 아니다**: `stub` 은 학습자 발화를 **발명**하고, 전사가 있으면 다시
+    계산하지 않으므로(결정 131) 그 오염이 **영구**다. 가드를 잊은 둘째 호출자가 생기면 그 일이
+    조용히 일어난다.
+    ⚠️ 라우터는 그래도 **먼저** 견주어 503 으로 답한다(`api/results.py`) — 학습자에게 500 이 아니라
+    「지금은 쓸 수 없다」가 가야 한다. 여기 가드는 배선 실수를 잡는 둘째 겹이고 그때는 500 이 맞다.
     """
+    if not transcriber_available(settings):
+        raise ValueError(f"전사기가 없는 voice_adapter 설정: {settings.voice_adapter!r}")
 
     def make_adapter() -> VoiceAdapter:
         return create_voice_adapter(
@@ -171,7 +181,9 @@ def create_voice_adapter(
             settings,
             instructions=instructions,
             usage_sink=usage_sink,
-            transcribe_only=transcribe_only,
+            # ⛔ **모드 이름이 아니라 프로토콜 사실로 넘긴다** — 어댑터가 하는 판단은 「tool 스펙을
+            # 선언하는가」 하나뿐이고 모드는 여기서 끝난다(그 근거는 어댑터 쪽 주석이 가진다).
+            declare_tools=not transcribe_only,
         )
     # 오타를 조용히 스텁으로 흘려보내면 "실물이라 믿었던 세션이 픽스처였다"가 된다.
     raise ValueError(f"알 수 없는 voice_adapter 설정: {settings.voice_adapter!r}")

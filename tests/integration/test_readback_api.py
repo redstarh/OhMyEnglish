@@ -20,18 +20,15 @@
 
 from __future__ import annotations
 
-import ast
-import inspect
 from collections.abc import AsyncIterator
 from pathlib import Path
-from types import ModuleType
 from uuid import UUID, uuid4
 
 import asyncpg
 import httpx
 import pytest
 import pytest_asyncio
-from conftest import pin_settings_env
+from conftest import imported_names, pin_settings_env
 
 from app.api import results as results_module
 from app.audio_gateway.fixtures import FIXTURE_TURNS
@@ -323,23 +320,6 @@ async def test_판정_라우터가_어댑터에_사용량_sink_를_넘긴다(
 # ── import 그래프 — HTTP 층은 대화형 어댑터를 모른다 (`TASK-214` · 결정 131) ─────
 
 
-def _imported_names(module: ModuleType) -> list[str]:
-    """관용구는 `tests/integration/test_gateway.py` §④ 와 같다 — 그쪽이 먼저 쓴 형태다.
-
-    ⚠️ **소스 텍스트를 읽는 방식이라 런타임 뮤테이션으로는 재지 못한다** — 판별력을 확인할 때는
-    변이를 `import` 문 자체로 준다(그쪽 주석이 그 요령을 가진다).
-    """
-    tree = ast.parse(inspect.getsource(module))
-    names: list[str] = []
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Import):
-            names.extend(alias.name for alias in node.names)
-        elif isinstance(node, ast.ImportFrom):
-            names.append(node.module or "")
-            names.extend(alias.name for alias in node.names)
-    return names
-
-
 def test_판정_라우터가_대화형_어댑터를_import_하지_않는다() -> None:
     """⛔ **결정 131 의 경계를 문서가 아니라 검사가 지킨다** (`TASK-214`).
 
@@ -347,10 +327,10 @@ def test_판정_라우터가_대화형_어댑터를_import_하지_않는다() ->
     않고, 그러면 *"배치 STT 로 옮기면 전사 함수 하나만 갈면 된다"* 가 조용히 거짓이 된다 — 고칠
     자리가 구현·서비스·라우터 셋으로 돌아간다.
 
-    ⚠️ **이름을 대소문자 접어 금지한다** — 막고 싶은 것이 `VoiceAdapter`(포트)와
-    `create_voice_adapter`(팩토리) 둘이고 표기가 갈린다. 라우터가 받아야 하는 것은 `Transcriber`
-    하나이며, 어느 구현이 붙는지는 팩토리가 안다(G3).
+    ⚠️ **표기를 한 번 정규화한 뒤 한 번만 단정한다** — 막고 싶은 것이 `VoiceAdapter`(포트)와
+    `create_voice_adapter`(팩토리) 둘이고 표기가 밑줄로만 갈린다. 두 단정으로 쓰면 같은 규칙이 두
+    줄이 되고 세 번째 표기가 생길 때 세 줄이 된다. 라우터가 받아야 하는 것은 `Transcriber` 하나이며,
+    어느 구현이 붙는지는 팩토리가 안다(G3).
     """
-    names = [name.lower() for name in _imported_names(results_module)]
-    assert all("voice_adapter" not in name for name in names), names
+    names = [name.lower().replace("_", "") for name in imported_names(results_module)]
     assert all("voiceadapter" not in name for name in names), names

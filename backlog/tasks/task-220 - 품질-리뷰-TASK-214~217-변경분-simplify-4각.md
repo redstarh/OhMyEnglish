@@ -1,10 +1,10 @@
 ---
 id: TASK-220
 title: '품질 리뷰: TASK-214~217 변경분 (/simplify 4각)'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-18 19:33'
-updated_date: '2026-09-18 19:43'
+updated_date: '2026-09-18 19:56'
 labels: []
 dependencies: []
 ordinal: 281000
@@ -18,9 +18,9 @@ ordinal: 281000
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 codex 리뷰 결과를 수신하고 심각도로 분류한다
-- [ ] #2 CRITICAL·HIGH 가 없거나 고친다
-- [ ] #3 게이트 여덟이 통과한 상태로 남는다
+- [x] #1 codex 리뷰 결과를 수신하고 심각도로 분류한다
+- [x] #2 CRITICAL·HIGH 가 없거나 고친다
+- [x] #3 게이트 여덟이 통과한 상태로 남는다
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -43,4 +43,45 @@ ordinal: 281000
 
 게이트는 통과 상태로 남겨 둠(AC3): pytest 1397 · ruff 0 · format 304 · ty 0 · tsc 0 · eslint 0 ·
 next build 0.
+
+## 2026-09-19 — 리뷰가 «도착했음». 앞의 「미수신」 판단은 틀렸음
+
+다섯 리뷰어가 20분쯤 뒤에 결과를 냈음. ⇒ **원인이 「전달 경로 고장」이 아니라 「지연」이었음.**
+`idle` 이 완료가 아니라는 것은 그대로 맞지만, `idle` 이 「끝났다」의 반증도 아님 — 표본 다섯으로
+전달 경로를 의심한 것은 **너무 이른 귀속**이었음.
+
+결과: **CRITICAL 0 · HIGH 0 · MEDIUM 3 · LOW 2** (+ 앞선 넓은 범위 회차의 하네스·테스트 지적).
+
+### 고친 것
+
+| 등급 | 자리 | 무엇 |
+|---|---|---|
+| MEDIUM | `factory.py` | 삼중 조건식 → `if/elif/else`(커밋 `7915356`) |
+| MEDIUM | `nova.py` | `transcribe_only` → `declare_tools: bool = True`. 세 불리언 가운데 이것만 팩토리→어댑터 경계를 넘었고, 어댑터가 하는 판단은 봉투 키 하나뿐임 |
+| LOW | `transcribe.py` | `_FRAME_BYTES` 에 `RECORDING_CHANNELS` 를 곱함. 없으면 채널이 2 가 될 때 100ms 가 50ms 가 되고 정렬 검사도 통과해 조용함 |
+| LOW | `factory.py` | `create_transcriber` 가 스텁 설정을 스스로 거절함. 가드가 호출자에만 있으면 불변식 주장이 헛됨 |
+| reuse | 하네스 A/B | 어댑터 손조립 → `create_voice_adapter` 경유. A 팔이 제품 경로와 같은 지시문을 받는 것이 강제됨 |
+| reuse | 하네스 A/B | `_load_pcm` 삭제 → `ws_session.read_lpcm` 재사용(같은 규격 검사의 세 번째 복제였음) |
+| reuse | 테스트 | `_imported_names` 복사본 둘 → `conftest.imported_names` 한 벌 |
+| simplify | 테스트 | 밑줄만 다른 단정 둘 → 표기 정규화 뒤 한 번 |
+| simplify | teardown | 상한 루프 → `limit=sys.maxsize` 한 번. 정책 함수에 새 스위치를 만들지 않음 |
+| altitude | teardown | 삭제 순서 계약이 dict 키 위치에 실려 있던 것을 문장 순서로 옮김 |
+| efficiency | 하네스 A/B | 마지막 팔 뒤의 `sleep(1.0)` 제거 |
+| 기타 | `results.py` | 복제된 「30초」 삭제 — 상수가 정본임 |
+
+### 넘긴 것 (근거 있음)
+
+- MEDIUM `_user_finals` → `asyncio.timeout().reschedule()`: 리포에 `asyncio.timeout` 자리가 0 이고
+  `wait_for` 가 10 곳임. 실물 계측으로 정한 타이밍 코드에 새 관용구를 들이는 거래가 나쁨.
+- `asdict` 는 받았고 `Counter` 는 넘겼음 — 앞의 것은 필드 누락을 막지만 뒤의 것은 세 줄을 한 줄로
+  바꾸는 것뿐임.
+- altitude 3(`transcribe.py` 가 `app.services` 를 import 해 팩토리의 방향 불변식이 전이로 깨짐):
+  상수를 `app/models/` 로 옮기는 별 작업임 ⇒ `TASK-221` 로 등록함.
+- `close()` 의 `try/finally` 에 닿을 수 있는 예외 경로가 없는 것: 이 변경이 만든 구조가 아님.
+
+### 재확인 (실측)
+
+게이트 여덟 통과: `pytest` **1399 passed** · `ruff` 0 · `format` 304 · `ty` 0 · `tsc` 0 ·
+`eslint` 0 · `next build` 0. 팩토리 경유로 바꾼 A/B 를 실물로 다시 돌려 수치 재현을 확인했고
+(`llm_calls` 18 → 20) teardown 래퍼도 다시 계측했음(3 · 규칙 밖 파일 남음 · 빈 디렉터리 걷힘).
 <!-- SECTION:NOTES:END -->

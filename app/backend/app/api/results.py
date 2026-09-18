@@ -217,9 +217,9 @@ async def judge_recording_readback(
         raise HTTPException(status_code=503, detail="낭독 판정을 쓸 수 없다")
     pool: asyncpg.Pool = request.app.state.db_pool
     # ⛔ **연결을 잡은 채 Nova 스트림을 타지 않는다** (`TASK-212`) — 서비스가 풀을 받아 DB 작업
-    # 구간에만 연결을 쥔다. 전사 상한은 `audio_gateway/transcribe._TIMEOUT_S` 가 소유하고(30초) 그
-    # 안에서 `pool_usage_sink` 가 연결을 또 잡으므로, 한 판정이 기본 풀(10)의 두 자리를 30초 넘게
-    # 묶을 수 있었다.
+    # 구간에만 연결을 쥔다. 전사 상한은 `audio_gateway/transcribe._TIMEOUT_S` 가 소유하고, 그 안에서
+    # `pool_usage_sink` 가 연결을 또 잡으므로 한 판정이 기본 풀(10)의 두 자리를 그 시간만큼 묶을 수
+    # 있었다. ⚠️ **초 수를 여기 적지 않는다** — 그 상수가 정본이고 복제하면 갈라진다.
     # ⚠️ 모델을 부르는 이웃 라우터(`api/vocab.py`)는 그 구간에 연결을 아예 잡지 않는다.
     judgment = await judge_readback(
         pool,

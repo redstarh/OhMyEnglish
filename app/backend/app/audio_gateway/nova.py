@@ -1123,7 +1123,7 @@ class NovaVoiceAdapter:
         stream_limit_seconds: float = STREAM_LIMIT_SECONDS,
         instructions: str | None = None,
         usage_sink: UsageSink | None = None,
-        transcribe_only: bool = False,
+        declare_tools: bool = True,
     ) -> None:
         # 세션마다 조립된 지시문(G-3). `None`이면 기본 문구 — 스텁·기존 차수 재현이
         # 흔들리지 않게 "주지 않으면 이전과 같다"를 기본값으로 둔다.
@@ -1152,10 +1152,17 @@ class NovaVoiceAdapter:
         # `TASK-124`(결정 68) — 주입한다. 이 어댑터가 DB 를 알면 스트림 대역만으로 도는 단위
         # 테스트가 DB 를 요구한다(`BedrockClaudeClient` 와 같은 이음새·같은 근거).
         self._usage_sink = usage_sink
-        # `TASK-217` — 전사 전용 모드. ⛔ **tool 스펙을 싣지 않는다**: 낭독 판정은 발음 tool 도
-        # 제어 tool 도 쓰지 않는데(`services/readback.py` 는 학습자 final 만 읽는다) 스펙은 입력
-        # 토큰으로 청구된다. ⚠️ 지시문 선택은 팩토리가 하고(G3) 여기서는 프로토콜 봉투만 갈린다.
-        self._transcribe_only = transcribe_only
+        # `promptStart` 에 tool 스펙을 실을지 (`TASK-217`).
+        #
+        # ⛔ **제품 모드 이름이 아니라 «프로토콜 사실» 을 받는다.** 어댑터가 하는 판단은 봉투에 키를
+        # 넣는가 하나뿐이고, 지시문 선택은 이미 팩토리가 끝냈다(G3). 이름을 `transcribe_only` 로
+        # 두면 **어댑터가 제품 모드를 알게 되고** — `pronunciation_mode`·`scenario_intake` 는 둘 다
+        # 팩토리 안에서 끝나는데 그 하나만 이 경계를 넘는다 — tool 요구가 다른 모드가 생길 때마다
+        # 생성자 불리언과 `_initialization_events` 분기가 함께 늘어난다.
+        # ⚠️ **기본값이 `True` 다** — 안전한 방향이 「선언한다」쪽이다. 기본을 `False` 로 두면 인자를
+        # 빠뜨린 호출이 tool 을 조용히 잃고, 그 고장은 `usage_sink` 가 조용히 꺼지던 것과 같은
+        # 모양이다.
+        self._declare_tools = declare_tools
         # `TASK-215` — 사용량을 적는 자리가 둘이 됐으므로(펌프의 `finally` 와 `close()` 의 백스톱)
         # 「한 번만」을 이 플래그가 소유한다. ⛔ **`_closed` 로는 못 한다** — 그것은 `close()` 가
         # 두 번 불리는 것을 막는 값이고, 펌프가 자기 `finally` 에서 적었는지는 모른다.
@@ -1538,8 +1545,9 @@ class NovaVoiceAdapter:
     def _initialization_events(self) -> list[dict[str, Any]]:
         """실증된 초기화 시퀀스 (스파이크와 같은 순서·같은 필드).
 
-        ⛔ **전사 전용 모드에서는 `toolConfiguration` 을 아예 넣지 않는다** (`TASK-217`) — 키를
-        빈 값으로 두지 않는다. 낭독 판정에는 tool 을 부를 일이 없고 스펙은 입력 토큰으로 청구된다.
+        ⛔ **`declare_tools` 가 거짓이면 `toolConfiguration` 을 아예 넣지 않는다** (`TASK-217`) —
+        키를 빈 값으로 두지 않는다. 낭독 전사에는 tool 을 부를 일이 없고 스펙은 입력 토큰으로
+        청구된다.
         ⚠️ **`audioOutputConfiguration` 은 그대로 둔다** — 그것을 빼도 되는지는 «미검증»이고, 빼면
         프로토콜이 거부할 수 있다. 관측하지 않은 것을 추측으로 고치지 않는다.
         """
@@ -1556,7 +1564,7 @@ class NovaVoiceAdapter:
                 "audioType": "SPEECH",
             },
         }
-        if not self._transcribe_only:
+        if self._declare_tools:
             # 발음 판정을 DB로 가져오는 **유일한** 수단이다 (설계서 §4.2) — 전사문에는 발음의
             # 흔적이 0이다(4차수 P2 실측). 봉투 모양은 스파이크가 실측했다.
             prompt_start["toolConfiguration"] = _pronunciation_tool_configuration()

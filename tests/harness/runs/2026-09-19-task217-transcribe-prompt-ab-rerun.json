@@ -1,0 +1,49 @@
+{
+ "fixture": "app/frontend/public/harness/readback.wav",
+ "pcm_bytes": 476626,
+ "clip_words": 45,
+ "arms": [
+  {
+   "arm": "A",
+   "label": "코치 지시문 + tool 스펙 (이전 판)",
+   "instruction_chars": 5364,
+   "transcript": "i usually wake up at seven. first, i check my phone for messages then i make a cup of. after that, i get ready for work. the bus stop is close to my house. it takes about thirty minutes to get to the office.",
+   "usage": {
+    "input_tokens": 2141,
+    "output_tokens": 420,
+    "input_speech_tokens": 508,
+    "input_text_tokens": 1633,
+    "output_speech_tokens": 268,
+    "output_text_tokens": 152
+   },
+   "quality": {
+    "words": 45,
+    "counts": {
+     "match": 44,
+     "missing": 1
+    }
+   }
+  },
+  {
+   "arm": "B",
+   "label": "전사 전용 지시문 · tool 스펙 없음",
+   "instruction_chars": 200,
+   "transcript": "i usually wake up at seven. first, i check my phone for messages then i make a cup of. after that, i get ready for work. the bus stop is close to my house. it takes about thirty minutes to get to the office.",
+   "usage": {
+    "input_tokens": 899,
+    "output_tokens": 93,
+    "input_speech_tokens": 504,
+    "input_text_tokens": 395,
+    "output_speech_tokens": 24,
+    "output_text_tokens": 69
+   },
+   "quality": {
+    "words": 45,
+    "counts": {
+     "match": 44,
+     "missing": 1
+    }
+   }
+  }
+ ]
+}

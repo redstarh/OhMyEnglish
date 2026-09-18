@@ -24,7 +24,9 @@ test explicitly requests one. Schema-level verification lives in Task 2
 
 from __future__ import annotations
 
+import ast
 import asyncio
+import inspect
 import json
 import os
 import sys
@@ -32,6 +34,7 @@ from collections.abc import AsyncIterator, Callable, Sequence
 from datetime import UTC, datetime, timedelta
 from itertools import count
 from pathlib import Path
+from types import ModuleType
 from typing import NamedTuple
 from uuid import UUID, uuid4
 
@@ -108,6 +111,26 @@ def _declared_default_as_env(name: str) -> str | None:
     if isinstance(default, bool):  # `str(False)`는 `"False"` — pydantic이 파싱한다
         return "true" if default else "false"
     return str(default)
+
+
+def imported_names(module: ModuleType) -> list[str]:
+    """모듈이 `import` 로 끌어온 이름 전부 — 이음매를 기계로 지키는 단정들이 이것을 읽는다.
+
+    ⛔ **여기 있는 이유는 한 벌이어야 하기 때문이다** (`TASK-220`). 이 걸음걸이를 쓰는 단정이
+    두 파일에 생겼고(`test_gateway.py` 의 G3 · `test_readback_api.py` 의 결정 131 경계), 복사본이
+    둘이면 **한쪽만 강화되고 다른 쪽 게이트는 약한 판으로 계속 통과한다.**
+    ⚠️ **소스 텍스트를 읽는 방식이라 런타임 뮤테이션으로는 재지 못한다** — 판별력을 확인할 때는
+    변이를 `import` 문 자체로 준다.
+    """
+    tree = ast.parse(inspect.getsource(module))
+    names: list[str] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            names.extend(alias.name for alias in node.names)
+        elif isinstance(node, ast.ImportFrom):
+            names.append(node.module or "")
+            names.extend(alias.name for alias in node.names)
+    return names
 
 
 def pin_settings_env(monkeypatch: pytest.MonkeyPatch, *, keep: Sequence[str] = ()) -> None:

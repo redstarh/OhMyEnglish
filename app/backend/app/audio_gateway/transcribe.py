@@ -23,6 +23,7 @@ from typing import TypeGuard
 from app.audio_gateway.port import TranscriptEvent, VoiceAdapter
 from app.services.recordings import (
     RECORDING_BYTES_PER_SAMPLE,
+    RECORDING_CHANNELS,
     RECORDING_SAMPLE_RATE_HZ,
 )
 
@@ -30,8 +31,11 @@ from app.services.recordings import (
 # ⛔ **소켓 계층의 프레임과 같지 않다.** 그쪽은 1024바이트(32ms · `lib/audio.ts` 의
 # `FRAME_BYTES`)이고 그 값은 «실시간» 지연을 위한 것이다(`audio_gateway/session.py` 가 근거를
 # 가진다). 여기는 이미 끝난 파일을 흘리므로 지연이 아니라 호출 수가 문제이고 100ms 가 그 균형이다.
-# ⚠️ 상수를 손으로 적지 않는 이유: 녹음 표본율이 바뀌면 이 값이 조용히 다른 길이가 된다.
-_FRAME_BYTES = RECORDING_SAMPLE_RATE_HZ * RECORDING_BYTES_PER_SAMPLE // 10
+# ⚠️ 상수를 손으로 적지 않는 이유: 녹음 규격이 바뀌면 이 값이 조용히 다른 길이가 된다.
+# ⛔ **채널 항까지 곱한다** — 첫 판이 그것을 빠뜨려 «표본율 축만» 보호됐다. 채널이 2 가 되면 이 값이
+# 3200(50ms)이 되어 위 주석이 뜻한 100ms 의 절반이 되고, `3200 % 4 == 0` 이라 프레임 정렬 검사도
+# 통과해 **호출 수만 조용히 두 배**가 된다. 자매 파생(`nova.FRAME_BYTES`)은 그 항을 갖고 있었다.
+_FRAME_BYTES = RECORDING_SAMPLE_RATE_HZ * RECORDING_BYTES_PER_SAMPLE * RECORDING_CHANNELS // 10
 # 전사가 오지 않는 어댑터에서 엔드포인트가 영원히 열리지 않게 하는 상한.
 _TIMEOUT_S = 30.0
 # 오디오 끝에 붙이는 침묵. 16kHz·16bit 기준 2초다.
