@@ -18,6 +18,9 @@ from __future__ import annotations
 import asyncio
 import base64
 import inspect
+import json
+import subprocess
+import sys
 from collections.abc import AsyncIterator
 from decimal import Decimal
 from pathlib import Path
@@ -75,6 +78,8 @@ from app.services.recordings import (
     recording_path,
     recording_url,
 )
+
+BACKEND_ROOT = Path(__file__).resolve().parents[2] / "app" / "backend"
 
 # 연결 타임아웃 주입값. 실시간 대기 금지 — 무응답 경로도 0.1초 안에 판정된다.
 FAST_CONNECT_TIMEOUT = 0.1
@@ -1670,6 +1675,49 @@ def test_gateway_core_does_not_import_the_stub(module: ModuleType):
 def test_gateway_core_does_not_import_the_nova_adapter(module: ModuleType):
     assert all("nova" not in name.lower() for name in imported_names(module))
     assert "NovaVoiceAdapter" not in inspect.getsource(module)
+
+
+def test_factory_does_not_reach_the_services_layer_even_transitively():
+    """⛔ **팩토리·어댑터는 `app.models` 만 알고 `app.services` 는 모른다** (`TASK-221`).
+
+    불변식의 글은 `services/sessions.load_session_scenario` 의 docstring 이 갖는다 — 서비스가 값을
+    **채워 주는** 방향이고 팩토리가 **꺼내 오는** 방향이 아니다.
+
+    ⛔ **`imported_names` 로는 이 불변식을 지킬 수 없다.** 그 걸음걸이는 **직접** import 만 보는데,
+    2026-09-19 의 실제 위반은 **전이**였다: `TASK-214` 가 신설한 `audio_gateway/transcribe.py` 가
+    `app.services.recordings` 에서 상수를 가져왔고 팩토리가 그 모듈을 import 했다. 직접 import 는
+    0건이라 AST 단정은 통과했고, 드러난 자리는 **실제로 올라온 모듈 목록**뿐이었다(서비스 다섯 ·
+    `asyncpg` 포함).
+    ⛔ **그래서 별 인터프리터에서 잰다** — 같은 프로세스의 `sys.modules` 는 앞선 테스트가 이미
+    서비스를 올려 두므로 이 질문에 답할 수 없다(늘 「올라와 있다」가 나온다).
+    ⚠️ **`audio_gateway/session.py` 는 이 단정의 대상이 아니다** — 그쪽은 서비스를 넷 import 하고
+    그것이 설계다. 좁혀진 불변식은 `factory`·`nova` 의 것이다.
+    """
+    probe = (
+        "import sys, json;"
+        " import app.audio_gateway.factory;"
+        " print(json.dumps({"
+        "  'services': sorted(m for m in sys.modules if m.startswith('app.services')),"
+        "  'asyncpg': 'asyncpg' in sys.modules,"
+        " }))"
+    )
+    done = subprocess.run(
+        [sys.executable, "-c", probe],
+        cwd=BACKEND_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert done.returncode == 0, (
+        f"프로브가 돌지 않았다 — 단정이 아무것도 재지 못했다: {done.stderr}"
+    )
+    loaded = json.loads(done.stdout)
+    assert loaded["services"] == [], (
+        f"팩토리를 import 하는 것만으로 서비스 계층이 올라왔다: {loaded['services']} — "
+        "`app.models` 로 옮길 값을 `app.services` 에서 가져오고 있다"
+    )
+    assert loaded["asyncpg"] is False, "팩토리 import 가 DB 드라이버를 끌어왔다"
 
 
 # ⑤ 종료 예산 — 셋의 합을 한 자리에만 적었으므로 그 한 자리가 낡지 않게 한다 (`TASK-215`)

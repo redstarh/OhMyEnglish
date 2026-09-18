@@ -32,16 +32,19 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import asyncpg
 
+from app.models.recording import (
+    RECORDING_BYTES_PER_SAMPLE,
+    RECORDING_CHANNELS,
+    RECORDING_SAMPLE_RATE_HZ,
+)
 from app.services.sessions import LIVE_SESSION_STATUSES, LIVE_SESSION_STATUSES_SQL
 
 logger = logging.getLogger(__name__)
 
-# 디스크에 쌓이는 raw LPCM 의 규격 (§4.4). 프론트 `lib/audio.ts` 의 `SAMPLE_RATE_HZ` 와 같은 값이고
-# ⛔ **그쪽에서 import 하지 않는다** — 이유가 다르다. 저쪽은 「Nova 입력 규격」이고 이쪽은 「학습자
-# 낭독의 저장 형식」이다. 한 상수로 묶으면 어느 한쪽이 바뀔 때 다른 쪽이 함께 끌려간다.
-RECORDING_SAMPLE_RATE_HZ = 16_000
-RECORDING_BYTES_PER_SAMPLE = 2
-RECORDING_CHANNELS = 1
+# 디스크에 쌓이는 raw LPCM 의 규격 (§4.4) — **정본은 `models/recording.py` 로 옮겼다**(`TASK-221`).
+# ⛔ 옮긴 이유는 어댑터 층이 그 값을 읽어야 하는데 서비스에 두면 의존 방향이 뒤집히는 것이다. 그
+# 모듈의 머리말이 근거와 계측값을 갖는다. ⛔ **`nova.SAMPLE_RATE_HZ` 와 합치지 않는다**(같은 자리).
+# ⚠️ **여기서 재수출하지 않는다** — 이 파일 밖에서 이 상수를 쓰는 곳은 정본에서 바로 가져간다.
 
 # ⚠️ **앞 판은 `audio/L16; rate=16000; channels=1` 이었다** (결정 128 이 바꿨다). 그 파라미터를 읽어
 # 재생하는 브라우저 API 가 없어 프론트가 `fetch()` + `VoiceIo` 로만 재생할 수 있었는데, 그 큐는

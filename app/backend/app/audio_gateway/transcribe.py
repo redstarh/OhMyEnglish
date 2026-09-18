@@ -21,29 +21,33 @@ from collections.abc import Callable
 from typing import TypeGuard
 
 from app.audio_gateway.port import TranscriptEvent, VoiceAdapter
-from app.services.recordings import (
+from app.models.recording import (
     RECORDING_BYTES_PER_SAMPLE,
     RECORDING_CHANNELS,
     RECORDING_SAMPLE_RATE_HZ,
 )
 
-# 한 프레임의 크기 — 저장된 녹음 규격(`services/recordings.py`)에서 끌어낸 100ms 다.
+# 저장된 녹음 1초가 몇 바이트인가 — 아래 두 상수가 이 값에서 갈린다.
+# ⛔ **셋을 다 곱한다.** 첫 판은 채널 항을 빠뜨려 «표본율 축만» 보호됐고, 채널이 2 가 되면 두 상수가
+# 조용히 절반 길이가 됐다(`3200 % 4 == 0` 이라 프레임 정렬 검사도 통과한다).
+_RECORDING_BYTES_PER_SECOND = (
+    RECORDING_SAMPLE_RATE_HZ * RECORDING_BYTES_PER_SAMPLE * RECORDING_CHANNELS
+)
+
+# 한 프레임의 크기 — 저장된 녹음 규격에서 끌어낸 **100ms** 다.
 # ⛔ **소켓 계층의 프레임과 같지 않다.** 그쪽은 1024바이트(32ms · `lib/audio.ts` 의
 # `FRAME_BYTES`)이고 그 값은 «실시간» 지연을 위한 것이다(`audio_gateway/session.py` 가 근거를
 # 가진다). 여기는 이미 끝난 파일을 흘리므로 지연이 아니라 호출 수가 문제이고 100ms 가 그 균형이다.
 # ⚠️ 상수를 손으로 적지 않는 이유: 녹음 규격이 바뀌면 이 값이 조용히 다른 길이가 된다.
-# ⛔ **채널 항까지 곱한다** — 첫 판이 그것을 빠뜨려 «표본율 축만» 보호됐다. 채널이 2 가 되면 이 값이
-# 3200(50ms)이 되어 위 주석이 뜻한 100ms 의 절반이 되고, `3200 % 4 == 0` 이라 프레임 정렬 검사도
-# 통과해 **호출 수만 조용히 두 배**가 된다. 자매 파생(`nova.FRAME_BYTES`)은 그 항을 갖고 있었다.
-_FRAME_BYTES = RECORDING_SAMPLE_RATE_HZ * RECORDING_BYTES_PER_SAMPLE * RECORDING_CHANNELS // 10
+_FRAME_BYTES = _RECORDING_BYTES_PER_SECOND // 10
 # 전사가 오지 않는 어댑터에서 엔드포인트가 영원히 열리지 않게 하는 상한.
 _TIMEOUT_S = 30.0
-# 오디오 끝에 붙이는 침묵. 16kHz·16bit 기준 2초다.
+# 오디오 끝에 붙이는 침묵 — **2초**.
 # ⛔ **이것이 없으면 실물 Nova 가 전사를 «아예» 주지 않는다** (2026-09-18 실측 · `TASK-210`):
 # 같은 오디오가 침묵 없이는 빈 문자열이었고 2초를 붙이자 전사가 왔다. VAD 가 침묵으로 발화를 닫는다.
 # ⚠️ 파일은 학습자가 「읽기 끝」을 누른 순간 끊기므로 **실사용 입력에 침묵이 없다** — 그래서 이 값이
 # 선택이 아니라 필수다.
-_TRAILING_SILENCE_BYTES = RECORDING_SAMPLE_RATE_HZ * RECORDING_BYTES_PER_SAMPLE * 2
+_TRAILING_SILENCE_BYTES = _RECORDING_BYTES_PER_SECOND * 2
 # 마지막 학습자 final 뒤로 이만큼 조용하면 낭독이 끝난 것으로 본다 (`TASK-210`).
 # ⚠️ 실물은 끊어 읽는 자리마다 final 을 내므로 문장 사이 숨보다 길어야 한다.
 _QUIET_AFTER_FINAL_S = 3.0
