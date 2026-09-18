@@ -100,9 +100,9 @@ cd app/frontend && npx tsc --noEmit && npx eslint . && npx next build
 | **`TASK-210`** | 화면 렌더 관측 — AC#2·AC#3 은 닫혔고 **AC#1 의 「보이는 것」만 남음** | `In Progress` · 다음 걸음 |
 | `TASK-211` | 복습 시계 연결 — ⛔ 「낱말 → 소리」 규칙을 **먼저** 정함 | `To Do` |
 
-⛔ **정본은 `docs/design/2026-09-18-read-aloud-judgment-design.md` 와 결정 131 임.** 실측으로 확정된 것
-셋: ⑴ ⛔ **낭독 끝에 침묵 2초가 «필수»** — 없으면 실물 Nova 가 전사를 아예 주지 않음 ⑵ 판정에 모델을
-부르지 않음(낱말 일치) ⑶ 둘째 조회는 전사를 건너뜀(2.29초 → 0.00초).
+⛔ **정본은 `docs/design/2026-09-18-read-aloud-judgment-design.md` 와 결정 131 임.** 실측 확정 셋:
+⑴ ⛔ **낭독 끝에 침묵 2초가 «필수»**(없으면 실물 Nova 가 전사를 안 줌) ⑵ 판정에 모델을 부르지 않음
+⑶ 둘째 조회는 전사를 건너뜀(2.29초 → 0.00초).
 ⚠️ **전사기가 `All right` 을 `alright` 로 합쳐 두 낱말이 「다름」으로 잡힘** — 학습자에게 불리한 알려진
 한계임. ⛔ **남은 일은 쉐도잉 낭독 드라이버 신설임** — `p_app_path.py` 의 마이크 대체는 `instrument.js`
 의 `window.__omy` 에 매여 있고 «말하기» 세션을 태움. 픽스처는 있음(`/tmp/readback_pad.wav`) · 회차 뒤
