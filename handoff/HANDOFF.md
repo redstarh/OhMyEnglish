@@ -82,12 +82,10 @@ cd app/frontend && npx tsc --noEmit && npx eslint . && npx next build
 1. ⛔ **`pytest`·`ruff` 는 `app/backend` 에서 돌림**(`H-BN`). 부분 실행은 `-c pyproject.toml`(`H-AJ`).
 2. ⛔ **한글 주석을 쓴 직후 `ruff check`** — `E501` 은 표시 폭이라 한글이 2열임(`H-BW`). 이 세션에서
    그 자리에 **여섯 번** 걸렸음.
-3. ⛔ **훅 `hangul-sanity.py` 가 정상 낱말을 막을 수 있음** — 「씁」·「맸」·「룩」을
-   `~/.claude/hangul-allow.txt` 에 등재했음. ⛔ 그 파일을 쓰는 것도 그 훅에 막혀 자모 조합으로 만듦.
-   ⚠️ **첫 시도가 틀렸음**(「씁」의 초성을 ㅅ=9 로 계산해 「습」을 넣었음. 쌍시옷은 **10**) ⇒ **기대하는
-   유니코드 이름을 먼저 적고 대조**함. 이름만 보고 단정하면 같은 실수를 반복함.
-4. ⛔ **종료 코드 판정에 파이프를 걸지 않음**(`H-AZ`) — `ty check | tail` 이 `exit 0` 으로 보이는 것을
-   이 세션에서 밟았음.
+3. ⛔ **훅 `hangul-sanity.py` 가 정상 낱말을 막음** — 셋을 `~/.claude/hangul-allow.txt` 에 등재했고
+   그 파일을 쓰는 것도 막혀 자모 조합으로 만듦. ⚠️ **첫 시도가 틀렸음**(쌍시옷 초성은 9 가 아니라
+   **10**) ⇒ **기대하는 유니코드 이름을 먼저 적고 대조**함. 이름만 보고 단정하면 실수를 반복함.
+4. ⛔ **종료 코드 판정에 파이프를 걸지 않음**(`H-AZ`) — `ty check | tail` 이 `exit 0` 으로 보였음.
 5. ⚠️ **프런트에 테스트 러너가 없음** ⇒ 화면 판정은 브라우저 관측이 유일함.
 6. ⛔ **마이그레이션 적용 전 `pg_dump -n ohmyenglish` 로 백업함.** 적용은
    `./app/backend/.venv/bin/python scripts/migrate.py`(`/usr/bin/python3` 은 `asyncpg` 없음).
