@@ -18,6 +18,8 @@ Claude·실제 브라우저를 상대로 도는 스크립트**이므로 pytest �
 | `inject_errors.py` | 임의 오류 문장을 앱 경로로 주입해 Agent의 패턴 분석을 관측한다 (E계층) |
 | `scenarios-E-agent-learning.md` | 학습 패턴 분석·학습 제시 시나리오 정의 |
 | `scenarios-N-real-voice.md` | 실음성(Nova Sonic) 테스트 가능성 검토와 준비 상태 |
+| `p_readback_leg.py` | 쉐도잉 **낭독 판정** 흐름을 브라우저에서 태운다 (`TASK-210` · 결정 131) |
+| `teardown_session.py` | 회차가 만든 세션 하나를 걷는다 — job·녹음 파일까지 (`TASK-193`) |
 | `runs/<날짜>-run-N.md` | 회차 기록 — 판정과 발견 사항 |
 | `runs/<날짜>-run-N/` | 그 회차의 원자료(프레임 JSON·로그·스크린샷) |
 
@@ -30,6 +32,15 @@ Claude·실제 브라우저를 상대로 도는 스크립트**이므로 pytest �
 `.harness/evidence/<팔>-<픽스처>-<UTC시각>.json` 이라 **회차가 서로를 덮지 않는다.**
 고정 이름 파일은 **「가장 최근」 포인터**로 함께 갱신되며 **덮인다** — 판정 근거로 인용할 것은
 스크립트가 마지막에 출력하는 `raw -> …` 경로다. 특정 경로에 쓰려면 `--out` 을 준다.
+
+⛔ **낭독 판정 회차는 `p_readback_leg.py` 로 돈다** — `p_app_path.py` 와 다른 흐름이다(그쪽은
+「말하기」 세션을 태우고 마이크 대체가 `instrument.js` 의 `window.__omy` 에 매여 있다). 그 드라이버의
+머리말이 전용 Chrome 플래그·진입 순서·세션 ID 를 얻는 방법을 소유한다. 픽스처는
+`public/harness/readback.wav` 이고 ⛔ **끝에 침묵 2초가 있어야 한다** — 없으면 실물 Nova 가 전사를
+아예 주지 않는다(2026-09-18 실측).
+
+⛔ **회차마다 `teardown_session.py` 를 돌린다** — 빠뜨리면 큐에 job 넷이 남고(`H-CD`) 낭독 파일이
+고아로 쌓인다. 대상은 **드라이버가 기록한 세션 ID** 이고 시각창을 쓰지 않는다.
 
 ## 실행 전 필수
 
