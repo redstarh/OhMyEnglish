@@ -32,8 +32,10 @@ from uuid import UUID
 import asyncpg
 from fastapi import APIRouter, HTTPException, Request, Response
 
+from app.audio_gateway.factory import create_voice_adapter
 from app.config import get_settings
 from app.models.user import FIXED_USER_ID
+from app.services.readback import judge_readback
 from app.services.recordings import RECORDING_MEDIA_TYPE, load_recording, wav_from_pcm
 from app.services.results import (
     Correction,
@@ -43,6 +45,7 @@ from app.services.results import (
     get_session_result,
 )
 from app.services.sessions import load_prepared_plan
+from app.services.usage import pool_usage_sink
 
 router = APIRouter(prefix="/api/sessions", tags=["results"])
 
@@ -176,3 +179,41 @@ async def get_recording(session_id: UUID, utterance_id: UUID, request: Request) 
     if audio is None:
         raise HTTPException(status_code=404, detail="recording not found")
     return Response(content=wav_from_pcm(audio), media_type=RECORDING_MEDIA_TYPE)
+
+
+@router.post("/{session_id}/recordings/{utterance_id}/readback")
+async def judge_recording_readback(
+    session_id: UUID, utterance_id: UUID, request: Request
+) -> dict[str, object]:
+    """낭독 하나를 클립의 글과 견주어 낱말마다 판정한다 (`TASK-208` · 결정 131).
+
+    **판정은 서비스가 하고 여기서는 HTTP 로 옮기기만 한다** — 이 파일의 다른 라우터와 같은 규약이다.
+    `judge_readback` 이 `None` 을 주는 세 경우가 전부 404 다: 발화가 없다 · 낭독이 아니다 ·
+    녹음에 접근할 수 없다(포인터 없음·파일 없음·학습자의 당일이 지났음).
+
+    ⛔ **`POST` 인 이유**: 첫 호출이 전사를 만들어 `readback_transcript` 에 적으므로 상태를 바꾼다.
+    ⛔ **`words` 가 빈 200 은 「전사를 얻지 못했다」다** — 없는 자원이 아니라 다시 눌러 볼 일이다
+    (`api/vocab.py` 가 같은 판단을 적어 두었다).
+    ⛔ **`usage_sink` 를 반드시 넘긴다** — 낭독 전사는 Nova 호출이고 빼면 그 비용이 어느 집계에도
+    나타나지 않는다(`services/usage.py` 의 *"이 비용은 복원할 수 없다"*). ⚠️ 다만 Nova 쪽 기록
+    자체가 지금 값을 못 싣는다 — `TASK-204` 가 그것을 가진다.
+    """
+    settings = get_settings()
+    pool: asyncpg.Pool = request.app.state.db_pool
+    async with pool.acquire() as conn:
+        judgment = await judge_readback(
+            conn,
+            settings.shadowing_audio_root,
+            session_id,
+            utterance_id,
+            make_adapter=lambda: create_voice_adapter(
+                settings, questions=(), scenario=None, usage_sink=pool_usage_sink(pool)
+            ),
+        )
+    if judgment is None:
+        raise HTTPException(status_code=404, detail="readback not found")
+    return {
+        "clipTranscript": judgment.clip_transcript,
+        "readbackTranscript": judgment.readback_transcript,
+        "words": [{"word": word.word, "verdict": word.verdict} for word in judgment.words],
+    }

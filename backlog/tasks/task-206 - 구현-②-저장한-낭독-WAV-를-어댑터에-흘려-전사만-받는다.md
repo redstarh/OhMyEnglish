@@ -4,7 +4,7 @@ title: '구현 ②: 저장한 낭독 WAV 를 어댑터에 흘려 전사만 받�
 status: Done
 assignee: []
 created_date: '2026-09-18 05:54'
-updated_date: '2026-09-18 06:25'
+updated_date: '2026-09-18 06:41'
 labels: []
 dependencies:
   - TASK-205
@@ -65,4 +65,14 @@ ordinal: 267000
 
 `pytest` **1377 passed**(1371 → +6) · `ruff` 0 · `ruff format` **300 files** · `ty` 0 — 넷 다 exit 0.
 ⚠️ `H-BW` 에 또 걸렸음(한글 docstring 한 줄이 101열) — 고쳤음.
+
+## ⛔ 정정 (2026-09-18 · `TASK-208` 에서 드러났음)
+
+**AC#1 이 「WAV 경로를 받아」였고 그 형태를 버렸음 — 지금 함수는 `pcm: bytes` 를 받음.**
+근거: 녹음 접근의 규칙(만료·세션 생존·포인터만 남은 상태)을 `recordings.load_recording` 이
+소유하고 **그 함수가 헤더 없는 PCM 을 돌려줌**(라우터가 읽을 때 `wav_from_pcm` 으로 감쌈).
+경로를 받으면 호출자가 `recording_path` 로 경로를 다시 조립해 **그 규칙을 건너뛰게 됨** — 이 리포가
+*"두 곳에서 각자 계산하면 갈라진다"* 로 금지한 형태임.
+⇒ 「경로 하나를 받는다」는 AC 의 뜻(경계를 한 함수로 좁힘)은 그대로 지켰고 **인자의 종류만** 바뀜.
+테스트도 PCM 을 넘기게 고쳤고 뮤테이션 넷은 그대로 죽음.
 <!-- SECTION:NOTES:END -->

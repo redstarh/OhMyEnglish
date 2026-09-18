@@ -18,13 +18,16 @@ from __future__ import annotations
 
 import asyncio
 import re
-import wave
 from collections.abc import Callable
 from dataclasses import dataclass
 from difflib import SequenceMatcher
 from pathlib import Path
+from uuid import UUID
+
+import asyncpg
 
 from app.audio_gateway.port import TranscriptEvent, VoiceAdapter
+from app.services.recordings import load_recording
 
 MATCH = "match"
 MISSING = "missing"
@@ -53,15 +56,20 @@ async def _first_user_final(adapter: VoiceAdapter) -> str:
 
 
 async def transcribe_readback(
-    path: Path,
+    pcm: bytes,
     *,
     make_adapter: Callable[[], VoiceAdapter],
     frame_bytes: int = _FRAME_BYTES,
     timeout_s: float = _TIMEOUT_S,
 ) -> str:
-    """저장된 낭독 WAV 를 어댑터에 흘려 **학습자의 final 전사문 하나**만 돌려준다.
+    """낭독 녹음의 **PCM** 을 어댑터에 흘려 학습자의 final 전사문 하나만 돌려준다.
 
     얻지 못하면 빈 문자열이다 — 호출자는 그때 판정을 만들지 않는다(설계서 §4).
+
+    ⛔ **경로가 아니라 PCM 을 받는다** (2026-09-18 정정 · `TASK-206` 의 AC 는 「WAV 경로」였다).
+    이유: 녹음 접근의 규칙(만료·세션 생존·포인터만 남은 상태)을 `services/recordings.load_recording`
+    이 소유하고 그 함수가 **헤더 없는 PCM** 을 돌려준다. 경로를 받으면 호출자가 경로를 다시 조립해
+    그 규칙을 건너뛰게 되고, 그것이 이 리포가 *"두 곳에서 각자 계산하면 갈라진다"* 로 금지한 형태다.
 
     ⛔ **되돌리는 조건의 경계가 이 함수다.** 배치 STT 로 옮기기로 하면(결정 131) 여기만 갈면 되고
     호출자는 그대로 둔다. 그래서 어댑터를 인자로 «만들어» 받는다.
@@ -72,8 +80,6 @@ async def transcribe_readback(
     ② 파일이 갑자기 끝나도 Nova 가 final 을 내는지 — VAD 가 침묵으로 판정을 닫으므로 끝에 침묵을
        덧붙여야 할 수 있다. **필요하다는 증거가 나온 뒤에 붙인다**(지금 붙이면 근거 없는 코드다).
     """
-    with wave.open(str(path), "rb") as wav:
-        pcm = wav.readframes(wav.getnframes())
     adapter = make_adapter()
     try:
         return await asyncio.wait_for(_readback_text(adapter, pcm, frame_bytes), timeout_s)
@@ -88,6 +94,68 @@ async def _readback_text(adapter: VoiceAdapter, pcm: bytes, frame_bytes: int) ->
     await adapter.start()
     await _send_all(adapter, pcm, frame_bytes)
     return await _first_user_final(adapter)
+
+
+@dataclass(frozen=True)
+class ReadbackJudgment:
+    """낭독 하나에 대한 판정. `words` 가 비면 **전사를 얻지 못했다**는 뜻이다(설계서 §4)."""
+
+    clip_transcript: str
+    readback_transcript: str
+    words: list[WordVerdict]
+
+
+_READBACK_ROW_SQL = """
+select transcript, readback_transcript
+  from utterances
+ where id = $1 and session_id = $2 and utterance_type = 'shadowing_recording'
+"""
+
+
+async def judge_readback(
+    conn: asyncpg.Connection,
+    root: Path,
+    session_id: UUID,
+    utterance_id: UUID,
+    *,
+    make_adapter: Callable[[], VoiceAdapter],
+) -> ReadbackJudgment | None:
+    """낭독 하나를 클립의 글과 견준다. 접근할 수 없으면 `None` — 호출자가 404 로 옮긴다.
+
+    ⛔ **요청할 때 계산하고 한 번만 계산한다** (결정 131). 전사가 이미 있으면 어댑터를 아예 만들지
+    않으므로 두 번째 조회에 비용이 0 이다.
+    ⛔ **세션과 발화 종류가 «둘 다» 조회 조건이다.** 세션은 개인정보 경계이고
+    (`api/shadowing.py` 머리말) 종류는 「견줄 원본이 있는가」다 — 일반 발화의 `transcript` 는
+    클립의 글이 아니라 학습자의 말이라 견주면 뜻이 없는 판정이 나온다.
+    ⚠️ 종류 필터는 **둘째 겹**이다 — `utterances_audio_only_for_shadowing` 이 낭독이 아닌 발화에
+    포인터 자체를 못 붙이게 한다.
+    ⛔ **빈 전사를 저장하지 않는다** — 저장하면 다시 눌러도 영원히 빈 판정이 돌아온다. 저장하지
+    않으면 학습자가 다시 눌러 볼 수 있고, 그때 비용은 실패한 회수만큼만 난다.
+    """
+    row = await conn.fetchrow(_READBACK_ROW_SQL, utterance_id, session_id)
+    if row is None:
+        return None
+    clip_transcript: str = row["transcript"]
+    readback: str | None = row["readback_transcript"]
+    if readback is None:
+        pcm = await load_recording(conn, root, session_id, utterance_id)
+        if pcm is None:
+            return None
+        readback = await transcribe_readback(pcm, make_adapter=make_adapter)
+        if not readback:
+            return ReadbackJudgment(
+                clip_transcript=clip_transcript, readback_transcript="", words=[]
+            )
+        await conn.execute(
+            "update utterances set readback_transcript = $2 where id = $1",
+            utterance_id,
+            readback,
+        )
+    return ReadbackJudgment(
+        clip_transcript=clip_transcript,
+        readback_transcript=readback,
+        words=compare_readback(clip_transcript, readback),
+    )
 
 
 # 견줄 때만 쓰는 형태 — 대소문자와 문장부호 차이를 오류로 세지 않기 위해 지운다.
