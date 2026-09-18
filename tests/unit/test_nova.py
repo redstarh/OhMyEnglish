@@ -26,6 +26,7 @@ from app.audio_gateway.nova import (
     FRAME_BYTES,
     PRONUNCIATION_MODE_PROMPT,
     SYSTEM_PROMPT,
+    TRANSCRIPTION_ONLY_PROMPT,
     NovaEventTranslator,
     NovaVoiceAdapter,
     _known_sounds_block,
@@ -769,6 +770,44 @@ async def test_prompt_start_carries_the_pronunciation_tool():
     # Sonic은 `inputSchema.json`을 **문자열**로 받는다 (스파이크 실측).
     assert isinstance(spec["inputSchema"]["json"], str)
     assert json.loads(spec["inputSchema"]["json"])["type"] == "object"
+
+
+async def test_전사_전용_모드는_tool_스펙을_아예_싣지_않는다():
+    """⛔ **tool 스펙은 전사 한 줄에 쓰이지 않는데 입력 토큰으로는 전량 청구된다** (`TASK-217`).
+
+    낭독 판정이 읽는 것은 학습자의 final 전사문뿐이므로(`services/readback.py`) 발음 tool 도 제어
+    tool 도 부를 일이 없다. ⚠️ **키를 빈 값으로 두지 않고 아예 빼는 것이 계약이다** — 빈 `tools`
+    목록도 봉투로 청구되고, 무엇보다 「부를 수 있지만 안 쓴다」와 「부를 수 없다」는 다른 상태다.
+    ⚠️ **오디오 출력 설정은 그대로 남는다** — 빼도 되는지 미검증이고, 관측하지 않은 것을 추측으로
+    고치지 않는다(그 판단은 `_initialization_events` 가 가진다).
+    """
+    stream = _FakeStream()
+    adapter = _adapter(stream, transcribe_only=True)
+
+    await adapter.start()
+    await adapter.close()
+
+    prompt_start = stream.payloads("promptStart")[0]
+    assert "toolConfiguration" not in prompt_start
+    assert prompt_start["audioOutputConfiguration"]["audioType"] == "SPEECH"
+
+
+async def test_전사_전용_모드의_지시문은_코치_규칙을_담지_않는다():
+    """⛔ **줄이려는 것이 그 규칙들이다** (`TASK-217`).
+
+    ⚠️ 문면 전체를 글자로 고정하지 않는다 — 그러면 문구를 다듬을 때마다 깨지고, 재는 것은 문구가
+    아니라 **무엇이 실리지 않는가**다. 코치 페르소나(`OhMyEnglish`)와 규칙 번호가 그 표지다.
+    """
+    stream = _FakeStream()
+    adapter = _adapter(stream, transcribe_only=True, instructions=TRANSCRIPTION_ONLY_PROMPT)
+
+    await adapter.start()
+    await adapter.close()
+
+    sent = stream.payloads("textInput")[0]["content"]
+    assert "OhMyEnglish" not in sent
+    assert "report_pronunciation_coaching" not in sent
+    assert len(sent) < len(SYSTEM_PROMPT) // 4, f"{len(sent)}자 — 충분히 줄지 않았다"
 
 
 # 스파이크가 실제로 받은 TOOL 블록이 발음 이벤트 1건으로 번역된다.

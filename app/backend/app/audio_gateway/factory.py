@@ -13,6 +13,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from app.audio_gateway.nova import (
+    TRANSCRIPTION_ONLY_PROMPT,
     NovaVoiceAdapter,
     build_pronunciation_prompt,
     build_system_prompt,
@@ -61,11 +62,21 @@ def create_transcriber(settings: Settings, *, usage_sink: UsageSink | None) -> T
     ⚠️ **대화 재료를 빈 값으로 못 박는 자리도 여기다.** 낭독 전사에는 계획·무대·질문이 필요 없고,
     그래도 `nova` 구현이 지시문을 요구하므로 그 빈 값을 팩토리가 고정한다 — 라우터가 고르면
     「무엇을 실을지」가 HTTP 층의 판단이 된다.
-    ⚠️ 낭독에 **전용 프롬프트**를 쓰는 것은 `TASK-217` 이 가진다 — 여기서 앞질러 바꾸지 않는다.
+    ⛔ **`transcribe_only=True` 를 여기서 못 박는다** (`TASK-217`) — 낭독 전사는 **언제나** 전사
+    전용이므로 호출자가 고를 값이 아니다. 인자로 열면 코치 지시문을 실은 전사기가 만들어질 수 있고,
+    그것이 줄이려던 비용을 그대로 되돌린다.
     """
 
     def make_adapter() -> VoiceAdapter:
-        return create_voice_adapter(settings, questions=(), scenario=None, usage_sink=usage_sink)
+        return create_voice_adapter(
+            settings,
+            questions=(),
+            scenario=None,
+            # `TASK-217` — 코치를 부르지 않는다. 페르소나·규칙·tool 스펙이 전사 한 줄에 쓰이지
+            # 않는데 입력 토큰으로는 전량 청구된다(설계서 §6 이 실측을 가진다).
+            transcribe_only=True,
+            usage_sink=usage_sink,
+        )
 
     async def transcribe(pcm: bytes) -> str:
         return await transcribe_readback(pcm, make_adapter=make_adapter)
@@ -82,6 +93,7 @@ def create_voice_adapter(
     scenario: SessionScenario | None,
     pronunciation_mode: bool = False,
     scenario_intake: bool = False,
+    transcribe_only: bool = False,
     usage_sink: UsageSink | None = None,
 ) -> VoiceAdapter:
     """넷 다 **데이터**다 — 조립된 지시문이 아니다 (G-3).
@@ -127,8 +139,14 @@ def create_voice_adapter(
     # 흡수해 G3 의 이음매가 흐려진다.
     # ⚠️ **전용 모드에도 `known_sounds` 를 싣는다**(결정 72). 이전 판은 이 목록을 **뺐고** 그래서
     # 그 모드에는 소리 재료가 하나도 없었다 — 단수 지목을 걷은 뒤에는 그것이 「재료 0」이 된다.
+    #
+    # `TASK-217` — 전사 전용 모드가 **첫 갈래**다. 낭독 판정은 코치를 부르는 일이 아니므로
+    # 페르소나·규칙·재료를 하나도 싣지 않는다. ⛔ **`pronunciation_mode` 보다 앞에 둔다** — 둘이
+    # 동시에 참인 호출은 없지만, 뒤에 두면 「전사인데 발음 코치 지시문」이 조용히 나갈 수 있다.
     instructions = (
-        build_pronunciation_prompt(known_sounds)
+        TRANSCRIPTION_ONLY_PROMPT
+        if transcribe_only
+        else build_pronunciation_prompt(known_sounds)
         if pronunciation_mode
         else build_system_prompt(
             known_sounds,
@@ -150,6 +168,11 @@ def create_voice_adapter(
     if settings.voice_adapter == NOVA_ADAPTER:
         # `TASK-124`(결정 68) — 토큰 기록 sink 를 넘긴다. ⛔ **스텁에는 넘기지 않는다**: 스텁은
         # 토큰을 쓰지 않으므로 행을 만들면 「쓰지 않은 비용」을 발명한다.
-        return NovaVoiceAdapter(settings, instructions=instructions, usage_sink=usage_sink)
+        return NovaVoiceAdapter(
+            settings,
+            instructions=instructions,
+            usage_sink=usage_sink,
+            transcribe_only=transcribe_only,
+        )
     # 오타를 조용히 스텁으로 흘려보내면 "실물이라 믿었던 세션이 픽스처였다"가 된다.
     raise ValueError(f"알 수 없는 voice_adapter 설정: {settings.voice_adapter!r}")

@@ -451,6 +451,26 @@ Pronunciation coaching:
     back for grammar."""
 
 
+# 전사 전용 지시문 (`TASK-217`) — 낭독 판정은 **코치를 부르는 일이 아니다.**
+#
+# ⛔ **왜 별 지시문인가**: 낭독 판정이 쓰는 것은 학습자의 final 전사문 하나뿐이고
+# (`services/readback.py`), 코치 페르소나·규칙 1~11·tool 스펙은 그 한 줄에 쓰이지 않는데 입력
+# 토큰으로는 전량 청구된다. 실측은 `docs/design/2026-09-18-read-aloud-judgment-design.md` §6 이
+# 가진다.
+# ⚠️ **전사문 자체는 이 지시문이 바꾸지 않는다** — 학습자 전사는 ASR 이 내고(`speaker="user"`)
+# 지시문은 «코치의 대답»을 바꾼다. 그래서 이 모드가 줄이는 것은 ⑴ 입력 토큰(페르소나·tool 스펙)과
+# ⑵ 출력 토큰(짧은 대답)이다. 그럼에도 A/B 로 확인한 이유는 「바꾸지 않는다」가 전제이지 관측이
+# 아니었기 때문이다.
+# ⛔ **`PRONUNCIATION_MODE_PROMPT` 와 같은 전례를 따른다** — 인자를 늘려 `build_system_prompt` 가
+# 겸하게 하지 않는다. 그 함수의 계약(넷 다 데이터 · 기본값 없음)이 모드마다 갈라지면 조용히 빈
+# 프롬프트가 만들어진다.
+# ⚠️ **조립할 것이 없으므로 함수가 아니라 상수다** — 계획·무대·질문·소리 목록을 하나도 싣지 않는다.
+TRANSCRIPTION_ONLY_PROMPT = """\
+The learner is reading a passage aloud for a pronunciation check. Stay silent.
+Do not greet, coach, correct, comment, or ask questions. If you must produce
+anything at all, reply with a single period."""
+
+
 def _known_sounds_block(known_sounds: Sequence[str]) -> str:
     """놓친 소리 **후보** 블록. 목록이 비면 **빈 문자열** — 호출부가 그 자리를 아예 뺀다.
 
@@ -1103,6 +1123,7 @@ class NovaVoiceAdapter:
         stream_limit_seconds: float = STREAM_LIMIT_SECONDS,
         instructions: str | None = None,
         usage_sink: UsageSink | None = None,
+        transcribe_only: bool = False,
     ) -> None:
         # 세션마다 조립된 지시문(G-3). `None`이면 기본 문구 — 스텁·기존 차수 재현이
         # 흔들리지 않게 "주지 않으면 이전과 같다"를 기본값으로 둔다.
@@ -1131,6 +1152,10 @@ class NovaVoiceAdapter:
         # `TASK-124`(결정 68) — 주입한다. 이 어댑터가 DB 를 알면 스트림 대역만으로 도는 단위
         # 테스트가 DB 를 요구한다(`BedrockClaudeClient` 와 같은 이음새·같은 근거).
         self._usage_sink = usage_sink
+        # `TASK-217` — 전사 전용 모드. ⛔ **tool 스펙을 싣지 않는다**: 낭독 판정은 발음 tool 도
+        # 제어 tool 도 쓰지 않는데(`services/readback.py` 는 학습자 final 만 읽는다) 스펙은 입력
+        # 토큰으로 청구된다. ⚠️ 지시문 선택은 팩토리가 하고(G3) 여기서는 프로토콜 봉투만 갈린다.
+        self._transcribe_only = transcribe_only
         # `TASK-215` — 사용량을 적는 자리가 둘이 됐으므로(펌프의 `finally` 와 `close()` 의 백스톱)
         # 「한 번만」을 이 플래그가 소유한다. ⛔ **`_closed` 로는 못 한다** — 그것은 `close()` 가
         # 두 번 불리는 것을 막는 값이고, 펌프가 자기 `finally` 에서 적었는지는 모른다.
@@ -1511,7 +1536,30 @@ class NovaVoiceAdapter:
             logger.debug("Nova 스트림 close를 조용히 넘겼다", exc_info=True)
 
     def _initialization_events(self) -> list[dict[str, Any]]:
-        """실증된 초기화 시퀀스 (스파이크와 같은 순서·같은 필드)."""
+        """실증된 초기화 시퀀스 (스파이크와 같은 순서·같은 필드).
+
+        ⛔ **전사 전용 모드에서는 `toolConfiguration` 을 아예 넣지 않는다** (`TASK-217`) — 키를
+        빈 값으로 두지 않는다. 낭독 판정에는 tool 을 부를 일이 없고 스펙은 입력 토큰으로 청구된다.
+        ⚠️ **`audioOutputConfiguration` 은 그대로 둔다** — 그것을 빼도 되는지는 «미검증»이고, 빼면
+        프로토콜이 거부할 수 있다. 관측하지 않은 것을 추측으로 고치지 않는다.
+        """
+        prompt_start: dict[str, Any] = {
+            "promptName": self._prompt_name,
+            "textOutputConfiguration": {"mediaType": "text/plain"},
+            "audioOutputConfiguration": {
+                "mediaType": "audio/lpcm",
+                "sampleRateHertz": SAMPLE_RATE_HZ,
+                "sampleSizeBits": SAMPLE_SIZE_BITS,
+                "channelCount": CHANNEL_COUNT,
+                "voiceId": self._settings.nova_voice_id,
+                "encoding": "base64",
+                "audioType": "SPEECH",
+            },
+        }
+        if not self._transcribe_only:
+            # 발음 판정을 DB로 가져오는 **유일한** 수단이다 (설계서 §4.2) — 전사문에는 발음의
+            # 흔적이 0이다(4차수 P2 실측). 봉투 모양은 스파이크가 실측했다.
+            prompt_start["toolConfiguration"] = _pronunciation_tool_configuration()
         return [
             {
                 "event": {
@@ -1524,27 +1572,7 @@ class NovaVoiceAdapter:
                     }
                 }
             },
-            {
-                "event": {
-                    "promptStart": {
-                        "promptName": self._prompt_name,
-                        "textOutputConfiguration": {"mediaType": "text/plain"},
-                        "audioOutputConfiguration": {
-                            "mediaType": "audio/lpcm",
-                            "sampleRateHertz": SAMPLE_RATE_HZ,
-                            "sampleSizeBits": SAMPLE_SIZE_BITS,
-                            "channelCount": CHANNEL_COUNT,
-                            "voiceId": self._settings.nova_voice_id,
-                            "encoding": "base64",
-                            "audioType": "SPEECH",
-                        },
-                        # 발음 판정을 DB로 가져오는 **유일한** 수단이다 (설계서 §4.2) —
-                        # 전사문에는 발음의 흔적이 0이다(4차수 P2 실측). 봉투 모양은
-                        # 스파이크가 실측했고 필드 구성은 아직 실물 미검증이다(아래 함수).
-                        "toolConfiguration": _pronunciation_tool_configuration(),
-                    }
-                }
-            },
+            {"event": {"promptStart": prompt_start}},
             {
                 "event": {
                     "contentStart": {

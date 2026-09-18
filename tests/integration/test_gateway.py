@@ -30,11 +30,13 @@ import asyncpg
 import pytest
 
 from app.api import ws as ws_module
+from app.audio_gateway import factory as factory_module
 from app.audio_gateway import session as session_module
 from app.audio_gateway.factory import (
     NOVA_ADAPTER,
     STUB_ADAPTER,
     STUB_UNRESPONSIVE_ADAPTER,
+    create_transcriber,
     create_voice_adapter,
 )
 from app.audio_gateway.fixtures import FIXTURE_TURNS, TONE_WAV_FRAME
@@ -42,6 +44,7 @@ from app.audio_gateway.nova import (
     _FINAL_USAGE_DRAIN_SECONDS,
     CLOSE_TIMEOUT_SECONDS,
     SYSTEM_PROMPT,
+    TRANSCRIPTION_ONLY_PROMPT,
     NovaVoiceAdapter,
 )
 from app.audio_gateway.port import (
@@ -1325,6 +1328,44 @@ def test_the_nova_adapter_records_nothing_when_the_factory_gets_no_sink():
 
     assert isinstance(adapter, NovaVoiceAdapter)
     assert adapter.records_usage is False
+
+
+def test_factory_builds_a_transcribe_only_nova_adapter():
+    """⛔ **전사 전용 갈래가 팩토리에 있다** (`TASK-217` · AC1).
+
+    ⚠️ **지시문과 봉투를 함께 본다** — 프롬프트만 갈고 tool 스펙을 그대로 실으면 줄이려던 입력
+    토큰의 절반이 남는다(설계서 §6 이 그 나눔의 실측을 가진다).
+    """
+    adapter = create_voice_adapter(
+        _settings(voice_adapter=NOVA_ADAPTER),
+        questions=(),
+        scenario=None,
+        transcribe_only=True,
+    )
+
+    assert isinstance(adapter, NovaVoiceAdapter)
+    assert adapter.instructions == TRANSCRIPTION_ONLY_PROMPT
+
+
+async def test_create_transcriber_asks_for_the_transcribe_only_mode():
+    """⛔ **낭독 전사는 «언제나» 전사 전용이다** (`TASK-217`).
+
+    `create_transcriber` 가 그 값을 못 박지 않으면 코치 지시문을 실은 전사기가 만들어질 수 있고,
+    그것이 줄이려던 비용을 그대로 되돌린다. ⚠️ **팩토리→어댑터 구간은 `usage_sink` 에서 이미 한 번
+    무보호였다**(`TASK-124` 의 뮤테이션) — 같은 구간의 둘째 인자이므로 같은 대역을 둔다.
+    """
+    seen: dict[str, object] = {}
+
+    def spy(_settings_arg: object, **kwargs: object) -> StubVoiceAdapter:
+        seen.update(kwargs)
+        return StubVoiceAdapter()
+
+    transcribe = create_transcriber(_settings(voice_adapter=NOVA_ADAPTER), usage_sink=None)
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(factory_module, "create_voice_adapter", spy)
+        await transcribe(b"\x00\x01" * 16)
+
+    assert seen["transcribe_only"] is True
 
 
 def test_the_stub_never_gets_a_usage_sink():
