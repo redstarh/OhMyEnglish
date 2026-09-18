@@ -31,8 +31,9 @@ from app.config import get_settings
 from app.services.recordings import recording_path
 
 FRAMES = b"\x7f\x00" * 320
-# 스텁 어댑터가 학습자 발화로 내는 문장 — 클립의 글을 이것과 같게 두면 판정이 전부 맞음이 된다.
-STUB_READBACK = FIXTURE_TURNS[0][1]
+# 스텁 어댑터가 학습자 발화로 내는 문장들 — 클립의 글을 이것과 같게 두면 판정이 전부 맞음이 된다.
+# ⚠️ **셋을 이어 붙인다** — 전사는 조용해질 때까지 «모으므로»(`TASK-210`) 첫 답만이 아니다.
+STUB_READBACK = " ".join(answer for _, answer in FIXTURE_TURNS)
 
 
 @pytest_asyncio.fixture

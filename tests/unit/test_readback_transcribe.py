@@ -50,9 +50,16 @@ class _AgentOnlyAdapter:
         self.closed = True
 
 
-async def test_학습자의_final_전사문을_돌려준다() -> None:
+async def test_학습자의_final_전사문을_모아_돌려준다() -> None:
+    """⛔ **첫 final 하나만 받으면 안 된다** (2026-09-18 실측 · `TASK-210`).
+
+    실물 Nova 는 끊어 읽는 자리마다 final 을 낸다. 여섯 문장 클립을 낭독했을 때 저장된 전사가
+    **첫 두 문장뿐**이었고, 그래서 학습자가 «읽은» 32낱말이 화면에서 「빠짐」으로 표시됐다.
+    ⇒ 조용해질 때까지 모아 이어 붙인다. 스텁은 세 턴을 내므로 세 답이 다 들어온다.
+    """
     adapter = StubVoiceAdapter()
-    assert await transcribe_readback(_PCM, make_adapter=lambda: adapter) == FIXTURE_TURNS[0][1]
+    text = await transcribe_readback(_PCM, make_adapter=lambda: adapter)
+    assert text == " ".join(answer for _, answer in FIXTURE_TURNS)
 
 
 async def test_코치의_전사문을_돌려주지_않는다() -> None:

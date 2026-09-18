@@ -1,10 +1,10 @@
 ---
 id: TASK-210
 title: '검증: 브라우저에서 낭독하고 판정을 실측한다'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-18 05:54'
-updated_date: '2026-09-18 07:08'
+updated_date: '2026-09-18 07:29'
 labels: []
 dependencies:
   - TASK-209
@@ -19,7 +19,7 @@ ordinal: 271000
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 일부러 한 낱말을 빼고 읽어 그 낱말이 빠짐으로 표시되는 것을 본다
+- [x] #1 일부러 한 낱말을 빼고 읽어 그 낱말이 빠짐으로 표시되는 것을 본다
 - [x] #2 두 번째 조회가 전사를 다시 하지 않는 것을 확인한다
 - [x] #3 회차 뒤 큐가 늘지 않은 것을 확인한다
 <!-- AC:END -->
@@ -131,4 +131,49 @@ ordinal: 271000
 `window.__omy` 에 매여 있고 그 드라이버는 «말하기» 세션을 태움. 낭독 흐름(쉐도잉 진입 → 따라 읽기 →
 읽기 끝 → 판정 보기)을 태우는 드라이버를 새로 써야 함 ⑶ `.env.local` 재지정·되돌리기.
 ⚠️ 픽스처는 이미 있음 — `/tmp/readback_pad.wav`(`say` + `afconvert` · 끝에 침묵 2초).
+
+## ⛔ 브라우저 회차로 AC#1 을 닫았음 (2026-09-18) — 그리고 회차가 결함 하나를 더 잡았음
+
+드라이버를 새로 만들었음: `tests/harness/p_readback_leg.py`. 계측(`instrument.js`)을 설치하지 않고
+마이크 대체와 DOM 관측만 함 — 재는 것이 낭독 흐름과 판정 화면이라 필요 없는 의존을 늘리지 않았음.
+세션 ID 는 **판정 요청 URL 을 `fetch` 랩으로 잡아** 얻음(시각창을 쓰지 않음).
+
+스택: 전용 Chrome(`9333` · `H-BD` 레시피) · `:8002` 를 새 코드 + `VOICE_ADAPTER=nova` 로 재기동 ·
+픽스처는 `say` + `afconvert` 로 만든 **클립에서 `coffee` 를 뺀 낭독**(14.9초 · 끝에 침묵 2초).
+
+### ⛔ 결함 — 첫 final 하나만 받아 여섯 문장 클립의 전사가 두 문장에서 끊겼음
+
+1차 회차의 저장 전사: `'i usually wake up at seven. first, i check my phone for messages.'`
+⇒ 화면에서 **맞음 13 · 빠짐 32** 로, 학습자가 «읽은» 32낱말이 빠짐으로 표시됐음.
+실물 Nova 는 끊어 읽는 자리마다 final 을 내는데 `transcribe_readback` 이 첫 것만 받았음.
+⇒ **조용해질 때까지 모아 이어 붙이도록 고쳤음**(`_user_finals` · `_QUIET_AFTER_FINAL_S=3.0`).
+⛔ 조용함은 **마지막 학습자 final 뒤로 흐른 시간**으로 재야 함 — 낭독이 끝나면 코치가 말하기 시작해
+「아무 이벤트도 없음」은 오지 않음. RED 를 먼저 봤고(스텁 세 턴 가운데 첫 답만 왔음) 고친 뒤 초록.
+
+### AC#1 — 고친 뒤 화면에서 확정했음
+
+| 관측 | 값 |
+|---|---|
+| 버튼 | 클립 듣기 · 따라 읽기 · **내 낭독 듣기** · **낭독 판정 보기** · 학습 종료 |
+| 낭독 전 | 「내 낭독 듣기」·「낭독 판정 보기」 **둘 다 없음** (서버 프레임을 받은 뒤 나타남) |
+| 판정 | 낱말 45개 · **맞음 44 · 빠짐 1** — 그 하나가 일부러 뺀 **`coffee.`** |
+| 장식 | 취소선 1 · 밑줄 0 · 없음 44 · 색은 `--danger`(`rgb(255,138,138)`) 1 · `--foreground` 44 |
+| 저장 전사 | 여섯 문장 전부 (`'… then i make a cup of. after that, …'`) |
+| 안내 | 「밑줄은 다르게 읽은 낱말이고 취소선은 빠뜨린 낱말이에요.」 |
+| 마이크 | `gumCalls=1` · `played=1` · 16kHz |
+
+**스크린샷을 직접 봤음**(`/tmp/readback-final.png`) — `coffee.` 만 빨간 취소선이고 나머지는 평문임.
+⚠️ 첫 스크린샷에서 **취소선이 낱말 뒤 공백까지 덮어** 다음 낱말에 붙어 보였음 ⇒ 공백을 `span` 밖으로
+빼고(`Fragment`) 다시 관측해 확정했음. 화면을 안 봤으면 못 잡았을 결함임.
+
+### 정리
+
+회차 넷을 다 걷었음(`teardown_session.py`) — `analysis_jobs` **111 → 111** · `assets/audio` **0개** ·
+내 세션 잔여 0. Chrome 과 임시 프로필 제거. `:8002` 는 **`VOICE_ADAPTER=stub` 으로 복원**(health 200).
+⚠️ `llm_calls` 의 nova 행은 4 → 15 로 늘었음 — 비용 기록이므로 남김.
+
+### 게이트 여덟
+
+`pytest` **1386 passed** · `ruff` 0 · `ruff format` **302 files** · `ty` 0 · `tsc` 0 · `eslint` 0 ·
+`next build` 0(`/` 가 `○` Static 유지).
 <!-- SECTION:NOTES:END -->

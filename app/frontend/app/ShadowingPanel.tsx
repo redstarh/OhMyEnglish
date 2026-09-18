@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, useCallback, useEffect, useRef, useState } from "react";
+import { type CSSProperties, Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { judgeReadback, type ReadbackJudgment, type ReadbackWord } from "@/lib/api";
 import { API_BASE } from "@/lib/config";
 import type { ShadowingSetup } from "@/lib/ws";
@@ -321,9 +321,11 @@ export function ShadowingPanel({
           <div style={{ marginTop: "0.5rem" }}>
             <p style={{ margin: 0, lineHeight: 1.8 }}>
               {shownWords.map((word, index) => (
-                <span key={`${index}-${word.word}`} style={wordStyle(word.verdict)}>
-                  {word.word}{" "}
-                </span>
+                /* ⛔ **낱말 사이 공백을 `span` «밖»에 둔다** — 안에 두면 취소선·밑줄이 그 공백까지
+                   덮어 다음 낱말에 붙어 보인다(2026-09-18 화면 관측에서 실제로 그랬다). */
+                <Fragment key={`${index}-${word.word}`}>
+                  <span style={wordStyle(word.verdict)}>{word.word}</span>{" "}
+                </Fragment>
               ))}
             </p>
             <p style={{ color: "var(--foreground-muted)", marginBottom: 0 }}>

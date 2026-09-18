@@ -22,6 +22,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from difflib import SequenceMatcher
 from pathlib import Path
+from typing import TypeGuard
 from uuid import UUID
 
 import asyncpg
@@ -45,6 +46,9 @@ _TIMEOUT_S = 30.0
 # ⚠️ 파일은 학습자가 「읽기 끝」을 누른 순간 끊기므로 **실사용 입력에 침묵이 없다** — 그래서 이 값이
 # 선택이 아니라 필수다.
 _TRAILING_SILENCE_BYTES = 16_000 * 2 * 2
+# 마지막 학습자 final 뒤로 이만큼 조용하면 낭독이 끝난 것으로 본다 (`TASK-210`).
+# ⚠️ 실물은 끊어 읽는 자리마다 final 을 내므로 문장 사이 숨보다 길어야 한다.
+_QUIET_AFTER_FINAL_S = 3.0
 
 
 async def _send_all(adapter: VoiceAdapter, pcm: bytes, frame_bytes: int) -> None:
@@ -52,13 +56,42 @@ async def _send_all(adapter: VoiceAdapter, pcm: bytes, frame_bytes: int) -> None
         await adapter.send_audio(pcm[offset : offset + frame_bytes])
 
 
-async def _first_user_final(adapter: VoiceAdapter) -> str:
-    async for event in adapter.events():
-        # ⛔ agent 것을 받지 않는다 — 어댑터가 대화형이라 코치의 전사문과 오디오가 함께 오는데
-        #    낭독 판정에 필요한 것은 학습자가 낸 소리뿐이다. 코치 응답은 버린다.
-        if isinstance(event, TranscriptEvent) and event.kind == "final" and event.speaker == "user":
-            return event.text
-    return ""
+def _is_user_final(event: object) -> TypeGuard[TranscriptEvent]:
+    """학습자의 확정 전사문인가.
+
+    ⛔ agent 것을 받지 않는다 — 어댑터가 대화형이라 코치의 전사문과 오디오가 함께 오는데
+    낭독 판정에 필요한 것은 학습자가 낸 소리뿐이다. 코치 응답은 버린다.
+    """
+    return isinstance(event, TranscriptEvent) and event.kind == "final" and event.speaker == "user"
+
+
+async def _user_finals(adapter: VoiceAdapter, quiet_s: float) -> str:
+    """학습자의 final 전사문을 **조용해질 때까지 모아** 이어 붙인다.
+
+    ⛔ **첫 final 하나만 받으면 여섯 문장 클립의 판정이 통째로 틀린다**(2026-09-18 실측 ·
+    `TASK-210`). 실물 Nova 는 끊어 읽는 자리마다 final 을 내므로 저장된 전사가 **첫 두 문장뿐**
+    이었고 학습자가 «읽은» 32낱말이 화면에서 「빠짐」으로 표시됐다.
+
+    ⛔ **조용함은 「마지막 학습자 final 뒤로 흐른 시간」으로 잰다** — 「아무 이벤트도 오지 않음」
+    으로 재면 안 된다. 낭독이 끝나면 코치가 말하기 시작해 오디오 이벤트가 계속 오므로 그
+    기준으로는 영원히 조용해지지 않는다.
+    ⚠️ 첫 final 이 오기 전에는 기다림에 상한을 두지 않는다 — 바깥 `transcribe_readback` 의 상한이
+    그 구간을 덮는다(두 곳에서 각자 재면 어느 쪽이 끝냈는지 알 수 없다).
+    """
+    loop = asyncio.get_running_loop()
+    parts: list[str] = []
+    deadline = 0.0
+    iterator = adapter.events().__aiter__()
+    while True:
+        timeout = max(0.0, deadline - loop.time()) if parts else None
+        try:
+            event = await asyncio.wait_for(iterator.__anext__(), timeout)
+        except (TimeoutError, StopAsyncIteration):
+            break
+        if _is_user_final(event):
+            parts.append(event.text)
+            deadline = loop.time() + quiet_s
+    return " ".join(parts).strip()
 
 
 async def transcribe_readback(
@@ -68,6 +101,7 @@ async def transcribe_readback(
     frame_bytes: int = _FRAME_BYTES,
     timeout_s: float = _TIMEOUT_S,
     silence_bytes: int = _TRAILING_SILENCE_BYTES,
+    quiet_s: float = _QUIET_AFTER_FINAL_S,
 ) -> str:
     """낭독 녹음의 **PCM** 을 어댑터에 흘려 학습자의 final 전사문 하나만 돌려준다.
 
@@ -92,7 +126,9 @@ async def transcribe_readback(
     adapter = make_adapter()
     padded = pcm + b"\x00" * silence_bytes
     try:
-        return await asyncio.wait_for(_readback_text(adapter, padded, frame_bytes), timeout_s)
+        return await asyncio.wait_for(
+            _readback_text(adapter, padded, frame_bytes, quiet_s), timeout_s
+        )
     except TimeoutError:
         # 어댑터가 조용한 것은 결함이 아니라 갈래 하나다 — 빈 전사로 알린다.
         return ""
@@ -100,10 +136,12 @@ async def transcribe_readback(
         await adapter.close()
 
 
-async def _readback_text(adapter: VoiceAdapter, pcm: bytes, frame_bytes: int) -> str:
+async def _readback_text(
+    adapter: VoiceAdapter, pcm: bytes, frame_bytes: int, quiet_s: float
+) -> str:
     await adapter.start()
     await _send_all(adapter, pcm, frame_bytes)
-    return await _first_user_final(adapter)
+    return await _user_finals(adapter, quiet_s)
 
 
 @dataclass(frozen=True)
