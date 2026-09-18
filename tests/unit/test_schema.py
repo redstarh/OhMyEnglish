@@ -894,7 +894,13 @@ async def test_pronunciation_attempts_attempt_seq_is_generated_always(
     column = await db_conn.fetchrow(
         "select is_identity, identity_generation, is_nullable, data_type "
         "from information_schema.columns "
-        "where table_name = 'pronunciation_attempts' and column_name = 'attempt_seq'"
+        # ⛔ **스키마를 걸어야 한다** — `public` 에 같은 이름의 호환 뷰가 있고(026) 뷰의 컬럼은
+        #    identity 가 아니라 `is_identity=NO` 로 보고된다. 걸지 않으면 두 행이 섞이고 `fetchrow`
+        #    가 어느 쪽을 집는지는 **카탈로그의 물리적 행 순서**가 정한다 — 이 단정이 재려는 성질이
+        #    아니다. 실측 2026-09-19(`TASK-218`): 이 단정만 고립 실행하면 8/8 실패하고 전체 실행에
+        #    섞이면 통과했다. 이웃 세 자리는 `TASK-41` 에서 이미 걸었고 여기만 빠져 있었다.
+        "where table_name = 'pronunciation_attempts' and column_name = 'attempt_seq' "
+        "and table_schema = current_schema()"
     )
     assert column is not None, "attempt_seq 컬럼이 없다 (004 미적용)"
     assert column["is_identity"] == "YES"
