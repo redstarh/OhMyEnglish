@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { type CSSProperties, useCallback, useEffect, useRef, useState } from "react";
+import { judgeReadback, type ReadbackJudgment, type ReadbackWord } from "@/lib/api";
 import { API_BASE } from "@/lib/config";
 import type { ShadowingSetup } from "@/lib/ws";
 
@@ -34,6 +35,17 @@ const RECORD_END_LABEL = "읽기 끝";
 // ⚠️ 「듣는다」까지 말한다 — 결정 128 이 재생을 열었으므로 이 문구가 없는 기능을 말하지 않는다.
 const RECORDING_NOTICE = "듣고 있어요. 문장을 읽고 「읽기 끝」을 누르면 다시 들을 수 있어요.";
 const PLAY_RECORDING_LABEL = "내 낭독 듣기";
+// 낭독 판정 (`TASK-209` · 결정 131). ⛔ **「내 낭독 듣기」를 대신하지 않고 그 옆에 붙는다** —
+// 설계서 §7 이 「귀로 견주는 길」을 없애지 않기로 정했다.
+const JUDGE_LABEL = "낭독 판정 보기";
+const JUDGING_LABEL = "견주는 중...";
+// ⛔ **영어 오류 문면을 학습자에게 보이지 않는다** (`TASK-55` 가 세운 규율). 전사를 못 얻은 것과
+// 요청이 실패한 것을 «같게» 말하는 이유는 `api/vocab.py` 와 같다 — 그 구분이 학습자에게 값을 주지
+// 않고 둘 다 「다시 눌러 볼 일」이다.
+const JUDGE_EMPTY_NOTICE = "읽은 소리를 알아듣지 못했어요. 다시 읽고 눌러 주세요.";
+const JUDGE_LEGEND = "밑줄은 다르게 읽은 낱말이고 취소선은 빠뜨린 낱말이에요.";
+// ⚠️ 전부 맞았을 때 범례를 보이지 않는다 — 화면에 없는 표시를 설명하는 문장이 된다.
+const JUDGE_ALL_MATCH_NOTICE = "원본대로 읽었어요.";
 
 /**
  * 낭독 진행도 문구 (`TASK-187` · 결정 129 ④).
@@ -52,6 +64,21 @@ function readProgressNotice(readTurns: number, target: number): string {
 /** 지금 나는 소리가 어느 것인가. ⛔ **한 값으로 두는 것이 「둘이 겹치지 않는다」를 구조로 만든다.** */
 type Playing = "clip" | "recording";
 
+/**
+ * 낱말 하나를 판정에 맞게 그린다 (`TASK-209`).
+ *
+ * ⛔ **색 하나로만 가르지 않는다** — `globals.css` 에는 `--danger` 뿐이고(성공 색이 없다) 색만으로
+ * 가르면 색을 못 가리는 학습자에게 세 갈래가 한 갈래로 보인다. 그래서 **밑줄과 취소선**으로 함께
+ * 가르고 그 뜻을 아래 범례가 말한다.
+ */
+function wordStyle(verdict: ReadbackWord["verdict"]): CSSProperties {
+  if (verdict === "match") return {};
+  return {
+    color: "var(--danger)",
+    textDecoration: verdict === "missing" ? "line-through" : "underline",
+  };
+}
+
 // 이 패널의 버튼 셋이 공유한다. ⚠️ **컴포넌트로 뽑지 않는 이유**: 세 버튼이 서로 다른 근거 주석을
 // 갖고 각각 다른 조건(`has_audio` · 없음 · `recordingUrl`)에 감싸여 있어, 뽑으면 근거가 호출부와
 // 갈라진다. 한쪽만 고쳐 모양이 어긋나는 것을 막는 데는 이 상수 하나로 충분하다.
@@ -60,6 +87,7 @@ const BUTTON_STYLE = { padding: "0.5rem 1rem" };
 export function ShadowingPanel({
   setup,
   recordingUrl,
+  recordingIds,
   readTurns = 0,
   onRecordingStart,
   onRecordingEnd,
@@ -72,6 +100,13 @@ export function ShadowingPanel({
    * 「읽기 끝을 눌렀으니 저장됐다」로 추론하면 저장이 실패한 턴에 404 를 받는 버튼이 뜬다.
    */
   recordingUrl?: string | null;
+  /**
+   * 방금 저장된 낭독을 가리키는 두 값 (`TASK-209`). `null` 이면 **판정 버튼을 보이지 않는다.**
+   *
+   * ⛔ **주소를 다시 쪼개 쓰지 않는다** — `recordingUrl` 에서 조각을 뽑으면 주소 형태가 바뀔 때
+   * 조용히 어긋난다. 조립하는 자리(부모)가 두 값을 그대로 함께 준다.
+   */
+  recordingIds?: { sessionId: string; utteranceId: string } | null;
   /**
    * 지금까지 읽은 낭독 회차 (`TASK-187` · 결정 129 ③). 서버가 준 값이고 **화면이 세지 않는다.**
    *
@@ -86,6 +121,17 @@ export function ShadowingPanel({
 }) {
   const [playing, setPlaying] = useState<Playing | null>(null);
   const [recording, setRecording] = useState(false);
+  // ⛔ **판정을 자동으로 받지 않는다** — 첫 호출이 Nova 를 한 번 타므로(결정 131) 학습자가 누를
+  //    때만 비용이 난다. 그래서 상태를 화면이 들고 있고 렌더마다 받아 오지 않는다.
+  // ⛔ **어느 낭독의 판정인지 함께 든다** — 다시 읽으면 발화가 새로 생기는데 판정만 남으면 «앞 낭독의
+  //    판정»이 새 낭독의 것처럼 보인다. 키를 함께 들면 effect 로 지우지 않아도 렌더에서 갈린다.
+  // ⚠️ `judgment` 가 `null` 이면 요청이 실패한 것이고 `words` 가 비면 전사를 못 얻은 것이다 —
+  //    화면은 둘을 같게 말한다(위 문구 상수가 근거를 가진다).
+  const [judged, setJudged] = useState<{
+    utteranceId: string;
+    judgment: ReadbackJudgment | null;
+  } | null>(null);
+  const [judging, setJudging] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   // ⛔ 정리 함수가 «렌더 시점의» 값을 보지 않게 ref 로도 든다 — 상태만 보면 언마운트 정리가
   //    「녹음 중이 아니었다」고 판단해 열린 턴을 닫지 않는다.
@@ -185,12 +231,26 @@ export function ShadowingPanel({
     );
   }, [play, setup.item_id, setup.playback_rate, setup.repeat_count]);
 
+  const judge = useCallback(async () => {
+    if (!recordingIds || judging) return;
+    const { sessionId, utteranceId } = recordingIds;
+    setJudging(true);
+    const result = await judgeReadback(sessionId, utteranceId);
+    setJudged({ utteranceId, judgment: result.ok ? result.value : null });
+    setJudging(false);
+  }, [recordingIds, judging]);
+
   const playRecording = useCallback(() => {
     if (!recordingUrl) return;
     // ⛔ **결정 6 의 속도·반복을 낭독에 걸지 않는다.** 그 값역은 「따라 읽을 원본을 어떻게 들려줄
     // 것인가」의 설정이고, 자기 목소리를 0.5배로 늘려 두 번 듣는 것은 그 설정이 정한 바가 아니다.
     play("recording", recordingUrl, 1, 1);
   }, [play, recordingUrl]);
+
+  // ⛔ **앞 낭독의 판정을 새 낭독의 것으로 보이지 않게 한다** — 키가 어긋나면 없는 것으로 본다.
+  const shown =
+    recordingIds && judged?.utteranceId === recordingIds.utteranceId ? judged.judgment : null;
+  const shownWords = shown?.words ?? [];
 
   return (
     <section style={{ marginTop: "1rem" }}>
@@ -237,10 +297,46 @@ export function ShadowingPanel({
           {playing === "recording" ? STOP_LABEL : PLAY_RECORDING_LABEL}
         </button>
       ) : null}
+      {/* ⛔ **저장된 낭독이 있을 때만 보인다** — 위 두 버튼과 같은 규율이다. 녹음 중에 잠그는 것도
+          같은 이유다(읽는 중에 판정을 부르면 방금 것이 아니라 앞 낭독을 견준다). */}
+      {recordingIds ? (
+        <button
+          type="button"
+          onClick={() => void judge()}
+          disabled={recording || judging}
+          style={BUTTON_STYLE}
+        >
+          {judging ? JUDGING_LABEL : JUDGE_LABEL}
+        </button>
+      ) : null}
       {recording ? (
         <p role="status" style={{ color: "var(--foreground-muted)", marginBottom: 0 }}>
           {RECORDING_NOTICE}
         </p>
+      ) : null}
+      {/* ⛔ **판정을 보이는 자리다.** 낱말이 0개면 전사를 못 얻었거나 요청이 실패한 것이고 그 둘을
+          같게 말한다 — 학습자에게 「다시 읽고 눌러 보라」는 같은 행동이 남는다. */}
+      {judged && recordingIds && judged.utteranceId === recordingIds.utteranceId ? (
+        shownWords.length > 0 ? (
+          <div style={{ marginTop: "0.5rem" }}>
+            <p style={{ margin: 0, lineHeight: 1.8 }}>
+              {shownWords.map((word, index) => (
+                <span key={`${index}-${word.word}`} style={wordStyle(word.verdict)}>
+                  {word.word}{" "}
+                </span>
+              ))}
+            </p>
+            <p style={{ color: "var(--foreground-muted)", marginBottom: 0 }}>
+              {shownWords.every((word) => word.verdict === "match")
+                ? JUDGE_ALL_MATCH_NOTICE
+                : JUDGE_LEGEND}
+            </p>
+          </div>
+        ) : (
+          <p role="status" style={{ color: "var(--foreground-muted)", marginBottom: 0 }}>
+            {JUDGE_EMPTY_NOTICE}
+          </p>
+        )
       ) : null}
       {/* ⛔ **목표가 2 이상일 때만 보인다** (결정 129 ④) — 기본값 1 에서는 「1번 중 1번」이 뜻이 없고,
           설정을 올리지 않은 사용자의 화면이 바뀌지 않아야 한다. 녹음 중에는 위 안내가 이미 말하고

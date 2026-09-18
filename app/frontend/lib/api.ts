@@ -487,6 +487,35 @@ export async function lookupWord(input: {
   });
 }
 
+/** 낱말 하나의 판정. 값역의 정본은 `services/readback.py` 의 상수 셋이다. */
+export type ReadbackWord = { word: string; verdict: "match" | "missing" | "different" };
+
+/**
+ * 낭독 판정 하나 (`TASK-208` · 결정 131).
+ *
+ * ⛔ **`words` 가 비면 「전사를 얻지 못했다」다** — 없는 자원이 아니라 다시 눌러 볼 일이다.
+ * 서버가 그때 200 을 주는 이유를 `api/results.py` 가 가진다.
+ */
+export type ReadbackJudgment = {
+  clipTranscript: string;
+  readbackTranscript: string;
+  words: ReadbackWord[];
+};
+
+/**
+ * 낭독 하나를 클립의 글과 견준다. ⚠️ **첫 호출이 전사를 만들므로 느리다**(Nova 를 한 번 탄다) —
+ * 두 번째부터는 서버가 저장해 둔 전사를 쓰므로 비용이 0 이다(결정 131).
+ */
+export async function judgeReadback(
+  sessionId: string,
+  utteranceId: string,
+): Promise<WriteResult<ReadbackJudgment>> {
+  return postJson<ReadbackJudgment>(
+    `/api/sessions/${sessionId}/recordings/${utteranceId}/readback`,
+    {},
+  );
+}
+
 /** 영상만 지운다. **담은 문장은 남는다**(설계서 §1 질문 1). */
 export async function removeVideo(videoId: string): Promise<WriteResult<void>> {
   return deleteNothing(`/api/videos/${videoId}`);
