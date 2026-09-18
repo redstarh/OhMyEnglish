@@ -143,12 +143,12 @@ def create_voice_adapter(
     # `TASK-217` — 전사 전용 모드가 **첫 갈래**다. 낭독 판정은 코치를 부르는 일이 아니므로
     # 페르소나·규칙·재료를 하나도 싣지 않는다. ⛔ **`pronunciation_mode` 보다 앞에 둔다** — 둘이
     # 동시에 참인 호출은 없지만, 뒤에 두면 「전사인데 발음 코치 지시문」이 조용히 나갈 수 있다.
-    instructions = (
-        TRANSCRIPTION_ONLY_PROMPT
-        if transcribe_only
-        else build_pronunciation_prompt(known_sounds)
-        if pronunciation_mode
-        else build_system_prompt(
+    if transcribe_only:
+        instructions = TRANSCRIPTION_ONLY_PROMPT
+    elif pronunciation_mode:
+        instructions = build_pronunciation_prompt(known_sounds)
+    else:
+        instructions = build_system_prompt(
             known_sounds,
             plan,
             questions,
@@ -160,7 +160,6 @@ def create_voice_adapter(
             drill_count=settings.drill_count,
             drill_turns_min=settings.drill_turns_min,
         )
-    )
     if settings.voice_adapter == STUB_ADAPTER:
         return StubVoiceAdapter("fixture", instructions=instructions)
     if settings.voice_adapter == STUB_UNRESPONSIVE_ADAPTER:
