@@ -1225,8 +1225,19 @@ class NovaVoiceAdapter:
         """
         if self._pump is None or self._pump.done():
             return
-        with contextlib.suppress(Exception):
+        try:
             await asyncio.wait_for(asyncio.shield(self._pump), _FINAL_USAGE_DRAIN_SECONDS)
+        except TimeoutError:
+            # ⛔ **조용히 삼키지 않는다** (`TASK-212`) — 만료되면 `TASK-204` 가 고친 증상(이른
+            # snabshot 을 적음)이 그대로 되돌아오는데, 로그가 0줄이면 그 되돌아옴을 관측할 수 없다.
+            # 위 상수 주석이 「모자란 것이 관측되면 설정으로 올린다」고 적었고 그 관측이 이 줄이다.
+            logger.warning(
+                "마지막 usageEvent 를 %.1f초 안에 받지 못했다 — 사용량이 이른 snapshot 일 수 있다",
+                _FINAL_USAGE_DRAIN_SECONDS,
+            )
+        except Exception:
+            # 배수 실패가 기록을 막지 않는다 — 위 종료 이벤트 전송과 같은 규약이다.
+            logger.exception("마지막 usageEvent 배수가 실패했다 — 기록은 계속한다")
 
     async def _record_usage_or_continue(self) -> None:
         """이 세션이 쓴 토큰을 적는다. 실패하면 로그만 남기고 종료를 계속한다 (`TASK-124`).

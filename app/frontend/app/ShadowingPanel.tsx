@@ -1,7 +1,7 @@
 "use client";
 
 import { type CSSProperties, Fragment, useCallback, useEffect, useRef, useState } from "react";
-import { judgeReadback, type ReadbackJudgment, type ReadbackWord } from "@/lib/api";
+import { judgeReadback, recordingUrl, type ReadbackWord } from "@/lib/api";
 import { API_BASE } from "@/lib/config";
 import type { ShadowingSetup } from "@/lib/ws";
 
@@ -86,7 +86,6 @@ const BUTTON_STYLE = { padding: "0.5rem 1rem" };
 
 export function ShadowingPanel({
   setup,
-  recordingUrl,
   recordingIds,
   readTurns = 0,
   onRecordingStart,
@@ -94,17 +93,13 @@ export function ShadowingPanel({
 }: {
   setup: ShadowingSetup;
   /**
-   * 방금 저장된 낭독의 주소 (`TASK-182` · 결정 128). `null` 이면 **버튼을 보이지 않는다.**
+   * 방금 저장된 낭독을 가리키는 두 값 (`TASK-182` · 결정 128 · `TASK-209`).
+   * `null` 이면 **「내 낭독 듣기」와 「낭독 판정 보기」를 둘 다 보이지 않는다.**
    *
-   * ⛔ **서버가 알린 주소만 온다** — 부모가 `shadowing_recording` 프레임을 받아 조립한다. 화면이
+   * ⛔ **서버가 알린 것만 온다** — 부모가 `shadowing_recording` 프레임을 받아 채운다. 화면이
    * 「읽기 끝을 눌렀으니 저장됐다」로 추론하면 저장이 실패한 턴에 404 를 받는 버튼이 뜬다.
-   */
-  recordingUrl?: string | null;
-  /**
-   * 방금 저장된 낭독을 가리키는 두 값 (`TASK-209`). `null` 이면 **판정 버튼을 보이지 않는다.**
-   *
-   * ⛔ **주소를 다시 쪼개 쓰지 않는다** — `recordingUrl` 에서 조각을 뽑으면 주소 형태가 바뀔 때
-   * 조용히 어긋난다. 조립하는 자리(부모)가 두 값을 그대로 함께 준다.
+   * ⛔ **주소를 따로 받지 않는다**(`TASK-212`) — 주소는 `lib/api.ts` 의 `recordingUrl` 이 이 둘에서
+   * 만든다. 두 값을 따로 들면 세션 ID 가 비었을 때 한쪽에 `"null"` 이 박힌 주소가 들어가 갈린다.
    */
   recordingIds?: { sessionId: string; utteranceId: string } | null;
   /**
@@ -125,11 +120,12 @@ export function ShadowingPanel({
   //    때만 비용이 난다. 그래서 상태를 화면이 들고 있고 렌더마다 받아 오지 않는다.
   // ⛔ **어느 낭독의 판정인지 함께 든다** — 다시 읽으면 발화가 새로 생기는데 판정만 남으면 «앞 낭독의
   //    판정»이 새 낭독의 것처럼 보인다. 키를 함께 들면 effect 로 지우지 않아도 렌더에서 갈린다.
-  // ⚠️ `judgment` 가 `null` 이면 요청이 실패한 것이고 `words` 가 비면 전사를 못 얻은 것이다 —
-  //    화면은 둘을 같게 말한다(위 문구 상수가 근거를 가진다).
+  // ⛔ **낱말만 든다**(`TASK-212`) — 화면은 요청 실패와 「전사를 못 얻었다」를 같게 말하므로
+  //    (위 문구 상수가 근거를 가진다) 둘을 구별하는 필드를 들면 닿을 수 없는 조합이 생긴다.
+  //    응답의 전사문 두 개도 화면이 쓰지 않는다.
   const [judged, setJudged] = useState<{
     utteranceId: string;
-    judgment: ReadbackJudgment | null;
+    words: ReadbackWord[];
   } | null>(null);
   const [judging, setJudging] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -236,21 +232,25 @@ export function ShadowingPanel({
     const { sessionId, utteranceId } = recordingIds;
     setJudging(true);
     const result = await judgeReadback(sessionId, utteranceId);
-    setJudged({ utteranceId, judgment: result.ok ? result.value : null });
+    setJudged({ utteranceId, words: result.ok ? result.value.words : [] });
     setJudging(false);
   }, [recordingIds, judging]);
 
+  const recordingSrc = recordingIds
+    ? recordingUrl(recordingIds.sessionId, recordingIds.utteranceId)
+    : null;
+
   const playRecording = useCallback(() => {
-    if (!recordingUrl) return;
+    if (!recordingSrc) return;
     // ⛔ **결정 6 의 속도·반복을 낭독에 걸지 않는다.** 그 값역은 「따라 읽을 원본을 어떻게 들려줄
     // 것인가」의 설정이고, 자기 목소리를 0.5배로 늘려 두 번 듣는 것은 그 설정이 정한 바가 아니다.
-    play("recording", recordingUrl, 1, 1);
-  }, [play, recordingUrl]);
+    play("recording", recordingSrc, 1, 1);
+  }, [play, recordingSrc]);
 
   // ⛔ **앞 낭독의 판정을 새 낭독의 것으로 보이지 않게 한다** — 키가 어긋나면 없는 것으로 본다.
-  const shown =
-    recordingIds && judged?.utteranceId === recordingIds.utteranceId ? judged.judgment : null;
-  const shownWords = shown?.words ?? [];
+  // ⚠️ **파생을 한 자리에 둔다**(`TASK-212`) — 같은 키 검사를 렌더에서 다시 하면 한쪽만 고쳐
+  //    그 규율이 조용히 깨진다.
+  const shown = recordingIds && judged?.utteranceId === recordingIds.utteranceId ? judged : null;
 
   return (
     <section style={{ marginTop: "1rem" }}>
@@ -287,7 +287,7 @@ export function ShadowingPanel({
           클립」과 같은 규율이다(`TASK-66.7`): 누를 수 있는 버튼이 404 를 받으면 학습자가 자기
           조작을 의심한다. 녹음 중에 잠그는 이유도 클립 버튼과 같다 — 스피커로 나간 소리가 마이크로
           되돌아오면 저장된 것이 학습자가 읽은 것이 아니게 된다. */}
-      {recordingUrl ? (
+      {recordingSrc ? (
         <button
           type="button"
           onClick={playing === "recording" ? stop : playRecording}
@@ -316,20 +316,20 @@ export function ShadowingPanel({
       ) : null}
       {/* ⛔ **판정을 보이는 자리다.** 낱말이 0개면 전사를 못 얻었거나 요청이 실패한 것이고 그 둘을
           같게 말한다 — 학습자에게 「다시 읽고 눌러 보라」는 같은 행동이 남는다. */}
-      {judged && recordingIds && judged.utteranceId === recordingIds.utteranceId ? (
-        shownWords.length > 0 ? (
+      {shown ? (
+        shown.words.length > 0 ? (
           <div style={{ marginTop: "0.5rem" }}>
             <p style={{ margin: 0, lineHeight: 1.8 }}>
-              {shownWords.map((word, index) => (
+              {shown.words.map((word, index) => (
                 /* ⛔ **낱말 사이 공백을 `span` «밖»에 둔다** — 안에 두면 취소선·밑줄이 그 공백까지
                    덮어 다음 낱말에 붙어 보인다(2026-09-18 화면 관측에서 실제로 그랬다). */
-                <Fragment key={`${index}-${word.word}`}>
+                <Fragment key={index}>
                   <span style={wordStyle(word.verdict)}>{word.word}</span>{" "}
                 </Fragment>
               ))}
             </p>
             <p style={{ color: "var(--foreground-muted)", marginBottom: 0 }}>
-              {shownWords.every((word) => word.verdict === "match")
+              {shown.words.every((word) => word.verdict === "match")
                 ? JUDGE_ALL_MATCH_NOTICE
                 : JUDGE_LEGEND}
             </p>

@@ -401,8 +401,10 @@ async def session_socket(websocket: WebSocket) -> None:
                 # 같은 부류이고, 대역(`_capture_factory_args`)이 기본값 없이 받아 그것을 막는다.
                 scenario_intake=policy.scenario_intake_prompt,
                 # ⛔ **이 인자를 빼면 Nova 토큰 기록이 조용히 꺼진다** (`TASK-124` · 결정 68).
-                # 어댑터의 기본값이 `None`(기록 없음)이고 실물 배선은 여기 하나뿐이다 — `main.py` 의
-                # `usage_sink` 와 같은 부류의 위험이고 같은 방식으로 게이트 테스트가 못 박는다.
+                # 어댑터의 기본값이 `None`(기록 없음)이다 — `main.py` 의 `usage_sink` 와 같은
+                # 부류의 위험이고 같은 방식으로 게이트 테스트가 못 박는다.
+                # ⚠️ **실물 배선이 둘이 됐다**(`TASK-208`) — 낭독 판정도 어댑터를 만든다
+                # (`api/results.py` 의 `judge_recording_readback`). 그쪽도 이 인자를 넘긴다.
                 usage_sink=pool_usage_sink(pool),
             )
         except Exception:

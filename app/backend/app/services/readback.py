@@ -28,16 +28,23 @@ from uuid import UUID
 import asyncpg
 
 from app.audio_gateway.port import TranscriptEvent, VoiceAdapter
-from app.services.recordings import load_recording
+from app.services.recordings import (
+    RECORDING_BYTES_PER_SAMPLE,
+    RECORDING_SAMPLE_RATE_HZ,
+    load_recording,
+)
 
 MATCH = "match"
 MISSING = "missing"
 DIFFERENT = "different"
 
 
-# 한 프레임의 크기. 16kHz·16bit 기준 100ms 다 — 소켓 계층이 브라우저에서 받는 크기와 같은 자리수로
-# 두어 어댑터가 다른 리듬을 보지 않게 한다.
-_FRAME_BYTES = 3200
+# 한 프레임의 크기 — 저장된 녹음 규격(`services/recordings.py`)에서 끌어낸 100ms 다.
+# ⛔ **소켓 계층의 프레임과 같지 않다.** 그쪽은 1024바이트(32ms · `lib/audio.ts` 의
+# `FRAME_BYTES`)이고 그 값은 «실시간» 지연을 위한 것이다(`audio_gateway/session.py` 가 근거를
+# 가진다). 여기는 이미 끝난 파일을 흘리므로 지연이 아니라 호출 수가 문제이고 100ms 가 그 균형이다.
+# ⚠️ 상수를 손으로 적지 않는 이유: 녹음 표본율이 바뀌면 이 값이 조용히 다른 길이가 된다.
+_FRAME_BYTES = RECORDING_SAMPLE_RATE_HZ * RECORDING_BYTES_PER_SAMPLE // 10
 # 전사가 오지 않는 어댑터에서 엔드포인트가 영원히 열리지 않게 하는 상한.
 _TIMEOUT_S = 30.0
 # 오디오 끝에 붙이는 침묵. 16kHz·16bit 기준 2초다.
@@ -45,7 +52,7 @@ _TIMEOUT_S = 30.0
 # 같은 오디오가 침묵 없이는 빈 문자열이었고 2초를 붙이자 전사가 왔다. VAD 가 침묵으로 발화를 닫는다.
 # ⚠️ 파일은 학습자가 「읽기 끝」을 누른 순간 끊기므로 **실사용 입력에 침묵이 없다** — 그래서 이 값이
 # 선택이 아니라 필수다.
-_TRAILING_SILENCE_BYTES = 16_000 * 2 * 2
+_TRAILING_SILENCE_BYTES = RECORDING_SAMPLE_RATE_HZ * RECORDING_BYTES_PER_SAMPLE * 2
 # 마지막 학습자 final 뒤로 이만큼 조용하면 낭독이 끝난 것으로 본다 (`TASK-210`).
 # ⚠️ 실물은 끊어 읽는 자리마다 final 을 내므로 문장 사이 숨보다 길어야 한다.
 _QUIET_AFTER_FINAL_S = 3.0
@@ -161,7 +168,7 @@ select transcript, readback_transcript
 
 
 async def judge_readback(
-    conn: asyncpg.Connection,
+    pool: asyncpg.Pool,
     root: Path,
     session_id: UUID,
     utterance_id: UUID,
@@ -179,14 +186,23 @@ async def judge_readback(
     포인터 자체를 못 붙이게 한다.
     ⛔ **빈 전사를 저장하지 않는다** — 저장하면 다시 눌러도 영원히 빈 판정이 돌아온다. 저장하지
     않으면 학습자가 다시 눌러 볼 수 있고, 그때 비용은 실패한 회수만큼만 난다.
+
+    ⛔ **연결이 아니라 풀을 받는다** (`TASK-212`) — 전사는 최대 `_TIMEOUT_S` 초이고 그 안에서
+    사용량 기록이 풀에서 연결을 또 잡는다. 연결을 잡은 채 그 구간을 타면 한 판정이 풀의 두 자리를
+    30초 넘게 묶는다. 그래서 **읽기 → 반납 → 전사 → 다시 잡아 쓰기**로 나눈다.
     """
-    row = await conn.fetchrow(_READBACK_ROW_SQL, utterance_id, session_id)
-    if row is None:
-        return None
-    clip_transcript: str = row["transcript"]
-    readback: str | None = row["readback_transcript"]
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow(_READBACK_ROW_SQL, utterance_id, session_id)
+        if row is None:
+            return None
+        clip_transcript: str = row["transcript"]
+        readback: str | None = row["readback_transcript"]
+        pcm = (
+            None
+            if readback is not None
+            else await load_recording(conn, root, session_id, utterance_id)
+        )
     if readback is None:
-        pcm = await load_recording(conn, root, session_id, utterance_id)
         if pcm is None:
             return None
         readback = await transcribe_readback(pcm, make_adapter=make_adapter)
@@ -194,11 +210,12 @@ async def judge_readback(
             return ReadbackJudgment(
                 clip_transcript=clip_transcript, readback_transcript="", words=[]
             )
-        await conn.execute(
-            "update utterances set readback_transcript = $2 where id = $1",
-            utterance_id,
-            readback,
-        )
+        async with pool.acquire() as conn:
+            await conn.execute(
+                "update utterances set readback_transcript = $2 where id = $1",
+                utterance_id,
+                readback,
+            )
     return ReadbackJudgment(
         clip_transcript=clip_transcript,
         readback_transcript=readback,
@@ -220,26 +237,21 @@ class WordVerdict:
     verdict: str
 
 
-def _words(text: str) -> tuple[list[str], list[str]]:
-    """원래 모양과 견줄 형태를 같은 순서로 짝지어 돌려준다.
+def _words(text: str) -> list[tuple[str, str]]:
+    """`(원래 모양, 견줄 형태)` 짝의 목록.
 
     부호만 있는 토큰(줄표·홑따옴표 따위)은 견줄 형태가 비므로 버린다 — 판정할 낱말이 아니다.
+    ⚠️ **짝으로 돌려주는 것이 계약이다** — 두 리스트를 나란히 돌려주면 길이가 어긋날 자리가 생긴다.
     """
-    originals: list[str] = []
-    normalized: list[str] = []
-    for token in text.split():
-        key = _NOT_WORD.sub("", token.lower())
-        if not key:
-            continue
-        originals.append(token)
-        normalized.append(key)
-    return originals, normalized
+    pairs = ((token, _NOT_WORD.sub("", token.lower())) for token in text.split())
+    return [(token, key) for token, key in pairs if key]
 
 
 def compare_readback(expected: str, spoken: str) -> list[WordVerdict]:
     """클립의 글 `expected` 를 낭독 전사문 `spoken` 과 견주어 낱말마다 판정한다."""
-    originals, want = _words(expected)
-    _, got = _words(spoken)
+    pairs = _words(expected)
+    want = [key for _, key in pairs]
+    got = [key for _, key in _words(spoken)]
     # 기본값이 「빠짐」이다 — `delete` 갈래와 낭독이 아예 빈 경우가 그대로 여기에 남는다.
     verdicts = [MISSING] * len(want)
     # ⛔ `autojunk=False` 를 명시한다 — 기본값은 b 가 200 항목을 넘으면 «자주 나오는 항목»을
@@ -256,6 +268,6 @@ def compare_readback(expected: str, spoken: str) -> list[WordVerdict]:
         for index in range(start, stop):
             verdicts[index] = fill
     return [
-        WordVerdict(word=word, verdict=verdict)
-        for word, verdict in zip(originals, verdicts, strict=True)
+        WordVerdict(word=token, verdict=verdict)
+        for (token, _), verdict in zip(pairs, verdicts, strict=True)
     ]

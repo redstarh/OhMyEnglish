@@ -200,20 +200,26 @@ async def judge_recording_readback(
     """
     settings = get_settings()
     pool: asyncpg.Pool = request.app.state.db_pool
-    async with pool.acquire() as conn:
-        judgment = await judge_readback(
-            conn,
-            settings.shadowing_audio_root,
-            session_id,
-            utterance_id,
-            make_adapter=lambda: create_voice_adapter(
-                settings, questions=(), scenario=None, usage_sink=pool_usage_sink(pool)
-            ),
-        )
+    # ⛔ **연결을 잡은 채 Nova 스트림을 타지 않는다** (`TASK-212`) — 서비스가 풀을 받아 DB 작업
+    # 구간에만 연결을 쥔다. 전사는 최대 `_TIMEOUT_S` 초이고 그 안에서 `pool_usage_sink` 가 연결을
+    # 또 잡으므로, 한 판정이 기본 풀(10)의 두 자리를 30초 넘게 묶을 수 있었다.
+    # ⚠️ 모델을 부르는 이웃 라우터(`api/vocab.py`)는 그 구간에 연결을 아예 잡지 않는다.
+    judgment = await judge_readback(
+        pool,
+        settings.shadowing_audio_root,
+        session_id,
+        utterance_id,
+        make_adapter=lambda: create_voice_adapter(
+            settings, questions=(), scenario=None, usage_sink=pool_usage_sink(pool)
+        ),
+    )
     if judgment is None:
         raise HTTPException(status_code=404, detail="readback not found")
+    # ⚠️ **키는 snake_case 다** — 이 리포의 HTTP 응답 전부가 그 규약이고 첫 판만 camelCase 였다
+    # (`TASK-212` 의 `/simplify` 가 grep 으로 잡았다). 프런트 인자는 camelCase 이고 전선은
+    # snake_case 인 갈림을 `lib/api.ts` 가 이미 지킨다.
     return {
-        "clipTranscript": judgment.clip_transcript,
-        "readbackTranscript": judgment.readback_transcript,
+        "clip_transcript": judgment.clip_transcript,
+        "readback_transcript": judgment.readback_transcript,
         "words": [{"word": word.word, "verdict": word.verdict} for word in judgment.words],
     }

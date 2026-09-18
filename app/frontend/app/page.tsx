@@ -202,9 +202,9 @@ export default function SessionPage() {
   // 방금 저장된 낭독의 주소 (`TASK-182` · 결정 128). ⛔ **서버가 알린 뒤에만 채운다** —
   // 「읽기 끝」을 누른 것으로 추론하면 저장이 실패한 턴에도 404 를 받는 버튼이 뜬다.
   // ⚠️ 주소 조립이 여기 있는 이유: 세션 id 를 아는 것이 이 화면이고 패널은 클립만 안다.
-  const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
-  // 낭독 판정(`TASK-209`)이 쓰는 두 값. ⛔ **주소에서 다시 뽑지 않고 조립하는 이 자리에서 함께
-  //    보관한다** — 주소 형태가 바뀌면 뽑는 쪽이 조용히 어긋난다.
+  // 방금 저장된 낭독을 가리키는 두 값. ⛔ **주소를 따로 들지 않는다**(`TASK-212`) — 주소는
+  //    `lib/api.ts` 의 `recordingUrl` 이 이 둘에서 만든다. 상태를 둘로 두면 세션 ID 가 비었을 때
+  //    한쪽에 `"null"` 이 박힌 주소가 들어가 둘이 갈렸다.
   const [recordingIds, setRecordingIds] = useState<{
     sessionId: string;
     utteranceId: string;
@@ -238,7 +238,6 @@ export default function SessionPage() {
     setShadowing(null);
     // ⛔ 낭독 주소도 함께 버린다 — 녹음은 학습자의 당일이 지나면 지워지므로(§6.4) 세션을 넘겨
     // 살려 두면 화면이 언젠가 404 를 받는 버튼을 들고 있게 된다.
-    setRecordingUrl(null);
     setRecordingIds(null);
     // 회차도 되돌린다 — 세션마다 다시 센다(정본은 세션별 발화 수다).
     setReadTurns(0);
@@ -360,9 +359,6 @@ export default function SessionPage() {
         case "shadowing_recording":
           // 낭독이 저장됐다 (`TASK-182` · 결정 128). 세션 주소는 실려 오지 않으므로 여기서
           // 조립한다 — `sessionIdRef` 는 `session_started` 가 채운다.
-          setRecordingUrl(
-            `${API_BASE}/api/sessions/${sessionIdRef.current}/recordings/${event.utterance_id}`,
-          );
           setRecordingIds(
             sessionIdRef.current
               ? { sessionId: sessionIdRef.current, utteranceId: event.utterance_id }
@@ -492,7 +488,6 @@ export default function SessionPage() {
   const startShadowingTurn = useCallback(() => {
     // ⛔ **앞 낭독의 주소를 먼저 버린다** (`TASK-182`) — 남겨 두면 새 낭독을 읽는 동안 「내 낭독
     // 듣기」가 **앞 회차**를 가리키고, 학습자는 방금 읽은 것을 듣는다고 믿는다.
-    setRecordingUrl(null);
     setRecordingIds(null);
     socketRef.current?.startShadowingTurn();
   }, []);
@@ -735,7 +730,6 @@ export default function SessionPage() {
           {shadowing ? (
             <ShadowingPanel
               setup={shadowing}
-              recordingUrl={recordingUrl}
               recordingIds={recordingIds}
               readTurns={readTurns}
               onRecordingStart={startShadowingTurn}

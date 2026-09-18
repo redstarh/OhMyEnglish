@@ -26,7 +26,9 @@ import pytest
 import pytest_asyncio
 from conftest import pin_settings_env
 
+from app.api import results as results_module
 from app.audio_gateway.fixtures import FIXTURE_TURNS
+from app.audio_gateway.stub import StubVoiceAdapter
 from app.config import get_settings
 from app.services.recordings import recording_path
 
@@ -92,8 +94,8 @@ async def test_처음_부르면_전사를_얻어_저장하고_낱말_판정을_�
 
     assert response.status_code == 200
     body = response.json()
-    assert body["readbackTranscript"] == STUB_READBACK
-    assert body["clipTranscript"] == STUB_READBACK
+    assert body["readback_transcript"] == STUB_READBACK
+    assert body["clip_transcript"] == STUB_READBACK
     assert {word["verdict"] for word in body["words"]} == {"match"}
     assert len(body["words"]) == len(STUB_READBACK.split())
     async with db_pool.acquire() as conn:
@@ -118,7 +120,7 @@ async def test_이미_전사가_있으면_다시_전사하지_않는다(
     response = await api_client.post(_url(committed_session.session_id, utterance_id))
 
     assert response.status_code == 200
-    assert response.json()["readbackTranscript"] == "I usually go to gym"
+    assert response.json()["readback_transcript"] == "I usually go to gym"
 
 
 async def test_다른_세션_아래에서는_판정하지_않는다(
@@ -201,3 +203,41 @@ async def test_낭독이_아닌_발화는_두_겹으로_막힌다(
     response = await api_client.post(_url(committed_session.session_id, utterance_id))
 
     assert response.status_code == 404
+
+
+async def test_판정_라우터가_어댑터에_사용량_sink_를_넘긴다(
+    monkeypatch: pytest.MonkeyPatch,
+    api_client: httpx.AsyncClient,
+    db_pool: asyncpg.Pool,
+    committed_session,
+    audio_root: Path,
+) -> None:
+    """⛔ **배선 누락을 잡는 자리다** (`TASK-212`).
+
+    `create_voice_adapter` 의 `usage_sink` 기본값이 `None` 이라 호출부에서 그 인자를 떼면
+    Nova 토큰 기록이 **조용히** 꺼진다. 소켓 계층에는 그 대역이 있는데(`test_ws.py` 의
+    `_capture_factory_args`) 낭독 판정이 **둘째 배선 지점**이 되면서 그 자리가 무보호였다 —
+    2026-09-18 `/simplify` 의 고도 각도가 그것을 지적했다.
+    ⛔ **대역이 `usage_sink` 에 기본값을 두지 않는다** — 두면 라우터가 넘기지 않아도 조용히
+    통과한다.
+    """
+    seen: dict[str, object] = {}
+
+    def spy(
+        settings: object,
+        *,
+        questions: object,
+        scenario: object,
+        usage_sink: object,
+    ) -> StubVoiceAdapter:
+        seen["usage_sink"] = usage_sink
+        return StubVoiceAdapter()
+
+    monkeypatch.setattr(results_module, "create_voice_adapter", spy)
+    async with db_pool.acquire() as conn:
+        utterance_id = await _stored_recording(conn, audio_root, committed_session.session_id)
+
+    response = await api_client.post(_url(committed_session.session_id, utterance_id))
+
+    assert response.status_code == 200
+    assert seen["usage_sink"] is not None

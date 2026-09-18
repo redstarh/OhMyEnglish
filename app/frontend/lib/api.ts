@@ -487,6 +487,16 @@ export async function lookupWord(input: {
   });
 }
 
+/**
+ * 저장된 낭독 하나를 들을 주소 (`TASK-212`).
+ *
+ * ⛔ **주소를 조립하는 자리는 여기 하나다** — 화면이 따로 조립하면 형태가 바뀔 때 한쪽이 조용히
+ * 낡는다. 서버 쪽 정본은 `services/recordings.recording_url` 이고 두 자리가 같은 모양을 쓴다.
+ */
+export function recordingUrl(sessionId: string, utteranceId: string): string {
+  return `${API_BASE}/api/sessions/${sessionId}/recordings/${utteranceId}`;
+}
+
 /** 낱말 하나의 판정. 값역의 정본은 `services/readback.py` 의 상수 셋이다. */
 export type ReadbackWord = { word: string; verdict: "match" | "missing" | "different" };
 
@@ -497,8 +507,8 @@ export type ReadbackWord = { word: string; verdict: "match" | "missing" | "diffe
  * 서버가 그때 200 을 주는 이유를 `api/results.py` 가 가진다.
  */
 export type ReadbackJudgment = {
-  clipTranscript: string;
-  readbackTranscript: string;
+  clip_transcript: string;
+  readback_transcript: string;
   words: ReadbackWord[];
 };
 
