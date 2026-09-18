@@ -38,6 +38,11 @@ const PLAY_RECORDING_LABEL = "내 낭독 듣기";
 /** 지금 나는 소리가 어느 것인가. ⛔ **한 값으로 두는 것이 「둘이 겹치지 않는다」를 구조로 만든다.** */
 type Playing = "clip" | "recording";
 
+// 이 패널의 버튼 셋이 공유한다. ⚠️ **컴포넌트로 뽑지 않는 이유**: 세 버튼이 서로 다른 근거 주석을
+// 갖고 각각 다른 조건(`has_audio` · 없음 · `recordingUrl`)에 감싸여 있어, 뽑으면 근거가 호출부와
+// 갈라진다. 한쪽만 고쳐 모양이 어긋나는 것을 막는 데는 이 상수 하나로 충분하다.
+const BUTTON_STYLE = { padding: "0.5rem 1rem" };
+
 export function ShadowingPanel({
   setup,
   recordingUrl,
@@ -178,7 +183,7 @@ export function ShadowingPanel({
           /* ⚠️ 녹음 중에는 잠근다 — 클립을 틀면 그 소리가 마이크로 들어가 녹음이 섞인다.
              `startRecording` 이 이미 재생을 끄지만, 그 뒤에 다시 틀 수 있는 문을 남기지 않는다. */
           disabled={recording}
-          style={{ padding: "0.5rem 1rem" }}
+          style={BUTTON_STYLE}
         >
           {playing === "clip" ? STOP_LABEL : PLAY_LABEL}
         </button>
@@ -192,7 +197,7 @@ export function ShadowingPanel({
       <button
         type="button"
         onClick={recording ? endRecording : startRecording}
-        style={{ padding: "0.5rem 1rem" }}
+        style={BUTTON_STYLE}
       >
         {recording ? RECORD_END_LABEL : RECORD_LABEL}
       </button>{" "}
@@ -205,7 +210,7 @@ export function ShadowingPanel({
           type="button"
           onClick={playing === "recording" ? stop : playRecording}
           disabled={recording}
-          style={{ padding: "0.5rem 1rem" }}
+          style={BUTTON_STYLE}
         >
           {playing === "recording" ? STOP_LABEL : PLAY_RECORDING_LABEL}
         </button>
