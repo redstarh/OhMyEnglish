@@ -103,11 +103,10 @@ cd app/frontend && npx tsc --noEmit && npx eslint . && npx next build
 | `TASK-216` | teardown 이 앱의 고아 파일 스윕을 재사용(삭제 정책 한 자리) | 불필요 |
 | `TASK-217` | 전사 전용 프롬프트 + `end_input()` — 입력 약 1,600 토큰 절감 | **필수** |
 
-⛔ **낭독 판정 축(`TASK-205`~`212`)은 닫혔음.** 정본은
-`docs/design/2026-09-18-read-aloud-judgment-design.md` 와 결정 131 임. 실측 확정 셋: ⑴ ⛔ **낭독 끝에
-침묵 2초가 «필수»**(없으면 실물 Nova 가 전사를 안 줌) ⑵ 학습자 final 을 **모아** 이어 붙임(첫 것만
-받으면 여섯 문장 클립이 두 문장에서 끊김) ⑶ 판정에 모델을 부르지 않음.
-⚠️ 전사기가 `All right` 을 `alright` 로 합쳐 「다름」이 잡히는 한계가 있음.
+⛔ **낭독 판정 축(`TASK-205`~`212`)은 닫혔음.** 정본은 `docs/design/2026-09-18-read-aloud-judgment-design.md`
+와 결정 131 임. 실측 확정 셋: ⑴ ⛔ **낭독 끝에 침묵 2초가 «필수»**(없으면 실물 Nova 가 전사를 안 줌)
+⑵ 학습자 final 을 **모아** 이어 붙임(첫 것만 받으면 여섯 문장이 두 문장에서 끊김) ⑶ 판정에 모델을
+부르지 않음. ⚠️ 전사기가 `All right` 을 `alright` 로 합쳐 「다름」이 잡히는 한계가 있음.
 ⛔ 브라우저 회차는 `tests/harness/p_readback_leg.py` 로 돌리고 뒤에 `teardown_session.py` 로 걷음.
 
 ## ⑤ 착수 전 반드시 읽을 것
