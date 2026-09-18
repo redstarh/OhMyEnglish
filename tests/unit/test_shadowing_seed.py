@@ -192,8 +192,20 @@ def test_seeded_clip_audio_files_exist_in_the_repository() -> None:
         path = root / clip.audio_filename
         assert path.is_file(), f"{path} 가 없다 — 생성 절차는 2026-09-09 선행 검토 §7.1 이 소유한다"
         # `check-ignore` 는 무시되면 0, 무시되지 않으면 1 이다 — 여기서 원하는 것은 1 이다.
+        # ⛔ **먼저 git 이 «돌았는지» 를 가른다** — 0·1 이 아닌 코드는 판정이 아니라 git 자체의
+        #    실패다. 가르지 않으면 그 코드가 「무시되고 있다」로 보고되어 문면이 원인을 잘못
+        #    지목한다: 2026-09-19 에 Xcode 라이선스 미동의로 `/usr/bin/git` 셰임이 **exit 69** 를
+        #    내자 추적되고 있는 파일이 「`.gitignore` 에 걸려 있다」로 실패했다(`H-CH`).
         ignored = subprocess.run(
-            ["git", "check-ignore", "-q", str(path)], cwd=REPO_ROOT, check=False
+            ["git", "check-ignore", "-q", str(path)],
+            cwd=REPO_ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        assert ignored.returncode in (0, 1), (
+            f"git check-ignore 가 돌지 않았다 (exit {ignored.returncode}) — 이 단정은 "
+            f"추적 여부를 재지 못했다: {ignored.stderr.strip()}"
         )
         assert ignored.returncode == 1, f"{path} 가 .gitignore 에 걸려 있다 — 배포되지 않는다"
 

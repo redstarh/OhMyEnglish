@@ -1,10 +1,10 @@
 ---
 id: TASK-218
 title: '결함: 스키마 무필터 단정 하나가 public 호환 뷰를 집어 카탈로그 행 순서에 따라 깨진다'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-18 18:43'
-updated_date: '2026-09-18 18:45'
+updated_date: '2026-09-18 18:46'
 labels: []
 dependencies: []
 ordinal: 279000
