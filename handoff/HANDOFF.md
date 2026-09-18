@@ -36,10 +36,10 @@
 
 | # | 지표 | 값 |
 |--:|---|---|
-| 1 | 기준 커밋 | **`e4209d2`** · 작업트리 clean · `origin` 과 **0/0**. ⛔ 이 handoff 의 갱신 커밋이 더 뒤에 오므로 **차이가 handoff 뿐이면 정상**임 |
-| 2 | 다음 한 걸음 | **`TASK-210` 의 남은 몫 하나** — 쉐도잉 낭독 흐름 드라이버를 써서 **화면 렌더**를 관측함(AC#1). 서비스·HTTP 층은 실물 Nova 로 닫았음. 그 뒤 `TASK-211`(복습 시계 · 규칙 먼저). ⛔ 새 축의 정본은 `docs/design/2026-09-18-read-aloud-judgment-design.md` 와 결정 131 임 |
-| 3 | 게이트 | **여덟 다 exit 0** — `pytest` **1386 passed**(1361 → +25) · `ruff` 0 · `ruff format` **301 files** · `ty` 0 · `tsc` 0 · `eslint` 0 · `next build` 0(`/` 가 `○` Static 유지). 전부 2026-09-18 에 직접 돌린 값임 |
-| 4 | 착수 전 필수 | 전체 **272** · 완료 **270** · 열린 것 **둘** — `TASK-210`(`In Progress` · AC#1 만 미충족) · `TASK-211`(`To Do`) |
+| 1 | 기준 커밋 | **`a3e7d1f`** · 작업트리 clean · `origin` 과 **0/0**. ⛔ 이 handoff 의 갱신 커밋이 더 뒤에 오므로 **차이가 handoff 뿐이면 정상**임 |
+| 2 | 다음 한 걸음 | **`TASK-213`** — ⛔ **stub 서버에서 낭독 판정을 누르면 스텁 문장이 전사로 «영구» 저장됨**(`judge_readback` 이 값이 있으면 다시 계산하지 않음). 개발용 `:8002` 가 평소 stub 이라 밟기 쉬움. 그 뒤 `TASK-214`~`216`(동작 보존 정리) · `TASK-217`(실물 회차 필요) |
+| 3 | 게이트 | **여덟 다 exit 0** — `pytest` **1387 passed** · `ruff` 0 · `ruff format` **302 files** · `ty` 0 · `tsc` 0 · `eslint` 0 · `next build` 0(`/` 가 `○` Static 유지). 전부 2026-09-18 에 직접 돌린 값임 |
+| 4 | 착수 전 필수 | 전체 **278** · 완료 **273** · 열린 것 **다섯**(`TASK-213`~`217`) · `In Progress` **0건** · `--ready` 는 넷(`217` 은 `214` 를 기다림) |
 
 ```bash
 cd ~/MyProject/OhMyEnglish
@@ -93,20 +93,22 @@ cd app/frontend && npx tsc --noEmit && npx eslint . && npx next build
 
 ⚠️ **나머지 함정의 정본은 `docs/ops/pitfalls.md` 임**(이 세션이 `H-CC`·`H-CD` 를 더했음).
 
-## ④ 열린 태스크 둘 — 낭독 판정 축의 마지막 검증과 복습 시계
+## ④ 열린 태스크 다섯 — 전부 `/simplify` 가 낳았음
 
-| ID | 무엇 | 상태 |
+| ID | 무엇 | 실물 회차 |
 |---|---|---|
-| **`TASK-210`** | 화면 렌더 관측 — AC#2·AC#3 은 닫혔고 **AC#1 의 「보이는 것」만 남음** | `In Progress` · 다음 걸음 |
-| `TASK-211` | 복습 시계 연결 — ⛔ 「낱말 → 소리」 규칙을 **먼저** 정함 | `To Do` |
+| **`TASK-213`** | ⛔ stub 서버에서 판정을 누르면 스텁 문장이 전사로 **영구 저장**됨 + 503 가드 부재 | 불필요 |
+| `TASK-214` | 좁은 `Transcriber` 포트 — 결정 131 의 경계 약속을 실제로 만듦 | 불필요 |
+| `TASK-215` | 사용량 기록을 `_pump_output` 의 `finally` 로 · 종료 예산 셋을 하나로 | 불필요 |
+| `TASK-216` | teardown 이 앱의 고아 파일 스윕을 재사용(삭제 정책 한 자리) | 불필요 |
+| `TASK-217` | 전사 전용 프롬프트 + `end_input()` — 입력 약 1,600 토큰 절감 | **필수** |
 
-⛔ **정본은 `docs/design/2026-09-18-read-aloud-judgment-design.md` 와 결정 131 임.** 실측 확정 셋:
-⑴ ⛔ **낭독 끝에 침묵 2초가 «필수»**(없으면 실물 Nova 가 전사를 안 줌) ⑵ 판정에 모델을 부르지 않음
-⑶ 둘째 조회는 전사를 건너뜀(2.29초 → 0.00초).
-⚠️ **전사기가 `All right` 을 `alright` 로 합쳐 두 낱말이 「다름」으로 잡힘** — 학습자에게 불리한 알려진
-한계임. ⛔ **남은 일은 쉐도잉 낭독 드라이버 신설임** — `p_app_path.py` 의 마이크 대체는 `instrument.js`
-의 `window.__omy` 에 매여 있고 «말하기» 세션을 태움. 픽스처는 있음(`/tmp/readback_pad.wav`) · 회차 뒤
-`teardown_session.py` 로 걷음(파일까지 걷음).
+⛔ **낭독 판정 축(`TASK-205`~`212`)은 닫혔음.** 정본은
+`docs/design/2026-09-18-read-aloud-judgment-design.md` 와 결정 131 임. 실측 확정 셋: ⑴ ⛔ **낭독 끝에
+침묵 2초가 «필수»**(없으면 실물 Nova 가 전사를 안 줌) ⑵ 학습자 final 을 **모아** 이어 붙임(첫 것만
+받으면 여섯 문장 클립이 두 문장에서 끊김) ⑶ 판정에 모델을 부르지 않음.
+⚠️ 전사기가 `All right` 을 `alright` 로 합쳐 「다름」이 잡히는 한계가 있음.
+⛔ 브라우저 회차는 `tests/harness/p_readback_leg.py` 로 돌리고 뒤에 `teardown_session.py` 로 걷음.
 
 ## ⑤ 착수 전 반드시 읽을 것
 
