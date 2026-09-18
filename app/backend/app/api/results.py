@@ -32,7 +32,7 @@ from uuid import UUID
 import asyncpg
 from fastapi import APIRouter, HTTPException, Request, Response
 
-from app.audio_gateway.factory import create_voice_adapter
+from app.audio_gateway.factory import create_voice_adapter, transcriber_available
 from app.config import get_settings
 from app.models.user import FIXED_USER_ID
 from app.services.readback import judge_readback
@@ -197,8 +197,20 @@ async def judge_recording_readback(
     ⛔ **`usage_sink` 를 반드시 넘긴다** — 낭독 전사는 Nova 호출이고 빼면 그 비용이 어느 집계에도
     나타나지 않는다(`services/usage.py` 의 *"이 비용은 복원할 수 없다"*). ⚠️ 다만 Nova 쪽 기록
     자체가 지금 값을 못 싣는다 — `TASK-204` 가 그것을 가진다.
+
+    ⛔ **전사기가 없으면 503 이다** (`TASK-213`) — 「쓸 수 없다」와 「못 알아들었다」는 학습자에게
+    다른 일이다. 뒤쪽은 다시 읽고 눌러 볼 일이지만 앞쪽은 몇 번 눌러도 달라지지 않는다
+    (`api/vocab.py` 가 같은 판단을 가진다).
     """
     settings = get_settings()
+    # ⛔ **픽스처 어댑터로는 판정하지 않는다** — 스텁은 학습자 문장을 발명하고, 전사가 있으면 다시
+    # 계산하지 않으므로(결정 131) 그 오염이 **영구**다. 개발용 서버가 평소 `stub` 으로 떠 있어
+    # 실제로 밟기 쉬운 경로였다.
+    # ⛔ **가드가 전사 «앞» 이다** — 뒤에 두면 막기 전에 이미 오염 행이 생긴다.
+    # ⚠️ 저장된 전사가 있어도 이 서버에서는 보이지 않는다(그 갈래도 503 이다) — 실물 서버는 늘
+    # `nova` 이고, 픽스처 서버에 저장된 전사는 애초에 지워야 하는 오염이다.
+    if not transcriber_available(settings):
+        raise HTTPException(status_code=503, detail="낭독 판정을 쓸 수 없다")
     pool: asyncpg.Pool = request.app.state.db_pool
     # ⛔ **연결을 잡은 채 Nova 스트림을 타지 않는다** (`TASK-212`) — 서비스가 풀을 받아 DB 작업
     # 구간에만 연결을 쥔다. 전사는 최대 `_TIMEOUT_S` 초이고 그 안에서 `pool_usage_sink` 가 연결을

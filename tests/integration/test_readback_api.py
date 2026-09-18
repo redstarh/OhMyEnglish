@@ -11,7 +11,11 @@
 `/api/shadowing/recordings/...` 로 적었고 그것은 그 규칙과 어긋났다.
 
 `api_client` 는 커밋된 행만 본다(라우터가 자기 커넥션을 연다) — `committed_session` 과 `db_pool` 을
-함께 쓰는 이유가 그것이다. 어댑터는 `voice_adapter` 기본값이 `stub` 이라 스텁이 뜬다.
+함께 쓰는 이유가 그것이다.
+
+⛔ **설정은 `nova` 를 가리키고 어댑터 «대역»만 스텁이다** (`TASK-213`). 기본값 `stub` 으로는 판정이
+503 이므로(픽스처가 학습자 문장을 발명해 영구 저장되는 것을 막는다) 판정 경로를 재는 테스트가
+기본 설정에서는 아예 열리지 않는다. 그 503 갈래는 이 파일의 전용 테스트가 잰다.
 """
 
 from __future__ import annotations
@@ -44,10 +48,23 @@ async def audio_root(
 ) -> AsyncIterator[Path]:
     monkeypatch.setenv("DATABASE_URL", test_database)
     monkeypatch.setenv("SHADOWING_AUDIO_ROOT", str(tmp_path))
-    pin_settings_env(monkeypatch, keep=("DATABASE_URL", "SHADOWING_AUDIO_ROOT"))
+    monkeypatch.setenv("VOICE_ADAPTER", "nova")
+    pin_settings_env(monkeypatch, keep=("DATABASE_URL", "SHADOWING_AUDIO_ROOT", "VOICE_ADAPTER"))
     get_settings.cache_clear()
     yield tmp_path
     get_settings.cache_clear()
+
+
+@pytest.fixture
+def transcriber_band(monkeypatch: pytest.MonkeyPatch) -> None:
+    """설정이 `nova` 인 동안 어댑터 **대역**만 스텁으로 바꾼다 (`TASK-213`).
+
+    ⛔ **대역 없이 `nova` 를 두면 라우터가 실물 스트림을 연다** — 테스트가 AWS 를 부른다.
+    ⚠️ 팩토리의 분기 자체는 `tests/integration/test_gateway.py` 가 잰다. 여기서 재는 것은 라우터다.
+    """
+    monkeypatch.setattr(
+        results_module, "create_voice_adapter", lambda *_args, **_kwargs: StubVoiceAdapter()
+    )
 
 
 async def _stored_recording(
@@ -85,7 +102,11 @@ def _url(session_id: UUID, utterance_id: UUID) -> str:
 
 
 async def test_처음_부르면_전사를_얻어_저장하고_낱말_판정을_돌려준다(
-    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session, audio_root: Path
+    api_client: httpx.AsyncClient,
+    db_pool: asyncpg.Pool,
+    committed_session,
+    audio_root: Path,
+    transcriber_band: None,
 ) -> None:
     async with db_pool.acquire() as conn:
         utterance_id = await _stored_recording(conn, audio_root, committed_session.session_id)
@@ -103,6 +124,41 @@ async def test_처음_부르면_전사를_얻어_저장하고_낱말_판정을_�
             "select readback_transcript from utterances where id = $1", utterance_id
         )
     assert stored == STUB_READBACK
+
+
+@pytest.mark.parametrize("adapter", ["stub", "stub_unresponsive"])
+async def test_전사기가_없으면_503_이고_아무것도_저장하지_않는다(
+    monkeypatch: pytest.MonkeyPatch,
+    api_client: httpx.AsyncClient,
+    db_pool: asyncpg.Pool,
+    committed_session,
+    audio_root: Path,
+    adapter: str,
+) -> None:
+    """⛔ **픽스처 어댑터로는 판정하지 않는다** (`TASK-213`).
+
+    스텁은 학습자 문장을 **발명**하므로 그것이 `readback_transcript` 에 들어가고, 전사가 있으면
+    다시 계산하지 않으므로(결정 131) 그 오염이 **영구**다. 개발용 서버가 평소 `stub` 으로 떠 있어
+    실제로 밟기 쉬운 경로였다 — 2026-09-18 `/simplify` 의 고도 각도가 잡았다.
+
+    ⚠️ **503 과 「저장되지 않았다」를 «둘 다» 잰다** — 상태 코드만 재면 가드를 전사 «뒤»로 옮겨도
+    통과하는데, 그 자리에서는 이미 오염 행이 생긴 뒤다.
+    ⚠️ **픽스처 둘을 함께 잰다** — `stub_unresponsive` 는 전사를 내지 않아 오염은 없지만, 「전사기가
+    없다」를 「못 알아들었다」로 보이면 학습자가 영원히 다시 누른다(`api/vocab.py` 와 같은 판단).
+    """
+    monkeypatch.setenv("VOICE_ADAPTER", adapter)
+    get_settings.cache_clear()
+    async with db_pool.acquire() as conn:
+        utterance_id = await _stored_recording(conn, audio_root, committed_session.session_id)
+
+    response = await api_client.post(_url(committed_session.session_id, utterance_id))
+
+    assert response.status_code == 503
+    async with db_pool.acquire() as conn:
+        stored = await conn.fetchval(
+            "select readback_transcript from utterances where id = $1", utterance_id
+        )
+    assert stored is None
 
 
 async def test_이미_전사가_있으면_다시_전사하지_않는다(

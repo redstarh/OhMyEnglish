@@ -34,6 +34,20 @@ NOVA_ADAPTER = "nova"
 STUB_UNRESPONSIVE_ADAPTER = "stub_unresponsive"
 
 
+def transcriber_available(settings: Settings) -> bool:
+    """설정된 어댑터가 학습자의 소리를 **전사**할 수 있는가 (`TASK-213`).
+
+    ⛔ **픽스처는 전사기가 아니다.** `stub` 은 학습자 발화를 `FIXTURE_TURNS` 에서 **발명**하므로
+    그 문장을 전사로 받아들이면 학습자가 읽지 않은 글이 저장된다. `stub_unresponsive` 는 아무것도
+    내지 않으므로 오염은 없지만 전사도 없다.
+    ⚠️ **판정하는 자리가 이 모듈인 것이 G3 다** — 호출자가 `settings.voice_adapter` 를 직접 견주면
+    어댑터 값을 아는 자리가 둘이 되고, 값이 하나 늘 때 한쪽이 조용히 낡는다.
+    ⚠️ **「자격증명이 있다」까지 말하지 않는다** — 여기서 아는 것은 설정뿐이고 자격증명 실패는
+    `start()` 에서 예외로 난다(그 갈래는 500 이라 「못 알아들었다」와 섞이지 않는다).
+    """
+    return settings.voice_adapter == NOVA_ADAPTER
+
+
 def create_voice_adapter(
     settings: Settings,
     *,

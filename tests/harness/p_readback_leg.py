@@ -14,6 +14,8 @@
 --use-fake-device-for-media-stream --use-fake-ui-for-media-stream
 --autoplay-policy=no-user-gesture-required`.
 ⛔ **백엔드는 `VOICE_ADAPTER=nova` · `WORKER_ENABLED=false` 여야 한다** — 이 파일은 세우지 않는다.
+⚠️ **`stub` 으로 돌리면 판정이 503 이고 화면이 「지금은 낭독 판정을 쓸 수 없어요」를 보인다**
+(`TASK-213`). 그 갈래를 일부러 볼 때는 `--judge-timeout-s` 를 줄인다 — 낱말은 영원히 뜨지 않는다.
 
 ⛔ **세션 ID 를 시각창으로 찾지 않는다.** 판정 요청 URL 이
 `/api/sessions/<sid>/recordings/<uid>/readback` 이므로 `fetch` 를 감싸 그 주소를 그대로 잡는다 —

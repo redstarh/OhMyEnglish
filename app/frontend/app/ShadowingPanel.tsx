@@ -39,10 +39,14 @@ const PLAY_RECORDING_LABEL = "내 낭독 듣기";
 // 설계서 §7 이 「귀로 견주는 길」을 없애지 않기로 정했다.
 const JUDGE_LABEL = "낭독 판정 보기";
 const JUDGING_LABEL = "견주는 중...";
-// ⛔ **영어 오류 문면을 학습자에게 보이지 않는다** (`TASK-55` 가 세운 규율). 전사를 못 얻은 것과
-// 요청이 실패한 것을 «같게» 말하는 이유는 `api/vocab.py` 와 같다 — 그 구분이 학습자에게 값을 주지
-// 않고 둘 다 「다시 눌러 볼 일」이다.
+// ⛔ **영어 오류 문면을 학습자에게 보이지 않는다** (`TASK-55` 가 세운 규율).
 const JUDGE_EMPTY_NOTICE = "읽은 소리를 알아듣지 못했어요. 다시 읽고 눌러 주세요.";
+// ⛔ **판정을 쓸 수 없는 것을 「못 알아들었다」로 말하지 않는다** (`TASK-213`).
+// ⚠️ **되돌린 판단이고 근거를 함께 남긴다**: `TASK-212` 는 둘을 «같게» 말하기로 했고 그 근거가
+// *"둘 다 다시 눌러 볼 일이다"* 였다. 그 전제가 틀렸다 — 전사기가 설정되지 않은 서버(503)와 자격증명
+// 실패(500)는 **몇 번 눌러도 달라지지 않는다.** 위 문구를 그대로 보이면 학습자가 영원히 다시 읽는다.
+// ⚠️ 사유를 말하지 않는다 — 학습자가 고칠 수 있는 것이 아니고 설정 이야기는 화면의 몫이 아니다.
+const JUDGE_UNAVAILABLE_NOTICE = "지금은 낭독 판정을 쓸 수 없어요.";
 const JUDGE_LEGEND = "밑줄은 다르게 읽은 낱말이고 취소선은 빠뜨린 낱말이에요.";
 // ⚠️ 전부 맞았을 때 범례를 보이지 않는다 — 화면에 없는 표시를 설명하는 문장이 된다.
 const JUDGE_ALL_MATCH_NOTICE = "원본대로 읽었어요.";
@@ -120,13 +124,16 @@ export function ShadowingPanel({
   //    때만 비용이 난다. 그래서 상태를 화면이 들고 있고 렌더마다 받아 오지 않는다.
   // ⛔ **어느 낭독의 판정인지 함께 든다** — 다시 읽으면 발화가 새로 생기는데 판정만 남으면 «앞 낭독의
   //    판정»이 새 낭독의 것처럼 보인다. 키를 함께 들면 effect 로 지우지 않아도 렌더에서 갈린다.
-  // ⛔ **낱말만 든다**(`TASK-212`) — 화면은 요청 실패와 「전사를 못 얻었다」를 같게 말하므로
-  //    (위 문구 상수가 근거를 가진다) 둘을 구별하는 필드를 들면 닿을 수 없는 조합이 생긴다.
-  //    응답의 전사문 두 개도 화면이 쓰지 않는다.
-  const [judged, setJudged] = useState<{
-    utteranceId: string;
-    words: ReadbackWord[];
-  } | null>(null);
+  // ⛔ **갈래를 한 값으로 든다**(`TASK-213`) — 「낱말만 든다」였던 첫 판(`TASK-212`)은 요청 실패와
+  //    「전사를 못 얻었다」를 같게 말하는 전제 위에 있었고 그 전제가 틀렸다(문구 상수가 근거를 가진다).
+  //    ⚠️ `failed` 같은 «필드»를 더하지 않는 이유는 그 판이 적어 둔 것과 같다 — 필드로 들면
+  //    「실패인데 낱말이 있다」는 닿을 수 없는 조합이 생긴다. 관행은 `WordLookup` 의 `Lookup` 이다.
+  //    응답의 전사문 두 개는 여전히 화면이 쓰지 않는다.
+  const [judged, setJudged] = useState<
+    | { utteranceId: string; kind: "words"; words: ReadbackWord[] }
+    | { utteranceId: string; kind: "unavailable" }
+    | null
+  >(null);
   const [judging, setJudging] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   // ⛔ 정리 함수가 «렌더 시점의» 값을 보지 않게 ref 로도 든다 — 상태만 보면 언마운트 정리가
@@ -232,7 +239,13 @@ export function ShadowingPanel({
     const { sessionId, utteranceId } = recordingIds;
     setJudging(true);
     const result = await judgeReadback(sessionId, utteranceId);
-    setJudged({ utteranceId, words: result.ok ? result.value.words : [] });
+    // ⛔ **`ok: false` 를 빈 낱말로 접지 않는다** (`TASK-213`) — 접으면 서버가 503 으로 말한
+    // 「쓸 수 없다」가 화면에서 「못 알아들었다」가 된다.
+    setJudged(
+      result.ok
+        ? { utteranceId, kind: "words", words: result.value.words }
+        : { utteranceId, kind: "unavailable" },
+    );
     setJudging(false);
   }, [recordingIds, judging]);
 
@@ -314,10 +327,14 @@ export function ShadowingPanel({
           {RECORDING_NOTICE}
         </p>
       ) : null}
-      {/* ⛔ **판정을 보이는 자리다.** 낱말이 0개면 전사를 못 얻었거나 요청이 실패한 것이고 그 둘을
-          같게 말한다 — 학습자에게 「다시 읽고 눌러 보라」는 같은 행동이 남는다. */}
+      {/* ⛔ **판정을 보이는 자리다.** 갈래가 셋이다: 낱말이 있다 · 전사를 못 얻었다(낱말 0개) ·
+          판정을 쓸 수 없다(`TASK-213`). 뒤의 둘이 다른 문구인 이유는 문구 상수가 가진다. */}
       {shown ? (
-        shown.words.length > 0 ? (
+        shown.kind === "unavailable" ? (
+          <p role="status" style={{ color: "var(--foreground-muted)", marginBottom: 0 }}>
+            {JUDGE_UNAVAILABLE_NOTICE}
+          </p>
+        ) : shown.words.length > 0 ? (
           <div style={{ marginTop: "0.5rem" }}>
             <p style={{ margin: 0, lineHeight: 1.8 }}>
               {shown.words.map((word, index) => (

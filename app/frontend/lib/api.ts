@@ -515,6 +515,9 @@ export type ReadbackJudgment = {
 /**
  * 낭독 하나를 클립의 글과 견준다. ⚠️ **첫 호출이 전사를 만들므로 느리다**(Nova 를 한 번 탄다) —
  * 두 번째부터는 서버가 저장해 둔 전사를 쓰므로 비용이 0 이다(결정 131).
+ *
+ * ⛔ **전사기가 설정되지 않은 서버는 503 이고 그것은 `ok: false` 다** (`TASK-213`) — 화면은 그것을
+ * 「전사를 얻지 못했다」(`words` 가 빈 200)와 **다르게** 말한다.
  */
 export async function judgeReadback(
   sessionId: string,
