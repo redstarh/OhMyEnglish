@@ -39,6 +39,12 @@ DIFFERENT = "different"
 _FRAME_BYTES = 3200
 # 전사가 오지 않는 어댑터에서 엔드포인트가 영원히 열리지 않게 하는 상한.
 _TIMEOUT_S = 30.0
+# 오디오 끝에 붙이는 침묵. 16kHz·16bit 기준 2초다.
+# ⛔ **이것이 없으면 실물 Nova 가 전사를 «아예» 주지 않는다** (2026-09-18 실측 · `TASK-210`):
+# 같은 오디오가 침묵 없이는 빈 문자열이었고 2초를 붙이자 전사가 왔다. VAD 가 침묵으로 발화를 닫는다.
+# ⚠️ 파일은 학습자가 「읽기 끝」을 누른 순간 끊기므로 **실사용 입력에 침묵이 없다** — 그래서 이 값이
+# 선택이 아니라 필수다.
+_TRAILING_SILENCE_BYTES = 16_000 * 2 * 2
 
 
 async def _send_all(adapter: VoiceAdapter, pcm: bytes, frame_bytes: int) -> None:
@@ -61,6 +67,7 @@ async def transcribe_readback(
     make_adapter: Callable[[], VoiceAdapter],
     frame_bytes: int = _FRAME_BYTES,
     timeout_s: float = _TIMEOUT_S,
+    silence_bytes: int = _TRAILING_SILENCE_BYTES,
 ) -> str:
     """낭독 녹음의 **PCM** 을 어댑터에 흘려 학습자의 final 전사문 하나만 돌려준다.
 
@@ -74,15 +81,18 @@ async def transcribe_readback(
     ⛔ **되돌리는 조건의 경계가 이 함수다.** 배치 STT 로 옮기기로 하면(결정 131) 여기만 갈면 되고
     호출자는 그대로 둔다. 그래서 어댑터를 인자로 «만들어» 받는다.
 
-    ⚠️ **실물 Nova 로 확인되지 않은 것 둘** — `TASK-210` 이 그것을 본다:
-    ① 프레임을 다 보낸 «뒤» 이벤트를 읽는 순서가 흐름 제어에 걸리지 않는지(스텁에서는 걸리지 않고,
-       이 순서라야 보낸 프레임 수가 결정적이다).
-    ② 파일이 갑자기 끝나도 Nova 가 final 을 내는지 — VAD 가 침묵으로 판정을 닫으므로 끝에 침묵을
-       덧붙여야 할 수 있다. **필요하다는 증거가 나온 뒤에 붙인다**(지금 붙이면 근거 없는 코드다).
+    **실물 Nova 로 확인했다** (2026-09-18 · `TASK-210`):
+    ① 프레임을 다 보낸 «뒤» 이벤트를 읽는 순서가 흐름 제어에 걸리지 «않는다» — 실물에서 그 순서로
+       전사를 받았다. 이 순서라야 보낸 프레임 수가 결정적이다.
+    ② **끝에 침묵을 붙여야 한다**(`_TRAILING_SILENCE_BYTES`) — 침묵 없이 보낸 같은 오디오는
+       전사가 빈 문자열이었다.
+    ⚠️ **전사기가 낱말을 합치면 판정이 틀린 쪽으로 기운다**: 실물이 `All right` 을 `alright` 로 내서
+    두 낱말이 「다름」으로 잡혔다. 낱말 단위 대조의 알려진 한계이고 학습자에게 불리한 방향이다.
     """
     adapter = make_adapter()
+    padded = pcm + b"\x00" * silence_bytes
     try:
-        return await asyncio.wait_for(_readback_text(adapter, pcm, frame_bytes), timeout_s)
+        return await asyncio.wait_for(_readback_text(adapter, padded, frame_bytes), timeout_s)
     except TimeoutError:
         # 어댑터가 조용한 것은 결함이 아니라 갈래 하나다 — 빈 전사로 알린다.
         return ""

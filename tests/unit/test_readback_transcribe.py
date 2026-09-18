@@ -66,8 +66,10 @@ async def test_코치의_전사문을_돌려주지_않는다() -> None:
 
 
 async def test_PCM_이_남김없이_어댑터까지_닿는다() -> None:
+    """⚠️ 침묵을 0 으로 두고 잰다 — 그러지 않으면 「PCM 이 다 갔는가」와 「침묵을 붙였는가」가 한
+    수치에 섞여 어느 쪽이 깨졌는지 가릴 수 없다."""
     adapter = StubVoiceAdapter()
-    await transcribe_readback(_PCM, make_adapter=lambda: adapter, frame_bytes=3000)
+    await transcribe_readback(_PCM, make_adapter=lambda: adapter, frame_bytes=3000, silence_bytes=0)
     expected_frames = -(-len(_PCM) // 3000)  # 마지막 조각이 짧아도 보낸다
     assert expected_frames == 6, "픽스처가 나누어떨어지면 마지막 조각을 시험하지 못한다"
     assert adapter.received_frames == expected_frames
@@ -89,3 +91,26 @@ async def test_응답이_없는_어댑터에서_매달리지_않고_빈_문자�
     adapter = StubVoiceAdapter("unresponsive")
     assert await transcribe_readback(_PCM, make_adapter=lambda: adapter, timeout_s=0.05) == ""
     assert adapter.closed is True
+
+
+async def test_끝에_침묵을_붙여_보낸다() -> None:
+    """⛔ **침묵이 없으면 실물 Nova 가 전사를 아예 주지 않는다** (2026-09-18 실측 · `TASK-210`).
+
+    같은 오디오를 침묵 없이 보냈을 때 전사가 **빈 문자열**이었고, 끝에 2초를 붙이자
+    `'alright, so here we are in of the elephants.'` 가 왔다. VAD 가 침묵으로 발화를 닫기 때문이다.
+    ⇒ 이 프레임 수 단정이 그 발견을 코드에 고정한다.
+    """
+    adapter = StubVoiceAdapter()
+    await transcribe_readback(
+        _PCM, make_adapter=lambda: adapter, frame_bytes=3200, silence_bytes=6400
+    )
+    assert adapter.received_frames == -(-(len(_PCM) + 6400) // 3200)
+
+
+async def test_침묵_기본값이_0이_아니다() -> None:
+    """⛔ 기본값이 0이면 실물에서 전사가 오지 않는다 — 그 갈래를 기본값으로 두지 않는다."""
+    padded = StubVoiceAdapter()
+    bare = StubVoiceAdapter()
+    await transcribe_readback(_PCM, make_adapter=lambda: padded, frame_bytes=3200)
+    await transcribe_readback(_PCM, make_adapter=lambda: bare, frame_bytes=3200, silence_bytes=0)
+    assert padded.received_frames > bare.received_frames
