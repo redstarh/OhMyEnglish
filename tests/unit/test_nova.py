@@ -2511,3 +2511,89 @@ def test_the_prompt_tells_the_coach_to_ask_out_loud_before_calling_the_tool():
     assert marker in lowered, "확인을 먼저 소리로 물으라는 요구가 프롬프트에 없다"
     # 순서를 못 박는다 — 「먼저 말하고 그 다음 부른다」가 이 결함의 고침이다.
     assert lowered.index(marker) < lowered.index('call it again with stage "confirmed"')
+
+
+# --- `TASK-204` — 마지막 `usageEvent` 가 «종료 뒤에» 온다 -----------------------------
+
+
+class _GatedReceiver:
+    """`head` 를 먼저 주고, 문이 열린 뒤에야 `tail` 을 준다.
+
+    실물 Nova 의 모양이다 — `promptEnd`·`sessionEnd` 를 보낸 뒤에 마지막 `usageEvent` 가 온다.
+    """
+
+    def __init__(self, head: list[Any], gate: Any, tail: list[Any]) -> None:
+        self._head = list(head)
+        self._gate = gate
+        self._tail = list(tail)
+        self._opened = False
+
+    async def receive(self) -> Any:
+        if self._head:
+            return self._head.pop(0)
+        while not self._opened:
+            if self._gate():
+                self._opened = True
+                break
+            await asyncio.sleep(0.001)
+        if self._tail:
+            return self._tail.pop(0)
+        await asyncio.Event().wait()
+        raise AssertionError("unreachable")
+
+
+class _LateUsageStream(_FakeStream):
+    """마지막 `usageEvent` 를 `promptEnd` 이후로 미루는 스트림."""
+
+    def __init__(self, early: dict[str, Any], late: dict[str, Any]) -> None:
+        super().__init__()
+        self._early = early
+        self._late = late
+
+    async def await_output(self) -> tuple[None, Any]:
+        await self.input_arrived.wait()
+        return None, _GatedReceiver(
+            [_FakeOutputChunk({"event": {"usageEvent": self._early}})],
+            lambda: "promptEnd" in self.event_names,
+            [_FakeOutputChunk({"event": {"usageEvent": self._late}}), None],
+        )
+
+
+def _usage_body(*, total_in: int, total_out: int, out_speech: int) -> dict[str, Any]:
+    body = json.loads(json.dumps(_USAGE_EVENT_BODY))
+    body["totalInputTokens"] = total_in
+    body["totalOutputTokens"] = total_out
+    body["details"]["total"]["output"]["speechTokens"] = out_speech
+    return body
+
+
+async def test_close_records_the_final_usage_that_arrives_after_termination():
+    """⛔ **코치가 말한 사용량은 종료 뒤에 오는 이벤트에만 있다.**
+
+    실측(2026-09-18 · `tests/harness/runs/2026-09-11-task97-tool-payload/B0-r2.json`): 실물
+    세션에서 `usageEvent` 가 **23번** 오고 총계가 input 22→759 · output 0→270 으로 자란다.
+    그런데 `llm_calls` 의 `purpose='nova'` 네 행은 전부 **input 216 · output 0** 이었고 그 값은
+    그 열의 **네 번째** 이벤트와 같다 ⇒ 마지막이 아니라 이른 snapshot 을 적고 있었다.
+    기전: `close()` 가 종료 이벤트를 보내기 **전에** 기록해서 그 뒤에 오는 이벤트를 못 본다.
+
+    ⚠️ 이 결함은 **먼저 다 읽고 닫는** 기존 테스트로는 보이지 않는다(그 테스트가 `_collect` 로
+    스트림을 비운다) — 소켓 계층은 세션 끝에 읽기를 멈추므로 실사용 형태가 이쪽이다.
+    """
+    early = _usage_body(total_in=216, total_out=0, out_speech=0)
+    late = _usage_body(total_in=759, total_out=270, out_speech=250)
+    stream = _LateUsageStream(early, late)
+    recorded: list[TokenUsage] = []
+
+    async def sink(usage: TokenUsage, **_: object) -> None:
+        recorded.append(usage)
+
+    adapter = _adapter(stream, usage_sink=sink)
+    await adapter.start()
+    # ⚠️ 펌프가 앞 이벤트를 소화할 틈을 준다 — 그래야 실사용 증상(「이른 snapshot 을 적는다」)과
+    #    같아진다. 이 틈이 없으면 아무것도 기록되지 않아 **다른 이유로** 빨갛다.
+    await asyncio.sleep(0.05)
+    await adapter.close()
+
+    assert len(recorded) == 1
+    assert (recorded[0].input_tokens, recorded[0].output_tokens) == (759, 270)
+    assert recorded[0].output_speech_tokens == 250

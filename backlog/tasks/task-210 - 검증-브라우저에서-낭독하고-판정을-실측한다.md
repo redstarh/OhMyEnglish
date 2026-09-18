@@ -4,7 +4,7 @@ title: '검증: 브라우저에서 낭독하고 판정을 실측한다'
 status: To Do
 assignee: []
 created_date: '2026-09-18 05:54'
-updated_date: '2026-09-18 06:25'
+updated_date: '2026-09-18 06:55'
 labels: []
 dependencies:
   - TASK-209
@@ -34,4 +34,10 @@ ordinal: 271000
    리듬이 다름. 걸리면 동시 형태로 바꾸고 프레임 수 단정을 다시 설계해야 함.
 2. **파일이 갑자기 끝나도 Nova 가 final 전사문을 내는가.** VAD 가 침묵으로 판정을 닫으므로 끝에
    침묵을 덧붙여야 할 수 있음. ⛔ 필요하다는 증거를 이 회차가 만든 뒤에 붙임.
+
+## ⛔ 이 회차가 함께 확인할 것 — `TASK-204` 의 고침
+
+회차 전 `select count(*) from llm_calls where purpose='nova'` 를 세어 두고, 회차 뒤 **새 행 하나**를
+읽음. 확인할 것 둘: ⑴ `output_tokens` 가 **0 이 아님**(코치가 말했으므로) ⑵ 값이 216/0 이 아님.
+그 값이 `TASK-189` §6 의 비어 있는 「낭독 전사 비용」 칸을 채움.
 <!-- SECTION:NOTES:END -->

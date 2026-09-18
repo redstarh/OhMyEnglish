@@ -99,6 +99,11 @@ CLOSE_TIMEOUT_SECONDS = 5.0
 # 스파이크에서 실증된 추론 설정. 근거 문서가 정한 값이 아니라 스파이크 발명값이다.
 _INFERENCE_CONFIGURATION = {"maxTokens": 1024, "topP": 0.9, "temperature": 0.7}
 
+# 종료 이벤트를 보낸 뒤 마지막 `usageEvent` 를 기다리는 상한 (`TASK-204`).
+# ⚠️ **설정값으로 올리지 않았다** — 노브를 늘리는 대신 상수로 둔다(Simplicity First). 이 값이
+# 실제로 모자란 것이 관측되면 그때 설정으로 올린다.
+_FINAL_USAGE_DRAIN_SECONDS = 2.0
+
 _SPECULATIVE_STAGE = "SPECULATIVE"
 _INTERRUPTED_STOP_REASON = "INTERRUPTED"
 # 턴 경계 신호. 실물 계측(2026-09-03)에서 `completionEnd`는 한 번도 오지 않았고 이것만 왔다.
@@ -1168,15 +1173,23 @@ class NovaVoiceAdapter:
             return
         self._closed = True
         self._audio_open = False
-        # `TASK-124` — 세션이 쓴 토큰을 여기서 **한 번** 적는다. ⛔ 스트림을 닫기 **전에** 적는다:
-        # 아래 종료 절차가 예외로 빠지면(이미 끊긴 스트림·펌프 취소) 기록을 건너뛰게 되고, 그 세션의
-        # 비용이 표에서 통째로 사라진다. `_closed` 가 위에서 이미 서 있으므로 두 번 적히지 않는다.
-        await self._record_usage_or_continue()
-        if self._stream is not None:
-            for payload in self._termination_events():
-                # 이미 끊긴 스트림에 보내는 것은 오류가 아니다 — 종료를 막지 않는다.
-                with contextlib.suppress(Exception):
-                    await self._send_event(payload)
+        # `TASK-124` — 세션이 쓴 토큰을 여기서 **한 번** 적는다.
+        # `_closed` 가 위에서 이미 서 있으므로 두 번 적히지 않는다.
+        # ⛔ **기록은 `finally` 에 있다**: 아래 종료 절차가 예외로 빠지면(이미 끊긴 스트림 ·
+        # 펌프 취소) 기록을 건너뛰게 되고 그 세션의 비용이 표에서 통째로 사라진다.
+        # 그 보장은 `TASK-124` 가 세운 것이고 그대로 지킨다.
+        # ⛔ **그러나 「먼저 적고 나중에 끝낸다」로는 적을 수 없다** (`TASK-204` 실측): 마지막
+        # `usageEvent` 는 종료 이벤트를 보낸 **뒤에** 오고 코치가 말한 사용량이 거기에만 있다.
+        # 그래서 순서를 「종료 → 배수 → 기록」으로 바꿨다.
+        try:
+            if self._stream is not None:
+                for payload in self._termination_events():
+                    # 이미 끊긴 스트림에 보내는 것은 오류가 아니다 — 종료를 막지 않는다.
+                    with contextlib.suppress(Exception):
+                        await self._send_event(payload)
+                await self._drain_for_final_usage()
+        finally:
+            await self._record_usage_or_continue()
         if self._pump is not None and not self._pump.done():
             self._pump.cancel()
             with contextlib.suppress(asyncio.CancelledError):
@@ -1194,6 +1207,26 @@ class NovaVoiceAdapter:
         테스트가 그 구멍을 닫는다.
         """
         return self._usage_sink is not None
+
+    async def _drain_for_final_usage(self) -> None:
+        """종료 뒤에 오는 마지막 `usageEvent` 를 펌프가 소화할 시간을 준다 (`TASK-204`).
+
+        실측 근거(`tests/harness/runs/2026-09-11-task97-tool-payload/B0-r2.json`): 실물 세션에서
+        `usageEvent` 가 **23번** 오고 총계가 input 22→759 · output 0→270 으로 자란다. **코치가 말한
+        사용량은 뒤쪽 이벤트에만 있다.** 이 배수가 없으면 `llm_calls` 가 이른 snapshot 을 적는다 —
+        실제로 네 행이 전부 input 216 · output 0 이었고 그 값은 그 열의 네 번째 이벤트였다.
+
+        ⛔ **상한을 둔다.** 끝나지 않는 스트림 갈래가 실재하므로(`_pump_output` 의 상한 경고가 그
+        모양이다) 무한정 기다리면 세션 종료가 매달린다. **그 갈래에서는 종료가 이 시간만큼 늦어지는
+        것을 대가로 받아들였다** — 학습자는 이미 세션을 끝낸 뒤다.
+        ⛔ **`shield` 로 감싼다** — `wait_for` 는 상한에 닿으면 기다리던 것을 취소하는데 펌프는
+        아래에서 «명시적으로» 취소해야 한다(그 자리가 취소의 정본이다).
+        ⚠️ 예외를 삼키는 이유는 종료 이벤트 전송과 같다 — 배수 실패가 기록을 막지 않는다.
+        """
+        if self._pump is None or self._pump.done():
+            return
+        with contextlib.suppress(Exception):
+            await asyncio.wait_for(asyncio.shield(self._pump), _FINAL_USAGE_DRAIN_SECONDS)
 
     async def _record_usage_or_continue(self) -> None:
         """이 세션이 쓴 토큰을 적는다. 실패하면 로그만 남기고 종료를 계속한다 (`TASK-124`).
