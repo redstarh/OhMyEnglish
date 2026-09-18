@@ -2597,3 +2597,52 @@ async def test_close_records_the_final_usage_that_arrives_after_termination():
     assert len(recorded) == 1
     assert (recorded[0].input_tokens, recorded[0].output_tokens) == (759, 270)
     assert recorded[0].output_speech_tokens == 250
+
+
+# --- `TASK-215` — 기록의 정본은 «펌프의 finally» 이고 close() 는 백스톱이다 -------------
+
+
+async def test_스트림이_소진되면_close_없이도_사용량이_적힌다():
+    """⛔ **`close()` 가 오지 못하는 갈래에서 비용이 사라지던 것을 닫는다** (`TASK-215`).
+
+    이전 판은 기록이 `close()` 안에만 있었다. 그래서 스트림이 스스로 끝난 뒤 `close()` 가 오지
+    못하면(세션 종료 절차가 예외로 빠짐 · 프로세스가 죽음) 그 세션의 비용이 **표에서 통째로
+    사라졌고**, 그 비용은 복원할 수 없다(`services/usage.py`). 지금은 「스트림이 소진됐다」를 아는
+    자리(`_pump_output` 의 `finally`)가 적으므로 그 갈래가 닫힌다.
+
+    ⚠️ **판별력의 핵은 `close()` 를 부르지 «않는» 것이다** — 부르면 백스톱이 덮어 이전 판에서도
+    통과하므로 이 단정이 아무것도 재지 못한다. 그래서 `events()` 가 소진되는 것으로만 기다린다
+    (펌프가 sink 를 부른 **뒤에** 큐를 닫으므로 소진이 곧 기록 완료다).
+    """
+    stream = _FakeStream({"event": {"usageEvent": _USAGE_EVENT_BODY}})
+    recorded: list[TokenUsage] = []
+
+    async def sink(usage: TokenUsage, **_: object) -> None:
+        recorded.append(usage)
+
+    adapter = _adapter(stream, usage_sink=sink)
+    await adapter.start()
+    await _collect(adapter)
+
+    assert len(recorded) == 1
+    assert recorded[0].input_tokens == 172
+
+
+async def test_펌프가_적은_뒤_close_는_다시_적지_않는다():
+    """⛔ **부르는 자리가 둘이 됐으므로 「많아야 한 번」을 여기서 못 박는다** (`TASK-215`).
+
+    `_usage_recorded` 가 없으면 정상 세션마다 `llm_calls` 에 **행이 둘** 생기고 비용 집계가
+    두 배가 된다. ⚠️ `_closed` 로는 막지 못한다 — 그 값은 `close()` 의 재진입만 막는다.
+    """
+    stream = _FakeStream({"event": {"usageEvent": _USAGE_EVENT_BODY}})
+    recorded: list[TokenUsage] = []
+
+    async def sink(usage: TokenUsage, **_: object) -> None:
+        recorded.append(usage)
+
+    adapter = _adapter(stream, usage_sink=sink)
+    await adapter.start()
+    await _collect(adapter)
+    await adapter.close()
+
+    assert len(recorded) == 1

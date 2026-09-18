@@ -38,7 +38,12 @@ from app.audio_gateway.factory import (
     create_voice_adapter,
 )
 from app.audio_gateway.fixtures import FIXTURE_TURNS, TONE_WAV_FRAME
-from app.audio_gateway.nova import SYSTEM_PROMPT, NovaVoiceAdapter
+from app.audio_gateway.nova import (
+    _FINAL_USAGE_DRAIN_SECONDS,
+    CLOSE_TIMEOUT_SECONDS,
+    SYSTEM_PROMPT,
+    NovaVoiceAdapter,
+)
 from app.audio_gateway.port import (
     AdapterEvent,
     InterruptionEvent,
@@ -1618,6 +1623,26 @@ def test_gateway_core_does_not_import_the_stub(module: ModuleType):
 def test_gateway_core_does_not_import_the_nova_adapter(module: ModuleType):
     assert all("nova" not in name.lower() for name in _imported_names(module))
     assert "NovaVoiceAdapter" not in inspect.getsource(module)
+
+
+# ⑤ 종료 예산 — 셋의 합을 한 자리에만 적었으므로 그 한 자리가 낡지 않게 한다 (`TASK-215`)
+
+
+def test_session_close_budget():
+    """⛔ **`_close_and_record` 의 docstring 이 적은 합을 이 단정이 지킨다** (`TASK-215` · AC3).
+
+    예산 셋이 두 모듈에 흩어져 있어 「종료가 왜 이만큼 걸리나」의 답이 어디에도 없었다. 답을 그
+    docstring 한 자리에 적었고, **값을 문서에 복제한 대가**를 여기서 갚는다 — 셋 가운데 하나를
+    바꾸면 이 단정이 깨져 그 자리를 함께 고치게 된다.
+    ⚠️ **개별 값을 단정하지 않는다** — 그러면 이 테스트가 상수 선언을 그대로 베낀 것이 되어
+    아무것도 재지 못한다. 재는 것은 **합**이고, 합만이 docstring 이 주장하는 값이다.
+    """
+    budget = DRAIN_TIMEOUT + _FINAL_USAGE_DRAIN_SECONDS + CLOSE_TIMEOUT_SECONDS
+
+    assert budget == 8.0, (
+        f"종료 예산의 합이 {budget} 로 바뀌었다 — "
+        "`session._close_and_record` docstring 의 표와 합을 함께 고쳐라"
+    )
 
 
 # --- Fix round 3 (N-4): Nova 신호를 담기 위한 포트 확장 ---

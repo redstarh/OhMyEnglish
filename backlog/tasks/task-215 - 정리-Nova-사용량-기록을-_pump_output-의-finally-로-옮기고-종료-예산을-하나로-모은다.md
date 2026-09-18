@@ -1,9 +1,10 @@
 ---
 id: TASK-215
 title: '정리: Nova 사용량 기록을 _pump_output 의 finally 로 옮기고 종료 예산을 하나로 모은다'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-18 07:50'
+updated_date: '2026-09-18 19:06'
 labels: []
 dependencies: []
 ordinal: 276000
@@ -17,7 +18,7 @@ ordinal: 276000
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 기록을 _pump_output 의 finally 로 옮기고 close() 는 멱등 백스톱으로 둔다
-- [ ] #2 _FINAL_USAGE_DRAIN_SECONDS 를 없애거나 그대로 둘 근거를 적는다
-- [ ] #3 종료 예산 셋 가운데 무엇이 종료 시간을 소유하는지 한 자리에 적는다
+- [x] #1 기록을 _pump_output 의 finally 로 옮기고 close() 는 멱등 백스톱으로 둔다
+- [x] #2 _FINAL_USAGE_DRAIN_SECONDS 를 없애거나 그대로 둘 근거를 적는다
+- [x] #3 종료 예산 셋 가운데 무엇이 종료 시간을 소유하는지 한 자리에 적는다
 <!-- AC:END -->

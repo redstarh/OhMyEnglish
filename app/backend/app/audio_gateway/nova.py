@@ -102,6 +102,15 @@ _INFERENCE_CONFIGURATION = {"maxTokens": 1024, "topP": 0.9, "temperature": 0.7}
 # 종료 이벤트를 보낸 뒤 마지막 `usageEvent` 를 기다리는 상한 (`TASK-204`).
 # ⚠️ **설정값으로 올리지 않았다** — 노브를 늘리는 대신 상수로 둔다(Simplicity First). 이 값이
 # 실제로 모자란 것이 관측되면 그때 설정으로 올린다.
+#
+# ⛔ **남겨 둔 근거** (`TASK-215` · AC2): 이 값은 이제 **적히는 값의 정확성에서 빠졌다.** 기록이
+# `_pump_output` 의 `finally` 로 옮겨졌으므로, 2초가 모자라도 펌프는 스트림이 실제로 끝나는
+# 순간 «마지막» 사용량을 적는다 — 만료가 이른 snapshot 을 만들지 않는다.
+# 그래도 지우지 않는 이유는 둘이다: ⑴ 이 배수가 없으면 `close()` 가 곧바로 펌프를 **취소**하므로
+# 정본 경로가 통째로 사라지고 백스톱만 남는다(그때는 다시 이른 snapshot 이다) ⑵ 기록이 세션 종료
+# «전에» 끝나야 종료 시각과 비용 행의 순서가 뒤집히지 않는다.
+# ⇒ 즉 역할이 **「값의 정확성」에서 「정본 경로를 살려 두는 대기」로** 바뀌었다.
+# 종료 시간 전체를 누가 소유하는지는 `audio_gateway/session.py` 의 `_close_and_record` 가 적는다.
 _FINAL_USAGE_DRAIN_SECONDS = 2.0
 
 _SPECULATIVE_STAGE = "SPECULATIVE"
@@ -1122,6 +1131,10 @@ class NovaVoiceAdapter:
         # `TASK-124`(결정 68) — 주입한다. 이 어댑터가 DB 를 알면 스트림 대역만으로 도는 단위
         # 테스트가 DB 를 요구한다(`BedrockClaudeClient` 와 같은 이음새·같은 근거).
         self._usage_sink = usage_sink
+        # `TASK-215` — 사용량을 적는 자리가 둘이 됐으므로(펌프의 `finally` 와 `close()` 의 백스톱)
+        # 「한 번만」을 이 플래그가 소유한다. ⛔ **`_closed` 로는 못 한다** — 그것은 `close()` 가
+        # 두 번 불리는 것을 막는 값이고, 펌프가 자기 `finally` 에서 적었는지는 모른다.
+        self._usage_recorded = False
 
     # --- 포트 구현 ---
 
@@ -1173,14 +1186,17 @@ class NovaVoiceAdapter:
             return
         self._closed = True
         self._audio_open = False
-        # `TASK-124` — 세션이 쓴 토큰을 여기서 **한 번** 적는다.
-        # `_closed` 가 위에서 이미 서 있으므로 두 번 적히지 않는다.
+        # `TASK-124` — 세션이 쓴 토큰을 **한 번** 적는다.
         # ⛔ **기록은 `finally` 에 있다**: 아래 종료 절차가 예외로 빠지면(이미 끊긴 스트림 ·
         # 펌프 취소) 기록을 건너뛰게 되고 그 세션의 비용이 표에서 통째로 사라진다.
         # 그 보장은 `TASK-124` 가 세운 것이고 그대로 지킨다.
         # ⛔ **그러나 「먼저 적고 나중에 끝낸다」로는 적을 수 없다** (`TASK-204` 실측): 마지막
         # `usageEvent` 는 종료 이벤트를 보낸 **뒤에** 오고 코치가 말한 사용량이 거기에만 있다.
-        # 그래서 순서를 「종료 → 배수 → 기록」으로 바꿨다.
+        # 그래서 순서가 「종료 → 배수 → 기록」이다.
+        # ⛔ **여기는 이제 백스톱이다** (`TASK-215`) — 정본은 `_pump_output` 의 `finally` 이고, 이
+        # 호출은 **펌프가 취소됐거나 아예 뜨지 못한** 갈래(`start()` 실패 · `_stream` 없음)만
+        # 덮는다. 멱등은 `_usage_recorded` 가 소유한다(`_closed` 가 아니다 — 펌프가 적었는지는
+        # 그 값이 모른다).
         try:
             if self._stream is not None:
                 for payload in self._termination_events():
@@ -1242,12 +1258,21 @@ class NovaVoiceAdapter:
     async def _record_usage_or_continue(self) -> None:
         """이 세션이 쓴 토큰을 적는다. 실패하면 로그만 남기고 종료를 계속한다 (`TASK-124`).
 
+        ⛔ **부르는 자리가 둘이고 적히는 것은 한 번이다** (`TASK-215`): 정본은 `_pump_output` 의
+        `finally`(스트림이 소진된 «뒤» 라 마지막 `usageEvent` 가 이미 반영돼 있다)이고, `close()`
+        쪽은 펌프가 취소됐거나 아예 뜨지 못한 갈래를 덮는 **멱등 백스톱**이다.
+        ⛔ **플래그를 sink 를 «부르기 전에» 세운다** — 배수가 만료되는 순간 펌프의 기록이 비행
+        중일 수 있고, 뒤에 세우면 백스톱이 그 사이에 끼어들어 **행이 둘** 적힌다.
+        ⚠️ 그 대가로 sink 가 예외를 내면 재시도하지 않는다 — 「많아야 한 번」이 이 함수의 불변이고
+        실패의 관측 수단은 아래 `logger.exception` 이다(중복 행보다 로그가 낫다).
+
         ⚠️ **`usageEvent` 를 한 번도 못 받은 세션은 적지 않는다** — 0 을 적으면 「토큰을 쓰지 않은
         세션」을 발명한다. 그 대신 `warning` 으로 남긴다: 세션은 있는데 기록이 없다는 사실 자체가
         관측 대상이다(스트림이 초기화 전에 끊긴 경우가 그 모양이다).
         """
-        if self._usage_sink is None:
+        if self._usage_recorded or self._usage_sink is None:
             return
+        self._usage_recorded = True
         usage = self._translator.last_usage
         if usage is None:
             logger.warning("Nova 세션이 usageEvent 없이 끝났다 — 토큰을 적지 않는다")
@@ -1266,8 +1291,17 @@ class NovaVoiceAdapter:
     # --- 내부 ---
 
     async def _pump_output(self) -> None:
-        """출력 이벤트를 큐로 옮긴다. 스트림이 끝나거나 상한에 닿으면 반환한다."""
+        """출력 이벤트를 큐로 옮긴다. 스트림이 끝나거나 상한에 닿으면 반환한다.
+
+        ⛔ **사용량 기록의 정본이 이 함수의 `finally` 다** (`TASK-215`). 「스트림이 소진됐다」를
+        아는 자리가 여기뿐이고 이미 `put_nowait(None)` 로 그것을 쓴다 — 마지막 `usageEvent` 가
+        종료 이벤트 «뒤에» 온다는 실측(`TASK-204`)을 그 순서가 그냥 만족시킨다. 반대로 `close()`
+        에서만 적으면 배수 상한이 «값의 정확성»을 정하게 되고, 2초가 모자란 세션은 이른 snapshot 을
+        적는다.
+        """
         stream = self._stream
+        # 취소된 태스크 안에서 sink 를 `await` 하지 않기 위한 표식 — 아래 `finally` 가 읽는다.
+        cancelled = False
         try:
             if stream is None:
                 return
@@ -1299,6 +1333,10 @@ class NovaVoiceAdapter:
                 # ⚠️ 결정 109 의 요구(결과가 없으면 그 턴이 조용해진다)는 그대로 살아 있다 —
                 # 게이트웨이가 `finally` 로 보고하고, 보고 없이 스트림이 끝나면 아래에서 경고한다.
         except asyncio.CancelledError:
+            # ⛔ **취소된 갈래에서는 기록을 «시도하지 않는다»** (`TASK-215`) — 취소된 태스크 안에서
+            # `await` 하면 `CancelledError` 가 다시 실려 sink 호출이 반쯤 끊긴다. 그 갈래는
+            # `close()` 의 백스톱이 덮고, 그쪽은 취소되지 않은 문맥이라 온전히 적을 수 있다.
+            cancelled = True
             raise
         except Exception:
             logger.exception("Nova 출력 스트림이 예외로 끝났다 — 세션을 닫는다")
@@ -1311,6 +1349,10 @@ class NovaVoiceAdapter:
                     "실행 보고를 못 받은 제어 tool 이 남았다 — %s",
                     sorted(self._awaiting_outcome.values()),
                 )
+            # ⛔ **큐를 닫기 «전에» 적는다** (`TASK-215`) — `None` 이 들어가면 `events()` 가 끝나고
+            # 세션 러너가 종료 절차로 넘어간다. 뒤에 두면 기록이 그 절차와 경쟁한다.
+            if not cancelled:
+                await self._record_usage_or_continue()
             self._queue.put_nowait(None)
 
     def _translate_chunk(self, chunk: Any) -> list[AdapterEvent]:
