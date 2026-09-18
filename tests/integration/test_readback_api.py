@@ -20,8 +20,11 @@
 
 from __future__ import annotations
 
+import ast
+import inspect
 from collections.abc import AsyncIterator
 from pathlib import Path
+from types import ModuleType
 from uuid import UUID, uuid4
 
 import asyncpg
@@ -32,7 +35,9 @@ from conftest import pin_settings_env
 
 from app.api import results as results_module
 from app.audio_gateway.fixtures import FIXTURE_TURNS
+from app.audio_gateway.port import Transcriber
 from app.audio_gateway.stub import StubVoiceAdapter
+from app.audio_gateway.transcribe import transcribe_readback
 from app.config import get_settings
 from app.services.recordings import recording_path
 
@@ -40,6 +45,21 @@ FRAMES = b"\x7f\x00" * 320
 # 스텁 어댑터가 학습자 발화로 내는 문장들 — 클립의 글을 이것과 같게 두면 판정이 전부 맞음이 된다.
 # ⚠️ **셋을 이어 붙인다** — 전사는 조용해질 때까지 «모으므로»(`TASK-210`) 첫 답만이 아니다.
 STUB_READBACK = " ".join(answer for _, answer in FIXTURE_TURNS)
+
+
+def _stub_transcriber() -> Transcriber:
+    """스텁 어댑터를 **실물 구동부로** 흘리는 전사기 (`TASK-214`).
+
+    ⛔ **전사문을 곧바로 돌려주는 대역으로 바꾸지 않는다** — 그러면 프레임 흘리기·침묵·조용함
+    판정이 통째로 빠지고 이 파일이 「전사기가 무엇이든 200」만 재게 된다. `TASK-214` 전의 대역은
+    `create_voice_adapter` 자리에 걸려 `transcribe_readback` 을 그대로 탔으므로 **그 성질을
+    유지하는 것이 회귀 없음의 조건이다.**
+    """
+
+    async def transcribe(pcm: bytes) -> str:
+        return await transcribe_readback(pcm, make_adapter=StubVoiceAdapter)
+
+    return transcribe
 
 
 @pytest_asyncio.fixture
@@ -57,13 +77,18 @@ async def audio_root(
 
 @pytest.fixture
 def transcriber_band(monkeypatch: pytest.MonkeyPatch) -> None:
-    """설정이 `nova` 인 동안 어댑터 **대역**만 스텁으로 바꾼다 (`TASK-213`).
+    """설정이 `nova` 인 동안 전사기 **대역**만 스텁 어댑터로 바꾼다 (`TASK-213` · `TASK-214`).
 
     ⛔ **대역 없이 `nova` 를 두면 라우터가 실물 스트림을 연다** — 테스트가 AWS 를 부른다.
     ⚠️ 팩토리의 분기 자체는 `tests/integration/test_gateway.py` 가 잰다. 여기서 재는 것은 라우터다.
+    ⚠️ **대역을 «전사기» 자리에 건다** (`TASK-214`) — 라우터가 아는 것이 `Transcriber` 하나뿐이라
+    어댑터 자리에 걸 대역이 이 층에 더는 없다. 실물 구동부는 `transcribe_readback` 이 그대로 타므로
+    스텁 어댑터를 흘려보내는 경로는 이전과 같다.
     """
     monkeypatch.setattr(
-        results_module, "create_voice_adapter", lambda *_args, **_kwargs: StubVoiceAdapter()
+        results_module,
+        "create_transcriber",
+        lambda *_args, **_kwargs: _stub_transcriber(),
     )
 
 
@@ -276,20 +301,16 @@ async def test_판정_라우터가_어댑터에_사용량_sink_를_넘긴다(
     2026-09-18 `/simplify` 의 고도 각도가 그것을 지적했다.
     ⛔ **대역이 `usage_sink` 에 기본값을 두지 않는다** — 두면 라우터가 넘기지 않아도 조용히
     통과한다.
+    ⚠️ **재는 자리가 `create_transcriber` 로 옮겨졌다** (`TASK-214`) — 라우터가 직접 부르는 것이
+    그쪽이고, sink 를 어댑터까지 옮기는 책임은 팩토리가 가진다(`test_gateway.py` 가 그것을 잰다).
     """
     seen: dict[str, object] = {}
 
-    def spy(
-        settings: object,
-        *,
-        questions: object,
-        scenario: object,
-        usage_sink: object,
-    ) -> StubVoiceAdapter:
+    def spy(settings: object, *, usage_sink: object) -> Transcriber:
         seen["usage_sink"] = usage_sink
-        return StubVoiceAdapter()
+        return _stub_transcriber()
 
-    monkeypatch.setattr(results_module, "create_voice_adapter", spy)
+    monkeypatch.setattr(results_module, "create_transcriber", spy)
     async with db_pool.acquire() as conn:
         utterance_id = await _stored_recording(conn, audio_root, committed_session.session_id)
 
@@ -297,3 +318,39 @@ async def test_판정_라우터가_어댑터에_사용량_sink_를_넘긴다(
 
     assert response.status_code == 200
     assert seen["usage_sink"] is not None
+
+
+# ── import 그래프 — HTTP 층은 대화형 어댑터를 모른다 (`TASK-214` · 결정 131) ─────
+
+
+def _imported_names(module: ModuleType) -> list[str]:
+    """관용구는 `tests/integration/test_gateway.py` §④ 와 같다 — 그쪽이 먼저 쓴 형태다.
+
+    ⚠️ **소스 텍스트를 읽는 방식이라 런타임 뮤테이션으로는 재지 못한다** — 판별력을 확인할 때는
+    변이를 `import` 문 자체로 준다(그쪽 주석이 그 요령을 가진다).
+    """
+    tree = ast.parse(inspect.getsource(module))
+    names: list[str] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            names.extend(alias.name for alias in node.names)
+        elif isinstance(node, ast.ImportFrom):
+            names.append(node.module or "")
+            names.extend(alias.name for alias in node.names)
+    return names
+
+
+def test_판정_라우터가_대화형_어댑터를_import_하지_않는다() -> None:
+    """⛔ **결정 131 의 경계를 문서가 아니라 검사가 지킨다** (`TASK-214`).
+
+    이 단정이 없으면 다음 사람이 라우터에서 `create_voice_adapter` 를 다시 불러도 아무것도 깨지지
+    않고, 그러면 *"배치 STT 로 옮기면 전사 함수 하나만 갈면 된다"* 가 조용히 거짓이 된다 — 고칠
+    자리가 구현·서비스·라우터 셋으로 돌아간다.
+
+    ⚠️ **이름을 대소문자 접어 금지한다** — 막고 싶은 것이 `VoiceAdapter`(포트)와
+    `create_voice_adapter`(팩토리) 둘이고 표기가 갈린다. 라우터가 받아야 하는 것은 `Transcriber`
+    하나이며, 어느 구현이 붙는지는 팩토리가 안다(G3).
+    """
+    names = [name.lower() for name in _imported_names(results_module)]
+    assert all("voice_adapter" not in name for name in names), names
+    assert all("voiceadapter" not in name for name in names), names

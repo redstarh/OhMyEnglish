@@ -17,8 +17,9 @@ from app.audio_gateway.nova import (
     build_pronunciation_prompt,
     build_system_prompt,
 )
-from app.audio_gateway.port import VoiceAdapter
+from app.audio_gateway.port import Transcriber, VoiceAdapter
 from app.audio_gateway.stub import StubVoiceAdapter
+from app.audio_gateway.transcribe import transcribe_readback
 from app.config import Settings
 from app.models.plan import PlanQuestion, SessionInstruction
 from app.models.scenario import SessionScenario
@@ -46,6 +47,30 @@ def transcriber_available(settings: Settings) -> bool:
     `start()` 에서 예외로 난다(그 갈래는 500 이라 「못 알아들었다」와 섞이지 않는다).
     """
     return settings.voice_adapter == NOVA_ADAPTER
+
+
+def create_transcriber(settings: Settings, *, usage_sink: UsageSink | None) -> Transcriber:
+    """낭독 전사기를 만든다 — 어느 구현이 전사하는지 아는 자리는 여기뿐이다 (`TASK-214` · G3).
+
+    ⛔ **HTTP 층이 대화형 어댑터를 모르게 하는 것이 이 함수의 존재 이유다.** 이전에는 라우터가
+    `create_voice_adapter` 를 직접 싸서 `Callable[[], VoiceAdapter]` 를 서비스에 넘겼고, 그러면
+    결정 131 의 *"전사 함수 하나만 갈면 된다"* 가 라우터까지 번진다 — 배치 STT 로 옮길 때 고칠
+    자리가 셋(구현·서비스·라우터)이 되므로 그 약속이 약속이 아니게 된다.
+    ⛔ **`usage_sink` 에 기본값을 두지 않는다** — 두면 호출부가 빠뜨려도 조용히 통과해 Nova 토큰
+    기록이 꺼진다(`create_voice_adapter` 가 같은 판단을 가진다). 낭독 전사도 Nova 호출이다.
+    ⚠️ **대화 재료를 빈 값으로 못 박는 자리도 여기다.** 낭독 전사에는 계획·무대·질문이 필요 없고,
+    그래도 `nova` 구현이 지시문을 요구하므로 그 빈 값을 팩토리가 고정한다 — 라우터가 고르면
+    「무엇을 실을지」가 HTTP 층의 판단이 된다.
+    ⚠️ 낭독에 **전용 프롬프트**를 쓰는 것은 `TASK-217` 이 가진다 — 여기서 앞질러 바꾸지 않는다.
+    """
+
+    def make_adapter() -> VoiceAdapter:
+        return create_voice_adapter(settings, questions=(), scenario=None, usage_sink=usage_sink)
+
+    async def transcribe(pcm: bytes) -> str:
+        return await transcribe_readback(pcm, make_adapter=make_adapter)
+
+    return transcribe
 
 
 def create_voice_adapter(

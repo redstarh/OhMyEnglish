@@ -1,9 +1,10 @@
 ---
 id: TASK-214
 title: '정리: 좁은 Transcriber 포트를 도입해 결정 131 의 경계 약속을 실제로 만든다'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-18 07:50'
+updated_date: '2026-09-18 18:58'
 labels: []
 dependencies: []
 ordinal: 275000
@@ -17,7 +18,7 @@ ordinal: 275000
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Transcriber 포트를 두고 judge_readback 이 그것을 받는다
-- [ ] #2 results.py 가 VoiceAdapter 를 import 하지 않는다
-- [ ] #3 기존 테스트가 그대로 통과한다
+- [x] #1 Transcriber 포트를 두고 judge_readback 이 그것을 받는다
+- [x] #2 results.py 가 VoiceAdapter 를 import 하지 않는다
+- [x] #3 기존 테스트가 그대로 통과한다
 <!-- AC:END -->

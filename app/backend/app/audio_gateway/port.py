@@ -42,7 +42,7 @@ agent 텍스트의 **예고/확정 구분**(`generationStage`가 `SPECULATIVE`�
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Awaitable, Callable
 from typing import Literal, Protocol
 
 import pydantic
@@ -184,3 +184,22 @@ class VoiceAdapter(Protocol):
     async def close(self) -> None:
         """자원을 정리한다. 여러 번 불려도 안전해야 한다."""
         ...
+
+
+# ── 낭독 전사 포트 (`TASK-214` · 결정 131) ─────────────────────────────────────
+
+# 「PCM 을 주면 학습자가 읽은 글이 온다」 — 낭독 판정이 아는 음성 계약은 이것뿐이다.
+#
+# ⛔ **`VoiceAdapter` 와 일부러 갈랐다.** 결정 131 은 「배치 STT 로 옮기면 전사 함수 하나만 갈면
+# 된다」를 경계로 약속했는데, 판정이 `Callable[[], VoiceAdapter]` 를 받으면 그 약속이 지켜지지
+# 않는다 — 대화형 포트의 다섯 메서드(연결·프레임 밀어넣기·이벤트 스트림·명령 결과 보고·닫기)가
+# 판정 쪽 계약에 그대로 실려 HTTP 층까지 샌다. 배치 STT 는 그 다섯 가운데 어느 것도 갖지 않으므로,
+# 갈아끼울 자리가 **이 별칭 하나**여야 경계가 약속대로 선다.
+# ⚠️ **어긋남 하나가 이 갈림으로 사라진다** — 낭독 경로는 `report_command_outcome` 을 부를 일이
+# 없는데 대화형 포트를 받으면 그것을 이행한 어댑터를 요구하게 된다.
+# ⛔ **침묵·조용함·프레임 크기·어댑터 수명은 구현이 소유한다**(`audio_gateway/transcribe.py`).
+# 그 넷은 「어떻게 전사하는가」이고 이 포트는 「무엇을 돌려주는가」만 말한다 — 넷을 여기 실으면
+# 배치 STT 로 갈 때 뜻 없는 인자가 남는다.
+# ⚠️ **전사를 얻지 못한 것은 빈 문자열이다**(예외가 아니다). 호출자는 그때 판정을 만들지 않고
+# 학습자가 다시 눌러 볼 수 있게 둔다 — `services/readback.judge_readback` 이 그 판단을 가진다.
+Transcriber = Callable[[bytes], Awaitable[str]]

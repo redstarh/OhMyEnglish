@@ -32,7 +32,7 @@ from uuid import UUID
 import asyncpg
 from fastapi import APIRouter, HTTPException, Request, Response
 
-from app.audio_gateway.factory import create_voice_adapter, transcriber_available
+from app.audio_gateway.factory import create_transcriber, transcriber_available
 from app.config import get_settings
 from app.models.user import FIXED_USER_ID
 from app.services.readback import judge_readback
@@ -201,6 +201,10 @@ async def judge_recording_readback(
     ⛔ **전사기가 없으면 503 이다** (`TASK-213`) — 「쓸 수 없다」와 「못 알아들었다」는 학습자에게
     다른 일이다. 뒤쪽은 다시 읽고 눌러 볼 일이지만 앞쪽은 몇 번 눌러도 달라지지 않는다
     (`api/vocab.py` 가 같은 판단을 가진다).
+
+    ⛔ **여기는 대화형 어댑터를 모른다** (`TASK-214` · 결정 131). 팩토리에서 `Transcriber` 하나를
+    받아 서비스에 넘기고, 「어떻게 전사하는가」는 `audio_gateway/transcribe.py` 가 소유한다 —
+    배치 STT 로 옮길 때 이 라우터가 그대로 남는 것이 그 결정이 약속한 경계다.
     """
     settings = get_settings()
     # ⛔ **픽스처 어댑터로는 판정하지 않는다** — 스텁은 학습자 문장을 발명하고, 전사가 있으면 다시
@@ -213,17 +217,16 @@ async def judge_recording_readback(
         raise HTTPException(status_code=503, detail="낭독 판정을 쓸 수 없다")
     pool: asyncpg.Pool = request.app.state.db_pool
     # ⛔ **연결을 잡은 채 Nova 스트림을 타지 않는다** (`TASK-212`) — 서비스가 풀을 받아 DB 작업
-    # 구간에만 연결을 쥔다. 전사는 최대 `_TIMEOUT_S` 초이고 그 안에서 `pool_usage_sink` 가 연결을
-    # 또 잡으므로, 한 판정이 기본 풀(10)의 두 자리를 30초 넘게 묶을 수 있었다.
+    # 구간에만 연결을 쥔다. 전사 상한은 `audio_gateway/transcribe._TIMEOUT_S` 가 소유하고(30초) 그
+    # 안에서 `pool_usage_sink` 가 연결을 또 잡으므로, 한 판정이 기본 풀(10)의 두 자리를 30초 넘게
+    # 묶을 수 있었다.
     # ⚠️ 모델을 부르는 이웃 라우터(`api/vocab.py`)는 그 구간에 연결을 아예 잡지 않는다.
     judgment = await judge_readback(
         pool,
         settings.shadowing_audio_root,
         session_id,
         utterance_id,
-        make_adapter=lambda: create_voice_adapter(
-            settings, questions=(), scenario=None, usage_sink=pool_usage_sink(pool)
-        ),
+        transcribe=create_transcriber(settings, usage_sink=pool_usage_sink(pool)),
     )
     if judgment is None:
         raise HTTPException(status_code=404, detail="readback not found")

@@ -1,4 +1,4 @@
-"""`services/readback.transcribe_readback` — 낭독 녹음의 PCM 에서 전사문만 얻는다 (`TASK-206`).
+"""낭독 녹음의 PCM 에서 전사문만 얻는다 — `audio_gateway/transcribe` (`TASK-206`).
 
 설계: `docs/design/2026-09-18-read-aloud-judgment-design.md` §4-2.
 
@@ -20,7 +20,7 @@ from collections.abc import AsyncIterator
 from app.audio_gateway.fixtures import FIXTURE_TURNS
 from app.audio_gateway.port import AdapterEvent, TranscriptEvent
 from app.audio_gateway.stub import StubVoiceAdapter
-from app.services.readback import transcribe_readback
+from app.audio_gateway.transcribe import transcribe_readback
 
 _PCM = b"\x00\x01" * 8000  # 16kHz·16bit 기준 1초
 
