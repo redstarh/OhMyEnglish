@@ -30,7 +30,6 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-import contextlib
 import json
 import sys
 from pathlib import Path
@@ -43,7 +42,12 @@ sys.path.insert(0, str(HARNESS.parent.parent / "app" / "backend"))
 from app.config import get_settings  # noqa: E402
 from app.db import close_pool  # noqa: E402
 from app.db import pool as get_db_pool  # noqa: E402
-from app.services.recordings import recording_dir  # noqa: E402
+from app.services.recordings import (  # noqa: E402
+    PURGE_LIMIT_PER_CYCLE,
+    recording_dir,
+    remove_orphan_recordings_in,
+    remove_recording_dir_if_empty,
+)
 
 
 def resolve_session_id(args: argparse.Namespace) -> UUID:
@@ -67,18 +71,32 @@ def _remove_recordings(session_id: UUID) -> int:
     고아 파일 스윕이 있지만(`recordings.sweep_orphan_recording_files`) **워커가 꺼진 개발 환경에서는
     돌지 않으므로** 회차가 자기 파일을 직접 걷어야 한다.
     ⛔ **세션 디렉터리만 지운다** — 뿌리를 지우면 남의 회차 파일까지 없어진다.
+
+    ⛔ **삭제 규칙을 여기서 다시 구현하지 않는다** (`TASK-216`). 이전 판은 디렉터리의 **모든**
+    파일을 지웠고 그것은 앱의 정책과 달랐다 — 앱은 *"이름 규칙에 맞지 않는 파일은 지우지 않고
+    남긴다"* 로 되돌릴 수 없는 삭제를 막는다(`services/recordings` 가 그 절충의 근거를 가진다).
+    규칙이 두 벌이면 한쪽만 고쳐져 조용히 갈라지므로 **그 함수를 그대로 쓴다.**
+    ⚠️ **동작이 바뀌었다 — 삭제 범위가 좁아졌다.** 우리가 만든 `.pcm`·`.pcm.part` 만 지우고 그
+    밖의 파일은 남는다. 그러면 디렉터리도 남고, **그 남은 디렉터리가 조사의 신호다.**
+
+    ⛔ **살아 있는 포인터를 빈 집합으로 준다** — 호출 시점에 발화 행이 **이미 지워져 있으므로**
+    (위 순서 주석) 그 세션의 우리 파일은 전부 고아다. ⚠️ 순서가 뒤집히면 이 빈 집합이 거짓이
+    되는 것이 아니라 **그 세션의 살아 있는 녹음까지 지운다** — 순서가 계약인 이유가 하나 늘었다.
+    ⚠️ **한 번 부르는 것으로 끝내지 않는다** — 그 함수는 사이클 상한(`PURGE_LIMIT_PER_CYCLE`)에서
+    멈추고 남은 것을 다음 호출에 넘긴다(멱등). 회차가 원하는 것은 **그 세션의 전량**이므로 상한에
+    닿는 동안 이어 부르고 개수를 더한다.
     """
     settings = get_settings()
     directory = recording_dir(settings.shadowing_audio_root, session_id)
-    if not directory.exists():
+    if not directory.is_dir():
         return 0
     removed = 0
-    for path in sorted(directory.iterdir()):
-        if path.is_file():
-            path.unlink()
-            removed += 1
-    with contextlib.suppress(OSError):
-        directory.rmdir()
+    while True:
+        batch = remove_orphan_recordings_in(directory, set(), limit=PURGE_LIMIT_PER_CYCLE)
+        removed += batch
+        if batch < PURGE_LIMIT_PER_CYCLE:
+            break
+    remove_recording_dir_if_empty(directory)
     return removed
 
 

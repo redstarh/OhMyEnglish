@@ -554,15 +554,23 @@ async def sweep_orphan_recording_files(
         if status == "active":
             continue
         live = {row["id"] for row in await conn.fetch(_SELECT_LIVE_RECORDING_IDS_SQL, session_id)}
-        removed += _remove_orphans_in(session_dir, live, limit=limit - removed)
-        _remove_dir_if_empty(session_dir)
+        removed += remove_orphan_recordings_in(session_dir, live, limit=limit - removed)
+        remove_recording_dir_if_empty(session_dir)
     if removed:
         logger.info("포인터 없는 쉐도잉 녹음 파일 %d건을 지웠다 (2다리)", removed)
     return removed
 
 
-def _remove_orphans_in(session_dir: Path, live: set[UUID], *, limit: int) -> int:
-    """한 세션 디렉터리에서 고아를 지운다. `.part` 는 언제나 고아다(미완성 쓰기)."""
+def remove_orphan_recordings_in(session_dir: Path, live: set[UUID], *, limit: int) -> int:
+    """한 세션 디렉터리에서 고아를 지운다. `.part` 는 언제나 고아다(미완성 쓰기).
+
+    ⛔ **삭제 규칙의 정본이 이 함수다** (`TASK-216`). 공개인 이유는 **세션 하나만** 걷는 호출자가
+    있기 때문이다 — 회차 teardown(`tests/harness/teardown_session.py`)이 그렇다. 위
+    `sweep_orphan_recording_files` 는 뿌리 전체를 순회하므로 세션 단위 개수를 잃는다.
+    ⚠️ **그 호출자가 규칙을 다시 구현하고 있었고 정책이 갈라져 있었다** — 하네스는 디렉터리의
+    **모든** 파일을 지웠고, 그래서 이름 규칙 밖의 파일도 조용히 사라졌다(되돌릴 수 없다).
+    ⇒ 규칙을 고칠 자리를 하나로 두는 것이 이 함수가 공개인 값이다.
+    """
     removed = 0
     for path in sorted(session_dir.iterdir()):
         if removed >= limit:
@@ -593,8 +601,13 @@ def _remove_orphans_in(session_dir: Path, live: set[UUID], *, limit: int) -> int
     return removed
 
 
-def _remove_dir_if_empty(session_dir: Path) -> None:
-    """빈 세션 디렉터리를 걷는다. 비어 있지 않으면 그대로 둔다 — 실패를 올리지 않는다."""
+def remove_recording_dir_if_empty(session_dir: Path) -> None:
+    """빈 세션 디렉터리를 걷는다. 비어 있지 않으면 그대로 둔다 — 실패를 올리지 않는다.
+
+    ⚠️ **남는 디렉터리가 조사의 신호다** — 이름 규칙 밖의 파일이 있으면 지워지지 않고 남으므로,
+    「비어 있지 않아 남았다」가 곧 「우리 것이 아닌 파일이 거기 있다」다
+    (`sweep_orphan_recording_files` 의 docstring 이 그 절충의 근거를 가진다).
+    """
     try:
         session_dir.rmdir()
     except OSError:
