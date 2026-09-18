@@ -47,10 +47,10 @@
 
 | # | 지표 | 값 |
 |--:|---|---|
-| 1 | 기준 커밋 | **`597066b`** · 작업트리 clean · `origin` 과 **0/0**. ⛔ 이 handoff 의 마감 커밋이 그 뒤에 오므로 **차이가 handoff 뿐이면 정상**임 |
-| 2 | 다음 한 걸음 | **`TASK-221`** — 녹음 규격 상수를 `app/models` 로 옮겨 팩토리의 의존 방향 불변식을 되돌림(품질 리뷰의 LOW 하나를 별 작업으로 뺀 것) |
-| 3 | 게이트 | **여덟 다 통과** — `pytest` **1399 passed** · `ruff` 0 · `ruff format` **304 files** · `ty` 0 · `tsc` 0 · `eslint` 0(경고 1건은 기준선) · `next build` 0(`/` 가 `○` Static 유지) |
-| 4 | 착수 전 필수 | 전체 **281** · 완료 **280** · 열린 것 **하나**(`TASK-221`) · `In Progress` **0건** · 미충족 AC **3건** · 의존 **0건** |
+| 1 | 기준 커밋 | **`b0ca77c`** · 작업트리 clean · `origin` 과 **0/0**. ⛔ 이 handoff 의 마감 커밋이 그 뒤에 오므로 **차이가 handoff 뿐이면 정상**임 |
+| 2 | 다음 한 걸음 | **원장이 비었음** — 열린 태스크 0건. 사용자에게 다음 방향을 받아야 함 |
+| 3 | 게이트 | **여덟 다 통과** — `pytest` **1400 passed** · `ruff` 0 · `ruff format` **305 files** · `ty` 0 · `tsc` 0 · `eslint` 0(경고 1건은 기준선) · `next build` 0(`/` 가 `○` Static 유지) |
+| 4 | 착수 전 필수 | 전체 **281** · 완료 **281** · 열린 것 **0건** · `In Progress` **0건** · 미충족 AC **0건** · 의존 **0건** |
 
 ```bash
 cd ~/MyProject/OhMyEnglish
@@ -86,8 +86,10 @@ cd app/frontend && npx tsc --noEmit && npx eslint . && npx next build
 
 ⚠️ 넘긴 것 하나: `_user_finals` 를 `asyncio.timeout().reschedule()` 로 바꾸는 MEDIUM. 리포에 그
 관용구가 **0 곳**이고 `wait_for` 가 10 곳이며, 실물 계측으로 정한 타이밍 코드라 거래가 나쁨.
-⚠️ 별 작업으로 뺀 것: **`TASK-221`** — `transcribe.py` 가 `app.services` 를 import 해 팩토리의 의존
-방향 불변식이 전이로 깨진 것(상수를 `app/models/` 로 옮기는 일).
+⚠️ 별 작업으로 뺐던 **`TASK-221`** 도 이어서 닫았음 — 녹음 규격 상수를 `app/models/recording.py` 로
+옮겨 의존 방향을 되돌렸음. 계측: 팩토리를 import 할 때 올라오던 `app.services` 다섯과 `asyncpg` 가
+**0개·안 올라옴**으로 돌아왔음. ⛔ 그 불변식은 **AST 단정으로 지킬 수 없음**(위반이 전이였고 직접
+import 는 0건이었음) ⇒ 별 인터프리터에서 `sys.modules` 를 읽는 단정을 신설했음.
 
 ## ③ 이 세션이 배운 것 — 다음 세션이 반복하지 않을 것
 
