@@ -130,6 +130,17 @@ update utterances
  where id = any($1::uuid[])
 """
 
+# 이 세션에서 지금까지 읽은 낭독 회차 (`TASK-186` · 결정 129 ③).
+#
+# ⛔ **`audio_url` 을 조건에 넣지 않는다.** 그것은 「접근 가능한가」이고 회차는 「몇 번 읽었나」다.
+# 만료 스윕이 포인터를 지우면 읽은 사실까지 사라져 진행도가 **되돌아간다.**
+_COUNT_RECORDING_TURNS_SQL = """
+select count(*)
+  from utterances
+ where session_id = $1
+   and utterance_type = 'shadowing_recording'
+"""
+
 # 세션이 고른 클립. **join 0행이 「클립 없음」의 유일한 표현이다** — 세션 부재·`shadowing_item_id`
 # null·클립 행 부재가 전부 여기로 수렴한다(`load_session_scenario` 와 같은 규약).
 _SELECT_SESSION_CLIP_SQL = """
@@ -385,6 +396,17 @@ async def load_recording(
     if not path.is_file():
         return None
     return path.read_bytes()
+
+
+async def count_recording_turns(conn: asyncpg.Connection, session_id: UUID) -> int:
+    """이 세션에서 지금까지 읽은 낭독 회차 (`TASK-186` · 결정 129 ③).
+
+    **정본이 발화 수인 것이 이 함수의 값이다** — 화면이 세면 새로 고침·재접속에 잃지만 발화는 DB 에
+    있으므로 어느 시점에 다시 물어도 같은 값이 나온다.
+
+    ⚠️ **턴을 닫는 트랜잭션 «안에서» 부르면 방금 만든 발화가 포함된다** — 그래서 첫 턴이 `1` 이다.
+    """
+    return await conn.fetchval(_COUNT_RECORDING_TURNS_SQL, session_id)
 
 
 def _resolve_now(now: datetime | None) -> datetime:

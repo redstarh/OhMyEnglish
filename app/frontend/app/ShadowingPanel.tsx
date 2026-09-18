@@ -35,6 +35,20 @@ const RECORD_END_LABEL = "읽기 끝";
 const RECORDING_NOTICE = "듣고 있어요. 문장을 읽고 「읽기 끝」을 누르면 다시 들을 수 있어요.";
 const PLAY_RECORDING_LABEL = "내 낭독 듣기";
 
+/**
+ * 낭독 진행도 문구 (`TASK-187` · 결정 129 ④).
+ *
+ * ⛔ **목표가 1이면 부르지 않는다** — 「1번 중 1번」은 뜻이 없고, 기본값이 1이라 설정을 올리지 않은
+ * 사용자의 화면이 바뀌지 않아야 한다(설정이 생기는 것만으로 동작이 달라지지 않는다는 결정 6 의 규율).
+ * ⚠️ **도달했다고 무엇이 열리지는 않는다** — 그래서 문구는 「다 읽었다」까지만 말하고 다음 단계를
+ * 암시하지 않는다(`TASK-128.4` 가 잡은 「없는 기능의 안내가 거짓이 된다」와 같은 규율).
+ */
+function readProgressNotice(readTurns: number, target: number): string {
+  return readTurns >= target
+    ? `${target}번 다 읽었어요`
+    : `${target}번 중 ${readTurns}번 읽었어요`;
+}
+
 /** 지금 나는 소리가 어느 것인가. ⛔ **한 값으로 두는 것이 「둘이 겹치지 않는다」를 구조로 만든다.** */
 type Playing = "clip" | "recording";
 
@@ -46,6 +60,7 @@ const BUTTON_STYLE = { padding: "0.5rem 1rem" };
 export function ShadowingPanel({
   setup,
   recordingUrl,
+  readTurns = 0,
   onRecordingStart,
   onRecordingEnd,
 }: {
@@ -57,6 +72,13 @@ export function ShadowingPanel({
    * 「읽기 끝을 눌렀으니 저장됐다」로 추론하면 저장이 실패한 턴에 404 를 받는 버튼이 뜬다.
    */
   recordingUrl?: string | null;
+  /**
+   * 지금까지 읽은 낭독 회차 (`TASK-187` · 결정 129 ③). 서버가 준 값이고 **화면이 세지 않는다.**
+   *
+   * ⚠️ 목표는 `setup.repeat_count` 다 — 한 값이 「클립을 몇 번 들려주는가」와 「몇 번 읽게 하는가」를
+   * 겸한다(결정 129 ②). 목표가 1이면 진행도를 **보이지 않는다**(결정 129 ④).
+   */
+  readTurns?: number;
   /** 낭독 턴을 연다 — 서버가 이 신호부터 오디오를 Nova 가 아니라 파일로 보낸다(설계서 §4.5). */
   onRecordingStart?: () => void;
   /** 낭독 턴을 닫는다. ⛔ 열어 둔 채 떠나면 **세션 전체가 녹음된다**(§12 요구 4). */
@@ -218,6 +240,14 @@ export function ShadowingPanel({
       {recording ? (
         <p role="status" style={{ color: "var(--foreground-muted)", marginBottom: 0 }}>
           {RECORDING_NOTICE}
+        </p>
+      ) : null}
+      {/* ⛔ **목표가 2 이상일 때만 보인다** (결정 129 ④) — 기본값 1 에서는 「1번 중 1번」이 뜻이 없고,
+          설정을 올리지 않은 사용자의 화면이 바뀌지 않아야 한다. 녹음 중에는 위 안내가 이미 말하고
+          있으므로 겹쳐 두지 않는다. */}
+      {setup.repeat_count > 1 && !recording ? (
+        <p role="status" style={{ color: "var(--foreground-muted)", marginBottom: 0 }}>
+          {readProgressNotice(readTurns, setup.repeat_count)}
         </p>
       ) : null}
     </section>

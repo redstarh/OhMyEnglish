@@ -203,6 +203,9 @@ export default function SessionPage() {
   // 「읽기 끝」을 누른 것으로 추론하면 저장이 실패한 턴에도 404 를 받는 버튼이 뜬다.
   // ⚠️ 주소 조립이 여기 있는 이유: 세션 id 를 아는 것이 이 화면이고 패널은 클립만 안다.
   const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
+  // 지금까지 읽은 낭독 회차 (`TASK-187` · 결정 129 ③). ⛔ **여기서 세지 않고 서버가 준 값을 담는다** —
+  // 정본이 발화 수이므로 재접속·새로 고침에도 같은 값이 온다.
+  const [readTurns, setReadTurns] = useState(0);
   // 음성 명령으로 열리는 주간 리포트 패널 (`TASK-61.6` · 결정 107). 화면을 옮기지 않는 이유는
   // `WeeklyReportPanel` 의 머리말이 갖는다 — 이동하면 소켓이 닫혀 세션이 끝난다.
   const [reportOpen, setReportOpen] = useState(false);
@@ -230,6 +233,8 @@ export default function SessionPage() {
     // ⛔ 낭독 주소도 함께 버린다 — 녹음은 학습자의 당일이 지나면 지워지므로(§6.4) 세션을 넘겨
     // 살려 두면 화면이 언젠가 404 를 받는 버튼을 들고 있게 된다.
     setRecordingUrl(null);
+    // 회차도 되돌린다 — 세션마다 다시 센다(정본은 세션별 발화 수다).
+    setReadTurns(0);
     const voice = voiceRef.current;
     voiceRef.current = null;
     void voice?.close();
@@ -351,6 +356,7 @@ export default function SessionPage() {
           setRecordingUrl(
             `${API_BASE}/api/sessions/${sessionIdRef.current}/recordings/${event.utterance_id}`,
           );
+          setReadTurns(event.turn_index);
           break;
         case "session_failed":
           if (terminalHandledRef.current) return;
@@ -717,6 +723,7 @@ export default function SessionPage() {
             <ShadowingPanel
               setup={shadowing}
               recordingUrl={recordingUrl}
+              readTurns={readTurns}
               onRecordingStart={startShadowingTurn}
               onRecordingEnd={endShadowingTurn}
             />

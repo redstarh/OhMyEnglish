@@ -438,7 +438,48 @@ async def test_a_closed_shadowing_turn_announces_the_recording(
             committed_session.session_id,
         )
     announced = [event for event in client.sent if event["type"] == "shadowing_recording"]
-    assert announced == [{"type": "shadowing_recording", "utterance_id": str(utterance_id)}]
+    assert announced == [
+        {"type": "shadowing_recording", "utterance_id": str(utterance_id), "turn_index": 1}
+    ]
+
+
+async def test_repeated_shadowing_turns_are_numbered_in_order(
+    db_pool, committed_session, tmp_path: Path
+):
+    """회차를 **서버가** 센다 (`TASK-186` · 결정 129 ③).
+
+    ⛔ **정본은 `shadowing_recording` 발화 수다** — 화면이 세면 새로 고침·재접속에 잃는다. 발화 수는
+    DB 에 있으므로 어느 시점에 다시 물어도 같은 값이 나온다.
+
+    ⚠️ **목표 횟수는 이 프레임에 싣지 않는다** — 화면이 `session_started` 의 `repeat_count` 로 이미
+    가졌다. 세션 주소를 싣지 않은 것과 같은 규약이다.
+    """
+    encoded = base64.b64encode(b"\x55\x66" * 160).decode()
+    client = FakeClient(
+        {"type": "shadowing_turn_start"},
+        {"type": "audio", "data": encoded},
+        {"type": "shadowing_turn_end"},
+        {"type": "shadowing_turn_start"},
+        {"type": "audio", "data": encoded},
+        {"type": "shadowing_turn_end"},
+        None,
+    )
+
+    await asyncio.wait_for(
+        _runner(
+            StubVoiceAdapter(),
+            db_pool,
+            committed_session.session_id,
+            client,
+            shadowing=_shadowing_turns(tmp_path, repeat_count=3),
+        ).run(),
+        timeout=5.0,
+    )
+
+    numbered = [
+        event["turn_index"] for event in client.sent if event["type"] == "shadowing_recording"
+    ]
+    assert numbered == [1, 2]
 
 
 async def test_shadowing_frames_do_not_reach_the_voice_adapter(

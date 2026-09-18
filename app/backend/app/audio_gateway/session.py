@@ -55,7 +55,12 @@ from app.services.pronunciation import (
     record_attempt,
     resolve_dangling,
 )
-from app.services.recordings import ShadowingTurns, finalize_recording, pending_recording_path
+from app.services.recordings import (
+    ShadowingTurns,
+    count_recording_turns,
+    finalize_recording,
+    pending_recording_path,
+)
 from app.services.sessions import SessionEndStatus, end_session, set_session_paused
 from app.services.utterances import flush_pending_analysis, save_final_transcript
 
@@ -840,13 +845,23 @@ class SessionRunner:
                     turn_id=turn.turn_id,
                     utterance_id=utterance.id,
                 )
+                # 회차는 **같은 트랜잭션 안에서** 센다 (`TASK-186`) — 방금 만든 발화가 포함되어야
+                # 첫 턴이 `1` 이다. ⚠️ 목표 횟수는 싣지 않는다: 화면이 `session_started` 의
+                # `repeat_count` 로 이미 가졌다(세션 주소와 같은 규약).
+                turn_index = await count_recording_turns(conn, self._session_id)
         except Exception:
             logger.exception("낭독 녹음 저장에 실패했다 (세션 %s)", self._session_id)
             return
         # ⛔ **저장이 끝난 뒤에만 주소를 알린다** (`TASK-181` · 결정 128 ③). 실패한 녹음의 주소를
         # 주면 화면이 404 를 받는 재생 버튼을 보인다. 세션 주소는 싣지 않는다 — 화면이
         # `session_started` 에서 이미 받았다.
-        await self._send({"type": "shadowing_recording", "utterance_id": str(utterance.id)})
+        await self._send(
+            {
+                "type": "shadowing_recording",
+                "utterance_id": str(utterance.id),
+                "turn_index": turn_index,
+            }
+        )
 
     def _abandon_open_recording_turn(self) -> None:
         """세션이 낭독 턴을 열어 둔 채 끝났다 — **핸들만 닫고 `.part` 는 남긴다.**

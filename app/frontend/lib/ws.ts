@@ -168,8 +168,12 @@ export type ServerEvent =
    * ⚠️ **세션 주소는 실려 오지 않는다** — `session_started` 에서 이미 받았다. 소리를 받으려면
    * `/api/sessions/{session_id}/recordings/{utterance_id}` 를 부른다(`ShadowingSetup.has_audio` 가
    * 파일명을 싣지 않는 것과 같은 규약: 경로 조립은 화면이 하고 정본은 서버의 라우터다).
+   *
+   * `turn_index` 는 **이 세션에서 지금까지 읽은 회차**다 (`TASK-186` · 결정 129 ③). 1부터 센다.
+   * ⛔ **화면이 스스로 세지 않는다** — 정본이 서버의 발화 수라 새로 고침·재접속에도 값이 유지된다.
+   * ⚠️ **목표 횟수는 여기 없다** — `ShadowingSetup.repeat_count` 가 그것이고 화면이 이미 가졌다.
    */
-  | { type: "shadowing_recording"; utterance_id: string }
+  | { type: "shadowing_recording"; utterance_id: string; turn_index: number }
   | { type: "session_failed"; reason: string }
   | { type: "session_ended"; session_id: string };
 
