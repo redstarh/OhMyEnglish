@@ -109,8 +109,7 @@ cd app/frontend && npx tsc --noEmit && npx eslint . && npx next build
 
 ## ⑤ 착수 전 반드시 읽을 것
 
-**결정 128·129·130**(기각한 대안과 되돌리는 조건) · **`TASK-197` 노트**(`/simplify` 네 각도의 처분과
-유지한 근거) · **`bedrock-credentials` skill**(자격증명이 필요할 때 먼저 부름 — 사용자 지시).
+**결정 128·129·130**(기각한 대안·되돌리는 조건) · **`TASK-197` 노트**(`/simplify` 처분과 유지 근거) · **`bedrock-credentials` skill**(자격증명이 필요할 때 먼저 부름).
 
 ## ⑥ 인계 확인 — 후계 `omy-0918-1400` (2026-09-18 14:20 KST)
 
