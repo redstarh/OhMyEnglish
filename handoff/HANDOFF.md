@@ -117,5 +117,4 @@ cd app/frontend && npx tsc --noEmit && npx eslint . && npx next build
 
 ⛔ **`session-wrap` 을 사용자가 직접 불렀고 마감 트리거는 오지 않았음**(쓴 컨텍스트 약 1%) ⇒ 사용자
 판단으로 **후계를 띄우지 않고 이 세션을 유지**했음(skill 6·7단계 미실행). ⚠️ 앞 회차의 인계
-(`TASK-199` → `TASK-200`~`212`)는 성립했고 그때 첫 지시가 `manual mode` 승인 대기에 걸린 함정은
-`session-wrap` skill 이 가짐.
+(`TASK-199` → `TASK-200`~`212`)는 성립했고 첫 지시가 `manual mode` 승인 대기에 걸린 함정은 그 skill 이 가짐.
