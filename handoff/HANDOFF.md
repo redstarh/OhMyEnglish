@@ -114,8 +114,6 @@ cd app/frontend && npx tsc --noEmit && npx eslint . && npx next build
 
 ## ⑥ 인계 확인 — 후계 `omy-0918-1400` (2026-09-18 14:20 KST)
 
-후계가 auto mode 로 13분 이상 `TASK-199` 를 수행 중임(그 태스크를 `In Progress` 로 올리고
-`rules/task-management.md` 영어화 · `TASK-200`·`pitfalls.md` 를 만지는 중) ⇒ **인계 성립.**
-⛔ **첫 지시가 `manual mode` 승인 대기에 걸려 멈췄고** 사용자가 그 창에서 풀었음 — 그 함정을
-`session-wrap` skill 에 적었음. ⚠️ **지표 넷의 개별 값은 스크롤백에서 밀려나 직접 보지 못했음**
-(간접 근거: 대조 명령을 실행하고 「차이」를 보고하지 않음). 추측을 사실로 적지 않으므로 한계를 남김.
+인계 성립 — 후계가 `TASK-199` 를 받아 그 축과 후속 여덟(`TASK-200`~`211`)까지 진행했음.
+⛔ 첫 지시가 `manual mode` 승인 대기에 걸려 멈춘 함정은 `session-wrap` skill 이 가짐.
+⚠️ 그때 지표 넷의 개별 값은 스크롤백에서 밀려나 직접 보지 못했음 — 추측을 사실로 적지 않음.
