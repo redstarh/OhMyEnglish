@@ -28,6 +28,9 @@
 이 파일은 그것을 세우지 않는다 — **호출자의 몫이다**(`browser_leg.md` §8-⑤ 예외).
 
 ⛔ **teardown 은 이 파일이 기록한 세션 ID 로 한다 — 시각창 «단독» 으로 지우지 않는다.**
+그 실행체는 `teardown_session.py` 이고 `--out` 이 쓴 JSON 을 그대로 받는다(`TASK-193`):
+`teardown_session.py --from-observation <그 JSON>`. ⛔ **회차마다 돌린다** — 빠뜨리면 큐에 job 넷이
+남아 나중에 워커가 기동할 때 Bedrock 호출이 난다(`H-CD`).
 관측 JSON 의 `walk.startedSessionId` 가 `session_started` 프레임이 실어 온 값이고 그것이 삭제 대상의
 정본이다. 시각창은 **삭제 뒤 검증용** 으로만 쓴다. 이유: 같은 DB(`:5432` `ohmyenglish`)를 쓰는 다른
 세션이 `pytest` 를 돌리면 그 스위트의 커밋 계열 픽스처가 **커밋된 `learning_sessions` 행을 만들 수

@@ -679,6 +679,11 @@ create table harness_review_task_baseline as
 스냅샷이 `/tmp` 기본값이었고 `restore` 가 죽은 그 회차에서 **회차 디렉터리에 둔 것이 유일한 복원
 근거였다**(`runs/2026-09-10-task82-p5-p6.md` §2-2).
 
+⛔ **드라이버가 세션 ID 를 기록했으면 ①-a·① 을 쓰지 않고 `teardown_session.py` 로 걷는다**(`TASK-193`):
+`teardown_session.py --from-observation <p_app_path.py --out 이 쓴 JSON>`. 시각창은 **남의 행을 잡을 수
+있어서**(같은 DB 에서 `pytest` 를 돌리는 세션이 `learning_sessions` 행을 커밋한다) ID 가 있을 때 쓸
+이유가 없다. 아래 시각창 경로는 **ID 를 기록하지 않은 회차만** 쓰고 §9 의 보존 목록 가드를 함께 건다.
+
 **①-a 세션을 시간창 스윕으로 등록한다** (자동 등록 훅이 없다 — §3):
 
 ```sql
