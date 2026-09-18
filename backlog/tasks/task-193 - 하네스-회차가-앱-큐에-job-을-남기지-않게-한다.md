@@ -4,7 +4,7 @@ title: 하네스 회차가 앱 큐에 job 을 남기지 않게 한다
 status: Done
 assignee: []
 created_date: '2026-09-18 03:56'
-updated_date: '2026-09-18 05:39'
+updated_date: '2026-09-18 07:08'
 labels: []
 dependencies: []
 ordinal: 254000
@@ -71,4 +71,13 @@ TASK-190 조사에서 드러난 구조 문제. 회차가 돌 때마다 analysis_
 
 `ruff` 0 · `ruff format` **297 files** · `ty` 0 · `pytest` **1361 passed** — 넷 다 exit 0.
 프런트는 건드리지 않았으므로 `tsc`·`eslint`·`next build` 는 돌리지 않았음.
+
+## 보강 (2026-09-18 · `TASK-210` 회차가 드러냈음)
+
+**DB 행만 걷으면 디스크의 낭독 PCM 이 고아로 남았음** — 실측에서 `파일 잔여: True` 였음.
+앱의 고아 파일 스윕(`recordings.sweep_orphan_recording_files`)은 워커가 꺼진 개발 환경에서 돌지
+않으므로 회차가 자기 파일을 걷어야 함 ⇒ `teardown_session.py` 에 `_remove_recordings` 를 더해
+**세션 디렉터리만** 지우게 했음(뿌리를 지우면 남의 회차 파일까지 없어짐).
+⛔ 행을 지운 «뒤» 파일을 지움 — 순서가 뒤집히면 「포인터만 있는 상태」가 되고 그것은 앱이 정상으로
+인정하는 상태라 조용함. 확인: `recordings_removed: 1` · 파일·디렉터리 잔여 없음.
 <!-- SECTION:NOTES:END -->

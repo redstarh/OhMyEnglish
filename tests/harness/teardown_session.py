@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import contextlib
 import json
 import sys
 from pathlib import Path
@@ -39,8 +40,10 @@ from uuid import UUID
 HARNESS = Path(__file__).resolve().parent
 sys.path.insert(0, str(HARNESS.parent.parent / "app" / "backend"))
 
+from app.config import get_settings  # noqa: E402
 from app.db import close_pool  # noqa: E402
 from app.db import pool as get_db_pool  # noqa: E402
+from app.services.recordings import recording_dir  # noqa: E402
 
 
 def resolve_session_id(args: argparse.Namespace) -> UUID:
@@ -55,6 +58,28 @@ def resolve_session_id(args: argparse.Namespace) -> UUID:
             " 못했다면 지울 것도 없다. 열었는데 비어 있으면 그 회차의 관측 자체가 실패한 것이다"
         )
     return UUID(raw)
+
+
+def _remove_recordings(session_id: UUID) -> int:
+    """그 세션의 낭독 녹음 파일을 지운다 (2026-09-18 · `TASK-210` 실측으로 드러난 자리).
+
+    ⛔ **DB 만 걷으면 파일이 고아로 남는다.** 실측: 행을 걷은 뒤 `파일 잔여: True` 였다. 앱에는
+    고아 파일 스윕이 있지만(`recordings.sweep_orphan_recording_files`) **워커가 꺼진 개발 환경에서는
+    돌지 않으므로** 회차가 자기 파일을 직접 걷어야 한다.
+    ⛔ **세션 디렉터리만 지운다** — 뿌리를 지우면 남의 회차 파일까지 없어진다.
+    """
+    settings = get_settings()
+    directory = recording_dir(settings.shadowing_audio_root, session_id)
+    if not directory.exists():
+        return 0
+    removed = 0
+    for path in sorted(directory.iterdir()):
+        if path.is_file():
+            path.unlink()
+            removed += 1
+    with contextlib.suppress(OSError):
+        directory.rmdir()
+    return removed
 
 
 async def teardown(session_id: UUID) -> dict[str, Any]:
@@ -93,6 +118,9 @@ async def teardown(session_id: UUID) -> dict[str, Any]:
                     "select count(*) from d",
                     session_id,
                 ),
+                # ⛔ 행을 지운 «뒤» 파일을 지운다 — 순서가 뒤집히면 행이 남은 채 파일만 없어져
+                #    「포인터만 있는 상태」가 되고, 그것은 앱이 정상으로 인정하는 상태라 조용하다.
+                "recordings_removed": _remove_recordings(session_id),
             }
         return report
     finally:

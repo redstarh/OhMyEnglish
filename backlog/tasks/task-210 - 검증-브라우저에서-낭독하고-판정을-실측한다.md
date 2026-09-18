@@ -4,7 +4,7 @@ title: '검증: 브라우저에서 낭독하고 판정을 실측한다'
 status: In Progress
 assignee: []
 created_date: '2026-09-18 05:54'
-updated_date: '2026-09-18 07:03'
+updated_date: '2026-09-18 07:08'
 labels: []
 dependencies:
   - TASK-209
@@ -20,8 +20,8 @@ ordinal: 271000
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [ ] #1 일부러 한 낱말을 빼고 읽어 그 낱말이 빠짐으로 표시되는 것을 본다
-- [ ] #2 두 번째 조회가 전사를 다시 하지 않는 것을 확인한다
-- [ ] #3 회차 뒤 큐가 늘지 않은 것을 확인한다
+- [x] #2 두 번째 조회가 전사를 다시 하지 않는 것을 확인한다
+- [x] #3 회차 뒤 큐가 늘지 않은 것을 확인한다
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -97,4 +97,38 @@ ordinal: 271000
 `.env.local` 재지정·되돌리기(`TASK-183` 이 그 절차를 가짐).
 ⛔ **회차 뒤 `teardown_session.py` 로 세션을 걷음**(`TASK-193`).
 ⚠️ 이 회차는 세션을 만들지 않았으므로 걷을 것이 없음 — 남긴 것은 `llm_calls` 두 행(비용 기록)임.
+
+## 실서버(:8014 · `VOICE_ADAPTER=nova`)에서 AC#2·AC#3 을 닫았음 (2026-09-18)
+
+브라우저 대신 **H-BD 가 적어 둔 우회로**를 썼음 — 마이크가 목적이 아니면 앱 서비스 함수로 상태를
+만들고 HTTP 로 판정만 부름. 세션 하나를 열고 낭독 발화 한 행과 PCM 파일을 두고 엔드포인트를 두 번 불렀음.
+
+| 회차 | 결과 |
+|---|---|
+| 1차 | `HTTP 200` · **2.29초** · 전사 `'alright, so here we are in of the elephants.'` · 낱말 11 · `missing=['front']` |
+| 2차 | `HTTP 200` · **0.00초** · 같은 전사 · 같은 판정 |
+
+- **AC#2 닫힘** — 2.29초 → **0.00초** 가 「다시 전사하지 않았다」의 판별력임. `llm_calls` 의 nova 행도
+  **6 → 7 로 한 번만** 늘었음(둘째 호출은 0건).
+- **AC#3 닫힘** — teardown 뒤 `analysis_jobs` **111 → 111** · 세션 잔여 **0행**.
+- ⛔ 라우터 배선·설정·어댑터 생성이 **실서버에서** 동작함을 확인했음(테스트는 스텁 어댑터와 테스트 DB
+  를 쓰므로 이 겹은 그쪽이 못 봄).
+
+### ⛔ 이 회차가 결함 하나를 찾았음 — teardown 이 파일을 남겼음
+
+`파일 잔여: True` 였음. DB 행은 cascade 로 걷혔지만 **디스크의 낭독 PCM 이 고아로 남았음.**
+앱에는 고아 파일 스윕이 있으나(`recordings.sweep_orphan_recording_files`) **워커가 꺼진 개발
+환경에서는 돌지 않음** ⇒ `teardown_session.py` 가 세션 디렉터리를 함께 걷도록 고쳤음
+(`recordings_removed`). Nova 를 부르지 않는 확인 회차에서 `recordings_removed: 1` ·
+파일·디렉터리 잔여 **없음**을 봤음. 앞 회차가 남긴 고아 디렉터리도 지웠음(`assets/audio` 0개).
+
+### ⛔ 남은 것 하나 — AC#1 의 「화면에 그렇게 보이는 것」
+
+판정이 HTTP 로 옳게 나오는 것은 확인했으나 **화면 렌더는 아직 안 봤음.** 필요한 것 셋은 그대로임:
+⑴ 전용 Chrome(`--remote-debugging-port=9333 --user-data-dir=/tmp/... --use-fake-device-for-media-stream
+--use-fake-ui-for-media-stream --autoplay-policy=no-user-gesture-required` · `H-BD` 의 레시피)
+⑵ **쉐도잉 낭독 흐름 드라이버가 아직 없음** — `p_app_path.py` 의 마이크 대체는 `instrument.js` 의
+`window.__omy` 에 매여 있고 그 드라이버는 «말하기» 세션을 태움. 낭독 흐름(쉐도잉 진입 → 따라 읽기 →
+읽기 끝 → 판정 보기)을 태우는 드라이버를 새로 써야 함 ⑶ `.env.local` 재지정·되돌리기.
+⚠️ 픽스처는 이미 있음 — `/tmp/readback_pad.wav`(`say` + `afconvert` · 끝에 침묵 2초).
 <!-- SECTION:NOTES:END -->
