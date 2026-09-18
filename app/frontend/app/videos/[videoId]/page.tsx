@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { VideoPlayer, type VideoPlayerHandle } from "@/app/VideoPlayer";
 import { fetchVideo, removePhrase, storePhrase, type VideoDetail } from "@/lib/api";
 import { watchUrl } from "@/lib/youtube";
+import { WordLookup } from "./WordLookup";
 
 /**
  * 영상 학습 (`TASK-168` · 스토리보드 S3).
@@ -214,7 +215,10 @@ export default function VideoLearningPage() {
       <ul style={{ listStyle: "none", padding: 0 }}>
         {(detail?.phrases ?? []).map((phrase) => (
           <li key={phrase.id} style={{ marginBottom: "1rem" }}>
-            <p style={{ margin: "0 0 0.25rem" }}>{phrase.transcript}</p>
+            {/* 문장을 낱말 단위로 눌러 뜻을 본다 (`TASK-195` · 결정 130).
+                ⚠️ **조회 상태는 이 컴포넌트 안에 있다** — 위 `useMemo` 의 의존을 늘리지 않으려는
+                것이고, 그 이유는 이 목록이 타이핑마다 다시 만들어지지 않아야 하기 때문이다. */}
+            <WordLookup sentence={phrase.transcript} />
             <p style={{ margin: "0 0 0.25rem" }}>
               {asClock(phrase.clip_start_sec)}~{asClock(phrase.clip_end_sec)}
             </p>

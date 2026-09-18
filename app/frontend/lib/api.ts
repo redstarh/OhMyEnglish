@@ -469,6 +469,24 @@ export async function storeVideo(input: {
   });
 }
 
+/**
+ * 낱말 하나의 뜻을 묻는다 (`TASK-195` · 결정 130).
+ *
+ * ⚠️ **문맥 문장을 함께 보내는 것이 계약이다** — 낱말만 보내면 다의어에서 엉뚱한 뜻이 온다
+ * (`book` 이 「책」인지 「예약하다」인지는 문장이 정한다).
+ * ⛔ **`meaning` 이 `null` 인 것과 호출 실패는 다르다** — 전자는 서버가 200 으로 「뜻을 못 얻었다」고
+ * 말한 것이고 후자는 `ok: false` 다. 화면이 둘을 같은 문구로 말하더라도 이 층에서는 가른다.
+ */
+export async function lookupWord(input: {
+  word: string;
+  sentence: string;
+}): Promise<WriteResult<{ meaning: string | null }>> {
+  return postJson<{ meaning: string | null }>("/api/vocab/lookup", {
+    word: input.word,
+    sentence: input.sentence,
+  });
+}
+
 /** 영상만 지운다. **담은 문장은 남는다**(설계서 §1 질문 1). */
 export async function removeVideo(videoId: string): Promise<WriteResult<void>> {
   return deleteNothing(`/api/videos/${videoId}`);
