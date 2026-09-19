@@ -1,0 +1,92 @@
+{
+  "stop_reason": "drained",
+  "claude_calls": 10,
+  "before": {
+    "jobs": [
+      {
+        "job_type": "analyze_utterance",
+        "status": "pending",
+        "n": 5
+      },
+      {
+        "job_type": "generate_scenario",
+        "status": "pending",
+        "n": 1
+      },
+      {
+        "job_type": "plan_next_session",
+        "status": "pending",
+        "n": 1
+      },
+      {
+        "job_type": "summarize_session",
+        "status": "pending",
+        "n": 1
+      },
+      {
+        "job_type": "summarize_week",
+        "status": "pending",
+        "n": 1
+      }
+    ],
+    "totals": {
+      "llm_calls": 0,
+      "error_patterns": 2,
+      "error_occurrences": 3,
+      "review_tasks": 0,
+      "weekly_reports": 0,
+      "daily_error_summary": 0,
+      "session_plans": 0,
+      "generated_scenarios": 0
+    },
+    "clock": {
+      "utc_now": "2026-09-19 17:20:55.415112+00:00",
+      "utc_date": "2026-09-19",
+      "local_date": "2026-09-20"
+    }
+  },
+  "after": {
+    "jobs": [
+      {
+        "job_type": "analyze_utterance",
+        "status": "done",
+        "n": 6
+      },
+      {
+        "job_type": "generate_scenario",
+        "status": "done",
+        "n": 1
+      },
+      {
+        "job_type": "plan_next_session",
+        "status": "done",
+        "n": 1
+      },
+      {
+        "job_type": "summarize_session",
+        "status": "done",
+        "n": 1
+      },
+      {
+        "job_type": "summarize_week",
+        "status": "done",
+        "n": 1
+      }
+    ],
+    "totals": {
+      "llm_calls": 10,
+      "error_patterns": 8,
+      "error_occurrences": 13,
+      "review_tasks": 9,
+      "weekly_reports": 1,
+      "daily_error_summary": 2,
+      "session_plans": 1,
+      "generated_scenarios": 1
+    },
+    "clock": {
+      "utc_now": "2026-09-19 17:22:19.685846+00:00",
+      "utc_date": "2026-09-19",
+      "local_date": "2026-09-20"
+    }
+  }
+}
