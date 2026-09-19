@@ -1,0 +1,5 @@
+## R3 (발음 전용 모드) 직전 계수기 07:30:47Z
+llm_calls=37
+llm_calls_nova=23
+pronunciation_attempts=7
+learning_sessions=29

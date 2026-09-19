@@ -1,0 +1,338 @@
+{
+ "target_url": "http://localhost:3000/",
+ "home_buttons": [
+  "학습 시작",
+  "자유 대화",
+  "약점 패턴 집중",
+  "질문 답변 5개",
+  "발음 집중",
+  "쉐도잉",
+  "영상으로 배우기",
+  "업무 역할극 (무대를 고르는 화면이 아직 없어요)"
+ ],
+ "mic": {
+  "gumCalls": 0,
+  "played": 0,
+  "durationSec": 14.895,
+  "ctxRate": 16000,
+  "bufferRate": 16000,
+  "fetches": []
+ },
+ "buttons_after_entry": [
+  {
+   "text": "클립 듣기",
+   "disabled": false
+  },
+  {
+   "text": "따라 읽기",
+   "disabled": false
+  },
+  {
+   "text": "학습 종료",
+   "disabled": false
+  }
+ ],
+ "leg1_buttons_after_recording": [
+  {
+   "text": "클립 듣기",
+   "disabled": false
+  },
+  {
+   "text": "따라 읽기",
+   "disabled": false
+  },
+  {
+   "text": "내 낭독 듣기",
+   "disabled": false
+  },
+  {
+   "text": "낭독 판정 보기",
+   "disabled": false
+  },
+  {
+   "text": "학습 종료",
+   "disabled": false
+  }
+ ],
+ "leg1_judge": {
+  "words": [
+   {
+    "text": "I",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "usually",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "wake",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "up",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "at",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "seven.",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "First,",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "I",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "check",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "my",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "phone",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "for",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "messages.",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "Then",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "I",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "make",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "a",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "cup",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "of",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "coffee.",
+    "color": "rgb(255, 138, 138)",
+    "decoration": "line-through"
+   },
+   {
+    "text": "After",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "that,",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "I",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "get",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "ready",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "for",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "work.",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "The",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "bus",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "stop",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "is",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "close",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "to",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "my",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "house.",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "It",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "takes",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "about",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "thirty",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "minutes",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "to",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "get",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "to",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "the",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   },
+   {
+    "text": "office.",
+    "color": "rgb(237, 237, 237)",
+    "decoration": "none"
+   }
+  ],
+  "notices": [
+   "I usually wake up at seven. First, I check my phone for messages. Then I make a cup of coffee. After that, I get ready for work. The bus stop is close to my house. It takes about thirty minutes to get to the office.",
+   "I usually wake up at seven. First, I check my phone for messages. Then I make a cup of coffee. After that, I get ready for work. The bus stop is close to my house. It takes about thirty minutes to get to the office.",
+   "밑줄은 다르게 읽은 낱말이고 취소선은 빠뜨린 낱말이에요."
+  ]
+ },
+ "fetches_after_leg1": [
+  "http://localhost:8002/api/sessions/4ec9240c-5ae2-4c0a-9b8f-12ef498a3e07/recordings/df3aa791-7764-4177-9b5b-541f05b58ce7/readback"
+ ],
+ "leg1_readback_urls": [
+  "http://localhost:8002/api/sessions/4ec9240c-5ae2-4c0a-9b8f-12ef498a3e07/recordings/df3aa791-7764-4177-9b5b-541f05b58ce7/readback"
+ ],
+ "session_id": "4ec9240c-5ae2-4c0a-9b8f-12ef498a3e07",
+ "leg1_utterance_id": "df3aa791-7764-4177-9b5b-541f05b58ce7",
+ "leg2_buttons_after_recording": [
+  {
+   "text": "클립 듣기",
+   "disabled": false
+  },
+  {
+   "text": "따라 읽기",
+   "disabled": false
+  },
+  {
+   "text": "내 낭독 듣기",
+   "disabled": false
+  },
+  {
+   "text": "낭독 판정 보기",
+   "disabled": false
+  },
+  {
+   "text": "학습 종료",
+   "disabled": false
+  }
+ ],
+ "leg2_candidates": [
+  "72983775-c54a-43ef-b485-a68af655c09e"
+ ],
+ "leg2_utterance_id": "72983775-c54a-43ef-b485-a68af655c09e",
+ "leg2_audio_url_nulled": "1",
+ "leg2_judge": {
+  "words": [],
+  "notices": [
+   "I usually wake up at seven. First, I check my phone for messages. Then I make a cup of coffee. After that, I get ready for work. The bus stop is close to my house. It takes about thirty minutes to get to the office.",
+   "지금은 낭독 판정을 쓸 수 없어요."
+  ]
+ },
+ "fetches_after_leg2": [
+  "http://localhost:8002/api/sessions/4ec9240c-5ae2-4c0a-9b8f-12ef498a3e07/recordings/df3aa791-7764-4177-9b5b-541f05b58ce7/readback",
+  "http://localhost:8002/api/sessions/4ec9240c-5ae2-4c0a-9b8f-12ef498a3e07/recordings/72983775-c54a-43ef-b485-a68af655c09e/readback"
+ ],
+ "url_after_end": "http://localhost:3000/results/4ec9240c-5ae2-4c0a-9b8f-12ef498a3e07"
+}

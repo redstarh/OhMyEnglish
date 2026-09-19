@@ -1,0 +1,36 @@
+=== teardown 4ec9240c-5ae2-4c0a-9b8f-12ef498a3e07 ===
+{
+ "session_id": "4ec9240c-5ae2-4c0a-9b8f-12ef498a3e07",
+ "status": "completed",
+ "started_at": "2026-09-19T07:25:22.546534+00:00",
+ "utterances": 2,
+ "utterance_jobs_deleted": 0,
+ "session_jobs_deleted": 3,
+ "session_deleted": 1,
+ "recordings_removed": 2
+}
+⚠️ error_patterns·review_tasks 는 지우지 않았다 — 회차가 «갱신» 한 기존 행이므로 회차 전 스냅샷으로 복원한다(browser_leg.md §8-②).
+=== teardown 8c1a4e8b-35f2-45fc-af97-d12f4a9ca748 ===
+{
+ "session_id": "8c1a4e8b-35f2-45fc-af97-d12f4a9ca748",
+ "status": "completed",
+ "started_at": "2026-09-19T07:27:49.060462+00:00",
+ "utterances": 2,
+ "utterance_jobs_deleted": 1,
+ "session_jobs_deleted": 3,
+ "session_deleted": 1,
+ "recordings_removed": 0
+}
+⚠️ error_patterns·review_tasks 는 지우지 않았다 — 회차가 «갱신» 한 기존 행이므로 회차 전 스냅샷으로 복원한다(browser_leg.md §8-②).
+=== teardown d5497eaf-4e7f-4a8c-89a1-5bcc488c063c ===
+{
+ "session_id": "d5497eaf-4e7f-4a8c-89a1-5bcc488c063c",
+ "status": "completed",
+ "started_at": "2026-09-19T07:30:53.630989+00:00",
+ "utterances": 5,
+ "utterance_jobs_deleted": 1,
+ "session_jobs_deleted": 3,
+ "session_deleted": 1,
+ "recordings_removed": 0
+}
+⚠️ error_patterns·review_tasks 는 지우지 않았다 — 회차가 «갱신» 한 기존 행이므로 회차 전 스냅샷으로 복원한다(browser_leg.md §8-②).

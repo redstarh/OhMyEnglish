@@ -1,0 +1,19 @@
+# B6 회차 착수 시 상태 — 2026-09-19T07:16:50Z
+
+## HEAD
+a34a143fb921fdd019565c74eea0eb894dcf270c
+a34a143
+
+## 계수기 (회차 전)
+llm_calls=34
+llm_calls_nova=20
+analysis_jobs=111
+learning_sessions=27
+utterances=175
+shadowing_recordings=5
+pronunciation_attempts=7
+
+## 테스트 원장 (착수 시)
+  TS-21 - A3 · 음성 세션 왕복 (실물 Nova) — 실제 음성 1회차
+  TS-29 - A11 · 낭독 판정 — recordings 조회와 readback
+  TS-34 - A16 · 발음 코칭 — mode=pronunciation 실시간 판정

@@ -1,0 +1,9 @@
+## 회차가 만든 error_patterns·review_tasks (teardown 전)
+pattern | b7ee162b-65cf-4cb6-bd81-94fe8181b330 | pronunciation_th_as_t | pronunciation_intonation | freq=1 | created=2026-09-19 07:32:21.48743+00 | next_review=2026-09-20 07:32:21.491263+00
+review | 846ca5bc-1fb0-462a-9d3f-077eb3715053 | pattern=b7ee162b-65cf-4cb6-bd81-94fe8181b330 | pending | created=2026-09-19 07:32:21.48743+00
+(위가 비면 회차가 새로 만든 행이 없다)
+
+## pronunciation_attempts FK 삭제 규칙
+pronunciation_attempts_pattern_id_fkey FOREIGN KEY (pattern_id) REFERENCES error_patterns(id) ON DELETE SET NULL
+pronunciation_attempts_session_id_fkey FOREIGN KEY (session_id) REFERENCES learning_sessions(id) ON DELETE CASCADE
+pronunciation_attempts_utterance_id_fkey FOREIGN KEY (utterance_id) REFERENCES utterances(id) ON DELETE SET NULL

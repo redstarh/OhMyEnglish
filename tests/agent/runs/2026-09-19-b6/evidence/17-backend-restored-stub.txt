@@ -1,0 +1,4 @@
+## 회차 끝 백엔드 상태 07:35:16Z
+health: {"status":"ok"}
+listener pid: 92720
+readback 가드(스텁이면 503): 503

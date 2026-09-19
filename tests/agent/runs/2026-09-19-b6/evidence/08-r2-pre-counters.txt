@@ -1,0 +1,4 @@
+## R2 (A3 말하기 세션) 직전 계수기 07:27:48Z
+llm_calls=36
+llm_calls_nova=22
+learning_sessions=28

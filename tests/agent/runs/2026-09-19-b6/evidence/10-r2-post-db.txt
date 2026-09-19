@@ -1,0 +1,21 @@
+## R2 뒤 계수기 07:28:20Z
+llm_calls=37
+llm_calls_nova=23
+learning_sessions=29
+
+## 세션 8c1a4e8b-35f2-45fc-af97-d12f4a9ca748
+status=completed mode=speaking started_via=ui started=2026-09-19 07:27:49.060462+00 ended=2026-09-19 07:28:03.22159+00
+
+## 발화
+1 | user | learning | i usually go to gym after work.
+2 | agent | learning | I see. You usually go to the gym after work. Can you tell me one thing you need at work today?  For example, y
+
+## job
+analyze_utterance | pending
+plan_next_session | pending
+summarize_session | pending
+summarize_week | pending
+
+## 최근 nova llm_calls 2건
+2026-09-19 07:28:03.218418+00 | in=2569(speech 213/text 2356) out=311(speech 234/text 77)
+2026-09-19 07:26:08.437559+00 | in=216(speech 150/text 66) out=0(speech 0/text 0)

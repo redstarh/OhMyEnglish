@@ -1,0 +1,5 @@
+## R1 (낭독 두 갈래) 직전 계수기 07:25:15Z
+llm_calls=34
+llm_calls_nova=20
+analysis_jobs=111
+learning_sessions=27

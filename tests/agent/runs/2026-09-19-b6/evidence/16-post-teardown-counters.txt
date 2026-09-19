@@ -1,0 +1,21 @@
+## teardown 뒤 계수기 07:34:32Z
+llm_calls=38
+llm_calls_nova=24
+analysis_jobs=111
+learning_sessions=27
+utterances=175
+pronunciation_attempts=7
+
+## 남은 회차 산물 (지우기 전)
+pattern pronunciation_th_as_t b7ee162b-65cf-4cb6-bd81-94fe8181b330
+review 846ca5bc-1fb0-462a-9d3f-077eb3715053 pending
+## 회차가 만든 error_patterns·review_tasks 삭제 07:34:44Z
+review_tasks_deleted=1
+error_patterns_deleted=1
+
+## 남은 회차 산물 (삭제 뒤 · 비어야 함)
+0
+0
+
+## 발음 패턴 전수 (회차 전과 같아야 함)
+pronunciation_an_as_a | freq=2

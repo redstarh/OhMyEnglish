@@ -1,0 +1,33 @@
+## R3 뒤 계수기 07:32:38Z
+llm_calls=38
+llm_calls_nova=24
+pronunciation_attempts=8
+learning_sessions=30
+
+## 세션 d5497eaf-4e7f-4a8c-89a1-5bcc488c063c
+status=completed mode=pronunciation started_via=ui started=2026-09-19 07:30:53.630989+00 ended=2026-09-19 07:32:21.48743+00
+
+## 발화
+1 | user | learning | 아이피니시트더리포트엔쉐어드더리절치위드마이팀
+2 | user | learning | i finished the report and shared the results with my team
+3 | agent | learning | I heard you say "i finished the report and shared the results with my team."
+4 | agent | learning | 
+
+Please repeat: I finished the report and shared the results with my team.
+5 | agent | learning |  The sound I need you to focus on is the "th" sound at the beginning of words like "the" and "this."
+
+## pronunciation_attempts (이 세션)
+seq=24 | outcome=incorrect | signal=nova_tool | sound=th_as_t | sound_check=matched | target=I finished the report and shared the results with my team. | spoken=- | pattern=b7ee162b-65cf-4cb6-bd81-94fe8181b330 | resolved=2026-09-19 07:32:21.491263+00
+
+## 이 세션의 korean_transcript·agent_reprompt 신호
+0
+
+## job
+analyze_utterance | pending
+plan_next_session | pending
+summarize_session | pending
+summarize_week | pending
+
+## 최근 nova llm_calls 2건
+2026-09-19 07:32:21.483349+00 | in=1142 out=847
+2026-09-19 07:28:03.218418+00 | in=2569 out=311

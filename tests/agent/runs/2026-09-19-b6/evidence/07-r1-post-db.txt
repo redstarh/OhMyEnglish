@@ -1,0 +1,27 @@
+## R1 회차 뒤 계수기 07:26:44Z
+llm_calls=36
+llm_calls_nova=22
+analysis_jobs=114
+learning_sessions=28
+
+## 새 llm_calls 행 (회차 전 34건 이후)
+
+## 세션 4ec9240c-5ae2-4c0a-9b8f-12ef498a3e07
+status=completed mode=shadowing started_via=ui started=2026-09-19 07:25:22.546534+00 ended=2026-09-19 07:26:08.439753+00
+
+## 그 세션의 발화
+shadowing_recording | speaker=user | audio_url=true | readback=i usually wake up at seven. first, i check my phone for mess | df3aa791-7764-4177-9b5b-541f05b58ce7
+shadowing_recording | speaker=user | audio_url=false | readback=<null> | 72983775-c54a-43ef-b485-a68af655c09e
+
+## 그 세션의 job
+plan_next_session | pending | -
+summarize_session | pending | -
+summarize_week | pending | -
+
+## pronunciation_attempts (세션)
+0
+## 최근 llm_calls 4건 (R1 뒤)
+2026-09-19 07:26:08.437559+00 | bedrock | amazon.nova-2-sonic-v1:0 | nova | in=216(speech 150/text 66) | out=0(speech 0/text 0)
+2026-09-19 07:25:47.643045+00 | bedrock | amazon.nova-2-sonic-v1:0 | nova | in=903(speech 508/text 395) | out=93(speech 23/text 70)
+2026-09-19 05:59:59.068302+00 | bedrock | us.anthropic.claude-opus-5 | vocab | in=199(speech -/text -) | out=83(speech -/text -)
+2026-09-19 05:31:46.10729+00 | bedrock | us.anthropic.claude-opus-5 | vocab | in=197(speech -/text -) | out=15(speech -/text -)

@@ -1,0 +1,1872 @@
+{
+ "scenario": "B6-TS34",
+ "session_id": "d5497eaf-4e7f-4a8c-89a1-5bcc488c063c",
+ "elapsed": 87.888,
+ "junk_sent": 0,
+ "audio_sent": 586,
+ "mode": "pronunciation",
+ "wavs": [
+  "p2k.wav",
+  "p2a.wav"
+ ],
+ "frames": [
+  {
+   "t": 32.728,
+   "type": "session_started",
+   "session_id": "d5497eaf-4e7f-4a8c-89a1-5bcc488c063c"
+  },
+  {
+   "t": 32.728,
+   "type": "speech_start"
+  },
+  {
+   "t": 32.728,
+   "type": "final",
+   "speaker": "user",
+   "text": "아이피니시트더리포트엔쉐어드더리절치위드마이팀",
+   "sequence_no": 1
+  },
+  {
+   "t": 32.728,
+   "type": "speech_end"
+  },
+  {
+   "t": 32.728,
+   "type": "pronunciation"
+  },
+  {
+   "t": 32.728,
+   "type": "speech_start"
+  },
+  {
+   "t": 32.728,
+   "type": "final",
+   "speaker": "user",
+   "text": "i finished the report and shared the results with my team",
+   "sequence_no": 2
+  },
+  {
+   "t": 32.728,
+   "type": "speech_end"
+  },
+  {
+   "t": 32.728,
+   "type": "partial",
+   "speaker": "agent",
+   "text": "I heard you say \"i finished the report and shared the results with my team.\""
+  },
+  {
+   "t": 32.728,
+   "type": "audio",
+   "bytes": 2528,
+   "header": "Ôÿ¿ÿÿÿ"
+  },
+  {
+   "t": 32.728,
+   "type": "audio",
+   "bytes": 2560,
+   "header": ":úzü§\fü\u000b"
+  },
+  {
+   "t": 32.728,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Õý\u001aûlóó"
+  },
+  {
+   "t": 32.729,
+   "type": "audio",
+   "bytes": 2560,
+   "header": " \u000fÒ\u0017\u0015Û\u000b"
+  },
+  {
+   "t": 32.729,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Àùkù©ø~ø"
+  },
+  {
+   "t": 32.729,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0003ñûòêÆå"
+  },
+  {
+   "t": 32.729,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "h\u0000\u0012\u0002Pø²\u0002"
+  },
+  {
+   "t": 32.729,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Mð2îVñó"
+  },
+  {
+   "t": 32.732,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "¢óÊò\u001f÷ïø"
+  },
+  {
+   "t": 32.732,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "fú\rú¯ù¸ø"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "´ÿDþ\u0016\u0001^\u0000"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0001òÁó&òï"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "a\u0005ª\u0003\u0006ü\t"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "âÿ/\u0000ÐÿE\u0000"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "r\u0007/\b\u0005'\u0004"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": ".÷T÷ÏöÈõ"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\"ÿ\u001eÿ ÿ ÿ"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\t\u0000j\u0000\u0000X\u0000"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ùëaìËî\u0017ð"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "[û\u001eýüpú"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0002\u0003\u0001Müâû"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0005óÅòòò"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ê\u0000Ùò¢\tÉ\u0006"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "þàõø\u001f\u0004"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Qÿ£ÿÜÿsÿ"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "n\u001c\u001a¯\u000f\f"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\fÁ\n\u001býÙø"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0005yþ'\u0006Æú"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "±óBõ+ùÌù"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "9\u0004ÿ\u0003_\u00032\u0003"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "g\u0000£ÿ·ÿxþ"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0002\u0004ç\u0003\u0003|\u0003"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0004\u0005ê\u0007í\t"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "-\u0002û\u0002å\u0003\t\u0004"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\\\f:ö¡ú<\u0002"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "*\u0004`\u0007Þ\u0007E\b"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0005\u0003\u0005\u0001\u0005b\u0005"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 6432,
+   "header": "ª\u0000k\u0000ÿXÿ"
+  },
+  {
+   "t": 32.733,
+   "type": "partial",
+   "speaker": "agent",
+   "text": " The sound I need you to focus on is the \"th\" sound at the beginning of words like \"the\" and \"this.\""
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2528,
+   "header": "îÿëÿðÿìÿ"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ÿÿ\u0000\u0000ÿÿþÿ"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0006\u0000\u0004\u0000\t\u0000\t\u0000"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u001d\u0000\u0010\u0000öÿúÿ"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ïÿùÿ\r\u0000øÿ"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u000f\u0000\u000f\u0000\u0001\u0000þÿ"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ÿÿÿÿÿÿÿÿ"
+  },
+  {
+   "t": 32.733,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "êþÜÿÞÿ;û"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "«ýà\u0007û»\u0006"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ðþ4\u0000ãþ\"ø"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0004b\u0005\u0005Á\u0006"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ìøEùÑõöô"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ùêoêÉè[è"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "xùE÷¾ú@ú"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "^\u0002°\u0002Õ\u0003Q\u0004"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "}\u0013\u001e\u0013\u000e:\f"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "¹øX÷i÷`ö"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "]ýtþ\u001f\u0001Yþ"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ýêað\u0006\f"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "5\u0000ôÿ\u0001á\u0001"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "®\u0001k\u0004\u001a\tPû"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0000\u0005ÿ[üü"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "^øø\u000bù\u0001ù"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "a\u0004ï\u0004\u0005Å\u0005"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "¶\u0002\u0002ô\u0000Sÿ"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "=\u0005Q\u0002M\u0006D\u0001"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0003\\\u0002øýêû"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0000o\u0000/\u0000\u001a\u0000"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0000\u0000\u0001\u0000\u0004\u0000\u0002\u0000"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "4ÿ\\ý?\u0001#\u0000"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "»î§ïºð>ñ"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "c\u0013\u00109\nO\u0006"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0018\u0003\u001f\u0001ø»÷"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "1\u0000L\u0000ðÿ\u0003\u0000"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": " \u000bõ÷K\u0000Ì\u0003"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0001%\u0002r\u0001'\u0000"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "¤\u0004Ô\u0004q\u0000cþ"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "V\u0000½þÚûCû"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "õ\u0003­\u0006¿\u000eg\u000f"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ö`÷¬úïû"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0007\b\u0007Ú\t\u0010\u000b"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0004\u0000;\u0000Ð\u0000\f\u0001"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "æòÆò9õìñ"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "güÏù¦÷Bö"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "®ûØúÆõ ô"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "áþkÿWÿ\u0013ÿ"
+  },
+  {
+   "t": 32.734,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Ì\fX\u000eÉ\u000e\u0002\u000e"
+  },
+  {
+   "t": 32.735,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "õ\u0000ý\u0010ôMó"
+  },
+  {
+   "t": 32.735,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ë\u0001Ö\u0000'\u0001d\u0000"
+  },
+  {
+   "t": 32.735,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "²ü ý1ý`ü"
+  },
+  {
+   "t": 32.735,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "$÷¿òH÷<ü"
+  },
+  {
+   "t": 32.735,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\\ÿ`ÿÞÿ\u0001\u0000"
+  },
+  {
+   "t": 32.735,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Ôÿãÿÿðÿ"
+  },
+  {
+   "t": 32.735,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0016\u0001$\u0001\u0000\u0000"
+  },
+  {
+   "t": 32.735,
+   "type": "audio",
+   "bytes": 2560,
+   "header": ")\u0001.ýÿ\u0000Ï\u0000"
+  },
+  {
+   "t": 32.735,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "c÷¦ù\u00014\u0002"
+  },
+  {
+   "t": 32.735,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "k\u0005Ý\b×\rÚ\u000b"
+  },
+  {
+   "t": 32.735,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ðÿïÿòÿ÷ÿ"
+  },
+  {
+   "t": 32.735,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ï\u0007\u0007½\u0003ä\u0001"
+  },
+  {
+   "t": 32.735,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "½ôeôèó»ó"
+  },
+  {
+   "t": 32.735,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0001öôúGý"
+  },
+  {
+   "t": 32.735,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Ä\u0000½\u0001O\u0000Aÿ"
+  },
+  {
+   "t": 32.735,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Ù\u0004úM\u0000n\u0001"
+  },
+  {
+   "t": 32.735,
+   "type": "audio",
+   "bytes": 6432,
+   "header": "\u0002þ\u000bý§\u0001"
+  },
+  {
+   "t": 32.735,
+   "type": "partial",
+   "speaker": "agent",
+   "text": " In English, this \"th\" is voiced, which means your voice box should be vibrating when you make the sound."
+  },
+  {
+   "t": 32.735,
+   "type": "audio",
+   "bytes": 2528,
+   "header": "þÿúÿ\u0001\u0000þÿ"
+  },
+  {
+   "t": 32.735,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "þÿÿÿÿÿþÿ"
+  },
+  {
+   "t": 32.735,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "üÿýÿýÿþÿ"
+  },
+  {
+   "t": 32.735,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0003\u0000þÿúÿúÿ"
+  },
+  {
+   "t": 32.735,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\b\u0000\u0004\u0000ûÿþÿ"
+  },
+  {
+   "t": 32.735,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\r\u0000\r\u0000\u0005\u0000\u0006\u0000"
+  },
+  {
+   "t": 32.735,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0007\u0000\u0007\u0000\u0007\u0000\b\u0000"
+  },
+  {
+   "t": 32.735,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Rènç¿åå"
+  },
+  {
+   "t": 32.735,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "A\u001b\u001f\u001d®'W&"
+  },
+  {
+   "t": 32.735,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "hòÒò§õNö"
+  },
+  {
+   "t": 32.735,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "÷\u0013Ó\u0011\rM\u000b"
+  },
+  {
+   "t": 32.735,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ß\t¯\t5\u0006\u0007\u0007"
+  },
+  {
+   "t": 32.735,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "¤ÿxü\u0003ú\u0003"
+  },
+  {
+   "t": 32.735,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ûÿèÿöÿóÿ"
+  },
+  {
+   "t": 32.735,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "äÿõÿ\n\u0000éÿ"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\b\u0000\u000b\u0000\n\u0000\f\u0000"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "õÿøÿòÿýÿ"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ò÷Ûúú"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0004\u0006\u0017÷Å\u0005ú"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0018þ\u0001Qý»\u0002"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0000\u0000\u0000\u0000\u0001\u0000\u0000\u0000"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "õýbü\u0012\u0001Cÿ"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "hé·ðÌð2ò"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "r\u0006E\u0000®ðqï"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ª\u0005¶\u0006ú\b\u001b\t"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "[ü:÷U\b³\u0000"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Óú\u0013úÜýºý"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "L\u0000ÿ§ÿqÿ"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "[ÿRÿîýîý"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "§è;èÞèxê"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "]\u0007p\u0006ø\u0005ä\u0005"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "«\u0003þ[û\u0003"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "þÿ\u0002\u0000\u0001\u0000\u0001\u0000"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "øÿúÿøÿ÷ÿ"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0001\u0000\u0010\u0000\u0002\u0000íÿ"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0004\u0000\u0001\u0000óÿüÿ"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0002\u0000\u0000\u0000\u0001\u0000\u0001\u0000"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "¬\u0000\u0000Gÿþ"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0001FüGþ\u0000"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ë\tw\bM\u0002·ÿ"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "é\u0014êÑëì"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Ûúëù×õ>õ"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\\û¾ùAû¼ù"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ý\u0000uþìÿ"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "' å\u001c#\u0007Óÿ"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0000òóñéìkð"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "RÿÿÛÿ\r\u0001"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "]\u0010\u0004\u000ex\u0005\u0003"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "±\rè\to\u0000Àÿ"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Lþ¬þC\u0002»\u0002"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "^ÿ þm\u0001ïÿ"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Ô\bn\b4\u0007Ø\u0006"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ñ\u0006t\n*\u0011\u0005\u0015"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "¶þïþSÿ\u001dÿ"
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u001dëuüÜ'Ò("
+  },
+  {
+   "t": 32.739,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ý\u00196\u0016Dûî÷"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0002s\u0002\n\u0002å\u0001"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "{\u0000\u0019\u0004I\fy\f"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "È\u0001\u0016\u0002\r\u0003\u0013\u0003"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "³ø=ùøú\u000fû"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "%\b^\b\u0004\u0006¿\u0004"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "u\u0006-\u0006\u001e\u0004Y\u0003"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ôý4ý4ú\u0019ù"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0019\u0002ÿ\u0003\n\u0005Ö\u0001"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ØÿÜÿ÷ÿýÿ"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u000b\r\u000e2\u000f"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ë\u0004`þÌõ_\n"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "vý¨ü&þ\u001eý"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "vþÿm\u0000%\u0000"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Õÿøÿãÿ\u000f\u0000"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ßÿñÿíÿ\u0007\u0000"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 7712,
+   "header": "ÿÿÿÿÿÿÿÿ"
+  },
+  {
+   "t": 32.74,
+   "type": "partial",
+   "speaker": "agent",
+   "text": " Try saying the sentence again, making sure to really feel that vibration when you say \"the.\""
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2528,
+   "header": "\u0000\u0000\u0001\u0000\u0000\u0000\u0000\u0000"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0000\u0000\u0001\u0000\u0000\u0000\u0000\u0000"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0006\u0000\u000b\u0000ÿÿøÿ"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "'\u0000\u001d\u0000ñÿðÿ"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "2\u0000\u0015\u0000Èÿºÿ"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "#\u0000\u0006\u0000Ýÿåÿ"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0000\u0000\u0000\u0000ÿÿþÿ"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "W\u0001Hû0\u0002ÿ"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ó\tå\u0007t\u0007ª\u0007"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0014\u0014\u0015J\u0019\u0006\u001a"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "N\u0007¤÷ÈüÀ\u0000"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "nþ4ýç\u0003o\n"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0011þÙûbûÏù"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "F\u0010\u0018\u0012\u0014°\u0016"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Óû\u0003\u0004\u0013ü"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u000bD\u000e(\u0016í\u0015"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "w\u0005J\u0005\u0003Ë\u0002"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Fðèñ×ïUî"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "$\u0000\u0007\u0000;\u0000*\u0000"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0005\u0005Å\u0004±\t"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Ìÿmÿ\u001e\u0000Eÿ"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "íò:ò{øôü"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "!\u0001ä\u0001R\u0011Ú\u0017"
+  },
+  {
+   "t": 32.74,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "û\u0006\u0006Î\u0005\u0005"
+  },
+  {
+   "t": 32.741,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\r\u0000\u0004\u0000\u0003\u0000\n\u0000"
+  },
+  {
+   "t": 32.741,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0004\u0000\n\u0000\u0004\u0000\u0007\u0000"
+  },
+  {
+   "t": 32.741,
+   "type": "audio",
+   "bytes": 2560,
+   "header": ":\u00008\u0000;\u0000>\u0000"
+  },
+  {
+   "t": 32.741,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Åö_ý\n#\b"
+  },
+  {
+   "t": 32.741,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Î\u0000ð\u0000þëÿ"
+  },
+  {
+   "t": 32.741,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Ëç\u0003è\u001cíñ"
+  },
+  {
+   "t": 32.741,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "²þ5øû\b\u0000"
+  },
+  {
+   "t": 32.741,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Øöà÷¯\u0000³\u0002"
+  },
+  {
+   "t": 32.741,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ú7ùôúóù"
+  },
+  {
+   "t": 32.741,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "x\u0018H\u0016\u0017\u0011P\u0010"
+  },
+  {
+   "t": 32.741,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ß\u0000¯\u0000úÿÿ"
+  },
+  {
+   "t": 32.741,
+   "type": "audio",
+   "bytes": 2560,
+   "header": ")\u0007¶\u0006\u000b\tå\t"
+  },
+  {
+   "t": 32.741,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "í\u0007T\u0004V\u0010\u0018"
+  },
+  {
+   "t": 32.741,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0011»\u0012¢\u0011ê\u0010"
+  },
+  {
+   "t": 32.741,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "~\u0013»\u000f\u0004\u0004"
+  },
+  {
+   "t": 32.741,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0003{ý9\u0000þ\u0000"
+  },
+  {
+   "t": 32.741,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0019þ\u001d\u0002Dÿ2\u0002"
+  },
+  {
+   "t": 32.741,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "É\u0012D\u000e\b\u0006"
+  },
+  {
+   "t": 32.741,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Ç\r\u000fÍ\u0011\u001d\u0012"
+  },
+  {
+   "t": 32.741,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "å÷«ö~ø²ø"
+  },
+  {
+   "t": 32.741,
+   "type": "audio",
+   "bytes": 2560,
+   "header": ".ûåúú\u0003û"
+  },
+  {
+   "t": 32.741,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u000eþìý\u000fþòý"
+  },
+  {
+   "t": 32.741,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "óðaì¸ôAü"
+  },
+  {
+   "t": 32.741,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "åú\u0003ûtûû"
+  },
+  {
+   "t": 32.741,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "yé\u0014ìÁ÷gû"
+  },
+  {
+   "t": 32.741,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0001Xþé÷÷"
+  },
+  {
+   "t": 32.741,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "@þfýx\u0004\u0018\u0000"
+  },
+  {
+   "t": 32.741,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "K\u0000`\u0000#þ}ý"
+  },
+  {
+   "t": 32.741,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\fÿYÿÿD\u0000"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "N\u0000\u0004\u0001d\u0002\u0002"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Ñ\bw\b\u000b\u0007\u0003\u0006"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "r\u0001Ný[\u00026þ"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "®\u000bÔ\u000b»\nÁ\t"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "O\u0004\u0007\u0003\u0003p\u0004"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ãÿäÿ1\u0000\u0000"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Cü\u001bü©û*û"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "kþøÿ\u0007þþ"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": " \u0000\u0006\u0000íÿ\u0019\u0000"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0006\u0000\u0005\u0000\b\u0000\b\u0000"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0000\u0000\u0000\u0000\u0000\u0000ÿÿ"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "úÿúÿùÿûÿ"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0000\u0000\u0000\u0000\u0001\u0000\u0000\u0000"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 6432,
+   "header": "\u0000\u0000\u0000\u0000\u0001\u0000\u0000\u0000"
+  },
+  {
+   "t": 32.743,
+   "type": "final",
+   "speaker": "agent",
+   "text": "I heard you say \"i finished the report and shared the results with my team.\"",
+   "sequence_no": 3
+  },
+  {
+   "t": 32.743,
+   "type": "partial",
+   "speaker": "agent",
+   "text": "\n\nPlease repeat: I finished the report and shared the results with my team."
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2528,
+   "header": "\u0000\u0000\u0001\u0000\u0000\u0000\u0000\u0000"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ûÿüÿûÿûÿ"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ýÿýÿýÿþÿ"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0001\u0000\u0003\u0000þÿöÿ"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0001\u0000ýÿñÿ\u0003\u0000"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0011\u0000\u0013\u0000ýÿðÿ"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ôÿõÿöÿøÿ"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "þ\u0000ý\u0017\u0001\u0000"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u000f\t{\u0006ÿü\u0001"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "û\u0005\u0002Ø÷Èý"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "#\u0012u\u0012$\u000f\r\n"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0010\u0000\u0014\u0000\u001f\u0000\u001f\u0000"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "%\u0011K\n\tûMõ"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "õ\u0001º\u0000àÿ\u0010\u0000"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "èÿèÿëÿéÿ"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0001\u0000\u0000\u0000üÿ\r\u0000"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "þÿÿÿþÿüÿ"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0003\u0000\u0005\u0000ôÿýÿ"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0000\u0000\u0003\u0000\u0002\u0000\u0002\u0000"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0007\u0000\b\u0000\u0002\u0000\r\u0000"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "º\u000eJ\u000fY\u0005T\u0000"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Ç\u0002ÆþÅþÇ\u0002"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "¯úH\u0000$ÿ\u000e\u0004"
+  },
+  {
+   "t": 32.743,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ê¨ìcöHù"
+  },
+  {
+   "t": 32.744,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Dí@ë\u001bìtï"
+  },
+  {
+   "t": 32.744,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "p\u0003¯ü\t\u0001;\u0000"
+  },
+  {
+   "t": 32.744,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ûû»ý»\u0006û\t"
+  },
+  {
+   "t": 32.744,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\n\u0007Õ\u0005\u0002\u0006"
+  },
+  {
+   "t": 32.744,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "«ÿÜÿl\u0000\u0000"
+  },
+  {
+   "t": 32.744,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "þ\u0000´\u0000Éÿ\u0010ÿ"
+  },
+  {
+   "t": 32.744,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Üéµìø ü"
+  },
+  {
+   "t": 32.744,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "l\u0006a\ng\u0010´\u000e"
+  },
+  {
+   "t": 32.744,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "òÿöÿýÿ\u0001\u0000"
+  },
+  {
+   "t": 32.744,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "Jïbï{îÚí"
+  },
+  {
+   "t": 32.744,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "n\u0003ôýc\u0002>\u0001"
+  },
+  {
+   "t": 32.744,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "¤\u0007ÚùDþþ"
+  },
+  {
+   "t": 32.744,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "aõgõþíbí"
+  },
+  {
+   "t": 32.744,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "2\u0010\u000f<\ná\u0006"
+  },
+  {
+   "t": 32.744,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "t\u0003¤\u0004ö\u0004Ð\u0005"
+  },
+  {
+   "t": 32.744,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "»\bK\u0007§\u0000§þ"
+  },
+  {
+   "t": 32.744,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u000fýXþ¶þ\u0017ü"
+  },
+  {
+   "t": 32.744,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "²ìë\u0019êiê"
+  },
+  {
+   "t": 32.744,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ú¨úPüzý"
+  },
+  {
+   "t": 32.744,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "ë\u0007\u001fõR\u0000\u0000"
+  },
+  {
+   "t": 32.744,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "«ûtû)ùUø"
+  },
+  {
+   "t": 32.744,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\t\u0000\u0004\u0000ýÿùÿ"
+  },
+  {
+   "t": 32.839,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0010\u0000ó\u0002°\u0001Zÿ"
+  },
+  {
+   "t": 32.839,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u001dü(ü^üxü"
+  },
+  {
+   "t": 32.839,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "}\u0003ìú¦ÿ¼\u0000"
+  },
+  {
+   "t": 32.839,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0006\u00039\u0003l\u0002r\u0002"
+  },
+  {
+   "t": 32.839,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "\u0016ÿnÿFÿÿ"
+  },
+  {
+   "t": 32.839,
+   "type": "audio",
+   "bytes": 2560,
+   "header": "'\u0000.\u0000\u0019\u0000.\u0000"
+  },
+  {
+   "t": 32.839,
+   "type": "audio",
+   "bytes": 7712,
+   "header": "ýÿûÿüÿýÿ"
+  },
+  {
+   "t": 32.839,
+   "type": "final",
+   "speaker": "agent",
+   "text": "\n\nPlease repeat: I finished the report and shared the results with my team.",
+   "sequence_no": 4
+  },
+  {
+   "t": 32.839,
+   "type": "final",
+   "speaker": "agent",
+   "text": " The sound I need you to focus on is the \"th\" sound at the beginning of words like \"the\" and \"this.\"",
+   "sequence_no": 5
+  },
+  {
+   "t": 87.887,
+   "type": "session_ended"
+  }
+ ]
+}
