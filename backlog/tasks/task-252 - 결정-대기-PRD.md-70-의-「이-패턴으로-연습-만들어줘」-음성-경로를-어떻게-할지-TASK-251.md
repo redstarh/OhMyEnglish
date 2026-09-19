@@ -1,10 +1,10 @@
 ---
 id: TASK-252
 title: '결정 대기: PRD.md:70 의 「이 패턴으로 연습 만들어줘」 음성 경로를 어떻게 할지 (TASK-251)'
-status: Awaiting Decision
+status: Done
 assignee: []
 created_date: '2026-09-19 12:14'
-updated_date: '2026-09-19 12:15'
+updated_date: '2026-09-19 13:27'
 labels: []
 dependencies: []
 ordinal: 316000
@@ -18,7 +18,7 @@ ordinal: 316000
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 사용자가 두 갈래 가운데 하나를 골랐음
-- [ ] #2 고른 근거가 docs/design 에 결정 기록으로 남았음
-- [ ] #3 고른 갈래대로 PRD 또는 코드가 바뀌었음
+- [x] #1 사용자가 두 갈래 가운데 하나를 골랐음
+- [x] #2 고른 근거가 docs/design 에 결정 기록으로 남았음
+- [x] #3 고른 갈래대로 PRD 또는 코드가 바뀌었음
 <!-- AC:END -->

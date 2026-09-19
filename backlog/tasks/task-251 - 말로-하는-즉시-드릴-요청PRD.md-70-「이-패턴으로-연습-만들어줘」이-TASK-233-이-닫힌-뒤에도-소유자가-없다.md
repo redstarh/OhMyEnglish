@@ -1,9 +1,10 @@
 ---
 id: TASK-251
 title: '말로 하는 즉시 드릴 요청(PRD.md:70 「이 패턴으로 연습 만들어줘」)이 TASK-233 이 닫힌 뒤에도 소유자가 없다'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-19 12:07'
+updated_date: '2026-09-19 13:27'
 labels: []
 dependencies: []
 ordinal: 315000
@@ -17,5 +18,11 @@ ordinal: 315000
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 PRD.md:70 의 두 인용 가운데 「이 패턴으로 연습 만들어줘」가 구현되었거나, PRD 에서 철회되어 요구가 닫혔다
+- [x] #1 PRD.md:70 의 두 인용 가운데 「이 패턴으로 연습 만들어줘」가 구현되었거나, PRD 에서 철회되어 요구가 닫혔다
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+해소됐음 (2026-09-19 · TASK-252 · 사용자 결정). 두 갈래 가운데 ⑴ PRD 에서 그 인용을 철회하는 쪽을 사용자가 골랐음 — 즉시 드릴의 진입은 결과 화면에서 패턴을 골라 누르는 경로 하나로 함. 반영: docs/PRD.md 가 v1.6 으로 개정돼 §7 의 그 줄을 한 줄로 교체하고 §17 이 근거·버린 갈래 둘·수용 기준 넷을 담음. 결정 기록은 docs/design/2026-09-19-decision-voice-pattern-drill-withdrawn.md 임. ⛔ 앱 코드는 한 줄도 바꾸지 않았음. ⚠️ 「질문 더 주세요」는 철회하지 않았음 — 패턴을 지목할 필요가 없고 next_question 으로 이미 동작함. ⚠️ 철회의 셋째 근거가 이 태스크 자체의 이력임 — TASK-7 과 TASK-233 이 차례로 이 요구를 범위 밖으로 갈라 두고 Done 이 되어 소유자를 두 번 잃었음. 살려 두고 미루면 다음 회차가 같은 자리를 다시 조사함.
+<!-- SECTION:NOTES:END -->
