@@ -24,11 +24,11 @@ import json
 from dataclasses import dataclass
 from typing import Any, cast
 
-# ⚠️ private 이름을 가져오는 것이 의도다 — 사용자 결정 86 이 이 함수를 **둘로 유지**하고 동일성을
-# 테스트로 못박기로 했으므로 판을 늘리지 않는다. 복제하면 파서들의 관대함이 갈라지고 한쪽이 조용히
-# 낡는다. ⛔ 공개 API 로 승격하지 않은 이유: `models/plan.py` 가 그 함수의 경계(한 번의
-# 재시도까지)를 docstring 으로 소유하고 있고 옮기면 그 근거가 흩어진다.
-from app.models.plan import _json_candidates
+# ⚠️ JSON 읽기를 복제하지 않고 가져온다 — 복제하면 파서들의 관대함이 갈라지고 한쪽이 조용히
+# 낡는다. 그 경계(한 번의 재시도까지)는 `models/plan.py` 가 docstring 으로 소유한다.
+# ⚠️ 그 함수가 쓰는 `_json_candidates` 는 사용자 결정 86 이 **둘로 유지**하기로 한 자리다 —
+# 판을 늘리지 않는다. 이 파일의 `_loaded` 는 그 함수로 접혔다(`TASK-226`).
+from app.models.plan import loaded_object
 
 # 요구가 약점을 *"1~2개"* 로 지정했다(`nova-sonic-claude-architecture.md` §4.3). 잘한 점에도 같은
 # 상한을 준다 — 길어지면 총평이 아니라 목록이 되고 화면이 결과 요약을 잃는다.
@@ -65,20 +65,6 @@ class SummaryDraft:
 
     went_well: tuple[str, ...]
     weak_points: tuple[WeakPoint, ...]
-
-
-def _loaded(raw: str) -> dict[str, Any]:
-    last_error: json.JSONDecodeError | None = None
-    for candidate in _json_candidates(raw):
-        try:
-            parsed = json.loads(candidate)
-        except json.JSONDecodeError as error:
-            last_error = error
-            continue
-        if not isinstance(parsed, dict):
-            raise SummaryValidationError(f"JSON 최상위가 객체가 아니다: {type(parsed).__name__}")
-        return parsed
-    raise SummaryValidationError(f"JSON 으로 읽을 수 없다: {last_error}")
 
 
 def _reject_unknown(keys: Any, allowed: frozenset[str], where: str) -> None:
@@ -118,7 +104,7 @@ def parse_summary(raw: str, *, max_points: int) -> SummaryDraft:
     ⚠️ `max_points` 를 인자로 받는다 — 이 모듈이 상수를 갖지만 그것을 **읽는 것은 호출자의 일**이다.
     그러지 않으면 테스트가 상한 경계를 주입할 자리가 없어진다.
     """
-    body = _loaded(raw)
+    body = loaded_object(raw, error=SummaryValidationError)
     _reject_unknown(body, _ALLOWED_TOP, "최상위")
 
     went_well = _sentences(body, _WENT_WELL, max_points=max_points)

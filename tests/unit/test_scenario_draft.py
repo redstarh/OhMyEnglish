@@ -126,6 +126,17 @@ def test_rejects_non_json() -> None:
         )
 
 
+def test_rejects_a_json_top_level_that_is_not_an_object() -> None:
+    """⛔ 「JSON 이 아니다」와 **다른 사유**로 거부한다 (`TASK-226`).
+
+    ⚠️ 이 갈래는 세 파서 모두 단정이 없어서 변이로 드러났다 — 객체가 아닌 최상위를 조용히 빈
+    객체로 바꾸는 변이가 전체 1408건을 통과했다. 그 뒤 「필수 섹션 없음」으로 거부되므로 결과는
+    같지만 **사유가 원인을 잘못 지목한다.**
+    """
+    with pytest.raises(ScenarioValidationError, match="최상위"):
+        parse_scenario("[1, 2]", allowed_categories=_ALLOWED, existing_titles=frozenset())
+
+
 def test_accepts_a_fenced_json_block() -> None:
     """⚠️ 프롬프트가 펜스를 금지해도 모델이 붙인다 — `parse_plan` 과 같은 한 번의 재시도."""
     fenced = f"```json\n{_raw()}\n```"

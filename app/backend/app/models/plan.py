@@ -42,12 +42,11 @@
 ⛔ **`analysis.py` 가 자기 판을 따로 정의한다** — 하나로 합칠지 둘로 둘지는 `TASK-132` AC#1 의
 결정이고 아직 열려 있다.
 
-**이 파일의 `_json_candidates` 소비자 셋** (private 이지만 밖에서 쓴다 — 늘리거나 관용 범위를
-고칠 때 셋 다 본다):
+**이 파일의 `_json_candidates` 소비자 셋** (늘리거나 관용 범위를 고칠 때 셋 다 본다):
 
 1. 같은 파일의 `parse_plan`.
-2. `models/scenario_draft.py` 의 `_loaded` — `parse_plan` 과 **같은 관대함**을 쓰기 위해
-   복제하지 않고 가져갔다(`TASK-5` · 그 파일 import 주석이 근거를 갖는다).
+2. 같은 파일의 `loaded_object` — 그것을 `models/{scenario_draft,session_summary,weekly_report}.py`
+   가 가져간다. 세 파일이 그 걸음걸이를 각자 적고 있던 것을 `TASK-226` 이 접었다.
 3. `models/analysis.py` 는 **가져가지 않고 자기 판을 갖는다** — 위 ⛔ 가 그 사정이다.
 """
 
@@ -55,7 +54,7 @@ from __future__ import annotations
 
 import json
 import re
-from typing import Annotated, Literal, get_args
+from typing import Annotated, Any, Literal, get_args
 from uuid import UUID
 
 import pydantic
@@ -202,6 +201,32 @@ def _json_candidates(raw: str) -> list[str]:
     if fenced is not None:
         candidates.append(fenced.group("body"))
     return candidates
+
+
+def loaded_object(raw: str, *, error: type[Exception]) -> dict[str, Any]:
+    """후보들을 순서대로 읽어 **첫 JSON 객체**를 돌려준다. 실패는 `error` 로 올린다.
+
+    ⛔ **`_json_candidates` 를 가져간 세 모듈이 이 걸음걸이를 각자 적고 있었다**(`TASK-226`):
+    `models/scenario_draft.py` · `models/session_summary.py` · `models/weekly_report.py` 의
+    `_loaded` 가 **예외 클래스만 다른 바이트 동일 3벌**이었다. 갈래마다 다른 예외를 올려야 하는
+    것이 그 복제의 이유였으므로 그 하나만 인자로 받는다.
+    ⚠️ **`_json_candidates` 의 2벌과는 사정이 다르다** — 그쪽은 사용자 결정 86 이 «일부러» 둘로
+    두고 `test_json_candidates_parity.py` 가 출력을 대조한다. 이쪽에는 그런 결정도 대조도 없었다.
+
+    ⛔ **객체가 아닌 최상위는 후보를 더 뒤지지 않고 그 자리에서 거부한다** — 「JSON 이긴 한데 모양이
+    다르다」와 「JSON 이 아니다」는 다른 사유이고, 뒤지면 우연히 통과한 후보가 어느 것인지 흐려진다.
+    """
+    last_error: json.JSONDecodeError | None = None
+    for candidate in _json_candidates(raw):
+        try:
+            parsed = json.loads(candidate)
+        except json.JSONDecodeError as decode_error:
+            last_error = decode_error
+            continue
+        if not isinstance(parsed, dict):
+            raise error(f"JSON 최상위가 객체가 아니다: {type(parsed).__name__}")
+        return parsed
+    raise error(f"JSON 으로 읽을 수 없다: {last_error}")
 
 
 # `TASK-122`(사용자 결정 2026-09-17) — 모델이 남기는 **이름 없는 빈 키** 하나만 걷는다.

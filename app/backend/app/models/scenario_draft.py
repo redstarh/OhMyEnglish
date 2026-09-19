@@ -17,15 +17,13 @@
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
-from typing import Any
 
-# ⚠️ private 이름을 가져오는 것이 의도다 — 이 로직(원문 → 코드펜스 벗긴 본문 순서로 파싱 시도)을
-# 복제하면 두 파서가 서로 다른 관대함을 갖게 되고 한쪽이 조용히 낡는다. `parse_plan` 과 **같은
-# 관대함**을 쓰는 것이 이 import 의 목적이다. ⛔ 공개 API 로 승격하지 않은 이유: 그 파일이 그
-# 함수의 경계(한 번의 재시도까지만)를 docstring 으로 소유하고 있고, 옮기면 그 근거가 흩어진다.
-from app.models.plan import _json_candidates
+# ⚠️ JSON 읽기를 복제하지 않고 가져온다 — 복제하면 두 파서의 관대함이 갈라지고 한쪽이 조용히
+# 낡는다. `parse_plan` 과 **같은 관대함**을 쓰는 것이 이 import 의 목적이고, 그 경계(한 번의
+# 재시도까지만)는 `models/plan.py` 가 docstring 으로 소유한다. ⚠️ 이 파일의 `_loaded` 는 그
+# 함수로 접혔다 — 예외 클래스만 다른 3벌이었다(`TASK-226`).
+from app.models.plan import loaded_object
 
 # 화면 라벨이므로 한 줄이어야 한다. ⚠️ 120 은 발명값이다 — 시드 30행의 최장 제목이 33자이므로
 # 그 네 배쯤을 상한으로 두었다. 캡틴 문서에 근거가 있는 수치가 아니다.
@@ -54,20 +52,6 @@ def normalize_title(title: str) -> str:
     return " ".join(title.split()).casefold()
 
 
-def _loaded(raw: str) -> dict[str, Any]:
-    last_error: json.JSONDecodeError | None = None
-    for candidate in _json_candidates(raw):
-        try:
-            parsed = json.loads(candidate)
-        except json.JSONDecodeError as error:
-            last_error = error
-            continue
-        if not isinstance(parsed, dict):
-            raise ScenarioValidationError(f"JSON 최상위가 객체가 아니다: {type(parsed).__name__}")
-        return parsed
-    raise ScenarioValidationError(f"JSON 으로 읽을 수 없다: {last_error}")
-
-
 def parse_scenario(
     raw: str,
     *,
@@ -83,7 +67,7 @@ def parse_scenario(
     거부 순서는 **싼 것부터**다: JSON → 무대(축 1) → 제목 → 지시문 → 중복. 앞에서 걸리면
     뒤를 재지 않으므로 실패 메시지가 **가장 근본적인 사유**를 가리킨다.
     """
-    body = _loaded(raw)
+    body = loaded_object(raw, error=ScenarioValidationError)
 
     # ⛔ 무대만 필수다(설계서 §5). 다른 넷은 비어도 통과한다 — 다섯을 모두 필수로 하면 학습자가
     # 한 축만 모른다고 답해도 생성이 실패하고 그것은 5회 대화를 버리는 일이다.

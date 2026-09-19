@@ -49,6 +49,12 @@ def test_quote_is_optional() -> None:
     assert draft.weak_points[0].quote is None
 
 
+def test_rejects_a_json_top_level_that_is_not_an_object() -> None:
+    """⛔ 「JSON 이 아니다」와 **다른 사유**로 거부한다 (`TASK-226` · 위 ⚠️ 와 같은 변이 근거)."""
+    with pytest.raises(SummaryValidationError, match="최상위"):
+        parse_summary("[1, 2]", max_points=MAX_POINTS)
+
+
 def test_rejects_a_missing_section() -> None:
     with pytest.raises(SummaryValidationError, match="went_well"):
         parse_summary(json.dumps({"weak_points": [{"point": "x"}]}), max_points=MAX_POINTS)

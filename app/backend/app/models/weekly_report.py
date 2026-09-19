@@ -8,18 +8,19 @@
 근거: R13-5 의 톤 계약 · PRD §15.3 의 비범위 · R11-8 — 판단은 모델의 것이지만 **점수는 요구가
 아니다**.
 
-⚠️ **`_json_candidates` 를 private 로 가져오는 것이 의도다** — 사용자 결정 86 이 그 함수를 **둘로
-유지**하고 동일성을 테스트로 못박기로 했으므로 판을 늘리지 않는다. `models/session_summary.py` 가
-같은 이유로 같은 import 를 쓴다(그 파일의 주석이 근거를 갖는다).
+⚠️ **JSON 읽기를 여기서 다시 적지 않는다** — `models/plan.py` 의 `loaded_object` 를 가져온다
+(`TASK-226`). 그 걸음걸이가 이 파일·`session_summary`·`scenario_draft` 에 **예외 클래스만 다른
+바이트 동일 3벌**로 있었고, 갈래마다 다른 예외가 그 복제의 유일한 이유였으므로 그것만 인자로
+넘긴다. ⚠️ 그 함수가 쓰는 `_json_candidates` 는 사용자 결정 86 이 **둘로 유지**하기로 한 자리이고
+`test_json_candidates_parity.py` 가 동일성을 못박는다 — 판을 늘리지 않는다.
 """
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from typing import Any
 
-from app.models.plan import _json_candidates
+from app.models.plan import loaded_object
 
 # 항목 상한. ⚠️ **발명값이다** — PRD 가 개수를 정하지 않았다. 근거: 한 주를 되짚는 화면이 목록으로
 # 덮이지 않을 크기이고, 총평이 같은 이유로 상한을 뒀다(`MAX_POINTS`).
@@ -48,20 +49,6 @@ class WeeklyInsights:
 _ALLOWED_KEYS = frozenset({"improving", "next_scenarios"})
 
 
-def _loaded(raw: str) -> dict[str, Any]:
-    last_error: json.JSONDecodeError | None = None
-    for candidate in _json_candidates(raw):
-        try:
-            parsed = json.loads(candidate)
-        except json.JSONDecodeError as error:
-            last_error = error
-            continue
-        if not isinstance(parsed, dict):
-            raise WeeklyValidationError(f"JSON 최상위가 객체가 아니다: {type(parsed).__name__}")
-        return parsed
-    raise WeeklyValidationError(f"JSON 으로 읽을 수 없다: {last_error}")
-
-
 def _sentences(body: dict[str, Any], key: str, *, max_points: int) -> tuple[str, ...]:
     """문장 배열 하나를 읽는다. 없으면 빈 배열이고, 규격을 벗어나면 거부한다.
 
@@ -86,7 +73,7 @@ def parse_weekly_insights(raw: str, *, max_points: int) -> WeeklyInsights:
     규약을 파서가 지키는 자리다. 최상위만 막으면 충분한 이유: 두 값이 **문장 배열**이라 항목 안에
     키가 없다(총평은 항목이 객체라 양쪽을 막아야 했다).
     """
-    body = _loaded(raw)
+    body = loaded_object(raw, error=WeeklyValidationError)
     unknown = sorted(set(body) - _ALLOWED_KEYS)
     if unknown:
         raise WeeklyValidationError(f"정의되지 않은 키가 있다: {unknown}")

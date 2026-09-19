@@ -333,6 +333,16 @@ def test_parse_rejects_unknown_keys() -> None:
         parse_weekly_insights('{"improving": [], "next_scenarios": [], "score": 80}', max_points=3)
 
 
+def test_parse_rejects_a_top_level_that_is_not_an_object() -> None:
+    """⛔ 「JSON 이 아니다」와 **다른 사유**로 거부한다 (`TASK-226`).
+
+    세 파서가 공용 `loaded_object` 로 접힌 뒤, 이 갈래를 덮는 단정이 하나도 없다는 것이 변이로
+    드러났다 — 사유가 원인을 잘못 지목하면 조사하는 사람이 프롬프트를 먼저 의심한다.
+    """
+    with pytest.raises(WeeklyValidationError, match="최상위"):
+        parse_weekly_insights("[1, 2]", max_points=3)
+
+
 def test_parse_caps_the_lists() -> None:
     """상한을 넘기면 거부한다 — 프롬프트 문면과 같은 수를 본다."""
     with pytest.raises(WeeklyValidationError):
