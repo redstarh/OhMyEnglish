@@ -1,9 +1,10 @@
 ---
 id: TASK-235
 title: 낭독 판정이 성공·실패·판정 불가로 기록되지 않는다 — 시나리오 AC 문면과 설계 계약이 갈린다
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-19 07:40'
+updated_date: '2026-09-19 08:09'
 labels: []
 dependencies: []
 ordinal: 299000
@@ -38,5 +39,5 @@ HEAD: a34a143
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 TS-29 AC#3 의 문면이 낭독 판정의 문서화된 계약과 일치하도록 고쳐졌거나, 구현을 바꾸기로 한 결정이 docs/design 에 기록되었다
+- [x] #1 TS-29 AC#3 의 문면이 낭독 판정의 문서화된 계약과 일치하도록 고쳐졌거나, 구현을 바꾸기로 한 결정이 docs/design 에 기록되었다
 <!-- AC:END -->

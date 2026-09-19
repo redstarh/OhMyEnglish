@@ -1,9 +1,10 @@
 ---
 id: TASK-245
 title: '고침: TS-29 AC 문면을 낭독 판정의 확정 계약에 맞춘다 (TASK-235)'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-19 07:49'
+updated_date: '2026-09-19 08:09'
 labels: []
 dependencies: []
 ordinal: 309000
@@ -17,7 +18,7 @@ ordinal: 309000
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 TS-29 AC 문면이 낱말 단위 값역과 전사문 저장으로 바뀜
-- [ ] #2 고친 근거(설계서 §5 와 PRD 조항의 구분)가 TS-29 노트에 적혀 있음
-- [ ] #3 그 AC 로 TS-29 가 판정돼 Blocked 가 풀림
+- [x] #1 TS-29 AC 문면이 낱말 단위 값역과 전사문 저장으로 바뀜
+- [x] #2 고친 근거(설계서 §5 와 PRD 조항의 구분)가 TS-29 노트에 적혀 있음
+- [x] #3 그 AC 로 TS-29 가 판정돼 Blocked 가 풀림
 <!-- AC:END -->

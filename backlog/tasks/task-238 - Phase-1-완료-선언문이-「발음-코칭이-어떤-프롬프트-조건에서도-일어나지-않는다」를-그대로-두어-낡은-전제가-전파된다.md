@@ -1,9 +1,10 @@
 ---
 id: TASK-238
 title: Phase 1 완료 선언문이 「발음 코칭이 어떤 프롬프트 조건에서도 일어나지 않는다」를 그대로 두어 낡은 전제가 전파된다
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-19 07:42'
+updated_date: '2026-09-19 08:09'
 labels: []
 dependencies: []
 ordinal: 302000
@@ -49,5 +50,5 @@ docs/design/2026-08-25-first-slice-acceptance-criteria.md 의 그 절에 뒤집�
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 그 문서의 해당 절이 2026-09-10 이후의 변화를 함께 담아, 인용해도 낡은 전제가 전파되지 않는다
+- [x] #1 그 문서의 해당 절이 2026-09-10 이후의 변화를 함께 담아, 인용해도 낡은 전제가 전파되지 않는다
 <!-- AC:END -->
