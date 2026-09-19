@@ -102,16 +102,13 @@ cd app/frontend && npx tsc --noEmit && npx eslint . && npx next build
 
 ## ④ 인계 상태 — 대조가 끝났고 `TASK-255` 도 닫혔음 (2026-09-20 00시대 KST)
 
-⚠️ **이 절은 후계 세션(`ohmyenglish-6a`)이 직접 적었음.** 규약은 이전 세션이 대조 결과를 적는
-것인데(`rules/session-handoff.md` §7) 그 세션(`ohmyenglish-46`)이 이미 닫혀 보낼 곳이 없었음 —
-`ListAgents` 로 확인했고 `SendMessage` 가 `No agent named ... is reachable` 로 답했음. 기록을
-남기지 않는 쪽보다 누가 적었는지 밝히는 쪽을 골랐음.
+⚠️ **이 절은 후계 세션(`ohmyenglish-6a`)이 직접 적었음** — 규약상 적을 주체인 이전 세션
+(`ohmyenglish-46`)이 이미 닫혀 `SendMessage` 가 도달 불가로 답했음(`rules/session-handoff.md` §7).
 
-- **지표 대조**: 기준 커밋은 착수 시 `aeb7d5c` · 이 회차 뒤 `565c58e` · `origin` 과 0/0.
-  위 표의 `55930d8` 과 다른 이유는 그 표 이후 문서 커밋 둘(`aeb7d5c`·`2ac3404`)이 붙었기 때문이고
-  차이는 그것으로 설명됨. 게이트는 백엔드 넷을 다시 돌려 `pytest` **1423 passed** · `ruff` 0 ·
-  `ruff format` **324 files**(신규 2건만큼 늘었음) · `ty` 0. ⚠️ 프런트 셋은 프런트 파일을 고치지
-  않아 다시 돌리지 않았음.
+- **지표 대조**: 기준 커밋은 착수 시 `aeb7d5c` · 지금 `f2d3475` · `origin` 과 0/0. 위 표의
+  `55930d8` 과 다른 이유는 그 표 이후 문서 커밋 둘(`aeb7d5c`·`2ac3404`)이 붙었기 때문임. 게이트는
+  백엔드 넷을 다시 돌려 `pytest` **1423 passed** · `ruff` 0 · `ruff format` **324 files** · `ty` 0.
+  ⚠️ 프런트 셋은 프런트 파일을 고치지 않아 다시 돌리지 않았음.
 - **`TASK-255` 결과**: 단정 7건 전부 통과 · 앱 결함 0건 · 유료 호출 11건(승인 근거 12~15건 안).
   ⛔ **격리 DB `ohmyenglish_worker` 에서 돌렸고 dev DB 의 행은 한 건도 바뀌지 않았음** — 승인
   전제(「미등록 발화 10건」)가 사라진 것을 착수 직전에 실측했고(스윕 대상 0건), 회차가 일을 새로
