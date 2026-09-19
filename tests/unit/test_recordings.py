@@ -857,6 +857,28 @@ async def test_orphan_sweep_does_not_touch_a_running_session(
 
 
 @pytest.mark.asyncio
+async def test_orphan_sweep_does_not_touch_a_paused_session(
+    db_conn: asyncpg.Connection, tmp_path: Path
+) -> None:
+    """⛔ **정지 세션도 §5.4 의 예외다** (025 · 결정 117 · `TASK-223`).
+
+    정지는 「자리를 비웠다 돌아와 이어 한다」이므로 이 가드가 지키려는 상황 그 자체다. 스윕이
+    살아 있는 세션을 리터럴 `"active"` 로 재면 정지 중 세션의 열린 `.part` 가 「`.part` 는 언제나
+    고아」 규칙에 걸려 지워진다 — 워커 유휴 사이클(기본 1초) 경로라 도달성이 높다.
+
+    ⚠️ **1다리에는 같은 짝이 있었는데(`test_purge_spares_a_paused_session`) 2다리에는 없었다** —
+    `TASK-140` 이 025 에 맞춰 세 자리를 고치며 스윕 한 자리를 지나친 것을 테스트가 못 잡은 이유다.
+    """
+    session_id = await _new_shadowing_session(db_conn, status="paused")
+    pending = pending_recording_path(tmp_path, session_id, uuid4())
+    pending.parent.mkdir(parents=True, exist_ok=True)
+    pending.write_bytes(FRAMES)
+
+    assert await sweep_orphan_recording_files(db_conn, tmp_path) == 0
+    assert pending.is_file(), "정지 중 세션의 진행 중 녹음이 지워졌다 — 이어 할 것이 사라진다"
+
+
+@pytest.mark.asyncio
 async def test_orphan_sweep_spares_a_finalized_file_whose_pointer_is_not_written_yet(
     db_conn: asyncpg.Connection, tmp_path: Path
 ) -> None:

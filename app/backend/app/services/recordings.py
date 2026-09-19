@@ -380,7 +380,10 @@ async def load_recording(
     넘기며 진행되는 세션의 녹음을 막으면 학습자가 **지금 비교하려는 것**이 사라진다.
     ⛔ **`active` 하나로 재지 않는다** (`TASK-140`) — 025 가 `paused` 를 더했고 정지는 「자리를
     비웠다 돌아온다」이므로 이 예외가 지키려는 상황 그 자체다. 값역의 정본은 `services/sessions.py`
-    의 `LIVE_SESSION_STATUSES` 이고 스윕도 같은 이름을 읽는다 — 두 곳이 각자 적으면 다시 갈린다.
+    의 `LIVE_SESSION_STATUSES` 이고 **스윕 두 다리도 같은 이름을 읽는다**(1다리는 SQL 로, 2다리는
+    `sweep_orphan_recording_files` 에서) — 각자 적으면 갈린다. ⚠️ **실제로 갈렸다**: `TASK-140` 이
+    025 에 맞춰 세 자리를 고치며 2다리를 지나쳤고, 그 자리만 리터럴로 남아 정지 중 세션의 `.part`
+    를 지웠다(`TASK-223`). 그래서 이 서술은 「읽어야 한다」가 아니라 **어디서 읽는지**를 적는다.
 
     ⛔ **④ 는 닫는 쪽으로 넘어진다.** `users.timezone` 에 CHECK 가 없어 잘못된 값이 실재할 수
     있고, 그때 바이트를 내주면 삭제 약속이 설정값 하나로 무력화된다. **삭제 스윕은 반대로 그
@@ -467,8 +470,9 @@ async def purge_expired_recordings(
     설계 세션이 직접 확인했다(`select now() at time zone 'Not/AZone'` → `ERROR`). 여기서는 그
     사용자만 건너뛰고 `WARNING` 을 남긴다: 값을 고치면 다음 사이클에 낫는다(§6.3).
 
-    ⚠️ **§5.4 의 예외**: `status = 'active'` 세션은 대상이 아니다. 크래시로 `active` 에 남은
-    세션은 기존 고아 리퍼가 `failed` 로 닫고 그 다음 주기에 대상이 된다 — 새 장치가 필요없다.
+    ⚠️ **§5.4 의 예외**: **살아 있는**(`LIVE_SESSION_STATUSES` — `active`·`paused`) 세션은 대상이
+    아니다. 크래시로 `active` 에 남은 세션은 기존 고아 리퍼가 `failed` 로 닫고 그 다음 주기에
+    대상이 된다 — 새 장치가 필요없다.
 
     **재시도 장치를 두지 않는다** (§6.3). 이 스윕은 멱등이고(같은 조건을 다시 계산한다) 영구
     실패해도 데이터가 어긋나지 않는다(접근은 이미 막혀 있다). `(b)` 의 실패는 **1다리로 재시도되지
@@ -522,8 +526,10 @@ async def sweep_orphan_recording_files(
     사라진 포인터** — `utterances` 는 `learning_sessions` 에 `on delete cascade` 이므로 세션을
     지우면 포인터는 사라지고 파일은 남는다. ③ 은 1다리가 원리적으로 볼 수 없는 경로다.
 
-    ⚠️ **진행 중 세션 디렉터리는 건드리지 않는다** — §4.5 의 1단계가 지금 그 안의 `.part` 에
-    프레임을 흘리고 있을 수 있다. §5.4 가 삭제에서 진행 중 세션을 뺀 것과 같은 판단이다.
+    ⚠️ **살아 있는 세션 디렉터리는 건드리지 않는다** — §4.5 의 1단계가 지금 그 안의 `.part` 에
+    프레임을 흘리고 있을 수 있다. §5.4 가 삭제에서 살아 있는 세션을 뺀 것과 같은 판단이다.
+    ⛔ **`active` 하나로 재지 않는다**(`TASK-223`) — 값역의 정본은 `sessions.LIVE_SESSION_STATUSES`
+    이고 정지도 「자리를 비웠다 돌아온다」이므로 이 가드가 지키려는 상황 그 자체다.
 
     ⛔ **이름 규칙에 맞지 않는 파일은 지우지 않고 남긴다.** 설계서 §6.2 는 *"그 집합에 없는
     파일"* 을 지우라고 적었지만 알 수 없는 파일을 조용히 지우면 되돌릴 수 없다 — **이 절충은 내가
@@ -554,7 +560,7 @@ async def sweep_orphan_recording_files(
         status = await conn.fetchval(
             "select status from learning_sessions where id = $1", session_id
         )
-        if status == "active":
+        if status in LIVE_SESSION_STATUSES:
             continue
         live = {row["id"] for row in await conn.fetch(_SELECT_LIVE_RECORDING_IDS_SQL, session_id)}
         removed += remove_orphan_recordings_in(session_dir, live, limit=limit - removed)
