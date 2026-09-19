@@ -29,8 +29,10 @@ import asyncpg
 
 from app.services.user_timezone import timezone_of
 
-# ⛔ 타임존의 정본은 이 컬럼 하나다. `usage.py`·`recordings.py` 도 같은 한 줄을 쓴다 — 공유
-# 헬퍼를 만들지 않은 것은 이 리포의 기존 관행이고, 복제되는 것은 **SQL 한 줄뿐**이다.
+# ⛔ 타임존의 정본은 `users.timezone` 컬럼 하나이고, **조회의 정본은 위 `timezone_of` 다**
+# (`TASK-146` 이 그 헬퍼를 만들었고 이 파일이 `:30` 에서 그것을 가져온다). ⚠️ 이 주석의 이전 판은
+# 「공유 헬퍼를 만들지 않은 것이 관행이다」로 적혀 있었는데 같은 파일이 이미 그 헬퍼를 쓰고 있었다
+# (`TASK-226` 이 그 어긋남을 지적했다).
 # `count(ls.id)` 를 쓰는 이유: `left join` 이라 매칭이 없으면 `ls.*` 가 null 이고 `count(*)` 는
 # **1 을 낸다**(행이 하나 나오므로). `count(ls.id)` 만 0 이 된다.
 # `filter (where ls.scenario_pick = 'new')` 는 null 을 세지 않는다 — 016 이전 세션에는 그 값이
