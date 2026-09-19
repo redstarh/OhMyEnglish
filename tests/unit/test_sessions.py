@@ -414,6 +414,37 @@ async def test_session_creation_falls_back_to_the_earliest_scenario(
     assert scenario_id != later
 
 
+# ⛔ `TASK-239`(결함 `TASK-232`) — **수준 일치가 «1행» 이면 같은 무대만 반복됐다.** 0행 폴백만
+# 있었고 1행은 폴백에 걸리지 않아, 그 1행이 창에 들어간 뒤로는 `fresh` 가 영구히 비고
+# `seen` 1건이 계속 `REPEAT` 으로 나왔다. 실측(2026-09-19 · 회차 B4): `current_level='B1'` 인
+# 사용자에 `B1` 무대 1행을 두고 6회 열었더니 픽 순서가 `NRRRRR` 이고 **서로 다른 무대는 1종**
+# 이었다 — 결정 73·74 의 「반복 70 대 신규 30」이 통째로 죽는다.
+#
+# ⚠️ **1행이 0행보다 나쁘다** — 0행은 폴백이 전체를 주어 회전이 살아 있는데, 1행은 「수준이
+# 맞으니 제대로 골랐다」로 보여 조용히 죽는다.
+#
+# ⛔ **판별력**: 세션을 **6회** 연다. 1회로는 어느 구현이든 그 1행을 골라(신규) 통과한다 —
+# 반복이 시작되는 2회차 이후를 봐야 드러난다. 단정은 「서로 다른 무대가 2종 이상」이고
+# 「불일치 행이 후보에 들어왔는가」로는 재지 않는다: 그 문면은 수준 우선을 아예 버린 구현도
+# 통과시킨다(아래 `..._prefers_...` 가 그 반대 방향을 지킨다).
+async def test_session_creation_widens_the_pool_when_only_one_scenario_matches_the_level(
+    db_pool: asyncpg.Pool, seed_scenarios_for_level
+):
+    user_id, (_a2_early, _a2_late, only_match) = await seed_scenarios_for_level(
+        level="B1", scenarios=[("A2", 3), ("A2", 2), ("B1", 1)]
+    )
+
+    attached = []
+    for _ in range(6):
+        session_id = await create_session(db_pool, user_id)
+        attached.append(await _attached_scenario(db_pool, session_id))
+
+    assert attached[0] == only_match, "첫 회차는 수준이 맞는 행이어야 한다 — 수준 우선이 먼저다"
+    assert len(set(attached)) > 1, (
+        f"수준 일치가 1행일 때 같은 무대만 반복됐다 — 서로 다른 무대 {len(set(attached))}종"
+    )
+
+
 # ⛔ 019 · 결정 81 (`TASK-130`) — **노출 순서의 정본이 `display_order` 다.** 두 축을 일부러
 # 어긋나게 심어 앱 경로가 어느 것을 보는지 잰다: `late_but_first` 는 **가장 늦게 만들어졌는데**
 # 배열 자리가 앞이고, `early_but_last` 는 가장 이른데 자리가 뒤다.

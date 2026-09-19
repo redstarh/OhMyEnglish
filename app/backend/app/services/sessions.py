@@ -62,6 +62,7 @@ from app.services.scenario_rotation import (
     Pick,
     RecentPick,
     pick_scenario,
+    wants_fresh_but_has_none,
 )
 
 logger = logging.getLogger(__name__)
@@ -444,7 +445,30 @@ async def _pick_scenario_for_user(conn: asyncpg.Connection, user_id: UUID) -> Pi
         # 낫다. ⚠️ 이 폴백은 이전 판 SQL 의 `coalesce` 둘째 절을 그대로 계승한 것이고, 그
         # 주석이 근거를 갖고 있었다(설계서 §9 Failure).
         rows = await conn.fetch(_SCENARIO_CANDIDATES_SQL, user_id, None)
-    candidates = [
+        # ⛔ 이미 전체로 넓혔음을 아래 판단에 알린다 — 비우지 않으면 같은 질의를 한 번 더 던진다.
+        level = None
+    recent_rows = await conn.fetch(_RECENT_PICKS_SQL, user_id, WINDOW)
+    recent = [
+        RecentPick(scenario_id=row["scenario_id"], pick=row["scenario_pick"]) for row in recent_rows
+    ]
+    candidates = _candidates(rows)
+    if level is not None and wants_fresh_but_has_none(recent=recent, candidates=candidates):
+        # 수준 일치가 1행 이상인데 **그것이 전부 창 안**이다 — 넓히지 않으면 신규 몫이 남아
+        # 있어도 영구히 같은 행이 `REPEAT` 으로 나온다(결함 `TASK-232` · 6회 전부 같은 무대).
+        # ⚠️ 0행 폴백만으로는 이 자리가 안 잡혔다 — **1행이 0행보다 나쁘다**: 0행은 폴백이
+        # 전체를 주어 회전이 살아 있고, 1행은 「수준이 맞으니 제대로 골랐다」로 보여 조용히 죽는다.
+        # ⛔ 넓히는 판단 자체는 `scenario_rotation` 이 소유한다 — 여기서 `new_count` 를 세면
+        # 규칙이 두 곳에 생긴다(그 함수의 주석이 근거를 갖는다).
+        rows = await conn.fetch(_SCENARIO_CANDIDATES_SQL, user_id, None)
+        candidates = _candidates(rows)
+    return pick_scenario(recent=recent, candidates=candidates)
+
+
+def _candidates(rows: Sequence[asyncpg.Record]) -> list[Candidate]:
+    """후보 행을 규칙이 받는 모양으로 바꾼다. ⛔ **두 번 쓰이므로 한 자리에 둔다** — 수준으로
+    좁힌 묶음과 넓힌 묶음이 같은 변환을 거쳐야 하고, 갈라지면 아래 두 ⛔ 가 한쪽에서만 지켜진다.
+    """
+    return [
         Candidate(
             scenario_id=row["id"],
             last_used_at=row["last_used_at"],
@@ -460,11 +484,6 @@ async def _pick_scenario_for_user(conn: asyncpg.Connection, user_id: UUID) -> Pi
         )
         for row in rows
     ]
-    recent_rows = await conn.fetch(_RECENT_PICKS_SQL, user_id, WINDOW)
-    recent = [
-        RecentPick(scenario_id=row["scenario_id"], pick=row["scenario_pick"]) for row in recent_rows
-    ]
-    return pick_scenario(recent=recent, candidates=candidates)
 
 
 async def _insert_session(

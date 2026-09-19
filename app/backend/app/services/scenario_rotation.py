@@ -105,6 +105,29 @@ def _staleness(candidate: Candidate) -> tuple[int, int, int, float, str]:
     return (made_first, 1, 0, candidate.last_used_at.timestamp(), str(candidate.scenario_id))
 
 
+def wants_fresh_but_has_none(
+    *,
+    recent: Sequence[RecentPick],
+    candidates: Sequence[Candidate],
+) -> bool:
+    """이 후보 묶음으로는 **신규 몫을 채울 수 없다**를 규칙의 말로 답한다.
+
+    `_pick_scenario_for_user` 가 수준으로 좁힌 묶음을 넓혀야 하는지 판단하는 데 쓴다
+    (`TASK-239` · 결함 `TASK-232`). ⛔ **그 판단의 근거가 규칙이므로 호출자가 직접 세지 않는다** —
+    `new_count`·`fresh` 의 뜻은 결정 74 가 정하고 이 모듈이 소유한다. 호출자에 그 산술을 두면
+    같은 규칙이 두 곳에 생겨 한쪽이 조용히 낡는다.
+
+    참이 되는 조건 둘이 **동시에** 성립해야 한다: ⑴ 창에 신규 몫이 남아 있고 ⑵ 이 묶음에
+    창 밖 후보가 0이다. ⚠️ ⑴ 을 빼면 안 된다 — 신규 몫이 다 찬 창에서는 반복이 **의도**이고,
+    그때 넓히면 결정 73·74 를 거꾸로 깬다.
+    """
+    new_count = sum(1 for row in recent if row.pick == NEW)
+    if new_count >= NEW_PER_WINDOW:
+        return False
+    recent_ids = {row.scenario_id for row in recent}
+    return all(c.scenario_id in recent_ids for c in candidates)
+
+
 def pick_scenario(
     *,
     recent: Sequence[RecentPick],
