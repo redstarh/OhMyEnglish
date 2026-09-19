@@ -1,0 +1,315 @@
+{
+  "jobs": [
+    {
+      "job_type": "analyze_utterance",
+      "status": "done",
+      "attempts": 1,
+      "last_error": null
+    },
+    {
+      "job_type": "analyze_utterance",
+      "status": "done",
+      "attempts": 1,
+      "last_error": null
+    },
+    {
+      "job_type": "analyze_utterance",
+      "status": "done",
+      "attempts": 1,
+      "last_error": null
+    },
+    {
+      "job_type": "analyze_utterance",
+      "status": "done",
+      "attempts": 1,
+      "last_error": null
+    },
+    {
+      "job_type": "analyze_utterance",
+      "status": "done",
+      "attempts": 1,
+      "last_error": null
+    },
+    {
+      "job_type": "analyze_utterance",
+      "status": "done",
+      "attempts": 1,
+      "last_error": null
+    },
+    {
+      "job_type": "generate_scenario",
+      "status": "done",
+      "attempts": 1,
+      "last_error": "prompt assembly refused: allowed_categories is empty — the model would have nothing to pick"
+    },
+    {
+      "job_type": "plan_next_session",
+      "status": "done",
+      "attempts": 1,
+      "last_error": null
+    },
+    {
+      "job_type": "plan_next_session",
+      "status": "done",
+      "attempts": 1,
+      "last_error": null
+    },
+    {
+      "job_type": "summarize_session",
+      "status": "done",
+      "attempts": 1,
+      "last_error": null
+    },
+    {
+      "job_type": "summarize_week",
+      "status": "done",
+      "attempts": 1,
+      "last_error": null
+    }
+  ],
+  "llm_calls": [
+    {
+      "purpose": "plan",
+      "model_id": "us.openai.gpt-5.6-terra",
+      "input_tokens": 2169,
+      "output_tokens": 913,
+      "called_at": "2026-09-19 15:19:52.127575+00:00"
+    }
+  ],
+  "daily_error_summary": [
+    {
+      "summary_date": "2026-09-08",
+      "timezone": "Asia/Seoul",
+      "occurrence_count": 6,
+      "pattern_count": 2,
+      "patterns": "[{\"example\": {\"reason\": \"지난 주 씨앗 — 주간 리포트 입력용\", \"correction\": \"went / explained\", \"original_span\": \"seed span\"}, \"category\": \"verb_tense\", \"occurrences\": 5, \"pattern_key\": \"verb_tense_past_simple\", \"target_form\": \"과거 시간 표현 + 동사 과거형\"}, {\"example\": {\"reason\": \"many 뒤에는 복수 명사가 와서 words가 됩니다.\", \"correction\": \"many words\", \"original_span\": \"many word\"}, \"category\": \"article\", \"occurrences\": 1, \"pattern_key\": \"article_missing_plural\", \"target_form\": \"many + 복수 명사\"}]",
+      "computed_at": "2026-09-19 15:08:02.702149+00:00"
+    },
+    {
+      "summary_date": "2026-09-20",
+      "timezone": "Asia/Seoul",
+      "occurrence_count": 8,
+      "pattern_count": 6,
+      "patterns": "[{\"example\": {\"reason\": \"call은 셀 수 있는 단수 명사이므로 앞에 a를 붙여 a weekly video call이라고 말합니다.\", \"correction\": \"join a weekly video call\", \"original_span\": \"join weekly video call\"}, \"category\": \"article\", \"occurrences\": 2, \"pattern_key\": \"article_missing_before_noun\", \"target_form\": \"a/the + 형용사 + 단수 명사\"}, {\"example\": {\"reason\": \"상대 회사 쪽 사람들을 말할 때는 on their side가 더 자연스럽습니다.\", \"correction\": \"on their side\", \"original_span\": \"from their side\"}, \"category\": \"preposition\", \"occurrences\": 2, \"pattern_key\": \"preposition_wrong_choice\", \"target_form\": \"be afraid of + 동명사\"}, {\"example\": {\"reason\": \"회사에서 해야 하는 일을 말할 때는 must보다 have to가 더 자연스럽습니다.\", \"correction\": \"I have to join\", \"original_span\": \"I must join\"}, \"category\": \"business_expression\", \"occurrences\": 1, \"pattern_key\": \"business_expression_have_to_obligation\", \"target_form\": \"I have to + 동사원형\"}, {\"example\": {\"reason\": \"주어가 3인칭 단수(director)이고 현재의 일을 말하므로 동사에 -s를 붙여 joins라고 합니다.\", \"correction\": \"their director joins\", \"original_span\": \"their director join\"}, \"category\": \"verb_form\", \"occurrences\": 1, \"pattern_key\": \"verb_form_third_person_singular_s\", \"target_form\": \"3인칭 단수 주어 + 동사원형 + s\"}, {\"example\": {\"reason\": \"이미 끝난 회의 이야기이므로 과거형 talked를 씁니다.\", \"correction\": \"I talked with\", \"original_span\": \"I talk with\"}, \"category\": \"verb_tense\", \"occurrences\": 1, \"pattern_key\": \"verb_tense_past_simple\", \"target_form\": \"went / explained\"}, {\"example\": {\"reason\": \"sometimes 같은 빈도 부사는 보통 동사 앞에 두면 더 자연스럽습니다.\", \"correction\": \"sometimes joins\", \"original_span\": \"join sometimes\"}, \"category\": \"word_order\", \"occurrences\": 1, \"pattern_key\": \"word_order_frequency_adverb\", \"target_form\": \"주어 + sometimes/usually/often + 동사\"}]",
+      "computed_at": "2026-09-19 15:07:26.058431+00:00"
+    }
+  ],
+  "weekly_reports": [
+    {
+      "week_start": "2026-09-07",
+      "timezone": "Asia/Seoul",
+      "metrics": "{\"top_patterns\": [{\"category\": \"verb_tense\", \"occurrences\": 2, \"pattern_key\": \"verb_tense_past_simple\", \"target_form\": \"went / explained\"}, {\"category\": \"article\", \"occurrences\": 1, \"pattern_key\": \"article_missing_plural\", \"target_form\": \"many words\"}], \"pattern_count\": 2, \"session_count\": 1, \"occurrence_count\": 3}",
+      "insights": "{\"improving\": [], \"next_scenarios\": [\"지난 주말에 한 일을 이야기하는 연습을 해 보세요. went, explained처럼 과거에 이미 끝난 일을 말할 때 쓰는 형태에 특히 신경 쓰면 좋습니다.\", \"어제 있었던 일을 순서대로 말해 보는 연습도 도움이 됩니다. 문장마다 동사가 과거 형태로 바뀌었는지 소리 내어 확인해 보세요.\", \"여러 개를 가리키는 표현을 다루는 연습을 해 보세요. many words처럼 셀 수 있는 명사가 둘 이상일 때의 형태에 집중하면 좋습니다.\"]}",
+      "computed_at": "2026-09-19 15:07:48.471086+00:00"
+    }
+  ],
+  "error_patterns": [
+    {
+      "category": "verb_tense",
+      "pattern_key": "verb_tense_past_simple",
+      "target_form": "과거 시간 표현 + 동사 과거형",
+      "frequency": 6,
+      "last_seen_at": "2026-09-19 15:06:10.988571+00:00",
+      "next_review_at": "2026-09-20 15:06:10.988571+00:00"
+    },
+    {
+      "category": "article",
+      "pattern_key": "article_missing_plural",
+      "target_form": "many + 복수 명사",
+      "frequency": 1,
+      "last_seen_at": "2026-09-08 11:02:00+00:00",
+      "next_review_at": "2026-09-09 11:02:00+00:00"
+    },
+    {
+      "category": "business_expression",
+      "pattern_key": "business_expression_have_to_obligation",
+      "target_form": "I have to + 동사원형",
+      "frequency": 1,
+      "last_seen_at": "2026-09-19 15:06:10.987612+00:00",
+      "next_review_at": "2026-09-20 15:06:10.987612+00:00"
+    },
+    {
+      "category": "article",
+      "pattern_key": "article_missing_before_noun",
+      "target_form": "a/the + 형용사 + 단수 명사",
+      "frequency": 2,
+      "last_seen_at": "2026-09-19 15:06:10.988571+00:00",
+      "next_review_at": "2026-09-20 15:06:10.988571+00:00"
+    },
+    {
+      "category": "preposition",
+      "pattern_key": "preposition_wrong_choice",
+      "target_form": "be afraid of + 동명사",
+      "frequency": 2,
+      "last_seen_at": "2026-09-19 15:06:10.990371+00:00",
+      "next_review_at": "2026-09-20 15:06:10.990371+00:00"
+    },
+    {
+      "category": "word_order",
+      "pattern_key": "word_order_frequency_adverb",
+      "target_form": "주어 + sometimes/usually/often + 동사",
+      "frequency": 1,
+      "last_seen_at": "2026-09-19 15:06:10.991410+00:00",
+      "next_review_at": "2026-09-20 15:06:10.991410+00:00"
+    },
+    {
+      "category": "verb_form",
+      "pattern_key": "verb_form_third_person_singular_s",
+      "target_form": "3인칭 단수 주어 + 동사원형 + s",
+      "frequency": 1,
+      "last_seen_at": "2026-09-19 15:06:10.991410+00:00",
+      "next_review_at": "2026-09-20 15:06:10.991410+00:00"
+    }
+  ],
+  "review_tasks": [
+    {
+      "task_type": "rephrase",
+      "review_stage": 1,
+      "status": "pending",
+      "due_at": "2026-09-09 11:02:00+00:00",
+      "cycle_started_at": "2026-09-08 11:02:00+00:00",
+      "pattern_key": "article_missing_plural"
+    },
+    {
+      "task_type": "rephrase",
+      "review_stage": 1,
+      "status": "abandoned",
+      "due_at": "2026-09-20 15:06:10.987612+00:00",
+      "cycle_started_at": "2026-09-19 15:06:10.987612+00:00",
+      "pattern_key": "article_missing_before_noun"
+    },
+    {
+      "task_type": "rephrase",
+      "review_stage": 1,
+      "status": "pending",
+      "due_at": "2026-09-20 15:06:10.987612+00:00",
+      "cycle_started_at": "2026-09-19 15:06:10.987612+00:00",
+      "pattern_key": "business_expression_have_to_obligation"
+    },
+    {
+      "task_type": "rephrase",
+      "review_stage": 1,
+      "status": "abandoned",
+      "due_at": "2026-09-20 15:06:10.988571+00:00",
+      "cycle_started_at": "2026-09-19 15:06:10.988571+00:00",
+      "pattern_key": "preposition_wrong_choice"
+    },
+    {
+      "task_type": "rephrase",
+      "review_stage": 1,
+      "status": "pending",
+      "due_at": "2026-09-20 15:06:10.988571+00:00",
+      "cycle_started_at": "2026-09-19 15:06:10.988571+00:00",
+      "pattern_key": "verb_tense_past_simple"
+    },
+    {
+      "task_type": "rephrase",
+      "review_stage": 1,
+      "status": "pending",
+      "due_at": "2026-09-20 15:06:10.988571+00:00",
+      "cycle_started_at": "2026-09-19 15:06:10.988571+00:00",
+      "pattern_key": "article_missing_before_noun"
+    },
+    {
+      "task_type": "rephrase",
+      "review_stage": 1,
+      "status": "pending",
+      "due_at": "2026-09-20 15:06:10.990371+00:00",
+      "cycle_started_at": "2026-09-19 15:06:10.990371+00:00",
+      "pattern_key": "preposition_wrong_choice"
+    },
+    {
+      "task_type": "rephrase",
+      "review_stage": 1,
+      "status": "pending",
+      "due_at": "2026-09-20 15:06:10.991410+00:00",
+      "cycle_started_at": "2026-09-19 15:06:10.991410+00:00",
+      "pattern_key": "word_order_frequency_adverb"
+    },
+    {
+      "task_type": "rephrase",
+      "review_stage": 1,
+      "status": "pending",
+      "due_at": "2026-09-20 15:06:10.991410+00:00",
+      "cycle_started_at": "2026-09-19 15:06:10.991410+00:00",
+      "pattern_key": "verb_form_third_person_singular_s"
+    }
+  ],
+  "generated_scenarios": [
+    {
+      "category": "business",
+      "level": "A2",
+      "title": "Weekly video call with the partner team in Singapore",
+      "prompt_template": "You are the product manager of a partner team in Singapore, joined by two of your engineers, on a formal weekly video call where the learner presents their release plan. You ask about the schedule and share your team's test results, sometimes speaking quickly or asking follow-up questions the learner may not catch in full.",
+      "source": "generated"
+    }
+  ],
+  "session_plans": [
+    {
+      "target_level": "A2",
+      "reason": "과거에 한 일을 말할 때 과거형 동사를 더 자연스럽게 쓰도록 연습해요.",
+      "focus_pattern_ids": [
+        "b5fad10f-a5ec-4502-aefb-339e51df3cf7"
+      ],
+      "source": "agent"
+    },
+    {
+      "target_level": "A2",
+      "reason": "과거형을 반복해서 틀렸고, 오늘 복수 명사도 함께 복습할 차례예요.",
+      "focus_pattern_ids": [
+        "b5fad10f-a5ec-4502-aefb-339e51df3cf7",
+        "e970b1ac-4007-43c9-a0d5-bac08865972d"
+      ],
+      "source": "agent"
+    }
+  ],
+  "session_summary": [
+    {
+      "mode": "scenario_intake",
+      "status": "completed",
+      "summary": "{\"went_well\": [\"다음 달 회의 상황을 구체적으로 설명했어요. 참석자(product manager, two engineers)와 목표(release plan 설명, test results 질문)까지 스스로 짚어냈습니다.\", \"어떤 부분이 가장 어려운지 솔직하게 말하면서, 자신의 약점을 스스로 인식하고 표현할 수 있었어요.\"], \"weak_points\": [{\"point\": \"셀 수 있는 명사 앞에 관사(a/the)가 빠지는 패턴이 반복됐어요. 'a weekly video call', 'the product manager'처럼 관사를 붙이는 연습이 필요합니다.\", \"quote\": \"Next month I must join weekly video call with our partner team in Singapore.\"}, {\"point\": \"전치사 선택과 3인칭 단수 동사 형태에서 실수가 있었어요. 'afraid of answering'이 맞고, 주어가 their director이면 'joins'가 되어야 합니다.\", \"quote\": \"I am afraid on answering questions when I do not catch every word.\"}]}"
+    }
+  ],
+  "clock": {
+    "utc_date": "2026-09-19",
+    "local_date": "2026-09-20",
+    "last_week_start": "2026-09-07"
+  },
+  "checks": [
+    {
+      "name": "AC#1 오늘 행이 사용자 타임존 날짜로 만들어졌다",
+      "passed": true,
+      "detail": "summary_date=['2026-09-08', '2026-09-20'] · 사용자 타임존 날짜=2026-09-20 · UTC current_date=2026-09-19 · 두 날짜는 다르다(판별력 있음)"
+    },
+    {
+      "name": "AC#1 오늘 행의 집계가 발생 건수와 맞다",
+      "passed": true,
+      "detail": "occurrence_count=8 · pattern_count=6"
+    },
+    {
+      "name": "AC#2 summarize_week job 이 done 이다",
+      "passed": true,
+      "detail": "[('done', 1, None)]"
+    },
+    {
+      "name": "AC#2 지난 주 weekly_reports 행이 생겼다",
+      "passed": true,
+      "detail": "week_start=['2026-09-07'] · 기대=2026-09-07"
+    },
+    {
+      "name": "AC#3 무대 제목이 영어다 (한글 0자)",
+      "passed": true,
+      "detail": "titles=['Weekly video call with the partner team in Singapore']"
+    },
+    {
+      "name": "AC#3 무대 category 가 값역 안이다 (파서가 통과시켰다)",
+      "passed": true,
+      "detail": "category=['business'] · job=[('done', 'prompt assembly refused: allowed_categories is empty — the model would have nothing to pick')]"
+    },
+    {
+      "name": "AC#3 분석 job 전건이 done 이고 category 가 값역 안이다",
+      "passed": true,
+      "detail": "[('done', None), ('done', None), ('done', None), ('done', None), ('done', None), ('done', None)] · 패턴 category=['verb_tense', 'article', 'business_expression', 'article', 'preposition', 'word_order', 'verb_form']"
+    }
+  ]
+}
