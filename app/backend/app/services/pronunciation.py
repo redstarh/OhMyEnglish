@@ -82,12 +82,17 @@ _NOVA_TOOL: SignalSource = "nova_tool"
 #    `resolve_dangling` 의 몫이다.
 # ⚠️ `resolved_at` 도 건드리지 않는다 — 아직 해결되지 않았다.
 # ⚠️ `for update` 는 아래 판정 UPDATE 와 같은 이유로 둔다(두 호출이 같은 행을 동시에 잡는 것).
-_FOLD_PENDING_SQL = """
+#
+# ⛔ **판정 UPDATE 와 «한 틀»에서 나온다** (`TASK-226`). 두 문장이 다른 것은 판정이 `outcome` 과
+# `resolved_at` 을 함께 적는다는 것뿐인데, 나머지 열두 줄(대상 선택 · `for update` · `coalesce`
+# 넷 · `case` 하나)이 글자 그대로 같았다. 두 벌로 두면 「pending 은 덮고 판정은 안 덮는다」 같은
+# 어긋남이 조용히 생긴다 — 그 위험을 주석이 경고하던 자리를 틀이 대신 막는다.
+_CLOSE_LATEST_PENDING_TEMPLATE = """
 update pronunciation_attempts set
     spoken_form  = coalesce($3, spoken_form),
     target_sound = coalesce($4, target_sound),
     utterance_id = coalesce($5, utterance_id),
-    target_form  = case when btrim($2) = '' then target_form else $2 end
+    target_form  = case when btrim($2) = '' then target_form else $2 end{extra_sets}
 where id = (
     select id from pronunciation_attempts
      where session_id = $1 and outcome = 'pending'
@@ -97,6 +102,43 @@ where id = (
 )
 returning id
 """
+
+_FOLD_PENDING_SQL = _CLOSE_LATEST_PENDING_TEMPLATE.format(extra_sets="")
+
+# 판정값이 최신 `pending` 을 닫는다 — `$6` 이 그 판정값이다.
+#
+# ⛔ **`target_form` 은 판정값으로 «덮는다» — `coalesce` 가 아니다** (`TASK-103`). 관측이 이유다:
+# Nova 는 규칙 10 의 두 호출에 **다른 것**을 싣는다. 시범 호출의 `target_form` 은 학습자 발화의
+# **무너진 전사**(`I think Sri sings are ready for the demo.`)이고 판정 호출의 것이 **옳은 목표
+# 문장**(`I think three things are ready for the demo.`)이다. 실물 왕복 6회
+# (`runs/2026-09-11-task97-tool-payload.md` §3)와 REG 팔 4회
+# (`runs/2026-09-12-task111-116-selfcontained-key.md` §1)가 같은 모양을 냈다.
+# ⇒ 첫 값을 최종값으로 두면 **학습자 화면의 「시범 문장」 자리에 학습자의 오발음이 뜬다.**
+#
+# ⚠️ 규칙 10 의 문면은 두 호출을 **시점으로만** 구별하고 `target_form` 의 뜻을 고정하지 않으므로
+# 이것이 모델의 규약 위반이 아니다. tool 스키마의 필드 설명은 이미 *"The full sentence you modeled
+# with correct pronunciation."* 이고 `TASK-97` 회차가 교차 3쌍으로 「프롬프트로는 고쳐지지
+# 않는다」를 확인했다. 그래서 저장 쪽에서 고친다.
+#
+# ⛔ **`coalesce` 로 쓰지 못하는 이유**: 인자가 `str`(옵셔널이 아님)이라 `null` 이 오지 않는다.
+# 그런데 003 의 CHECK 가 `length(btrim(target_form)) > 0` 이므로 **공백만 실린 판정은 UPDATE 를
+# 죽인다** — `coalesce` 도 무조건 대입도 안 되고 **공백을 걸러야** 한다(직접 확인: 무조건 대입한
+# 판은 `pronunciation_attempts_target_form_check` 위반으로 판정 트랜잭션이 통째로 깨졌다).
+# 그래서 `case` 로 그 한 경우만 옛 값에 남긴다 — 그 `case` 는 이제 위 틀이 소유한다.
+#
+# `signal_source` 를 **필터하지 않는다.** 005 제약이 "pending 은 nova_tool 만"을 표에서 강제하므로
+# 열린 행은 정의상 Nova 것이다 — 앱에서 한 번 더 거르면 같은 규칙이 두 층에 흩어진다.
+#
+# ⚠️ `for update` 는 두 판정이 동시에 들어올 때 같은 행을 닫는 것을 막는다. 그런데 **패자가 새
+# 행을 만드는 것이 아니다** — 잠금이 풀리면 EPQ 재검사가 이미 닫힌 행을 떨어뜨리고 서브쿼리가
+# **그 다음 pending 으로 전진**해 무관한 시도를 닫는다(리뷰가 연결 2개로 실측). 지금은
+# `_pump_adapter_events` 가 이벤트를 순차 await 해 도달 불가다 — 발음 기록을 `create_task` 로
+# 띄우면 즉시 도달하므로 띄우지 않는다.
+_RECORD_VERDICT_SQL = _CLOSE_LATEST_PENDING_TEMPLATE.format(
+    extra_sets=""",
+    outcome      = $6,
+    resolved_at  = clock_timestamp()"""
+)
 
 # `TASK-116.1`(사용자 **결정 82**) — 기록된 `target_sound` 가 코치의 발화와 어긋났는지의 판정값.
 # 값역의 정본은 020 의 CHECK 이고 이 상수가 그 문자열을 소유한다(리터럴을 두 곳에 두지 않는다).
@@ -339,103 +381,47 @@ async def record_attempt(
     소유권"). 호출자가 autocommit이라 맡기면 부분 실행이 생긴다.
     """
     async with conn.transaction():
+        # ⛔ **열린 `pending` 이 있으면 새 행을 열지 않고 그 행을 갱신한다** (`TASK-125`).
+        #
+        # 관측이 이유다: 봉투 하나에서 **두 호출이 모두 `pending`** 이었고(12/12 ·
+        # `runs/2026-09-11-task97-tool-payload.md`) 그러면 판정 UPDATE 가 아예 돌지 않아 행이 둘
+        # 남았다. `resolve_dangling` 이 둘 다 `incorrect` 로 수렴시키므로 **학습자 화면의 「시범
+        # 문장」 자리에 학습자의 오발음이 뜨고 카드가 두 장 났다**
+        # (`runs/2026-09-12-task103-target-form-storage.md` §1-⑷ — 화면을 직접 열어 본 증거).
+        #
+        # 근거 둘: ① 규칙 10 이 한 코칭 사건을 「시범 + 재발화 판정」으로 짝지으므로 **열린 pending
+        # 은 언제나 하나**여야 하고 둘은 이상 상태다 ② 관측이 **나중 호출이 옳은 문장**을 싣는다고
+        # 말한다(첫 호출이 무너진 전사다) — 그것이 판정 경로의 「나중 값이 `target_form` 을 덮는다」
+        # (`TASK-103`)와 **같은 규칙**이고, 그래서 두 문장이 한 틀에서 나온다.
+        #
+        # ⛔ **표시로 덮지 않은 이유**: 복습 시계(`next_review_at`)와 계획 프롬프트가 같은 행을
+        # 읽는다 — 화면에서만 묶으면 그 둘이 여전히 오발음을 근거로 삼는다.
+        # ⚠️ **대가를 적어 둔다**: 한 세션에 판정 없이 코칭이 두 번 일어나면 그 둘이 한 행으로
+        # 접혀 복습 시계가 하나로 센다. 그 대가를 택한 근거는 위 ①이다 — 판정 없는 둘째 코칭은
+        # 규칙 10 의 짝이 아니고, 반대쪽(행 둘)은 **사용자에게 보이는 오류**를 냈다.
         if outcome == "pending":
-            # ⛔ **열린 `pending` 이 있으면 새 행을 열지 않고 그 행을 갱신한다** (`TASK-125`).
-            #
-            # 관측이 이유다: 봉투 하나에서 **두 호출이 모두 `pending`** 이었고(12/12 ·
-            # `runs/2026-09-11-task97-tool-payload.md`) 그러면 판정 UPDATE 가 아예 돌지 않아
-            # 행이 둘 남았다. `resolve_dangling` 이 둘 다 `incorrect` 로 수렴시키므로
-            # **학습자 화면의 「시범 문장」 자리에 학습자의 오발음이 뜨고 카드가 두 장 났다**
-            # (`runs/2026-09-12-task103-target-form-storage.md` §1-⑷ — 화면을 직접 열어 본 증거).
-            #
-            # 근거 둘: ① 규칙 10 이 한 코칭 사건을 「시범 + 재발화 판정」으로 짝지으므로 **열린
-            # pending 은 언제나 하나**여야 하고 둘은 이상 상태다 ② 관측이 **나중 호출이 옳은
-            # 문장**을 싣는다고 말한다(첫 호출이 무너진 전사다) — 그것은 아래 판정 경로가 쓰는
-            # 「나중 값이 `target_form` 을 덮는다」(`TASK-103`)와 **같은 규칙**이다.
-            #
-            # ⛔ **표시로 덮지 않은 이유**: 복습 시계(`next_review_at`)와 계획 프롬프트가 같은 행을
-            # 읽는다 — 화면에서만 묶으면 그 둘이 여전히 오발음을 근거로 삼는다.
-            # ⚠️ **대가를 적어 둔다**: 한 세션에 판정 없이 코칭이 두 번 일어나면 그 둘이 한 행으로
-            # 접혀 복습 시계가 하나로 센다. 그 대가를 택한 근거는 위 ①이다 — 판정 없는 둘째 코칭은
-            # 규칙 10 의 짝이 아니고, 반대쪽(행 둘)은 **사용자에게 보이는 오류**를 냈다.
-            # ⚠️ 공백만 실린 값은 옛 값을 남긴다 — 003 의 CHECK 가 빈 `target_form` 을 거부하므로
-            # 아래 판정 UPDATE 와 **같은 `case`** 를 쓴다.
-            folded = await conn.fetchval(
+            attempt_id = await conn.fetchval(
                 _FOLD_PENDING_SQL, session_id, target_form, spoken_form, target_sound, utterance_id
             )
-            if folded is not None:
-                return folded
-            # 아직 오류가 아니라 패턴을 만들지 않는다. 이 행은 판정이 오거나
-            # `resolve_dangling`이 수렴할 때 패턴을 얻는다.
-            return await _insert_attempt(
-                conn,
+        else:
+            # 판정값 — 가장 최근 pending 을 닫는다. `coalesce` 라서 판정이 값을 안 주면 시범 시점의
+            # 값이 남는다(빈 판정이 기록을 지우지 않는다). 근거는 그 SQL 위 주석이 갖는다.
+            attempt_id = await conn.fetchval(
+                _RECORD_VERDICT_SQL,
                 session_id,
-                target_form=target_form,
-                outcome=outcome,
-                spoken_form=spoken_form,
-                target_sound=target_sound,
-                utterance_id=utterance_id,
-                signal_source=_NOVA_TOOL,
+                target_form,
+                spoken_form,
+                target_sound,
+                utterance_id,
+                outcome,
             )
-
-        # 판정값 — 가장 최근 pending을 닫는다. `coalesce`라서 판정이 값을 안 주면 시범
-        # 시점의 값이 남는다(빈 판정이 기록을 지우지 않는다).
-        #
-        # ⛔ **`target_form`은 판정값으로 «덮는다» — `coalesce`가 아니다** (`TASK-103`).
-        # 관측이 이유다: Nova는 규칙 10의 두 호출에 **다른 것**을 싣는다. 시범 호출의
-        # `target_form`은 학습자 발화의 **무너진 전사**(`I think Sri sings are ready for the
-        # demo.`)이고 판정 호출의 것이 **옳은 목표 문장**(`I think three things are ready for the
-        # demo.`)이다. 실물 왕복 6회(`runs/2026-09-11-task97-tool-payload.md` §3)와 REG 팔 4회
-        # (`runs/2026-09-12-task111-116-selfcontained-key.md` §1)가 같은 모양을 냈다.
-        # ⇒ 첫 값을 최종값으로 두면 **학습자 화면의 「시범 문장」 자리에 학습자의 오발음이 뜬다.**
-        #
-        # ⚠️ 규칙 10의 문면은 두 호출을 **시점으로만** 구별하고 `target_form`의 뜻을 고정하지
-        # 않으므로 이것이 모델의 규약 위반이 아니다. tool 스키마의 필드 설명은 이미
-        # *"The full sentence you modeled with correct pronunciation."*이고 `TASK-97` 회차가
-        # 교차 3쌍으로 「프롬프트로는 고쳐지지 않는다」를 확인했다. 그래서 저장 쪽에서 고친다.
-        #
-        # ⛔ **`coalesce`로 쓰지 못하는 이유**: 인자가 `str`(옵셔널이 아님)이라 `null`이 오지
-        # 않는다. 그런데 003의 CHECK가 `length(btrim(target_form)) > 0`이므로 **공백만 실린
-        # 판정은 UPDATE를 죽인다** — `coalesce`도 무조건 대입도 안 되고 **공백을 걸러야** 한다
-        # (직접 확인: 무조건 대입한 판은 `pronunciation_attempts_target_form_check` 위반으로
-        # 판정 트랜잭션이 통째로 깨졌다). 그래서 `case`로 그 한 경우만 옛 값에 남긴다.
-        #
-        # `signal_source`를 **필터하지 않는다.** 005 제약이 "pending은 nova_tool만"을 표에서
-        # 강제하므로 열린 행은 정의상 Nova 것이다 — 앱에서 한 번 더 거르면 같은 규칙이 두 층에
-        # 흩어진다.
-        #
-        # ⚠️ `for update`는 두 판정이 동시에 들어올 때 같은 행을 닫는 것을 막는다. 그런데
-        # **패자가 새 행을 만드는 것이 아니다** — 잠금이 풀리면 EPQ 재검사가 이미 닫힌 행을
-        # 떨어뜨리고 서브쿼리가 **그 다음 pending으로 전진**해 무관한 시도를 닫는다(리뷰가
-        # 연결 2개로 실측). 지금은 `_pump_adapter_events`가 이벤트를 순차 await해 도달
-        # 불가다 — 발음 기록을 `create_task`로 띄우면 즉시 도달하므로 띄우지 않는다.
-        attempt_id = await conn.fetchval(
-            """
-            update pronunciation_attempts set
-                outcome      = $2,
-                spoken_form  = coalesce($3, spoken_form),
-                target_sound = coalesce($4, target_sound),
-                utterance_id = coalesce($5, utterance_id),
-                target_form  = case when btrim($6) = '' then target_form else $6 end,
-                resolved_at  = clock_timestamp()
-            where id = (
-                select id from pronunciation_attempts
-                 where session_id = $1 and outcome = 'pending'
-                 order by attempt_seq desc
-                 limit 1
-                 for update
-            )
-            returning id
-            """,
-            session_id,
-            outcome,
-            spoken_form,
-            target_sound,
-            utterance_id,
-            target_form,
-        )
+            if attempt_id is None:
+                logger.info(
+                    "닫을 pending 시도가 없어 판정값으로 새 행을 만든다 (세션 %s)", session_id
+                )
         if attempt_id is None:
-            logger.info("닫을 pending 시도가 없어 판정값으로 새 행을 만든다 (세션 %s)", session_id)
+            # 닫을 것이 없으면 그 값으로 새 행을 만든다 — Nova 가 시범 없이 판정만 보내도 기록을
+            # 잃지 않는다(설계서 §3.2 의 "없으면 새 행을 그 outcome 으로 INSERT").
             attempt_id = await _insert_attempt(
                 conn,
                 session_id,
@@ -446,6 +432,11 @@ async def record_attempt(
                 utterance_id=utterance_id,
                 signal_source=_NOVA_TOOL,
             )
+        if outcome == "pending":
+            # 아직 오류가 아니라 패턴을 만들지 않는다. 이 행은 판정이 오거나 `resolve_dangling` 이
+            # 수렴할 때 패턴을 얻는다.
+            assert isinstance(attempt_id, UUID)
+            return attempt_id
 
         assert isinstance(attempt_id, UUID)
         # 패턴을 만들 **조건은 SQL이 갖는다**(`incorrect` + `target_sound` 있음). 여기서 한 번

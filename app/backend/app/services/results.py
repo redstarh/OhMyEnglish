@@ -151,7 +151,6 @@ class SessionResult:
     # (R2 규칙 3: analyzing / 규칙 1: connection_failed / 규칙 2: no_utterances).
     # API 계층이 이 구분을 JSON 키 존재 여부로 옮긴다.
     corrections: list[Correction] | None
-    partial_failure: bool
     # R2 판정과 **독립**이다 — 5개 상태 전부에서 실리고, 비어 있으면 빈 리스트다
     # (`corrections`처럼 `None`으로 키를 지우지 않는다). 근거는 모듈 docstring 마지막 절.
     pronunciation: list[PronunciationAttempt]
@@ -186,6 +185,20 @@ class SessionResult:
     # (`corrections`·`drill`의 키 생략 규약을 따르지 않는다): 프론트가 상태마다 키 존재를
     # 갈라 읽지 않게 한다.
     awaiting_analysis: bool
+
+    @property
+    def partial_failure(self) -> bool:
+        """`status == "partial_failure"` 와 **언제나 같다** — 그래서 필드가 아니다(`TASK-226`).
+
+        ⛔ **다섯 생성 자리에서 두 값을 각자 적고 있었다.** 둘이 갈라지면 화면은 「부분 실패」라고
+        말하면서 같은 응답의 이 키가 `false` 인 상태가 되고, 어느 쪽이 참인지 아무것도 알려 주지
+        않는다. 지금은 갈라질 자리가 없다.
+
+        ⚠️ **API 는 이 키를 계속 싣는다** — 응답 규격이라 여기서 없애는 것은 계약 변경이다
+        (`api/results.py` 가 직렬화한다). 프런트는 그 키를 선언만 하고 `status` 를 읽는다
+        (`lib/api.ts` · `results/[sessionId]/page.tsx`) — 그 사실이 이 값이 파생값이라는 증거다.
+        """
+        return self.status == "partial_failure"
 
 
 _SESSION_ROW_SQL = """
@@ -409,7 +422,6 @@ async def get_session_result(conn: asyncpg.Connection, session_id: UUID) -> Sess
         return SessionResult(
             status="connection_failed",
             corrections=None,
-            partial_failure=False,
             pronunciation=pronunciation,
             summary=summary,
             drill=None,
@@ -431,7 +443,6 @@ async def get_session_result(conn: asyncpg.Connection, session_id: UUID) -> Sess
         return SessionResult(
             status="no_utterances",
             corrections=None,
-            partial_failure=False,
             pronunciation=pronunciation,
             summary=summary,
             drill=None,
@@ -446,7 +457,6 @@ async def get_session_result(conn: asyncpg.Connection, session_id: UUID) -> Sess
         return SessionResult(
             status="analyzing",
             corrections=None,
-            partial_failure=False,
             pronunciation=pronunciation,
             summary=summary,
             drill=None,
@@ -464,7 +474,6 @@ async def get_session_result(conn: asyncpg.Connection, session_id: UUID) -> Sess
         return SessionResult(
             status="partial_failure",
             corrections=corrections,
-            partial_failure=True,
             pronunciation=pronunciation,
             summary=summary,
             drill=drill,
@@ -476,7 +485,6 @@ async def get_session_result(conn: asyncpg.Connection, session_id: UUID) -> Sess
     return SessionResult(
         status="final",
         corrections=corrections,
-        partial_failure=False,
         pronunciation=pronunciation,
         summary=summary,
         drill=drill,
