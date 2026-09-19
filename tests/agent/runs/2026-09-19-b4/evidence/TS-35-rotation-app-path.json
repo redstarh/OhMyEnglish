@@ -1,0 +1,27 @@
+{
+  "candidates_at_A2": 30,
+  "sequence": "NNNRRRRRRRRN",
+  "new_total": 4,
+  "first_window_new": 3,
+  "threshold": {
+    "WINDOW": 10,
+    "NEW_PER_WINDOW": 3
+  },
+  "new_quota_respected": true,
+  "distinct_stages_used": 4,
+  "stage_sequence": [
+    "0101",
+    "0102",
+    "0103",
+    "0101",
+    "0102",
+    "0103",
+    "0101",
+    "0102",
+    "0103",
+    "0101",
+    "0102",
+    "0110"
+  ],
+  "cleanup_users_left": 0
+}

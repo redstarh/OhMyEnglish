@@ -1,0 +1,33 @@
+{
+  "live_statuses_const": [
+    "active",
+    "paused"
+  ],
+  "before": {
+    "active": [
+      ".pcm.part"
+    ],
+    "paused": [
+      ".pcm.part"
+    ],
+    "completed": [
+      ".pcm.part",
+      "65e6b.pcm"
+    ]
+  },
+  "removed_count": 2,
+  "after": {
+    "active": [
+      ".pcm.part"
+    ],
+    "paused": [
+      ".pcm.part"
+    ],
+    "completed": "(지워짐)"
+  },
+  "active_part_survived": true,
+  "paused_part_survived": true,
+  "ended_orphans_removed": true,
+  "db_rows_left": 0,
+  "temp_root_removed": true
+}

@@ -1,0 +1,271 @@
+job e9fbde75-4fc7-4e19-b2e9-98d7decb5d25: analysis output rejected: new pattern_key 'Bad Key With Spaces' does not match ^article_[a-z0-9_]+$
+{
+  "user_id": "a1e6d893-ae64-41bc-b93a-9e239462548d",
+  "stage_days_const": [
+    1,
+    3,
+    7
+  ],
+  "steps": [
+    {
+      "step": "1 첫 오류",
+      "job": "done",
+      "utterance_at": "2026-08-30 06:24:35.205530+00:00",
+      "expected_next_review_at": "2026-08-31 06:24:35.205530+00:00",
+      "patterns": [
+        {
+          "id": "dfffbdc1-040c-4fd0-ac87-48aa1709c88d",
+          "pattern_key": "article_b4_marker_stage",
+          "frequency": "1",
+          "mastery_score": "0.00",
+          "next_review_at": "2026-08-31 06:24:35.205530+00:00"
+        }
+      ],
+      "ladder": [
+        {
+          "review_stage": "1",
+          "status": "pending",
+          "due_at": "2026-08-31 06:24:35.205530+00:00",
+          "completed_at": "None",
+          "cycle_started_at": "2026-08-30 06:24:35.205530+00:00"
+        }
+      ],
+      "occurrences": [
+        {
+          "original_span": "go to gym",
+          "correction": "go to the gym",
+          "pattern_key": "article_b4_marker_stage"
+        }
+      ]
+    },
+    {
+      "step": "2 1일 뒤 정답",
+      "job": "done",
+      "utterance_at": "2026-08-31 06:25:35.205530+00:00",
+      "expected_next_review_at": "2026-09-03 06:25:35.205530+00:00",
+      "patterns": [
+        {
+          "id": "dfffbdc1-040c-4fd0-ac87-48aa1709c88d",
+          "pattern_key": "article_b4_marker_stage",
+          "frequency": "1",
+          "mastery_score": "0.00",
+          "next_review_at": "2026-09-03 06:25:35.205530+00:00"
+        }
+      ],
+      "ladder": [
+        {
+          "review_stage": "1",
+          "status": "done",
+          "due_at": "2026-08-31 06:24:35.205530+00:00",
+          "completed_at": "2026-08-31 06:25:35.205530+00:00",
+          "cycle_started_at": "2026-08-30 06:24:35.205530+00:00"
+        },
+        {
+          "review_stage": "2",
+          "status": "pending",
+          "due_at": "2026-09-03 06:25:35.205530+00:00",
+          "completed_at": "None",
+          "cycle_started_at": "2026-08-30 06:24:35.205530+00:00"
+        }
+      ],
+      "occurrences": [
+        {
+          "original_span": "go to gym",
+          "correction": "go to the gym",
+          "pattern_key": "article_b4_marker_stage"
+        }
+      ]
+    },
+    {
+      "step": "3 3일 더 뒤 정답",
+      "job": "done",
+      "utterance_at": "2026-09-03 06:29:35.205530+00:00",
+      "expected_next_review_at": "2026-09-10 06:29:35.205530+00:00",
+      "patterns": [
+        {
+          "id": "dfffbdc1-040c-4fd0-ac87-48aa1709c88d",
+          "pattern_key": "article_b4_marker_stage",
+          "frequency": "1",
+          "mastery_score": "0.00",
+          "next_review_at": "2026-09-10 06:29:35.205530+00:00"
+        }
+      ],
+      "ladder": [
+        {
+          "review_stage": "1",
+          "status": "done",
+          "due_at": "2026-08-31 06:24:35.205530+00:00",
+          "completed_at": "2026-08-31 06:25:35.205530+00:00",
+          "cycle_started_at": "2026-08-30 06:24:35.205530+00:00"
+        },
+        {
+          "review_stage": "2",
+          "status": "done",
+          "due_at": "2026-09-03 06:25:35.205530+00:00",
+          "completed_at": "2026-09-03 06:29:35.205530+00:00",
+          "cycle_started_at": "2026-08-30 06:24:35.205530+00:00"
+        },
+        {
+          "review_stage": "3",
+          "status": "pending",
+          "due_at": "2026-09-10 06:29:35.205530+00:00",
+          "completed_at": "None",
+          "cycle_started_at": "2026-08-30 06:24:35.205530+00:00"
+        }
+      ],
+      "occurrences": [
+        {
+          "original_span": "go to gym",
+          "correction": "go to the gym",
+          "pattern_key": "article_b4_marker_stage"
+        }
+      ]
+    },
+    {
+      "step": "4 7일 더 뒤 정답",
+      "job": "done",
+      "utterance_at": "2026-09-10 06:34:35.205530+00:00",
+      "expected_next_review_at": null,
+      "patterns": [
+        {
+          "id": "dfffbdc1-040c-4fd0-ac87-48aa1709c88d",
+          "pattern_key": "article_b4_marker_stage",
+          "frequency": "1",
+          "mastery_score": "100.00",
+          "next_review_at": "None"
+        }
+      ],
+      "ladder": [
+        {
+          "review_stage": "1",
+          "status": "done",
+          "due_at": "2026-08-31 06:24:35.205530+00:00",
+          "completed_at": "2026-08-31 06:25:35.205530+00:00",
+          "cycle_started_at": "2026-08-30 06:24:35.205530+00:00"
+        },
+        {
+          "review_stage": "2",
+          "status": "done",
+          "due_at": "2026-09-03 06:25:35.205530+00:00",
+          "completed_at": "2026-09-03 06:29:35.205530+00:00",
+          "cycle_started_at": "2026-08-30 06:24:35.205530+00:00"
+        },
+        {
+          "review_stage": "3",
+          "status": "done",
+          "due_at": "2026-09-10 06:29:35.205530+00:00",
+          "completed_at": "2026-09-10 06:34:35.205530+00:00",
+          "cycle_started_at": "2026-08-30 06:24:35.205530+00:00"
+        }
+      ],
+      "occurrences": [
+        {
+          "original_span": "go to gym",
+          "correction": "go to the gym",
+          "pattern_key": "article_b4_marker_stage"
+        }
+      ]
+    },
+    {
+      "step": "5 재발(표기만 다른 key)",
+      "job": "done",
+      "utterance_at": "2026-09-11 06:24:35.205530+00:00",
+      "expected_next_review_at": "2026-09-12 06:24:35.205530+00:00",
+      "patterns": [
+        {
+          "id": "dfffbdc1-040c-4fd0-ac87-48aa1709c88d",
+          "pattern_key": "article_b4_marker_stage",
+          "frequency": "2",
+          "mastery_score": "0.00",
+          "next_review_at": "2026-09-12 06:24:35.205530+00:00"
+        }
+      ],
+      "ladder": [
+        {
+          "review_stage": "1",
+          "status": "done",
+          "due_at": "2026-08-31 06:24:35.205530+00:00",
+          "completed_at": "2026-08-31 06:25:35.205530+00:00",
+          "cycle_started_at": "2026-08-30 06:24:35.205530+00:00"
+        },
+        {
+          "review_stage": "2",
+          "status": "done",
+          "due_at": "2026-09-03 06:25:35.205530+00:00",
+          "completed_at": "2026-09-03 06:29:35.205530+00:00",
+          "cycle_started_at": "2026-08-30 06:24:35.205530+00:00"
+        },
+        {
+          "review_stage": "3",
+          "status": "done",
+          "due_at": "2026-09-10 06:29:35.205530+00:00",
+          "completed_at": "2026-09-10 06:34:35.205530+00:00",
+          "cycle_started_at": "2026-08-30 06:24:35.205530+00:00"
+        },
+        {
+          "review_stage": "1",
+          "status": "pending",
+          "due_at": "2026-09-12 06:24:35.205530+00:00",
+          "completed_at": "None",
+          "cycle_started_at": "2026-09-11 06:24:35.205530+00:00"
+        }
+      ],
+      "occurrences": [
+        {
+          "original_span": "go to gym",
+          "correction": "go to the gym",
+          "pattern_key": "article_b4_marker_stage"
+        },
+        {
+          "original_span": "go to gym",
+          "correction": "go to the gym",
+          "pattern_key": "article_b4_marker_stage"
+        }
+      ]
+    }
+  ],
+  "cycle_1_day": true,
+  "cycle_3_day": true,
+  "cycle_7_day": true,
+  "cycle_completed_clears_due": true,
+  "cycle_mastery_after_completion": "100.00",
+  "relapse_back_to_1_day": true,
+  "relapse_mastery_reset": "0.00",
+  "pattern_row_count_after_recased_key": 1,
+  "pattern_key_stored": "article_b4_marker_stage",
+  "frequency_after_relapse": "2",
+  "ladder_stages_recorded": [
+    "1",
+    "2",
+    "3"
+  ],
+  "wrong_sentence_stored": [
+    {
+      "original_span": "go to gym",
+      "correction": "go to the gym",
+      "pattern_key": "article_b4_marker_stage"
+    },
+    {
+      "original_span": "go to gym",
+      "correction": "go to the gym",
+      "pattern_key": "article_b4_marker_stage"
+    }
+  ],
+  "malformed_new_key_job": "pending / new pattern_key 'Bad Key With Spaces' does not match ^article_[a-z0-9_]+$",
+  "malformed_new_key_pattern_rows": 1,
+  "malformed_new_key_rejected": true,
+  "level_steps": {
+    "same_B1": "accepted → B1",
+    "up_one_B2": "accepted → B2",
+    "down_one_A2": "accepted → A2",
+    "up_two_C1": "rejected: level jump from 'B1' to 'C1' skips more than one CEFR step",
+    "down_two_A1": "rejected: level jump from 'B1' to 'A1' skips more than one CEFR step"
+  },
+  "level_one_step_up_allowed": true,
+  "level_one_step_down_allowed": true,
+  "level_two_step_up_rejected": true,
+  "level_two_step_down_rejected": true,
+  "model_calls_stubbed": 6,
+  "cleanup_users_left": 0,
+  "cleanup_patterns_left": 0
+}

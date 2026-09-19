@@ -1,0 +1,56 @@
+job 735c1cfd-d769-4649-a68b-6dfa487e5eb4: lease lost, generated stage rolled back
+{
+  "user_id": "d9cf7f17-62a2-4d0b-ba44-48f2bbb989b4",
+  "lease_lost_model_was_called": true,
+  "lease_lost_generated_before": 0,
+  "lease_lost_generated_after": 0,
+  "lease_lost_result_not_committed": true,
+  "lease_lost_job_row": {
+    "status": "running",
+    "locked_by": "b4-thief",
+    "last_error": null
+  },
+  "lease_lost_no_failure_reported": true,
+  "generate_job_status": "done",
+  "generate_rows": [
+    {
+      "id": "55176082-e6ad-4f86-b7b0-8a87e6c7bc4b",
+      "category": "travel",
+      "level": "B1",
+      "title": "B4 run marker stage at the airport counter",
+      "source": "generated"
+    }
+  ],
+  "generate_row_is_mine": true,
+  "generate_level_from_app_not_model": true,
+  "generate_prompt_mentions_axes": true,
+  "attach_session_scenario_is_generated": true,
+  "attach_pick": "new",
+  "progress_scenario_stable_across_turns": true,
+  "progress_title_across_turns": "B4 run marker stage at the airport counter",
+  "progress_scenario_id_unchanged_in_row": true,
+  "progress_row": {
+    "sessions": 1,
+    "new_picks": 1,
+    "last_studied_on": "2026-09-19"
+  },
+  "progress_lists_unstudied_too": true,
+  "progress_rows_total": 31,
+  "rotation_picks_30": "NNNRRRRRRRRNNNRRRRRRRRNNNRRRRR",
+  "rotation_new_total_30": 9,
+  "rotation_new_per_window": [
+    3,
+    3,
+    3
+  ],
+  "rotation_threshold": {
+    "WINDOW": 10,
+    "NEW_PER_WINDOW": 3
+  },
+  "rotation_ratio_holds": true,
+  "rotation_db_sequence": "RRRRRRRRRRR",
+  "rotation_db_candidate_count": 1,
+  "rotation_db_new_in_last_window": 0,
+  "cleanup_users_left": 0,
+  "cleanup_generated_left": 0
+}

@@ -1,0 +1,49 @@
+{
+  "fixture_sessions_before": 27,
+  "frame_types": [
+    "session_started",
+    "final",
+    "partial",
+    "partial",
+    "final",
+    "audio",
+    "final",
+    "partial",
+    "partial",
+    "final",
+    "audio",
+    "final",
+    "partial"
+  ],
+  "session_started_received": true,
+  "session_id": "6de02c15-0e70-42c9-81d1-2f2658316956",
+  "session_row": {
+    "mode": "scenario_intake",
+    "status": "completed",
+    "scenario_id": "00000000-0000-0000-0000-000000000110",
+    "drill_turns_expected": "20"
+  },
+  "mode_recorded_as_intake": true,
+  "jobs_after_end": [
+    {
+      "job_type": "generate_scenario",
+      "status": "pending"
+    },
+    {
+      "job_type": "plan_next_session",
+      "status": "pending"
+    },
+    {
+      "job_type": "summarize_session",
+      "status": "pending"
+    },
+    {
+      "job_type": "summarize_week",
+      "status": "pending"
+    }
+  ],
+  "generate_scenario_job_enqueued": true,
+  "utterances_recorded": 6,
+  "fixture_sessions_after_cleanup": 27,
+  "session_set_restored": true
+}
