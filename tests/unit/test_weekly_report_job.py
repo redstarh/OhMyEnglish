@@ -195,6 +195,45 @@ async def test_the_model_reply_is_stored_and_the_token_record_lands(
 
 
 @pytest.mark.asyncio
+async def test_a_lost_lease_stores_no_report_and_does_not_report_failure(
+    db_pool: asyncpg.Pool, user_id: UUID
+) -> None:
+    """⛔ **lease 를 잃으면 리포트도 커밋되지 않는다** (`TASK-224`).
+
+    `_store` 가 `complete` 의 판정을 보지 않으면 이미 다른 claim 이 들고 있는 job 의 자리에 리포트를
+    써 넣는다. `unique (user_id, week_start)` 가 행 수는 막지만 **그 claim 이 만들 리포트를 우리
+    것으로 선점한다** — 모델 호출이 한 번 더 나가는 것을 막으려고 둔 한 트랜잭션의 뜻이 뒤집힌다.
+
+    ⛔ **`report_failure` 를 부르지 않는다** — 우리 job 이 아니다.
+    """
+    async with db_pool.acquire() as conn:
+        session_id = await _session(conn, user_id)
+        job = await _claimed(conn, session_id)
+        week = await last_week_start(conn, user_id)
+        stolen = await conn.fetchval(
+            "update analysis_jobs set locked_by = $2 where id = $1 returning locked_by",
+            job.id,
+            uuid4().hex,
+        )
+    assert stolen != job.lease_token, "lease 탈취를 만들지 못했다"
+
+    await process_weekly(db_pool, cast("object", _StubClaude(_reply())), job)  # ty: ignore[invalid-argument-type]
+
+    async with db_pool.acquire() as conn:
+        row = await conn.fetchrow(
+            "select insights from weekly_reports where user_id = $1 and week_start = $2",
+            user_id,
+            week,
+        )
+        job_row = await conn.fetchrow(
+            "select status, last_error from analysis_jobs where id = $1", job.id
+        )
+    assert row is None, "lease 를 잃었는데 리포트가 커밋됐다"
+    assert job_row["status"] == "running"
+    assert job_row["last_error"] is None, "우리 job 이 아닌데 실패를 보고했다"
+
+
+@pytest.mark.asyncio
 async def test_processing_twice_keeps_one_row(db_pool: asyncpg.Pool, user_id: UUID) -> None:
     """멱등이다 — 재시도가 행을 늘리지 않는다(`unique (user_id, week_start)` 가 뿌리다)."""
     async with db_pool.acquire() as conn:

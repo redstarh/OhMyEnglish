@@ -34,7 +34,7 @@ from app.models.scenario_draft import (
     normalize_title,
     parse_scenario,
 )
-from app.services.jobs import ClaimedJob, complete, report_failure
+from app.services.jobs import ClaimedJob, LeaseLost, complete, report_failure
 from app.workers.claude_client import ClaudeClient
 
 logger = logging.getLogger(__name__)
@@ -272,6 +272,11 @@ async def process_scenario(pool: asyncpg.Pool, claude: ClaudeClient, job: Claime
                 draft.prompt_template,
             )
             await complete(conn, job.id, job.lease_token)
+    except LeaseLost:
+        # ⛔ **broad `except` 보다 앞이다** (`TASK-224`). 그 job 은 이미 다른 claim 이 들고 있으므로
+        # `report_failure` 를 부르지 않는다 — 무대는 제목에 unique 가 없어 커밋하면 중복이 남는다.
+        logger.warning("job %s: lease lost, generated stage rolled back", job.id)
+        return
     except Exception as exc:
         logger.exception("job %s: storing the generated stage failed", job.id)
         await report_failure(pool, job, f"{type(exc).__name__}: {exc}")

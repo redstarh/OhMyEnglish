@@ -239,7 +239,7 @@ async def test_flush_does_not_re_enqueue_a_run_whose_analysis_already_finished(
     assert await flush_pending_analysis(db_conn, session_id) == [fragment.id]
     claimed = await claim_next(db_conn)
     assert claimed is not None
-    assert await complete(db_conn, claimed.id, claimed.lease_token) is True
+    await complete(db_conn, claimed.id, claimed.lease_token)
 
     assert await flush_pending_analysis(db_conn, session_id) == []
     assert await db_conn.fetchval("select count(*) from analysis_jobs") == 1

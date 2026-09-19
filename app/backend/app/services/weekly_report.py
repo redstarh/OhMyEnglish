@@ -30,6 +30,7 @@ from app.models.weekly_report import (
 from app.services.jobs import (
     JOB_TYPE_SUMMARIZE_WEEK,
     ClaimedJob,
+    LeaseLost,
     complete,
     report_failure,
 )
@@ -326,6 +327,9 @@ async def _store(
     ⛔ 두 문장을 갈라 커밋하면 「리포트는 저장됐는데 job 은 running」인 상태가 생기고, 재시도가 그
     리포트를 **다시 만들어 덮는다**(모델 호출이 한 번 더 나간다). `process_summary` 가 같은 이유로
     같은 형태를 쓴다.
+
+    ⛔ **`LeaseLost` 를 broad `except` 보다 «앞에» 잡는다** (`TASK-224`) — 그 job 은 이미 다른
+    claim 이 들고 있어 `report_failure` 를 부를 자리가 아니고, 리포트도 함께 롤백돼야 한다.
     """
     try:
         async with pool.acquire() as conn, conn.transaction():
@@ -338,6 +342,9 @@ async def _store(
                 json.dumps(insights, ensure_ascii=False),
             )
             await complete(conn, job.id, job.lease_token)
+    except LeaseLost:
+        logger.warning("job %s: lease lost, weekly report rolled back", job.id)
+        return False
     except Exception as exc:
         logger.exception("job %s: storing the weekly report failed", job.id)
         await report_failure(pool, job, f"{type(exc).__name__}: {exc}")

@@ -67,7 +67,7 @@ from app.models.analysis import PRONUNCIATION_CATEGORY
 from app.models.plan import CEFR_LEVELS, LevelDecision, PlanOutput, PlanValidationError, parse_plan
 from app.models.usage import PURPOSE_PLAN
 from app.services.chronic import ChronicMetric, deepest_recurrence
-from app.services.jobs import ClaimedJob, complete, report_failure
+from app.services.jobs import ClaimedJob, LeaseLost, complete, report_failure
 from app.services.plan_input import (
     PlanInput,
     PronunciationTally,
@@ -105,13 +105,6 @@ values ($1, $2, $3, $4)
 """
 
 _UPDATE_LEVEL_SQL = "update users set current_level = $2 where id = $1"
-
-
-class _LeaseLost(Exception):
-    """`complete`가 0행 — 저장 트랜잭션을 롤백시키기 위한 내부 신호.
-
-    `analysis.py`의 같은 뜻 예외와 관례를 공유하지만 그쪽은 private 이라 재사용할 수 없다.
-    """
 
 
 # h-doc 학습자 프로필이 문구를 지배한다: 단문·단일 절 기준 · 일상 → 업무 협업 순서 ·
@@ -481,10 +474,10 @@ async def _store_plan(
     넷을 쪼개면 절반만 반영된 상태가 남는다(설계서 §9 Contract): 계획은 있는데 수준이 안
     올라갔거나, 노트만 남고 계획이 없는 상태를 사용자가 다음 세션에서 그대로 만난다.
 
-    ⚠️ **`complete`의 반환값을 반드시 본다.** `False`는 lease 가 더 이상 우리 것이 아니라는
-    뜻이고(`jobs.complete` docstring), 그때 위 세 쓰기를 커밋하면 그 job 을 다시 claim 한
-    워커가 또 쓴다 — 계획은 `unique(session_id)`에 막히지만 **노트는 append-only 라 중복
-    행이 남는다.** 그래서 트랜잭션 **안에서** 예외를 올려 통째로 롤백시킨다.
+    ⚠️ **lease 판정을 건너뛸 수 없다.** `jobs.complete` 는 lease 가 더 이상 우리 것이 아니면
+    `LeaseLost` 를 올리고, 그 예외가 이 트랜잭션을 통째로 롤백시킨다. 위 세 쓰기를 커밋하면 그 job
+    을 다시 claim 한 워커가 또 쓴다 — 계획은 `unique(session_id)`에 막히지만 **노트는 append-only
+    라 중복 행이 남는다.**
     """
     await conn.execute(
         _INSERT_PLAN_SQL,
@@ -515,8 +508,7 @@ async def _store_plan(
     )
     # 정본은 `target_level`이다 — `level.action`은 라벨일 뿐이다(위 경고 참조).
     await conn.execute(_UPDATE_LEVEL_SQL, data.user_id, plan.level.target_level)
-    if not await complete(conn, job.id, job.lease_token):
-        raise _LeaseLost
+    await complete(conn, job.id, job.lease_token)
 
 
 async def process_plan(pool: asyncpg.Pool, claude: ClaudeClient, job: ClaimedJob) -> None:
@@ -596,7 +588,7 @@ async def process_plan(pool: asyncpg.Pool, claude: ClaudeClient, job: ClaimedJob
     try:
         async with pool.acquire() as conn, conn.transaction():
             await _store_plan(conn, job, data, plan)
-    except _LeaseLost:
+    except LeaseLost:
         # 계획·노트·수준 갱신이 함께 롤백됐다. 이 시도의 산출물은 통째로 버린다 — 같은 job 은
         # 이미 다른 claim 이 들고 있다. `report_failure`를 부르지 않는다(우리 job 이 아니다).
         logger.warning("job %s: lease lost, plan rolled back", job.id)

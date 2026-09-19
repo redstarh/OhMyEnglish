@@ -43,7 +43,7 @@ from app.models.analysis import (
 )
 from app.models.usage import PURPOSE_ANALYSIS
 from app.services.daily_summary import refresh_summary_for_utterance
-from app.services.jobs import JOB_TYPE_ANALYZE, ClaimedJob, complete, report_failure
+from app.services.jobs import JOB_TYPE_ANALYZE, ClaimedJob, LeaseLost, complete, report_failure
 from app.services.pronunciation import record_transcript_analysis_signal
 from app.services.review import recompute, store_attempts
 from app.services.utterances import ANALYZED_SPEAKER, ANALYZED_UTTERANCE_TYPE
@@ -337,10 +337,6 @@ update error_patterns p
 """
 
 
-class _LeaseLost(Exception):
-    """`complete`가 0행 — 결과 쓰기 트랜잭션을 롤백시키기 위한 내부 신호."""
-
-
 @dataclass(frozen=True, slots=True)
 class _AnalysisInput:
     transcript: str
@@ -549,8 +545,8 @@ async def _replace_occurrences(
     # 정본은 `services/daily_summary.py`이고, 그 함수는 `+1`이 아니라 그 날짜를 다시 센다.
     await refresh_summary_for_utterance(conn, user_id, utterance_id)
 
-    if not await complete(conn, job.id, job.lease_token):
-        raise _LeaseLost
+    # lease 를 잃으면 `complete` 가 `LeaseLost` 를 올려 이 트랜잭션을 통째로 롤백시킨다.
+    await complete(conn, job.id, job.lease_token)
 
 
 async def process_analysis(pool: asyncpg.Pool, claude: ClaudeClient, job: ClaimedJob) -> None:
@@ -617,7 +613,7 @@ async def process_analysis(pool: asyncpg.Pool, claude: ClaudeClient, job: Claime
     try:
         async with pool.acquire() as conn, conn.transaction():
             await _replace_occurrences(conn, job, job.utterance_id, loaded.user_id, result)
-    except _LeaseLost:
+    except LeaseLost:
         # 결과 쓰기까지 함께 롤백됐다. 이 시도의 산출물은 통째로 버린다 —
         # 같은 job은 이미 다른 claim이 들고 있다.
         logger.warning("job %s: lease lost, result rolled back", job.id)

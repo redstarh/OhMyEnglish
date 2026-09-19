@@ -27,6 +27,7 @@ from app.services.jobs import (
     LEASE_EXPIRED_ERROR,
     MAX_ATTEMPTS,
     ClaimedJob,
+    LeaseLost,
     claim_next,
     complete,
     enqueue_analyze,
@@ -192,10 +193,11 @@ async def test_expired_lease_is_reclaimed_and_stale_token_cannot_complete(
     assert second.lease_token != first.lease_token  # claim 1회당 새 uuid4().hex
     assert second.attempts == 2  # 회수도 attempt를 소비한다
 
-    assert await complete(db_conn, job_id, first.lease_token) is False
+    with pytest.raises(LeaseLost):
+        await complete(db_conn, job_id, first.lease_token)
     assert (await job_row(db_conn, job_id))["status"] == "running"
 
-    assert await complete(db_conn, job_id, second.lease_token) is True
+    await complete(db_conn, job_id, second.lease_token)
     assert (await job_row(db_conn, job_id))["status"] == "done"
 
 
@@ -224,7 +226,8 @@ async def test_zombie_at_attempt_limit_is_reaped_to_failed_instead_of_reclaimed(
     assert row["locked_by"] is None
 
     # terminal이므로 죽은 워커의 뒤늦은 보고도, 이후의 어떤 claim도 되살리지 못한다.
-    assert await complete(db_conn, job_id, claimed.lease_token) is False
+    with pytest.raises(LeaseLost):
+        await complete(db_conn, job_id, claimed.lease_token)
     assert await claim_next(db_conn) is None
     assert (await job_row(db_conn, job_id))["status"] == "failed"
 
@@ -380,7 +383,7 @@ async def test_enqueue_is_allowed_again_after_job_is_done(db_conn: asyncpg.Conne
     first_job_id = await enqueue_analyze(db_conn, utterance_id)
     claimed = await claim_next(db_conn)
     assert claimed is not None
-    assert await complete(db_conn, claimed.id, claimed.lease_token) is True
+    await complete(db_conn, claimed.id, claimed.lease_token)
 
     second_job_id = await enqueue_analyze(db_conn, utterance_id)
 
@@ -396,15 +399,18 @@ async def test_complete_is_not_repeatable_for_the_same_lease(db_conn: asyncpg.Co
     claimed = await claim_next(db_conn)
     assert claimed is not None
 
-    assert await complete(db_conn, claimed.id, claimed.lease_token) is True
-    assert await complete(db_conn, claimed.id, claimed.lease_token) is False
+    await complete(db_conn, claimed.id, claimed.lease_token)
+    with pytest.raises(LeaseLost):
+        await complete(db_conn, claimed.id, claimed.lease_token)
 
 
-# 존재하지 않는 job id로 호출해도 예외 없이 False
-async def test_complete_and_fail_return_false_for_unknown_job(db_conn: asyncpg.Connection):
+# 존재하지 않는 job id도 「우리 것이 아니다」와 같은 갈래다 — `complete` 는 `LeaseLost`,
+# `fail_or_retry` 는 `False`. ⚠️ 둘의 모양이 다른 것은 의도다(`jobs.LeaseLost` 독스트링).
+async def test_complete_raises_and_fail_returns_false_for_unknown_job(db_conn: asyncpg.Connection):
     unknown = uuid4()
 
-    assert await complete(db_conn, unknown, uuid4().hex) is False
+    with pytest.raises(LeaseLost):
+        await complete(db_conn, unknown, uuid4().hex)
     assert await fail_or_retry(db_conn, unknown, uuid4().hex, "nope") is False
 
 

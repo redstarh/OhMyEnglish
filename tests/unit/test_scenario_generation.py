@@ -41,6 +41,7 @@ _TITLES = {
     "rejected": "A stage that the parser must refuse",
     "domain": "Asking for help abroad",
     "dup": "Agreeing the next milestone",
+    "lease": "A stage whose lease was stolen",
 }
 
 
@@ -228,6 +229,44 @@ async def test_stores_one_generated_stage_with_the_users_level(db_pool: asyncpg.
     assert rows[-1]["category"] == "business"
     assert rows[-1]["source"] == "generated"
     assert claude.purposes == ["generate_scenario"], "사용량 귀속이 빠졌다"
+
+
+@pytest.mark.asyncio
+async def test_a_lost_lease_stores_no_stage_and_does_not_report_failure(db_pool: asyncpg.Pool):
+    """⛔ **lease 를 잃으면 무대도 커밋되지 않는다** (`TASK-224`).
+
+    `learning_scenarios` 는 제목에 unique 가 없으므로 이 자리가 세 갈래 가운데 가장 직접적이다 —
+    같은 job 을 다시 claim 한 워커가 무대를 한 번 더 만들어 **중복 행이 남는다.** 계획 job 의 노트가
+    append-only 라 같은 판단을 세운 것과 같은 모양이다(`test_plan_pipeline` 의 짝).
+
+    ⛔ **`report_failure` 를 부르지 않는다** — 우리 job 이 아니다.
+    """
+    title = _TITLES["lease"]
+    async with db_pool.acquire() as conn:
+        user_id = await _fresh_user(conn, level="B1")
+        await _seed_one_stage(conn)
+    session_id = await create_session(db_pool, user_id, mode=SCENARIO_INTAKE_MODE)
+    async with db_pool.acquire() as conn:
+        await _say(conn, session_id, "agent", "Where do you need English soon?", 1)
+        await _say(conn, session_id, "user", "A meeting with my manager next week.", 2)
+        await end_session(conn, session_id, "completed")
+        job = await _claim_for(conn, session_id)
+        stolen = await conn.fetchval(
+            "update analysis_jobs set locked_by = $2 where id = $1 returning locked_by",
+            job.id,
+            uuid4().hex,
+        )
+    assert stolen != job.lease_token, "lease 탈취를 만들지 못했다"
+
+    await process_scenario(db_pool, _StubClaude(_reply(title)), job)  # type: ignore[arg-type]
+
+    async with db_pool.acquire() as conn:
+        rows = await _generated_rows(conn, title)
+        last_error = await _last_error(conn, job.id)
+        status = await conn.fetchval("select status from analysis_jobs where id = $1", job.id)
+    assert rows == [], "lease 를 잃었는데 무대가 커밋됐다 — 중복 무대가 남는다"
+    assert status == "running"
+    assert last_error is None, "우리 job 이 아닌데 실패를 보고했다"
 
 
 @pytest.mark.asyncio

@@ -13,7 +13,9 @@ infrastructure. Three properties carry the correctness of the whole pipeline:
 * **lease token** — a fresh `uuid4().hex` is minted *per claim*, not per worker.
   Every terminal update is gated on `status='running' and locked_by=$token`, so
   a worker whose lease expired and whose job was reclaimed by someone else can
-  no longer write the outcome: it gets `False` and must drop the work.
+  no longer write the outcome and must drop the work: `complete` raises
+  `LeaseLost` (see that class for why it is not a `bool`), `fail_or_retry`
+  returns `False`.
 * **회수(recovery)** — a `running` job whose `locked_at` is older than `LEASE`
   and that still has attempts left is claimable again by the very same query
   that claims `pending` jobs, so a crashed worker's job resumes on its own.
@@ -319,10 +321,26 @@ async def claim_next(conn: asyncpg.Connection, *, now: datetime | None = None) -
     )
 
 
-async def complete(conn: asyncpg.Connection, job_id: UUID, lease_token: str) -> bool:
-    """Mark a claimed job `done`. `False` means the lease was not ours anymore
-    (expired and reclaimed, or already finished) — the caller must not treat
-    its work as recorded."""
+class LeaseLost(Exception):
+    """`complete` matched no row: the lease is not ours anymore (expired and
+    reclaimed, or already finished).
+
+    ⛔ **Raising rather than returning is the gate itself** (`TASK-224`). Every
+    caller writes its result in the same transaction as `complete`, so the only
+    correct reaction is to let the exception leave that transaction and roll the
+    result back with it. A `bool` made "not looking" the default: three of the
+    five callers dropped it and committed a result onto a job another claim
+    already owns — and two of the remaining ones grew a private exception of
+    this exact shape to get the rollback.
+
+    ⛔ **Callers must catch this before their broad `except`** and must not call
+    `report_failure`: that job is no longer ours to report on.
+    """
+
+
+async def complete(conn: asyncpg.Connection, job_id: UUID, lease_token: str) -> None:
+    """Mark a claimed job `done`. Raises `LeaseLost` when the lease was not ours
+    anymore — the caller must not treat its work as recorded."""
     updated = await conn.fetchval(
         """
         update analysis_jobs
@@ -333,7 +351,8 @@ async def complete(conn: asyncpg.Connection, job_id: UUID, lease_token: str) -> 
         job_id,
         lease_token,
     )
-    return updated is not None
+    if updated is None:
+        raise LeaseLost
 
 
 async def fail_or_retry(

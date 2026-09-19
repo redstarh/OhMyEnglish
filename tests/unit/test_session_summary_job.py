@@ -199,6 +199,46 @@ async def test_stores_the_two_sections_and_completes(db_pool: asyncpg.Pool):
 
 
 @pytest.mark.asyncio
+async def test_a_lost_lease_stores_nothing_and_does_not_report_failure(db_pool: asyncpg.Pool):
+    """⛔ **lease 를 잃으면 총평도 커밋되지 않는다** (`TASK-224`).
+
+    `_store` 의 독스트링은 「재시도가 총평을 덮는 것」을 한 트랜잭션이 닫는다고 적었으나,
+    `complete` 의 판정을 보지 않으면 **lease 를 잃은 갈래에서 그 덮어쓰기가 그대로 일어난다** —
+    트랜잭션은 있고 게이트가 없는 상태다. 이미 다른 claim 이 같은 job 을 들고 있으므로 우리 산출물은
+    통째로 버려야 한다.
+
+    ⛔ **`report_failure` 를 부르지 않는다** — 우리 job 이 아니다. 그 증거로 사유가 비어 있고 상태가
+    `running` 그대로인 것을 잰다(`test_plan_pipeline` 의 같은 짝과 같은 형태).
+    """
+    async with db_pool.acquire() as conn:
+        user_id = await _fresh_user(conn)
+    session_id = await create_session(db_pool, user_id)
+    async with db_pool.acquire() as conn:
+        await _say(conn, session_id, "user", "I go to gym yesterday.", 1)
+        await _say(conn, session_id, "agent", "Try: I went to the gym yesterday.", 2)
+        await end_session(conn, session_id, "completed")
+        job = await _claim_for(conn, session_id)
+        # 다른 워커가 lease 를 가져간 상태를 만든다 — `complete` 는 `locked_by` 로 게이트한다.
+        stolen = await conn.fetchval(
+            "update analysis_jobs set locked_by = $2 where id = $1 returning locked_by",
+            job.id,
+            uuid4().hex,
+        )
+    assert stolen != job.lease_token, "lease 탈취를 만들지 못했다"
+
+    await process_summary(db_pool, _StubClaude(_reply()), job)  # type: ignore[arg-type]
+
+    async with db_pool.acquire() as conn:
+        stored = await _stored(conn, session_id)
+        row = await _job_row(conn, job.id)
+    # ⚠️ 빈 값이 `None` 이 아니라 `{}` 다 — 그 자리가 「아직 없음」이고 `EMPTY_SUMMARY` 는 「만들었고
+    # 담을 것이 없었다」로 구별된다(발화 0건 갈래의 단정이 그 값을 잰다).
+    assert stored == {}, "lease 를 잃었는데 총평이 커밋됐다 — 남의 job 결과를 덮는다"
+    assert row["status"] == "running"
+    assert row["last_error"] is None, "우리 job 이 아닌데 실패를 보고했다"
+
+
+@pytest.mark.asyncio
 async def test_a_session_without_utterances_completes_without_calling_the_model(
     db_pool: asyncpg.Pool,
 ):

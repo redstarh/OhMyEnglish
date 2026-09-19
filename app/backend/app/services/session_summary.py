@@ -37,7 +37,13 @@ from app.models.session_summary import (
     parse_summary,
     summary_payload,
 )
-from app.services.jobs import JOB_TYPE_SUMMARIZE, ClaimedJob, complete, report_failure
+from app.services.jobs import (
+    JOB_TYPE_SUMMARIZE,
+    ClaimedJob,
+    LeaseLost,
+    complete,
+    report_failure,
+)
 from app.workers.claude_client import ClaudeClient
 
 logger = logging.getLogger(__name__)
@@ -126,11 +132,19 @@ async def _store(pool: asyncpg.Pool, job: ClaimedJob, payload: dict[str, object]
     ⛔ 두 문장을 갈라 커밋하면 「총평은 저장됐는데 job 은 pending」인 상태가 생기고, 재시도가 그
     총평을 **다시 만들어 덮는다**. 재생성 경로를 만들지 않았으므로(설계서 §2.2) 두 번 쓰이는
     유일한 경로가 재시도이고 이 한 트랜잭션이 그것을 닫는다.
+
+    ⛔ **`LeaseLost` 를 broad `except` 보다 «앞에» 잡는다** (`TASK-224`). 그 job 은 이미 다른
+    claim 이 들고 있으므로 `report_failure` 를 부르면 남의 job 에 실패를 적는다. 트랜잭션이 함께
+    롤백되므로 위 총평도 커밋되지 않는다 — 트랜잭션만 있고 이 게이트가 없을 때 「재시도가 덮는 것을
+    막는다」는 위 약속이 lease 를 잃은 갈래에서 뒤집혀 있었다.
     """
     try:
         async with pool.acquire() as conn, conn.transaction():
             await conn.execute(_STORE_SUMMARY_SQL, job.session_id, json.dumps(payload))
             await complete(conn, job.id, job.lease_token)
+    except LeaseLost:
+        logger.warning("job %s: lease lost, summary rolled back", job.id)
+        return False
     except Exception as exc:
         logger.exception("job %s: storing the summary failed", job.id)
         await report_failure(pool, job, f"{type(exc).__name__}: {exc}")
