@@ -1,0 +1,9 @@
+nonyoutube     https://vimeo.com/watch?v=kJQP7kiw5Fk                    http=422
+id-short       https://www.youtube.com/watch?v=short                    http=422
+id-long        https://www.youtube.com/watch?v=kJQP7kiw5FkTOOLONG       http=422
+lookalike      https://youtube.com.attacker.test/watch?v=kJQP7kiw5Fk    http=422
+lookalike2     https://notyoutube.com/watch?v=kJQP7kiw5Fk               http=422
+bare-id        kJQP7kiw5Fk                                              http=422
+youtubeish     https://myoutube.com/watch?v=kJQP7kiw5Fk                 http=422
+=== 판별력 대조군 (같은 드라이버가 201 을 낼 수 있음을 보임) ===
+control        https://www.youtube.com/watch?v=kJQP7kiw5Fk              http=200

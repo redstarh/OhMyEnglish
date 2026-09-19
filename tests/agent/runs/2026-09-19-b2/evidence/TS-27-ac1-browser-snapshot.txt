@@ -1,0 +1,26 @@
+- main
+  - link "← 학습 시작 화면으로" [ref=e1]
+  - heading "영상으로 배우기" [level=1, ref=e2]
+  - paragraph
+    - StaticText "YouTube 링크를 붙여넣어 영상을 담고, 안 들리는 구간을 받아 적어 쉐도잉 연습에 쓸 수 있어요."
+  - generic
+    - LabelText
+      - StaticText "YouTube 링크"
+    - textbox "YouTube 링크" [ref=e3]
+    - button "확인" [disabled, ref=e4]
+    - status
+      - StaticText "담았어요."
+  - list
+    - listitem [level=1]
+      - link "PSY - GANGNAM STYLE(강남스타일) M/V" [ref=e5]
+      - paragraph
+        - StaticText "officialpsy · 담은 문장 0개"
+      - button "지우기" [ref=e6]
+    - listitem [level=1]
+      - link "Me at the zoo" [ref=e7]
+      - paragraph
+        - StaticText "jawed · 담은 문장 1개"
+      - button "지우기" [ref=e8]
+- button "Open Next.js Dev Tools" [expanded=false, ref=e9]
+  - image
+- alert

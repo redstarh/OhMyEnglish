@@ -1,0 +1,9 @@
+BEGIN
+ERROR:  new row for relation "shadowing_items" violates check constraint "shadowing_items_audio_only_for_synthetic"
+상세정보:  Failing row contains (408d6cc5-da54-4f82-b3a7-69b32404ecd4, t, https://www.youtube.com/watch?v=kJQP7kiw5Fk, This is a control phrase from batch b2., 1.23, 6.79, A2, 2026-09-19 05:32:08.575226+00, 408d6cc5-da54-4f82-b3a7-69b32404ecd4.wav, 108546de-7a70-417f-8bdf-7afddf5607fc).
+ROLLBACK
+                  id                  | audio_after_rollback 
+--------------------------------------+----------------------
+ 408d6cc5-da54-4f82-b3a7-69b32404ecd4 | NULL
+(1개 행)
+

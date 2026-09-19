@@ -1,0 +1,1 @@
+{"detail":[{"type":"value_error","loc":["body"],"msg":"Value error, clip_end_sec must be greater than clip_start_sec","input":{"transcript":"x","clip_start_sec":5.0,"clip_end_sec":5.001},"ctx":{"error":{}}}]}

@@ -1,0 +1,9 @@
+oembed title=[Luis Fonsi - Despacito ft. Daddy Yankee] channel=[LuisFonsiVEVO]
+=== 형태 넷 ===
+watch      https://www.youtube.com/watch?v=kJQP7kiw5Fk&t=42s    http=201  body={"id":"108546de-7a70-417f-8bdf-7afddf5607fc","youtube_id":"kJQP7kiw5Fk","title":"Luis Fonsi - Despacito ft. Daddy Yankee","channel_name":"LuisFonsiVEVO","created":true}
+youtube    https://youtu.be/kJQP7kiw5Fk                         http=200  body={"id":"108546de-7a70-417f-8bdf-7afddf5607fc","youtube_id":"kJQP7kiw5Fk","title":"Luis Fonsi - Despacito ft. Daddy Yankee","channel_name":"LuisFonsiVEVO","created":false}
+shorts     https://www.youtube.com/shorts/kJQP7kiw5Fk           http=200  body={"id":"108546de-7a70-417f-8bdf-7afddf5607fc","youtube_id":"kJQP7kiw5Fk","title":"Luis Fonsi - Despacito ft. Daddy Yankee","channel_name":"LuisFonsiVEVO","created":false}
+embed      https://www.youtube.com/embed/kJQP7kiw5Fk            http=200  body={"id":"108546de-7a70-417f-8bdf-7afddf5607fc","youtube_id":"kJQP7kiw5Fk","title":"Luis Fonsi - Despacito ft. Daddy Yankee","channel_name":"LuisFonsiVEVO","created":false}
+=== 목록에서 그 youtube_id 행 수 ===
+rows_with_that_youtube_id = 1
+   108546de-7a70-417f-8bdf-7afddf5607fc Luis Fonsi - Despacito ft. Daddy Yankee

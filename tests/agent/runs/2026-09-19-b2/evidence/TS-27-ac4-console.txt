@@ -1,0 +1,10 @@
+=== TS-12 의 값역 일곱 ===
+span-over-90   http=422  {"detail":[{"type":"value_error","loc":["body"],"msg":"Value error, clip span must not exceed 90 seconds","input":{"transcript":"x","clip_start_sec":0
+end-lt-start   http=422  {"detail":[{"type":"value_error","loc":["body"],"msg":"Value error, clip_end_sec must be greater than clip_start_sec","input":{"transcript":"x","clip_
+end-eq-start   http=422  {"detail":[{"type":"value_error","loc":["body"],"msg":"Value error, clip_end_sec must be greater than clip_start_sec","input":{"transcript":"x","clip_
+negative       http=422  {"detail":[{"type":"greater_than_equal","loc":["body","clip_start_sec"],"msg":"Input should be greater than or equal to 0","input":-1,"ctx":{"ge":0}}]
+empty-text     http=422  {"detail":[{"type":"string_too_short","loc":["body","transcript"],"msg":"String should have at least 1 character","input":"","ctx":{"min_length":1}}]}
+text-1001      http=422  {"detail":[{"type":"string_too_long","loc":["body","transcript"],"msg":"String should have at most 1000 characters","input":"aaaaaaaaaaaaaaaaaaaaaaaaa
+round-collapse http=422  {"detail":[{"type":"value_error","loc":["body"],"msg":"Value error, clip_end_sec must be greater than clip_start_sec","input":{"transcript":"x","clip_
+=== 판별력 대조군 — 정상 값은 201 이어야 함 ===
+control        http=201  {"id":"408d6cc5-da54-4f82-b3a7-69b32404ecd4","transcript":"This is a control phrase from batch b2.","clip_start_sec":1.23,"clip_end_sec":6.79}

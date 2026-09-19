@@ -1,0 +1,6 @@
+=== TS-28 AC#3 — 없는 item_id ===
+unknown_uuid http=404
+malformed_uuid http=422
+path_escape http=404
+=== 판별력 대조군 — 시드 클립은 200 ===
+seeded http=200 bytes=559616

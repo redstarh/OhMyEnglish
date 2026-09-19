@@ -1,0 +1,16 @@
+=== TS-18 회귀 — CORS 프리플라이트가 POST·DELETE 를 허용하는가 ===
+--- POST ---
+HTTP/1.1 200 OK
+access-control-allow-methods: GET, POST, DELETE
+access-control-allow-headers: Accept, Accept-Language, Content-Language, Content-Type
+access-control-allow-origin: http://localhost:3000
+--- DELETE ---
+HTTP/1.1 200 OK
+access-control-allow-methods: GET, POST, DELETE
+access-control-allow-headers: Accept, Accept-Language, Content-Language, Content-Type
+access-control-allow-origin: http://localhost:3000
+--- GET ---
+HTTP/1.1 200 OK
+access-control-allow-methods: GET, POST, DELETE
+access-control-allow-headers: Accept, Accept-Language, Content-Language, Content-Type
+access-control-allow-origin: http://localhost:3000

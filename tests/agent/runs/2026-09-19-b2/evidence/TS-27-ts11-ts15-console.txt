@@ -1,0 +1,12 @@
+video create http=201
+video_id=82e56586-2b84-4372-a777-7fb88f5b387a
+phrase create http=201
+{"id":"c451c05d-6152-4dd7-ac39-2fc038f089db","transcript":"Rounding probe from batch b2.","clip_start_sec":12.35,"clip_end_sec":19.99}
+
+item_id=c451c05d-6152-4dd7-ac39-2fc038f089db
+=== TS-15 — 다른 영상 경로로 그 문장을 지움 (기대 404) ===
+wrong_path_delete http=404
+{"detail":"phrase not found"}
+=== 그 문장이 남아 있는가 (올바른 영상의 상세로 확인) ===
+phrases = 1
+   c451c05d-6152-4dd7-ac39-2fc038f089db 12.35 19.99 'Rounding probe from batch b2.'

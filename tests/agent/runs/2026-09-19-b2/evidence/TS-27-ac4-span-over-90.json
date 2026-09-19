@@ -1,0 +1,1 @@
+{"detail":[{"type":"value_error","loc":["body"],"msg":"Value error, clip span must not exceed 90 seconds","input":{"transcript":"x","clip_start_sec":0,"clip_end_sec":90.01},"ctx":{"error":{}}}]}

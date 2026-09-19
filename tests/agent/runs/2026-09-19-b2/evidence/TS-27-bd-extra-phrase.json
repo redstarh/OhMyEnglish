@@ -1,0 +1,1 @@
+{"detail":[{"type":"extra_forbidden","loc":["body","level"],"msg":"Extra inputs are not permitted","input":"C2"},{"type":"extra_forbidden","loc":["body","audio_filename"],"msg":"Extra inputs are not permitted","input":"x.wav"}]}

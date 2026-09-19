@@ -1,0 +1,8 @@
+http=200 bytes=559616 type=audio/wav
+file(1) on the fetched body: RIFF (little-endian) data, WAVE audio, Microsoft PCM, 16 bit, mono 16000 Hz
+본문 전체(559616 바이트)는 리포에 넣지 않고 앞 1024 바이트만 TS-28-ac1-seeded-clip-head1k.bin 로 남겼음.
+
+=== 시드 클립 오디오 파일이 리포에 있는가 (H-CH 를 피해 종료 코드를 가름) ===
+assets/clips/00000000-0000-0000-0000-000000000201.wav  (573440 바이트, 2026-09-14)
+git ls-files --error-unmatch -> exit 0  (추적됨)
+git check-ignore -v          -> exit 1  (무시되지 않음. 69 가 아님 — git 이 정상 동작했음)

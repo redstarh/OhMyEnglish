@@ -1,0 +1,30 @@
+=== 정리 — 이 회차가 만든 것을 앱 경로로 되돌림 ===
+--- ① 문장 지우기 (올바른 짝 · 판별력 대조군) ---
+DELETE phrase c451c05d via 82e56586 http=204
+--- ② 영상 셋 지우기 ---
+DELETE video 82e56586-2b84-4372-a777-7fb88f5b387a http=204
+DELETE video 97ad1a80-1bed-4c6c-bb16-0f50e09f4cb4 http=204
+DELETE video 2ff4a51f-b72d-44f8-894b-b935aeaab5c5 http=204
+--- ③ 정리 후 목록 ---
+{
+    "videos": [
+        {
+            "id": "e5463a72-bc9d-488e-8357-f4dc13ddfa54",
+            "youtube_id": "jNQXAC9IVRw",
+            "title": "Me at the zoo",
+            "channel_name": "jawed",
+            "phrase_count": 1,
+            "metadata_stale": false
+        }
+    ]
+}
+=== 정리 후 남은 것 ===
+youtube_videos_rows=1
+shadowing_items_rows=3
+--- shadowing_items 전부 ---
+00000000-0000-0000-0000-000000000201 | yt=NULL | audio=00000000-0000-0000-0000-000000000201.wav | I usually wake up at seven. First, I check my
+c03bc432-0dc8-4aa3-a873-26cd1a03d8a2 | yt=e5463a72-bc9d-488e-8357-f4dc13ddfa54 | audio=NULL | All right, so here we are in front of the ele
+408d6cc5-da54-4f82-b3a7-69b32404ecd4 | yt=NULL | audio=NULL | This is a control phrase from batch b2.
+
+=== 회차 중 HEAD 가 움직였는가 ===
+81e150e

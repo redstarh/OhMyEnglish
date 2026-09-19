@@ -1,0 +1,10 @@
+=== 고아 문장을 앱 경로로 지울 수 있는가 ===
+orphan item_id = 408d6cc5-da54-4f82-b3a7-69b32404ecd4 (youtube_video_id 가 null)
+via 지운 영상 id      http=404
+via 살아있는 다른 영상 http=404
+
+=== 판별력 대조군 — 올바른 짝은 지워짐을 뒤에서 확인함 ===
+(대조군은 정리 단계에서 실행함)
+
+=== 그 행이 아직 있는가 ===
+orphan_rows=1

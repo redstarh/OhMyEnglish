@@ -1,0 +1,47 @@
+- main
+  - link "← 영상 목록" [ref=e1]
+  - heading "t" [level=1, ref=e2]
+  - paragraph
+    - StaticText "c"
+  - Iframe "Luis Fonsi - Despacito ft. Daddy Yankee" [ref=e3]
+    - generic
+      - generic "YouTube Video Player"
+      - generic
+        - generic
+          - button "Play video" [ref=e19]
+        - button "Hide player controls" [ref=e18]
+        - generic
+        - link "Luis Fonsi - Despacito ft. Daddy Yankee" [ref=e20]
+        - link "LuisFonsiVEVO" [ref=e21]
+          - StaticText "LuisFonsiVEVO"
+        - generic
+          - button "thumbnail-image" [ref=e23]
+            - image "thumbnail-image"
+          - StaticText "LuisFonsiVEVO"
+        - generic
+          - button "Share" [ref=e24]
+          - link "Watch on YouTube" [ref=e22]
+            - StaticText "Watch on"
+  - button "구간 시작" [ref=e5]
+  - heading "담은 문장" [level=2, ref=e4]
+  - list
+    - listitem [level=1]
+      - paragraph
+        - button "This" [ref=e9]
+        - button "is" [ref=e10]
+        - button "a" [ref=e11]
+        - button "control" [ref=e12]
+        - button "phrase" [ref=e13]
+        - button "from" [ref=e14]
+        - button "batch" [ref=e15]
+        - button "b2." [ref=e16]
+      - status
+        - StaticText "낱말을 누르면 이 문장에서 쓰인 뜻을 알려 줘요"
+      - paragraph
+        - StaticText "0:01~0:06"
+      - button "그 구간 듣기" [ref=e6]
+      - button "연습하기" [ref=e7]
+      - button "지우기" [ref=e8]
+- button "Open Next.js Dev Tools" [expanded=false, ref=e17]
+  - image
+- alert

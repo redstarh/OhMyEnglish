@@ -1,0 +1,1 @@
+{"detail":[{"type":"greater_than_equal","loc":["body","clip_start_sec"],"msg":"Input should be greater than or equal to 0","input":-1,"ctx":{"ge":0}}]}

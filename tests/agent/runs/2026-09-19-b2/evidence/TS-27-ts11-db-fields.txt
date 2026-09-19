@@ -1,0 +1,4 @@
+=== TS-11 — 저장된 문장 행의 규약 필드 ===
+level=A2 | source_url=https://www.youtube.com/watch?v=kJQP7kiw5Fk | source_title=Luis Fonsi - Despacito ft. Daddy Yankee | yt=82e56586-2b84-4372-a777-7fb88f5b387a | audio=NULL | start=12.35 end=19.99
+=== 담을 때 준 URL 은 shorts 형태였음 ===
+요청 url = https://www.youtube.com/shorts/kJQP7kiw5Fk

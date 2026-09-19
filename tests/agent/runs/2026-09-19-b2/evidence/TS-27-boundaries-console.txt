@@ -1,0 +1,21 @@
+=== ① 호스트가 대문자여도 담기는가 (기대: 받아들임 — hostname 은 소문자로 정규화됨) ===
+UPPER host http=200
+{"id":"82e56586-2b84-4372-a777-7fb88f5b387a","youtube_id":"kJQP7kiw5Fk","title":"probe","channel_name":"probe","created":false}
+=== ② 모르는 필드를 섞으면 422 인가 (extra=forbid) ===
+video extra   http=422
+phrase extra  http=422
+=== ③ 아직 담지 않은 영상을 동시에 8건 담기 — 행이 1개여야 함 ===
+race2 http=201
+race4 http=200
+race3 http=200
+race6 http=200
+race1 http=200
+race8 http=200
+race5 http=200
+race7 http=200
+--- 응답의 created 분포와 id 개수 ---
+created 분포 = {False: 7, True: 1}
+서로 다른 video id 개수 = 1 {'2ff4a51f-b72d-44f8-894b-b935aeaab5c5'}
+--- 목록에서 그 youtube_id 행 수 ---
+rows_with_that_youtube_id = 1
+   2ff4a51f-b72d-44f8-894b-b935aeaab5c5

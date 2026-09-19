@@ -1,0 +1,12 @@
+TS-27 AC#5 — 영상을 지워도 담은 문장이 남고 youtube_video_id 만 null 이 됨 (TS-14 회귀)
+video_id = 108546de-7a70-417f-8bdf-7afddf5607fc  (이 회차가 담은 것)
+item_id  = 408d6cc5-da54-4f82-b3a7-69b32404ecd4  (이 회차가 담은 문장)
+
+=== 삭제 전 문장 행 ===
+transcript=This is a control phrase from batch b2. | yt=108546de-7a70-417f-8bdf-7afddf5607fc | source_url=https://www.youtube.com/watch?v=kJQP7kiw5Fk
+=== DELETE /api/videos/108546de-7a70-417f-8bdf-7afddf5607fc ===
+delete http=204
+=== 삭제 후 문장 행 ===
+rows_found=1
+transcript=This is a control phrase from batch b2. | yt=NULL | source_url=https://www.youtube.com/watch?v=kJQP7kiw5Fk
+video_rows=0

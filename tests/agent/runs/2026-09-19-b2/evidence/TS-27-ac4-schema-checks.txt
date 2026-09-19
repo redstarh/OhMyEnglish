@@ -1,0 +1,14 @@
+--- current_schema ---
+ohmyenglish
+--- shadowing_items CHECK 제약 ---
+shadowing_items_audio_filename_matches_id :: CHECK (((audio_filename IS NULL) OR (audio_filename = ((id)::text || '.wav'::text))))
+shadowing_items_audio_only_for_synthetic :: CHECK (((audio_filename IS NULL) OR (source_url IS NULL)))
+shadowing_items_clip_start_sec_check :: CHECK ((clip_start_sec >= (0)::numeric))
+shadowing_items_level_check :: CHECK ((level = ANY (ARRAY['A1'::text, 'A2'::text, 'B1'::text, 'B2'::text, 'C1'::text, 'C2'::text])))
+shadowing_items_source_title_check :: CHECK ((length(btrim(source_title)) > 0))
+shadowing_items_span_ordered :: CHECK ((clip_end_sec > clip_start_sec))
+shadowing_items_span_within_limit :: CHECK (((clip_end_sec - clip_start_sec) <= (90)::numeric))
+shadowing_items_transcript_check :: CHECK ((length(btrim(transcript)) > 0))
+shadowing_items_video_requires_source_url :: CHECK (((youtube_video_id IS NULL) OR (source_url IS NOT NULL)))
+--- 내 문장 행 ---
+408d6cc5-da54-4f82-b3a7-69b32404ecd4 | source_url=https://www.youtube.com/watch?v=kJQP7kiw5Fk | audio=NULL | yt=108546de-7a70-417f-8bdf-7afddf5607fc
