@@ -16,6 +16,7 @@ import pytest
 
 from app.models.scenario_draft import (
     ScenarioDraft,
+    ScenarioNoStage,
     ScenarioValidationError,
     normalize_title,
     parse_scenario,
@@ -75,6 +76,30 @@ def test_rejects_missing_category() -> None:
         parse_scenario(
             _raw(category=None), allowed_categories=_ALLOWED, existing_titles=frozenset()
         )
+
+
+# `TASK-259` — 거부는 그대로이고 **종류가 갈린다.** 명시적 `null` 은 프롬프트가 지시한 답이므로
+# 재시도가 무의미하고(입력이 같다), 그 구별을 호출자가 읽어 첫 시도에 종결한다.
+# ⚠️ 위 테스트가 그대로 통과하는 것이 하위 클래스로 만든 목적이다 — 기존 호출자의 거동이 바뀌지 않음.
+def test_an_explicit_null_category_is_the_no_stage_signal() -> None:
+    with pytest.raises(ScenarioNoStage):
+        parse_scenario(
+            _raw(category=None), allowed_categories=_ALLOWED, existing_titles=frozenset()
+        )
+
+
+def test_a_missing_category_key_is_a_plain_contract_violation() -> None:
+    """키가 «없는» 것은 프롬프트 위반이다 — 다른 표본이 지킬 수 있으므로 재시도 대상이다.
+
+    ⛔ 그래서 `ScenarioNoStage` 가 아니어야 한다. 두 경우를 한 예외로 묶으면 재시도 판정이
+    무너진다(누락에도 종결하거나, `null` 에도 5회 묻는다).
+    """
+    body = json.loads(_raw())
+    del body["category"]
+
+    with pytest.raises(ScenarioValidationError) as caught:
+        parse_scenario(json.dumps(body), allowed_categories=_ALLOWED, existing_titles=frozenset())
+    assert not isinstance(caught.value, ScenarioNoStage)
 
 
 def test_rejects_empty_or_overlong_title() -> None:

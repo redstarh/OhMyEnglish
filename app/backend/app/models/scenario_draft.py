@@ -34,6 +34,23 @@ class ScenarioValidationError(ValueError):
     """모델 출력이 무대의 계약을 지키지 못했다. 실패는 전부 이 하나로 수렴한다."""
 
 
+class ScenarioNoStage(ScenarioValidationError):
+    """모델이 **지시받은 대로** 「무대가 없다」고 답했다 — `category` 가 명시적 `null` 이다.
+
+    ⛔ **이것은 모델의 잘못이 아니라 프롬프트가 요구한 답이다** (`_AXES`: *"축 1(무대)이 전사문에
+    없으면 무대를 지어내지 마라 — `category` 를 `null` 로 내라"*). 그러므로 **재시도해도 같은 답이
+    온다** — 입력이 같다. 실측(2026-09-20 · `TASK-259`): 무대를 말하지 않은 전사문으로 실물 모델을
+    8회 불러 **8회 모두** `null` 이 왔고, 그 8회가 전부 파서에 거부됐다. 그 상태에서 큐가 5회까지
+    재시도하므로 **유료 호출 4건이 낭비된다**(그 5회도 직접 셌다).
+
+    ⚠️ **`ScenarioValidationError` 의 하위 클래스인 것이 계약이다** — 기존 호출자의
+    `except ScenarioValidationError` 가 그대로 이 경우를 잡으므로, 이 클래스를 몰라도 거동이
+    바뀌지 않는다. 구별해 쓰는 곳은 「재시도할지」를 정하는 자리 하나뿐이다
+    (`services/scenario_generator.process_scenario`).
+    ⛔ **키가 «없는» 경우는 이것이 아니다.** 프롬프트가 키 셋을 정확히 요구하므로 누락은 계약
+    위반이고 다른 표본이 지킬 수 있다 — 그쪽은 재시도가 뜻을 갖는다."""
+
+
 @dataclass(frozen=True, slots=True)
 class ScenarioDraft:
     """검증을 통과한 무대 초안. ⛔ `level`·`source` 가 **없는 것이 계약**이다."""
@@ -72,6 +89,14 @@ def parse_scenario(
     # ⛔ 무대만 필수다(설계서 §5). 다른 넷은 비어도 통과한다 — 다섯을 모두 필수로 하면 학습자가
     # 한 축만 모른다고 답해도 생성이 실패하고 그것은 5회 대화를 버리는 일이다.
     category = body.get("category")
+    # ⛔ **명시적 `null` 을 다른 거부와 «가른다»** (`TASK-259`) — 그것은 프롬프트가 요구한 답이므로
+    # 재시도가 무의미하다. 키 자체가 없는 경우는 여기 들어오지 않는다(계약 위반이고 재시도
+    # 대상이다).
+    if category is None and "category" in body:
+        raise ScenarioNoStage(
+            "모델이 무대를 정하지 않았다 (category=null) — 전사문에 축 1(무대)이 없다는 뜻이고 "
+            "재시도해도 입력이 같으므로 같은 답이 온다"
+        )
     if not isinstance(category, str) or category not in allowed_categories:
         raise ScenarioValidationError(
             f"category 가 값역 밖이거나 비었다: {category!r} (허용: {sorted(allowed_categories)})"

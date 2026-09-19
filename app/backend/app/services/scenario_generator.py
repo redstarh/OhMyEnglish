@@ -30,6 +30,7 @@ from dataclasses import dataclass
 import asyncpg
 
 from app.models.scenario_draft import (
+    ScenarioNoStage,
     ScenarioValidationError,
     normalize_title,
     parse_scenario,
@@ -40,6 +41,7 @@ from app.services.jobs import (
     complete,
     report_exception,
     report_failure,
+    report_terminal_failure,
 )
 from app.services.utterances import SESSION_TRANSCRIPT_SUBQUERY
 from app.workers.claude_client import ClaudeClient
@@ -212,10 +214,15 @@ async def process_scenario(pool: asyncpg.Pool, claude: ClaudeClient, job: Claime
 
     ⛔ **Claude 를 트랜잭션 밖에서 부른다.** 안에서 부르면 커넥션을 잡고 모델을 기다린다.
 
-    ⚠️ **전사문이 비면 재시도가 무의미하다**(입력이 같다). 지금은 그것도 `report_failure` 로
-    보내므로 **5회 헛돈다** — 즉시 종결하는 경로가 큐에 없기 때문이다. 그 5회의 비용은 DB 쿼리
-    몇 번이고 **Claude 호출은 0회**다(프롬프트를 만들기 전에 걸린다). ⇒ 지금은 받아들이고
-    `last_error` 문면에 「재시도해도 같다」를 적어 다음 사람이 원인을 알게 한다.
+    ⛔ **입력이 바뀔 수 없는 실패는 «첫 시도에» 종결한다** (`TASK-259` · 2026-09-20). 갈래 둘이
+    그렇다: ⑴ 전사문이 비었다 ⑵ 모델이 프롬프트가 지시한 대로 `category` 를 `null` 로 냈다
+    (`ScenarioNoStage`). 재시도의 전제는 「다른 표본이 성공할 수 있다」인데 두 경우 모두 입력이
+    같으므로 그 전제가 거짓이다.
+    ⚠️ **⑵ 가 이 변경을 부른 쪽이다** — 그 갈래는 **모델 호출 «뒤»** 에 걸리므로 재시도 4회가
+    유료 호출 4건이다. 실측: 무대를 말하지 않은 전사문으로 실물 모델 8회를 불러 **8회 전건**
+    `null` 이었고, 큐가 5회까지 물어 **호출 5건**을 냈다. ⑴ 은 프롬프트를 만들기 전에 걸려 호출이
+    0건이지만 같은 이유로 함께 종결한다 — 한 함수 안에서 같은 성질을 다르게 다루면 다음 사람이
+    어느 쪽이 규칙인지 알 수 없다.
     """
     if job.session_id is None:
         await report_failure(pool, job, f"scenario job {job.id} has no session target")
@@ -233,7 +240,8 @@ async def process_scenario(pool: asyncpg.Pool, claude: ClaudeClient, job: Claime
         await report_failure(pool, job, f"session {job.session_id} not found")
         return
     if not data.transcript.strip():
-        await report_failure(
+        # ⛔ 재시도하지 않는다 — 입력이 같다(위 docstring 갈래 ⑴).
+        await report_terminal_failure(
             pool,
             job,
             f"session {job.session_id} has no utterances — "
@@ -262,8 +270,17 @@ async def process_scenario(pool: asyncpg.Pool, claude: ClaudeClient, job: Claime
             allowed_categories=frozenset(data.categories),
             existing_titles=data.existing_titles,
         )
+    except ScenarioNoStage as exc:
+        # ⛔ **재시도하지 않는다** (`TASK-259`) — 모델이 프롬프트가 지시한 대로 답한 것이고 입력이
+        # 같으므로 5회를 더 물어도 같은 답이 온다. 실측: 실물 모델 8회 전건이 `null` 이었고, 그때
+        # 큐가 유료 호출 5건을 냈다. ⚠️ `done` 으로 닫지 않는 이유: 아무것도 저장하지 않으므로
+        # `done` 은 흔적 없는 성공이 되고, 「왜 무대가 없는가」를 나중에 물을 자리가 사라진다.
+        await report_terminal_failure(pool, job, f"ScenarioNoStage: {exc}")
+        logger.info("job %s: 전사문에 무대가 없어 무대를 만들지 않았다 (재시도 없음)", job.id)
+        return
     except ScenarioValidationError as exc:
         # ⛔ 반쯤 검증된 무대를 저장하지 않는다 — 거부는 job 실패이고 학습 기록은 그대로 남는다.
+        # ⚠️ 이쪽은 **재시도가 뜻을 갖는다** — 다른 표본이 계약을 지킬 수 있다(위 갈래와의 차이).
         await report_failure(pool, job, f"ScenarioValidationError: {exc}")
         return
 

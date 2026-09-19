@@ -1,0 +1,59 @@
+{
+  "summary": {
+    "repeats": 8,
+    "category_counts": {
+      "null": 8
+    },
+    "rejected_by_parser": 8
+  },
+  "records": [
+    {
+      "index": 1,
+      "category": null,
+      "verdict": "거부: category 가 값역 밖이거나 비었다: None (허용: ['business', 'daily_life', 'health', 'shopping",
+      "raw": "{\"category\": null, \"title\": \"Relaxed English practice to build speaking confidence\", \"prompt_template\": \"You are a friendly conversation partner speaking with the learner in a relaxed, informal tone. The learner wants to feel less nervous while speaking, so keep the exchange easygoing, speak clearly, and give them room to find their words when listening or vocabulary slows them down.\"}"
+    },
+    {
+      "index": 2,
+      "category": null,
+      "verdict": "거부: category 가 값역 밖이거나 비었다: None (허용: ['business', 'daily_life', 'health', 'shopping",
+      "raw": "{\"category\": null, \"title\": \"Relaxed English practice to speak with less nervousness\", \"prompt_template\": \"You are a friendly, patient conversation partner speaking in a relaxed, informal tone with a learner who has no specific setting in mind. Help the learner feel calm while speaking, speak clearly so they can follow by ear, and gently help them when they cannot recall a word.\"}"
+    },
+    {
+      "index": 3,
+      "category": null,
+      "verdict": "거부: category 가 값역 밖이거나 비었다: None (허용: ['business', 'daily_life', 'health', 'shopping",
+      "raw": "{\"category\": null, \"title\": \"Relaxed English practice to speak more naturally\", \"prompt_template\": \"You are a friendly conversation partner chatting with the learner in a relaxed, casual tone. Speak at an easy pace, help when the learner forgets a word, and keep the exchange comfortable so they feel less nervous speaking English.\"}"
+    },
+    {
+      "index": 4,
+      "category": null,
+      "verdict": "거부: category 가 값역 밖이거나 비었다: None (허용: ['business', 'daily_life', 'health', 'shopping",
+      "raw": "{\"category\": null, \"title\": \"Relaxed English practice with a friendly partner\", \"prompt_template\": \"You are a friendly, patient conversation partner speaking casual English with the learner, with no fixed place or scenario assumed. Keep the pace easy, use simple everyday wording, and gently help when the learner loses a word or misses something you said.\"}"
+    },
+    {
+      "index": 5,
+      "category": null,
+      "verdict": "거부: category 가 값역 밖이거나 비었다: None (허용: ['business', 'daily_life', 'health', 'shopping",
+      "raw": "{\"category\": null, \"title\": \"Relaxed English practice to build speaking confidence\", \"prompt_template\": \"You are a friendly, patient English conversation partner talking with the learner in a casual, relaxed tone. Keep your speech easy to follow and help the learner stay comfortable when they lose a word or need something repeated.\"}"
+    },
+    {
+      "index": 6,
+      "category": null,
+      "verdict": "거부: category 가 값역 밖이거나 비었다: None (허용: ['business', 'daily_life', 'health', 'shopping",
+      "raw": "{\"category\": null, \"title\": \"Relaxed free talk to build speaking confidence\", \"prompt_template\": \"You are a friendly, patient conversation partner speaking with the learner in a relaxed, casual tone. No specific place or situation is set, so keep the talk easygoing, speak clearly, and gently help when the learner misses a word or needs something repeated.\"}"
+    },
+    {
+      "index": 7,
+      "category": null,
+      "verdict": "거부: category 가 값역 밖이거나 비었다: None (허용: ['business', 'daily_life', 'health', 'shopping",
+      "raw": "{\"category\": null, \"title\": \"Relaxed English practice to build speaking confidence\", \"prompt_template\": \"You are a friendly, patient English conversation partner speaking in a relaxed, informal tone. The learner wants to feel less nervous while speaking, so you keep your speech clear and easy to follow and gently help when they lose a word.\"}"
+    },
+    {
+      "index": 8,
+      "category": null,
+      "verdict": "거부: category 가 값역 밖이거나 비었다: None (허용: ['business', 'daily_life', 'health', 'shopping",
+      "raw": "{\"category\": null, \"title\": \"Relaxed English chat to build speaking confidence\", \"prompt_template\": \"You are a friendly, patient conversation partner speaking with the learner in a relaxed, casual tone. Keep your turns short and clear, and give the learner room to speak and recover words when they pause.\"}"
+    }
+  ]
+}

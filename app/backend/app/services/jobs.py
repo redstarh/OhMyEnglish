@@ -431,3 +431,42 @@ async def report_failure(pool: asyncpg.Pool, job: ClaimedJob, error: str) -> Non
         recorded = await fail_or_retry(conn, job.id, job.lease_token, error)
     if not recorded:
         logger.warning("job %s: failure report discarded (lease no longer ours)", job.id)
+
+
+async def fail_terminally(
+    conn: asyncpg.Connection, job_id: UUID, lease_token: str, error: str
+) -> bool:
+    """재시도 없이 `failed` 로 닫는다 — **입력이 바뀔 수 없는 실패**를 위한 경로 (`TASK-259`).
+
+    ⛔ **`fail_or_retry` 와 갈라 두는 이유**: 그 함수의 재시도는 「다른 표본이 성공할 수 있다」는
+    전제 위에 있다. 그 전제가 거짓인 실패가 있다 — 모델이 프롬프트가 지시한 대로 「무대가 없다」고
+    답한 경우가 그것이고, 입력이 같으므로 5회를 더 물어도 같은 답이 온다. 실측(2026-09-20):
+    그 자리에서 **유료 호출 5건**이 나고 백오프가 1·2·3·4분 쌓인 뒤 `failed` 가 됐다.
+
+    ⚠️ **`attempts` 를 건드리지 않는다** — 그 값은 「몇 번 시도했는가」의 기록이고, 여기서 상한까지
+    올려 버리면 로그를 읽는 사람이 재시도가 실제로 돌았다고 오독한다.
+    ⚠️ 임대 게이트는 `complete`·`fail_or_retry` 와 같다 — `False` 는 결과가 기록되지 않았다는 뜻이다.
+    """
+    updated = await conn.fetchval(
+        """
+        update analysis_jobs
+           set status = 'failed',
+               last_error = $3,
+               locked_at = null,
+               locked_by = null
+         where id = $1 and status = 'running' and locked_by = $2
+        returning id
+        """,
+        job_id,
+        lease_token,
+        error,
+    )
+    return updated is not None
+
+
+async def report_terminal_failure(pool: asyncpg.Pool, job: ClaimedJob, error: str) -> None:
+    """`report_failure` 와 같은 자리에 쓰지만 **재시도를 만들지 않는다** (`fail_terminally`)."""
+    async with pool.acquire() as conn, conn.transaction():
+        recorded = await fail_terminally(conn, job.id, job.lease_token, error)
+    if not recorded:
+        logger.warning("job %s: terminal failure discarded (lease no longer ours)", job.id)

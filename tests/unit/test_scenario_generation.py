@@ -42,6 +42,8 @@ _TITLES = {
     "domain": "Asking for help abroad",
     "dup": "Agreeing the next milestone",
     "lease": "A stage whose lease was stolen",
+    "null_stage": "A stage that the model refused to name",
+    "retry": "A stage that must go back to the queue",
 }
 
 
@@ -314,6 +316,67 @@ async def test_a_rejected_draft_stores_nothing_and_records_the_reason(db_pool: a
         last_error = await _last_error(conn, job.id)
     assert rows == []
     assert last_error is not None and "ScenarioValidationError" in last_error
+
+
+# `TASK-259` — 재시도 판정이 사유에 따라 갈린다. ⛔ **두 테스트를 «짝으로» 둔다**: 하나만 있으면
+# 「전부 종결」이나 「전부 재시도」인 구현도 통과한다(이 파일 머리의 판별력 규칙과 같은 이유).
+@pytest.mark.asyncio
+async def test_a_null_category_ends_the_job_without_retrying(db_pool: asyncpg.Pool):
+    """모델이 지시대로 「무대 없음」을 답하면 **첫 시도에 `failed`** 다 — 호출은 1회뿐이다.
+
+    실측 근거(2026-09-20 · `TASK-259`): 무대를 말하지 않은 전사문으로 실물 모델 8회를 불러
+    8회 전건 `null` 이 왔고, 종결 경로가 없던 판은 유료 호출 5건을 냈다.
+    """
+    title = _TITLES["null_stage"]
+    async with db_pool.acquire() as conn:
+        user_id = await _fresh_user(conn)
+        await _seed_one_stage(conn)
+    session_id = await create_session(db_pool, user_id, mode=SCENARIO_INTAKE_MODE)
+    async with db_pool.acquire() as conn:
+        await _say(conn, session_id, "user", "I am not sure yet.", 1)
+        await end_session(conn, session_id, "completed")
+        job = await _claim_for(conn, session_id)
+
+    claude = _StubClaude(_reply(title, category=None))
+    await process_scenario(db_pool, claude, job)  # type: ignore[arg-type]
+
+    async with db_pool.acquire() as conn:
+        rows = await _generated_rows(conn, title)
+        last_error = await _last_error(conn, job.id)
+        state = await conn.fetchrow(
+            "select status, attempts from analysis_jobs where id = $1", job.id
+        )
+    assert rows == []
+    assert len(claude.prompts) == 1, "종결 경로인데 모델을 두 번 불렀다"
+    assert state is not None
+    assert state["status"] == "failed", f"재시도 대기로 돌아갔다 — {dict(state)}"
+    assert state["attempts"] == 1, "종결이 attempts 를 상한까지 올렸다 — 기록이 거짓이 된다"
+    assert last_error is not None and "ScenarioNoStage" in last_error
+
+
+@pytest.mark.asyncio
+async def test_a_contract_violation_still_goes_back_for_a_retry(db_pool: asyncpg.Pool):
+    """계약 위반은 **다른 표본이 지킬 수 있으므로** `pending` 으로 돌아간다(종결이 아니다)."""
+    title = _TITLES["retry"]
+    async with db_pool.acquire() as conn:
+        user_id = await _fresh_user(conn)
+        await _seed_one_stage(conn)
+    session_id = await create_session(db_pool, user_id, mode=SCENARIO_INTAKE_MODE)
+    async with db_pool.acquire() as conn:
+        await _say(conn, session_id, "user", "A meeting with my manager.", 1)
+        await end_session(conn, session_id, "completed")
+        job = await _claim_for(conn, session_id)
+
+    # 무대가 질문이다 — 위 `test_a_rejected_draft_...` 와 같은 위반이고 재시도 대상이다.
+    claude = _StubClaude(_reply(title, prompt_template="What do you do at work?"))
+    await process_scenario(db_pool, claude, job)  # type: ignore[arg-type]
+
+    async with db_pool.acquire() as conn:
+        state = await conn.fetchrow(
+            "select status, attempts from analysis_jobs where id = $1", job.id
+        )
+    assert state is not None
+    assert state["status"] == "pending", f"계약 위반을 종결시켰다 — {dict(state)}"
 
 
 @pytest.mark.asyncio
