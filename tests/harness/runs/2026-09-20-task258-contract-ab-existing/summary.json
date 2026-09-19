@@ -1,0 +1,48 @@
+{
+  "repeats_per_transcript": 8,
+  "existing_patterns": [
+    "article_missing_plural",
+    "verb_tense_past_simple"
+  ],
+  "transcripts": 5,
+  "arms": {
+    "control": {
+      "calls": 40,
+      "call_failures": 0,
+      "parse_ok": 40,
+      "parse_failed": 0,
+      "items": 151,
+      "items_with_key_violation": 0,
+      "extra_keys": {},
+      "missing_keys": {},
+      "bad_pattern_key_format": 0,
+      "unexpected_attempts": 32
+    },
+    "treated": {
+      "calls": 40,
+      "call_failures": 0,
+      "parse_ok": 40,
+      "parse_failed": 0,
+      "items": 147,
+      "items_with_key_violation": 0,
+      "extra_keys": {},
+      "missing_keys": {},
+      "bad_pattern_key_format": 0,
+      "unexpected_attempts": 32
+    }
+  },
+  "learning_rows_before": {
+    "error_patterns": 8,
+    "error_occurrences": 14,
+    "utterances": 12,
+    "llm_calls": 95
+  },
+  "learning_rows_after": {
+    "error_patterns": 8,
+    "error_occurrences": 14,
+    "utterances": 12,
+    "llm_calls": 175,
+    "in_tokens": 496720,
+    "out_tokens": 200526
+  }
+}
