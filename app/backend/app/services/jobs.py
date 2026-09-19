@@ -355,6 +355,19 @@ async def complete(conn: asyncpg.Connection, job_id: UUID, lease_token: str) -> 
         raise LeaseLost
 
 
+async def report_exception(pool: asyncpg.Pool, job: ClaimedJob, exc: BaseException) -> None:
+    """예외를 `last_error` 문면으로 바꿔 큐에 보고한다 — **그 문면의 소유자가 이 함수다.**
+
+    ⛔ `f"{type(exc).__name__}: {exc}"` 가 다섯 모듈 **15자리**에 복제돼 있었다(`TASK-226`).
+    그 문면은 결과 화면이 `partial_failure` 에서 읽는 계약인데(`api/results.py`) 소유자가 없어서,
+    한 자리만 「사유만」으로 바꿔도 그 화면에서 예외 종류가 사라지는 것을 아무도 보지 못한다.
+
+    ⚠️ **종류 이름을 앞에 붙이는 것이 계약의 핵심이다** — `ValueError: ` 없이 사유만 남으면
+    같은 문장이 모델 거부와 DB 장애 양쪽에서 나올 수 있어 조사하는 사람이 층을 가를 수 없다.
+    """
+    await report_failure(pool, job, f"{type(exc).__name__}: {exc}")
+
+
 async def fail_or_retry(
     conn: asyncpg.Connection,
     job_id: UUID,

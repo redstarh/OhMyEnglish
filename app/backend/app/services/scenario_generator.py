@@ -34,7 +34,14 @@ from app.models.scenario_draft import (
     normalize_title,
     parse_scenario,
 )
-from app.services.jobs import ClaimedJob, LeaseLost, complete, report_failure
+from app.services.jobs import (
+    ClaimedJob,
+    LeaseLost,
+    complete,
+    report_exception,
+    report_failure,
+)
+from app.services.utterances import SESSION_TRANSCRIPT_SUBQUERY
 from app.workers.claude_client import ClaudeClient
 
 logger = logging.getLogger(__name__)
@@ -132,14 +139,12 @@ def build_scenario_prompt(*, transcript: str, allowed_categories: Sequence[str])
     )
 
 
-# ⚠️ 전사문을 `speaker: transcript` 줄로 이어 만든다 — 누가 물었고 누가 답했는지가 축을 가르는
-# 근거이므로 화자 없이 이으면 다섯 축을 분간할 수 없다.
-_INTAKE_INPUT_SQL = """
+# ⚠️ 전사문 단편의 정본은 `services/utterances.SESSION_TRANSCRIPT_SUBQUERY` 다 — 화자를 함께
+# 잇는 이유(다섯 축을 가르는 근거)와 별칭 계약(`ls`)을 그 상수가 소유한다(`TASK-226`).
+_INTAKE_INPUT_SQL = f"""
 select ls.user_id,
        u.current_level,
-       (select string_agg(ut.speaker || ': ' || ut.transcript, E'\n' order by ut.sequence_no)
-          from utterances ut
-         where ut.session_id = ls.id) as transcript
+       {SESSION_TRANSCRIPT_SUBQUERY} as transcript
   from learning_sessions ls
   join users u on u.id = ls.user_id
  where ls.id = $1
@@ -221,7 +226,7 @@ async def process_scenario(pool: asyncpg.Pool, claude: ClaudeClient, job: Claime
             data = await _load_intake_input(conn, job.session_id)
     except Exception as exc:  # DB 장애 — 큐에 보고하고 재시도에 맡긴다
         logger.exception("job %s: loading intake input failed", job.id)
-        await report_failure(pool, job, f"{type(exc).__name__}: {exc}")
+        await report_exception(pool, job, exc)
         return
 
     if data is None:
@@ -248,7 +253,7 @@ async def process_scenario(pool: asyncpg.Pool, claude: ClaudeClient, job: Claime
         raw = await claude.analyze(prompt, purpose="generate_scenario", job_id=job.id)
     except Exception as exc:
         logger.exception("job %s: claude call failed", job.id)
-        await report_failure(pool, job, f"{type(exc).__name__}: {exc}")
+        await report_exception(pool, job, exc)
         return
 
     try:
@@ -279,7 +284,7 @@ async def process_scenario(pool: asyncpg.Pool, claude: ClaudeClient, job: Claime
         return
     except Exception as exc:
         logger.exception("job %s: storing the generated stage failed", job.id)
-        await report_failure(pool, job, f"{type(exc).__name__}: {exc}")
+        await report_exception(pool, job, exc)
         return
 
     logger.info(

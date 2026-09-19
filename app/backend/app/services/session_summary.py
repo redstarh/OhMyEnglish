@@ -42,20 +42,20 @@ from app.services.jobs import (
     ClaimedJob,
     LeaseLost,
     complete,
+    report_exception,
     report_failure,
 )
+from app.services.utterances import SESSION_TRANSCRIPT_SUBQUERY
 from app.workers.claude_client import ClaudeClient
 
 logger = logging.getLogger(__name__)
 
-# ⚠️ 전사문을 `speaker: transcript` 줄로 이어 만든다 — 누가 말했는지가 「잘한 점」과 「약점」을
-# 가르는 근거이므로 화자 없이 이으면 학습자의 말과 코치의 교정을 분간할 수 없다.
+# ⚠️ 전사문 단편의 정본은 `services/utterances.SESSION_TRANSCRIPT_SUBQUERY` 다 — 화자를 함께
+# 잇는 이유와 별칭 계약(`ls`)을 그 상수가 소유한다(`TASK-226` 이 두 벌을 접었다).
 # ⛔ **오류 패턴을 조인하지 않는다**(모듈 docstring 의 마지막 ⛔) — 그 경합이 총평을 재현 불가로
 # 만든다.
-_TRANSCRIPT_SQL = """
-select (select string_agg(ut.speaker || ': ' || ut.transcript, E'\n' order by ut.sequence_no)
-          from utterances ut
-         where ut.session_id = ls.id) as transcript
+_TRANSCRIPT_SQL = f"""
+select {SESSION_TRANSCRIPT_SUBQUERY} as transcript
   from learning_sessions ls
  where ls.id = $1
 """
@@ -147,7 +147,7 @@ async def _store(pool: asyncpg.Pool, job: ClaimedJob, payload: dict[str, object]
         return False
     except Exception as exc:
         logger.exception("job %s: storing the summary failed", job.id)
-        await report_failure(pool, job, f"{type(exc).__name__}: {exc}")
+        await report_exception(pool, job, exc)
         return False
     return True
 
@@ -173,7 +173,7 @@ async def process_summary(pool: asyncpg.Pool, claude: ClaudeClient, job: Claimed
             transcript = await conn.fetchval(_TRANSCRIPT_SQL, job.session_id)
     except Exception as exc:  # DB 장애 — 큐에 보고하고 재시도에 맡긴다
         logger.exception("job %s: loading the transcript failed", job.id)
-        await report_failure(pool, job, f"{type(exc).__name__}: {exc}")
+        await report_exception(pool, job, exc)
         return
 
     # ⛔ **모델을 부르기 «전»에** 이 갈래를 둔다 — 뒤에 두면 빈 전사문으로 토큰이 나간다.
@@ -187,7 +187,7 @@ async def process_summary(pool: asyncpg.Pool, claude: ClaudeClient, job: Claimed
         raw = await claude.analyze(prompt, purpose=JOB_TYPE_SUMMARIZE, job_id=job.id)
     except Exception as exc:
         logger.exception("job %s: claude call failed", job.id)
-        await report_failure(pool, job, f"{type(exc).__name__}: {exc}")
+        await report_exception(pool, job, exc)
         return
 
     try:

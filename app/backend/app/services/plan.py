@@ -67,7 +67,13 @@ from app.models.analysis import PRONUNCIATION_CATEGORY
 from app.models.plan import CEFR_LEVELS, LevelDecision, PlanOutput, PlanValidationError, parse_plan
 from app.models.usage import PURPOSE_PLAN
 from app.services.chronic import ChronicMetric, deepest_recurrence
-from app.services.jobs import ClaimedJob, LeaseLost, complete, report_failure
+from app.services.jobs import (
+    ClaimedJob,
+    LeaseLost,
+    complete,
+    report_exception,
+    report_failure,
+)
 from app.services.plan_input import (
     PlanInput,
     PronunciationTally,
@@ -533,7 +539,7 @@ async def process_plan(pool: asyncpg.Pool, claude: ClaudeClient, job: ClaimedJob
             data = None if owner_id is None else await load_plan_input(conn, owner_id)
     except Exception as exc:  # DB 장애 · 무효 타임존 — 큐에 보고하고 재시도에 맡긴다
         logger.exception("job %s: loading plan input failed", job.id)
-        await report_failure(pool, job, f"{type(exc).__name__}: {exc}")
+        await report_exception(pool, job, exc)
         return
 
     if data is None:
@@ -561,7 +567,7 @@ async def process_plan(pool: asyncpg.Pool, claude: ClaudeClient, job: ClaimedJob
         raw = await claude.analyze(build_plan_prompt(data), purpose=PURPOSE_PLAN, job_id=job.id)
     except Exception as exc:
         logger.exception("job %s: claude call failed", job.id)
-        await report_failure(pool, job, f"{type(exc).__name__}: {exc}")
+        await report_exception(pool, job, exc)
         return
 
     # AC11-2 — "가장 깊은 재발"의 순위는 만성 목록을 소유한 쪽이 낸다(`chronic.py`). 여기서
@@ -594,4 +600,4 @@ async def process_plan(pool: asyncpg.Pool, claude: ClaudeClient, job: ClaimedJob
         logger.warning("job %s: lease lost, plan rolled back", job.id)
     except Exception as exc:
         logger.exception("job %s: storing plan failed", job.id)
-        await report_failure(pool, job, f"{type(exc).__name__}: {exc}")
+        await report_exception(pool, job, exc)

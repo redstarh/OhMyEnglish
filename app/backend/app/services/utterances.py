@@ -48,6 +48,20 @@ ANALYZED_UTTERANCE_TYPE = "learning"
 
 _SELECT_COLUMNS = "id, session_id, speaker, utterance_type, transcript, sequence_no, created_at"
 
+# 세션 하나의 전사문을 `speaker: transcript` 줄로 이어 만드는 **상관 부질의 단편**.
+#
+# ⛔ **바깔 질의가 세션 행에 `ls` 라는 이름을 써야 한다 — 그 별칭이 계약의 일부다.** f-string 에
+# 끼워 쓰는 단편이라는 형태는 `sessions.LIVE_SESSION_STATUSES_SQL` 의 선례를 따른다.
+# ⛔ **화자를 함께 잇는 것이 요구다** — 누가 말했는지가 총평의 「잘한 점 대 약점」과 무대 생성의
+# 다섯 축을 가르는 근거이므로, 화자 없이 이으면 학습자의 말과 코치의 말을 분간할 수 없다.
+# ⚠️ 이 단편이 `services/session_summary.py` 와 `services/scenario_generator.py` 에 **글자 그대로
+# 복제돼 있었다**(`TASK-226`). 한쪽만 `order by` 를 잃어도 전사문 순서가 조용히 흔들린다.
+SESSION_TRANSCRIPT_SUBQUERY = """(
+       select string_agg(ut.speaker || ': ' || ut.transcript, E'\\n' order by ut.sequence_no)
+         from utterances ut
+        where ut.session_id = ls.id
+     )"""
+
 
 @dataclass(frozen=True, slots=True)
 class UtteranceRow:

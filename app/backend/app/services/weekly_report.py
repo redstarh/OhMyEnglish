@@ -32,6 +32,7 @@ from app.services.jobs import (
     ClaimedJob,
     LeaseLost,
     complete,
+    report_exception,
     report_failure,
 )
 from app.services.user_timezone import timezone_of
@@ -347,7 +348,7 @@ async def _store(
         return False
     except Exception as exc:
         logger.exception("job %s: storing the weekly report failed", job.id)
-        await report_failure(pool, job, f"{type(exc).__name__}: {exc}")
+        await report_exception(pool, job, exc)
         return False
     return True
 
@@ -379,7 +380,7 @@ async def process_weekly(pool: asyncpg.Pool, claude: ClaudeClient, job: ClaimedJ
             facts = await load_week_facts(conn, owner["user_id"], week_start)
     except Exception as exc:  # DB 장애 — 큐에 보고하고 재시도에 맡긴다
         logger.exception("job %s: loading the weekly facts failed", job.id)
-        await report_failure(pool, job, f"{type(exc).__name__}: {exc}")
+        await report_exception(pool, job, exc)
         return
 
     metrics = _metrics_payload(facts)
@@ -401,7 +402,7 @@ async def process_weekly(pool: asyncpg.Pool, claude: ClaudeClient, job: ClaimedJ
         raw = await claude.analyze(prompt, purpose=JOB_TYPE_SUMMARIZE_WEEK, job_id=job.id)
     except Exception as exc:
         logger.exception("job %s: claude call failed", job.id)
-        await report_failure(pool, job, f"{type(exc).__name__}: {exc}")
+        await report_exception(pool, job, exc)
         return
 
     try:

@@ -43,7 +43,14 @@ from app.models.analysis import (
 )
 from app.models.usage import PURPOSE_ANALYSIS
 from app.services.daily_summary import refresh_summary_for_utterance
-from app.services.jobs import JOB_TYPE_ANALYZE, ClaimedJob, LeaseLost, complete, report_failure
+from app.services.jobs import (
+    JOB_TYPE_ANALYZE,
+    ClaimedJob,
+    LeaseLost,
+    complete,
+    report_exception,
+    report_failure,
+)
 from app.services.pronunciation import record_transcript_analysis_signal
 from app.services.review import recompute, store_attempts
 from app.services.utterances import ANALYZED_SPEAKER, ANALYZED_UTTERANCE_TYPE
@@ -577,7 +584,7 @@ async def process_analysis(pool: asyncpg.Pool, claude: ClaudeClient, job: Claime
             loaded = await _load_input(conn, job.utterance_id)
     except Exception as exc:  # DB 장애 — 큐에 보고하고 재시도에 맡긴다
         logger.exception("job %s: loading analysis input failed", job.id)
-        await report_failure(pool, job, f"{type(exc).__name__}: {exc}")
+        await report_exception(pool, job, exc)
         return
 
     if loaded is None:
@@ -599,7 +606,7 @@ async def process_analysis(pool: asyncpg.Pool, claude: ClaudeClient, job: Claime
             return
         except Exception as exc:
             logger.exception("job %s: claude call failed", job.id)
-            await report_failure(pool, job, f"{type(exc).__name__}: {exc}")
+            await report_exception(pool, job, exc)
             return
     else:
         # 빈/공백 전사문은 "분석할 것이 없다 = 오류 0건"이다. Claude를 호출하지 않고
@@ -619,4 +626,4 @@ async def process_analysis(pool: asyncpg.Pool, claude: ClaudeClient, job: Claime
         logger.warning("job %s: lease lost, result rolled back", job.id)
     except Exception as exc:
         logger.exception("job %s: storing analysis result failed", job.id)
-        await report_failure(pool, job, f"{type(exc).__name__}: {exc}")
+        await report_exception(pool, job, exc)

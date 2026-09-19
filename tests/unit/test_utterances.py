@@ -36,6 +36,7 @@ import pytest
 from app.services.jobs import claim_next, complete
 from app.services.sessions import end_session
 from app.services.utterances import (
+    SESSION_TRANSCRIPT_SUBQUERY,
     UtteranceRow,
     flush_ended_sessions,
     flush_pending_analysis,
@@ -49,6 +50,45 @@ SECOND_TURN_ANSWER = "I usually go to office by subway."
 # 분석되면 "주어 없음"·"목적어 없음"을 만들고, 이어붙이면 온전한 문장이 된다.
 FRAGMENTS = ("i'm going to", "have a meeting", "with the client.")
 AGENT_REPLY = "That sounds important. How are you preparing?"
+
+
+async def test_the_transcript_subquery_orders_by_sequence_no_and_keeps_the_speaker(
+    db_conn: asyncpg.Connection,
+) -> None:
+    """⛔ 전사문 단편은 **`sequence_no` 순서**로 잇고 화자를 함께 싣는다 (`TASK-226`).
+
+    ⚠️ **행 셋과 어긋난 `created_at` 이 둘 다 이 단정의 판별력이다.** 두 행으로는 `created_at` 의
+    오름·내림 가운데 하나가 `sequence_no` 순서와 반드시 겹치므로 그 변이를 못 잡는다 — 실제로
+    2행 판이 `order by ut.created_at desc` 변이를 통과했다. 시각을 `0 · +2 · +1` 분으로 어긋나게
+    두면 오름(1,3,2)·내림(2,3,1) 둘 다 `sequence_no` 순서(1,2,3)와 다르다.
+    ⛔ 화자를 함께 잼: 총평은 「학습자의 말 대 코치의 교정」으로, 무대 생성은 「누가 물었나」로
+    축을 가른다 — 화자가 빠지면 두 프롬프트가 같은 입력을 잘못 읽는다.
+    """
+    session_id = await _new_session(db_conn)
+    await save_final_transcript(db_conn, session_id, "I go to gym.", speaker="user")
+    await save_final_transcript(db_conn, session_id, "Try: I go to the gym.", speaker="agent")
+    await save_final_transcript(db_conn, session_id, "I went to the gym.", speaker="user")
+    await db_conn.execute(
+        """
+        update utterances
+           set created_at = now() + (case sequence_no
+                                       when 1 then interval '0 minute'
+                                       when 2 then interval '2 minute'
+                                       else interval '1 minute'
+                                     end)
+         where session_id = $1
+        """,
+        session_id,
+    )
+
+    transcript = await db_conn.fetchval(
+        f"select {SESSION_TRANSCRIPT_SUBQUERY} from learning_sessions ls where ls.id = $1",
+        session_id,
+    )
+
+    assert transcript == (
+        "user: I go to gym.\nagent: Try: I go to the gym.\nuser: I went to the gym."
+    )
 
 
 async def _new_session(conn: asyncpg.Connection) -> UUID:
