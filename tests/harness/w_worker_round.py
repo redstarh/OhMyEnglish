@@ -11,7 +11,8 @@
 만들어야** 하고, dev DB 에 만들면 픽스처 문장이 사용자의 실제 오류 패턴·복습 일정으로 섞인다 —
 그것은 `TASK-191` 이 *「하네스 산출물은 처리하지 않음」*으로 정한 것을 되돌리는 일이다. 격리
 DB 는 같은 마이그레이션·같은 코드를 지나가므로 **증거는 같고 되돌릴 수 없는 부수 효과만 없다.**
-⚠️ 유료 호출은 그대로 난다 — 상한은 `CALL_CAP` 이 코드로 막는다(승인 근거가 12~15건이었다).
+⚠️ 유료 호출은 그대로 난다. 상한은 `CALL_CAP` 이 코드로 막고, **그 값의 뜻이 2026-09-20 에
+예산에서 폭주 방지로 바뀌었다**(그 상수 위 주석이 근거를 갖는다).
 
 ⛔ **`run_worker` 를 «실제로» 부른다** — 이 회차의 대상이 워커 루프 자체다. dev DB 에서 그것을
 부르지 않는 이유는 `p5_worker_leg.py` 가 소유한다(`H-AT`: 유휴 사이클의 스윕이 보존 세션에 job 을
@@ -49,10 +50,12 @@ sys.path.insert(0, str(REPO_ROOT / "scripts"))
 from db_utils import dsn_for, recreate_database  # noqa: E402
 
 WORKER_DB_NAME = "ohmyenglish_worker"
-# ⛔ 승인 근거로 제시한 예상 호출이 12~15건이라 그 수를 넘기지 않는다. 예상 경로는 9건이다
-# (분석 5 + 총평 1 + 계획 1 + 무대 1 + 주간 1). job 재시도(`MAX_ATTEMPTS=5`)가 곱해지므로
-# 상한을 코드에 둔다 — 규율로 두면 파서 거부 한 번에 호출이 배로 늘어난다.
-CALL_CAP = 14
+# ⛔ **이 값은 예산이 아니라 폭주 방지다 — 2026-09-20 에 뜻이 바뀌었다.** 첫 판의 `14` 는 승인
+# 근거(12~15건)를 넘기지 않기 위한 예산이었고 사용자가 그 제약을 풀었다(*「유료 호출 상관 하지
+# 말고 진행해」*). ⛔ **그래도 상한 자체는 남긴다**: job 재시도가 `MAX_ATTEMPTS=5` 까지 돌고
+# 종류가 다섯이라 파서가 계속 거부하면 호출이 조용히 수십 건으로 늘어난다. 예상 경로는 10건이다
+# (분석 5 + 회복 스윕이 걷는 묶음 1 + 총평 1 + 계획 1 + 무대 1 + 주간 1).
+CALL_CAP = 40
 TIMEZONE = "Asia/Seoul"
 
 # 「질문 답변 5개」 세션의 전사문. 다섯 축(무대·상대·목표·초점·어조)을 순서대로 덮고, 오류는
@@ -156,7 +159,8 @@ async def _seed_last_week(conn: asyncpg.Connection, user_id: UUID) -> dict[str, 
     """지난 주 세션 1건 + 발화 2건 + 오류 패턴 2종(발생 3건)을 심는다.
 
     ⛔ **이것은 씨앗이고 관측 대상이 아니다** — 이 회차가 판정하는 것은 이 값들을 읽어 만드는
-    주간 리포트 쪽이다. 패턴을 모델로 만들면 호출이 그만큼 늘어 승인 범위를 넘는다.
+    주간 리포트 쪽이다. 그래서 패턴을 모델로 만들지 않는다: 지난 주 발화를 분석에 태우면 이 회차가
+    **자기 씨앗을 관측 대상으로 착각할 자리**가 생기고, 주간 사실의 수가 실행마다 흔들린다.
     """
     session = await conn.fetchrow(_LAST_WEEK_SESSION_SQL, user_id, TIMEZONE)
     assert session is not None
@@ -468,6 +472,13 @@ async def cmd_verify(out_dir: Path) -> int:
         assert clock is not None
         evidence["clock"] = dict(clock)
 
+        # ⛔ **드라이버 계수기와 `llm_calls` 를 대조한다 — `H-CK` 를 기계 검사로 바꾼 자리다.**
+        # 첫 회차는 유료 호출 9건이 나는데 그 표가 0행이었고, 그것을 **우연히** 발견했다(집계를
+        # 눈으로 읽다가). 두 수가 어긋나면 배선이 빠진 것이므로 단정으로 세운다.
+        run_log = out_dir / "run.json"
+        counted = json.loads(run_log.read_text())["claude_calls"] if run_log.exists() else None
+        evidence["claude_calls_counted_by_driver"] = counted
+
         jobs = evidence["jobs"]
         weekly_jobs = [job for job in jobs if job["job_type"] == "summarize_week"]
         analyze_jobs = [job for job in jobs if job["job_type"] == "analyze_utterance"]
@@ -527,6 +538,25 @@ async def cmd_verify(out_dir: Path) -> int:
                 bool(analyze_jobs) and all(job["status"] == "done" for job in analyze_jobs),
                 f"{[(j['status'], j['last_error']) for j in analyze_jobs]}"
                 f" · 패턴 category={[p['category'] for p in evidence['error_patterns']]}",
+            ),
+            _check(
+                "AC#4 llm_calls 행 수가 드라이버 계수기와 같다 (H-CK 기계 검사)",
+                counted is not None and len(evidence["llm_calls"]) == counted,
+                f"llm_calls={len(evidence['llm_calls'])}행 · 드라이버 계수기={counted}"
+                f" · 토큰 합계 in/out="
+                f"{sum(row['input_tokens'] for row in evidence['llm_calls'])}/"
+                f"{sum(row['output_tokens'] for row in evidence['llm_calls'])}",
+            ),
+            # ⛔ **재시도 수를 단정에 넣지 않는다 — 실측으로 그 단정이 거짓 실패를 냈다**
+            # (2026-09-20 재실행). 실물 응답이 한 응답 «안에서» 키 이름을 섞어(`findings[0]` 은
+            # `pattern_key`, `findings[1]` 은 `pattern_form`) 파서가 거부하고 재시도가 성공했다.
+            # 그것은 설계된 회복이 도는 것이고 드라이버 결함이 아니다. ⇒ 단정은 「전건 done」에
+            # 두고 재시도는 **사유와 함께 보이게만** 한다.
+            _check(
+                "job 전건이 done 이다 (재시도는 사유와 함께 적는다)",
+                bool(jobs) and all(job["status"] == "done" for job in jobs),
+                f"{sorted((j['job_type'], j['status'], j['attempts']) for j in jobs)}"
+                f" · 재시도한 job 의 사유={[j['last_error'] for j in jobs if j['attempts'] > 1]}",
             ),
         ]
         evidence["checks"] = checks

@@ -1,0 +1,389 @@
+{
+  "jobs": [
+    {
+      "job_type": "analyze_utterance",
+      "status": "done",
+      "attempts": 2,
+      "last_error": "analysis response failed validation: 2 validation errors for AnalysisResult\nfindings.1.pattern_key\n  Field required [type=missing, input_value={'category': 'business_ex...획 한 줄 말하기']}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/missing\nfindings.1.pattern_form\n  Extra inputs are not permitted [type=extra_forbidden, input_value=None, input_type=NoneType]\n    For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden"
+    },
+    {
+      "job_type": "analyze_utterance",
+      "status": "done",
+      "attempts": 1,
+      "last_error": null
+    },
+    {
+      "job_type": "analyze_utterance",
+      "status": "done",
+      "attempts": 1,
+      "last_error": null
+    },
+    {
+      "job_type": "analyze_utterance",
+      "status": "done",
+      "attempts": 1,
+      "last_error": null
+    },
+    {
+      "job_type": "analyze_utterance",
+      "status": "done",
+      "attempts": 1,
+      "last_error": null
+    },
+    {
+      "job_type": "analyze_utterance",
+      "status": "done",
+      "attempts": 1,
+      "last_error": null
+    },
+    {
+      "job_type": "generate_scenario",
+      "status": "done",
+      "attempts": 1,
+      "last_error": null
+    },
+    {
+      "job_type": "plan_next_session",
+      "status": "done",
+      "attempts": 1,
+      "last_error": null
+    },
+    {
+      "job_type": "summarize_session",
+      "status": "done",
+      "attempts": 1,
+      "last_error": null
+    },
+    {
+      "job_type": "summarize_week",
+      "status": "done",
+      "attempts": 1,
+      "last_error": null
+    }
+  ],
+  "llm_calls": [
+    {
+      "purpose": "analysis",
+      "model_id": "us.anthropic.claude-opus-5",
+      "input_tokens": 2846,
+      "output_tokens": 947,
+      "called_at": "2026-09-19 16:15:10.134552+00:00"
+    },
+    {
+      "purpose": "analysis",
+      "model_id": "us.anthropic.claude-opus-5",
+      "input_tokens": 2840,
+      "output_tokens": 1480,
+      "called_at": "2026-09-19 16:15:29.368380+00:00"
+    },
+    {
+      "purpose": "analysis",
+      "model_id": "us.anthropic.claude-opus-5",
+      "input_tokens": 2901,
+      "output_tokens": 16,
+      "called_at": "2026-09-19 16:15:30.910042+00:00"
+    },
+    {
+      "purpose": "analysis",
+      "model_id": "us.anthropic.claude-opus-5",
+      "input_tokens": 2903,
+      "output_tokens": 526,
+      "called_at": "2026-09-19 16:15:39.023038+00:00"
+    },
+    {
+      "purpose": "analysis",
+      "model_id": "us.anthropic.claude-opus-5",
+      "input_tokens": 2934,
+      "output_tokens": 938,
+      "called_at": "2026-09-19 16:15:51.138938+00:00"
+    },
+    {
+      "purpose": "plan",
+      "model_id": "us.openai.gpt-5.6-terra",
+      "input_tokens": 1927,
+      "output_tokens": 446,
+      "called_at": "2026-09-19 16:15:56.494421+00:00"
+    },
+    {
+      "purpose": "summarize_session",
+      "model_id": "us.anthropic.claude-opus-5",
+      "input_tokens": 757,
+      "output_tokens": 842,
+      "called_at": "2026-09-19 16:16:09.368341+00:00"
+    },
+    {
+      "purpose": "generate_scenario",
+      "model_id": "us.anthropic.claude-opus-5",
+      "input_tokens": 977,
+      "output_tokens": 115,
+      "called_at": "2026-09-19 16:16:12.274219+00:00"
+    },
+    {
+      "purpose": "summarize_week",
+      "model_id": "us.anthropic.claude-opus-5",
+      "input_tokens": 697,
+      "output_tokens": 417,
+      "called_at": "2026-09-19 16:16:19.676277+00:00"
+    },
+    {
+      "purpose": "analysis",
+      "model_id": "us.anthropic.claude-opus-5",
+      "input_tokens": 3020,
+      "output_tokens": 808,
+      "called_at": "2026-09-19 16:16:29.796505+00:00"
+    },
+    {
+      "purpose": "analysis",
+      "model_id": "us.anthropic.claude-opus-5",
+      "input_tokens": 3058,
+      "output_tokens": 1062,
+      "called_at": "2026-09-19 16:16:42.002262+00:00"
+    }
+  ],
+  "daily_error_summary": [
+    {
+      "summary_date": "2026-09-08",
+      "timezone": "Asia/Seoul",
+      "occurrence_count": 6,
+      "pattern_count": 2,
+      "patterns": "[{\"example\": {\"reason\": \"지난 주 씨앗 — 주간 리포트 입력용\", \"correction\": \"went / explained\", \"original_span\": \"seed span\"}, \"category\": \"verb_tense\", \"occurrences\": 5, \"pattern_key\": \"verb_tense_past_simple\", \"target_form\": \"주어 + 동사 과거형\"}, {\"example\": {\"reason\": \"many 뒤에는 셀 수 있는 명사의 복수형 words를 씁니다.\", \"correction\": \"many words\", \"original_span\": \"many word\"}, \"category\": \"article\", \"occurrences\": 1, \"pattern_key\": \"article_missing_plural\", \"target_form\": \"many words\"}]",
+      "computed_at": "2026-09-19 16:16:42.005433+00:00"
+    },
+    {
+      "summary_date": "2026-09-20",
+      "timezone": "Asia/Seoul",
+      "occurrence_count": 8,
+      "pattern_count": 7,
+      "patterns": "[{\"example\": {\"reason\": \"video call은 셀 수 있는 단수 명사라서 앞에 a가 필요합니다.\", \"correction\": \"join a weekly video call\", \"original_span\": \"join weekly video call\"}, \"category\": \"article\", \"occurrences\": 2, \"pattern_key\": \"article_missing_before_singular_noun\", \"target_form\": \"the/a + 단수 명사\"}, {\"example\": {\"reason\": \"must는 딱딱하게 들리니, 업무 일정을 말할 때는 I need to를 쓰면 더 자연스럽습니다.\", \"correction\": \"I need to join\", \"original_span\": \"I must join\"}, \"category\": \"business_expression\", \"occurrences\": 1, \"pattern_key\": \"business_expression_must_vs_need_to\", \"target_form\": \"I need to + 동사원형\"}, {\"example\": {\"reason\": \"상대 팀 쪽 사람을 말할 때는 on their side가 더 자연스럽습니다.\", \"correction\": \"on their side\", \"original_span\": \"from their side\"}, \"category\": \"preposition\", \"occurrences\": 1, \"pattern_key\": \"preposition_on_their_side\", \"target_form\": \"on + 소유격 + side\"}, {\"example\": {\"reason\": \"afraid 뒤에는 of를 쓰고 동사는 -ing 형태로 이어집니다.\", \"correction\": \"afraid of answering\", \"original_span\": \"afraid on answering\"}, \"category\": \"preposition\", \"occurrences\": 1, \"pattern_key\": \"preposition_wrong_after_adjective\", \"target_form\": \"be afraid of + 동명사(-ing)\"}, {\"example\": {\"reason\": \"주어가 3인칭 단수(their director)이고 현재 습관을 말하므로 동사에 -s를 붙여 joins라고 합니다.\", \"correction\": \"their director joins\", \"original_span\": \"their director join\"}, \"category\": \"verb_form\", \"occurrences\": 1, \"pattern_key\": \"verb_form_third_person_singular_s\", \"target_form\": \"3인칭 단수 주어 + 동사원형 + -s\"}, {\"example\": {\"reason\": \"이미 끝난 미팅 내용을 보고하는 것이므로 과거형 talked를 씁니다.\", \"correction\": \"I talked with\", \"original_span\": \"I talk with\"}, \"category\": \"verb_tense\", \"occurrences\": 1, \"pattern_key\": \"verb_tense_past_simple\", \"target_form\": \"주어 + 동사 과거형\"}, {\"example\": {\"reason\": \"sometimes 같은 빈도 부사는 보통 동사 앞에 놓아서 sometimes joins라고 말합니다.\", \"correction\": \"sometimes joins\", \"original_span\": \"join sometimes\"}, \"category\": \"word_order\", \"occurrences\": 1, \"pattern_key\": \"word_order_frequency_adverb_position\", \"target_form\": \"주어 + sometimes/usually + 동사\"}]",
+      "computed_at": "2026-09-19 16:16:29.800073+00:00"
+    }
+  ],
+  "weekly_reports": [
+    {
+      "week_start": "2026-09-07",
+      "timezone": "Asia/Seoul",
+      "metrics": "{\"top_patterns\": [{\"category\": \"verb_tense\", \"occurrences\": 2, \"pattern_key\": \"verb_tense_past_simple\", \"target_form\": \"주어 + 동사 과거형\"}, {\"category\": \"article\", \"occurrences\": 1, \"pattern_key\": \"article_missing_plural\", \"target_form\": \"many words\"}], \"pattern_count\": 2, \"session_count\": 1, \"occurrence_count\": 3}",
+      "insights": "{\"improving\": [], \"next_scenarios\": [\"지난 주 기록에서 과거 시점을 말할 때 동사 형태가 두 번 흔들렸습니다. 다음 한 주는 주말에 한 일이나 어제 있었던 일을 이야기하며 '주어 + 동사 과거형'을 쓰는 연습을 해보세요.\", \"복수로 말할 자리에서 형태가 한 번 어긋났습니다. many words처럼 셀 수 있는 명사를 여러 개 가리키는 표현을 문장 안에서 직접 만들어 보세요.\", \"과거 이야기와 복수 표현을 한 문장에 함께 담는 연습도 좋습니다. 예를 들어 지난주에 배운 것을 설명하면서 두 형태를 동시에 쓰는 상황을 만들어 보세요.\"]}",
+      "computed_at": "2026-09-19 16:16:19.679014+00:00"
+    }
+  ],
+  "error_patterns": [
+    {
+      "category": "verb_tense",
+      "pattern_key": "verb_tense_past_simple",
+      "target_form": "주어 + 동사 과거형",
+      "frequency": 6,
+      "last_seen_at": "2026-09-19 16:14:48.285485+00:00",
+      "next_review_at": "2026-09-20 16:14:48.285485+00:00"
+    },
+    {
+      "category": "article",
+      "pattern_key": "article_missing_plural",
+      "target_form": "many words",
+      "frequency": 1,
+      "last_seen_at": "2026-09-08 11:02:00+00:00",
+      "next_review_at": "2026-09-22 16:14:48.285485+00:00"
+    },
+    {
+      "category": "article",
+      "pattern_key": "article_missing_before_singular_noun",
+      "target_form": "the/a + 단수 명사",
+      "frequency": 2,
+      "last_seen_at": "2026-09-19 16:14:48.285485+00:00",
+      "next_review_at": "2026-09-20 16:14:48.285485+00:00"
+    },
+    {
+      "category": "preposition",
+      "pattern_key": "preposition_on_their_side",
+      "target_form": "on + 소유격 + side",
+      "frequency": 1,
+      "last_seen_at": "2026-09-19 16:14:48.285485+00:00",
+      "next_review_at": "2026-09-20 16:14:48.285485+00:00"
+    },
+    {
+      "category": "preposition",
+      "pattern_key": "preposition_wrong_after_adjective",
+      "target_form": "be afraid of + 동명사(-ing)",
+      "frequency": 1,
+      "last_seen_at": "2026-09-19 16:14:48.287538+00:00",
+      "next_review_at": "2026-09-20 16:14:48.287538+00:00"
+    },
+    {
+      "category": "verb_form",
+      "pattern_key": "verb_form_third_person_singular_s",
+      "target_form": "3인칭 단수 주어 + 동사원형 + -s",
+      "frequency": 1,
+      "last_seen_at": "2026-09-19 16:14:48.288513+00:00",
+      "next_review_at": "2026-09-20 16:14:48.288513+00:00"
+    },
+    {
+      "category": "word_order",
+      "pattern_key": "word_order_frequency_adverb_position",
+      "target_form": "주어 + sometimes/usually + 동사",
+      "frequency": 1,
+      "last_seen_at": "2026-09-19 16:14:48.288513+00:00",
+      "next_review_at": "2026-09-20 16:14:48.288513+00:00"
+    },
+    {
+      "category": "business_expression",
+      "pattern_key": "business_expression_must_vs_need_to",
+      "target_form": "I need to + 동사원형",
+      "frequency": 1,
+      "last_seen_at": "2026-09-19 16:14:48.284285+00:00",
+      "next_review_at": "2026-09-20 16:14:48.284285+00:00"
+    }
+  ],
+  "review_tasks": [
+    {
+      "task_type": "rephrase",
+      "review_stage": 1,
+      "status": "done",
+      "due_at": "2026-09-09 11:02:00+00:00",
+      "cycle_started_at": "2026-09-08 11:02:00+00:00",
+      "pattern_key": "article_missing_plural"
+    },
+    {
+      "task_type": "rephrase",
+      "review_stage": 1,
+      "status": "pending",
+      "due_at": "2026-09-20 16:14:48.284285+00:00",
+      "cycle_started_at": "2026-09-19 16:14:48.284285+00:00",
+      "pattern_key": "business_expression_must_vs_need_to"
+    },
+    {
+      "task_type": "rephrase",
+      "review_stage": 1,
+      "status": "pending",
+      "due_at": "2026-09-20 16:14:48.285485+00:00",
+      "cycle_started_at": "2026-09-19 16:14:48.285485+00:00",
+      "pattern_key": "verb_tense_past_simple"
+    },
+    {
+      "task_type": "rephrase",
+      "review_stage": 1,
+      "status": "pending",
+      "due_at": "2026-09-20 16:14:48.285485+00:00",
+      "cycle_started_at": "2026-09-19 16:14:48.285485+00:00",
+      "pattern_key": "article_missing_before_singular_noun"
+    },
+    {
+      "task_type": "rephrase",
+      "review_stage": 1,
+      "status": "pending",
+      "due_at": "2026-09-20 16:14:48.285485+00:00",
+      "cycle_started_at": "2026-09-19 16:14:48.285485+00:00",
+      "pattern_key": "preposition_on_their_side"
+    },
+    {
+      "task_type": "rephrase",
+      "review_stage": 1,
+      "status": "pending",
+      "due_at": "2026-09-20 16:14:48.287538+00:00",
+      "cycle_started_at": "2026-09-19 16:14:48.287538+00:00",
+      "pattern_key": "preposition_wrong_after_adjective"
+    },
+    {
+      "task_type": "rephrase",
+      "review_stage": 1,
+      "status": "pending",
+      "due_at": "2026-09-20 16:14:48.288513+00:00",
+      "cycle_started_at": "2026-09-19 16:14:48.288513+00:00",
+      "pattern_key": "verb_form_third_person_singular_s"
+    },
+    {
+      "task_type": "rephrase",
+      "review_stage": 1,
+      "status": "pending",
+      "due_at": "2026-09-20 16:14:48.288513+00:00",
+      "cycle_started_at": "2026-09-19 16:14:48.288513+00:00",
+      "pattern_key": "word_order_frequency_adverb_position"
+    },
+    {
+      "task_type": "rephrase",
+      "review_stage": 2,
+      "status": "pending",
+      "due_at": "2026-09-22 16:14:48.285485+00:00",
+      "cycle_started_at": "2026-09-08 11:02:00+00:00",
+      "pattern_key": "article_missing_plural"
+    }
+  ],
+  "generated_scenarios": [
+    {
+      "category": "business",
+      "level": "A2",
+      "title": "Weekly video call with the Singapore partner team",
+      "prompt_template": "You are a product manager from a partner team in Singapore joining a formal weekly video call with the learner, accompanied by two of your engineers and occasionally your director. You listen to the learner's release plan update and raise questions about schedule details and your team's test results.",
+      "source": "generated"
+    }
+  ],
+  "session_plans": [
+    {
+      "target_level": "A2",
+      "reason": "최근에 끝난 일을 말할 때 과거형을 자주 빼서, 짧은 일상 이야기로 과거형을 연습해요.",
+      "focus_pattern_ids": [
+        "3eaccecb-54e6-48dd-845e-8f1f18e86b38"
+      ],
+      "source": "agent"
+    }
+  ],
+  "session_summary": [
+    {
+      "mode": "scenario_intake",
+      "status": "completed",
+      "summary": "{\"went_well\": [\"다음 달 싱가포르 파트너 팀과의 주간 화상회의라는 구체적인 상황을 스스로 설명하고, 참석자가 누구인지까지 밝혀 대화의 배경을 분명히 세웠습니다.\", \"'우리 릴리즈 계획을 설명하고 그쪽 테스트 결과를 묻고 싶다'처럼 회의에서 이루려는 목표를 두 가지로 나누어 말하고, 가장 어려운 지점도 솔직하게 짚어냈습니다.\"], \"weak_points\": [{\"point\": \"명사 앞 관사가 반복적으로 빠졌습니다. 'a weekly video call', 'the product manager'처럼 셀 수 있는 단수 명사에는 a/the를 붙이는 연습이 필요합니다.\", \"quote\": \"I talk with product manager and two engineers from their side.\"}, {\"point\": \"3인칭 단수 주어에 동사 -s를 붙이지 않는 실수와, 형용사에 맞는 전치사 선택(afraid of)이 흔들렸습니다. 'their director joins', 'afraid of answering'이 자연스러운 형태입니다.\", \"quote\": \"It is quite formal because their director join sometimes.\"}]}"
+    }
+  ],
+  "clock": {
+    "utc_date": "2026-09-19",
+    "local_date": "2026-09-20",
+    "last_week_start": "2026-09-07"
+  },
+  "claude_calls_counted_by_driver": 11,
+  "checks": [
+    {
+      "name": "AC#1 오늘 행이 사용자 타임존 날짜로 만들어졌다",
+      "passed": true,
+      "detail": "summary_date=['2026-09-08', '2026-09-20'] · 사용자 타임존 날짜=2026-09-20 · UTC current_date=2026-09-19 · 두 날짜는 다르다(판별력 있음)"
+    },
+    {
+      "name": "AC#1 오늘 행의 집계가 발생 건수와 맞다",
+      "passed": true,
+      "detail": "occurrence_count=8 · pattern_count=7"
+    },
+    {
+      "name": "AC#2 summarize_week job 이 done 이다",
+      "passed": true,
+      "detail": "[('done', 1, None)]"
+    },
+    {
+      "name": "AC#2 지난 주 weekly_reports 행이 생겼다",
+      "passed": true,
+      "detail": "week_start=['2026-09-07'] · 기대=2026-09-07"
+    },
+    {
+      "name": "AC#3 무대 제목이 영어다 (한글 0자)",
+      "passed": true,
+      "detail": "titles=['Weekly video call with the Singapore partner team']"
+    },
+    {
+      "name": "AC#3 무대 category 가 값역 안이다 (파서가 통과시켰다)",
+      "passed": true,
+      "detail": "category=['business'] · job=[('done', None)]"
+    },
+    {
+      "name": "AC#3 분석 job 전건이 done 이고 category 가 값역 안이다",
+      "passed": true,
+      "detail": "[('done', \"analysis response failed validation: 2 validation errors for AnalysisResult\\nfindings.1.pattern_key\\n  Field required [type=missing, input_value={'category': 'business_ex...획 한 줄 말하기']}, input_type=dict]\\n    For further information visit https://errors.pydantic.dev/2.13/v/missing\\nfindings.1.pattern_form\\n  Extra inputs are not permitted [type=extra_forbidden, input_value=None, input_type=NoneType]\\n    For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden\"), ('done', None), ('done', None), ('done', None), ('done', None), ('done', None)] · 패턴 category=['verb_tense', 'article', 'article', 'preposition', 'preposition', 'verb_form', 'word_order', 'business_expression']"
+    },
+    {
+      "name": "AC#4 llm_calls 행 수가 드라이버 계수기와 같다 (H-CK 기계 검사)",
+      "passed": true,
+      "detail": "llm_calls=11행 · 드라이버 계수기=11 · 토큰 합계 in/out=24860/7597"
+    },
+    {
+      "name": "job 전건이 done 이다 (재시도는 사유와 함께 적는다)",
+      "passed": true,
+      "detail": "[('analyze_utterance', 'done', 1), ('analyze_utterance', 'done', 1), ('analyze_utterance', 'done', 1), ('analyze_utterance', 'done', 1), ('analyze_utterance', 'done', 1), ('analyze_utterance', 'done', 2), ('generate_scenario', 'done', 1), ('plan_next_session', 'done', 1), ('summarize_session', 'done', 1), ('summarize_week', 'done', 1)] · 재시도한 job 의 사유=[\"analysis response failed validation: 2 validation errors for AnalysisResult\\nfindings.1.pattern_key\\n  Field required [type=missing, input_value={'category': 'business_ex...획 한 줄 말하기']}, input_type=dict]\\n    For further information visit https://errors.pydantic.dev/2.13/v/missing\\nfindings.1.pattern_form\\n  Extra inputs are not permitted [type=extra_forbidden, input_value=None, input_type=NoneType]\\n    For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden\"]"
+    }
+  ]
+}
