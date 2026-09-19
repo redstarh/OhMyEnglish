@@ -1,0 +1,27 @@
+=== D-rule4  세션 0a55faf6-f4b3-4741-ae7c-f3df865e0a62  HTTP 200 ===
+  세션 status(DB)  : completed
+  job total|non_terminal|failed : 2|0|1
+  기대 status      : partial_failure
+  실제 status      : partial_failure   -> 일치
+  corrections 건수 : 1
+    - pattern_key=b8_article_missing 원문='go to gym' 교정='went to the gym'
+  drill            : <KEY ABSENT>
+  응답 키 전체     : ['awaiting_analysis', 'corrections', 'partial_failure', 'pronunciation', 'status']
+
+=== E-rule1-vs-3  세션 9196107a-737b-4b6a-b3d7-2cf517bb043f  HTTP 200 ===
+  세션 status(DB)  : failed
+  job total|non_terminal|failed : 2|1|0
+  기대 status      : connection_failed
+  실제 status      : connection_failed   -> 일치
+  corrections      : <KEY ABSENT>
+  drill            : <KEY ABSENT>
+  응답 키 전체     : ['awaiting_analysis', 'partial_failure', 'pronunciation', 'status']
+
+=== F-control-rule3  세션 3e9e942e-7458-47a2-b948-9ae33304762d  HTTP 200 ===
+  세션 status(DB)  : completed
+  job total|non_terminal|failed : 2|1|0
+  기대 status      : analyzing
+  실제 status      : analyzing   -> 일치
+  corrections      : <KEY ABSENT>
+  drill            : <KEY ABSENT>
+  응답 키 전체     : ['awaiting_analysis', 'partial_failure', 'pronunciation', 'status']

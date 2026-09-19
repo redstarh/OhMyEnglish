@@ -1,0 +1,6 @@
+지우기 전 세션 수: 3
+users 잔여        : 0
+sessions 잔여     : 0
+error_patterns 잔여: 0
+전체 users 수     : 1
+전체 sessions 수  : 27

@@ -1,10 +1,10 @@
 ---
 id: TS-4
 title: 결과 조회 API 가 여섯 세션 상태를 규약대로 응답한다
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-09 08:23'
-updated_date: '2026-09-19 11:43'
+updated_date: '2026-09-19 12:08'
 labels: []
 dependencies: []
 ordinal: 4000
@@ -21,9 +21,9 @@ ordinal: 4000
 - [x] #1 R2 규칙 1 — 세션 status 가 failed 면 그 세션의 job 이 무엇이든 connection_failed 이고 corrections 키가 부재하다
 - [x] #2 R2 규칙 2 — analyze_utterance job 이 0건이면 no_utterances 이고 corrections 키가 부재하다
 - [x] #3 R2 규칙 3 — non-terminal job 이 하나라도 있으면 analyzing 이고 corrections 키가 부재하다 (done 인 발화가 있어도 노출하지 않는다)
-- [ ] #4 R2 규칙 4 — failed job 이 있고 non-terminal 이 없으면 partial_failure 이고 성공분 교정을 포함한다
+- [x] #4 R2 규칙 4 — failed job 이 있고 non-terminal 이 없으면 partial_failure 이고 성공분 교정을 포함한다
 - [x] #5 R2 규칙 5 — job 이 1건 이상이고 전부 done 이면 final 이고 교정이 실린다
-- [ ] #6 우선순위가 지켜진다 — 규칙 1 과 규칙 3 을 동시에 만족하는 세션이 connection_failed 로 판정된다
+- [x] #6 우선순위가 지켜진다 — 규칙 1 과 규칙 3 을 동시에 만족하는 세션이 connection_failed 로 판정된다
 - [x] #7 이 회차가 판정에 쓴 행을 직접 심고 회차 끝에 지웠다 (세션 uuid 를 기준선에 적지 않는다)
 <!-- AC:END -->
 
@@ -56,4 +56,19 @@ R2 다섯 규칙의 정본은 app/backend/app/services/results.py 모듈 docstri
 - AC#6 우선순위: 규칙 1 과 규칙 3 을 동시에 만족하는 세션을 앱 경로로 열지 않았음.
 
 ⚠️ 단위 검사가 그 둘을 덮고 있고 이 턴에 직접 돌려 통과를 봤음 — unit/test_results.py 의 test_failed_session_yields_connection_failed_even_with_done_job 과 test_partial_failure_includes_successful_corrections(2 passed). ⛔ 그것으로 이 AC 를 체크하지 않음: 이 시나리오의 값어치는 «앱 경로(HTTP)» 관측이고, 단위 검사는 그 층을 덮지 않음. 두 근거를 섞으면 「통과했는데 통과한 이유가 틀렸다」가 됨.
+
+앱 경로 관측으로 남은 둘을 닫았음 (2026-09-19 회차 B8 · HEAD e482afa · 앱 소스 무변경).
+
+드라이버: tests/agent/runs/2026-09-19-b8/ts4_r2_rules_driver.py. 격리 사용자(b8000000-…-00b8)로 세션 셋을 심고 GET /api/sessions/<id>/results 를 두드렸음. 워커를 켜지 않았고 job 상태 조합은 행을 직접 심어 만들었음(H-CD). 유료 호출 0건(llm_calls 회차 창 0행).
+
+- AC#4 규칙 4 — D-rule4(세션 completed · job total|non_terminal|failed = 2|0|1)가 partial_failure 이고 corrections 1건을 실었음. 그 교정은 done job 이 달린 발화의 occurrence 임(pattern_key=b8_article_missing · 원문 'go to gym' → 교정 'went to the gym'). 앞 회차가 본 partial_failure 세션은 corrections 0건이라 「성공분 교정을 포함한다」를 긍정으로 보이지 못했고, 그 공백이 메워졌음.
+- AC#6 우선순위 — E-rule1-vs-3(세션 failed + non-terminal job 1건, 즉 규칙 1 과 규칙 3 을 동시에 만족)이 connection_failed 이고 corrections 키 부재임.
+
+⛔ 판별력은 셋째 팔이 만들었음. F-control-rule3 은 E 와 «세션 status 한 값만» 다르고(failed→completed) job 구성이 같음(2|1|0). F 가 analyzing 을 낸 것이 그 구성이 규칙 3 에 실제로 닿는다는 증명이고, 같은 구성에서 E 가 connection_failed 인 것이 우선순위의 관측임 — F 가 없으면 「우선순위가 지켜졌다」와 「내 seed 가 non-terminal job 을 못 만들었다」를 가를 수 없음(§7-7·§7-9).
+
+⛔ unit/test_results.py 의 두 검사를 근거로 쓰지 않았음 — 이 노트가 앞 회차에 세운 규약 그대로임(이 시나리오의 값어치는 앱 경로 관측임).
+
+AC#7 재확인 — 심은 행 전부를 지우고 «다시 읽어» 확인했음: 격리 사용자 잔여 0 · 전체 users 1 · 전체 learning_sessions 27 로 착수 기준선과 같고, error_patterns 아홉 행의 frequency 도 착수 스냅샷과 전부 같음.
+
+증거: tests/agent/runs/2026-09-19-b8/result.md 4절 · evidence/TS-4-r2-rules-observed.txt · 응답 본문 원본 evidence/TS-4-{D-rule4,E-rule1-vs-3,F-control-rule3}-body.json · evidence/TS-4-cleanup-verified.txt
 <!-- SECTION:NOTES:END -->

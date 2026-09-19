@@ -1,0 +1,17 @@
+{
+  "status": "partial_failure",
+  "partial_failure": true,
+  "pronunciation": [],
+  "awaiting_analysis": false,
+  "corrections": [
+    {
+      "pattern_key": "b8_article_missing",
+      "category": "article",
+      "original_span": "go to gym",
+      "correction": "went to the gym",
+      "reason": "어제 일이므로 과거형과 the 가 필요하다.",
+      "target_form": "a/an + 단수 명사",
+      "occurrences": 1
+    }
+  ]
+}

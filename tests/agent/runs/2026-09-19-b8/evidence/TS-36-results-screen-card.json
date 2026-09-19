@@ -1,0 +1,20 @@
+{
+  "url": "http://localhost:3000/results/5c0c614b-79e1-4516-a53f-6a38e01f335a",
+  "heading": "오늘 무엇을 틀렸는지",
+  "cardText": "원문: Yesterday I go to the office\n\n교정문: Yesterday I went to the office\n\n어제 일이므로 과거형 went 를 사용합니다.\n\n오늘 2번 나왔어요\n\n이 패턴으로 연습하기",
+  "links": [
+    {
+      "text": "이 패턴으로 연습하기",
+      "href": "/?source=additional&pattern=verb_tense_past_simple_for_past_events"
+    },
+    {
+      "text": "← 학습 시작 화면으로",
+      "href": "/"
+    },
+    {
+      "text": "학습 히스토리 보기 →",
+      "href": "/history"
+    }
+  ],
+  "hydrated": true
+}
