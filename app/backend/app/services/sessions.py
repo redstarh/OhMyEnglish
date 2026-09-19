@@ -81,6 +81,10 @@ ORPHAN_IDLE_GRACE = timedelta(seconds=60)
 # `test_the_default_learning_source_matches_the_migration` 이 이 상수와 `information_schema` 의
 # `column_default` 가 같은지 잰다. 어긋나면 그 테스트가 깨진다.
 _DEFAULT_LEARNING_SOURCE = "recommended"
+# 001 의 `started_via` 기본값과 **같은 값을 앱에서도 든다** (`TASK-242`). ⛔ 컬럼이 `not null` 이라
+# `None` 을 그대로 넣을 수 없고, SQL 에 `coalesce` 를 두면 기본값이 DB 와 앱 두 곳에 생긴다 —
+# `_DEFAULT_LEARNING_SOURCE` 가 이미 같은 형태를 쓰고 있어 그 관용을 따른다.
+_DEFAULT_STARTED_VIA = "ui"
 
 # `TASK-5` · 결정 79 — 「질문 답변 5개」 진입의 표지. ⛔ **값역의 정본은 018 의
 # `learning_sessions_mode_check` 이고 파이썬 쪽 이름은 `models/session` 이 갖는다**
@@ -98,8 +102,9 @@ _DEFAULT_LEARNING_SOURCE = "recommended"
 # ⚠️ **폴백은 사라지지 않고 그 함수로 옮겼다** — 수준 일치가 0행이면 전체에서 고르고, 시나리오가
 # 아예 없으면 `scenario_id`·`scenario_pick` 둘 다 null 로 세션이 열린다(컬럼 둘 다 nullable).
 _CREATE_SESSION_SQL = """
-insert into learning_sessions (user_id, scenario_id, mode, learning_source, scenario_pick)
-values ($1, $4, $2, $3, $5)
+insert into learning_sessions
+       (user_id, scenario_id, mode, learning_source, scenario_pick, started_via)
+values ($1, $4, $2, $3, $5, $6)
 returning id
 """
 
@@ -487,7 +492,12 @@ def _candidates(rows: Sequence[asyncpg.Record]) -> list[Candidate]:
 
 
 async def _insert_session(
-    conn: asyncpg.Connection, user_id: UUID, *, mode: str, learning_source: str | None
+    conn: asyncpg.Connection,
+    user_id: UUID,
+    *,
+    mode: str,
+    learning_source: str | None,
+    started_via: str | None = None,
 ) -> UUID:
     """세션 행 하나를 만들고 그 id 를 돌려준다 — **배치 규칙을 함께 통과한다.**
 
@@ -507,6 +517,7 @@ async def _insert_session(
         learning_source or _DEFAULT_LEARNING_SOURCE,
         picked.scenario_id if picked is not None else None,
         picked.pick if picked is not None else None,
+        started_via or _DEFAULT_STARTED_VIA,
     )
     assert session_id is not None, "insert ... returning produced no row"
     return session_id
@@ -518,6 +529,7 @@ async def create_session(
     *,
     mode: str = "speaking",
     learning_source: str | None = None,
+    started_via: str | None = None,
 ) -> UUID:
     """연결 하나에 대응하는 `active` 세션 행을 만든다.
 
@@ -535,13 +547,22 @@ async def create_session(
     요구하는 「추천 과제와 자유 과제를 구분해 번아웃 분석에 쓴다」가 그래서 성립하지 않았다.
     값역은 001 의 `learning_sessions_learning_source_check` 가 가둔다 — 여기서 열거하지 않는다.
 
-    ⛔ **`started_via` 는 인자로 받지 않는다.** 001 의 기본값이 이미 `'ui'` 이고 지금 이 함수를
-    부르는 경로(앱 소켓·하네스)가 전부 그 값이므로 인자를 늘리면 **항상 같은 값을 넘기는 인자**가
-    된다. 음성 명령 진입(`voice_command`)이 생기는 턴에 그때 더한다 — 그 시점이 이 결정을 뒤집을
-    유일한 근거다.
+    ⛔ **`started_via` 를 인자로 받는다 — 2026-09-19 에 그 결정이 뒤집혔다**(`TASK-242` · 결함
+    `TASK-234`). 이전 판은 *"인자로 받지 않는다 … 음성 명령 진입(`voice_command`)이 생기는 턴에
+    그때 더한다 — 그 시점이 이 결정을 뒤집을 유일한 근거다"* 였고, **그 조건이 채워졌다**: 음성
+    명령 진입이 결정 110 ③ 으로 구현돼 종단으로 동작한다. ⚠️ 그런데 그 진입이 이 인자를 얻지
+    못해 **음성으로 연 세션과 버튼으로 연 세션이 완전히 같은 행을 남기고 있었다**(회차 B5 실측).
+    `None` 이면 001 의 기본값과 같은 `'ui'` 가 쓰인다 — 값역은 001 의
+    `learning_sessions_started_via_check` 가 가둔다(여기서 열거하지 않는다).
     """
     async with pool.acquire() as conn, conn.transaction():
-        return await _insert_session(conn, user_id, mode=mode, learning_source=learning_source)
+        return await _insert_session(
+            conn,
+            user_id,
+            mode=mode,
+            learning_source=learning_source,
+            started_via=started_via,
+        )
 
 
 async def set_session_mode(pool: asyncpg.Pool, session_id: UUID, *, mode: str) -> bool:
@@ -584,6 +605,7 @@ async def start_shadowing_session(
     *,
     learning_source: str | None = None,
     item_id: UUID | None = None,
+    started_via: str | None = None,
 ) -> UUID:
     """쉐도잉 세션을 열고 **학습자 수준에 맞는 클립 1개를 붙인다** (`TASK-45`).
 
@@ -629,7 +651,11 @@ async def start_shadowing_session(
     """
     async with pool.acquire() as conn, conn.transaction():
         session_id = await _insert_session(
-            conn, user_id, mode="shadowing", learning_source=learning_source
+            conn,
+            user_id,
+            mode="shadowing",
+            learning_source=learning_source,
+            started_via=started_via,
         )
         await conn.execute(_ATTACH_SHADOWING_CLIP_SQL, session_id, user_id, item_id)
     return session_id

@@ -34,6 +34,17 @@ export interface SessionEntry {
    * ⚠️ 없는 id 를 주면 서버가 **조용히 자동 선택으로 떨어뜨린다**(설계서 §6).
    */
   itemId?: string;
+  /**
+   * 이 세션을 **무엇으로 열었는가** (`TASK-242` — 결함 `TASK-234`).
+   *
+   * ⛔ **없으면 화면 진입이다** — 서버가 넘기지 않으면 001 의 기본값(`ui`)이 쓰이므로 여기서
+   * `"ui"` 를 실어 보내지 않는다. 기본값을 두 곳에 두면 한쪽이 조용히 낡는다.
+   * ⚠️ **이것이 없던 동안 음성으로 연 세션과 버튼으로 연 세션이 같은 행을 남겼다** — `PRD.md:76`
+   * 이 요구하는 구분 가운데 「버튼으로 골랐는가 음성으로 말했는가」를 셀 수 없었다.
+   * ⚠️ 값역의 정본은 001 의 `learning_sessions_started_via_check` 다(`schedule` 도 그 안에 있으나
+   * 아직 쓰는 경로가 없어 여기 담지 않는다 — 생기는 턴에 그때 더한다).
+   */
+  via?: "voice_command";
 }
 
 /**
@@ -65,6 +76,7 @@ function entryQuery(entry: SessionEntry): Record<string, string> {
   if (entry.mode) query.mode = entry.mode;
   if (entry.source) query.source = entry.source;
   if (entry.itemId) query.item = entry.itemId;
+  if (entry.via) query.via = entry.via;
   return query;
 }
 
@@ -90,6 +102,10 @@ export function entryFromQuery(search: string): SessionEntry | null {
   const item = params.get("item");
   if (item) {
     entry.itemId = item;
+  }
+  const via = params.get("via");
+  if (via) {
+    entry.via = via as SessionEntry["via"];
   }
   return entry;
 }

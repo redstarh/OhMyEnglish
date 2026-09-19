@@ -1015,6 +1015,53 @@ async def test_ws_scenario_intake_mode_wires_the_questions_and_drops_the_stage(
     assert mode == "scenario_intake", f"세션 행의 mode 가 {mode!r} 다 — 종료 경로가 job 을 못 건다"
 
 
+# ── 음성 명령 진입 (`TASK-242` · 결함 `TASK-234`) ──────────────────────────────
+#
+# ⛔ **001 의 `started_via` CHECK 가 `voice_command` 를 «최초부터» 담았는데 그 값을 쓰는 생산
+# 코드가 0곳이었다.** 그래서 음성으로 연 세션과 버튼으로 연 세션이 **완전히 같은 행**을 남겼다
+# (2026-09-19 회차 B5 실측: 둘 다 `mode=shadowing`·`learning_source=additional`·`started_via=ui`).
+# 대가는 `PRD.md:76` 이 요구하는 구분 가운데 「버튼으로 골랐는가 음성으로 말했는가」를 **어느
+# 컬럼으로도 셀 수 없다**는 것이다 — 음성 제어가 실제로 쓰이는지 잴 수단이 없다.
+#
+# ⛔ **`create_session` 의 docstring 이 이 시점을 미리 조건으로 적어 두었다** — *"음성 명령
+# 진입(`voice_command`)이 생기는 턴에 그때 더한다 — 그 시점이 이 결정을 뒤집을 유일한 근거다"*.
+# 그 진입은 결정 110 ③ 으로 이미 구현돼 종단으로 동작하므로 조건이 채워졌다.
+#
+# ⛔ **팔을 둘 두는 것이 이 검사의 판별력이다.** 음성 팔만 재면 「모든 세션을 `voice_command` 로
+# 적는」 구현이 통과한다 — 그것은 같은 결함의 반대 방향이고 기본값을 잃는다. 대조 팔이 `ui` 를
+# 지키는지 함께 잰다.
+async def test_ws_records_voice_command_entry_and_keeps_ui_as_the_default(
+    ws_app: FastAPI,
+    db_pool: asyncpg.Pool,
+    seeded_fixed_user: UUID,
+):
+    async with ws_app.router.lifespan_context(ws_app):
+        async with ASGIWebSocket(
+            ws_app, query_string=b"mode=shadowing&source=additional&via=voice_command"
+        ) as client:
+            by_voice = await client.receive_event()
+        async with ASGIWebSocket(
+            ws_app, query_string=b"mode=shadowing&source=additional"
+        ) as client:
+            by_button = await client.receive_event()
+
+    assert by_voice is not None and by_button is not None
+    async with db_pool.acquire() as conn:
+        voice_via = await conn.fetchval(
+            "select started_via from learning_sessions where id = $1",
+            UUID(by_voice["session_id"]),
+        )
+        button_via = await conn.fetchval(
+            "select started_via from learning_sessions where id = $1",
+            UUID(by_button["session_id"]),
+        )
+
+    assert voice_via == "voice_command", (
+        f"음성으로 연 세션의 started_via 가 {voice_via!r} 다 — 두 진입을 가릴 수 없다"
+    )
+    assert button_via == "ui", f"버튼으로 연 세션까지 {button_via!r} 로 적혔다 — 기본값을 잃었다"
+
+
 async def test_ws_a_normal_session_does_not_ask_for_scenario_intake(
     ws_app: FastAPI,
     seeded_fixed_user: UUID,

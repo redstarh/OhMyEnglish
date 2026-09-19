@@ -336,6 +336,13 @@ async def session_socket(websocket: WebSocket) -> None:
     # ⛔ **형태가 틀리면 오류로 만들지 않고 `None` 으로 둔다** — 아래 `_load_*_or_none` 들과 같은
     # 관례이고, 없는 id 는 `start_shadowing_session` 이 자동 선택으로 떨어뜨린다.
     requested_item = _requested_item_or_none(websocket.query_params.get("item"))
+    # `TASK-242`(결함 `TASK-234`) — 음성 명령 진입이 자기를 표시하는 자리(`?via=voice_command`).
+    # ⛔ **값역을 여기서 열거하지 않는다** — `source` 와 같은 관례로 001 의
+    # `learning_sessions_started_via_check` 가 가두고, 값역 밖이면 아래 `asyncpg.PostgresError`
+    # 경로로 떨어져 세션 실패를 알린다. 넘기지 않으면 001 의 기본값(`ui`)이 쓰인다.
+    # ⚠️ **이 값이 없던 동안 음성으로 연 세션과 버튼으로 연 세션이 «같은 행»이었다** — 그래서
+    # 음성 제어가 실제로 쓰이는지 어느 컬럼으로도 셀 수 없었다(`PRD.md:76`).
+    requested_via = websocket.query_params.get("via")
     try:
         session_id = (
             await start_shadowing_session(
@@ -343,9 +350,15 @@ async def session_socket(websocket: WebSocket) -> None:
                 FIXED_USER_ID,
                 learning_source=requested_source,
                 item_id=requested_item,
+                started_via=requested_via,
             )
             if policy.opens_shadowing_session
-            else await create_session(pool, FIXED_USER_ID, learning_source=requested_source)
+            else await create_session(
+                pool,
+                FIXED_USER_ID,
+                learning_source=requested_source,
+                started_via=requested_via,
+            )
         )
     except asyncpg.PostgresError:
         # 시드가 없으면(고정 사용자 부재) 여기서 걸린다 — 연결을 조용히 매달아두지

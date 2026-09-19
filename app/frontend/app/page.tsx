@@ -95,9 +95,17 @@ const ADDITIONAL_LEARNING: ReadonlyArray<{
   { label: "업무 역할극", entry: null, note: "무대를 고르는 화면이 아직 없어요" },
 ];
 
-/** 음성 명령이 고른 대상의 진입 정보. 없으면 `null` — 화면은 그때 새 세션을 열지 않는다. */
+/** 음성 명령이 고른 대상의 진입 정보. 없으면 `null` — 화면은 그때 새 세션을 열지 않는다.
+ *
+ * ⛔ **`via: "voice_command"` 를 여기서 붙인다** (`TASK-242` · 결함 `TASK-234`). 이 함수가 **음성
+ * 명령으로만 불리는 유일한 자리**이므로, 표(`ADDITIONAL_LEARNING`)의 `entry` 에 넣지 않고 여기서
+ * 덧붙인다 — 표에 넣으면 같은 항목을 누르는 **화면 버튼도** 음성으로 기록돼 결함의 반대 방향이 된다.
+ * ⚠️ 표의 객체를 고치지 않고 새 객체를 만든다 — 그 상수는 모듈 수준에서 공유되므로 제자리에서
+ * 바꾸면 이후의 화면 진입까지 오염된다.
+ */
 function entryForTarget(target: AdditionalTarget): SessionEntry | null {
-  return ADDITIONAL_LEARNING.find((item) => item.target === target)?.entry ?? null;
+  const entry = ADDITIONAL_LEARNING.find((item) => item.target === target)?.entry;
+  return entry ? { ...entry, via: "voice_command" } : null;
 }
 
 // 발음 집중을 골랐을 때 화면이 말해야 하는 두 가지 (`TASK-10.2` AC#2 · `TASK-128.4`).
