@@ -120,6 +120,34 @@ def test_a_hyphenated_spelling_is_compared_as_a_word():
     assert sound_check_verdict(only_hyphenated, "r_as_l") is None
 
 
+# 회차 B7(`tests/agent/runs/2026-09-19-b7/result.md` §5-1)의 원문 — 코치가 **여는 따옴표 뒤에
+# 공백을 넣어** 소리를 인용했고 그런 자리가 그 회차에 12곳이었다.
+_REAL_ROUND_SPEECH_SPACE_AFTER_OPEN_QUOTE = (
+    'The " th" sound in "the" and "with" is voiced. | '
+    "Please repeat: I finished the report and shared the results with my team."
+)
+
+
+def test_a_space_after_the_opening_quote_still_yields_tokens():
+    """⛔ **회차 B7 실측** — 여는 따옴표 뒤 공백 때문에 판정 재료가 통째로 사라졌다.
+
+    앞 판의 정규식은 따옴표 **바로 뒤에 글자**가 오기를 요구했으므로 `" th"` 에서 토큰을 하나도
+    뽑지 못했고, 그래서 `sound_check` 가 `NULL` 로 남았다. 같은 글에서 그 공백만 없애면
+    `matched` 가 나온다 — 회차 증거 `evidence/09-sound-check-probe.txt` 가 세 입력의 대조를 가진다.
+
+    ⚠️ **틀린 배제를 낸 것이 아니라 「배제할 기회」를 잃은 것이다** — `None` 은 이 함수의 안전한
+    쪽이다(계약이 「어긋났다만 증명한다」다). 그래서 이것은 정확성 결함이 아니라 **결정 82 가 세운
+    검증 신호의 손실**이고, 잃은 줄도 모르는 것이 그 손실의 성질이다.
+
+    ⚠️ **간헐이다** — 모델의 인용 문체에 달렸고 회차 B6 은 `matched`, B7 은 `NULL` 로 갈렸다.
+    그래서 실물 회차의 문면을 그대로 못 박는 이 검사가 유일한 보호다.
+    """
+    # `th` 가 키 안에 있으므로 어긋남이 아니다 — 재료를 뽑았다는 것이 이 단정의 내용이다.
+    assert sound_check_verdict(_REAL_ROUND_SPEECH_SPACE_AFTER_OPEN_QUOTE, "th_as_t") == "matched"
+    # 재료를 뽑았음을 반대 방향으로도 확인한다 — 뽑지 못했다면 아래도 `None` 이 된다.
+    assert sound_check_verdict(_REAL_ROUND_SPEECH_SPACE_AFTER_OPEN_QUOTE, "f_as_p") == "mismatched"
+
+
 def test_a_quoted_word_alone_can_prove_a_mismatch():
     """⛔ **결정 98 의 본체** — 낱말만 인용해도 대조 재료로 쓴다.
 

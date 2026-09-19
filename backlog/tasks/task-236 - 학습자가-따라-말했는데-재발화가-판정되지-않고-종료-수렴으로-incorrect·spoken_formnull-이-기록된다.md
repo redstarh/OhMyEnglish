@@ -1,10 +1,10 @@
 ---
 id: TASK-236
 title: 학습자가 따라 말했는데 재발화가 판정되지 않고 종료 수렴으로 incorrect·spoken_form=null 이 기록된다
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-19 07:41'
-updated_date: '2026-09-19 08:45'
+updated_date: '2026-09-19 08:48'
 labels: []
 dependencies: []
 ordinal: 300000
@@ -118,4 +118,20 @@ HEAD: a34a143
 
 tests/agent/runs/2026-09-19-b7/result.md · evidence/07-real-round-frames.json(프레임 전부·시각 각자) · evidence/08-post-real-round-db.txt · evidence/02-fake-emit-second.json·03-fake-no-second.json(판별력) · evidence/09-sound-check-probe.txt · evidence/11-post-teardown-counters.txt · 드라이버 b7_turnwait.py · 가짜 서버 b7_fake_ws.py
 HEAD: 000530b · 시나리오: TS-34 (AC#2 — 이 회차가 체크했음)
+
+⛔ 앱 결함이 아니었음 — 관측이 만든 것임 (2026-09-19 · 회차 B7 · 호출 세션이 증거를 직접 열어 확인).
+
+원인 판정: 후보 ㉮(드라이버 탓)이고 ㉯(앱·프롬프트 탓)는 반증됐음.
+
+내가 직접 확인한 것 — tests/agent/runs/2026-09-19-b7/evidence/07-real-round-frames.json 을 열어 pronunciation 프레임을 셌음:
+- 프레임 2건임. t=6.230 (phase=await_first_tool · outcome=pending) · t=21.881 (phase=await_second_tool · outcome=correct).
+⇒ 코치의 턴이 끝난 것을 «프레임으로» 확인한 뒤 재발화를 흘리면 앱이 그것을 판정으로 닫음.
+
+DB 근거(회차 문서 §4-4): outcome=correct · spoken_form="i finished the report and shared the results with my team" · resolved_at 08:37:05.031683Z 이고 세션 ended_at 08:37:06.870254Z ⇒ 판정이 종료보다 1.839초 «먼저» 났음. B6 은 두 시각이 같아 resolve_dangling 의 수렴이었음 — 그것이 판정과 수렴을 가르는 자리임.
+
+⇒ 앱은 재발화를 듣고 판정 tool 을 부르며 spoken_form 을 함께 남김. B6 의 관측은 그 회차 드라이버가 만든 것임. 앱을 고치지 않음.
+
+⚠️ 남은 것 하나(앱과 무관): ㉮ 안의 어느 성질이 B6 을 깨뜨렸는지는 가르지 못했음. 후보 둘 — 재발화의 도착 시점 / 소켓 역압(B6 은 30여 초 소켓을 읽지 않았고 모든 프레임이 t=32.728 에 한꺼번에 읽혔음. 그러면 서버 쓰기가 막혀 _pump_adapter_events 가 함께 멈춤. B6 에서 사용자의 둘째 final 이 코치의 첫 partial «보다 먼저» 온 순서가 그 정지와 맞아떨어지고, B7 은 순서가 반대였음). 둘 다 드라이버의 성질이라 대상 앱의 결함과 무관하고, 가르려면 실물 1회가 더 필요하므로 돌리지 않았음.
+
+⚠️ 앞서 노트에 적은 항목 3(「결정의 전제와 구현의 조건이 어긋난다」)은 그대로 살아 있음 — resolve_dangling 의 수렴 조건이 「세션 끝에 pending」 하나라서 「답하지 않음」과 「답했는데 못 들음」을 가르지 못함. 다만 이 회차가 「정상 경로에서는 판정이 먼저 닫는다」를 보였으므로 그 어긋남이 실제로 발현하는 조건은 «관측·네트워크 이상»이고 평시 경로가 아님. 제품 판단이라 고치지 않고 그대로 둠.
 <!-- SECTION:NOTES:END -->
