@@ -1,7 +1,7 @@
 """분석 워커 — asyncio 단일 루프, 동시성 1 (설계서 §5.4).
 
-FastAPI 기동과 함께 뜨는 하나의 태스크가 `claim_next` → (job 종류로 분기)
-`process_analysis`/`process_plan`을 반복한다. **동시성을 1로 고정한 것은 설계
+FastAPI 기동과 함께 뜨는 하나의 태스크가 `claim_next` → `dispatch`(job 종류를
+`_HANDLERS` 표에서 찾는다)를 반복한다. **동시성을 1로 고정한 것은 설계
 결정이다** — 단일 사용자 로컬 도구라
 병렬 처리 이유가 없고, `for update skip locked`·lease token 같은 잠금 규칙은
 병렬 처리량이 아니라 재기동·이중 기동 방어를 위한 것이다.
@@ -22,7 +22,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
-from collections.abc import Collection
+from collections.abc import Awaitable, Callable, Collection
 from pathlib import Path
 from uuid import UUID
 
@@ -30,12 +30,14 @@ import asyncpg
 
 from app.services.analysis import process_analysis
 from app.services.jobs import (
+    JOB_TYPE_ANALYZE,
     JOB_TYPE_GENERATE_SCENARIO,
     JOB_TYPE_PLAN,
     JOB_TYPE_SUMMARIZE,
     JOB_TYPE_SUMMARIZE_WEEK,
     ClaimedJob,
     claim_next,
+    report_failure,
 )
 from app.services.plan import process_plan
 from app.services.recordings import purge_expired_recordings, sweep_orphan_recording_files
@@ -99,6 +101,45 @@ async def sweep_recordings(pool: asyncpg.Pool, root: Path) -> tuple[int, int]:
     return len(purged), removed
 
 
+JobHandler = Callable[[asyncpg.Pool, ClaudeClient, ClaimedJob], Awaitable[None]]
+
+# job 종류 → 처리 함수. **라우팅의 정본이 이 표다** (`TASK-225`).
+#
+# ⛔ **다섯 종류를 이름으로 적는다 — `analyze_utterance` 도 포함이다.** 이전 판은 if/elif 였고
+# 마지막 `else` 가 나머지 전부를 `process_analysis` 로 보냈다. 그래서 종류를 더하며 분기를
+# 빼먹으면 그 job 이 분석으로 흘러 "is not an analysis job" 으로 재큐되고, **5회 재시도 뒤
+# 영원히 `failed`** 가 됐다 — 크래시도 사용자 오류도 없이 그 기능만 조용히 멈춘다.
+# ⛔ **그 사고가 실제로 있었다**: 2026-09-14 에 주간 분기를 지웠는데 `test_worker.py` 21건이
+# 그대로 통과했다. 지금은 다섯 종류 전부에 `run_worker` 경유 단정이 있고, 그 위에
+# `test_every_db_job_type_has_a_handler` 가 **DB CHECK 의 값역과 이 표의 키를 대조한다** —
+# 마이그레이션으로 종류를 더하고 이 표를 잊으면 그 단정이 먼저 깨진다.
+# ⚠️ 종류별로 다른 사실 하나씩: 총평은 **모든 세션**에 걸려 빠뜨리면 `failed` 가 세션마다 쌓이고,
+# 주간은 **조건부로** 걸려(지난 주 행이 없을 때만) 신호가 드물어 「모델이 실패했다」로 오독된다.
+_HANDLERS: dict[str, JobHandler] = {
+    JOB_TYPE_ANALYZE: process_analysis,
+    JOB_TYPE_PLAN: process_plan,
+    JOB_TYPE_GENERATE_SCENARIO: process_scenario,
+    JOB_TYPE_SUMMARIZE: process_summary,
+    JOB_TYPE_SUMMARIZE_WEEK: process_weekly,
+}
+
+
+async def dispatch(pool: asyncpg.Pool, claude: ClaudeClient, job: ClaimedJob) -> None:
+    """claim 된 job 을 표가 가리키는 처리 함수로 보낸다.
+
+    ⛔ **표에 없는 종류는 조용히 흘리지 않고 큐에 보고한다.** 대상 컬럼 조합이 종류마다 다르므로
+    (`analysis_jobs_target_matches_job_type`) 다른 처리 함수에 맡기면 「대상 없음」처럼 원인을
+    잘못 지목하는 사유가 남는다. 여기서 종류를 그대로 사유에 적으면 라우팅 누락임이 드러난다.
+
+    공개 이름인 이유: 루프를 돌리지 않고 **라우팅만** 재는 단정이 있어야 한다(`TASK-225`).
+    """
+    handler = _HANDLERS.get(job.job_type)
+    if handler is None:
+        await report_failure(pool, job, f"no handler for job type: {job.job_type}")
+        return
+    await handler(pool, claude, job)
+
+
 async def claim_one(pool: asyncpg.Pool) -> ClaimedJob | None:
     """claim 하나를 짧은 자기 트랜잭션에서 커밋한다 (§5.4).
 
@@ -131,8 +172,8 @@ async def run_worker(
     live_sessions: Collection[UUID] = (),
     recording_root: Path | None = None,
 ) -> None:
-    """`stop`이 켜질 때까지 job을 하나씩 처리한다 — `analyze_utterance`는
-    `process_analysis`로, `plan_next_session`은 `process_plan`으로 보낸다(Task 3).
+    """`stop`이 켜질 때까지 job을 하나씩 처리한다 — 어느 종류를 어디로 보내는지는
+    `_HANDLERS` 표가 소유하고 `dispatch`가 그것을 읽는다(`TASK-225`).
 
     `live_sessions`는 **살아있는 WebSocket이 소유한 세션 id 집합**이다 — 루프는 읽기만
     하고, 채우고 비우는 것은 `api/ws.py`다. 고아 세션 리퍼(I-4)가 진행 중인 세션을 닫지
@@ -217,26 +258,7 @@ async def run_worker(
                     continue
                 await _wait(stop, poll_interval)
                 continue
-            if job.job_type == JOB_TYPE_PLAN:
-                await process_plan(pool, claude, job)
-            elif job.job_type == JOB_TYPE_GENERATE_SCENARIO:
-                # `TASK-5` · 결정 79. ⛔ **이 분기를 빼면 기능이 아예 돌지 않는다** — 아래 `else`
-                # 가 `process_analysis` 로 보내고 그 함수는 종류가 다르면 실패로 보고하므로
-                # (`analysis.py` 의 그 가드 주석이 근거) job 이 5회 재시도 뒤 영원히 `failed` 가
-                # 된다. 조용히 잘못 처리되지는 않지만 **무대가 한 번도 만들어지지 않는다.**
-                await process_scenario(pool, claude, job)
-            elif job.job_type == JOB_TYPE_SUMMARIZE:
-                # `TASK-62`. 위 ⛔ 와 **같은 이유로** 이 분기가 필요하다 — 빼면 총평이 한 번도
-                # 만들어지지 않는다. ⚠️ 그리고 총평 job 은 **모든 세션**에 걸리므로(모드 조건이
-                # 없다) 빠뜨리면 `failed` 가 세션마다 하나씩 쌓인다.
-                await process_summary(pool, claude, job)
-            elif job.job_type == JOB_TYPE_SUMMARIZE_WEEK:
-                # `TASK-26` · 결정 91. 위 ⛔ 와 같은 이유다. ⚠️ 이쪽은 **조건부로 걸리므로**
-                # (지난 주 리포트가 없을 때만) 빠뜨렸을 때의 신호가 더 드물다 — 주에 한 번
-                # `failed` 가 생기고 그것을 「모델이 실패했다」로 오독할 자리가 있다.
-                await process_weekly(pool, claude, job)
-            else:
-                await process_analysis(pool, claude, job)
+            await dispatch(pool, claude, job)
         except Exception:
             # 여기까지 오는 것은 큐/DB 자체의 장애다 — `process_analysis`·`process_plan`
             # 둘 다 자기 job의 실패를 큐에 보고하고 예외를 올리지 않는다. 루프를

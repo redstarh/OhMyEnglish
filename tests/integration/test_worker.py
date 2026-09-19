@@ -16,11 +16,12 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import re
 from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import asyncpg
 import pytest
@@ -38,7 +39,7 @@ from app.api.main import create_app
 from app.audio_gateway.fixtures import FIXTURE_TURNS
 from app.config import get_settings
 from app.models.usage import PURPOSE_PLAN, PURPOSE_SPIKE, TokenUsage
-from app.services.jobs import JOB_TYPE_PLAN, JOB_TYPE_SUMMARIZE_WEEK
+from app.services.jobs import JOB_TYPE_PLAN, JOB_TYPE_SUMMARIZE_WEEK, ClaimedJob
 from app.services.plan import PLAN_NO_FOCUS_CANDIDATES
 from app.services.recordings import recording_path, recording_url
 from app.services.sessions import end_session
@@ -927,3 +928,181 @@ async def test_worker_routes_a_weekly_job_to_process_weekly(
     # (분기가 없으면 `process_analysis` 가 실패로 보고하므로 `done` 이 되지 않지만, 그 구별을
     # 산출물로 다시 확인한다).
     assert report == 1
+
+
+# ⑩ 남은 두 종류의 라우팅 (`TASK-225`).
+#
+# ⛔ **주간 job 만 라우팅 단정을 가지고 있었다.** 무대 생성·총평은 `process_scenario`·
+# `process_summary` 를 **직접 부르는** 단위 테스트만 있어 `run_worker` 의 분기는 아무도 재지
+# 않았다 — 018 주석이 *"이 분기를 빼면 기능이 아예 돌지 않는다"* 로 경고한 바로 그 자리다.
+# ⚠️ 두 단정 모두 **산출물**을 잰다: 분기가 없으면 job 이 `process_analysis` 로 흘러
+# "is not an analysis job" 으로 재큐되므로 `done` 에도 닿지 못하고 행도 생기지 않는다.
+async def test_worker_routes_a_scenario_job_to_process_scenario(
+    db_pool, committed_session, fake_claude
+):
+    title = f"routing stage {uuid4().hex[:8]}"
+    async with db_pool.acquire() as conn:
+        # 값역은 **시드에 실재하는 계열**에서 나온다 — 0행이면 프롬프트가 거부된다.
+        await conn.execute(
+            "insert into learning_scenarios (category, level, title, prompt_template, source) "
+            "values ('business', 'A2', $1, 'You are someone.', 'seed')",
+            f"seeded {uuid4().hex[:8]}",
+        )
+        await conn.execute(
+            "insert into utterances (session_id, speaker, transcript, sequence_no) "
+            "values ($1, 'agent', 'Where do you need English soon?', 1)",
+            committed_session.session_id,
+        )
+        await conn.execute(
+            "insert into utterances (session_id, speaker, transcript, sequence_no) "
+            "values ($1, 'user', 'A meeting with my manager next week.', 2)",
+            committed_session.session_id,
+        )
+        job_id = await conn.fetchval(
+            "insert into analysis_jobs (job_type, session_id) values ('generate_scenario', $1) "
+            "returning id",
+            committed_session.session_id,
+        )
+    claude: FakeClaudeClient = fake_claude(
+        json.dumps(
+            {
+                "category": "business",
+                "title": title,
+                "prompt_template": "You are the learner's manager hearing about a delay.",
+            }
+        )
+    )
+    stop = asyncio.Event()
+    task = asyncio.create_task(run_worker(db_pool, claude, stop=stop, poll_interval=0.01))
+
+    async def _is_done() -> bool:
+        async with db_pool.acquire() as conn:
+            return bool((await job_row(conn, job_id))["status"] == "done")
+
+    try:
+        await _wait_until(_is_done, what="무대 생성 job 이 done 으로 수렴한다")
+    finally:
+        stop.set()
+        await asyncio.wait_for(task, timeout=1.0)
+
+    async with db_pool.acquire() as conn:
+        row = await job_row(conn, job_id)
+        stages = await conn.fetch("select source from learning_scenarios where title = $1", title)
+        # ⛔ 이 파일의 다른 테스트가 시드 개수에 기대므로 내가 넣은 것을 지운다.
+        await conn.execute(
+            "delete from learning_scenarios where title = $1 or title like 'seeded %'", title
+        )
+
+    assert row["last_error"] is None
+    assert [r["source"] for r in stages] == ["generated"], "무대가 저장되지 않았다 — 라우팅이 없다"
+
+
+async def test_worker_routes_a_summary_job_to_process_summary(
+    db_pool, committed_session, fake_claude
+):
+    async with db_pool.acquire() as conn:
+        await conn.execute(
+            "insert into utterances (session_id, speaker, transcript, sequence_no) "
+            "values ($1, 'user', 'I go to gym yesterday.', 1)",
+            committed_session.session_id,
+        )
+        job_id = await conn.fetchval(
+            "insert into analysis_jobs (job_type, session_id) values ('summarize_session', $1) "
+            "returning id",
+            committed_session.session_id,
+        )
+    # 총평 갈래의 응답은 `fake_claude` 가 `by_purpose` 로 매어 둔다(그 픽스처의 ⛔ 참조).
+    claude: FakeClaudeClient = fake_claude()
+    stop = asyncio.Event()
+    task = asyncio.create_task(run_worker(db_pool, claude, stop=stop, poll_interval=0.01))
+
+    async def _is_done() -> bool:
+        async with db_pool.acquire() as conn:
+            return bool((await job_row(conn, job_id))["status"] == "done")
+
+    try:
+        await _wait_until(_is_done, what="총평 job 이 done 으로 수렴한다")
+    finally:
+        stop.set()
+        await asyncio.wait_for(task, timeout=1.0)
+
+    async with db_pool.acquire() as conn:
+        row = await job_row(conn, job_id)
+        summary = await conn.fetchval(
+            "select summary from learning_sessions where id = $1", committed_session.session_id
+        )
+
+    assert row["last_error"] is None
+    stored = json.loads(summary) if isinstance(summary, str) else summary
+    # `{}` 는 「아직 없음」이다 — 값이 채워진 것이 총평 갈래가 돌았다는 증거다.
+    assert stored != {}, "총평이 저장되지 않았다 — 라우팅이 없다"
+
+
+# ⑪ 표에 없는 종류와 «표가 비었는지»를 재는 단정 둘 (`TASK-225`).
+#
+# ⛔ **위 라우팅 단정 넷은 「있는 종류」만 잰다** — 여섯 번째 종류를 마이그레이션으로 더하고 표를
+# 잊으면 그 넷은 전부 통과한다. 그 사고가 이 태스크의 뿌리이므로 **값역의 정본(DB CHECK)과 표의
+# 키를 직접 대조한다.** 종류를 더한 사람이 표를 잊으면 이 단정이 먼저 깨진다.
+_JOB_TYPE_LITERAL = re.compile(r"'([a-z_]+)'::text")
+
+
+async def test_every_db_job_type_has_a_handler(db_pool: asyncpg.Pool):
+    async with db_pool.acquire() as conn:
+        definition = await conn.fetchval(
+            "select pg_get_constraintdef(oid) from pg_constraint "
+            "where conrelid = 'analysis_jobs'::regclass and conname = $1",
+            "analysis_jobs_job_type_check",
+        )
+    assert definition is not None, "job 종류 CHECK 가 없다 — 값역의 정본이 사라졌다"
+    allowed = set(_JOB_TYPE_LITERAL.findall(definition))
+    assert len(allowed) == 5, f"값역이 바뀌었다: {sorted(allowed)}"
+
+    assert set(analysis_worker._HANDLERS) == allowed, (
+        "DB 가 허용하는 job 종류와 라우팅 표가 어긋난다 — 그 종류의 job 은 5회 재시도 뒤 "
+        "영원히 failed 가 된다"
+    )
+
+
+async def test_a_job_type_without_a_handler_is_reported_to_the_queue(
+    db_pool: asyncpg.Pool, committed_session, fake_claude
+):
+    """⛔ 표에 없는 종류는 **조용히 흘리지 않는다.**
+
+    ⚠️ job 행 자체는 DB CHECK 가 막으므로 값역 밖 종류로 **넣을 수 없다** — 그래서 claim 된 모양
+    (`ClaimedJob`)의 종류만 바꿔 `dispatch` 를 직접 부른다. 사유에 종류가 그대로 적히는 것이
+    「라우팅 누락」과 「대상 없음」을 가르는 신호다.
+    """
+    async with db_pool.acquire() as conn:
+        utterance = await save_final_transcript(conn, committed_session.session_id, GYM_ANSWER)
+        await conn.execute(
+            "insert into analysis_jobs (job_type, utterance_id, status, locked_by, locked_at, "
+            "attempts) values ('analyze_utterance', $1, 'running', $2, now(), 1)",
+            utterance.id,
+            "routing-test-token",
+        )
+        job_id = await conn.fetchval(
+            "select id from analysis_jobs where utterance_id = $1", utterance.id
+        )
+    claimed = ClaimedJob(
+        id=job_id,
+        job_type="summarize_decade",
+        utterance_id=utterance.id,
+        session_id=None,
+        lease_token="routing-test-token",
+        attempts=1,
+    )
+    claude: FakeClaudeClient = fake_claude()
+
+    await analysis_worker.dispatch(db_pool, claude, claimed)
+
+    async with db_pool.acquire() as conn:
+        row = await job_row(conn, job_id)
+
+    assert claude.prompts == [], "처리할 수 없는 종류로 모델을 불렀다"
+    # ⛔ **종류 이름이 들어 있는 것만으로는 이 단정이 판별하지 못한다** — 변이로 확인했다:
+    # 표를 못 찾을 때 `process_analysis` 로 폴백시키면 그 함수의 종류 가드가
+    # "is not an analysis job: summarize_decade" 를 남기고 이 단정이 **그대로 통과했다.**
+    # 그래서 **라우팅이 낸 사유인지**를 잰다 — 그것이 두 층을 가르는 유일한 신호다.
+    assert "no handler for job type" in row["last_error"], (
+        f"라우팅 누락이 아닌 사유가 남았다: {row['last_error']}"
+    )
