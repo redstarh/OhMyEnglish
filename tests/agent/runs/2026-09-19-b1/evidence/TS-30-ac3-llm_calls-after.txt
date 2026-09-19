@@ -1,0 +1,6 @@
+total|vocab
+34|8
+(1개 행)
+purpose|model_id|input_tokens|output_tokens|called_at
+vocab|us.anthropic.claude-opus-5|199|83|2026-09-19 05:59:59.068302+00
+(1개 행)

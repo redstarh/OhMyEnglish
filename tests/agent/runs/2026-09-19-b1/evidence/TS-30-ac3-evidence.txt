@@ -1,0 +1,29 @@
+TS-30 AC#3 · 찾을 수 없는 단어의 경계가 오류가 아니라 빈 결과로 나옴
+회차 2026-09-19-b1 · HEAD 74fb5c0 · 실물 Bedrock 호출 1건(호출 세션 승인 2026-09-19)
+
+요청 : POST /api/vocab/lookup
+        {"word":"grolfnitz","sentence":"He said grolfnitz."}
+        — 무의미 낱말이고 문맥 문장에 뜻을 가릴 단서가 없음
+응답 : HTTP 200
+        {"meaning":null}
+
+판정 : 통과. 오류(4xx·5xx)가 아니라 200 이고 meaning 이 null 임 — 「없는 자원」이 아니라
+       「답을 못 얻었다」로 답하는 계약이 성립함. api/vocab.py 가 「뜻이 없는 것을 404 로
+       만들지 않는다」로 적어 둔 그 계약임.
+       services/vocab.py 의 lookup_word 가 빈 답을 None 으로 접는 것까지 관측됨
+       (빈 문자열이 아니라 null 로 옴 — 화면이 「뜻이 왔다」로 오독하지 않게 하는 계약).
+
+⛔ 클라이언트·.env·소스를 건드리지 않았음. 입력만 바꿔 관측했음 — except Exception 우회 아님.
+
+기전 확인 — 두 갈래 가운데 어느 것인지 가렸음(§7)
+  meaning: null 은 두 경로로 날 수 있음. ⑴ 모델이 빈 답을 줘 extract_text 가 "" 를 돌려준 경우
+  ⑵ AnalysisValidationError·예외가 라우터의 except 에 걸린 경우. 둘은 사용자에게 같게 보이나
+  ⑵ 는 logger.exception 으로 「낱말 뜻 조회가 실패해 빈 뜻을 돌려준다」를 남김.
+  /tmp/omy-backend.log 에 그 문구가 0건이므로 관측한 것은 ⑴ 임 — 의도한 계약 경로가 동작한 것이고
+  예외를 삼킨 것이 아님.
+
+토큰: 입력 199 · 출력 83. 출력이 83인데 뜻이 null 인 것은 text 블록이 비었다는 뜻임
+  (extract_text 가 type=="text" 블록만 이어붙임). 비용 관찰이고 결함이 아님.
+
+llm_calls 전후 대조: 총 33 → 34 · vocab 7 → 8 (호출 전후로 직접 셈)
+  기록된 행: purpose=vocab · us.anthropic.claude-opus-5 · 입력 199 · 출력 83 · 2026-09-19 05:59:59 UTC

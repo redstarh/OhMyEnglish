@@ -1,10 +1,10 @@
 ---
 id: TS-30
 title: A12 · 단어 조회 — vocab/lookup
-status: Blocked
+status: Done
 assignee: []
 created_date: '2026-09-19 05:19'
-updated_date: '2026-09-19 05:54'
+updated_date: '2026-09-19 06:01'
 labels: []
 dependencies: []
 ordinal: 30000
@@ -20,7 +20,7 @@ ordinal: 30000
 <!-- AC:BEGIN -->
 - [x] #1 정상 단어 조회가 규약대로 응답함
 - [x] #2 빈 문자열·과도한 길이 같은 값역이 422 로 거부됨
-- [ ] #3 찾을 수 없는 단어의 경계가 오류가 아니라 빈 결과로 나옴
+- [x] #3 찾을 수 없는 단어의 경계가 오류가 아니라 빈 결과로 나옴
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -33,4 +33,10 @@ AC#3 차단됨 — 실패가 아님. 모델이 뜻을 주지 않은 응답을 �
 증거: runs/2026-09-19-b1/evidence/TS-30-*.
 
 ⛔ 상태를 Blocked 로 내렸음(호출 세션 지시 2026-09-19). 앞선 판정에서 In Progress 로 두었으나 §4-5 의 대응표대로 차단됨은 Blocked 임. 막힌 지점은 하나뿐임: AC#3 은 실물 Bedrock 호출 1건이 더 필요하고 그 승인을 받지 못했음(§2-5 의 기본값이 금지임). AC#1·#2 는 체크된 채로 둠.
+
+AC#3 통과 — 차단이 풀렸음(호출 세션이 실물 호출 1건을 승인함 2026-09-19). POST /api/vocab/lookup 에 {"word":"grolfnitz","sentence":"He said grolfnitz."} 를 보내 200 · {"meaning":null} 을 받았음. 무의미 낱말이고 문맥 문장에 뜻을 가릴 단서가 없음. 오류(4xx·5xx)가 아니라 200 이고 meaning 이 null 이므로 「없는 자원」이 아니라 「답을 못 얻었다」로 답하는 계약이 성립함 — api/vocab.py 가 「뜻이 없는 것을 404 로 만들지 않는다」로 적어 둔 그 계약임. 빈 문자열이 아니라 null 로 온 것도 관측됐음(lookup_word 가 빈 답을 None 으로 접는 계약).
+⛔ 입력만 바꿨음 — 클라이언트·.env·소스를 건드려 except Exception 갈래를 타게 하지 않았음.
+기전을 가렸음(§7): meaning null 은 ⑴ 모델이 빈 답을 준 경우와 ⑵ 예외가 라우터 except 에 걸린 경우 둘로 날 수 있고 ⑵ 는 logger.exception 을 남김. 백엔드 로그에 「낱말 뜻 조회가 실패」가 0건이므로 관측한 것은 ⑴ 임 — 의도한 계약 경로이고 예외를 삼킨 것이 아님.
+실물 호출 대조: llm_calls 총 33→34 · vocab 7→8. 기록 행은 purpose=vocab · us.anthropic.claude-opus-5 · 입력 199 · 출력 83. ⇒ 이 회차의 실물 호출 총계는 2건(AC#1 1건 · AC#3 1건)이고 둘 다 승인 범위임.
+증거: runs/2026-09-19-b1/evidence/TS-30-ac3-*.
 <!-- SECTION:NOTES:END -->
