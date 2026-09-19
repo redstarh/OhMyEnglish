@@ -51,7 +51,7 @@ from app.workers.claude_client import ClaudeClient
 logger = logging.getLogger(__name__)
 
 
-async def reap_orphans(pool: asyncpg.Pool, *, live_sessions: Collection[UUID]) -> list[UUID]:
+async def reap_orphans(conn: asyncpg.Connection, *, live_sessions: Collection[UUID]) -> list[UUID]:
     """죽은 프로세스가 남긴 `active` 고아 세션을 `failed`로 닫는다 (I-4 회복 1단).
 
     **스윕보다 먼저 부른다.** 리퍼가 닫은 세션은 곧바로 `flush_ended_sessions`의 대상이
@@ -59,11 +59,10 @@ async def reap_orphans(pool: asyncpg.Pool, *, live_sessions: Collection[UUID]) -
     늦어진다. 규칙(무엇이 고아인가·왜 live 가드가 필요한가)은 `services/sessions.py`가
     소유한다. 리퍼도 스윕과 같은 이유로 **큐가 빌 때만** 돈다.
     """
-    async with pool.acquire() as conn:
-        return await reap_orphan_sessions(conn, live_session_ids=live_sessions)
+    return await reap_orphan_sessions(conn, live_session_ids=live_sessions)
 
 
-async def sweep_lost_runs(pool: asyncpg.Pool) -> list[UUID]:
+async def sweep_lost_runs(conn: asyncpg.Connection) -> list[UUID]:
     """끝난 세션에서 job이 없는 사용자 발화 묶음을 걷어 등록한다 (I-1 회복 경로).
 
     분석 job은 턴 경계와 세션 종료 때 걸린다(`audio_gateway/session.py`). 그 종료 쪽
@@ -75,11 +74,10 @@ async def sweep_lost_runs(pool: asyncpg.Pool) -> list[UUID]:
     잃은 묶음이 문제가 되는 시점도 "더 할 일이 없을 때"다. 규칙(무엇이 묶음인가,
     어떤 세션이 끝난 것인가)은 `services/utterances.py`가 소유한다.
     """
-    async with pool.acquire() as conn:
-        return await flush_ended_sessions(conn)
+    return await flush_ended_sessions(conn)
 
 
-async def sweep_recordings(pool: asyncpg.Pool, root: Path) -> tuple[int, int]:
+async def sweep_recordings(conn: asyncpg.Connection, root: Path) -> tuple[int, int]:
     """만료된 쉐도잉 녹음을 걷는다 — 유휴 사이클의 **세 번째 회복 항목** (`TASK-45` · §6.1).
 
     ⛔ **새 job 종류도 새 프로세스도 새 크론도 만들지 않는다.** `analysis_jobs` 에 종류를 더하려면
@@ -95,9 +93,8 @@ async def sweep_recordings(pool: asyncpg.Pool, root: Path) -> tuple[int, int]:
     규칙(무엇이 만료인가 · 무엇이 고아인가)은 `services/recordings.py` 가 소유한다. 큐가 빌
     때만 부르는 것도 다른 두 회복과 같다.
     """
-    async with pool.acquire() as conn:
-        purged = await purge_expired_recordings(conn, root)
-        removed = await sweep_orphan_recording_files(conn, root)
+    purged = await purge_expired_recordings(conn, root)
+    removed = await sweep_orphan_recording_files(conn, root)
     return len(purged), removed
 
 
@@ -182,8 +179,27 @@ async def recover_while_idle(
     실패 격리가 `try/except` 다섯 겹 안에 묻혀 있었다. 공개 이름인 것은 유휴 사이클만 따로 재는
     단정을 쓸 수 있어야 하기 때문이다(`claim_one` 이 같은 이유로 공개다).
     """
+    async with pool.acquire() as conn:
+        return await _recover_with(conn, live_sessions=live_sessions, recording_root=recording_root)
+
+
+async def _recover_with(
+    conn: asyncpg.Connection,
+    *,
+    live_sessions: Collection[UUID],
+    recording_root: Path | None,
+) -> bool:
+    """회복 셋을 **연결 하나로** 돌린다 — 실패 격리는 호출마다 그대로 둔다.
+
+    ⛔ **연결을 세 번 열지 않는 것이 이 함수의 이유다** (`TASK-227`). asyncpg 는 release 마다
+    리셋 질의를 돌리므로 1Hz 사이클에서 그만큼이 순수 오버헤드다 — 실측: 사이클당
+    `pool.acquire()` **3건 → 1건**.
+    ⚠️ **대가를 적어 둔다**: 연결이 사이클 도중에 깨지면 남은 회복도 같은 사이클에서 함께 실패한다
+    (다음 사이클이 새 연결로 다시 돈다). 이전 판은 각자 열어 그 격리가 연결 수준까지 있었다 —
+    실패 격리의 «논리» 는 아래 `try` 셋이 그대로 갖는다.
+    """
     try:
-        reaped = await reap_orphans(pool, live_sessions=live_sessions)
+        reaped = await reap_orphans(conn, live_sessions=live_sessions)
     except Exception:
         logger.exception("고아 세션 리퍼가 실패했다 — 스윕은 그대로 진행한다 (I-4)")
         reaped = []
@@ -203,7 +219,7 @@ async def recover_while_idle(
     # `recording_root` 가 없으면 저장 기능을 배선하지 않은 실행이므로 조용히 건너뛴다.
     if recording_root is not None:
         try:
-            purged, removed = await sweep_recordings(pool, recording_root)
+            purged, removed = await sweep_recordings(conn, recording_root)
         except Exception:
             logger.exception(
                 "쉐도잉 녹음 스윕이 실패했다 — 다른 회복은 그대로 진행한다 "
@@ -218,7 +234,7 @@ async def recover_while_idle(
                     purged,
                     removed,
                 )
-    recovered = await sweep_lost_runs(pool)
+    recovered = await sweep_lost_runs(conn)
     if recovered:
         logger.info(
             "종료 flush를 놓친 발화 묶음 %d건에 분석 job을 걸었다 (I-1 회복): %s",

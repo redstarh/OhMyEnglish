@@ -23,6 +23,7 @@ from zoneinfo import ZoneInfoNotFoundError
 import asyncpg
 import pytest
 
+import app.services.recordings as recordings_module
 from app.models.learner_time import day_start_for
 from app.models.recording import wav_from_pcm
 from app.services.recordings import (
@@ -965,6 +966,38 @@ async def test_orphan_sweep_stops_at_the_cycle_limit(
     assert await sweep_orphan_recording_files(db_conn, tmp_path, limit=2) == 2
     assert await sweep_orphan_recording_files(db_conn, tmp_path, limit=2) == 1
     assert await sweep_orphan_recording_files(db_conn, tmp_path, limit=2) == 0
+
+
+@pytest.mark.asyncio
+async def test_orphan_sweep_stops_walking_the_root_once_the_limit_is_reached(
+    db_conn: asyncpg.Connection, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """⚠️ **바깔 상한이 재는 것은 「개수」가 아니라 「순회를 멈춘다」다** (`TASK-227`).
+
+    파일 수만 세면 이 상한에 판별력이 없다 — 안쪽 호출이 `limit - removed` 를 받으므로 남은
+    디렉터리에서 0건을 지우고, **결과 수는 상한이 없어도 같다**(변이로 확인했다). 그래서 남은
+    디렉터리를 **아예 들여다보지 않는지**를 잰다: 그것이 「유휴 사이클이 삭제로 오래 붙잡히지
+    않는다」는 이 상한의 실제 목적이다.
+    """
+    visited: list[Path] = []
+    real = recordings_module.remove_orphan_recordings_in
+
+    def spy(session_dir: Path, live: set[UUID], *, limit: int) -> int:
+        visited.append(session_dir)
+        return real(session_dir, live, limit=limit)
+
+    monkeypatch.setattr(recordings_module, "remove_orphan_recordings_in", spy)
+
+    for _ in range(3):
+        session_id = await _new_shadowing_session(db_conn, status="completed")
+        directory = recording_dir(tmp_path, session_id)
+        directory.mkdir(parents=True, exist_ok=True)
+        (directory / f"{uuid4()}.pcm").write_bytes(FRAMES)
+
+    assert await sweep_orphan_recording_files(db_conn, tmp_path, limit=2) == 2
+    assert len(visited) == 2, "상한에 닿은 뒤에도 남은 디렉터리를 계속 걸었다"
+    # 남은 하나는 다음 사이클이 이어간다 — 스윕이 멱등이라 그것이 안전하다.
+    assert await sweep_orphan_recording_files(db_conn, tmp_path, limit=2) == 1
 
 
 @pytest.mark.asyncio

@@ -124,11 +124,23 @@ select i.id, i.source_title, i.transcript, i.clip_start_sec, i.clip_end_sec, i.a
 
 # 2다리가 「살려 둘 파일」을 정하는 유일한 조회. **포인터가 정본이므로** 이 집합에 없는 바이트는
 # 접근 불가이고 걷어도 잃을 것이 없다.
+#
+# ⛔ **세션 목록을 한 번에 받는다** (`TASK-227`). 디렉터리마다 부르면 유휴 사이클(1Hz)이 왕복 2N
+# 건을 낸다 — 실측: 디렉터리 10개에서 **20건**. 지금은 두 문장으로 접혀 **2건**이다.
 _SELECT_LIVE_RECORDING_IDS_SQL = """
-select id
+select session_id, id
   from utterances
- where session_id = $1
+ where session_id = any($1::uuid[])
    and audio_url is not null
+"""
+
+# 그 목록 가운데 **살아 있는** 세션. 없는 세션(FK cascade 로 사라진 것)은 이 결과에 안 나오고,
+# 그것이 곧 「걷어도 된다」다 — 이전 판이 `status is null` 로 같은 판정을 내렸다.
+_SELECT_LIVE_SESSION_IDS_SQL = f"""
+select id
+  from learning_sessions
+ where id = any($1::uuid[])
+   and status in {LIVE_SESSION_STATUSES_SQL}
 """
 
 # ⛔ **세션과 발화를 함께 조건에 넣는다.** `utterance_id` 만 보면 세션을 바꿔 넣은 요청이
@@ -460,28 +472,46 @@ async def sweep_orphan_recording_files(
     ⚠️ **사이클 상한을 1다리와 같은 상수로 묶는다.** 파일시스템을 걷는 쪽만 무제한이면 유휴 사이클이
     삭제로 오래 붙잡힌다. 남은 것은 다음 사이클이 이어간다(멱등).
 
+    ⛔ **DB 를 두 문장으로만 본다 — 디렉터리마다 묻지 않는다** (`TASK-227`). 이전 판은 디렉터리당
+    조회 2건이라 유휴 사이클(1Hz)이 왕복 2N 건을 냈다 — 실측: 디렉터리 10개에서 **20건**이었고
+    지금은 **2건**이다.
+    ⚠️ **스냅샷이 앞에서 한 번 찍히는 것을 알고 둔다**: 「살아 있는 세션」을 사이클 «시작»에 읽으므로
+    그 뒤에 살아나는 세션은 이 사이클에 반영되지 않는다. ⛔ 그런데 그 창은 **닫혀 있다** —
+    `end_session` 은 종단이고 `set_session_paused` 는 **살아 있는 상태에서만** 옮기므로
+    (`services/sessions.py`) 끝난 세션이 다시 살아나는 경로가 없다. 새 세션은 사이클 시작 뒤에
+    디렉터리를 만들므로 목록에 애초에 없다.
+
     뿌리가 없으면 0을 돌려준다: 저장한 적이 없다는 뜻이라 오류가 아니다(§6.3).
     """
     if not root.is_dir():
         return 0
-    removed = 0
+    ours: list[tuple[Path, UUID]] = []
     for session_dir in sorted(root.iterdir()):
-        if removed >= limit:
-            break
         if not session_dir.is_dir():
             continue
         try:
-            session_id = UUID(session_dir.name)
+            ours.append((session_dir, UUID(session_dir.name)))
         except ValueError:
             # 우리가 만든 디렉터리가 아니다 — 뿌리를 남과 공유할 수 있으므로 건드리지 않는다.
             continue
-        status = await conn.fetchval(
-            "select status from learning_sessions where id = $1", session_id
-        )
-        if status in LIVE_SESSION_STATUSES:
+    if not ours:
+        return 0
+    session_ids = [session_id for _, session_id in ours]
+    live_sessions = {
+        row["id"] for row in await conn.fetch(_SELECT_LIVE_SESSION_IDS_SQL, session_ids)
+    }
+    live_recordings: dict[UUID, set[UUID]] = {session_id: set() for session_id in session_ids}
+    for row in await conn.fetch(_SELECT_LIVE_RECORDING_IDS_SQL, session_ids):
+        live_recordings[row["session_id"]].add(row["id"])
+    removed = 0
+    for session_dir, session_id in ours:
+        if removed >= limit:
+            break
+        if session_id in live_sessions:
             continue
-        live = {row["id"] for row in await conn.fetch(_SELECT_LIVE_RECORDING_IDS_SQL, session_id)}
-        removed += remove_orphan_recordings_in(session_dir, live, limit=limit - removed)
+        removed += remove_orphan_recordings_in(
+            session_dir, live_recordings[session_id], limit=limit - removed
+        )
         remove_recording_dir_if_empty(session_dir)
     if removed:
         logger.info("포인터 없는 쉐도잉 녹음 파일 %d건을 지웠다 (2다리)", removed)

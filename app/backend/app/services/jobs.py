@@ -254,6 +254,18 @@ async def claim_next(conn: asyncpg.Connection, *, now: datetime | None = None) -
     means "no job stays claimable-but-uncompletable" holds without a second
     moving part to deploy and supervise.
 
+    **"indexed" is measured, and the measurement has a caveat** (`TASK-227`).
+    On a 200k-row table the reaper plans as `Index Scan using
+    uq_analysis_jobs_pending_session` (0.075 ms, 0 rows) and the claim subquery
+    as `Index Scan using analysis_jobs_claimable_available_at_idx` + `Limit`
+    (migration 030 added the latter; before it the plan was BitmapAnd + BitmapOr
+    + Sort over 3,973 rows, 1.375 ms). ⚠️ **On the dev database the plan is a
+    Seq Scan for both, and that is correct** — the table holds ~111 rows there,
+    where a scan is cheaper than any index. A cleanup review read that plan as
+    "the docstring is wrong"; the statement is indexed, the table was just tiny.
+    ⛔ Do not "fix" this by forcing plans (`enable_seqscan`) — the fix would be
+    a lie at small sizes.
+
     `now` (aware) overrides the database clock; it exists so lease/backoff
     behaviour is testable without sleeping.
     """
