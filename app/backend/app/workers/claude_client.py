@@ -105,10 +105,21 @@ def build_openai_invoke_body(prompt: str) -> str:
 
 
 def is_openai_model(model_id: str) -> bool:
-    """이 모델 ID 가 openai 계열인가 — **규격 분기의 유일한 판정자**.
+    """이 모델 ID 가 openai 계열인가 — **보내는 쪽 규격 분기의 유일한 판정자**.
 
     ⛔ 값역을 열거하지 않는다(`us.openai.gpt-5.6-terra`·`…-luna`·`…-sol`·다음 판). 계열이
     이름에 박혀 있고 그것이 Bedrock 의 모델 ID 규약이다 — 열거하면 모델이 늘 때마다 조용히 틀린다.
+
+    ⚠️ **받는 쪽은 이 함수를 쓰지 않는다 — 그 사실을 여기 적어 둔다** (`TASK-226` 이 이전 판의
+    「규격 분기의 유일한 판정자」가 거짓임을 지적했다). `extract_text` 는 `"choices" in payload` 로,
+    `extract_usage` 는 키 이름 폴백(`input_tokens` ↔ `prompt_tokens`)으로 각자 판정한다.
+    ⛔ **모델 id 를 그 둘에 넘겨 통일하는 안을 재고 버렸다**: 두 함수는 **응답만** 받는 순수
+    함수이고 호출부가 스무 자리(단위 테스트 열여덟 · 하네스 비교 스크립트 하나)라 시그니처를
+    바꾸는 대가가 크다. 그 테스트들이 계열별 응답 계약을 «모양»으로 적어 두는 것이 지금의
+    방어이기도 하다.
+    ⚠️ **그래서 대가를 적어 둔다**: 응답 모양이 바뀌면 그 갈래가 조용히 빈 문자열을 낸다 — 그
+    자리를 잡는 것은 `test_claude_schema.py` 의 계열별 단정이고, 계열을 더하면 그 단정도 함께
+    더해야 한다.
     """
     return "openai." in model_id
 

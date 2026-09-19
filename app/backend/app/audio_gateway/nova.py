@@ -1031,12 +1031,22 @@ class NovaEventTranslator:
         if report is None:
             # `parse_control_payload` 가 이미 왜 버렸는지 경고를 남겼다.
             return []
+        # ⛔ **`toolUseId` 를 여기서 싣는다** (`TASK-226`). 이전 판은 이 값을 버렸고, 어댑터가
+        # **원본 body 로 되돌아가** 이름을 다시 판정하고 `model_copy` 로 이벤트를 덧칠했다 —
+        # 봉투를 읽는 자리가 둘로 갈렸다. 그 값은 이 봉투에만 있으므로 이 자리가 맞다.
+        # ⚠️ 없거나 문자열이 아니면 **`None` 으로 둔다** — 결과를 돌려줄 수 없다는 뜻이고, 그때도
+        # 명령 자체는 실행돼야 한다(모델이 그 턴을 이어 말하지 못하는 것이 알고 받는 대가다).
+        tool_use_id = body.get("toolUseId")
+        if not isinstance(tool_use_id, str) or not tool_use_id:
+            logger.warning("제어 tool 에 toolUseId 가 없어 결과를 돌려줄 수 없다: %r", tool_use_id)
+            tool_use_id = None
         return [
             SessionCommandEvent(
                 command=report.command,
                 stage=report.stage,
                 heard=report.heard,
                 target=report.target,
+                tool_use_id=tool_use_id,
             )
         ]
 
@@ -1398,43 +1408,24 @@ class NovaVoiceAdapter:
             logger.warning("Nova 출력을 해석할 수 없다: %r", raw[:120])
             return []
         events = self._translator.translate(name, body)
-        if name == "toolUse" and body.get("toolName") == CONTROL_TOOL_NAME:
-            # ⛔ 돌려받은 목록을 쓴다 — 여기서 버리면 `tool_use_id` 가 실리지 않아 게이트웨이가
-            # 실행 보고를 할 수 없고, 그러면 그 턴의 tool 결과가 영원히 나가지 않는다(결정 118).
-            events = self._remember_control_tool_use(body, events)
+        self._remember_control_tool_uses(events)
         return events
 
-    def _remember_control_tool_use(
-        self, body: dict[str, Any], events: list[AdapterEvent]
-    ) -> list[AdapterEvent]:
+    def _remember_control_tool_uses(self, events: list[AdapterEvent]) -> None:
         """제어 tool 호출에 결과를 돌려줄 것을 적어 둔다 (`TASK-61.5` · 결정 109).
 
-        ⛔ **번역 결과에서 명령을 읽는다 — 페이로드를 다시 파싱하지 않는다.** 두 곳이 파싱하면
-        검증 규약이 갈리고, 번역기가 버린 페이로드에 결과를 보내는 일이 생긴다.
+        ⛔ **번역 결과만 읽는다 — 원본 봉투를 다시 파싱하지 않는다** (`TASK-226`). 이전 판은 이
+        자리에서 `toolName` 을 다시 판정하고 `toolUseId` 를 꺼내 `model_copy` 로 이벤트를 덧칠했다.
+        두 곳이 봉투를 읽으면 검증 규약이 갈리고, 번역기가 버린 페이로드에 결과를 보내는 일이
+        생긴다. 지금은 그 값을 번역기가 처음부터 싣는다(`_on_control_tool_use`).
 
-        ⚠️ **모호한 페이로드에는 결과를 보내지 않는다** — 이벤트가 만들어지지 않았다는 것은 명령을
-        실행하지 않았다는 뜻이고, 그때 「받았다」를 돌려주면 모델이 실행됐다고 믿는다. 그 턴에서
-        모델이 이어 말하지 못하는 것은 **알고 받는 대가**다(그 경우는 애초에 명령이 아니다).
+        ⚠️ **`tool_use_id` 가 없는 이벤트는 적어 두지 않는다** — 돌려줄 주소가 없다는 뜻이다. 명령은
+        그대로 실행되고, 모델이 그 턴을 이어 말하지 못하는 것은 **알고 받는 대가**다(경고는 번역기가
+        남긴다).
         """
-        tool_use_id = body.get("toolUseId")
-        command = next(
-            (event.command for event in events if isinstance(event, SessionCommandEvent)), None
-        )
-        if not isinstance(tool_use_id, str) or not tool_use_id or command is None:
-            logger.warning(
-                "제어 tool 결과를 보낼 수 없다 — toolUseId=%r · command=%r", tool_use_id, command
-            )
-            return events
-        self._awaiting_outcome[tool_use_id] = command
-        # 이벤트에 id 를 실어 **게이트웨이가 그 명령을 가리켜 보고할 수 있게** 한다 (결정 118).
-        # 모델이 frozen 이라 새로 만든다 — 그것이 「어댑터만 이벤트를 만든다」(포트 규약)와 어긋나지
-        # 않는다: 여기가 어댑터다.
-        return [
-            event.model_copy(update={"tool_use_id": tool_use_id})
-            if isinstance(event, SessionCommandEvent)
-            else event
-            for event in events
-        ]
+        for event in events:
+            if isinstance(event, SessionCommandEvent) and event.tool_use_id is not None:
+                self._awaiting_outcome[event.tool_use_id] = event.command
 
     async def report_command_outcome(
         self, tool_use_id: str, *, executed: bool, reason: str | None = None
@@ -1500,14 +1491,7 @@ class NovaVoiceAdapter:
                     }
                 }
             },
-            {
-                "event": {
-                    "contentEnd": {
-                        "promptName": self._prompt_name,
-                        "contentName": content_name,
-                    }
-                }
-            },
+            self._content_end(content_name),
         ]
         try:
             for payload in payloads:
@@ -1602,14 +1586,7 @@ class NovaVoiceAdapter:
                     }
                 }
             },
-            {
-                "event": {
-                    "contentEnd": {
-                        "promptName": self._prompt_name,
-                        "contentName": self._text_content_name,
-                    }
-                }
-            },
+            self._content_end(self._text_content_name),
             {
                 "event": {
                     "contentStart": {
@@ -1632,16 +1609,24 @@ class NovaVoiceAdapter:
             },
         ]
 
+    def _content_end(self, content_name: str) -> dict[str, Any]:
+        """`contentEnd` 봉투 하나 — **세 자리가 같은 여섯 줄을 적고 있었다** (`TASK-226`).
+
+        ⛔ `promptName` 이 빠지거나 다른 이름이 실리면 Nova 가 **그 content 를 닫지 않고** 세션이
+        응답을 기다린 채 매달린다 — 조용한 실패이므로 세 벌로 두지 않는다.
+        """
+        return {
+            "event": {
+                "contentEnd": {
+                    "promptName": self._prompt_name,
+                    "contentName": content_name,
+                }
+            }
+        }
+
     def _termination_events(self) -> list[dict[str, Any]]:
         return [
-            {
-                "event": {
-                    "contentEnd": {
-                        "promptName": self._prompt_name,
-                        "contentName": self._audio_content_name,
-                    }
-                }
-            },
+            self._content_end(self._audio_content_name),
             {"event": {"promptEnd": {"promptName": self._prompt_name}}},
             {"event": {"sessionEnd": {}}},
         ]

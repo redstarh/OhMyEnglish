@@ -547,6 +547,26 @@ async def test_close_sends_the_explicit_end_sequence_and_is_idempotent():
     assert stream.closed
 
 
+# `contentEnd` 봉투가 **어느 프롬프트의 어느 content 를 닫는지**를 함께 실어야 한다 (`TASK-226`).
+#
+# ⛔ **이 단정이 없어서 그 자리가 재지지 않았다** — 세 자리의 같은 봉투를 `_content_end` 하나로
+# 접은 뒤 `promptName` 을 빼는 변이를 걸었더니 **1415건이 그대로 통과했다.** 그 키가 빠지면 Nova 가
+# content 를 닫지 않고 세션이 응답을 기다린 채 매달린다 — 예외도 로그도 없는 조용한 실패다.
+async def test_the_closing_content_end_names_its_prompt_and_content():
+    stream = _FakeStream()
+    adapter = _adapter(stream)
+    await adapter.start()
+    opened = stream.payloads("contentStart")[-1]
+
+    await adapter.close()
+
+    closing = stream.payloads("contentEnd")[-1]
+    assert closing["promptName"] == stream.payloads("promptStart")[0]["promptName"]
+    assert closing["contentName"] == opened["contentName"], (
+        "열었던 content 가 아닌 것을 닫았다 — 그 세션은 응답을 기다린 채 매달린다"
+    )
+
+
 # 연결 실패 경로에서도 세션은 `adapter.close()`를 부른다(`session._close_and_record`).
 async def test_close_before_start_does_not_raise():
     await _adapter(_FakeStream()).close()
@@ -2202,7 +2222,12 @@ def test_a_confirmed_control_tool_use_becomes_a_session_command_event():
         ]
     )
 
-    assert translated == [SessionCommandEvent(command="end", stage="confirmed")]
+    # ⚠️ **`tool_use_id` 는 번역기가 싣는다** (`TASK-226`). 이전 판은 어댑터가 원본 봉투로 되돌아가
+    # 덧칠했고, 그래서 이 단정이 「번역기는 id 를 버린다」를 재고 있었다 — 게이트웨이가 보는
+    # 이벤트는 그때도 id 를 가졌으므로 **경계의 계약은 그대로**이고 재는 자리만 앞당겨졌다.
+    assert translated == [
+        SessionCommandEvent(command="end", stage="confirmed", tool_use_id=TOOL_USE_ID)
+    ]
 
 
 def test_the_requested_stage_is_relayed_and_does_not_end_anything_by_itself():
@@ -2219,7 +2244,12 @@ def test_the_requested_stage_is_relayed_and_does_not_end_anything_by_itself():
     )
 
     assert translated == [
-        SessionCommandEvent(command="end", stage="requested", heard="Oh My English, stop")
+        SessionCommandEvent(
+            command="end",
+            stage="requested",
+            heard="Oh My English, stop",
+            tool_use_id=TOOL_USE_ID,
+        )
     ]
 
 
