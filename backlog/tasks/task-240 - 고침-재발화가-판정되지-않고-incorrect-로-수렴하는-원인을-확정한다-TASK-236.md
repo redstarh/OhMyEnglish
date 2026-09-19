@@ -1,9 +1,10 @@
 ---
 id: TASK-240
 title: '고침: 재발화가 판정되지 않고 incorrect 로 수렴하는 원인을 확정한다 (TASK-236)'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-19 07:49'
+updated_date: '2026-09-19 08:22'
 labels: []
 dependencies: []
 ordinal: 304000
