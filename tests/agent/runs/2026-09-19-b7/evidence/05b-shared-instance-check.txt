@@ -1,0 +1,11 @@
+read at (UTC): 2026-09-19T08:34:56.661779+00:00
+--- learning_sessions created today (UTC) ---
+513d4d6c-c4b8-4339-9b53-990ce7858775 | completed | mode=pronunciation | via=ui | 2026-09-19 08:29:39.582588+00
+--- analysis_jobs recent ---
+6 jobs created after 08:00Z
+analyze_utterance | pending | 2026-09-19 08:29:39.604736+00
+analyze_utterance | pending | 2026-09-19 08:29:39.608654+00
+analyze_utterance | pending | 2026-09-19 08:29:39.611607+00
+plan_next_session | pending | 2026-09-19 08:29:39.61293+00
+summarize_session | pending | 2026-09-19 08:29:39.61293+00
+summarize_week | pending | 2026-09-19 08:29:39.61293+00

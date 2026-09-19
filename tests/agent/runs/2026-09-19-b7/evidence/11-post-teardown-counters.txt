@@ -1,0 +1,18 @@
+read at (UTC): 2026-09-19T08:40:20.464393+00:00
+learning_sessions = 27  (착수 27)  같음
+utterances = 175  (착수 175)  같음
+analysis_jobs = 111  (착수 111)  같음
+pronunciation_attempts = 7  (착수 7)  같음
+error_patterns = 9  (착수 9)  같음
+review_tasks = 15  (착수 15)  같음
+llm_calls = 39  (착수 38 · 증가분 1)  ⚠️ 비용 기록이라 지우지 않는다
+--- 발음 시도 전수 (회차 행이 걷혔는지) ---
+c1afefe6-6a32-43fb-8dac-e6bb42b8e6ec | am_as_i_m | correct | 2026-08-31 22:18:33.388648+00
+ed54c552-f94c-4906-88db-52cba28dda45 | w_as_vw | correct | 2026-08-31 22:19:36.41732+00
+a58db786-4cbf-4965-bea9-ce89b0a64e77 | an_as_a | incorrect | 2026-08-31 22:21:04.044122+00
+a817b206-11ee-48ad-9ba1-68d139a69857 | an_as_a | incorrect | 2026-09-03 13:51:12.114771+00
+9cd79883-755b-45db-9b1e-0d837c73a860 | - | unclear | 2026-09-10 07:49:33.916581+00
+fce260cb-79b7-4ace-ac45-e214cdb1749e | - | unclear | 2026-09-10 07:52:47.784479+00
+3e9ecf5c-940f-4b7a-ad33-d0e23f5e8efe | - | unclear | 2026-09-10 07:53:17.568886+00
+--- error_patterns 에 오늘 갱신된 행이 있는가 ---
+(없음 — 이 회차는 패턴을 만들지도 갱신하지도 않았다)

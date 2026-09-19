@@ -1,0 +1,92 @@
+read at (UTC): 2026-09-19T08:37:26.346609+00:00
+(⚠️ 마지막 단계(session_ended·t=23.723)가 끝난 뒤에 읽었다)
+=== counters ===
+learning_sessions = 28
+utterances = 178
+analysis_jobs = 116
+pronunciation_attempts = 8
+llm_calls = 39
+error_patterns = 9
+review_tasks = 15
+=== the session ===
+5b370010-9ab1-429c-a3ff-27e30f334864 | completed | mode=pronunciation | via=ui | started=2026-09-19 08:36:43.159966+00 | ended=2026-09-19 08:37:06.870254+00
+=== utterances ===
+1 | user | learning | 아이피니시트더리포트엔쉐어드더리절치위드마이팀
+2 | agent | learning | 
+
+I heard you say " 아이피니시트더리포트엔쉐어드더리즐치위드마이팀". Let's focus on the " th" sound. In English, the " th" sound is made by putting your tongue between your teeth and gently blowing air out. Try saying this sentence slowly with that soft " th" sound: "I finished the report and shared the results with my team."
+
+Can you repeat the whole sentence now, focusing on making that soft " th" sound in words like " the" and " with"?
+3 | user | learning | i finished the report and shared the results with my team
+=== pronunciation_attempts (this session) ===
+aa12ecd9-9aec-4d79-94c2-1b345f6f8e02
+  target_sound=th_as_t
+  outcome=correct
+  spoken_form=i finished the report and shared the results with my team
+  target_form=I finished the report and shared the results with my team.
+  signal_source=nova_tool
+  sound_check=-
+  created_at=2026-09-19 08:36:49.375977+00
+  resolved_at=2026-09-19 08:37:05.031683+00
+=== error_patterns ===
+Traceback (most recent call last):
+  File "<stdin>", line 17, in <module>
+  File "/Users/redstar/MyProject/OhMyEnglish/tests/harness/psql_cli.py", line 58, in psql
+    out = subprocess.run(
+        [psql_binary(), base_dsn(), "-q", "-tAc", sql],
+    ...<2 lines>...
+        text=True,
+    )
+  File "/opt/homebrew/Cellar/python@3.13/3.13.12_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/subprocess.py", line 577, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['/opt/homebrew/opt/postgresql@17/bin/psql', 'postgresql://ohmy:ohmy@localhost:5432/ohmyenglish', '-q', '-tAc', "select pattern_key||' freq='||frequency||' updated='||updated_at from ohmyenglish.error_patterns order by pattern_key"]' returned non-zero exit status 1.
+=== error_patterns (재조회 · updated_at 열이 없어 첫 조회가 죽었다) ===
+id, user_id, category, pattern_key, target_form, frequency, mastery_score, self_difficulty, last_seen_at, next_review_at, created_at
+article_missing_before_noun freq=7 last_seen=2026-09-03 13:56:38.186958+00
+article_missing_the_before_place_noun freq=5 last_seen=2026-09-08 19:54:39.449652+00
+article_wrong_definite_article freq=2 last_seen=2026-09-02 23:15:01.903223+00
+business_expression_verb_noun_collocation freq=3 last_seen=2026-08-31 22:21:03.123308+00
+preposition_missing_to_after_go freq=1 last_seen=2026-09-03 13:07:28.002052+00
+preposition_time_expression_ago freq=3 last_seen=2026-09-02 23:15:01.903223+00
+pronunciation_an_as_a freq=2 last_seen=2026-09-03 13:51:26.680389+00
+verb_tense_past_simple_for_past_events freq=2 last_seen=2026-09-08 19:54:47.841249+00
+word_order_time_adverb_placement freq=1 last_seen=2026-09-03 13:50:47.323905+00
+=== 판정이 세션 종료 «전»에 났는가 — 그것이 resolve_dangling 과 가르는 자리다 ===
+resolved_at=2026-09-19 08:37:05.031683+00  session ended_at=2026-09-19 08:37:06.870254+00  차이=1.839초 (판정이 먼저)
+=== llm_calls (이 회차분) ===
+Traceback (most recent call last):
+  File "<stdin>", line 13, in <module>
+  File "/Users/redstar/MyProject/OhMyEnglish/tests/harness/psql_cli.py", line 58, in psql
+    out = subprocess.run(
+        [psql_binary(), base_dsn(), "-q", "-tAc", sql],
+    ...<2 lines>...
+        text=True,
+    )
+  File "/opt/homebrew/Cellar/python@3.13/3.13.12_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/subprocess.py", line 577, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['/opt/homebrew/opt/postgresql@17/bin/psql', 'postgresql://ohmy:ohmy@localhost:5432/ohmyenglish', '-q', '-tAc', "select coalesce(string_agg(model||' | '||coalesce(purpose,'-')||' | '||created_at, E'\\n'), '(없음)') from ohmyenglish.llm_calls where created_at > '2026-09-19 08:35+00'"]' returned non-zero exit status 1.
+=== llm_calls 열 이름 ===
+id, provider, model_id, purpose, job_id, input_tokens, output_tokens, called_at, input_speech_tokens, input_text_tokens, output_speech_tokens, output_text_tokens
+=== llm_calls · 이 회차분 (착수 38 → 회차 뒤 39 · 증가분 1) ===
+Traceback (most recent call last):
+  File "<stdin>", line 7, in <module>
+  File "/Users/redstar/MyProject/OhMyEnglish/tests/harness/psql_cli.py", line 58, in psql
+    out = subprocess.run(
+        [psql_binary(), base_dsn(), "-q", "-tAc", sql],
+    ...<2 lines>...
+        text=True,
+    )
+  File "/opt/homebrew/Cellar/python@3.13/3.13.12_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/subprocess.py", line 577, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['/opt/homebrew/opt/postgresql@17/bin/psql', 'postgresql://ohmy:ohmy@localhost:5432/ohmyenglish', '-q', '-tAc', "select coalesce(string_agg(t, E'\\n'),'(없음)') from (select id||' | '||created_at as t from ohmyenglish.llm_calls where created_at > '2026-09-19 08:35+00' order by created_at) x"]' returned non-zero exit status 1.
+=== llm_calls · 이 회차분 (called_at 이 시각 열 이름이다) ===
+bedrock | amazon.nova-2-sonic-v1:0 | nova | in_speech=363 out_speech=843 | 2026-09-19 08:37:06.86823+00
+=== 회차 뒤 계수기 요약 ===
+learning_sessions = 28
+utterances = 178
+analysis_jobs = 116
+pronunciation_attempts = 8
+llm_calls = 39

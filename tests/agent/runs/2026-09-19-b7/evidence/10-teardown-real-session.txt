@@ -1,0 +1,11 @@
+{
+ "session_id": "5b370010-9ab1-429c-a3ff-27e30f334864",
+ "status": "completed",
+ "started_at": "2026-09-19T08:36:43.159966+00:00",
+ "utterances": 3,
+ "utterance_jobs_deleted": 2,
+ "session_jobs_deleted": 3,
+ "session_deleted": 1,
+ "recordings_removed": 0
+}
+⚠️ error_patterns·review_tasks 는 지우지 않았다 — 회차가 «갱신» 한 기존 행이므로 회차 전 스냅샷으로 복원한다(browser_leg.md §8-②).

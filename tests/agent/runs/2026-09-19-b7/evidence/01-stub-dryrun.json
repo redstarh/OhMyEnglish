@@ -1,0 +1,214 @@
+{
+ "driver": "b7_turnwait.py",
+ "verdict": "blocked_closed_during_utt1",
+ "session_id": "63771c89-6c2e-4e6c-b52e-c300d95e57e0",
+ "mode": "pronunciation",
+ "wavs": [
+  "p2k.wav",
+  "p2a.wav"
+ ],
+ "wav_seconds": [
+  3.792,
+  2.957
+ ],
+ "elapsed": 0.041,
+ "frame_counts": {
+  "session_started": 1,
+  "final": 6,
+  "partial": 6,
+  "audio": 3,
+  "session_ended": 1
+ },
+ "distinct_arrival_times": 8,
+ "total_frames": 17,
+ "pronunciation_frames": [],
+ "turn_end_evidence": null,
+ "settings": {
+  "quiet_ms": 3000,
+  "first_tool_wait_s": 12.0,
+  "turn_wait_s": 15.0,
+  "second_wait_s": 8.0,
+  "end_silence_ms": 1024
+ },
+ "steps": [
+  {
+   "step": "utt1.begin",
+   "t": 0.006,
+   "wall": "2026-09-19T08:31:31.415226+00:00",
+   "wav": "p2k.wav",
+   "seconds": 3.792
+  },
+  {
+   "step": "utt1.sent",
+   "t": 0.041,
+   "wall": "2026-09-19T08:31:31.449545+00:00",
+   "audio_frames": 1,
+   "closed": true
+  },
+  {
+   "step": "abort",
+   "t": 0.041,
+   "wall": "2026-09-19T08:31:31.449555+00:00",
+   "why": "첫 발화를 흘리는 중에 세션이 닫혔다"
+  }
+ ],
+ "frames": [
+  {
+   "i": 0,
+   "t": 0.011,
+   "wall": "2026-09-19T08:31:31.419750+00:00",
+   "phase": "utt1",
+   "type": "session_started",
+   "session_id": "63771c89-6c2e-4e6c-b52e-c300d95e57e0",
+   "pronunciation_focus": "an_as_a"
+  },
+  {
+   "i": 1,
+   "t": 0.013,
+   "wall": "2026-09-19T08:31:31.421582+00:00",
+   "phase": "utt1",
+   "type": "final",
+   "speaker": "agent",
+   "text": "What do you usually do after work?",
+   "sequence_no": 1,
+   "agent_final_no": 1
+  },
+  {
+   "i": 2,
+   "t": 0.013,
+   "wall": "2026-09-19T08:31:31.421653+00:00",
+   "phase": "utt1",
+   "type": "partial",
+   "speaker": "user",
+   "text": "I usually"
+  },
+  {
+   "i": 3,
+   "t": 0.013,
+   "wall": "2026-09-19T08:31:31.421660+00:00",
+   "phase": "utt1",
+   "type": "partial",
+   "speaker": "user",
+   "text": "I usually go to"
+  },
+  {
+   "i": 4,
+   "t": 0.014,
+   "wall": "2026-09-19T08:31:31.422553+00:00",
+   "phase": "utt1",
+   "type": "final",
+   "speaker": "user",
+   "text": "I usually go to gym after work.",
+   "sequence_no": 2
+  },
+  {
+   "i": 5,
+   "t": 0.014,
+   "wall": "2026-09-19T08:31:31.422713+00:00",
+   "phase": "utt1",
+   "type": "audio",
+   "bytes": 6444
+  },
+  {
+   "i": 6,
+   "t": 0.016,
+   "wall": "2026-09-19T08:31:31.424826+00:00",
+   "phase": "utt1",
+   "type": "final",
+   "speaker": "agent",
+   "text": "What do you usually do on weekends?",
+   "sequence_no": 3,
+   "agent_final_no": 2
+  },
+  {
+   "i": 7,
+   "t": 0.016,
+   "wall": "2026-09-19T08:31:31.424894+00:00",
+   "phase": "utt1",
+   "type": "partial",
+   "speaker": "user",
+   "text": "I usually"
+  },
+  {
+   "i": 8,
+   "t": 0.016,
+   "wall": "2026-09-19T08:31:31.424897+00:00",
+   "phase": "utt1",
+   "type": "partial",
+   "speaker": "user",
+   "text": "I usually go to"
+  },
+  {
+   "i": 9,
+   "t": 0.017,
+   "wall": "2026-09-19T08:31:31.425768+00:00",
+   "phase": "utt1",
+   "type": "final",
+   "speaker": "user",
+   "text": "I usually go to office by subway.",
+   "sequence_no": 4
+  },
+  {
+   "i": 10,
+   "t": 0.017,
+   "wall": "2026-09-19T08:31:31.425887+00:00",
+   "phase": "utt1",
+   "type": "audio",
+   "bytes": 6444
+  },
+  {
+   "i": 11,
+   "t": 0.018,
+   "wall": "2026-09-19T08:31:31.427278+00:00",
+   "phase": "utt1",
+   "type": "final",
+   "speaker": "agent",
+   "text": "What do you need to do tonight?",
+   "sequence_no": 5,
+   "agent_final_no": 3
+  },
+  {
+   "i": 12,
+   "t": 0.018,
+   "wall": "2026-09-19T08:31:31.427341+00:00",
+   "phase": "utt1",
+   "type": "partial",
+   "speaker": "user",
+   "text": "I need"
+  },
+  {
+   "i": 13,
+   "t": 0.018,
+   "wall": "2026-09-19T08:31:31.427346+00:00",
+   "phase": "utt1",
+   "type": "partial",
+   "speaker": "user",
+   "text": "I need to finish"
+  },
+  {
+   "i": 14,
+   "t": 0.019,
+   "wall": "2026-09-19T08:31:31.428237+00:00",
+   "phase": "utt1",
+   "type": "final",
+   "speaker": "user",
+   "text": "I need to finish my homework tonight.",
+   "sequence_no": 6
+  },
+  {
+   "i": 15,
+   "t": 0.019,
+   "wall": "2026-09-19T08:31:31.428361+00:00",
+   "phase": "utt1",
+   "type": "audio",
+   "bytes": 6444
+  },
+  {
+   "i": 16,
+   "t": 0.023,
+   "wall": "2026-09-19T08:31:31.432436+00:00",
+   "phase": "utt1",
+   "type": "session_ended"
+  }
+ ]
+}

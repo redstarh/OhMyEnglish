@@ -4,7 +4,7 @@ title: A16 · 발음 코칭 — mode=pronunciation 실시간 판정
 status: Blocked
 assignee: []
 created_date: '2026-09-19 05:22'
-updated_date: '2026-09-19 07:43'
+updated_date: '2026-09-19 08:44'
 labels: []
 dependencies: []
 ordinal: 34000
@@ -19,7 +19,7 @@ ordinal: 34000
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [x] #1 발음 오류에 대해 올바른 발음 시범이 돌아옴
-- [ ] #2 따라 말한 결과가 성공·실패·판정 불가 가운데 하나로 기록됨
+- [x] #2 따라 말한 결과가 성공·실패·판정 불가 가운데 하나로 기록됨
 - [ ] #3 전사문에 한글이 섞인 경우와 되물음이 신호로 기록됨 (PRD §10.2)
 - [x] #4 미동작이면 무엇이 어디서 끊기는지 증거와 함께 적음 (TASK-75 와 이어 줌)
 <!-- AC:END -->
@@ -41,4 +41,22 @@ ordinal: 34000
 ⛔ 본문의 알려진 상태가 낡았음: TASK-75 는 미해결이 아니라 Done(2026-09-10)이고 발음 전용 모드가 그 문제를 풀었음. 「발음 기능은 미동작」의 출처인 Phase 1 완료 선언문이 지금도 그 문장을 그대로 둠 ⇒ 결함 TASK-238.
 
 결과: tests/agent/runs/2026-09-19-b6/result.md §7
+
+## B7 회차 (2026-09-19 · HEAD 000530b) — AC#2 를 채웠음 (AC 3/4 · Blocked 유지)
+
+수단: tests/agent/runs/2026-09-19-b7/b7_turnwait.py (회차 디렉터리의 새 드라이버 · 대상 소스를 고치지 않았음). 보내기와 받기를 «동시에» 돌아 프레임마다 도착 시각을 각자 기록하고, 코치의 턴 종료를 프레임으로 판정한 뒤에 재발화를 흘림.
+턴 종료 판정 규칙: agent final 프레임 1건 이상 AND audio 프레임이 4000ms 동안 0건. 근거는 audio_gateway/nova.py:1070 이 stopReason=END_TURN 에서 _flush_pending_agent_text() 를 돌려 agent final 을 만드는 것임 — 그 프레임이 Nova 의 턴 경계가 WS 로 새어 나온 자리임.
+판별력을 먼저 증명했음: 가짜 서버(b7_fake_ws.py)로 둘째 pronunciation 프레임만 다르게 둔 두 판을 돌려 verdict 가 second_tool_arrived / second_tool_absent 로 갈리는 것을 보였음. 스텁 어댑터로는 세션이 41ms 만에 닫혀 이 측정이 성립하지 않음(실측).
+
+세션 5b370010-9ab1-429c-a3ff-27e30f334864 · mode=pronunciation · 08:36:43~08:37:06 UTC · 실물 Nova 1회.
+
+- AC#2 ✅ 채웠음: 둘째 pronunciation 프레임이 t=21.881 에 outcome=correct 로 왔고, DB 행이 outcome=correct · spoken_form 채워짐 · resolved_at 이 세션 종료보다 1.839초 «먼저» 로 닫혔음. ⇒ resolve_dangling 의 종료 수렴이 아니라 판정임. 타이밍 근거: 코치의 마지막 audio t=13.342 · agent final t=13.348 · 둘째 발화 송출 시작 t=17.350(음성 정지 4.008초 뒤) · 13.342~22.049 사이 코치 음성 0건. 둘째 발화 뒤 상한 75초로 기다렸고 실제 0.27초에 왔음.
+- AC#3 ❌ 여전히 미충족 — 보조 신호 writer 가 코드에 0곳임(결함 TASK-237 이 사람의 결정으로 올려 둠). 이 회차의 사거리 밖임.
+- 부분 확인이므로 Done 이 아니고 Blocked 로 둠.
+
+곁에서 나온 관측 둘 (⛔ 새 결함으로 올리지 않았음):
+1. sound_check 가 NULL 로 남았음 — 코치가 소리를 12번 인용했는데도임. 이 회차의 코치는 여는 따옴표 뒤에 공백을 넣어 인용했고(«따옴표 공백 th 따옴표» 형태) _QUOTED_TOKEN_RE 가 토큰을 하나도 못 뽑아 sound_check_verdict 가 None 을 냈음. 같은 글에서 그 공백만 없애면 matched 가 됨(evidence/09-sound-check-probe.txt 에 세 입력의 판정이 있음). 잘못된 배제를 내지는 않으나 결정 82 가 세운 검증 신호가 그 회차에서 0이 됨. B6 은 matched 였으므로 간헐임.
+2. interrupted 프레임 1건 — 코치가 4.35초 조용해진 뒤에 시작한 발화가 barge-in 으로 표시됐음. 판정은 정상으로 났으므로 결함이 아니고, 배지·화면 영역(A5-1·A5-2)을 볼 회차의 재료임.
+
+결과: tests/agent/runs/2026-09-19-b7/result.md
 <!-- SECTION:NOTES:END -->

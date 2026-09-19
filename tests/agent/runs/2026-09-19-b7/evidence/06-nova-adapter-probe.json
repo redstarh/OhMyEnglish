@@ -1,0 +1,6 @@
+{
+ "note": "POST /readback 으로 어댑터를 가른다 — 503 이면 stub, 404 면 nova",
+ "http_code": "404",
+ "body": "{\"detail\":\"readback not found\"}",
+ "verdict": "nova (transcriber_available=True)"
+}

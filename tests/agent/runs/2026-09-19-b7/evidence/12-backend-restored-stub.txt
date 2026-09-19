@@ -1,0 +1,6 @@
+read at (UTC): 2026-09-19T08:40:52Z
+listener pid: 77150
+health: 200 {"status":"ok"}
+어댑터 재확인 (503=stub · 404=nova): 503
+{"detail":"낭독 판정을 쓸 수 없다"}
+프런트 :3000 리스너: 98298

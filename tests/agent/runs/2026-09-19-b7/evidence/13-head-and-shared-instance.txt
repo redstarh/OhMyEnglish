@@ -1,0 +1,21 @@
+read at (UTC): 2026-09-19T08:41:28Z
+회차 시작 HEAD: f7bca64 (08:27Z 읽음)
+회차 끝   HEAD: 000530b
+실물 회차가 돌던 커밋: 000530b (커밋 시각 아래)
+000530b 2026-09-19T17:26:30+09:00 docs: 배치 보고 다섯 건을 정리해 원장에 남겼음 (TASK-229)
+
+--- 실물 회차(08:36:43~08:37:06Z) «뒤»에 바뀐 앱 소스 (KST 로 17:36 = 08:36Z) ---
+app/backend/app/__pycache__/config.cpython-313.pyc
+app/backend/app/__pycache__/db.cpython-313.pyc
+app/backend/app/__pycache__/__init__.cpython-313.pyc
+app/backend/app/audio_gateway/__pycache__/port.cpython-313.pyc
+app/backend/app/audio_gateway/__pycache__/session.cpython-313.pyc
+app/backend/app/audio_gateway/__pycache__/stub.cpython-313.pyc
+app/backend/app/audio_gateway/__pycache__/factory.cpython-313.pyc
+app/backend/app/audio_gateway/__pycache__/nova.cpython-313.pyc
+app/backend/app/audio_gateway/__pycache__/fixtures.cpython-313.pyc
+app/backend/app/audio_gateway/__pycache__/transcribe.cpython-313.pyc
+(위가 비어 있으면 회차 중 소스가 바뀌지 않았다)
+
+--- 미커밋 변경 ---
+?? tests/agent/runs/2026-09-19-b7/

@@ -1,0 +1,27 @@
+read at (UTC): 2026-09-19T08:27:36.511739+00:00
+current_schema: ohmyenglish
+learning_sessions = 27
+utterances = 175
+analysis_jobs = 111
+pronunciation_attempts = 7
+llm_calls = 38
+error_patterns = 9
+review_tasks = 15
+--- error_patterns ---
+article_missing_before_noun freq=7
+article_missing_the_before_place_noun freq=5
+article_wrong_definite_article freq=2
+business_expression_verb_noun_collocation freq=3
+preposition_missing_to_after_go freq=1
+preposition_time_expression_ago freq=3
+pronunciation_an_as_a freq=2
+verb_tense_past_simple_for_past_events freq=2
+word_order_time_adverb_placement freq=1
+--- pronunciation_attempts ---
+c1afefe6-6a32-43fb-8dac-e6bb42b8e6ec | bbfc3908-639c-4f1e-a565-fdbd74e0a420 | am_as_i_m | correct | spoken=i'm going to have a meeting. | nova_tool | 2026-08-31 22:18:33.388648+00
+ed54c552-f94c-4906-88db-52cba28dda45 | bbfc3908-639c-4f1e-a565-fdbd74e0a420 | w_as_vw | correct | spoken=i will talk about architecture. | nova_tool | 2026-08-31 22:19:36.41732+00
+a58db786-4cbf-4965-bea9-ce89b0a64e77 | bbfc3908-639c-4f1e-a565-fdbd74e0a420 | an_as_a | incorrect | spoken=NULL | nova_tool | 2026-08-31 22:21:04.044122+00
+a817b206-11ee-48ad-9ba1-68d139a69857 | 7b43ce56-b400-4c0d-942f-7987756d2129 | an_as_a | incorrect | spoken=NULL | nova_tool | 2026-09-03 13:51:12.114771+00
+9cd79883-755b-45db-9b1e-0d837c73a860 | 24597f0f-22db-452e-94ab-842d8a10f6eb | - | unclear | spoken=마이티니시트더리포트엔쉬어드더리절치위드마이팀 | korean_transcript | 2026-09-10 07:49:33.916581+00
+fce260cb-79b7-4ace-ac45-e214cdb1749e | f8ebc78b-9e76-4f1c-979a-75c7a31dd561 | - | unclear | spoken=아이피니시프트리포트엔씨어드리절치위드마이팀 | korean_transcript | 2026-09-10 07:52:47.784479+00
+3e9ecf5c-940f-4b7a-ad33-d0e23f5e8efe | d727f79d-ffc4-4bf0-a37a-f7551f0f9f25 | - | unclear | spoken=아이티니시트 더리포트 엔쉐어드 더리절치우이드 마이팀 | korean_transcript | 2026-09-10 07:53:17.568886+00
