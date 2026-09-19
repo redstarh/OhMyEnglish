@@ -1,0 +1,30 @@
+=== preflight POST /api/videos ===
+HTTP/1.1 200 OK
+access-control-allow-methods: GET, POST, DELETE
+access-control-max-age: 600
+access-control-allow-headers: Accept, Accept-Language, Content-Language, Content-Type
+access-control-allow-origin: http://localhost:3000
+=== preflight DELETE /api/videos ===
+HTTP/1.1 200 OK
+access-control-allow-methods: GET, POST, DELETE
+access-control-max-age: 600
+access-control-allow-headers: Accept, Accept-Language, Content-Language, Content-Type
+access-control-allow-origin: http://localhost:3000
+=== preflight GET /api/videos ===
+HTTP/1.1 200 OK
+access-control-allow-methods: GET, POST, DELETE
+access-control-max-age: 600
+access-control-allow-headers: Accept, Accept-Language, Content-Language, Content-Type
+access-control-allow-origin: http://localhost:3000
+=== preflight PUT /api/videos ===
+HTTP/1.1 400 Bad Request
+access-control-allow-methods: GET, POST, DELETE
+access-control-max-age: 600
+access-control-allow-headers: Accept, Accept-Language, Content-Language, Content-Type
+access-control-allow-origin: http://localhost:3000
+=== preflight PATCH /api/videos ===
+HTTP/1.1 400 Bad Request
+access-control-allow-methods: GET, POST, DELETE
+access-control-max-age: 600
+access-control-allow-headers: Accept, Accept-Language, Content-Language, Content-Type
+access-control-allow-origin: http://localhost:3000

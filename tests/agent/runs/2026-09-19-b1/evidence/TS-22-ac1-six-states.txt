@@ -1,0 +1,36 @@
+=== AC1-analyzing  (210233be-ecaa-4409-a1af-8b7016cfe7e9)  HTTP 200 ===
+  status        : partial_failure
+  corrections   : 0 item(s)
+  drill         : <KEY ABSENT>
+  pronunciation : 0 item(s)
+  all keys      : ['awaiting_analysis', 'corrections', 'partial_failure', 'pronunciation', 'status']
+=== AC2-final-1corr  (6225ddaf-90a8-43af-9aa8-e003921c75eb)  HTTP 200 ===
+  status        : final
+  corrections   : 1 item(s)
+  drill         : <KEY ABSENT>
+  pronunciation : 0 item(s)
+  all keys      : ['awaiting_analysis', 'corrections', 'partial_failure', 'pronunciation', 'status']
+=== AC3-partial_failure  (b2f0d169-3d90-431b-b842-cce21125052a)  HTTP 200 ===
+  status        : partial_failure
+  corrections   : 0 item(s)
+  drill         : <KEY ABSENT>
+  pronunciation : 0 item(s)
+  all keys      : ['awaiting_analysis', 'corrections', 'partial_failure', 'pronunciation', 'status']
+=== AC4-connection_failed  (76d9ef31-0d1b-4c50-b906-f16ee438080e)  HTTP 200 ===
+  status        : connection_failed
+  corrections   : <KEY ABSENT>
+  drill         : <KEY ABSENT>
+  pronunciation : 0 item(s)
+  all keys      : ['awaiting_analysis', 'partial_failure', 'pronunciation', 'status']
+=== AC5-no_utterances  (d127dece-d1d1-4329-802d-9b8fd1067388)  HTTP 200 ===
+  status        : final
+  corrections   : 1 item(s)
+  drill         : <KEY ABSENT>
+  pronunciation : 0 item(s)
+  all keys      : ['awaiting_analysis', 'corrections', 'partial_failure', 'pronunciation', 'status']
+=== AC6-final-2corr  (e0c5e580-dfc0-4793-b02d-54cf4346c3c5)  HTTP 200 ===
+  status        : final
+  corrections   : 2 item(s)
+  drill         : {'exchanges_observed': 2, 'exchanges_expected': 20}
+  pronunciation : 0 item(s)
+  all keys      : ['awaiting_analysis', 'corrections', 'drill', 'partial_failure', 'pronunciation', 'status']

@@ -1,0 +1,11 @@
+{
+  "id": "39883f3f-05ad-4d5e-8f4c-aea319c06010",
+  "ok": true,
+  "result": {
+    "result": "{\"url\":\"http://127.0.0.1:3000/\",\"total\":13,\"hydratedNodes\":0}",
+    "origin": "http://127.0.0.1:3000/"
+  },
+  "_meta": {
+    "runtimeId": "a06039e1-b391-4134-aeea-8a5d210fd970"
+  }
+}

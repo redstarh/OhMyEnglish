@@ -1,0 +1,8 @@
+schemaname|indexname|indexdef
+ohmyenglish|analysis_jobs_claimable_available_at_idx|CREATE INDEX analysis_jobs_claimable_available_at_idx ON ohmyenglish.analysis_jobs USING btree (available_at) WHERE (status = ANY (ARRAY['pending'::text, 'running'::text]))
+ohmyenglish|analysis_jobs_pkey|CREATE UNIQUE INDEX analysis_jobs_pkey ON ohmyenglish.analysis_jobs USING btree (id)
+ohmyenglish|analysis_jobs_utterance_job_type_idx|CREATE INDEX analysis_jobs_utterance_job_type_idx ON ohmyenglish.analysis_jobs USING btree (utterance_id, job_type)
+ohmyenglish|idx_analysis_jobs_status_available|CREATE INDEX idx_analysis_jobs_status_available ON ohmyenglish.analysis_jobs USING btree (status, available_at)
+ohmyenglish|uq_analysis_jobs_pending_session|CREATE UNIQUE INDEX uq_analysis_jobs_pending_session ON ohmyenglish.analysis_jobs USING btree (job_type, session_id) WHERE (status = ANY (ARRAY['pending'::text, 'running'::text]))
+ohmyenglish|uq_analysis_jobs_pending_utterance|CREATE UNIQUE INDEX uq_analysis_jobs_pending_utterance ON ohmyenglish.analysis_jobs USING btree (job_type, utterance_id) WHERE (status = ANY (ARRAY['pending'::text, 'running'::text]))
+(6개 행)

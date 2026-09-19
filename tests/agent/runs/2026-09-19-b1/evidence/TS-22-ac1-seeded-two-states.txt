@@ -1,0 +1,18 @@
+=== seed-A-no_utterances-permanent  HTTP 200 ===
+  status           : no_utterances
+  awaiting_analysis: False
+  corrections      : <KEY ABSENT>
+  drill            : <KEY ABSENT>
+  all keys         : ['awaiting_analysis', 'partial_failure', 'pronunciation', 'status']
+=== seed-B-no_utterances-recovery  HTTP 200 ===
+  status           : no_utterances
+  awaiting_analysis: True
+  corrections      : <KEY ABSENT>
+  drill            : <KEY ABSENT>
+  all keys         : ['awaiting_analysis', 'partial_failure', 'pronunciation', 'status']
+=== seed-C-analyzing  HTTP 200 ===
+  status           : analyzing
+  awaiting_analysis: False
+  corrections      : <KEY ABSENT>
+  drill            : <KEY ABSENT>
+  all keys         : ['awaiting_analysis', 'partial_failure', 'pronunciation', 'status']

@@ -1,0 +1,2 @@
+{"detail":"session not found"}
+HTTP 404

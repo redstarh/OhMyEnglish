@@ -1,0 +1,12 @@
+AC#2 값역 거부 — 실물 모델 호출 0회 (pydantic 이 모델 호출 앞에서 막음)
+POST /api/vocab/lookup · 2026-09-19 · HEAD 74fb5c0
+word-empty                 HTTP 422  | body.word: string_too_short
+sentence-empty             HTTP 422  | body.sentence: string_too_short
+both-empty                 HTTP 422  | body.word: string_too_short; body.sentence: string_too_short
+word-81chars               HTTP 422  | body.word: string_too_long        (상한 80)
+sentence-601chars          HTTP 422  | body.sentence: string_too_long    (상한 600)
+word-missing               HTTP 422  | body.word: missing
+sentence-missing           HTTP 422  | body.sentence: missing
+word-whitespace            HTTP 400  | 낱말이 비어 있다   ← 422 아님. 방어의 둘째 겹(ValueError)
+word-wrong-type            HTTP 422  | body.word: string_type
+body-not-object            HTTP 422  | body: model_attributes_type
