@@ -1,10 +1,10 @@
 ---
 id: TASK-229
 title: 전체 영역 통합테스트 회차 — 계획·수행·종합분석
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-19 05:11'
-updated_date: '2026-09-19 05:22'
+updated_date: '2026-09-19 07:51'
 labels: []
 dependencies: []
 ordinal: 290000
@@ -18,11 +18,11 @@ ordinal: 290000
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 테스트 원장에 영역별 시나리오가 전부 등록됨
-- [ ] #2 등록된 시나리오 전부가 통과·실패·차단 가운데 하나로 판정됨
-- [ ] #3 실패 전부가 이 작업 원장의 결함 태스크로 등록되고 시나리오 ID 와 양방향으로 이어짐
-- [ ] #4 회차 결과가 tests/agent/runs 아래 result.md 로 남음
-- [ ] #5 종합 분석으로 수정 태스크가 도출되고 심각도가 붙음
+- [x] #1 테스트 원장에 영역별 시나리오가 전부 등록됨
+- [x] #2 등록된 시나리오 전부가 통과·실패·차단 가운데 하나로 판정됨
+- [x] #3 실패 전부가 이 작업 원장의 결함 태스크로 등록되고 시나리오 ID 와 양방향으로 이어짐
+- [x] #4 회차 결과가 tests/agent/runs 아래 result.md 로 남음
+- [x] #5 종합 분석으로 수정 태스크가 도출되고 심각도가 붙음
 <!-- AC:END -->
 
 ## Implementation Notes
