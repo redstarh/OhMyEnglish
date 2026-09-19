@@ -1,9 +1,10 @@
 ---
 id: TASK-241
 title: '신설: 자주 틀리는 패턴에서 즉시 드릴을 만드는 경로 (TASK-233)'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-19 07:49'
+updated_date: '2026-09-19 07:58'
 labels: []
 dependencies: []
 ordinal: 305000

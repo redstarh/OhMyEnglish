@@ -423,8 +423,10 @@ async def test_session_creation_falls_back_to_the_earliest_scenario(
 # ⚠️ **1행이 0행보다 나쁘다** — 0행은 폴백이 전체를 주어 회전이 살아 있는데, 1행은 「수준이
 # 맞으니 제대로 골랐다」로 보여 조용히 죽는다.
 #
-# ⛔ **판별력**: 세션을 **6회** 연다. 1회로는 어느 구현이든 그 1행을 골라(신규) 통과한다 —
-# 반복이 시작되는 2회차 이후를 봐야 드러난다. 단정은 「서로 다른 무대가 2종 이상」이고
+# ⛔ **판별력**: 세션을 **10회** 연다. 1회로는 어느 구현이든 그 1행을 골라(신규) 통과한다 —
+# 반복이 시작되는 2회차 이후를 봐야 드러난다. ⚠️ 회차 B4 의 재현은 6회였으나 결함
+# `TASK-232` 의 AC 가 10회를 요구하므로 **창(`WINDOW`) 한 바퀴를 채워** 잰다 — 6회 결과로
+# 10회를 추론하지 않는다. 단정은 「서로 다른 무대가 2종 이상」이고
 # 「불일치 행이 후보에 들어왔는가」로는 재지 않는다: 그 문면은 수준 우선을 아예 버린 구현도
 # 통과시킨다(아래 `..._prefers_...` 가 그 반대 방향을 지킨다).
 async def test_session_creation_widens_the_pool_when_only_one_scenario_matches_the_level(
@@ -435,7 +437,7 @@ async def test_session_creation_widens_the_pool_when_only_one_scenario_matches_t
     )
 
     attached = []
-    for _ in range(6):
+    for _ in range(10):
         session_id = await create_session(db_pool, user_id)
         attached.append(await _attached_scenario(db_pool, session_id))
 
