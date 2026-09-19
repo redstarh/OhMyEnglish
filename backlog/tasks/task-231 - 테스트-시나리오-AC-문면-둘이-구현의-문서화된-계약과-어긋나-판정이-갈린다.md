@@ -1,9 +1,10 @@
 ---
 id: TASK-231
 title: 테스트 시나리오 AC 문면 둘이 구현의 문서화된 계약과 어긋나 판정이 갈린다
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-19 06:01'
+updated_date: '2026-09-19 08:51'
 labels: []
 dependencies: []
 ordinal: 295000
@@ -48,5 +49,11 @@ HEAD: ced8df0
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 TS-23 AC#2 와 TS-25 AC#3 의 문면이 구현 계약과 일치하도록 고쳐졌거나, 구현을 바꾸기로 한 결정이 docs/design 에 기록되었다
+- [x] #1 TS-23 AC#2 와 TS-25 AC#3 의 문면이 구현 계약과 일치하도록 고쳐졌거나, 구현을 바꾸기로 한 결정이 docs/design 에 기록되었다
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+해소됐음 (2026-09-19 · 커밋 754a69a). TS-23 과 TS-25 의 AC 문면을 구현의 문서화된 계약에 맞춰 고쳤음 — 구현을 바꾸지 않았음. 근거는 각 시나리오 노트가 가짐: next-plan 이 질문을 내리지 «않는» 것은 results.py 의 docstring 이 캡틴 결정으로 적어 둔 의도이고(질문을 미리 보여주면 즉흥 발화 연습이 무의미해짐), /history 가 빈 목록 상태를 갖지 않는 것은 PRD R15-5 의 요구임(학습이 없던 날도 보여야 함). 회차 B3 이 고쳐진 문면을 그 회차의 기존 증거로 대조해 덮이는 것을 확인한 뒤 AC 를 체크했고 새로 재지 않았음.
+<!-- SECTION:NOTES:END -->
