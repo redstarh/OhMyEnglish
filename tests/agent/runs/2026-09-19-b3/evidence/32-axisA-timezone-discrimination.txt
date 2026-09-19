@@ -1,0 +1,26 @@
+### ① 원값을 먼저 읽어 남김 (되돌릴 근거)
+users.timezone (원값) = [Asia/Seoul]
+측정 시각: 2026-09-19 06:11:56.816702+00|2026-09-19
+
+### ② 판별용 요약 행 둘을 심음 (같은 사용자 · 두 날짜 · 개수가 다름)
+2026-09-19
+2026-09-18
+
+### ③ 원값(Asia/Seoul)으로 읽음 — current_date(UTC) 와 같은 날짜라 판별력이 없는 상태
+summary_date= 2026-09-19 occurrence_count= 91
+
+### ④ 행 값만 UPDATE — Pacific/Midway (UTC-11). ⛔ ALTER DATABASE/SYSTEM 을 쓰지 않음
+바꾼 값 = [Pacific/Midway] · 바꾼 시각 = 2026-09-19 06:11:57.092909+00
+
+### ⑤ 같은 엔드포인트를 다시 읽음 — 여기가 판정 지점임
+   기대: 컬럼을 읽으면 2026-09-18 / 82 · current_date(UTC) 를 읽으면 2026-09-19 / 91
+summary_date= 2026-09-18 occurrence_count= 82 patterns[0].target_form= Midway 날짜 쪽
+   /api/history 의 첫 줄도 함께 봄 (같은 「오늘」을 쓰는지)
+days[0].day= 2026-09-18 | streak= {'current': 2, 'longest': 3, 'today_done': True}
+
+### ⑥ 복원하고 «읽어» 확인 — 명령 성공을 복원 근거로 쓰지 않음
+복원 뒤 읽은 값 = [Asia/Seoul] · 복원 시각 = 2026-09-19 06:11:57.38278+00
+복원 확인됨 (원값과 같음)
+
+### ⑦ 복원 뒤 엔드포인트가 원래 날짜로 돌아왔는지
+summary_date= 2026-09-19 occurrence_count= 91

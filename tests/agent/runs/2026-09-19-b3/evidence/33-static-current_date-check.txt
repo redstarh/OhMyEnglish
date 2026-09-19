@@ -1,0 +1,19 @@
+# 정적 대조 (측정이 아님 — 코드를 읽은 결과임)
+## 날짜 경계를 다루는 모듈에서 current_date 사용 건수
+app/backend/app/services/daily_summary.py               current_date=1  at_time_zone=5
+app/backend/app/services/weekly_report.py               current_date=1  at_time_zone=7
+app/backend/app/models/learner_time.py                  current_date=2  at_time_zone=3
+app/backend/app/services/user_timezone.py               current_date=0  at_time_zone=0
+app/backend/app/api/daily.py                            current_date=0  at_time_zone=0
+
+## daily_error_summary 쓰기 경로의 앵커 (워커가 꺼져 있어 측정하지 못한 절반)
+55:      select (u.created_at at time zone $3)::date as summary_date
+70:         and (u.created_at at time zone $3)::date = (select summary_date from anchor)
+  → $3 은 refresh_summary_for_utterance 가 timezone_of(conn, user_id) 로 채움:
+304:    await conn.execute(_UPSERT_SQL, user_id, utterance_id, await timezone_of(conn, user_id))
+
+## 그 current_date 언급이 실제 «사용»인지 확인 (전문)
+app/backend/app/models/learner_time.py:60:    ⛔ **`current_date` 를 쓰지 않는다** — UTC 자정~09:00(KST) 구간에 그 값이 학습자의 날짜보다
+app/backend/app/models/learner_time.py:61:    하루 이르다(설계 세션이 공유 DB 에서 직접 관측했다: `current_date`=2026-09-07 인데
+app/backend/app/services/daily_summary.py:13:**날짜의 정본은 `users.timezone` 컬럼이다.** `current_date`를 쓰지 않는다 — 서버 세션 타임존의
+app/backend/app/services/weekly_report.py:8:⛔ **`current_date` 를 쓰지 않는다.** UTC 자정~09:00(KST) 구간에 그 값이 KST 날짜보다 하루 이르다는
