@@ -1,10 +1,10 @@
 ---
 id: TS-34
 title: A16 · 발음 코칭 — mode=pronunciation 실시간 판정
-status: Blocked
+status: Done
 assignee: []
 created_date: '2026-09-19 05:22'
-updated_date: '2026-09-19 08:44'
+updated_date: '2026-09-19 11:21'
 labels: []
 dependencies: []
 ordinal: 34000
@@ -20,8 +20,8 @@ ordinal: 34000
 <!-- AC:BEGIN -->
 - [x] #1 발음 오류에 대해 올바른 발음 시범이 돌아옴
 - [x] #2 따라 말한 결과가 성공·실패·판정 불가 가운데 하나로 기록됨
-- [ ] #3 전사문에 한글이 섞인 경우와 되물음이 신호로 기록됨 (PRD §10.2)
-- [x] #4 미동작이면 무엇이 어디서 끊기는지 증거와 함께 적음 (TASK-75 와 이어 줌)
+- [x] #3 미동작이면 무엇이 어디서 끊기는지 증거와 함께 적음 (TASK-75 와 이어 줌)
+- [x] #4 보조 신호 둘(한글 전사·되물음)로 pronunciation_attempts 에 행이 생기지 않고 분석도 실패하지 않음 — PRD v1.5 §16 이 그 기록 요구를 철회했음 (AC16-1·AC16-2)
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -59,4 +59,6 @@ ordinal: 34000
 2. interrupted 프레임 1건 — 코치가 4.35초 조용해진 뒤에 시작한 발화가 barge-in 으로 표시됐음. 판정은 정상으로 났으므로 결함이 아니고, 배지·화면 영역(A5-1·A5-2)을 볼 회차의 재료임.
 
 결과: tests/agent/runs/2026-09-19-b7/result.md
+
+AC#3 을 바꿨음 (2026-09-19 · TASK-246 · 사용자 결정). 원래 문면은 PRD R10-4·AC10-3 을 따라 보조 신호 둘의 기록을 요구했으나, 사용자가 그 요구를 철회하는 쪽을 골랐음 — 결정 120 과 TASK-24 를 정본으로 인정함. PRD 가 v1.5 로 개정돼 §16 이 그 근거를 담고, 결정 기록은 docs/design/2026-09-19-decision-r10-4-auxiliary-signals-withdrawn.md 임. 새 AC 는 §16.4 의 AC16-1·AC16-2 를 가리킴. 이 턴에 직접 확인한 것: 리포에서 korean_transcript·agent_reprompt 를 쓰는 코드가 값역 선언(models/pronunciation.py:42)과 주석(services/review.py:256)뿐이고 writer 는 0곳임. 과거 행은 korean_transcript 3건이 실재해 값역을 좁히지 않은 근거가 성립함(nova_tool 4건). 회차 B6 이 두 조건을 실제로 만들었는데 신호 행이 0건이었던 그 관측이 지금은 «요구대로 동작한 것»임.
 <!-- SECTION:NOTES:END -->

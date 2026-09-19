@@ -1,9 +1,10 @@
 ---
 id: TASK-237
 title: PRD R10-4 의 보조 신호 둘(한글 전사·코치의 되물음)을 기록하는 writer 가 코드에 0곳이다
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-19 07:41'
+updated_date: '2026-09-19 11:21'
 labels: []
 dependencies: []
 ordinal: 301000
@@ -58,5 +59,11 @@ HEAD: a34a143
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 PRD R10-4·AC10-3 과 구현이 한 방향으로 정리되었다 — PRD 를 개정했거나, writer 를 되살린 결정이 docs/design 에 기록되었다
+- [x] #1 PRD R10-4·AC10-3 과 구현이 한 방향으로 정리되었다 — PRD 를 개정했거나, writer 를 되살린 결정이 docs/design 에 기록되었다
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+해소됐음 (2026-09-19 · TASK-246 · 사용자 결정). 세 갈래 가운데 ⑴ PRD 를 개정해 요구를 걷는 쪽을 사용자가 골랐음 — 결정 120 과 TASK-24 를 정본으로 인정함. 반영: docs/PRD.md 가 v1.5 로 개정돼 R10-4 를 철회 표기하고 AC10-3 에서 기록 요구를 걷었으며 §16 이 근거·버린 갈래 둘·되돌릴 때 걸릴 자리를 담음. 결정 기록은 docs/design/2026-09-19-decision-r10-4-auxiliary-signals-withdrawn.md 임. ⛔ 앱 코드는 한 줄도 바꾸지 않았음 — 구현이 이미 그 결정을 따르고 있었음. ⛔ signal_source CHECK 값역도 좁히지 않았음: korean_transcript 로 기록된 과거 행 3건이 실재함(이 턴에 직접 셌음).
+<!-- SECTION:NOTES:END -->

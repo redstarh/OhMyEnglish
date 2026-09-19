@@ -1,10 +1,10 @@
 ---
 id: TASK-246
 title: '결정 대기: PRD R10-4 의 보조 신호 둘을 어떻게 할지 (TASK-237)'
-status: Awaiting Decision
+status: Done
 assignee: []
 created_date: '2026-09-19 07:50'
-updated_date: '2026-09-19 07:50'
+updated_date: '2026-09-19 11:21'
 labels: []
 dependencies: []
 ordinal: 310000
@@ -18,7 +18,7 @@ ordinal: 310000
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 사용자가 세 갈래 가운데 하나를 골랐음
-- [ ] #2 고른 근거가 docs/design 에 결정 기록으로 남았음
-- [ ] #3 고른 갈래대로 PRD 또는 코드가 바뀌었음
+- [x] #1 사용자가 세 갈래 가운데 하나를 골랐음
+- [x] #2 고른 근거가 docs/design 에 결정 기록으로 남았음
+- [x] #3 고른 갈래대로 PRD 또는 코드가 바뀌었음
 <!-- AC:END -->
