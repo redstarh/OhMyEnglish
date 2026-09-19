@@ -93,4 +93,12 @@ def test_names_the_speakers_that_the_transcript_actually_uses() -> None:
 
 
 def test_is_deterministic_for_the_same_input() -> None:
+    """같은 입력에 같은 프롬프트.
+
+    ⚠️ **보는 창을 적어 둔다** (`TASK-228`): 한 프로세스에서 두 번 부르므로 **프로세스 간** 불안정은
+    관측 밖이다. 무대 생성 프롬프트에서는 그 창이 실제로 뚫렸다 — 순서 없는 컬렉션
+    (`frozenset`)을 받으면 실행마다 바이트가 달랐다(그 파일의 같은 단정이 실측을 갖는다).
+    ⛔ **이 조립기에는 그 구멍이 없다**: 입력이 전사문(`str`)과 상한(`int`) 둘뿐이고 순서를 갖는
+    컬렉션을 받지 않는다. 그래서 여기서는 이 단정으로 충분하고, 인자가 늘어나면 그때 다시 잰다.
+    """
     assert _prompt() == _prompt()

@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 import json
+from datetime import date
 from typing import cast
 from uuid import UUID, uuid4
 
@@ -25,7 +26,12 @@ import pytest_asyncio
 
 from app.models.weekly_report import EMPTY_INSIGHTS, MAX_INSIGHT_POINTS
 from app.services.jobs import JOB_TYPE_SUMMARIZE_WEEK, ClaimedJob
-from app.services.weekly_report import last_week_start, process_weekly
+from app.services.weekly_report import (
+    WeekFacts,
+    build_weekly_prompt,
+    last_week_start,
+    process_weekly,
+)
 
 # 이 모듈이 만든 행의 표지. ⛔ 정리가 이 값에 걸리므로 다른 파일과 겹치지 않는 이름이어야 한다.
 _MARK = "weekly-job-test"
@@ -294,5 +300,28 @@ async def test_a_broken_reply_is_not_stored(db_pool: asyncpg.Pool, user_id: UUID
 
 
 def test_the_insight_cap_matches_the_prompt() -> None:
-    """상한이 프롬프트와 파서에서 같은 수다 — 어긋나면 정상 응답이 매번 거부된다."""
-    assert MAX_INSIGHT_POINTS == 3
+    """상한이 프롬프트와 파서에서 **같은 수**다 — 어긋나면 정상 응답이 매번 거부된다.
+
+    ⛔ **이전 판은 어떤 입력으로도 실패할 수 없었다** (`TASK-228`): 프롬프트 빌더를 부르지 않고
+    `MAX_INSIGHT_POINTS == 3` 만 재서, 프롬프트 문면의 `최대 {max_points}개` 를 `최대 5개` 로
+    굳혀도 통과했다(슬립 입력 실측) — 그때 모델은 5개를 내고 파서는 3개 초과를 거부하므로 **정상
+    응답이 매번 거부된다.** ⇒ 조립한 프롬프트를 실제로 읽어 그 수가 실려 있는지 잰다.
+
+    ⚠️ **다른 수는 실리지 않는지도 함께 잰다** — 문면에 상한이 두 자리(`improving`·
+    `next_scenarios`)라 한쪽만 굳혀도 갈라진다.
+    """
+    facts = WeekFacts(
+        week_start=date(2026, 9, 7),
+        session_count=1,
+        occurrence_count=1,
+        pattern_count=1,
+        top_patterns=[],
+    )
+
+    prompt = build_weekly_prompt(facts=facts, max_points=MAX_INSIGHT_POINTS)
+
+    assert prompt.count(f"최대 {MAX_INSIGHT_POINTS}개") == 2, (
+        "프롬프트의 상한 두 자리가 파서의 상한과 같지 않다 — 정상 응답이 매번 거부된다"
+    )
+    other = [n for n in range(1, 10) if n != MAX_INSIGHT_POINTS and f"최대 {n}개" in prompt]
+    assert other == [], f"프롬프트에 다른 상한이 실렸다: {other}"

@@ -398,10 +398,15 @@ def test_instruction_focus_count_outside_one_to_two_is_rejected(count: int):
         )
 
 
-# M5(리뷰 2026-09-04) — 001 `users.current_level` CHECK와 같은 값역인지 값 자체를
-# 고정한다. `models/analysis.py`의 `test_category_and_severity_codes_match_the_schema_check`와
-# 같은 선례.
-def test_cefr_levels_match_the_schema_check():
+# M5(리뷰 2026-09-04) — 값역을 여섯으로 **고정**한다(순서까지).
+#
+# ⛔ **이름이 약속을 지키지 못했다** (`TASK-228`): 이전 이름은 `…match_the_schema_check` 였는데
+# 본문은 리터럴 튜플 한 줄이라 **SQL 을 입력으로 받지 않았다** — 마이그레이션에서 `'C2'` 를 지워도
+# 통과한다(실측). SQL 과의 일치는 `tests/unit/test_schema.py::
+# test_cefr_check_matches_the_python_value_domain` 이 DB 를 읽어 잰다.
+# ⚠️ 이 단정을 지우지 않는 이유: **순서**는 그쪽이 재지 않는다(`set` 비교다). `_one_step_or_same`
+# 이 `CEFR_LEVELS.index()` 로 한 단계 이동을 판정하므로 순서가 뒤집히면 그 가드가 조용히 틀린다.
+def test_cefr_levels_are_the_pinned_six_in_order():
     assert CEFR_LEVELS == ("A1", "A2", "B1", "B2", "C1", "C2")
 
 

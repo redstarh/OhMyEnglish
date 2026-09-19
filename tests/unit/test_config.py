@@ -655,13 +655,36 @@ def test_bedrock_client_actually_receives_that_config(monkeypatch):
 
 
 def test_credential_strings_isolated_to_config_module():
-    """F5: 자격증명 문자열은 config.py 밖의 `app/` 코드에 등장하지 않는다."""
+    """F5: 자격증명 문자열은 config.py 밖의 `app/` 코드에 등장하지 않는다.
+
+    ⛔ **grep 이 대상에 «닿았는지» 를 양성 대조로 먼저 잰다** (`TASK-228`). 이전 판은 stdout 줄만
+    세어, 명령이 나무에 닿지 못했을 때와 「일치 0건」을 구별할 수 없었다 — 실측(2026-09-19): 경로를
+    `aap/` 로 오타 내니 rc=1·stdout 0줄이 되어 **단정이 그대로 통과했다.** rc 만 가르는 것으로는
+    부족하다: 이 환경의 `grep` 은 없는 경로에도 **1** 을 내므로 「일치 0건」과 코드가 같다.
+    ⇒ 세 문자열은 `app/config.py` 에 실재하므로 **그 한 건이 보이는 것**이 곧 「닿았다」의 증거다.
+
+    ⛔ **면제를 «정확한 경로» 로 건다.** 이전 판은 줄 전체에서 `config.py` 를 찾았으므로, 다른
+    파일의 같은 줄이 주석으로 `config.py` 를 언급하기만 해도 **그 줄의 실제 참조가 면제됐다**
+    (직접 확인: 그 모양의 문자열로 `in` 판정이 참이 된다).
+    """
+    exempt = "app/config.py"
     for needle in ("AWS_BEARER", "AWS_SECRET_ACCESS_KEY", "AWS_ACCESS_KEY_ID"):
         result = subprocess.run(
-            ["grep", "-r", "--include=*.py", needle, "app/"],
+            ["grep", "-rn", "--include=*.py", needle, "app/"],
             cwd=BACKEND_ROOT,
             capture_output=True,
             text=True,
         )
-        offending = [line for line in result.stdout.splitlines() if "config.py" not in line]
-        assert offending == [], f"{needle} referenced outside config.py: {offending}"
+        # 0=일치 있음 · 1=일치 없음. 그 밖은 판정이 아니라 grep 자체의 실패다.
+        assert result.returncode in (0, 1), (
+            f"grep 이 돌지 못했다 (rc={result.returncode}): {result.stderr.strip()}"
+        )
+        hits = [line.split(":", 2) for line in result.stdout.splitlines() if line.count(":") >= 2]
+        assert any(path == exempt for path, *_ in hits), (
+            f"{needle} 을 {exempt} 에서도 못 찾았다 — grep 이 대상에 닿지 않았다"
+            f" (rc={result.returncode}, stderr={result.stderr.strip()!r})"
+        )
+        offending = [
+            f"{path}:{lineno}" for path, lineno, _ in (hit for hit in hits) if path != exempt
+        ]
+        assert offending == [], f"{needle} referenced outside {exempt}: {offending}"

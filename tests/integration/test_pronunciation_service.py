@@ -625,7 +625,14 @@ async def test_target_sound_is_trimmed_into_the_key(db_conn: asyncpg.Connection)
     assert len(patterns) == 1, "공백 차이가 패턴을 갈라놓으면 안 된다"
     assert patterns[0]["pattern_key"] == "pronunciation_th_as_s"
     assert patterns[0]["target_form"] == SOUND
-    assert await _pattern_id_of(db_conn, padded) == await _pattern_id_of(db_conn, clean)
+    # ⛔ **`None == None` 으로 만족되던 자리다** (`TASK-228`). 그 컬럼은 실제로 nullable 이고
+    # 「연결되지 않았다」가 정상 결과인 단정도 이 파일에 있다 — 그래서 **먼저 연결을 확인한다.**
+    # 슬립 입력 실측(2026-09-19): `link_pattern` 이 시도에 `pattern_id` 를 쓰지 않게 해도(패턴 행은
+    # 그대로 생긴다) 위 세 단정과 이 비교가 **모두 통과했다.**
+    padded_pattern = await _pattern_id_of(db_conn, padded)
+    clean_pattern = await _pattern_id_of(db_conn, clean)
+    assert padded_pattern is not None, "시도가 패턴에 연결되지 않았다 — 복습이 그 소리를 못 찾는다"
+    assert padded_pattern == clean_pattern
 
 
 # ㉓ `unclear`는 오류로 세지 않는다. `correct`(⑰)보다 이쪽이 더 중요하다 — 페이로드 강등

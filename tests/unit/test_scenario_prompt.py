@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import pytest
 
-from app.services.scenario_generator import build_scenario_prompt
+from app.services.scenario_generator import _STAGE_CATEGORIES_SQL, build_scenario_prompt
 
 _TRANSCRIPT = "\n".join(
     [
@@ -96,8 +96,31 @@ def test_says_the_stage_must_not_be_a_question() -> None:
 
 
 def test_is_deterministic_for_the_same_input() -> None:
-    """같은 입력에 같은 프롬프트 — 회차 기록의 바이트 대조가 그것에 걸린다."""
+    """같은 입력에 같은 프롬프트 — 회차 기록의 바이트 대조가 그것에 걸린다.
+
+    ⚠️ **이 단정이 보는 창을 적어 둔다** (`TASK-228`): 한 프로세스에서 순수 함수를 두 번 부르므로
+    **프로세스 간** 불안정은 관측 밖이다. 실측(2026-09-19 · `PYTHONHASHSEED=random` 4회):
+    `allowed_categories` 에 `frozenset` 을 넘기면 이 단정은 매번 통과하는데 프롬프트 바이트는
+    **실행마다 달랐다**(sha256 앞 16자가 네 번 모두 달랐다).
+    ⛔ 그 창을 메우는 것은 아래 `test_the_category_query_orders_its_rows` 다 — 제품 경로의 순서를
+    붙들고 있는 것이 그 SQL 한 줄이고, 이 함수는 받은 순서를 그대로 쓴다.
+    """
     assert _prompt() == _prompt()
+
+
+def test_the_category_query_orders_its_rows() -> None:
+    """⛔ **제품의 프롬프트 바이트를 결정론으로 붙드는 것이 이 `order by` 하나다** (`TASK-228`).
+
+    조립기는 `allowed_categories` 를 **받은 순서대로** 열거하므로(위 단정의 ⚠️), 순서의 정본은
+    입력을 만드는 쪽이다. `_load_intake_input` 이 그 값을 `_STAGE_CATEGORIES_SQL` 로 읽고 그 문장의
+    `order by 1` 이 순서를 고정한다 — 그 줄이 사라지면 Postgres 는 순서를 약속하지 않으므로 같은
+    입력에서 프롬프트가 흔들리고, 회차 기록의 바이트 대조가 이유 없이 깨진다.
+    ⚠️ 문면 검사인 것을 알고 둔다: 계획 자체를 재려면 DB 가 필요하고 그 대가가 이 단정의 값보다
+    크다.
+    """
+    assert "order by" in _STAGE_CATEGORIES_SQL.lower(), (
+        "계열 조회가 순서를 고정하지 않는다 — 프롬프트 바이트가 실행마다 흔들린다"
+    )
 
 
 def test_names_the_speakers_that_the_transcript_actually_uses() -> None:

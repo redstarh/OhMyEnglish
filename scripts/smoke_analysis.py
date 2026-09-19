@@ -180,6 +180,18 @@ async def _occurrences(pool: asyncpg.Pool, session_id: UUID) -> list[asyncpg.Rec
         )
 
 
+# ⛔ **낱말 경계를 준다** (`TASK-228`). `"the" in target_form` 은 `there`·`them`·`these`·
+# `another`·`whether`·`together` 에도 참이다(직접 확인) — 이 스모크가 **실물 모델 증거의 유일한
+# 자리**이므로 그 관용이 곧 「관사를 골랐다」는 거짓 신호가 된다.
+# ⚠️ 슬래시로 이은 모양(`a/an/the`)은 통과해야 한다 — 실물 응답의 정상 형태다. 그래서 낱말 문자만
+# 경계로 보고 구두점은 경계로 인정한다.
+_WORD_THE_RE = re.compile(r"(?<![A-Za-z])the(?![A-Za-z])", re.IGNORECASE)
+
+
+def _has_word_the(target_form: str) -> bool:
+    return _WORD_THE_RE.search(target_form) is not None
+
+
 def _report(
     job_label: str, row: asyncpg.Record, claude: _RecordingClaudeClient, index: int
 ) -> None:
@@ -389,8 +401,8 @@ async def main() -> int:
                 "— Claude가 다르게 분류했을 수 있다(비결정적). 위 Claude 원문 응답 참조.",
             ),
             Check(
-                "target_form에 'the' 포함",
-                pattern is not None and "the" in pattern["target_form"],
+                "target_form에 낱말 'the' 포함",
+                pattern is not None and _has_word_the(pattern["target_form"]),
                 f"실제 target_form={pattern['target_form'] if pattern else 'N/A'!r}",
             ),
             Check(

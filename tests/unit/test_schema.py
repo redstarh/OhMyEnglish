@@ -1659,7 +1659,10 @@ async def test_llm_calls_accepts_the_weekly_purpose(db_conn: asyncpg.Connection)
 # 삽입해 보면** 그 루프가 먼저 `CheckViolationError` 로 실패해서 목록 단정에 도달하지 않는다
 # (이 파일 `test_pronunciation_attempts_signal_source_check` 의 주석이 그 무력화를 기록한다).
 # ⇒ 그래서 이 절의 단정들은 **삽입을 하지 않는다.** 읽고 대조만 한다.
-_CHECK_VALUE_RE = re.compile(r"'([a-z_0-9]+)'::text")
+# ⛔ **대문자를 함께 받는다** (`TASK-228`). 소문자 전용이던 이전 판은 CEFR 값역
+# (`'A1'::text` …)을 **한 건도 뽑지 못했다**(실측: `[]`) — 그래서 그 값역을 재려는 단정이 이
+# 걸음걸이를 쓸 수 없었고 리터럴 튜플로 남아 SQL 을 입력으로 받지 못했다.
+_CHECK_VALUE_RE = re.compile(r"'([A-Za-z_0-9]+)'::text")
 
 
 async def _check_values(conn: asyncpg.Connection, constraint: str) -> set[str]:
@@ -1673,6 +1676,25 @@ async def _check_values(conn: asyncpg.Connection, constraint: str) -> set[str]:
     values = set(_CHECK_VALUE_RE.findall(definition))
     assert values, f"제약 {constraint} 의 정의에서 값을 뽑지 못했다: {definition}"
     return values
+
+
+@pytest.mark.asyncio
+async def test_cefr_check_matches_the_python_value_domain(db_conn: asyncpg.Connection):
+    """⛔ **CEFR 값역이 SQL 과 같은지 SQL 을 «입력으로 받아» 잰다** (`TASK-228`).
+
+    ⚠️ 같은 이름의 단정이 `tests/unit/test_plan_models.py` 에 있었으나 본문이 **리터럴 튜플 한 줄**
+    이라 SQL 을 보지 않았다(그 파일의 `.sql` grep 0건) — 마이그레이션에서 값을 하나 지우면 그 단정은
+    통과한다. 그쪽은 「파이썬 쪽이 여섯으로 고정됐다」를 재는 자리로 이름을 고쳐 남겼고, SQL 과의
+    일치는 이 단정이 갖는다.
+
+    ⛔ **두 표를 함께 잰다** — `models/plan.py` 가 *"001·007 의 CHECK 와 같은 값역"* 이라고 적었고,
+    한쪽만 재면 나머지가 조용히 갈라진다.
+    """
+    from app.models.plan import CEFR_LEVELS
+
+    expected = set(CEFR_LEVELS)
+    assert await _check_values(db_conn, "users_current_level_check") == expected
+    assert await _check_values(db_conn, "session_plans_target_level_check") == expected
 
 
 @pytest.mark.asyncio
