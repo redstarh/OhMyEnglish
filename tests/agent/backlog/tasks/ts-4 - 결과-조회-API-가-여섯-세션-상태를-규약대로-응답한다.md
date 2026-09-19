@@ -1,10 +1,10 @@
 ---
 id: TS-4
 title: 결과 조회 API 가 여섯 세션 상태를 규약대로 응답한다
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-09 08:23'
-updated_date: '2026-09-19 08:12'
+updated_date: '2026-09-19 11:43'
 labels: []
 dependencies: []
 ordinal: 4000

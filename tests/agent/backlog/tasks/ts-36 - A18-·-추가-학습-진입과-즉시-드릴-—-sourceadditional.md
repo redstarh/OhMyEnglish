@@ -1,10 +1,10 @@
 ---
 id: TS-36
 title: A18 · 추가 학습 진입과 즉시 드릴 — source=additional
-status: Blocked
+status: In Progress
 assignee: []
 created_date: '2026-09-19 05:22'
-updated_date: '2026-09-19 07:05'
+updated_date: '2026-09-19 11:43'
 labels: []
 dependencies: []
 ordinal: 36000
