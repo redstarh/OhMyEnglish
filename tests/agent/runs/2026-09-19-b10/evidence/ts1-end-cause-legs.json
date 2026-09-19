@@ -1,0 +1,143 @@
+{
+  "drain_timeout_seconds": 1.0,
+  "script_gap_seconds": 2.5,
+  "end_after_seconds": 0.6,
+  "arms": [
+    {
+      "arm": "A_client_end_session",
+      "session_id": "9ca92558-c615-494f-b339-114dfc92edd6",
+      "end_session_sent_at_ms": 601.2,
+      "script_length": 3,
+      "script_yielded": 1,
+      "script_remaining": 2,
+      "adapter_exhausted": false,
+      "adapter_closed": true,
+      "db_status": "completed",
+      "db_closed": true,
+      "stored_utterances": [
+        {
+          "sequence_no": 1,
+          "utterance_type": "learning",
+          "transcript": "I usually go to gym after work."
+        }
+      ],
+      "stored_count": 1,
+      "frames": [
+        {
+          "at_ms": 0.0,
+          "type": "session_started",
+          "session_id": "9ca92558-c615-494f-b339-114dfc92edd6"
+        },
+        {
+          "at_ms": 1.7,
+          "type": "final",
+          "text": "I usually go to gym after work.",
+          "speaker": "user",
+          "sequence_no": 1,
+          "utterance_type": "learning"
+        },
+        {
+          "at_ms": 1616.0,
+          "type": "session_ended",
+          "session_id": "9ca92558-c615-494f-b339-114dfc92edd6"
+        }
+      ],
+      "frame_types": [
+        "session_started",
+        "final",
+        "session_ended"
+      ],
+      "session_ended_present": true,
+      "session_ended_frame": {
+        "at_ms": 1616.0,
+        "type": "session_ended",
+        "session_id": "9ca92558-c615-494f-b339-114dfc92edd6"
+      },
+      "session_ended_carries_session_id": true,
+      "session_ended_id_matches": true,
+      "elapsed_ms": 1616.0
+    },
+    {
+      "arm": "B_adapter_exhaustion",
+      "session_id": "480bc7d6-222e-433a-9093-f72ee27578d2",
+      "end_session_sent_at_ms": null,
+      "script_length": 3,
+      "script_yielded": 3,
+      "script_remaining": 0,
+      "adapter_exhausted": true,
+      "adapter_closed": true,
+      "db_status": "completed",
+      "db_closed": true,
+      "stored_utterances": [
+        {
+          "sequence_no": 1,
+          "utterance_type": "learning",
+          "transcript": "I usually go to gym after work."
+        },
+        {
+          "sequence_no": 2,
+          "utterance_type": "learning",
+          "transcript": "I usually go to office by subway."
+        },
+        {
+          "sequence_no": 3,
+          "utterance_type": "learning",
+          "transcript": "I need to finish my homework tonight."
+        }
+      ],
+      "stored_count": 3,
+      "frames": [
+        {
+          "at_ms": 0.0,
+          "type": "session_started",
+          "session_id": "480bc7d6-222e-433a-9093-f72ee27578d2"
+        },
+        {
+          "at_ms": 1.7,
+          "type": "final",
+          "text": "I usually go to gym after work.",
+          "speaker": "user",
+          "sequence_no": 1,
+          "utterance_type": "learning"
+        },
+        {
+          "at_ms": 2506.4,
+          "type": "final",
+          "text": "I usually go to office by subway.",
+          "speaker": "user",
+          "sequence_no": 2,
+          "utterance_type": "learning"
+        },
+        {
+          "at_ms": 5009.8,
+          "type": "final",
+          "text": "I need to finish my homework tonight.",
+          "speaker": "user",
+          "sequence_no": 3,
+          "utterance_type": "learning"
+        },
+        {
+          "at_ms": 7521.7,
+          "type": "session_ended",
+          "session_id": "480bc7d6-222e-433a-9093-f72ee27578d2"
+        }
+      ],
+      "frame_types": [
+        "session_started",
+        "final",
+        "final",
+        "final",
+        "session_ended"
+      ],
+      "session_ended_present": true,
+      "session_ended_frame": {
+        "at_ms": 7521.7,
+        "type": "session_ended",
+        "session_id": "480bc7d6-222e-433a-9093-f72ee27578d2"
+      },
+      "session_ended_carries_session_id": true,
+      "session_ended_id_matches": true,
+      "elapsed_ms": 7521.7
+    }
+  ]
+}

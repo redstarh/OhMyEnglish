@@ -1,0 +1,52 @@
+# TS-3 AC#5·AC#6 화면 관측 — 2026-09-19 23:35:57 KST
+# 진입: 중립 주소로 탭을 만들고 orca goto 로 이동함 (함정 H-CI 회피) · 주소는 localhost:3000 (H-CA)
+# 판정 수단: orca snapshot(접근성 트리) + orca eval(document.body.innerText) — 스크린샷은 창이 보이지 않아 실패했고 판정에 쓰지 않음
+# POLL_INTERVAL_MS = 2000 (app/frontend/app/results/[sessionId]/page.tsx:17) — 12초는 폴링이 살아 있으면 6회 더 불렀을 시간
+
+==============================================
+## http://localhost:3000/results/2304d2e1-3721-481e-947b-fdcb2c428272
+### 접근성 트리
+- main
+  - heading "학습 결과" [level=1, ref=e1]
+  - paragraph
+    - StaticText "그 학습 결과를 찾을 수 없습니다."
+  - paragraph
+    - link "← 학습 시작 화면으로" [ref=e2]
+  - paragraph
+    - link "학습 히스토리 보기 →" [ref=e3]
+- button "Open Next.js Dev Tools" [expanded=false, ref=e4]
+  - image
+- alert
+### 12초 뒤 결과 조회 호출 시각(ms)과 화면 문구
+{
+  "bodyText": "학습 결과\n\n그 학습 결과를 찾을 수 없습니다.\n\n← 학습 시작 화면으로\n\n학습 히스토리 보기 →",
+  "resultCallStartTimes": [
+    62,
+    63
+  ],
+  "pageAge_ms": 19518
+}
+
+==============================================
+## http://localhost:3000/results/not-a-uuid
+### 접근성 트리
+- main
+  - heading "학습 결과" [level=1, ref=e1]
+  - paragraph
+    - StaticText "그 학습 결과를 열 수 없습니다."
+  - paragraph
+    - link "← 학습 시작 화면으로" [ref=e2]
+  - paragraph
+    - link "학습 히스토리 보기 →" [ref=e3]
+- button "Open Next.js Dev Tools" [expanded=false, ref=e4]
+  - image
+- alert
+### 12초 뒤 결과 조회 호출 시각(ms)과 화면 문구
+{
+  "bodyText": "학습 결과\n\n그 학습 결과를 열 수 없습니다.\n\n← 학습 시작 화면으로\n\n학습 히스토리 보기 →",
+  "resultCallStartTimes": [
+    80,
+    81
+  ],
+  "pageAge_ms": 19546
+}

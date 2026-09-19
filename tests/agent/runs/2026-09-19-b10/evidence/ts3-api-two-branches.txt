@@ -1,0 +1,12 @@
+# TS-3 두 갈래의 API 응답 — 2026-09-19 23:31:06 KST
+
+## 갈래 1 — 실재하지 않는 uuid: 2304d2e1-3721-481e-947b-fdcb2c428272
+HTTP 404
+본문:
+{"detail":"session not found"}
+
+## 갈래 2 — uuid 형식이 아닌 입력: not-a-uuid
+HTTP 422
+본문:
+{"detail":[{"type":"uuid_parsing","loc":["path","session_id"],"msg":"Input should be a valid UUID, invalid character: found `n` at 1","input":"not-a-uuid","ctx":{"error":"invalid character: found `n` at 1"}}]}
+NONEXISTENT_UUID=2304d2e1-3721-481e-947b-fdcb2c428272

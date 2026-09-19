@@ -1,0 +1,400 @@
+{
+  "url": "ws://localhost:8002/ws/session",
+  "arms": [
+    {
+      "arm": "R1_client_end",
+      "nonce": "ts1-probe-e73c50adb555",
+      "sent": [
+        {
+          "at_ms": 6.6,
+          "type": "ts1-probe-e73c50adb555"
+        },
+        {
+          "at_ms": 6.6,
+          "type": "end_session"
+        }
+      ],
+      "frame_count": 18,
+      "frames": [
+        {
+          "at_ms": 25.9,
+          "type": "session_started",
+          "keys": [
+            "session_id",
+            "type"
+          ],
+          "session_id": "8b9ab3d4-72b5-4a83-816a-b8793b6416bc"
+        },
+        {
+          "at_ms": 29.6,
+          "type": "final",
+          "keys": [
+            "sequence_no",
+            "speaker",
+            "text",
+            "type",
+            "utterance_type"
+          ]
+        },
+        {
+          "at_ms": 29.6,
+          "type": "partial",
+          "keys": [
+            "speaker",
+            "text",
+            "type"
+          ]
+        },
+        {
+          "at_ms": 29.7,
+          "type": "partial",
+          "keys": [
+            "speaker",
+            "text",
+            "type"
+          ]
+        },
+        {
+          "at_ms": 30.3,
+          "type": "final",
+          "keys": [
+            "sequence_no",
+            "speaker",
+            "text",
+            "type",
+            "utterance_type"
+          ]
+        },
+        {
+          "at_ms": 30.5,
+          "type": "audio",
+          "keys": [
+            "data",
+            "type"
+          ],
+          "data_len": 8592
+        },
+        {
+          "at_ms": 32.0,
+          "type": "final",
+          "keys": [
+            "sequence_no",
+            "speaker",
+            "text",
+            "type",
+            "utterance_type"
+          ]
+        },
+        {
+          "at_ms": 32.1,
+          "type": "partial",
+          "keys": [
+            "speaker",
+            "text",
+            "type"
+          ]
+        },
+        {
+          "at_ms": 32.1,
+          "type": "partial",
+          "keys": [
+            "speaker",
+            "text",
+            "type"
+          ]
+        },
+        {
+          "at_ms": 32.7,
+          "type": "final",
+          "keys": [
+            "sequence_no",
+            "speaker",
+            "text",
+            "type",
+            "utterance_type"
+          ]
+        },
+        {
+          "at_ms": 32.8,
+          "type": "audio",
+          "keys": [
+            "data",
+            "type"
+          ],
+          "data_len": 8592
+        },
+        {
+          "at_ms": 34.2,
+          "type": "final",
+          "keys": [
+            "sequence_no",
+            "speaker",
+            "text",
+            "type",
+            "utterance_type"
+          ]
+        },
+        {
+          "at_ms": 34.3,
+          "type": "partial",
+          "keys": [
+            "speaker",
+            "text",
+            "type"
+          ]
+        },
+        {
+          "at_ms": 34.3,
+          "type": "partial",
+          "keys": [
+            "speaker",
+            "text",
+            "type"
+          ]
+        },
+        {
+          "at_ms": 35.0,
+          "type": "final",
+          "keys": [
+            "sequence_no",
+            "speaker",
+            "text",
+            "type",
+            "utterance_type"
+          ]
+        },
+        {
+          "at_ms": 35.1,
+          "type": "audio",
+          "keys": [
+            "data",
+            "type"
+          ],
+          "data_len": 8592
+        },
+        {
+          "at_ms": 40.2,
+          "type": "session_ended",
+          "keys": [
+            "session_id",
+            "type"
+          ],
+          "session_id": "8b9ab3d4-72b5-4a83-816a-b8793b6416bc"
+        },
+        {
+          "at_ms": 40.3,
+          "type": "__socket_closed__",
+          "detail": "ConnectionClosedOK"
+        }
+      ],
+      "session_id_from_started": "8b9ab3d4-72b5-4a83-816a-b8793b6416bc",
+      "session_ended_present": true,
+      "session_ended_frame": {
+        "at_ms": 40.2,
+        "type": "session_ended",
+        "keys": [
+          "session_id",
+          "type"
+        ],
+        "session_id": "8b9ab3d4-72b5-4a83-816a-b8793b6416bc"
+      },
+      "session_ended_carries_session_id": true,
+      "session_ended_id_matches_started": true,
+      "last_app_frame": "session_ended",
+      "total_ms": 40.3
+    },
+    {
+      "arm": "R2_no_end",
+      "nonce": "ts1-probe-839707756621",
+      "sent": [],
+      "frame_count": 18,
+      "frames": [
+        {
+          "at_ms": 3.8,
+          "type": "session_started",
+          "keys": [
+            "session_id",
+            "type"
+          ],
+          "session_id": "ca3e0185-cbf6-42a5-9638-19faf75f3172"
+        },
+        {
+          "at_ms": 4.8,
+          "type": "final",
+          "keys": [
+            "sequence_no",
+            "speaker",
+            "text",
+            "type",
+            "utterance_type"
+          ]
+        },
+        {
+          "at_ms": 4.9,
+          "type": "partial",
+          "keys": [
+            "speaker",
+            "text",
+            "type"
+          ]
+        },
+        {
+          "at_ms": 4.9,
+          "type": "partial",
+          "keys": [
+            "speaker",
+            "text",
+            "type"
+          ]
+        },
+        {
+          "at_ms": 5.5,
+          "type": "final",
+          "keys": [
+            "sequence_no",
+            "speaker",
+            "text",
+            "type",
+            "utterance_type"
+          ]
+        },
+        {
+          "at_ms": 5.7,
+          "type": "audio",
+          "keys": [
+            "data",
+            "type"
+          ],
+          "data_len": 8592
+        },
+        {
+          "at_ms": 7.0,
+          "type": "final",
+          "keys": [
+            "sequence_no",
+            "speaker",
+            "text",
+            "type",
+            "utterance_type"
+          ]
+        },
+        {
+          "at_ms": 7.1,
+          "type": "partial",
+          "keys": [
+            "speaker",
+            "text",
+            "type"
+          ]
+        },
+        {
+          "at_ms": 7.1,
+          "type": "partial",
+          "keys": [
+            "speaker",
+            "text",
+            "type"
+          ]
+        },
+        {
+          "at_ms": 7.8,
+          "type": "final",
+          "keys": [
+            "sequence_no",
+            "speaker",
+            "text",
+            "type",
+            "utterance_type"
+          ]
+        },
+        {
+          "at_ms": 7.9,
+          "type": "audio",
+          "keys": [
+            "data",
+            "type"
+          ],
+          "data_len": 8592
+        },
+        {
+          "at_ms": 8.8,
+          "type": "final",
+          "keys": [
+            "sequence_no",
+            "speaker",
+            "text",
+            "type",
+            "utterance_type"
+          ]
+        },
+        {
+          "at_ms": 8.8,
+          "type": "partial",
+          "keys": [
+            "speaker",
+            "text",
+            "type"
+          ]
+        },
+        {
+          "at_ms": 8.9,
+          "type": "partial",
+          "keys": [
+            "speaker",
+            "text",
+            "type"
+          ]
+        },
+        {
+          "at_ms": 9.4,
+          "type": "final",
+          "keys": [
+            "sequence_no",
+            "speaker",
+            "text",
+            "type",
+            "utterance_type"
+          ]
+        },
+        {
+          "at_ms": 9.5,
+          "type": "audio",
+          "keys": [
+            "data",
+            "type"
+          ],
+          "data_len": 8592
+        },
+        {
+          "at_ms": 12.1,
+          "type": "session_ended",
+          "keys": [
+            "session_id",
+            "type"
+          ],
+          "session_id": "ca3e0185-cbf6-42a5-9638-19faf75f3172"
+        },
+        {
+          "at_ms": 12.2,
+          "type": "__socket_closed__",
+          "detail": "ConnectionClosedOK"
+        }
+      ],
+      "session_id_from_started": "ca3e0185-cbf6-42a5-9638-19faf75f3172",
+      "session_ended_present": true,
+      "session_ended_frame": {
+        "at_ms": 12.1,
+        "type": "session_ended",
+        "keys": [
+          "session_id",
+          "type"
+        ],
+        "session_id": "ca3e0185-cbf6-42a5-9638-19faf75f3172"
+      },
+      "session_ended_carries_session_id": true,
+      "session_ended_id_matches_started": true,
+      "last_app_frame": "session_ended",
+      "total_ms": 12.2
+    }
+  ]
+}
