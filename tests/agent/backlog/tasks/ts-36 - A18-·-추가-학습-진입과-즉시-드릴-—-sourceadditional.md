@@ -4,7 +4,7 @@ title: A18 · 추가 학습 진입과 즉시 드릴 — source=additional
 status: Done
 assignee: []
 created_date: '2026-09-19 05:22'
-updated_date: '2026-09-19 12:25'
+updated_date: '2026-09-19 12:27'
 labels: []
 dependencies: []
 ordinal: 36000
@@ -71,4 +71,6 @@ AC#3 문면의 괄호 인용은 «말로 하는» 요청(경로 A)의 문구이�
 
 새로 등록한 결함 0건. 정리: 회차가 만든 세션 5건 전부 teardown(session_deleted 1 · 잔존 0 · analysis_jobs 잔존 0) · 세션 수 27→32→27 · daily 시드 되돌림 확인(오늘 행 없음 = 기준선) · Orca 탭 닫음 · 워커 안 켰음 · 유료 호출 0건.
 증거: tests/agent/runs/2026-09-19-b9/result.md 4·5절 · evidence/TS-36-arm{A,A-browser,B,C,C-repeat}-session-started.json · evidence/TS-36-session-rows-three-arms.txt · evidence/99-cleanup-verified.txt
+
+⚠️ 위 노트의 「착수·종료 HEAD 모두 2b537ec」를 고침 — 회차 끝에 다시 떠 보니 회차 중 HEAD 가 움직였음. 다른 세션이 21:18:28 KST 에 9ead64f(docs/ops/pitfalls.md 한 파일 8줄 추가)를 커밋했음. **앱 소스·설정 0건**이고 백엔드는 21:15:23 KST 의 2b537ec 소스로 회차 내내 돌았으므로 어느 측정도 갈리지 않음. 이 회차의 측정은 전부 앱 소스 2b537ec 에 대한 것임. 회차 커밋은 7736a18 이고 앱 경로 0건임. 자세한 것은 runs/2026-09-19-b9/result.md 1절.
 <!-- SECTION:NOTES:END -->
