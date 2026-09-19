@@ -1,10 +1,10 @@
 ---
 id: TS-30
 title: A12 · 단어 조회 — vocab/lookup
-status: In Progress
+status: Blocked
 assignee: []
 created_date: '2026-09-19 05:19'
-updated_date: '2026-09-19 05:36'
+updated_date: '2026-09-19 05:54'
 labels: []
 dependencies: []
 ordinal: 30000
@@ -31,4 +31,6 @@ AC#1 통과. POST /api/vocab/lookup 에 {"word":"book","sentence":"I need to boo
 AC#2 통과 · 실물 호출 0회. pydantic 이 모델 호출 앞에서 막으므로 값역 검사는 비용이 없음. 422 를 받은 입력 여덟: word 빈 문자열 · sentence 빈 문자열 · 둘 다 빈 문자열 · word 81자(상한 80) · sentence 601자(상한 600) · word 누락 · sentence 누락 · word 가 숫자 · 몸통이 객체가 아님. ⚠️ word 가 공백만("   ")인 갈래는 422 가 아니라 400 「낱말이 비어 있다」임 — min_length=1 을 통과해 lookup_word 의 ValueError 로 떨어짐. AC 문면의 「빈 문자열」은 "" 이고 그것이 422 이므로 AC 는 충족됨. 사용자 영향이 0인 것을 확인해 결함으로 올리지 않았음(프런트 postJson 이 !ok 를 한 갈래로 접어 400·422 를 구분하지 않음 · app/frontend/lib/api.ts:423). 그 400 갈래도 모델을 부르지 않음.
 AC#3 차단됨 — 실패가 아님. 모델이 뜻을 주지 않은 응답을 받아야 판정되는데 그것은 AC#1 과 입력이 달라 같은 호출로 덮이지 않고, 실물 호출 예산 1건을 AC#1 에 이미 썼음. except Exception 갈래도 같은 200·meaning null 을 내지만 그것을 타게 하려면 클라이언트나 .env 를 건드려야 해 쓰기 경계에 걸림. VOICE_ADAPTER=stub 은 음성 경로에만 걸리고 낱말 조회는 Bedrock 을 직접 부름. ⇒ 코드를 고치지 않는 전제에서 관측 수단이 실물 호출 하나뿐임. 호출 1건을 승인받으면 무의미 낱말로 즉시 판정할 수 있음 — 호출 세션에 승인을 요청해 둔 상태임.
 증거: runs/2026-09-19-b1/evidence/TS-30-*.
+
+⛔ 상태를 Blocked 로 내렸음(호출 세션 지시 2026-09-19). 앞선 판정에서 In Progress 로 두었으나 §4-5 의 대응표대로 차단됨은 Blocked 임. 막힌 지점은 하나뿐임: AC#3 은 실물 Bedrock 호출 1건이 더 필요하고 그 승인을 받지 못했음(§2-5 의 기본값이 금지임). AC#1·#2 는 체크된 채로 둠.
 <!-- SECTION:NOTES:END -->
