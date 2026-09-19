@@ -1,10 +1,10 @@
 ---
 id: TS-36
 title: A18 · 추가 학습 진입과 즉시 드릴 — source=additional
-status: Blocked
+status: Done
 assignee: []
 created_date: '2026-09-19 05:22'
-updated_date: '2026-09-19 12:09'
+updated_date: '2026-09-19 12:25'
 labels: []
 dependencies: []
 ordinal: 36000
@@ -20,7 +20,7 @@ ordinal: 36000
 <!-- AC:BEGIN -->
 - [x] #1 하루 학습량을 채운 뒤에도 추가 학습을 시작할 수 있음
 - [x] #2 추가 학습 종류(자유 대화·질문 다섯 개 더·자주 틀리는 패턴·업무 역할극·쉐도잉) 가운데 최소 셋이 진입됨
-- [ ] #3 자주 틀리는 패턴에서 즉시 드릴을 만드는 경로가 성립함 (requirements-summary 「이 문법으로 연습 만들어줘」)
+- [x] #3 자주 틀리는 패턴에서 즉시 드릴을 만드는 경로가 성립함 (requirements-summary 「이 문법으로 연습 만들어줘」)
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -46,4 +46,29 @@ AC#3 문면의 괄호 인용은 «말로 하는» 요청(경로 A)의 문구이�
 ⛔ 내 드라이버가 만든 가짜 결함 하나를 스스로 걸렀음 — orca tab create --url 로 진입 주소를 열면 세션이 2건 생겼고(28→30, 재현 30→32) 「직접 진입이 세션을 두 번 연다」로 올릴 모양이었음. /tmp/omy-frontend.log 가 갈랐음: tab create --url 은 같은 주소를 두 줄 남기고(/history·/results/5c0c614b-… 도 2줄) orca goto 는 1줄이며 세션도 1건임(32→33). ⇒ 드라이버 산물이고 앱 결함이 아님. 앱은 진입 문서 1회 로드당 세션 1건을 열음(진입 GET 다섯과 세션 다섯이 1대1).
 
 증거: tests/agent/runs/2026-09-19-b8/result.md 5~7절 · evidence/TS-36-results-screen-card.json · evidence/TS-36-daily-summary-after-seed.json · evidence/TS-36-frontend-dev-log-entry-loads.txt · evidence/TS-36-daily-seed-restored.txt
+
+2026-09-19 회차 B9 — AC#3 의 남은 넷째 자리를 관측해 체크하고 Done 으로 올렸음 (착수·종료 HEAD 모두 2b537ec · 앱 소스 무변경).
+
+무엇이 남아 있었나: 「준비된 계획이 있으면 지시문의 초점이 그 패턴으로 바뀜」. B8 이 그것을 볼 표면이 없어 결함 TASK-250 으로 올렸고, 커밋 2b537ec 가 session_started 에 focus_pattern 을 실어 관측 가능해졌음.
+
+⛔ 팔 하나로 판정하지 않았음 — 「키가 실렸다」만 보면 모든 세션에 싣는 구현도 통과하고 그것은 「일어나지 않은 대체를 보고한다」는 반대 방향 결함임. 부재를 뜻으로 읽는 대조 팔 둘을 두었음. 키 부재와 값 null 도 갈라 기록했음(계약이 「있을 때만 싣는다」이므로 null 은 위반임).
+
+프레임에서 실제로 읽은 값 —
+- 팔 A(드라이버 · ?source=additional&pattern=verb_tense_past_simple_for_past_events): session_started 키가 focus_pattern·session_id·type 셋이고 focus_pattern = verb_tense_past_simple_for_past_events. 세션 a331a4e5-…
+- 팔 A′(실제 화면 클릭): 결과 화면의 link 「이 패턴으로 연습하기」[ref=e3] 를 눌렀고, 프런트가 연 소켓 주소를 직접 읽었음 — ws://localhost:8002/ws/session?source=additional&pattern=verb_tense_past_simple_for_past_events. 그 소켓 첫 프레임에 focus_pattern 이 같은 키로 실렸음. 세션 5cf40a76-… · 세션 수 30→31 정확히 1건. WebSocket 을 감싸 기록만 했고 프레임을 삼키거나 바꾸지 않았음.
+- 팔 B(패턴 없이 추가 학습): 키가 session_id·type 둘뿐 — focus_pattern 키 자체가 없음. 세션 행 focus_pattern_key = NULL. 세션 1bd11c50-…
+- 팔 C(없는 키 존재하지않는키_b9): focus_pattern 키 없음 · 세션은 그대로 열림(completed · 발화 6) · 세션 행 focus_pattern_key 에 그 키가 남음. 세션 1e755344-… ⇒ 「기록은 남기지만 대체는 보고하지 않는다」가 성립함.
+
+재현: 팔 C 를 다른 없는 키(없는키_두번째_b9)로 한 번 더 돌려 같은 결과를 봤음(세션 731770c9-…). 간헐 아님. 팔 A 는 진입 수단이 다른 둘에서 같은 값을 냈음.
+관측력 증명(§7-7): 팔 B·C 의 「없음」을 기대값으로 읽는 근거는 같은 드라이버가 팔 A 에서 그 키를 실제로 잡았다는 것임.
+
+⚠️ 전제 하나를 착수 지시와 다르게 확인했음 — 대체가 성립할 조건은 error_patterns 이고 daily_error_summary 가 아님(load_focus_pattern 의 SQL · services/sessions.py:302-307). 그 표에 그 키가 있어 팔 A 가 성립했음. daily_error_summary 시드는 화면 카드를 띄우는 조건일 뿐임.
+
+⛔ 관측하지 않은 갈래 하나: 「계획이 없으면 키만 세션 행에 남음」(AS4 규약). 재려면 최신 session_plans 행을 없애야 하고 그것은 회차가 만들지 않은 기존 행의 삭제라 허용 범위 밖임. AC#3 의 구성 요소가 아니라 계획 부재 시의 퇴화 동작이므로 판정에 쓰지 않았음.
+
+⚠️ AC#3 문면의 괄호 인용(「이 문법으로 연습 만들어줘」)은 «말로 하는» 요청(경로 A)이고 이 회차가 관측한 것은 화면 링크(경로 B)임 — B8 과 같은 갈림이고 경로 A 는 여전히 코드에 자리가 없어 TASK-251 로 열려 있음. 이 배치의 지시가 판정 범위를 팔 셋으로 정했고 그 셋이 다 성립해 체크했음.
+⛔ 고친 쪽이 판별력 근거로 든 인프로세스 통합 검사는 이 판정에 쓰지 않았음(TS-4 노트와 같은 규약).
+
+새로 등록한 결함 0건. 정리: 회차가 만든 세션 5건 전부 teardown(session_deleted 1 · 잔존 0 · analysis_jobs 잔존 0) · 세션 수 27→32→27 · daily 시드 되돌림 확인(오늘 행 없음 = 기준선) · Orca 탭 닫음 · 워커 안 켰음 · 유료 호출 0건.
+증거: tests/agent/runs/2026-09-19-b9/result.md 4·5절 · evidence/TS-36-arm{A,A-browser,B,C,C-repeat}-session-started.json · evidence/TS-36-session-rows-three-arms.txt · evidence/99-cleanup-verified.txt
 <!-- SECTION:NOTES:END -->

@@ -1,0 +1,36 @@
+{
+  "arm": "B",
+  "url": "ws://localhost:8002/ws/session?source=additional",
+  "requested_pattern": null,
+  "session_started_seen": true,
+  "session_id": "1bd11c50-3462-418c-a0cf-6661736f0812",
+  "focus_pattern_key_present": false,
+  "focus_pattern_value": "<<KEY ABSENT>>",
+  "session_started_keys": [
+    "session_id",
+    "type"
+  ],
+  "session_started_frame": {
+    "type": "session_started",
+    "session_id": "1bd11c50-3462-418c-a0cf-6661736f0812"
+  },
+  "frame_types": [
+    "session_started",
+    "final",
+    "partial",
+    "partial",
+    "final",
+    "audio",
+    "final",
+    "partial",
+    "partial",
+    "final",
+    "audio",
+    "final",
+    "partial",
+    "partial",
+    "final",
+    "audio",
+    "session_ended"
+  ]
+}

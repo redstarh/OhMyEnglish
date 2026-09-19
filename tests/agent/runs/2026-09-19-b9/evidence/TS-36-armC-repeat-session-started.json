@@ -1,0 +1,36 @@
+{
+  "arm": "C-repeat",
+  "url": "ws://localhost:8002/ws/session?source=additional&pattern=%EC%97%86%EB%8A%94%ED%82%A4_%EB%91%90%EB%B2%88%EC%A7%B8_b9",
+  "requested_pattern": "없는키_두번째_b9",
+  "session_started_seen": true,
+  "session_id": "731770c9-de12-4bbe-bbb5-52882451c9b0",
+  "focus_pattern_key_present": false,
+  "focus_pattern_value": "<<KEY ABSENT>>",
+  "session_started_keys": [
+    "session_id",
+    "type"
+  ],
+  "session_started_frame": {
+    "type": "session_started",
+    "session_id": "731770c9-de12-4bbe-bbb5-52882451c9b0"
+  },
+  "frame_types": [
+    "session_started",
+    "final",
+    "partial",
+    "partial",
+    "final",
+    "audio",
+    "final",
+    "partial",
+    "partial",
+    "final",
+    "audio",
+    "final",
+    "partial",
+    "partial",
+    "final",
+    "audio",
+    "session_ended"
+  ]
+}

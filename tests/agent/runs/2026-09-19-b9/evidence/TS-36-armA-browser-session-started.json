@@ -1,0 +1,35 @@
+{
+  "arm": "A-browser (실제 화면 클릭 → 프레임까지 한 번의 관측)",
+  "origin": "http://localhost:3000/results/5cf40a76-d34b-4e3a-9610-2aa0e7f66c8b",
+  "url": "http://localhost:3000/results/5cf40a76-d34b-4e3a-9610-2aa0e7f66c8b",
+  "injected_alive": true,
+  "gum": 1,
+  "sockets": [
+    "ws://localhost:8002/ws/session?source=additional&pattern=verb_tense_past_simple_for_past_events"
+  ],
+  "focus_pattern_key_present": true,
+  "session_started": {
+    "type": "session_started",
+    "session_id": "5cf40a76-d34b-4e3a-9610-2aa0e7f66c8b",
+    "focus_pattern": "verb_tense_past_simple_for_past_events"
+  },
+  "frame_types": [
+    "session_started",
+    "final",
+    "partial",
+    "partial",
+    "final",
+    "audio",
+    "final",
+    "partial",
+    "partial",
+    "final",
+    "audio",
+    "final",
+    "partial",
+    "partial",
+    "final",
+    "audio",
+    "session_ended"
+  ]
+}

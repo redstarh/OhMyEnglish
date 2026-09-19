@@ -1,0 +1,3 @@
+a331a4e5-7901-4993-bada-025ea46fd2a9 | mode=speaking | source=additional | via=ui | focus_pattern_key=verb_tense_past_simple_for_past_events | status=completed
+1bd11c50-3462-418c-a0cf-6661736f0812 | mode=speaking | source=additional | via=ui | focus_pattern_key=<<NULL>> | status=completed
+1e755344-3f23-403b-85d2-44026c8fb502 | mode=speaking | source=additional | via=ui | focus_pattern_key=존재하지않는키_b9 | status=completed

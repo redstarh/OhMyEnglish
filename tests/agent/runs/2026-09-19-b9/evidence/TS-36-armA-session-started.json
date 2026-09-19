@@ -1,0 +1,38 @@
+{
+  "arm": "A",
+  "url": "ws://localhost:8002/ws/session?source=additional&pattern=verb_tense_past_simple_for_past_events",
+  "requested_pattern": "verb_tense_past_simple_for_past_events",
+  "session_started_seen": true,
+  "session_id": "a331a4e5-7901-4993-bada-025ea46fd2a9",
+  "focus_pattern_key_present": true,
+  "focus_pattern_value": "verb_tense_past_simple_for_past_events",
+  "session_started_keys": [
+    "focus_pattern",
+    "session_id",
+    "type"
+  ],
+  "session_started_frame": {
+    "type": "session_started",
+    "session_id": "a331a4e5-7901-4993-bada-025ea46fd2a9",
+    "focus_pattern": "verb_tense_past_simple_for_past_events"
+  },
+  "frame_types": [
+    "session_started",
+    "final",
+    "partial",
+    "partial",
+    "final",
+    "audio",
+    "final",
+    "partial",
+    "partial",
+    "final",
+    "audio",
+    "final",
+    "partial",
+    "partial",
+    "final",
+    "audio",
+    "session_ended"
+  ]
+}
