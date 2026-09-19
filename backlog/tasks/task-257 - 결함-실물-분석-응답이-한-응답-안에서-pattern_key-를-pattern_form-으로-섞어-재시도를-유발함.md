@@ -1,9 +1,10 @@
 ---
 id: TASK-257
 title: '결함: 실물 분석 응답이 한 응답 안에서 pattern_key 를 pattern_form 으로 섞어 재시도를 유발함'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-19 16:18'
+updated_date: '2026-09-19 16:27'
 labels: []
 dependencies: []
 ordinal: 321000
@@ -17,7 +18,13 @@ ordinal: 321000
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 responses.jsonl 두 회차(2026-09-20 두 폴더)에서 pattern_form 등장 빈도를 세어 기록함
-- [ ] #2 프롬프트가 findings 각 항목의 키 이름을 못박는지 확인하고 그 결과를 적음
-- [ ] #3 고치기로 정했으면 수정 뒤 회차를 다시 돌려 그 자리에서 재발하지 않음을 관측함
+- [x] #1 responses.jsonl 두 회차(2026-09-20 두 폴더)에서 pattern_form 등장 빈도를 세어 기록함
+- [x] #2 프롬프트가 findings 각 항목의 키 이름을 못박는지 확인하고 그 결과를 적음
+- [x] #3 고치기로 정했으면 수정 뒤 회차를 다시 돌려 그 자리에서 재발하지 않음을 관측함
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+처리 결과 (2026-09-20 · 이 세션이 직접 돌렸음). 정본은 tests/harness/runs/2026-09-20-task257-prompt-fix.md 임. AC#1 빈도: 회차 셋을 합쳐 analysis 호출 19건 · findings 항목 38개 · 키 위반 1건(TASK-256 회차의 pattern_form 1건)임. AC#2 프롬프트 확인: _OUTPUT_RULES 의 형식 예시가 findings 를 «한 항목»으로만 보여 주고 키 이름을 항목 단위로 못박는 문장이 없었음 — 그것이 두 번째 항목부터 이름이 흔들리는 기전임. AC#3 수정과 관측: 그 자리에 「findings 의 모든 항목이 아래 키 이름을 글자 그대로 쓴다. 항목마다 키를 다시 짓지 마라.」를 더하고 단위 테스트를 세웠음(test_prompt_requires_the_same_keys_in_every_finding_item · 그 줄을 지우면 실제로 죽는 것을 확인했음 · 전체 1424 passed). 수정 뒤 회차는 호출 10건 · 재시도 0건 · 단정 9건 통과 · 키 위반 0건임. ⛔ 「빈도가 낮아졌다」는 주장하지 않음 — 수정 후 표본이 항목 12개뿐이라 위반 0건은 수정 전 조건에서도 흔한 결과임. 이 회차가 말하는 것은 모호함이 없어졌고 나빠진 것이 없다는 둘뿐임. ⛔ 틀린 키 이름(pattern_form)을 프롬프트에 적지 않았고 형식 예시를 두 항목으로 늘리지도 않았음 — 두 판단의 근거는 그 상수 위 주석이 가짐.
+<!-- SECTION:NOTES:END -->

@@ -1,0 +1,47 @@
+{
+  "jobs": [
+    {
+      "job_type": "analyze_utterance",
+      "status": "pending",
+      "n": 5
+    },
+    {
+      "job_type": "generate_scenario",
+      "status": "pending",
+      "n": 1
+    },
+    {
+      "job_type": "plan_next_session",
+      "status": "pending",
+      "n": 1
+    },
+    {
+      "job_type": "summarize_session",
+      "status": "pending",
+      "n": 1
+    },
+    {
+      "job_type": "summarize_week",
+      "status": "pending",
+      "n": 1
+    }
+  ],
+  "totals": {
+    "llm_calls": 0,
+    "error_patterns": 2,
+    "error_occurrences": 3,
+    "review_tasks": 0,
+    "weekly_reports": 0,
+    "daily_error_summary": 0,
+    "session_plans": 0,
+    "generated_scenarios": 0
+  },
+  "clock": {
+    "utc_now": "2026-09-19 16:24:03.386156+00:00",
+    "utc_date": "2026-09-19",
+    "local_date": "2026-09-20"
+  },
+  "user_id": "9a645efb-64b3-43a1-96af-7fa7538765d4",
+  "session_id": "3bd86822-7e64-4f1e-9dee-0d19415fa915",
+  "last_week_session_id": "48cde6fb-5d1c-4f93-a0f1-2d35eeb6616f"
+}

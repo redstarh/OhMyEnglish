@@ -140,6 +140,21 @@ def test_prompt_requires_json_only_output_without_code_fence():
     assert '{"findings": []}' in prompt
 
 
+# `TASK-257` — 형식 예시가 `findings` 를 **한 항목**으로만 보여 주므로 두 번째 항목부터 키 이름이
+# 흔들린다. 실측(2026-09-20 회차): 같은 응답에서 `findings[0]` 은 `pattern_key` 를 옳게 쓰고
+# `findings[1]` 은 `pattern_form` 을 적어 파서가 거부했고, 재시도가 유료 호출 한 건을 더 냈다.
+# ⛔ **틀린 키 이름을 단정에 적지 않는다** — 그 낱말이 프롬프트에 «없어야» 하는 것이 요구다.
+def test_prompt_requires_the_same_keys_in_every_finding_item():
+    prompt = build_prompt(TRANSCRIPT, [])
+
+    # ⚠️ 두 낱말의 판별력을 직접 재고 골랐다: 이 줄만 지우면 「모든」은 0건이 되고
+    # 「항목마다 키를 다시 짓지 마라」도 사라진다. 반면 「글자 그대로」는 다른 절에 이미 있어
+    # **이 줄이 없어도 통과한다** — 그래서 단정으로 쓰지 않는다.
+    assert "모든" in prompt
+    assert "항목마다 키를 다시 짓지 마라" in prompt
+    assert "pattern_form" not in prompt
+
+
 # 학습자 수준 맥락 (h-doc): 단문 위주 한국어 화자 + 짧고 명확한 교정
 def test_prompt_carries_the_learner_level_context():
     prompt = build_prompt(TRANSCRIPT, [])
