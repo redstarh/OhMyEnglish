@@ -13,16 +13,14 @@ WS 표면이라 `TASK-10` 의 설계 몫이다(결정 34 가 「최소한만 만
 LPCM 16kHz·16bit·mono 를 그대로 파일에 흘린다. 확장자가 `.pcm` 인 이유는 **헤더가 없기**
 때문이다(`app/frontend/lib/audio.ts` 가 그 사실을 실측으로 적어 두었다).
 
-⛔ **저장은 헤더 없는 PCM 이고 변환은 「읽을 때만」 한다** (결정 128). `wav_from_pcm` 이 내보내는
-길에서만 RIFF 헤더를 얹는다 — 저장 쪽에 헤더를 넣으면 §6 의 스윕·고아 파일 판정이 바이트 길이를
-다시 계산해야 하고, 이미 쌓인 파일이 모두 낡은 형식이 된다.
+⛔ **저장은 헤더 없는 PCM 이고 변환은 「읽을 때만」 한다** (결정 128). `models/recording.py` 의
+`wav_from_pcm` 이 내보내는 길에서만 RIFF 헤더를 얹는다 — 저장 쪽에 헤더를 넣으면 §6 의 스윕·고아
+파일 판정이 바이트 길이를 다시 계산해야 하고, 이미 쌓인 파일이 모두 낡은 형식이 된다.
 """
 
 from __future__ import annotations
 
-import io
 import logging
-import wave
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
@@ -33,11 +31,6 @@ from zoneinfo import ZoneInfoNotFoundError
 import asyncpg
 
 from app.models.learner_time import day_start_for, resolve_now
-from app.models.recording import (
-    RECORDING_BYTES_PER_SAMPLE,
-    RECORDING_CHANNELS,
-    RECORDING_SAMPLE_RATE_HZ,
-)
 from app.services.sessions import LIVE_SESSION_STATUSES, LIVE_SESSION_STATUSES_SQL
 
 logger = logging.getLogger(__name__)
@@ -52,31 +45,6 @@ logger = logging.getLogger(__name__)
 # **코치 발화의 것**이라 낭독이 발화와 섞이고 barge-in 이 낭독을 끊는다. RIFF 헤더가 표본율·채널을
 # 실으면 `new Audio()` 가 그대로 디코드한다 — `services/clip_audio.py` 가 이미 그 길을 쓴다.
 RECORDING_MEDIA_TYPE = "audio/wav"
-
-
-def wav_from_pcm(pcm: bytes) -> bytes:
-    """저장된 raw PCM 에 RIFF 헤더를 얹는다 — **디스크의 파일은 건드리지 않는다**.
-
-    표준 `wave` 로 쓰는 것이 헤더를 손으로 조립하는 것보다 낫다: 청크 길이·바이트율·정렬을 직접
-    계산하면 한 자리만 틀려도 브라우저가 조용히 재생을 거부한다.
-
-    ⚠️ **페이로드를 두 번 복사하는 것을 알고 둔다** (2026-09-18 `/simplify` 가 지적했고 유지로
-    판정했음): `writeframes` 가 `BytesIO` 로 한 번, `getvalue()` 가 `bytes` 로 또 한 번 복사한다.
-    ⛔ **줄이는 길은 44바이트 헤더를 손으로 조립하는 것뿐이고 그것이 위 단락이 피한 위험이다.**
-    `setnframes` 로 헤더만 뽑는 중간 길은 성립하지 않는다 — `wave.close()` 가 `_patchheader()` 로
-    data 길이를 실제 쓴 양(0)으로 되돌린다. 재생은 학습자가 버튼을 누를 때 한 번이고, 같은 경로의
-    동기 파일 읽기(`load_recording`)가 이미 같은 크기를 의도로 감수한다.
-
-    ⚠️ **프레임이 0인 낭독도 유효한 WAV 로 나간다** — 핸들은 열렸고 프레임이 오지 않은 턴이
-    실재하고(`audio_gateway/session.py`), 그때 터뜨리면 학습자가 500 을 본다.
-    """
-    buffer = io.BytesIO()
-    with wave.open(buffer, "wb") as wav:
-        wav.setnchannels(RECORDING_CHANNELS)
-        wav.setsampwidth(RECORDING_BYTES_PER_SAMPLE)
-        wav.setframerate(RECORDING_SAMPLE_RATE_HZ)
-        wav.writeframes(pcm)
-    return buffer.getvalue()
 
 
 # 한 유휴 사이클이 지우는 상한. ⚠️ **발명값이다** — 설계서 §6.2 는 "사이클당 상한. 루프를

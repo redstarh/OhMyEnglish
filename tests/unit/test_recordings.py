@@ -24,6 +24,7 @@ import asyncpg
 import pytest
 
 from app.models.learner_time import day_start_for
+from app.models.recording import wav_from_pcm
 from app.services.recordings import (
     RECORDING_MEDIA_TYPE,
     ShadowingClip,
@@ -37,7 +38,6 @@ from app.services.recordings import (
     recording_path,
     recording_url,
     sweep_orphan_recording_files,
-    wav_from_pcm,
 )
 
 # raw LPCM 16kHz·16bit·mono 바이트 (헤더 없음). ⚠️ **실물 프레임 크기가 아니다** — 프론트가 보내는
@@ -1104,6 +1104,22 @@ def test_wav_from_pcm_carries_the_recording_parameters() -> None:
         assert decoded.getsampwidth() == 2
         assert decoded.getframerate() == 16_000
         assert decoded.readframes(decoded.getnframes()) == FRAMES
+
+
+def test_wav_from_pcm_honours_the_spec_it_is_given() -> None:
+    """⛔ **규격 인자를 존중한다** (`TASK-226`) — 스텁 톤이 저장 규격에 끌려가지 않는 근거다.
+
+    ⚠️ **기본값과 다른 값으로 재야 판별력이 있다.** 스텁 톤의 규격은 값이 저장 녹음과 같으므로
+    (16kHz·16bit·mono) 인자를 무시하는 변이가 **아무 단정도 깨지 않았다** — 값이 같은 동안은
+    반증 자체가 불가능하다. 여기서 8kHz 를 넘겨 그 자리를 잰다: 두 뜻이 갈리는 날(저장 규격이
+    바뀌는 날) 스텁이 조용히 따라가는 것을 이 단정이 막는다.
+    """
+    wav = wav_from_pcm(FRAMES, sample_rate_hz=8_000, bytes_per_sample=2, channels=1)
+
+    with wave.open(io.BytesIO(wav)) as decoded:
+        assert decoded.getframerate() == 8_000, "넘긴 규격을 무시하고 저장 규격으로 썼다"
+        assert decoded.getnchannels() == 1
+        assert decoded.getsampwidth() == 2
 
 
 def test_wav_from_pcm_keeps_an_empty_recording_decodable() -> None:

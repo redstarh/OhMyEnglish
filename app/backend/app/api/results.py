@@ -34,9 +34,10 @@ from fastapi import APIRouter, HTTPException, Request, Response
 
 from app.audio_gateway.factory import create_transcriber, transcriber_available
 from app.config import get_settings
+from app.models.recording import wav_from_pcm
 from app.models.user import FIXED_USER_ID
 from app.services.readback import judge_readback
-from app.services.recordings import RECORDING_MEDIA_TYPE, load_recording, wav_from_pcm
+from app.services.recordings import RECORDING_MEDIA_TYPE, load_recording
 from app.services.results import (
     Correction,
     DrillTurns,

@@ -15,6 +15,8 @@ from __future__ import annotations
 import math
 import struct
 
+from app.models.recording import wav_from_pcm
+
 # (agent 질문, 사용자 응답)
 FIXTURE_TURNS: list[tuple[str, str]] = [
     ("What do you usually do after work?", "I usually go to gym after work."),
@@ -43,27 +45,27 @@ def _tone_wav(
     frequency: int = _TONE_HZ,
 ) -> bytes:
     """헤더가 유효한 짧은 사인파 톤 WAV. 클라이언트가 실제로 디코딩·재생할 수 있는
-    바이트여야 base64 릴레이 경로를 귀로 끝까지 확인할 수 있다."""
-    block_align = _CHANNELS * _BITS_PER_SAMPLE // 8
+    바이트여야 base64 릴레이 경로를 귀로 끝까지 확인할 수 있다.
+
+    ⛔ **헤더를 손으로 조립하지 않는다** (`TASK-226`). 이전 판은 `struct.pack` 으로 44바이트를 직접
+    쌓았고 출력은 `models/recording.wav_from_pcm` 과 **바이트 단위로 같았다**(6,444바이트).
+    ⚠️ **규격은 여전히 스텁의 것이다** — 그 함수에 인자로 넘기므로 저장 녹음의 상수와 값이 같아도
+    뜻이 섞이지 않는다(그 모듈이 그 갈림의 근거를 갖는다).
+    ⛔ `app.services` 를 import 하지 않는 것이 이 자리의 조건이다 — 어댑터 층이 서비스를 알면
+    의존 방향이 뒤집힌다(`TASK-221` 이 그 전이 의존을 없앴다).
+    """
     samples = sample_rate * milliseconds // 1000
     peak = int(_TONE_AMPLITUDE * 32767)
     body = b"".join(
         struct.pack("<h", int(peak * math.sin(2 * math.pi * frequency * index / sample_rate)))
         for index in range(samples)
     )
-    fmt_chunk = b"fmt " + struct.pack(
-        "<IHHIIHH",
-        16,  # fmt 청크 길이 (PCM)
-        1,  # PCM
-        _CHANNELS,
-        sample_rate,
-        sample_rate * block_align,  # byte rate
-        block_align,
-        _BITS_PER_SAMPLE,
+    return wav_from_pcm(
+        body,
+        sample_rate_hz=sample_rate,
+        bytes_per_sample=_BITS_PER_SAMPLE // 8,
+        channels=_CHANNELS,
     )
-    data_chunk = b"data" + struct.pack("<I", len(body)) + body
-    riff_size = 4 + len(fmt_chunk) + len(data_chunk)
-    return b"RIFF" + struct.pack("<I", riff_size) + b"WAVE" + fmt_chunk + data_chunk
 
 
 # 고정 오디오 프레임 — 턴마다 같은 바이트를 흘린다. import 시 한 번 계산하고
