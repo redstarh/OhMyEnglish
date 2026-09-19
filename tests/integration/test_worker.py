@@ -149,6 +149,34 @@ async def test_worker_recovers_a_run_whose_end_of_session_flush_was_lost(
     assert plan_error == PLAN_NO_FOCUS_CANDIDATES
 
 
+# I-1 회복 — 걷은 묶음은 **poll 주기를 기다리지 않고 곧바로** 처리된다 (`TASK-226`).
+#
+# ⛔ **이 성질을 재는 단정이 없었다.** 유휴 회복 블록을 `recover_while_idle` 로 뽑으면서 그 함수의
+# 반환값(「걷은 것이 있다」)을 `False` 로 굳히는 변이를 걸었더니 **1413건이 그대로 통과했다** —
+# 다른 테스트가 `poll_interval=0.01` 을 주므로 한 주기를 자도 차이가 보이지 않기 때문이다.
+# ⚠️ 그래서 **주기를 5초로 크게 주고** 그보다 훨씬 짧은 창에서 끝나는지 본다(종료 테스트가 같은
+# 형태를 쓴다). 회복 뒤 한 주기를 자는 구현이라면 이 단정에서 걸린다.
+async def test_worker_processes_a_recovered_run_without_waiting_a_poll_interval(
+    db_pool, committed_session, fake_claude
+):
+    async with db_pool.acquire() as conn:
+        utterance = await save_final_transcript(conn, committed_session.session_id, GYM_ANSWER)
+        await end_session(conn, committed_session.session_id, "completed")
+    claude: FakeClaudeClient = fake_claude(_response())
+    stop = asyncio.Event()
+    task = asyncio.create_task(run_worker(db_pool, claude, stop=stop, poll_interval=5.0))
+
+    try:
+        await _wait_until(
+            lambda: _job_is_done(db_pool, utterance.id),
+            timeout=2.0,
+            what="걷은 묶음이 주기를 기다리지 않고 처리된다",
+        )
+    finally:
+        stop.set()
+        await asyncio.wait_for(task, timeout=6.0)
+
+
 # I-1 회복 — 스윕은 **진행 중** 세션을 건드리지 않는다. 워커가 도는 동안 사용자가
 # 아직 말하고 있으면 그 묶음은 자란다 — 여기서 걸면 조각이 따로 분석되는 결함이 되살아난다.
 async def test_worker_sweep_leaves_an_active_session_alone(db_pool, committed_session, fake_claude):

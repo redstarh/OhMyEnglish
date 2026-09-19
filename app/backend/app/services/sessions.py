@@ -467,6 +467,32 @@ async def _pick_scenario_for_user(conn: asyncpg.Connection, user_id: UUID) -> Pi
     return pick_scenario(recent=recent, candidates=candidates)
 
 
+async def _insert_session(
+    conn: asyncpg.Connection, user_id: UUID, *, mode: str, learning_source: str | None
+) -> UUID:
+    """세션 행 하나를 만들고 그 id 를 돌려준다 — **배치 규칙을 함께 통과한다.**
+
+    ⛔ **`create_session` 과 `start_shadowing_session` 이 이 열 줄을 각자 적고 있었다**
+    (`TASK-226`). 그래서 「시나리오 배치 규칙(`_pick_scenario_for_user`)을 두 진입이 공유한다」가
+    **두 자리를 같게 유지하는 것에 걸려 있었다** — 한쪽만 고치면 쉐도잉 세션이 배치 창 밖으로
+    조용히 빠진다(`TASK-4` · 결정 73 이 그 창을 정했다).
+
+    ⛔ **연결을 받는다 — 트랜잭션은 호출자의 것이다.** 쉐도잉은 클립 붙이기까지 한 단위여야 하고
+    (그 함수의 마지막 단락이 근거), 말하기는 이 한 문장이 전부다.
+    """
+    picked = await _pick_scenario_for_user(conn, user_id)
+    session_id = await conn.fetchval(
+        _CREATE_SESSION_SQL,
+        user_id,
+        mode,
+        learning_source or _DEFAULT_LEARNING_SOURCE,
+        picked.scenario_id if picked is not None else None,
+        picked.pick if picked is not None else None,
+    )
+    assert session_id is not None, "insert ... returning produced no row"
+    return session_id
+
+
 async def create_session(
     pool: asyncpg.Pool,
     user_id: UUID,
@@ -495,19 +521,8 @@ async def create_session(
     된다. 음성 명령 진입(`voice_command`)이 생기는 턴에 그때 더한다 — 그 시점이 이 결정을 뒤집을
     유일한 근거다.
     """
-    async with pool.acquire() as conn:
-        async with conn.transaction():
-            picked = await _pick_scenario_for_user(conn, user_id)
-            session_id = await conn.fetchval(
-                _CREATE_SESSION_SQL,
-                user_id,
-                mode,
-                learning_source or _DEFAULT_LEARNING_SOURCE,
-                picked.scenario_id if picked is not None else None,
-                picked.pick if picked is not None else None,
-            )
-    assert session_id is not None, "insert ... returning produced no row"
-    return session_id
+    async with pool.acquire() as conn, conn.transaction():
+        return await _insert_session(conn, user_id, mode=mode, learning_source=learning_source)
 
 
 async def set_session_mode(pool: asyncpg.Pool, session_id: UUID, *, mode: str) -> bool:
@@ -588,21 +603,15 @@ async def start_shadowing_session(
     묶는 이유는 **선택이 세션과 함께 보이는 것**이 재접속 복원의 전제이기 때문이다.
 
     ⚠️ **시나리오도 배치 규칙을 통과한다** (`TASK-4` · 결정 73). 이 함수는 `create_session` 과
-    같은 INSERT 를 쓰므로 그 규칙을 공유하고, 그래서 쉐도잉 세션도 창에 들어간다 — 학습 세션의
-    한 종류이므로 그것이 맞다. ⛔ **클립 선택(`_ATTACH_SHADOWING_CLIP_SQL`)은 그 규칙 밖이다**
-    (설계서 §9) — 클립은 여전히 수준 일치 뒤 가장 이른 행이다.
+    **같은 삽입 함수**(`_insert_session`)를 쓰므로 그 규칙을 공유하고, 그래서 쉐도잉 세션도 창에
+    들어간다 — 학습 세션의 한 종류이므로 그것이 맞다.
+    ⛔ **클립 선택(`_ATTACH_SHADOWING_CLIP_SQL`)은 그 규칙 밖이다**(설계서 §9) — 클립은 여전히
+    수준 일치 뒤 가장 이른 행이다.
     """
     async with pool.acquire() as conn, conn.transaction():
-        picked = await _pick_scenario_for_user(conn, user_id)
-        session_id = await conn.fetchval(
-            _CREATE_SESSION_SQL,
-            user_id,
-            "shadowing",
-            learning_source or _DEFAULT_LEARNING_SOURCE,
-            picked.scenario_id if picked is not None else None,
-            picked.pick if picked is not None else None,
+        session_id = await _insert_session(
+            conn, user_id, mode="shadowing", learning_source=learning_source
         )
-        assert session_id is not None, "insert ... returning produced no row"
         await conn.execute(_ATTACH_SHADOWING_CLIP_SQL, session_id, user_id, item_id)
     return session_id
 

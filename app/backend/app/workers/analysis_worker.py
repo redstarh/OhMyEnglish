@@ -162,6 +162,72 @@ async def _wait(stop: asyncio.Event, timeout: float) -> None:
         await asyncio.wait_for(stop.wait(), timeout)
 
 
+async def recover_while_idle(
+    pool: asyncpg.Pool,
+    *,
+    live_sessions: Collection[UUID] = (),
+    recording_root: Path | None = None,
+) -> bool:
+    """큐가 빈 사이클의 회복 셋을 이 순서로 돌린다. **걷은 묶음이 있으면 `True`.**
+
+    순서가 계약이다: 먼저 죽은 프로세스가 남긴 고아 세션을 닫고(I-4), 그 다음 잃어버린 묶음을
+    걷는다(I-1). 이 순서라서 리퍼가 방금 닫은 세션의 묶음이 **같은 사이클에** 걷힌다.
+
+    ⛔ **셋을 따로 감싼다.** 한 `try` 로 묶으면 리퍼나 녹음 스윕이 계속 실패하는 동안 잃어버린
+    묶음이 영구히 걷히지 않는다 — `utterances.flush_ended_sessions` 가 말하는 terminal
+    「분석 대상 없음」이 그 결과다. 루프 레벨 `except` 는 사이클을 통째로 건너뛰므로 거기서
+    대신 잡을 수 없다.
+
+    ⚠️ **루프에서 뽑은 이유는 들여쓰기가 다섯 단이었기 때문이다**(`TASK-226`) — 회복 셋의 순서와
+    실패 격리가 `try/except` 다섯 겹 안에 묻혀 있었다. 공개 이름인 것은 유휴 사이클만 따로 재는
+    단정을 쓸 수 있어야 하기 때문이다(`claim_one` 이 같은 이유로 공개다).
+    """
+    try:
+        reaped = await reap_orphans(pool, live_sessions=live_sessions)
+    except Exception:
+        logger.exception("고아 세션 리퍼가 실패했다 — 스윕은 그대로 진행한다 (I-4)")
+        reaped = []
+    if reaped:
+        # **WARNING이다 — INFO로 내리지 마라.** 리퍼가 걷었다는 것은 이전 프로세스가 세션 도중에
+        # 죽었다는 뜻이고, 정상 운영에서는 나오지 않는다. 게다가 문서가 지정한 실행 명령
+        # (`docs/ops/local-run.md`: `.venv/bin/uvicorn app.api.main:app --port 8002`)은 root
+        # 로거에 핸들러를 두지 않아 `logging.lastResort` 가 **WARNING 이상만** 흘린다 — INFO면 이
+        # 줄이 실물에서 아예 보이지 않는다(2026-09-03 실측: 같은 실행에서 INFO "analysis worker
+        # started"는 0건, WARNING "텍스트가 아닌 프레임"은 출력됨).
+        logger.warning(
+            "마지막 발화 후 %.0f초 넘게 조용했던 `active` 세션 %d건을 failed로 닫았다 (I-4): %s",
+            ORPHAN_IDLE_GRACE.total_seconds(),
+            len(reaped),
+            [str(session_id) for session_id in reaped],
+        )
+    # `recording_root` 가 없으면 저장 기능을 배선하지 않은 실행이므로 조용히 건너뛴다.
+    if recording_root is not None:
+        try:
+            purged, removed = await sweep_recordings(pool, recording_root)
+        except Exception:
+            logger.exception(
+                "쉐도잉 녹음 스윕이 실패했다 — 다른 회복은 그대로 진행한다 "
+                "(다음 유휴 사이클이 같은 조건을 다시 계산한다)"
+            )
+        else:
+            if purged or removed:
+                # **INFO 다** — 정상 운영에서 매일 나오는 일이고, 실패는 위 `exception`(ERROR)과
+                # 서비스의 `WARNING` 으로 보인다(§6.3).
+                logger.info(
+                    "쉐도잉 녹음 스윕: 만료 %d건을 접근 불가로 만들고 고아 파일 %d건을 지웠다",
+                    purged,
+                    removed,
+                )
+    recovered = await sweep_lost_runs(pool)
+    if recovered:
+        logger.info(
+            "종료 flush를 놓친 발화 묶음 %d건에 분석 job을 걸었다 (I-1 회복): %s",
+            len(recovered),
+            [str(utterance_id) for utterance_id in recovered],
+        )
+    return bool(recovered)
+
+
 async def run_worker(
     pool: asyncpg.Pool,
     claude: ClaudeClient,
@@ -198,63 +264,10 @@ async def run_worker(
         try:
             job = await claim_one(pool)
             if job is None:
-                # 큐가 비었다 — 먼저 죽은 프로세스가 남긴 고아 세션을 닫고(I-4), 그
-                # 다음에 잃어버린 묶음을 걷는다(I-1). 이 순서라서 리퍼가 방금 닫은
-                # 세션의 묶음이 같은 사이클에 걷힌다. 걷은 것이 있으면 곧바로 다음
-                # claim으로 가서 그 job을 처리한다.
-                # 리퍼 고유의 실패가 **I-1 스윕을 막지 않게** 따로 감싼다. 이 두 회복 경로는
-                # 독립이고, 직렬로 묶으면 리퍼가 계속 실패하는 동안 잃어버린 묶음이 영구히
-                # 걷히지 않는다 — `utterances.flush_ended_sessions`가 말하는 terminal
-                # "분석 대상 없음"이 그 결과다. 아래 루프 레벨 `except`는 사이클을 통째로
-                # 건너뛰므로 여기서 대신 잡을 수 없다.
-                try:
-                    reaped = await reap_orphans(pool, live_sessions=live_sessions)
-                except Exception:
-                    logger.exception("고아 세션 리퍼가 실패했다 — 스윕은 그대로 진행한다 (I-4)")
-                    reaped = []
-                if reaped:
-                    # **WARNING이다 — INFO로 내리지 마라.** 리퍼가 걷었다는 것은 이전
-                    # 프로세스가 세션 도중에 죽었다는 뜻이고, 정상 운영에서는 나오지 않는다.
-                    # 게다가 문서가 지정한 실행 명령(`docs/ops/local-run.md`:
-                    # `.venv/bin/uvicorn app.api.main:app --port 8002`)은 root 로거에 핸들러를
-                    # 두지 않아 `logging.lastResort`가 **WARNING 이상만** 흘린다 — INFO면 이
-                    # 줄이 실물에서 아예 보이지 않는다(2026-09-03 실측: 같은 실행에서 INFO
-                    # "analysis worker started"는 0건, WARNING "텍스트가 아닌 프레임"은 출력됨).
-                    logger.warning(
-                        "마지막 발화 후 %.0f초 넘게 조용했던 `active` 세션 %d건을 "
-                        "failed로 닫았다 (I-4): %s",
-                        ORPHAN_IDLE_GRACE.total_seconds(),
-                        len(reaped),
-                        [str(session_id) for session_id in reaped],
-                    )
-                # 쉐도잉 녹음 스윕도 **따로 감싼다** — 위 두 회복과 같은 이유다(한 `try` 로
-                # 묶으면 이 스윕이 계속 실패하는 동안 다른 회복이 영구히 막힌다).
-                # `recording_root` 가 없으면 저장 기능을 배선하지 않은 실행이므로 조용히 건너뛴다.
-                if recording_root is not None:
-                    try:
-                        purged, removed = await sweep_recordings(pool, recording_root)
-                    except Exception:
-                        logger.exception(
-                            "쉐도잉 녹음 스윕이 실패했다 — 다른 회복은 그대로 진행한다 "
-                            "(다음 유휴 사이클이 같은 조건을 다시 계산한다)"
-                        )
-                    else:
-                        if purged or removed:
-                            # **INFO 다** — 정상 운영에서 매일 나오는 일이고, 실패는 위
-                            # `exception`(ERROR)과 서비스의 `WARNING` 으로 보인다(§6.3).
-                            logger.info(
-                                "쉐도잉 녹음 스윕: 만료 %d건을 접근 불가로 만들고 "
-                                "고아 파일 %d건을 지웠다",
-                                purged,
-                                removed,
-                            )
-                recovered = await sweep_lost_runs(pool)
-                if recovered:
-                    logger.info(
-                        "종료 flush를 놓친 발화 묶음 %d건에 분석 job을 걸었다 (I-1 회복): %s",
-                        len(recovered),
-                        [str(utterance_id) for utterance_id in recovered],
-                    )
+                if await recover_while_idle(
+                    pool, live_sessions=live_sessions, recording_root=recording_root
+                ):
+                    # 걷은 묶음이 있으면 곧바로 다음 claim 으로 가서 그 job 을 처리한다.
                     continue
                 await _wait(stop, poll_interval)
                 continue

@@ -768,6 +768,44 @@ async def test_ws_opens_a_shadowing_session_and_hands_over_the_clip(
     assert row["shadowing_item_id"] is not None, "선택이 세션 행에 남지 않으면 재접속에서 잃는다"
 
 
+async def test_ws_opens_a_shadowing_session_even_if_the_clip_lookup_fails(
+    ws_app: FastAPI,
+    seeded_fixed_user: UUID,
+    committed_clip: str,
+    db_pool: asyncpg.Pool,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """⛔ 클립 조회가 깨져도 세션은 열린다 — 위 세 짝과 **같은 실패 규약**(`TASK-226`).
+
+    ⚠️ 이 자리가 변이로 드러난 구멍이다: 네 조회가 공용 헬퍼(`_read_or_fallback`)로 접힌 뒤
+    폴백을 「예외를 다시 올린다」로 바꾸는 변이에서 **소리·계획·무대 셋만** 실패했고 클립은
+    아무 단정도 없었다. 클립은 「낭독 재료」라 없으면 낭독 턴만 빠지고 대화는 이어져야 한다.
+    """
+
+    async def explode(conn: object, session_id: object) -> None:
+        raise asyncpg.PostgresError("클립 조회가 깨졌다")
+
+    monkeypatch.setattr(ws_module, "load_session_clip", explode)
+
+    async with (
+        ws_app.router.lifespan_context(ws_app),
+        ASGIWebSocket(ws_app, query_string=b"mode=shadowing") as client,
+    ):
+        started = await client.receive_event()
+
+    assert started is not None
+    assert started["type"] == "session_started", (
+        "클립 조회 실패가 세션을 막았다 — 낭독 재료 하나 때문에 대화를 잃는다"
+    )
+    assert started.get("shadowing") is None, "읽지 못한 클립이 화면으로 나갔다"
+
+    async with db_pool.acquire() as conn:
+        status = await conn.fetchval(
+            "select status from learning_sessions where user_id = $1", FIXED_USER_ID
+        )
+    assert status != "failed"
+
+
 async def test_ws_still_opens_a_speaking_session_without_the_mode(
     ws_app: FastAPI, seeded_fixed_user: UUID, db_pool: asyncpg.Pool
 ):

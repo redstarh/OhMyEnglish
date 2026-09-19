@@ -37,7 +37,7 @@ from __future__ import annotations
 import contextlib
 import json
 import logging
-from collections.abc import Sequence
+from collections.abc import Awaitable, Callable, Sequence
 from uuid import UUID
 
 import asyncpg
@@ -148,6 +148,30 @@ def _requested_item_or_none(raw: str | None) -> UUID | None:
         return None
 
 
+async def _read_or_fallback[T](
+    pool: asyncpg.Pool,
+    read: Callable[[asyncpg.Connection], Awaitable[T]],
+    *,
+    fallback: T,
+    on_failure: str,
+) -> T:
+    """조회 하나를 돌리고 **실패를 세션 시작 실패로 번역하지 않는다** (G-3 · 캡틴 결정 B-4).
+
+    ⛔ **아래 네 자리가 이 다섯 줄을 각자 적고 있었다**(`TASK-226`) — 다른 것은 조회와 폴백값,
+    그리고 로그 문면뿐이었다. 갈라지면 한쪽만 예외를 밖으로 던지게 되고, 그 한 자리가 **부가
+    정보 조회 한 번의 실패로 대화 전체를 잃는** 결과를 낸다.
+
+    ⚠️ **폴백값을 인자로 받는다** — 「빈 목록」과 「`None`」이 같은 뜻이 아니다. 전자는 「소리를
+    모른다」이고 후자는 「그 블록 없이 시작한다」다. 한 값으로 접으면 그 구별이 사라진다.
+    """
+    try:
+        async with pool.acquire() as conn:
+            return await read(conn)
+    except Exception:
+        logger.exception(on_failure)
+        return fallback
+
+
 async def _load_known_sounds_or_empty(pool: asyncpg.Pool) -> list[str]:
     """학습자가 전에 놓친 소리 — 실패하면 빈 목록 (G-3, 캡틴 결정 B-4).
 
@@ -155,12 +179,12 @@ async def _load_known_sounds_or_empty(pool: asyncpg.Pool) -> list[str]:
     세션을 못 열면 대화 전체를 잃는다. 빈 목록이면 어댑터가 기본 문구로 진행한다 —
     `services/pronunciation.record_attempt`가 기록 실패에 같은 판단을 내린 것과 같은 규약이다.
     """
-    try:
-        async with pool.acquire() as conn:
-            return await load_known_sounds(conn, FIXED_USER_ID)
-    except Exception:
-        logger.exception("기존 발음 소리를 읽지 못해 기본 지시문으로 진행한다")
-        return []
+    return await _read_or_fallback(
+        pool,
+        lambda conn: load_known_sounds(conn, FIXED_USER_ID),
+        fallback=[],
+        on_failure="기존 발음 소리를 읽지 못해 기본 지시문으로 진행한다",
+    )
 
 
 async def _load_shadowing_turns_or_none(
@@ -174,12 +198,12 @@ async def _load_shadowing_turns_or_none(
 
     ⛔ **값의 정본은 `Settings` 다** — 화면이 자기 기본값을 갖지 않고 전달만 받는다(§7).
     """
-    try:
-        async with pool.acquire() as conn:
-            clip = await load_session_clip(conn, session_id)
-    except Exception:
-        logger.exception("쉐도잉 클립을 읽지 못해 낭독 재료 없이 진행한다")
-        return None
+    clip = await _read_or_fallback(
+        pool,
+        lambda conn: load_session_clip(conn, session_id),
+        fallback=None,
+        on_failure="쉐도잉 클립을 읽지 못해 낭독 재료 없이 진행한다",
+    )
     if clip is None:
         return None
     return ShadowingTurns(
@@ -207,12 +231,12 @@ async def _load_prepared_plan_or_none(pool: asyncpg.Pool) -> PreparedPlan | None
     로그가 담당한다 — `load_prepared_plan`은 부재를 조용히 `None`으로 돌려주고, 여기 걸리는
     것은 조회 자체가 깨진 경우뿐이다.
     """
-    try:
-        async with pool.acquire() as conn:
-            return await load_prepared_plan(conn, FIXED_USER_ID)
-    except Exception:
-        logger.exception("준비된 계획을 읽지 못해 계획 없이 시작한다")
-        return None
+    return await _read_or_fallback(
+        pool,
+        lambda conn: load_prepared_plan(conn, FIXED_USER_ID),
+        fallback=None,
+        on_failure="준비된 계획을 읽지 못해 계획 없이 시작한다",
+    )
 
 
 async def _load_scenario_or_none(pool: asyncpg.Pool, session_id: UUID) -> SessionScenario | None:
@@ -225,12 +249,12 @@ async def _load_scenario_or_none(pool: asyncpg.Pool, session_id: UUID) -> Sessio
     무대가 없는 것(`scenario_id` null)과 조회가 깨진 것을 여기서 구분하지 않는 것도 같다 —
     둘 다 "무대 블록 없이 시작한다"로 수렴한다. 구분은 로그가 담당한다.
     """
-    try:
-        async with pool.acquire() as conn:
-            return await load_session_scenario(conn, session_id)
-    except Exception:
-        logger.exception("이 세션의 무대를 읽지 못해 무대 없이 진행한다")
-        return None
+    return await _read_or_fallback(
+        pool,
+        lambda conn: load_session_scenario(conn, session_id),
+        fallback=None,
+        on_failure="이 세션의 무대를 읽지 못해 무대 없이 진행한다",
+    )
 
 
 async def _record_session_mode_or_continue(pool: asyncpg.Pool, session_id: UUID, mode: str) -> None:
