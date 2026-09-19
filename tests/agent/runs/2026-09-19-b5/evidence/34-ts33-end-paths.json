@@ -1,0 +1,66 @@
+[
+ {
+  "arm": "A_button_end_session",
+  "session_id": "9546d83e-dacf-4f45-8604-29e963be6f6d",
+  "status": "completed",
+  "closed": true,
+  "adapter_closed": true,
+  "frames": [
+   "session_started",
+   "final",
+   "final",
+   "final",
+   "session_ended"
+  ],
+  "utterances": [
+   {
+    "sequence_no": 1,
+    "utterance_type": "learning",
+    "transcript": "I usually go to gym after work."
+   },
+   {
+    "sequence_no": 2,
+    "utterance_type": "learning",
+    "transcript": "I usually go to office by subway."
+   },
+   {
+    "sequence_no": 3,
+    "utterance_type": "learning",
+    "transcript": "I need to finish my homework tonight."
+   }
+  ]
+ },
+ {
+  "arm": "B_voice_end_confirmed",
+  "session_id": "46983f53-1f07-4d4f-a5ef-01f2ff1ce0d1",
+  "status": "completed",
+  "closed": true,
+  "adapter_closed": true,
+  "frames": [
+   "session_started",
+   "final",
+   "final",
+   "voice_command",
+   "final",
+   "voice_command",
+   "session_ended"
+  ],
+  "utterances": [
+   {
+    "sequence_no": 1,
+    "utterance_type": "learning",
+    "transcript": "I usually go to gym after work."
+   },
+   {
+    "sequence_no": 2,
+    "utterance_type": "voice_command",
+    "transcript": "Hey, end the session."
+   },
+   {
+    "sequence_no": 3,
+    "utterance_type": "command_confirmation",
+    "transcript": "Yes."
+   }
+  ]
+ }
+]

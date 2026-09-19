@@ -1,0 +1,16 @@
+
+== A_button_end_session == session=9546d83e-dacf-4f45-8604-29e963be6f6d
+   status=completed closed=True adapter_closed=True
+   frames=['session_started', 'final', 'final', 'final', 'session_ended']
+   utt #1 [learning] 'I usually go to gym after work.'
+   utt #2 [learning] 'I usually go to office by subway.'
+   utt #3 [learning] 'I need to finish my homework tonight.'
+
+== B_voice_end_confirmed == session=46983f53-1f07-4d4f-a5ef-01f2ff1ce0d1
+   status=completed closed=True adapter_closed=True
+   frames=['session_started', 'final', 'final', 'voice_command', 'final', 'voice_command', 'session_ended']
+   utt #1 [learning] 'I usually go to gym after work.'
+   utt #2 [voice_command] 'Hey, end the session.'
+   utt #3 [command_confirmation] 'Yes.'
+
+raw -> /Users/redstar/MyProject/OhMyEnglish/tests/agent/runs/2026-09-19-b5/evidence/34-ts33-end-paths.json

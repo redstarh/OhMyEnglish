@@ -1,0 +1,12 @@
+session_id = ddf4913d-939e-48fe-bf2e-5d164b4e8fbb
+elapsed    = 10.034s
+frames     = 2
+order      = session_started session_failed
+  FAILED   reason='voice_adapter_connect_timeout' at t=10.033s
+raw -> /Users/redstar/MyProject/OhMyEnglish/.harness/evidence/B5-TS20-unresponsive-frames.json
+session: failed|speaking|2026-09-19 06:41:16.401898+00
+utterances: 0
+jobs:
+plan_next_session|pending
+summarize_session|pending
+summarize_week|pending

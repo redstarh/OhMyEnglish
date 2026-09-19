@@ -1,0 +1,5 @@
+--- sessions after 06:53:20 ---
+f5f832a5-b648-4529-bbe9-f9a88e022d01|shadowing|additional|ui|completed|t
+
+--- button-made shadowing session for comparison ---
+f2b9d9fb-b6ac-456f-afcc-f33d92a16884|shadowing|additional|ui|completed|t

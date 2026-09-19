@@ -1,0 +1,20 @@
+sessions left from this round: 0
+--- analysis_jobs now (baseline was: au done41 failed30 / plan done6 failed14 / summ failed10 / week failed10, pending 0) ---
+analyze_utterance|done|41
+analyze_utterance|failed|30
+plan_next_session|done|6
+plan_next_session|failed|14
+summarize_session|failed|10
+summarize_week|failed|10
+--- totals now (baseline: llm 34, sessions 27, utt 175, plans 6, weekly 0) ---
+llm_calls 34
+learning_sessions 27
+utterances 175
+session_plans 6
+weekly_reports 0
+--- daily-completion now ---
+0
+sessions total (baseline 27): 27
+utterances total (baseline 175): 175
+llm_calls total (baseline 34): 34
+pending jobs: 0

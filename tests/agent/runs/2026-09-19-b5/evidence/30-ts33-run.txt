@@ -1,0 +1,61 @@
+정지 중 학습 발화를 저장하지 않았다 (세션 f00b5558-0b73-4fcf-b85a-f08fc4f9bff6 · 33자)
+표지가 없는 턴의 음성 명령 'end' 을 실행하지 않았다 (들은 말 'end the meeting early' · 세션 ec3e49e9-d552-4c25-ad9e-6c28dd4b4115)
+표지가 없는 턴의 음성 명령 'end' 을 실행하지 않았다 (들은 말 'oh my english' · 세션 99e43c26-64de-4bdb-bb43-51a236b3def7)
+
+== next_question == session=8c2231e6-e82c-4373-993a-9db7aae8cd63
+   status=completed closed=True
+   frames=['session_started', 'final', 'voice_command', 'final', 'session_ended']
+   reports=[{'tool_use_id': 'tu-nq', 'executed': True, 'reason': None}]
+   utt #1 [user/voice_command] 'Hey, next question please.'
+   utt #2 [user/learning] 'I usually go to gym after work.'
+
+== show_report == session=d93afee2-ce21-4ae1-8ebd-ffb38e761775
+   status=completed closed=True
+   frames=['session_started', 'final', 'voice_command', 'session_ended']
+   reports=[{'tool_use_id': 'tu-sr', 'executed': True, 'reason': None}]
+   utt #1 [user/voice_command] 'Hey, show me the weekly report.'
+
+== pause_resume == session=f00b5558-0b73-4fcf-b85a-f08fc4f9bff6
+   status=completed closed=True
+   frames=['session_started', 'final', 'voice_command', 'final', 'voice_command', 'final', 'session_ended']
+   reports=[{'tool_use_id': 'tu-p', 'executed': True, 'reason': None}, {'tool_use_id': 'tu-r', 'executed': True, 'reason': None}]
+   utt #1 [user/voice_command] 'Hey, pause the session.'
+   utt #2 [user/voice_command] 'Hey, resume the session.'
+   utt #3 [user/learning] 'This line is spoken after resuming.'
+
+== end_confirmed == session=0d6a053f-0053-4122-bec4-812035fa5c1b
+   status=completed closed=True
+   frames=['session_started', 'final', 'voice_command', 'final', 'voice_command', 'session_ended']
+   reports=[{'tool_use_id': 'tu-e1', 'executed': True, 'reason': None}, {'tool_use_id': 'tu-e2', 'executed': True, 'reason': None}]
+   utt #1 [user/voice_command] 'Hey, end the session.'
+   utt #2 [user/command_confirmation] 'Yes, please.'
+
+== start_additional_confirmed == session=b525f5aa-6183-47a1-af83-c6b8be0cb1db
+   status=completed closed=True
+   frames=['session_started', 'final', 'voice_command', 'final', 'voice_command', 'session_ended']
+   reports=[{'tool_use_id': 'tu-a1', 'executed': True, 'reason': None}, {'tool_use_id': 'tu-a2', 'executed': True, 'reason': None}]
+   utt #1 [user/voice_command] 'Hey, switch to pronunciation practice.'
+   utt #2 [user/command_confirmation] 'Yes.'
+
+== boundary_no_marker == session=ec3e49e9-d552-4c25-ad9e-6c28dd4b4115
+   status=completed closed=True
+   frames=['session_started', 'final', 'voice_command_ignored', 'final', 'session_ended']
+   reports=[{'tool_use_id': 'tu-b1', 'executed': False, 'reason': 'no_wake_word'}]
+   utt #1 [user/learning] 'I want to end the meeting early tomorrow.'
+   utt #2 [user/learning] 'I usually go to office by subway.'
+
+== boundary_marker_mid_sentence == session=99e43c26-64de-4bdb-bb43-51a236b3def7
+   status=completed closed=True
+   frames=['session_started', 'final', 'voice_command_ignored', 'session_ended']
+   reports=[{'tool_use_id': 'tu-b2', 'executed': False, 'reason': 'no_wake_word'}]
+   utt #1 [user/learning] 'I told my friend about Oh My English yesterday.'
+
+== end_cancelled == session=033b08c5-95e3-4e75-b48a-b80a7d8643df
+   status=completed closed=True
+   frames=['session_started', 'final', 'voice_command', 'final', 'voice_command', 'final', 'session_ended']
+   reports=[{'tool_use_id': 'tu-c1', 'executed': True, 'reason': None}, {'tool_use_id': 'tu-c2', 'executed': True, 'reason': None}]
+   utt #1 [user/voice_command] 'Hey, end the session.'
+   utt #2 [user/command_confirmation] 'No, keep going.'
+   utt #3 [user/learning] 'I need to finish my homework tonight.'
+
+raw -> /Users/redstar/MyProject/OhMyEnglish/tests/agent/runs/2026-09-19-b5/evidence/30-ts33-legs.json

@@ -1,0 +1,15 @@
+baseline_ts: 2026-09-19 06:39:03.899344+00
+--- analysis_jobs ---
+analyze_utterance|done|41
+analyze_utterance|failed|30
+plan_next_session|done|6
+plan_next_session|failed|14
+summarize_session|failed|10
+summarize_week|failed|10
+--- totals ---
+llm_calls 34
+learning_sessions 27
+utterances 175
+session_plans 6
+weekly_reports 0
+harness_sessions 100

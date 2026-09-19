@@ -1,0 +1,20 @@
+session_id = 54ce134a-985f-4f4f-b8d9-fca61d0e786b
+elapsed    = 0.045s
+frames     = 17
+order      = session_started final partial partial final audio final partial partial final audio final partial partial final audio session_ended
+  final #1 [agent] 'What do you usually do after work?'
+  partial  [user] 'I usually'
+  partial  [user] 'I usually go to'
+  final #2 [user] 'I usually go to gym after work.'
+  audio    6444B header='RIFFWAVE'
+  final #3 [agent] 'What do you usually do on weekends?'
+  partial  [user] 'I usually'
+  partial  [user] 'I usually go to'
+  final #4 [user] 'I usually go to office by subway.'
+  audio    6444B header='RIFFWAVE'
+  final #5 [agent] 'What do you need to do tonight?'
+  partial  [user] 'I need'
+  partial  [user] 'I need to finish'
+  final #6 [user] 'I need to finish my homework tonight.'
+  audio    6444B header='RIFFWAVE'
+raw -> /Users/redstar/MyProject/OhMyEnglish/.harness/evidence/B5-TS20-stub-frames.json

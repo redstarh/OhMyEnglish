@@ -1,0 +1,29 @@
+--- session row ---
+54ce134a-985f-4f4f-b8d9-fca61d0e786b|completed|speaking|recommended|2026-09-19 06:39:57.742815+00|2026-09-19 06:39:57.769316+00
+--- utterances ---
+1|agent|learning|What do you usually do after work?
+2|user|learning|I usually go to gym after work.
+3|agent|learning|What do you usually do on weekends?
+4|user|learning|I usually go to office by subway.
+5|agent|learning|What do you need to do tonight?
+6|user|learning|I need to finish my homework tonight.
+count: 6
+--- analysis_jobs tied to this session ---
+analyze_utterance|pending
+analyze_utterance|pending
+analyze_utterance|pending
+plan_next_session|pending
+summarize_session|pending
+summarize_week|pending
+--- llm_calls since baseline --- 0
+--- all pending jobs now ---
+analyze_utterance|done|41
+analyze_utterance|failed|30
+analyze_utterance|pending|3
+plan_next_session|done|6
+plan_next_session|failed|14
+plan_next_session|pending|1
+summarize_session|failed|10
+summarize_session|pending|1
+summarize_week|failed|10
+summarize_week|pending|1

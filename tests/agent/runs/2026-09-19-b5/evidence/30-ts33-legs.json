@@ -1,0 +1,498 @@
+[
+ {
+  "leg": "next_question",
+  "session_id": "8c2231e6-e82c-4373-993a-9db7aae8cd63",
+  "frames": [
+   {
+    "type": "session_started",
+    "session_id": "8c2231e6-e82c-4373-993a-9db7aae8cd63"
+   },
+   {
+    "type": "final",
+    "text": "Hey, next question please.",
+    "speaker": "user",
+    "sequence_no": 1,
+    "utterance_type": "voice_command"
+   },
+   {
+    "type": "voice_command",
+    "command": "next_question",
+    "stage": "requested"
+   },
+   {
+    "type": "final",
+    "text": "I usually go to gym after work.",
+    "speaker": "user",
+    "sequence_no": 2,
+    "utterance_type": "learning"
+   },
+   {
+    "type": "session_ended",
+    "session_id": "8c2231e6-e82c-4373-993a-9db7aae8cd63"
+   }
+  ],
+  "reports": [
+   {
+    "tool_use_id": "tu-nq",
+    "executed": true,
+    "reason": null
+   }
+  ],
+  "adapter_closed": true,
+  "session_status": "completed",
+  "session_closed": true,
+  "utterances": [
+   {
+    "sequence_no": 1,
+    "speaker": "user",
+    "utterance_type": "voice_command",
+    "transcript": "Hey, next question please."
+   },
+   {
+    "sequence_no": 2,
+    "speaker": "user",
+    "utterance_type": "learning",
+    "transcript": "I usually go to gym after work."
+   }
+  ]
+ },
+ {
+  "leg": "show_report",
+  "session_id": "d93afee2-ce21-4ae1-8ebd-ffb38e761775",
+  "frames": [
+   {
+    "type": "session_started",
+    "session_id": "d93afee2-ce21-4ae1-8ebd-ffb38e761775"
+   },
+   {
+    "type": "final",
+    "text": "Hey, show me the weekly report.",
+    "speaker": "user",
+    "sequence_no": 1,
+    "utterance_type": "voice_command"
+   },
+   {
+    "type": "voice_command",
+    "command": "show_report",
+    "stage": "requested"
+   },
+   {
+    "type": "session_ended",
+    "session_id": "d93afee2-ce21-4ae1-8ebd-ffb38e761775"
+   }
+  ],
+  "reports": [
+   {
+    "tool_use_id": "tu-sr",
+    "executed": true,
+    "reason": null
+   }
+  ],
+  "adapter_closed": true,
+  "session_status": "completed",
+  "session_closed": true,
+  "utterances": [
+   {
+    "sequence_no": 1,
+    "speaker": "user",
+    "utterance_type": "voice_command",
+    "transcript": "Hey, show me the weekly report."
+   }
+  ]
+ },
+ {
+  "leg": "pause_resume",
+  "session_id": "f00b5558-0b73-4fcf-b85a-f08fc4f9bff6",
+  "frames": [
+   {
+    "type": "session_started",
+    "session_id": "f00b5558-0b73-4fcf-b85a-f08fc4f9bff6"
+   },
+   {
+    "type": "final",
+    "text": "Hey, pause the session.",
+    "speaker": "user",
+    "sequence_no": 1,
+    "utterance_type": "voice_command"
+   },
+   {
+    "type": "voice_command",
+    "command": "pause",
+    "stage": "requested"
+   },
+   {
+    "type": "final",
+    "text": "Hey, resume the session.",
+    "speaker": "user",
+    "sequence_no": 2,
+    "utterance_type": "voice_command"
+   },
+   {
+    "type": "voice_command",
+    "command": "resume",
+    "stage": "requested"
+   },
+   {
+    "type": "final",
+    "text": "This line is spoken after resuming.",
+    "speaker": "user",
+    "sequence_no": 3,
+    "utterance_type": "learning"
+   },
+   {
+    "type": "session_ended",
+    "session_id": "f00b5558-0b73-4fcf-b85a-f08fc4f9bff6"
+   }
+  ],
+  "reports": [
+   {
+    "tool_use_id": "tu-p",
+    "executed": true,
+    "reason": null
+   },
+   {
+    "tool_use_id": "tu-r",
+    "executed": true,
+    "reason": null
+   }
+  ],
+  "adapter_closed": true,
+  "session_status": "completed",
+  "session_closed": true,
+  "utterances": [
+   {
+    "sequence_no": 1,
+    "speaker": "user",
+    "utterance_type": "voice_command",
+    "transcript": "Hey, pause the session."
+   },
+   {
+    "sequence_no": 2,
+    "speaker": "user",
+    "utterance_type": "voice_command",
+    "transcript": "Hey, resume the session."
+   },
+   {
+    "sequence_no": 3,
+    "speaker": "user",
+    "utterance_type": "learning",
+    "transcript": "This line is spoken after resuming."
+   }
+  ]
+ },
+ {
+  "leg": "end_confirmed",
+  "session_id": "0d6a053f-0053-4122-bec4-812035fa5c1b",
+  "frames": [
+   {
+    "type": "session_started",
+    "session_id": "0d6a053f-0053-4122-bec4-812035fa5c1b"
+   },
+   {
+    "type": "final",
+    "text": "Hey, end the session.",
+    "speaker": "user",
+    "sequence_no": 1,
+    "utterance_type": "voice_command"
+   },
+   {
+    "type": "voice_command",
+    "command": "end",
+    "stage": "requested"
+   },
+   {
+    "type": "final",
+    "text": "Yes, please.",
+    "speaker": "user",
+    "sequence_no": 2,
+    "utterance_type": "command_confirmation"
+   },
+   {
+    "type": "voice_command",
+    "command": "end",
+    "stage": "confirmed"
+   },
+   {
+    "type": "session_ended",
+    "session_id": "0d6a053f-0053-4122-bec4-812035fa5c1b"
+   }
+  ],
+  "reports": [
+   {
+    "tool_use_id": "tu-e1",
+    "executed": true,
+    "reason": null
+   },
+   {
+    "tool_use_id": "tu-e2",
+    "executed": true,
+    "reason": null
+   }
+  ],
+  "adapter_closed": true,
+  "session_status": "completed",
+  "session_closed": true,
+  "utterances": [
+   {
+    "sequence_no": 1,
+    "speaker": "user",
+    "utterance_type": "voice_command",
+    "transcript": "Hey, end the session."
+   },
+   {
+    "sequence_no": 2,
+    "speaker": "user",
+    "utterance_type": "command_confirmation",
+    "transcript": "Yes, please."
+   }
+  ]
+ },
+ {
+  "leg": "start_additional_confirmed",
+  "session_id": "b525f5aa-6183-47a1-af83-c6b8be0cb1db",
+  "frames": [
+   {
+    "type": "session_started",
+    "session_id": "b525f5aa-6183-47a1-af83-c6b8be0cb1db"
+   },
+   {
+    "type": "final",
+    "text": "Hey, switch to pronunciation practice.",
+    "speaker": "user",
+    "sequence_no": 1,
+    "utterance_type": "voice_command"
+   },
+   {
+    "type": "voice_command",
+    "command": "start_additional",
+    "stage": "requested",
+    "target": "pronunciation"
+   },
+   {
+    "type": "final",
+    "text": "Yes.",
+    "speaker": "user",
+    "sequence_no": 2,
+    "utterance_type": "command_confirmation"
+   },
+   {
+    "type": "voice_command",
+    "command": "start_additional",
+    "stage": "confirmed",
+    "target": "pronunciation"
+   },
+   {
+    "type": "session_ended",
+    "session_id": "b525f5aa-6183-47a1-af83-c6b8be0cb1db"
+   }
+  ],
+  "reports": [
+   {
+    "tool_use_id": "tu-a1",
+    "executed": true,
+    "reason": null
+   },
+   {
+    "tool_use_id": "tu-a2",
+    "executed": true,
+    "reason": null
+   }
+  ],
+  "adapter_closed": true,
+  "session_status": "completed",
+  "session_closed": true,
+  "utterances": [
+   {
+    "sequence_no": 1,
+    "speaker": "user",
+    "utterance_type": "voice_command",
+    "transcript": "Hey, switch to pronunciation practice."
+   },
+   {
+    "sequence_no": 2,
+    "speaker": "user",
+    "utterance_type": "command_confirmation",
+    "transcript": "Yes."
+   }
+  ]
+ },
+ {
+  "leg": "boundary_no_marker",
+  "session_id": "ec3e49e9-d552-4c25-ad9e-6c28dd4b4115",
+  "frames": [
+   {
+    "type": "session_started",
+    "session_id": "ec3e49e9-d552-4c25-ad9e-6c28dd4b4115"
+   },
+   {
+    "type": "final",
+    "text": "I want to end the meeting early tomorrow.",
+    "speaker": "user",
+    "sequence_no": 1,
+    "utterance_type": "learning"
+   },
+   {
+    "type": "voice_command_ignored",
+    "command": "end"
+   },
+   {
+    "type": "final",
+    "text": "I usually go to office by subway.",
+    "speaker": "user",
+    "sequence_no": 2,
+    "utterance_type": "learning"
+   },
+   {
+    "type": "session_ended",
+    "session_id": "ec3e49e9-d552-4c25-ad9e-6c28dd4b4115"
+   }
+  ],
+  "reports": [
+   {
+    "tool_use_id": "tu-b1",
+    "executed": false,
+    "reason": "no_wake_word"
+   }
+  ],
+  "adapter_closed": true,
+  "session_status": "completed",
+  "session_closed": true,
+  "utterances": [
+   {
+    "sequence_no": 1,
+    "speaker": "user",
+    "utterance_type": "learning",
+    "transcript": "I want to end the meeting early tomorrow."
+   },
+   {
+    "sequence_no": 2,
+    "speaker": "user",
+    "utterance_type": "learning",
+    "transcript": "I usually go to office by subway."
+   }
+  ]
+ },
+ {
+  "leg": "boundary_marker_mid_sentence",
+  "session_id": "99e43c26-64de-4bdb-bb43-51a236b3def7",
+  "frames": [
+   {
+    "type": "session_started",
+    "session_id": "99e43c26-64de-4bdb-bb43-51a236b3def7"
+   },
+   {
+    "type": "final",
+    "text": "I told my friend about Oh My English yesterday.",
+    "speaker": "user",
+    "sequence_no": 1,
+    "utterance_type": "learning"
+   },
+   {
+    "type": "voice_command_ignored",
+    "command": "end"
+   },
+   {
+    "type": "session_ended",
+    "session_id": "99e43c26-64de-4bdb-bb43-51a236b3def7"
+   }
+  ],
+  "reports": [
+   {
+    "tool_use_id": "tu-b2",
+    "executed": false,
+    "reason": "no_wake_word"
+   }
+  ],
+  "adapter_closed": true,
+  "session_status": "completed",
+  "session_closed": true,
+  "utterances": [
+   {
+    "sequence_no": 1,
+    "speaker": "user",
+    "utterance_type": "learning",
+    "transcript": "I told my friend about Oh My English yesterday."
+   }
+  ]
+ },
+ {
+  "leg": "end_cancelled",
+  "session_id": "033b08c5-95e3-4e75-b48a-b80a7d8643df",
+  "frames": [
+   {
+    "type": "session_started",
+    "session_id": "033b08c5-95e3-4e75-b48a-b80a7d8643df"
+   },
+   {
+    "type": "final",
+    "text": "Hey, end the session.",
+    "speaker": "user",
+    "sequence_no": 1,
+    "utterance_type": "voice_command"
+   },
+   {
+    "type": "voice_command",
+    "command": "end",
+    "stage": "requested"
+   },
+   {
+    "type": "final",
+    "text": "No, keep going.",
+    "speaker": "user",
+    "sequence_no": 2,
+    "utterance_type": "command_confirmation"
+   },
+   {
+    "type": "voice_command",
+    "command": "end",
+    "stage": "cancelled"
+   },
+   {
+    "type": "final",
+    "text": "I need to finish my homework tonight.",
+    "speaker": "user",
+    "sequence_no": 3,
+    "utterance_type": "learning"
+   },
+   {
+    "type": "session_ended",
+    "session_id": "033b08c5-95e3-4e75-b48a-b80a7d8643df"
+   }
+  ],
+  "reports": [
+   {
+    "tool_use_id": "tu-c1",
+    "executed": true,
+    "reason": null
+   },
+   {
+    "tool_use_id": "tu-c2",
+    "executed": true,
+    "reason": null
+   }
+  ],
+  "adapter_closed": true,
+  "session_status": "completed",
+  "session_closed": true,
+  "utterances": [
+   {
+    "sequence_no": 1,
+    "speaker": "user",
+    "utterance_type": "voice_command",
+    "transcript": "Hey, end the session."
+   },
+   {
+    "sequence_no": 2,
+    "speaker": "user",
+    "utterance_type": "command_confirmation",
+    "transcript": "No, keep going."
+   },
+   {
+    "sequence_no": 3,
+    "speaker": "user",
+    "utterance_type": "learning",
+    "transcript": "I need to finish my homework tonight."
+   }
+  ]
+ }
+]

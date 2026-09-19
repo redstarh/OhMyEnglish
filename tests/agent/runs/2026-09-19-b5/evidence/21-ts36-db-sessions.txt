@@ -1,0 +1,11 @@
+e7eb8948-2476-4366-95ce-859eb34efa8e|speaking|additional|ui|completed|t
+7523a66f-d7de-4a5b-bca8-12ccc79089f7|speaking|additional|ui|completed|t
+5eb0702e-0378-4af9-b119-7bd3fde2795c|scenario_intake|additional|ui|completed|t
+072f8489-484d-4d41-bd35-30a2a28b64e0|pronunciation|additional|ui|completed|t
+f2b9d9fb-b6ac-456f-afcc-f33d92a16884|shadowing|additional|ui|completed|t
+
+자유 대화 e7eb8948 utt= 6 jobs= 3
+약점 패턴 집중 7523a66f utt= 6 jobs= 3
+질문 답변 5개 5eb0702e utt= 6 jobs= 4
+발음 집중 072f8489 utt= 6 jobs= 3
+쉐도잉 f2b9d9fb utt= 6 jobs= 3

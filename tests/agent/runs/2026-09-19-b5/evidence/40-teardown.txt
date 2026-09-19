@@ -1,0 +1,126 @@
+== 54ce134a-985f-4f4f-b8d9-fca61d0e786b
+ "utterance_jobs_deleted": 3,
+ "session_jobs_deleted": 3,
+ "session_deleted": 1,
+ "recordings_removed": 0
+}
+⚠️ error_patterns·review_tasks 는 지우지 않았다 — 회차가 «갱신» 한 기존 행이므로 회차 전 스냅샷으로 복원한다(browser_leg.md §8-②).
+== ddf4913d-939e-48fe-bf2e-5d164b4e8fbb
+ "utterance_jobs_deleted": 0,
+ "session_jobs_deleted": 3,
+ "session_deleted": 1,
+ "recordings_removed": 0
+}
+⚠️ error_patterns·review_tasks 는 지우지 않았다 — 회차가 «갱신» 한 기존 행이므로 회차 전 스냅샷으로 복원한다(browser_leg.md §8-②).
+== e7eb8948-2476-4366-95ce-859eb34efa8e
+ "utterance_jobs_deleted": 3,
+ "session_jobs_deleted": 3,
+ "session_deleted": 1,
+ "recordings_removed": 0
+}
+⚠️ error_patterns·review_tasks 는 지우지 않았다 — 회차가 «갱신» 한 기존 행이므로 회차 전 스냅샷으로 복원한다(browser_leg.md §8-②).
+== 7523a66f-d7de-4a5b-bca8-12ccc79089f7
+ "utterance_jobs_deleted": 3,
+ "session_jobs_deleted": 3,
+ "session_deleted": 1,
+ "recordings_removed": 0
+}
+⚠️ error_patterns·review_tasks 는 지우지 않았다 — 회차가 «갱신» 한 기존 행이므로 회차 전 스냅샷으로 복원한다(browser_leg.md §8-②).
+== 5eb0702e-0378-4af9-b119-7bd3fde2795c
+ "utterance_jobs_deleted": 3,
+ "session_jobs_deleted": 4,
+ "session_deleted": 1,
+ "recordings_removed": 0
+}
+⚠️ error_patterns·review_tasks 는 지우지 않았다 — 회차가 «갱신» 한 기존 행이므로 회차 전 스냅샷으로 복원한다(browser_leg.md §8-②).
+== 072f8489-484d-4d41-bd35-30a2a28b64e0
+ "utterance_jobs_deleted": 3,
+ "session_jobs_deleted": 3,
+ "session_deleted": 1,
+ "recordings_removed": 0
+}
+⚠️ error_patterns·review_tasks 는 지우지 않았다 — 회차가 «갱신» 한 기존 행이므로 회차 전 스냅샷으로 복원한다(browser_leg.md §8-②).
+== f2b9d9fb-b6ac-456f-afcc-f33d92a16884
+ "utterance_jobs_deleted": 3,
+ "session_jobs_deleted": 3,
+ "session_deleted": 1,
+ "recordings_removed": 0
+}
+⚠️ error_patterns·review_tasks 는 지우지 않았다 — 회차가 «갱신» 한 기존 행이므로 회차 전 스냅샷으로 복원한다(browser_leg.md §8-②).
+== 8c2231e6-e82c-4373-993a-9db7aae8cd63
+ "utterance_jobs_deleted": 1,
+ "session_jobs_deleted": 3,
+ "session_deleted": 1,
+ "recordings_removed": 0
+}
+⚠️ error_patterns·review_tasks 는 지우지 않았다 — 회차가 «갱신» 한 기존 행이므로 회차 전 스냅샷으로 복원한다(browser_leg.md §8-②).
+== d93afee2-ce21-4ae1-8ebd-ffb38e761775
+ "utterance_jobs_deleted": 0,
+ "session_jobs_deleted": 3,
+ "session_deleted": 1,
+ "recordings_removed": 0
+}
+⚠️ error_patterns·review_tasks 는 지우지 않았다 — 회차가 «갱신» 한 기존 행이므로 회차 전 스냅샷으로 복원한다(browser_leg.md §8-②).
+== f00b5558-0b73-4fcf-b85a-f08fc4f9bff6
+ "utterance_jobs_deleted": 1,
+ "session_jobs_deleted": 3,
+ "session_deleted": 1,
+ "recordings_removed": 0
+}
+⚠️ error_patterns·review_tasks 는 지우지 않았다 — 회차가 «갱신» 한 기존 행이므로 회차 전 스냅샷으로 복원한다(browser_leg.md §8-②).
+== 0d6a053f-0053-4122-bec4-812035fa5c1b
+ "utterance_jobs_deleted": 0,
+ "session_jobs_deleted": 3,
+ "session_deleted": 1,
+ "recordings_removed": 0
+}
+⚠️ error_patterns·review_tasks 는 지우지 않았다 — 회차가 «갱신» 한 기존 행이므로 회차 전 스냅샷으로 복원한다(browser_leg.md §8-②).
+== b525f5aa-6183-47a1-af83-c6b8be0cb1db
+ "utterance_jobs_deleted": 0,
+ "session_jobs_deleted": 3,
+ "session_deleted": 1,
+ "recordings_removed": 0
+}
+⚠️ error_patterns·review_tasks 는 지우지 않았다 — 회차가 «갱신» 한 기존 행이므로 회차 전 스냅샷으로 복원한다(browser_leg.md §8-②).
+== ec3e49e9-d552-4c25-ad9e-6c28dd4b4115
+ "utterance_jobs_deleted": 1,
+ "session_jobs_deleted": 3,
+ "session_deleted": 1,
+ "recordings_removed": 0
+}
+⚠️ error_patterns·review_tasks 는 지우지 않았다 — 회차가 «갱신» 한 기존 행이므로 회차 전 스냅샷으로 복원한다(browser_leg.md §8-②).
+== 99e43c26-64de-4bdb-bb43-51a236b3def7
+ "utterance_jobs_deleted": 1,
+ "session_jobs_deleted": 3,
+ "session_deleted": 1,
+ "recordings_removed": 0
+}
+⚠️ error_patterns·review_tasks 는 지우지 않았다 — 회차가 «갱신» 한 기존 행이므로 회차 전 스냅샷으로 복원한다(browser_leg.md §8-②).
+== 033b08c5-95e3-4e75-b48a-b80a7d8643df
+ "utterance_jobs_deleted": 1,
+ "session_jobs_deleted": 3,
+ "session_deleted": 1,
+ "recordings_removed": 0
+}
+⚠️ error_patterns·review_tasks 는 지우지 않았다 — 회차가 «갱신» 한 기존 행이므로 회차 전 스냅샷으로 복원한다(browser_leg.md §8-②).
+== 00076051-2e84-411a-9474-74ad93b2efb1
+ "utterance_jobs_deleted": 3,
+ "session_jobs_deleted": 3,
+ "session_deleted": 1,
+ "recordings_removed": 0
+}
+⚠️ error_patterns·review_tasks 는 지우지 않았다 — 회차가 «갱신» 한 기존 행이므로 회차 전 스냅샷으로 복원한다(browser_leg.md §8-②).
+== f5f832a5-b648-4529-bbe9-f9a88e022d01
+ "utterance_jobs_deleted": 3,
+ "session_jobs_deleted": 3,
+ "session_deleted": 1,
+ "recordings_removed": 0
+}
+⚠️ error_patterns·review_tasks 는 지우지 않았다 — 회차가 «갱신» 한 기존 행이므로 회차 전 스냅샷으로 복원한다(browser_leg.md §8-②).
+== d1829cf4-6772-4c83-94dc-1e2b7bd387f8
+ "utterance_jobs_deleted": 3,
+ "session_jobs_deleted": 3,
+ "session_deleted": 1,
+ "recordings_removed": 0
+}
+⚠️ error_patterns·review_tasks 는 지우지 않았다 — 회차가 «갱신» 한 기존 행이므로 회차 전 스냅샷으로 복원한다(browser_leg.md §8-②).
