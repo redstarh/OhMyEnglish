@@ -1,0 +1,38 @@
+{
+  "id": "4d2bbd6c-2832-46f3-9c91-0df4d0d7bc2a",
+  "ok": true,
+  "result": {
+    "origin": "http://localhost:3000/history/weekly",
+    "refs": {
+      "e1": {
+        "name": "주간 학습 리포트",
+        "role": "heading"
+      },
+      "e2": {
+        "name": "이 주에 자주 틀린 것",
+        "role": "heading"
+      },
+      "e3": {
+        "name": "나아진 것",
+        "role": "heading"
+      },
+      "e4": {
+        "name": "다음 주에 해 볼 것",
+        "role": "heading"
+      },
+      "e5": {
+        "name": "← 학습 히스토리로",
+        "role": "link"
+      },
+      "e6": {
+        "name": "Open Next.js Dev Tools",
+        "role": "button"
+      }
+    },
+    "snapshot": "- main\n  - heading \"주간 학습 리포트\" [level=1, ref=e1]\n  - paragraph\n    - StaticText \"9월 7일 ~ 9월 13일\"\n  - paragraph\n    - StaticText \"학습 22회 · 오류 9건 · 패턴 2종\"\n  - generic\n    - heading \"이 주에 자주 틀린 것\" [level=2, ref=e2]\n    - list\n      - listitem [level=1]\n        - ListMarker \"• \"\n        - StaticText \"an + vowel noun — 6회 (grammar)\"\n      - listitem [level=1]\n        - ListMarker \"• \"\n        - StaticText \"went — 3회 (grammar)\"\n  - generic\n    - heading \"나아진 것\" [level=2, ref=e3]\n    - list\n      - listitem [level=1]\n        - ListMarker \"• \"\n        - StaticText \"관사 붙이기가 나아지고 있음\"\n  - generic\n    - heading \"다음 주에 해 볼 것\" [level=2, ref=e4]\n    - list\n      - listitem [level=1]\n        - ListMarker \"• \"\n        - StaticText \"호텔 체크인\"\n  - paragraph\n    - link \"← 학습 히스토리로\" [ref=e5]\n- button \"Open Next.js Dev Tools\" [expanded=false, ref=e6]\n  - image\n- alert",
+    "browserPageId": "ba56b667-215a-44f2-84ad-33b60f77e93e"
+  },
+  "_meta": {
+    "runtimeId": "a06039e1-b391-4134-aeea-8a5d210fd970"
+  }
+}

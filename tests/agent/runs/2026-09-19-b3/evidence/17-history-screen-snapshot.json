@@ -1,0 +1,30 @@
+{
+  "id": "604a8255-e79c-4aea-a7e9-c03c7947eae4",
+  "ok": true,
+  "result": {
+    "origin": "http://localhost:3000/history",
+    "refs": {
+      "e1": {
+        "name": "학습 히스토리",
+        "role": "heading"
+      },
+      "e2": {
+        "name": "주간 리포트 보기 →",
+        "role": "link"
+      },
+      "e3": {
+        "name": "← 학습 시작 화면으로",
+        "role": "link"
+      },
+      "e4": {
+        "name": "Open Next.js Dev Tools",
+        "role": "button"
+      }
+    },
+    "snapshot": "- main\n  - heading \"학습 히스토리\" [level=1, ref=e1]\n  - paragraph\n    - StaticText \"3일 연속 학습 중이에요\"\n  - paragraph\n    - StaticText \"최장 연속 3일\"\n  - StaticText \"2026-09-19\"\n  - StaticText \" \"\n  - StaticText \"· 학습함\"\n  - StaticText \"오류 7건 · 패턴 2종\"\n  - StaticText \"2026-09-18\"\n  - StaticText \" \"\n  - StaticText \"· 학습함\"\n  - StaticText \"분석 기록 없음\"\n  - StaticText \"2026-09-17\"\n  - StaticText \" \"\n  - StaticText \"· 학습함\"\n  - StaticText \"오류 없음\"\n  - StaticText \"2026-09-16\"\n  - StaticText \"2026-09-15\"\n  - StaticText \"2026-09-14\"\n  - StaticText \"2026-09-13\"\n  - StaticText \"2026-09-12\"\n  - StaticText \"2026-09-11\"\n  - StaticText \"2026-09-10\"\n  - StaticText \" \"\n  - StaticText \"· 학습함\"\n  - StaticText \"분석 기록 없음\"\n  - StaticText \"2026-09-09\"\n  - StaticText \" \"\n  - StaticText \"· 학습함\"\n  - StaticText \"분석 기록 없음\"\n  - StaticText \"2026-09-08\"\n  - StaticText \"2026-09-07\"\n  - StaticText \"2026-09-06\"\n  - StaticText \" \"\n  - StaticText \"· 학습함\"\n  - StaticText \"오류 3건 · 패턴 1종\"\n  - StaticText \"2026-09-05\"\n  - StaticText \"2026-09-04\"\n  - StaticText \"2026-09-03\"\n  - StaticText \" \"\n  - StaticText \"· 학습함\"\n  - StaticText \"분석 기록 없음\"\n  - StaticText \"2026-09-02\"\n  - StaticText \"2026-09-01\"\n  - StaticText \" \"\n  - StaticText \"· 학습함\"\n  - StaticText \"분석 기록 없음\"\n  - StaticText \"2026-08-31\"\n  - StaticText \"2026-08-30\"\n  - StaticText \"2026-08-29\"\n  - StaticText \"2026-08-28\"\n  - StaticText \"2026-08-27\"\n  - StaticText \"2026-08-26\"\n  - StaticText \"2026-08-25\"\n  - StaticText \" \"\n  - StaticText \"· 학습함\"\n  - StaticText \"분석 기록 없음\"\n  - StaticText \"2026-08-24\"\n  - StaticText \"2026-08-23\"\n  - StaticText \"2026-08-22\"\n  - StaticText \"2026-08-21\"\n  - paragraph\n    - link \"주간 리포트 보기 →\" [ref=e2]\n  - paragraph\n    - link \"← 학습 시작 화면으로\" [ref=e3]\n- button \"Open Next.js Dev Tools\" [expanded=false, ref=e4]\n  - image\n- alert",
+    "browserPageId": "34447a41-0e37-4777-9763-7e147200c6ff"
+  },
+  "_meta": {
+    "runtimeId": "a06039e1-b391-4134-aeea-8a5d210fd970"
+  }
+}

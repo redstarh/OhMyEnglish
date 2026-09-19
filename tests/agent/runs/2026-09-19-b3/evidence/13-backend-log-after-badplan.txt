@@ -1,0 +1,33 @@
+세션 e0c5e580-dfc0-4793-b02d-54cf4346c3c5: 드릴 exchange 미달 — 관측 2건 / 기대 20건 (지시문을 고치는 입력이다 — 캡틴 결정 10)
+계획 b3000000-0000-0000-0000-0000000000b1를 읽을 수 없어 계획 없이 시작한다 — 저장된 모양이 지금의 SessionInstruction·PlanQuestion 계약과 다르다: 5 validation errors for SessionInstruction
+target_level
+  Field required [type=missing, input_value={'focus': '이것은 배열이 아님'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.13/v/missing
+focus
+  Input should be a valid list [type=list_type, input_value='이것은 배열이 아님', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.13/v/list_type
+sentence_length
+  Field required [type=missing, input_value={'focus': '이것은 배열이 아님'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.13/v/missing
+hint_timing
+  Field required [type=missing, input_value={'focus': '이것은 배열이 아님'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.13/v/missing
+contexts
+  Field required [type=missing, input_value={'focus': '이것은 배열이 아님'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.13/v/missing
+계획 b3000000-0000-0000-0000-0000000000b1를 읽을 수 없어 계획 없이 시작한다 — 저장된 모양이 지금의 SessionInstruction·PlanQuestion 계약과 다르다: 5 validation errors for SessionInstruction
+target_level
+  Field required [type=missing, input_value={'focus': '이것은 배열이 아님'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.13/v/missing
+focus
+  Input should be a valid list [type=list_type, input_value='이것은 배열이 아님', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.13/v/list_type
+sentence_length
+  Field required [type=missing, input_value={'focus': '이것은 배열이 아님'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.13/v/missing
+hint_timing
+  Field required [type=missing, input_value={'focus': '이것은 배열이 아님'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.13/v/missing
+contexts
+  Field required [type=missing, input_value={'focus': '이것은 배열이 아님'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.13/v/missing

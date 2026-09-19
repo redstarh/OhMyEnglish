@@ -1,0 +1,19 @@
+# 그 세션 행
+8021ef05-d31c-41b5-94d6-1bb813e7be2a|completed|t|speaking|2026-09-19 05:47:28.104083+00|2026-09-19 05:47:28.127912+00|2026-09-19
+# 그 세션이 건 job
+plan_next_session|pending|0|2026-09-19 05:47:28.127912+00
+summarize_session|pending|0|2026-09-19 05:47:28.127912+00
+summarize_week|pending|0|2026-09-19 05:47:28.127912+00
+# analysis_jobs by type/status (사후)
+analyze_utterance|done|41
+analyze_utterance|failed|30
+analyze_utterance|pending|3
+plan_next_session|done|6
+plan_next_session|failed|14
+plan_next_session|pending|1
+summarize_session|failed|10
+summarize_session|pending|1
+summarize_week|failed|10
+summarize_week|pending|1
+# llm_calls (사후)
+33

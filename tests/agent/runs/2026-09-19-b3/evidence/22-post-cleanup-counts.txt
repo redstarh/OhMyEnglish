@@ -1,0 +1,18 @@
+# 정리 뒤 (측정 시각)
+2026-09-19 06:02:57.861582+00
+# 표 행수 — 회차 시작 값과 대조
+learning_sessions|27
+daily_error_summary|1
+weekly_reports|0
+session_plans|6
+utterances|175
+llm_calls|34
+# analysis_jobs by type/status
+analyze_utterance|done|41
+analyze_utterance|failed|30
+plan_next_session|done|6
+plan_next_session|failed|14
+summarize_session|failed|10
+summarize_week|failed|10
+# b3 잔여 행 (0이어야 함)
+0

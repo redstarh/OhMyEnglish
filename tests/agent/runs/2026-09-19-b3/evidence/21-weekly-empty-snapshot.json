@@ -1,0 +1,26 @@
+{
+  "id": "503eb0c3-20d5-4d69-8de3-5b304606bfaa",
+  "ok": true,
+  "result": {
+    "origin": "http://localhost:3000/history/weekly",
+    "refs": {
+      "e1": {
+        "name": "주간 학습 리포트",
+        "role": "heading"
+      },
+      "e2": {
+        "name": "← 학습 히스토리로",
+        "role": "link"
+      },
+      "e3": {
+        "name": "Open Next.js Dev Tools",
+        "role": "button"
+      }
+    },
+    "snapshot": "- main\n  - heading \"주간 학습 리포트\" [level=1, ref=e1]\n  - paragraph\n    - StaticText \"아직 만들어진 주간 리포트가 없어요. 한 주 학습이 쌓이면 만들어져요.\"\n  - paragraph\n    - link \"← 학습 히스토리로\" [ref=e2]\n- button \"Open Next.js Dev Tools\" [expanded=false, ref=e3]\n  - image\n- alert",
+    "browserPageId": "ad6cccd0-8603-428a-b304-05d397cfdc9c"
+  },
+  "_meta": {
+    "runtimeId": "a06039e1-b391-4134-aeea-8a5d210fd970"
+  }
+}
