@@ -46,7 +46,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from app.audio_gateway.factory import create_voice_adapter
 from app.audio_gateway.session import SessionRunner
 from app.config import Settings, get_settings
-from app.models.plan import PlanQuestion
+from app.models.plan import InstructionFocus, PlanQuestion
 from app.models.scenario import SessionScenario
 from app.models.user import FIXED_USER_ID
 from app.services.pronunciation import load_known_sounds, pronunciation_candidates
@@ -55,6 +55,7 @@ from app.services.session_modes import DEFAULT_POLICY, policy_for
 from app.services.sessions import (
     PreparedPlan,
     create_session,
+    load_focus_pattern,
     load_prepared_plan,
     load_session_scenario,
     mark_session_ended,
@@ -257,6 +258,27 @@ async def _load_scenario_or_none(pool: asyncpg.Pool, session_id: UUID) -> Sessio
     )
 
 
+async def _load_focus_pattern_or_none(
+    pool: asyncpg.Pool, pattern_key: str
+) -> InstructionFocus | None:
+    """학습자가 고른 오류 패턴 — 없거나 읽지 못하면 `None` (`TASK-241` · `PRD.md:70`).
+
+    위 함수들과 **같은 실패 규약**이다: 조회 실패를 세션 시작 실패로 번역하지 않는다. 고른 패턴을
+    읽지 못하면 계획의 초점이 그대로 쓰이고 세션은 열린다 — 즉시 드릴은 학습의 «한 종류»이고
+    그것이 안 되는 것이 대화 전체를 잃는 근거가 되지 않는다.
+
+    ⚠️ **「없는 패턴」과 「조회가 깨진 것」을 구분하지 않는다** — 둘 다 「계획의 초점으로
+    진행한다」로 수렴한다. 구분은 로그가 담당한다(`load_focus_pattern` 은 없는 키에 `None` 을
+    돌려주고 예외를 던지지 않으므로, 이 로그는 실제 조회 고장만 가리킨다).
+    """
+    return await _read_or_fallback(
+        pool,
+        lambda conn: load_focus_pattern(conn, FIXED_USER_ID, pattern_key),
+        fallback=None,
+        on_failure="고른 오류 패턴을 읽지 못해 계획의 초점으로 진행한다",
+    )
+
+
 async def _record_session_mode_or_continue(pool: asyncpg.Pool, session_id: UUID, mode: str) -> None:
     """세션 행에 자기 진입을 적는다 — 실패하면 로그만 남기고 진행한다 (결정 67 의 규약).
 
@@ -343,6 +365,13 @@ async def session_socket(websocket: WebSocket) -> None:
     # ⚠️ **이 값이 없던 동안 음성으로 연 세션과 버튼으로 연 세션이 «같은 행»이었다** — 그래서
     # 음성 제어가 실제로 쓰이는지 어느 컬럼으로도 셀 수 없었다(`PRD.md:76`).
     requested_via = websocket.query_params.get("via")
+    # `TASK-241`(결함 `TASK-233`) — 결과 화면의 패턴 카드가 「이 패턴으로 연습」을 가리키는 자리
+    # (`?pattern=<pattern_key>`). 요구 정본은 `PRD.md:70` 이다.
+    # ⛔ **없는 키를 오류로 만들지 않는다** — `load_focus_pattern` 이 `None` 을 돌려주고 계획의
+    # 초점이 그대로 쓰인다(`?item=` 과 같은 관례). 학습자가 방금 사라진 카드를 눌러도 학습이 열린다.
+    # ⚠️ **세션 행에는 그래도 적는다** — 「학습자가 그 키로 들어왔다」는 사실은 패턴이 실재하는지와
+    # 별개이고, 실재하지 않는 키로 들어온 것 자체가 다음 회차가 읽을 신호다.
+    requested_pattern = websocket.query_params.get("pattern") or None
     try:
         session_id = (
             await start_shadowing_session(
@@ -351,6 +380,7 @@ async def session_socket(websocket: WebSocket) -> None:
                 learning_source=requested_source,
                 item_id=requested_item,
                 started_via=requested_via,
+                focus_pattern_key=requested_pattern,
             )
             if policy.opens_shadowing_session
             else await create_session(
@@ -358,6 +388,7 @@ async def session_socket(websocket: WebSocket) -> None:
                 FIXED_USER_ID,
                 learning_source=requested_source,
                 started_via=requested_via,
+                focus_pattern_key=requested_pattern,
             )
         )
     except asyncpg.PostgresError:
@@ -388,6 +419,19 @@ async def session_socket(websocket: WebSocket) -> None:
         # 자체를 넘기면 `factory`·`nova`가 `services`를 import해 의존 방향이 뒤집힌다.
         plan = prepared.instruction if prepared is not None else None
         questions = prepared.questions if prepared is not None else []
+        # `TASK-241` — 학습자가 고른 패턴이 **계획의 초점을 대체한다**(`PRD.md:70`).
+        # ⛔ **세션 행에 적는 것만으로는 겉치레다** — 기록은 남는데 코치는 계획의 초점을 연습시키고,
+        # 그 상태가 「경로가 있다」로 보이는 것이 가장 나쁘다. 그래서 두 자리를 한 커밋에서 잇는다.
+        # ⛔ **계획이 없으면(`plan is None`) 지시문을 지어내지 않는다.** `target_level`·
+        # `sentence_length`·`hint_timing`·`contexts` 는 프롬프트 문구 결정이고 소켓의 몫이 아니다 —
+        # 그때는 패턴만 세션 행에 남고 세션은 그대로 열린다(AS4 「계획이 없어도 학습은 시작됨」과
+        # 같은 규약). ⚠️ 그 경로가 관측되면 계획 생성 쪽을 먼저 본다.
+        # ⛔ **초점을 «덧붙이지» 않고 바꾼다** — `SessionInstruction.focus` 는 최대 2개이고, 고른
+        # 패턴 옆에 계획의 초점을 남기면 「이것만 연습한다」가 흐려진다.
+        if plan is not None and requested_pattern is not None:
+            chosen = await _load_focus_pattern_or_none(pool, requested_pattern)
+            if chosen is not None:
+                plan = plan.model_copy(update={"focus": [chosen]})
         settings = get_settings()
         # 질문 수를 알아야 계산하므로 계획 조회 **뒤**다. 계획이 없으면 아무것도 쓰지 않는다 →
         # 컬럼이 null로 남고 그것이 「관측 대상 아님」이다(캡틴 결정 16). **어느 모드가 이 값을

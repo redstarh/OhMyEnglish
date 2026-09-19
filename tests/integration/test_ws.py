@@ -1062,6 +1062,72 @@ async def test_ws_records_voice_command_entry_and_keeps_ui_as_the_default(
     assert button_via == "ui", f"버튼으로 연 세션까지 {button_via!r} 로 적혔다 — 기본값을 잃었다"
 
 
+# ── 즉시 드릴 진입 (`TASK-241` · 결함 `TASK-233`) ──────────────────────────────
+#
+# ⛔ **`PRD.md:70` 이 글자로 요구하는데 경로가 0곳이었다** — 결과 화면이 패턴을 보여 주기만 하고
+# 그 패턴으로 학습을 만드는 표면이 없었다(`pattern_key` 가 React key 로만 쓰였다).
+#
+# ⛔ **두 자리를 «한 검사로» 재는 것이 의도다.** 세션 행에만 적히고 지시문이 안 바뀌면 기록은
+# 남는데 코치는 다른 것을 연습시킨다 — 그 상태가 「경로가 있다」로 보이는 것이 가장 나쁘다.
+# 거꾸로 지시문만 바뀌면 어느 패턴에서 온 드릴인지 뒤에 셀 수 없다.
+#
+# ⛔ **대조 팔이 필요하다** — 패턴을 주지 않은 세션의 초점이 계획 그대로여야 한다. 그것을 재지
+# 않으면 「모든 세션의 초점을 마지막 패턴으로 덮는」 구현이 통과한다.
+async def test_ws_pattern_entry_records_the_choice_and_replaces_the_instruction_focus(
+    ws_app: FastAPI,
+    db_pool: asyncpg.Pool,
+    seeded_fixed_user: UUID,
+    seed_plan_for_session,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    chosen_key = "preposition_in_work_update"
+    chosen_form = "I worked on the API yesterday."
+    async with db_pool.acquire() as conn:
+        await seed_plan_for_session(conn, user_id=FIXED_USER_ID)
+        await conn.execute(
+            "insert into error_patterns (user_id, category, pattern_key, target_form) "
+            "values ($1, 'preposition', $2, $3)",
+            FIXED_USER_ID,
+            chosen_key,
+            chosen_form,
+        )
+
+    seen = _capture_factory_args(monkeypatch)
+    async with ws_app.router.lifespan_context(ws_app):
+        async with ASGIWebSocket(
+            ws_app, query_string=f"source=additional&pattern={chosen_key}".encode()
+        ) as client:
+            drill = await client.receive_event()
+        drill_plan = seen.get("plan")
+        async with ASGIWebSocket(ws_app, query_string=b"source=additional") as client:
+            plain = await client.receive_event()
+        plain_plan = seen.get("plan")
+
+    assert drill is not None and plain is not None
+    async with db_pool.acquire() as conn:
+        drill_key = await conn.fetchval(
+            "select focus_pattern_key from learning_sessions where id = $1",
+            UUID(drill["session_id"]),
+        )
+        plain_key = await conn.fetchval(
+            "select focus_pattern_key from learning_sessions where id = $1",
+            UUID(plain["session_id"]),
+        )
+
+    assert drill_key == chosen_key, f"고른 패턴이 세션 행에 남지 않았다 — {drill_key!r}"
+    assert plain_key is None, f"패턴을 고르지 않은 세션에 {plain_key!r} 가 적혔다"
+
+    assert isinstance(drill_plan, SessionInstruction)
+    assert [f.pattern_key for f in drill_plan.focus] == [chosen_key], (
+        "지시문의 초점이 고른 패턴으로 바뀌지 않았다 — 기록은 남고 코치는 다른 것을 연습시킨다"
+    )
+    assert drill_plan.focus[0].target_form == chosen_form
+    assert isinstance(plain_plan, SessionInstruction)
+    assert chosen_key not in [f.pattern_key for f in plain_plan.focus], (
+        "패턴을 고르지 않은 세션의 초점까지 덮였다 — 계획이 무력화된다"
+    )
+
+
 async def test_ws_a_normal_session_does_not_ask_for_scenario_intake(
     ws_app: FastAPI,
     seeded_fixed_user: UUID,

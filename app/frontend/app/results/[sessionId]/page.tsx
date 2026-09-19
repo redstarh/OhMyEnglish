@@ -12,6 +12,7 @@ import {
   type SessionResultPayload,
   type SessionResultStatus,
 } from "@/lib/api";
+import { dashboardEntryHref } from "@/lib/config";
 
 const POLL_INTERVAL_MS = 2000;
 
@@ -170,6 +171,18 @@ const DAILY_HEADING = "오늘 무엇을 틀렸는지";
 // 반복은 사실 진술이라 적는다 — 학습자가 무엇을 되풀이했는지 알아야 다음 초점이 이해된다.
 // **1번일 때는 쓰지 않는다**: 「오늘 1번」은 아무것도 말하지 않으면서 개수 표시만 남긴다.
 const dailyRepeatNotice = (occurrences: number) => `오늘 ${occurrences}번 나왔어요`;
+
+// 즉시 드릴 (`TASK-241` · 결함 `TASK-233`). 요구 정본은 `docs/PRD.md:70` 과
+// `docs/requirements-summary.md:53-54` 다 — 「자주 틀리는 패턴을 **직접 보고**, 해당 패턴으로 즉시
+// 학습을 만들 수 있음」. 그때까지 이 절은 패턴을 보여 주기만 했고 `pattern_key` 가 React key 로만
+// 쓰였다.
+//
+// ⛔ **문구를 「연습 만들어줘」로 적지 않는다** — 그것은 `PRD.md:70` 이 예시로 든 **말로 하는**
+// 요청이고(경로 A), 이 버튼은 화면에서 누르는 것이다. 버튼이 말투를 흉내내면 학습자가 이것을
+// 음성 명령으로 읽는다.
+// ⚠️ 패턴 키(`past_tense_in_work_update`)는 기계 키라 문구에 넣지 않는다 — 발음 카드가 소리 키를
+// 렌더하지 않는 것과 같은 판단이다.
+const DAILY_DRILL_LABEL = "이 패턴으로 연습하기";
 
 const DAILY_CARD_STYLE = {
   // 세션 교정 카드(사각 테두리)와 발음 카드(왼쪽 규칙선) 사이의 위계를 새로 만들지 않는다 —
@@ -489,6 +502,22 @@ export default function ResultsPage() {
                       {dailyRepeatNotice(item.occurrences)}
                     </p>
                   )}
+                  {/* 진입 질의 이름을 여기서 적지 않는다 — `dashboardEntryHref` 가 소유한다
+                      (`TASK-168` 이 그 근거를 갖는다: 만드는 쪽과 읽는 쪽이 각자 필드를 적으면
+                      한쪽이 조용히 다른 부분집합을 다룬다). `source` 를 `additional` 로 주는 것은
+                      즉시 드릴이 추가 학습의 한 종류라서다 — 추천 과제로 세면 `PRD.md:76` 의
+                      구분이 흐려진다. */}
+                  <p style={{ margin: "0.5rem 0 0" }}>
+                    <Link
+                      href={dashboardEntryHref({
+                        source: "additional",
+                        patternKey: item.pattern_key,
+                      })}
+                      style={{ textDecoration: "underline" }}
+                    >
+                      {DAILY_DRILL_LABEL}
+                    </Link>
+                  </p>
                 </div>
               ))}
             </div>

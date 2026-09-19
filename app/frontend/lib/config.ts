@@ -45,6 +45,19 @@ export interface SessionEntry {
    * 아직 쓰는 경로가 없어 여기 담지 않는다 — 생기는 턴에 그때 더한다).
    */
   via?: "voice_command";
+  /**
+   * 학습자가 **고른 오류 패턴** — 그 패턴으로 즉시 드릴을 연다 (`TASK-241` · 결함 `TASK-233`).
+   *
+   * 요구 정본은 `docs/PRD.md:70` 과 `docs/requirements-summary.md:53-54` 다 — 「자주 틀리는 패턴을
+   * 직접 보고, 해당 패턴으로 즉시 학습을 만들 수 있음」. 그때까지 결과 화면은 패턴을 **보여 주기만**
+   * 했고 `pattern_key` 가 React key 로만 쓰였다.
+   * ⚠️ **없는 키를 보내도 학습은 열린다** — 서버가 계획의 초점으로 떨어뜨린다(`?item` 과 같은
+   * 관례). 학습자가 방금 사라진 카드를 눌렀을 때 막히지 않게 하는 것이 그 근거다.
+   * ⛔ **`mode` 없이도 뜻이 있는 유일한 필드다** — 즉시 드릴은 말하기 세션이고 말하기는 `mode`
+   * 값역에 없다(없는 것이 기본값이다). 그래서 `entryFromQuery` 의 「`mode` 가 없으면 `null`」이
+   * 이 필드에는 걸리지 않는다.
+   */
+  patternKey?: string;
 }
 
 /**
@@ -77,24 +90,52 @@ function entryQuery(entry: SessionEntry): Record<string, string> {
   if (entry.source) query.source = entry.source;
   if (entry.itemId) query.item = entry.itemId;
   if (entry.via) query.via = entry.via;
+  if (entry.patternKey) query.pattern = entry.patternKey;
   return query;
+}
+
+/**
+ * 대시보드로 돌아가 이 진입으로 세션을 여는 주소 (`TASK-241`).
+ *
+ * ⛔ **화면이 질의 이름을 직접 적지 않게 하는 것이 이 함수의 목적이다** — `entryQuery` 와 같은
+ * 근거이고, 영상 학습의 [연습하기] 가 그 이름들을 손으로 적어 한쪽이 조용히 다른 부분집합을
+ * 다루던 자리가 실재했다(`TASK-168`).
+ * ⚠️ **`/` 로 돌아가는 것이 계약이다** — 세션 화면은 별도 라우트가 아니라 대시보드가 진입 질의를
+ * 읽어 여는 구조다(`entryFromQuery` 의 소비자가 그것이다).
+ */
+export function dashboardEntryHref(entry: SessionEntry): string {
+  const params = new URLSearchParams(entryQuery(entry));
+  const query = params.toString();
+  return query ? `/?${query}` : "/";
 }
 
 /**
  * `entryQuery` 의 역함수 — 질의 문자열에서 진입 정보를 읽는다. 진입 정보가 없으면 `null`.
  *
- * ⛔ **`mode` 가 없으면 `null` 이다.** 세션을 여는 뜻이 담긴 질의만 받아들이고, 그 밖의 질의
- * (추적 파라미터 등)로 세션이 열리지 않게 한다.
+ * ⛔ **`mode` 도 `pattern` 도 없으면 `null` 이다.** 세션을 여는 뜻이 담긴 질의만 받아들이고, 그 밖의
+ * 질의(추적 파라미터 등)로 세션이 열리지 않게 한다.
+ * ⚠️ **`pattern` 이 둘째 신호로 붙었다** (`TASK-241`) — 즉시 드릴은 **말하기** 세션이고 말하기는
+ * `mode` 값역에 없다(없는 것이 기본값이다). `mode` 만 보면 그 진입을 아예 표현할 수 없어, 이전
+ * 판이라면 패턴을 실어 보내도 대시보드가 `null` 로 읽고 세션을 열지 않았다.
+ * ⛔ **아무 질의나 받아들이는 쪽으로 넓히지 않는다** — 두 이름을 명시로 열거하는 것이 「세션을
+ * 여는 뜻」을 지키는 자리다.
  * ⚠️ 값역을 여기서 좁히지 않는다 — 알 수 없는 `mode` 는 서버가 경고하고 말하기로 떨어뜨린다
  * (`services/session_modes.policy_for`). 화면이 먼저 거부하면 그 규약이 두 곳에 갈린다.
  */
 export function entryFromQuery(search: string): SessionEntry | null {
   const params = new URLSearchParams(search);
   const mode = params.get("mode");
-  if (!mode) {
+  const pattern = params.get("pattern");
+  if (!mode && !pattern) {
     return null;
   }
-  const entry: SessionEntry = { mode: mode as SessionEntry["mode"] };
+  const entry: SessionEntry = {};
+  if (mode) {
+    entry.mode = mode as SessionEntry["mode"];
+  }
+  if (pattern) {
+    entry.patternKey = pattern;
+  }
   const source = params.get("source");
   if (source) {
     entry.source = source as SessionEntry["source"];

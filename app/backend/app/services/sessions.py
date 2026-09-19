@@ -47,7 +47,7 @@ from uuid import UUID
 import asyncpg
 import pydantic
 
-from app.models.plan import PlanQuestion, SessionInstruction
+from app.models.plan import InstructionFocus, PlanQuestion, SessionInstruction
 from app.models.scenario import SessionScenario
 from app.models.session import SCENARIO_INTAKE_MODE
 from app.services.jobs import (
@@ -103,8 +103,9 @@ _DEFAULT_STARTED_VIA = "ui"
 # 아예 없으면 `scenario_id`·`scenario_pick` 둘 다 null 로 세션이 열린다(컬럼 둘 다 nullable).
 _CREATE_SESSION_SQL = """
 insert into learning_sessions
-       (user_id, scenario_id, mode, learning_source, scenario_pick, started_via)
-values ($1, $4, $2, $3, $5, $6)
+       (user_id, scenario_id, mode, learning_source, scenario_pick, started_via,
+        focus_pattern_key)
+values ($1, $4, $2, $3, $5, $6, $7)
 returning id
 """
 
@@ -291,6 +292,39 @@ class PreparedPlan:
     reason: str
     instruction: SessionInstruction
     questions: list[PlanQuestion]
+
+
+# 학습자가 결과 화면에서 «고른» 패턴을 지시문의 초점 모양으로 읽는다 (`TASK-241` · `PRD.md:70`).
+# ⛔ **`user_id` 를 조건에 넣는다** — `pattern_key` 는 사용자마다 같은 값이 올 수 있고, 빼면 남의
+# 패턴으로 드릴이 열린다. `error_patterns` 의 unique 도 `(user_id, pattern_key)` 다.
+# ⛔ **`frequency`·`next_review_at` 을 보지 않는다.** 복습 사다리가 고르는 것이 아니라 **학습자가
+# 직접 고른 것**이므로 그 조건으로 걸러내면 「내가 고른 것이 안 열린다」가 된다.
+_FOCUS_PATTERN_SQL = """
+select pattern_key, target_form
+  from error_patterns
+ where user_id = $1
+   and pattern_key = $2
+"""
+
+
+async def load_focus_pattern(
+    conn: asyncpg.Connection, user_id: UUID, pattern_key: str
+) -> InstructionFocus | None:
+    """학습자가 고른 오류 패턴을 지시문 초점 1건으로 돌려준다 — 없으면 `None`.
+
+    ⛔ **없는 키를 오류로 만들지 않는다**(`_requested_item_or_none`·`_load_*_or_none` 과 같은
+    관례). 학습자가 방금 사라진 패턴 카드를 눌렀을 때 학습 자체가 막히면 안 된다 — 그때는 계획의
+    초점이 그대로 쓰이고 세션은 열린다. 그 대가(다른 것을 연습한다)는 진입점 설계서 §6 이
+    영상 학습의 없는 `item` 에 대해 이미 같게 적었다.
+
+    ⚠️ **`InstructionFocus` 를 돌려주는 것이 계약이다** — `FocusPattern` 이 아니다. 그 둘의 차이는
+    `pattern_id` 이고, 대화 상대의 지시문에는 UUID 를 실을 일이 없다(`models/plan.py` 가 그 근거를
+    갖는다).
+    """
+    row = await conn.fetchrow(_FOCUS_PATTERN_SQL, user_id, pattern_key)
+    if row is None:
+        return None
+    return InstructionFocus(pattern_key=row["pattern_key"], target_form=row["target_form"])
 
 
 async def load_prepared_plan(conn: asyncpg.Connection, user_id: UUID) -> PreparedPlan | None:
@@ -498,6 +532,7 @@ async def _insert_session(
     mode: str,
     learning_source: str | None,
     started_via: str | None = None,
+    focus_pattern_key: str | None = None,
 ) -> UUID:
     """세션 행 하나를 만들고 그 id 를 돌려준다 — **배치 규칙을 함께 통과한다.**
 
@@ -518,6 +553,9 @@ async def _insert_session(
         picked.scenario_id if picked is not None else None,
         picked.pick if picked is not None else None,
         started_via or _DEFAULT_STARTED_VIA,
+        # ⛔ **기본값을 두지 않는다** — 031 이 nullable 이고 「고르지 않았다」가 정상 상태다.
+        # 빈 문자열은 `learning_sessions_focus_pattern_key_not_blank` 가 거부한다.
+        focus_pattern_key,
     )
     assert session_id is not None, "insert ... returning produced no row"
     return session_id
@@ -530,6 +568,7 @@ async def create_session(
     mode: str = "speaking",
     learning_source: str | None = None,
     started_via: str | None = None,
+    focus_pattern_key: str | None = None,
 ) -> UUID:
     """연결 하나에 대응하는 `active` 세션 행을 만든다.
 
@@ -554,6 +593,12 @@ async def create_session(
     못해 **음성으로 연 세션과 버튼으로 연 세션이 완전히 같은 행을 남기고 있었다**(회차 B5 실측).
     `None` 이면 001 의 기본값과 같은 `'ui'` 가 쓰인다 — 값역은 001 의
     `learning_sessions_started_via_check` 가 가둔다(여기서 열거하지 않는다).
+
+    `focus_pattern_key` 는 **학습자가 결과 화면에서 고른 오류 패턴**이다 (`TASK-241` ·
+    `PRD.md:70`). 031 이 담는 자리이고 `None` 이 「고르지 않았다」다 — 대부분의 세션이 그쪽이다.
+    ⛔ **이 함수는 그 키가 실재하는 패턴인지 확인하지 않는다** — 확인은 `load_focus_pattern` 이
+    하고, 없는 키로도 세션은 열린다(그 함수의 docstring 이 근거를 갖는다). 여기서 다시 확인하면
+    같은 판단이 두 곳에 생긴다.
     """
     async with pool.acquire() as conn, conn.transaction():
         return await _insert_session(
@@ -562,6 +607,7 @@ async def create_session(
             mode=mode,
             learning_source=learning_source,
             started_via=started_via,
+            focus_pattern_key=focus_pattern_key,
         )
 
 
@@ -606,6 +652,7 @@ async def start_shadowing_session(
     learning_source: str | None = None,
     item_id: UUID | None = None,
     started_via: str | None = None,
+    focus_pattern_key: str | None = None,
 ) -> UUID:
     """쉐도잉 세션을 열고 **학습자 수준에 맞는 클립 1개를 붙인다** (`TASK-45`).
 
@@ -656,6 +703,7 @@ async def start_shadowing_session(
             mode="shadowing",
             learning_source=learning_source,
             started_via=started_via,
+            focus_pattern_key=focus_pattern_key,
         )
         await conn.execute(_ATTACH_SHADOWING_CLIP_SQL, session_id, user_id, item_id)
     return session_id
