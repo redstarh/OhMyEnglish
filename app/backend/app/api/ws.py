@@ -24,6 +24,13 @@
 **추가 학습 표시** (`TASK-10.2`): `?source=additional` 이 `learning_sessions.learning_source` 에
 남는다. 주지 않으면 001 의 기본값(`recommended`)이다.
 
+**즉시 드릴 진입** (`TASK-241` · `PRD.md:70`): `?pattern=<pattern_key>` 로 붙으면 그 키가
+`learning_sessions.focus_pattern_key`(031)에 남고, **준비된 계획이 있으면 지시문의 초점이 그 패턴
+하나로 대체된다.** 대체가 일어나면 `session_started` 에 `focus_pattern` 이 실린다 (`TASK-250`) —
+⛔ **요청만으로는 실리지 않는다**: 없는 키는 조용히 계획의 초점으로 떨어지므로(`?item` 과 같은
+관례) 그때 실으면 일어나지 않은 대체를 보고하게 된다. ⚠️ 계획이 없으면 대체할 자리가 없어 키만
+세션 행에 남는다 — AS4(「계획이 없어도 학습은 시작됨」)와 같은 규약이다.
+
 **쉐도잉 진입** (`TASK-45` · 결정 35): `?mode=shadowing` 으로 붙으면 세션이 그 모드로 열리고
 클립 1개가 붙으며 `session_started` 에 `shadowing`(클립 + 재생 속도·반복 횟수)이 실린다. 말하기
 세션에는 그 키가 **없다**. 낭독 턴 신호 둘은 그 모드에서만 뜻을 갖는다 — 아니면 무시된다.
@@ -428,10 +435,15 @@ async def session_socket(websocket: WebSocket) -> None:
         # 같은 규약). ⚠️ 그 경로가 관측되면 계획 생성 쪽을 먼저 본다.
         # ⛔ **초점을 «덧붙이지» 않고 바꾼다** — `SessionInstruction.focus` 는 최대 2개이고, 고른
         # 패턴 옆에 계획의 초점을 남기면 「이것만 연습한다」가 흐려진다.
+        # ⛔ **대체가 «실제로 일어났을 때만» 값이 남는다** — 요청만으로 채우지 않는다(`TASK-250`).
+        # 없는 키를 요청하면 `_load_focus_pattern_or_none` 이 `None` 이고 계획의 초점이 그대로
+        # 쓰이므로, 그때 이 값을 채우면 `session_started` 가 일어나지 않은 대체를 보고한다.
+        replaced_focus: str | None = None
         if plan is not None and requested_pattern is not None:
             chosen = await _load_focus_pattern_or_none(pool, requested_pattern)
             if chosen is not None:
                 plan = plan.model_copy(update={"focus": [chosen]})
+                replaced_focus = chosen.pattern_key
         settings = get_settings()
         # 질문 수를 알아야 계산하므로 계획 조회 **뒤**다. 계획이 없으면 아무것도 쓰지 않는다 →
         # 컬럼이 null로 남고 그것이 「관측 대상 아님」이다(캡틴 결정 16). **어느 모드가 이 값을
@@ -513,6 +525,7 @@ async def session_socket(websocket: WebSocket) -> None:
             client=channel,
             shadowing=shadowing,
             pronunciation_sound=pronunciation_focus,
+            focus_pattern=replaced_focus,
         )
         try:
             await runner.run()

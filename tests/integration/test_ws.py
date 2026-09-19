@@ -1127,6 +1127,22 @@ async def test_ws_pattern_entry_records_the_choice_and_replaces_the_instruction_
         "패턴을 고르지 않은 세션의 초점까지 덮였다 — 계획이 무력화된다"
     )
 
+    # ⛔ **초점 대체가 «밖에서» 보여야 한다** (`TASK-250` · 결함을 회차 B8 이 찾았음).
+    # 위 두 단정은 `monkeypatch` 로 팩토리 인자를 가로채는 **인프로세스 관측**이라 그 층 밖에서는
+    # 같은 판정을 할 수 없다. 실제로 회차 B8 이 화면·브라우저 경로에서 초점 대체를 참·거짓으로
+    # 가릴 수 없어 `TS-36` AC#3 을 미체크로 두었다 — 표면 넷을 확인했고 넷 다 그 값을 싣지 않았다
+    # (`session_started` · `StubVoiceAdapter.instructions` · `/api/sessions/next-plan` ·
+    # `session_plans` 행). 대체 지점에 로그도 없었다.
+    # ⚠️ **키의 부재가 뜻을 갖는다** — `pronunciation_focus`·`shadowing` 과 같은 규약이다. 「대체가
+    # 일어나지 않았다」와 「무엇으로 대체했다」가 두 값으로 갈려야 하므로, 모든 세션에 싣지 않는다.
+    assert drill.get("focus_pattern") == chosen_key, (
+        f"session_started 가 대체된 초점을 싣지 않았다 — {drill.get('focus_pattern')!r}. "
+        "밖에서 그것을 판정할 표면이 없으면 「기록은 남고 코치는 다른 것을 연습시킨다」를 못 잡는다"
+    )
+    assert "focus_pattern" not in plain, (
+        "패턴을 고르지 않은 세션에도 키가 실렸다 — 키의 부재가 뜻을 잃는다"
+    )
+
 
 async def test_ws_a_normal_session_does_not_ask_for_scenario_intake(
     ws_app: FastAPI,

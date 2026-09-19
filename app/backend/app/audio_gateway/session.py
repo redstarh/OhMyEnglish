@@ -139,6 +139,7 @@ class SessionRunner:
         drain_timeout: float = DRAIN_TIMEOUT,
         shadowing: ShadowingTurns | None = None,
         pronunciation_sound: str | None = None,
+        focus_pattern: str | None = None,
     ) -> None:
         self._adapter = adapter
         self._pool = pool
@@ -156,6 +157,13 @@ class SessionRunner:
         # 「전용 세션을 받았는가」를 알 수 있게 한다. ⛔ 러너가 모드를 다시 판정하지 않는 것은
         # 위 `_shadowing` 과 같은 규약이다 — 판정은 소켓 계층 한 곳에만 둔다.
         self._pronunciation_sound = pronunciation_sound
+        # ⛔ **이 값은 「지시문의 초점을 학습자가 고른 패턴으로 대체했다」는 사실을 «밖으로» 내는
+        # 유일한 표면이다** (`TASK-250` · 결함을 회차 B8 이 찾았음). 그 회차가 초점 대체를
+        # 화면·브라우저 경로에서 참·거짓으로 가리지 못해 `TS-36` AC#3 을 닫지 못했고, 확인한 표면
+        # 넷(`session_started`·어댑터의 `instructions`·`/api/sessions/next-plan`·`session_plans`)이
+        # 모두 그 값을 싣지 않았다. ⛔ **기록(`focus_pattern_key`)과 지시문은 다른 자리이므로**
+        # 세션 행만 보고 「경로가 있다」로 읽으면 코치가 다른 것을 연습시키는 상태를 못 잡는다.
+        self._focus_pattern = focus_pattern
         self._recording_turn: _RecordingTurn | None = None
         # 음성 명령의 상태 둘 (`TASK-61.1` · `TASK-61.4`).
         # `_marker_seen` — 이 교환에서 학습자가 표지를 말했는가. ⛔ 이것이 **tool 을 실행할 자격**
@@ -189,6 +197,13 @@ class SessionRunner:
             # 키 자체를 넣지 않는다: 없는 것과 「비었다」를 프론트가 구분해야 한다
             # (`api/results.py` 의 `corrections`·`drill` 과 같은 규약).
             started["shadowing"] = self._shadowing.as_event_payload()
+        if self._focus_pattern is not None:
+            # ⛔ **위 둘과 같은 규약 — 대체가 일어나지 않았으면 키 자체를 넣지 않는다.** 「대체하지
+            # 않았다」와 「무엇으로 대체했다」가 두 값으로 갈려야 하므로 모든 세션에 싣지 않는다.
+            # ⚠️ **화면은 아직 이 값을 읽지 않는다** — 소비자는 회차와 로그다. 그래도 여기에 싣는
+            # 것이 맞는 이유: 초점 대체는 세션 시작에만 일어나고 그 뒤에는 어디에도 남지 않아,
+            # 이 프레임을 놓치면 영구히 알 수 없다(`drill_turns_expected` 와 같은 부류다).
+            started["focus_pattern"] = self._focus_pattern
         await self._send(started)
 
         failure_reason = await self._connect()
