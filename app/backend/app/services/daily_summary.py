@@ -30,12 +30,12 @@ import json
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from uuid import UUID
-from zoneinfo import ZoneInfo
 
 import asyncpg
 
 # ⚠️ **`timezone_of` 를 여기서 재수출한다** (`TASK-146`) — 정본은 `services/user_timezone` 이고
 # `api/daily.py` 가 이 모듈의 이름으로 불러 온다. 정의를 두 곳에 두지 않기 위해 import 만 한다.
+from app.models.learner_time import local_date, resolve_now
 from app.services.user_timezone import timezone_of
 
 # `patterns` 배열의 상한. 단일 사용자 규모에서 하루에 20종을 넘길 일이 없지만 jsonb가 무한히
@@ -322,7 +322,7 @@ async def load_daily_summary(
     위해서다. 주지 않으면 `timezone_of`로 스스로 읽는다.
     """
     timezone = timezone if timezone is not None else await timezone_of(conn, user_id)
-    today = _today_in(timezone, now)
+    today = local_date(timezone, now=resolve_now(now))
 
     record = await conn.fetchrow(_LOAD_SQL, user_id, today)
     if record is None:
@@ -347,18 +347,6 @@ async def load_daily_summary(
     )
 
 
-def _today_in(timezone: str, now: datetime | None) -> date:
-    """사용자 타임존의 오늘. naive `now` 를 거부하는 자리를 **한 곳으로** 모은다.
-
-    두 조회(`load_daily_summary`·`load_daily_completion`)가 같은 규약을 써야 「오늘」의 정의가
-    갈라지지 않는다 — 그것이 이 모듈이 두 값을 함께 소유하는 이유다.
-    """
-    resolved = now if now is not None else datetime.now(ZoneInfo("UTC"))
-    if resolved.tzinfo is None:
-        raise ValueError("`now` must be timezone-aware (naive datetime is not allowed)")
-    return resolved.astimezone(ZoneInfo(timezone)).date()
-
-
 async def load_daily_completion(
     conn: asyncpg.Connection,
     user_id: UUID,
@@ -374,7 +362,7 @@ async def load_daily_completion(
     `timezone`을 주면 스스로 조회하지 않는다 — `load_daily_summary`와 같은 규약이다.
     """
     timezone = timezone if timezone is not None else await timezone_of(conn, user_id)
-    today = _today_in(timezone, now)
+    today = local_date(timezone, now=resolve_now(now))
     completed = await conn.fetchval(_COMPLETION_SQL, user_id, timezone, today)
     return DailyCompletion(
         summary_date=today,
@@ -429,7 +417,7 @@ async def load_streak(
     (`api/daily.py`의 `get_history`) 같은 조회를 두 번 내지 않기 위해서다.
     """
     timezone = timezone if timezone is not None else await timezone_of(conn, user_id)
-    today = _today_in(timezone, now)
+    today = local_date(timezone, now=resolve_now(now))
     islands = await conn.fetch(_STREAK_SQL, user_id, timezone)
     if not islands:
         return Streak(current=0, longest=0, today_done=False)
@@ -463,7 +451,7 @@ async def load_history(
     if days < 1:
         raise ValueError("`days` must be at least 1")
     timezone = timezone if timezone is not None else await timezone_of(conn, user_id)
-    today = _today_in(timezone, now)
+    today = local_date(timezone, now=resolve_now(now))
     records = await conn.fetch(_HISTORY_SQL, user_id, timezone, today, days)
     return [
         HistoryDay(

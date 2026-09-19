@@ -24,14 +24,15 @@ import io
 import logging
 import wave
 from dataclasses import dataclass
-from datetime import UTC, datetime, time
+from datetime import datetime
 from decimal import Decimal
 from pathlib import Path
 from uuid import UUID
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+from zoneinfo import ZoneInfoNotFoundError
 
 import asyncpg
 
+from app.models.learner_time import day_start_for, resolve_now
 from app.models.recording import (
     RECORDING_BYTES_PER_SAMPLE,
     RECORDING_CHANNELS,
@@ -266,41 +267,6 @@ async def load_session_clip(conn: asyncpg.Connection, session_id: UUID) -> Shado
     )
 
 
-def day_start_for(tz_name: str, *, now: datetime) -> datetime:
-    """학습자의 「오늘」이 시작한 절대 시각. **이 값보다 이전 녹음이 삭제 대상이다** (§5.2).
-
-    ⛔ **`current_date` 를 쓰지 않는다.** 설계 세션이 공유 DB 에서 직접 관측한 값이 근거다:
-    `current_date` 가 **2026-09-07** 인데 `(now() at time zone 'Asia/Seoul')` 는 **2026-09-08**
-    이었다(`SHOW TimeZone` = UTC). 그 값으로 판정하면 학습자가 아직 비교하지 못한 녹음이 하루
-    일찍 사라지고 **되돌릴 수 없다.** 타임존의 정본은 `users.timezone` 컬럼이고 호스트 시간도
-    세션 기본값도 아니다.
-
-    **SQL 의 `AT TIME ZONE` 이 아니라 Python 에서 구하는 이유 셋** (§5.2 — 전역 규약은 둘 다
-    허용한다): ① 잘못된 타임존 값이 **한 사람만** 막는다(집합 UPDATE 안에서 터지면 한 사람의
-    값이 전체 삭제를 막는다 · `users.timezone` 에 CHECK 가 없다) ② `created_at < $1` 이 011 의
-    부분 인덱스를 탄다(`(created_at at time zone …)::date` 는 못 탄다) ③ 되돌릴 수 없는 삭제의
-    경계라 DB 없이 경계값을 값싸게 재야 한다.
-
-    ⚠️ **`replace(hour=0, …)` 를 쓰지 않는다.** 2026-09-09 리뷰가 이 서술의 이전 판을 정정했다 —
-    위험은 「존재하지 않는 자정」이 아니라 **자정이 두 번 오는 날**이다(자정에 DST 가 끝나는 지역).
-    `replace` 는 입력 시각의 `fold` 를 물려받아 **두 번째** 자정을 고르고, 그러면 경계가 한 시간
-    늦어져 그 사이 녹음이 「어제」로 분류돼 하루 일찍 삭제된다. 날짜와 tzinfo 로 다시 조립하면
-    `fold=0`, 즉 **첫 번째** 자정이 되고 그것이 「오늘이 시작한 시각」이다.
-    실측(`America/Havana`, `2026-11-01 05:30Z`): 조립 → `04:00Z` · `replace` → `05:00Z`.
-    ⚠️ **`America/New_York` 로는 이 차이가 드러나지 않는다** — 그 지역은 자정이 아니라 02:00 에
-    바뀌어 두 방식이 같은 값을 낸다.
-
-    ⚠️ **여기 있는 이유는 지금 소비자가 녹음뿐이기 때문이다.** 복습 주기·일일 계획이 같은 경계를
-    밟으면(`H-S` 가 그것을 예고한다) 공용 자리로 옮긴다 — 그때까지 두 곳에서 계산하지 않는 것이
-    이 함수의 목적이다(§6.4: 스윕과 서빙이 **같은 함수 하나**를 부른다).
-    """
-    if now.tzinfo is None:
-        raise ValueError("`now` must be timezone-aware (naive datetime is not allowed)")
-    zone = ZoneInfo(tz_name)
-    today_local = now.astimezone(zone).date()
-    return datetime.combine(today_local, time.min, tzinfo=zone).astimezone(UTC)
-
-
 def recording_dir(root: Path, session_id: UUID) -> Path:
     """세션 하나의 녹음이 모이는 디렉터리. 삭제 스윕(§6)이 이 단위로 걷는다."""
     return root / str(session_id)
@@ -415,32 +381,16 @@ async def count_recording_turns(conn: asyncpg.Connection, session_id: UUID) -> i
     return await conn.fetchval(_COUNT_RECORDING_TURNS_SQL, session_id)
 
 
-def _resolve_now(now: datetime | None) -> datetime:
-    """`now` 를 확정하고 **aware 를 보장한다.**
-
-    ⛔ 이 검사를 `day_start_for` 에만 맡기지 않는 이유: 아래 두 호출자가 타임존 값 문제를
-    `except` 로 삼키는데, naive `now` 도 같은 `ValueError` 라 **호출자의 버그가 「타임존이
-    이상하다」로 위장된다.** 여기서 미리 터뜨리면 그 `except` 가 타임존 값 문제로만 좁혀진다.
-
-    ⚠️ 앱 시계를 쓰는 것이 판단이다 — 경계 계산이 Python 이므로(§5.2) 시계도 같은 쪽에 둔다.
-    DB 시계(`clock_timestamp()`)를 쓰려면 왕복이 한 번 더 늘고, 두 시계는 같은 호스트다.
-    """
-    resolved = now if now is not None else datetime.now(UTC)
-    if resolved.tzinfo is None:
-        raise ValueError("`now` must be timezone-aware (naive datetime is not allowed)")
-    return resolved
-
-
 def _has_expired(row: asyncpg.Record, *, now: datetime | None) -> bool:
     """이 녹음의 학습자 당일이 지났는가. **계산할 수 없으면 만료로 본다**(닫는 쪽).
 
-    ⛔ **`_resolve_now` 를 `try` 밖에서 부른다 — 안에 두면 그 함수의 목적이 무너진다.**
+    ⛔ **`resolve_now` 를 `try` 밖에서 부른다 — 안에 두면 그 함수의 목적이 무너진다.**
     2026-09-09 리뷰가 런타임으로 잡았다: 안에 뒀을 때 naive `now`(호출자의 버그)가
     `ValueError` 로 아래 `except` 에 걸려 **멀쩡한 `Asia/Seoul` 을 지목하는 경고**가 났고,
     조사하는 사람이 `users.timezone` 을 먼저 의심하게 됐다. `purge_expired_recordings` 는
     처음부터 밖에서 불렀으므로 **두 호출자가 갈라져 있었다.**
     """
-    resolved_now = _resolve_now(now)
+    resolved_now = resolve_now(now)
     try:
         cutoff = day_start_for(row["timezone"], now=resolved_now)
     except (ZoneInfoNotFoundError, ValueError):
@@ -479,7 +429,7 @@ async def purge_expired_recordings(
     않으므로**(조건이 `audio_url is not null` 이라 더 이상 선택되지 않는다) 고아 파일 정리
     2다리가 그것을 소유한다 — 그 다리는 **선택이 아니라 필수**다.
     """
-    resolved_now = _resolve_now(now)
+    resolved_now = resolve_now(now)
     purged: list[UUID] = []
     remaining = limit
     for user in await conn.fetch(_SELECT_PURGE_USERS_SQL):

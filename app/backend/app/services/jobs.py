@@ -55,6 +55,8 @@ from uuid import UUID, uuid4
 
 import asyncpg
 
+from app.models.learner_time import require_aware
+
 logger = logging.getLogger(__name__)
 
 # --- 설계 발명값 (design-invented values, see module docstring) ---
@@ -103,15 +105,6 @@ class ClaimedJob:
     session_id: UUID | None
     lease_token: str
     attempts: int
-
-
-def _require_aware(value: datetime | None) -> datetime | None:
-    """Reject naive datetimes at the boundary — every timestamp in this system
-    is `timestamptz`/aware, and silently binding a naive value would shift the
-    clock by the server's timezone offset."""
-    if value is not None and value.tzinfo is None:
-        raise ValueError("`now` must be timezone-aware (naive datetime is not allowed)")
-    return value
 
 
 async def enqueue_analyze(conn: asyncpg.Connection, utterance_id: UUID) -> UUID | None:
@@ -264,7 +257,7 @@ async def claim_next(conn: asyncpg.Connection, *, now: datetime | None = None) -
     `now` (aware) overrides the database clock; it exists so lease/backoff
     behaviour is testable without sleeping.
     """
-    at = _require_aware(now)
+    at = require_aware(now)
     await conn.execute(
         """
         update analysis_jobs
@@ -410,7 +403,7 @@ async def fail_or_retry(
         error,
         MAX_ATTEMPTS,
         BACKOFF,
-        _require_aware(now),
+        require_aware(now),
     )
     return updated is not None
 

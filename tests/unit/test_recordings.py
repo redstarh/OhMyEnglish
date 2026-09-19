@@ -23,11 +23,11 @@ from zoneinfo import ZoneInfoNotFoundError
 import asyncpg
 import pytest
 
+from app.models.learner_time import day_start_for
 from app.services.recordings import (
     RECORDING_MEDIA_TYPE,
     ShadowingClip,
     ShadowingTurns,
-    day_start_for,
     finalize_recording,
     load_recording,
     load_session_clip,
