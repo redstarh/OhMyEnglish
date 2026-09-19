@@ -1,10 +1,10 @@
 ---
 id: TASK-254
 title: '관측: 옛 시나리오 둘의 미체크 AC (TS-1 AC#3 · TS-3 AC#5)'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-19 14:22'
-updated_date: '2026-09-19 14:22'
+updated_date: '2026-09-19 14:47'
 labels: []
 dependencies: []
 ordinal: 318000
@@ -18,7 +18,13 @@ ordinal: 318000
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 TS-1 AC#3 이 관측돼 그 시나리오가 닫힘
-- [ ] #2 TS-3 AC#5 가 관측돼 그 시나리오가 닫힘
-- [ ] #3 실패가 있으면 결함으로 등록됨
+- [x] #1 TS-1 AC#3 이 관측돼 그 시나리오가 닫힘
+- [x] #2 TS-3 AC#5 가 관측돼 그 시나리오가 닫힘
+- [x] #3 실패가 있으면 결함으로 등록됨
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+완료 (2026-09-19 · 회차 B10). TS-1 AC#3 · TS-3 AC#5 둘 다 관측돼 두 시나리오가 Done 임(TS-3 은 AC#6 까지 여섯 전부). 결함 등록 0건. 증거를 직접 열어 확인했음 — TS-1 은 팔 둘이 종료 «원인» 을 갈랐음: 팔 A 는 end_session 을 0.6초에 보내 스크립트 3건 가운데 1건만 소진된 상태(adapter_exhausted=false · remaining=2)에서 session_ended 를 받았고, 팔 B 는 소진(exhausted=true · remaining=0)으로 받았음. 그 대조가 없으면 「어댑터가 스스로 닫혔다」와 「내 명령이 닫았다」를 가를 수 없었음(앞 회차가 실제로 그 함정에 걸렸음). TS-3 은 화면 문구가 「그 학습 결과를 찾을 수 없습니다.」 로 한국어이고 상태 코드·API 낱말 노출 0건임.
+<!-- SECTION:NOTES:END -->
