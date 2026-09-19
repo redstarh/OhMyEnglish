@@ -118,4 +118,3 @@ cd app/frontend && npx tsc --noEmit && npx eslint . && npx next build
   ⇒ 사용자 지시에 따라 새 방향을 고르지 않고 멈춰 있음(위 「먼저 챙길 것」 2번).
 - ⚠️ **함정 둘이 새로 등록됐음** — `H-CK`(직접 만든 `BedrockClaudeClient` 는 `usage_sink` 가 없어
   유료 호출이 `llm_calls` 에 0행으로 남음) · `H-I` 확장(`recreate_database` 가 시드를 넣지 않음).
-  다음 회차가 실물 호출을 낼 때 그 둘을 먼저 읽음.
