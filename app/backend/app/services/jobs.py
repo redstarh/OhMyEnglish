@@ -345,11 +345,22 @@ class LeaseLost(Exception):
 
 async def complete(conn: asyncpg.Connection, job_id: UUID, lease_token: str) -> None:
     """Mark a claimed job `done`. Raises `LeaseLost` when the lease was not ours
-    anymore — the caller must not treat its work as recorded."""
+    anymore — the caller must not treat its work as recorded.
+
+    ⛔ **`last_error` 를 함께 지운다 — 그 값은 「지금 이 상태의 사유」다.** 재시도 끝에 성공한
+    job 이 이전 시도의 실패 문면을 들고 `done` 으로 남으면, 진단하는 사람이 그것을 현재 사유로
+    읽는다. 재시도가 있었다는 사실은 `attempts` 가 따로 가진다.
+
+    ⚠️ **화면은 job 상태로만 판정하므로 이 계약이 깨져도 사용자에게는 새지 않는다** — 그래서
+    `tests/unit/test_jobs.py::test_complete_clears_the_error_left_by_a_failed_attempt` 가 유일한
+    방어다. `failed` 쪽은 반대로 문면을 **보존해야 한다**(`fail_or_retry` — 결과 화면의
+    `partial_failure` 가 그것을 읽는다).
+    """
     updated = await conn.fetchval(
         """
         update analysis_jobs
-           set status = 'done'
+           set status = 'done',
+               last_error = null
          where id = $1 and status = 'running' and locked_by = $2
         returning id
         """,

@@ -404,6 +404,27 @@ async def test_complete_is_not_repeatable_for_the_same_lease(db_conn: asyncpg.Co
         await complete(db_conn, claimed.id, claimed.lease_token)
 
 
+# `last_error`는 **현재 상태의 사유**다 — 재시도 끝에 성공한 job이 이전 시도의 실패 문면을 들고
+# done으로 남으면, 진단하는 사람이 그 문면을 지금의 사유로 읽는다(`attempts`가 재시도 이력을
+# 따로 가진다). ⚠️ 화면은 job 상태로만 판정하므로 이 결함은 사용자에게 새지 않고 **진단에서만**
+# 드러난다 — 그래서 단위 테스트가 유일한 방어다.
+async def test_complete_clears_the_error_left_by_a_failed_attempt(db_conn: asyncpg.Connection):
+    job_id = await _enqueued(db_conn)
+
+    first = await claim_next(db_conn)
+    assert first is not None
+    assert await fail_or_retry(db_conn, job_id, first.lease_token, "bedrock timeout") is True
+    assert (await job_row(db_conn, job_id))["last_error"] == "bedrock timeout"
+
+    retried = await claim_next(db_conn, now=datetime.now(UTC) + BACKOFF + timedelta(minutes=1))
+    assert retried is not None
+    await complete(db_conn, retried.id, retried.lease_token)
+
+    row = await job_row(db_conn, job_id)
+    assert row["status"] == "done"
+    assert row["last_error"] is None, "성공했는데 이전 시도의 실패 문면이 남았다"
+
+
 # 존재하지 않는 job id도 「우리 것이 아니다」와 같은 갈래다 — `complete` 는 `LeaseLost`,
 # `fail_or_retry` 는 `False`. ⚠️ 둘의 모양이 다른 것은 의도다(`jobs.LeaseLost` 독스트링).
 async def test_complete_raises_and_fail_returns_false_for_unknown_job(db_conn: asyncpg.Connection):
