@@ -1144,6 +1144,61 @@ async def test_ws_pattern_entry_records_the_choice_and_replaces_the_instruction_
     )
 
 
+# ── 없는 패턴 키로 들어온 진입 (`PRD.md` §17.4 `AC17-3` · `TASK-265`) ──────────
+#
+# ⛔ **위 테스트의 두 팔은 이 경로를 재지 않는다** — 있는 키와 「키 없음」만 재므로, 없는 키에
+# 요청값을 그대로 실어 보내는 구현이 통과한다. 그러면 `session_started` 가 **일어나지 않은 대체**를
+# 보고하고, 뒤에 회차를 세는 사람이 「그 패턴으로 연습했다」로 읽는다.
+#
+# ⚠️ **세 자리가 서로 다른 답을 내는 것이 계약이다** — 세션 행에는 **적히고**(학습자가 그 키로
+# 들어온 사실은 패턴의 실재와 별개다 · `api/ws.py`), 지시문의 초점은 **계획 그대로**이고,
+# `session_started` 에는 키가 **없다**. 한 자리만 재면 나머지 둘이 조용히 갈린다.
+#
+# ⚠️ 회차 B9 의 팔 C 가 이 조건을 한 번 관측했으나 그것은 **테스트가 아니다** — 회차는 그때의
+# 사실이고 게이트에서 다시 돌지 않는다.
+async def test_ws_an_unknown_pattern_key_opens_the_session_without_reporting_a_replacement(
+    ws_app: FastAPI,
+    db_pool: asyncpg.Pool,
+    seeded_fixed_user: UUID,
+    seed_plan_for_session,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    # 카드가 그려진 뒤 사라진 패턴 — 학습자가 그 카드를 누른 상태다.
+    ghost_key = "pattern_that_vanished_after_the_card_rendered"
+    async with db_pool.acquire() as conn:
+        await seed_plan_for_session(conn, user_id=FIXED_USER_ID)
+
+    seen = _capture_factory_args(monkeypatch)
+    async with ws_app.router.lifespan_context(ws_app):
+        async with ASGIWebSocket(
+            ws_app, query_string=f"source=additional&pattern={ghost_key}".encode()
+        ) as client:
+            started = await client.receive_event()
+        plan = seen.get("plan")
+
+    assert started is not None and started["type"] == "session_started", (
+        f"없는 패턴 키가 세션 시작을 막았다 — {started!r}. 즉시 드릴은 학습의 한 종류이고 "
+        "그것이 안 되는 것이 대화 전체를 잃는 근거가 되지 않는다"
+    )
+    assert "focus_pattern" not in started, (
+        f"대체가 일어나지 않았는데 {started.get('focus_pattern')!r} 를 보고했다 — "
+        "요청만으로 채우면 이 값이 「무엇으로 대체했다」를 뜻하지 못한다"
+    )
+    assert isinstance(plan, SessionInstruction)
+    assert [item.pattern_key for item in plan.focus] == ["plan_pipeline_due"], (
+        "없는 키가 계획의 초점을 밀어냈다 — 읽지 못한 패턴으로 초점을 비우면 계획이 무력화된다"
+    )
+    async with db_pool.acquire() as conn:
+        recorded = await conn.fetchval(
+            "select focus_pattern_key from learning_sessions where id = $1",
+            UUID(started["session_id"]),
+        )
+    assert recorded == ghost_key, (
+        f"세션 행에 {recorded!r} 가 남았다 — 실재하지 않는 키로 들어온 것 자체가 다음 회차가 읽을 "
+        "신호이므로 기록은 패턴의 실재와 무관하게 남는다"
+    )
+
+
 async def test_ws_a_normal_session_does_not_ask_for_scenario_intake(
     ws_app: FastAPI,
     seeded_fixed_user: UUID,
