@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OhMyEnglish — 구현 현황과 사용 방법 (개요서)</title>
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1a1d21; --muted: #5b6470; --line: #d8dde4;
+    --code-bg: #f4f6f8; --accent: #1f5f8b; --warn-bg: #fff8e6; --warn-line: #d9a400;
+    --stop-bg: #fdf0ef; --stop-line: #c0392b; --ok: #1e7a4b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14171a; --fg: #e6e9ed; --muted: #9aa5b1; --line: #2c3238;
+      --code-bg: #1d2126; --accent: #7fb3d5; --warn-bg: #2a2410; --warn-line: #b58900;
+      --stop-bg: #2b1614; --stop-line: #e06c5d; --ok: #64c398;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0 auto; padding: 2rem 1.25rem 4rem; max-width: 62rem; background: var(--bg);
+    color: var(--fg); line-height: 1.7;
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  }
+  h1 { font-size: 1.7rem; margin: 0 0 .3rem; line-height: 1.35; }
+  h2 {
+    font-size: 1.2rem; margin: 2.6rem 0 .8rem; padding-bottom: .35rem;
+    border-bottom: 2px solid var(--line);
+  }
+  h3 { font-size: 1.02rem; margin: 1.6rem 0 .5rem; color: var(--accent); }
+  p, li { margin: .45rem 0; }
+  a { color: var(--accent); }
+  code, pre {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .86em;
+  }
+  code { background: var(--code-bg); padding: .1rem .3rem; border-radius: 3px; }
+  pre {
+    background: var(--code-bg); padding: .85rem 1rem; border-radius: 6px; overflow-x: auto;
+    border: 1px solid var(--line); line-height: 1.55;
+  }
+  pre code { background: none; padding: 0; }
+  table { border-collapse: collapse; width: 100%; margin: .8rem 0; font-size: .93rem; }
+  th, td { border: 1px solid var(--line); padding: .45rem .6rem; text-align: left; vertical-align: top; }
+  th { background: var(--code-bg); font-weight: 600; }
+  .sub { color: var(--muted); font-size: .92rem; margin-top: .2rem; }
+  .box { border-left: 4px solid var(--warn-line); background: var(--warn-bg); padding: .7rem 1rem; margin: 1rem 0; border-radius: 0 5px 5px 0; }
+  .box.stop { border-left-color: var(--stop-line); background: var(--stop-bg); }
+  .box p:first-child { margin-top: 0; }
+  .box p:last-child { margin-bottom: 0; }
+  .tag { display: inline-block; font-size: .75rem; padding: .05rem .4rem; border-radius: 3px; border: 1px solid var(--line); color: var(--muted); }
+  .tag.ok { color: var(--ok); border-color: var(--ok); }
+  nav ol { margin: .4rem 0 0; padding-left: 1.3rem; }
+  nav li { margin: .15rem 0; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .88rem; }
+</style>
+</head>
+<body>
+
+<h1>OhMyEnglish — 구현 현황과 사용 방법</h1>
+<p class="sub">
+  작성 2026-09-20 · 브랜치 <code>design/first-vertical-slice</code> · 요구 정본 <a href="PRD.md">PRD v1.6</a>
+</p>
+
+<div class="box">
+  <p>이 문서의 역할은 <strong>진입점</strong>임. 지금 무엇이 동작하고 어떻게 돌리는지를 한 장에 모으고,
+  더 깊은 내용은 아래 <a href="#docmap">문서 지도</a>가 가리키는 문서가 소유함.</p>
+  <p>이 문서는 갱신되는 문서임 — 구현이 바뀌면 함께 고침. 성질이 다른 문서 둘과 섞지 않음:
+  <code>docs/status-report-*.html</code>은 <strong>고치지 않는 스냅샷</strong>이고
+  <code>handoff/HANDOFF.md</code>는 <strong>지금 어디까지 왔나</strong>임.</p>
+  <p>값이 어긋나면 정본이 맞음 — 요구는 <a href="PRD.md">PRD</a>, 남은 일과 완료는 작업 원장
+  (<code>backlog task list --plain</code>), 실측된 함정은 <a href="ops/pitfalls.md">pitfalls</a>임.</p>
+</div>
+
+<nav>
+  <strong>차례</strong>
+  <ol>
+    <li><a href="#what">지금 되는 것 — 기능 요약</a></li>
+    <li><a href="#screens">화면과 진입</a></li>
+    <li><a href="#pipeline">뒷단 — 세션·큐·분석</a></li>
+    <li><a href="#data">데이터와 시각 규약</a></li>
+    <li><a href="#run">실행 방법</a></li>
+    <li><a href="#verify">검증 — 게이트와 회차 도구</a></li>
+    <li><a href="#docmap">문서 지도</a></li>
+    <li><a href="#gaps">아직 없는 것</a></li>
+  </ol>
+</nav>
+
+<h2 id="what">1. 지금 되는 것 — 기능 요약</h2>
+
+<p>아래는 코드에 실재하는 기능만 적은 것임. 판정 근거는 각 행이 가리키는 문서와 작업 원장임.</p>
+
+<table>
+  <thead><tr><th>기능</th><th>무엇을 함</th><th>어디서 소유</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>음성 대화 세션</td>
+      <td>WebSocket <code>/ws/session</code> 한 개가 세션 하나를 이룸. 부분·확정 전사문, 상대 발화 오디오,
+          끼어들기, 발화 시작 감지를 이벤트로 흘림. 음성 어댑터는 실연동(Nova Sonic)과 스텁 재생 둘임.</td>
+      <td><a href="nova-sonic-claude-architecture.md">nova-sonic-claude-architecture.md</a></td>
+    </tr>
+    <tr>
+      <td>학습 모드 다섯</td>
+      <td><code>speaking</code> · <code>shadowing</code> · <code>review</code> ·
+          <code>pronunciation</code> · <code>scenario_intake</code>. 값역은 DB CHECK 가 가둠.</td>
+      <td><a href="PRD.md">PRD §7</a> · <a href="database-schema.md">database-schema.md</a></td>
+    </tr>
+    <tr>
+      <td>오류 패턴 학습</td>
+      <td>발화 묶음마다 실물 모델이 교정을 내고, 같은 오류는 <code>pattern_key</code> 하나로 병합됨.
+          발생 건마다 원문·교정·이유·심각도·확신도를 남김.</td>
+      <td><a href="design/2026-08-24-first-vertical-slice-design.md">first-vertical-slice-design.md</a></td>
+    </tr>
+    <tr>
+      <td>복습 사다리</td>
+      <td>패턴별로 1·3·7일 주기 과제를 만들고, 다음 세션의 재시도 판정(정답·오답·판정불가)으로 단계를 옮김.</td>
+      <td><a href="design/2026-09-08-review-task-history-design.md">review-task-history-design.md</a></td>
+    </tr>
+    <tr>
+      <td>다음 세션 계획</td>
+      <td>세션이 끝나면 다음 세션의 초점·질문·목표 수준을 만들어 두고, 다음 진입이 그것을 읽어 지시문을 조립함.</td>
+      <td><a href="design/2026-08-25-learning-coach-agent-design.md">learning-coach-agent-design.md</a></td>
+    </tr>
+    <tr>
+      <td>세션 총평</td>
+      <td>전사문에서 잘한 점과 약점을 뽑아 세션 행에 저장하고 결과 화면이 그것을 읽음.</td>
+      <td><a href="design/2026-09-13-session-summary-design.md">session-summary-design.md</a></td>
+    </tr>
+    <tr>
+      <td>일일 오류 요약</td>
+      <td>그날의 오류를 종별로 집계해 하루 한 행으로 저장함. 날짜 경계는 <code>users.timezone</code> 임.</td>
+      <td><a href="design/2026-09-11-daily-error-summary-design.md">daily-error-summary-design.md</a></td>
+    </tr>
+    <tr>
+      <td>일일 완료 판정 · 연속 학습일</td>
+      <td>그날 마친 시나리오 수로 완료를 판정하고, 연속 학습일과 히스토리를 화면에 냄.</td>
+      <td><a href="design/2026-09-11-daily-completion-design.md">daily-completion-design.md</a> ·
+          <a href="design/2026-09-11-streak-and-history-design.md">streak-and-history-design.md</a></td>
+    </tr>
+    <tr>
+      <td>주간 리포트</td>
+      <td>지난 주의 세션 수·발생 수·상위 패턴을 사실로 모으고, 모델이 그 위에 총평을 붙임.
+          한 주에 학습이 0건이면 그 주 리포트는 생기지 않음(세션 종료가 유일한 주기 신호임).</td>
+      <td><a href="design/2026-09-14-weekly-report-design.md">weekly-report-design.md</a></td>
+    </tr>
+    <tr>
+      <td>쉐도잉</td>
+      <td>클립을 듣고 따라 말한 녹음을 저장하고, 낭독 전사문을 붙임. 만료 녹음은 워커가 걷음.</td>
+      <td><a href="design/2026-09-08-shadowing-task-design.md">shadowing-task-design.md</a> ·
+          <a href="design/2026-09-14-shadowing-clip-audio-design.md">shadowing-clip-audio-design.md</a></td>
+    </tr>
+    <tr>
+      <td>발음 시범·재발화</td>
+      <td>발음 전용 모드가 시범을 주고 재발화를 기록함. 점수·등급은 내지 않음(범위 밖).</td>
+      <td><a href="design/2026-08-27-pronunciation-echo-design.md">pronunciation-echo-design.md</a> ·
+          <a href="design/2026-09-12-pronunciation-mode-design.md">pronunciation-mode-design.md</a></td>
+    </tr>
+    <tr>
+      <td>무대(시나리오)</td>
+      <td>시드 무대 30행 + 학습자 대화 5문답에서 만든 전용 무대. 진입은 새 무대와 반복을 70/30으로 섞음.</td>
+      <td><a href="design/2026-09-12-scenario-generator-design.md">scenario-generator-design.md</a> ·
+          <a href="design/2026-09-12-scenario-rotation-70-30-design.md">scenario-rotation-70-30-design.md</a></td>
+    </tr>
+    <tr>
+      <td>영상으로 배우기</td>
+      <td>YouTube 영상을 등록하고 구절을 뽑아 학습 자원으로 씀. 화면 둘과 API 여섯임.</td>
+      <td><a href="design/2026-09-18-video-learning-design.md">video-learning-design.md</a></td>
+    </tr>
+    <tr>
+      <td>낱말 뜻 조회</td>
+      <td><code>POST /api/vocab/lookup</code> — 화면에서 낱말을 눌러 뜻을 물음. 워커를 끈 서버에서도 동작함.</td>
+      <td><a href="design/2026-09-18-video-learning-design.md">video-learning-design.md</a></td>
+    </tr>
+    <tr>
+      <td>음성 명령 진입</td>
+      <td>말로 학습을 시작·전환함. 세션 행에 <code>started_via='voice_command'</code> 가 남아 버튼 진입과 구별됨.</td>
+      <td><a href="design/2026-09-12-additional-learning-entry-design.md">additional-learning-entry-design.md</a></td>
+    </tr>
+    <tr>
+      <td>비용 기록</td>
+      <td>모델 호출마다 목적·모델·토큰을 <code>llm_calls</code> 에 남김. 계획 job 만 다른 모델을 씀.</td>
+      <td><a href="ops/local-run.md">ops/local-run.md</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="screens">2. 화면과 진입</h2>
+
+<p>프런트는 Next.js 이고 화면 여섯 장임. 학습은 전부 홈에서 시작함.</p>
+
+<table>
+  <thead><tr><th>경로</th><th>화면</th><th>담는 것</th></tr></thead>
+  <tbody>
+    <tr><td><code>/</code></td><td>홈</td>
+      <td>오늘의 추천 연습(계획이 있으면 초점과 그 이유를 함께 보여 줌) · 추가 학습 메뉴 · 세션 진행 중의
+          전사문과 상태 표시</td></tr>
+    <tr><td><code>/results/[sessionId]</code></td><td>세션 결과</td>
+      <td>상태 다섯 가운데 하나(분석 중 · 확정 · 일부 실패 · 연결 실패 · 분석 대상 없음) · 상위 교정 ·
+          세션 총평 · 드릴 관측 · 발음 결과</td></tr>
+    <tr><td><code>/history</code></td><td>학습 히스토리</td>
+      <td>연속 학습일 · 날짜별 학습 여부와 오류 집계</td></tr>
+    <tr><td><code>/history/weekly</code></td><td>주간 리포트</td>
+      <td>지난 주 사실(세션·발생·상위 패턴)과 모델 총평</td></tr>
+    <tr><td><code>/videos</code></td><td>영상 목록</td><td>등록한 영상과 구절 수</td></tr>
+    <tr><td><code>/videos/[videoId]</code></td><td>영상 학습</td><td>영상 재생과 구절 등록·삭제</td></tr>
+  </tbody>
+</table>
+
+<h3>홈의 진입 일곱</h3>
+
+<table>
+  <thead><tr><th>항목</th><th>진입</th><th>상태</th></tr></thead>
+  <tbody>
+    <tr><td>오늘 이걸 연습해요</td><td>추천 세션 — 계획이 있으면 그 초점으로 열림</td><td><span class="tag ok">동작</span></td></tr>
+    <tr><td>자유 대화</td><td>추가 학습 · 말하기</td><td><span class="tag ok">동작</span></td></tr>
+    <tr><td>약점 패턴 집중</td><td>추가 학습 · 패턴 하나를 초점으로</td><td><span class="tag ok">동작</span></td></tr>
+    <tr><td>질문 답변 5개</td><td>추가 학습 · <code>scenario_intake</code> — 끝나면 전용 무대를 만듦</td><td><span class="tag ok">동작</span></td></tr>
+    <tr><td>발음 집중</td><td>추가 학습 · <code>pronunciation</code></td><td><span class="tag ok">동작</span></td></tr>
+    <tr><td>쉐도잉</td><td>추가 학습 · <code>shadowing</code></td><td><span class="tag ok">동작</span></td></tr>
+    <tr><td>영상으로 배우기</td><td>화면 이동(<code>/videos</code>)</td><td><span class="tag ok">동작</span></td></tr>
+    <tr><td>업무 역할극</td><td>—</td><td><span class="tag">비활성 — 무대를 고르는 화면이 없음</span></td></tr>
+  </tbody>
+</table>
+
+<p class="sub">음성으로도 진입함 — 말로 고를 수 있는 항목에는 음성 대상이 붙어 있고, 열 수 없는 항목
+(업무 역할극)에는 붙이지 않음. 그 세션은 <code>started_via='voice_command'</code> 로 남음.</p>
+
+<h2 id="pipeline">3. 뒷단 — 세션·큐·분석</h2>
+
+<p>경로 하나를 끝까지 따라가면 이러함.</p>
+
+<table>
+  <thead><tr><th>단계</th><th>무엇이 일어남</th></tr></thead>
+  <tbody>
+    <tr><td>1. 진입</td><td>화면이 <code>/ws/session</code> 을 열고 세션 행이 생김. 모드·진입 출처·진입 수단이 그 행에 남음.</td></tr>
+    <tr><td>2. 대화</td><td>음성 어댑터가 부분·확정 전사문과 상대 발화 오디오를 흘림. 확정 발화만 저장됨.</td></tr>
+    <tr><td>3. 턴 경계</td><td>학습자 발화 묶음이 닫히면 <code>analyze_utterance</code> job 이 걸림.</td></tr>
+    <tr><td>4. 세션 종료</td><td>한 트랜잭션에서 종료를 적고 job 을 더 걺 — 총평 · 다음 계획 · (intake 면) 무대 생성 ·
+        (지난 주 리포트가 없으면) 주간 리포트.</td></tr>
+    <tr><td>5. 워커</td><td>동시성 1의 단일 루프가 job 을 하나씩 집어 처리함. 임대(lease)로 이중 처리를 막고,
+        큐가 비면 회복 셋을 돌림 — 고아 세션 닫기 · 잃은 묶음 걷기 · 만료 녹음 스윕.</td></tr>
+    <tr><td>6. 저장</td><td>발화 단위로 지우고 다시 넣는 방식이라 재실행이 중복을 만들지 않음.
+        패턴 빈도는 더하지 않고 발생 행에서 다시 셈.</td></tr>
+    <tr><td>7. 조회</td><td>결과 화면이 job 상태로 화면 상태를 정함 — 진행 중이면 교정을 계산하지도 않음.</td></tr>
+  </tbody>
+</table>
+
+<h3>job 다섯</h3>
+
+<table>
+  <thead><tr><th>종류</th><th>대상</th><th>결과</th></tr></thead>
+  <tbody>
+    <tr><td><code>analyze_utterance</code></td><td>발화 묶음</td><td>오류 발생·패턴 병합·복습 과제·일일 요약 갱신</td></tr>
+    <tr><td><code>summarize_session</code></td><td>세션</td><td>세션 행의 총평</td></tr>
+    <tr><td><code>plan_next_session</code></td><td>세션</td><td>다음 세션 계획과 학습자 메모</td></tr>
+    <tr><td><code>generate_scenario</code></td><td>intake 세션</td><td>전용 무대 1행</td></tr>
+    <tr><td><code>summarize_week</code></td><td>세션(계기)</td><td>지난 주 리포트 1행</td></tr>
+  </tbody>
+</table>
+
+<div class="box">
+  <p>재시도 규약이 사유에 따라 갈림(2026-09-20 정제). 모델 출력이 계약을 어긴 경우는 다른 표본이
+  지킬 수 있으므로 최대 5회 재시도함. 반면 <strong>입력이 바뀔 수 없는 실패</strong>는 첫 시도에 종결함 —
+  전사문이 빈 경우와, 모델이 지시대로 「무대가 없다」고 답한 경우임. 근거는
+  <a href="design/2026-09-12-scenario-generator-design.md">scenario-generator-design.md §5</a> 의
+  정제 절이 소유함.</p>
+</div>
+
+<h2 id="data">4. 데이터와 시각 규약</h2>
+
+<p>DB 는 PostgreSQL 17 이고 스키마는 <code>ohmyenglish</code> 임. 마이그레이션 29개(최신 031)로 세움.
+제품 표 17개와 하네스 기준선 표 4개, 그리고 마이그레이션 기록 표 하나가 있음.</p>
+
+<table>
+  <thead><tr><th>묶음</th><th>표</th></tr></thead>
+  <tbody>
+    <tr><td>학습자·세션</td><td><code>users</code> · <code>learning_sessions</code> · <code>utterances</code> ·
+        <code>session_plans</code> · <code>learner_notes</code></td></tr>
+    <tr><td>오류·복습</td><td><code>error_patterns</code> · <code>error_occurrences</code> ·
+        <code>review_tasks</code> · <code>pattern_attempts</code> · <code>daily_error_summary</code> ·
+        <code>weekly_reports</code></td></tr>
+    <tr><td>학습 자원</td><td><code>learning_scenarios</code> · <code>shadowing_items</code> ·
+        <code>youtube_videos</code></td></tr>
+    <tr><td>발음</td><td><code>pronunciation_attempts</code></td></tr>
+    <tr><td>큐·비용</td><td><code>analysis_jobs</code> · <code>llm_calls</code></td></tr>
+  </tbody>
+</table>
+
+<div class="box stop">
+  <p>시각 규약 셋을 지킴. 사건 시각은 전부 <code>timestamptz</code> 이고 DB 와 서버 기본 시간대는 UTC 임.
+  「오늘·어제」 같은 달력 날짜는 <code>current_date</code> 로 만들지 않고 <code>users.timezone</code> 으로
+  접어서 구함 — UTC 자정부터 09시(KST)까지 그 두 값이 하루 어긋남. 저장된 값을 변환해 갱신하지 않고
+  읽을 때만 변환함.</p>
+  <p>이 인스턴스는 다른 서비스와 공유함. 인스턴스 단위 조작을 하지 않고 DB 단위로만 다룸 —
+  <a href="ops/shared-database-guide.md">ops/shared-database-guide.md</a>.</p>
+</div>
+
+<h2 id="run">5. 실행 방법</h2>
+
+<p>상세와 함정의 정본은 <a href="ops/local-run.md">ops/local-run.md</a> 임. 여기에는 순서만 둠.</p>
+
+<pre><code># 0) DB — homebrew postgresql@17 (:5432) 하나. 보통 부팅 시 떠 있음
+scripts/dev_db.sh status
+
+# 1) 마이그레이션 + 시드 (멱등)
+app/backend/.venv/bin/python scripts/migrate.py
+
+# 2) 백엔드 — 포트 8002 · --reload 없음(소스를 고쳤으면 재기동)
+cd app/backend && .venv/bin/uvicorn app.api.main:app --port 8002
+
+# 3) 프런트 — 포트 3000
+cd app/frontend && npm run dev</code></pre>
+
+<div class="box stop">
+  <p>포트를 틀리면 조용히 실패함. 이 머신의 <code>:8000</code> 은 다른 서비스가 씀 —
+  백엔드는 반드시 <code>--port 8002</code> 로 띄우고, 프런트의 <code>.env.local</code> 이
+  <code>:8002</code> 를 가리켜야 함. 브라우저 확인은 <code>localhost:3000</code> 으로 함
+  (<code>127.0.0.1</code> 로 열면 개발 서버가 자원을 막아 화면이 붙지 않음).</p>
+  <p>리스너 확인은 <code>lsof -nP -iTCP:8002 -sTCP:LISTEN -t</code> 로 함.
+  <code>lsof -ti:8002</code> 는 클라이언트까지 잡아 오독됨.</p>
+</div>
+
+<h3>환경 변수 — 무엇을 끄고 켜는가</h3>
+
+<table>
+  <thead><tr><th>변수</th><th>기본</th><th>무엇</th></tr></thead>
+  <tbody>
+    <tr><td><code>VOICE_ADAPTER</code></td><td><code>stub</code></td>
+      <td><code>stub</code>(픽스처 재생 · 유료 호출 0) · <code>nova</code>(실연동) ·
+          <code>stub_unresponsive</code>(연결 실패 재현)</td></tr>
+    <tr><td><code>WORKER_ENABLED</code></td><td><code>true</code></td>
+      <td><code>false</code> 면 분석 워커를 기동하지 않음 — 자격증명 없이 백엔드만 띄우는 길임</td></tr>
+    <tr><td><code>NOVA_ENDPOINTING_SENSITIVITY</code></td><td><code>MEDIUM</code></td>
+      <td>발화 종료 감지 민감도. 이르면 문장이 쪼개져 없는 약점이 만들어짐</td></tr>
+    <tr><td><code>CLAUDE_MODEL_ID</code> · <code>PLAN_MODEL_ID</code></td><td>Opus 5 · GPT-5.6</td>
+      <td>계획 job 만 다른 모델을 씀(사용자 결정). 나머지 네 종류는 Claude 를 씀</td></tr>
+    <tr><td><code>DATABASE_URL</code></td><td>로컬 dev DB</td>
+      <td>격리 회차는 이 값만 바꿔 다른 DB 를 씀</td></tr>
+  </tbody>
+</table>
+
+<div class="box">
+  <p>Bedrock 자격증명은 SigV4(접근 키 둘)가 있어야 함. 개발 셸에는 bearer 토큰만 있는 경우가 많고
+  두 키는 <code>app/backend/.env</code> 에만 있음 — 직접 스크립트를 돌릴 때는
+  <code>env -u AWS_BEARER_TOKEN_BEDROCK</code> 을 앞에 붙임. 절차는
+  <a href="ops/iam-setup-nova-sigv4.md">ops/iam-setup-nova-sigv4.md</a> 가 소유함.</p>
+</div>
+
+<h3>보고용 스크립트</h3>
+
+<table>
+  <thead><tr><th>명령</th><th>무엇</th></tr></thead>
+  <tbody>
+    <tr><td><code>scripts/usage_report.py [--days 7]</code></td><td>모델 호출과 토큰 사용량</td></tr>
+    <tr><td><code>scripts/scenario_report.py [--only-unstudied]</code></td><td>무대별 학습 현황</td></tr>
+    <tr><td><code>backlog task list --plain</code></td><td>작업 원장 — 무엇이 남았나</td></tr>
+  </tbody>
+</table>
+
+<h2 id="verify">6. 검증 — 게이트와 회차 도구</h2>
+
+<p>게이트 일곱을 돌려 판정함. 2026-09-20 실측값을 괄호에 적음.</p>
+
+<pre><code>cd app/backend && ./.venv/bin/pytest -q                      # 1428 passed
+cd app/backend && ./.venv/bin/ruff check . ../../tests ../../scripts
+cd app/backend && ./.venv/bin/ruff format --check . ../../tests ../../scripts
+cd app/backend && ~/.local/bin/ty check
+cd app/frontend && npx tsc --noEmit && npx eslint . && npx next build</code></pre>
+
+<p>게이트는 스텁으로 돌므로 유료 호출이 0건임. 실물 모델이 계약을 지키는지는 회차 도구가 잼.</p>
+
+<table>
+  <thead><tr><th>도구</th><th>무엇을 재는가</th></tr></thead>
+  <tbody>
+    <tr><td><code>tests/harness/w_worker_round.py</code></td>
+      <td>격리 DB 에 세션을 만들고 워커를 실물 모델로 켜 파이프라인 전 구간을 관통시킴
+          (<code>setup</code> → <code>run</code> → <code>verify</code>). 단정 아홉을 자동 판정함.</td></tr>
+    <tr><td><code>tests/harness/contract_sampler.py</code></td>
+      <td>같은 전사문을 여러 번 호출해 파서 계약 위반율을 셈. <code>--rescan</code> 은 저장된 응답을
+          호출 0건으로 다시 셈.</td></tr>
+    <tr><td><code>tests/harness/scenario_null_probe.py</code></td>
+      <td>무대가 없는 전사문에서 모델이 무엇을 내는지 탐침함.</td></tr>
+    <tr><td><code>tests/harness/ws_session.py</code></td>
+      <td>WebSocket 세션 하나를 끝까지 관측해 프레임을 기록함.</td></tr>
+    <tr><td><code>tests/harness/teardown_session.py</code></td>
+      <td>회차가 만든 세션과 그 job 을 걷음 — 남기면 앱 큐가 오염됨.</td></tr>
+    <tr><td><code>scripts/smoke_analysis.py</code></td>
+      <td>전용 스모크 DB 를 새로 만들어 분석·계획 경로를 실물 모델로 한 번 관통시킴.</td></tr>
+    <tr><td><code>scripts/check_doc_links.py</code></td>
+      <td>이 개요서와 색인 문서의 링크·경로 표기가 실재하는지 셈. 문서를 고친 뒤 돌림.</td></tr>
+  </tbody>
+</table>
+
+<div class="box stop">
+  <p>유료 회차는 격리 DB(<code>ohmyenglish_worker</code>)에서 돌림 — 개발 DB 에 픽스처 문장을 넣으면
+  학습자의 실제 오류 패턴과 복습 일정이 섞이고 그것은 되돌리기 어려움. 회차 증거는
+  <code>tests/harness/runs/&lt;날짜&gt;-&lt;이름&gt;/</code> 에 남기고 노트를 그 옆에 둠.</p>
+</div>
+
+<h2 id="docmap">7. 문서 지도</h2>
+
+<p>층을 넷으로 가름. 알고 싶은 것이 무엇인지로 고르면 됨.</p>
+
+<h3>층 ① 요구 — 무엇을 만들어야 하나</h3>
+<table>
+  <thead><tr><th>문서</th><th>역할</th></tr></thead>
+  <tbody>
+    <tr><td><a href="PRD.md">PRD.md</a></td>
+      <td>요구사항 정본(현재 v1.6). §12 가 개정 이력을 가짐. §16 은 발음 보조 신호 요구를 철회했고
+          §17 은 즉시 드릴 진입을 화면 하나로 좁혔음</td></tr>
+    <tr><td><a href="requirements-summary.md">requirements-summary.md</a></td>
+      <td>학습자 관점의 요구 요약 — PRD 와 같은 판</td></tr>
+    <tr><td><a href="requirements-tracking.html">requirements-tracking.html</a></td>
+      <td>요구사항 ID 별 구현 판정표. 사람이 갱신하는 문서이고 <strong>지금은 v1.4 까지만 덮음</strong></td></tr>
+    <tr><td><a href="storyboard.html">storyboard.html</a></td><td>화면 흐름 스토리보드</td></tr>
+    <tr><td><a href="first-4-weeks.md">first-4-weeks.md</a></td><td>첫 4주 학습 플로우</td></tr>
+  </tbody>
+</table>
+
+<h3>층 ② 설계 — 왜 이렇게 만들었나</h3>
+<table>
+  <thead><tr><th>문서</th><th>역할</th></tr></thead>
+  <tbody>
+    <tr><td><a href="nova-sonic-claude-architecture.md">nova-sonic-claude-architecture.md</a></td>
+      <td>목표 아키텍처 — 음성 모델과 분석 모델의 역할 분담</td></tr>
+    <tr><td><a href="agent-system-prompt.md">agent-system-prompt.md</a></td>
+      <td>대화 규칙과 말투 — Agent 가 지켜야 하는 것</td></tr>
+    <tr><td><a href="database-schema.md">database-schema.md</a></td><td>표와 열의 뜻</td></tr>
+    <tr><td><code>design/</code> 아래 44건</td>
+      <td>기능별 설계서와 결정 근거의 정본. 파일명이 <code>날짜-주제</code> 이고, 같은 주제의
+          <code>-design</code>(무엇을 왜)과 <code>-plan</code>(어떻게 쪼갤지)이 짝을 이룸</td></tr>
+    <tr><td><a href="ops/captain-instruction-register.md">ops/captain-instruction-register.md</a></td>
+      <td>사용자 결정 대장 — 번호로 인용되는 결정의 정본</td></tr>
+    <tr><td><a href="ops/data-first-design-convention.md">ops/data-first-design-convention.md</a></td>
+      <td>데이터부터 설계하는 규약</td></tr>
+    <tr><td><a href="ops/review-and-decision-protocol.md">ops/review-and-decision-protocol.md</a></td>
+      <td>리뷰와 결정 절차</td></tr>
+  </tbody>
+</table>
+
+<h3>층 ③ 운영 — 어떻게 돌리고 무엇을 밟지 않아야 하나</h3>
+<table>
+  <thead><tr><th>문서</th><th>역할</th></tr></thead>
+  <tbody>
+    <tr><td><a href="ops/local-run.md">ops/local-run.md</a></td>
+      <td>DB·백엔드·프런트·게이트 실행의 정본. 포트 함정을 앞에 둠</td></tr>
+    <tr><td><a href="ops/pitfalls.md">ops/pitfalls.md</a></td>
+      <td>실제로 밟아 본 함정만 모은 목록. 건드릴 영역의 절만 읽음</td></tr>
+    <tr><td><a href="ops/iam-setup-nova-sigv4.md">ops/iam-setup-nova-sigv4.md</a></td>
+      <td>Bedrock SigV4 자격증명 발급 절차</td></tr>
+    <tr><td><a href="ops/shared-database-guide.md">ops/shared-database-guide.md</a> ·
+            <a href="ops/shared-database-naming-rules.md">naming-rules</a></td>
+      <td>다른 서비스와 공유하는 DB 인스턴스를 다루는 규칙</td></tr>
+    <tr><td><a href="ops/status-report-convention.md">ops/status-report-convention.md</a></td>
+      <td>현황 보고 스냅샷의 형식 규약 — 이 개요서와 성질이 다름(그 절이 구분을 적어 둠)</td></tr>
+    <tr><td><a href="ops/audit-session-brief.md">ops/audit-session-brief.md</a></td>
+      <td>감사 세션에 주는 지시문</td></tr>
+  </tbody>
+</table>
+
+<h3>층 ④ 진행과 증거 — 지금 어디까지 왔나</h3>
+<table>
+  <thead><tr><th>자리</th><th>역할</th></tr></thead>
+  <tbody>
+    <tr><td><code>backlog/tasks/*.md</code> (<code>backlog task list --plain</code>)</td>
+      <td>작업 원장 — 남은 일과 완료의 정본. 태스크는 ID 로 가리킴</td></tr>
+    <tr><td><a href="../handoff/HANDOFF.md">handoff/HANDOFF.md</a></td>
+      <td>지금 어디까지 왔나와 다음 한 걸음. 짧게 유지하고 매 세션 새로 씀(이전 판은
+          <code>handoff/backup/</code>)</td></tr>
+    <tr><td><code>tests/harness/runs/</code></td>
+      <td>회차 증거와 노트 — 그때 무엇을 보고 판정했는지</td></tr>
+    <tr><td><code>docs/backup/</code></td>
+      <td>폐기 문서 보관소. 규약은 <a href="backup/superseded/README.md">backup/superseded/README.md</a> —
+          내용을 고치지 않고, 폐기 사실은 각 폴더 README 에만 적고, 참조하는 쪽은 경로만 갱신함</td></tr>
+  </tbody>
+</table>
+
+<h2 id="gaps">8. 아직 없는 것</h2>
+
+<p>여기 적는 것은 「의도적으로 범위 밖」과 다름 — 만들려 했으나 아직 없는 자리임.</p>
+
+<table>
+  <thead><tr><th>없는 것</th><th>지금 무엇이 일어나나</th></tr></thead>
+  <tbody>
+    <tr><td>무대를 고르는 화면</td>
+      <td>홈의 「업무 역할극」이 비활성임. 무대는 추천 회전과 intake 생성으로만 붙음</td></tr>
+    <tr><td>무대를 만들지 못했다는 알림</td>
+      <td>대화에 무대가 없으면 생성 job 이 첫 시도에 종결하고 화면에는 아무 말도 없음.
+          알릴지는 요구사항 쪽 결정이라 발명하지 않았음</td></tr>
+    <tr><td>요구사항 판정표의 v1.5·v1.6 절</td>
+      <td>추적표가 v1.4 까지만 덮음. 그 두 절은 요구 철회와 진입 한정이므로 구현 상태보다
+          <strong>범위 판단</strong>이 필요한 자리임</td></tr>
+    <tr><td>요구사항별 판정 스냅샷(현황 보고)</td>
+      <td>2026-09-06 판을 보관소로 옮겼음. 새 스냅샷은 사용자가 요구할 때 형식 규약대로 만듦 —
+          그 사이의 상태는 이 개요서와 원장이 답함</td></tr>
+    <tr><td>발음 채점</td>
+      <td>범위 밖임(PRD §5). 시범과 재발화 기록만 범위에 듦</td></tr>
+  </tbody>
+</table>
+
+<footer>
+  <p>이 문서를 고쳐야 하는 때: 기능이 늘거나 줄었을 때 · 실행 절차가 바뀌었을 때 ·
+  문서가 보관소로 옮겨졌을 때. 고친 뒤에는 <code>python3 scripts/check_doc_links.py</code> 로
+  링크가 전건 실재하는지 확인함(2026-09-20 기준 85건 전건 실재).</p>
+  <p>작성 근거: 이 문서의 모든 수치와 경로는 2026-09-20 에 직접 명령을 돌려 얻었음.
+  기능 목록은 코드에 실재하는 것만 담았고, 상태의 정본은 작업 원장임.</p>
+</footer>
+
+</body>
+</html>

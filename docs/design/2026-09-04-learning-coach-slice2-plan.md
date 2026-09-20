@@ -21,7 +21,7 @@ ruff · ty · Next.js(App Router)/TypeScript. **슬라이스 1과 달리 프론�
 **Spec:** `docs/design/2026-08-25-learning-coach-agent-design.md` (정본, 2026-08-27 승격) — 이 계획의 범위는
 그 문서 **§12.1 결정 표의 2행**이다: 계획 생성 job · `session_plans` · `learner_notes` · 지시문 전달(§5.2) ·
 수준 갱신(§7). 관련 수용 시나리오는 §10의 **AS1~AS8**과 신설 **AS11**(아래 Task 12).
-**함께 읽어야 하는 문서**: `docs/consistency-audit-2026-09-04.md` — 이 계획이 닫는 어긋남 9건의 근거와
+**함께 읽어야 하는 문서**: `docs/backup/2026-09-20-superseded/consistency-audit-2026-09-04.md` — 이 계획이 닫는 어긋남 9건의 근거와
 캡틴 결정 2건이 거기 있다.
 
 ---
@@ -2288,7 +2288,7 @@ git commit -m "feat: 스텁 어댑터가 지시문을 받아 보관한다
 `factory.py:31-36`이 G-3 근거로 "소켓은 데이터만 넘기고 조립은 여기서 한다"를 못 박았고, 이 태스크는
 그 규약을 **그대로 따른다**(계획도 데이터로 넘긴다).
 
-**이 태스크가 닫는 어긋남 3건** (근거는 `docs/consistency-audit-2026-09-04.md`):
+**이 태스크가 닫는 어긋남 3건** (근거는 `docs/backup/2026-09-20-superseded/consistency-audit-2026-09-04.md`):
 1. **65% 규칙이 실제 지시문에 없었다** — `docs/PRD.md:59`·R10-8이 요구하는데 대화 상대가 모르고 있었다.
 2. **가변부의 "힌트를 얼마나 이르게 줄지"가 이미 고정돼 있었다**(`nova.py:116`·`:121`) — 계획이 그 두 줄을
    **대체한다**는 것을 문장으로 명시한다. 안 하면 모순된 지시가 함께 나간다.
@@ -2718,7 +2718,7 @@ git commit -m "feat: 시작 화면에 추천 이유를 한 줄로 보여준다
 2. **§5.2 고정부 서술** — "고정부는 `agent-system-prompt.md`"에 한 문장을 덧붙인다:
    "⚠️ **실제 대화 상대가 받는 문구는 `audio_gateway/nova.py`의 상수다.** 이 문서는 목표 문구이고
    코드는 '대화 상대가 실제로 할 수 있는 부분'만 담는다 — 두 문서의 차이는
-   `docs/consistency-audit-2026-09-04.md`가 표로 소유한다."
+   `docs/backup/2026-09-20-superseded/consistency-audit-2026-09-04.md`가 표로 소유한다."
 3. **§9 Dependency의 "`start(instruction)` 변경"** — 팩토리 경로로 고친다. 파급 제한 요건
    (세션 수명·저장·job 등록에 닿지 않는다)은 **그대로 유지한다** — 그 요건은 여전히 유효하고
    이번 구현이 실제로 지켰다.
@@ -2846,5 +2846,5 @@ R11-7(T5·T7) · R11-8(T4·T6) · R11-9(T4·T6·T12의 AS11) · R11-10(T7).
 ---
 
 _계획 작성: 2026-09-04. 기준 커밋 `82203d1`. 실측 기준선 454 passed._
-_사양: `docs/design/2026-08-25-learning-coach-agent-design.md` · 어긋남 점검: `docs/consistency-audit-2026-09-04.md`_
+_사양: `docs/design/2026-08-25-learning-coach-agent-design.md` · 어긋남 점검: `docs/backup/2026-09-20-superseded/consistency-audit-2026-09-04.md`_
 

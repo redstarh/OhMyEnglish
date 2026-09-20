@@ -317,7 +317,7 @@
       <td>⛔ <b>이 슬라이스에서 충족되지 않는다 — 캡틴 결정 2026-09-04 로 이월됐다.</b>
           실제 음성 응대가 달라지는 것을 요구하므로 <b>스텁으로는 판정할 수 없다</b>.
           2026-09-11 에 설계서 §11 이월에 그 사실을 명시했다(<code>TASK-48</code> AC#2) ·
-          근거는 <code>docs/consistency-audit-2026-09-04.md</code></td></tr>
+          근거는 <code>docs/backup/2026-09-20-superseded/consistency-audit-2026-09-04.md</code></td></tr>
   <tr><td class="id">AC11-6</td><td>발음 재발화에 반복 실패한 패턴이 다음 계획의 초점에 포함될 수 있다</td>
       <td class="v"><span class="b ok">충족</span></td>
       <td>2026-09-11 에 <b>AS11 을 신설해 시나리오화했다</b>(<code>TASK-48</code> AC#1 ·
@@ -475,6 +475,21 @@
   <code>docs/requirements-tracking.html</code> 을 <b>제외</b>해야 한다 — 안 그러면 여섯이
   「고아가 아니다」로 보인다. 세는 명령:
   <code>grep -rl "R15-2" . | grep -v backup | grep -v PRD.md | grep -v requirements-tracking</code></p>
+</div>
+
+<h2>범위 상태 — 2026-09-20 확인</h2>
+
+<div class="box">
+  <p>⚠️ <b>이 표가 덮는 요구는 PRD v1.4 까지다.</b> 그 뒤 두 판이 붙었고 이 표에는 절이 없다 —
+  <b>§16(v1.5)</b> 은 발음 판정 보조 신호 요구를 <b>철회</b>했고, <b>§17(v1.6)</b> 은 즉시 드릴의
+  진입을 <b>결과 화면 하나로 한정</b>했다. 둘 다 요구가 늘어난 것이 아니라 <b>줄어든</b> 개정이므로
+  아래 표의 판정을 뒤집지 않는다. 그러나 「요구 전체가 여기 있다」로 읽으면 안 된다.</p>
+  <p>⛔ <b>판정을 추측으로 채우지 않는 규약</b>(아래 갱신 규약)에 따라, 그 두 절의 행은 요구 범위를
+  다시 읽은 사람이 더한다. 지금 무엇이 동작하는지는 <code>docs/overview.html</code> 이 코드에 실재하는
+  기능으로 답하고, 상태의 정본은 작업 원장이다.</p>
+  <p>⚠️ <code>docs/backup/2026-09-20-superseded/status-report-2026-09-06.html</code>(그때의 판정 스냅샷)은
+  <code>docs/backup/2026-09-20-superseded/</code> 로 옮겼다 — 이 표와 그 스냅샷이 서로 다른 값을
+  말하고 있었고, 스냅샷은 사후에 고치지 않는 문서다.</p>
 </div>
 
 <h2>갱신 규약 — 이 문서를 낡지 않게 하는 방법</h2>
