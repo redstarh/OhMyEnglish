@@ -8,6 +8,7 @@
     --ink: #16181d; --muted: #5b6472; --line: #d8dce3; --bg: #fbfcfd;
     --ok: #0b7a4b; --ok-bg: #e7f5ee; --part: #8a5a00; --part-bg: #fdf3e0;
     --no: #a4262c; --no-bg: #fbeced; --unk: #4a5464; --unk-bg: #eef1f5;
+    --gone: #4b3f7a; --gone-bg: #eeebf8;
   }
   * { box-sizing: border-box; }
   body { margin: 0; padding: 2rem 1.25rem 5rem; background: var(--bg); color: var(--ink);
@@ -36,6 +37,7 @@
   .b.part { color: var(--part); background: var(--part-bg); }
   .b.no { color: var(--no); background: var(--no-bg); }
   .b.unk { color: var(--unk); background: var(--unk-bg); }
+  .b.gone { color: var(--gone); background: var(--gone-bg); }
   code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .86em;
     background: #eef1f5; padding: .05rem .25rem; border-radius: 2px; }
   .kpi { display: flex; flex-wrap: wrap; gap: .6rem; margin: 1rem 0 1.4rem; }
@@ -50,9 +52,9 @@
 
 <h1>요구사항-구현 추적 체크리스트</h1>
 <p class="sub">
-  OhMyEnglish · 기준 시점 <b>2026-09-12</b> · 브랜치 <code>design/first-vertical-slice</code> ·
-  기준 커밋 <code>9bfc76d</code> · 요구사항 정본 <code>docs/PRD.md</code> v1.4 ·
-  소유 태스크 <code>TASK-40</code>(캡틴 요청)
+  OhMyEnglish · 기준 시점 <b>2026-09-21</b> · 브랜치 <code>design/first-vertical-slice</code> ·
+  기준 커밋 <code>6214047</code> · 요구사항 정본 <code>docs/PRD.md</code> v1.6 ·
+  소유 태스크 <code>TASK-40</code>(캡틴 요청) · 마지막 갱신 <code>TASK-264</code>
 </p>
 
 <div class="box warn">
@@ -91,14 +93,20 @@
   <tr><td class="v"><span class="b unk">미판정</span></td>
       <td>이 판에서 확인하지 못했다. <b>무엇이 있어야 판정되는지</b>를 적었다.
           ⛔ 추측으로 채우지 않는다</td></tr>
+  <tr><td class="v"><span class="b gone">철회</span></td>
+      <td><b>요구 자체가 철회됐다</b> — 철회한 절과 결정을 같은 행에 적었다.
+          ⛔ <b>미충족·부분과 섞지 않는다</b>: 「할 일이 남았다」와 「할 일이 없어졌다」가 한 칸에
+          들어가면 다음 계획이 없어진 요구를 다시 집는다(2026-09-21 에 <code>R10-4</code> 가 그
+          상태였다)</td></tr>
 </table>
 
 <h2>한눈에</h2>
 
 <div class="kpi">
-  <div><b>64</b><span>번호 있는 요구사항 (§10·§11·§13·§14·§15)</span></div>
+  <div><b>71</b><span>번호 있는 요구사항 (§10·§11·§13·§14·§15·§16·§17)</span></div>
   <div><b>3</b><span>⚪ 미판정 — <code>R10-5</code>·<code>R10-8</code>·<code>AC10-4</code></span></div>
   <div><b>1</b><span>⛔ 미충족 — <code>AC11-5</code>(번호 요구사항 중 유일)</span></div>
+  <div><b>1</b><span>철회 — <code>R10-4</code>(v1.5 §16.1)</span></div>
   <div><b>6</b><span>고아 — PRD 밖 언급 0건 (§14·§15)</span></div>
   <div><b>3</b><span>§7 절 중 번호 요구를 0건 가진 것</span></div>
 </div>
@@ -106,8 +114,11 @@
 <div class="box">
   <p>⚠️ <b>판정 분포를 비율로 적지 않았다.</b> §7 의 세 절이 번호를 갖지 못해 <b>분모가 정의되지
   않는다</b> — 위 「⛔ 이 표가 말하지 않는 것」 3번이 그 이유를 소유한다.</p>
-  <p>⚠️ <b>「미판정 3건」이 이 표의 정직한 부분이다.</b> 셋 다 <b>실물 음성 세션의 계측</b>이 있어야
-  닫힌다(개입 빈도 · 발화 비중 · 한 턴에 두 오류). 추측으로 채우면 그 셋이 ✅ 가 되고
+  <p>⚠️ <b>「미판정 3건」이 이 표의 정직한 부분이다.</b> 둘은 <b>실물 음성 세션의 계측</b>이 있어야
+  닫히고(<code>R10-8</code> 발화 비중 · <code>AC10-4</code> 한 턴에 두 오류),
+  <code>R10-5</code> 는 <b>계측으로 닫히지 않는다</b> — §16.2 가 그 조문의 해석을 옮겼고 결정 52 가
+  빈도를 숫자로 정하지 않았으므로, 닫으려면 <b>그 해석을 요구 문면으로 옮기는 개정</b>이 있어야 한다
+  (2026-09-21 정정 · <code>TASK-264</code>). 추측으로 채우면 그 셋이 ✅ 가 되고
   <b>표의 신뢰가 통째로 사라진다.</b></p>
 </div>
 
@@ -192,16 +203,26 @@
       <td>2026-09-12 에 <b>코드로 집행됐다</b> — <code>resolve_pattern_keys</code> 가 발음 카테고리
           finding 을 버린다(결정 62 · <code>TASK-99</code>). 그전에는 <b>프롬프트 문구뿐</b>이었다</td></tr>
   <tr><td class="id">R10-4</td><td>판정 보조 신호 2개(한국어 전사 · Agent 재요청)를 관측·기록한다</td>
-      <td class="v"><span class="b part">부분</span></td>
-      <td><b>의도된 절반 미충족</b> — <code>korean_transcript</code> 만 구현하고
-          <code>agent_reprompt</code> 는 「만들지 않는다」가 캡틴 결정(2026-08-28)이며
-          <code>TASK-24</code> 가 2026-09-09 실측으로 <b>유지</b> 판정했다(감지할 되묻기 문구가
-          사각 3턴 전부에 없었다)</td></tr>
+      <td class="v"><span class="b gone">철회</span></td>
+      <td><b>PRD v1.5 §16.1 이 철회했다</b>(사용자 결정 2026-09-19 · 결정 기록
+          <code>docs/design/2026-09-19-decision-r10-4-auxiliary-signals-withdrawn.md</code>) —
+          기록 경로는 <code>R10-3</code> 의 실시간 음성 모델 하나로 정해졌다.
+          ⛔ 2026-09-21 에 확인한 것: <code>korean_transcript</code>·<code>agent_reprompt</code> 를
+          <b>쓰는 코드가 0곳</b>이고 남은 것은 값역 선언(<code>models/pronunciation.py</code>)과
+          삭제를 적은 주석뿐이다. 그래서 이전 판의 「부분 — 의도된 절반 미충족」은
+          <b>없어진 요구를 남은 일로 보이게 했다</b>.
+          ⚠️ 되살릴 근거 1건은 §16.2 가 갖는다(강한 억양 픽스처를 쓴 회차의 한글 전사 1건) —
+          실사용 빈도의 근거는 아니다</td></tr>
   <tr><td class="id">R10-5</td><td>보조 신호가 뜬 경우에만 즉시 개입한다 — 문법 교정과 예산을
           다투지 않는다</td>
       <td class="v"><span class="b unk">미판정</span></td>
-      <td>판정에 필요한 것: <b>실물 세션에서의 개입 빈도</b>. 결정 52 가 「빈도를 숫자로 정하지
-          않는다」로 정했고 결정 55 가 그 판정을 <b>보류</b>했다(기록을 먼저 고친다)</td></tr>
+      <td><b>§16.2 가 이 조문의 해석을 옮겼다</b> — 철회로 조건(보조 신호)을 잃었고, 발음 개입은
+          <b>발음 전용 모드</b>가 담당하는 것으로 읽는다(<code>TASK-75</code> · 설계서
+          <code>docs/design/2026-09-12-pronunciation-mode-design.md</code>).
+          판정에 필요한 것: <b>그 해석을 요구 문면으로 옮기는 개정</b>. 결정 52 가 「빈도를 숫자로
+          정하지 않는다」로 정했으므로 <b>계측만으로는 닫히지 않는다</b> —
+          ⛔ 이전 판이 적었던 「실물 세션의 개입 빈도」는 철회 뒤 판정 조건이 아니다(결정 55 가 그
+          판정을 보류했고, 기록을 먼저 고치는 쪽이 §16 으로 실행됐다)</td></tr>
   <tr><td class="id">R10-6</td><td>발음 오류도 재사용 가능한 패턴으로 저장해 이후 학습에 재등장한다</td>
       <td class="v"><span class="b ok">충족</span></td>
       <td><code>TASK-44</code> 가 복습 주기를 배선했고(<code>_PRONUNCIATION_HISTORY_SQL</code>),
@@ -226,10 +247,15 @@
   <tr><td class="id">AC10-3</td><td>전사문이 한국어가 되면 보조 신호로 기록되고 분석 파이프라인은
           실패하지 않는다</td>
       <td class="v"><span class="b ok">충족</span></td>
-      <td><code>note_transcript</code> → <code>record_signal</code>
-          (<code>outcome='unclear'</code> · <code>signal_source='korean_transcript'</code>) ·
-          <code>tests/integration/test_pronunciation_service.py</code>.
-          ⚠️ 그 행은 <b>복습 단계를 전진시키지 않는다</b>(결정 59) — 기록 요구는 그대로 유지된다</td></tr>
+      <td><b>요구가 줄었다 — §16.1 이 기록 요구를 걷고 「분석 파이프라인이 실패하지 않는다」만
+          남겼다.</b> 그 남은 절반의 근거는 통합 시나리오 <code>TS-34</code> AC#4 와 회차
+          <code>tests/agent/runs/2026-09-19-b6</code> 다 — 한글 전사가 <b>실제로 1건 일어났고</b>
+          신호 행은 0건이며 분석은 실패하지 않았다.
+          ⛔ 이전 판이 근거로 적었던 <code>note_transcript</code> → <code>record_signal</code> 은
+          <b>지워진 코드다</b>(2026-09-21 확인 — 리포에 남은 것은 그 삭제를 적은 주석뿐이고,
+          같은 줄이 인용한 테스트 파일은 실재하나 신호 행을 재지 않는다).
+          ⚠️ 결정 59(보조 신호는 복습 단계를 전진시키지 않는다)는 <b>살아 있다</b> — 철회는 그
+          조문을 뒤집지 않았다(§16.3)</td></tr>
   <tr><td class="id">AC10-4</td><td>한 턴에 문법·발음 오류가 함께 있어도 개입이 1~2건을 넘지 않는다</td>
       <td class="v"><span class="b unk">미판정</span></td>
       <td>판정에 필요한 것: <b>두 오류가 같은 턴에 있는 실물 회차</b>. 지금 회차 기록에 그 조건이 없다</td></tr>
@@ -457,6 +483,86 @@
           (<code>now</code> 주입으로 시각을 테스트가 정한다)</td></tr>
 </table>
 
+<h2>§16 보조 신호 요구 철회 (v1.5) · §17 즉시 드릴 진입의 한정 (v1.6)</h2>
+
+<div class="box">
+  <p><b>두 절은 요구를 «줄인» 개정이다</b> — §16 은 발음 판정 보조 신호의 기록 요구를 철회하고,
+  §17 은 즉시 드릴의 진입을 <b>결과 화면 하나로</b> 한정했다. 그래서 수용 기준이 묻는 것도
+  「무엇이 생겼나」가 아니라 <b>「그것이 일어나지 않는가」</b>다 — 아래 일곱 가운데 넷이 부재를
+  단정한다.</p>
+  <p>⛔ <b>부재를 단정하는 판정은 그 부재를 재는 자리를 함께 적어야 한다.</b> 「없는 것을 확인했다」
+  는 <b>무엇으로 확인했는지</b>가 없으면 「아직 안 만들었다」와 구별되지 않는다 — §17.3 이 기록한
+  「소유자를 두 번 잃었다」가 정확히 그 혼동에서 나왔다.</p>
+  <p>근거는 2026-09-21 에 직접 돌린 출력이다 — 코드 검색 · dev DB 조회 · 게이트 실행.
+  <b>회차 기록을 근거로 적은 자리는 그것이 회차라는 사실을 함께 적었다</b>(회차는 그때의 사실이고
+  게이트에서 다시 돌지 않는다).</p>
+</div>
+
+<table>
+  <tr><th>ID</th><th>문구 요지</th><th>판정</th><th>근거 / 무엇이 남았나</th></tr>
+  <tr><td class="id">AC16-1</td><td>전사문이 한국어가 되어도 보조 신호 행이 생기지 <b>않고</b>
+          분석 파이프라인도 실패하지 않는다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td>두 겹이다 — <b>부재의 근거</b>: <code>korean_transcript</code> 를 쓰는 코드가 0곳이고
+          남은 것은 값역 선언(<code>models/pronunciation.py</code> 의 <code>SignalSource</code>)과
+          삭제를 적은 주석뿐이다(<code>services/pronunciation.py</code> 머리말).
+          <b>실물의 근거</b>: 통합 시나리오 <code>TS-34</code> AC#4 · 회차
+          <code>tests/agent/runs/2026-09-19-b6</code> — 한글 전사가 실제로 1건 일어났고 신호 행은
+          0건이며 분석은 실패하지 않았다</td></tr>
+  <tr><td class="id">AC16-2</td><td>Agent 가 되물어도 그 사실로 신호 행이 생기지 <b>않는다</b></td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td><code>agent_reprompt</code> 는 <b>처음부터 만들지 않기로</b> 한 값이다(<code>TASK-24</code> ·
+          캡틴 결정 2026-08-28). 값역에만 있고 writer 는 0곳이다 — 그 판단을
+          <code>models/pronunciation.py</code> · <code>services/review.py</code> ·
+          <code>db/migrations/003_pronunciation_echo.sql</code> 이 각각 적어 두었다.
+          ⚠️ 이 행은 §16 <b>이전에도</b> 성립했다 — 철회가 바꾼 것은 판정이 아니라
+          <b>그 상태가 결함인지 계약인지</b>다</td></tr>
+  <tr><td class="id">AC16-3</td><td>과거에 보조 신호로 기록된 행은 그대로 조회되고 제약을 위반하지
+          않는다 — 값역을 좁히지 않았다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td>dev DB 직접 조회(2026-09-21): <code>pronunciation_attempts.signal_source</code> 분포가
+          <code>nova_tool</code> 4행 · <code>korean_transcript</code> 3행이고 제약 위반 없이 읽힌다.
+          값역은 네 값을 그대로 유지한다(<code>SignalSource</code>).
+          ⛔ <b>값역을 좁히면 그 3행이 제약을 위반한다</b> — §16.3 이 그것을 금지의 근거로 갖는다</td></tr>
+  <tr><td class="id">AC17-1</td><td>결과 화면의 패턴 카드로 진입하면 그 패턴을 초점으로 한 세션이
+          열리고 세션 행에 어느 패턴이었는지 남는다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td>화면 쪽 진입점은 결과 화면의 일일 패턴 카드가 갖는다
+          (<code>app/frontend/app/results/[sessionId]/page.tsx</code> 의
+          <code>dashboardEntryHref({source:"additional", patternKey})</code> — 질의 이름을 만드는
+          쪽이 한 곳이다 · <code>TASK-168</code>). 기록은
+          <code>learning_sessions.focus_pattern_key</code>(031) 이고, 그 두 자리를 한 검사로 재는 것이
+          <code>test_ws.py</code> 의
+          <code>test_ws_pattern_entry_records_the_choice_and_replaces_the_instruction_focus</code> 다
+          (<code>TASK-241</code> · 결함 <code>TASK-233</code>)</td></tr>
+  <tr><td class="id">AC17-2</td><td>준비된 계획이 있으면 지시문 초점이 고른 패턴 <b>하나로 대체</b>되고
+          그 사실이 <code>session_started</code> 의 <code>focus_pattern</code> 으로 밖에서 확인된다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td>같은 테스트가 세 자리를 함께 잰다 — 지시문 초점 대체 · 세션 행 · <code>session_started</code>
+          (<code>TASK-250</code>). ⛔ <b>「밖에서 확인된다」가 이 AC 의 핵심이다</b>: 회차 B8 이
+          인프로세스 관측만 있던 상태에서 화면·브라우저 경로로 참·거짓을 가릴 수 없어
+          <code>TS-36</code> AC#3 을 미체크로 두었고, 그래서 그 값을 이벤트에 실었다</td></tr>
+  <tr><td class="id">AC17-3</td><td>실재하지 않는 패턴 키로 진입해도 학습은 그대로 시작되고
+          <code>focus_pattern</code> 은 <b>실리지 않는다</b></td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td>2026-09-21 에 테스트로 세웠다(<code>TASK-265</code>) —
+          <code>test_ws_an_unknown_pattern_key_opens_the_session_without_reporting_a_replacement</code>
+          가 세 자리를 함께 잰다: 세션 행에는 그 키가 <b>남고</b>, 지시문 초점은 계획 그대로이고,
+          <code>session_started</code> 에는 키가 <b>없다</b>.
+          ⛔ <b>그전에는 코드·주석과 회차 <code>2026-09-19-b9</code> 팔 C 의 관측 하나뿐이었다</b> —
+          판별력은 변이로 재서 확인했다(대체 판정을 무력화하니 그 테스트 한 건만 실패했다)</td></tr>
+  <tr><td class="id">AC17-4</td><td>음성으로 패턴을 지목하는 경로는 <b>없는 것이 계약</b>이다 —
+          미구현이 아니라 범위 밖이다</td>
+      <td class="v"><span class="b ok">충족</span></td>
+      <td>부재를 재는 자리는 음성 명령의 값역이다 — <code>models/voice_command.py</code> 의
+          <code>ControlCommand</code> 가 여섯 값(<code>end</code> · <code>show_report</code> ·
+          <code>next_question</code> · <code>start_additional</code> · <code>pause</code> ·
+          <code>resume</code>)이고 패턴을 지목하는 명령이 없다(2026-09-21 확인).
+          철회 결정은 §17.1 이고 그 자리를 들고 있던 태스크는 <code>TASK-252</code> 다.
+          ⚠️ <b>같은 문장의 앞 절(「질문 더 주세요」)은 철회되지 않았다</b> —
+          <code>next_question</code> 이 그것이다</td></tr>
+</table>
+
 <h2>⛔ 고아 — PRD 밖에서 아무도 언급하지 않는 요구 6건</h2>
 
 <div class="box warn">
@@ -477,16 +583,21 @@
   <code>grep -rl "R15-2" . | grep -v backup | grep -v PRD.md | grep -v requirements-tracking</code></p>
 </div>
 
-<h2>범위 상태 — 2026-09-20 확인</h2>
+<h2>범위 상태 — 2026-09-21 확인</h2>
 
 <div class="box">
-  <p>⚠️ <b>이 표가 덮는 요구는 PRD v1.4 까지다.</b> 그 뒤 두 판이 붙었고 이 표에는 절이 없다 —
-  <b>§16(v1.5)</b> 은 발음 판정 보조 신호 요구를 <b>철회</b>했고, <b>§17(v1.6)</b> 은 즉시 드릴의
-  진입을 <b>결과 화면 하나로 한정</b>했다. 둘 다 요구가 늘어난 것이 아니라 <b>줄어든</b> 개정이므로
-  아래 표의 판정을 뒤집지 않는다. 그러나 「요구 전체가 여기 있다」로 읽으면 안 된다.</p>
-  <p>⛔ <b>판정을 추측으로 채우지 않는 규약</b>(아래 갱신 규약)에 따라, 그 두 절의 행은 요구 범위를
-  다시 읽은 사람이 더한다. 지금 무엇이 동작하는지는 <code>docs/overview.html</code> 이 코드에 실재하는
-  기능으로 답하고, 상태의 정본은 작업 원장이다.</p>
+  <p><b>이 표는 이제 PRD v1.6 까지를 덮는다</b> — §16·§17 의 수용 기준 일곱이 위 절에 들어왔다
+  (<code>TASK-264</code>).</p>
+  <p>⛔ <b>이전 판의 「두 개정이 아래 표의 판정을 뒤집지 않는다」는 틀렸다.</b> 요구가 줄어든 개정도
+  판정을 뒤집는다 — <code>R10-4</code> 가 그 증거다. 철회된 요구가 <b>「부분 — 의도된 절반 미충족」</b>
+  으로 남아 있었고, 그 칸은 다음 계획에게 <b>「아직 할 일이 있다」</b>로 읽힌다. 그래서 판정 값에
+  <span class="b gone">철회</span> 를 신설했다.</p>
+  <p>⛔ <b>같은 개정이 근거 문면도 낡게 만들었다</b> — <code>AC10-3</code> 의 근거였던
+  <code>note_transcript</code> → <code>record_signal</code> 은 <b>이미 지워진 코드</b>였다(2026-09-21
+  확인). ⚠️ <b>판정 기호보다 근거 문면이 먼저 낡는다</b>: 기호는 눈에 띄지만 근거는 읽는 사람이
+  확인하지 않으면 그대로 통과한다.</p>
+  <p>지금 무엇이 동작하는지는 <code>docs/overview.html</code> 이 코드에 실재하는 기능으로 답하고,
+  상태의 정본은 작업 원장이다.</p>
   <p>⚠️ <code>docs/backup/2026-09-20-superseded/status-report-2026-09-06.html</code>(그때의 판정 스냅샷)은
   <code>docs/backup/2026-09-20-superseded/</code> 로 옮겼다 — 이 표와 그 스냅샷이 서로 다른 값을
   말하고 있었고, 스냅샷은 사후에 고치지 않는 문서다.</p>
