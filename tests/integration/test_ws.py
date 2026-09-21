@@ -1199,6 +1199,60 @@ async def test_ws_an_unknown_pattern_key_opens_the_session_without_reporting_a_r
     )
 
 
+# ── 계획이 없는데 패턴으로 들어온 진입 (AS4 규약 · `TASK-266`) ─────────────────
+#
+# ⛔ **패턴이 실재하는데도 대체가 일어나지 않는 유일한 경로다** — 대체할 지시문이 없기 때문이다
+# (`api/ws.py`: 계획이 없으면 `target_level`·`sentence_length` 같은 프롬프트 문구를 소켓이
+# 지어내지 않는다). 그래서 이 경로는 위 두 테스트와 **원인이 다르고 결과가 같다**: 키는 남고
+# 초점 대체는 보고되지 않는다.
+#
+# ⚠️ **원인이 다른데 결과가 같은 자리를 재지 않으면, 「계획이 없다」를 「패턴을 못 읽었다」로 고치는
+# 수정이 통과한다** — 두 경로가 한 단정에 접히면 어느 쪽이 깨졌는지 뒤에 가릴 수 없다.
+async def test_ws_a_pattern_without_a_prepared_plan_records_the_key_and_replaces_nothing(
+    ws_app: FastAPI,
+    db_pool: asyncpg.Pool,
+    seeded_fixed_user: UUID,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    # ⛔ **패턴은 실재하게 심는다** — 없는 키로 심으면 위 테스트와 같은 것을 두 번 재게 되고,
+    # 「계획이 없어서 대체가 없었다」를 「키가 없어서 대체가 없었다」와 구별하지 못한다.
+    chosen_key = "article_missing_before_noun"
+    async with db_pool.acquire() as conn:
+        await conn.execute(
+            "insert into error_patterns (user_id, category, pattern_key, target_form) "
+            "values ($1, 'article', $2, 'I took a taxi to the office.')",
+            FIXED_USER_ID,
+            chosen_key,
+        )
+
+    seen = _capture_factory_args(monkeypatch)
+    async with ws_app.router.lifespan_context(ws_app):
+        async with ASGIWebSocket(
+            ws_app, query_string=f"source=additional&pattern={chosen_key}".encode()
+        ) as client:
+            started = await client.receive_event()
+        plan = seen.get("plan")
+
+    assert started is not None and started["type"] == "session_started", (
+        f"계획이 없는데 패턴을 주니 세션이 열리지 않았다 — {started!r}. AS4 는 「계획이 없어도 "
+        "학습은 시작됨」이고 패턴 지정이 그 규약을 좁히지 않는다"
+    )
+    assert plan is None, f"계획이 없는데 {plan!r} 가 팩토리로 갔다 — 소켓이 지시문을 지어냈다"
+    assert "focus_pattern" not in started, (
+        f"대체할 지시문이 없는데 {started.get('focus_pattern')!r} 를 보고했다 — "
+        "그 값은 「무엇으로 대체했다」를 뜻하므로 대체가 일어난 세션에만 실린다"
+    )
+    async with db_pool.acquire() as conn:
+        recorded = await conn.fetchval(
+            "select focus_pattern_key from learning_sessions where id = $1",
+            UUID(started["session_id"]),
+        )
+    assert recorded == chosen_key, (
+        f"세션 행에 {recorded!r} 가 남았다 — 계획이 없어도 「학습자가 그 패턴으로 들어왔다」는 "
+        "사실은 남아야 하고, 그것이 계획 생성 쪽을 보라는 신호다"
+    )
+
+
 async def test_ws_a_normal_session_does_not_ask_for_scenario_intake(
     ws_app: FastAPI,
     seeded_fixed_user: UUID,
