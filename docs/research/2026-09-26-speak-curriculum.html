@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>스픽(Speak) 커리큘럼·시나리오 조사</title>
+<style>
+  :root {
+    --fg: #1c1c1e;
+    --muted: #6b6b70;
+    --border: #ddd;
+    --bg-alt: #f6f6f8;
+    --accent: #2b6cb0;
+    --confirmed: #1a7f37;
+    --estimated: #b7791f;
+    --unknown: #b42318;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: #fafafa;
+    color: var(--fg);
+    font-family: -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", Segoe UI, Roboto, sans-serif;
+    line-height: 1.7;
+  }
+  .wrap {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+  header.doc-head {
+    border-bottom: 3px solid var(--fg);
+    padding-bottom: 16px;
+    margin-bottom: 28px;
+  }
+  header.doc-head h1 {
+    font-size: 1.7rem;
+    margin: 0 0 8px;
+  }
+  .meta {
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+  .meta div { margin: 2px 0; }
+  h2 {
+    font-size: 1.25rem;
+    margin-top: 2.4em;
+    padding-top: 0.4em;
+    border-top: 1px solid var(--border);
+  }
+  h3 {
+    font-size: 1.05rem;
+    margin-top: 1.8em;
+    color: #333;
+  }
+  p { margin: 0.6em 0; }
+  .src {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin: 0.15em 0 0.9em 0;
+  }
+  .src a { color: var(--accent); word-break: break-all; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1em 0 1.4em;
+    font-size: 0.92rem;
+  }
+  caption {
+    text-align: left;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 0.4em;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+  thead th {
+    background: var(--fg);
+    color: #fff;
+  }
+  tbody tr:nth-child(even) { background: var(--bg-alt); }
+  .tag {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    color: #fff;
+  }
+  .tag.confirmed { background: var(--confirmed); }
+  .tag.estimated { background: var(--estimated); }
+  .tag.unknown { background: var(--unknown); }
+  ol.unresolved li { margin: 0.5em 0; }
+  .note {
+    background: var(--bg-alt);
+    border-left: 4px solid var(--accent);
+    padding: 10px 14px;
+    margin: 1em 0;
+    font-size: 0.94rem;
+  }
+  footer.sources {
+    margin-top: 3em;
+    padding-top: 1em;
+    border-top: 1px solid var(--border);
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  footer.sources ul { padding-left: 1.2em; }
+  footer.sources a { color: var(--accent); word-break: break-all; }
+  code { background: var(--bg-alt); padding: 1px 5px; border-radius: 3px; font-size: 0.9em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc-head">
+  <h1>스픽(Speak) 커리큘럼·시나리오 조사</h1>
+  <div class="meta">
+    <div>조사일: 2026-09-26</div>
+    <div>조사 시작점: <a href="https://www.speak.com/ko/content">https://www.speak.com/ko/content</a></div>
+    <div>조사자: Claude 에이전트(WebFetch·curl 기반 정적 조사)</div>
+  </div>
+</header>
+
+<h2>0. 조사 방법과 한계</h2>
+<p>이 문서는 speak.com의 공개 페이지와 sitemap.xml만으로 작성함.</p>
+<p>로그인 후에만 보이는 실제 앱 내부 화면(수업 진행 화면 등)은 조사 범위 밖임.</p>
+<p>그러므로 이 문서의 "레슨 진행 흐름"은 마케팅 페이지가 설명하는 수준까지만 다룸.</p>
+<p>일부 페이지는 자바스크립트로 데이터를 채우는 구조라 정적 조사로는 빈 결과만 나옴.</p>
+<p>그 경우와 그 이유를 3장에 별도로 기록함.</p>
+<p>문서 전체에서 사이트가 직접 밝히지 않은 추정치는 모두 "추정" 또는 "미확인"으로 표시함.</p>
+
+<h2>1. 요약</h2>
+<p>스픽은 학습 콘텐츠 소개 페이지에서 레벨을 CEFR A1~C1의 5단계로 나눔.</p>
+<span class="src">출처: <a href="https://www.speak.com/ko/content">https://www.speak.com/ko/content</a></span>
+<p>같은 페이지는 전체 분량을 "500일 분량, 2,000개 이상의 학습 콘텐츠"로 소개함.</p>
+<span class="src">출처: <a href="https://www.speak.com/ko/content">https://www.speak.com/ko/content</a></span>
+<p>2024년판 소개 페이지는 같은 분량을 "17개의 코스로 세분화된 500일 분량"으로 설명함.</p>
+<span class="src">출처: <a href="https://www.speak.com/ko/content-2024">https://www.speak.com/ko/content-2024</a></span>
+<p>sitemap.xml 조사 결과 실제 코스 URL은 17개, 코스별 day 페이지 합계는 469개로 실측됨.</p>
+<span class="src">출처: <a href="https://www.speak.com/sitemap.xml">https://www.speak.com/sitemap.xml</a>, 2026-09-26 실측</span>
+<p>스픽의 수업은 오늘의 수업, 스피킹 연습, 실전 대화의 3단계로 진행된다고 설명함.</p>
+<span class="src">출처: <a href="https://www.speak.com/ko/content">https://www.speak.com/ko/content</a></span>
+<p>AI 튜터 기능은 롤플레이 90개 이상, 프리토킹 주제 120개 이상을 제공한다고 밝힘.</p>
+<span class="src">출처: <a href="https://www.speak.com/ko/ai-tutor">https://www.speak.com/ko/ai-tutor</a></span>
+
+<h2>2. 전체 커리큘럼 구조 — 현재 마케팅 페이지 기준</h2>
+<p>https://www.speak.com/ko/content 페이지는 커리큘럼을 CEFR 5단계로 소개함.</p>
+<p>아래 표는 그 페이지에 나열된 레벨과 코스명을 그대로 옮긴 것임.</p>
+<span class="src">출처: <a href="https://www.speak.com/ko/content">https://www.speak.com/ko/content</a>, 2026-09-26 확인</span>
+
+<table>
+<caption>스픽 마케팅 페이지의 CEFR 레벨과 코스명 (2026-09-26 확인)</caption>
+<thead>
+<tr><th>CEFR 레벨</th><th>스픽 레벨명</th><th>나열된 코스명</th></tr>
+</thead>
+<tbody>
+<tr><td>A1</td><td>왕초보</td><td>스피킹하며 시작 (왕초보 1탄)</td></tr>
+<tr><td>A2</td><td>초보</td><td>초급 1, 초급 2, 초급 3, 스피킹하며 시작 (왕초보 2탄), 영어적 사고 기르기, 스피킹 살아남기 (기초 1탄), 스피킹 살아남기 (기초 2탄), 여행 영어 1, 여행 영어 2, 엄마빠 영어</td></tr>
+<tr><td>B1</td><td>중급</td><td>중급 1, 중급 2, 중급 3, 스피킹 살아남기 (기초 3탄), 원어민처럼 스피킹, 패턴으로 말하기, 구동사 격파 1탄, 구동사 격파 2탄, 실전 상황별 스피킹, 영어 면접 대비, 대학 캠퍼스 영어1</td></tr>
+<tr><td>B2</td><td>고급</td><td>고급 1, 고급 2, 깊이 있는 스피킹 (고급 1탄), 깊이 있는 스피킹 (고급 2탄), 비즈니스 (회사생활 영어), 비즈니스 (실무 영어), 직장인을 위한 비즈니스 영어, 영어면접: 이젠 두렵지 않다!, 대학 캠퍼스 영어2</td></tr>
+<tr><td>C1</td><td>마스터</td><td>마스터</td></tr>
+</tbody>
+</table>
+
+<p>위 표의 코스명을 낱개로 세면 32개가 나옴. 이 숫자는 사이트가 직접 밝힌 값이 아니라 문서 작성자가 직접 집계한 값임.</p>
+<span class="src">집계 근거: 위 표, 2026-09-26 집계</span>
+<p>사이트는 이 32개 코스명이 서로 다른 32개 상품 단위인지, 하나의 코스 안에서 다시 나뉜 하위 단위인지 명시하지 않음.</p>
+<p>그러므로 32라는 숫자와 3장의 실측 코스 수(17개)가 다른 이유는 <span class="tag unknown">미확인</span>으로 남김.</p>
+
+<h2>3. 실측 코스 구조 — sitemap.xml 기준</h2>
+<p>https://www.speak.com/sitemap.xml 에 course-list와 course-day-list라는 두 URL 패턴이 있음.</p>
+<span class="src">출처: <a href="https://www.speak.com/sitemap.xml">https://www.speak.com/sitemap.xml</a>, 2026-09-26 실측</span>
+<p>course-list는 코스 1개당 1페이지이며 총 17개가 등록되어 있음.</p>
+<p>course-day-list는 코스 안의 하루 학습(레슨) 1개당 1페이지이며 총 469개가 등록되어 있음.</p>
+<p>course-list 페이지(예: <code>https://www.speak.com/course-list/01-basics-0</code>)는 직접 접속하면 본문이 없이 "No items found."만 표시됨.</p>
+<p>이는 웹플로우(Webflow) CMS의 컬렉션 목록이 원래 페이지의 맥락(현재 항목 필터) 안에서만 채워지는 구조이고, 직접 접속에서는 그 필터가 걸리지 않아 빈 결과가 나오는 것으로 추정함.</p>
+<span class="src">근거: curl 실측, 2026-09-26, 17개 course-list URL 모두 동일하게 58086바이트의 빈 템플릿</span>
+<p>course-day-list 페이지도 마찬가지로 필터 없이 열리며, URL이 달라도 항상 같은 내용(6352자)이 나옴.</p>
+<span class="src">근거: curl 실측, 2026-09-26, 469개 중 4개 표본 URL이 모두 동일한 본문</span>
+<p>그러므로 course-day-list의 본문은 특정 코스와 특정 day 하나만의 내용이 아니라 컬렉션의 고정된 일부 샘플로 판단함.</p>
+<p>아래 표는 course-list URL의 slug(코스 코드)와 sitemap에서 실측한 코스별 day 페이지 수임.</p>
+<p>코스명 칸은 확인, 추정, 미확인으로 구분해 표시함.</p>
+
+<table>
+<caption>sitemap 실측 코스 코드와 day 수 (2026-09-26 실측)</caption>
+<thead>
+<tr><th>순번</th><th>코스 코드</th><th>day 수(실측)</th><th>추정 코스명</th><th>근거 상태</th></tr>
+</thead>
+<tbody>
+<tr><td>01</td><td>basics-0</td><td>27</td><td>스피킹하며 시작 (왕초보 1탄)</td><td><span class="tag estimated">추정</span></td></tr>
+<tr><td>02</td><td>basics-0-2</td><td>27</td><td>스피킹하며 시작 (왕초보 2탄)</td><td><span class="tag estimated">추정</span></td></tr>
+<tr><td>03</td><td>basics-0-3</td><td>29</td><td>영어적 사고 기르기</td><td><span class="tag estimated">추정</span></td></tr>
+<tr><td>04</td><td>basics-1</td><td>31</td><td>스피킹 살아남기 (기초 1탄)</td><td><span class="tag estimated">추정</span></td></tr>
+<tr><td>05</td><td>basics-1-2</td><td>31</td><td>스피킹 살아남기 (기초 2탄)</td><td><span class="tag estimated">추정</span></td></tr>
+<tr><td>06</td><td>basics-1-3</td><td>31</td><td>스피킹 살아남기 (기초 3탄)</td><td><span class="tag estimated">추정</span></td></tr>
+<tr><td>07</td><td>basics-2</td><td>31</td><td>미확인</td><td><span class="tag unknown">미확인</span></td></tr>
+<tr><td>08</td><td>basics-2-2</td><td>31</td><td>미확인</td><td><span class="tag unknown">미확인</span></td></tr>
+<tr><td>09</td><td>basics-2-3</td><td>31</td><td>미확인</td><td><span class="tag unknown">미확인</span></td></tr>
+<tr><td>10</td><td>be-1</td><td>29</td><td>비즈니스 (회사생활 영어) 계열</td><td><span class="tag estimated">추정</span></td></tr>
+<tr><td>11</td><td>be-2</td><td>28</td><td>비즈니스 (실무 영어) 계열</td><td><span class="tag estimated">추정</span></td></tr>
+<tr><td>12</td><td>bi-1</td><td>32</td><td>영어 면접 관련 코스</td><td><span class="tag estimated">추정</span></td></tr>
+<tr><td>13</td><td>me-1</td><td>27</td><td>엄마빠 영어</td><td><span class="tag confirmed">확인</span></td></tr>
+<tr><td>14</td><td>pv-1</td><td>22</td><td>구동사 격파 1탄</td><td><span class="tag confirmed">확인</span></td></tr>
+<tr><td>15</td><td>pv-2</td><td>22</td><td>구동사 격파 2탄</td><td><span class="tag confirmed">확인</span></td></tr>
+<tr><td>16</td><td>te-1</td><td>23</td><td>여행 영어 1</td><td><span class="tag confirmed">확인</span></td></tr>
+<tr><td>17</td><td>te-2</td><td>17</td><td>여행 영어 2</td><td><span class="tag confirmed">확인</span></td></tr>
+</tbody>
+</table>
+
+<p>day 수의 합계는 469로, course-day-list의 sitemap 등록 개수와 일치함.</p>
+<span class="src">출처: sitemap.xml, 2026-09-26 실측 합산</span>
+<p>확인 표시는 7장의 시나리오 예시 문장 내용과 day 수가 함께 들어맞아 판단한 것이고, 사이트가 코스명을 직접 이름표로 붙여 보여준 것은 아님.</p>
+<p>추정 표시는 코스 코드(be, bi, basics 등)와 2장 코스명 목록의 순서와 성격을 견주어 판단한 것임.</p>
+<p>me, pv, te라는 코드는 각각 엄마와 아빠, 구동사(phrasal verb), 여행(travel)의 머리글자로 추정하나 사이트가 이 대응을 밝히지 않아 미확인임.</p>
+
+<h2>4. 두 구조 사이의 불일치</h2>
+<p>2장의 마케팅 페이지는 코스명을 32개 나열하고 5단계 CEFR 레벨로 나눔.</p>
+<p>3장의 sitemap 실측은 코스 URL을 17개, day 페이지를 469개로 보여줌.</p>
+<p>2024년판 페이지는 "17개의 코스로 세분화된 500일 분량"이라고 밝혀 3장의 17과 일치함.</p>
+<span class="src">출처: <a href="https://www.speak.com/ko/content-2024">https://www.speak.com/ko/content-2024</a></span>
+<p>그러므로 3장의 17개 코드는 2024년 시점 커리큘럼 구조로 보이고, 2장의 32개 코스명은 그 뒤에 늘어난 현재 마케팅 페이지의 코스 목록으로 추정함.</p>
+<p>두 구조가 어떻게 대응하는지, 코스가 실제로 늘었는지는 사이트에서 확인할 수 없어 미확인으로 남김.</p>
+<p>"500일"이라는 문구는 두 시점 모두 동일하게 쓰이는데 3장의 실측 합계는 469일이라 정확히 일치하지 않음.</p>
+<p>이 차이가 반올림 표현인지, 집계 시점 차이인지는 미확인임.</p>
+
+<h2>5. 학습 모드와 기능</h2>
+
+<h3>5-1. 3단계 학습법</h3>
+<p>스픽은 각 수업을 오늘의 수업, 스피킹 연습, 실전 대화의 3단계로 구성한다고 설명함.</p>
+<span class="src">출처: <a href="https://www.speak.com/ko/content">https://www.speak.com/ko/content</a></span>
+<p>한 수업(약 20분) 동안 이 3단계를 통해 100문장 이상을 소리 내어 말하게 된다고 설명함.</p>
+<span class="src">출처: <a href="https://www.speak.com/ko/content">https://www.speak.com/ko/content</a></span>
+
+<h3>5-2. 순환 학습과 누적 학습</h3>
+<p>스픽은 이 3단계 학습을 순환 반복하며 표현을 내재화한다고 설명함.</p>
+<span class="src">출처: <a href="https://www.speak.com/ko/content">https://www.speak.com/ko/content</a></span>
+<p>순환 학습으로 익힌 표현이 누적되어 특정 분야와 상황에서의 실력으로 쌓인다고 설명함.</p>
+<span class="src">출처: <a href="https://www.speak.com/ko/content">https://www.speak.com/ko/content</a></span>
+
+<h3>5-3. 스마트 리뷰(간격 반복 학습)</h3>
+<p>스마트 리뷰는 배운 영어 패턴을 자동으로 복습 항목에 저장하고 복습 수업을 제공한다고 설명함.</p>
+<span class="src">출처: <a href="https://www.speak.com/ko/content">https://www.speak.com/ko/content</a></span>
+<p>간격 반복 학습 알고리즘으로 표현이 영구적으로 기억되도록 돕는다고 설명함.</p>
+<span class="src">출처: <a href="https://www.speak.com/ko/content">https://www.speak.com/ko/content</a></span>
+
+<h3>5-4. AI 발음 코치</h3>
+<p>스픽은 학습자의 발음을 음소 단위로 분석한다고 설명함.</p>
+<span class="src">출처: <a href="https://www.speak.com/ko/content">https://www.speak.com/ko/content</a></span>
+<p>학습자 발음과 모범 발음을 실시간으로 대조해 교정 안내를 준다고 설명함.</p>
+<span class="src">출처: <a href="https://www.speak.com/ko/content">https://www.speak.com/ko/content</a></span>
+
+<h3>5-5. AI 프리톡과 비주얼 모드</h3>
+<p>AI 프리톡은 원어민 없이도 원하는 상황과 주제로 자유롭게 대화하는 기능이라고 설명함.</p>
+<span class="src">출처: <a href="https://www.speak.com/ko/content">https://www.speak.com/ko/content</a></span>
+<p>대화 중 단어와 문장에 실시간 피드백을 주고 맞춤형 복습 수업을 생성한다고 설명함.</p>
+<span class="src">출처: <a href="https://www.speak.com/ko/content">https://www.speak.com/ko/content</a></span>
+<p>비주얼 모드는 사용자가 정한 상대와 상황 속에서 더 몰입감 있는 프리톡을 제공한다고 설명함.</p>
+<span class="src">출처: <a href="https://www.speak.com/ko/content">https://www.speak.com/ko/content</a></span>
+
+<h3>5-6. AI 튜터(롤플레이·프리토킹)</h3>
+<p>AI 튜터는 정해진 표현을 따라 하는 방식을 넘어 원하는 주제로 실제 대화를 할 수 있는 수업이라고 설명함.</p>
+<span class="src">출처: <a href="https://www.speak.com/ko/ai-tutor">https://www.speak.com/ko/ai-tutor</a></span>
+<p>AI 튜터 안에는 롤플레이 수업, 프리토킹 수업, 자유 토픽 롤플레이 수업의 세 가지 유형이 있다고 설명함.</p>
+<span class="src">출처: <a href="https://www.speak.com/ko/ai-tutor">https://www.speak.com/ko/ai-tutor</a></span>
+<p>실전상황 롤플레이는 90개 이상, 주제별 프리토킹은 120개 이상이라고 밝힘.</p>
+<span class="src">출처: <a href="https://www.speak.com/ko/ai-tutor">https://www.speak.com/ko/ai-tutor</a></span>
+<p>구체적인 롤플레이 상황명이나 프리토킹 주제명은 이 페이지에 나열되어 있지 않아 미확인임.</p>
+<span class="src">출처: <a href="https://www.speak.com/ko/ai-tutor">https://www.speak.com/ko/ai-tutor</a></span>
+
+<h3>5-7. 음성 인식과 분석 기술</h3>
+<p>스픽은 자체 개발한 음성 인식 AI로 핵심 기능을 구현한다고 설명함.</p>
+<span class="src">출처: <a href="https://www.speak.com/ko/technology">https://www.speak.com/ko/technology</a></span>
+<p>원어민 음성 데이터와 100만 명 이상의 한국인 음성 데이터를 함께 학습시켰다고 설명함.</p>
+<span class="src">출처: <a href="https://www.speak.com/ko/technology">https://www.speak.com/ko/technology</a></span>
+<p>음성 인식 정확도는 93% 이상이라고 밝힘.</p>
+<span class="src">출처: <a href="https://www.speak.com/ko/technology">https://www.speak.com/ko/technology</a></span>
+<p>한국인 영어 학습 데이터를 2만 시간 이상 모아 문화적 표현 차이를 인지하고 안내한다고 설명함.</p>
+<span class="src">출처: <a href="https://www.speak.com/ko/technology">https://www.speak.com/ko/technology</a></span>
+
+<h2>6. 레슨 진행 흐름 — 확인 가능한 범위</h2>
+<p>마케팅 페이지 기준으로 레슨 진행 흐름은 오늘의 수업, 스피킹 연습, 실전 대화의 순서로 소개됨.</p>
+<span class="src">출처: <a href="https://www.speak.com/ko/content">https://www.speak.com/ko/content</a></span>
+<p>이 3단계 각각이 앱 화면에서 정확히 어떤 문제 유형과 상호작용으로 이루어지는지는 로그인 화면 안쪽 정보라 미확인임.</p>
+<p>유닛(unit)이라는 용어를 스픽이 직접 쓰는지는 조사한 페이지들에서 확인하지 못해 미확인임.</p>
+<p>사이트가 쓰는 단위는 레벨(A1~C1), 코스, day(하루 학습)로 확인됨.</p>
+<span class="src">출처: <a href="https://www.speak.com/ko/content">https://www.speak.com/ko/content</a>, <a href="https://www.speak.com/sitemap.xml">https://www.speak.com/sitemap.xml</a></span>
+
+<h2>7. 시나리오와 주제 예시 — 실제로 확인된 문장</h2>
+<p>아래 예시는 <code>https://www.speak.com/course-day-list/001-basics-0-day-0</code> 등 course-day-list 페이지에서 실제로 관측한 본문 문장임.</p>
+<span class="src">출처: <a href="https://www.speak.com/course-day-list/001-basics-0-day-0">https://www.speak.com/course-day-list/001-basics-0-day-0</a>, 2026-09-26 실측</span>
+<p>3장에서 설명했듯 이 페이지는 코스별로 필터링되지 않은 고정 샘플이라, 각 문장이 정확히 어느 day에 속하는지는 참고용으로만 씀.</p>
+<p>아래 표의 day 열은 관측된 화면 표시값이며, 실제 그 코스의 정식 day 번호와 다를 수 있음.</p>
+
+<table>
+<caption>course-day-list에서 관측한 예시 문장 (2026-09-26 실측, 미필터 샘플)</caption>
+<thead>
+<tr><th>추정 코스</th><th>day</th><th>영어 문장</th><th>한국어 문장</th></tr>
+</thead>
+<tbody>
+<tr><td>여행 영어 계열</td><td>Day 0</td><td>Excuse me, but this pasta is overcooked</td><td>저기요, 파스타가 너무 불었어요.</td></tr>
+<tr><td>여행 영어 계열</td><td>Day 2</td><td>Can I get a Number 1 as a meal?</td><td>1번 세트 메뉴로 주세요.</td></tr>
+<tr><td>여행 영어 계열</td><td>Day 0</td><td>Could you recommend a good restaurant with local vibes?</td><td>로컬 맛집 추천해주실래요?</td></tr>
+<tr><td>여행 영어 계열</td><td>Day 9</td><td>How many more stops to the station?</td><td>역까지 몇 정거장 더 남았나요?</td></tr>
+<tr><td>여행 영어 계열</td><td>Day 12</td><td>I'll take it if you throw in this keychain.</td><td>서비스로 열쇠고리 하나 주세요. (흥정하기)</td></tr>
+<tr><td>여행 영어 계열</td><td>Day 6</td><td>Customs &amp; Immigration at the Airport 1</td><td>입국 심사 통과하기 1탄</td></tr>
+<tr><td>여행 영어 계열</td><td>Day 12</td><td>Staying at an Airbnb and a guest house</td><td>에어비앤비, 게스트하우스</td></tr>
+<tr><td>여행 영어 계열</td><td>Day 20</td><td>Where is the lost and found?</td><td>분실물 센터가 어디 있나요?</td></tr>
+<tr><td>여행 영어 계열</td><td>Day 21</td><td>Staying safe as a tourist</td><td>안전한 시티투어의 필수표현</td></tr>
+<tr><td>구동사 격파 계열</td><td>Day 17</td><td>Jonathan and I don't get along.</td><td>조나단이랑 나는 사이가 안 좋아.</td></tr>
+<tr><td>구동사 격파 계열</td><td>Day 18</td><td>I can't get by on this salary.</td><td>이 연봉으로는 먹고살 수 없어.</td></tr>
+<tr><td>구동사 격파 계열</td><td>Day 9</td><td>Facebook took over Instagram.</td><td>페이스북이 인스타그램을 인수했어.</td></tr>
+<tr><td>구동사 격파 계열</td><td>Day 15</td><td>I'm getting over my fear of speaking.</td><td>영어 회화 울렁증을 극복해 나가고 있어.</td></tr>
+<tr><td>구동사 격파 계열</td><td>Day 17</td><td>I need to get rid of the piano before I move.</td><td>이사가기 전에 피아노를 처분해야 해.</td></tr>
+<tr><td>구동사 격파 계열</td><td>Day 0</td><td>I need to pick up my girlfriend from the airport.</td><td>공항에서 여자친구 데려 와야 해.</td></tr>
+<tr><td>엄마빠 영어</td><td>Day 12</td><td>You have to get ready for school.</td><td>학교 갈 준비 해야 돼.</td></tr>
+<tr><td>엄마빠 영어</td><td>Day 18</td><td>Inside voice only.</td><td>조용조용히 말하자.</td></tr>
+<tr><td>엄마빠 영어</td><td>Day 25</td><td>Time for a bubble bath.</td><td>목욕할 시간이야.</td></tr>
+<tr><td>엄마빠 영어</td><td>Day 16</td><td>Does she have any trouble keeping up in class?</td><td>우리 애가 수업을 잘 따라가고 있나요?</td></tr>
+</tbody>
+</table>
+
+<p>리뷰 데이(Review Day)라는 항목도 관측됨. 여러 day를 묶어 복습하는 코스 안의 단위로 추정함.</p>
+<span class="src">출처: <a href="https://www.speak.com/course-day-list/001-basics-0-day-0">https://www.speak.com/course-day-list/001-basics-0-day-0</a>, 2026-09-26 실측</span>
+<p>예: "Review Day / 활용도 100% 맛집 및 카페 투어 표현", "Review Day / 시티 투어 필수 표현 총정리"</p>
+<p>AI 튜터의 롤플레이와 프리토킹 주제명 목록은 5-6절에서 밝힌 대로 사이트에 나열되어 있지 않아 미확인임.</p>
+
+<h2>8. 미확인 사항 정리</h2>
+<p>다음은 이 조사에서 끝내 확인하지 못한 항목임. 추측을 사실처럼 적지 않고 그대로 남김.</p>
+<ol class="unresolved">
+<li>32개 마케팅 코스명과 17개 실측 코스 코드의 정확한 대응 관계는 미확인임.</li>
+<li>basics-2, basics-2-2, basics-2-3 세 코스의 실제 이름은 미확인임.</li>
+<li>be-1, be-2, bi-1 코스의 정확한 이름과 be, bi가 가리키는 말의 정확한 뜻은 미확인임.</li>
+<li>me, pv, te 코드가 정말 엄마와 아빠, phrasal verb, travel의 머리글자인지는 미확인임.</li>
+<li>AI 튜터 롤플레이 90개, 프리토킹 120개의 구체적인 상황명과 주제명 목록은 미확인임.</li>
+<li>유닛(unit)이라는 용어를 스픽이 실제로 쓰는지는 미확인임.</li>
+<li>로그인 후 실제 앱 화면에서 3단계 학습법이 화면 단위로 어떻게 구현되는지는 미확인임.</li>
+<li>"500일"과 실측 469일의 차이가 반올림인지 시점 차이인지는 미확인임.</li>
+<li>
+    https://www.speak.com/en/content 는 404 응답이라 영어판 커리큘럼 페이지 경로 자체가 다른지, 없는지는 미확인임.
+    <span class="src">출처: <a href="https://www.speak.com/en/content">https://www.speak.com/en/content</a>, 2026-09-26 확인, HTTP 404</span>
+</li>
+</ol>
+
+<footer class="sources">
+  <h2 style="border-top:none;margin-top:1em;">9. 출처 목록</h2>
+  <ul>
+    <li><a href="https://www.speak.com/ko/content">https://www.speak.com/ko/content</a> (2026-09-26 확인)</li>
+    <li><a href="https://www.speak.com/ko/technology">https://www.speak.com/ko/technology</a> (2026-09-26 확인)</li>
+    <li><a href="https://www.speak.com/ko/ai-tutor">https://www.speak.com/ko/ai-tutor</a> (2026-09-26 확인)</li>
+    <li><a href="https://www.speak.com/ko/content-2024">https://www.speak.com/ko/content-2024</a> (2026-09-26 확인, 2024년판 아카이브 페이지)</li>
+    <li><a href="https://www.speak.com/en/content">https://www.speak.com/en/content</a> (2026-09-26 확인, HTTP 404)</li>
+    <li><a href="https://help.speak.com/ko/">https://help.speak.com/ko/</a> (2026-09-26 확인, 카테고리 목록만 확인)</li>
+    <li><a href="https://www.speak.com/sitemap.xml">https://www.speak.com/sitemap.xml</a> (2026-09-26 확인)</li>
+    <li><a href="https://www.speak.com/course-list/01-basics-0">https://www.speak.com/course-list/01-basics-0</a> (2026-09-26 확인, 대표 예시, 17개 URL 모두 같은 결과)</li>
+    <li><a href="https://www.speak.com/course-day-list/001-basics-0-day-0">https://www.speak.com/course-day-list/001-basics-0-day-0</a> (2026-09-26 확인, 대표 예시, 표본 4개 URL 모두 같은 결과)</li>
+  </ul>
+</footer>
+
+</div>
+</body>
+</html>
