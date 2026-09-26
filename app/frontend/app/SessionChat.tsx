@@ -13,8 +13,8 @@ import type { PronunciationOutcome, Speaker } from "@/lib/ws";
 // ⛔ **말풍선 글자색은 `--foreground`·`--foreground-muted` 두 토큰뿐이다** — C2 가 확정 줄은
 // foreground, 부분 줄은 muted 인지 잰다. 참고 이미지의 「진한 바탕 + 흰 글자」 학습자 말풍선을
 // 따르지 않고 옅은 바탕(`--accent-soft`)을 쓴 이유가 이것이다.
-// ⚠️ 참고 이미지의 발화별 [음성]·[번역] 버튼은 두지 않는다 — 발화별 오디오와 번역을 주는
-// 백엔드가 없다. 마이크도 버튼이 아니다: 세션은 누르지 않고 말하는 상시 음성이다.
+// ⚠️ 발화별 [음성]·[번역] 버튼은 튜터 줄 아래에 두되 백엔드가 생길 때까지 비활성이다
+// (`ActionButton` 위 주석). 마이크는 버튼이 아니다: 세션은 누르지 않고 말하는 상시 음성이다.
 
 export interface TranscriptLine {
   id: number;
@@ -88,14 +88,69 @@ function Avatar() {
   );
 }
 
-/** 말풍선 한 줄. `muted` 는 부분 전사문·「듣고 있어요」처럼 아직 확정되지 않은 줄이다. */
+// 말풍선 아래 [음성]·[번역] 버튼 (`TASK-273`). ⛔ **지금은 비활성이다** — 발화별 오디오와 번역을 주는
+// 백엔드가 아직 없고 `TASK-274`(음성)·`TASK-275`(번역)가 그것을 만든다. 누르면 아무 일도 없는 활성
+// 버튼을 두면 학습자는 고장으로 읽으므로, 비활성과 「준비 중」 풍선말로 사실을 말한다.
+// ⚠️ **버튼을 `<p>` 밖에 둔다** — 안에 두면 줄의 `textContent` 에 버튼 글자가 섞여 하네스 계약이 깨진다.
+const PENDING_FEATURE_TITLE = "준비 중이에요";
+
+function SpeakerIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M11 5 6 9H3v6h3l5 4z" />
+      <path d="M15.5 8.5a5 5 0 0 1 0 7" />
+      <path d="M18.5 5.5a9 9 0 0 1 0 13" />
+    </svg>
+  );
+}
+
+function TranslateIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M4 5h8M8 3v2M6 5c0 4 3 7 6 8M10 5c0 3-3 7-6 8" />
+      <path d="m13 21 4-9 4 9M14.5 18h5" />
+    </svg>
+  );
+}
+
+function ActionButton({ icon, label }: { icon: ReactNode; label: string }) {
+  return (
+    <button
+      type="button"
+      disabled
+      title={PENDING_FEATURE_TITLE}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "0.3rem",
+        padding: "0.3rem 0.7rem",
+        borderRadius: 999,
+        border: "1px solid var(--border)",
+        background: "var(--background)",
+        color: "var(--foreground-muted)",
+        fontSize: "0.8rem",
+        cursor: "not-allowed",
+      }}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}
+
+/** 말풍선 한 줄. `muted` 는 부분 전사문·「듣고 있어요」처럼 아직 확정되지 않은 줄이다.
+ *  `actions` 는 확정된 튜터 줄에만 켠다 — 부분 전사문은 아직 발화가 끝나지 않았다. */
 function Bubble({
   speaker,
   muted,
+  actions = false,
   children,
 }: {
   speaker: Speaker;
   muted: boolean;
+  actions?: boolean;
   children: ReactNode;
 }) {
   const isAgent = speaker === "agent";
@@ -104,22 +159,39 @@ function Bubble({
       style={{
         display: "flex",
         gap: "0.5rem",
-        alignItems: "flex-end",
+        alignItems: actions ? "flex-start" : "flex-end",
         justifyContent: isAgent ? "flex-start" : "flex-end",
       }}
     >
       {isAgent ? <Avatar /> : null}
-      <p
+      <div
         style={{
-          ...BUBBLE_BASE,
-          color: muted ? "var(--foreground-muted)" : "var(--foreground)",
-          background: isAgent ? "var(--surface)" : "var(--accent-soft)",
-          borderBottomLeftRadius: isAgent ? 6 : 18,
-          borderBottomRightRadius: isAgent ? 18 : 6,
+          maxWidth: BUBBLE_BASE.maxWidth,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: isAgent ? "flex-start" : "flex-end",
+          gap: "0.4rem",
         }}
       >
-        {children}
-      </p>
+        <p
+          style={{
+            ...BUBBLE_BASE,
+            maxWidth: "100%",
+            color: muted ? "var(--foreground-muted)" : "var(--foreground)",
+            background: isAgent ? "var(--surface)" : "var(--accent-soft)",
+            borderBottomLeftRadius: isAgent ? 6 : 18,
+            borderBottomRightRadius: isAgent ? 18 : 6,
+          }}
+        >
+          {children}
+        </p>
+        {actions ? (
+          <div style={{ display: "flex", gap: "0.4rem" }}>
+            <ActionButton icon={<SpeakerIcon />} label="음성" />
+            <ActionButton icon={<TranslateIcon />} label="번역" />
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -266,7 +338,12 @@ export function SessionChat({
           </p>
         )}
         {lines.map((line) => (
-          <Bubble key={line.id} speaker={line.speaker} muted={false}>
+          <Bubble
+            key={line.id}
+            speaker={line.speaker}
+            muted={false}
+            actions={line.speaker === "agent"}
+          >
             <strong style={VISUALLY_HIDDEN}>{prefixFor(line.speaker)}</strong>
             {line.text}
           </Bubble>
