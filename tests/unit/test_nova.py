@@ -2872,3 +2872,15 @@ def test_rule_9_keeps_articles_out_of_pronunciation_coaching():
     # ⛔ 관사 «낱말의 소리»까지 막지 않는다 — `the` 의 /ð/→/d/ 는 진짜 소리 오류다(`TASK-276` 리뷰).
     assert "Articles (a, an, the) are grammar" not in rule
     assert "Choosing a, an, or the" not in PRONUNCIATION_MODE_PROMPT
+
+
+def test_rule_4_leaves_a_correct_sentence_alone():
+    """⛔ `TASK-279` — 맞는 문장은 교정하지 않는다.
+
+    실물 회차(`runs/2026-09-26-task278-real-nova.md` r3)에서 코치가 학습자의 맞는
+    `an apple juice` 를 `a apple juice` 로 따라 하게 했다. 세 회차 모두 맞는 문장을 다시
+    따라 하게 했다. 프롬프트에는 「맞으면 어떻게 하라」가 없었다.
+    """
+    rule = _rule(SYSTEM_PROMPT, 4)
+    assert "Correct only a real mistake" in rule
+    assert "never ask them to repeat a correct sentence or change a correct word" in rule

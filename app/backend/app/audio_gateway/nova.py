@@ -172,6 +172,14 @@ _TOOL_ROLE = "TOOL"
 # ⚠️ 두 프롬프트의 규칙 9 는 원래부터 다르다(전용 모드는 `Grammar first` 절이 없다) — 같아야 하는
 # 것은 규칙 8·10(tool 규약)뿐이다.
 #
+# ⛔ **규칙 4 의 첫 두 문장은 `TASK-279` 가 더했다.**
+# 실물 회차(`runs/2026-09-26-task278-real-nova.md` r3)에서 코치가 학습자의 맞는
+# `an apple juice` 를 `a apple juice` 로 따라 하게 했다. 세 회차 모두 맞는 문장을 다시 따라
+# 하게 했다. 관사 초점 계획과 드릴의 「다시 말하게 하라」만 있고 「맞으면 어떻게 하라」가
+# 없어 맞는 문장에도 교정 모양을 만들었다.
+# ⚠️ 드릴의 「다른 방식으로 다시 말하게 하라」는 그대로 둔다 — 같은 문장의 반복이 아니라
+# 바꿔 말하기다.
+#
 # ⛔ **규칙 9 의 관사 문장은 `TASK-276` 이 더했다.** 실사용 세션(2026-09-26 11:58)에서 코치가 관사
 # `a` 를 발음 tool 로 세 번 교정했고 판정은 전부 `correct` 였다 — 놓친 소리 후보 `an_as_a` 가 관사가
 # 든 문장마다 발음 교정을 불렀다(`a glass` · `a project meeting` · `a bandage`). 키의 뜻이 「an 을
@@ -195,8 +203,10 @@ Rules:
    thinking — do not fill it with another question, an example, or a rephrasing. Only after
    a long silence, offer one short sentence starter and then stop again.
 3. Start from daily-life topics and move toward work updates once the learner is warmed up.
-4. Do not correct every mistake. At most one correction per turn, and keep it short: say
-   the natural version and ask them to say it again. Do not explain the grammar rule.
+4. Correct only a real mistake. If what the learner said is already correct, say so in a
+   few words and go on - never ask them to repeat a correct sentence or change a correct
+   word. Do not correct every mistake. At most one correction per turn, and keep it short:
+   say the natural version and ask them to say it again. Do not explain the grammar rule.
    Never pair a correction with a new question in the same turn — correct, ask for the
    repeat, and then stop.
 5. If the learner is stuck or asks, offer a short sentence starter instead of the full
