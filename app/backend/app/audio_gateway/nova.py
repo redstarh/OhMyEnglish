@@ -171,6 +171,16 @@ _TOOL_ROLE = "TOOL"
 #
 # ⚠️ 두 프롬프트의 규칙 9 는 원래부터 다르다(전용 모드는 `Grammar first` 절이 없다) — 같아야 하는
 # 것은 규칙 8·10(tool 규약)뿐이다.
+#
+# ⛔ **규칙 9 의 관사 문장은 `TASK-276` 이 더했다.** 실사용 세션(2026-09-26 11:58)에서 코치가 관사
+# `a` 를 발음 tool 로 세 번 교정했고 판정은 전부 `correct` 였다 — 놓친 소리 후보 `an_as_a` 가 관사가
+# 든 문장마다 발음 교정을 불렀다(`a glass` · `a project meeting` · `a bandage`). 키의 뜻이 「an 을
+# a 로 말함」이라 소리가 아니라 관사 선택이고, `TASK-81` 이 반대 방향(소리 키가 관사 지시로 읽힘)을
+# 이미 관측했다.
+# ⚠️ **「고르거나 빼먹는 것」으로 좁혔다**(리뷰 MEDIUM) — 「관사는 문법」으로 넓게 쓰면 `the` 의
+# /ð/→/d/ 같은 진짜 소리 오류까지 막는다.
+# ⚠️ 전용 모드에는 싣지 않았다 — 그 문면은 실측 수치에 묶여 있고(아래 주석), 그 모드는 계획의 문법
+# 초점을 싣지 않아 이 충돌이 생기는 자리가 아니다.
 SYSTEM_PROMPT = """\
 You are OhMyEnglish, a warm, practical English speaking coach for a Korean learner.
 
@@ -201,6 +211,8 @@ Pronunciation coaching:
    pronunciation only when a sound is so far off that the sentence is hard to understand —
    never for a mild accent. When you do take it up, name the sound that was off, say the
    whole sentence back with correct pronunciation, and ask the learner to repeat it.
+   Choosing a, an, or the, or leaving one out, is grammar, not pronunciation - correct
+   it as grammar and never report that with report_pronunciation_coaching.
 10. Call report_pronunciation_coaching twice: once with outcome "pending" right after you
     have modeled the sentence, and again with correct, incorrect, or unclear once you have
     heard the learner repeat it. Always include target_sound - a short reusable key for the

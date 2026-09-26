@@ -2857,3 +2857,18 @@ def test_rule_4_keeps_the_correction_to_a_recast():
     # ⛔ 낱말 드릴 금지는 싣지 않는다 — 발음 초점 세션의 `_SOUND_INSTRUCTION` 이 낱말 재발화를
     # 요구하고, 그 줄은 규칙 9 만 대체하므로 규칙 4 의 금지와 맞부딪친다(`TASK-271` 리뷰 HIGH).
     assert "single word" not in rule
+
+
+def test_rule_9_keeps_articles_out_of_pronunciation_coaching():
+    """⛔ `TASK-276` — 관사는 소리가 아니라 문법이다.
+
+    실사용 세션(2026-09-26 11:58)에서 코치가 관사 `a` 를 발음 tool 로 세 번 교정했고 판정은 전부
+    `correct` 였다. 놓친 소리 후보 `an_as_a` 가 관사 문장마다 발음 교정을 부르는 고리였다.
+    ⚠️ 전용 모드 문면은 이 규칙을 싣지 않는다 — 그 문면은 실측 수치에 묶여 있다.
+    """
+    rule = _rule(SYSTEM_PROMPT, 9)
+    assert "Choosing a, an, or the, or leaving one out, is grammar" in rule
+    assert "never report that with report_pronunciation_coaching" in rule
+    # ⛔ 관사 «낱말의 소리»까지 막지 않는다 — `the` 의 /ð/→/d/ 는 진짜 소리 오류다(`TASK-276` 리뷰).
+    assert "Articles (a, an, the) are grammar" not in rule
+    assert "Choosing a, an, or the" not in PRONUNCIATION_MODE_PROMPT
