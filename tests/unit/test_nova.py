@@ -15,6 +15,7 @@ from __future__ import annotations
 import asyncio
 import base64
 import json
+import re
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
@@ -2406,7 +2407,64 @@ async def test_a_pronunciation_tool_use_gets_a_recorded_result():
     ]
     assert [start["toolResultInputConfiguration"]["toolUseId"] for start in starts] == [TOOL_USE_ID]
     results = stream.payloads("toolResult")
-    assert [json.loads(result["content"]) for result in results] == [{"status": "recorded"}]
+    assert [json.loads(result["content"])["status"] for result in results] == ["recorded"]
+
+
+async def test_the_pronunciation_receipt_tells_the_coach_not_to_speak_again():
+    """⛔ `TASK-271` — 결과를 받은 코치가 이미 한 말을 또 했다.
+
+    `TASK-61.5` 가 제어 tool 에서 본 중복 발화와 같은 기전이다.
+
+    2026-09-26 11:58 세션: 발음 tool 호출 직후마다 코치 턴이 230~309자로 길어졌고, 학습자가
+    말할 틈 없이 코치 발화가 이어졌다. 영수증이 「되풀이하지 말고 기다려라」를 말해야 한다.
+    ⚠️ 무조건 침묵을 시키지 않는다 — 따라 말하라는 요청 전에 호출이 온 턴(`TASK-269`)이 다시 멈춘다.
+    """
+    events = [
+        _tool_content_start(),
+        _tool_use('{"outcome":"pending","target_form":"an apple"}'),
+        _content_end(TOOL_CONTENT_ID, "TOOL_USE"),
+    ]
+    stream = _FakeStream(
+        *({"event": {name: body}} for name, body in events), output_requires_input=False
+    )
+    adapter = _adapter(stream)
+    await adapter.start()
+
+    await _collect(adapter)
+    await adapter.close()
+
+    [result] = stream.payloads("toolResult")
+    note = json.loads(result["content"])["next"]
+    assert "Do not repeat" in note
+    assert "wait for the learner" in note
+    assert "If you have not asked" in note
+
+
+async def test_a_judgement_receipt_does_not_ask_for_another_repeat():
+    """판정 호출(`correct` 등) 뒤에는 따라 말하기를 다시 청하지 않는다 — `TASK-271` 리뷰 HIGH.
+
+    `pending` 과 같은 영수증을 주면 「요청하지 않았으면 청하라」가 판정 턴에 참이 되어, 맞게 말한
+    학습자에게 또 따라 말하게 하는 고리가 생긴다.
+    """
+    events = [
+        _tool_content_start(),
+        _tool_use('{"outcome":"correct","target_form":"an apple"}'),
+        _content_end(TOOL_CONTENT_ID, "TOOL_USE"),
+    ]
+    stream = _FakeStream(
+        *({"event": {name: body}} for name, body in events), output_requires_input=False
+    )
+    adapter = _adapter(stream)
+    await adapter.start()
+
+    await _collect(adapter)
+    await adapter.close()
+
+    [result] = stream.payloads("toolResult")
+    note = json.loads(result["content"])["next"]
+    assert "Do not repeat" in note
+    assert "Do not ask them to say it again" in note
+    assert "If you have not asked" not in note
 
 
 async def test_a_pronunciation_result_waits_for_the_tool_block_to_close():
@@ -2772,3 +2830,30 @@ async def test_펌프가_적은_뒤_close_는_다시_적지_않는다():
     await adapter.close()
 
     assert len(recorded) == 1
+
+
+def _rule(prompt: str, number: int) -> str:
+    """번호 규칙 하나의 본문 — 다음 번호 줄이나 빈 줄에서 끊는다.
+
+    프롬프트 전체에서 찾으면 다른 규칙의 낱말로 통과한다 — 판별력을 규칙 하나로 좁힌다.
+    """
+    match = re.search(rf"^{number}\. (.*?)(?=^\d+\. |\n\n|\Z)", prompt, re.MULTILINE | re.DOTALL)
+    assert match, f"규칙 {number} 이 없다"
+    return " ".join(match.group(1).split())
+
+
+def test_rule_1_caps_a_turn_by_word_count():
+    """⛔ `TASK-271` — 「한두 짧은 문장」만으로는 코치 턴이 230~309자까지 길어졌다(실사용 세션)."""
+    assert "under 20 words" in _rule(SYSTEM_PROMPT, 1)
+
+
+def test_rule_4_keeps_the_correction_to_a_recast():
+    """⛔ `TASK-271` — 교정 턴이 문법 설명과 낱말 단위 드릴로 번졌다.
+
+    실사용 세션의 코치가 「"a" 만 따로 말해 보라」까지 갔다.
+    """
+    rule = _rule(SYSTEM_PROMPT, 4)
+    assert "Do not explain the grammar rule" in rule
+    # ⛔ 낱말 드릴 금지는 싣지 않는다 — 발음 초점 세션의 `_SOUND_INSTRUCTION` 이 낱말 재발화를
+    # 요구하고, 그 줄은 규칙 9 만 대체하므로 규칙 4 의 금지와 맞부딪친다(`TASK-271` 리뷰 HIGH).
+    assert "single word" not in rule

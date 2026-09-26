@@ -180,14 +180,15 @@ Their goal is to join business meetings and report project status in English.
 
 Rules:
 1. Speak clear, natural English at A2-B1 level. Keep each of your turns to one or two
-   short sentences.
+   short sentences, under 20 words in total.
 2. Ask one question at a time, then stop and wait for the learner. A pause means they are
    thinking — do not fill it with another question, an example, or a rephrasing. Only after
    a long silence, offer one short sentence starter and then stop again.
 3. Start from daily-life topics and move toward work updates once the learner is warmed up.
-4. Do not correct every mistake. At most one correction per turn: quote what the learner
-   said, give one natural correction, and ask them to say it again. Never pair a correction
-   with a new question in the same turn — correct, ask for the repeat, and then stop.
+4. Do not correct every mistake. At most one correction per turn, and keep it short: say
+   the natural version and ask them to say it again. Do not explain the grammar rule.
+   Never pair a correction with a new question in the same turn — correct, ask for the
+   repeat, and then stop.
 5. If the learner is stuck or asks, offer a short sentence starter instead of the full
    answer. Repeat or slow down when asked.
 6. Never read JSON, lists, or metadata out loud.
@@ -395,6 +396,30 @@ _SOUND_INSTRUCTION = (
     '"pending" right after you model it, and again with the judgement once you have heard the '
     "repeat."
 )
+
+
+# `TASK-271` — 발음 tool 결과의 본문. **「받았다」만 보내면 코치가 이미 한 말을 또 했다**
+# (2026-09-26 11:58 실사용 세션 · 긴 코치 턴이 전부 tool 호출 직후였다). `TASK-61.5` 가 제어 tool
+# 에서 본 중복 발화와 같은 기전이다 — 결과를 받은 모델은 그 턴을 이어 말한다.
+# ⛔ **`pending` 에는 무조건 침묵시키지 않는다** — 따라 말하라는 요청보다 호출이 앞선 턴이
+# 있고(`TASK-269`), 그 턴에서 침묵하면 학습자는 무엇을 할지 모른 채 멈춘다. 그래서 갈래를 모델이
+# 가른다.
+# ⛔ **판정 호출에는 다른 영수증을 준다**(`TASK-271` 리뷰 HIGH) — 같은 문구면 「요청하지 않았으면
+# 청하라」가 판정 턴에 참이 되어, 맞게 말한 학습자에게 또 따라 말하게 한다.
+_PENDING_RECEIPT: dict[str, Any] = {
+    "status": "recorded",
+    "next": (
+        "Do not repeat what you already said. If you have not asked the learner to say it "
+        "again, ask in one short sentence. Then stop and wait for the learner."
+    ),
+}
+_JUDGEMENT_RECEIPT: dict[str, Any] = {
+    "status": "recorded",
+    "next": (
+        "Do not repeat what you already said. Do not ask them to say it again. In one short "
+        "sentence, go on with the lesson, then stop and wait for the learner."
+    ),
+}
 
 
 # 사용자 결정 71 — 소리 줄의 **모드별 칸 하나**. 일반 세션에만 실린다.
@@ -1162,7 +1187,8 @@ class NovaVoiceAdapter:
         # **앱이 버린 명령에도 코치가 완료로 말했다**(실물 4/4). 지금은 보고가 올 때 보낸다.
         self._awaiting_outcome: dict[str, str] = {}
         # 결과를 아직 못 돌려준 발음 tool 호출 id (`TASK-269`). TOOL 블록이 닫힐 때 비운다.
-        self._unacked_pronunciation: list[str] = []
+        # `(toolUseId, 영수증)` — 판정에 따라 영수증이 갈린다(`TASK-271`).
+        self._unacked_pronunciation: list[tuple[str, dict[str, Any]]] = []
         # 방금 번역한 청크가 TOOL 블록을 닫았는가 — 펌프가 이 값을 보고 결과를 보낸다.
         self._tool_block_closed = False
         # `TASK-124`(결정 68) — 주입한다. 이 어댑터가 DB 를 알면 스트림 대역만으로 도는 단위
@@ -1379,8 +1405,8 @@ class NovaVoiceAdapter:
                 # 기다리지 않고, 공식 샘플처럼 TOOL 블록이 닫힌 «뒤»에 보낸다.
                 if self._tool_block_closed and self._unacked_pronunciation:
                     due, self._unacked_pronunciation = self._unacked_pronunciation, []
-                    for tool_use_id in due:
-                        await self._send_tool_result(tool_use_id, {"status": "recorded"})
+                    for tool_use_id, receipt in due:
+                        await self._send_tool_result(tool_use_id, receipt)
                 # ⛔ **여기서 tool 결과를 보내지 않는다** — 결정 118 이 결정 109 의 «시점»을
                 # 뒤집었다.
                 # 번역 직후에 보내면 실행 판정보다 앞서 나가 앱이 버린 명령에도 코치가 완료로
@@ -1424,7 +1450,10 @@ class NovaVoiceAdapter:
         events = self._translator.translate(name, body)
         self._remember_control_tool_uses(events)
         self._unacked_pronunciation.extend(
-            event.tool_use_id
+            (
+                event.tool_use_id,
+                _PENDING_RECEIPT if event.outcome == "pending" else _JUDGEMENT_RECEIPT,
+            )
             for event in events
             if isinstance(event, PronunciationEvent) and event.tool_use_id is not None
         )
