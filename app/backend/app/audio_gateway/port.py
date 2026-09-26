@@ -106,6 +106,10 @@ class PronunciationEvent(pydantic.BaseModel):
     outcome: PronunciationOutcome
     spoken_form: str | None = None
     target_sound: str | None = None
+    # 이 판정을 실어 온 tool 호출의 id (`TASK-269`). **어댑터 자신이 결과를 돌려줄 때만** 읽는다 —
+    # 발음 tool 은 실행 판정이 없어 게이트웨이가 보고할 것이 없다. 결과가 없으면 턴 끝에 온 호출
+    # 뒤로 Nova 가 멈춘다(2026-09-26 실사용 관측 · 「발음 교정 중」 고착).
+    tool_use_id: str | None = None
 
 
 class SessionCommandEvent(pydantic.BaseModel):

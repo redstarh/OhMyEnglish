@@ -1011,12 +1011,14 @@ class NovaEventTranslator:
         if report is None:
             # `parse_tool_payload`가 이미 왜 버렸는지 경고를 남겼다.
             return []
+        tool_use_id = body.get("toolUseId")
         return [
             PronunciationEvent(
                 target_form=report.target_form,
                 outcome=report.outcome,
                 spoken_form=report.spoken_form,
                 target_sound=report.target_sound,
+                tool_use_id=tool_use_id if isinstance(tool_use_id, str) and tool_use_id else None,
             )
         ]
 
@@ -1159,6 +1161,10 @@ class NovaVoiceAdapter:
         # ⛔ 이전 판은 번역 직후 「받았다」를 보냈고(결정 109) 그러면 실행 판정보다 앞서 나가
         # **앱이 버린 명령에도 코치가 완료로 말했다**(실물 4/4). 지금은 보고가 올 때 보낸다.
         self._awaiting_outcome: dict[str, str] = {}
+        # 결과를 아직 못 돌려준 발음 tool 호출 id (`TASK-269`). TOOL 블록이 닫힐 때 비운다.
+        self._unacked_pronunciation: list[str] = []
+        # 방금 번역한 청크가 TOOL 블록을 닫았는가 — 펌프가 이 값을 보고 결과를 보낸다.
+        self._tool_block_closed = False
         # `TASK-124`(결정 68) — 주입한다. 이 어댑터가 DB 를 알면 스트림 대역만으로 도는 단위
         # 테스트가 DB 를 요구한다(`BedrockClaudeClient` 와 같은 이음새·같은 근거).
         self._usage_sink = usage_sink
@@ -1367,6 +1373,14 @@ class NovaVoiceAdapter:
                     return
                 for event in self._translate_chunk(chunk):
                     self._queue.put_nowait(event)
+                # ⛔ **발음 tool 에도 결과를 돌려준다** (`TASK-269` · 결정 109 의 범위를 뒤집음).
+                # 턴 끝에 온 호출에 결과가 없으면 Nova 가 기다리며 멈췄다 — 실사용 세션에서 그 뒤
+                # 에이전트 발화·학습자 전사가 0건이었다. 실행 판정이 없어 게이트웨이 보고를
+                # 기다리지 않고, 공식 샘플처럼 TOOL 블록이 닫힌 «뒤»에 보낸다.
+                if self._tool_block_closed and self._unacked_pronunciation:
+                    due, self._unacked_pronunciation = self._unacked_pronunciation, []
+                    for tool_use_id in due:
+                        await self._send_tool_result(tool_use_id, {"status": "recorded"})
                 # ⛔ **여기서 tool 결과를 보내지 않는다** — 결정 118 이 결정 109 의 «시점»을
                 # 뒤집었다.
                 # 번역 직후에 보내면 실행 판정보다 앞서 나가 앱이 버린 명령에도 코치가 완료로
@@ -1409,6 +1423,18 @@ class NovaVoiceAdapter:
             return []
         events = self._translator.translate(name, body)
         self._remember_control_tool_uses(events)
+        self._unacked_pronunciation.extend(
+            event.tool_use_id
+            for event in events
+            if isinstance(event, PronunciationEvent) and event.tool_use_id is not None
+        )
+        # 실물은 `type: "TOOL"` 과 `stopReason: "TOOL_USE"` 를 함께 싣는다
+        # (`tests/harness/runs/2026-09-11-task97-tool-payload/B1v2-r1.json`) — 어느 쪽이든 닫힘이다.
+        self._tool_block_closed = (
+            name == "contentEnd"
+            and isinstance(body, dict)
+            and (body.get("type") == "TOOL" or body.get("stopReason") == "TOOL_USE")
+        )
         return events
 
     def _remember_control_tool_uses(self, events: list[AdapterEvent]) -> None:
@@ -1453,7 +1479,7 @@ class NovaVoiceAdapter:
         await self._send_tool_result(tool_use_id, content)
 
     async def _send_tool_result(self, tool_use_id: str, content: dict[str, Any]) -> None:
-        """제어 tool 결과 하나를 Nova 로 돌려보낸다.
+        """tool 결과 하나를 Nova 로 돌려보낸다 — 제어 tool 과 발음 tool(`TASK-269`)이 함께 쓴다.
 
         ⛔ **이 전송이 실패해도 세션을 끊지 않는다.** 결과를 못 보내면 모델이 그 턴을 이어 말하지
         못할 뿐이고, 그것은 이 고침이 없던 상태와 같다 — 대화를 끊는 것보다 낫다.
@@ -1497,7 +1523,7 @@ class NovaVoiceAdapter:
             for payload in payloads:
                 await self._send_event(payload)
         except Exception:
-            logger.exception("제어 tool 결과를 보내지 못했다 (toolUseId=%s)", tool_use_id)
+            logger.exception("tool 결과를 보내지 못했다 (toolUseId=%s)", tool_use_id)
             return
 
     async def _send_event(self, payload: dict[str, Any]) -> None:

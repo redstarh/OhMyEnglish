@@ -843,6 +843,7 @@ def test_the_recorded_tool_block_translates_into_one_pronunciation_event():
             target_form=TOOL_TARGET_FORM,
             outcome="pending",
             spoken_form="[awaiting user repetition]",
+            tool_use_id=TOOL_USE_ID,
         )
     ]
 
@@ -875,6 +876,7 @@ def test_a_tool_block_does_not_disturb_the_agent_text_promotion():
             target_form=TOOL_TARGET_FORM,
             outcome="pending",
             spoken_form="[awaiting user repetition]",
+            tool_use_id=TOOL_USE_ID,
         ),
         TranscriptEvent(kind="partial", text=TOOL_AGENT_TEXT_1, speaker="agent"),
         TranscriptEvent(kind="partial", text=TOOL_AGENT_TEXT_2, speaker="agent"),
@@ -932,6 +934,7 @@ def test_a_verdict_payload_carries_its_fields():
             outcome="incorrect",
             spoken_form="I sink.",
             target_sound="th_as_s",
+            tool_use_id=TOOL_USE_ID,
         )
     ]
 
@@ -2372,10 +2375,15 @@ async def test_reporting_twice_sends_one_result():
     assert len(stream.payloads("toolResult")) == 1
 
 
-async def test_a_pronunciation_tool_use_is_left_alone():
-    """⛔ 결정 109 가 범위를 제어 tool 하나로 좁힌 근거다 — 발음 tool 은 **지금 정상으로 도는
-    경로**이고(TOOL 블록이 ASSISTANT 텍스트보다 앞에 와서 결과 없이도 발화가 온다) 결과를
-    보내면 그 거동이 바뀔 위험만 생긴다.
+async def test_a_pronunciation_tool_use_gets_a_recorded_result():
+    """⛔ `TASK-269` 가 결정 109 의 범위(「제어 tool 에만 결과를 돌려준다」)를 뒤집었다.
+
+    이전 판은 「발음 tool 은 TOOL 블록이 ASSISTANT 텍스트보다 앞에 와서 결과 없이도 발화가 온다」를
+    근거로 이 호출을 그냥 두었다. 그 관측은 1회뿐이었고 설계서가 다중 턴은 미검증이라 적어
+    두었다(`2026-08-27-pronunciation-echo-design.md` §9 미결 1). 2026-09-26 실사용 세션에서
+    학습자의 재발화 직후 턴 끝에 `pending` 호출이 왔고, 그 뒤로 에이전트 발화도 학습자 전사도
+    0건이었다 — 화면은 「발음 교정 중」에 멈췄다. 제어 tool 의 침묵(결정 109)과 같은 기전이다.
+    ⇒ 발음 tool 은 실행 판정이 없으므로 TOOL 블록이 닫히면 곧바로 결과를 돌려준다.
     """
     events = [
         _tool_content_start(),
@@ -2391,6 +2399,55 @@ async def test_a_pronunciation_tool_use_is_left_alone():
     await _collect(adapter)
     await adapter.close()
 
+    starts = [
+        payload
+        for payload in stream.payloads("contentStart")
+        if "toolResultInputConfiguration" in payload
+    ]
+    assert [start["toolResultInputConfiguration"]["toolUseId"] for start in starts] == [TOOL_USE_ID]
+    results = stream.payloads("toolResult")
+    assert [json.loads(result["content"]) for result in results] == [{"status": "recorded"}]
+
+
+async def test_a_pronunciation_result_waits_for_the_tool_block_to_close():
+    """결과는 `contentEnd(type=TOOL)` «뒤»에 나간다 — 공식 샘플(`speech-bidirection.html`)의 순서다.
+
+    `toolUse` 를 받자마자 보내면 TOOL 블록이 아직 열려 있고, 같은 턴에 ASSISTANT 텍스트가 이어질
+    때 모델이 응답을 한 번 더 시작할 위험이 있다(`TASK-269` 리뷰 MEDIUM). 블록이 닫히지 않은
+    스트림에는 결과가 0건이어야 한다.
+    """
+    events = [
+        _tool_content_start(),
+        _tool_use('{"outcome":"pending","target_form":"an apple"}'),
+    ]
+    stream = _FakeStream(
+        *({"event": {name: body}} for name, body in events), output_requires_input=False
+    )
+    adapter = _adapter(stream)
+    await adapter.start()
+
+    collected = await _collect(adapter)
+    await adapter.close()
+
+    assert [event.target_form for event in collected] == ["an apple"]
+    assert stream.payloads("toolResult") == []
+
+
+async def test_a_pronunciation_tool_use_without_an_id_sends_no_result():
+    """돌려줄 주소가 없으면 보내지 않는다 — 제어 tool 과 같은 규약이고 기록 자체는 그대로 흐른다."""
+    name, body = _tool_use('{"outcome":"pending","target_form":"an apple"}')
+    body = {key: value for key, value in body.items() if key != "toolUseId"}
+    events = [_tool_content_start(), (name, body), _content_end(TOOL_CONTENT_ID, "TOOL_USE")]
+    stream = _FakeStream(
+        *({"event": {name: body}} for name, body in events), output_requires_input=False
+    )
+    adapter = _adapter(stream)
+    await adapter.start()
+
+    collected = await _collect(adapter)
+    await adapter.close()
+
+    assert [event.target_form for event in collected] == ["an apple"]
     assert stream.payloads("toolResult") == []
 
 
