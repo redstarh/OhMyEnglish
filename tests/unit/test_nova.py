@@ -1808,14 +1808,22 @@ def test_the_drill_line_counts_exchanges_and_never_says_turns():
     )
 
 
-# 축 4 — 드릴 반복 ↔ 규칙 4(교정 1건/턴). 규칙 11이 *"발음 교정도 교정이다"*로 상한을 못박은
-# **선례의 반대 방향**이라 적지 않으면 모델이 드릴 반복을 교정으로 세어 드릴이 1턴에 끝난다.
-def test_the_drill_line_excludes_the_repeat_from_the_one_correction_per_turn_limit():
+# 축 4 — ⛔ **`TASK-280` 이 뒤집었다**(사용자 결정 2026-09-26 · 드릴 문면 완화). 이전 판은 교대를
+# 「다른 방식으로 다시 말하게 하라」로 채우고 그 반복을 규칙 4 의 교정 상한에서 뺐다(규칙 11 의
+# 반대 방향 선례). 실물 회차(`runs/2026-09-26-task278-real-nova.md` §4)에서 그 반복 요구가 **맞는
+# 문장도 따라 하게 하는** 턴을 6턴 중 3턴 남겼다. ⇒ 교대는 짧은 후속 질문으로 채우고, 맞는 문장의
+# 반복을 금한다. 반복이 없으니 「반복은 교정이 아니다」 문장도 가리킬 것이 없어 지웠다.
+def test_the_drill_line_fills_exchanges_with_follow_up_questions():
     block = _plan_block(_prompt((), _instruction(), _questions(3), None))
 
     flowed = " ".join(block.split())
-    assert "That repeat is practice, not a correction" in flowed
-    assert "does not count against the one-correction-per-turn limit in rule 4" in flowed
+    assert "ask one short follow-up question about what the learner just said" in flowed
+    assert "Do not ask them to repeat a sentence they already said correctly" in flowed
+    # 교정하는 턴에는 후속 질문을 붙이지 않는다 — 규칙 4 의 「교정과 새 질문을 한 턴에
+    # 섞지 않음」과 부딪치지 않게 한다(리뷰 MEDIUM).
+    assert "On a turn where you correct a mistake, skip the follow-up question" in flowed
+    assert "say it again" not in flowed
+    assert "That repeat is practice" not in flowed
 
 
 def test_the_questions_are_listed_by_number():

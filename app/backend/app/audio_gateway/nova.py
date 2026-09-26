@@ -296,12 +296,17 @@ _SETTING_HEADER = "Today's setting:"
 # 설계 4판이 했고 SQL 은 Batch C 가 소유한다. **이 문구가 정의의 정본이다.**
 # ⚠️ f-string 이 아니라 `.format`인 이유는 `SYSTEM_PROMPT`를 평문으로 두는 것과 같다 — 모듈
 # 상수는 런타임 값을 보간할 수 없다. 다른 중괄호가 없으므로 `.format`이 안전하다.
+# ⛔ **채우는 방식을 `TASK-280` 이 바꿨다**(사용자 결정 2026-09-26 · 드릴 문면 완화). 이전 판은
+# *"have them say it again a different way. That repeat is practice, not a correction"* 로 교대를
+# 채웠고, 실물 회차(`runs/2026-09-26-task278-real-nova.md` §4)에서 그 요구가 맞는 문장도 따라 하게
+# 하는 턴을 6턴 중 3턴 남겼다. 교대 하한({turns})과 교대의 정의 문장은 그대로다 — 지표와 같은
+# 단위를 세는 것은 그 두 곳이고, 바뀐 것은 교대를 «무엇으로» 채우는가 하나다.
 _DRILL_INSTRUCTION = """\
 - Work through these questions one at a time, and stay on each one for at least {turns}
   exchanges. An exchange is one round: you say something, the learner answers. To fill
-  them, follow up on what the learner just said and have them say it again a different
-  way. That repeat is practice, not a correction — it does not count against the
-  one-correction-per-turn limit in rule 4."""
+  them, ask one short follow-up question about what the learner just said. Do not ask
+  them to repeat a sentence they already said correctly. On a turn where you correct a
+  mistake, skip the follow-up question - rule 4 comes first."""
 
 # 질문 5개 블록 (`TASK-5` Task 6 · 사용자 결정 79 · 설계서 §3).
 #

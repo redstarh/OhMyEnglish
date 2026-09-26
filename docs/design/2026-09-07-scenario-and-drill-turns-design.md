@@ -225,6 +225,8 @@ Today's setting:
 {prompt_template}
 ```
 
+> ⚠️ **아래 드릴 줄의 «채우는 방식»은 2026-09-26 `TASK-280` 이 바꿨음**(사용자 결정 · 드릴 문면 완화). 교대 하한과 교대 정의는 그대로이고, 「다시 말하게 하라」가 「짧은 후속 질문」으로 바뀌었음. 현재 문면의 정본은 `app/backend/app/audio_gateway/nova.py` 의 `_DRILL_INSTRUCTION` 임.
+
 ```
 - Work through these questions one at a time, and stay on each one for at least {N}
   exchanges. An exchange is one round: you say something, the learner answers. To fill
