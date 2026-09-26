@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>스픽(Speak) 대 OhMyEnglish 학습 콘텐츠 비교</title>
+<style>
+  :root {
+    --fg: #1c1c1e;
+    --muted: #6b6b70;
+    --border: #ddd;
+    --bg-alt: #f6f6f8;
+    --accent: #2b6cb0;
+    --confirmed: #1a7f37;
+    --estimated: #b7791f;
+    --unknown: #b42318;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: #fafafa;
+    color: var(--fg);
+    font-family: -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", Segoe UI, Roboto, sans-serif;
+    line-height: 1.7;
+  }
+  .wrap {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+  header.doc-head {
+    border-bottom: 3px solid var(--fg);
+    padding-bottom: 16px;
+    margin-bottom: 28px;
+  }
+  header.doc-head h1 {
+    font-size: 1.7rem;
+    margin: 0 0 8px;
+  }
+  .meta {
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+  .meta div { margin: 2px 0; }
+  h2 {
+    font-size: 1.25rem;
+    margin-top: 2.4em;
+    padding-top: 0.4em;
+    border-top: 1px solid var(--border);
+  }
+  h3 {
+    font-size: 1.05rem;
+    margin-top: 1.8em;
+    color: #333;
+  }
+  p { margin: 0.6em 0; }
+  .src {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin: 0.15em 0 0.9em 0;
+  }
+  .src a { color: var(--accent); word-break: break-all; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1em 0 1.4em;
+    font-size: 0.92rem;
+  }
+  caption {
+    text-align: left;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 0.4em;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+  thead th {
+    background: var(--fg);
+    color: #fff;
+  }
+  tbody tr:nth-child(even) { background: var(--bg-alt); }
+  .tag {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    color: #fff;
+  }
+  .tag.confirmed { background: var(--confirmed); }
+  .tag.estimated { background: var(--estimated); }
+  .tag.unknown { background: var(--unknown); }
+  ol.unresolved li { margin: 0.5em 0; }
+  ul.plain li { margin: 0.4em 0; }
+  .note {
+    background: var(--bg-alt);
+    border-left: 4px solid var(--accent);
+    padding: 10px 14px;
+    margin: 1em 0;
+    font-size: 0.94rem;
+  }
+  footer.sources {
+    margin-top: 3em;
+    padding-top: 1em;
+    border-top: 1px solid var(--border);
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  footer.sources ul { padding-left: 1.2em; }
+  footer.sources a { color: var(--accent); word-break: break-all; }
+  code { background: var(--bg-alt); padding: 1px 5px; border-radius: 3px; font-size: 0.9em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc-head">
+  <h1>스픽(Speak) 대 OhMyEnglish 학습 콘텐츠 비교</h1>
+  <div class="meta">
+    <div>작성일: 2026-09-26</div>
+    <div>근거: 스픽 쪽은 <code>docs/research/2026-09-26-speak-curriculum.md</code> · OhMyEnglish 쪽은 이 저장소의 코드와 문서</div>
+    <div>작성자: Claude 에이전트</div>
+  </div>
+</header>
+
+<h2>0. 비교 방법과 경계</h2>
+<p>이 문서는 스픽 쪽에 새 웹 조사를 하지 않음. 스픽 쪽 사실은 위 조사문서를 그대로 인용함.</p>
+<p>OhMyEnglish 쪽 사실은 이 저장소의 코드와 문서에서만 가져옴. 문장마다 파일 경로와 기호 또는 절 이름을 근거로 남김. 줄 번호는 쓰지 않음 — 코드가 바뀌면 줄 번호가 먼저 낡기 때문임.</p>
+<p>OhMyEnglish 쪽 근거 상태를 세 가지로 나눔.</p>
+<ul class="plain">
+  <li><span class="tag confirmed">구현됨</span> — <code>app/backend/app</code>·<code>app/frontend/app</code>의 코드에 실재함</li>
+  <li><span class="tag estimated">설계서만</span> — <code>docs/PRD.md</code>·<code>docs/design/**</code> 등 문서에는 있으나 코드에 없음</li>
+  <li><span class="tag unknown">부재</span> — 문서와 코드 모두에 없음</li>
+</ul>
+<p>두 서비스는 규모가 다름. 스픽은 다수 사용자를 대상으로 한 상용 서비스임. OhMyEnglish는 단일 고정 사용자를 위한 로컬 도구이고 회원 시스템이 없음(<code>app/backend/app/models/user.py</code> — <code>FIXED_USER_ID</code>). 콘텐츠 양을 견줄 때 이 전제를 먼저 읽어야 함.</p>
+
+<h2>1. 요약</h2>
+<p>스픽은 CEFR 5단계에 걸쳐 17개 코스·469개 day 페이지로 실측된 사전 제작 콘텐츠와, 오늘의 수업·스피킹 연습·실전 대화의 3단계 반복 학습, 음소 단위 실시간 발음 코치, 간격 반복 스마트 리뷰, 사전 제작 롤플레이 90개 이상과 프리토킹 120개 이상을 갖춘 상용 서비스임.</p>
+<span class="src">출처: 스픽 조사문서 §1·§3·§5</span>
+<p>OhMyEnglish는 사전 제작 콘텐츠가 시드 시나리오 30건과 쉐도잉 클립 1건뿐인 단일 사용자 로컬 도구이고(<code>scripts/migrate.py</code> — <code>SEED_SCENARIOS</code>, <code>SEED_SHADOWING_ITEMS</code>), 그 대신 학습자의 오류 이력을 근거로 세션마다 Claude가 다음 초점 패턴과 질문을 새로 만들고(<code>app/backend/app/services/plan.py</code> — <code>process_plan</code>), 대화 5회 뒤에는 학습자 대화 자체에서 맞춤 시나리오를 생성하며(<code>app/backend/app/services/scenario_generator.py</code>), 발음은 점수 대신 실시간 음성 모델의 시범·재발화 기록으로만 다룸(<code>docs/PRD.md</code> §10).</p>
+<p>즉 스픽은 콘텐츠 라이브러리의 폭에서, OhMyEnglish는 개인 오류 이력 기반 생성·복습 루프의 깊이에서 각각 앞서 있음.</p>
+
+<h2>2. 축별 비교</h2>
+
+<h3>2-1. 커리큘럼 구조·레벨</h3>
+<table>
+<thead><tr><th></th><th>스픽</th><th>OhMyEnglish</th></tr></thead>
+<tbody>
+<tr><td>레벨 값역</td><td>CEFR A1~C1 5단계</td><td>CEFR A1~C2 6단계</td></tr>
+<tr><td>콘텐츠 단위</td><td>코스 17개·day 469개(2024 시점 실측)</td><td>코스·day 개념 없음</td></tr>
+<tr><td>레벨의 뜻</td><td>콘텐츠 묶음을 가리키는 값</td><td>사용자 1명의 진행 상태 컬럼</td></tr>
+<tr><td>레벨 이동 규칙</td><td><span class="tag unknown">미확인</span></td><td>한 번에 한 단계만 이동, 하향도 허용</td></tr>
+</tbody>
+</table>
+<p>OhMyEnglish는 코스·day 같은 콘텐츠 목차 자체가 코드에 없음. <code>docs/first-4-weeks.md</code>가 1~4주차 목표·과제·완료 기준의 표를 두지만, 그 주차 구분을 코드로 강제하는 자리는 없음(<span class="tag estimated">설계서만</span>). 레벨은 콘텐츠를 가리키는 값이 아니라 한 사용자의 진행 상태를 나타내는 컬럼 하나이고, 계획 생성이 그 값을 한 단계씩만 옮김(<code>app/backend/app/models/plan.py</code> — <code>PlanOutput._target_level_matches_level_and_instruction</code>, <code>LevelDecision</code>).</p>
+
+<h3>2-2. 레슨 단위 형식</h3>
+<table>
+<thead><tr><th></th><th>스픽</th><th>OhMyEnglish</th></tr></thead>
+<tbody>
+<tr><td>진행 단계</td><td>오늘의 수업 → 스피킹 연습 → 실전 대화 3단계, 약 20분·100문장 이상</td><td>세션 모드 값역 5개, 진입점 있는 것은 4개</td></tr>
+<tr><td>반복 방식</td><td>3단계를 순환·누적</td><td>초점 패턴 1~2개 + 질문 3~5개를 세션마다 새로 산출</td></tr>
+<tr><td>세션 종료 총평</td><td><span class="tag unknown">미확인</span></td><td>세션 종료 후 별도 비동기 Claude 잡이 생성</td></tr>
+</tbody>
+</table>
+<p>OhMyEnglish의 세션 모드 값역은 <code>speaking</code>·<code>shadowing</code>·<code>review</code>·<code>pronunciation</code>·<code>scenario_intake</code> 다섯이고(<code>app/backend/app/models/session.py</code> — <code>SessionMode</code>), 그중 진입점이 있는 것은 <code>speaking</code>·<code>shadowing</code>·<code>pronunciation</code>·<code>scenario_intake</code> 넷임 — <code>review</code>는 값역에는 있으나 소켓 쿼리스트링에 붙일 진입로가 없음(<code>app/backend/app/services/session_modes.py</code>).</p>
+<p>한 세션의 드릴 질문은 3~5개 중 <code>drill_count</code>개만 실제로 대화에 실림(<code>app/backend/app/audio_gateway/nova.py</code> — <code>build_system_prompt</code>의 <code>questions[:drill_count]</code>). <code>docs/first-4-weeks.md</code>의 「일일 세션 템플릿」(Warm-up·Scenario·Repair·Transfer·Close 5단계, 각 분 단위 배분)은 문서에만 있고 그 5단계를 강제하는 코드는 없음(<span class="tag estimated">설계서만</span>).</p>
+<p><code>docs/agent-system-prompt.md</code>의 "Session closing format"은 실시간 음성 모델이 세션 안에서 그 자리에 총평을 말하는 것으로 적지만, 실제 구현은 세션이 끝난 뒤 별도 Claude 잡이 전사문을 읽어 총평을 만듦(<code>app/backend/app/services/session_summary.py</code> — <code>build_summary_prompt</code>·<code>process_summary</code>) — 산출 주체가 문서와 다름.</p>
+
+<h3>2-3. 시나리오·롤플레이</h3>
+<table>
+<thead><tr><th></th><th>스픽</th><th>OhMyEnglish</th></tr></thead>
+<tbody>
+<tr><td>사전 제작 규모</td><td>롤플레이 90개 이상, 프리토킹 120개 이상</td><td>고정 시드 시나리오 30건</td></tr>
+<tr><td>구체 목록</td><td>상황명·주제명 <span class="tag unknown">미확인</span></td><td><code>daily_life</code> 9·<code>business</code> 9·<code>travel</code> 6·<code>shopping</code> 3·<code>health</code> 3</td></tr>
+<tr><td>맞춤 생성</td><td><span class="tag unknown">미확인</span>(AI 프리톡이 상황·주제를 자유 설정)</td><td>대화 5회 뒤 Claude가 무대·상대·목표·초점·어조 5축으로 자동 생성</td></tr>
+<tr><td>신규·반복 배치</td><td><span class="tag unknown">미확인</span></td><td>창 10회당 신규 3회 고정 비율</td></tr>
+</tbody>
+</table>
+<p>OhMyEnglish의 시드 시나리오 30건은 <code>scripts/migrate.py</code>의 <code>SEED_SCENARIOS</code>에 고정 UUID로 박혀 있고, 세션 시작이 그중 하나를 고름(<code>app/backend/app/services/scenario_rotation.py</code>). 신규 상황과 반복 상황의 배치는 창 10회당 신규 3회로 고정됨(같은 파일 — <code>WINDOW</code>·<code>NEW_PER_WINDOW</code>).</p>
+<p>대화 5회가 쌓이면 Claude가 그 대화에서 무대·상대·목표·초점·어조 다섯 축을 뽑아 사용자 전용 시나리오를 만들고(<code>app/backend/app/services/scenario_generator.py</code> — <code>build_scenario_prompt</code>, <code>_AXES</code>), 그렇게 만들어진 시나리오는 <code>is_generated</code> 플래그로 시드 시나리오와 구분됨(<code>app/backend/app/services/scenario_rotation.py</code> — <code>Candidate.is_generated</code>).</p>
+<p><code>docs/agent-system-prompt.md</code>의 "Business-report role play"(Status·Change·Risk·Decision·Next steps 5단계 안내문)는 실제 런타임 시스템 프롬프트(<code>app/backend/app/audio_gateway/nova.py</code> — <code>SYSTEM_PROMPT</code>)에는 실리지 않음 — <span class="tag estimated">설계서만</span>.</p>
+
+<h3>2-4. 발음 피드백</h3>
+<table>
+<thead><tr><th></th><th>스픽</th><th>OhMyEnglish</th></tr></thead>
+<tbody>
+<tr><td>판정 단위</td><td>음소 단위</td><td>목표 소리(<code>target_sound</code>) 단위</td></tr>
+<tr><td>판정 주체</td><td>AI 발음 코치(정확도 93% 이상 주장)</td><td>실시간 음성 모델(Nova) 하나</td></tr>
+<tr><td>점수·등급</td><td><span class="tag unknown">미확인</span>(음소 단위 분석은 밝히나 점수 체계는 불명)</td><td><span class="tag unknown">명시적 비범위</span></td></tr>
+<tr><td>결과 기록</td><td><span class="tag unknown">미확인</span></td><td><code>pending</code>·<code>correct</code>·<code>incorrect</code>·<code>unclear</code> 4값</td></tr>
+</tbody>
+</table>
+<p>OhMyEnglish의 발음 판정은 실시간 음성 모델이 <code>report_pronunciation_coaching</code> tool을 불러 기록됨(<code>app/backend/app/models/pronunciation.py</code> — <code>PRONUNCIATION_TOOL_NAME</code>). 결과값은 <code>pending</code>·<code>correct</code>·<code>incorrect</code>·<code>unclear</code> 네 값이고(같은 파일 — <code>PronunciationOutcome</code>), 전사문 기반 분석 경로는 원리적으로 발음을 판정하지 못한다고 명시함(<code>docs/PRD.md</code> R10-3).</p>
+<p>음소 단위 점수·등급·원어민 유사도 지표는 명시적 비범위이고, 하는 일은 "시범과 재발화 기록"으로 한정됨(<code>docs/PRD.md</code> §5·§10.3). 오디오 원본은 기본 저장하지 않음(<code>docs/PRD.md</code> R10-7). 한글 전사·재요청 같은 보조 신호는 한때 값역에 있었으나 v1.5에서 요구가 철회되어 지금은 쓰는 코드가 0곳임(<code>docs/PRD.md</code> §16, <code>app/backend/app/models/pronunciation.py</code> 머리말 주석).</p>
+
+<h3>2-5. 복습·반복</h3>
+<table>
+<thead><tr><th></th><th>스픽</th><th>OhMyEnglish</th></tr></thead>
+<tbody>
+<tr><td>이름</td><td>스마트 리뷰(간격 반복)</td><td>복습 사다리</td></tr>
+<tr><td>간격</td><td><span class="tag unknown">미확인</span>(알고리즘 비공개)</td><td>1일 → 3일 → 7일 고정 3단계</td></tr>
+<tr><td>재발 시 처리</td><td><span class="tag unknown">미확인</span></td><td>처음 단계(1일)로 되돌림</td></tr>
+<tr><td>만성 판정</td><td><span class="tag unknown">미확인</span></td><td>임계값 없이 사실만 제공, 판단은 Claude가 함</td></tr>
+</tbody>
+</table>
+<p>OhMyEnglish의 복습 간격은 1·3·7일 3단계로 고정되어 있고(<code>app/backend/app/services/review.py</code> — <code>STAGE_DAYS</code>), 완주 여부는 정답 횟수를 누적하지 않고 예정일이 지난 뒤 다시 맞혔는지를 이력에서 매번 다시 계산함(같은 파일 — <code>fold_stages</code>, <code>recompute</code>). 다시 틀린 패턴은 주기를 처음으로 되돌림(<code>docs/PRD.md</code> R11-6).</p>
+<p>만성 약점 여부는 제품이 임계값을 정하지 않고 재발 세션 수·최대 공백·지속 기간 같은 사실만 조회로 제공하며 판단은 Claude가 함(<code>app/backend/app/services/chronic.py</code> — <code>load_chronic_metrics</code>, <code>deepest_recurrence</code>, <code>docs/PRD.md</code> R11-8). 오류는 시제·관사·전치사·어순·동사형태·업무표현·발음억양 7종 고정 카테고리로 분류됨(<code>app/backend/app/models/analysis.py</code> — <code>ErrorCategory</code>, <code>docs/agent-system-prompt.md</code> "Error-memory output").</p>
+
+<h3>2-6. 개인화·학습 계획</h3>
+<table>
+<thead><tr><th></th><th>스픽</th><th>OhMyEnglish</th></tr></thead>
+<tbody>
+<tr><td>개인화 방식</td><td><span class="tag unknown">미확인</span>(코스·레벨 안에서의 진행으로 추정)</td><td>세션 종료마다 오류 이력 기반 계획을 비동기 생성</td></tr>
+<tr><td>계획 입력</td><td><span class="tag unknown">미확인</span></td><td>복습 예정·최근 14일 발화·만성 지표·발음 시도 3계층</td></tr>
+<tr><td>초기 레벨 진단</td><td><span class="tag unknown">미확인</span></td><td>없음(시드 기본값 A2 고정)</td></tr>
+<tr><td>즉시 집중 연습 진입</td><td><span class="tag unknown">미확인</span></td><td>결과 화면에서 오류 패턴 카드를 눌러 진입</td></tr>
+</tbody>
+</table>
+<p>OhMyEnglish는 한 세션이 끝날 때마다 다음 세션 계획을 비동기로 만들어 둠(<code>app/backend/app/services/plan.py</code> — <code>process_plan</code>, <code>build_plan_prompt</code>). 계획 입력은 복습 예정 패턴·최근 14일 발화와 교정·만성 지표·발음 시도 집계 3계층을 모은 것이고(<code>app/backend/app/services/plan_input.py</code> — <code>load_plan_input</code>, <code>RECENT_WINDOW_DAYS</code>), 출력은 초점 패턴 1~2개·질문 3~5개·레벨 결정·지시문으로 검증됨(<code>app/backend/app/models/plan.py</code> — <code>PlanOutput</code>). 계획이 없거나 생성에 실패해도 학습은 시작됨(<code>docs/PRD.md</code> R11-5).</p>
+<p>처음 사용자의 레벨을 재는 진단 절차는 코드에 없고, 시드 데이터가 <code>current_level</code>을 A2로 고정해 둠(<code>scripts/migrate.py</code> — <code>seed</code>). 결과 화면에서 자주 틀리는 패턴 카드를 누르면 그 패턴을 초점으로 한 세션이 즉시 열림(<code>docs/PRD.md</code> §17, <code>app/frontend/app/results/[sessionId]/page.tsx</code> — <code>DAILY_DRILL_LABEL</code>). 같은 요구의 음성 명령 경로("이 패턴으로 연습 만들어줘")는 v1.6에서 철회되어 화면 진입 하나로 한정됨(<code>docs/PRD.md</code> §17.1).</p>
+
+<h3>2-7. 진행 리포트</h3>
+<table>
+<thead><tr><th></th><th>스픽</th><th>OhMyEnglish</th></tr></thead>
+<tbody>
+<tr><td>화면 종류</td><td>조사 범위 밖(마케팅 페이지에 진행 리포트 화면 설명 없음)</td><td>일일 오류 요약·완료 판정·연속 학습일·주간 리포트</td></tr>
+<tr><td>점수·등급</td><td><span class="tag unknown">미확인</span></td><td><span class="tag unknown">명시적 비범위</span></td></tr>
+<tr><td>월간 분석</td><td>조사 범위 밖</td><td>문서에만 있고 코드 없음</td></tr>
+</tbody>
+</table>
+<p>OhMyEnglish의 진행 리포트는 넷임. 그날 분석된 오류를 패턴별로 담는 일일 오류 요약(<code>docs/PRD.md</code> §13, <code>app/backend/app/services/daily_summary.py</code>), 시나리오 1개 완주를 기준으로 한 일일 완료 판정(<code>docs/PRD.md</code> §14), 날짜가 하루도 비지 않고 이어진 연속 학습일과 최장 연속일(<code>docs/PRD.md</code> §15, <code>app/backend/app/services/daily_summary.py</code> — <code>load_streak</code>, <code>app/frontend/app/history/page.tsx</code>), 그리고 그 주의 사실(<code>WeekFacts</code>)과 Claude의 판단(<code>improving</code>·<code>next_scenarios</code>)을 분리해 담는 주간 리포트(<code>app/backend/app/services/weekly_report.py</code>, <code>app/backend/app/models/weekly_report.py</code>)임.</p>
+<p>넷 모두 점수·등급·달성률을 담지 않는 것이 명시적 계약임(<code>docs/PRD.md</code> §13.2 R13-5, §15.3). <code>docs/requirements-summary.md</code>의 "월간 분석" 절은 <code>docs/PRD.md</code>에도 코드에도 대응하는 것이 없음 — 요구사항 요약 문서에만 있는 항목임.</p>
+
+<h3>2-8. 콘텐츠 양·소스</h3>
+<table>
+<thead><tr><th></th><th>스픽</th><th>OhMyEnglish</th></tr></thead>
+<tbody>
+<tr><td>사전 제작 콘텐츠</td><td>코스 17개·day 469개(2024 시점 실측), 마케팅 페이지는 "500일·2,000개 이상" 주장</td><td>시나리오 30건·쉐도잉 클립 1건</td></tr>
+<tr><td>콘텐츠 생성 방식</td><td>자체 제작·큐레이션으로 추정(<span class="tag unknown">미확인</span>)</td><td>세션마다 Claude가 질문·시나리오를 새로 생성</td></tr>
+<tr><td>영상·오디오 소스</td><td>자체 제작으로 추정(<span class="tag unknown">미확인</span>)</td><td>사용자가 붙여넣은 YouTube 링크만 사용, 자동 수집·검색 없음</td></tr>
+<tr><td>낱말 뜻 조회</td><td><span class="tag unknown">미확인</span></td><td>저장하지 않고 매번 Claude 호출</td></tr>
+</tbody>
+</table>
+<p>OhMyEnglish가 미리 만들어 둔 콘텐츠는 시나리오 30건(<code>scripts/migrate.py</code> — <code>SEED_SCENARIOS</code>)과 쉐도잉 클립 1건(<code>scripts/migrate.py</code> — <code>SEED_SHADOWING_ITEMS</code>)뿐임. 그 이상의 콘텐츠는 세션마다 Claude가 그 사용자의 오류 이력에서 새로 만드는 질문·시나리오이거나(<code>app/backend/app/services/plan.py</code>, <code>app/backend/app/services/scenario_generator.py</code>), 사용자가 직접 붙여넣는 자료임.</p>
+<p>영상 학습은 YouTube 링크를 붙여넣는 것이 유일한 담기 경로이고 검색·자동 수집 기능은 의도적으로 두지 않음(<code>app/frontend/app/videos/page.tsx</code> 머리말 주석). 낱말 뜻 조회도 표나 캐시를 두지 않고 문장을 Claude에 매번 넘겨 얻음(<code>app/backend/app/services/vocab.py</code>). 즉 스픽은 대규모 사전 제작 콘텐츠 라이브러리이고, OhMyEnglish는 소량 고정 콘텐츠에 실행 시점 생성·사용자 제공 콘텐츠를 얹은 구조임.</p>
+
+<h2>3. 격차</h2>
+
+<h3>3-1. 스픽에 있는데 OhMyEnglish에 없는 것</h3>
+<ul class="plain">
+  <li>코스·day 단위의 대규모 사전 제작 커리큘럼(17개 코스·469개 day) — OhMyEnglish는 코스·day 개념 자체가 코드에 없음</li>
+  <li>사전 제작 롤플레이 90개 이상·프리토킹 주제 120개 이상 규모의 상황 뱅크 — OhMyEnglish의 고정 시드는 30건뿐임(생성형으로 보완하지만 사전 제작 뱅크의 규모 자체는 훨씬 작음)</li>
+  <li>음소 단위 발음 정확도 지표(93% 이상 주장)와 그에 준하는 채점 — OhMyEnglish는 점수·등급을 명시적으로 비범위로 둠(<code>docs/PRD.md</code> §5)</li>
+  <li>여러 day를 묶어 복습하는 "리뷰 데이(Review Day)" 같은 코스 내 복습 단위 — OhMyEnglish의 복습은 코스 단위가 아니라 오류 패턴 단위임</li>
+</ul>
+
+<h3>3-2. OhMyEnglish에 있는데 스픽 쪽 조사에서 확인되지 않은 것</h3>
+<ul class="plain">
+  <li>학습자 개인의 오류 이력을 원문·교정·이유·발생 시각까지 저장하고 그 사실을 세션 계획 입력으로 직접 재사용하는 경로(<code>app/backend/app/services/plan_input.py</code>, <code>app/backend/app/services/plan.py</code>)</li>
+  <li>오류 재발 시 복습 주기를 처음 단계로 되돌리는 규칙(<code>docs/PRD.md</code> R11-6) — 스픽의 간격 반복 알고리즘이 재발을 어떻게 다루는지는 조사문서에 없음</li>
+  <li>결과 화면에서 특정 오류 패턴을 골라 그 패턴에 집중한 세션을 즉시 여는 진입(<code>app/frontend/app/results/[sessionId]/page.tsx</code>)</li>
+  <li>사용자가 고른 YouTube 영상의 특정 구간에서 문장을 직접 캡처해 쉐도잉·발음·복습 경로에 그대로 태우는 개인화 콘텐츠 파이프라인(<code>app/backend/app/services/videos.py</code>, <code>app/frontend/app/videos/page.tsx</code>)</li>
+  <li>대화 5회를 근거로 그 학습자만의 시나리오를 자동 생성하는 경로(<code>app/backend/app/services/scenario_generator.py</code>)</li>
+  <li>오류 이력에 대한 임계값 없는 사실 조회와 판단의 분리(<code>app/backend/app/services/chronic.py</code>, <code>docs/PRD.md</code> R11-8) — 스픽의 판정 기준은 조사문서에서 확인되지 않음</li>
+</ul>
+<p>OhMyEnglish 쪽은 저장소 코드가 근거이므로 이 문서에 OhMyEnglish 쪽 "미확인" 항목을 따로 만들지 않음. 아래 4장은 스픽 조사문서의 미확인 사항을 그대로 옮긴 것임.</p>
+
+<h2>4. 미확인 사항 — 스픽 조사문서에서 옮김</h2>
+<p>다음은 스픽 쪽 조사가 끝내 확인하지 못한 항목임(<code>docs/research/2026-09-26-speak-curriculum.md</code> §8). 이 문서는 그 미확인을 그대로 유지하고 추측으로 채우지 않음.</p>
+<ol class="unresolved">
+<li>32개 마케팅 코스명과 17개 실측 코스 코드의 정확한 대응 관계</li>
+<li><code>basics-2</code>·<code>basics-2-2</code>·<code>basics-2-3</code> 세 코스의 실제 이름</li>
+<li><code>be-1</code>·<code>be-2</code>·<code>bi-1</code> 코스의 정확한 이름과 <code>be</code>·<code>bi</code>가 가리키는 말</li>
+<li><code>me</code>·<code>pv</code>·<code>te</code> 코드가 정말 엄마·아빠, phrasal verb, travel의 머리글자인지</li>
+<li>AI 튜터 롤플레이 90개·프리토킹 120개의 구체적인 상황명·주제명 목록</li>
+<li>유닛(unit)이라는 용어를 스픽이 실제로 쓰는지</li>
+<li>로그인 후 실제 앱 화면에서 3단계 학습법이 화면 단위로 어떻게 구현되는지</li>
+<li>"500일"과 실측 469일의 차이가 반올림인지 시점 차이인지</li>
+<li>영어판 커리큘럼 페이지(<code>https://www.speak.com/en/content</code>)가 HTTP 404인 이유</li>
+</ol>
+
+<footer class="sources">
+  <h2 style="border-top:none;margin-top:1em;">5. 참고 문서</h2>
+  <ul>
+    <li><code>docs/research/2026-09-26-speak-curriculum.md</code> — 스픽 쪽 근거 정본</li>
+    <li><code>docs/PRD.md</code> v1.6 — OhMyEnglish 요구사항 정본</li>
+    <li><code>docs/requirements-summary.md</code> v1.1 — 학습자 관점 요약</li>
+    <li><code>docs/first-4-weeks.md</code> — 첫 4주 학습 플로우 설계</li>
+    <li><code>docs/agent-system-prompt.md</code> — 대화 규칙 설계 정본(런타임 프롬프트와의 차이는 2-2·2-3절 참조)</li>
+    <li><code>app/backend/app/models/</code>·<code>app/backend/app/services/</code>·<code>app/backend/app/audio_gateway/</code> — OhMyEnglish 백엔드 구현</li>
+    <li><code>app/frontend/app/</code> — OhMyEnglish 프런트엔드 구현</li>
+    <li><code>scripts/migrate.py</code> — 시드 데이터 정본</li>
+  </ul>
+</footer>
+
+</div>
+</body>
+</html>
