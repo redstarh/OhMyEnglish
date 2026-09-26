@@ -83,7 +83,10 @@ class Settings(BaseSettings):
     # `stub_unresponsive`(연결 실패 시나리오 E2E-S 6을 코드 수정 없이 재현) 둘이다.
     # Nova 어댑터가 들어오면 값이 하나 늘고, 분기는 `audio_gateway/factory.py`
     # 한 곳에만 있다.
-    voice_adapter: str = "stub"
+    # ⛔ 기본값은 `nova` 다 (`TASK-267`). `stub` 이 기본이던 때 플래그 없이 띄운 백엔드가 학습
+    # 시작마다 픽스처 세 턴을 재생하고 세션을 닫아, 학습자가 말하지 않은 발화·오류가 dev DB 에
+    # 쌓였다(2026-09-26 실측). 스텁은 테스트와 하네스가 `VOICE_ADAPTER=stub` 으로 **명시**해 쓴다.
+    voice_adapter: str = "nova"
     # Nova 2 Sonic 어댑터 설정. 모델 ID는 스파이크가 실측으로 확인한 값이고
     # (`amazon.nova-sonic-v1:0`은 이 계정에 없다), voiceId는 실음성 왕복(N-1)에서 쓴 값이다.
     # `nova_endpointing_sensitivity`(HIGH/MEDIUM/LOW)가 barge-in 민감도를 정한다 —

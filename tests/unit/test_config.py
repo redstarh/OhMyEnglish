@@ -413,6 +413,18 @@ def test_drill_settings_default_to_four_and_five(_no_settings_env):
     assert settings.drill_count == 5
 
 
+def test_voice_adapter_defaults_to_the_real_coach(_no_settings_env):
+    """기본값은 `nova` 다 — 플래그 없이 띄운 백엔드가 픽스처를 재생하지 않는다 (`TASK-267`).
+
+    ⛔ `stub` 기본값이 실재한 결함이다(2026-09-26): 플래그 없이 띄운 `:8002` 에서 학습 시작이
+    `FIXTURE_TURNS` 세 턴을 곧바로 재생하고 세션을 닫았다. 학습자는 한마디도 못 했는데 dev DB 에
+    발명된 발화·오류가 쌓였고 화면은 「오늘 학습을 마쳤어요」로 넘어갔다.
+    """
+    settings = _settings_with_credentials()
+
+    assert settings.voice_adapter == "nova"
+
+
 def test_drill_turns_min_rejects_zero_at_startup():
     """값역 위반은 기동 시점에 거부된다 — 런타임에 조용히 잘리지 않는다(설계서 §3)."""
     with pytest.raises(pydantic.ValidationError):

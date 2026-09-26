@@ -46,7 +46,7 @@ app/backend/.venv/bin/python scripts/migrate.py   # 001·003·004·005 적용 + 
 
 # 백엔드 (Python 3.13 venv — uv).  ⚠️ 포트 8002 · --reload 없음(소스 바뀌면 재기동)
 cd app/backend && .venv/bin/uvicorn app.api.main:app --port 8002
-#   VOICE_ADAPTER=stub(기본) | stub_unresponsive(연결 실패 재현) | nova(실연동)
+#   VOICE_ADAPTER=nova(기본 · 실연동) | stub(픽스처 재생 — 학습 시작 즉시 세 턴이 끝남) | stub_unresponsive(연결 실패 재현)
 #   NOVA_ENDPOINTING_SENSITIVITY=HIGH|MEDIUM(기본)|LOW
 #   WORKER_ENABLED=false  → 분석 워커 정지 (자격증명 없이 부팅)
 
