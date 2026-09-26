@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { fetchNextPlan, type NextPlanSummary } from "@/lib/api";
+import { fetchNextPlan, translateUtterance, type NextPlanSummary } from "@/lib/api";
 import { API_BASE, entryFromQuery, type SessionEntry } from "@/lib/config";
 import { VoiceIo, base64ToBytes, bytesToBase64, pcmFromAudioFrame } from "@/lib/audio";
 import {
@@ -265,12 +265,18 @@ export default function SessionPage() {
           }
           break;
         case "partial":
-          setPartialLine({ id: -1, speaker: event.speaker, text: event.text, audio: [] });
+          setPartialLine({
+            id: -1,
+            speaker: event.speaker,
+            text: event.text,
+            audio: [],
+            sequenceNos: [],
+          });
           break;
         case "final": {
           setPartialLine(null);
           setListening(false);
-          const { speaker, text } = event;
+          const { speaker, text, sequence_no: sequenceNo } = event;
           // ⚠️ 업데이터 «밖»에서 꺼낸다 — StrictMode 가 업데이터를 두 번 부르면 두 번째 호출이 빈
           // 배열을 받는다.
           const audio = speaker === "agent" ? pendingAgentAudioRef.current : [];
@@ -289,12 +295,20 @@ export default function SessionPage() {
             if (last && last.speaker === speaker) {
               return [
                 ...prev.slice(0, -1),
-                { ...last, text: `${last.text} ${text}`, audio: [...last.audio, ...audio] },
+                {
+                  ...last,
+                  text: `${last.text} ${text}`,
+                  audio: [...last.audio, ...audio],
+                  sequenceNos: [...last.sequenceNos, sequenceNo],
+                },
               ];
             }
             // id는 배열에서 파생한다 — ref를 state 업데이터 안에서 증가시키면 StrictMode의
             // 이중 호출에서 번호가 두 칸씩 뛴다.
-            return [...prev, { id: (last?.id ?? 0) + 1, speaker, text, audio }];
+            return [
+              ...prev,
+              { id: (last?.id ?? 0) + 1, speaker, text, audio, sequenceNos: [sequenceNo] },
+            ];
           });
           break;
         }
@@ -474,6 +488,18 @@ export default function SessionPage() {
 
   const replayLine = useCallback((line: TranscriptLine) => {
     voiceRef.current?.replayPcm(line.audio);
+  }, []);
+
+  // 합쳐진 줄은 조각마다 번역을 받아 이어 붙인다 (`TASK-275`). ⚠️ 한 조각이라도 못 얻으면 `null` —
+  // 반쪽 번역을 온전한 것처럼 보이면 학습자가 빠진 부분을 모른다.
+  const translateLine = useCallback(async (line: TranscriptLine): Promise<string | null> => {
+    const sessionId = sessionIdRef.current;
+    if (!sessionId || line.sequenceNos.length === 0) return null;
+    const parts = await Promise.all(
+      line.sequenceNos.map((sequenceNo) => translateUtterance(sessionId, sequenceNo)),
+    );
+    const texts = parts.map((part) => (part.ok ? part.value.translation : null));
+    return texts.every((text) => text !== null) ? texts.join(" ") : null;
   }, []);
 
   const endSession = useCallback(() => {
@@ -663,6 +689,7 @@ export default function SessionPage() {
             ending={state === "ending"}
             onEnd={endSession}
             onReplay={replayLine}
+            onTranslate={translateLine}
           />
           {/* 쉐도잉 클립 (`TASK-66.7`). 대화 상자 **아래**에 두는 이유: 클립은 세션이 시작할 때
               한 번 정해지는 재료이고 대화는 흐르는 것이라 위계가 다르다. */}

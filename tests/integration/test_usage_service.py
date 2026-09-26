@@ -13,7 +13,13 @@ from uuid import uuid4
 import asyncpg
 import pytest
 
-from app.models.usage import PROVIDER_BEDROCK, PURPOSE_NOVA, PURPOSE_SPIKE, TokenUsage
+from app.models.usage import (
+    PROVIDER_BEDROCK,
+    PURPOSE_NOVA,
+    PURPOSE_SPIKE,
+    PURPOSE_TRANSLATION,
+    TokenUsage,
+)
 from app.services.jobs import JOB_TYPE_GENERATE_SCENARIO, JOB_TYPE_SUMMARIZE
 from app.services.usage import load_usage_summary, pool_usage_sink, record_llm_call
 
@@ -332,3 +338,20 @@ async def test_the_pool_sink_swallows_a_failure_so_the_call_is_not_lost(
         )
 
     assert "LLM 사용량을 적지 못했다" in caplog.text
+
+
+async def test_the_translation_purpose_passes_the_check(db_conn: asyncpg.Connection):
+    """`TASK-275` — 번역 비용의 갈래가 032 의 CHECK 를 통과한다.
+
+    상수만 더하면 INSERT 가 거부된다.
+    """
+    await record_llm_call(
+        db_conn,
+        TokenUsage(input_tokens=40, output_tokens=20),
+        provider=PROVIDER_BEDROCK,
+        model_id="us.anthropic.claude-opus-5",
+        purpose=PURPOSE_TRANSLATION,
+        job_id=None,
+    )
+
+    assert await db_conn.fetchval("select purpose from llm_calls") == PURPOSE_TRANSLATION

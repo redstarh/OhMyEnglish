@@ -27,6 +27,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.daily import router as daily_router
 from app.api.results import router as results_router
 from app.api.shadowing import router as shadowing_router
+from app.api.translation import router as translation_router
 from app.api.videos import router as videos_router
 from app.api.vocab import router as vocab_router
 from app.api.ws import router as ws_router
@@ -161,6 +162,7 @@ def create_app() -> FastAPI:
     # 담아 둔 영상과 그 영상에서 담은 문장 (`TASK-165` · 결정 125·126).
     app.include_router(videos_router)
     app.include_router(vocab_router)
+    app.include_router(translation_router)
     app.include_router(ws_router)
 
     @app.get("/health")

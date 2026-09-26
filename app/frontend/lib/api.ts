@@ -488,6 +488,20 @@ export async function lookupWord(input: {
 }
 
 /**
+ * 튜터 발화 하나의 한국어 번역 (`TASK-275`). 서버가 한 번 만들어 저장하고 이후에는 그 값을 준다.
+ * `translation` 이 `null` 이면 번역을 얻지 못했다는 뜻이다 — 다시 눌러 볼 일이다.
+ */
+export async function translateUtterance(
+  sessionId: string,
+  sequenceNo: number,
+): Promise<WriteResult<{ translation: string | null }>> {
+  return postJson<{ translation: string | null }>(
+    `/api/sessions/${sessionId}/utterances/${sequenceNo}/translation`,
+    {},
+  );
+}
+
+/**
  * 저장된 낭독 하나를 들을 주소 (`TASK-212`).
  *
  * ⛔ **주소를 조립하는 자리는 여기 하나다** — 화면이 따로 조립하면 형태가 바뀔 때 한쪽이 조용히

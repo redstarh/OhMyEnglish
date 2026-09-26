@@ -35,6 +35,8 @@ PURPOSE_SPIKE = "spike"
 # 「이름 없는 임시 호출」이고 이것은 제품 기능이라 비용이 틀린 축에 얹힌다. 값역은 028 의 CHECK 가
 # 가둔다 — 여기에 상수만 더하면 INSERT 가 거부되므로 둘이 한 쌍이다.
 PURPOSE_VOCAB = "vocab"
+# 튜터 발화의 한국어 번역 (`TASK-275`). 값역은 032 의 CHECK 가 가둔다 — `vocab` 과 같은 한 쌍이다.
+PURPOSE_TRANSLATION = "translation"
 
 PROVIDER_BEDROCK = "bedrock"
 

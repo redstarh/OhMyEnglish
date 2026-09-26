@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import type { PronunciationOutcome, Speaker } from "@/lib/ws";
 
 // 학습 세션의 대화 화면 (`TASK-272` · 사용자 요청 2026-09-26 — 채팅 말풍선형 재디자인).
@@ -22,7 +22,15 @@ export interface TranscriptLine {
   text: string;
   /** 다시 듣기 재료 — 이번 세션에서 받은 튜터 음성의 PCM 조각(`TASK-274`). 학습자 줄은 빈 배열. */
   audio: Uint8Array[];
+  /** 이 줄을 이루는 발화의 DB 순번 — 번역 요청의 키다(`TASK-275`). 부분 전사문은 빈 배열. */
+  sequenceNos: number[];
 }
+
+/** 한 줄의 번역 상태. `key` 는 번역을 받을 때의 조각 수다 — 뒤에 조각이 더 붙으면 낡은 번역이 된다. */
+type Translation =
+  | { status: "loading"; key: number }
+  | { status: "done"; key: number; text: string }
+  | { status: "failed"; key: number };
 
 // 발음 배지 문구 (A-5). **새로 만들지 않고 결과 화면 카드의 어휘를 그대로 쓴다**
 // (`app/results/[sessionId]/page.tsx`) — 같은 판정을 두 화면이 다른 말로 부르면
@@ -92,7 +100,8 @@ function Avatar() {
 
 // 말풍선 아래 [음성]·[번역] 버튼 (`TASK-273`). [음성]은 그 줄에 받은 음성이 있을 때만 켠다
 // (`TASK-274` — 세션 중 브라우저 메모리에서 다시 재생한다). ⛔ **재생할 것이 없는 버튼은 비활성이다**
-// — 누르면 아무 일도 없는 활성 버튼을 두면 학습자는 고장으로 읽는다. [번역]은 `TASK-275` 가 켠다.
+// — 누르면 아무 일도 없는 활성 버튼을 두면 학습자는 고장으로 읽는다. [번역]은 서버가 한국어 번역을
+// 만들어 말풍선 안에 보여 준다(`TASK-275`).
 // ⚠️ **버튼을 `<p>` 밖에 둔다** — 안에 두면 줄의 `textContent` 에 버튼 글자가 섞여 하네스 계약이 깨진다.
 const PENDING_FEATURE_TITLE = "준비 중이에요";
 
@@ -162,12 +171,17 @@ function Bubble({
   muted,
   actions = false,
   onReplay,
+  onTranslate,
+  translation,
   children,
 }: {
   speaker: Speaker;
   muted: boolean;
   actions?: boolean;
   onReplay?: () => void;
+  onTranslate?: () => void;
+  /** 말풍선 안 원문 아래에 보일 번역 줄. 없으면 그리지 않는다. */
+  translation?: string | null;
   children: ReactNode;
 }) {
   const isAgent = speaker === "agent";
@@ -190,18 +204,35 @@ function Bubble({
           gap: "0.4rem",
         }}
       >
-        <p
+        {/* ⛔ 번역 줄을 `<p>` «밖»에 둔다 — 안에 두면 줄의 `textContent` 가 하네스 기대값과 갈린다.
+            그래서 말풍선 바탕은 이 감싸개가 갖고 `<p>` 는 글만 갖는다. */}
+        <div
           style={{
             ...BUBBLE_BASE,
             maxWidth: "100%",
-            color: muted ? "var(--foreground-muted)" : "var(--foreground)",
             background: isAgent ? "var(--surface)" : "var(--accent-soft)",
             borderBottomLeftRadius: isAgent ? 6 : 18,
             borderBottomRightRadius: isAgent ? 18 : 6,
           }}
         >
-          {children}
-        </p>
+          <p style={{ color: muted ? "var(--foreground-muted)" : "var(--foreground)" }}>
+            {children}
+          </p>
+          {translation ? (
+            <div
+              lang="ko"
+              style={{
+                marginTop: "0.5rem",
+                paddingTop: "0.5rem",
+                borderTop: "1px solid var(--border)",
+                color: "var(--foreground-muted)",
+                fontSize: "0.9rem",
+              }}
+            >
+              {translation}
+            </div>
+          ) : null}
+        </div>
         {actions ? (
           <div style={{ display: "flex", gap: "0.4rem" }}>
             <ActionButton
@@ -210,7 +241,12 @@ function Bubble({
               onClick={onReplay}
               unavailableTitle="이 말은 다시 들을 음성이 없어요"
             />
-            <ActionButton icon={<TranslateIcon />} label="번역" />
+            <ActionButton
+              icon={<TranslateIcon />}
+              label="번역"
+              onClick={onTranslate}
+              unavailableTitle="번역을 가져오는 중이에요"
+            />
           </div>
         ) : null}
       </div>
@@ -247,6 +283,7 @@ export function SessionChat({
   ending,
   onEnd,
   onReplay,
+  onTranslate,
 }: {
   lines: TranscriptLine[];
   partialLine: TranscriptLine | null;
@@ -259,7 +296,44 @@ export function SessionChat({
   ending: boolean;
   onEnd: () => void;
   onReplay: (line: TranscriptLine) => void;
+  onTranslate: (line: TranscriptLine) => Promise<string | null>;
 }) {
+  const [translations, setTranslations] = useState<Record<number, Translation>>({});
+
+  // [번역]을 누르면 받아 오고, 한 번 더 누르면 접는다. ⚠️ 이 상태는 이 컴포넌트가 들고 있다 — 세션이
+  // 바뀌면 화면이 `connecting` 을 거치며 언마운트되므로 앞 세션의 번역이 새 세션 줄 id 에 남지 않는다.
+  function toggleTranslation(line: TranscriptLine) {
+    const current = translations[line.id];
+    const key = line.sequenceNos.length;
+    if (current?.status === "done" && current.key === key) {
+      setTranslations((prev) => {
+        const next = { ...prev };
+        delete next[line.id];
+        return next;
+      });
+      return;
+    }
+    setTranslations((prev) => ({ ...prev, [line.id]: { status: "loading", key } }));
+    // ⛔ 거부도 「실패」로 닫는다 — 닫지 않으면 `loading` 에 머물러 버튼이 영원히 비활성이 된다
+    // (응답 몸통이 JSON 이 아니면 `postJson` 이 던진다 · `TASK-275` 리뷰).
+    void onTranslate(line)
+      .catch(() => null)
+      .then((text) => {
+        setTranslations((prev) => ({
+          ...prev,
+          [line.id]: text === null ? { status: "failed", key } : { status: "done", key, text },
+        }));
+      });
+  }
+
+  function translationText(line: TranscriptLine): string | null {
+    const current = translations[line.id];
+    if (!current || current.key !== line.sequenceNos.length) return null;
+    if (current.status === "loading") return "번역하는 중...";
+    if (current.status === "failed") return "번역을 가져오지 못했어요. 다시 눌러 보세요.";
+    return current.text;
+  }
+
   // 새 줄이 오면 맨 아래로 내린다 — 대화가 길어지면 최신 질문이 화면 밖으로 밀려 학습자가
   // 무엇에 답할지 놓친다. ⚠️ 상태를 바꾸지 않고 DOM 스크롤만 옮기므로 effect 가 맞는 자리다.
   // ⛔ **이미 맨 아래 근처에 있을 때만 내린다** — 앞 질문을 다시 읽으려고 올린 학습자를 부분
@@ -368,6 +442,12 @@ export function SessionChat({
             muted={false}
             actions={line.speaker === "agent"}
             onReplay={line.audio.length > 0 ? () => onReplay(line) : undefined}
+            onTranslate={
+              line.sequenceNos.length > 0 && translations[line.id]?.status !== "loading"
+                ? () => toggleTranslation(line)
+                : undefined
+            }
+            translation={translationText(line)}
           >
             <strong style={VISUALLY_HIDDEN}>{prefixFor(line.speaker)}</strong>
             {line.text}
