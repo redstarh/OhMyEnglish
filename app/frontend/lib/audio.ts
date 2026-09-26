@@ -112,6 +112,7 @@ export function pcmFromAudioFrame(bytes: Uint8Array): Uint8Array {
  */
 export class VoiceIo {
   private nextStartTime = 0;
+  private replay: AudioBufferSourceNode | null = null;
   private readonly scheduled = new Set<AudioBufferSourceNode>();
 
   private constructor(
@@ -160,18 +161,29 @@ export class VoiceIo {
     return new VoiceIo(context, microphone, capture, silentSink);
   }
 
-  /** 응답 오디오 한 조각을 재생 큐 끝에 붙인다. */
-  enqueueAudio(frame: Uint8Array): void {
-    const pcm = pcmFromAudioFrame(frame);
-    const sampleCount = pcm.byteLength >> 1;
-    if (sampleCount === 0) return;
-    const view = new DataView(pcm.buffer, pcm.byteOffset, pcm.byteLength);
+  /** raw PCM(16bit LE) 조각들을 한 `AudioBuffer` 로 만든다. 표본이 없으면 `null`. */
+  private bufferFromPcm(chunks: readonly Uint8Array[]): AudioBuffer | null {
+    const sampleCount = chunks.reduce((sum, pcm) => sum + (pcm.byteLength >> 1), 0);
+    if (sampleCount === 0) return null;
     const buffer = this.context.createBuffer(1, sampleCount, SAMPLE_RATE_HZ);
     const channel = buffer.getChannelData(0);
-    for (let i = 0; i < sampleCount; i += 1) {
-      // 리틀엔디언 16bit → -1..1 부동소수. 32768로 나눠 -1 아래로 내려가지 않게 한다.
-      channel[i] = view.getInt16(i * 2, true) / 32768;
+    let offset = 0;
+    for (const pcm of chunks) {
+      const view = new DataView(pcm.buffer, pcm.byteOffset, pcm.byteLength);
+      const count = pcm.byteLength >> 1;
+      for (let i = 0; i < count; i += 1) {
+        // 리틀엔디언 16bit → -1..1 부동소수. 32768로 나눠 -1 아래로 내려가지 않게 한다.
+        channel[offset + i] = view.getInt16(i * 2, true) / 32768;
+      }
+      offset += count;
     }
+    return buffer;
+  }
+
+  /** 응답 오디오 한 조각을 재생 큐 끝에 붙인다. */
+  enqueueAudio(frame: Uint8Array): void {
+    const buffer = this.bufferFromPcm([pcmFromAudioFrame(frame)]);
+    if (!buffer) return;
     const source = this.context.createBufferSource();
     source.buffer = buffer;
     source.connect(this.context.destination);
@@ -182,6 +194,40 @@ export class VoiceIo {
     this.scheduled.add(source);
     source.start(startAt);
     this.nextStartTime = startAt + buffer.duration;
+  }
+
+  /**
+   * 지난 튜터 발화 하나를 다시 재생한다 (`TASK-274` · `docs/design/2026-09-26-utterance-replay-design.md`).
+   *
+   * ⛔ **재생 큐(`scheduled`·`nextStartTime`)에 넣지 않는다** — 넣으면 지금 흐르는 코치 응답 뒤로
+   * 밀리고, barge-in 이 다시 듣기를 함께 버린다. 같은 `AudioContext` 로 내보내는 것은 의도다: 코치
+   * 발화와 같은 출력 경로라 마이크의 에코 제거가 같은 방식으로 적용된다.
+   * ⚠️ 한 번에 하나만 재생한다 — 앞 다시 듣기가 돌고 있으면 멈추고 새로 시작한다.
+   */
+  replayPcm(chunks: readonly Uint8Array[]): void {
+    this.stopReplay();
+    const buffer = this.bufferFromPcm(chunks);
+    if (!buffer) return;
+    const source = this.context.createBufferSource();
+    source.buffer = buffer;
+    source.connect(this.context.destination);
+    source.onended = () => {
+      if (this.replay === source) this.replay = null;
+    };
+    this.replay = source;
+    source.start();
+  }
+
+  private stopReplay(): void {
+    const source = this.replay;
+    this.replay = null;
+    if (!source) return;
+    source.onended = null;
+    try {
+      source.stop();
+    } catch {
+      // 이미 끝난 노드를 멈추는 것은 오류가 아니다.
+    }
   }
 
   /** barge-in — 아직 재생하지 않은 오디오를 버린다. */
@@ -200,6 +246,7 @@ export class VoiceIo {
 
   async close(): Promise<void> {
     this.dropQueuedAudio();
+    this.stopReplay();
     this.capture.port.onmessage = null;
     this.capture.disconnect();
     this.microphone.disconnect();

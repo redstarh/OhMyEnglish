@@ -20,6 +20,8 @@ export interface TranscriptLine {
   id: number;
   speaker: Speaker;
   text: string;
+  /** 다시 듣기 재료 — 이번 세션에서 받은 튜터 음성의 PCM 조각(`TASK-274`). 학습자 줄은 빈 배열. */
+  audio: Uint8Array[];
 }
 
 // 발음 배지 문구 (A-5). **새로 만들지 않고 결과 화면 카드의 어휘를 그대로 쓴다**
@@ -88,9 +90,9 @@ function Avatar() {
   );
 }
 
-// 말풍선 아래 [음성]·[번역] 버튼 (`TASK-273`). ⛔ **지금은 비활성이다** — 발화별 오디오와 번역을 주는
-// 백엔드가 아직 없고 `TASK-274`(음성)·`TASK-275`(번역)가 그것을 만든다. 누르면 아무 일도 없는 활성
-// 버튼을 두면 학습자는 고장으로 읽으므로, 비활성과 「준비 중」 풍선말로 사실을 말한다.
+// 말풍선 아래 [음성]·[번역] 버튼 (`TASK-273`). [음성]은 그 줄에 받은 음성이 있을 때만 켠다
+// (`TASK-274` — 세션 중 브라우저 메모리에서 다시 재생한다). ⛔ **재생할 것이 없는 버튼은 비활성이다**
+// — 누르면 아무 일도 없는 활성 버튼을 두면 학습자는 고장으로 읽는다. [번역]은 `TASK-275` 가 켠다.
 // ⚠️ **버튼을 `<p>` 밖에 둔다** — 안에 두면 줄의 `textContent` 에 버튼 글자가 섞여 하네스 계약이 깨진다.
 const PENDING_FEATURE_TITLE = "준비 중이에요";
 
@@ -115,12 +117,25 @@ function TranslateIcon() {
   );
 }
 
-function ActionButton({ icon, label }: { icon: ReactNode; label: string }) {
+function ActionButton({
+  icon,
+  label,
+  onClick,
+  unavailableTitle = PENDING_FEATURE_TITLE,
+}: {
+  icon: ReactNode;
+  label: string;
+  /** 없으면 비활성이다. */
+  onClick?: () => void;
+  unavailableTitle?: string;
+}) {
+  const enabled = onClick !== undefined;
   return (
     <button
       type="button"
-      disabled
-      title={PENDING_FEATURE_TITLE}
+      disabled={!enabled}
+      onClick={onClick}
+      title={enabled ? undefined : unavailableTitle}
       style={{
         display: "inline-flex",
         alignItems: "center",
@@ -129,9 +144,9 @@ function ActionButton({ icon, label }: { icon: ReactNode; label: string }) {
         borderRadius: 999,
         border: "1px solid var(--border)",
         background: "var(--background)",
-        color: "var(--foreground-muted)",
+        color: enabled ? "var(--foreground)" : "var(--foreground-muted)",
         fontSize: "0.8rem",
-        cursor: "not-allowed",
+        cursor: enabled ? "pointer" : "not-allowed",
       }}
     >
       {icon}
@@ -146,11 +161,13 @@ function Bubble({
   speaker,
   muted,
   actions = false,
+  onReplay,
   children,
 }: {
   speaker: Speaker;
   muted: boolean;
   actions?: boolean;
+  onReplay?: () => void;
   children: ReactNode;
 }) {
   const isAgent = speaker === "agent";
@@ -187,7 +204,12 @@ function Bubble({
         </p>
         {actions ? (
           <div style={{ display: "flex", gap: "0.4rem" }}>
-            <ActionButton icon={<SpeakerIcon />} label="음성" />
+            <ActionButton
+              icon={<SpeakerIcon />}
+              label="음성"
+              onClick={onReplay}
+              unavailableTitle="이 말은 다시 들을 음성이 없어요"
+            />
             <ActionButton icon={<TranslateIcon />} label="번역" />
           </div>
         ) : null}
@@ -224,6 +246,7 @@ export function SessionChat({
   pausedNotice,
   ending,
   onEnd,
+  onReplay,
 }: {
   lines: TranscriptLine[];
   partialLine: TranscriptLine | null;
@@ -235,6 +258,7 @@ export function SessionChat({
   pausedNotice: string | null;
   ending: boolean;
   onEnd: () => void;
+  onReplay: (line: TranscriptLine) => void;
 }) {
   // 새 줄이 오면 맨 아래로 내린다 — 대화가 길어지면 최신 질문이 화면 밖으로 밀려 학습자가
   // 무엇에 답할지 놓친다. ⚠️ 상태를 바꾸지 않고 DOM 스크롤만 옮기므로 effect 가 맞는 자리다.
@@ -343,6 +367,7 @@ export function SessionChat({
             speaker={line.speaker}
             muted={false}
             actions={line.speaker === "agent"}
+            onReplay={line.audio.length > 0 ? () => onReplay(line) : undefined}
           >
             <strong style={VISUALLY_HIDDEN}>{prefixFor(line.speaker)}</strong>
             {line.text}

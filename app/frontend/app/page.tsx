@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { fetchNextPlan, type NextPlanSummary } from "@/lib/api";
 import { API_BASE, entryFromQuery, type SessionEntry } from "@/lib/config";
-import { VoiceIo, base64ToBytes, bytesToBase64 } from "@/lib/audio";
+import { VoiceIo, base64ToBytes, bytesToBase64, pcmFromAudioFrame } from "@/lib/audio";
 import {
   SessionSocket,
   type AdditionalTarget,
@@ -141,13 +141,19 @@ const COMMAND_PENDING_NOTICE: Record<"end" | "start_additional", string> = {
  * 서버 `audio` 프레임을 재생 큐에 붙인다. 디코딩 실패는 세션 진행을 막지 않는다 —
  * 프레임 하나를 잃는 것이 대화를 끊는 것보다 낫고, 전사문 경로가 더 중요하다.
  */
-function enqueueAudioFrame(voice: VoiceIo | null, base64Data: string): void {
-  if (!voice) return;
+function enqueueAudioFrame(voice: VoiceIo | null, base64Data: string): Uint8Array | null {
+  let bytes: Uint8Array;
   try {
-    voice.enqueueAudio(base64ToBytes(base64Data));
+    bytes = base64ToBytes(base64Data);
   } catch {
-    // 무시한다 (위 주석).
+    return null; // 무시한다 (위 주석).
   }
+  try {
+    voice?.enqueueAudio(bytes);
+  } catch {
+    // 재생 실패도 무시한다 — 다시 듣기용 사본은 그래도 남긴다.
+  }
+  return bytes;
 }
 
 export default function SessionPage() {
@@ -209,6 +215,10 @@ export default function SessionPage() {
   const streamRef = useRef<MediaStream | null>(null);
   const voiceRef = useRef<VoiceIo | null>(null);
   const sessionIdRef = useRef<string | null>(null);
+  // 직전 튜터 `final` 이후 받은 오디오의 PCM 조각 (`TASK-274`). 다음 튜터 `final` 이 그 줄의
+  // 다시 듣기 재료로 가져간다 — 짝짓기 근거(오디오 블록이 `END_TURN` 으로 닫힌 뒤 `final` 이 온다)는
+  // `docs/design/2026-09-26-utterance-replay-design.md` §3 이 갖는다. ⛔ 서버에 저장하지 않는다(§2).
+  const pendingAgentAudioRef = useRef<Uint8Array[]>([]);
   const terminalHandledRef = useRef(false);
   // 이 세션이 **요청한** 모드. `session_started` 가 오면 그것과 서버가 실제로 준 것을 대조한다 —
   // 요청하지 않았으면 대조할 것이 없다.
@@ -255,12 +265,16 @@ export default function SessionPage() {
           }
           break;
         case "partial":
-          setPartialLine({ id: -1, speaker: event.speaker, text: event.text });
+          setPartialLine({ id: -1, speaker: event.speaker, text: event.text, audio: [] });
           break;
         case "final": {
           setPartialLine(null);
           setListening(false);
           const { speaker, text } = event;
+          // ⚠️ 업데이터 «밖»에서 꺼낸다 — StrictMode 가 업데이터를 두 번 부르면 두 번째 호출이 빈
+          // 배열을 받는다.
+          const audio = speaker === "agent" ? pendingAgentAudioRef.current : [];
+          if (speaker === "agent") pendingAgentAudioRef.current = [];
           setLines((prev) => {
             const last = prev.at(-1);
             // I-8 — **같은 화자의 연속 final은 한 줄로 이어 붙인다.** Nova의 발화 종료 감지가
@@ -271,12 +285,16 @@ export default function SessionPage() {
             // (`services/analysis.py`의 `string_agg(u.transcript, ' ')`).
             // ⚠️ **저장은 건드리지 않는다** — 조각이 몇 번 생기는지가 함정 H-U·I-1의 유일한
             // 관측 수단이라 DB에는 쪼개진 그대로 남긴다. 이 병합은 표시 계층에만 있다.
+            // 합칠 때는 다시 듣기 조각도 이어 붙인다 — 한 줄로 보이는 것은 한 번에 들려야 한다.
             if (last && last.speaker === speaker) {
-              return [...prev.slice(0, -1), { ...last, text: `${last.text} ${text}` }];
+              return [
+                ...prev.slice(0, -1),
+                { ...last, text: `${last.text} ${text}`, audio: [...last.audio, ...audio] },
+              ];
             }
             // id는 배열에서 파생한다 — ref를 state 업데이터 안에서 증가시키면 StrictMode의
             // 이중 호출에서 번호가 두 칸씩 뛴다.
-            return [...prev, { id: (last?.id ?? 0) + 1, speaker, text }];
+            return [...prev, { id: (last?.id ?? 0) + 1, speaker, text, audio }];
           });
           break;
         }
@@ -286,9 +304,11 @@ export default function SessionPage() {
         case "speech_end":
           setListening(false);
           break;
-        case "audio":
-          enqueueAudioFrame(voiceRef.current, event.data);
+        case "audio": {
+          const bytes = enqueueAudioFrame(voiceRef.current, event.data);
+          if (bytes) pendingAgentAudioRef.current.push(pcmFromAudioFrame(bytes));
           break;
+        }
         case "interrupted":
           // barge-in — 이미 받았지만 아직 재생하지 않은 응답 오디오를 버린다.
           voiceRef.current?.dropQueuedAudio();
@@ -378,6 +398,7 @@ export default function SessionPage() {
   const startSession = useCallback(async (entry: SessionEntry = {}) => {
     setFailureReason(null);
     setLines([]);
+    pendingAgentAudioRef.current = [];
     setPartialLine(null);
     setListening(false);
     setEntryNotice(null);
@@ -450,6 +471,10 @@ export default function SessionPage() {
 
     setState("active");
   }, [goToResults, handleServerEvent, stopMedia]);
+
+  const replayLine = useCallback((line: TranscriptLine) => {
+    voiceRef.current?.replayPcm(line.audio);
+  }, []);
 
   const endSession = useCallback(() => {
     setState("ending");
@@ -637,6 +662,7 @@ export default function SessionPage() {
             pausedNotice={paused ? PAUSED_NOTICE : null}
             ending={state === "ending"}
             onEnd={endSession}
+            onReplay={replayLine}
           />
           {/* 쉐도잉 클립 (`TASK-66.7`). 대화 상자 **아래**에 두는 이유: 클립은 세션이 시작할 때
               한 번 정해지는 재료이고 대화는 흐르는 것이라 위계가 다르다. */}
