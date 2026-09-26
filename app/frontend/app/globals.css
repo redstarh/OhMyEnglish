@@ -10,6 +10,14 @@
   --foreground: #171717; /* 17.9:1 */
   --foreground-muted: #595959; /* 7.0:1 */
   --danger: #cc0000; /* 5.9:1 — 기존 #c00 그대로, 라이트모드 외관은 바뀌지 않는다 */
+  /* 대화 화면(`SessionChat.tsx` · `TASK-272`)의 면 색. ⛔ **글자색이 아니다** — 말풍선 글자는
+     위 두 토큰 그대로라 C2 의 「확정=foreground · 부분=muted」 판독이 바뀌지 않는다.
+     대비는 말풍선 바탕 위에서 잰 값이다. */
+  --accent: #6d5ae6; /* 마이크·점 표지. 흰 바탕 대비 4.9:1 */
+  --accent-soft: #ece8ff; /* 학습자 말풍선. foreground 15.0:1 */
+  --surface: #f2f2f5; /* 코치 말풍선. foreground 16.0:1 · muted 6.3:1 */
+  --border: #e3e3e8;
+  --on-accent: #ffffff; /* accent 위 글자·아이콘. 4.9:1 */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -18,6 +26,11 @@
     --foreground: #ededed; /* 16.9:1 */
     --foreground-muted: #9a9a9a; /* 7.0:1 */
     --danger: #ff8a8a; /* 8.7:1 — #cc0000은 이 배경에서 3.4:1로 AA 미달이라 밝은 쪽으로 뒤집는다 */
+    --accent: #9d8cff;
+    --accent-soft: #2c2748; /* foreground 12.0:1 */
+    --surface: #1c1c20; /* foreground 14.5:1 · muted 6.0:1 */
+    --border: #2e2e34;
+    --on-accent: #16122e; /* 흰색은 #9d8cff 위에서 2.75:1 이라 어두운 쪽으로 뒤집는다 */
   }
 }
 
@@ -57,4 +70,14 @@ a {
   html {
     color-scheme: dark;
   }
+}
+
+/* 듣는 중인 마이크의 맥동(`SessionChat.tsx`). 움직임을 줄인 환경에서는 멈춘다. */
+@keyframes omy-mic-pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent); }
+  100% { box-shadow: 0 0 0 14px transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .omy-mic-listening { animation: none !important; }
 }

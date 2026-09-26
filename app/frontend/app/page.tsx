@@ -11,33 +11,12 @@ import {
   type PronunciationOutcome,
   type ServerEvent,
   type ShadowingSetup,
-  type Speaker,
 } from "@/lib/ws";
+import { SessionChat, type TranscriptLine } from "./SessionChat";
 import { ShadowingPanel } from "./ShadowingPanel";
 import { WeeklyReportPanel } from "./WeeklyReportPanel";
 
 type ScreenState = "idle" | "connecting" | "active" | "ending" | "failed";
-
-// 발음 배지 문구 (A-5). **새로 만들지 않고 결과 화면 카드의 어휘를 그대로 쓴다**
-// (`app/results/[sessionId]/page.tsx:44-48`) — 같은 판정을 두 화면이 다른 말로 부르면
-// 학습자가 다른 것으로 읽는다. `pending`만 이 화면에 있는 상태이고 문구는
-// `docs/storyboard.html` 03b(:108)를 따른다. 점수·정답률은 쓰지 않는다 — "채점하지
-// 않습니다. 시범합니다"(:101)가 톤 계약이다.
-const PRONUNCIATION_BADGE: Record<PronunciationOutcome, string> = {
-  pending: "🔊 발음 교정 중",
-  correct: "✓ 좋아요",
-  incorrect: "다시 연습해요",
-  unclear: "잘 안 들렸어요",
-};
-
-// 색은 `app/globals.css`의 토큰만 쓴다 — 하드코딩 색이 다크모드 위계를 뒤집은 1차수 F-1의
-// 재발 방지. `unclear`는 오류가 아니라 미판정이라 danger가 아니라 muted다(결과 화면과 동일).
-const PRONUNCIATION_BADGE_COLOR: Record<PronunciationOutcome, string> = {
-  pending: "var(--foreground-muted)",
-  correct: "var(--foreground)",
-  incorrect: "var(--danger)",
-  unclear: "var(--foreground-muted)",
-};
 
 // 추천 이유 한 줄의 머리말 (R11-3). "왜 이 연습인지"를 학습자 말로 붙인다 — 이유 문장은
 // 계획이 소유하므로 여기서 문구를 만들지 않는다.
@@ -157,12 +136,6 @@ const COMMAND_PENDING_NOTICE: Record<"end" | "start_additional", string> = {
   start_additional:
     "연습 변경을 확인하고 있어요. 「네」라고 답하면 바꿔요 — 아직 바뀌지 않았어요.",
 };
-
-interface TranscriptLine {
-  id: number;
-  speaker: Speaker;
-  text: string;
-}
 
 /**
  * 서버 `audio` 프레임을 재생 큐에 붙인다. 디코딩 실패는 세션 진행을 막지 않는다 —
@@ -653,86 +626,18 @@ export default function SessionPage() {
 
       {(state === "active" || state === "ending") && (
         <>
-          <div
-            style={{
-              border: "1px solid #ccc",
-              borderRadius: 8,
-              padding: "1rem",
-              minHeight: 220,
-              marginTop: "1rem",
-            }}
-          >
-            {/* 진입 안내 (`TASK-10.2` AC#2). 발음 집중을 골랐을 때 **무엇을 받았는지** 말한다 —
-                서버가 소리를 못 골라 말하기로 떨어뜨렸을 때 화면이 침묵하면 사용자가 다른 세션을
-                받은 것을 모른다. `aria-live` 는 발음 배지와 같은 이유로 붙인다. */}
-            {entryNotice && (
-              <p
-                aria-live="polite"
-                style={{ color: "var(--foreground-muted)", margin: "0 0 0.6rem" }}
-              >
-                {entryNotice}
-              </p>
-            )}
-            {/* 음성 명령의 어긋남 (결정 113 · `TASK-61.16`). ⛔ **muted 로 두지 않는다** — 이 줄은
-                코치의 말을 «정정»하는 자리라 전사문보다 약하게 보이면 읽히지 않는다. `aria-live` 는
-                위 안내와 같은 이유로 붙인다(소리로는 알 수 없는 사실이다). */}
-            {commandNotice && (
-              <p
-                aria-live="polite"
-                style={{ color: "var(--foreground)", fontWeight: 600, margin: "0 0 0.6rem" }}
-              >
-                {commandNotice}
-              </p>
-            )}
-            {/* 정지 중 표시 (결정 117). 상태이므로 **정지가 풀릴 때까지 남는다** — 그 사이 학습자가
-                말한 것은 저장되지 않고, 화면이 그 이유를 계속 말해야 학습자가 사라진 줄을 이해한다. */}
-            {paused && (
-              <p
-                aria-live="polite"
-                style={{ color: "var(--foreground)", fontWeight: 600, margin: "0 0 0.6rem" }}
-              >
-                {PAUSED_NOTICE}
-              </p>
-            )}
-            {lines.length === 0 && !partialLine && !listening && (
-              <p style={{ color: "var(--foreground-muted)" }}>대화를 기다리는 중...</p>
-            )}
-            {/* 확정 전사문이 강조 대상이다 — 부분 전사문(muted)보다 배경 대비가 높아야
-                AC U1의 위계가 성립한다. 색은 테마 토큰에서만 온다(globals.css). */}
-            {lines.map((line) => (
-              <p key={line.id} style={{ color: "var(--foreground)", margin: "0.4rem 0" }}>
-                <strong>{line.speaker === "agent" ? "질문" : "답변"}: </strong>
-                {line.text}
-              </p>
-            ))}
-            {partialLine ? (
-              <p style={{ color: "var(--foreground-muted)", margin: "0.4rem 0" }}>
-                <strong>{partialLine.speaker === "agent" ? "질문" : "답변"}: </strong>
-                {partialLine.text}
-              </p>
-            ) : (
-              listening && (
-                <p style={{ color: "var(--foreground-muted)", margin: "0.4rem 0" }}>
-                  듣고 있어요...
-                </p>
-              )
-            )}
-            {/* 발음 배지 (A-5 · 요구사항 v1.1 §10). 다음 `pronunciation` 프레임이 올 때까지
-                최신 판정을 남긴다 — 한 번에 한 시도만 흐르기 때문이다. 스텁 모드에서는
-                프레임이 오지 않아 이 자리가 비어 있는 것이 정상이다. */}
-            {pronunciation && (
-              <p
-                aria-live="polite"
-                style={{
-                  color: PRONUNCIATION_BADGE_COLOR[pronunciation],
-                  margin: "0.4rem 0",
-                  fontWeight: 600,
-                }}
-              >
-                {PRONUNCIATION_BADGE[pronunciation]}
-              </p>
-            )}
-          </div>
+          {/* 대화 화면 (`TASK-272`). 줄 모양·색 계약은 `SessionChat.tsx` 머리말이 소유한다. */}
+          <SessionChat
+            lines={lines}
+            partialLine={partialLine}
+            listening={listening}
+            pronunciation={pronunciation}
+            entryNotice={entryNotice}
+            commandNotice={commandNotice}
+            pausedNotice={paused ? PAUSED_NOTICE : null}
+            ending={state === "ending"}
+            onEnd={endSession}
+          />
           {/* 쉐도잉 클립 (`TASK-66.7`). 대화 상자 **아래**에 두는 이유: 클립은 세션이 시작할 때
               한 번 정해지는 재료이고 대화는 흐르는 것이라 위계가 다르다. */}
           {shadowing ? (
@@ -747,13 +652,6 @@ export default function SessionPage() {
           {/* 주간 리포트 (`TASK-61.6`). 음성 명령으로만 열리고 **버튼으로 닫는다** — 닫기까지
               음성으로 두면 명령이 둘로 늘고 그것은 이 조각의 범위가 아니다(결정 107 ①). */}
           {reportOpen ? <WeeklyReportPanel onClose={() => setReportOpen(false)} /> : null}
-          <button
-            onClick={endSession}
-            disabled={state === "ending"}
-            style={{ padding: "0.75rem 1.5rem", marginTop: "1rem" }}
-          >
-            {state === "ending" ? "종료 중..." : "학습 종료"}
-          </button>
         </>
       )}
 

@@ -171,8 +171,8 @@ def check_c1(observed: dict[str, Any]) -> tuple[int, list[str]]:
 def fixture_expected_lines() -> list[str]:
     """A1-5 기대값을 `fixtures.py` 에서 **파싱해** 만든다 — 손 전사하지 않는다.
 
-    접두는 화면이 소유한다 — `app/page.tsx:309` 가 `speaker === "agent"` 면 `질문`,
-    아니면 `답변` 을 `<strong>` 으로 그린다.
+    접두는 화면이 소유한다 — `app/SessionChat.tsx` 의 `prefixFor` 가 `speaker === "agent"` 면
+    `질문`, 아니면 `답변` 을 `<strong>` 으로 그린다(`TASK-272` 부터 눈에서만 숨긴다).
     순서는 `stub.py` 가 적은 재생 순서(질문=agent final → 답변=user final)를 따른다.
     """
     import re
