@@ -212,13 +212,13 @@
 	- 주간·월간 분석을 작성함
 	- IT 프로젝트 보고와 업무 영어 학습 계획을 만듦
 - 확정된 기술 선택
-	- AWS Region: `us-west-2`
+	- AWS Region: `us-east-1`
 	- 실시간 음성 모델: `amazon.nova-2-sonic-v1:0`
 	- 학습 분석 모델: `us.anthropic.claude-opus-5`
 	- Backend: Python + FastAPI + `asyncio`
 - `us.anthropic.claude-opus-5`는 미국 리전 안에서만 라우팅하는 US geographic 프로필을 사용함
 - `global.anthropic.claude-opus-5`는 전 세계 리전으로 라우팅될 수 있으므로 사용하지 않음
-- 엄격히 `us-west-2` 단일 리전만 허용해야 하면, 구현 전에 in-region 가용성과 권한을 확인함
+- 엄격히 `us-east-1` 단일 리전만 허용해야 하면, 구현 전에 in-region 가용성과 권한을 확인함
 - 데이터베이스
 	- 학습 세션
 	- 사용자 발화 전사문

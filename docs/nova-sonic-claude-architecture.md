@@ -6,13 +6,13 @@ OhMyEnglish의 실시간 음성 학습은 **Amazon Nova 2 Sonic**이 담당하�
 
 ## 확정된 기술 결정
 
-- AWS Region: `us-west-2`
+- AWS Region: `us-east-1`
 - 실시간 음성 모델: `amazon.nova-2-sonic-v1:0`
 - 학습 분석 모델: `us.anthropic.claude-opus-5`
 - Backend / Audio Gateway: Python
 - Python 웹 프레임워크: FastAPI + `asyncio`
 
-> Claude 호출은 US geographic profile인 `us.anthropic.claude-opus-5`를 사용한다. 요청은 `us-west-2`에서 시작하며 추론은 미국 리전 안에서만 라우팅된다. 전 세계 상용 리전으로 라우팅될 수 있는 `global.anthropic.claude-opus-5`는 사용하지 않는다. 단일 `us-west-2` 상주가 필수라면 배포 전에 in-region 가용성과 권한을 검증한다.
+> Claude 호출은 US geographic profile인 `us.anthropic.claude-opus-5`를 사용한다. 요청은 `us-east-1`에서 시작하며 추론은 미국 리전 안에서만 라우팅된다. 전 세계 상용 리전으로 라우팅될 수 있는 `global.anthropic.claude-opus-5`는 사용하지 않는다. 단일 `us-east-1` 상주가 필수라면 배포 전에 in-region 가용성과 권한을 검증한다.
 
 | 역할 | 담당 모델/컴포넌트 | 이유 |
 |---|---|---|

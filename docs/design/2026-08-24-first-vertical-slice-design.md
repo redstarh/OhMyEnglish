@@ -113,7 +113,7 @@ Python 툴체인은 `uv`(0.11.8) + `ruff` + `ty`(0.0.31)를 쓴다. `aws-sdk-bed
 | 실시간 음성 | `amazon.nova-2-sonic-v1:0` | 실존 확인 — `streaming=True`, `in=[SPEECH] → out=[SPEECH,TEXT]`. **양방향 호출은 SigV4 필수** (§4.1) |
 | 학습 분석 | `us.anthropic.claude-opus-5` | ACTIVE 프로필, invoke HTTP 200 확인 |
 
-- 두 모델 모두 `us-west-2`.
+- 두 모델 모두 `us-east-1`.
 - 1M 컨텍스트가 필요하면 `anthropic_beta: ["context-1m-2025-08-07"]`를 쓴다 (HTTP 200 확인).
 - **`[1m]` 접미사를 모델 ID에 붙이지 않는다.** Bedrock inference profile ID가 아니며 raw invoke는 HTTP 400이다. Claude Code 전용 표기다.
 - Claude를 음성 턴의 동기 경로에 넣지 않는다 (`PRD.md:112`).

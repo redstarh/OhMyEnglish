@@ -1,6 +1,7 @@
 # Nova Sonic 연동용 IAM(SigV4) 설정 가이드
 
 - 작성: 2026-08-25
+- 리전 예제 갱신: 2026-10-18 (`us-east-1`). 아래 날짜가 명시된 실측 기록은 당시 리전을 유지한다.
 - 대상: OhMyEnglish Phase 2 (Nova Sonic 실연동) 착수 전 캡틴이 직접 수행
 - 관련: `docs/design/2026-08-24-first-vertical-slice-design.md` §4.1, `handoff/HANDOFF.md` 하드 블로커 절
 
@@ -57,7 +58,7 @@ Nova Sonic 양방향 스트림은 **Bedrock API Key(bearer)를 서비스 차원�
         "bedrock:InvokeModel",
         "bedrock:InvokeModelWithBidirectionalStream"
       ],
-      "Resource": "arn:aws:bedrock:us-west-2::foundation-model/amazon.nova-2-sonic-v1:0"
+      "Resource": "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-2-sonic-v1:0"
     },
     {
       "Sid": "ClaudeAnalysis",
@@ -67,7 +68,7 @@ Nova Sonic 양방향 스트림은 **Bedrock API Key(bearer)를 서비스 차원�
         "bedrock:InvokeModelWithResponseStream"
       ],
       "Resource": [
-        "arn:aws:bedrock:us-west-2:<ACCOUNT_ID>:inference-profile/us.anthropic.claude-opus-5",
+        "arn:aws:bedrock:us-east-1:<ACCOUNT_ID>:inference-profile/us.anthropic.claude-opus-5",
         "arn:aws:bedrock:*::foundation-model/anthropic.claude-opus-5*"
       ]
     }
@@ -97,7 +98,7 @@ Nova Sonic 양방향 스트림은 **Bedrock API Key(bearer)를 서비스 차원�
 ```bash
 AWS_ACCESS_KEY_ID=AKIA...
 AWS_SECRET_ACCESS_KEY=...
-AWS_REGION=us-west-2
+AWS_REGION=us-east-1
 ```
 
 ⚠️ **주의**
@@ -108,12 +109,12 @@ AWS_REGION=us-west-2
 
 ```bash
 # ① 자격증명 자체 확인 — ohmyenglish-local ARN이 나와야 함
-env -i AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=... AWS_REGION=us-west-2 \
+env -i AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=... AWS_REGION=us-east-1 \
   aws sts get-caller-identity
 
 # ② Claude SigV4 경로 확인 — HTTP 200 + "ok" 응답
 env -i AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=... \
-  aws bedrock-runtime invoke-model --region us-west-2 \
+  aws bedrock-runtime invoke-model --region us-east-1 \
   --model-id us.anthropic.claude-opus-5 \
   --body '{"anthropic_version":"bedrock-2023-05-31","max_tokens":16,"messages":[{"role":"user","content":"say ok"}]}' \
   --cli-binary-format raw-in-base64-out /tmp/out.json && cat /tmp/out.json
