@@ -47,6 +47,9 @@ def _progress_payload(progress: DayProgress | None) -> dict[str, object] | None:
         "sentence_index": progress.sentence_index,
         "completed_count": progress.completed_count,
         "last_completed_at": progress.last_completed_at,
+        "last_completed_date": (
+            progress.last_completed_date.isoformat() if progress.last_completed_date else None
+        ),
         "updated_at": progress.updated_at,
     }
 
@@ -99,7 +102,8 @@ async def get_course_day(day: int, request: Request) -> dict[str, object]:
         raise HTTPException(status_code=404, detail="day not found")
     pool: asyncpg.Pool = request.app.state.db_pool
     async with pool.acquire() as conn:
-        progress = (await load_progress(conn, FIXED_USER_ID)).get(day)
+        timezone = await timezone_of(conn, FIXED_USER_ID)
+        progress = (await load_progress(conn, FIXED_USER_ID, timezone=timezone)).get(day)
         counts = await load_sentence_counts(conn, FIXED_USER_ID, day_sentence_keys(course, day))
     return {
         "day": found.day,
@@ -152,6 +156,12 @@ async def post_course_attempt(key: str, request: Request) -> dict[str, object]:
     course: Course = load_course()
     if course.sentence(key) is None:
         raise HTTPException(status_code=404, detail="sentence not found")
+    # 본문을 읽기 «전에» 선언된 길이로 먼저 거른다(codex 리뷰 MEDIUM).
+    # 상한 넘는 본문을 다 받아 메모리에 올린 뒤 413 을 내면 상한이 프로세스를 지키지 못한다.
+    # 선언이 없거나 거짓이면 아래의 실제 길이 검사가 잰다.
+    declared = request.headers.get("content-length")
+    if declared is not None and declared.isdigit() and int(declared) > MAX_ATTEMPT_PCM_BYTES:
+        raise HTTPException(status_code=413, detail="recording is too long")
     pcm = await request.body()
     if not pcm or len(pcm) % 2:
         raise HTTPException(status_code=422, detail="body must be 16-bit PCM")

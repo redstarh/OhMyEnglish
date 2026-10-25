@@ -37,6 +37,9 @@ class DayProgress:
     sentence_index: int
     completed_count: int
     last_completed_at: str | None
+    # 완료한 날의 학습자 시간대 달력 날짜(회차 b1 D1).
+    # 화면이 UTC 시각을 잘라 날짜를 만들지 않게 한다.
+    last_completed_date: date | None
     updated_at: str | None
 
 
@@ -68,7 +71,8 @@ class AttemptResult:
 
 _PROGRESS_SQL = """
 select day, position_sec, unit, sentence_index, completed_count,
-       last_completed_at, updated_at
+       last_completed_at, updated_at,
+       (last_completed_at at time zone $2)::date as last_completed_date
   from course_day_progress
  where user_id = $1
 """
@@ -146,8 +150,10 @@ def _unit_of_key(key: str) -> int:
     return int(key[1:4])
 
 
-async def load_progress(conn: asyncpg.Connection, user_id: UUID) -> dict[int, DayProgress]:
-    rows = await conn.fetch(_PROGRESS_SQL, user_id)
+async def load_progress(
+    conn: asyncpg.Connection, user_id: UUID, *, timezone: str
+) -> dict[int, DayProgress]:
+    rows = await conn.fetch(_PROGRESS_SQL, user_id, timezone)
     return {
         row["day"]: DayProgress(
             day=row["day"],
@@ -156,6 +162,7 @@ async def load_progress(conn: asyncpg.Connection, user_id: UUID) -> dict[int, Da
             sentence_index=row["sentence_index"],
             completed_count=row["completed_count"],
             last_completed_at=_iso(row["last_completed_at"]),
+            last_completed_date=row["last_completed_date"],
             updated_at=_iso(row["updated_at"]),
         )
         for row in rows
@@ -166,7 +173,7 @@ async def load_overview(
     conn: asyncpg.Connection, course: Course, user_id: UUID, *, timezone: str
 ) -> Overview:
     """목록 화면의 전부 — Day 진도 · 회차 · 날짜별 히트맵 · 최근 날짜 표."""
-    progress = await load_progress(conn, user_id)
+    progress = await load_progress(conn, user_id, timezone=timezone)
     counts = [
         progress[item.day].completed_count if item.day in progress else 0 for item in course.days
     ]

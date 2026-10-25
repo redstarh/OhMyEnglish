@@ -220,3 +220,36 @@ async def test_recent_dates_are_bucketed_in_the_learner_timezone(
     recent = (await api_client.get("/api/course")).json()["recent"]
     assert recent[0]["date"] == "2026-10-26"
     assert recent[0]["days"] == [2]
+
+
+async def test_completion_date_is_the_learner_local_date(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool
+) -> None:
+    """회차 2026-10-26-b1 D1 — KST 09시 전 완료가 UTC 전날로 보이던 결함."""
+    await api_client.post(
+        "/api/course/days/6/progress",
+        json={"position_sec": 0, "unit": 101, "sentence_index": 0, "completed": True},
+    )
+    async with db_pool.acquire() as conn:
+        await conn.execute(
+            "update course_day_progress set last_completed_at = $2 where user_id = $1 and day = 6",
+            FIXED_USER_ID,
+            datetime(2026, 10, 25, 23, 41, tzinfo=UTC),  # = 2026-10-26 08:41 KST
+        )
+    day_six = (await api_client.get("/api/course")).json()["days"][5]["progress"]
+    assert day_six["last_completed_date"] == "2026-10-26"
+    detail = (await api_client.get("/api/course/days/6")).json()["progress"]
+    assert detail["last_completed_date"] == "2026-10-26"
+
+
+async def test_oversized_declared_length_is_refused_before_reading(
+    api_client: httpx.AsyncClient, adapter: Callable[[str], None]
+) -> None:
+    """codex 리뷰 MEDIUM — 선언된 길이가 상한을 넘으면 본문을 읽기 전에 413 이다."""
+    adapter("nova")
+    response = await api_client.post(
+        "/api/course/sentences/u001-s1/attempts",
+        content=PCM,
+        headers={"content-length": str(30 * 16_000 * 2 + 2)},
+    )
+    assert response.status_code == 413

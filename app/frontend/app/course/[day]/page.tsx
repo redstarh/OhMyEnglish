@@ -145,6 +145,9 @@ export default function CourseDayPage() {
   const voiceRef = useRef<VoiceIo | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const recordRef = useRef<Uint8Array[] | null>(null);
+  // 진행 중인 마이크 획득 — 두 연습이 동시에 getUserMedia 를 부르면 스트림 하나가 버려진 채 켜져 남는다.
+  const micRef = useRef<Promise<boolean> | null>(null);
+  const mountedRef = useRef(true);
   const positionRef = useRef({ unitIndex: 0, sentenceIndex: 0 });
 
   useEffect(() => {
@@ -183,6 +186,16 @@ export default function CourseDayPage() {
   const unit = detail?.units[unitIndex] ?? null;
   const sentence = unit?.sentences[sentenceIndex] ?? null;
   const startAt = useMemo(() => detail?.progress?.position_sec ?? 0, [detail]);
+
+  // Day 를 끝냈을 때 — 서버는 처음으로 되감으므로 화면도 처음으로 되감는다(codex 리뷰 HIGH 2).
+  // ⛔ 되감지 않으면 이어지는 5초 저장·언마운트 저장이 끝 위치를 다시 써서 다음 회차가 끝 근처에서 열린다.
+  const rewindAfterCompletion = useCallback(() => {
+    playerRef.current?.rewind();
+    positionRef.current = { unitIndex: 0, sentenceIndex: 0 };
+    setUnitIndex(0);
+    setSentenceIndex(0);
+    setResult(null);
+  }, []);
 
   const save = useCallback(
     (completed = false) => {
@@ -226,28 +239,46 @@ export default function CourseDayPage() {
   }, []);
 
   // 언마운트 — 연습과 마이크를 모두 정리한다.
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
       cancelRun();
       void voiceRef.current?.close();
       streamRef.current?.getTracks().forEach((track) => track.stop());
-    },
-    [cancelRun],
-  );
+    };
+  }, [cancelRun]);
 
-  const ensureMic = useCallback(async (): Promise<boolean> => {
-    if (voiceRef.current) return true;
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      streamRef.current = stream;
-      voiceRef.current = await VoiceIo.start(stream, (frame) => {
-        recordRef.current?.push(frame.slice());
-      });
-      return true;
-    } catch {
-      setNotice(NOTICE.mic);
-      return false;
-    }
+  // ⛔ **획득을 한 번만 하고, 화면을 떠난 뒤 끝난 획득은 바로 닫는다**(codex 리뷰 HIGH 1) — 권한
+  // 대기 중에 떠나면 언마운트 정리가 먼저 돌아, 뒤늦게 붙은 스트림이 켜진 채 남았다.
+  const ensureMic = useCallback((): Promise<boolean> => {
+    if (voiceRef.current) return Promise.resolve(true);
+    if (micRef.current) return micRef.current;
+    const pending = (async () => {
+      let stream: MediaStream | null = null;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const voice = await VoiceIo.start(stream, (frame) => {
+          recordRef.current?.push(frame.slice());
+        });
+        if (!mountedRef.current) {
+          void voice.close();
+          stream.getTracks().forEach((track) => track.stop());
+          return false;
+        }
+        streamRef.current = stream;
+        voiceRef.current = voice;
+        return true;
+      } catch {
+        stream?.getTracks().forEach((track) => track.stop());
+        if (mountedRef.current) setNotice(NOTICE.mic);
+        return false;
+      } finally {
+        micRef.current = null;
+      }
+    })();
+    micRef.current = pending;
+    return pending;
   }, []);
 
   /** 다음 자리 — 단원의 마지막 문장 뒤는 다음 단원의 첫 문장이다. Day 끝이면 `null`. */
@@ -275,7 +306,10 @@ export default function CourseDayPage() {
       const { signal } = controller;
       playerRef.current?.pause();
       setNotice(null);
-      if (!(await ensureMic()) || signal.aborted) {
+      const micReady = await ensureMic();
+      // ⚠️ 끊긴 연습은 화면 상태를 건드리지 않는다 — 그 사이 시작된 새 연습의 단계를 덮게 된다.
+      if (signal.aborted) return;
+      if (!micReady) {
         setPhase("idle");
         return;
       }
@@ -320,6 +354,7 @@ export default function CourseDayPage() {
         const next = nextPosition(position);
         if (next === null) {
           save(true);
+          rewindAfterCompletion();
           setNotice(NOTICE.dayDone);
           setPhase("idle");
           return;
@@ -328,7 +363,7 @@ export default function CourseDayPage() {
         rate = 1;
       }
     },
-    [cancelRun, detail, ensureMic, nextPosition, save],
+    [cancelRun, detail, ensureMic, nextPosition, rewindAfterCompletion, save],
   );
 
   const chooseMode = useCallback((value: Mode) => {
@@ -375,9 +410,12 @@ export default function CourseDayPage() {
   }, [detail, videoUnit, phase, unitIndex]);
 
   const onVideoEnded = useCallback(() => {
+    cancelRun();
+    setPhase("idle");
     save(true);
+    rewindAfterCompletion();
     setNotice(NOTICE.dayDone);
-  }, [save]);
+  }, [cancelRun, rewindAfterCompletion, save]);
 
   const onVideoUnavailable = useCallback(() => setNotice(NOTICE.video), []);
 

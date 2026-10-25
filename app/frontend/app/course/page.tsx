@@ -72,8 +72,10 @@ function DayRow({
     ? 1
     : Math.min(1, (progress?.position_sec ?? 0) / Math.max(1, item.duration_sec));
   let status: string;
-  if (doneThisCycle && progress?.last_completed_at) {
-    status = `완료 · ${shortDate(progress.last_completed_at.slice(0, 10))}`;
+  // ⛔ 날짜는 서버가 학습자 시간대로 바꾼 `last_completed_date` 다 — UTC 시각을 잘라 쓰면 KST 00~09시
+  // 완료가 전날로 보였다(회차 2026-10-26-b1 D1).
+  if (doneThisCycle && progress?.last_completed_date) {
+    status = `완료 · ${shortDate(progress.last_completed_date)}`;
   } else if (progress && (progress.position_sec > 0 || progress.sentence_index > 0)) {
     status = `Unit ${progress.unit} · 문장 ${progress.sentence_index + 1} · ${clock(progress.position_sec)}`;
   } else {

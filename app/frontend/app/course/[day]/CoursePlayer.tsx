@@ -13,6 +13,8 @@ import { loadPlayerApi, PLAYER_ENDED, PLAYER_PLAYING, type YouTubePlayer } from 
 export interface CoursePlayerHandle {
   currentTime(): number;
   pause(): void;
+  /** 처음으로 되감고 멈춘다 — Day 를 끝낸 뒤 다음 저장이 끝 위치를 다시 쓰지 않게(codex 리뷰 HIGH 2). */
+  rewind(): void;
 }
 
 interface Props {
@@ -42,6 +44,11 @@ export const CoursePlayer = forwardRef<CoursePlayerHandle, Props>(function Cours
     () => ({
       currentTime: () => playerRef.current?.getCurrentTime() ?? startRef.current,
       pause: () => playerRef.current?.pauseVideo(),
+      rewind: () => {
+        startRef.current = 0;
+        playerRef.current?.seekTo(0, true);
+        playerRef.current?.pauseVideo();
+      },
     }),
     [],
   );
@@ -58,7 +65,12 @@ export const CoursePlayer = forwardRef<CoursePlayerHandle, Props>(function Cours
           videoId: youtubeId,
           events: {
             onReady: () => {
-              if (startRef.current > 0) player?.seekTo(startRef.current, true);
+              if (cancelled || !player) return;
+              if (startRef.current > 0) player.seekTo(startRef.current, true);
+              // ⛔ **준비된 «뒤에» 노출한다**(회차 2026-10-26-b1 D2) — IFrame API 객체는 `onReady` 전에는
+              // `getCurrentTime`·`pauseVideo` 를 갖지 않아, 생성 직후 노출하면 5초 저장 타이머가
+              // TypeError 를 냈다. 준비 전에는 `startRef` 가 위치를 대신한다.
+              playerRef.current = player;
             },
             onStateChange: (event) => {
               if (event.data === PLAYER_PLAYING) handlers.current.onPlaying();
@@ -67,7 +79,6 @@ export const CoursePlayer = forwardRef<CoursePlayerHandle, Props>(function Cours
             onError: () => handlers.current.onUnavailable(),
           },
         });
-        playerRef.current = player;
       })
       .catch(() => {
         if (!cancelled) handlers.current.onUnavailable();

@@ -576,6 +576,8 @@ export interface CourseProgress {
   sentence_index: number;
   completed_count: number;
   last_completed_at: string | null;
+  /** 완료한 날의 학습자 시간대 날짜(`YYYY-MM-DD`). 화면의 「완료 · 날짜」는 이 값만 쓴다. */
+  last_completed_date: string | null;
   updated_at: string | null;
 }
 
