@@ -81,3 +81,26 @@ a {
 @media (prefers-reduced-motion: reduce) {
   .omy-mic-listening { animation: none !important; }
 }
+
+/* 문법 코스(`app/course/[day]`) — 임베드 플레이어를 칸에 맞추고, 따라 말하기 대기 막대를 채운다. */
+.omy-course-player iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+@keyframes omy-course-wait-fill {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+.omy-course-wait {
+  width: 0%;
+  animation-name: omy-course-wait-fill;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .omy-course-wait { animation: none; width: 100%; }
+}

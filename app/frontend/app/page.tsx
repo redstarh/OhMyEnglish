@@ -71,6 +71,8 @@ const ADDITIONAL_LEARNING: ReadonlyArray<{
   // ⛔ `target` 을 주지 않는다 — 음성 명령으로 이 화면에 가려면 `AdditionalTarget` 값역과 백엔드
   // `ADDITIONAL_TARGETS` 를 함께 열어야 하고, 그것은 이 갈래의 요구가 아니다(설계서 §1 질문 5).
   { label: "영상으로 배우기", entry: null, href: "/videos" },
+  // 문법 코스 (`TASK-286`) — 영상 학습처럼 화면으로 가는 항목이라 `target` 을 주지 않는다.
+  { label: "문법 코스", entry: null, href: "/course" },
   { label: "업무 역할극", entry: null, note: "무대를 고르는 화면이 아직 없어요" },
 ];
 

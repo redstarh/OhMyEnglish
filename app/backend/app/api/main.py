@@ -24,6 +24,7 @@ from uuid import UUID
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.course import router as course_router
 from app.api.daily import router as daily_router
 from app.api.results import router as results_router
 from app.api.shadowing import router as shadowing_router
@@ -162,6 +163,8 @@ def create_app() -> FastAPI:
     # 담아 둔 영상과 그 영상에서 담은 문장 (`TASK-165` · 결정 125·126).
     app.include_router(videos_router)
     app.include_router(vocab_router)
+    # 문법 코스 — 이어 듣기 진도와 한 문장 따라 말하기 (`TASK-286`).
+    app.include_router(course_router)
     app.include_router(translation_router)
     app.include_router(ws_router)
 

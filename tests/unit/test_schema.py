@@ -122,6 +122,10 @@ async def test_001_migration_creates_expected_tables(db_conn: asyncpg.Connection
         # 갈라 두는 이유는 **수명이 다르기 때문**이다 — 제목·채널은 YouTube 에서 온 값이라 정책이
         # 보관을 30일로 제한하고, 문장은 사용자가 만든 학습 자산이라 그 제한 밖이다.
         "youtube_videos",
+        # 033 — 문법 코스의 진도와 따라 하기 기록 (`TASK-286`). 콘텐츠(단원·문장)는 표가 아니라
+        # `app/content/grammar_basic.json` 이 정본이다 — 표는 학습자가 만드는 상태만 갖는다.
+        "course_day_progress",
+        "course_attempts",
     }
 
 

@@ -567,3 +567,116 @@ export async function removePhrase(
 ): Promise<WriteResult<void>> {
   return deleteNothing(`/api/videos/${videoId}/phrases/${phraseId}`);
 }
+
+// ── 문법 코스 (`TASK-286` · 설계서 `docs/design/2026-10-26-grammar-course-design.md` §6) ──
+
+export interface CourseProgress {
+  position_sec: number;
+  unit: number;
+  sentence_index: number;
+  completed_count: number;
+  last_completed_at: string | null;
+  updated_at: string | null;
+}
+
+export interface CourseDaySummary {
+  day: number;
+  first_unit: number;
+  last_unit: number;
+  duration_sec: number;
+  progress: CourseProgress | null;
+}
+
+export interface CourseRecentDate {
+  date: string;
+  days: number[];
+  first_unit: number;
+  last_unit: number;
+  sentences: number;
+  attempts: number;
+}
+
+export interface CourseOverview {
+  cycle: number;
+  current_day: number;
+  days: CourseDaySummary[];
+  heatmap: { date: string; attempts: number }[];
+  recent: CourseRecentDate[];
+}
+
+export interface CourseSentence {
+  key: string;
+  text: string;
+  attempts: number;
+}
+
+export interface CourseUnit {
+  unit: number;
+  topic: string;
+  start_sec: number;
+  end_sec: number;
+  sentences: CourseSentence[];
+}
+
+export interface CourseDayDetail {
+  day: number;
+  youtube_id: string;
+  duration_sec: number;
+  progress: CourseProgress | null;
+  units: CourseUnit[];
+}
+
+export interface CourseAttempt {
+  transcript: string;
+  words: ReadbackWord[];
+  attempts: number;
+}
+
+export async function fetchCourse(): Promise<CourseOverview | null> {
+  const response = await fetch(`${API_BASE}/api/course`, { cache: "no-store" });
+  return response.ok ? ((await response.json()) as CourseOverview) : null;
+}
+
+export async function fetchCourseDay(day: number): Promise<CourseDayDetail | null> {
+  const response = await fetch(`${API_BASE}/api/course/days/${day}`, { cache: "no-store" });
+  return response.ok ? ((await response.json()) as CourseDayDetail) : null;
+}
+
+/** 진도를 저장한다. 실패해도 학습을 막지 않으므로 결과만 돌려준다 — 다음 저장이 덮는다. */
+export async function saveCourseProgress(
+  day: number,
+  input: { positionSec: number; unit: number; sentenceIndex: number; completed?: boolean },
+): Promise<boolean> {
+  const sent = await sendWrite(`/api/course/days/${day}/progress`, "POST", {
+    position_sec: Math.max(0, Math.round(input.positionSec * 100) / 100),
+    unit: input.unit,
+    sentence_index: input.sentenceIndex,
+    completed: input.completed ?? false,
+  });
+  return sent.ok;
+}
+
+/**
+ * 따라 하기 한 번을 보낸다 — 본문은 원시 PCM(16kHz·16bit·mono).
+ *
+ * ⚠️ `unavailable` 은 전사기를 쓸 수 없는 서버(503)나 네트워크 실패다. 화면은 그때도 흐름을 잇는다.
+ */
+export async function postCourseAttempt(
+  key: string,
+  pcm: Uint8Array,
+): Promise<WriteResult<CourseAttempt>> {
+  try {
+    const response = await fetch(`${API_BASE}/api/course/sentences/${key}/attempts`, {
+      method: "POST",
+      cache: "no-store",
+      headers: { "Content-Type": "application/octet-stream" },
+      body: pcm.slice().buffer,
+    });
+    if (!response.ok) {
+      return { ok: false, reason: response.status === 422 ? "refused" : "unavailable" };
+    }
+    return { ok: true, value: (await response.json()) as CourseAttempt };
+  } catch {
+    return { ok: false, reason: "unavailable" };
+  }
+}

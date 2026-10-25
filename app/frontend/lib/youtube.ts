@@ -70,6 +70,7 @@ export function watchUrl(youtubeId: string): string {
 /** 플레이어 상태값. IFrame Player API 가 정한 것이라 우리가 발명하지 않는다. */
 export const PLAYER_ENDED = 0;
 export const PLAYER_PLAYING = 1;
+export const PLAYER_PAUSED = 2;
 
 // ⛔ **오류 코드 목록을 두지 않는다.** 이전 판은 `PLAYER_EMBED_BLOCKED = [101, 150]` 을 두고 그
 // 둘만 안내했는데, **사용자가 할 수 있는 일이 어느 코드에서나 「YouTube 에서 보기」 하나로 같다.**
@@ -89,6 +90,8 @@ export interface YouTubePlayer {
   seekTo(seconds: number, allowSeekAhead: boolean): void;
   getCurrentTime(): number;
   playVideo(): void;
+  // 문법 코스가 문장 연습을 시작할 때 영상을 멈춘다 (`TASK-286`) — 마이크가 영상 소리를 받지 않게.
+  pauseVideo(): void;
   destroy(): void;
 }
 

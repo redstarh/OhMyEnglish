@@ -1,0 +1,1510 @@
+{
+ "course": "grammar-in-use-basic",
+ "days": [
+  {
+   "day": 1,
+   "youtube_id": "BVmPr3uR-mE",
+   "units": [
+    {
+     "unit": 1,
+     "topic": "be 동사 am · is · are",
+     "start_sec": 0,
+     "end_sec": 219,
+     "sentences": [
+      "I am a software tester.",
+      "My team is in Seoul.",
+      "We are busy this week.",
+      "The server is very slow today.",
+      "You are early for the meeting."
+     ]
+    },
+    {
+     "unit": 2,
+     "topic": "be 동사 질문 Am I · Is it · Are you",
+     "start_sec": 219,
+     "end_sec": 451,
+     "sentences": [
+      "Are you on the project team?",
+      "Is the report ready?",
+      "Am I late for the call?",
+      "Where is your laptop?",
+      "Are the tests green now?"
+     ]
+    },
+    {
+     "unit": 3,
+     "topic": "현재진행 am doing",
+     "start_sec": 451,
+     "end_sec": 619,
+     "sentences": [
+      "I am writing a test case.",
+      "She is checking the logs.",
+      "We are waiting for the build.",
+      "They are not using the old server.",
+      "He is talking to the client."
+     ]
+    },
+    {
+     "unit": 4,
+     "topic": "현재진행 질문 Are you doing?",
+     "start_sec": 619,
+     "end_sec": 763,
+     "sentences": [
+      "Are you working on the login page?",
+      "What is the team doing now?",
+      "Is it raining outside?",
+      "Why are you smiling?",
+      "Is the build running?"
+     ]
+    },
+    {
+     "unit": 5,
+     "topic": "현재 시제 I do · he does",
+     "start_sec": 763,
+     "end_sec": 939,
+     "sentences": [
+      "I start work at nine.",
+      "She writes the weekly report.",
+      "Our team uses Slack every day.",
+      "He drinks tea in the morning.",
+      "The app sends an email after sign-up."
+     ]
+    },
+    {
+     "unit": 6,
+     "topic": "현재 부정 don't · doesn't",
+     "start_sec": 939,
+     "end_sec": 1111,
+     "sentences": [
+      "I don't work on Saturdays.",
+      "She doesn't like long meetings.",
+      "The test doesn't pass on Windows.",
+      "We don't use paper forms anymore.",
+      "He doesn't drive to the office."
+     ]
+    },
+    {
+     "unit": 7,
+     "topic": "현재 질문 Do you? · Does he?",
+     "start_sec": 1111,
+     "end_sec": 1250,
+     "sentences": [
+      "Do you test on mobile phones?",
+      "Does the API need a key?",
+      "How often do you deploy?",
+      "Does she work from home?",
+      "What time do you finish work?"
+     ]
+    },
+    {
+     "unit": 8,
+     "topic": "현재진행과 현재 비교",
+     "start_sec": 1250,
+     "end_sec": 1430,
+     "sentences": [
+      "I usually walk to work, but today I am taking a taxi.",
+      "She writes code every day. Now she is writing a test.",
+      "We deploy on Fridays. This week we are deploying on Thursday.",
+      "He doesn't usually call me, but he is calling now.",
+      "The app normally runs fast, but it is running slowly today."
+     ]
+    },
+    {
+     "unit": 9,
+     "topic": "have · have got",
+     "start_sec": 1430,
+     "end_sec": 1632,
+     "sentences": [
+      "I have two monitors on my desk.",
+      "She has got a new laptop.",
+      "We have a meeting at three.",
+      "Do you have a minute?",
+      "He hasn't got time for lunch today."
+     ]
+    },
+    {
+     "unit": 10,
+     "topic": "was · were",
+     "start_sec": 1632,
+     "end_sec": 1811,
+     "sentences": [
+      "I was at the office yesterday.",
+      "The meeting was very long.",
+      "We were tired after the release.",
+      "Was the server down last night?",
+      "They weren't at the demo."
+     ]
+    },
+    {
+     "unit": 11,
+     "topic": "과거 시제 worked · went",
+     "start_sec": 1811,
+     "end_sec": 1950,
+     "sentences": [
+      "I fixed the bug yesterday.",
+      "She sent the report last night.",
+      "We moved to a new office in May.",
+      "He went home early on Monday.",
+      "The team finished the sprint on time."
+     ]
+    },
+    {
+     "unit": 12,
+     "topic": "과거 부정과 질문 didn't · Did you?",
+     "start_sec": 1950,
+     "end_sec": 2085,
+     "sentences": [
+      "I didn't see your message.",
+      "Did you push the code?",
+      "She didn't come to the review.",
+      "Did the test fail again?",
+      "We didn't have time for lunch."
+     ]
+    },
+    {
+     "unit": 13,
+     "topic": "과거진행 was doing",
+     "start_sec": 2085,
+     "end_sec": 2238,
+     "sentences": [
+      "I was reading the logs at ten.",
+      "She was talking to the client when I came in.",
+      "We were waiting for the train.",
+      "What were you doing at noon?",
+      "The server was running all night."
+     ]
+    },
+    {
+     "unit": 14,
+     "topic": "과거진행과 과거 비교",
+     "start_sec": 2238,
+     "end_sec": 2430,
+     "sentences": [
+      "I was writing code when the power went off.",
+      "She was cooking dinner when I got home.",
+      "We were testing the app when it crashed.",
+      "He called me while I was driving.",
+      "The alarm went off while they were sleeping."
+     ]
+    },
+    {
+     "unit": 15,
+     "topic": "used to",
+     "start_sec": 2430,
+     "end_sec": 2576,
+     "sentences": [
+      "I used to take the night bus.",
+      "She used to live in Busan.",
+      "We used to deploy by hand.",
+      "Did you use to play soccer?",
+      "He didn't use to drink coffee."
+     ]
+    },
+    {
+     "unit": 16,
+     "topic": "현재완료 경험 Have you ever?",
+     "start_sec": 2576,
+     "end_sec": 2733,
+     "sentences": [
+      "Have you ever used Docker?",
+      "I have visited our Busan office twice.",
+      "She has never missed a deadline.",
+      "Have you tried the new tool?",
+      "We have worked with that client before."
+     ]
+    },
+    {
+     "unit": 17,
+     "topic": "현재완료 기간 How long have you?",
+     "start_sec": 2733,
+     "end_sec": 2922,
+     "sentences": [
+      "How long have you worked here?",
+      "I have known my manager for five years.",
+      "She has been sick since Tuesday morning.",
+      "How long has the server been down?",
+      "We have used this tool for a long time."
+     ]
+    },
+    {
+     "unit": 18,
+     "topic": "for · since · ago",
+     "start_sec": 2922,
+     "end_sec": 3063,
+     "sentences": [
+      "I joined the company two years ago.",
+      "She has worked here since 2020.",
+      "We waited for twenty minutes.",
+      "The bug started three days ago.",
+      "He has been in the meeting since nine."
+     ]
+    },
+    {
+     "unit": 19,
+     "topic": "현재완료와 과거 비교",
+     "start_sec": 3063,
+     "end_sec": 3297,
+     "sentences": [
+      "I have finished the report. I finished it an hour ago.",
+      "She has lost her badge. She lost it yesterday.",
+      "We have fixed the bug. We fixed it this morning.",
+      "Have you seen the new design? I saw it last week.",
+      "He has left the office. He left at five."
+     ]
+    },
+    {
+     "unit": 20,
+     "topic": "수동태 is done · was done",
+     "start_sec": 3297,
+     "end_sec": 3481,
+     "sentences": [
+      "The coffee machine is checked once a week.",
+      "The report was sent yesterday.",
+      "These tests are run every night.",
+      "The app was built in Java.",
+      "The meeting was moved to Friday."
+     ]
+    },
+    {
+     "unit": 21,
+     "topic": "수동 진행 is being done",
+     "start_sec": 3481,
+     "end_sec": 3627,
+     "sentences": [
+      "The server is being restarted.",
+      "The new office is being painted.",
+      "My laptop is being repaired.",
+      "The data was being copied when the error happened.",
+      "The release notes are being written now."
+     ]
+    }
+   ]
+  },
+  {
+   "day": 2,
+   "youtube_id": "z881DusiriA",
+   "units": [
+    {
+     "unit": 22,
+     "topic": "현재 · 과거 시제 정리",
+     "start_sec": 0,
+     "end_sec": 188,
+     "sentences": [
+      "I work in Seoul, and I worked in Daegu before.",
+      "She is busy now, but she was free yesterday.",
+      "Do you use Git? Did you use it at your old job?",
+      "We don't meet on Mondays, and we didn't meet last week.",
+      "He is testing the app now. He tested it yesterday too."
+     ]
+    },
+    {
+     "unit": 23,
+     "topic": "규칙 · 불규칙 과거형",
+     "start_sec": 188,
+     "end_sec": 281,
+     "sentences": [
+      "I wrote three test cases yesterday.",
+      "She bought a new chair for her desk.",
+      "We met the client last Tuesday.",
+      "He forgot his password again.",
+      "The team began the project in March."
+     ]
+    },
+    {
+     "unit": 24,
+     "topic": "현재진행으로 말하는 미래",
+     "start_sec": 281,
+     "end_sec": 458,
+     "sentences": [
+      "I am meeting the client tomorrow.",
+      "She is flying to Jeju on Friday.",
+      "We are releasing the app next week.",
+      "What are you doing this weekend?",
+      "He is not coming to the party tonight."
+     ]
+    },
+    {
+     "unit": 25,
+     "topic": "be going to",
+     "start_sec": 458,
+     "end_sec": 568,
+     "sentences": [
+      "I am going to finish the report today.",
+      "She is going to call you after lunch.",
+      "We are going to move to a new server.",
+      "Are you going to join the meeting?",
+      "It is going to rain this afternoon."
+     ]
+    },
+    {
+     "unit": 26,
+     "topic": "will · shall",
+     "start_sec": 568,
+     "end_sec": 797,
+     "sentences": [
+      "I will send you the file soon.",
+      "Don't worry, I'll fix it.",
+      "Shall I open the window?",
+      "The meeting will probably end at five.",
+      "I think the build will pass this time."
+     ]
+    },
+    {
+     "unit": 27,
+     "topic": "might · may",
+     "start_sec": 797,
+     "end_sec": 949,
+     "sentences": [
+      "The build might fail again tonight.",
+      "I may work from home on Friday.",
+      "She might not join the stand-up today.",
+      "The client may ask for a demo next week.",
+      "We might need more time for the test plan."
+     ]
+    },
+    {
+     "unit": 28,
+     "topic": "can · could",
+     "start_sec": 949,
+     "end_sec": 1142,
+     "sentences": [
+      "I can read Japanese, but I can't speak it.",
+      "Can you help me with this bug?",
+      "She could swim when she was five.",
+      "We couldn't connect to the server last night.",
+      "Could you send me the link?"
+     ]
+    },
+    {
+     "unit": 29,
+     "topic": "must · mustn't · don't need to",
+     "start_sec": 1142,
+     "end_sec": 1350,
+     "sentences": [
+      "You must wear your badge in the office.",
+      "You mustn't share your password.",
+      "The lights are on. Someone must be in the lab.",
+      "We don't need to print the report.",
+      "I must finish this before the meeting."
+     ]
+    },
+    {
+     "unit": 30,
+     "topic": "should",
+     "start_sec": 1350,
+     "end_sec": 1523,
+     "sentences": [
+      "You should take a break.",
+      "We should test this on a phone too.",
+      "She shouldn't work so late.",
+      "Should I call the client now?",
+      "I think you should ask your manager."
+     ]
+    },
+    {
+     "unit": 31,
+     "topic": "have to",
+     "start_sec": 1523,
+     "end_sec": 1709,
+     "sentences": [
+      "I have to update the server tonight.",
+      "She has to leave at four today.",
+      "Do we have to wear a suit?",
+      "He doesn't have to come in tomorrow.",
+      "We had to wait an hour for the build."
+     ]
+    },
+    {
+     "unit": 32,
+     "topic": "Would you like? · I'd like",
+     "start_sec": 1709,
+     "end_sec": 1883,
+     "sentences": [
+      "Would you like a copy of the slides?",
+      "I'd like a window seat, please.",
+      "Would you like to join us for lunch?",
+      "She'd like to talk to the team leader.",
+      "What would you like to drink?"
+     ]
+    },
+    {
+     "unit": 33,
+     "topic": "I'd rather · Would you rather",
+     "start_sec": 1883,
+     "end_sec": 2101,
+     "sentences": [
+      "I'd rather work from home today.",
+      "Would you rather meet in the morning or the afternoon?",
+      "She'd rather not speak first.",
+      "I'd rather take the train than drive.",
+      "We'd rather fix it now than later."
+     ]
+    },
+    {
+     "unit": 34,
+     "topic": "명령문 Do · Don't · Let's",
+     "start_sec": 2101,
+     "end_sec": 2283,
+     "sentences": [
+      "Please close the door.",
+      "Don't forget your laptop.",
+      "Let's take a short break.",
+      "Check the logs first.",
+      "Don't touch the server room cables."
+     ]
+    },
+    {
+     "unit": 35,
+     "topic": "there is · there are",
+     "start_sec": 2283,
+     "end_sec": 2476,
+     "sentences": [
+      "There is a bug in the login page.",
+      "There are ten people in the meeting room.",
+      "Is there a printer on this floor?",
+      "There aren't any free seats.",
+      "How many tests are there?"
+     ]
+    },
+    {
+     "unit": 36,
+     "topic": "there was · there will be",
+     "start_sec": 2476,
+     "end_sec": 2672,
+     "sentences": [
+      "There was a power cut last night.",
+      "There were many questions after the demo.",
+      "There will be a party on Friday.",
+      "There has been a problem with the network.",
+      "Was there a meeting this morning?"
+     ]
+    },
+    {
+     "unit": 37,
+     "topic": "it 로 말하는 시간 · 날씨 · 거리",
+     "start_sec": 2672,
+     "end_sec": 2882,
+     "sentences": [
+      "It is nine o'clock.",
+      "It is cold in the office today.",
+      "It's two kilometers from here to the station.",
+      "It's almost midnight. Let's stop here.",
+      "It was very windy this morning."
+     ]
+    },
+    {
+     "unit": 38,
+     "topic": "짧은 대답 I am · I don't",
+     "start_sec": 2882,
+     "end_sec": 3107,
+     "sentences": [
+      "Are you ready? Yes, I am.",
+      "Does she work here? No, she doesn't.",
+      "Mina isn't ready, but Jun is.",
+      "Have you finished? Yes, I have.",
+      "He didn't call, but she did."
+     ]
+    },
+    {
+     "unit": 39,
+     "topic": "되묻는 질문과 부가의문문",
+     "start_sec": 3107,
+     "end_sec": 3366,
+     "sentences": [
+      "I moved to a new team. Oh, did you?",
+      "It's a nice office, isn't it?",
+      "You don't drink coffee, do you?",
+      "The test passed. Did it? That's good.",
+      "She was at the meeting, wasn't she?"
+     ]
+    },
+    {
+     "unit": 40,
+     "topic": "too · either · so am I · neither do I",
+     "start_sec": 3366,
+     "end_sec": 3532,
+     "sentences": [
+      "I'm tired. So am I.",
+      "I don't like long calls. Neither do I.",
+      "She works late, and I do too.",
+      "He can't come, and I can't either.",
+      "We enjoyed the demo. So did they."
+     ]
+    },
+    {
+     "unit": 41,
+     "topic": "부정문 정리 isn't · don't · didn't · can't",
+     "start_sec": 3532,
+     "end_sec": 3754,
+     "sentences": [
+      "The printer isn't working.",
+      "I don't know the password.",
+      "She didn't reply to my email.",
+      "We can't open the file.",
+      "They haven't finished the test yet."
+     ]
+    }
+   ]
+  },
+  {
+   "day": 3,
+   "youtube_id": "EFECHJ5bocA",
+   "units": [
+    {
+     "unit": 42,
+     "topic": "의문문 만들기",
+     "start_sec": 0,
+     "end_sec": 214,
+     "sentences": [
+      "Is the client happy?",
+      "Can we start the meeting now?",
+      "Has the build finished?",
+      "Did you read my message?",
+      "Will you be at the office tomorrow?"
+     ]
+    },
+    {
+     "unit": 43,
+     "topic": "Who · What 주어와 목적어 질문",
+     "start_sec": 214,
+     "end_sec": 329,
+     "sentences": [
+      "Who fixed the bug?",
+      "Who did you call?",
+      "What happened to the server?",
+      "What did the client say?",
+      "Who sent this email?"
+     ]
+    },
+    {
+     "unit": 44,
+     "topic": "전치사로 끝나는 질문",
+     "start_sec": 329,
+     "end_sec": 489,
+     "sentences": [
+      "Who are you working with?",
+      "What are you talking about?",
+      "Who is this message for?",
+      "Where is she from?",
+      "What are you waiting for?"
+     ]
+    },
+    {
+     "unit": 45,
+     "topic": "What · Which · How",
+     "start_sec": 489,
+     "end_sec": 752,
+     "sentences": [
+      "What size is the new monitor?",
+      "Which floor is your office on?",
+      "What kind of music do you like?",
+      "Which test failed?",
+      "How old is this laptop?"
+     ]
+    },
+    {
+     "unit": 46,
+     "topic": "How long does it take?",
+     "start_sec": 752,
+     "end_sec": 949,
+     "sentences": [
+      "How long does it take to build the app?",
+      "It takes ten minutes to walk to the station.",
+      "How long did the meeting take?",
+      "It took me two hours to fix the bug.",
+      "How long will it take to finish the test?"
+     ]
+    },
+    {
+     "unit": 47,
+     "topic": "간접의문 Do you know where?",
+     "start_sec": 949,
+     "end_sec": 1308,
+     "sentences": [
+      "Do you know when the release is?",
+      "I don't know what time it starts.",
+      "Can you tell me how this works?",
+      "I'm not sure who wrote this code.",
+      "Do you know if the server is up?"
+     ]
+    },
+    {
+     "unit": 48,
+     "topic": "간접화법 She said that",
+     "start_sec": 1308,
+     "end_sec": 1482,
+     "sentences": [
+      "She said that she was busy.",
+      "He told me that the test had failed.",
+      "My manager said that we could leave early.",
+      "They said they would call back.",
+      "The client told us that the app was slow."
+     ]
+    },
+    {
+     "unit": 49,
+     "topic": "조동사 뒤 동사원형",
+     "start_sec": 1482,
+     "end_sec": 1673,
+     "sentences": [
+      "I will call you later.",
+      "She can speak three languages.",
+      "We might be late tomorrow.",
+      "You should check this again.",
+      "He must leave by six."
+     ]
+    },
+    {
+     "unit": 50,
+     "topic": "to 부정사 want to · need to",
+     "start_sec": 1673,
+     "end_sec": 1860,
+     "sentences": [
+      "I want to learn Python.",
+      "She needs to rest.",
+      "We decided to change the plan.",
+      "He forgot to save the file.",
+      "Do you plan to stay late?"
+     ]
+    },
+    {
+     "unit": 51,
+     "topic": "want you to · tell him to",
+     "start_sec": 1860,
+     "end_sec": 2038,
+     "sentences": [
+      "I want you to check this code.",
+      "My manager asked me to write the report.",
+      "She told him to call the client.",
+      "Do you want me to help?",
+      "They asked us to wait outside."
+     ]
+    },
+    {
+     "unit": 52,
+     "topic": "목적의 to",
+     "start_sec": 2038,
+     "end_sec": 2222,
+     "sentences": [
+      "I stayed late to finish the slides.",
+      "She called to ask about the meeting.",
+      "We use this tool to test the app.",
+      "He came early to set up the room.",
+      "I'm saving money to buy a new laptop."
+     ]
+    },
+    {
+     "unit": 53,
+     "topic": "go 의 쓰임 go to · go on · go -ing",
+     "start_sec": 2222,
+     "end_sec": 2399,
+     "sentences": [
+      "I go to work by subway.",
+      "We're going on a trip next month.",
+      "She goes swimming on Sundays.",
+      "Let's go for a walk after lunch.",
+      "He went home early yesterday."
+     ]
+    },
+    {
+     "unit": 54,
+     "topic": "get 의 여러 뜻",
+     "start_sec": 2399,
+     "end_sec": 2582,
+     "sentences": [
+      "She got a promotion last year.",
+      "It's getting dark outside.",
+      "What time do you get to the office?",
+      "She got tired after the long meeting.",
+      "Can you get me a glass of water?"
+     ]
+    },
+    {
+     "unit": 55,
+     "topic": "do 와 make",
+     "start_sec": 2582,
+     "end_sec": 2835,
+     "sentences": [
+      "I do my homework after dinner.",
+      "She made a mistake in the report.",
+      "Can you do me a favor?",
+      "We made a plan for the release.",
+      "He does the dishes every night."
+     ]
+    },
+    {
+     "unit": 56,
+     "topic": "have 의 쓰임 have lunch · have a meeting",
+     "start_sec": 2835,
+     "end_sec": 3097,
+     "sentences": [
+      "I have lunch at noon.",
+      "We're having a meeting now.",
+      "Did you have a good weekend?",
+      "She has a shower every morning.",
+      "Let's have a short break."
+     ]
+    },
+    {
+     "unit": 57,
+     "topic": "인칭대명사 I · me · he · him",
+     "start_sec": 3097,
+     "end_sec": 3274,
+     "sentences": [
+      "My manager knows me well.",
+      "I called her, but she didn't answer.",
+      "We like them, and they like us.",
+      "Can you help him with the test?",
+      "She sent it to me yesterday."
+     ]
+    },
+    {
+     "unit": 58,
+     "topic": "소유격 my · our · their",
+     "start_sec": 3274,
+     "end_sec": 3385,
+     "sentences": [
+      "This is my desk.",
+      "Their office is on the fifth floor.",
+      "Is this your charger?",
+      "Our team won the hackathon.",
+      "She left her bag in the car."
+     ]
+    },
+    {
+     "unit": 59,
+     "topic": "소유대명사 mine · yours",
+     "start_sec": 3385,
+     "end_sec": 3593,
+     "sentences": [
+      "This laptop is mine.",
+      "Is this pen yours?",
+      "Their plan is better than ours.",
+      "That coffee is hers, not mine.",
+      "The idea was his."
+     ]
+    },
+    {
+     "unit": 60,
+     "topic": "I · me · my · mine 정리",
+     "start_sec": 3593,
+     "end_sec": 3783,
+     "sentences": [
+      "I lost my key, so he gave me his.",
+      "She wrote her part, and I wrote mine.",
+      "He trusts us, and we trust him.",
+      "This is our room. The other one is theirs.",
+      "You can use my charger. Yours is broken."
+     ]
+    },
+    {
+     "unit": 61,
+     "topic": "재귀대명사 myself · yourself",
+     "start_sec": 3783,
+     "end_sec": 3977,
+     "sentences": [
+      "I taught myself to code.",
+      "Please introduce yourself to the team.",
+      "She hurt herself at the gym.",
+      "We fixed the problem ourselves.",
+      "He talks to himself when he codes."
+     ]
+    },
+    {
+     "unit": 62,
+     "topic": "-'s 소유",
+     "start_sec": 3977,
+     "end_sec": 4141,
+     "sentences": [
+      "This is Jun's laptop.",
+      "My manager's name is Sara.",
+      "The client's office is near the station.",
+      "Where are the kids' shoes?",
+      "I like Mina's idea."
+     ]
+    }
+   ]
+  },
+  {
+   "day": 4,
+   "youtube_id": "3dsHMpnN26Y",
+   "units": [
+    {
+     "unit": 63,
+     "topic": "a · an",
+     "start_sec": 0,
+     "end_sec": 163,
+     "sentences": [
+      "I need a charger.",
+      "She is an engineer.",
+      "He has an idea.",
+      "We have a meeting in an hour.",
+      "This is a useful tool."
+     ]
+    },
+    {
+     "unit": 64,
+     "topic": "단수와 복수",
+     "start_sec": 163,
+     "end_sec": 389,
+     "sentences": [
+      "I have one monitor and two keyboards.",
+      "There are three bugs in this page.",
+      "We need some new chairs.",
+      "This week has five working days.",
+      "She bought two boxes of pens."
+     ]
+    },
+    {
+     "unit": 65,
+     "topic": "셀 수 있는 명사와 셀 수 없는 명사",
+     "start_sec": 389,
+     "end_sec": 510,
+     "sentences": [
+      "I need some information about the project.",
+      "She drinks a lot of water.",
+      "We don't have much time.",
+      "Can I have a cup of coffee?",
+      "There are many emails but not much news."
+     ]
+    },
+    {
+     "unit": 66,
+     "topic": "a · an 과 some",
+     "start_sec": 510,
+     "end_sec": 681,
+     "sentences": [
+      "She is looking for an apartment.",
+      "Would you like some water?",
+      "There is a cafe and some shops near the office.",
+      "She bought a book and some paper.",
+      "We have some good news."
+     ]
+    },
+    {
+     "unit": 67,
+     "topic": "a 와 the",
+     "start_sec": 681,
+     "end_sec": 836,
+     "sentences": [
+      "I bought a phone. The phone is very fast.",
+      "There is a meeting at two. The meeting is in room B.",
+      "We have a cat and a dog. The cat is lazy.",
+      "I saw a bug. The bug is in the login code.",
+      "She works in a big building. The building has thirty floors."
+     ]
+    },
+    {
+     "unit": 68,
+     "topic": "the 의 쓰임",
+     "start_sec": 836,
+     "end_sec": 1049,
+     "sentences": [
+      "Who is the owner of the repo?",
+      "The sun is very bright today.",
+      "I go to the gym in the morning.",
+      "Please turn off the light.",
+      "She is on the phone."
+     ]
+    },
+    {
+     "unit": 69,
+     "topic": "관사 없이 쓰는 at work · to school · in bed",
+     "start_sec": 1049,
+     "end_sec": 1264,
+     "sentences": [
+      "My son is at school until three.",
+      "I go to bed at eleven.",
+      "He goes to school by bus.",
+      "We had lunch at home.",
+      "They are going to the office after lunch."
+     ]
+    },
+    {
+     "unit": 70,
+     "topic": "일반적인 것 말하기 (관사 없음)",
+     "start_sec": 1264,
+     "end_sec": 1418,
+     "sentences": [
+      "Most people enjoy weekends.",
+      "She doesn't like meetings.",
+      "Computers are everywhere now.",
+      "Exercise is good for you.",
+      "Do you like jazz?"
+     ]
+    },
+    {
+     "unit": 71,
+     "topic": "지명과 the",
+     "start_sec": 1418,
+     "end_sec": 1620,
+     "sentences": [
+      "Seoul is the capital of Korea.",
+      "The Han River is very long.",
+      "She lives in Canada.",
+      "We visited the United States last year.",
+      "The Alps are in Europe."
+     ]
+    },
+    {
+     "unit": 72,
+     "topic": "this · that · these · those",
+     "start_sec": 1620,
+     "end_sec": 1810,
+     "sentences": [
+      "Is this your coffee?",
+      "That building is our office.",
+      "These files are old.",
+      "Those people are from the sales team.",
+      "What is that noise?"
+     ]
+    },
+    {
+     "unit": 73,
+     "topic": "one · ones",
+     "start_sec": 1810,
+     "end_sec": 2011,
+     "sentences": [
+      "This chair is broken. Can I have another one?",
+      "I like the blue cups more than the red ones.",
+      "Which laptop is yours? The silver one.",
+      "These keys are old. We need new ones.",
+      "My phone is old, but I don't want a new one."
+     ]
+    },
+    {
+     "unit": 74,
+     "topic": "some · any",
+     "start_sec": 2011,
+     "end_sec": 2234,
+     "sentences": [
+      "I bought some snacks for the team.",
+      "Do you have any questions?",
+      "We don't have any milk.",
+      "Can I have some water?",
+      "Are there any messages for me?"
+     ]
+    },
+    {
+     "unit": 75,
+     "topic": "not any · no · none",
+     "start_sec": 2234,
+     "end_sec": 2390,
+     "sentences": [
+      "We didn't get any replies.",
+      "There are no seats left.",
+      "I have no time today.",
+      "How many bugs did you find? None.",
+      "She has no idea about the change."
+     ]
+    },
+    {
+     "unit": 76,
+     "topic": "not anybody · nobody · nothing",
+     "start_sec": 2390,
+     "end_sec": 2565,
+     "sentences": [
+      "I didn't meet anybody at the cafe.",
+      "Nobody answered the phone.",
+      "I didn't say anything.",
+      "Nothing is wrong with the server.",
+      "She didn't go anywhere last weekend."
+     ]
+    },
+    {
+     "unit": 77,
+     "topic": "somebody · anything · somewhere",
+     "start_sec": 2565,
+     "end_sec": 2780,
+     "sentences": [
+      "Somebody left a bag in the room.",
+      "Is there anything to eat?",
+      "Let's go somewhere quiet.",
+      "I need someone to help me.",
+      "Did anybody call?"
+     ]
+    },
+    {
+     "unit": 78,
+     "topic": "every · everybody · everything",
+     "start_sec": 2780,
+     "end_sec": 2943,
+     "sentences": [
+      "Every desk has a lamp.",
+      "Everybody likes the new office.",
+      "Everything is ready for the demo.",
+      "I check my email every morning.",
+      "She knows everyone on the team."
+     ]
+    },
+    {
+     "unit": 79,
+     "topic": "all · most · some · none (of)",
+     "start_sec": 2943,
+     "end_sec": 3159,
+     "sentences": [
+      "All of the tests passed.",
+      "Most people in my team work from home.",
+      "Some of my friends live abroad.",
+      "None of us knew the answer.",
+      "Most of the meetings are online."
+     ]
+    },
+    {
+     "unit": 80,
+     "topic": "both · either · neither",
+     "start_sec": 3159,
+     "end_sec": 3344,
+     "sentences": [
+      "Both of my coworkers are from Busan.",
+      "You can use either room.",
+      "Neither of the tests passed.",
+      "Both options are fine.",
+      "I don't like either of them."
+     ]
+    },
+    {
+     "unit": 81,
+     "topic": "a lot · much · many",
+     "start_sec": 3344,
+     "end_sec": 3597,
+     "sentences": [
+      "I have a lot of work today.",
+      "Did you get many comments?",
+      "How many people came?",
+      "There isn't much coffee left.",
+      "She reads a lot of books."
+     ]
+    },
+    {
+     "unit": 82,
+     "topic": "a little · a few",
+     "start_sec": 3597,
+     "end_sec": 3795,
+     "sentences": [
+      "I need a little help.",
+      "A few people stayed late.",
+      "There is a little milk in the fridge.",
+      "I have a few questions.",
+      "We have little time and few ideas."
+     ]
+    }
+   ]
+  },
+  {
+   "day": 5,
+   "youtube_id": "LI-gcPGSVnU",
+   "units": [
+    {
+     "unit": 83,
+     "topic": "형용사 위치",
+     "start_sec": 0,
+     "end_sec": 162,
+     "sentences": [
+      "We moved into a bright office.",
+      "She has a new car.",
+      "The room is quiet.",
+      "This is a hard problem.",
+      "His laptop is very old."
+     ]
+    },
+    {
+     "unit": 84,
+     "topic": "형용사와 부사 quick · quickly",
+     "start_sec": 162,
+     "end_sec": 328,
+     "sentences": [
+      "She answered the question clearly.",
+      "The new tool installs easily.",
+      "Please drive carefully.",
+      "The app works perfectly.",
+      "They talked quietly in the library."
+     ]
+    },
+    {
+     "unit": 85,
+     "topic": "비교급 -er · more",
+     "start_sec": 328,
+     "end_sec": 568,
+     "sentences": [
+      "My new laptop is faster than the old one.",
+      "This plan is more expensive.",
+      "The test is easier today.",
+      "Her office is bigger than mine.",
+      "The bus is cheaper than a taxi."
+     ]
+    },
+    {
+     "unit": 86,
+     "topic": "than",
+     "start_sec": 568,
+     "end_sec": 780,
+     "sentences": [
+      "I'm older than my manager.",
+      "She works harder than anyone.",
+      "This version is better than the last one.",
+      "The train is faster than the bus.",
+      "He runs more than me."
+     ]
+    },
+    {
+     "unit": 87,
+     "topic": "not as … as",
+     "start_sec": 780,
+     "end_sec": 968,
+     "sentences": [
+      "This laptop isn't as fast as yours.",
+      "The meeting wasn't as long as last time.",
+      "I'm not as busy as I was.",
+      "The new office is as big as the old one.",
+      "She doesn't type as quickly as he does."
+     ]
+    },
+    {
+     "unit": 88,
+     "topic": "최상급 the -est · the most",
+     "start_sec": 968,
+     "end_sec": 1178,
+     "sentences": [
+      "This is the fastest server we have.",
+      "She is the best tester on the team.",
+      "That was the longest meeting of the year.",
+      "What is the most difficult part?",
+      "It's the cheapest cafe near the office."
+     ]
+    },
+    {
+     "unit": 89,
+     "topic": "enough",
+     "start_sec": 1178,
+     "end_sec": 1363,
+     "sentences": [
+      "I don't have enough time.",
+      "Is the room big enough?",
+      "We have enough chairs for everyone.",
+      "He isn't old enough to drive.",
+      "She didn't sleep enough last night."
+     ]
+    },
+    {
+     "unit": 90,
+     "topic": "too",
+     "start_sec": 1363,
+     "end_sec": 1568,
+     "sentences": [
+      "This coffee is too hot.",
+      "The test is too long.",
+      "It's too late to call him.",
+      "There are too many meetings this week.",
+      "The font is too small to read."
+     ]
+    },
+    {
+     "unit": 91,
+     "topic": "어순 동사 + 목적어 · 장소 · 시간",
+     "start_sec": 1568,
+     "end_sec": 1700,
+     "sentences": [
+      "I read the news every morning.",
+      "He plays the drums every weekend.",
+      "We met the client at the station yesterday.",
+      "He left his phone in the office.",
+      "I bought a new keyboard last week."
+     ]
+    },
+    {
+     "unit": 92,
+     "topic": "빈도 부사 always · usually · never",
+     "start_sec": 1700,
+     "end_sec": 1924,
+     "sentences": [
+      "I always check the logs first.",
+      "She usually takes the bus.",
+      "We never work on Sundays.",
+      "He is often late for meetings.",
+      "Do you sometimes work from home?"
+     ]
+    },
+    {
+     "unit": 93,
+     "topic": "still · yet · already",
+     "start_sec": 1924,
+     "end_sec": 2113,
+     "sentences": [
+      "Are you still on the call?",
+      "Have you finished the report yet?",
+      "She has already left.",
+      "The build hasn't finished yet.",
+      "I'm still waiting for his reply."
+     ]
+    },
+    {
+     "unit": 94,
+     "topic": "give 와 to · for",
+     "start_sec": 2113,
+     "end_sec": 2293,
+     "sentences": [
+      "I gave the file to my manager.",
+      "Can you send me the link?",
+      "She made coffee for everyone.",
+      "He showed us the new design.",
+      "Please pass me the pen."
+     ]
+    },
+    {
+     "unit": 95,
+     "topic": "and · but · or · so · because",
+     "start_sec": 2293,
+     "end_sec": 2493,
+     "sentences": [
+      "I was tired, so I went home early.",
+      "She likes tea, but she doesn't like coffee.",
+      "Do you want tea or coffee?",
+      "We stayed late because the build failed.",
+      "He opened the laptop and started work."
+     ]
+    },
+    {
+     "unit": 96,
+     "topic": "when 절",
+     "start_sec": 2493,
+     "end_sec": 2704,
+     "sentences": [
+      "When the alarm rang, everyone left the building.",
+      "Call me when you finish.",
+      "When she was young, she lived in Jeju.",
+      "I'll tell you when the build is ready.",
+      "When the meeting ended, we had lunch."
+     ]
+    },
+    {
+     "unit": 97,
+     "topic": "if 조건",
+     "start_sec": 2704,
+     "end_sec": 2914,
+     "sentences": [
+      "If it rains, we'll stay inside.",
+      "If you need help, call me.",
+      "If the test fails, check the logs.",
+      "What will you do if the server goes down?",
+      "I'll come if I have time."
+     ]
+    },
+    {
+     "unit": 98,
+     "topic": "가정 If I had · I would",
+     "start_sec": 2914,
+     "end_sec": 3130,
+     "sentences": [
+      "If I had more time, I would learn Japanese.",
+      "If she knew the answer, she would tell us.",
+      "I would buy a new laptop if I had the money.",
+      "If I were you, I would ask the manager.",
+      "What would you do if you won the lottery?"
+     ]
+    },
+    {
+     "unit": 99,
+     "topic": "관계대명사 who",
+     "start_sec": 3130,
+     "end_sec": 3278,
+     "sentences": [
+      "I have a friend who works at Google.",
+      "The man who called you is my manager.",
+      "She is the tester who found the bug.",
+      "Do you know anyone who speaks French?",
+      "The people who came to the demo liked it."
+     ]
+    },
+    {
+     "unit": 100,
+     "topic": "관계절 that · which",
+     "start_sec": 3278,
+     "end_sec": 3484,
+     "sentences": [
+      "The bug that you found is fixed now.",
+      "This is the laptop that I bought last week.",
+      "The app which we use for chat is free.",
+      "Where is the file that I sent you?",
+      "I like the cafe that opened near the office."
+     ]
+    }
+   ]
+  },
+  {
+   "day": 6,
+   "youtube_id": "DjgXa-L0Zm0",
+   "units": [
+    {
+     "unit": 101,
+     "topic": "시간의 at · on · in",
+     "start_sec": 0,
+     "end_sec": 174,
+     "sentences": [
+      "The meeting starts at ten.",
+      "I was born in 1990.",
+      "We have a party on Friday.",
+      "She works late in the evening.",
+      "The release is on May 3rd."
+     ]
+    },
+    {
+     "unit": 102,
+     "topic": "from … to · until · since · for",
+     "start_sec": 174,
+     "end_sec": 385,
+     "sentences": [
+      "I work from nine to six.",
+      "She'll be away until Monday.",
+      "We have lived here since 2019.",
+      "He studied for three hours.",
+      "The office is closed from Friday to Sunday."
+     ]
+    },
+    {
+     "unit": 103,
+     "topic": "before · after · during · while",
+     "start_sec": 385,
+     "end_sec": 536,
+     "sentences": [
+      "Wash your hands before lunch.",
+      "We went out after the meeting.",
+      "Please don't talk during the demo.",
+      "I listened to music while I was coding.",
+      "She called me after work."
+     ]
+    },
+    {
+     "unit": 104,
+     "topic": "장소의 in · at · on (1)",
+     "start_sec": 536,
+     "end_sec": 774,
+     "sentences": [
+      "The keys are in my bag.",
+      "She is waiting at the door.",
+      "Your phone is on the desk.",
+      "There is a picture on the wall.",
+      "We met at the bus stop."
+     ]
+    },
+    {
+     "unit": 105,
+     "topic": "장소의 in · at · on (2)",
+     "start_sec": 774,
+     "end_sec": 973,
+     "sentences": [
+      "The kids are at home today.",
+      "I'm at work until six.",
+      "He is on the train now.",
+      "We stayed at a hotel in Busan.",
+      "My office is on the third floor."
+     ]
+    },
+    {
+     "unit": 106,
+     "topic": "to · in · at (가다 · 도착하다)",
+     "start_sec": 973,
+     "end_sec": 1178,
+     "sentences": [
+      "I'm going to the bank.",
+      "We arrived in Tokyo at night.",
+      "She got to the office at eight.",
+      "He came back to Korea last month.",
+      "What time did you arrive at the airport?"
+     ]
+    },
+    {
+     "unit": 107,
+     "topic": "next to · between · in front of",
+     "start_sec": 1178,
+     "end_sec": 1315,
+     "sentences": [
+      "The printer is next to the window.",
+      "My desk is between Jun and Mina.",
+      "There is a cafe in front of our building.",
+      "The parking lot is behind the office.",
+      "She sat across from me at lunch."
+     ]
+    },
+    {
+     "unit": 108,
+     "topic": "이동의 전치사 into · out of · over · through",
+     "start_sec": 1315,
+     "end_sec": 1566,
+     "sentences": [
+      "She walked into the meeting room.",
+      "He took his laptop out of the bag.",
+      "The plane flew over the mountains.",
+      "We drove through the tunnel.",
+      "The cat jumped off the table."
+     ]
+    },
+    {
+     "unit": 109,
+     "topic": "on · at · by · with",
+     "start_sec": 1566,
+     "end_sec": 1794,
+     "sentences": [
+      "I'm on a diet this month.",
+      "I came here by bus.",
+      "He arrived on time.",
+      "We met at a party.",
+      "I live with two friends."
+     ]
+    },
+    {
+     "unit": 110,
+     "topic": "형용사 + 전치사 afraid of · good at",
+     "start_sec": 1794,
+     "end_sec": 2026,
+     "sentences": [
+      "My brother is good at math.",
+      "She is afraid of dogs.",
+      "We are interested in the new plan.",
+      "He is angry with me.",
+      "Are you ready for the test?"
+     ]
+    },
+    {
+     "unit": 111,
+     "topic": "동사 + 전치사 ask for · wait for",
+     "start_sec": 2026,
+     "end_sec": 2236,
+     "sentences": [
+      "She asked the waiter for the bill.",
+      "I'm waiting for the bus.",
+      "She is listening to music.",
+      "Can you look after my plant?",
+      "We talked about the release."
+     ]
+    },
+    {
+     "unit": 112,
+     "topic": "구동사 1 get in · get out · go away",
+     "start_sec": 2236,
+     "end_sec": 2427,
+     "sentences": [
+      "We got on the bus at the last stop.",
+      "Please sit down.",
+      "He got up early today.",
+      "Turn left and go straight on.",
+      "The train left, so we came back."
+     ]
+    },
+    {
+     "unit": 113,
+     "topic": "구동사 2 put on · take off · turn on",
+     "start_sec": 2427,
+     "end_sec": 2599,
+     "sentences": [
+      "Turn off your phone in the theater.",
+      "Please take off your shoes.",
+      "Can you turn on the light?",
+      "I filled in the form.",
+      "She threw away the old papers."
+     ]
+    }
+   ]
+  }
+ ]
+}
