@@ -1,0 +1,23 @@
+HTTP/1.1 200 OK
+date: Sun, 25 Oct 2026 23:42:00 GMT
+server: uvicorn
+vary: Origin
+access-control-allow-methods: GET, POST, DELETE
+access-control-max-age: 600
+access-control-allow-headers: Accept, Accept-Language, Content-Language, Content-Type
+access-control-allow-origin: http://localhost:3000
+content-length: 2
+content-type: text/plain; charset=utf-8
+
+OKHTTP/1.1 200 OK
+date: Sun, 25 Oct 2026 23:42:00 GMT
+server: uvicorn
+vary: Origin
+access-control-allow-methods: GET, POST, DELETE
+access-control-max-age: 600
+access-control-allow-headers: Accept, Accept-Language, Content-Language, Content-Type
+access-control-allow-origin: http://localhost:3000
+content-length: 2
+content-type: text/plain; charset=utf-8
+
+OK

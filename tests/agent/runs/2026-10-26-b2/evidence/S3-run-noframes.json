@@ -1,0 +1,94 @@
+{
+ "ms_markSet": 0,
+ "ms_reloadAck": 2,
+ "ms_freshDoc": 56,
+ "ms_ready": 108,
+ "ms_fakeMic": 108,
+ "before": {
+  "unit": "Unit 22 · 현재 · 과거 시제 정리",
+  "num": "문장 5 / 5",
+  "sentence": "He is testing the app now. He tested it yesterday too.",
+  "phase": null,
+  "notice": null,
+  "prevDisabled": false,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "ms_beforeClick": 109,
+ "doneAfterMs": 8230,
+ "atDone": {
+  "unit": "Unit 22 · 현재 · 과거 시제 정리",
+  "num": "문장 5 / 5",
+  "sentence": "He is testing the app now. He tested it yesterday too.",
+  "phase": "done",
+  "notice": "지금은 따라 하기 판정을 쓸 수 없어요. 문장은 계속 이어져요.",
+  "prevDisabled": false,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "after3_5s": {
+  "unit": "Unit 22 · 현재 · 과거 시제 정리",
+  "num": "문장 5 / 5",
+  "sentence": "He is testing the app now. He tested it yesterday too.",
+  "phase": "done",
+  "notice": "지금은 따라 하기 판정을 쓸 수 없어요. 문장은 계속 이어져요.",
+  "prevDisabled": false,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "phases": [
+  {
+   "t": 40143,
+   "wall": 1792973048135,
+   "phase": "listen",
+   "label": "① 듣기",
+   "num": "문장 5 / 5",
+   "unit": "Unit 22 · 현재 · 과거 시제 정리",
+   "notice": ""
+  },
+  {
+   "t": 43744,
+   "wall": 1792973051736,
+   "phase": "repeat",
+   "label": "② 따라 말하기 · 4.6초",
+   "num": "문장 5 / 5",
+   "unit": "Unit 22 · 현재 · 과거 시제 정리",
+   "notice": ""
+  },
+  {
+   "t": 48343,
+   "wall": 1792973056335,
+   "phase": "done",
+   "label": "③ 확인",
+   "num": "문장 5 / 5",
+   "unit": "Unit 22 · 현재 · 과거 시제 정리",
+   "notice": "지금은 따라 하기 판정을 쓸 수 없어요. 문장은 계속 이어져요."
+  }
+ ],
+ "phasesMO": [
+  {
+   "t": 40132,
+   "phase": "none",
+   "num": "문장 5 / 5"
+  },
+  {
+   "t": 40138,
+   "phase": "listen",
+   "num": "문장 5 / 5"
+  },
+  {
+   "t": 43739,
+   "phase": "repeat",
+   "num": "문장 5 / 5"
+  },
+  {
+   "t": 48336,
+   "phase": "done",
+   "num": "문장 5 / 5"
+  }
+ ],
+ "elapsedMs": 51977
+}

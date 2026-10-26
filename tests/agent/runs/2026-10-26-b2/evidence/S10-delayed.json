@@ -1,0 +1,14 @@
+{
+ "tracksBeforeLeave": [],
+ "pathname": "/course",
+ "tracksAfterLeave": [
+  "audio:ended:MediaStreamAudioDestinationNode"
+ ],
+ "tracksAfterDelay": [
+  "audio:ended:MediaStreamAudioDestinationNode"
+ ],
+ "gumCalls": 1,
+ "liveTracks": 0,
+ "speaking": false,
+ "elapsedMs": 3648
+}

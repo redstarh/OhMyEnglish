@@ -1,0 +1,12 @@
+{
+ "tracksBeforeLeave": [
+  "audio:live:MediaStreamAudioDestinationNode"
+ ],
+ "pathname": "/course",
+ "tracksAfterLeave": [
+  "audio:ended:MediaStreamAudioDestinationNode"
+ ],
+ "liveTracks": 0,
+ "speaking": false,
+ "elapsedMs": 2140
+}

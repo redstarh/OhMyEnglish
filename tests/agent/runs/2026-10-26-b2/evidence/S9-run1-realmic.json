@@ -1,0 +1,22 @@
+{
+ "clickedStartAfterNavMs": 52,
+ "buttonReadyAfterNavMs": 50,
+ "after12s": {
+  "unit": "Unit 22 · 현재 · 과거 시제 정리",
+  "num": "문장 5 / 5",
+  "sentence": "He is testing the app now. He tested it yesterday too.",
+  "phase": null,
+  "notice": null,
+  "prevDisabled": false,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "player": {
+  "iframe": true,
+  "src": "https://www.youtube.com/embed/z881DusiriA?enablejsapi=1&origin=http%3A%2F%2Flocalhost%3A3000&widgetid=1&forigin=http%3A%2F%2Flocalhost%3A3000%2Fcourse%2F2&aoriginsup=1&vf=6",
+  "YT": "object",
+  "ytLoaded": true
+ },
+ "elapsedMs": 12142
+}

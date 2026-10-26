@@ -1,0 +1,4 @@
+== day2 progress :: POST /days/2/progress body=54B ctype=application/json
+HTTP 204
+
+HTTP 200 progress {'position_sec': 0.0, 'unit': 22, 'sentence_index': 0, 'completed_count': 0, 'last_completed_at': None, 'updated_at': '2026-10-25T23:44:03.235930+00:00'}

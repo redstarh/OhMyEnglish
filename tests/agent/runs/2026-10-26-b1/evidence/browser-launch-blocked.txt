@@ -1,0 +1,15 @@
+sandbox_extension_issue_file_to_process failed for /Applications/Google Chrome.app: 1 (Operation not permitted)
+[1026/083920.896681:ERROR:third_party/crashpad/crashpad/util/mach/bootstrap.cc:65] bootstrap_check_in org.chromium.crashpad.child_port_handshake.7716.104548108.ITVWCFQJHLJAWSUB: Permission denied (1100)
+[1026/083920.897205:ERROR:third_party/crashpad/crashpad/util/file/file_io.cc:103] ReadExactly: expected 4, observed 0
+[1026/083920.897577:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:208] open /Users/redstar/Library/Application Support/Google/Chrome/Crashpad/settings.dat: Operation not permitted (1)
+[1026/083920.897637:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:208] open /Users/redstar/Library/Application Support/Google/Chrome/Crashpad/settings.dat: Operation not permitted (1)
+[7714:104548083:1026/083920.904458:ERROR:chrome/browser/process_singleton_posix.cc:1043] Failed to create socket directory.
+[7714:104548083:1026/083920.904538:ERROR:chrome/app/chrome_main_delegate.cc:569] Failed to create a ProcessSingleton for your profile directory. This means that running multiple instances would start multiple browser processes rather than opening a new window in the existing process. Aborting now to avoid profile corruption.
+
+[exited with code 21]
+[1026/083933.161860:WARNING:net/dns/dns_config_service_posix.cc:197] Failed to read DnsConfig.
+[1026/083933.164116:FATAL:base/apple/mach_port_rendezvous_mac.cc:159] Check failed: kr == KERN_SUCCESS. bootstrap_check_in org.chromium.Chromium.MachPortRendezvousServer.8095: Permission denied (1100)
+
+[exited with code 133]
+
+[exited with code 1]

@@ -1,0 +1,5 @@
+UTC 2026-10-26T00:01:06 KST 2026-10-26T09:01:06
+
+HTTP 204
+day6 [{'position_sec': 0.0, 'unit': 101, 'sentence_index': 0, 'completed_count': 1, 'last_completed_at': '2026-10-26T00:01:06.992839+00:00', 'last_completed_date': '2026-10-26', 'updated_at': '2026-10-26T00:01:06.992839+00:00'}]
+current_day 2 cycle 1

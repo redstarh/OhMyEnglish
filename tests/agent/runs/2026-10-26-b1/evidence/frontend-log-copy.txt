@@ -1,0 +1,28 @@
+
+> frontend@0.1.0 dev
+> next dev
+
+▲ Next.js 16.3.2 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.127:3000
+- Environments: .env.local
+✓ Ready in 249ms
+✓ Running next.config.ts took 563ms
+
+ GET /course 200 in 250ms (next.js: 181ms, application-code: 69ms)
+ GET /course 200 in 10ms (next.js: 1.1ms, application-code: 9ms)
+ GET /course 200 in 49ms (next.js: 23ms, application-code: 26ms)
+ GET /course/2 200 in 339ms (next.js: 316ms, application-code: 24ms)
+[browser] Uncaught TypeError: playerRef.current?.getCurrentTime is not a function
+    at CoursePlayer.CoursePlayer.useImperativeHandle [as currentTime] (app/course/[day]/CoursePlayer.tsx:43:45)
+    at CourseDayPage.useEffect.timer (app/course/[day]/page.tsx:207:39)
+  41 |     ref,
+  42 |     () => ({
+> 43 |       currentTime: () => playerRef.current?.getCurrentTime() ?? startRef.current,
+     |                                             ^
+  44 |       pause: () => playerRef.current?.pauseVideo(),
+  45 |     }),
+  46 |     [],
+ GET / 200 in 25ms (next.js: 8ms, application-code: 17ms)
+ GET /course 200 in 10ms (next.js: 1.8ms, application-code: 8ms)
+ GET /course/2 200 in 16ms (next.js: 3ms, application-code: 13ms)

@@ -1,0 +1,13 @@
+{
+ "clickAfterNavMs": 83,
+ "player": {
+  "iframe": true,
+  "api": true,
+  "playerHasGetCurrentTime": false,
+  "notice": "지금은 따라 하기 판정을 쓸 수 없어요. 문장은 계속 이어져요.",
+  "phase": "done"
+ },
+ "errors": [],
+ "getCurrentTimeErrors": 0,
+ "embedRequestsFailed": 1
+}

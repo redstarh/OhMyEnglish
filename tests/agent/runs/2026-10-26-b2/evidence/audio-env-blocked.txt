@@ -1,0 +1,13 @@
+회차 2026-10-26-b2 — 헤드리스 Chrome 의 오디오 스택이 동작하지 않음 (환경, 앱 결함 아님)
+
+시도 (모두 getUserMedia({audio:true}) 를 8초 race 로 호출, http://localhost:3000/robots.txt 탭):
+1. Google Chrome 155.0.8059.86 --headless=new + 지시된 플래그 (:9333, 본 회차 브라우저)      → timeout 8s
+   (관측 스크립트가 없는 새 탭에서도 같음 · 같은 탭에서 {video:true} 는 즉시 "ok fake_device_0:live")
+2. Playwright chrome-headless-shell 151.0.7922.34 + 같은 플래그 (:9334)                         → timeout 8s
+3. Google Chrome 155 + --use-file-for-fake-audio-capture=/tmp/_b2-tone.wav (:9334)             → timeout 8s
+4. Google Chrome 155 + --disable-features=AudioServiceOutOfProcess,AudioServiceSandbox (:9334) → CDP 평가 자체가 120초 안에 돌아오지 않음
+권한: navigator.permissions microphone = granted · enumerateDevices 에 Fake Default Audio Input 등 3개 보임
+같은 셸에서 osascript 'output volume' → 69 (CoreAudio 는 셸에서는 응답함)
+AudioContext: 1·본 회차 브라우저 모두 state=running 인데 currentTime 이 진행하지 않음(아래 실측)
+⇒ 앱의 VoiceIo(AudioWorklet 캡처)는 이 환경에서 프레임을 받을 수 없음.
+본 회차 브라우저(:9333) 실측: AudioContext state=running · currentTime t0=0 → 1.5초 뒤 t1=0

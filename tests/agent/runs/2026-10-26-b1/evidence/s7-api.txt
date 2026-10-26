@@ -1,0 +1,36 @@
+== valid key + 3200B PCM :: POST /sentences/u001-s1/attempts body=3200B ctype=application/octet-stream
+HTTP 503
+{"detail":"따라 하기 판정을 쓸 수 없다"}
+== unknown key u999-s1 :: POST /sentences/u999-s1/attempts body=3200B ctype=application/octet-stream
+HTTP 404
+{"detail":"sentence not found"}
+== empty body :: POST /sentences/u001-s1/attempts body=0B ctype=application/octet-stream
+HTTP 422
+{"detail":"body must be 16-bit PCM"}
+== odd length 3201B :: POST /sentences/u001-s1/attempts body=3201B ctype=application/octet-stream
+HTTP 422
+{"detail":"body must be 16-bit PCM"}
+== over max 30s+ (960002B) :: POST /sentences/u001-s1/attempts body=960002B ctype=application/octet-stream
+HTTP 413
+{"detail":"recording is too long"}
+== unknown key + empty body :: POST /sentences/u999-s1/attempts body=0B ctype=application/octet-stream
+HTTP 404
+{"detail":"sentence not found"}
+== day2 progress unit 5 :: POST /days/2/progress body=51B ctype=application/json
+HTTP 422
+{"detail":"unit is not in that day"}
+== day2 progress sentence_index 5 :: POST /days/2/progress body=52B ctype=application/json
+HTTP 422
+{"detail":[{"type":"less_than","loc":["body","sentence_index"],"msg":"Input should be less than 5","input":5,"ctx":{"lt":5}}]}
+== day2 progress position -1 :: POST /days/2/progress body=53B ctype=application/json
+HTTP 422
+{"detail":[{"type":"greater_than_equal","loc":["body","position_sec"],"msg":"Input should be greater than or equal to 0","input":-1,"ctx":{"ge":0}}]}
+== day 7 progress :: POST /days/7/progress body=52B ctype=application/json
+HTTP 404
+{"detail":"day not found"}
+== GET day 7 :: GET /days/7 body=none ctype=None
+HTTP 404
+{"detail":"day not found"}
+== GET day 0 :: GET /days/0 body=none ctype=None
+HTTP 404
+{"detail":"day not found"}

@@ -1,0 +1,4 @@
+source: function shortDate(iso) {   const [, month, day] = iso.split("-");   return `${Number(month)}/${Number(day)}`; }
+last_completed_at: 2026-10-25T23:41:22.590245+00:00
+page expression shortDate(last_completed_at.slice(0,10)) => 완료 · 10/25
+Asia/Seoul date => 2026-10-26

@@ -1,0 +1,34 @@
+{
+ "beforeWait": {
+  "unit": "Unit 22 · 현재 · 과거 시제 정리",
+  "num": "문장 5 / 5",
+  "sentence": "He is testing the app now. He tested it yesterday too.",
+  "phase": null,
+  "notice": null,
+  "prevDisabled": false,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "apiProgress": {
+  "position_sec": 0,
+  "unit": 22,
+  "sentence_index": 4,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-10-26T00:00:57.967452+00:00"
+ },
+ "afterReload": {
+  "unit": "Unit 22 · 현재 · 과거 시제 정리",
+  "num": "문장 5 / 5",
+  "sentence": "He is testing the app now. He tested it yesterday too.",
+  "phase": null,
+  "notice": null,
+  "prevDisabled": false,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "elapsedMs": 7190
+}

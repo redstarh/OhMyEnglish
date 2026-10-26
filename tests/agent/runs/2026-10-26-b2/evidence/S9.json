@@ -1,0 +1,45 @@
+{
+ "docAgeAtReady": 67,
+ "clickedStartAfterNavMs": 82,
+ "buttonReadyAfterNavMs": 71,
+ "after12s": {
+  "unit": "Unit 23 · 규칙 · 불규칙 과거형",
+  "num": "문장 3 / 5",
+  "sentence": "We met the client last Tuesday.",
+  "phase": "done",
+  "notice": "지금은 따라 하기 판정을 쓸 수 없어요. 문장은 계속 이어져요.",
+  "prevDisabled": false,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "phasesMO": [
+  {
+   "t": 81,
+   "phase": "listen",
+   "num": "문장 3 / 5"
+  },
+  {
+   "t": 2073,
+   "phase": "repeat",
+   "num": "문장 3 / 5"
+  },
+  {
+   "t": 5071,
+   "phase": "judge",
+   "num": "문장 3 / 5"
+  },
+  {
+   "t": 5074,
+   "phase": "done",
+   "num": "문장 3 / 5"
+  }
+ ],
+ "player": {
+  "iframe": true,
+  "src": "https://www.youtube.com/embed/z881DusiriA?enablejsapi=1&origin=http%3A%2F%2Flocalhost%3A3000&widgetid=1&forigin=http%3A%2F%2Flocalhost%3A3000%2Fcourse%2F2&aoriginsup=1&vf=6",
+  "YT": "object",
+  "ytLoaded": true
+ },
+ "elapsedMs": 12191
+}
