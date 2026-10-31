@@ -578,6 +578,17 @@ export default function SessionPage() {
           <button onClick={() => void startSession()} style={{ padding: "0.75rem 1.5rem" }}>
             Try again
           </button>
+          {/* 덮개 층이 사이드바를 가리므로 실패 화면에도 홈으로 가는 길을 둠 (codex 리뷰 · `TASK-298`). */}
+          <button
+            data-testid="session-failed-home"
+            onClick={() => {
+              setFailureReason(null);
+              setState("idle");
+            }}
+            style={{ padding: "0.75rem 1.5rem", marginLeft: "0.5rem" }}
+          >
+            ← Home
+          </button>
         </div>
       )}
     </main>

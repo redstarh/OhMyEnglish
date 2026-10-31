@@ -148,38 +148,37 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
         print(f"마이크 대체: {out['mic']['durationSec']}초 · rate {out['mic']['bufferRate']}")
 
         await cdp.click(
-            "Array.from(document.querySelectorAll('button'))"
-            "  .find(b => /쉐도잉/.test(b.textContent||''))",
-            "쉐도잉",
+            "document.querySelector('[data-testid=quick-shadowing]')",
+            "quick-shadowing",
         )
         out["buttons_after_entry"] = await _wait_for_button(
-            cdp, "따라 읽기", timeout_s=args.session_timeout_s
+            cdp, "Read along", timeout_s=args.session_timeout_s
         )
         print(f"세션 화면: {[b['text'] for b in out['buttons_after_entry']]}")
 
         await cdp.click(
             "Array.from(document.querySelectorAll('button'))"
-            "  .find(b => /따라 읽기/.test(b.textContent||''))",
-            "따라 읽기",
+            "  .find(b => /Read along/.test(b.textContent||''))",
+            "Read along",
         )
         played = await cdp.eval("window.__rbPlay()", await_promise=True)
         print(f"낭독 흘림: {played}초 — 끝까지 기다린다")
         await asyncio.sleep(float(played) + args.tail_wait_s)
         await cdp.click(
             "Array.from(document.querySelectorAll('button'))"
-            "  .find(b => /읽기 끝/.test(b.textContent||''))",
-            "읽기 끝",
+            "  .find(b => /Done reading/.test(b.textContent||''))",
+            "Done reading",
         )
 
         out["buttons_after_recording"] = await _wait_for_button(
-            cdp, "내 낭독 듣기", timeout_s=args.saved_timeout_s
+            cdp, "Hear my reading", timeout_s=args.saved_timeout_s
         )
         print(f"낭독 저장 뒤: {[b['text'] for b in out['buttons_after_recording']]}")
 
         await cdp.click(
             "Array.from(document.querySelectorAll('button'))"
-            "  .find(b => /낭독 판정 보기/.test(b.textContent||''))",
-            "낭독 판정 보기",
+            "  .find(b => /Check my reading/.test(b.textContent||''))",
+            "Check my reading",
         )
         # 판정은 첫 호출에 Nova 를 한 번 타므로 몇 초 걸린다 — 낱말이 뜰 때까지 기다린다.
         deadline = asyncio.get_running_loop().time() + args.judge_timeout_s
@@ -215,8 +214,8 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
         # ⛔ 세션을 닫는다 — 열어 둔 채 떠나면 서버가 계속 오디오를 받는다.
         await cdp.click(
             "Array.from(document.querySelectorAll('button'))"
-            "  .find(b => /학습 종료/.test(b.textContent||''))",
-            "학습 종료",
+            "  .find(b => /End lesson/.test(b.textContent||''))",
+            "End lesson",
         )
         await asyncio.sleep(args.tail_wait_s)
     return out

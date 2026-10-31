@@ -172,7 +172,7 @@ def fixture_expected_lines() -> list[str]:
     """A1-5 기대값을 `fixtures.py` 에서 **파싱해** 만든다 — 손 전사하지 않는다.
 
     접두는 화면이 소유한다 — `app/SessionChat.tsx` 의 `prefixFor` 가 `speaker === "agent"` 면
-    `질문`, 아니면 `답변` 을 `<strong>` 으로 그린다(`TASK-272` 부터 눈에서만 숨긴다).
+    `Coach: `, 아니면 `You: ` 를 `<strong>` 으로 그린다(`TASK-272` 부터 눈에서만 숨긴다).
     순서는 `stub.py` 가 적은 재생 순서(질문=agent final → 답변=user final)를 따른다.
     """
     import re
@@ -194,8 +194,8 @@ def fixture_expected_lines() -> list[str]:
         )
     lines: list[str] = []
     for question, answer in pairs:
-        lines.append(f"질문: {question}")
-        lines.append(f"답변: {answer}")
+        lines.append(f"Coach: {question}")
+        lines.append(f"You: {answer}")
     return lines
 
 
@@ -321,9 +321,8 @@ def main() -> int:
                 await cdp.eval("window.__omy.config.silentMic = true; true")
 
             await cdp.click(
-                "Array.from(document.querySelectorAll('button'))"
-                "  .find(b => /학습 시작/.test(b.textContent||''))",
-                "학습 시작",
+                "document.querySelector('[data-testid=start-session]')",
+                "start-session",
             )
 
             act = json.loads(
@@ -353,8 +352,8 @@ def main() -> int:
             try:
                 await cdp.click(
                     "Array.from(document.querySelectorAll('button'))"
-                    "  .find(b => /학습 종료/.test(b.textContent||''))",
-                    "학습 종료",
+                    "  .find(b => /End lesson/.test(b.textContent||''))",
+                    "End lesson",
                 )
                 end_click["ok"] = True
             except SystemExit as exc:

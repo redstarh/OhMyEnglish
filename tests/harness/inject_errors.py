@@ -92,7 +92,7 @@ INJECTIONS: dict[str, list[str]] = {
         "질문 다섯 개 더 해줘.",
         "오늘 학습 끝낼게.",
     ],
-    # E5: 오류가 없는 문장 — occurrence 0건으로 정상 done, 화면은 "표시할 교정이 없습니다"
+    # E5: 오류가 없는 문장 — occurrence 0건으로 정상 done, 화면은 "No corrections to show."
     "E5": [
         "I went to the gym after work yesterday.",
         "She usually takes the subway to the office.",

@@ -20,10 +20,10 @@ from typing import Any, cast
 
 # ⓒ 하드코딩 — `app/page.tsx:21~26` 과 글자 단위로 같아야 한다. 순서도 주입 순서다.
 BADGE_TEXT: dict[str, str] = {
-    "pending": "🔊 발음 교정 중",
-    "correct": "✓ 좋아요",
-    "incorrect": "다시 연습해요",
-    "unclear": "잘 안 들렸어요",
+    "pending": "🔊 Checking your sound…",
+    "correct": "✓ Good",
+    "incorrect": "Let's try again",
+    "unclear": "I couldn't hear you",
 }
 
 # A5-2 용. `target_sound` 는 기계 키라 **화면에 렌더되지 않아야** 한다(설계서 §10 미결 4 ·
@@ -32,7 +32,9 @@ SENTINEL = "ZZ_SENTINEL_TARGET_SOUND_ZZ"
 
 # 배지 요소는 구조로 지목한다 — 프론트 전체에 `aria-live` 가 1건뿐임을 `browser_leg.md` §5 의
 # A5-1 행이 확인해 뒀다. 전역 문구 검색을 쓰지 않는 이유도 그 행이 소유한다.
-BADGE_SELECTOR = 'p[aria-live="polite"]'
+# ⚠️ `SessionChat.tsx` 의 `Notice` 도 `p[aria-live="polite"]` 다(TASK-298 이후 aria-live 가 둘). 배지만
+# `alignSelf: "center"` 를 인라인으로 갖고 Notice 는 갖지 않으므로 style 속성으로 가른다.
+BADGE_SELECTOR = 'p[aria-live="polite"][style*="align-self"]'
 
 
 def check_badges(observed: dict[str, Any]) -> tuple[int, list[str]]:
@@ -300,9 +302,8 @@ def main() -> int:
             # ⛔ user activation 은 **CDP 클릭 1회**로만 만든다 — 같은 문서에서 합성 클릭으로
             #    재시도하면 대조 ①이 오염된다(`TASK-49` AC#2 · 5차수가 그렇게 오염됐다).
             await cdp.click(
-                "Array.from(document.querySelectorAll('button'))"
-                "  .find(b => /학습 시작/.test(b.textContent||''))",
-                "학습 시작",
+                "document.querySelector('[data-testid=start-session]')",
+                "start-session",
             )
 
             # ⛔ **user activation 을 단정한다 — c2 가 쓰는 안전장치이고 초판이 빼먹었다.**

@@ -318,9 +318,8 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
 
         # ⛔ CDP 실제 입력이다 — `eval` 의 `element.click()` 은 user activation 을 만들지 않는다.
         await cdp.click(
-            "Array.from(document.querySelectorAll('button'))"
-            "  .find(b => /학습 시작/.test(b.textContent||''))",
-            "학습 시작",
+            "document.querySelector('[data-testid=start-session]')",
+            "start-session",
         )
         act = json.loads(
             await cdp.eval(
@@ -359,8 +358,8 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
         try:
             await cdp.click(
                 "Array.from(document.querySelectorAll('button'))"
-                "  .find(b => /학습 종료/.test(b.textContent||''))",
-                "학습 종료",
+                "  .find(b => /End lesson/.test(b.textContent||''))",
+                "End lesson",
             )
             end_click["ok"] = True
         except SystemExit as exc:

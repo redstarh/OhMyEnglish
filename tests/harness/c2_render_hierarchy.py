@@ -13,7 +13,7 @@
 
 ## 이 스크립트가 지키는 규약
 
-- **대상 요소를 색으로 고르지 않는다**(§6) — 선별은 `<strong>`의 `질문: `/`답변: ` 접두로만 한다.
+- **대상 요소를 색으로 고르지 않는다**(§6) — 선별은 `<strong>`의 `Coach: `/`You: ` 접두로만 한다.
   색은 재려는 값이므로 선별에 쓰면 자기순환이다.
 - **기대값을 하드코딩하지 않는다**(§6 · AC #3) — `omy.probeColor(token)`으로 런타임에 유도한다.
 - **주입 전에 `active` 도달 후 접두 `<p>` 0개를 센다**(§6-0 · AC #4) — 클릭 전에 재면 컨테이너가
@@ -85,19 +85,17 @@ MEASURE_JS = r"""
   const omy = window.__omy;
   if (!omy) throw new Error("계측이 걸려 있지 않다 (window.__omy 부재)");
 
-  const PREFIXES = ["질문: ", "답변: "];
+  const PREFIXES = ["Coach: ", "You: "];
   const prefixed = () =>
     Array.from(document.querySelectorAll("p")).filter((p) => {
       const s = p.querySelector("strong");
       return !!s && PREFIXES.indexOf(s.textContent) !== -1;
     });
-  const reasonPs = () =>
-    Array.from(document.querySelectorAll("p")).filter((p) =>
-      (p.textContent || "").startsWith("사유: ")
-    );
+  // 실패 화면은 `data-testid=session-failed` 블록이다(옛 «사유: » <p> 는 사라졌다).
+  const reasonPs = () => Array.from(document.querySelectorAll("[data-testid=session-failed]"));
   const endButton = () =>
     Array.from(document.querySelectorAll("button")).find((b) =>
-      /학습 종료|종료 중/.test(b.textContent || "")
+      /End lesson|Ending\.\.\./.test(b.textContent || "")
     );
   const waitFor = async (fn, ms, label) => {
     const t0 = performance.now();
@@ -112,7 +110,7 @@ MEASURE_JS = r"""
 
   const t0 = performance.now();
 
-  // ① `active` 도달. 버튼 라벨이 `학습 종료`로 바뀌는 것이 그 지표다(page.tsx:346).
+  // ① `active` 도달. 버튼 라벨이 `End lesson`으로 바뀌는 것이 그 지표다(page.tsx:346).
   const activeMs = await waitFor(
     () => !!endButton(), ACTIVE_TIMEOUT_MS, "active 도달(학습 종료 버튼)"
   );
@@ -120,7 +118,7 @@ MEASURE_JS = r"""
   // 전사문 컨테이너를 **구조로** 잡는다 — 대기 문구 `<p>`의 부모다. 그 문구는 주입 뒤 사라지므로
   // 참조를 지금 붙잡아 둔다(§10-1이 요구하는 컨테이너 innerHTML의 소유자).
   const waitingP = Array.from(document.querySelectorAll("p")).find(
-    (p) => (p.textContent || "").trim() === "대화를 기다리는 중..."
+    (p) => (p.textContent || "").trim() === "Waiting for the coach..."
   );
   const container = waitingP ? waitingP.parentElement : null;
 
@@ -497,7 +495,7 @@ async def run_scheme(
 
     # ── 한 문서 = 한 세션 (`browser_leg.md` §5 A1-5). 모드마다 새로 연다.
     # ⚠️ **`errorText` 를 확인한다** (재검토 LOW-7) — 프론트가 죽어 있으면 `navigate` 는 조용히
-    #    성공하고 나중에 "학습 시작 버튼이 나타나지 않았다"로 **오진**한다. 여기서 이름 있게 죽인다.
+    #    성공하고 나중에 "start-session 버튼이 나타나지 않았다"로 **오진**한다. 여기서 이름 있게 죽인다.
     nav = await cdp.call("Page.navigate", {"url": base_url})
     if nav.get("errorText"):
         raise SystemExit(
@@ -515,13 +513,13 @@ async def run_scheme(
         ready = await cdp.eval(
             "(() => document.readyState === 'complete' &&"
             " !!Array.from(document.querySelectorAll('button'))"
-            "   .find(b => /학습 시작/.test(b.textContent||'')))()"
+            "   .find(b => b.matches('[data-testid=start-session]')))()"
         )
         if ready:
             break
         await asyncio.sleep(READY_POLL_STEP_S)
     else:
-        raise SystemExit("학습 시작 버튼이 나타나지 않았다")
+        raise SystemExit("start-session 버튼이 나타나지 않았다")
 
     reported = await cdp.eval(
         "matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'"
@@ -566,9 +564,8 @@ async def run_scheme(
     await cdp.eval(f"window.__omyStopAfterPartial = {'true' if phase == 'partial' else 'false'}")
     t_click = time.monotonic()
     await cdp.click(
-        "Array.from(document.querySelectorAll('button'))"
-        "  .find(b => /학습 시작/.test(b.textContent||''))",
-        "학습 시작",
+        "document.querySelector('[data-testid=start-session]')",
+        "start-session",
     )
     try:
         data = await cdp.eval(measure_js(), await_promise=True)
@@ -643,7 +640,7 @@ def check_leg(d: dict, phase: str) -> tuple[int, list[str]]:
     )
     need(
         before["waitingTextPresent"] is True,
-        "§6-0 의 0개가 공허하다: `대화를 기다리는 중...`이 없다"
+        "§6-0 의 0개가 공허하다: `Waiting for the coach...`가 없다"
         " — 컨테이너가 마운트되기 전에 쟀을 수 있다",
     )
     # ── 2. §6 — 창 이탈 판별. `사유:` `<p>`가 보이면 창을 넘긴 것이고 FAIL 이 아니라 ERROR 다.
@@ -742,8 +739,11 @@ def check_leg(d: dict, phase: str) -> tuple[int, list[str]]:
 
 
 def check_cross(results: list[dict]) -> tuple[int, list[str]]:
-    """A2-3 — **모드 간** 토큰이 다르다.
+    """A2-3 — **모드 간** 토큰이 같다 (테마 고정).
 
+    ⛔ 정정 2026-11-01(`TASK-298`): 이전 기대는 「두 모드의 토큰이 다르다」였음. 사용자 결정으로 앱이
+    밝은 테마만 쓰게 됐으므로(리디자인 설계서 §1-4) 기대를 뒤집음 — 어두운 모드를 흉내 내도 토큰이
+    같아야 함. 어두운 테마 미디어 쿼리가 다시 들어오면 이 단정이 잡음.
     두 모드가 없으면 평가할 수 없고 **그것은 PASS 가 아니다**(§10).
     """
     schemes = [r["emulated"] for r in results]
@@ -760,12 +760,15 @@ def check_cross(results: list[dict]) -> tuple[int, list[str]]:
         ]
     a, b = results[0], results[1]
     fails = []
-    if a["probe"]["muted1"] == b["probe"]["muted1"]:
+    if a["probe"]["muted1"] != b["probe"]["muted1"]:
         fails.append(
-            f"A2-3: 두 모드의 muted 가 같다({a['probe']['muted1']}) — 모드 전환이 안 걸렸다"
+            f"A2-3: 두 모드의 muted 가 다르다({a['probe']['muted1']} · {b['probe']['muted1']})"
+            " — 밝은 테마 고정이 깨졌다"
         )
-    if a["probe"]["fg1"] == b["probe"]["fg1"]:
-        fails.append(f"A2-3: 두 모드의 foreground 가 같다({a['probe']['fg1']})")
+    if a["probe"]["fg1"] != b["probe"]["fg1"]:
+        fails.append(
+            f"A2-3: 두 모드의 foreground 가 다르다({a['probe']['fg1']} · {b['probe']['fg1']})"
+        )
     return 2, fails
 
 
@@ -834,11 +837,11 @@ async def main_async(args) -> int:
         print(
             f"  {a['emulated']} muted={a['probe']['muted1']}"
             f" · {b['emulated']} muted={b['probe']['muted1']}"
-            f" → 서로 다름: {a['probe']['muted1'] != b['probe']['muted1']}"
+            f" → 같음(기대): {a['probe']['muted1'] == b['probe']['muted1']}"
         )
         print(
             f"  {a['emulated']} fg={a['probe']['fg1']} · {b['emulated']} fg={b['probe']['fg1']}"
-            f" → 서로 다름: {a['probe']['fg1'] != b['probe']['fg1']}"
+            f" → 같음(기대): {a['probe']['fg1'] == b['probe']['fg1']}"
         )
 
     print(f"\nraw -> {out.relative_to(ROOT)}")
@@ -868,7 +871,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--port", type=int, default=9222)
     ap.add_argument("--url", default="http://localhost:3000/")
-    ap.add_argument("--schemes", default="light,dark")
+    ap.add_argument("--schemes", default="light,dark")  # A2-3 이 두 모드에서 토큰이 같은지 봄
     # `partial` 은 **눈으로 보기 위한 회차**다 — partial 상태에서 멈춰 창 안에서 스크린샷을 뜬다.
     ap.add_argument("--phase", choices=("both", "partial"), default="both")
     args = ap.parse_args()

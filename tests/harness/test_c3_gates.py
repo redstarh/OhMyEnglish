@@ -65,8 +65,30 @@ SESSION_IDS = {
 }
 
 
+# 판독 파일은 한국어 화면을 찍은 과거 기록이라 고치지 않는다. 화면 문구가 영어로 바뀌었으므로
+# (TASK-298) 읽을 때 같은 뜻의 현재 문구로 옮겨 실행체의 기대값과 맞춘다. 딕셔너리 키 `원문`·`교정문`
+# 은 실행체 내부 이름이라 그대로 둔다(콜론이 붙은 라벨만 옮긴다).
+_RECORDED_TO_CURRENT = {
+    "원문:": "You said:",
+    "교정문:": "Better:",
+    "분석 중": "Checking…",
+    "확정": "Done",
+    "부분 실패": "Partly done",
+    "연결 실패": "Connection lost",
+    "분석 대상 없음": "Nothing to check",
+    "분석하지 못한 발화가 있습니다 — 재시도되지 않습니다": (
+        "Some of your sentences could not be checked. They will not be checked again."
+    ),
+    "그 학습 결과를 찾을 수 없습니다.": "I can't find this result.",
+    "오늘은 드릴이 계획보다 짧았어요.": "Today's drill was shorter than planned.",
+}
+
+
 def load() -> dict:
-    d = json.loads(REAL.read_text(encoding="utf-8"))
+    raw = REAL.read_text(encoding="utf-8")
+    for old, new in _RECORDED_TO_CURRENT.items():
+        raw = raw.replace(json.dumps(old, ensure_ascii=False)[1:-1], json.dumps(new, ensure_ascii=False)[1:-1])
+    d = json.loads(raw)
     assert set(d["api"]) == set(SESSION_IDS), f"판독 파일의 세션 집합이 다르다 — {sorted(d['api'])}"
     return d
 
@@ -166,13 +188,13 @@ MUTATIONS = [
     (
         "카드 라벨이 뒤바뀌었다",
         "final",
-        lambda p, m: m["cards"][0].update(strongs=["교정문:", "원문:", None]),
+        lambda p, m: m["cards"][0].update(strongs=["Better:", "You said:", None]),
         "라벨이",
     ),
     (
         "셋째 줄에 라벨이 붙었다",
         "final",
-        lambda p, m: m["cards"][0].update(strongs=["원문:", "교정문:", "이유:"]),
+        lambda p, m: m["cards"][0].update(strongs=["You said:", "Better:", "Reason:"]),
         "셋째 줄에 라벨이 있다",
     ),
     (
@@ -196,7 +218,7 @@ MUTATIONS = [
     (
         "카드 원문이 그 교정과 다르다",
         "final",
-        lambda p, m: m["cards"][0]["texts"].__setitem__(0, "원문: go to office"),
+        lambda p, m: m["cards"][0]["texts"].__setitem__(0, "You said: go to office"),
         "원문 줄이",
     ),
     # ⛔ 내비게이션 커밋 — `READ_JS` 가 url 을 담고도 아무도 단정하지 않던 자리다.

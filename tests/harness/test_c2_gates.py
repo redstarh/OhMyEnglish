@@ -63,7 +63,11 @@ def test_real_round_passes_and_checks_a_nonzero_number_of_assertions():
         assert fails == [], f"[{d['emulated']}] 실물 회차가 어긋났다: {fails}"
         assert checked >= 20, f"검사한 단정이 {checked}건뿐이다 — 게이트가 비어 있다"
         total += checked
-    checked, fails = check_cross(data)
+    # 기록된 실물 회차는 다크가 따로 있던 시절의 것이다. 밝은 테마 고정 앱의 모습(두 모드 토큰이 같음)으로
+    # 다크 쪽 토큰을 라이트 값으로 맞춰 A2-3 의 green 경로를 쓴다.
+    light_only = copy.deepcopy(data)
+    light_only[1]["probe"].update(muted1=data[0]["probe"]["muted1"], fg1=data[0]["probe"]["fg1"])
+    checked, fails = check_cross(light_only)
     assert fails == []
     total += checked
     assert total >= 40, f"전체 검사 수가 {total}건뿐이다"
@@ -196,13 +200,14 @@ def test_each_mutation_is_caught(label, mutate, expected):
     )
 
 
-def test_cross_mode_control_catches_emulation_not_applied():
-    """red — 두 모드의 토큰이 같아지면 A2-3 이 잡는다(모드 전환이 안 걸린 경우)."""
+def test_cross_mode_control_catches_tokens_that_differ_between_modes():
+    """red — 두 모드의 토큰이 다르면 A2-3 이 잡는다(밝은 테마 고정이 깨진 경우)."""
     data = copy.deepcopy(load())
-    data[1]["probe"].update(muted1=data[0]["probe"]["muted1"], fg1=data[0]["probe"]["fg1"])
+    data[1]["probe"].update(muted1="rgb(1, 2, 3)", fg1="rgb(4, 5, 6)")
+    data[0]["probe"].update(muted1="rgb(9, 9, 9)", fg1="rgb(8, 8, 8)")
     _, fails = check_cross(data)
-    assert any("두 모드의 muted 가 같다" in m for m in fails), fails
-    assert any("두 모드의 foreground 가 같다" in m for m in fails), fails
+    assert any("muted 가 다르다" in m for m in fails), fails
+    assert any("foreground 가 다르다" in m for m in fails), fails
 
 
 def test_single_mode_run_is_not_a_pass():

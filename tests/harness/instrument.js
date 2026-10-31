@@ -279,7 +279,7 @@
   // ── 4. 확정 줄 스냅샷 ───────────────────────────────────────────────────────
   // 대상 요소는 **색이 아니라 접두 구조로** 고른다(§7-5 N-1 — 색으로 고르면 재려는 값이 선별
   // 기준이 되어 자기순환이다).
-  const LINE_PREFIXES = ["질문: ", "답변: "];
+  const LINE_PREFIXES = ["Coach: ", "You: "];
   const prefixedLines = () =>
     Array.from(document.querySelectorAll("p")).filter((p) => {
       const strong = p.querySelector("strong");

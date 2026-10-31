@@ -51,19 +51,19 @@ EVIDENCE = ROOT / ".harness" / "evidence"
 # ⓒ 하드코딩 — 화면이 소유하는 한국어 문구다(`results/[sessionId]/page.tsx:22~28`). API는
 # 기계값(`status`)만 준다. **요소 지목 + 등호**로 재므로 전역 검색의 항진명제 경로는 닫혀 있다.
 STATUS_LABEL = {
-    "analyzing": "분석 중",
-    "final": "확정",
-    "partial_failure": "부분 실패",
-    "connection_failed": "연결 실패",
-    "no_utterances": "분석 대상 없음",
+    "analyzing": "Checking…",
+    "final": "Done",
+    "partial_failure": "Partly done",
+    "connection_failed": "Connection lost",
+    "no_utterances": "Nothing to check",
 }
-PARTIAL_NOTICE = "분석하지 못한 발화가 있습니다 — 재시도되지 않습니다"
+PARTIAL_NOTICE = "Some of your sentences could not be checked. They will not be checked again."
 # 없는 세션 화면의 문구 — TASK-55 로 바뀌었다. 이전 값은 `결과 API가 404을 반환했습니다`로
 # HTTP 상태 코드를 학습자에게 그대로 보여줬다. 지금 화면은 상태 코드를 **분류에만** 쓰고
 # 문구는 자기가 소유한다(`results/[sessionId]/page.tsx`의 `failureNotice`).
-MISSING_NOTICE = "그 학습 결과를 찾을 수 없습니다."
+MISSING_NOTICE = "I can't find this result."
 # ⓒ 하드코딩 — 드릴 미달 안내(설계서 §2.3 · 캡틴 결정 10). 화면이 소유하는 한국어 문구다.
-DRILL_SHORTFALL_NOTICE = "오늘은 드릴이 계획보다 짧았어요."
+DRILL_SHORTFALL_NOTICE = "Today's drill was shorter than planned."
 MISSING_UUID = "00000000-0000-0000-0000-0000000000ff"
 
 READ_JS = r"""
@@ -76,7 +76,7 @@ READ_JS = r"""
     return s ? s.textContent : null;
   };
   const isCard = (d) =>
-    Array.from(d.children).some((c) => c.tagName === "P" && strongOf(c) === "원문:");
+    Array.from(d.children).some((c) => c.tagName === "P" && strongOf(c) === "You said:");
   const cards = Array.from(document.querySelectorAll("div")).filter(isCard);
   const countPrefix = (label) =>
     Array.from(document.querySelectorAll("p")).filter((p) => strongOf(p) === label).length;
@@ -87,7 +87,7 @@ READ_JS = r"""
       ? { text: directPs[0].textContent, outerHTML: directPs[0].outerHTML }
       : null,
     directPTexts: directPs.map((p) => p.textContent),
-    prefixCounts: { 원문: countPrefix("원문:"), 교정문: countPrefix("교정문:") },
+    prefixCounts: { 원문: countPrefix("You said:"), 교정문: countPrefix("Better:") },
     cards: cards.map((d) => {
       const ps = Array.from(d.children).filter((e) => e.tagName === "P");
       return {
@@ -205,7 +205,7 @@ def check_screen(payload: dict, dom: dict, session_id: str) -> tuple[int, list[s
             continue
         need(card["pCount"] == 3, f"A4-1: 카드[{i}] 의 <p> 가 {card['pCount']}개다 (3이어야 한다)")
         need(
-            card["strongs"][:2] == ["원문:", "교정문:"],
+            card["strongs"][:2] == ["You said:", "Better:"],
             f"A4-1: 카드[{i}] 의 라벨이 {card['strongs'][:2]!r} 다",
         )
         if card["pCount"] >= 3:
@@ -228,7 +228,7 @@ def check_screen(payload: dict, dom: dict, session_id: str) -> tuple[int, list[s
             need(third == expected_reason, f"A4-2: 카드[{i}] 셋째 줄 != API reason")
             # 카드가 실제로 그 교정을 담는지 — 원문도 함께 맞춘다(카드끼리 뒤바뀜 검출).
             need(
-                card["texts"][0] == f"원문: {payload['corrections'][i]['original_span']}",
+                card["texts"][0] == f"You said: {payload['corrections'][i]['original_span']}",
                 f"A4-2: 카드[{i}] 원문 줄이 corrections[{i}] 와 다르다 — 카드 순서가 뒤바뀌었다",
             )
     return checked, fails

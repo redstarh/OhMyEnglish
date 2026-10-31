@@ -129,7 +129,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--port", type=int, default=9222)
     ap.add_argument("--url-substring", default="localhost:3000")
-    ap.add_argument("--schemes", default="light,dark")
+    ap.add_argument("--schemes", default="light")
     ap.add_argument("--shot-prefix", default=None)
     args = ap.parse_args()
 
