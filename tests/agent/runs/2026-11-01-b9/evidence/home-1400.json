@@ -1,0 +1,322 @@
+{
+ "apiStatus": {
+  "/api/history": 200,
+  "/api/weekly-report": 200,
+  "/api/course": 200,
+  "/api/sessions/next-plan": 200,
+  "/api/daily-summary": 200
+ },
+ "cells": {
+  "home-date": {
+   "state": null,
+   "text": "SUN, NOV 1"
+  },
+  "home-streak": {
+   "state": "ready",
+   "text": "1 day in a row"
+  },
+  "home-hero-reason": {
+   "state": null,
+   "text": "Let's talk in English."
+  },
+  "home-level": {
+   "state": null,
+   "text": "Speaking"
+  },
+  "home-course-progress": {
+   "state": "ready",
+   "text": "1 / 6 days"
+  },
+  "home-week-days": {
+   "state": "ready",
+   "text": "This week: 1 / 7 days"
+  },
+  "stat-sessions": {
+   "state": null,
+   "text": "0 Sessions"
+  },
+  "stat-best-streak": {
+   "state": null,
+   "text": "1 Best streak"
+  },
+  "stat-patterns": {
+   "state": null,
+   "text": "0 Patterns"
+  },
+  "home-weekly-stats": {
+   "state": "ready",
+   "text": "0 Sessions 1 Best streak 0 Patterns Weekly report · week of Oct 19"
+  },
+  "home-path": {
+   "state": "ready",
+   "text": "Continue your path Small steps, real conversations. View all DAY 1 Day 1 · In progress Units 1–21 60 min Day 2 · Done Units 22–41 63 min"
+  },
+  "home-focus": {
+   "state": "empty",
+   "text": "Focus patterns Your coach is watching these. No patterns yet. Start speaking to find them. Practice a pattern"
+  }
+ },
+ "pathDays": [
+  {
+   "tid": "path-day-1",
+   "status": "started",
+   "href": "/course/1",
+   "text": "DAY 1 Day 1 · In progress Units 1–21 60 min"
+  },
+  {
+   "tid": "path-day-2",
+   "status": "done",
+   "href": "/course/2",
+   "text": "Day 2 · Done Units 22–41 63 min"
+  }
+ ],
+ "barWidth": "17%",
+ "quick": [
+  {
+   "tid": "quick-shadowing",
+   "tag": "BUTTON",
+   "href": null,
+   "disabled": false,
+   "text": "Speak Shadow a sentence Listen, repeat, make it yours."
+  },
+  {
+   "tid": "quick-videos",
+   "tag": "A",
+   "href": "/videos",
+   "disabled": null,
+   "text": "Watch Listen & notice Hear real English in short clips."
+  },
+  {
+   "tid": "quick-weak-patterns",
+   "tag": "BUTTON",
+   "href": null,
+   "disabled": false,
+   "text": "Review Repair your mistakes Fix one mistake. Make it a habit."
+  },
+  {
+   "tid": "practice-free_talk",
+   "tag": "BUTTON",
+   "href": null,
+   "disabled": false,
+   "text": "Free talk"
+  },
+  {
+   "tid": "practice-weak_patterns",
+   "tag": "BUTTON",
+   "href": null,
+   "disabled": false,
+   "text": "Weak spots"
+  },
+  {
+   "tid": "practice-five_questions",
+   "tag": "BUTTON",
+   "href": null,
+   "disabled": false,
+   "text": "5 questions"
+  },
+  {
+   "tid": "practice-pronunciation",
+   "tag": "BUTTON",
+   "href": null,
+   "disabled": false,
+   "text": "Pronunciation"
+  },
+  {
+   "tid": "practice-shadowing",
+   "tag": "BUTTON",
+   "href": null,
+   "disabled": false,
+   "text": "Shadowing"
+  },
+  {
+   "tid": "practice-videos",
+   "tag": "A",
+   "href": "/videos",
+   "disabled": null,
+   "text": "Learn with videos"
+  },
+  {
+   "tid": "practice-course",
+   "tag": "A",
+   "href": "/course",
+   "disabled": null,
+   "text": "Grammar course"
+  },
+  {
+   "tid": "practice-roleplay",
+   "tag": "BUTTON",
+   "href": null,
+   "disabled": true,
+   "text": "Work role-play (Not ready yet)"
+  }
+ ],
+ "expected": {
+  "streak": "1 day in a row",
+  "reason": "Let's talk in English.",
+  "level": "Speaking",
+  "course": "1 / 6 days",
+  "bar": "17%",
+  "week": "This week: 1 / 7 days",
+  "sessions": "0",
+  "best": "1",
+  "patterns": "0",
+  "currentDay": 1,
+  "focusEmpty": true,
+  "weeklyMetrics": {
+   "top_patterns": [],
+   "pattern_count": 0,
+   "session_count": 0,
+   "occurrence_count": 0
+  }
+ },
+ "got": {
+  "streak": "1 day in a row",
+  "reason": "Let's talk in English.",
+  "level": "Speaking",
+  "course": "1 / 6 days",
+  "week": "This week: 1 / 7 days",
+  "sessions": "0",
+  "best": "1",
+  "patterns": "0"
+ },
+ "compare": {
+  "streak": true,
+  "reason": true,
+  "level": true,
+  "course": true,
+  "week": true,
+  "sessions": true,
+  "best": true,
+  "patterns": true,
+  "focus": true
+ },
+ "fakeHits": [],
+ "hangul": [],
+ "overflow": {
+  "sw": 1400,
+  "cw": 1400,
+  "wide": []
+ },
+ "layout": [
+  [
+   "home-hero",
+   296,
+   128,
+   669
+  ],
+  [
+   "home-progress",
+   985,
+   128,
+   367
+  ],
+  [
+   "home-path",
+   296,
+   443,
+   668
+  ],
+  [
+   "home-focus",
+   996,
+   443,
+   356
+  ],
+  [
+   "quick-shadowing",
+   296,
+   707,
+   339
+  ],
+  [
+   "quick-videos",
+   655,
+   707,
+   339
+  ],
+  [
+   "quick-weak-patterns",
+   1013,
+   707,
+   339
+  ],
+  [
+   "home-more-practice",
+   296,
+   897,
+   1056
+  ]
+ ],
+ "navVisible": [
+  [
+   "nav-home",
+   2,
+   [
+    true,
+    false
+   ],
+   [
+    20,
+    143,
+    207,
+    "page"
+   ]
+  ],
+  [
+   "nav-practice",
+   2,
+   [
+    true,
+    false
+   ],
+   [
+    20,
+    191,
+    207,
+    null
+   ]
+  ],
+  [
+   "nav-review",
+   2,
+   [
+    true,
+    false
+   ],
+   [
+    20,
+    238,
+    207,
+    null
+   ]
+  ],
+  [
+   "nav-progress",
+   2,
+   [
+    true,
+    false
+   ],
+   [
+    20,
+    286,
+    207,
+    null
+   ]
+  ]
+ ],
+ "logs": [
+  {
+   "t": 1793475666225,
+   "kind": "console.info",
+   "url": null,
+   "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+  },
+  {
+   "t": 1793475666253,
+   "kind": "console.log",
+   "url": null,
+   "text": "[HMR] connected"
+  }
+ ]
+}

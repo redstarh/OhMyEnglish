@@ -1,0 +1,12 @@
+{
+ "failed": "microphone_permission_denied",
+ "wsBeforeRetry": [
+  "ws://localhost:3000/_next/hmr?id=7FJhJx53L47F--UTnZ__Y"
+ ],
+ "gumCalls": 2,
+ "pathAfterRetry": "/results/ac2f382a-69c3-4089-968f-797578dfcdd9",
+ "wsAfterRetry": [
+  "ws://localhost:8002/ws/session"
+ ],
+ "logs": []
+}

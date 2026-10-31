@@ -1,0 +1,101 @@
+{
+ "navHomeCenter": [
+  124,
+  165
+ ],
+ "click": true,
+ "coverAtSidebar": {
+  "overlay": true,
+  "z": "50",
+  "pos": "fixed",
+  "hitInsideOverlay": true,
+  "hitIsNav": false,
+  "hitTag": "DIV"
+ },
+ "mo": [
+  [
+   1,
+   "/",
+   true,
+   null
+  ],
+  [
+   104,
+   "/results/cb4d2f5e-8aac-41bc-a228-78200f9de632",
+   false,
+   null
+  ]
+ ],
+ "lines": [
+  [
+   "Coach: What do you usually do after work?",
+   90
+  ],
+  [
+   "You: I usually",
+   45
+  ],
+  [
+   "You: I usually go to",
+   51
+  ],
+  [
+   "You: I usually go to gym after work.",
+   90
+  ],
+  [
+   "Coach: What do you usually do on weekends?",
+   90
+  ],
+  [
+   "You: I usually go to office by subway.",
+   90
+  ],
+  [
+   "Coach: What do you need to do tonight?",
+   90
+  ],
+  [
+   "You: I need to finish",
+   55
+  ],
+  [
+   "You: I need to finish my homework tonight.",
+   90
+  ]
+ ],
+ "overlayTexts": [
+  "OhMyEnglish — Practice session",
+  "Asking for your microphone...",
+  "English talk",
+  "End lesson",
+  "Waiting for the coach...",
+  "Just speak. No need to press anything.",
+  "Pronunciation practice started. The coach will pick a sound from your talk.",
+  "AI",
+  "Coach:",
+  "What do you usually do after work?",
+  "Listen",
+  "Translate",
+  "You:",
+  "I usually",
+  "I usually go to",
+  "I usually go to gym after work.",
+  "What do you usually do on weekends?",
+  "I usually go to office by subway.",
+  "What do you need to do tonight?",
+  "I need to finish",
+  "I need to finish my homework tonight."
+ ],
+ "path": "/results/cb4d2f5e-8aac-41bc-a228-78200f9de632",
+ "resultsText": "Your results\n\nChecking…\n\nYou finished today — 9 scenes\n\n← Home\n\nHistory →",
+ "resultsHangul": [],
+ "resultsActiveNav": [
+  "nav-review"
+ ],
+ "webSockets": [
+  "ws://localhost:3000/_next/hmr?id=jcXAm-TAbpxHkZZp8zRFf",
+  "ws://localhost:8002/ws/session?mode=pronunciation&source=additional"
+ ],
+ "logs": []
+}

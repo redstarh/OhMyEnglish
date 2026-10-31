@@ -1,0 +1,98 @@
+{
+ "navHomeCenter": [
+  124,
+  165
+ ],
+ "click": true,
+ "coverAtSidebar": {
+  "overlay": true,
+  "z": "50",
+  "pos": "fixed",
+  "hitInsideOverlay": true,
+  "hitIsNav": false,
+  "hitTag": "DIV"
+ },
+ "mo": [
+  [
+   1,
+   "/",
+   true,
+   null
+  ],
+  [
+   97,
+   "/results/dd9d247c-8743-413f-9384-a6a999144c62",
+   false,
+   null
+  ]
+ ],
+ "lines": [
+  [
+   "Coach: What do you usually do after work?",
+   82
+  ],
+  [
+   "You: I usually",
+   36
+  ],
+  [
+   "You: I usually go to",
+   41
+  ],
+  [
+   "You: I usually go to gym after work.",
+   82
+  ],
+  [
+   "Coach: What do you usually do on weekends?",
+   82
+  ],
+  [
+   "You: I usually go to office by subway.",
+   82
+  ],
+  [
+   "Coach: What do you need to do tonight?",
+   82
+  ],
+  [
+   "You: I need to finish my homework tonight.",
+   82
+  ]
+ ],
+ "overlayTexts": [
+  "OhMyEnglish — Practice session",
+  "Asking for your microphone...",
+  "English talk",
+  "End lesson",
+  "Waiting for the coach...",
+  "Just speak. No need to press anything.",
+  "A morning routine before work",
+  "I usually wake up at seven. First, I check my phone for messages. Then I make a cup of coffee. After that, I get ready for work. The bus stop is close to my house. It takes about thirty minutes to get",
+  "Listen",
+  "Read along",
+  "AI",
+  "Coach:",
+  "What do you usually do after work?",
+  "Translate",
+  "You:",
+  "I usually",
+  "I usually go to",
+  "I usually go to gym after work.",
+  "What do you usually do on weekends?",
+  "I usually go to office by subway.",
+  "What do you need to do tonight?",
+  "I need to finish my homework tonight."
+ ],
+ "path": "/results/dd9d247c-8743-413f-9384-a6a999144c62",
+ "resultsText": "Your results\n\nChecking…\n\nYou finished today — 8 scenes\n\n← Home\n\nHistory →",
+ "resultsHangul": [],
+ "resultsActiveNav": [
+  "nav-review"
+ ],
+ "webSockets": [
+  "ws://localhost:3000/_next/hmr?id=iEqeJSXpKbP9SgawF5f0P",
+  "ws://localhost:8002/ws/session?mode=shadowing&source=additional"
+ ],
+ "logs": []
+}

@@ -1,0 +1,44 @@
+{
+ "videosEmptyText": "← Home\nLearn with videos\n\nPaste a YouTube link to save a video. Write down the parts you can't hear. Then practice them.\n\nYouTube link\nCheck\n\nNo videos yet. Paste a YouTube link below.",
+ "videosEmptyHangul": [],
+ "afterCheck": "← Home\nLearn with videos\n\nPaste a YouTube link to save a video. Write down the parts you can't hear. Then practice them.\n\nYouTube link\nCheck\n\n🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 유즈 베이직 mp3\nA Shot of English\n\nSave Cancel\n\nNo videos yet. Paste a YouTube link below.",
+ "videosListText": "← Home\nLearn with videos\n\nPaste a YouTube link to save a video. Write down the parts you can't hear. Then practice them.\n\nYouTube link\nCheck\n\nSaved!\n\n🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 유즈 베이직 mp3\n\nA Shot of English · 0 saved sentences\n\nDelete",
+ "videosListHangul": [
+  {
+   "text": "🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 유즈 베이직 mp3",
+   "tid": null
+  }
+ ],
+ "videoHref": "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+ "videoDetailText": "← Videos\n🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 유즈 베이직 mp3\n\nA Shot of English\n\nMark start\nSaved sentences\n\nNo saved sentences yet. Mark a part you can't hear.",
+ "videoDetailHangul": [
+  {
+   "text": "🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 유즈 베이직 mp3",
+   "tid": null
+  },
+  {
+   "attr": "title",
+   "text": "🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 유즈 베이직 mp3",
+   "tid": null
+  }
+ ],
+ "videoDetailButtons": [
+  "Mark start"
+ ],
+ "historyText": "History\n\n1-day streak!\n\nBest streak: 1 day\n\n2026-11-01 · Studied\nNot checked\n2026-10-31\n2026-10-30\n2026-10-29\n2026-10-28\n2026-10-27\n2026-10-26\n2026-10-25\n2026-10-24\n2026-10-23\n2026-10-22\n2026-10-21\n2026-10-20\n2026-10-19\n2026-10-18\n2026-10-17\n2026-10-16\n2026-10-15\n2026-10-14\n2026-10-13\n2026-10-12\n2026-10-11\n2026-10-10\n2026-10-09\n2026-10-08\n2026-10-07\n2026-10-06\n2026-10-05\n2026-10-04\n2026-10-03\n\nWeekly report →\n\n← Home",
+ "historyHangul": [],
+ "weeklyText": "Weekly report\n\n10/19 ~ 10/25\n\nLessons 0 · Mistakes 0 · Patterns 0\n\nCommon mistakes this week\n\nNothing to show for this week.\n\nGetting better\n\nNothing to show for this week.\n\nTry next week\n\nNothing to show for this week.\n\n← History",
+ "weeklyHangul": [],
+ "logs": [
+  [
+   "log.error",
+   "http://localhost:8002/api/daily-summary",
+   "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  ],
+  [
+   "log.error",
+   "http://localhost:8002/api/daily-summary",
+   "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  ]
+ ]
+}

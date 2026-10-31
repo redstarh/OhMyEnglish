@@ -1,0 +1,34 @@
+[
+{
+"id": "190b15a8-062b-47f2-a131-bd7c1fd34572",
+"mode": "shadowing",
+"learning_source": "additional",
+"started_via": "ui",
+"shadowing_item_id": "00000000-0000-0000-0000-000000000201",
+"started_at": "2026-10-31 19:53:15.588783+00"
+},
+{
+"id": "9057bf0d-6863-4beb-9421-1aaad12263a7",
+"mode": "pronunciation",
+"learning_source": "additional",
+"started_via": "ui",
+"shadowing_item_id": null,
+"started_at": "2026-10-31 19:53:15.83568+00"
+},
+{
+"id": "a1df128d-00a5-4912-93f5-f62011a4ef7e",
+"mode": "speaking",
+"learning_source": "recommended",
+"started_via": "ui",
+"shadowing_item_id": null,
+"started_at": "2026-10-31 19:53:16.057578+00"
+},
+{
+"id": "28b8d8af-3ab0-40c1-9516-1151606811f8",
+"mode": "speaking",
+"learning_source": "recommended",
+"started_via": "ui",
+"shadowing_item_id": null,
+"started_at": "2026-10-31 19:53:30.124195+00"
+}
+]

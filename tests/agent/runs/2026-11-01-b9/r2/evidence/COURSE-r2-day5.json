@@ -1,0 +1,431 @@
+{
+ "listText": "← Home\nGrammar in Use BASIC\nRound 1\n\n6 videos · 113 units · Listen and say each sentence\n\nDay 1 · Unit 1–21 · 60 min\nUnit 1 · Sentence 1 · 0:06\nContinue ▶\nDay 2 · Unit 22–41 · 63 min\nDone · 11/1\nStart\nDay 3 · Unit 42–62 · 69 min\nUnit 42 · Sentence 1 · 2:42\nStart\nDay 4 · Unit 63–82 · 63 min\nUnit 63 · Sentence 1 · 0:54\nStart\nDay 5 · Unit 83–100 · 58 min\nUnit 83 · Sentence 1 · 0:06\nStart\nDay 6 · Unit 101–113 · 43 min\nDone · 11/1\nStart\nYour practice · Tries per day\nLess\nMore\nDate\tDay\tUnits\tSentences\n11/1\t1\t1\t3 sentences · 7 tries",
+ "listDays": [
+  "Day 1 · Unit 1–21 · 60 min Unit 1 · Sentence 1 · 0:06 Continue ▶",
+  "Day 2 · Unit 22–41 · 63 min Done · 11/1 Start",
+  "Day 3 · Unit 42–62 · 69 min Unit 42 · Sentence 1 · 2:42 Start",
+  "Day 4 · Unit 63–82 · 63 min Unit 63 · Sentence 1 · 0:54 Start",
+  "Day 5 · Unit 83–100 · 58 min Unit 83 · Sentence 1 · 0:06 Start",
+  "Day 6 · Unit 101–113 · 43 min Done · 11/1 Start"
+ ],
+ "listHangul": [],
+ "apiDayBefore": {
+  "day": 5,
+  "first_unit": 83,
+  "last_unit": 100,
+  "duration_sec": 3484,
+  "progress": {
+   "position_sec": 6.61,
+   "unit": 83,
+   "sentence_index": 0,
+   "completed_count": 0,
+   "last_completed_at": null,
+   "last_completed_date": null,
+   "updated_at": "2026-10-31T17:39:06.007549+00:00"
+  }
+ },
+ "manualStart": {
+  "unit": "Unit 83 · 형용사 위치",
+  "num": "Sentence 1 / 5",
+  "attempts": "Try 0",
+  "phase": null,
+  "phaseText": null,
+  "notice": null,
+  "sentence": "We moved into a bright office.",
+  "buttons": [
+   "course-mode-auto",
+   "course-mode-manual",
+   "course-listen",
+   "course-slow",
+   "course-prev(off)",
+   "course-start",
+   "course-next"
+  ]
+ },
+ "dayHangul": [
+  {
+   "text": "형용사 위치",
+   "tid": "course-unit"
+  }
+ ],
+ "atRepeat": {
+  "ms": 2344,
+  "unit": "Unit 83 · 형용사 위치",
+  "num": "Sentence 1 / 5",
+  "attempts": "Try 0",
+  "phase": "repeat",
+  "phaseText": "② Say it · 3.3s",
+  "notice": null,
+  "sentence": "We moved into a bright office.",
+  "buttons": [
+   "course-mode-auto",
+   "course-mode-manual",
+   "course-listen",
+   "course-slow",
+   "course-prev(off)",
+   "course-retry",
+   "course-next"
+  ]
+ },
+ "manualDone1": {
+  "unit": "Unit 83 · 형용사 위치",
+  "num": "Sentence 1 / 5",
+  "attempts": "Try 0",
+  "phase": "done",
+  "phaseText": "③ Check",
+  "notice": "I can't check your speaking now. You can keep going.",
+  "sentence": "We moved into a bright office.",
+  "buttons": [
+   "course-mode-auto",
+   "course-mode-manual",
+   "course-listen",
+   "course-slow",
+   "course-prev(off)",
+   "course-retry",
+   "course-next"
+  ]
+ },
+ "manualDone2": {
+  "unit": "Unit 83 · 형용사 위치",
+  "num": "Sentence 1 / 5",
+  "attempts": "Try 0",
+  "phase": "done",
+  "phaseText": "③ Check",
+  "notice": "I can't check your speaking now. You can keep going.",
+  "sentence": "We moved into a bright office.",
+  "buttons": [
+   "course-mode-auto",
+   "course-mode-manual",
+   "course-listen",
+   "course-slow",
+   "course-prev(off)",
+   "course-retry",
+   "course-next"
+  ]
+ },
+ "afterNext": {
+  "unit": "Unit 83 · 형용사 위치",
+  "num": "Sentence 2 / 5",
+  "attempts": "Try 0",
+  "phase": null,
+  "phaseText": null,
+  "notice": null,
+  "sentence": "She has a new car.",
+  "buttons": [
+   "course-mode-auto",
+   "course-mode-manual",
+   "course-listen",
+   "course-slow",
+   "course-prev",
+   "course-start",
+   "course-next"
+  ]
+ },
+ "manualDone3": {
+  "unit": "Unit 83 · 형용사 위치",
+  "num": "Sentence 2 / 5",
+  "attempts": "Try 0",
+  "phase": "done",
+  "phaseText": "③ Check",
+  "notice": "I can't check your speaking now. You can keep going.",
+  "sentence": "She has a new car.",
+  "buttons": [
+   "course-mode-auto",
+   "course-mode-manual",
+   "course-listen",
+   "course-slow",
+   "course-prev",
+   "course-retry",
+   "course-next"
+  ]
+ },
+ "afterPrev": {
+  "unit": "Unit 83 · 형용사 위치",
+  "num": "Sentence 1 / 5",
+  "attempts": "Try 0",
+  "phase": null,
+  "phaseText": null,
+  "notice": null,
+  "sentence": "We moved into a bright office.",
+  "buttons": [
+   "course-mode-auto",
+   "course-mode-manual",
+   "course-listen",
+   "course-slow",
+   "course-prev(off)",
+   "course-start",
+   "course-next"
+  ]
+ },
+ "autoBefore": {
+  "unit": "Unit 83 · 형용사 위치",
+  "num": "Sentence 1 / 5",
+  "attempts": "Try 0",
+  "phase": null,
+  "phaseText": null,
+  "notice": null,
+  "sentence": "We moved into a bright office.",
+  "buttons": [
+   "course-mode-auto",
+   "course-mode-manual",
+   "course-listen",
+   "course-slow",
+   "course-prev(off)",
+   "course-start",
+   "course-next"
+  ]
+ },
+ "autoSecondRepeat": {
+  "unit": "Unit 83 · 형용사 위치",
+  "num": "Sentence 2 / 5",
+  "attempts": "Try 0",
+  "phase": "repeat",
+  "phaseText": "② Say it · 2.3s",
+  "notice": null,
+  "sentence": "She has a new car.",
+  "buttons": [
+   "course-mode-auto",
+   "course-mode-manual",
+   "course-listen",
+   "course-slow",
+   "course-prev",
+   "course-retry",
+   "course-next"
+  ]
+ },
+ "autoMo": [
+  [
+   15411,
+   "listen|Sentence 1 / 5|"
+  ],
+  [
+   17281,
+   "repeat|Sentence 1 / 5|"
+  ],
+  [
+   20150,
+   "judge|Sentence 1 / 5|"
+  ],
+  [
+   20157,
+   "done|Sentence 1 / 5|I can't check your speaking now. You can keep going."
+  ],
+  [
+   21659,
+   "listen|Sentence 2 / 5|"
+  ],
+  [
+   22954,
+   "repeat|Sentence 2 / 5|"
+  ]
+ ],
+ "posts": [
+  [
+   1793476425276,
+   "Fetch",
+   200,
+   "/api/course/days/5"
+  ],
+  [
+   1793476425277,
+   "Fetch",
+   200,
+   "/api/course/days/5"
+  ],
+  [
+   1793476430283,
+   "Preflight",
+   200,
+   "/api/course/days/5/progress"
+  ],
+  [
+   1793476430287,
+   "Fetch",
+   204,
+   "/api/course/days/5/progress"
+  ],
+  [
+   1793476431246,
+   "Preflight",
+   200,
+   "/api/course/sentences/u083-s1/attempts"
+  ],
+  [
+   1793476431272,
+   "Fetch",
+   503,
+   "/api/course/sentences/u083-s1/attempts"
+  ],
+  [
+   1793476431273,
+   "Preflight",
+   200,
+   "/api/course/days/5/progress"
+  ],
+  [
+   1793476431273,
+   "Fetch",
+   204,
+   "/api/course/days/5/progress"
+  ],
+  [
+   1793476435278,
+   "Preflight",
+   200,
+   "/api/course/days/5/progress"
+  ],
+  [
+   1793476435280,
+   "Fetch",
+   204,
+   "/api/course/days/5/progress"
+  ],
+  [
+   1793476436009,
+   "Preflight",
+   200,
+   "/api/course/sentences/u083-s1/attempts"
+  ],
+  [
+   1793476436020,
+   "Fetch",
+   503,
+   "/api/course/sentences/u083-s1/attempts"
+  ],
+  [
+   1793476436021,
+   "Preflight",
+   200,
+   "/api/course/days/5/progress"
+  ],
+  [
+   1793476436021,
+   "Fetch",
+   204,
+   "/api/course/days/5/progress"
+  ],
+  [
+   1793476436046,
+   "Preflight",
+   200,
+   "/api/course/days/5/progress"
+  ],
+  [
+   1793476436047,
+   "Fetch",
+   204,
+   "/api/course/days/5/progress"
+  ],
+  [
+   1793476439946,
+   "Preflight",
+   200,
+   "/api/course/sentences/u083-s2/attempts"
+  ],
+  [
+   1793476439965,
+   "Fetch",
+   503,
+   "/api/course/sentences/u083-s2/attempts"
+  ],
+  [
+   1793476439965,
+   "Preflight",
+   200,
+   "/api/course/days/5/progress"
+  ],
+  [
+   1793476439965,
+   "Fetch",
+   204,
+   "/api/course/days/5/progress"
+  ],
+  [
+   1793476439970,
+   "Preflight",
+   200,
+   "/api/course/days/5/progress"
+  ],
+  [
+   1793476439976,
+   "Fetch",
+   204,
+   "/api/course/days/5/progress"
+  ],
+  [
+   1793476440284,
+   "Preflight",
+   200,
+   "/api/course/days/5/progress"
+  ],
+  [
+   1793476440289,
+   "Fetch",
+   204,
+   "/api/course/days/5/progress"
+  ],
+  [
+   1793476445280,
+   "Preflight",
+   200,
+   "/api/course/days/5/progress"
+  ],
+  [
+   1793476445284,
+   "Fetch",
+   204,
+   "/api/course/days/5/progress"
+  ],
+  [
+   1793476445332,
+   "Preflight",
+   200,
+   "/api/course/sentences/u083-s1/attempts"
+  ],
+  [
+   1793476445356,
+   "Fetch",
+   503,
+   "/api/course/sentences/u083-s1/attempts"
+  ],
+  [
+   1793476445356,
+   "Preflight",
+   200,
+   "/api/course/days/5/progress"
+  ],
+  [
+   1793476445356,
+   "Fetch",
+   204,
+   "/api/course/days/5/progress"
+  ]
+ ],
+ "homeCourseAfter": "2 / 6 days",
+ "logs": [
+  {
+   "t": 1793476431272,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u083-s1/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793476436020,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u083-s1/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793476439965,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u083-s2/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793476445356,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u083-s1/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  }
+ ]
+}

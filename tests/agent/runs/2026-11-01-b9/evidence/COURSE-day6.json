@@ -1,0 +1,1242 @@
+{
+ "listText": "← Home\nGrammar in Use BASIC\nRound 1\n\n6 videos · 113 units · Listen and say each sentence\n\nDay 1 · Unit 1–21 · 60 min\nUnit 1 · Sentence 1 · 0:06\nContinue ▶\nDay 2 · Unit 22–41 · 63 min\nDone · 11/1\nStart\nDay 3 · Unit 42–62 · 69 min\nUnit 42 · Sentence 1 · 2:42\nStart\nDay 4 · Unit 63–82 · 63 min\nUnit 63 · Sentence 1 · 0:54\nStart\nDay 5 · Unit 83–100 · 58 min\nUnit 83 · Sentence 1 · 0:06\nStart\nDay 6 · Unit 101–113 · 43 min\nUnit 101 · Sentence 1 · 0:06\nStart\nYour practice · Tries per day\nLess\nMore\nDate\tDay\tUnits\tSentences\n11/1\t1\t1\t3 sentences · 7 tries",
+ "listDays": [
+  "Day 1 · Unit 1–21 · 60 min Unit 1 · Sentence 1 · 0:06 Continue ▶",
+  "Day 2 · Unit 22–41 · 63 min Done · 11/1 Start",
+  "Day 3 · Unit 42–62 · 69 min Unit 42 · Sentence 1 · 2:42 Start",
+  "Day 4 · Unit 63–82 · 63 min Unit 63 · Sentence 1 · 0:54 Start",
+  "Day 5 · Unit 83–100 · 58 min Unit 83 · Sentence 1 · 0:06 Start",
+  "Day 6 · Unit 101–113 · 43 min Unit 101 · Sentence 1 · 0:06 Start"
+ ],
+ "listHangul": [],
+ "apiDayBefore": {
+  "day": 6,
+  "first_unit": 101,
+  "last_unit": 113,
+  "duration_sec": 2599,
+  "progress": {
+   "position_sec": 6.67,
+   "unit": 101,
+   "sentence_index": 0,
+   "completed_count": 0,
+   "last_completed_at": null,
+   "last_completed_date": null,
+   "updated_at": "2026-10-31T17:49:26.154099+00:00"
+  }
+ },
+ "manualStart": {
+  "unit": "Unit 101 · 시간의 at · on · in",
+  "num": "Sentence 1 / 5",
+  "attempts": "Try 0",
+  "phase": null,
+  "phaseText": null,
+  "notice": null,
+  "sentence": "The meeting starts at ten.",
+  "buttons": [
+   "course-mode-auto",
+   "course-mode-manual",
+   "course-listen",
+   "course-slow",
+   "course-prev(off)",
+   "course-start",
+   "course-next"
+  ]
+ },
+ "dayHangul": [
+  {
+   "text": "시간의 at · on · in",
+   "tid": "course-unit"
+  },
+  {
+   "attr": "title",
+   "text": "🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 유즈 베이직 mp3",
+   "tid": "course-player"
+  }
+ ],
+ "atRepeat": {
+  "ms": 2149,
+  "unit": "Unit 101 · 시간의 at · on · in",
+  "num": "Sentence 1 / 5",
+  "attempts": "Try 0",
+  "phase": "repeat",
+  "phaseText": "② Say it · 3.1s",
+  "notice": null,
+  "sentence": "The meeting starts at ten.",
+  "buttons": [
+   "course-mode-auto",
+   "course-mode-manual",
+   "course-listen",
+   "course-slow",
+   "course-prev(off)",
+   "course-retry",
+   "course-next"
+  ]
+ },
+ "manualDone1": {
+  "unit": "Unit 101 · 시간의 at · on · in",
+  "num": "Sentence 1 / 5",
+  "attempts": "Try 0",
+  "phase": "done",
+  "phaseText": "③ Check",
+  "notice": "I can't check your speaking now. You can keep going.",
+  "sentence": "The meeting starts at ten.",
+  "buttons": [
+   "course-mode-auto",
+   "course-mode-manual",
+   "course-listen",
+   "course-slow",
+   "course-prev(off)",
+   "course-retry",
+   "course-next"
+  ]
+ },
+ "manualDone2": {
+  "unit": "Unit 101 · 시간의 at · on · in",
+  "num": "Sentence 1 / 5",
+  "attempts": "Try 0",
+  "phase": "done",
+  "phaseText": "③ Check",
+  "notice": "I can't check your speaking now. You can keep going.",
+  "sentence": "The meeting starts at ten.",
+  "buttons": [
+   "course-mode-auto",
+   "course-mode-manual",
+   "course-listen",
+   "course-slow",
+   "course-prev(off)",
+   "course-retry",
+   "course-next"
+  ]
+ },
+ "afterNext": {
+  "unit": "Unit 101 · 시간의 at · on · in",
+  "num": "Sentence 2 / 5",
+  "attempts": "Try 0",
+  "phase": null,
+  "phaseText": null,
+  "notice": "I can't check your speaking now. You can keep going.",
+  "sentence": "I was born in 1990.",
+  "buttons": [
+   "course-mode-auto",
+   "course-mode-manual",
+   "course-listen",
+   "course-slow",
+   "course-prev",
+   "course-start",
+   "course-next"
+  ]
+ },
+ "stepsToLast": 63,
+ "atLast": {
+  "unit": "Unit 113 · 구동사 2 put on · take off · turn on",
+  "num": "Sentence 5 / 5",
+  "attempts": "Try 0",
+  "phase": null,
+  "phaseText": null,
+  "notice": "I can't check your speaking now. You can keep going.",
+  "sentence": "She threw away the old papers.",
+  "buttons": [
+   "course-mode-auto",
+   "course-mode-manual",
+   "course-listen",
+   "course-slow",
+   "course-prev",
+   "course-start",
+   "course-finish(off)"
+  ]
+ },
+ "lastDone": {
+  "unit": "Unit 113 · 구동사 2 put on · take off · turn on",
+  "num": "Sentence 5 / 5",
+  "attempts": "Try 0",
+  "phase": "done",
+  "phaseText": "③ Check",
+  "notice": "I can't check your speaking now. You can keep going.",
+  "sentence": "She threw away the old papers.",
+  "buttons": [
+   "course-mode-auto",
+   "course-mode-manual",
+   "course-listen",
+   "course-slow",
+   "course-prev",
+   "course-retry",
+   "course-finish"
+  ]
+ },
+ "afterFinish": {
+  "unit": "Unit 101 · 시간의 at · on · in",
+  "num": "Sentence 1 / 5",
+  "attempts": "Try 0",
+  "phase": null,
+  "phaseText": null,
+  "notice": "You finished this Day!",
+  "sentence": "The meeting starts at ten.",
+  "buttons": [
+   "course-mode-auto",
+   "course-mode-manual",
+   "course-listen",
+   "course-slow",
+   "course-prev(off)",
+   "course-start",
+   "course-next"
+  ]
+ },
+ "apiDayAfterFinish": {
+  "day": 6,
+  "first_unit": 101,
+  "last_unit": 113,
+  "duration_sec": 2599,
+  "progress": {
+   "position_sec": 0,
+   "unit": 101,
+   "sentence_index": 0,
+   "completed_count": 1,
+   "last_completed_at": "2026-10-31T19:46:58.685436+00:00",
+   "last_completed_date": "2026-11-01",
+   "updated_at": "2026-10-31T19:46:58.685436+00:00"
+  }
+ },
+ "autoBefore": {
+  "unit": "Unit 101 · 시간의 at · on · in",
+  "num": "Sentence 1 / 5",
+  "attempts": "Try 0",
+  "phase": null,
+  "phaseText": null,
+  "notice": "You finished this Day!",
+  "sentence": "The meeting starts at ten.",
+  "buttons": [
+   "course-mode-auto",
+   "course-mode-manual",
+   "course-listen",
+   "course-slow",
+   "course-prev(off)",
+   "course-start",
+   "course-next"
+  ]
+ },
+ "autoSecondRepeat": {
+  "unit": "Unit 101 · 시간의 at · on · in",
+  "num": "Sentence 2 / 5",
+  "attempts": "Try 0",
+  "phase": "repeat",
+  "phaseText": "② Say it · 2.9s",
+  "notice": null,
+  "sentence": "I was born in 1990.",
+  "buttons": [
+   "course-mode-auto",
+   "course-mode-manual",
+   "course-listen",
+   "course-slow",
+   "course-prev",
+   "course-retry",
+   "course-next"
+  ]
+ },
+ "autoMo": [
+  [
+   18725,
+   "none|Sentence 1 / 5|"
+  ],
+  [
+   18729,
+   "listen|Sentence 1 / 5|"
+  ],
+  [
+   20381,
+   "repeat|Sentence 1 / 5|"
+  ],
+  [
+   23031,
+   "judge|Sentence 1 / 5|"
+  ],
+  [
+   23035,
+   "done|Sentence 1 / 5|I can't check your speaking now. You can keep going."
+  ],
+  [
+   24540,
+   "listen|Sentence 2 / 5|"
+  ],
+  [
+   26436,
+   "repeat|Sentence 2 / 5|"
+  ]
+ ],
+ "posts": [
+  [
+   1793476001635,
+   "Fetch",
+   200,
+   "/api/course/days/6"
+  ],
+  [
+   1793476001636,
+   "Fetch",
+   200,
+   "/api/course/days/6"
+  ],
+  [
+   1793476006643,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476006649,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476007197,
+   "Preflight",
+   200,
+   "/api/course/sentences/u101-s1/attempts"
+  ],
+  [
+   1793476007224,
+   "Fetch",
+   503,
+   "/api/course/sentences/u101-s1/attempts"
+  ],
+  [
+   1793476007224,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476007225,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476011542,
+   "Preflight",
+   200,
+   "/api/course/sentences/u101-s1/attempts"
+  ],
+  [
+   1793476011561,
+   "Fetch",
+   503,
+   "/api/course/sentences/u101-s1/attempts"
+  ],
+  [
+   1793476011561,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476011562,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476011566,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476011569,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476011641,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476011645,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476011877,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476011890,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476011902,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476011903,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476011925,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476011927,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476011949,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476011951,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476011974,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476011976,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012000,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012002,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012029,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012031,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012057,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012059,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012084,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012087,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012113,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012116,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012140,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012143,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012168,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012171,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012197,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012200,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012225,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012228,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012252,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012254,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012278,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012281,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012304,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012307,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012333,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012336,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012362,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012365,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012389,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012392,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012416,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012420,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012442,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012445,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012466,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012470,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012494,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012497,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012520,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012523,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012547,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012550,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012573,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012577,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012600,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012603,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012628,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012631,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012655,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012658,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012680,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012683,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012706,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012709,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012732,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012736,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012760,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012764,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012787,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012790,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012813,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012815,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012840,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012843,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012869,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012872,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012895,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012898,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012922,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012925,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012949,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012952,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012976,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476012979,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013005,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013008,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013031,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013034,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013057,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013060,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013085,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013088,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013110,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013113,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013138,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013141,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013165,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013168,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013193,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013200,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013217,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013220,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013243,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013246,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013271,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013275,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013299,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013302,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013329,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013332,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013358,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013361,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013386,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013389,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013412,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013415,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013441,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013444,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013467,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013470,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013496,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013499,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013524,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013527,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013553,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476013555,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476016641,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476016645,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476018657,
+   "Preflight",
+   200,
+   "/api/course/sentences/u113-s5/attempts"
+  ],
+  [
+   1793476018680,
+   "Fetch",
+   503,
+   "/api/course/sentences/u113-s5/attempts"
+  ],
+  [
+   1793476018681,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476018681,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476018684,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476018687,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476021638,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476021640,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476024577,
+   "Preflight",
+   200,
+   "/api/course/sentences/u101-s1/attempts"
+  ],
+  [
+   1793476024595,
+   "Fetch",
+   503,
+   "/api/course/sentences/u101-s1/attempts"
+  ],
+  [
+   1793476024596,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476024596,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476026642,
+   "Preflight",
+   200,
+   "/api/course/days/6/progress"
+  ],
+  [
+   1793476026646,
+   "Fetch",
+   204,
+   "/api/course/days/6/progress"
+  ]
+ ],
+ "homeCourseAfter": "2 / 6 days",
+ "logs": [
+  {
+   "t": 1793476007224,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u101-s1/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793476011561,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u101-s1/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793476018681,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u113-s5/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793476024595,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u101-s1/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  }
+ ]
+}

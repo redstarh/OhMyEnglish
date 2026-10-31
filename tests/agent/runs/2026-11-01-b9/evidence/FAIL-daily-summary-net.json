@@ -1,0 +1,72 @@
+{
+ "interceptHits": 2,
+ "cells": {
+  "home-streak": [
+   "ready",
+   "1 day in a row"
+  ],
+  "home-hero": [
+   "ready",
+   "TODAY'S PRACTICE Let's talk in English. Talk with your coach. Try to say more each time. Start speaking Speaking"
+  ],
+  "home-level": [
+   null,
+   "Speaking"
+  ],
+  "home-course-progress": [
+   "ready",
+   "2 / 6 days"
+  ],
+  "home-week-days": [
+   "ready",
+   "This week: 1 / 7 days"
+  ],
+  "stat-sessions": [
+   null,
+   "0 Sessions"
+  ],
+  "stat-best-streak": [
+   null,
+   "1 Best streak"
+  ],
+  "stat-patterns": [
+   null,
+   "0 Patterns"
+  ],
+  "home-weekly-stats": [
+   "ready",
+   "0 Sessions 1 Best streak 0 Patterns Weekly report · week of Oct 19"
+  ],
+  "home-path": [
+   "ready",
+   "Continue your path Small steps, real conversations. View all DAY 1 Day 1 · In progress Units 1–21 60 min Day 2 · Done Units 22–41 63 min"
+  ],
+  "home-focus": [
+   "empty",
+   "Focus patterns Your coach is watching these. No patterns yet. Start speaking to find them. Practice a pattern"
+  ]
+ },
+ "startSession": {
+  "disabled": false,
+  "hydrated": true,
+  "hitIsButton": true
+ },
+ "logs": [
+  [
+   "log.error",
+   "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  ],
+  [
+   "log.error",
+   "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  ],
+  [
+   "log.error",
+   "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  ],
+  [
+   "log.error",
+   "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  ]
+ ]
+}

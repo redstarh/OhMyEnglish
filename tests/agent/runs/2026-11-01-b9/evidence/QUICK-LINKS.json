@@ -1,0 +1,28 @@
+{
+ "quick-videos": {
+  "path": "/videos",
+  "h1": "Learn with videos"
+ },
+ "practice-videos": {
+  "path": "/videos",
+  "h1": "Learn with videos"
+ },
+ "practice-course": {
+  "path": "/course",
+  "h1": "Grammar in Use BASIC"
+ },
+ "home-path-all": {
+  "path": "/course",
+  "h1": "Grammar in Use BASIC"
+ },
+ "path-day-1": {
+  "path": "/course/1",
+  "h1": null
+ },
+ "roleplayDisabled": null,
+ "roleplay": {
+  "disabled": true,
+  "text": "Work role-play\n(Not ready yet)"
+ },
+ "logs": []
+}

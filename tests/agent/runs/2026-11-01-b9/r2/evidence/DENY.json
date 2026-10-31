@@ -1,0 +1,57 @@
+{
+ "permState": "denied",
+ "gumProbe": "NotAllowedError: Permission denied",
+ "failed1": {
+  "reason": "microphone_permission_denied",
+  "text": "Could not connect.\n\nPlease allow the microphone and try again.\n\nTry again← Home",
+  "inOverlay": true
+ },
+ "hangul1": [],
+ "tryAgainFound": true,
+ "flipsAfterTryAgain": [
+  [
+   452,
+   false
+  ],
+  [
+   485,
+   true
+  ]
+ ],
+ "failed2": {
+  "reason": "microphone_permission_denied",
+  "text": "Could not connect.\n\nPlease allow the microphone and try again.\n\nTry again← Home",
+  "inOverlay": true
+ },
+ "afterHome": {
+  "path": "/",
+  "overlay": false,
+  "navVisible": 4,
+  "cells": [
+   [
+    "home-streak",
+    "ready"
+   ],
+   [
+    "home-hero",
+    "ready"
+   ],
+   [
+    "home-course-progress",
+    "ready"
+   ],
+   [
+    "home-path",
+    "ready"
+   ],
+   [
+    "home-focus",
+    "empty"
+   ]
+  ]
+ },
+ "webSockets": [
+  "ws://localhost:3000/_next/hmr?id=2dwN2idb-kebGysUPdBsg"
+ ],
+ "logs": []
+}

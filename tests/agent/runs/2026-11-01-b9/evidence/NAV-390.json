@@ -1,0 +1,223 @@
+{
+ "rows": [
+  {
+   "path": "/",
+   "want": "home",
+   "visibleCount": 4,
+   "active": [
+    "home"
+   ],
+   "styles": [
+    [
+     "nav-home",
+     "rgb(237, 242, 255)",
+     "rgb(50, 99, 220)"
+    ],
+    [
+     "nav-practice",
+     "rgba(0, 0, 0, 0)",
+     "rgb(91, 100, 120)"
+    ],
+    [
+     "nav-review",
+     "rgba(0, 0, 0, 0)",
+     "rgb(91, 100, 120)"
+    ],
+    [
+     "nav-progress",
+     "rgba(0, 0, 0, 0)",
+     "rgb(91, 100, 120)"
+    ]
+   ],
+   "ok": true
+  },
+  {
+   "path": "/course",
+   "want": "practice",
+   "visibleCount": 4,
+   "active": [
+    "practice"
+   ],
+   "styles": [
+    [
+     "nav-home",
+     "rgba(0, 0, 0, 0)",
+     "rgb(91, 100, 120)"
+    ],
+    [
+     "nav-practice",
+     "rgb(237, 242, 255)",
+     "rgb(50, 99, 220)"
+    ],
+    [
+     "nav-review",
+     "rgba(0, 0, 0, 0)",
+     "rgb(91, 100, 120)"
+    ],
+    [
+     "nav-progress",
+     "rgba(0, 0, 0, 0)",
+     "rgb(91, 100, 120)"
+    ]
+   ],
+   "ok": true
+  },
+  {
+   "path": "/course/1",
+   "want": "practice",
+   "visibleCount": 4,
+   "active": [
+    "practice"
+   ],
+   "styles": [
+    [
+     "nav-home",
+     "rgba(0, 0, 0, 0)",
+     "rgb(91, 100, 120)"
+    ],
+    [
+     "nav-practice",
+     "rgb(237, 242, 255)",
+     "rgb(50, 99, 220)"
+    ],
+    [
+     "nav-review",
+     "rgba(0, 0, 0, 0)",
+     "rgb(91, 100, 120)"
+    ],
+    [
+     "nav-progress",
+     "rgba(0, 0, 0, 0)",
+     "rgb(91, 100, 120)"
+    ]
+   ],
+   "ok": true
+  },
+  {
+   "path": "/videos",
+   "want": "practice",
+   "visibleCount": 4,
+   "active": [
+    "practice"
+   ],
+   "styles": [
+    [
+     "nav-home",
+     "rgba(0, 0, 0, 0)",
+     "rgb(91, 100, 120)"
+    ],
+    [
+     "nav-practice",
+     "rgb(237, 242, 255)",
+     "rgb(50, 99, 220)"
+    ],
+    [
+     "nav-review",
+     "rgba(0, 0, 0, 0)",
+     "rgb(91, 100, 120)"
+    ],
+    [
+     "nav-progress",
+     "rgba(0, 0, 0, 0)",
+     "rgb(91, 100, 120)"
+    ]
+   ],
+   "ok": true
+  },
+  {
+   "path": "/history",
+   "want": "review",
+   "visibleCount": 4,
+   "active": [
+    "review"
+   ],
+   "styles": [
+    [
+     "nav-home",
+     "rgba(0, 0, 0, 0)",
+     "rgb(91, 100, 120)"
+    ],
+    [
+     "nav-practice",
+     "rgba(0, 0, 0, 0)",
+     "rgb(91, 100, 120)"
+    ],
+    [
+     "nav-review",
+     "rgb(237, 242, 255)",
+     "rgb(50, 99, 220)"
+    ],
+    [
+     "nav-progress",
+     "rgba(0, 0, 0, 0)",
+     "rgb(91, 100, 120)"
+    ]
+   ],
+   "ok": true
+  },
+  {
+   "path": "/history/weekly",
+   "want": "progress",
+   "visibleCount": 4,
+   "active": [
+    "progress"
+   ],
+   "styles": [
+    [
+     "nav-home",
+     "rgba(0, 0, 0, 0)",
+     "rgb(91, 100, 120)"
+    ],
+    [
+     "nav-practice",
+     "rgba(0, 0, 0, 0)",
+     "rgb(91, 100, 120)"
+    ],
+    [
+     "nav-review",
+     "rgba(0, 0, 0, 0)",
+     "rgb(91, 100, 120)"
+    ],
+    [
+     "nav-progress",
+     "rgb(237, 242, 255)",
+     "rgb(50, 99, 220)"
+    ]
+   ],
+   "ok": true
+  },
+  {
+   "path": "/results/9c0fe167-b97d-41dc-afe1-a518deed934b",
+   "want": "review",
+   "visibleCount": 4,
+   "active": [
+    "review"
+   ],
+   "styles": [
+    [
+     "nav-home",
+     "rgba(0, 0, 0, 0)",
+     "rgb(91, 100, 120)"
+    ],
+    [
+     "nav-practice",
+     "rgba(0, 0, 0, 0)",
+     "rgb(91, 100, 120)"
+    ],
+    [
+     "nav-review",
+     "rgb(237, 242, 255)",
+     "rgb(50, 99, 220)"
+    ],
+    [
+     "nav-progress",
+     "rgba(0, 0, 0, 0)",
+     "rgb(91, 100, 120)"
+    ]
+   ],
+   "ok": true
+  }
+ ],
+ "allOk": true,
+ "logs": []
+}

@@ -395,6 +395,8 @@ export default function CourseDayPage() {
       if (!target) return;
       cancelRun();
       setResult(null);
+      // 앞 문장의 안내가 이 문장의 결과로 읽히지 않게 지움 — 자동 흐름과 같은 규칙(회차 b9 관찰).
+      setNotice(null);
       setPhase("idle");
       setUnitIndex(target.unitIndex);
       setSentenceIndex(target.sentenceIndex);

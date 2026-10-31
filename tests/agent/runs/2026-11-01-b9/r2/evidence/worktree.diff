@@ -1,0 +1,43 @@
+diff --git a/app/frontend/app/course/[day]/page.tsx b/app/frontend/app/course/[day]/page.tsx
+index 1e9c7a5..c06ca4d 100644
+--- a/app/frontend/app/course/[day]/page.tsx
++++ b/app/frontend/app/course/[day]/page.tsx
+@@ -395,6 +395,8 @@ export default function CourseDayPage() {
+       if (!target) return;
+       cancelRun();
+       setResult(null);
++      // 앞 문장의 안내가 이 문장의 결과로 읽히지 않게 지움 — 자동 흐름과 같은 규칙(회차 b9 관찰).
++      setNotice(null);
+       setPhase("idle");
+       setUnitIndex(target.unitIndex);
+       setSentenceIndex(target.sentenceIndex);
+diff --git a/app/frontend/app/page.tsx b/app/frontend/app/page.tsx
+index b82e1eb..0b89aee 100644
+--- a/app/frontend/app/page.tsx
++++ b/app/frontend/app/page.tsx
+@@ -157,6 +157,8 @@ export default function SessionPage() {
+   // `react-hooks/set-state-in-effect` 에 막혔다**(실측: `startSession` 이 첫머리에서 동기로
+   // `setState` 를 부르므로 lint 가 effect 본문의 setState 로 본다). 그래서 ref 로 끊는다.
+   const startSessionRef = useRef<((entry: SessionEntry) => Promise<void>) | null>(null);
++  // 마지막으로 시작한 학습의 진입 — 실패 화면의 「Try again」이 같은 학습을 다시 엶(회차 b9 D1).
++  const lastEntryRef = useRef<SessionEntry>({});
+ 
+   const socketRef = useRef<SessionSocket | null>(null);
+   const streamRef = useRef<MediaStream | null>(null);
+@@ -357,6 +359,7 @@ export default function SessionPage() {
+   );
+ 
+   const startSession = useCallback(async (entry: SessionEntry = {}) => {
++    lastEntryRef.current = entry;
+     setFailureReason(null);
+     setLines([]);
+     pendingAgentAudioRef.current = [];
+@@ -575,7 +578,7 @@ export default function SessionPage() {
+         <div data-testid="session-failed" data-reason={failureReason ?? ""} style={{ marginTop: "1rem" }}>
+           <p>Could not connect.</p>
+           <p style={{ color: "var(--foreground-muted)" }}>{failureMessage(failureReason)}</p>
+-          <button onClick={() => void startSession()} style={{ padding: "0.75rem 1.5rem" }}>
++          <button onClick={() => void startSession(lastEntryRef.current)} style={{ padding: "0.75rem 1.5rem" }}>
+             Try again
+           </button>
+           {/* 덮개 층이 사이드바를 가리므로 실패 화면에도 홈으로 가는 길을 둠 (codex 리뷰 · `TASK-298`). */}
