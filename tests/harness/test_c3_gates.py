@@ -66,7 +66,8 @@ SESSION_IDS = {
 
 
 # 판독 파일은 한국어 화면을 찍은 과거 기록이라 고치지 않는다. 화면 문구가 영어로 바뀌었으므로
-# (TASK-298) 읽을 때 같은 뜻의 현재 문구로 옮겨 실행체의 기대값과 맞춘다. 딕셔너리 키 `원문`·`교정문`
+# (TASK-298) 읽을 때 같은 뜻의 현재 문구로 옮겨 실행체의 기대값과
+# 맞춘다. 딕셔너리 키 `원문`·`교정문`
 # 은 실행체 내부 이름이라 그대로 둔다(콜론이 붙은 라벨만 옮긴다).
 _RECORDED_TO_CURRENT = {
     "원문:": "You said:",
@@ -87,7 +88,9 @@ _RECORDED_TO_CURRENT = {
 def load() -> dict:
     raw = REAL.read_text(encoding="utf-8")
     for old, new in _RECORDED_TO_CURRENT.items():
-        raw = raw.replace(json.dumps(old, ensure_ascii=False)[1:-1], json.dumps(new, ensure_ascii=False)[1:-1])
+        raw = raw.replace(
+            json.dumps(old, ensure_ascii=False)[1:-1], json.dumps(new, ensure_ascii=False)[1:-1]
+        )
     d = json.loads(raw)
     assert set(d["api"]) == set(SESSION_IDS), f"판독 파일의 세션 집합이 다르다 — {sorted(d['api'])}"
     return d

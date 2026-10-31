@@ -495,7 +495,8 @@ async def run_scheme(
 
     # ── 한 문서 = 한 세션 (`browser_leg.md` §5 A1-5). 모드마다 새로 연다.
     # ⚠️ **`errorText` 를 확인한다** (재검토 LOW-7) — 프론트가 죽어 있으면 `navigate` 는 조용히
-    #    성공하고 나중에 "start-session 버튼이 나타나지 않았다"로 **오진**한다. 여기서 이름 있게 죽인다.
+    #    성공하고 나중에 "start-session 버튼이 나타나지 않았다"로
+    #    **오진**한다. 여기서 이름 있게 죽인다.
     nav = await cdp.call("Page.navigate", {"url": base_url})
     if nav.get("errorText"):
         raise SystemExit(
@@ -741,7 +742,8 @@ def check_leg(d: dict, phase: str) -> tuple[int, list[str]]:
 def check_cross(results: list[dict]) -> tuple[int, list[str]]:
     """A2-3 — **모드 간** 토큰이 같다 (테마 고정).
 
-    ⛔ 정정 2026-11-01(`TASK-298`): 이전 기대는 「두 모드의 토큰이 다르다」였음. 사용자 결정으로 앱이
+    ⛔ 정정 2026-11-01(`TASK-298`): 이전 기대는 「두 모드의
+    토큰이 다르다」였음. 사용자 결정으로 앱이
     밝은 테마만 쓰게 됐으므로(리디자인 설계서 §1-4) 기대를 뒤집음 — 어두운 모드를 흉내 내도 토큰이
     같아야 함. 어두운 테마 미디어 쿼리가 다시 들어오면 이 단정이 잡음.
     두 모드가 없으면 평가할 수 없고 **그것은 PASS 가 아니다**(§10).

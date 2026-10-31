@@ -63,7 +63,8 @@ def test_real_round_passes_and_checks_a_nonzero_number_of_assertions():
         assert fails == [], f"[{d['emulated']}] 실물 회차가 어긋났다: {fails}"
         assert checked >= 20, f"검사한 단정이 {checked}건뿐이다 — 게이트가 비어 있다"
         total += checked
-    # 기록된 실물 회차는 다크가 따로 있던 시절의 것이다. 밝은 테마 고정 앱의 모습(두 모드 토큰이 같음)으로
+    # 기록된 실물 회차는 다크가 따로 있던 시절의 것이다. 밝은 테마 고정
+    # 앱의 모습(두 모드 토큰이 같음)으로
     # 다크 쪽 토큰을 라이트 값으로 맞춰 A2-3 의 green 경로를 쓴다.
     light_only = copy.deepcopy(data)
     light_only[1]["probe"].update(muted1=data[0]["probe"]["muted1"], fg1=data[0]["probe"]["fg1"])

@@ -32,7 +32,8 @@ SENTINEL = "ZZ_SENTINEL_TARGET_SOUND_ZZ"
 
 # 배지 요소는 구조로 지목한다 — 프론트 전체에 `aria-live` 가 1건뿐임을 `browser_leg.md` §5 의
 # A5-1 행이 확인해 뒀다. 전역 문구 검색을 쓰지 않는 이유도 그 행이 소유한다.
-# ⚠️ `SessionChat.tsx` 의 `Notice` 도 `p[aria-live="polite"]` 다(TASK-298 이후 aria-live 가 둘). 배지만
+# ⚠️ `SessionChat.tsx` 의 `Notice` 도
+# `p[aria-live="polite"]` 다(TASK-298 이후 aria-live 가 둘). 배지만
 # `alignSelf: "center"` 를 인라인으로 갖고 Notice 는 갖지 않으므로 style 속성으로 가른다.
 BADGE_SELECTOR = 'p[aria-live="polite"][style*="align-self"]'
 
