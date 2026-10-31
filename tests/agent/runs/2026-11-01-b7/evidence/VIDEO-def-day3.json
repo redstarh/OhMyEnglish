@@ -1,0 +1,97 @@
+{
+ "savedBeforeOpen": {
+  "position_sec": 156.74,
+  "unit": 42,
+  "sentence_index": 0,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-10-31T17:48:21.333571+00:00"
+ },
+ "samplesAfterOpen": [
+  {
+   "atMs": 2001,
+   "t": 0,
+   "paused": true,
+   "state": 5,
+   "ad": false
+  },
+  {
+   "atMs": 4001,
+   "t": 0,
+   "paused": true,
+   "state": 5,
+   "ad": false
+  },
+  {
+   "atMs": 7001,
+   "t": 0,
+   "paused": true,
+   "state": 5,
+   "ad": false
+  },
+  {
+   "atMs": 11001,
+   "t": 0,
+   "paused": true,
+   "state": 5,
+   "ad": false
+  },
+  {
+   "atMs": 15001,
+   "t": 0,
+   "paused": true,
+   "state": 5,
+   "ad": false
+  }
+ ],
+ "pageAfterOpen": {
+  "unit": "Unit 42 · 의문문 만들기",
+  "num": "문장 1 / 5",
+  "sentence": "Is the client happy?",
+  "attempts": "따라 함 0회",
+  "phase": null,
+  "notice": null,
+  "transcript": null,
+  "words": [],
+  "mode": null
+ },
+ "samplesAfterPlayClick": [
+  {
+   "rel": 1500,
+   "t": 157.13,
+   "paused": false,
+   "state": 1,
+   "ad": false
+  },
+  {
+   "rel": 4000,
+   "t": 159.64,
+   "paused": false,
+   "state": 1,
+   "ad": false
+  },
+  {
+   "rel": 7000,
+   "t": 162.65,
+   "paused": false,
+   "state": 1,
+   "ad": false
+  }
+ ],
+ "afterPauseClick": {
+  "t": 162.71,
+  "paused": true,
+  "state": 2,
+  "ad": false
+ },
+ "savedAfter": {
+  "position_sec": 162.71,
+  "unit": 42,
+  "sentence_index": 0,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-10-31T17:50:44.991711+00:00"
+ }
+}

@@ -17,15 +17,18 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from collections.abc import Callable
 from typing import TypeGuard
 
-from app.audio_gateway.port import TranscriptEvent, VoiceAdapter
+from app.audio_gateway.port import TranscriberUnavailable, TranscriptEvent, VoiceAdapter
 from app.models.recording import (
     RECORDING_BYTES_PER_SAMPLE,
     RECORDING_CHANNELS,
     RECORDING_SAMPLE_RATE_HZ,
 )
+
+logger = logging.getLogger(__name__)
 
 # 저장된 녹음 1초가 몇 바이트인가 — 아래 두 상수가 이 값에서 갈린다.
 # ⛔ **셋을 다 곱한다.** 첫 판은 채널 항을 빠뜨려 «표본율 축만» 보호됐고, 채널이 2 가 되면 두 상수가
@@ -129,14 +132,25 @@ async def transcribe_readback(
     adapter = make_adapter()
     padded = pcm + b"\x00" * silence_bytes
     try:
-        return await asyncio.wait_for(
+        text = await asyncio.wait_for(
             _readback_text(adapter, padded, frame_bytes, quiet_s), timeout_s
         )
     except TimeoutError:
         # 어댑터가 조용한 것은 결함이 아니라 갈래 하나다 — 빈 전사로 알린다.
-        return ""
+        text = ""
+    except Exception as exc:
+        # 연결을 열지 못했다(스트림 열기 · 초기화 전송).
+        # 500 이 아니라 503 으로 가게 한다(`TASK-288`). ⚠️ 코드 결함도 여기로 오므로 원인을 남긴다.
+        logger.exception("낭독 전사기를 열지 못했다 — 503 으로 알린다")
+        raise TranscriberUnavailable(type(exc).__name__) from exc
     finally:
         await adapter.close()
+    # ⛔ 스트림이 실패로 끝났으면 빈 전사가 아니라 예외다(`TASK-288` · 회차 b6 D1).
+    # ⚠️ `failure` 는 실물 어댑터만 갖는다 — 포트에 올리면 대역·스텁이 모두 그 값을 꾸며야 한다.
+    failure = getattr(adapter, "failure", None)
+    if not text and failure is not None:
+        raise TranscriberUnavailable(type(failure).__name__) from failure
+    return text
 
 
 async def _readback_text(

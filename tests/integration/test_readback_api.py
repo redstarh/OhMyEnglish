@@ -32,7 +32,7 @@ from conftest import imported_names, pin_settings_env
 
 from app.api import results as results_module
 from app.audio_gateway.fixtures import FIXTURE_TURNS
-from app.audio_gateway.port import Transcriber
+from app.audio_gateway.port import Transcriber, TranscriberUnavailable
 from app.audio_gateway.stub import StubVoiceAdapter
 from app.audio_gateway.transcribe import transcribe_readback
 from app.config import get_settings
@@ -170,6 +170,32 @@ async def test_전사기가_없으면_503_이고_아무것도_저장하지_않�
     """
     monkeypatch.setenv("VOICE_ADAPTER", adapter)
     get_settings.cache_clear()
+    async with db_pool.acquire() as conn:
+        utterance_id = await _stored_recording(conn, audio_root, committed_session.session_id)
+
+    response = await api_client.post(_url(committed_session.session_id, utterance_id))
+
+    assert response.status_code == 503
+    async with db_pool.acquire() as conn:
+        stored = await conn.fetchval(
+            "select readback_transcript from utterances where id = $1", utterance_id
+        )
+    assert stored is None
+
+
+async def test_전사기가_실패하면_503_이고_아무것도_저장하지_않는다(
+    monkeypatch: pytest.MonkeyPatch,
+    api_client: httpx.AsyncClient,
+    db_pool: asyncpg.Pool,
+    committed_session,
+    audio_root: Path,
+) -> None:
+    """인증 거부 같은 전사기 실패를 「못 알아들었다」로 보이지 않는다(`TASK-288` · 회차 b6 D1)."""
+
+    async def transcribe(pcm: bytes) -> str:
+        raise TranscriberUnavailable("denied")
+
+    monkeypatch.setattr(results_module, "create_transcriber", lambda *_args, **_kwargs: transcribe)
     async with db_pool.acquire() as conn:
         utterance_id = await _stored_recording(conn, audio_root, committed_session.session_id)
 

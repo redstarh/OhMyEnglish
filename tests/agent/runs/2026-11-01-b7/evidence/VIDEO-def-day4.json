@@ -1,0 +1,97 @@
+{
+ "savedBeforeOpen": {
+  "position_sec": 37.5,
+  "unit": 63,
+  "sentence_index": 0,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-10-31T17:48:33.592728+00:00"
+ },
+ "samplesAfterOpen": [
+  {
+   "atMs": 2000,
+   "t": 0,
+   "paused": true,
+   "state": 5,
+   "ad": false
+  },
+  {
+   "atMs": 4002,
+   "t": 0,
+   "paused": true,
+   "state": 5,
+   "ad": false
+  },
+  {
+   "atMs": 7002,
+   "t": 0,
+   "paused": true,
+   "state": 5,
+   "ad": false
+  },
+  {
+   "atMs": 11001,
+   "t": 0,
+   "paused": true,
+   "state": 5,
+   "ad": false
+  },
+  {
+   "atMs": 15001,
+   "t": 0,
+   "paused": true,
+   "state": 5,
+   "ad": false
+  }
+ ],
+ "pageAfterOpen": {
+  "unit": "Unit 63 · a · an",
+  "num": "문장 1 / 5",
+  "sentence": "I need a charger.",
+  "attempts": "따라 함 0회",
+  "phase": null,
+  "notice": null,
+  "transcript": null,
+  "words": [],
+  "mode": null
+ },
+ "samplesAfterPlayClick": [
+  {
+   "rel": 1500,
+   "t": 37.83,
+   "paused": false,
+   "state": 1,
+   "ad": false
+  },
+  {
+   "rel": 4000,
+   "t": 40.34,
+   "paused": false,
+   "state": 1,
+   "ad": false
+  },
+  {
+   "rel": 7000,
+   "t": 43.35,
+   "paused": false,
+   "state": 1,
+   "ad": false
+  }
+ ],
+ "afterPauseClick": {
+  "t": 43.42,
+  "paused": true,
+  "state": 2,
+  "ad": false
+ },
+ "savedAfter": {
+  "position_sec": 43.42,
+  "unit": 63,
+  "sentence_index": 0,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-10-31T17:50:10.036663+00:00"
+ }
+}

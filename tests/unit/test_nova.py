@@ -2892,3 +2892,52 @@ def test_rule_4_leaves_a_correct_sentence_alone():
     rule = _rule(SYSTEM_PROMPT, 4)
     assert "Correct only a real mistake" in rule
     assert "never ask them to repeat a correct sentence or change a correct word" in rule
+
+
+# --- `TASK-288` — 출력 스트림의 실패를 «조용함» 과 가를 수 있게 남긴다 ---------------------
+#
+# 실측(2026-11-01 회차 b6): IAM 권한이 빠진 계정에서 `await_output()` 이 `AccessDeniedException`
+# 으로 끝났는데 어댑터가 그것을 로그로만 남겨, 전사기가 「학습자가 말하지 않았다」로 읽었다.
+
+
+class _DeniedStream(_FakeStream):
+    async def await_output(self) -> tuple[None, _FakeReceiver]:
+        raise PermissionError("denied")
+
+
+async def test_output_stream_failure_is_kept_on_the_adapter():
+    adapter = _adapter(_DeniedStream(output_requires_input=False))
+    assert adapter.failure is None
+    await adapter.start()
+    assert await _collect(adapter) == []
+    assert isinstance(adapter.failure, PermissionError)
+    await adapter.close()
+
+
+async def test_a_quiet_stream_is_not_a_failure():
+    adapter = _adapter(_FakeStream(output_requires_input=False))
+    await adapter.start()
+    assert await _collect(adapter) == []
+    assert adapter.failure is None
+    await adapter.close()
+
+
+class _AudioRefusingInput(_FakeInputStream):
+    async def send(self, chunk: Any) -> None:
+        if "audioInput" in json.loads(chunk.value.bytes_)["event"]:
+            raise ConnectionError("broken pipe")
+        await super().send(chunk)
+
+
+async def test_audio_send_failure_is_kept_on_the_adapter():
+    """오디오 전송이 실패한 뒤 출력이 조용하면 전사기가 「안 들렸다」로 읽는다.
+
+    codex 리뷰 · `TASK-288`.
+    """
+    stream = _FakeStream(output_requires_input=False)
+    stream.input_stream = _AudioRefusingInput(stream)
+    adapter = _adapter(stream)
+    await adapter.start()
+    await adapter.send_audio(b"\x00\x01" * 160)
+    assert isinstance(adapter.failure, ConnectionError)
+    await adapter.close()

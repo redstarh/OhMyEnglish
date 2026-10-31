@@ -1,0 +1,2 @@
+2026-10-31T17:31:22Z POST /api/course/days/3/progress {position_sec:120, unit:42, sentence_index:0, completed:false, completed_count:0}
+2026-10-31T17:33:22Z POST /api/course/days/4/progress {position_sec:37.5, unit:63, sentence_index:0, completed:false, completed_count:0}

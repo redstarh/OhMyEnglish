@@ -1,0 +1,3 @@
+{'out': 'in-a.wav', 'total': 34.455, 'marks': [{'seg': 'trim-a.wav', 'start': 2.65, 'len': 1.805}]}
+{'out': 'in-b.wav', 'total': 34.47, 'marks': [{'seg': 'trim-b.wav', 'start': 2.65, 'len': 1.82}]}
+{'out': 'in-c.wav', 'total': 34.077, 'marks': [{'seg': 'trim-c.wav', 'start': 2.65, 'len': 1.427}]}

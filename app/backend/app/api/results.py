@@ -33,6 +33,7 @@ import asyncpg
 from fastapi import APIRouter, HTTPException, Request, Response
 
 from app.audio_gateway.factory import create_transcriber, transcriber_available
+from app.audio_gateway.port import TranscriberUnavailable
 from app.config import get_settings
 from app.models.recording import wav_from_pcm
 from app.models.user import FIXED_USER_ID
@@ -222,13 +223,17 @@ async def judge_recording_readback(
     # `pool_usage_sink` 가 연결을 또 잡으므로 한 판정이 기본 풀(10)의 두 자리를 그 시간만큼 묶을 수
     # 있었다. ⚠️ **초 수를 여기 적지 않는다** — 그 상수가 정본이고 복제하면 갈라진다.
     # ⚠️ 모델을 부르는 이웃 라우터(`api/vocab.py`)는 그 구간에 연결을 아예 잡지 않는다.
-    judgment = await judge_readback(
-        pool,
-        settings.shadowing_audio_root,
-        session_id,
-        utterance_id,
-        transcribe=create_transcriber(settings, usage_sink=pool_usage_sink(pool)),
-    )
+    try:
+        judgment = await judge_readback(
+            pool,
+            settings.shadowing_audio_root,
+            session_id,
+            utterance_id,
+            transcribe=create_transcriber(settings, usage_sink=pool_usage_sink(pool)),
+        )
+    except TranscriberUnavailable as exc:
+        # 전사기 실패를 「못 알아들었다」로 보이지 않는다 — 저장도 하지 않는다(`TASK-288`).
+        raise HTTPException(status_code=503, detail="낭독 판정을 쓸 수 없다") from exc
     if judgment is None:
         raise HTTPException(status_code=404, detail="readback not found")
     # ⚠️ **키는 snake_case 다** — 이 리포의 HTTP 응답 전부가 그 규약이고 첫 판만 camelCase 였다

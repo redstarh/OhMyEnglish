@@ -1,0 +1,148 @@
+{
+ "before": {
+  "unit": "Unit 41 · 부정문 정리 isn't · don't · didn't · can't",
+  "num": "문장 5 / 5",
+  "sentence": "They haven't finished the test yet.",
+  "attempts": "따라 함 0회",
+  "phase": null,
+  "notice": null,
+  "transcript": null,
+  "words": [],
+  "mode": "manual"
+ },
+ "nextBeforeStart": {
+  "label": "Day 마치기",
+  "disabled": true
+ },
+ "apiBefore": {
+  "position_sec": 6.49,
+  "unit": 41,
+  "sentence_index": 4,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-10-31T17:52:51.609568+00:00"
+ },
+ "nextDuringListen": {
+  "label": "Day 마치기",
+  "disabled": true
+ },
+ "atDone": {
+  "unit": "Unit 41 · 부정문 정리 isn't · don't · didn't · can't",
+  "num": "문장 5 / 5",
+  "sentence": "They haven't finished the test yet.",
+  "attempts": "따라 함 0회",
+  "phase": "done",
+  "notice": "지금은 따라 하기 판정을 쓸 수 없어요. 문장은 계속 이어져요.",
+  "transcript": null,
+  "words": [],
+  "mode": "manual"
+ },
+ "nextAtDone": {
+  "label": "Day 마치기",
+  "disabled": false
+ },
+ "afterFinish": {
+  "unit": "Unit 22 · 현재 · 과거 시제 정리",
+  "num": "문장 1 / 5",
+  "sentence": "I work in Seoul, and I worked in Daegu before.",
+  "attempts": "따라 함 0회",
+  "phase": null,
+  "notice": "이 Day 를 끝까지 마쳤어요.",
+  "transcript": null,
+  "words": [],
+  "mode": "manual"
+ },
+ "apiAfterFinish": {
+  "position_sec": 0,
+  "unit": 22,
+  "sentence_index": 0,
+  "completed_count": 1,
+  "last_completed_at": "2026-10-31T17:52:58.283453+00:00",
+  "last_completed_date": "2026-11-01",
+  "updated_at": "2026-10-31T17:52:58.283453+00:00"
+ },
+ "apiAfter6s": {
+  "position_sec": 0,
+  "unit": 22,
+  "sentence_index": 0,
+  "completed_count": 1,
+  "last_completed_at": "2026-10-31T17:52:58.283453+00:00",
+  "last_completed_date": "2026-11-01",
+  "updated_at": "2026-10-31T17:53:01.747403+00:00"
+ },
+ "overviewAfterLeave": {
+  "cycle": 1,
+  "current_day": 4,
+  "day": {
+   "position_sec": 0,
+   "unit": 22,
+   "sentence_index": 0,
+   "completed_count": 1,
+   "last_completed_at": "2026-10-31T17:52:58.283453+00:00",
+   "last_completed_date": "2026-11-01",
+   "updated_at": "2026-10-31T17:53:05.863528+00:00"
+  }
+ },
+ "rowAfterLeave": "Day 2 · Unit 22–41 · 63분\n완료 · 11/1\n시작하기",
+ "reopened": {
+  "unit": "Unit 22 · 현재 · 과거 시제 정리",
+  "num": "문장 1 / 5",
+  "sentence": "I work in Seoul, and I worked in Daegu before.",
+  "attempts": "따라 함 0회",
+  "phase": null,
+  "notice": null,
+  "transcript": null,
+  "words": [],
+  "mode": "manual"
+ },
+ "reopenVideo": [
+  {
+   "atMs": 3002,
+   "url": "https://www.youtube.com/embed/z881DusiriA?enablejsapi=1&origin=http%3A%2F%2Floca",
+   "t": 0,
+   "paused": true,
+   "state": 5
+  },
+  {
+   "atMs": 8003,
+   "url": "https://www.youtube.com/embed/z881DusiriA?enablejsapi=1&origin=http%3A%2F%2Floca",
+   "t": 0,
+   "paused": true,
+   "state": 5
+  }
+ ],
+ "firstSentence": {
+  "unit": 22,
+  "topic": "현재 · 과거 시제 정리",
+  "start_sec": 0,
+  "end_sec": 188,
+  "sentences": [
+   {
+    "key": "u022-s1",
+    "text": "I work in Seoul, and I worked in Daegu before.",
+    "attempts": 0
+   },
+   {
+    "key": "u022-s2",
+    "text": "She is busy now, but she was free yesterday.",
+    "attempts": 0
+   },
+   {
+    "key": "u022-s3",
+    "text": "Do you use Git? Did you use it at your old job?",
+    "attempts": 0
+   },
+   {
+    "key": "u022-s4",
+    "text": "We don't meet on Mondays, and we didn't meet last week.",
+    "attempts": 0
+   },
+   {
+    "key": "u022-s5",
+    "text": "He is testing the app now. He tested it yesterday too.",
+    "attempts": 0
+   }
+  ]
+ }
+}

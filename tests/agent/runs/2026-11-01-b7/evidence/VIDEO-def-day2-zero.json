@@ -1,0 +1,97 @@
+{
+ "savedBeforeOpen": {
+  "position_sec": 0,
+  "unit": 22,
+  "sentence_index": 0,
+  "completed_count": 1,
+  "last_completed_at": "2026-10-31T17:52:58.283453+00:00",
+  "last_completed_date": "2026-11-01",
+  "updated_at": "2026-10-31T17:53:27.466639+00:00"
+ },
+ "samplesAfterOpen": [
+  {
+   "atMs": 2003,
+   "t": 0,
+   "paused": true,
+   "state": 5,
+   "ad": false
+  },
+  {
+   "atMs": 4003,
+   "t": 0,
+   "paused": true,
+   "state": 5,
+   "ad": false
+  },
+  {
+   "atMs": 7003,
+   "t": 0,
+   "paused": true,
+   "state": 5,
+   "ad": false
+  },
+  {
+   "atMs": 11002,
+   "t": 0,
+   "paused": true,
+   "state": 5,
+   "ad": false
+  },
+  {
+   "atMs": 15002,
+   "t": 0,
+   "paused": true,
+   "state": 5,
+   "ad": false
+  }
+ ],
+ "pageAfterOpen": {
+  "unit": "Unit 22 · 현재 · 과거 시제 정리",
+  "num": "문장 1 / 5",
+  "sentence": "I work in Seoul, and I worked in Daegu before.",
+  "attempts": "따라 함 0회",
+  "phase": null,
+  "notice": null,
+  "transcript": null,
+  "words": [],
+  "mode": "manual"
+ },
+ "samplesAfterPlayClick": [
+  {
+   "rel": 1500,
+   "t": 1.11,
+   "paused": false,
+   "state": 1,
+   "ad": false
+  },
+  {
+   "rel": 4000,
+   "t": 3.62,
+   "paused": false,
+   "state": 1,
+   "ad": false
+  },
+  {
+   "rel": 7000,
+   "t": 6.63,
+   "paused": false,
+   "state": 1,
+   "ad": false
+  }
+ ],
+ "afterPauseClick": {
+  "t": 6.71,
+  "paused": true,
+  "state": 2,
+  "ad": false
+ },
+ "savedAfter": {
+  "position_sec": 6.71,
+  "unit": 22,
+  "sentence_index": 0,
+  "completed_count": 1,
+  "last_completed_at": "2026-10-31T17:52:58.283453+00:00",
+  "last_completed_date": "2026-11-01",
+  "updated_at": "2026-10-31T17:53:55.315943+00:00"
+ }
+}

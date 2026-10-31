@@ -1,0 +1,68 @@
+{
+ "before": {
+  "unit": "Unit 1 · be 동사 am · is · are",
+  "num": "문장 4 / 5",
+  "sentence": "The server is very slow today.",
+  "attempts": "따라 함 0회",
+  "phase": null,
+  "notice": null,
+  "transcript": null,
+  "words": [],
+  "mode": "manual"
+ },
+ "gum": [
+  {
+   "called": 139,
+   "resolved": 151,
+   "label": "Fake Default Audio Input"
+  }
+ ],
+ "phases": [
+  {
+   "t": 56,
+   "wall": 1793466381628,
+   "phase": "none",
+   "num": ""
+  },
+  {
+   "t": 119,
+   "wall": 1793466381690,
+   "phase": "none",
+   "num": "문장 4 / 5"
+  },
+  {
+   "t": 190,
+   "wall": 1793466381762,
+   "phase": "listen",
+   "num": "문장 4 / 5"
+  },
+  {
+   "t": 2196,
+   "wall": 1793466383767,
+   "phase": "repeat",
+   "num": "문장 4 / 5"
+  }
+ ],
+ "env": [],
+ "envFirst": [
+  [
+   186,
+   0
+  ],
+  [
+   194,
+   0
+  ],
+  [
+   214,
+   0
+  ]
+ ],
+ "envMax": [
+  186,
+  0
+ ],
+ "envLen": 197,
+ "envErr": null,
+ "waitLabel": "② 따라 말하기 · 3.0초"
+}

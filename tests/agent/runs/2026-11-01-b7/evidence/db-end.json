@@ -1,0 +1,95 @@
+{
+ "db": "ohmyenglish_course_paid",
+ "now": "2026-10-31 17:54:50.481591+00:00",
+ "tz": [
+  {
+   "timezone": "Asia/Seoul"
+  }
+ ],
+ "attempts_total": 2,
+ "attempts": [
+  {
+   "sentence_key": "u001-s4",
+   "transcript": "",
+   "words": "[]",
+   "created_at": "2026-10-31 17:29:04.179614+00:00"
+  },
+  {
+   "sentence_key": "u001-s4",
+   "transcript": "",
+   "words": "[]",
+   "created_at": "2026-10-31 17:30:28.359361+00:00"
+  }
+ ],
+ "by_kst_date": [
+  {
+   "d": "2026-11-01",
+   "n": "2",
+   "s": "1"
+  }
+ ],
+ "progress": [
+  {
+   "user_id": "00000000-0000-0000-0000-000000000001",
+   "day": "1",
+   "position_sec": "6.38",
+   "unit": "1",
+   "sentence_index": "4",
+   "completed_count": "0",
+   "last_completed_at": "None",
+   "updated_at": "2026-10-31 17:47:12.786331+00:00"
+  },
+  {
+   "user_id": "00000000-0000-0000-0000-000000000001",
+   "day": "2",
+   "position_sec": "6.71",
+   "unit": "22",
+   "sentence_index": "0",
+   "completed_count": "1",
+   "last_completed_at": "2026-10-31 17:52:58.283453+00:00",
+   "updated_at": "2026-10-31 17:53:59.149583+00:00"
+  },
+  {
+   "user_id": "00000000-0000-0000-0000-000000000001",
+   "day": "3",
+   "position_sec": "162.71",
+   "unit": "42",
+   "sentence_index": "0",
+   "completed_count": "0",
+   "last_completed_at": "None",
+   "updated_at": "2026-10-31 17:51:58.413165+00:00"
+  },
+  {
+   "user_id": "00000000-0000-0000-0000-000000000001",
+   "day": "4",
+   "position_sec": "54.40",
+   "unit": "63",
+   "sentence_index": "0",
+   "completed_count": "0",
+   "last_completed_at": "None",
+   "updated_at": "2026-10-31 17:54:14.490225+00:00"
+  },
+  {
+   "user_id": "00000000-0000-0000-0000-000000000001",
+   "day": "5",
+   "position_sec": "6.61",
+   "unit": "83",
+   "sentence_index": "0",
+   "completed_count": "0",
+   "last_completed_at": "None",
+   "updated_at": "2026-10-31 17:39:06.007549+00:00"
+  },
+  {
+   "user_id": "00000000-0000-0000-0000-000000000001",
+   "day": "6",
+   "position_sec": "6.67",
+   "unit": "101",
+   "sentence_index": "0",
+   "completed_count": "0",
+   "last_completed_at": "None",
+   "updated_at": "2026-10-31 17:49:26.154099+00:00"
+  }
+ ],
+ "llm_calls_total": 0,
+ "llm_calls_recent": []
+}

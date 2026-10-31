@@ -14,6 +14,7 @@ import asyncpg
 from fastapi import APIRouter, HTTPException, Request
 
 from app.audio_gateway.factory import create_transcriber, transcriber_available
+from app.audio_gateway.port import TranscriberUnavailable
 from app.config import get_settings
 from app.models.course import (
     MAX_ATTEMPT_PCM_BYTES,
@@ -171,14 +172,18 @@ async def post_course_attempt(key: str, request: Request) -> dict[str, object]:
     if not transcriber_available(settings):
         raise HTTPException(status_code=503, detail="따라 하기 판정을 쓸 수 없다")
     pool: asyncpg.Pool = request.app.state.db_pool
-    result = await record_attempt(
-        pool,
-        course,
-        FIXED_USER_ID,
-        key,
-        pcm,
-        transcribe=create_transcriber(settings, usage_sink=pool_usage_sink(pool)),
-    )
+    try:
+        result = await record_attempt(
+            pool,
+            course,
+            FIXED_USER_ID,
+            key,
+            pcm,
+            transcribe=create_transcriber(settings, usage_sink=pool_usage_sink(pool)),
+        )
+    except TranscriberUnavailable as exc:
+        # 시도는 전사 «뒤에» 기록되므로 여기까지 오면 아무것도 쓰지 않았다(`TASK-288`).
+        raise HTTPException(status_code=503, detail="따라 하기 판정을 쓸 수 없다") from exc
     if result is None:
         raise HTTPException(status_code=404, detail="sentence not found")
     return {

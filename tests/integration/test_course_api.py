@@ -19,6 +19,7 @@ import pytest_asyncio
 from conftest import pin_settings_env
 
 from app.api import course as course_module
+from app.audio_gateway.port import TranscriberUnavailable
 from app.config import get_settings
 from app.models.user import FIXED_USER_ID
 
@@ -333,3 +334,28 @@ async def test_saves_at_the_start_after_completion_do_not_make_a_day_current(
     overview = (await api_client.get("/api/course")).json()
     assert overview["cycle"] == 2
     assert overview["current_day"] == 1
+
+
+async def test_a_failed_transcriber_is_503_and_records_nothing(
+    monkeypatch: pytest.MonkeyPatch,
+    api_client: httpx.AsyncClient,
+    adapter: Callable[[str], None],
+    db_pool: asyncpg.Pool,
+) -> None:
+    """전사기가 실패하면(인증 거부 등) 「안 들렸다」가 아니라 503 이다.
+
+    시도도 세지 않는다(회차 b6 D1).
+    """
+    adapter("nova")
+
+    async def transcribe(pcm: bytes) -> str:
+        raise TranscriberUnavailable("denied")
+
+    monkeypatch.setattr(course_module, "create_transcriber", lambda *_args, **_kwargs: transcribe)
+    response = await api_client.post("/api/course/sentences/u001-s1/attempts", content=PCM)
+    assert response.status_code == 503
+    async with db_pool.acquire() as conn:
+        count = await conn.fetchval(
+            "select count(*) from course_attempts where user_id = $1", FIXED_USER_ID
+        )
+    assert count == 0

@@ -1,0 +1,4 @@
+files: ['console-a.jsonl', 'console-a2.jsonl', 'console-b.jsonl', 'console-probe.jsonl', 'console-vdef.jsonl', 'console-vnp.jsonl']
+exceptions: 0
+error-level: 0
+netfail: [(('console-a.jsonl', 'netfail', 'net::ERR_ABORTED', None), 32), (('console-a.jsonl', 'netfail'), 32), (('console-a2.jsonl', 'netfail', 'net::ERR_ABORTED', None), 14), (('console-a2.jsonl', 'netfail'), 14), (('console-b.jsonl', 'netfail', 'net::ERR_ABORTED', None), 7), (('console-b.jsonl', 'netfail'), 7), (('console-probe.jsonl', 'netfail', 'net::ERR_ABORTED', None), 3), (('console-probe.jsonl', 'netfail'), 3)]

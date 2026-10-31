@@ -1,0 +1,4 @@
+{
+ "src": "_1gfo97i._.js",
+ "snippet": "seekTo(startRef.current, true);\n                                        player.pauseVideo();\n                                    }\n                             "
+}

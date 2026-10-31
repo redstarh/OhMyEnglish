@@ -17,8 +17,10 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 
+import pytest
+
 from app.audio_gateway.fixtures import FIXTURE_TURNS
-from app.audio_gateway.port import AdapterEvent, TranscriptEvent
+from app.audio_gateway.port import AdapterEvent, TranscriberUnavailable, TranscriptEvent
 from app.audio_gateway.stub import StubVoiceAdapter
 from app.audio_gateway.transcribe import transcribe_readback
 
@@ -121,3 +123,41 @@ async def test_침묵_기본값이_0이_아니다() -> None:
     await transcribe_readback(_PCM, make_adapter=lambda: padded, frame_bytes=3200)
     await transcribe_readback(_PCM, make_adapter=lambda: bare, frame_bytes=3200, silence_bytes=0)
     assert padded.received_frames > bare.received_frames
+
+
+class _FailedAdapter(_AgentOnlyAdapter):
+    """출력 스트림이 실패로 끝난 어댑터 — 실물 Nova 의 `failure` 모양만 흉내낸다(`TASK-288`)."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.failure: BaseException | None = PermissionError("denied")
+
+    async def events(self) -> AsyncIterator[AdapterEvent]:
+        return
+        yield  # pragma: no cover — 비동기 생성기로 만들기 위한 자리
+
+
+async def test_어댑터가_실패로_끝나면_빈_전사가_아니라_예외다() -> None:
+    """⛔ 인증 거부를 「안 들렸다」로 읽으면 시도가 기록되고 학습자는 다시 말해 본다(회차 b6 D1)."""
+    adapter = _FailedAdapter()
+    with pytest.raises(TranscriberUnavailable):
+        await transcribe_readback(_PCM, make_adapter=lambda: adapter)
+    assert adapter.closed is True
+
+
+class _UnreachableAdapter(_AgentOnlyAdapter):
+    """연결을 열지 못하는 어댑터 — 스트림 열기·초기화 전송의 실패를 흉내낸다."""
+
+    async def start(self) -> None:
+        raise PermissionError("denied")
+
+
+async def test_연결을_열지_못하면_예외다() -> None:
+    """⛔ 500 이 아니라 503 으로 가야 한다.
+
+    라우터는 `TranscriberUnavailable` 만 옮긴다(codex 리뷰).
+    """
+    adapter = _UnreachableAdapter()
+    with pytest.raises(TranscriberUnavailable):
+        await transcribe_readback(_PCM, make_adapter=lambda: adapter)
+    assert adapter.closed is True

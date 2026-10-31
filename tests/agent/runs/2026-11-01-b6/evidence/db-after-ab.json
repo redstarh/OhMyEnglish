@@ -1,0 +1,45 @@
+{
+ "db": "ohmyenglish_course_paid",
+ "now": "2026-10-31 17:30:56.695549+00:00",
+ "tz": [
+  {
+   "timezone": "Asia/Seoul"
+  }
+ ],
+ "attempts_total": 2,
+ "attempts": [
+  {
+   "sentence_key": "u001-s4",
+   "transcript": "",
+   "words": "[]",
+   "created_at": "2026-10-31 17:29:04.179614+00:00"
+  },
+  {
+   "sentence_key": "u001-s4",
+   "transcript": "",
+   "words": "[]",
+   "created_at": "2026-10-31 17:30:28.359361+00:00"
+  }
+ ],
+ "by_kst_date": [
+  {
+   "d": "2026-11-01",
+   "n": "2",
+   "s": "1"
+  }
+ ],
+ "progress": [
+  {
+   "user_id": "00000000-0000-0000-0000-000000000001",
+   "day": "1",
+   "position_sec": "0.00",
+   "unit": "1",
+   "sentence_index": "3",
+   "completed_count": "0",
+   "last_completed_at": "None",
+   "updated_at": "2026-10-31 17:30:56.518769+00:00"
+  }
+ ],
+ "llm_calls_total": 0,
+ "llm_calls_recent": []
+}

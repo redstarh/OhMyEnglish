@@ -8,7 +8,14 @@
 // ⚠️ 재생은 YouTube 임베드가 맡는다 — 앱은 영상의 소리를 받지도 저장하지도 않는다(설계서 §2).
 
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
-import { loadPlayerApi, PLAYER_ENDED, PLAYER_PLAYING, type YouTubePlayer } from "@/lib/youtube";
+import {
+  loadPlayerApi,
+  PLAYER_CUED,
+  PLAYER_ENDED,
+  PLAYER_PLAYING,
+  PLAYER_UNSTARTED,
+  type YouTubePlayer,
+} from "@/lib/youtube";
 
 export interface CoursePlayerHandle {
   currentTime(): number;
@@ -42,7 +49,13 @@ export const CoursePlayer = forwardRef<CoursePlayerHandle, Props>(function Cours
   useImperativeHandle(
     ref,
     () => ({
-      currentTime: () => playerRef.current?.getCurrentTime() ?? startRef.current,
+      // 재생 전(시작 전·대기)에는 `getCurrentTime` 이 시작 위치가 아니라 0 을 낼 수 있어 시작 위치로 대신한다.
+      currentTime: () => {
+        const player = playerRef.current;
+        if (!player) return startRef.current;
+        const state = player.getPlayerState();
+        return state === PLAYER_UNSTARTED || state === PLAYER_CUED ? startRef.current : player.getCurrentTime();
+      },
       pause: () => playerRef.current?.pauseVideo(),
       rewind: () => {
         startRef.current = 0;
@@ -61,12 +74,14 @@ export const CoursePlayer = forwardRef<CoursePlayerHandle, Props>(function Cours
         if (cancelled || !mountRef.current) return;
         const target = document.createElement("div");
         mountRef.current.replaceChildren(target);
+        // ⛔ 시작 위치는 `seekTo` 가 아니라 `start` 로 준다(사용자 결정 2026-11-01 · `TASK-289`) —
+        // 시작 전 영상의 `seekTo` 는 재생을 시작하고, 곧바로 멈추게 하면 ▶ 이 듣지 않았다(회차 b6 D2).
         player = new api.Player(target, {
           videoId: youtubeId,
+          playerVars: startRef.current > 0 ? { start: Math.floor(startRef.current) } : undefined,
           events: {
             onReady: () => {
               if (cancelled || !player) return;
-              if (startRef.current > 0) player.seekTo(startRef.current, true);
               // ⛔ **준비된 «뒤에» 노출한다**(회차 2026-10-26-b1 D2) — IFrame API 객체는 `onReady` 전에는
               // `getCurrentTime`·`pauseVideo` 를 갖지 않아, 생성 직후 노출하면 5초 저장 타이머가
               // TypeError 를 냈다. 준비 전에는 `startRef` 가 위치를 대신한다.

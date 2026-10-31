@@ -1,0 +1,38 @@
+{
+ "savedBeforeOpen": {
+  "position_sec": 43.42,
+  "unit": 63,
+  "sentence_index": 0,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-10-31T17:51:58.487898+00:00"
+ },
+ "playClickedAt": "2026-10-31T17:54:02.431Z",
+ "savedDuringStay": [
+  {
+   "atMs": 6003,
+   "saved": 44.4
+  },
+  {
+   "atMs": 12003,
+   "saved": 54.4
+  }
+ ],
+ "links": [
+  [
+   "← 학습 목록",
+   "/course"
+  ]
+ ],
+ "playerTimeBeforeLeave": 54.59983504386902,
+ "savedAfterLeave": {
+  "position_sec": 54.4,
+  "unit": 63,
+  "sentence_index": 0,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-10-31T17:54:14.490225+00:00"
+ }
+}

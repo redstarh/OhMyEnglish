@@ -1,0 +1,36 @@
+{
+ "savedBeforeOpen": {
+  "position_sec": 6.49,
+  "unit": 22,
+  "sentence_index": 0,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-10-31T17:37:11.324618+00:00"
+ },
+ "savedDuringStay": [
+  {
+   "atMs": 6001,
+   "saved": 6.49
+  },
+  {
+   "atMs": 12000,
+   "saved": 6.49
+  }
+ ],
+ "links": [
+  [
+   "← 학습 목록",
+   "/course"
+  ]
+ ],
+ "savedAfterLeave": {
+  "position_sec": 6.49,
+  "unit": 22,
+  "sentence_index": 0,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-10-31T17:51:00.924142+00:00"
+ }
+}

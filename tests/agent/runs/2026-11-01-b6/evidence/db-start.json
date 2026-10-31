@@ -1,0 +1,15 @@
+{
+ "db": "ohmyenglish_course_paid",
+ "now": "2026-10-31 17:01:32.198405+00:00",
+ "tz": [
+  {
+   "timezone": "Asia/Seoul"
+  }
+ ],
+ "attempts_total": 0,
+ "attempts": [],
+ "by_kst_date": [],
+ "progress": [],
+ "llm_calls_total": 0,
+ "llm_calls_recent": []
+}

@@ -341,6 +341,8 @@ export default function CourseDayPage() {
         setSentenceIndex(position.sentenceIndex);
         positionRef.current = position;
         setResult(null);
+        // 앞 문장의 안내(안 들렸어요 · 판정을 쓸 수 없어요)가 이 문장의 결과로 읽히지 않게 지운다(회차 b7).
+        setNotice(null);
 
         setPhase("listen");
         const spokenMs = await speak(item.text, { rate, signal });

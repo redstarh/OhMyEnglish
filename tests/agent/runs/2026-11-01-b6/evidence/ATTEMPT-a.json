@@ -1,0 +1,90 @@
+{
+ "before": {
+  "unit": "Unit 1 · be 동사 am · is · are",
+  "num": "문장 4 / 5",
+  "sentence": "The server is very slow today.",
+  "attempts": "따라 함 0회",
+  "phase": null,
+  "notice": null,
+  "transcript": null,
+  "words": [],
+  "mode": "manual"
+ },
+ "apiBefore": {
+  "key": "u001-s4",
+  "text": "The server is very slow today.",
+  "attempts": 0
+ },
+ "initPresent": {
+  "phases": true,
+  "gum": true
+ },
+ "windowMs": 3000,
+ "window": {
+  "gum": [
+   {
+    "called": 198,
+    "resolved": 341,
+    "label": "Fake Default Audio Input"
+   }
+  ],
+  "repeatAt": 2785,
+  "judgeAt": 5813,
+  "speechFirst": 3023,
+  "speechLast": 4743,
+  "speechInWindowFromRepeatMs": [
+   238,
+   1958
+  ]
+ },
+ "mo2": [
+  [
+   349,
+   "listen",
+   ""
+  ],
+  [
+   2782,
+   "repeat",
+   ""
+  ],
+  [
+   5809,
+   "judge",
+   ""
+  ],
+  [
+   8276,
+   "done",
+   "잘 안 들렸어요. 「다시」를 눌러 한 번 더 해 보세요."
+  ]
+ ],
+ "judgeToDoneMs": 2467,
+ "after": {
+  "unit": "Unit 1 · be 동사 am · is · are",
+  "num": "문장 4 / 5",
+  "sentence": "The server is very slow today.",
+  "attempts": "따라 함 1회",
+  "phase": "done",
+  "notice": "잘 안 들렸어요. 「다시」를 눌러 한 번 더 해 보세요.",
+  "transcript": "",
+  "words": [],
+  "mode": "manual"
+ },
+ "apiAfter": {
+  "key": "u001-s4",
+  "text": "The server is very slow today.",
+  "attempts": 1
+ },
+ "afterReload": {
+  "unit": "Unit 1 · be 동사 am · is · are",
+  "num": "문장 4 / 5",
+  "sentence": "The server is very slow today.",
+  "attempts": "따라 함 1회",
+  "phase": null,
+  "notice": null,
+  "transcript": null,
+  "words": [],
+  "mode": "manual"
+ }
+}

@@ -1,0 +1,40 @@
+{
+ "before": {
+  "t": 0,
+  "paused": true,
+  "state": -1,
+  "rs": 0,
+  "bigBtn": null,
+  "spinner": false,
+  "cls": [
+   "small-mode",
+   "paused-mode",
+   "buffering-mode",
+   "unstarted-mode"
+  ]
+ },
+ "afterKeyK": {
+  "t": 122.86,
+  "paused": false,
+  "state": 1,
+  "rs": 4,
+  "bigBtn": null,
+  "spinner": false,
+  "cls": [
+   "small-mode",
+   "playing-mode"
+  ]
+ },
+ "afterBigBtnClick": {
+  "t": 125.87,
+  "paused": false,
+  "state": 1,
+  "rs": 4,
+  "bigBtn": null,
+  "spinner": false,
+  "cls": [
+   "small-mode",
+   "playing-mode"
+  ]
+ }
+}

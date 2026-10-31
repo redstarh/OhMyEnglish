@@ -1,0 +1,48 @@
+{
+ "savedBefore": {
+  "position_sec": 43.42,
+  "unit": 63,
+  "sentence_index": 0,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-10-31T17:50:19.905639+00:00"
+ },
+ "clickAfterNavMs": 65,
+ "playerReadyAtClick": {
+  "iframe": false,
+  "ready": false
+ },
+ "videoDuringRepeat": [
+  {
+   "atMs": 1284,
+   "phase": "repeat",
+   "iframeTarget": false
+  },
+  {
+   "atMs": 1892,
+   "phase": "repeat",
+   "t": 0,
+   "paused": true,
+   "state": 5
+  }
+ ],
+ "held": [
+  {
+   "url": "https://www.youtube.com/embed/3dsHMpnN26Y?start=43&enablejsapi=1&origin=http%3A%",
+   "at": 1793469118676,
+   "releasedAfterMs": 1203
+  }
+ ],
+ "savedAfterLeave": {
+  "position_sec": 43.42,
+  "unit": 63,
+  "sentence_index": 0,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-10-31T17:51:58.487898+00:00"
+ },
+ "ERROR": "Error: leave-done\n    at file:///Users/redstar/MyProject/OhMyEnglish/tests/agent/runs/2026-11-01-b7/ready.mjs:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)",
+ "exceptions": []
+}

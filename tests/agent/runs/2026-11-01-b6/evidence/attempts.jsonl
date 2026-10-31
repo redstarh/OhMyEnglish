@@ -1,0 +1,13 @@
+{"wall":"2026-10-31T17:29:01.722Z","tag":"a2","kind":"attempt-req","method":"OPTIONS","url":"http://localhost:8002/api/course/sentences/u001-s4/attempts","bodyBytes":null}
+{"wall":"2026-10-31T17:29:01.722Z","tag":"a2","kind":"attempt-status","status":200,"url":"http://localhost:8002/api/course/sentences/u001-s4/attempts"}
+{"wall":"2026-10-31T17:29:01.741Z","tag":"a2","kind":"attempt-req","method":"POST","url":"http://localhost:8002/api/course/sentences/u001-s4/attempts","bodyBytes":96256,"hasPostData":true}
+{"wall":"2026-10-31T17:29:01.741Z","tag":"a2","kind":"attempt-body-error","text":"Error: {\"code\":-32000,\"message\":\"No resource with given identifier found\"}"}
+{"wall":"2026-10-31T17:29:04.187Z","tag":"a2","kind":"attempt-status","status":200,"url":"http://localhost:8002/api/course/sentences/u001-s4/attempts"}
+{"wall":"2026-10-31T17:29:04.197Z","tag":"a2","kind":"attempt-body","url":"http://localhost:8002/api/course/sentences/u001-s4/attempts","body":"{\"transcript\":\"\",\"words\":[],\"attempts\":1}"}
+{"wall":"2026-10-31T17:30:26.950Z","tag":"b","kind":"attempt-req","method":"OPTIONS","url":"http://localhost:8002/api/course/sentences/u001-s4/attempts","bodyBytes":null}
+{"wall":"2026-10-31T17:30:26.952Z","tag":"b","kind":"attempt-status","status":200,"url":"http://localhost:8002/api/course/sentences/u001-s4/attempts"}
+{"wall":"2026-10-31T17:30:26.982Z","tag":"b","kind":"attempt-req","method":"POST","url":"http://localhost:8002/api/course/sentences/u001-s4/attempts","bodyBytes":97280,"hasPostData":true}
+{"wall":"2026-10-31T17:30:26.982Z","tag":"b","kind":"attempt-body-error","text":"Error: {\"code\":-32000,\"message\":\"No resource with given identifier found\"}"}
+{"wall":"2026-10-31T17:30:26.986Z","tag":"b","kind":"attempt-pcm-saved","file":"sent-b-1793467826985.wav","bytes":97280,"b64":true}
+{"wall":"2026-10-31T17:30:28.363Z","tag":"b","kind":"attempt-status","status":200,"url":"http://localhost:8002/api/course/sentences/u001-s4/attempts"}
+{"wall":"2026-10-31T17:30:28.368Z","tag":"b","kind":"attempt-body","url":"http://localhost:8002/api/course/sentences/u001-s4/attempts","body":"{\"transcript\":\"\",\"words\":[],\"attempts\":2}"}

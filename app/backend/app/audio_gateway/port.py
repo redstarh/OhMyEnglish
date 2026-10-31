@@ -206,4 +206,10 @@ class VoiceAdapter(Protocol):
 # 배치 STT 로 갈 때 뜻 없는 인자가 남는다.
 # ⚠️ **전사를 얻지 못한 것은 빈 문자열이다**(예외가 아니다). 호출자는 그때 판정을 만들지 않고
 # 학습자가 다시 눌러 볼 수 있게 둔다 — `services/readback.judge_readback` 이 그 판단을 가진다.
+# ⛔ **단, 전사기 자체가 실패한 것은 `TranscriberUnavailable` 이다**(`TASK-288`) — 인증 거부를
+# 빈 문자열로 내면 「안 들렸다」와 섞여 학습자는 다시 말해 보고 시도는 기록된다(회차 b6 D1 실측).
 Transcriber = Callable[[bytes], Awaitable[str]]
+
+
+class TranscriberUnavailable(Exception):
+    """전사기가 응답하지 못했다(인증 거부 · 연결 실패) — 라우터가 503 으로 옮긴다."""

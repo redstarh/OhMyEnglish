@@ -1204,6 +1204,8 @@ class NovaVoiceAdapter:
         self._translator = NovaEventTranslator()
         self._audio_open = False
         self._closed = False
+        # 출력 스트림을 끝낸 예외(`TASK-288`) — 전사기가 「조용함」과 「실패」를 가르는 근거다.
+        self.failure: BaseException | None = None
         # 결과를 돌려줄 제어 tool 호출 — `(toolUseId, command)` (`TASK-61.5` · 결정 109).
         #
         # ⛔ **제어 tool 만 담는다.** 발음 tool 은 TOOL 블록이 ASSISTANT 텍스트보다 **앞**에 와서
@@ -1269,11 +1271,13 @@ class NovaVoiceAdapter:
                     }
                 }
             )
-        except Exception:
+        except Exception as exc:
             # 프레임 하나가 대화를 끊지 않는다. 스트림이 정말 죽었으면 출력 펌프가 끝나며
             # 세션이 닫힌다 — 여기서 예외를 올리면 그 경로를 앞질러 릴레이가 터진다.
             logger.warning("오디오 프레임 전송이 실패해 오디오 경로를 닫는다", exc_info=True)
             self._audio_open = False
+            # 그 뒤 출력이 조용하면 전사기가 「안 들렸다」로 읽으므로 실패로 남긴다(`TASK-288`).
+            self.failure = self.failure or exc
 
     async def events(self) -> AsyncIterator[AdapterEvent]:
         while True:
@@ -1447,7 +1451,8 @@ class NovaVoiceAdapter:
             # `close()` 의 백스톱이 덮고, 그쪽은 취소되지 않은 문맥이라 온전히 적을 수 있다.
             cancelled = True
             raise
-        except Exception:
+        except Exception as exc:
+            self.failure = exc
             logger.exception("Nova 출력 스트림이 예외로 끝났다 — 세션을 닫는다")
         finally:
             if self._awaiting_outcome:

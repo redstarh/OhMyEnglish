@@ -1,0 +1,97 @@
+{
+ "savedBeforeOpen": {
+  "position_sec": 0,
+  "unit": 83,
+  "sentence_index": 0,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-10-31T17:35:54.428148+00:00"
+ },
+ "samplesAfterOpen": [
+  {
+   "atMs": 2000,
+   "t": 0,
+   "paused": true,
+   "state": 5,
+   "ad": false
+  },
+  {
+   "atMs": 4001,
+   "t": 0,
+   "paused": true,
+   "state": 5,
+   "ad": false
+  },
+  {
+   "atMs": 7002,
+   "t": 0,
+   "paused": true,
+   "state": 5,
+   "ad": false
+  },
+  {
+   "atMs": 11001,
+   "t": 0,
+   "paused": true,
+   "state": 5,
+   "ad": false
+  },
+  {
+   "atMs": 15000,
+   "t": 0,
+   "paused": true,
+   "state": 5,
+   "ad": false
+  }
+ ],
+ "pageAfterOpen": {
+  "unit": "Unit 83 · 형용사 위치",
+  "num": "문장 1 / 5",
+  "sentence": "We moved into a bright office.",
+  "attempts": "따라 함 0회",
+  "phase": null,
+  "notice": null,
+  "transcript": null,
+  "words": [],
+  "mode": null
+ },
+ "samplesAfterPlayClick": [
+  {
+   "rel": 1500,
+   "t": 1.03,
+   "paused": false,
+   "state": 1,
+   "ad": false
+  },
+  {
+   "rel": 4000,
+   "t": 3.53,
+   "paused": false,
+   "state": 1,
+   "ad": false
+  },
+  {
+   "rel": 7000,
+   "t": 6.54,
+   "paused": false,
+   "state": 1,
+   "ad": false
+  }
+ ],
+ "afterPauseClick": {
+  "t": 6.61,
+  "paused": true,
+  "state": 2,
+  "ad": false
+ },
+ "savedAfter": {
+  "position_sec": 6.61,
+  "unit": 83,
+  "sentence_index": 0,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-10-31T17:38:05.239837+00:00"
+ }
+}

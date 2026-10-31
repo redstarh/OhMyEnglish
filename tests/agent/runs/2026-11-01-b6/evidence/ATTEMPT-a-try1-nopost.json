@@ -1,0 +1,19 @@
+{
+ "before": {
+  "unit": "Unit 1 · be 동사 am · is · are",
+  "num": "문장 4 / 5",
+  "sentence": "The server is very slow today.",
+  "attempts": "따라 함 0회",
+  "phase": null,
+  "notice": null,
+  "transcript": null,
+  "words": [],
+  "mode": "manual"
+ },
+ "apiBefore": {
+  "key": "u001-s4",
+  "text": "The server is very slow today.",
+  "attempts": 0
+ },
+ "ERROR": "Error: timeout document.querySelector('[data-testid=course-phase]')?.dataset.phase === 'repeat'\n    at Object.waitFor (file:///Users/redstar/MyProject/OhMyEnglish/tests/agent/runs/2026-11-01-b6/lib.mjs:14:188)\n    at async file:///Users/redstar/MyProject/OhMyEnglish/tests/agent/runs/2026-11-01-b6/attempt.mjs:28:3"
+}

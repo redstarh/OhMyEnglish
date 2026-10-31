@@ -1,0 +1,123 @@
+{
+ "savedBefore": {
+  "position_sec": 162.71,
+  "unit": 42,
+  "sentence_index": 0,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-10-31T17:50:48.693377+00:00"
+ },
+ "clickAfterNavMs": 54,
+ "playerReadyAtClick": {
+  "iframe": false,
+  "ready": false
+ },
+ "doneAfterNavMs": 5968,
+ "mo2": [
+  [
+   101,
+   "listen",
+   ""
+  ],
+  [
+   1870,
+   "repeat",
+   ""
+  ],
+  [
+   4637,
+   "judge",
+   ""
+  ],
+  [
+   5967,
+   "done",
+   "지금은 따라 하기 판정을 쓸 수 없어요. 문장은 계속 이어져요."
+  ]
+ ],
+ "phases": [
+  {
+   "t": 26,
+   "wall": 1793469089035,
+   "phase": "none",
+   "num": ""
+  },
+  {
+   "t": 47,
+   "wall": 1793469089056,
+   "phase": "none",
+   "num": "문장 1 / 5"
+  },
+  {
+   "t": 106,
+   "wall": 1793469089115,
+   "phase": "listen",
+   "num": "문장 1 / 5"
+  },
+  {
+   "t": 1873,
+   "wall": 1793469090881,
+   "phase": "repeat",
+   "num": "문장 1 / 5"
+  },
+  {
+   "t": 4637,
+   "wall": 1793469093645,
+   "phase": "judge",
+   "num": "문장 1 / 5"
+  },
+  {
+   "t": 5968,
+   "wall": 1793469094976,
+   "phase": "done",
+   "num": "문장 1 / 5"
+  }
+ ],
+ "held": [
+  {
+   "url": "https://www.youtube.com/embed/EFECHJ5bocA?start=162&enablejsapi=1&origin=http%3A",
+   "at": 1793469089179,
+   "releasedAfterMs": 6003
+  }
+ ],
+ "stateAtDone": {
+  "unit": "Unit 42 · 의문문 만들기",
+  "num": "문장 1 / 5",
+  "sentence": "Is the client happy?",
+  "attempts": "따라 함 0회",
+  "phase": "done",
+  "notice": "지금은 따라 하기 판정을 쓸 수 없어요. 문장은 계속 이어져요.",
+  "transcript": null,
+  "words": [],
+  "mode": "manual"
+ },
+ "videoAfterDone": [
+  {
+   "atMs": 5970,
+   "iframeTarget": false
+  },
+  {
+   "atMs": 7972,
+   "t": 0,
+   "paused": true,
+   "state": 5
+  },
+  {
+   "atMs": 9983,
+   "t": 0,
+   "paused": true,
+   "state": 5
+  }
+ ],
+ "savedAfter": {
+  "position_sec": 162.71,
+  "unit": 42,
+  "sentence_index": 0,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-10-31T17:51:44.062364+00:00"
+ },
+ "exceptions": []
+}

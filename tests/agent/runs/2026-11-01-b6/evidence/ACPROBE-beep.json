@@ -1,0 +1,20 @@
+{
+ "label": "Fake Default Audio Input",
+ "settings": {
+  "autoGainControl": true,
+  "channelCount": 1,
+  "deviceId": "default",
+  "echoCancellation": true,
+  "groupId": "12079abd8b9945c31abacebd4eb53050dcfc9f5d5a19fbc50992d02445840516",
+  "latency": 0.01,
+  "noiseSuppression": true,
+  "sampleRate": 48000,
+  "sampleSize": 16,
+  "voiceIsolation": false
+ },
+ "state": "running",
+ "sr": 48000,
+ "ct": 3.2,
+ "max": 0,
+ "nonzero": []
+}

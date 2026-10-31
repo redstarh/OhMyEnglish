@@ -1,0 +1,123 @@
+{
+ "before": {
+  "unit": "Unit 1 · be 동사 am · is · are",
+  "num": "문장 4 / 5",
+  "sentence": "The server is very slow today.",
+  "attempts": "따라 함 2회",
+  "phase": null,
+  "notice": null,
+  "transcript": null,
+  "words": [],
+  "mode": "auto"
+ },
+ "apiBefore": [
+  [
+   "u001-s1",
+   0
+  ],
+  [
+   "u001-s2",
+   0
+  ],
+  [
+   "u001-s3",
+   0
+  ],
+  [
+   "u001-s4",
+   2
+  ],
+  [
+   "u001-s5",
+   0
+  ]
+ ],
+ "startButtonInAuto": true,
+ "barAtRepeat": {
+  "dur": "2996.1ms",
+  "anim": "omy-course-wait-fill",
+  "w": 283.109375,
+  "pw": 283.109375
+ },
+ "barAt1s": {
+  "w": 188.625,
+  "pw": 283.109375
+ },
+ "stateInNextRepeat": {
+  "unit": "Unit 1 · be 동사 am · is · are",
+  "num": "문장 5 / 5",
+  "sentence": "You are early for the meeting.",
+  "attempts": "따라 함 0회",
+  "phase": "repeat",
+  "notice": "지금은 따라 하기 판정을 쓸 수 없어요. 문장은 계속 이어져요.",
+  "transcript": null,
+  "words": [],
+  "mode": "auto"
+ },
+ "mo2": [
+  [
+   127,
+   "listen",
+   "문장 4 / 5",
+   "",
+   null
+  ],
+  [
+   2126,
+   "repeat",
+   "문장 4 / 5",
+   "",
+   "2996.1ms"
+  ],
+  [
+   5138,
+   "judge",
+   "문장 4 / 5",
+   "",
+   null
+  ],
+  [
+   6397,
+   "done",
+   "문장 4 / 5",
+   "지금은 따라 하기 판정을 쓸 수 없어요. 문장은 계속 이어져요.",
+   null
+  ],
+  [
+   7904,
+   "listen",
+   "문장 5 / 5",
+   "지금은 따라 하기 판정을 쓸 수 없어요. 문장은 계속 이어져요.",
+   null
+  ],
+  [
+   9448,
+   "repeat",
+   "문장 5 / 5",
+   "지금은 따라 하기 판정을 쓸 수 없어요. 문장은 계속 이어져요.",
+   "2539.8ms"
+  ]
+ ],
+ "apiAfter": [
+  [
+   "u001-s1",
+   0
+  ],
+  [
+   "u001-s2",
+   0
+  ],
+  [
+   "u001-s3",
+   0
+  ],
+  [
+   "u001-s4",
+   2
+  ],
+  [
+   "u001-s5",
+   0
+  ]
+ ]
+}

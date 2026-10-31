@@ -1,0 +1,28 @@
+{"wall":"2026-10-31T17:46:32.392Z","tag":"np1","kind":"attempt-req","method":"OPTIONS","url":"http://localhost:8002/api/course/sentences/u001-s4/attempts","bodyBytes":null}
+{"wall":"2026-10-31T17:46:32.394Z","tag":"np1","kind":"attempt-status","status":200,"url":"http://localhost:8002/api/course/sentences/u001-s4/attempts"}
+{"wall":"2026-10-31T17:46:32.425Z","tag":"np1","kind":"attempt-req","method":"POST","url":"http://localhost:8002/api/course/sentences/u001-s4/attempts","bodyBytes":110592,"hasPostData":true}
+{"wall":"2026-10-31T17:46:32.425Z","tag":"np1","kind":"attempt-body-error","text":"Error: {\"code\":-32000,\"message\":\"No resource with given identifier found\"}"}
+{"wall":"2026-10-31T17:46:32.430Z","tag":"np1","kind":"attempt-pcm-saved","file":"sent-np1-1793468792430.wav","bytes":110592,"b64":true}
+{"wall":"2026-10-31T17:46:33.889Z","tag":"np1","kind":"attempt-status","status":503,"url":"http://localhost:8002/api/course/sentences/u001-s4/attempts"}
+{"wall":"2026-10-31T17:46:33.950Z","tag":"np1","kind":"attempt-body","url":"http://localhost:8002/api/course/sentences/u001-s4/attempts","body":"{\"detail\":\"따라 하기 판정을 쓸 수 없다\"}"}
+{"wall":"2026-10-31T17:47:07.924Z","tag":"np1","kind":"attempt-req","method":"OPTIONS","url":"http://localhost:8002/api/course/sentences/u001-s4/attempts","bodyBytes":null}
+{"wall":"2026-10-31T17:47:07.925Z","tag":"np1","kind":"attempt-status","status":200,"url":"http://localhost:8002/api/course/sentences/u001-s4/attempts"}
+{"wall":"2026-10-31T17:47:07.955Z","tag":"np1","kind":"attempt-req","method":"POST","url":"http://localhost:8002/api/course/sentences/u001-s4/attempts","bodyBytes":95232,"hasPostData":true}
+{"wall":"2026-10-31T17:47:07.956Z","tag":"np1","kind":"attempt-body-error","text":"Error: {\"code\":-32000,\"message\":\"No resource with given identifier found\"}"}
+{"wall":"2026-10-31T17:47:07.960Z","tag":"np1","kind":"attempt-pcm-saved","file":"sent-np1-1793468827960.wav","bytes":95232,"b64":true}
+{"wall":"2026-10-31T17:47:09.187Z","tag":"np1","kind":"attempt-status","status":503,"url":"http://localhost:8002/api/course/sentences/u001-s4/attempts"}
+{"wall":"2026-10-31T17:47:09.242Z","tag":"np1","kind":"attempt-body","url":"http://localhost:8002/api/course/sentences/u001-s4/attempts","body":"{\"detail\":\"따라 하기 판정을 쓸 수 없다\"}"}
+{"wall":"2026-10-31T17:51:33.638Z","tag":"def1","kind":"attempt-req","method":"OPTIONS","url":"http://localhost:8002/api/course/sentences/u042-s1/attempts","bodyBytes":null}
+{"wall":"2026-10-31T17:51:33.640Z","tag":"def1","kind":"attempt-status","status":200,"url":"http://localhost:8002/api/course/sentences/u042-s1/attempts"}
+{"wall":"2026-10-31T17:51:33.667Z","tag":"def1","kind":"attempt-req","method":"POST","url":"http://localhost:8002/api/course/sentences/u042-s1/attempts","bodyBytes":88064,"hasPostData":true}
+{"wall":"2026-10-31T17:51:33.667Z","tag":"def1","kind":"attempt-body-error","text":"Error: {\"code\":-32000,\"message\":\"No resource with given identifier found\"}"}
+{"wall":"2026-10-31T17:51:33.671Z","tag":"def1","kind":"attempt-pcm-saved","file":"sent-def1-1793469093670.wav","bytes":88064,"b64":true}
+{"wall":"2026-10-31T17:51:34.973Z","tag":"def1","kind":"attempt-status","status":503,"url":"http://localhost:8002/api/course/sentences/u042-s1/attempts"}
+{"wall":"2026-10-31T17:51:35.027Z","tag":"def1","kind":"attempt-body","url":"http://localhost:8002/api/course/sentences/u042-s1/attempts","body":"{\"detail\":\"따라 하기 판정을 쓸 수 없다\"}"}
+{"wall":"2026-10-31T17:52:56.596Z","tag":"def1","kind":"attempt-req","method":"OPTIONS","url":"http://localhost:8002/api/course/sentences/u041-s5/attempts","bodyBytes":null}
+{"wall":"2026-10-31T17:52:56.597Z","tag":"def1","kind":"attempt-status","status":200,"url":"http://localhost:8002/api/course/sentences/u041-s5/attempts"}
+{"wall":"2026-10-31T17:52:56.625Z","tag":"def1","kind":"attempt-req","method":"POST","url":"http://localhost:8002/api/course/sentences/u041-s5/attempts","bodyBytes":93184,"hasPostData":true}
+{"wall":"2026-10-31T17:52:56.625Z","tag":"def1","kind":"attempt-body-error","text":"Error: {\"code\":-32000,\"message\":\"No resource with given identifier found\"}"}
+{"wall":"2026-10-31T17:52:56.629Z","tag":"def1","kind":"attempt-pcm-saved","file":"sent-def1-1793469176629.wav","bytes":93184,"b64":true}
+{"wall":"2026-10-31T17:52:57.968Z","tag":"def1","kind":"attempt-status","status":503,"url":"http://localhost:8002/api/course/sentences/u041-s5/attempts"}
+{"wall":"2026-10-31T17:52:58.022Z","tag":"def1","kind":"attempt-body","url":"http://localhost:8002/api/course/sentences/u041-s5/attempts","body":"{\"detail\":\"따라 하기 판정을 쓸 수 없다\"}"}
