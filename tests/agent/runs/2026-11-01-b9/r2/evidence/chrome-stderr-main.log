@@ -67,3 +67,7 @@ Created TensorFlow Lite XNNPACK delegate for CPU.
 [18487:135869004:1101/045326.688827:VERBOSE1:chrome/updater/updater.cc:107] Crash reporting initialized.
 [18487:135869004:1101/045326.688979:VERBOSE1:chrome/updater/ipc/update_service_internal_proxy_mojo.cc:61] Run
 Created TensorFlow Lite XNNPACK delegate for CPU.
+[18491:135869012:1101/045526.717152:VERBOSE2:chrome/updater/event_history.cc:266] Emitted a UPDATER_PROCESS END event to the history log
+[18491:135869012:1101/045526.717232:VERBOSE1:chrome/updater/updater.cc:420] UpdaterMain (--crash-handler) returned 0.
+[18485:135868987:1101/045526.719541:VERBOSE2:chrome/updater/event_history.cc:266] Emitted a UPDATER_PROCESS END event to the history log
+[18485:135868987:1101/045526.719591:VERBOSE1:chrome/updater/updater.cc:420] UpdaterMain (--crash-handler) returned 0.
