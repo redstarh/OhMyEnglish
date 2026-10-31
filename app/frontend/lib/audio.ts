@@ -130,7 +130,7 @@ export class VoiceIo {
     const context = new AudioContext({ sampleRate: SAMPLE_RATE_HZ });
     if (!context.audioWorklet) {
       await context.close();
-      throw new Error("이 브라우저에서는 AudioWorklet을 쓸 수 없습니다");
+      throw new Error("This browser can't record your voice.");
     }
     const moduleUrl = URL.createObjectURL(
       new Blob([CAPTURE_WORKLET_SOURCE], { type: "text/javascript" }),

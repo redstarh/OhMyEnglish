@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { fetchNextPlan, translateUtterance, type NextPlanSummary } from "@/lib/api";
-import { API_BASE, entryFromQuery, type SessionEntry } from "@/lib/config";
+import { translateUtterance } from "@/lib/api";
+import { entryFromQuery, type SessionEntry } from "@/lib/config";
 import { VoiceIo, base64ToBytes, bytesToBase64, pcmFromAudioFrame } from "@/lib/audio";
 import {
   SessionSocket,
@@ -14,13 +14,10 @@ import {
 import { SessionChat, type TranscriptLine } from "./SessionChat";
 import { ShadowingPanel } from "./ShadowingPanel";
 import { WeeklyReportPanel } from "./WeeklyReportPanel";
-import { ADDITIONAL_LEARNING, entryForTarget, isAdditionalLearningEnabled } from "./additionalLearning";
+import { entryForTarget } from "./additionalLearning";
+import { HomeDashboard } from "@/components/home/HomeDashboard";
 
 type ScreenState = "idle" | "connecting" | "active" | "ending" | "failed";
-
-// 추천 이유 한 줄의 머리말 (R11-3). "왜 이 연습인지"를 학습자 말로 붙인다 — 이유 문장은
-// 계획이 소유하므로 여기서 문구를 만들지 않는다.
-const NEXT_PLAN_PREFIX = "오늘 이걸 연습해요:";
 
 // 발음 집중을 골랐을 때 화면이 말해야 하는 두 가지 (`TASK-10.2` AC#2 · `TASK-128.4`).
 //
@@ -31,9 +28,9 @@ const NEXT_PLAN_PREFIX = "오늘 이걸 연습해요:";
 // 상태다. 즉 거짓 문구가 **기본값으로** 뜨고 있었다.
 // ⛔ **두 상태를 한 문구로 합치지 않는다**(결정 83 이 그 안을 기각했다) — 둘은 실제로 다르고 둘 다
 // 참이다. ⚠️ 소리 키(`th_as_s`)는 기계 키라 렌더하지 않는다(설계서 §10 미결 4).
-const PRONUNCIATION_ENTERED = "발음 연습으로 시작했어요. 소리를 시범하고 다시 말하기를 부탁할 거예요.";
+const PRONUNCIATION_ENTERED = "Pronunciation practice started. Listen to the coach, then say it again.";
 const PRONUNCIATION_NO_CANDIDATE =
-  "발음 연습으로 시작했어요. 오늘 다룰 소리는 대화에서 듣고 고를 거예요.";
+  "Pronunciation practice started. The coach will pick a sound from your talk.";
 
 // 음성 명령의 어긋남을 말하는 문구 셋 (결정 113 · `TASK-61.16`).
 //
@@ -48,29 +45,47 @@ const COMMAND_IGNORED_NOTICE: Record<
   "end" | "start_additional" | "show_report" | "pause" | "resume",
   string
 > = {
-  end: "학습 종료를 알아듣지 못해 세션을 그대로 두었어요. 「헤이, 학습 종료」처럼 다시 말해 주세요.",
+  end: "I didn't catch \"end\". The session goes on. Say it again, like \"헤이, 학습 종료\".",
   start_additional:
-    "연습 변경을 알아듣지 못해 지금 세션을 그대로 두었어요. 「헤이, 발음 연습으로 바꿔 줘」처럼 다시 말해 주세요.",
-  show_report: "리포트 요청을 알아듣지 못했어요. 「헤이, 주간 리포트 보여 줘」처럼 다시 말해 주세요.",
+    "I didn't catch the change. This session goes on. Say it again, like \"헤이, 발음 연습으로 바꿔 줘\".",
+  show_report: "I didn't catch the report request. Say it again, like \"헤이, 주간 리포트 보여 줘\".",
   // ⚠️ 정지·재개가 버려진 경우의 문구가 **방향까지 말한다** — 「멈추지 못했다」와 「잇지 못했다」는
   // 학습자가 다음에 해야 할 일이 다르고, 기록이 계속되는지 멈춰 있는지도 다르다.
-  pause: "일시 정지를 알아듣지 못해 계속 기록하고 있어요. 「헤이, 일시 정지」처럼 다시 말해 주세요.",
+  pause: "I didn't catch \"pause\". I'm still recording. Say it again, like \"헤이, 일시 정지\".",
   resume:
-    "학습 계속을 알아듣지 못해 아직 정지 중이에요. 「헤이, 학습 계속」처럼 다시 말해 주세요.",
+    "I didn't catch \"resume\". It is still paused. Say it again, like \"헤이, 학습 계속\".",
 };
 
 // 정지 중임을 계속 말하는 줄 (결정 117). ⛔ **한 번 뜨고 사라지는 알림으로 두지 않는다** — 정지는
 // 상태이고, 그 상태에서 학습자가 말한 것은 저장되지 않는다. 화면이 그 사실을 계속 말하지 않으면
 // 학습자는 자기 발화가 사라진 이유를 알 수 없다.
-const PAUSED_NOTICE = "일시 정지 중이에요. 지금 말하는 것은 기록하지 않아요 — 「헤이, 학습 계속」이라고 말하면 이어서 해요.";
+const PAUSED_NOTICE = "Paused. I'm not recording now. Say \"헤이, 학습 계속\" to go on.";
 
 // 확인을 기다리는 중임을 말하는 문구 둘. 대상은 확인을 거치는 명령 둘이다 — `show_report` 는
 // 확인을 타지 않으므로(결정 107 ③) 이 자리에 오지 않는다.
 const COMMAND_PENDING_NOTICE: Record<"end" | "start_additional", string> = {
-  end: "학습 종료를 확인하고 있어요. 「네」라고 답하면 종료해요 — 아직 종료되지 않았어요.",
+  end: "Do you want to end? Say \"네\" to end. It has not ended yet.",
   start_additional:
-    "연습 변경을 확인하고 있어요. 「네」라고 답하면 바꿔요 — 아직 바뀌지 않았어요.",
+    "Do you want to change the practice? Say \"네\" to change. Nothing has changed yet.",
 };
+
+// 세션 실패 사유 코드 → 학습자 문구. 코드는 프런트(`startSession`)와 백엔드(`api/ws.py` ·
+// `audio_gateway/session.py`)가 정함. ⚠️ 모르는 코드는 일반 문구로 보임 — 원래 코드는 `data-reason` 에 남음.
+// ⚠️ 음성 명령 안의 한국어(「헤이, …」 · 「네」)는 그대로 둠 — 영어 명령이 실제로 통하는지 실물 음성으로
+//    확인되지 않았음(리디자인 설계서 §6 미결 6).
+const FAILURE_MESSAGES: Record<string, string> = {
+  microphone_permission_denied: "Please allow the microphone and try again.",
+  audio_capture_unavailable: "This device can't use the microphone now.",
+  connection_lost: "The connection was lost.",
+  session_create_failed: "We can't start a session now.",
+  voice_adapter_unavailable: "The voice coach is not ready now.",
+  voice_adapter_connect_timeout: "The voice coach took too long to answer.",
+  voice_adapter_connect_failed: "We can't reach the voice coach.",
+};
+
+function failureMessage(reason: string | null): string {
+  return (reason && FAILURE_MESSAGES[reason]) || "Something went wrong.";
+}
 
 /**
  * 서버 `audio` 프레임을 재생 큐에 붙인다. 디코딩 실패는 세션 진행을 막지 않는다 —
@@ -105,9 +120,6 @@ export default function SessionPage() {
   // 진행 중인 발음 시도 1건의 판정. 한 번에 하나만 흐르므로(시범 → 재발화 → 판정)
   // 목록이 아니라 최신 1건만 들고 있는다. 세션이 끝나면 결과 화면의 카드가 전건을 보여준다.
   const [pronunciation, setPronunciation] = useState<PronunciationOutcome | null>(null);
-  // 다음 세션의 추천 이유 (R11-3). 초기값이 "계획 없음"이라 조회가 끝나기 전에는 그 자리가
-  // 비어 있다 — 로딩 문구를 두지 않는다: 이유는 시작 버튼을 막지 않는 부가 정보다.
-  const [nextPlan, setNextPlan] = useState<NextPlanSummary>({ reason: null, target_level: null });
   // 진입 안내 한 줄 (`TASK-10.2` AC#2). 발음 집중을 고른 세션에만 값이 생긴다 — 그 밖에는 `null`
   // 이고 아무것도 렌더하지 않는다(추천 이유와 같은 규약: 빈 자리가 「해당 없음」의 표현이다).
   const [entryNotice, setEntryNotice] = useState<string | null>(null);
@@ -505,39 +517,10 @@ export default function SessionPage() {
     void startSessionRef.current?.(entry);
   }, []);
 
-  // 시작 화면에 보여줄 추천 이유를 **마운트당 한 번** 읽는다 (R11-3). 폴링하지 않는다.
-  // ⚠️ **근거를 2026-09-06에 정정했다.** 원래 "계획은 세션 *사이*에만 바뀌고 이 화면은 세션이
-  // 끝나면 언마운트된다"고 적었는데, 계획이 **쓰이는** 시점이 바로 그 "세션 사이"라서 근거가
-  // 사실과 반대였다: 종료 트랜잭션이 계획 job 을 걸고(`services/sessions.py`
-  // `enqueue_plan_next_session`) 워커가 Claude 왕복 뒤에 `session_plans`를 INSERT 하므로,
-  // 학습자가 브라우저 뒤로가기로 이 화면에 돌아와 마운트한 **뒤에** job 이 끝나면 화면은 계획
-  // N-1 을 계속 보여주고 시작 버튼이 연 세션은 계획 N 을 읽는다(`api/ws.py`가 시작 시점에
-  // 다시 조회한다). ⚠️ **2026-09-09 에 이 경로가 흔해졌다** — `TASK-55` 가 결과 화면에 홈으로
-  // 가는 인앱 링크를 넣었으므로 브라우저 내비게이션 없이도 이 화면으로 돌아온다. 이전 주석은
-  // 「인앱 링크가 없어 브라우저 조작으로만 닿는다」고 적었는데 그것이 지금은 거짓이다.
-  // **그래도 폴링하지 않는다** — 단일 사용자 로컬 도구에서 이 staleness 창은 받아들일 만하고,
-  // 화면과 대화 상대가 같은 계획의 **다른 필드**를 보는 일은 없다: 둘 다 **같은 함수**
-  // `load_prepared_plan`을 불러(`api/results.py`와 `api/ws.py`) 그 시점의 최신 1행에서
-  // **같은 필드**(`instruction.target_level`)를 읽는다. 표시가 한 세션 늦을 수 있다는 것이
-  // 전부다.
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadNextPlan(): Promise<void> {
-      try {
-        const plan = await fetchNextPlan();
-        if (!cancelled) setNextPlan(plan);
-      } catch {
-        // 백엔드가 안 떠 있으면 `fetch` 자체가 reject 한다(응답 상태가 아니라 네트워크
-        // 실패다). 계획 표시는 학습을 막지 않으므로 그 자리를 비운 채 둔다.
-      }
-    }
-
-    void loadNextPlan();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  // 추천 이유(R11-3)의 조회는 `TASK-296` 에서 `components/home/HomeDashboard.tsx` 로 옮겼음.
+  // 마운트당 한 번 읽고 폴링하지 않는 근거(2026-09-06 정정 · 2026-09-09 보강)는 이 파일의 git
+  // 이력(커밋 23ff5f6 판)에 있음 — 요지: 계획 job 이 화면 마운트 뒤에 끝나면 한 세션 늦게 보일 수
+  // 있고, 단일 사용자 로컬 도구라 그 창을 받아들임.
 
   // 언마운트 시 마이크·소켓 자원을 반드시 정리한다.
   useEffect(() => {
@@ -549,72 +532,9 @@ export default function SessionPage() {
 
   const screen = (
     <main style={{ maxWidth: 640, margin: "0 auto", padding: "2rem", fontFamily: "sans-serif" }}>
-      <h1>OhMyEnglish — 학습 세션</h1>
+      <h1>OhMyEnglish — Practice session</h1>
 
-      {/* ── 대시보드 자리 (`TASK-295` · 리디자인 설계서 §4) ──────────────────────────────
-          대기 상태의 화면은 이 한 칸뿐임. 이후 `components/home/HomeDashboard.tsx` 가 이 칸을
-          대신함. ⚠️ 지금은 옛 대기 화면을 그대로 그리고 목록만 `additionalLearning.ts` 에서 읽음.
-          ⛔ 세션 논리(상태·ref·`startSession`)는 이 칸으로 옮기지 않음 — 칸은 시작 함수만 받아야 함. */}
-      {state === "idle" && (
-        <div data-testid="home-dashboard-slot">
-          {/* 추천 이유 한 줄 (R11-3). 이유가 없으면 **아무것도 렌더하지 않는다** — 빈 자리가
-              "계획 없음"의 표현이다. 시작 버튼보다 덜 강조하므로 색은 muted 토큰이고,
-              난이도는 있을 때만 괄호로 붙인다(계획에 이유는 있고 수준이 비는 경우는 없지만
-              HTTP 응답은 외부 경계다). */}
-          {nextPlan.reason && (
-            <p style={{ color: "var(--foreground-muted)", marginBottom: "1rem" }}>
-              {NEXT_PLAN_PREFIX} {nextPlan.reason}
-              {nextPlan.target_level ? ` (${nextPlan.target_level})` : null}
-            </p>
-          )}
-          {/* 추천 학습. ⛔ `source` 를 «명시»한다 — 001 의 기본값이 `recommended` 라 넘기지 않아도
-              같은 값이 되지만, 그러면 「기본값이라 그렇게 됐다」와 「이 문으로 들어왔다」가
-              구분되지 않는다. 진입점 설계서 §4 가 두 값을 문으로 가른다. */}
-          <button
-            data-testid="start-session"
-            onClick={() => void startSession({ source: "recommended" })}
-            style={{ padding: "0.75rem 1.5rem" }}
-          >
-            학습 시작
-          </button>
-
-          {/* 추가 학습 (PRD §7 · `TASK-10.2`). ⛔ **권장량 완료와 무관하게 항상 보인다** —
-              `PRD.md:73` 이 「완료 여부와 무관하게 항상 제공한다」를 글자로 정했고, 진입점 설계서
-              §3 이 그것을 「이 문은 게이트가 아니다」로 못박았다. */}
-          <section style={{ marginTop: "2rem" }}>
-            <h2 style={{ fontSize: "1rem", marginBottom: "0.5rem" }}>추가 학습</h2>
-            <p style={{ color: "var(--foreground-muted)", marginTop: 0, marginBottom: "0.75rem" }}>
-              권장량과 상관없이 언제든 골라도 돼요.
-            </p>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-              {ADDITIONAL_LEARNING.map((item) => (
-                <button
-                  key={item.key}
-                  data-testid={`practice-${item.key}`}
-                  onClick={() => {
-                    if (item.entry) {
-                      void startSession(item.entry);
-                    } else if (item.href) {
-                      router.push(item.href);
-                    }
-                  }}
-                  // ⚠️ **조건을 좁혔다**(`TASK-168`) — 이전에는 `item.entry === null` 하나였고, 그러면
-                  // 화면으로 가는 새 항목이 비활성으로 그려진다. 「업무 역할극」의 비활성과 `note` 는
-                  // 그대로다: 그 칸은 `entry` 도 `href` 도 없다.
-                  disabled={!isAdditionalLearningEnabled(item)}
-                  title={item.note}
-                  style={{ padding: "0.5rem 1rem" }}
-                >
-                  {item.label}
-                  {item.note ? ` (${item.note})` : null}
-                </button>
-              ))}
-            </div>
-          </section>
-        </div>
-      )}
-
-      {state === "connecting" && <p>마이크 권한을 요청하는 중입니다...</p>}
+      {state === "connecting" && <p>Asking for your microphone...</p>}
 
       {(state === "active" || state === "ending") && (
         <>
@@ -650,13 +570,13 @@ export default function SessionPage() {
       )}
 
       {state === "failed" && (
-        <div style={{ marginTop: "1rem" }}>
-          <p>연결에 실패했습니다.</p>
-          {failureReason && (
-            <p style={{ color: "var(--foreground-muted)" }}>사유: {failureReason}</p>
-          )}
+        // 사유 코드는 학습자 문구로 바꿔 보이고 원래 코드는 `data-reason` 에 남김 — 시험이 문구가
+        // 아니라 코드로 판정할 수 있게(리디자인 설계서 §4).
+        <div data-testid="session-failed" data-reason={failureReason ?? ""} style={{ marginTop: "1rem" }}>
+          <p>Could not connect.</p>
+          <p style={{ color: "var(--foreground-muted)" }}>{failureMessage(failureReason)}</p>
           <button onClick={() => void startSession()} style={{ padding: "0.75rem 1.5rem" }}>
-            다시 시도
+            Try again
           </button>
         </div>
       )}
@@ -667,8 +587,14 @@ export default function SessionPage() {
   // ⛔ 덮는 이유: 세션 중 공통 틀의 사이드바를 누르면 이 화면이 내려가 소켓이 닫히고 세션이 끝남.
   // ⚠️ 대기 → 연결 중 전환에서 바깥 요소가 바뀌어 `main` 이 다시 마운트됨 — 대기 칸에는 이어 갈
   //    상태가 없으므로 무해함. 연결 중 · 진행 · 종료 중 · 실패는 같은 층 안에서 이어짐.
+  // 대기 상태는 대시보드 한 칸뿐임 (`TASK-296` · 리디자인 설계서 §5). ⛔ 칸은 시작 함수만 받음 —
+  // 세션 논리(상태·ref·`startSession`)는 이 파일에 남음. 옛 「학습 시작」과 같은 진입을 대시보드가 넘김.
   if (state === "idle") {
-    return screen;
+    return (
+      <div data-testid="home-dashboard-slot">
+        <HomeDashboard onStart={(entry) => void startSession(entry)} />
+      </div>
+    );
   }
   return (
     <div data-testid="session-overlay" className="fixed inset-0 z-50 overflow-y-auto bg-background">

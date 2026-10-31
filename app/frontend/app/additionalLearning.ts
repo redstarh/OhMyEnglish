@@ -53,31 +53,31 @@ export function isAdditionalLearningEnabled(item: AdditionalLearningItem): boole
 // ⛔ 그래서 항목의 상태가 셋이 됐다: `entry` 가 있으면 세션 · `href` 가 있으면 이동 · 둘 다 없으면
 // 비활성(「업무 역할극」). 위 `isAdditionalLearningEnabled` 와 홈 렌더의 `disabled` 가 그 셋을 가른다.
 export const ADDITIONAL_LEARNING: ReadonlyArray<AdditionalLearningItem> = [
-  { key: "free_talk", label: "자유 대화", target: "conversation", entry: { source: "additional" } },
-  { key: "weak_patterns", label: "약점 패턴 집중", target: "conversation", entry: { source: "additional" } },
+  { key: "free_talk", label: "Free talk", target: "conversation", entry: { source: "additional" } },
+  { key: "weak_patterns", label: "Weak spots", target: "conversation", entry: { source: "additional" } },
   // `TASK-5` Task 6(사용자 결정 79) — 이 항목이 **무대 정하기 진입**이다. ⛔ 이전에는 `mode` 가 없어
   // 위 둘과 구별되지 않았고, 그래서 백엔드가 이 세션을 가릴 수단이 없었다(그 설계서 §5).
   {
     key: "five_questions",
-    label: "질문 답변 5개",
+    label: "5 questions",
     target: "scenario_intake",
     entry: { mode: "scenario_intake", source: "additional" },
   },
   {
     key: "pronunciation",
-    label: "발음 집중",
+    label: "Pronunciation",
     target: "pronunciation",
     entry: { mode: "pronunciation", source: "additional" },
   },
-  { key: "shadowing", label: "쉐도잉", target: "shadowing", entry: { mode: "shadowing", source: "additional" } },
+  { key: "shadowing", label: "Shadowing", target: "shadowing", entry: { mode: "shadowing", source: "additional" } },
   // ⛔ **「업무 역할극」의 빈 칸을 재사용하지 않았다** — 그 칸은 무대 선택 화면의 부재를 가리키는
   // 표식이고 소유가 `TASK-102`·`TASK-5` 다. 영상 학습은 **일곱째** 로 붙는다.
   // ⛔ `target` 을 주지 않는다 — 음성 명령으로 이 화면에 가려면 `AdditionalTarget` 값역과 백엔드
   // `ADDITIONAL_TARGETS` 를 함께 열어야 하고, 그것은 이 갈래의 요구가 아니다(설계서 §1 질문 5).
-  { key: "videos", label: "영상으로 배우기", entry: null, href: "/videos" },
+  { key: "videos", label: "Learn with videos", entry: null, href: "/videos" },
   // 문법 코스 (`TASK-286`) — 영상 학습처럼 화면으로 가는 항목이라 `target` 을 주지 않는다.
-  { key: "course", label: "문법 코스", entry: null, href: "/course" },
-  { key: "roleplay", label: "업무 역할극", entry: null, note: "무대를 고르는 화면이 아직 없어요" },
+  { key: "course", label: "Grammar course", entry: null, href: "/course" },
+  { key: "roleplay", label: "Work role-play", entry: null, note: "Not ready yet" },
 ];
 
 /** 음성 명령이 고른 대상의 진입 정보. 없으면 `null` — 화면은 그때 새 세션을 열지 않는다.

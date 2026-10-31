@@ -27,29 +27,29 @@ import type { ShadowingSetup } from "@/lib/ws";
  * 관리」를 화면이 뒤집는 셈이 된다.
  */
 
-const PLAY_LABEL = "클립 듣기";
-const STOP_LABEL = "멈추기";
-const NO_AUDIO_NOTICE = "이 클립은 소리가 아직 없어요";
-const RECORD_LABEL = "따라 읽기";
-const RECORD_END_LABEL = "읽기 끝";
+const PLAY_LABEL = "Listen";
+const STOP_LABEL = "Stop";
+const NO_AUDIO_NOTICE = "This clip has no sound yet.";
+const RECORD_LABEL = "Read along";
+const RECORD_END_LABEL = "Done reading";
 // ⚠️ 「듣는다」까지 말한다 — 결정 128 이 재생을 열었으므로 이 문구가 없는 기능을 말하지 않는다.
-const RECORDING_NOTICE = "듣고 있어요. 문장을 읽고 「읽기 끝」을 누르면 다시 들을 수 있어요.";
-const PLAY_RECORDING_LABEL = "내 낭독 듣기";
+const RECORDING_NOTICE = "I'm listening. Read the sentence. Then press \"Done reading\" to hear it.";
+const PLAY_RECORDING_LABEL = "Hear my reading";
 // 낭독 판정 (`TASK-209` · 결정 131). ⛔ **「내 낭독 듣기」를 대신하지 않고 그 옆에 붙는다** —
 // 설계서 §7 이 「귀로 견주는 길」을 없애지 않기로 정했다.
-const JUDGE_LABEL = "낭독 판정 보기";
-const JUDGING_LABEL = "견주는 중...";
+const JUDGE_LABEL = "Check my reading";
+const JUDGING_LABEL = "Checking...";
 // ⛔ **영어 오류 문면을 학습자에게 보이지 않는다** (`TASK-55` 가 세운 규율).
-const JUDGE_EMPTY_NOTICE = "읽은 소리를 알아듣지 못했어요. 다시 읽고 눌러 주세요.";
+const JUDGE_EMPTY_NOTICE = "I couldn't hear you. Read again and press it.";
 // ⛔ **판정을 쓸 수 없는 것을 「못 알아들었다」로 말하지 않는다** (`TASK-213`).
 // ⚠️ **되돌린 판단이고 근거를 함께 남긴다**: `TASK-212` 는 둘을 «같게» 말하기로 했고 그 근거가
 // *"둘 다 다시 눌러 볼 일이다"* 였다. 그 전제가 틀렸다 — 전사기가 설정되지 않은 서버(503)와 자격증명
 // 실패(500)는 **몇 번 눌러도 달라지지 않는다.** 위 문구를 그대로 보이면 학습자가 영원히 다시 읽는다.
 // ⚠️ 사유를 말하지 않는다 — 학습자가 고칠 수 있는 것이 아니고 설정 이야기는 화면의 몫이 아니다.
-const JUDGE_UNAVAILABLE_NOTICE = "지금은 낭독 판정을 쓸 수 없어요.";
-const JUDGE_LEGEND = "밑줄은 다르게 읽은 낱말이고 취소선은 빠뜨린 낱말이에요.";
+const JUDGE_UNAVAILABLE_NOTICE = "Checking is not available now.";
+const JUDGE_LEGEND = "Underline: you said a different word. Strikethrough: you missed the word.";
 // ⚠️ 전부 맞았을 때 범례를 보이지 않는다 — 화면에 없는 표시를 설명하는 문장이 된다.
-const JUDGE_ALL_MATCH_NOTICE = "원본대로 읽었어요.";
+const JUDGE_ALL_MATCH_NOTICE = "You read it all right!";
 
 /**
  * 낭독 진행도 문구 (`TASK-187` · 결정 129 ④).
@@ -61,8 +61,8 @@ const JUDGE_ALL_MATCH_NOTICE = "원본대로 읽었어요.";
  */
 function readProgressNotice(readTurns: number, target: number): string {
   return readTurns >= target
-    ? `${target}번 다 읽었어요`
-    : `${target}번 중 ${readTurns}번 읽었어요`;
+    ? `You read it ${target} times. Done!`
+    : `Read ${readTurns} / ${target}`;
 }
 
 /** 지금 나는 소리가 어느 것인가. ⛔ **한 값으로 두는 것이 「둘이 겹치지 않는다」를 구조로 만든다.** */

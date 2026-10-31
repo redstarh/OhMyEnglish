@@ -15,11 +15,11 @@ import { lookupWord } from "@/lib/api";
  * 얼마나 두는가」가 따라오고, 그것이 §6 이 「재생목록 담기」를 뺀 근거와 같은 부류의 복잡도다.
  */
 
-const LOOKUP_HINT = "낱말을 누르면 이 문장에서 쓰인 뜻을 알려 줘요";
-const LOOKING_UP = "찾고 있어요…";
+const LOOKUP_HINT = "Tap a word to see what it means here.";
+const LOOKING_UP = "Looking it up…";
 // ⚠️ **실패와 「뜻을 모른다」를 같은 문구로 말한다** — 그 구분이 학습자에게 값을 주지 않는다.
 // 서버도 같은 판단으로 둘을 `meaning: null` 로 합쳤다(`api/vocab.py` 의 docstring).
-const NO_MEANING = "뜻을 가져오지 못했어요. 다시 눌러 보세요.";
+const NO_MEANING = "I couldn't find it. Tap again.";
 
 /** 조회에 보낼 낱말. ⛔ **구두점을 떼는 이유**: `book.` 을 그대로 보내면 모델이 문장 부호를 낱말의 일부로 읽는다. */
 function cleanWord(token: string): string {

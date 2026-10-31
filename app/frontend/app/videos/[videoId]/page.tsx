@@ -22,35 +22,34 @@ import { WordLookup } from "./WordLookup";
  * 없어** 조용히 갈라진다.
  */
 
-const BACK_LINK_LABEL = "← 영상 목록";
-const SPAN_START_LABEL = "구간 시작";
-const SPAN_END_LABEL = "구간 끝";
-const SPAN_REDO_LABEL = "구간 다시 잡기";
-const STORE_LABEL = "담기";
-const CANCEL_LABEL = "취소";
-const LISTEN_LABEL = "그 구간 듣기";
-const PRACTISE_LABEL = "연습하기";
-const REMOVE_LABEL = "지우기";
-const TRANSCRIPT_LABEL = "들은 대로 적어 보세요";
-const TRANSCRIPT_PLACEHOLDER = "확신이 없어도 들리는 대로 적어요";
-const PHRASES_HEADING = "담은 문장";
-const EMPTY_PHRASES = "아직 담은 문장이 없어요. 안 들리는 자리에서 구간을 잡아 보세요.";
+const BACK_LINK_LABEL = "← Videos";
+const SPAN_START_LABEL = "Mark start";
+const SPAN_END_LABEL = "Mark end";
+const SPAN_REDO_LABEL = "Mark again";
+const STORE_LABEL = "Save";
+const CANCEL_LABEL = "Cancel";
+const LISTEN_LABEL = "Listen to this part";
+const PRACTISE_LABEL = "Practice";
+const REMOVE_LABEL = "Delete";
+const TRANSCRIPT_LABEL = "Write what you hear";
+const TRANSCRIPT_PLACEHOLDER = "It's OK to guess. Write what you hear.";
+const PHRASES_HEADING = "Saved sentences";
+const EMPTY_PHRASES = "No saved sentences yet. Mark a part you can't hear.";
 
-const LOAD_FAILED_NOTICE = "이 영상을 찾을 수 없어요.";
-const UNAVAILABLE_NOTICE = "지금 저장할 수 없어요. 잠시 뒤 다시 시도해 주세요.";
-const REFUSED_NOTICE = "이 구간이나 문장을 담을 수 없어요. 구간과 문장을 다시 확인해 주세요.";
+const LOAD_FAILED_NOTICE = "I can't find this video.";
+const UNAVAILABLE_NOTICE = "I can't save it now. Please try again soon.";
+const REFUSED_NOTICE = "I can't save this part. Please check the part and the sentence.";
 // ⚠️ **「지금」을 빼지 않는다** — 임베드 차단은 영구적이지만 없는 영상·일시 오류도 이 문구로
 // 모이므로(`VideoPlayer` 의 `onUnplayable`), 영구적이라고 단정하면 틀리는 경우가 생긴다.
-const UNPLAYABLE_NOTICE = "지금 이 영상을 앱 안에서 재생할 수 없어요.";
-const OPEN_ON_YOUTUBE_LABEL = "YouTube 에서 보기";
-const SPAN_BACKWARDS_NOTICE = "구간 끝이 시작보다 뒤여야 해요.";
+const UNPLAYABLE_NOTICE = "This video can't play here right now.";
+const OPEN_ON_YOUTUBE_LABEL = "Watch on YouTube";
+const SPAN_BACKWARDS_NOTICE = "The end must come after the start.";
 
 // ⚠️ 라벨·레이아웃 값을 기존 화면들과 맞춘다 (`app/videos/page.tsx` 의 같은 주석).
 const PAGE_STYLE = {
   maxWidth: 640,
   margin: "0 auto",
   padding: "2rem",
-  fontFamily: "sans-serif",
 } as const;
 
 /**
@@ -148,7 +147,7 @@ export default function VideoLearningPage() {
     // ⚠️ 상한도 서버가 준 값이다. 아직 안 왔으면(로드 전) 서버 검사에만 맡긴다.
     const limit = detail?.clip_max_span_sec;
     if (limit !== undefined && end - start > limit) {
-      setNotice(`구간은 ${limit}초까지 담을 수 있어요.`);
+      setNotice(`A part can be up to ${limit} seconds.`);
       return;
     }
     setDraft({ ...draft, end: at });
@@ -277,7 +276,7 @@ export default function VideoLearningPage() {
               </button>
             ) : draft.end === null ? (
               <>
-                <p>구간 시작 {asClock(draft.start)}</p>
+                <p>Start: {asClock(draft.start)}</p>
                 <button type="button" onClick={markEnd} disabled={busy}>
                   {SPAN_END_LABEL}
                 </button>{" "}
@@ -288,7 +287,7 @@ export default function VideoLearningPage() {
             ) : (
               <>
                 <p>
-                  구간 {asClock(draft.start)}~{asClock(draft.end)} 을 반복해 들려주고 있어요.
+                  Playing {asClock(draft.start)}–{asClock(draft.end)} again and again.
                 </p>
                 <label htmlFor="phrase-transcript">{TRANSCRIPT_LABEL}</label>
                 <br />

@@ -38,10 +38,10 @@ type Translation =
 // `docs/storyboard.html` 03b 를 따른다. 점수·정답률은 쓰지 않는다 — "채점하지
 // 않습니다. 시범합니다"가 톤 계약이다.
 const PRONUNCIATION_BADGE: Record<PronunciationOutcome, string> = {
-  pending: "🔊 발음 교정 중",
-  correct: "✓ 좋아요",
-  incorrect: "다시 연습해요",
-  unclear: "잘 안 들렸어요",
+  pending: "🔊 Checking your sound…",
+  correct: "✓ Good",
+  incorrect: "Let's try again",
+  unclear: "I couldn't hear you",
 };
 
 // 색은 `app/globals.css`의 토큰만 쓴다 — 하드코딩 색이 다크모드 위계를 뒤집은 1차수 F-1의
@@ -72,7 +72,7 @@ const BUBBLE_BASE: CSSProperties = {
 };
 
 function prefixFor(speaker: Speaker): string {
-  return speaker === "agent" ? "질문: " : "답변: ";
+  return speaker === "agent" ? "Coach: " : "You: ";
 }
 
 function Avatar() {
@@ -103,7 +103,7 @@ function Avatar() {
 // — 누르면 아무 일도 없는 활성 버튼을 두면 학습자는 고장으로 읽는다. [번역]은 서버가 한국어 번역을
 // 만들어 말풍선 안에 보여 준다(`TASK-275`).
 // ⚠️ **버튼을 `<p>` 밖에 둔다** — 안에 두면 줄의 `textContent` 에 버튼 글자가 섞여 하네스 계약이 깨진다.
-const PENDING_FEATURE_TITLE = "준비 중이에요";
+const PENDING_FEATURE_TITLE = "Coming soon";
 
 function SpeakerIcon() {
   return (
@@ -237,15 +237,15 @@ function Bubble({
           <div style={{ display: "flex", gap: "0.4rem" }}>
             <ActionButton
               icon={<SpeakerIcon />}
-              label="음성"
+              label="Listen"
               onClick={onReplay}
-              unavailableTitle="이 말은 다시 들을 음성이 없어요"
+              unavailableTitle="No sound for this line"
             />
             <ActionButton
               icon={<TranslateIcon />}
-              label="번역"
+              label="Translate"
               onClick={onTranslate}
-              unavailableTitle="번역을 가져오는 중이에요"
+              unavailableTitle="Getting the translation…"
             />
           </div>
         ) : null}
@@ -329,8 +329,8 @@ export function SessionChat({
   function translationText(line: TranscriptLine): string | null {
     const current = translations[line.id];
     if (!current || current.key !== line.sequenceNos.length) return null;
-    if (current.status === "loading") return "번역하는 중...";
-    if (current.status === "failed") return "번역을 가져오지 못했어요. 다시 눌러 보세요.";
+    if (current.status === "loading") return "Translating...";
+    if (current.status === "failed") return "I couldn't translate it. Tap again.";
     return current.text;
   }
 
@@ -346,12 +346,12 @@ export function SessionChat({
     if (el && pinnedRef.current) el.scrollTop = el.scrollHeight;
   }, [lines, partialLine, listening, pronunciation]);
   const hint = ending
-    ? "학습을 마무리하고 있어요"
+    ? "Finishing the lesson"
     : pausedNotice
-      ? "일시 정지 중이에요"
+      ? "Paused"
       : listening
-        ? "말하는 중이에요"
-        : "누르지 않고 바로 말하면 돼요";
+        ? "You are speaking"
+        : "Just speak. No need to press anything.";
 
   return (
     <section
@@ -378,7 +378,7 @@ export function SessionChat({
           aria-hidden
           style={{ width: 10, height: 10, borderRadius: "50%", background: "var(--accent)" }}
         />
-        <h2 style={{ fontSize: "1.1rem", fontWeight: 700, flex: 1 }}>영어 대화</h2>
+        <h2 style={{ fontSize: "1.1rem", fontWeight: 700, flex: 1 }}>English talk</h2>
         <button
           onClick={onEnd}
           disabled={ending}
@@ -391,7 +391,7 @@ export function SessionChat({
             cursor: ending ? "default" : "pointer",
           }}
         >
-          {ending ? "종료 중..." : "학습 종료"}
+          {ending ? "Ending..." : "End lesson"}
         </button>
       </header>
 
@@ -432,7 +432,7 @@ export function SessionChat({
       >
         {lines.length === 0 && !partialLine && !listening && (
           <p style={{ color: "var(--foreground-muted)", textAlign: "center", margin: "auto 0" }}>
-            대화를 기다리는 중...
+            Waiting for the coach...
           </p>
         )}
         {lines.map((line) => (
@@ -461,7 +461,7 @@ export function SessionChat({
         ) : (
           listening && (
             <Bubble speaker="user" muted>
-              듣고 있어요...
+              Listening...
             </Bubble>
           )
         )}

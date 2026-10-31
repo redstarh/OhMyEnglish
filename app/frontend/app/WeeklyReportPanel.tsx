@@ -18,12 +18,12 @@ import { fetchWeeklyReport, type WeeklyReportPayload } from "@/lib/api";
  * 전용 화면이다. 이 패널은 「지금 어디까지 왔나」를 한 줄로 답하는 것까지다.
  */
 
-const TITLE = "주간 리포트";
-const LOADING_NOTICE = "불러오는 중…";
-const FAILED_NOTICE = "리포트를 불러오지 못했어요";
-const NOT_READY_NOTICE = "아직 주간 리포트가 만들어지지 않았어요";
-const CLOSE_LABEL = "닫기";
-const TOP_PATTERN_HEADING = "자주 나온 오류";
+const TITLE = "Weekly report";
+const LOADING_NOTICE = "Loading…";
+const FAILED_NOTICE = "I couldn't load the report.";
+const NOT_READY_NOTICE = "No weekly report yet.";
+const CLOSE_LABEL = "Close";
+const TOP_PATTERN_HEADING = "Common mistakes";
 
 /** 학습 중에 읽을 분량으로 끊는다 — 전용 화면은 전부 보인다. */
 const TOP_PATTERN_LIMIT = 3;
@@ -80,8 +80,8 @@ export function WeeklyReportPanel({ onClose }: { onClose: () => void }) {
       {state === "loaded" && ready && (
         <>
           <p style={{ margin: 0 }}>
-            학습 {metrics.session_count ?? 0}회 · 오류 {metrics.occurrence_count ?? 0}건 · 패턴{" "}
-            {metrics.pattern_count ?? 0}종
+            Lessons {metrics.session_count ?? 0} · Mistakes {metrics.occurrence_count ?? 0} · Patterns{" "}
+            {metrics.pattern_count ?? 0}
           </p>
           {topPatterns.length > 0 && (
             <>
@@ -89,7 +89,7 @@ export function WeeklyReportPanel({ onClose }: { onClose: () => void }) {
               <ul style={{ margin: 0, paddingLeft: "1.2rem" }}>
                 {topPatterns.map((pattern) => (
                   <li key={pattern.pattern_key}>
-                    {pattern.target_form} · {pattern.occurrences}회
+                    {pattern.target_form} · {pattern.occurrences}×
                   </li>
                 ))}
               </ul>

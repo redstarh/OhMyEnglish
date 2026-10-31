@@ -14,19 +14,18 @@ const PAGE_STYLE = {
   maxWidth: 640,
   margin: "0 auto",
   padding: "2rem",
-  fontFamily: "sans-serif",
 } as const;
 
 const TITLE = "Grammar in Use BASIC";
-const SUBTITLE = "영상 6편 · 단원 113개 · 한 문장씩 듣고 따라 말해요";
-const BACK_LABEL = "← 학습 시작 화면으로";
-const RESUME_LABEL = "이어서 학습 ▶";
-const START_LABEL = "시작하기";
-const HISTORY_HEADING = "학습 이력";
-const HISTORY_NOTE = "날짜별 따라 한 횟수";
-const LOAD_FAILED = "코스를 불러오지 못했어요. 잠시 뒤 다시 시도해 주세요.";
-const LOADING = "불러오는 중…";
-const NO_RECENT = "아직 따라 한 문장이 없어요.";
+const SUBTITLE = "6 videos · 113 units · Listen and say each sentence";
+const BACK_LABEL = "← Home";
+const RESUME_LABEL = "Continue ▶";
+const START_LABEL = "Start";
+const HISTORY_HEADING = "Your practice";
+const HISTORY_NOTE = "Tries per day";
+const LOAD_FAILED = "I couldn't load the course. Please try again soon.";
+const LOADING = "Loading…";
+const NO_RECENT = "No sentences practiced yet.";
 
 /** 칸 색의 4단계 — 0회 · 1~9회 · 10~29회 · 30회 이상. */
 function heatLevel(attempts: number): number {
@@ -44,7 +43,7 @@ const HEAT_COLORS = [
 ];
 
 function minutes(seconds: number): string {
-  return `${Math.round(seconds / 60)}분`;
+  return `${Math.round(seconds / 60)} min`;
 }
 
 function clock(seconds: number): string {
@@ -75,14 +74,14 @@ function DayRow({
   // ⛔ 날짜는 서버가 학습자 시간대로 바꾼 `last_completed_date` 다 — UTC 시각을 잘라 쓰면 KST 00~09시
   // 완료가 전날로 보였다(회차 2026-10-26-b1 D1).
   if (doneThisCycle && progress?.last_completed_date) {
-    status = `완료 · ${shortDate(progress.last_completed_date)}`;
+    status = `Done · ${shortDate(progress.last_completed_date)}`;
   } else if (
     progress &&
     (progress.position_sec > 0 || progress.sentence_index > 0 || progress.unit !== item.first_unit)
   ) {
-    status = `Unit ${progress.unit} · 문장 ${progress.sentence_index + 1} · ${clock(progress.position_sec)}`;
+    status = `Unit ${progress.unit} · Sentence ${progress.sentence_index + 1} · ${clock(progress.position_sec)}`;
   } else {
-    status = "아직 안 함";
+    status = "Not started";
   }
   return (
     <div
@@ -153,7 +152,7 @@ function Heatmap({ cells }: { cells: CourseOverview["heatmap"] }) {
         {cells.map((cell) => (
           <i
             key={cell.date}
-            title={`${cell.date} · ${cell.attempts}회`}
+            title={`${cell.date} · ${cell.attempts} ${cell.attempts === 1 ? "try" : "tries"}`}
             data-attempts={cell.attempts}
             style={{ borderRadius: 3, background: HEAT_COLORS[heatLevel(cell.attempts)] }}
           />
@@ -169,14 +168,14 @@ function Heatmap({ cells }: { cells: CourseOverview["heatmap"] }) {
           marginTop: 6,
         }}
       >
-        적음
+        Less
         {HEAT_COLORS.map((color) => (
           <i
             key={color}
             style={{ width: 10, height: 10, borderRadius: 2, display: "inline-block", background: color }}
           />
         ))}
-        많음
+        More
       </div>
     </div>
   );
@@ -210,7 +209,7 @@ export default function CourseListPage() {
       <div style={{ display: "flex", justifyContent: "space-between", marginTop: 12 }}>
         <h1 style={{ fontSize: "1.3rem" }}>{TITLE}</h1>
         {overview ? (
-          <span style={{ color: "var(--foreground-muted)" }}>{overview.cycle}회차</span>
+          <span style={{ color: "var(--foreground-muted)" }}>Round {overview.cycle}</span>
         ) : null}
       </div>
       <p style={{ color: "var(--foreground-muted)", fontSize: "0.85rem" }}>{SUBTITLE}</p>
@@ -250,10 +249,10 @@ export default function CourseListPage() {
               >
                 <thead>
                   <tr style={{ color: "var(--foreground-muted)", textAlign: "left" }}>
-                    <th>날짜</th>
+                    <th>Date</th>
                     <th>Day</th>
-                    <th>단원</th>
-                    <th>따라 한 문장</th>
+                    <th>Units</th>
+                    <th>Sentences</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -267,7 +266,8 @@ export default function CourseListPage() {
                           : `${row.first_unit}–${row.last_unit}`}
                       </td>
                       <td>
-                        {row.sentences}문장 · {row.attempts}회
+                        {row.sentences} {row.sentences === 1 ? "sentence" : "sentences"} · {row.attempts}{" "}
+                        {row.attempts === 1 ? "try" : "tries"}
                       </td>
                     </tr>
                   ))}

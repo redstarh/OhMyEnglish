@@ -21,24 +21,24 @@ import { fetchVideoMeta, thumbnailUrl, watchUrl } from "@/lib/youtube";
 // ⚠️ 라벨과 레이아웃 값을 기존 화면들에 맞춘다 — `results`·`history` 가 같은 목적지에
 // 같은 라벨을 쓰고, 폭·여백은 네 화면이 이미 공유하는 값이다. 새 값을 정하면 같은 앱의
 // 화면 폭이 두 벌이 된다.
-const HOME_LINK_LABEL = "← 학습 시작 화면으로";
-const HEADING = "영상으로 배우기";
+const HOME_LINK_LABEL = "← Home";
+const HEADING = "Learn with videos";
 const LEAD =
-  "YouTube 링크를 붙여넣어 영상을 담고, 안 들리는 구간을 받아 적어 쉐도잉 연습에 쓸 수 있어요.";
-const EMPTY_NOTICE = "아직 담아 둔 영상이 없어요. 아래에 YouTube 링크를 붙여넣어 보세요.";
-const LIST_FAILED_NOTICE = "영상 목록을 불러오지 못했어요. 잠시 뒤 다시 시도해 주세요.";
+  "Paste a YouTube link to save a video. Write down the parts you can't hear. Then practice them.";
+const EMPTY_NOTICE = "No videos yet. Paste a YouTube link below.";
+const LIST_FAILED_NOTICE = "I couldn't load your videos. Please try again soon.";
 const URL_PLACEHOLDER = "https://www.youtube.com/watch?v=...";
-const CHECK_LABEL = "확인";
-const STORE_LABEL = "담기";
-const CANCEL_LABEL = "취소";
-const REMOVE_LABEL = "지우기";
+const CHECK_LABEL = "Check";
+const STORE_LABEL = "Save";
+const CANCEL_LABEL = "Cancel";
+const REMOVE_LABEL = "Delete";
 
 // 설계서 §7 의 문구 표 — ⛔ 화면이 소유한다. HTTP 상태 코드를 사용자에게 보이지 않는다.
-const NOT_FOUND_NOTICE = "이 링크에서 영상을 찾지 못했어요.";
-const UNAVAILABLE_NOTICE = "지금 확인할 수 없어요. 잠시 뒤 다시 시도해 주세요.";
-const ALREADY_STORED_NOTICE = "이미 담아 둔 영상이에요. 정보를 새로 받아 왔어요.";
-const STORED_NOTICE = "담았어요.";
-const REMOVE_CONFIRM = "이 영상을 목록에서 지울까요? 담아 둔 문장은 그대로 남아요.";
+const NOT_FOUND_NOTICE = "I couldn't find a video at this link.";
+const UNAVAILABLE_NOTICE = "I can't check it now. Please try again soon.";
+const ALREADY_STORED_NOTICE = "You already saved this video. I updated its info.";
+const STORED_NOTICE = "Saved!";
+const REMOVE_CONFIRM = "Delete this video from the list? Your saved sentences will stay.";
 
 // 갱신을 동시에 몇 건까지 도나. 브라우저의 호스트당 연결 상한과 같은 자리에 둔다.
 const REFRESH_CONCURRENCY = 6;
@@ -47,7 +47,6 @@ const PAGE_STYLE = {
   maxWidth: 640,
   margin: "0 auto",
   padding: "2rem",
-  fontFamily: "sans-serif",
 } as const;
 
 interface Preview {
@@ -192,7 +191,7 @@ export default function VideosPage() {
       <p>{LEAD}</p>
 
       <section style={{ marginBottom: "2rem" }}>
-        <label htmlFor="video-url">YouTube 링크</label>
+        <label htmlFor="video-url">YouTube link</label>
         <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.25rem" }}>
           <input
             id="video-url"
@@ -247,7 +246,7 @@ export default function VideosPage() {
             <div style={{ flex: 1 }}>
               <Link href={`/videos/${video.id}`}>{video.title}</Link>
               <p style={{ margin: "0.25rem 0" }}>
-                {video.channel_name} · 담은 문장 {video.phrase_count}개
+                {video.channel_name} · {video.phrase_count} saved {video.phrase_count === 1 ? "sentence" : "sentences"}
               </p>
               <button type="button" onClick={() => void remove(video.id)} disabled={busy}>
                 {REMOVE_LABEL}

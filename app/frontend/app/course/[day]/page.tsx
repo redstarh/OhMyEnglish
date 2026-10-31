@@ -37,23 +37,22 @@ const PAGE_STYLE = {
   maxWidth: 640,
   margin: "0 auto",
   padding: "2rem",
-  fontFamily: "sans-serif",
 } as const;
 
 const NOTICE = {
-  mic: "마이크를 쓸 수 없어요. 브라우저의 마이크 권한을 확인해 주세요.",
-  unavailable: "지금은 따라 하기 판정을 쓸 수 없어요. 문장은 계속 이어져요.",
-  unheard: "잘 안 들렸어요. 「다시」를 눌러 한 번 더 해 보세요.",
-  video: "지금 이 영상을 앱 안에서 재생할 수 없어요.",
-  dayDone: "이 Day 를 끝까지 마쳤어요.",
-  loadFailed: "이 Day 를 불러오지 못했어요.",
+  mic: "I can't use the mic. Please allow the mic in your browser.",
+  unavailable: "I can't check your speaking now. You can keep going.",
+  unheard: "I couldn't hear you. Press \"Try again\" and say it again.",
+  video: "This video can't play here right now.",
+  dayDone: "You finished this Day!",
+  loadFailed: "I couldn't load this Day.",
 } as const;
 
 const PHASE_LABEL: Record<Exclude<Phase, "idle">, string> = {
-  listen: "① 듣기",
-  repeat: "② 따라 말하기",
-  judge: "③ 확인",
-  done: "③ 확인",
+  listen: "① Listen",
+  repeat: "② Say it",
+  judge: "③ Check",
+  done: "③ Check",
 };
 
 function readMode(): Mode {
@@ -93,7 +92,7 @@ function Spoken({ words, transcript }: { words: ReadbackWord[]; transcript: stri
       style={{ marginTop: 12, padding: "10px 12px", borderRadius: 10, background: "var(--accent-soft)" }}
     >
       <span style={{ display: "block", fontSize: "0.72rem", color: "var(--foreground-muted)" }}>
-        내가 말한 문장
+        You said:
       </span>
       <span data-testid="course-transcript">{transcript}</span>
       {words.length > 0 ? (
@@ -117,7 +116,7 @@ function Spoken({ words, transcript }: { words: ReadbackWord[]; transcript: stri
             </span>
           ))}
           <span style={{ display: "block", fontSize: "0.72rem", color: "var(--foreground-muted)" }}>
-            밑줄은 다르게 말한 낱말이고 취소선은 빠뜨린 낱말이에요.
+            Underline: you said a different word. Strikethrough: you missed the word.
           </span>
         </div>
       ) : null}
@@ -436,7 +435,9 @@ export default function CourseDayPage() {
   if (loadFailed || !Number.isInteger(day)) {
     return (
       <main style={PAGE_STYLE}>
-        <Link href="/course">← 학습 목록</Link>
+        <Link href="/course" data-testid="course-back">
+          ← Back
+        </Link>
         <p style={{ marginTop: 16 }}>{NOTICE.loadFailed}</p>
       </main>
     );
@@ -447,12 +448,11 @@ export default function CourseDayPage() {
   if (!detail || !unit || !sentence) {
     return (
       <main style={PAGE_STYLE}>
-        <p>불러오는 중…</p>
+        <p>Loading…</p>
       </main>
     );
   }
 
-  const running = phase === "listen" || phase === "repeat" || phase === "judge";
   const button = {
     padding: "7px 13px",
     borderRadius: 8,
@@ -461,12 +461,18 @@ export default function CourseDayPage() {
     color: "var(--foreground)",
     fontSize: "0.85rem",
   } as const;
+  const primaryButton = {
+    ...button,
+    background: "var(--accent)",
+    color: "var(--on-accent)",
+    borderColor: "var(--accent)",
+  } as const;
 
   return (
     <main style={PAGE_STYLE}>
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem" }}>
-        <Link href="/course" style={{ color: "var(--foreground-muted)" }}>
-          ← 학습 목록
+        <Link href="/course" data-testid="course-back" style={{ color: "var(--foreground-muted)" }}>
+          ← Back
         </Link>
         <span style={{ color: "var(--foreground-muted)" }}>
           Day {detail.day} · Unit {detail.units[0].unit}–{detail.units.at(-1)?.unit}
@@ -489,7 +495,7 @@ export default function CourseDayPage() {
           onClick={() => goTo({ unitIndex: followVideo, sentenceIndex: 0 })}
           style={{ ...button, marginTop: 8 }}
         >
-          영상이 지나는 Unit {detail.units[followVideo].unit} 문장으로 옮기기
+          Go to Unit {detail.units[followVideo].unit} (where the video is)
         </button>
       ) : null}
 
@@ -497,11 +503,12 @@ export default function CourseDayPage() {
         <span data-testid="course-unit" style={{ fontSize: "0.85rem", color: "var(--foreground-muted)" }}>
           Unit {unit.unit} · {unit.topic}
         </span>
-        <span role="group" aria-label="모드" style={{ display: "inline-flex", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden" }}>
+        <span role="group" aria-label="Mode" style={{ display: "inline-flex", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden" }}>
           {(["auto", "manual"] as const).map((value) => (
             <button
               key={value}
               type="button"
+              data-testid={`course-mode-${value}`}
               aria-pressed={mode === value}
               onClick={() => chooseMode(value)}
               style={{
@@ -512,7 +519,7 @@ export default function CourseDayPage() {
                 color: mode === value ? "var(--on-accent)" : "var(--foreground)",
               }}
             >
-              {value === "auto" ? "자동" : "수동"}
+              {value === "auto" ? "Auto" : "Manual"}
             </button>
           ))}
         </span>
@@ -524,14 +531,14 @@ export default function CourseDayPage() {
       >
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", color: "var(--foreground-muted)" }}>
           <span data-testid="course-sentence-number">
-            문장 {sentenceIndex + 1} / {unit.sentences.length}
+            Sentence {sentenceIndex + 1} / {unit.sentences.length}
           </span>
-          <span data-testid="course-attempts">따라 함 {counts[sentence.key] ?? 0}회</span>
+          <span data-testid="course-attempts">Try {counts[sentence.key] ?? 0}</span>
         </div>
         {phase !== "idle" ? (
           <div data-testid="course-phase" data-phase={phase} style={{ marginTop: 8, fontSize: "0.75rem" }}>
             {PHASE_LABEL[phase]}
-            {phase === "repeat" ? ` · ${(waitMs / 1000).toFixed(1)}초` : null}
+            {phase === "repeat" ? ` · ${(waitMs / 1000).toFixed(1)}s` : null}
           </div>
         ) : null}
         {phase === "repeat" ? (
@@ -547,17 +554,22 @@ export default function CourseDayPage() {
           {sentence.text}
         </p>
         <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-          <button type="button" style={button} onClick={() => void run(positionRef.current)}>
-            🔊 듣기
+          <button type="button" data-testid="course-listen" style={button} onClick={() => void run(positionRef.current)}>
+            🔊 Listen
           </button>
-          <button type="button" style={button} onClick={() => void run(positionRef.current, SLOW_RATE)}>
-            느리게
+          <button
+            type="button"
+            data-testid="course-slow"
+            style={button}
+            onClick={() => void run(positionRef.current, SLOW_RATE)}
+          >
+            Slow
           </button>
         </div>
         {result ? <Spoken words={result.words} transcript={result.transcript} /> : null}
         {phase === "repeat" ? (
           <p style={{ marginTop: 10, fontSize: "0.85rem", color: "var(--foreground-muted)" }}>
-            듣고 있어요 · 따라 말하면 아래에 표시돼요
+            {"I'm listening. Say it, and you will see it below."}
           </p>
         ) : null}
         {notice ? (
@@ -566,20 +578,45 @@ export default function CourseDayPage() {
           </p>
         ) : null}
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 14 }}>
-          <button type="button" style={button} disabled={!previous} onClick={() => goTo(previous)}>
-            ← 이전
-          </button>
-          <button type="button" style={button} onClick={() => void run(positionRef.current)}>
-            {running ? "다시" : phase === "idle" ? "시작" : "다시"}
-          </button>
           <button
             type="button"
-            style={{ ...button, background: "var(--accent)", color: "var(--on-accent)", borderColor: "var(--accent)" }}
-            disabled={!hasNext && phase !== "done"}
-            onClick={() => (hasNext ? goTo(nextPosition({ unitIndex, sentenceIndex })) : finishDay())}
+            data-testid="course-prev"
+            style={button}
+            disabled={!previous}
+            onClick={() => goTo(previous)}
           >
-            {hasNext ? "다음 문장 →" : "Day 마치기"}
+            ← Back
           </button>
+          {/* 같은 자리의 두 상태를 testid 로 가른다(리디자인 설계서 §4) — 문구에 기대지 않게 함. */}
+          {phase === "idle" ? (
+            <button type="button" data-testid="course-start" style={button} onClick={() => void run(positionRef.current)}>
+              Start
+            </button>
+          ) : (
+            <button type="button" data-testid="course-retry" style={button} onClick={() => void run(positionRef.current)}>
+              Try again
+            </button>
+          )}
+          {hasNext ? (
+            <button
+              type="button"
+              data-testid="course-next"
+              style={primaryButton}
+              onClick={() => goTo(nextPosition({ unitIndex, sentenceIndex }))}
+            >
+              Next →
+            </button>
+          ) : (
+            <button
+              type="button"
+              data-testid="course-finish"
+              style={primaryButton}
+              disabled={phase !== "done"}
+              onClick={() => finishDay()}
+            >
+              Finish Day
+            </button>
+          )}
         </div>
       </section>
     </main>

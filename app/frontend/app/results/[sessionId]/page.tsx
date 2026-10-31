@@ -25,30 +25,30 @@ const TERMINAL_STATUSES = new Set<SessionResultStatus>([
 ]);
 
 const STATUS_LABEL: Record<SessionResultStatus, string> = {
-  analyzing: "분석 중",
-  final: "확정",
-  partial_failure: "부분 실패",
-  connection_failed: "연결 실패",
-  no_utterances: "분석 대상 없음",
+  analyzing: "Checking…",
+  final: "Done",
+  partial_failure: "Partly done",
+  connection_failed: "Connection lost",
+  no_utterances: "Nothing to check",
 };
 
 // 한 문장 안에서 문체를 섞지 않는다 (TASK-57) — 이전 판은 `일부 발화는 분석하지 못했다 —
 // 재시도되지 않습니다`로 앞이 해라체, 뒤가 합쇼체였다. 이 화면의 다른 문구는 `~습니다`·`~어요`다.
-const PARTIAL_FAILURE_NOTICE = "분석하지 못한 발화가 있습니다 — 재시도되지 않습니다";
+const PARTIAL_FAILURE_NOTICE = "Some of your sentences could not be checked. They will not be checked again.";
 
 // 조회 실패 문구 — **화면이 소유한다** (TASK-55). 예외의 `message`를 그대로 그리면 HTTP 상태
 // 코드(`404`)와 `fetch`의 영어 오류가 학습자에게 노출된다. 상태 코드는 아래 두 함수의 분류
 // 입력이고 문구에는 들어가지 않는다 — 그래서 `404을`/`404를` 같은 조사 문제도 함께 사라진다.
-const NOT_FOUND_NOTICE = "그 학습 결과를 찾을 수 없습니다.";
-const UNAVAILABLE_NOTICE = "그 학습 결과를 열 수 없습니다.";
-const RETRYING_NOTICE = "결과를 불러오지 못했습니다. 다시 시도하고 있습니다...";
+const NOT_FOUND_NOTICE = "I can't find this result.";
+const UNAVAILABLE_NOTICE = "I can't open this result.";
+const RETRYING_NOTICE = "I couldn't load the result. Trying again...";
 
 // 결과 화면에서 빠져나갈 인앱 수단 (TASK-55). 조회가 실패한 화면에서는 이것이 유일한 출구다 —
 // 그전에는 학습자가 브라우저 뒤로가기 말고는 나갈 방법이 없었다.
-const HOME_LINK_LABEL = "← 학습 시작 화면으로";
+const HOME_LINK_LABEL = "← Home";
 // 히스토리 진입점 (PRD §15 · `TASK-107`). ⛔ 링크를 두지 않으면 그 화면에 **도달할 길이 없다** —
 // 이 리포가 네 번 낸 「reader 0곳」의 화면 버전이다. 세션을 마친 자리가 되짚기 좋은 자리다.
-const HISTORY_LINK_LABEL = "학습 히스토리 보기 →";
+const HISTORY_LINK_LABEL = "History →";
 
 /**
  * 폴링을 이어갈지 정한다. **판정을 여기 한 곳에 모아 두는 것이 계약이다** — 흩어 두면
@@ -108,45 +108,45 @@ function failureNotice(err: unknown): string {
 // 시범합니다"(`docs/storyboard.html`:101)다.
 // **주어를 세션에 둔다** — 미달의 주어는 학습자가 아니라 대화 모델이므로(결정 10) 학습자를
 // 주어로 쓰면 손쓸 수 없는 수를 자기 잘못으로 읽는다. 문구는 설계서 §2.3의 예시 그대로다.
-const DRILL_SHORTFALL_NOTICE = "오늘은 드릴이 계획보다 짧았어요.";
+const DRILL_SHORTFALL_NOTICE = "Today's drill was shorter than planned.";
 
 // 세션 총평 문구 (`TASK-62` · 설계서 §2.1). ⛔ **점수·등급을 표시하는 자리를 만들지 않는다** —
 // `R11-8`·`R13-5` 의 경계이고 이 화면의 톤 계약("채점하지 않습니다, 시범합니다")과도 같은 방향이다.
 // ⚠️ **「담을 것이 없었다」에도 문구를 준다** — 발화 0건 세션이 그 모양이고, 아무것도 그리지 않으면
 // 「총평이 아직 없는 세션」과 구별되지 않는다(API 가 애써 가른 것을 화면이 지우게 된다).
-const SUMMARY_HEADING = "오늘 세션 총평";
-const SUMMARY_WENT_WELL_LABEL = "잘한 점";
-const SUMMARY_WEAK_LABEL = "다음에 볼 것";
-const SUMMARY_QUOTE_LABEL = "그때 말한 문장";
-const SUMMARY_EMPTY_NOTICE = "이번 세션에서는 총평을 만들 만한 대화가 없었어요.";
+const SUMMARY_HEADING = "Today's lesson";
+const SUMMARY_WENT_WELL_LABEL = "You did well";
+const SUMMARY_WEAK_LABEL = "Work on next";
+const SUMMARY_QUOTE_LABEL = "You said";
+const SUMMARY_EMPTY_NOTICE = "There was not enough talk for a summary.";
 
 // 발음 카드 문구 (Task 8). 어휘는 `docs/storyboard.html` 03b(:129-133)를 따른다 —
 // "채점하지 않습니다. 시범합니다"(:101)가 이 화면의 톤 계약이라 점수·정답률을 쓰지 않는다.
-const PRONUNCIATION_HEADING = "발음";
-const MODELED_LABEL = "시범 문장";
-const SPOKEN_LABEL = "내 발화";
+const PRONUNCIATION_HEADING = "Pronunciation";
+const MODELED_LABEL = "Coach said";
+const SPOKEN_LABEL = "You said";
 // `spoken_form`이 null인 `incorrect` 행 = 대답 없이 끝난 시도(종료 수렴 §3.2).
 // 빈칸으로 두면 "들었지만 아무것도 안 들렸다"로 읽히므로 그 사실을 문장으로 적는다.
-const NO_ANSWER_NOTICE = "대답 없이 끝났어요";
+const NO_ANSWER_NOTICE = "No answer";
 // 신호 행(`korean_transcript`)은 Nova의 시범이 아니라 우리 감지기의 **관찰**이다.
 // 같은 라벨을 쓰면 그 설명 문구가 "이렇게 발음하세요"로 보인다(TASKS.md A-2 후단 ①).
-const SIGNAL_LABEL = "관찰된 신호";
+const SIGNAL_LABEL = "What I heard";
 // 분석 기원 행의 첫 줄 (`TASK-88.1`). ⛔ **문법 교정 카드와 같은 낱말을 쓴다** — 그 카드가
 // `교정문:`을 쓰므로 같은 것을 여기서 다른 낱말로 부르지 않는다.
 // ⚠️ 「시범 문장」이 아닌 이유: 코치가 시범한 것이 아니라 **분석이 고친 것**이다.
-const CORRECTED_LABEL = "교정문";
+const CORRECTED_LABEL = "Better";
 // 검증에 걸린 시도 (사용자 **결정 95** · `TASK-116.2`). 문구는 사용자가 2026-09-15에 승인했다.
 //
 // ⛔ **표시하고, 복습에 쓰지 않는다는 사실을 함께 말한다.** 숨기면 학습자의 시도 수가 실제보다
 // 적게 보이고, 아무 말 없이 그냥 보이면 그 시도가 복습에 안 나오는 이유를 화면이 설명하지 못한다.
 // ⛔ **왜 어긋났는지는 말하지 않는다** — 그것은 우리 내부 사정이고 이 화면의 톤 계약("채점하지
 // 않습니다. 시범합니다")과도 어긋난다. 기각된 안: 「코치가 말한 소리와 달라서…」.
-const REVIEW_EXCLUDED_NOTICE = "기록만 했어요 · 복습에는 쓰지 않아요";
+const REVIEW_EXCLUDED_NOTICE = "Saved only · Not used for review";
 
 const OUTCOME_LABEL: Record<PronunciationAttempt["outcome"], string> = {
-  correct: "✓ 좋아요",
-  incorrect: "다시 연습해요",
-  unclear: "잘 안 들렸어요",
+  correct: "✓ Good",
+  incorrect: "Let's try again",
+  unclear: "I couldn't hear you",
 };
 
 // 색은 `app/globals.css`의 4개 토큰만 쓴다 — 하드코딩 색이 다크모드 위계를 뒤집은
@@ -163,14 +163,14 @@ const OUTCOME_COLOR: Record<PronunciationAttempt["outcome"], string> = {
 // 「달성은 그리지 않는다」로 둔 결정 10 과 어긋나지 않는다(그쪽은 학습자가 손쓸 수 없는 수였다).
 // ⚠️ 개수는 2개 이상일 때만 붙인다 — `시나리오 1개`는 판정과 같은 말을 두 번 하는 것이다.
 const dailyDoneNotice = (scenarios: number) =>
-  scenarios > 1 ? `오늘 학습을 마쳤어요 — 시나리오 ${scenarios}개` : "오늘 학습을 마쳤어요";
+  scenarios > 1 ? `You finished today — ${scenarios} scenes` : "You finished today";
 
 // 오늘 요약 절 (PRD §13 R13-4 · AC13-4). 어휘는 세션 교정 카드와 같은 것을 쓴다 — 같은 화면에서
 // 두 절이 다른 낱말로 같은 것을 부르면 학습자가 다른 개념으로 읽는다.
-const DAILY_HEADING = "오늘 무엇을 틀렸는지";
+const DAILY_HEADING = "Today's mistakes";
 // 반복은 사실 진술이라 적는다 — 학습자가 무엇을 되풀이했는지 알아야 다음 초점이 이해된다.
 // **1번일 때는 쓰지 않는다**: 「오늘 1번」은 아무것도 말하지 않으면서 개수 표시만 남긴다.
-const dailyRepeatNotice = (occurrences: number) => `오늘 ${occurrences}번 나왔어요`;
+const dailyRepeatNotice = (occurrences: number) => occurrences === 1 ? "Once today" : `${occurrences} times today`;
 
 // 즉시 드릴 (`TASK-241` · 결함 `TASK-233`). 요구 정본은 `docs/PRD.md:70` 과
 // `docs/requirements-summary.md:53-54` 다 — 「자주 틀리는 패턴을 **직접 보고**, 해당 패턴으로 즉시
@@ -182,7 +182,7 @@ const dailyRepeatNotice = (occurrences: number) => `오늘 ${occurrences}번 나
 // 음성 명령으로 읽는다.
 // ⚠️ 패턴 키(`past_tense_in_work_update`)는 기계 키라 문구에 넣지 않는다 — 발음 카드가 소리 키를
 // 렌더하지 않는 것과 같은 판단이다.
-const DAILY_DRILL_LABEL = "이 패턴으로 연습하기";
+const DAILY_DRILL_LABEL = "Practice this";
 
 const DAILY_CARD_STYLE = {
   // 세션 교정 카드(사각 테두리)와 발음 카드(왼쪽 규칙선) 사이의 위계를 새로 만들지 않는다 —
@@ -302,14 +302,14 @@ export default function ResultsPage() {
   const completedToday = daily?.completed_today ?? false;
 
   return (
-    <main style={{ maxWidth: 640, margin: "0 auto", padding: "2rem", fontFamily: "sans-serif" }}>
-      <h1>학습 결과</h1>
+    <main style={{ maxWidth: 640, margin: "0 auto", padding: "2rem" }}>
+      <h1>Your results</h1>
 
-      {!sessionId && <p style={{ color: "var(--danger)" }}>세션 id가 없습니다.</p>}
+      {!sessionId && <p style={{ color: "var(--danger)" }}>No session id.</p>}
 
       {sessionId && !result && (
         <p style={{ color: fetchError ? "var(--danger)" : undefined }}>
-          {fetchError ?? "결과를 불러오는 중입니다..."}
+          {fetchError ?? "Loading your results..."}
         </p>
       )}
 
@@ -340,7 +340,7 @@ export default function ResultsPage() {
                   정확 발음 세션과 오류 발음 세션의 결과 화면이 똑같았던 것이 이 요구사항의
                   출발점이다(`docs/storyboard.html`:140). */}
               {corrections.length === 0 && pronunciation.length === 0 && (
-                <p>표시할 교정이 없습니다.</p>
+                <p>No corrections to show.</p>
               )}
               {corrections.map((correction) => (
                 <div
@@ -353,10 +353,10 @@ export default function ResultsPage() {
                   }}
                 >
                   <p style={{ margin: "0.25rem 0" }}>
-                    <strong>원문:</strong> {correction.original_span}
+                    <strong>You said:</strong> {correction.original_span}
                   </p>
                   <p style={{ margin: "0.25rem 0" }}>
-                    <strong>교정문:</strong> {correction.correction}
+                    <strong>Better:</strong> {correction.correction}
                   </p>
                   {/* 한 줄 이유는 원문·교정문보다 덜 강조한다 — 위계는 테마 토큰이 만든다. */}
                   <p style={{ margin: "0.25rem 0", color: "var(--foreground-muted)" }}>
@@ -489,10 +489,10 @@ export default function ResultsPage() {
               {dailyPatterns.map((item) => (
                 <div key={item.pattern_key} style={DAILY_CARD_STYLE}>
                   <p style={{ margin: "0.25rem 0" }}>
-                    <strong>원문:</strong> {item.example.original_span}
+                    <strong>You said:</strong> {item.example.original_span}
                   </p>
                   <p style={{ margin: "0.25rem 0" }}>
-                    <strong>교정문:</strong> {item.example.correction}
+                    <strong>Better:</strong> {item.example.correction}
                   </p>
                   <p style={{ margin: "0.25rem 0", color: "var(--foreground-muted)" }}>
                     {item.example.reason}

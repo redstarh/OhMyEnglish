@@ -18,27 +18,27 @@ import {
  *    것이다. 합쳐 말하면 학습자가 기능이 고장난 것으로 읽는다.
  */
 
-const HEADING = "주간 학습 리포트";
-const LOADING_NOTICE = "리포트를 불러오는 중입니다...";
-const FAILED_NOTICE = "리포트를 불러오지 못했습니다.";
-const NOT_YET_NOTICE = "아직 만들어진 주간 리포트가 없어요. 한 주 학습이 쌓이면 만들어져요.";
-const HISTORY_LINK_LABEL = "← 학습 히스토리로";
-const TOP_ERRORS_HEADING = "이 주에 자주 틀린 것";
-const IMPROVING_HEADING = "나아진 것";
-const NEXT_HEADING = "다음 주에 해 볼 것";
-const NOTHING_TO_SAY = "이 주에는 담을 것이 없었어요";
+const HEADING = "Weekly report";
+const LOADING_NOTICE = "Loading the report...";
+const FAILED_NOTICE = "I couldn't load the report.";
+const NOT_YET_NOTICE = "No weekly report yet. Study for a week, and you will get one.";
+const HISTORY_LINK_LABEL = "← History";
+const TOP_ERRORS_HEADING = "Common mistakes this week";
+const IMPROVING_HEADING = "Getting better";
+const NEXT_HEADING = "Try next week";
+const NOTHING_TO_SAY = "Nothing to show for this week.";
 
 /** 주 범위 문구 — 시작 월요일과 그 주 일요일을 함께 보인다. */
 function weekRange(weekStart: string): string {
   const start = new Date(`${weekStart}T00:00:00`);
   const end = new Date(start);
   end.setDate(end.getDate() + 6);
-  const format = (value: Date) => `${value.getMonth() + 1}월 ${value.getDate()}일`;
+  const format = (value: Date) => `${value.getMonth() + 1}/${value.getDate()}`;
   return `${format(start)} ~ ${format(end)}`;
 }
 
 const patternLine = (item: WeeklyTopPattern) =>
-  `${item.target_form} — ${item.occurrences}회 (${item.category})`;
+  `${item.target_form} — ${item.occurrences}× (${item.category})`;
 
 const SECTION_STYLE = { marginTop: "1.5rem" } as const;
 const MUTED = { color: "var(--foreground-muted)" } as const;
@@ -87,7 +87,7 @@ export default function WeeklyReportPage() {
   const topPatterns = metrics.top_patterns ?? [];
 
   return (
-    <main style={{ maxWidth: 640, margin: "0 auto", padding: "2rem", fontFamily: "sans-serif" }}>
+    <main style={{ maxWidth: 640, margin: "0 auto", padding: "2rem" }}>
       <h1>{HEADING}</h1>
       {loading && <p style={MUTED}>{LOADING_NOTICE}</p>}
       {failed && <p style={{ color: "var(--danger)" }}>{FAILED_NOTICE}</p>}
@@ -98,8 +98,8 @@ export default function WeeklyReportPage() {
         <>
           <p style={MUTED}>{weekRange(report.week_start)}</p>
           <p style={{ margin: "0.5rem 0 0" }}>
-            학습 {metrics.session_count ?? 0}회 · 오류 {metrics.occurrence_count ?? 0}건 · 패턴{" "}
-            {metrics.pattern_count ?? 0}종
+            Lessons {metrics.session_count ?? 0} · Mistakes {metrics.occurrence_count ?? 0} · Patterns{" "}
+            {metrics.pattern_count ?? 0}
           </p>
           <section style={SECTION_STYLE}>
             <h2 style={{ fontSize: "1rem", marginBottom: "0.4rem" }}>{TOP_ERRORS_HEADING}</h2>
