@@ -7,7 +7,6 @@ import { API_BASE, entryFromQuery, type SessionEntry } from "@/lib/config";
 import { VoiceIo, base64ToBytes, bytesToBase64, pcmFromAudioFrame } from "@/lib/audio";
 import {
   SessionSocket,
-  type AdditionalTarget,
   type PronunciationOutcome,
   type ServerEvent,
   type ShadowingSetup,
@@ -15,79 +14,13 @@ import {
 import { SessionChat, type TranscriptLine } from "./SessionChat";
 import { ShadowingPanel } from "./ShadowingPanel";
 import { WeeklyReportPanel } from "./WeeklyReportPanel";
+import { ADDITIONAL_LEARNING, entryForTarget, isAdditionalLearningEnabled } from "./additionalLearning";
 
 type ScreenState = "idle" | "connecting" | "active" | "ending" | "failed";
 
 // 추천 이유 한 줄의 머리말 (R11-3). "왜 이 연습인지"를 학습자 말로 붙인다 — 이유 문장은
 // 계획이 소유하므로 여기서 문구를 만들지 않는다.
 const NEXT_PLAN_PREFIX = "오늘 이걸 연습해요:";
-
-// 추가 학습 메뉴 (`TASK-10.2` · 진입점 설계서
-// `docs/design/2026-09-12-additional-learning-entry-design.md` §2).
-//
-// ⛔ **항목이 다섯이 아니라 여섯이다.** PRD §7(:74)은 다섯을 열거하는데 R10-5(:145)가
-// *"발음 집중 연습은 §7 Additional Learning 메뉴의 «독립 항목»으로 둔다"*를 글자로 요구한다.
-// 설계서 §1 이 그 어긋남을 적었고 여기서 여섯으로 둔다 — 접으면 그 요구가 조용히 사라진다.
-//
-// ⛔ **`entry: null` 은 「아직 표면이 없다」다.** 항목을 지우지 않는 이유가 설계서 §2 에 있다:
-// 지우면 다음 사람이 「원래 다섯이었다」로 읽고 위 어긋남이 되살아난다. 비활성 버튼이 그 사실을
-// 화면에서도 말한다.
-//
-// ⚠️ **셋이 같은 표면(모드 없음)을 쓰는 것은 의도다** — 그 셋의 차이는 지시문이 아니라 **계획
-// 데이터**에 있다(초점·질문·무대). 모드로 갈라도 조립되는 지시문이 같으므로 값역만 늘어난다.
-// ⚠️ **`target` 은 음성 명령이 이 목록을 가리키는 키다** (`TASK-61.8` · 결정 110 ②). 매핑을 따로
-// 두지 않고 이 목록에서 유도한다 — 두 곳에 적으면 화면 버튼과 음성 명령이 서로 다른 세션을 연다.
-// ⚠️ 앞 두 항목이 **같은 `target`** 인 것은 의도다(entry 가 같고 차이가 계획 데이터에 있다 — 위 주석).
-// ⛔ 「업무 역할극」에는 `target` 을 주지 않는다 — 열 수 없는 것을 음성으로 고를 수 있게 하면 안 된다.
-// ⚠️ **`href` 는 `TASK-168` 이 더했다 — 세션을 열지 않고 «화면으로 가는» 항목의 자리다.** 영상 학습은
-// 지시문이 달라지는 갈래가 아니라 화면과 자산 관리가 다른 갈래라서 세션 모드를 새로 만들지 않았다
-// (`docs/design/2026-09-18-video-learning-design.md` §1 질문 5).
-// ⛔ 그래서 항목의 상태가 셋이 됐다: `entry` 가 있으면 세션 · `href` 가 있으면 이동 · 둘 다 없으면
-// 비활성(「업무 역할극」). 아래 렌더의 `disabled` 조건이 그 셋을 가른다.
-const ADDITIONAL_LEARNING: ReadonlyArray<{
-  label: string;
-  entry: SessionEntry | null;
-  href?: string;
-  target?: AdditionalTarget;
-  note?: string;
-}> = [
-  { label: "자유 대화", target: "conversation", entry: { source: "additional" } },
-  { label: "약점 패턴 집중", target: "conversation", entry: { source: "additional" } },
-  // `TASK-5` Task 6(사용자 결정 79) — 이 항목이 **무대 정하기 진입**이다. ⛔ 이전에는 `mode` 가 없어
-  // 위 둘과 구별되지 않았고, 그래서 백엔드가 이 세션을 가릴 수단이 없었다(그 설계서 §5).
-  {
-    label: "질문 답변 5개",
-    target: "scenario_intake",
-    entry: { mode: "scenario_intake", source: "additional" },
-  },
-  {
-    label: "발음 집중",
-    target: "pronunciation",
-    entry: { mode: "pronunciation", source: "additional" },
-  },
-  { label: "쉐도잉", target: "shadowing", entry: { mode: "shadowing", source: "additional" } },
-  // ⛔ **「업무 역할극」의 빈 칸을 재사용하지 않았다** — 그 칸은 무대 선택 화면의 부재를 가리키는
-  // 표식이고 소유가 `TASK-102`·`TASK-5` 다. 영상 학습은 **일곱째** 로 붙는다.
-  // ⛔ `target` 을 주지 않는다 — 음성 명령으로 이 화면에 가려면 `AdditionalTarget` 값역과 백엔드
-  // `ADDITIONAL_TARGETS` 를 함께 열어야 하고, 그것은 이 갈래의 요구가 아니다(설계서 §1 질문 5).
-  { label: "영상으로 배우기", entry: null, href: "/videos" },
-  // 문법 코스 (`TASK-286`) — 영상 학습처럼 화면으로 가는 항목이라 `target` 을 주지 않는다.
-  { label: "문법 코스", entry: null, href: "/course" },
-  { label: "업무 역할극", entry: null, note: "무대를 고르는 화면이 아직 없어요" },
-];
-
-/** 음성 명령이 고른 대상의 진입 정보. 없으면 `null` — 화면은 그때 새 세션을 열지 않는다.
- *
- * ⛔ **`via: "voice_command"` 를 여기서 붙인다** (`TASK-242` · 결함 `TASK-234`). 이 함수가 **음성
- * 명령으로만 불리는 유일한 자리**이므로, 표(`ADDITIONAL_LEARNING`)의 `entry` 에 넣지 않고 여기서
- * 덧붙인다 — 표에 넣으면 같은 항목을 누르는 **화면 버튼도** 음성으로 기록돼 결함의 반대 방향이 된다.
- * ⚠️ 표의 객체를 고치지 않고 새 객체를 만든다 — 그 상수는 모듈 수준에서 공유되므로 제자리에서
- * 바꾸면 이후의 화면 진입까지 오염된다.
- */
-function entryForTarget(target: AdditionalTarget): SessionEntry | null {
-  const entry = ADDITIONAL_LEARNING.find((item) => item.target === target)?.entry;
-  return entry ? { ...entry, via: "voice_command" } : null;
-}
 
 // 발음 집중을 골랐을 때 화면이 말해야 하는 두 가지 (`TASK-10.2` AC#2 · `TASK-128.4`).
 //
@@ -614,12 +547,16 @@ export default function SessionPage() {
     };
   }, [stopMedia]);
 
-  return (
+  const screen = (
     <main style={{ maxWidth: 640, margin: "0 auto", padding: "2rem", fontFamily: "sans-serif" }}>
       <h1>OhMyEnglish — 학습 세션</h1>
 
+      {/* ── 대시보드 자리 (`TASK-295` · 리디자인 설계서 §4) ──────────────────────────────
+          대기 상태의 화면은 이 한 칸뿐임. 이후 `components/home/HomeDashboard.tsx` 가 이 칸을
+          대신함. ⚠️ 지금은 옛 대기 화면을 그대로 그리고 목록만 `additionalLearning.ts` 에서 읽음.
+          ⛔ 세션 논리(상태·ref·`startSession`)는 이 칸으로 옮기지 않음 — 칸은 시작 함수만 받아야 함. */}
       {state === "idle" && (
-        <>
+        <div data-testid="home-dashboard-slot">
           {/* 추천 이유 한 줄 (R11-3). 이유가 없으면 **아무것도 렌더하지 않는다** — 빈 자리가
               "계획 없음"의 표현이다. 시작 버튼보다 덜 강조하므로 색은 muted 토큰이고,
               난이도는 있을 때만 괄호로 붙인다(계획에 이유는 있고 수준이 비는 경우는 없지만
@@ -634,6 +571,7 @@ export default function SessionPage() {
               같은 값이 되지만, 그러면 「기본값이라 그렇게 됐다」와 「이 문으로 들어왔다」가
               구분되지 않는다. 진입점 설계서 §4 가 두 값을 문으로 가른다. */}
           <button
+            data-testid="start-session"
             onClick={() => void startSession({ source: "recommended" })}
             style={{ padding: "0.75rem 1.5rem" }}
           >
@@ -651,7 +589,8 @@ export default function SessionPage() {
             <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
               {ADDITIONAL_LEARNING.map((item) => (
                 <button
-                  key={item.label}
+                  key={item.key}
+                  data-testid={`practice-${item.key}`}
                   onClick={() => {
                     if (item.entry) {
                       void startSession(item.entry);
@@ -662,7 +601,7 @@ export default function SessionPage() {
                   // ⚠️ **조건을 좁혔다**(`TASK-168`) — 이전에는 `item.entry === null` 하나였고, 그러면
                   // 화면으로 가는 새 항목이 비활성으로 그려진다. 「업무 역할극」의 비활성과 `note` 는
                   // 그대로다: 그 칸은 `entry` 도 `href` 도 없다.
-                  disabled={item.entry === null && item.href === undefined}
+                  disabled={!isAdditionalLearningEnabled(item)}
                   title={item.note}
                   style={{ padding: "0.5rem 1rem" }}
                 >
@@ -672,7 +611,7 @@ export default function SessionPage() {
               ))}
             </div>
           </section>
-        </>
+        </div>
       )}
 
       {state === "connecting" && <p>마이크 권한을 요청하는 중입니다...</p>}
@@ -722,5 +661,18 @@ export default function SessionPage() {
         </div>
       )}
     </main>
+  );
+
+  // 세션이 도는 동안(대기가 아닌 모든 상태)은 화면 전체를 덮는 층으로 그림 (리디자인 설계서 §3).
+  // ⛔ 덮는 이유: 세션 중 공통 틀의 사이드바를 누르면 이 화면이 내려가 소켓이 닫히고 세션이 끝남.
+  // ⚠️ 대기 → 연결 중 전환에서 바깥 요소가 바뀌어 `main` 이 다시 마운트됨 — 대기 칸에는 이어 갈
+  //    상태가 없으므로 무해함. 연결 중 · 진행 · 종료 중 · 실패는 같은 층 안에서 이어짐.
+  if (state === "idle") {
+    return screen;
+  }
+  return (
+    <div data-testid="session-overlay" className="fixed inset-0 z-50 overflow-y-auto bg-background">
+      {screen}
+    </div>
   );
 }
