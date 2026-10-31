@@ -1,0 +1,45 @@
+{
+ "docAgeAtReady": 75,
+ "clickedStartAfterNavMs": 80,
+ "buttonReadyAfterNavMs": 77,
+ "after12s": {
+  "unit": "Unit 22 · 현재 · 과거 시제 정리",
+  "num": "문장 5 / 5",
+  "sentence": "He is testing the app now. He tested it yesterday too.",
+  "phase": "done",
+  "notice": "지금은 따라 하기 판정을 쓸 수 없어요. 문장은 계속 이어져요.",
+  "prevDisabled": false,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "phasesMO": [
+  {
+   "t": 96,
+   "phase": "listen",
+   "num": "문장 5 / 5"
+  },
+  {
+   "t": 3667,
+   "phase": "repeat",
+   "num": "문장 5 / 5"
+  },
+  {
+   "t": 8238,
+   "phase": "judge",
+   "num": "문장 5 / 5"
+  },
+  {
+   "t": 8243,
+   "phase": "done",
+   "num": "문장 5 / 5"
+  }
+ ],
+ "player": {
+  "iframe": true,
+  "src": "https://www.youtube.com/embed/z881DusiriA?enablejsapi=1&origin=http%3A%2F%2Flocalhost%3A3000&widgetid=1&forigin=http%3A%2F%2Flocalhost%3A3000%2Fcourse%2F2&aoriginsup=1&vf=6",
+  "YT": "object",
+  "ytLoaded": true
+ },
+ "elapsedMs": 12166
+}

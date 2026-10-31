@@ -1,0 +1,23 @@
+{
+ "progressBefore": {
+  "position_sec": 120,
+  "unit": 101,
+  "sentence_index": 0,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-10-31T16:18:45.259468+00:00"
+ },
+ "overviewBefore": {
+  "cycle": 1,
+  "current_day": 6
+ },
+ "vOpen": {
+  "t": 122.34,
+  "paused": false,
+  "ended": false,
+  "state": 1,
+  "dur": 2599
+ },
+ "durationOnly": 2599
+}

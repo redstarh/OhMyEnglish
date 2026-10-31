@@ -76,7 +76,10 @@ function DayRow({
   // 완료가 전날로 보였다(회차 2026-10-26-b1 D1).
   if (doneThisCycle && progress?.last_completed_date) {
     status = `완료 · ${shortDate(progress.last_completed_date)}`;
-  } else if (progress && (progress.position_sec > 0 || progress.sentence_index > 0)) {
+  } else if (
+    progress &&
+    (progress.position_sec > 0 || progress.sentence_index > 0 || progress.unit !== item.first_unit)
+  ) {
     status = `Unit ${progress.unit} · 문장 ${progress.sentence_index + 1} · ${clock(progress.position_sec)}`;
   } else {
     status = "아직 안 함";

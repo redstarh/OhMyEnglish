@@ -1,0 +1,51 @@
+{
+ "state": {
+  "unit": "Unit 22 · 현재 · 과거 시제 정리",
+  "num": "문장 1 / 5",
+  "sentence": "I work in Seoul, and I worked in Daegu before.",
+  "phase": null,
+  "notice": null,
+  "prevDisabled": true,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "apiFirst": {
+  "unit": 22,
+  "topic": "현재 · 과거 시제 정리",
+  "text": "I work in Seoul, and I worked in Daegu before.",
+  "progress": {
+   "position_sec": 0,
+   "unit": 22,
+   "sentence_index": 0,
+   "completed_count": 3,
+   "last_completed_at": "2026-10-31T15:46:38.587688+00:00",
+   "last_completed_date": "2026-11-01",
+   "updated_at": "2026-10-31T15:49:58.633635+00:00"
+  }
+ },
+ "sentenceMatches": true,
+ "afterManualClick": {
+  "unit": "Unit 22 · 현재 · 과거 시제 정리",
+  "num": "문장 1 / 5",
+  "sentence": "I work in Seoul, and I worked in Daegu before.",
+  "phase": null,
+  "notice": null,
+  "prevDisabled": true,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "afterReload": {
+  "unit": "Unit 22 · 현재 · 과거 시제 정리",
+  "num": "문장 1 / 5",
+  "sentence": "I work in Seoul, and I worked in Daegu before.",
+  "phase": null,
+  "notice": null,
+  "prevDisabled": true,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "elapsedMs": 260
+}

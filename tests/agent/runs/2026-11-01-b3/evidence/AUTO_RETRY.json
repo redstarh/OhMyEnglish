@@ -1,0 +1,127 @@
+{
+ "before": {
+  "unit": "Unit 22 · 현재 · 과거 시제 정리",
+  "num": "문장 5 / 5",
+  "sentence": "He is testing the app now. He tested it yesterday too.",
+  "phase": null,
+  "notice": null,
+  "prevDisabled": false,
+  "auto": "true",
+  "manual": "false",
+  "mode": "auto"
+ },
+ "k": "문장 5 / 5",
+ "tRetryClick": 3693,
+ "k1": "문장 1 / 5",
+ "tPrevClick": 15614,
+ "afterPrevContinued": {
+  "unit": "Unit 23 · 규칙 · 불규칙 과거형",
+  "num": "문장 1 / 5",
+  "sentence": "I wrote three test cases yesterday.",
+  "phase": "listen",
+  "notice": "지금은 따라 하기 판정을 쓸 수 없어요. 문장은 계속 이어져요.",
+  "prevDisabled": false,
+  "auto": "true",
+  "manual": "false",
+  "mode": "auto"
+ },
+ "end": {
+  "unit": "Unit 23 · 규칙 · 불규칙 과거형",
+  "num": "문장 1 / 5",
+  "sentence": "I wrote three test cases yesterday.",
+  "phase": "done",
+  "notice": "지금은 따라 하기 판정을 쓸 수 없어요. 문장은 계속 이어져요.",
+  "prevDisabled": false,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "seq": [
+  {
+   "t": 121,
+   "phase": "listen",
+   "num": "문장 5 / 5"
+  },
+  {
+   "t": 3689,
+   "phase": "repeat",
+   "num": "문장 5 / 5"
+  },
+  {
+   "t": 3703,
+   "phase": "listen",
+   "num": "문장 5 / 5"
+  },
+  {
+   "t": 7273,
+   "phase": "repeat",
+   "num": "문장 5 / 5"
+  },
+  {
+   "t": 11846,
+   "phase": "judge",
+   "num": "문장 5 / 5"
+  },
+  {
+   "t": 11851,
+   "phase": "done",
+   "num": "문장 5 / 5"
+  },
+  {
+   "t": 13356,
+   "phase": "listen",
+   "num": "문장 1 / 5"
+  },
+  {
+   "t": 15605,
+   "phase": "repeat",
+   "num": "문장 1 / 5"
+  },
+  {
+   "t": 15621,
+   "phase": "none",
+   "num": "문장 5 / 5"
+  },
+  {
+   "t": 15626,
+   "phase": "listen",
+   "num": "문장 5 / 5"
+  },
+  {
+   "t": 19189,
+   "phase": "repeat",
+   "num": "문장 5 / 5"
+  },
+  {
+   "t": 23753,
+   "phase": "judge",
+   "num": "문장 5 / 5"
+  },
+  {
+   "t": 23755,
+   "phase": "done",
+   "num": "문장 5 / 5"
+  },
+  {
+   "t": 25266,
+   "phase": "listen",
+   "num": "문장 1 / 5"
+  },
+  {
+   "t": 27515,
+   "phase": "repeat",
+   "num": "문장 1 / 5"
+  },
+  {
+   "t": 30761,
+   "phase": "judge",
+   "num": "문장 1 / 5"
+  },
+  {
+   "t": 30765,
+   "phase": "done",
+   "num": "문장 1 / 5"
+  }
+ ],
+ "elapsedMs": 33285
+}

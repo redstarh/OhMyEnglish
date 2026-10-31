@@ -1,0 +1,630 @@
+{"wall":"2026-10-31T15:57:01.988Z","kind":"collector","text":"attached 795EBC569E0B22C8D970DAD4DB9B8A58"}
+{"wall":"2026-10-31T15:57:09.190Z","kind":"nav","url":"http://localhost:3000/course/3"}
+{"wall":"2026-10-31T15:57:09.244Z","kind":"console","level":"info","text":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T15:57:09.274Z","kind":"console","level":"log","text":"[HMR] connected","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T15:57:09.302Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/3"}
+{"wall":"2026-10-31T15:57:09.303Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/3"}
+{"wall":"2026-10-31T15:57:09.309Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/3","method":"Fetch"}
+{"wall":"2026-10-31T15:57:09.315Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/3","method":"Fetch"}
+{"wall":"2026-10-31T15:57:09.812Z","kind":"log","level":"warning","source":"security","text":"Failed to execute 'postMessage' on 'DOMWindow': The target origin provided ('https://www.youtube.com') does not match the recipient window's origin ('http://localhost:3000').","url":"https://www.youtube.com/s/player/11a45ffb/www-widgetapi.vflset/www-widgetapi.js"}
+{"wall":"2026-10-31T15:57:14.323Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/3/progress"}
+{"wall":"2026-10-31T15:57:14.324Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/3/progress","body":"{\"position_sec\":0,\"unit\":42,\"sentence_index\":0,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T15:57:14.325Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/3/progress","method":"Preflight"}
+{"wall":"2026-10-31T15:57:14.331Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/3/progress","method":"Fetch"}
+{"wall":"2026-10-31T15:57:14.332Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T15:57:15.252Z","kind":"log","level":"error","source":"javascript","text":"Access to fetch at 'https://www.youtube.com/s/player/11a45ffb/www-widgetapi.vflset/www-widgetapi.js' from origin 'http://localhost:3000' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.","url":"http://localhost:3000/course/3"}
+{"wall":"2026-10-31T15:57:15.253Z","kind":"netfail","text":"net::ERR_FAILED","type":"Fetch"}
+{"wall":"2026-10-31T15:57:15.253Z","kind":"log","level":"error","source":"network","text":"Failed to load resource: net::ERR_FAILED","url":"https://www.youtube.com/s/player/11a45ffb/www-widgetapi.vflset/www-widgetapi.js"}
+{"wall":"2026-10-31T15:57:19.324Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/3/progress","body":"{\"position_sec\":0,\"unit\":42,\"sentence_index\":0,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T15:57:19.325Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/3/progress"}
+{"wall":"2026-10-31T15:57:19.326Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/3/progress","method":"Preflight"}
+{"wall":"2026-10-31T15:57:19.329Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/3/progress","method":"Fetch"}
+{"wall":"2026-10-31T15:57:19.329Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T15:57:21.456Z","kind":"nav","url":"http://localhost:3000/course/3"}
+{"wall":"2026-10-31T15:57:21.471Z","kind":"console","level":"info","text":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T15:57:21.476Z","kind":"console","level":"log","text":"[HMR] connected","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T15:57:21.485Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/3"}
+{"wall":"2026-10-31T15:57:21.486Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/3"}
+{"wall":"2026-10-31T15:57:21.488Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/3","method":"Fetch"}
+{"wall":"2026-10-31T15:57:21.488Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/3","method":"Fetch"}
+{"wall":"2026-10-31T15:57:26.493Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/3/progress","body":"{\"position_sec\":0,\"unit\":42,\"sentence_index\":0,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T15:57:26.494Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/3/progress"}
+{"wall":"2026-10-31T15:57:26.496Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/3/progress","method":"Preflight"}
+{"wall":"2026-10-31T15:57:26.500Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/3/progress","method":"Fetch"}
+{"wall":"2026-10-31T15:57:26.500Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T15:57:27.503Z","kind":"log","level":"error","source":"javascript","text":"Access to fetch at 'https://www.youtube.com/s/player/11a45ffb/www-widgetapi.vflset/www-widgetapi.js' from origin 'http://localhost:3000' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.","url":"http://localhost:3000/course/3"}
+{"wall":"2026-10-31T15:57:27.503Z","kind":"netfail","text":"net::ERR_FAILED","type":"Fetch"}
+{"wall":"2026-10-31T15:57:27.503Z","kind":"log","level":"error","source":"network","text":"Failed to load resource: net::ERR_FAILED","url":"https://www.youtube.com/s/player/11a45ffb/www-widgetapi.vflset/www-widgetapi.js"}
+{"wall":"2026-10-31T15:57:31.446Z","kind":"nav","url":"http://localhost:3000/course/3"}
+{"wall":"2026-10-31T15:57:31.457Z","kind":"console","level":"info","text":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T15:57:31.463Z","kind":"console","level":"log","text":"[HMR] connected","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T15:57:31.470Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/3"}
+{"wall":"2026-10-31T15:57:31.471Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/3"}
+{"wall":"2026-10-31T15:57:31.471Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/3","method":"Fetch"}
+{"wall":"2026-10-31T15:57:31.471Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/3","method":"Fetch"}
+{"wall":"2026-10-31T15:57:36.477Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/3/progress","body":"{\"position_sec\":0,\"unit\":42,\"sentence_index\":0,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T15:57:36.478Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/3/progress"}
+{"wall":"2026-10-31T15:57:36.479Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/3/progress","method":"Preflight"}
+{"wall":"2026-10-31T15:57:36.484Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/3/progress","method":"Fetch"}
+{"wall":"2026-10-31T15:57:36.484Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T15:57:41.476Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/3/progress","body":"{\"position_sec\":0,\"unit\":42,\"sentence_index\":0,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T15:57:41.477Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/3/progress"}
+{"wall":"2026-10-31T15:57:41.479Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/3/progress","method":"Preflight"}
+{"wall":"2026-10-31T15:57:41.483Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/3/progress","method":"Fetch"}
+{"wall":"2026-10-31T15:57:41.483Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T15:57:47.163Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/3/progress","body":"{\"position_sec\":0,\"unit\":42,\"sentence_index\":0,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T15:57:47.164Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/3/progress"}
+{"wall":"2026-10-31T15:57:47.165Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/3/progress","method":"Preflight"}
+{"wall":"2026-10-31T15:57:47.168Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/3/progress","method":"Fetch"}
+{"wall":"2026-10-31T15:57:47.169Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T15:57:52.162Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/3/progress","body":"{\"position_sec\":0,\"unit\":42,\"sentence_index\":0,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T15:57:52.162Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/3/progress"}
+{"wall":"2026-10-31T15:57:52.162Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/3/progress","method":"Preflight"}
+{"wall":"2026-10-31T15:57:52.163Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/3/progress","method":"Fetch"}
+{"wall":"2026-10-31T15:57:52.164Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T15:57:52.171Z","kind":"nav","url":"http://localhost:3000/course/3"}
+{"wall":"2026-10-31T15:57:52.190Z","kind":"console","level":"info","text":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T15:57:52.197Z","kind":"console","level":"log","text":"[HMR] connected","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T15:57:52.207Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/3"}
+{"wall":"2026-10-31T15:57:52.208Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/3"}
+{"wall":"2026-10-31T15:57:52.208Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/3","method":"Fetch"}
+{"wall":"2026-10-31T15:57:52.209Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/3","method":"Fetch"}
+{"wall":"2026-10-31T15:57:58.164Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/3/progress"}
+{"wall":"2026-10-31T15:57:58.165Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/3/progress","body":"{\"position_sec\":0,\"unit\":42,\"sentence_index\":0,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T15:57:58.165Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/3/progress","method":"Preflight"}
+{"wall":"2026-10-31T15:57:58.169Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/3/progress","method":"Fetch"}
+{"wall":"2026-10-31T15:57:58.170Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:15:32.223Z","kind":"console","level":"info","text":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:15:32.223Z","kind":"console","level":"log","text":"[HMR] connected","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:15:32.224Z","kind":"log","level":"error","source":"network","text":"Failed to load resource: the server responded with a status of 503 (Service Unavailable)","url":"http://localhost:8002/api/course/sentences/u022-s5/attempts"}
+{"wall":"2026-10-31T16:15:32.224Z","kind":"log","level":"error","source":"network","text":"Failed to load resource: the server responded with a status of 503 (Service Unavailable)","url":"http://localhost:8002/api/course/sentences/u023-s1/attempts"}
+{"wall":"2026-10-31T16:15:32.224Z","kind":"log","level":"error","source":"network","text":"Failed to load resource: the server responded with a status of 503 (Service Unavailable)","url":"http://localhost:8002/api/course/sentences/u023-s2/attempts"}
+{"wall":"2026-10-31T16:15:32.224Z","kind":"log","level":"error","source":"network","text":"Failed to load resource: the server responded with a status of 503 (Service Unavailable)","url":"http://localhost:8002/api/course/sentences/u023-s3/attempts"}
+{"wall":"2026-10-31T16:15:32.224Z","kind":"log","level":"error","source":"network","text":"Failed to load resource: the server responded with a status of 503 (Service Unavailable)","url":"http://localhost:8002/api/course/sentences/u023-s4/attempts"}
+{"wall":"2026-10-31T16:15:32.224Z","kind":"log","level":"error","source":"network","text":"Failed to load resource: the server responded with a status of 503 (Service Unavailable)","url":"http://localhost:8002/api/course/sentences/u023-s5/attempts"}
+{"wall":"2026-10-31T16:15:32.225Z","kind":"collector","text":"attached 795EBC569E0B22C8D970DAD4DB9B8A58"}
+{"wall":"2026-10-31T16:15:33.366Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":0,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:15:33.367Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:15:33.367Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:15:33.368Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:15:33.368Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:15:36.091Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/sentences/u024-s1/attempts"}
+{"wall":"2026-10-31T16:15:36.093Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/sentences/u024-s1/attempts","method":"Preflight"}
+{"wall":"2026-10-31T16:15:36.116Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/sentences/u024-s1/attempts","body":"çÿèÿéÿêÿëÿìÿíÿïÿðÿñÿòÿóÿôÿõÿöÿ÷ÿøÿùÿúÿûÿüÿýÿþÿ\u0000\u0000\u0001\u0000\u0002\u0000\u0003\u0000\u0004\u0000\u0005\u0000\u0006\u0000\u0007\u0000\b\u0000\t\u0000\n\u0000\u000b\u0000\f\u0000\r\u0000\u000e\u0000\u000f\u0000\u0010\u0000\u0011\u0000\u0012\u0000\u0013\u0000\u0013\u0000\u0014\u0000\u0015\u0000\u0016\u0000\u0017\u0000\u0018\u0000\u0019\u0000\u0019\u0000\u001a\u0000\u001b\u0000\u001c\u0000\u001c\u0000\u001d\u0000\u001e\u0000\u001f\u0000\u001f\u0000 \u0000 \u0000!\u0000\"\u0000\"\u0000#\u0000#\u0000$\u0000$\u0000%\u0000%\u0000&\u0000&\u0000&\u0000'\u0000'\u0000'\u0000(\u0000(\u0000(\u0000(\u0000)\u0000)\u0000)\u0000)\u0000)\u0000)\u0000)\u0000)\u0000)\u0000)\u0000)\u0000)\u0000)\u0000)\u0000)\u0000)\u0000)\u0000)\u0000(\u0000(\u0000(\u0000(\u0000'\u0000'\u0000'\u0000&\u0000&\u0000&\u0000%\u0000%\u0000$\u0000$\u0000#\u0000#\u0000\"\u0000\"\u0000!\u0000!\u0000 \u0000\u001f\u0000\u001f\u0000\u001e\u0000\u001e\u0000\u001d\u0000\u001c\u0000\u001c\u0000\u001b\u0000\u001a\u0000\u0019\u0000\u0019\u0000\u0018\u0000\u0017\u0000\u0016\u0000\u0016\u0000\u0015\u0000\u0014\u0000\u0013\u0000\u0013\u0000\u0012\u0000\u0011\u0000\u0010\u0000\u000f\u0000\u000e\u0000\u000e\u0000\r\u0000\f\u0000\u000b\u0000\n\u0000\t\u0000\b\u0000"}
+{"wall":"2026-10-31T16:15:36.117Z","kind":"http","status":503,"url":"http://localhost:8002/api/course/sentences/u024-s1/attempts","method":"Fetch"}
+{"wall":"2026-10-31T16:15:36.117Z","kind":"log","level":"error","source":"network","text":"Failed to load resource: the server responded with a status of 503 (Service Unavailable)","url":"http://localhost:8002/api/course/sentences/u024-s1/attempts"}
+{"wall":"2026-10-31T16:15:36.117Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":0,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:15:36.117Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:15:36.118Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:15:36.118Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:15:36.118Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:15:37.358Z","kind":"nav","url":"http://localhost:3000/course/2"}
+{"wall":"2026-10-31T16:15:37.377Z","kind":"console","level":"info","text":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:15:37.380Z","kind":"console","level":"log","text":"[HMR] connected","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:15:37.390Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/2"}
+{"wall":"2026-10-31T16:15:37.390Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/2"}
+{"wall":"2026-10-31T16:15:37.391Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2","method":"Fetch"}
+{"wall":"2026-10-31T16:15:37.391Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2","method":"Fetch"}
+{"wall":"2026-10-31T16:15:42.403Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":0,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:15:42.403Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:15:42.404Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:15:42.410Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:15:42.410Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:15:45.734Z","kind":"nav","url":"http://localhost:3000/course/2"}
+{"wall":"2026-10-31T16:15:45.753Z","kind":"console","level":"info","text":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:15:45.754Z","kind":"console","level":"log","text":"[HMR] connected","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:15:45.764Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/2"}
+{"wall":"2026-10-31T16:15:45.764Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/2"}
+{"wall":"2026-10-31T16:15:45.765Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2","method":"Fetch"}
+{"wall":"2026-10-31T16:15:45.765Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2","method":"Fetch"}
+{"wall":"2026-10-31T16:15:50.709Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/sentences/u024-s1/attempts"}
+{"wall":"2026-10-31T16:15:50.710Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/sentences/u024-s1/attempts","method":"Preflight"}
+{"wall":"2026-10-31T16:15:50.732Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/sentences/u024-s1/attempts","body":"\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"}
+{"wall":"2026-10-31T16:15:50.733Z","kind":"http","status":503,"url":"http://localhost:8002/api/course/sentences/u024-s1/attempts","method":"Fetch"}
+{"wall":"2026-10-31T16:15:50.733Z","kind":"log","level":"error","source":"network","text":"Failed to load resource: the server responded with a status of 503 (Service Unavailable)","url":"http://localhost:8002/api/course/sentences/u024-s1/attempts"}
+{"wall":"2026-10-31T16:15:50.733Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":0,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:15:50.733Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:15:50.733Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:15:50.734Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:15:50.734Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:15:50.775Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":0,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:15:50.776Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:15:50.776Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:15:50.777Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:15:50.778Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:15:54.462Z","kind":"nav","url":"http://localhost:3000/course/2"}
+{"wall":"2026-10-31T16:15:54.481Z","kind":"console","level":"info","text":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:15:54.487Z","kind":"console","level":"log","text":"[HMR] connected","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:15:54.497Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/2"}
+{"wall":"2026-10-31T16:15:54.497Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/2"}
+{"wall":"2026-10-31T16:15:54.498Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2","method":"Fetch"}
+{"wall":"2026-10-31T16:15:54.498Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2","method":"Fetch"}
+{"wall":"2026-10-31T16:15:59.427Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/sentences/u024-s1/attempts"}
+{"wall":"2026-10-31T16:15:59.428Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/sentences/u024-s1/attempts","method":"Preflight"}
+{"wall":"2026-10-31T16:15:59.450Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/sentences/u024-s1/attempts","body":"\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"}
+{"wall":"2026-10-31T16:15:59.450Z","kind":"http","status":503,"url":"http://localhost:8002/api/course/sentences/u024-s1/attempts","method":"Fetch"}
+{"wall":"2026-10-31T16:15:59.450Z","kind":"log","level":"error","source":"network","text":"Failed to load resource: the server responded with a status of 503 (Service Unavailable)","url":"http://localhost:8002/api/course/sentences/u024-s1/attempts"}
+{"wall":"2026-10-31T16:15:59.450Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":0,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:15:59.450Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:15:59.450Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:15:59.451Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:15:59.451Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:15:59.505Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":0,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:15:59.505Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:15:59.506Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:15:59.507Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:15:59.507Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:16:04.507Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":1,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:16:04.507Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:16:04.508Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:16:04.512Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:16:04.513Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:16:06.418Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/sentences/u024-s2/attempts"}
+{"wall":"2026-10-31T16:16:06.420Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/sentences/u024-s2/attempts","method":"Preflight"}
+{"wall":"2026-10-31T16:16:06.445Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/sentences/u024-s2/attempts","body":"ÇýÈýÊýÌýÎýÐýÓýÖýÙýÝýáýåýéýîýóýøýýý\u0003þ\tþ\u000fþ\u0016þ\u001dþ$þ+þ2þ:þBþJþRþ[þdþlþvþþþþþ¦þ°þºþÅþÏþÚþåþðþûþ\u0006ÿ\u0012ÿ\u001dÿ)ÿ4ÿ@ÿKÿWÿcÿoÿ{ÿÿÿÿ«ÿ·ÿÃÿÏÿÛÿçÿôÿ\u0000\u0000\f\u0000\u0017\u0000#\u0000/\u0000;\u0000G\u0000R\u0000^\u0000i\u0000u\u0000\u0000\u0000\u0000¡\u0000¬\u0000·\u0000Â\u0000Ì\u0000×\u0000á\u0000ë\u0000õ\u0000þ\u0000\b\u0001\u0011\u0001\u001b\u0001$\u0001-\u00015\u0001>\u0001F\u0001N\u0001V\u0001^\u0001e\u0001l\u0001t\u0001z\u0001\u0001\u0001\u0001\u0001\u0001\u0001¤\u0001©\u0001­\u0001²\u0001¶\u0001º\u0001¾\u0001Á\u0001Å\u0001È\u0001Ê\u0001Í\u0001Ï\u0001Ñ\u0001Ó\u0001Ô\u0001Õ\u0001Ö\u0001×\u0001×\u0001×\u0001×\u0001×\u0001Ö\u0001Ö\u0001Ô\u0001Ó\u0001Ñ\u0001Ð\u0001Í\u0001Ë\u0001É\u0001Æ\u0001Ã\u0001¿\u0001¼\u0001¸\u0001´\u0001"}
+{"wall":"2026-10-31T16:16:06.445Z","kind":"http","status":503,"url":"http://localhost:8002/api/course/sentences/u024-s2/attempts","method":"Fetch"}
+{"wall":"2026-10-31T16:16:06.445Z","kind":"log","level":"error","source":"network","text":"Failed to load resource: the server responded with a status of 503 (Service Unavailable)","url":"http://localhost:8002/api/course/sentences/u024-s2/attempts"}
+{"wall":"2026-10-31T16:16:06.445Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":1,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:16:06.445Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:16:06.446Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:16:06.446Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:16:06.446Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:16:09.506Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":2,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:16:09.508Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:16:09.509Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:16:09.513Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:16:09.513Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:16:13.279Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/sentences/u024-s3/attempts"}
+{"wall":"2026-10-31T16:16:13.280Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/sentences/u024-s3/attempts","method":"Preflight"}
+{"wall":"2026-10-31T16:16:13.307Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/sentences/u024-s3/attempts","body":"_\u001fÙ\u001aq\u0017Z\u0012R\u000fJ\u0003CÙJïf¾Ê®±¾hÇFÅçÕ¿Ñ_ßíÞçê®ï`ô|÷µüÄþÔ\u0003\\\u0005í\t1\u000b\u001f\u000f=\u0010\u0013\u0014-\u0017\r\u0018'\u001aæ\u001a\u001c\u001a\u001dD\u001e¶\u001e~\u001fÇ\u001f; [  } g 9 î\u001f\u001f\"\u001f¯\u001e\r\u001e}\u001dº\u001c\u000f\u001c0\u001bo\u001ay\u0019¤\u0018\u0017·\u0016¢\u0015¯\u0014\u0013\u0012k\u0011g\u0010;\u000f2\u000e\u0005\rú\u000bÍ\nÂ\t\b\u0007j\u0006d\u0005E\u0004E\u0003.\u00024\u0001&\u00004ÿ0þGýNüoûú®ùÍø\u0005ø1÷uö¯õþôFô£óøòbòÅñ<ñ®ð2ð²ïCïÑîoî\u000bî¶í`í\u0018íÏììXì)ìúëØëµëëë|ëqëqëqë|ëëë±ëÏëïë\u0016ì?ìpì¡ìÚì\u0014íUííßí(îwîÇî\u001dïsïÏï+ððíð"}
+{"wall":"2026-10-31T16:16:13.308Z","kind":"http","status":503,"url":"http://localhost:8002/api/course/sentences/u024-s3/attempts","method":"Fetch"}
+{"wall":"2026-10-31T16:16:13.308Z","kind":"log","level":"error","source":"network","text":"Failed to load resource: the server responded with a status of 503 (Service Unavailable)","url":"http://localhost:8002/api/course/sentences/u024-s3/attempts"}
+{"wall":"2026-10-31T16:16:13.308Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":2,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:16:13.308Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:16:13.308Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:16:13.308Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:16:13.309Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:16:14.506Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":2,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:16:14.506Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:16:14.507Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:16:14.508Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:16:14.508Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:16:15.915Z","kind":"nav","url":"http://localhost:3000/course/2"}
+{"wall":"2026-10-31T16:16:15.933Z","kind":"console","level":"info","text":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:16:15.937Z","kind":"console","level":"log","text":"[HMR] connected","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:16:15.946Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/2"}
+{"wall":"2026-10-31T16:16:15.946Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/2"}
+{"wall":"2026-10-31T16:16:15.947Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2","method":"Fetch"}
+{"wall":"2026-10-31T16:16:15.947Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2","method":"Fetch"}
+{"wall":"2026-10-31T16:16:16.058Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Document"}
+{"wall":"2026-10-31T16:16:16.062Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:16:16.062Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:16:16.063Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":2,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:16:16.063Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course"}
+{"wall":"2026-10-31T16:16:16.063Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course"}
+{"wall":"2026-10-31T16:16:16.064Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:16:16.064Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:16:16.064Z","kind":"http","status":200,"url":"http://localhost:8002/api/course","method":"Fetch"}
+{"wall":"2026-10-31T16:16:16.065Z","kind":"http","status":200,"url":"http://localhost:8002/api/course","method":"Fetch"}
+{"wall":"2026-10-31T16:16:18.206Z","kind":"nav","url":"http://localhost:3000/course/2"}
+{"wall":"2026-10-31T16:16:18.223Z","kind":"console","level":"info","text":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:16:18.228Z","kind":"console","level":"log","text":"[HMR] connected","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:16:18.237Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/2"}
+{"wall":"2026-10-31T16:16:18.237Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/2"}
+{"wall":"2026-10-31T16:16:18.239Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2","method":"Fetch"}
+{"wall":"2026-10-31T16:16:18.239Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2","method":"Fetch"}
+{"wall":"2026-10-31T16:16:18.284Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:16:18.285Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":2,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:16:18.285Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course"}
+{"wall":"2026-10-31T16:16:18.285Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course"}
+{"wall":"2026-10-31T16:16:18.285Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:16:18.289Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:16:18.289Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:16:18.289Z","kind":"http","status":200,"url":"http://localhost:8002/api/course","method":"Fetch"}
+{"wall":"2026-10-31T16:16:18.290Z","kind":"http","status":200,"url":"http://localhost:8002/api/course","method":"Fetch"}
+{"wall":"2026-10-31T16:16:20.444Z","kind":"nav","url":"http://localhost:3000/course/2"}
+{"wall":"2026-10-31T16:16:20.464Z","kind":"console","level":"info","text":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:16:20.467Z","kind":"console","level":"log","text":"[HMR] connected","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:16:20.477Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/2"}
+{"wall":"2026-10-31T16:16:20.477Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/2"}
+{"wall":"2026-10-31T16:16:20.477Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2","method":"Fetch"}
+{"wall":"2026-10-31T16:16:20.478Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2","method":"Fetch"}
+{"wall":"2026-10-31T16:16:25.489Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":2,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:16:25.490Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:16:25.491Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:16:25.495Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:16:25.495Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:16:25.851Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/sentences/u024-s3/attempts"}
+{"wall":"2026-10-31T16:16:25.852Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/sentences/u024-s3/attempts","method":"Preflight"}
+{"wall":"2026-10-31T16:16:25.880Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/sentences/u024-s3/attempts","body":"±ÿ·ÿ¾ÿÄÿÊÿÐÿÖÿÜÿãÿéÿïÿõÿúÿ\u0000\u0000\u0006\u0000\f\u0000\u0012\u0000\u0017\u0000\u001d\u0000\"\u0000(\u0000-\u00002\u00007\u0000=\u0000B\u0000G\u0000L\u0000Q\u0000V\u0000[\u0000`\u0000e\u0000j\u0000o\u0000t\u0000y\u0000~\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000¢\u0000¦\u0000ª\u0000®\u0000²\u0000µ\u0000¹\u0000¼\u0000¿\u0000Â\u0000Å\u0000È\u0000Ë\u0000Í\u0000Ï\u0000Ò\u0000Ô\u0000Ö\u0000Ø\u0000Ú\u0000Û\u0000Ý\u0000Þ\u0000à\u0000á\u0000â\u0000ã\u0000ä\u0000å\u0000æ\u0000æ\u0000ç\u0000ç\u0000ç\u0000ç\u0000ç\u0000ç\u0000ç\u0000æ\u0000æ\u0000å\u0000ä\u0000ã\u0000â\u0000á\u0000ß\u0000Þ\u0000Ü\u0000Ú\u0000Ø\u0000×\u0000Ô\u0000Ò\u0000Ð\u0000Î\u0000Ë\u0000É\u0000Æ\u0000Ä\u0000Á\u0000¾\u0000»\u0000¸\u0000µ\u0000²\u0000®\u0000«\u0000¨\u0000¤\u0000 \u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000{\u0000v\u0000q\u0000m\u0000h\u0000c\u0000^\u0000Z\u0000U\u0000P\u0000K\u0000F\u0000A\u0000<\u00007\u00003\u0000.\u0000)\u0000$\u0000 \u0000\u001b\u0000\u0016\u0000\u0011\u0000\r\u0000\b\u0000\u0003\u0000þÿ"}
+{"wall":"2026-10-31T16:16:25.881Z","kind":"http","status":503,"url":"http://localhost:8002/api/course/sentences/u024-s3/attempts","method":"Fetch"}
+{"wall":"2026-10-31T16:16:25.881Z","kind":"log","level":"error","source":"network","text":"Failed to load resource: the server responded with a status of 503 (Service Unavailable)","url":"http://localhost:8002/api/course/sentences/u024-s3/attempts"}
+{"wall":"2026-10-31T16:16:25.881Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":2,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:16:25.881Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:16:25.881Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:16:25.882Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:16:25.882Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:16:30.489Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":2,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:16:30.489Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:16:30.490Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:16:30.494Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:16:30.495Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:16:33.734Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/sentences/u024-s3/attempts"}
+{"wall":"2026-10-31T16:16:33.736Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/sentences/u024-s3/attempts","method":"Preflight"}
+{"wall":"2026-10-31T16:16:33.764Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/sentences/u024-s3/attempts","body":"\u0001\u0000\u0001\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000ÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿþÿþÿþÿþÿþÿþÿþÿþÿþÿþÿþÿþÿþÿýÿýÿþÿþÿþÿÿÿþÿûÿüÿþÿýÿýÿýÿýÿýÿýÿþÿÿÿûÿ\u0000\u0000\u0001\u0000ñÿ"}
+{"wall":"2026-10-31T16:16:33.764Z","kind":"http","status":503,"url":"http://localhost:8002/api/course/sentences/u024-s3/attempts","method":"Fetch"}
+{"wall":"2026-10-31T16:16:33.764Z","kind":"log","level":"error","source":"network","text":"Failed to load resource: the server responded with a status of 503 (Service Unavailable)","url":"http://localhost:8002/api/course/sentences/u024-s3/attempts"}
+{"wall":"2026-10-31T16:16:33.764Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":2,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:16:33.764Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:16:33.765Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:16:33.765Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:16:33.765Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:16:35.489Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:16:35.490Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":2,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:16:35.491Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:16:35.494Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:16:35.495Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:16:36.395Z","kind":"nav","url":"http://localhost:3000/course/2"}
+{"wall":"2026-10-31T16:16:36.413Z","kind":"console","level":"info","text":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:16:36.418Z","kind":"console","level":"log","text":"[HMR] connected","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:16:36.427Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/2"}
+{"wall":"2026-10-31T16:16:36.428Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/2"}
+{"wall":"2026-10-31T16:16:36.430Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2","method":"Fetch"}
+{"wall":"2026-10-31T16:16:36.430Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2","method":"Fetch"}
+{"wall":"2026-10-31T16:16:41.436Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":2,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:16:41.438Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:16:41.439Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:16:41.443Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:16:41.444Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:16:43.988Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/sentences/u024-s3/attempts"}
+{"wall":"2026-10-31T16:16:43.990Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/sentences/u024-s3/attempts","method":"Preflight"}
+{"wall":"2026-10-31T16:16:44.014Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/sentences/u024-s3/attempts","body":"ùÿùÿùÿùÿùÿùÿùÿùÿùÿùÿùÿùÿùÿùÿùÿùÿùÿùÿùÿùÿùÿúÿúÿúÿúÿúÿúÿúÿúÿúÿúÿúÿúÿúÿúÿûÿûÿûÿûÿûÿûÿûÿûÿûÿüÿüÿüÿüÿüÿüÿüÿüÿýÿýÿýÿýÿýÿýÿýÿýÿþÿþÿþÿþÿþÿþÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿ\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0003\u0000\u0003\u0000\u0003\u0000\u0003\u0000\u0003\u0000\u0003\u0000\u0003\u0000\u0003\u0000\u0003\u0000\u0004\u0000\u0004\u0000\u0004\u0000\u0004\u0000\u0004\u0000\u0004\u0000\u0004\u0000\u0004\u0000\u0004\u0000\u0004\u0000\u0004\u0000\u0005\u0000\u0005\u0000\u0005\u0000\u0005\u0000\u0005\u0000\u0005\u0000\u0005\u0000\u0005\u0000\u0005\u0000\u0005\u0000\u0005\u0000\u0005\u0000\u0005\u0000\u0005\u0000\u0005\u0000\u0005\u0000\u0005\u0000\u0005\u0000\u0005\u0000\u0006\u0000\u0006\u0000\u0006\u0000\u0006\u0000\u0006\u0000\u0006\u0000\u0006\u0000\u0006\u0000\u0006\u0000\u0006\u0000\u0006\u0000\u0006\u0000\u0006\u0000\u0006\u0000\u0006\u0000\u0005\u0000"}
+{"wall":"2026-10-31T16:16:44.014Z","kind":"http","status":503,"url":"http://localhost:8002/api/course/sentences/u024-s3/attempts","method":"Fetch"}
+{"wall":"2026-10-31T16:16:44.015Z","kind":"log","level":"error","source":"network","text":"Failed to load resource: the server responded with a status of 503 (Service Unavailable)","url":"http://localhost:8002/api/course/sentences/u024-s3/attempts"}
+{"wall":"2026-10-31T16:16:44.015Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":2,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:16:44.015Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:16:44.015Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:16:44.015Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:16:44.015Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:16:46.436Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":3,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:16:46.437Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:16:46.438Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:16:46.440Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:16:46.440Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:16:47.328Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:16:47.330Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:16:47.332Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":2,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:16:47.335Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:16:47.335Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:16:51.438Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":2,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:16:51.438Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:16:51.439Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:16:51.443Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:16:51.444Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:16:52.675Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/sentences/u024-s3/attempts"}
+{"wall":"2026-10-31T16:16:52.676Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/sentences/u024-s3/attempts","method":"Preflight"}
+{"wall":"2026-10-31T16:16:52.691Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/sentences/u024-s3/attempts","body":"\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000"}
+{"wall":"2026-10-31T16:16:52.691Z","kind":"http","status":503,"url":"http://localhost:8002/api/course/sentences/u024-s3/attempts","method":"Fetch"}
+{"wall":"2026-10-31T16:16:52.691Z","kind":"log","level":"error","source":"network","text":"Failed to load resource: the server responded with a status of 503 (Service Unavailable)","url":"http://localhost:8002/api/course/sentences/u024-s3/attempts"}
+{"wall":"2026-10-31T16:16:52.691Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":2,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:16:52.691Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:16:52.691Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:16:52.691Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:16:52.691Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:16:56.436Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":3,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:16:56.437Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:16:56.437Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:16:56.441Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:16:56.442Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:16:58.787Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/sentences/u024-s4/attempts"}
+{"wall":"2026-10-31T16:16:58.788Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/sentences/u024-s4/attempts","method":"Preflight"}
+{"wall":"2026-10-31T16:16:58.811Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/sentences/u024-s4/attempts","body":"\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"}
+{"wall":"2026-10-31T16:16:58.812Z","kind":"http","status":503,"url":"http://localhost:8002/api/course/sentences/u024-s4/attempts","method":"Fetch"}
+{"wall":"2026-10-31T16:16:58.812Z","kind":"log","level":"error","source":"network","text":"Failed to load resource: the server responded with a status of 503 (Service Unavailable)","url":"http://localhost:8002/api/course/sentences/u024-s4/attempts"}
+{"wall":"2026-10-31T16:16:58.812Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":3,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:16:58.812Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:16:58.813Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:16:58.813Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:16:58.813Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:17:01.435Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":3,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:17:01.435Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:17:01.436Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:17:01.437Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:17:01.437Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:17:01.453Z","kind":"nav","url":"http://localhost:3000/course/2"}
+{"wall":"2026-10-31T16:17:01.470Z","kind":"console","level":"info","text":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:17:01.476Z","kind":"console","level":"log","text":"[HMR] connected","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:17:01.485Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/2"}
+{"wall":"2026-10-31T16:17:01.487Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/2"}
+{"wall":"2026-10-31T16:17:01.487Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2","method":"Fetch"}
+{"wall":"2026-10-31T16:17:01.488Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2","method":"Fetch"}
+{"wall":"2026-10-31T16:17:06.119Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/sentences/u024-s4/attempts"}
+{"wall":"2026-10-31T16:17:06.120Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/sentences/u024-s4/attempts","method":"Preflight"}
+{"wall":"2026-10-31T16:17:06.140Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/sentences/u024-s4/attempts","body":"ùÿùÿùÿùÿùÿøÿøÿøÿøÿøÿøÿøÿøÿøÿøÿøÿøÿ÷ÿ÷ÿ÷ÿ÷ÿ÷ÿ÷ÿ÷ÿ÷ÿ÷ÿ÷ÿ÷ÿ÷ÿ÷ÿ÷ÿøÿøÿøÿøÿøÿøÿøÿøÿøÿøÿøÿøÿøÿøÿùÿùÿùÿùÿùÿùÿùÿùÿùÿùÿùÿúÿúÿúÿúÿúÿúÿúÿúÿûÿûÿûÿûÿûÿûÿûÿûÿüÿüÿüÿüÿüÿüÿýÿýÿýÿýÿýÿýÿýÿþÿþÿþÿþÿþÿþÿÿÿÿÿÿÿÿÿÿÿÿÿ\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0002\u0000\u0003\u0000\u0003\u0000\u0003\u0000\u0003\u0000\u0003\u0000\u0003\u0000\u0003\u0000\u0004\u0000\u0004\u0000\u0004\u0000\u0004\u0000\u0004\u0000\u0004\u0000\u0004\u0000\u0004\u0000\u0004\u0000\u0005\u0000\u0005\u0000\u0005\u0000\u0005\u0000\u0005\u0000\u0005\u0000\u0005\u0000\u0005\u0000\u0005\u0000\u0005\u0000\u0005\u0000\u0005\u0000\u0005\u0000\u0006\u0000\u0006\u0000\u0006\u0000"}
+{"wall":"2026-10-31T16:17:06.141Z","kind":"http","status":503,"url":"http://localhost:8002/api/course/sentences/u024-s4/attempts","method":"Fetch"}
+{"wall":"2026-10-31T16:17:06.141Z","kind":"log","level":"error","source":"network","text":"Failed to load resource: the server responded with a status of 503 (Service Unavailable)","url":"http://localhost:8002/api/course/sentences/u024-s4/attempts"}
+{"wall":"2026-10-31T16:17:06.141Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":3,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:17:06.141Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:17:06.142Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:17:06.142Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:17:06.142Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:17:06.499Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:17:06.500Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":3,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:17:06.500Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:17:06.504Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:17:06.504Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:17:11.498Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":3,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:17:11.499Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:17:11.500Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:17:11.504Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:17:11.504Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:17:16.497Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":3,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:17:16.497Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:17:16.498Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:17:16.502Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:17:16.502Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:17:21.498Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":0,\"unit\":24,\"sentence_index\":3,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:17:21.499Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:17:21.499Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:17:21.504Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:17:21.504Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:17:25.954Z","kind":"nav","url":"about:blank"}
+{"wall":"2026-10-31T16:17:27.553Z","kind":"nav","url":"http://localhost:3000/course"}
+{"wall":"2026-10-31T16:17:27.587Z","kind":"console","level":"info","text":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:17:27.614Z","kind":"console","level":"log","text":"[HMR] connected","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:17:27.636Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course"}
+{"wall":"2026-10-31T16:17:27.636Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course"}
+{"wall":"2026-10-31T16:17:27.637Z","kind":"http","status":200,"url":"http://localhost:8002/api/course","method":"Fetch"}
+{"wall":"2026-10-31T16:17:27.638Z","kind":"http","status":200,"url":"http://localhost:8002/api/course","method":"Fetch"}
+{"wall":"2026-10-31T16:17:28.116Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/5"}
+{"wall":"2026-10-31T16:17:28.116Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/5"}
+{"wall":"2026-10-31T16:17:28.117Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/5","method":"Fetch"}
+{"wall":"2026-10-31T16:17:28.118Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/5","method":"Fetch"}
+{"wall":"2026-10-31T16:17:28.737Z","kind":"nav","url":"about:blank"}
+{"wall":"2026-10-31T16:17:30.345Z","kind":"nav","url":"http://localhost:3000/course/4"}
+{"wall":"2026-10-31T16:17:30.379Z","kind":"console","level":"info","text":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:17:30.408Z","kind":"console","level":"log","text":"[HMR] connected","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:17:30.434Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/4"}
+{"wall":"2026-10-31T16:17:30.434Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/4"}
+{"wall":"2026-10-31T16:17:30.435Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/4","method":"Fetch"}
+{"wall":"2026-10-31T16:17:30.435Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/4","method":"Fetch"}
+{"wall":"2026-10-31T16:17:35.451Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/4/progress","body":"{\"position_sec\":0,\"unit\":82,\"sentence_index\":4,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:17:35.453Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/4/progress"}
+{"wall":"2026-10-31T16:17:35.454Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/4/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:17:35.458Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/4/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:17:35.458Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:17:35.641Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/sentences/u082-s5/attempts"}
+{"wall":"2026-10-31T16:17:35.642Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/sentences/u082-s5/attempts","method":"Preflight"}
+{"wall":"2026-10-31T16:17:35.668Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/sentences/u082-s5/attempts","body":"î\f\u0005\r\u0019\r*\r9\rE\rN\rT\rX\rY\rW\rS\rM\rC\r8\r*\r\u0019\r\u0006\rñ\fÙ\f¿\f£\f\fd\fA\f\u001c\fõ\u000bÍ\u000b¢\u000bu\u000bG\u000b\u0017\u000bå\n±\n|\nE\n\r\nÓ\t\t[\t\u001d\tÞ\b\b]\b\u001a\b×\u0007\u0007M\u0007\u0007\u0007À\u0006x\u00060\u0006ç\u0005\u0005T\u0005\n\u0005¿\u0004t\u0004)\u0004Þ\u0003\u0003G\u0003û\u0002¯\u0002d\u0002\u0018\u0002Í\u0001\u00017\u0001í\u0000£\u0000Y\u0000\u0010\u0000Èÿÿ9ÿòþ¬þgþ#þàýý[ý\u001býÛüü_ü\"üçû­ûtû<û\u0006ûÑúújú9ú\túÚù­ùùWù/ù\u0007ùâø¾øøzøZø<ø ø\u0005øë÷Ô÷¾÷©÷÷÷u÷g÷[÷P÷F÷>÷8÷3÷/÷.÷-÷/÷1÷5÷;÷B÷J÷T÷_÷l÷y÷÷÷«÷¾÷Ò÷è÷þ÷\u0016ø/øIødø"}
+{"wall":"2026-10-31T16:17:35.668Z","kind":"http","status":503,"url":"http://localhost:8002/api/course/sentences/u082-s5/attempts","method":"Fetch"}
+{"wall":"2026-10-31T16:17:35.669Z","kind":"log","level":"error","source":"network","text":"Failed to load resource: the server responded with a status of 503 (Service Unavailable)","url":"http://localhost:8002/api/course/sentences/u082-s5/attempts"}
+{"wall":"2026-10-31T16:17:35.669Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/4/progress","body":"{\"position_sec\":0,\"unit\":82,\"sentence_index\":4,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:17:35.669Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/4/progress"}
+{"wall":"2026-10-31T16:17:35.669Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/4/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:17:35.669Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/4/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:17:35.669Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:17:35.981Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/4/progress"}
+{"wall":"2026-10-31T16:17:35.982Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/4/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:17:35.985Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/4/progress","body":"{\"position_sec\":0,\"unit\":63,\"sentence_index\":0,\"completed\":true,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:17:35.987Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/4/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:17:35.987Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:17:40.449Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/4/progress","body":"{\"position_sec\":0,\"unit\":63,\"sentence_index\":0,\"completed\":false,\"completed_count\":1}"}
+{"wall":"2026-10-31T16:17:40.451Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/4/progress"}
+{"wall":"2026-10-31T16:17:40.452Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/4/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:17:40.455Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/4/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:17:40.455Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:17:43.566Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/4/progress","body":"{\"position_sec\":0,\"unit\":63,\"sentence_index\":0,\"completed\":false,\"completed_count\":1}"}
+{"wall":"2026-10-31T16:17:43.567Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course"}
+{"wall":"2026-10-31T16:17:43.567Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course"}
+{"wall":"2026-10-31T16:17:43.567Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/4/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:17:43.568Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:17:43.568Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/4/progress"}
+{"wall":"2026-10-31T16:17:43.568Z","kind":"http","status":200,"url":"http://localhost:8002/api/course","method":"Fetch"}
+{"wall":"2026-10-31T16:17:43.569Z","kind":"http","status":200,"url":"http://localhost:8002/api/course","method":"Fetch"}
+{"wall":"2026-10-31T16:17:43.569Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/4/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:17:45.148Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/4"}
+{"wall":"2026-10-31T16:17:45.149Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/4"}
+{"wall":"2026-10-31T16:17:45.149Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/4","method":"Fetch"}
+{"wall":"2026-10-31T16:17:45.150Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/4","method":"Fetch"}
+{"wall":"2026-10-31T16:17:50.154Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/4/progress","body":"{\"position_sec\":0,\"unit\":63,\"sentence_index\":0,\"completed\":false,\"completed_count\":1}"}
+{"wall":"2026-10-31T16:17:50.154Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/4/progress"}
+{"wall":"2026-10-31T16:17:50.155Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/4/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:17:50.159Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/4/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:17:50.159Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:17:54.498Z","kind":"nav","url":"about:blank"}
+{"wall":"2026-10-31T16:17:56.112Z","kind":"nav","url":"http://localhost:3000/course/3"}
+{"wall":"2026-10-31T16:17:56.148Z","kind":"console","level":"info","text":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:17:56.178Z","kind":"console","level":"log","text":"[HMR] connected","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:17:56.204Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/3"}
+{"wall":"2026-10-31T16:17:56.204Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/3"}
+{"wall":"2026-10-31T16:17:56.204Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/3","method":"Fetch"}
+{"wall":"2026-10-31T16:17:56.204Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/3","method":"Fetch"}
+{"wall":"2026-10-31T16:18:00.279Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/sentences/u062-s5/attempts"}
+{"wall":"2026-10-31T16:18:00.280Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/sentences/u062-s5/attempts","method":"Preflight"}
+{"wall":"2026-10-31T16:18:00.301Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/sentences/u062-s5/attempts","body":"\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"}
+{"wall":"2026-10-31T16:18:00.302Z","kind":"http","status":503,"url":"http://localhost:8002/api/course/sentences/u062-s5/attempts","method":"Fetch"}
+{"wall":"2026-10-31T16:18:00.302Z","kind":"log","level":"error","source":"network","text":"Failed to load resource: the server responded with a status of 503 (Service Unavailable)","url":"http://localhost:8002/api/course/sentences/u062-s5/attempts"}
+{"wall":"2026-10-31T16:18:00.302Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/3/progress","body":"{\"position_sec\":0,\"unit\":62,\"sentence_index\":4,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:18:00.302Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/3/progress"}
+{"wall":"2026-10-31T16:18:00.302Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/3/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:18:00.303Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/3/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:18:00.303Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:18:01.218Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/3/progress","body":"{\"position_sec\":0,\"unit\":62,\"sentence_index\":4,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:18:01.219Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/3/progress"}
+{"wall":"2026-10-31T16:18:01.219Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/3/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:18:01.222Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/3/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:18:01.222Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:18:01.798Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/3/progress"}
+{"wall":"2026-10-31T16:18:01.798Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/3/progress","body":"{\"position_sec\":0,\"unit\":42,\"sentence_index\":0,\"completed\":true,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:18:01.799Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/3/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:18:01.805Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/3/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:18:01.806Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:18:06.218Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/3/progress","body":"{\"position_sec\":0,\"unit\":42,\"sentence_index\":0,\"completed\":false,\"completed_count\":1}"}
+{"wall":"2026-10-31T16:18:06.219Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/3/progress"}
+{"wall":"2026-10-31T16:18:06.219Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/3/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:18:06.223Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/3/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:18:06.223Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:18:08.187Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/3/progress"}
+{"wall":"2026-10-31T16:18:08.190Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/3/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:18:08.190Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/3/progress","body":"{\"position_sec\":0,\"unit\":42,\"sentence_index\":0,\"completed\":false,\"completed_count\":1}"}
+{"wall":"2026-10-31T16:18:08.190Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course"}
+{"wall":"2026-10-31T16:18:08.191Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course"}
+{"wall":"2026-10-31T16:18:08.191Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/3/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:18:08.191Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:18:08.192Z","kind":"http","status":200,"url":"http://localhost:8002/api/course","method":"Fetch"}
+{"wall":"2026-10-31T16:18:08.192Z","kind":"http","status":200,"url":"http://localhost:8002/api/course","method":"Fetch"}
+{"wall":"2026-10-31T16:18:09.768Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/3"}
+{"wall":"2026-10-31T16:18:09.769Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/3"}
+{"wall":"2026-10-31T16:18:09.769Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/3","method":"Fetch"}
+{"wall":"2026-10-31T16:18:09.769Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/3","method":"Fetch"}
+{"wall":"2026-10-31T16:18:12.528Z","kind":"nav","url":"about:blank"}
+{"wall":"2026-10-31T16:18:39.998Z","kind":"nav","url":"http://localhost:3000/course"}
+{"wall":"2026-10-31T16:18:40.030Z","kind":"console","level":"info","text":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:18:40.058Z","kind":"console","level":"log","text":"[HMR] connected","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:18:40.080Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course"}
+{"wall":"2026-10-31T16:18:40.081Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course"}
+{"wall":"2026-10-31T16:18:40.081Z","kind":"http","status":200,"url":"http://localhost:8002/api/course","method":"Fetch"}
+{"wall":"2026-10-31T16:18:40.082Z","kind":"http","status":200,"url":"http://localhost:8002/api/course","method":"Fetch"}
+{"wall":"2026-10-31T16:18:40.134Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/6"}
+{"wall":"2026-10-31T16:18:40.135Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/6"}
+{"wall":"2026-10-31T16:18:40.135Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/6","method":"Fetch"}
+{"wall":"2026-10-31T16:18:40.135Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/6","method":"Fetch"}
+{"wall":"2026-10-31T16:18:40.500Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/6/progress","body":"{\"position_sec\":120,\"unit\":101,\"sentence_index\":0,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:18:40.500Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course"}
+{"wall":"2026-10-31T16:18:40.501Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course"}
+{"wall":"2026-10-31T16:18:40.501Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/6/progress"}
+{"wall":"2026-10-31T16:18:40.504Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/6/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:18:40.505Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/6/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:18:40.505Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:18:40.506Z","kind":"http","status":200,"url":"http://localhost:8002/api/course","method":"Fetch"}
+{"wall":"2026-10-31T16:18:40.507Z","kind":"http","status":200,"url":"http://localhost:8002/api/course","method":"Fetch"}
+{"wall":"2026-10-31T16:18:42.146Z","kind":"nav","url":"http://localhost:3000/course"}
+{"wall":"2026-10-31T16:18:42.155Z","kind":"console","level":"info","text":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:18:42.160Z","kind":"console","level":"log","text":"[HMR] connected","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:18:42.170Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course"}
+{"wall":"2026-10-31T16:18:42.170Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course"}
+{"wall":"2026-10-31T16:18:42.171Z","kind":"http","status":200,"url":"http://localhost:8002/api/course","method":"Fetch"}
+{"wall":"2026-10-31T16:18:42.171Z","kind":"http","status":200,"url":"http://localhost:8002/api/course","method":"Fetch"}
+{"wall":"2026-10-31T16:18:42.221Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/6"}
+{"wall":"2026-10-31T16:18:42.221Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/6"}
+{"wall":"2026-10-31T16:18:42.222Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/6","method":"Fetch"}
+{"wall":"2026-10-31T16:18:42.223Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/6","method":"Fetch"}
+{"wall":"2026-10-31T16:18:45.261Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/6/progress","body":"{\"position_sec\":120,\"unit\":101,\"sentence_index\":0,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:18:45.261Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course"}
+{"wall":"2026-10-31T16:18:45.262Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course"}
+{"wall":"2026-10-31T16:18:45.262Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/6/progress"}
+{"wall":"2026-10-31T16:18:45.263Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/6/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:18:45.263Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:18:45.263Z","kind":"http","status":200,"url":"http://localhost:8002/api/course","method":"Fetch"}
+{"wall":"2026-10-31T16:18:45.264Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/6/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:18:45.265Z","kind":"http","status":200,"url":"http://localhost:8002/api/course","method":"Fetch"}
+{"wall":"2026-10-31T16:18:46.884Z","kind":"nav","url":"about:blank"}
+{"wall":"2026-10-31T16:19:11.766Z","kind":"nav","url":"http://localhost:3000/course"}
+{"wall":"2026-10-31T16:19:11.801Z","kind":"console","level":"info","text":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:19:11.828Z","kind":"console","level":"log","text":"[HMR] connected","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:19:11.851Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course"}
+{"wall":"2026-10-31T16:19:11.851Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course"}
+{"wall":"2026-10-31T16:19:11.852Z","kind":"http","status":200,"url":"http://localhost:8002/api/course","method":"Fetch"}
+{"wall":"2026-10-31T16:19:11.852Z","kind":"http","status":200,"url":"http://localhost:8002/api/course","method":"Fetch"}
+{"wall":"2026-10-31T16:19:11.897Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/6"}
+{"wall":"2026-10-31T16:19:11.897Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/6"}
+{"wall":"2026-10-31T16:19:11.898Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/6","method":"Fetch"}
+{"wall":"2026-10-31T16:19:11.898Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/6","method":"Fetch"}
+{"wall":"2026-10-31T16:19:16.913Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/6/progress","body":"{\"position_sec\":124.16,\"unit\":101,\"sentence_index\":0,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:19:16.914Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/6/progress"}
+{"wall":"2026-10-31T16:19:16.915Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/6/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:19:16.919Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/6/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:19:16.919Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:19:18.170Z","kind":"nav","url":"about:blank"}
+{"wall":"2026-10-31T16:19:24.211Z","kind":"nav","url":"http://localhost:3000/course"}
+{"wall":"2026-10-31T16:19:24.246Z","kind":"console","level":"info","text":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:19:24.270Z","kind":"console","level":"log","text":"[HMR] connected","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:19:24.282Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course"}
+{"wall":"2026-10-31T16:19:24.283Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course"}
+{"wall":"2026-10-31T16:19:24.284Z","kind":"http","status":200,"url":"http://localhost:8002/api/course","method":"Fetch"}
+{"wall":"2026-10-31T16:19:24.284Z","kind":"http","status":200,"url":"http://localhost:8002/api/course","method":"Fetch"}
+{"wall":"2026-10-31T16:19:24.351Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/6"}
+{"wall":"2026-10-31T16:19:24.351Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/6"}
+{"wall":"2026-10-31T16:19:24.352Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/6","method":"Fetch"}
+{"wall":"2026-10-31T16:19:24.352Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/6","method":"Fetch"}
+{"wall":"2026-10-31T16:19:29.356Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/6/progress"}
+{"wall":"2026-10-31T16:19:29.357Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/6/progress","body":"{\"position_sec\":2594.15,\"unit\":113,\"sentence_index\":0,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:19:29.358Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/6/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:19:29.362Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/6/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:19:29.363Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:19:33.987Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/6/progress"}
+{"wall":"2026-10-31T16:19:33.988Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/6/progress","body":"{\"position_sec\":0,\"unit\":101,\"sentence_index\":0,\"completed\":true,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:19:33.989Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/6/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:19:33.991Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/6/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:19:33.991Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:19:34.356Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/6/progress","body":"{\"position_sec\":0,\"unit\":101,\"sentence_index\":0,\"completed\":false,\"completed_count\":1}"}
+{"wall":"2026-10-31T16:19:34.356Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/6/progress"}
+{"wall":"2026-10-31T16:19:34.357Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/6/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:19:34.361Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/6/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:19:34.362Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:19:39.356Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/6/progress","body":"{\"position_sec\":0,\"unit\":101,\"sentence_index\":0,\"completed\":false,\"completed_count\":1}"}
+{"wall":"2026-10-31T16:19:39.357Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/6/progress"}
+{"wall":"2026-10-31T16:19:39.358Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/6/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:19:39.362Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/6/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:19:39.363Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:19:44.356Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/6/progress","body":"{\"position_sec\":0,\"unit\":101,\"sentence_index\":0,\"completed\":false,\"completed_count\":1}"}
+{"wall":"2026-10-31T16:19:44.357Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/6/progress"}
+{"wall":"2026-10-31T16:19:44.357Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/6/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:19:44.361Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/6/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:19:44.361Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:19:49.357Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/6/progress","body":"{\"position_sec\":0,\"unit\":101,\"sentence_index\":0,\"completed\":false,\"completed_count\":1}"}
+{"wall":"2026-10-31T16:19:49.357Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/6/progress"}
+{"wall":"2026-10-31T16:19:49.358Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/6/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:19:49.362Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/6/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:19:49.362Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:19:54.355Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/6/progress","body":"{\"position_sec\":0,\"unit\":101,\"sentence_index\":0,\"completed\":false,\"completed_count\":1}"}
+{"wall":"2026-10-31T16:19:54.356Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/6/progress"}
+{"wall":"2026-10-31T16:19:54.356Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/6/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:19:54.359Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/6/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:19:54.359Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:19:59.356Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/6/progress","body":"{\"position_sec\":0,\"unit\":101,\"sentence_index\":0,\"completed\":false,\"completed_count\":1}"}
+{"wall":"2026-10-31T16:19:59.357Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/6/progress"}
+{"wall":"2026-10-31T16:19:59.358Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/6/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:19:59.362Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/6/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:19:59.362Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:19:59.767Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/6/progress","body":"{\"position_sec\":0,\"unit\":101,\"sentence_index\":0,\"completed\":false,\"completed_count\":1}"}
+{"wall":"2026-10-31T16:19:59.768Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course"}
+{"wall":"2026-10-31T16:19:59.768Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course"}
+{"wall":"2026-10-31T16:19:59.768Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/6/progress"}
+{"wall":"2026-10-31T16:19:59.773Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/6/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:19:59.776Z","kind":"http","status":200,"url":"http://localhost:8002/api/course","method":"Fetch"}
+{"wall":"2026-10-31T16:19:59.778Z","kind":"http","status":200,"url":"http://localhost:8002/api/course","method":"Fetch"}
+{"wall":"2026-10-31T16:19:59.778Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/6/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:19:59.780Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:20:02.830Z","kind":"nav","url":"about:blank"}
+{"wall":"2026-10-31T16:20:17.852Z","kind":"nav","url":"http://localhost:3000/course"}
+{"wall":"2026-10-31T16:20:17.883Z","kind":"console","level":"info","text":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:20:17.891Z","kind":"console","level":"log","text":"[HMR] connected","url":"http://localhost:3000/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js"}
+{"wall":"2026-10-31T16:20:17.902Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course"}
+{"wall":"2026-10-31T16:20:17.902Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course"}
+{"wall":"2026-10-31T16:20:17.903Z","kind":"http","status":200,"url":"http://localhost:8002/api/course","method":"Fetch"}
+{"wall":"2026-10-31T16:20:17.903Z","kind":"http","status":200,"url":"http://localhost:8002/api/course","method":"Fetch"}
+{"wall":"2026-10-31T16:20:17.972Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/2"}
+{"wall":"2026-10-31T16:20:17.973Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course/days/2"}
+{"wall":"2026-10-31T16:20:17.973Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2","method":"Fetch"}
+{"wall":"2026-10-31T16:20:17.974Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2","method":"Fetch"}
+{"wall":"2026-10-31T16:20:22.980Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:20:22.980Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":44.02,\"unit\":22,\"sentence_index\":3,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:20:22.983Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:20:22.987Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:20:22.987Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:20:27.978Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":49.02,\"unit\":22,\"sentence_index\":3,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:20:27.979Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:20:27.980Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:20:27.983Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:20:27.984Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:20:31.167Z","kind":"req","method":"POST","url":"http://localhost:8002/api/course/days/2/progress","body":"{\"position_sec\":49.02,\"unit\":22,\"sentence_index\":3,\"completed\":false,\"completed_count\":0}"}
+{"wall":"2026-10-31T16:20:31.169Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course"}
+{"wall":"2026-10-31T16:20:31.170Z","kind":"req","method":"GET","url":"http://localhost:8002/api/course"}
+{"wall":"2026-10-31T16:20:31.171Z","kind":"req","method":"OPTIONS","url":"http://localhost:8002/api/course/days/2/progress"}
+{"wall":"2026-10-31T16:20:31.172Z","kind":"http","status":204,"url":"http://localhost:8002/api/course/days/2/progress","method":"Fetch"}
+{"wall":"2026-10-31T16:20:31.172Z","kind":"netfail","text":"net::ERR_ABORTED","type":"Fetch"}
+{"wall":"2026-10-31T16:20:31.172Z","kind":"http","status":200,"url":"http://localhost:8002/api/course","method":"Fetch"}
+{"wall":"2026-10-31T16:20:31.172Z","kind":"http","status":200,"url":"http://localhost:8002/api/course","method":"Fetch"}
+{"wall":"2026-10-31T16:20:31.172Z","kind":"http","status":200,"url":"http://localhost:8002/api/course/days/2/progress","method":"Preflight"}
+{"wall":"2026-10-31T16:20:34.228Z","kind":"nav","url":"about:blank"}

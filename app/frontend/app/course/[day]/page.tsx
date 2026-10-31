@@ -149,6 +149,11 @@ export default function CourseDayPage() {
   const micRef = useRef<Promise<boolean> | null>(null);
   const mountedRef = useRef(true);
   const positionRef = useRef({ unitIndex: 0, sentenceIndex: 0 });
+  // 화면이 아는 완료 횟수 — 저장마다 보내 서버가 완료 전에 보낸 늦은 저장을 버리게 한다(TASK-287).
+  const completedRef = useRef(0);
+  // 핸들이 살아 있을 때 읽은 마지막 재생 위치(회차 b3·b4 D3) — React 는 언마운트 때 ref 를 effect 정리보다
+  // 먼저 떼므로, 언마운트 저장 시점에는 `playerRef.current` 가 이미 null 이다.
+  const lastTimeRef = useRef(0);
 
   useEffect(() => {
     positionRef.current = { unitIndex, sentenceIndex };
@@ -166,6 +171,8 @@ export default function CourseDayPage() {
         }
         const saved = value.progress;
         const index = saved ? Math.max(0, value.units.findIndex((unit) => unit.unit === saved.unit)) : 0;
+        completedRef.current = saved?.completed_count ?? 0;
+        lastTimeRef.current = saved?.position_sec ?? 0;
         setDetail(value);
         setUnitIndex(index);
         setSentenceIndex(saved?.sentence_index ?? 0);
@@ -191,6 +198,7 @@ export default function CourseDayPage() {
   // ⛔ 되감지 않으면 이어지는 5초 저장·언마운트 저장이 끝 위치를 다시 써서 다음 회차가 끝 근처에서 열린다.
   const rewindAfterCompletion = useCallback(() => {
     playerRef.current?.rewind();
+    lastTimeRef.current = 0;
     positionRef.current = { unitIndex: 0, sentenceIndex: 0 };
     setUnitIndex(0);
     setSentenceIndex(0);
@@ -203,12 +211,16 @@ export default function CourseDayPage() {
       const position = positionRef.current;
       const current = detail.units[position.unitIndex];
       if (!current) return;
+      const live = playerRef.current?.currentTime();
+      if (live !== undefined) lastTimeRef.current = live;
       void saveCourseProgress(day, {
-        positionSec: completed ? 0 : (playerRef.current?.currentTime() ?? 0),
+        positionSec: completed ? 0 : lastTimeRef.current,
         unit: completed ? detail.units[0].unit : current.unit,
         sentenceIndex: completed ? 0 : position.sentenceIndex,
         completed,
+        completedCount: completedRef.current,
       });
+      if (completed) completedRef.current += 1;
     },
     [day, detail],
   );
@@ -237,6 +249,15 @@ export default function CourseDayPage() {
     recordRef.current = null;
     stopSpeaking();
   }, []);
+
+  // Day 완료 — 영상이 끝났거나 마지막 문장을 마쳤을 때(설계서 §4). 자동·수동·영상 세 경로가 함께 쓴다.
+  const finishDay = useCallback(() => {
+    cancelRun();
+    setPhase("idle");
+    save(true);
+    rewindAfterCompletion();
+    setNotice(NOTICE.dayDone);
+  }, [cancelRun, rewindAfterCompletion, save]);
 
   // 언마운트 — 연습과 마이크를 모두 정리한다.
   useEffect(() => {
@@ -353,17 +374,14 @@ export default function CourseDayPage() {
         if (signal.aborted) return;
         const next = nextPosition(position);
         if (next === null) {
-          save(true);
-          rewindAfterCompletion();
-          setNotice(NOTICE.dayDone);
-          setPhase("idle");
+          finishDay();
           return;
         }
         position = next;
         rate = 1;
       }
     },
-    [cancelRun, detail, ensureMic, nextPosition, rewindAfterCompletion, save],
+    [cancelRun, detail, ensureMic, finishDay, nextPosition, save],
   );
 
   const chooseMode = useCallback((value: Mode) => {
@@ -409,13 +427,7 @@ export default function CourseDayPage() {
     return index >= 0 && index !== unitIndex ? index : null;
   }, [detail, videoUnit, phase, unitIndex]);
 
-  const onVideoEnded = useCallback(() => {
-    cancelRun();
-    setPhase("idle");
-    save(true);
-    rewindAfterCompletion();
-    setNotice(NOTICE.dayDone);
-  }, [cancelRun, rewindAfterCompletion, save]);
+  const onVideoEnded = finishDay;
 
   const onVideoUnavailable = useCallback(() => setNotice(NOTICE.video), []);
 
@@ -427,6 +439,9 @@ export default function CourseDayPage() {
       </main>
     );
   }
+  // 마지막 문장에서는 「다음 문장」 자리가 「Day 마치기」가 된다 — 수동 모드가 Day 를 끝낼 길(회차 b3 D4).
+  const hasNext = nextPosition({ unitIndex, sentenceIndex }) !== null;
+
   if (!detail || !unit || !sentence) {
     return (
       <main style={PAGE_STYLE}>
@@ -558,10 +573,10 @@ export default function CourseDayPage() {
           <button
             type="button"
             style={{ ...button, background: "var(--accent)", color: "var(--on-accent)", borderColor: "var(--accent)" }}
-            disabled={!nextPosition({ unitIndex, sentenceIndex })}
-            onClick={() => goTo(nextPosition({ unitIndex, sentenceIndex }))}
+            disabled={!hasNext && phase !== "done"}
+            onClick={() => (hasNext ? goTo(nextPosition({ unitIndex, sentenceIndex })) : finishDay())}
           >
-            다음 문장 →
+            {hasNext ? "다음 문장 →" : "Day 마치기"}
           </button>
         </div>
       </section>

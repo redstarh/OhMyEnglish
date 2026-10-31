@@ -1,0 +1,108 @@
+{
+ "ms_markSet": 0,
+ "ms_reloadAck": 2,
+ "ms_freshDoc": 116,
+ "ms_ready": 116,
+ "ms_fakeMic": 117,
+ "before": {
+  "unit": "Unit 24 · 현재진행으로 말하는 미래",
+  "num": "문장 1 / 5",
+  "sentence": "I am meeting the client tomorrow.",
+  "phase": null,
+  "notice": null,
+  "prevDisabled": false,
+  "auto": "true",
+  "manual": "false",
+  "mode": "auto"
+ },
+ "ms_beforeClick": 117,
+ "doneAfterMs": 4949,
+ "atDone": {
+  "unit": "Unit 24 · 현재진행으로 말하는 미래",
+  "num": "문장 1 / 5",
+  "sentence": "I am meeting the client tomorrow.",
+  "phase": "done",
+  "notice": "지금은 따라 하기 판정을 쓸 수 없어요. 문장은 계속 이어져요.",
+  "prevDisabled": false,
+  "auto": "true",
+  "manual": "false",
+  "mode": "auto"
+ },
+ "after3_5s": {
+  "unit": "Unit 24 · 현재진행으로 말하는 미래",
+  "num": "문장 2 / 5",
+  "sentence": "She is flying to Jeju on Friday.",
+  "phase": "listen",
+  "notice": "지금은 따라 하기 판정을 쓸 수 없어요. 문장은 계속 이어져요.",
+  "prevDisabled": false,
+  "auto": "true",
+  "manual": "false",
+  "mode": "auto"
+ },
+ "phases": [
+  {
+   "t": 136,
+   "wall": 1793463345816,
+   "phase": "listen",
+   "label": "① 듣기",
+   "num": "문장 1 / 5",
+   "unit": "Unit 24 · 현재진행으로 말하는 미래",
+   "notice": ""
+  },
+  {
+   "t": 2096,
+   "wall": 1793463347775,
+   "phase": "repeat",
+   "label": "② 따라 말하기 · 2.9초",
+   "num": "문장 1 / 5",
+   "unit": "Unit 24 · 현재진행으로 말하는 미래",
+   "notice": ""
+  },
+  {
+   "t": 5039,
+   "wall": 1793463350718,
+   "phase": "done",
+   "label": "③ 확인",
+   "num": "문장 1 / 5",
+   "unit": "Unit 24 · 현재진행으로 말하는 미래",
+   "notice": "지금은 따라 하기 판정을 쓸 수 없어요. 문장은 계속 이어져요."
+  },
+  {
+   "t": 6557,
+   "wall": 1793463352236,
+   "phase": "listen",
+   "label": "① 듣기",
+   "num": "문장 2 / 5",
+   "unit": "Unit 24 · 현재진행으로 말하는 미래",
+   "notice": "지금은 따라 하기 판정을 쓸 수 없어요. 문장은 계속 이어져요."
+  }
+ ],
+ "phasesMO": [
+  {
+   "t": 132,
+   "phase": "listen",
+   "num": "문장 1 / 5"
+  },
+  {
+   "t": 2083,
+   "phase": "repeat",
+   "num": "문장 1 / 5"
+  },
+  {
+   "t": 5036,
+   "phase": "judge",
+   "num": "문장 1 / 5"
+  },
+  {
+   "t": 5039,
+   "phase": "done",
+   "num": "문장 1 / 5"
+  },
+  {
+   "t": 6541,
+   "phase": "listen",
+   "num": "문장 2 / 5"
+  }
+ ],
+ "elapsedMs": 8666
+}

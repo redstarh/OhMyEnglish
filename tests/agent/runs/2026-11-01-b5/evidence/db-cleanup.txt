@@ -1,0 +1,10 @@
+progress_rows_older_than_round 0
+delete progress DELETE 5
+delete attempts DELETE 0
+label after-cleanup
+schema ohmyenglish
+now 2026-10-31 16:20:56.574070+00:00
+user_timezones [{'id': UUID('00000000-0000-0000-0000-000000000001'), 'timezone': 'Asia/Seoul'}]
+attempts 0
+progress_rows 0
+API cycle 1 current_day 1 progress [None, None, None, None, None, None]

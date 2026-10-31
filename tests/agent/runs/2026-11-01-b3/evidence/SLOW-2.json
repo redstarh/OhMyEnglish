@@ -1,0 +1,136 @@
+{
+ "before": {
+  "unit": "Unit 22 · 현재 · 과거 시제 정리",
+  "num": "문장 5 / 5",
+  "sentence": "He is testing the app now. He tested it yesterday too.",
+  "phase": null,
+  "notice": null,
+  "prevDisabled": false,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "runs": [
+  {
+   "label": "🔊 듣기",
+   "listenMs": 3573,
+   "seq": [
+    {
+     "t": 119,
+     "phase": "listen",
+     "num": "문장 5 / 5"
+    },
+    {
+     "t": 3692,
+     "phase": "repeat",
+     "num": "문장 5 / 5"
+    },
+    {
+     "t": 8270,
+     "phase": "judge",
+     "num": "문장 5 / 5"
+    },
+    {
+     "t": 8272,
+     "phase": "done",
+     "num": "문장 5 / 5"
+    }
+   ],
+   "num": "문장 5 / 5"
+  },
+  {
+   "label": "느리게",
+   "listenMs": 4282,
+   "seq": [
+    {
+     "t": 9103,
+     "phase": "listen",
+     "num": "문장 5 / 5"
+    },
+    {
+     "t": 13385,
+     "phase": "repeat",
+     "num": "문장 5 / 5"
+    },
+    {
+     "t": 18671,
+     "phase": "judge",
+     "num": "문장 5 / 5"
+    },
+    {
+     "t": 18678,
+     "phase": "done",
+     "num": "문장 5 / 5"
+    }
+   ],
+   "num": "문장 5 / 5"
+  },
+  {
+   "label": "🔊 듣기",
+   "listenMs": 3577,
+   "seq": [
+    {
+     "t": 19513,
+     "phase": "listen",
+     "num": "문장 5 / 5"
+    },
+    {
+     "t": 23090,
+     "phase": "repeat",
+     "num": "문장 5 / 5"
+    },
+    {
+     "t": 27670,
+     "phase": "judge",
+     "num": "문장 5 / 5"
+    },
+    {
+     "t": 27676,
+     "phase": "done",
+     "num": "문장 5 / 5"
+    }
+   ],
+   "num": "문장 5 / 5"
+  },
+  {
+   "label": "느리게",
+   "listenMs": 4284,
+   "seq": [
+    {
+     "t": 28509,
+     "phase": "listen",
+     "num": "문장 5 / 5"
+    },
+    {
+     "t": 32793,
+     "phase": "repeat",
+     "num": "문장 5 / 5"
+    },
+    {
+     "t": 38079,
+     "phase": "judge",
+     "num": "문장 5 / 5"
+    },
+    {
+     "t": 38083,
+     "phase": "done",
+     "num": "문장 5 / 5"
+    }
+   ],
+   "num": "문장 5 / 5"
+  }
+ ],
+ "sentence": "He is testing the app now. He tested it yesterday too.",
+ "after": {
+  "unit": "Unit 22 · 현재 · 과거 시제 정리",
+  "num": "문장 5 / 5",
+  "sentence": "He is testing the app now. He tested it yesterday too.",
+  "phase": "done",
+  "notice": "지금은 따라 하기 판정을 쓸 수 없어요. 문장은 계속 이어져요.",
+  "prevDisabled": false,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "elapsedMs": 38912
+}

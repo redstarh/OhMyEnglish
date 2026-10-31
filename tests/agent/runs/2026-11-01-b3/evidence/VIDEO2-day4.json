@@ -1,0 +1,42 @@
+{
+ "A_open": {
+  "v": {
+   "t": 0,
+   "paused": true,
+   "state": 5
+  },
+  "saved": null
+ },
+ "A_beforeReload": {
+  "v": {
+   "t": 12.1,
+   "paused": false,
+   "state": 1
+  },
+  "saved": 10.95
+ },
+ "A_savedAfterReload": 10.95,
+ "A_reopenV": {
+  "t": 14.4,
+  "paused": false,
+  "state": 1
+ },
+ "B_S": 10.95,
+ "B_beforeLeave": {
+  "v": {
+   "t": 14.4,
+   "paused": true,
+   "state": 2
+  },
+  "saved": 14.37
+ },
+ "B_savedAfterLeave": {
+  "position_sec": 0,
+  "unit": 63,
+  "sentence_index": 0,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-10-31T15:33:42.759788+00:00"
+ }
+}

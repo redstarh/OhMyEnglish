@@ -1,0 +1,127 @@
+{
+ "before": {
+  "unit": "Unit 24 · 현재진행으로 말하는 미래",
+  "num": "문장 3 / 5",
+  "sentence": "We are releasing the app next week.",
+  "phase": null,
+  "notice": null,
+  "prevDisabled": false,
+  "auto": "true",
+  "manual": "false",
+  "mode": "auto"
+ },
+ "k": "문장 3 / 5",
+ "tRetryClick": 2296,
+ "k1": "문장 4 / 5",
+ "tPrevClick": 10977,
+ "afterPrevContinued": {
+  "unit": "Unit 24 · 현재진행으로 말하는 미래",
+  "num": "문장 4 / 5",
+  "sentence": "What are you doing this weekend?",
+  "phase": "listen",
+  "notice": "지금은 따라 하기 판정을 쓸 수 없어요. 문장은 계속 이어져요.",
+  "prevDisabled": false,
+  "auto": "true",
+  "manual": "false",
+  "mode": "auto"
+ },
+ "end": {
+  "unit": "Unit 24 · 현재진행으로 말하는 미래",
+  "num": "문장 4 / 5",
+  "sentence": "What are you doing this weekend?",
+  "phase": "done",
+  "notice": "지금은 따라 하기 판정을 쓸 수 없어요. 문장은 계속 이어져요.",
+  "prevDisabled": false,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "seq": [
+  {
+   "t": 134,
+   "phase": "listen",
+   "num": "문장 3 / 5"
+  },
+  {
+   "t": 2291,
+   "phase": "repeat",
+   "num": "문장 3 / 5"
+  },
+  {
+   "t": 2305,
+   "phase": "listen",
+   "num": "문장 3 / 5"
+  },
+  {
+   "t": 4477,
+   "phase": "repeat",
+   "num": "문장 3 / 5"
+  },
+  {
+   "t": 7651,
+   "phase": "judge",
+   "num": "문장 3 / 5"
+  },
+  {
+   "t": 7655,
+   "phase": "done",
+   "num": "문장 3 / 5"
+  },
+  {
+   "t": 9159,
+   "phase": "listen",
+   "num": "문장 4 / 5"
+  },
+  {
+   "t": 10974,
+   "phase": "repeat",
+   "num": "문장 4 / 5"
+  },
+  {
+   "t": 10985,
+   "phase": "none",
+   "num": "문장 3 / 5"
+  },
+  {
+   "t": 10988,
+   "phase": "listen",
+   "num": "문장 3 / 5"
+  },
+  {
+   "t": 13160,
+   "phase": "repeat",
+   "num": "문장 3 / 5"
+  },
+  {
+   "t": 16334,
+   "phase": "judge",
+   "num": "문장 3 / 5"
+  },
+  {
+   "t": 16335,
+   "phase": "done",
+   "num": "문장 3 / 5"
+  },
+  {
+   "t": 17842,
+   "phase": "listen",
+   "num": "문장 4 / 5"
+  },
+  {
+   "t": 19644,
+   "phase": "repeat",
+   "num": "문장 4 / 5"
+  },
+  {
+   "t": 22449,
+   "phase": "judge",
+   "num": "문장 4 / 5"
+  },
+  {
+   "t": 22453,
+   "phase": "done",
+   "num": "문장 4 / 5"
+  }
+ ],
+ "elapsedMs": 24985
+}

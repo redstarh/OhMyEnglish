@@ -1,0 +1,91 @@
+{
+ "start": {
+  "unit": "Unit 22 · 현재 · 과거 시제 정리",
+  "num": "문장 1 / 5",
+  "sentence": "I work in Seoul, and I worked in Daegu before.",
+  "phase": null,
+  "notice": null,
+  "prevDisabled": true,
+  "auto": "true",
+  "manual": "false",
+  "mode": "auto"
+ },
+ "atDayStart": {
+  "unit": "Unit 22 · 현재 · 과거 시제 정리",
+  "num": "문장 1 / 5",
+  "sentence": "I work in Seoul, and I worked in Daegu before.",
+  "phase": null,
+  "notice": null,
+  "prevDisabled": true,
+  "auto": "true",
+  "manual": "false",
+  "mode": "auto"
+ },
+ "next1": {
+  "unit": "Unit 22 · 현재 · 과거 시제 정리",
+  "num": "문장 2 / 5",
+  "sentence": "She is busy now, but she was free yesterday.",
+  "phase": "listen",
+  "notice": null,
+  "prevDisabled": false,
+  "auto": "true",
+  "manual": "false",
+  "mode": "auto"
+ },
+ "next2": {
+  "unit": "Unit 22 · 현재 · 과거 시제 정리",
+  "num": "문장 3 / 5",
+  "sentence": "Do you use Git? Did you use it at your old job?",
+  "phase": "listen",
+  "notice": null,
+  "prevDisabled": false,
+  "auto": "true",
+  "manual": "false",
+  "mode": "auto"
+ },
+ "next3": {
+  "unit": "Unit 22 · 현재 · 과거 시제 정리",
+  "num": "문장 4 / 5",
+  "sentence": "We don't meet on Mondays, and we didn't meet last week.",
+  "phase": "listen",
+  "notice": null,
+  "prevDisabled": false,
+  "auto": "true",
+  "manual": "false",
+  "mode": "auto"
+ },
+ "next4": {
+  "unit": "Unit 22 · 현재 · 과거 시제 정리",
+  "num": "문장 5 / 5",
+  "sentence": "He is testing the app now. He tested it yesterday too.",
+  "phase": "listen",
+  "notice": null,
+  "prevDisabled": false,
+  "auto": "true",
+  "manual": "false",
+  "mode": "auto"
+ },
+ "next5": {
+  "unit": "Unit 23 · 규칙 · 불규칙 과거형",
+  "num": "문장 1 / 5",
+  "sentence": "I wrote three test cases yesterday.",
+  "phase": "listen",
+  "notice": null,
+  "prevDisabled": false,
+  "auto": "true",
+  "manual": "false",
+  "mode": "auto"
+ },
+ "prev1": {
+  "unit": "Unit 22 · 현재 · 과거 시제 정리",
+  "num": "문장 5 / 5",
+  "sentence": "He is testing the app now. He tested it yesterday too.",
+  "phase": "listen",
+  "notice": null,
+  "prevDisabled": false,
+  "auto": "true",
+  "manual": "false",
+  "mode": "auto"
+ },
+ "elapsedMs": 1494
+}

@@ -1,0 +1,16 @@
+{
+ "state": {
+  "unit": "Unit 23 · 규칙 · 불규칙 과거형",
+  "num": "문장 1 / 5",
+  "sentence": "I wrote three test cases yesterday.",
+  "phase": "done",
+  "notice": "지금은 따라 하기 판정을 쓸 수 없어요. 문장은 계속 이어져요.",
+  "prevDisabled": false,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "spoken": null,
+ "attemptsLabel": "따라 함 0회",
+ "elapsedMs": 5635
+}

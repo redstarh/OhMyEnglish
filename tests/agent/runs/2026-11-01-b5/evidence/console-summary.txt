@@ -1,0 +1,17 @@
+lines 630 first 2026-10-31T15:57:01.988Z last 2026-10-31T16:20:34.228Z
+collector [('15:57:01', 'attached 795EBC569E0B22C8D970DAD4DB9B8A58'), ('16:15:32', 'attached 795EBC569E0B22C8D970DAD4DB9B8A58')]
+exceptions 0
+console.error 0
+console.warn 0
+log entries error/warning
+   19 ('error', 'network', 'Failed to load resource: the server responded with a status of 503 (Se')
+   2 ('error', 'javascript', "Access to fetch at 'https://www.youtube.com/s/player/11a45ffb/www-widg")
+   2 ('error', 'network', 'Failed to load resource: net::ERR_FAILED')
+   1 ('warning', 'security', "Failed to execute 'postMessage' on 'DOMWindow': The target origin prov")
+http>=400 {(503, 'http://localhost:8002/api/course/sentences/u024-s1/attempts'): 3, (503, 'http://localhost:8002/api/course/sentences/u024-s2/attempts'): 1, (503, 'http://localhost:8002/api/course/sentences/u024-s3/attempts'): 5, (503, 'http://localhost:8002/api/course/sentences/u024-s4/attempts'): 2, (503, 'http://localhost:8002/api/course/sentences/u082-s5/attempts'): 1, (503, 'http://localhost:8002/api/course/sentences/u062-s5/attempts'): 1}
+netfail {('net::ERR_ABORTED', 'Fetch'): 67, ('net::ERR_FAILED', 'Fetch'): 2, ('net::ERR_ABORTED', 'Document'): 1}
+progress POST 67 zero-pos with S>0 check below
+   16:19:59.767 ays/6 {"position_sec":0,"unit":101,"sentence_index":0,"completed":false,"completed_count":1}
+   16:20:22.980 ays/2 {"position_sec":44.02,"unit":22,"sentence_index":3,"completed":false,"completed_count":0}
+   16:20:27.978 ays/2 {"position_sec":49.02,"unit":22,"sentence_index":3,"completed":false,"completed_count":0}
+   16:20:31.167 ays/2 {"position_sec":49.02,"unit":22,"sentence_index":3,"completed":false,"completed_count":0}

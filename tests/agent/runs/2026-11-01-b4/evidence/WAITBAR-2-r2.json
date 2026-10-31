@@ -1,0 +1,65 @@
+{
+ "summary": [
+  {
+   "key": "문장 1 / 5|2398.1ms",
+   "samples": 144,
+   "first": {
+    "t": 1542,
+    "ph": "repeat",
+    "ratio": 1,
+    "dur": "2398.1ms",
+    "label": "② 따라 말하기 · 2.4초",
+    "num": "문장 1 / 5"
+   },
+   "last": {
+    "t": 3925,
+    "ph": "repeat",
+    "ratio": 0.006,
+    "dur": "2398.1ms",
+    "label": "② 따라 말하기 · 2.4초",
+    "num": "문장 1 / 5"
+   },
+   "spanMs": 2383,
+   "mid": {
+    "t": 2742,
+    "ph": "repeat",
+    "ratio": 0.5,
+    "dur": "2398.1ms",
+    "label": "② 따라 말하기 · 2.4초",
+    "num": "문장 1 / 5"
+   },
+   "monotoneDown": true
+  },
+  {
+   "key": "문장 2 / 5|2976.6ms",
+   "samples": 178,
+   "first": {
+    "t": 7429,
+    "ph": "repeat",
+    "ratio": 1,
+    "dur": "2976.6ms",
+    "label": "② 따라 말하기 · 3.0초",
+    "num": "문장 2 / 5"
+   },
+   "last": {
+    "t": 10391,
+    "ph": "repeat",
+    "ratio": 0.003,
+    "dur": "2976.6ms",
+    "label": "② 따라 말하기 · 3.0초",
+    "num": "문장 2 / 5"
+   },
+   "spanMs": 2962,
+   "mid": {
+    "t": 8924,
+    "ph": "repeat",
+    "ratio": 0.496,
+    "dur": "2976.6ms",
+    "label": "② 따라 말하기 · 3.0초",
+    "num": "문장 2 / 5"
+   },
+   "monotoneDown": true
+  }
+ ],
+ "elapsedMs": 10433
+}

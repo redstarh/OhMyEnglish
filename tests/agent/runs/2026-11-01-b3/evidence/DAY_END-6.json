@@ -1,0 +1,73 @@
+{
+ "before": {
+  "unit": "Unit 113 · 구동사 2 put on · take off · turn on",
+  "num": "문장 5 / 5",
+  "sentence": "She threw away the old papers.",
+  "phase": null,
+  "notice": null,
+  "prevDisabled": false,
+  "auto": "true",
+  "manual": "false",
+  "mode": "auto"
+ },
+ "nextDisabled": true,
+ "apiBefore": {
+  "position_sec": 0,
+  "unit": 113,
+  "sentence_index": 4,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-10-31T15:28:11.006036+00:00"
+ },
+ "clickWallUtc": "2026-10-31T15:28:11.167Z",
+ "seq": [
+  {
+   "t": 129,
+   "phase": "listen",
+   "num": "문장 5 / 5"
+  },
+  {
+   "t": 2133,
+   "phase": "repeat",
+   "num": "문장 5 / 5"
+  },
+  {
+   "t": 5139,
+   "phase": "judge",
+   "num": "문장 5 / 5"
+  },
+  {
+   "t": 5141,
+   "phase": "done",
+   "num": "문장 5 / 5"
+  },
+  {
+   "t": 6647,
+   "phase": "none",
+   "num": "문장 1 / 5"
+  }
+ ],
+ "after": {
+  "unit": "Unit 101 · 시간의 at · on · in",
+  "num": "문장 1 / 5",
+  "sentence": "The meeting starts at ten.",
+  "phase": null,
+  "notice": "이 Day 를 끝까지 마쳤어요.",
+  "prevDisabled": true,
+  "auto": "true",
+  "manual": "false",
+  "mode": "auto"
+ },
+ "afterWallUtc": "2026-10-31T15:28:19.714Z",
+ "apiAfter": {
+  "position_sec": 0,
+  "unit": 101,
+  "sentence_index": 0,
+  "completed_count": 1,
+  "last_completed_at": "2026-10-31T15:28:17.702223+00:00",
+  "last_completed_date": "2026-11-01",
+  "updated_at": "2026-10-31T15:28:17.702223+00:00"
+ },
+ "elapsedMs": 8722
+}

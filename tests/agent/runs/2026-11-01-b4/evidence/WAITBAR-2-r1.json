@@ -1,0 +1,35 @@
+{
+ "summary": [
+  {
+   "key": "문장 1 / 5|2401.1ms",
+   "samples": 144,
+   "first": {
+    "t": 1540,
+    "ph": "repeat",
+    "ratio": 1,
+    "dur": "2401.1ms",
+    "label": "② 따라 말하기 · 2.4초",
+    "num": "문장 1 / 5"
+   },
+   "last": {
+    "t": 3922,
+    "ph": "repeat",
+    "ratio": 0.007,
+    "dur": "2401.1ms",
+    "label": "② 따라 말하기 · 2.4초",
+    "num": "문장 1 / 5"
+   },
+   "spanMs": 2382,
+   "mid": {
+    "t": 2739,
+    "ph": "repeat",
+    "ratio": 0.5,
+    "dur": "2401.1ms",
+    "label": "② 따라 말하기 · 2.4초",
+    "num": "문장 1 / 5"
+   },
+   "monotoneDown": true
+  }
+ ],
+ "elapsedMs": 3954
+}

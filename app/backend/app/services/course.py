@@ -120,6 +120,7 @@ on conflict (user_id, day) do update
        unit = excluded.unit,
        sentence_index = excluded.sentence_index,
        updated_at = now()
+ where p.completed_count <= $6
 """
 
 # 끝낸 Day 는 처음으로 되감고 완료 횟수를 하나 올린다 — 다음 회차가 그 Day 를 처음부터 듣는다.
@@ -148,6 +149,15 @@ def _iso(value: datetime | None) -> str | None:
 
 def _unit_of_key(key: str) -> int:
     return int(key[1:4])
+
+
+def _left_the_start(item: DayProgress, first_unit: int) -> bool:
+    """처음 자리(0초 · 첫 단원 · 첫 문장)를 벗어났는가 — 목록 화면의 「진행 중」 문구와 같은 기준.
+
+    ⛔ 저장 시각으로 가르지 않는다(회차 b4 D5) — 완료 뒤에도 화면의 주기·언마운트 저장이
+    처음 자리를 다시 써서 `updated_at` 이 올라간다.
+    """
+    return item.position_sec > 0 or item.sentence_index > 0 or item.unit != first_unit
 
 
 async def load_progress(
@@ -179,12 +189,17 @@ async def load_overview(
     ]
     # 회차 = 6편 모두 끝낸 횟수 + 1 (설계서 §4).
     cycle = min(counts) + 1
-    # 진행 중인 Day = 이번 회차에서 아직 끝내지 않은 Day 가운데 가장 최근에 손댄 것.
-    # 손댄 것이 없으면 첫 미완료 Day 다.
-    unfinished = [item.day for item, done in zip(course.days, counts, strict=True) if done < cycle]
-    touched = [progress[day] for day in unfinished if day in progress]
+    # 진행 중인 Day = 이번 회차에서 아직 끝내지 않고 처음 자리를 벗어난 Day 가운데
+    # 가장 최근에 손댄 것.
+    # 없으면 첫 미완료 Day 다 — 6편을 다 끝낸 직후의 2회차는 Day 1 부터다(TASK-287).
+    unfinished = [item for item, done in zip(course.days, counts, strict=True) if done < cycle]
+    touched = [
+        progress[item.day]
+        for item in unfinished
+        if item.day in progress and _left_the_start(progress[item.day], item.units[0].unit)
+    ]
     current_day = (
-        max(touched, key=lambda item: item.updated_at or "").day if touched else unfinished[0]
+        max(touched, key=lambda item: item.updated_at or "").day if touched else unfinished[0].day
     )
 
     heat_rows = await conn.fetch(_HEATMAP_SQL, user_id, timezone, HEATMAP_DAYS)
@@ -246,9 +261,11 @@ async def save_progress(
             _SAVE_PROGRESS_SQL,
             user_id,
             day,
-            update.position_sec,
+            # 실제 영상이 목차의 마지막 단원보다 조금 길 수 있어 거부하지 않고 Day 길이로 자른다.
+            min(update.position_sec, Decimal(found.duration_sec)),
             update.unit,
             update.sentence_index,
+            update.completed_count,
         )
     return True
 

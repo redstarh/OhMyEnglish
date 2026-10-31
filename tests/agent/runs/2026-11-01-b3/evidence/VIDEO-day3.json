@@ -1,0 +1,250 @@
+{
+ "progressAtOpen": null,
+ "frameFound": true,
+ "v0": {
+  "t": 0,
+  "paused": true,
+  "ad": false,
+  "state": 5,
+  "apiTime": 0
+ },
+ "playSamples": [
+  {
+   "wall": "2026-10-31T15:32:00.244Z",
+   "v": {
+    "t": 1.4,
+    "paused": false,
+    "ad": false,
+    "state": 1,
+    "apiTime": 1.4
+   },
+   "saved": null,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T15:32:02.257Z",
+   "v": {
+    "t": 3.4,
+    "paused": false,
+    "ad": false,
+    "state": 1,
+    "apiTime": 3.4
+   },
+   "saved": 1.69,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T15:32:04.268Z",
+   "v": {
+    "t": 5.4,
+    "paused": false,
+    "ad": false,
+    "state": 1,
+    "apiTime": 5.4
+   },
+   "saved": 1.69,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T15:32:06.280Z",
+   "v": {
+    "t": 7.4,
+    "paused": false,
+    "ad": false,
+    "state": 1,
+    "apiTime": 7.4
+   },
+   "saved": 6.69,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T15:32:08.292Z",
+   "v": {
+    "t": 9.4,
+    "paused": false,
+    "ad": false,
+    "state": 1,
+    "apiTime": 9.4
+   },
+   "saved": 6.69,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T15:32:10.302Z",
+   "v": {
+    "t": 11.4,
+    "paused": false,
+    "ad": false,
+    "state": 1,
+    "apiTime": 11.4
+   },
+   "saved": 6.69,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T15:32:12.312Z",
+   "v": {
+    "t": 13.4,
+    "paused": false,
+    "ad": false,
+    "state": 1,
+    "apiTime": 13.4
+   },
+   "saved": 11.69,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T15:32:14.324Z",
+   "v": {
+    "t": 15.4,
+    "paused": false,
+    "ad": false,
+    "state": 1,
+    "apiTime": 15.4
+   },
+   "saved": 11.69,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T15:32:16.335Z",
+   "v": {
+    "t": 17.5,
+    "paused": false,
+    "ad": false,
+    "state": 1,
+    "apiTime": 17.5
+   },
+   "saved": 16.69,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T15:32:18.347Z",
+   "v": {
+    "t": 19.5,
+    "paused": false,
+    "ad": false,
+    "state": 1,
+    "apiTime": 19.5
+   },
+   "saved": 16.69,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T15:32:20.357Z",
+   "v": {
+    "t": 21.5,
+    "paused": false,
+    "ad": false,
+    "state": 1,
+    "apiTime": 21.5
+   },
+   "saved": 16.69,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T15:32:22.367Z",
+   "v": {
+    "t": 23.5,
+    "paused": false,
+    "ad": false,
+    "state": 1,
+    "apiTime": 23.5
+   },
+   "saved": 21.69,
+   "phase": "idle"
+  }
+ ],
+ "afterPracticeStart": {
+  "v": {
+   "t": 23.5,
+   "paused": true,
+   "ad": false,
+   "state": 2,
+   "apiTime": 23.5
+  },
+  "phase": "repeat"
+ },
+ "afterVideoReplay": {
+  "v": {
+   "t": 26,
+   "paused": false,
+   "ad": false,
+   "state": 1,
+   "apiTime": 26
+  },
+  "phase": "idle"
+ },
+ "beforeLeave": {
+  "v": {
+   "t": 30,
+   "paused": false,
+   "ad": false,
+   "state": 1,
+   "apiTime": 30
+  },
+  "saved": 25.18,
+  "wall": "2026-10-31T15:32:30.418Z"
+ },
+ "savedAfterLeave": {
+  "position_sec": 0,
+  "unit": 42,
+  "sentence_index": 0,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-10-31T15:32:30.478298+00:00"
+ },
+ "listRow": {
+  "status": "아직 안 함",
+  "bar": [
+   "0%"
+  ],
+  "link": "이어서 학습 ▶"
+ },
+ "reopen": [
+  {
+   "wall": "2026-10-31T15:32:36.122Z",
+   "v": {
+    "t": 0,
+    "paused": true,
+    "ad": false,
+    "state": 5,
+    "apiTime": 0
+   }
+  },
+  {
+   "wall": "2026-10-31T15:32:37.626Z",
+   "v": {
+    "t": 0,
+    "paused": true,
+    "ad": false,
+    "state": 5,
+    "apiTime": 0
+   }
+  },
+  {
+   "wall": "2026-10-31T15:32:39.130Z",
+   "v": {
+    "t": 0,
+    "paused": true,
+    "ad": false,
+    "state": 5,
+    "apiTime": 0
+   }
+  }
+ ],
+ "reopenAfterPlay": {
+  "t": 2.7,
+  "paused": false,
+  "ad": false,
+  "state": 1,
+  "apiTime": 2.7
+ },
+ "paused": {
+  "t": 2.7,
+  "paused": true,
+  "ad": false,
+  "state": 2,
+  "apiTime": 2.7
+ }
+}

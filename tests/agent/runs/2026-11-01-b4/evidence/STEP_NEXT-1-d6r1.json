@@ -1,0 +1,34 @@
+{
+ "start": {
+  "unit": "Unit 1 · be 동사 am · is · are",
+  "num": "문장 1 / 5",
+  "sentence": "I am a software tester.",
+  "phase": null,
+  "notice": null,
+  "prevDisabled": true,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "at": {
+  "unit": "Unit 2 · be 동사 질문 Am I · Is it · Are you",
+  "num": "문장 1 / 5",
+  "sentence": "Are you on the project team?",
+  "phase": null,
+  "notice": null,
+  "prevDisabled": false,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "apiProgress": {
+  "position_sec": 0,
+  "unit": 2,
+  "sentence_index": 0,
+  "completed_count": 3,
+  "last_completed_at": "2026-10-31T15:46:38.575564+00:00",
+  "last_completed_date": "2026-11-01",
+  "updated_at": "2026-10-31T15:47:15.520071+00:00"
+ },
+ "elapsedMs": 6914
+}

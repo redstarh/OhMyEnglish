@@ -1,0 +1,23 @@
+{
+ "api": {
+  "cells": 112,
+  "first": {
+   "date": "2026-07-13",
+   "attempts": 0
+  },
+  "last": {
+   "date": "2026-11-01",
+   "attempts": 0
+  },
+  "nonzero": [],
+  "recent": []
+ },
+ "dom": {
+  "cells": 112,
+  "nonzero": 0,
+  "lastTitle": "2026-11-01 · 0회",
+  "table": false,
+  "emptyNote": "아직 따라 한 문장이 없어요."
+ },
+ "elapsedMs": 624
+}

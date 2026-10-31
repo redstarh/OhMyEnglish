@@ -1,0 +1,2 @@
+no-cc save -> {'position_sec': 0.0, 'unit': 101, 'sentence_index': 0, 'completed_count': 2, 'last_completed_at': '2026-10-31T15:46:25.276581+00:00', 'last_completed_date': '2026-11-01', 'updated_at': '2026-10-31T15:46:25.276581+00:00'}
+cc=2 save -> {'position_sec': 0.0, 'unit': 113, 'sentence_index': 4, 'completed_count': 2, 'last_completed_at': '2026-10-31T15:46:25.276581+00:00', 'last_completed_date': '2026-11-01', 'updated_at': '2026-10-31T15:46:38.546586+00:00'}

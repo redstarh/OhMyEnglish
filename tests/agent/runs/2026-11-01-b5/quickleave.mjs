@@ -1,0 +1,24 @@
+// 회차 b5 — D3 경계: 저장 위치 S 가 있는 Day 를 목록에서 열고 waitMs 뒤 바로 「← 학습 목록」. 사용: node quickleave.mjs <day> <waitMs>
+import { writeFileSync } from "node:fs";
+import { connect, pageTarget, sleep, EV } from "./cdp.mjs";
+const [DAY, WAIT] = [process.argv[2], Number(process.argv[3] ?? "800")];
+const c = await connect((await pageTarget()).webSocketDebuggerUrl);
+await c.send("Page.enable"); await c.send("Runtime.enable");
+const ev = async (e) => { const r = await c.send("Runtime.evaluate", { expression: e, returnByValue: true, awaitPromise: true, userGesture: true }); if (r.exceptionDetails) throw new Error(r.exceptionDetails.text); return r.result.value; };
+const waitFor = async (e, t = 15000) => { const s = Date.now(); while (Date.now() - s < t) { try { if (await ev(e)) return; } catch {} await sleep(30); } throw new Error("timeout " + e); };
+const prog = async () => (await (await fetch(`http://localhost:8002/api/course/days/${DAY}`)).json()).progress;
+const ready = (sel) => `(() => { const a = ${sel}; return !!a && Object.keys(a).some(k => k.startsWith('__reactProps')); })()`;
+const back = `[...document.querySelectorAll('a')].find(a => a.textContent.trim() === '← 학습 목록')`;
+const out = { day: DAY, waitMs: WAIT };
+await c.send("Page.navigate", { url: "http://localhost:3000/course" });
+await waitFor(ready(`document.querySelector('[data-testid=course-day-${DAY}] a')`));
+out.S = (await prog())?.position_sec;
+await ev(`document.querySelector('[data-testid=course-day-${DAY}] a').click()`);
+await waitFor(`location.pathname === '/course/${DAY}' && ${ready(back)}`);
+out.iframeAtLeave = await ev(`!!document.querySelector('[data-testid=course-player] iframe')`);
+await sleep(WAIT);
+await ev(`${back}.click()`);
+await waitFor(`location.pathname === '/course'`); await sleep(1500);
+out.after = await prog();
+out.judge = { keptS: out.after?.position_sec >= out.S - 0.01, zero: out.after?.position_sec === 0 };
+console.log(JSON.stringify(out)); writeFileSync(`${EV}/QUICKLEAVE-day${DAY}-${WAIT}.json`, JSON.stringify(out, null, 1)); c.close();

@@ -1,0 +1,94 @@
+{
+ "ms_markSet": 0,
+ "ms_reloadAck": 2,
+ "ms_freshDoc": 30,
+ "ms_ready": 86,
+ "ms_fakeMic": 87,
+ "before": {
+  "unit": "Unit 22 · 현재 · 과거 시제 정리",
+  "num": "문장 1 / 5",
+  "sentence": "I work in Seoul, and I worked in Daegu before.",
+  "phase": null,
+  "notice": null,
+  "prevDisabled": true,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "ms_beforeClick": 87,
+ "doneAfterMs": 7049,
+ "atDone": {
+  "unit": "Unit 22 · 현재 · 과거 시제 정리",
+  "num": "문장 1 / 5",
+  "sentence": "I work in Seoul, and I worked in Daegu before.",
+  "phase": "done",
+  "notice": "지금은 따라 하기 판정을 쓸 수 없어요. 문장은 계속 이어져요.",
+  "prevDisabled": true,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "after3_5s": {
+  "unit": "Unit 22 · 현재 · 과거 시제 정리",
+  "num": "문장 1 / 5",
+  "sentence": "I work in Seoul, and I worked in Daegu before.",
+  "phase": "done",
+  "notice": "지금은 따라 하기 판정을 쓸 수 없어요. 문장은 계속 이어져요.",
+  "prevDisabled": true,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "phases": [
+  {
+   "t": 121,
+   "wall": 1793461799106,
+   "phase": "listen",
+   "label": "① 듣기",
+   "num": "문장 1 / 5",
+   "unit": "Unit 22 · 현재 · 과거 시제 정리",
+   "notice": ""
+  },
+  {
+   "t": 3105,
+   "wall": 1793461802089,
+   "phase": "repeat",
+   "label": "② 따라 말하기 · 4.0초",
+   "num": "문장 1 / 5",
+   "unit": "Unit 22 · 현재 · 과거 시제 정리",
+   "notice": ""
+  },
+  {
+   "t": 7121,
+   "wall": 1793461806106,
+   "phase": "done",
+   "label": "③ 확인",
+   "num": "문장 1 / 5",
+   "unit": "Unit 22 · 현재 · 과거 시제 정리",
+   "notice": "지금은 따라 하기 판정을 쓸 수 없어요. 문장은 계속 이어져요."
+  }
+ ],
+ "phasesMO": [
+  {
+   "t": 102,
+   "phase": "listen",
+   "num": "문장 1 / 5"
+  },
+  {
+   "t": 3105,
+   "phase": "repeat",
+   "num": "문장 1 / 5"
+  },
+  {
+   "t": 7109,
+   "phase": "judge",
+   "num": "문장 1 / 5"
+  },
+  {
+   "t": 7113,
+   "phase": "done",
+   "num": "문장 1 / 5"
+  }
+ ],
+ "elapsedMs": 10739
+}

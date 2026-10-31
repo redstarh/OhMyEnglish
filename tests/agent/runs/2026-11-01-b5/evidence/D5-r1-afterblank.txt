@@ -1,0 +1,1 @@
+afterBlank cycle 2 current_day 1 {'position_sec': 0.0, 'unit': 101, 'sentence_index': 0, 'completed_count': 1, 'last_completed_at': '2026-10-31T16:13:10.599141+00:00', 'last_completed_date': '2026-11-01', 'updated_at': '2026-10-31T16:13:21.499215+00:00'}

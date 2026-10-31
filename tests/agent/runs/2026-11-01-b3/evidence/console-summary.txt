@@ -1,0 +1,21 @@
+total 952 span 2026-10-31T15:24:28.735Z ~ 2026-10-31T15:35:31.263Z
+{'collector': 1, 'nav': 37, 'console': 70, 'req': 354, 'http': 354, 'netfail': 117, 'log': 19}
+exceptions 0
+console/log error|warning 19
+   9 ('log', 'error', 'Failed to load resource: the server responded with a status of 503 (Service Unavailable)', 'http://localhost:8002/api/course/sentences/u022-s5/attempts')
+   2 ('log', 'error', 'Failed to load resource: the server responded with a status of 503 (Service Unavailable)', 'http://localhost:8002/api/course/sentences/u022-s1/attempts')
+   2 ('log', 'error', 'Failed to load resource: the server responded with a status of 503 (Service Unavailable)', 'http://localhost:8002/api/course/sentences/u100-s5/attempts')
+   2 ('log', 'error', 'Failed to load resource: the server responded with a status of 503 (Service Unavailable)', 'http://localhost:8002/api/course/sentences/u023-s1/attempts')
+   1 ('log', 'error', 'Failed to load resource: the server responded with a status of 503 (Service Unavailable)', 'http://localhost:8002/api/course/sentences/u022-s2/attempts')
+   1 ('log', 'error', 'Failed to load resource: the server responded with a status of 503 (Service Unavailable)', 'http://localhost:8002/api/course/sentences/u022-s3/attempts')
+   1 ('log', 'warning', "Failed to execute 'postMessage' on 'DOMWindow': The target origin provided ('https://www.youtube.com') does no", 'https://www.youtube.com/s/player/11a45ffb/www-widgetapi.vfls')
+   1 ('log', 'error', 'Failed to load resource: the server responded with a status of 503 (Service Unavailable)', 'http://localhost:8002/api/course/sentences/u113-s5/attempts')
+http>=400
+   9 (503, '/api/course/sentences/u022-s5/attempts', 'Fetch')
+   2 (503, '/api/course/sentences/u022-s1/attempts', 'Fetch')
+   2 (503, '/api/course/sentences/u100-s5/attempts', 'Fetch')
+   2 (503, '/api/course/sentences/u023-s1/attempts', 'Fetch')
+   1 (503, '/api/course/sentences/u022-s2/attempts', 'Fetch')
+   1 (503, '/api/course/sentences/u022-s3/attempts', 'Fetch')
+   1 (503, '/api/course/sentences/u113-s5/attempts', 'Fetch')
+netfail {('net::ERR_ABORTED', 'Document'): 3, ('net::ERR_ABORTED', 'Fetch'): 114}

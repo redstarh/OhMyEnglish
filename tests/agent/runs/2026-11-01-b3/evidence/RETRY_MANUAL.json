@@ -1,0 +1,65 @@
+{
+ "before": {
+  "unit": "Unit 22 · 현재 · 과거 시제 정리",
+  "num": "문장 5 / 5",
+  "sentence": "He is testing the app now. He tested it yesterday too.",
+  "phase": null,
+  "notice": null,
+  "prevDisabled": false,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "afterFirst": {
+  "unit": "Unit 22 · 현재 · 과거 시제 정리",
+  "num": "문장 5 / 5",
+  "sentence": "He is testing the app now. He tested it yesterday too.",
+  "phase": "done",
+  "notice": "지금은 따라 하기 판정을 쓸 수 없어요. 문장은 계속 이어져요.",
+  "prevDisabled": false,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "buttonLabelAtDone": [
+  "🔊 듣기",
+  "느리게",
+  "← 이전",
+  "다시",
+  "다음 문장 →"
+ ],
+ "retrySeq": [
+  {
+   "t": 10799,
+   "phase": "listen",
+   "num": "문장 5 / 5"
+  },
+  {
+   "t": 14385,
+   "phase": "repeat",
+   "num": "문장 5 / 5"
+  },
+  {
+   "t": 18973,
+   "phase": "judge",
+   "num": "문장 5 / 5"
+  },
+  {
+   "t": 18980,
+   "phase": "done",
+   "num": "문장 5 / 5"
+  }
+ ],
+ "afterRetry": {
+  "unit": "Unit 22 · 현재 · 과거 시제 정리",
+  "num": "문장 5 / 5",
+  "sentence": "He is testing the app now. He tested it yesterday too.",
+  "phase": "done",
+  "notice": "지금은 따라 하기 판정을 쓸 수 없어요. 문장은 계속 이어져요.",
+  "prevDisabled": false,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "elapsedMs": 21506
+}

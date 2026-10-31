@@ -1,0 +1,14 @@
+Sat Oct 31 15:35:52 UTC 2026
+Sun Nov  1 00:35:52 KST 2026
+label end-before-cleanup
+schema ohmyenglish
+now 2026-10-31 15:35:52.594333+00:00
+user_timezones [{'id': UUID('00000000-0000-0000-0000-000000000001'), 'timezone': 'Asia/Seoul'}]
+attempts 0
+progress_rows 6
+{'user_id': UUID('00000000-0000-0000-0000-000000000001'), 'day': 1, 'position_sec': Decimal('0.00'), 'unit': 1, 'sentence_index': 0, 'completed_count': 2, 'last_completed_at': datetime.datetime(2026, 10, 31, 15, 35, 28, 925027, tzinfo=datetime.timezone.utc), 'updated_at': datetime.datetime(2026, 10, 31, 15, 35, 28, 925027, tzinfo=datetime.timezone.utc)}
+{'user_id': UUID('00000000-0000-0000-0000-000000000001'), 'day': 2, 'position_sec': Decimal('0.00'), 'unit': 22, 'sentence_index': 0, 'completed_count': 2, 'last_completed_at': datetime.datetime(2026, 10, 31, 15, 35, 29, 294843, tzinfo=datetime.timezone.utc), 'updated_at': datetime.datetime(2026, 10, 31, 15, 35, 29, 294843, tzinfo=datetime.timezone.utc)}
+{'user_id': UUID('00000000-0000-0000-0000-000000000001'), 'day': 3, 'position_sec': Decimal('0.00'), 'unit': 42, 'sentence_index': 0, 'completed_count': 2, 'last_completed_at': datetime.datetime(2026, 10, 31, 15, 35, 29, 665901, tzinfo=datetime.timezone.utc), 'updated_at': datetime.datetime(2026, 10, 31, 15, 35, 29, 665901, tzinfo=datetime.timezone.utc)}
+{'user_id': UUID('00000000-0000-0000-0000-000000000001'), 'day': 4, 'position_sec': Decimal('0.00'), 'unit': 63, 'sentence_index': 0, 'completed_count': 2, 'last_completed_at': datetime.datetime(2026, 10, 31, 15, 35, 30, 34990, tzinfo=datetime.timezone.utc), 'updated_at': datetime.datetime(2026, 10, 31, 15, 35, 30, 34990, tzinfo=datetime.timezone.utc)}
+{'user_id': UUID('00000000-0000-0000-0000-000000000001'), 'day': 5, 'position_sec': Decimal('0.00'), 'unit': 83, 'sentence_index': 0, 'completed_count': 2, 'last_completed_at': datetime.datetime(2026, 10, 31, 15, 35, 30, 401922, tzinfo=datetime.timezone.utc), 'updated_at': datetime.datetime(2026, 10, 31, 15, 35, 30, 401922, tzinfo=datetime.timezone.utc)}
+{'user_id': UUID('00000000-0000-0000-0000-000000000001'), 'day': 6, 'position_sec': Decimal('0.00'), 'unit': 101, 'sentence_index': 0, 'completed_count': 2, 'last_completed_at': datetime.datetime(2026, 10, 31, 15, 35, 30, 774628, tzinfo=datetime.timezone.utc), 'updated_at': datetime.datetime(2026, 10, 31, 15, 35, 30, 774628, tzinfo=datetime.timezone.utc)}

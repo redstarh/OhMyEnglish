@@ -1,0 +1,109 @@
+{
+ "before": {
+  "unit": "Unit 62 · -'s 소유",
+  "num": "문장 5 / 5",
+  "sentence": "I like Mina's idea.",
+  "phase": null,
+  "notice": null,
+  "prevDisabled": false,
+  "auto": "true",
+  "manual": "false",
+  "mode": "auto"
+ },
+ "nextBeforeStart": {
+  "label": "Day 마치기",
+  "disabled": true
+ },
+ "apiBefore": {
+  "position_sec": 0,
+  "unit": 62,
+  "sentence_index": 4,
+  "completed_count": 3,
+  "last_completed_at": "2026-10-31T15:46:38.599675+00:00",
+  "last_completed_date": "2026-11-01",
+  "updated_at": "2026-10-31T15:48:31.011734+00:00"
+ },
+ "nextDuringListen": {
+  "label": "Day 마치기",
+  "disabled": true
+ },
+ "nextAtDone": {
+  "label": "Day 마치기",
+  "disabled": false
+ },
+ "apiAtDone": {
+  "position_sec": 0,
+  "unit": 62,
+  "sentence_index": 4,
+  "completed_count": 3,
+  "last_completed_at": "2026-10-31T15:46:38.599675+00:00",
+  "last_completed_date": "2026-11-01",
+  "updated_at": "2026-10-31T15:48:35.223169+00:00"
+ },
+ "afterFinish": {
+  "unit": "Unit 42 · 의문문 만들기",
+  "num": "문장 1 / 5",
+  "sentence": "Is the client happy?",
+  "phase": null,
+  "notice": "이 Day 를 끝까지 마쳤어요.",
+  "prevDisabled": true,
+  "auto": "true",
+  "manual": "false",
+  "mode": "auto"
+ },
+ "nextAfterFinish": {
+  "label": "다음 문장 →",
+  "disabled": false
+ },
+ "apiAfterFinish": {
+  "position_sec": 0,
+  "unit": 42,
+  "sentence_index": 0,
+  "completed_count": 4,
+  "last_completed_at": "2026-10-31T15:48:36.726886+00:00",
+  "last_completed_date": "2026-11-01",
+  "updated_at": "2026-10-31T15:48:36.726886+00:00"
+ },
+ "apiAfter6s": {
+  "position_sec": 0,
+  "unit": 42,
+  "sentence_index": 0,
+  "completed_count": 4,
+  "last_completed_at": "2026-10-31T15:48:36.726886+00:00",
+  "last_completed_date": "2026-11-01",
+  "updated_at": "2026-10-31T15:48:41.147000+00:00"
+ },
+ "overviewAfterLeave": {
+  "cycle": 4,
+  "current_day": 2,
+  "day": {
+   "position_sec": 0,
+   "unit": 42,
+   "sentence_index": 0,
+   "completed_count": 4,
+   "last_completed_at": "2026-10-31T15:48:36.726886+00:00",
+   "last_completed_date": "2026-11-01",
+   "updated_at": "2026-10-31T15:48:43.112875+00:00"
+  }
+ },
+ "rowAfterLeave": {
+  "status": "완료 · 11/1",
+  "link": "시작하기",
+  "bar": [
+   "100%"
+  ]
+ },
+ "reopened": {
+  "unit": "Unit 42 · 의문문 만들기",
+  "num": "문장 1 / 5",
+  "sentence": "Is the client happy?",
+  "phase": null,
+  "notice": null,
+  "prevDisabled": true,
+  "auto": "true",
+  "manual": "false",
+  "mode": "auto"
+ },
+ "reopenFirstSentence": "Is the client happy?",
+ "elapsedMs": 15286
+}

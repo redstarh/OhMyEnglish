@@ -647,13 +647,20 @@ export async function fetchCourseDay(day: number): Promise<CourseDayDetail | nul
 /** 진도를 저장한다. 실패해도 학습을 막지 않으므로 결과만 돌려준다 — 다음 저장이 덮는다. */
 export async function saveCourseProgress(
   day: number,
-  input: { positionSec: number; unit: number; sentenceIndex: number; completed?: boolean },
+  input: {
+    positionSec: number;
+    unit: number;
+    sentenceIndex: number;
+    completed?: boolean;
+    completedCount: number;
+  },
 ): Promise<boolean> {
   const sent = await sendWrite(`/api/course/days/${day}/progress`, "POST", {
     position_sec: Math.max(0, Math.round(input.positionSec * 100) / 100),
     unit: input.unit,
     sentence_index: input.sentenceIndex,
     completed: input.completed ?? false,
+    completed_count: input.completedCount,
   });
   return sent.ok;
 }

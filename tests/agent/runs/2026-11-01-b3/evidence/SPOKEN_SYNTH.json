@@ -1,0 +1,72 @@
+{
+ "before": {
+  "unit": "Unit 23 · 규칙 · 불규칙 과거형",
+  "num": "문장 3 / 5",
+  "sentence": "We met the client last Tuesday.",
+  "phase": null,
+  "notice": null,
+  "prevDisabled": false,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "state": {
+  "unit": "Unit 23 · 규칙 · 불규칙 과거형",
+  "num": "문장 3 / 5",
+  "sentence": "We met the client last Tuesday.",
+  "phase": "done",
+  "notice": null,
+  "prevDisabled": false,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "intercepted": [
+  {
+   "url": "http://localhost:8002/api/course/sentences/u023-s3/attempts",
+   "method": "OPTIONS"
+  },
+  {
+   "url": "http://localhost:8002/api/course/sentences/u023-s3/attempts",
+   "method": "POST"
+  }
+ ],
+ "spoken": {
+  "transcript": "We the client last tomorrow",
+  "words": [
+   {
+    "word": "We",
+    "verdict": "match",
+    "deco": "none"
+   },
+   {
+    "word": "met",
+    "verdict": "missing",
+    "deco": "line-through"
+   },
+   {
+    "word": "the",
+    "verdict": "match",
+    "deco": "none"
+   },
+   {
+    "word": "client",
+    "verdict": "match",
+    "deco": "none"
+   },
+   {
+    "word": "last",
+    "verdict": "match",
+    "deco": "none"
+   },
+   {
+    "word": "Tuesday.",
+    "verdict": "different",
+    "deco": "underline"
+   }
+  ],
+  "text": "내가 말한 문장We the client last tomorrowWemettheclientlastTuesday.밑줄은 다르게 말한 낱말이고 취소선은 빠뜨린 낱말이에요."
+ },
+ "attemptsLabel": "따라 함 1회",
+ "elapsedMs": 5599
+}

@@ -1,0 +1,19 @@
+{
+ "day": "6",
+ "waitMs": 3000,
+ "S": 120,
+ "iframeAtLeave": false,
+ "after": {
+  "position_sec": 120,
+  "unit": 101,
+  "sentence_index": 0,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-10-31T16:18:45.259468+00:00"
+ },
+ "judge": {
+  "keptS": true,
+  "zero": false
+ }
+}

@@ -1,0 +1,52 @@
+{
+ "day": "3",
+ "how": "link",
+ "S_savedBeforeOpen": 66.36,
+ "v_afterOpen": {
+  "frame": "5FB55467",
+  "t": 69.23,
+  "paused": false,
+  "ad": false,
+  "state": 1
+ },
+ "v_playing": {
+  "frame": "5FB55467",
+  "t": 70.74,
+  "paused": false,
+  "ad": false,
+  "state": 1
+ },
+ "beforeLeave": {
+  "v": {
+   "frame": "5FB55467",
+   "t": 82.75,
+   "paused": false,
+   "ad": false,
+   "state": 1
+  },
+  "savedBefore": 80.6,
+  "wall": "2026-10-31T16:11:46.745Z"
+ },
+ "savedAfterLeave": {
+  "position_sec": 80.6,
+  "unit": 42,
+  "sentence_index": 0,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-10-31T16:11:46.794062+00:00"
+ },
+ "judge": {
+  "S": 66.36,
+  "tBeforeLeave": 82.75,
+  "saved": 80.6,
+  "lagSec": 2.15,
+  "notZero": true,
+  "beyondOpen": true,
+  "within55": true
+ },
+ "listRow": {
+  "status": "Unit 42 · 문장 1 · 1:20",
+  "link": "이어서 학습 ▶"
+ }
+}

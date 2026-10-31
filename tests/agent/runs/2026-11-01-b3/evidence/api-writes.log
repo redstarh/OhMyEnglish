@@ -1,0 +1,18 @@
+2026-10-31T15:28:10Z POST /api/course/days/6/progress {"position_sec":0,"unit":113,"sentence_index":4} -> 204
+2026-10-31T15:28:30Z POST /api/course/days/5/progress {"position_sec":0,"unit":100,"sentence_index":4} -> 204
+2026-10-31T15:31:02Z POST /api/course/days/2/progress {"position_sec":0,"unit":23,"sentence_index":2} -> 204
+2026-10-31T15:34:24Z POST /api/course/days/2/progress {"position_sec":0,"unit":30,"sentence_index":0} -> 204
+2026-10-31T15:34:35Z POST /api/course/days/2/progress {"position_sec":800,"unit":27,"sentence_index":1} -> 204
+# CYCLE: Day 1~5 완료를 API 로 만듦 (Day 6 은 D1 단계에서 UI 자동 모드로 완료됨)
+2026-10-31T15:35:08Z POST /api/course/days/1/progress {"position_sec":0,"unit":1,"sentence_index":0,"completed":true} -> 204
+2026-10-31T15:35:08Z POST /api/course/days/2/progress {"position_sec":0,"unit":22,"sentence_index":0,"completed":true} -> 204
+2026-10-31T15:35:09Z POST /api/course/days/3/progress {"position_sec":0,"unit":42,"sentence_index":0,"completed":true} -> 204
+2026-10-31T15:35:09Z POST /api/course/days/4/progress {"position_sec":0,"unit":63,"sentence_index":0,"completed":true} -> 204
+2026-10-31T15:35:10Z POST /api/course/days/5/progress {"position_sec":0,"unit":83,"sentence_index":0,"completed":true} -> 204
+# CYCLE 재현: Day 1~6 순서로 완료 (2회차 → 3회차)
+2026-10-31T15:35:28Z POST /api/course/days/1/progress {"position_sec":0,"unit":1,"sentence_index":0,"completed":true} -> 204
+2026-10-31T15:35:29Z POST /api/course/days/2/progress {"position_sec":0,"unit":22,"sentence_index":0,"completed":true} -> 204
+2026-10-31T15:35:29Z POST /api/course/days/3/progress {"position_sec":0,"unit":42,"sentence_index":0,"completed":true} -> 204
+2026-10-31T15:35:30Z POST /api/course/days/4/progress {"position_sec":0,"unit":63,"sentence_index":0,"completed":true} -> 204
+2026-10-31T15:35:30Z POST /api/course/days/5/progress {"position_sec":0,"unit":83,"sentence_index":0,"completed":true} -> 204
+2026-10-31T15:35:30Z POST /api/course/days/6/progress {"position_sec":0,"unit":101,"sentence_index":0,"completed":true} -> 204

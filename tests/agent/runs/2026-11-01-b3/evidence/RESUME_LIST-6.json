@@ -1,0 +1,148 @@
+{
+ "apiCurrentDay": 6,
+ "apiCycle": 3,
+ "apiDays": [
+  {
+   "day": 1,
+   "p": {
+    "unit": 1,
+    "si": 0,
+    "pos": 0,
+    "cc": 2,
+    "lcd": "2026-11-01",
+    "lca": "2026-10-31T15:35:28.925027+00:00",
+    "upd": "2026-10-31T15:35:28.925027+00:00"
+   }
+  },
+  {
+   "day": 2,
+   "p": {
+    "unit": 22,
+    "si": 0,
+    "pos": 0,
+    "cc": 2,
+    "lcd": "2026-11-01",
+    "lca": "2026-10-31T15:35:29.294843+00:00",
+    "upd": "2026-10-31T15:35:29.294843+00:00"
+   }
+  },
+  {
+   "day": 3,
+   "p": {
+    "unit": 42,
+    "si": 0,
+    "pos": 0,
+    "cc": 2,
+    "lcd": "2026-11-01",
+    "lca": "2026-10-31T15:35:29.665901+00:00",
+    "upd": "2026-10-31T15:35:29.665901+00:00"
+   }
+  },
+  {
+   "day": 4,
+   "p": {
+    "unit": 63,
+    "si": 0,
+    "pos": 0,
+    "cc": 2,
+    "lcd": "2026-11-01",
+    "lca": "2026-10-31T15:35:30.034990+00:00",
+    "upd": "2026-10-31T15:35:30.034990+00:00"
+   }
+  },
+  {
+   "day": 5,
+   "p": {
+    "unit": 83,
+    "si": 0,
+    "pos": 0,
+    "cc": 2,
+    "lcd": "2026-11-01",
+    "lca": "2026-10-31T15:35:30.401922+00:00",
+    "upd": "2026-10-31T15:35:30.401922+00:00"
+   }
+  },
+  {
+   "day": 6,
+   "p": {
+    "unit": 101,
+    "si": 0,
+    "pos": 0,
+    "cc": 2,
+    "lcd": "2026-11-01",
+    "lca": "2026-10-31T15:35:30.774628+00:00",
+    "upd": "2026-10-31T15:35:30.774628+00:00"
+   }
+  }
+ ],
+ "rows": [
+  {
+   "id": "course-day-1",
+   "head": "Day 1 · Unit 1–21 · 60분",
+   "status": "아직 안 함",
+   "border": "1px solid var(--border)",
+   "link": "시작하기",
+   "href": "/course/1",
+   "bar": [
+    "0%"
+   ]
+  },
+  {
+   "id": "course-day-2",
+   "head": "Day 2 · Unit 22–41 · 63분",
+   "status": "아직 안 함",
+   "border": "1px solid var(--border)",
+   "link": "시작하기",
+   "href": "/course/2",
+   "bar": [
+    "0%"
+   ]
+  },
+  {
+   "id": "course-day-3",
+   "head": "Day 3 · Unit 42–62 · 69분",
+   "status": "아직 안 함",
+   "border": "1px solid var(--border)",
+   "link": "시작하기",
+   "href": "/course/3",
+   "bar": [
+    "0%"
+   ]
+  },
+  {
+   "id": "course-day-4",
+   "head": "Day 4 · Unit 63–82 · 63분",
+   "status": "아직 안 함",
+   "border": "1px solid var(--border)",
+   "link": "시작하기",
+   "href": "/course/4",
+   "bar": [
+    "0%"
+   ]
+  },
+  {
+   "id": "course-day-5",
+   "head": "Day 5 · Unit 83–100 · 58분",
+   "status": "아직 안 함",
+   "border": "1px solid var(--border)",
+   "link": "시작하기",
+   "href": "/course/5",
+   "bar": [
+    "0%"
+   ]
+  },
+  {
+   "id": "course-day-6",
+   "head": "Day 6 · Unit 101–113 · 43분",
+   "status": "아직 안 함",
+   "border": "1px solid var(--accent)",
+   "link": "이어서 학습 ▶",
+   "href": "/course/6",
+   "bar": [
+    "0%"
+   ]
+  }
+ ],
+ "cycleLabel": "3회차",
+ "elapsedMs": 495
+}

@@ -1,0 +1,7 @@
+kinds {'collector': 1, 'nav': 33, 'console': 66, 'req': 386, 'http': 386, 'log': 21, 'netfail': 126}
+exceptions 0
+console error/warning 0
+log error/warning 21 [(('http://localhost:8002/api/course/sentences/u022-s5/attempts', 'error'), 5), (('http://localhost:8002/api/course/sentences/u082-s5/attempts', 'error'), 3), (('http://localhost:8002/api/course/sentences/u113-s5/attempts', 'error'), 2), (('http://localhost:8002/api/course/sentences/u030-s1/attempts', 'error'), 2), (('http://localhost:8002/api/course/sentences/u022-s1/attempts', 'error'), 2), (('https://www.youtube.com/s/player/11a45ffb/www-widgetapi.vflset/www-wid', 'warning'), 1)]
+http>=400 {(503, 'course'): 20}
+netfail [('net::ERR_ABORTED', 126)]
+Counter({'Fetch': 125, 'Document': 1})

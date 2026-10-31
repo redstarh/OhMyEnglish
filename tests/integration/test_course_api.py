@@ -129,7 +129,8 @@ async def test_completing_every_day_starts_cycle_two(api_client: httpx.AsyncClie
         )
     overview = (await api_client.get("/api/course")).json()
     assert overview["cycle"] == 2
-    assert overview["current_day"] in firsts
+    # 스토리보드 v3: 「Day 6을 마치면 2회차가 Day 1부터 시작됨」 — 가장 최근에 끝낸 Day 6 이 아님.
+    assert overview["current_day"] == 1
     day_one = overview["days"][0]["progress"]
     assert day_one["completed_count"] == 1
     assert day_one["position_sec"] == 0  # 끝낸 Day 는 처음으로 되감긴다
@@ -253,3 +254,82 @@ async def test_oversized_declared_length_is_refused_before_reading(
         headers={"content-length": str(30 * 16_000 * 2 + 2)},
     )
     assert response.status_code == 413
+
+
+async def test_cycle_two_resumes_the_day_touched_after_completion(
+    api_client: httpx.AsyncClient,
+) -> None:
+    firsts = {1: 1, 2: 22, 3: 42, 4: 63, 5: 83, 6: 101}
+    for day, unit in firsts.items():
+        await api_client.post(
+            f"/api/course/days/{day}/progress",
+            json={"position_sec": 10, "unit": unit, "sentence_index": 0, "completed": True},
+        )
+    # 2회차에서 Day 3 을 열어 진도를 남기면, 그 Day 가 진행 중인 Day 다.
+    await api_client.post(
+        "/api/course/days/3/progress",
+        json={"position_sec": 30, "unit": 43, "sentence_index": 2, "completed_count": 1},
+    )
+    overview = (await api_client.get("/api/course")).json()
+    assert overview["cycle"] == 2
+    assert overview["current_day"] == 3
+
+
+async def test_a_save_sent_before_completion_does_not_undo_the_rewind(
+    api_client: httpx.AsyncClient,
+) -> None:
+    """완료 전에 보낸 주기 저장이 완료 뒤에 도착해도 되감긴 위치를 덮지 않는다(TASK-287)."""
+    complete = await api_client.post(
+        "/api/course/days/2/progress",
+        json={"position_sec": 0, "unit": 22, "sentence_index": 0, "completed": True},
+    )
+    assert complete.status_code == 204
+    stale = await api_client.post(
+        "/api/course/days/2/progress",
+        json={"position_sec": 1500, "unit": 41, "sentence_index": 4, "completed_count": 0},
+    )
+    assert stale.status_code == 204
+    progress = (await api_client.get("/api/course/days/2")).json()["progress"]
+    assert (progress["position_sec"], progress["unit"], progress["sentence_index"]) == (0, 22, 0)
+    fresh = await api_client.post(
+        "/api/course/days/2/progress",
+        json={"position_sec": 40, "unit": 23, "sentence_index": 1, "completed_count": 1},
+    )
+    assert fresh.status_code == 204
+    progress = (await api_client.get("/api/course/days/2")).json()["progress"]
+    assert (progress["position_sec"], progress["unit"], progress["sentence_index"]) == (40, 23, 1)
+
+
+async def test_position_beyond_the_day_is_clamped_to_its_length(
+    api_client: httpx.AsyncClient,
+) -> None:
+    length = (await api_client.get("/api/course/days/1")).json()["duration_sec"]
+    saved = await api_client.post(
+        "/api/course/days/1/progress",
+        json={"position_sec": 86400, "unit": 1, "sentence_index": 0},
+    )
+    assert saved.status_code == 204
+    progress = (await api_client.get("/api/course/days/1")).json()["progress"]
+    assert progress["position_sec"] == length
+
+
+async def test_saves_at_the_start_after_completion_do_not_make_a_day_current(
+    api_client: httpx.AsyncClient,
+) -> None:
+    """완료 뒤 화면의 주기·언마운트 저장은 처음 자리를 다시 쓴다.
+
+    그 저장 때문에 그 Day 가 진행 중이 되면 안 된다(회차 b4 D5).
+    """
+    firsts = {1: 1, 2: 22, 3: 42, 4: 63, 5: 83, 6: 101}
+    for day, unit in firsts.items():
+        await api_client.post(
+            f"/api/course/days/{day}/progress",
+            json={"position_sec": 10, "unit": unit, "sentence_index": 0, "completed": True},
+        )
+    await api_client.post(
+        "/api/course/days/6/progress",
+        json={"position_sec": 0, "unit": 101, "sentence_index": 0, "completed_count": 1},
+    )
+    overview = (await api_client.get("/api/course")).json()
+    assert overview["cycle"] == 2
+    assert overview["current_day"] == 1

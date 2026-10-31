@@ -1,0 +1,16 @@
+{
+ "tracksBeforeLeave": [
+  "audio:live:Fake Default Audio Input"
+ ],
+ "pathname": "/course",
+ "tracksAfterLeave": [
+  "audio:ended:Fake Default Audio Input"
+ ],
+ "tracksAfterDelay": [
+  "audio:ended:Fake Default Audio Input"
+ ],
+ "gumCalls": 0,
+ "liveTracks": 0,
+ "speaking": false,
+ "elapsedMs": 2228
+}

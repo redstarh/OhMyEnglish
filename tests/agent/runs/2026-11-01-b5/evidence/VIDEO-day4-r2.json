@@ -1,0 +1,250 @@
+{
+ "progressAtOpen": null,
+ "frameFound": true,
+ "v0": {
+  "frame": "597071F8",
+  "t": 0,
+  "paused": true,
+  "ad": false,
+  "state": 5
+ },
+ "playSamples": [
+  {
+   "wall": "2026-10-31T16:09:39.502Z",
+   "v": {
+    "frame": "597071F8",
+    "t": 1.42,
+    "paused": false,
+    "ad": false,
+    "state": 1
+   },
+   "saved": null,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T16:09:41.516Z",
+   "v": {
+    "frame": "597071F8",
+    "t": 3.43,
+    "paused": false,
+    "ad": false,
+    "state": 1
+   },
+   "saved": 1.69,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T16:09:43.530Z",
+   "v": {
+    "frame": "597071F8",
+    "t": 5.45,
+    "paused": false,
+    "ad": false,
+    "state": 1
+   },
+   "saved": 1.69,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T16:09:45.550Z",
+   "v": {
+    "frame": "597071F8",
+    "t": 7.47,
+    "paused": false,
+    "ad": false,
+    "state": 1
+   },
+   "saved": 6.69,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T16:09:47.565Z",
+   "v": {
+    "frame": "597071F8",
+    "t": 9.48,
+    "paused": false,
+    "ad": false,
+    "state": 1
+   },
+   "saved": 6.69,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T16:09:49.583Z",
+   "v": {
+    "frame": "597071F8",
+    "t": 11.5,
+    "paused": false,
+    "ad": false,
+    "state": 1
+   },
+   "saved": 6.69,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T16:09:51.598Z",
+   "v": {
+    "frame": "597071F8",
+    "t": 13.52,
+    "paused": false,
+    "ad": false,
+    "state": 1
+   },
+   "saved": 11.69,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T16:09:53.615Z",
+   "v": {
+    "frame": "597071F8",
+    "t": 15.53,
+    "paused": false,
+    "ad": false,
+    "state": 1
+   },
+   "saved": 11.69,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T16:09:55.628Z",
+   "v": {
+    "frame": "597071F8",
+    "t": 17.55,
+    "paused": false,
+    "ad": false,
+    "state": 1
+   },
+   "saved": 16.69,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T16:09:57.642Z",
+   "v": {
+    "frame": "597071F8",
+    "t": 19.56,
+    "paused": false,
+    "ad": false,
+    "state": 1
+   },
+   "saved": 16.69,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T16:09:59.655Z",
+   "v": {
+    "frame": "597071F8",
+    "t": 21.57,
+    "paused": false,
+    "ad": false,
+    "state": 1
+   },
+   "saved": 16.69,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T16:10:01.670Z",
+   "v": {
+    "frame": "597071F8",
+    "t": 23.59,
+    "paused": false,
+    "ad": false,
+    "state": 1
+   },
+   "saved": 21.69,
+   "phase": "idle"
+  }
+ ],
+ "afterPracticeStart": {
+  "v": {
+   "frame": "597071F8",
+   "t": 23.6,
+   "paused": true,
+   "ad": false,
+   "state": 2
+  },
+  "phase": "repeat"
+ },
+ "afterVideoReplay": {
+  "v": {
+   "frame": "597071F8",
+   "t": 26.11,
+   "paused": false,
+   "ad": false,
+   "state": 1
+  },
+  "phase": "idle"
+ },
+ "beforeLeave": {
+  "v": {
+   "frame": "597071F8",
+   "t": 30.11,
+   "paused": false,
+   "ad": false,
+   "state": 1
+  },
+  "saved": 25.17,
+  "wall": "2026-10-31T16:10:09.729Z"
+ },
+ "savedAfterLeave": {
+  "position_sec": 25.17,
+  "unit": 63,
+  "sentence_index": 0,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-10-31T16:10:09.790898+00:00"
+ },
+ "listRow": {
+  "status": "Unit 63 · 문장 1 · 0:25",
+  "bar": [
+   "0.663241%"
+  ],
+  "link": "이어서 학습 ▶"
+ },
+ "reopen": [
+  {
+   "wall": "2026-10-31T16:10:15.428Z",
+   "v": {
+    "frame": "CE5CD30E",
+    "t": 28.6,
+    "paused": false,
+    "ad": false,
+    "state": 1
+   }
+  },
+  {
+   "wall": "2026-10-31T16:10:16.934Z",
+   "v": {
+    "frame": "CE5CD30E",
+    "t": 30.11,
+    "paused": false,
+    "ad": false,
+    "state": 1
+   }
+  },
+  {
+   "wall": "2026-10-31T16:10:18.442Z",
+   "v": {
+    "frame": "CE5CD30E",
+    "t": 31.62,
+    "paused": false,
+    "ad": false,
+    "state": 1
+   }
+  }
+ ],
+ "reopenAfterPlay": {
+  "frame": "CE5CD30E",
+  "t": 33.13,
+  "paused": true,
+  "ad": false,
+  "state": 2
+ },
+ "paused": {
+  "frame": "CE5CD30E",
+  "t": 34.63,
+  "paused": false,
+  "ad": false,
+  "state": 1
+ }
+}

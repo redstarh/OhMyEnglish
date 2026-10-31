@@ -135,3 +135,5 @@ class ProgressUpdate(pydantic.BaseModel):
     unit: int = pydantic.Field(ge=1, le=UNIT_COUNT)
     sentence_index: int = pydantic.Field(ge=0, lt=SENTENCES_PER_UNIT)
     completed: bool = False
+    # 화면이 아는 완료 횟수 — 완료 전에 보낸 저장이 완료 뒤에 도착하면 서비스가 버린다(TASK-287).
+    completed_count: int = pydantic.Field(default=0, ge=0)

@@ -1,0 +1,6 @@
+progress_rows_older_than_round 0
+delete progress DELETE 6
+delete attempts DELETE 0
+progress_rows_older_than_round 0
+delete progress DELETE 6
+delete attempts DELETE 0

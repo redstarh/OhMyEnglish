@@ -1,0 +1,78 @@
+{
+ "before": {
+  "unit": "Unit 82 · a little · a few",
+  "num": "문장 5 / 5",
+  "sentence": "We have little time and few ideas.",
+  "phase": null,
+  "notice": null,
+  "prevDisabled": false,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "nextBeforeStart": {
+  "label": "Day 마치기",
+  "disabled": true
+ },
+ "apiBefore": {
+  "position_sec": 0,
+  "unit": 82,
+  "sentence_index": 4,
+  "completed_count": 6,
+  "last_completed_at": "2026-10-31T15:49:24.901675+00:00",
+  "last_completed_date": "2026-11-01",
+  "updated_at": "2026-10-31T15:49:32.533326+00:00"
+ },
+ "nextDuringListen": {
+  "label": "Day 마치기",
+  "disabled": true
+ },
+ "nextAtDone": {
+  "label": "Day 마치기",
+  "disabled": false
+ },
+ "apiAtDone": {
+  "position_sec": 0,
+  "unit": 82,
+  "sentence_index": 4,
+  "completed_count": 6,
+  "last_completed_at": "2026-10-31T15:49:24.901675+00:00",
+  "last_completed_date": "2026-11-01",
+  "updated_at": "2026-10-31T15:49:37.868897+00:00"
+ },
+ "clickWallUtc": "2026-10-31T15:49:38.214Z",
+ "afterFinish": {
+  "unit": "Unit 63 · a · an",
+  "num": "문장 1 / 5",
+  "sentence": "I need a charger.",
+  "phase": null,
+  "notice": "이 Day 를 끝까지 마쳤어요.",
+  "prevDisabled": true,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "nextAfterFinish": {
+  "label": "다음 문장 →",
+  "disabled": false
+ },
+ "apiAfterFinish": {
+  "position_sec": 0,
+  "unit": 63,
+  "sentence_index": 0,
+  "completed_count": 7,
+  "last_completed_at": "2026-10-31T15:49:38.223798+00:00",
+  "last_completed_date": "2026-11-01",
+  "updated_at": "2026-10-31T15:49:38.223798+00:00"
+ },
+ "apiAfter6s": {
+  "position_sec": 0,
+  "unit": 63,
+  "sentence_index": 0,
+  "completed_count": 7,
+  "last_completed_at": "2026-10-31T15:49:38.223798+00:00",
+  "last_completed_date": "2026-11-01",
+  "updated_at": "2026-10-31T15:49:42.666222+00:00"
+ },
+ "elapsedMs": 13253
+}

@@ -1,0 +1,110 @@
+{
+ "before": {
+  "unit": "Unit 100 · 관계절 that · which",
+  "num": "문장 5 / 5",
+  "sentence": "I like the cafe that opened near the office.",
+  "phase": null,
+  "notice": null,
+  "prevDisabled": false,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "nextBeforeStart": {
+  "label": "Day 마치기",
+  "disabled": true
+ },
+ "apiBefore": {
+  "position_sec": 0,
+  "unit": 100,
+  "sentence_index": 4,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-10-31T15:45:02.214210+00:00"
+ },
+ "nextDuringListen": {
+  "label": "Day 마치기",
+  "disabled": true
+ },
+ "nextAtDone": {
+  "label": "Day 마치기",
+  "disabled": false
+ },
+ "apiAtDone": {
+  "position_sec": 0,
+  "unit": 100,
+  "sentence_index": 4,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-10-31T15:45:11.588149+00:00"
+ },
+ "clickWallUtc": "2026-10-31T15:45:11.907Z",
+ "afterFinish": {
+  "unit": "Unit 83 · 형용사 위치",
+  "num": "문장 1 / 5",
+  "sentence": "We moved into a bright office.",
+  "phase": null,
+  "notice": "이 Day 를 끝까지 마쳤어요.",
+  "prevDisabled": true,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "nextAfterFinish": {
+  "label": "다음 문장 →",
+  "disabled": false
+ },
+ "apiAfterFinish": {
+  "position_sec": 0,
+  "unit": 83,
+  "sentence_index": 0,
+  "completed_count": 1,
+  "last_completed_at": "2026-10-31T15:45:11.911201+00:00",
+  "last_completed_date": "2026-11-01",
+  "updated_at": "2026-10-31T15:45:11.911201+00:00"
+ },
+ "apiAfter6s": {
+  "position_sec": 0,
+  "unit": 83,
+  "sentence_index": 0,
+  "completed_count": 1,
+  "last_completed_at": "2026-10-31T15:45:11.911201+00:00",
+  "last_completed_date": "2026-11-01",
+  "updated_at": "2026-10-31T15:45:15.316541+00:00"
+ },
+ "overviewAfterLeave": {
+  "cycle": 1,
+  "current_day": 4,
+  "day": {
+   "position_sec": 0,
+   "unit": 83,
+   "sentence_index": 0,
+   "completed_count": 1,
+   "last_completed_at": "2026-10-31T15:45:11.911201+00:00",
+   "last_completed_date": "2026-11-01",
+   "updated_at": "2026-10-31T15:45:19.489334+00:00"
+  }
+ },
+ "rowAfterLeave": {
+  "status": "완료 · 11/1",
+  "link": "시작하기",
+  "bar": [
+   "100%"
+  ]
+ },
+ "reopened": {
+  "unit": "Unit 83 · 형용사 위치",
+  "num": "문장 1 / 5",
+  "sentence": "We moved into a bright office.",
+  "phase": null,
+  "notice": null,
+  "prevDisabled": true,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "reopenFirstSentence": "We moved into a bright office.",
+ "elapsedMs": 17432
+}

@@ -1,0 +1,110 @@
+{
+ "before": {
+  "unit": "Unit 113 · 구동사 2 put on · take off · turn on",
+  "num": "문장 5 / 5",
+  "sentence": "She threw away the old papers.",
+  "phase": null,
+  "notice": null,
+  "prevDisabled": false,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "nextBeforeStart": {
+  "label": "Day 마치기",
+  "disabled": true
+ },
+ "apiBefore": {
+  "position_sec": 0,
+  "unit": 113,
+  "sentence_index": 4,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-10-31T16:13:00.950014+00:00"
+ },
+ "nextDuringListen": {
+  "label": "Day 마치기",
+  "disabled": true
+ },
+ "nextAtDone": {
+  "label": "Day 마치기",
+  "disabled": false
+ },
+ "apiAtDone": {
+  "position_sec": 0,
+  "unit": 113,
+  "sentence_index": 4,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-10-31T16:13:10.257806+00:00"
+ },
+ "clickWallUtc": "2026-10-31T16:13:10.589Z",
+ "afterFinish": {
+  "unit": "Unit 101 · 시간의 at · on · in",
+  "num": "문장 1 / 5",
+  "sentence": "The meeting starts at ten.",
+  "phase": null,
+  "notice": "이 Day 를 끝까지 마쳤어요.",
+  "prevDisabled": true,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "nextAfterFinish": {
+  "label": "다음 문장 →",
+  "disabled": false
+ },
+ "apiAfterFinish": {
+  "position_sec": 0,
+  "unit": 101,
+  "sentence_index": 0,
+  "completed_count": 1,
+  "last_completed_at": "2026-10-31T16:13:10.599141+00:00",
+  "last_completed_date": "2026-11-01",
+  "updated_at": "2026-10-31T16:13:10.599141+00:00"
+ },
+ "apiAfter6s": {
+  "position_sec": 0,
+  "unit": 101,
+  "sentence_index": 0,
+  "completed_count": 1,
+  "last_completed_at": "2026-10-31T16:13:10.599141+00:00",
+  "last_completed_date": "2026-11-01",
+  "updated_at": "2026-10-31T16:13:15.178762+00:00"
+ },
+ "overviewAfterLeave": {
+  "cycle": 2,
+  "current_day": 1,
+  "day": {
+   "position_sec": 0,
+   "unit": 101,
+   "sentence_index": 0,
+   "completed_count": 1,
+   "last_completed_at": "2026-10-31T16:13:10.599141+00:00",
+   "last_completed_date": "2026-11-01",
+   "updated_at": "2026-10-31T16:13:18.179114+00:00"
+  }
+ },
+ "rowAfterLeave": {
+  "status": "아직 안 함",
+  "link": "시작하기",
+  "bar": [
+   "0%"
+  ]
+ },
+ "reopened": {
+  "unit": "Unit 101 · 시간의 at · on · in",
+  "num": "문장 1 / 5",
+  "sentence": "The meeting starts at ten.",
+  "phase": null,
+  "notice": null,
+  "prevDisabled": true,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "reopenFirstSentence": "The meeting starts at ten.",
+ "elapsedMs": 16367
+}

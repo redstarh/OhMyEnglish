@@ -1,0 +1,250 @@
+{
+ "progressAtOpen": null,
+ "frameFound": true,
+ "v0": {
+  "t": 0,
+  "paused": true,
+  "ad": false,
+  "state": 5,
+  "apiTime": 0
+ },
+ "playSamples": [
+  {
+   "wall": "2026-10-31T15:43:02.477Z",
+   "v": {
+    "t": 1.6,
+    "paused": false,
+    "ad": false,
+    "state": 1,
+    "apiTime": 1.6
+   },
+   "saved": null,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T15:43:04.484Z",
+   "v": {
+    "t": 3.6,
+    "paused": false,
+    "ad": false,
+    "state": 1,
+    "apiTime": 3.6
+   },
+   "saved": 1.73,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T15:43:06.499Z",
+   "v": {
+    "t": 5.6,
+    "paused": false,
+    "ad": false,
+    "state": 1,
+    "apiTime": 5.6
+   },
+   "saved": 1.73,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T15:43:08.504Z",
+   "v": {
+    "t": 7.6,
+    "paused": false,
+    "ad": false,
+    "state": 1,
+    "apiTime": 7.6
+   },
+   "saved": 6.73,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T15:43:10.518Z",
+   "v": {
+    "t": 9.6,
+    "paused": false,
+    "ad": false,
+    "state": 1,
+    "apiTime": 9.6
+   },
+   "saved": 6.73,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T15:43:12.525Z",
+   "v": {
+    "t": 11.6,
+    "paused": false,
+    "ad": false,
+    "state": 1,
+    "apiTime": 11.6
+   },
+   "saved": 6.73,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T15:43:14.537Z",
+   "v": {
+    "t": 13.6,
+    "paused": false,
+    "ad": false,
+    "state": 1,
+    "apiTime": 13.6
+   },
+   "saved": 11.73,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T15:43:16.551Z",
+   "v": {
+    "t": 15.6,
+    "paused": false,
+    "ad": false,
+    "state": 1,
+    "apiTime": 15.6
+   },
+   "saved": 11.73,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T15:43:18.562Z",
+   "v": {
+    "t": 17.6,
+    "paused": false,
+    "ad": false,
+    "state": 1,
+    "apiTime": 17.6
+   },
+   "saved": 16.73,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T15:43:20.573Z",
+   "v": {
+    "t": 19.7,
+    "paused": false,
+    "ad": false,
+    "state": 1,
+    "apiTime": 19.7
+   },
+   "saved": 16.73,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T15:43:22.583Z",
+   "v": {
+    "t": 21.7,
+    "paused": false,
+    "ad": false,
+    "state": 1,
+    "apiTime": 21.7
+   },
+   "saved": 16.73,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T15:43:24.595Z",
+   "v": {
+    "t": 23.7,
+    "paused": false,
+    "ad": false,
+    "state": 1,
+    "apiTime": 23.7
+   },
+   "saved": 21.73,
+   "phase": "idle"
+  }
+ ],
+ "afterPracticeStart": {
+  "v": {
+   "t": 23.7,
+   "paused": true,
+   "ad": false,
+   "state": 2,
+   "apiTime": 23.7
+  },
+  "phase": "listen"
+ },
+ "afterVideoReplay": {
+  "v": {
+   "t": 26.2,
+   "paused": false,
+   "ad": false,
+   "state": 1,
+   "apiTime": 26.2
+  },
+  "phase": "idle"
+ },
+ "beforeLeave": {
+  "v": {
+   "t": 30.2,
+   "paused": false,
+   "ad": false,
+   "state": 1,
+   "apiTime": 30.2
+  },
+  "saved": 25.23,
+  "wall": "2026-10-31T15:43:32.651Z"
+ },
+ "savedAfterLeave": {
+  "position_sec": 0,
+  "unit": 42,
+  "sentence_index": 0,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-10-31T15:43:32.704840+00:00"
+ },
+ "listRow": {
+  "status": "아직 안 함",
+  "bar": [
+   "0%"
+  ],
+  "link": "이어서 학습 ▶"
+ },
+ "reopen": [
+  {
+   "wall": "2026-10-31T15:43:38.306Z",
+   "v": {
+    "t": 0,
+    "paused": true,
+    "ad": false,
+    "state": 5,
+    "apiTime": 0
+   }
+  },
+  {
+   "wall": "2026-10-31T15:43:39.809Z",
+   "v": {
+    "t": 0,
+    "paused": true,
+    "ad": false,
+    "state": 5,
+    "apiTime": 0
+   }
+  },
+  {
+   "wall": "2026-10-31T15:43:41.311Z",
+   "v": {
+    "t": 0,
+    "paused": true,
+    "ad": false,
+    "state": 5,
+    "apiTime": 0
+   }
+  }
+ ],
+ "reopenAfterPlay": {
+  "t": 2.7,
+  "paused": false,
+  "ad": false,
+  "state": 1,
+  "apiTime": 2.7
+ },
+ "paused": {
+  "t": 2.7,
+  "paused": true,
+  "ad": false,
+  "state": 2,
+  "apiTime": 2.7
+ }
+}

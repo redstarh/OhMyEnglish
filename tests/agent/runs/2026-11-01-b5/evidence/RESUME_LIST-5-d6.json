@@ -1,0 +1,128 @@
+{
+ "apiCurrentDay": 5,
+ "apiCycle": 1,
+ "apiDays": [
+  {
+   "day": 1,
+   "p": null
+  },
+  {
+   "day": 2,
+   "p": {
+    "unit": 24,
+    "si": 3,
+    "pos": 0,
+    "cc": 0,
+    "lcd": null,
+    "lca": null,
+    "upd": "2026-10-31T16:17:25.957303+00:00"
+   }
+  },
+  {
+   "day": 3,
+   "p": null
+  },
+  {
+   "day": 4,
+   "p": null
+  },
+  {
+   "day": 5,
+   "p": {
+    "unit": 90,
+    "si": 0,
+    "pos": 0,
+    "cc": 0,
+    "lcd": null,
+    "lca": null,
+    "upd": "2026-10-31T16:17:27.460272+00:00"
+   }
+  },
+  {
+   "day": 6,
+   "p": null
+  }
+ ],
+ "rows": [
+  {
+   "id": "course-day-1",
+   "head": "Day 1 · Unit 1–21 · 60분",
+   "status": "아직 안 함",
+   "border": "1px solid var(--border)",
+   "link": "시작하기",
+   "href": "/course/1",
+   "bar": [
+    "0%"
+   ]
+  },
+  {
+   "id": "course-day-2",
+   "head": "Day 2 · Unit 22–41 · 63분",
+   "status": "Unit 24 · 문장 4 · 0:00",
+   "border": "1px solid var(--border)",
+   "link": "시작하기",
+   "href": "/course/2",
+   "bar": [
+    "0%"
+   ]
+  },
+  {
+   "id": "course-day-3",
+   "head": "Day 3 · Unit 42–62 · 69분",
+   "status": "아직 안 함",
+   "border": "1px solid var(--border)",
+   "link": "시작하기",
+   "href": "/course/3",
+   "bar": [
+    "0%"
+   ]
+  },
+  {
+   "id": "course-day-4",
+   "head": "Day 4 · Unit 63–82 · 63분",
+   "status": "아직 안 함",
+   "border": "1px solid var(--border)",
+   "link": "시작하기",
+   "href": "/course/4",
+   "bar": [
+    "0%"
+   ]
+  },
+  {
+   "id": "course-day-5",
+   "head": "Day 5 · Unit 83–100 · 58분",
+   "status": "Unit 90 · 문장 1 · 0:00",
+   "border": "1px solid var(--accent)",
+   "link": "이어서 학습 ▶",
+   "href": "/course/5",
+   "bar": [
+    "0%"
+   ]
+  },
+  {
+   "id": "course-day-6",
+   "head": "Day 6 · Unit 101–113 · 43분",
+   "status": "아직 안 함",
+   "border": "1px solid var(--border)",
+   "link": "시작하기",
+   "href": "/course/6",
+   "bar": [
+    "0%"
+   ]
+  }
+ ],
+ "cycleLabel": "1회차",
+ "opened": {
+  "unit": "Unit 90 · too",
+  "num": "문장 1 / 5",
+  "sentence": "This coffee is too hot.",
+  "phase": null,
+  "notice": null,
+  "prevDisabled": false,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "pathname": "/course/5",
+ "elapsedMs": 1109
+}

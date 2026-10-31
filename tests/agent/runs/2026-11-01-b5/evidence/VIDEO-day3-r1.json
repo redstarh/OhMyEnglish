@@ -1,0 +1,258 @@
+{
+ "progressAtOpen": {
+  "position_sec": 0,
+  "unit": 42,
+  "sentence_index": 0,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-10-31T16:08:07.462022+00:00"
+ },
+ "frameFound": true,
+ "v0": {
+  "frame": "81E07E8C",
+  "t": 0,
+  "paused": true,
+  "ad": false,
+  "state": 5
+ },
+ "playSamples": [
+  {
+   "wall": "2026-10-31T16:08:12.352Z",
+   "v": {
+    "frame": "81E07E8C",
+    "t": 1.6,
+    "paused": false,
+    "ad": false,
+    "state": 1
+   },
+   "saved": 0,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T16:08:14.369Z",
+   "v": {
+    "frame": "81E07E8C",
+    "t": 3.61,
+    "paused": false,
+    "ad": false,
+    "state": 1
+   },
+   "saved": 1.91,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T16:08:16.387Z",
+   "v": {
+    "frame": "81E07E8C",
+    "t": 5.63,
+    "paused": false,
+    "ad": false,
+    "state": 1
+   },
+   "saved": 1.91,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T16:08:18.402Z",
+   "v": {
+    "frame": "81E07E8C",
+    "t": 7.64,
+    "paused": false,
+    "ad": false,
+    "state": 1
+   },
+   "saved": 6.92,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T16:08:20.411Z",
+   "v": {
+    "frame": "81E07E8C",
+    "t": 9.65,
+    "paused": false,
+    "ad": false,
+    "state": 1
+   },
+   "saved": 6.92,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T16:08:22.427Z",
+   "v": {
+    "frame": "81E07E8C",
+    "t": 11.67,
+    "paused": false,
+    "ad": false,
+    "state": 1
+   },
+   "saved": 6.92,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T16:08:24.440Z",
+   "v": {
+    "frame": "81E07E8C",
+    "t": 13.68,
+    "paused": false,
+    "ad": false,
+    "state": 1
+   },
+   "saved": 11.91,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T16:08:26.458Z",
+   "v": {
+    "frame": "81E07E8C",
+    "t": 15.7,
+    "paused": false,
+    "ad": false,
+    "state": 1
+   },
+   "saved": 11.91,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T16:08:28.473Z",
+   "v": {
+    "frame": "81E07E8C",
+    "t": 17.71,
+    "paused": false,
+    "ad": false,
+    "state": 1
+   },
+   "saved": 16.92,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T16:08:30.486Z",
+   "v": {
+    "frame": "81E07E8C",
+    "t": 19.73,
+    "paused": false,
+    "ad": false,
+    "state": 1
+   },
+   "saved": 16.92,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T16:08:32.499Z",
+   "v": {
+    "frame": "81E07E8C",
+    "t": 21.74,
+    "paused": false,
+    "ad": false,
+    "state": 1
+   },
+   "saved": 16.92,
+   "phase": "idle"
+  },
+  {
+   "wall": "2026-10-31T16:08:34.512Z",
+   "v": {
+    "frame": "81E07E8C",
+    "t": 23.75,
+    "paused": false,
+    "ad": false,
+    "state": 1
+   },
+   "saved": 21.92,
+   "phase": "idle"
+  }
+ ],
+ "afterPracticeStart": {
+  "v": {
+   "frame": "81E07E8C",
+   "t": 23.77,
+   "paused": true,
+   "ad": false,
+   "state": 2
+  },
+  "phase": "listen"
+ },
+ "afterVideoReplay": {
+  "v": {
+   "frame": "81E07E8C",
+   "t": 26.28,
+   "paused": false,
+   "ad": false,
+   "state": 1
+  },
+  "phase": "idle"
+ },
+ "beforeLeave": {
+  "v": {
+   "frame": "81E07E8C",
+   "t": 30.28,
+   "paused": false,
+   "ad": false,
+   "state": 1
+  },
+  "saved": 25.4,
+  "wall": "2026-10-31T16:08:42.571Z"
+ },
+ "savedAfterLeave": {
+  "position_sec": 25.4,
+  "unit": 42,
+  "sentence_index": 0,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-10-31T16:08:42.616711+00:00"
+ },
+ "listRow": {
+  "status": "Unit 42 · 문장 1 · 0:25",
+  "bar": [
+   "0.613378%"
+  ],
+  "link": "이어서 학습 ▶"
+ },
+ "reopen": [
+  {
+   "wall": "2026-10-31T16:08:48.264Z",
+   "v": {
+    "frame": "D40F3FB7",
+    "t": 28.84,
+    "paused": false,
+    "ad": false,
+    "state": 1
+   }
+  },
+  {
+   "wall": "2026-10-31T16:08:49.771Z",
+   "v": {
+    "frame": "D40F3FB7",
+    "t": 30.35,
+    "paused": false,
+    "ad": false,
+    "state": 1
+   }
+  },
+  {
+   "wall": "2026-10-31T16:08:51.279Z",
+   "v": {
+    "frame": "D40F3FB7",
+    "t": 31.85,
+    "paused": false,
+    "ad": false,
+    "state": 1
+   }
+  }
+ ],
+ "reopenAfterPlay": {
+  "frame": "D40F3FB7",
+  "t": 33.37,
+  "paused": true,
+  "ad": false,
+  "state": 2
+ },
+ "paused": {
+  "frame": "D40F3FB7",
+  "t": 34.89,
+  "paused": false,
+  "ad": false,
+  "state": 1
+ }
+}

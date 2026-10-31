@@ -1,0 +1,1 @@
+D5 r1 RESUME_LIST (stdout 사본, 파일은 r2 에 덮였음): apiCycle 2 · apiCurrentDay 1 · Day1 「아직 안 함」「이어서 학습 ▶」 accent 테두리 · Day2~6 「시작하기」 border · 클릭하면 Unit 1 문장 1/5

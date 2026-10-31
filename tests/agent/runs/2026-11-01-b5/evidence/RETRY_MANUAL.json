@@ -1,0 +1,65 @@
+{
+ "before": {
+  "unit": "Unit 24 · 현재진행으로 말하는 미래",
+  "num": "문장 3 / 5",
+  "sentence": "We are releasing the app next week.",
+  "phase": null,
+  "notice": null,
+  "prevDisabled": false,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "afterFirst": {
+  "unit": "Unit 24 · 현재진행으로 말하는 미래",
+  "num": "문장 3 / 5",
+  "sentence": "We are releasing the app next week.",
+  "phase": "done",
+  "notice": "지금은 따라 하기 판정을 쓸 수 없어요. 문장은 계속 이어져요.",
+  "prevDisabled": false,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "buttonLabelAtDone": [
+  "🔊 듣기",
+  "느리게",
+  "← 이전",
+  "다시",
+  "다음 문장 →"
+ ],
+ "retrySeq": [
+  {
+   "t": 7990,
+   "phase": "listen",
+   "num": "문장 3 / 5"
+  },
+  {
+   "t": 10163,
+   "phase": "repeat",
+   "num": "문장 3 / 5"
+  },
+  {
+   "t": 13337,
+   "phase": "judge",
+   "num": "문장 3 / 5"
+  },
+  {
+   "t": 13343,
+   "phase": "done",
+   "num": "문장 3 / 5"
+  }
+ ],
+ "afterRetry": {
+  "unit": "Unit 24 · 현재진행으로 말하는 미래",
+  "num": "문장 3 / 5",
+  "sentence": "We are releasing the app next week.",
+  "phase": "done",
+  "notice": "지금은 따라 하기 판정을 쓸 수 없어요. 문장은 계속 이어져요.",
+  "prevDisabled": false,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "elapsedMs": 15863
+}

@@ -1,0 +1,23 @@
+{
+ "dom": {
+  "days": 6,
+  "dayHeads": [
+   "Day 1 · Unit 1–21 · 60분",
+   "Day 2 · Unit 22–41 · 63분",
+   "Day 3 · Unit 42–62 · 69분",
+   "Day 4 · Unit 63–82 · 63분",
+   "Day 5 · Unit 83–100 · 58분",
+   "Day 6 · Unit 101–113 · 43분"
+  ],
+  "cycleText": 1,
+  "heatCells": 112,
+  "heatCellsAll": 112,
+  "resume": 1,
+  "resumeHref": [
+   "/course/1"
+  ]
+ },
+ "afterClickWaitMs": 52,
+ "pathname": "/course",
+ "elapsedMs": 451
+}

@@ -1,0 +1,69 @@
+{
+ "before": {
+  "unit": "Unit 100 · 관계절 that · which",
+  "num": "문장 5 / 5",
+  "sentence": "I like the cafe that opened near the office.",
+  "phase": null,
+  "notice": null,
+  "prevDisabled": false,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "nextDisabled": true,
+ "apiBefore": {
+  "position_sec": 0,
+  "unit": 100,
+  "sentence_index": 4,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-10-31T15:28:30.767432+00:00"
+ },
+ "clickWallUtc": "2026-10-31T15:28:30.921Z",
+ "seq": [
+  {
+   "t": 127,
+   "phase": "listen",
+   "num": "문장 5 / 5"
+  },
+  {
+   "t": 2718,
+   "phase": "repeat",
+   "num": "문장 5 / 5"
+  },
+  {
+   "t": 6307,
+   "phase": "judge",
+   "num": "문장 5 / 5"
+  },
+  {
+   "t": 6308,
+   "phase": "done",
+   "num": "문장 5 / 5"
+  }
+ ],
+ "after": {
+  "unit": "Unit 100 · 관계절 that · which",
+  "num": "문장 5 / 5",
+  "sentence": "I like the cafe that opened near the office.",
+  "phase": "done",
+  "notice": "지금은 따라 하기 판정을 쓸 수 없어요. 문장은 계속 이어져요.",
+  "prevDisabled": false,
+  "auto": "false",
+  "manual": "true",
+  "mode": "manual"
+ },
+ "afterWallUtc": "2026-10-31T15:28:41.133Z",
+ "apiAfter": {
+  "position_sec": 0,
+  "unit": 100,
+  "sentence_index": 4,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-10-31T15:28:40.887073+00:00"
+ },
+ "nextDisabledAtDone": true,
+ "elapsedMs": 10425
+}
