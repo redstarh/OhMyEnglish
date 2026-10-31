@@ -23,11 +23,10 @@
 8. ⛔ **DB 배치**: 스키마 **`ohmyenglish`** · `pg_dump -n ohmyenglish`(`H-BX`) ·
    `psql` 은 `/opt/homebrew/opt/postgresql@17/bin/psql` · introspection 에는 `current_schema()` 를 걸음.
 9. ⚠️ **PRD 가 v1.6 임** — §16·§17 을 읽지 않고 발음·드릴 영역을 손대지 않음.
-10. ⛔ **superpowers 가 7.0.0 으로 올라갔음**(chrome 은 3.3.0 · 2026-10-17). 이름이 사라진 스킬은
-    없고 **절차가 바뀐 것이 넷**임 — `brainstorming`(「무엇을 원하는지 먼저 알아냄」으로 변경) ·
-    `writing-plans`(한 단계 기준이 「확인할 수 있는 결과」로 변경) · `requesting-code-review` ·
-    `systematic-debugging`(예시 명령만). ⚠️ **6 버전 기억으로 절차를 쓰지 않음.**
-    버전 정본은 `claude plugin list` 임(`~/.claude/CLAUDE.md` 의 버전 고정은 삭제했음).
+10. ⛔ **superpowers 플러그인은 2026-10-31 에 제거됐음**(사용자 결정 · chrome 3.3.0 은 남김). 근거는 이 맥의
+    A/B 실험(`~/MyProject/superpowers-eval/results/report.html` · 켬·끔 해결률 17/21 대 17/21)임.
+    ⚠️ **이전 판의 「7.0.0 으로 올라갔음 · 절차가 바뀐 것이 넷」은 폐기됨.** 절차는 이제
+    `~/.claude/CLAUDE.md <operating_principles>` 가 소유함. 설치 상태의 정본은 `claude plugin list` 임.
 11. ⛔ **`~/.claude` 리포에 다른 작업에서 온 미커밋 변경이 여러 건 있음**(`CLAUDE.md` 전체를 영어로
     옮기는 작업 포함). **그 변경을 커밋하거나 되돌리지 않음** — 남의 작업을 삼키게 됨.
 12. ⚠️ **이전 판의 미결 관측 하나가 해소됐음** — 셸의 `HANGUL_SANITY=0` 은 이번 세션에서 재현되지
