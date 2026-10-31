@@ -109,7 +109,7 @@ export const CoursePlayer = forwardRef<CoursePlayerHandle, Props>(function Cours
     <div
       ref={mountRef}
       data-testid="course-player"
-      style={{ aspectRatio: "16 / 9", width: "100%", background: "#111", borderRadius: 10, overflow: "hidden" }}
+      style={{ aspectRatio: "16 / 9", width: "100%", background: "var(--hero)", borderRadius: 10, overflow: "hidden" }}
     />
   );
 });

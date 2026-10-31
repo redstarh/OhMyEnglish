@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -14,13 +14,19 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "OhMyEnglish",
-  description: "OhMyEnglish 학습 세션",
+  description: "Speak. Remember. Grow.",
+};
+
+// 밝은 테마만 둔다(TASK-293) — 브라우저 UI 색은 `--page` 와 맞춘다.
+export const viewport: Viewport = {
+  colorScheme: "light",
+  themeColor: "#f7f8fc",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
-      <body>{children}</body>
+      <body className="bg-page text-foreground antialiased">{children}</body>
     </html>
   );
 }

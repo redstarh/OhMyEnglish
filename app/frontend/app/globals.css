@@ -1,74 +1,184 @@
+/* Tailwind v4 진입점(TASK-293 · 설계서 docs/design/2026-11-01-v0-home-redesign-design.md §2~§4).
+   ⚠️ `npx shadcn init/add` 는 이 파일을 다시 쓸 수 있다 — 돌린 뒤에는 아래 `--color-accent`
+   대응과 기존 토큰 이름이 살아 있는지 diff 로 확인한다(components.json 은 주석을 담을 수 없어 여기 적는다). */
+@import "tailwindcss";
+
+/* 밝은 테마만 둔다(설계서 §3). button.tsx 의 `dark:` 변형이 OS 다크 모드에 끌려가지 않도록
+   `dark` 를 쓰지 않는 `.dark` 클래스에 묶는다 — 이 앱은 그 클래스를 붙이지 않는다. */
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  /* ⛔ shadcn 의 `accent` 는 옅은 hover 바탕이지만, 이 앱의 `--accent` 는 브랜드 색이다
+     (각 화면 인라인 `var(--accent)` 가 마이크·점 표지·주 버튼에 쓴다). 이름을 그대로 물리면
+     shadcn 부품의 hover 가 진한 파랑으로 칠해지므로 `bg-accent` 는 `--surface` 를 가리키게 한다. */
+  --color-accent: var(--surface);
+  --color-accent-foreground: var(--foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* v0 대시보드에서 되풀이되는 색(설계서 §3) — `bg-brand` · `text-hero` · `bg-page` … 로 쓴다. */
+  --color-brand: var(--brand);
+  --color-brand-bright: var(--brand-bright);
+  --color-brand-soft: var(--brand-soft);
+  --color-hero: var(--hero);
+  --color-page: var(--page);
+  --color-tint-sky: var(--tint-sky);
+  --color-tint-peach: var(--tint-peach);
+  --color-tint-mint: var(--tint-mint);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
 /* 화면의 모든 글자색은 이 토큰에서만 나온다. 인라인 하드코딩(`color: "#111"`)은
-   다크모드 팔레트를 통과하지 못해 AC U1의 "부분=회색 / 확정=일반" 위계를 뒤집는다
+   AC U1의 "부분=회색 / 확정=일반" 위계를 뒤집을 수 있다
    (1차수 F-1: #111이 #0a0a0a 위에서 1.05:1 — 부분 전사문 #999(6.95:1)보다 어두웠다).
 
    위계 계약: 강조 대상은 `--foreground`, 덜 강조할 보조 문구는 `--foreground-muted`.
-   두 모드 모두 배경 대비 4.5:1(WCAG AA) 이상이면서 muted가 foreground보다 낮다 —
-   "덜 강조"를 밝기가 아니라 **대비**로 표현하기 때문에 배경이 뒤집혀도 살아남는다. */
+   둘 다 배경 대비 4.5:1(WCAG AA) 이상이면서 muted가 foreground보다 낮다.
+   대비는 `--background`(#fff) 기준이고 괄호 안은 `--page`(#f7f8fc) 위 값이다.
+   하네스(`tests/harness/`)가 계산값을 rgb 로 읽으므로 기존 토큰은 hex 로 둔다. */
 :root {
+  color-scheme: light;
+
+  /* 기존 토큰 — 이름은 각 화면 인라인 스타일과 하네스가 읽으므로 바꾸지 않는다. */
   --background: #ffffff;
-  --foreground: #171717; /* 17.9:1 */
-  --foreground-muted: #595959; /* 7.0:1 */
-  --danger: #cc0000; /* 5.9:1 — 기존 #c00 그대로, 라이트모드 외관은 바뀌지 않는다 */
+  --foreground: #172033; /* 16.3:1 (15.3:1) */
+  --foreground-muted: #5b6478; /* 5.9:1 (5.6:1) */
+  --danger: #cc0000; /* 5.9:1 (5.6:1) */
   /* 대화 화면(`SessionChat.tsx` · `TASK-272`)의 면 색. ⛔ **글자색이 아니다** — 말풍선 글자는
      위 두 토큰 그대로라 C2 의 「확정=foreground · 부분=muted」 판독이 바뀌지 않는다.
      대비는 말풍선 바탕 위에서 잰 값이다. */
-  --accent: #6d5ae6; /* 마이크·점 표지. 흰 바탕 대비 4.9:1 */
-  --accent-soft: #ece8ff; /* 학습자 말풍선. foreground 15.0:1 */
-  --surface: #f2f2f5; /* 코치 말풍선. foreground 16.0:1 · muted 6.3:1 */
-  --border: #e3e3e8;
-  --on-accent: #ffffff; /* accent 위 글자·아이콘. 4.9:1 */
+  --accent: #3263dc; /* 브랜드 색 — 마이크·점 표지. 흰 바탕 대비 5.3:1 */
+  --accent-soft: #edf2ff; /* 학습자 말풍선. foreground 14.5:1 · muted 5.3:1 */
+  --surface: #f2f4f9; /* 코치 말풍선. foreground 14.8:1 · muted 5.4:1 */
+  --border: #e7eaf1;
+  --on-accent: #ffffff; /* accent 위 글자·아이콘. 5.3:1 */
+
+  /* v0 대시보드 색. `--brand-bright`(#4d74e8)는 흰 바탕 4.2:1 로 AA 미달이라 면·장식에만 쓴다. */
+  --brand: #3263dc;
+  --brand-bright: #4d74e8;
+  --brand-soft: #edf2ff;
+  --hero: #172b63; /* 남색 머리 카드. 흰 글자 13.4:1 */
+  --page: #f7f8fc; /* 화면 바탕 */
+  --tint-sky: #eaf5ff;
+  --tint-peach: #fff2e9;
+  --tint-mint: #edf9f2;
+
+  /* shadcn 토큰 — 기존 토큰과 같은 값을 가리켜 두 체계가 갈라지지 않게 한다. */
+  --card: #ffffff;
+  --card-foreground: var(--foreground);
+  --popover: #ffffff;
+  --popover-foreground: var(--foreground);
+  --primary: var(--brand);
+  --primary-foreground: var(--on-accent);
+  --secondary: var(--surface);
+  --secondary-foreground: var(--foreground);
+  --muted: var(--surface);
+  --muted-foreground: var(--foreground-muted);
+  --destructive: var(--danger);
+  --input: var(--border);
+  --ring: var(--brand);
+  --radius: 0.625rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed; /* 16.9:1 */
-    --foreground-muted: #9a9a9a; /* 7.0:1 */
-    --danger: #ff8a8a; /* 8.7:1 — #cc0000은 이 배경에서 3.4:1로 AA 미달이라 밝은 쪽으로 뒤집는다 */
-    --accent: #9d8cff;
-    --accent-soft: #2c2748; /* foreground 12.0:1 */
-    --surface: #1c1c20; /* foreground 14.5:1 · muted 6.0:1 */
-    --border: #2e2e34;
-    --on-accent: #16122e; /* 흰색은 #9d8cff 위에서 2.75:1 이라 어두운 쪽으로 뒤집는다 */
+/* 전역 재설정은 층 안에 둔다 — 층 밖 규칙은 Tailwind 유틸리티(`p-4` 등)를 이긴다(설계서 §2 함정 1).
+   `* { margin:0; padding:0; box-sizing:border-box }` 는 Tailwind preflight 가 이미 한다. */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
   }
-}
 
-html {
-  height: 100%;
-}
-
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-@media (prefers-color-scheme: dark) {
   html {
-    color-scheme: dark;
+    height: 100%;
+  }
+
+  html,
+  body {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  body {
+    min-height: 100%;
+    color: var(--foreground);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* preflight 가 지운 옛 요소 모양을 최소로 되살린다 — 아직 Tailwind 로 옮기지 않은 화면용.
+     층 안이라 유틸리티 클래스와 인라인 스타일이 이긴다. */
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  h3 {
+    font-size: 1.17rem;
+    font-weight: 700;
+    line-height: 1.35;
+  }
+
+  /* shadcn `Button` 은 `data-slot="button"` 을 달고 나오므로 제외한다. */
+  button:not([data-slot]) {
+    border: 1px solid var(--border);
+    background-color: #ffffff;
+    border-radius: 6px;
+    padding: 0.25rem 0.75rem;
+    cursor: pointer;
+  }
+
+  button:not([data-slot]):disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  input,
+  textarea,
+  select {
+    border: 1px solid var(--border);
+    background-color: #ffffff;
+    border-radius: 6px;
+    padding: 0.25rem 0.5rem;
+  }
+
+  ul {
+    list-style: disc;
+    padding-left: 1.25rem;
   }
 }
 
