@@ -4,7 +4,7 @@ title: '검증: 문법 코스 따라 하기의 실제 Nova 전사 경로 (격리
 status: Awaiting Decision
 assignee: []
 created_date: '2026-10-31 16:26'
-updated_date: '2026-10-31 17:59'
+updated_date: '2026-10-31 18:12'
 labels: []
 dependencies: []
 ordinal: 353000
@@ -40,4 +40,9 @@ TASK-287 이 남긴 미검증. stub 대신 실제 Nova 로 시도 POST → 전�
 - 내가 직접: 최신 코드로 거부 시도 1건 → 503 · 격리 DB attempts 2→2. dev DB 는 세션 시작과 같음(attempts 0 · progress 0 · llm_calls 109) — AC 4 충족.
 - 게이트(마지막 변경 뒤): pytest 1484 passed · ruff 0 · ruff format 341 files · ty 0 · tsc 0 · eslint 오류 0(기존 경고 1).
 - 스택은 VOICE_ADAPTER=stub + dev DB 로 되돌림. 남은 AC 1·2·3 은 IAM 권한 복구 뒤 실제 전사로 다시 잼(b6 의 audio/ 입력과 드라이버 재사용).
+
+2026-11-01 사용자 지시: 「nova 권한은 zshrc 의 aws bedrock api key 를 사용해서 연결해」
+- 확인: 설치된 SDK(aws_sdk_bedrock_runtime 0.10.0)는 SigV4 만 등록함. SDK 의 APIKeyAuthScheme(Authorization: Bearer)을 끼운 일회성 탐침(리포 밖 · 삭제함)으로 양방향 스트림을 열었음.
+- 결과(응답 본문 직접 확인): bearer → HTTP 403 {"Message":"This operation does not support API Keys"}. 대조군 SigV4 → 같은 시각 IAM 거부(no identity-based policy allows bedrock:InvokeModel on amazon.nova-2-sonic-v1:0).
+- 결론: Bedrock 이 InvokeModelWithBidirectionalStream 에서 API 키를 받지 않음(2026-08 실측과 같음 · app/backend/app/config.py 머리말에 기록된 그 사실). 앱 코드는 바꾸지 않았음. Nova 를 붙일 길은 IAM 사용자 ohmyenglish-local 의 SigV4 권한 복구뿐임(docs/ops/iam-setup-nova-sigv4.md 「최소권한 정책 JSON」).
 <!-- SECTION:NOTES:END -->
