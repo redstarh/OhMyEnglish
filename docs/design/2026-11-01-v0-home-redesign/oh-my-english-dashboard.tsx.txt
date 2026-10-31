@@ -1,0 +1,78 @@
+'use client'
+
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import {
+  ArrowRight,
+  BookOpen,
+  Check,
+  ChevronRight,
+  CircleHelp,
+  Flame,
+  Headphones,
+  Mic,
+  Play,
+  Plus,
+  RotateCcw,
+  Sparkles,
+  Target,
+  TrendingUp,
+  Volume2,
+  X,
+} from 'lucide-react'
+
+const focusItems = [
+  { label: 'Past tense', detail: 'I worked on the API yesterday.', progress: 72, tone: 'coral' },
+  { label: 'Prepositions', detail: 'I am working on the test report.', progress: 48, tone: 'blue' },
+  { label: 'Longer answers', detail: 'Connect your reason with “because”.', progress: 31, tone: 'purple' },
+]
+
+const lessons = [
+  { day: 'MON', title: 'Daily warm-up', detail: 'Talk about your morning routine', minutes: 5, done: true },
+  { day: 'TUE', title: 'Work update', detail: 'Yesterday · today · next step', minutes: 10, done: false },
+  { day: 'WED', title: 'Quick conversation', detail: 'Make plans with a friend', minutes: 8, done: false },
+]
+
+export function OhMyEnglishDashboard() {
+  const [activeNav, setActiveNav] = useState('Home')
+  const [started, setStarted] = useState(false)
+  const [showAll, setShowAll] = useState(false)
+
+  return (
+    <main className="min-h-screen bg-[#f7f8fc] text-[#172033]">
+      <div className="mx-auto flex min-h-screen max-w-[1500px]">
+        <aside className="hidden w-[248px] shrink-0 border-r border-[#e7eaf1] bg-white px-5 py-7 lg:flex lg:flex-col">
+          <div className="mb-12 flex items-center gap-3 px-2">
+            <div className="grid size-10 place-items-center rounded-[13px] bg-[#172b63] text-white shadow-lg shadow-[#172b63]/15"><Sparkles className="size-5" /></div>
+            <div><p className="text-[15px] font-extrabold tracking-tight">OhMyEnglish</p><p className="text-[11px] font-medium text-[#9aa2b4]">SPEAK. REMEMBER. GROW.</p></div>
+          </div>
+          <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-[#a4abba]">Workspace</p>
+          <nav className="flex flex-col gap-1">
+            {['Home', 'Practice', 'Review', 'Progress'].map((item) => (
+              <button key={item} onClick={() => setActiveNav(item)} className={`flex items-center gap-3 rounded-xl px-3 py-3 text-left text-[13px] font-semibold transition ${activeNav === item ? 'bg-[#edf2ff] text-[#3263dc]' : 'text-[#697388] hover:bg-[#f6f7fb]'}`}>
+                {item === 'Home' && <Target className="size-[17px]" />}{item === 'Practice' && <Mic className="size-[17px]" />}{item === 'Review' && <RotateCcw className="size-[17px]" />}{item === 'Progress' && <TrendingUp className="size-[17px]" />}{item}
+              </button>
+            ))}
+          </nav>
+          <div className="mt-auto rounded-2xl bg-[#f6f8ff] p-4"><div className="mb-3 flex items-center justify-between"><span className="text-xs font-bold text-[#172b63]">Weekly goal</span><span className="text-xs font-bold text-[#3263dc]">4 / 5</span></div><div className="h-2 overflow-hidden rounded-full bg-[#dfe6fa]"><div className="h-full w-4/5 rounded-full bg-[#4d74e8]" /></div><p className="mt-3 text-[11px] leading-4 text-[#7b8498]">One more session to keep your streak.</p></div>
+        </aside>
+
+        <section className="min-w-0 flex-1 px-5 py-6 sm:px-8 lg:px-12 lg:py-9">
+          <header className="mb-8 flex items-center justify-between"><div><p className="text-xs font-semibold text-[#8a93a6]">TUESDAY, OCTOBER 21</p><h1 className="mt-1 text-2xl font-extrabold tracking-[-0.04em] text-[#172033] sm:text-[30px]">Good morning, Alex <span className="text-[#4d74e8]">.</span></h1></div><div className="flex items-center gap-3"><div className="hidden items-center gap-2 rounded-full bg-white px-3 py-2 text-xs font-bold text-[#667085] shadow-sm sm:flex"><Flame className="size-4 text-[#ff785d]" /> 12 day streak</div><div className="grid size-10 place-items-center rounded-full bg-[#f6c4a9] text-sm font-bold text-[#7c3e32]">A</div></div></header>
+
+          <div className="grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.85fr)]">
+            <div className="rounded-[24px] bg-[#172b63] p-6 text-white shadow-xl shadow-[#172b63]/10 sm:p-8"><div className="flex items-start justify-between"><div><span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-[#cbd7ff]"><Sparkles className="size-3" /> Today&apos;s practice</span><h2 className="mt-5 max-w-[420px] text-3xl font-extrabold leading-[1.06] tracking-[-0.05em] sm:text-[42px]">Tell me about<br />your workday.</h2><p className="mt-4 max-w-[390px] text-sm leading-6 text-[#bdc9eb]">Build confidence with a 10-minute speaking session. I&apos;ll help you sound more natural.</p></div><div className="hidden size-16 rounded-2xl bg-white/10 sm:grid sm:place-items-center"><Mic className="size-7 text-[#a9bfff]" /></div></div><div className="mt-8 flex flex-wrap items-center gap-3"><Button onClick={() => setStarted(!started)} size="lg" className="rounded-xl bg-white px-5 font-bold text-[#172b63] hover:bg-[#f0f3ff]">{started ? <><Check data-icon="inline-start" /> Session started</> : <><Play data-icon="inline-start" /> Start speaking</>}</Button><span className="text-xs font-semibold text-[#b8c4e8]">10 min · Speaking</span></div></div>
+            <div className="rounded-[24px] border border-[#e7eaf1] bg-white p-6 shadow-sm"><div className="flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-[0.14em] text-[#9aa2b4]">Your progress</p><p className="mt-2 text-3xl font-extrabold tracking-[-0.05em]">68<span className="text-lg text-[#9aa2b4]">%</span></p></div><div className="grid size-12 place-items-center rounded-2xl bg-[#edf2ff] text-[#4d74e8]"><TrendingUp className="size-5" /></div></div><div className="mt-5 h-2 overflow-hidden rounded-full bg-[#edf0f6]"><div className="h-full w-[68%] rounded-full bg-[#4d74e8]" /></div><div className="mt-3 flex justify-between text-[11px] font-semibold text-[#929bad]"><span>Current level: A2+</span><span className="text-[#4d74e8]">+8% this month</span></div><div className="mt-6 grid grid-cols-3 gap-2 border-t border-[#eef0f4] pt-5 text-center"><div><p className="text-lg font-extrabold">24</p><p className="text-[10px] text-[#929bad]">Sessions</p></div><div><p className="text-lg font-extrabold">312</p><p className="text-[10px] text-[#929bad]">Minutes</p></div><div><p className="text-lg font-extrabold">8</p><p className="text-[10px] text-[#929bad]">Patterns</p></div></div></div>
+          </div>
+
+          <div className="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1.5fr)_minmax(280px,0.8fr)]">
+            <section><div className="mb-4 flex items-center justify-between"><div><h2 className="text-lg font-extrabold tracking-tight">Continue your path</h2><p className="mt-1 text-xs text-[#8b94a7]">Small steps, real conversations.</p></div><Button onClick={() => setShowAll(!showAll)} variant="ghost" className="text-xs font-bold text-[#4d74e8]">{showAll ? 'Show less' : 'View all'} <ChevronRight data-icon="inline-end" /></Button></div><div className="flex flex-col gap-3">{(showAll ? lessons : lessons.slice(0, 2)).map((lesson) => <div key={lesson.day} className="flex items-center gap-4 rounded-2xl border border-[#e7eaf1] bg-white p-4 shadow-sm"><div className={`grid size-11 shrink-0 place-items-center rounded-xl text-[10px] font-extrabold ${lesson.done ? 'bg-[#e3f7ed] text-[#2e9a67]' : 'bg-[#f1f3f8] text-[#7c8598]'}`}>{lesson.done ? <Check className="size-4" /> : lesson.day}</div><div className="min-w-0 flex-1"><p className="text-sm font-bold">{lesson.title}</p><p className="mt-1 truncate text-xs text-[#8b94a7]">{lesson.detail}</p></div><span className="hidden text-[11px] font-semibold text-[#a1a8b7] sm:block">{lesson.minutes} min</span><Button size="icon-sm" variant="outline" aria-label={`Open ${lesson.title}`} className="rounded-xl"><ArrowRight /></Button></div>)}</div></section>
+            <section><div className="mb-4 flex items-center justify-between"><div><h2 className="text-lg font-extrabold tracking-tight">Focus patterns</h2><p className="mt-1 text-xs text-[#8b94a7]">Your coach is watching these.</p></div><CircleHelp className="size-4 text-[#a1a8b7]" /></div><div className="rounded-2xl border border-[#e7eaf1] bg-white p-4 shadow-sm">{focusItems.map((item) => <div key={item.label} className="border-b border-[#eff1f5] py-3 first:pt-1 last:border-0 last:pb-1"><div className="flex items-center justify-between"><p className="text-xs font-bold">{item.label}</p><span className="text-[11px] font-bold text-[#7d879a]">{item.progress}%</span></div><p className="mt-1 truncate text-[11px] text-[#9098a9]">{item.detail}</p><div className="mt-2 h-1.5 rounded-full bg-[#eef0f5]"><div className={`h-full rounded-full ${item.tone === 'coral' ? 'bg-[#ff8c72]' : item.tone === 'blue' ? 'bg-[#6686ee]' : 'bg-[#a88ae7]'}`} style={{ width: `${item.progress}%` }} /></div></div>)}<Button variant="ghost" className="mt-3 w-full text-xs font-bold text-[#4d74e8]"><Plus data-icon="inline-start" /> Practice a pattern</Button></div></section>
+          </div>
+
+          <div className="mt-8 grid gap-5 md:grid-cols-3"><div className="rounded-2xl bg-[#eaf5ff] p-5"><div className="mb-8 flex items-center justify-between"><div className="grid size-10 place-items-center rounded-xl bg-white text-[#4d74e8]"><Volume2 className="size-5" /></div><span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-bold text-[#5d78bd]">2 min</span></div><h3 className="text-sm font-extrabold">Shadow a sentence</h3><p className="mt-1 text-xs leading-5 text-[#7587a6]">Listen, repeat, make it yours.</p></div><div className="rounded-2xl bg-[#fff2e9] p-5"><div className="mb-8 flex items-center justify-between"><div className="grid size-10 place-items-center rounded-xl bg-white text-[#ed835d]"><Headphones className="size-5" /></div><span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-bold text-[#b77b60]">New</span></div><h3 className="text-sm font-extrabold">Listen & notice</h3><p className="mt-1 text-xs leading-5 text-[#9f806f]">Catch natural English in context.</p></div><div className="rounded-2xl bg-[#edf9f2] p-5"><div className="mb-8 flex items-center justify-between"><div className="grid size-10 place-items-center rounded-xl bg-white text-[#35a270]"><BookOpen className="size-5" /></div><span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-bold text-[#5b9a7b]">Review</span></div><h3 className="text-sm font-extrabold">Repair your mistakes</h3><p className="mt-1 text-xs leading-5 text-[#719382]">Turn one error into a habit.</p></div></div>
+        </section>
+      </div>
+    </main>
+  )
+}
