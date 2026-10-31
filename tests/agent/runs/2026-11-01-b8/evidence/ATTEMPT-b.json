@@ -1,0 +1,121 @@
+{
+ "before": {
+  "unit": "Unit 1 · be 동사 am · is · are",
+  "num": "문장 4 / 5",
+  "sentence": "The server is very slow today.",
+  "attempts": "따라 함 3회",
+  "phase": null,
+  "notice": null,
+  "transcript": null,
+  "words": [],
+  "mode": "manual"
+ },
+ "apiBefore": {
+  "key": "u001-s4",
+  "text": "The server is very slow today.",
+  "attempts": 3
+ },
+ "initPresent": {
+  "phases": true,
+  "gum": true
+ },
+ "windowMs": 3000,
+ "window": {
+  "gum": [
+   {
+    "called": 208,
+    "resolved": 343,
+    "label": "Fake Default Audio Input"
+   }
+  ],
+  "repeatAt": 2837,
+  "judgeAt": 5863,
+  "speechFirst": 3025,
+  "speechLast": 4745,
+  "speechInWindowFromRepeatMs": [
+   188,
+   1908
+  ]
+ },
+ "mo2": [
+  [
+   351,
+   "listen",
+   ""
+  ],
+  [
+   2834,
+   "repeat",
+   ""
+  ],
+  [
+   5862,
+   "judge",
+   ""
+  ],
+  [
+   11204,
+   "done",
+   ""
+  ]
+ ],
+ "judgeToDoneMs": 5346,
+ "after": {
+  "unit": "Unit 1 · be 동사 am · is · are",
+  "num": "문장 4 / 5",
+  "sentence": "The server is very slow today.",
+  "attempts": "따라 함 4회",
+  "phase": "done",
+  "notice": null,
+  "transcript": "the server is very fast today.",
+  "words": [
+   {
+    "w": "The",
+    "v": "match",
+    "deco": "none"
+   },
+   {
+    "w": "server",
+    "v": "match",
+    "deco": "none"
+   },
+   {
+    "w": "is",
+    "v": "match",
+    "deco": "none"
+   },
+   {
+    "w": "very",
+    "v": "match",
+    "deco": "none"
+   },
+   {
+    "w": "slow",
+    "v": "different",
+    "deco": "underline"
+   },
+   {
+    "w": "today.",
+    "v": "match",
+    "deco": "none"
+   }
+  ],
+  "mode": "manual"
+ },
+ "apiAfter": {
+  "key": "u001-s4",
+  "text": "The server is very slow today.",
+  "attempts": 4
+ },
+ "afterReload": {
+  "unit": "Unit 1 · be 동사 am · is · are",
+  "num": "문장 4 / 5",
+  "sentence": "The server is very slow today.",
+  "attempts": "따라 함 4회",
+  "phase": null,
+  "notice": null,
+  "transcript": null,
+  "words": [],
+  "mode": "manual"
+ }
+}

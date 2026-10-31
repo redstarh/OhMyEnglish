@@ -1,0 +1,352 @@
+{
+ "before": {
+  "unit": "Unit 1 · be 동사 am · is · are",
+  "num": "문장 1 / 5",
+  "sentence": "I am a software tester.",
+  "attempts": "따라 함 0회",
+  "phase": null,
+  "notice": null,
+  "transcript": null,
+  "words": [],
+  "mode": "manual"
+ },
+ "apiBefore": [
+  [
+   "u001-s1",
+   0
+  ],
+  [
+   "u001-s2",
+   0
+  ],
+  [
+   "u001-s3",
+   0
+  ],
+  [
+   "u001-s4",
+   5
+  ],
+  [
+   "u001-s5",
+   0
+  ]
+ ],
+ "startButtonInAuto": true,
+ "s1Done": {
+  "unit": "Unit 1 · be 동사 am · is · are",
+  "num": "문장 1 / 5",
+  "sentence": "I am a software tester.",
+  "attempts": "따라 함 1회",
+  "phase": "done",
+  "notice": null,
+  "transcript": "i am a software tester.",
+  "words": [
+   {
+    "w": "I",
+    "v": "match",
+    "deco": "none"
+   },
+   {
+    "w": "am",
+    "v": "match",
+    "deco": "none"
+   },
+   {
+    "w": "a",
+    "v": "match",
+    "deco": "none"
+   },
+   {
+    "w": "software",
+    "v": "match",
+    "deco": "none"
+   },
+   {
+    "w": "tester.",
+    "v": "match",
+    "deco": "none"
+   }
+  ],
+  "mode": "auto"
+ },
+ "s2Listen": {
+  "unit": "Unit 1 · be 동사 am · is · are",
+  "num": "문장 2 / 5",
+  "sentence": "My team is in Seoul.",
+  "attempts": "따라 함 0회",
+  "phase": "listen",
+  "notice": null,
+  "transcript": null,
+  "words": [],
+  "mode": "auto"
+ },
+ "s2Repeat": {
+  "unit": "Unit 1 · be 동사 am · is · are",
+  "num": "문장 2 / 5",
+  "sentence": "My team is in Seoul.",
+  "attempts": "따라 함 0회",
+  "phase": "repeat",
+  "notice": null,
+  "transcript": null,
+  "words": [],
+  "mode": "auto"
+ },
+ "s2Done": {
+  "unit": "Unit 1 · be 동사 am · is · are",
+  "num": "문장 2 / 5",
+  "sentence": "My team is in Seoul.",
+  "attempts": "따라 함 1회",
+  "phase": "done",
+  "notice": null,
+  "transcript": "my team is in seoul.",
+  "words": [
+   {
+    "w": "My",
+    "v": "match",
+    "deco": "none"
+   },
+   {
+    "w": "team",
+    "v": "match",
+    "deco": "none"
+   },
+   {
+    "w": "is",
+    "v": "match",
+    "deco": "none"
+   },
+   {
+    "w": "in",
+    "v": "match",
+    "deco": "none"
+   },
+   {
+    "w": "Seoul.",
+    "v": "match",
+    "deco": "none"
+   }
+  ],
+  "mode": "auto"
+ },
+ "s3Listen": {
+  "unit": "Unit 1 · be 동사 am · is · are",
+  "num": "문장 3 / 5",
+  "sentence": "We are busy this week.",
+  "attempts": "따라 함 0회",
+  "phase": "listen",
+  "notice": null,
+  "transcript": null,
+  "words": [],
+  "mode": "auto"
+ },
+ "s3RepeatAtLeave": {
+  "unit": "Unit 1 · be 동사 am · is · are",
+  "num": "문장 3 / 5",
+  "sentence": "We are busy this week.",
+  "attempts": "따라 함 0회",
+  "phase": "repeat",
+  "notice": null,
+  "transcript": null,
+  "words": [],
+  "mode": "auto"
+ },
+ "mo2": [
+  [
+   462,
+   "none",
+   "문장 1 / 5",
+   "",
+   null
+  ],
+  [
+   599,
+   "listen",
+   "문장 1 / 5",
+   "",
+   null
+  ],
+  [
+   2662,
+   "repeat",
+   "문장 1 / 5",
+   "",
+   null
+  ],
+  [
+   5725,
+   "judge",
+   "문장 1 / 5",
+   "",
+   null
+  ],
+  [
+   11166,
+   "done",
+   "문장 1 / 5",
+   "",
+   "i am a software tester."
+  ],
+  [
+   12665,
+   "listen",
+   "문장 2 / 5",
+   "",
+   null
+  ],
+  [
+   14031,
+   "repeat",
+   "문장 2 / 5",
+   "",
+   null
+  ],
+  [
+   16399,
+   "judge",
+   "문장 2 / 5",
+   "",
+   null
+  ],
+  [
+   21783,
+   "done",
+   "문장 2 / 5",
+   "",
+   "my team is in seoul."
+  ],
+  [
+   23283,
+   "listen",
+   "문장 3 / 5",
+   "",
+   null
+  ],
+  [
+   24809,
+   "repeat",
+   "문장 3 / 5",
+   "",
+   null
+  ]
+ ],
+ "phases": [
+  {
+   "t": 62,
+   "wall": 1793470818703,
+   "phase": "none",
+   "num": ""
+  },
+  {
+   "t": 164,
+   "wall": 1793470818805,
+   "phase": "none",
+   "num": "문장 2 / 5"
+  },
+  {
+   "t": 202,
+   "wall": 1793470818843,
+   "phase": "none",
+   "num": "문장 1 / 5"
+  },
+  {
+   "t": 602,
+   "wall": 1793470819244,
+   "phase": "listen",
+   "num": "문장 1 / 5"
+  },
+  {
+   "t": 2665,
+   "wall": 1793470821307,
+   "phase": "repeat",
+   "num": "문장 1 / 5"
+  },
+  {
+   "t": 5725,
+   "wall": 1793470824367,
+   "phase": "judge",
+   "num": "문장 1 / 5"
+  },
+  {
+   "t": 11170,
+   "wall": 1793470829812,
+   "phase": "done",
+   "num": "문장 1 / 5"
+  },
+  {
+   "t": 12672,
+   "wall": 1793470831314,
+   "phase": "listen",
+   "num": "문장 2 / 5"
+  },
+  {
+   "t": 14033,
+   "wall": 1793470832675,
+   "phase": "repeat",
+   "num": "문장 2 / 5"
+  },
+  {
+   "t": 16403,
+   "wall": 1793470835045,
+   "phase": "judge",
+   "num": "문장 2 / 5"
+  },
+  {
+   "t": 21786,
+   "wall": 1793470840428,
+   "phase": "done",
+   "num": "문장 2 / 5"
+  },
+  {
+   "t": 23292,
+   "wall": 1793470841934,
+   "phase": "listen",
+   "num": "문장 3 / 5"
+  },
+  {
+   "t": 24812,
+   "wall": 1793470843454,
+   "phase": "repeat",
+   "num": "문장 3 / 5"
+  }
+ ],
+ "gum": [
+  {
+   "called": 464,
+   "resolved": 592,
+   "label": "Fake Default Audio Input"
+  }
+ ],
+ "speech": [
+  [
+   3334,
+   4713
+  ],
+  [
+   15033,
+   16093
+  ]
+ ],
+ "apiAfter": [
+  [
+   "u001-s1",
+   1
+  ],
+  [
+   "u001-s2",
+   1
+  ],
+  [
+   "u001-s3",
+   0
+  ],
+  [
+   "u001-s4",
+   5
+  ],
+  [
+   "u001-s5",
+   0
+  ]
+ ]
+}

@@ -1,0 +1,40 @@
+{
+ "before": {
+  "unit": "Unit 1 · be 동사 am · is · are",
+  "num": "문장 4 / 5",
+  "sentence": "The server is very slow today.",
+  "attempts": "따라 함 2회",
+  "phase": null,
+  "notice": null,
+  "transcript": null,
+  "words": [],
+  "mode": "manual"
+ },
+ "apiBefore": {
+  "key": "u001-s4",
+  "text": "The server is very slow today.",
+  "attempts": 2
+ },
+ "initPresent": {
+  "phases": true,
+  "gum": true
+ },
+ "windowMs": 3500,
+ "window": {
+  "gum": [
+   {
+    "called": 456,
+    "resolved": 585,
+    "label": "Fake Default Audio Input"
+   }
+  ],
+  "repeatAt": 3058,
+  "judgeAt": null,
+  "speechFirst": 3267,
+  "speechLast": 4986,
+  "speechInWindowFromRepeatMs": [
+   209,
+   1928
+  ]
+ }
+}

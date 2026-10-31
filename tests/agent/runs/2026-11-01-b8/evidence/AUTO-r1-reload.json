@@ -1,0 +1,52 @@
+{
+ "day1Api": {
+  "progress": {
+   "position_sec": 6.38,
+   "unit": 1,
+   "sentence_index": 2,
+   "completed_count": 0,
+   "last_completed_at": null,
+   "last_completed_date": null,
+   "updated_at": "2026-10-31T18:20:43.515400+00:00"
+  },
+  "s": [
+   [
+    "u001-s1",
+    1
+   ],
+   [
+    "u001-s2",
+    1
+   ],
+   [
+    "u001-s3",
+    0
+   ],
+   [
+    "u001-s4",
+    5
+   ],
+   [
+    "u001-s5",
+    0
+   ]
+  ]
+ },
+ "landed": {
+  "unit": "Unit 1 · be 동사 am · is · are",
+  "num": "문장 3 / 5",
+  "sentence": "We are busy this week.",
+  "attempts": "따라 함 0회",
+  "phase": null,
+  "notice": null,
+  "transcript": null,
+  "words": [],
+  "mode": "manual"
+ },
+ "shownAfterReload": {
+  "문장 3 / 5": "따라 함 0회",
+  "문장 2 / 5": "따라 함 1회",
+  "문장 1 / 5": "따라 함 1회"
+ },
+ "phaseAfter": null
+}

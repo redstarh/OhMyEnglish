@@ -1,0 +1,48 @@
+{
+ "kstToday": "2026-11-01",
+ "heatNonZero": [
+  {
+   "title": "2026-11-01 · 7회",
+   "attempts": "7",
+   "bg": "color-mix(in srgb, var(--accent) 30%, var(--surface))"
+  }
+ ],
+ "heatLast": [
+  "2026-10-31 · 0회",
+  "2026-11-01 · 7회"
+ ],
+ "heatCount": 112,
+ "recentRows": [
+  [
+   "11/1",
+   "1",
+   "1",
+   "3문장 · 7회"
+  ]
+ ],
+ "day1Row": "Day 1 · Unit 1–21 · 60분Unit 1 · 문장 1 · 0:06이어서 학습 ▶",
+ "apiRecent": [
+  {
+   "date": "2026-11-01",
+   "days": [
+    1
+   ],
+   "first_unit": 1,
+   "last_unit": 1,
+   "sentences": 3,
+   "attempts": 7
+  }
+ ],
+ "apiHeatNonZero": [
+  {
+   "date": "2026-11-01",
+   "attempts": 7
+  }
+ ],
+ "apiHeatLast": [
+  {
+   "date": "2026-11-01",
+   "attempts": 7
+  }
+ ]
+}

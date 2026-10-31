@@ -1,0 +1,40 @@
+{
+ "before": {
+  "unit": "Unit 1 · be 동사 am · is · are",
+  "num": "문장 1 / 5",
+  "sentence": "I am a software tester.",
+  "attempts": "따라 함 0회",
+  "phase": null,
+  "notice": null,
+  "transcript": null,
+  "words": [],
+  "mode": "manual"
+ },
+ "apiBefore": {
+  "key": "u001-s1",
+  "text": "I am a software tester.",
+  "attempts": 0
+ },
+ "initPresent": {
+  "phases": true,
+  "gum": true
+ },
+ "windowMs": 3100,
+ "window": {
+  "gum": [
+   {
+    "called": 898,
+    "resolved": 919,
+    "label": "Fake Default Audio Input"
+   }
+  ],
+  "repeatAt": 3053,
+  "judgeAt": null,
+  "speechFirst": 3602,
+  "speechLast": 4941,
+  "speechInWindowFromRepeatMs": [
+   549,
+   1888
+  ]
+ }
+}

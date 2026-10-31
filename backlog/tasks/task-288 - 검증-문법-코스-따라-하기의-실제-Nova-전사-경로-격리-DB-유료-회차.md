@@ -1,10 +1,10 @@
 ---
 id: TASK-288
 title: '검증: 문법 코스 따라 하기의 실제 Nova 전사 경로 (격리 DB 유료 회차)'
-status: Awaiting Decision
+status: Done
 assignee: []
 created_date: '2026-10-31 16:26'
-updated_date: '2026-10-31 18:12'
+updated_date: '2026-10-31 18:23'
 labels: []
 dependencies: []
 ordinal: 353000
@@ -18,9 +18,9 @@ TASK-287 이 남긴 미검증. stub 대신 실제 Nova 로 시도 POST → 전�
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 격리 DB 를 쓰는 백엔드로 실제 Nova 시도가 전사를 돌려줌
-- [ ] #2 화면의 「내가 말한 문장」과 낱말 판정이 실제 전사로 나옴
-- [ ] #3 시도 집계가 DB·히트맵·이력 표에서 일치함
+- [x] #1 격리 DB 를 쓰는 백엔드로 실제 Nova 시도가 전사를 돌려줌
+- [x] #2 화면의 「내가 말한 문장」과 낱말 판정이 실제 전사로 나옴
+- [x] #3 시도 집계가 DB·히트맵·이력 표에서 일치함
 - [x] #4 dev DB 에 쓰기가 생기지 않았음을 확인함
 <!-- AC:END -->
 
@@ -45,4 +45,11 @@ TASK-287 이 남긴 미검증. stub 대신 실제 Nova 로 시도 POST → 전�
 - 확인: 설치된 SDK(aws_sdk_bedrock_runtime 0.10.0)는 SigV4 만 등록함. SDK 의 APIKeyAuthScheme(Authorization: Bearer)을 끼운 일회성 탐침(리포 밖 · 삭제함)으로 양방향 스트림을 열었음.
 - 결과(응답 본문 직접 확인): bearer → HTTP 403 {"Message":"This operation does not support API Keys"}. 대조군 SigV4 → 같은 시각 IAM 거부(no identity-based policy allows bedrock:InvokeModel on amazon.nova-2-sonic-v1:0).
 - 결론: Bedrock 이 InvokeModelWithBidirectionalStream 에서 API 키를 받지 않음(2026-08 실측과 같음 · app/backend/app/config.py 머리말에 기록된 그 사실). 앱 코드는 바꾸지 않았음. Nova 를 붙일 길은 IAM 사용자 ohmyenglish-local 의 SigV4 권한 복구뿐임(docs/ops/iam-setup-nova-sigv4.md 「최소권한 정책 JSON」).
+
+2026-11-01 SSO 경로로 완료
+- 사용자 질문 「aws sso 로그인 하면되는거야?」 → 확인: SSO 프로필 kjihoon-bedrock(AdministratorAccess · 같은 계정)의 세션이 살아 있었음. Nova SDK 는 SSO 프로필을 읽지 않으므로 aws configure export-credentials 로 임시 키를 환경에 넣고 백엔드를 띄움(앱 코드 변경 없음 · 앱은 환경 SigV4 를 정본으로 씀). 스파이크 PASS(대조군 거부 확인).
+- ⚠️ 임시 자격증명 만료 2026-11-01T04:25:09Z. 그 뒤에는 aws sso login --profile kjihoon-bedrock 뒤 재기동이 필요함. 상시 사용은 IAM 사용자 권한 복구가 덜 번거로움.
+- 회차 b8(tests/agent/runs/2026-11-01-b8): 실제 전사 3종 통과 — (a) the server is very slow today. 전부 match · (b) …very fast today. → 원문 slow 밑줄 · (c) the server is slow today → 원문 very 취소선. 자동 모드 2문장 실제 전사 후 진행. 새 결함 0. Nova 호출 5회.
+- 내가 직접 대조: 격리 DB course_attempts 7(새 5행 전사 비어 있지 않음) · llm_calls 5(nova-2-sonic, input 3004 · output 194 토큰) · API 히트맵 오늘 7회 · 이력 11/1 Day 1 Unit 1 3문장 7회. dev DB 는 세션 시작과 같음(0 · 0 · 109). 스크린샷 ATTEMPT-b·c 를 직접 열어 밑줄·취소선을 봤음.
+- 남은 것: 물리 마이크 장치 경로는 사람이 확인할 몫임(에이전트는 가짜 장치만 씀).
 <!-- SECTION:NOTES:END -->

@@ -1,0 +1,1 @@
+{'out': '_b8-auto-s1s2.wav', 'total': 35.551, 'marks': [{'seg': 'raw-s1.wav', 'start': 2.7, 'len': 1.491}, {'seg': 'raw-s2.wav', 'start': 14.401, 'len': 1.15}]}

@@ -1,0 +1,40 @@
+{
+ "before": {
+  "unit": "Unit 1 · be 동사 am · is · are",
+  "num": "문장 2 / 5",
+  "sentence": "My team is in Seoul.",
+  "attempts": "따라 함 0회",
+  "phase": null,
+  "notice": null,
+  "transcript": null,
+  "words": [],
+  "mode": "manual"
+ },
+ "apiBefore": {
+  "key": "u001-s2",
+  "text": "My team is in Seoul.",
+  "attempts": 0
+ },
+ "initPresent": {
+  "phases": true,
+  "gum": true
+ },
+ "windowMs": 2400,
+ "window": {
+  "gum": [
+   {
+    "called": 325,
+    "resolved": 340,
+    "label": "Fake Default Audio Input"
+   }
+  ],
+  "repeatAt": 1703,
+  "judgeAt": null,
+  "speechFirst": 3021,
+  "speechLast": 3602,
+  "speechInWindowFromRepeatMs": [
+   1318,
+   1899
+  ]
+ }
+}

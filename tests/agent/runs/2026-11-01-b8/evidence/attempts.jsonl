@@ -1,0 +1,35 @@
+{"wall":"2026-10-31T18:17:21.628Z","tag":"a","kind":"attempt-req","method":"OPTIONS","url":"http://localhost:8002/api/course/sentences/u001-s4/attempts","bodyBytes":null}
+{"wall":"2026-10-31T18:17:21.629Z","tag":"a","kind":"attempt-status","status":200,"url":"http://localhost:8002/api/course/sentences/u001-s4/attempts"}
+{"wall":"2026-10-31T18:17:21.656Z","tag":"a","kind":"attempt-req","method":"POST","url":"http://localhost:8002/api/course/sentences/u001-s4/attempts","bodyBytes":95232,"hasPostData":true}
+{"wall":"2026-10-31T18:17:21.657Z","tag":"a","kind":"attempt-body-error","text":"Error: {\"code\":-32000,\"message\":\"No resource with given identifier found\"}"}
+{"wall":"2026-10-31T18:17:21.660Z","tag":"a","kind":"attempt-pcm-saved","file":"sent-a-1793470641660.wav","bytes":95232,"b64":true}
+{"wall":"2026-10-31T18:17:27.122Z","tag":"a","kind":"attempt-status","status":200,"url":"http://localhost:8002/api/course/sentences/u001-s4/attempts"}
+{"wall":"2026-10-31T18:17:27.132Z","tag":"a","kind":"attempt-body","url":"http://localhost:8002/api/course/sentences/u001-s4/attempts","body":"{\"transcript\":\"the server is very slow today.\",\"words\":[{\"word\":\"The\",\"verdict\":\"match\"},{\"word\":\"server\",\"verdict\":\"match\"},{\"word\":\"is\",\"verdict\":\"match\"},{\"word\":\"very\",\"verdict\":\"match\"},{\"word\":\"slow\",\"verdict\":\"match\"},{\"word\":\"today.\",\"verdict\":\"match\"}],\"attempts\":3}"}
+{"wall":"2026-10-31T18:17:57.019Z","tag":"b","kind":"attempt-req","method":"OPTIONS","url":"http://localhost:8002/api/course/sentences/u001-s4/attempts","bodyBytes":null}
+{"wall":"2026-10-31T18:17:57.021Z","tag":"b","kind":"attempt-status","status":200,"url":"http://localhost:8002/api/course/sentences/u001-s4/attempts"}
+{"wall":"2026-10-31T18:17:57.050Z","tag":"b","kind":"attempt-req","method":"POST","url":"http://localhost:8002/api/course/sentences/u001-s4/attempts","bodyBytes":96256,"hasPostData":true}
+{"wall":"2026-10-31T18:17:57.050Z","tag":"b","kind":"attempt-body-error","text":"Error: {\"code\":-32000,\"message\":\"No resource with given identifier found\"}"}
+{"wall":"2026-10-31T18:17:57.054Z","tag":"b","kind":"attempt-pcm-saved","file":"sent-b-1793470677053.wav","bytes":96256,"b64":true}
+{"wall":"2026-10-31T18:18:02.363Z","tag":"b","kind":"attempt-status","status":200,"url":"http://localhost:8002/api/course/sentences/u001-s4/attempts"}
+{"wall":"2026-10-31T18:18:02.375Z","tag":"b","kind":"attempt-body","url":"http://localhost:8002/api/course/sentences/u001-s4/attempts","body":"{\"transcript\":\"the server is very fast today.\",\"words\":[{\"word\":\"The\",\"verdict\":\"match\"},{\"word\":\"server\",\"verdict\":\"match\"},{\"word\":\"is\",\"verdict\":\"match\"},{\"word\":\"very\",\"verdict\":\"match\"},{\"word\":\"slow\",\"verdict\":\"different\"},{\"word\":\"today.\",\"verdict\":\"match\"}],\"attempts\":4}"}
+{"wall":"2026-10-31T18:18:27.014Z","tag":"c","kind":"attempt-req","method":"OPTIONS","url":"http://localhost:8002/api/course/sentences/u001-s4/attempts","bodyBytes":null}
+{"wall":"2026-10-31T18:18:27.015Z","tag":"c","kind":"attempt-status","status":200,"url":"http://localhost:8002/api/course/sentences/u001-s4/attempts"}
+{"wall":"2026-10-31T18:18:27.040Z","tag":"c","kind":"attempt-req","method":"POST","url":"http://localhost:8002/api/course/sentences/u001-s4/attempts","bodyBytes":96256,"hasPostData":true}
+{"wall":"2026-10-31T18:18:27.041Z","tag":"c","kind":"attempt-body-error","text":"Error: {\"code\":-32000,\"message\":\"No resource with given identifier found\"}"}
+{"wall":"2026-10-31T18:18:27.044Z","tag":"c","kind":"attempt-pcm-saved","file":"sent-c-1793470707043.wav","bytes":96256,"b64":true}
+{"wall":"2026-10-31T18:18:32.308Z","tag":"c","kind":"attempt-status","status":200,"url":"http://localhost:8002/api/course/sentences/u001-s4/attempts"}
+{"wall":"2026-10-31T18:18:32.319Z","tag":"c","kind":"attempt-body","url":"http://localhost:8002/api/course/sentences/u001-s4/attempts","body":"{\"transcript\":\"the server is slow today\",\"words\":[{\"word\":\"The\",\"verdict\":\"match\"},{\"word\":\"server\",\"verdict\":\"match\"},{\"word\":\"is\",\"verdict\":\"match\"},{\"word\":\"very\",\"verdict\":\"missing\"},{\"word\":\"slow\",\"verdict\":\"match\"},{\"word\":\"today.\",\"verdict\":\"match\"}],\"attempts\":5}"}
+{"wall":"2026-10-31T18:20:24.358Z","tag":"auto","kind":"attempt-req","method":"OPTIONS","url":"http://localhost:8002/api/course/sentences/u001-s1/attempts","bodyBytes":null}
+{"wall":"2026-10-31T18:20:24.359Z","tag":"auto","kind":"attempt-status","status":200,"url":"http://localhost:8002/api/course/sentences/u001-s1/attempts"}
+{"wall":"2026-10-31T18:20:24.386Z","tag":"auto","kind":"attempt-req","method":"POST","url":"http://localhost:8002/api/course/sentences/u001-s1/attempts","bodyBytes":98304,"hasPostData":true}
+{"wall":"2026-10-31T18:20:24.386Z","tag":"auto","kind":"attempt-body-error","text":"Error: {\"code\":-32000,\"message\":\"No resource with given identifier found\"}"}
+{"wall":"2026-10-31T18:20:24.389Z","tag":"auto","kind":"attempt-pcm-saved","file":"sent-auto-1793470824389.wav","bytes":98304,"b64":true}
+{"wall":"2026-10-31T18:20:29.802Z","tag":"auto","kind":"attempt-status","status":200,"url":"http://localhost:8002/api/course/sentences/u001-s1/attempts"}
+{"wall":"2026-10-31T18:20:29.812Z","tag":"auto","kind":"attempt-body","url":"http://localhost:8002/api/course/sentences/u001-s1/attempts","body":"{\"transcript\":\"i am a software tester.\",\"words\":[{\"word\":\"I\",\"verdict\":\"match\"},{\"word\":\"am\",\"verdict\":\"match\"},{\"word\":\"a\",\"verdict\":\"match\"},{\"word\":\"software\",\"verdict\":\"match\"},{\"word\":\"tester.\",\"verdict\":\"match\"}],\"attempts\":1}"}
+{"wall":"2026-10-31T18:20:35.037Z","tag":"auto","kind":"attempt-req","method":"OPTIONS","url":"http://localhost:8002/api/course/sentences/u001-s2/attempts","bodyBytes":null}
+{"wall":"2026-10-31T18:20:35.037Z","tag":"auto","kind":"attempt-status","status":200,"url":"http://localhost:8002/api/course/sentences/u001-s2/attempts"}
+{"wall":"2026-10-31T18:20:35.051Z","tag":"auto","kind":"attempt-req","method":"POST","url":"http://localhost:8002/api/course/sentences/u001-s2/attempts","bodyBytes":75776,"hasPostData":true}
+{"wall":"2026-10-31T18:20:35.051Z","tag":"auto","kind":"attempt-body-error","text":"Error: {\"code\":-32000,\"message\":\"No resource with given identifier found\"}"}
+{"wall":"2026-10-31T18:20:35.053Z","tag":"auto","kind":"attempt-pcm-saved","file":"sent-auto-1793470835053.wav","bytes":75776,"b64":true}
+{"wall":"2026-10-31T18:20:40.419Z","tag":"auto","kind":"attempt-status","status":200,"url":"http://localhost:8002/api/course/sentences/u001-s2/attempts"}
+{"wall":"2026-10-31T18:20:40.428Z","tag":"auto","kind":"attempt-body","url":"http://localhost:8002/api/course/sentences/u001-s2/attempts","body":"{\"transcript\":\"my team is in seoul.\",\"words\":[{\"word\":\"My\",\"verdict\":\"match\"},{\"word\":\"team\",\"verdict\":\"match\"},{\"word\":\"is\",\"verdict\":\"match\"},{\"word\":\"in\",\"verdict\":\"match\"},{\"word\":\"Seoul.\",\"verdict\":\"match\"}],\"attempts\":1}"}
