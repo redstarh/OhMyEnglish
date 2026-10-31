@@ -1,66 +1,53 @@
 # HANDOFF — OhMyEnglish
 
-> 최종 갱신 **2026-10-18 11시대 KST** · 브랜치 `design/first-vertical-slice`
-> ⛔ **이전 판은 `handoff/backup/2026-10-18/HANDOFF-1147.md`** (그 앞 판들은 같은 폴더의 날짜별).
+> 최종 갱신 **2026-11-01 05시대 KST** · 브랜치 `design/first-vertical-slice`
+> ⛔ **이전 판은 `handoff/backup/2026-11-01/HANDOFF-0457.md`** (그 앞 판들은 같은 폴더의 날짜별).
 > 인계 원칙의 정본은 `~/.claude/rules/session-handoff.md` · 근거 정본은 **태스크 노트 ·
-> `docs/ops/pitfalls.md` · 회차 노트**임.
+> `docs/design/**` · 회차 노트(`tests/agent/runs/**/result.md`)**임.
 
 ## ⛔ 먼저 챙길 것 — 첫 코드블록보다 앞에 둠
 
-1. ⛔ **원장 잔여 0건임**(`To Do`·`In Progress`·`Awaiting Decision` 전부 0 · `Done` **344**).
-   사용자 지시(2026-09-19)에 따라 방향 후보를 고르지도, 묻지도 않고 멈춤. 상태만 짧게 적음.
-2. ⛔ **스택이 내려가 있음** — `:8002`·`:3000` 둘 다 리스너 없음(2026-10-18 실측).
-   ⚠️ **이전 판의 「스택이 떠 있음」은 폐기됨.** 학습이나 회차가 필요하면 먼저 띄워야 함.
-   리스너 확인은 `lsof -nP -iTCP:8002 -sTCP:LISTEN -t` 로 함(`H-CJ`).
-3. ⛔ **음성 어댑터 기본값이 `nova` 임**(`app/backend/app/config.py:89` 에서 확인 · `TASK-267`).
-   ⇒ **하네스·회차에서 스텁이 필요하면 `VOICE_ADAPTER=stub` 을 반드시 명시함.** 빼면 실물 Nova 가
-   붙어 과금되고 dev DB 에 가짜 발화가 쌓임.
-4. ⛔ **이 세션은 개발 세션임.** 살아 있는 지시: 묻지 않고 권고대로 감 · 개발 뒤 테스트 필수 ·
-   짧게 핵심만 보고 · 기능은 심플하게. ⛔ **En-Coach 는 고치지 않음.**
-5. ⛔ **유료 회차는 격리 DB `ohmyenglish_worker` 에서 돌림 — dev DB 가 아님**(`TASK-191` 의 결정).
-6. ⛔ **Bedrock 은 SigV4 가 필요함.** 직접 스크립트에는 `env -u AWS_BEARER_TOKEN_BEDROCK` 을 붙임.
-7. ⛔ **회차 출력을 `head` 로 자르지 않음**(SIGPIPE). `> 파일` 로 받고 뒤에서 `grep` 함.
-8. ⛔ **DB 배치**: 스키마 **`ohmyenglish`** · `pg_dump -n ohmyenglish`(`H-BX`) ·
-   `psql` 은 `/opt/homebrew/opt/postgresql@17/bin/psql` · introspection 에는 `current_schema()` 를 걸음.
-9. ⚠️ **PRD 가 v1.6 임** — §16·§17 을 읽지 않고 발음·드릴 영역을 손대지 않음.
-10. ⛔ **superpowers 플러그인은 2026-10-31 에 제거됐음**(사용자 결정 · chrome 3.3.0 은 남김). 근거는 이 맥의
-    A/B 실험(`~/MyProject/superpowers-eval/results/report.html` · 켬·끔 해결률 17/21 대 17/21)임.
-    ⚠️ **이전 판의 「7.0.0 으로 올라갔음 · 절차가 바뀐 것이 넷」은 폐기됨.** 절차는 이제
-    `~/.claude/CLAUDE.md <operating_principles>` 가 소유함. 설치 상태의 정본은 `claude plugin list` 임.
-11. ⛔ **`~/.claude` 리포에 다른 작업에서 온 미커밋 변경이 여러 건 있음**(`CLAUDE.md` 전체를 영어로
-    옮기는 작업 포함). **그 변경을 커밋하거나 되돌리지 않음** — 남의 작업을 삼키게 됨.
-12. ⚠️ **이전 판의 미결 관측 하나가 해소됐음** — 셸의 `HANGUL_SANITY=0` 은 이번 세션에서 재현되지
-    않음(`<unset>`). 훅 등록은 `~/.claude/settings.json` 에 그대로 있음.
+1. ⛔ **원장 잔여는 사람의 결정 1건뿐임** — `TASK-299`(백엔드가 만드는 한국어 문구를 영어로 바꿀지).
+   사용자가 답하기 전에는 손대지 않음. 그 밖의 `To Do`·`In Progress` 는 0건임.
+2. ⛔ **스택은 실행 아이콘이 띄운 상태임** — `~/Applications/OhMyEnglish.app`(바탕화면 별칭).
+   백엔드 `:8002` = `VOICE_ADAPTER=nova` · dev DB · SSO 임시 자격증명 · 부모 launchd.
+   프런트 `:3000` = 이 리포의 `next dev`. 실행 스크립트 정본은 `scripts/launcher/launch.sh`(`TASK-291`).
+3. ⛔ **사용자 지시: 서버를 샌드박스(내 셸)에서 띄우지 않음.** 띄울 때는 아이콘(`open`)이나
+   `launchctl submit` 을 씀. 회차용 백엔드도 그렇게 띄웠고 끝나면 `launchctl remove` 로 내렸음.
+4. ⛔ **SSO 임시 자격증명은 2026-11-01 13:25 KST 에 만료됨** — 그 뒤 실제 Nova 를 쓰려면 아이콘을
+   다시 누름(세션이 30분 미만이면 `aws sso login` 창을 띄움). Bedrock API 키는 Nova 양방향 스트림에서
+   거부됨(응답 본문 「This operation does not support API Keys」 · `TASK-288`).
+5. ⛔ **IAM 사용자 `ohmyenglish-local` 의 정책은 리전이 `us-west-2` 로만 적혀 있어 거부됨**(앱은
+   `us-east-1`). 고치는 법은 `docs/ops/2026-11-01-iam-nova-permission-guide.html`(`TASK-290`).
+   ⛔ AWS 정책은 내가 바꾸지 않음 — 사용자의 몫임.
+6. ⛔ **회차는 dev DB 가 아니라 격리 DB `ohmyenglish_course_paid` 에서 돌림** + `VOICE_ADAPTER=stub`
+   (리디자인 설계서 §8). ⚠️ `/course/<day>` 는 열기만 해도 5초마다 진도를 저장함 — 헤드리스 스크린샷도
+   차단 없이 dev 스택에 대면 dev DB 에 행이 생김(이번 세션에 한 번 생겨 지웠음).
+7. ⚠️ **화면은 이제 영어 · 밝은 테마 · 사이드바임**(v0 리디자인 `TASK-292`~`298`). 옛 회차 드라이버는
+   한국어 문구로 골랐으므로 새 회차는 `data-testid` 로 고름. 목록은 설계서 §4 와 회차 b9 노트에 있음.
+8. ⚠️ 음성 명령 안내는 영어 문장 안에 한국어 명령(「헤이, 학습 종료」 · 「네」)을 남겼음 — 영어 명령이
+   실물에서 통하는지 확인되지 않았음(설계서 §6-6).
+9. ⛔ DB 배치·psql 경로·Bedrock SigV4 규칙은 이전 판과 같음(`handoff/backup/2026-11-01/HANDOFF-0457.md`).
 
 ## 인계 지표 4개
 
 | # | 지표 | 값 |
 |--:|---|---|
-| 1 | 기준 커밋 | **`93a3b7d`** · 작업 트리 깨끗함 · `origin` 과 **0/0** (이 판을 담은 커밋은 아래 `git log -1` 로 읽음) |
-| 2 | 다음 한 걸음 | **없음 — 원장 잔여 0건**(`Done` **344** · 마지막은 `TASK-280`) |
-| 3 | 게이트 | 백엔드 넷 통과 — `pytest` **1452 passed** · `ruff` 0 · `ruff format` 328 files · `ty` 0. ⚠️ **측정 주체는 후속 세션**(`superpowers 7.0.0 첫 세션`)이고, 그 측정 뒤 `app`·`tests` 변경이 0건이므로 `rules/session-handoff.md` §6-1 에 따라 **승계값**임 — 재측정값이 아님. 프런트 셋은 돌리지 않았음 |
-| 4 | 착수 전 필수 | 미결 승인 0 · 스택 내려가 있음(위 2번) |
+| 1 | 기준 커밋 | **`6a04a26`** · `origin` 과 **0/0** (이 판을 담은 커밋은 `git log -1` 로 읽음) |
+| 2 | 다음 한 걸음 | **사용자 결정 대기 `TASK-299`** — 그 밖의 잔여 0건 |
+| 3 | 게이트 | 내가 측정 — 백엔드 `pytest` **1484 passed** · `ruff` 0 · `ruff format` 341 files · `ty` 0 · 하네스 게이트 테스트 112 passed. 프런트 `tsc` 0 · `eslint` 0 · `next build` 0. 측정 뒤 바뀐 것은 이 인계 파일과 원장뿐임 |
+| 4 | 착수 전 필수 | 미결 승인 0 · 결정 대기 1(`TASK-299`) |
 
-⚠️ **이 판에는 셸 코드블록을 두지 않았음.** `tests/test_docs_commands.py` 가 `docs/`·`handoff/` 의
-bash 코드블록마다 케이스를 만들어 **블록 하나가 pytest 개수를 1 늘리기** 때문임(2026-09-25 실측).
-위 3번의 `1452` 를 그대로 유효하게 두려면 블록을 넣지 않는 쪽이 맞음.
+## 이번 세션 요약 (2026-11-01)
 
-## 이번 세션 요약 (2026-10-17 ~ 10-18)
-
-코드 변경 0건임. 도구·설정·세션 운영만 했음.
-
-- **Claude Code** `2.1.296` → **`2.1.302`**(네이티브 판 · 심링크 `~/.local/bin/claude` 정상)
-- **superpowers** `6.4.1` → **`7.0.0`** · **superpowers-chrome** `3.0.5` → **`3.3.0`**
-- `~/.claude/CLAUDE.md` 에서 superpowers 버전 고정을 삭제하고 정본을 `claude plugin list` 로 바꿈.
-  ⛔ **커밋하지 않았음**(위 11번의 이유)
-- Paseo 원격 접속 경로를 조사했음 — 데몬이 `127.0.0.1:6767` 루프백만 듣고 릴레이는 켜져 있음.
-  경로 넷(릴레이 페어링 · LAN 직접 · Tailscale · SSH)의 상세는 이 문서가 담지 않음
-- 중복 세션 `plugin-7.0.0 적용 확인`(`52264fa`)을 중단·보관했음. 토큰 사용량 0 이라 버린 작업 없음
-- 후속 세션이 인계 지표를 대조해 **이전 판의 지표 3개가 낡았음**을 찾았음. 원인은 하나로,
-  인계서를 마지막으로 고친 뒤 커밋 14건(`TASK-269`~`280`)이 들어갔는데 갱신되지 않았음.
-  이 판이 그 교차 확인 결과임
+- 문법 코스 스토리보드 재검증(`TASK-287`) — 결함 넷과 codex 지적 넷을 고침
+- 밑줄 위치·자동 재생 결정 반영(`TASK-289`) · 전사기 실패를 503 으로(`TASK-288`)
+- 실제 Nova 전사 검증 완료(`TASK-288`) — SSO 임시 자격증명으로 연결
+- IAM 권한 안내 HTML(`TASK-290`) · 실행 아이콘(`TASK-291`)
+- v0 홈 리디자인(`TASK-292`~`298`) — Tailwind·shadcn 도입 · 실데이터 대시보드 · 전 화면 영어 ·
+  사이드바 공통 틀 · 하네스 갱신 · 통합 회차 b9·b9r 통과. 설계서 `docs/design/2026-11-01-v0-home-redesign-design.md`
 
 ## 다음 세션이 먼저 볼 것
 
-원장 잔여가 0건이므로 **새 지시를 받기 전까지 할 일이 없음**. 지시가 오면 태스크 등록부터 함
-(`rules/task-management.md` §3). 작업을 시작하면 위 2번에 따라 스택을 먼저 띄워야 함.
+`TASK-299` 의 사용자 답을 받으면 그 턴에 상태를 `In Progress` 로 되돌리고 진행함.
+그 밖의 새 지시가 오면 태스크 등록부터 함(`rules/task-management.md` §3).
