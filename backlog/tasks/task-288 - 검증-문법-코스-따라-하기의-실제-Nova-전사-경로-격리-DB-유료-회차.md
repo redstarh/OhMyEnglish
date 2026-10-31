@@ -4,7 +4,7 @@ title: '검증: 문법 코스 따라 하기의 실제 Nova 전사 경로 (격리
 status: Done
 assignee: []
 created_date: '2026-10-31 16:26'
-updated_date: '2026-10-31 18:23'
+updated_date: '2026-10-31 18:28'
 labels: []
 dependencies: []
 ordinal: 353000
@@ -52,4 +52,6 @@ TASK-287 이 남긴 미검증. stub 대신 실제 Nova 로 시도 POST → 전�
 - 회차 b8(tests/agent/runs/2026-11-01-b8): 실제 전사 3종 통과 — (a) the server is very slow today. 전부 match · (b) …very fast today. → 원문 slow 밑줄 · (c) the server is slow today → 원문 very 취소선. 자동 모드 2문장 실제 전사 후 진행. 새 결함 0. Nova 호출 5회.
 - 내가 직접 대조: 격리 DB course_attempts 7(새 5행 전사 비어 있지 않음) · llm_calls 5(nova-2-sonic, input 3004 · output 194 토큰) · API 히트맵 오늘 7회 · 이력 11/1 Day 1 Unit 1 3문장 7회. dev DB 는 세션 시작과 같음(0 · 0 · 109). 스크린샷 ATTEMPT-b·c 를 직접 열어 밑줄·취소선을 봤음.
 - 남은 것: 물리 마이크 장치 경로는 사람이 확인할 몫임(에이전트는 가짜 장치만 씀).
+
+⛔ 정정(2026-11-01, TASK-290 조사 중): 앞 노트의 「정책이 빠졌음」은 틀렸음. SSO 로 읽기 전용 조회한 결과 인라인 정책 BedrockNovaAndClaudeInvoke 는 그대로 있고, Resource 가 us-west-2 의 Nova·Claude ARN 뿐임. 앱 리전이 2026-10-18 TASK-281.1 에서 us-east-1 로 바뀐 뒤로 us-east-1 호출이 「no identity-based policy allows」로 거부된 것임. 고칠 것은 정책의 Resource 리전임(문서: TASK-290).
 <!-- SECTION:NOTES:END -->
