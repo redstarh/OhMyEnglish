@@ -1,0 +1,274 @@
+{
+ "label": "p390b",
+ "width": 390,
+ "height": 844,
+ "startedAt": "2026-11-01T04:41:01.665Z",
+ "m": {
+  "idle": {
+   "scrollW": 390,
+   "clientW": 390,
+   "scrollX": 0,
+   "heroW": 350,
+   "heroRight": 370,
+   "sentence": null,
+   "spoken": false,
+   "wide": []
+  },
+  "realPractice": {
+   "scrollW": 390,
+   "clientW": 390,
+   "scrollX": 0,
+   "heroW": 350,
+   "heroRight": 370,
+   "sentence": "He has an idea.",
+   "spoken": false,
+   "wide": []
+  },
+  "realSpoken": {
+   "scrollW": 390,
+   "clientW": 390,
+   "scrollX": 0,
+   "heroW": 350,
+   "heroRight": 370,
+   "sentence": "He has an idea.",
+   "spoken": true,
+   "wide": []
+  },
+  "longPractice": {
+   "scrollW": 390,
+   "clientW": 390,
+   "scrollX": 0,
+   "heroW": 350,
+   "heroRight": 370,
+   "sentence": "We deploy on Fridays. This week we are deploying on Thursday.",
+   "spoken": false,
+   "wide": []
+  },
+  "longSpoken": {
+   "scrollW": 390,
+   "clientW": 390,
+   "scrollX": 0,
+   "heroW": 509,
+   "heroRight": 529,
+   "sentence": "We deploy on Fridays. This week we are deploying on Thursday.",
+   "spoken": true,
+   "wide": [
+    {
+     "tag": "DIV",
+     "tid": null,
+     "w": 459,
+     "sw": 459,
+     "text": "TODAY'S PRACTICE\n← Close"
+    },
+    {
+     "tag": "BUTTON",
+     "tid": "practice-close",
+     "w": 71,
+     "sw": 69,
+     "text": "← Close"
+    },
+    {
+     "tag": "DIV",
+     "tid": "home-hero-body",
+     "w": 459,
+     "sw": 459,
+     "text": "Day 4 · Units 63–82\n\nUnit 63 · a · an\nAu"
+    },
+    {
+     "tag": "DIV",
+     "tid": null,
+     "w": 459,
+     "sw": 459,
+     "text": "Day 4 · Units 63–82\n\nUnit 63 · a · an\nAu"
+    },
+    {
+     "tag": "P",
+     "tid": "practice-day",
+     "w": 459,
+     "sw": 459,
+     "text": "Day 4 · Units 63–82"
+    },
+    {
+     "tag": "DIV",
+     "tid": "sentence-practice",
+     "w": 459,
+     "sw": 459,
+     "text": "Unit 63 · a · an\nAuto\nManual\nSentence 3 "
+    }
+   ]
+  },
+  "nowrapScan": {
+   "chain": [
+    {
+     "tag": "DIV",
+     "tid": "course-spoken",
+     "cls": "",
+     "ws": "normal",
+     "disp": "block",
+     "minW": "0px",
+     "w": 425
+    },
+    {
+     "tag": "SECTION",
+     "tid": "course-card",
+     "cls": "",
+     "ws": "normal",
+     "disp": "block",
+     "minW": "0px",
+     "w": 459
+    },
+    {
+     "tag": "DIV",
+     "tid": "sentence-practice",
+     "cls": "",
+     "ws": "normal",
+     "disp": "block",
+     "minW": "0px",
+     "w": 459
+    },
+    {
+     "tag": "DIV",
+     "tid": null,
+     "cls": "mt-4",
+     "ws": "normal",
+     "disp": "block",
+     "minW": "auto",
+     "w": 459
+    },
+    {
+     "tag": "DIV",
+     "tid": "home-hero-body",
+     "cls": "flex min-h-0 flex-1 flex-col",
+     "ws": "normal",
+     "disp": "flex",
+     "minW": "auto",
+     "w": 459
+    }
+   ],
+   "kids": [
+    {
+     "tag": "SPAN",
+     "tid": null,
+     "ws": "normal",
+     "disp": "block",
+     "w": 401,
+     "text": "You said:"
+    },
+    {
+     "tag": "SPAN",
+     "tid": "course-transcript",
+     "ws": "normal",
+     "disp": "inline",
+     "w": 387,
+     "text": "We deploy on Fridays. This wee"
+    },
+    {
+     "tag": "DIV",
+     "tid": null,
+     "ws": "normal",
+     "disp": "block",
+     "w": 401,
+     "text": "WedeployonFridays.Thisweekwear"
+    },
+    {
+     "tag": "SPAN",
+     "tid": null,
+     "ws": "normal",
+     "disp": "inline",
+     "w": 20,
+     "text": "We"
+    },
+    {
+     "tag": "SPAN",
+     "tid": null,
+     "ws": "normal",
+     "disp": "inline",
+     "w": 42,
+     "text": "deploy"
+    },
+    {
+     "tag": "SPAN",
+     "tid": null,
+     "ws": "normal",
+     "disp": "inline",
+     "w": 16,
+     "text": "on"
+    },
+    {
+     "tag": "SPAN",
+     "tid": null,
+     "ws": "normal",
+     "disp": "inline",
+     "w": 47,
+     "text": "Fridays."
+    },
+    {
+     "tag": "SPAN",
+     "tid": null,
+     "ws": "normal",
+     "disp": "inline",
+     "w": 25,
+     "text": "This"
+    },
+    {
+     "tag": "SPAN",
+     "tid": null,
+     "ws": "normal",
+     "disp": "inline",
+     "w": 34,
+     "text": "week"
+    },
+    {
+     "tag": "SPAN",
+     "tid": null,
+     "ws": "normal",
+     "disp": "inline",
+     "w": 18,
+     "text": "we"
+    },
+    {
+     "tag": "SPAN",
+     "tid": null,
+     "ws": "normal",
+     "disp": "inline",
+     "w": 20,
+     "text": "are"
+    },
+    {
+     "tag": "SPAN",
+     "tid": null,
+     "ws": "normal",
+     "disp": "inline",
+     "w": 61,
+     "text": "deploying"
+    },
+    {
+     "tag": "SPAN",
+     "tid": null,
+     "ws": "normal",
+     "disp": "inline",
+     "w": 16,
+     "text": "on"
+    },
+    {
+     "tag": "SPAN",
+     "tid": null,
+     "ws": "normal",
+     "disp": "inline",
+     "w": 59,
+     "text": "Thursday."
+    },
+    {
+     "tag": "SPAN",
+     "tid": null,
+     "ws": "normal",
+     "disp": "block",
+     "w": 401,
+     "text": "Underline: you said a differen"
+    }
+   ]
+  }
+ },
+ "notes": [],
+ "ok": true
+}

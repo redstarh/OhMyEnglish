@@ -1,0 +1,103 @@
+{
+ "label": "p390",
+ "width": 390,
+ "height": 844,
+ "startedAt": "2026-11-01T04:40:17.473Z",
+ "m": {
+  "idle": {
+   "scrollW": 390,
+   "clientW": 390,
+   "scrollX": 0,
+   "heroW": 350,
+   "heroRight": 370,
+   "sentence": null,
+   "spoken": false,
+   "wide": []
+  },
+  "realPractice": {
+   "scrollW": 390,
+   "clientW": 390,
+   "scrollX": 0,
+   "heroW": 350,
+   "heroRight": 370,
+   "sentence": "He has an idea.",
+   "spoken": false,
+   "wide": []
+  },
+  "realSpoken": {
+   "scrollW": 390,
+   "clientW": 390,
+   "scrollX": 0,
+   "heroW": 350,
+   "heroRight": 370,
+   "sentence": "He has an idea.",
+   "spoken": true,
+   "wide": []
+  },
+  "longPractice": {
+   "scrollW": 390,
+   "clientW": 390,
+   "scrollX": 0,
+   "heroW": 350,
+   "heroRight": 370,
+   "sentence": "We deploy on Fridays. This week we are deploying on Thursday.",
+   "spoken": false,
+   "wide": []
+  },
+  "longSpoken": {
+   "scrollW": 390,
+   "clientW": 390,
+   "scrollX": 0,
+   "heroW": 509,
+   "heroRight": 529,
+   "sentence": "We deploy on Fridays. This week we are deploying on Thursday.",
+   "spoken": true,
+   "wide": [
+    {
+     "tag": "DIV",
+     "tid": null,
+     "w": 459,
+     "sw": 459,
+     "text": "TODAY'S PRACTICE\n← Close"
+    },
+    {
+     "tag": "BUTTON",
+     "tid": "practice-close",
+     "w": 71,
+     "sw": 69,
+     "text": "← Close"
+    },
+    {
+     "tag": "DIV",
+     "tid": "home-hero-body",
+     "w": 459,
+     "sw": 459,
+     "text": "Day 4 · Units 63–82\n\nUnit 63 · a · an\nAu"
+    },
+    {
+     "tag": "DIV",
+     "tid": null,
+     "w": 459,
+     "sw": 459,
+     "text": "Day 4 · Units 63–82\n\nUnit 63 · a · an\nAu"
+    },
+    {
+     "tag": "P",
+     "tid": "practice-day",
+     "w": 459,
+     "sw": 459,
+     "text": "Day 4 · Units 63–82"
+    },
+    {
+     "tag": "DIV",
+     "tid": "sentence-practice",
+     "w": 459,
+     "sw": 459,
+     "text": "Unit 63 · a · an\nAuto\nManual\nSentence 3 "
+    }
+   ]
+  }
+ },
+ "notes": [],
+ "ok": true
+}

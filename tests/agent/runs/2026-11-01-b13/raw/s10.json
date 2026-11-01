@@ -1,0 +1,63 @@
+{
+ "key": "s10",
+ "width": 1400,
+ "height": 900,
+ "startedAt": "2026-11-01T04:49:56.868Z",
+ "steps": [
+  {
+   "n": 1,
+   "title": "마이크를 거부한 상태에서 More practice 의 Free talk",
+   "desc": "브라우저가 마이크를 거부함(NotAllowedError 주입)",
+   "tid": "practice-free_talk",
+   "selector": null,
+   "label": "Free talk",
+   "disabled": false,
+   "file": "s10-01.png",
+   "path": "/",
+   "at": "2026-11-01T04:49:59.791Z"
+  },
+  {
+   "n": 2,
+   "title": "카드 안 실패 상자",
+   "desc": "마이크를 허용하고 다시 시도함",
+   "tid": null,
+   "selector": "[data-testid=session-failed] button: Try again",
+   "label": "Try again",
+   "disabled": false,
+   "file": "s10-02.png",
+   "path": "/",
+   "at": "2026-11-01T04:50:01.219Z"
+  },
+  {
+   "n": 3,
+   "title": "다시 시도해 세션이 시작됨",
+   "desc": "",
+   "tid": null,
+   "selector": null,
+   "label": null,
+   "disabled": null,
+   "file": "s10-03.png",
+   "path": "/",
+   "at": "2026-11-01T04:50:03.322Z"
+  },
+  {
+   "n": 4,
+   "title": "결과 화면",
+   "desc": "",
+   "tid": null,
+   "selector": null,
+   "label": null,
+   "disabled": null,
+   "file": "s10-04.png",
+   "path": "/results/2b28d2c0-573b-4948-a42e-27d22dd651ee",
+   "at": "2026-11-01T04:50:17.288Z"
+  }
+ ],
+ "notes": [
+  "failed reason: microphone_permission_denied / Could not connect. |  | Please allow the microphone and try again. |  | Try again← Home",
+  "gum: [\"denied\",\"allowed\"]"
+ ],
+ "ok": true,
+ "logs": [],
+ "endedAt": "2026-11-01T04:50:17.289Z"
+}

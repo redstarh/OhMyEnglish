@@ -1,0 +1,63 @@
+{
+ "key": "s04b",
+ "width": 1400,
+ "height": 900,
+ "startedAt": "2026-11-01T04:47:45.565Z",
+ "steps": [
+  {
+   "n": 1,
+   "title": "Repair your mistakes 카드",
+   "desc": "자주 틀린 패턴을 고치는 대화를 시작함",
+   "tid": "quick-weak-patterns",
+   "selector": null,
+   "label": "Repair your mistakes\n\nFix one mistake. Make it a habit.\n\nReview",
+   "disabled": false,
+   "file": "s04b-01.png",
+   "path": "/",
+   "at": "2026-11-01T04:47:48.497Z"
+  },
+  {
+   "n": 2,
+   "title": "카드 안에서 세션이 시작됨",
+   "desc": "다른 학습 버튼과 메뉴는 잠김",
+   "tid": null,
+   "selector": null,
+   "label": null,
+   "disabled": null,
+   "file": "s04b-02.png",
+   "path": "/",
+   "at": "2026-11-01T04:47:50.175Z"
+  },
+  {
+   "n": 3,
+   "title": "코치와 주고받은 대화 줄이 카드 안에 쌓임",
+   "desc": "stub 픽스처 세 턴",
+   "tid": null,
+   "selector": null,
+   "label": null,
+   "disabled": null,
+   "file": "s04b-03.png",
+   "path": "/",
+   "at": "2026-11-01T04:47:52.144Z"
+  },
+  {
+   "n": 4,
+   "title": "세션이 끝나 결과 화면으로 넘어감",
+   "desc": "이 스택은 분석이 꺼져 있어 Checking… 이 그대로 남음",
+   "tid": null,
+   "selector": null,
+   "label": null,
+   "disabled": null,
+   "file": "s04b-04.png",
+   "path": "/results/7681f98f-1b7b-4c55-b5e3-36303530d042",
+   "at": "2026-11-01T04:48:04.560Z"
+  }
+ ],
+ "notes": [
+  "wsTypes: [\"session_started\",\"final\",\"partial\",\"partial\",\"final\",\"audio\",\"final\",\"partial\",\"partial\",\"final\",\"audio\",\"final\",\"partial\",\"partial\",\"final\",\"audio\",\"session_ended\"]",
+  "sockets: [{\"t\":1793508468530,\"url\":\"/ws/session?source=additional\"}]"
+ ],
+ "ok": true,
+ "logs": [],
+ "endedAt": "2026-11-01T04:48:04.561Z"
+}

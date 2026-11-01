@@ -1,0 +1,111 @@
+{
+ "key": "s01m",
+ "width": 390,
+ "height": 844,
+ "startedAt": "2026-11-01T04:29:09.222Z",
+ "steps": [
+  {
+   "n": 1,
+   "title": "홈 대기 화면",
+   "desc": "오늘의 Day 카드에서 말하기를 시작함",
+   "tid": "start-session",
+   "selector": null,
+   "label": "Start speaking",
+   "disabled": false,
+   "file": "s01m-01.png",
+   "path": "/",
+   "at": "2026-11-01T04:29:12.151Z"
+  },
+  {
+   "n": 2,
+   "title": "카드 안 문장 연습이 열림",
+   "desc": "자동 이어 가기를 끄고 한 문장씩 진행함",
+   "tid": "course-mode-manual",
+   "selector": null,
+   "label": "Manual",
+   "disabled": false,
+   "file": "s01m-02.png",
+   "path": "/",
+   "at": "2026-11-01T04:29:14.164Z"
+  },
+  {
+   "n": 3,
+   "title": "수동 모드로 바꿈",
+   "desc": "듣기 → 따라 말하기 → 판정을 한 번 돎",
+   "tid": "course-start",
+   "selector": null,
+   "label": "Start",
+   "disabled": false,
+   "file": "s01m-03.png",
+   "path": "/",
+   "at": "2026-11-01T04:29:15.352Z"
+  },
+  {
+   "n": 4,
+   "title": "따라 말하기 뒤 판정 안내(stub)",
+   "desc": "stub 이라 판정 대신 안내 문구가 뜸 · 다시 들음(Listen 도 한 바퀴를 돎)",
+   "tid": "course-listen",
+   "selector": null,
+   "label": "🔊 Listen",
+   "disabled": false,
+   "file": "s01m-04.png",
+   "path": "/",
+   "at": "2026-11-01T04:29:21.083Z"
+  },
+  {
+   "n": 5,
+   "title": "다시 듣기를 마침 · Start 자리가 Try again 으로 바뀜",
+   "desc": "다음 문장으로 감",
+   "tid": "course-next",
+   "selector": null,
+   "label": "Next →",
+   "disabled": false,
+   "file": "s01m-05.png",
+   "path": "/",
+   "at": "2026-11-01T04:29:26.399Z"
+  },
+  {
+   "n": 6,
+   "title": "다음 문장",
+   "desc": "연습을 닫고 홈 대기로 돌아감",
+   "tid": "practice-close",
+   "selector": null,
+   "label": "← Close",
+   "disabled": false,
+   "file": "s01m-06.png",
+   "path": "/",
+   "at": "2026-11-01T04:29:27.585Z"
+  },
+  {
+   "n": 7,
+   "title": "홈 대기로 돌아옴",
+   "desc": "",
+   "tid": null,
+   "selector": null,
+   "label": null,
+   "disabled": null,
+   "file": "s01m-07.png",
+   "path": "/",
+   "at": "2026-11-01T04:29:29.548Z"
+  }
+ ],
+ "notes": [
+  "notice: I can't check your speaking now. You can keep going."
+ ],
+ "ok": true,
+ "logs": [
+  {
+   "t": 1793507360282,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u042-s2/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793507365598,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u042-s2/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  }
+ ],
+ "endedAt": "2026-11-01T04:29:29.549Z"
+}

@@ -1,0 +1,104 @@
+{
+ "key": "s02",
+ "width": 1400,
+ "height": 900,
+ "startedAt": "2026-11-01T04:18:52.766Z",
+ "steps": [
+  {
+   "n": 1,
+   "title": "홈 대기 · 진도 카드를 봄",
+   "desc": "오늘의 Day 연습을 엶",
+   "tid": "start-session",
+   "label": "Start speaking",
+   "disabled": false,
+   "file": "s02-01.png",
+   "path": "/",
+   "at": "2026-11-01T04:18:55.698Z"
+  },
+  {
+   "n": 2,
+   "title": "카드 안 문장 연습(수동)",
+   "desc": "Next → 를 마지막 문장까지 여러 번 누름(중간 화면은 생략)",
+   "tid": "course-next",
+   "label": "Next →",
+   "disabled": false,
+   "file": "s02-02.png",
+   "path": "/",
+   "at": "2026-11-01T04:18:58.028Z"
+  },
+  {
+   "n": 3,
+   "title": "마지막 문장 · Finish Day 는 아직 비활성",
+   "desc": "마지막 문장을 한 번 따라 말함",
+   "tid": "course-start",
+   "label": "Start",
+   "disabled": false,
+   "file": "s02-03.png",
+   "path": "/",
+   "at": "2026-11-01T04:19:05.980Z"
+  },
+  {
+   "n": 4,
+   "title": "판정이 끝나 Finish Day 가 켜짐",
+   "desc": "이 Day 를 마침",
+   "tid": "course-finish",
+   "label": "Finish Day",
+   "disabled": false,
+   "file": "s02-04.png",
+   "path": "/",
+   "at": "2026-11-01T04:19:12.547Z"
+  },
+  {
+   "n": 5,
+   "title": "You finished this Day! 안내",
+   "desc": "연습을 닫음",
+   "tid": "practice-close",
+   "label": "← Close",
+   "disabled": false,
+   "file": "s02-05.png",
+   "path": "/",
+   "at": "2026-11-01T04:19:15.296Z"
+  },
+  {
+   "n": 6,
+   "title": "홈 대기 · 진도 카드와 Day 카드가 갱신됨",
+   "desc": "",
+   "tid": null,
+   "label": null,
+   "disabled": null,
+   "file": "s02-06.png",
+   "path": "/",
+   "at": "2026-11-01T04:19:18.977Z"
+  }
+ ],
+ "notes": [
+  "course before: {\"current_day\":1,\"days\":[[1,1,null],[2,2,null],[3,1,null],[4,1,null],[5,1,null],[6,2,null]]}",
+  "progress card before: YOUR PROGRESS |  | 2 / 6 days |  | Grammar course | This week: 1 / 7 days |  | 0 |  | Sessions |  | 1 |  | Best streak |  | 0 |  | Patterns |  | Weekly report · week of Oct 19",
+  "Next pressed 92 times",
+  "after finish: {\"path\":\"/\",\"heroMode\":\"practice\",\"heroState\":\"ready\",\"practiceDay\":\"Day 1 · Units 1–21\",\"practiceDayState\":\"ready\",\"spInHero\":true,\"sp\":true,\"iframes\":0,\"phase\":\"idle\",\"num\":\"Sentence 1 / 5\",\"unit\":\"Unit 1 · be 동사 am · is · are\",\"sentence\":\"I am a software tester.\",\"attempts\":\"Try 1\",\"notice\":\"You finished this Day!\",\"prevDisabled\":true,\"finish\":\"absent\",\"retry\":false,\"start\":true,\"auto\":\"false\",\"manual\":\"true\",\"close\":true,\"follow\":null,\"heroTitle\":null,\"heroDay\":null,\"panel\":false,\"navLocked\":[null]}",
+  "course after: {\"current_day\":3,\"days\":[[1,2,null],[2,2,null],[3,1,null],[4,1,null],[5,1,null],[6,2,null]]}",
+  "progress card after close: YOUR PROGRESS |  | 3 / 6 days |  | Grammar course | This week: 1 / 7 days |  | 0 |  | Sessions |  | 1 |  | Best streak |  | 0 |  | Patterns |  | Weekly report · week of Oct 19 / hero: Day 3: listen and say it. / Day 3 · Units 42–62"
+ ],
+ "ok": true,
+ "logs": [
+  {
+   "t": 1793506732763,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u003-s2/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793506732763,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u003-s2/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793506751628,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u021-s5/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  }
+ ],
+ "endedAt": "2026-11-01T04:19:18.978Z"
+}

@@ -1,0 +1,51 @@
+{
+ "key": "s10c",
+ "width": 1400,
+ "height": 900,
+ "startedAt": "2026-11-01T04:28:45.391Z",
+ "steps": [
+  {
+   "n": 1,
+   "title": "마이크를 거부한 상태에서 Start speaking",
+   "desc": "브라우저가 마이크를 거부함(NotAllowedError 주입)",
+   "tid": "start-session",
+   "selector": null,
+   "label": "Start speaking",
+   "disabled": false,
+   "file": "s10c-01.png",
+   "path": "/",
+   "at": "2026-11-01T04:28:48.322Z"
+  },
+  {
+   "n": 2,
+   "title": "카드 안 문장 연습",
+   "desc": "따라 말하기를 시작함(마이크 거부)",
+   "tid": "course-start",
+   "selector": null,
+   "label": "Start",
+   "disabled": false,
+   "file": "s10c-02.png",
+   "path": "/",
+   "at": "2026-11-01T04:28:49.757Z"
+  },
+  {
+   "n": 3,
+   "title": "마이크 거부 뒤 문장 연습 카드",
+   "desc": "",
+   "tid": null,
+   "selector": null,
+   "label": null,
+   "disabled": null,
+   "file": "s10c-03.png",
+   "path": "/",
+   "at": "2026-11-01T04:28:56.348Z"
+  }
+ ],
+ "notes": [
+  "practice after deny: {\"path\":\"/\",\"heroMode\":\"practice\",\"heroState\":\"ready\",\"practiceDay\":\"Day 3 · Units 42–62\",\"practiceDayState\":\"ready\",\"spInHero\":true,\"sp\":true,\"iframes\":0,\"phase\":\"idle\",\"num\":\"Sentence 2 / 5\",\"unit\":\"Unit 42 · 의문문 만들기\",\"sentence\":\"Can we start the meeting now?\",\"attempts\":\"Try 0\",\"notice\":\"I can't use the mic. Please allow the mic in your browser.\",\"prevDisabled\":false,\"finish\":\"absent\",\"retry\":false,\"start\":true,\"auto\":\"false\",\"manual\":\"true\",\"close\":true,\"follow\":null,\"heroTitle\":null,\"heroDay\":null,\"panel\":false,\"navLocked\":[null]}",
+  "gum: [\"denied\"]"
+ ],
+ "ok": true,
+ "logs": [],
+ "endedAt": "2026-11-01T04:28:56.348Z"
+}

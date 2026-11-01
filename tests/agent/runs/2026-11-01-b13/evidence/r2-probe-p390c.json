@@ -1,0 +1,167 @@
+{
+ "label": "p390c",
+ "width": 390,
+ "height": 844,
+ "startedAt": "2026-11-01T04:41:51.407Z",
+ "m": {
+  "idle": {
+   "scrollW": 390,
+   "clientW": 390,
+   "scrollX": 0,
+   "heroW": 350,
+   "heroRight": 370,
+   "sentence": null,
+   "spoken": false,
+   "wide": []
+  },
+  "realPractice": {
+   "scrollW": 390,
+   "clientW": 390,
+   "scrollX": 0,
+   "heroW": 350,
+   "heroRight": 370,
+   "sentence": "He has an idea.",
+   "spoken": false,
+   "wide": []
+  },
+  "realSpoken": {
+   "scrollW": 390,
+   "clientW": 390,
+   "scrollX": 0,
+   "heroW": 350,
+   "heroRight": 370,
+   "sentence": "He has an idea.",
+   "spoken": true,
+   "wide": []
+  },
+  "reachedReal": {
+   "nexts": 22,
+   "scrollW": 390,
+   "clientW": 390,
+   "scrollX": 0,
+   "heroW": 350,
+   "heroRight": 370,
+   "sentence": "She works in a big building. The building has thirty floors.",
+   "spoken": false,
+   "wide": []
+  },
+  "realLongSpoken": {
+   "scrollW": 390,
+   "clientW": 390,
+   "scrollX": 0,
+   "heroW": 470,
+   "heroRight": 490,
+   "sentence": "She works in a big building. The building has thirty floors.",
+   "spoken": true,
+   "wide": [
+    {
+     "tag": "DIV",
+     "tid": null,
+     "w": 420,
+     "sw": 420,
+     "text": "TODAY'S PRACTICE\n← Close"
+    },
+    {
+     "tag": "BUTTON",
+     "tid": "practice-close",
+     "w": 71,
+     "sw": 69,
+     "text": "← Close"
+    },
+    {
+     "tag": "DIV",
+     "tid": "home-hero-body",
+     "w": 420,
+     "sw": 420,
+     "text": "Day 4 · Units 63–82\n\nUnit 67 · a 와 the\nA"
+    },
+    {
+     "tag": "DIV",
+     "tid": null,
+     "w": 420,
+     "sw": 420,
+     "text": "Day 4 · Units 63–82\n\nUnit 67 · a 와 the\nA"
+    },
+    {
+     "tag": "P",
+     "tid": "practice-day",
+     "w": 420,
+     "sw": 420,
+     "text": "Day 4 · Units 63–82"
+    },
+    {
+     "tag": "DIV",
+     "tid": "sentence-practice",
+     "w": 420,
+     "sw": 420,
+     "text": "Unit 67 · a 와 the\nAuto\nManual\nSentence 5"
+    }
+   ]
+  },
+  "realLongSpoken1400": {
+   "scrollW": 1400,
+   "clientW": 1400,
+   "scrollX": 0,
+   "heroW": 669,
+   "heroRight": 965,
+   "sentence": "She works in a big building. The building has thirty floors.",
+   "spoken": true,
+   "wide": []
+  },
+  "backTo390": {
+   "scrollW": 390,
+   "clientW": 390,
+   "scrollX": 0,
+   "heroW": 470,
+   "heroRight": 490,
+   "sentence": "She works in a big building. The building has thirty floors.",
+   "spoken": true,
+   "wide": [
+    {
+     "tag": "DIV",
+     "tid": null,
+     "w": 420,
+     "sw": 420,
+     "text": "TODAY'S PRACTICE\n← Close"
+    },
+    {
+     "tag": "BUTTON",
+     "tid": "practice-close",
+     "w": 71,
+     "sw": 69,
+     "text": "← Close"
+    },
+    {
+     "tag": "DIV",
+     "tid": "home-hero-body",
+     "w": 420,
+     "sw": 420,
+     "text": "Day 4 · Units 63–82\n\nUnit 67 · a 와 the\nA"
+    },
+    {
+     "tag": "DIV",
+     "tid": null,
+     "w": 420,
+     "sw": 420,
+     "text": "Day 4 · Units 63–82\n\nUnit 67 · a 와 the\nA"
+    },
+    {
+     "tag": "P",
+     "tid": "practice-day",
+     "w": 420,
+     "sw": 420,
+     "text": "Day 4 · Units 63–82"
+    },
+    {
+     "tag": "DIV",
+     "tid": "sentence-practice",
+     "w": 420,
+     "sw": 420,
+     "text": "Unit 67 · a 와 the\nAuto\nManual\nSentence 5"
+    }
+   ]
+  }
+ },
+ "notes": [],
+ "ok": true
+}

@@ -1,0 +1,125 @@
+{
+ "key": "s07",
+ "width": 1400,
+ "height": 900,
+ "startedAt": "2026-11-01T04:48:52.328Z",
+ "steps": [
+  {
+   "n": 1,
+   "title": "홈의 Listen & notice 카드",
+   "desc": "영상 목록으로 감",
+   "tid": "quick-videos",
+   "selector": null,
+   "label": "Listen & notice\n\nHear real English in short clips.\n\nWatch",
+   "disabled": false,
+   "file": "s07-01.png",
+   "path": "/",
+   "at": "2026-11-01T04:48:55.240Z"
+  },
+  {
+   "n": 2,
+   "title": "영상 목록 · 링크 칸과 저장된 영상",
+   "desc": "저장된 영상을 엶",
+   "tid": null,
+   "selector": "a[href^=\"/videos/\"] (영상 제목)",
+   "label": "🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머",
+   "disabled": false,
+   "file": "s07-02.png",
+   "path": "/videos",
+   "at": "2026-11-01T04:48:57.474Z"
+  },
+  {
+   "n": 3,
+   "title": "영상 화면",
+   "desc": "영상을 재생함",
+   "tid": null,
+   "selector": "iframe (YouTube 재생 버튼)",
+   "label": "",
+   "disabled": false,
+   "file": "s07-03.png",
+   "path": "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+   "at": "2026-11-01T04:49:02.740Z"
+  },
+  {
+   "n": 4,
+   "title": "영상이 재생됨",
+   "desc": "들을 구간의 시작을 찍음",
+   "tid": null,
+   "selector": "button: Mark start",
+   "label": "Mark start",
+   "disabled": false,
+   "file": "s07-04.png",
+   "path": "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+   "at": "2026-11-01T04:49:06.103Z"
+  },
+  {
+   "n": 5,
+   "title": "시작을 찍음 · 계속 재생",
+   "desc": "구간의 끝을 찍음",
+   "tid": null,
+   "selector": "button: Mark end",
+   "label": "Mark end",
+   "disabled": false,
+   "file": "s07-05.png",
+   "path": "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+   "at": "2026-11-01T04:49:10.941Z"
+  },
+  {
+   "n": 6,
+   "title": "구간 반복 재생 · 받아쓰기를 적음",
+   "desc": "들은 문장을 저장함",
+   "tid": null,
+   "selector": "button: Save",
+   "label": "Save",
+   "disabled": false,
+   "file": "s07-06.png",
+   "path": "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+   "at": "2026-11-01T04:49:12.876Z"
+  },
+  {
+   "n": 7,
+   "title": "저장된 문장 목록",
+   "desc": "문장 속 낱말을 눌러 뜻을 봄",
+   "tid": null,
+   "selector": "button: 낱말 work",
+   "label": "work",
+   "disabled": false,
+   "file": "s07-07.png",
+   "path": "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+   "at": "2026-11-01T04:49:14.728Z"
+  },
+  {
+   "n": 8,
+   "title": "낱말 뜻 조회 결과",
+   "desc": "stub 이라 뜻을 받지 못한 안내가 뜸",
+   "tid": null,
+   "selector": null,
+   "label": null,
+   "disabled": null,
+   "file": "s07-08.png",
+   "path": "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+   "at": "2026-11-01T04:49:18.304Z"
+  }
+ ],
+ "notes": [
+  "video after play: {\"t\":2.26,\"paused\":false,\"mode\":\"playing\"}",
+  "lookup status: work — I couldn't find it. Tap again.",
+  "phrase_count after cleanup: [0]"
+ ],
+ "ok": true,
+ "logs": [
+  {
+   "t": 1793508532327,
+   "kind": "log.warning",
+   "url": "https://www.youtube.com/s/player/11a45ffb/www-widgetapi.vflset/www-widgetapi.js",
+   "text": "Failed to execute 'postMessage' on 'DOMWindow': The target origin provided ('https://www.youtube.com') does not match the recipient window's origin ('http://localhost:3000')."
+  },
+  {
+   "t": 1793508532327,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u001-s1/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  }
+ ],
+ "endedAt": "2026-11-01T04:49:19.821Z"
+}

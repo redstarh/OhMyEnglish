@@ -1,0 +1,110 @@
+{
+ "key": "s02",
+ "width": 1400,
+ "height": 900,
+ "startedAt": "2026-11-01T04:46:40.738Z",
+ "steps": [
+  {
+   "n": 1,
+   "title": "홈 대기 · 진도 카드를 봄",
+   "desc": "오늘의 Day 연습을 엶",
+   "tid": "start-session",
+   "selector": null,
+   "label": "Start speaking",
+   "disabled": false,
+   "file": "s02-01.png",
+   "path": "/",
+   "at": "2026-11-01T04:46:43.665Z"
+  },
+  {
+   "n": 2,
+   "title": "카드 안 문장 연습(수동)",
+   "desc": "Next → 를 마지막 문장까지 여러 번 누름(중간 화면은 생략)",
+   "tid": "course-next",
+   "selector": null,
+   "label": "Next →",
+   "disabled": false,
+   "file": "s02-02.png",
+   "path": "/",
+   "at": "2026-11-01T04:46:46.032Z"
+  },
+  {
+   "n": 3,
+   "title": "마지막 문장 · Finish Day 는 아직 비활성",
+   "desc": "마지막 문장을 한 번 따라 말함",
+   "tid": "course-start",
+   "selector": null,
+   "label": "Start",
+   "disabled": false,
+   "file": "s02-03.png",
+   "path": "/",
+   "at": "2026-11-01T04:46:53.795Z"
+  },
+  {
+   "n": 4,
+   "title": "판정이 끝나 Finish Day 가 켜짐",
+   "desc": "이 Day 를 마침",
+   "tid": "course-finish",
+   "selector": null,
+   "label": "Finish Day",
+   "disabled": false,
+   "file": "s02-04.png",
+   "path": "/",
+   "at": "2026-11-01T04:47:01.015Z"
+  },
+  {
+   "n": 5,
+   "title": "You finished this Day! 안내",
+   "desc": "연습을 닫음",
+   "tid": "practice-close",
+   "selector": null,
+   "label": "← Close",
+   "disabled": false,
+   "file": "s02-05.png",
+   "path": "/",
+   "at": "2026-11-01T04:47:03.742Z"
+  },
+  {
+   "n": 6,
+   "title": "홈 대기 · 진도 카드와 Day 카드가 갱신됨",
+   "desc": "",
+   "tid": null,
+   "selector": null,
+   "label": null,
+   "disabled": null,
+   "file": "s02-06.png",
+   "path": "/",
+   "at": "2026-11-01T04:47:07.425Z"
+  }
+ ],
+ "notes": [
+  "course before: {\"current_day\":5,\"days\":[[1,2,null],[2,2,null],[3,2,null],[4,2,null],[5,1,null],[6,2,null]]}",
+  "progress card before: YOUR PROGRESS |  | 5 / 6 days |  | Grammar course | This week: 1 / 7 days |  | 0 |  | Sessions |  | 1 |  | Best streak |  | 0 |  | Patterns |  | Weekly report · week of Oct 19",
+  "Next pressed 87 times",
+  "after finish: {\"path\":\"/\",\"heroMode\":\"practice\",\"heroState\":\"ready\",\"practiceDay\":\"Day 5 · Units 83–100\",\"practiceDayState\":\"ready\",\"spInHero\":true,\"sp\":true,\"iframes\":0,\"phase\":\"idle\",\"num\":\"Sentence 1 / 5\",\"unit\":\"Unit 83 · 형용사 위치\",\"sentence\":\"We moved into a bright office.\",\"attempts\":\"Try 0\",\"notice\":\"You finished this Day!\",\"prevDisabled\":true,\"finish\":\"absent\",\"retry\":false,\"start\":true,\"auto\":\"false\",\"manual\":\"true\",\"close\":true,\"follow\":null,\"heroTitle\":null,\"heroDay\":null,\"panel\":false,\"navLocked\":[null]}",
+  "course after: {\"current_day\":1,\"days\":[[1,2,null],[2,2,null],[3,2,null],[4,2,null],[5,2,null],[6,2,null]]}",
+  "progress card after close: YOUR PROGRESS |  | 0 / 6 days |  | Grammar course | This week: 1 / 7 days |  | 0 |  | Sessions |  | 1 |  | Best streak |  | 0 |  | Patterns |  | Weekly report · week of Oct 19 / hero: Day 1: listen and say it. / Day 1 · Units 1–21"
+ ],
+ "ok": true,
+ "logs": [
+  {
+   "t": 1793508400737,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u083-s2/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793508400737,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u083-s2/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793508420038,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u100-s5/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  }
+ ],
+ "endedAt": "2026-11-01T04:47:07.425Z"
+}

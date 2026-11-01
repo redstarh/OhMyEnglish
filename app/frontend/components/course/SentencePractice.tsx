@@ -19,6 +19,7 @@
 
 import {
   forwardRef,
+  Fragment,
   useCallback,
   useEffect,
   useImperativeHandle,
@@ -127,13 +128,13 @@ function Spoken({ words, transcript }: { words: ReadbackWord[]; transcript: stri
       </span>
       <span data-testid="course-transcript">{transcript}</span>
       {words.length > 0 ? (
-        <div style={{ marginTop: 4, fontSize: "0.85rem" }}>
+        // 낱말 사이에 실제 공백을 둠 — 여백만 두면 줄을 끊을 자리가 없어 좁은 화면에서 카드가 넓어졌음(회차 b13 r2 D1).
+        <div style={{ marginTop: 4, fontSize: "0.85rem", overflowWrap: "anywhere" }}>
           {words.map((item, index) => (
+            <Fragment key={`${item.word}-${index}`}>
             <span
-              key={`${item.word}-${index}`}
               data-verdict={item.verdict}
               style={{
-                marginRight: 4,
                 textDecoration:
                   item.verdict === "missing"
                     ? "line-through"
@@ -144,7 +145,8 @@ function Spoken({ words, transcript }: { words: ReadbackWord[]; transcript: stri
               }}
             >
               {item.word}
-            </span>
+            </span>{" "}
+            </Fragment>
           ))}
           <span style={{ display: "block", fontSize: "0.72rem", color: "var(--foreground-muted)" }}>
             Underline: you said a different word. Strikethrough: you missed the word.

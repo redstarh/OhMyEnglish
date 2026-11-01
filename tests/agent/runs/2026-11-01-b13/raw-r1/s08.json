@@ -1,0 +1,97 @@
+{
+ "key": "s08",
+ "width": 1400,
+ "height": 900,
+ "startedAt": "2026-11-01T04:30:00.988Z",
+ "steps": [
+  {
+   "n": 1,
+   "title": "홈에서 사이드바 Review",
+   "desc": "학습 이력으로 감",
+   "tid": "nav-review",
+   "selector": null,
+   "label": "Review",
+   "disabled": false,
+   "file": "s08-01.png",
+   "path": "/",
+   "at": "2026-11-01T04:30:03.920Z"
+  },
+  {
+   "n": 2,
+   "title": "이력 화면(위쪽)",
+   "desc": "날짜별 학습 기록",
+   "tid": null,
+   "selector": null,
+   "label": null,
+   "disabled": null,
+   "file": "s08-02.png",
+   "path": "/history",
+   "at": "2026-11-01T04:30:07.092Z"
+  },
+  {
+   "n": 3,
+   "title": "이력 화면(아래쪽 링크)",
+   "desc": "이번 주 리포트를 엶",
+   "tid": null,
+   "selector": "a: Weekly report →",
+   "label": "Weekly report →",
+   "disabled": false,
+   "file": "s08-03.png",
+   "path": "/history",
+   "at": "2026-11-01T04:30:07.395Z"
+  },
+  {
+   "n": 4,
+   "title": "주간 리포트",
+   "desc": "이력으로 돌아감",
+   "tid": null,
+   "selector": "a: ← History",
+   "label": "← History",
+   "disabled": false,
+   "file": "s08-04.png",
+   "path": "/history/weekly",
+   "at": "2026-11-01T04:30:11.123Z"
+  },
+  {
+   "n": 5,
+   "title": "이력으로 돌아옴",
+   "desc": "사이드바 Progress 로도 주간 리포트에 감",
+   "tid": "nav-progress",
+   "selector": null,
+   "label": "Progress",
+   "disabled": false,
+   "file": "s08-05.png",
+   "path": "/history",
+   "at": "2026-11-01T04:30:13.842Z"
+  },
+  {
+   "n": 6,
+   "title": "주간 리포트 · 사이드바 Progress 가 켜짐",
+   "desc": "",
+   "tid": null,
+   "selector": null,
+   "label": null,
+   "disabled": null,
+   "file": "s08-06.png",
+   "path": "/history/weekly",
+   "at": "2026-11-01T04:30:17.518Z"
+  }
+ ],
+ "notes": [],
+ "ok": true,
+ "logs": [
+  {
+   "t": 1793507400987,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u042-s2/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793507400987,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u042-s2/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  }
+ ],
+ "endedAt": "2026-11-01T04:30:17.519Z"
+}

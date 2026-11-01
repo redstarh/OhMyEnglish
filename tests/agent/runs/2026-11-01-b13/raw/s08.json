@@ -1,0 +1,84 @@
+{
+ "key": "s08",
+ "width": 1400,
+ "height": 900,
+ "startedAt": "2026-11-01T04:49:19.879Z",
+ "steps": [
+  {
+   "n": 1,
+   "title": "홈에서 사이드바 Review",
+   "desc": "학습 이력으로 감",
+   "tid": "nav-review",
+   "selector": null,
+   "label": "Review",
+   "disabled": false,
+   "file": "s08-01.png",
+   "path": "/",
+   "at": "2026-11-01T04:49:22.825Z"
+  },
+  {
+   "n": 2,
+   "title": "이력 화면(위쪽)",
+   "desc": "날짜별 학습 기록",
+   "tid": null,
+   "selector": null,
+   "label": null,
+   "disabled": null,
+   "file": "s08-02.png",
+   "path": "/history",
+   "at": "2026-11-01T04:49:26.001Z"
+  },
+  {
+   "n": 3,
+   "title": "이력 화면(아래쪽 링크)",
+   "desc": "이번 주 리포트를 엶",
+   "tid": null,
+   "selector": "a: Weekly report →",
+   "label": "Weekly report →",
+   "disabled": false,
+   "file": "s08-03.png",
+   "path": "/history",
+   "at": "2026-11-01T04:49:26.299Z"
+  },
+  {
+   "n": 4,
+   "title": "주간 리포트",
+   "desc": "이력으로 돌아감",
+   "tid": null,
+   "selector": "a: ← History",
+   "label": "← History",
+   "disabled": false,
+   "file": "s08-04.png",
+   "path": "/history/weekly",
+   "at": "2026-11-01T04:49:30.028Z"
+  },
+  {
+   "n": 5,
+   "title": "이력으로 돌아옴",
+   "desc": "사이드바 Progress 로도 주간 리포트에 감",
+   "tid": "nav-progress",
+   "selector": null,
+   "label": "Progress",
+   "disabled": false,
+   "file": "s08-05.png",
+   "path": "/history",
+   "at": "2026-11-01T04:49:32.752Z"
+  },
+  {
+   "n": 6,
+   "title": "주간 리포트 · 사이드바 Progress 가 켜짐",
+   "desc": "",
+   "tid": null,
+   "selector": null,
+   "label": null,
+   "disabled": null,
+   "file": "s08-06.png",
+   "path": "/history/weekly",
+   "at": "2026-11-01T04:49:36.427Z"
+  }
+ ],
+ "notes": [],
+ "ok": true,
+ "logs": [],
+ "endedAt": "2026-11-01T04:49:36.427Z"
+}

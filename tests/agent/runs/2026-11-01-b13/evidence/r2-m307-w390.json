@@ -1,0 +1,359 @@
+{
+ "label": "w390",
+ "width": 390,
+ "height": 844,
+ "startedAt": "2026-11-01T04:43:53.986Z",
+ "m": {
+  "idle": {
+   "mode": "idle",
+   "scrollY": 0,
+   "docH": 2223,
+   "hero": {
+    "h": 672,
+    "sh": 672,
+    "ch": 672,
+    "ov": "visible"
+   },
+   "body": null,
+   "log": null,
+   "spoken": false,
+   "sentence": null,
+   "failed": false,
+   "path": [
+    58,
+    58
+   ],
+   "quick": [
+    70,
+    68,
+    70
+   ],
+   "pathSection": 178
+  },
+  "practice": {
+   "mode": "practice",
+   "scrollY": 0,
+   "docH": 2223,
+   "hero": {
+    "h": 672,
+    "sh": 670,
+    "ch": 670,
+    "ov": "visible"
+   },
+   "body": {
+    "h": 590,
+    "sh": 590,
+    "ch": 590,
+    "ov": "visible"
+   },
+   "log": null,
+   "spoken": false,
+   "sentence": "She works in a big building. The building has thirty floors.",
+   "failed": false,
+   "path": [
+    58,
+    58
+   ],
+   "quick": [
+    70,
+    68,
+    70
+   ],
+   "pathSection": 178
+  },
+  "skippedLong": 1,
+  "practiceSpoken": {
+   "mode": "practice",
+   "scrollY": 0,
+   "docH": 2223,
+   "hero": {
+    "h": 672,
+    "sh": 670,
+    "ch": 670,
+    "ov": "visible"
+   },
+   "body": {
+    "h": 590,
+    "sh": 590,
+    "ch": 590,
+    "ov": "visible"
+   },
+   "log": null,
+   "spoken": true,
+   "sentence": "Who is the owner of the repo?",
+   "failed": false,
+   "path": [
+    58,
+    58
+   ],
+   "quick": [
+    70,
+    68,
+    70
+   ],
+   "pathSection": 178
+  },
+  "afterNext": {
+   "mode": "practice",
+   "scrollY": 0,
+   "docH": 2223,
+   "hero": {
+    "h": 672,
+    "sh": 670,
+    "ch": 670,
+    "ov": "visible"
+   },
+   "body": {
+    "h": 590,
+    "sh": 590,
+    "ch": 590,
+    "ov": "visible"
+   },
+   "log": null,
+   "spoken": false,
+   "sentence": "The sun is very bright today.",
+   "failed": false,
+   "path": [
+    58,
+    58
+   ],
+   "quick": [
+    70,
+    68,
+    70
+   ],
+   "pathSection": 178,
+   "scrollBefore": 0,
+   "scrollStartBefore": 0
+  },
+  "startScrolled": {
+   "before": 60,
+   "after": 60,
+   "hero": {
+    "h": 672,
+    "sh": 670,
+    "ch": 670,
+    "ov": "visible"
+   }
+  },
+  "longPractice": {
+   "mode": "practice",
+   "scrollY": 0,
+   "docH": 2223,
+   "hero": {
+    "h": 672,
+    "sh": 670,
+    "ch": 670,
+    "ov": "visible"
+   },
+   "body": {
+    "h": 590,
+    "sh": 590,
+    "ch": 590,
+    "ov": "visible"
+   },
+   "log": null,
+   "spoken": false,
+   "sentence": "We deploy on Fridays. This week we are deploying on Thursday.",
+   "failed": false,
+   "path": [
+    58,
+    58
+   ],
+   "quick": [
+    70,
+    68,
+    70
+   ],
+   "pathSection": 178
+  },
+  "longSpoken": {
+   "mode": "practice",
+   "scrollY": 0,
+   "docH": 2223,
+   "hero": {
+    "h": 672,
+    "sh": 670,
+    "ch": 670,
+    "ov": "visible"
+   },
+   "body": {
+    "h": 590,
+    "sh": 590,
+    "ch": 590,
+    "ov": "visible"
+   },
+   "log": null,
+   "spoken": true,
+   "sentence": "We deploy on Fridays. This week we are deploying on Thursday.",
+   "failed": false,
+   "path": [
+    58,
+    58
+   ],
+   "quick": [
+    70,
+    68,
+    70
+   ],
+   "pathSection": 178
+  },
+  "longSpokenCloseReachable": {
+   "left": 433,
+   "right": 504,
+   "innerWidth": 390
+  },
+  "modeBeforeFinishLoop": [
+   "false",
+   "true"
+  ],
+  "afterFinish": {
+   "mode": "practice",
+   "scrollY": 0,
+   "docH": 2223,
+   "hero": {
+    "h": 672,
+    "sh": 670,
+    "ch": 670,
+    "ov": "visible"
+   },
+   "body": {
+    "h": 590,
+    "sh": 590,
+    "ch": 590,
+    "ov": "visible"
+   },
+   "log": null,
+   "spoken": false,
+   "sentence": "I need a charger.",
+   "failed": false,
+   "path": [
+    58,
+    58
+   ],
+   "quick": [
+    70,
+    68,
+    70
+   ],
+   "pathSection": 178,
+   "scrollBefore": 0,
+   "nexts": 73,
+   "dayBefore": 4,
+   "dayAfter": 5,
+   "notice": "You finished this Day!"
+  },
+  "idleAfterFinish": {
+   "mode": "idle",
+   "scrollY": 0,
+   "docH": 2223,
+   "hero": {
+    "h": 672,
+    "sh": 672,
+    "ch": 672,
+    "ov": "visible"
+   },
+   "body": null,
+   "log": null,
+   "spoken": false,
+   "sentence": null,
+   "failed": false,
+   "path": [
+    58,
+    58
+   ],
+   "quick": [
+    70,
+    68,
+    70
+   ],
+   "pathSection": 178
+  },
+  "session": {
+   "n": 51,
+   "heroH": [
+    672
+   ],
+   "heroScrolls": 0,
+   "bodyScrolls": 0,
+   "logMax": {
+    "h": 356.3,
+    "sh": 626,
+    "ch": 356,
+    "ov": "auto"
+   },
+   "logScrolls": 25,
+   "last": {
+    "mode": "session",
+    "scrollY": 1379,
+    "docH": 2223,
+    "hero": {
+     "h": 672,
+     "sh": 670,
+     "ch": 670,
+     "ov": "visible"
+    },
+    "body": {
+     "h": 595,
+     "sh": 595,
+     "ch": 595,
+     "ov": "auto"
+    },
+    "log": {
+     "h": 356.3,
+     "sh": 626,
+     "ch": 356,
+     "ov": "auto"
+    },
+    "spoken": false,
+    "sentence": null,
+    "failed": false,
+    "path": [
+     58,
+     58
+    ],
+    "quick": [
+     70,
+     68,
+     70
+    ],
+    "pathSection": 178
+   }
+  },
+  "failed": {
+   "mode": "session",
+   "scrollY": 1379,
+   "docH": 2223,
+   "hero": {
+    "h": 672,
+    "sh": 670,
+    "ch": 670,
+    "ov": "visible"
+   },
+   "body": {
+    "h": 595,
+    "sh": 595,
+    "ch": 595,
+    "ov": "auto"
+   },
+   "log": null,
+   "spoken": false,
+   "sentence": null,
+   "failed": true,
+   "path": [
+    58,
+    58
+   ],
+   "quick": [
+    70,
+    68,
+    70
+   ],
+   "pathSection": 178
+  }
+ },
+ "notes": [],
+ "attemptMocks": 3,
+ "ok": true,
+ "logs": []
+}

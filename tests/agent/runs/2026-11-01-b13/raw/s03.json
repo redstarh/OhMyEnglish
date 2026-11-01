@@ -1,0 +1,70 @@
+{
+ "key": "s03",
+ "width": 1400,
+ "height": 900,
+ "startedAt": "2026-11-01T04:47:07.478Z",
+ "steps": [
+  {
+   "n": 1,
+   "title": "홈 More practice 의 Free talk",
+   "desc": "코치와 자유 대화를 시작함",
+   "tid": "practice-free_talk",
+   "selector": null,
+   "label": "Free talk",
+   "disabled": false,
+   "file": "s03-01.png",
+   "path": "/",
+   "at": "2026-11-01T04:47:10.396Z"
+  },
+  {
+   "n": 2,
+   "title": "카드 안에서 세션이 시작됨",
+   "desc": "다른 학습 버튼과 메뉴는 잠김",
+   "tid": null,
+   "selector": null,
+   "label": null,
+   "disabled": null,
+   "file": "s03-02.png",
+   "path": "/",
+   "at": "2026-11-01T04:47:12.079Z"
+  },
+  {
+   "n": 3,
+   "title": "코치와 주고받은 대화 줄이 카드 안에 쌓임",
+   "desc": "stub 픽스처 세 턴",
+   "tid": null,
+   "selector": null,
+   "label": null,
+   "disabled": null,
+   "file": "s03-03.png",
+   "path": "/",
+   "at": "2026-11-01T04:47:14.062Z"
+  },
+  {
+   "n": 4,
+   "title": "세션이 끝나 결과 화면으로 넘어감",
+   "desc": "이 스택은 분석이 꺼져 있어 Checking… 이 그대로 남음",
+   "tid": null,
+   "selector": null,
+   "label": null,
+   "disabled": null,
+   "file": "s03-04.png",
+   "path": "/results/690cfc1d-a1f5-4d46-a8f8-9d50b3d07da9",
+   "at": "2026-11-01T04:47:26.463Z"
+  }
+ ],
+ "notes": [
+  "wsTypes: [\"session_started\",\"final\",\"partial\",\"partial\",\"final\",\"audio\",\"final\",\"partial\",\"partial\",\"final\",\"audio\",\"final\",\"partial\",\"partial\",\"final\",\"audio\",\"session_ended\"]",
+  "sockets: [{\"t\":1793508430428,\"url\":\"/ws/session?source=additional\"}]"
+ ],
+ "ok": true,
+ "logs": [
+  {
+   "t": 1793508427476,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u100-s5/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  }
+ ],
+ "endedAt": "2026-11-01T04:47:26.464Z"
+}

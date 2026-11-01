@@ -1,0 +1,59 @@
+{
+ "key": "s05",
+ "width": 1400,
+ "height": 900,
+ "startedAt": "2026-11-01T04:21:46.396Z",
+ "steps": [
+  {
+   "n": 1,
+   "title": "Shadow a sentence 카드",
+   "desc": "문장을 듣고 따라 하는 쉐도잉을 시작함",
+   "tid": "quick-shadowing",
+   "label": "Speak\nShadow a sentence\n\nListen, repeat, make it yours.",
+   "disabled": false,
+   "file": "s05-01.png",
+   "path": "/",
+   "at": "2026-11-01T04:21:49.314Z"
+  },
+  {
+   "n": 2,
+   "title": "카드 안에서 세션이 시작됨",
+   "desc": "다른 학습 버튼과 메뉴는 잠김",
+   "tid": null,
+   "label": null,
+   "disabled": null,
+   "file": "s05-02.png",
+   "path": "/",
+   "at": "2026-11-01T04:21:50.994Z"
+  },
+  {
+   "n": 3,
+   "title": "코치와 주고받은 대화 줄이 카드 안에 쌓임",
+   "desc": "stub 픽스처 세 턴",
+   "tid": null,
+   "label": null,
+   "disabled": null,
+   "file": "s05-03.png",
+   "path": "/",
+   "at": "2026-11-01T04:21:52.774Z"
+  },
+  {
+   "n": 4,
+   "title": "세션이 끝나 결과 화면으로 넘어감",
+   "desc": "이 스택은 분석이 꺼져 있어 Checking… 이 그대로 남음",
+   "tid": null,
+   "label": null,
+   "disabled": null,
+   "file": "s05-04.png",
+   "path": "/results/29992a83-a88c-4b10-994d-5a5c5731fd01",
+   "at": "2026-11-01T04:22:05.334Z"
+  }
+ ],
+ "notes": [
+  "wsTypes: [\"session_started\",\"final\",\"partial\",\"partial\",\"final\",\"audio\",\"final\",\"partial\",\"partial\",\"final\",\"audio\",\"final\",\"partial\",\"partial\",\"final\",\"audio\",\"session_ended\"]",
+  "sockets: [{\"t\":1793506909347,\"url\":\"/ws/session?mode=shadowing&source=additional\"}]"
+ ],
+ "ok": true,
+ "logs": [],
+ "endedAt": "2026-11-01T04:22:05.335Z"
+}

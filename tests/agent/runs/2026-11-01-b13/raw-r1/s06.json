@@ -1,0 +1,99 @@
+{
+ "key": "s06",
+ "width": 1400,
+ "height": 900,
+ "startedAt": "2026-11-01T04:23:24.517Z",
+ "steps": [
+  {
+   "n": 1,
+   "title": "홈에서 사이드바 Practice",
+   "desc": "문법 코스로 감",
+   "tid": "nav-practice",
+   "selector": null,
+   "label": "Practice",
+   "disabled": false,
+   "file": "s06-01.png",
+   "path": "/",
+   "at": "2026-11-01T04:23:27.453Z"
+  },
+  {
+   "n": 2,
+   "title": "코스 목록(Day 6개)",
+   "desc": "진행 중인 Day 3 를 엶",
+   "tid": null,
+   "selector": "[data-testid=course-day-3] 의 a/button",
+   "label": "Continue ▶",
+   "disabled": false,
+   "file": "s06-02.png",
+   "path": "/course",
+   "at": "2026-11-01T04:23:29.879Z"
+  },
+  {
+   "n": 3,
+   "title": "Day 화면 · 영상과 문장 연습",
+   "desc": "영상 아래 문장을 따라 말함",
+   "tid": "course-start",
+   "selector": null,
+   "label": "Start",
+   "disabled": false,
+   "file": "s06-03.png",
+   "path": "/course/3",
+   "at": "2026-11-01T04:23:35.127Z"
+  },
+  {
+   "n": 4,
+   "title": "따라 말하기 뒤 안내(stub)",
+   "desc": "다음 문장으로 감",
+   "tid": "course-next",
+   "selector": null,
+   "label": "Next →",
+   "disabled": false,
+   "file": "s06-04.png",
+   "path": "/course/3",
+   "at": "2026-11-01T04:23:40.213Z"
+  },
+  {
+   "n": 5,
+   "title": "다음 문장",
+   "desc": "위치를 저장하고 코스 목록으로 돌아감",
+   "tid": "course-back",
+   "selector": null,
+   "label": "← Back",
+   "disabled": false,
+   "file": "s06-05.png",
+   "path": "/course/3",
+   "at": "2026-11-01T04:23:41.430Z"
+  },
+  {
+   "n": 6,
+   "title": "코스 목록으로 돌아옴",
+   "desc": "",
+   "tid": null,
+   "selector": null,
+   "label": null,
+   "disabled": null,
+   "file": "s06-06.png",
+   "path": "/course",
+   "at": "2026-11-01T04:23:43.788Z"
+  }
+ ],
+ "notes": [
+  "current_day 3"
+ ],
+ "ok": true,
+ "logs": [
+  {
+   "t": 1793507010485,
+   "kind": "log.warning",
+   "url": "https://www.youtube.com/s/player/11a45ffb/www-widgetapi.vflset/www-widgetapi.js",
+   "text": "Failed to execute 'postMessage' on 'DOMWindow': The target origin provided ('https://www.youtube.com') does not match the recipient window's origin ('http://localhost:3000')."
+  },
+  {
+   "t": 1793507019266,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u042-s1/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  }
+ ],
+ "endedAt": "2026-11-01T04:23:43.789Z"
+}

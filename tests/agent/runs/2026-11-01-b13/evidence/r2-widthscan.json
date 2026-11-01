@@ -1,0 +1,3957 @@
+[
+ {
+  "day": 1,
+  "unit": 1,
+  "i": 1,
+  "text": "I am a software tester.",
+  "w": 144
+ },
+ {
+  "day": 1,
+  "unit": 1,
+  "i": 2,
+  "text": "My team is in Seoul.",
+  "w": 131
+ },
+ {
+  "day": 1,
+  "unit": 1,
+  "i": 3,
+  "text": "We are busy this week.",
+  "w": 149
+ },
+ {
+  "day": 1,
+  "unit": 1,
+  "i": 4,
+  "text": "The server is very slow today.",
+  "w": 188
+ },
+ {
+  "day": 1,
+  "unit": 1,
+  "i": 5,
+  "text": "You are early for the meeting.",
+  "w": 188
+ },
+ {
+  "day": 1,
+  "unit": 2,
+  "i": 1,
+  "text": "Are you on the project team?",
+  "w": 187
+ },
+ {
+  "day": 1,
+  "unit": 2,
+  "i": 2,
+  "text": "Is the report ready?",
+  "w": 127
+ },
+ {
+  "day": 1,
+  "unit": 2,
+  "i": 3,
+  "text": "Am I late for the call?",
+  "w": 139
+ },
+ {
+  "day": 1,
+  "unit": 2,
+  "i": 4,
+  "text": "Where is your laptop?",
+  "w": 141
+ },
+ {
+  "day": 1,
+  "unit": 2,
+  "i": 5,
+  "text": "Are the tests green now?",
+  "w": 163
+ },
+ {
+  "day": 1,
+  "unit": 3,
+  "i": 1,
+  "text": "I am writing a test case.",
+  "w": 154
+ },
+ {
+  "day": 1,
+  "unit": 3,
+  "i": 2,
+  "text": "She is checking the logs.",
+  "w": 160
+ },
+ {
+  "day": 1,
+  "unit": 3,
+  "i": 3,
+  "text": "We are waiting for the build.",
+  "w": 180
+ },
+ {
+  "day": 1,
+  "unit": 3,
+  "i": 4,
+  "text": "They are not using the old server.",
+  "w": 212
+ },
+ {
+  "day": 1,
+  "unit": 3,
+  "i": 5,
+  "text": "He is talking to the client.",
+  "w": 165
+ },
+ {
+  "day": 1,
+  "unit": 4,
+  "i": 1,
+  "text": "Are you working on the login page?",
+  "w": 226
+ },
+ {
+  "day": 1,
+  "unit": 4,
+  "i": 2,
+  "text": "What is the team doing now?",
+  "w": 188
+ },
+ {
+  "day": 1,
+  "unit": 4,
+  "i": 3,
+  "text": "Is it raining outside?",
+  "w": 130
+ },
+ {
+  "day": 1,
+  "unit": 4,
+  "i": 4,
+  "text": "Why are you smiling?",
+  "w": 137
+ },
+ {
+  "day": 1,
+  "unit": 4,
+  "i": 5,
+  "text": "Is the build running?",
+  "w": 132
+ },
+ {
+  "day": 1,
+  "unit": 5,
+  "i": 1,
+  "text": "I start work at nine.",
+  "w": 126
+ },
+ {
+  "day": 1,
+  "unit": 5,
+  "i": 2,
+  "text": "She writes the weekly report.",
+  "w": 187
+ },
+ {
+  "day": 1,
+  "unit": 5,
+  "i": 3,
+  "text": "Our team uses Slack every day.",
+  "w": 202
+ },
+ {
+  "day": 1,
+  "unit": 5,
+  "i": 4,
+  "text": "He drinks tea in the morning.",
+  "w": 186
+ },
+ {
+  "day": 1,
+  "unit": 5,
+  "i": 5,
+  "text": "The app sends an email after sign-up.",
+  "w": 218
+ },
+ {
+  "day": 1,
+  "unit": 6,
+  "i": 1,
+  "text": "I don't work on Saturdays.",
+  "w": 167
+ },
+ {
+  "day": 1,
+  "unit": 6,
+  "i": 2,
+  "text": "She doesn't like long meetings.",
+  "w": 199
+ },
+ {
+  "day": 1,
+  "unit": 6,
+  "i": 3,
+  "text": "The test doesn't pass on Windows.",
+  "w": 222
+ },
+ {
+  "day": 1,
+  "unit": 6,
+  "i": 4,
+  "text": "We don't use paper forms anymore.",
+  "w": 226
+ },
+ {
+  "day": 1,
+  "unit": 6,
+  "i": 5,
+  "text": "He doesn't drive to the office.",
+  "w": 188
+ },
+ {
+  "day": 1,
+  "unit": 7,
+  "i": 1,
+  "text": "Do you test on mobile phones?",
+  "w": 199
+ },
+ {
+  "day": 1,
+  "unit": 7,
+  "i": 2,
+  "text": "Does the API need a key?",
+  "w": 165
+ },
+ {
+  "day": 1,
+  "unit": 7,
+  "i": 3,
+  "text": "How often do you deploy?",
+  "w": 168
+ },
+ {
+  "day": 1,
+  "unit": 7,
+  "i": 4,
+  "text": "Does she work from home?",
+  "w": 176
+ },
+ {
+  "day": 1,
+  "unit": 7,
+  "i": 5,
+  "text": "What time do you finish work?",
+  "w": 195
+ },
+ {
+  "day": 1,
+  "unit": 8,
+  "i": 1,
+  "text": "I usually walk to work, but today I am taking a taxi.",
+  "w": 323
+ },
+ {
+  "day": 1,
+  "unit": 8,
+  "i": 2,
+  "text": "She writes code every day. Now she is writing a test.",
+  "w": 334
+ },
+ {
+  "day": 1,
+  "unit": 8,
+  "i": 3,
+  "text": "We deploy on Fridays. This week we are deploying on Thursday.",
+  "w": 401
+ },
+ {
+  "day": 1,
+  "unit": 8,
+  "i": 4,
+  "text": "He doesn't usually call me, but he is calling now.",
+  "w": 307
+ },
+ {
+  "day": 1,
+  "unit": 8,
+  "i": 5,
+  "text": "The app normally runs fast, but it is running slowly today.",
+  "w": 361
+ },
+ {
+  "day": 1,
+  "unit": 9,
+  "i": 1,
+  "text": "I have two monitors on my desk.",
+  "w": 207
+ },
+ {
+  "day": 1,
+  "unit": 9,
+  "i": 2,
+  "text": "She has got a new laptop.",
+  "w": 167
+ },
+ {
+  "day": 1,
+  "unit": 9,
+  "i": 3,
+  "text": "We have a meeting at three.",
+  "w": 179
+ },
+ {
+  "day": 1,
+  "unit": 9,
+  "i": 4,
+  "text": "Do you have a minute?",
+  "w": 147
+ },
+ {
+  "day": 1,
+  "unit": 9,
+  "i": 5,
+  "text": "He hasn't got time for lunch today.",
+  "w": 221
+ },
+ {
+  "day": 1,
+  "unit": 10,
+  "i": 1,
+  "text": "I was at the office yesterday.",
+  "w": 183
+ },
+ {
+  "day": 1,
+  "unit": 10,
+  "i": 2,
+  "text": "The meeting was very long.",
+  "w": 175
+ },
+ {
+  "day": 1,
+  "unit": 10,
+  "i": 3,
+  "text": "We were tired after the release.",
+  "w": 202
+ },
+ {
+  "day": 1,
+  "unit": 10,
+  "i": 4,
+  "text": "Was the server down last night?",
+  "w": 206
+ },
+ {
+  "day": 1,
+  "unit": 10,
+  "i": 5,
+  "text": "They weren't at the demo.",
+  "w": 166
+ },
+ {
+  "day": 1,
+  "unit": 11,
+  "i": 1,
+  "text": "I fixed the bug yesterday.",
+  "w": 161
+ },
+ {
+  "day": 1,
+  "unit": 11,
+  "i": 2,
+  "text": "She sent the report last night.",
+  "w": 191
+ },
+ {
+  "day": 1,
+  "unit": 11,
+  "i": 3,
+  "text": "We moved to a new office in May.",
+  "w": 214
+ },
+ {
+  "day": 1,
+  "unit": 11,
+  "i": 4,
+  "text": "He went home early on Monday.",
+  "w": 205
+ },
+ {
+  "day": 1,
+  "unit": 11,
+  "i": 5,
+  "text": "The team finished the sprint on time.",
+  "w": 235
+ },
+ {
+  "day": 1,
+  "unit": 12,
+  "i": 1,
+  "text": "I didn't see your message.",
+  "w": 167
+ },
+ {
+  "day": 1,
+  "unit": 12,
+  "i": 2,
+  "text": "Did you push the code?",
+  "w": 152
+ },
+ {
+  "day": 1,
+  "unit": 12,
+  "i": 3,
+  "text": "She didn't come to the review.",
+  "w": 193
+ },
+ {
+  "day": 1,
+  "unit": 12,
+  "i": 4,
+  "text": "Did the test fail again?",
+  "w": 147
+ },
+ {
+  "day": 1,
+  "unit": 12,
+  "i": 5,
+  "text": "We didn't have time for lunch.",
+  "w": 191
+ },
+ {
+  "day": 1,
+  "unit": 13,
+  "i": 1,
+  "text": "I was reading the logs at ten.",
+  "w": 186
+ },
+ {
+  "day": 1,
+  "unit": 13,
+  "i": 2,
+  "text": "She was talking to the client when I came in.",
+  "w": 286
+ },
+ {
+  "day": 1,
+  "unit": 13,
+  "i": 3,
+  "text": "We were waiting for the train.",
+  "w": 189
+ },
+ {
+  "day": 1,
+  "unit": 13,
+  "i": 4,
+  "text": "What were you doing at noon?",
+  "w": 195
+ },
+ {
+  "day": 1,
+  "unit": 13,
+  "i": 5,
+  "text": "The server was running all night.",
+  "w": 207
+ },
+ {
+  "day": 1,
+  "unit": 14,
+  "i": 1,
+  "text": "I was writing code when the power went off.",
+  "w": 281
+ },
+ {
+  "day": 1,
+  "unit": 14,
+  "i": 2,
+  "text": "She was cooking dinner when I got home.",
+  "w": 266
+ },
+ {
+  "day": 1,
+  "unit": 14,
+  "i": 3,
+  "text": "We were testing the app when it crashed.",
+  "w": 265
+ },
+ {
+  "day": 1,
+  "unit": 14,
+  "i": 4,
+  "text": "He called me while I was driving.",
+  "w": 210
+ },
+ {
+  "day": 1,
+  "unit": 14,
+  "i": 5,
+  "text": "The alarm went off while they were sleeping.",
+  "w": 284
+ },
+ {
+  "day": 1,
+  "unit": 15,
+  "i": 1,
+  "text": "I used to take the night bus.",
+  "w": 180
+ },
+ {
+  "day": 1,
+  "unit": 15,
+  "i": 2,
+  "text": "She used to live in Busan.",
+  "w": 166
+ },
+ {
+  "day": 1,
+  "unit": 15,
+  "i": 3,
+  "text": "We used to deploy by hand.",
+  "w": 178
+ },
+ {
+  "day": 1,
+  "unit": 15,
+  "i": 4,
+  "text": "Did you use to play soccer?",
+  "w": 178
+ },
+ {
+  "day": 1,
+  "unit": 15,
+  "i": 5,
+  "text": "He didn't use to drink coffee.",
+  "w": 185
+ },
+ {
+  "day": 1,
+  "unit": 16,
+  "i": 1,
+  "text": "Have you ever used Docker?",
+  "w": 183
+ },
+ {
+  "day": 1,
+  "unit": 16,
+  "i": 2,
+  "text": "I have visited our Busan office twice.",
+  "w": 233
+ },
+ {
+  "day": 1,
+  "unit": 16,
+  "i": 3,
+  "text": "She has never missed a deadline.",
+  "w": 213
+ },
+ {
+  "day": 1,
+  "unit": 16,
+  "i": 4,
+  "text": "Have you tried the new tool?",
+  "w": 185
+ },
+ {
+  "day": 1,
+  "unit": 16,
+  "i": 5,
+  "text": "We have worked with that client before.",
+  "w": 252
+ },
+ {
+  "day": 1,
+  "unit": 17,
+  "i": 1,
+  "text": "How long have you worked here?",
+  "w": 212
+ },
+ {
+  "day": 1,
+  "unit": 17,
+  "i": 2,
+  "text": "I have known my manager for five years.",
+  "w": 257
+ },
+ {
+  "day": 1,
+  "unit": 17,
+  "i": 3,
+  "text": "She has been sick since Tuesday morning.",
+  "w": 269
+ },
+ {
+  "day": 1,
+  "unit": 17,
+  "i": 4,
+  "text": "How long has the server been down?",
+  "w": 237
+ },
+ {
+  "day": 1,
+  "unit": 17,
+  "i": 5,
+  "text": "We have used this tool for a long time.",
+  "w": 246
+ },
+ {
+  "day": 1,
+  "unit": 18,
+  "i": 1,
+  "text": "I joined the company two years ago.",
+  "w": 230
+ },
+ {
+  "day": 1,
+  "unit": 18,
+  "i": 2,
+  "text": "She has worked here since 2020.",
+  "w": 215
+ },
+ {
+  "day": 1,
+  "unit": 18,
+  "i": 3,
+  "text": "We waited for twenty minutes.",
+  "w": 195
+ },
+ {
+  "day": 1,
+  "unit": 18,
+  "i": 4,
+  "text": "The bug started three days ago.",
+  "w": 202
+ },
+ {
+  "day": 1,
+  "unit": 18,
+  "i": 5,
+  "text": "He has been in the meeting since nine.",
+  "w": 247
+ },
+ {
+  "day": 1,
+  "unit": 19,
+  "i": 1,
+  "text": "I have finished the report. I finished it an hour ago.",
+  "w": 319
+ },
+ {
+  "day": 1,
+  "unit": 19,
+  "i": 2,
+  "text": "She has lost her badge. She lost it yesterday.",
+  "w": 286
+ },
+ {
+  "day": 1,
+  "unit": 19,
+  "i": 3,
+  "text": "We have fixed the bug. We fixed it this morning.",
+  "w": 302
+ },
+ {
+  "day": 1,
+  "unit": 19,
+  "i": 4,
+  "text": "Have you seen the new design? I saw it last week.",
+  "w": 203
+ },
+ {
+  "day": 1,
+  "unit": 19,
+  "i": 5,
+  "text": "He has left the office. He left at five.",
+  "w": 229
+ },
+ {
+  "day": 1,
+  "unit": 20,
+  "i": 1,
+  "text": "The coffee machine is checked once a week.",
+  "w": 283
+ },
+ {
+  "day": 1,
+  "unit": 20,
+  "i": 2,
+  "text": "The report was sent yesterday.",
+  "w": 195
+ },
+ {
+  "day": 1,
+  "unit": 20,
+  "i": 3,
+  "text": "These tests are run every night.",
+  "w": 201
+ },
+ {
+  "day": 1,
+  "unit": 20,
+  "i": 4,
+  "text": "The app was built in Java.",
+  "w": 166
+ },
+ {
+  "day": 1,
+  "unit": 20,
+  "i": 5,
+  "text": "The meeting was moved to Friday.",
+  "w": 217
+ },
+ {
+  "day": 1,
+  "unit": 21,
+  "i": 1,
+  "text": "The server is being restarted.",
+  "w": 186
+ },
+ {
+  "day": 1,
+  "unit": 21,
+  "i": 2,
+  "text": "The new office is being painted.",
+  "w": 202
+ },
+ {
+  "day": 1,
+  "unit": 21,
+  "i": 3,
+  "text": "My laptop is being repaired.",
+  "w": 178
+ },
+ {
+  "day": 1,
+  "unit": 21,
+  "i": 4,
+  "text": "The data was being copied when the error happened.",
+  "w": 336
+ },
+ {
+  "day": 1,
+  "unit": 21,
+  "i": 5,
+  "text": "The release notes are being written now.",
+  "w": 256
+ },
+ {
+  "day": 2,
+  "unit": 22,
+  "i": 1,
+  "text": "I work in Seoul, and I worked in Daegu before.",
+  "w": 292
+ },
+ {
+  "day": 2,
+  "unit": 22,
+  "i": 2,
+  "text": "She is busy now, but she was free yesterday.",
+  "w": 284
+ },
+ {
+  "day": 2,
+  "unit": 22,
+  "i": 3,
+  "text": "Do you use Git? Did you use it at your old job?",
+  "w": 191
+ },
+ {
+  "day": 2,
+  "unit": 22,
+  "i": 4,
+  "text": "We don't meet on Mondays, and we didn't meet last week.",
+  "w": 369
+ },
+ {
+  "day": 2,
+  "unit": 22,
+  "i": 5,
+  "text": "He is testing the app now. He tested it yesterday too.",
+  "w": 337
+ },
+ {
+  "day": 2,
+  "unit": 23,
+  "i": 1,
+  "text": "I wrote three test cases yesterday.",
+  "w": 219
+ },
+ {
+  "day": 2,
+  "unit": 23,
+  "i": 2,
+  "text": "She bought a new chair for her desk.",
+  "w": 236
+ },
+ {
+  "day": 2,
+  "unit": 23,
+  "i": 3,
+  "text": "We met the client last Tuesday.",
+  "w": 199
+ },
+ {
+  "day": 2,
+  "unit": 23,
+  "i": 4,
+  "text": "He forgot his password again.",
+  "w": 190
+ },
+ {
+  "day": 2,
+  "unit": 23,
+  "i": 5,
+  "text": "The team began the project in March.",
+  "w": 239
+ },
+ {
+  "day": 2,
+  "unit": 24,
+  "i": 1,
+  "text": "I am meeting the client tomorrow.",
+  "w": 215
+ },
+ {
+  "day": 2,
+  "unit": 24,
+  "i": 2,
+  "text": "She is flying to Jeju on Friday.",
+  "w": 192
+ },
+ {
+  "day": 2,
+  "unit": 24,
+  "i": 3,
+  "text": "We are releasing the app next week.",
+  "w": 232
+ },
+ {
+  "day": 2,
+  "unit": 24,
+  "i": 4,
+  "text": "What are you doing this weekend?",
+  "w": 221
+ },
+ {
+  "day": 2,
+  "unit": 24,
+  "i": 5,
+  "text": "He is not coming to the party tonight.",
+  "w": 239
+ },
+ {
+  "day": 2,
+  "unit": 25,
+  "i": 1,
+  "text": "I am going to finish the report today.",
+  "w": 232
+ },
+ {
+  "day": 2,
+  "unit": 25,
+  "i": 2,
+  "text": "She is going to call you after lunch.",
+  "w": 226
+ },
+ {
+  "day": 2,
+  "unit": 25,
+  "i": 3,
+  "text": "We are going to move to a new server.",
+  "w": 245
+ },
+ {
+  "day": 2,
+  "unit": 25,
+  "i": 4,
+  "text": "Are you going to join the meeting?",
+  "w": 220
+ },
+ {
+  "day": 2,
+  "unit": 25,
+  "i": 5,
+  "text": "It is going to rain this afternoon.",
+  "w": 204
+ },
+ {
+  "day": 2,
+  "unit": 26,
+  "i": 1,
+  "text": "I will send you the file soon.",
+  "w": 178
+ },
+ {
+  "day": 2,
+  "unit": 26,
+  "i": 2,
+  "text": "Don't worry, I'll fix it.",
+  "w": 130
+ },
+ {
+  "day": 2,
+  "unit": 26,
+  "i": 3,
+  "text": "Shall I open the window?",
+  "w": 163
+ },
+ {
+  "day": 2,
+  "unit": 26,
+  "i": 4,
+  "text": "The meeting will probably end at five.",
+  "w": 238
+ },
+ {
+  "day": 2,
+  "unit": 26,
+  "i": 5,
+  "text": "I think the build will pass this time.",
+  "w": 224
+ },
+ {
+  "day": 2,
+  "unit": 27,
+  "i": 1,
+  "text": "The build might fail again tonight.",
+  "w": 213
+ },
+ {
+  "day": 2,
+  "unit": 27,
+  "i": 2,
+  "text": "I may work from home on Friday.",
+  "w": 209
+ },
+ {
+  "day": 2,
+  "unit": 27,
+  "i": 3,
+  "text": "She might not join the stand-up today.",
+  "w": 184
+ },
+ {
+  "day": 2,
+  "unit": 27,
+  "i": 4,
+  "text": "The client may ask for a demo next week.",
+  "w": 265
+ },
+ {
+  "day": 2,
+  "unit": 27,
+  "i": 5,
+  "text": "We might need more time for the test plan.",
+  "w": 274
+ },
+ {
+  "day": 2,
+  "unit": 28,
+  "i": 1,
+  "text": "I can read Japanese, but I can't speak it.",
+  "w": 258
+ },
+ {
+  "day": 2,
+  "unit": 28,
+  "i": 2,
+  "text": "Can you help me with this bug?",
+  "w": 203
+ },
+ {
+  "day": 2,
+  "unit": 28,
+  "i": 3,
+  "text": "She could swim when she was five.",
+  "w": 227
+ },
+ {
+  "day": 2,
+  "unit": 28,
+  "i": 4,
+  "text": "We couldn't connect to the server last night.",
+  "w": 282
+ },
+ {
+  "day": 2,
+  "unit": 28,
+  "i": 5,
+  "text": "Could you send me the link?",
+  "w": 183
+ },
+ {
+  "day": 2,
+  "unit": 29,
+  "i": 1,
+  "text": "You must wear your badge in the office.",
+  "w": 252
+ },
+ {
+  "day": 2,
+  "unit": 29,
+  "i": 2,
+  "text": "You mustn't share your password.",
+  "w": 215
+ },
+ {
+  "day": 2,
+  "unit": 29,
+  "i": 3,
+  "text": "The lights are on. Someone must be in the lab.",
+  "w": 294
+ },
+ {
+  "day": 2,
+  "unit": 29,
+  "i": 4,
+  "text": "We don't need to print the report.",
+  "w": 213
+ },
+ {
+  "day": 2,
+  "unit": 29,
+  "i": 5,
+  "text": "I must finish this before the meeting.",
+  "w": 234
+ },
+ {
+  "day": 2,
+  "unit": 30,
+  "i": 1,
+  "text": "You should take a break.",
+  "w": 157
+ },
+ {
+  "day": 2,
+  "unit": 30,
+  "i": 2,
+  "text": "We should test this on a phone too.",
+  "w": 227
+ },
+ {
+  "day": 2,
+  "unit": 30,
+  "i": 3,
+  "text": "She shouldn't work so late.",
+  "w": 174
+ },
+ {
+  "day": 2,
+  "unit": 30,
+  "i": 4,
+  "text": "Should I call the client now?",
+  "w": 182
+ },
+ {
+  "day": 2,
+  "unit": 30,
+  "i": 5,
+  "text": "I think you should ask your manager.",
+  "w": 235
+ },
+ {
+  "day": 2,
+  "unit": 31,
+  "i": 1,
+  "text": "I have to update the server tonight.",
+  "w": 224
+ },
+ {
+  "day": 2,
+  "unit": 31,
+  "i": 2,
+  "text": "She has to leave at four today.",
+  "w": 195
+ },
+ {
+  "day": 2,
+  "unit": 31,
+  "i": 3,
+  "text": "Do we have to wear a suit?",
+  "w": 175
+ },
+ {
+  "day": 2,
+  "unit": 31,
+  "i": 4,
+  "text": "He doesn't have to come in tomorrow.",
+  "w": 241
+ },
+ {
+  "day": 2,
+  "unit": 31,
+  "i": 5,
+  "text": "We had to wait an hour for the build.",
+  "w": 233
+ },
+ {
+  "day": 2,
+  "unit": 32,
+  "i": 1,
+  "text": "Would you like a copy of the slides?",
+  "w": 229
+ },
+ {
+  "day": 2,
+  "unit": 32,
+  "i": 2,
+  "text": "I'd like a window seat, please.",
+  "w": 190
+ },
+ {
+  "day": 2,
+  "unit": 32,
+  "i": 3,
+  "text": "Would you like to join us for lunch?",
+  "w": 225
+ },
+ {
+  "day": 2,
+  "unit": 32,
+  "i": 4,
+  "text": "She'd like to talk to the team leader.",
+  "w": 232
+ },
+ {
+  "day": 2,
+  "unit": 32,
+  "i": 5,
+  "text": "What would you like to drink?",
+  "w": 191
+ },
+ {
+  "day": 2,
+  "unit": 33,
+  "i": 1,
+  "text": "I'd rather work from home today.",
+  "w": 207
+ },
+ {
+  "day": 2,
+  "unit": 33,
+  "i": 2,
+  "text": "Would you rather meet in the morning or the afternoon?",
+  "w": 354
+ },
+ {
+  "day": 2,
+  "unit": 33,
+  "i": 3,
+  "text": "She'd rather not speak first.",
+  "w": 178
+ },
+ {
+  "day": 2,
+  "unit": 33,
+  "i": 4,
+  "text": "I'd rather take the train than drive.",
+  "w": 217
+ },
+ {
+  "day": 2,
+  "unit": 33,
+  "i": 5,
+  "text": "We'd rather fix it now than later.",
+  "w": 203
+ },
+ {
+  "day": 2,
+  "unit": 34,
+  "i": 1,
+  "text": "Please close the door.",
+  "w": 142
+ },
+ {
+  "day": 2,
+  "unit": 34,
+  "i": 2,
+  "text": "Don't forget your laptop.",
+  "w": 156
+ },
+ {
+  "day": 2,
+  "unit": 34,
+  "i": 3,
+  "text": "Let's take a short break.",
+  "w": 155
+ },
+ {
+  "day": 2,
+  "unit": 34,
+  "i": 4,
+  "text": "Check the logs first.",
+  "w": 131
+ },
+ {
+  "day": 2,
+  "unit": 34,
+  "i": 5,
+  "text": "Don't touch the server room cables.",
+  "w": 228
+ },
+ {
+  "day": 2,
+  "unit": 35,
+  "i": 1,
+  "text": "There is a bug in the login page.",
+  "w": 204
+ },
+ {
+  "day": 2,
+  "unit": 35,
+  "i": 2,
+  "text": "There are ten people in the meeting room.",
+  "w": 266
+ },
+ {
+  "day": 2,
+  "unit": 35,
+  "i": 3,
+  "text": "Is there a printer on this floor?",
+  "w": 195
+ },
+ {
+  "day": 2,
+  "unit": 35,
+  "i": 4,
+  "text": "There aren't any free seats.",
+  "w": 173
+ },
+ {
+  "day": 2,
+  "unit": 35,
+  "i": 5,
+  "text": "How many tests are there?",
+  "w": 173
+ },
+ {
+  "day": 2,
+  "unit": 36,
+  "i": 1,
+  "text": "There was a power cut last night.",
+  "w": 212
+ },
+ {
+  "day": 2,
+  "unit": 36,
+  "i": 2,
+  "text": "There were many questions after the demo.",
+  "w": 276
+ },
+ {
+  "day": 2,
+  "unit": 36,
+  "i": 3,
+  "text": "There will be a party on Friday.",
+  "w": 195
+ },
+ {
+  "day": 2,
+  "unit": 36,
+  "i": 4,
+  "text": "There has been a problem with the network.",
+  "w": 280
+ },
+ {
+  "day": 2,
+  "unit": 36,
+  "i": 5,
+  "text": "Was there a meeting this morning?",
+  "w": 223
+ },
+ {
+  "day": 2,
+  "unit": 37,
+  "i": 1,
+  "text": "It is nine o'clock.",
+  "w": 108
+ },
+ {
+  "day": 2,
+  "unit": 37,
+  "i": 2,
+  "text": "It is cold in the office today.",
+  "w": 177
+ },
+ {
+  "day": 2,
+  "unit": 37,
+  "i": 3,
+  "text": "It's two kilometers from here to the station.",
+  "w": 274
+ },
+ {
+  "day": 2,
+  "unit": 37,
+  "i": 4,
+  "text": "It's almost midnight. Let's stop here.",
+  "w": 229
+ },
+ {
+  "day": 2,
+  "unit": 37,
+  "i": 5,
+  "text": "It was very windy this morning.",
+  "w": 199
+ },
+ {
+  "day": 2,
+  "unit": 38,
+  "i": 1,
+  "text": "Are you ready? Yes, I am.",
+  "w": 98
+ },
+ {
+  "day": 2,
+  "unit": 38,
+  "i": 2,
+  "text": "Does she work here? No, she doesn't.",
+  "w": 136
+ },
+ {
+  "day": 2,
+  "unit": 38,
+  "i": 3,
+  "text": "Mina isn't ready, but Jun is.",
+  "w": 175
+ },
+ {
+  "day": 2,
+  "unit": 38,
+  "i": 4,
+  "text": "Have you finished? Yes, I have.",
+  "w": 123
+ },
+ {
+  "day": 2,
+  "unit": 38,
+  "i": 5,
+  "text": "He didn't call, but she did.",
+  "w": 166
+ },
+ {
+  "day": 2,
+  "unit": 39,
+  "i": 1,
+  "text": "I moved to a new team. Oh, did you?",
+  "w": 233
+ },
+ {
+  "day": 2,
+  "unit": 39,
+  "i": 2,
+  "text": "It's a nice office, isn't it?",
+  "w": 154
+ },
+ {
+  "day": 2,
+  "unit": 39,
+  "i": 3,
+  "text": "You don't drink coffee, do you?",
+  "w": 197
+ },
+ {
+  "day": 2,
+  "unit": 39,
+  "i": 4,
+  "text": "The test passed. Did it? That's good.",
+  "w": 151
+ },
+ {
+  "day": 2,
+  "unit": 39,
+  "i": 5,
+  "text": "She was at the meeting, wasn't she?",
+  "w": 234
+ },
+ {
+  "day": 2,
+  "unit": 40,
+  "i": 1,
+  "text": "I'm tired. So am I.",
+  "w": 112
+ },
+ {
+  "day": 2,
+  "unit": 40,
+  "i": 2,
+  "text": "I don't like long calls. Neither do I.",
+  "w": 215
+ },
+ {
+  "day": 2,
+  "unit": 40,
+  "i": 3,
+  "text": "She works late, and I do too.",
+  "w": 182
+ },
+ {
+  "day": 2,
+  "unit": 40,
+  "i": 4,
+  "text": "He can't come, and I can't either.",
+  "w": 208
+ },
+ {
+  "day": 2,
+  "unit": 40,
+  "i": 5,
+  "text": "We enjoyed the demo. So did they.",
+  "w": 220
+ },
+ {
+  "day": 2,
+  "unit": 41,
+  "i": 1,
+  "text": "The printer isn't working.",
+  "w": 158
+ },
+ {
+  "day": 2,
+  "unit": 41,
+  "i": 2,
+  "text": "I don't know the password.",
+  "w": 172
+ },
+ {
+  "day": 2,
+  "unit": 41,
+  "i": 3,
+  "text": "She didn't reply to my email.",
+  "w": 182
+ },
+ {
+  "day": 2,
+  "unit": 41,
+  "i": 4,
+  "text": "We can't open the file.",
+  "w": 144
+ },
+ {
+  "day": 2,
+  "unit": 41,
+  "i": 5,
+  "text": "They haven't finished the test yet.",
+  "w": 216
+ },
+ {
+  "day": 3,
+  "unit": 42,
+  "i": 1,
+  "text": "Is the client happy?",
+  "w": 127
+ },
+ {
+  "day": 3,
+  "unit": 42,
+  "i": 2,
+  "text": "Can we start the meeting now?",
+  "w": 202
+ },
+ {
+  "day": 3,
+  "unit": 42,
+  "i": 3,
+  "text": "Has the build finished?",
+  "w": 148
+ },
+ {
+  "day": 3,
+  "unit": 42,
+  "i": 4,
+  "text": "Did you read my message?",
+  "w": 173
+ },
+ {
+  "day": 3,
+  "unit": 42,
+  "i": 5,
+  "text": "Will you be at the office tomorrow?",
+  "w": 223
+ },
+ {
+  "day": 3,
+  "unit": 43,
+  "i": 1,
+  "text": "Who fixed the bug?",
+  "w": 126
+ },
+ {
+  "day": 3,
+  "unit": 43,
+  "i": 2,
+  "text": "Who did you call?",
+  "w": 115
+ },
+ {
+  "day": 3,
+  "unit": 43,
+  "i": 3,
+  "text": "What happened to the server?",
+  "w": 194
+ },
+ {
+  "day": 3,
+  "unit": 43,
+  "i": 4,
+  "text": "What did the client say?",
+  "w": 156
+ },
+ {
+  "day": 3,
+  "unit": 43,
+  "i": 5,
+  "text": "Who sent this email?",
+  "w": 135
+ },
+ {
+  "day": 3,
+  "unit": 44,
+  "i": 1,
+  "text": "Who are you working with?",
+  "w": 174
+ },
+ {
+  "day": 3,
+  "unit": 44,
+  "i": 2,
+  "text": "What are you talking about?",
+  "w": 181
+ },
+ {
+  "day": 3,
+  "unit": 44,
+  "i": 3,
+  "text": "Who is this message for?",
+  "w": 163
+ },
+ {
+  "day": 3,
+  "unit": 44,
+  "i": 4,
+  "text": "Where is she from?",
+  "w": 125
+ },
+ {
+  "day": 3,
+  "unit": 44,
+  "i": 5,
+  "text": "What are you waiting for?",
+  "w": 165
+ },
+ {
+  "day": 3,
+  "unit": 45,
+  "i": 1,
+  "text": "What size is the new monitor?",
+  "w": 194
+ },
+ {
+  "day": 3,
+  "unit": 45,
+  "i": 2,
+  "text": "Which floor is your office on?",
+  "w": 187
+ },
+ {
+  "day": 3,
+  "unit": 45,
+  "i": 3,
+  "text": "What kind of music do you like?",
+  "w": 204
+ },
+ {
+  "day": 3,
+  "unit": 45,
+  "i": 4,
+  "text": "Which test failed?",
+  "w": 118
+ },
+ {
+  "day": 3,
+  "unit": 45,
+  "i": 5,
+  "text": "How old is this laptop?",
+  "w": 148
+ },
+ {
+  "day": 3,
+  "unit": 46,
+  "i": 1,
+  "text": "How long does it take to build the app?",
+  "w": 251
+ },
+ {
+  "day": 3,
+  "unit": 46,
+  "i": 2,
+  "text": "It takes ten minutes to walk to the station.",
+  "w": 271
+ },
+ {
+  "day": 3,
+  "unit": 46,
+  "i": 3,
+  "text": "How long did the meeting take?",
+  "w": 204
+ },
+ {
+  "day": 3,
+  "unit": 46,
+  "i": 4,
+  "text": "It took me two hours to fix the bug.",
+  "w": 226
+ },
+ {
+  "day": 3,
+  "unit": 46,
+  "i": 5,
+  "text": "How long will it take to finish the test?",
+  "w": 248
+ },
+ {
+  "day": 3,
+  "unit": 47,
+  "i": 1,
+  "text": "Do you know when the release is?",
+  "w": 219
+ },
+ {
+  "day": 3,
+  "unit": 47,
+  "i": 2,
+  "text": "I don't know what time it starts.",
+  "w": 202
+ },
+ {
+  "day": 3,
+  "unit": 47,
+  "i": 3,
+  "text": "Can you tell me how this works?",
+  "w": 209
+ },
+ {
+  "day": 3,
+  "unit": 47,
+  "i": 4,
+  "text": "I'm not sure who wrote this code.",
+  "w": 212
+ },
+ {
+  "day": 3,
+  "unit": 47,
+  "i": 5,
+  "text": "Do you know if the server is up?",
+  "w": 206
+ },
+ {
+  "day": 3,
+  "unit": 48,
+  "i": 1,
+  "text": "She said that she was busy.",
+  "w": 178
+ },
+ {
+  "day": 3,
+  "unit": 48,
+  "i": 2,
+  "text": "He told me that the test had failed.",
+  "w": 224
+ },
+ {
+  "day": 3,
+  "unit": 48,
+  "i": 3,
+  "text": "My manager said that we could leave early.",
+  "w": 275
+ },
+ {
+  "day": 3,
+  "unit": 48,
+  "i": 4,
+  "text": "They said they would call back.",
+  "w": 200
+ },
+ {
+  "day": 3,
+  "unit": 48,
+  "i": 5,
+  "text": "The client told us that the app was slow.",
+  "w": 257
+ },
+ {
+  "day": 3,
+  "unit": 49,
+  "i": 1,
+  "text": "I will call you later.",
+  "w": 120
+ },
+ {
+  "day": 3,
+  "unit": 49,
+  "i": 2,
+  "text": "She can speak three languages.",
+  "w": 205
+ },
+ {
+  "day": 3,
+  "unit": 49,
+  "i": 3,
+  "text": "We might be late tomorrow.",
+  "w": 176
+ },
+ {
+  "day": 3,
+  "unit": 49,
+  "i": 4,
+  "text": "You should check this again.",
+  "w": 182
+ },
+ {
+  "day": 3,
+  "unit": 49,
+  "i": 5,
+  "text": "He must leave by six.",
+  "w": 137
+ },
+ {
+  "day": 3,
+  "unit": 50,
+  "i": 1,
+  "text": "I want to learn Python.",
+  "w": 145
+ },
+ {
+  "day": 3,
+  "unit": 50,
+  "i": 2,
+  "text": "She needs to rest.",
+  "w": 118
+ },
+ {
+  "day": 3,
+  "unit": 50,
+  "i": 3,
+  "text": "We decided to change the plan.",
+  "w": 202
+ },
+ {
+  "day": 3,
+  "unit": 50,
+  "i": 4,
+  "text": "He forgot to save the file.",
+  "w": 163
+ },
+ {
+  "day": 3,
+  "unit": 50,
+  "i": 5,
+  "text": "Do you plan to stay late?",
+  "w": 160
+ },
+ {
+  "day": 3,
+  "unit": 51,
+  "i": 1,
+  "text": "I want you to check this code.",
+  "w": 192
+ },
+ {
+  "day": 3,
+  "unit": 51,
+  "i": 2,
+  "text": "My manager asked me to write the report.",
+  "w": 268
+ },
+ {
+  "day": 3,
+  "unit": 51,
+  "i": 3,
+  "text": "She told him to call the client.",
+  "w": 193
+ },
+ {
+  "day": 3,
+  "unit": 51,
+  "i": 4,
+  "text": "Do you want me to help?",
+  "w": 161
+ },
+ {
+  "day": 3,
+  "unit": 51,
+  "i": 5,
+  "text": "They asked us to wait outside.",
+  "w": 193
+ },
+ {
+  "day": 3,
+  "unit": 52,
+  "i": 1,
+  "text": "I stayed late to finish the slides.",
+  "w": 203
+ },
+ {
+  "day": 3,
+  "unit": 52,
+  "i": 2,
+  "text": "She called to ask about the meeting.",
+  "w": 235
+ },
+ {
+  "day": 3,
+  "unit": 52,
+  "i": 3,
+  "text": "We use this tool to test the app.",
+  "w": 206
+ },
+ {
+  "day": 3,
+  "unit": 52,
+  "i": 4,
+  "text": "He came early to set up the room.",
+  "w": 217
+ },
+ {
+  "day": 3,
+  "unit": 52,
+  "i": 5,
+  "text": "I'm saving money to buy a new laptop.",
+  "w": 244
+ },
+ {
+  "day": 3,
+  "unit": 53,
+  "i": 1,
+  "text": "I go to work by subway.",
+  "w": 152
+ },
+ {
+  "day": 3,
+  "unit": 53,
+  "i": 2,
+  "text": "We're going on a trip next month.",
+  "w": 212
+ },
+ {
+  "day": 3,
+  "unit": 53,
+  "i": 3,
+  "text": "She goes swimming on Sundays.",
+  "w": 210
+ },
+ {
+  "day": 3,
+  "unit": 53,
+  "i": 4,
+  "text": "Let's go for a walk after lunch.",
+  "w": 195
+ },
+ {
+  "day": 3,
+  "unit": 53,
+  "i": 5,
+  "text": "He went home early yesterday.",
+  "w": 196
+ },
+ {
+  "day": 3,
+  "unit": 54,
+  "i": 1,
+  "text": "She got a promotion last year.",
+  "w": 192
+ },
+ {
+  "day": 3,
+  "unit": 54,
+  "i": 2,
+  "text": "It's getting dark outside.",
+  "w": 154
+ },
+ {
+  "day": 3,
+  "unit": 54,
+  "i": 3,
+  "text": "What time do you get to the office?",
+  "w": 226
+ },
+ {
+  "day": 3,
+  "unit": 54,
+  "i": 4,
+  "text": "She got tired after the long meeting.",
+  "w": 233
+ },
+ {
+  "day": 3,
+  "unit": 54,
+  "i": 5,
+  "text": "Can you get me a glass of water?",
+  "w": 216
+ },
+ {
+  "day": 3,
+  "unit": 55,
+  "i": 1,
+  "text": "I do my homework after dinner.",
+  "w": 199
+ },
+ {
+  "day": 3,
+  "unit": 55,
+  "i": 2,
+  "text": "She made a mistake in the report.",
+  "w": 216
+ },
+ {
+  "day": 3,
+  "unit": 55,
+  "i": 3,
+  "text": "Can you do me a favor?",
+  "w": 153
+ },
+ {
+  "day": 3,
+  "unit": 55,
+  "i": 4,
+  "text": "We made a plan for the release.",
+  "w": 203
+ },
+ {
+  "day": 3,
+  "unit": 55,
+  "i": 5,
+  "text": "He does the dishes every night.",
+  "w": 201
+ },
+ {
+  "day": 3,
+  "unit": 56,
+  "i": 1,
+  "text": "I have lunch at noon.",
+  "w": 133
+ },
+ {
+  "day": 3,
+  "unit": 56,
+  "i": 2,
+  "text": "We're having a meeting now.",
+  "w": 182
+ },
+ {
+  "day": 3,
+  "unit": 56,
+  "i": 3,
+  "text": "Did you have a good weekend?",
+  "w": 200
+ },
+ {
+  "day": 3,
+  "unit": 56,
+  "i": 4,
+  "text": "She has a shower every morning.",
+  "w": 211
+ },
+ {
+  "day": 3,
+  "unit": 56,
+  "i": 5,
+  "text": "Let's have a short break.",
+  "w": 157
+ },
+ {
+  "day": 3,
+  "unit": 57,
+  "i": 1,
+  "text": "My manager knows me well.",
+  "w": 183
+ },
+ {
+  "day": 3,
+  "unit": 57,
+  "i": 2,
+  "text": "I called her, but she didn't answer.",
+  "w": 217
+ },
+ {
+  "day": 3,
+  "unit": 57,
+  "i": 3,
+  "text": "We like them, and they like us.",
+  "w": 194
+ },
+ {
+  "day": 3,
+  "unit": 57,
+  "i": 4,
+  "text": "Can you help him with the test?",
+  "w": 205
+ },
+ {
+  "day": 3,
+  "unit": 57,
+  "i": 5,
+  "text": "She sent it to me yesterday.",
+  "w": 178
+ },
+ {
+  "day": 3,
+  "unit": 58,
+  "i": 1,
+  "text": "This is my desk.",
+  "w": 103
+ },
+ {
+  "day": 3,
+  "unit": 58,
+  "i": 2,
+  "text": "Their office is on the fifth floor.",
+  "w": 196
+ },
+ {
+  "day": 3,
+  "unit": 58,
+  "i": 3,
+  "text": "Is this your charger?",
+  "w": 133
+ },
+ {
+  "day": 3,
+  "unit": 58,
+  "i": 4,
+  "text": "Our team won the hackathon.",
+  "w": 190
+ },
+ {
+  "day": 3,
+  "unit": 58,
+  "i": 5,
+  "text": "She left her bag in the car.",
+  "w": 171
+ },
+ {
+  "day": 3,
+  "unit": 59,
+  "i": 1,
+  "text": "This laptop is mine.",
+  "w": 124
+ },
+ {
+  "day": 3,
+  "unit": 59,
+  "i": 2,
+  "text": "Is this pen yours?",
+  "w": 114
+ },
+ {
+  "day": 3,
+  "unit": 59,
+  "i": 3,
+  "text": "Their plan is better than ours.",
+  "w": 187
+ },
+ {
+  "day": 3,
+  "unit": 59,
+  "i": 4,
+  "text": "That coffee is hers, not mine.",
+  "w": 183
+ },
+ {
+  "day": 3,
+  "unit": 59,
+  "i": 5,
+  "text": "The idea was his.",
+  "w": 111
+ },
+ {
+  "day": 3,
+  "unit": 60,
+  "i": 1,
+  "text": "I lost my key, so he gave me his.",
+  "w": 206
+ },
+ {
+  "day": 3,
+  "unit": 60,
+  "i": 2,
+  "text": "She wrote her part, and I wrote mine.",
+  "w": 237
+ },
+ {
+  "day": 3,
+  "unit": 60,
+  "i": 3,
+  "text": "He trusts us, and we trust him.",
+  "w": 197
+ },
+ {
+  "day": 3,
+  "unit": 60,
+  "i": 4,
+  "text": "This is our room. The other one is theirs.",
+  "w": 254
+ },
+ {
+  "day": 3,
+  "unit": 60,
+  "i": 5,
+  "text": "You can use my charger. Yours is broken.",
+  "w": 258
+ },
+ {
+  "day": 3,
+  "unit": 61,
+  "i": 1,
+  "text": "I taught myself to code.",
+  "w": 152
+ },
+ {
+  "day": 3,
+  "unit": 61,
+  "i": 2,
+  "text": "Please introduce yourself to the team.",
+  "w": 244
+ },
+ {
+  "day": 3,
+  "unit": 61,
+  "i": 3,
+  "text": "She hurt herself at the gym.",
+  "w": 179
+ },
+ {
+  "day": 3,
+  "unit": 61,
+  "i": 4,
+  "text": "We fixed the problem ourselves.",
+  "w": 204
+ },
+ {
+  "day": 3,
+  "unit": 61,
+  "i": 5,
+  "text": "He talks to himself when he codes.",
+  "w": 225
+ },
+ {
+  "day": 3,
+  "unit": 62,
+  "i": 1,
+  "text": "This is Jun's laptop.",
+  "w": 127
+ },
+ {
+  "day": 3,
+  "unit": 62,
+  "i": 2,
+  "text": "My manager's name is Sara.",
+  "w": 180
+ },
+ {
+  "day": 3,
+  "unit": 62,
+  "i": 3,
+  "text": "The client's office is near the station.",
+  "w": 232
+ },
+ {
+  "day": 3,
+  "unit": 62,
+  "i": 4,
+  "text": "Where are the kids' shoes?",
+  "w": 172
+ },
+ {
+  "day": 3,
+  "unit": 62,
+  "i": 5,
+  "text": "I like Mina's idea.",
+  "w": 110
+ },
+ {
+  "day": 4,
+  "unit": 63,
+  "i": 1,
+  "text": "I need a charger.",
+  "w": 108
+ },
+ {
+  "day": 4,
+  "unit": 63,
+  "i": 2,
+  "text": "She is an engineer.",
+  "w": 122
+ },
+ {
+  "day": 4,
+  "unit": 63,
+  "i": 3,
+  "text": "He has an idea.",
+  "w": 100
+ },
+ {
+  "day": 4,
+  "unit": 63,
+  "i": 4,
+  "text": "We have a meeting in an hour.",
+  "w": 193
+ },
+ {
+  "day": 4,
+  "unit": 63,
+  "i": 5,
+  "text": "This is a useful tool.",
+  "w": 129
+ },
+ {
+  "day": 4,
+  "unit": 64,
+  "i": 1,
+  "text": "I have one monitor and two keyboards.",
+  "w": 247
+ },
+ {
+  "day": 4,
+  "unit": 64,
+  "i": 2,
+  "text": "There are three bugs in this page.",
+  "w": 214
+ },
+ {
+  "day": 4,
+  "unit": 64,
+  "i": 3,
+  "text": "We need some new chairs.",
+  "w": 171
+ },
+ {
+  "day": 4,
+  "unit": 64,
+  "i": 4,
+  "text": "This week has five working days.",
+  "w": 209
+ },
+ {
+  "day": 4,
+  "unit": 64,
+  "i": 5,
+  "text": "She bought two boxes of pens.",
+  "w": 199
+ },
+ {
+  "day": 4,
+  "unit": 65,
+  "i": 1,
+  "text": "I need some information about the project.",
+  "w": 270
+ },
+ {
+  "day": 4,
+  "unit": 65,
+  "i": 2,
+  "text": "She drinks a lot of water.",
+  "w": 161
+ },
+ {
+  "day": 4,
+  "unit": 65,
+  "i": 3,
+  "text": "We don't have much time.",
+  "w": 166
+ },
+ {
+  "day": 4,
+  "unit": 65,
+  "i": 4,
+  "text": "Can I have a cup of coffee?",
+  "w": 175
+ },
+ {
+  "day": 4,
+  "unit": 65,
+  "i": 5,
+  "text": "There are many emails but not much news.",
+  "w": 272
+ },
+ {
+  "day": 4,
+  "unit": 66,
+  "i": 1,
+  "text": "She is looking for an apartment.",
+  "w": 205
+ },
+ {
+  "day": 4,
+  "unit": 66,
+  "i": 2,
+  "text": "Would you like some water?",
+  "w": 180
+ },
+ {
+  "day": 4,
+  "unit": 66,
+  "i": 3,
+  "text": "There is a cafe and some shops near the office.",
+  "w": 300
+ },
+ {
+  "day": 4,
+  "unit": 66,
+  "i": 4,
+  "text": "She bought a book and some paper.",
+  "w": 230
+ },
+ {
+  "day": 4,
+  "unit": 66,
+  "i": 5,
+  "text": "We have some good news.",
+  "w": 170
+ },
+ {
+  "day": 4,
+  "unit": 67,
+  "i": 1,
+  "text": "I bought a phone. The phone is very fast.",
+  "w": 258
+ },
+ {
+  "day": 4,
+  "unit": 67,
+  "i": 2,
+  "text": "There is a meeting at two. The meeting is in room B.",
+  "w": 329
+ },
+ {
+  "day": 4,
+  "unit": 67,
+  "i": 3,
+  "text": "We have a cat and a dog. The cat is lazy.",
+  "w": 257
+ },
+ {
+  "day": 4,
+  "unit": 67,
+  "i": 4,
+  "text": "I saw a bug. The bug is in the login code.",
+  "w": 259
+ },
+ {
+  "day": 4,
+  "unit": 67,
+  "i": 5,
+  "text": "She works in a big building. The building has thirty floors.",
+  "w": 362
+ },
+ {
+  "day": 4,
+  "unit": 68,
+  "i": 1,
+  "text": "Who is the owner of the repo?",
+  "w": 194
+ },
+ {
+  "day": 4,
+  "unit": 68,
+  "i": 2,
+  "text": "The sun is very bright today.",
+  "w": 180
+ },
+ {
+  "day": 4,
+  "unit": 68,
+  "i": 3,
+  "text": "I go to the gym in the morning.",
+  "w": 197
+ },
+ {
+  "day": 4,
+  "unit": 68,
+  "i": 4,
+  "text": "Please turn off the light.",
+  "w": 155
+ },
+ {
+  "day": 4,
+  "unit": 68,
+  "i": 5,
+  "text": "She is on the phone.",
+  "w": 132
+ },
+ {
+  "day": 4,
+  "unit": 69,
+  "i": 1,
+  "text": "My son is at school until three.",
+  "w": 195
+ },
+ {
+  "day": 4,
+  "unit": 69,
+  "i": 2,
+  "text": "I go to bed at eleven.",
+  "w": 136
+ },
+ {
+  "day": 4,
+  "unit": 69,
+  "i": 3,
+  "text": "He goes to school by bus.",
+  "w": 166
+ },
+ {
+  "day": 4,
+  "unit": 69,
+  "i": 4,
+  "text": "We had lunch at home.",
+  "w": 147
+ },
+ {
+  "day": 4,
+  "unit": 69,
+  "i": 5,
+  "text": "They are going to the office after lunch.",
+  "w": 250
+ },
+ {
+  "day": 4,
+  "unit": 70,
+  "i": 1,
+  "text": "Most people enjoy weekends.",
+  "w": 189
+ },
+ {
+  "day": 4,
+  "unit": 70,
+  "i": 2,
+  "text": "She doesn't like meetings.",
+  "w": 168
+ },
+ {
+  "day": 4,
+  "unit": 70,
+  "i": 3,
+  "text": "Computers are everywhere now.",
+  "w": 205
+ },
+ {
+  "day": 4,
+  "unit": 70,
+  "i": 4,
+  "text": "Exercise is good for you.",
+  "w": 157
+ },
+ {
+  "day": 4,
+  "unit": 70,
+  "i": 5,
+  "text": "Do you like jazz?",
+  "w": 110
+ },
+ {
+  "day": 4,
+  "unit": 71,
+  "i": 1,
+  "text": "Seoul is the capital of Korea.",
+  "w": 183
+ },
+ {
+  "day": 4,
+  "unit": 71,
+  "i": 2,
+  "text": "The Han River is very long.",
+  "w": 170
+ },
+ {
+  "day": 4,
+  "unit": 71,
+  "i": 3,
+  "text": "She lives in Canada.",
+  "w": 130
+ },
+ {
+  "day": 4,
+  "unit": 71,
+  "i": 4,
+  "text": "We visited the United States last year.",
+  "w": 242
+ },
+ {
+  "day": 4,
+  "unit": 71,
+  "i": 5,
+  "text": "The Alps are in Europe.",
+  "w": 148
+ },
+ {
+  "day": 4,
+  "unit": 72,
+  "i": 1,
+  "text": "Is this your coffee?",
+  "w": 123
+ },
+ {
+  "day": 4,
+  "unit": 72,
+  "i": 2,
+  "text": "That building is our office.",
+  "w": 164
+ },
+ {
+  "day": 4,
+  "unit": 72,
+  "i": 3,
+  "text": "These files are old.",
+  "w": 121
+ },
+ {
+  "day": 4,
+  "unit": 72,
+  "i": 4,
+  "text": "Those people are from the sales team.",
+  "w": 244
+ },
+ {
+  "day": 4,
+  "unit": 72,
+  "i": 5,
+  "text": "What is that noise?",
+  "w": 124
+ },
+ {
+  "day": 4,
+  "unit": 73,
+  "i": 1,
+  "text": "This chair is broken. Can I have another one?",
+  "w": 284
+ },
+ {
+  "day": 4,
+  "unit": 73,
+  "i": 2,
+  "text": "I like the blue cups more than the red ones.",
+  "w": 276
+ },
+ {
+  "day": 4,
+  "unit": 73,
+  "i": 3,
+  "text": "Which laptop is yours? The silver one.",
+  "w": 146
+ },
+ {
+  "day": 4,
+  "unit": 73,
+  "i": 4,
+  "text": "These keys are old. We need new ones.",
+  "w": 249
+ },
+ {
+  "day": 4,
+  "unit": 73,
+  "i": 5,
+  "text": "My phone is old, but I don't want a new one.",
+  "w": 280
+ },
+ {
+  "day": 4,
+  "unit": 74,
+  "i": 1,
+  "text": "I bought some snacks for the team.",
+  "w": 226
+ },
+ {
+  "day": 4,
+  "unit": 74,
+  "i": 2,
+  "text": "Do you have any questions?",
+  "w": 179
+ },
+ {
+  "day": 4,
+  "unit": 74,
+  "i": 3,
+  "text": "We don't have any milk.",
+  "w": 152
+ },
+ {
+  "day": 4,
+  "unit": 74,
+  "i": 4,
+  "text": "Can I have some water?",
+  "w": 155
+ },
+ {
+  "day": 4,
+  "unit": 74,
+  "i": 5,
+  "text": "Are there any messages for me?",
+  "w": 207
+ },
+ {
+  "day": 4,
+  "unit": 75,
+  "i": 1,
+  "text": "We didn't get any replies.",
+  "w": 162
+ },
+ {
+  "day": 4,
+  "unit": 75,
+  "i": 2,
+  "text": "There are no seats left.",
+  "w": 147
+ },
+ {
+  "day": 4,
+  "unit": 75,
+  "i": 3,
+  "text": "I have no time today.",
+  "w": 134
+ },
+ {
+  "day": 4,
+  "unit": 75,
+  "i": 4,
+  "text": "How many bugs did you find? None.",
+  "w": 190
+ },
+ {
+  "day": 4,
+  "unit": 75,
+  "i": 5,
+  "text": "She has no idea about the change.",
+  "w": 221
+ },
+ {
+  "day": 4,
+  "unit": 76,
+  "i": 1,
+  "text": "I didn't meet anybody at the cafe.",
+  "w": 214
+ },
+ {
+  "day": 4,
+  "unit": 76,
+  "i": 2,
+  "text": "Nobody answered the phone.",
+  "w": 187
+ },
+ {
+  "day": 4,
+  "unit": 76,
+  "i": 3,
+  "text": "I didn't say anything.",
+  "w": 133
+ },
+ {
+  "day": 4,
+  "unit": 76,
+  "i": 4,
+  "text": "Nothing is wrong with the server.",
+  "w": 211
+ },
+ {
+  "day": 4,
+  "unit": 76,
+  "i": 5,
+  "text": "She didn't go anywhere last weekend.",
+  "w": 242
+ },
+ {
+  "day": 4,
+  "unit": 77,
+  "i": 1,
+  "text": "Somebody left a bag in the room.",
+  "w": 213
+ },
+ {
+  "day": 4,
+  "unit": 77,
+  "i": 2,
+  "text": "Is there anything to eat?",
+  "w": 158
+ },
+ {
+  "day": 4,
+  "unit": 77,
+  "i": 3,
+  "text": "Let's go somewhere quiet.",
+  "w": 168
+ },
+ {
+  "day": 4,
+  "unit": 77,
+  "i": 4,
+  "text": "I need someone to help me.",
+  "w": 177
+ },
+ {
+  "day": 4,
+  "unit": 77,
+  "i": 5,
+  "text": "Did anybody call?",
+  "w": 115
+ },
+ {
+  "day": 4,
+  "unit": 78,
+  "i": 1,
+  "text": "Every desk has a lamp.",
+  "w": 148
+ },
+ {
+  "day": 4,
+  "unit": 78,
+  "i": 2,
+  "text": "Everybody likes the new office.",
+  "w": 197
+ },
+ {
+  "day": 4,
+  "unit": 78,
+  "i": 3,
+  "text": "Everything is ready for the demo.",
+  "w": 211
+ },
+ {
+  "day": 4,
+  "unit": 78,
+  "i": 4,
+  "text": "I check my email every morning.",
+  "w": 205
+ },
+ {
+  "day": 4,
+  "unit": 78,
+  "i": 5,
+  "text": "She knows everyone on the team.",
+  "w": 216
+ },
+ {
+  "day": 4,
+  "unit": 79,
+  "i": 1,
+  "text": "All of the tests passed.",
+  "w": 148
+ },
+ {
+  "day": 4,
+  "unit": 79,
+  "i": 2,
+  "text": "Most people in my team work from home.",
+  "w": 266
+ },
+ {
+  "day": 4,
+  "unit": 79,
+  "i": 3,
+  "text": "Some of my friends live abroad.",
+  "w": 202
+ },
+ {
+  "day": 4,
+  "unit": 79,
+  "i": 4,
+  "text": "None of us knew the answer.",
+  "w": 186
+ },
+ {
+  "day": 4,
+  "unit": 79,
+  "i": 5,
+  "text": "Most of the meetings are online.",
+  "w": 207
+ },
+ {
+  "day": 4,
+  "unit": 80,
+  "i": 1,
+  "text": "Both of my coworkers are from Busan.",
+  "w": 244
+ },
+ {
+  "day": 4,
+  "unit": 80,
+  "i": 2,
+  "text": "You can use either room.",
+  "w": 158
+ },
+ {
+  "day": 4,
+  "unit": 80,
+  "i": 3,
+  "text": "Neither of the tests passed.",
+  "w": 178
+ },
+ {
+  "day": 4,
+  "unit": 80,
+  "i": 4,
+  "text": "Both options are fine.",
+  "w": 138
+ },
+ {
+  "day": 4,
+  "unit": 80,
+  "i": 5,
+  "text": "I don't like either of them.",
+  "w": 164
+ },
+ {
+  "day": 4,
+  "unit": 81,
+  "i": 1,
+  "text": "I have a lot of work today.",
+  "w": 166
+ },
+ {
+  "day": 4,
+  "unit": 81,
+  "i": 2,
+  "text": "Did you get many comments?",
+  "w": 190
+ },
+ {
+  "day": 4,
+  "unit": 81,
+  "i": 3,
+  "text": "How many people came?",
+  "w": 162
+ },
+ {
+  "day": 4,
+  "unit": 81,
+  "i": 4,
+  "text": "There isn't much coffee left.",
+  "w": 177
+ },
+ {
+  "day": 4,
+  "unit": 81,
+  "i": 5,
+  "text": "She reads a lot of books.",
+  "w": 160
+ },
+ {
+  "day": 4,
+  "unit": 82,
+  "i": 1,
+  "text": "I need a little help.",
+  "w": 119
+ },
+ {
+  "day": 4,
+  "unit": 82,
+  "i": 2,
+  "text": "A few people stayed late.",
+  "w": 162
+ },
+ {
+  "day": 4,
+  "unit": 82,
+  "i": 3,
+  "text": "There is a little milk in the fridge.",
+  "w": 209
+ },
+ {
+  "day": 4,
+  "unit": 82,
+  "i": 4,
+  "text": "I have a few questions.",
+  "w": 147
+ },
+ {
+  "day": 4,
+  "unit": 82,
+  "i": 5,
+  "text": "We have little time and few ideas.",
+  "w": 215
+ },
+ {
+  "day": 5,
+  "unit": 83,
+  "i": 1,
+  "text": "We moved into a bright office.",
+  "w": 190
+ },
+ {
+  "day": 5,
+  "unit": 83,
+  "i": 2,
+  "text": "She has a new car.",
+  "w": 122
+ },
+ {
+  "day": 5,
+  "unit": 83,
+  "i": 3,
+  "text": "The room is quiet.",
+  "w": 115
+ },
+ {
+  "day": 5,
+  "unit": 83,
+  "i": 4,
+  "text": "This is a hard problem.",
+  "w": 145
+ },
+ {
+  "day": 5,
+  "unit": 83,
+  "i": 5,
+  "text": "His laptop is very old.",
+  "w": 138
+ },
+ {
+  "day": 5,
+  "unit": 84,
+  "i": 1,
+  "text": "She answered the question clearly.",
+  "w": 222
+ },
+ {
+  "day": 5,
+  "unit": 84,
+  "i": 2,
+  "text": "The new tool installs easily.",
+  "w": 175
+ },
+ {
+  "day": 5,
+  "unit": 84,
+  "i": 3,
+  "text": "Please drive carefully.",
+  "w": 141
+ },
+ {
+  "day": 5,
+  "unit": 84,
+  "i": 4,
+  "text": "The app works perfectly.",
+  "w": 157
+ },
+ {
+  "day": 5,
+  "unit": 84,
+  "i": 5,
+  "text": "They talked quietly in the library.",
+  "w": 207
+ },
+ {
+  "day": 5,
+  "unit": 85,
+  "i": 1,
+  "text": "My new laptop is faster than the old one.",
+  "w": 262
+ },
+ {
+  "day": 5,
+  "unit": 85,
+  "i": 2,
+  "text": "This plan is more expensive.",
+  "w": 179
+ },
+ {
+  "day": 5,
+  "unit": 85,
+  "i": 3,
+  "text": "The test is easier today.",
+  "w": 152
+ },
+ {
+  "day": 5,
+  "unit": 85,
+  "i": 4,
+  "text": "Her office is bigger than mine.",
+  "w": 192
+ },
+ {
+  "day": 5,
+  "unit": 85,
+  "i": 5,
+  "text": "The bus is cheaper than a taxi.",
+  "w": 196
+ },
+ {
+  "day": 5,
+  "unit": 86,
+  "i": 1,
+  "text": "I'm older than my manager.",
+  "w": 174
+ },
+ {
+  "day": 5,
+  "unit": 86,
+  "i": 2,
+  "text": "She works harder than anyone.",
+  "w": 198
+ },
+ {
+  "day": 5,
+  "unit": 86,
+  "i": 3,
+  "text": "This version is better than the last one.",
+  "w": 247
+ },
+ {
+  "day": 5,
+  "unit": 86,
+  "i": 4,
+  "text": "The train is faster than the bus.",
+  "w": 200
+ },
+ {
+  "day": 5,
+  "unit": 86,
+  "i": 5,
+  "text": "He runs more than me.",
+  "w": 147
+ },
+ {
+  "day": 5,
+  "unit": 87,
+  "i": 1,
+  "text": "This laptop isn't as fast as yours.",
+  "w": 209
+ },
+ {
+  "day": 5,
+  "unit": 87,
+  "i": 2,
+  "text": "The meeting wasn't as long as last time.",
+  "w": 256
+ },
+ {
+  "day": 5,
+  "unit": 87,
+  "i": 3,
+  "text": "I'm not as busy as I was.",
+  "w": 157
+ },
+ {
+  "day": 5,
+  "unit": 87,
+  "i": 4,
+  "text": "The new office is as big as the old one.",
+  "w": 247
+ },
+ {
+  "day": 5,
+  "unit": 87,
+  "i": 5,
+  "text": "She doesn't type as quickly as he does.",
+  "w": 251
+ },
+ {
+  "day": 5,
+  "unit": 88,
+  "i": 1,
+  "text": "This is the fastest server we have.",
+  "w": 217
+ },
+ {
+  "day": 5,
+  "unit": 88,
+  "i": 2,
+  "text": "She is the best tester on the team.",
+  "w": 222
+ },
+ {
+  "day": 5,
+  "unit": 88,
+  "i": 3,
+  "text": "That was the longest meeting of the year.",
+  "w": 264
+ },
+ {
+  "day": 5,
+  "unit": 88,
+  "i": 4,
+  "text": "What is the most difficult part?",
+  "w": 197
+ },
+ {
+  "day": 5,
+  "unit": 88,
+  "i": 5,
+  "text": "It's the cheapest cafe near the office.",
+  "w": 237
+ },
+ {
+  "day": 5,
+  "unit": 89,
+  "i": 1,
+  "text": "I don't have enough time.",
+  "w": 161
+ },
+ {
+  "day": 5,
+  "unit": 89,
+  "i": 2,
+  "text": "Is the room big enough?",
+  "w": 156
+ },
+ {
+  "day": 5,
+  "unit": 89,
+  "i": 3,
+  "text": "We have enough chairs for everyone.",
+  "w": 234
+ },
+ {
+  "day": 5,
+  "unit": 89,
+  "i": 4,
+  "text": "He isn't old enough to drive.",
+  "w": 179
+ },
+ {
+  "day": 5,
+  "unit": 89,
+  "i": 5,
+  "text": "She didn't sleep enough last night.",
+  "w": 221
+ },
+ {
+  "day": 5,
+  "unit": 90,
+  "i": 1,
+  "text": "This coffee is too hot.",
+  "w": 138
+ },
+ {
+  "day": 5,
+  "unit": 90,
+  "i": 2,
+  "text": "The test is too long.",
+  "w": 128
+ },
+ {
+  "day": 5,
+  "unit": 90,
+  "i": 3,
+  "text": "It's too late to call him.",
+  "w": 146
+ },
+ {
+  "day": 5,
+  "unit": 90,
+  "i": 4,
+  "text": "There are too many meetings this week.",
+  "w": 254
+ },
+ {
+  "day": 5,
+  "unit": 90,
+  "i": 5,
+  "text": "The font is too small to read.",
+  "w": 183
+ },
+ {
+  "day": 5,
+  "unit": 91,
+  "i": 1,
+  "text": "I read the news every morning.",
+  "w": 197
+ },
+ {
+  "day": 5,
+  "unit": 91,
+  "i": 2,
+  "text": "He plays the drums every weekend.",
+  "w": 227
+ },
+ {
+  "day": 5,
+  "unit": 91,
+  "i": 3,
+  "text": "We met the client at the station yesterday.",
+  "w": 269
+ },
+ {
+  "day": 5,
+  "unit": 91,
+  "i": 4,
+  "text": "He left his phone in the office.",
+  "w": 192
+ },
+ {
+  "day": 5,
+  "unit": 91,
+  "i": 5,
+  "text": "I bought a new keyboard last week.",
+  "w": 226
+ },
+ {
+  "day": 5,
+  "unit": 92,
+  "i": 1,
+  "text": "I always check the logs first.",
+  "w": 183
+ },
+ {
+  "day": 5,
+  "unit": 92,
+  "i": 2,
+  "text": "She usually takes the bus.",
+  "w": 169
+ },
+ {
+  "day": 5,
+  "unit": 92,
+  "i": 3,
+  "text": "We never work on Sundays.",
+  "w": 178
+ },
+ {
+  "day": 5,
+  "unit": 92,
+  "i": 4,
+  "text": "He is often late for meetings.",
+  "w": 185
+ },
+ {
+  "day": 5,
+  "unit": 92,
+  "i": 5,
+  "text": "Do you sometimes work from home?",
+  "w": 235
+ },
+ {
+  "day": 5,
+  "unit": 93,
+  "i": 1,
+  "text": "Are you still on the call?",
+  "w": 155
+ },
+ {
+  "day": 5,
+  "unit": 93,
+  "i": 2,
+  "text": "Have you finished the report yet?",
+  "w": 212
+ },
+ {
+  "day": 5,
+  "unit": 93,
+  "i": 3,
+  "text": "She has already left.",
+  "w": 132
+ },
+ {
+  "day": 5,
+  "unit": 93,
+  "i": 4,
+  "text": "The build hasn't finished yet.",
+  "w": 183
+ },
+ {
+  "day": 5,
+  "unit": 93,
+  "i": 5,
+  "text": "I'm still waiting for his reply.",
+  "w": 178
+ },
+ {
+  "day": 5,
+  "unit": 94,
+  "i": 1,
+  "text": "I gave the file to my manager.",
+  "w": 190
+ },
+ {
+  "day": 5,
+  "unit": 94,
+  "i": 2,
+  "text": "Can you send me the link?",
+  "w": 171
+ },
+ {
+  "day": 5,
+  "unit": 94,
+  "i": 3,
+  "text": "She made coffee for everyone.",
+  "w": 194
+ },
+ {
+  "day": 5,
+  "unit": 94,
+  "i": 4,
+  "text": "He showed us the new design.",
+  "w": 195
+ },
+ {
+  "day": 5,
+  "unit": 94,
+  "i": 5,
+  "text": "Please pass me the pen.",
+  "w": 158
+ },
+ {
+  "day": 5,
+  "unit": 95,
+  "i": 1,
+  "text": "I was tired, so I went home early.",
+  "w": 209
+ },
+ {
+  "day": 5,
+  "unit": 95,
+  "i": 2,
+  "text": "She likes tea, but she doesn't like coffee.",
+  "w": 260
+ },
+ {
+  "day": 5,
+  "unit": 95,
+  "i": 3,
+  "text": "Do you want tea or coffee?",
+  "w": 173
+ },
+ {
+  "day": 5,
+  "unit": 95,
+  "i": 4,
+  "text": "We stayed late because the build failed.",
+  "w": 254
+ },
+ {
+  "day": 5,
+  "unit": 95,
+  "i": 5,
+  "text": "He opened the laptop and started work.",
+  "w": 253
+ },
+ {
+  "day": 5,
+  "unit": 96,
+  "i": 1,
+  "text": "When the alarm rang, everyone left the building.",
+  "w": 304
+ },
+ {
+  "day": 5,
+  "unit": 96,
+  "i": 2,
+  "text": "Call me when you finish.",
+  "w": 157
+ },
+ {
+  "day": 5,
+  "unit": 96,
+  "i": 3,
+  "text": "When she was young, she lived in Jeju.",
+  "w": 249
+ },
+ {
+  "day": 5,
+  "unit": 96,
+  "i": 4,
+  "text": "I'll tell you when the build is ready.",
+  "w": 220
+ },
+ {
+  "day": 5,
+  "unit": 96,
+  "i": 5,
+  "text": "When the meeting ended, we had lunch.",
+  "w": 255
+ },
+ {
+  "day": 5,
+  "unit": 97,
+  "i": 1,
+  "text": "If it rains, we'll stay inside.",
+  "w": 167
+ },
+ {
+  "day": 5,
+  "unit": 97,
+  "i": 2,
+  "text": "If you need help, call me.",
+  "w": 159
+ },
+ {
+  "day": 5,
+  "unit": 97,
+  "i": 3,
+  "text": "If the test fails, check the logs.",
+  "w": 198
+ },
+ {
+  "day": 5,
+  "unit": 97,
+  "i": 4,
+  "text": "What will you do if the server goes down?",
+  "w": 267
+ },
+ {
+  "day": 5,
+  "unit": 97,
+  "i": 5,
+  "text": "I'll come if I have time.",
+  "w": 143
+ },
+ {
+  "day": 5,
+  "unit": 98,
+  "i": 1,
+  "text": "If I had more time, I would learn Japanese.",
+  "w": 270
+ },
+ {
+  "day": 5,
+  "unit": 98,
+  "i": 2,
+  "text": "If she knew the answer, she would tell us.",
+  "w": 266
+ },
+ {
+  "day": 5,
+  "unit": 98,
+  "i": 3,
+  "text": "I would buy a new laptop if I had the money.",
+  "w": 281
+ },
+ {
+  "day": 5,
+  "unit": 98,
+  "i": 4,
+  "text": "If I were you, I would ask the manager.",
+  "w": 245
+ },
+ {
+  "day": 5,
+  "unit": 98,
+  "i": 5,
+  "text": "What would you do if you won the lottery?",
+  "w": 269
+ },
+ {
+  "day": 5,
+  "unit": 99,
+  "i": 1,
+  "text": "I have a friend who works at Google.",
+  "w": 232
+ },
+ {
+  "day": 5,
+  "unit": 99,
+  "i": 2,
+  "text": "The man who called you is my manager.",
+  "w": 254
+ },
+ {
+  "day": 5,
+  "unit": 99,
+  "i": 3,
+  "text": "She is the tester who found the bug.",
+  "w": 234
+ },
+ {
+  "day": 5,
+  "unit": 99,
+  "i": 4,
+  "text": "Do you know anyone who speaks French?",
+  "w": 267
+ },
+ {
+  "day": 5,
+  "unit": 99,
+  "i": 5,
+  "text": "The people who came to the demo liked it.",
+  "w": 271
+ },
+ {
+  "day": 5,
+  "unit": 100,
+  "i": 1,
+  "text": "The bug that you found is fixed now.",
+  "w": 231
+ },
+ {
+  "day": 5,
+  "unit": 100,
+  "i": 2,
+  "text": "This is the laptop that I bought last week.",
+  "w": 263
+ },
+ {
+  "day": 5,
+  "unit": 100,
+  "i": 3,
+  "text": "The app which we use for chat is free.",
+  "w": 242
+ },
+ {
+  "day": 5,
+  "unit": 100,
+  "i": 4,
+  "text": "Where is the file that I sent you?",
+  "w": 208
+ },
+ {
+  "day": 5,
+  "unit": 100,
+  "i": 5,
+  "text": "I like the cafe that opened near the office.",
+  "w": 266
+ },
+ {
+  "day": 6,
+  "unit": 101,
+  "i": 1,
+  "text": "The meeting starts at ten.",
+  "w": 165
+ },
+ {
+  "day": 6,
+  "unit": 101,
+  "i": 2,
+  "text": "I was born in 1990.",
+  "w": 122
+ },
+ {
+  "day": 6,
+  "unit": 101,
+  "i": 3,
+  "text": "We have a party on Friday.",
+  "w": 169
+ },
+ {
+  "day": 6,
+  "unit": 101,
+  "i": 4,
+  "text": "She works late in the evening.",
+  "w": 192
+ },
+ {
+  "day": 6,
+  "unit": 101,
+  "i": 5,
+  "text": "The release is on May 3rd.",
+  "w": 168
+ },
+ {
+  "day": 6,
+  "unit": 102,
+  "i": 1,
+  "text": "I work from nine to six.",
+  "w": 148
+ },
+ {
+  "day": 6,
+  "unit": 102,
+  "i": 2,
+  "text": "She'll be away until Monday.",
+  "w": 180
+ },
+ {
+  "day": 6,
+  "unit": 102,
+  "i": 3,
+  "text": "We have lived here since 2019.",
+  "w": 197
+ },
+ {
+  "day": 6,
+  "unit": 102,
+  "i": 4,
+  "text": "He studied for three hours.",
+  "w": 171
+ },
+ {
+  "day": 6,
+  "unit": 102,
+  "i": 5,
+  "text": "The office is closed from Friday to Sunday.",
+  "w": 269
+ },
+ {
+  "day": 6,
+  "unit": 103,
+  "i": 1,
+  "text": "Wash your hands before lunch.",
+  "w": 197
+ },
+ {
+  "day": 6,
+  "unit": 103,
+  "i": 2,
+  "text": "We went out after the meeting.",
+  "w": 199
+ },
+ {
+  "day": 6,
+  "unit": 103,
+  "i": 3,
+  "text": "Please don't talk during the demo.",
+  "w": 219
+ },
+ {
+  "day": 6,
+  "unit": 103,
+  "i": 4,
+  "text": "I listened to music while I was coding.",
+  "w": 242
+ },
+ {
+  "day": 6,
+  "unit": 103,
+  "i": 5,
+  "text": "She called me after work.",
+  "w": 165
+ },
+ {
+  "day": 6,
+  "unit": 104,
+  "i": 1,
+  "text": "The keys are in my bag.",
+  "w": 151
+ },
+ {
+  "day": 6,
+  "unit": 104,
+  "i": 2,
+  "text": "She is waiting at the door.",
+  "w": 167
+ },
+ {
+  "day": 6,
+  "unit": 104,
+  "i": 3,
+  "text": "Your phone is on the desk.",
+  "w": 169
+ },
+ {
+  "day": 6,
+  "unit": 104,
+  "i": 4,
+  "text": "There is a picture on the wall.",
+  "w": 188
+ },
+ {
+  "day": 6,
+  "unit": 104,
+  "i": 5,
+  "text": "We met at the bus stop.",
+  "w": 154
+ },
+ {
+  "day": 6,
+  "unit": 105,
+  "i": 1,
+  "text": "The kids are at home today.",
+  "w": 176
+ },
+ {
+  "day": 6,
+  "unit": 105,
+  "i": 2,
+  "text": "I'm at work until six.",
+  "w": 129
+ },
+ {
+  "day": 6,
+  "unit": 105,
+  "i": 3,
+  "text": "He is on the train now.",
+  "w": 144
+ },
+ {
+  "day": 6,
+  "unit": 105,
+  "i": 4,
+  "text": "We stayed at a hotel in Busan.",
+  "w": 194
+ },
+ {
+  "day": 6,
+  "unit": 105,
+  "i": 5,
+  "text": "My office is on the third floor.",
+  "w": 188
+ },
+ {
+  "day": 6,
+  "unit": 106,
+  "i": 1,
+  "text": "I'm going to the bank.",
+  "w": 140
+ },
+ {
+  "day": 6,
+  "unit": 106,
+  "i": 2,
+  "text": "We arrived in Tokyo at night.",
+  "w": 180
+ },
+ {
+  "day": 6,
+  "unit": 106,
+  "i": 3,
+  "text": "She got to the office at eight.",
+  "w": 187
+ },
+ {
+  "day": 6,
+  "unit": 106,
+  "i": 4,
+  "text": "He came back to Korea last month.",
+  "w": 224
+ },
+ {
+  "day": 6,
+  "unit": 106,
+  "i": 5,
+  "text": "What time did you arrive at the airport?",
+  "w": 250
+ },
+ {
+  "day": 6,
+  "unit": 107,
+  "i": 1,
+  "text": "The printer is next to the window.",
+  "w": 213
+ },
+ {
+  "day": 6,
+  "unit": 107,
+  "i": 2,
+  "text": "My desk is between Jun and Mina.",
+  "w": 222
+ },
+ {
+  "day": 6,
+  "unit": 107,
+  "i": 3,
+  "text": "There is a cafe in front of our building.",
+  "w": 242
+ },
+ {
+  "day": 6,
+  "unit": 107,
+  "i": 4,
+  "text": "The parking lot is behind the office.",
+  "w": 224
+ },
+ {
+  "day": 6,
+  "unit": 107,
+  "i": 5,
+  "text": "She sat across from me at lunch.",
+  "w": 210
+ },
+ {
+  "day": 6,
+  "unit": 108,
+  "i": 1,
+  "text": "She walked into the meeting room.",
+  "w": 222
+ },
+ {
+  "day": 6,
+  "unit": 108,
+  "i": 2,
+  "text": "He took his laptop out of the bag.",
+  "w": 215
+ },
+ {
+  "day": 6,
+  "unit": 108,
+  "i": 3,
+  "text": "The plane flew over the mountains.",
+  "w": 224
+ },
+ {
+  "day": 6,
+  "unit": 108,
+  "i": 4,
+  "text": "We drove through the tunnel.",
+  "w": 186
+ },
+ {
+  "day": 6,
+  "unit": 108,
+  "i": 5,
+  "text": "The cat jumped off the table.",
+  "w": 184
+ },
+ {
+  "day": 6,
+  "unit": 109,
+  "i": 1,
+  "text": "I'm on a diet this month.",
+  "w": 154
+ },
+ {
+  "day": 6,
+  "unit": 109,
+  "i": 2,
+  "text": "I came here by bus.",
+  "w": 126
+ },
+ {
+  "day": 6,
+  "unit": 109,
+  "i": 3,
+  "text": "He arrived on time.",
+  "w": 122
+ },
+ {
+  "day": 6,
+  "unit": 109,
+  "i": 4,
+  "text": "We met at a party.",
+  "w": 118
+ },
+ {
+  "day": 6,
+  "unit": 109,
+  "i": 5,
+  "text": "I live with two friends.",
+  "w": 141
+ },
+ {
+  "day": 6,
+  "unit": 110,
+  "i": 1,
+  "text": "My brother is good at math.",
+  "w": 177
+ },
+ {
+  "day": 6,
+  "unit": 110,
+  "i": 2,
+  "text": "She is afraid of dogs.",
+  "w": 136
+ },
+ {
+  "day": 6,
+  "unit": 110,
+  "i": 3,
+  "text": "We are interested in the new plan.",
+  "w": 218
+ },
+ {
+  "day": 6,
+  "unit": 110,
+  "i": 4,
+  "text": "He is angry with me.",
+  "w": 132
+ },
+ {
+  "day": 6,
+  "unit": 110,
+  "i": 5,
+  "text": "Are you ready for the test?",
+  "w": 173
+ },
+ {
+  "day": 6,
+  "unit": 111,
+  "i": 1,
+  "text": "She asked the waiter for the bill.",
+  "w": 208
+ },
+ {
+  "day": 6,
+  "unit": 111,
+  "i": 2,
+  "text": "I'm waiting for the bus.",
+  "w": 147
+ },
+ {
+  "day": 6,
+  "unit": 111,
+  "i": 3,
+  "text": "She is listening to music.",
+  "w": 160
+ },
+ {
+  "day": 6,
+  "unit": 111,
+  "i": 4,
+  "text": "Can you look after my plant?",
+  "w": 186
+ },
+ {
+  "day": 6,
+  "unit": 111,
+  "i": 5,
+  "text": "We talked about the release.",
+  "w": 183
+ },
+ {
+  "day": 6,
+  "unit": 112,
+  "i": 1,
+  "text": "We got on the bus at the last stop.",
+  "w": 221
+ },
+ {
+  "day": 6,
+  "unit": 112,
+  "i": 2,
+  "text": "Please sit down.",
+  "w": 106
+ },
+ {
+  "day": 6,
+  "unit": 112,
+  "i": 3,
+  "text": "He got up early today.",
+  "w": 141
+ },
+ {
+  "day": 6,
+  "unit": 112,
+  "i": 4,
+  "text": "Turn left and go straight on.",
+  "w": 177
+ },
+ {
+  "day": 6,
+  "unit": 112,
+  "i": 5,
+  "text": "The train left, so we came back.",
+  "w": 204
+ },
+ {
+  "day": 6,
+  "unit": 113,
+  "i": 1,
+  "text": "Turn off your phone in the theater.",
+  "w": 217
+ },
+ {
+  "day": 6,
+  "unit": 113,
+  "i": 2,
+  "text": "Please take off your shoes.",
+  "w": 174
+ },
+ {
+  "day": 6,
+  "unit": 113,
+  "i": 3,
+  "text": "Can you turn on the light?",
+  "w": 168
+ },
+ {
+  "day": 6,
+  "unit": 113,
+  "i": 4,
+  "text": "I filled in the form.",
+  "w": 118
+ },
+ {
+  "day": 6,
+  "unit": 113,
+  "i": 5,
+  "text": "She threw away the old papers.",
+  "w": 202
+ }
+]

@@ -1,0 +1,112 @@
+{
+ "key": "s07",
+ "width": 1400,
+ "height": 900,
+ "startedAt": "2026-11-01T04:25:20.380Z",
+ "steps": [
+  {
+   "n": 1,
+   "title": "홈의 Listen & notice 카드",
+   "desc": "영상 목록으로 감",
+   "tid": "quick-videos",
+   "selector": null,
+   "label": "Watch\nListen & notice\n\nHear real English in short clips.",
+   "disabled": false,
+   "file": "s07-01.png",
+   "path": "/",
+   "at": "2026-11-01T04:25:23.312Z"
+  },
+  {
+   "n": 2,
+   "title": "영상 목록 · 링크 칸과 저장된 영상",
+   "desc": "저장된 영상을 엶",
+   "tid": null,
+   "selector": "a[href^=\"/videos/\"] (영상 제목)",
+   "label": "🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머",
+   "disabled": false,
+   "file": "s07-02.png",
+   "path": "/videos",
+   "at": "2026-11-01T04:25:25.541Z"
+  },
+  {
+   "n": 3,
+   "title": "영상 화면",
+   "desc": "영상을 재생함",
+   "tid": null,
+   "selector": "iframe (YouTube 재생 버튼)",
+   "label": "",
+   "disabled": false,
+   "file": "s07-03.png",
+   "path": "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+   "at": "2026-11-01T04:25:30.816Z"
+  },
+  {
+   "n": 4,
+   "title": "영상이 재생됨",
+   "desc": "들을 구간의 시작을 찍음",
+   "tid": null,
+   "selector": "button: Mark start",
+   "label": "Mark start",
+   "disabled": false,
+   "file": "s07-04.png",
+   "path": "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+   "at": "2026-11-01T04:25:34.163Z"
+  },
+  {
+   "n": 5,
+   "title": "시작을 찍음 · 계속 재생",
+   "desc": "구간의 끝을 찍음",
+   "tid": null,
+   "selector": "button: Mark end",
+   "label": "Mark end",
+   "disabled": false,
+   "file": "s07-05.png",
+   "path": "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+   "at": "2026-11-01T04:25:38.994Z"
+  },
+  {
+   "n": 6,
+   "title": "구간 반복 재생 · 받아쓰기를 적음",
+   "desc": "들은 문장을 저장함",
+   "tid": null,
+   "selector": "button: Save",
+   "label": "Save",
+   "disabled": false,
+   "file": "s07-06.png",
+   "path": "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+   "at": "2026-11-01T04:25:40.947Z"
+  },
+  {
+   "n": 7,
+   "title": "저장된 문장 목록",
+   "desc": "문장 속 낱말을 눌러 뜻을 봄",
+   "tid": null,
+   "selector": "button: 낱말 work",
+   "label": "work",
+   "disabled": false,
+   "file": "s07-07.png",
+   "path": "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+   "at": "2026-11-01T04:25:42.797Z"
+  },
+  {
+   "n": 8,
+   "title": "낱말 뜻 조회 결과",
+   "desc": "stub 이라 뜻을 받지 못한 안내가 뜸",
+   "tid": null,
+   "selector": null,
+   "label": null,
+   "disabled": null,
+   "file": "s07-08.png",
+   "path": "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+   "at": "2026-11-01T04:25:46.379Z"
+  }
+ ],
+ "notes": [
+  "video after play: {\"t\":2.31,\"paused\":false,\"mode\":\"playing\"}",
+  "lookup status: work — I couldn't find it. Tap again.",
+  "phrase_count after cleanup: [0]"
+ ],
+ "ok": true,
+ "logs": [],
+ "endedAt": "2026-11-01T04:25:47.905Z"
+}

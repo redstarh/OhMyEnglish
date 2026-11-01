@@ -1,0 +1,59 @@
+{
+ "key": "s04",
+ "width": 1400,
+ "height": 900,
+ "startedAt": "2026-11-01T04:21:27.418Z",
+ "steps": [
+  {
+   "n": 1,
+   "title": "Focus patterns 의 Practice a pattern",
+   "desc": "코치가 지켜보는 약점 패턴으로 대화를 시작함",
+   "tid": "focus-practice",
+   "label": "Practice a pattern",
+   "disabled": false,
+   "file": "s04-01.png",
+   "path": "/",
+   "at": "2026-11-01T04:21:30.343Z"
+  },
+  {
+   "n": 2,
+   "title": "카드 안에서 세션이 시작됨",
+   "desc": "다른 학습 버튼과 메뉴는 잠김",
+   "tid": null,
+   "label": null,
+   "disabled": null,
+   "file": "s04-02.png",
+   "path": "/",
+   "at": "2026-11-01T04:21:31.998Z"
+  },
+  {
+   "n": 3,
+   "title": "코치와 주고받은 대화 줄이 카드 안에 쌓임",
+   "desc": "stub 픽스처 세 턴",
+   "tid": null,
+   "label": null,
+   "disabled": null,
+   "file": "s04-03.png",
+   "path": "/",
+   "at": "2026-11-01T04:21:33.963Z"
+  },
+  {
+   "n": 4,
+   "title": "세션이 끝나 결과 화면으로 넘어감",
+   "desc": "이 스택은 분석이 꺼져 있어 Checking… 이 그대로 남음",
+   "tid": null,
+   "label": null,
+   "disabled": null,
+   "file": "s04-04.png",
+   "path": "/results/ffdbc22e-315e-484c-913d-38fdd39f4303",
+   "at": "2026-11-01T04:21:46.343Z"
+  }
+ ],
+ "notes": [
+  "wsTypes: [\"session_started\",\"final\",\"partial\",\"partial\",\"final\",\"audio\",\"final\",\"partial\",\"partial\",\"final\",\"audio\",\"final\",\"partial\",\"partial\",\"final\",\"audio\",\"session_ended\"]",
+  "sockets: [{\"t\":1793506890383,\"url\":\"/ws/session?source=additional\"}]"
+ ],
+ "ok": true,
+ "logs": [],
+ "endedAt": "2026-11-01T04:21:46.344Z"
+}

@@ -1,0 +1,165 @@
+{
+ "label": "w1400",
+ "width": 1400,
+ "height": 900,
+ "startedAt": "2026-11-01T04:55:30.638Z",
+ "m": {
+  "idle": {
+   "heroW": 669.1,
+   "heroH": 528,
+   "heroRight": 965,
+   "docSW": 1400,
+   "docCW": 1400,
+   "spoken": false,
+   "sentence": null,
+   "close": null,
+   "next": null,
+   "auto": null,
+   "manual": null,
+   "rowText": null
+  },
+  "currentDay": 1,
+  "reachedReal61": {
+   "nexts": 0,
+   "backs": 0,
+   "sentence": "We deploy on Fridays. This week we are deploying on Thursday."
+  },
+  "real61Spoken": {
+   "heroW": 669.1,
+   "heroH": 528,
+   "heroRight": 965,
+   "bodySW": 619,
+   "bodyCW": 619,
+   "bodySH": 446,
+   "bodyCH": 446,
+   "docSW": 1400,
+   "docCW": 1400,
+   "spoken": true,
+   "sentence": "We deploy on Fridays. This week we are deploying on Thursday.",
+   "close": {
+    "l": 869,
+    "r": 940,
+    "inside": true,
+    "hitSelf": true
+   },
+   "next": {
+    "l": 848,
+    "r": 923,
+    "inside": true,
+    "hitSelf": true
+   },
+   "auto": {
+    "l": 821,
+    "r": 872,
+    "inside": true,
+    "hitSelf": true
+   },
+   "manual": {
+    "l": 872,
+    "r": 939,
+    "inside": true,
+    "hitSelf": true
+   },
+   "rowText": "We deploy on Fridays. This week we are deploying on Thursday.\nUnderline: you sai"
+  },
+  "real61NextClick": {
+   "before": "We deploy on Fridays. This week we are deploying on Thursday.",
+   "after": "He doesn't usually call me, but he is calling now.",
+   "moved": true
+  },
+  "scan": {
+   "total": 565,
+   "base": {
+    "heroW": 669.1,
+    "heroH": 528,
+    "bodySW": 619,
+    "bodyCW": 619,
+    "bodySH": 446,
+    "bodyCH": 446,
+    "docSW": 1400
+   },
+   "exceed": 0,
+   "maxHeroW": 669.1,
+   "maxBodySH_minus_CH": 0,
+   "heroHs": [
+    528
+   ],
+   "oldMarkupControl61": {
+    "heroW": 669.1,
+    "heroH": 528,
+    "bodySW": 619,
+    "bodyCW": 619,
+    "bodySH": 446,
+    "bodyCH": 446,
+    "docSW": 1400
+   },
+   "firstBad": []
+  },
+  "closeClick": {
+   "mode": "idle"
+  },
+  "u67Spoken": {
+   "heroW": 669.1,
+   "heroH": 528,
+   "heroRight": 965,
+   "bodySW": 619,
+   "bodyCW": 619,
+   "bodySH": 446,
+   "bodyCH": 446,
+   "docSW": 1400,
+   "docCW": 1400,
+   "spoken": true,
+   "sentence": "She works in a big building. The building has thirty floors.",
+   "close": {
+    "l": 869,
+    "r": 940,
+    "inside": true,
+    "hitSelf": true
+   },
+   "next": {
+    "l": 848,
+    "r": 923,
+    "inside": true,
+    "hitSelf": true
+   },
+   "auto": {
+    "l": 821,
+    "r": 872,
+    "inside": true,
+    "hitSelf": true
+   },
+   "manual": {
+    "l": 872,
+    "r": 939,
+    "inside": true,
+    "hitSelf": true
+   },
+   "rowText": "She works in a big building. The building has thirty floors.\nUnderline: you said"
+  },
+  "u67AutoClick": {
+   "autoPressed": "true",
+   "manualBack": "true"
+  },
+  "u67CloseClick": {
+   "mode": "idle"
+  },
+  "idleAfter": {
+   "heroW": 669.1,
+   "heroH": 528,
+   "heroRight": 965,
+   "docSW": 1400,
+   "docCW": 1400,
+   "spoken": false,
+   "sentence": null,
+   "close": null,
+   "next": null,
+   "auto": null,
+   "manual": null,
+   "rowText": null
+  }
+ },
+ "notes": [],
+ "attemptMocks": 3,
+ "ok": true,
+ "logs": []
+}

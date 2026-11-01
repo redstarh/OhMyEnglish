@@ -1,0 +1,349 @@
+{
+ "label": "w1400",
+ "width": 1400,
+ "height": 900,
+ "startedAt": "2026-11-01T04:36:50.628Z",
+ "m": {
+  "idle": {
+   "mode": "idle",
+   "scrollY": 0,
+   "docH": 1209,
+   "hero": {
+    "h": 528,
+    "sh": 528,
+    "ch": 528,
+    "ov": "visible"
+   },
+   "body": null,
+   "log": null,
+   "spoken": false,
+   "sentence": null,
+   "failed": false,
+   "path": [
+    58,
+    58
+   ],
+   "quick": [
+    70,
+    70,
+    70
+   ],
+   "pathSection": 325
+  },
+  "practice": {
+   "mode": "practice",
+   "scrollY": 0,
+   "docH": 1209,
+   "hero": {
+    "h": 528,
+    "sh": 526,
+    "ch": 526,
+    "ov": "visible"
+   },
+   "body": {
+    "h": 446,
+    "sh": 446,
+    "ch": 446,
+    "ov": "visible"
+   },
+   "log": null,
+   "spoken": false,
+   "sentence": "Has the build finished?",
+   "failed": false,
+   "path": [
+    58,
+    58
+   ],
+   "quick": [
+    70,
+    70,
+    70
+   ],
+   "pathSection": 325
+  },
+  "practiceSpoken": {
+   "mode": "practice",
+   "scrollY": 0,
+   "docH": 1209,
+   "hero": {
+    "h": 528,
+    "sh": 526,
+    "ch": 526,
+    "ov": "visible"
+   },
+   "body": {
+    "h": 446,
+    "sh": 446,
+    "ch": 446,
+    "ov": "visible"
+   },
+   "log": null,
+   "spoken": true,
+   "sentence": "Has the build finished?",
+   "failed": false,
+   "path": [
+    58,
+    58
+   ],
+   "quick": [
+    70,
+    70,
+    70
+   ],
+   "pathSection": 325
+  },
+  "afterNext": {
+   "mode": "practice",
+   "scrollY": 0,
+   "docH": 1209,
+   "hero": {
+    "h": 528,
+    "sh": 526,
+    "ch": 526,
+    "ov": "visible"
+   },
+   "body": {
+    "h": 446,
+    "sh": 446,
+    "ch": 446,
+    "ov": "visible"
+   },
+   "log": null,
+   "spoken": false,
+   "sentence": "Did you read my message?",
+   "failed": false,
+   "path": [
+    58,
+    58
+   ],
+   "quick": [
+    70,
+    70,
+    70
+   ],
+   "pathSection": 325,
+   "scrollBefore": 0,
+   "scrollStartBefore": 0
+  },
+  "startScrolled": {
+   "before": 60,
+   "after": 60,
+   "hero": {
+    "h": 528,
+    "sh": 526,
+    "ch": 526,
+    "ov": "visible"
+   }
+  },
+  "longPractice": {
+   "mode": "practice",
+   "scrollY": 0,
+   "docH": 1209,
+   "hero": {
+    "h": 528,
+    "sh": 526,
+    "ch": 526,
+    "ov": "visible"
+   },
+   "body": {
+    "h": 446,
+    "sh": 446,
+    "ch": 446,
+    "ov": "visible"
+   },
+   "log": null,
+   "spoken": false,
+   "sentence": "We deploy on Fridays. This week we are deploying on Thursday.",
+   "failed": false,
+   "path": [
+    58,
+    58
+   ],
+   "quick": [
+    70,
+    70,
+    70
+   ],
+   "pathSection": 325
+  },
+  "longSpoken": {
+   "mode": "practice",
+   "scrollY": 0,
+   "docH": 1209,
+   "hero": {
+    "h": 528,
+    "sh": 526,
+    "ch": 526,
+    "ov": "visible"
+   },
+   "body": {
+    "h": 446,
+    "sh": 446,
+    "ch": 446,
+    "ov": "visible"
+   },
+   "log": null,
+   "spoken": true,
+   "sentence": "We deploy on Fridays. This week we are deploying on Thursday.",
+   "failed": false,
+   "path": [
+    58,
+    58
+   ],
+   "quick": [
+    70,
+    70,
+    70
+   ],
+   "pathSection": 325
+  },
+  "afterFinish": {
+   "mode": "practice",
+   "scrollY": 0,
+   "docH": 1209,
+   "hero": {
+    "h": 528,
+    "sh": 526,
+    "ch": 526,
+    "ov": "visible"
+   },
+   "body": {
+    "h": 446,
+    "sh": 446,
+    "ch": 446,
+    "ov": "visible"
+   },
+   "log": null,
+   "spoken": false,
+   "sentence": "Is the client happy?",
+   "failed": false,
+   "path": [
+    58,
+    58
+   ],
+   "quick": [
+    70,
+    70,
+    70
+   ],
+   "pathSection": 325,
+   "scrollBefore": 0,
+   "nexts": 101,
+   "dayBefore": 3,
+   "dayAfter": 4,
+   "notice": "You finished this Day!"
+  },
+  "idleAfterFinish": {
+   "mode": "idle",
+   "scrollY": 0,
+   "docH": 1209,
+   "hero": {
+    "h": 528,
+    "sh": 528,
+    "ch": 528,
+    "ov": "visible"
+   },
+   "body": null,
+   "log": null,
+   "spoken": false,
+   "sentence": null,
+   "failed": false,
+   "path": [
+    58,
+    58
+   ],
+   "quick": [
+    70,
+    70,
+    70
+   ],
+   "pathSection": 325
+  },
+  "session": {
+   "n": 51,
+   "heroH": [
+    528
+   ],
+   "heroScrolls": 0,
+   "bodyScrolls": 0,
+   "logMax": {
+    "h": 232.7,
+    "sh": 482,
+    "ch": 233,
+    "ov": "auto"
+   },
+   "logScrolls": 29,
+   "last": {
+    "mode": "session",
+    "scrollY": 309,
+    "docH": 1209,
+    "hero": {
+     "h": 528,
+     "sh": 526,
+     "ch": 526,
+     "ov": "visible"
+    },
+    "body": {
+     "h": 451,
+     "sh": 451,
+     "ch": 451,
+     "ov": "auto"
+    },
+    "log": {
+     "h": 232.7,
+     "sh": 482,
+     "ch": 233,
+     "ov": "auto"
+    },
+    "spoken": false,
+    "sentence": null,
+    "failed": false,
+    "path": [
+     58,
+     58
+    ],
+    "quick": [
+     70,
+     70,
+     70
+    ],
+    "pathSection": 325
+   }
+  },
+  "failed": {
+   "mode": "session",
+   "scrollY": 309,
+   "docH": 1209,
+   "hero": {
+    "h": 528,
+    "sh": 526,
+    "ch": 526,
+    "ov": "visible"
+   },
+   "body": {
+    "h": 451,
+    "sh": 451,
+    "ch": 451,
+    "ov": "auto"
+   },
+   "log": null,
+   "spoken": false,
+   "sentence": null,
+   "failed": true,
+   "path": [
+    58,
+    58
+   ],
+   "quick": [
+    70,
+    70,
+    70
+   ],
+   "pathSection": 325
+  }
+ },
+ "notes": [],
+ "attemptMocks": 3,
+ "ok": true,
+ "logs": []
+}

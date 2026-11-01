@@ -1,0 +1,62 @@
+{
+ "key": "s09",
+ "width": 1400,
+ "height": 900,
+ "startedAt": "2026-11-01T04:49:36.485Z",
+ "steps": [
+  {
+   "n": 1,
+   "title": "분석이 끝난 결과 화면",
+   "desc": "요약 · 오늘의 실수 · 다음 연습",
+   "tid": null,
+   "selector": null,
+   "label": null,
+   "disabled": null,
+   "file": "s09-01.png",
+   "path": "/results/c7482f05-42ef-42b9-b2ff-89d344d2f7dc",
+   "at": "2026-11-01T04:49:40.376Z"
+  },
+  {
+   "n": 2,
+   "title": "오늘의 실수 목록",
+   "desc": "그 패턴으로 바로 연습을 시작함",
+   "tid": null,
+   "selector": "Practice this (첫 번째)",
+   "label": "Practice this",
+   "disabled": false,
+   "file": "s09-02.png",
+   "path": "/results/c7482f05-42ef-42b9-b2ff-89d344d2f7dc",
+   "at": "2026-11-01T04:49:40.695Z"
+  },
+  {
+   "n": 3,
+   "title": "홈 카드 안에서 그 패턴 세션이 시작됨",
+   "desc": "",
+   "tid": null,
+   "selector": null,
+   "label": null,
+   "disabled": null,
+   "file": "s09-03.png",
+   "path": "/",
+   "at": "2026-11-01T04:49:42.773Z"
+  },
+  {
+   "n": 4,
+   "title": "새 결과 화면(분석 꺼짐 → Checking…)",
+   "desc": "",
+   "tid": null,
+   "selector": null,
+   "label": null,
+   "disabled": null,
+   "file": "s09-04.png",
+   "path": "/results/287f7ff9-a008-4a65-8659-25522164c48f",
+   "at": "2026-11-01T04:49:56.816Z"
+  }
+ ],
+ "notes": [
+  "entry: / sockets [{\"t\":1793508580785,\"url\":\"/ws/session?source=additional&pattern=verb_form_subject_verb_agreement\"}]"
+ ],
+ "ok": true,
+ "logs": [],
+ "endedAt": "2026-11-01T04:49:56.817Z"
+}

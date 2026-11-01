@@ -1,0 +1,129 @@
+{
+ "key": "s01",
+ "width": 1400,
+ "height": 900,
+ "startedAt": "2026-11-01T04:46:02.006Z",
+ "steps": [
+  {
+   "n": 1,
+   "title": "홈 대기 화면",
+   "desc": "오늘의 Day 카드에서 말하기를 시작함",
+   "tid": "start-session",
+   "selector": null,
+   "label": "Start speaking",
+   "disabled": false,
+   "file": "s01-01.png",
+   "path": "/",
+   "at": "2026-11-01T04:46:04.934Z"
+  },
+  {
+   "n": 2,
+   "title": "카드 안 문장 연습이 열림",
+   "desc": "자동 이어 가기를 끄고 한 문장씩 진행함",
+   "tid": "course-mode-manual",
+   "selector": null,
+   "label": "Manual",
+   "disabled": false,
+   "file": "s01-02.png",
+   "path": "/",
+   "at": "2026-11-01T04:46:06.967Z"
+  },
+  {
+   "n": 3,
+   "title": "수동 모드로 바꿈",
+   "desc": "듣기 → 따라 말하기 → 판정을 한 번 돎",
+   "tid": "course-start",
+   "selector": null,
+   "label": "Start",
+   "disabled": false,
+   "file": "s01-03.png",
+   "path": "/",
+   "at": "2026-11-01T04:46:08.160Z"
+  },
+  {
+   "n": 4,
+   "title": "따라 말하기 뒤 판정 안내(stub)",
+   "desc": "stub 이라 판정 대신 안내 문구가 뜸 · 다시 들음(Listen 도 한 바퀴를 돎)",
+   "tid": "course-listen",
+   "selector": null,
+   "label": "🔊 Listen",
+   "disabled": false,
+   "file": "s01-04.png",
+   "path": "/",
+   "at": "2026-11-01T04:46:13.768Z"
+  },
+  {
+   "n": 5,
+   "title": "다시 듣기를 마침 · Start 자리가 Try again 으로 바뀜",
+   "desc": "다음 문장으로 감",
+   "tid": "course-next",
+   "selector": null,
+   "label": "Next →",
+   "disabled": false,
+   "file": "s01-05.png",
+   "path": "/",
+   "at": "2026-11-01T04:46:19.356Z"
+  },
+  {
+   "n": 6,
+   "title": "다음 문장",
+   "desc": "연습을 닫고 홈 대기로 돌아감",
+   "tid": "practice-close",
+   "selector": null,
+   "label": "← Close",
+   "disabled": false,
+   "file": "s01-06.png",
+   "path": "/",
+   "at": "2026-11-01T04:46:20.541Z"
+  },
+  {
+   "n": 7,
+   "title": "홈 대기로 돌아옴",
+   "desc": "",
+   "tid": null,
+   "selector": null,
+   "label": null,
+   "disabled": null,
+   "file": "s01-07.png",
+   "path": "/",
+   "at": "2026-11-01T04:46:22.512Z"
+  }
+ ],
+ "notes": [
+  "notice: I can't check your speaking now. You can keep going."
+ ],
+ "ok": true,
+ "logs": [
+  {
+   "t": 1793508362003,
+   "kind": "log.warning",
+   "url": null,
+   "text": "Canvas2D: Multiple readback operations using getImageData are faster with the willReadFrequently attribute set to true. See: https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-will-read-frequently"
+  },
+  {
+   "t": 1793508362003,
+   "kind": "log.warning",
+   "url": null,
+   "text": "Canvas2D: Multiple readback operations using getImageData are faster with the willReadFrequently attribute set to true. See: https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-will-read-frequently"
+  },
+  {
+   "t": 1793508362003,
+   "kind": "log.warning",
+   "url": null,
+   "text": "Canvas2D: Multiple readback operations using getImageData are faster with the willReadFrequently attribute set to true. See: https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-will-read-frequently"
+  },
+  {
+   "t": 1793508372938,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u083-s1/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793508378533,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u083-s1/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  }
+ ],
+ "endedAt": "2026-11-01T04:46:22.512Z"
+}
