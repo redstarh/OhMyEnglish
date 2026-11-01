@@ -1,0 +1,269 @@
+{
+ "idleBoxes": {
+  "home-hero": [
+   296,
+   128,
+   669,
+   283
+  ],
+  "home-progress": [
+   985,
+   128,
+   367,
+   283
+  ],
+  "home-path": [
+   296,
+   443,
+   668,
+   335
+  ],
+  "home-focus": [
+   996,
+   443,
+   356,
+   335
+  ],
+  "quick-shadowing": [
+   296,
+   809,
+   339,
+   158
+  ],
+  "quick-videos": [
+   655,
+   809,
+   339,
+   158
+  ],
+  "quick-weak-patterns": [
+   1013,
+   809,
+   339,
+   158
+  ],
+  "home-more-practice": [
+   296,
+   999,
+   1056,
+   144
+  ],
+  "home-streak": [
+   1227,
+   50,
+   125,
+   32
+  ]
+ },
+ "practiceBefore": {
+  "path": "/",
+  "heroMode": "practice",
+  "heroState": "ready",
+  "practiceDay": "Day 1 · Units 1–21",
+  "practiceDayState": "ready",
+  "spInHero": true,
+  "sp": true,
+  "iframes": 0,
+  "phase": "idle",
+  "num": "Sentence 3 / 5",
+  "unit": "Unit 4 · 현재진행 질문 Are you doing?",
+  "sentence": "Is it raining outside?",
+  "attempts": "Try 0",
+  "notice": null,
+  "prevDisabled": false,
+  "finish": "absent",
+  "retry": false,
+  "start": true,
+  "auto": "false",
+  "manual": "true",
+  "close": true,
+  "follow": null,
+  "heroTitle": null,
+  "heroDay": null,
+  "panel": false,
+  "navLocked": [
+   null
+  ],
+  "gum": []
+ },
+ "click": [
+  465,
+  709
+ ],
+ "session": {
+  "state": {
+   "path": "/results/cc5c4a9a-0efd-4f4b-a752-e303b5022e3d",
+   "heroMode": null,
+   "heroState": null,
+   "practiceDay": null,
+   "practiceDayState": null,
+   "spInHero": false,
+   "sp": false,
+   "iframes": 0,
+   "phase": "idle",
+   "num": null,
+   "unit": null,
+   "sentence": null,
+   "attempts": null,
+   "notice": null,
+   "prevDisabled": null,
+   "finish": "absent",
+   "retry": false,
+   "start": false,
+   "auto": null,
+   "manual": null,
+   "close": false,
+   "follow": null,
+   "heroTitle": null,
+   "heroDay": null,
+   "panel": false,
+   "navLocked": [
+    null
+   ]
+  },
+  "boxes": {
+   "home-hero": null,
+   "home-progress": null,
+   "home-path": null,
+   "home-focus": null,
+   "quick-shadowing": null,
+   "quick-videos": null,
+   "quick-weak-patterns": null,
+   "home-more-practice": null,
+   "home-streak": null
+  },
+  "idleH": 283,
+  "notShorter": false,
+  "others": {
+   "home-progress": null,
+   "home-path": null,
+   "home-focus": null,
+   "quick-shadowing": null,
+   "quick-videos": null,
+   "quick-weak-patterns": null,
+   "home-more-practice": null,
+   "home-streak": null
+  }
+ },
+ "end": {
+  "path": "/results/cc5c4a9a-0efd-4f4b-a752-e303b5022e3d",
+  "sockets": [
+   {
+    "t": 1793503758240,
+    "url": "/ws/session?mode=shadowing&source=additional"
+   }
+  ],
+  "gum": [
+   {
+    "k": 1,
+    "stack": "    at SessionPage.useCallback[startSession] (http://localhost:3000/_next/static/chunks/_1rdrmxm._.js:1873:55) |     at onStart (http://localhost:3000/_next/static/chunks/_1rdrmxm._.js:2176:36)",
+    "states": [
+     "ended"
+    ]
+   }
+  ],
+  "mo": [
+   [
+    0,
+    "/",
+    "practice",
+    true,
+    false,
+    null,
+    "-",
+    369
+   ],
+   [
+    26,
+    "/",
+    "session",
+    false,
+    true,
+    null,
+    "-",
+    288
+   ],
+   [
+    34,
+    "/",
+    "session",
+    false,
+    true,
+    null,
+    "true",
+    288
+   ],
+   [
+    61,
+    "/",
+    "session",
+    false,
+    true,
+    null,
+    "true",
+    591
+   ],
+   [
+    68,
+    "/",
+    "session",
+    false,
+    true,
+    null,
+    "true",
+    758
+   ],
+   [
+    85,
+    "/",
+    "session",
+    false,
+    true,
+    null,
+    "true",
+    806
+   ],
+   [
+    94,
+    "/",
+    "session",
+    false,
+    true,
+    null,
+    "true",
+    960
+   ],
+   [
+    100,
+    "/",
+    "session",
+    false,
+    true,
+    null,
+    "true",
+    793
+   ],
+   [
+    143,
+    "/results/cc5c4a9a-0efd-4f4b-a752-e303b5022e3d",
+    null,
+    false,
+    false,
+    null,
+    "true",
+    null
+   ],
+   [
+    149,
+    "/results/cc5c4a9a-0efd-4f4b-a752-e303b5022e3d",
+    null,
+    false,
+    false,
+    null,
+    "-",
+    null
+   ]
+  ]
+ },
+ "logs": []
+}

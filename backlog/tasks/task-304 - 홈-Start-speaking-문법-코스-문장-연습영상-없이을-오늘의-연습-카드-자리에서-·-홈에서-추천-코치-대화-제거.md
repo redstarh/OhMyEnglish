@@ -1,9 +1,10 @@
 ---
 id: TASK-304
 title: 홈 Start speaking = 문법 코스 문장 연습(영상 없이)을 오늘의 연습 카드 자리에서 · 홈에서 추천 코치 대화 제거
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-11-01 02:52'
+updated_date: '2026-11-01 03:11'
 labels: []
 dependencies: []
 ordinal: 369000

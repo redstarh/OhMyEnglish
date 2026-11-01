@@ -3,7 +3,7 @@
 // 홈의 문장 연습 — 오늘의 연습 카드 안에서 문법 코스의 현재 Day 를 연습함(`TASK-304` · 리디자인 설계서 §3).
 // ⛔ 영상을 그리지 않음(사용자 지시 2026-11-01) — 문장은 백엔드 콘텐츠의 단원 패턴 문장이고 영상에서
 //    가져오는 것이 없음. 그래서 연습 칸에 영상 핸들을 넘기지 않음.
-// ⚠️ 열 때마다 진도를 새로 읽음 — 홈이 마운트 때 읽은 코스 개요는 앞서 연 연습의 저장을 모름.
+// ⚠️ 열 때마다 진도를 새로 읽음. 홈의 코스 개요는 Day 를 마칠 때와 칸을 닫을 때 다시 읽음(회차 b12 D1).
 
 import { useEffect, useState } from "react";
 
@@ -18,7 +18,7 @@ async function loadCurrentDay(): Promise<CourseDayDetail | null> {
   return fetchCourseDay(course.current_day);
 }
 
-export function HomeCoursePractice() {
+export function HomeCoursePractice({ onDayFinished }: { onDayFinished?: () => void }) {
   const [state, setState] = useState<State>({ status: "loading" });
 
   useEffect(() => {
@@ -57,7 +57,7 @@ export function HomeCoursePractice() {
       <p data-testid="practice-day" data-state="ready" className="text-xs font-semibold text-muted-foreground">
         Day {detail.day} · Units {detail.units[0]?.unit}–{detail.units.at(-1)?.unit}
       </p>
-      <SentencePractice key={detail.day} detail={detail} day={detail.day} />
+      <SentencePractice key={detail.day} detail={detail} day={detail.day} onDayFinished={onDayFinished} />
     </div>
   );
 }

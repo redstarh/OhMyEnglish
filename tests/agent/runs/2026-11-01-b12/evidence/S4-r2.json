@@ -1,0 +1,157 @@
+{
+ "saved0": {
+  "position_sec": 168.18,
+  "unit": 42,
+  "sentence_index": 0,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-11-01T03:24:19.715216+00:00"
+ },
+ "open": {
+  "unit": "Unit 42 · 의문문 만들기",
+  "num": "Sentence 1 / 5",
+  "iframes": 1,
+  "sp": true,
+  "iframeSrc": "https://www.youtube.com/embed/EFECHJ5bocA?start=168"
+ },
+ "videoAtOpen": {
+  "t": 0,
+  "paused": true,
+  "mode": "unstarted"
+ },
+ "play1": "clicked",
+ "videoPlaying": {
+  "t": 171.47,
+  "paused": false,
+  "mode": "playing"
+ },
+ "afterPracticeStart": {
+  "video": {
+   "t": 171.47,
+   "paused": true,
+   "mode": "paused"
+  },
+  "phase": "listen"
+ },
+ "play2": "clicked",
+ "videoPlayDuringPractice": {
+  "phaseBefore": "listen",
+  "phaseAfter": "idle",
+  "start": true,
+  "video": {
+   "t": 172.99,
+   "paused": false,
+   "mode": "playing"
+  }
+ },
+ "followShown": {
+  "practiceUnit": "Unit 43 · Who · What 주어와 목적어 질문",
+  "follow": "Go to Unit 42 (where the video is)",
+  "video": {
+   "t": 180.16,
+   "paused": false,
+   "mode": "playing"
+  }
+ },
+ "followClicked": {
+  "unit": "Unit 42 · 의문문 만들기",
+  "num": "Sentence 1 / 5",
+  "follow": null
+ },
+ "leaveSave": {
+  "videoJustBefore": {
+   "t": 192.99,
+   "paused": false,
+   "mode": "playing"
+  },
+  "path": "/course",
+  "posts": [
+   "{\"position_sec\":192.47,\"unit\":42,\"sentence_index\":0,\"completed\":false,\"completed_count\":0}"
+  ],
+  "saved": {
+   "position_sec": 192.47,
+   "unit": 42,
+   "sentence_index": 0,
+   "completed_count": 0,
+   "last_completed_at": null,
+   "last_completed_date": null,
+   "updated_at": "2026-11-01T03:24:51.151950+00:00"
+  },
+  "diff": 0.52
+ },
+ "finish": {
+  "nexts": 104,
+  "seen": [
+   "idle|Sentence 5 / 5|Unit 62",
+   "listen|Sentence 5 / 5|Unit 62",
+   "repeat|Sentence 5 / 5|Unit 62",
+   "judge|Sentence 5 / 5|Unit 62",
+   "done|Sentence 5 / 5|Unit 62"
+  ],
+  "finishBefore": "enabled",
+  "notice": "You finished this Day!",
+  "unit": "Unit 42 · 의문문 만들기",
+  "num": "Sentence 1 / 5",
+  "before": {
+   "position_sec": 192.47,
+   "unit": 62,
+   "sentence_index": 4,
+   "completed_count": 0,
+   "last_completed_at": null,
+   "last_completed_date": null,
+   "updated_at": "2026-11-01T03:25:07.772434+00:00"
+  },
+  "after": {
+   "position_sec": 0,
+   "unit": 42,
+   "sentence_index": 0,
+   "completed_count": 1,
+   "last_completed_at": "2026-11-01T03:25:12.040543+00:00",
+   "last_completed_date": "2026-11-01",
+   "updated_at": "2026-11-01T03:25:13.731700+00:00"
+  },
+  "delta": 1,
+  "video": {
+   "t": 0,
+   "paused": true,
+   "mode": "paused"
+  }
+ },
+ "afterFinish6s": {
+  "saved": {
+   "position_sec": 0,
+   "unit": 42,
+   "sentence_index": 0,
+   "completed_count": 1,
+   "last_completed_at": "2026-11-01T03:25:12.040543+00:00",
+   "last_completed_date": "2026-11-01",
+   "updated_at": "2026-11-01T03:25:18.730610+00:00"
+  },
+  "video": {
+   "t": 0,
+   "paused": true,
+   "mode": "paused"
+  }
+ },
+ "afterBack": {
+  "path": "/course",
+  "saved": {
+   "position_sec": 0,
+   "unit": 42,
+   "sentence_index": 0,
+   "completed_count": 1,
+   "last_completed_at": "2026-11-01T03:25:12.040543+00:00",
+   "last_completed_date": "2026-11-01",
+   "updated_at": "2026-11-01T03:25:20.631375+00:00"
+  }
+ },
+ "logs": [
+  {
+   "t": 1793503511953,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u062-s5/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  }
+ ]
+}

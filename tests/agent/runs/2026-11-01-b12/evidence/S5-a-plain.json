@@ -1,0 +1,225 @@
+{
+ "idleBoxes": {
+  "home-hero": [
+   296,
+   128,
+   669,
+   283
+  ],
+  "home-progress": [
+   985,
+   128,
+   367,
+   283
+  ],
+  "home-path": [
+   296,
+   443,
+   668,
+   335
+  ],
+  "home-focus": [
+   996,
+   443,
+   356,
+   335
+  ],
+  "quick-shadowing": [
+   296,
+   809,
+   339,
+   158
+  ],
+  "quick-videos": [
+   655,
+   809,
+   339,
+   158
+  ],
+  "quick-weak-patterns": [
+   1013,
+   809,
+   339,
+   158
+  ],
+  "home-more-practice": [
+   296,
+   999,
+   1056,
+   144
+  ],
+  "home-streak": [
+   1227,
+   50,
+   125,
+   32
+  ]
+ },
+ "click": [
+  342,
+  902
+ ],
+ "session": {
+  "state": {
+   "path": "/results/936c58c4-3e34-4882-a60b-8522ba23a54b",
+   "heroMode": null,
+   "heroState": null,
+   "practiceDay": null,
+   "practiceDayState": null,
+   "spInHero": false,
+   "sp": false,
+   "iframes": 0,
+   "phase": "idle",
+   "num": null,
+   "unit": null,
+   "sentence": null,
+   "attempts": null,
+   "notice": null,
+   "prevDisabled": null,
+   "finish": "absent",
+   "retry": false,
+   "start": false,
+   "auto": null,
+   "manual": null,
+   "close": false,
+   "follow": null,
+   "heroTitle": null,
+   "heroDay": null,
+   "panel": false,
+   "navLocked": [
+    null
+   ]
+  },
+  "boxes": {
+   "home-hero": null,
+   "home-progress": null,
+   "home-path": null,
+   "home-focus": null,
+   "quick-shadowing": null,
+   "quick-videos": null,
+   "quick-weak-patterns": null,
+   "home-more-practice": null,
+   "home-streak": null
+  },
+  "idleH": 283,
+  "notShorter": false,
+  "others": {
+   "home-progress": null,
+   "home-path": null,
+   "home-focus": null,
+   "quick-shadowing": null,
+   "quick-videos": null,
+   "quick-weak-patterns": null,
+   "home-more-practice": null,
+   "home-streak": null
+  }
+ },
+ "end": {
+  "path": "/results/936c58c4-3e34-4882-a60b-8522ba23a54b",
+  "sockets": [
+   {
+    "t": 1793503561284,
+    "url": "/ws/session?source=additional"
+   }
+  ],
+  "gum": [
+   {
+    "k": 1,
+    "stack": "    at SessionPage.useCallback[startSession] (http://localhost:3000/_next/static/chunks/_1rdrmxm._.js:1873:55) |     at onStart (http://localhost:3000/_next/static/chunks/_1rdrmxm._.js:2176:36)",
+    "states": [
+     "ended"
+    ]
+   }
+  ],
+  "mo": [
+   [
+    1,
+    "/",
+    "idle",
+    false,
+    false,
+    null,
+    "-",
+    283
+   ],
+   [
+    27,
+    "/",
+    "session",
+    false,
+    true,
+    null,
+    "-",
+    288
+   ],
+   [
+    35,
+    "/",
+    "session",
+    false,
+    true,
+    null,
+    "true",
+    288
+   ],
+   [
+    62,
+    "/",
+    "session",
+    false,
+    true,
+    null,
+    "true",
+    591
+   ],
+   [
+    102,
+    "/",
+    "session",
+    false,
+    true,
+    null,
+    "true",
+    639
+   ],
+   [
+    110,
+    "/",
+    "session",
+    false,
+    true,
+    null,
+    "true",
+    793
+   ],
+   [
+    166,
+    "/results/936c58c4-3e34-4882-a60b-8522ba23a54b",
+    null,
+    false,
+    false,
+    null,
+    "true",
+    null
+   ],
+   [
+    174,
+    "/results/936c58c4-3e34-4882-a60b-8522ba23a54b",
+    null,
+    false,
+    false,
+    null,
+    "-",
+    null
+   ]
+  ]
+ },
+ "logs": [
+  {
+   "t": 1793503558610,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u062-s5/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  }
+ ]
+}

@@ -1,0 +1,595 @@
+{
+ "course0": {
+  "cycle": 1,
+  "current_day": 4,
+  "counts": [
+   [
+    1,
+    0
+   ],
+   [
+    2,
+    1
+   ],
+   [
+    3,
+    0
+   ],
+   [
+    4,
+    0
+   ],
+   [
+    5,
+    0
+   ],
+   [
+    6,
+    2
+   ]
+  ]
+ },
+ "open": {
+  "path": "/",
+  "heroMode": "practice",
+  "heroState": "ready",
+  "practiceDay": "Day 4 · Units 63–82",
+  "practiceDayState": "ready",
+  "spInHero": true,
+  "sp": true,
+  "iframes": 0,
+  "phase": "idle",
+  "num": "Sentence 2 / 5",
+  "unit": "Unit 63 · a · an",
+  "sentence": "She is an engineer.",
+  "attempts": "Try 0",
+  "notice": null,
+  "prevDisabled": false,
+  "finish": "absent",
+  "retry": false,
+  "start": true,
+  "auto": "false",
+  "manual": "true",
+  "close": true,
+  "follow": null,
+  "heroTitle": null,
+  "heroDay": null,
+  "panel": false,
+  "navLocked": [
+   null
+  ]
+ },
+ "manualClicked": {
+  "path": "/",
+  "heroMode": "practice",
+  "heroState": "ready",
+  "practiceDay": "Day 4 · Units 63–82",
+  "practiceDayState": "ready",
+  "spInHero": true,
+  "sp": true,
+  "iframes": 0,
+  "phase": "idle",
+  "num": "Sentence 2 / 5",
+  "unit": "Unit 63 · a · an",
+  "sentence": "She is an engineer.",
+  "attempts": "Try 0",
+  "notice": null,
+  "prevDisabled": false,
+  "finish": "absent",
+  "retry": false,
+  "start": true,
+  "auto": "false",
+  "manual": "true",
+  "close": true,
+  "follow": null,
+  "heroTitle": null,
+  "heroDay": null,
+  "panel": false,
+  "navLocked": [
+   null
+  ],
+  "ls": "manual"
+ },
+ "afterReloadManual": {
+  "auto": "false",
+  "manual": "true"
+ },
+ "afterReloadAuto": {
+  "auto": "true",
+  "manual": "false"
+ },
+ "start": {
+  "ms": 6141,
+  "seen": [
+   "idle",
+   "listen",
+   "repeat",
+   "judge",
+   "done"
+  ],
+  "after": {
+   "phase": "done",
+   "num": "Sentence 2 / 5",
+   "notice": "I can't check your speaking now. You can keep going.",
+   "attempts": "Try 0",
+   "retry": true,
+   "start": false
+  },
+  "stayed": true,
+  "attemptsPosts": [
+   "/api/course/sentences/u063-s2/attempts"
+  ]
+ },
+ "again": {
+  "ms": 6130,
+  "seen": [
+   "done",
+   "listen",
+   "repeat",
+   "judge",
+   "done"
+  ],
+  "after": {
+   "phase": "done",
+   "num": "Sentence 2 / 5",
+   "notice": "I can't check your speaking now. You can keep going.",
+   "attempts": "Try 0",
+   "retry": true,
+   "start": false
+  },
+  "stayed": true,
+  "attemptsPosts": [
+   "/api/course/sentences/u063-s2/attempts"
+  ]
+ },
+ "listen": {
+  "ms": 6137,
+  "seen": [
+   "done",
+   "listen",
+   "repeat",
+   "judge",
+   "done"
+  ],
+  "after": {
+   "phase": "done",
+   "num": "Sentence 2 / 5",
+   "notice": "I can't check your speaking now. You can keep going.",
+   "attempts": "Try 0",
+   "retry": true,
+   "start": false
+  },
+  "stayed": true,
+  "attemptsPosts": [
+   "/api/course/sentences/u063-s2/attempts"
+  ]
+ },
+ "slow": {
+  "ms": 6641,
+  "seen": [
+   "done",
+   "listen",
+   "repeat",
+   "judge",
+   "done"
+  ],
+  "after": {
+   "phase": "done",
+   "num": "Sentence 2 / 5",
+   "notice": "I can't check your speaking now. You can keep going.",
+   "attempts": "Try 0",
+   "retry": true,
+   "start": false
+  },
+  "stayed": true,
+  "attemptsPosts": [
+   "/api/course/sentences/u063-s2/attempts"
+  ]
+ },
+ "nextBack": {
+  "from": "Sentence 2 / 5",
+  "next": {
+   "num": "Sentence 3 / 5",
+   "phase": "idle",
+   "notice": null
+  },
+  "back": {
+   "num": "Sentence 2 / 5",
+   "phase": "idle",
+   "notice": null
+  }
+ },
+ "auto": {
+  "seen": [
+   "listen|Sentence 2 / 5|Unit 63",
+   "repeat|Sentence 2 / 5|Unit 63",
+   "done|Sentence 2 / 5|Unit 63",
+   "listen|Sentence 3 / 5|Unit 63",
+   "repeat|Sentence 3 / 5|Unit 63",
+   "done|Sentence 3 / 5|Unit 63",
+   "listen|Sentence 4 / 5|Unit 63",
+   "repeat|Sentence 4 / 5|Unit 63",
+   "done|Sentence 4 / 5|Unit 63",
+   "listen|Sentence 5 / 5|Unit 63",
+   "repeat|Sentence 5 / 5|Unit 63",
+   "done|Sentence 5 / 5|Unit 63",
+   "listen|Sentence 1 / 5|Unit 64"
+  ],
+  "attemptsPosts": [
+   "/api/course/sentences/u063-s2/attempts",
+   "/api/course/sentences/u063-s3/attempts",
+   "/api/course/sentences/u063-s4/attempts",
+   "/api/course/sentences/u063-s5/attempts"
+  ]
+ },
+ "boxesAutoRunning": {
+  "home-hero": [
+   296,
+   128,
+   669,
+   395
+  ],
+  "home-progress": [
+   985,
+   128,
+   367,
+   283
+  ],
+  "home-path": [
+   296,
+   555,
+   668,
+   335
+  ],
+  "home-focus": [
+   996,
+   555,
+   356,
+   335
+  ],
+  "quick-shadowing": [
+   296,
+   922,
+   339,
+   158
+  ],
+  "quick-videos": [
+   655,
+   922,
+   339,
+   158
+  ],
+  "quick-weak-patterns": [
+   1013,
+   922,
+   339,
+   158
+  ],
+  "home-more-practice": [
+   296,
+   1112,
+   1056,
+   144
+  ],
+  "home-streak": [
+   1227,
+   50,
+   125,
+   32
+  ]
+ },
+ "closeWhileAuto": {
+  "state": {
+   "path": "/",
+   "heroMode": "idle",
+   "heroState": "ready",
+   "practiceDay": null,
+   "practiceDayState": null,
+   "spInHero": false,
+   "sp": false,
+   "iframes": 0,
+   "phase": "idle",
+   "num": null,
+   "unit": null,
+   "sentence": null,
+   "attempts": null,
+   "notice": null,
+   "prevDisabled": null,
+   "finish": "absent",
+   "retry": false,
+   "start": false,
+   "auto": null,
+   "manual": null,
+   "close": false,
+   "follow": null,
+   "heroTitle": "Day 4: listen and say it.",
+   "heroDay": "Day 4 · Units 63–82",
+   "panel": false,
+   "navLocked": [
+    null
+   ]
+  },
+  "reqsAfterClose": [
+   [
+    -4,
+    "OPTIONS",
+    "/api/course/days/4/progress",
+    null
+   ],
+   [
+    0,
+    "POST",
+    "/api/course/days/4/progress",
+    "{\"position_sec\":54.4,\"unit\":64,\"sentence_index\":0,\"completed\":false,\"completed_count\":0}"
+   ]
+  ],
+  "boxes": {
+   "home-hero": [
+    296,
+    128,
+    669,
+    283
+   ],
+   "home-progress": [
+    985,
+    128,
+    367,
+    283
+   ],
+   "home-path": [
+    296,
+    443,
+    668,
+    335
+   ],
+   "home-focus": [
+    996,
+    443,
+    356,
+    335
+   ],
+   "quick-shadowing": [
+    296,
+    809,
+    339,
+    158
+   ],
+   "quick-videos": [
+    655,
+    809,
+    339,
+    158
+   ],
+   "quick-weak-patterns": [
+    1013,
+    809,
+    339,
+    158
+   ],
+   "home-more-practice": [
+    296,
+    999,
+    1056,
+    144
+   ],
+   "home-streak": [
+    1227,
+    50,
+    125,
+    32
+   ]
+  }
+ },
+ "last": {
+  "nexts": 94,
+  "unit": "Unit 82 · a little · a few",
+  "num": "Sentence 5 / 5",
+  "finish": "disabled"
+ },
+ "lastStart": {
+  "seen": [
+   "idle|Sentence 5 / 5|Unit 82",
+   "listen|Sentence 5 / 5|Unit 82",
+   "repeat|Sentence 5 / 5|Unit 82",
+   "done|Sentence 5 / 5|Unit 82"
+  ],
+  "finish": "enabled"
+ },
+ "finished": {
+  "state": {
+   "path": "/",
+   "heroMode": "practice",
+   "heroState": "ready",
+   "practiceDay": "Day 4 · Units 63–82",
+   "practiceDayState": "ready",
+   "spInHero": true,
+   "sp": true,
+   "iframes": 0,
+   "phase": "idle",
+   "num": "Sentence 1 / 5",
+   "unit": "Unit 63 · a · an",
+   "sentence": "I need a charger.",
+   "attempts": "Try 0",
+   "notice": "You finished this Day!",
+   "prevDisabled": true,
+   "finish": "absent",
+   "retry": false,
+   "start": true,
+   "auto": "false",
+   "manual": "true",
+   "close": true,
+   "follow": null,
+   "heroTitle": null,
+   "heroDay": null,
+   "panel": false,
+   "navLocked": [
+    null
+   ]
+  },
+  "posts": [
+   "{\"position_sec\":0,\"unit\":63,\"sentence_index\":0,\"completed\":true,\"completed_count\":0}",
+   "{\"position_sec\":0,\"unit\":63,\"sentence_index\":0,\"completed\":false,\"completed_count\":1}"
+  ]
+ },
+ "finishApi": {
+  "before": {
+   "position_sec": 54.4,
+   "unit": 82,
+   "sentence_index": 4,
+   "completed_count": 0,
+   "last_completed_at": null,
+   "last_completed_date": null,
+   "updated_at": "2026-11-01T03:17:22.796542+00:00"
+  },
+  "afterFin": {
+   "position_sec": 0,
+   "unit": 63,
+   "sentence_index": 0,
+   "completed_count": 1,
+   "last_completed_at": "2026-11-01T03:17:22.867835+00:00",
+   "last_completed_date": "2026-11-01",
+   "updated_at": "2026-11-01T03:17:24.439629+00:00"
+  },
+  "delta": 1,
+  "current_day_after": 5,
+  "counts": [
+   [
+    1,
+    0
+   ],
+   [
+    2,
+    1
+   ],
+   [
+    3,
+    0
+   ],
+   [
+    4,
+    1
+   ],
+   [
+    5,
+    0
+   ],
+   [
+    6,
+    2
+   ]
+  ]
+ },
+ "cardAfterFinish": {
+  "noReload": {
+   "title": "Day 4: listen and say it.",
+   "day": "Day 4 · Units 63–82",
+   "progress": "YOUR PROGRESS 2 / 6 days Grammar course This week: 1 / 7 days 0 Sessions 1 Best streak 0 Patterns Weekly report · week of Oct 19",
+   "path": "Continue your path Small steps, real conversations. View all DAY 4 Day 4 · In progress Units 63–82 63 min DAY 5 Day 5 · In progress Units 83–100 58 min"
+  },
+  "reload": {
+   "title": "Day 5: listen and say it.",
+   "day": "Day 5 · Units 83–100",
+   "progress": "YOUR PROGRESS 3 / 6 days Grammar course This week: 1 / 7 days 0 Sessions 1 Best streak 0 Patterns Weekly report · week of Oct 19",
+   "path": "Continue your path Small steps, real conversations. View all DAY 5 Day 5 · In progress Units 83–100 58 min Day 6 · Done Units 101–113 43 min"
+  },
+  "same": false
+ },
+ "reopenAfterFinish": {
+  "path": "/",
+  "heroMode": "practice",
+  "heroState": "ready",
+  "practiceDay": "Day 5 · Units 83–100",
+  "practiceDayState": "ready",
+  "spInHero": true,
+  "sp": true,
+  "iframes": 0,
+  "phase": "idle",
+  "num": "Sentence 2 / 5",
+  "unit": "Unit 83 · 형용사 위치",
+  "sentence": "She has a new car.",
+  "attempts": "Try 0",
+  "notice": null,
+  "prevDisabled": false,
+  "finish": "absent",
+  "retry": false,
+  "start": true,
+  "auto": "false",
+  "manual": "true",
+  "close": true,
+  "follow": null,
+  "heroTitle": null,
+  "heroDay": null,
+  "panel": false,
+  "navLocked": [
+   null
+  ]
+ },
+ "logs": [
+  {
+   "t": 1793502959918,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u063-s2/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793502959918,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u063-s2/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793502971998,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u063-s2/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793502978117,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u063-s2/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793502984229,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u063-s2/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793502990905,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u063-s2/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793502998372,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u063-s2/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793503003281,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u063-s3/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793503008895,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u063-s4/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793503014505,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u063-s5/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793503042810,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u082-s5/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  }
+ ]
+}

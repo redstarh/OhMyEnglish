@@ -1,0 +1,395 @@
+{
+ "course0": {
+  "cycle": 1,
+  "current_day": 4,
+  "cur": {
+   "day": 4,
+   "first_unit": 63,
+   "last_unit": 82,
+   "duration_sec": 3795,
+   "progress": {
+    "position_sec": 54.4,
+    "unit": 63,
+    "sentence_index": 0,
+    "completed_count": 0,
+    "last_completed_at": null,
+    "last_completed_date": null,
+    "updated_at": "2026-11-01T03:07:18.556056+00:00"
+   }
+  }
+ },
+ "expectAtSaved": {
+  "unit": "Unit 63 · a · an",
+  "num": "Sentence 1 / 5",
+  "sentence": "I need a charger."
+ },
+ "idle": {
+  "path": "/",
+  "heroMode": "idle",
+  "heroState": "ready",
+  "practiceDay": null,
+  "practiceDayState": null,
+  "spInHero": false,
+  "sp": false,
+  "iframes": 0,
+  "phase": "idle",
+  "num": null,
+  "unit": null,
+  "sentence": null,
+  "attempts": null,
+  "notice": null,
+  "prevDisabled": null,
+  "finish": "absent",
+  "retry": false,
+  "start": false,
+  "auto": null,
+  "manual": null,
+  "close": false,
+  "follow": null,
+  "heroTitle": "Day 4: listen and say it.",
+  "heroDay": "Day 4 · Units 63–82",
+  "panel": false,
+  "navLocked": [
+   null
+  ]
+ },
+ "idleHeroText": "TODAY'S PRACTICE\nDay 4: listen and say it.\n\nHear a short sentence. Say it out loud. See what you said.\n\nStart speaking\nDay 4 · Units 63–82",
+ "idleChecks": {
+  "titleOk": true,
+  "dayOk": true,
+  "coachWords": [],
+  "recommendedTestids": [],
+  "nextPlanReq": 0,
+  "homeReqs": [
+   "GET /api/history",
+   "GET /api/weekly-report",
+   "GET /api/course",
+   "GET /api/daily-summary"
+  ]
+ },
+ "idleBoxes": {
+  "home-hero": [
+   296,
+   128,
+   669,
+   283
+  ],
+  "home-progress": [
+   985,
+   128,
+   367,
+   283
+  ],
+  "home-path": [
+   296,
+   443,
+   668,
+   335
+  ],
+  "home-focus": [
+   996,
+   443,
+   356,
+   335
+  ],
+  "quick-shadowing": [
+   296,
+   809,
+   339,
+   158
+  ],
+  "quick-videos": [
+   655,
+   809,
+   339,
+   158
+  ],
+  "quick-weak-patterns": [
+   1013,
+   809,
+   339,
+   158
+  ],
+  "home-more-practice": [
+   296,
+   999,
+   1056,
+   144
+  ],
+  "home-streak": [
+   1227,
+   50,
+   125,
+   32
+  ]
+ },
+ "opened": {
+  "path": "/",
+  "heroMode": "practice",
+  "heroState": "ready",
+  "practiceDay": "Day 4 · Units 63–82",
+  "practiceDayState": "ready",
+  "spInHero": true,
+  "sp": true,
+  "iframes": 0,
+  "phase": "idle",
+  "num": "Sentence 1 / 5",
+  "unit": "Unit 63 · a · an",
+  "sentence": "I need a charger.",
+  "attempts": "Try 0",
+  "notice": null,
+  "prevDisabled": true,
+  "finish": "absent",
+  "retry": false,
+  "start": true,
+  "auto": "true",
+  "manual": "false",
+  "close": true,
+  "follow": null,
+  "heroTitle": null,
+  "heroDay": null,
+  "panel": false,
+  "navLocked": [
+   null
+  ]
+ },
+ "openedChecks": {
+  "dayLine": true,
+  "unit": true,
+  "num": true,
+  "sentence": true,
+  "iframesInPage": 0,
+  "sockets": [],
+  "reqs": [
+   "GET /api/course",
+   "GET /api/course",
+   "GET /api/course/days/4",
+   "GET /api/course/days/4",
+   "OPTIONS /api/course/days/4/progress",
+   "POST /api/course/days/4/progress"
+  ]
+ },
+ "practiceBoxes": {
+  "home-hero": [
+   296,
+   128,
+   669,
+   369
+  ],
+  "home-progress": [
+   985,
+   128,
+   367,
+   283
+  ],
+  "home-path": [
+   296,
+   529,
+   668,
+   335
+  ],
+  "home-focus": [
+   996,
+   529,
+   356,
+   335
+  ],
+  "quick-shadowing": [
+   296,
+   896,
+   339,
+   158
+  ],
+  "quick-videos": [
+   655,
+   896,
+   339,
+   158
+  ],
+  "quick-weak-patterns": [
+   1013,
+   896,
+   339,
+   158
+  ],
+  "home-more-practice": [
+   296,
+   1086,
+   1056,
+   144
+  ],
+  "home-streak": [
+   1227,
+   50,
+   125,
+   32
+  ]
+ },
+ "next1": "Sentence 2 / 5",
+ "next2": "Sentence 3 / 5",
+ "prev1": {
+  "num": "Sentence 2 / 5",
+  "unit": "Unit 63 · a · an"
+ },
+ "afterClose": {
+  "path": "/",
+  "heroMode": "idle",
+  "heroState": "ready",
+  "practiceDay": null,
+  "practiceDayState": null,
+  "spInHero": false,
+  "sp": false,
+  "iframes": 0,
+  "phase": "idle",
+  "num": null,
+  "unit": null,
+  "sentence": null,
+  "attempts": null,
+  "notice": null,
+  "prevDisabled": null,
+  "finish": "absent",
+  "retry": false,
+  "start": false,
+  "auto": null,
+  "manual": null,
+  "close": false,
+  "follow": null,
+  "heroTitle": "Day 4: listen and say it.",
+  "heroDay": "Day 4 · Units 63–82",
+  "panel": false,
+  "navLocked": [
+   null
+  ]
+ },
+ "progressPosts": [
+  {
+   "t": 1793502883095,
+   "m": "POST",
+   "u": "/api/course/days/4/progress",
+   "body": "{\"position_sec\":54.4,\"unit\":63,\"sentence_index\":1,\"completed\":false,\"completed_count\":0}"
+  },
+  {
+   "t": 1793502883707,
+   "m": "POST",
+   "u": "/api/course/days/4/progress",
+   "body": "{\"position_sec\":54.4,\"unit\":63,\"sentence_index\":2,\"completed\":false,\"completed_count\":0}"
+  },
+  {
+   "t": 1793502884319,
+   "m": "POST",
+   "u": "/api/course/days/4/progress",
+   "body": "{\"position_sec\":54.4,\"unit\":63,\"sentence_index\":1,\"completed\":false,\"completed_count\":0}"
+  },
+  {
+   "t": 1793502884952,
+   "m": "POST",
+   "u": "/api/course/days/4/progress",
+   "body": "{\"position_sec\":54.4,\"unit\":63,\"sentence_index\":1,\"completed\":false,\"completed_count\":0}"
+  }
+ ],
+ "progressAfterClose": {
+  "position_sec": 54.4,
+  "unit": 63,
+  "sentence_index": 1,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-11-01T03:14:44.951249+00:00"
+ },
+ "s3Checks": {
+  "positionKept": true,
+  "before": {
+   "position_sec": 54.4,
+   "unit": 63,
+   "sentence_index": 0,
+   "completed_count": 0,
+   "last_completed_at": null,
+   "last_completed_date": null,
+   "updated_at": "2026-11-01T03:07:18.556056+00:00"
+  },
+  "after": {
+   "position_sec": 54.4,
+   "unit": 63,
+   "sentence_index": 1,
+   "completed_count": 0,
+   "last_completed_at": null,
+   "last_completed_date": null,
+   "updated_at": "2026-11-01T03:14:44.951249+00:00"
+  }
+ },
+ "closedBoxes": {
+  "home-hero": [
+   296,
+   128,
+   669,
+   283
+  ],
+  "home-progress": [
+   985,
+   128,
+   367,
+   283
+  ],
+  "home-path": [
+   296,
+   443,
+   668,
+   335
+  ],
+  "home-focus": [
+   996,
+   443,
+   356,
+   335
+  ],
+  "quick-shadowing": [
+   296,
+   809,
+   339,
+   158
+  ],
+  "quick-videos": [
+   655,
+   809,
+   339,
+   158
+  ],
+  "quick-weak-patterns": [
+   1013,
+   809,
+   339,
+   158
+  ],
+  "home-more-practice": [
+   296,
+   999,
+   1056,
+   144
+  ],
+  "home-streak": [
+   1227,
+   50,
+   125,
+   32
+  ]
+ },
+ "dayPage": {
+  "unit": "Unit 63 · a · an",
+  "num": "Sentence 2 / 5",
+  "sentence": "She is an engineer.",
+  "iframes": 1,
+  "iframeSrc": "https://www.youtube.com/embed/3dsHMpnN26Y?start=54&enablejsapi=1&origin=http%3A%2F%2Flocalhost%3A3000&widgetid=1&forigin=http%3A%2F%2Flocalhost%3A3000%2Fcourse%2F4&aoriginsup=1&vf=6"
+ },
+ "dayPageMatchesHome": {
+  "unit": true,
+  "num": true
+ },
+ "logs": [
+  {
+   "t": 1793502887113,
+   "kind": "log.warning",
+   "url": "https://www.youtube.com/s/player/11a45ffb/www-widgetapi.vflset/www-widgetapi.js",
+   "text": "Failed to execute 'postMessage' on 'DOMWindow': The target origin provided ('https://www.youtube.com') does not match the recipient window's origin ('http://localhost:3000')."
+  }
+ ]
+}

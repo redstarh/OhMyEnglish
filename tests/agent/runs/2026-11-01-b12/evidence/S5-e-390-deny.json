@@ -1,0 +1,270 @@
+{
+ "idleBoxes": {
+  "home-hero": [
+   20,
+   240,
+   350,
+   293
+  ],
+  "home-progress": [
+   20,
+   553,
+   350,
+   283
+  ],
+  "home-path": [
+   20,
+   868,
+   350,
+   232
+  ],
+  "home-focus": [
+   20,
+   1132,
+   350,
+   335
+  ],
+  "quick-shadowing": [
+   20,
+   1498,
+   350,
+   158
+  ],
+  "quick-videos": [
+   20,
+   1676,
+   350,
+   156
+  ],
+  "quick-weak-patterns": [
+   20,
+   1852,
+   350,
+   158
+  ],
+  "home-more-practice": [
+   20,
+   2042,
+   350,
+   232
+  ],
+  "home-streak": [
+   245,
+   166,
+   125,
+   32
+  ]
+ },
+ "practiceBefore": {
+  "path": "/",
+  "heroMode": "practice",
+  "heroState": "ready",
+  "practiceDay": "Day 1 · Units 1–21",
+  "practiceDayState": "ready",
+  "spInHero": true,
+  "sp": true,
+  "iframes": 0,
+  "phase": "idle",
+  "num": "Sentence 2 / 5",
+  "unit": "Unit 4 · 현재진행 질문 Are you doing?",
+  "sentence": "What is the team doing now?",
+  "attempts": "Try 0",
+  "notice": null,
+  "prevDisabled": false,
+  "finish": "absent",
+  "retry": false,
+  "start": true,
+  "auto": "false",
+  "manual": "true",
+  "close": true,
+  "follow": null,
+  "heroTitle": null,
+  "heroDay": null,
+  "panel": false,
+  "navLocked": [
+   null
+  ],
+  "gum": []
+ },
+ "click": [
+  66,
+  826
+ ],
+ "session": {
+  "state": {
+   "path": "/",
+   "heroMode": "session",
+   "heroState": "ready",
+   "practiceDay": null,
+   "practiceDayState": null,
+   "spInHero": false,
+   "sp": false,
+   "iframes": 0,
+   "phase": "idle",
+   "num": null,
+   "unit": null,
+   "sentence": null,
+   "attempts": null,
+   "notice": null,
+   "prevDisabled": null,
+   "finish": "absent",
+   "retry": false,
+   "start": false,
+   "auto": null,
+   "manual": null,
+   "close": false,
+   "follow": null,
+   "heroTitle": null,
+   "heroDay": null,
+   "panel": true,
+   "navLocked": [
+    "true"
+   ]
+  },
+  "boxes": {
+   "home-hero": [
+    20,
+    240,
+    350,
+    288
+   ],
+   "home-progress": [
+    20,
+    548,
+    350,
+    283
+   ],
+   "home-path": [
+    20,
+    863,
+    350,
+    232
+   ],
+   "home-focus": [
+    20,
+    1127,
+    350,
+    335
+   ],
+   "quick-shadowing": [
+    20,
+    1493,
+    350,
+    158
+   ],
+   "quick-videos": [
+    20,
+    1671,
+    350,
+    156
+   ],
+   "quick-weak-patterns": [
+    20,
+    1847,
+    350,
+    158
+   ],
+   "home-more-practice": [
+    20,
+    2037,
+    350,
+    232
+   ],
+   "home-streak": [
+    245,
+    166,
+    125,
+    32
+   ]
+  },
+  "heroH": 288,
+  "idleH": 293,
+  "notShorter": false,
+  "others": {
+   "home-progress": [
+    0,
+    -5,
+    0
+   ],
+   "home-path": [
+    0,
+    -5,
+    0
+   ],
+   "home-focus": [
+    0,
+    -5,
+    0
+   ],
+   "quick-shadowing": [
+    0,
+    -5,
+    0
+   ],
+   "quick-videos": [
+    0,
+    -5,
+    0
+   ],
+   "quick-weak-patterns": [
+    0,
+    -5,
+    0
+   ],
+   "home-more-practice": [
+    0,
+    -5,
+    0
+   ],
+   "home-streak": [
+    0,
+    0,
+    0
+   ]
+  }
+ },
+ "failed": {
+  "reason": "microphone_permission_denied",
+  "heroH": 288,
+  "idleH": 293,
+  "text": "Could not connect.\n\nPlease allow the microphone and try again.\n\nTry again← Home"
+ },
+ "end": {
+  "path": "/",
+  "sockets": [],
+  "gum": [],
+  "mo": [
+   [
+    0,
+    "/",
+    "practice",
+    true,
+    false,
+    null,
+    "-",
+    395
+   ],
+   [
+    30,
+    "/",
+    "session",
+    false,
+    true,
+    null,
+    "-",
+    288
+   ],
+   [
+    41,
+    "/",
+    "session",
+    false,
+    true,
+    "microphone_permission_denied",
+    "true",
+    288
+   ]
+  ]
+ },
+ "logs": []
+}

@@ -1,0 +1,399 @@
+{
+ "idleBoxes": {
+  "home-hero": [
+   296,
+   128,
+   669,
+   283
+  ],
+  "home-progress": [
+   985,
+   128,
+   367,
+   283
+  ],
+  "home-path": [
+   296,
+   443,
+   668,
+   335
+  ],
+  "home-focus": [
+   996,
+   443,
+   356,
+   335
+  ],
+  "quick-shadowing": [
+   296,
+   809,
+   339,
+   158
+  ],
+  "quick-videos": [
+   655,
+   809,
+   339,
+   158
+  ],
+  "quick-weak-patterns": [
+   1013,
+   809,
+   339,
+   158
+  ],
+  "home-more-practice": [
+   296,
+   999,
+   1056,
+   144
+  ],
+  "home-streak": [
+   1227,
+   50,
+   125,
+   32
+  ]
+ },
+ "practiceBefore": {
+  "path": "/",
+  "heroMode": "practice",
+  "heroState": "ready",
+  "practiceDay": "Day 1 · Units 1–21",
+  "practiceDayState": "ready",
+  "spInHero": true,
+  "sp": true,
+  "iframes": 0,
+  "phase": "done",
+  "num": "Sentence 2 / 5",
+  "unit": "Unit 4 · 현재진행 질문 Are you doing?",
+  "sentence": "What is the team doing now?",
+  "attempts": "Try 0",
+  "notice": "I can't check your speaking now. You can keep going.",
+  "prevDisabled": false,
+  "finish": "absent",
+  "retry": true,
+  "start": false,
+  "auto": "false",
+  "manual": "true",
+  "close": true,
+  "follow": null,
+  "heroTitle": null,
+  "heroDay": null,
+  "panel": false,
+  "navLocked": [
+   null
+  ],
+  "gum": [
+   {
+    "k": 1,
+    "stack": "    at SentencePractice.SentencePractice.useCallback[ensureMic].pending (http://localhost:3000/_next/static/chunks/_1rdrmxm._.js:2539:63) |     at SentencePractice.SentencePractice.useCallback[ensureM",
+    "states": [
+     "live"
+    ]
+   }
+  ]
+ },
+ "click": [
+  342,
+  902
+ ],
+ "session": {
+  "state": {
+   "path": "/",
+   "heroMode": "session",
+   "heroState": "ready",
+   "practiceDay": null,
+   "practiceDayState": null,
+   "spInHero": false,
+   "sp": false,
+   "iframes": 0,
+   "phase": "idle",
+   "num": null,
+   "unit": null,
+   "sentence": null,
+   "attempts": null,
+   "notice": null,
+   "prevDisabled": null,
+   "finish": "absent",
+   "retry": false,
+   "start": false,
+   "auto": null,
+   "manual": null,
+   "close": false,
+   "follow": null,
+   "heroTitle": null,
+   "heroDay": null,
+   "panel": true,
+   "navLocked": [
+    "true"
+   ]
+  },
+  "boxes": {
+   "home-hero": [
+    296,
+    128,
+    669,
+    288
+   ],
+   "home-progress": [
+    985,
+    128,
+    367,
+    283
+   ],
+   "home-path": [
+    296,
+    448,
+    668,
+    335
+   ],
+   "home-focus": [
+    996,
+    448,
+    356,
+    335
+   ],
+   "quick-shadowing": [
+    296,
+    814,
+    339,
+    158
+   ],
+   "quick-videos": [
+    655,
+    814,
+    339,
+    158
+   ],
+   "quick-weak-patterns": [
+    1013,
+    814,
+    339,
+    158
+   ],
+   "home-more-practice": [
+    296,
+    1004,
+    1056,
+    144
+   ],
+   "home-streak": [
+    1227,
+    50,
+    125,
+    32
+   ]
+  },
+  "heroH": 288,
+  "idleH": 283,
+  "notShorter": true,
+  "others": {
+   "home-progress": [
+    0,
+    0,
+    0
+   ],
+   "home-path": [
+    0,
+    5,
+    0
+   ],
+   "home-focus": [
+    0,
+    5,
+    0
+   ],
+   "quick-shadowing": [
+    0,
+    5,
+    0
+   ],
+   "quick-videos": [
+    0,
+    5,
+    0
+   ],
+   "quick-weak-patterns": [
+    0,
+    5,
+    0
+   ],
+   "home-more-practice": [
+    0,
+    5,
+    0
+   ],
+   "home-streak": [
+    0,
+    0,
+    0
+   ]
+  }
+ },
+ "gumDuringConnecting": [
+  {
+   "k": 1,
+   "stack": "    at SentencePractice.SentencePractice.useCallback[ensureMic].pending (http://localhost:3000/_next/static/chunks/_1rdrmxm._.js:2539:63) |     at SentencePractice.SentencePractice.useCallback[ensureM",
+   "states": [
+    "ended"
+   ]
+  }
+ ],
+ "lockedClicks": {
+  "path": "/",
+  "newSockets": 0,
+  "navLocked": [
+   "true"
+  ],
+  "disabled": [
+   [
+    "focus-practice",
+    true
+   ],
+   [
+    "quick-shadowing",
+    true
+   ],
+   [
+    "quick-weak-patterns",
+    true
+   ],
+   [
+    "practice-free_talk",
+    true
+   ],
+   [
+    "practice-weak_patterns",
+    true
+   ],
+   [
+    "practice-five_questions",
+    true
+   ],
+   [
+    "practice-pronunciation",
+    true
+   ],
+   [
+    "practice-shadowing",
+    true
+   ],
+   [
+    "practice-roleplay",
+    true
+   ]
+  ]
+ },
+ "end": {
+  "path": "/results/9b9a3e98-c0ed-4469-a7d5-36e2b497eec2",
+  "sockets": [
+   {
+    "t": 1793503609090,
+    "url": "/ws/session?source=additional"
+   }
+  ],
+  "gum": [
+   {
+    "k": 1,
+    "stack": "    at SentencePractice.SentencePractice.useCallback[ensureMic].pending (http://localhost:3000/_next/static/chunks/_1rdrmxm._.js:2539:63) |     at SentencePractice.SentencePractice.useCallback[ensureM",
+    "states": [
+     "ended"
+    ]
+   },
+   {
+    "k": 2,
+    "stack": "    at SessionPage.useCallback[startSession] (http://localhost:3000/_next/static/chunks/_1rdrmxm._.js:1873:55) |     at onStart (http://localhost:3000/_next/static/chunks/_1rdrmxm._.js:2176:36)",
+    "states": [
+     "ended"
+    ]
+   }
+  ],
+  "mo": [
+   [
+    0,
+    "/",
+    "practice",
+    true,
+    false,
+    null,
+    "-",
+    426
+   ],
+   [
+    14,
+    "/",
+    "session",
+    false,
+    true,
+    null,
+    "-",
+    288
+   ],
+   [
+    20,
+    "/",
+    "session",
+    false,
+    true,
+    null,
+    "true",
+    288
+   ],
+   [
+    12054,
+    "/",
+    "session",
+    false,
+    true,
+    null,
+    "true",
+    591
+   ],
+   [
+    12080,
+    "/",
+    "session",
+    false,
+    true,
+    null,
+    "true",
+    793
+   ],
+   [
+    12129,
+    "/results/9b9a3e98-c0ed-4469-a7d5-36e2b497eec2",
+    null,
+    false,
+    false,
+    null,
+    "true",
+    null
+   ],
+   [
+    12135,
+    "/results/9b9a3e98-c0ed-4469-a7d5-36e2b497eec2",
+    null,
+    false,
+    false,
+    null,
+    "-",
+    null
+   ]
+  ]
+ },
+ "logs": [
+  {
+   "t": 1793503589160,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u004-s2/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793503597036,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u004-s2/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  }
+ ]
+}

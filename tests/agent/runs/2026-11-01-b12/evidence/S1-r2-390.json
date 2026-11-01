@@ -1,0 +1,394 @@
+{
+ "course0": {
+  "cycle": 1,
+  "current_day": 1,
+  "cur": {
+   "day": 1,
+   "first_unit": 1,
+   "last_unit": 21,
+   "duration_sec": 3627,
+   "progress": {
+    "position_sec": 23.98,
+    "unit": 4,
+    "sentence_index": 1,
+    "completed_count": 0,
+    "last_completed_at": null,
+    "last_completed_date": null,
+    "updated_at": "2026-11-01T03:27:07.439764+00:00"
+   }
+  }
+ },
+ "expectAtSaved": {
+  "unit": "Unit 4 · 현재진행 질문 Are you doing?",
+  "num": "Sentence 2 / 5",
+  "sentence": "What is the team doing now?"
+ },
+ "idle": {
+  "path": "/",
+  "heroMode": "idle",
+  "heroState": "ready",
+  "practiceDay": null,
+  "practiceDayState": null,
+  "spInHero": false,
+  "sp": false,
+  "iframes": 0,
+  "phase": "idle",
+  "num": null,
+  "unit": null,
+  "sentence": null,
+  "attempts": null,
+  "notice": null,
+  "prevDisabled": null,
+  "finish": "absent",
+  "retry": false,
+  "start": false,
+  "auto": null,
+  "manual": null,
+  "close": false,
+  "follow": null,
+  "heroTitle": "Day 1: listen and say it.",
+  "heroDay": "Day 1 · Units 1–21",
+  "panel": false,
+  "navLocked": [
+   null
+  ]
+ },
+ "idleHeroText": "TODAY'S PRACTICE\nDay 1: listen and say it.\n\nHear a short sentence. Say it out loud. See what you said.\n\nStart speaking\nDay 1 · Units 1–21",
+ "idleChecks": {
+  "titleOk": true,
+  "dayOk": true,
+  "coachWords": [],
+  "recommendedTestids": [],
+  "nextPlanReq": 0,
+  "homeReqs": [
+   "GET /api/history",
+   "GET /api/weekly-report",
+   "GET /api/course",
+   "GET /api/daily-summary"
+  ]
+ },
+ "idleBoxes": {
+  "home-hero": [
+   20,
+   240,
+   350,
+   293
+  ],
+  "home-progress": [
+   20,
+   553,
+   350,
+   283
+  ],
+  "home-path": [
+   20,
+   868,
+   350,
+   232
+  ],
+  "home-focus": [
+   20,
+   1132,
+   350,
+   335
+  ],
+  "quick-shadowing": [
+   20,
+   1498,
+   350,
+   158
+  ],
+  "quick-videos": [
+   20,
+   1676,
+   350,
+   156
+  ],
+  "quick-weak-patterns": [
+   20,
+   1852,
+   350,
+   158
+  ],
+  "home-more-practice": [
+   20,
+   2042,
+   350,
+   232
+  ],
+  "home-streak": [
+   245,
+   166,
+   125,
+   32
+  ]
+ },
+ "opened": {
+  "path": "/",
+  "heroMode": "practice",
+  "heroState": "ready",
+  "practiceDay": "Day 1 · Units 1–21",
+  "practiceDayState": "ready",
+  "spInHero": true,
+  "sp": true,
+  "iframes": 0,
+  "phase": "idle",
+  "num": "Sentence 2 / 5",
+  "unit": "Unit 4 · 현재진행 질문 Are you doing?",
+  "sentence": "What is the team doing now?",
+  "attempts": "Try 0",
+  "notice": null,
+  "prevDisabled": false,
+  "finish": "absent",
+  "retry": false,
+  "start": true,
+  "auto": "false",
+  "manual": "true",
+  "close": true,
+  "follow": null,
+  "heroTitle": null,
+  "heroDay": null,
+  "panel": false,
+  "navLocked": [
+   null
+  ]
+ },
+ "openedChecks": {
+  "dayLine": true,
+  "unit": true,
+  "num": true,
+  "sentence": true,
+  "iframesInPage": 0,
+  "sockets": [],
+  "reqs": [
+   "GET /api/course",
+   "GET /api/course",
+   "GET /api/course/days/1",
+   "GET /api/course/days/1",
+   "OPTIONS /api/course/days/1/progress",
+   "POST /api/course/days/1/progress"
+  ]
+ },
+ "practiceBoxes": {
+  "home-hero": [
+   20,
+   240,
+   350,
+   395
+  ],
+  "home-progress": [
+   20,
+   654,
+   350,
+   283
+  ],
+  "home-path": [
+   20,
+   969,
+   350,
+   232
+  ],
+  "home-focus": [
+   20,
+   1233,
+   350,
+   335
+  ],
+  "quick-shadowing": [
+   20,
+   1600,
+   350,
+   158
+  ],
+  "quick-videos": [
+   20,
+   1778,
+   350,
+   156
+  ],
+  "quick-weak-patterns": [
+   20,
+   1954,
+   350,
+   158
+  ],
+  "home-more-practice": [
+   20,
+   2144,
+   350,
+   232
+  ],
+  "home-streak": [
+   245,
+   166,
+   125,
+   32
+  ]
+ },
+ "overflowPractice": {
+  "sw": 390,
+  "cw": 390,
+  "wide": []
+ },
+ "heroTopAfterOpen": 24,
+ "next1": "Sentence 3 / 5",
+ "next2": "Sentence 4 / 5",
+ "prev1": {
+  "num": "Sentence 3 / 5",
+  "unit": "Unit 4 · 현재진행 질문 Are you doing?"
+ },
+ "afterClose": {
+  "path": "/",
+  "heroMode": "idle",
+  "heroState": "ready",
+  "practiceDay": null,
+  "practiceDayState": null,
+  "spInHero": false,
+  "sp": false,
+  "iframes": 0,
+  "phase": "idle",
+  "num": null,
+  "unit": null,
+  "sentence": null,
+  "attempts": null,
+  "notice": null,
+  "prevDisabled": null,
+  "finish": "absent",
+  "retry": false,
+  "start": false,
+  "auto": null,
+  "manual": null,
+  "close": false,
+  "follow": null,
+  "heroTitle": "Day 1: listen and say it.",
+  "heroDay": "Day 1 · Units 1–21",
+  "panel": false,
+  "navLocked": [
+   null
+  ]
+ },
+ "progressPosts": [
+  {
+   "t": 1793503667007,
+   "m": "POST",
+   "u": "/api/course/days/1/progress",
+   "body": "{\"position_sec\":23.98,\"unit\":4,\"sentence_index\":2,\"completed\":false,\"completed_count\":0}"
+  },
+  {
+   "t": 1793503667619,
+   "m": "POST",
+   "u": "/api/course/days/1/progress",
+   "body": "{\"position_sec\":23.98,\"unit\":4,\"sentence_index\":3,\"completed\":false,\"completed_count\":0}"
+  },
+  {
+   "t": 1793503668232,
+   "m": "POST",
+   "u": "/api/course/days/1/progress",
+   "body": "{\"position_sec\":23.98,\"unit\":4,\"sentence_index\":2,\"completed\":false,\"completed_count\":0}"
+  },
+  {
+   "t": 1793503668842,
+   "m": "POST",
+   "u": "/api/course/days/1/progress",
+   "body": "{\"position_sec\":23.98,\"unit\":4,\"sentence_index\":2,\"completed\":false,\"completed_count\":0}"
+  }
+ ],
+ "progressAfterClose": {
+  "position_sec": 23.98,
+  "unit": 4,
+  "sentence_index": 2,
+  "completed_count": 0,
+  "last_completed_at": null,
+  "last_completed_date": null,
+  "updated_at": "2026-11-01T03:27:48.842655+00:00"
+ },
+ "s3Checks": {
+  "positionKept": true,
+  "before": {
+   "position_sec": 23.98,
+   "unit": 4,
+   "sentence_index": 1,
+   "completed_count": 0,
+   "last_completed_at": null,
+   "last_completed_date": null,
+   "updated_at": "2026-11-01T03:27:07.439764+00:00"
+  },
+  "after": {
+   "position_sec": 23.98,
+   "unit": 4,
+   "sentence_index": 2,
+   "completed_count": 0,
+   "last_completed_at": null,
+   "last_completed_date": null,
+   "updated_at": "2026-11-01T03:27:48.842655+00:00"
+  }
+ },
+ "closedBoxes": {
+  "home-hero": [
+   20,
+   240,
+   350,
+   293
+  ],
+  "home-progress": [
+   20,
+   553,
+   350,
+   283
+  ],
+  "home-path": [
+   20,
+   868,
+   350,
+   232
+  ],
+  "home-focus": [
+   20,
+   1132,
+   350,
+   335
+  ],
+  "quick-shadowing": [
+   20,
+   1498,
+   350,
+   158
+  ],
+  "quick-videos": [
+   20,
+   1676,
+   350,
+   156
+  ],
+  "quick-weak-patterns": [
+   20,
+   1852,
+   350,
+   158
+  ],
+  "home-more-practice": [
+   20,
+   2042,
+   350,
+   232
+  ],
+  "home-streak": [
+   245,
+   166,
+   125,
+   32
+  ]
+ },
+ "dayPage": {
+  "unit": "Unit 4 · 현재진행 질문 Are you doing?",
+  "num": "Sentence 3 / 5",
+  "sentence": "Is it raining outside?",
+  "iframes": 1,
+  "iframeSrc": "https://www.youtube.com/embed/BVmPr3uR-mE?start=23&enablejsapi=1&origin=http%3A%2F%2Flocalhost%3A3000&widgetid=1&forigin=http%3A%2F%2Flocalhost%3A3000%2Fcourse%2F1&aoriginsup=1&vf=6"
+ },
+ "dayPageMatchesHome": {
+  "unit": true,
+  "num": true
+ },
+ "logs": []
+}

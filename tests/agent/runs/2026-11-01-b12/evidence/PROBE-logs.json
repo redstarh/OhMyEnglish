@@ -1,0 +1,27 @@
+{
+ "logs": [
+  {
+   "t": 1793503688516,
+   "kind": "console.info",
+   "url": null,
+   "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+  },
+  {
+   "t": 1793503688523,
+   "kind": "console.log",
+   "url": null,
+   "text": "[HMR] connected"
+  },
+  {
+   "t": 1793503690084,
+   "kind": "console.error",
+   "url": null,
+   "text": "b12-probe-console"
+  },
+  {
+   "t": 1793503690085,
+   "kind": "exception",
+   "text": "Error: b12-probe-throw\n    at <anonymous>:1:62"
+  }
+ ]
+}

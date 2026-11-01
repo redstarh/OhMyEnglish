@@ -1,0 +1,34 @@
+{
+ "apiBefore": {
+  "current_day": 5,
+  "done": 3
+ },
+ "cardBefore": {
+  "title": "Day 5: listen and say it.",
+  "day": "Day 5 · Units 83–100",
+  "progress": "YOUR PROGRESS 3 / 6 days Grammar course This week: 1 / 7 day",
+  "path": "versations. View all DAY 5 Day 5 · In progress Units 83–100 58 min Day 6 · Done Units 101–113 43 min"
+ },
+ "finishedNotice": "You finished this Day!",
+ "apiAfter": {
+  "current_day": 1,
+  "done": 4,
+  "cycle": 1
+ },
+ "cardAfterCloseNoReload": {
+  "title": "Day 5: listen and say it.",
+  "day": "Day 5 · Units 83–100",
+  "progress": "YOUR PROGRESS 3 / 6 days Grammar course This week: 1 / 7 day",
+  "path": "versations. View all DAY 5 Day 5 · In progress Units 83–100 58 min Day 6 · Done Units 101–113 43 min"
+ },
+ "reopenNoReload": {
+  "practiceDay": "Day 1 · Units 1–21"
+ },
+ "cardAfterReopenClose": {
+  "title": "Day 5: listen and say it.",
+  "day": "Day 5 · Units 83–100",
+  "progress": "YOUR PROGRESS 3 / 6 days Grammar course This week: 1 / 7 day",
+  "path": "versations. View all DAY 5 Day 5 · In progress Units 83–100 58 min Day 6 · Done Units 101–113 43 min"
+ },
+ "logs": []
+}

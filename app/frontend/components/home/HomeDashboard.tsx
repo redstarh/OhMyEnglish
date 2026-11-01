@@ -11,7 +11,7 @@
 //    다른 세션을 열거나 화면을 떠나는 링크·버튼은 잠김 — 떠나면 소켓이 닫혀 세션이 끝남.
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import {
   ArrowRight,
   BookOpen,
@@ -110,19 +110,43 @@ export function HomeDashboard({
   // 오늘의 연습 카드가 문장 연습을 그리는 중인가. 세션이 열리면 세션이 이김.
   const [practicing, setPracticing] = useState(false);
   const showPractice = practicing && !locked;
-  // ⛔ 코치 세션을 열기 전에 문장 연습을 닫음 — 둘이 같은 마이크·스피커를 두고 다투지 않게.
-  //    닫으면 연습 칸이 내려가며 진도를 저장하고 마이크를 놓음.
-  const startSession = useCallback(
-    (entry: SessionEntry) => {
-      setPracticing(false);
-      onStart(entry);
-    },
-    [onStart],
-  );
   const history = useLoad(fetchHistory);
   const weekly = useLoad(fetchWeeklyReport);
   const course = useLoad(fetchCourse);
   const daily = useLoad(fetchDailySummary);
+  const reloadCourse = course.reload;
+
+  // ⛔ 코치 세션은 문장 연습이 내려간 뒤에 엶 — 같은 틱에 열면 세션의 getUserMedia 가 연습이 마이크를
+  //    놓기 전에 돌아 두 획득이 겹쳤음(codex 리뷰 HIGH). 그래서 연습이 열려 있으면 닫기만 하고, 시작할
+  //    세션을 ref 에 둔 뒤 아래 effect 가 엶. 자식의 언마운트 정리(마이크 놓기·진도 저장)는 같은 커밋에서
+  //    부모 effect 보다 먼저 돎.
+  const pendingRef = useRef<SessionEntry | null>(null);
+  const startSession = useCallback(
+    (entry: SessionEntry) => {
+      if (!practicing) {
+        onStart(entry);
+        return;
+      }
+      pendingRef.current = entry;
+      setPracticing(false);
+    },
+    [onStart, practicing],
+  );
+  // 연습이 닫힌 뒤 — 미뤄 둔 세션을 열고, 코스 개요를 다시 읽어 대기 카드·진도가 저장된 진도와 맞게 함
+  // (회차 b12 D1). 다시 읽기는 닫을 때의 저장을 기다린 뒤 조회함(`fetchCourse`).
+  const wasPracticing = useRef(false);
+  useEffect(() => {
+    if (practicing) {
+      wasPracticing.current = true;
+      return;
+    }
+    if (!wasPracticing.current) return;
+    wasPracticing.current = false;
+    reloadCourse();
+    const pending = pendingRef.current;
+    pendingRef.current = null;
+    if (pending) onStart(pending);
+  }, [practicing, onStart, reloadCourse]);
 
   return (
     <div className="text-foreground">
@@ -140,6 +164,7 @@ export function HomeDashboard({
           practicing={showPractice}
           onOpen={() => setPracticing(true)}
           onClose={() => setPracticing(false)}
+          onDayFinished={reloadCourse}
           session={locked ? session : null}
         />
         <ProgressCard course={course} history={history} weekly={weekly} />
@@ -194,12 +219,14 @@ function HeroCard({
   practicing,
   onOpen,
   onClose,
+  onDayFinished,
   session,
 }: {
   course: Load<CourseOverview>;
   practicing: boolean;
   onOpen: () => void;
   onClose: () => void;
+  onDayFinished: () => void;
   session: ReactNode;
 }) {
   const inSession = session !== null;
@@ -210,6 +237,16 @@ function HeroCard({
   // 세션·연습이 열리면 카드를 화면 안으로 끌어옴 — 좁은 화면에서 대화·문장이 아래로 밀려 안 보이지 않게.
   useEffect(() => {
     if (expanded) ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [expanded]);
+  // 대기 카드의 실제 높이 — 세션·연습 카드가 이보다 줄지 않게 함(회차 b12 D2). 390 폭에서는 제목이
+  // 줄바꿈되어 293 px 이라 고정 `min-h-72`(288 px)로는 5 px 줄었음. 재기 전에는 `min-h-72` 가 받침임.
+  const [idleHeight, setIdleHeight] = useState<number | null>(null);
+  useLayoutEffect(() => {
+    const element = ref.current;
+    if (expanded || !element) return;
+    const observer = new ResizeObserver(() => setIdleHeight(element.offsetHeight));
+    observer.observe(element);
+    return () => observer.disconnect();
   }, [expanded]);
 
   if (expanded) {
@@ -223,6 +260,7 @@ function HeroCard({
         data-mode={inSession ? "session" : "practice"}
         // 연결 중·실패처럼 내용이 짧아도 대기 카드보다 줄지 않게 함 — 아래 카드가 출렁였음(회차 b11 D1).
         className={cn(CARD, "scroll-mt-6 min-h-72 sm:p-8")}
+        style={idleHeight === null ? undefined : { minHeight: idleHeight }}
       >
         <div className="flex items-center justify-between gap-3">
           <span className="inline-flex items-center gap-2 rounded-full bg-brand-soft px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-brand">
@@ -234,7 +272,7 @@ function HeroCard({
             </Button>
           )}
         </div>
-        {inSession ? session : <HomeCoursePractice />}
+        {inSession ? session : <HomeCoursePractice onDayFinished={onDayFinished} />}
       </div>
     );
   }

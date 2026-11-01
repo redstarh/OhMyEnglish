@@ -72,6 +72,8 @@ interface Props {
   day: number;
   /** Day 화면의 영상 핸들. 없으면(홈) 영상 없이 돎. */
   player?: RefObject<CoursePlayerHandle | null>;
+  /** Day 를 마친 직후 — 홈이 코스 개요(현재 Day·완료 수)를 다시 읽게 함(회차 b12 D1). */
+  onDayFinished?: () => void;
 }
 
 function readMode(): Mode {
@@ -154,7 +156,7 @@ function Spoken({ words, transcript }: { words: ReadbackWord[]; transcript: stri
 }
 
 export const SentencePractice = forwardRef<SentencePracticeHandle, Props>(function SentencePractice(
-  { detail, day, player },
+  { detail, day, player, onDayFinished },
   ref,
 ) {
   const [unitIndex, setUnitIndex] = useState(() => savedPosition(detail).unitIndex);
@@ -255,7 +257,9 @@ export const SentencePractice = forwardRef<SentencePracticeHandle, Props>(functi
     save(true);
     rewindAfterCompletion();
     setNotice(NOTICE.dayDone);
-  }, [cancelRun, rewindAfterCompletion, save]);
+    // 완료 저장은 기다리지 않지만, 코스 조회(`fetchCourse`)가 진행 중인 저장을 기다리므로 새 값을 읽음.
+    onDayFinished?.();
+  }, [cancelRun, onDayFinished, rewindAfterCompletion, save]);
 
   // 언마운트 — 연습과 마이크를 모두 정리함.
   useEffect(() => {

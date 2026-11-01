@@ -2,7 +2,7 @@
 // `docs/design/2026-11-01-v0-home-redesign-design.md` §5). 화면 모양은 `HomeDashboard.tsx` 가 가짐.
 // ⛔ 여기의 모든 수치는 API 응답에서 나옴 — 가짜 값을 두지 않음(설계서 §1 결정 3).
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import type {
   CourseDaySummary,
@@ -16,13 +16,20 @@ import type { AdditionalLearningItem, AdditionalLearningKey } from "@/app/additi
 /** 칸 하나의 조회 상태. 칸마다 따로 들고 따로 실패함 — 한 요청의 실패가 다른 칸을 비우지 않음. */
 export type Load<T> = { status: "loading" } | { status: "ready"; data: T } | { status: "error" };
 
+/** `useLoad` 의 결과 — 조회 상태와 다시 읽기. */
+export type Reloadable<T> = Load<T> & { reload: () => void };
+
 /**
  * 조회 함수 하나를 마운트 뒤에 한 번 부름. `null` 응답과 reject 는 둘 다 `error` 임.
+ * `reload()` 는 같은 조회를 다시 부름 — 그동안 앞서 받은 값을 그대로 그림(카드가 `loading` 으로
+ * 돌아가 높이가 바뀌지 않게). 홈이 문장 연습의 저장 뒤 코스 개요를 맞출 때 씀(회차 b12 D1).
  * ⚠️ `fetcher` 는 모듈 수준 함수여야 함 — 렌더마다 새 함수를 주면 effect 가 매번 다시 돎.
  * 첫 렌더는 늘 `loading` 이라 서버 렌더와 어긋나지 않음(설계서 §5).
  */
-export function useLoad<T>(fetcher: () => Promise<T | null>): Load<T> {
+export function useLoad<T>(fetcher: () => Promise<T | null>): Reloadable<T> {
   const [state, setState] = useState<Load<T>>({ status: "loading" });
+  const [version, setVersion] = useState(0);
+  const reload = useCallback(() => setVersion((value) => value + 1), []);
   useEffect(() => {
     let cancelled = false;
     fetcher().then(
@@ -37,8 +44,8 @@ export function useLoad<T>(fetcher: () => Promise<T | null>): Load<T> {
     return () => {
       cancelled = true;
     };
-  }, [fetcher]);
-  return state;
+  }, [fetcher, version]);
+  return { ...state, reload };
 }
 
 /** 브라우저 날짜 `Sun, Nov 1`. 마운트 뒤에만 정함 — 서버와 브라우저의 시각이 달라 어긋나므로. */

@@ -634,12 +634,23 @@ export interface CourseAttempt {
   attempts: number;
 }
 
+// 아직 끝나지 않은 진도 저장 — 닫자마자 다시 열면 조회가 저장보다 먼저 닿아 옛 자리를 읽고, 뒤늦은
+// 화면이 그 자리를 다시 써서 진도가 뒤로 갔음(codex 리뷰 HIGH). 그래서 코스 조회는 이 저장들을 기다림.
+const pendingSaves = new Set<Promise<boolean>>();
+
+/** 진행 중인 진도 저장이 모두 끝날 때까지 기다림. 저장은 실패해도 reject 하지 않음. */
+async function settleSaves(): Promise<void> {
+  if (pendingSaves.size > 0) await Promise.all([...pendingSaves]);
+}
+
 export async function fetchCourse(): Promise<CourseOverview | null> {
+  await settleSaves();
   const response = await fetch(`${API_BASE}/api/course`, { cache: "no-store" });
   return response.ok ? ((await response.json()) as CourseOverview) : null;
 }
 
 export async function fetchCourseDay(day: number): Promise<CourseDayDetail | null> {
+  await settleSaves();
   const response = await fetch(`${API_BASE}/api/course/days/${day}`, { cache: "no-store" });
   return response.ok ? ((await response.json()) as CourseDayDetail) : null;
 }
@@ -655,14 +666,22 @@ export async function saveCourseProgress(
     completedCount: number;
   },
 ): Promise<boolean> {
-  const sent = await sendWrite(`/api/course/days/${day}/progress`, "POST", {
+  const pending = sendWrite(`/api/course/days/${day}/progress`, "POST", {
     position_sec: Math.max(0, Math.round(input.positionSec * 100) / 100),
     unit: input.unit,
     sentence_index: input.sentenceIndex,
     completed: input.completed ?? false,
     completed_count: input.completedCount,
-  });
-  return sent.ok;
+  }).then(
+    (sent) => sent.ok,
+    () => false,
+  );
+  pendingSaves.add(pending);
+  try {
+    return await pending;
+  } finally {
+    pendingSaves.delete(pending);
+  }
 }
 
 /**
