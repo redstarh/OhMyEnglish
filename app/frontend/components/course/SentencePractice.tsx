@@ -487,14 +487,20 @@ export const SentencePractice = forwardRef<SentencePracticeHandle, Props>(functi
         </span>
       </div>
 
+      {/* 칸 너비가 컨테이너임 — 아래 글자 크기·자리 높이는 화면 폭이 아니라 이 칸의 너비를 따름(codex 리뷰 ①②). */}
       <section
         data-testid="course-card"
+        className="@container"
         style={{ marginTop: 8, border: "1px solid var(--border)", borderRadius: 14, padding: 16 }}
       >
         {/* ⛔ 이 칸은 상태·문장 길이와 무관하게 같은 크기임(`TASK-310` 사용자 지시) — 단계 표시는 번호 줄에
             올리고, 녹음 막대·문장(두 줄)·결과 자리는 비어 있어도 높이를 차지함. */}
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: "0.8rem", color: "var(--foreground-muted)", whiteSpace: "nowrap" }}>
-          <span>
+        {/* 좁은 칸(16rem 미만)은 단계 표시가 둘째 줄로 내려가므로 두 줄 자리를 늘 잡음 — 상태마다 높이가 바뀌지 않게. */}
+        <div
+          className="@max-[16rem]:min-h-[2.4rem]"
+          style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, fontSize: "0.8rem", color: "var(--foreground-muted)" }}
+        >
+          <span style={{ minWidth: 0 }}>
             <span data-testid="course-sentence-number">
               Sentence {sentenceIndex + 1} / {unit.sentences.length}
             </span>
@@ -506,7 +512,7 @@ export const SentencePractice = forwardRef<SentencePracticeHandle, Props>(functi
               </span>
             ) : null}
           </span>
-          <span data-testid="course-attempts">Try {counts[sentence.key] ?? 0}</span>
+          <span data-testid="course-attempts" style={{ whiteSpace: "nowrap" }}>Try {counts[sentence.key] ?? 0}</span>
         </div>
         <div style={{ height: 4, borderRadius: 99, background: phase === "repeat" ? "var(--surface)" : "transparent", marginTop: 6, overflow: "hidden" }}>
           {phase === "repeat" ? (
@@ -517,10 +523,11 @@ export const SentencePractice = forwardRef<SentencePracticeHandle, Props>(functi
             />
           ) : null}
         </div>
-        {/* 가장 긴 문장(61자)이 두 줄에 드는 크기임 — 좁은 화면은 글자를 줄임. 줄 높이 1.4 × 2줄 = 2.8em. */}
+        {/* 가장 긴 문장(61자)이 두 줄에 드는 크기임 — 글자를 칸 너비의 6 %(390 폭 266 px 에서 16 px)로 맞추고
+            20 px 에서 멈춤. 줄 높이 1.4 × 2줄 = 2.8em. */}
         <p
           data-testid="course-sentence"
-          className="text-base sm:text-xl"
+          className="text-[clamp(0.75rem,6cqi,1.25rem)]"
           style={{ fontWeight: 600, marginTop: 6, lineHeight: 1.4, height: "2.8em", overflow: "hidden" }}
         >
           {sentence.text}
@@ -541,7 +548,7 @@ export const SentencePractice = forwardRef<SentencePracticeHandle, Props>(functi
         {/* 결과·듣기 안내·알림이 한 고정 자리를 나눠 씀 — 넘치면 이 자리 안에서만 스크롤함. */}
         <div
           data-testid="course-result-slot"
-          className="h-[8.5rem] sm:h-[5rem]"
+          className="h-[8.5rem] @max-[16rem]:h-[12rem] sm:h-[5rem]"
           style={{ marginTop: 10, overflowY: "auto", overscrollBehavior: "contain" }}
         >
           {result ? <Spoken words={result.words} transcript={result.transcript} /> : null}

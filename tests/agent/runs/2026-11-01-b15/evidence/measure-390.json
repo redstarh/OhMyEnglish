@@ -19,7 +19,7 @@
  "practice.hero": {
   "top": 156,
   "bottom": 691,
-  "h": 536
+  "h": 535.8
  },
  "practice.progress": {
   "top": 711,
@@ -29,7 +29,7 @@
  "practice.card": {
   "top": 312,
   "bottom": 666,
-  "h": 354.8
+  "h": 354.7
  },
  "practice.gapBelowCard": 25,
  "labels.practice": [
