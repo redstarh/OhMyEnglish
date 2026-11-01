@@ -1,0 +1,143 @@
+{
+ "start": {
+  "day": 1,
+  "saved": {
+   "position_sec": 0,
+   "unit": 1,
+   "sentence_index": 4,
+   "completed_count": 1,
+   "last_completed_at": "2026-11-01T03:35:23.565173+00:00",
+   "last_completed_date": "2026-11-01",
+   "updated_at": "2026-11-01T03:39:39.962283+00:00"
+  }
+ },
+ "before": "Unit 1 · be 동사 am · is · are|Sentence 5 / 5",
+ "advanced": "Unit 2 · be 동사 질문 Am I · Is it · Are you|Sentence 1 / 5",
+ "timing": {
+  "reopenAt": 16.2
+ },
+ "reopened": {
+  "pos": "Unit 2 · be 동사 질문 Am I · Is it · Are you|Sentence 1 / 5",
+  "sameAsAdvanced": true
+ },
+ "after8s": "Unit 2 · be 동사 질문 Am I · Is it · Are you|Sentence 1 / 5",
+ "posts": {
+  "all": [
+   [
+    -10,
+    2,
+    0,
+    0
+   ],
+   [
+    1519,
+    2,
+    0,
+    0
+   ],
+   [
+    6523,
+    2,
+    0,
+    0
+   ]
+  ],
+  "olderWrites": 0,
+  "reqOrder": [
+   [
+    -12,
+    "OPTIONS",
+    "/api/course/days/1/progress"
+   ],
+   [
+    -10,
+    "POST",
+    "/api/course/days/1/progress"
+   ],
+   [
+    1498,
+    "GET",
+    "/api/course"
+   ],
+   [
+    1498,
+    "GET",
+    "/api/course"
+   ],
+   [
+    1498,
+    "GET",
+    "/api/course"
+   ],
+   [
+    1512,
+    "GET",
+    "/api/course/days/1"
+   ],
+   [
+    1512,
+    "GET",
+    "/api/course/days/1"
+   ],
+   [
+    1519,
+    "OPTIONS",
+    "/api/course/days/1/progress"
+   ],
+   [
+    1519,
+    "POST",
+    "/api/course/days/1/progress"
+   ],
+   [
+    6523,
+    "POST",
+    "/api/course/days/1/progress"
+   ],
+   [
+    6523,
+    "OPTIONS",
+    "/api/course/days/1/progress"
+   ]
+  ]
+ },
+ "held": [
+  [
+   "held",
+   -9,
+   "{\"position_sec\":0,\"unit\":2,\"sentence_index\":0,\"completed\":false,\"completed_count\":1}"
+  ],
+  [
+   "released",
+   1493
+  ],
+  [
+   "held",
+   1520,
+   "{\"position_sec\":0,\"unit\":2,\"sentence_index\":0,\"completed\":false,\"completed_count\":1}"
+  ],
+  [
+   "released",
+   3023
+  ],
+  [
+   "held",
+   6526,
+   "{\"position_sec\":0,\"unit\":2,\"sentence_index\":0,\"completed\":false,\"completed_count\":1}"
+  ],
+  [
+   "released",
+   8030
+  ]
+ ],
+ "savedEnd": {
+  "position_sec": 0,
+  "unit": 2,
+  "sentence_index": 0,
+  "completed_count": 1,
+  "last_completed_at": "2026-11-01T03:35:23.565173+00:00",
+  "last_completed_date": "2026-11-01",
+  "updated_at": "2026-11-01T03:39:57.255689+00:00"
+ },
+ "logs": []
+}

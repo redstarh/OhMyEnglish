@@ -1,0 +1,73 @@
+{
+ "third": {
+  "reopenReadyMs": 46,
+  "gets": [
+   [
+    22,
+    "/api/course"
+   ],
+   [
+    22,
+    "/api/course"
+   ],
+   [
+    28,
+    "/api/course/days/1"
+   ],
+   [
+    28,
+    "/api/course/days/1"
+   ]
+  ],
+  "heldSoFar": 0
+ },
+ "result": {
+  "mode": "nohold",
+  "firstOpenMs": 42,
+  "firstOpenGets": [
+   [
+    29,
+    "/api/course"
+   ],
+   [
+    29,
+    "/api/course"
+   ],
+   [
+    33,
+    "/api/course/days/1"
+   ],
+   [
+    33,
+    "/api/course/days/1"
+   ]
+  ],
+  "advanced": "Unit 3 · 현재진행 am doing|Sentence 1 / 5",
+  "reopenReadyMs": 33,
+  "reopenGets": [
+   [
+    21,
+    "/api/course"
+   ],
+   [
+    21,
+    "/api/course"
+   ],
+   [
+    26,
+    "/api/course/days/1"
+   ],
+   [
+    26,
+    "/api/course/days/1"
+   ]
+  ],
+  "reopened": {
+   "state": "ready",
+   "day": "Day 1 · Units 1–21",
+   "pos": "Unit 3 · 현재진행 am doing|Sentence 1 / 5"
+  },
+  "heldPosts": []
+ },
+ "logs": []
+}

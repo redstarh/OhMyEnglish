@@ -1,0 +1,114 @@
+{
+ "start": {
+  "day": 1,
+  "saved": {
+   "position_sec": 0,
+   "unit": 1,
+   "sentence_index": 1,
+   "completed_count": 1,
+   "last_completed_at": "2026-11-01T03:35:23.565173+00:00",
+   "last_completed_date": "2026-11-01",
+   "updated_at": "2026-11-01T03:38:29.032616+00:00"
+  }
+ },
+ "before": "Unit 1 · be 동사 am · is · are|Sentence 2 / 5",
+ "advanced": "Unit 1 · be 동사 am · is · are|Sentence 3 / 5",
+ "timing": {
+  "reopenAt": 28.9
+ },
+ "reopened": {
+  "pos": "Unit 1 · be 동사 am · is · are|Sentence 3 / 5",
+  "sameAsAdvanced": true
+ },
+ "after8s": "Unit 1 · be 동사 am · is · are|Sentence 3 / 5",
+ "posts": {
+  "all": [
+   [
+    -19,
+    1,
+    2,
+    0
+   ],
+   [
+    13,
+    1,
+    2,
+    0
+   ],
+   [
+    5017,
+    1,
+    2,
+    0
+   ]
+  ],
+  "olderWrites": 0,
+  "reqOrder": [
+   [
+    -20,
+    "OPTIONS",
+    "/api/course/days/1/progress"
+   ],
+   [
+    -19,
+    "POST",
+    "/api/course/days/1/progress"
+   ],
+   [
+    -7,
+    "GET",
+    "/api/course"
+   ],
+   [
+    0,
+    "GET",
+    "/api/course"
+   ],
+   [
+    1,
+    "GET",
+    "/api/course"
+   ],
+   [
+    8,
+    "GET",
+    "/api/course/days/1"
+   ],
+   [
+    8,
+    "GET",
+    "/api/course/days/1"
+   ],
+   [
+    13,
+    "OPTIONS",
+    "/api/course/days/1/progress"
+   ],
+   [
+    13,
+    "POST",
+    "/api/course/days/1/progress"
+   ],
+   [
+    5017,
+    "POST",
+    "/api/course/days/1/progress"
+   ],
+   [
+    5017,
+    "OPTIONS",
+    "/api/course/days/1/progress"
+   ]
+  ]
+ },
+ "savedEnd": {
+  "position_sec": 0,
+  "unit": 1,
+  "sentence_index": 2,
+  "completed_count": 1,
+  "last_completed_at": "2026-11-01T03:35:23.565173+00:00",
+  "last_completed_date": "2026-11-01",
+  "updated_at": "2026-11-01T03:38:43.353619+00:00"
+ },
+ "logs": []
+}

@@ -1,0 +1,143 @@
+{
+ "start": {
+  "day": 1,
+  "saved": {
+   "position_sec": 0,
+   "unit": 1,
+   "sentence_index": 3,
+   "completed_count": 1,
+   "last_completed_at": "2026-11-01T03:35:23.565173+00:00",
+   "last_completed_date": "2026-11-01",
+   "updated_at": "2026-11-01T03:38:57.671052+00:00"
+  }
+ },
+ "before": "Unit 1 · be 동사 am · is · are|Sentence 4 / 5",
+ "advanced": "Unit 1 · be 동사 am · is · are|Sentence 5 / 5",
+ "timing": {
+  "reopenAt": 52.6
+ },
+ "reopened": {
+  "pos": "Unit 1 · be 동사 am · is · are|Sentence 5 / 5",
+  "sameAsAdvanced": true
+ },
+ "after8s": "Unit 1 · be 동사 am · is · are|Sentence 5 / 5",
+ "posts": {
+  "all": [
+   [
+    -50,
+    1,
+    4,
+    0
+   ],
+   [
+    793,
+    1,
+    4,
+    0
+   ],
+   [
+    5796,
+    1,
+    4,
+    0
+   ]
+  ],
+  "olderWrites": 0,
+  "reqOrder": [
+   [
+    -51,
+    "OPTIONS",
+    "/api/course/days/1/progress"
+   ],
+   [
+    -50,
+    "POST",
+    "/api/course/days/1/progress"
+   ],
+   [
+    760,
+    "GET",
+    "/api/course"
+   ],
+   [
+    760,
+    "GET",
+    "/api/course"
+   ],
+   [
+    760,
+    "GET",
+    "/api/course"
+   ],
+   [
+    781,
+    "GET",
+    "/api/course/days/1"
+   ],
+   [
+    781,
+    "GET",
+    "/api/course/days/1"
+   ],
+   [
+    793,
+    "POST",
+    "/api/course/days/1/progress"
+   ],
+   [
+    793,
+    "OPTIONS",
+    "/api/course/days/1/progress"
+   ],
+   [
+    5796,
+    "POST",
+    "/api/course/days/1/progress"
+   ],
+   [
+    5797,
+    "OPTIONS",
+    "/api/course/days/1/progress"
+   ]
+  ]
+ },
+ "held": [
+  [
+   "held",
+   -49,
+   "{\"position_sec\":0,\"unit\":1,\"sentence_index\":4,\"completed\":false,\"completed_count\":1}"
+  ],
+  [
+   "released",
+   752
+  ],
+  [
+   "held",
+   795,
+   "{\"position_sec\":0,\"unit\":1,\"sentence_index\":4,\"completed\":false,\"completed_count\":1}"
+  ],
+  [
+   "released",
+   1598
+  ],
+  [
+   "held",
+   5800,
+   "{\"position_sec\":0,\"unit\":1,\"sentence_index\":4,\"completed\":false,\"completed_count\":1}"
+  ],
+  [
+   "released",
+   6603
+  ]
+ ],
+ "savedEnd": {
+  "position_sec": 0,
+  "unit": 1,
+  "sentence_index": 4,
+  "completed_count": 1,
+  "last_completed_at": "2026-11-01T03:35:23.565173+00:00",
+  "last_completed_date": "2026-11-01",
+  "updated_at": "2026-11-01T03:39:39.962283+00:00"
+ },
+ "logs": []
+}

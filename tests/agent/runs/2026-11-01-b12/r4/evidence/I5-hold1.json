@@ -1,0 +1,102 @@
+{
+ "third": {
+  "reopenReadyMs": 3044,
+  "gets": [
+   [
+    2710,
+    "/api/course"
+   ],
+   [
+    3023,
+    "/api/course"
+   ],
+   [
+    3023,
+    "/api/course"
+   ],
+   [
+    3034,
+    "/api/course/days/1"
+   ],
+   [
+    3034,
+    "/api/course/days/1"
+   ]
+  ],
+  "heldSoFar": 5
+ },
+ "result": {
+  "mode": "hold",
+  "firstOpenMs": 45,
+  "firstOpenGets": [
+   [
+    34,
+    "/api/course"
+   ],
+   [
+    34,
+    "/api/course"
+   ],
+   [
+    38,
+    "/api/course/days/1"
+   ],
+   [
+    38,
+    "/api/course/days/1"
+   ]
+  ],
+  "advanced": "Unit 2 · be 동사 질문 Am I · Is it · Are you|Sentence 5 / 5",
+  "reopenReadyMs": 3047,
+  "reopenGets": [
+   [
+    2709,
+    "/api/course"
+   ],
+   [
+    3022,
+    "/api/course"
+   ],
+   [
+    3024,
+    "/api/course"
+   ],
+   [
+    3032,
+    "/api/course/days/1"
+   ],
+   [
+    3033,
+    "/api/course/days/1"
+   ]
+  ],
+  "reopened": {
+   "state": "ready",
+   "day": "Day 1 · Units 1–21",
+   "pos": "Unit 2 · be 동사 질문 Am I · Is it · Are you|Sentence 4 / 5"
+  },
+  "heldPosts": [
+   [
+    48,
+    "{\"position_sec\":0,\"unit\":2,\"sentence_index\":3,\"completed\":false,\"completed_count\":1}"
+   ],
+   [
+    1077,
+    "{\"position_sec\":0,\"unit\":2,\"sentence_index\":4,\"completed\":false,\"completed_count\":1}"
+   ],
+   [
+    1591,
+    "{\"position_sec\":0,\"unit\":2,\"sentence_index\":4,\"completed\":false,\"completed_count\":1}"
+   ],
+   [
+    4938,
+    "{\"position_sec\":0,\"unit\":2,\"sentence_index\":3,\"completed\":false,\"completed_count\":1}"
+   ],
+   [
+    5267,
+    "{\"position_sec\":0,\"unit\":2,\"sentence_index\":3,\"completed\":false,\"completed_count\":1}"
+   ]
+  ]
+ },
+ "logs": []
+}

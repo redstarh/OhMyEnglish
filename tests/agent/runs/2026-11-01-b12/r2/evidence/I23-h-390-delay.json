@@ -1,0 +1,365 @@
+{
+ "idleBoxes": {
+  "home-hero": [
+   20,
+   240,
+   350,
+   293
+  ],
+  "home-progress": [
+   20,
+   553,
+   350,
+   283
+  ],
+  "home-path": [
+   20,
+   868,
+   350,
+   232
+  ],
+  "home-focus": [
+   20,
+   1132,
+   350,
+   335
+  ],
+  "quick-shadowing": [
+   20,
+   1498,
+   350,
+   158
+  ],
+  "quick-videos": [
+   20,
+   1676,
+   350,
+   156
+  ],
+  "quick-weak-patterns": [
+   20,
+   1852,
+   350,
+   158
+  ],
+  "home-more-practice": [
+   20,
+   2042,
+   350,
+   232
+  ],
+  "home-streak": [
+   245,
+   166,
+   125,
+   32
+  ]
+ },
+ "click": [
+  66,
+  826
+ ],
+ "session": {
+  "state": {
+   "path": "/",
+   "heroMode": "session",
+   "heroState": "ready",
+   "practiceDay": null,
+   "practiceDayState": null,
+   "spInHero": false,
+   "sp": false,
+   "iframes": 0,
+   "phase": "idle",
+   "num": null,
+   "unit": null,
+   "sentence": null,
+   "attempts": null,
+   "notice": null,
+   "prevDisabled": null,
+   "finish": "absent",
+   "retry": false,
+   "start": false,
+   "auto": null,
+   "manual": null,
+   "close": false,
+   "follow": null,
+   "heroTitle": null,
+   "heroDay": null,
+   "panel": true,
+   "navLocked": [
+    "true"
+   ]
+  },
+  "boxes": {
+   "home-hero": [
+    20,
+    240,
+    350,
+    293
+   ],
+   "home-progress": [
+    20,
+    553,
+    350,
+    283
+   ],
+   "home-path": [
+    20,
+    868,
+    350,
+    232
+   ],
+   "home-focus": [
+    20,
+    1132,
+    350,
+    335
+   ],
+   "quick-shadowing": [
+    20,
+    1498,
+    350,
+    158
+   ],
+   "quick-videos": [
+    20,
+    1676,
+    350,
+    156
+   ],
+   "quick-weak-patterns": [
+    20,
+    1852,
+    350,
+    158
+   ],
+   "home-more-practice": [
+    20,
+    2042,
+    350,
+    232
+   ],
+   "home-streak": [
+    245,
+    166,
+    125,
+    32
+   ]
+  },
+  "heroH": 293,
+  "idleH": 293,
+  "notShorter": true,
+  "others": {
+   "home-progress": [
+    0,
+    0,
+    0
+   ],
+   "home-path": [
+    0,
+    0,
+    0
+   ],
+   "home-focus": [
+    0,
+    0,
+    0
+   ],
+   "quick-shadowing": [
+    0,
+    0,
+    0
+   ],
+   "quick-videos": [
+    0,
+    0,
+    0
+   ],
+   "quick-weak-patterns": [
+    0,
+    0,
+    0
+   ],
+   "home-more-practice": [
+    0,
+    0,
+    0
+   ],
+   "home-streak": [
+    0,
+    0,
+    0
+   ]
+  }
+ },
+ "gumDuringConnecting": {
+  "tracks": [],
+  "events": [
+   [
+    "call",
+    2618.4,
+    1,
+    "at SessionPage.useCallback[startSession] (http://localhost:3000/_next/static/chunks/_1rdrm",
+    []
+   ]
+  ]
+ },
+ "lockedClicks": {
+  "path": "/",
+  "newSockets": 0,
+  "navLocked": [
+   "true"
+  ],
+  "disabled": [
+   [
+    "focus-practice",
+    true
+   ],
+   [
+    "quick-shadowing",
+    true
+   ],
+   [
+    "quick-weak-patterns",
+    true
+   ],
+   [
+    "practice-free_talk",
+    true
+   ],
+   [
+    "practice-weak_patterns",
+    true
+   ],
+   [
+    "practice-five_questions",
+    true
+   ],
+   [
+    "practice-pronunciation",
+    true
+   ],
+   [
+    "practice-shadowing",
+    true
+   ],
+   [
+    "practice-roleplay",
+    true
+   ]
+  ]
+ },
+ "end": {
+  "path": "/results/be0ea2bd-17a9-4cf7-b1e8-1233fa67ed59",
+  "sockets": [
+   {
+    "t": 1793504215383,
+    "url": "/ws/session?source=additional"
+   }
+  ],
+  "gum": {
+   "tracks": [
+    {
+     "k": 1,
+     "stack": "at SessionPage.useCallback[startSession] (http://localhost:3000/_next/static/chunks/_1rdrm",
+     "states": [
+      "ended"
+     ]
+    }
+   ],
+   "events": [
+    [
+     "call",
+     2618.4,
+     1,
+     "at SessionPage.useCallback[startSession] (http://localhost:3000/_next/static/chunks/_1rdrm",
+     []
+    ],
+    [
+     "resolved",
+     14651.6,
+     1
+    ],
+    [
+     "stop",
+     14697.3,
+     1,
+     "live"
+    ]
+   ]
+  },
+  "mo": [
+   [
+    0,
+    "/",
+    "idle",
+    false,
+    false,
+    null,
+    "-",
+    293
+   ],
+   [
+    25,
+    "/",
+    "session",
+    false,
+    true,
+    null,
+    "-",
+    293
+   ],
+   [
+    33,
+    "/",
+    "session",
+    false,
+    true,
+    null,
+    "true",
+    293
+   ],
+   [
+    12056,
+    "/",
+    "session",
+    false,
+    true,
+    null,
+    "true",
+    596
+   ],
+   [
+    12085,
+    "/",
+    "session",
+    false,
+    true,
+    null,
+    "true",
+    916
+   ],
+   [
+    12132,
+    "/results/be0ea2bd-17a9-4cf7-b1e8-1233fa67ed59",
+    null,
+    false,
+    false,
+    null,
+    "true",
+    null
+   ],
+   [
+    12139,
+    "/results/be0ea2bd-17a9-4cf7-b1e8-1233fa67ed59",
+    null,
+    false,
+    false,
+    null,
+    "-",
+    null
+   ]
+  ]
+ },
+ "logs": []
+}

@@ -1,0 +1,51 @@
+{
+ "result": {
+  "mode": "nohold",
+  "firstOpenMs": 41,
+  "firstOpenGets": [
+   [
+    28,
+    "/api/course"
+   ],
+   [
+    28,
+    "/api/course"
+   ],
+   [
+    33,
+    "/api/course/days/1"
+   ],
+   [
+    34,
+    "/api/course/days/1"
+   ]
+  ],
+  "advanced": "Unit 2 · be 동사 질문 Am I · Is it · Are you|Sentence 3 / 5",
+  "reopenReadyMs": 36,
+  "reopenGets": [
+   [
+    24,
+    "/api/course"
+   ],
+   [
+    24,
+    "/api/course"
+   ],
+   [
+    28,
+    "/api/course/days/1"
+   ],
+   [
+    28,
+    "/api/course/days/1"
+   ]
+  ],
+  "reopened": {
+   "state": "ready",
+   "day": "Day 1 · Units 1–21",
+   "pos": "Unit 2 · be 동사 질문 Am I · Is it · Are you|Sentence 3 / 5"
+  },
+  "heldPosts": []
+ },
+ "logs": []
+}

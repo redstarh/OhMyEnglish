@@ -1,0 +1,79 @@
+{
+ "expBefore": {
+  "current_day": 2,
+  "cycle": 2,
+  "day": "Day 2 · Units 22–41",
+  "title": "Day 2: listen and say it.",
+  "doneThisCycle": 1
+ },
+ "cardBefore": {
+  "title": "Day 2: listen and say it.",
+  "day": "Day 2 · Units 22–41",
+  "days": "1",
+  "pathDays": [
+   "path-day-2:DAY 2 Day 2 · In progress Units 22–41 63 min",
+   "path-day-3:DAY 3 Day 3 · In progress Units 42–62 69 min"
+  ]
+ },
+ "openedDay": "Day 2 · Units 22–41",
+ "finishedNotice": "You finished this Day!",
+ "expAfter": {
+  "current_day": 1,
+  "cycle": 2,
+  "day": "Day 1 · Units 1–21",
+  "title": "Day 1: listen and say it.",
+  "doneThisCycle": 2
+ },
+ "cardAfterClose": {
+  "card": {
+   "title": "Day 1: listen and say it.",
+   "day": "Day 1 · Units 1–21",
+   "days": "2",
+   "pathDays": [
+    "path-day-1:DAY 1 Day 1 · In progress Units 1–21 60 min",
+    "path-day-2:Day 2 · Done Units 22–41 63 min"
+   ]
+  },
+  "matchMs": 11,
+  "match": {
+   "title": true,
+   "day": true,
+   "pathHasCurrent": true
+  },
+  "reqsAfterClose": [
+   [
+    -2,
+    "OPTIONS",
+    "/api/course/days/2/progress"
+   ],
+   [
+    1,
+    "POST",
+    "/api/course/days/2/progress"
+   ],
+   [
+    11,
+    "GET",
+    "/api/course"
+   ]
+  ]
+ },
+ "reopen": {
+  "practiceDay": "Day 1 · Units 1–21",
+  "cardDay": "Day 1 · Units 1–21",
+  "same": true
+ },
+ "cardFreshReload": {
+  "fresh": {
+   "title": "Day 1: listen and say it.",
+   "day": "Day 1 · Units 1–21",
+   "days": "2",
+   "pathDays": [
+    "path-day-1:DAY 1 Day 1 · In progress Units 1–21 60 min",
+    "path-day-2:Day 2 · Done Units 22–41 63 min"
+   ]
+  },
+  "sameAsAfterClose": true
+ },
+ "logs": []
+}

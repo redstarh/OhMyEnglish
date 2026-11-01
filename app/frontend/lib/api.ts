@@ -638,9 +638,22 @@ export interface CourseAttempt {
 // 화면이 그 자리를 다시 써서 진도가 뒤로 갔음(codex 리뷰 HIGH). 그래서 코스 조회는 이 저장들을 기다림.
 const pendingSaves = new Set<Promise<boolean>>();
 
-/** 진행 중인 진도 저장이 모두 끝날 때까지 기다림. 저장은 실패해도 reject 하지 않음. */
+// 저장이 멈춰 있어도 조회를 영원히 막지 않는 상한 (codex 리뷰 · `TASK-304`). 발명값임 —
+// 로컬 저장은 수 ms 안에 끝나고(회차 b12r), 이 시간이 지나면 옛 진도를 읽을 위험보다 화면이 멈추는 쪽이 나쁨.
+const SETTLE_LIMIT_MS = 3000;
+
+/** 진행 중인 진도 저장이 끝날 때까지(최대 `SETTLE_LIMIT_MS`) 기다림. 저장은 실패해도 reject 하지 않음. */
 async function settleSaves(): Promise<void> {
-  if (pendingSaves.size > 0) await Promise.all([...pendingSaves]);
+  if (pendingSaves.size === 0) return;
+  const waiting = [...pendingSaves];
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const limit = new Promise<"timeout">((resolve) => {
+    timer = setTimeout(() => resolve("timeout"), SETTLE_LIMIT_MS);
+  });
+  const outcome = await Promise.race([Promise.all(waiting).then(() => "settled" as const), limit]);
+  clearTimeout(timer);
+  // 상한을 넘긴 저장은 목록에서 뺌 — 이어지는 조회가 같은 저장을 또 3초씩 기다렸음(회차 b12r3).
+  if (outcome === "timeout") waiting.forEach((save) => pendingSaves.delete(save));
 }
 
 export async function fetchCourse(): Promise<CourseOverview | null> {
