@@ -62,7 +62,11 @@ from app.services.recordings import (
     pending_recording_path,
 )
 from app.services.sessions import SessionEndStatus, end_session, set_session_paused
-from app.services.utterances import flush_pending_analysis, save_final_transcript
+from app.services.utterances import (
+    flush_pending_analysis,
+    retag_unanalyzed_learning,
+    save_final_transcript,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -169,10 +173,17 @@ class SessionRunner:
         # `_marker_seen` — 이 교환에서 학습자가 표지를 말했는가. ⛔ 이것이 **tool 을 실행할 자격**
         # 이다(사용자 결정 104): 모델이 표지 없는 학습 발화를 명령으로 읽는 것이 실측이므로
         # (`runs/2026-09-15-task61-3-voice-command-app-leg` ARM-C) 앱이 따로 검사한다.
-        # `_awaiting_confirmation` — `requested` 뒤 **한 발화**를 확인 답으로 읽는가. 확인 답에는
-        # 표지가 없어서 이 상태 없이는 그 발화를 학습 발화와 가를 수 없다.
+        # `_pending_confirmation` — `requested` 를 받아 `confirmed`·`cancelled` 를 기다리는 명령.
+        # ⛔ **이 값과 같은 명령의 `confirmed` 만 실행한다** (`TASK-303` D1) — 실물에서 모델이
+        # `requested` 없이 `confirmed` 를 불렀고(3/3) 화면은 확인 대기를 한 번도 띄우지 못했다.
+        # `_answer_ids` — 확인 답일 수 있는 학습자 발화. ⛔ **저장할 때는 `learning` 이다** — 확인
+        # 답인지는 뒤에 온 `confirmed`·`cancelled` 가 정하고 그때 유형을 바꾼다(`TASK-303` D4).
+        # `_coach_spoke_after_answer` — 그 발화 뒤에 코치가 말했는가. 코치가 답을 풀지 않고 말한 뒤
+        # 학습자가 다시 말하면 그 요청은 답을 받지 못한 채 지나간 것이다.
         self._marker_seen = False
-        self._awaiting_confirmation = False
+        self._pending_confirmation: str | None = None
+        self._answer_ids: list[UUID] = []
+        self._coach_spoke_after_answer = False
         # 「일시 정지」의 상태 (결정 117). ⛔ **이 값이 하는 일은 하나다** — 정지 중 학습 발화를
         # 저장하지 않는다. 소켓과 어댑터는 살아 있다(코치가 「학습 계속」을 들어야 한다).
         # ⚠️ DB 의 `status='paused'` 와 **두 곳에 있다**: 이 값은 매 발화 판정에 쓰이고 DB 값은
@@ -536,24 +547,31 @@ class SessionRunner:
             # 기록은 계속되므로 안전한 쪽이다(정지의 실패는 「기록이 멈추지 않는 것」이다).
             if not await self._apply_pause(paused=event.command == "pause"):
                 return False, False, "pause_state_not_written"
+        if (
+            requires_confirmation(event.command)
+            and event.stage == "confirmed"
+            and self._pending_confirmation != event.command
+        ):
+            return await self._hold_unrequested_confirmation(event, frame)
         await self._send(frame)
         if not requires_confirmation(event.command):
             # 되돌릴 수 있는 명령은 `requested` 하나로 끝난다 (결정 107 ③) — 화면이 이 프레임을
             # 받아 수행하고, 서버 상태는 바뀌지 않는다.
-            # ⛔ **확인을 기다리지 않는 것이 관측 가능해야 한다** — 여기서 `_awaiting_confirmation`
-            #    을 세우면 다음 학습 발화가 `command_confirmation` 으로 저장되어 분석에서 빠진다.
+            # ⛔ **확인을 기다리지 않는 것이 관측 가능해야 한다** — 여기서 확인 대기를 세우면
+            #    다음 답이 `command_confirmation` 으로 바뀌어 분석에서 빠진다.
             # ⚠️ 모델이 이 명령에 `confirmed` 를 덧붙여 불러도 방송만 되고 아무것도 두 번 되지
             #    않는다 — 화면은 `requested` 만 보고 움직인다(`frontend/app/page.tsx`).
             self._end_command_exchange()
             return False, True, None
         if event.stage == "requested":
-            # 다음 학습자 발화가 **확인 답**이다 — 유형은 `_classify_user_final` 이 바꾼다.
+            # 다음 학습자 발화가 **확인 답일 수 있다** — 답인지는 뒤에 온 tool 이 정한다.
             # ⛔ tool 이 실어 온 `heard` 를 따로 저장하지 않는다: 같은 발화가 두 행이 됐던 것이
             #    `TASK-61.4` D1 이다. 기록의 writer 는 전사문 경로 하나다.
-            self._awaiting_confirmation = True
+            self._open_confirmation(event.command)
             return False, True, None
-        # `confirmed`·`cancelled` — 교환이 끝났으므로 표지의 효력도 끝난다. 남겨 두면 뒤에
-        # 온 오인식 tool 이 그 표지에 얹혀 실행된다.
+        # `confirmed`·`cancelled` — 이 tool 이 앞선 발화를 확인 답으로 확정한다. 그 뒤 교환이
+        # 끝났으므로 표지의 효력도 끝난다. 남겨 두면 뒤에 온 오인식 tool 이 그 표지에 얹혀 실행된다.
+        await self._retag_answers()
         self._end_command_exchange()
         if event.stage != "confirmed":
             return False, True, None
@@ -568,18 +586,104 @@ class SessionRunner:
         )
         return closing, True, None
 
+    async def _hold_unrequested_confirmation(
+        self, event: SessionCommandEvent, frame: dict[str, object]
+    ) -> tuple[bool, bool, str | None]:
+        """앞선 `requested` 가 없는 `confirmed` 를 **실행하지 않고 `requested` 로 받는다**.
+
+        `TASK-303` D1 의 고침이다.
+        ⛔ **닫지 않는다** — 결정 102 ③의 확인은 「앱이 확인 대기를 세운 뒤의 답」이다. 실물에서
+        모델이 말로만 묻고 `confirmed` 를 바로 불렀고(회차 b10 3/3), 화면은 확인 대기 안내를
+        띄우지 못했다.
+        ⚠️ **그 앞의 답은 확인 답으로 바꾼다** — 모델이 그 말을 답으로 읽고 tool 을 불렀으므로
+        학습 발화가 아니다. 분석에 넘기면 「yes.」 를 교정하게 된다(같은 회차의 job 이 검증에서
+        거부됐다).
+        ⚠️ **화면에는 `requested` 를 보낸다** — 그 프레임이 확인 대기 안내를 띄운다(`page.tsx`).
+        모델에게는 거절과 그 이유를 보고한다(결정 118) — 지시문이 그 이유를 읽는 법을 말한다.
+        """
+        logger.warning(
+            "요청 없이 온 확정 %r 을 실행하지 않고 확인 대기로 받았다 (세션 %s)",
+            event.command,
+            self._session_id,
+        )
+        await self._retag_answers()
+        await self._send({**frame, "stage": "requested"})
+        self._open_confirmation(event.command)
+        return False, False, "confirmation_required"
+
+    def _open_confirmation(self, command: str) -> None:
+        """`command` 의 확인 대기를 세운다. ⛔ **그 앞의 발화는 답이 아니다** — 목록을 비운다."""
+        self._pending_confirmation = command
+        self._answer_ids = []
+        self._coach_spoke_after_answer = False
+
+    async def _retag_answers(self) -> None:
+        """확인 답일 수 있던 발화를 `command_confirmation` 으로 바꾼다 (`TASK-303` D4).
+
+        ⛔ **예외를 올리지 않는다** — 이 펌프가 죽으면 세션 전체가 끝난다. 유형 하나를 못 바꾼
+        대가는 그 답이 분석되는 것이고, 대화를 끊는 것보다 작다.
+        ⚠️ 이미 분석 job 이 걸린 발화는 바꾸지 않는다(`retag_unanalyzed_learning`) — 그 수를
+        `warning` 으로 남긴다.
+        """
+        answer_ids, self._answer_ids = self._answer_ids, []
+        if not answer_ids:
+            return
+        try:
+            async with self._pool.acquire() as conn:
+                retagged = await retag_unanalyzed_learning(
+                    conn, answer_ids, utterance_type=CONFIRMATION_UTTERANCE_TYPE
+                )
+        except Exception:
+            logger.exception("확인 답의 유형을 바꾸지 못했다 (세션 %s)", self._session_id)
+            return
+        if len(retagged) != len(answer_ids):
+            logger.warning(
+                "확인 답 %d건 가운데 %d건은 이미 분석에 들어가 유형을 바꾸지 않았다 (세션 %s)",
+                len(answer_ids),
+                len(answer_ids) - len(retagged),
+                self._session_id,
+            )
+
+    def _note_user_final(self, utterance_id: UUID, utterance_type: str) -> None:
+        """학습자 final 하나를 확인 답 후보로 적는다 — 답 없이 지나간 요청은 여기서 끝난다.
+
+        ⛔ **요청이 답을 받지 못한 채 지나가는 형태는 하나다** — 학습자가 말했고, 코치가 그 말을
+        풀지 않고(tool 없이) 대답했고, 학습자가 다시 말했다. 회차 b10 S4 에서 오인식된 요청이 그렇게
+        세션 끝까지 남았다. 남겨 두면 그 뒤 모델의 `confirmed` 하나가 확인 없이 세션을 닫는다.
+        ⚠️ 코치의 말 한 번으로 끝내지 않는다 — 모델이 「Okay, goodbye.」 를 먼저 말하고 `confirmed`
+        를 부르는 순서도 있을 수 있고, 그때 끝내면 학습자가 답한 종료가 닫히지 않는다.
+        """
+        if self._coach_spoke_after_answer and self._answer_ids:
+            if self._pending_confirmation is not None:
+                logger.warning(
+                    "확인 대기 %r 이 답을 받지 못하고 지나갔다 (세션 %s)",
+                    self._pending_confirmation,
+                    self._session_id,
+                )
+                self._end_command_exchange()
+            self._answer_ids = []
+        self._coach_spoke_after_answer = False
+        if utterance_type == LEARNING_UTTERANCE_TYPE:
+            self._answer_ids.append(utterance_id)
+        else:
+            # 명령 발화 — 그 앞의 말은 이 명령의 답이 아니다.
+            self._answer_ids = []
+
     def _end_command_exchange(self) -> None:
         """표지와 확인 대기를 **함께** 끈다 — 명령 교환이 끝났다는 뜻이다.
 
         ⛔ **둘을 따로 끄지 않는다.** 표지만 남으면 뒤에 온 오인식 tool 이 그 표지에 얹혀 실행되고
-        (사용자 결정 104 D5 가 막으려던 것), 확인 대기만 남으면 다음 학습 발화가
-        `command_confirmation` 으로 저장되어 분석에서 빠진다. 두 줄이 손으로 두 자리에 적혀
+        (사용자 결정 104 D5 가 막으려던 것), 확인 대기만 남으면 뒤에 온 `confirmed` 하나가 확인
+        없이 세션을 닫는다(`TASK-303`). 답 후보도 함께 비운다 — 남으면 다음 교환의 tool 이 그
+        학습 발화를 확인 답으로 바꾼다. 두 줄이 손으로 두 자리에 적혀
         있었고, 분기가 하나 늘 때 한쪽만 끄면 그 방어가 **조용히** 새는 형태였다.
         ⚠️ 생성자(`__init__`)는 이 헬퍼를 부르지 않는다 — 그 자리는 속성을 **선언**하는 곳이고
         헬퍼로 감추면 타입 검사가 속성의 출처를 잃는다.
         """
         self._marker_seen = False
-        self._awaiting_confirmation = False
+        self._pending_confirmation = None
+        self._answer_ids = []
+        self._coach_spoke_after_answer = False
 
     async def _apply_pause(self, *, paused: bool) -> bool:
         """정지 상태를 DB 와 이 러너에 함께 적는다. 적지 못했으면 `False` (결정 117).
@@ -615,15 +719,14 @@ class SessionRunner:
         그것을 교정 대상으로 본다. `utterance_type='learning'` 이 분석 대상의 유일한 조건이므로
         (`services/utterances.py`) 값을 바꾸는 것만으로 그 경로에서 빠진다.
 
-        ⚠️ 확인 답에는 표지가 없다 — 그래서 `requested` 뒤 **한 발화**를 확인으로 읽는다.
+        ⚠️ 확인 답에는 표지가 없다 — 그래서 **여기서는 정하지 않는다** (`TASK-303` D4). `requested`
+        뒤 첫 발화를 확인 답으로 적던 판은 오인식된 요청 뒤의 학습 문장을 분석에서 뺐다(회차 b10
+        S4). 답인지는 뒤에 온 `confirmed`·`cancelled` 가 정하고 `_retag_answers` 가 유형을 바꾼다.
         물린 답(`아니야`)도 확인의 기록이라 같은 유형으로 적는다.
         """
         if is_wake_command(text):
             self._marker_seen = True
             return COMMAND_UTTERANCE_TYPE
-        if self._awaiting_confirmation:
-            self._awaiting_confirmation = False
-            return CONFIRMATION_UTTERANCE_TYPE
         return LEARNING_UTTERANCE_TYPE
 
     async def _store_final(self, event: TranscriptEvent) -> None:
@@ -684,7 +787,17 @@ class SessionRunner:
                 # agent가 말을 시작했다 = 사용자 턴이 닫혔다. 그 직전까지의 사용자
                 # final 묶음을 하나로 묶어 분석 job 1건을 건다 (I-1). 이 모듈은
                 # learning 발화만 저장하므로 speaker가 유일한 판별자다.
-                await self._flush_analysis(conn)
+                if self._answer_ids:
+                    self._coach_spoke_after_answer = True
+                # ⛔ **확인 대기의 답이 풀리기 전에는 걸지 않는다** (`TASK-303`) — 모델이 먼저
+                # 말하고 `confirmed`·`cancelled` 를 부르면 job 이 먼저 걸려 그 답의 유형을 바꿀 수
+                # 없다.
+                # 미룬 묶음은 다음 flush 나 종료 경로의 flush 가 걷는다(묶음의 끝은 `lead()` 가
+                # 정하므로 늦게 걸어도 경계가 같다).
+                if self._pending_confirmation is None or not self._answer_ids:
+                    await self._flush_analysis(conn)
+        if event.speaker == "user":
+            self._note_user_final(utterance.id, utterance.utterance_type)
         # 방송하는 `sequence_no`는 DB가 부여한 값이다 — 어댑터가 보낸 번호가 아니라
         # 실제로 저장된 순번이라야 클라이언트가 결과 조회와 대조할 수 있다.
         #

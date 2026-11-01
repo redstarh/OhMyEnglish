@@ -2566,6 +2566,20 @@ def test_the_prompt_tells_the_coach_what_a_rejected_result_means():
     assert "did not happen" in squeezed
 
 
+def test_the_prompt_tells_the_coach_to_ask_again_when_the_request_was_missing():
+    """`TASK-303` D1 — 요청 없는 `confirmed` 는 이유 `confirmation_required` 로 거절된다.
+
+    ⛔ 문면이 그 이유를 따로 읽지 않으면 모델은 일반 거절의 지시(「Hey 를 붙여 다시 말하라」)를
+    따른다 — 학습자는 이미 「Hey」 를 붙여 말했고 이번에 필요한 것은 확인 질문 한 번이다.
+    ⚠️ 이유 문자열의 정본은 게이트웨이(`session._hold_unrequested_confirmation`)다 — 두 자리가
+    갈리면 이 단정이 먼저 깨진다(`tests/integration/test_gateway.py` 가 같은 값을 단정한다).
+    """
+    squeezed = " ".join(SYSTEM_PROMPT.split()).lower()
+
+    assert '"confirmation_required"' in squeezed
+    assert "ask the confirmation question once more" in squeezed
+
+
 def test_the_prompt_does_not_count_the_commands():
     """⛔ **지시문이 명령의 «개수»를 말하지 않는다** — 세면 값역이 늘 때마다 낡는다.
 

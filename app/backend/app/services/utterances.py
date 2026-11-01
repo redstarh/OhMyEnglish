@@ -157,6 +157,42 @@ async def save_final_transcript(
     return _to_utterance(record)
 
 
+# 확인 답의 재분류 (`TASK-303` · 회차 b10 D4). 저장할 때는 학습자 발화가 확인 질문에 «답한»
+# 것인지 알 수 없다 — 그것을 정하는 것은 뒤에 오는 `confirmed`·`cancelled` tool 이다.
+# ⛔ **분석 job 이 이미 걸린 발화는 바꾸지 않는다** — 워커가 그 발화로 끝나는 묶음을
+# `learning` 으로 다시 읽으므로(`services/analysis.py` `_LOAD_INPUT_SQL`) 유형만 바꾸면 job 의
+# 입력이 비어 버린다. 그 발화는 분석된 채로 두는 쪽이 덜 잃는다.
+_RETAG_UNANALYZED_SQL = """
+update utterances u
+   set utterance_type = $2
+ where u.id = any($1::uuid[])
+   and u.speaker = $3
+   and u.utterance_type = $4
+   and not exists (select 1 from analysis_jobs j where j.utterance_id = u.id)
+returning u.id
+"""
+
+
+async def retag_unanalyzed_learning(
+    conn: asyncpg.Connection, utterance_ids: list[UUID], *, utterance_type: str
+) -> list[UUID]:
+    """분석 job 이 아직 없는 사용자 `learning` 발화의 유형을 바꾸고, 바꾼 id 를 돌려준다.
+
+    ⚠️ **조건에 맞지 않는 id 는 조용히 건너뛴다** — 이미 분석에 들어갔거나 유형이 바뀐 발화다.
+    호출자는 돌려받은 목록으로 건너뛴 것을 센다.
+    """
+    if not utterance_ids:
+        return []
+    records = await conn.fetch(
+        _RETAG_UNANALYZED_SQL,
+        utterance_ids,
+        utterance_type,
+        ANALYZED_SPEAKER,
+        ANALYZED_UTTERANCE_TYPE,
+    )
+    return [record["id"] for record in records]
+
+
 # 묶음의 끝을 `lead()`로 찾는다 — "다음 발화가 분석 대상이 아니거나 없다"가 곧
 # 묶음의 경계다. 데이터 수정 CTE(`enqueued`)와 `run_ends`는 같은 스냅샷을 보므로
 # `not exists`가 방금 넣은 행을 보지 못한다(그래서 자기 자신과 충돌하지 않는다).

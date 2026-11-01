@@ -2133,6 +2133,8 @@ async def test_a_requested_end_command_does_not_close_the_session(db_pool, commi
         TranscriptEvent(kind="final", text="오마이 잉글리시 종료", speaker="user"),
         SessionCommandEvent(command="end", stage="requested"),
         TranscriptEvent(kind="final", text="Actually let's keep going.", speaker="user"),
+        # 물리는 답 — 모델의 `cancelled` 가 그 발화를 확인 답으로 확정한다 (`TASK-303` D4).
+        SessionCommandEvent(command="end", stage="cancelled"),
     )
 
     await asyncio.wait_for(
@@ -2149,7 +2151,7 @@ async def test_a_requested_end_command_does_not_close_the_session(db_pool, commi
     rows = await _typed_utterances(db_pool, committed_session.session_id)
     assert [(row["utterance_type"], row["transcript"]) for row in rows] == [
         ("voice_command", "오마이 잉글리시 종료"),
-        # 확인을 기다리는 중에 온 답이므로 `learning` 이 아니다 — 물린 답도 확인의 기록이다.
+        # `cancelled` 가 풀어 준 답이므로 `learning` 이 아니다 — 물린 답도 확인의 기록이다.
         ("command_confirmation", "Actually let's keep going."),
     ]
 
@@ -2660,3 +2662,227 @@ async def test_a_cancelled_command_lets_the_next_utterance_be_learning_again(
         ("voice_command", "오마이 잉글리시 종료"),
         ("learning", "I had a busy week at work."),
     ]
+
+
+# ── 확인 단계의 두 갈림 (`TASK-303` · 회차 b10 D1·D4) ─────────────────────────────
+#
+# ⛔ **확인이 필요한 명령은 `requested` → 학습자의 답 → `confirmed` 로만 닫힌다** (결정 102 ③).
+# 실물에서 모델이 「Hey, end the lesson.」 뒤에 확인을 말로만 묻고 `requested` 없이 `confirmed` 를
+# 불렀다(3/3 · `tests/agent/runs/2026-11-01-b10/evidence/frames-s1.jsonl`). 그때 앱은 확인 대기
+# 안내를 띄우지 못했고 답 「yes.」 를 `learning` 으로 저장해 분석에 넘겼다.
+# ⛔ **확인 답인지는 그 답을 풀어 준 tool 이 정한다.** `requested` 뒤의 첫 발화를 무조건 확인
+# 답으로 적던 판은 오인식된 명령 뒤의 학습 문장을 분석에서 뺐다(1/1 · `frames-s4.jsonl`).
+
+
+async def test_a_confirmed_end_without_a_request_is_held_as_a_request(db_pool, committed_session):
+    """D1 — 앞선 `requested` 없는 `confirmed` 는 실행하지 않고 `requested` 로 받는다.
+
+    ⛔ **판별력은 셋에 있다** — 세션이 닫히지 않음 · 화면이 확인 대기(`requested`)를 받음 · 모델이
+    거절과 그 이유를 받음. 답 「yes.」 는 확인 답이므로 분석 대상(`learning`)이 아니다.
+    """
+    adapter = ScriptedAdapter(
+        TranscriptEvent(kind="final", text="hey, end the lesson.", speaker="user"),
+        TranscriptEvent(kind="final", text="Do you want to end today's session?", speaker="agent"),
+        TranscriptEvent(kind="final", text="yes.", speaker="user"),
+        SessionCommandEvent(command="end", stage="confirmed", tool_use_id="tool-1"),
+        TranscriptEvent(kind="final", text="Do you want to end today's session?", speaker="agent"),
+    )
+    client = FakeClient()
+
+    await asyncio.wait_for(
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            client,
+            drain_timeout=FAST_DRAIN_TIMEOUT,
+        ).run(),
+        timeout=5.0,
+    )
+
+    assert client.of_type("voice_command") == [
+        {"type": "voice_command", "command": "end", "stage": "requested"},
+    ], "요청 없는 확정이 확인 대기 없이 방송됐다"
+    assert adapter.outcomes == [("tool-1", False, "confirmation_required")]
+    rows = await _typed_utterances(db_pool, committed_session.session_id)
+    assert [(row["speaker"], row["utterance_type"], row["transcript"]) for row in rows] == [
+        ("user", "voice_command", "hey, end the lesson."),
+        ("agent", "learning", "Do you want to end today's session?"),
+        ("user", "command_confirmation", "yes."),
+        ("agent", "learning", "Do you want to end today's session?"),
+    ]
+    assert await _job_count(db_pool, committed_session.session_id) == 0, "확인 답이 분석에 들어갔다"
+
+
+async def test_after_a_held_confirmation_the_next_yes_closes_the_session(
+    db_pool, committed_session
+):
+    """D1 의 나머지 반 — 받아 둔 요청에 학습자가 다시 답하면 그때 `confirmed` 로 닫힌다.
+
+    ⛔ 이 단정이 없으면 「요청 없는 확정을 전부 버린다」는 구현이 위 테스트를 통과하고 영어 종료가
+    영영 닫히지 않는다.
+    """
+    adapter = ScriptedAdapter(
+        TranscriptEvent(kind="final", text="hey, end the lesson.", speaker="user"),
+        TranscriptEvent(kind="final", text="yes.", speaker="user"),
+        SessionCommandEvent(command="end", stage="confirmed", tool_use_id="tool-1"),
+        TranscriptEvent(kind="final", text="Yes, please.", speaker="user"),
+        SessionCommandEvent(command="end", stage="confirmed", tool_use_id="tool-2"),
+        hold_open=True,
+    )
+    client = FakeClient()
+
+    await asyncio.wait_for(
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            client,
+            drain_timeout=FAST_DRAIN_TIMEOUT,
+        ).run(),
+        timeout=5.0,
+    )
+
+    assert adapter.closed
+    assert (await _session_row(db_pool, committed_session.session_id))["status"] == "completed"
+    assert client.of_type("voice_command") == [
+        {"type": "voice_command", "command": "end", "stage": "requested"},
+        {"type": "voice_command", "command": "end", "stage": "confirmed"},
+    ]
+    assert adapter.outcomes == [
+        ("tool-1", False, "confirmation_required"),
+        ("tool-2", True, None),
+    ]
+    rows = await _typed_utterances(db_pool, committed_session.session_id)
+    assert [(row["utterance_type"], row["transcript"]) for row in rows] == [
+        ("voice_command", "hey, end the lesson."),
+        ("command_confirmation", "yes."),
+        ("command_confirmation", "Yes, please."),
+    ]
+
+
+async def test_a_learning_sentence_after_a_request_stays_learning(db_pool, committed_session):
+    """D4 — `requested` 뒤에 학습자가 답하지 않고 학습 문장을 말하면 그 문장은 `learning`.
+
+    실물(S4): 「헤이, 일시 정지.」 가 `hey, you should change it.` 로 전사되어 모델이
+    `end requested` 를 불렀고, 학습자의 다음 문장이 `command_confirmation` 으로 저장되어 분석에서
+    빠졌다. 모델은 `cancelled` 를 부르지 않고 그 문장을 교정했다 — **그 문장을 풀어 준 tool 이
+    없다.**
+    """
+    adapter = ScriptedAdapter(
+        TranscriptEvent(kind="final", text="hey, you should change it.", speaker="user"),
+        SessionCommandEvent(command="end", stage="requested"),
+        TranscriptEvent(kind="final", text="Do you want to end today's session?", speaker="agent"),
+        TranscriptEvent(
+            kind="final",
+            text="yesterday i go to the office and i meet my manager.",
+            speaker="user",
+        ),
+        TranscriptEvent(
+            kind="final",
+            text='You said: "yesterday i go to the office." We need the past tense.',
+            speaker="agent",
+        ),
+    )
+
+    await asyncio.wait_for(
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            FakeClient(),
+            drain_timeout=FAST_DRAIN_TIMEOUT,
+        ).run(),
+        timeout=5.0,
+    )
+
+    rows = await _typed_utterances(db_pool, committed_session.session_id)
+    assert [(row["speaker"], row["utterance_type"]) for row in rows] == [
+        ("user", "voice_command"),
+        ("agent", "learning"),
+        ("user", "learning"),
+        ("agent", "learning"),
+    ], "확인 답이 아닌 학습 문장이 확인 답으로 저장됐다"
+    assert await _job_count(db_pool, committed_session.session_id) == 1, (
+        "학습 문장이 분석에서 빠졌다"
+    )
+
+
+async def test_a_request_left_unanswered_lapses_with_its_exchange(db_pool, committed_session):
+    """D4 의 뒤 — 답 없이 지나간 요청은 교환째 끝난다. 뒤에 온 `confirmed` 는 세션을 닫지 못한다.
+
+    ⛔ 남겨 두면 오인식된 `requested` 하나가 세션 끝까지 살아서, 그 뒤 모델이 `confirmed` 하나만
+    불러도 확인 없이 닫힌다 — D1 의 방어가 이 길로 샌다. 「지나갔다」의 형태는 학습자가 말하고 →
+    코치가 tool 없이 대답하고 → 학습자가 다시 말한 것이다(회차 b10 S4 의 순서).
+    """
+    adapter = ScriptedAdapter(
+        TranscriptEvent(kind="final", text="hey, you should change it.", speaker="user"),
+        SessionCommandEvent(command="end", stage="requested", tool_use_id="tool-1"),
+        TranscriptEvent(
+            kind="final",
+            text="yesterday i go to the office and i meet my manager.",
+            speaker="user",
+        ),
+        TranscriptEvent(kind="final", text="We need the past tense here.", speaker="agent"),
+        TranscriptEvent(kind="final", text="i am work at it company.", speaker="user"),
+        SessionCommandEvent(command="end", stage="confirmed", tool_use_id="tool-2"),
+    )
+    client = FakeClient()
+
+    await asyncio.wait_for(
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            client,
+            drain_timeout=FAST_DRAIN_TIMEOUT,
+        ).run(),
+        timeout=5.0,
+    )
+
+    assert adapter.outcomes == [("tool-1", True, None), ("tool-2", False, "no_wake_word")]
+    assert client.of_type("voice_command") == [
+        {"type": "voice_command", "command": "end", "stage": "requested"},
+    ], "답 없이 지나간 요청이 뒤의 확정을 실행시켰다"
+    rows = await _typed_utterances(db_pool, committed_session.session_id)
+    assert [row["utterance_type"] for row in rows if row["speaker"] == "user"] == [
+        "voice_command",
+        "learning",
+        "learning",
+    ]
+
+
+async def test_an_answer_resolved_after_the_coach_spoke_is_still_a_confirmation(
+    db_pool, committed_session
+):
+    """모델이 먼저 말하고 `cancelled` 를 부르는 순서 — 그 답은 분석에 들어가기 전에 확인 답이 된다.
+
+    ⛔ **판별력은 job 수에 있다** — 코치의 말에서 분석 job 을 바로 걸면 답 「No, not yet.」 이
+    `learning` 으로 분석에 들어가고 유형을 바꿀 수 없다. 그 flush 를 답이 풀릴 때까지 미룬다.
+    """
+    adapter = ScriptedAdapter(
+        TranscriptEvent(kind="final", text="hey, end the lesson.", speaker="user"),
+        SessionCommandEvent(command="end", stage="requested"),
+        TranscriptEvent(kind="final", text="No, not yet.", speaker="user"),
+        TranscriptEvent(kind="final", text="Okay, let's keep going.", speaker="agent"),
+        SessionCommandEvent(command="end", stage="cancelled"),
+    )
+
+    await asyncio.wait_for(
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            FakeClient(),
+            drain_timeout=FAST_DRAIN_TIMEOUT,
+        ).run(),
+        timeout=5.0,
+    )
+
+    rows = await _typed_utterances(db_pool, committed_session.session_id)
+    assert [(row["speaker"], row["utterance_type"]) for row in rows] == [
+        ("user", "voice_command"),
+        ("user", "command_confirmation"),
+        ("agent", "learning"),
+    ]
+    assert await _job_count(db_pool, committed_session.session_id) == 0
