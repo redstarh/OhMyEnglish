@@ -25,7 +25,7 @@ import {
   Volume2,
 } from "lucide-react";
 
-import { lockedLinkProps } from "@/components/app-shell";
+import { LOCKED_TITLE, lockedLinkProps } from "@/components/app-shell";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   fetchCourse,
@@ -113,6 +113,8 @@ export function HomeDashboard({
   const locked = session !== null && session !== undefined;
   // 오늘의 연습 카드가 문장 연습을 그리는 중인가. 세션이 열리면 세션이 이김.
   const [practicing, setPracticing] = useState(false);
+  // 문장 연습이 여는 Day — 비어 있으면 코스의 현재 Day 임. Continue your path 에서 고르면 그 Day 임(`TASK-314`).
+  const [practiceDay, setPracticeDay] = useState<number | undefined>(undefined);
   const showPractice = practicing && !locked;
   const history = useLoad(fetchHistory);
   const weekly = useLoad(fetchWeeklyReport);
@@ -139,6 +141,13 @@ export function HomeDashboard({
     },
     [onStart, practicing],
   );
+  // Continue your path 에서 고른 Day 를 오늘의 연습 카드에서 엶 — 페이지를 옮기지 않음(`TASK-314` 사용자 지시).
+  // 아래쪽 입구이므로 카드가 화면 밖이면 카드로 스크롤함(`TASK-308`).
+  const pickDay = useCallback((day: number) => {
+    revealHero(heroRef.current);
+    setPracticeDay(day);
+    setPracticing(true);
+  }, []);
   // 연습이 닫힌 뒤 — 미뤄 둔 세션을 열고, 코스 개요를 다시 읽어 대기 카드·진도가 저장된 진도와 맞게 함
   // (회차 b12 D1). 다시 읽기는 닫을 때의 저장을 기다린 뒤 조회함(`fetchCourse`).
   const wasPracticing = useRef(false);
@@ -166,16 +175,25 @@ export function HomeDashboard({
           heroRef={heroRef}
           course={course}
           practicing={showPractice}
-          onOpen={() => setPracticing(true)}
+          practiceDay={practiceDay}
+          onOpen={() => {
+            setPracticeDay(undefined);
+            setPracticing(true);
+          }}
           onClose={() => setPracticing(false)}
           onDayFinished={reloadCourse}
           session={locked ? session : null}
         />
-        <ProgressCard course={course} history={history} weekly={weekly} />
+        <ProgressCard course={course} history={history} weekly={weekly} locked={locked} />
       </div>
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(280px,0.8fr)]">
-        <PathSection course={course} locked={locked} />
+        <PathSection
+          course={course}
+          locked={locked}
+          selectedDay={showPractice ? (practiceDay ?? (course.status === "ready" ? course.data.current_day : null)) : null}
+          onPick={pickDay}
+        />
         <FocusSection daily={daily} weekly={weekly} onStart={startSession} locked={locked} />
       </div>
 
@@ -209,6 +227,7 @@ function HeroCard({
   heroRef,
   course,
   practicing,
+  practiceDay,
   onOpen,
   onClose,
   onDayFinished,
@@ -217,6 +236,7 @@ function HeroCard({
   heroRef: RefObject<HTMLDivElement | null>;
   course: Load<CourseOverview>;
   practicing: boolean;
+  practiceDay: number | undefined;
   onOpen: () => void;
   onClose: () => void;
   onDayFinished: () => void;
@@ -258,7 +278,7 @@ function HeroCard({
           data-testid="home-hero-body"
           className={cn("flex min-h-0 flex-1 flex-col", inSession && "-mr-2 overflow-y-auto overscroll-contain pr-2")}
         >
-          {inSession ? session : <HomeCoursePractice onDayFinished={onDayFinished} />}
+          {inSession ? session : <HomeCoursePractice key={practiceDay ?? "current"} day={practiceDay} onDayFinished={onDayFinished} />}
         </div>
       </div>
     );
@@ -319,10 +339,12 @@ function ProgressCard({
   course,
   history,
   weekly,
+  locked,
 }: {
   course: Load<CourseOverview>;
   history: Load<HistoryPayload>;
   weekly: Load<WeeklyReportPayload>;
+  locked: boolean;
 }) {
   const done = course.status === "ready" ? courseDoneCount(course.data) : 0;
   const total = course.status === "ready" ? course.data.days.length : 0;
@@ -361,6 +383,15 @@ function ProgressCard({
         </span>
       </div>
       <WeeklyStats weekly={weekly} history={history} />
+      {/* 기록·주간 리포트의 입구 — 사이드바 메뉴를 뺐으므로 여기가 그 화면들로 가는 길임(`TASK-314`). */}
+      <div className="mt-4 flex flex-wrap justify-center gap-2">
+        <LockLink href="/history" testId="home-history" locked={locked} className="omy-button">
+          History →
+        </LockLink>
+        <LockLink href="/history/weekly" testId="home-weekly" locked={locked} className="omy-button">
+          Weekly report →
+        </LockLink>
+      </div>
     </div>
   );
 }
@@ -415,25 +446,41 @@ function SectionHead({ title, sub, action }: { title: string; sub: string; actio
 
 const STATUS_TEXT = { done: "Done", started: "In progress", new: "Up next" } as const;
 
-function PathSection({ course, locked }: { course: Load<CourseOverview>; locked: boolean }) {
-  const { lockClassName, ...pathLock } = lockedLinkProps(locked);
+function PathSection({
+  course,
+  locked,
+  selectedDay,
+  onPick,
+}: {
+  course: Load<CourseOverview>;
+  locked: boolean;
+  /** 오늘의 연습 카드가 지금 연습 중인 Day. 연습이 닫혀 있으면 `null`. */
+  selectedDay: number | null;
+  onPick: (day: number) => void;
+}) {
+  // ⛔ View all 은 다른 화면으로 가지 않고 이 목록을 모든 Day 로 펼침(`TASK-314` 사용자 결정).
+  const [expanded, setExpanded] = useState(false);
   return (
     <section data-testid="home-path" data-state={course.status}>
       <SectionHead
         title="Continue your path"
         sub="Small steps, real conversations."
         action={
-          <LockLink
-            href="/course"
-            testId="home-path-all"
-            locked={locked}
-            className={cn(buttonVariants({ variant: "ghost" }), "text-xs font-bold text-brand")}
+          <Button
+            data-testid="home-path-all"
+            variant="ghost"
+            aria-expanded={expanded}
+            onClick={() => setExpanded((open) => !open)}
+            className="text-xs font-bold text-brand"
           >
-            View all <ChevronRight data-icon="inline-end" aria-hidden="true" />
-          </LockLink>
+            {expanded ? "Show less" : "View all"}
+            <ChevronRight data-icon="inline-end" aria-hidden="true" className={cn(expanded && "-rotate-90")} />
+          </Button>
         }
       />
       {/* 줄 높이를 줄였음(`TASK-307`) — 배지 36 px · 위아래 10 px · 제목과 단원을 한 줄에 둠. */}
+      {/* ⛔ 줄은 링크가 아니라 버튼임 — 고르면 그 Day 를 오늘의 연습 카드에서 엶(`TASK-314`). 예전에는 Day 화면
+          (`/course/<day>`)으로 가서 영상과 옛 연습 화면이 나왔음. 세션 중에는 잠금(`TASK-301`). */}
       <div className="flex flex-col gap-2">
         {course.status === "loading" && <div className={cn(CARD, "h-[58px] animate-pulse p-4")} />}
         {course.status === "error" && (
@@ -442,18 +489,23 @@ function PathSection({ course, locked }: { course: Load<CourseOverview>; locked:
           </div>
         )}
         {course.status === "ready" &&
-          pathDays(course.data).map((day) => {
+          (expanded ? course.data.days : pathDays(course.data)).map((day) => {
             const status = dayStatus(day, course.data.cycle);
+            const selected = day.day === selectedDay;
             return (
-              <Link
+              <button
+                type="button"
                 key={day.day}
-                href={`/course/${day.day}`}
                 data-testid={`path-day-${day.day}`}
                 data-status={status}
-                {...pathLock}
+                data-selected={selected ? "true" : undefined}
+                aria-pressed={selected}
+                disabled={locked}
+                title={locked ? LOCKED_TITLE : undefined}
+                onClick={() => onPick(day.day)}
                 className={cn(
-                  lockClassName,
-                  "flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-2.5 shadow-sm transition-colors hover:bg-accent",
+                  "flex w-full items-center gap-3 rounded-2xl border bg-card px-4 py-2.5 text-left shadow-sm transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50",
+                  selected ? "border-brand" : "border-border",
                 )}
               >
                 <div
@@ -476,7 +528,7 @@ function PathSection({ course, locked }: { course: Load<CourseOverview>; locked:
                 <span className="grid size-7 place-items-center rounded-xl border border-border">
                   <ArrowRight className="size-4" aria-hidden="true" />
                 </span>
-              </Link>
+              </button>
             );
           })}
       </div>

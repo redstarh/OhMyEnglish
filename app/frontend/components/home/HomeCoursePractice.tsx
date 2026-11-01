@@ -3,6 +3,7 @@
 // 홈의 문장 연습 — 오늘의 연습 카드 안에서 문법 코스의 현재 Day 를 연습함(`TASK-304` · 리디자인 설계서 §3).
 // ⛔ 영상을 그리지 않음(사용자 지시 2026-11-01) — 문장은 백엔드 콘텐츠의 단원 패턴 문장이고 영상에서
 //    가져오는 것이 없음. 그래서 연습 칸에 영상 핸들을 넘기지 않음.
+// ⛔ `day` 가 있으면 그 Day 를 엶 — Continue your path 에서 고른 Day 임(`TASK-314`). 없으면 코스의 현재 Day 임.
 // ⚠️ 열 때마다 진도를 새로 읽음. 홈의 코스 개요는 Day 를 마칠 때와 칸을 닫을 때 다시 읽음(회차 b12 D1).
 
 import { useEffect, useState } from "react";
@@ -18,12 +19,13 @@ async function loadCurrentDay(): Promise<CourseDayDetail | null> {
   return fetchCourseDay(course.current_day);
 }
 
-export function HomeCoursePractice({ onDayFinished }: { onDayFinished?: () => void }) {
+export function HomeCoursePractice({ day, onDayFinished }: { day?: number; onDayFinished?: () => void }) {
   const [state, setState] = useState<State>({ status: "loading" });
 
+  // ⚠️ 부모는 Day 가 바뀌면 `key` 로 이 칸을 새로 마운트함 — 앞 Day 의 언마운트 정리(진도 저장)가 먼저 돎.
   useEffect(() => {
     let cancelled = false;
-    loadCurrentDay().then(
+    (day === undefined ? loadCurrentDay() : fetchCourseDay(day)).then(
       (detail) => {
         if (!cancelled) setState(detail ? { status: "ready", detail } : { status: "error" });
       },
@@ -34,7 +36,7 @@ export function HomeCoursePractice({ onDayFinished }: { onDayFinished?: () => vo
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [day]);
 
   if (state.status === "loading") {
     return (

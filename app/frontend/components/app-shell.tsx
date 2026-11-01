@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createContext, useContext, useEffect, useState, type MouseEvent, type ReactNode } from "react";
-import { Mic, RotateCcw, Sparkles, Target, TrendingUp, type LucideIcon } from "lucide-react";
+import { Sparkles, Target, type LucideIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-type NavKey = "home" | "practice" | "review" | "progress";
+type NavKey = "home";
 
 type NavItem = {
   key: NavKey;
@@ -18,34 +18,13 @@ type NavItem = {
 
 const NAV_ITEMS: readonly NavItem[] = [
   { key: "home", label: "Home", href: "/", Icon: Target },
-  { key: "practice", label: "Practice", href: "/course", Icon: Mic },
-  { key: "review", label: "Review", href: "/history", Icon: RotateCcw },
-  { key: "progress", label: "Progress", href: "/history/weekly", Icon: TrendingUp },
 ];
-
-// 경로 접두어 → 메뉴. 가장 긴 접두어가 이김(설계서 §3) — `/history/weekly` 가 `/history` 를 이김.
-// Home 은 정확히 `/` 일 때만 활성이라 이 표에 넣지 않음.
-const PREFIX_RULES: readonly (readonly [string, NavKey])[] = [
-  ["/course", "practice"],
-  ["/videos", "practice"],
-  ["/history", "review"],
-  ["/results", "review"],
-  ["/history/weekly", "progress"],
-];
-
-function matchesPrefix(pathname: string, prefix: string): boolean {
-  return pathname === prefix || pathname.startsWith(`${prefix}/`);
-}
+// ⛔ 메뉴는 Home 하나임(`TASK-314` 사용자 결정) — 학습은 홈의 오늘의 연습 카드에서만 함. Practice(`/course`)·
+//    Review(`/history`)·Progress(`/history/weekly`) 메뉴를 뺐음. 기록·주간 리포트는 홈 Your progress 카드에서
+//    들어감. 화면 자체는 남아 있어 결과 화면 등의 이동 버튼으로 닿음.
 
 export function activeNavKey(pathname: string): NavKey | null {
-  if (pathname === "/") return "home";
-  let best: readonly [string, NavKey] | null = null;
-  for (const rule of PREFIX_RULES) {
-    if (matchesPrefix(pathname, rule[0]) && (best === null || rule[0].length > best[0].length)) {
-      best = rule;
-    }
-  }
-  return best ? best[1] : null;
+  return pathname === "/" ? "home" : null;
 }
 
 // ── 세션 잠금 ──
@@ -169,27 +148,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <NavLink href="/" locked={locked} className="inline-block rounded-xl">
             <Logo />
           </NavLink>
-          <nav aria-label="Main" {...navLock} className={cn("mt-3 grid grid-cols-4 gap-1", navLock.className)}>
-            {NAV_ITEMS.map(({ key, label, href, Icon }) => {
-              const isActive = key === active;
-              return (
-                <NavLink
-                  key={key}
-                  href={href}
-                  locked={locked}
-                  data-testid={`nav-${key}`}
-                  aria-current={isActive ? "page" : undefined}
-                  className={cn(
-                    "flex min-w-0 flex-col items-center gap-1 rounded-xl px-1 py-2 text-[11px] font-semibold no-underline transition-colors",
-                    isActive ? "bg-brand-soft text-brand" : "text-muted-foreground hover:bg-accent",
-                  )}
-                >
-                  <Icon className="size-[18px]" aria-hidden="true" />
-                  <span className="truncate">{label}</span>
-                </NavLink>
-              );
-            })}
-          </nav>
+          {/* 좁은 화면은 메뉴 줄을 두지 않음 — 메뉴가 Home 하나뿐이고 로고가 Home 으로 감(`TASK-314`). */}
         </header>
 
         <div className="min-w-0 flex-1 px-5 py-6 sm:px-8 lg:px-12 lg:py-9">{children}</div>

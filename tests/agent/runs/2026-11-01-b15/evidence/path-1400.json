@@ -1,0 +1,40 @@
+{
+ "nav": [
+  "nav-home"
+ ],
+ "rows": [
+  "BUTTON:path-day-1",
+  "BUTTON:path-day-2"
+ ],
+ "expanded": {
+  "label": "Show less",
+  "rows": 6
+ },
+ "collapsed": 2,
+ "progressLinks": [
+  "home-history /history 36",
+  "home-weekly /history/weekly 36"
+ ],
+ "day2": {
+  "path": "/",
+  "practiceDay": "Day 2 · Units 22–41",
+  "unit": "Unit 22 · 현재 · 과거 시제 정리",
+  "heroTop": 36,
+  "scrollBefore": 0,
+  "scrollAfter": 0,
+  "selected": [
+   "path-day-2"
+  ]
+ },
+ "day1": {
+  "path": "/",
+  "practiceDay": "Day 1 · Units 1–21",
+  "unit": "Unit 3 · 현재진행 am doing",
+  "heroTop": 36,
+  "scrollBefore": 0,
+  "scrollAfter": 0,
+  "selected": [
+   "path-day-1"
+  ]
+ }
+}
