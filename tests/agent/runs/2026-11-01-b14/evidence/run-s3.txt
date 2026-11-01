@@ -1,0 +1,89 @@
+clickAt 0.2
+click true
+endedByServer false
+stopAt 80.03
+timeoutFallback End lesson 버튼으로 닫음
+noticesBeforeButton []
+endedAfterButton true
+sessionId 9feb8af1-e7fa-4be1-a9ed-9278f4ae22f4
+shotNotes [[27.91,"voice_command-end-requested",["Do you want to end? Say \"Yes.\" to end. It has not ended yet."]],[59.62,"voice_command-end-cancelled",[]]]
+overlayNotes [[26916,"Do you want to end? Say \"Yes.\" to end. It has not ended yet."],[58497,""]]
+path /results/9feb8af1-e7fa-4be1-a9ed-9278f4ae22f4
+summaryWatchNoReload [[0,false,false,"analyzing"],[3,false,false,"analyzing"],[5,false,false,"analyzing"],[8,false,false,"analyzing"]]
+analysisWaitSec 12
+resultsStatus analyzing
+resultsText Your results
+
+Checking…
+
+You finished today — 98 scenes
+
+Today's mistakes
+
+You said: go to gym
+
+Better: go to the gym
+
+gym, office, bank처럼 정해진 장소에 간다고 말할 때는 명사 앞에 the를 붙여 'go to the gym'이라고 말합니다.
+
+64 times today
+
+Practice this
+
+You said: we has a meeting
+
+Better: we have a meeting
+
+we는 복수 주어이므로 has가 아니라 have를 씁니다.
+
+10 times today
+
+Practice this
+
+You said: i meet my manager
+
+Better: I met my manager
+
+어제 만난 일이므로 과거형 met을 씁니다.
+
+10 times today
+
+Practice this
+
+You said: i am software tester
+
+Better: I am a software tester
+
+직업을 말할 때는 a software tester처럼 명사 앞에 a를 붙입니다.
+
+7 times today
+
+Practice this
+
+You said: i am work at it company
+
+Better: I work at an IT company
+
+'일한다'는 뜻은 work 한 단어로 충분하니, am을 빼고 I work라고 말해요.
+
+6 times today
+
+Practice this
+
+You said: i am software tester
+
+Better: I'm a software tester
+
+직업을 말할 때는 직무명 앞에 a를 붙여 'I'm a software tester'라고 합니다.
+
+5 times today
+
+Practice this
+
+← Home
+
+History →
+resultsHangul [{"text":"gym, office, bank처럼 정해진 장소에 간다고 말할 때는 명사 앞에 the를 붙여 'go to the gym'이라고 말합니다.","tid":null},{"text":"we는 복수 주어이므로 has가 아니라 have를 씁니다.","tid":null},{"text":"어제 만난 일이므로 과거형 met을 씁니다.","tid":null},{"text":"직업을 말할 때는 a software tester처럼 명사 앞에 a를 붙입니다.","tid":null},{"text":"'일한다'는 뜻은 work 한 단어로 충분하니, am을 빼고 I work라고 말해요.","tid":null},{"text":"직업을 말할 때는 직무명 앞에 a를 붙여 'I'm a software tester'라고 합니다.","tid":null}]
+audioFramesIn 286
+audioFramesOut 2533
+logs []

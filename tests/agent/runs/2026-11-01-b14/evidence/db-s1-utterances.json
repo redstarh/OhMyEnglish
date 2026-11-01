@@ -1,0 +1,110 @@
+[
+ {
+  "sequence_no": 1,
+  "speaker": "user",
+  "utterance_type": "learning",
+  "t": "yesterday i go to the office and i meet my manager.",
+  "created_at": "2026-11-01 05:10:42.186259+00:00",
+  "job_type": "analyze_utterance",
+  "status": "pending",
+  "attempts": 0,
+  "err": null,
+  "job_at": "2026-11-01 05:10:49.197484+00:00"
+ },
+ {
+  "sequence_no": 2,
+  "speaker": "agent",
+  "utterance_type": "learning",
+  "t": "Great! Let's work on your sentence. You said, \"yesterday i g",
+  "created_at": "2026-11-01 05:10:49.194549+00:00",
+  "job_type": null,
+  "status": null,
+  "attempts": null,
+  "err": null,
+  "job_at": null
+ },
+ {
+  "sequence_no": 3,
+  "speaker": "user",
+  "utterance_type": "learning",
+  "t": "i am work at it company. i am software tester.",
+  "created_at": "2026-11-01 05:10:57.024057+00:00",
+  "job_type": "analyze_utterance",
+  "status": "pending",
+  "attempts": 0,
+  "err": null,
+  "job_at": "2026-11-01 05:11:00.812375+00:00"
+ },
+ {
+  "sequence_no": 4,
+  "speaker": "agent",
+  "utterance_type": "learning",
+  "t": "Nice! Your sentences are good. Let's keep practicing with ou",
+  "created_at": "2026-11-01 05:11:00.810128+00:00",
+  "job_type": null,
+  "status": null,
+  "attempts": null,
+  "err": null,
+  "job_at": null
+ },
+ {
+  "sequence_no": 5,
+  "speaker": "user",
+  "utterance_type": "voice_command",
+  "t": "hey, end the lesson.",
+  "created_at": "2026-11-01 05:11:12.113401+00:00",
+  "job_type": null,
+  "status": null,
+  "attempts": null,
+  "err": null,
+  "job_at": null
+ },
+ {
+  "sequence_no": 6,
+  "speaker": "agent",
+  "utterance_type": "learning",
+  "t": "Do you want to end today's session?  Please say yes if you w",
+  "created_at": "2026-11-01 05:11:14.927543+00:00",
+  "job_type": null,
+  "status": null,
+  "attempts": null,
+  "err": null,
+  "job_at": null
+ },
+ {
+  "sequence_no": 7,
+  "speaker": "user",
+  "utterance_type": "command_confirmation",
+  "t": "yes.",
+  "created_at": "2026-11-01 05:11:22.513967+00:00",
+  "job_type": null,
+  "status": null,
+  "attempts": null,
+  "err": null,
+  "job_at": null
+ },
+ {
+  "sequence_no": 8,
+  "speaker": "agent",
+  "utterance_type": "learning",
+  "t": "I need your confirmation again. Do you want to end today's s",
+  "created_at": "2026-11-01 05:11:25.594410+00:00",
+  "job_type": null,
+  "status": null,
+  "attempts": null,
+  "err": null,
+  "job_at": null
+ },
+ {
+  "sequence_no": 9,
+  "speaker": "user",
+  "utterance_type": "command_confirmation",
+  "t": "yes.",
+  "created_at": "2026-11-01 05:11:37.062913+00:00",
+  "job_type": null,
+  "status": null,
+  "attempts": null,
+  "err": null,
+  "job_at": null
+ }
+]

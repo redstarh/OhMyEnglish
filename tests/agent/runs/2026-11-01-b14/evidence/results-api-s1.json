@@ -1,0 +1,9 @@
+{
+ "status": 200,
+ "body": {
+  "status": "analyzing",
+  "partial_failure": false,
+  "pronunciation": [],
+  "awaiting_analysis": false
+ }
+}

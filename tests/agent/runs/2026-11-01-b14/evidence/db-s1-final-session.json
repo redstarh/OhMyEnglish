@@ -1,0 +1,18 @@
+[
+ {
+  "id": "ef4ed5ea-1682-4c63-bf06-21f40021bbd3",
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "scenario_id": "00000000-0000-0000-0000-000000000124",
+  "mode": "speaking",
+  "learning_source": "additional",
+  "started_via": "ui",
+  "status": "completed",
+  "started_at": "2026-11-01 05:10:29.429880+00:00",
+  "ended_at": "2026-11-01 05:11:37.971951+00:00",
+  "summary": "{\"went_well\": [\"코치가 묻지 않은 정보까지 스스로 덧붙여, 어제 있었던 일과 직업·직장까지 두 문장 이상으로 이어서 말했습니다.\", \"짧지만 끊기지 않는 문장으로 자기 소개를 전달해, 듣는 사람이 무슨 일을 하는지 바로 이해할 수 있었습니다.\"], \"weak_points\": [{\"point\": \"'어제'처럼 과거를 가리키는 말을 쓰면서도 동사는 현재형으로 두는 일이 반복됐습니다. go는 went, meet은 met으로 바꿔야 시점이 맞습니다.\", \"quote\": \"yesterday i go to the office and i meet my manager.\"}, {\"point\": \"be동사와 일반동사를 함께 쓰거나(am work) 직업·회사 앞에 붙는 관사(a/an)를 빠뜨리는 패턴이 보였습니다. 'I work at an IT company. I am a software tester.'처럼 고쳐 말해보세요.\", \"quote\": \"i am work at it company. i am software tester.\"}]}",
+  "drill_turns_expected": 16,
+  "shadowing_item_id": null,
+  "scenario_pick": "new",
+  "focus_pattern_key": null
+ }
+]

@@ -1,0 +1,18 @@
+[
+ {
+  "id": "9feb8af1-e7fa-4be1-a9ed-9278f4ae22f4",
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "scenario_id": "00000000-0000-0000-0000-000000000127",
+  "mode": "speaking",
+  "learning_source": "additional",
+  "started_via": "ui",
+  "status": "completed",
+  "started_at": "2026-11-01 05:19:27.328416+00:00",
+  "ended_at": "2026-11-01 05:20:48.567532+00:00",
+  "summary": "{\"went_well\": [\"지난주 일을 이야기할 때 \\\"last week i finished the test report and i sent it to my teacher.\\\"처럼 과거형(finished, sent)을 정확하게 써서 한 문장을 스스로 완성했습니다.\", \"and, so 같은 연결어를 사용해 두 가지 사건을 한 문장으로 이어 말하려는 시도를 꾸준히 했습니다.\"], \"weak_points\": [{\"point\": \"과거의 일을 말할 때 동사를 현재형으로 두는 일이 반복됐습니다. go→went, meet→met, say→said처럼 과거형으로 바꾸는 연습이 필요합니다.\", \"quote\": \"yesterday i go to the office and i meet my manager.\"}, {\"point\": \"주어와 동사를 맞추는 부분에서 흔들렸습니다. 3인칭 단수 주어 뒤의 say, 그리고 we 뒤의 has처럼 동사 형태 선택이 어긋났습니다.\", \"quote\": \"my manager say the project is late, so we has a meeting.\"}]}",
+  "drill_turns_expected": 16,
+  "shadowing_item_id": null,
+  "scenario_pick": "new",
+  "focus_pattern_key": null
+ }
+]

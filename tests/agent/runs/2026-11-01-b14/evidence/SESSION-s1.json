@@ -1,0 +1,186 @@
+{
+ "clickAt": 0.19,
+ "click": true,
+ "endedByServer": true,
+ "stopAt": 69.47,
+ "sessionId": "ef4ed5ea-1682-4c63-bf06-21f40021bbd3",
+ "shotNotes": [
+  [
+   54.93,
+   "voice_command-end-requested",
+   [
+    "Do you want to end? Say \"Yes.\" to end. It has not ended yet."
+   ]
+  ],
+  [
+   69.47,
+   "voice_command-end-confirmed",
+   []
+  ]
+ ],
+ "overlayNotes": [
+  [
+   53852,
+   "Do you want to end? Say \"Yes.\" to end. It has not ended yet."
+  ],
+  [
+   68414,
+   ""
+  ]
+ ],
+ "path": "/results/ef4ed5ea-1682-4c63-bf06-21f40021bbd3",
+ "summaryWatchNoReload": [
+  [
+   0,
+   false,
+   false,
+   "analyzing"
+  ],
+  [
+   3,
+   false,
+   false,
+   "analyzing"
+  ],
+  [
+   5,
+   false,
+   false,
+   "analyzing"
+  ],
+  [
+   8,
+   false,
+   false,
+   "analyzing"
+  ],
+  [
+   10,
+   false,
+   false,
+   "analyzing"
+  ],
+  [
+   13,
+   false,
+   false,
+   "analyzing"
+  ],
+  [
+   15,
+   false,
+   false,
+   "analyzing"
+  ],
+  [
+   18,
+   false,
+   false,
+   "analyzing"
+  ],
+  [
+   20,
+   false,
+   false,
+   "analyzing"
+  ],
+  [
+   23,
+   false,
+   false,
+   "analyzing"
+  ],
+  [
+   25,
+   false,
+   false,
+   "analyzing"
+  ],
+  [
+   28,
+   false,
+   false,
+   "analyzing"
+  ],
+  [
+   30,
+   false,
+   false,
+   "analyzing"
+  ],
+  [
+   33,
+   false,
+   false,
+   "analyzing"
+  ],
+  [
+   35,
+   false,
+   false,
+   "analyzing"
+  ],
+  [
+   38,
+   false,
+   false,
+   "analyzing"
+  ],
+  [
+   40,
+   false,
+   false,
+   "analyzing"
+  ],
+  [
+   43,
+   false,
+   false,
+   "analyzing"
+  ],
+  [
+   45,
+   false,
+   false,
+   "analyzing"
+  ],
+  [
+   48,
+   false,
+   false,
+   "analyzing"
+  ]
+ ],
+ "analysisWaitSec": 241,
+ "resultsStatus": "analyzing",
+ "resultsText": "Your results\n\nChecking…\n\nYou finished today — 96 scenes\n\nToday's mistakes\n\nYou said: go to gym\n\nBetter: go to the gym\n\ngym, office, bank처럼 정해진 장소에 간다고 말할 때는 명사 앞에 the를 붙여 'go to the gym'이라고 말합니다.\n\n42 times today\n\nPractice this\n\nYou said: we has a meeting\n\nBetter: we have a meeting\n\nwe는 복수 주어이므로 has가 아니라 have를 씁니다.\n\n10 times today\n\nPractice this\n\nYou said: i meet my manager\n\nBetter: I met my manager\n\n어제 만난 일이므로 과거형 met을 씁니다.\n\n10 times today\n\nPractice this\n\nYou said: i am software tester\n\nBetter: I am a software tester\n\n직업을 말할 때는 a software tester처럼 명사 앞에 a를 붙입니다.\n\n7 times today\n\nPractice this\n\nYou said: i am work at it company\n\nBetter: I work at an IT company\n\n'일한다'는 뜻은 work 한 단어로 충분하니, am을 빼고 I work라고 말해요.\n\n6 times today\n\nPractice this\n\nYou said: i am software tester\n\nBetter: I'm a software tester\n\n직업을 말할 때는 직무명 앞에 a를 붙여 'I'm a software tester'라고 합니다.\n\n5 times today\n\nPractice this\n\n← Home\n\nHistory →",
+ "resultsHangul": [
+  {
+   "text": "gym, office, bank처럼 정해진 장소에 간다고 말할 때는 명사 앞에 the를 붙여 'go to the gym'이라고 말합니다.",
+   "tid": null
+  },
+  {
+   "text": "we는 복수 주어이므로 has가 아니라 have를 씁니다.",
+   "tid": null
+  },
+  {
+   "text": "어제 만난 일이므로 과거형 met을 씁니다.",
+   "tid": null
+  },
+  {
+   "text": "직업을 말할 때는 a software tester처럼 명사 앞에 a를 붙입니다.",
+   "tid": null
+  },
+  {
+   "text": "'일한다'는 뜻은 work 한 단어로 충분하니, am을 빼고 I work라고 말해요.",
+   "tid": null
+  },
+  {
+   "text": "직업을 말할 때는 직무명 앞에 a를 붙여 'I'm a software tester'라고 합니다.",
+   "tid": null
+  }
+ ],
+ "audioFramesIn": 351,
+ "audioFramesOut": 2135,
+ "logs": []
+}

@@ -1,0 +1,18 @@
+[
+ {
+  "id": "35183362-d861-4e86-a8e6-d015ad8fdf10",
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "scenario_id": "00000000-0000-0000-0000-000000000130",
+  "mode": "speaking",
+  "learning_source": "additional",
+  "started_via": "ui",
+  "status": "completed",
+  "started_at": "2026-11-01 05:17:33.272635+00:00",
+  "ended_at": "2026-11-01 05:18:41.768009+00:00",
+  "summary": "{\"went_well\": [\"어제 있었던 일을 'and'로 두 절을 이어 한 문장으로 말해냈어요. 짧은 문장에 머물지 않고 사건을 연결해서 전달하려 한 점이 좋았습니다.\", \"질문 없이도 직업과 직무를 스스로 두 문장으로 소개했어요. 전하고 싶은 내용이 코치에게 분명히 전달됐습니다.\"], \"weak_points\": [{\"point\": \"과거의 일을 말할 때 동사를 현재형으로 그대로 쓰는 패턴이 반복됐어요. 'yesterday'라는 시간 표현을 쓰면서도 go/meet를 went/met로 바꾸지 못했습니다.\", \"quote\": \"yesterday i go to the office and i meet my manager.\"}, {\"point\": \"be동사와 일반동사를 함께 쓰거나(am work), 직업·회사 앞에 들어가야 하는 관사(a/an)를 빠뜨리는 어려움이 있었어요.\", \"quote\": \"i am work at it company. i am software tester.\"}]}",
+  "drill_turns_expected": 16,
+  "shadowing_item_id": null,
+  "scenario_pick": "new",
+  "focus_pattern_key": null
+ }
+]

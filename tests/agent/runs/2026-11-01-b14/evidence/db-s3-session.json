@@ -1,0 +1,18 @@
+[
+ {
+  "id": "9feb8af1-e7fa-4be1-a9ed-9278f4ae22f4",
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "scenario_id": "00000000-0000-0000-0000-000000000127",
+  "mode": "speaking",
+  "learning_source": "additional",
+  "started_via": "ui",
+  "status": "completed",
+  "started_at": "2026-11-01 05:19:27.328416+00:00",
+  "ended_at": "2026-11-01 05:20:48.567532+00:00",
+  "summary": "{}",
+  "drill_turns_expected": 16,
+  "shadowing_item_id": null,
+  "scenario_pick": "new",
+  "focus_pattern_key": null
+ }
+]

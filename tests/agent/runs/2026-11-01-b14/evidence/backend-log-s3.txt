@@ -1,0 +1,3 @@
+INFO:     127.0.0.1:59687 - "WebSocket /ws/session?source=additional" [accepted]
+INFO:     connection open
+확인 대기 'end' 이 답을 받지 못하고 지나갔다 (세션 9feb8af1-e7fa-4be1-a9ed-9278f4ae22f4)

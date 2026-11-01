@@ -1,0 +1,98 @@
+[
+ {
+  "sequence_no": 1,
+  "speaker": "user",
+  "utterance_type": "learning",
+  "t": "yesterday i go to the office and i meet my manager.",
+  "created_at": "2026-11-01 05:19:39.931702+00:00",
+  "job_type": "analyze_utterance",
+  "status": "done",
+  "attempts": 1,
+  "err": null,
+  "job_at": "2026-11-01 05:19:45.707173+00:00"
+ },
+ {
+  "sequence_no": 2,
+  "speaker": "agent",
+  "utterance_type": "learning",
+  "t": "Great! Let's work on your sentence. You said, \"yesterday i g",
+  "created_at": "2026-11-01 05:19:45.705228+00:00",
+  "job_type": null,
+  "status": null,
+  "attempts": null,
+  "err": null,
+  "job_at": null
+ },
+ {
+  "sequence_no": 3,
+  "speaker": "user",
+  "utterance_type": "voice_command",
+  "t": "hey, end the lesson.",
+  "created_at": "2026-11-01 05:19:53.497255+00:00",
+  "job_type": null,
+  "status": null,
+  "attempts": null,
+  "err": null,
+  "job_at": null
+ },
+ {
+  "sequence_no": 4,
+  "speaker": "agent",
+  "utterance_type": "learning",
+  "t": "Do you want to end today's session?  Please say yes or no.",
+  "created_at": "2026-11-01 05:19:55.727317+00:00",
+  "job_type": null,
+  "status": null,
+  "attempts": null,
+  "err": null,
+  "job_at": null
+ },
+ {
+  "sequence_no": 5,
+  "speaker": "user",
+  "utterance_type": "learning",
+  "t": "last week i finished the test report and i sent it to my tea",
+  "created_at": "2026-11-01 05:20:08.131597+00:00",
+  "job_type": "analyze_utterance",
+  "status": "done",
+  "attempts": 1,
+  "err": null,
+  "job_at": "2026-11-01 05:20:28.786154+00:00"
+ },
+ {
+  "sequence_no": 6,
+  "speaker": "agent",
+  "utterance_type": "learning",
+  "t": "Good! You said the sentence correctly. Now, tell me, where d",
+  "created_at": "2026-11-01 05:20:11.015242+00:00",
+  "job_type": null,
+  "status": null,
+  "attempts": null,
+  "err": null,
+  "job_at": null
+ },
+ {
+  "sequence_no": 7,
+  "speaker": "user",
+  "utterance_type": "learning",
+  "t": "my manager say the project is late, so we has a meeting.",
+  "created_at": "2026-11-01 05:20:25.656107+00:00",
+  "job_type": "analyze_utterance",
+  "status": "done",
+  "attempts": 1,
+  "err": null,
+  "job_at": "2026-11-01 05:20:28.786154+00:00"
+ },
+ {
+  "sequence_no": 8,
+  "speaker": "agent",
+  "utterance_type": "learning",
+  "t": "Almost! Say: \"My manager said the project is late, so we had",
+  "created_at": "2026-11-01 05:20:28.783792+00:00",
+  "job_type": null,
+  "status": null,
+  "attempts": null,
+  "err": null,
+  "job_at": null
+ }
+]
