@@ -221,7 +221,8 @@ function HeroCard({
         data-testid="home-hero"
         data-state={course.status}
         data-mode={inSession ? "session" : "practice"}
-        className={cn(CARD, "scroll-mt-6 sm:p-8")}
+        // 연결 중·실패처럼 내용이 짧아도 대기 카드보다 줄지 않게 함 — 아래 카드가 출렁였음(회차 b11 D1).
+        className={cn(CARD, "scroll-mt-6 min-h-72 sm:p-8")}
       >
         <div className="flex items-center justify-between gap-3">
           <span className="inline-flex items-center gap-2 rounded-full bg-brand-soft px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-brand">
