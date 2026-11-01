@@ -3,11 +3,13 @@
 // 홈 대시보드 (`TASK-296` · 리디자인 설계서 `docs/design/2026-11-01-v0-home-redesign-design.md` §5).
 // 배치는 v0 원본(`docs/design/2026-11-01-v0-home-redesign/oh-my-english-dashboard.tsx.txt`)의 본문을
 // 따르고, 사이드바는 공통 틀(`components/app-shell.tsx`)이 가짐.
-// ⛔ 세션 논리는 여기 두지 않음 — 이 칸은 `onStart` 하나만 받음(`app/page.tsx` 가 세션을 소유).
+// ⛔ 세션 논리는 여기 두지 않음 — 이 칸은 `onStart` 와 그려진 세션 화면만 받음(`app/page.tsx` 가 세션을 소유).
 // ⛔ 「Start speaking」은 어떤 조회의 상태와도 무관하게 늘 눌림.
+// ⛔ 세션 화면은 `session` 으로 받아 오늘의 연습 카드 안에 그림(`TASK-301` · 설계서 §3). 그동안
+//    다른 세션을 열거나 화면을 떠나는 링크·버튼은 잠김 — 떠나면 소켓이 닫혀 세션이 끝남.
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import {
   ArrowRight,
   BookOpen,
@@ -23,6 +25,7 @@ import {
   Volume2,
 } from "lucide-react";
 
+import { lockedLinkProps } from "@/components/app-shell";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   fetchCourse,
@@ -75,7 +78,37 @@ function Muted({ children, testId }: { children: ReactNode; testId?: string }) {
   );
 }
 
-export function HomeDashboard({ onStart }: { onStart: (entry: SessionEntry) => void }) {
+/** 잠긴 링크 — 세션 중에 화면을 떠나지 못하게 함(공통 틀의 메뉴와 같은 속성). */
+function LockLink({
+  href,
+  locked,
+  className,
+  children,
+  testId,
+}: {
+  href: string;
+  locked: boolean;
+  className: string;
+  children: ReactNode;
+  testId: string;
+}) {
+  const { lockClassName, ...lockProps } = lockedLinkProps(locked);
+  return (
+    <Link href={href} data-testid={testId} {...lockProps} className={cn(className, lockClassName)}>
+      {children}
+    </Link>
+  );
+}
+
+export function HomeDashboard({
+  onStart,
+  session = null,
+}: {
+  onStart: (entry: SessionEntry) => void;
+  /** 진행 중인 세션 화면. 있으면 오늘의 연습 카드가 그것을 그리고 나머지 이동이 잠김. */
+  session?: ReactNode;
+}) {
+  const locked = session !== null && session !== undefined;
   const plan = useLoad(fetchNextPlan);
   const history = useLoad(fetchHistory);
   const weekly = useLoad(fetchWeeklyReport);
@@ -86,18 +119,24 @@ export function HomeDashboard({ onStart }: { onStart: (entry: SessionEntry) => v
     <div className="text-foreground">
       <Header history={history} />
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.85fr)]">
-        <HeroCard plan={plan} onStart={() => onStart(RECOMMENDED_ENTRY)} />
+      {/* ⚠️ 세션 중에는 오늘의 연습 카드가 길어짐 — 진도 카드가 함께 늘어 빈 칸이 되지 않게 위에 붙임. */}
+      <div
+        className={cn(
+          "grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.85fr)]",
+          locked && "xl:items-start",
+        )}
+      >
+        <HeroCard plan={plan} onStart={() => onStart(RECOMMENDED_ENTRY)} session={locked ? session : null} />
         <ProgressCard course={course} history={history} weekly={weekly} />
       </div>
 
       <div className="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1.5fr)_minmax(280px,0.8fr)]">
-        <PathSection course={course} />
-        <FocusSection daily={daily} weekly={weekly} onStart={onStart} />
+        <PathSection course={course} locked={locked} />
+        <FocusSection daily={daily} weekly={weekly} onStart={onStart} locked={locked} />
       </div>
 
-      <QuickCards onStart={onStart} />
-      <MorePractice onStart={onStart} />
+      <QuickCards onStart={onStart} locked={locked} />
+      <MorePractice onStart={onStart} locked={locked} />
     </div>
   );
 }
@@ -135,15 +174,45 @@ function Header({ history }: { history: Load<HistoryPayload> }) {
 
 // ── 오늘의 연습 ──
 
-function HeroCard({ plan, onStart }: { plan: Load<NextPlanSummary>; onStart: () => void }) {
+function HeroCard({
+  plan,
+  onStart,
+  session,
+}: {
+  plan: Load<NextPlanSummary>;
+  onStart: () => void;
+  session: ReactNode;
+}) {
   // ⚠️ `reason` 은 백엔드가 한국어로 줌 — 그대로 보임(설계서 §6 미결 1 · `TASK-299`).
   const reason = plan.status === "ready" ? plan.data.reason : null;
   const level = plan.status === "ready" ? plan.data.target_level : null;
+  const inSession = session !== null;
+  const ref = useRef<HTMLDivElement>(null);
+  // 세션이 열리면 카드를 화면 안으로 끌어옴 — 좁은 화면에서 대화가 아래로 밀려 안 보이지 않게.
+  useEffect(() => {
+    if (inSession) ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [inSession]);
+
+  if (inSession) {
+    // ⛔ 세션 중에는 밝은 카드로 바꿈 — 대화·쉐도잉·리포트 패널이 `--foreground` 글자색을 쓰므로
+    //    남색 바탕 위에서는 읽히지 않음. 자리와 너비는 그대로이고 높이만 늘어남.
+    return (
+      <div ref={ref} data-testid="home-hero" data-state={plan.status} data-mode="session" className={cn(CARD, "scroll-mt-6 sm:p-8")}>
+        <span className="inline-flex items-center gap-2 rounded-full bg-brand-soft px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-brand">
+          <Sparkles className="size-3" aria-hidden="true" /> Today&apos;s practice
+        </span>
+        {session}
+      </div>
+    );
+  }
+
   return (
     <div
+      ref={ref}
       data-testid="home-hero"
       data-state={plan.status}
-      className="rounded-[24px] bg-hero p-6 text-white shadow-xl shadow-hero/10 sm:p-8"
+      data-mode="idle"
+      className="scroll-mt-6 rounded-[24px] bg-hero p-6 text-white shadow-xl shadow-hero/10 sm:p-8"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
@@ -290,20 +359,22 @@ function SectionHead({ title, sub, action }: { title: string; sub: string; actio
 
 const STATUS_TEXT = { done: "Done", started: "In progress", new: "Up next" } as const;
 
-function PathSection({ course }: { course: Load<CourseOverview> }) {
+function PathSection({ course, locked }: { course: Load<CourseOverview>; locked: boolean }) {
+  const { lockClassName, ...pathLock } = lockedLinkProps(locked);
   return (
     <section data-testid="home-path" data-state={course.status}>
       <SectionHead
         title="Continue your path"
         sub="Small steps, real conversations."
         action={
-          <Link
+          <LockLink
             href="/course"
-            data-testid="home-path-all"
+            testId="home-path-all"
+            locked={locked}
             className={cn(buttonVariants({ variant: "ghost" }), "text-xs font-bold text-brand")}
           >
             View all <ChevronRight data-icon="inline-end" aria-hidden="true" />
-          </Link>
+          </LockLink>
         }
       />
       <div className="flex flex-col gap-3">
@@ -322,7 +393,11 @@ function PathSection({ course }: { course: Load<CourseOverview> }) {
                 href={`/course/${day.day}`}
                 data-testid={`path-day-${day.day}`}
                 data-status={status}
-                className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm transition-colors hover:bg-accent"
+                {...pathLock}
+                className={cn(
+                  lockClassName,
+                  "flex items-center gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm transition-colors hover:bg-accent",
+                )}
               >
                 <div
                   className={cn(
@@ -360,10 +435,12 @@ function FocusSection({
   daily,
   weekly,
   onStart,
+  locked,
 }: {
   daily: Load<DailySummaryPayload>;
   weekly: Load<WeeklyReportPayload>;
   onStart: (entry: SessionEntry) => void;
+  locked: boolean;
 }) {
   const view = focusView(daily, weekly);
   const weakEntry = entryOf("weak_patterns");
@@ -398,7 +475,7 @@ function FocusSection({
         <Button
           data-testid="focus-practice"
           variant="ghost"
-          disabled={weakEntry === null}
+          disabled={weakEntry === null || locked}
           onClick={() => weakEntry && onStart(weakEntry)}
           className="mt-3 w-full text-xs font-bold text-brand"
         >
@@ -411,7 +488,8 @@ function FocusSection({
 
 // ── 빠른 카드 셋 ──
 
-const QUICK_BASE = "block rounded-2xl p-5 text-left transition-shadow hover:shadow-md focus-visible:ring-3 focus-visible:ring-ring/50 outline-none";
+const QUICK_BASE =
+  "block rounded-2xl p-5 text-left transition-shadow hover:shadow-md focus-visible:ring-3 focus-visible:ring-ring/50 outline-none disabled:pointer-events-none disabled:opacity-50";
 
 function QuickBody({ icon, tag, title, text }: { icon: ReactNode; tag: string; title: string; text: string }) {
   return (
@@ -426,7 +504,7 @@ function QuickBody({ icon, tag, title, text }: { icon: ReactNode; tag: string; t
   );
 }
 
-function QuickCards({ onStart }: { onStart: (entry: SessionEntry) => void }) {
+function QuickCards({ onStart, locked }: { onStart: (entry: SessionEntry) => void; locked: boolean }) {
   const shadowing = entryOf("shadowing");
   const weak = entryOf("weak_patterns");
   return (
@@ -434,7 +512,7 @@ function QuickCards({ onStart }: { onStart: (entry: SessionEntry) => void }) {
       <button
         type="button"
         data-testid="quick-shadowing"
-        disabled={shadowing === null}
+        disabled={shadowing === null || locked}
         onClick={() => shadowing && onStart(shadowing)}
         className={cn(QUICK_BASE, "bg-tint-sky")}
       >
@@ -445,18 +523,18 @@ function QuickCards({ onStart }: { onStart: (entry: SessionEntry) => void }) {
           text="Listen, repeat, make it yours."
         />
       </button>
-      <Link href="/videos" data-testid="quick-videos" className={cn(QUICK_BASE, "bg-tint-peach")}>
+      <LockLink href="/videos" testId="quick-videos" locked={locked} className={cn(QUICK_BASE, "bg-tint-peach")}>
         <QuickBody
           icon={<Headphones className="size-5 text-[#c75f39]" aria-hidden="true" />}
           tag="Watch"
           title="Listen & notice"
           text="Hear real English in short clips."
         />
-      </Link>
+      </LockLink>
       <button
         type="button"
         data-testid="quick-weak-patterns"
-        disabled={weak === null}
+        disabled={weak === null || locked}
         onClick={() => weak && onStart(weak)}
         className={cn(QUICK_BASE, "bg-tint-mint")}
       >
@@ -474,7 +552,7 @@ function QuickCards({ onStart }: { onStart: (entry: SessionEntry) => void }) {
 // ── 추가 학습 ──
 // ⛔ PRD §7 — 권장량 완료와 무관하게 늘 보임. 목록의 정본은 `additionalLearning.ts` 임.
 
-function MorePractice({ onStart }: { onStart: (entry: SessionEntry) => void }) {
+function MorePractice({ onStart, locked }: { onStart: (entry: SessionEntry) => void; locked: boolean }) {
   return (
     <section className="mt-8" data-testid="home-more-practice">
       <SectionHead title="More practice" sub="Pick any time. You don't need to finish today's practice first." />
@@ -485,9 +563,9 @@ function MorePractice({ onStart }: { onStart: (entry: SessionEntry) => void }) {
           const className = cn(buttonVariants({ variant: "outline", size: "lg" }), "rounded-xl bg-card px-4");
           if (item.href) {
             return (
-              <Link key={item.key} href={item.href} data-testid={`practice-${item.key}`} className={className}>
+              <LockLink key={item.key} href={item.href} testId={`practice-${item.key}`} locked={locked} className={className}>
                 {label}
-              </Link>
+              </LockLink>
             );
           }
           const entry = item.entry;
@@ -497,7 +575,7 @@ function MorePractice({ onStart }: { onStart: (entry: SessionEntry) => void }) {
               data-testid={`practice-${item.key}`}
               variant="outline"
               size="lg"
-              disabled={!isAdditionalLearningEnabled(item)}
+              disabled={!isAdditionalLearningEnabled(item) || locked}
               title={note}
               onClick={() => entry && onStart(entry)}
               className="rounded-xl bg-card px-4"

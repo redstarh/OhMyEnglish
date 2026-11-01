@@ -29,7 +29,18 @@
 | 옛 요소 모양 | Tailwind 기본 재설정이 버튼·제목·목록·입력 모양을 지우므로 `@layer base` 에 최소 모양을 되살림 | 옛 화면이 깨지지 않음 · 유틸리티가 이김 |
 | shadcn | `button.tsx` · `lib/utils.ts` · `components.json` 만 손으로 옮김. CLI 패키지 `shadcn` · `tw-animate-css` · `@vercel/analytics` 는 넣지 않음 | 의존성을 줄임 |
 | 공통 틀 | `components/app-shell.tsx`(클라이언트) — 넓은 화면은 사이드바, 좁은 화면은 위쪽 아이콘 막대. 데이터를 부르지 않음 | 이동마다 요청이 생기지 않음 |
-| 학습 세션 | 세션이 도는 동안(`state !== "idle"`) 화면 전체를 덮는 층으로 그림 | 세션 중 사이드바를 누르면 화면이 내려가 연결이 끊김 |
+| 학습 세션 | ~~세션이 도는 동안(`state !== "idle"`) 화면 전체를 덮는 층으로 그림~~ → 2026-11-01 뒤집음(아래 「세션 화면의 번복」). 지금은 오늘의 연습 카드 안에 그리고 이동 링크를 잠금 | 세션 중 사이드바를 누르면 화면이 내려가 연결이 끊김 |
+
+### 세션 화면의 번복 (2026-11-01 · `TASK-301`)
+
+- 사용자 지시: 「Practice Session 화면을 별도로 띄우지 말고, home 화면의 start speaking 버튼을 누르면, 그 영역에 바로 영어를 연습할 수 있도록 화면의 섹션을 사용해. 다른 디자인을 재배치 하지 않아도 돼」.
+- 옛 결정: 세션 동안 화면 전체를 덮는 층(`session-overlay`)을 그림. 근거는 세션 중 이동이 소켓을 닫는다는 것이었음.
+- 새 결정: 덮는 층을 없앰. 대시보드는 모든 상태에서 그대로 그려짐.
+- 세션 화면은 오늘의 연습 카드 자리(`home-hero` 안의 `session-panel`)에 그림. 카드의 격자 자리와 너비는 그대로이고 높이만 늘어남.
+- 세션 동안 그 카드는 남색에서 밝은 카드로 바뀜. 대화·쉐도잉·리포트 패널이 `--foreground` 글자색을 쓰므로 남색 위에서는 읽히지 않음.
+- 옛 근거(이동이 소켓을 닫음)는 덮개 대신 잠금이 막음. `components/app-shell.tsx` 의 `useSessionLock` 이 대기가 아닌 동안 사이드바·좁은 화면 막대·로고 링크를 잠금(`aria-disabled` · 흐림 · `data-locked="true"` · 「End the lesson first」).
+- 대시보드 안의 이동 링크와 다른 세션을 여는 버튼도 같은 동안 잠김(빠른 카드 · More practice · Continue your path · View all · Practice a pattern).
+- 대기로 돌아오거나 화면이 언마운트되면 잠금이 풀림. 실패 화면은 「Try again」과 대기로 돌아가는 「← Home」을 그대로 가짐.
 
 사이드바 대응(가장 긴 경로가 이김): Home `/` · Practice `/course`(`/course*`·`/videos*` 에서 활성) · Review `/history`(`/results*` 포함) · Progress `/history/weekly`.
 

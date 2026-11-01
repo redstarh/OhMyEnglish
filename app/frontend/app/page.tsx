@@ -16,6 +16,7 @@ import { ShadowingPanel } from "./ShadowingPanel";
 import { WeeklyReportPanel } from "./WeeklyReportPanel";
 import { entryForTarget } from "./additionalLearning";
 import { HomeDashboard } from "@/components/home/HomeDashboard";
+import { useSessionLock } from "@/components/app-shell";
 
 type ScreenState = "idle" | "connecting" | "active" | "ending" | "failed";
 
@@ -533,11 +534,13 @@ export default function SessionPage() {
     };
   }, [stopMedia]);
 
-  const screen = (
-    <main style={{ maxWidth: 640, margin: "0 auto", padding: "2rem", fontFamily: "sans-serif" }}>
-      <h1>OhMyEnglish — Practice session</h1>
+  // 세션이 도는 동안(대기가 아닌 모든 상태) 공통 틀의 이동 링크를 잠금 (`TASK-301` · 설계서 §3).
+  // ⛔ 이동하면 이 화면이 내려가 소켓이 닫히고 세션이 끝남. 대기로 돌아오거나 언마운트되면 풀림.
+  useSessionLock(state !== "idle");
 
-      {state === "connecting" && <p>Asking for your microphone...</p>}
+  const screen = (
+    <div data-testid="session-panel">
+      {state === "connecting" && <p className="mt-5 text-sm text-muted-foreground">Asking for your microphone...</p>}
 
       {(state === "active" || state === "ending") && (
         <>
@@ -581,7 +584,7 @@ export default function SessionPage() {
           <button onClick={() => void startSession(lastEntryRef.current)} style={{ padding: "0.75rem 1.5rem" }}>
             Try again
           </button>
-          {/* 덮개 층이 사이드바를 가리므로 실패 화면에도 홈으로 가는 길을 둠 (codex 리뷰 · `TASK-298`). */}
+          {/* 세션 중에는 이동이 잠기므로 실패 화면에 대기로 돌아가는 길을 둠 (codex 리뷰 · `TASK-298` · `TASK-301`). */}
           <button
             data-testid="session-failed-home"
             onClick={() => {
@@ -594,25 +597,16 @@ export default function SessionPage() {
           </button>
         </div>
       )}
-    </main>
+    </div>
   );
 
-  // 세션이 도는 동안(대기가 아닌 모든 상태)은 화면 전체를 덮는 층으로 그림 (리디자인 설계서 §3).
-  // ⛔ 덮는 이유: 세션 중 공통 틀의 사이드바를 누르면 이 화면이 내려가 소켓이 닫히고 세션이 끝남.
-  // ⚠️ 대기 → 연결 중 전환에서 바깥 요소가 바뀌어 `main` 이 다시 마운트됨 — 대기 칸에는 이어 갈
-  //    상태가 없으므로 무해함. 연결 중 · 진행 · 종료 중 · 실패는 같은 층 안에서 이어짐.
-  // 대기 상태는 대시보드 한 칸뿐임 (`TASK-296` · 리디자인 설계서 §5). ⛔ 칸은 시작 함수만 받음 —
-  // 세션 논리(상태·ref·`startSession`)는 이 파일에 남음. 옛 「학습 시작」과 같은 진입을 대시보드가 넘김.
-  if (state === "idle") {
-    return (
-      <div data-testid="home-dashboard-slot">
-        <HomeDashboard onStart={(entry) => void startSession(entry)} />
-      </div>
-    );
-  }
+  // 대시보드는 모든 상태에서 그림 (`TASK-296` · `TASK-301` · 리디자인 설계서 §3·§5).
+  // 세션이 도는 동안(대기가 아닌 모든 상태)은 세션 화면을 오늘의 연습 카드 안에 넘김 — 덮는 층을 두지 않음.
+  // ⛔ 칸은 시작 함수와 세션 화면만 받음 — 세션 논리(상태·ref·`startSession`)는 이 파일에 남음.
+  // ⚠️ 연결 중 · 진행 · 종료 중 · 실패는 같은 `session-panel` 안에서 이어짐 — 대화 칸이 다시 마운트되지 않음.
   return (
-    <div data-testid="session-overlay" className="fixed inset-0 z-50 overflow-y-auto bg-background">
-      {screen}
+    <div data-testid="home-dashboard-slot">
+      <HomeDashboard onStart={(entry) => void startSession(entry)} session={state === "idle" ? null : screen} />
     </div>
   );
 }
