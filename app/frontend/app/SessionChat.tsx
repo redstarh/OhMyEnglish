@@ -354,6 +354,9 @@ export function SessionChat({
         : "Just speak. No need to press anything.";
 
   return (
+    // ⛔ 높이는 담는 칸이 정함(`TASK-305`) — 홈의 오늘의 연습 카드가 대기 높이에 고정되어 있어,
+    //    대화 칸이 남은 높이를 채우고 넘치는 줄은 아래 스크롤 칸 안에서만 움직임. 고정 `minHeight`·
+    //    `maxHeight` 를 두면 칸이 카드 밖으로 넘쳐 맨 아래 새 줄이 카드 아래로 잘렸음.
     <section
       style={{
         marginTop: "1rem",
@@ -362,6 +365,7 @@ export function SessionChat({
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
+        flex: "1 1 auto",
         background: "var(--background)",
       }}
     >
@@ -425,8 +429,8 @@ export function SessionChat({
           flexDirection: "column",
           gap: "0.75rem",
           padding: "1rem",
-          minHeight: 280,
-          maxHeight: "60vh",
+          flex: "1 1 auto",
+          minHeight: 120,
           overflowY: "auto",
         }}
       >

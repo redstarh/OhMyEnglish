@@ -17,7 +17,6 @@ import {
   BookOpen,
   Check,
   ChevronRight,
-  Flame,
   Headphones,
   Mic,
   Play,
@@ -57,7 +56,6 @@ import {
   practiceNote,
   shortDate,
   useLoad,
-  useTodayLabel,
   type Load,
 } from "./dashboardData";
 import { HomeCoursePractice } from "./HomeCoursePractice";
@@ -150,15 +148,11 @@ export function HomeDashboard({
 
   return (
     <div className="text-foreground">
-      <Header history={history} />
+      {/* 날짜·인사·연속 학습 머리는 뺐음(`TASK-305` 사용자 지시). 화면 제목은 낭독기에만 남김. */}
+      <h1 className="sr-only">Home</h1>
 
-      {/* ⚠️ 세션·문장 연습 중에는 오늘의 연습 카드가 길어짐 — 진도 카드가 함께 늘어 빈 칸이 되지 않게 위에 붙임. */}
-      <div
-        className={cn(
-          "grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.85fr)]",
-          (locked || showPractice) && "xl:items-start",
-        )}
-      >
+      {/* 세션·문장 연습 중에도 오늘의 연습 카드는 대기 카드의 높이를 그대로 지킴(`TASK-305`) — 줄의 배치가 바뀌지 않음. */}
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.85fr)]">
         <HeroCard
           course={course}
           practicing={showPractice}
@@ -178,37 +172,6 @@ export function HomeDashboard({
       <QuickCards onStart={startSession} locked={locked} />
       <MorePractice onStart={startSession} locked={locked} />
     </div>
-  );
-}
-
-// ── 머리 ──
-
-function Header({ history }: { history: Load<HistoryPayload> }) {
-  const today = useTodayLabel();
-  return (
-    <header className="mb-8 flex flex-wrap items-center justify-between gap-3">
-      <div>
-        <p data-testid="home-date" className="min-h-4 text-xs font-semibold uppercase text-muted-foreground">
-          {today ?? ""}
-        </p>
-        <h1 className="mt-1 text-2xl font-extrabold tracking-[-0.04em] text-foreground sm:text-[30px]">
-          Welcome back<span className="text-brand">.</span>
-        </h1>
-      </div>
-      <div
-        data-testid="home-streak"
-        data-state={history.status}
-        className="flex items-center gap-2 rounded-full bg-card px-3 py-2 text-xs font-bold text-muted-foreground shadow-sm"
-      >
-        <Flame className="size-4 text-[#ff785d]" aria-hidden="true" />
-        {history.status === "loading" && "Loading…"}
-        {history.status === "error" && "Can't load your streak."}
-        {history.status === "ready" &&
-          (history.data.streak.current > 0
-            ? `${plural(history.data.streak.current, "day", "days")} in a row`
-            : "Start a streak today")}
-      </div>
-    </header>
   );
 }
 
@@ -234,12 +197,10 @@ function HeroCard({
   const current =
     course.status === "ready" ? (course.data.days.find((day) => day.day === course.data.current_day) ?? null) : null;
   const ref = useRef<HTMLDivElement>(null);
-  // 세션·연습이 열리면 카드를 화면 안으로 끌어옴 — 좁은 화면에서 대화·문장이 아래로 밀려 안 보이지 않게.
-  useEffect(() => {
-    if (expanded) ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, [expanded]);
-  // 대기 카드의 실제 높이 — 세션·연습 카드가 이보다 줄지 않게 함(회차 b12 D2). 390 폭에서는 제목이
-  // 줄바꿈되어 293 px 이라 고정 `min-h-72`(288 px)로는 5 px 줄었음. 재기 전에는 `min-h-72` 가 받침임.
+  // ⛔ 세션·연습을 열어도 창의 스크롤과 포커스를 옮기지 않음(`TASK-305` 사용자 지시) — 예전의
+  //    `scrollIntoView` 가 「Start speaking」을 누르면 화면을 위로 끌어올렸음.
+  // 대기 카드의 실제 높이 — 세션·연습 카드가 이 높이를 그대로 씀(회차 b12 D2 · `TASK-305`). 390 폭에서는
+  // 제목이 줄바꿈되어 293 px 이라 고정 `h-72`(288 px)로는 맞지 않음. 재기 전에는 `min-h-72` 가 받침임.
   const [idleHeight, setIdleHeight] = useState<number | null>(null);
   useLayoutEffect(() => {
     const element = ref.current;
@@ -251,18 +212,19 @@ function HeroCard({
 
   if (expanded) {
     // ⛔ 세션·연습 중에는 밝은 카드로 바꿈 — 대화·쉐도잉·리포트 패널과 문장 연습 칸이 `--foreground`
-    //    글자색을 쓰므로 남색 바탕 위에서는 읽히지 않음. 자리와 너비는 그대로이고 높이만 늘어남.
+    //    글자색을 쓰므로 남색 바탕 위에서는 읽히지 않음. 자리·너비·높이는 대기 카드와 같음.
+    // ⛔ 높이를 대기 카드에 고정함 — 넘치는 내용은 카드 안의 칸(`home-hero-body`)만 스크롤함(`TASK-305`).
+    //    머리 줄(배지·Close)은 카드 위에 고정됨.
     return (
       <div
         ref={ref}
         data-testid="home-hero"
         data-state={course.status}
         data-mode={inSession ? "session" : "practice"}
-        // 연결 중·실패처럼 내용이 짧아도 대기 카드보다 줄지 않게 함 — 아래 카드가 출렁였음(회차 b11 D1).
-        className={cn(CARD, "scroll-mt-6 min-h-72 sm:p-8")}
-        style={idleHeight === null ? undefined : { minHeight: idleHeight }}
+        className={cn(CARD, "flex flex-col sm:p-8", idleHeight === null && "min-h-72")}
+        style={idleHeight === null ? undefined : { height: idleHeight }}
       >
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex shrink-0 items-center justify-between gap-3">
           <span className="inline-flex items-center gap-2 rounded-full bg-brand-soft px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-brand">
             <Sparkles className="size-3" aria-hidden="true" /> Today&apos;s practice
           </span>
@@ -272,7 +234,9 @@ function HeroCard({
             </Button>
           )}
         </div>
-        {inSession ? session : <HomeCoursePractice onDayFinished={onDayFinished} />}
+        <div data-testid="home-hero-body" className="-mr-2 flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain pr-2">
+          {inSession ? session : <HomeCoursePractice onDayFinished={onDayFinished} />}
+        </div>
       </div>
     );
   }
@@ -283,7 +247,7 @@ function HeroCard({
       data-testid="home-hero"
       data-state={course.status}
       data-mode="idle"
-      className="scroll-mt-6 rounded-[24px] bg-hero p-6 text-white shadow-xl shadow-hero/10 sm:p-8"
+      className="rounded-[24px] bg-hero p-6 text-white shadow-xl shadow-hero/10 sm:p-8"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">

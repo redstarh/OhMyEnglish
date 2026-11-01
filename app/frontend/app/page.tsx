@@ -541,7 +541,8 @@ export default function SessionPage() {
   useSessionLock(state !== "idle");
 
   const screen = (
-    <div data-testid="session-panel">
+    // 오늘의 연습 카드의 남은 높이를 채움 — 대화 칸이 그 안에서 늘고 줄게 함(`TASK-305`).
+    <div data-testid="session-panel" className="flex min-h-0 flex-1 flex-col">
       {state === "connecting" && <p className="mt-5 text-sm text-muted-foreground">Asking for your microphone...</p>}
 
       {(state === "active" || state === "ending") && (

@@ -48,20 +48,6 @@ export function useLoad<T>(fetcher: () => Promise<T | null>): Reloadable<T> {
   return { ...state, reload };
 }
 
-/** 브라우저 날짜 `Sun, Nov 1`. 마운트 뒤에만 정함 — 서버와 브라우저의 시각이 달라 어긋나므로. */
-export function useTodayLabel(): string | null {
-  const [label, setLabel] = useState<string | null>(null);
-  useEffect(() => {
-    const id = window.setTimeout(() => {
-      setLabel(
-        new Date().toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }),
-      );
-    }, 0);
-    return () => window.clearTimeout(id);
-  }, []);
-  return label;
-}
-
 /** `YYYY-MM-DD` → `Oct 19`. 날짜 문자열을 직접 나눔 — `new Date("2026-10-19")` 는 UTC 로 읽혀 하루 밀릴 수 있음. */
 export function shortDate(isoDate: string): string {
   const [y, m, d] = isoDate.split("-").map(Number);
