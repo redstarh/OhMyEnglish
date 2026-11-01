@@ -2841,8 +2841,10 @@ async def test_a_request_left_unanswered_lapses_with_its_exchange(db_pool, commi
     )
 
     assert adapter.outcomes == [("tool-1", True, None), ("tool-2", False, "no_wake_word")]
+    # 지나간 요청은 서버가 만든 `cancelled` 로 화면에 알린다(리뷰 ③) — `confirmed` 는 없다.
     assert client.of_type("voice_command") == [
         {"type": "voice_command", "command": "end", "stage": "requested"},
+        {"type": "voice_command", "command": "end", "stage": "cancelled"},
     ], "답 없이 지나간 요청이 뒤의 확정을 실행시켰다"
     rows = await _typed_utterances(db_pool, committed_session.session_id)
     assert [row["utterance_type"] for row in rows if row["speaker"] == "user"] == [
@@ -2886,3 +2888,234 @@ async def test_an_answer_resolved_after_the_coach_spoke_is_still_a_confirmation(
         ("agent", "learning"),
     ]
     assert await _job_count(db_pool, committed_session.session_id) == 0
+
+
+# ── 리뷰가 잡은 세 갈림 (`TASK-303` 리뷰) ─────────────────────────────────────────
+#
+# ① 코치가 말로만 묻고 학습자가 답한 뒤, 모델이 **먼저 말하고** 요청 없는 `confirmed` 를 부르는
+#    순서. 확인 대기가 아직 없으므로 코치의 말에서 분석 job 이 걸렸고, 보류가 그 답을 바꾸지 못했다.
+# ② 요청 없이 온 `cancelled` 가 앞의 학습 문장을 확인 답으로 바꿨다 — 풀어 줄 요청이 없다.
+# ③ 답 없이 지나간 요청이 화면에 알리지 않고 끝났다 — 화면의 확인 대기 안내는 `confirmed`·
+#    `cancelled` 프레임에서만 지워진다(`frontend/app/page.tsx`).
+
+
+class _JobCountingClient(FakeClient):
+    """코치의 final 프레임을 받을 때마다 그 시점의 분석 job 수를 적는 클라이언트.
+
+    ⚠️ 그 프레임은 `_save_final` 이 flush 를 마친 **뒤에** 보낸다 — 그래서 이 수가 「그 코치의 말에서
+    job 이 걸렸는가」를 잰다. 세션을 닫을 때의 flush 는 미룬 묶음을 모두 걸으므로 끝의 수로는 미룸이
+    한 교환에서 끝났는지 가를 수 없다.
+    """
+
+    def __init__(self, pool: asyncpg.Pool, session_id: UUID) -> None:
+        super().__init__()
+        self._pool = pool
+        self._session_id = session_id
+        self.jobs_at_agent_final: list[tuple[str, int]] = []
+
+    async def send_event(self, event: dict[str, Any]) -> None:
+        await super().send_event(event)
+        if event["type"] == "final" and event["speaker"] == "agent":
+            count = await _job_count(self._pool, self._session_id)
+            self.jobs_at_agent_final.append((event["text"], count))
+
+
+async def test_a_spoken_answer_held_after_the_coach_spoke_is_not_analysed(
+    db_pool, committed_session
+):
+    """① — 코치가 말로 묻고 → 학습자 「yes.」 → 코치 「Okay.」 → 요청 없는 `confirmed`.
+
+    ⛔ **판별력은 job 수에 있다** — 「Okay.」 에서 job 이 걸리면 보류가 「yes.」 의 유형을 바꾸지
+    못한다(이미 분석에 들어간 발화는 바꾸지 않는다). 표지 발화 뒤의 답은 tool 이 풀 때까지 미룬다.
+    """
+    adapter = ScriptedAdapter(
+        TranscriptEvent(kind="final", text="hey, end the lesson.", speaker="user"),
+        TranscriptEvent(kind="final", text="Do you want to end today's session?", speaker="agent"),
+        TranscriptEvent(kind="final", text="yes.", speaker="user"),
+        TranscriptEvent(kind="final", text="Okay.", speaker="agent"),
+        SessionCommandEvent(command="end", stage="confirmed", tool_use_id="tool-1"),
+    )
+
+    await asyncio.wait_for(
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            FakeClient(),
+            drain_timeout=FAST_DRAIN_TIMEOUT,
+        ).run(),
+        timeout=5.0,
+    )
+
+    assert adapter.outcomes == [("tool-1", False, "confirmation_required")]
+    rows = await _typed_utterances(db_pool, committed_session.session_id)
+    assert [(row["speaker"], row["utterance_type"], row["transcript"]) for row in rows] == [
+        ("user", "voice_command", "hey, end the lesson."),
+        ("agent", "learning", "Do you want to end today's session?"),
+        ("user", "command_confirmation", "yes."),
+        ("agent", "learning", "Okay."),
+    ]
+    assert await _job_count(db_pool, committed_session.session_id) == 0, "확인 답이 분석에 들어갔다"
+
+
+async def test_the_deferral_after_a_wake_word_ends_with_one_more_exchange(
+    db_pool, committed_session
+):
+    """① 의 경계 — tool 이 끝내 오지 않으면 미룬 답은 다음 교환에서 학습 발화로 분석된다.
+
+    ⛔ 이 단정이 없으면 「표지 뒤로는 세션 끝까지 분석을 미룬다」는 구현이 위 테스트를 통과한다.
+    그러면 표지를 한 번 말한 세션의 job 이 종료까지 하나도 걸리지 않는다.
+    """
+    adapter = ScriptedAdapter(
+        TranscriptEvent(kind="final", text="hey, end the lesson.", speaker="user"),
+        TranscriptEvent(kind="final", text="Do you want to end today's session?", speaker="agent"),
+        TranscriptEvent(kind="final", text="yes.", speaker="user"),
+        TranscriptEvent(kind="final", text="Okay.", speaker="agent"),
+        TranscriptEvent(kind="final", text="yesterday i go to the office.", speaker="user"),
+        TranscriptEvent(kind="final", text="We need the past tense here.", speaker="agent"),
+    )
+    client = _JobCountingClient(db_pool, committed_session.session_id)
+
+    await asyncio.wait_for(
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            client,
+            drain_timeout=FAST_DRAIN_TIMEOUT,
+        ).run(),
+        timeout=5.0,
+    )
+
+    assert client.jobs_at_agent_final == [
+        ("Do you want to end today's session?", 0),
+        ("Okay.", 0),
+        ("We need the past tense here.", 2),
+    ], "미룬 답이 다음 교환에서 걸리지 않았다"
+    rows = await _typed_utterances(db_pool, committed_session.session_id)
+    assert [row["utterance_type"] for row in rows if row["speaker"] == "user"] == [
+        "voice_command",
+        "learning",
+        "learning",
+    ]
+
+
+async def test_an_unrequested_cancel_does_not_retag_the_learning_sentence(
+    db_pool, committed_session
+):
+    """② — 요청 없이 온 `cancelled` 는 풀어 줄 요청이 없으므로 앞의 학습 문장을 바꾸지 않는다.
+
+    ⛔ **판별력은 유형과 job 수에 있다** — 그 문장이 `command_confirmation` 이 되면 분석에서 빠진다.
+    프레임은 예전처럼 방송한다(화면은 그 프레임으로 확인 대기 안내를 지울 뿐이다).
+    """
+    adapter = ScriptedAdapter(
+        TranscriptEvent(kind="final", text="hey, you should change it.", speaker="user"),
+        TranscriptEvent(
+            kind="final",
+            text="yesterday i go to the office and i meet my manager.",
+            speaker="user",
+        ),
+        SessionCommandEvent(command="end", stage="cancelled", tool_use_id="tool-1"),
+        TranscriptEvent(kind="final", text="We need the past tense here.", speaker="agent"),
+    )
+    client = FakeClient()
+
+    await asyncio.wait_for(
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            client,
+            drain_timeout=FAST_DRAIN_TIMEOUT,
+        ).run(),
+        timeout=5.0,
+    )
+
+    assert adapter.outcomes == [("tool-1", True, None)]
+    assert client.of_type("voice_command") == [
+        {"type": "voice_command", "command": "end", "stage": "cancelled"},
+    ]
+    rows = await _typed_utterances(db_pool, committed_session.session_id)
+    assert [row["utterance_type"] for row in rows if row["speaker"] == "user"] == [
+        "voice_command",
+        "learning",
+    ], "요청 없는 취소가 학습 문장을 확인 답으로 바꿨다"
+    assert await _job_count(db_pool, committed_session.session_id) == 1
+
+
+async def test_a_lapsed_request_tells_the_screen_it_was_cancelled(db_pool, committed_session):
+    """③ — 답 없이 지나간 요청은 서버가 만든 `cancelled` 프레임으로 화면의 안내를 지운다.
+
+    ⛔ **순서가 판별력이다** — 상태를 먼저 끄고 그 뒤에 방송한다(결정 112). 그 프레임은 요청을
+    지나가게 한 학습자 발화의 final 보다 앞에 온다.
+    """
+    adapter = ScriptedAdapter(
+        TranscriptEvent(kind="final", text="hey, you should change it.", speaker="user"),
+        SessionCommandEvent(command="end", stage="requested"),
+        TranscriptEvent(kind="final", text="yesterday i go to the office.", speaker="user"),
+        TranscriptEvent(kind="final", text="We need the past tense here.", speaker="agent"),
+        TranscriptEvent(kind="final", text="i am work at it company.", speaker="user"),
+    )
+    client = FakeClient()
+
+    await asyncio.wait_for(
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            client,
+            drain_timeout=FAST_DRAIN_TIMEOUT,
+        ).run(),
+        timeout=5.0,
+    )
+
+    tail = [
+        (event["type"], event.get("stage") or event.get("text"))
+        for event in client.sent
+        if event["type"] in {"voice_command", "final"}
+    ]
+    assert tail == [
+        ("final", "hey, you should change it."),
+        ("voice_command", "requested"),
+        ("final", "yesterday i go to the office."),
+        ("final", "We need the past tense here."),
+        ("voice_command", "cancelled"),
+        ("final", "i am work at it company."),
+    ], "지나간 요청이 화면에 알리지 않고 끝났다"
+    assert client.of_type("voice_command")[-1] == {
+        "type": "voice_command",
+        "command": "end",
+        "stage": "cancelled",
+    }
+
+
+async def test_a_request_dropped_by_another_command_tells_the_screen(db_pool, committed_session):
+    """③ 의 다른 길 — 확인을 타지 않는 명령이 교환을 끝내도 걸려 있던 요청은 `cancelled` 로 알린다.
+
+    ⛔ 그 명령(`show_report`)의 프레임은 화면의 확인 대기 안내를 건드리지 않는다 — 알리지 않으면
+    종료 확인 안내가 리포트 위에 끝까지 남는다.
+    """
+    adapter = ScriptedAdapter(
+        TranscriptEvent(kind="final", text="hey, end the lesson.", speaker="user"),
+        SessionCommandEvent(command="end", stage="requested"),
+        TranscriptEvent(kind="final", text="hey, show my weekly report.", speaker="user"),
+        SessionCommandEvent(command="show_report", stage="requested"),
+    )
+    client = FakeClient()
+
+    await asyncio.wait_for(
+        _runner(
+            adapter,
+            db_pool,
+            committed_session.session_id,
+            client,
+            drain_timeout=FAST_DRAIN_TIMEOUT,
+        ).run(),
+        timeout=5.0,
+    )
+
+    assert client.of_type("voice_command") == [
+        {"type": "voice_command", "command": "end", "stage": "requested"},
+        {"type": "voice_command", "command": "show_report", "stage": "requested"},
+        {"type": "voice_command", "command": "end", "stage": "cancelled"},
+    ]
