@@ -1,0 +1,38 @@
+{
+ "bottom.before": {
+  "top": -731,
+  "bottom": -195,
+  "scrollY": 887,
+  "mode": "idle"
+ },
+ "bottom.after": {
+  "top": 0,
+  "bottom": 536,
+  "scrollY": 156,
+  "mode": "session"
+ },
+ "failedHome": {
+  "h": 36,
+  "cls": "omy-button",
+  "inView": true
+ },
+ "visible.before": {
+  "top": 156,
+  "bottom": 692,
+  "scrollY": 0,
+  "mode": "idle"
+ },
+ "visible.entryInView": false,
+ "start.before": {
+  "top": 36,
+  "bottom": 572,
+  "scrollY": 120,
+  "mode": "idle"
+ },
+ "start.after": {
+  "top": 36,
+  "bottom": 571,
+  "scrollY": 120,
+  "mode": "practice"
+ }
+}

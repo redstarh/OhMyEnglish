@@ -11,7 +11,7 @@
 //    다른 세션을 열거나 화면을 떠나는 링크·버튼은 잠김 — 떠나면 소켓이 닫혀 세션이 끝남.
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import {
   ArrowRight,
   BookOpen,
@@ -125,8 +125,11 @@ export function HomeDashboard({
   //    세션을 ref 에 둔 뒤 아래 effect 가 엶. 자식의 언마운트 정리(마이크 놓기·진도 저장)는 같은 커밋에서
   //    부모 effect 보다 먼저 돎.
   const pendingRef = useRef<SessionEntry | null>(null);
+  const heroRef = useRef<HTMLDivElement | null>(null);
+  // 아래쪽 입구(More practice · 빠른 카드 · 초점 패턴)만 지나는 길임 — 「Start speaking」은 `onOpen` 을 씀.
   const startSession = useCallback(
     (entry: SessionEntry) => {
+      revealHero(heroRef.current);
       if (!practicing) {
         onStart(entry);
         return;
@@ -160,6 +163,7 @@ export function HomeDashboard({
       {/* 오늘의 연습 카드는 연습에서 내용만큼의 높이이고, 대기·세션은 그 높이와 같은 `HERO_HEIGHT` 를 씀(`TASK-310`). */}
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.85fr)]">
         <HeroCard
+          heroRef={heroRef}
           course={course}
           practicing={showPractice}
           onOpen={() => setPracticing(true)}
@@ -190,7 +194,19 @@ export function HomeDashboard({
 //   1400 폭 479.5 px → 30rem(480 px) · 390 폭 536 px → 33.5rem(536 px) (회차 b15 `measure-*.json`).
 const HERO_HEIGHT = "h-[33.5rem] sm:h-[30rem]";
 
+// ⛔ 아래쪽 입구로 시작할 때 카드가 화면을 벗어나 있으면 카드로 스크롤함(`TASK-308` 사용자 결정) — 세션은
+//    카드 안에서 돎. 카드가 이미 다 보이면 움직이지 않음. 「Start speaking」은 창을 옮기지 않는 `TASK-305`
+//    규칙을 그대로 따름(이 함수를 부르지 않음).
+function revealHero(hero: HTMLElement | null) {
+  if (!hero) return;
+  const rect = hero.getBoundingClientRect();
+  if (rect.top >= 0 && rect.bottom <= window.innerHeight) return;
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  hero.scrollIntoView({ block: "start", behavior: reduce ? "auto" : "smooth" });
+}
+
 function HeroCard({
+  heroRef,
   course,
   practicing,
   onOpen,
@@ -198,6 +214,7 @@ function HeroCard({
   onDayFinished,
   session,
 }: {
+  heroRef: RefObject<HTMLDivElement | null>;
   course: Load<CourseOverview>;
   practicing: boolean;
   onOpen: () => void;
@@ -210,7 +227,8 @@ function HeroCard({
   const current =
     course.status === "ready" ? (course.data.days.find((day) => day.day === course.data.current_day) ?? null) : null;
   // ⛔ 세션·연습을 열어도 창의 스크롤과 포커스를 옮기지 않음(`TASK-305` 사용자 지시) — 예전의
-  //    `scrollIntoView` 가 「Start speaking」을 누르면 화면을 위로 끌어올렸음.
+  //    `scrollIntoView` 가 「Start speaking」을 누르면 화면을 위로 끌어올렸음. 예외는 아래쪽 입구뿐임
+  //    (`revealHero` · `TASK-308`).
 
   if (expanded) {
     // ⛔ 세션·연습 중에는 밝은 카드로 바꿈 — 대화·쉐도잉·리포트 패널과 문장 연습 칸이 `--foreground`
@@ -222,6 +240,7 @@ function HeroCard({
     //    `home-hero-body` 가 받침으로 스크롤함.
     return (
       <div
+        ref={heroRef}
         data-testid="home-hero"
         data-state={course.status}
         data-mode={inSession ? "session" : "practice"}
@@ -247,6 +266,7 @@ function HeroCard({
 
   return (
     <div
+      ref={heroRef}
       data-testid="home-hero"
       data-state={course.status}
       data-mode="idle"

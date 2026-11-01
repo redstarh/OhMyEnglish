@@ -6,7 +6,7 @@ title: >-
 status: Done
 assignee: []
 created_date: '2026-11-01 05:39'
-updated_date: '2026-11-01 05:53'
+updated_date: '2026-11-01 05:57'
 labels: []
 dependencies: []
 ordinal: 376000
@@ -30,4 +30,6 @@ ordinal: 376000
 
 <!-- SECTION:NOTES:BEGIN -->
 바꾼 자리: 홈 ← Close · 세션 실패 ← Home · 코스 ← Home·Day 열기 · Day ← Back(2) · 결과 ← Home·History →·실수 연습 · 기록 Weekly report →·← Home · 주간 ← History · 영상 ← Home·← Videos·YouTube. 범위 밖: 사이드바 · 영상 제목 링크 · 홈 Day 경로 카드. 회차 b15 pages-1400.json: 모든 버튼 36px·13.6px. href·data-testid 는 diff 상 짝수(그대로). /course/<day> 화면은 열면 진도를 저장하므로 찍지 않았음.
+
+추가: 세션 실패 화면의 Try again 도 omy-button 으로 맞춤 — 옆의 ← Home 과 모양이 어긋났음(회차 b15 reveal-bottom-390.png).
 <!-- SECTION:NOTES:END -->

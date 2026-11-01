@@ -77,3 +77,8 @@ Created TensorFlow Lite XNNPACK delegate for CPU.
 [33679:138239864:1101/145139.353783:VERBOSE1:chrome/updater/updater.cc:420] UpdaterMain (--crash-handler) returned 0.
 [33676:138239846:1101/145139.356184:VERBOSE2:chrome/updater/event_history.cc:266] Emitted a UPDATER_PROCESS END event to the history log
 [33676:138239846:1101/145139.356410:VERBOSE1:chrome/updater/updater.cc:420] UpdaterMain (--crash-handler) returned 0.
+Trying to load the allocator multiple times. This is *not* supported.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793512433.366524 138252897 environment.cc:526] Selected adapter: Apple M4, arch=metal-3, vendor=apple, backend=Metal, adapterType=Integrated GPU
+I0000 00:00:1793512433.368174 138252910 environment.cc:526] Selected adapter: Apple M4, arch=metal-3, vendor=apple, backend=Metal, adapterType=Integrated GPU
+sandbox_extension_issue_file failed for /Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/156.0.8078.74/Helpers/Google Chrome Helper.app/Contents/Resources: 1 (Operation not permitted)
