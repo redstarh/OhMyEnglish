@@ -83,6 +83,24 @@ export function shouldKeepPolling(
   return false;
 }
 
+// 총평을 기다리는 추가 폴링의 상한 (`TASK-300` · 회차 b10 D3). 총평은 `summarize_session` job 이
+// 따로 쓰므로 `final` 보다 늦게 올 수 있다 — 실측은 `final` 뒤 15초·18초였고, 그때 폴링이 이미 멈춰
+// 새로 고치기 전에는 화면에 나오지 않았다. ⚠️ 상한을 두는 이유는 총평 job 이 실패하면 키가 영원히
+// 빠지기 때문이다 — 그 경우에도 폴링이 끝나야 한다.
+const SUMMARY_WAIT_MS = 60_000;
+
+/**
+ * `final` 인데 총평 키가 아직 없으면 상한 안에서 폴링을 잇는다. `finalSeenAt` 은 이 화면이
+ * `final` 을 처음 읽은 시각이다.
+ */
+function shouldWaitForSummary(
+  data: SessionResultPayload,
+  finalSeenAt: number,
+  now: number,
+): boolean {
+  return data.status === "final" && data.summary === undefined && now - finalSeenAt < SUMMARY_WAIT_MS;
+}
+
 /**
  * 4xx는 영구 오류다 — 같은 요청을 되풀이해도 같은 답이 온다 (TASK-56). `TERMINAL_STATUSES`와
  * **같은 뜻으로** 폴링을 멈춘다. 5xx와 네트워크 실패(`fetch` 자체가 reject)는 회복 가능하므로
@@ -230,6 +248,7 @@ export default function ResultsPage() {
   useEffect(() => {
     if (!sessionId) return;
     let cancelled = false;
+    let finalSeenAt: number | null = null;
 
     async function poll(): Promise<void> {
       try {
@@ -239,7 +258,11 @@ export default function ResultsPage() {
         setFetchError(null);
         // `TASK-79` — 판독 사이에 들고 갈 상태가 없다. 회복 대상인지를 **서버가 판독마다**
         // 알려주므로 프론트가 횟수를 세지 않는다(이전 판은 연속 판독 수를 셌다).
-        if (shouldKeepPolling(data.status, data.awaiting_analysis)) {
+        if (data.status === "final" && finalSeenAt === null) finalSeenAt = Date.now();
+        if (
+          shouldKeepPolling(data.status, data.awaiting_analysis) ||
+          (finalSeenAt !== null && shouldWaitForSummary(data, finalSeenAt, Date.now()))
+        ) {
           timerRef.current = setTimeout(poll, POLL_INTERVAL_MS);
         }
       } catch (err) {

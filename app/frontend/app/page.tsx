@@ -46,34 +46,35 @@ const COMMAND_IGNORED_NOTICE: Record<
   "end" | "start_additional" | "show_report" | "pause" | "resume",
   string
 > = {
-  end: "I didn't catch \"end\". The session goes on. Say it again, like \"헤이, 학습 종료\".",
+  end: "I didn't catch \"end\". The session goes on. Say it again, like \"Hey, end the lesson.\"",
   start_additional:
-    "I didn't catch the change. This session goes on. Say it again, like \"헤이, 발음 연습으로 바꿔 줘\".",
-  show_report: "I didn't catch the report request. Say it again, like \"헤이, 주간 리포트 보여 줘\".",
+    "I didn't catch the change. This session goes on. Say it again, like \"Hey, switch to pronunciation practice.\"",
+  show_report: "I didn't catch the report request. Say it again, like \"Hey, show my weekly report.\"",
   // ⚠️ 정지·재개가 버려진 경우의 문구가 **방향까지 말한다** — 「멈추지 못했다」와 「잇지 못했다」는
   // 학습자가 다음에 해야 할 일이 다르고, 기록이 계속되는지 멈춰 있는지도 다르다.
-  pause: "I didn't catch \"pause\". I'm still recording. Say it again, like \"헤이, 일시 정지\".",
+  pause: "I didn't catch \"pause\". I'm still recording. Say it again, like \"Hey, pause the lesson.\"",
   resume:
-    "I didn't catch \"resume\". It is still paused. Say it again, like \"헤이, 학습 계속\".",
+    "I didn't catch \"resume\". It is still paused. Say it again, like \"Hey, continue the lesson.\"",
 };
 
 // 정지 중임을 계속 말하는 줄 (결정 117). ⛔ **한 번 뜨고 사라지는 알림으로 두지 않는다** — 정지는
 // 상태이고, 그 상태에서 학습자가 말한 것은 저장되지 않는다. 화면이 그 사실을 계속 말하지 않으면
 // 학습자는 자기 발화가 사라진 이유를 알 수 없다.
-const PAUSED_NOTICE = "Paused. I'm not recording now. Say \"헤이, 학습 계속\" to go on.";
+const PAUSED_NOTICE = "Paused. I'm not recording now. Say \"Hey, continue the lesson.\" to go on.";
 
 // 확인을 기다리는 중임을 말하는 문구 둘. 대상은 확인을 거치는 명령 둘이다 — `show_report` 는
 // 확인을 타지 않으므로(결정 107 ③) 이 자리에 오지 않는다.
 const COMMAND_PENDING_NOTICE: Record<"end" | "start_additional", string> = {
-  end: "Do you want to end? Say \"네\" to end. It has not ended yet.",
+  end: "Do you want to end? Say \"Yes.\" to end. It has not ended yet.",
   start_additional:
-    "Do you want to change the practice? Say \"네\" to change. Nothing has changed yet.",
+    "Do you want to change the practice? Say \"Yes.\" to change. Nothing has changed yet.",
 };
 
 // 세션 실패 사유 코드 → 학습자 문구. 코드는 프런트(`startSession`)와 백엔드(`api/ws.py` ·
 // `audio_gateway/session.py`)가 정함. ⚠️ 모르는 코드는 일반 문구로 보임 — 원래 코드는 `data-reason` 에 남음.
-// ⚠️ 음성 명령 안의 한국어(「헤이, …」 · 「네」)는 그대로 둠 — 영어 명령이 실제로 통하는지 실물 음성으로
-//    확인되지 않았음(리디자인 설계서 §6 미결 6).
+// ⚠️ 음성 명령 예시는 영어로 둠 — 회차 b10 실측에서 영어 명령은 7/7 통했고 한국어는 1/6 이었음
+//    (Nova 가 한국어를 영어 문장으로 적음 · `tests/agent/runs/2026-11-01-b10/result.md`). 전환·리포트
+//    두 문구는 그 회차가 시험하지 않았으므로 시험한 셋과 같은 꼴로 맞췄음(`TASK-300`).
 const FAILURE_MESSAGES: Record<string, string> = {
   microphone_permission_denied: "Please allow the microphone and try again.",
   audio_capture_unavailable: "This device can't use the microphone now.",
@@ -307,11 +308,11 @@ export default function SessionPage() {
           }
           // 정지·재개 (결정 117). ⛔ **서버가 상태를 적은 뒤에만 이 프레임이 온다** — 앱이 DB 를
           // 못 적으면 프레임을 보내지 않으므로 화면이 앞질러 「멈췄다」고 말하지 않는다.
-          // ⚠️ `requested` 하나만 보는 것은 확인을 타지 않는 명령의 규약이다(결정 107 ③).
-          if (
-            (event.command === "pause" || event.command === "resume") &&
-            event.stage === "requested"
-          ) {
+          // ⚠️ **단계를 보지 않는다** — 서버(`audio_gateway/session.py`)가 단계와 무관하게 정지 상태를
+          // 적고 이 프레임을 보내므로 화면도 같은 규칙을 따른다. 규약은 `requested` 이지만 모델이
+          // `confirmed` 로 부른 재개에서 서버는 이었는데 화면은 「Paused」를 끝까지 보였다
+          // (회차 b10 D2 · `TASK-300`).
+          if (event.command === "pause" || event.command === "resume") {
             setPaused(event.command === "pause");
           }
           break;

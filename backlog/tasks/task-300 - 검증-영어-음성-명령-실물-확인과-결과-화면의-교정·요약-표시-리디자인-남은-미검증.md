@@ -1,10 +1,10 @@
 ---
 id: TASK-300
 title: '검증: 영어 음성 명령 실물 확인과 결과 화면의 교정·요약 표시 (리디자인 남은 미검증)'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-11-01 01:35'
-updated_date: '2026-11-01 02:25'
+updated_date: '2026-11-01 02:28'
 labels: []
 dependencies: []
 ordinal: 365000
@@ -20,7 +20,7 @@ ordinal: 365000
 <!-- AC:BEGIN -->
 - [x] #1 app-test-agent 가 실제 Nova 세션에서 영어 음성 명령을 시험하고 결과를 기록함
 - [x] #2 분석이 끝난 세션의 결과 화면을 확인하고 남은 한국어를 기록함
-- [ ] #3 결과에 따라 화면 안내 문구를 고치거나 미결로 기록함
+- [x] #3 결과에 따라 화면 안내 문구를 고치거나 미결로 기록함
 - [x] #4 dev DB 쓰기가 없음을 확인함
 <!-- AC:END -->
 
@@ -37,4 +37,8 @@ ordinal: 365000
 - 결과 화면: 한글 11줄 모두 백엔드 필드(교정 reason · summary went_well/weak_points · daily example reason) — UI 상수 한국어 0. target_form 은 결과 화면이 그리지 않음.
 - 결함: D2(재개가 confirmed 단계로 오면 Paused 표시가 남음 · 프런트) · D3(결과 화면이 final 에서 폴링을 멈춰 15~18초 늦은 총평이 안 보임 · 프런트) → 이 태스크에서 고침. D1(영어 종료가 requested 없이 confirmed — 확인 안내 없음 · yes 가 학습 발화로 분석됨) · D4(확인 질문 뒤 학습 문장이 command_confirmation 으로 저장) → 백엔드 음성 명령 판정이라 TASK-303 으로 분리.
 - dev DB: 재개 기준선(19·144·0·0) 그대로.
+
+AC3: 화면 안내의 음성 명령을 영어로 바꿈(종료 · 정지 · 계속 · 연습 바꾸기 · 주간 리포트 · 확인 Yes). 회차 b10 에서 시험하지 않은 둘(연습 바꾸기 · 주간 리포트)은 같은 꼴로 씀 — 백엔드는 고정 문구가 아니라 wake word + 모델 의도로 판정함(audio_gateway/nova.py 규칙 12–13).
+- D2 고침: voice_command 의 단계와 무관하게 paused 를 명령으로 정함(서버 session.py 의 _apply_pause 와 같은 규칙). D3 고침: 결과 화면이 final 뒤 총평이 올 때까지 최대 60초 더 폴링함.
+- ⚠️ D2·D3 은 tsc 0 · lint 0 · build 0 까지만 확인했음 — 실물 재현에는 실제 Nova 의 정지·재개와 분석 워커가 필요함. 다음 실제 Nova 회차(TASK-303 확인 회차)에서 함께 확인할 것.
 <!-- SECTION:NOTES:END -->
