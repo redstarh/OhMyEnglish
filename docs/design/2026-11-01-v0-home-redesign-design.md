@@ -42,6 +42,24 @@
 - 대시보드 안의 이동 링크와 다른 세션을 여는 버튼도 같은 동안 잠김(빠른 카드 · More practice · Continue your path · View all · Practice a pattern).
 - 대기로 돌아오거나 화면이 언마운트되면 잠금이 풀림. 실패 화면은 「Try again」과 대기로 돌아가는 「← Home」을 그대로 가짐.
 
+### 오늘의 연습 카드가 문장 연습을 엶 (2026-11-01 · `TASK-304`)
+
+- 사용자 지시: 「home에서 "start speaking" 을 누르면 pactice 의 아래 하단 영역이 "start speaking" 이 위치한 그 자리에 표시되도록 해 · youtube 화면이 따로 표시되지 않아도 돼 · youbebe 에서 참조할 내용은 학습하는 문자의 패턴만 필요해」.
+- 사용자 결정: 「코치 대화 빼기」. 홈의 추천 코치 대화 시작점을 없앰.
+- 옛 동작: 「Start speaking」이 추천 코치 대화(`source: recommended`)를 열고 카드 안에 대화 화면을 그렸음(`TASK-301`).
+- 새 동작: 「Start speaking」(`start-session`)은 문법 코스 Day 화면의 영상 아래 부분을 카드 안에 그림. 단원 줄 · Auto/Manual · 문장 카드 · 안내가 그 범위임.
+- 카드는 `fetchCourse()` 의 `current_day` 로 Day 를 고르고 `fetchCourseDay()` 로 문장을 읽음. 문장은 단원 패턴으로 새로 쓴 백엔드 콘텐츠이고 영상에서 가져오는 것이 없음.
+- 홈은 영상을 그리지 않음. 연습 중 카드는 밝은 카드(`data-mode="practice"`)이고 「Day N · Units a–b」 줄(`practice-day`)과 「← Close」(`practice-close`)를 가짐.
+- 문장 연습의 논리와 화면은 `components/course/SentencePractice.tsx` 로 뽑았음. Day 화면은 영상 핸들을 넘기고 홈은 넘기지 않음.
+- 영상이 없으면 진도 저장은 불러온 `position_sec` 을 그대로 보냄. Day 를 마친 때만 0 을 보냄. 그래서 홈의 연습이 Day 화면의 영상 위치를 지우지 않음.
+- 문장 연습은 소켓이 없으므로 이동을 잠그지 않음. More practice 등에서 코치 세션을 열면 문장 연습을 먼저 닫음.
+- 대기 카드의 문구는 코스 쪽으로 바꿈. 큰 문장은 `Day N: listen and say it.` 이고 버튼 옆 줄은 `Day N · Units a–b` 임(`home-hero-day`).
+- 이 변경으로 §5 표의 「오늘의 연습」(`next-plan.reason`) · 「레벨」(`target_level`) 칸은 홈에서 빠짐. 홈은 `next-plan` 을 더 부르지 않음.
+- 빠른 카드 · More practice · Practice a pattern 은 그대로 코치 세션을 열고 카드 안에 그림(`TASK-301` 동작).
+- 하네스(`tests/harness/`)는 코치 세션을 `start-session` 대신 `practice-free_talk` 로 엶. 대상은 `c1_session_walkthrough.py` · `c2_render_hierarchy.py` · `c5_pronunciation_badge.py` · `p_app_path.py` 임.
+- 그 버튼은 홈 아래쪽에 있으므로 하네스의 좌표 클릭(`Cdp.click`)이 먼저 요소를 화면 안으로 끌어옴.
+- 진입 출처가 `recommended` 에서 `additional` 로 바뀜. 출처를 판정하는 회차는 이 차이를 알고 읽어야 함.
+
 사이드바 대응(가장 긴 경로가 이김): Home `/` · Practice `/course`(`/course*`·`/videos*` 에서 활성) · Review `/history`(`/results*` 포함) · Progress `/history/weekly`.
 
 ## 4. 파일 계획

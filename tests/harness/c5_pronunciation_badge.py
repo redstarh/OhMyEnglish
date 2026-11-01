@@ -302,9 +302,11 @@ def main() -> int:
 
             # ⛔ user activation 은 **CDP 클릭 1회**로만 만든다 — 같은 문서에서 합성 클릭으로
             #    재시도하면 대조 ①이 오염된다(`TASK-49` AC#2 · 5차수가 그렇게 오염됐다).
+            # ⚠️ 코치 세션은 More practice 의 Free talk 로 연다(`TASK-304`).
+            #    홈의 `start-session` 은 이제 문장 연습을 연다.
             await cdp.click(
-                "document.querySelector('[data-testid=start-session]')",
-                "start-session",
+                "document.querySelector('[data-testid=practice-free_talk]')",
+                "practice-free_talk",
             )
 
             # ⛔ **user activation 을 단정한다 — c2 가 쓰는 안전장치이고 초판이 빼먹었다.**

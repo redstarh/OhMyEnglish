@@ -89,16 +89,22 @@ export function shouldKeepPolling(
 // 빠지기 때문이다 — 그 경우에도 폴링이 끝나야 한다.
 const SUMMARY_WAIT_MS = 60_000;
 
+// 총평을 기다릴 상태 — `partial_failure` 도 넣음(`TASK-304` · codex 리뷰). 백엔드는 총평을 상태와
+// 따로 쓰므로 일부 분석이 실패한 세션에도 총평이 늦게 올 수 있음.
+const SUMMARY_WAIT_STATUSES = new Set<SessionResultStatus>(["final", "partial_failure"]);
+
 /**
- * `final` 인데 총평 키가 아직 없으면 상한 안에서 폴링을 잇는다. `finalSeenAt` 은 이 화면이
- * `final` 을 처음 읽은 시각이다.
+ * `final`·`partial_failure` 인데 총평 키가 아직 없으면 상한 안에서 폴링을 잇는다. `finalSeenAt` 은
+ * 이 화면이 그 상태를 처음 읽은 시각이다.
  */
 function shouldWaitForSummary(
   data: SessionResultPayload,
   finalSeenAt: number,
   now: number,
 ): boolean {
-  return data.status === "final" && data.summary === undefined && now - finalSeenAt < SUMMARY_WAIT_MS;
+  return (
+    SUMMARY_WAIT_STATUSES.has(data.status) && data.summary === undefined && now - finalSeenAt < SUMMARY_WAIT_MS
+  );
 }
 
 /**
@@ -258,7 +264,7 @@ export default function ResultsPage() {
         setFetchError(null);
         // `TASK-79` — 판독 사이에 들고 갈 상태가 없다. 회복 대상인지를 **서버가 판독마다**
         // 알려주므로 프론트가 횟수를 세지 않는다(이전 판은 연속 판독 수를 셌다).
-        if (data.status === "final" && finalSeenAt === null) finalSeenAt = Date.now();
+        if (SUMMARY_WAIT_STATUSES.has(data.status) && finalSeenAt === null) finalSeenAt = Date.now();
         if (
           shouldKeepPolling(data.status, data.awaiting_analysis) ||
           (finalSeenAt !== null && shouldWaitForSummary(data, finalSeenAt, Date.now()))

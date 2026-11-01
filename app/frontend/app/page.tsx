@@ -522,7 +522,8 @@ export default function SessionPage() {
     void startSessionRef.current?.(entry);
   }, []);
 
-  // 추천 이유(R11-3)의 조회는 `TASK-296` 에서 `components/home/HomeDashboard.tsx` 로 옮겼음.
+  // 추천 이유(R11-3)의 조회는 `TASK-296` 에서 `components/home/HomeDashboard.tsx` 로 옮겼고,
+  // `TASK-304` 에서 홈에서 뺐음 — 오늘의 연습 카드가 추천 코치 대화 대신 문장 연습을 엶(설계서 §3).
   // 마운트당 한 번 읽고 폴링하지 않는 근거(2026-09-06 정정 · 2026-09-09 보강)는 이 파일의 git
   // 이력(커밋 23ff5f6 판)에 있음 — 요지: 계획 job 이 화면 마운트 뒤에 끝나면 한 세션 늦게 보일 수
   // 있고, 단일 사용자 로컬 도구라 그 창을 받아들임.
@@ -604,6 +605,8 @@ export default function SessionPage() {
   // 대시보드는 모든 상태에서 그림 (`TASK-296` · `TASK-301` · 리디자인 설계서 §3·§5).
   // 세션이 도는 동안(대기가 아닌 모든 상태)은 세션 화면을 오늘의 연습 카드 안에 넘김 — 덮는 층을 두지 않음.
   // ⛔ 칸은 시작 함수와 세션 화면만 받음 — 세션 논리(상태·ref·`startSession`)는 이 파일에 남음.
+  // ⚠️ `onStart` 는 More practice · 빠른 카드 · 초점 패턴의 진입만 씀. 「Start speaking」은 코치 세션이
+  //    아니라 문장 연습을 엶(`TASK-304` · 사용자 결정 「코치 대화 빼기」).
   // ⚠️ 연결 중 · 진행 · 종료 중 · 실패는 같은 `session-panel` 안에서 이어짐 — 대화 칸이 다시 마운트되지 않음.
   return (
     <div data-testid="home-dashboard-slot">

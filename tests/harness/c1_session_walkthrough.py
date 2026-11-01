@@ -320,9 +320,11 @@ def main() -> int:
             if args.silent_mic:
                 await cdp.eval("window.__omy.config.silentMic = true; true")
 
+            # ⚠️ 코치 세션은 More practice 의 Free talk 로 연다(`TASK-304`).
+            #    홈의 `start-session` 은 이제 문장 연습을 연다.
             await cdp.click(
-                "document.querySelector('[data-testid=start-session]')",
-                "start-session",
+                "document.querySelector('[data-testid=practice-free_talk]')",
+                "practice-free_talk",
             )
 
             act = json.loads(

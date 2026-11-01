@@ -305,8 +305,11 @@ class Cdp:
         """
         # ⚠️ 이어붙이는 조각 중 **f-string 인 것만** `{{`로 이스케이프한다. 평문 조각에 `}}`를 쓰면
         #    닫는 중괄호가 하나 더 붙어 `SyntaxError: Unexpected token '}'`가 난다(실측).
+        # ⚠️ 좌표 클릭이라 화면 밖 요소는 맞지 않는다 — 먼저 화면 안으로 끌어온다(`TASK-304`: 코치
+        #    세션의 시작점 `practice-free_talk` 은 홈 아래쪽 More practice 에 있다).
         rect = await self.eval(
             f"(() => {{ const el = {selector_js}; if (!el) return null;"
+            " el.scrollIntoView({block: 'center', inline: 'nearest', behavior: 'instant'});"
             " const r = el.getBoundingClientRect();"
             " return {x: r.left + r.width/2, y: r.top + r.height/2, w: r.width, h: r.height,"
             " text: (el.textContent||'').slice(0,40)}; })()"
@@ -495,7 +498,7 @@ async def run_scheme(
 
     # ── 한 문서 = 한 세션 (`browser_leg.md` §5 A1-5). 모드마다 새로 연다.
     # ⚠️ **`errorText` 를 확인한다** (재검토 LOW-7) — 프론트가 죽어 있으면 `navigate` 는 조용히
-    #    성공하고 나중에 "start-session 버튼이 나타나지 않았다"로
+    #    성공하고 나중에 "practice-free_talk 버튼이 나타나지 않았다"로
     #    **오진**한다. 여기서 이름 있게 죽인다.
     nav = await cdp.call("Page.navigate", {"url": base_url})
     if nav.get("errorText"):
@@ -514,13 +517,13 @@ async def run_scheme(
         ready = await cdp.eval(
             "(() => document.readyState === 'complete' &&"
             " !!Array.from(document.querySelectorAll('button'))"
-            "   .find(b => b.matches('[data-testid=start-session]')))()"
+            "   .find(b => b.matches('[data-testid=practice-free_talk]')))()"
         )
         if ready:
             break
         await asyncio.sleep(READY_POLL_STEP_S)
     else:
-        raise SystemExit("start-session 버튼이 나타나지 않았다")
+        raise SystemExit("practice-free_talk 버튼이 나타나지 않았다")
 
     reported = await cdp.eval(
         "matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'"
@@ -564,9 +567,11 @@ async def run_scheme(
     # ── 학습 시작 클릭 → 그 직후 한 `eval` 안에서 전부 끝낸다 (§6 ⛔).
     await cdp.eval(f"window.__omyStopAfterPartial = {'true' if phase == 'partial' else 'false'}")
     t_click = time.monotonic()
+    # ⚠️ 코치 세션은 More practice 의 Free talk 로 연다(`TASK-304`).
+    #    홈의 `start-session` 은 이제 문장 연습을 연다.
     await cdp.click(
-        "document.querySelector('[data-testid=start-session]')",
-        "start-session",
+        "document.querySelector('[data-testid=practice-free_talk]')",
+        "practice-free_talk",
     )
     try:
         data = await cdp.eval(measure_js(), await_promise=True)

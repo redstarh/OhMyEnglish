@@ -5,11 +5,13 @@
 // 따르고, 사이드바는 공통 틀(`components/app-shell.tsx`)이 가짐.
 // ⛔ 세션 논리는 여기 두지 않음 — 이 칸은 `onStart` 와 그려진 세션 화면만 받음(`app/page.tsx` 가 세션을 소유).
 // ⛔ 「Start speaking」은 어떤 조회의 상태와도 무관하게 늘 눌림.
+// ⛔ 「Start speaking」은 코치 대화가 아니라 문법 코스의 문장 연습을 이 카드 안에 엶(`TASK-304` · 설계서 §3).
+//    추천 코치 대화의 시작점은 홈에서 뺐음(사용자 결정 「코치 대화 빼기」). 문장 연습은 소켓이 없어 이동을 잠그지 않음.
 // ⛔ 세션 화면은 `session` 으로 받아 오늘의 연습 카드 안에 그림(`TASK-301` · 설계서 §3). 그동안
 //    다른 세션을 열거나 화면을 떠나는 링크·버튼은 잠김 — 떠나면 소켓이 닫혀 세션이 끝남.
 
 import Link from "next/link";
-import { useEffect, useRef, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   ArrowRight,
   BookOpen,
@@ -31,12 +33,10 @@ import {
   fetchCourse,
   fetchDailySummary,
   fetchHistory,
-  fetchNextPlan,
   fetchWeeklyReport,
   type CourseOverview,
   type DailySummaryPayload,
   type HistoryPayload,
-  type NextPlanSummary,
   type WeeklyReportPayload,
 } from "@/lib/api";
 import type { SessionEntry } from "@/lib/config";
@@ -60,9 +60,7 @@ import {
   useTodayLabel,
   type Load,
 } from "./dashboardData";
-
-/** 옛 「학습 시작」 버튼과 같은 진입 — `source` 를 명시함(진입점 설계서 §4). */
-const RECOMMENDED_ENTRY: SessionEntry = { source: "recommended" };
+import { HomeCoursePractice } from "./HomeCoursePractice";
 
 function entryOf(key: AdditionalLearningKey): SessionEntry | null {
   return ADDITIONAL_LEARNING.find((item) => item.key === key)?.entry ?? null;
@@ -109,7 +107,18 @@ export function HomeDashboard({
   session?: ReactNode;
 }) {
   const locked = session !== null && session !== undefined;
-  const plan = useLoad(fetchNextPlan);
+  // 오늘의 연습 카드가 문장 연습을 그리는 중인가. 세션이 열리면 세션이 이김.
+  const [practicing, setPracticing] = useState(false);
+  const showPractice = practicing && !locked;
+  // ⛔ 코치 세션을 열기 전에 문장 연습을 닫음 — 둘이 같은 마이크·스피커를 두고 다투지 않게.
+  //    닫으면 연습 칸이 내려가며 진도를 저장하고 마이크를 놓음.
+  const startSession = useCallback(
+    (entry: SessionEntry) => {
+      setPracticing(false);
+      onStart(entry);
+    },
+    [onStart],
+  );
   const history = useLoad(fetchHistory);
   const weekly = useLoad(fetchWeeklyReport);
   const course = useLoad(fetchCourse);
@@ -119,24 +128,30 @@ export function HomeDashboard({
     <div className="text-foreground">
       <Header history={history} />
 
-      {/* ⚠️ 세션 중에는 오늘의 연습 카드가 길어짐 — 진도 카드가 함께 늘어 빈 칸이 되지 않게 위에 붙임. */}
+      {/* ⚠️ 세션·문장 연습 중에는 오늘의 연습 카드가 길어짐 — 진도 카드가 함께 늘어 빈 칸이 되지 않게 위에 붙임. */}
       <div
         className={cn(
           "grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.85fr)]",
-          locked && "xl:items-start",
+          (locked || showPractice) && "xl:items-start",
         )}
       >
-        <HeroCard plan={plan} onStart={() => onStart(RECOMMENDED_ENTRY)} session={locked ? session : null} />
+        <HeroCard
+          course={course}
+          practicing={showPractice}
+          onOpen={() => setPracticing(true)}
+          onClose={() => setPracticing(false)}
+          session={locked ? session : null}
+        />
         <ProgressCard course={course} history={history} weekly={weekly} />
       </div>
 
       <div className="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1.5fr)_minmax(280px,0.8fr)]">
         <PathSection course={course} locked={locked} />
-        <FocusSection daily={daily} weekly={weekly} onStart={onStart} locked={locked} />
+        <FocusSection daily={daily} weekly={weekly} onStart={startSession} locked={locked} />
       </div>
 
-      <QuickCards onStart={onStart} locked={locked} />
-      <MorePractice onStart={onStart} locked={locked} />
+      <QuickCards onStart={startSession} locked={locked} />
+      <MorePractice onStart={startSession} locked={locked} />
     </div>
   );
 }
@@ -175,33 +190,50 @@ function Header({ history }: { history: Load<HistoryPayload> }) {
 // ── 오늘의 연습 ──
 
 function HeroCard({
-  plan,
-  onStart,
+  course,
+  practicing,
+  onOpen,
+  onClose,
   session,
 }: {
-  plan: Load<NextPlanSummary>;
-  onStart: () => void;
+  course: Load<CourseOverview>;
+  practicing: boolean;
+  onOpen: () => void;
+  onClose: () => void;
   session: ReactNode;
 }) {
-  // ⚠️ `reason` 은 백엔드가 한국어로 줌 — 그대로 보임(설계서 §6 미결 1 · `TASK-299`).
-  const reason = plan.status === "ready" ? plan.data.reason : null;
-  const level = plan.status === "ready" ? plan.data.target_level : null;
   const inSession = session !== null;
+  const expanded = inSession || practicing;
+  const current =
+    course.status === "ready" ? (course.data.days.find((day) => day.day === course.data.current_day) ?? null) : null;
   const ref = useRef<HTMLDivElement>(null);
-  // 세션이 열리면 카드를 화면 안으로 끌어옴 — 좁은 화면에서 대화가 아래로 밀려 안 보이지 않게.
+  // 세션·연습이 열리면 카드를 화면 안으로 끌어옴 — 좁은 화면에서 대화·문장이 아래로 밀려 안 보이지 않게.
   useEffect(() => {
-    if (inSession) ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, [inSession]);
+    if (expanded) ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [expanded]);
 
-  if (inSession) {
-    // ⛔ 세션 중에는 밝은 카드로 바꿈 — 대화·쉐도잉·리포트 패널이 `--foreground` 글자색을 쓰므로
-    //    남색 바탕 위에서는 읽히지 않음. 자리와 너비는 그대로이고 높이만 늘어남.
+  if (expanded) {
+    // ⛔ 세션·연습 중에는 밝은 카드로 바꿈 — 대화·쉐도잉·리포트 패널과 문장 연습 칸이 `--foreground`
+    //    글자색을 쓰므로 남색 바탕 위에서는 읽히지 않음. 자리와 너비는 그대로이고 높이만 늘어남.
     return (
-      <div ref={ref} data-testid="home-hero" data-state={plan.status} data-mode="session" className={cn(CARD, "scroll-mt-6 sm:p-8")}>
-        <span className="inline-flex items-center gap-2 rounded-full bg-brand-soft px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-brand">
-          <Sparkles className="size-3" aria-hidden="true" /> Today&apos;s practice
-        </span>
-        {session}
+      <div
+        ref={ref}
+        data-testid="home-hero"
+        data-state={course.status}
+        data-mode={inSession ? "session" : "practice"}
+        className={cn(CARD, "scroll-mt-6 sm:p-8")}
+      >
+        <div className="flex items-center justify-between gap-3">
+          <span className="inline-flex items-center gap-2 rounded-full bg-brand-soft px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-brand">
+            <Sparkles className="size-3" aria-hidden="true" /> Today&apos;s practice
+          </span>
+          {inSession ? null : (
+            <Button data-testid="practice-close" variant="ghost" onClick={onClose} className="text-xs font-bold">
+              ← Close
+            </Button>
+          )}
+        </div>
+        {inSession ? session : <HomeCoursePractice />}
       </div>
     );
   }
@@ -210,7 +242,7 @@ function HeroCard({
     <div
       ref={ref}
       data-testid="home-hero"
-      data-state={plan.status}
+      data-state={course.status}
       data-mode="idle"
       className="scroll-mt-6 rounded-[24px] bg-hero p-6 text-white shadow-xl shadow-hero/10 sm:p-8"
     >
@@ -219,21 +251,18 @@ function HeroCard({
           <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-white/80">
             <Sparkles className="size-3" aria-hidden="true" /> Today&apos;s practice
           </span>
-          {plan.status === "loading" ? (
+          {course.status === "loading" ? (
             <div className="mt-5 h-[84px] max-w-[420px] animate-pulse rounded-xl bg-white/10" aria-label="Loading" />
           ) : (
             <h2
-              data-testid="home-hero-reason"
-              className={cn(
-                "mt-5 max-w-[480px] break-keep font-extrabold leading-[1.2] tracking-[-0.03em] text-white",
-                reason ? "text-xl sm:text-2xl" : "text-3xl sm:text-[42px] sm:leading-[1.06]",
-              )}
+              data-testid="home-hero-title"
+              className="mt-5 max-w-[480px] break-keep text-3xl font-extrabold leading-[1.1] tracking-[-0.03em] text-white sm:text-[38px]"
             >
-              {reason ?? "Let's talk in English."}
+              {current ? `Day ${current.day}: listen and say it.` : "Listen and say it."}
             </h2>
           )}
           <p className="mt-4 max-w-[390px] text-sm leading-6 text-white/75">
-            Talk with your coach. Try to say more each time.
+            Hear a short sentence. Say it out loud. See what you said.
           </p>
         </div>
         <div className="hidden size-16 shrink-0 rounded-2xl bg-white/10 sm:grid sm:place-items-center">
@@ -243,14 +272,14 @@ function HeroCard({
       <div className="mt-8 flex flex-wrap items-center gap-3">
         <Button
           data-testid="start-session"
-          onClick={onStart}
+          onClick={onOpen}
           size="lg"
           className="rounded-xl bg-white px-5 font-bold text-hero hover:bg-brand-soft"
         >
           <Play data-icon="inline-start" aria-hidden="true" /> Start speaking
         </Button>
-        <span data-testid="home-level" className="text-xs font-semibold text-white/75">
-          {level ? `Speaking · Level ${level}` : "Speaking"}
+        <span data-testid="home-hero-day" className="text-xs font-semibold text-white/75">
+          {current ? `Day ${current.day} · Units ${current.first_unit}–${current.last_unit}` : "Grammar course"}
         </span>
       </div>
     </div>
