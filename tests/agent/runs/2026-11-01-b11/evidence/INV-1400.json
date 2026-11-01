@@ -1,0 +1,3513 @@
+{
+ "/": {
+  "path": "/",
+  "count": 21,
+  "items": [
+   {
+    "i": 0,
+    "tag": "a",
+    "tid": null,
+    "text": "OhMyEnglish SPEAK. REMEMBER. GROW.",
+    "href": "/",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     28,
+     207,
+     40
+    ]
+   },
+   {
+    "i": 1,
+    "tag": "a",
+    "tid": "nav-home",
+    "text": "Home",
+    "href": "/",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": "page",
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     143,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 2,
+    "tag": "a",
+    "tid": "nav-practice",
+    "text": "Practice",
+    "href": "/course",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     191,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 3,
+    "tag": "a",
+    "tid": "nav-review",
+    "text": "Review",
+    "href": "/history",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     238,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 4,
+    "tag": "a",
+    "tid": "nav-progress",
+    "text": "Progress",
+    "href": "/history/weekly",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     286,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 10,
+    "tag": "button",
+    "tid": "start-session",
+    "text": "Start speaking",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     328,
+     343,
+     153,
+     36
+    ]
+   },
+   {
+    "i": 11,
+    "tag": "a",
+    "tid": "home-path-all",
+    "text": "View all",
+    "href": "/course",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     876,
+     451,
+     88,
+     32
+    ]
+   },
+   {
+    "i": 12,
+    "tag": "a",
+    "tid": "path-day-5",
+    "text": "DAY 5 Day 5 · In progress Units 83–100 58 min",
+    "href": "/course/5",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     296,
+     507,
+     668,
+     78
+    ]
+   },
+   {
+    "i": 13,
+    "tag": "a",
+    "tid": "path-day-6",
+    "text": "Day 6 · Done Units 101–113 43 min",
+    "href": "/course/6",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     296,
+     597,
+     668,
+     78
+    ]
+   },
+   {
+    "i": 14,
+    "tag": "button",
+    "tid": "focus-practice",
+    "text": "Practice a pattern",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     1013,
+     728,
+     322,
+     32
+    ]
+   },
+   {
+    "i": 15,
+    "tag": "button",
+    "tid": "quick-shadowing",
+    "text": "Speak Shadow a sentence Listen, repeat, make it yours.",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     296,
+     809,
+     339,
+     158
+    ]
+   },
+   {
+    "i": 16,
+    "tag": "a",
+    "tid": "quick-videos",
+    "text": "Watch Listen & notice Hear real English in short clips.",
+    "href": "/videos",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     655,
+     809,
+     339,
+     158
+    ]
+   },
+   {
+    "i": 17,
+    "tag": "button",
+    "tid": "quick-weak-patterns",
+    "text": "Review Repair your mistakes Fix one mistake. Make it a habit.",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     1013,
+     809,
+     339,
+     158
+    ]
+   },
+   {
+    "i": 18,
+    "tag": "button",
+    "tid": "practice-free_talk",
+    "text": "Free talk",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     296,
+     1063,
+     92,
+     36
+    ]
+   },
+   {
+    "i": 19,
+    "tag": "button",
+    "tid": "practice-weak_patterns",
+    "text": "Weak spots",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     396,
+     1063,
+     111,
+     36
+    ]
+   },
+   {
+    "i": 20,
+    "tag": "button",
+    "tid": "practice-five_questions",
+    "text": "5 questions",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     515,
+     1063,
+     111,
+     36
+    ]
+   },
+   {
+    "i": 21,
+    "tag": "button",
+    "tid": "practice-pronunciation",
+    "text": "Pronunciation",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     634,
+     1063,
+     124,
+     36
+    ]
+   },
+   {
+    "i": 22,
+    "tag": "button",
+    "tid": "practice-shadowing",
+    "text": "Shadowing",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     766,
+     1063,
+     107,
+     36
+    ]
+   },
+   {
+    "i": 23,
+    "tag": "a",
+    "tid": "practice-videos",
+    "text": "Learn with videos",
+    "href": "/videos",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     882,
+     1063,
+     149,
+     36
+    ]
+   },
+   {
+    "i": 24,
+    "tag": "a",
+    "tid": "practice-course",
+    "text": "Grammar course",
+    "href": "/course",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     1039,
+     1063,
+     142,
+     36
+    ]
+   },
+   {
+    "i": 25,
+    "tag": "button",
+    "tid": "practice-roleplay",
+    "text": "Work role-play (Not ready yet)",
+    "href": null,
+    "type": "button",
+    "disabled": true,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": "Not ready yet",
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     296,
+     1107,
+     233,
+     36
+    ]
+   }
+  ],
+  "overflow": {
+   "sw": 1400,
+   "cw": 1400,
+   "wide": []
+  }
+ },
+ "/course": {
+  "path": "/course",
+  "count": 12,
+  "items": [
+   {
+    "i": 0,
+    "tag": "a",
+    "tid": null,
+    "text": "OhMyEnglish SPEAK. REMEMBER. GROW.",
+    "href": "/",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     28,
+     207,
+     40
+    ]
+   },
+   {
+    "i": 1,
+    "tag": "a",
+    "tid": "nav-home",
+    "text": "Home",
+    "href": "/",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     143,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 2,
+    "tag": "a",
+    "tid": "nav-practice",
+    "text": "Practice",
+    "href": "/course",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": "page",
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     191,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 3,
+    "tag": "a",
+    "tid": "nav-review",
+    "text": "Review",
+    "href": "/history",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     238,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 4,
+    "tag": "a",
+    "tid": "nav-progress",
+    "text": "Progress",
+    "href": "/history/weekly",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     286,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 10,
+    "tag": "a",
+    "tid": null,
+    "text": "← Home",
+    "href": "/",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     536,
+     71,
+     54,
+     18
+    ]
+   },
+   {
+    "i": 11,
+    "tag": "a",
+    "tid": null,
+    "text": "Start",
+    "href": "/course/1",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     549,
+     213,
+     57,
+     34
+    ]
+   },
+   {
+    "i": 12,
+    "tag": "a",
+    "tid": null,
+    "text": "Start",
+    "href": "/course/2",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     549,
+     322,
+     57,
+     34
+    ]
+   },
+   {
+    "i": 13,
+    "tag": "a",
+    "tid": null,
+    "text": "Start",
+    "href": "/course/3",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     549,
+     430,
+     57,
+     34
+    ]
+   },
+   {
+    "i": 14,
+    "tag": "a",
+    "tid": null,
+    "text": "Start",
+    "href": "/course/4",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     549,
+     539,
+     57,
+     34
+    ]
+   },
+   {
+    "i": 15,
+    "tag": "a",
+    "tid": null,
+    "text": "Continue ▶",
+    "href": "/course/5",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     549,
+     647,
+     97,
+     34
+    ]
+   },
+   {
+    "i": 16,
+    "tag": "a",
+    "tid": null,
+    "text": "Start",
+    "href": "/course/6",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     549,
+     755,
+     57,
+     34
+    ]
+   }
+  ],
+  "overflow": {
+   "sw": 1400,
+   "cw": 1400,
+   "wide": []
+  }
+ },
+ "/course/1": {
+  "path": "/course/1",
+  "count": 14,
+  "items": [
+   {
+    "i": 0,
+    "tag": "a",
+    "tid": null,
+    "text": "OhMyEnglish SPEAK. REMEMBER. GROW.",
+    "href": "/",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     28,
+     207,
+     40
+    ]
+   },
+   {
+    "i": 1,
+    "tag": "a",
+    "tid": "nav-home",
+    "text": "Home",
+    "href": "/",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     143,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 2,
+    "tag": "a",
+    "tid": "nav-practice",
+    "text": "Practice",
+    "href": "/course",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": "page",
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     191,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 3,
+    "tag": "a",
+    "tid": "nav-review",
+    "text": "Review",
+    "href": "/history",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     238,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 4,
+    "tag": "a",
+    "tid": "nav-progress",
+    "text": "Progress",
+    "href": "/history/weekly",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     286,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 10,
+    "tag": "a",
+    "tid": "course-back",
+    "text": "← Back",
+    "href": "/course",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     536,
+     68,
+     50,
+     20
+    ]
+   },
+   {
+    "i": 11,
+    "tag": "iframe",
+    "tid": null,
+    "text": "🕐 [1시간 Day 1] 📙 Grammar in Use BASIC (Unit 1~21)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 ",
+    "href": null,
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": "🕐 [1시간 Day 1] 📙 Grammar in Use BASIC (Unit 1~21)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 유즈 베이직 mp3",
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     536,
+     98,
+     576,
+     324
+    ]
+   },
+   {
+    "i": 12,
+    "tag": "button",
+    "tid": "course-mode-auto",
+    "text": "Auto",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": "true",
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     993,
+     437,
+     51,
+     27
+    ]
+   },
+   {
+    "i": 13,
+    "tag": "button",
+    "tid": "course-mode-manual",
+    "text": "Manual",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": "false",
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     1044,
+     437,
+     67,
+     27
+    ]
+   },
+   {
+    "i": 14,
+    "tag": "button",
+    "tid": "course-listen",
+    "text": "🔊 Listen",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     553,
+     558,
+     86,
+     36
+    ]
+   },
+   {
+    "i": 15,
+    "tag": "button",
+    "tid": "course-slow",
+    "text": "Slow",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     647,
+     558,
+     59,
+     36
+    ]
+   },
+   {
+    "i": 16,
+    "tag": "button",
+    "tid": "course-prev",
+    "text": "← Back",
+    "href": null,
+    "type": "button",
+    "disabled": true,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     553,
+     608,
+     78,
+     36
+    ]
+   },
+   {
+    "i": 17,
+    "tag": "button",
+    "tid": "course-start",
+    "text": "Start",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     796,
+     608,
+     59,
+     36
+    ]
+   },
+   {
+    "i": 18,
+    "tag": "button",
+    "tid": "course-next",
+    "text": "Next →",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     1020,
+     608,
+     75,
+     36
+    ]
+   }
+  ],
+  "overflow": {
+   "sw": 1400,
+   "cw": 1400,
+   "wide": []
+  }
+ },
+ "/course/2": {
+  "path": "/course/2",
+  "count": 14,
+  "items": [
+   {
+    "i": 0,
+    "tag": "a",
+    "tid": null,
+    "text": "OhMyEnglish SPEAK. REMEMBER. GROW.",
+    "href": "/",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     28,
+     207,
+     40
+    ]
+   },
+   {
+    "i": 1,
+    "tag": "a",
+    "tid": "nav-home",
+    "text": "Home",
+    "href": "/",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     143,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 2,
+    "tag": "a",
+    "tid": "nav-practice",
+    "text": "Practice",
+    "href": "/course",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": "page",
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     191,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 3,
+    "tag": "a",
+    "tid": "nav-review",
+    "text": "Review",
+    "href": "/history",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     238,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 4,
+    "tag": "a",
+    "tid": "nav-progress",
+    "text": "Progress",
+    "href": "/history/weekly",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     286,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 10,
+    "tag": "a",
+    "tid": "course-back",
+    "text": "← Back",
+    "href": "/course",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     536,
+     68,
+     50,
+     20
+    ]
+   },
+   {
+    "i": 11,
+    "tag": "iframe",
+    "tid": null,
+    "text": "🕐 [1시간 Day 2] 📙 Grammar in Use BASIC (Unit 22~41)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인",
+    "href": null,
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": "🕐 [1시간 Day 2] 📙 Grammar in Use BASIC (Unit 22~41)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 유즈 베이직 mp3",
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     536,
+     98,
+     576,
+     324
+    ]
+   },
+   {
+    "i": 12,
+    "tag": "button",
+    "tid": "course-mode-auto",
+    "text": "Auto",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": "true",
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     993,
+     437,
+     51,
+     27
+    ]
+   },
+   {
+    "i": 13,
+    "tag": "button",
+    "tid": "course-mode-manual",
+    "text": "Manual",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": "false",
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     1044,
+     437,
+     67,
+     27
+    ]
+   },
+   {
+    "i": 14,
+    "tag": "button",
+    "tid": "course-listen",
+    "text": "🔊 Listen",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     553,
+     558,
+     86,
+     36
+    ]
+   },
+   {
+    "i": 15,
+    "tag": "button",
+    "tid": "course-slow",
+    "text": "Slow",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     647,
+     558,
+     59,
+     36
+    ]
+   },
+   {
+    "i": 16,
+    "tag": "button",
+    "tid": "course-prev",
+    "text": "← Back",
+    "href": null,
+    "type": "button",
+    "disabled": true,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     553,
+     608,
+     78,
+     36
+    ]
+   },
+   {
+    "i": 17,
+    "tag": "button",
+    "tid": "course-start",
+    "text": "Start",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     796,
+     608,
+     59,
+     36
+    ]
+   },
+   {
+    "i": 18,
+    "tag": "button",
+    "tid": "course-next",
+    "text": "Next →",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     1020,
+     608,
+     75,
+     36
+    ]
+   }
+  ],
+  "overflow": {
+   "sw": 1400,
+   "cw": 1400,
+   "wide": []
+  }
+ },
+ "/course/3": {
+  "path": "/course/3",
+  "count": 14,
+  "items": [
+   {
+    "i": 0,
+    "tag": "a",
+    "tid": null,
+    "text": "OhMyEnglish SPEAK. REMEMBER. GROW.",
+    "href": "/",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     28,
+     207,
+     40
+    ]
+   },
+   {
+    "i": 1,
+    "tag": "a",
+    "tid": "nav-home",
+    "text": "Home",
+    "href": "/",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     143,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 2,
+    "tag": "a",
+    "tid": "nav-practice",
+    "text": "Practice",
+    "href": "/course",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": "page",
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     191,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 3,
+    "tag": "a",
+    "tid": "nav-review",
+    "text": "Review",
+    "href": "/history",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     238,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 4,
+    "tag": "a",
+    "tid": "nav-progress",
+    "text": "Progress",
+    "href": "/history/weekly",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     286,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 10,
+    "tag": "a",
+    "tid": "course-back",
+    "text": "← Back",
+    "href": "/course",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     536,
+     68,
+     50,
+     20
+    ]
+   },
+   {
+    "i": 11,
+    "tag": "iframe",
+    "tid": null,
+    "text": "🕐 [1시간 Day 3] 📙 Grammar in Use BASIC (Unit 42~62)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인",
+    "href": null,
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": "🕐 [1시간 Day 3] 📙 Grammar in Use BASIC (Unit 42~62)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 유즈 베이직 mp3",
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     536,
+     98,
+     576,
+     324
+    ]
+   },
+   {
+    "i": 12,
+    "tag": "button",
+    "tid": "course-mode-auto",
+    "text": "Auto",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": "true",
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     993,
+     437,
+     51,
+     27
+    ]
+   },
+   {
+    "i": 13,
+    "tag": "button",
+    "tid": "course-mode-manual",
+    "text": "Manual",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": "false",
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     1044,
+     437,
+     67,
+     27
+    ]
+   },
+   {
+    "i": 14,
+    "tag": "button",
+    "tid": "course-listen",
+    "text": "🔊 Listen",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     553,
+     558,
+     86,
+     36
+    ]
+   },
+   {
+    "i": 15,
+    "tag": "button",
+    "tid": "course-slow",
+    "text": "Slow",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     647,
+     558,
+     59,
+     36
+    ]
+   },
+   {
+    "i": 16,
+    "tag": "button",
+    "tid": "course-prev",
+    "text": "← Back",
+    "href": null,
+    "type": "button",
+    "disabled": true,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     553,
+     608,
+     78,
+     36
+    ]
+   },
+   {
+    "i": 17,
+    "tag": "button",
+    "tid": "course-start",
+    "text": "Start",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     796,
+     608,
+     59,
+     36
+    ]
+   },
+   {
+    "i": 18,
+    "tag": "button",
+    "tid": "course-next",
+    "text": "Next →",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     1020,
+     608,
+     75,
+     36
+    ]
+   }
+  ],
+  "overflow": {
+   "sw": 1400,
+   "cw": 1400,
+   "wide": []
+  }
+ },
+ "/course/4": {
+  "path": "/course/4",
+  "count": 14,
+  "items": [
+   {
+    "i": 0,
+    "tag": "a",
+    "tid": null,
+    "text": "OhMyEnglish SPEAK. REMEMBER. GROW.",
+    "href": "/",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     28,
+     207,
+     40
+    ]
+   },
+   {
+    "i": 1,
+    "tag": "a",
+    "tid": "nav-home",
+    "text": "Home",
+    "href": "/",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     143,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 2,
+    "tag": "a",
+    "tid": "nav-practice",
+    "text": "Practice",
+    "href": "/course",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": "page",
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     191,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 3,
+    "tag": "a",
+    "tid": "nav-review",
+    "text": "Review",
+    "href": "/history",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     238,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 4,
+    "tag": "a",
+    "tid": "nav-progress",
+    "text": "Progress",
+    "href": "/history/weekly",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     286,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 10,
+    "tag": "a",
+    "tid": "course-back",
+    "text": "← Back",
+    "href": "/course",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     536,
+     68,
+     50,
+     20
+    ]
+   },
+   {
+    "i": 11,
+    "tag": "iframe",
+    "tid": null,
+    "text": "🕐 [1시간 Day 4] 📙 Grammar in Use BASIC (Unit 63~82)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인",
+    "href": null,
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": "🕐 [1시간 Day 4] 📙 Grammar in Use BASIC (Unit 63~82)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 유즈 베이직 mp3",
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     536,
+     98,
+     576,
+     324
+    ]
+   },
+   {
+    "i": 12,
+    "tag": "button",
+    "tid": "course-mode-auto",
+    "text": "Auto",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": "true",
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     993,
+     437,
+     51,
+     27
+    ]
+   },
+   {
+    "i": 13,
+    "tag": "button",
+    "tid": "course-mode-manual",
+    "text": "Manual",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": "false",
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     1044,
+     437,
+     67,
+     27
+    ]
+   },
+   {
+    "i": 14,
+    "tag": "button",
+    "tid": "course-listen",
+    "text": "🔊 Listen",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     553,
+     558,
+     86,
+     36
+    ]
+   },
+   {
+    "i": 15,
+    "tag": "button",
+    "tid": "course-slow",
+    "text": "Slow",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     647,
+     558,
+     59,
+     36
+    ]
+   },
+   {
+    "i": 16,
+    "tag": "button",
+    "tid": "course-prev",
+    "text": "← Back",
+    "href": null,
+    "type": "button",
+    "disabled": true,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     553,
+     608,
+     78,
+     36
+    ]
+   },
+   {
+    "i": 17,
+    "tag": "button",
+    "tid": "course-start",
+    "text": "Start",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     796,
+     608,
+     59,
+     36
+    ]
+   },
+   {
+    "i": 18,
+    "tag": "button",
+    "tid": "course-next",
+    "text": "Next →",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     1020,
+     608,
+     75,
+     36
+    ]
+   }
+  ],
+  "overflow": {
+   "sw": 1400,
+   "cw": 1400,
+   "wide": []
+  }
+ },
+ "/course/5": {
+  "path": "/course/5",
+  "count": 14,
+  "items": [
+   {
+    "i": 0,
+    "tag": "a",
+    "tid": null,
+    "text": "OhMyEnglish SPEAK. REMEMBER. GROW.",
+    "href": "/",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     28,
+     207,
+     40
+    ]
+   },
+   {
+    "i": 1,
+    "tag": "a",
+    "tid": "nav-home",
+    "text": "Home",
+    "href": "/",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     143,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 2,
+    "tag": "a",
+    "tid": "nav-practice",
+    "text": "Practice",
+    "href": "/course",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": "page",
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     191,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 3,
+    "tag": "a",
+    "tid": "nav-review",
+    "text": "Review",
+    "href": "/history",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     238,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 4,
+    "tag": "a",
+    "tid": "nav-progress",
+    "text": "Progress",
+    "href": "/history/weekly",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     286,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 10,
+    "tag": "a",
+    "tid": "course-back",
+    "text": "← Back",
+    "href": "/course",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     536,
+     68,
+     50,
+     20
+    ]
+   },
+   {
+    "i": 11,
+    "tag": "iframe",
+    "tid": null,
+    "text": "🕐 [1시간 Day 5] 📙 Grammar in Use BASIC (Unit 83~100)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 ",
+    "href": null,
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": "🕐 [1시간 Day 5] 📙 Grammar in Use BASIC (Unit 83~100)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 유즈 베이직 mp3",
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     536,
+     98,
+     576,
+     324
+    ]
+   },
+   {
+    "i": 12,
+    "tag": "button",
+    "tid": "course-mode-auto",
+    "text": "Auto",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": "true",
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     993,
+     437,
+     51,
+     27
+    ]
+   },
+   {
+    "i": 13,
+    "tag": "button",
+    "tid": "course-mode-manual",
+    "text": "Manual",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": "false",
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     1044,
+     437,
+     67,
+     27
+    ]
+   },
+   {
+    "i": 14,
+    "tag": "button",
+    "tid": "course-listen",
+    "text": "🔊 Listen",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     553,
+     558,
+     86,
+     36
+    ]
+   },
+   {
+    "i": 15,
+    "tag": "button",
+    "tid": "course-slow",
+    "text": "Slow",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     647,
+     558,
+     59,
+     36
+    ]
+   },
+   {
+    "i": 16,
+    "tag": "button",
+    "tid": "course-prev",
+    "text": "← Back",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     553,
+     608,
+     78,
+     36
+    ]
+   },
+   {
+    "i": 17,
+    "tag": "button",
+    "tid": "course-start",
+    "text": "Start",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     796,
+     608,
+     59,
+     36
+    ]
+   },
+   {
+    "i": 18,
+    "tag": "button",
+    "tid": "course-next",
+    "text": "Next →",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     1020,
+     608,
+     75,
+     36
+    ]
+   }
+  ],
+  "overflow": {
+   "sw": 1400,
+   "cw": 1400,
+   "wide": []
+  }
+ },
+ "/course/6": {
+  "path": "/course/6",
+  "count": 14,
+  "items": [
+   {
+    "i": 0,
+    "tag": "a",
+    "tid": null,
+    "text": "OhMyEnglish SPEAK. REMEMBER. GROW.",
+    "href": "/",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     28,
+     207,
+     40
+    ]
+   },
+   {
+    "i": 1,
+    "tag": "a",
+    "tid": "nav-home",
+    "text": "Home",
+    "href": "/",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     143,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 2,
+    "tag": "a",
+    "tid": "nav-practice",
+    "text": "Practice",
+    "href": "/course",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": "page",
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     191,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 3,
+    "tag": "a",
+    "tid": "nav-review",
+    "text": "Review",
+    "href": "/history",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     238,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 4,
+    "tag": "a",
+    "tid": "nav-progress",
+    "text": "Progress",
+    "href": "/history/weekly",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     286,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 10,
+    "tag": "a",
+    "tid": "course-back",
+    "text": "← Back",
+    "href": "/course",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     536,
+     68,
+     50,
+     20
+    ]
+   },
+   {
+    "i": 11,
+    "tag": "iframe",
+    "tid": null,
+    "text": "🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머",
+    "href": null,
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": "🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 유즈 베이직 mp3",
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     536,
+     98,
+     576,
+     324
+    ]
+   },
+   {
+    "i": 12,
+    "tag": "button",
+    "tid": "course-mode-auto",
+    "text": "Auto",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": "true",
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     993,
+     437,
+     51,
+     27
+    ]
+   },
+   {
+    "i": 13,
+    "tag": "button",
+    "tid": "course-mode-manual",
+    "text": "Manual",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": "false",
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     1044,
+     437,
+     67,
+     27
+    ]
+   },
+   {
+    "i": 14,
+    "tag": "button",
+    "tid": "course-listen",
+    "text": "🔊 Listen",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     553,
+     558,
+     86,
+     36
+    ]
+   },
+   {
+    "i": 15,
+    "tag": "button",
+    "tid": "course-slow",
+    "text": "Slow",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     647,
+     558,
+     59,
+     36
+    ]
+   },
+   {
+    "i": 16,
+    "tag": "button",
+    "tid": "course-prev",
+    "text": "← Back",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     553,
+     608,
+     78,
+     36
+    ]
+   },
+   {
+    "i": 17,
+    "tag": "button",
+    "tid": "course-start",
+    "text": "Start",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     796,
+     608,
+     59,
+     36
+    ]
+   },
+   {
+    "i": 18,
+    "tag": "button",
+    "tid": "course-next",
+    "text": "Next →",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     1020,
+     608,
+     75,
+     36
+    ]
+   }
+  ],
+  "overflow": {
+   "sw": 1400,
+   "cw": 1400,
+   "wide": []
+  }
+ },
+ "/videos": {
+  "path": "/videos",
+  "count": 10,
+  "items": [
+   {
+    "i": 0,
+    "tag": "a",
+    "tid": null,
+    "text": "OhMyEnglish SPEAK. REMEMBER. GROW.",
+    "href": "/",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     28,
+     207,
+     40
+    ]
+   },
+   {
+    "i": 1,
+    "tag": "a",
+    "tid": "nav-home",
+    "text": "Home",
+    "href": "/",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     143,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 2,
+    "tag": "a",
+    "tid": "nav-practice",
+    "text": "Practice",
+    "href": "/course",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": "page",
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     191,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 3,
+    "tag": "a",
+    "tid": "nav-review",
+    "text": "Review",
+    "href": "/history",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     238,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 4,
+    "tag": "a",
+    "tid": "nav-progress",
+    "text": "Progress",
+    "href": "/history/weekly",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     286,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 10,
+    "tag": "a",
+    "tid": null,
+    "text": "← Home",
+    "href": "/",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     536,
+     69,
+     64,
+     21
+    ]
+   },
+   {
+    "i": 11,
+    "tag": "input",
+    "tid": null,
+    "text": "",
+    "href": null,
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     536,
+     208,
+     495,
+     34
+    ]
+   },
+   {
+    "i": 12,
+    "tag": "button",
+    "tid": null,
+    "text": "Check",
+    "href": null,
+    "type": "button",
+    "disabled": true,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     1039,
+     208,
+     73,
+     34
+    ]
+   },
+   {
+    "i": 13,
+    "tag": "a",
+    "tid": null,
+    "text": "🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머",
+    "href": "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     712,
+     275,
+     389,
+     69
+    ]
+   },
+   {
+    "i": 14,
+    "tag": "button",
+    "tid": null,
+    "text": "Delete",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     712,
+     378,
+     74,
+     34
+    ]
+   }
+  ],
+  "overflow": {
+   "sw": 1400,
+   "cw": 1400,
+   "wide": []
+  }
+ },
+ "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2": {
+  "path": "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+  "count": 8,
+  "items": [
+   {
+    "i": 0,
+    "tag": "a",
+    "tid": null,
+    "text": "OhMyEnglish SPEAK. REMEMBER. GROW.",
+    "href": "/",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     28,
+     207,
+     40
+    ]
+   },
+   {
+    "i": 1,
+    "tag": "a",
+    "tid": "nav-home",
+    "text": "Home",
+    "href": "/",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     143,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 2,
+    "tag": "a",
+    "tid": "nav-practice",
+    "text": "Practice",
+    "href": "/course",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": "page",
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     191,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 3,
+    "tag": "a",
+    "tid": "nav-review",
+    "text": "Review",
+    "href": "/history",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     238,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 4,
+    "tag": "a",
+    "tid": "nav-progress",
+    "text": "Progress",
+    "href": "/history/weekly",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     286,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 10,
+    "tag": "a",
+    "tid": null,
+    "text": "← Videos",
+    "href": "/videos",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     536,
+     69,
+     70,
+     21
+    ]
+   },
+   {
+    "i": 11,
+    "tag": "iframe",
+    "tid": null,
+    "text": "🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머",
+    "href": null,
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": "🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 유즈 베이직 mp3",
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     536,
+     236,
+     640,
+     360
+    ]
+   },
+   {
+    "i": 12,
+    "tag": "button",
+    "tid": null,
+    "text": "Mark start",
+    "href": null,
+    "type": "button",
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     536,
+     620,
+     102,
+     34
+    ]
+   }
+  ],
+  "overflow": {
+   "sw": 1400,
+   "cw": 1400,
+   "wide": []
+  }
+ },
+ "/history": {
+  "path": "/history",
+  "count": 7,
+  "items": [
+   {
+    "i": 0,
+    "tag": "a",
+    "tid": null,
+    "text": "OhMyEnglish SPEAK. REMEMBER. GROW.",
+    "href": "/",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     28,
+     207,
+     40
+    ]
+   },
+   {
+    "i": 1,
+    "tag": "a",
+    "tid": "nav-home",
+    "text": "Home",
+    "href": "/",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     143,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 2,
+    "tag": "a",
+    "tid": "nav-practice",
+    "text": "Practice",
+    "href": "/course",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     191,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 3,
+    "tag": "a",
+    "tid": "nav-review",
+    "text": "Review",
+    "href": "/history",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": "page",
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     238,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 4,
+    "tag": "a",
+    "tid": "nav-progress",
+    "text": "Progress",
+    "href": "/history/weekly",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     286,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 10,
+    "tag": "a",
+    "tid": null,
+    "text": "Weekly report →",
+    "href": "/history/weekly",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     536,
+     1263,
+     122,
+     21
+    ]
+   },
+   {
+    "i": 11,
+    "tag": "a",
+    "tid": null,
+    "text": "← Home",
+    "href": "/",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     536,
+     1295,
+     64,
+     21
+    ]
+   }
+  ],
+  "overflow": {
+   "sw": 1400,
+   "cw": 1400,
+   "wide": []
+  }
+ },
+ "/history/weekly": {
+  "path": "/history/weekly",
+  "count": 6,
+  "items": [
+   {
+    "i": 0,
+    "tag": "a",
+    "tid": null,
+    "text": "OhMyEnglish SPEAK. REMEMBER. GROW.",
+    "href": "/",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     28,
+     207,
+     40
+    ]
+   },
+   {
+    "i": 1,
+    "tag": "a",
+    "tid": "nav-home",
+    "text": "Home",
+    "href": "/",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     143,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 2,
+    "tag": "a",
+    "tid": "nav-practice",
+    "text": "Practice",
+    "href": "/course",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     191,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 3,
+    "tag": "a",
+    "tid": "nav-review",
+    "text": "Review",
+    "href": "/history",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     238,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 4,
+    "tag": "a",
+    "tid": "nav-progress",
+    "text": "Progress",
+    "href": "/history/weekly",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": "page",
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     286,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 10,
+    "tag": "a",
+    "tid": null,
+    "text": "← History",
+    "href": "/history",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     536,
+     423,
+     73,
+     21
+    ]
+   }
+  ],
+  "overflow": {
+   "sw": 1400,
+   "cw": 1400,
+   "wide": []
+  }
+ },
+ "/results/c7482f05-42ef-42b9-b2ff-89d344d2f7dc": {
+  "path": "/results/c7482f05-42ef-42b9-b2ff-89d344d2f7dc",
+  "count": 12,
+  "items": [
+   {
+    "i": 0,
+    "tag": "a",
+    "tid": null,
+    "text": "OhMyEnglish SPEAK. REMEMBER. GROW.",
+    "href": "/",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     28,
+     207,
+     40
+    ]
+   },
+   {
+    "i": 1,
+    "tag": "a",
+    "tid": "nav-home",
+    "text": "Home",
+    "href": "/",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     143,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 2,
+    "tag": "a",
+    "tid": "nav-practice",
+    "text": "Practice",
+    "href": "/course",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     191,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 3,
+    "tag": "a",
+    "tid": "nav-review",
+    "text": "Review",
+    "href": "/history",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": "page",
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     238,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 4,
+    "tag": "a",
+    "tid": "nav-progress",
+    "text": "Progress",
+    "href": "/history/weekly",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": true,
+    "rect": [
+     20,
+     286,
+     207,
+     44
+    ]
+   },
+   {
+    "i": 10,
+    "tag": "a",
+    "tid": null,
+    "text": "Practice this",
+    "href": "/?source=additional&pattern=verb_form_subject_verb_agreement",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     551,
+     1081,
+     91,
+     21
+    ]
+   },
+   {
+    "i": 11,
+    "tag": "a",
+    "tid": null,
+    "text": "Practice this",
+    "href": "/?source=additional&pattern=verb_tense_past_simple",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     551,
+     1233,
+     91,
+     21
+    ]
+   },
+   {
+    "i": 12,
+    "tag": "a",
+    "tid": null,
+    "text": "Practice this",
+    "href": "/?source=additional&pattern=article_missing_before_noun",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     551,
+     1385,
+     91,
+     21
+    ]
+   },
+   {
+    "i": 13,
+    "tag": "a",
+    "tid": null,
+    "text": "Practice this",
+    "href": "/?source=additional&pattern=verb_form_be_plus_main_verb",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     551,
+     1537,
+     91,
+     21
+    ]
+   },
+   {
+    "i": 14,
+    "tag": "a",
+    "tid": null,
+    "text": "Practice this",
+    "href": "/?source=additional&pattern=business_expression_job_title_intro",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     551,
+     1689,
+     91,
+     21
+    ]
+   },
+   {
+    "i": 15,
+    "tag": "a",
+    "tid": null,
+    "text": "← Home",
+    "href": "/",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     536,
+     1745,
+     64,
+     21
+    ]
+   },
+   {
+    "i": 16,
+    "tag": "a",
+    "tid": null,
+    "text": "History →",
+    "href": "/history",
+    "type": null,
+    "disabled": false,
+    "ariaDisabled": null,
+    "current": null,
+    "pressed": null,
+    "title": null,
+    "visible": true,
+    "inNav": false,
+    "rect": [
+     536,
+     1777,
+     73,
+     21
+    ]
+   }
+  ],
+  "overflow": {
+   "sw": 1400,
+   "cw": 1400,
+   "wide": []
+  }
+ },
+ "logs": [
+  {
+   "t": 1793500241155,
+   "kind": "log.warning",
+   "url": "https://www.youtube.com/s/player/11a45ffb/www-widgetapi.vflset/www-widgetapi.js",
+   "text": "Failed to execute 'postMessage' on 'DOMWindow': The target origin provided ('https://www.youtube.com') does not match the recipient window's origin ('http://localhost:3000')."
+  }
+ ]
+}

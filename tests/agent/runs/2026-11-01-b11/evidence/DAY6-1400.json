@@ -1,0 +1,436 @@
+{
+ "open": {
+  "clicked": null,
+  "pt": null,
+  "phase": null,
+  "num": "Sentence 2 / 5",
+  "unit": "Unit 101 · 시간의 at · on · in",
+  "sentence": "I was born in 1990.",
+  "attempts": "Try 0",
+  "notice": null,
+  "prevDisabled": false,
+  "finish": "absent",
+  "retry": false,
+  "start": true,
+  "auto": "true",
+  "manual": "false",
+  "follow": null,
+  "path": "/course/6",
+  "reqs": []
+ },
+ "manual": {
+  "clicked": "course-mode-manual",
+  "pt": [
+   1077,
+   451
+  ],
+  "phase": null,
+  "num": "Sentence 2 / 5",
+  "unit": "Unit 101 · 시간의 at · on · in",
+  "sentence": "I was born in 1990.",
+  "attempts": "Try 0",
+  "notice": null,
+  "prevDisabled": false,
+  "finish": "absent",
+  "retry": false,
+  "start": true,
+  "auto": "false",
+  "manual": "true",
+  "follow": null,
+  "path": "/course/6",
+  "reqs": []
+ },
+ "startPhases": [
+  "listen",
+  "repeat",
+  "done"
+ ],
+ "afterStart": {
+  "phase": "done",
+  "num": "Sentence 2 / 5",
+  "unit": "Unit 101 · 시간의 at · on · in",
+  "sentence": "I was born in 1990.",
+  "attempts": "Try 0",
+  "notice": "I can't check your speaking now. You can keep going.",
+  "prevDisabled": false,
+  "finish": "absent",
+  "retry": true,
+  "start": false,
+  "auto": "false",
+  "manual": "true",
+  "follow": null,
+  "path": "/course/6",
+  "reqs": [
+   "POST /api/course/days/6/progress",
+   "OPTIONS /api/course/days/6/progress",
+   "OPTIONS /api/course/sentences/u101-s2/attempts",
+   "POST /api/course/sentences/u101-s2/attempts"
+  ]
+ },
+ "retryPhases": [
+  "listen",
+  "repeat",
+  "done"
+ ],
+ "afterRetry": {
+  "phase": "done",
+  "num": "Sentence 2 / 5",
+  "unit": "Unit 101 · 시간의 at · on · in",
+  "sentence": "I was born in 1990.",
+  "attempts": "Try 0",
+  "notice": "I can't check your speaking now. You can keep going.",
+  "prevDisabled": false,
+  "finish": "absent",
+  "retry": true,
+  "start": false,
+  "auto": "false",
+  "manual": "true",
+  "follow": null,
+  "path": "/course/6",
+  "reqs": [
+   "OPTIONS /api/course/sentences/u101-s2/attempts",
+   "POST /api/course/sentences/u101-s2/attempts",
+   "POST /api/course/days/6/progress",
+   "OPTIONS /api/course/days/6/progress"
+  ]
+ },
+ "slowPhases": [
+  "listen",
+  "repeat",
+  "done"
+ ],
+ "afterSlow": {
+  "phase": "done",
+  "num": "Sentence 2 / 5",
+  "unit": "Unit 101 · 시간의 at · on · in",
+  "sentence": "I was born in 1990.",
+  "attempts": "Try 0",
+  "notice": "I can't check your speaking now. You can keep going.",
+  "prevDisabled": false,
+  "finish": "absent",
+  "retry": true,
+  "start": false,
+  "auto": "false",
+  "manual": "true",
+  "follow": null,
+  "path": "/course/6"
+ },
+ "listenPhases": [
+  "listen",
+  "repeat",
+  "done"
+ ],
+ "afterListen": {
+  "phase": "done",
+  "num": "Sentence 2 / 5",
+  "unit": "Unit 101 · 시간의 at · on · in",
+  "sentence": "I was born in 1990.",
+  "attempts": "Try 0",
+  "notice": "I can't check your speaking now. You can keep going.",
+  "prevDisabled": false,
+  "finish": "absent",
+  "retry": true,
+  "start": false,
+  "auto": "false",
+  "manual": "true",
+  "follow": null,
+  "path": "/course/6"
+ },
+ "next": {
+  "clicked": "course-next",
+  "pt": [
+   1057,
+   683
+  ],
+  "phase": null,
+  "num": "Sentence 3 / 5",
+  "unit": "Unit 101 · 시간의 at · on · in",
+  "sentence": "We have a party on Friday.",
+  "attempts": "Try 0",
+  "notice": null,
+  "prevDisabled": false,
+  "finish": "absent",
+  "retry": false,
+  "start": true,
+  "auto": "false",
+  "manual": "true",
+  "follow": null,
+  "path": "/course/6",
+  "reqs": [
+   "OPTIONS /api/course/days/6/progress",
+   "POST /api/course/days/6/progress"
+  ]
+ },
+ "prev": {
+  "clicked": "course-prev",
+  "pt": [
+   592,
+   626
+  ],
+  "phase": null,
+  "num": "Sentence 2 / 5",
+  "unit": "Unit 101 · 시간의 at · on · in",
+  "sentence": "I was born in 1990.",
+  "attempts": "Try 0",
+  "notice": null,
+  "prevDisabled": false,
+  "finish": "absent",
+  "retry": false,
+  "start": true,
+  "auto": "false",
+  "manual": "true",
+  "follow": null,
+  "path": "/course/6",
+  "reqs": [
+   "OPTIONS /api/course/days/6/progress",
+   "POST /api/course/days/6/progress"
+  ]
+ },
+ "auto": {
+  "clicked": "course-mode-auto",
+  "pt": [
+   1018,
+   451
+  ],
+  "phase": null,
+  "num": "Sentence 2 / 5",
+  "unit": "Unit 101 · 시간의 at · on · in",
+  "sentence": "I was born in 1990.",
+  "attempts": "Try 0",
+  "notice": null,
+  "prevDisabled": false,
+  "finish": "absent",
+  "retry": false,
+  "start": true,
+  "auto": "true",
+  "manual": "false",
+  "follow": null,
+  "path": "/course/6",
+  "reqs": []
+ },
+ "autoPhases": [
+  "listen",
+  "repeat",
+  "done",
+  "listen",
+  "repeat",
+  "done",
+  "listen",
+  "repeat",
+  "done",
+  "listen",
+  "repeat"
+ ],
+ "afterAuto": {
+  "phase": "repeat",
+  "num": "Sentence 5 / 5",
+  "unit": "Unit 101 · 시간의 at · on · in",
+  "sentence": "The release is on May 3rd.",
+  "attempts": "Try 0",
+  "notice": null,
+  "prevDisabled": false,
+  "finish": "absent",
+  "retry": true,
+  "start": false,
+  "auto": "true",
+  "manual": "false",
+  "follow": null,
+  "path": "/course/6",
+  "reqs": [
+   "POST /api/course/days/6/progress",
+   "OPTIONS /api/course/days/6/progress",
+   "OPTIONS /api/course/sentences/u101-s2/attempts",
+   "POST /api/course/sentences/u101-s2/attempts",
+   "OPTIONS /api/course/sentences/u101-s3/attempts",
+   "POST /api/course/sentences/u101-s3/attempts",
+   "OPTIONS /api/course/sentences/u101-s4/attempts",
+   "POST /api/course/sentences/u101-s4/attempts"
+  ]
+ },
+ "manualAgain": {
+  "clicked": "course-mode-manual",
+  "pt": [
+   1077,
+   451
+  ],
+  "phase": "done",
+  "num": "Sentence 5 / 5",
+  "unit": "Unit 101 · 시간의 at · on · in",
+  "sentence": "The release is on May 3rd.",
+  "attempts": "Try 0",
+  "notice": "I can't check your speaking now. You can keep going.",
+  "prevDisabled": false,
+  "finish": "absent",
+  "retry": true,
+  "start": false,
+  "auto": "false",
+  "manual": "true",
+  "follow": null,
+  "path": "/course/6",
+  "reqs": [
+   "POST /api/course/days/6/progress",
+   "OPTIONS /api/course/days/6/progress",
+   "OPTIONS /api/course/sentences/u101-s5/attempts",
+   "POST /api/course/sentences/u101-s5/attempts"
+  ]
+ },
+ "nextCountToLast": 60,
+ "last": {
+  "clicked": null,
+  "pt": null,
+  "phase": null,
+  "num": "Sentence 5 / 5",
+  "unit": "Unit 113 · 구동사 2 put on · take off · turn on",
+  "sentence": "She threw away the old papers.",
+  "attempts": "Try 0",
+  "notice": null,
+  "prevDisabled": false,
+  "finish": true,
+  "retry": false,
+  "start": true,
+  "auto": "false",
+  "manual": "true",
+  "follow": "Go to Unit 101 (where the video is)",
+  "path": "/course/6",
+  "reqs": []
+ },
+ "lastPhases": [
+  "listen",
+  "repeat",
+  "done"
+ ],
+ "afterLast": {
+  "phase": "done",
+  "num": "Sentence 5 / 5",
+  "unit": "Unit 113 · 구동사 2 put on · take off · turn on",
+  "sentence": "She threw away the old papers.",
+  "attempts": "Try 0",
+  "notice": "I can't check your speaking now. You can keep going.",
+  "prevDisabled": false,
+  "finish": false,
+  "retry": true,
+  "start": false,
+  "auto": "false",
+  "manual": "true",
+  "follow": null,
+  "path": "/course/6",
+  "reqs": [
+   "POST /api/course/days/6/progress",
+   "OPTIONS /api/course/days/6/progress",
+   "OPTIONS /api/course/sentences/u113-s5/attempts",
+   "POST /api/course/sentences/u113-s5/attempts"
+  ]
+ },
+ "finish": {
+  "clicked": "course-finish",
+  "pt": [
+   1049,
+   683
+  ],
+  "phase": null,
+  "num": "Sentence 1 / 5",
+  "unit": "Unit 101 · 시간의 at · on · in",
+  "sentence": "The meeting starts at ten.",
+  "attempts": "Try 0",
+  "notice": "You finished this Day!",
+  "prevDisabled": true,
+  "finish": "absent",
+  "retry": false,
+  "start": true,
+  "auto": "false",
+  "manual": "true",
+  "follow": null,
+  "path": "/course/6",
+  "reqs": [
+   "OPTIONS /api/course/days/6/progress",
+   "POST /api/course/days/6/progress"
+  ]
+ },
+ "finishText": "← Back\nDay 6 · Unit 101–113\nUnit 101 · 시간의 at · on · in\nAuto\nManual\nSentence 1 / 5\nTry 0\n\nThe meeting starts at ten.\n\n🔊 Listen\nSlow\n\nYou finished this Day!\n\n← Back\nStart\nNext →",
+ "back": {
+  "clicked": "course-back",
+  "pt": [
+   561,
+   78
+  ],
+  "phase": null,
+  "num": null,
+  "unit": null,
+  "sentence": null,
+  "attempts": null,
+  "notice": null,
+  "prevDisabled": null,
+  "finish": "absent",
+  "retry": false,
+  "start": false,
+  "follow": null,
+  "path": "/course",
+  "reqs": [
+   "POST /api/course/days/6/progress",
+   "GET /api/course",
+   "OPTIONS /api/course/days/6/progress"
+  ]
+ },
+ "logs": [
+  {
+   "t": 1793500575881,
+   "kind": "log.warning",
+   "url": "https://www.youtube.com/s/player/11a45ffb/www-widgetapi.vflset/www-widgetapi.js",
+   "text": "Failed to execute 'postMessage' on 'DOMWindow': The target origin provided ('https://www.youtube.com') does not match the recipient window's origin ('http://localhost:3000')."
+  },
+  {
+   "t": 1793500584415,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u101-s2/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793500595287,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u101-s2/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793500608126,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u101-s2/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793500619442,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u101-s2/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793500634554,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u101-s2/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793500640648,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u101-s3/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793500646524,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u101-s4/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793500652304,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u101-s5/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793500667767,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u113-s5/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  }
+ ]
+}

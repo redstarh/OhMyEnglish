@@ -1,0 +1,457 @@
+{
+ "idleBoxes": {
+  "home-hero": [
+   296,
+   128,
+   669,
+   283
+  ],
+  "home-progress": [
+   985,
+   128,
+   367,
+   283
+  ],
+  "home-path": [
+   296,
+   443,
+   668,
+   335
+  ],
+  "home-focus": [
+   996,
+   443,
+   356,
+   335
+  ],
+  "quick-shadowing": [
+   296,
+   809,
+   339,
+   158
+  ],
+  "quick-videos": [
+   655,
+   809,
+   339,
+   158
+  ],
+  "quick-weak-patterns": [
+   1013,
+   809,
+   339,
+   158
+  ],
+  "home-more-practice": [
+   296,
+   999,
+   1056,
+   144
+  ],
+  "home-streak": [
+   1227,
+   50,
+   125,
+   32
+  ]
+ },
+ "idleState": {
+  "path": "/",
+  "heroMode": "idle",
+  "panelInHero": false,
+  "failedInHero": null,
+  "failed": null,
+  "navLocked": [
+   null
+  ],
+  "navTitle": [
+   null
+  ],
+  "overlay": false,
+  "fixedBig": 0,
+  "scrollY": 0,
+  "heroTop": 128,
+  "chat": 0
+ },
+ "idleLocks": {
+  "links": [
+   {
+    "tid": "logo",
+    "aria": null,
+    "tab": null,
+    "title": null,
+    "pe": "auto"
+   },
+   {
+    "tid": "nav-home",
+    "aria": null,
+    "tab": null,
+    "title": null,
+    "pe": "auto"
+   },
+   {
+    "tid": "nav-practice",
+    "aria": null,
+    "tab": null,
+    "title": null,
+    "pe": "auto"
+   },
+   {
+    "tid": "nav-review",
+    "aria": null,
+    "tab": null,
+    "title": null,
+    "pe": "auto"
+   },
+   {
+    "tid": "nav-progress",
+    "aria": null,
+    "tab": null,
+    "title": null,
+    "pe": "auto"
+   },
+   {
+    "tid": "home-path-all",
+    "aria": null,
+    "tab": null,
+    "title": null,
+    "pe": "auto"
+   },
+   {
+    "tid": "path-day-5",
+    "aria": null,
+    "tab": null,
+    "title": null,
+    "pe": "auto"
+   },
+   {
+    "tid": "path-day-6",
+    "aria": null,
+    "tab": null,
+    "title": null,
+    "pe": "auto"
+   },
+   {
+    "tid": "quick-videos",
+    "aria": null,
+    "tab": null,
+    "title": null,
+    "pe": "auto"
+   },
+   {
+    "tid": "practice-videos",
+    "aria": null,
+    "tab": null,
+    "title": null,
+    "pe": "auto"
+   },
+   {
+    "tid": "practice-course",
+    "aria": null,
+    "tab": null,
+    "title": null,
+    "pe": "auto"
+   }
+  ],
+  "buttons": [
+   {
+    "tid": "start-session",
+    "disabled": false
+   },
+   {
+    "tid": "focus-practice",
+    "disabled": false
+   },
+   {
+    "tid": "quick-shadowing",
+    "disabled": false
+   },
+   {
+    "tid": "quick-weak-patterns",
+    "disabled": false
+   },
+   {
+    "tid": "practice-free_talk",
+    "disabled": false
+   },
+   {
+    "tid": "practice-weak_patterns",
+    "disabled": false
+   },
+   {
+    "tid": "practice-five_questions",
+    "disabled": false
+   },
+   {
+    "tid": "practice-pronunciation",
+    "disabled": false
+   },
+   {
+    "tid": "practice-shadowing",
+    "disabled": false
+   },
+   {
+    "tid": "practice-roleplay",
+    "disabled": true
+   }
+  ]
+ },
+ "click": [
+  405,
+  361
+ ],
+ "sessionBoxes": {
+  "home-hero": [
+   296,
+   128,
+   669,
+   133
+  ],
+  "home-progress": [
+   985,
+   128,
+   367,
+   283
+  ],
+  "home-path": [
+   296,
+   443,
+   668,
+   335
+  ],
+  "home-focus": [
+   996,
+   443,
+   356,
+   335
+  ],
+  "quick-shadowing": [
+   296,
+   809,
+   339,
+   158
+  ],
+  "quick-videos": [
+   655,
+   809,
+   339,
+   158
+  ],
+  "quick-weak-patterns": [
+   1013,
+   809,
+   339,
+   158
+  ],
+  "home-more-practice": [
+   296,
+   999,
+   1056,
+   144
+  ],
+  "home-streak": [
+   1227,
+   50,
+   125,
+   32
+  ]
+ },
+ "sessionState": {
+  "path": "/",
+  "heroMode": "session",
+  "panelInHero": true,
+  "failedInHero": null,
+  "failed": null,
+  "navLocked": [
+   "true"
+  ],
+  "navTitle": [
+   "End the lesson first"
+  ],
+  "overlay": false,
+  "fixedBig": 0,
+  "scrollY": 0,
+  "heroTop": 128,
+  "chat": 0
+ },
+ "sessionStateAfterScroll": {
+  "path": "/results/1eca22f2-5e95-4e03-9c60-c19435df1506",
+  "heroMode": null,
+  "panelInHero": false,
+  "failedInHero": null,
+  "failed": null,
+  "navLocked": [
+   null
+  ],
+  "navTitle": [
+   null
+  ],
+  "overlay": false,
+  "fixedBig": 0,
+  "scrollY": 104,
+  "heroTop": null,
+  "chat": 0
+ },
+ "sessionLocks": {
+  "links": [
+   {
+    "tid": "logo",
+    "aria": null,
+    "tab": null,
+    "title": null,
+    "pe": "auto"
+   },
+   {
+    "tid": "nav-home",
+    "aria": null,
+    "tab": null,
+    "title": null,
+    "pe": "auto"
+   },
+   {
+    "tid": "nav-practice",
+    "aria": null,
+    "tab": null,
+    "title": null,
+    "pe": "auto"
+   },
+   {
+    "tid": "nav-review",
+    "aria": null,
+    "tab": null,
+    "title": null,
+    "pe": "auto"
+   },
+   {
+    "tid": "nav-progress",
+    "aria": null,
+    "tab": null,
+    "title": null,
+    "pe": "auto"
+   }
+  ],
+  "buttons": []
+ },
+ "end": {
+  "path": "/results/1eca22f2-5e95-4e03-9c60-c19435df1506",
+  "heroMode": null,
+  "panelInHero": false,
+  "failedInHero": null,
+  "failed": null,
+  "navLocked": [
+   null
+  ],
+  "navTitle": [
+   null
+  ],
+  "overlay": false,
+  "fixedBig": 0,
+  "scrollY": 104,
+  "heroTop": null,
+  "chat": 0
+ },
+ "mo": [
+  [
+   2,
+   "/",
+   "idle",
+   null,
+   "",
+   0,
+   false,
+   0
+  ],
+  [
+   30,
+   "/",
+   "session",
+   null,
+   "",
+   0,
+   false,
+   0
+  ],
+  [
+   37,
+   "/",
+   "session",
+   null,
+   "true",
+   0,
+   false,
+   0
+  ],
+  [
+   80,
+   "/",
+   "session",
+   null,
+   "true",
+   1,
+   false,
+   0
+  ],
+  [
+   86,
+   "/",
+   "session",
+   null,
+   "true",
+   2,
+   false,
+   0
+  ],
+  [
+   93,
+   "/",
+   "session",
+   null,
+   "true",
+   4,
+   false,
+   0
+  ],
+  [
+   100,
+   "/",
+   "session",
+   null,
+   "true",
+   6,
+   false,
+   0
+  ],
+  [
+   147,
+   "/results/1eca22f2-5e95-4e03-9c60-c19435df1506",
+   null,
+   null,
+   "true",
+   0,
+   false,
+   0
+  ],
+  [
+   155,
+   "/results/1eca22f2-5e95-4e03-9c60-c19435df1506",
+   null,
+   null,
+   "",
+   0,
+   false,
+   0
+  ]
+ ],
+ "sockets": [
+  "ws://localhost:8002/ws/session?source=recommended"
+ ],
+ "reqs": [
+  "GET /api/sessions/next-plan",
+  "GET /api/history",
+  "GET /api/weekly-report",
+  "GET /api/course",
+  "GET /api/daily-summary",
+  "GET /api/sessions/1eca22f2-5e95-4e03-9c60-c19435df1506/results"
+ ],
+ "logs": []
+}

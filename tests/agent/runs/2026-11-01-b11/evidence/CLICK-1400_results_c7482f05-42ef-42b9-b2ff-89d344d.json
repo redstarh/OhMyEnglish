@@ -1,0 +1,322 @@
+{
+ "path": "/results/c7482f05-42ef-42b9-b2ff-89d344d2f7dc",
+ "results": [
+  {
+   "idx": 0,
+   "tag": "a",
+   "tid": null,
+   "text": "OhMyEnglish SPEAK. REMEMBER. GROW.",
+   "href": "/",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/",
+    "hero": "idle",
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "requests": [
+    "GET /api/sessions/next-plan",
+    "GET /api/history",
+    "GET /api/weekly-report",
+    "GET /api/course",
+    "GET /api/daily-summary"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 1,
+   "tag": "a",
+   "tid": "nav-home",
+   "text": "Home",
+   "href": "/",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/",
+    "hero": "idle",
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "requests": [
+    "GET /api/sessions/next-plan",
+    "GET /api/history",
+    "GET /api/weekly-report",
+    "GET /api/course",
+    "GET /api/daily-summary"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 2,
+   "tag": "a",
+   "tid": "nav-practice",
+   "text": "Practice",
+   "href": "/course",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/course",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "requests": [
+    "GET /api/course"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 3,
+   "tag": "a",
+   "tid": "nav-review",
+   "text": "Review",
+   "href": "/history",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/history",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "requests": [
+    "GET /api/history"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 4,
+   "tag": "a",
+   "tid": "nav-progress",
+   "text": "Progress",
+   "href": "/history/weekly",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/history/weekly",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "requests": [
+    "GET /api/weekly-report"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 5,
+   "tag": "a",
+   "tid": null,
+   "text": "Practice this",
+   "href": "/?source=additional&pattern=verb_form_subject_verb_agreement",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/results/5358920a-6556-4044-8a14-e19f8104a413",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "sessionEnd": "/results/5358920a-6556-4044-8a14-e19f8104a413",
+   "requests": [
+    "GET /api/sessions/next-plan",
+    "GET /api/history",
+    "GET /api/weekly-report",
+    "GET /api/course",
+    "GET /api/daily-summary",
+    "GET /api/sessions/5358920a-6556-4044-8a14-e19f8104a413/results"
+   ],
+   "sockets": [
+    "ws://localhost:8002/ws/session?source=additional&pattern=verb_form_subject_verb_agreement"
+   ],
+   "dialogs": []
+  },
+  {
+   "idx": 6,
+   "tag": "a",
+   "tid": null,
+   "text": "Practice this",
+   "href": "/?source=additional&pattern=verb_tense_past_simple",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/results/1de40572-5314-48e7-918f-64430b8612d2",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "sessionEnd": "/results/1de40572-5314-48e7-918f-64430b8612d2",
+   "requests": [
+    "GET /api/sessions/next-plan",
+    "GET /api/history",
+    "GET /api/weekly-report",
+    "GET /api/course",
+    "GET /api/daily-summary",
+    "GET /api/sessions/1de40572-5314-48e7-918f-64430b8612d2/results"
+   ],
+   "sockets": [
+    "ws://localhost:8002/ws/session?source=additional&pattern=verb_tense_past_simple"
+   ],
+   "dialogs": []
+  },
+  {
+   "idx": 7,
+   "tag": "a",
+   "tid": null,
+   "text": "Practice this",
+   "href": "/?source=additional&pattern=article_missing_before_noun",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/results/4ce72a3a-dfc0-4266-a0fe-ad5eb35ba29a",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "sessionEnd": "/results/4ce72a3a-dfc0-4266-a0fe-ad5eb35ba29a",
+   "requests": [
+    "GET /api/sessions/next-plan",
+    "GET /api/history",
+    "GET /api/weekly-report",
+    "GET /api/course",
+    "GET /api/daily-summary",
+    "GET /api/sessions/4ce72a3a-dfc0-4266-a0fe-ad5eb35ba29a/results"
+   ],
+   "sockets": [
+    "ws://localhost:8002/ws/session?source=additional&pattern=article_missing_before_noun"
+   ],
+   "dialogs": []
+  },
+  {
+   "idx": 8,
+   "tag": "a",
+   "tid": null,
+   "text": "Practice this",
+   "href": "/?source=additional&pattern=verb_form_be_plus_main_verb",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/results/ec56f373-406d-4b2b-811d-79a794239359",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "sessionEnd": "/results/ec56f373-406d-4b2b-811d-79a794239359",
+   "requests": [
+    "GET /api/sessions/next-plan",
+    "GET /api/history",
+    "GET /api/weekly-report",
+    "GET /api/course",
+    "GET /api/daily-summary",
+    "GET /api/sessions/ec56f373-406d-4b2b-811d-79a794239359/results"
+   ],
+   "sockets": [
+    "ws://localhost:8002/ws/session?source=additional&pattern=verb_form_be_plus_main_verb"
+   ],
+   "dialogs": []
+  },
+  {
+   "idx": 9,
+   "tag": "a",
+   "tid": null,
+   "text": "Practice this",
+   "href": "/?source=additional&pattern=business_expression_job_title_intro",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/results/3f6b8688-a7b3-4ab6-840c-26f8c405f692",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "sessionEnd": "/results/3f6b8688-a7b3-4ab6-840c-26f8c405f692",
+   "requests": [
+    "GET /api/sessions/next-plan",
+    "GET /api/history",
+    "GET /api/weekly-report",
+    "GET /api/course",
+    "GET /api/daily-summary",
+    "GET /api/sessions/3f6b8688-a7b3-4ab6-840c-26f8c405f692/results"
+   ],
+   "sockets": [
+    "ws://localhost:8002/ws/session?source=additional&pattern=business_expression_job_title_intro"
+   ],
+   "dialogs": []
+  },
+  {
+   "idx": 10,
+   "tag": "a",
+   "tid": null,
+   "text": "← Home",
+   "href": "/",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/",
+    "hero": "idle",
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "requests": [
+    "GET /api/sessions/next-plan",
+    "GET /api/history",
+    "GET /api/weekly-report",
+    "GET /api/course",
+    "GET /api/daily-summary"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 11,
+   "tag": "a",
+   "tid": null,
+   "text": "History →",
+   "href": "/history",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/history",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "requests": [
+    "GET /api/history"
+   ],
+   "sockets": [],
+   "dialogs": []
+  }
+ ],
+ "logs": []
+}

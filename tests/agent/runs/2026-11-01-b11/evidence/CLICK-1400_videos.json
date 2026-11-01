@@ -1,0 +1,227 @@
+{
+ "path": "/videos",
+ "results": [
+  {
+   "idx": 0,
+   "tag": "a",
+   "tid": null,
+   "text": "OhMyEnglish SPEAK. REMEMBER. GROW.",
+   "href": "/",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/",
+    "hero": "idle",
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "requests": [
+    "GET /api/sessions/next-plan",
+    "GET /api/history",
+    "GET /api/weekly-report",
+    "GET /api/course",
+    "GET /api/daily-summary"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 1,
+   "tag": "a",
+   "tid": "nav-home",
+   "text": "Home",
+   "href": "/",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/",
+    "hero": "idle",
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "requests": [
+    "GET /api/sessions/next-plan",
+    "GET /api/history",
+    "GET /api/weekly-report",
+    "GET /api/course",
+    "GET /api/daily-summary"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 2,
+   "tag": "a",
+   "tid": "nav-practice",
+   "text": "Practice",
+   "href": "/course",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/course",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "requests": [
+    "GET /api/course"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 3,
+   "tag": "a",
+   "tid": "nav-review",
+   "text": "Review",
+   "href": "/history",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/history",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "requests": [
+    "GET /api/history"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 4,
+   "tag": "a",
+   "tid": "nav-progress",
+   "text": "Progress",
+   "href": "/history/weekly",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/history/weekly",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "requests": [
+    "GET /api/weekly-report"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 5,
+   "tag": "a",
+   "tid": null,
+   "text": "← Home",
+   "href": "/",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/",
+    "hero": "idle",
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "requests": [
+    "GET /api/sessions/next-plan",
+    "GET /api/history",
+    "GET /api/weekly-report",
+    "GET /api/course",
+    "GET /api/daily-summary"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 6,
+   "tag": "input",
+   "tid": null,
+   "text": "",
+   "href": null,
+   "disabled": false,
+   "ariaDisabled": null,
+   "skipped": "입력·삽입 요소 — 별도 시나리오"
+  },
+  {
+   "idx": 7,
+   "tag": "button",
+   "tid": null,
+   "text": "Check",
+   "href": null,
+   "disabled": true,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/videos",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": false,
+   "requests": [],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 8,
+   "tag": "a",
+   "tid": null,
+   "text": "🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~1",
+   "href": "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "requests": [
+    "GET /api/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+    "GET https://www.youtube.com/iframe_api",
+    "GET https://www.youtube.com/s/player/11a45ffb/www-widgetapi.vflset/www-widgetapi.js",
+    "GET https://www.youtube.com/embed/DjgXa-L0Zm0?enablejsapi=1&origin=http%3A%2F%2Flocalhost%3A3000&widgetid=1&forigin=http%3A%2F%2Flocalhost%3A3000%2Fvideos%2Fb502eaf3-0fdd-408c-b273-a0c58a6410d2&aoriginsup=1&vf=6"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 9,
+   "tag": "button",
+   "tid": null,
+   "text": "Delete",
+   "href": null,
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/videos",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": false,
+   "requests": [],
+   "sockets": [],
+   "dialogs": [
+    "confirm: Delete this video from the list? Your saved sentences will stay."
+   ]
+  }
+ ],
+ "logs": []
+}

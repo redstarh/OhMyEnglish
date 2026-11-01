@@ -1,0 +1,30 @@
+{
+ "path": "/course/4",
+ "results": [
+  {
+   "idx": 5,
+   "tag": "a",
+   "tid": "course-back",
+   "text": "← Back",
+   "href": "/course",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/course",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "requests": [
+    "OPTIONS /api/course/days/4/progress",
+    "POST /api/course/days/4/progress",
+    "GET /api/course"
+   ],
+   "sockets": [],
+   "dialogs": []
+  }
+ ],
+ "logs": []
+}

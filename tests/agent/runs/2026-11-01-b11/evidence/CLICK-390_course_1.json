@@ -1,0 +1,329 @@
+{
+ "path": "/course/1",
+ "results": [
+  {
+   "idx": 0,
+   "tag": "a",
+   "tid": null,
+   "text": "OhMyEnglish SPEAK. REMEMBER. GROW.",
+   "href": "/",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/",
+    "hero": "idle",
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "requests": [
+    "OPTIONS /api/course/days/1/progress",
+    "POST /api/course/days/1/progress",
+    "GET /api/sessions/next-plan",
+    "GET /api/history",
+    "GET /api/weekly-report",
+    "GET /api/course",
+    "GET /api/daily-summary"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 1,
+   "tag": "a",
+   "tid": "nav-home",
+   "text": "Home",
+   "href": "/",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/",
+    "hero": "idle",
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "requests": [
+    "OPTIONS /api/course/days/1/progress",
+    "POST /api/course/days/1/progress",
+    "GET /api/sessions/next-plan",
+    "GET /api/history",
+    "GET /api/weekly-report",
+    "GET /api/course",
+    "GET /api/daily-summary"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 2,
+   "tag": "a",
+   "tid": "nav-practice",
+   "text": "Practice",
+   "href": "/course",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/course",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "requests": [
+    "POST /api/course/days/1/progress",
+    "GET /api/course",
+    "OPTIONS /api/course/days/1/progress"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 3,
+   "tag": "a",
+   "tid": "nav-review",
+   "text": "Review",
+   "href": "/history",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/history",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "requests": [
+    "OPTIONS /api/course/days/1/progress",
+    "POST /api/course/days/1/progress",
+    "GET /api/history"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 4,
+   "tag": "a",
+   "tid": "nav-progress",
+   "text": "Progress",
+   "href": "/history/weekly",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/history/weekly",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "requests": [
+    "POST /api/course/days/1/progress",
+    "GET /api/weekly-report",
+    "OPTIONS /api/course/days/1/progress"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 5,
+   "tag": "a",
+   "tid": "course-back",
+   "text": "← Back",
+   "href": "/course",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/course",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "requests": [
+    "POST /api/course/days/1/progress",
+    "GET /api/course",
+    "OPTIONS /api/course/days/1/progress"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 6,
+   "tag": "iframe",
+   "tid": null,
+   "text": "🕐 [1시간 Day 1] 📙 Grammar in Use BASIC (Unit 1~21)",
+   "href": null,
+   "disabled": false,
+   "ariaDisabled": null,
+   "skipped": "입력·삽입 요소 — 별도 시나리오"
+  },
+  {
+   "idx": 7,
+   "tag": "button",
+   "tid": "course-mode-auto",
+   "text": "Auto",
+   "href": null,
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/course/1",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": false,
+   "requests": [
+    "POST /api/course/days/1/progress",
+    "OPTIONS /api/course/days/1/progress"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 8,
+   "tag": "button",
+   "tid": "course-mode-manual",
+   "text": "Manual",
+   "href": null,
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/course/1",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": false,
+   "requests": [
+    "OPTIONS /api/course/days/1/progress",
+    "POST /api/course/days/1/progress"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 9,
+   "tag": "button",
+   "tid": "course-listen",
+   "text": "🔊 Listen",
+   "href": null,
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/course/1",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": false,
+   "requests": [
+    "POST /api/course/days/1/progress",
+    "OPTIONS /api/course/days/1/progress"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 10,
+   "tag": "button",
+   "tid": "course-slow",
+   "text": "Slow",
+   "href": null,
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/course/1",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": false,
+   "requests": [
+    "POST /api/course/days/1/progress",
+    "OPTIONS /api/course/days/1/progress"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 11,
+   "tag": "button",
+   "tid": "course-prev",
+   "text": "← Back",
+   "href": null,
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/course/1",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": false,
+   "requests": [
+    "OPTIONS /api/course/days/1/progress",
+    "POST /api/course/days/1/progress"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 12,
+   "tag": "button",
+   "tid": "course-start",
+   "text": "Start",
+   "href": null,
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/course/1",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": false,
+   "requests": [
+    "POST /api/course/days/1/progress",
+    "OPTIONS /api/course/days/1/progress"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 13,
+   "tag": "button",
+   "tid": "course-next",
+   "text": "Next →",
+   "href": null,
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/course/1",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": false,
+   "requests": [
+    "OPTIONS /api/course/days/1/progress",
+    "POST /api/course/days/1/progress"
+   ],
+   "sockets": [],
+   "dialogs": []
+  }
+ ],
+ "logs": []
+}

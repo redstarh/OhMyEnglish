@@ -1,0 +1,197 @@
+{
+ "markStart": {
+  "pt": {
+   "x": 587,
+   "y": 637,
+   "disabled": false
+  },
+  "path": "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+  "reqs": [],
+  "dialogs": [],
+  "text": "← Videos\n🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 유즈 베이직 mp3\n\nA Shot of English\n\nStart: 0:05\n\nMark end Mark again\nSaved sentences\n\nNo saved sentences yet. Mark a part you can't hear."
+ },
+ "buttonsAfterMarkStart": [
+  "← Videos",
+  "Mark end",
+  "Mark again"
+ ],
+ "markAgain": {
+  "pt": {
+   "x": 689,
+   "y": 661,
+   "disabled": false
+  },
+  "path": "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+  "reqs": [],
+  "dialogs": [],
+  "text": "← Videos\n🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 유즈 베이직 mp3\n\nA Shot of English\n\nMark start\nSaved sentences\n\nNo saved sentences yet. Mark a part you can't hear."
+ },
+ "buttonsAfterRedo": [
+  "← Videos",
+  "Mark start"
+ ],
+ "markStart2": {
+  "pt": {
+   "x": 587,
+   "y": 637,
+   "disabled": false
+  },
+  "path": "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+  "reqs": [],
+  "dialogs": [],
+  "text": "← Videos\n🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 유즈 베이직 mp3\n\nA Shot of English\n\nStart: 0:09\n\nMark end Mark again\nSaved sentences\n\nNo saved sentences yet. Mark a part you can't hear."
+ },
+ "endLabel": "Mark end",
+ "markEnd": {
+  "pt": {
+   "x": 584,
+   "y": 661,
+   "disabled": false
+  },
+  "path": "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+  "reqs": [],
+  "dialogs": [],
+  "text": "← Videos\n🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 유즈 베이직 mp3\n\nA Shot of English\n\nPlaying 0:09–0:13 again and again.\n\nWrite what you hear\nSave Cancel\nSaved sentences\n\nNo saved sentences yet. Mark a part you can't hear."
+ },
+ "buttonsAfterMarkEnd": [
+  "← Videos",
+  "Save",
+  "Cancel"
+ ],
+ "saveDisabledEmpty": true,
+ "savePhrase": {
+  "pt": {
+   "x": 567,
+   "y": 774,
+   "disabled": false
+  },
+  "path": "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+  "reqs": [
+   "POST /api/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2/phrases",
+   "GET /api/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2"
+  ],
+  "dialogs": [],
+  "text": "← Videos\n🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 유즈 베이직 mp3\n\nA Shot of English\n\nMark start\nSaved sentences\n\nThis is a test sentence from round b11.\n\nTap a word to see what it means here.\n\n0:09~0:13\n\nListen to this part Practice Delete"
+ },
+ "buttonsAfterSavePhrase": [
+  "← Videos",
+  "Mark start",
+  "This",
+  "is",
+  "a",
+  "test",
+  "sentence",
+  "from",
+  "round",
+  "b11.",
+  "Listen to this part",
+  "Practice",
+  "Delete"
+ ],
+ "listen": {
+  "pt": {
+   "x": 613,
+   "y": 810,
+   "disabled": false
+  },
+  "path": "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+  "reqs": [],
+  "dialogs": [],
+  "text": "← Videos\n🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 유즈 베이직 mp3\n\nA Shot of English\n\nMark start\nSaved sentences\n\nThis is a test sentence from round b11.\n\nTap a word to see what it means here.\n\n0:09~0:13\n\nListen to this part Practice Delete"
+ },
+ "wordTap": {
+  "pt": {
+   "x": 613,
+   "y": 721,
+   "disabled": false
+  },
+  "path": "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+  "reqs": [
+   "POST /api/vocab/lookup"
+  ],
+  "dialogs": [],
+  "text": "← Videos\n🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 유즈 베이직 mp3\n\nA Shot of English\n\nMark start\nSaved sentences\n\nThis is a test sentence from round b11.\n\ntest — I couldn't find it. Tap again.\n\n0:09~0:13\n\nListen to this part Practice Delete"
+ },
+ "phraseButtons": [
+  "← Videos",
+  "Mark start",
+  "This",
+  "is",
+  "a",
+  "test",
+  "sentence",
+  "from",
+  "round",
+  "b11.",
+  "Listen to this part",
+  "Practice",
+  "Delete"
+ ],
+ "practise": {
+  "pt": {
+   "x": 738,
+   "y": 810,
+   "disabled": false
+  },
+  "path": "/results/b10e78a2-e9cb-4025-bc82-df0cc4127103",
+  "reqs": [
+   "GET /api/sessions/next-plan",
+   "GET /api/history",
+   "GET /api/weekly-report",
+   "GET /api/course",
+   "GET /api/daily-summary",
+   "GET /api/sessions/next-plan",
+   "GET /api/history",
+   "GET /api/weekly-report",
+   "GET /api/course",
+   "GET /api/daily-summary",
+   "GET /api/sessions/b10e78a2-e9cb-4025-bc82-df0cc4127103/results",
+   "GET /api/daily-summary",
+   "GET /api/sessions/b10e78a2-e9cb-4025-bc82-df0cc4127103/results",
+   "GET /api/daily-summary",
+   "GET /api/daily-summary"
+  ],
+  "dialogs": [],
+  "text": "Your results\n\nChecking…\n\nYou finished today — 66 scenes\n\nToday's mistakes\n\nYou said: we has a meeting\n\nBetter: we have a meeting\n\nwe는 복수 주어이므로 has가 아니라 have를 씁니다.\n\n10 times today\n\nPractice this\n\nYou said: i meet my manager\n\nBetter: I met my manager\n\n어제 만난 일이므로 과거형 met을 씁니다.\n\n10 times today\n\nPractice this\n\nYou said: i am software tester\n\nBetter: I am a software tester\n\n직업을 말할 때는 a software tester처럼 명사 앞에 a를 붙입니다.\n\n7 times today\n\nPractice this\n\nYou said: i am work at it company\n\nBetter: I work at an IT company\n\n'일한다'는 뜻은 work 한 단어로 충분하니, am을 빼고 I work라고 말해요.\n\n6 times today\n\nPractice this\n\nYou said: i am software tester\n\nBetter: I'm a software tester\n\n직업을 말할 때는 직무명 앞에 a를 붙여 'I'm a software test"
+ },
+ "practiseImmediate": {
+  "path": "/results/b10e78a2-e9cb-4025-bc82-df0cc4127103",
+  "hero": null,
+  "locked": null
+ },
+ "practiseEnd": {
+  "path": "/results/b10e78a2-e9cb-4025-bc82-df0cc4127103",
+  "sockets": [
+   "ws://localhost:8002/ws/session?mode=shadowing&source=additional&item=f53a737a-c1c2-4f94-8af0-6fa7aeeb9a35"
+  ]
+ },
+ "deletePhrase": {
+  "pt": {
+   "x": 821,
+   "y": 810,
+   "disabled": false
+  },
+  "path": "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+  "reqs": [
+   "DELETE /api/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2/phrases/f53a737a-c1c2-4f94-8af0-6fa7aeeb9a35",
+   "GET /api/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2"
+  ],
+  "dialogs": [],
+  "text": "← Videos\n🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 유즈 베이직 mp3\n\nA Shot of English\n\nMark start\nSaved sentences\n\nNo saved sentences yet. Mark a part you can't hear."
+ },
+ "backToVideos": {
+  "pt": {
+   "x": 571,
+   "y": 80,
+   "disabled": false
+  },
+  "path": "/videos",
+  "reqs": [
+   "GET /api/videos",
+   "GET /api/videos"
+  ],
+  "dialogs": [],
+  "text": "← Home\nLearn with videos\n\nPaste a YouTube link to save a video. Write down the parts you can't hear. Then practice them.\n\nYouTube link\nCheck\n🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 유즈 베이직 mp3\n\nA Shot of English · 0 saved sentences\n\nDelete"
+ },
+ "logs": []
+}

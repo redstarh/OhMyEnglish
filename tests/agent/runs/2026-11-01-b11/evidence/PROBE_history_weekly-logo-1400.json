@@ -1,0 +1,50 @@
+{
+ "events": [
+  [
+   40,
+   "nav",
+   "http://localhost:3000/history/weekly"
+  ],
+  [
+   72,
+   "spa",
+   "http://localhost:3000/history/weekly"
+  ],
+  [
+   3105,
+   "mark",
+   "click logo"
+  ],
+  [
+   3164,
+   "spa",
+   "http://localhost:3000/"
+  ],
+  [
+   9121,
+   "mark",
+   "state / hero=idle"
+  ],
+  [
+   9123,
+   "mark",
+   "navigate away"
+  ],
+  [
+   9174,
+   "nav",
+   "http://localhost:3000/history/weekly"
+  ],
+  [
+   9217,
+   "spa",
+   "http://localhost:3000/history/weekly"
+  ],
+  [
+   14238,
+   "mark",
+   "end"
+  ]
+ ],
+ "logs": []
+}

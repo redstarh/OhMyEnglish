@@ -1,0 +1,504 @@
+{
+ "path": "/",
+ "results": [
+  {
+   "idx": 0,
+   "tag": "a",
+   "tid": null,
+   "text": "OhMyEnglish SPEAK. REMEMBER. GROW.",
+   "href": "/",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/",
+    "hero": "idle",
+    "failed": null,
+    "locked": null
+   },
+   "moved": false,
+   "requests": [],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 1,
+   "tag": "a",
+   "tid": "nav-home",
+   "text": "Home",
+   "href": "/",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/",
+    "hero": "idle",
+    "failed": null,
+    "locked": null
+   },
+   "moved": false,
+   "requests": [],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 2,
+   "tag": "a",
+   "tid": "nav-practice",
+   "text": "Practice",
+   "href": "/course",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/course",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "requests": [
+    "GET /api/course"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 3,
+   "tag": "a",
+   "tid": "nav-review",
+   "text": "Review",
+   "href": "/history",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/history",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "requests": [
+    "GET /api/history"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 4,
+   "tag": "a",
+   "tid": "nav-progress",
+   "text": "Progress",
+   "href": "/history/weekly",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/history/weekly",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "requests": [
+    "GET /api/weekly-report"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 5,
+   "tag": "button",
+   "tid": "start-session",
+   "text": "Start speaking",
+   "href": null,
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/results/f219b61a-95ee-4d1c-b104-7133af12ecf9",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "sessionEnd": "/results/f219b61a-95ee-4d1c-b104-7133af12ecf9",
+   "requests": [
+    "GET /api/sessions/f219b61a-95ee-4d1c-b104-7133af12ecf9/results",
+    "GET /api/daily-summary"
+   ],
+   "sockets": [
+    "ws://localhost:8002/ws/session?source=recommended"
+   ],
+   "dialogs": []
+  },
+  {
+   "idx": 6,
+   "tag": "a",
+   "tid": "home-path-all",
+   "text": "View all",
+   "href": "/course",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/course",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "requests": [
+    "GET /api/course"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 7,
+   "tag": "a",
+   "tid": "path-day-5",
+   "text": "DAY 5 Day 5 · In progress Units 83–100 58 min",
+   "href": "/course/5",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/course/5",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "requests": [
+    "GET /api/course/days/5",
+    "GET https://www.youtube.com/iframe_api",
+    "GET https://www.youtube.com/s/player/11a45ffb/www-widgetapi.vflset/www-widgetapi.js",
+    "GET https://www.youtube.com/embed/LI-gcPGSVnU?start=6&enablejsapi=1&origin=http%3A%2F%2Flocalhost%3A3000&widgetid=1&forigin=http%3A%2F%2Flocalhost%3A3000%2Fcourse%2F5&aoriginsup=1&vf=6"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 8,
+   "tag": "a",
+   "tid": "path-day-6",
+   "text": "Day 6 · Done Units 101–113 43 min",
+   "href": "/course/6",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/course/6",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "requests": [
+    "GET /api/course/days/6",
+    "GET https://www.youtube.com/iframe_api",
+    "GET https://www.youtube.com/s/player/11a45ffb/www-widgetapi.vflset/www-widgetapi.js",
+    "GET https://www.youtube.com/embed/DjgXa-L0Zm0?enablejsapi=1&origin=http%3A%2F%2Flocalhost%3A3000&widgetid=1&forigin=http%3A%2F%2Flocalhost%3A3000%2Fcourse%2F6&aoriginsup=1&vf=6"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 9,
+   "tag": "button",
+   "tid": "focus-practice",
+   "text": "Practice a pattern",
+   "href": null,
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/results/1092ebb6-02a0-450d-8370-5d3e78a3e27e",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "sessionEnd": "/results/1092ebb6-02a0-450d-8370-5d3e78a3e27e",
+   "requests": [
+    "GET /api/sessions/1092ebb6-02a0-450d-8370-5d3e78a3e27e/results",
+    "GET /api/daily-summary"
+   ],
+   "sockets": [
+    "ws://localhost:8002/ws/session?source=additional"
+   ],
+   "dialogs": []
+  },
+  {
+   "idx": 10,
+   "tag": "button",
+   "tid": "quick-shadowing",
+   "text": "Speak Shadow a sentence Listen, repeat, make it yo",
+   "href": null,
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/results/ddfef7a2-77ef-4faf-9445-e958fac03e54",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "sessionEnd": "/results/ddfef7a2-77ef-4faf-9445-e958fac03e54",
+   "requests": [
+    "GET /api/sessions/ddfef7a2-77ef-4faf-9445-e958fac03e54/results",
+    "GET /api/daily-summary"
+   ],
+   "sockets": [
+    "ws://localhost:8002/ws/session?mode=shadowing&source=additional"
+   ],
+   "dialogs": []
+  },
+  {
+   "idx": 11,
+   "tag": "a",
+   "tid": "quick-videos",
+   "text": "Watch Listen & notice Hear real English in short c",
+   "href": "/videos",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/videos",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "requests": [
+    "GET /api/videos"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 12,
+   "tag": "button",
+   "tid": "quick-weak-patterns",
+   "text": "Review Repair your mistakes Fix one mistake. Make ",
+   "href": null,
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/results/22e523ab-d5c3-4c8b-b16f-c1a96dcb5cf4",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "sessionEnd": "/results/22e523ab-d5c3-4c8b-b16f-c1a96dcb5cf4",
+   "requests": [
+    "GET /api/sessions/22e523ab-d5c3-4c8b-b16f-c1a96dcb5cf4/results",
+    "GET /api/daily-summary"
+   ],
+   "sockets": [
+    "ws://localhost:8002/ws/session?source=additional"
+   ],
+   "dialogs": []
+  },
+  {
+   "idx": 13,
+   "tag": "button",
+   "tid": "practice-free_talk",
+   "text": "Free talk",
+   "href": null,
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/results/05b34930-1827-40e5-b8a2-2a8adcb9a29e",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "sessionEnd": "/results/05b34930-1827-40e5-b8a2-2a8adcb9a29e",
+   "requests": [
+    "GET /api/sessions/05b34930-1827-40e5-b8a2-2a8adcb9a29e/results",
+    "GET /api/daily-summary"
+   ],
+   "sockets": [
+    "ws://localhost:8002/ws/session?source=additional"
+   ],
+   "dialogs": []
+  },
+  {
+   "idx": 14,
+   "tag": "button",
+   "tid": "practice-weak_patterns",
+   "text": "Weak spots",
+   "href": null,
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/results/d84f47b0-2930-428b-bfe1-53f7943af040",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "sessionEnd": "/results/d84f47b0-2930-428b-bfe1-53f7943af040",
+   "requests": [
+    "GET /api/sessions/d84f47b0-2930-428b-bfe1-53f7943af040/results",
+    "GET /api/daily-summary"
+   ],
+   "sockets": [
+    "ws://localhost:8002/ws/session?source=additional"
+   ],
+   "dialogs": []
+  },
+  {
+   "idx": 15,
+   "tag": "button",
+   "tid": "practice-five_questions",
+   "text": "5 questions",
+   "href": null,
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/results/b3830f8d-656b-4d3e-b496-9f094f30b116",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "sessionEnd": "/results/b3830f8d-656b-4d3e-b496-9f094f30b116",
+   "requests": [
+    "GET /api/sessions/b3830f8d-656b-4d3e-b496-9f094f30b116/results",
+    "GET /api/daily-summary"
+   ],
+   "sockets": [
+    "ws://localhost:8002/ws/session?mode=scenario_intake&source=additional"
+   ],
+   "dialogs": []
+  },
+  {
+   "idx": 16,
+   "tag": "button",
+   "tid": "practice-pronunciation",
+   "text": "Pronunciation",
+   "href": null,
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/results/54708c78-d80b-4f4a-80d3-321653212588",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "sessionEnd": "/results/54708c78-d80b-4f4a-80d3-321653212588",
+   "requests": [
+    "GET /api/sessions/54708c78-d80b-4f4a-80d3-321653212588/results",
+    "GET /api/daily-summary"
+   ],
+   "sockets": [
+    "ws://localhost:8002/ws/session?mode=pronunciation&source=additional"
+   ],
+   "dialogs": []
+  },
+  {
+   "idx": 17,
+   "tag": "button",
+   "tid": "practice-shadowing",
+   "text": "Shadowing",
+   "href": null,
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/results/762753ff-e7d0-4177-b6ea-cebb9ec1ed75",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "sessionEnd": "/results/762753ff-e7d0-4177-b6ea-cebb9ec1ed75",
+   "requests": [
+    "GET /api/sessions/762753ff-e7d0-4177-b6ea-cebb9ec1ed75/results",
+    "GET /api/daily-summary"
+   ],
+   "sockets": [
+    "ws://localhost:8002/ws/session?mode=shadowing&source=additional"
+   ],
+   "dialogs": []
+  },
+  {
+   "idx": 18,
+   "tag": "a",
+   "tid": "practice-videos",
+   "text": "Learn with videos",
+   "href": "/videos",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/videos",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "requests": [
+    "GET /api/videos"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 19,
+   "tag": "a",
+   "tid": "practice-course",
+   "text": "Grammar course",
+   "href": "/course",
+   "disabled": false,
+   "ariaDisabled": null,
+   "hitOnTarget": true,
+   "after": {
+    "path": "/course",
+    "hero": null,
+    "failed": null,
+    "locked": null
+   },
+   "moved": true,
+   "requests": [
+    "GET /api/course"
+   ],
+   "sockets": [],
+   "dialogs": []
+  },
+  {
+   "idx": 20,
+   "tag": "button",
+   "tid": "practice-roleplay",
+   "text": "Work role-play (Not ready yet)",
+   "href": null,
+   "disabled": true,
+   "ariaDisabled": null,
+   "hitOnTarget": false,
+   "after": {
+    "path": "/",
+    "hero": "idle",
+    "failed": null,
+    "locked": null
+   },
+   "moved": false,
+   "requests": [],
+   "sockets": [],
+   "dialogs": []
+  }
+ ],
+ "logs": []
+}

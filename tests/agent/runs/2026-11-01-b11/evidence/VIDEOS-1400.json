@@ -1,0 +1,210 @@
+{
+ "open": {
+  "pt": null,
+  "path": "/videos",
+  "reqs": [],
+  "dialogs": [],
+  "text": "← Home\nLearn with videos\n\nPaste a YouTube link to save a video. Write down the parts you can't hear. Then practice them.\n\nYouTube link\nCheck\n🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 유즈 베이직 mp3\n\nA Shot of English · 0 saved sentences\n\nDelete"
+ },
+ "checkDisabledEmpty": true,
+ "checkBadUrl": {
+  "pt": {
+   "x": 1075,
+   "y": 225,
+   "disabled": false
+  },
+  "path": "/videos",
+  "reqs": [
+   "GET https://www.youtube.com/oembed?url=https%3A%2F%2Fexample.com%2Fnot-a-video&format=json",
+   "  <- 404 https://www.youtube.com/oembed?url=https%3A%2F%2Fexample.com%2Fnot-a-video&forma"
+  ],
+  "dialogs": [],
+  "text": "← Home\nLearn with videos\n\nPaste a YouTube link to save a video. Write down the parts you can't hear. Then practice them.\n\nYouTube link\nCheck\n\nI couldn't find a video at this link.\n\n🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 유즈 베이직 mp3\n\nA Shot of English · 0 saved sentences\n\nDelete"
+ },
+ "check": {
+  "pt": {
+   "x": 1075,
+   "y": 225,
+   "disabled": false
+  },
+  "path": "/videos",
+  "reqs": [
+   "GET https://www.youtube.com/oembed?url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DjNQXAC9IVRw&format=json",
+   "  <- 200 https://www.youtube.com/oembed?url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dj"
+  ],
+  "dialogs": [],
+  "text": "← Home\nLearn with videos\n\nPaste a YouTube link to save a video. Write down the parts you can't hear. Then practice them.\n\nYouTube link\nCheck\n\nMe at the zoo\njawed\n\nSave Cancel\n🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 유즈 베이직 mp3\n\nA Shot of English · 0 saved sentences\n\nDelete"
+ },
+ "cancelPreview": {
+  "pt": {
+   "x": 640,
+   "y": 319,
+   "disabled": false
+  },
+  "path": "/videos",
+  "reqs": [],
+  "dialogs": [],
+  "text": "← Home\nLearn with videos\n\nPaste a YouTube link to save a video. Write down the parts you can't hear. Then practice them.\n\nYouTube link\nCheck\n🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 유즈 베이직 mp3\n\nA Shot of English · 0 saved sentences\n\nDelete"
+ },
+ "checkAgain": {
+  "pt": {
+   "x": 1075,
+   "y": 225,
+   "disabled": false
+  },
+  "path": "/videos",
+  "reqs": [
+   "GET https://www.youtube.com/oembed?url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DjNQXAC9IVRw&format=json",
+   "  <- 200 https://www.youtube.com/oembed?url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dj"
+  ],
+  "dialogs": [],
+  "text": "← Home\nLearn with videos\n\nPaste a YouTube link to save a video. Write down the parts you can't hear. Then practice them.\n\nYouTube link\nCheck\n\nMe at the zoo\njawed\n\nSave Cancel\n🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 유즈 베이직 mp3\n\nA Shot of English · 0 saved sentences\n\nDelete"
+ },
+ "save": {
+  "pt": {
+   "x": 567,
+   "y": 319,
+   "disabled": false
+  },
+  "path": "/videos",
+  "reqs": [
+   "POST /api/videos",
+   "GET /api/videos"
+  ],
+  "dialogs": [],
+  "text": "← Home\nLearn with videos\n\nPaste a YouTube link to save a video. Write down the parts you can't hear. Then practice them.\n\nYouTube link\nCheck\n\nSaved!\n\nMe at the zoo\n\njawed · 0 saved sentences\n\nDelete\n🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 유즈 베이직 mp3\n\nA Shot of English · 0 saved sentences\n\nDelete"
+ },
+ "listAfterSave": [
+  {
+   "href": "/videos/c1e8c4a5-4011-4b16-92d6-67a49302ed02",
+   "text": "Me at the zoo"
+  },
+  {
+   "href": "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+   "text": "🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣"
+  }
+ ],
+ "openDetail": {
+  "pt": {
+   "x": 762,
+   "y": 310,
+   "disabled": false
+  },
+  "path": "/videos/c1e8c4a5-4011-4b16-92d6-67a49302ed02",
+  "reqs": [
+   "GET /api/videos/c1e8c4a5-4011-4b16-92d6-67a49302ed02",
+   "GET /api/videos/c1e8c4a5-4011-4b16-92d6-67a49302ed02"
+  ],
+  "dialogs": [],
+  "text": "← Videos\nMe at the zoo\n\njawed\n\nMark start\nSaved sentences\n\nNo saved sentences yet. Mark a part you can't hear."
+ },
+ "iframe": [
+  "https://www.youtube.com/embed/jNQXAC9IVRw?enablejsapi=1&origin=http%3A%2F%2Floca"
+ ],
+ "markStart": {
+  "pt": {
+   "x": 587,
+   "y": 557,
+   "disabled": false
+  },
+  "path": "/videos/c1e8c4a5-4011-4b16-92d6-67a49302ed02",
+  "reqs": [],
+  "dialogs": [],
+  "text": "← Videos\nMe at the zoo\n\njawed\n\nStart: 0:00\n\nMark end Mark again\nSaved sentences\n\nNo saved sentences yet. Mark a part you can't hear."
+ },
+ "buttonsAfterMarkStart": [
+  "← Videos",
+  "Mark end",
+  "Mark again"
+ ],
+ "redo": {
+  "pt": "없음",
+  "path": "/videos/c1e8c4a5-4011-4b16-92d6-67a49302ed02",
+  "reqs": [],
+  "dialogs": [],
+  "text": "← Videos\nMe at the zoo\n\njawed\n\nStart: 0:00\n\nMark end Mark again\nSaved sentences\n\nNo saved sentences yet. Mark a part you can't hear."
+ },
+ "buttonsAfterRedo": [
+  "← Videos",
+  "Mark end",
+  "Mark again"
+ ],
+ "markStart2": {
+  "pt": "없음",
+  "path": "/videos/c1e8c4a5-4011-4b16-92d6-67a49302ed02",
+  "reqs": [],
+  "dialogs": [],
+  "text": "← Videos\nMe at the zoo\n\njawed\n\nStart: 0:00\n\nMark end Mark again\nSaved sentences\n\nNo saved sentences yet. Mark a part you can't hear."
+ },
+ "endLabel": "Mark end",
+ "markEnd": {
+  "pt": {
+   "x": 584,
+   "y": 581,
+   "disabled": false
+  },
+  "path": "/videos/c1e8c4a5-4011-4b16-92d6-67a49302ed02",
+  "reqs": [],
+  "dialogs": [],
+  "text": "← Videos\nMe at the zoo\n\njawed\n\nStart: 0:00\n\nMark end Mark again\n\nThe end must come after the start.\n\nSaved sentences\n\nNo saved sentences yet. Mark a part you can't hear."
+ },
+ "buttonsAfterMarkEnd": [
+  "← Videos",
+  "Mark end",
+  "Mark again"
+ ],
+ "backToVideos": {
+  "pt": {
+   "x": 571,
+   "y": 80,
+   "disabled": false
+  },
+  "path": "/videos",
+  "reqs": [
+   "GET /api/videos",
+   "GET /api/videos"
+  ],
+  "dialogs": [],
+  "text": "← Home\nLearn with videos\n\nPaste a YouTube link to save a video. Write down the parts you can't hear. Then practice them.\n\nYouTube link\nCheck\nMe at the zoo\n\njawed · 0 saved sentences\n\nDelete\n🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 유즈 베이직 mp3\n\nA Shot of English · 0 saved sentences\n\nDelete"
+ },
+ "deleteVideoCancel": {
+  "pt": {
+   "x": 749,
+   "y": 347,
+   "disabled": false
+  },
+  "path": "/videos",
+  "reqs": [],
+  "dialogs": [
+   "Delete this video from the list? Your saved sentences will stay."
+  ],
+  "text": "← Home\nLearn with videos\n\nPaste a YouTube link to save a video. Write down the parts you can't hear. Then practice them.\n\nYouTube link\nCheck\nMe at the zoo\n\njawed · 0 saved sentences\n\nDelete\n🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 유즈 베이직 mp3\n\nA Shot of English · 0 saved sentences\n\nDelete"
+ },
+ "deleteVideoAccept": {
+  "pt": {
+   "x": 749,
+   "y": 347,
+   "disabled": false
+  },
+  "path": "/videos",
+  "reqs": [
+   "DELETE /api/videos/c1e8c4a5-4011-4b16-92d6-67a49302ed02",
+   "GET /api/videos"
+  ],
+  "dialogs": [
+   "Delete this video from the list? Your saved sentences will stay."
+  ],
+  "text": "← Home\nLearn with videos\n\nPaste a YouTube link to save a video. Write down the parts you can't hear. Then practice them.\n\nYouTube link\nCheck\n🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 유즈 베이직 mp3\n\nA Shot of English · 0 saved sentences\n\nDelete"
+ },
+ "listAfterDelete": [
+  "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2"
+ ],
+ "logs": [
+  {
+   "t": 1793502058485,
+   "kind": "log.error",
+   "url": "https://www.youtube.com/oembed?url=https%3A%2F%2Fexample.com%2Fnot-a-video&format=json",
+   "text": "Failed to load resource: the server responded with a status of 404 ()"
+  }
+ ]
+}

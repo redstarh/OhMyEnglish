@@ -1,0 +1,105 @@
+{
+ "events": [
+  [
+   38,
+   "nav",
+   "http://localhost:3000/history"
+  ],
+  [
+   89,
+   "spa",
+   "http://localhost:3000/history"
+  ],
+  [
+   3143,
+   "mark",
+   "click nav-home"
+  ],
+  [
+   3201,
+   "spa",
+   "http://localhost:3000/"
+  ],
+  [
+   9155,
+   "mark",
+   "state / hero=idle"
+  ],
+  [
+   9157,
+   "mark",
+   "navigate away"
+  ],
+  [
+   9204,
+   "nav",
+   "http://localhost:3000/history"
+  ],
+  [
+   9244,
+   "spa",
+   "http://localhost:3000/history"
+  ],
+  [
+   14266,
+   "mark",
+   "end"
+  ]
+ ],
+ "logs": [
+  {
+   "t": 1793501249737,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u101-s2/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793501249737,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u101-s2/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793501249737,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u101-s2/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793501249737,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u101-s2/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793501249737,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u101-s2/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793501249737,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u101-s3/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793501249737,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u101-s4/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793501249737,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u101-s5/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 1793501249738,
+   "kind": "log.error",
+   "url": "http://localhost:8002/api/course/sentences/u113-s5/attempts",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  }
+ ]
+}

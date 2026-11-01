@@ -1,0 +1,23 @@
+{
+ "open": {
+  "unit": "Unit 42 · 의문문 만들기",
+  "num": "Sentence 1 / 5",
+  "follow": null
+ },
+ "afterNext": {
+  "unit": "Unit 44 · 전치사로 끝나는 질문",
+  "num": "Sentence 3 / 5",
+  "follow": null
+ },
+ "afterPlay": {
+  "unit": "Unit 44 · 전치사로 끝나는 질문",
+  "num": "Sentence 3 / 5",
+  "follow": "Go to Unit 42 (where the video is)"
+ },
+ "afterFollow": {
+  "unit": "Unit 42 · 의문문 만들기",
+  "num": "Sentence 1 / 5",
+  "follow": null
+ },
+ "logs": []
+}
