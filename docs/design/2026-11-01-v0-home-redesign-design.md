@@ -126,6 +126,20 @@
 - 결정: 공용 클래스 `omy-button`(`globals.css`)을 홈 문장 칸의 Back·Start·Next 와 공유함. 앞으로 가는 이동만 `omy-button-primary` 를 더함.
 - 범위 밖: 사이드바 메뉴 · 영상 목록의 제목 링크 · 홈의 Day 경로 카드. 이동 버튼이 아니라 메뉴·목록 항목임.
 
+### 학습은 홈에서만 · 메뉴는 Home 하나 (2026-11-01 · `TASK-314`)
+
+- 사용자 지시: Home 에서 실제 학습이 이루어짐. Continue your path 에서 학습을 고르면 Today's practice 에서 그 학습을 함.
+- 옛 동작: Day 줄이 Day 화면(`/course/<day>`)으로 가서 영상과 옛 연습 화면이 나왔음.
+- 결정: Day 줄은 버튼임. 고르면 페이지 이동 없이 오늘의 연습 카드에서 그 Day 의 문장 연습이 열림(영상 없음).
+- 고른 Day 의 줄은 테두리로 표시함. 카드가 화면 밖이면 카드로 스크롤함(`TASK-308` 규칙).
+- 사용자 결정: View all 은 다른 화면으로 가지 않고 홈 목록을 모든 Day 로 펼침(Show less 로 접음).
+- 사용자 결정: 사이드바의 Practice · Review · Progress 를 뺐음. 좁은 화면은 메뉴 줄을 두지 않고 로고가 Home 으로 감.
+- 기록(`/history`)·주간 리포트(`/history/weekly`)는 Your progress 카드의 두 버튼으로 들어감.
+- 사용자 결정: More practice 의 Grammar course 는 오늘의 연습 카드에서 현재 Day 를 엶.
+- Learn with videos · 빠른 카드 Listen & notice 는 영상 학습이라 `/videos` 링크로 남김.
+- 남은 화면: `/course` · `/course/<day>` 는 지우지 않았음. 주소와 결과 화면의 이동 버튼으로 닿음.
+- 확인(회차 b15 `path-*.json` · `grammar-*.json`): 1400·390 에서 주소가 `/` 그대로이고 고른 Day 가 열림.
+
 ## 4. 파일 계획
 
 - 새 파일: `postcss.config.mjs` · `components.json` · `lib/utils.ts` · `components/ui/button.tsx` · `components/app-shell.tsx` · `app/additionalLearning.ts`(추가 학습 목록과 `entryForTarget` 을 옮기고 고정 `key` 를 줌) · `components/home/HomeDashboard.tsx`.

@@ -143,7 +143,7 @@ export function HomeDashboard({
   );
   // Continue your path 에서 고른 Day 를 오늘의 연습 카드에서 엶 — 페이지를 옮기지 않음(`TASK-314` 사용자 지시).
   // 아래쪽 입구이므로 카드가 화면 밖이면 카드로 스크롤함(`TASK-308`).
-  const pickDay = useCallback((day: number) => {
+  const pickDay = useCallback((day: number | undefined) => {
     revealHero(heroRef.current);
     setPracticeDay(day);
     setPracticing(true);
@@ -198,7 +198,7 @@ export function HomeDashboard({
       </div>
 
       <QuickCards onStart={startSession} locked={locked} />
-      <MorePractice onStart={startSession} locked={locked} />
+      <MorePractice onStart={startSession} onOpenCourse={() => pickDay(undefined)} locked={locked} />
     </div>
   );
 }
@@ -662,7 +662,15 @@ function QuickCards({ onStart, locked }: { onStart: (entry: SessionEntry) => voi
 // ── 추가 학습 ──
 // ⛔ PRD §7 — 권장량 완료와 무관하게 늘 보임. 목록의 정본은 `additionalLearning.ts` 임.
 
-function MorePractice({ onStart, locked }: { onStart: (entry: SessionEntry) => void; locked: boolean }) {
+function MorePractice({
+  onStart,
+  onOpenCourse,
+  locked,
+}: {
+  onStart: (entry: SessionEntry) => void;
+  onOpenCourse: () => void;
+  locked: boolean;
+}) {
   return (
     <section className="mt-8" data-testid="home-more-practice">
       <SectionHead title="More practice" sub="Pick any time. You don't need to finish today's practice first." />
@@ -671,6 +679,24 @@ function MorePractice({ onStart, locked }: { onStart: (entry: SessionEntry) => v
           const label = practiceLabel(item);
           const note = practiceNote(item);
           const className = cn(buttonVariants({ variant: "outline", size: "lg" }), "rounded-xl bg-card px-4");
+          // ⛔ 문법 코스는 옛 코스 목록(`/course` → 영상이 있는 Day 화면)으로 가지 않고 오늘의 연습 카드에서 현재
+          //    Day 를 엶(`TASK-314` 사용자 결정). 영상 학습(`/videos`)은 그대로 링크임.
+          if (item.key === "course") {
+            return (
+              <Button
+                key={item.key}
+                data-testid={`practice-${item.key}`}
+                variant="outline"
+                size="lg"
+                disabled={locked}
+                title={locked ? LOCKED_TITLE : undefined}
+                onClick={onOpenCourse}
+                className="rounded-xl bg-card px-4"
+              >
+                {label}
+              </Button>
+            );
+          }
           if (item.href) {
             return (
               <LockLink key={item.key} href={item.href} testId={`practice-${item.key}`} locked={locked} className={className}>
