@@ -11,7 +11,7 @@
 //    다른 세션을 열거나 화면을 떠나는 링크·버튼은 잠김 — 떠나면 소켓이 닫혀 세션이 끝남.
 
 import Link from "next/link";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   ArrowRight,
   BookOpen,
@@ -151,7 +151,7 @@ export function HomeDashboard({
       {/* 날짜·인사·연속 학습 머리는 뺐음(`TASK-305` 사용자 지시). 화면 제목은 낭독기에만 남김. */}
       <h1 className="sr-only">Home</h1>
 
-      {/* 세션·문장 연습 중에도 오늘의 연습 카드는 대기 카드의 높이를 그대로 지킴(`TASK-305`) — 줄의 배치가 바뀌지 않음. */}
+      {/* 오늘의 연습 카드는 대기·연습·세션에서 같은 고정 높이(`HERO_HEIGHT`)를 씀(`TASK-307`) — 줄의 배치가 바뀌지 않음. */}
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.85fr)]">
         <HeroCard
           course={course}
@@ -164,7 +164,7 @@ export function HomeDashboard({
         <ProgressCard course={course} history={history} weekly={weekly} />
       </div>
 
-      <div className="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1.5fr)_minmax(280px,0.8fr)]">
+      <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(280px,0.8fr)]">
         <PathSection course={course} locked={locked} />
         <FocusSection daily={daily} weekly={weekly} onStart={startSession} locked={locked} />
       </div>
@@ -176,6 +176,15 @@ export function HomeDashboard({
 }
 
 // ── 오늘의 연습 ──
+
+// 오늘의 연습 카드의 고정 높이(`TASK-307` 사용자 지시) — 대기·연습·세션이 모두 이 높이를 씀.
+// 문장 연습이 가장 길어지는 상태(단계 줄 + 「You said」 결과 칸)를 스크롤 없이 담도록 CSS 로 셈한 값임.
+//   넓은 화면(sm 이상 · 1400 폭에서 카드 안쪽 약 620 px): 문장 1줄이면 약 494 px · 61자 문장이 2줄이면 약 524 px → 33rem(528 px).
+//   좁은 화면(390 폭 · 카드 안쪽 약 300 px): 단원 줄 2줄 · 문장 3줄 · 결과 칸 줄바꿈까지 약 668 px → 42rem(672 px).
+// 셈의 근거(줄 수·여백)는 설계서 §3 「카드 높이 고정의 번복」이 가짐. 문장 연습의 줄·여백을 바꾸면 이 값도 다시 셈.
+const HERO_HEIGHT = "h-[42rem] sm:h-[33rem]";
+// 문장 연습만 `min-h` 로 둠 — 셈한 최악보다 긴 경우가 생기면 스크롤 대신 카드가 늘어나 내용이 잘리지 않음.
+const HERO_MIN_HEIGHT = "min-h-[42rem] sm:min-h-[33rem]";
 
 function HeroCard({
   course,
@@ -196,33 +205,24 @@ function HeroCard({
   const expanded = inSession || practicing;
   const current =
     course.status === "ready" ? (course.data.days.find((day) => day.day === course.data.current_day) ?? null) : null;
-  const ref = useRef<HTMLDivElement>(null);
   // ⛔ 세션·연습을 열어도 창의 스크롤과 포커스를 옮기지 않음(`TASK-305` 사용자 지시) — 예전의
   //    `scrollIntoView` 가 「Start speaking」을 누르면 화면을 위로 끌어올렸음.
-  // 대기 카드의 실제 높이 — 세션·연습 카드가 이 높이를 그대로 씀(회차 b12 D2 · `TASK-305`). 390 폭에서는
-  // 제목이 줄바꿈되어 293 px 이라 고정 `h-72`(288 px)로는 맞지 않음. 재기 전에는 `min-h-72` 가 받침임.
-  const [idleHeight, setIdleHeight] = useState<number | null>(null);
-  useLayoutEffect(() => {
-    const element = ref.current;
-    if (expanded || !element) return;
-    const observer = new ResizeObserver(() => setIdleHeight(element.offsetHeight));
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, [expanded]);
 
   if (expanded) {
     // ⛔ 세션·연습 중에는 밝은 카드로 바꿈 — 대화·쉐도잉·리포트 패널과 문장 연습 칸이 `--foreground`
-    //    글자색을 쓰므로 남색 바탕 위에서는 읽히지 않음. 자리·너비·높이는 대기 카드와 같음.
-    // ⛔ 높이를 대기 카드에 고정함 — 넘치는 내용은 카드 안의 칸(`home-hero-body`)만 스크롤함(`TASK-305`).
-    //    머리 줄(배지·Close)은 카드 위에 고정됨.
+    //    글자색을 쓰므로 남색 바탕 위에서는 읽히지 않음. 자리·너비는 대기 카드와 같음.
+    // ⛔ 높이는 대기와 같은 `HERO_HEIGHT` 이고, 문장 연습은 스크롤 없이 카드 안에 다 보임(`TASK-307` 사용자
+    //    지시). `TASK-305` 의 「대기의 잰 높이 + `home-hero-body` 안쪽 스크롤」을 뒤집어 고정 높이 자체를 키웠음.
+    //    키운 만큼은 아래 두 칸(이어 가기·빠른 카드)을 줄여서 받음.
+    // ⚠️ 코치 대화는 줄이 계속 늘어나므로 대화 기록 칸(`SessionChat.tsx`)이 남은 높이를 채우고 그 안에서만
+    //    스크롤함. 쉐도잉·리포트 패널이 대화 아래에 더 붙어 기록 칸이 최소 높이까지 줄어든 뒤에만
+    //    `home-hero-body` 가 받침으로 스크롤함.
     return (
       <div
-        ref={ref}
         data-testid="home-hero"
         data-state={course.status}
         data-mode={inSession ? "session" : "practice"}
-        className={cn(CARD, "flex flex-col sm:p-8", idleHeight === null && "min-h-72")}
-        style={idleHeight === null ? undefined : { height: idleHeight }}
+        className={cn(CARD, "flex flex-col", inSession ? HERO_HEIGHT : HERO_MIN_HEIGHT)}
       >
         <div className="flex shrink-0 items-center justify-between gap-3">
           <span className="inline-flex items-center gap-2 rounded-full bg-brand-soft px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-brand">
@@ -234,7 +234,10 @@ function HeroCard({
             </Button>
           )}
         </div>
-        <div data-testid="home-hero-body" className="-mr-2 flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain pr-2">
+        <div
+          data-testid="home-hero-body"
+          className={cn("flex min-h-0 flex-1 flex-col", inSession && "-mr-2 overflow-y-auto overscroll-contain pr-2")}
+        >
           {inSession ? session : <HomeCoursePractice onDayFinished={onDayFinished} />}
         </div>
       </div>
@@ -243,11 +246,13 @@ function HeroCard({
 
   return (
     <div
-      ref={ref}
       data-testid="home-hero"
       data-state={course.status}
       data-mode="idle"
-      className="rounded-[24px] bg-hero p-6 text-white shadow-xl shadow-hero/10 sm:p-8"
+      className={cn(
+        "flex flex-col justify-center rounded-[24px] bg-hero p-6 text-white shadow-xl shadow-hero/10 sm:justify-between sm:p-8",
+        HERO_HEIGHT,
+      )}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
@@ -379,10 +384,10 @@ function WeeklyStats({ weekly, history }: { weekly: Load<WeeklyReportPayload>; h
 
 function SectionHead({ title, sub, action }: { title: string; sub: string; action?: ReactNode }) {
   return (
-    <div className="mb-4 flex items-center justify-between gap-3">
+    <div className="mb-2.5 flex items-center justify-between gap-3">
       <div>
         <h2 className="text-lg font-extrabold tracking-tight text-foreground">{title}</h2>
-        <p className="mt-1 text-xs text-muted-foreground">{sub}</p>
+        <p className="text-xs text-muted-foreground">{sub}</p>
       </div>
       {action}
     </div>
@@ -409,8 +414,9 @@ function PathSection({ course, locked }: { course: Load<CourseOverview>; locked:
           </LockLink>
         }
       />
-      <div className="flex flex-col gap-3">
-        {course.status === "loading" && <div className={cn(CARD, "h-[76px] animate-pulse p-4")} />}
+      {/* 줄 높이를 줄였음(`TASK-307`) — 배지 36 px · 위아래 10 px · 제목과 단원을 한 줄에 둠. */}
+      <div className="flex flex-col gap-2">
+        {course.status === "loading" && <div className={cn(CARD, "h-[58px] animate-pulse p-4")} />}
         {course.status === "error" && (
           <div className={cn(CARD, "p-4")}>
             <Muted>Can&apos;t load the course.</Muted>
@@ -428,25 +434,23 @@ function PathSection({ course, locked }: { course: Load<CourseOverview>; locked:
                 {...pathLock}
                 className={cn(
                   lockClassName,
-                  "flex items-center gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm transition-colors hover:bg-accent",
+                  "flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-2.5 shadow-sm transition-colors hover:bg-accent",
                 )}
               >
                 <div
                   className={cn(
-                    "grid size-11 shrink-0 place-items-center rounded-xl text-[10px] font-extrabold",
+                    "grid size-9 shrink-0 place-items-center rounded-xl text-[9px] font-extrabold leading-none",
                     status === "done" ? "bg-tint-mint text-[#2e7d57]" : "bg-muted text-muted-foreground",
                   )}
                 >
                   {status === "done" ? <Check className="size-4" aria-hidden="true" /> : `DAY ${day.day}`}
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold">
-                    Day {day.day} · {STATUS_TEXT[status]}
-                  </p>
-                  <p className="mt-1 truncate text-xs text-muted-foreground">
+                <p className="min-w-0 flex-1 truncate text-sm font-bold">
+                  Day {day.day} · {STATUS_TEXT[status]}
+                  <span className="ml-2 text-xs font-normal text-muted-foreground">
                     Units {day.first_unit}–{day.last_unit}
-                  </p>
-                </div>
+                  </span>
+                </p>
                 <span className="hidden text-[11px] font-semibold text-muted-foreground sm:block">
                   {Math.round(day.duration_sec / 60)} min
                 </span>
@@ -521,18 +525,21 @@ function FocusSection({
 // ── 빠른 카드 셋 ──
 
 const QUICK_BASE =
-  "block rounded-2xl p-5 text-left transition-shadow hover:shadow-md focus-visible:ring-3 focus-visible:ring-ring/50 outline-none disabled:pointer-events-none disabled:opacity-50";
+  "block rounded-2xl px-4 py-3.5 text-left transition-shadow hover:shadow-md focus-visible:ring-3 focus-visible:ring-ring/50 outline-none disabled:pointer-events-none disabled:opacity-50";
 
 function QuickBody({ icon, tag, title, text }: { icon: ReactNode; tag: string; title: string; text: string }) {
   return (
-    <>
-      <div className="mb-8 flex items-center justify-between">
-        <div className="grid size-10 place-items-center rounded-xl bg-white">{icon}</div>
-        <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-bold text-muted-foreground">{tag}</span>
+    // 아이콘·글·배지를 한 줄에 둠(`TASK-307`) — 예전의 아이콘 아래 `mb-8` 빈칸을 없앴음.
+    <div className="flex items-center gap-3">
+      <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-white">{icon}</div>
+      <div className="min-w-0 flex-1">
+        <h3 className="text-sm font-extrabold text-foreground">{title}</h3>
+        <p className="text-xs leading-5 text-muted-foreground">{text}</p>
       </div>
-      <h3 className="text-sm font-extrabold text-foreground">{title}</h3>
-      <p className="mt-1 text-xs leading-5 text-muted-foreground">{text}</p>
-    </>
+      <span className="shrink-0 self-start rounded-full bg-white px-2.5 py-1 text-[10px] font-bold text-muted-foreground">
+        {tag}
+      </span>
+    </div>
   );
 }
 
@@ -540,7 +547,7 @@ function QuickCards({ onStart, locked }: { onStart: (entry: SessionEntry) => voi
   const shadowing = entryOf("shadowing");
   const weak = entryOf("weak_patterns");
   return (
-    <div className="mt-8 grid gap-5 md:grid-cols-3">
+    <div className="mt-6 grid gap-4 md:grid-cols-3">
       <button
         type="button"
         data-testid="quick-shadowing"
