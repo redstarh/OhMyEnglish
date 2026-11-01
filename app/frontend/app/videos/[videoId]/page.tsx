@@ -243,7 +243,9 @@ export default function VideoLearningPage() {
 
   return (
     <main style={PAGE_STYLE}>
-      <Link href="/videos">{BACK_LINK_LABEL}</Link>
+      <Link href="/videos" className="omy-button">
+        {BACK_LINK_LABEL}
+      </Link>
 
       {loadFailed ? (
         <p role="alert">{LOAD_FAILED_NOTICE}</p>
@@ -263,7 +265,7 @@ export default function VideoLearningPage() {
           {unplayable && detail ? (
             <p role="alert">
               {UNPLAYABLE_NOTICE}{" "}
-              <a href={watchUrl(detail.youtube_id)} target="_blank" rel="noreferrer">
+              <a href={watchUrl(detail.youtube_id)} target="_blank" rel="noreferrer" className="omy-button">
                 {OPEN_ON_YOUTUBE_LABEL}
               </a>
             </p>

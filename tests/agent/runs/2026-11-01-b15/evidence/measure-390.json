@@ -1,0 +1,68 @@
+{
+ "idle.hero": {
+  "top": 156,
+  "bottom": 692,
+  "h": 536
+ },
+ "idle.progress": {
+  "top": 712,
+  "bottom": 995,
+  "h": 283
+ },
+ "labels": [
+  "TODAY'S PRACTICE | 12px | 700 | 1.68px | uppercase | oklab(0.999994 0.0000455678 0.0000200868 / 0.75)",
+  "YOUR PROGRESS | 12px | 700 | 1.68px | uppercase | rgb(91, 100, 120)",
+  "CONTINUE YOUR PATH | 12px | 700 | 1.68px | uppercase | rgb(91, 100, 120)",
+  "FOCUS PATTERNS | 12px | 700 | 1.68px | uppercase | rgb(91, 100, 120)",
+  "MORE PRACTICE | 12px | 700 | 1.68px | uppercase | rgb(91, 100, 120)"
+ ],
+ "practice.hero": {
+  "top": 156,
+  "bottom": 691,
+  "h": 536
+ },
+ "practice.progress": {
+  "top": 711,
+  "bottom": 994,
+  "h": 283
+ },
+ "practice.card": {
+  "top": 312,
+  "bottom": 666,
+  "h": 354.8
+ },
+ "practice.gapBelowCard": 25,
+ "labels.practice": [
+  "12px | 700 | 1.68px | rgb(91, 100, 120)"
+ ],
+ "buttons": [
+  "practice-close 36 13.6px 7px 8px rgb(242, 244, 249)",
+  "course-prev 36 13.6px 7px 8px rgb(242, 244, 249)",
+  "course-start 36 13.6px 7px 8px rgb(242, 244, 249)",
+  "course-next 36 13.6px 7px 8px rgb(50, 99, 220)"
+ ],
+ "sentences": {
+  "n": 565,
+  "overflow": [],
+  "overflowCount": 0,
+  "cardH": [
+   355
+  ],
+  "lineBox": 45
+ },
+ "unitRow": [
+  536
+ ],
+ "phase": {
+  "before": 355,
+  "after": 355,
+  "rowH": 19
+ },
+ "result": {
+  "before": 355,
+  "after": 355,
+  "slotH": 136,
+  "contentH": 130,
+  "scrolls": false
+ }
+}

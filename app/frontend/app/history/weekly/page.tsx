@@ -120,7 +120,9 @@ export default function WeeklyReportPage() {
         </>
       )}
       <p style={{ marginTop: "2rem" }}>
-        <Link href="/history">{HISTORY_LINK_LABEL}</Link>
+        <Link href="/history" className="omy-button">
+          {HISTORY_LINK_LABEL}
+        </Link>
       </p>
     </main>
   );

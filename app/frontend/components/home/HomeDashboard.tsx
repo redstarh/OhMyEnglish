@@ -21,7 +21,6 @@ import {
   Mic,
   Play,
   Plus,
-  Sparkles,
   TrendingUp,
   Volume2,
 } from "lucide-react";
@@ -65,6 +64,13 @@ function entryOf(key: AdditionalLearningKey): SessionEntry | null {
 }
 
 const CARD = "rounded-[24px] border border-border bg-card p-6 shadow-sm";
+// 홈의 섹션 라벨은 모두 「Your progress」 의 글꼴·색을 씀(`TASK-310` 사용자 지시 — 섹션 사이의 통일성).
+const LABEL = "text-xs font-bold uppercase tracking-[0.14em]";
+
+function SectionLabel({ children, as: Tag = "p", onDark = false }: { children: ReactNode; as?: "p" | "h2"; onDark?: boolean }) {
+  // ⚠️ 남색 대기 카드 위에서만 흰 글자를 씀 — `--foreground-muted` 는 `--hero` 위에서 읽히지 않음.
+  return <Tag className={cn(LABEL, onDark ? "text-white/75" : "text-muted-foreground")}>{children}</Tag>;
+}
 
 function Muted({ children, testId }: { children: ReactNode; testId?: string }) {
   return (
@@ -151,7 +157,7 @@ export function HomeDashboard({
       {/* 날짜·인사·연속 학습 머리는 뺐음(`TASK-305` 사용자 지시). 화면 제목은 낭독기에만 남김. */}
       <h1 className="sr-only">Home</h1>
 
-      {/* 오늘의 연습 카드는 대기·연습·세션에서 같은 고정 높이(`HERO_HEIGHT`)를 씀(`TASK-307`) — 줄의 배치가 바뀌지 않음. */}
+      {/* 오늘의 연습 카드는 연습에서 내용만큼의 높이이고, 대기·세션은 그 높이와 같은 `HERO_HEIGHT` 를 씀(`TASK-310`). */}
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.85fr)]">
         <HeroCard
           course={course}
@@ -177,14 +183,12 @@ export function HomeDashboard({
 
 // ── 오늘의 연습 ──
 
-// 오늘의 연습 카드의 고정 높이(`TASK-307` 사용자 지시) — 대기·연습·세션이 모두 이 높이를 씀.
-// 문장 연습이 가장 길어지는 상태(단계 줄 + 「You said」 결과 칸)를 스크롤 없이 담도록 CSS 로 셈한 값임.
-//   넓은 화면(sm 이상 · 1400 폭에서 카드 안쪽 약 620 px): 문장 1줄이면 약 494 px · 61자 문장이 2줄이면 약 524 px → 33rem(528 px).
-//   좁은 화면(390 폭 · 카드 안쪽 약 300 px): 단원 줄 2줄 · 문장 3줄 · 결과 칸 줄바꿈까지 약 668 px → 42rem(672 px).
-// 셈의 근거(줄 수·여백)는 설계서 §3 「카드 높이 고정의 번복」이 가짐. 문장 연습의 줄·여백을 바꾸면 이 값도 다시 셈.
-const HERO_HEIGHT = "h-[42rem] sm:h-[33rem]";
-// 문장 연습만 `min-h` 로 둠 — 셈한 최악보다 긴 경우가 생기면 스크롤 대신 카드가 늘어나 내용이 잘리지 않음.
-const HERO_MIN_HEIGHT = "min-h-[42rem] sm:min-h-[33rem]";
+// 오늘의 연습 카드의 대기·세션 높이(`TASK-310` 사용자 지시) — 연습 상태의 카드 높이와 같게 둠.
+// 연습 상태는 높이를 주지 않음 — 문장 칸(`SentencePractice.tsx`)이 상태·문장 길이와 무관한 고정 크기라
+// 카드도 늘 같은 높이가 되고, 아래쪽에 빈 공간이 남지 않음. 이 값은 그 높이를 실제 화면에서 잰 것임.
+// 근거는 설계서 §3 「문장 칸 고정 · 카드는 내용 높이」가 가짐. 문장 칸의 줄·여백을 바꾸면 이 값도 다시 잼.
+//   1400 폭 479.5 px → 30rem(480 px) · 390 폭 536 px → 33.5rem(536 px) (회차 b15 `measure-*.json`).
+const HERO_HEIGHT = "h-[33.5rem] sm:h-[30rem]";
 
 function HeroCard({
   course,
@@ -211,9 +215,8 @@ function HeroCard({
   if (expanded) {
     // ⛔ 세션·연습 중에는 밝은 카드로 바꿈 — 대화·쉐도잉·리포트 패널과 문장 연습 칸이 `--foreground`
     //    글자색을 쓰므로 남색 바탕 위에서는 읽히지 않음. 자리·너비는 대기 카드와 같음.
-    // ⛔ 높이는 대기와 같은 `HERO_HEIGHT` 이고, 문장 연습은 스크롤 없이 카드 안에 다 보임(`TASK-307` 사용자
-    //    지시). `TASK-305` 의 「대기의 잰 높이 + `home-hero-body` 안쪽 스크롤」을 뒤집어 고정 높이 자체를 키웠음.
-    //    키운 만큼은 아래 두 칸(이어 가기·빠른 카드)을 줄여서 받음.
+    // ⛔ 문장 연습은 높이를 주지 않고 내용만큼임(`TASK-310` 사용자 지시) — `TASK-307` 의 고정 높이가
+    //    결과 칸 자리를 카드 아래쪽 빈 공간으로 남겼음. 세션은 대기와 같은 `HERO_HEIGHT` 를 씀.
     // ⚠️ 코치 대화는 줄이 계속 늘어나므로 대화 기록 칸(`SessionChat.tsx`)이 남은 높이를 채우고 그 안에서만
     //    스크롤함. 쉐도잉·리포트 패널이 대화 아래에 더 붙어 기록 칸이 최소 높이까지 줄어든 뒤에만
     //    `home-hero-body` 가 받침으로 스크롤함.
@@ -222,16 +225,14 @@ function HeroCard({
         data-testid="home-hero"
         data-state={course.status}
         data-mode={inSession ? "session" : "practice"}
-        className={cn(CARD, "flex flex-col", inSession ? HERO_HEIGHT : HERO_MIN_HEIGHT)}
+        className={cn(CARD, "flex flex-col", inSession && HERO_HEIGHT)}
       >
         <div className="flex shrink-0 items-center justify-between gap-3">
-          <span className="inline-flex items-center gap-2 rounded-full bg-brand-soft px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-brand">
-            <Sparkles className="size-3" aria-hidden="true" /> Today&apos;s practice
-          </span>
+          <SectionLabel>Today&apos;s practice</SectionLabel>
           {inSession ? null : (
-            <Button data-testid="practice-close" variant="ghost" onClick={onClose} className="text-xs font-bold">
+            <button type="button" data-testid="practice-close" onClick={onClose} className="omy-button">
               ← Close
-            </Button>
+            </button>
           )}
         </div>
         <div
@@ -256,9 +257,7 @@ function HeroCard({
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-white/80">
-            <Sparkles className="size-3" aria-hidden="true" /> Today&apos;s practice
-          </span>
+          <SectionLabel onDark>Today&apos;s practice</SectionLabel>
           {course.status === "loading" ? (
             <div className="mt-5 h-[84px] max-w-[420px] animate-pulse rounded-xl bg-white/10" aria-label="Loading" />
           ) : (
@@ -314,7 +313,7 @@ function ProgressCard({
     <div className={CARD} data-testid="home-progress">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground">Your progress</p>
+          <SectionLabel>Your progress</SectionLabel>
           <div data-testid="home-course-progress" data-state={course.status} className="mt-2">
             {course.status === "loading" && <Muted>Loading…</Muted>}
             {course.status === "error" && <Muted>Can&apos;t load the course.</Muted>}
@@ -386,8 +385,8 @@ function SectionHead({ title, sub, action }: { title: string; sub: string; actio
   return (
     <div className="mb-2.5 flex items-center justify-between gap-3">
       <div>
-        <h2 className="text-lg font-extrabold tracking-tight text-foreground">{title}</h2>
-        <p className="text-xs text-muted-foreground">{sub}</p>
+        <SectionLabel as="h2">{title}</SectionLabel>
+        <p className="mt-1 text-xs text-muted-foreground">{sub}</p>
       </div>
       {action}
     </div>

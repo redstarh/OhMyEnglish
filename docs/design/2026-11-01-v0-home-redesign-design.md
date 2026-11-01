@@ -104,6 +104,28 @@
 - 홈 Start speaking 은 그대로 창을 움직이지 않음. `TASK-305` 의 규칙은 이 예외를 뺀 나머지에 남음.
 - 버린 대안: 그대로 둠(사용자가 직접 올려야 함) · 모든 폭에서 스크롤(Start speaking 까지 움직일 위험).
 
+### 문장 칸 고정 · 카드는 내용 높이 (2026-11-01 · `TASK-310` · `TASK-307` 의 번복)
+
+- 사용자 지시: 오늘의 연습 카드(A)는 아래쪽 빈 공간이 너무 많음. 내용을 모두 표시할 정도만 높이를 유지함.
+- 사용자 지시: 문장 칸(B)은 내용에 따라 크기가 조금씩 바뀜. 고정 크기로 표시하고 긴 문장은 두 줄로 표시함.
+- 맞물림: B 가 고정이면 「You said」 결과 칸 자리를 B 안에 늘 비워 둬야 함. 사용자는 그 위에서 「고정 + 압축 배치」를 골랐음.
+- 옛 결정(`TASK-307`): 카드가 최악의 연습 상태를 담는 고정 높이(1400 528 px · 390 672 px)를 씀. 결과 칸이 없을 때 그 자리가 카드 아래쪽 빈 공간으로 남았음.
+- 새 결정: 단계 표시를 `Sentence N / M` 줄에 붙임. 녹음 막대 자리(4 px)와 문장 두 줄 자리를 늘 잡음.
+- 결과·듣기 안내·알림은 한 고정 자리(`course-result-slot`)를 나눠 씀. 넓은 화면은 5rem, 좁은 화면은 8.5rem 임.
+- 좁은 화면은 문장 글자를 `text-base` 로 줄이고 단원 줄에 두 줄 자리를 잡음.
+- 연습 상태의 카드는 높이를 주지 않음. 대기·세션은 그 잰 높이(`HERO_HEIGHT` · 1400 30rem · 390 33.5rem)를 씀.
+- 회차 b15 측정(`tests/agent/runs/2026-11-01-b15/evidence/measure-*.json`): B 는 1400 에서 310 px, 390 에서 355 px 임. 565문장 · 단계 표시 · 가장 긴 결과에서 모두 같았음. 두 줄을 넘는 문장은 0개임.
+- 넓은 화면의 Your progress 카드는 격자 줄을 따라 A 와 같은 높이임(1400 479.5 px).
+
+### 섹션 라벨과 이동 버튼의 기준은 홈 (2026-11-01 · `TASK-310` · `TASK-311`)
+
+- 사용자 지시: Today's practice 라벨을 Your progress 와 같은 디자인·색으로 함. 다른 섹션도 같은 글꼴로 통일함.
+- 결정: 홈의 섹션 라벨은 `SectionLabel`(12 px · 굵게 · 대문자 · 자간 0.14em · `--foreground-muted`)을 씀. Continue your path · Focus patterns · More practice 의 큰 제목도 이 라벨로 바꿨음.
+- 예외: 남색 대기 카드의 라벨만 흰색 75 % 임. `--foreground-muted` 는 `--hero` 위에서 읽히지 않음.
+- 사용자 지시: 모든 화면의 글자 링크 이동(← · → · Back · Home 등)을 홈 버튼과 같은 모양으로 바꿈.
+- 결정: 공용 클래스 `omy-button`(`globals.css`)을 홈 문장 칸의 Back·Start·Next 와 공유함. 앞으로 가는 이동만 `omy-button-primary` 를 더함.
+- 범위 밖: 사이드바 메뉴 · 영상 목록의 제목 링크 · 홈의 Day 경로 카드. 이동 버튼이 아니라 메뉴·목록 항목임.
+
 ## 4. 파일 계획
 
 - 새 파일: `postcss.config.mjs` · `components.json` · `lib/utils.ts` · `components/ui/button.tsx` · `components/app-shell.tsx` · `app/additionalLearning.ts`(추가 학습 목록과 `entryForTarget` 을 옮기고 고정 `key` 를 줌) · `components/home/HomeDashboard.tsx`.

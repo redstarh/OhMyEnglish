@@ -111,18 +111,7 @@ function DayRow({
         <div style={{ width: `${ratio * 100}%`, height: "100%", background: "var(--accent)" }} />
       </div>
       <div style={{ marginTop: 8 }}>
-        <Link
-          href={`/course/${item.day}`}
-          style={{
-            display: "inline-block",
-            padding: "6px 12px",
-            borderRadius: 8,
-            fontSize: "0.85rem",
-            background: current ? "var(--accent)" : "var(--surface)",
-            color: current ? "var(--on-accent)" : "var(--foreground)",
-            border: "1px solid var(--border)",
-          }}
-        >
+        <Link href={`/course/${item.day}`} className={current ? "omy-button omy-button-primary" : "omy-button"}>
           {current ? RESUME_LABEL : START_LABEL}
         </Link>
       </div>
@@ -203,7 +192,7 @@ export default function CourseListPage() {
 
   return (
     <main style={PAGE_STYLE}>
-      <Link href="/" style={{ color: "var(--foreground-muted)", fontSize: "0.85rem" }}>
+      <Link href="/" className="omy-button">
         {BACK_LABEL}
       </Link>
       <div style={{ display: "flex", justifyContent: "space-between", marginTop: 12 }}>

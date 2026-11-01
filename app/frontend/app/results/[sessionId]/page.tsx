@@ -542,7 +542,7 @@ export default function ResultsPage() {
                         source: "additional",
                         patternKey: item.pattern_key,
                       })}
-                      style={{ textDecoration: "underline" }}
+                      className="omy-button"
                     >
                       {DAILY_DRILL_LABEL}
                     </Link>
@@ -558,16 +558,13 @@ export default function ResultsPage() {
           학습자가 매번 다시 찾는다. `<p>`로 감싸도 상태 라벨보다 뒤에 오므로 C3 하네스가
           지목하는 「`main`의 첫 직계 `<p>`」는 그대로다(`tests/harness/c3_results_screen.py`). */}
       <p style={{ marginTop: "2rem" }}>
-        {/* ⛔ **밑줄을 여기서 준다.** `globals.css`의 전역 `a`가 `text-decoration: none`이라
-            링크가 본문 글자와 구별되지 않는다(수정 직후 화면을 열어 직접 봤다). 색 토큰은 4개뿐이고
-            링크색 토큰이 없으므로 어포던스를 **밑줄**로 만든다. 전역 `a` 규칙은 고치지 않는다 —
-            이 화면 밖의 링크까지 바꾸는 결정이라 이 태스크의 범위가 아니다. */}
-        <Link href="/" style={{ textDecoration: "underline" }}>
+        {/* 이동은 홈과 같은 버튼 모양임(`TASK-311` 사용자 지시) — 밑줄 링크였던 자리. */}
+        <Link href="/" className="omy-button">
           {HOME_LINK_LABEL}
         </Link>
       </p>
       <p style={{ marginTop: "0.5rem" }}>
-        <Link href="/history" style={{ textDecoration: "underline" }}>
+        <Link href="/history" className="omy-button omy-button-primary">
           {HISTORY_LINK_LABEL}
         </Link>
       </p>

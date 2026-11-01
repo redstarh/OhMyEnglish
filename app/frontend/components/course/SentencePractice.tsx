@@ -121,15 +121,13 @@ function Spoken({ words, transcript }: { words: ReadbackWord[]; transcript: stri
   return (
     <div
       data-testid="course-spoken"
-      style={{ marginTop: 12, padding: "10px 12px", borderRadius: 10, background: "var(--accent-soft)" }}
+      style={{ padding: "6px 10px", borderRadius: 10, background: "var(--accent-soft)", fontSize: "0.85rem" }}
     >
-      <span style={{ display: "block", fontSize: "0.72rem", color: "var(--foreground-muted)" }}>
-        You said:
-      </span>
+      <span style={{ fontSize: "0.72rem", color: "var(--foreground-muted)" }}>You said: </span>
       <span data-testid="course-transcript">{transcript}</span>
       {words.length > 0 ? (
         // 낱말 사이에 실제 공백을 둠 — 여백만 두면 줄을 끊을 자리가 없어 좁은 화면에서 카드가 넓어졌음(회차 b13 r2 D1).
-        <div style={{ marginTop: 4, fontSize: "0.85rem", overflowWrap: "anywhere" }}>
+        <div style={{ marginTop: 2, overflowWrap: "anywhere" }}>
           {words.map((item, index) => (
             <Fragment key={`${item.word}-${index}`}>
             <span
@@ -446,34 +444,24 @@ export const SentencePractice = forwardRef<SentencePracticeHandle, Props>(functi
   // 마지막 문장에서는 「다음 문장」 자리가 「Day 마치기」가 됨 — 수동 모드가 Day 를 끝낼 길(회차 b3 D4).
   const hasNext = nextPosition({ unitIndex, sentenceIndex }) !== null;
 
-  const button = {
-    padding: "7px 13px",
-    borderRadius: 8,
-    border: "1px solid var(--border)",
-    background: "var(--surface)",
-    color: "var(--foreground)",
-    fontSize: "0.85rem",
-  } as const;
-  const primaryButton = {
-    ...button,
-    background: "var(--accent)",
-    color: "var(--on-accent)",
-    borderColor: "var(--accent)",
-  } as const;
-
   return (
     <div data-testid="sentence-practice">
       {followVideo !== null ? (
         <button
           type="button"
           onClick={() => goTo({ unitIndex: followVideo, sentenceIndex: 0 })}
-          style={{ ...button, marginTop: 8 }}
+          className="omy-button"
+          style={{ marginTop: 8 }}
         >
           Go to Unit {detail.units[followVideo].unit} (where the video is)
         </button>
       ) : null}
 
-      <div style={{ marginTop: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      {/* 좁은 화면은 주제가 두 줄이 되는 단원이 있어 두 줄 자리를 늘 잡음 — 단원마다 카드 높이가 바뀌지 않게(`TASK-310`). */}
+      <div
+        className="min-h-[2.55rem] sm:min-h-0"
+        style={{ marginTop: 14, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}
+      >
         <span data-testid="course-unit" style={{ fontSize: "0.85rem", color: "var(--foreground-muted)" }}>
           Unit {unit.unit} · {unit.topic}
         </span>
@@ -503,59 +491,76 @@ export const SentencePractice = forwardRef<SentencePracticeHandle, Props>(functi
         data-testid="course-card"
         style={{ marginTop: 8, border: "1px solid var(--border)", borderRadius: 14, padding: 16 }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", color: "var(--foreground-muted)" }}>
-          <span data-testid="course-sentence-number">
-            Sentence {sentenceIndex + 1} / {unit.sentences.length}
+        {/* ⛔ 이 칸은 상태·문장 길이와 무관하게 같은 크기임(`TASK-310` 사용자 지시) — 단계 표시는 번호 줄에
+            올리고, 녹음 막대·문장(두 줄)·결과 자리는 비어 있어도 높이를 차지함. */}
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: "0.8rem", color: "var(--foreground-muted)", whiteSpace: "nowrap" }}>
+          <span>
+            <span data-testid="course-sentence-number">
+              Sentence {sentenceIndex + 1} / {unit.sentences.length}
+            </span>
+            {phase !== "idle" ? (
+              <span data-testid="course-phase" data-phase={phase} style={{ color: "var(--foreground)" }}>
+                {" · "}
+                {PHASE_LABEL[phase]}
+                {phase === "repeat" ? ` · ${(waitMs / 1000).toFixed(1)}s` : null}
+              </span>
+            ) : null}
           </span>
           <span data-testid="course-attempts">Try {counts[sentence.key] ?? 0}</span>
         </div>
-        {phase !== "idle" ? (
-          <div data-testid="course-phase" data-phase={phase} style={{ marginTop: 8, fontSize: "0.75rem" }}>
-            {PHASE_LABEL[phase]}
-            {phase === "repeat" ? ` · ${(waitMs / 1000).toFixed(1)}s` : null}
-          </div>
-        ) : null}
-        {phase === "repeat" ? (
-          <div style={{ height: 4, borderRadius: 99, background: "var(--surface)", marginTop: 6, overflow: "hidden" }}>
+        <div style={{ height: 4, borderRadius: 99, background: phase === "repeat" ? "var(--surface)" : "transparent", marginTop: 6, overflow: "hidden" }}>
+          {phase === "repeat" ? (
             <div
               key={`${sentence.key}-${waitMs}`}
               className="omy-course-wait"
               style={{ height: "100%", background: "var(--accent)", animationDuration: `${waitMs}ms` }}
             />
-          </div>
-        ) : null}
-        <p data-testid="course-sentence" style={{ fontSize: "1.25rem", fontWeight: 600, marginTop: 8 }}>
+          ) : null}
+        </div>
+        {/* 가장 긴 문장(61자)이 두 줄에 드는 크기임 — 좁은 화면은 글자를 줄임. 줄 높이 1.4 × 2줄 = 2.8em. */}
+        <p
+          data-testid="course-sentence"
+          className="text-base sm:text-xl"
+          style={{ fontWeight: 600, marginTop: 6, lineHeight: 1.4, height: "2.8em", overflow: "hidden" }}
+        >
           {sentence.text}
         </p>
         <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-          <button type="button" data-testid="course-listen" style={button} onClick={() => void run(positionRef.current)}>
+          <button type="button" data-testid="course-listen" className="omy-button" onClick={() => void run(positionRef.current)}>
             🔊 Listen
           </button>
           <button
             type="button"
             data-testid="course-slow"
-            style={button}
+            className="omy-button"
             onClick={() => void run(positionRef.current, SLOW_RATE)}
           >
             Slow
           </button>
         </div>
-        {result ? <Spoken words={result.words} transcript={result.transcript} /> : null}
-        {phase === "repeat" ? (
-          <p style={{ marginTop: 10, fontSize: "0.85rem", color: "var(--foreground-muted)" }}>
-            {"I'm listening. Say it, and you will see it below."}
-          </p>
-        ) : null}
-        {notice ? (
-          <p data-testid="course-notice" style={{ marginTop: 10, fontSize: "0.85rem" }}>
-            {notice}
-          </p>
-        ) : null}
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 14 }}>
+        {/* 결과·듣기 안내·알림이 한 고정 자리를 나눠 씀 — 넘치면 이 자리 안에서만 스크롤함. */}
+        <div
+          data-testid="course-result-slot"
+          className="h-[8.5rem] sm:h-[5rem]"
+          style={{ marginTop: 10, overflowY: "auto", overscrollBehavior: "contain" }}
+        >
+          {result ? <Spoken words={result.words} transcript={result.transcript} /> : null}
+          {phase === "repeat" ? (
+            <p style={{ fontSize: "0.85rem", color: "var(--foreground-muted)" }}>
+              {"I'm listening. Say it, and you will see it below."}
+            </p>
+          ) : null}
+          {notice ? (
+            <p data-testid="course-notice" style={{ marginTop: result ? 6 : 0, fontSize: "0.85rem" }}>
+              {notice}
+            </p>
+          ) : null}
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 12 }}>
           <button
             type="button"
             data-testid="course-prev"
-            style={button}
+            className="omy-button"
             disabled={!previous}
             onClick={() => goTo(previous)}
           >
@@ -563,11 +568,11 @@ export const SentencePractice = forwardRef<SentencePracticeHandle, Props>(functi
           </button>
           {/* 같은 자리의 두 상태를 testid 로 가름(리디자인 설계서 §4) — 문구에 기대지 않게 함. */}
           {phase === "idle" ? (
-            <button type="button" data-testid="course-start" style={button} onClick={() => void run(positionRef.current)}>
+            <button type="button" data-testid="course-start" className="omy-button" onClick={() => void run(positionRef.current)}>
               Start
             </button>
           ) : (
-            <button type="button" data-testid="course-retry" style={button} onClick={() => void run(positionRef.current)}>
+            <button type="button" data-testid="course-retry" className="omy-button" onClick={() => void run(positionRef.current)}>
               Try again
             </button>
           )}
@@ -575,7 +580,7 @@ export const SentencePractice = forwardRef<SentencePracticeHandle, Props>(functi
             <button
               type="button"
               data-testid="course-next"
-              style={primaryButton}
+              className="omy-button omy-button-primary"
               onClick={() => goTo(nextPosition({ unitIndex, sentenceIndex }))}
             >
               Next →
@@ -584,7 +589,7 @@ export const SentencePractice = forwardRef<SentencePracticeHandle, Props>(functi
             <button
               type="button"
               data-testid="course-finish"
-              style={primaryButton}
+              className="omy-button omy-button-primary"
               disabled={phase !== "done"}
               onClick={() => finishDay()}
             >

@@ -215,3 +215,26 @@
 @media (prefers-reduced-motion: reduce) {
   .omy-course-wait { animation: none; width: 100%; }
 }
+
+/* 화면 사이의 이동·실행 버튼 — 홈 문장 칸의 Back·Start·Next 와 같은 모양(`TASK-311` 사용자 지시 · 기준은 홈).
+   ⛔ 링크(`a`)와 버튼이 같은 모양이어야 함 — 그래서 줄 높이·정렬을 여기서 정함(버튼은 줄 높이를 물려받음).
+   앞으로 가는 이동(→)만 `omy-button-primary` 를 더함 — 홈의 Next 와 같음. */
+.omy-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 13px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--foreground);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.omy-button-primary {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
+}

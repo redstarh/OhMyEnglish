@@ -97,15 +97,14 @@ export default function HistoryPage() {
       {/* ⛔ 주간 리포트로 가는 길 (`TASK-26.6`). 화면이 있어도 닿는 길이 없으면 소비자가 0곳인
           것과 같다 — 이 리포가 네 번 낸 실패가 그 형태다(`data-first` §3). */}
       <p style={{ marginTop: "1.5rem" }}>
-        <Link href="/history/weekly" style={{ textDecoration: "underline" }}>
+        <Link href="/history/weekly" className="omy-button omy-button-primary">
           {WEEKLY_LINK_LABEL}
         </Link>
       </p>
 
       <p style={{ marginTop: "0.5rem" }}>
-        {/* 밑줄은 여기서 준다 — `globals.css` 의 전역 `a` 가 `text-decoration: none` 이다
-            (결과 화면과 같은 이유). */}
-        <Link href="/" style={{ textDecoration: "underline" }}>
+        {/* 이동은 홈과 같은 버튼 모양임(`TASK-311` 사용자 지시). */}
+        <Link href="/" className="omy-button">
           {HOME_LINK_LABEL}
         </Link>
       </p>

@@ -594,7 +594,8 @@ export default function SessionPage() {
               setFailureReason(null);
               setState("idle");
             }}
-            style={{ padding: "0.75rem 1.5rem", marginLeft: "0.5rem" }}
+            className="omy-button"
+            style={{ marginLeft: "0.5rem" }}
           >
             ← Home
           </button>

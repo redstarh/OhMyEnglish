@@ -63,7 +63,7 @@ export default function CourseDayPage() {
   if (loadFailed || !Number.isInteger(day)) {
     return (
       <main style={PAGE_STYLE}>
-        <Link href="/course" data-testid="course-back">
+        <Link href="/course" data-testid="course-back" className="omy-button">
           ← Back
         </Link>
         <p style={{ marginTop: 16 }}>{LOAD_FAILED}</p>
@@ -81,8 +81,8 @@ export default function CourseDayPage() {
 
   return (
     <main style={PAGE_STYLE}>
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem" }}>
-        <Link href="/course" data-testid="course-back" style={{ color: "var(--foreground-muted)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.85rem" }}>
+        <Link href="/course" data-testid="course-back" className="omy-button">
           ← Back
         </Link>
         <span style={{ color: "var(--foreground-muted)" }}>
