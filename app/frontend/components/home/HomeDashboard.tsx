@@ -121,6 +121,9 @@ export function HomeDashboard({
   const course = useLoad(fetchCourse);
   const daily = useLoad(fetchDailySummary);
   const reloadCourse = course.reload;
+  // ⛔ 현재 Day 로 열 때도 번호를 연 순간에 정해 둠(`TASK-315` codex 리뷰) — 비워 두면 Day 를 마친 뒤 코스를 다시
+  //    읽을 때 강조 줄은 다음 Day 로 옮고 카드는 마친 Day 를 보여 둘이 어긋났음. 코스를 못 읽었으면 비움.
+  const currentDay = course.status === "ready" ? course.data.current_day : undefined;
 
   // ⛔ 코치 세션은 문장 연습이 내려간 뒤에 엶 — 같은 틱에 열면 세션의 getUserMedia 가 연습이 마이크를
   //    놓기 전에 돌아 두 획득이 겹쳤음(codex 리뷰 HIGH). 그래서 연습이 열려 있으면 닫기만 하고, 시작할
@@ -177,7 +180,7 @@ export function HomeDashboard({
           practicing={showPractice}
           practiceDay={practiceDay}
           onOpen={() => {
-            setPracticeDay(undefined);
+            setPracticeDay(currentDay);
             setPracticing(true);
           }}
           onClose={() => setPracticing(false)}
@@ -191,14 +194,14 @@ export function HomeDashboard({
         <PathSection
           course={course}
           locked={locked}
-          selectedDay={showPractice ? (practiceDay ?? (course.status === "ready" ? course.data.current_day : null)) : null}
+          selectedDay={showPractice ? (practiceDay ?? null) : null}
           onPick={pickDay}
         />
         <FocusSection daily={daily} weekly={weekly} onStart={startSession} locked={locked} />
       </div>
 
       <QuickCards onStart={startSession} locked={locked} />
-      <MorePractice onStart={startSession} onOpenCourse={() => pickDay(undefined)} locked={locked} />
+      <MorePractice onStart={startSession} onOpenCourse={() => pickDay(currentDay)} locked={locked} />
     </div>
   );
 }
