@@ -1,0 +1,49 @@
+{
+ "status": 200,
+ "body": {
+  "status": "final",
+  "partial_failure": false,
+  "pronunciation": [],
+  "awaiting_analysis": false,
+  "corrections": [
+   {
+    "pattern_key": "verb_tense_past_simple",
+    "category": "verb_tense",
+    "original_span": "i meet my manager",
+    "correction": "i met my manager",
+    "reason": "같은 문장의 어제 일이므로 meet도 과거형 met으로 바꿉니다.",
+    "target_form": "Yesterday + 주어 + 동사 과거형",
+    "occurrences": 2
+   },
+   {
+    "pattern_key": "verb_form_be_plus_main_verb",
+    "category": "verb_form",
+    "original_span": "i am work at it company",
+    "correction": "I work at an IT company",
+    "reason": "work는 일반동사이므로 am과 함께 쓰지 않고 'I work at ~'이라고 말합니다.",
+    "target_form": "주어 + 현재형 동사 (be동사 없이) / I work at + 직장",
+    "occurrences": 1
+   }
+  ],
+  "drill": {
+   "exchanges_observed": 2,
+   "exchanges_expected": 16
+  },
+  "summary": {
+   "went_well": [
+    "자기 직업과 일하는 곳을 영어로 먼저 꺼내 말하며 대화를 시작했습니다.",
+    "수업을 멈추고 싶을 때, 다시 이어갈 때, 끝낼 때를 모두 영어로 직접 요청해서 수업 흐름을 스스로 조절했습니다."
+   ],
+   "weak_points": [
+    {
+     "point": "과거 시점을 나타내는 말(yesterday)을 쓰면서도 동사는 현재형 그대로 두는 패턴이 나왔습니다. 시간 표현과 동사 형태를 함께 맞추는 연습이 필요합니다.",
+     "quote": "yesterday i go to the office and i meet my manager."
+    },
+    {
+     "point": "be동사와 일반동사를 한 문장에 겹쳐 쓰고(am work), 직업·회사를 말할 때 관사(a/an)를 빠뜨렸습니다.",
+     "quote": "i am work at it company. i am software tester."
+    }
+   ]
+  }
+ }
+}

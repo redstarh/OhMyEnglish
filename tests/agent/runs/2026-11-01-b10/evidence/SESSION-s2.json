@@ -1,0 +1,184 @@
+{
+ "clickAt": 0.2,
+ "click": true,
+ "endedByServer": true,
+ "stopAt": 54.94,
+ "sessionId": "786f0e90-c1db-4461-a79c-67881a1bb098",
+ "overlayNotes": [
+  [
+   43147,
+   "Do you want to end? Say \"네\" to end. It has not ended yet."
+  ],
+  [
+   53826,
+   ""
+  ]
+ ],
+ "path": "/results/786f0e90-c1db-4461-a79c-67881a1bb098",
+ "summaryWatchNoReload": [
+  [
+   0,
+   false,
+   false,
+   "final"
+  ],
+  [
+   3,
+   false,
+   false,
+   "final"
+  ],
+  [
+   5,
+   false,
+   false,
+   "final"
+  ],
+  [
+   8,
+   false,
+   false,
+   "final"
+  ],
+  [
+   10,
+   false,
+   false,
+   "final"
+  ],
+  [
+   13,
+   false,
+   false,
+   "final"
+  ],
+  [
+   15,
+   false,
+   true,
+   "final"
+  ],
+  [
+   18,
+   false,
+   true,
+   "final"
+  ],
+  [
+   20,
+   false,
+   true,
+   "final"
+  ],
+  [
+   23,
+   false,
+   true,
+   "final"
+  ],
+  [
+   25,
+   false,
+   true,
+   "final"
+  ],
+  [
+   28,
+   false,
+   true,
+   "final"
+  ],
+  [
+   30,
+   false,
+   true,
+   "final"
+  ],
+  [
+   33,
+   false,
+   true,
+   "final"
+  ],
+  [
+   35,
+   false,
+   true,
+   "final"
+  ],
+  [
+   38,
+   false,
+   true,
+   "final"
+  ],
+  [
+   40,
+   false,
+   true,
+   "final"
+  ],
+  [
+   43,
+   false,
+   true,
+   "final"
+  ],
+  [
+   45,
+   false,
+   true,
+   "final"
+  ],
+  [
+   48,
+   false,
+   true,
+   "final"
+  ]
+ ],
+ "analysisWaitSec": 0,
+ "resultsStatus": "final",
+ "resultsText": "Your results\n\nDone\n\nToday's drill was shorter than planned.\n\nYou finished today — 22 scenes\n\nYou said: my manager say\n\nBetter: my manager says\n\n주어가 3인칭 단수(my manager)이므로 동사에 -s를 붙여 says로 씁니다.\n\nToday's lesson\n\nYou did well\n\n지난주에 한 업무를 past tense로 정확히 전달했습니다. \"last week i finished the test report and i sent it to my team.\"처럼 finished, sent를 올바르게 썼습니다.\n\nand, so 같은 연결어를 써서 두 가지 정보를 한 문장으로 이어 말했습니다. 짧은 단문에 머무르지 않고 상황의 흐름을 설명하려 한 점이 좋았습니다.\n\nWork on next\n\n주어와 동사의 수 일치가 흔들렸습니다. 주어가 we일 때는 have를 써야 하는데 has를 사용했습니다.\n\nYou said\n\nmy manager say the project is late so we has a meeting.\n\n과거에 일어난 일을 말할 때 동사를 과거형으로 바꾸지 않는 경우가 있었습니다. 첫 문장에서는 finished, sent를 잘 썼지만, 같은 과거 상황에서 say를 said로 바꾸지 못했습니다.\n\nYou said\n\nmy manager say the project is late so we has a meeting.\n\nToday's mistakes\n\nYou said: we has a meeting\n\nBetter: we have a meeting\n\nwe는 복수 주어이므로 has가 아니라 have를 씁니다.\n\n4 times today\n\nPractice this\n\nYou said: i am software tester\n\nBetter: I am a software tester\n\n직업을 말할 때는 a software tester처럼 명사 앞에 a를 붙입니다.\n\n2 times today\n\nPractice this\n\nYou said: i meet my manager\n\nBetter: I met my manager\n\n어제 만난 일이므로 과거형 met을 씁니다.\n\n2 times today\n\nPractice this\n\nYou said: i am work at it company\n\nBetter: I work at an IT company\n\n'일한다'는 뜻은 work 한 단어로 충분하니, am을 빼고 I work라고 말해요.\n\nPractice this\n\n← Home\n\nHistory →",
+ "resultsHangul": [
+  {
+   "text": "주어가 3인칭 단수(my manager)이므로 동사에 -s를 붙여 says로 씁니다.",
+   "tid": null
+  },
+  {
+   "text": "지난주에 한 업무를 past tense로 정확히 전달했습니다. \"last week i finished the test report and i sent it to my team.\"처럼 finished, sent를 올바르게 썼습니다.",
+   "tid": null
+  },
+  {
+   "text": "and, so 같은 연결어를 써서 두 가지 정보를 한 문장으로 이어 말했습니다. 짧은 단문에 머무르지 않고 상황의 흐름을 설명하려 한 점이 좋았습니다.",
+   "tid": null
+  },
+  {
+   "text": "주어와 동사의 수 일치가 흔들렸습니다. 주어가 we일 때는 have를 써야 하는데 has를 사용했습니다.",
+   "tid": null
+  },
+  {
+   "text": "과거에 일어난 일을 말할 때 동사를 과거형으로 바꾸지 않는 경우가 있었습니다. 첫 문장에서는 finished, sent를 잘 썼지만, 같은 과거 상황에서 say를 said로 바꾸지 못했습니다.",
+   "tid": null
+  },
+  {
+   "text": "we는 복수 주어이므로 has가 아니라 have를 씁니다.",
+   "tid": null
+  },
+  {
+   "text": "직업을 말할 때는 a software tester처럼 명사 앞에 a를 붙입니다.",
+   "tid": null
+  },
+  {
+   "text": "어제 만난 일이므로 과거형 met을 씁니다.",
+   "tid": null
+  },
+  {
+   "text": "'일한다'는 뜻은 work 한 단어로 충분하니, am을 빼고 I work라고 말해요.",
+   "tid": null
+  }
+ ],
+ "audioFramesIn": 419,
+ "audioFramesOut": 1684,
+ "logs": []
+}

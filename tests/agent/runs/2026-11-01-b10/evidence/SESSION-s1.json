@@ -1,0 +1,41 @@
+{
+ "clickAt": 0.19,
+ "click": true,
+ "endedByServer": true,
+ "stopAt": 69.21,
+ "sessionId": "5b998a1d-21b0-479b-895e-381466043cef",
+ "overlayNotes": [],
+ "path": "/results/5b998a1d-21b0-479b-895e-381466043cef",
+ "analysisWaitSec": 3,
+ "resultsStatus": "final",
+ "resultsText": "Your results\n\nDone\n\nYou finished today — 21 scenes\n\nYou said: i meet my manager\n\nBetter: I met my manager\n\n어제 만난 일이므로 과거형 met을 씁니다.\n\nYou said: we has a meeting\n\nBetter: we have a meeting\n\nwe는 복수 주어이므로 has가 아니라 have를 씁니다.\n\nToday's mistakes\n\nYou said: i am software tester\n\nBetter: I am a software tester\n\n직업을 말할 때는 a software tester처럼 명사 앞에 a를 붙입니다.\n\n2 times today\n\nPractice this\n\nYou said: we has a meeting\n\nBetter: we have a meeting\n\nwe는 복수 주어이므로 has가 아니라 have를 씁니다.\n\n2 times today\n\nPractice this\n\nYou said: i meet my manager\n\nBetter: I met my manager\n\n어제 만난 일이므로 과거형 met을 씁니다.\n\n2 times today\n\nPractice this\n\nYou said: i am work at it company\n\nBetter: I work at an IT company\n\n'일한다'는 뜻은 work 한 단어로 충분하니, am을 빼고 I work라고 말해요.\n\nPractice this\n\n← Home\n\nHistory →",
+ "resultsHangul": [
+  {
+   "text": "어제 만난 일이므로 과거형 met을 씁니다.",
+   "tid": null
+  },
+  {
+   "text": "we는 복수 주어이므로 has가 아니라 have를 씁니다.",
+   "tid": null
+  },
+  {
+   "text": "직업을 말할 때는 a software tester처럼 명사 앞에 a를 붙입니다.",
+   "tid": null
+  },
+  {
+   "text": "we는 복수 주어이므로 has가 아니라 have를 씁니다.",
+   "tid": null
+  },
+  {
+   "text": "어제 만난 일이므로 과거형 met을 씁니다.",
+   "tid": null
+  },
+  {
+   "text": "'일한다'는 뜻은 work 한 단어로 충분하니, am을 빼고 I work라고 말해요.",
+   "tid": null
+  }
+ ],
+ "audioFramesIn": 174,
+ "audioFramesOut": 2109,
+ "logs": []
+}

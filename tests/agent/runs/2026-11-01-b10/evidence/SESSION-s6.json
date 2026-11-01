@@ -1,0 +1,185 @@
+{
+ "clickAt": 0.19,
+ "click": true,
+ "endedByServer": false,
+ "stopAt": 150.09,
+ "timeoutFallback": "End lesson 버튼으로 닫음",
+ "endedAfterButton": true,
+ "sessionId": "c7482f05-42ef-42b9-b2ff-89d344d2f7dc",
+ "overlayNotes": [],
+ "path": "/results/c7482f05-42ef-42b9-b2ff-89d344d2f7dc",
+ "summaryWatchNoReload": [
+  [
+   0,
+   false,
+   false,
+   "final"
+  ],
+  [
+   3,
+   false,
+   false,
+   "final"
+  ],
+  [
+   5,
+   false,
+   false,
+   "final"
+  ],
+  [
+   8,
+   false,
+   false,
+   "final"
+  ],
+  [
+   10,
+   false,
+   false,
+   "final"
+  ],
+  [
+   13,
+   false,
+   false,
+   "final"
+  ],
+  [
+   15,
+   false,
+   false,
+   "final"
+  ],
+  [
+   18,
+   false,
+   true,
+   "final"
+  ],
+  [
+   20,
+   false,
+   true,
+   "final"
+  ],
+  [
+   23,
+   false,
+   true,
+   "final"
+  ],
+  [
+   25,
+   false,
+   true,
+   "final"
+  ],
+  [
+   28,
+   false,
+   true,
+   "final"
+  ],
+  [
+   30,
+   false,
+   true,
+   "final"
+  ],
+  [
+   33,
+   false,
+   true,
+   "final"
+  ],
+  [
+   35,
+   false,
+   true,
+   "final"
+  ],
+  [
+   38,
+   false,
+   true,
+   "final"
+  ],
+  [
+   40,
+   false,
+   true,
+   "final"
+  ],
+  [
+   43,
+   false,
+   true,
+   "final"
+  ],
+  [
+   45,
+   false,
+   true,
+   "final"
+  ],
+  [
+   48,
+   false,
+   true,
+   "final"
+  ]
+ ],
+ "analysisWaitSec": 0,
+ "resultsStatus": "final",
+ "resultsText": "Your results\n\nDone\n\nToday's drill was shorter than planned.\n\nYou finished today — 26 scenes\n\nYou said: i meet my manager\n\nBetter: I met my manager\n\n같은 어제 일이므로 meet도 과거형 met으로 말합니다.\n\nYou said: we has a meeting\n\nBetter: we have a meeting\n\nwe는 복수 주어이므로 has가 아니라 have를 씁니다.\n\nToday's lesson\n\nYou did well\n\n직장과 관련된 상황을 스스로 꺼내 영어로 설명하려고 꾸준히 시도했습니다. 매니저와의 회의, 회사와 직무까지 여러 문장으로 이어 말했습니다.\n\n모르는 것이 생겼을 때 \"hey, i have a question.\"처럼 영어로 직접 의사를 표현하며 대화를 끌고 갔습니다.\n\nWork on next\n\n이미 끝난 일을 말할 때도 동사를 현재형 그대로 썼습니다. 어제 일을 이야기하는 문맥이므로 went, met처럼 과거형으로 바꿔 말하는 연습이 필요합니다.\n\nYou said\n\nyesterday i go to the office and i meet my manager.\n\nbe동사와 일반동사를 함께 쓰거나 주어와 동사의 수를 맞추지 못하는 모습이 반복됐습니다. \"I work at an IT company\", \"we had a meeting\"처럼 동사를 하나만 쓰고 주어에 맞추는 것을 확인해 보세요.\n\nYou said\n\ni am work at it company. i am software tester.\n\nToday's mistakes\n\nYou said: we has a meeting\n\nBetter: we have a meeting\n\nwe는 복수 주어이므로 has가 아니라 have를 씁니다.\n\n10 times today\n\nPractice this\n\nYou said: i meet my manager\n\nBetter: I met my manager\n\n어제 만난 일이므로 과거형 met을 씁니다.\n\n10 times today\n\nPractice this\n\nYou said: i am software tester\n\nBetter: I am a software tester\n\n직업을 말할 때는 a software tester처럼 명사 앞에 a를 붙입니다.\n\n7 times today\n\nPractice this\n\nYou said: i am work at it company\n\nBetter: I work at an IT company\n\n'일한다'는 뜻은 work 한 단어로 충분하니, am을 빼고 I work라고 말해요.\n\n6 times today\n\nPractice this\n\nYou said: i am software tester\n\nBetter: I'm a software tester\n\n직업을 말할 때는 직무명 앞에 a를 붙여 'I'm a software tester'라고 합니다.\n\n5 times today\n\nPractice this\n\n← Home\n\nHistory →",
+ "resultsHangul": [
+  {
+   "text": "같은 어제 일이므로 meet도 과거형 met으로 말합니다.",
+   "tid": null
+  },
+  {
+   "text": "we는 복수 주어이므로 has가 아니라 have를 씁니다.",
+   "tid": null
+  },
+  {
+   "text": "직장과 관련된 상황을 스스로 꺼내 영어로 설명하려고 꾸준히 시도했습니다. 매니저와의 회의, 회사와 직무까지 여러 문장으로 이어 말했습니다.",
+   "tid": null
+  },
+  {
+   "text": "모르는 것이 생겼을 때 \"hey, i have a question.\"처럼 영어로 직접 의사를 표현하며 대화를 끌고 갔습니다.",
+   "tid": null
+  },
+  {
+   "text": "이미 끝난 일을 말할 때도 동사를 현재형 그대로 썼습니다. 어제 일을 이야기하는 문맥이므로 went, met처럼 과거형으로 바꿔 말하는 연습이 필요합니다.",
+   "tid": null
+  },
+  {
+   "text": "be동사와 일반동사를 함께 쓰거나 주어와 동사의 수를 맞추지 못하는 모습이 반복됐습니다. \"I work at an IT company\", \"we had a meeting\"처럼 동사를 하나만 쓰고 주어에 맞추는 것을 확인해 보세요.",
+   "tid": null
+  },
+  {
+   "text": "we는 복수 주어이므로 has가 아니라 have를 씁니다.",
+   "tid": null
+  },
+  {
+   "text": "어제 만난 일이므로 과거형 met을 씁니다.",
+   "tid": null
+  },
+  {
+   "text": "직업을 말할 때는 a software tester처럼 명사 앞에 a를 붙입니다.",
+   "tid": null
+  },
+  {
+   "text": "'일한다'는 뜻은 work 한 단어로 충분하니, am을 빼고 I work라고 말해요.",
+   "tid": null
+  },
+  {
+   "text": "직업을 말할 때는 직무명 앞에 a를 붙여 'I'm a software tester'라고 합니다.",
+   "tid": null
+  }
+ ],
+ "audioFramesIn": 935,
+ "audioFramesOut": 4727,
+ "logs": []
+}
