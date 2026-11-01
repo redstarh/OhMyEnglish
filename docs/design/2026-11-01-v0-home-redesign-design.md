@@ -96,6 +96,14 @@
 
 사이드바 대응(가장 긴 경로가 이김): Home `/` · Practice `/course`(`/course*`·`/videos*` 에서 활성) · Review `/history`(`/results*` 포함) · Progress `/history/weekly`.
 
+### 아래쪽 입구의 스크롤 예외 (2026-11-01 · `TASK-308`)
+
+- 관찰(회차 b13 r2 O1): 390 폭에서 More practice 의 Free talk 를 누르면 세션은 맨 위 카드에서 돎. 그때 창은 scrollY 1379 라 카드가 화면 밖에 있음.
+- 원인은 `TASK-305` 의 규칙임. 그 규칙은 Start speaking 때 창이 움직이지 않게 하려고 모든 시작에서 창 스크롤을 막았음.
+- 사용자 결정: 아래쪽 입구로 시작할 때만 카드로 스크롤함. 카드가 이미 화면 안에 있으면 움직이지 않음.
+- 홈 Start speaking 은 그대로 창을 움직이지 않음. `TASK-305` 의 규칙은 이 예외를 뺀 나머지에 남음.
+- 버린 대안: 그대로 둠(사용자가 직접 올려야 함) · 모든 폭에서 스크롤(Start speaking 까지 움직일 위험).
+
 ## 4. 파일 계획
 
 - 새 파일: `postcss.config.mjs` · `components.json` · `lib/utils.ts` · `components/ui/button.tsx` · `components/app-shell.tsx` · `app/additionalLearning.ts`(추가 학습 목록과 `entryForTarget` 을 옮기고 고정 `key` 를 줌) · `components/home/HomeDashboard.tsx`.

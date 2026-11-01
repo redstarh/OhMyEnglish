@@ -1,10 +1,10 @@
 ---
 id: TASK-308
 title: '결정: 390 폭에서 아래쪽 입구(More practice 등)로 세션을 시작하면 카드가 화면 밖 — 창 스크롤 규칙에 예외를 둘지'
-status: Awaiting Decision
+status: Done
 assignee: []
 created_date: '2026-11-01 04:59'
-updated_date: '2026-11-01 04:59'
+updated_date: '2026-11-01 05:06'
 labels: []
 dependencies: []
 ordinal: 373000
@@ -18,5 +18,11 @@ ordinal: 373000
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 사용자 결정을 받아 기록함
+- [x] #1 사용자 결정을 받아 기록함
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-11-01 사용자 결정(AskUserQuestion): 아래쪽 입구로 시작할 때만 카드가 화면 밖이면 카드로 스크롤함. 홈 Start speaking 은 그대로 움직이지 않음. 기록 docs/design/2026-11-01-v0-home-redesign-design.md §3 「아래쪽 입구의 스크롤 예외」. 구현은 후속 태스크.
+<!-- SECTION:NOTES:END -->
