@@ -6,7 +6,7 @@ title: >-
 status: In Progress
 assignee: []
 created_date: '2026-11-14 05:30'
-updated_date: '2026-11-14 06:04'
+updated_date: '2026-11-14 06:15'
 labels: []
 dependencies: []
 ordinal: 381000
@@ -31,4 +31,6 @@ ordinal: 381000
 
 <!-- SECTION:NOTES:BEGIN -->
 TestAgent 확인: 전용 런처 run.sh(OS 샌드박스) 안에서 chromium.launch 는 SIGTRAP 으로 죽음(default·no-sandbox·chrome 채널 모두 · 샌드박스 밖은 셋 다 OK). 샌드박스 밖 헤드리스 Chrome 에 connectOverCDP 는 OK(cdp-smoke.txt). 헤드리스 -p 모드는 복합 명령에 승인을 요구 → 단일 명령만. 시험용 백엔드 launchctl(격리 DB) · Chrome 9401(화면)/9402(버튼).
+
+2026-11-14 사용자 지시(인터넷 끊김 예정)로 일시 정지: 두 탭 TestAgent 를 Escape 로 중단(세션 유지 · Paseo 터미널 「b16 화면」 3aaa8338 · 「b16 버튼」 13265073), 모니터 종료. 시험용 백엔드(launchctl local.ohmyenglish.testbackend · 격리 DB)와 Chrome 9401/9402 는 띄운 채 둠. 재개: 각 탭에 「이어서 진행함」 입력. 마치면 launchctl remove → 아이콘으로 사용자 스택 복원.
 <!-- SECTION:NOTES:END -->
