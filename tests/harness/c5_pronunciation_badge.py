@@ -255,7 +255,7 @@ def main() -> int:
 
     ap = argparse.ArgumentParser(description="C5 발음 배지 판정 (A5-1·A5-2)")
     ap.add_argument("--port", type=int, default=9222, help="CDP 포트")
-    ap.add_argument("--url", default="http://localhost:3000/", help="대상 페이지")
+    ap.add_argument("--url", default="http://localhost:3000/?extras=1", help="대상 페이지")
     ap.add_argument("--out", help="관측·판정을 JSON 으로 쓸 경로")
     ap.add_argument(
         "--mutate",

@@ -250,6 +250,14 @@
 - ⚠️ 남는 길: 음성 명령의 추가 학습 시작은 이 값과 무관하게 남음 · `/videos` 와 결과 화면의 연습 링크도 남음.
 - ⚠️ 수동 하네스 드라이버 다섯(`tests/harness/c1_session_walkthrough.py` · `c2_render_hierarchy.py` · `c5_pronunciation_badge.py` · `p_app_path.py` · `p_readback_leg.py`)은 숨긴 버튼(`practice-*`)을 눌러 세션에 들어감. 다음 실물 회차 전에 진입 방법을 바꿔야 함(게이트 시험은 영향 없음).
 
+### 320 폭 아래 버튼 · 숨긴 입구의 주소 스위치 (2026-11-15 · `TASK-340` · `TASK-341`)
+
+- `TASK-340`: 320 폭(칸 약 196 px)에서 ← Previous · Try again · Next → 너비 합이 칸보다 커 Next → 가 37~63 px 잘렸음.
+- 고침: 칸이 200 px 미만일 때만 세 버튼의 여백·글자를 줄임(`globals.css` 의 `@container` · `omy-course-nav`). 줄바꿈은 상태마다 카드 높이를 바꾸므로 쓰지 않음.
+- 확인(회차 b24 `nav.mjs`): 320 은 Start · Try again 두 상태 모두 칸 안 · 카드 325.1 px 로 같음. 390 · 1400 은 버튼과 카드 높이가 고치기 전과 같음.
+- `TASK-341`: 홈 주소 `?extras=1` 이면 숨긴 More practice · Practice a pattern 이 보임(`components/home/homeExtras.ts`). 기본은 숨김(`TASK-338`).
+- 이유: 수동 하네스 드라이버 다섯은 마이크 대체를 심을 틈 때문에 질의 진입 대신 버튼을 눌러 세션에 들어감(`H-CC`). 그래서 드라이버의 기본 주소를 `/?extras=1` 로 바꿨음.
+
 ## 4. 파일 계획
 
 - 새 파일: `postcss.config.mjs` · `components.json` · `lib/utils.ts` · `components/ui/button.tsx` · `components/app-shell.tsx` · `app/additionalLearning.ts`(추가 학습 목록과 `entryForTarget` 을 옮기고 고정 `key` 를 줌) · `components/home/HomeDashboard.tsx`.

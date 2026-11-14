@@ -8,6 +8,8 @@
 
 ⛔ **쿼리 없이 `/` 로 열고 화면의 「쉐도잉」 버튼을 누른다**(`H-CC`). `?mode=…` 로 열면 페이지 로드
 즉시 `getUserMedia` 가 불려 마이크 대체를 심을 틈이 없다.
+⚠️ `?extras=1` 은 예외다(`TASK-341`) — 세션을 열지 않고 숨긴 More practice 버튼만
+보이게 한다(`TASK-338`).
 ⛔ **`localhost:3000` 으로 연다**(`H-CA`). `127.0.0.1` 은 Next dev 가 다른 origin 으로 보고 dev
 리소스를 막아 hydration 이 아예 안 된다.
 ⛔ **전용 Chrome 이어야 한다**(`H-BD`): `--remote-debugging-port=9333 --user-data-dir=<임시>
@@ -225,7 +227,7 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
 def main() -> int:
     ap = argparse.ArgumentParser(description="쉐도잉 낭독 판정 드라이버 (TASK-210)")
     ap.add_argument("--port", type=int, default=9333)
-    ap.add_argument("--url", default="http://localhost:3000/")
+    ap.add_argument("--url", default="http://localhost:3000/?extras=1")
     ap.add_argument("--fixture-url", default="/harness/readback.wav")
     ap.add_argument("--session-timeout-s", type=float, default=45.0)
     ap.add_argument("--saved-timeout-s", type=float, default=30.0)

@@ -38,6 +38,7 @@ import type { SessionEntry } from "@/lib/config";
 import { weekName, weekRangeLabel, weekRelation } from "@/lib/learnerDate";
 import { cn } from "@/lib/utils";
 import { useShowTranslation } from "@/lib/translationSetting";
+import { useExtrasFromQuery } from "./homeExtras";
 import {
   ADDITIONAL_LEARNING,
   isAdditionalLearningEnabled,
@@ -66,6 +67,7 @@ const CARD = "rounded-[24px] border border-border bg-card p-6 shadow-sm";
 // 홈에 보일 추가 학습 입구(`TASK-338` 사용자 결정 2026-11-15) — 「일단 매일매일 연습하는 것만 있으면 될 것 같아,
 // 필요하면 나중에 넣자」. More practice 전체와 Focus patterns 의 Practice a pattern 을 숨김.
 // ⛔ 지우지 않고 숨기기만 함 — 다시 넣을 때는 이 값을 `true` 로 바꿈. 음성 명령(추가 학습 시작)은 이 값과 무관하게 남음.
+// ⚠️ 주소 `?extras=1` 이면 이 값과 무관하게 보임 — 수동 하네스 드라이버의 진입 길(`TASK-341` · `homeExtras.ts`).
 const HOME_EXTRAS = { morePractice: false, focusPractice: false } as const;
 // 홈의 섹션 라벨은 모두 「Your progress」 의 글꼴·색을 씀(`TASK-310` 사용자 지시 — 섹션 사이의 통일성).
 const LABEL = "text-xs font-bold uppercase tracking-[0.14em]";
@@ -115,6 +117,10 @@ export function HomeDashboard({
   session?: ReactNode;
 }) {
   const locked = session !== null && session !== undefined;
+  // `?extras=1` 이면 숨긴 추가 학습 입구를 보임 — 수동 하네스 드라이버의 진입 길(`TASK-341`).
+  const extrasByQuery = useExtrasFromQuery();
+  const showMorePractice = HOME_EXTRAS.morePractice || extrasByQuery;
+  const showFocusPractice = HOME_EXTRAS.focusPractice || extrasByQuery;
   // 오늘의 연습 카드가 문장 연습을 그리는 중인가. 세션이 열리면 세션이 이김.
   const [practicing, setPracticing] = useState(false);
   // 문장 연습이 여는 Day — 비어 있으면 코스의 현재 Day 임. Continue your path 에서 고르면 그 Day 임(`TASK-314`).
@@ -201,10 +207,16 @@ export function HomeDashboard({
           selectedDay={showPractice ? (practiceDay ?? null) : null}
           onPick={pickDay}
         />
-        <FocusSection daily={daily} weekly={weekly} onStart={startSession} locked={locked} />
+        <FocusSection
+          daily={daily}
+          weekly={weekly}
+          onStart={startSession}
+          locked={locked}
+          showPractice={showFocusPractice}
+        />
       </div>
 
-      {HOME_EXTRAS.morePractice ? <MorePractice onStart={startSession} locked={locked} /> : null}
+      {showMorePractice ? <MorePractice onStart={startSession} locked={locked} /> : null}
     </div>
   );
 }
@@ -579,11 +591,14 @@ function FocusSection({
   weekly,
   onStart,
   locked,
+  showPractice,
 }: {
   daily: Load<DailySummaryPayload>;
   weekly: Load<WeeklyReportPayload>;
   onStart: (entry: SessionEntry, label?: string) => void;
   locked: boolean;
+  /** Practice a pattern 을 보일지 — 기본 숨김(`TASK-338`) · `?extras=1` 이면 보임(`TASK-341`). */
+  showPractice: boolean;
 }) {
   const view = focusView(daily, weekly);
   const weakEntry = entryOf("weak_patterns");
@@ -615,7 +630,7 @@ function FocusSection({
               </p>
             </div>
           ))}
-        {HOME_EXTRAS.focusPractice ? (
+        {showPractice ? (
           <button
             type="button"
             data-testid="focus-practice"

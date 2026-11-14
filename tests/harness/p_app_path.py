@@ -392,7 +392,7 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
 def main() -> int:
     ap = argparse.ArgumentParser(description="P계층 앱 경로 드라이버 (픽스처를 첫 발화로 흘린다)")
     ap.add_argument("--port", type=int, default=9222)
-    ap.add_argument("--url", default="http://localhost:3000/")
+    ap.add_argument("--url", default="http://localhost:3000/?extras=1")
     ap.add_argument(
         "--wav",
         required=True,

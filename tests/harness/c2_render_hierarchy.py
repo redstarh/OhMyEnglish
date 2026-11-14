@@ -877,7 +877,7 @@ async def main_async(args) -> int:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--port", type=int, default=9222)
-    ap.add_argument("--url", default="http://localhost:3000/")
+    ap.add_argument("--url", default="http://localhost:3000/?extras=1")
     ap.add_argument("--schemes", default="light,dark")  # A2-3 이 두 모드에서 토큰이 같은지 봄
     # `partial` 은 **눈으로 보기 위한 회차**다 — partial 상태에서 멈춰 창 안에서 스크린샷을 뜬다.
     ap.add_argument("--phase", choices=("both", "partial"), default="both")

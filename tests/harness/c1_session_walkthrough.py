@@ -270,7 +270,7 @@ def main() -> int:
 
     ap = argparse.ArgumentParser(description="C1 세션 관통 판정 (A1-4·A1-5·A1-7)")
     ap.add_argument("--port", type=int, default=9222)
-    ap.add_argument("--url", default="http://localhost:3000/")
+    ap.add_argument("--url", default="http://localhost:3000/?extras=1")
     ap.add_argument("--out", help="관측·판정을 JSON 으로 쓸 경로")
     ap.add_argument(
         "--silent-mic",

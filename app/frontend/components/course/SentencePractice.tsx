@@ -662,7 +662,8 @@ export function SentencePractice({ detail, day, onDayFinished }: Props) {
             </p>
           ) : null}
         </div>
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 12 }}>
+        {/* 아래 버튼 셋 — 아주 좁은 칸에서는 `omy-course-nav` 가 여백·글자를 줄여 칸 안에 둠(`TASK-340` · `globals.css`). */}
+        <div className="omy-course-nav" style={{ display: "flex", justifyContent: "space-between", marginTop: 12 }}>
           <button
             type="button"
             data-testid="course-prev"

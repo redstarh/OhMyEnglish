@@ -253,3 +253,14 @@
   color: var(--on-accent);
   border-color: var(--accent);
 }
+
+/* 문장 연습 아래 버튼 셋(← Previous · Start/Try again · Next →) — 아주 좁은 칸(200 px 미만 · 320 폭)에서만
+   여백·글자를 줄여 칸 안에 둠(`TASK-340`). 줄을 바꾸면 상태마다 카드 높이가 달라지므로 줄바꿈은 쓰지 않음.
+   ⚠️ 칸(`course-card`)이 컨테이너임 — 화면 폭이 아니라 칸 너비를 봄. 390·1400 은 이 규칙 밖임. */
+@container (max-width: 12.5rem) {
+  .omy-course-nav .omy-button {
+    padding: 5px 6px;
+    font-size: 0.68rem;
+  }
+}
+
