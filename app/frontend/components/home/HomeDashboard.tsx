@@ -215,6 +215,9 @@ export function HomeDashboard({
 //   1400 폭 433.2 px → 27.1rem(433.6 px) · 390 폭 489.5 px → 30.6rem(489.6 px) (회차 b15 `measure-*.json` ·
 //   `TASK-318` 에서 Listen·Slow 줄을 뺀 뒤 다시 잼).
 const HERO_HEIGHT = "h-[30.6rem] sm:h-[27.1rem]";
+// 문장 연습의 최저 높이 — 연습을 불러오는 첫 순간(「Loading…」)에도 카드가 대기 높이 아래로 줄지 않게 함(`TASK-319`).
+// ⛔ 줄면 문서가 창보다 짧아져 스크롤이 0 에 붙음 — 1400×900 에서 Start speaking 이 창을 움직였음(회차 b16 D1).
+const HERO_MIN_HEIGHT = "min-h-[30.6rem] sm:min-h-[27.1rem]";
 
 // ⛔ 아래쪽 입구로 시작할 때 카드가 화면을 벗어나 있으면 카드로 스크롤함(`TASK-308` 사용자 결정) — 세션은
 //    카드 안에서 돎. 카드가 이미 다 보이면 움직이지 않음. 「Start speaking」은 창을 옮기지 않는 `TASK-305`
@@ -268,7 +271,7 @@ function HeroCard({
         data-testid="home-hero"
         data-state={course.status}
         data-mode={inSession ? "session" : "practice"}
-        className={cn(CARD, "flex flex-col", inSession && HERO_HEIGHT)}
+        className={cn(CARD, "flex flex-col", inSession ? HERO_HEIGHT : HERO_MIN_HEIGHT)}
       >
         <div className="flex shrink-0 items-center justify-between gap-3">
           <SectionLabel>Today&apos;s practice</SectionLabel>

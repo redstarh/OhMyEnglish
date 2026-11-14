@@ -147,6 +147,14 @@
 - 사용자 결정: 둘 다 제거함. 다시 듣기는 Try again 이 맡음.
 - 높이: 문장 칸이 46 px 줄었음. 대기·세션 높이(`HERO_HEIGHT`)를 다시 잼(1400 433.2 px → 27.1rem · 390 489.5 px → 30.6rem).
 
+### 회차 b16 보고서의 사용자 결정 (2026-11-14 · `TASK-323`)
+
+- 근거: `docs/ux/2026-11-14-ux-flow-review/index.html` §2 의 「사용자 결정」 넷(AskUserQuestion).
+- 빠른 카드 셋(Shadow a sentence · Repair your mistakes · Listen & notice)을 제거함. More practice 의 Shadowing · Weak spots · Learn with videos 와 같은 입구였음.
+- More practice 의 Grammar course 를 제거함. `TASK-314` 에서 홈 카드를 여는 버튼으로 바꿨으나 Start speaking 과 같은 일이었음(번복).
+- `/course` · `/course/<day>` 는 홈으로 넘김. 영상과 함께 하는 옛 Day 연습은 없어짐. 그리로 가던 버튼은 홈으로 감.
+- 이동·실행 버튼은 모두 `omy-button` 기준을 씀(More practice · View all · Practice a pattern · End lesson · 영상 화면 버튼). `TASK-311` 의 「범위 밖」 목록에서 Day 경로 카드 · 사이드바 · 영상 제목 링크만 남김.
+
 ## 4. 파일 계획
 
 - 새 파일: `postcss.config.mjs` · `components.json` · `lib/utils.ts` · `components/ui/button.tsx` · `components/app-shell.tsx` · `app/additionalLearning.ts`(추가 학습 목록과 `entryForTarget` 을 옮기고 고정 `key` 를 줌) · `components/home/HomeDashboard.tsx`.
