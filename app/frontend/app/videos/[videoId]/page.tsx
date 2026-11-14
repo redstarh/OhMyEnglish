@@ -254,12 +254,18 @@ export default function VideoLearningPage() {
           <h1>{detail?.title ?? ""}</h1>
           <p>{detail?.channel_name ?? ""}</p>
 
+          {/* ⛔ 16:9 칸에 맞춤 — 플레이어의 기본 iframe(640 px)이 390 폭에서 오른쪽 302 px 잘렸음(`TASK-321` · 회차 b16). */}
           {detail ? (
-            <VideoPlayer
-              youtubeId={detail.youtube_id}
-              onReady={onPlayerReady}
-              onUnplayable={onUnplayable}
-            />
+            <div
+              className="omy-course-player"
+              style={{ aspectRatio: "16 / 9", width: "100%", borderRadius: 10, overflow: "hidden" }}
+            >
+              <VideoPlayer
+                youtubeId={detail.youtube_id}
+                onReady={onPlayerReady}
+                onUnplayable={onUnplayable}
+              />
+            </div>
           ) : null}
 
           {unplayable && detail ? (
