@@ -1,0 +1,130 @@
+[
+  {
+    "id": "N1",
+    "screen": "/history",
+    "action": "Weekly report →",
+    "expect": "주소 /history/weekly",
+    "actual": "url=/history/weekly",
+    "verdict": "통과"
+  },
+  {
+    "id": "N2",
+    "screen": "/history",
+    "action": "← Home",
+    "expect": "주소 /",
+    "actual": "url=/",
+    "verdict": "통과"
+  },
+  {
+    "id": "N3",
+    "screen": "/history/weekly",
+    "action": "← History",
+    "expect": "주소 /history",
+    "actual": "url=/history",
+    "verdict": "통과"
+  },
+  {
+    "id": "N4",
+    "screen": "/results/9feb8af1-e7fa-4be1-a9ed-9278f4ae22f4",
+    "action": "← Home",
+    "expect": "주소 /",
+    "actual": "url=/",
+    "verdict": "통과"
+  },
+  {
+    "id": "N5",
+    "screen": "/results/9feb8af1-e7fa-4be1-a9ed-9278f4ae22f4",
+    "action": "History →",
+    "expect": "주소 /history",
+    "actual": "url=/history",
+    "verdict": "통과"
+  },
+  {
+    "id": "N6",
+    "screen": "/course",
+    "action": "← Home",
+    "expect": "주소 /",
+    "actual": "url=/",
+    "verdict": "통과"
+  },
+  {
+    "id": "N7",
+    "screen": "/course",
+    "action": "Continue ▶(Day 1)",
+    "expect": "주소 /course/1",
+    "actual": "url=/course/1",
+    "verdict": "통과"
+  },
+  {
+    "id": "N8",
+    "screen": "/course",
+    "action": "Start(Day 3)",
+    "expect": "주소 /course/3",
+    "actual": "url=/course/3",
+    "verdict": "통과"
+  },
+  {
+    "id": "N9",
+    "screen": "/course/1",
+    "action": "← Back(course-back)",
+    "expect": "주소 /course",
+    "actual": "url=/course",
+    "verdict": "통과"
+  },
+  {
+    "id": "N10",
+    "screen": "/videos",
+    "action": "← Home",
+    "expect": "주소 /",
+    "actual": "url=/",
+    "verdict": "통과"
+  },
+  {
+    "id": "N11",
+    "screen": "/videos",
+    "action": "영상 제목 링크",
+    "expect": "주소 /videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+    "actual": "url=/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+    "verdict": "통과"
+  },
+  {
+    "id": "N12",
+    "screen": "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+    "action": "← Videos",
+    "expect": "주소 /videos",
+    "actual": "url=/videos",
+    "verdict": "통과"
+  },
+  {
+    "id": "N13",
+    "screen": "/results",
+    "action": "출구 외 링크 목록(드릴)",
+    "expect": "드릴 링크가 있으면 href 가 /?…source=additional",
+    "actual": "[[\"← Home\",\"/\"],[\"History →\",\"/history\"]]",
+    "verdict": "통과"
+  },
+  {
+    "id": "N14",
+    "screen": "/videos/<id>",
+    "action": "바깥 링크(누르지 않음)",
+    "expect": "있다면 youtube 주소 · target=_blank",
+    "actual": "보이는 바깥 링크 없음",
+    "verdict": "통과"
+  },
+  {
+    "id": "N15",
+    "screen": "/videos/<id>",
+    "action": "Mark start → 되돌리기",
+    "expect": "끝 표시·되돌리기 버튼이 나타나고, 되돌리면 Mark start 만 남음",
+    "actual": "after=[\"Mark end\",\"Mark again\"] back=[\"Mark start\"]",
+    "verdict": "통과"
+  },
+  {
+    "id": "N16",
+    "screen": "/videos",
+    "action": "Check(주소 입력 전후 · 누르지 않음)",
+    "expect": "빈칸이면 disabled · 주소를 넣으면 enabled",
+    "actual": "disabled true→false",
+    "verdict": "통과"
+  }
+]

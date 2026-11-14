@@ -1,0 +1,31 @@
+{
+ "before": {
+  "sw": 390,
+  "cw": 390
+ },
+ "injected": {
+  "sw": 390,
+  "cw": 390
+ },
+ "textRight": 620,
+ "innerWidth": 390,
+ "offRightDetects": true,
+ "clippers": [
+  {
+   "tag": "BODY",
+   "tid": null,
+   "cls": "bg-page text-foreground antialiased",
+   "overflowX": "hidden",
+   "sw": 620,
+   "cw": 390
+  },
+  {
+   "tag": "HTML",
+   "tid": null,
+   "cls": "geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__vari",
+   "overflowX": "hidden",
+   "sw": 390,
+   "cw": 390
+  }
+ ]
+}

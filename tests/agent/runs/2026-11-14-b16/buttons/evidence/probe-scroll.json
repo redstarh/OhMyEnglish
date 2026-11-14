@@ -1,0 +1,202 @@
+[
+  {
+    "W": 1400,
+    "how": "dom",
+    "y": 40,
+    "before": {
+      "y": 40,
+      "docH": 952,
+      "vh": 900,
+      "btnTop": 362
+    },
+    "after": {
+      "y": 0,
+      "docH": 951,
+      "heroTop": 36,
+      "scrolls": [
+        [
+          952,
+          40
+        ],
+        [
+          1299,
+          0
+        ]
+      ],
+      "maxY": 51
+    }
+  },
+  {
+    "W": 1400,
+    "how": "dom",
+    "y": 150,
+    "before": {
+      "y": 52,
+      "docH": 952,
+      "vh": 900,
+      "btnTop": 350
+    },
+    "after": {
+      "y": 0,
+      "docH": 951,
+      "heroTop": 36,
+      "scrolls": [
+        [
+          928,
+          52
+        ],
+        [
+          1270,
+          0
+        ]
+      ],
+      "maxY": 51
+    }
+  },
+  {
+    "W": 1400,
+    "how": "playwright",
+    "y": 40,
+    "before": {
+      "y": 40,
+      "docH": 952,
+      "vh": 900,
+      "btnTop": 362
+    },
+    "after": {
+      "y": 0,
+      "docH": 951,
+      "heroTop": 36,
+      "scrolls": [
+        [
+          913,
+          40
+        ],
+        [
+          1259,
+          0
+        ]
+      ],
+      "maxY": 51
+    }
+  },
+  {
+    "W": 1400,
+    "how": "playwright",
+    "y": 150,
+    "before": {
+      "y": 52,
+      "docH": 952,
+      "vh": 900,
+      "btnTop": 350
+    },
+    "after": {
+      "y": 0,
+      "docH": 951,
+      "heroTop": 36,
+      "scrolls": [
+        [
+          922,
+          52
+        ],
+        [
+          1265,
+          0
+        ]
+      ],
+      "maxY": 51
+    }
+  },
+  {
+    "W": 390,
+    "how": "dom",
+    "y": 40,
+    "before": {
+      "y": 40,
+      "docH": 1826,
+      "vh": 844,
+      "btnTop": 375
+    },
+    "after": {
+      "y": 40,
+      "docH": 1826,
+      "heroTop": 49,
+      "scrolls": [
+        [
+          911,
+          40
+        ]
+      ],
+      "maxY": 982
+    }
+  },
+  {
+    "W": 390,
+    "how": "dom",
+    "y": 150,
+    "before": {
+      "y": 150,
+      "docH": 1826,
+      "vh": 844,
+      "btnTop": 265
+    },
+    "after": {
+      "y": 150,
+      "docH": 1826,
+      "heroTop": -61,
+      "scrolls": [
+        [
+          912,
+          150
+        ]
+      ],
+      "maxY": 982
+    }
+  },
+  {
+    "W": 390,
+    "how": "playwright",
+    "y": 40,
+    "before": {
+      "y": 40,
+      "docH": 1826,
+      "vh": 844,
+      "btnTop": 375
+    },
+    "after": {
+      "y": 40,
+      "docH": 1826,
+      "heroTop": 49,
+      "scrolls": [
+        [
+          918,
+          40
+        ]
+      ],
+      "maxY": 982
+    }
+  },
+  {
+    "W": 390,
+    "how": "playwright",
+    "y": 150,
+    "before": {
+      "y": 150,
+      "docH": 1826,
+      "vh": 844,
+      "btnTop": 265
+    },
+    "after": {
+      "y": 150,
+      "docH": 1826,
+      "heroTop": -61,
+      "scrolls": [
+        [
+          913,
+          150
+        ]
+      ],
+      "maxY": 982
+    }
+  }
+]

@@ -1,0 +1,33 @@
+{
+ "tz": "Asia/Seoul",
+ "homeText": "0\n\nSessions\n\n1\n\nBest streak\n\n0\n\nPatterns\n\nWeekly report · week of Nov 2",
+ "homeResponses": [
+  {
+   "at": "2026-11-14T06:11:29.265Z",
+   "url": "http://localhost:8002/api/weekly-report",
+   "status": 200,
+   "body": "{\"week_start\":\"2026-11-02\",\"analyzed\":true,\"metrics\":{\"top_patterns\":[],\"pattern_count\":0,\"session_count\":0,\"occurrence_count\":0},\"insights\":{\"improving\":[],\"next_scenarios\":[]}}"
+  },
+  {
+   "at": "2026-11-14T06:11:29.268Z",
+   "url": "http://localhost:8002/api/weekly-report",
+   "status": 200,
+   "body": "{\"week_start\":\"2026-11-02\",\"analyzed\":true,\"metrics\":{\"top_patterns\":[],\"pattern_count\":0,\"session_count\":0,\"occurrence_count\":0},\"insights\":{\"improving\":[],\"next_scenarios\":[]}}"
+  }
+ ],
+ "weeklyHead": "Weekly report\n\n11/2 ~ 11/8\n\nLessons 0 · Mistakes 0 · Patterns 0\n\nCommon mistakes this week\n\nNothing to show for this week.\n\nGetting better\n\nNothing to show for this week.\n\nTry next week\n\nNothing to sh",
+ "weeklyResponses": [
+  {
+   "at": "2026-11-14T06:11:30.388Z",
+   "url": "http://localhost:8002/api/weekly-report",
+   "status": 200,
+   "body": "{\"week_start\":\"2026-11-02\",\"analyzed\":true,\"metrics\":{\"top_patterns\":[],\"pattern_count\":0,\"session_count\":0,\"occurrence_count\":0},\"insights\":{\"improving\":[],\"next_scenarios\":[]}}"
+  },
+  {
+   "at": "2026-11-14T06:11:30.388Z",
+   "url": "http://localhost:8002/api/weekly-report",
+   "status": 200,
+   "body": "{\"week_start\":\"2026-11-02\",\"analyzed\":true,\"metrics\":{\"top_patterns\":[],\"pattern_count\":0,\"session_count\":0,\"occurrence_count\":0},\"insights\":{\"improving\":[],\"next_scenarios\":[]}}"
+  }
+ ]
+}

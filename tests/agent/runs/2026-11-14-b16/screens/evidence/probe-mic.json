@@ -1,0 +1,20 @@
+{
+ "before": {
+  "st": "granted",
+  "gum": "granted-stream"
+ },
+ "setDenied": "ok",
+ "afterDenied": {
+  "st": "denied",
+  "gum": "granted-stream"
+ },
+ "afterDeniedReload": {
+  "st": "denied",
+  "gum": "granted-stream"
+ },
+ "restore": "ok",
+ "afterRestore": {
+  "st": "granted",
+  "gum": "granted-stream"
+ }
+}

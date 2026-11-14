@@ -1,0 +1,114 @@
+2026-11-14T06:00:07.978Z home_idle 1400 #1 홈 대기 — 첫 화면 hOverflow=false hero=433.6 prog=433.6 clipped=1 ko=0
+2026-11-14T06:00:09.731Z home_idle 390 #1 홈 대기 — 첫 화면 hOverflow=false hero=489.6 prog=335.4 clipped=1 ko=0
+2026-11-14T06:00:11.523Z home_practice 1400 #1 Start speaking 누르기 전 hOverflow=false hero=433.6 prog=433.6 clipped=1 ko=0
+2026-11-14T06:00:13.194Z home_practice 1400 #2 Start speaking — 카드 안 문장 연습 hOverflow=false hero=433.2 prog=433.2 clipped=1 ko=1
+2026-11-14T06:00:15.744Z home_practice 1400 #3 Start 누름 — 듣는 중 hOverflow=false hero=433.2 prog=433.2 clipped=1 ko=1
+2026-11-14T06:00:21.817Z home_practice 1400 #4 말한 뒤 결과 자리(가짜 마이크) hOverflow=false hero=433.2 prog=433.2 clipped=1 ko=1
+2026-11-14T06:00:23.102Z home_practice 1400 #5 Next — 다음 문장 hOverflow=false hero=433.2 prog=433.2 clipped=1 ko=1
+2026-11-14T06:00:23.963Z home_practice 1400 #6 ← Close — 대기로 돌아옴 hOverflow=false hero=433.6 prog=433.6 clipped=1 ko=0
+2026-11-14T06:00:25.706Z home_practice 390 #1 Start speaking 누르기 전 hOverflow=false hero=489.6 prog=335.4 clipped=1 ko=0
+2026-11-14T06:00:27.308Z home_practice 390 #2 Start speaking — 카드 안 문장 연습 hOverflow=false hero=489.5 prog=335.4 clipped=1 ko=1
+2026-11-14T06:00:29.906Z home_practice 390 #3 Start 누름 — 듣는 중 hOverflow=false hero=489.5 prog=335.4 clipped=1 ko=1
+2026-11-14T06:00:35.954Z home_practice 390 #4 말한 뒤 결과 자리(가짜 마이크) hOverflow=false hero=489.5 prog=335.4 clipped=1 ko=1
+2026-11-14T06:00:37.239Z home_practice 390 #5 Next — 다음 문장 hOverflow=false hero=489.5 prog=335.4 clipped=1 ko=1
+2026-11-14T06:00:38.128Z home_practice 390 #6 ← Close — 대기로 돌아옴 hOverflow=false hero=489.6 prog=335.4 clipped=1 ko=0
+2026-11-14T06:00:40.335Z path_day2 1400 #1 Continue your path — Day 줄 목록 hOverflow=false hero=433.6 prog=433.6 clipped=1 ko=0
+2026-11-14T06:00:41.903Z path_day2 1400 #2 Day 2 고름 — 카드에서 연습이 열림 hOverflow=false hero=433.2 prog=433.2 clipped=1 ko=1
+2026-11-14T06:00:44.939Z path_day2 390 #1 Continue your path — Day 줄 목록 hOverflow=false hero=489.6 prog=335.4 clipped=1 ko=0
+2026-11-14T06:00:46.523Z path_day2 390 #2 Day 2 고름 — 카드에서 연습이 열림 hOverflow=false hero=489.5 prog=335.4 clipped=1 ko=1
+2026-11-14T06:00:49.494Z view_all 1400 #1 View all 누르기 전 hOverflow=false hero=433.6 prog=433.6 clipped=1 ko=0
+2026-11-14T06:00:50.592Z view_all 1400 #2 View all — 모든 Day 로 펼침 hOverflow=false hero=433.6 prog=433.6 clipped=1 ko=0
+2026-11-14T06:00:51.539Z view_all 1400 #3 Show less — 다시 접음 hOverflow=false hero=433.6 prog=433.6 clipped=1 ko=0
+2026-11-14T06:00:53.679Z view_all 390 #1 View all 누르기 전 hOverflow=false hero=489.6 prog=335.4 clipped=1 ko=0
+2026-11-14T06:00:54.771Z view_all 390 #2 View all — 모든 Day 로 펼침 hOverflow=false hero=489.6 prog=335.4 clipped=1 ko=0
+2026-11-14T06:00:55.704Z view_all 390 #3 Show less — 다시 접음 hOverflow=false hero=489.6 prog=335.4 clipped=1 ko=0
+2026-11-14T06:00:55.709Z DONE
+2026-11-14T06:01:19.818Z coach 1400 #1 More practice — Free talk 버튼 hOverflow=false hero=433.6 prog=433.6 clipped=1 ko=0
+2026-11-14T06:01:22.373Z coach 1400 #2 세션 시작 — 카드 안 대화 화면 hOverflow=false hero=433.6 prog=433.6 clipped=1 ko=0
+2026-11-14T06:01:34.432Z coach 1400 #3 코치 첫 발화 뒤(약 15초) hOverflow=false hero=433.6 prog=433.6 clipped=1 ko=0
+2026-11-14T06:01:42.515Z coach 1400 #4 End — 종료 뒤 화면 hOverflow=false hero=- prog=- clipped=0 ko=0
+2026-11-14T06:01:57.580Z coach 1400 #5 종료 후 약 23초 hOverflow=false hero=- prog=- clipped=0 ko=0
+2026-11-14T06:01:59.724Z coach 390 #1 More practice — Free talk 버튼 hOverflow=false hero=489.6 prog=335.4 clipped=1 ko=0
+2026-11-14T06:02:02.339Z coach 390 #2 세션 시작 — 카드 안 대화 화면 hOverflow=false hero=489.6 prog=335.4 clipped=1 ko=0
+2026-11-14T06:02:14.387Z coach 390 #3 코치 첫 발화 뒤(약 15초) hOverflow=false hero=489.6 prog=335.4 clipped=1 ko=0
+2026-11-14T06:02:22.484Z coach 390 #4 End — 종료 뒤 화면 hOverflow=false hero=- prog=- clipped=0 ko=0
+2026-11-14T06:02:37.533Z coach 390 #5 종료 후 약 23초 hOverflow=false hero=- prog=- clipped=0 ko=0
+2026-11-14T06:02:37.575Z ERROR mic_denied 1400: Error: cdpSession.send: Protocol error (Browser.setPermission): Invalid PermissionDescriptor name: audioCapture
+2026-11-14T06:02:37.665Z ERROR mic_denied 390: Error: cdpSession.send: Protocol error (Browser.setPermission): Invalid PermissionDescriptor name: audioCapture
+2026-11-14T06:02:42.007Z history 1400 #1 Your progress → History — /history hOverflow=false hero=- prog=- clipped=0 ko=0
+2026-11-14T06:02:46.279Z history 390 #1 Your progress → History — /history hOverflow=false hero=- prog=- clipped=0 ko=0
+2026-11-14T06:02:50.561Z weekly 1400 #1 Your progress → Weekly report — /history/weekly hOverflow=false hero=- prog=- clipped=0 ko=0
+2026-11-14T06:02:54.852Z weekly 390 #1 Your progress → Weekly report — /history/weekly hOverflow=false hero=- prog=- clipped=0 ko=0
+2026-11-14T06:03:27.955Z results: /history 에 결과 링크 없음 — 펼칠 거리 1개
+2026-11-14T06:03:28.020Z results 1400 #1 /history — 결과 링크를 찾지 못함 hOverflow=false hero=- prog=- clipped=0 ko=0
+2026-11-14T06:04:01.107Z results: /history 에 결과 링크 없음 — 펼칠 거리 1개
+2026-11-14T06:04:01.165Z results 390 #1 /history — 결과 링크를 찾지 못함 hOverflow=false hero=- prog=- clipped=0 ko=0
+2026-11-14T06:04:04.315Z course 1400 #1 코스 목록 /course(주소로만 닿음) hOverflow=false hero=- prog=- clipped=0 ko=0
+2026-11-14T06:04:07.462Z course 390 #1 코스 목록 /course(주소로만 닿음) hOverflow=false hero=- prog=- clipped=0 ko=0
+2026-11-14T06:04:11.636Z course_day 1400 #1 Day 화면 /course/1 — 열기만 해도 진도 저장 hOverflow=false hero=- prog=- clipped=0 ko=2
+2026-11-14T06:04:15.812Z course_day 390 #1 Day 화면 /course/1 — 열기만 해도 진도 저장 hOverflow=false hero=- prog=- clipped=0 ko=2
+2026-11-14T06:04:20.628Z videos 1400 #1 영상 목록 /videos hOverflow=false hero=- prog=- clipped=0 ko=1
+2026-11-14T06:04:25.755Z videos 1400 #2 영상 화면 /videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2 hOverflow=false hero=- prog=- clipped=0 ko=2
+2026-11-14T06:04:30.613Z videos 390 #1 영상 목록 /videos hOverflow=false hero=- prog=- clipped=0 ko=1
+2026-11-14T06:04:35.746Z videos 390 #2 영상 화면 /videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2 hOverflow=false hero=- prog=- clipped=0 ko=2
+2026-11-14T06:04:35.754Z DONE
+2026-11-14T06:07:18.334Z mic_denied 1400 #1 마이크 거부 — 실패 화면 hOverflow=false hero=433.6 prog=433.6 clipped=1 ko=0
+2026-11-14T06:07:51.105Z mic_denied 390 #1 마이크 거부 — 실패 화면 hOverflow=false hero=489.6 prog=335.4 clipped=1 ko=0
+2026-11-14T06:07:55.369Z history 1400 #1 Your progress → History — /history hOverflow=false hero=- prog=- clipped=0 ko=0
+2026-11-14T06:07:57.478Z history 1400 #2 공부한 날(2026-11-01) 줄을 누름 hOverflow=false hero=- prog=- clipped=0 ko=0
+2026-11-14T06:08:01.755Z history 390 #1 Your progress → History — /history hOverflow=false hero=- prog=- clipped=0 ko=0
+2026-11-14T06:08:03.850Z history 390 #2 공부한 날(2026-11-01) 줄을 누름 hOverflow=false hero=- prog=- clipped=0 ko=0
+2026-11-14T06:08:09.011Z results 1400 #2 격리 DB 완료 세션(발화 26건) 결과 화면 hOverflow=false hero=- prog=- clipped=0 ko=6
+2026-11-14T06:08:42.067Z results: /history 에 결과 링크 없음 — 펼칠 거리 1개
+2026-11-14T06:08:42.140Z results 1400 #1 /history — 결과 링크를 찾지 못함 hOverflow=false hero=- prog=- clipped=0 ko=0
+2026-11-14T06:08:47.302Z results 390 #2 격리 DB 완료 세션(발화 26건) 결과 화면 hOverflow=false hero=- prog=- clipped=0 ko=6
+2026-11-14T06:09:20.365Z results: /history 에 결과 링크 없음 — 펼칠 거리 1개
+2026-11-14T06:09:20.419Z results 390 #1 /history — 결과 링크를 찾지 못함 hOverflow=false hero=- prog=- clipped=0 ko=0
+2026-11-14T06:09:20.426Z DONE
+2026-11-14T06:13:55.400Z home_idle 1400 #1 홈 대기 — 첫 화면 hOverflow=false hero=433.6 prog=433.6 clipped=1 ko=0
+2026-11-14T06:13:57.114Z home_idle 390 #1 홈 대기 — 첫 화면 hOverflow=false hero=489.6 prog=335.4 clipped=1 ko=0
+2026-11-14T06:13:58.771Z home_practice 1400 #1 Start speaking 누르기 전 hOverflow=false hero=433.6 prog=433.6 clipped=1 ko=0
+2026-11-14T06:14:00.346Z home_practice 1400 #2 Start speaking — 카드 안 문장 연습 hOverflow=false hero=433.2 prog=433.2 clipped=1 ko=0
+2026-11-14T06:14:02.922Z home_practice 1400 #3 Start 누름 — 듣는 중 hOverflow=false hero=433.2 prog=433.2 clipped=1 ko=0
+2026-11-14T06:14:08.954Z home_practice 1400 #4 말한 뒤 결과 자리(가짜 마이크) hOverflow=false hero=433.2 prog=433.2 clipped=1 ko=0
+2026-11-14T06:14:10.201Z home_practice 1400 #5 Next — 다음 문장 hOverflow=false hero=433.2 prog=433.2 clipped=1 ko=0
+2026-11-14T06:14:11.080Z home_practice 1400 #6 ← Close — 대기로 돌아옴 hOverflow=false hero=433.6 prog=433.6 clipped=1 ko=0
+2026-11-14T06:14:12.771Z home_practice 390 #1 Start speaking 누르기 전 hOverflow=false hero=489.6 prog=335.4 clipped=1 ko=0
+2026-11-14T06:14:14.367Z home_practice 390 #2 Start speaking — 카드 안 문장 연습 hOverflow=false hero=489.5 prog=335.4 clipped=1 ko=0
+2026-11-14T06:14:16.959Z home_practice 390 #3 Start 누름 — 듣는 중 hOverflow=false hero=489.5 prog=335.4 clipped=1 ko=0
+2026-11-14T06:14:23.029Z home_practice 390 #4 말한 뒤 결과 자리(가짜 마이크) hOverflow=false hero=489.5 prog=335.4 clipped=1 ko=0
+2026-11-14T06:14:24.317Z home_practice 390 #5 Next — 다음 문장 hOverflow=false hero=489.5 prog=335.4 clipped=1 ko=0
+2026-11-14T06:14:25.202Z home_practice 390 #6 ← Close — 대기로 돌아옴 hOverflow=false hero=489.6 prog=335.4 clipped=1 ko=0
+2026-11-14T06:14:27.390Z path_day2 1400 #1 Continue your path — Day 줄 목록 hOverflow=false hero=433.6 prog=433.6 clipped=1 ko=0
+2026-11-14T06:14:28.961Z path_day2 1400 #2 Day 2 고름 — 카드에서 연습이 열림 hOverflow=false hero=433.2 prog=433.2 clipped=1 ko=1
+2026-11-14T06:14:32.021Z path_day2 390 #1 Continue your path — Day 줄 목록 hOverflow=false hero=489.6 prog=335.4 clipped=1 ko=0
+2026-11-14T06:14:33.617Z path_day2 390 #2 Day 2 고름 — 카드에서 연습이 열림 hOverflow=false hero=489.5 prog=335.4 clipped=1 ko=1
+2026-11-14T06:14:36.594Z view_all 1400 #1 View all 누르기 전 hOverflow=false hero=433.6 prog=433.6 clipped=1 ko=0
+2026-11-14T06:14:37.688Z view_all 1400 #2 View all — 모든 Day 로 펼침 hOverflow=false hero=433.6 prog=433.6 clipped=1 ko=0
+2026-11-14T06:14:38.591Z view_all 1400 #3 Show less — 다시 접음 hOverflow=false hero=433.6 prog=433.6 clipped=1 ko=0
+2026-11-14T06:14:40.704Z view_all 390 #1 View all 누르기 전 hOverflow=false hero=489.6 prog=335.4 clipped=1 ko=0
+2026-11-14T06:14:41.802Z view_all 390 #2 View all — 모든 Day 로 펼침 hOverflow=false hero=489.6 prog=335.4 clipped=1 ko=0
+2026-11-14T06:14:42.724Z view_all 390 #3 Show less — 다시 접음 hOverflow=false hero=489.6 prog=335.4 clipped=1 ko=0
+2026-11-14T06:14:47.008Z history 1400 #1 Your progress → History — /history hOverflow=false hero=- prog=- clipped=0 ko=0
+2026-11-14T06:14:49.123Z history 1400 #2 공부한 날(2026-11-01) 줄을 누름 hOverflow=false hero=- prog=- clipped=0 ko=0
+2026-11-14T06:14:53.419Z history 390 #1 Your progress → History — /history hOverflow=false hero=- prog=- clipped=0 ko=0
+2026-11-14T06:14:55.519Z history 390 #2 공부한 날(2026-11-01) 줄을 누름 hOverflow=false hero=- prog=- clipped=0 ko=0
+2026-11-14T06:14:59.796Z weekly 1400 #1 Your progress → Weekly report — /history/weekly hOverflow=false hero=- prog=- clipped=0 ko=0
+2026-11-14T06:15:04.069Z weekly 390 #1 Your progress → Weekly report — /history/weekly hOverflow=false hero=- prog=- clipped=0 ko=0
+2026-11-14T06:15:09.221Z results 1400 #2 격리 DB 완료 세션(발화 26건) 결과 화면 hOverflow=false hero=- prog=- clipped=0 ko=6
+2026-11-14T06:15:20.942Z ERROR results 1400: Error: locator.count: Target page, context or browser has been closed
+2026-11-14T06:25:39.628Z results 1400 #2 격리 DB 완료 세션(발화 26건) 결과 화면 hOverflow=false hero=- prog=- clipped=0 ko=6
+2026-11-14T06:26:12.678Z results: /history 에 결과 링크 없음 — 펼칠 거리 1개
+2026-11-14T06:26:12.731Z results 1400 #1 /history — 결과 링크를 찾지 못함 hOverflow=false hero=- prog=- clipped=0 ko=0
+2026-11-14T06:26:17.952Z results 390 #2 격리 DB 완료 세션(발화 26건) 결과 화면 hOverflow=false hero=- prog=- clipped=0 ko=6
+2026-11-14T06:26:51.013Z results: /history 에 결과 링크 없음 — 펼칠 거리 1개
+2026-11-14T06:26:51.072Z results 390 #1 /history — 결과 링크를 찾지 못함 hOverflow=false hero=- prog=- clipped=0 ko=0
+2026-11-14T06:26:54.221Z course 1400 #1 코스 목록 /course(주소로만 닿음) hOverflow=false hero=- prog=- clipped=0 ko=0
+2026-11-14T06:26:57.367Z course 390 #1 코스 목록 /course(주소로만 닿음) hOverflow=false hero=- prog=- clipped=0 ko=0
+2026-11-14T06:27:01.504Z course_day 1400 #1 Day 화면 /course/1 — 열기만 해도 진도 저장 hOverflow=false hero=- prog=- clipped=0 ko=1
+2026-11-14T06:27:05.700Z course_day 390 #1 Day 화면 /course/1 — 열기만 해도 진도 저장 hOverflow=false hero=- prog=- clipped=0 ko=1
+2026-11-14T06:27:10.529Z videos 1400 #1 영상 목록 /videos hOverflow=false hero=- prog=- clipped=0 ko=1
+2026-11-14T06:27:15.658Z videos 1400 #2 영상 화면 /videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2 hOverflow=false hero=- prog=- clipped=0 ko=2
+2026-11-14T06:27:20.481Z videos 390 #1 영상 목록 /videos hOverflow=false hero=- prog=- clipped=0 ko=1
+2026-11-14T06:27:25.602Z videos 390 #2 영상 화면 /videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2 hOverflow=true hero=- prog=- clipped=0 ko=2
+2026-11-14T06:27:25.612Z DONE

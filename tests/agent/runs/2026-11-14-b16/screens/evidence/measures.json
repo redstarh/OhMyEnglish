@@ -1,0 +1,3690 @@
+{
+ "home_idle": {
+  "390": [
+   {
+    "n": 1,
+    "desc": "홈 대기 — 첫 화면",
+    "file": "home_idle-390-01.jpg",
+    "m": {
+     "url": "/",
+     "innerWidth": 390,
+     "scrollWidth": 390,
+     "clientWidth": 390,
+     "bodyScrollWidth": 390,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1826,
+     "hero": {
+      "top": 89,
+      "h": 489.6,
+      "w": 350
+     },
+     "heroMode": "idle",
+     "progress": {
+      "top": 599,
+      "h": 335.4,
+      "w": 350
+     },
+     "sessionPanel": null,
+     "clipped": [
+      {
+       "tid": "home-dashboard-slot",
+       "tag": "H1",
+       "text": "Home",
+       "sw": 90,
+       "cw": 1,
+       "sh": 40,
+       "ch": 1
+      }
+     ],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": "home-hero",
+       "text": "Today's practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "oklab(0.999994 0.0000455678 0.0000200868 / 0.75)"
+      },
+      {
+       "tid": "home-progress",
+       "text": "Your progress",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-path",
+       "text": "Continue your path",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-focus",
+       "text": "Focus patterns",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-more-practice",
+       "text": "More practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   }
+  ],
+  "1400": [
+   {
+    "n": 1,
+    "desc": "홈 대기 — 첫 화면",
+    "file": "home_idle-1400-01.jpg",
+    "m": {
+     "url": "/",
+     "innerWidth": 1400,
+     "scrollWidth": 1400,
+     "clientWidth": 1400,
+     "bodyScrollWidth": 1400,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1000,
+     "hero": {
+      "top": 36,
+      "h": 433.6,
+      "w": 669
+     },
+     "heroMode": "idle",
+     "progress": {
+      "top": 36,
+      "h": 433.6,
+      "w": 367
+     },
+     "sessionPanel": null,
+     "clipped": [
+      {
+       "tid": "home-dashboard-slot",
+       "tag": "H1",
+       "text": "Home",
+       "sw": 90,
+       "cw": 1,
+       "sh": 40,
+       "ch": 1
+      }
+     ],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": null,
+       "text": "Workspace",
+       "fontSize": "10px",
+       "fontWeight": "700",
+       "letterSpacing": "1.8px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-hero",
+       "text": "Today's practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "oklab(0.999994 0.0000455678 0.0000200868 / 0.75)"
+      },
+      {
+       "tid": "home-progress",
+       "text": "Your progress",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-path",
+       "text": "Continue your path",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-focus",
+       "text": "Focus patterns",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-more-practice",
+       "text": "More practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   }
+  ],
+  "console-1400": [],
+  "console-390": []
+ },
+ "home_practice": {
+  "390": [
+   {
+    "n": 1,
+    "desc": "Start speaking 누르기 전",
+    "file": "home_practice-390-01.jpg",
+    "m": {
+     "url": "/",
+     "innerWidth": 390,
+     "scrollWidth": 390,
+     "clientWidth": 390,
+     "bodyScrollWidth": 390,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1826,
+     "hero": {
+      "top": 89,
+      "h": 489.6,
+      "w": 350
+     },
+     "heroMode": "idle",
+     "progress": {
+      "top": 599,
+      "h": 335.4,
+      "w": 350
+     },
+     "sessionPanel": null,
+     "clipped": [
+      {
+       "tid": "home-dashboard-slot",
+       "tag": "H1",
+       "text": "Home",
+       "sw": 90,
+       "cw": 1,
+       "sh": 40,
+       "ch": 1
+      }
+     ],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": "home-hero",
+       "text": "Today's practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "oklab(0.999994 0.0000455678 0.0000200868 / 0.75)"
+      },
+      {
+       "tid": "home-progress",
+       "text": "Your progress",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-path",
+       "text": "Continue your path",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-focus",
+       "text": "Focus patterns",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-more-practice",
+       "text": "More practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   },
+   {
+    "n": 2,
+    "desc": "Start speaking — 카드 안 문장 연습",
+    "file": "home_practice-390-02.jpg",
+    "m": {
+     "url": "/",
+     "innerWidth": 390,
+     "scrollWidth": 390,
+     "clientWidth": 390,
+     "bodyScrollWidth": 390,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1826,
+     "hero": {
+      "top": 89,
+      "h": 489.5,
+      "w": 350
+     },
+     "heroMode": "practice",
+     "progress": {
+      "top": 598,
+      "h": 335.4,
+      "w": 350
+     },
+     "sessionPanel": null,
+     "clipped": [
+      {
+       "tid": "home-dashboard-slot",
+       "tag": "H1",
+       "text": "Home",
+       "sw": 90,
+       "cw": 1,
+       "sh": 40,
+       "ch": 1
+      }
+     ],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": "home-hero",
+       "text": "Today's practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-progress",
+       "text": "Your progress",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-path",
+       "text": "Continue your path",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-focus",
+       "text": "Focus patterns",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-more-practice",
+       "text": "More practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   },
+   {
+    "n": 3,
+    "desc": "Start 누름 — 듣는 중",
+    "file": "home_practice-390-03.jpg",
+    "m": {
+     "url": "/",
+     "innerWidth": 390,
+     "scrollWidth": 390,
+     "clientWidth": 390,
+     "bodyScrollWidth": 390,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1826,
+     "hero": {
+      "top": 89,
+      "h": 489.5,
+      "w": 350
+     },
+     "heroMode": "practice",
+     "progress": {
+      "top": 598,
+      "h": 335.4,
+      "w": 350
+     },
+     "sessionPanel": null,
+     "clipped": [
+      {
+       "tid": "home-dashboard-slot",
+       "tag": "H1",
+       "text": "Home",
+       "sw": 90,
+       "cw": 1,
+       "sh": 40,
+       "ch": 1
+      }
+     ],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": "home-hero",
+       "text": "Today's practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-progress",
+       "text": "Your progress",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-path",
+       "text": "Continue your path",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-focus",
+       "text": "Focus patterns",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-more-practice",
+       "text": "More practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   },
+   {
+    "n": 4,
+    "desc": "말한 뒤 결과 자리(가짜 마이크)",
+    "file": "home_practice-390-04.jpg",
+    "m": {
+     "url": "/",
+     "innerWidth": 390,
+     "scrollWidth": 390,
+     "clientWidth": 390,
+     "bodyScrollWidth": 390,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1826,
+     "hero": {
+      "top": 89,
+      "h": 489.5,
+      "w": 350
+     },
+     "heroMode": "practice",
+     "progress": {
+      "top": 598,
+      "h": 335.4,
+      "w": 350
+     },
+     "sessionPanel": null,
+     "clipped": [
+      {
+       "tid": "home-dashboard-slot",
+       "tag": "H1",
+       "text": "Home",
+       "sw": 90,
+       "cw": 1,
+       "sh": 40,
+       "ch": 1
+      }
+     ],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": "home-hero",
+       "text": "Today's practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-progress",
+       "text": "Your progress",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-path",
+       "text": "Continue your path",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-focus",
+       "text": "Focus patterns",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-more-practice",
+       "text": "More practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   },
+   {
+    "n": 5,
+    "desc": "Next — 다음 문장",
+    "file": "home_practice-390-05.jpg",
+    "m": {
+     "url": "/",
+     "innerWidth": 390,
+     "scrollWidth": 390,
+     "clientWidth": 390,
+     "bodyScrollWidth": 390,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1826,
+     "hero": {
+      "top": 89,
+      "h": 489.5,
+      "w": 350
+     },
+     "heroMode": "practice",
+     "progress": {
+      "top": 598,
+      "h": 335.4,
+      "w": 350
+     },
+     "sessionPanel": null,
+     "clipped": [
+      {
+       "tid": "home-dashboard-slot",
+       "tag": "H1",
+       "text": "Home",
+       "sw": 90,
+       "cw": 1,
+       "sh": 40,
+       "ch": 1
+      }
+     ],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": "home-hero",
+       "text": "Today's practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-progress",
+       "text": "Your progress",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-path",
+       "text": "Continue your path",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-focus",
+       "text": "Focus patterns",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-more-practice",
+       "text": "More practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   },
+   {
+    "n": 6,
+    "desc": "← Close — 대기로 돌아옴",
+    "file": "home_practice-390-06.jpg",
+    "m": {
+     "url": "/",
+     "innerWidth": 390,
+     "scrollWidth": 390,
+     "clientWidth": 390,
+     "bodyScrollWidth": 390,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1826,
+     "hero": {
+      "top": 89,
+      "h": 489.6,
+      "w": 350
+     },
+     "heroMode": "idle",
+     "progress": {
+      "top": 599,
+      "h": 335.4,
+      "w": 350
+     },
+     "sessionPanel": null,
+     "clipped": [
+      {
+       "tid": "home-dashboard-slot",
+       "tag": "H1",
+       "text": "Home",
+       "sw": 90,
+       "cw": 1,
+       "sh": 40,
+       "ch": 1
+      }
+     ],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": "home-hero",
+       "text": "Today's practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "oklab(0.999994 0.0000455678 0.0000200868 / 0.75)"
+      },
+      {
+       "tid": "home-progress",
+       "text": "Your progress",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-path",
+       "text": "Continue your path",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-focus",
+       "text": "Focus patterns",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-more-practice",
+       "text": "More practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   }
+  ],
+  "1400": [
+   {
+    "n": 1,
+    "desc": "Start speaking 누르기 전",
+    "file": "home_practice-1400-01.jpg",
+    "m": {
+     "url": "/",
+     "innerWidth": 1400,
+     "scrollWidth": 1400,
+     "clientWidth": 1400,
+     "bodyScrollWidth": 1400,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1000,
+     "hero": {
+      "top": 36,
+      "h": 433.6,
+      "w": 669
+     },
+     "heroMode": "idle",
+     "progress": {
+      "top": 36,
+      "h": 433.6,
+      "w": 367
+     },
+     "sessionPanel": null,
+     "clipped": [
+      {
+       "tid": "home-dashboard-slot",
+       "tag": "H1",
+       "text": "Home",
+       "sw": 90,
+       "cw": 1,
+       "sh": 40,
+       "ch": 1
+      }
+     ],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": null,
+       "text": "Workspace",
+       "fontSize": "10px",
+       "fontWeight": "700",
+       "letterSpacing": "1.8px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-hero",
+       "text": "Today's practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "oklab(0.999994 0.0000455678 0.0000200868 / 0.75)"
+      },
+      {
+       "tid": "home-progress",
+       "text": "Your progress",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-path",
+       "text": "Continue your path",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-focus",
+       "text": "Focus patterns",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-more-practice",
+       "text": "More practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   },
+   {
+    "n": 2,
+    "desc": "Start speaking — 카드 안 문장 연습",
+    "file": "home_practice-1400-02.jpg",
+    "m": {
+     "url": "/",
+     "innerWidth": 1400,
+     "scrollWidth": 1400,
+     "clientWidth": 1400,
+     "bodyScrollWidth": 1400,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1000,
+     "hero": {
+      "top": 36,
+      "h": 433.2,
+      "w": 669
+     },
+     "heroMode": "practice",
+     "progress": {
+      "top": 36,
+      "h": 433.2,
+      "w": 367
+     },
+     "sessionPanel": null,
+     "clipped": [
+      {
+       "tid": "home-dashboard-slot",
+       "tag": "H1",
+       "text": "Home",
+       "sw": 90,
+       "cw": 1,
+       "sh": 40,
+       "ch": 1
+      }
+     ],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": null,
+       "text": "Workspace",
+       "fontSize": "10px",
+       "fontWeight": "700",
+       "letterSpacing": "1.8px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-hero",
+       "text": "Today's practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-progress",
+       "text": "Your progress",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-path",
+       "text": "Continue your path",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-focus",
+       "text": "Focus patterns",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-more-practice",
+       "text": "More practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   },
+   {
+    "n": 3,
+    "desc": "Start 누름 — 듣는 중",
+    "file": "home_practice-1400-03.jpg",
+    "m": {
+     "url": "/",
+     "innerWidth": 1400,
+     "scrollWidth": 1400,
+     "clientWidth": 1400,
+     "bodyScrollWidth": 1400,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1000,
+     "hero": {
+      "top": 36,
+      "h": 433.2,
+      "w": 669
+     },
+     "heroMode": "practice",
+     "progress": {
+      "top": 36,
+      "h": 433.2,
+      "w": 367
+     },
+     "sessionPanel": null,
+     "clipped": [
+      {
+       "tid": "home-dashboard-slot",
+       "tag": "H1",
+       "text": "Home",
+       "sw": 90,
+       "cw": 1,
+       "sh": 40,
+       "ch": 1
+      }
+     ],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": null,
+       "text": "Workspace",
+       "fontSize": "10px",
+       "fontWeight": "700",
+       "letterSpacing": "1.8px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-hero",
+       "text": "Today's practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-progress",
+       "text": "Your progress",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-path",
+       "text": "Continue your path",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-focus",
+       "text": "Focus patterns",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-more-practice",
+       "text": "More practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   },
+   {
+    "n": 4,
+    "desc": "말한 뒤 결과 자리(가짜 마이크)",
+    "file": "home_practice-1400-04.jpg",
+    "m": {
+     "url": "/",
+     "innerWidth": 1400,
+     "scrollWidth": 1400,
+     "clientWidth": 1400,
+     "bodyScrollWidth": 1400,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1000,
+     "hero": {
+      "top": 36,
+      "h": 433.2,
+      "w": 669
+     },
+     "heroMode": "practice",
+     "progress": {
+      "top": 36,
+      "h": 433.2,
+      "w": 367
+     },
+     "sessionPanel": null,
+     "clipped": [
+      {
+       "tid": "home-dashboard-slot",
+       "tag": "H1",
+       "text": "Home",
+       "sw": 90,
+       "cw": 1,
+       "sh": 40,
+       "ch": 1
+      }
+     ],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": null,
+       "text": "Workspace",
+       "fontSize": "10px",
+       "fontWeight": "700",
+       "letterSpacing": "1.8px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-hero",
+       "text": "Today's practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-progress",
+       "text": "Your progress",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-path",
+       "text": "Continue your path",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-focus",
+       "text": "Focus patterns",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-more-practice",
+       "text": "More practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   },
+   {
+    "n": 5,
+    "desc": "Next — 다음 문장",
+    "file": "home_practice-1400-05.jpg",
+    "m": {
+     "url": "/",
+     "innerWidth": 1400,
+     "scrollWidth": 1400,
+     "clientWidth": 1400,
+     "bodyScrollWidth": 1400,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1000,
+     "hero": {
+      "top": 36,
+      "h": 433.2,
+      "w": 669
+     },
+     "heroMode": "practice",
+     "progress": {
+      "top": 36,
+      "h": 433.2,
+      "w": 367
+     },
+     "sessionPanel": null,
+     "clipped": [
+      {
+       "tid": "home-dashboard-slot",
+       "tag": "H1",
+       "text": "Home",
+       "sw": 90,
+       "cw": 1,
+       "sh": 40,
+       "ch": 1
+      }
+     ],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": null,
+       "text": "Workspace",
+       "fontSize": "10px",
+       "fontWeight": "700",
+       "letterSpacing": "1.8px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-hero",
+       "text": "Today's practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-progress",
+       "text": "Your progress",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-path",
+       "text": "Continue your path",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-focus",
+       "text": "Focus patterns",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-more-practice",
+       "text": "More practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   },
+   {
+    "n": 6,
+    "desc": "← Close — 대기로 돌아옴",
+    "file": "home_practice-1400-06.jpg",
+    "m": {
+     "url": "/",
+     "innerWidth": 1400,
+     "scrollWidth": 1400,
+     "clientWidth": 1400,
+     "bodyScrollWidth": 1400,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1000,
+     "hero": {
+      "top": 36,
+      "h": 433.6,
+      "w": 669
+     },
+     "heroMode": "idle",
+     "progress": {
+      "top": 36,
+      "h": 433.6,
+      "w": 367
+     },
+     "sessionPanel": null,
+     "clipped": [
+      {
+       "tid": "home-dashboard-slot",
+       "tag": "H1",
+       "text": "Home",
+       "sw": 90,
+       "cw": 1,
+       "sh": 40,
+       "ch": 1
+      }
+     ],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": null,
+       "text": "Workspace",
+       "fontSize": "10px",
+       "fontWeight": "700",
+       "letterSpacing": "1.8px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-hero",
+       "text": "Today's practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "oklab(0.999994 0.0000455678 0.0000200868 / 0.75)"
+      },
+      {
+       "tid": "home-progress",
+       "text": "Your progress",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-path",
+       "text": "Continue your path",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-focus",
+       "text": "Focus patterns",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-more-practice",
+       "text": "More practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   }
+  ],
+  "console-1400": [],
+  "console-390": []
+ },
+ "path_day2": {
+  "390": [
+   {
+    "n": 1,
+    "desc": "Continue your path — Day 줄 목록",
+    "file": "path_day2-390-01.jpg",
+    "m": {
+     "url": "/",
+     "innerWidth": 390,
+     "scrollWidth": 390,
+     "clientWidth": 390,
+     "bodyScrollWidth": 390,
+     "hOverflow": false,
+     "scrollY": 677,
+     "docHeight": 1826,
+     "hero": {
+      "top": 89,
+      "h": 489.6,
+      "w": 350
+     },
+     "heroMode": "idle",
+     "progress": {
+      "top": 599,
+      "h": 335.4,
+      "w": 350
+     },
+     "sessionPanel": null,
+     "clipped": [
+      {
+       "tid": "home-dashboard-slot",
+       "tag": "H1",
+       "text": "Home",
+       "sw": 90,
+       "cw": 1,
+       "sh": 40,
+       "ch": 1
+      }
+     ],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": "home-hero",
+       "text": "Today's practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "oklab(0.999994 0.0000455678 0.0000200868 / 0.75)"
+      },
+      {
+       "tid": "home-progress",
+       "text": "Your progress",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-path",
+       "text": "Continue your path",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-focus",
+       "text": "Focus patterns",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-more-practice",
+       "text": "More practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   },
+   {
+    "n": 2,
+    "desc": "Day 2 고름 — 카드에서 연습이 열림",
+    "file": "path_day2-390-02.jpg",
+    "dayText": "Day 2 · Units 22–41",
+    "url": "/",
+    "m": {
+     "url": "/",
+     "innerWidth": 390,
+     "scrollWidth": 390,
+     "clientWidth": 390,
+     "bodyScrollWidth": 390,
+     "hOverflow": false,
+     "scrollY": 89,
+     "docHeight": 1826,
+     "hero": {
+      "top": 89,
+      "h": 489.5,
+      "w": 350
+     },
+     "heroMode": "practice",
+     "progress": {
+      "top": 598,
+      "h": 335.4,
+      "w": 350
+     },
+     "sessionPanel": null,
+     "clipped": [
+      {
+       "tid": "home-dashboard-slot",
+       "tag": "H1",
+       "text": "Home",
+       "sw": 90,
+       "cw": 1,
+       "sh": 40,
+       "ch": 1
+      }
+     ],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": "home-hero",
+       "text": "Today's practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-progress",
+       "text": "Your progress",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-path",
+       "text": "Continue your path",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-focus",
+       "text": "Focus patterns",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-more-practice",
+       "text": "More practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [
+      {
+       "tid": "course-unit",
+       "tag": "SPAN",
+       "text": "Unit 22 · 현재 · 과거 시제 정리"
+      }
+     ],
+     "title": "OhMyEnglish"
+    }
+   }
+  ],
+  "1400": [
+   {
+    "n": 1,
+    "desc": "Continue your path — Day 줄 목록",
+    "file": "path_day2-1400-01.jpg",
+    "m": {
+     "url": "/",
+     "innerWidth": 1400,
+     "scrollWidth": 1400,
+     "clientWidth": 1400,
+     "bodyScrollWidth": 1400,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1000,
+     "hero": {
+      "top": 36,
+      "h": 433.6,
+      "w": 669
+     },
+     "heroMode": "idle",
+     "progress": {
+      "top": 36,
+      "h": 433.6,
+      "w": 367
+     },
+     "sessionPanel": null,
+     "clipped": [
+      {
+       "tid": "home-dashboard-slot",
+       "tag": "H1",
+       "text": "Home",
+       "sw": 90,
+       "cw": 1,
+       "sh": 40,
+       "ch": 1
+      }
+     ],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": null,
+       "text": "Workspace",
+       "fontSize": "10px",
+       "fontWeight": "700",
+       "letterSpacing": "1.8px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-hero",
+       "text": "Today's practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "oklab(0.999994 0.0000455678 0.0000200868 / 0.75)"
+      },
+      {
+       "tid": "home-progress",
+       "text": "Your progress",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-path",
+       "text": "Continue your path",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-focus",
+       "text": "Focus patterns",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-more-practice",
+       "text": "More practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   },
+   {
+    "n": 2,
+    "desc": "Day 2 고름 — 카드에서 연습이 열림",
+    "file": "path_day2-1400-02.jpg",
+    "dayText": "Day 2 · Units 22–41",
+    "url": "/",
+    "m": {
+     "url": "/",
+     "innerWidth": 1400,
+     "scrollWidth": 1400,
+     "clientWidth": 1400,
+     "bodyScrollWidth": 1400,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1000,
+     "hero": {
+      "top": 36,
+      "h": 433.2,
+      "w": 669
+     },
+     "heroMode": "practice",
+     "progress": {
+      "top": 36,
+      "h": 433.2,
+      "w": 367
+     },
+     "sessionPanel": null,
+     "clipped": [
+      {
+       "tid": "home-dashboard-slot",
+       "tag": "H1",
+       "text": "Home",
+       "sw": 90,
+       "cw": 1,
+       "sh": 40,
+       "ch": 1
+      }
+     ],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": null,
+       "text": "Workspace",
+       "fontSize": "10px",
+       "fontWeight": "700",
+       "letterSpacing": "1.8px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-hero",
+       "text": "Today's practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-progress",
+       "text": "Your progress",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-path",
+       "text": "Continue your path",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-focus",
+       "text": "Focus patterns",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-more-practice",
+       "text": "More practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [
+      {
+       "tid": "course-unit",
+       "tag": "SPAN",
+       "text": "Unit 22 · 현재 · 과거 시제 정리"
+      }
+     ],
+     "title": "OhMyEnglish"
+    }
+   }
+  ],
+  "console-1400": [],
+  "console-390": []
+ },
+ "view_all": {
+  "390": [
+   {
+    "n": 1,
+    "desc": "View all 누르기 전",
+    "file": "view_all-390-01.jpg",
+    "rows": 2,
+    "label": "View all",
+    "m": {
+     "url": "/",
+     "innerWidth": 390,
+     "scrollWidth": 390,
+     "clientWidth": 390,
+     "bodyScrollWidth": 390,
+     "hOverflow": false,
+     "scrollY": 554,
+     "docHeight": 1826,
+     "hero": {
+      "top": 89,
+      "h": 489.6,
+      "w": 350
+     },
+     "heroMode": "idle",
+     "progress": {
+      "top": 599,
+      "h": 335.4,
+      "w": 350
+     },
+     "sessionPanel": null,
+     "clipped": [
+      {
+       "tid": "home-dashboard-slot",
+       "tag": "H1",
+       "text": "Home",
+       "sw": 90,
+       "cw": 1,
+       "sh": 40,
+       "ch": 1
+      }
+     ],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": "home-hero",
+       "text": "Today's practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "oklab(0.999994 0.0000455678 0.0000200868 / 0.75)"
+      },
+      {
+       "tid": "home-progress",
+       "text": "Your progress",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-path",
+       "text": "Continue your path",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-focus",
+       "text": "Focus patterns",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-more-practice",
+       "text": "More practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   },
+   {
+    "n": 2,
+    "desc": "View all — 모든 Day 로 펼침",
+    "file": "view_all-390-02.jpg",
+    "rows": 6,
+    "label": "Show less",
+    "url": "/",
+    "m": {
+     "url": "/",
+     "innerWidth": 390,
+     "scrollWidth": 390,
+     "clientWidth": 390,
+     "bodyScrollWidth": 390,
+     "hOverflow": false,
+     "scrollY": 554,
+     "docHeight": 2090,
+     "hero": {
+      "top": 89,
+      "h": 489.6,
+      "w": 350
+     },
+     "heroMode": "idle",
+     "progress": {
+      "top": 599,
+      "h": 335.4,
+      "w": 350
+     },
+     "sessionPanel": null,
+     "clipped": [
+      {
+       "tid": "home-dashboard-slot",
+       "tag": "H1",
+       "text": "Home",
+       "sw": 90,
+       "cw": 1,
+       "sh": 40,
+       "ch": 1
+      }
+     ],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": "home-hero",
+       "text": "Today's practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "oklab(0.999994 0.0000455678 0.0000200868 / 0.75)"
+      },
+      {
+       "tid": "home-progress",
+       "text": "Your progress",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-path",
+       "text": "Continue your path",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-focus",
+       "text": "Focus patterns",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-more-practice",
+       "text": "More practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   },
+   {
+    "n": 3,
+    "desc": "Show less — 다시 접음",
+    "file": "view_all-390-03.jpg",
+    "rows": 2,
+    "label": "View all",
+    "m": {
+     "url": "/",
+     "innerWidth": 390,
+     "scrollWidth": 390,
+     "clientWidth": 390,
+     "bodyScrollWidth": 390,
+     "hOverflow": false,
+     "scrollY": 554,
+     "docHeight": 1826,
+     "hero": {
+      "top": 89,
+      "h": 489.6,
+      "w": 350
+     },
+     "heroMode": "idle",
+     "progress": {
+      "top": 599,
+      "h": 335.4,
+      "w": 350
+     },
+     "sessionPanel": null,
+     "clipped": [
+      {
+       "tid": "home-dashboard-slot",
+       "tag": "H1",
+       "text": "Home",
+       "sw": 90,
+       "cw": 1,
+       "sh": 40,
+       "ch": 1
+      }
+     ],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": "home-hero",
+       "text": "Today's practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "oklab(0.999994 0.0000455678 0.0000200868 / 0.75)"
+      },
+      {
+       "tid": "home-progress",
+       "text": "Your progress",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-path",
+       "text": "Continue your path",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-focus",
+       "text": "Focus patterns",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-more-practice",
+       "text": "More practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   }
+  ],
+  "1400": [
+   {
+    "n": 1,
+    "desc": "View all 누르기 전",
+    "file": "view_all-1400-01.jpg",
+    "rows": 2,
+    "label": "View all",
+    "m": {
+     "url": "/",
+     "innerWidth": 1400,
+     "scrollWidth": 1400,
+     "clientWidth": 1400,
+     "bodyScrollWidth": 1400,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1000,
+     "hero": {
+      "top": 36,
+      "h": 433.6,
+      "w": 669
+     },
+     "heroMode": "idle",
+     "progress": {
+      "top": 36,
+      "h": 433.6,
+      "w": 367
+     },
+     "sessionPanel": null,
+     "clipped": [
+      {
+       "tid": "home-dashboard-slot",
+       "tag": "H1",
+       "text": "Home",
+       "sw": 90,
+       "cw": 1,
+       "sh": 40,
+       "ch": 1
+      }
+     ],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": null,
+       "text": "Workspace",
+       "fontSize": "10px",
+       "fontWeight": "700",
+       "letterSpacing": "1.8px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-hero",
+       "text": "Today's practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "oklab(0.999994 0.0000455678 0.0000200868 / 0.75)"
+      },
+      {
+       "tid": "home-progress",
+       "text": "Your progress",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-path",
+       "text": "Continue your path",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-focus",
+       "text": "Focus patterns",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-more-practice",
+       "text": "More practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   },
+   {
+    "n": 2,
+    "desc": "View all — 모든 Day 로 펼침",
+    "file": "view_all-1400-02.jpg",
+    "rows": 6,
+    "label": "Show less",
+    "url": "/",
+    "m": {
+     "url": "/",
+     "innerWidth": 1400,
+     "scrollWidth": 1400,
+     "clientWidth": 1400,
+     "bodyScrollWidth": 1400,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1216,
+     "hero": {
+      "top": 36,
+      "h": 433.6,
+      "w": 669
+     },
+     "heroMode": "idle",
+     "progress": {
+      "top": 36,
+      "h": 433.6,
+      "w": 367
+     },
+     "sessionPanel": null,
+     "clipped": [
+      {
+       "tid": "home-dashboard-slot",
+       "tag": "H1",
+       "text": "Home",
+       "sw": 90,
+       "cw": 1,
+       "sh": 40,
+       "ch": 1
+      }
+     ],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": null,
+       "text": "Workspace",
+       "fontSize": "10px",
+       "fontWeight": "700",
+       "letterSpacing": "1.8px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-hero",
+       "text": "Today's practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "oklab(0.999994 0.0000455678 0.0000200868 / 0.75)"
+      },
+      {
+       "tid": "home-progress",
+       "text": "Your progress",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-path",
+       "text": "Continue your path",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-focus",
+       "text": "Focus patterns",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-more-practice",
+       "text": "More practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   },
+   {
+    "n": 3,
+    "desc": "Show less — 다시 접음",
+    "file": "view_all-1400-03.jpg",
+    "rows": 2,
+    "label": "View all",
+    "m": {
+     "url": "/",
+     "innerWidth": 1400,
+     "scrollWidth": 1400,
+     "clientWidth": 1400,
+     "bodyScrollWidth": 1400,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1000,
+     "hero": {
+      "top": 36,
+      "h": 433.6,
+      "w": 669
+     },
+     "heroMode": "idle",
+     "progress": {
+      "top": 36,
+      "h": 433.6,
+      "w": 367
+     },
+     "sessionPanel": null,
+     "clipped": [
+      {
+       "tid": "home-dashboard-slot",
+       "tag": "H1",
+       "text": "Home",
+       "sw": 90,
+       "cw": 1,
+       "sh": 40,
+       "ch": 1
+      }
+     ],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": null,
+       "text": "Workspace",
+       "fontSize": "10px",
+       "fontWeight": "700",
+       "letterSpacing": "1.8px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-hero",
+       "text": "Today's practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "oklab(0.999994 0.0000455678 0.0000200868 / 0.75)"
+      },
+      {
+       "tid": "home-progress",
+       "text": "Your progress",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-path",
+       "text": "Continue your path",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-focus",
+       "text": "Focus patterns",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-more-practice",
+       "text": "More practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   }
+  ],
+  "console-1400": [],
+  "console-390": []
+ },
+ "coach": {
+  "390": [
+   {
+    "n": 1,
+    "desc": "More practice — Free talk 버튼",
+    "file": "coach-390-01.jpg",
+    "m": {
+     "url": "/",
+     "innerWidth": 390,
+     "scrollWidth": 390,
+     "clientWidth": 390,
+     "hOverflow": false,
+     "scrollY": 982,
+     "docHeight": 1826,
+     "hero": {
+      "top": 89,
+      "h": 489.6,
+      "w": 350
+     },
+     "heroMode": "idle",
+     "progress": {
+      "top": 599,
+      "h": 335.4,
+      "w": 350
+     },
+     "sessionPanel": null,
+     "clipped": [
+      {
+       "tid": "home-dashboard-slot",
+       "tag": "H1",
+       "text": "Home",
+       "sw": 90,
+       "cw": 1,
+       "sh": 40,
+       "ch": 1
+      }
+     ],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": "home-hero",
+       "text": "Today's practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "oklab(0.999994 0.0000455678 0.0000200868 / 0.75)"
+      },
+      {
+       "tid": "home-progress",
+       "text": "Your progress",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-path",
+       "text": "Continue your path",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-focus",
+       "text": "Focus patterns",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-more-practice",
+       "text": "More practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   },
+   {
+    "n": 2,
+    "desc": "세션 시작 — 카드 안 대화 화면",
+    "file": "coach-390-02.jpg",
+    "lockedLinks": 1,
+    "m": {
+     "url": "/",
+     "innerWidth": 390,
+     "scrollWidth": 390,
+     "clientWidth": 390,
+     "hOverflow": false,
+     "scrollY": 89,
+     "docHeight": 1826,
+     "hero": {
+      "top": 89,
+      "h": 489.6,
+      "w": 350
+     },
+     "heroMode": "session",
+     "progress": {
+      "top": 599,
+      "h": 335.4,
+      "w": 350
+     },
+     "sessionPanel": {
+      "top": 130,
+      "h": 423.6,
+      "w": 300
+     },
+     "clipped": [
+      {
+       "tid": "home-dashboard-slot",
+       "tag": "H1",
+       "text": "Home",
+       "sw": 90,
+       "cw": 1,
+       "sh": 40,
+       "ch": 1
+      }
+     ],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": "home-hero",
+       "text": "Today's practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-progress",
+       "text": "Your progress",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-path",
+       "text": "Continue your path",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-focus",
+       "text": "Focus patterns",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-more-practice",
+       "text": "More practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   },
+   {
+    "n": 3,
+    "desc": "코치 첫 발화 뒤(약 15초)",
+    "file": "coach-390-03.jpg",
+    "m": {
+     "url": "/",
+     "innerWidth": 390,
+     "scrollWidth": 390,
+     "clientWidth": 390,
+     "hOverflow": false,
+     "scrollY": 89,
+     "docHeight": 1826,
+     "hero": {
+      "top": 89,
+      "h": 489.6,
+      "w": 350
+     },
+     "heroMode": "session",
+     "progress": {
+      "top": 599,
+      "h": 335.4,
+      "w": 350
+     },
+     "sessionPanel": {
+      "top": 130,
+      "h": 423.6,
+      "w": 300
+     },
+     "clipped": [
+      {
+       "tid": "home-dashboard-slot",
+       "tag": "H1",
+       "text": "Home",
+       "sw": 90,
+       "cw": 1,
+       "sh": 40,
+       "ch": 1
+      }
+     ],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": "home-hero",
+       "text": "Today's practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-progress",
+       "text": "Your progress",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-path",
+       "text": "Continue your path",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-focus",
+       "text": "Focus patterns",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-more-practice",
+       "text": "More practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   },
+   {
+    "n": 4,
+    "desc": "End — 종료 뒤 화면",
+    "file": "coach-390-04.jpg",
+    "endText": "End lesson",
+    "m": {
+     "url": "/results/90ef37bc-3c12-4691-b769-5acaa0c52591",
+     "innerWidth": 390,
+     "scrollWidth": 390,
+     "clientWidth": 390,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 844,
+     "hero": null,
+     "heroMode": null,
+     "progress": null,
+     "sessionPanel": null,
+     "clipped": [],
+     "offRight": [],
+     "labels": [],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   },
+   {
+    "n": 5,
+    "desc": "종료 후 약 23초",
+    "file": "coach-390-05.jpg",
+    "idleBack": false,
+    "m": {
+     "url": "/results/90ef37bc-3c12-4691-b769-5acaa0c52591",
+     "innerWidth": 390,
+     "scrollWidth": 390,
+     "clientWidth": 390,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 844,
+     "hero": null,
+     "heroMode": null,
+     "progress": null,
+     "sessionPanel": null,
+     "clipped": [],
+     "offRight": [],
+     "labels": [],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   }
+  ],
+  "1400": [
+   {
+    "n": 1,
+    "desc": "More practice — Free talk 버튼",
+    "file": "coach-1400-01.jpg",
+    "m": {
+     "url": "/",
+     "innerWidth": 1400,
+     "scrollWidth": 1400,
+     "clientWidth": 1400,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1000,
+     "hero": {
+      "top": 36,
+      "h": 433.6,
+      "w": 669
+     },
+     "heroMode": "idle",
+     "progress": {
+      "top": 36,
+      "h": 433.6,
+      "w": 367
+     },
+     "sessionPanel": null,
+     "clipped": [
+      {
+       "tid": "home-dashboard-slot",
+       "tag": "H1",
+       "text": "Home",
+       "sw": 90,
+       "cw": 1,
+       "sh": 40,
+       "ch": 1
+      }
+     ],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": null,
+       "text": "Workspace",
+       "fontSize": "10px",
+       "fontWeight": "700",
+       "letterSpacing": "1.8px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-hero",
+       "text": "Today's practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "oklab(0.999994 0.0000455678 0.0000200868 / 0.75)"
+      },
+      {
+       "tid": "home-progress",
+       "text": "Your progress",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-path",
+       "text": "Continue your path",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-focus",
+       "text": "Focus patterns",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-more-practice",
+       "text": "More practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   },
+   {
+    "n": 2,
+    "desc": "세션 시작 — 카드 안 대화 화면",
+    "file": "coach-1400-02.jpg",
+    "lockedLinks": 1,
+    "m": {
+     "url": "/",
+     "innerWidth": 1400,
+     "scrollWidth": 1400,
+     "clientWidth": 1400,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1000,
+     "hero": {
+      "top": 36,
+      "h": 433.6,
+      "w": 669
+     },
+     "heroMode": "session",
+     "progress": {
+      "top": 36,
+      "h": 433.6,
+      "w": 367
+     },
+     "sessionPanel": {
+      "top": 77,
+      "h": 367.6,
+      "w": 619
+     },
+     "clipped": [
+      {
+       "tid": "home-dashboard-slot",
+       "tag": "H1",
+       "text": "Home",
+       "sw": 90,
+       "cw": 1,
+       "sh": 40,
+       "ch": 1
+      }
+     ],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": null,
+       "text": "Workspace",
+       "fontSize": "10px",
+       "fontWeight": "700",
+       "letterSpacing": "1.8px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-hero",
+       "text": "Today's practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-progress",
+       "text": "Your progress",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-path",
+       "text": "Continue your path",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-focus",
+       "text": "Focus patterns",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-more-practice",
+       "text": "More practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   },
+   {
+    "n": 3,
+    "desc": "코치 첫 발화 뒤(약 15초)",
+    "file": "coach-1400-03.jpg",
+    "m": {
+     "url": "/",
+     "innerWidth": 1400,
+     "scrollWidth": 1400,
+     "clientWidth": 1400,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1000,
+     "hero": {
+      "top": 36,
+      "h": 433.6,
+      "w": 669
+     },
+     "heroMode": "session",
+     "progress": {
+      "top": 36,
+      "h": 433.6,
+      "w": 367
+     },
+     "sessionPanel": {
+      "top": 77,
+      "h": 367.6,
+      "w": 619
+     },
+     "clipped": [
+      {
+       "tid": "home-dashboard-slot",
+       "tag": "H1",
+       "text": "Home",
+       "sw": 90,
+       "cw": 1,
+       "sh": 40,
+       "ch": 1
+      }
+     ],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": null,
+       "text": "Workspace",
+       "fontSize": "10px",
+       "fontWeight": "700",
+       "letterSpacing": "1.8px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-hero",
+       "text": "Today's practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-progress",
+       "text": "Your progress",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-path",
+       "text": "Continue your path",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-focus",
+       "text": "Focus patterns",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-more-practice",
+       "text": "More practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   },
+   {
+    "n": 4,
+    "desc": "End — 종료 뒤 화면",
+    "file": "coach-1400-04.jpg",
+    "endText": "End lesson",
+    "m": {
+     "url": "/results/3e460593-644a-4e3f-bcd1-aa44d90eee55",
+     "innerWidth": 1400,
+     "scrollWidth": 1400,
+     "clientWidth": 1400,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1000,
+     "hero": null,
+     "heroMode": null,
+     "progress": null,
+     "sessionPanel": null,
+     "clipped": [],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": null,
+       "text": "Workspace",
+       "fontSize": "10px",
+       "fontWeight": "700",
+       "letterSpacing": "1.8px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   },
+   {
+    "n": 5,
+    "desc": "종료 후 약 23초",
+    "file": "coach-1400-05.jpg",
+    "idleBack": false,
+    "m": {
+     "url": "/results/3e460593-644a-4e3f-bcd1-aa44d90eee55",
+     "innerWidth": 1400,
+     "scrollWidth": 1400,
+     "clientWidth": 1400,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1000,
+     "hero": null,
+     "heroMode": null,
+     "progress": null,
+     "sessionPanel": null,
+     "clipped": [],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": null,
+       "text": "Workspace",
+       "fontSize": "10px",
+       "fontWeight": "700",
+       "letterSpacing": "1.8px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   }
+  ],
+  "console-1400": [],
+  "console-390": []
+ },
+ "mic_denied": {
+  "390": [
+   {
+    "n": 1,
+    "desc": "마이크 거부 — 실패 화면",
+    "file": "mic_denied-390-01.jpg",
+    "failed": false,
+    "failText": null,
+    "m": {
+     "url": "/",
+     "innerWidth": 390,
+     "scrollWidth": 390,
+     "clientWidth": 390,
+     "hOverflow": false,
+     "scrollY": 89,
+     "docHeight": 1826,
+     "hero": {
+      "top": 89,
+      "h": 489.6,
+      "w": 350
+     },
+     "heroMode": "session",
+     "progress": {
+      "top": 599,
+      "h": 335.4,
+      "w": 350
+     },
+     "sessionPanel": {
+      "top": 130,
+      "h": 423.6,
+      "w": 300
+     },
+     "clipped": [
+      {
+       "tid": "home-dashboard-slot",
+       "tag": "H1",
+       "text": "Home",
+       "sw": 90,
+       "cw": 1,
+       "sh": 40,
+       "ch": 1
+      }
+     ],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": "home-hero",
+       "text": "Today's practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-progress",
+       "text": "Your progress",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-path",
+       "text": "Continue your path",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-focus",
+       "text": "Focus patterns",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-more-practice",
+       "text": "More practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   }
+  ],
+  "1400": [
+   {
+    "n": 1,
+    "desc": "마이크 거부 — 실패 화면",
+    "file": "mic_denied-1400-01.jpg",
+    "failed": false,
+    "failText": null,
+    "m": {
+     "url": "/",
+     "innerWidth": 1400,
+     "scrollWidth": 1400,
+     "clientWidth": 1400,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1000,
+     "hero": {
+      "top": 36,
+      "h": 433.6,
+      "w": 669
+     },
+     "heroMode": "session",
+     "progress": {
+      "top": 36,
+      "h": 433.6,
+      "w": 367
+     },
+     "sessionPanel": {
+      "top": 77,
+      "h": 367.6,
+      "w": 619
+     },
+     "clipped": [
+      {
+       "tid": "home-dashboard-slot",
+       "tag": "H1",
+       "text": "Home",
+       "sw": 90,
+       "cw": 1,
+       "sh": 40,
+       "ch": 1
+      }
+     ],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": null,
+       "text": "Workspace",
+       "fontSize": "10px",
+       "fontWeight": "700",
+       "letterSpacing": "1.8px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-hero",
+       "text": "Today's practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-progress",
+       "text": "Your progress",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-path",
+       "text": "Continue your path",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-focus",
+       "text": "Focus patterns",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      },
+      {
+       "tid": "home-more-practice",
+       "text": "More practice",
+       "fontSize": "12px",
+       "fontWeight": "700",
+       "letterSpacing": "1.68px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   }
+  ],
+  "err-1400": "Error: cdpSession.send: Protocol error (Browser.setPermission): Invalid PermissionDescriptor name: audioCapture",
+  "console-1400": [],
+  "err-390": "Error: cdpSession.send: Protocol error (Browser.setPermission): Invalid PermissionDescriptor name: audioCapture",
+  "console-390": []
+ },
+ "history": {
+  "390": [
+   {
+    "n": 1,
+    "desc": "Your progress → History — /history",
+    "file": "history-390-01.jpg",
+    "m": {
+     "url": "/history",
+     "innerWidth": 390,
+     "scrollWidth": 390,
+     "clientWidth": 390,
+     "bodyScrollWidth": 390,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1476,
+     "hero": null,
+     "heroMode": null,
+     "progress": null,
+     "sessionPanel": null,
+     "clipped": [],
+     "offRight": [],
+     "labels": [],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   },
+   {
+    "n": 2,
+    "desc": "공부한 날(2026-11-01) 줄을 누름",
+    "file": "history-390-02.jpg",
+    "moved": false,
+    "url": "/history",
+    "rowTag": "SPAN/plain",
+    "m": {
+     "url": "/history",
+     "innerWidth": 390,
+     "scrollWidth": 390,
+     "clientWidth": 390,
+     "bodyScrollWidth": 390,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1476,
+     "hero": null,
+     "heroMode": null,
+     "progress": null,
+     "sessionPanel": null,
+     "clipped": [],
+     "offRight": [],
+     "labels": [],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   }
+  ],
+  "1400": [
+   {
+    "n": 1,
+    "desc": "Your progress → History — /history",
+    "file": "history-1400-01.jpg",
+    "m": {
+     "url": "/history",
+     "innerWidth": 1400,
+     "scrollWidth": 1400,
+     "clientWidth": 1400,
+     "bodyScrollWidth": 1400,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1411,
+     "hero": null,
+     "heroMode": null,
+     "progress": null,
+     "sessionPanel": null,
+     "clipped": [],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": null,
+       "text": "Workspace",
+       "fontSize": "10px",
+       "fontWeight": "700",
+       "letterSpacing": "1.8px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   },
+   {
+    "n": 2,
+    "desc": "공부한 날(2026-11-01) 줄을 누름",
+    "file": "history-1400-02.jpg",
+    "moved": false,
+    "url": "/history",
+    "rowTag": "SPAN/plain",
+    "m": {
+     "url": "/history",
+     "innerWidth": 1400,
+     "scrollWidth": 1400,
+     "clientWidth": 1400,
+     "bodyScrollWidth": 1400,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1411,
+     "hero": null,
+     "heroMode": null,
+     "progress": null,
+     "sessionPanel": null,
+     "clipped": [],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": null,
+       "text": "Workspace",
+       "fontSize": "10px",
+       "fontWeight": "700",
+       "letterSpacing": "1.8px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   }
+  ],
+  "console-1400": [],
+  "console-390": []
+ },
+ "weekly": {
+  "390": [
+   {
+    "n": 1,
+    "desc": "Your progress → Weekly report — /history/weekly",
+    "file": "weekly-390-01.jpg",
+    "m": {
+     "url": "/history/weekly",
+     "innerWidth": 390,
+     "scrollWidth": 390,
+     "clientWidth": 390,
+     "bodyScrollWidth": 390,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 844,
+     "hero": null,
+     "heroMode": null,
+     "progress": null,
+     "sessionPanel": null,
+     "clipped": [],
+     "offRight": [],
+     "labels": [],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   }
+  ],
+  "1400": [
+   {
+    "n": 1,
+    "desc": "Your progress → Weekly report — /history/weekly",
+    "file": "weekly-1400-01.jpg",
+    "m": {
+     "url": "/history/weekly",
+     "innerWidth": 1400,
+     "scrollWidth": 1400,
+     "clientWidth": 1400,
+     "bodyScrollWidth": 1400,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1000,
+     "hero": null,
+     "heroMode": null,
+     "progress": null,
+     "sessionPanel": null,
+     "clipped": [],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": null,
+       "text": "Workspace",
+       "fontSize": "10px",
+       "fontWeight": "700",
+       "letterSpacing": "1.8px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   }
+  ],
+  "console-1400": [],
+  "console-390": []
+ },
+ "results": {
+  "390": [
+   {
+    "n": 1,
+    "desc": "/history — 결과 링크를 찾지 못함",
+    "file": "results-390-01.jpg",
+    "href": null,
+    "m": {
+     "url": "/history",
+     "innerWidth": 390,
+     "scrollWidth": 390,
+     "clientWidth": 390,
+     "bodyScrollWidth": 390,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1476,
+     "hero": null,
+     "heroMode": null,
+     "progress": null,
+     "sessionPanel": null,
+     "clipped": [],
+     "offRight": [],
+     "labels": [],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   },
+   {
+    "n": 2,
+    "desc": "격리 DB 완료 세션(발화 26건) 결과 화면",
+    "file": "results-390-02.jpg",
+    "href": "/results/7a18a111-2a62-4697-9ad8-a4b668fc0807",
+    "m": {
+     "url": "/results/7a18a111-2a62-4697-9ad8-a4b668fc0807",
+     "innerWidth": 390,
+     "scrollWidth": 390,
+     "clientWidth": 390,
+     "bodyScrollWidth": 390,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1465,
+     "hero": null,
+     "heroMode": null,
+     "progress": null,
+     "sessionPanel": null,
+     "clipped": [],
+     "offRight": [],
+     "labels": [],
+     "korean": [
+      {
+       "tid": null,
+       "tag": "P",
+       "text": "같은 어제 일이므로 meet도 과거형 met으로 맞춰 줍니다."
+      },
+      {
+       "tid": null,
+       "tag": "P",
+       "text": "주어가 복수(we)이므로 has가 아니라 동사원형 have를 씁니다."
+      },
+      {
+       "tid": null,
+       "tag": "P",
+       "text": "직장과 직무를 영어로 소개하고, 회의가 생긴 상황까지 'so'로 두 절을 연결해 설명하려 시도한 점이 좋았어요."
+      },
+      {
+       "tid": null,
+       "tag": "P",
+       "text": "\"hey, how's it going?\", \"hey, what's up?\" 처럼 인사와 가벼운 대화를 먼저 꺼내며 대화를 주도한 모습이 보였어요"
+      },
+      {
+       "tid": null,
+       "tag": "P",
+       "text": "주어에 맞는 동사 형태(수일치)가 자주 흔들렸어요. 단수 주어 'my manager'에는 says, 복수 주어 'we'에는 have가 필요한데 "
+      },
+      {
+       "tid": null,
+       "tag": "P",
+       "text": "'yesterday'처럼 과거를 가리키는 표현을 쓰면서도 동사는 현재형으로 말하는 경우가 반복됐어요. went, met 같은 과거형으로 바꾸는 "
+      }
+     ],
+     "title": "OhMyEnglish"
+    }
+   }
+  ],
+  "1400": [
+   {
+    "n": 1,
+    "desc": "/history — 결과 링크를 찾지 못함",
+    "file": "results-1400-01.jpg",
+    "href": null,
+    "m": {
+     "url": "/history",
+     "innerWidth": 1400,
+     "scrollWidth": 1400,
+     "clientWidth": 1400,
+     "bodyScrollWidth": 1400,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1411,
+     "hero": null,
+     "heroMode": null,
+     "progress": null,
+     "sessionPanel": null,
+     "clipped": [],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": null,
+       "text": "Workspace",
+       "fontSize": "10px",
+       "fontWeight": "700",
+       "letterSpacing": "1.8px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   },
+   {
+    "n": 2,
+    "desc": "격리 DB 완료 세션(발화 26건) 결과 화면",
+    "file": "results-1400-02.jpg",
+    "href": "/results/7a18a111-2a62-4697-9ad8-a4b668fc0807",
+    "m": {
+     "url": "/results/7a18a111-2a62-4697-9ad8-a4b668fc0807",
+     "innerWidth": 1400,
+     "scrollWidth": 1400,
+     "clientWidth": 1400,
+     "bodyScrollWidth": 1400,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1112,
+     "hero": null,
+     "heroMode": null,
+     "progress": null,
+     "sessionPanel": null,
+     "clipped": [],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": null,
+       "text": "Workspace",
+       "fontSize": "10px",
+       "fontWeight": "700",
+       "letterSpacing": "1.8px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [
+      {
+       "tid": null,
+       "tag": "P",
+       "text": "같은 어제 일이므로 meet도 과거형 met으로 맞춰 줍니다."
+      },
+      {
+       "tid": null,
+       "tag": "P",
+       "text": "주어가 복수(we)이므로 has가 아니라 동사원형 have를 씁니다."
+      },
+      {
+       "tid": null,
+       "tag": "P",
+       "text": "직장과 직무를 영어로 소개하고, 회의가 생긴 상황까지 'so'로 두 절을 연결해 설명하려 시도한 점이 좋았어요."
+      },
+      {
+       "tid": null,
+       "tag": "P",
+       "text": "\"hey, how's it going?\", \"hey, what's up?\" 처럼 인사와 가벼운 대화를 먼저 꺼내며 대화를 주도한 모습이 보였어요"
+      },
+      {
+       "tid": null,
+       "tag": "P",
+       "text": "주어에 맞는 동사 형태(수일치)가 자주 흔들렸어요. 단수 주어 'my manager'에는 says, 복수 주어 'we'에는 have가 필요한데 "
+      },
+      {
+       "tid": null,
+       "tag": "P",
+       "text": "'yesterday'처럼 과거를 가리키는 표현을 쓰면서도 동사는 현재형으로 말하는 경우가 반복됐어요. went, met 같은 과거형으로 바꾸는 "
+      }
+     ],
+     "title": "OhMyEnglish"
+    }
+   }
+  ],
+  "console-1400": [],
+  "console-390": [],
+  "err-1400": "Error: locator.count: Target page, context or browser has been closed"
+ },
+ "course": {
+  "390": [
+   {
+    "n": 1,
+    "desc": "코스 목록 /course(주소로만 닿음)",
+    "file": "course-390-01.jpg",
+    "m": {
+     "url": "/course",
+     "innerWidth": 390,
+     "scrollWidth": 390,
+     "clientWidth": 390,
+     "bodyScrollWidth": 390,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1375,
+     "hero": null,
+     "heroMode": null,
+     "progress": null,
+     "sessionPanel": null,
+     "clipped": [],
+     "offRight": [],
+     "labels": [],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   }
+  ],
+  "1400": [
+   {
+    "n": 1,
+    "desc": "코스 목록 /course(주소로만 닿음)",
+    "file": "course-1400-01.jpg",
+    "m": {
+     "url": "/course",
+     "innerWidth": 1400,
+     "scrollWidth": 1400,
+     "clientWidth": 1400,
+     "bodyScrollWidth": 1400,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1144,
+     "hero": null,
+     "heroMode": null,
+     "progress": null,
+     "sessionPanel": null,
+     "clipped": [],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": null,
+       "text": "Workspace",
+       "fontSize": "10px",
+       "fontWeight": "700",
+       "letterSpacing": "1.8px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [],
+     "title": "OhMyEnglish"
+    }
+   }
+  ],
+  "console-1400": [],
+  "console-390": []
+ },
+ "course_day": {
+  "390": [
+   {
+    "n": 1,
+    "desc": "Day 화면 /course/1 — 열기만 해도 진도 저장",
+    "file": "course_day-390-01.jpg",
+    "m": {
+     "url": "/course/1",
+     "innerWidth": 390,
+     "scrollWidth": 390,
+     "clientWidth": 390,
+     "bodyScrollWidth": 390,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 844,
+     "hero": null,
+     "heroMode": null,
+     "progress": null,
+     "sessionPanel": null,
+     "clipped": [],
+     "offRight": [],
+     "labels": [],
+     "korean": [
+      {
+       "tid": "course-player",
+       "tag": "IFRAME",
+       "attr": "title",
+       "text": "🕐 [1시간 Day 1] 📙 Grammar in Use BASIC (Unit 1~21)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 "
+      }
+     ],
+     "title": "OhMyEnglish"
+    }
+   }
+  ],
+  "1400": [
+   {
+    "n": 1,
+    "desc": "Day 화면 /course/1 — 열기만 해도 진도 저장",
+    "file": "course_day-1400-01.jpg",
+    "m": {
+     "url": "/course/1",
+     "innerWidth": 1400,
+     "scrollWidth": 1400,
+     "clientWidth": 1400,
+     "bodyScrollWidth": 1400,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1000,
+     "hero": null,
+     "heroMode": null,
+     "progress": null,
+     "sessionPanel": null,
+     "clipped": [],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": null,
+       "text": "Workspace",
+       "fontSize": "10px",
+       "fontWeight": "700",
+       "letterSpacing": "1.8px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [
+      {
+       "tid": "course-player",
+       "tag": "IFRAME",
+       "attr": "title",
+       "text": "🕐 [1시간 Day 1] 📙 Grammar in Use BASIC (Unit 1~21)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머 인 "
+      }
+     ],
+     "title": "OhMyEnglish"
+    }
+   }
+  ],
+  "console-1400": [],
+  "console-390": []
+ },
+ "videos": {
+  "390": [
+   {
+    "n": 1,
+    "desc": "영상 목록 /videos",
+    "file": "videos-390-01.jpg",
+    "viaHome": true,
+    "m": {
+     "url": "/videos",
+     "innerWidth": 390,
+     "scrollWidth": 390,
+     "clientWidth": 390,
+     "bodyScrollWidth": 390,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 844,
+     "hero": null,
+     "heroMode": null,
+     "progress": null,
+     "sessionPanel": null,
+     "clipped": [],
+     "offRight": [],
+     "labels": [],
+     "korean": [
+      {
+       "tid": null,
+       "tag": "A",
+       "text": "🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머"
+      }
+     ],
+     "title": "OhMyEnglish"
+    }
+   },
+   {
+    "n": 2,
+    "desc": "영상 화면 /videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+    "file": "videos-390-02.jpg",
+    "href": "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+    "m": {
+     "url": "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+     "innerWidth": 390,
+     "scrollWidth": 390,
+     "clientWidth": 390,
+     "bodyScrollWidth": 692,
+     "hOverflow": true,
+     "scrollY": 0,
+     "docHeight": 1039,
+     "hero": null,
+     "heroMode": null,
+     "progress": null,
+     "sessionPanel": null,
+     "clipped": [],
+     "offRight": [],
+     "labels": [],
+     "korean": [
+      {
+       "tid": null,
+       "tag": "H1",
+       "text": "🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머"
+      },
+      {
+       "tid": null,
+       "tag": "IFRAME",
+       "attr": "title",
+       "text": "🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머"
+      }
+     ],
+     "title": "OhMyEnglish"
+    }
+   }
+  ],
+  "1400": [
+   {
+    "n": 1,
+    "desc": "영상 목록 /videos",
+    "file": "videos-1400-01.jpg",
+    "viaHome": true,
+    "m": {
+     "url": "/videos",
+     "innerWidth": 1400,
+     "scrollWidth": 1400,
+     "clientWidth": 1400,
+     "bodyScrollWidth": 1400,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1000,
+     "hero": null,
+     "heroMode": null,
+     "progress": null,
+     "sessionPanel": null,
+     "clipped": [],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": null,
+       "text": "Workspace",
+       "fontSize": "10px",
+       "fontWeight": "700",
+       "letterSpacing": "1.8px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [
+      {
+       "tid": null,
+       "tag": "A",
+       "text": "🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머"
+      }
+     ],
+     "title": "OhMyEnglish"
+    }
+   },
+   {
+    "n": 2,
+    "desc": "영상 화면 /videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+    "file": "videos-1400-02.jpg",
+    "href": "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+    "m": {
+     "url": "/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+     "innerWidth": 1400,
+     "scrollWidth": 1400,
+     "clientWidth": 1400,
+     "bodyScrollWidth": 1400,
+     "hOverflow": false,
+     "scrollY": 0,
+     "docHeight": 1000,
+     "hero": null,
+     "heroMode": null,
+     "progress": null,
+     "sessionPanel": null,
+     "clipped": [],
+     "offRight": [],
+     "labels": [
+      {
+       "tid": null,
+       "text": "Workspace",
+       "fontSize": "10px",
+       "fontWeight": "700",
+       "letterSpacing": "1.8px",
+       "color": "rgb(91, 100, 120)"
+      }
+     ],
+     "korean": [
+      {
+       "tid": null,
+       "tag": "H1",
+       "text": "🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머"
+      },
+      {
+       "tid": null,
+       "tag": "IFRAME",
+       "attr": "title",
+       "text": "🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣기 + 🗣️ 따라 말하기 | 그래머"
+      }
+     ],
+     "title": "OhMyEnglish"
+    }
+   }
+  ],
+  "console-1400": [],
+  "console-390": []
+ }
+}

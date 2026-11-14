@@ -1,0 +1,125 @@
+[
+  {
+    "id": "P1",
+    "screen": "home-practice",
+    "action": "Manual",
+    "expect": "manual aria-pressed=true · auto=false · localStorage manual",
+    "actual": "manual=true auto=false ls=manual",
+    "verdict": "통과"
+  },
+  {
+    "id": "P2",
+    "screen": "home-practice",
+    "action": "Start(수동)",
+    "expect": "단계 idle→listen→repeat→judge→done · Start 자리가 Try again · 끝나도 같은 문장",
+    "actual": "phases=idle>listen>repeat>judge>done retry=1 label=\"· ③ Check\" 문장 Sentence 5 / 5→Sentence 5 / 5",
+    "verdict": "통과",
+    "evidence": [
+      [
+        1555,
+        "idle",
+        "Sentence 5 / 5"
+      ],
+      [
+        1728,
+        "listen",
+        "Sentence 5 / 5"
+      ],
+      [
+        5820,
+        "repeat",
+        "Sentence 5 / 5"
+      ],
+      [
+        10912,
+        "judge",
+        "Sentence 5 / 5"
+      ],
+      [
+        41419,
+        "done",
+        "Sentence 5 / 5"
+      ]
+    ]
+  },
+  {
+    "id": "P3",
+    "screen": "home-practice",
+    "action": "Try again",
+    "expect": "done→listen→repeat→judge→done",
+    "actual": "phases=done>listen>repeat>judge>done",
+    "verdict": "통과"
+  },
+  {
+    "id": "P4",
+    "screen": "home-practice",
+    "action": "Next →(수동)",
+    "expect": "문장 번호 +1 · 단계 표시 없음 · Start 보임",
+    "actual": "Sentence 5 / 5→Sentence 1 / 5 phase=0 start=1",
+    "verdict": "통과"
+  },
+  {
+    "id": "P5",
+    "screen": "home-practice",
+    "action": "← Back",
+    "expect": "문장 Sentence 5 / 5 로 돌아감",
+    "actual": "Sentence 1 / 5→Sentence 5 / 5",
+    "verdict": "통과"
+  },
+  {
+    "id": "P6",
+    "screen": "home-practice",
+    "action": "Auto · Start",
+    "expect": "auto aria-pressed=true · done 뒤 문장 번호 +1 · listen 재개",
+    "actual": "auto=true phases=idle>listen>repeat>judge>done>listen 문장 Sentence 5 / 5→Sentence 1 / 5",
+    "verdict": "통과",
+    "evidence": [
+      [
+        84051,
+        "idle",
+        "Sentence 5 / 5"
+      ],
+      [
+        84097,
+        "listen",
+        "Sentence 5 / 5"
+      ],
+      [
+        87779,
+        "repeat",
+        "Sentence 5 / 5"
+      ],
+      [
+        92451,
+        "judge",
+        "Sentence 5 / 5"
+      ],
+      [
+        122916,
+        "done",
+        "Sentence 5 / 5"
+      ],
+      [
+        124418,
+        "listen",
+        "Sentence 1 / 5"
+      ]
+    ]
+  },
+  {
+    "id": "P7",
+    "screen": "home-practice",
+    "action": "← Close(자동 연습 도중)",
+    "expect": "data-mode=idle",
+    "actual": "mode=idle",
+    "verdict": "통과"
+  },
+  {
+    "id": "P8",
+    "screen": "home-practice",
+    "action": "Finish Day(Day 6 마지막 문장)",
+    "expect": "마지막 문장에서 Next 대신 Finish Day(파란 바탕) · done 전 disabled · 누르면 안내 \"You finished this Day!\" · 첫 문장으로 되감음",
+    "actual": "Next 64회 → Unit 113 · 구동사 2 put on · take off · turn on Sentence 5 / 5 next=0 primary=true disabled true→false notice=\"You finished this Day!\" 뒤 Unit 101 · 시간의 at · on · in Sentence 1 / 5",
+    "verdict": "통과"
+  }
+]

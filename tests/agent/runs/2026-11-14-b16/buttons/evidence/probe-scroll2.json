@@ -1,0 +1,48 @@
+[
+  {
+    "W": 1400,
+    "H": 900,
+    "y": 40,
+    "changes": [
+      {
+        "t": 6,
+        "y": 0,
+        "docH": 900,
+        "heroH": 335,
+        "mode": "practice",
+        "loading": true
+      },
+      {
+        "t": 22,
+        "y": 0,
+        "docH": 951,
+        "heroH": 433,
+        "mode": "practice",
+        "loading": false
+      }
+    ]
+  },
+  {
+    "W": 1400,
+    "H": 700,
+    "y": 200,
+    "changes": [
+      {
+        "t": 18,
+        "y": 153,
+        "docH": 853,
+        "heroH": 335,
+        "mode": "practice",
+        "loading": true
+      },
+      {
+        "t": 32,
+        "y": 200,
+        "docH": 951,
+        "heroH": 433,
+        "mode": "practice",
+        "loading": false
+      }
+    ]
+  }
+]

@@ -1,0 +1,74 @@
+[
+  {
+    "id": "F1",
+    "screen": "session-failed",
+    "action": "Free talk(마이크 거부)",
+    "expect": "카드 안 session-failed · data-reason=microphone_permission_denied",
+    "actual": "mode=session reason=microphone_permission_denied",
+    "verdict": "통과"
+  },
+  {
+    "id": "F2",
+    "screen": "session-failed",
+    "action": "실패 화면 동안 잠금",
+    "expect": "링크 aria-disabled · 세션 여는 버튼·Day 줄 disabled (대조: 열기 전엔 모두 풀림)",
+    "actual": "before free=true · now {\"navLocked\":\"true\",\"navHome\":\"true\",\"logo\":[\"true\"],\"links\":[[\"home-history\",\"true\"],[\"home-weekly\",\"true\"],[\"quick-videos\",\"true\"],[\"practice-videos\",\"true\"]],\"buttons\":[[\"home-path-all\",false],[\"path-day-1\",true],[\"path-day-2\",true],[\"focus-practice\",true],[\"quick-shadowing\",true],[\"quick-videos\",null],[\"quick-weak-patterns\",true],[\"practice-free_talk\",true],[\"practice-weak_patterns\",true],[\"practice-five_questions\",true],[\"practice-pronunciation\",true],[\"practice-shadowing\",true],[\"practice-course\",true],[\"practice-roleplay\",true]]}",
+    "verdict": "실패"
+  },
+  {
+    "id": "F3",
+    "screen": "session-failed",
+    "action": "잠긴 History → 를 DOM 클릭",
+    "expect": "주소 / 그대로",
+    "actual": "url=/",
+    "verdict": "통과"
+  },
+  {
+    "id": "F4",
+    "screen": "session-failed",
+    "action": "Try again",
+    "expect": "세션을 다시 시도(getUserMedia 호출 +1) · 거부가 그대로라 다시 실패 화면",
+    "actual": "getUserMedia 1→2 failed=1",
+    "verdict": "통과"
+  },
+  {
+    "id": "F5",
+    "screen": "session-failed",
+    "action": "← Home(session-failed-home)",
+    "expect": "data-mode=idle · 잠금 모두 풀림",
+    "actual": "mode=idle free=true",
+    "verdict": "통과"
+  },
+  {
+    "id": "S1",
+    "screen": "home@1400",
+    "action": "Free talk(문장 연습을 연 채)",
+    "expect": "문장 연습 닫힘 · 카드 안 세션 · End lesson 보임",
+    "actual": "mode=session practice=0 pre={\"y\":0,\"top\":36} post={\"y\":0,\"top\":36}",
+    "verdict": "통과"
+  },
+  {
+    "id": "S2",
+    "screen": "home@1400",
+    "action": "세션 중 잠금",
+    "expect": "링크 aria-disabled · 세션 버튼·Day 줄 disabled · nav data-locked(1400)",
+    "actual": "{\"navLocked\":\"true\",\"navHome\":\"true\",\"logo\":[\"true\"],\"links\":[[\"home-history\",\"true\"],[\"home-weekly\",\"true\"],[\"quick-videos\",\"true\"],[\"practice-videos\",\"true\"]],\"buttons\":[[\"home-path-all\",false],[\"path-day-1\",true],[\"path-day-2\",true],[\"focus-practice\",true],[\"quick-shadowing\",true],[\"quick-videos\",null],[\"quick-weak-patterns\",true],[\"practice-free_talk\",true],[\"practice-weak_patterns\",true],[\"practice-five_questions\",true],[\"practice-pronunciation\",true],[\"practice-shadowing\",true],[\"practice-course\",true],[\"practice-roleplay\",true]]}",
+    "verdict": "실패"
+  },
+  {
+    "id": "S3",
+    "screen": "home@1400",
+    "action": "잠긴 Weekly report → DOM 클릭",
+    "expect": "주소 / 그대로 · 세션 유지",
+    "actual": "url=/ endBtn=1",
+    "verdict": "통과"
+  },
+  {
+    "id": "S4",
+    "screen": "home@1400",
+    "action": "End lesson",
+    "expect": "누른 직후 Ending... · 결과 화면 /results/<session_started 의 ID>",
+    "actual": "ending=\"Ending...\" url=/results/3126ad0a-f5fd-4eb4-9e88-115ad5067fd0 started=3126ad0a-f5fd-4eb4-9e88-115ad5067fd0",
+    "verdict": "통과"
+  }
+]
