@@ -4,7 +4,7 @@ title: Weak spots 를 약점 패턴 연습으로 — 지금은 Free talk 와 같
 status: In Progress
 assignee: []
 created_date: '2026-11-14 16:22'
-updated_date: '2026-11-14 16:22'
+updated_date: '2026-11-14 16:26'
 labels: []
 dependencies: []
 ordinal: 403000
@@ -22,3 +22,9 @@ ordinal: 403000
 - [ ] #2 Start again 이 같은 약점 연습을 다시 엶
 - [ ] #3 실패 시험 먼저 · 실제 화면 확인
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-11-15 사용자 결정으로 폐기: Weak spots · Free talk 메뉴가 없어도 됨 · 매일 연습만 있으면 됨 · 필요하면 나중에 넣음. 범위 질문(AskUserQuestion) 답: More practice 전체를 숨김(코드 유지) · Practice a pattern 도 숨김 → TASK-338. 구현 에이전트에 336 작업 중단·되돌림을 지시함.
+<!-- SECTION:NOTES:END -->
