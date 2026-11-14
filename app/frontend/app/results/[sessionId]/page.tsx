@@ -13,6 +13,7 @@ import {
   type SessionResultStatus,
 } from "@/lib/api";
 import { dashboardEntryHref } from "@/lib/config";
+import { dayLabel } from "@/lib/learnerDate";
 
 const POLL_INTERVAL_MS = 2000;
 
@@ -188,6 +189,17 @@ const OUTCOME_COLOR: Record<PronunciationAttempt["outcome"], string> = {
 // ⚠️ 개수는 2개 이상일 때만 붙인다 — `시나리오 1개`는 판정과 같은 말을 두 번 하는 것이다.
 const dailyDoneNotice = (scenarios: number) =>
   scenarios > 1 ? `You finished today — ${scenarios} scenes` : "You finished today";
+// `TASK-329` — 지난 세션의 결과를 열면 그 세션의 날짜로 말함(11-01 세션을 11-14 에 열어도 「today」였음).
+// ⚠️ 그날 몇 개를 마쳤는지는 이 화면이 모름 — 개수 없이 날짜만 씀.
+const pastDoneNotice = (sessionDate: string) => `You finished on ${dayLabel(sessionDate)}`;
+const pastSummaryHeading = (sessionDate: string) => `Lesson on ${dayLabel(sessionDate)}`;
+
+// 발화 0건 세션 (`TASK-329` · 회차 b16 보고서 §2 E). 한마디도 안 한 15초 세션 뒤에
+// 「Nothing to check · You finished today」가 떴음 — 칭찬 대신 사실과 다시 시작할 길을 보임.
+// ⚠️ 회복 대상(`awaiting_analysis` 참 · 발화는 있음)은 이 문구를 쓰지 않음 — 들은 말이 있음.
+const NO_SPEECH_LABEL = "We didn't hear you this time.";
+const NO_SPEECH_HINT = "Check your microphone, then start a new lesson from Home.";
+const START_AGAIN_LABEL = "Start again →";
 
 // 오늘 요약 절 (PRD §13 R13-4 · AC13-4). 어휘는 세션 교정 카드와 같은 것을 쓴다 — 같은 화면에서
 // 두 절이 다른 낱말로 같은 것을 부르면 학습자가 다른 개념으로 읽는다.
@@ -329,6 +341,21 @@ export default function ResultsPage() {
   const dailyPatterns = daily?.analyzed ? daily.patterns : [];
   // AC14-5 — 마치지 않았으면 **문구를 쓰지 않는다**(0개를 알리는 문장도 쓰지 않는다).
   const completedToday = daily?.completed_today ?? false;
+  // `TASK-329` — 「오늘」은 하루 요약이 준 학습자 날짜(`summary_date`)임. 브라우저 시각으로 구하지 않음.
+  // 세션 날짜나 오늘을 모르면(옛 서버 · 하루 요약 실패) 옛 동작(오늘 완료 문구)으로 돌아감.
+  const today = daily?.summary_date || null;
+  const sessionDate = result?.session_date ?? null;
+  const pastSession = sessionDate !== null && today !== null && sessionDate !== today;
+  const heardNothing = result?.status === "no_utterances" && !result.awaiting_analysis;
+  const doneNotice = heardNothing
+    ? null
+    : pastSession
+      ? result?.finished
+        ? pastDoneNotice(sessionDate)
+        : null
+      : completedToday
+        ? dailyDoneNotice(daily?.completed_scenarios ?? 0)
+        : null;
 
   return (
     <main style={{ maxWidth: 640, margin: "0 auto", padding: "2rem" }}>
@@ -344,7 +371,20 @@ export default function ResultsPage() {
 
       {result && (
         <>
-          <p style={{ fontSize: "1.25rem", fontWeight: "bold" }}>{STATUS_LABEL[result.status]}</p>
+          <p style={{ fontSize: "1.25rem", fontWeight: "bold" }} data-testid="results-status">
+            {heardNothing ? NO_SPEECH_LABEL : STATUS_LABEL[result.status]}
+          </p>
+
+          {heardNothing && (
+            <>
+              <p style={{ color: "var(--foreground-muted)" }}>{NO_SPEECH_HINT}</p>
+              <p>
+                <Link href="/" data-testid="results-start-again" className="omy-button omy-button-primary">
+                  {START_AGAIN_LABEL}
+                </Link>
+              </p>
+            </>
+          )}
 
           {result.status === "partial_failure" && <p>{PARTIAL_FAILURE_NOTICE}</p>}
 
@@ -357,9 +397,9 @@ export default function ResultsPage() {
           {/* 오늘 학습 완료 — 교정보다 **먼저** 온다. 「오늘 다 했나」가 그 아래를 읽는 틀이고,
               학습자가 이어 갈지 정하는 자리이기 때문이다(R14-4). 상태 라벨과 위계를 다투지
               않도록 muted 로 둔다 — 색 토큰은 `globals.css` 의 4개만 쓴다. */}
-          {completedToday && (
-            <p style={{ color: "var(--foreground-muted)" }}>
-              {dailyDoneNotice(daily?.completed_scenarios ?? 0)}
+          {doneNotice && (
+            <p style={{ color: "var(--foreground-muted)" }} data-testid="results-done">
+              {doneNotice}
             </p>
           )}
 
@@ -476,7 +516,9 @@ export default function ResultsPage() {
               통째로 숨기면 「총평이 아직 없는 세션」과 구별되지 않는다. */}
           {summary && (
             <div style={{ marginTop: "1.5rem" }}>
-              <h2 style={{ fontSize: "1rem" }}>{SUMMARY_HEADING}</h2>
+              <h2 style={{ fontSize: "1rem" }}>
+                {pastSession ? pastSummaryHeading(sessionDate) : SUMMARY_HEADING}
+              </h2>
               {summary.went_well.length === 0 && summary.weak_points.length === 0 && (
                 <p style={{ color: "var(--foreground-muted)" }}>{SUMMARY_EMPTY_NOTICE}</p>
               )}

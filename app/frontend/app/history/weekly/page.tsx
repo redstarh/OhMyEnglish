@@ -7,6 +7,7 @@ import {
   type WeeklyReportPayload,
   type WeeklyTopPattern,
 } from "@/lib/api";
+import { weekName, weekRangeLabel, weekRelation, type WeekRelation } from "@/lib/learnerDate";
 
 /**
  * 주간 학습 리포트 화면 (`TASK-26.6` · 결정 91 · `PRD:117`).
@@ -23,19 +24,27 @@ const LOADING_NOTICE = "Loading the report...";
 const FAILED_NOTICE = "I couldn't load the report.";
 const NOT_YET_NOTICE = "No weekly report yet. Study for a week, and you will get one.";
 const HISTORY_LINK_LABEL = "← History";
-const TOP_ERRORS_HEADING = "Common mistakes this week";
+// `TASK-329` — 홈에서 들어와도 돌아가는 버튼이 「← History」뿐이었음(390 에서는 로고만 홈으로 감).
+const HOME_LINK_LABEL = "← Home";
 const IMPROVING_HEADING = "Getting better";
-const NEXT_HEADING = "Try next week";
-const NOTHING_TO_SAY = "Nothing to show for this week.";
 
-/** 주 범위 문구 — 시작 월요일과 그 주 일요일을 함께 보인다. */
-function weekRange(weekStart: string): string {
-  const start = new Date(`${weekStart}T00:00:00`);
-  const end = new Date(start);
-  end.setDate(end.getDate() + 6);
-  const format = (value: Date) => `${value.getMonth() + 1}/${value.getDate()}`;
-  return `${format(start)} ~ ${format(end)}`;
-}
+/**
+ * 본문이 리포트의 주를 부르는 말 (`TASK-329`). 11-14 에 연 지난주 리포트가 「this week」라고 했음.
+ * ⛔ 「this week」는 리포트의 주가 학습자의 이번 주일 때만 씀 — 기준은 서버가 준 `this_week_start` 임.
+ */
+const PERIOD_PHRASE: Record<WeekRelation, string> = {
+  this: "this week",
+  last: "last week",
+  other: "that week",
+};
+// 다음에 해 볼 것 — 지난주 리포트의 「다음 주」는 학습자의 이번 주임.
+const NEXT_HEADING: Record<WeekRelation, string> = {
+  this: "Try next week",
+  last: "Try this week",
+  other: "Try next",
+};
+const topErrorsHeading = (relation: WeekRelation) => `Common mistakes ${PERIOD_PHRASE[relation]}`;
+const nothingToSay = (relation: WeekRelation) => `Nothing to show for ${PERIOD_PHRASE[relation]}.`;
 
 const patternLine = (item: WeeklyTopPattern) =>
   `${item.target_form} — ${item.occurrences}× (${item.category})`;
@@ -43,12 +52,12 @@ const patternLine = (item: WeeklyTopPattern) =>
 const SECTION_STYLE = { marginTop: "1.5rem" } as const;
 const MUTED = { color: "var(--foreground-muted)" } as const;
 
-function Sentences({ heading, items }: { heading: string; items: string[] }) {
+function Sentences({ heading, items, empty }: { heading: string; items: string[]; empty: string }) {
   return (
     <section style={SECTION_STYLE}>
       <h2 style={{ fontSize: "1rem", marginBottom: "0.4rem" }}>{heading}</h2>
       {items.length === 0 ? (
-        <p style={{ ...MUTED, margin: 0 }}>{NOTHING_TO_SAY}</p>
+        <p style={{ ...MUTED, margin: 0 }}>{empty}</p>
       ) : (
         <ul style={{ margin: 0, paddingLeft: "1.2rem" }}>
           {items.map((line) => (
@@ -85,10 +94,14 @@ export default function WeeklyReportPage() {
   const metrics = report?.metrics ?? {};
   const insights = report?.insights ?? {};
   const topPatterns = metrics.top_patterns ?? [];
+  const weekStart = report?.analyzed ? report.week_start : null;
+  const relation = weekStart ? weekRelation(weekStart, report?.this_week_start) : "other";
+  const periodName = weekName(relation);
 
   return (
     <main style={{ maxWidth: 640, margin: "0 auto", padding: "2rem" }}>
-      <h1>{HEADING}</h1>
+      {/* `TASK-329` — 제목에 리포트의 기간을 넣음. 열린 날짜와 다른 주일 수 있음(대개 지난주). */}
+      <h1 data-testid="weekly-heading">{weekStart ? `${HEADING} · ${weekRangeLabel(weekStart)}` : HEADING}</h1>
       {loading && <p style={MUTED}>{LOADING_NOTICE}</p>}
       {failed && <p style={{ color: "var(--danger)" }}>{FAILED_NOTICE}</p>}
       {!loading && !failed && report !== null && !report.analyzed && (
@@ -96,15 +109,15 @@ export default function WeeklyReportPage() {
       )}
       {!loading && !failed && report !== null && report.analyzed && report.week_start !== null && (
         <>
-          <p style={MUTED}>{weekRange(report.week_start)}</p>
+          {periodName && <p style={MUTED} data-testid="weekly-period">{periodName}</p>}
           <p style={{ margin: "0.5rem 0 0" }}>
             Lessons {metrics.session_count ?? 0} · Mistakes {metrics.occurrence_count ?? 0} · Patterns{" "}
             {metrics.pattern_count ?? 0}
           </p>
           <section style={SECTION_STYLE}>
-            <h2 style={{ fontSize: "1rem", marginBottom: "0.4rem" }}>{TOP_ERRORS_HEADING}</h2>
+            <h2 style={{ fontSize: "1rem", marginBottom: "0.4rem" }}>{topErrorsHeading(relation)}</h2>
             {topPatterns.length === 0 ? (
-              <p style={{ ...MUTED, margin: 0 }}>{NOTHING_TO_SAY}</p>
+              <p style={{ ...MUTED, margin: 0 }}>{nothingToSay(relation)}</p>
             ) : (
               <ul style={{ margin: 0, paddingLeft: "1.2rem" }}>
                 {topPatterns.map((item) => (
@@ -115,13 +128,20 @@ export default function WeeklyReportPage() {
               </ul>
             )}
           </section>
-          <Sentences heading={IMPROVING_HEADING} items={insights.improving ?? []} />
-          <Sentences heading={NEXT_HEADING} items={insights.next_scenarios ?? []} />
+          <Sentences heading={IMPROVING_HEADING} items={insights.improving ?? []} empty={nothingToSay(relation)} />
+          <Sentences
+            heading={NEXT_HEADING[relation]}
+            items={insights.next_scenarios ?? []}
+            empty={nothingToSay(relation)}
+          />
         </>
       )}
-      <p style={{ marginTop: "2rem" }}>
+      <p style={{ marginTop: "2rem", display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
         <Link href="/history" data-testid="weekly-history" className="omy-button">
           {HISTORY_LINK_LABEL}
+        </Link>
+        <Link href="/" data-testid="weekly-home" className="omy-button">
+          {HOME_LINK_LABEL}
         </Link>
       </p>
     </main>

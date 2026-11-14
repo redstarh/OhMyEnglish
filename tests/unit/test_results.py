@@ -436,6 +436,57 @@ async def test_unknown_session_returns_404(api_client: httpx.AsyncClient):
     assert response.status_code == 404
 
 
+# ⑥-2 `TASK-329` — 결과 화면이 「You finished today」를 세션 날짜로 가르도록 그 날짜를 싣는다.
+#    ⛔ 날짜는 학습자 타임존(`users.timezone`)의 달력 날짜임.
+#    화면이 브라우저 시각으로 다시 구하지 않음.
+async def test_results_carry_the_learner_local_session_date(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session
+):
+    """끝난 시각 15:30Z 는 서울(+9)에서 다음 날 00:30 임 — UTC 날짜를 쓰면 하루 이른 값이 나옴."""
+    async with db_pool.acquire() as conn:
+        await conn.execute(
+            "update learning_sessions set status = 'completed', "
+            "started_at = '2026-11-01 15:00+00', ended_at = '2026-11-01 15:30+00' where id = $1",
+            committed_session.session_id,
+        )
+
+    body = (await api_client.get(f"/api/sessions/{committed_session.session_id}/results")).json()
+
+    assert body["session_date"] == "2026-11-02"
+    # 시나리오 없이 끝난 세션은 완료로 세지 않음 — `daily_summary._COMPLETION_SQL` 과 같은 술어임.
+    assert body["finished"] is False
+
+
+async def test_results_mark_a_completed_scenario_session_as_finished(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session
+):
+    async with db_pool.acquire() as conn:
+        scenario_id = await conn.fetchval(
+            "insert into learning_scenarios (category, level, title, prompt_template) "
+            "values ('daily_life', 'A2', 'TASK-329 Results Date', 'chat') returning id"
+        )
+        await conn.execute(
+            "update learning_sessions set status = 'completed', scenario_id = $2, "
+            "ended_at = now() where id = $1",
+            committed_session.session_id,
+            scenario_id,
+        )
+    try:
+        body = (
+            await api_client.get(f"/api/sessions/{committed_session.session_id}/results")
+        ).json()
+    finally:
+        # 시나리오는 사용자 삭제의 cascade 밖임 — 세션의 참조를 먼저 풀고 지움.
+        async with db_pool.acquire() as conn:
+            await conn.execute(
+                "update learning_sessions set scenario_id = null where id = $1",
+                committed_session.session_id,
+            )
+            await conn.execute("delete from learning_scenarios where id = $1", scenario_id)
+
+    assert body["finished"] is True
+
+
 # ⑦ frequency=0으로 남은(occurrence 없는) 패턴은 결과에 나오지 않는다 (T6 다운스트림 계약)
 async def test_frequency_zero_pattern_without_occurrence_does_not_appear(
     api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session

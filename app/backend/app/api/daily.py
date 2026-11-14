@@ -36,7 +36,7 @@ from app.services.daily_summary import (
     load_streak,
     timezone_of,
 )
-from app.services.weekly_report import load_latest_report
+from app.services.weekly_report import load_latest_report, this_week_start
 
 router = APIRouter(prefix="/api", tags=["daily"])
 
@@ -107,6 +107,11 @@ def _history_payload(streak: Streak, days: list[HistoryDay]) -> dict[str, object
                 "analyzed": row.analyzed,
                 "occurrence_count": row.occurrence_count,
                 "pattern_count": row.pattern_count,
+                # `TASK-329` — 그날의 결과 화면으로 가는 길. 학습이 없던 날은 빈 목록임.
+                "sessions": [
+                    {"session_id": str(item.session_id), "title": item.title}
+                    for item in row.sessions
+                ],
             }
             for row in days
         ],
@@ -141,12 +146,23 @@ async def get_weekly_report(request: Request) -> dict[str, object]:
     pool: asyncpg.Pool = request.app.state.db_pool
     async with pool.acquire() as conn:
         report = await load_latest_report(conn, FIXED_USER_ID)
+        # `TASK-329` — 화면이 리포트의 주를 「This week」·「Last week」로 가르는 기준.
+        # 두 갈래 모두에 **항상** 실음(키 유무를 분기하지 않게 함).
+        # 계산은 서비스가 가짐(이 파일 머리말의 규약).
+        current = await this_week_start(conn, FIXED_USER_ID)
     if report is None:
         # 「아직 한 주도 만들어지지 않았다」의 모양. ⚠️ 키를 빼지 않고 **빈 값**으로 싣는다 —
         # 화면이 키 유무를 분기하지 않게 한다(`daily-summary` 가 같은 규약이다).
-        return {"week_start": None, "analyzed": False, "metrics": {}, "insights": {}}
+        return {
+            "week_start": None,
+            "this_week_start": current.isoformat(),
+            "analyzed": False,
+            "metrics": {},
+            "insights": {},
+        }
     return {
         "week_start": report.week_start.isoformat(),
+        "this_week_start": current.isoformat(),
         "analyzed": report.analyzed,
         "metrics": report.metrics,
         "insights": report.insights,

@@ -35,6 +35,7 @@ import {
   type WeeklyReportPayload,
 } from "@/lib/api";
 import type { SessionEntry } from "@/lib/config";
+import { weekName, weekRangeLabel, weekRelation } from "@/lib/learnerDate";
 import { cn } from "@/lib/utils";
 import {
   ADDITIONAL_LEARNING,
@@ -408,13 +409,28 @@ function Stat({ value, label, testId }: { value: string; label: string; testId: 
   );
 }
 
+/** 「Last week · Nov 2 – Nov 8」. 이번 주 · 지난주가 아니면 날짜만 보임. */
+function periodCaption(weekStart: string, thisWeekStart: string | undefined): string {
+  const name = weekName(weekRelation(weekStart, thisWeekStart));
+  const range = weekRangeLabel(weekStart);
+  return name ? `${name} · ${range}` : range;
+}
+
 function WeeklyStats({ weekly, history }: { weekly: Load<WeeklyReportPayload>; history: Load<HistoryPayload> }) {
   const report = weekly.status === "ready" && weekly.data.analyzed ? weekly.data : null;
   const dash = weekly.status === "loading" ? "…" : "–";
   const longest =
     history.status === "ready" ? String(history.data.streak.longest) : history.status === "loading" ? "…" : "–";
+  // `TASK-329` — Sessions · Patterns 는 최근 리포트(대개 지난주)의 값임. 바로 위 「This week」 줄과 섞여
+  // 이번 주 값으로 읽혔으므로 그 기간을 숫자 위에 적음. 「This week」는 정말 이번 주일 때만 씀.
+  const period = report?.week_start ? periodCaption(report.week_start, report.this_week_start) : null;
   return (
     <div className="mt-6 border-t border-border pt-5" data-testid="home-weekly-stats" data-state={weekly.status}>
+      {period && (
+        <p className="mb-2 text-center text-[11px] font-semibold text-muted-foreground" data-testid="home-weekly-period">
+          {period}
+        </p>
+      )}
       <div className="grid grid-cols-3 gap-2 text-center">
         <Stat testId="stat-sessions" label="Sessions" value={report ? String(report.metrics.session_count ?? 0) : dash} />
         <Stat testId="stat-best-streak" label="Best streak" value={longest} />
@@ -422,12 +438,7 @@ function WeeklyStats({ weekly, history }: { weekly: Load<WeeklyReportPayload>; h
       </div>
       <p className="mt-3 text-center text-[11px] text-muted-foreground">
         {weekly.status === "error" && "Can't load your weekly report."}
-        {weekly.status === "ready" &&
-          (report
-            ? report.week_start
-              ? `Weekly report · week of ${shortDate(report.week_start)}`
-              : "Weekly report"
-            : "No weekly report yet.")}
+        {weekly.status === "ready" && !report && "No weekly report yet."}
       </p>
     </div>
   );

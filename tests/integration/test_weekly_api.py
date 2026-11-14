@@ -14,7 +14,8 @@ from __future__ import annotations
 
 import json
 from collections.abc import AsyncIterator
-from datetime import date
+from datetime import date, datetime, timedelta
+from zoneinfo import ZoneInfo
 
 import asyncpg
 import httpx
@@ -158,3 +159,35 @@ async def test_an_uncomputed_row_reports_analyzed_false(
 
     assert body["analyzed"] is False
     assert body["week_start"] == _WEEK.isoformat()
+
+
+# `TASK-329` — 화면이 리포트의 주를 「This week」·「Last week」로 가르려면
+# 학습자의 이번 주가 필요함.
+# ⛔ 화면이 브라우저 시각으로 구하지 않게 서버가 학습자 타임존으로 구해 실음.
+def _this_monday_in_seoul() -> date:
+    today = datetime.now(ZoneInfo("Asia/Seoul")).date()
+    return today - timedelta(days=today.weekday())
+
+
+async def test_the_payload_carries_this_week_start(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, clean_reports: None
+) -> None:
+    async with db_pool.acquire() as conn:
+        await conn.execute(
+            "insert into weekly_reports (user_id, week_start, timezone, computed_at) "
+            "values ($1, $2, 'Asia/Seoul', now())",
+            FIXED_USER_ID,
+            _WEEK,
+        )
+
+    body = (await api_client.get("/api/weekly-report")).json()
+
+    assert body["this_week_start"] == _this_monday_in_seoul().isoformat()
+
+
+async def test_the_empty_shape_also_carries_this_week_start(
+    api_client: httpx.AsyncClient, clean_reports: None
+) -> None:
+    body = (await api_client.get("/api/weekly-report")).json()
+
+    assert body["this_week_start"] == _this_monday_in_seoul().isoformat()

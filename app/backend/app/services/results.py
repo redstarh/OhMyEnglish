@@ -73,6 +73,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
+from datetime import date
 from typing import Literal
 from uuid import UUID
 
@@ -81,8 +82,10 @@ import asyncpg
 # 묶음 정의의 정본은 `services/utterances.py`다 — 두 값을 여기서 리터럴로 다시 적으면 스윕이 걸
 # 대상과 이 응답이 말하는 대상이 갈라진다(`_ANALYZABLE_UTTERANCES_SQL` 주석). 순환은 없다:
 # `utterances.py`는 `jobs`·`sessions`만 import 한다.
+from app.models.learner_time import local_date
 from app.models.session_summary import summary_from_row
 from app.services.pronunciation import SOUND_CHECK_MISMATCHED
+from app.services.user_timezone import timezone_of
 from app.services.utterances import ANALYZED_SPEAKER, ANALYZED_UTTERANCE_TYPE
 
 logger = logging.getLogger(__name__)
@@ -490,3 +493,38 @@ async def get_session_result(conn: asyncpg.Connection, session_id: UUID) -> Sess
         drill=drill,
         awaiting_analysis=False,
     )
+
+
+# 세션의 날짜와 완료 여부 (`TASK-329`). 결과 화면의 「You finished today」가 세션 날짜와 상관없이
+# 고정이었음 — 11-01 세션을 11-14 에 열어도 「today」라고 했음(회차 b16 보고서 §2 B).
+# ⚠️ 앵커는 `ended_at` 임(완료의 시각 · `daily_summary._COMPLETION_SQL` 과 같음). 아직 끝나지 않은
+#    세션은 `started_at` 으로 갈음함 — 날짜가 없는 응답을 만들지 않음.
+# ⛔ `finished` 의 술어는 `_COMPLETION_SQL` 과 **같게** 둠 — 갈리면 결과 화면과 기록 화면이
+#    같은 세션의 완료를 다르게 말함.
+_SESSION_DAY_SQL = """
+select user_id,
+       coalesce(ended_at, started_at) as anchor,
+       (scenario_id is not null and status = 'completed' and ended_at is not null) as finished
+  from learning_sessions
+ where id = $1
+"""
+
+
+@dataclass(frozen=True, slots=True)
+class SessionDay:
+    """세션이 속한 학습자 날짜(`users.timezone`)와 그 세션이 완료로 세어지는가."""
+
+    day: date
+    finished: bool
+
+
+async def load_session_day(conn: asyncpg.Connection, session_id: UUID) -> SessionDay | None:
+    """세션이 없으면 `None`.
+
+    ⛔ 날짜를 서버 타임존이나 `current_date` 로 구하지 않음(전역 시각 규약).
+    """
+    row = await conn.fetchrow(_SESSION_DAY_SQL, session_id)
+    if row is None:
+        return None
+    timezone = await timezone_of(conn, row["user_id"])
+    return SessionDay(day=local_date(timezone, now=row["anchor"]), finished=row["finished"])

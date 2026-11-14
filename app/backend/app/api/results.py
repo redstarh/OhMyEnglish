@@ -45,6 +45,7 @@ from app.services.results import (
     PronunciationAttempt,
     SessionResult,
     get_session_result,
+    load_session_day,
 )
 from app.services.sessions import load_prepared_plan
 from app.services.usage import pool_usage_sink
@@ -153,9 +154,16 @@ async def get_results(session_id: UUID, request: Request) -> dict[str, object]:
     pool: asyncpg.Pool = request.app.state.db_pool
     async with pool.acquire() as conn:
         result = await get_session_result(conn, session_id)
-    if result is None:
+        # `TASK-329` — 결과 화면이 「today」를 세션 날짜로 가르는 근거. R2 판정과 독립이라
+        # `SessionResult` 에 넣지 않고 따로 읽음(다섯 생성 자리를 건드리지 않음).
+        day = await load_session_day(conn, session_id)
+    if result is None or day is None:
         raise HTTPException(status_code=404, detail="session not found")
-    return _result_payload(result)
+    return {
+        **_result_payload(result),
+        "session_date": day.day.isoformat(),
+        "finished": day.finished,
+    }
 
 
 @router.get("/{session_id}/recordings/{utterance_id}")

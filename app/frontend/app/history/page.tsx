@@ -28,10 +28,18 @@ const longestNotice = (longest: number) => `Best streak: ${longest} ${longest ==
  */
 function dayFact(row: HistoryDay): string {
   if (!row.learned) return "";
-  if (!row.analyzed) return "Not checked";
+  if (!row.analyzed) return NOT_ANALYZED;
   if (row.occurrence_count === 0) return "No mistakes";
   return `Mistakes ${row.occurrence_count} · Patterns ${row.pattern_count}`;
 }
+
+// `TASK-329` — 「Not checked」가 무엇을 확인하지 않았다는 뜻인지 설명이 없었음.
+// 규칙의 정본은 백엔드임: 레슨에서 한 말은 차례(턴)가 닫힐 때마다 분석 job 이 걸리고
+// (`services/utterances.flush_pending_analysis`), 분석이 저장될 때 그날의 요약 행이 생김
+// (`services/daily_summary.refresh_summary_for_utterance`). 그 행이 없는 날이 이 문구임.
+const NOT_ANALYZED = "Not analyzed yet";
+const NOT_ANALYZED_HINT =
+  "What you say in a lesson is checked for mistakes after each of your turns. “Not analyzed yet” means nothing you said that day has been checked.";
 
 const ROW_STYLE = {
   display: "flex",
@@ -39,6 +47,56 @@ const ROW_STYLE = {
   gap: "1rem",
   padding: "0.35rem 0",
 } as const;
+
+/**
+ * 날짜 한 줄 (`TASK-329`). 공부한 날은 그날의 결과로 감 — 세션이 하나면 그 결과로 바로 가고, 여럿이면
+ * 줄을 펼쳐 고름. 이전에는 줄이 눌리지 않아 결과 화면이 세션 직후에만 닿았음.
+ * ⚠️ 이 줄은 목록 항목이라 이동 버튼 모양(`omy-button`)을 쓰지 않음(설계서 §3 `TASK-311` 의 범위 밖).
+ */
+function DayRow({ row }: { row: HistoryDay }) {
+  const sessions = row.sessions ?? [];
+  const label = `${row.day}${row.learned ? " · Studied" : ""}`;
+  const fact = <span style={{ color: "var(--foreground-muted)" }}>{dayFact(row)}</span>;
+
+  if (sessions.length === 1) {
+    return (
+      <div style={ROW_STYLE}>
+        <Link href={`/results/${sessions[0].session_id}`} data-testid="history-day-link">
+          {label} →
+        </Link>
+        {fact}
+      </div>
+    );
+  }
+  if (sessions.length > 1) {
+    return (
+      <details data-testid="history-day-group">
+        <summary style={{ ...ROW_STYLE, cursor: "pointer" }}>
+          {/* flex 로 두면 브라우저의 펼침 표시가 사라짐 — 눌러 펼친다는 단서를 글자로 둠. */}
+          <span>
+            {label} · {sessions.length} lessons ▾
+          </span>
+          {fact}
+        </summary>
+        <ul style={{ margin: "0 0 0.5rem", paddingLeft: "1.2rem" }}>
+          {sessions.map((item) => (
+            <li key={item.session_id} style={{ margin: "0.25rem 0" }}>
+              <Link href={`/results/${item.session_id}`} data-testid="history-session-link">
+                {item.title} →
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </details>
+    );
+  }
+  return (
+    <div style={ROW_STYLE}>
+      <span style={{ color: row.learned ? undefined : "var(--foreground-muted)" }}>{label}</span>
+      {fact}
+    </div>
+  );
+}
 
 export default function HistoryPage() {
   const [history, setHistory] = useState<HistoryPayload | null>(null);
@@ -83,14 +141,14 @@ export default function HistoryPage() {
               알 수 없고, 그러면 위의 연속일 수가 근거 없는 숫자가 된다(R15-5). */}
           <div style={{ marginTop: "1.5rem" }}>
             {history.days.map((row) => (
-              <div key={row.day} style={ROW_STYLE}>
-                <span style={{ color: row.learned ? undefined : "var(--foreground-muted)" }}>
-                  {row.day} {row.learned ? "· Studied" : ""}
-                </span>
-                <span style={{ color: "var(--foreground-muted)" }}>{dayFact(row)}</span>
-              </div>
+              <DayRow key={row.day} row={row} />
             ))}
           </div>
+          {history.days.some((row) => row.learned && !row.analyzed) && (
+            <p style={{ marginTop: "1rem", fontSize: "0.85rem", color: "var(--foreground-muted)" }} data-testid="history-not-analyzed-hint">
+              {NOT_ANALYZED_HINT}
+            </p>
+          )}
         </>
       )}
 

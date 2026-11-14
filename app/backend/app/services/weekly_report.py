@@ -14,7 +14,7 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 from typing import Any, cast
 from uuid import UUID
 
@@ -68,6 +68,16 @@ async def last_week_start(conn: asyncpg.Connection, user_id: UUID) -> date:
     터진다. `load_session_clip` 이 `None` 을 쓰는 것은 그쪽의 부재가 **정상**이기 때문이다.
     """
     return await _last_week_start_for_timezone(conn, await timezone_of(conn, user_id))
+
+
+async def this_week_start(conn: asyncpg.Connection, user_id: UUID) -> date:
+    """그 사용자의 **이번 주 월요일** (`TASK-329`).
+
+    화면이 이 값으로 리포트의 주를 「This week」·「Last week」로 가름.
+    ⛔ 경계를 따로 구하지 않고 `last_week_start` 에 7일을 더함 — 둘이 갈리면 지난주 리포트가
+    「This week」로 보이는 자리가 생김.
+    """
+    return await last_week_start(conn, user_id) + timedelta(days=7)
 
 
 # `last_week_start` 와 같은 계산이지만 `users` 를 다시 읽지 않는다 — 호출자가 타임존을 이미 갖고
@@ -434,6 +444,7 @@ __all__ = [
     "load_latest_report",
     "load_week_facts",
     "process_weekly",
+    "this_week_start",
 ]
 
 

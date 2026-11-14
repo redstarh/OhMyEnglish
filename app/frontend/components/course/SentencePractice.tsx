@@ -615,7 +615,8 @@ export function SentencePractice({ detail, day, onDayFinished }: Props) {
             disabled={!previous}
             onClick={() => goTo(previous)}
           >
-            ← Back
+            {/* 이전 문장임(`TASK-329`) — 「← Back」은 카드 머리 「← Close」와 같은 화살표라 홈으로 가는 버튼으로 읽혔음. */}
+            ← Previous
           </button>
           {/* 같은 자리의 두 상태를 testid 로 가름(리디자인 설계서 §4) — 문구에 기대지 않게 함. */}
           {phase === "idle" ? (

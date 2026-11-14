@@ -57,6 +57,10 @@ STATUS_LABEL = {
     "connection_failed": "Connection lost",
     "no_utterances": "Nothing to check",
 }
+# `TASK-329` — 발화 0건 세션(`no_utterances` · `awaiting_analysis` 거짓)은 칭찬 대신 사실을 말함.
+# ⚠️ 회복 대상(`awaiting_analysis` 참)은 옛 문구 그대로임.
+#    그 키가 없는 옛 판독(2026-09-09)도 옛 문구로 읽음.
+NO_SPEECH_LABEL = "We didn't hear you this time."
 PARTIAL_NOTICE = "Some of your sentences could not be checked. They will not be checked again."
 # 없는 세션 화면의 문구 — TASK-55 로 바뀌었다. 이전 값은 `결과 API가 404을 반환했습니다`로
 # HTTP 상태 코드를 학습자에게 그대로 보여줬다. 지금 화면은 상태 코드를 **분류에만** 쓰고
@@ -110,6 +114,18 @@ READ_JS = r"""
 """
 
 
+def label_key(payload: dict) -> str:
+    """화면 라벨을 가르는 상태 — `status` 에 발화 0건 갈래 하나를 더함(`TASK-329`)."""
+    if payload["status"] == "no_utterances" and payload.get("awaiting_analysis") is False:
+        return "no_speech"
+    return payload["status"]
+
+
+def expected_label(payload: dict) -> str:
+    key = label_key(payload)
+    return NO_SPEECH_LABEL if key == "no_speech" else STATUS_LABEL[key]
+
+
 def api_results(session_id: str, base: str) -> dict:
     """결과 API를 **파이썬에서** 부른다 — 화면의 상류이므로 기대값의 출처다."""
     with urllib.request.urlopen(f"{base}/api/sessions/{session_id}/results", timeout=10) as fh:
@@ -120,7 +136,7 @@ async def visit(cdp: Cdp, url: str, expect_label: str | None) -> dict:
     """한 화면을 열고 판독한다. 라벨(또는 오류 문구)이 뜰 때까지 기다린 뒤 한 번에 읽는다."""
     await cdp.call("Page.navigate", {"url": url})
     js = READ_JS.replace(
-        "LABELS", json.dumps(list(STATUS_LABEL.values()), ensure_ascii=False)
+        "LABELS", json.dumps([*STATUS_LABEL.values(), NO_SPEECH_LABEL], ensure_ascii=False)
     ).replace("PARTIAL_NOTICE", json.dumps(PARTIAL_NOTICE, ensure_ascii=False))
     want = expect_label or MISSING_NOTICE
     data: dict | None = None
@@ -147,7 +163,7 @@ def check_screen(payload: dict, dom: dict, session_id: str) -> tuple[int, list[s
             fails.append(msg)
 
     status = payload["status"]
-    expected = STATUS_LABEL[status]
+    expected = expected_label(payload)
     # ── ⛔ **`READ_JS` 가 `location.href` 를 담고도 아무도 단정하지 않았다** (C3 검토 ④).
     #    `Page.navigate` 직후 폴링이 **이전 문서**를 읽을 수 있고, 두 세션이 같은 status 면
     #    스테일 판독이 조용히 통과한다. C2 의 MEDIUM-1 과 **같은 형태**(측정만 하고 게이트 안 함)다.
@@ -353,7 +369,7 @@ def check_status_label_variation(
     for key in sessions:
         first = results[key].get("firstDirectP")
         if first:
-            by_status.setdefault(payloads[key]["status"], set()).add(first["text"])
+            by_status.setdefault(label_key(payloads[key]), set()).add(first["text"])
 
     if len(by_status) < 2:
         return (
@@ -396,7 +412,7 @@ async def main_async(args) -> int:
         cdp = Cdp(ws)
         await cdp.call("Page.bringToFront")
         for key, sid in sessions.items():
-            label = STATUS_LABEL[payloads[key]["status"]]
+            label = expected_label(payloads[key])
             dom = await visit(cdp, f"{args.base}/results/{sid}", label)
             shot = await cdp.call("Page.captureScreenshot", {"format": "png"})
             path = EVIDENCE / f"c3-{key}.png"

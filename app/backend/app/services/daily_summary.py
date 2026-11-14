@@ -214,6 +214,22 @@ select d.day,
 """
 
 
+# 날짜별로 그날 마친 세션 (`TASK-329`). 기록 화면의 「Studied」 줄이 그날의 결과 화면으로 가는 길임.
+# ⛔ 술어를 `_COMPLETION_SQL`·`_HISTORY_SQL` 과 **같게** 둠 — 갈리면 「Studied」 줄이 빈 목록을
+# 갖거나 세지 않은 세션이 목록에 끼어 줄의 수와 목록이 어긋남. 조건을 고칠 때 셋을 함께 고침.
+# ⚠️ 범위는 `_HISTORY_SQL` 의 `span` 과 같은 `[$3 - ($4 - 1), $3]` 임. 순서는 끝난 시각 순임.
+_HISTORY_SESSIONS_SQL = """
+select (s.ended_at at time zone $2)::date as day, s.id as session_id, sc.title
+  from learning_sessions s
+  join learning_scenarios sc on sc.id = s.scenario_id
+ where s.user_id = $1
+   and s.status = 'completed'
+   and s.ended_at is not null
+   and (s.ended_at at time zone $2)::date between ($3::date - ($4::int - 1)) and $3::date
+ order by s.ended_at, s.id
+"""
+
+
 @dataclass(frozen=True, slots=True)
 class DailyExample:
     """그날 그 패턴의 발생 1건. 전부를 담으면 이 표가 `error_occurrences`의 사본이 된다."""
@@ -402,6 +418,16 @@ class HistoryDay:
     analyzed: bool
     occurrence_count: int
     pattern_count: int
+    # `TASK-329` — 그날 마친 세션(끝난 시각 순). 기록 화면이 그날의 결과로 가는 길임.
+    sessions: tuple[HistorySession, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class HistorySession:
+    """기록 한 줄에 매인 세션 하나. 제목은 시나리오 제목(영어)임."""
+
+    session_id: UUID
+    title: str
 
 
 async def load_streak(
@@ -453,6 +479,11 @@ async def load_history(
     timezone = timezone if timezone is not None else await timezone_of(conn, user_id)
     today = local_date(timezone, now=resolve_now(now))
     records = await conn.fetch(_HISTORY_SQL, user_id, timezone, today, days)
+    by_day: dict[date, list[HistorySession]] = {}
+    for row in await conn.fetch(_HISTORY_SESSIONS_SQL, user_id, timezone, today, days):
+        by_day.setdefault(row["day"], []).append(
+            HistorySession(session_id=row["session_id"], title=row["title"])
+        )
     return [
         HistoryDay(
             day=record["day"],
@@ -461,6 +492,7 @@ async def load_history(
             analyzed=record["computed_at"] is not None,
             occurrence_count=record["occurrence_count"] or 0,
             pattern_count=record["pattern_count"] or 0,
+            sessions=tuple(by_day.get(record["day"], ())),
         )
         for record in records
     ]

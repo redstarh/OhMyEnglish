@@ -156,6 +156,32 @@
 - `/course` · `/course/<day>` 는 홈으로 넘김. 영상과 함께 하는 옛 Day 연습은 없어짐. 그리로 가던 버튼은 홈으로 감.
 - 이동·실행 버튼은 모두 `omy-button` 기준을 씀(More practice · View all · Practice a pattern · End lesson · 영상 화면 버튼). `TASK-311` 의 「범위 밖」 목록에서 Day 경로 카드 · 사이드바 · 영상 제목 링크만 남김.
 
+### 회차 b16 보고서 보완안 9건 (2026-11-14 · `TASK-329`)
+
+- 근거: `docs/ux/2026-11-14-ux-flow-review/index.html` §2 B~E. 사용자는 9건 모두 고치기로 결정함.
+- 날짜 기준: 「오늘」·「이번 주」는 서버가 학습자 타임존(`users.timezone`)으로 준 값만 씀. 화면은 브라우저 시각으로 구하지 않음.
+- 서버가 더 싣는 값은 셋임. 주간 리포트의 `this_week_start` · 결과의 `session_date`·`finished` · 기록 줄의 `sessions` 임.
+- ① 홈 Your progress: Sessions·Patterns 위에 기간 줄을 둠(`Last week · Nov 2 – Nov 8`). `This week` 는 리포트가 정말 이번 주일 때만 씀. 그 밖의 주는 날짜만 보임.
+- ① 옛 아래 줄 `Weekly report · week of …` 는 기간 줄과 겹쳐 뺐음. 리포트가 없을 때의 `No weekly report yet.` 는 남김.
+- ② 주간 리포트 제목: `Weekly report · Nov 2 – Nov 8`. 그 아래 `Last week`·`This week` 를 흐린 글자로 보임.
+- ② 본문은 리포트의 주로 부름: `Common mistakes last week` · `Nothing to show for last week.` 임. 그 밖의 주는 `that week` 임.
+- ② 다음 제안 제목: 이번 주 리포트는 `Try next week`, 지난주 리포트는 `Try this week`, 그 밖은 `Try next` 임.
+- ③ 결과 화면: 오늘 세션은 옛 문구(`You finished today` · 개수)를 그대로 씀. 지난 세션은 `You finished on Nov 1` 임.
+- ③ 지난 세션은 그날 몇 개를 마쳤는지 화면이 모르므로 개수를 붙이지 않음. 총평 제목도 `Lesson on Nov 1` 로 바꿈.
+- ③ 범위 밖: `Today's mistakes` 는 정말 오늘의 요약이라 그대로 둠. 드릴 미달 문구는 C3 하네스의 기대값이라 이번에 바꾸지 않음.
+- ④ 문장 연습 아래 버튼: `← Back` → `← Previous`. 카드 머리 `← Close` 와 갈라 읽히게 함. testid `course-prev` 는 그대로임.
+- ⑤ 기록: `Not checked` → `Not analyzed yet`. 그런 날이 있을 때만 목록 아래에 한 줄 설명을 붙임.
+- ⑤ 설명 문구: `What you say in a lesson is checked for mistakes after each of your turns.` 와 그 뜻 한 문장임.
+- ⑤ 규칙의 근거: 차례가 닫힐 때마다 분석 job 이 걸리고, 분석이 저장될 때 그날 요약 행이 생김. 그 행이 없는 날이 `Not analyzed yet` 임.
+- ⑥ 영상 화면: `Mark start` → `Mark a hard part` · `Mark end` → `End the hard part here` 임.
+- ⑥ 시작을 찍은 뒤 안내는 `The hard part starts at 0:12. Press the button when it ends.` 임. `Mark again` 은 표시를 지우는 일이라 `Cancel` 로 맞춤.
+- ⑦ 기록 날짜 줄: 세션이 하나면 줄이 그 결과(`/results/<id>`)로 감. 여럿이면 줄을 펼쳐 시나리오 제목 목록에서 고름.
+- ⑦ 날짜 줄은 목록 항목이라 `omy-button` 모양을 쓰지 않음(`TASK-311` 의 범위 밖과 같은 판단).
+- ⑧ 주간 리포트: `← History` 옆에 `← Home`(`omy-button` · testid `weekly-home`)을 둠.
+- ⑨ 발화 0건 세션 결과: 상태 줄을 `We didn't hear you this time.` 로 바꾸고 완료 문구를 숨김.
+- ⑨ 그 아래 `Check your microphone, then start a new lesson from Home.` 과 `Start again →`(`omy-button-primary` · 홈) 을 둠.
+- ⑨ 회복 대상(`awaiting_analysis` 참)은 들은 말이 있으므로 옛 `Nothing to check` 를 그대로 씀. C3 하네스도 이 갈래를 따로 셈.
+
 ## 4. 파일 계획
 
 - 새 파일: `postcss.config.mjs` · `components.json` · `lib/utils.ts` · `components/ui/button.tsx` · `components/app-shell.tsx` · `app/additionalLearning.ts`(추가 학습 목록과 `entryForTarget` 을 옮기고 고정 `key` 를 줌) · `components/home/HomeDashboard.tsx`.

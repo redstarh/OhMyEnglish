@@ -23,9 +23,10 @@ import { WordLookup } from "./WordLookup";
  */
 
 const BACK_LINK_LABEL = "← Videos";
-const SPAN_START_LABEL = "Mark start";
-const SPAN_END_LABEL = "Mark end";
-const SPAN_REDO_LABEL = "Mark again";
+// `TASK-329` — 「Mark start」만 보고는 무엇을 하는지 몰랐음(아래 문장을 읽어야 알았음). 이어지는 두 버튼도
+// 같은 말(「hard part」)로 맞춤. 「Mark again」은 표시를 지우는 일이라 아래와 같은 「Cancel」을 씀.
+const SPAN_START_LABEL = "Mark a hard part";
+const SPAN_END_LABEL = "End the hard part here";
 const STORE_LABEL = "Save";
 const CANCEL_LABEL = "Cancel";
 const LISTEN_LABEL = "Listen to this part";
@@ -285,12 +286,12 @@ export default function VideoLearningPage() {
               </button>
             ) : draft.end === null ? (
               <>
-                <p>Start: {asClock(draft.start)}</p>
+                <p>The hard part starts at {asClock(draft.start)}. Press the button when it ends.</p>
                 <button type="button" className="omy-button" onClick={markEnd} disabled={busy}>
                   {SPAN_END_LABEL}
                 </button>{" "}
                 <button type="button" className="omy-button" onClick={resetDraft} disabled={busy}>
-                  {SPAN_REDO_LABEL}
+                  {CANCEL_LABEL}
                 </button>
               </>
             ) : (

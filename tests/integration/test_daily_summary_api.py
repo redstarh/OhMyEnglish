@@ -252,8 +252,8 @@ async def test_endpoint_ignores_another_learners_summary(
 _SCENARIO_TITLE = "API Completion Test"
 
 
-async def _completed_session(pool: asyncpg.Pool, user_id: UUID, *, with_scenario: bool) -> None:
-    """정상 종료된 세션 1건을 **오늘**(사용자 타임존) 끝난 것으로 심는다."""
+async def _completed_session(pool: asyncpg.Pool, user_id: UUID, *, with_scenario: bool) -> UUID:
+    """정상 종료된 세션 1건을 **오늘**(사용자 타임존) 끝난 것으로 심고 그 id 를 돌려준다."""
     async with pool.acquire() as conn:
         scenario_id = (
             await conn.fetchval(
@@ -264,12 +264,15 @@ async def _completed_session(pool: asyncpg.Pool, user_id: UUID, *, with_scenario
             if with_scenario
             else None
         )
-        await conn.execute(
+        session_id = await conn.fetchval(
             "insert into learning_sessions (user_id, mode, scenario_id, status, started_at, "
-            "ended_at) values ($1, 'speaking', $2, 'completed', now() - interval '1 hour', now())",
+            "ended_at) values ($1, 'speaking', $2, 'completed', now() - interval '1 hour', now()) "
+            "returning id",
             user_id,
             scenario_id,
         )
+    assert session_id is not None
+    return session_id
 
 
 # ⑥ 오늘 시나리오를 마쳤으면 그 사실이 응답에 실린다 (R14-4).
@@ -340,3 +343,18 @@ async def test_history_endpoint_is_empty_not_an_error(
 
     assert payload["streak"] == {"current": 0, "longest": 0, "today_done": False}
     assert all(row["learned"] is False for row in payload["days"])
+
+
+# ⑪ `TASK-329` — 공부한 날 줄에서 그날의 결과로 돌아갈 수 있게 **그날 마친 세션**을 함께 싣는다.
+#    ⛔ 술어는 `learned` 와 같음(시나리오가 붙고 정상 종료).
+#    둘이 갈리면 「Studied」 줄이 빈 목록을 가짐.
+async def test_history_days_carry_the_sessions_finished_that_day(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_fixed_user
+) -> None:
+    finished = await _completed_session(db_pool, FIXED_USER_ID, with_scenario=True)
+    await _completed_session(db_pool, FIXED_USER_ID, with_scenario=False)
+
+    days = (await api_client.get(HISTORY_PATH)).json()["days"]
+
+    assert days[0]["sessions"] == [{"session_id": str(finished), "title": _SCENARIO_TITLE}]
+    assert all(row["sessions"] == [] for row in days[1:]), "학습이 없던 날은 빈 목록임"

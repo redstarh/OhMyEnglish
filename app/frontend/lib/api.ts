@@ -104,6 +104,10 @@ export interface SessionResultPayload {
   // ⛔ **두 배열이 비어 있는 채로 오는 것은 「없음」이 아니다** — 「만들었고 담을 것이 없었다」다
   //   (발화 0건 세션이 그 모양이다). 그 구별을 화면이 지운다면 API 가 애써 가른 것이 사라진다.
   summary?: SessionSummary;
+  // `TASK-329` — 세션의 학습자 날짜(`YYYY-MM-DD` · `users.timezone`)와 완료로 세는가(시나리오 · 정상 종료).
+  // 결과 화면이 「You finished today」를 세션 날짜로 가름. ⚠️ 이 키가 없는 옛 서버에서는 옛 문구로 돌아감.
+  session_date?: string;
+  finished?: boolean;
 }
 
 /**
@@ -245,6 +249,14 @@ export interface HistoryDay {
   analyzed: boolean;
   occurrence_count: number;
   pattern_count: number;
+  /** `TASK-329` — 그날 마친 세션(끝난 시각 순). 기록 줄이 그날의 결과로 가는 길임. 옛 서버에는 없음. */
+  sessions?: HistorySession[];
+}
+
+export interface HistorySession {
+  session_id: string;
+  /** 시나리오 제목(영어). */
+  title: string;
 }
 
 export interface HistoryPayload {
@@ -297,6 +309,8 @@ export interface WeeklyInsights {
  */
 export interface WeeklyReportPayload {
   week_start: string | null;
+  /** `TASK-329` — 학습자의 이번 주 월요일. 리포트의 주를 This week · Last week 로 가르는 기준. 옛 서버에는 없음. */
+  this_week_start?: string;
   analyzed: boolean;
   metrics: WeeklyMetrics;
   insights: WeeklyInsights;
