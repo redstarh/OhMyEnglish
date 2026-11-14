@@ -1,17 +1,17 @@
 # HANDOFF — OhMyEnglish
 
-> 최종 갱신 **2026-11-14 21시대 KST** · 브랜치 `design/first-vertical-slice`
-> ⛔ **이전 판은 `handoff/backup/2026-11-14/HANDOFF-2113.md`** (그 앞 판들은 `handoff/backup/<날짜>/`).
+> 최종 갱신 **2026-11-14 23시대 KST** · 브랜치 `design/first-vertical-slice`
+> ⛔ **이전 판은 `handoff/backup/2026-11-14/HANDOFF-2316.md`** (그 앞 판들은 `handoff/backup/<날짜>/`).
 > 인계 원칙의 정본은 `~/.claude/rules/session-handoff.md` · 근거 정본은 **태스크 노트 ·
 > `docs/design/**` · 회차 노트(`tests/agent/runs/**/result.md`)**임.
 
 ## ⛔ 먼저 챙길 것 — 첫 코드블록보다 앞에 둠
 
-1. ⛔ **다음 한 걸음은 `TASK-331`(codex 리뷰 수신·반영) → `TASK-330`(회차 b18 전체 재시험)**. 21시대에
-   `TASK-329`(보완안 9건) · `TASK-328`(번역 · KO) 리뷰를 codex 에 맡겼음 — 결과를 받아 반영한 뒤, TestAgent
-   두 탭(화면·버튼)을 다시 돌려 `docs/ux` 스토리보드·흐름 보고서를 현재 화면으로 새로 만듦(옛 판은 남김).
-   b16 보고서 관찰 하나를 b18 보고서에 올릴 것: 홈 Your progress 의 Best streak 이 「Last week」 꼬리표 아래에 놓임.
-   `TASK-325`(아이폰)는 사용자 결정으로 미룬 대기임.
+1. ⛔ **원장 잔여는 `TASK-325`(아이폰 · 사용자 결정으로 미룸) 하나뿐임** — 진행 중 0 · 결정 대기 0.
+   회차 b18(고친 뒤 전체 재시험) 뒤 관찰 13건(`TASK-333`) · 영상 testid(`TASK-332`) · 리뷰 반영(`TASK-334`)까지 끝남.
+   최신 보고서 `docs/ux/2026-11-14-b18-ux-flow-review/index.html` · 스토리보드 `docs/ux/2026-11-14-b18-user-scenarios/`.
+   남은 관찰(태스크 아님 · 진행 여부를 사용자에게 물을 것): 홈 「This week: N / 7 days」가 학습 발화 없는 날도 셈 ·
+   Weak spots 결과의 Start again 이 Free talk 제목으로 열림(세션 행이 같음) · 320 폭 결과 칸 18 px 칸 안 스크롤.
 2. ⛔ **스택은 실행 아이콘이 띄운 상태임** — `~/Applications/OhMyEnglish.app`. 백엔드 `:8002` =
    `VOICE_ADAPTER=nova` · dev DB · SSO 임시 자격증명 · 부모 launchd. 프런트 `:3000` = 이 리포의 `next dev`.
 3. ⛔ **서버는 내 셸에서 띄우지 않음**(사용자 지시) — 아이콘(`open`)이나 `launchctl submit`.
@@ -35,10 +35,10 @@
 
 | # | 지표 | 값 |
 |--:|---|---|
-| 1 | 기준 커밋 | **`057fba4`** · `origin` 과 **0/0** 전 커밋 기준(이 판을 담은 커밋은 `git log -1` 로 읽음) |
-| 2 | 다음 한 걸음 | **`TASK-331`**(In Progress · 리뷰 대기) → **`TASK-330`**(To Do · 의존 326~329 모두 Done) |
-| 3 | 게이트 | 내가 측정(21시대) — 백엔드 `pytest` **1511 passed** · `ruff` 0 · `ruff format` 342 files · `ty` 0 · 프런트 `tsc` 0 · `eslint` 0 · `next build` 0 · `node --test` 23+4+5 |
-| 4 | 착수 전 필수 | 미결 승인 0 · 결정 대기 0 · 진행 중 1(`TASK-331`) · 대기 2(`TASK-330` · `TASK-325`) |
+| 1 | 기준 커밋 | **`70f912b`** · `origin` 과 **0/0** (이 판을 담은 커밋은 `git log -1` 로 읽음) |
+| 2 | 다음 한 걸음 | 원장 잔여 `TASK-325`(대기 · 미룸)뿐 — 새 지시를 받음 |
+| 3 | 게이트 | 내가 측정(마지막) — 백엔드 `pytest` **1516 passed** · `ruff` 0 · `ruff format` 342 files · `ty` 0 · 프런트 `tsc` 0 · `eslint` 0 · `next build` 0 · `node --test` 53 passed |
+| 4 | 착수 전 필수 | 미결 승인 0 · 결정 대기 0 · 진행 중 0 · 대기 1(`TASK-325`) |
 
 ⚠️ pytest 는 `app/backend` 에서 **경로 없이** `-k` 로 고름 — 시험 파일 경로를 넘기면 설정(`asyncio_mode`)이
 빠져 async 시험이 모두 「지원 안 됨」으로 실패함(2026-11-14 실측 · 그 실패를 빨간 증거로 오인했던 적 있음).
@@ -53,11 +53,11 @@
 - `TASK-323` 사용자 결정 넷(빠른 카드·Grammar course 제거 · `/course` 리다이렉트 · 버튼 통일)
 - `TASK-317` 말하는 동안 실시간 표시(Web Speech) · 사용자 실기기 확인 · `TASK-324` Auto 잘림
 - `TASK-326` 말한 내용 = 문장 글자 · `TASK-327` 한글 발음 조각 제거 · `TASK-329` 보완안 9건 · `TASK-328` 번역 · KO
+- `TASK-330` 회차 b18 전체 재시험 · `TASK-332` 영상 testid · `TASK-333` 관찰 13건 · `TASK-331`·`TASK-334` 리뷰 반영
 - `TASK-325` 아이폰 지원은 미룸(Tailscale serve 가 가까운 길)
 
 ## 다음 세션이 먼저 볼 것
 
 ```bash
-backlog task view TASK-331 --plain
-backlog task view TASK-330 --plain
+backlog task list --plain   # 잔여는 TASK-325 뿐
 ```
