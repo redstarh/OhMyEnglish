@@ -6,7 +6,7 @@ title: >-
 status: In Progress
 assignee: []
 created_date: '2026-11-14 05:30'
-updated_date: '2026-11-14 05:56'
+updated_date: '2026-11-14 06:04'
 labels: []
 dependencies: []
 ordinal: 381000
@@ -24,6 +24,7 @@ ordinal: 381000
 - [ ] #2 두 탭의 회차 결과를 받아 판정을 직접 대조함
 - [ ] #3 새 스토리보드를 docs/ux 에 남김
 - [ ] #4 회차 뒤 사용자 스택을 복원함
+- [ ] #5 스토리보드에서 흐름이 불명확하거나 사람이 쓰기에 논리적으로 맞지 않는 곳과 보완안을 HTML 보고서로 냄 (사용자 지시 2026-11-14)
 <!-- AC:END -->
 
 ## Implementation Notes
