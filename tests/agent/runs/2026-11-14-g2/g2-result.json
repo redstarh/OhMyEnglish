@@ -1,0 +1,18 @@
+{
+ "available": true,
+ "events": [
+  [
+   407,
+   "audiostart"
+  ],
+  [
+   8258,
+   "error",
+   "no-speech"
+  ],
+  [
+   8258,
+   "end"
+  ]
+ ]
+}

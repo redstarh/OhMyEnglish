@@ -181,3 +181,11 @@
   - ⚠️ 뒤집은 규칙: 문법 코스 설계서(`2026-10-26-grammar-course-design.md`) §4 의 「전사가 비어도 시도로 셈」. 구현 때 그 문서에도 번복을 적음.
 - 질문 3(Nova 재측정 후 A 로 바꿀지)은 묻지 않았음 — G3 승인으로 C 가 정해져 0단계 G1 은 생략함. G2(시험 Chrome 의 인식기 동작)는 구현 전에 잼.
 
+
+### §2-2. 0단계 G2 측정 결과 (2026-11-14 · `tests/agent/runs/2026-11-14-g2/`)
+
+- 측정: macOS `say` 영어 문장 WAV 를 `--use-file-for-fake-audio-capture` 로 넣고 `webkitSpeechRecognition`(en-US · continuous · interim)을 12초 돌림.
+- 헤드리스 Chrome 157: `audiostart` · `speechstart` 는 왔고 결과·오류 없이 `end` 로 끝남(`g2-result-headless.json`).
+- 화면에 보이는 Chrome 157(별도 프로필): `audiostart` 뒤 8초에 `no-speech` 오류로 끝남(`g2-result.json`).
+- 판단: 가짜 오디오 파일이 인식기 입력으로 들어가지 않는 것으로 보임. 표본 2개라 원인은 확정하지 않음.
+- 결과: 자동 실물 검증은 하지 않음. 화면 논리는 가짜 `SpeechRecognition` 시나리오(§8)로 재고, 인식 품질은 사용자가 직접 읽어 확인함(§8-③).
