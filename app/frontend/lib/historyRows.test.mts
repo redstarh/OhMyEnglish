@@ -36,3 +36,16 @@ test("말한 세션이 없는 날은 Nothing said · 말했는데 요약이 없�
   assert.equal(dayFact(day("2026-11-14", true, { spoken: true, analyzed: true })), "No mistakes");
   assert.equal(dayFact(day("2026-11-14", false)), "");
 });
+
+// ── codex 리뷰 ① (`TASK-334`) ──
+test("말한 세션이 없는 날은 요약이 있어도 No mistakes 가 아니라 Nothing said", () => {
+  // 실패·진행 중 세션이 만든 요약이 있어도 마친 세션에 학습 발화가 없으면 「오류 0건」이라 말하지 않음.
+  assert.equal(dayFact(day("2026-11-14", true, { spoken: false, analyzed: true, occurrence_count: 0 })), "Nothing said");
+});
+
+test("말한 세션이 없어도 요약에 실수가 잡혔으면 그 사실을 보임", () => {
+  assert.equal(
+    dayFact(day("2026-11-14", true, { spoken: false, analyzed: true, occurrence_count: 2, pattern_count: 1 })),
+    "Mistakes 2 · Patterns 1",
+  );
+});

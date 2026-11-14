@@ -47,3 +47,19 @@ test("이름 없이 연 세션은 진입으로 목록에서 제목을 고름", (
   assert.equal(sessionTitleFor({ patternKey: "article_missing" }), "Practice a pattern");
   assert.equal(sessionTitleFor({ source: "recommended" }), "English talk");
 });
+
+// ── codex 리뷰 ②③ (`TASK-334`) ──
+test("화면이 다시 열 수 없는 모드(review)는 세션을 열지 않고 홈으로 감", () => {
+  assert.equal(restartHref({ mode: "review", source: "recommended", item: null, pattern: null }), "/");
+});
+
+test("user_requested 출처는 그대로 옮김", () => {
+  assert.equal(
+    restartHref({ mode: "speaking", source: "user_requested", item: null, pattern: null }),
+    "/?mode=speaking&source=user_requested",
+  );
+});
+
+test("모르는 출처는 추천으로 바꾸지 않고 홈으로 감", () => {
+  assert.equal(restartHref({ mode: "speaking", source: "mystery", item: null, pattern: null }), "/");
+});

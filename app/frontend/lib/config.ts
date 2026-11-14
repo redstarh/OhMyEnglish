@@ -26,7 +26,7 @@ export interface SessionEntry {
   //    홈 질의로 다시 열려면 `mode` 가 있어야 함(`entryFromQuery` 는 `mode`·`pattern` 이 없으면 열지 않음).
   //    서버는 `?mode=speaking` 을 명시적 말하기로 받음(`api/ws.py` 의 정책 표 주석).
   mode?: "speaking" | "pronunciation" | "shadowing" | "scenario_intake";
-  source?: "recommended" | "additional";
+  source?: "recommended" | "additional" | "user_requested";
   /**
    * 연습할 쉐도잉 문장 (`TASK-166` — 영상 학습의 [연습하기] 가 이것을 쓴다).
    *
@@ -164,14 +164,20 @@ type StoredEntry = { mode: string; source: string; item: string | null; pattern:
  * ⚠️ 진입이 없으면(옛 서버) 홈으로 감. 클립(`item`)은 쉐도잉일 때만 실음(`SessionEntry.itemId` 주석).
  * ⛔ `via` 는 싣지 않음 — 이 버튼은 화면 버튼임. 학습 출처(`source`)는 그대로 옮김.
  */
+// 화면이 홈 질의로 다시 열 수 있는 모드 · 출처 (`TASK-334` codex 리뷰 ②③).
+// ⛔ 이 밖의 값(review · 모르는 출처)은 세션을 자동으로 열지 않고 홈으로 감 — 서버는 모르는 mode 를 말하기로,
+//    빠진 source 를 추천으로 바꾸므로 그대로 넘기면 다른 학습이 열림.
+const RESTART_MODES: ReadonlySet<string> = new Set(["speaking", "pronunciation", "shadowing", "scenario_intake"]);
+const RESTART_SOURCES: ReadonlySet<string> = new Set(["recommended", "additional", "user_requested"]);
+
 export function restartHref(stored: StoredEntry | null | undefined): string {
-  if (!stored) {
+  if (!stored || !RESTART_MODES.has(stored.mode) || !RESTART_SOURCES.has(stored.source)) {
     return "/";
   }
-  const entry: SessionEntry = { mode: stored.mode as SessionEntry["mode"] };
-  if (stored.source === "recommended" || stored.source === "additional") {
-    entry.source = stored.source;
-  }
+  const entry: SessionEntry = {
+    mode: stored.mode as SessionEntry["mode"],
+    source: stored.source as SessionEntry["source"],
+  };
   if (stored.mode === "shadowing" && stored.item) {
     entry.itemId = stored.item;
   }

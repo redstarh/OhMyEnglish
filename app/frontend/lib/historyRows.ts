@@ -40,7 +40,10 @@ export const NOTHING_SAID = "Nothing said";
 
 /** 그날 말한 세션이 하나도 없는가. `spoken` 이 없는 옛 서버에서는 거짓(옛 문구)임. */
 export function saidNothing(row: HistoryDay): boolean {
-  return row.learned && !row.analyzed && row.spoken === false;
+  // ⛔ 요약이 있어도 실수가 잡히지 않았으면 「Nothing said」임(`TASK-334` codex 리뷰 ①) — 실패·진행 중 세션이 만든
+  //    요약 때문에 말하지 않은 날이 「No mistakes」로 보였음. 실수가 잡혔으면 그 사실(Mistakes N)을 보임.
+  if (!row.learned || row.spoken !== false) return false;
+  return !row.analyzed || row.occurrence_count === 0;
 }
 
 /**
