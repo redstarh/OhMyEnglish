@@ -387,14 +387,7 @@ export function SessionChat({
           onClick={onEnd}
           data-testid="session-end"
           disabled={ending}
-          style={{
-            padding: "0.45rem 0.9rem",
-            borderRadius: 999,
-            border: "1px solid var(--border)",
-            background: "var(--surface)",
-            color: "var(--foreground)",
-            cursor: ending ? "default" : "pointer",
-          }}
+          className="omy-button"
         >
           {ending ? "Ending..." : "End lesson"}
         </button>

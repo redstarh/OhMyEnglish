@@ -61,7 +61,7 @@ export function plural(count: number, one: string, many: string): string {
 
 // ── 문법 코스 ──
 
-/** 이번 회차에 끝낸 Day 인가. 판정은 코스 화면(`app/course/page.tsx`)과 같음: `completed_count >= cycle`. */
+/** 이번 회차에 끝낸 Day 인가: `completed_count >= cycle`. */
 export function isDayDone(day: CourseDaySummary, cycle: number): boolean {
   return (day.progress?.completed_count ?? 0) >= cycle;
 }
@@ -82,8 +82,8 @@ export type DayStatus = "done" | "started" | "new";
 /** 이번 회차에 시작한 Day 인가 — 진도가 시작 위치(첫 단원 · 첫 문장 · 0초)를 벗어났는가.
  *
  * ⛔ 진도 행이 있다는 것만으로 보지 않음(`TASK-322` · 회차 b16 D2) — 지난 회차에 마친 Day 도 시작 위치의
- *    행을 가지므로, 그것을 진행 중으로 보면 홈과 코스 목록이 같은 Day 를 다르게 보였음. 판정은 이 함수
- *    하나가 갖고 코스 목록(`app/course/page.tsx`)도 이것을 씀. */
+ *    행을 가지므로, 그것을 진행 중으로 보면 홈과 코스 목록이 같은 Day 를 다르게 보였음(코스 목록은
+ *    `TASK-323` 에서 홈으로 넘김). */
 export function dayStarted(day: CourseDaySummary): boolean {
   const progress = day.progress;
   if (!progress) return false;
@@ -163,7 +163,6 @@ const LABELS_EN: Record<AdditionalLearningKey, string> = {
   pronunciation: "Pronunciation",
   shadowing: "Shadowing",
   videos: "Learn with videos",
-  course: "Grammar course",
   roleplay: "Work role-play",
 };
 

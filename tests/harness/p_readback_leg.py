@@ -147,9 +147,10 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
         out["mic"] = await cdp.eval("window.__rb")
         print(f"마이크 대체: {out['mic']['durationSec']}초 · rate {out['mic']['bufferRate']}")
 
+        # 빠른 카드는 제거됐다(`TASK-323`) — 같은 입구인 More practice 의 Shadowing 을 누른다.
         await cdp.click(
-            "document.querySelector('[data-testid=quick-shadowing]')",
-            "quick-shadowing",
+            "document.querySelector('[data-testid=practice-shadowing]')",
+            "practice-shadowing",
         )
         out["buttons_after_entry"] = await _wait_for_button(
             cdp, "Read along", timeout_s=args.session_timeout_s

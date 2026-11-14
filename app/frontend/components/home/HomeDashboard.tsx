@@ -14,19 +14,16 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import {
   ArrowRight,
-  BookOpen,
   Check,
   ChevronRight,
-  Headphones,
   Mic,
   Play,
   Plus,
   TrendingUp,
-  Volume2,
 } from "lucide-react";
 
 import { LOCKED_TITLE, lockedLinkProps } from "@/components/app-shell";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   fetchCourse,
   fetchDailySummary,
@@ -200,8 +197,7 @@ export function HomeDashboard({
         <FocusSection daily={daily} weekly={weekly} onStart={startSession} locked={locked} />
       </div>
 
-      <QuickCards onStart={startSession} locked={locked} />
-      <MorePractice onStart={startSession} onOpenCourse={() => pickDay(currentDay)} locked={locked} />
+      <MorePractice onStart={startSession} locked={locked} />
     </div>
   );
 }
@@ -473,16 +469,16 @@ function PathSection({
         title="Continue your path"
         sub="Small steps, real conversations."
         action={
-          <Button
+          <button
+            type="button"
             data-testid="home-path-all"
-            variant="ghost"
             aria-expanded={expanded}
             onClick={() => setExpanded((open) => !open)}
-            className="text-xs font-bold text-brand"
+            className="omy-button"
           >
             {expanded ? "Show less" : "View all"}
-            <ChevronRight data-icon="inline-end" aria-hidden="true" className={cn(expanded && "-rotate-90")} />
-          </Button>
+            <ChevronRight aria-hidden="true" className={cn("size-4", expanded && "-rotate-90")} />
+          </button>
         }
       />
       {/* 줄 높이를 줄였음(`TASK-307`) — 배지 36 px · 위아래 10 px · 제목과 단원을 한 줄에 둠. */}
@@ -586,98 +582,26 @@ function FocusSection({
               </p>
             </div>
           ))}
-        <Button
+        <button
+          type="button"
           data-testid="focus-practice"
-          variant="ghost"
           disabled={weakEntry === null || locked}
           onClick={() => weakEntry && onStart(weakEntry)}
-          className="mt-3 w-full text-xs font-bold text-brand"
+          className="omy-button mt-3 w-full justify-center"
         >
-          <Plus data-icon="inline-start" aria-hidden="true" /> Practice a pattern
-        </Button>
+          <Plus aria-hidden="true" className="size-4" /> Practice a pattern
+        </button>
       </div>
     </section>
-  );
-}
-
-// ── 빠른 카드 셋 ──
-
-const QUICK_BASE =
-  "block rounded-2xl px-4 py-3.5 text-left transition-shadow hover:shadow-md focus-visible:ring-3 focus-visible:ring-ring/50 outline-none disabled:pointer-events-none disabled:opacity-50";
-
-function QuickBody({ icon, tag, title, text }: { icon: ReactNode; tag: string; title: string; text: string }) {
-  return (
-    // 아이콘·글·배지를 한 줄에 둠(`TASK-307`) — 예전의 아이콘 아래 `mb-8` 빈칸을 없앴음.
-    <div className="flex items-center gap-3">
-      <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-white">{icon}</div>
-      <div className="min-w-0 flex-1">
-        <h3 className="text-sm font-extrabold text-foreground">{title}</h3>
-        <p className="text-xs leading-5 text-muted-foreground">{text}</p>
-      </div>
-      <span className="shrink-0 self-start rounded-full bg-white px-2.5 py-1 text-[10px] font-bold text-muted-foreground">
-        {tag}
-      </span>
-    </div>
-  );
-}
-
-function QuickCards({ onStart, locked }: { onStart: (entry: SessionEntry) => void; locked: boolean }) {
-  const shadowing = entryOf("shadowing");
-  const weak = entryOf("weak_patterns");
-  return (
-    <div className="mt-6 grid gap-4 md:grid-cols-3">
-      <button
-        type="button"
-        data-testid="quick-shadowing"
-        disabled={shadowing === null || locked}
-        onClick={() => shadowing && onStart(shadowing)}
-        className={cn(QUICK_BASE, "bg-tint-sky")}
-      >
-        <QuickBody
-          icon={<Volume2 className="size-5 text-brand" aria-hidden="true" />}
-          tag="Speak"
-          title="Shadow a sentence"
-          text="Listen, repeat, make it yours."
-        />
-      </button>
-      <LockLink href="/videos" testId="quick-videos" locked={locked} className={cn(QUICK_BASE, "bg-tint-peach")}>
-        <QuickBody
-          icon={<Headphones className="size-5 text-[#c75f39]" aria-hidden="true" />}
-          tag="Watch"
-          title="Listen & notice"
-          text="Hear real English in short clips."
-        />
-      </LockLink>
-      <button
-        type="button"
-        data-testid="quick-weak-patterns"
-        disabled={weak === null || locked}
-        onClick={() => weak && onStart(weak)}
-        className={cn(QUICK_BASE, "bg-tint-mint")}
-      >
-        <QuickBody
-          icon={<BookOpen className="size-5 text-[#2e7d57]" aria-hidden="true" />}
-          tag="Review"
-          title="Repair your mistakes"
-          text="Fix one mistake. Make it a habit."
-        />
-      </button>
-    </div>
   );
 }
 
 // ── 추가 학습 ──
 // ⛔ PRD §7 — 권장량 완료와 무관하게 늘 보임. 목록의 정본은 `additionalLearning.ts` 임.
 
-function MorePractice({
-  onStart,
-  onOpenCourse,
-  locked,
-}: {
-  onStart: (entry: SessionEntry) => void;
-  onOpenCourse: () => void;
-  locked: boolean;
-}) {
+function MorePractice({ onStart, locked }: { onStart: (entry: SessionEntry) => void; locked: boolean }) {
+  // ⛔ 버튼은 홈 기준 `omy-button` 임(`TASK-323` 사용자 결정 — 이동·실행 버튼 모두 같은 모양).
+  // ⛔ 빠른 카드 셋과 Grammar course 는 제거했음(`TASK-323`) — 같은 학습을 여는 두 번째 입구였음.
   return (
     <section className="mt-8" data-testid="home-more-practice">
       <SectionHead title="More practice" sub="Pick any time. You don't need to finish today's practice first." />
@@ -685,47 +609,27 @@ function MorePractice({
         {ADDITIONAL_LEARNING.map((item) => {
           const label = practiceLabel(item);
           const note = practiceNote(item);
-          const className = cn(buttonVariants({ variant: "outline", size: "lg" }), "rounded-xl bg-card px-4");
-          // ⛔ 문법 코스는 옛 코스 목록(`/course` → 영상이 있는 Day 화면)으로 가지 않고 오늘의 연습 카드에서 현재
-          //    Day 를 엶(`TASK-314` 사용자 결정). 영상 학습(`/videos`)은 그대로 링크임.
-          if (item.key === "course") {
-            return (
-              <Button
-                key={item.key}
-                data-testid={`practice-${item.key}`}
-                variant="outline"
-                size="lg"
-                disabled={locked}
-                title={locked ? LOCKED_TITLE : undefined}
-                onClick={onOpenCourse}
-                className="rounded-xl bg-card px-4"
-              >
-                {label}
-              </Button>
-            );
-          }
           if (item.href) {
             return (
-              <LockLink key={item.key} href={item.href} testId={`practice-${item.key}`} locked={locked} className={className}>
+              <LockLink key={item.key} href={item.href} testId={`practice-${item.key}`} locked={locked} className="omy-button">
                 {label}
               </LockLink>
             );
           }
           const entry = item.entry;
           return (
-            <Button
+            <button
+              type="button"
               key={item.key}
               data-testid={`practice-${item.key}`}
-              variant="outline"
-              size="lg"
               disabled={!isAdditionalLearningEnabled(item) || locked}
-              title={note}
+              title={locked ? LOCKED_TITLE : note}
               onClick={() => entry && onStart(entry)}
-              className="rounded-xl bg-card px-4"
+              className="omy-button"
             >
               {label}
-              {note ? <span className="text-muted-foreground">({note})</span> : null}
-            </Button>
+              {note ? <span style={{ color: "var(--foreground-muted)" }}>({note})</span> : null}
+            </button>
           );
         })}
       </div>

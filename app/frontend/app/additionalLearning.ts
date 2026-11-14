@@ -13,7 +13,6 @@ export type AdditionalLearningKey =
   | "pronunciation"
   | "shadowing"
   | "videos"
-  | "course"
   | "roleplay";
 
 export type AdditionalLearningItem = {
@@ -75,8 +74,8 @@ export const ADDITIONAL_LEARNING: ReadonlyArray<AdditionalLearningItem> = [
   // ⛔ `target` 을 주지 않는다 — 음성 명령으로 이 화면에 가려면 `AdditionalTarget` 값역과 백엔드
   // `ADDITIONAL_TARGETS` 를 함께 열어야 하고, 그것은 이 갈래의 요구가 아니다(설계서 §1 질문 5).
   { key: "videos", label: "Learn with videos", entry: null, href: "/videos" },
-  // 문법 코스 (`TASK-286`) — 영상 학습처럼 화면으로 가는 항목이라 `target` 을 주지 않는다.
-  { key: "course", label: "Grammar course", entry: null, href: "/course" },
+  // ⛔ 문법 코스(`TASK-286`) 항목은 제거했다(`TASK-323` 사용자 결정) — 홈의 Start speaking · Continue your
+  //    path 와 같은 일이었다.
   { key: "roleplay", label: "Work role-play", entry: null, note: "Not ready yet" },
 ];
 

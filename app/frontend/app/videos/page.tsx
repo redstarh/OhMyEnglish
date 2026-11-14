@@ -202,7 +202,7 @@ export default function VideosPage() {
             onChange={(event) => setUrl(event.target.value)}
             style={{ flex: 1 }}
           />
-          <button type="button" onClick={() => void check()} disabled={busy || !url.trim()}>
+          <button type="button" className="omy-button" onClick={() => void check()} disabled={busy || !url.trim()}>
             {CHECK_LABEL}
           </button>
         </div>
@@ -214,10 +214,10 @@ export default function VideosPage() {
               <br />
               {preview.channelName}
             </p>
-            <button type="button" onClick={() => void store()} disabled={busy}>
+            <button type="button" className="omy-button" onClick={() => void store()} disabled={busy}>
               {STORE_LABEL}
             </button>{" "}
-            <button type="button" onClick={() => setPreview(null)} disabled={busy}>
+            <button type="button" className="omy-button" onClick={() => setPreview(null)} disabled={busy}>
               {CANCEL_LABEL}
             </button>
           </div>
@@ -250,7 +250,7 @@ export default function VideosPage() {
               <p style={{ margin: "0.25rem 0" }}>
                 {video.channel_name} · {video.phrase_count} saved {video.phrase_count === 1 ? "sentence" : "sentences"}
               </p>
-              <button type="button" onClick={() => void remove(video.id)} disabled={busy}>
+              <button type="button" className="omy-button" onClick={() => void remove(video.id)} disabled={busy}>
                 {REMOVE_LABEL}
               </button>
             </div>

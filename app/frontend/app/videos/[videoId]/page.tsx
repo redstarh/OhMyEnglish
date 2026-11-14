@@ -223,15 +223,16 @@ export default function VideoLearningPage() {
             </p>
             <button
               type="button"
+              className="omy-button"
               onClick={() => listen(phrase.clip_start_sec, phrase.clip_end_sec)}
               disabled={busy}
             >
               {LISTEN_LABEL}
             </button>{" "}
-            <button type="button" onClick={() => practise(phrase.id)} disabled={busy}>
+            <button type="button" className="omy-button" onClick={() => practise(phrase.id)} disabled={busy}>
               {PRACTISE_LABEL}
             </button>{" "}
-            <button type="button" onClick={() => void remove(phrase.id)} disabled={busy}>
+            <button type="button" className="omy-button" onClick={() => void remove(phrase.id)} disabled={busy}>
               {REMOVE_LABEL}
             </button>
           </li>
@@ -279,16 +280,16 @@ export default function VideoLearningPage() {
 
           <section style={{ margin: "1.5rem 0" }}>
             {draft === null ? (
-              <button type="button" onClick={markStart} disabled={busy}>
+              <button type="button" className="omy-button" onClick={markStart} disabled={busy}>
                 {SPAN_START_LABEL}
               </button>
             ) : draft.end === null ? (
               <>
                 <p>Start: {asClock(draft.start)}</p>
-                <button type="button" onClick={markEnd} disabled={busy}>
+                <button type="button" className="omy-button" onClick={markEnd} disabled={busy}>
                   {SPAN_END_LABEL}
                 </button>{" "}
-                <button type="button" onClick={resetDraft} disabled={busy}>
+                <button type="button" className="omy-button" onClick={resetDraft} disabled={busy}>
                   {SPAN_REDO_LABEL}
                 </button>
               </>
@@ -309,12 +310,13 @@ export default function VideoLearningPage() {
                 />
                 <button
                   type="button"
+                  className="omy-button"
                   onClick={() => void store()}
                   disabled={busy || !draft.transcript.trim()}
                 >
                   {STORE_LABEL}
                 </button>{" "}
-                <button type="button" onClick={resetDraft} disabled={busy}>
+                <button type="button" className="omy-button" onClick={resetDraft} disabled={busy}>
                   {CANCEL_LABEL}
                 </button>
               </>
