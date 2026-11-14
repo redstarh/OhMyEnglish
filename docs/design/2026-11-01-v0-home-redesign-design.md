@@ -240,6 +240,16 @@
 - `TASK-337`: 12.5rem 이상은 글자가 칸 너비를 따르므로 줄 수가 폭과 무관함. 390 · 1400 의 결과 자리(160 px)와 카드(513.6 px)는 그대로임.
 - `TASK-337` 한계: 320 폭의 연습 카드는 전부터 대기보다 컸음(534.3 px 대 513.6 px). 이번에 555.1 px 가 됨. 대기 높이는 390 · 1400 기준이라 그대로 둠.
 
+### 홈은 매일 연습만 — More practice · Practice a pattern 숨김 (2026-11-15 · `TASK-338`)
+
+- 사용자 지시: Weak spots · Free talk 메뉴가 없어도 될 것 같음. 일단 매일 연습하는 것만 있으면 됨. 필요하면 나중에 넣음.
+- 사용자 결정(범위): More practice 전체와 Focus patterns 의 Practice a pattern 을 숨김. 화면과 코드는 지우지 않음.
+- 구현: `HomeDashboard.tsx` 의 `HOME_EXTRAS`(`morePractice` · `focusPractice` 모두 `false`). 다시 넣을 때는 값만 바꿈.
+- 홈에 남는 것: Today's practice · Continue your path · Focus patterns(목록) · Your progress.
+- 앞 결정의 번복: `TASK-336`(Weak spots 를 약점 패턴 연습으로)은 이 결정으로 폐기했음(보관).
+- ⚠️ 남는 길: 음성 명령의 추가 학습 시작은 이 값과 무관하게 남음 · `/videos` 와 결과 화면의 연습 링크도 남음.
+- ⚠️ 수동 하네스 드라이버 다섯(`tests/harness/c1_session_walkthrough.py` · `c2_render_hierarchy.py` · `c5_pronunciation_badge.py` · `p_app_path.py` · `p_readback_leg.py`)은 숨긴 버튼(`practice-*`)을 눌러 세션에 들어감. 다음 실물 회차 전에 진입 방법을 바꿔야 함(게이트 시험은 영향 없음).
+
 ## 4. 파일 계획
 
 - 새 파일: `postcss.config.mjs` · `components.json` · `lib/utils.ts` · `components/ui/button.tsx` · `components/app-shell.tsx` · `app/additionalLearning.ts`(추가 학습 목록과 `entryForTarget` 을 옮기고 고정 `key` 를 줌) · `components/home/HomeDashboard.tsx`.

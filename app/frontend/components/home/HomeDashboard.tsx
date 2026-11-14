@@ -63,6 +63,10 @@ function entryOf(key: AdditionalLearningKey): SessionEntry | null {
 }
 
 const CARD = "rounded-[24px] border border-border bg-card p-6 shadow-sm";
+// 홈에 보일 추가 학습 입구(`TASK-338` 사용자 결정 2026-11-15) — 「일단 매일매일 연습하는 것만 있으면 될 것 같아,
+// 필요하면 나중에 넣자」. More practice 전체와 Focus patterns 의 Practice a pattern 을 숨김.
+// ⛔ 지우지 않고 숨기기만 함 — 다시 넣을 때는 이 값을 `true` 로 바꿈. 음성 명령(추가 학습 시작)은 이 값과 무관하게 남음.
+const HOME_EXTRAS = { morePractice: false, focusPractice: false } as const;
 // 홈의 섹션 라벨은 모두 「Your progress」 의 글꼴·색을 씀(`TASK-310` 사용자 지시 — 섹션 사이의 통일성).
 const LABEL = "text-xs font-bold uppercase tracking-[0.14em]";
 
@@ -200,7 +204,7 @@ export function HomeDashboard({
         <FocusSection daily={daily} weekly={weekly} onStart={startSession} locked={locked} />
       </div>
 
-      <MorePractice onStart={startSession} locked={locked} />
+      {HOME_EXTRAS.morePractice ? <MorePractice onStart={startSession} locked={locked} /> : null}
     </div>
   );
 }
@@ -611,15 +615,17 @@ function FocusSection({
               </p>
             </div>
           ))}
-        <button
-          type="button"
-          data-testid="focus-practice"
-          disabled={weakEntry === null || locked}
-          onClick={() => weakEntry && onStart(weakEntry, FOCUS_PRACTICE_LABEL)}
-          className="omy-button mt-3 w-full justify-center"
-        >
-          <Plus aria-hidden="true" className="size-4" /> {FOCUS_PRACTICE_LABEL}
-        </button>
+        {HOME_EXTRAS.focusPractice ? (
+          <button
+            type="button"
+            data-testid="focus-practice"
+            disabled={weakEntry === null || locked}
+            onClick={() => weakEntry && onStart(weakEntry, FOCUS_PRACTICE_LABEL)}
+            className="omy-button mt-3 w-full justify-center"
+          >
+            <Plus aria-hidden="true" className="size-4" /> {FOCUS_PRACTICE_LABEL}
+          </button>
+        ) : null}
       </div>
     </section>
   );
