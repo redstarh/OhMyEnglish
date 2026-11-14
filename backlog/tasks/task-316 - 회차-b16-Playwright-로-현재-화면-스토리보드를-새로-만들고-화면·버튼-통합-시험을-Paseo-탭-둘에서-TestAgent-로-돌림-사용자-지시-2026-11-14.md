@@ -6,6 +6,7 @@ title: >-
 status: In Progress
 assignee: []
 created_date: '2026-11-14 05:30'
+updated_date: '2026-11-14 05:56'
 labels: []
 dependencies: []
 ordinal: 381000
@@ -19,8 +20,14 @@ ordinal: 381000
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 TestAgent 전용 런처(run.sh)가 Playwright 를 돌릴 수 있는지 확인함
+- [x] #1 TestAgent 전용 런처(run.sh)가 Playwright 를 돌릴 수 있는지 확인함
 - [ ] #2 두 탭의 회차 결과를 받아 판정을 직접 대조함
 - [ ] #3 새 스토리보드를 docs/ux 에 남김
 - [ ] #4 회차 뒤 사용자 스택을 복원함
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+TestAgent 확인: 전용 런처 run.sh(OS 샌드박스) 안에서 chromium.launch 는 SIGTRAP 으로 죽음(default·no-sandbox·chrome 채널 모두 · 샌드박스 밖은 셋 다 OK). 샌드박스 밖 헤드리스 Chrome 에 connectOverCDP 는 OK(cdp-smoke.txt). 헤드리스 -p 모드는 복합 명령에 승인을 요구 → 단일 명령만. 시험용 백엔드 launchctl(격리 DB) · Chrome 9401(화면)/9402(버튼).
+<!-- SECTION:NOTES:END -->
