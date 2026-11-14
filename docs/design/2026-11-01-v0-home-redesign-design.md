@@ -40,6 +40,7 @@
 - 세션 동안 그 카드는 남색에서 밝은 카드로 바뀜. 대화·쉐도잉·리포트 패널이 `--foreground` 글자색을 쓰므로 남색 위에서는 읽히지 않음.
 - 옛 근거(이동이 소켓을 닫음)는 덮개 대신 잠금이 막음. `components/app-shell.tsx` 의 `useSessionLock` 이 대기가 아닌 동안 사이드바·좁은 화면 막대·로고 링크를 잠금(`aria-disabled` · 흐림 · `data-locked="true"` · 「End the lesson first」).
 - 대시보드 안의 이동 링크와 다른 세션을 여는 버튼도 같은 동안 잠김(빠른 카드 · More practice · Continue your path · View all · Practice a pattern).
+  - 정정(2026-11-14 · `TASK-320` · 회차 b16): `TASK-314` 뒤 View all 은 화면 이동이 아니라 제자리 펼침이라 세션 중에도 눌림. 펼친 Day 줄은 잠김(disabled). 이 동작을 정본으로 둠.
 - 대기로 돌아오거나 화면이 언마운트되면 잠금이 풀림. 실패 화면은 「Try again」과 대기로 돌아가는 「← Home」을 그대로 가짐.
 
 ### 오늘의 연습 카드가 문장 연습을 엶 (2026-11-01 · `TASK-304`)

@@ -243,7 +243,7 @@ export default function VideoLearningPage() {
 
   return (
     <main style={PAGE_STYLE}>
-      <Link href="/videos" className="omy-button">
+      <Link href="/videos" data-testid="video-back" className="omy-button">
         {BACK_LINK_LABEL}
       </Link>
 

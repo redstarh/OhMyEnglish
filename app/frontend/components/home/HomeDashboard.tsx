@@ -392,10 +392,10 @@ function ProgressCard({
       <WeeklyStats weekly={weekly} history={history} />
       {/* 기록·주간 리포트의 입구 — 사이드바 메뉴를 뺐으므로 여기가 그 화면들로 가는 길임(`TASK-314`). */}
       <div className="mt-4 flex flex-wrap justify-center gap-2">
-        <LockLink href="/history" testId="home-history" locked={locked} className="omy-button">
+        <LockLink href="/history" testId="home-history" locked={locked} className="omy-button omy-button-primary">
           History →
         </LockLink>
-        <LockLink href="/history/weekly" testId="home-weekly" locked={locked} className="omy-button">
+        <LockLink href="/history/weekly" testId="home-weekly" locked={locked} className="omy-button omy-button-primary">
           Weekly report →
         </LockLink>
       </div>

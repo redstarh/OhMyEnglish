@@ -385,6 +385,7 @@ export function SessionChat({
         <h2 style={{ fontSize: "1.1rem", fontWeight: 700, flex: 1 }}>English talk</h2>
         <button
           onClick={onEnd}
+          data-testid="session-end"
           disabled={ending}
           style={{
             padding: "0.45rem 0.9rem",

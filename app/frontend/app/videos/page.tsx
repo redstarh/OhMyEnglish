@@ -186,7 +186,7 @@ export default function VideosPage() {
 
   return (
     <main style={PAGE_STYLE}>
-      <Link href="/" className="omy-button">
+      <Link href="/" data-testid="videos-home" className="omy-button">
         {HOME_LINK_LABEL}
       </Link>
       <h1>{HEADING}</h1>

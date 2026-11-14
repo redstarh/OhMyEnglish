@@ -584,7 +584,7 @@ export default function SessionPage() {
         <div data-testid="session-failed" data-reason={failureReason ?? ""} style={{ marginTop: "1rem" }}>
           <p>Could not connect.</p>
           <p style={{ color: "var(--foreground-muted)" }}>{failureMessage(failureReason)}</p>
-          <button onClick={() => void startSession(lastEntryRef.current)} className="omy-button">
+          <button data-testid="session-failed-retry" onClick={() => void startSession(lastEntryRef.current)} className="omy-button">
             Try again
           </button>
           {/* 세션 중에는 이동이 잠기므로 실패 화면에 대기로 돌아가는 길을 둠 (codex 리뷰 · `TASK-298` · `TASK-301`). */}

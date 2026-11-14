@@ -559,12 +559,12 @@ export default function ResultsPage() {
           지목하는 「`main`의 첫 직계 `<p>`」는 그대로다(`tests/harness/c3_results_screen.py`). */}
       <p style={{ marginTop: "2rem" }}>
         {/* 이동은 홈과 같은 버튼 모양임(`TASK-311` 사용자 지시) — 밑줄 링크였던 자리. */}
-        <Link href="/" className="omy-button">
+        <Link href="/" data-testid="results-home" className="omy-button">
           {HOME_LINK_LABEL}
         </Link>
       </p>
       <p style={{ marginTop: "0.5rem" }}>
-        <Link href="/history" className="omy-button omy-button-primary">
+        <Link href="/history" data-testid="results-history" className="omy-button omy-button-primary">
           {HISTORY_LINK_LABEL}
         </Link>
       </p>
