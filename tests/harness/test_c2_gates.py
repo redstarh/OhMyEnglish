@@ -389,3 +389,50 @@ def test_find_target_dies_when_tab_creation_returns_no_socket(monkeypatch):
     _patch_urlopen(monkeypatch, [], {"error": "nope"})
     with pytest.raises(SystemExit, match="탭을 만들지 못했다"):
         find_target(9222, EXACT)
+
+
+class _LateCdp(c2.Cdp):
+    """대상이 하이드레이션 뒤에 나타나는 화면을 흉내 냄 — 처음 두 번은 없고 세 번째에 나타남."""
+
+    def __init__(self) -> None:
+        super().__init__(ws=None)
+        self.looks = 0
+        self.events: list[str] = []
+
+    async def eval(self, expression: str, *, await_promise: bool = False):  # type: ignore[override]
+        self.looks += 1
+        if self.looks < 3:
+            return None
+        return {"x": 10, "y": 10, "w": 40, "h": 20, "text": "Free talk"}
+
+    async def call(self, method: str, params: dict | None = None) -> dict:
+        self.events.append(method)
+        return {}
+
+
+def test_click_waits_for_a_target_that_appears_after_hydration(monkeypatch):
+    # `TASK-342` codex 리뷰 — `?extras=1` 의 숨긴 버튼은 하이드레이션 뒤에 나타남. 바로 찾고 멈추면
+    # 수동 드라이버가 「클릭 대상을 찾지 못했다」로 끝남. 정해진 시간 안에서 다시 찾아야 함.
+    import asyncio
+
+    monkeypatch.setattr(c2, "READY_POLL_STEP_S", 0)
+    cdp = _LateCdp()
+    asyncio.run(cdp.click("document.querySelector('[data-testid=practice-free_talk]')", "practice"))
+    assert cdp.looks == 3
+    assert cdp.events.count("Input.dispatchMouseEvent") == 2
+
+
+def test_click_still_fails_when_the_target_never_appears(monkeypatch):
+    import asyncio
+
+    class _NeverCdp(_LateCdp):
+        async def eval(self, expression: str, *, await_promise: bool = False):  # type: ignore[override]
+            self.looks += 1
+            return None
+
+    monkeypatch.setattr(c2, "READY_POLL_STEP_S", 0)
+    monkeypatch.setattr(c2, "READY_POLL_TRIES", 4)
+    cdp = _NeverCdp()
+    with pytest.raises(SystemExit):
+        asyncio.run(cdp.click("document.querySelector('#nothing')", "nothing"))
+    assert cdp.looks == 4

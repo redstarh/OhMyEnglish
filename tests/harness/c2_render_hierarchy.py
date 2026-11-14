@@ -307,13 +307,22 @@ class Cdp:
         #    닫는 중괄호가 하나 더 붙어 `SyntaxError: Unexpected token '}'`가 난다(실측).
         # ⚠️ 좌표 클릭이라 화면 밖 요소는 맞지 않는다 — 먼저 화면 안으로 끌어온다(`TASK-304`: 코치
         #    세션의 시작점 `practice-free_talk` 은 홈 아래쪽 More practice 에 있다).
-        rect = await self.eval(
-            f"(() => {{ const el = {selector_js}; if (!el) return null;"
-            " el.scrollIntoView({block: 'center', inline: 'nearest', behavior: 'instant'});"
-            " const r = el.getBoundingClientRect();"
-            " return {x: r.left + r.width/2, y: r.top + r.height/2, w: r.width, h: r.height,"
-            " text: (el.textContent||'').slice(0,40)}; })()"
-        )
+        # ⛔ 대상이 늦게 나타나면 정해진 시간 안에서 다시 찾는다(`TASK-342` codex 리뷰).
+        #    `?extras=1` 의 숨긴 버튼은 서버 HTML 에 없고 하이드레이션 뒤에 나타나므로,
+        #    한 번만 찾으면 드라이버가 그 사이에 「찾지 못했다」로 끝난다.
+        #    상한은 준비 대기와 같은 `READY_POLL_*` 이다.
+        rect = None
+        for _ in range(READY_POLL_TRIES):
+            rect = await self.eval(
+                f"(() => {{ const el = {selector_js}; if (!el) return null;"
+                " el.scrollIntoView({block: 'center', inline: 'nearest', behavior: 'instant'});"
+                " const r = el.getBoundingClientRect();"
+                " return {x: r.left + r.width/2, y: r.top + r.height/2, w: r.width, h: r.height,"
+                " text: (el.textContent||'').slice(0,40)}; })()"
+            )
+            if rect and rect["w"] > 0 and rect["h"] > 0:
+                break
+            await asyncio.sleep(READY_POLL_STEP_S)
         if not rect or rect["w"] <= 0 or rect["h"] <= 0:
             raise SystemExit(f"클릭 대상을 찾지 못했다: {label} ({rect!r})")
         for kind in ("mousePressed", "mouseReleased"):
