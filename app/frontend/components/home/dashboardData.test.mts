@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { dayStatus } from "./dashboardData.ts";
+import { dayStatus, learnedInLastWeek } from "./dashboardData.ts";
 
 const day = (progress: object | null) =>
   ({ day: 2, first_unit: 22, last_unit: 41, duration_sec: 3780, youtube_id: "x", progress }) as never;
@@ -25,4 +25,24 @@ test("시작 위치를 벗어났으면 진행 중임", () => {
 
 test("이번 회차 완료 수에 닿았으면 끝난 것임", () => {
   assert.equal(dayStatus(day({ ...atStart, completed_count: 3 }), 3), "done");
+});
+
+// ── `TASK-335` This week — 연속 학습일·기록 Nothing said 와 같은 기준(학습 발화가 있는 날만) ──
+const hDay = (day: string, learned: boolean, spoken?: boolean) =>
+  ({ day, learned, completed_scenarios: learned ? 1 : 0, analyzed: false, occurrence_count: 0, pattern_count: 0, ...(spoken === undefined ? {} : { spoken }) }) as never;
+
+test("마쳤어도 학습 발화가 없는 날(spoken 거짓)은 This week 에 세지 않음", () => {
+  const history = {
+    streak: { current: 1, longest: 1, today_done: true },
+    days: [hDay("2026-11-15", true, false), hDay("2026-11-14", true, true), hDay("2026-11-13", false, false)],
+  } as never;
+  assert.deepEqual(learnedInLastWeek(history), { learned: 1, window: 3 });
+});
+
+test("spoken 이 없는 옛 서버에서는 마친 날을 그대로 셈", () => {
+  const history = {
+    streak: { current: 2, longest: 2, today_done: true },
+    days: [hDay("2026-11-15", true), hDay("2026-11-14", true), hDay("2026-11-13", false)],
+  } as never;
+  assert.deepEqual(learnedInLastWeek(history), { learned: 2, window: 3 });
 });

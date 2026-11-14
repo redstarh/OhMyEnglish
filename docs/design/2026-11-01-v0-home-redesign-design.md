@@ -231,6 +231,15 @@
 - X2: 「앞으로 가는 이동만 `omy-button-primary`」 규칙은 More practice 에 적용하지 않음. 고르는 목록이라 모두 같은 무게로 둠.
 - X3 KO 켜기/끄기: `title="Show Korean translation"` 을 붙임. `aria-label` 과 같은 문구임.
 
+### This week 기준 · 320 폭 결과 자리 (2026-11-15 · `TASK-335` · `TASK-337`)
+
+- `TASK-335` 사용자 지시: 홈 `This week: N / 7 days` 는 학습 발화가 있는 날만 셈. 연속 학습일 · 기록 `Nothing said` 와 같은 기준임.
+- `TASK-335`: 셈의 술어는 `learned && spoken !== false` 임(`learnedInLastWeek`). `spoken` 이 없는 옛 서버에서는 마친 날을 그대로 셈.
+- `TASK-337` 실측: 320 폭에서 문장 칸 너비는 196 px 이고 글자는 최저 12 px 에 멈춤. 61자 문장이 틀리면 판정 줄도 세 줄이 됨.
+- `TASK-337`: 칸 너비 12.5rem 미만에만 결과 자리를 `8.4em + 3.25rem` 으로 늘림. 320 폭에서 132 px → 153 px 이고 내용이 다 듦.
+- `TASK-337`: 12.5rem 이상은 글자가 칸 너비를 따르므로 줄 수가 폭과 무관함. 390 · 1400 의 결과 자리(160 px)와 카드(513.6 px)는 그대로임.
+- `TASK-337` 한계: 320 폭의 연습 카드는 전부터 대기보다 컸음(534.3 px 대 513.6 px). 이번에 555.1 px 가 됨. 대기 높이는 390 · 1400 기준이라 그대로 둠.
+
 ## 4. 파일 계획
 
 - 새 파일: `postcss.config.mjs` · `components.json` · `lib/utils.ts` · `components/ui/button.tsx` · `components/app-shell.tsx` · `app/additionalLearning.ts`(추가 학습 목록과 `entryForTarget` 을 옮기고 고정 `key` 를 줌) · `components/home/HomeDashboard.tsx`.

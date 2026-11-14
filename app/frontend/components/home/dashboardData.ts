@@ -97,10 +97,15 @@ export function dayStatus(day: CourseDaySummary, cycle: number): DayStatus {
 
 // ── 히스토리 ──
 
-/** 최근 7일 중 학습한 날 수. `days` 순서에 기대지 않고 날짜로 정렬해 가장 최근 7개를 셈. */
+/** 최근 7일 중 학습한 날 수. `days` 순서에 기대지 않고 날짜로 정렬해 가장 최근 7개를 셈.
+ *
+ * ⛔ 마친 세션이 있어도 학습 발화가 없는 날(`spoken` 거짓)은 세지 않음(`TASK-335`) — 연속 학습일
+ *    (`daily_summary._STREAK_SQL`)과 기록의 `Nothing said`(`TASK-333` N5)가 그 기준이라 같은 화면에서 어긋났음.
+ * ⚠️ `spoken` 이 없는 옛 서버에서는 마친 날(`learned`)을 그대로 셈.
+ */
 export function learnedInLastWeek(history: HistoryPayload): { learned: number; window: number } {
   const recent = [...history.days].sort((a, b) => (a.day < b.day ? 1 : -1)).slice(0, 7);
-  return { learned: recent.filter((day) => day.learned).length, window: recent.length };
+  return { learned: recent.filter((day) => day.learned && day.spoken !== false).length, window: recent.length };
 }
 
 // ── 초점 패턴 ──

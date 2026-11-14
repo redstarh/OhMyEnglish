@@ -1,0 +1,316 @@
+{
+  "results": [
+    {
+      "item": "335-real",
+      "width": 1400,
+      "ok": true,
+      "detail": {
+        "text": "This week: 0 / 7 days",
+        "want": 0,
+        "recent": [
+          [
+            "2026-11-15",
+            false,
+            false
+          ],
+          [
+            "2026-11-14",
+            true,
+            false
+          ],
+          [
+            "2026-11-13",
+            false,
+            false
+          ],
+          [
+            "2026-11-12",
+            false,
+            false
+          ],
+          [
+            "2026-11-11",
+            false,
+            false
+          ],
+          [
+            "2026-11-10",
+            false,
+            false
+          ],
+          [
+            "2026-11-09",
+            false,
+            false
+          ]
+        ],
+        "shot": "evidence/335-real-before-1400.png"
+      }
+    },
+    {
+      "item": "335-fake",
+      "width": 1400,
+      "ok": true,
+      "detail": {
+        "text": "This week: 1 / 7 days",
+        "shot": "evidence/335-fake-before-1400.png"
+      }
+    },
+    {
+      "item": "337-slot-fits",
+      "width": 1400,
+      "ok": true,
+      "detail": {
+        "some": {
+          "slotClient": 160,
+          "slotScroll": 160,
+          "fits": true,
+          "slotFont": "20px",
+          "cardContentWidth": 585,
+          "cardHeight": 343.578125
+        },
+        "all": {
+          "slotClient": 160,
+          "slotScroll": 160,
+          "fits": true,
+          "slotFont": "20px",
+          "cardContentWidth": 585,
+          "cardHeight": 343.578125
+        }
+      }
+    },
+    {
+      "item": "337-card-fixed",
+      "width": 1400,
+      "ok": true,
+      "detail": {
+        "states": {
+          "waiting": 513.59375,
+          "idle": 513.59375,
+          "all-listening": 513.59375,
+          "all-done": 513.59375,
+          "next": 513.59375,
+          "some-listening": 513.59375,
+          "some-done": 513.59375
+        }
+      }
+    },
+    {
+      "item": "335-real",
+      "width": 390,
+      "ok": true,
+      "detail": {
+        "text": "This week: 0 / 7 days",
+        "want": 0,
+        "recent": [
+          [
+            "2026-11-15",
+            false,
+            false
+          ],
+          [
+            "2026-11-14",
+            true,
+            false
+          ],
+          [
+            "2026-11-13",
+            false,
+            false
+          ],
+          [
+            "2026-11-12",
+            false,
+            false
+          ],
+          [
+            "2026-11-11",
+            false,
+            false
+          ],
+          [
+            "2026-11-10",
+            false,
+            false
+          ],
+          [
+            "2026-11-09",
+            false,
+            false
+          ]
+        ],
+        "shot": "evidence/335-real-before-390.png"
+      }
+    },
+    {
+      "item": "335-fake",
+      "width": 390,
+      "ok": true,
+      "detail": {
+        "text": "This week: 1 / 7 days",
+        "shot": "evidence/335-fake-before-390.png"
+      }
+    },
+    {
+      "item": "337-slot-fits",
+      "width": 390,
+      "ok": true,
+      "detail": {
+        "some": {
+          "slotClient": 160,
+          "slotScroll": 160,
+          "fits": true,
+          "slotFont": "15.96px",
+          "cardContentWidth": 266,
+          "cardHeight": 331.984375
+        },
+        "all": {
+          "slotClient": 160,
+          "slotScroll": 160,
+          "fits": true,
+          "slotFont": "15.96px",
+          "cardContentWidth": 266,
+          "cardHeight": 331.984375
+        }
+      }
+    },
+    {
+      "item": "337-card-fixed",
+      "width": 390,
+      "ok": true,
+      "detail": {
+        "states": {
+          "waiting": 513.59375,
+          "idle": 513.59375,
+          "all-listening": 513.59375,
+          "all-done": 513.59375,
+          "next": 513.59375,
+          "some-listening": 513.59375,
+          "some-done": 513.59375
+        }
+      }
+    },
+    {
+      "item": "335-real",
+      "width": 320,
+      "ok": true,
+      "detail": {
+        "text": "This week: 0 / 7 days",
+        "want": 0,
+        "recent": [
+          [
+            "2026-11-15",
+            false,
+            false
+          ],
+          [
+            "2026-11-14",
+            true,
+            false
+          ],
+          [
+            "2026-11-13",
+            false,
+            false
+          ],
+          [
+            "2026-11-12",
+            false,
+            false
+          ],
+          [
+            "2026-11-11",
+            false,
+            false
+          ],
+          [
+            "2026-11-10",
+            false,
+            false
+          ],
+          [
+            "2026-11-09",
+            false,
+            false
+          ]
+        ],
+        "shot": "evidence/335-real-before-320.png"
+      }
+    },
+    {
+      "item": "335-fake",
+      "width": 320,
+      "ok": true,
+      "detail": {
+        "text": "This week: 1 / 7 days",
+        "shot": "evidence/335-fake-before-320.png"
+      }
+    },
+    {
+      "item": "337-slot-fits",
+      "width": 320,
+      "ok": false,
+      "detail": {
+        "some": {
+          "slotClient": 132,
+          "slotScroll": 150,
+          "fits": false,
+          "slotFont": "12px",
+          "cardContentWidth": 196,
+          "cardHeight": 312.375
+        },
+        "all": {
+          "slotClient": 132,
+          "slotScroll": 132,
+          "fits": true,
+          "slotFont": "12px",
+          "cardContentWidth": 196,
+          "cardHeight": 312.375
+        }
+      }
+    },
+    {
+      "item": "337-card-fixed",
+      "width": 320,
+      "ok": true,
+      "detail": {
+        "states": {
+          "waiting": 513.59375,
+          "idle": 534.328125,
+          "all-listening": 534.328125,
+          "all-done": 534.328125,
+          "next": 534.328125,
+          "some-listening": 534.328125,
+          "some-done": 534.328125
+        }
+      }
+    }
+  ],
+  "blocked": [
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/sentences/u014-s3/attempts/text",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/sentences/u014-s4/attempts/text",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/sentences/u014-s3/attempts/text",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/sentences/u014-s4/attempts/text",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/sentences/u014-s3/attempts/text",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/sentences/u014-s4/attempts/text",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress"
+  ],
+  "sockets": []
+}
