@@ -164,13 +164,24 @@ async def test_attempt_is_judged_and_counted(
     assert overview["recent"][0]["days"] == [1]
 
 
-async def test_empty_transcript_still_counts_as_an_attempt(
-    api_client: httpx.AsyncClient, adapter: Callable[[str], None], heard: Callable[[str], None]
+async def test_empty_transcript_is_not_counted_as_an_attempt(
+    api_client: httpx.AsyncClient,
+    adapter: Callable[[str], None],
+    heard: Callable[[str], None],
+    db_pool: asyncpg.Pool,
 ) -> None:
+    # ⛔ 말 없음은 Try 에 세지 않는다(2026-11-14 사용자 결정 · `TASK-317` 설계서 §11-1).
+    #    인식기가 없는 브라우저의 PCM 경로도 텍스트 경로와 같은 규칙이다.
+    #    예전 판은 빈 전사도 1회로 셌다.
     adapter("nova")
     heard("   ")
     body = (await api_client.post("/api/course/sentences/u002-s3/attempts", content=PCM)).json()
-    assert body == {"transcript": "", "words": [], "attempts": 1}
+    assert body == {"transcript": "", "words": [], "attempts": 0}
+    async with db_pool.acquire() as conn:
+        count = await conn.fetchval(
+            "select count(*) from course_attempts where user_id = $1", FIXED_USER_ID
+        )
+    assert count == 0
 
 
 async def test_attempt_is_503_without_a_transcriber(
@@ -359,3 +370,110 @@ async def test_a_failed_transcriber_is_503_and_records_nothing(
             "select count(*) from course_attempts where user_id = $1", FIXED_USER_ID
         )
     assert count == 0
+
+
+# ── 텍스트 시도 (`TASK-317` · `docs/design/2026-11-14-live-readback-transcript-design.md` §5) ──
+# 브라우저 인식기가 확정한 문장을 받아 판정·기록한다. 서버는 다시 전사하지 않는다.
+
+
+def _forbid_transcriber(monkeypatch: pytest.MonkeyPatch) -> None:
+    """⛔ 텍스트 경로가 전사기를 부르면 바로 실패하게 한다 — 「부르지 않음」을 못 박는다."""
+
+    def explode(*_args: object, **_kwargs: object) -> object:
+        raise AssertionError("텍스트 시도가 전사기를 만들었다")
+
+    monkeypatch.setattr(course_module, "create_transcriber", explode)
+
+
+async def _attempt_rows(db_pool: asyncpg.Pool) -> list[asyncpg.Record]:
+    async with db_pool.acquire() as conn:
+        return await conn.fetch(
+            "select sentence_key, transcript, words from course_attempts where user_id = $1",
+            FIXED_USER_ID,
+        )
+
+
+async def test_text_attempt_is_judged_counted_and_stored(
+    monkeypatch: pytest.MonkeyPatch, api_client: httpx.AsyncClient, db_pool: asyncpg.Pool
+) -> None:
+    _forbid_transcriber(monkeypatch)
+    response = await api_client.post(
+        "/api/course/sentences/u001-s1/attempts/text",
+        json={"transcript": "  I a software tester  "},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["transcript"] == "I a software tester"
+    verdicts = {word["word"]: word["verdict"] for word in body["words"]}
+    assert verdicts["am"] == "missing"
+    assert verdicts["software"] == "match"
+    assert body["attempts"] == 1
+    rows = await _attempt_rows(db_pool)
+    assert [(row["sentence_key"], row["transcript"]) for row in rows] == [
+        ("u001-s1", "I a software tester")
+    ]
+    detail = (await api_client.get("/api/course/days/1")).json()
+    assert detail["units"][0]["sentences"][0]["attempts"] == 1
+
+
+async def test_text_attempt_works_without_a_transcriber(
+    monkeypatch: pytest.MonkeyPatch, api_client: httpx.AsyncClient, adapter: Callable[[str], None]
+) -> None:
+    """⛔ 기본 `stub` 설정에서도 200 이다 — 전사기 가드(503)는 PCM 경로에만 있다."""
+    adapter("stub")
+    _forbid_transcriber(monkeypatch)
+    response = await api_client.post(
+        "/api/course/sentences/u001-s1/attempts/text", json={"transcript": "I am a software tester"}
+    )
+    assert response.status_code == 200
+    assert {word["verdict"] for word in response.json()["words"]} == {"match"}
+
+
+async def test_text_and_pcm_attempts_share_one_count(
+    api_client: httpx.AsyncClient,
+    adapter: Callable[[str], None],
+    heard: Callable[[str], None],
+) -> None:
+    """삽입하는 자리가 하나다 — 두 경로의 시도가 같은 횟수에 쌓인다."""
+    adapter("nova")
+    heard("I am a software tester")
+    pcm = (await api_client.post("/api/course/sentences/u001-s1/attempts", content=PCM)).json()
+    assert pcm["attempts"] == 1
+    text = await api_client.post(
+        "/api/course/sentences/u001-s1/attempts/text", json={"transcript": "I am a tester"}
+    )
+    assert text.json()["attempts"] == 2
+
+
+async def test_silent_text_attempt_is_refused_and_not_counted(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool
+) -> None:
+    """⛔ 말 없음은 시도로 세지 않는다(2026-11-14 사용자 결정 · 설계서 §11-1).
+
+    화면은 `silent` 이면 보내지 않는다. 그래도 빈 전사가 오면 서버가 422 로 거부해 기록하지 않는다.
+    """
+    for blank in ("", "   "):
+        response = await api_client.post(
+            "/api/course/sentences/u001-s1/attempts/text", json={"transcript": blank}
+        )
+        assert response.status_code == 422
+    assert await _attempt_rows(db_pool) == []
+
+
+async def test_text_attempt_rejects_bad_key_and_bad_body(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool
+) -> None:
+    path = "/api/course/sentences/u001-s1/attempts/text"
+    assert (
+        await api_client.post(
+            "/api/course/sentences/u999-s1/attempts/text", json={"transcript": "hello"}
+        )
+    ).status_code == 404
+    assert (await api_client.post(path, json={})).status_code == 422
+    assert (await api_client.post(path, json={"transcript": 3})).status_code == 422
+    assert (await api_client.post(path, json={"transcript": "a" * 401})).status_code == 422
+    assert (
+        await api_client.post(path, json={"transcript": "hi", "extra": True})
+    ).status_code == 422
+    assert (await api_client.post(path, json={"transcript": "a" * 400})).status_code == 200
+    assert len(await _attempt_rows(db_pool)) == 1

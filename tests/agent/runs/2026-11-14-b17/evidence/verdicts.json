@@ -1,0 +1,156 @@
+[
+ {
+  "id": "①",
+  "width": 1400,
+  "expect": "POST 전에 course-live-interim 에 미확정 글자",
+  "actual": "interim=\"Did you\" posts=0 phase=repeat",
+  "verdict": "통과"
+ },
+ {
+  "id": "②",
+  "width": 1400,
+  "expect": "확정 뒤 조용해지면 POST 1번(본문=확정 문장) · 판정 표시 · 실시간 줄 지움 · Try 갱신 · 인식기 설정 en-US/continuous/interim · PCM 경로 없음",
+  "actual": "posts=1 body={\"transcript\":\"Did you push the code\"} transcript=\"Did you push the code\" verdicts=5 liveGone=true try 1->101 config={\"lang\":\"en-US\",\"continuous\":true,\"interim\":true} pcm=0",
+  "verdict": "통과"
+ },
+ {
+  "id": "③",
+  "width": 1400,
+  "expect": "앞 2/5 낱말 확정 · 2초 쉼 · 나머지 → POST 본문이 전체 문장",
+  "actual": "posts+1 body={\"transcript\":\"Did you push the code\"}",
+  "verdict": "통과"
+ },
+ {
+  "id": "④",
+  "width": 1400,
+  "expect": "6초 안에 unheard 안내 · POST 없음(말 없음은 세지 않음) · Try 그대로",
+  "actual": "notice=\"I couldn't hear you. Press \"Try again\" and say it again.\" elapsed=5308ms posts+0 try 102->102",
+  "verdict": "통과"
+ },
+ {
+  "id": "⑤",
+  "width": 1400,
+  "expect": "not-allowed → 마이크 안내 · POST 없음 · 단계 idle",
+  "actual": "notice=\"I can't use the mic. Please allow the mic in your browser.\" phase=idle posts+0",
+  "verdict": "통과"
+ },
+ {
+  "id": "⑥",
+  "width": 1400,
+  "expect": "network → unavailable 안내 · POST 없음",
+  "actual": "notice=\"I can't check your speaking now. You can keep going.\" posts+0",
+  "verdict": "통과"
+ },
+ {
+  "id": "⑦",
+  "width": 1400,
+  "expect": "듣는 중 Next → abort 호출 · POST 없음 · 단계 idle",
+  "actual": "calls=[\"abort\"] posts+0 phase=idle",
+  "verdict": "통과"
+ },
+ {
+  "id": "⑧",
+  "width": 1400,
+  "expect": "course-card 크기가 idle·듣는 중·긴 미확정·결과 네 상태에서 같음 · 긴 글은 자리 안에서 맨 아래로 스크롤",
+  "actual": "sizes={\"idle\":{\"w\":619.1,\"h\":263.6},\"listening\":{\"w\":619.1,\"h\":263.6},\"result\":{\"w\":619.1,\"h\":263.6},\"longInterim\":{\"w\":619.1,\"h\":263.6}} slot={\"scrollTop\":2,\"overflow\":true,\"atBottom\":true}",
+  "verdict": "통과"
+ },
+ {
+  "id": "⑨",
+  "width": 1400,
+  "expect": "판정 응답 전에 Next → 돌아오면 Try 가 서버 값으로 갱신돼 있음",
+  "actual": "posts+1 try 0->101",
+  "verdict": "통과"
+ },
+ {
+  "id": "⑩",
+  "width": 1400,
+  "expect": "응답 몸통이 JSON 이 아니면 unavailable 안내 · 단계가 judge 에 남지 않음 · Try 그대로",
+  "actual": "notice=\"I can't check your speaking now. You can keep going.\" phase=done try 101->101",
+  "verdict": "통과"
+ },
+ {
+  "id": "⑪",
+  "width": 1400,
+  "expect": "늦게 온 앞 응답(작은 횟수)이 Try 를 낮추지 않음",
+  "actual": "posts+2 try fresh=104 afterLate=104",
+  "verdict": "통과"
+ },
+ {
+  "id": "①",
+  "width": 390,
+  "expect": "POST 전에 course-live-interim 에 미확정 글자",
+  "actual": "interim=\"Did you\" posts=0 phase=repeat",
+  "verdict": "통과"
+ },
+ {
+  "id": "②",
+  "width": 390,
+  "expect": "확정 뒤 조용해지면 POST 1번(본문=확정 문장) · 판정 표시 · 실시간 줄 지움 · Try 갱신 · 인식기 설정 en-US/continuous/interim · PCM 경로 없음",
+  "actual": "posts=1 body={\"transcript\":\"Did you push the code\"} transcript=\"Did you push the code\" verdicts=5 liveGone=true try 1->101 config={\"lang\":\"en-US\",\"continuous\":true,\"interim\":true} pcm=0",
+  "verdict": "통과"
+ },
+ {
+  "id": "③",
+  "width": 390,
+  "expect": "앞 2/5 낱말 확정 · 2초 쉼 · 나머지 → POST 본문이 전체 문장",
+  "actual": "posts+1 body={\"transcript\":\"Did you push the code\"}",
+  "verdict": "통과"
+ },
+ {
+  "id": "④",
+  "width": 390,
+  "expect": "6초 안에 unheard 안내 · POST 없음(말 없음은 세지 않음) · Try 그대로",
+  "actual": "notice=\"I couldn't hear you. Press \"Try again\" and say it again.\" elapsed=5309ms posts+0 try 102->102",
+  "verdict": "통과"
+ },
+ {
+  "id": "⑤",
+  "width": 390,
+  "expect": "not-allowed → 마이크 안내 · POST 없음 · 단계 idle",
+  "actual": "notice=\"I can't use the mic. Please allow the mic in your browser.\" phase=idle posts+0",
+  "verdict": "통과"
+ },
+ {
+  "id": "⑥",
+  "width": 390,
+  "expect": "network → unavailable 안내 · POST 없음",
+  "actual": "notice=\"I can't check your speaking now. You can keep going.\" posts+0",
+  "verdict": "통과"
+ },
+ {
+  "id": "⑦",
+  "width": 390,
+  "expect": "듣는 중 Next → abort 호출 · POST 없음 · 단계 idle",
+  "actual": "calls=[\"abort\"] posts+0 phase=idle",
+  "verdict": "통과"
+ },
+ {
+  "id": "⑧",
+  "width": 390,
+  "expect": "course-card 크기가 idle·듣는 중·긴 미확정·결과 네 상태에서 같음 · 긴 글은 자리 안에서 맨 아래로 스크롤",
+  "actual": "sizes={\"idle\":{\"w\":300,\"h\":308.3},\"listening\":{\"w\":300,\"h\":308.3},\"result\":{\"w\":300,\"h\":308.3},\"longInterim\":{\"w\":300,\"h\":308.3}} slot={\"scrollTop\":7,\"overflow\":true,\"atBottom\":true}",
+  "verdict": "통과"
+ },
+ {
+  "id": "⑨",
+  "width": 390,
+  "expect": "판정 응답 전에 Next → 돌아오면 Try 가 서버 값으로 갱신돼 있음",
+  "actual": "posts+1 try 0->101",
+  "verdict": "통과"
+ },
+ {
+  "id": "⑩",
+  "width": 390,
+  "expect": "응답 몸통이 JSON 이 아니면 unavailable 안내 · 단계가 judge 에 남지 않음 · Try 그대로",
+  "actual": "notice=\"I can't check your speaking now. You can keep going.\" phase=done try 101->101",
+  "verdict": "통과"
+ },
+ {
+  "id": "⑪",
+  "width": 390,
+  "expect": "늦게 온 앞 응답(작은 횟수)이 Try 를 낮추지 않음",
+  "actual": "posts+2 try fresh=104 afterLate=104",
+  "verdict": "통과"
+ }
+]

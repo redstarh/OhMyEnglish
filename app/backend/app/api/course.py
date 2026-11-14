@@ -20,17 +20,20 @@ from app.models.course import (
     MAX_ATTEMPT_PCM_BYTES,
     Course,
     ProgressUpdate,
+    TextAttempt,
     load_course,
     sentence_key,
 )
 from app.models.user import FIXED_USER_ID
 from app.services.course import (
+    AttemptResult,
     DayProgress,
     day_sentence_keys,
     load_overview,
     load_progress,
     load_sentence_counts,
     record_attempt,
+    record_text_attempt,
     save_progress,
 )
 from app.services.daily_summary import timezone_of
@@ -52,6 +55,14 @@ def _progress_payload(progress: DayProgress | None) -> dict[str, object] | None:
             progress.last_completed_date.isoformat() if progress.last_completed_date else None
         ),
         "updated_at": progress.updated_at,
+    }
+
+
+def _attempt_payload(result: AttemptResult) -> dict[str, object]:
+    return {
+        "transcript": result.transcript,
+        "words": [{"word": item.word, "verdict": item.verdict} for item in result.words],
+        "attempts": result.attempts,
     }
 
 
@@ -153,6 +164,8 @@ async def post_course_attempt(key: str, request: Request) -> dict[str, object]:
     ⛔ **전사기가 없으면 503 이다** (`api/results.py` 의 낭독 판정과 같은 판단 · `TASK-213`).
     가드가 전사 «앞» 이므로 픽스처 어댑터가 발명한 문장이 기록되지 않는다.
     ⚠️ `words` 가 빈 200 은 「전사를 얻지 못했다」다 — 그래도 따라 한 횟수에는 든다.
+    ⚠️ 이 경로는 브라우저에 음성 인식기가 없을 때만 쓰인다(`TASK-317`).
+    평소 경로는 `/attempts/text` 다.
     """
     course: Course = load_course()
     if course.sentence(key) is None:
@@ -186,8 +199,24 @@ async def post_course_attempt(key: str, request: Request) -> dict[str, object]:
         raise HTTPException(status_code=503, detail="따라 하기 판정을 쓸 수 없다") from exc
     if result is None:
         raise HTTPException(status_code=404, detail="sentence not found")
-    return {
-        "transcript": result.transcript,
-        "words": [{"word": item.word, "verdict": item.verdict} for item in result.words],
-        "attempts": result.attempts,
-    }
+    return _attempt_payload(result)
+
+
+@router.post("/sentences/{key}/attempts/text")
+async def post_course_text_attempt(
+    key: str, attempt: TextAttempt, request: Request
+) -> dict[str, object]:
+    """따라 하기 한 번 — 본문은 브라우저 인식기가 확정한 문장(`TASK-317` · 실시간 표시 설계서 §5).
+
+    ⛔ **전사기를 부르지 않는다** — 그래서 `transcriber_available` 가드도 없고 `stub` 설정에서도
+    200 이다. 픽스처가 만든 문장이 아니라 학습자의 발화이므로 결정 131 이 막은 오염이 생기지 않는다.
+    ⚠️ 빈 전사·400자 초과·모양이 틀린 본문은 `TextAttempt` 가 422 로 거른다(말 없음은 세지 않음).
+    """
+    course: Course = load_course()
+    if course.sentence(key) is None:
+        raise HTTPException(status_code=404, detail="sentence not found")
+    pool: asyncpg.Pool = request.app.state.db_pool
+    result = await record_text_attempt(pool, course, FIXED_USER_ID, key, attempt.transcript)
+    if result is None:
+        raise HTTPException(status_code=404, detail="sentence not found")
+    return _attempt_payload(result)

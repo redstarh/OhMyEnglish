@@ -216,6 +216,21 @@
   .omy-course-wait { animation: none; width: 100%; }
 }
 
+/* 듣는 중 — 끝이 정해져 있지 않으므로 줄어드는 막대 대신 맥박처럼 밝기가 오르내리는 막대(`TASK-317` · 실시간 표시 설계서 §4). */
+@keyframes omy-course-listen-pulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}
+
+.omy-course-listen {
+  width: 100%;
+  animation: omy-course-listen-pulse 1.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .omy-course-listen { animation: none; opacity: 1; }
+}
+
 /* 화면 사이의 이동·실행 버튼 — 홈 문장 칸의 Back·Start·Next 와 같은 모양(`TASK-311` 사용자 지시 · 기준은 홈).
    ⛔ 링크(`a`)와 버튼이 같은 모양이어야 함 — 그래서 줄 높이·정렬을 여기서 정함(버튼은 줄 높이를 물려받음).
    앞으로 가는 이동(→)만 `omy-button-primary` 를 더함 — 홈의 Next 와 같음. */

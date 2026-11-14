@@ -1,0 +1,12 @@
+{
+ "speech": {
+  "seconds_audio": 1.28,
+  "elapsed_s": 5.31,
+  "text": "did you push the code?"
+ },
+ "silence": {
+  "seconds_audio": 1.28,
+  "elapsed_s": 3.56,
+  "text": ""
+ }
+}

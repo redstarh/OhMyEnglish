@@ -15,14 +15,21 @@ PCM 을 돌려주므로 그 산출물을 그대로 받는 것이 계약이다.
 
 from __future__ import annotations
 
+import asyncio
+import time
 from collections.abc import AsyncIterator
 
 import pytest
 
 from app.audio_gateway.fixtures import FIXTURE_TURNS
-from app.audio_gateway.port import AdapterEvent, TranscriberUnavailable, TranscriptEvent
+from app.audio_gateway.port import (
+    AdapterEvent,
+    SpeechBoundaryEvent,
+    TranscriberUnavailable,
+    TranscriptEvent,
+)
 from app.audio_gateway.stub import StubVoiceAdapter
-from app.audio_gateway.transcribe import transcribe_readback
+from app.audio_gateway.transcribe import readback_timeout_s, transcribe_readback
 
 _PCM = b"\x00\x01" * 8000  # 16kHz·16bit 기준 1초
 
@@ -160,4 +167,110 @@ async def test_연결을_열지_못하면_예외다() -> None:
     adapter = _UnreachableAdapter()
     with pytest.raises(TranscriberUnavailable):
         await transcribe_readback(_PCM, make_adapter=lambda: adapter)
+    assert adapter.closed is True
+
+
+# ── 말 시작이 없는 녹음의 조기 종료 · 녹음 길이에 맞춘 상한 (`TASK-317` · 설계서 §7-⑥) ──
+# ⛔ 이전에는 학습자 final 이 하나도 오지 않으면 30초 상한을 다 기다렸다.
+# 시도 간격 약 37초의 원인이다.
+
+
+class _SilentAdapter(_AgentOnlyAdapter):
+    """아무 이벤트도 내지 않고 스트림을 열어 두는 어댑터 — 실물 Nova 가 말을 못 들은 모양이다."""
+
+    async def events(self) -> AsyncIterator[AdapterEvent]:
+        await asyncio.Event().wait()
+        yield TranscriptEvent(kind="final", text="never", speaker="user")  # pragma: no cover
+
+
+class _LateFinalAdapter(_AgentOnlyAdapter):
+    """말 시작을 알린 뒤 `delay_s` 가 지나서 학습자 final 을 낸다."""
+
+    def __init__(self, delay_s: float) -> None:
+        super().__init__()
+        self.delay_s = delay_s
+
+    async def events(self) -> AsyncIterator[AdapterEvent]:
+        yield SpeechBoundaryEvent(speaking=True)
+        await asyncio.sleep(self.delay_s)
+        yield TranscriptEvent(kind="final", text="we walk where we live", speaker="user")
+        await asyncio.Event().wait()
+
+
+class _SpeakingForeverAdapter(_AgentOnlyAdapter):
+    """말 시작만 알리고 final 을 내지 않는 어댑터 — 상한만이 이 호출을 끝낸다."""
+
+    async def events(self) -> AsyncIterator[AdapterEvent]:
+        yield SpeechBoundaryEvent(speaking=True)
+        await asyncio.Event().wait()
+
+
+async def test_말_시작이_없으면_상한까지_기다리지_않고_빈_전사다() -> None:
+    adapter = _SilentAdapter()
+    started = time.monotonic()
+    text = await transcribe_readback(
+        _PCM, make_adapter=lambda: adapter, timeout_s=5.0, no_speech_s=0.05
+    )
+    assert text == ""
+    assert time.monotonic() - started < 1.0
+    assert adapter.closed is True
+
+
+async def test_말_시작이_오면_조기_종료하지_않는다() -> None:
+    """⛔ 판별력: 조기 종료 창(0.05초)보다 final 이 늦게(0.3초) 와도 그 final 을 받는다."""
+    adapter = _LateFinalAdapter(delay_s=0.3)
+    text = await transcribe_readback(
+        _PCM, make_adapter=lambda: adapter, no_speech_s=0.05, quiet_s=0.05
+    )
+    assert text == "we walk where we live"
+
+
+async def test_상한은_녹음_길이를_따른다() -> None:
+    """말 시작은 왔으나 final 이 없을 때 — 30초가 아니라 「녹음 초 + 여유」에서 끝난다."""
+    adapter = _SpeakingForeverAdapter()
+    started = time.monotonic()
+    text = await transcribe_readback(_PCM, make_adapter=lambda: adapter, length_slack_s=0.1)
+    assert text == ""
+    # 녹음 1초 + 여유 0.1초 — 30초 상한이 그대로면 여기서 30초를 기다린다.
+    assert time.monotonic() - started < 3.0
+
+
+def test_상한_계산은_녹음_초_더하기_10초이고_30초를_넘지_않는다() -> None:
+    """⚠️ 쉐도잉 낭독 판정도 같은 함수를 쓴다 — 긴 클립은 30초 상한이 그대로 남는다(`min`)."""
+    one_second = 16_000 * 2
+    assert readback_timeout_s(one_second) == 11.0
+    assert readback_timeout_s(one_second * 25) == 30.0
+    assert readback_timeout_s(one_second, timeout_s=0.05) == 0.05
+
+
+class _EndlessFinalsAdapter(_AgentOnlyAdapter):
+    """말 시작 뒤 학습자 final 을 `gap_s` 마다 끝없이 낸다 — 조용해지지 않아 상한만이 끝낸다."""
+
+    def __init__(self, gap_s: float) -> None:
+        super().__init__()
+        self.gap_s = gap_s
+
+    async def events(self) -> AsyncIterator[AdapterEvent]:
+        yield SpeechBoundaryEvent(speaking=True)
+        index = 0
+        while True:
+            await asyncio.sleep(self.gap_s)
+            index += 1
+            yield TranscriptEvent(kind="final", text=f"part{index}", speaker="user")
+
+
+async def test_상한이_끝내도_이미_모은_final_은_버리지_않는다() -> None:
+    """codex 리뷰 HIGH(`TASK-317`) — 상한이 짧아진 뒤 이 갈래가 들린 말을 빈 전사로 만들었다.
+
+    ⛔ 상한은 그대로 지킨다 — 시간 단정이 그 판별력이다.
+    """
+    adapter = _EndlessFinalsAdapter(gap_s=0.05)
+    started = time.monotonic()
+    text = await transcribe_readback(
+        _PCM, make_adapter=lambda: adapter, quiet_s=1.0, length_slack_s=0.0
+    )
+    elapsed = time.monotonic() - started
+    # 녹음 1초 + 여유 0초 = 상한 1초.
+    assert elapsed < 2.0
+    assert text.startswith("part1 part2")
     assert adapter.closed is True

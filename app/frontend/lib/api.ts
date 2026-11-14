@@ -425,7 +425,13 @@ async function postJson<T>(path: string, body: unknown): Promise<WriteResult<T>>
   if (!sent.ok) {
     return sent;
   }
-  return { ok: true, value: (await sent.response.json()) as T };
+  // ⛔ 몸통을 읽지 못하면 거부(reject)가 아니라 실패 결과임(codex 리뷰 MEDIUM · `TASK-317`) — 거부가
+  //    화면까지 올라가 문장 연습의 단계가 ③ Check 에 멈췄음.
+  try {
+    return { ok: true, value: (await sent.response.json()) as T };
+  } catch {
+    return { ok: false, reason: "unavailable" };
+  }
 }
 
 /** 몸통이 없는 쓰기 — 삭제(`204`). */
@@ -700,6 +706,7 @@ export async function saveCourseProgress(
 /**
  * 따라 하기 한 번을 보낸다 — 본문은 원시 PCM(16kHz·16bit·mono).
  *
+ * ⚠️ 브라우저에 음성 인식기가 없을 때만 쓰임(`TASK-317` · 실시간 표시 설계서 §7 ⑥) — 평소는 `postCourseTextAttempt`.
  * ⚠️ `unavailable` 은 전사기를 쓸 수 없는 서버(503)나 네트워크 실패다. 화면은 그때도 흐름을 잇는다.
  */
 export async function postCourseAttempt(
@@ -720,4 +727,14 @@ export async function postCourseAttempt(
   } catch {
     return { ok: false, reason: "unavailable" };
   }
+}
+
+/**
+ * 따라 하기 한 번을 보낸다 — 본문은 브라우저 인식기가 확정한 문장(`TASK-317` · 실시간 표시 설계서 §5).
+ *
+ * ⛔ 빈 문장은 보내지 않음 — 말 없음은 시도로 세지 않음(2026-11-14 사용자 결정). 서버도 422 로 거부함.
+ * ⚠️ 서버는 다시 전사하지 않음 — 이 문장이 전사 정본임.
+ */
+export function postCourseTextAttempt(key: string, transcript: string): Promise<WriteResult<CourseAttempt>> {
+  return postJson<CourseAttempt>(`/api/course/sentences/${key}/attempts/text`, { transcript });
 }

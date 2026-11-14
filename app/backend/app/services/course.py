@@ -281,15 +281,35 @@ async def record_attempt(
 ) -> AttemptResult | None:
     """따라 하기 한 번을 전사해 원문과 견주고 기록한다. 없는 문장이면 `None`.
 
-    ⚠️ 전사가 비어도 기록한다 — 학습자는 따라 했고 「못 알아들었다」는 다시 할 일이다(설계서 §4).
+    ⚠️ 이 PCM 경로는 브라우저에 음성 인식기가 없을 때만 쓰인다(`TASK-317` · 실시간 표시 설계서 §7-⑥).
+    빈 전사는 기록하지 않는다 — 규칙은 `record_text_attempt` 가 갖는다.
+    ⛔ 삽입은 `record_text_attempt` 한 곳이 한다 — 전사만 여기서 하고 나머지를 넘긴다.
+    """
+    if course.sentence(key) is None:
+        return None
+    transcript = (await transcribe(pcm)).strip()
+    return await record_text_attempt(pool, course, user_id, key, transcript)
+
+
+async def record_text_attempt(
+    pool: asyncpg.Pool, course: Course, user_id: UUID, key: str, transcript: str
+) -> AttemptResult | None:
+    """전사문 하나를 원문과 낱말 단위로 견주고 기록한다. 없는 문장이면 `None` (`TASK-317`).
+
+    ⛔ **`course_attempts` 에 쓰는 자리는 여기 하나다** — PCM 경로(`record_attempt`)도 전사한 뒤
+    이 함수를 부른다. 두 경로가 각자 쓰면 횟수 규칙이 갈린다.
     """
     expected = course.sentence(key)
     if expected is None:
         return None
-    transcript = (await transcribe(pcm)).strip()
+    transcript = transcript.strip()
     words = compare_readback(expected, transcript) if transcript else []
     payload = json.dumps([{"word": item.word, "verdict": item.verdict} for item in words])
     async with pool.acquire() as conn:
-        await conn.execute(_INSERT_ATTEMPT_SQL, user_id, key, transcript, payload)
+        # ⛔ 말 없음은 시도로 세지 않는다(2026-11-14 사용자 결정 · 설계서 §11-1).
+        #    빈 전사는 쓰지 않고 지금까지의 횟수만 돌려준다.
+        #    텍스트 경로는 모델이 빈 값을 422 로 먼저 막는다.
+        if transcript:
+            await conn.execute(_INSERT_ATTEMPT_SQL, user_id, key, transcript, payload)
         counts = await load_sentence_counts(conn, user_id, [key])
     return AttemptResult(transcript=transcript, words=words, attempts=counts.get(key, 0))

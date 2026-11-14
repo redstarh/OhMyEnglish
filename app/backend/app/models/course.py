@@ -15,6 +15,7 @@ import re
 from decimal import Decimal
 from functools import lru_cache
 from pathlib import Path
+from typing import Annotated
 
 import pydantic
 
@@ -25,6 +26,9 @@ SENTENCES_PER_UNIT = 5
 
 # 따라 하기 녹음의 상한 — 30초 · 16kHz · 16bit · mono. 그보다 긴 문장은 이 코스에 없다.
 MAX_ATTEMPT_PCM_BYTES = 30 * 16_000 * 2
+# 브라우저가 확정한 전사문의 상한 (`TASK-317` · 실시간 표시 설계서 §5).
+# ⚠️ 발명한 수치다 — 가장 긴 문장이 61자이므로 그 여섯 배 남짓을 둔다.
+MAX_ATTEMPT_TRANSCRIPT_CHARS = 400
 
 _SENTENCE_KEY = re.compile(r"^u(\d{3})-s(\d)$")
 
@@ -137,3 +141,21 @@ class ProgressUpdate(pydantic.BaseModel):
     completed: bool = False
     # 화면이 아는 완료 횟수 — 완료 전에 보낸 저장이 완료 뒤에 도착하면 서비스가 버린다(TASK-287).
     completed_count: int = pydantic.Field(default=0, ge=0)
+
+
+class TextAttempt(pydantic.BaseModel):
+    """브라우저 인식기가 확정한 따라 하기 한 번 (`TASK-317` · 실시간 표시 설계서 §5).
+
+    ⛔ **빈 전사는 거부한다(422)** — 말 없음은 시도로 세지 않는다(2026-11-14 사용자 결정 · 설계서
+    §11-1). 화면은 `silent` 이면 보내지 않으므로 이 거부는 그 규칙의 서버 쪽 담보다.
+    ⚠️ 서버는 이 글이 실제 소리에서 왔는지 검증하지 않는다 — 단일 사용자 로컬 앱이라 받아들인다.
+    """
+
+    model_config = pydantic.ConfigDict(extra="forbid")
+
+    transcript: Annotated[
+        str,
+        pydantic.StringConstraints(
+            strip_whitespace=True, min_length=1, max_length=MAX_ATTEMPT_TRANSCRIPT_CHARS
+        ),
+    ]

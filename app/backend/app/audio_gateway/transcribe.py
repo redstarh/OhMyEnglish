@@ -21,7 +21,12 @@ import logging
 from collections.abc import Callable
 from typing import TypeGuard
 
-from app.audio_gateway.port import TranscriberUnavailable, TranscriptEvent, VoiceAdapter
+from app.audio_gateway.port import (
+    SpeechBoundaryEvent,
+    TranscriberUnavailable,
+    TranscriptEvent,
+    VoiceAdapter,
+)
 from app.models.recording import (
     RECORDING_BYTES_PER_SAMPLE,
     RECORDING_CHANNELS,
@@ -44,7 +49,21 @@ _RECORDING_BYTES_PER_SECOND = (
 # ⚠️ 상수를 손으로 적지 않는 이유: 녹음 규격이 바뀌면 이 값이 조용히 다른 길이가 된다.
 _FRAME_BYTES = _RECORDING_BYTES_PER_SECOND // 10
 # 전사가 오지 않는 어댑터에서 엔드포인트가 영원히 열리지 않게 하는 상한.
+# ⛔ 실제로 쓰는 상한은 `readback_timeout_s` 가 녹음 길이로 줄인 값이다(`TASK-317`).
+# 이 값은 그 위의 천장이다.
 _TIMEOUT_S = 30.0
+# 녹음 길이에 더하는 여유 — 상한 = `min(_TIMEOUT_S, 녹음 초 + 이 값)`.
+# 근거: `TASK-317` · 실시간 표시 설계서 §7-⑥.
+# ⚠️ 발명한 수치다(근거 문서 없음).
+# 짧은 문장 녹음이 30초를 통째로 기다리던 것(시도 간격 약 37초)을 줄인다.
+# ⚠️ 쉐도잉 낭독 판정도 이 함수를 쓴다 — 긴 클립은 `min` 이라 30초 천장이 그대로 남는다.
+_LENGTH_SLACK_S = 10.0
+# 오디오를 다 보낸 뒤 학습자의 말 시작(`SpeechBoundaryEvent(speaking=True)`)이나 학습자 전사가
+# 이만큼 오지 않으면 「말 없음」으로 보고 바로 빈 전사로 끝낸다.
+# 근거: `TASK-317` · 실시간 표시 설계서 §7-⑥.
+# ⚠️ 발명한 수치이고 실물 Nova 로 재지 않았다 — 말 시작 신호가 이 창보다 늦게 오면 들린 말도 빈
+# 전사가 된다. 그런 실측이 나오면 이 값을 늘린다.
+_NO_SPEECH_S = 2.0
 # 오디오 끝에 붙이는 침묵 — **2초**.
 # ⛔ **이것이 없으면 실물 Nova 가 전사를 «아예» 주지 않는다** (2026-09-18 실측 · `TASK-210`):
 # 같은 오디오가 침묵 없이는 빈 문자열이었고 2초를 붙이자 전사가 왔다. VAD 가 침묵으로 발화를 닫는다.
@@ -70,7 +89,19 @@ def _is_user_final(event: object) -> TypeGuard[TranscriptEvent]:
     return isinstance(event, TranscriptEvent) and event.kind == "final" and event.speaker == "user"
 
 
-async def _user_finals(adapter: VoiceAdapter, quiet_s: float) -> str:
+def _is_user_speech(event: object) -> bool:
+    """학습자가 말하고 있다는 신호인가 — 말 시작 경계이거나 학습자의 전사문(부분·확정).
+
+    ⚠️ 스텁 어댑터는 경계 이벤트를 내지 않고 전사문만 낸다 — 그래서 전사문도 신호로 본다.
+    """
+    if isinstance(event, SpeechBoundaryEvent):
+        return event.speaking
+    return isinstance(event, TranscriptEvent) and event.speaker == "user"
+
+
+async def _user_finals(
+    adapter: VoiceAdapter, quiet_s: float, no_speech_s: float, parts: list[str]
+) -> str:
     """학습자의 final 전사문을 **조용해질 때까지 모아** 이어 붙인다.
 
     ⛔ **첫 final 하나만 받으면 여섯 문장 클립의 판정이 통째로 틀린다**(2026-09-18 실측 ·
@@ -80,23 +111,40 @@ async def _user_finals(adapter: VoiceAdapter, quiet_s: float) -> str:
     ⛔ **조용함은 「마지막 학습자 final 뒤로 흐른 시간」으로 잰다** — 「아무 이벤트도 오지 않음」
     으로 재면 안 된다. 낭독이 끝나면 코치가 말하기 시작해 오디오 이벤트가 계속 오므로 그
     기준으로는 영원히 조용해지지 않는다.
-    ⚠️ 첫 final 이 오기 전에는 기다림에 상한을 두지 않는다 — 바깥 `transcribe_readback` 의 상한이
-    그 구간을 덮는다(두 곳에서 각자 재면 어느 쪽이 끝냈는지 알 수 없다).
+    ⛔ **말 시작이 `no_speech_s` 안에 오지 않으면 바로 끝낸다**(`TASK-317`) — 이전에는 이 갈래가
+    바깥 상한(30초)을 통째로 기다렸다. 말 시작 «뒤» 첫 final 까지는 여전히 바깥 상한이 덮는다.
+    ⛔ **모은 final 은 호출자가 넘긴 `parts` 에 쌓는다**(codex 리뷰 HIGH · `TASK-317`) — 바깥 상한이
+    이 코루틴을 취소해도 호출자가 그때까지의 전사를 쓸 수 있어야 한다.
     """
     loop = asyncio.get_running_loop()
-    parts: list[str] = []
     deadline = 0.0
+    speech_by = loop.time() + no_speech_s
+    heard_speech = False
     iterator = adapter.events().__aiter__()
     while True:
-        timeout = max(0.0, deadline - loop.time()) if parts else None
+        if parts:
+            timeout: float | None = max(0.0, deadline - loop.time())
+        elif not heard_speech:
+            timeout = max(0.0, speech_by - loop.time())
+        else:
+            timeout = None
         try:
             event = await asyncio.wait_for(iterator.__anext__(), timeout)
         except (TimeoutError, StopAsyncIteration):
             break
+        if _is_user_speech(event):
+            heard_speech = True
         if _is_user_final(event):
             parts.append(event.text)
             deadline = loop.time() + quiet_s
     return " ".join(parts).strip()
+
+
+def readback_timeout_s(
+    pcm_bytes: int, *, timeout_s: float = _TIMEOUT_S, slack_s: float = _LENGTH_SLACK_S
+) -> float:
+    """전사 한 번의 상한 — `min(timeout_s, 녹음 초 + slack_s)` (`TASK-317` · 설계서 §7-⑥)."""
+    return min(timeout_s, pcm_bytes / _RECORDING_BYTES_PER_SECOND + slack_s)
 
 
 async def transcribe_readback(
@@ -107,6 +155,8 @@ async def transcribe_readback(
     timeout_s: float = _TIMEOUT_S,
     silence_bytes: int = _TRAILING_SILENCE_BYTES,
     quiet_s: float = _QUIET_AFTER_FINAL_S,
+    no_speech_s: float = _NO_SPEECH_S,
+    length_slack_s: float = _LENGTH_SLACK_S,
 ) -> str:
     """낭독 녹음의 **PCM** 을 어댑터에 흘려 학습자의 final 전사문 하나만 돌려준다.
 
@@ -131,13 +181,18 @@ async def transcribe_readback(
     """
     adapter = make_adapter()
     padded = pcm + b"\x00" * silence_bytes
+    # ⚠️ 상한은 붙인 침묵을 뺀 «녹음» 길이로 잰다 — 침묵은 판정 조건이지 학습자가 말한 시간이 아니다.
+    limit_s = readback_timeout_s(len(pcm), timeout_s=timeout_s, slack_s=length_slack_s)
+    parts: list[str] = []
     try:
         text = await asyncio.wait_for(
-            _readback_text(adapter, padded, frame_bytes, quiet_s), timeout_s
+            _readback_text(adapter, padded, frame_bytes, quiet_s, no_speech_s, parts), limit_s
         )
     except TimeoutError:
         # 어댑터가 조용한 것은 결함이 아니라 갈래 하나다 — 빈 전사로 알린다.
-        text = ""
+        # ⛔ 상한 전에 모은 final 은 버리지 않는다(codex 리뷰 HIGH · `TASK-317`) — 상한이
+        #    `min(30, 녹음 초 + 10)` 으로 짧아진 뒤 들린 말이 빈 전사가 될 수 있었다.
+        text = " ".join(parts).strip()
     except Exception as exc:
         # 연결을 열지 못했다(스트림 열기 · 초기화 전송).
         # 500 이 아니라 503 으로 가게 한다(`TASK-288`). ⚠️ 코드 결함도 여기로 오므로 원인을 남긴다.
@@ -154,8 +209,13 @@ async def transcribe_readback(
 
 
 async def _readback_text(
-    adapter: VoiceAdapter, pcm: bytes, frame_bytes: int, quiet_s: float
+    adapter: VoiceAdapter,
+    pcm: bytes,
+    frame_bytes: int,
+    quiet_s: float,
+    no_speech_s: float,
+    parts: list[str],
 ) -> str:
     await adapter.start()
     await _send_all(adapter, pcm, frame_bytes)
-    return await _user_finals(adapter, quiet_s)
+    return await _user_finals(adapter, quiet_s, no_speech_s, parts)

@@ -18,13 +18,13 @@
  ],
  "practice.hero": {
   "top": 36,
-  "bottom": 469,
-  "h": 433.2
+  "bottom": 470,
+  "h": 433.6
  },
  "practice.progress": {
   "top": 36,
-  "bottom": 469,
-  "h": 433.2
+  "bottom": 470,
+  "h": 433.6
  },
  "practice.card": {
   "top": 181,
@@ -51,7 +51,7 @@
   "lineBox": 56
  },
  "unitRow": [
-  433
+  434
  ],
  "phase": {
   "before": 264,
