@@ -140,6 +140,13 @@
 - 남은 화면: `/course` · `/course/<day>` 는 지우지 않았음. 주소와 결과 화면의 이동 버튼으로 닿음.
 - 확인(회차 b15 `path-*.json` · `grammar-*.json`): 1400·390 에서 주소가 `/` 그대로이고 고른 Day 가 열림.
 
+### Listen · Slow 제거 (2026-11-14 · `TASK-318`)
+
+- 사용자: Listen · Slow 의 용도를 모르겠고 필요 없어 보임.
+- 코드 확인: Listen 은 Start · Try again 과 같은 동작이었음. Slow 는 같은 동작을 0.7배 속도로 했음.
+- 사용자 결정: 둘 다 제거함. 다시 듣기는 Try again 이 맡음.
+- 높이: 문장 칸이 46 px 줄었음. 대기·세션 높이(`HERO_HEIGHT`)를 다시 잼(1400 433.2 px → 27.1rem · 390 489.5 px → 30.6rem).
+
 ## 4. 파일 계획
 
 - 새 파일: `postcss.config.mjs` · `components.json` · `lib/utils.ts` · `components/ui/button.tsx` · `components/app-shell.tsx` · `app/additionalLearning.ts`(추가 학습 목록과 `entryForTarget` 을 옮기고 고정 `key` 를 줌) · `components/home/HomeDashboard.tsx`.

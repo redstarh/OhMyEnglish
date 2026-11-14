@@ -212,8 +212,9 @@ export function HomeDashboard({
 // 연습 상태는 높이를 주지 않음 — 문장 칸(`SentencePractice.tsx`)이 상태·문장 길이와 무관한 고정 크기라
 // 카드도 늘 같은 높이가 되고, 아래쪽에 빈 공간이 남지 않음. 이 값은 그 높이를 실제 화면에서 잰 것임.
 // 근거는 설계서 §3 「문장 칸 고정 · 카드는 내용 높이」가 가짐. 문장 칸의 줄·여백을 바꾸면 이 값도 다시 잼.
-//   1400 폭 479.5 px → 30rem(480 px) · 390 폭 536 px → 33.5rem(536 px) (회차 b15 `measure-*.json`).
-const HERO_HEIGHT = "h-[33.5rem] sm:h-[30rem]";
+//   1400 폭 433.2 px → 27.1rem(433.6 px) · 390 폭 489.5 px → 30.6rem(489.6 px) (회차 b15 `measure-*.json` ·
+//   `TASK-318` 에서 Listen·Slow 줄을 뺀 뒤 다시 잼).
+const HERO_HEIGHT = "h-[30.6rem] sm:h-[27.1rem]";
 
 // ⛔ 아래쪽 입구로 시작할 때 카드가 화면을 벗어나 있으면 카드로 스크롤함(`TASK-308` 사용자 결정) — 세션은
 //    카드 안에서 돎. 카드가 이미 다 보이면 움직이지 않음. 「Start speaking」은 창을 옮기지 않는 `TASK-305`

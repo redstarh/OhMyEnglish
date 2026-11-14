@@ -41,7 +41,6 @@ const MODE_STORAGE_KEY = "omy.course.mode";
 const EXTRA_WAIT_MS = 1000; // 따라 말하기 시작까지의 틈 (설계서 §4)
 const ADVANCE_DELAY_MS = 1500; // 판정을 보여 준 뒤 다음 문장까지
 const SAVE_EVERY_MS = 5000;
-const SLOW_RATE = 0.7;
 
 const NOTICE = {
   mic: "I can't use the mic. Please allow the mic in your browser.",
@@ -320,7 +319,7 @@ export const SentencePractice = forwardRef<SentencePracticeHandle, Props>(functi
   );
 
   const run = useCallback(
-    async (start: Position, rate = 1) => {
+    async (start: Position) => {
       cancelRun();
       const controller = new AbortController();
       runRef.current = controller;
@@ -345,7 +344,7 @@ export const SentencePractice = forwardRef<SentencePracticeHandle, Props>(functi
         setNotice(null);
 
         setPhase("listen");
-        const spokenMs = await speak(item.text, { rate, signal });
+        const spokenMs = await speak(item.text, { signal });
         if (signal.aborted) return;
 
         const windowMs = spokenMs + EXTRA_WAIT_MS;
@@ -380,7 +379,6 @@ export const SentencePractice = forwardRef<SentencePracticeHandle, Props>(functi
           return;
         }
         position = next;
-        rate = 1;
       }
     },
     [cancelRun, detail, ensureMic, finishDay, nextPosition, player, save],
@@ -532,19 +530,7 @@ export const SentencePractice = forwardRef<SentencePracticeHandle, Props>(functi
         >
           {sentence.text}
         </p>
-        <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-          <button type="button" data-testid="course-listen" className="omy-button" onClick={() => void run(positionRef.current)}>
-            🔊 Listen
-          </button>
-          <button
-            type="button"
-            data-testid="course-slow"
-            className="omy-button"
-            onClick={() => void run(positionRef.current, SLOW_RATE)}
-          >
-            Slow
-          </button>
-        </div>
+        {/* Listen·Slow 는 제거했음(`TASK-318` 사용자 결정) — 다시 듣기는 Try again 이 같은 동작이었음. */}
         {/* 결과·듣기 안내·알림이 한 고정 자리를 나눠 씀 — 넘치면 이 자리 안에서만 스크롤함. */}
         <div
           data-testid="course-result-slot"
