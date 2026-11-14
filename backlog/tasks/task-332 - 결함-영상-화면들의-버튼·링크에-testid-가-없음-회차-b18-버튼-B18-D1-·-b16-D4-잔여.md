@@ -1,9 +1,10 @@
 ---
 id: TASK-332
 title: '결함: 영상 화면들의 버튼·링크에 testid 가 없음 (회차 b18 버튼 B18-D1 · b16 D4 잔여)'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-11-14 12:38'
+updated_date: '2026-11-14 13:46'
 labels: []
 dependencies: []
 ordinal: 399000
