@@ -630,6 +630,8 @@ export interface CourseSentence {
   key: string;
   text: string;
   attempts: number;
+  /** 한국어 번역(`TASK-328`) — 없는 키는 `null`. */
+  translation: string | null;
 }
 
 export interface CourseUnit {

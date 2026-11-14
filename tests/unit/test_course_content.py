@@ -18,6 +18,7 @@ from app.models.course import (
     UNIT_COUNT,
     Course,
     load_course,
+    load_translations,
     sentence_key,
 )
 
@@ -76,3 +77,18 @@ def test_validation_rejects_broken_content(break_it) -> None:  # type: ignore[no
     break_it(raw)
     with pytest.raises(ValueError):
         Course.model_validate(raw)
+
+
+def test_every_sentence_has_a_korean_translation() -> None:
+    # ⛔ 번역은 미리 만들어 파일로 둔다(`TASK-328` · 2026-11-14 사용자 결정).
+    #    문장이 늘었는데 번역이 빠지면 화면이 조용히 빈칸을 보이므로 여기서 막는다.
+    course = load_course()
+    translations = load_translations()
+    keys = [
+        sentence_key(unit.unit, index)
+        for day in course.days
+        for unit in day.units
+        for index, _ in enumerate(unit.sentences)
+    ]
+    assert [key for key in keys if not translations.get(key, "").strip()] == []
+    assert sorted(translations) == sorted(keys)

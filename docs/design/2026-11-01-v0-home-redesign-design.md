@@ -182,6 +182,19 @@
 - ⑨ 그 아래 `Check your microphone, then start a new lesson from Home.` 과 `Start again →`(`omy-button-primary` · 홈) 을 둠.
 - ⑨ 회복 대상(`awaiting_analysis` 참)은 들은 말이 있으므로 옛 `Nothing to check` 를 그대로 씀. C3 하네스도 이 갈래를 따로 셈.
 
+### 문장 아래 한국어 번역 · KO 켜기/끄기 (2026-11-14 · `TASK-328`)
+
+- 사용자 지시: 문장 아래 번역 표시 여부는 설정에서 하도록 함.
+- 사용자 결정: 565문장 번역을 미리 만들어 넣고 검수함(열 때마다 요청하지 않음). 켜기/끄기는 카드의 Auto 옆에 둠.
+- 데이터: `app/backend/app/content/grammar_basic_ko.json`(문장 키 → 번역). 콘텐츠 파일과 나눠 둠. 모든 문장에 번역이 있는지는 단위 시험이 봄.
+- 생성: `scripts/translate_grammar_course.py` · 분석 워커와 같은 Claude 경로. 대부분 Claude Opus 5 · 남은 단원은 Opus 5.5 · Sonnet 5.5.
+- 실측: Day 단위로 보내면 평범한 문장도 `refusal(cyber)` 로 거절됐음. 단원 단위로 나눠 만들었음. 원인은 추정임.
+- 번역 규칙: 뜻이 낱말과 대응되는 짧은 한국어 · 해요체 통일(내가 정한 값) · 지명·인명은 한국어 · 제품명은 영어.
+- 검수: 표본 18문장을 직접 봄. 영어로 남은 지명·인명을 바꾸고 조사 둘(한강은 · 미국을)을 고쳤음.
+- 화면: KO 는 Auto/Manual 과 같은 모양으로 그 왼쪽에 둠. 처음 값은 끔(내가 정한 값) · `localStorage` 에 기억함.
+- 번역 줄은 KO 를 켰을 때만 두 줄 자리를 잡음. 565개 모두 두 줄에 듦(320 · 390 · 1400).
+- 높이: KO 켬이면 대기·세션 높이와 연습 최저 높이가 34.9rem, 끔이면 32.1rem 임. 1400·390 에서 대기와 연습이 같음.
+
 ## 4. 파일 계획
 
 - 새 파일: `postcss.config.mjs` · `components.json` · `lib/utils.ts` · `components/ui/button.tsx` · `components/app-shell.tsx` · `app/additionalLearning.ts`(추가 학습 목록과 `entryForTarget` 을 옮기고 고정 `key` 를 줌) · `components/home/HomeDashboard.tsx`.

@@ -36,6 +36,7 @@ import {
   wordCount,
   type ListenUpdate,
 } from "@/lib/speechRecognition";
+import { useShowTranslation } from "@/lib/translationSetting";
 
 type Mode = "auto" | "manual";
 type Phase = "idle" | "listen" | "repeat" | "judge" | "done";
@@ -172,6 +173,7 @@ export function SentencePractice({ detail, day, onDayFinished }: Props) {
   const [unitIndex, setUnitIndex] = useState(() => savedPosition(detail).unitIndex);
   const [sentenceIndex, setSentenceIndex] = useState(() => savedPosition(detail).sentenceIndex);
   const [mode, setMode] = useState<Mode>(readMode);
+  const [showTranslation, setShowTranslation] = useShowTranslation();
   const [phase, setPhase] = useState<Phase>("idle");
   // PCM 경로(인식기 없음)의 녹음 창 — 0 이면 인식기 경로이고 끝이 정해져 있지 않음(남은 초를 보이지 않음).
   const [waitMs, setWaitMs] = useState(0);
@@ -510,10 +512,30 @@ export function SentencePractice({ detail, day, onDayFinished }: Props) {
           Unit {unit.unit} · {unit.topic}
         </span>
         {/* ⛔ 전환 묶음은 줄어들지 않음 — 긴 단원 이름이 Auto 를 밀어 잘랐음(`TASK-324`). 줄어드는 쪽은 단원 이름임. */}
+        <span style={{ display: "inline-flex", flexShrink: 0, gap: 6 }}>
+        {/* KO — 문장 아래 한국어 번역을 켜고 끔. Auto/Manual 과 같은 모양으로 그 왼쪽에 둠(`TASK-328` 사용자 결정). */}
+        <span style={{ display: "inline-flex", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden" }}>
+          <button
+            type="button"
+            data-testid="course-translation"
+            aria-pressed={showTranslation}
+            aria-label="Show Korean translation"
+            onClick={() => setShowTranslation(!showTranslation)}
+            style={{
+              padding: "4px 12px",
+              fontSize: "0.8rem",
+              border: 0,
+              background: showTranslation ? "var(--accent)" : "transparent",
+              color: showTranslation ? "var(--on-accent)" : "var(--foreground)",
+            }}
+          >
+            KO
+          </button>
+        </span>
         <span
           role="group"
           aria-label="Mode"
-          style={{ display: "inline-flex", flexShrink: 0, border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden" }}
+          style={{ display: "inline-flex", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden" }}
         >
           {(["auto", "manual"] as const).map((value) => (
             <button
@@ -533,6 +555,7 @@ export function SentencePractice({ detail, day, onDayFinished }: Props) {
               {value === "auto" ? "Auto" : "Manual"}
             </button>
           ))}
+        </span>
         </span>
       </div>
 
@@ -584,6 +607,17 @@ export function SentencePractice({ detail, day, onDayFinished }: Props) {
         >
           {sentence.text}
         </p>
+        {/* 한국어 번역 — KO 를 켰을 때만 두 줄 자리를 잡음. 가장 긴 번역(39자)이 두 줄에 드는 크기임(`TASK-328`). */}
+        {showTranslation ? (
+          <p
+            data-testid="course-translation-text"
+            lang="ko"
+            className="text-[clamp(0.7rem,4.5cqi,0.95rem)]"
+            style={{ marginTop: 2, lineHeight: 1.4, height: "2.8em", overflow: "hidden", color: "var(--foreground-muted)" }}
+          >
+            {sentence.translation ?? ""}
+          </p>
+        ) : null}
         {/* Listen·Slow 는 제거했음(`TASK-318` 사용자 결정) — 다시 듣기는 Try again 이 같은 동작이었음. */}
         {/* 결과·듣기 안내·알림이 한 고정 자리를 나눠 씀 — 넘치면 이 자리 안에서만 스크롤함. */}
         <div

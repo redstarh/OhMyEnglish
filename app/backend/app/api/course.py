@@ -22,6 +22,7 @@ from app.models.course import (
     ProgressUpdate,
     TextAttempt,
     load_course,
+    load_translations,
     sentence_key,
 )
 from app.models.user import FIXED_USER_ID
@@ -117,6 +118,7 @@ async def get_course_day(day: int, request: Request) -> dict[str, object]:
         timezone = await timezone_of(conn, FIXED_USER_ID)
         progress = (await load_progress(conn, FIXED_USER_ID, timezone=timezone)).get(day)
         counts = await load_sentence_counts(conn, FIXED_USER_ID, day_sentence_keys(course, day))
+    translations = load_translations()
     return {
         "day": found.day,
         "youtube_id": found.youtube_id,
@@ -128,8 +130,15 @@ async def get_course_day(day: int, request: Request) -> dict[str, object]:
                 "topic": unit.topic,
                 "start_sec": unit.start_sec,
                 "end_sec": unit.end_sec,
+                # 번역은 문장 아래에 KO 를 켜면 보임(`TASK-328`).
+                # 없는 키는 `None` — 화면은 빈칸을 그리지 않음.
                 "sentences": [
-                    {"key": key, "text": text, "attempts": counts.get(key, 0)}
+                    {
+                        "key": key,
+                        "text": text,
+                        "attempts": counts.get(key, 0),
+                        "translation": translations.get(key),
+                    }
                     for key, text in (
                         (sentence_key(unit.unit, index), text)
                         for index, text in enumerate(unit.sentences)

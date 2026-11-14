@@ -93,6 +93,8 @@ async def test_day_detail_lists_units_and_sentences(api_client: httpx.AsyncClien
     first = body["units"][0]["sentences"][0]
     assert first["key"] == "u022-s1"
     assert first["attempts"] == 0
+    # 문장 아래 번역(`TASK-328`) — 콘텐츠 옆 파일(`grammar_basic_ko.json`)의 값이 그대로 온다.
+    assert first["translation"] == "저는 서울에서 일하고, 전에는 대구에서 일했어요."
     assert (await api_client.get("/api/course/days/7")).status_code == 404
 
 

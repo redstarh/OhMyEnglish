@@ -37,6 +37,7 @@ import {
 import type { SessionEntry } from "@/lib/config";
 import { weekName, weekRangeLabel, weekRelation } from "@/lib/learnerDate";
 import { cn } from "@/lib/utils";
+import { useShowTranslation } from "@/lib/translationSetting";
 import {
   ADDITIONAL_LEARNING,
   isAdditionalLearningEnabled,
@@ -215,6 +216,10 @@ const HERO_HEIGHT = "h-[32.1rem]";
 // 문장 연습의 최저 높이 — 연습을 불러오는 첫 순간(「Loading…」)에도 카드가 대기 높이 아래로 줄지 않게 함(`TASK-319`).
 // ⛔ 줄면 문서가 창보다 짧아져 스크롤이 0 에 붙음 — 1400×900 에서 Start speaking 이 창을 움직였음(회차 b16 D1).
 const HERO_MIN_HEIGHT = "min-h-[32.1rem]";
+// KO(문장 아래 번역)를 켜면 번역 두 줄만큼 문장 칸이 커짐(`TASK-328`). 1400 557.7 px · 390 548.7 px 이라
+// 둘을 덮는 34.9rem(558.4 px)을 대기·세션 높이와 연습 최저 높이로 씀 — 두 폭 모두 대기와 연습이 같아짐(회차 b20 ko.mjs).
+const HERO_HEIGHT_KO = "h-[34.9rem]";
+const HERO_MIN_HEIGHT_KO = "min-h-[34.9rem]";
 
 // ⛔ 아래쪽 입구로 시작할 때 카드가 화면을 벗어나 있으면 카드로 스크롤함(`TASK-308` 사용자 결정) — 세션은
 //    카드 안에서 돎. 카드가 이미 다 보이면 움직이지 않음. 「Start speaking」은 창을 옮기지 않는 `TASK-305`
@@ -247,6 +252,10 @@ function HeroCard({
   session: ReactNode;
 }) {
   const inSession = session !== null;
+  // KO 를 켜면 번역 줄만큼 카드가 커지므로 대기·세션 높이도 그 값을 따름(`TASK-328`).
+  const [showTranslation] = useShowTranslation();
+  const heroHeight = showTranslation ? HERO_HEIGHT_KO : HERO_HEIGHT;
+  const heroMinHeight = showTranslation ? HERO_MIN_HEIGHT_KO : HERO_MIN_HEIGHT;
   const expanded = inSession || practicing;
   const current =
     course.status === "ready" ? (course.data.days.find((day) => day.day === course.data.current_day) ?? null) : null;
@@ -268,7 +277,7 @@ function HeroCard({
         data-testid="home-hero"
         data-state={course.status}
         data-mode={inSession ? "session" : "practice"}
-        className={cn(CARD, "flex flex-col", inSession ? HERO_HEIGHT : HERO_MIN_HEIGHT)}
+        className={cn(CARD, "flex flex-col", inSession ? heroHeight : heroMinHeight)}
       >
         <div className="flex shrink-0 items-center justify-between gap-3">
           <SectionLabel>Today&apos;s practice</SectionLabel>
@@ -296,7 +305,7 @@ function HeroCard({
       data-mode="idle"
       className={cn(
         "flex flex-col justify-center rounded-[24px] bg-hero p-6 text-white shadow-xl shadow-hero/10 sm:justify-between sm:p-8",
-        HERO_HEIGHT,
+        heroHeight,
       )}
     >
       <div className="flex items-start justify-between gap-4">

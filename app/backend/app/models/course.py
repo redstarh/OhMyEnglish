@@ -20,6 +20,9 @@ from typing import Annotated
 import pydantic
 
 CONTENT_PATH = Path(__file__).resolve().parent.parent / "content" / "grammar_basic.json"
+# 문장 키 → 한국어 번역(`TASK-328`). 미리 만들어 검수한 파일이고
+# `scripts/translate_grammar_course.py` 가 만든다.
+TRANSLATIONS_PATH = CONTENT_PATH.with_name("grammar_basic_ko.json")
 UNIT_COUNT = 113
 DAY_COUNT = 6
 SENTENCES_PER_UNIT = 5
@@ -123,6 +126,18 @@ class Course(pydantic.BaseModel):
 def load_course(path: Path = CONTENT_PATH) -> Course:
     """콘텐츠 파일을 한 번 읽어 값역으로 가둔다. 실패하면 예외 — 조용히 빈 코스를 내지 않는다."""
     return Course.model_validate(json.loads(path.read_text(encoding="utf-8")))
+
+
+@lru_cache(maxsize=1)
+def load_translations(path: Path = TRANSLATIONS_PATH) -> dict[str, str]:
+    """문장 키 → 한국어 번역. 파일이 없으면 예외 — 빈 번역으로 조용히 넘어가지 않는다(`TASK-328`).
+
+    ⛔ 콘텐츠 파일(`grammar_basic.json`)과 나눠 둔다 — 문장 값역의 검증(단원 113개 · 문장 다섯 개)을
+    건드리지 않고, 번역만 다시 만들 때 콘텐츠 파일이 바뀌지 않게 한다.
+    모든 문장에 번역이 있는지는 단위 시험이 본다.
+    """
+    data = json.loads(path.read_text(encoding="utf-8"))
+    return {str(key): str(value) for key, value in data.items()}
 
 
 class ProgressUpdate(pydantic.BaseModel):
