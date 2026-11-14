@@ -1,0 +1,9 @@
+{
+  "name": "ohmyenglish-agent-tools",
+  "private": true,
+  "description": "TestAgent 회차용 도구 — 앱 패키지와 분리함. Playwright 1.58.2 는 이 맥에 받아 둔 chromium-1208 을 씀.",
+  "type": "module",
+  "devDependencies": {
+    "playwright": "1.58.2"
+  }
+}
