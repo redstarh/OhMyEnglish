@@ -64,6 +64,7 @@ export function WordLookup({ sentence }: { sentence: string }) {
             <button
               key={index}
               type="button"
+              data-testid="video-word"
               onClick={() => void ask(token)}
               /* 낱말을 버튼으로 두면서 문장처럼 보이게 한다 — 색은 `globals.css` 토큰에서만 온다. */
               style={{

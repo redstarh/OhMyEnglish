@@ -273,6 +273,7 @@ function Notice({ strong, children }: { strong: boolean; children: ReactNode }) 
 }
 
 export function SessionChat({
+  title,
   lines,
   partialLine,
   listening,
@@ -285,6 +286,8 @@ export function SessionChat({
   onReplay,
   onTranslate,
 }: {
+  /** 머리의 제목 — 세션을 연 버튼의 이름임(`TASK-333` N3 · 옛 고정값 「English talk」). */
+  title: string;
   lines: TranscriptLine[];
   partialLine: TranscriptLine | null;
   listening: boolean;
@@ -382,7 +385,9 @@ export function SessionChat({
           aria-hidden
           style={{ width: 10, height: 10, borderRadius: "50%", background: "var(--accent)" }}
         />
-        <h2 style={{ fontSize: "1.1rem", fontWeight: 700, flex: 1 }}>English talk</h2>
+        <h2 style={{ fontSize: "1.1rem", fontWeight: 700, flex: 1 }} data-testid="session-title">
+          {title}
+        </h2>
         <button
           onClick={onEnd}
           data-testid="session-end"

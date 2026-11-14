@@ -1,0 +1,538 @@
+{
+  "results": [
+    {
+      "item": "N1",
+      "width": 1400,
+      "ok": true,
+      "detail": {
+        "best": "Best streak: 1 day",
+        "insideWeeklyStats": false,
+        "underCaption": 2,
+        "caption": "Last week · Nov 2 – Nov 8",
+        "bestAboveCaption": true,
+        "bestRow": [
+          "Grammar course",
+          "This week: 1 / 7 days",
+          "Best streak: 1 day"
+        ],
+        "shot": "evidence/N1-progress-1400.png"
+      }
+    },
+    {
+      "item": "X3",
+      "width": 1400,
+      "ok": true,
+      "detail": {
+        "title": "Show Korean translation",
+        "shot": "evidence/X3-ko-1400.png"
+      }
+    },
+    {
+      "item": "N2-all",
+      "width": 1400,
+      "ok": true,
+      "detail": {
+        "allMatchedAttr": "true",
+        "allMatchedText": "All words matched",
+        "verdictLineHidden": true,
+        "verdictLineText": null,
+        "verdictSpans": 8,
+        "slotFits": true,
+        "slotScroll": 160,
+        "slotClient": 160,
+        "sentence": "We were testing the app when it crashed.",
+        "heightBefore": 513.59375,
+        "heightAfter": 513.59375,
+        "shot": "evidence/N2-all-1400.png"
+      }
+    },
+    {
+      "item": "N2-some",
+      "width": 1400,
+      "ok": true,
+      "detail": {
+        "allMatchedAttr": "false",
+        "allMatchedText": null,
+        "verdictLineHidden": false,
+        "verdictLineText": "Sentence: He called me while I was driving",
+        "verdictSpans": 7,
+        "slotFits": true,
+        "slotScroll": 160,
+        "slotClient": 160,
+        "sentence": "He called me while I was driving.",
+        "heightBefore": 513.59375,
+        "heightAfter": 513.59375,
+        "shot": "evidence/N2-some-1400.png"
+      }
+    },
+    {
+      "item": "N3-Free talk",
+      "width": 1400,
+      "ok": true,
+      "detail": {
+        "title": "Free talk",
+        "socket": "ws://localhost:8002/ws/session?source=additional",
+        "shot": "evidence/N3-practice-free_talk-1400.png"
+      }
+    },
+    {
+      "item": "N3-Weak spots",
+      "width": 1400,
+      "ok": true,
+      "detail": {
+        "title": "Weak spots",
+        "socket": "ws://localhost:8002/ws/session?source=additional",
+        "shot": "evidence/N3-practice-weak_patterns-1400.png"
+      }
+    },
+    {
+      "item": "N3-Practice a pattern",
+      "width": 1400,
+      "ok": true,
+      "detail": {
+        "title": "Practice a pattern",
+        "socket": "ws://localhost:8002/ws/session?source=additional",
+        "shot": "evidence/N3-focus-practice-1400.png"
+      }
+    },
+    {
+      "item": "N4-old-server",
+      "width": 1400,
+      "ok": true,
+      "detail": {
+        "href": "/",
+        "shot": "evidence/N4-old-1400.png"
+      }
+    },
+    {
+      "item": "N4-href-speaking",
+      "width": 1400,
+      "ok": true,
+      "detail": {
+        "href": "/?mode=speaking&source=additional",
+        "homeLinks": 1,
+        "shot": "evidence/N4-speaking-1400.png"
+      }
+    },
+    {
+      "item": "N4-reopens",
+      "width": 1400,
+      "ok": true,
+      "detail": {
+        "title": "Free talk",
+        "socket": "ws://localhost:8002/ws/session?mode=speaking&source=additional",
+        "url": "http://localhost:3000/",
+        "shot": "evidence/N4-reopened-1400.png"
+      }
+    },
+    {
+      "item": "N4-href-shadowing",
+      "width": 1400,
+      "ok": true,
+      "detail": {
+        "href": "/?mode=shadowing&source=additional&item=c0ffee00-0000-0000-0000-000000000333",
+        "homeLinks": 1,
+        "shot": "evidence/N4-shadowing-1400.png"
+      }
+    },
+    {
+      "item": "N7",
+      "width": 1400,
+      "ok": true,
+      "detail": {
+        "shot": "evidence/N7-1400.png"
+      }
+    },
+    {
+      "item": "N8-real",
+      "width": 1400,
+      "ok": true,
+      "detail": {
+        "gaps": [
+          "No study · Nov 2 – Nov 13",
+          "No study · Oct 16 – Oct 31"
+        ],
+        "shot": "evidence/N8-real-1400.png"
+      }
+    },
+    {
+      "item": "N5-nothing-said",
+      "width": 1400,
+      "ok": true,
+      "detail": {
+        "said": "2026-11-14 · Studied · 2 lessons ▾ Nothing said",
+        "other": "2026-11-01 · Studied → Not analyzed yet",
+        "hint": true,
+        "shot": "evidence/N5-N8-fake-1400.png"
+      }
+    },
+    {
+      "item": "N8-fake",
+      "width": 1400,
+      "ok": true,
+      "detail": {
+        "gaps": [
+          "No study · Nov 2 – Nov 13",
+          "No study · Oct 31"
+        ]
+      }
+    },
+    {
+      "item": "N6",
+      "width": 1400,
+      "ok": true,
+      "detail": {
+        "sections": {
+          "Common mistakes last week": "Nothing to show for last week.",
+          "Getting better": "Nothing to show for last week.",
+          "Try this week": "No suggestions yet."
+        },
+        "shot": "evidence/N6-1400.png"
+      }
+    },
+    {
+      "item": "N9",
+      "width": 1400,
+      "ok": true,
+      "detail": {
+        "label": "Preview video"
+      }
+    },
+    {
+      "item": "TASK-332-list",
+      "width": 1400,
+      "ok": true,
+      "detail": {
+        "listIds": [
+          "videos-home",
+          "videos-url",
+          "videos-check",
+          "videos-save",
+          "videos-cancel",
+          "videos-title",
+          "videos-delete"
+        ],
+        "untagged": [],
+        "shot": "evidence/TASK332-videos-1400.png"
+      }
+    },
+    {
+      "item": "TASK-332-detail",
+      "width": 1400,
+      "ok": true,
+      "detail": {
+        "detailIds": [
+          "video-back",
+          "video-mark-end",
+          "video-mark-cancel",
+          "video-word",
+          "video-listen",
+          "video-practise",
+          "video-delete"
+        ],
+        "untagged": [],
+        "shot": "evidence/TASK332-video-1400.png"
+      }
+    },
+    {
+      "item": "TASK-332-cancel",
+      "width": 1400,
+      "ok": true,
+      "detail": {
+        "markStartAfterCancel": 1
+      }
+    },
+    {
+      "item": "console-errors",
+      "width": 1400,
+      "ok": null,
+      "detail": []
+    },
+    {
+      "item": "N1",
+      "width": 390,
+      "ok": true,
+      "detail": {
+        "best": "Best streak: 1 day",
+        "insideWeeklyStats": false,
+        "underCaption": 2,
+        "caption": "Last week · Nov 2 – Nov 8",
+        "bestAboveCaption": true,
+        "bestRow": [
+          "Grammar course",
+          "This week: 1 / 7 days",
+          "Best streak: 1 day"
+        ],
+        "shot": "evidence/N1-progress-390.png"
+      }
+    },
+    {
+      "item": "X3",
+      "width": 390,
+      "ok": true,
+      "detail": {
+        "title": "Show Korean translation",
+        "shot": "evidence/X3-ko-390.png"
+      }
+    },
+    {
+      "item": "N2-all",
+      "width": 390,
+      "ok": true,
+      "detail": {
+        "allMatchedAttr": "true",
+        "allMatchedText": "All words matched",
+        "verdictLineHidden": true,
+        "verdictLineText": null,
+        "verdictSpans": 8,
+        "slotFits": true,
+        "slotScroll": 160,
+        "slotClient": 160,
+        "sentence": "We were testing the app when it crashed.",
+        "heightBefore": 513.59375,
+        "heightAfter": 513.59375,
+        "shot": "evidence/N2-all-390.png"
+      }
+    },
+    {
+      "item": "N2-some",
+      "width": 390,
+      "ok": true,
+      "detail": {
+        "allMatchedAttr": "false",
+        "allMatchedText": null,
+        "verdictLineHidden": false,
+        "verdictLineText": "Sentence: He called me while I was driving",
+        "verdictSpans": 7,
+        "slotFits": true,
+        "slotScroll": 160,
+        "slotClient": 160,
+        "sentence": "He called me while I was driving.",
+        "heightBefore": 513.59375,
+        "heightAfter": 513.59375,
+        "shot": "evidence/N2-some-390.png"
+      }
+    },
+    {
+      "item": "N3-Free talk",
+      "width": 390,
+      "ok": true,
+      "detail": {
+        "title": "Free talk",
+        "socket": "ws://localhost:8002/ws/session?source=additional",
+        "shot": "evidence/N3-practice-free_talk-390.png"
+      }
+    },
+    {
+      "item": "N3-Weak spots",
+      "width": 390,
+      "ok": true,
+      "detail": {
+        "title": "Weak spots",
+        "socket": "ws://localhost:8002/ws/session?source=additional",
+        "shot": "evidence/N3-practice-weak_patterns-390.png"
+      }
+    },
+    {
+      "item": "N3-Practice a pattern",
+      "width": 390,
+      "ok": true,
+      "detail": {
+        "title": "Practice a pattern",
+        "socket": "ws://localhost:8002/ws/session?source=additional",
+        "shot": "evidence/N3-focus-practice-390.png"
+      }
+    },
+    {
+      "item": "N4-old-server",
+      "width": 390,
+      "ok": true,
+      "detail": {
+        "href": "/",
+        "shot": "evidence/N4-old-390.png"
+      }
+    },
+    {
+      "item": "N4-href-speaking",
+      "width": 390,
+      "ok": true,
+      "detail": {
+        "href": "/?mode=speaking&source=additional",
+        "homeLinks": 1,
+        "shot": "evidence/N4-speaking-390.png"
+      }
+    },
+    {
+      "item": "N4-reopens",
+      "width": 390,
+      "ok": true,
+      "detail": {
+        "title": "Free talk",
+        "socket": "ws://localhost:8002/ws/session?mode=speaking&source=additional",
+        "url": "http://localhost:3000/",
+        "shot": "evidence/N4-reopened-390.png"
+      }
+    },
+    {
+      "item": "N4-href-shadowing",
+      "width": 390,
+      "ok": true,
+      "detail": {
+        "href": "/?mode=shadowing&source=additional&item=c0ffee00-0000-0000-0000-000000000333",
+        "homeLinks": 1,
+        "shot": "evidence/N4-shadowing-390.png"
+      }
+    },
+    {
+      "item": "N7",
+      "width": 390,
+      "ok": true,
+      "detail": {
+        "shot": "evidence/N7-390.png"
+      }
+    },
+    {
+      "item": "N8-real",
+      "width": 390,
+      "ok": true,
+      "detail": {
+        "gaps": [
+          "No study · Nov 2 – Nov 13",
+          "No study · Oct 16 – Oct 31"
+        ],
+        "shot": "evidence/N8-real-390.png"
+      }
+    },
+    {
+      "item": "N5-nothing-said",
+      "width": 390,
+      "ok": true,
+      "detail": {
+        "said": "2026-11-14 · Studied · 2 lessons ▾ Nothing said",
+        "other": "2026-11-01 · Studied → Not analyzed yet",
+        "hint": true,
+        "shot": "evidence/N5-N8-fake-390.png"
+      }
+    },
+    {
+      "item": "N8-fake",
+      "width": 390,
+      "ok": true,
+      "detail": {
+        "gaps": [
+          "No study · Nov 2 – Nov 13",
+          "No study · Oct 31"
+        ]
+      }
+    },
+    {
+      "item": "N6",
+      "width": 390,
+      "ok": true,
+      "detail": {
+        "sections": {
+          "Common mistakes last week": "Nothing to show for last week.",
+          "Getting better": "Nothing to show for last week.",
+          "Try this week": "No suggestions yet."
+        },
+        "shot": "evidence/N6-390.png"
+      }
+    },
+    {
+      "item": "N9",
+      "width": 390,
+      "ok": true,
+      "detail": {
+        "label": "Preview video"
+      }
+    },
+    {
+      "item": "TASK-332-list",
+      "width": 390,
+      "ok": true,
+      "detail": {
+        "listIds": [
+          "videos-home",
+          "videos-url",
+          "videos-check",
+          "videos-save",
+          "videos-cancel",
+          "videos-title",
+          "videos-delete"
+        ],
+        "untagged": [],
+        "shot": "evidence/TASK332-videos-390.png"
+      }
+    },
+    {
+      "item": "TASK-332-detail",
+      "width": 390,
+      "ok": true,
+      "detail": {
+        "detailIds": [
+          "video-back",
+          "video-mark-end",
+          "video-mark-cancel",
+          "video-word",
+          "video-listen",
+          "video-practise",
+          "video-delete"
+        ],
+        "untagged": [],
+        "shot": "evidence/TASK332-video-390.png"
+      }
+    },
+    {
+      "item": "TASK-332-cancel",
+      "width": 390,
+      "ok": true,
+      "detail": {
+        "markStartAfterCancel": 1
+      }
+    },
+    {
+      "item": "console-errors",
+      "width": 390,
+      "ok": null,
+      "detail": [
+        "Permissions policy violation: compute-pressure is not allowed in this document."
+      ]
+    }
+  ],
+  "blocked": [
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/sentences/u014-s3/attempts/text",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/sentences/u014-s4/attempts/text",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST https://jnn-pa.googleapis.com/$rpc/google.internal.waa.v1.Waa/GenerateIT",
+    "POST https://www.youtube.com/youtubei/v1/att/get?prettyPrint=false",
+    "POST https://www.youtube.com/youtubei/v1/log_event?alt=json",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/sentences/u014-s3/attempts/text",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/sentences/u014-s4/attempts/text",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST https://jnn-pa.googleapis.com/$rpc/google.internal.waa.v1.Waa/GenerateIT",
+    "POST https://www.youtube.com/youtubei/v1/att/get?prettyPrint=false",
+    "POST https://www.youtube.com/youtubei/v1/log_event?alt=json"
+  ],
+  "sockets": [
+    "ws://localhost:8002/ws/session?source=additional",
+    "ws://localhost:8002/ws/session?source=additional",
+    "ws://localhost:8002/ws/session?source=additional",
+    "ws://localhost:8002/ws/session?mode=speaking&source=additional",
+    "ws://localhost:8002/ws/session?source=additional",
+    "ws://localhost:8002/ws/session?source=additional",
+    "ws://localhost:8002/ws/session?source=additional",
+    "ws://localhost:8002/ws/session?mode=speaking&source=additional"
+  ]
+}

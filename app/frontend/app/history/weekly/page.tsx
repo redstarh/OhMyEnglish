@@ -45,6 +45,9 @@ const NEXT_HEADING: Record<WeekRelation, string> = {
 };
 const topErrorsHeading = (relation: WeekRelation) => `Common mistakes ${PERIOD_PHRASE[relation]}`;
 const nothingToSay = (relation: WeekRelation) => `Nothing to show for ${PERIOD_PHRASE[relation]}.`;
+// 다음 제안의 빈 문구는 기간을 말하지 않음(`TASK-333` N6) — 「Try this week」 아래에 「… for last week.」가 나와
+// 제목과 본문이 다른 주를 말했음(회차 b18 N6).
+const NO_SUGGESTIONS = "No suggestions yet.";
 
 const patternLine = (item: WeeklyTopPattern) =>
   `${item.target_form} — ${item.occurrences}× (${item.category})`;
@@ -132,7 +135,7 @@ export default function WeeklyReportPage() {
           <Sentences
             heading={NEXT_HEADING[relation]}
             items={insights.next_scenarios ?? []}
-            empty={nothingToSay(relation)}
+            empty={NO_SUGGESTIONS}
           />
         </>
       )}

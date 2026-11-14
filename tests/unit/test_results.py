@@ -487,6 +487,63 @@ async def test_results_mark_a_completed_scenario_session_as_finished(
     assert body["finished"] is True
 
 
+# ⑥-3 `TASK-333` N4 — 발화 없는 결과의 「Start again →」이 같은 학습을 다시 열도록
+#    그 세션의 진입을 싣는다.
+#    ⛔ 키 이름은 홈 진입 질의(`?mode=&source=&item=&pattern=`)와 같음 — 화면이 그대로 옮겨 씀.
+#    ⚠️ `via` 는 싣지 않음 — 다시 여는 것은 화면 버튼이라 음성 명령으로 기록하면 거짓이 됨.
+async def test_results_carry_the_entry_that_opened_the_session(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session
+):
+    async with db_pool.acquire() as conn:
+        await conn.execute(
+            "update learning_sessions set learning_source = 'additional', "
+            "focus_pattern_key = 'article_missing', started_via = 'voice_command' where id = $1",
+            committed_session.session_id,
+        )
+
+    body = (await api_client.get(f"/api/sessions/{committed_session.session_id}/results")).json()
+
+    assert body["entry"] == {
+        "mode": "speaking",
+        "source": "additional",
+        "item": None,
+        "pattern": "article_missing",
+    }
+
+
+async def test_results_entry_carries_the_shadowing_clip(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session
+):
+    """쉐도잉 세션은 같은 클립으로 다시 열려야 같은 학습임 — 클립 id 를 `item` 으로 실음."""
+    async with db_pool.acquire() as conn:
+        clip_id = await conn.fetchval(
+            "insert into shadowing_items "
+            "(source_title, transcript, clip_start_sec, clip_end_sec, level) "
+            "values ('TASK-333 clip', 'We have a meeting at three.', 0, 5, 'A2') returning id"
+        )
+        await conn.execute(
+            "update learning_sessions set mode = 'shadowing', learning_source = 'additional', "
+            "shadowing_item_id = $2 where id = $1",
+            committed_session.session_id,
+            clip_id,
+        )
+    try:
+        body = (
+            await api_client.get(f"/api/sessions/{committed_session.session_id}/results")
+        ).json()
+    finally:
+        # ⛔ `shadowing_items` 는 공유 표임 — 남기면 클립 고르기 시험이 누출로 깨짐.
+        async with db_pool.acquire() as conn:
+            await conn.execute("delete from shadowing_items where id = $1", clip_id)
+
+    assert body["entry"] == {
+        "mode": "shadowing",
+        "source": "additional",
+        "item": str(clip_id),
+        "pattern": None,
+    }
+
+
 # ⑦ frequency=0으로 남은(occurrence 없는) 패턴은 결과에 나오지 않는다 (T6 다운스트림 계약)
 async def test_frequency_zero_pattern_without_occurrence_does_not_appear(
     api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_session

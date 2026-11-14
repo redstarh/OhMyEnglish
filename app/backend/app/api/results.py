@@ -163,6 +163,13 @@ async def get_results(session_id: UUID, request: Request) -> dict[str, object]:
         **_result_payload(result),
         "session_date": day.day.isoformat(),
         "finished": day.finished,
+        # `TASK-333` N4 — 발화 없는 결과의 「Start again →」이 같은 학습을 다시 여는 진입.
+        "entry": {
+            "mode": day.entry.mode,
+            "source": day.entry.source,
+            "item": str(day.entry.item) if day.entry.item is not None else None,
+            "pattern": day.entry.pattern,
+        },
     }
 
 

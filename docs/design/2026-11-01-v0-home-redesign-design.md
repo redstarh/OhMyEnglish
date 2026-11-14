@@ -195,6 +195,42 @@
 - 번역 줄은 KO 를 켰을 때만 두 줄 자리를 잡음. 565개 모두 두 줄에 듦(320 · 390 · 1400).
 - 높이: KO 켬이면 대기·세션 높이와 연습 최저 높이가 34.9rem, 끔이면 32.1rem 임. 1400·390 에서 대기와 연습이 같음.
 
+### 회차 b18 보고서 관찰 13건 (2026-11-14 · `TASK-333` · `TASK-332`)
+
+- 근거: `docs/ux/2026-11-14-b18-ux-flow-review/index.html` §2·§3. 사용자는 13건 모두 권장안대로 결정함.
+- `TASK-332`: 영상 두 화면의 실행 버튼·링크에 testid 를 붙임. 목록은 `videos-url` · `videos-check` · `videos-save` · `videos-cancel` · `videos-title` · `videos-delete` 임.
+- `TASK-332`: 영상 화면은 `video-mark-start` · `video-mark-end` · `video-mark-cancel` · `video-span-transcript` · `video-span-save` · `video-span-cancel` 임.
+- `TASK-332`: 문장 줄은 `video-listen` · `video-practise` · `video-delete` · `video-word` 임. `video-open-youtube` 도 붙임. 옛 `videos-home` · `video-back` 은 그대로임.
+- N1 홈 Your progress: `Best streak: N days` 를 진도 줄(`Grammar course` · `This week`)로 옮김. 전체 기간 값이기 때문임.
+- N1: `Last week · …` 꼬리표는 Sessions · Patterns 두 칸만 덮음. testid `stat-best-streak` 는 그대로임.
+- N2 문장 연습 결과: 다 맞으면 낱말 판정 줄 대신 `All words matched` 한 줄을 보임(testid `course-all-matched`).
+- N2: 하나라도 다르면 판정 줄 앞에 `Sentence:` 이름표를 붙임. 낱말 판정(`data-verdict`)은 다 맞을 때도 숨긴 채 DOM 에 남김.
+- N2: 결과 자리 높이(`course-result-slot`)는 바꾸지 않음. 카드 크기는 그대로임.
+- N3 코치 세션 제목: 고정 문구 `English talk` 를 없애고 누른 버튼의 이름을 씀(`Free talk` · `Weak spots` · `Practice a pattern` 등).
+- N3: 버튼 이름이 없는 진입(주소 질의 · 음성 명령)은 진입으로 More practice 목록에서 고름. 모드 없는 말하기는 `Free talk` 임.
+- N3: 목록에 없는 진입만 옛 `English talk` 를 씀. 판정은 `sessionTitleFor`(`app/additionalLearning.ts`) 하나가 가짐.
+- N4 발화 없는 결과: `Start again →` 은 같은 학습을 다시 엶. 결과 API 가 그 세션의 진입(`entry`: 모드 · 출처 · 클립 · 패턴)을 실음.
+- N4: 화면은 그 진입으로 홈 질의(`/?mode=…&source=…`)를 만들고 홈이 세션을 엶. 말하기는 `mode=speaking` 을 명시함.
+- N4: `via` 는 옮기지 않음(화면 버튼임). 진입이 없는 옛 서버에서는 홈으로 감. 안내 문구는 `Check your microphone, then start again.` 임.
+- N4: 아래 `← Home` 은 남김. 홈으로만 가는 다른 일이라 중복이 아님.
+- N4 한계: Free talk 와 Weak spots 는 세션 행이 같아 Weak spots 의 다시 시작은 `Free talk` 제목으로 열림.
+- N5 기록: 그날 마친 세션이 모두 발화 0건이면 `Not analyzed yet` 대신 `Nothing said` 를 씀. 서버가 날짜 줄에 `spoken` 을 실음.
+- N5: 「말했다」의 술어는 분석 대상 발화(학습자 · 학습 발화)와 같음. 정본은 `services/utterances.py` 임.
+- N5: 연속 학습일(현재 · 최장)은 발화 0건 세션을 세지 않음. 완료 판정(`completed_today` · `learned`)은 그대로 둠.
+- N5: 그래서 연속일과 완료 술어가 이 한 가지에서 갈림. 「마쳤다」는 사실과 「말하며 공부한 날」을 가르는 의도임.
+- N5: 설명 줄(`history-not-analyzed-hint`)은 `Not analyzed yet` 인 날이 있을 때만 보임.
+- N6 주간 리포트: 다음 제안 절(`Try this week` 등)의 빈 문구를 `No suggestions yet.` 로 바꿈. 다른 두 절은 그대로임.
+- N7 결과: 드릴 미달 문구를 `This drill was shorter than planned.` 로 바꿈. C3 하네스 기대값도 함께 바꿈.
+- N8 기록: 공부하지 않은 날이 이어지면 `No study · Nov 2 – Nov 13` 한 줄로 접음(testid `history-gap`). 하루면 `No study · Nov 5` 임.
+- N8: 공부한 날 줄의 날짜 표기(`2026-11-14 · Studied`)는 바꾸지 않음.
+- N9 영상 목록: `Check` 는 저장하지 않고 제목 · 채널을 받아 미리 보임. 저장은 그 아래 `Save` 가 함.
+- N9: 그래서 권장안 `Save video` 대신 하는 일과 맞는 `Preview video` 로 씀.
+- N10 홈 대기(KO 켬): 대기 = 연습 높이를 유지함(`TASK-310` · `TASK-328` 결정 그대로). 남색 빈 자리는 알고 둠.
+- X1 예외: 남색 대기 카드의 `Start speaking` 은 `omy-button` 이 아닌 흰 버튼임. 남색 위에서 첫 동작을 가장 눈에 띄게 하려는 의도된 예외임.
+- X2 규칙: More practice 묶음의 버튼은 다른 화면으로 가더라도(`Learn with videos`) 회색 `omy-button` 임.
+- X2: 「앞으로 가는 이동만 `omy-button-primary`」 규칙은 More practice 에 적용하지 않음. 고르는 목록이라 모두 같은 무게로 둠.
+- X3 KO 켜기/끄기: `title="Show Korean translation"` 을 붙임. `aria-label` 과 같은 문구임.
+
 ## 4. 파일 계획
 
 - 새 파일: `postcss.config.mjs` · `components.json` · `lib/utils.ts` · `components/ui/button.tsx` · `components/app-shell.tsx` · `app/additionalLearning.ts`(추가 학습 목록과 `entryForTarget` 을 옮기고 고정 `key` 를 줌) · `components/home/HomeDashboard.tsx`.

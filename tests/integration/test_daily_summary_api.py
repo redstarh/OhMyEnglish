@@ -252,8 +252,14 @@ async def test_endpoint_ignores_another_learners_summary(
 _SCENARIO_TITLE = "API Completion Test"
 
 
-async def _completed_session(pool: asyncpg.Pool, user_id: UUID, *, with_scenario: bool) -> UUID:
-    """정상 종료된 세션 1건을 **오늘**(사용자 타임존) 끝난 것으로 심고 그 id 를 돌려준다."""
+async def _completed_session(
+    pool: asyncpg.Pool, user_id: UUID, *, with_scenario: bool, spoken: bool = True
+) -> UUID:
+    """정상 종료된 세션 1건을 **오늘**(사용자 타임존) 끝난 것으로 심고 그 id 를 돌려준다.
+
+    `spoken` 이 참이면 학습자 발화 1건을 함께 심음 — 연속 학습일은 발화 0건 세션을
+    세지 않음(`TASK-333`).
+    """
     async with pool.acquire() as conn:
         scenario_id = (
             await conn.fetchval(
@@ -271,6 +277,12 @@ async def _completed_session(pool: asyncpg.Pool, user_id: UUID, *, with_scenario
             user_id,
             scenario_id,
         )
+        if spoken:
+            await conn.execute(
+                "insert into utterances (session_id, speaker, transcript, sequence_no) "
+                "values ($1, 'user', 'I had a meeting', 1)",
+                session_id,
+            )
     assert session_id is not None
     return session_id
 
@@ -333,6 +345,22 @@ async def test_history_endpoint_carries_streak_and_days(
     assert today["completed_scenarios"] == 1
     # 분석은 돌지 않았으므로 요약이 없다 — 두 사실이 갈라져 온다(설계서 §6 의 미결 ⑴).
     assert today["analyzed"] is False
+    # `TASK-333` N5 — 말한 세션이 있는 날임.
+    assert today["spoken"] is True
+
+
+# ⑨-2 `TASK-333` N5 — 발화 0건 세션뿐인 날은 `spoken` 이 거짓이고 연속 학습일에 세지 않음.
+async def test_history_endpoint_does_not_count_silent_sessions(
+    api_client: httpx.AsyncClient, db_pool: asyncpg.Pool, committed_fixed_user
+) -> None:
+    await _completed_session(db_pool, FIXED_USER_ID, with_scenario=True, spoken=False)
+
+    payload = (await api_client.get(HISTORY_PATH)).json()
+
+    assert payload["streak"] == {"current": 0, "longest": 0, "today_done": False}
+    today = payload["days"][0]
+    assert today["learned"] is True, "완료 판정은 그대로임"
+    assert today["spoken"] is False
 
 
 # ⑩ 기록이 없어도 200 이고 0이다 — 첫 사용자의 화면이 비는 것이 정상이다.

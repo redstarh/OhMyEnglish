@@ -79,6 +79,28 @@ export const ADDITIONAL_LEARNING: ReadonlyArray<AdditionalLearningItem> = [
   { key: "roleplay", label: "Work role-play", entry: null, note: "Not ready yet" },
 ];
 
+// 이 목록 밖에서 연 코치 세션의 제목 (`TASK-333` N3). 옛 고정 제목 「English talk」를 남김.
+const FALLBACK_SESSION_TITLE = "English talk";
+// 결과 화면의 「Practice this」·홈의 「Practice a pattern」처럼 패턴을 골라 연 세션의 제목.
+const PATTERN_SESSION_TITLE = "Practice a pattern";
+
+/**
+ * 코치 세션 머리의 제목 (`TASK-333` N3 · 회차 b18). 「Free talk」로 열었는데 「English talk」로 보였음.
+ *
+ * ⛔ 누른 버튼의 이름이 있으면 그것이 이김 — Free talk 와 Weak spots 는 진입이 같아 진입만으로 가를 수 없음.
+ * ⚠️ 이름이 없으면(주소 질의 · 음성 명령 · 다시 시도) 진입으로 이 목록에서 고름. 같은 진입이 여럿이면
+ *    목록의 앞 항목임(모드 없는 말하기 → Free talk).
+ */
+export function sessionTitleFor(entry: SessionEntry, label?: string): string {
+  if (label) return label;
+  if (entry.patternKey) return PATTERN_SESSION_TITLE;
+  const mode = entry.mode === "speaking" ? undefined : entry.mode;
+  const item = ADDITIONAL_LEARNING.find(
+    (candidate) => candidate.entry !== null && candidate.entry.mode === mode && candidate.entry.source === entry.source,
+  );
+  return item?.label ?? FALLBACK_SESSION_TITLE;
+}
+
 /** 음성 명령이 고른 대상의 진입 정보. 없으면 `null` — 화면은 그때 새 세션을 열지 않는다.
  *
  * ⛔ **`via: "voice_command"` 를 여기서 붙인다** (`TASK-242` · 결함 `TASK-234`). 이 함수가 **음성

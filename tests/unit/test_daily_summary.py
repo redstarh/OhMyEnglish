@@ -455,14 +455,25 @@ async def test_completion_follows_the_same_today_rules(db_conn: asyncpg.Connecti
 # 서로 어긋난다(R15-1). 그래서 같은 모듈이 둘을 소유한다.
 
 
-async def _completed_on(conn: asyncpg.Connection, scenario_id: UUID, *days: int) -> None:
-    """2026-09-11 을 기준으로 `days` 만큼 «이전» 날짜에 완료 세션을 하나씩 심는다."""
+async def _completed_on(
+    conn: asyncpg.Connection, scenario_id: UUID, *days: int, spoken: bool = True
+) -> None:
+    """2026-09-11 을 기준으로 `days` 만큼 «이전» 날짜에 완료 세션을 하나씩 심는다.
+
+    `spoken` 이 참이면 그 세션에 학습자 발화 1건을 함께 심음(`TASK-333` N5) — 연속 학습일은
+    발화 0건 세션을 세지 않으므로, 기본값을 「말한 세션」으로 둬야 앞의 연속일 단정이 그대로 섬.
+    """
     for offset in days:
-        await _ended_session(
-            conn,
-            ended_at=datetime(2026, 9, 11, 21, 0, tzinfo=KST) - timedelta(days=offset),
-            scenario_id=scenario_id,
-        )
+        ended_at = datetime(2026, 9, 11, 21, 0, tzinfo=KST) - timedelta(days=offset)
+        session_id = await _ended_session(conn, ended_at=ended_at, scenario_id=scenario_id)
+        if spoken:
+            await conn.execute(
+                "insert into utterances (session_id, speaker, transcript, sequence_no, created_at) "
+                "values ($1, 'user', 'I had a meeting', $2, $3)",
+                session_id,
+                next(_SEQ),
+                ended_at - timedelta(minutes=5),
+            )
 
 
 # ⑰ AC15-1 — 이틀 연속이면 현재 연속일이 2다.
@@ -578,3 +589,40 @@ async def test_longest_streak_can_be_an_earlier_island(db_conn: asyncpg.Connecti
 
     assert streak.longest == 3, "마지막 구간(1일)이 아니라 앞 구간이 최장이다"
     assert streak.current == 0, "마지막 학습일이 그저께보다 오래됐다"
+
+
+# ㉕ `TASK-333` N5 — 발화 0건 세션(한마디도 하지 않고 끝난 세션)은 연속 학습일에 세지 않음.
+#    회차 b18 에서 말하지 않은 세션 6개뿐인 날이 「1-day streak!」으로 셌음.
+async def test_silent_sessions_do_not_count_toward_the_streak(db_conn: asyncpg.Connection) -> None:
+    await _seed_user(db_conn)
+    scenario_id = await _seed_scenario(db_conn)
+    # 오늘과 3~5일 전은 말하지 않은 세션뿐 · 어제와 그저께는 말한 세션임.
+    await _completed_on(db_conn, scenario_id, 0, 3, 4, 5, spoken=False)
+    await _completed_on(db_conn, scenario_id, 1, 2)
+
+    streak = await load_streak(db_conn, USER_ID, now=datetime(2026, 9, 11, 23, 0, tzinfo=KST))
+
+    assert streak.today_done is False, "오늘은 말하지 않은 세션뿐임"
+    assert streak.current == 2, "어제까지의 말한 이틀만 셈"
+    assert streak.longest == 2, "말하지 않은 3~5일 전을 세면 최장이 6이 됨"
+
+
+# ㉖ `TASK-333` N5 — 기록 줄은 그날 마친 세션 가운데 말한 세션이 있는지(`spoken`)를 함께 줌.
+#    화면은 말한 세션이 없는 날을 「Not analyzed yet」 대신 「Nothing said」로 적음.
+async def test_history_tells_whether_anything_was_said_that_day(
+    db_conn: asyncpg.Connection,
+) -> None:
+    await _seed_user(db_conn)
+    scenario_id = await _seed_scenario(db_conn)
+    await _completed_on(db_conn, scenario_id, 0)
+    await _completed_on(db_conn, scenario_id, 1, 1, spoken=False)
+
+    history = await load_history(
+        db_conn, USER_ID, days=3, now=datetime(2026, 9, 11, 23, 0, tzinfo=KST)
+    )
+
+    today, yesterday, before = history
+    assert today.learned is True and today.spoken is True
+    assert yesterday.learned is True, "완료 판정은 그대로임 — 마친 세션이 있음"
+    assert yesterday.spoken is False, "그날 세션 둘 다 발화 0건임"
+    assert before.learned is False and before.spoken is False

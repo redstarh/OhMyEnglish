@@ -12,7 +12,7 @@ import {
   type SessionResultPayload,
   type SessionResultStatus,
 } from "@/lib/api";
-import { dashboardEntryHref } from "@/lib/config";
+import { dashboardEntryHref, restartHref } from "@/lib/config";
 import { dayLabel, sessionWording } from "@/lib/learnerDate";
 
 const POLL_INTERVAL_MS = 2000;
@@ -133,7 +133,8 @@ function failureNotice(err: unknown): string {
 // 시범합니다"(`docs/storyboard.html`:101)다.
 // **주어를 세션에 둔다** — 미달의 주어는 학습자가 아니라 대화 모델이므로(결정 10) 학습자를
 // 주어로 쓰면 손쓸 수 없는 수를 자기 잘못으로 읽는다. 문구는 설계서 §2.3의 예시 그대로다.
-const DRILL_SHORTFALL_NOTICE = "Today's drill was shorter than planned.";
+// `TASK-333` N7 — 「Today's」는 지난 세션 결과에도 남아 그날이 오늘로 읽혔음. 어느 날의 결과에도 맞는 「This」로 씀.
+const DRILL_SHORTFALL_NOTICE = "This drill was shorter than planned.";
 
 // 세션 총평 문구 (`TASK-62` · 설계서 §2.1). ⛔ **점수·등급을 표시하는 자리를 만들지 않는다** —
 // `R11-8`·`R13-5` 의 경계이고 이 화면의 톤 계약("채점하지 않습니다, 시범합니다")과도 같은 방향이다.
@@ -198,7 +199,8 @@ const pastSummaryHeading = (sessionDate: string) => `Lesson on ${dayLabel(sessio
 // 「Nothing to check · You finished today」가 떴음 — 칭찬 대신 사실과 다시 시작할 길을 보임.
 // ⚠️ 회복 대상(`awaiting_analysis` 참 · 발화는 있음)은 이 문구를 쓰지 않음 — 들은 말이 있음.
 const NO_SPEECH_LABEL = "We didn't hear you this time.";
-const NO_SPEECH_HINT = "Check your microphone, then start a new lesson from Home.";
+// `TASK-333` N4 — 「Start again →」은 같은 학습을 다시 엶(이전에는 홈으로만 감). 안내도 그 동작에 맞춤.
+const NO_SPEECH_HINT = "Check your microphone, then start again.";
 const START_AGAIN_LABEL = "Start again →";
 
 // 오늘 요약 절 (PRD §13 R13-4 · AC13-4). 어휘는 세션 교정 카드와 같은 것을 쓴다 — 같은 화면에서
@@ -380,7 +382,13 @@ export default function ResultsPage() {
             <>
               <p style={{ color: "var(--foreground-muted)" }}>{NO_SPEECH_HINT}</p>
               <p>
-                <Link href="/" data-testid="results-start-again" className="omy-button omy-button-primary">
+                {/* 같은 진입(모드·출처·클립·패턴)으로 홈 질의를 만듦 — 홈이 그 질의로 세션을 엶(`TASK-333` N4).
+                    진입이 없는 옛 서버에서는 홈으로 감. 아래 「← Home」은 다른 일(홈으로만 감)이라 남김. */}
+                <Link
+                  href={restartHref(result.entry)}
+                  data-testid="results-start-again"
+                  className="omy-button omy-button-primary"
+                >
                   {START_AGAIN_LABEL}
                 </Link>
               </p>

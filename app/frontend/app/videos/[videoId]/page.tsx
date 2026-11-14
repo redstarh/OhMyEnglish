@@ -224,16 +224,29 @@ export default function VideoLearningPage() {
             </p>
             <button
               type="button"
+              data-testid="video-listen"
               className="omy-button"
               onClick={() => listen(phrase.clip_start_sec, phrase.clip_end_sec)}
               disabled={busy}
             >
               {LISTEN_LABEL}
             </button>{" "}
-            <button type="button" className="omy-button" onClick={() => practise(phrase.id)} disabled={busy}>
+            <button
+              type="button"
+              data-testid="video-practise"
+              className="omy-button"
+              onClick={() => practise(phrase.id)}
+              disabled={busy}
+            >
               {PRACTISE_LABEL}
             </button>{" "}
-            <button type="button" className="omy-button" onClick={() => void remove(phrase.id)} disabled={busy}>
+            <button
+              type="button"
+              data-testid="video-delete"
+              className="omy-button"
+              onClick={() => void remove(phrase.id)}
+              disabled={busy}
+            >
               {REMOVE_LABEL}
             </button>
           </li>
@@ -273,7 +286,13 @@ export default function VideoLearningPage() {
           {unplayable && detail ? (
             <p role="alert">
               {UNPLAYABLE_NOTICE}{" "}
-              <a href={watchUrl(detail.youtube_id)} target="_blank" rel="noreferrer" className="omy-button">
+              <a
+                href={watchUrl(detail.youtube_id)}
+                target="_blank"
+                rel="noreferrer"
+                data-testid="video-open-youtube"
+                className="omy-button"
+              >
                 {OPEN_ON_YOUTUBE_LABEL}
               </a>
             </p>
@@ -281,16 +300,16 @@ export default function VideoLearningPage() {
 
           <section style={{ margin: "1.5rem 0" }}>
             {draft === null ? (
-              <button type="button" className="omy-button" onClick={markStart} disabled={busy}>
+              <button type="button" data-testid="video-mark-start" className="omy-button" onClick={markStart} disabled={busy}>
                 {SPAN_START_LABEL}
               </button>
             ) : draft.end === null ? (
               <>
                 <p>The hard part starts at {asClock(draft.start)}. Press the button when it ends.</p>
-                <button type="button" className="omy-button" onClick={markEnd} disabled={busy}>
+                <button type="button" data-testid="video-mark-end" className="omy-button" onClick={markEnd} disabled={busy}>
                   {SPAN_END_LABEL}
                 </button>{" "}
-                <button type="button" className="omy-button" onClick={resetDraft} disabled={busy}>
+                <button type="button" data-testid="video-mark-cancel" className="omy-button" onClick={resetDraft} disabled={busy}>
                   {CANCEL_LABEL}
                 </button>
               </>
@@ -303,6 +322,7 @@ export default function VideoLearningPage() {
                 <br />
                 <textarea
                   id="phrase-transcript"
+                  data-testid="video-span-transcript"
                   value={draft.transcript}
                   placeholder={TRANSCRIPT_PLACEHOLDER}
                   onChange={(event) => setDraft({ ...draft, transcript: event.target.value })}
@@ -311,13 +331,14 @@ export default function VideoLearningPage() {
                 />
                 <button
                   type="button"
+                  data-testid="video-span-save"
                   className="omy-button"
                   onClick={() => void store()}
                   disabled={busy || !draft.transcript.trim()}
                 >
                   {STORE_LABEL}
                 </button>{" "}
-                <button type="button" className="omy-button" onClick={resetDraft} disabled={busy}>
+                <button type="button" data-testid="video-span-cancel" className="omy-button" onClick={resetDraft} disabled={busy}>
                   {CANCEL_LABEL}
                 </button>
               </>

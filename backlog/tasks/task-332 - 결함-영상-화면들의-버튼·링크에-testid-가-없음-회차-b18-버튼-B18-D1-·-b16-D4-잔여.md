@@ -1,10 +1,10 @@
 ---
 id: TASK-332
 title: '결함: 영상 화면들의 버튼·링크에 testid 가 없음 (회차 b18 버튼 B18-D1 · b16 D4 잔여)'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-11-14 12:38'
-updated_date: '2026-11-14 13:46'
+updated_date: '2026-11-14 14:10'
 labels: []
 dependencies: []
 ordinal: 399000
@@ -18,6 +18,12 @@ ordinal: 399000
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 영상 두 화면의 실행 버튼·링크에 data-testid
-- [ ] #2 tsc·eslint 와 화면 확인
+- [x] #1 영상 두 화면의 실행 버튼·링크에 data-testid
+- [x] #2 tsc·eslint 와 화면 확인
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+구현(opus 에이전트) · 내가 직접 재실행: 게이트 통과(아래 TASK-333 과 같음). 목록 7 · 영상 화면 7 testid · testid 없는 버튼·링크 0(check333.mjs).
+<!-- SECTION:NOTES:END -->

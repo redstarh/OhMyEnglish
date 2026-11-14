@@ -81,7 +81,8 @@ _RECORDED_TO_CURRENT = {
         "Some of your sentences could not be checked. They will not be checked again."
     ),
     "그 학습 결과를 찾을 수 없습니다.": "I can't find this result.",
-    "오늘은 드릴이 계획보다 짧았어요.": "Today's drill was shorter than planned.",
+    # `TASK-333` N7 — 화면 문구가 「Today's」에서 「This」로 바뀜.
+    "오늘은 드릴이 계획보다 짧았어요.": "This drill was shorter than planned.",
 }
 
 

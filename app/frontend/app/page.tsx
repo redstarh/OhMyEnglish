@@ -14,7 +14,7 @@ import {
 import { SessionChat, type TranscriptLine } from "./SessionChat";
 import { ShadowingPanel } from "./ShadowingPanel";
 import { WeeklyReportPanel } from "./WeeklyReportPanel";
-import { entryForTarget } from "./additionalLearning";
+import { entryForTarget, sessionTitleFor } from "./additionalLearning";
 import { HomeDashboard } from "@/components/home/HomeDashboard";
 import { useSessionLock } from "@/components/app-shell";
 
@@ -161,6 +161,9 @@ export default function SessionPage() {
   const startSessionRef = useRef<((entry: SessionEntry) => Promise<void>) | null>(null);
   // 마지막으로 시작한 학습의 진입 — 실패 화면의 「Try again」이 같은 학습을 다시 엶(회차 b9 D1).
   const lastEntryRef = useRef<SessionEntry>({});
+  // 코치 세션 머리의 제목 (`TASK-333` N3) — 세션을 연 버튼의 이름임. 「Try again」도 같은 제목으로 엶.
+  const [sessionTitle, setSessionTitle] = useState(() => sessionTitleFor({}));
+  const lastLabelRef = useRef<string | undefined>(undefined);
 
   const socketRef = useRef<SessionSocket | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -360,8 +363,10 @@ export default function SessionPage() {
     [goToResults, stopMedia],
   );
 
-  const startSession = useCallback(async (entry: SessionEntry = {}) => {
+  const startSession = useCallback(async (entry: SessionEntry = {}, label?: string) => {
     lastEntryRef.current = entry;
+    lastLabelRef.current = label;
+    setSessionTitle(sessionTitleFor(entry, label));
     setFailureReason(null);
     setLines([]);
     pendingAgentAudioRef.current = [];
@@ -549,6 +554,7 @@ export default function SessionPage() {
         <>
           {/* 대화 화면 (`TASK-272`). 줄 모양·색 계약은 `SessionChat.tsx` 머리말이 소유한다. */}
           <SessionChat
+            title={sessionTitle}
             lines={lines}
             partialLine={partialLine}
             listening={listening}
@@ -584,7 +590,7 @@ export default function SessionPage() {
         <div data-testid="session-failed" data-reason={failureReason ?? ""} style={{ marginTop: "1rem" }}>
           <p>Could not connect.</p>
           <p style={{ color: "var(--foreground-muted)" }}>{failureMessage(failureReason)}</p>
-          <button data-testid="session-failed-retry" onClick={() => void startSession(lastEntryRef.current)} className="omy-button">
+          <button data-testid="session-failed-retry" onClick={() => void startSession(lastEntryRef.current, lastLabelRef.current)} className="omy-button">
             Try again
           </button>
           {/* 세션 중에는 이동이 잠기므로 실패 화면에 대기로 돌아가는 길을 둠 (codex 리뷰 · `TASK-298` · `TASK-301`). */}
@@ -612,7 +618,7 @@ export default function SessionPage() {
   // ⚠️ 연결 중 · 진행 · 종료 중 · 실패는 같은 `session-panel` 안에서 이어짐 — 대화 칸이 다시 마운트되지 않음.
   return (
     <div data-testid="home-dashboard-slot">
-      <HomeDashboard onStart={(entry) => void startSession(entry)} session={state === "idle" ? null : screen} />
+      <HomeDashboard onStart={(entry, label) => void startSession(entry, label)} session={state === "idle" ? null : screen} />
     </div>
   );
 }

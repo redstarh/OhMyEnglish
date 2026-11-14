@@ -1,0 +1,21 @@
+E       KeyError: 'spoken'
+E       AssertionError: assert {'current': 1...y_done': True} == {'current': 0..._done': False}
+E         
+E         Differing items:
+E         {'today_done': True} != {'today_done': False}
+E         {'current': 1} != {'current': 0}
+E         {'longest': 1} != {'longest': 0}
+E         Use -v to get more diff
+E       AssertionError: 오늘은 말하지 않은 세션뿐임
+E       assert True is False
+E        +  where True = Streak(current=6, longest=6, today_done=True).today_done
+E       AttributeError: 'HistoryDay' object has no attribute 'spoken'
+E       KeyError: 'entry'
+E       KeyError: 'entry'
+FAILED integration/test_daily_summary_api.py::test_history_endpoint_carries_streak_and_days
+FAILED integration/test_daily_summary_api.py::test_history_endpoint_does_not_count_silent_sessions
+FAILED unit/test_daily_summary.py::test_silent_sessions_do_not_count_toward_the_streak
+FAILED unit/test_daily_summary.py::test_history_tells_whether_anything_was_said_that_day
+FAILED unit/test_results.py::test_results_carry_the_entry_that_opened_the_session
+FAILED unit/test_results.py::test_results_entry_carries_the_shadowing_clip - ...
+6 failed, 1510 deselected in 0.55s

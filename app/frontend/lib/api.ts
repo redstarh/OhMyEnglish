@@ -108,6 +108,17 @@ export interface SessionResultPayload {
   // 결과 화면이 「You finished today」를 세션 날짜로 가름. ⚠️ 이 키가 없는 옛 서버에서는 옛 문구로 돌아감.
   session_date?: string;
   finished?: boolean;
+  // `TASK-333` N4 — 그 세션을 연 진입(이름은 홈 진입 질의와 같음). 발화 없는 결과의 「Start again →」이
+  // 같은 학습을 다시 엶. ⚠️ 이 키가 없는 옛 서버에서는 홈으로 감.
+  entry?: SessionResultEntry;
+}
+
+/** 결과 API 가 싣는 세션 진입 (`TASK-333` N4). `mode` 는 001·018 의 값역 · `source` 는 001 의 값역임. */
+export interface SessionResultEntry {
+  mode: string;
+  source: string;
+  item: string | null;
+  pattern: string | null;
 }
 
 /**
@@ -251,6 +262,8 @@ export interface HistoryDay {
   pattern_count: number;
   /** `TASK-329` — 그날 마친 세션(끝난 시각 순). 기록 줄이 그날의 결과로 가는 길임. 옛 서버에는 없음. */
   sessions?: HistorySession[];
+  /** `TASK-333` N5 — 그날 마친 세션 가운데 학습자가 말한 세션이 있는가. 옛 서버에는 없음(그때는 옛 문구). */
+  spoken?: boolean;
 }
 
 export interface HistorySession {

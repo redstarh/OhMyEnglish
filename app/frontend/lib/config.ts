@@ -22,7 +22,10 @@ export const API_BASE: string = process.env.NEXT_PUBLIC_API_BASE ?? "http://loca
  * 지시가 샌다. 값역의 정본은 018 의 `learning_sessions_mode_check` 다.
  */
 export interface SessionEntry {
-  mode?: "pronunciation" | "shadowing" | "scenario_intake";
+  // ⚠️ `speaking` 은 `TASK-333` N4 가 더함 — 결과 화면의 「Start again →」이 말하기 세션(Free talk)을
+  //    홈 질의로 다시 열려면 `mode` 가 있어야 함(`entryFromQuery` 는 `mode`·`pattern` 이 없으면 열지 않음).
+  //    서버는 `?mode=speaking` 을 명시적 말하기로 받음(`api/ws.py` 의 정책 표 주석).
+  mode?: "speaking" | "pronunciation" | "shadowing" | "scenario_intake";
   source?: "recommended" | "additional";
   /**
    * 연습할 쉐도잉 문장 (`TASK-166` — 영상 학습의 [연습하기] 가 이것을 쓴다).
@@ -149,4 +152,31 @@ export function entryFromQuery(search: string): SessionEntry | null {
     entry.via = via as SessionEntry["via"];
   }
   return entry;
+}
+
+/** 결과 API 가 싣는 세션 진입의 모양 (`TASK-333` N4). 정본 타입은 `lib/api.ts` 의 `SessionResultEntry` 임. */
+type StoredEntry = { mode: string; source: string; item: string | null; pattern: string | null };
+
+/**
+ * 발화 없는 결과의 「Start again →」이 갈 주소 (`TASK-333` N4 · 사용자 결정 2026-11-14).
+ *
+ * ⛔ 같은 학습을 다시 엶 — 이전에는 `/` 로만 가서 「← Home」과 같은 일을 했음(회차 b18 N4).
+ * ⚠️ 진입이 없으면(옛 서버) 홈으로 감. 클립(`item`)은 쉐도잉일 때만 실음(`SessionEntry.itemId` 주석).
+ * ⛔ `via` 는 싣지 않음 — 이 버튼은 화면 버튼임. 학습 출처(`source`)는 그대로 옮김.
+ */
+export function restartHref(stored: StoredEntry | null | undefined): string {
+  if (!stored) {
+    return "/";
+  }
+  const entry: SessionEntry = { mode: stored.mode as SessionEntry["mode"] };
+  if (stored.source === "recommended" || stored.source === "additional") {
+    entry.source = stored.source;
+  }
+  if (stored.mode === "shadowing" && stored.item) {
+    entry.itemId = stored.item;
+  }
+  if (stored.pattern) {
+    entry.patternKey = stored.pattern;
+  }
+  return dashboardEntryHref(entry);
 }

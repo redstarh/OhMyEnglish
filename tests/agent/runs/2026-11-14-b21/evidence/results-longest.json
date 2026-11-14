@@ -1,0 +1,175 @@
+{
+  "results": [
+    {
+      "item": "X3",
+      "width": "1400-longest",
+      "ok": true,
+      "detail": {
+        "title": "Show Korean translation",
+        "shot": "evidence/X3-ko-1400-longest.png"
+      }
+    },
+    {
+      "item": "N2-all",
+      "width": "1400-longest",
+      "ok": true,
+      "detail": {
+        "allMatchedAttr": "true",
+        "allMatchedText": "All words matched",
+        "verdictLineHidden": true,
+        "verdictLineText": null,
+        "verdictSpans": 11,
+        "slotFits": true,
+        "slotScroll": 160,
+        "slotClient": 160,
+        "sentence": "We deploy on Fridays. This week we are deploying on Thursday.",
+        "heightBefore": 513.59375,
+        "heightAfter": 513.59375,
+        "shot": "evidence/N2-all-1400-longest.png"
+      }
+    },
+    {
+      "item": "N2-some",
+      "width": "1400-longest",
+      "ok": false,
+      "detail": {
+        "allMatchedAttr": "false",
+        "allMatchedText": null,
+        "verdictLineHidden": false,
+        "verdictLineText": "We deploy on Fridays This week we are deploying on Thursday",
+        "verdictSpans": 11,
+        "slotFits": true,
+        "slotScroll": 160,
+        "slotClient": 160,
+        "sentence": "We deploy on Fridays. This week we are deploying on Thursday.",
+        "heightBefore": 513.59375,
+        "heightAfter": 513.59375,
+        "shot": "evidence/N2-some-1400-longest.png"
+      }
+    },
+    {
+      "item": "X3",
+      "width": "390-longest",
+      "ok": true,
+      "detail": {
+        "title": "Show Korean translation",
+        "shot": "evidence/X3-ko-390-longest.png"
+      }
+    },
+    {
+      "item": "N2-all",
+      "width": "390-longest",
+      "ok": true,
+      "detail": {
+        "allMatchedAttr": "true",
+        "allMatchedText": "All words matched",
+        "verdictLineHidden": true,
+        "verdictLineText": null,
+        "verdictSpans": 11,
+        "slotFits": true,
+        "slotScroll": 160,
+        "slotClient": 160,
+        "sentence": "We deploy on Fridays. This week we are deploying on Thursday.",
+        "heightBefore": 513.59375,
+        "heightAfter": 513.59375,
+        "shot": "evidence/N2-all-390-longest.png"
+      }
+    },
+    {
+      "item": "N2-some",
+      "width": "390-longest",
+      "ok": false,
+      "detail": {
+        "allMatchedAttr": "false",
+        "allMatchedText": null,
+        "verdictLineHidden": false,
+        "verdictLineText": "We deploy on Fridays This week we are deploying on Thursday",
+        "verdictSpans": 11,
+        "slotFits": true,
+        "slotScroll": 160,
+        "slotClient": 160,
+        "sentence": "We deploy on Fridays. This week we are deploying on Thursday.",
+        "heightBefore": 513.59375,
+        "heightAfter": 513.59375,
+        "shot": "evidence/N2-some-390-longest.png"
+      }
+    },
+    {
+      "item": "X3",
+      "width": "320-longest",
+      "ok": true,
+      "detail": {
+        "title": "Show Korean translation",
+        "shot": "evidence/X3-ko-320-longest.png"
+      }
+    },
+    {
+      "item": "N2-all",
+      "width": "320-longest",
+      "ok": true,
+      "detail": {
+        "allMatchedAttr": "true",
+        "allMatchedText": "All words matched",
+        "verdictLineHidden": true,
+        "verdictLineText": null,
+        "verdictSpans": 11,
+        "slotFits": true,
+        "slotScroll": 132,
+        "slotClient": 132,
+        "sentence": "We deploy on Fridays. This week we are deploying on Thursday.",
+        "heightBefore": 534.328125,
+        "heightAfter": 534.328125,
+        "shot": "evidence/N2-all-320-longest.png"
+      }
+    },
+    {
+      "item": "N2-some",
+      "width": "320-longest",
+      "ok": false,
+      "detail": {
+        "allMatchedAttr": "false",
+        "allMatchedText": null,
+        "verdictLineHidden": false,
+        "verdictLineText": "We deploy on Fridays This week we are deploying on Thursday",
+        "verdictSpans": 11,
+        "slotFits": false,
+        "slotScroll": 150,
+        "slotClient": 132,
+        "sentence": "We deploy on Fridays. This week we are deploying on Thursday.",
+        "heightBefore": 534.328125,
+        "heightAfter": 534.328125,
+        "shot": "evidence/N2-some-320-longest.png"
+      }
+    }
+  ],
+  "blocked": [
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/sentences/u014-s3/attempts/text",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/sentences/u014-s4/attempts/text",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/sentences/u014-s3/attempts/text",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/sentences/u014-s4/attempts/text",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/sentences/u014-s3/attempts/text",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/sentences/u014-s4/attempts/text",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress",
+    "POST http://localhost:8002/api/course/days/1/progress"
+  ],
+  "sockets": []
+}

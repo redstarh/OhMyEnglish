@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { fetchHistory, type HistoryDay, type HistoryPayload } from "@/lib/api";
+import { dayFact, groupHistoryRows, saidNothing } from "@/lib/historyRows";
+import { gapLabel } from "@/lib/learnerDate";
 
 // 문구는 이 화면이 소유한다 — API 는 수와 사실만 준다(`results` 화면과 같은 규약).
 const HEADING = "History";
@@ -21,23 +23,7 @@ function streakNotice(current: number, todayDone: boolean): string {
 // 최장은 0일 때 쓰지 않는다 — 「최장 0일」은 아무것도 말하지 않는다.
 const longestNotice = (longest: number) => `Best streak: ${longest} ${longest === 1 ? "day" : "days"}`;
 
-/**
- * 한 줄의 오른쪽 사실. 셋을 갈라 말한다:
- * 학습이 없던 날 · 학습했고 요약이 있는 날 · **학습했는데 요약이 없는 날**(012 이전).
- * ⛔ 마지막을 「오류 0건」으로 쓰지 않는다 — 그것은 「분석했고 오류가 없었다」라는 다른 사실이다.
- */
-function dayFact(row: HistoryDay): string {
-  if (!row.learned) return "";
-  if (!row.analyzed) return NOT_ANALYZED;
-  if (row.occurrence_count === 0) return "No mistakes";
-  return `Mistakes ${row.occurrence_count} · Patterns ${row.pattern_count}`;
-}
-
-// `TASK-329` — 「Not checked」가 무엇을 확인하지 않았다는 뜻인지 설명이 없었음.
-// 규칙의 정본은 백엔드임: 레슨에서 한 말은 차례(턴)가 닫힐 때마다 분석 job 이 걸리고
-// (`services/utterances.flush_pending_analysis`), 분석이 저장될 때 그날의 요약 행이 생김
-// (`services/daily_summary.refresh_summary_for_utterance`). 그 행이 없는 날이 이 문구임.
-const NOT_ANALYZED = "Not analyzed yet";
+// 날짜 줄 오른쪽 사실(`dayFact`)과 그 문구의 근거는 `lib/historyRows.ts` 가 가짐(`TASK-333` 에서 옮김).
 const NOT_ANALYZED_HINT =
   "What you say in a lesson is checked for mistakes after each of your turns. “Not analyzed yet” means nothing you said that day has been checked.";
 
@@ -98,6 +84,15 @@ function DayRow({ row }: { row: HistoryDay }) {
   );
 }
 
+/** 공부하지 않은 날이 이어진 구간 한 줄 (`TASK-333` N8). 눌리지 않음 — 갈 결과가 없음. */
+function GapRow({ from, to }: { from: string; to: string }) {
+  return (
+    <div style={ROW_STYLE} data-testid="history-gap">
+      <span style={{ color: "var(--foreground-muted)" }}>{gapLabel(from, to)}</span>
+    </div>
+  );
+}
+
 export default function HistoryPage() {
   const [history, setHistory] = useState<HistoryPayload | null>(null);
   const [failed, setFailed] = useState(false);
@@ -140,11 +135,17 @@ export default function HistoryPage() {
           {/* 날짜별 줄 — 학습이 없던 날도 그린다. 그 날이 보이지 않으면 연속이 어디서 끊겼는지
               알 수 없고, 그러면 위의 연속일 수가 근거 없는 숫자가 된다(R15-5). */}
           <div style={{ marginTop: "1.5rem" }}>
-            {history.days.map((row) => (
-              <DayRow key={row.day} row={row} />
-            ))}
+            {/* 빈 날은 이어진 만큼 한 줄로 접음(`TASK-333` N8) — 끊긴 자리는 그대로 보임. */}
+            {groupHistoryRows(history.days).map((item) =>
+              item.kind === "day" ? (
+                <DayRow key={item.row.day} row={item.row} />
+              ) : (
+                <GapRow key={`gap-${item.to}`} from={item.from} to={item.to} />
+              ),
+            )}
           </div>
-          {history.days.some((row) => row.learned && !row.analyzed) && (
+          {/* 설명 줄은 「Not analyzed yet」이 보이는 날이 있을 때만 — 「Nothing said」인 날은 뜻이 분명함(`TASK-333` N5). */}
+          {history.days.some((row) => row.learned && !row.analyzed && !saidNothing(row)) && (
             <p style={{ marginTop: "1rem", fontSize: "0.85rem", color: "var(--foreground-muted)" }} data-testid="history-not-analyzed-hint">
               {NOT_ANALYZED_HINT}
             </p>

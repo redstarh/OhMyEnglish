@@ -115,17 +115,32 @@ const SENTENCE_FONT = "text-[clamp(0.75rem,6cqi,1.25rem)]";
 // 좁은 칸(18rem 미만)은 「You said:」 꼬리표 때문에 전사가 세 줄이 되므로 한 줄(1.4em)을 더 잡음(회차 b17 ⑫).
 const RESULT_SLOT_HEIGHT = "h-[calc(5.6em+3rem)] @max-[18rem]:h-[calc(7em+3rem)]";
 
+// 판정 줄 앞의 이름표와 다 맞았을 때의 한 줄 (`TASK-333` N2 · 사용자 결정 2026-11-14). 「You said:」 바로
+// 아래에 원문이 이름표 없이 다시 나와 다 맞으면 같은 말이 두 번 보였음(회차 b18 N2).
+const SENTENCE_LABEL = "Sentence: ";
+const ALL_MATCHED = "All words matched";
+const LABEL_STYLE = { fontSize: "0.72rem", fontWeight: 400, color: "var(--foreground-muted)" } as const;
+
 function Spoken({ words, transcript }: { words: ReadbackWord[]; transcript: string }) {
+  const allMatched = words.length > 0 && words.every((item) => item.verdict === "match");
   return (
     <div
       data-testid="course-spoken"
+      data-all-matched={allMatched}
       style={{ padding: "6px 10px", borderRadius: 10, background: "var(--accent-soft)", fontWeight: 600, lineHeight: 1.4 }}
     >
-      <span style={{ fontSize: "0.72rem", fontWeight: 400, color: "var(--foreground-muted)" }}>You said: </span>
+      <span style={LABEL_STYLE}>You said: </span>
       <span data-testid="course-transcript">{transcript}</span>
+      {allMatched ? (
+        <p data-testid="course-all-matched" style={{ marginTop: 2 }}>
+          {ALL_MATCHED}
+        </p>
+      ) : null}
       {words.length > 0 ? (
         // 낱말 사이에 실제 공백을 둠 — 여백만 두면 줄을 끊을 자리가 없어 좁은 화면에서 카드가 넓어졌음(회차 b13 r2 D1).
-        <div style={{ marginTop: 2, overflowWrap: "anywhere" }}>
+        // ⚠️ 다 맞으면 이 줄을 숨기고 위 한 줄만 보임 — 낱말 판정(`data-verdict`)은 시험이 읽으므로 DOM 에 남김.
+        <div hidden={allMatched} style={{ marginTop: 2, overflowWrap: "anywhere" }}>
+          <span style={LABEL_STYLE}>{SENTENCE_LABEL}</span>
           {words.map((item, index) => (
             <Fragment key={`${item.word}-${index}`}>
             <span
@@ -520,6 +535,8 @@ export function SentencePractice({ detail, day, onDayFinished }: Props) {
             data-testid="course-translation"
             aria-pressed={showTranslation}
             aria-label="Show Korean translation"
+            // `TASK-333` X3 — 글자가 「KO」뿐이라 처음 보면 무엇을 켜는지 모름. 마우스를 올리면 같은 이름을 보임.
+            title="Show Korean translation"
             onClick={() => setShowTranslation(!showTranslation)}
             style={{
               padding: "4px 12px",

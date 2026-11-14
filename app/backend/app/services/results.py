@@ -501,21 +501,43 @@ async def get_session_result(conn: asyncpg.Connection, session_id: UUID) -> Sess
 #    세션은 `started_at` 으로 갈음함 — 날짜가 없는 응답을 만들지 않음.
 # ⛔ `finished` 의 술어는 `_COMPLETION_SQL` 과 **같게** 둠 — 갈리면 결과 화면과 기록 화면이
 #    같은 세션의 완료를 다르게 말함.
+# `TASK-333` N4 — 같은 행에서 그 세션을 연 진입(모드·출처·클립·패턴)도 읽음. 발화 없는 결과의
+# 「Start again →」이 홈으로만 가지 않고 같은 학습을 다시 열게 하는 근거임.
 _SESSION_DAY_SQL = """
 select user_id,
        coalesce(ended_at, started_at) as anchor,
-       (scenario_id is not null and status = 'completed' and ended_at is not null) as finished
+       (scenario_id is not null and status = 'completed' and ended_at is not null) as finished,
+       mode,
+       learning_source,
+       shadowing_item_id,
+       focus_pattern_key
   from learning_sessions
  where id = $1
 """
 
 
 @dataclass(frozen=True, slots=True)
+class SessionEntryFacts:
+    """그 세션을 연 진입 (`TASK-333` N4).
+
+    이름은 홈 진입 질의(`mode`·`source`·`item`·`pattern`)와 같음.
+    ⛔ `started_via` 는 담지 않음 — 다시 여는 것은 화면 버튼이라 음성 명령 표지를 옮기면
+    거짓 기록이 됨.
+    """
+
+    mode: str
+    source: str
+    item: UUID | None
+    pattern: str | None
+
+
+@dataclass(frozen=True, slots=True)
 class SessionDay:
-    """세션이 속한 학습자 날짜(`users.timezone`)와 그 세션이 완료로 세어지는가."""
+    """세션이 속한 학습자 날짜(`users.timezone`) · 완료로 세어지는가 · 그 세션을 연 진입."""
 
     day: date
     finished: bool
+    entry: SessionEntryFacts
 
 
 async def load_session_day(conn: asyncpg.Connection, session_id: UUID) -> SessionDay | None:
@@ -527,4 +549,13 @@ async def load_session_day(conn: asyncpg.Connection, session_id: UUID) -> Sessio
     if row is None:
         return None
     timezone = await timezone_of(conn, row["user_id"])
-    return SessionDay(day=local_date(timezone, now=row["anchor"]), finished=row["finished"])
+    return SessionDay(
+        day=local_date(timezone, now=row["anchor"]),
+        finished=row["finished"],
+        entry=SessionEntryFacts(
+            mode=row["mode"],
+            source=row["learning_source"],
+            item=row["shadowing_item_id"],
+            pattern=row["focus_pattern_key"],
+        ),
+    )

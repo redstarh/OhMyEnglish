@@ -56,3 +56,8 @@ export function sessionWording(sessionDate: string | null, today: string | null)
   if (sessionDate === null) return "today";
   return today === null || sessionDate !== today ? "dated" : "today";
 }
+
+/** 기록의 빈 날 줄 (`TASK-333` N8) — 「No study · Nov 2 – Nov 13」 · 하루면 「No study · Nov 5」. */
+export function gapLabel(from: string, to: string): string {
+  return from === to ? `No study · ${dayLabel(from)}` : `No study · ${dayLabel(from)} – ${dayLabel(to)}`;
+}

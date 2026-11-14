@@ -28,7 +28,9 @@ const LEAD =
 const EMPTY_NOTICE = "No videos yet. Paste a YouTube link below.";
 const LIST_FAILED_NOTICE = "I couldn't load your videos. Please try again soon.";
 const URL_PLACEHOLDER = "https://www.youtube.com/watch?v=...";
-const CHECK_LABEL = "Check";
+// `TASK-333` N9 — 이 버튼은 저장하지 않고 링크의 제목·채널만 받아 미리 보임(저장은 그 아래 Save 가 함).
+// 「Check」는 무엇을 확인하는지 몰랐고 「Save video」는 하는 일과 달라 「Preview video」로 씀.
+const CHECK_LABEL = "Preview video";
 const STORE_LABEL = "Save";
 const CANCEL_LABEL = "Cancel";
 const REMOVE_LABEL = "Delete";
@@ -197,12 +199,21 @@ export default function VideosPage() {
         <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.25rem" }}>
           <input
             id="video-url"
+            data-testid="videos-url"
             value={url}
             placeholder={URL_PLACEHOLDER}
             onChange={(event) => setUrl(event.target.value)}
-            style={{ flex: 1 }}
+            // 입력 칸이 줄어들 수 있게 함 — 버튼 이름이 「Preview video」로 길어진 뒤 390 폭에서 줄이 화면 밖으로
+            // 나갔음(`TASK-333` N9 · 입력의 기본 최소 너비가 글자 수만큼이라 flex 가 줄이지 못함).
+            style={{ flex: 1, minWidth: 0 }}
           />
-          <button type="button" className="omy-button" onClick={() => void check()} disabled={busy || !url.trim()}>
+          <button
+            type="button"
+            data-testid="videos-check"
+            className="omy-button"
+            onClick={() => void check()}
+            disabled={busy || !url.trim()}
+          >
             {CHECK_LABEL}
           </button>
         </div>
@@ -214,10 +225,16 @@ export default function VideosPage() {
               <br />
               {preview.channelName}
             </p>
-            <button type="button" className="omy-button" onClick={() => void store()} disabled={busy}>
+            <button type="button" data-testid="videos-save" className="omy-button" onClick={() => void store()} disabled={busy}>
               {STORE_LABEL}
             </button>{" "}
-            <button type="button" className="omy-button" onClick={() => setPreview(null)} disabled={busy}>
+            <button
+              type="button"
+              data-testid="videos-cancel"
+              className="omy-button"
+              onClick={() => setPreview(null)}
+              disabled={busy}
+            >
               {CANCEL_LABEL}
             </button>
           </div>
@@ -246,11 +263,19 @@ export default function VideosPage() {
               }}
             />
             <div style={{ flex: 1 }}>
-              <Link href={`/videos/${video.id}`}>{video.title}</Link>
+              <Link href={`/videos/${video.id}`} data-testid="videos-title">
+                {video.title}
+              </Link>
               <p style={{ margin: "0.25rem 0" }}>
                 {video.channel_name} · {video.phrase_count} saved {video.phrase_count === 1 ? "sentence" : "sentences"}
               </p>
-              <button type="button" className="omy-button" onClick={() => void remove(video.id)} disabled={busy}>
+              <button
+                type="button"
+                data-testid="videos-delete"
+                className="omy-button"
+                onClick={() => void remove(video.id)}
+                disabled={busy}
+              >
                 {REMOVE_LABEL}
               </button>
             </div>

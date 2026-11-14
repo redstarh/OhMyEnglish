@@ -38,6 +38,11 @@ import asyncpg
 from app.models.learner_time import local_date, resolve_now
 from app.services.user_timezone import timezone_of
 
+# `TASK-333` N5 — 「말한 세션」의 술어는 분석 대상 발화와 같음(학습자의 학습 발화).
+# 정본은 `services/utterances.py` 임 — 리터럴로 다시 적으면 결과 화면의
+# 「We didn't hear you」와 기록이 갈림.
+from app.services.utterances import ANALYZED_SPEAKER, ANALYZED_UTTERANCE_TYPE
+
 # `patterns` 배열의 상한. 단일 사용자 규모에서 하루에 20종을 넘길 일이 없지만 jsonb가 무한히
 # 자라는 길을 열어 두지 않는다. 잘려도 두 개수 컬럼은 **전체 수**를 유지한다(설계서 §3.3).
 PATTERN_LIMIT = 20
@@ -162,14 +167,25 @@ select count(*) as completed_scenarios
 # 완료 문구가 서로 어긋난다(R15-1). 조건을 고칠 때 둘을 함께 고친다.
 # ⚠️ 누적 컬럼을 두지 않는 근거는 설계서 §3 이다: 입력이 불변이고(종료 UPDATE 가 `status='active'`
 # 로 막힘) 누적은 갱신 누락으로 조용히 틀리는 자리를 만든다(`H-AX` 가 그 형태의 실패다).
+# ⛔ `TASK-333` N5(사용자 결정 2026-11-14) — 발화 0건 세션은 세지 않음.
+#    이 한 가지가 완료 술어와 갈림. 완료(`_COMPLETION_SQL`)는 「마쳤다」는 사실이라 그대로 둠.
+#    연속일은 「말하며 공부한 날」만 셈. 회차 b18 에서 한마디도 하지 않은 세션 6개뿐인 날이
+#    「1-day streak!」으로 셌음. $3·$4 는 발화 술어임.
 _STREAK_SQL = """
 with days as (
-      select distinct (ended_at at time zone $2)::date as day
-        from learning_sessions
-       where user_id = $1
-         and scenario_id is not null
-         and status = 'completed'
-         and ended_at is not null
+      select distinct (s.ended_at at time zone $2)::date as day
+        from learning_sessions s
+       where s.user_id = $1
+         and s.scenario_id is not null
+         and s.status = 'completed'
+         and s.ended_at is not null
+         and exists (
+               select 1
+                 from utterances u
+                where u.session_id = s.id
+                  and u.speaker = $3
+                  and u.utterance_type = $4
+             )
 ),
 grouped as (
       select day, day - (row_number() over (order by day))::int as island
@@ -194,16 +210,29 @@ days as (
         from span
 ),
 completed as (
-      select (ended_at at time zone $2)::date as day, count(*)::int as scenarios
-        from learning_sessions
-       where user_id = $1
-         and scenario_id is not null
-         and status = 'completed'
-         and ended_at is not null
+      select (s.ended_at at time zone $2)::date as day,
+             count(*)::int as scenarios,
+             -- `TASK-333` N5 — 그날 마친 세션 가운데 학습자가 말한 세션의 수.
+             -- 술어는 `_STREAK_SQL` 과 같음.
+             count(*) filter (
+               where exists (
+                       select 1
+                         from utterances u
+                        where u.session_id = s.id
+                          and u.speaker = $5
+                          and u.utterance_type = $6
+                     )
+             )::int as spoken
+        from learning_sessions s
+       where s.user_id = $1
+         and s.scenario_id is not null
+         and s.status = 'completed'
+         and s.ended_at is not null
        group by 1
 )
 select d.day,
        coalesce(c.scenarios, 0) as completed_scenarios,
+       coalesce(c.spoken, 0) as spoken_scenarios,
        s.occurrence_count,
        s.pattern_count,
        s.computed_at
@@ -420,6 +449,10 @@ class HistoryDay:
     pattern_count: int
     # `TASK-329` — 그날 마친 세션(끝난 시각 순). 기록 화면이 그날의 결과로 가는 길임.
     sessions: tuple[HistorySession, ...] = ()
+    # `TASK-333` N5 — 그날 마친 세션 가운데 학습자가 말한 세션이 있는가.
+    # 거짓인데 `learned` 가 참이면 화면은 「Not analyzed yet」(나중에 분석될 것처럼 읽힘) 대신
+    # 「Nothing said」로 적음.
+    spoken: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -444,7 +477,9 @@ async def load_streak(
     """
     timezone = timezone if timezone is not None else await timezone_of(conn, user_id)
     today = local_date(timezone, now=resolve_now(now))
-    islands = await conn.fetch(_STREAK_SQL, user_id, timezone)
+    islands = await conn.fetch(
+        _STREAK_SQL, user_id, timezone, ANALYZED_SPEAKER, ANALYZED_UTTERANCE_TYPE
+    )
     if not islands:
         return Streak(current=0, longest=0, today_done=False)
 
@@ -478,7 +513,9 @@ async def load_history(
         raise ValueError("`days` must be at least 1")
     timezone = timezone if timezone is not None else await timezone_of(conn, user_id)
     today = local_date(timezone, now=resolve_now(now))
-    records = await conn.fetch(_HISTORY_SQL, user_id, timezone, today, days)
+    records = await conn.fetch(
+        _HISTORY_SQL, user_id, timezone, today, days, ANALYZED_SPEAKER, ANALYZED_UTTERANCE_TYPE
+    )
     by_day: dict[date, list[HistorySession]] = {}
     for row in await conn.fetch(_HISTORY_SESSIONS_SQL, user_id, timezone, today, days):
         by_day.setdefault(row["day"], []).append(
@@ -493,6 +530,7 @@ async def load_history(
             occurrence_count=record["occurrence_count"] or 0,
             pattern_count=record["pattern_count"] or 0,
             sessions=tuple(by_day.get(record["day"], ())),
+            spoken=record["spoken_scenarios"] > 0,
         )
         for record in records
     ]

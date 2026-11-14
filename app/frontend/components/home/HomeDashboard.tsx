@@ -105,7 +105,8 @@ export function HomeDashboard({
   onStart,
   session = null,
 }: {
-  onStart: (entry: SessionEntry) => void;
+  /** `label` 은 누른 버튼의 이름임 — 코치 세션 머리의 제목이 됨(`TASK-333` N3). */
+  onStart: (entry: SessionEntry, label?: string) => void;
   /** 진행 중인 세션 화면. 있으면 오늘의 연습 카드가 그것을 그리고 나머지 이동이 잠김. */
   session?: ReactNode;
 }) {
@@ -128,17 +129,17 @@ export function HomeDashboard({
   //    놓기 전에 돌아 두 획득이 겹쳤음(codex 리뷰 HIGH). 그래서 연습이 열려 있으면 닫기만 하고, 시작할
   //    세션을 ref 에 둔 뒤 아래 effect 가 엶. 자식의 언마운트 정리(마이크 놓기·진도 저장)는 같은 커밋에서
   //    부모 effect 보다 먼저 돎.
-  const pendingRef = useRef<SessionEntry | null>(null);
+  const pendingRef = useRef<{ entry: SessionEntry; label?: string } | null>(null);
   const heroRef = useRef<HTMLDivElement | null>(null);
   // 아래쪽 입구(More practice · 빠른 카드 · 초점 패턴)만 지나는 길임 — 「Start speaking」은 `onOpen` 을 씀.
   const startSession = useCallback(
-    (entry: SessionEntry) => {
+    (entry: SessionEntry, label?: string) => {
       revealHero(heroRef.current);
       if (!practicing) {
-        onStart(entry);
+        onStart(entry, label);
         return;
       }
-      pendingRef.current = entry;
+      pendingRef.current = { entry, label };
       setPracticing(false);
     },
     [onStart, practicing],
@@ -163,7 +164,7 @@ export function HomeDashboard({
     reloadCourse();
     const pending = pendingRef.current;
     pendingRef.current = null;
-    if (pending) onStart(pending);
+    if (pending) onStart(pending.entry, pending.label);
   }, [practicing, onStart, reloadCourse]);
 
   return (
@@ -394,8 +395,15 @@ function ProgressCard({
           {history.status === "error" && "Can't load this week."}
           {week && `This week: ${week.learned} / ${week.window} days`}
         </span>
+        {/* `TASK-333` N1 — 최장 연속일은 전체 기간 값이라 아래 「Last week · …」 꼬리표 밖(진도 줄)에 둠.
+            꼬리표 아래에 있을 때 지난주 값으로 읽혔음(회차 b18 N1). */}
+        {history.status === "ready" && (
+          <span data-testid="stat-best-streak">
+            Best streak: {plural(history.data.streak.longest, "day", "days")}
+          </span>
+        )}
       </div>
-      <WeeklyStats weekly={weekly} history={history} />
+      <WeeklyStats weekly={weekly} />
       {/* 기록·주간 리포트의 입구 — 사이드바 메뉴를 뺐으므로 여기가 그 화면들로 가는 길임(`TASK-314`). */}
       <div className="mt-4 flex flex-wrap justify-center gap-2">
         <LockLink href="/history" testId="home-history" locked={locked} className="omy-button omy-button-primary">
@@ -425,11 +433,10 @@ function periodCaption(weekStart: string, thisWeekStart: string | undefined): st
   return name ? `${name} · ${range}` : range;
 }
 
-function WeeklyStats({ weekly, history }: { weekly: Load<WeeklyReportPayload>; history: Load<HistoryPayload> }) {
+// ⚠️ 꼬리표가 덮는 값은 Sessions · Patterns 둘뿐임 — Best streak 은 진도 줄로 옮겼음(`TASK-333` N1).
+function WeeklyStats({ weekly }: { weekly: Load<WeeklyReportPayload> }) {
   const report = weekly.status === "ready" && weekly.data.analyzed ? weekly.data : null;
   const dash = weekly.status === "loading" ? "…" : "–";
-  const longest =
-    history.status === "ready" ? String(history.data.streak.longest) : history.status === "loading" ? "…" : "–";
   // `TASK-329` — Sessions · Patterns 는 최근 리포트(대개 지난주)의 값임. 바로 위 「This week」 줄과 섞여
   // 이번 주 값으로 읽혔으므로 그 기간을 숫자 위에 적음. 「This week」는 정말 이번 주일 때만 씀.
   const period = report?.week_start ? periodCaption(report.week_start, report.this_week_start) : null;
@@ -440,9 +447,8 @@ function WeeklyStats({ weekly, history }: { weekly: Load<WeeklyReportPayload>; h
           {period}
         </p>
       )}
-      <div className="grid grid-cols-3 gap-2 text-center">
+      <div className="grid grid-cols-2 gap-2 text-center">
         <Stat testId="stat-sessions" label="Sessions" value={report ? String(report.metrics.session_count ?? 0) : dash} />
-        <Stat testId="stat-best-streak" label="Best streak" value={longest} />
         <Stat testId="stat-patterns" label="Patterns" value={report ? String(report.metrics.pattern_count ?? 0) : dash} />
       </div>
       <p className="mt-3 text-center text-[11px] text-muted-foreground">
@@ -561,6 +567,9 @@ function PathSection({
 
 // ── 초점 패턴 ──
 
+// 초점 패턴의 연습 버튼 이름 — 그 버튼으로 연 코치 세션의 제목도 이 이름임(`TASK-333` N3).
+const FOCUS_PRACTICE_LABEL = "Practice a pattern";
+
 function FocusSection({
   daily,
   weekly,
@@ -569,7 +578,7 @@ function FocusSection({
 }: {
   daily: Load<DailySummaryPayload>;
   weekly: Load<WeeklyReportPayload>;
-  onStart: (entry: SessionEntry) => void;
+  onStart: (entry: SessionEntry, label?: string) => void;
   locked: boolean;
 }) {
   const view = focusView(daily, weekly);
@@ -606,10 +615,10 @@ function FocusSection({
           type="button"
           data-testid="focus-practice"
           disabled={weakEntry === null || locked}
-          onClick={() => weakEntry && onStart(weakEntry)}
+          onClick={() => weakEntry && onStart(weakEntry, FOCUS_PRACTICE_LABEL)}
           className="omy-button mt-3 w-full justify-center"
         >
-          <Plus aria-hidden="true" className="size-4" /> Practice a pattern
+          <Plus aria-hidden="true" className="size-4" /> {FOCUS_PRACTICE_LABEL}
         </button>
       </div>
     </section>
@@ -619,7 +628,13 @@ function FocusSection({
 // ── 추가 학습 ──
 // ⛔ PRD §7 — 권장량 완료와 무관하게 늘 보임. 목록의 정본은 `additionalLearning.ts` 임.
 
-function MorePractice({ onStart, locked }: { onStart: (entry: SessionEntry) => void; locked: boolean }) {
+function MorePractice({
+  onStart,
+  locked,
+}: {
+  onStart: (entry: SessionEntry, label?: string) => void;
+  locked: boolean;
+}) {
   // ⛔ 버튼은 홈 기준 `omy-button` 임(`TASK-323` 사용자 결정 — 이동·실행 버튼 모두 같은 모양).
   // ⛔ 빠른 카드 셋과 Grammar course 는 제거했음(`TASK-323`) — 같은 학습을 여는 두 번째 입구였음.
   return (
@@ -644,7 +659,7 @@ function MorePractice({ onStart, locked }: { onStart: (entry: SessionEntry) => v
               data-testid={`practice-${item.key}`}
               disabled={!isAdditionalLearningEnabled(item) || locked}
               title={locked ? LOCKED_TITLE : note}
-              onClick={() => entry && onStart(entry)}
+              onClick={() => entry && onStart(entry, label)}
               className="omy-button"
             >
               {label}

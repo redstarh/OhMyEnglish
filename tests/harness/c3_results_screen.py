@@ -66,8 +66,9 @@ PARTIAL_NOTICE = "Some of your sentences could not be checked. They will not be 
 # HTTP 상태 코드를 학습자에게 그대로 보여줬다. 지금 화면은 상태 코드를 **분류에만** 쓰고
 # 문구는 자기가 소유한다(`results/[sessionId]/page.tsx`의 `failureNotice`).
 MISSING_NOTICE = "I can't find this result."
-# ⓒ 하드코딩 — 드릴 미달 안내(설계서 §2.3 · 캡틴 결정 10). 화면이 소유하는 한국어 문구다.
-DRILL_SHORTFALL_NOTICE = "Today's drill was shorter than planned."
+# ⓒ 하드코딩 — 드릴 미달 안내(설계서 §2.3 · 캡틴 결정 10). 화면이 소유하는 문구다.
+# `TASK-333` N7 — 「Today's」가 지난 세션 결과에도 남아 「This」로 바꿈(화면과 함께).
+DRILL_SHORTFALL_NOTICE = "This drill was shorter than planned."
 MISSING_UUID = "00000000-0000-0000-0000-0000000000ff"
 
 READ_JS = r"""

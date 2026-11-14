@@ -1,0 +1,42 @@
+PASS N1 @1400 {"best":"Best streak: 1 day","insideWeeklyStats":false,"underCaption":2,"caption":"Last week · Nov 2 – Nov 8","bestAboveCaption":true,"bestRow":["Grammar course","This week: 1 / 7 days","Best streak: 1 day"],"shot":"evidence/N1-progress-1400.png"}
+PASS X3 @1400 {"title":"Show Korean translation","shot":"evidence/X3-ko-1400.png"}
+PASS N2-all @1400 {"allMatchedAttr":"true","allMatchedText":"All words matched","verdictLineHidden":true,"verdictLineText":null,"verdictSpans":8,"slotFits":true,"slotScroll":160,"slotClient":160,"sentence":"We were testing the app when it crashed.","heightBefore":513.59375,"heightAfter":513.59375,"shot":"evidence/N2-all-1400.png"}
+PASS N2-some @1400 {"allMatchedAttr":"false","allMatchedText":null,"verdictLineHidden":false,"verdictLineText":"Sentence: He called me while I was driving","verdictSpans":7,"slotFits":true,"slotScroll":160,"slotClient":160,"sentence":"He called me while I was driving.","heightBefore":513.59375,"heightAfter":513.59375,"shot":"evidence/N2-some-1400.png"}
+PASS N3-Free talk @1400 {"title":"Free talk","socket":"ws://localhost:8002/ws/session?source=additional","shot":"evidence/N3-practice-free_talk-1400.png"}
+PASS N3-Weak spots @1400 {"title":"Weak spots","socket":"ws://localhost:8002/ws/session?source=additional","shot":"evidence/N3-practice-weak_patterns-1400.png"}
+PASS N3-Practice a pattern @1400 {"title":"Practice a pattern","socket":"ws://localhost:8002/ws/session?source=additional","shot":"evidence/N3-focus-practice-1400.png"}
+PASS N4-old-server @1400 {"href":"/","shot":"evidence/N4-old-1400.png"}
+PASS N4-href-speaking @1400 {"href":"/?mode=speaking&source=additional","homeLinks":1,"shot":"evidence/N4-speaking-1400.png"}
+PASS N4-reopens @1400 {"title":"Free talk","socket":"ws://localhost:8002/ws/session?mode=speaking&source=additional","url":"http://localhost:3000/","shot":"evidence/N4-reopened-1400.png"}
+PASS N4-href-shadowing @1400 {"href":"/?mode=shadowing&source=additional&item=c0ffee00-0000-0000-0000-000000000333","homeLinks":1,"shot":"evidence/N4-shadowing-1400.png"}
+PASS N7 @1400 {"shot":"evidence/N7-1400.png"}
+PASS N8-real @1400 {"gaps":["No study · Nov 2 – Nov 13","No study · Oct 16 – Oct 31"],"shot":"evidence/N8-real-1400.png"}
+PASS N5-nothing-said @1400 {"said":"2026-11-14 · Studied · 2 lessons ▾ Nothing said","other":"2026-11-01 · Studied → Not analyzed yet","hint":true,"shot":"evidence/N5-N8-fake-1400.png"}
+PASS N8-fake @1400 {"gaps":["No study · Nov 2 – Nov 13","No study · Oct 31"]}
+PASS N6 @1400 {"sections":{"Common mistakes last week":"Nothing to show for last week.","Getting better":"Nothing to show for last week.","Try this week":"No suggestions yet."},"shot":"evidence/N6-1400.png"}
+PASS N9 @1400 {"label":"Preview video"}
+PASS TASK-332-list @1400 {"listIds":["videos-home","videos-url","videos-check","videos-save","videos-cancel","videos-title","videos-delete"],"untagged":[],"shot":"evidence/TASK332-videos-1400.png"}
+PASS TASK-332-detail @1400 {"detailIds":["video-back","video-mark-end","video-mark-cancel","video-word","video-listen","video-practise","video-delete"],"untagged":[],"shot":"evidence/TASK332-video-1400.png"}
+PASS TASK-332-cancel @1400 {"markStartAfterCancel":1}
+PASS N1 @390 {"best":"Best streak: 1 day","insideWeeklyStats":false,"underCaption":2,"caption":"Last week · Nov 2 – Nov 8","bestAboveCaption":true,"bestRow":["Grammar course","This week: 1 / 7 days","Best streak: 1 day"],"shot":"evidence/N1-progress-390.png"}
+PASS X3 @390 {"title":"Show Korean translation","shot":"evidence/X3-ko-390.png"}
+PASS N2-all @390 {"allMatchedAttr":"true","allMatchedText":"All words matched","verdictLineHidden":true,"verdictLineText":null,"verdictSpans":8,"slotFits":true,"slotScroll":160,"slotClient":160,"sentence":"We were testing the app when it crashed.","heightBefore":513.59375,"heightAfter":513.59375,"shot":"evidence/N2-all-390.png"}
+PASS N2-some @390 {"allMatchedAttr":"false","allMatchedText":null,"verdictLineHidden":false,"verdictLineText":"Sentence: He called me while I was driving","verdictSpans":7,"slotFits":true,"slotScroll":160,"slotClient":160,"sentence":"He called me while I was driving.","heightBefore":513.59375,"heightAfter":513.59375,"shot":"evidence/N2-some-390.png"}
+PASS N3-Free talk @390 {"title":"Free talk","socket":"ws://localhost:8002/ws/session?source=additional","shot":"evidence/N3-practice-free_talk-390.png"}
+PASS N3-Weak spots @390 {"title":"Weak spots","socket":"ws://localhost:8002/ws/session?source=additional","shot":"evidence/N3-practice-weak_patterns-390.png"}
+PASS N3-Practice a pattern @390 {"title":"Practice a pattern","socket":"ws://localhost:8002/ws/session?source=additional","shot":"evidence/N3-focus-practice-390.png"}
+PASS N4-old-server @390 {"href":"/","shot":"evidence/N4-old-390.png"}
+PASS N4-href-speaking @390 {"href":"/?mode=speaking&source=additional","homeLinks":1,"shot":"evidence/N4-speaking-390.png"}
+PASS N4-reopens @390 {"title":"Free talk","socket":"ws://localhost:8002/ws/session?mode=speaking&source=additional","url":"http://localhost:3000/","shot":"evidence/N4-reopened-390.png"}
+PASS N4-href-shadowing @390 {"href":"/?mode=shadowing&source=additional&item=c0ffee00-0000-0000-0000-000000000333","homeLinks":1,"shot":"evidence/N4-shadowing-390.png"}
+PASS N7 @390 {"shot":"evidence/N7-390.png"}
+PASS N8-real @390 {"gaps":["No study · Nov 2 – Nov 13","No study · Oct 16 – Oct 31"],"shot":"evidence/N8-real-390.png"}
+PASS N5-nothing-said @390 {"said":"2026-11-14 · Studied · 2 lessons ▾ Nothing said","other":"2026-11-01 · Studied → Not analyzed yet","hint":true,"shot":"evidence/N5-N8-fake-390.png"}
+PASS N8-fake @390 {"gaps":["No study · Nov 2 – Nov 13","No study · Oct 31"]}
+PASS N6 @390 {"sections":{"Common mistakes last week":"Nothing to show for last week.","Getting better":"Nothing to show for last week.","Try this week":"No suggestions yet."},"shot":"evidence/N6-390.png"}
+PASS N9 @390 {"label":"Preview video"}
+PASS TASK-332-list @390 {"listIds":["videos-home","videos-url","videos-check","videos-save","videos-cancel","videos-title","videos-delete"],"untagged":[],"shot":"evidence/TASK332-videos-390.png"}
+PASS TASK-332-detail @390 {"detailIds":["video-back","video-mark-end","video-mark-cancel","video-word","video-listen","video-practise","video-delete"],"untagged":[],"shot":"evidence/TASK332-video-390.png"}
+PASS TASK-332-cancel @390 {"markStartAfterCancel":1}
+blocked writes: 24 · fake sockets: 8
+pass 40 · fail 0

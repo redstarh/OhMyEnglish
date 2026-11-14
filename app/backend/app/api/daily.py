@@ -107,6 +107,8 @@ def _history_payload(streak: Streak, days: list[HistoryDay]) -> dict[str, object
                 "analyzed": row.analyzed,
                 "occurrence_count": row.occurrence_count,
                 "pattern_count": row.pattern_count,
+                # `TASK-333` N5 — 그날 말한 세션이 있는가. 화면이 「Nothing said」를 가르는 근거임.
+                "spoken": row.spoken,
                 # `TASK-329` — 그날의 결과 화면으로 가는 길. 학습이 없던 날은 빈 목록임.
                 "sessions": [
                     {"session_id": str(item.session_id), "title": item.title}
