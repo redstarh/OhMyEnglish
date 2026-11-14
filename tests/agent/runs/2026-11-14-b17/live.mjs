@@ -307,6 +307,22 @@ async function runWidth(width) {
   const sent11 = posts.slice(before11).length;
   verdict("⑪", width, "늦게 온 앞 응답(작은 횟수)이 Try 를 낮추지 않음", `posts+${sent11} try fresh=${tryFresh} afterLate=${tryAfterLate}`, sent11 === 2 && tryAfterLate === tryFresh && tryFresh > 0);
 
+  // ⑫ 말한 내용이 문장과 같은 글자 크기 · 가장 긴 문장(61자)의 결과도 결과 자리에 다 듦 · 카드 크기 그대로(`TASK-326`).
+  const longest = "We deploy on Fridays This week we are deploying on Thursday";
+  await setScript(page, [{ at: 200, type: "final", text: longest }]);
+  delay.queue = [];
+  await start(page);
+  await waitPhase(page, "done", 15000);
+  await page.waitForTimeout(300);
+  const fit12 = await page.evaluate(() => {
+    const slot = document.querySelector('[data-testid="course-result-slot"]');
+    const fs = (sel) => { const e = document.querySelector(sel); return e ? getComputedStyle(e).fontSize + "/" + getComputedStyle(e).fontWeight : null; };
+    return { slotH: slot.clientHeight, contentH: slot.scrollHeight, sentence: fs('[data-testid="course-sentence"]'), transcript: fs('[data-testid="course-transcript"]'), word: fs('[data-testid="course-spoken"] [data-verdict]') };
+  });
+  const box12 = await box(page);
+  await page.screenshot({ path: `${OUT}live-longest-${width}.png` });
+  verdict("⑫", width, "말한 내용 = 문장 글자(크기·굵기) · 가장 긴 결과가 자리에 다 듦 · 카드 크기 그대로", `${JSON.stringify(fit12)} card=${JSON.stringify(box12)} idle=${JSON.stringify(sizes.idle)}`, fit12.transcript === fit12.sentence && fit12.word === fit12.sentence && fit12.contentH <= fit12.slotH && box12?.h === sizes.idle?.h);
+
   writeFileSync(`${OUT}requests-${width}.json`, JSON.stringify({ posts, progress, pcmPosts }, null, 1));
   await page.close();
 }

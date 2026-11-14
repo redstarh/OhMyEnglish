@@ -106,13 +106,21 @@ function savedPosition(detail: CourseDayDetail): Position {
   };
 }
 
+// 표시된 문장의 글자 크기 — 칸 너비의 6 %(390 폭 266 px 에서 16 px)이고 20 px 에서 멈춤. 말한 내용(실시간 줄 ·
+// You said · 낱말 판정)도 이 크기를 씀(`TASK-326` 사용자 지시 — 「표시되는 문장과 동일한 크기와 폰트」).
+const SENTENCE_FONT = "text-[clamp(0.75rem,6cqi,1.25rem)]";
+// 결과 자리 높이 — 문장 글자 단위(em)로 잡아 폭이 바뀌어도 글자를 따라감(`TASK-326`).
+// 전사 두 줄 + 낱말 판정 두 줄(줄 높이 1.4 × 4 = 5.6em)에 안내 줄 · 여백(3rem)을 더함.
+// 좁은 칸(18rem 미만)은 「You said:」 꼬리표 때문에 전사가 세 줄이 되므로 한 줄(1.4em)을 더 잡음(회차 b17 ⑫).
+const RESULT_SLOT_HEIGHT = "h-[calc(5.6em+3rem)] @max-[18rem]:h-[calc(7em+3rem)]";
+
 function Spoken({ words, transcript }: { words: ReadbackWord[]; transcript: string }) {
   return (
     <div
       data-testid="course-spoken"
-      style={{ padding: "6px 10px", borderRadius: 10, background: "var(--accent-soft)", fontSize: "0.85rem" }}
+      style={{ padding: "6px 10px", borderRadius: 10, background: "var(--accent-soft)", fontWeight: 600, lineHeight: 1.4 }}
     >
-      <span style={{ fontSize: "0.72rem", color: "var(--foreground-muted)" }}>You said: </span>
+      <span style={{ fontSize: "0.72rem", fontWeight: 400, color: "var(--foreground-muted)" }}>You said: </span>
       <span data-testid="course-transcript">{transcript}</span>
       {words.length > 0 ? (
         // 낱말 사이에 실제 공백을 둠 — 여백만 두면 줄을 끊을 자리가 없어 좁은 화면에서 카드가 넓어졌음(회차 b13 r2 D1).
@@ -135,7 +143,7 @@ function Spoken({ words, transcript }: { words: ReadbackWord[]; transcript: stri
             </span>{" "}
             </Fragment>
           ))}
-          <span style={{ display: "block", fontSize: "0.72rem", color: "var(--foreground-muted)" }}>
+          <span style={{ display: "block", fontSize: "0.72rem", fontWeight: 400, lineHeight: 1.5, color: "var(--foreground-muted)" }}>
             Underline: you said a different word. Strikethrough: you missed the word.
           </span>
         </div>
@@ -147,8 +155,8 @@ function Spoken({ words, transcript }: { words: ReadbackWord[]; transcript: stri
 /** 말하는 동안의 글자 — 확정 부분은 보통 색, 미확정 부분은 흐린 기울임꼴(실시간 표시 설계서 §6). */
 function LiveLine({ live }: { live: ListenUpdate }) {
   return (
-    <p data-testid="course-live" style={{ fontSize: "0.85rem", overflowWrap: "anywhere" }}>
-      <span style={{ fontSize: "0.72rem", color: "var(--foreground-muted)" }}>{"You're saying: "}</span>
+    <p data-testid="course-live" style={{ fontWeight: 600, lineHeight: 1.4, overflowWrap: "anywhere" }}>
+      <span style={{ fontSize: "0.72rem", fontWeight: 400, color: "var(--foreground-muted)" }}>{"You're saying: "}</span>
       {live.final ? <span data-testid="course-live-final">{live.final}</span> : null}
       {live.final && live.interim ? " " : null}
       {live.interim ? (
@@ -571,7 +579,7 @@ export function SentencePractice({ detail, day, onDayFinished }: Props) {
             20 px 에서 멈춤. 줄 높이 1.4 × 2줄 = 2.8em. */}
         <p
           data-testid="course-sentence"
-          className="text-[clamp(0.75rem,6cqi,1.25rem)]"
+          className={SENTENCE_FONT}
           style={{ fontWeight: 600, marginTop: 6, lineHeight: 1.4, height: "2.8em", overflow: "hidden" }}
         >
           {sentence.text}
@@ -581,7 +589,7 @@ export function SentencePractice({ detail, day, onDayFinished }: Props) {
         <div
           ref={slotRef}
           data-testid="course-result-slot"
-          className="h-[8.5rem] @max-[16rem]:h-[12rem] sm:h-[5rem]"
+          className={`${SENTENCE_FONT} ${RESULT_SLOT_HEIGHT}`}
           style={{ marginTop: 10, overflowY: "auto", overscrollBehavior: "contain" }}
         >
           {result ? <Spoken words={result.words} transcript={result.transcript} /> : null}

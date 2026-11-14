@@ -325,3 +325,27 @@ test("확정 뒤 미확정 꼬리가 남은 채 끝나면 둘을 이어 판정�
   clock.advance(QUIET_LONG_MS + FINAL_GRACE_MS);
   assert.deepEqual(await settled(), { kind: "heard", text: "I am a software test" });
 });
+
+// ── 한글 발음 조각 (`TASK-327` · 사용자 실기기 2026-11-14: 처음 표시 때 「Did you 디드 유」처럼 섞여 나옴) ──
+
+test("미확정에 섞인 한글 발음 조각은 표시에서 뺌", () => {
+  const { recognition, updates } = setup();
+  recognition.say("Did you 디드 유", false);
+  assert.deepEqual(updates.at(-1), { final: "", interim: "Did you" });
+});
+
+test("확정에 섞인 한글 조각도 판정 텍스트에서 뺌", async () => {
+  const { clock, recognition, settled } = setup({ expectedWords: 5 });
+  recognition.say("I am 아이 소프트 a software tester", true);
+  clock.advance(QUIET_MS);
+  clock.advance(FINAL_GRACE_MS);
+  assert.deepEqual(await settled(), { kind: "heard", text: "I am a software tester" });
+});
+
+test("한글뿐인 결과는 들은 것으로 치지 않음 — 말 없음 시한이 그대로 돎", async () => {
+  const { clock, recognition, updates, settled } = setup();
+  recognition.say("디드 유 푸시", false);
+  assert.equal(updates.length, 0, "한글뿐인 결과로 화면을 갱신하지 않음");
+  clock.advance(NO_SPEECH_MS);
+  assert.deepEqual(await settled(), { kind: "silent" });
+});

@@ -3,28 +3,28 @@
   "id": "①",
   "width": 1400,
   "expect": "POST 전에 course-live-interim 에 미확정 글자",
-  "actual": "interim=\"Did you\" posts=0 phase=repeat",
+  "actual": "interim=\"We were\" posts=0 phase=repeat",
   "verdict": "통과"
  },
  {
   "id": "②",
   "width": 1400,
   "expect": "확정 뒤 조용해지면 POST 1번(본문=확정 문장) · 판정 표시 · 실시간 줄 지움 · Try 갱신 · 인식기 설정 en-US/continuous/interim · PCM 경로 없음",
-  "actual": "posts=1 body={\"transcript\":\"Did you push the code\"} transcript=\"Did you push the code\" verdicts=5 liveGone=true try 1->101 config={\"lang\":\"en-US\",\"continuous\":true,\"interim\":true} pcm=0",
+  "actual": "posts=1 body={\"transcript\":\"We were testing the app when it crashed\"} transcript=\"We were testing the app when it crashed\" verdicts=8 liveGone=true try 0->101 config={\"lang\":\"en-US\",\"continuous\":true,\"interim\":true} pcm=0",
   "verdict": "통과"
  },
  {
   "id": "③",
   "width": 1400,
-  "expect": "앞 2/5 낱말 확정 · 2초 쉼 · 나머지 → POST 본문이 전체 문장",
-  "actual": "posts+1 body={\"transcript\":\"Did you push the code\"}",
+  "expect": "앞 4/8 낱말 확정 · 2초 쉼 · 나머지 → POST 본문이 전체 문장",
+  "actual": "posts+1 body={\"transcript\":\"We were testing the app when it crashed\"}",
   "verdict": "통과"
  },
  {
   "id": "④",
   "width": 1400,
   "expect": "6초 안에 unheard 안내 · POST 없음(말 없음은 세지 않음) · Try 그대로",
-  "actual": "notice=\"I couldn't hear you. Press \"Try again\" and say it again.\" elapsed=5308ms posts+0 try 102->102",
+  "actual": "notice=\"I couldn't hear you. Press \"Try again\" and say it again.\" elapsed=5310ms posts+0 try 102->102",
   "verdict": "통과"
  },
  {
@@ -52,7 +52,7 @@
   "id": "⑧",
   "width": 1400,
   "expect": "course-card 크기가 idle·듣는 중·긴 미확정·결과 네 상태에서 같음 · 긴 글은 자리 안에서 맨 아래로 스크롤",
-  "actual": "sizes={\"idle\":{\"w\":619.1,\"h\":263.6},\"listening\":{\"w\":619.1,\"h\":263.6},\"result\":{\"w\":619.1,\"h\":263.6},\"longInterim\":{\"w\":619.1,\"h\":263.6}} slot={\"scrollTop\":2,\"overflow\":true,\"atBottom\":true}",
+  "actual": "sizes={\"idle\":{\"w\":619.1,\"h\":343.6},\"listening\":{\"w\":619.1,\"h\":343.6},\"result\":{\"w\":619.1,\"h\":343.6},\"longInterim\":{\"w\":619.1,\"h\":343.6}} slot={\"scrollTop\":92,\"overflow\":true,\"atBottom\":true}",
   "verdict": "통과"
  },
  {
@@ -74,34 +74,41 @@
   "width": 1400,
   "expect": "늦게 온 앞 응답(작은 횟수)이 Try 를 낮추지 않음",
   "actual": "posts+2 try fresh=104 afterLate=104",
+  "verdict": "통과"
+ },
+ {
+  "id": "⑫",
+  "width": 1400,
+  "expect": "말한 내용 = 문장 글자(크기·굵기) · 가장 긴 결과가 자리에 다 듦 · 카드 크기 그대로",
+  "actual": "{\"slotH\":160,\"contentH\":160,\"sentence\":\"20px/600\",\"transcript\":\"20px/600\",\"word\":\"20px/600\"} card={\"w\":619.1,\"h\":343.6} idle={\"w\":619.1,\"h\":343.6}",
   "verdict": "통과"
  },
  {
   "id": "①",
   "width": 390,
   "expect": "POST 전에 course-live-interim 에 미확정 글자",
-  "actual": "interim=\"Did you\" posts=0 phase=repeat",
+  "actual": "interim=\"We were\" posts=0 phase=repeat",
   "verdict": "통과"
  },
  {
   "id": "②",
   "width": 390,
   "expect": "확정 뒤 조용해지면 POST 1번(본문=확정 문장) · 판정 표시 · 실시간 줄 지움 · Try 갱신 · 인식기 설정 en-US/continuous/interim · PCM 경로 없음",
-  "actual": "posts=1 body={\"transcript\":\"Did you push the code\"} transcript=\"Did you push the code\" verdicts=5 liveGone=true try 1->101 config={\"lang\":\"en-US\",\"continuous\":true,\"interim\":true} pcm=0",
+  "actual": "posts=1 body={\"transcript\":\"We were testing the app when it crashed\"} transcript=\"We were testing the app when it crashed\" verdicts=8 liveGone=true try 0->101 config={\"lang\":\"en-US\",\"continuous\":true,\"interim\":true} pcm=0",
   "verdict": "통과"
  },
  {
   "id": "③",
   "width": 390,
-  "expect": "앞 2/5 낱말 확정 · 2초 쉼 · 나머지 → POST 본문이 전체 문장",
-  "actual": "posts+1 body={\"transcript\":\"Did you push the code\"}",
+  "expect": "앞 4/8 낱말 확정 · 2초 쉼 · 나머지 → POST 본문이 전체 문장",
+  "actual": "posts+1 body={\"transcript\":\"We were testing the app when it crashed\"}",
   "verdict": "통과"
  },
  {
   "id": "④",
   "width": 390,
   "expect": "6초 안에 unheard 안내 · POST 없음(말 없음은 세지 않음) · Try 그대로",
-  "actual": "notice=\"I couldn't hear you. Press \"Try again\" and say it again.\" elapsed=5309ms posts+0 try 102->102",
+  "actual": "notice=\"I couldn't hear you. Press \"Try again\" and say it again.\" elapsed=5310ms posts+0 try 102->102",
   "verdict": "통과"
  },
  {
@@ -129,7 +136,7 @@
   "id": "⑧",
   "width": 390,
   "expect": "course-card 크기가 idle·듣는 중·긴 미확정·결과 네 상태에서 같음 · 긴 글은 자리 안에서 맨 아래로 스크롤",
-  "actual": "sizes={\"idle\":{\"w\":300,\"h\":308.3},\"listening\":{\"w\":300,\"h\":308.3},\"result\":{\"w\":300,\"h\":308.3},\"longInterim\":{\"w\":300,\"h\":308.3}} slot={\"scrollTop\":7,\"overflow\":true,\"atBottom\":true}",
+  "actual": "sizes={\"idle\":{\"w\":300,\"h\":332},\"listening\":{\"w\":300,\"h\":332},\"result\":{\"w\":300,\"h\":332},\"longInterim\":{\"w\":300,\"h\":332}} slot={\"scrollTop\":197,\"overflow\":true,\"atBottom\":true}",
   "verdict": "통과"
  },
  {
@@ -151,6 +158,13 @@
   "width": 390,
   "expect": "늦게 온 앞 응답(작은 횟수)이 Try 를 낮추지 않음",
   "actual": "posts+2 try fresh=104 afterLate=104",
+  "verdict": "통과"
+ },
+ {
+  "id": "⑫",
+  "width": 390,
+  "expect": "말한 내용 = 문장 글자(크기·굵기) · 가장 긴 결과가 자리에 다 듦 · 카드 크기 그대로",
+  "actual": "{\"slotH\":160,\"contentH\":160,\"sentence\":\"15.96px/600\",\"transcript\":\"15.96px/600\",\"word\":\"15.96px/600\"} card={\"w\":300,\"h\":332} idle={\"w\":300,\"h\":332}",
   "verdict": "통과"
  }
 ]

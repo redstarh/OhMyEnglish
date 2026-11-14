@@ -110,6 +110,15 @@ export function listenLimitMs(spokenMs: number): number {
   return Math.max(MIN_LISTEN_MS, spokenMs * 3);
 }
 
+// 한글 — 연습 대상은 영어 문장이므로 인식기가 영어 소리를 한글로 적은 조각은 뺌(`TASK-327`).
+// ⚠️ 사용자 실기기(한국어 맥 · Chrome)에서 처음 표시 때 「Did you 디드 유」처럼 섞여 나왔음. 원인은 미확인.
+const HANGUL = /[ㄱ-ㆎ가-힣]+/g;
+
+/** 한글 조각을 빼고 공백을 하나로 모음. */
+function withoutHangul(text: string): string {
+  return text.replace(HANGUL, " ").replace(/\s+/g, " ").trim();
+}
+
 /** 글 조각을 한 칸 띄어 이음 — 빈 조각은 뺌. */
 function joinText(...parts: string[]): string {
   return parts.map((part) => part.trim()).filter(Boolean).join(" ");
@@ -120,7 +129,7 @@ function readResults(event: RecognitionResultEventLike): ListenUpdate {
   const interims: string[] = [];
   for (let index = 0; index < event.results.length; index += 1) {
     const result = event.results[index];
-    const text = result[0]?.transcript.trim() ?? "";
+    const text = withoutHangul(result[0]?.transcript ?? "");
     if (!text) continue;
     (result.isFinal ? finals : interims).push(text);
   }
@@ -238,6 +247,8 @@ export function listen(options: ListenOptions): Promise<ListenOutcome> {
       current.onresult = (event) => {
         if (!live()) return;
         const read = readResults(event);
+        // 한글뿐인 결과는 들은 것으로 치지 않음 — 화면도 타이머도 건드리지 않아 말 없음 시한이 그대로 돎.
+        if (!read.final && !read.interim) return;
         latest = { final: joinText(committed, read.final), interim: read.interim };
         options.onUpdate?.(latest);
         clock.clearTimeout(noSpeechTimer);

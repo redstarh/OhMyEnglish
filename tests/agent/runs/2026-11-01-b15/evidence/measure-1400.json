@@ -1,13 +1,13 @@
 {
  "idle.hero": {
   "top": 36,
-  "bottom": 470,
-  "h": 433.6
+  "bottom": 550,
+  "h": 513.6
  },
  "idle.progress": {
   "top": 36,
-  "bottom": 470,
-  "h": 433.6
+  "bottom": 550,
+  "h": 513.6
  },
  "labels": [
   "TODAY'S PRACTICE | 12px | 700 | 1.68px | uppercase | oklab(0.999994 0.0000455678 0.0000200868 / 0.75)",
@@ -18,18 +18,18 @@
  ],
  "practice.hero": {
   "top": 36,
-  "bottom": 470,
-  "h": 433.6
+  "bottom": 550,
+  "h": 513.6
  },
  "practice.progress": {
   "top": 36,
-  "bottom": 470,
-  "h": 433.6
+  "bottom": 550,
+  "h": 513.6
  },
  "practice.card": {
   "top": 181,
-  "bottom": 444,
-  "h": 263.6
+  "bottom": 524,
+  "h": 343.6
  },
  "practice.gapBelowCard": 25,
  "labels.practice": [
@@ -46,22 +46,22 @@
   "overflow": [],
   "overflowCount": 0,
   "cardH": [
-   264
+   344
   ],
   "lineBox": 56
  },
  "unitRow": [
-  434
+  514
  ],
  "phase": {
-  "before": 264,
-  "after": 264,
+  "before": 344,
+  "after": 344,
   "rowH": 19
  },
  "result": {
-  "before": 264,
-  "after": 264,
-  "slotH": 80,
+  "before": 344,
+  "after": 344,
+  "slotH": 160,
   "contentH": 72,
   "scrolls": false
  }

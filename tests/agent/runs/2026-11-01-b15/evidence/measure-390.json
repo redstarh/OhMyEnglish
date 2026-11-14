@@ -1,12 +1,12 @@
 {
  "idle.hero": {
   "top": 89,
-  "bottom": 579,
-  "h": 489.6
+  "bottom": 603,
+  "h": 513.6
  },
  "idle.progress": {
-  "top": 599,
-  "bottom": 934,
+  "top": 623,
+  "bottom": 958,
   "h": 335.4
  },
  "labels": [
@@ -18,18 +18,18 @@
  ],
  "practice.hero": {
   "top": 89,
-  "bottom": 579,
-  "h": 489.6
+  "bottom": 603,
+  "h": 513.6
  },
  "practice.progress": {
-  "top": 599,
-  "bottom": 934,
+  "top": 623,
+  "bottom": 958,
   "h": 335.4
  },
  "practice.card": {
   "top": 245,
-  "bottom": 553,
-  "h": 308.3
+  "bottom": 577,
+  "h": 332
  },
  "practice.gapBelowCard": 25,
  "labels.practice": [
@@ -46,22 +46,22 @@
   "overflow": [],
   "overflowCount": 0,
   "cardH": [
-   308
+   332
   ],
   "lineBox": 45
  },
  "unitRow": [
-  490
+  514
  ],
  "phase": {
-  "before": 308,
-  "after": 308,
+  "before": 332,
+  "after": 332,
   "rowH": 19
  },
  "result": {
-  "before": 308,
-  "after": 308,
-  "slotH": 136,
+  "before": 332,
+  "after": 332,
+  "slotH": 160,
   "contentH": 130,
   "scrolls": false
  }
