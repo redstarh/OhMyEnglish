@@ -8,6 +8,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { dayStarted } from "@/components/home/dashboardData";
 import { fetchCourse, type CourseDaySummary, type CourseOverview } from "@/lib/api";
 
 const PAGE_STYLE = {
@@ -75,10 +76,7 @@ function DayRow({
   // 완료가 전날로 보였다(회차 2026-10-26-b1 D1).
   if (doneThisCycle && progress?.last_completed_date) {
     status = `Done · ${shortDate(progress.last_completed_date)}`;
-  } else if (
-    progress &&
-    (progress.position_sec > 0 || progress.sentence_index > 0 || progress.unit !== item.first_unit)
-  ) {
+  } else if (progress && dayStarted(item)) {
     status = `Unit ${progress.unit} · Sentence ${progress.sentence_index + 1} · ${clock(progress.position_sec)}`;
   } else {
     status = "Not started";

@@ -79,9 +79,20 @@ export function pathDays(course: CourseOverview): CourseDaySummary[] {
 
 export type DayStatus = "done" | "started" | "new";
 
+/** 이번 회차에 시작한 Day 인가 — 진도가 시작 위치(첫 단원 · 첫 문장 · 0초)를 벗어났는가.
+ *
+ * ⛔ 진도 행이 있다는 것만으로 보지 않음(`TASK-322` · 회차 b16 D2) — 지난 회차에 마친 Day 도 시작 위치의
+ *    행을 가지므로, 그것을 진행 중으로 보면 홈과 코스 목록이 같은 Day 를 다르게 보였음. 판정은 이 함수
+ *    하나가 갖고 코스 목록(`app/course/page.tsx`)도 이것을 씀. */
+export function dayStarted(day: CourseDaySummary): boolean {
+  const progress = day.progress;
+  if (!progress) return false;
+  return progress.position_sec > 0 || progress.sentence_index > 0 || progress.unit !== day.first_unit;
+}
+
 export function dayStatus(day: CourseDaySummary, cycle: number): DayStatus {
   if (isDayDone(day, cycle)) return "done";
-  return day.progress ? "started" : "new";
+  return dayStarted(day) ? "started" : "new";
 }
 
 // ── 히스토리 ──
