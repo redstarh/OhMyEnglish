@@ -1,0 +1,50 @@
+[
+  {
+    "id": "E1",
+    "screen": "home@1400",
+    "action": "practice-free_talk",
+    "expect": "소켓 1개 · 질의 {\"source\":\"additional\"}",
+    "actual": "url=ws://localhost:8002/ws/session?source=additional reason=connection_lost",
+    "verdict": "통과"
+  },
+  {
+    "id": "E2",
+    "screen": "home@1400",
+    "action": "practice-weak_patterns",
+    "expect": "소켓 1개 · 질의 {\"source\":\"additional\"}",
+    "actual": "url=ws://localhost:8002/ws/session?source=additional reason=connection_lost",
+    "verdict": "통과"
+  },
+  {
+    "id": "E3",
+    "screen": "home@1400",
+    "action": "practice-five_questions",
+    "expect": "소켓 1개 · 질의 {\"mode\":\"scenario_intake\",\"source\":\"additional\"}",
+    "actual": "url=ws://localhost:8002/ws/session?mode=scenario_intake&source=additional reason=connection_lost",
+    "verdict": "통과"
+  },
+  {
+    "id": "E4",
+    "screen": "home@1400",
+    "action": "practice-pronunciation",
+    "expect": "소켓 1개 · 질의 {\"mode\":\"pronunciation\",\"source\":\"additional\"}",
+    "actual": "url=ws://localhost:8002/ws/session?mode=pronunciation&source=additional reason=connection_lost",
+    "verdict": "통과"
+  },
+  {
+    "id": "E5",
+    "screen": "home@1400",
+    "action": "practice-shadowing",
+    "expect": "소켓 1개 · 질의 {\"mode\":\"shadowing\",\"source\":\"additional\"}",
+    "actual": "url=ws://localhost:8002/ws/session?mode=shadowing&source=additional reason=connection_lost",
+    "verdict": "통과"
+  },
+  {
+    "id": "E6",
+    "screen": "home@1400",
+    "action": "focus-practice",
+    "expect": "소켓 1개 · 질의 {\"source\":\"additional\"}",
+    "actual": "url=ws://localhost:8002/ws/session?source=additional reason=connection_lost",
+    "verdict": "통과"
+  }
+]

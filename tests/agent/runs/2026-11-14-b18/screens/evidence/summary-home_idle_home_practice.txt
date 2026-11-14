@@ -1,0 +1,118 @@
+## home_idle 390 #1 홈 대기 — 첫 화면(KO 끔) · / · body 390/390 · scrollY 0 · hero 513.6(idle) · progress 331.4
+  texts {"home-hero-title":"Day 1: listen and say it.","home-hero-day":"Day 1 · Units 1–21","home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  labels 5 종류 ["12px/700/1.68px"] :: Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## home_idle 390 #2 홈 대기 — KO 켬으로 저장된 상태 · / · body 390/390 · scrollY 0 · hero 558.4(idle) · progress 331.4
+  texts {"home-hero-title":"Day 1: listen and say it.","home-hero-day":"Day 1 · Units 1–21","home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  labels 5 종류 ["12px/700/1.68px"] :: Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## home_idle 1400 #1 홈 대기 — 첫 화면(KO 끔) · / · body 1400/1400 · scrollY 0 · hero 513.6(idle) · progress 513.6
+  texts {"home-hero-title":"Day 1: listen and say it.","home-hero-day":"Day 1 · Units 1–21","home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  labels 6 종류 ["10px/700/1.8px","12px/700/1.68px"] :: Workspace | Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## home_idle 1400 #2 홈 대기 — KO 켬으로 저장된 상태 · / · body 1400/1400 · scrollY 0 · hero 558.4(idle) · progress 558.4
+  texts {"home-hero-title":"Day 1: listen and say it.","home-hero-day":"Day 1 · Units 1–21","home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  labels 6 종류 ["10px/700/1.8px","12px/700/1.68px"] :: Workspace | Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## home_practice 390 #1 Start speaking — 카드 안 문장 연습(KO 끔 · Manual) · / · body 390/390 · scrollY 0 · hero 513.6(practice) · progress 331.4 · card 332 · KO false
+  extra {"scrollYBefore":0}
+  texts {"home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days","practice-day":"Day 1 · Units 1–21","course-sentence-number":"Sentence 3 / 5","course-sentence":"We have a meeting at three.","course-prev":"← Previous","course-next":"Next →","practice-close":"← Close"}
+  fonts {"sentence":"15.96px/600/Geist","transcript":null,"live":null,"translation":null}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  labels 5 종류 ["12px/700/1.68px"] :: Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["← Close","← Previous","Start","Next →","History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## home_practice 390 #2 KO 켬 — 문장 아래 한국어 번역 · / · body 390/390 · scrollY 0 · hero 558.4(practice) · progress 331.4 · card 367.5 · KO true
+  texts {"home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days","practice-day":"Day 1 · Units 1–21","course-sentence-number":"Sentence 3 / 5","course-sentence":"We have a meeting at three.","course-translation-text":"저희는 세 시에 회의가 있어요.","course-prev":"← Previous","course-next":"Next →","practice-close":"← Close"}
+  fonts {"sentence":"15.96px/600/Geist","transcript":null,"live":null,"translation":"11.97px/400/Geist"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  korean [{"tid":"course-translation-text<course-card<sentence-practice<home-hero-body","tag":"P","text":"저희는 세 시에 회의가 있어요."}]
+  labels 5 종류 ["12px/700/1.68px"] :: Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["← Close","← Previous","Start","Next →","History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## home_practice 390 #3 Start — 말하는 동안 실시간 표시(가짜 인식기) · / · body 390/390 · scrollY 0 · hero 558.4(practice) · progress 331.4 · card 367.5 · KO true
+  extra {"sentence":"We have a meeting at three."}
+  texts {"home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days","practice-day":"Day 1 · Units 1–21","course-sentence-number":"Sentence 3 / 5","course-sentence":"We have a meeting at three.","course-translation-text":"저희는 세 시에 회의가 있어요.","course-live":"You're saying: We have a","course-prev":"← Previous","course-next":"Next →","practice-close":"← Close"}
+  fonts {"sentence":"15.96px/600/Geist","transcript":null,"live":"15.96px/600/Geist","translation":"11.97px/400/Geist"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  korean [{"tid":"course-translation-text<course-card<sentence-practice<home-hero-body","tag":"P","text":"저희는 세 시에 회의가 있어요."}]
+  labels 5 종류 ["12px/700/1.68px"] :: Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["← Close","← Previous","Try again","Next →","History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## home_practice 390 #4 판정 결과 — 말한 내용(문장과 같은 글자) · / · body 390/390 · scrollY 0 · hero 558.4(practice) · progress 331.4 · card 367.5 · KO true
+  extra {"phase":"done"}
+  texts {"home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days","practice-day":"Day 1 · Units 1–21","course-sentence-number":"Sentence 3 / 5","course-sentence":"We have a meeting at three.","course-translation-text":"저희는 세 시에 회의가 있어요.","course-transcript":"We have a meeting at three","course-prev":"← Previous","course-next":"Next →","practice-close":"← Close"}
+  fonts {"sentence":"15.96px/600/Geist","transcript":"15.96px/600/Geist","live":null,"translation":"11.97px/400/Geist"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  korean [{"tid":"course-translation-text<course-card<sentence-practice<home-hero-body","tag":"P","text":"저희는 세 시에 회의가 있어요."}]
+  labels 5 종류 ["12px/700/1.68px"] :: Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["← Close","← Previous","Try again","Next →","History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## home_practice 390 #5 Next → — 다음 문장 · / · body 390/390 · scrollY 0 · hero 558.4(practice) · progress 331.4 · card 367.5 · KO true
+  texts {"home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days","practice-day":"Day 1 · Units 1–21","course-sentence-number":"Sentence 4 / 5","course-sentence":"Do you have a minute?","course-translation-text":"잠깐 시간 있어요?","course-prev":"← Previous","course-next":"Next →","practice-close":"← Close"}
+  fonts {"sentence":"15.96px/600/Geist","transcript":null,"live":null,"translation":"11.97px/400/Geist"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  korean [{"tid":"course-translation-text<course-card<sentence-practice<home-hero-body","tag":"P","text":"잠깐 시간 있어요?"}]
+  labels 5 종류 ["12px/700/1.68px"] :: Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["← Close","← Previous","Start","Next →","History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## home_practice 390 #6 ← Previous — 앞 문장으로 돌아옴 · / · body 390/390 · scrollY 0 · hero 558.4(practice) · progress 331.4 · card 367.5 · KO true
+  texts {"home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days","practice-day":"Day 1 · Units 1–21","course-sentence-number":"Sentence 3 / 5","course-sentence":"We have a meeting at three.","course-translation-text":"저희는 세 시에 회의가 있어요.","course-prev":"← Previous","course-next":"Next →","practice-close":"← Close"}
+  fonts {"sentence":"15.96px/600/Geist","transcript":null,"live":null,"translation":"11.97px/400/Geist"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  korean [{"tid":"course-translation-text<course-card<sentence-practice<home-hero-body","tag":"P","text":"저희는 세 시에 회의가 있어요."}]
+  labels 5 종류 ["12px/700/1.68px"] :: Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["← Close","← Previous","Start","Next →","History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## home_practice 390 #7 ← Close — 대기로 돌아옴(KO 켬 유지) · / · body 390/390 · scrollY 0 · hero 558.4(idle) · progress 331.4
+  texts {"home-hero-title":"Day 1: listen and say it.","home-hero-day":"Day 1 · Units 1–21","home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  labels 5 종류 ["12px/700/1.68px"] :: Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## home_practice 1400 #1 Start speaking — 카드 안 문장 연습(KO 끔 · Manual) · / · body 1400/1400 · scrollY 0 · hero 513.6(practice) · progress 513.6 · card 343.6 · KO false
+  extra {"scrollYBefore":0}
+  texts {"home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days","practice-day":"Day 1 · Units 1–21","course-sentence-number":"Sentence 3 / 5","course-sentence":"We have a meeting at three.","course-prev":"← Previous","course-next":"Next →","practice-close":"← Close"}
+  fonts {"sentence":"20px/600/Geist","transcript":null,"live":null,"translation":null}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  labels 6 종류 ["10px/700/1.8px","12px/700/1.68px"] :: Workspace | Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["← Close","← Previous","Start","Next →","History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## home_practice 1400 #2 KO 켬 — 문장 아래 한국어 번역 · / · body 1400/1400 · scrollY 0 · hero 558.4(practice) · progress 558.4 · card 388.1 · KO true
+  texts {"home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days","practice-day":"Day 1 · Units 1–21","course-sentence-number":"Sentence 3 / 5","course-sentence":"We have a meeting at three.","course-translation-text":"저희는 세 시에 회의가 있어요.","course-prev":"← Previous","course-next":"Next →","practice-close":"← Close"}
+  fonts {"sentence":"20px/600/Geist","transcript":null,"live":null,"translation":"15.2px/400/Geist"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  korean [{"tid":"course-translation-text<course-card<sentence-practice<home-hero-body","tag":"P","text":"저희는 세 시에 회의가 있어요."}]
+  labels 6 종류 ["10px/700/1.8px","12px/700/1.68px"] :: Workspace | Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["← Close","← Previous","Start","Next →","History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## home_practice 1400 #3 Start — 말하는 동안 실시간 표시(가짜 인식기) · / · body 1400/1400 · scrollY 0 · hero 558.4(practice) · progress 558.4 · card 388.1 · KO true
+  extra {"sentence":"We have a meeting at three."}
+  texts {"home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days","practice-day":"Day 1 · Units 1–21","course-sentence-number":"Sentence 3 / 5","course-sentence":"We have a meeting at three.","course-translation-text":"저희는 세 시에 회의가 있어요.","course-live":"You're saying: We have a","course-prev":"← Previous","course-next":"Next →","practice-close":"← Close"}
+  fonts {"sentence":"20px/600/Geist","transcript":null,"live":"20px/600/Geist","translation":"15.2px/400/Geist"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  korean [{"tid":"course-translation-text<course-card<sentence-practice<home-hero-body","tag":"P","text":"저희는 세 시에 회의가 있어요."}]
+  labels 6 종류 ["10px/700/1.8px","12px/700/1.68px"] :: Workspace | Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["← Close","← Previous","Try again","Next →","History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## home_practice 1400 #4 판정 결과 — 말한 내용(문장과 같은 글자) · / · body 1400/1400 · scrollY 0 · hero 558.4(practice) · progress 558.4 · card 388.1 · KO true
+  extra {"phase":"done"}
+  texts {"home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days","practice-day":"Day 1 · Units 1–21","course-sentence-number":"Sentence 3 / 5","course-sentence":"We have a meeting at three.","course-translation-text":"저희는 세 시에 회의가 있어요.","course-transcript":"We have a meeting at three","course-prev":"← Previous","course-next":"Next →","practice-close":"← Close"}
+  fonts {"sentence":"20px/600/Geist","transcript":"20px/600/Geist","live":null,"translation":"15.2px/400/Geist"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  korean [{"tid":"course-translation-text<course-card<sentence-practice<home-hero-body","tag":"P","text":"저희는 세 시에 회의가 있어요."}]
+  labels 6 종류 ["10px/700/1.8px","12px/700/1.68px"] :: Workspace | Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["← Close","← Previous","Try again","Next →","History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## home_practice 1400 #5 Next → — 다음 문장 · / · body 1400/1400 · scrollY 0 · hero 558.4(practice) · progress 558.4 · card 388.1 · KO true
+  texts {"home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days","practice-day":"Day 1 · Units 1–21","course-sentence-number":"Sentence 4 / 5","course-sentence":"Do you have a minute?","course-translation-text":"잠깐 시간 있어요?","course-prev":"← Previous","course-next":"Next →","practice-close":"← Close"}
+  fonts {"sentence":"20px/600/Geist","transcript":null,"live":null,"translation":"15.2px/400/Geist"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  korean [{"tid":"course-translation-text<course-card<sentence-practice<home-hero-body","tag":"P","text":"잠깐 시간 있어요?"}]
+  labels 6 종류 ["10px/700/1.8px","12px/700/1.68px"] :: Workspace | Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["← Close","← Previous","Start","Next →","History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## home_practice 1400 #6 ← Previous — 앞 문장으로 돌아옴 · / · body 1400/1400 · scrollY 0 · hero 558.4(practice) · progress 558.4 · card 388.1 · KO true
+  texts {"home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days","practice-day":"Day 1 · Units 1–21","course-sentence-number":"Sentence 3 / 5","course-sentence":"We have a meeting at three.","course-translation-text":"저희는 세 시에 회의가 있어요.","course-prev":"← Previous","course-next":"Next →","practice-close":"← Close"}
+  fonts {"sentence":"20px/600/Geist","transcript":null,"live":null,"translation":"15.2px/400/Geist"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  korean [{"tid":"course-translation-text<course-card<sentence-practice<home-hero-body","tag":"P","text":"저희는 세 시에 회의가 있어요."}]
+  labels 6 종류 ["10px/700/1.8px","12px/700/1.68px"] :: Workspace | Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["← Close","← Previous","Start","Next →","History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## home_practice 1400 #7 ← Close — 대기로 돌아옴(KO 켬 유지) · / · body 1400/1400 · scrollY 0 · hero 558.4(idle) · progress 558.4
+  texts {"home-hero-title":"Day 1: listen and say it.","home-hero-day":"Day 1 · Units 1–21","home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  labels 6 종류 ["10px/700/1.8px","12px/700/1.68px"] :: Workspace | Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]

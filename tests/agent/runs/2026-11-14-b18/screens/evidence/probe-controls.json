@@ -1,0 +1,19 @@
+{
+ "overflowBefore": {
+  "body": 390,
+  "doc": 390,
+  "w": 390
+ },
+ "overflowAfter": {
+  "body": 600,
+  "doc": 390,
+  "w": 390,
+  "boxRight": 600
+ },
+ "consoleCaught": 1,
+ "historyStays": "/history",
+ "hasRealRecognizer": true,
+ "realInterim": 0,
+ "realNotice": "I couldn't hear you. Press \"Try again\" and say it again.",
+ "errorsOther": []
+}

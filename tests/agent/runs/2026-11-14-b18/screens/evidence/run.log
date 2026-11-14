@@ -1,0 +1,63 @@
+2026-11-14T12:24:29.375Z home_idle 1400 #1 홈 대기 — 첫 화면(KO 끔) over=false(1400) hero=513.6(idle) card=- clip=1 ko=0
+2026-11-14T12:24:31.092Z home_idle 1400 #2 홈 대기 — KO 켬으로 저장된 상태 over=false(1400) hero=558.4(idle) card=- clip=1 ko=0
+2026-11-14T12:24:32.855Z home_idle 390 #1 홈 대기 — 첫 화면(KO 끔) over=false(390) hero=513.6(idle) card=- clip=1 ko=0
+2026-11-14T12:24:34.527Z home_idle 390 #2 홈 대기 — KO 켬으로 저장된 상태 over=false(390) hero=558.4(idle) card=- clip=1 ko=0
+2026-11-14T12:24:34.533Z DONE
+2026-11-14T12:24:40.769Z home_practice 1400 #1 Start speaking — 카드 안 문장 연습(KO 끔 · Manual) over=false(1400) hero=513.6(practice) card=343.6 clip=1 ko=0
+2026-11-14T12:24:41.669Z home_practice 1400 #2 KO 켬 — 문장 아래 한국어 번역 over=false(1400) hero=558.4(practice) card=388.1 clip=1 ko=1
+2026-11-14T12:24:44.685Z home_practice 1400 #3 Start — 말하는 동안 실시간 표시(가짜 인식기) over=false(1400) hero=558.4(practice) card=388.1 clip=1 ko=1
+2026-11-14T12:24:48.949Z home_practice 1400 #4 판정 결과 — 말한 내용(문장과 같은 글자) over=false(1400) hero=558.4(practice) card=388.1 clip=1 ko=1
+2026-11-14T12:24:50.019Z home_practice 1400 #5 Next → — 다음 문장 over=false(1400) hero=558.4(practice) card=388.1 clip=1 ko=1
+2026-11-14T12:24:51.070Z home_practice 1400 #6 ← Previous — 앞 문장으로 돌아옴 over=false(1400) hero=558.4(practice) card=388.1 clip=1 ko=1
+2026-11-14T12:24:51.941Z home_practice 1400 #7 ← Close — 대기로 돌아옴(KO 켬 유지) over=false(1400) hero=558.4(idle) card=- clip=1 ko=0
+2026-11-14T12:24:55.042Z home_practice 390 #1 Start speaking — 카드 안 문장 연습(KO 끔 · Manual) over=false(390) hero=513.6(practice) card=332 clip=1 ko=0
+2026-11-14T12:24:55.943Z home_practice 390 #2 KO 켬 — 문장 아래 한국어 번역 over=false(390) hero=558.4(practice) card=367.5 clip=1 ko=1
+2026-11-14T12:24:58.447Z home_practice 390 #3 Start — 말하는 동안 실시간 표시(가짜 인식기) over=false(390) hero=558.4(practice) card=367.5 clip=1 ko=1
+2026-11-14T12:25:03.161Z home_practice 390 #4 판정 결과 — 말한 내용(문장과 같은 글자) over=false(390) hero=558.4(practice) card=367.5 clip=1 ko=1
+2026-11-14T12:25:04.250Z home_practice 390 #5 Next → — 다음 문장 over=false(390) hero=558.4(practice) card=367.5 clip=1 ko=1
+2026-11-14T12:25:05.335Z home_practice 390 #6 ← Previous — 앞 문장으로 돌아옴 over=false(390) hero=558.4(practice) card=367.5 clip=1 ko=1
+2026-11-14T12:25:06.219Z home_practice 390 #7 ← Close — 대기로 돌아옴(KO 켬 유지) over=false(390) hero=558.4(idle) card=- clip=1 ko=0
+2026-11-14T12:25:08.494Z path_day2 1400 #1 Continue your path — Day 줄 목록 over=false(1400) hero=513.6(idle) card=- clip=1 ko=0
+2026-11-14T12:25:10.067Z path_day2 1400 #2 Day 2 고름 — 카드에서 연습이 열림 over=false(1400) hero=513.6(practice) card=343.6 clip=1 ko=1
+2026-11-14T12:25:13.181Z path_day2 390 #1 Continue your path — Day 줄 목록 over=false(390) hero=513.6(idle) card=- clip=1 ko=0
+2026-11-14T12:25:14.794Z path_day2 390 #2 Day 2 고름 — 카드에서 연습이 열림 over=false(390) hero=513.6(practice) card=332 clip=1 ko=1
+2026-11-14T12:25:17.867Z view_all 1400 #1 View all 누르기 전 over=false(1400) hero=513.6(idle) card=- clip=1 ko=0
+2026-11-14T12:25:18.954Z view_all 1400 #2 View all — 모든 Day 로 펼침 over=false(1400) hero=513.6(idle) card=- clip=1 ko=0
+2026-11-14T12:25:19.900Z view_all 1400 #3 Show less — 다시 접음 over=false(1400) hero=513.6(idle) card=- clip=1 ko=0
+2026-11-14T12:25:22.050Z view_all 390 #1 View all 누르기 전 over=false(390) hero=513.6(idle) card=- clip=1 ko=0
+2026-11-14T12:25:23.135Z view_all 390 #2 View all — 모든 Day 로 펼침 over=false(390) hero=513.6(idle) card=- clip=1 ko=0
+2026-11-14T12:25:24.057Z view_all 390 #3 Show less — 다시 접음 over=false(390) hero=513.6(idle) card=- clip=1 ko=0
+2026-11-14T12:25:28.381Z history 1400 #1 Your progress → History — /history over=false(1400) hero=-(null) card=- clip=0 ko=0
+2026-11-14T12:25:29.316Z history 1400 #3 세션 여럿인 날짜 줄 → 펼쳐 세션 목록 over=false(1400) hero=-(null) card=- clip=0 ko=0
+2026-11-14T12:25:33.445Z history 1400 #4 펼친 목록의 세션 → 그 결과 over=false(1400) hero=-(null) card=- clip=0 ko=0
+2026-11-14T12:25:37.735Z history 390 #1 Your progress → History — /history over=false(390) hero=-(null) card=- clip=0 ko=0
+2026-11-14T12:25:38.671Z history 390 #3 세션 여럿인 날짜 줄 → 펼쳐 세션 목록 over=false(390) hero=-(null) card=- clip=0 ko=0
+2026-11-14T12:25:42.803Z history 390 #4 펼친 목록의 세션 → 그 결과 over=false(390) hero=-(null) card=- clip=0 ko=0
+2026-11-14T12:25:47.129Z weekly 1400 #1 Your progress → Weekly report — /history/weekly over=false(1400) hero=-(null) card=- clip=0 ko=0
+2026-11-14T12:25:48.748Z weekly 1400 #2 ← Home — 홈으로 over=false(1400) hero=513.6(idle) card=- clip=1 ko=0
+2026-11-14T12:25:53.028Z weekly 390 #1 Your progress → Weekly report — /history/weekly over=false(390) hero=-(null) card=- clip=0 ko=0
+2026-11-14T12:25:54.637Z weekly 390 #2 ← Home — 홈으로 over=false(390) hero=513.6(idle) card=- clip=1 ko=0
+2026-11-14T12:25:59.789Z results 1400 #1 지난 완료 세션(11-01 · 발화 있음) over=false(1400) hero=-(null) card=- clip=0 ko=6
+2026-11-14T12:26:04.909Z results 1400 #2 발화 없는 세션(11-14 · 발화 0건) over=false(1400) hero=-(null) card=- clip=0 ko=0
+2026-11-14T12:26:10.051Z results 390 #1 지난 완료 세션(11-01 · 발화 있음) over=false(390) hero=-(null) card=- clip=0 ko=6
+2026-11-14T12:26:15.166Z results 390 #2 발화 없는 세션(11-14 · 발화 0건) over=false(390) hero=-(null) card=- clip=0 ko=0
+2026-11-14T12:26:17.888Z course 1400 #1 /course 를 주소로 엶 → 홈 over=false(1400) hero=513.6(idle) card=- clip=1 ko=0
+2026-11-14T12:26:20.559Z course 1400 #2 /course/1 을 주소로 엶 → 홈 over=false(1400) hero=513.6(idle) card=- clip=1 ko=0
+2026-11-14T12:26:23.235Z course 390 #1 /course 를 주소로 엶 → 홈 over=false(390) hero=513.6(idle) card=- clip=1 ko=0
+2026-11-14T12:26:25.900Z course 390 #2 /course/1 을 주소로 엶 → 홈 over=false(390) hero=513.6(idle) card=- clip=1 ko=0
+2026-11-14T12:26:30.757Z videos 1400 #1 Learn with videos → 영상 목록 /videos over=false(1400) hero=-(null) card=- clip=0 ko=1
+2026-11-14T12:26:35.893Z videos 1400 #2 영상 화면 /videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2 over=false(1400) hero=-(null) card=- clip=0 ko=2
+2026-11-14T12:26:40.801Z videos 390 #1 Learn with videos → 영상 목록 /videos over=false(390) hero=-(null) card=- clip=0 ko=1
+2026-11-14T12:26:45.918Z videos 390 #2 영상 화면 /videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2 over=false(390) hero=-(null) card=- clip=0 ko=2
+2026-11-14T12:26:45.931Z DONE
+2026-11-14T12:28:09.491Z coach 1400 #1 More practice — Free talk 버튼 over=false(1400) hero=513.6(idle) card=- clip=1 ko=0
+2026-11-14T12:28:12.055Z coach 1400 #2 세션 시작 — 카드 안 대화 화면 over=false(1400) hero=513.6(session) card=- clip=1 ko=0
+2026-11-14T12:28:22.100Z coach 1400 #3 약 12초 뒤 over=false(1400) hero=513.6(session) card=- clip=1 ko=0
+2026-11-14T12:28:29.675Z coach 1400 #4 End lesson — 결과 화면 over=false(1400) hero=-(null) card=- clip=0 ko=0
+2026-11-14T12:28:31.282Z coach 1400 #5 Start again → — 홈으로 over=false(1400) hero=513.6(idle) card=- clip=1 ko=0
+2026-11-14T12:28:33.435Z coach 390 #1 More practice — Free talk 버튼 over=false(390) hero=513.6(idle) card=- clip=1 ko=0
+2026-11-14T12:28:36.026Z coach 390 #2 세션 시작 — 카드 안 대화 화면 over=false(390) hero=513.6(session) card=- clip=1 ko=0
+2026-11-14T12:28:46.077Z coach 390 #3 약 12초 뒤 over=false(390) hero=513.6(session) card=- clip=1 ko=0
+2026-11-14T12:28:53.659Z coach 390 #4 End lesson — 결과 화면 over=false(390) hero=-(null) card=- clip=0 ko=0
+2026-11-14T12:28:55.288Z coach 390 #5 Start again → — 홈으로 over=false(390) hero=513.6(idle) card=- clip=1 ko=0
+2026-11-14T12:28:55.295Z DONE

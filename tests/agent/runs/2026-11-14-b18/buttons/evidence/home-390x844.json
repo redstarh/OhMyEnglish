@@ -1,0 +1,106 @@
+[
+  {
+    "id": "H1",
+    "screen": "home@390x844",
+    "action": "Start speaking(scrollY 40 에서)",
+    "expect": "data-mode=practice · 주소 / · 매 프레임 scrollY 가 시작값 그대로 · 카드 높이가 대기 높이 아래로 내려가지 않음",
+    "actual": "pre={\"y\":40,\"doc\":1588,\"hero\":513.6} frames=89 scrollY 값=[40] 끝 40 · 최소 카드 높이 513.6 · mode=practice",
+    "verdict": "통과"
+  },
+  {
+    "id": "H2",
+    "screen": "home-practice",
+    "action": "Start speaking 뒤 현재 Day 줄 강조",
+    "expect": "현재 Day 줄 하나만 data-selected=true",
+    "actual": "[\"path-day-1\"]",
+    "verdict": "통과"
+  },
+  {
+    "id": "H3",
+    "screen": "home-practice",
+    "action": "← Close",
+    "expect": "data-mode=idle · 강조 줄 0개",
+    "actual": "mode=idle selected=[]",
+    "verdict": "통과"
+  },
+  {
+    "id": "H4",
+    "screen": "home",
+    "action": "View all ↔ Show less",
+    "expect": "n줄 View all → 더 많은 줄 Show less(aria-expanded=true) → n줄 View all",
+    "actual": "2 \"View all\" → 6 \"Show less\" exp=true → 2 \"View all\"",
+    "verdict": "통과"
+  },
+  {
+    "id": "H5",
+    "screen": "home",
+    "action": "Day 4 줄",
+    "expect": "주소 / · practice-day 가 Day 4 · 강조 path-day-4 만 · 테두리 색이 다른 줄과 다름",
+    "actual": "url=/ day=\"Day 4 · Units 63–82\" selected=[\"path-day-4\"] border4=rgb(50, 99, 220) border5=rgb(231, 234, 241)",
+    "verdict": "통과"
+  },
+  {
+    "id": "H6",
+    "screen": "home-practice",
+    "action": "연습 중 Day 2 줄",
+    "expect": "practice-day 가 Day 2 · 강조 path-day-2 만",
+    "actual": "day=\"Day 2 · Units 22–41\" selected=[\"path-day-2\"]",
+    "verdict": "통과"
+  },
+  {
+    "id": "H7",
+    "screen": "home",
+    "action": "More practice 구성",
+    "expect": "practice-course 0 · 문구 Grammar course 0 · quick-* 0(TASK-323)",
+    "actual": "practice-course=0 grammarText=false quick=0 문구=\"MORE PRACTICE Pick any time. You don't need to finish today's practice first. Free talk Weak spots 5 questions Pronunciation Shadowing Learn with videos Work ro\"",
+    "verdict": "통과"
+  },
+  {
+    "id": "H8",
+    "screen": "home",
+    "action": "Work role-play",
+    "expect": "disabled",
+    "actual": "disabled=true",
+    "verdict": "통과"
+  },
+  {
+    "id": "H9",
+    "screen": "home@390",
+    "action": "path-day-2(아래에서)",
+    "expect": "누르기 전 카드가 화면 밖 → 누른 뒤 카드 위가 화면 안 · 연습 열림",
+    "actual": "pre={\"y\":697,\"top\":-608,\"bottom\":-94,\"mode\":\"idle\"} post={\"y\":89,\"top\":0,\"bottom\":514,\"mode\":\"practice\"}",
+    "verdict": "통과"
+  },
+  {
+    "id": "H10",
+    "screen": "home",
+    "action": "home-history",
+    "expect": "omy-button-primary(파란 바탕) · 주소 /history",
+    "actual": "{\"primary\":true,\"bg\":\"rgb(50, 99, 220)\"} url=/history",
+    "verdict": "통과"
+  },
+  {
+    "id": "H11",
+    "screen": "home",
+    "action": "home-weekly",
+    "expect": "omy-button-primary(파란 바탕) · 주소 /history/weekly",
+    "actual": "{\"primary\":true,\"bg\":\"rgb(50, 99, 220)\"} url=/history/weekly",
+    "verdict": "통과"
+  },
+  {
+    "id": "H12",
+    "screen": "home",
+    "action": "practice-videos",
+    "expect": "주소 /videos",
+    "actual": "url=/videos",
+    "verdict": "통과"
+  },
+  {
+    "id": "H14",
+    "screen": "shell",
+    "action": "로고(/history 에서)",
+    "expect": "주소 /",
+    "actual": "url=/",
+    "verdict": "통과"
+  }
+]

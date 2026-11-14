@@ -1,0 +1,123 @@
+{
+  "rid": "48fdc44d-09e0-43e3-bdf9-df8c9de252d6",
+  "started": {
+    "in": "session_started",
+    "sid": "48fdc44d-09e0-43e3-bdf9-df8c9de252d6",
+    "at": 1794659665755
+  },
+  "endStyle": {
+    "text": "End lesson",
+    "h": 36.4,
+    "fs": "13.6px",
+    "bg": "rgb(242, 244, 249)",
+    "radius": "8px",
+    "omy": true,
+    "primary": false
+  },
+  "sessionItems": [
+    {
+      "tag": "a",
+      "testid": null,
+      "text": "OhMyEnglish SPEAK. REMEMBER. GROW.",
+      "href": "/",
+      "omy": false,
+      "primary": false,
+      "disabled": false,
+      "ariaDisabled": "true",
+      "ariaPressed": null,
+      "h": 40,
+      "w": 181.3,
+      "top": 16,
+      "fontSize": "16px",
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(23, 32, 51)",
+      "radius": "14px"
+    },
+    {
+      "tag": "button",
+      "testid": "session-end",
+      "text": "End lesson",
+      "href": null,
+      "omy": true,
+      "primary": false,
+      "disabled": false,
+      "ariaDisabled": null,
+      "ariaPressed": null,
+      "h": 36.4,
+      "w": 95.9,
+      "top": 161,
+      "fontSize": "13.6px",
+      "bg": "rgb(242, 244, 249)",
+      "color": "rgb(23, 32, 51)",
+      "radius": "8px"
+    },
+    {
+      "tag": "a",
+      "testid": "home-history",
+      "text": "History →",
+      "href": "/history",
+      "omy": true,
+      "primary": true,
+      "disabled": false,
+      "ariaDisabled": "true",
+      "ariaPressed": null,
+      "h": 36.4,
+      "w": 89.8,
+      "top": 893,
+      "fontSize": "13.6px",
+      "bg": "rgb(50, 99, 220)",
+      "color": "rgb(255, 255, 255)",
+      "radius": "8px"
+    },
+    {
+      "tag": "a",
+      "testid": "home-weekly",
+      "text": "Weekly report →",
+      "href": "/history/weekly",
+      "omy": true,
+      "primary": true,
+      "disabled": false,
+      "ariaDisabled": "true",
+      "ariaPressed": null,
+      "h": 36.4,
+      "w": 132,
+      "top": 893,
+      "fontSize": "13.6px",
+      "bg": "rgb(50, 99, 220)",
+      "color": "rgb(255, 255, 255)",
+      "radius": "8px"
+    }
+  ],
+  "ws": [
+    {
+      "url": "ws://localhost:3000/_next/hmr?id=jGWAzJjJ994pvfdi7SLPi",
+      "at": 1794659664325
+    },
+    {
+      "in": "sync",
+      "at": 1794659664333
+    },
+    {
+      "in": "built",
+      "at": 1794659664363
+    },
+    {
+      "url": "ws://localhost:8002/ws/session?source=additional",
+      "at": 1794659665742
+    },
+    {
+      "in": "session_started",
+      "sid": "48fdc44d-09e0-43e3-bdf9-df8c9de252d6",
+      "at": 1794659665755
+    },
+    {
+      "in": "session_ended",
+      "sid": "48fdc44d-09e0-43e3-bdf9-df8c9de252d6",
+      "at": 1794659673224
+    },
+    {
+      "in": "built",
+      "at": 1794659673272
+    }
+  ]
+}

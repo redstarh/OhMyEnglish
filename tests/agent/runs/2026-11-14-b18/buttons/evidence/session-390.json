@@ -1,0 +1,82 @@
+[
+  {
+    "id": "F1",
+    "screen": "session-failed",
+    "action": "Free talk(마이크 거부)",
+    "expect": "카드 안 session-failed · data-reason=microphone_permission_denied",
+    "actual": "mode=session reason=microphone_permission_denied",
+    "verdict": "통과"
+  },
+  {
+    "id": "F2",
+    "screen": "session-failed",
+    "action": "실패 화면 동안 잠금",
+    "expect": "링크 aria-disabled · 세션 버튼·Day 줄 disabled · 로고 잠김 (대조: 열기 전엔 모두 풀림)",
+    "actual": "before free=true · now {\"navLocked\":\"true\",\"navHome\":\"true\",\"logo\":[\"true\"],\"links\":[[\"home-history\",\"true\"],[\"home-weekly\",\"true\"],[\"practice-videos\",\"true\"]],\"buttons\":[[\"path-day-1\",true],[\"path-day-2\",true],[\"focus-practice\",true],[\"practice-free_talk\",true],[\"practice-weak_patterns\",true],[\"practice-five_questions\",true],[\"practice-pronunciation\",true],[\"practice-shadowing\",true],[\"practice-roleplay\",true]],\"viewAll\":false}",
+    "verdict": "통과"
+  },
+  {
+    "id": "F3",
+    "screen": "session-failed",
+    "action": "잠긴 History → 를 DOM 클릭",
+    "expect": "주소 / 그대로",
+    "actual": "url=/",
+    "verdict": "통과"
+  },
+  {
+    "id": "F4",
+    "screen": "session-failed",
+    "action": "session-failed-retry {\"text\":\"Try again\",\"omy\":true}",
+    "expect": "testid 로 고름 · getUserMedia +1 · 거부가 그대로라 다시 실패 화면",
+    "actual": "getUserMedia 1→2 failed=1",
+    "verdict": "통과"
+  },
+  {
+    "id": "F5",
+    "screen": "session-failed",
+    "action": "← Home(session-failed-home)",
+    "expect": "data-mode=idle · 잠금 모두 풀림",
+    "actual": "mode=idle free=true",
+    "verdict": "통과"
+  },
+  {
+    "id": "S1",
+    "screen": "home@390",
+    "action": "Free talk(맨 아래에서)",
+    "expect": "카드로 스크롤(top 이 화면 안) · 카드 안 세션 · session-end 보임",
+    "actual": "mode=session practice=0 pre={\"y\":744,\"top\":-655} post={\"y\":89,\"top\":0}",
+    "verdict": "통과"
+  },
+  {
+    "id": "S2",
+    "screen": "home@390",
+    "action": "세션 중 잠금",
+    "expect": "링크 aria-disabled · 세션 버튼·Day 줄 disabled · 로고 잠김 · nav data-locked(1400)",
+    "actual": "{\"navLocked\":\"true\",\"navHome\":\"true\",\"logo\":[\"true\"],\"links\":[[\"home-history\",\"true\"],[\"home-weekly\",\"true\"],[\"practice-videos\",\"true\"]],\"buttons\":[[\"path-day-1\",true],[\"path-day-2\",true],[\"focus-practice\",true],[\"practice-free_talk\",true],[\"practice-weak_patterns\",true],[\"practice-five_questions\",true],[\"practice-pronunciation\",true],[\"practice-shadowing\",true],[\"practice-roleplay\",true]],\"viewAll\":false}",
+    "verdict": "통과"
+  },
+  {
+    "id": "S3",
+    "screen": "home@390",
+    "action": "잠긴 Weekly report → DOM 클릭",
+    "expect": "주소 / 그대로 · 세션 유지",
+    "actual": "url=/ end=1",
+    "verdict": "통과"
+  },
+  {
+    "id": "S4",
+    "screen": "home@390",
+    "action": "세션 중 View all",
+    "expect": "펼쳐짐 · 모든 Day 줄 disabled · 세션 유지",
+    "actual": "rows=[[\"path-day-1\",true],[\"path-day-2\",true],[\"path-day-3\",true],[\"path-day-4\",true],[\"path-day-5\",true],[\"path-day-6\",true]] end=1",
+    "verdict": "통과"
+  },
+  {
+    "id": "S5",
+    "screen": "home@390",
+    "action": "End lesson(session-end)",
+    "expect": "누른 직후 Ending... · /results/<session_started 의 ID>",
+    "actual": "ending=\"Ending...\" url=/results/48fdc44d-09e0-43e3-bdf9-df8c9de252d6 started=48fdc44d-09e0-43e3-bdf9-df8c9de252d6",
+    "verdict": "통과"
+  }
+]

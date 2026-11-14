@@ -1,0 +1,206 @@
+## 390 home url=/
+- a - "OhMyEnglish SPEAK. REMEMBER. GROW." / | omy=false pri=false h=40 fs=16px bg=rgba(0, 0, 0, 0) r=14px
+- button start-session "Start speaking"  | omy=false pri=false h=36 fs=14px bg=rgb(255, 255, 255) r=14px
+- a home-history "History →" /history | omy=true pri=true h=36.4 fs=13.6px bg=rgb(50, 99, 220) r=8px
+- a home-weekly "Weekly report →" /history/weekly | omy=true pri=true h=36.4 fs=13.6px bg=rgb(50, 99, 220) r=8px
+- button home-path-all "View all"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button path-day-1 "DAY 1 Day 1 · In progressUnits 1–21"  | omy=false pri=false h=58 fs=16px bg=rgb(255, 255, 255) r=18px pressed=false
+- button path-day-2 "DAY 2 Day 2 · Up nextUnits 22–41"  | omy=false pri=false h=58 fs=16px bg=rgb(255, 255, 255) r=18px pressed=false
+- button focus-practice "Practice a pattern"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-free_talk "Free talk"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-weak_patterns "Weak spots"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-five_questions "5 questions"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-pronunciation "Pronunciation"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-shadowing "Shadowing"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- a practice-videos "Learn with videos" /videos | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-roleplay "Work role-play (Not ready yet)"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px DISABLED
+## 390 home-practice url=/
+- a - "OhMyEnglish SPEAK. REMEMBER. GROW." / | omy=false pri=false h=40 fs=16px bg=rgba(0, 0, 0, 0) r=14px
+- button practice-close "← Close"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button course-translation "KO"  | omy=false pri=false h=27.2 fs=12.8px bg=rgba(0, 0, 0, 0) r=6px pressed=false
+- button course-mode-auto "Auto"  | omy=false pri=false h=27.2 fs=12.8px bg=rgb(50, 99, 220) r=6px pressed=true
+- button course-mode-manual "Manual"  | omy=false pri=false h=27.2 fs=12.8px bg=rgba(0, 0, 0, 0) r=6px pressed=false
+- button course-prev "← Previous"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button course-start "Start"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button course-next "Next →"  | omy=true pri=true h=36.4 fs=13.6px bg=rgb(50, 99, 220) r=8px
+- a home-history "History →" /history | omy=true pri=true h=36.4 fs=13.6px bg=rgb(50, 99, 220) r=8px
+- a home-weekly "Weekly report →" /history/weekly | omy=true pri=true h=36.4 fs=13.6px bg=rgb(50, 99, 220) r=8px
+- button home-path-all "View all"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button path-day-1 "DAY 1 Day 1 · In progressUnits 1–21"  | omy=false pri=false h=58 fs=16px bg=rgb(255, 255, 255) r=18px pressed=true
+- button path-day-2 "DAY 2 Day 2 · Up nextUnits 22–41"  | omy=false pri=false h=58 fs=16px bg=rgb(255, 255, 255) r=18px pressed=false
+- button focus-practice "Practice a pattern"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-free_talk "Free talk"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-weak_patterns "Weak spots"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-five_questions "5 questions"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-pronunciation "Pronunciation"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-shadowing "Shadowing"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- a practice-videos "Learn with videos" /videos | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-roleplay "Work role-play (Not ready yet)"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px DISABLED
+## 390 history url=/history
+- a - "OhMyEnglish SPEAK. REMEMBER. GROW." / | omy=false pri=false h=40 fs=16px bg=rgba(0, 0, 0, 0) r=14px
+- a history-weekly "Weekly report →" /history/weekly | omy=true pri=true h=36.4 fs=13.6px bg=rgb(50, 99, 220) r=8px
+- a history-home "← Home" / | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- [2개] summary:null 예 "2026-11-14 · Studied · 10 lessons ▾ Not analyzed yet"  | omy=false h=83.2 fs=16px bg=rgba(0, 0, 0, 0)
+## 390 weekly url=/history/weekly
+- a - "OhMyEnglish SPEAK. REMEMBER. GROW." / | omy=false pri=false h=40 fs=16px bg=rgba(0, 0, 0, 0) r=14px
+- a weekly-history "← History" /history | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- a weekly-home "← Home" / | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+## 390 results-zero url=/results/13869294-9b06-4c75-a56c-6529dcfa7971
+- a - "OhMyEnglish SPEAK. REMEMBER. GROW." / | omy=false pri=false h=40 fs=16px bg=rgba(0, 0, 0, 0) r=14px
+- a results-start-again "Start again →" / | omy=true pri=true h=36.4 fs=13.6px bg=rgb(50, 99, 220) r=8px
+- a results-home "← Home" / | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- a results-history "History →" /history | omy=true pri=true h=36.4 fs=13.6px bg=rgb(50, 99, 220) r=8px
+## 390 results-spoken url=/results/9feb8af1-e7fa-4be1-a9ed-9278f4ae22f4
+- a - "OhMyEnglish SPEAK. REMEMBER. GROW." / | omy=false pri=false h=40 fs=16px bg=rgba(0, 0, 0, 0) r=14px
+- a results-home "← Home" / | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- a results-history "History →" /history | omy=true pri=true h=36.4 fs=13.6px bg=rgb(50, 99, 220) r=8px
+## 390 videos url=/videos
+- a - "OhMyEnglish SPEAK. REMEMBER. GROW." / | omy=false pri=false h=40 fs=16px bg=rgba(0, 0, 0, 0) r=14px
+- a videos-home "← Home" / | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button - "Check"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px DISABLED
+- a - "🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣" /videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2 | omy=false pri=false h=213 fs=16px bg=rgba(0, 0, 0, 0) r=0px
+- button - "Delete"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+## 390 video url=/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2
+- a - "OhMyEnglish SPEAK. REMEMBER. GROW." / | omy=false pri=false h=40 fs=16px bg=rgba(0, 0, 0, 0) r=14px
+- a video-back "← Videos" /videos | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button - "Mark a hard part"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+## 390 course url=/ requested=/course
+- a - "OhMyEnglish SPEAK. REMEMBER. GROW." / | omy=false pri=false h=40 fs=16px bg=rgba(0, 0, 0, 0) r=14px
+- button start-session "Start speaking"  | omy=false pri=false h=36 fs=14px bg=rgb(255, 255, 255) r=14px
+- a home-history "History →" /history | omy=true pri=true h=36.4 fs=13.6px bg=rgb(50, 99, 220) r=8px
+- a home-weekly "Weekly report →" /history/weekly | omy=true pri=true h=36.4 fs=13.6px bg=rgb(50, 99, 220) r=8px
+- button home-path-all "View all"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button path-day-1 "DAY 1 Day 1 · In progressUnits 1–21"  | omy=false pri=false h=58 fs=16px bg=rgb(255, 255, 255) r=18px pressed=false
+- button path-day-2 "DAY 2 Day 2 · Up nextUnits 22–41"  | omy=false pri=false h=58 fs=16px bg=rgb(255, 255, 255) r=18px pressed=false
+- button focus-practice "Practice a pattern"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-free_talk "Free talk"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-weak_patterns "Weak spots"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-five_questions "5 questions"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-pronunciation "Pronunciation"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-shadowing "Shadowing"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- a practice-videos "Learn with videos" /videos | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-roleplay "Work role-play (Not ready yet)"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px DISABLED
+## 390 course-1 url=/ requested=/course/1
+- a - "OhMyEnglish SPEAK. REMEMBER. GROW." / | omy=false pri=false h=40 fs=16px bg=rgba(0, 0, 0, 0) r=14px
+- button start-session "Start speaking"  | omy=false pri=false h=36 fs=14px bg=rgb(255, 255, 255) r=14px
+- a home-history "History →" /history | omy=true pri=true h=36.4 fs=13.6px bg=rgb(50, 99, 220) r=8px
+- a home-weekly "Weekly report →" /history/weekly | omy=true pri=true h=36.4 fs=13.6px bg=rgb(50, 99, 220) r=8px
+- button home-path-all "View all"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button path-day-1 "DAY 1 Day 1 · In progressUnits 1–21"  | omy=false pri=false h=58 fs=16px bg=rgb(255, 255, 255) r=18px pressed=false
+- button path-day-2 "DAY 2 Day 2 · Up nextUnits 22–41"  | omy=false pri=false h=58 fs=16px bg=rgb(255, 255, 255) r=18px pressed=false
+- button focus-practice "Practice a pattern"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-free_talk "Free talk"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-weak_patterns "Weak spots"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-five_questions "5 questions"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-pronunciation "Pronunciation"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-shadowing "Shadowing"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- a practice-videos "Learn with videos" /videos | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-roleplay "Work role-play (Not ready yet)"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px DISABLED
+## 1400 home url=/
+- a - "OhMyEnglish SPEAK. REMEMBER. GROW." / | omy=false pri=false h=40 fs=16px bg=rgba(0, 0, 0, 0) r=14px
+- a nav-home "Home" / | omy=false pri=false h=43.5 fs=13px bg=rgb(237, 242, 255) r=14px
+- button start-session "Start speaking"  | omy=false pri=false h=36 fs=14px bg=rgb(255, 255, 255) r=14px
+- a home-history "History →" /history | omy=true pri=true h=36.4 fs=13.6px bg=rgb(50, 99, 220) r=8px
+- a home-weekly "Weekly report →" /history/weekly | omy=true pri=true h=36.4 fs=13.6px bg=rgb(50, 99, 220) r=8px
+- button home-path-all "View all"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button path-day-1 "DAY 1 Day 1 · In progressUnits 1–21 60 min"  | omy=false pri=false h=58 fs=16px bg=rgb(255, 255, 255) r=18px pressed=false
+- button path-day-2 "DAY 2 Day 2 · Up nextUnits 22–41 63 min"  | omy=false pri=false h=58 fs=16px bg=rgb(255, 255, 255) r=18px pressed=false
+- button focus-practice "Practice a pattern"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-free_talk "Free talk"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-weak_patterns "Weak spots"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-five_questions "5 questions"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-pronunciation "Pronunciation"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-shadowing "Shadowing"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- a practice-videos "Learn with videos" /videos | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-roleplay "Work role-play (Not ready yet)"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px DISABLED
+## 1400 home-practice url=/
+- a - "OhMyEnglish SPEAK. REMEMBER. GROW." / | omy=false pri=false h=40 fs=16px bg=rgba(0, 0, 0, 0) r=14px
+- a nav-home "Home" / | omy=false pri=false h=43.5 fs=13px bg=rgb(237, 242, 255) r=14px
+- button practice-close "← Close"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button course-translation "KO"  | omy=false pri=false h=27.2 fs=12.8px bg=rgba(0, 0, 0, 0) r=6px pressed=false
+- button course-mode-auto "Auto"  | omy=false pri=false h=27.2 fs=12.8px bg=rgb(50, 99, 220) r=6px pressed=true
+- button course-mode-manual "Manual"  | omy=false pri=false h=27.2 fs=12.8px bg=rgba(0, 0, 0, 0) r=6px pressed=false
+- button course-prev "← Previous"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button course-start "Start"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button course-next "Next →"  | omy=true pri=true h=36.4 fs=13.6px bg=rgb(50, 99, 220) r=8px
+- a home-history "History →" /history | omy=true pri=true h=36.4 fs=13.6px bg=rgb(50, 99, 220) r=8px
+- a home-weekly "Weekly report →" /history/weekly | omy=true pri=true h=36.4 fs=13.6px bg=rgb(50, 99, 220) r=8px
+- button home-path-all "View all"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button path-day-1 "DAY 1 Day 1 · In progressUnits 1–21 60 min"  | omy=false pri=false h=58 fs=16px bg=rgb(255, 255, 255) r=18px pressed=true
+- button path-day-2 "DAY 2 Day 2 · Up nextUnits 22–41 63 min"  | omy=false pri=false h=58 fs=16px bg=rgb(255, 255, 255) r=18px pressed=false
+- button focus-practice "Practice a pattern"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-free_talk "Free talk"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-weak_patterns "Weak spots"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-five_questions "5 questions"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-pronunciation "Pronunciation"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-shadowing "Shadowing"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- a practice-videos "Learn with videos" /videos | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-roleplay "Work role-play (Not ready yet)"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px DISABLED
+## 1400 history url=/history
+- a - "OhMyEnglish SPEAK. REMEMBER. GROW." / | omy=false pri=false h=40 fs=16px bg=rgba(0, 0, 0, 0) r=14px
+- a nav-home "Home" / | omy=false pri=false h=43.5 fs=13px bg=rgba(0, 0, 0, 0) r=14px
+- a history-weekly "Weekly report →" /history/weekly | omy=true pri=true h=36.4 fs=13.6px bg=rgb(50, 99, 220) r=8px
+- a history-home "← Home" / | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- [2개] summary:null 예 "2026-11-14 · Studied · 10 lessons ▾ Not analyzed yet"  | omy=false h=35.2 fs=16px bg=rgba(0, 0, 0, 0)
+## 1400 weekly url=/history/weekly
+- a - "OhMyEnglish SPEAK. REMEMBER. GROW." / | omy=false pri=false h=40 fs=16px bg=rgba(0, 0, 0, 0) r=14px
+- a nav-home "Home" / | omy=false pri=false h=43.5 fs=13px bg=rgba(0, 0, 0, 0) r=14px
+- a weekly-history "← History" /history | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- a weekly-home "← Home" / | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+## 1400 results-zero url=/results/13869294-9b06-4c75-a56c-6529dcfa7971
+- a - "OhMyEnglish SPEAK. REMEMBER. GROW." / | omy=false pri=false h=40 fs=16px bg=rgba(0, 0, 0, 0) r=14px
+- a nav-home "Home" / | omy=false pri=false h=43.5 fs=13px bg=rgba(0, 0, 0, 0) r=14px
+- a results-start-again "Start again →" / | omy=true pri=true h=36.4 fs=13.6px bg=rgb(50, 99, 220) r=8px
+- a results-home "← Home" / | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- a results-history "History →" /history | omy=true pri=true h=36.4 fs=13.6px bg=rgb(50, 99, 220) r=8px
+## 1400 results-spoken url=/results/9feb8af1-e7fa-4be1-a9ed-9278f4ae22f4
+- a - "OhMyEnglish SPEAK. REMEMBER. GROW." / | omy=false pri=false h=40 fs=16px bg=rgba(0, 0, 0, 0) r=14px
+- a nav-home "Home" / | omy=false pri=false h=43.5 fs=13px bg=rgba(0, 0, 0, 0) r=14px
+- a results-home "← Home" / | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- a results-history "History →" /history | omy=true pri=true h=36.4 fs=13.6px bg=rgb(50, 99, 220) r=8px
+## 1400 videos url=/videos
+- a - "OhMyEnglish SPEAK. REMEMBER. GROW." / | omy=false pri=false h=40 fs=16px bg=rgba(0, 0, 0, 0) r=14px
+- a nav-home "Home" / | omy=false pri=false h=43.5 fs=13px bg=rgba(0, 0, 0, 0) r=14px
+- a videos-home "← Home" / | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button - "Check"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px DISABLED
+- a - "🕐 [1시간 Day 6] 📙 Grammar in Use BASIC (Unit 101~113)🎧 영어 듣" /videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2 | omy=false pri=false h=69 fs=16px bg=rgba(0, 0, 0, 0) r=0px
+- button - "Delete"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+## 1400 video url=/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2
+- a - "OhMyEnglish SPEAK. REMEMBER. GROW." / | omy=false pri=false h=40 fs=16px bg=rgba(0, 0, 0, 0) r=14px
+- a nav-home "Home" / | omy=false pri=false h=43.5 fs=13px bg=rgba(0, 0, 0, 0) r=14px
+- a video-back "← Videos" /videos | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button - "Mark a hard part"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+## 1400 course url=/ requested=/course
+- a - "OhMyEnglish SPEAK. REMEMBER. GROW." / | omy=false pri=false h=40 fs=16px bg=rgba(0, 0, 0, 0) r=14px
+- a nav-home "Home" / | omy=false pri=false h=43.5 fs=13px bg=rgb(237, 242, 255) r=14px
+- button start-session "Start speaking"  | omy=false pri=false h=36 fs=14px bg=rgb(255, 255, 255) r=14px
+- a home-history "History →" /history | omy=true pri=true h=36.4 fs=13.6px bg=rgb(50, 99, 220) r=8px
+- a home-weekly "Weekly report →" /history/weekly | omy=true pri=true h=36.4 fs=13.6px bg=rgb(50, 99, 220) r=8px
+- button home-path-all "View all"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button path-day-1 "DAY 1 Day 1 · In progressUnits 1–21 60 min"  | omy=false pri=false h=58 fs=16px bg=rgb(255, 255, 255) r=18px pressed=false
+- button path-day-2 "DAY 2 Day 2 · Up nextUnits 22–41 63 min"  | omy=false pri=false h=58 fs=16px bg=rgb(255, 255, 255) r=18px pressed=false
+- button focus-practice "Practice a pattern"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-free_talk "Free talk"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-weak_patterns "Weak spots"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-five_questions "5 questions"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-pronunciation "Pronunciation"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-shadowing "Shadowing"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- a practice-videos "Learn with videos" /videos | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-roleplay "Work role-play (Not ready yet)"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px DISABLED
+## 1400 course-1 url=/ requested=/course/1
+- a - "OhMyEnglish SPEAK. REMEMBER. GROW." / | omy=false pri=false h=40 fs=16px bg=rgba(0, 0, 0, 0) r=14px
+- a nav-home "Home" / | omy=false pri=false h=43.5 fs=13px bg=rgb(237, 242, 255) r=14px
+- button start-session "Start speaking"  | omy=false pri=false h=36 fs=14px bg=rgb(255, 255, 255) r=14px
+- a home-history "History →" /history | omy=true pri=true h=36.4 fs=13.6px bg=rgb(50, 99, 220) r=8px
+- a home-weekly "Weekly report →" /history/weekly | omy=true pri=true h=36.4 fs=13.6px bg=rgb(50, 99, 220) r=8px
+- button home-path-all "View all"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button path-day-1 "DAY 1 Day 1 · In progressUnits 1–21 60 min"  | omy=false pri=false h=58 fs=16px bg=rgb(255, 255, 255) r=18px pressed=false
+- button path-day-2 "DAY 2 Day 2 · Up nextUnits 22–41 63 min"  | omy=false pri=false h=58 fs=16px bg=rgb(255, 255, 255) r=18px pressed=false
+- button focus-practice "Practice a pattern"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-free_talk "Free talk"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-weak_patterns "Weak spots"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-five_questions "5 questions"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-pronunciation "Pronunciation"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-shadowing "Shadowing"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- a practice-videos "Learn with videos" /videos | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px
+- button practice-roleplay "Work role-play (Not ready yet)"  | omy=true pri=false h=36.4 fs=13.6px bg=rgb(242, 244, 249) r=8px DISABLED

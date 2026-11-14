@@ -1,0 +1,54 @@
+## coach 390 #1 More practice — Free talk 버튼 · / · body 390/390 · scrollY 744 · hero 513.6(idle) · progress 331.4
+  texts {"home-hero-title":"Day 1: listen and say it.","home-hero-day":"Day 1 · Units 1–21","home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  labels 5 종류 ["12px/700/1.68px"] :: Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## coach 390 #2 세션 시작 — 카드 안 대화 화면 · / · body 390/390 · scrollY 89 · hero 513.6(session) · progress 331.4
+  extra {"lockedLinks":1}
+  texts {"home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days","session-end":"End lesson"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  labels 5 종류 ["12px/700/1.68px"] :: Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["End lesson","History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## coach 390 #3 약 12초 뒤 · / · body 390/390 · scrollY 89 · hero 513.6(session) · progress 331.4
+  texts {"home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days","session-end":"End lesson"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  labels 5 종류 ["12px/700/1.68px"] :: Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["End lesson","History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## coach 390 #4 End lesson — 결과 화면 · /results/75fc1f96-c91c-4a52-b87a-e55a14278741 · body 390/390 · scrollY 0
+  extra {"sessionUrl":"/results/75fc1f96-c91c-4a52-b87a-e55a14278741"}
+  texts {"results-status":"We didn't hear you this time."}
+  labels 0 종류 [] :: 
+  buttons ["Start again →","← Home","History →"]
+## coach 390 #5 Start again → — 홈으로 · / · body 390/390 · scrollY 0 · hero 513.6(idle) · progress 331.4
+  extra {"url":"/"}
+  texts {"home-hero-title":"Day 1: listen and say it.","home-hero-day":"Day 1 · Units 1–21","home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  labels 5 종류 ["12px/700/1.68px"] :: Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## coach 1400 #1 More practice — Free talk 버튼 · / · body 1400/1400 · scrollY 0 · hero 513.6(idle) · progress 513.6
+  texts {"home-hero-title":"Day 1: listen and say it.","home-hero-day":"Day 1 · Units 1–21","home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  labels 6 종류 ["10px/700/1.8px","12px/700/1.68px"] :: Workspace | Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## coach 1400 #2 세션 시작 — 카드 안 대화 화면 · / · body 1400/1400 · scrollY 0 · hero 513.6(session) · progress 513.6
+  extra {"lockedLinks":1}
+  texts {"home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days","session-end":"End lesson"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  labels 6 종류 ["10px/700/1.8px","12px/700/1.68px"] :: Workspace | Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["End lesson","History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## coach 1400 #3 약 12초 뒤 · / · body 1400/1400 · scrollY 0 · hero 513.6(session) · progress 513.6
+  texts {"home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days","session-end":"End lesson"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  labels 6 종류 ["10px/700/1.8px","12px/700/1.68px"] :: Workspace | Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["End lesson","History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## coach 1400 #4 End lesson — 결과 화면 · /results/5e7e1ed1-c754-4389-9c4a-fef9e65b7f9a · body 1400/1400 · scrollY 0
+  extra {"sessionUrl":"/results/5e7e1ed1-c754-4389-9c4a-fef9e65b7f9a"}
+  texts {"results-status":"We didn't hear you this time."}
+  labels 1 종류 ["10px/700/1.8px"] :: Workspace
+  buttons ["Start again →","← Home","History →"]
+## coach 1400 #5 Start again → — 홈으로 · / · body 1400/1400 · scrollY 0 · hero 513.6(idle) · progress 513.6
+  extra {"url":"/"}
+  texts {"home-hero-title":"Day 1: listen and say it.","home-hero-day":"Day 1 · Units 1–21","home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  labels 6 종류 ["10px/700/1.8px","12px/700/1.68px"] :: Workspace | Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]

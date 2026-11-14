@@ -1,0 +1,154 @@
+[
+  {
+    "id": "N1",
+    "screen": "/history",
+    "action": "history-weekly 「Weekly report →」",
+    "expect": "주소 /history/weekly · 파란 바탕",
+    "actual": "url=/history/weekly {\"omy\":true,\"primary\":true,\"text\":\"Weekly report →\"}",
+    "verdict": "통과"
+  },
+  {
+    "id": "N2",
+    "screen": "/history",
+    "action": "history-home 「← Home」",
+    "expect": "주소 / · 회색",
+    "actual": "url=/ {\"omy\":true,\"primary\":false,\"text\":\"← Home\"}",
+    "verdict": "통과"
+  },
+  {
+    "id": "N3",
+    "screen": "/history/weekly",
+    "action": "weekly-history 「← History」",
+    "expect": "주소 /history · 회색",
+    "actual": "url=/history {\"omy\":true,\"primary\":false,\"text\":\"← History\"}",
+    "verdict": "통과"
+  },
+  {
+    "id": "N4",
+    "screen": "/history/weekly",
+    "action": "weekly-home 「← Home」",
+    "expect": "주소 / · 회색",
+    "actual": "url=/ {\"omy\":true,\"primary\":false,\"text\":\"← Home\"}",
+    "verdict": "통과"
+  },
+  {
+    "id": "N5",
+    "screen": "/history",
+    "action": "세션 여럿인 날 줄 → 펼침 → 첫 제목",
+    "expect": "닫힘(보이는 링크 0) → 펼침(개수 = 줄의 「N lessons」 · 제목이 비지 않음) → 그 /results/<id>",
+    "actual": "summary=\"2026-11-14 · Studied · 8 lessons ▾ Not analyzed yet\" before={\"open\":false,\"visible\":0} opened=true links=8 예=[{\"text\":\"Exchanging something you bought →\",\"href\":\"/results/3e460593-644a-4e3f-bcd1-aa44d90eee55\"},{\"text\":\"Moving a deadline →\",\"href\":\"/results/90ef37bc-3c12-4691-b769-5acaa0c52591\"},{\"text\":\"Agreeing what comes first →\",\"href\":\"/results/55e134d0-0377-457c-a344-5080a7c12228\"}] url=/results/3e460593-644a-4e3f-bcd1-aa44d90eee55",
+    "verdict": "통과"
+  },
+  {
+    "id": "N6",
+    "screen": "/history(대역)",
+    "action": "세션 하나인 날 줄",
+    "expect": "줄이 링크 history-day-link · omy-button 아님(목록 항목) · /results/<그 세션>",
+    "actual": "single={\"day\":\"2026-11-14\",\"id\":\"3e460593-644a-4e3f-bcd1-aa44d90eee55\"} link={\"text\":\"2026-11-14 · Studied →\",\"href\":\"/results/3e460593-644a-4e3f-bcd1-aa44d90eee55\",\"omy\":false} url=/results/3e460593-644a-4e3f-bcd1-aa44d90eee55",
+    "verdict": "통과"
+  },
+  {
+    "id": "N7",
+    "screen": "/results(발화 있음)",
+    "action": "results-home 「← Home」",
+    "expect": "주소 / · 회색",
+    "actual": "url=/ {\"omy\":true,\"primary\":false,\"text\":\"← Home\"}",
+    "verdict": "통과"
+  },
+  {
+    "id": "N8",
+    "screen": "/results(발화 있음)",
+    "action": "results-history 「History →」",
+    "expect": "주소 /history · 파란 바탕",
+    "actual": "url=/history {\"omy\":true,\"primary\":true,\"text\":\"History →\"}",
+    "verdict": "통과"
+  },
+  {
+    "id": "N9",
+    "screen": "/results(발화 0)",
+    "action": "상태 줄 · 완료 문구",
+    "expect": "「We didn't hear you this time.」 · 완료 문구(results-done) 숨김 · 마이크 안내",
+    "actual": "{\"status\":\"We didn't hear you this time.\",\"done\":0,\"body\":\"Your results We didn't hear you this time. Check your microphone, then start a new lesson from Home. Start again → Today's lesson There was not enough talk for a summary. ← Home History →\"}",
+    "verdict": "통과"
+  },
+  {
+    "id": "N10",
+    "screen": "/results(발화 0)",
+    "action": "results-start-again 「Start again →」",
+    "expect": "주소 / · 파란 바탕",
+    "actual": "url=/ {\"omy\":true,\"primary\":true,\"text\":\"Start again →\"}",
+    "verdict": "통과"
+  },
+  {
+    "id": "N10b",
+    "screen": "홈(Start again 뒤)",
+    "action": "도착한 홈의 카드 상태",
+    "expect": "대기 카드(data-mode=idle) — 세션을 스스로 열지 않음",
+    "actual": "mode=idle",
+    "verdict": "통과"
+  },
+  {
+    "id": "N11",
+    "screen": "/course",
+    "action": "주소 직접 열기",
+    "expect": "홈 / 로 넘어감 · 홈 카드 보임",
+    "actual": "url=/ chain=[\"http://localhost:3000/course\",\"http://localhost:3000/\"] hero=1",
+    "verdict": "통과"
+  },
+  {
+    "id": "N12",
+    "screen": "/course/1",
+    "action": "주소 직접 열기",
+    "expect": "홈 / 로 넘어감 · 홈 카드 보임",
+    "actual": "url=/ chain=[\"http://localhost:3000/course/1\",\"http://localhost:3000/\"] hero=1",
+    "verdict": "통과"
+  },
+  {
+    "id": "N13",
+    "screen": "/videos",
+    "action": "videos-home 「← Home」",
+    "expect": "주소 / · 회색",
+    "actual": "url=/ {\"omy\":true,\"primary\":false,\"text\":\"← Home\"}",
+    "verdict": "통과"
+  },
+  {
+    "id": "N14",
+    "screen": "/videos",
+    "action": "Check(문구로 고름 · 누르지 않음)",
+    "expect": "빈칸 disabled → 주소 입력 뒤 enabled",
+    "actual": "disabled true→false",
+    "verdict": "통과"
+  },
+  {
+    "id": "N15",
+    "screen": "/videos",
+    "action": "영상 제목",
+    "expect": "주소 /videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+    "actual": "url=/videos/b502eaf3-0fdd-408c-b273-a0c58a6410d2",
+    "verdict": "통과"
+  },
+  {
+    "id": "N16",
+    "screen": "/videos/<id>",
+    "action": "Mark a hard part → Cancel",
+    "expect": "「Mark a hard part」 → 「The hard part starts at m:ss. Press the button when it ends.」 + End the hard part here + Cancel → Cancel 로 처음 상태",
+    "actual": "[{\"t\":\"Mark a hard part\",\"omy\":true,\"dis\":false}] → [{\"t\":\"End the hard part here\",\"omy\":true,\"dis\":false},{\"t\":\"Cancel\",\"omy\":true,\"dis\":false}] hint=\"The hard part starts at 0:00. Press the button when it ends. End the hard part here Cancel\" → [{\"t\":\"Mark a hard part\",\"omy\":true,\"dis\":false}]",
+    "verdict": "통과"
+  },
+  {
+    "id": "N17",
+    "screen": "/videos/<id>",
+    "action": "Mark a hard part → End the hard part here → Cancel(Save 누르지 않음)",
+    "expect": "구간 문구 · Save(빈칸이라 disabled) + Cancel → Cancel 로 처음 상태",
+    "actual": "[{\"t\":\"End the hard part here\",\"omy\":true,\"dis\":false},{\"t\":\"Cancel\",\"omy\":true,\"dis\":false}] hint=\"The hard part starts at 0:00. Press the button when it ends. End the hard part here Cancel The end must come after the s\" → [{\"t\":\"Mark a hard part\",\"omy\":true,\"dis\":false}]",
+    "verdict": "실패"
+  },
+  {
+    "id": "N18",
+    "screen": "/videos/<id>",
+    "action": "video-back 「← Videos」",
+    "expect": "주소 /videos",
+    "actual": "url=/videos",
+    "verdict": "통과"
+  }
+]

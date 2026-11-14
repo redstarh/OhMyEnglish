@@ -1,0 +1,172 @@
+[
+  {
+    "id": "K1",
+    "screen": "home-practice",
+    "action": "KO 켬",
+    "expect": "aria-pressed=true · 문장 아래 course-translation-text 에 한국어 · localStorage 기록 (대조: 켜기 전 번역 0)",
+    "actual": "before=0 {\"pressed\":\"true\",\"text\":\"저희는 세 시에 회의가 있어요.\",\"ls\":\"on\",\"h\":558.4} 끔일 때 카드 513.6",
+    "verdict": "통과"
+  },
+  {
+    "id": "K2",
+    "screen": "home-practice",
+    "action": "KO 켬 → 새로 고침 → Start speaking",
+    "expect": "KO 가 켜진 채 · 번역 보임",
+    "actual": "{\"pressed\":\"true\",\"text\":\"저희는 세 시에 회의가 있어요.\",\"practiceH\":558.4} 대기 카드(KO 켬) 558.4",
+    "verdict": "통과"
+  },
+  {
+    "id": "K3",
+    "screen": "home-practice",
+    "action": "KO 끔 → 새로 고침",
+    "expect": "끈 직후 번역 0 · 새로 고친 뒤에도 끔",
+    "actual": "끈 직후 {\"pressed\":\"false\",\"tr\":0} · 새로 고친 뒤 {\"pressed\":\"false\",\"tr\":0}",
+    "verdict": "통과"
+  },
+  {
+    "id": "P1",
+    "screen": "home-practice",
+    "action": "Manual",
+    "expect": "manual aria-pressed=true · auto=false · localStorage manual",
+    "actual": "{\"manual\":\"true\",\"auto\":\"false\",\"ls\":\"manual\"}",
+    "verdict": "통과"
+  },
+  {
+    "id": "P2",
+    "screen": "home-practice",
+    "action": "Start(수동) → ① → ② → ③ → 판정",
+    "expect": "단계 idle>listen>repeat>judge>done · repeat 중 실시간 줄(POST 전) · POST 1 · 판정 낱말 표시 · Try 증가 · Start 자리가 Try again · 같은 문장에 머묾",
+    "actual": "seq=idle>listen>repeat>judge>done liveInRepeat=true live=\"We have\" postsAtLive=0 posts=1 {\"n\":\"Sentence 3 / 5\",\"try1\":101,\"retry\":1,\"start\":0,\"verdicts\":6,\"live\":0,\"label\":\"· ③ Check\"} 문장 Sentence 3 / 5→Sentence 3 / 5 try 2→101",
+    "verdict": "통과",
+    "evidence": [
+      [
+        1583,
+        "idle",
+        "Sentence 3 / 5"
+      ],
+      [
+        1741,
+        "listen",
+        "Sentence 3 / 5"
+      ],
+      [
+        2146,
+        "repeat",
+        "Sentence 3 / 5"
+      ],
+      [
+        2447,
+        "repeat+live",
+        "Sentence 3 / 5"
+      ],
+      [
+        5499,
+        "judge+live",
+        "Sentence 3 / 5"
+      ],
+      [
+        5502,
+        "done",
+        "Sentence 3 / 5"
+      ]
+    ]
+  },
+  {
+    "id": "P3",
+    "screen": "home-practice",
+    "action": "Try again",
+    "expect": "done>listen>repeat>judge>done · POST +1 · Try 증가",
+    "actual": "seq=done>listen>repeat>judge>done posts+1 try 101→102",
+    "verdict": "통과"
+  },
+  {
+    "id": "U1",
+    "screen": "home-practice",
+    "action": "말 없음(인식 결과 0)",
+    "expect": "「I couldn't hear you」 안내 · POST 없음 · Try 그대로",
+    "actual": "notice=\"I couldn't hear you. Press \"Try again\" and say it again.\" 5334ms posts+0 try 102→102",
+    "verdict": "통과"
+  },
+  {
+    "id": "P4",
+    "screen": "home-practice",
+    "action": "Next →(수동)",
+    "expect": "문장 번호가 바뀜 · 단계 표시 없음 · Start 보임 · 앞 안내 지움",
+    "actual": "Sentence 3 / 5→{\"n\":\"Sentence 4 / 5\",\"phase\":0,\"start\":1,\"notice\":null}",
+    "verdict": "통과"
+  },
+  {
+    "id": "P5",
+    "screen": "home-practice",
+    "action": "← Previous",
+    "expect": "문구 「← Previous」 · 문장 Sentence 3 / 5 로 돌아감",
+    "actual": "label=\"← Previous\" Sentence 4 / 5→Sentence 3 / 5",
+    "verdict": "통과"
+  },
+  {
+    "id": "P6",
+    "screen": "home-practice",
+    "action": "Auto · Start",
+    "expect": "auto aria-pressed=true · done 뒤 문장 번호가 바뀌고 listen 재개",
+    "actual": "auto=true seq=idle>listen>repeat>repeat>judge>done>listen>repeat 문장 Sentence 3 / 5→Sentence 4 / 5",
+    "verdict": "통과",
+    "evidence": [
+      [
+        19421,
+        "idle",
+        "Sentence 3 / 5"
+      ],
+      [
+        19454,
+        "listen",
+        "Sentence 3 / 5"
+      ],
+      [
+        19857,
+        "repeat",
+        "Sentence 3 / 5"
+      ],
+      [
+        20162,
+        "repeat+live",
+        "Sentence 3 / 5"
+      ],
+      [
+        23216,
+        "judge+live",
+        "Sentence 3 / 5"
+      ],
+      [
+        23222,
+        "done",
+        "Sentence 3 / 5"
+      ],
+      [
+        24720,
+        "listen",
+        "Sentence 4 / 5"
+      ],
+      [
+        25126,
+        "repeat",
+        "Sentence 4 / 5"
+      ]
+    ]
+  },
+  {
+    "id": "P7",
+    "screen": "home-practice",
+    "action": "← Close(자동 연습 도중)",
+    "expect": "data-mode=idle · 인식기가 멈춤",
+    "actual": "mode=idle 마지막 인식기 호출=[\"final\",\"stop\",\"start\",\"abort\"]",
+    "verdict": "통과"
+  },
+  {
+    "id": "P8",
+    "screen": "home-practice",
+    "action": "Finish Day(Day 6 마지막 문장)",
+    "expect": "마지막 문장에서 Next 대신 Finish Day(파란 바탕) · done 전 disabled → done 뒤 enabled · 「You finished this Day!」 · 첫 문장으로 되감음 · 완료 저장 요청(completed=true)",
+    "actual": "Next 64회 → {\"n\":\"Sentence 5 / 5\",\"unit\":\"Unit 113 · 구동사 2 put on · take off · turn on\",\"next\":0,\"disabled\":true,\"primary\":true} enabled=true after={\"notice\":\"You finished this Day!\",\"n\":\"Sentence 1 / 5\",\"unit\":\"Unit 101 · 시간의 at · on · in\"} completedPost={\"url\":\"http://localhost:8002/api/course/days/6/progress\",\"body\":{\"position_sec\":0,\"unit\":101,\"sentence_index\":0,\"completed\":true,\"completed_count\":3}}",
+    "verdict": "통과"
+  }
+]

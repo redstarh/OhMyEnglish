@@ -1,0 +1,9 @@
+{
+ "measured_at": "2026-11-14T12:3xZ (화면 탭 종료 직전 · db.py 조회)",
+ "dev": {"db": "ohmyenglish", "learning_sessions": 25, "utterances": 145, "course_day_progress": 2, "course_attempts": 68, "analysis_jobs": 90, "llm_calls": 187, "sessions_max_started": "2026-11-14 05:24:38.007279+00:00"},
+ "paid": {"db": "ohmyenglish_course_paid", "learning_sessions": 110, "utterances": 643, "course_day_progress": 6, "course_attempts": 16, "analysis_jobs": 522, "llm_calls": 433, "sessions_max_started": "2026-11-14 12:28:33.499156+00:00"},
+ "my_nova_sessions": [
+  {"id": "5e7e1ed1-c754-4389-9c4a-fef9e65b7f9a", "width": 1400, "status": "completed", "started_at": "2026-11-14 12:28:09.539731+00:00", "ended_at": "2026-11-14 12:28:23.562598+00:00", "utterances": 0},
+  {"id": "75fc1f96-c91c-4a52-b87a-e55a14278741", "width": 390, "status": "completed", "started_at": "2026-11-14 12:28:33.499156+00:00", "ended_at": "2026-11-14 12:28:47.550932+00:00", "utterances": 0}
+ ]
+}

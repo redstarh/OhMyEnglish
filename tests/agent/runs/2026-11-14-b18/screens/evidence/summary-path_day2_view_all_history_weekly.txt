@@ -1,0 +1,112 @@
+## path_day2 390 #1 Continue your path — Day 줄 목록 · / · body 390/390 · scrollY 697 · hero 513.6(idle) · progress 331.4
+  texts {"home-hero-title":"Day 1: listen and say it.","home-hero-day":"Day 1 · Units 1–21","home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  labels 5 종류 ["12px/700/1.68px"] :: Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## path_day2 390 #2 Day 2 고름 — 카드에서 연습이 열림 · / · body 390/390 · scrollY 89 · hero 513.6(practice) · progress 331.4 · card 332 · KO false
+  extra {"dayText":"Day 2 · Units 22–41","url":"/","scrollYBefore":697}
+  texts {"home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days","practice-day":"Day 2 · Units 22–41","course-sentence-number":"Sentence 1 / 5","course-sentence":"I work in Seoul, and I worked in Daegu before.","course-prev":"← Previous","course-next":"Next →","practice-close":"← Close"}
+  fonts {"sentence":"15.96px/600/Geist","transcript":null,"live":null,"translation":null}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  korean [{"tid":"course-unit<sentence-practice<home-hero-body<home-hero","tag":"SPAN","text":"Unit 22 · 현재 · 과거 시제 정리"}]
+  labels 5 종류 ["12px/700/1.68px"] :: Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["← Close","← Previous","Start","Next →","History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## path_day2 1400 #1 Continue your path — Day 줄 목록 · / · body 1400/1400 · scrollY 0 · hero 513.6(idle) · progress 513.6
+  texts {"home-hero-title":"Day 1: listen and say it.","home-hero-day":"Day 1 · Units 1–21","home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  labels 6 종류 ["10px/700/1.8px","12px/700/1.68px"] :: Workspace | Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## path_day2 1400 #2 Day 2 고름 — 카드에서 연습이 열림 · / · body 1400/1400 · scrollY 0 · hero 513.6(practice) · progress 513.6 · card 343.6 · KO false
+  extra {"dayText":"Day 2 · Units 22–41","url":"/","scrollYBefore":0}
+  texts {"home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days","practice-day":"Day 2 · Units 22–41","course-sentence-number":"Sentence 1 / 5","course-sentence":"I work in Seoul, and I worked in Daegu before.","course-prev":"← Previous","course-next":"Next →","practice-close":"← Close"}
+  fonts {"sentence":"20px/600/Geist","transcript":null,"live":null,"translation":null}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  korean [{"tid":"course-unit<sentence-practice<home-hero-body<home-hero","tag":"SPAN","text":"Unit 22 · 현재 · 과거 시제 정리"}]
+  labels 6 종류 ["10px/700/1.8px","12px/700/1.68px"] :: Workspace | Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["← Close","← Previous","Start","Next →","History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## view_all 390 #1 View all 누르기 전 · / · body 390/390 · scrollY 574 · hero 513.6(idle) · progress 331.4
+  extra {"rows":2,"label":"View all"}
+  texts {"home-hero-title":"Day 1: listen and say it.","home-hero-day":"Day 1 · Units 1–21","home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  labels 5 종류 ["12px/700/1.68px"] :: Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## view_all 390 #2 View all — 모든 Day 로 펼침 · / · body 390/390 · scrollY 574 · hero 513.6(idle) · progress 331.4
+  extra {"rows":6,"label":"Show less","url":"/","statuses":["DAY 1 Day 1 · In progressUnits 1–21","DAY 2 Day 2 · Up nextUnits 22–41","DAY 3 Day 3 · Up nextUnits 42–62","DAY 4 Day 4 · Up nextUnits 63–82","DAY 5 Day 5 · Up nextUnits 83–100","Day 6 · DoneUnits 101–113"]}
+  texts {"home-hero-title":"Day 1: listen and say it.","home-hero-day":"Day 1 · Units 1–21","home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  labels 5 종류 ["12px/700/1.68px"] :: Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["History →","Weekly report →","Show less","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## view_all 390 #3 Show less — 다시 접음 · / · body 390/390 · scrollY 574 · hero 513.6(idle) · progress 331.4
+  extra {"rows":2,"label":"View all"}
+  texts {"home-hero-title":"Day 1: listen and say it.","home-hero-day":"Day 1 · Units 1–21","home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  labels 5 종류 ["12px/700/1.68px"] :: Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## view_all 1400 #1 View all 누르기 전 · / · body 1400/1400 · scrollY 0 · hero 513.6(idle) · progress 513.6
+  extra {"rows":2,"label":"View all"}
+  texts {"home-hero-title":"Day 1: listen and say it.","home-hero-day":"Day 1 · Units 1–21","home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  labels 6 종류 ["10px/700/1.8px","12px/700/1.68px"] :: Workspace | Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## view_all 1400 #2 View all — 모든 Day 로 펼침 · / · body 1400/1400 · scrollY 0 · hero 513.6(idle) · progress 513.6
+  extra {"rows":6,"label":"Show less","url":"/","statuses":["DAY 1 Day 1 · In progressUnits 1–21 60 min","DAY 2 Day 2 · Up nextUnits 22–41 63 min","DAY 3 Day 3 · Up nextUnits 42–62 69 min","DAY 4 Day 4 · Up nextUnits 63–82 63 min","DAY 5 Day 5 · Up nextUnits 83–100 58 min","Day 6 · DoneUnits 101–113 43 min"]}
+  texts {"home-hero-title":"Day 1: listen and say it.","home-hero-day":"Day 1 · Units 1–21","home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  labels 6 종류 ["10px/700/1.8px","12px/700/1.68px"] :: Workspace | Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["History →","Weekly report →","Show less","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## view_all 1400 #3 Show less — 다시 접음 · / · body 1400/1400 · scrollY 0 · hero 513.6(idle) · progress 513.6
+  extra {"rows":2,"label":"View all"}
+  texts {"home-hero-title":"Day 1: listen and say it.","home-hero-day":"Day 1 · Units 1–21","home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  labels 6 종류 ["10px/700/1.8px","12px/700/1.68px"] :: Workspace | Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## history 390 #1 Your progress → History — /history · /history · body 390/390 · scrollY 0
+  extra {"links":0,"groups":2}
+  texts {"history-not-analyzed-hint":"What you say in a lesson is checked for mistakes after each of your turns. “Not analyzed yet” means nothing you said that day has been checked."}
+  labels 0 종류 [] :: 
+  buttons ["Weekly report →","← Home"]
+## history 390 #3 세션 여럿인 날짜 줄 → 펼쳐 세션 목록 · /history · body 390/390 · scrollY 0
+  extra {"label":"2026-11-14 · Studied · 6 lessons ▾ Not analyzed yet","sessionLinks":6}
+  texts {"history-not-analyzed-hint":"What you say in a lesson is checked for mistakes after each of your turns. “Not analyzed yet” means nothing you said that day has been checked."}
+  labels 0 종류 [] :: 
+  buttons ["Weekly report →","← Home"]
+## history 390 #4 펼친 목록의 세션 → 그 결과 · /results/3e460593-644a-4e3f-bcd1-aa44d90eee55 · body 390/390 · scrollY 0
+  extra {"url":"/results/3e460593-644a-4e3f-bcd1-aa44d90eee55"}
+  texts {"results-status":"We didn't hear you this time."}
+  labels 0 종류 [] :: 
+  buttons ["Start again →","← Home","History →"]
+## history 1400 #1 Your progress → History — /history · /history · body 1400/1400 · scrollY 0
+  extra {"links":0,"groups":2}
+  texts {"history-not-analyzed-hint":"What you say in a lesson is checked for mistakes after each of your turns. “Not analyzed yet” means nothing you said that day has been checked."}
+  labels 1 종류 ["10px/700/1.8px"] :: Workspace
+  buttons ["Weekly report →","← Home"]
+## history 1400 #3 세션 여럿인 날짜 줄 → 펼쳐 세션 목록 · /history · body 1400/1400 · scrollY 0
+  extra {"label":"2026-11-14 · Studied · 6 lessons ▾ Not analyzed yet","sessionLinks":6}
+  texts {"history-not-analyzed-hint":"What you say in a lesson is checked for mistakes after each of your turns. “Not analyzed yet” means nothing you said that day has been checked."}
+  labels 1 종류 ["10px/700/1.8px"] :: Workspace
+  buttons ["Weekly report →","← Home"]
+## history 1400 #4 펼친 목록의 세션 → 그 결과 · /results/3e460593-644a-4e3f-bcd1-aa44d90eee55 · body 1400/1400 · scrollY 0
+  extra {"url":"/results/3e460593-644a-4e3f-bcd1-aa44d90eee55"}
+  texts {"results-status":"We didn't hear you this time."}
+  labels 1 종류 ["10px/700/1.8px"] :: Workspace
+  buttons ["Start again →","← Home","History →"]
+## weekly 390 #1 Your progress → Weekly report — /history/weekly · /history/weekly · body 390/390 · scrollY 0
+  texts {"weekly-heading":"Weekly report · Nov 2 – Nov 8","weekly-period":"Last week"}
+  labels 0 종류 [] :: 
+  buttons ["← History","← Home"]
+## weekly 390 #2 ← Home — 홈으로 · / · body 390/390 · scrollY 0 · hero 513.6(idle) · progress 331.4
+  extra {"url":"/"}
+  texts {"home-hero-title":"Day 1: listen and say it.","home-hero-day":"Day 1 · Units 1–21","home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  labels 5 종류 ["12px/700/1.68px"] :: Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
+## weekly 1400 #1 Your progress → Weekly report — /history/weekly · /history/weekly · body 1400/1400 · scrollY 0
+  texts {"weekly-heading":"Weekly report · Nov 2 – Nov 8","weekly-period":"Last week"}
+  labels 1 종류 ["10px/700/1.8px"] :: Workspace
+  buttons ["← History","← Home"]
+## weekly 1400 #2 ← Home — 홈으로 · / · body 1400/1400 · scrollY 0 · hero 513.6(idle) · progress 513.6
+  extra {"url":"/"}
+  texts {"home-hero-title":"Day 1: listen and say it.","home-hero-day":"Day 1 · Units 1–21","home-weekly-period":"Last week · Nov 2 – Nov 8","home-course-progress":"1 / 6 days","home-week-days":"This week: 1 / 7 days"}
+  clipped [{"tid":"home-dashboard-slot","tag":"H1","text":"Home","sw":90,"cw":1,"sh":40,"ch":1}]
+  labels 6 종류 ["10px/700/1.8px","12px/700/1.68px"] :: Workspace | Today's practice | Your progress | Continue your path | Focus patterns | More practice
+  buttons ["History →","Weekly report →","View all","Practice a pattern","Free talk","Weak spots","5 questions","Pronunciation","Shadowing","Learn with videos","Work role-play\n(Not ready yet)"]
