@@ -3,9 +3,10 @@ id: TASK-330
 title: >-
   회차 b18: 고친 뒤 TestAgent 두 탭(화면·버튼) 전체 재시험 · 스토리보드와 흐름 보고서를 현재 화면으로 새로 만듦 (사용자
   결정 2026-11-14)
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-11-14 11:40'
+updated_date: '2026-11-14 12:20'
 labels: []
 dependencies:
   - TASK-326
