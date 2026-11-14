@@ -87,11 +87,14 @@ async def translate_batch(client: BedrockClaudeClient, batch: dict[str, str]) ->
     for attempt in range(1 + RETRIES):
         try:
             got = parse_json_object(await client.analyze(PROMPT.format(items=items)))
-        except AnalysisValidationError as exc:
+        except (AnalysisValidationError, ValueError) as exc:
+            # ⛔ JSON 이 아닌 응답(`ValueError`)도 다시 묻는다(`TASK-331` codex 리뷰 ③).
+            #    예전에는 한 번에 생성기 전체가 멈췄다. `AnalysisValidationError` 는
+            #    `ValueError` 의 하위지만 뜻을 보이려 둘 다 적는다.
             # ⚠️ 2026-11-14 실측: Day 하나(약 95문장)를 한 번에 보내자
             #    `refusal(cyber)` 로 거절됐음 — 분류기 오판으로 봄(추정).
             #    그래서 단원 단위로 보내고 거절은 다시 묻는다.
-            last = [f"refusal: {exc}"]
+            last = [f"{type(exc).__name__}: {exc}"]
             print(f"  다시 요청 {attempt + 1}: {last}", file=sys.stderr)
             continue
         last = problems(batch, got)

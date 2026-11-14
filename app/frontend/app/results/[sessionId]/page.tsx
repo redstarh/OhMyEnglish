@@ -13,7 +13,7 @@ import {
   type SessionResultStatus,
 } from "@/lib/api";
 import { dashboardEntryHref } from "@/lib/config";
-import { dayLabel } from "@/lib/learnerDate";
+import { dayLabel, sessionWording } from "@/lib/learnerDate";
 
 const POLL_INTERVAL_MS = 2000;
 
@@ -345,7 +345,8 @@ export default function ResultsPage() {
   // 세션 날짜나 오늘을 모르면(옛 서버 · 하루 요약 실패) 옛 동작(오늘 완료 문구)으로 돌아감.
   const today = daily?.summary_date || null;
   const sessionDate = result?.session_date ?? null;
-  const pastSession = sessionDate !== null && today !== null && sessionDate !== today;
+  // 오늘을 모르면 세션 날짜로 씀(`TASK-331` codex 리뷰 ②) — 판정은 `sessionWording` 하나가 가짐.
+  const pastSession = sessionDate !== null && sessionWording(sessionDate, today) === "dated";
   const heardNothing = result?.status === "no_utterances" && !result.awaiting_analysis;
   const doneNotice = heardNothing
     ? null

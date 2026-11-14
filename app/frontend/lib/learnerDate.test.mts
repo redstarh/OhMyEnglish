@@ -30,3 +30,23 @@ test("This week 는 이번 주일 때만 씀", () => {
   assert.equal(weekName("last"), "Last week");
   assert.equal(weekName("other"), null);
 });
+
+// ── 결과 화면 날짜 문구 (`TASK-331` codex 리뷰 ②) ──
+import { sessionWording } from "./learnerDate.ts";
+
+test("오늘과 같은 날의 세션은 today 문구", () => {
+  assert.equal(sessionWording("2026-11-14", "2026-11-14"), "today");
+});
+
+test("지난 세션은 날짜 문구", () => {
+  assert.equal(sessionWording("2026-11-01", "2026-11-14"), "dated");
+});
+
+test("오늘을 모르면(하루 요약 실패) 세션 날짜로 씀 — 날짜 문구는 언제나 참임", () => {
+  assert.equal(sessionWording("2026-11-01", null), "dated");
+});
+
+test("세션 날짜를 모르면(옛 서버) 옛 today 문구로 돌아감", () => {
+  assert.equal(sessionWording(null, "2026-11-14"), "today");
+  assert.equal(sessionWording(null, null), "today");
+});

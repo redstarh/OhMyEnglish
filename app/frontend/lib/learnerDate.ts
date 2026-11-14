@@ -46,3 +46,13 @@ export function weekName(relation: WeekRelation): string | null {
   if (relation === "last") return "Last week";
   return null;
 }
+
+/** 결과 화면의 날짜 문구 — `today`(오늘 완료) 인가 `dated`(그 날짜로 씀) 인가 (`TASK-331` codex 리뷰 ②).
+ *
+ * ⛔ 오늘을 모르면(하루 요약 조회 실패) 세션 날짜로 씀 — 날짜를 박은 문구는 언제나 참이고, 「today」로 두면
+ *    지난 세션을 오늘 것처럼 보였음. 세션 날짜를 모르면(옛 서버) 옛 동작(오늘 완료 문구)으로 돌아감.
+ */
+export function sessionWording(sessionDate: string | null, today: string | null): "today" | "dated" {
+  if (sessionDate === null) return "today";
+  return today === null || sessionDate !== today ? "dated" : "today";
+}

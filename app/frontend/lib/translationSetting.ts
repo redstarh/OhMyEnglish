@@ -10,8 +10,54 @@ import { useCallback, useSyncExternalStore } from "react";
 const STORAGE_KEY = "omy.course.translation";
 const CHANGE_EVENT = "omy-translation-change";
 
+type SettingStorage = Pick<Storage, "getItem" | "setItem">;
+
+// ⛔ 저장소가 막혀도(사생활 모드 · `SecurityError` · `QuotaExceededError`) 홈이 깨지지 않음(`TASK-331` codex
+//    리뷰 ①) — 마지막으로 고른 값을 메모리에 두고, 저장이 실패해도 그 값으로 바꾸고 알림.
+let remembered: boolean | null = null;
+
+/** 저장된 값. 읽다 예외가 나면 메모리 값(없으면 끔). */
+export function readSetting(storage: SettingStorage): boolean {
+  try {
+    const saved = storage.getItem(STORAGE_KEY);
+    if (saved !== null) return saved === "on";
+  } catch {
+    // 저장소를 못 읽음 — 아래 메모리 값을 씀.
+  }
+  return remembered ?? false;
+}
+
+/** 값을 바꾸고 알림. 저장이 실패해도 메모리 값은 바뀌고 알림은 감. */
+export function writeSetting(storage: SettingStorage, next: boolean, notify: () => void): void {
+  remembered = next;
+  try {
+    storage.setItem(STORAGE_KEY, next ? "on" : "off");
+  } catch {
+    // 저장하지 못함 — 이 탭에서는 메모리 값으로 유지됨.
+  }
+  notify();
+}
+
+// `window.localStorage` 를 꺼내는 것만으로 예외가 나는 브라우저가 있음 — 그때는 늘 실패하는 저장소를 씀.
+const unavailable: SettingStorage = {
+  getItem: () => {
+    throw new Error("storage unavailable");
+  },
+  setItem: () => {
+    throw new Error("storage unavailable");
+  },
+};
+
+function storage(): SettingStorage {
+  try {
+    return window.localStorage;
+  } catch {
+    return unavailable;
+  }
+}
+
 function read(): boolean {
-  return window.localStorage.getItem(STORAGE_KEY) === "on";
+  return readSetting(storage());
 }
 
 function subscribe(onChange: () => void): () => void {
@@ -27,8 +73,7 @@ function subscribe(onChange: () => void): () => void {
 export function useShowTranslation(): [boolean, (next: boolean) => void] {
   const show = useSyncExternalStore(subscribe, read, () => false);
   const setShow = useCallback((next: boolean) => {
-    window.localStorage.setItem(STORAGE_KEY, next ? "on" : "off");
-    window.dispatchEvent(new Event(CHANGE_EVENT));
+    writeSetting(storage(), next, () => window.dispatchEvent(new Event(CHANGE_EVENT)));
   }, []);
   return [show, setShow];
 }
