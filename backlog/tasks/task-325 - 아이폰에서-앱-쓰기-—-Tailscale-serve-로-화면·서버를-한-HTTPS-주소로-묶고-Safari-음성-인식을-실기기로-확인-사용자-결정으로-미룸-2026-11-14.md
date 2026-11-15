@@ -3,10 +3,10 @@ id: TASK-325
 title: >-
   아이폰에서 앱 쓰기 — Tailscale serve 로 화면·서버를 한 HTTPS 주소로 묶고 Safari 음성 인식을 실기기로 확인
   (사용자 결정으로 미룸 2026-11-14)
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-11-14 11:27'
-updated_date: '2026-11-15 03:04'
+updated_date: '2026-11-15 04:21'
 labels: []
 dependencies: []
 ordinal: 392000
@@ -21,7 +21,7 @@ ordinal: 392000
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [x] #1 사용자 승인을 받고 tailscale serve 를 설정함
-- [ ] #2 아이폰 Safari 에서 문장 연습의 실시간 표시를 실기기로 확인함
+- [x] #2 아이폰 Safari 에서 문장 연습의 실시간 표시를 실기기로 확인함
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -30,4 +30,6 @@ ordinal: 392000
 2026-11-15 준비 완료(사용자 지시 「준비해」): tailscale serve(tailnet only) / → :3000 · /api · /ws → :8002 · resolveApiBase(시험 먼저 — export 없음 실패 → 3 통과) · next.config allowedDevOrigins. 맥에서 확인(b25 tailnet.mjs · IP 고정): isSecureContext 참 · API 같은 출처 · 콘솔 오류 0 · KO 보임 · /ws 서버 도달(404 = 직접 호출과 같음). 이 맥 시스템 DNS 는 자기 tailnet 이름을 못 찾음. 게이트: tsc 0 · eslint 0 · build 0 · node 시험 통과. 남은 것: AC2 아이폰 실기기(사용자).
 
 2026-11-15 사용자: 아이폰 접속 확인함(Tailscale 앱 · tailnet 주소). 남은 AC2: 아이폰 Safari 음성 인식 실시간 표시 확인. 사용자 지적: 모바일 창에서 스크롤이 생김 → TASK-344(모바일 스크롤 없는 디자인).
+
+2026-11-15 13:18~13:19 사용자 아이폰 실기기 시험(tailnet 100.96.109.43): Safari 음성 인식 → attempts/text 3건 200(u016-s2 · u016-s4 · u017-s3, 전사가 course_attempts 에 남음). 사용자 답: 「말하는 동안 보였음」 · 모바일 배치 「스크롤 없이 잘 맞음」(TASK-344·345).
 <!-- SECTION:NOTES:END -->
