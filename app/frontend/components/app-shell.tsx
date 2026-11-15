@@ -144,15 +144,19 @@ export function AppShell({ children }: { children: ReactNode }) {
           </nav>
         </aside>
 
-        {/* 모바일 홈·진도 화면은 머리 줄을 두지 않음 — 홈은 자기 머리를 그리고, 진도 화면은 ← Home 이 있음(`TASK-344`). */}
-        {pathname === "/" || pathname === "/progress" ? null : (
-          <header className="border-b border-border bg-white px-5 pt-4 pb-2 sm:px-8 lg:hidden">
-            <NavLink href="/" locked={locked} className="inline-block rounded-xl">
-              <Logo />
-            </NavLink>
-            {/* 좁은 화면은 메뉴 줄을 두지 않음 — 메뉴가 Home 하나뿐이고 로고가 Home 으로 감(`TASK-314`). */}
-          </header>
-        )}
+        {/* 폰 폭(md 미만)의 홈·진도 화면은 이 머리 줄을 두지 않음 — 홈은 자기 머리를 그리고, 진도 화면은 ← Home 이
+            있음(`TASK-344`). md~lg(768~1023)는 그대로 둠 — 사이드바가 아직 없는 폭임(`TASK-345` codex 리뷰). */}
+        <header
+          className={cn(
+            "border-b border-border bg-white px-5 pt-4 pb-2 sm:px-8 lg:hidden",
+            (pathname === "/" || pathname === "/progress") && "max-md:hidden",
+          )}
+        >
+          <NavLink href="/" locked={locked} className="inline-block rounded-xl">
+            <Logo />
+          </NavLink>
+          {/* 좁은 화면은 메뉴 줄을 두지 않음 — 메뉴가 Home 하나뿐이고 로고가 Home 으로 감(`TASK-314`). */}
+        </header>
 
         <div className={cn("min-w-0 flex-1 px-5 py-6 sm:px-8 lg:px-12 lg:py-9", pathname === "/" && "mobile-home-content", pathname === "/progress" && "mobile-progress-content")}>{children}</div>
       </div>

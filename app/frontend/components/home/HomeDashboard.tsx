@@ -130,7 +130,19 @@ export function HomeDashboard({
   const [practicing, setPracticing] = useState(initialPracticeDay !== undefined);
   // 문장 연습이 여는 Day — 비어 있으면 코스의 현재 Day 임. Continue your path 에서 고르면 그 Day 임(`TASK-314`).
   const [practiceDay, setPracticeDay] = useState<number | undefined>(initialPracticeDay);
+  // 진도 화면의 Day 줄은 `/?day=N` 으로 옴 — 질의만 바뀌는 이동에서는 상태가 남으므로 값이 바뀔 때 다시 엶
+  // (`TASK-345` codex 리뷰 · 렌더 중 상태 맞춤 — 효과에서 setState 하지 않음).
+  const [seenDay, setSeenDay] = useState(initialPracticeDay);
+  if (seenDay !== initialPracticeDay) {
+    setSeenDay(initialPracticeDay);
+    if (initialPracticeDay !== undefined && !locked) {
+      setPracticeDay(initialPracticeDay);
+      setPracticing(true);
+    }
+  }
   const showPractice = practicing && !locked;
+  // 모바일 머리·요약은 대기 때만 보임 — 연습·세션은 카드가 화면 전체이고, 세션 중 이동은 소켓을 닫음(`TASK-345`).
+  const showMobileChrome = !showPractice && !locked;
   const history = useLoad(fetchHistory);
   const weekly = useLoad(fetchWeeklyReport);
   const course = useLoad(fetchCourse);
@@ -187,8 +199,12 @@ export function HomeDashboard({
   const daysThisWeek = history.status === "ready" ? learnedInLastWeek(history.data) : null;
 
   return (
-    <div className="home-dashboard text-foreground" data-practicing={showPractice ? "true" : "false"}>
-      {!showPractice ? (
+    <div
+      className="home-dashboard text-foreground"
+      data-practicing={showPractice ? "true" : "false"}
+      data-extras={extrasByQuery ? "true" : undefined}
+    >
+      {showMobileChrome ? (
         <header className="home-mobile-header md:hidden">
           <Link href="/" aria-label="OhMyEnglish home" className="home-brand">
             <span className="home-brand-mark"><Sparkles aria-hidden="true" /></span>
@@ -199,7 +215,7 @@ export function HomeDashboard({
           </Link>
         </header>
       ) : null}
-      <p className={cn("home-mobile-summary md:hidden", showPractice && "hidden")}>
+      <p className={cn("home-mobile-summary md:hidden", !showMobileChrome && "hidden")}>
         {totalDays ? `${doneDays} / ${totalDays} days` : "Progress loading"} · This week {daysThisWeek?.learned ?? "—"} / {daysThisWeek?.window ?? 7}
       </p>
       {/* 날짜·인사·연속 학습 머리는 뺐음(`TASK-305` 사용자 지시). 화면 제목은 낭독기에만 남김. */}

@@ -265,13 +265,14 @@
 }
 
 @media (max-width: 767px) {
-  .mobile-home-shell {
+  /* `?extras=1`(수동 하네스 입구)이면 잠그지 않음 — 숨긴 묶음이 보이므로 화면이 길어짐(`TASK-345`). */
+  .mobile-home-shell:not(:has(.home-dashboard[data-extras="true"])) {
     height: 100dvh;
     min-height: 100dvh;
     overflow: hidden;
   }
 
-  .mobile-home-content {
+  .mobile-home-shell:not(:has(.home-dashboard[data-extras="true"])) .mobile-home-content {
     display: flex;
     min-height: 0;
     flex: 1;
@@ -280,7 +281,7 @@
     padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
   }
 
-  .home-dashboard {
+  .home-dashboard:not([data-extras="true"]) {
     display: flex;
     min-height: 0;
     flex: 1;
@@ -330,9 +331,9 @@
     flex: 1;
     gap: 0;
   }
-  .home-primary-grid > :not(.home-hero),
-  .home-secondary-grid,
-  [data-testid="home-more-practice"] { display: none !important; }
+  .home-dashboard:not([data-extras="true"]) .home-primary-grid > :not(.home-hero),
+  .home-dashboard:not([data-extras="true"]) .home-secondary-grid,
+  .home-dashboard:not([data-extras="true"]) [data-testid="home-more-practice"] { display: none !important; }
 
   .home-hero {
     width: 100%;
@@ -355,7 +356,9 @@
   }
 
   .home-hero[data-mode="practice"] > .flex.shrink-0 > * { color: var(--foreground); }
-  .home-hero-body { min-height: 0; flex: 1; overflow: hidden; }
+  /* 잘라 내기는 문장 연습에만 — 세션 칸은 자기 `overflow-y-auto` 로 넘친 내용을 스크롤해야 함(`TASK-345` codex 리뷰). */
+  .home-hero-body { min-height: 0; flex: 1; }
+  .home-hero[data-mode="practice"] .home-hero-body { overflow: hidden; }
   .home-hero-body > * { min-height: 0; flex: 1; }
   /* TASK-344 — 카드 안의 감싸개 둘(`div.mt-4` · `sentence-practice`)도 flex 세로 칸이어야 카드가 화면을 채움.
      결과 칸은 데스크톱의 고정 높이 대신 남은 높이를 모두 씀 — 상태가 바뀌어도 칸 높이는 같고 버튼 줄은 바닥에 붙음. */
