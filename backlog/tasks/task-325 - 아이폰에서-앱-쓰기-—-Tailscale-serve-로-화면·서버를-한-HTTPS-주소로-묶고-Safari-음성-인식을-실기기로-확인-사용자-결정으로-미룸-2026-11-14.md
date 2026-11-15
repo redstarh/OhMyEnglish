@@ -6,7 +6,7 @@ title: >-
 status: In Progress
 assignee: []
 created_date: '2026-11-14 11:27'
-updated_date: '2026-11-15 01:02'
+updated_date: '2026-11-15 03:04'
 labels: []
 dependencies: []
 ordinal: 392000
@@ -28,4 +28,6 @@ ordinal: 392000
 
 <!-- SECTION:NOTES:BEGIN -->
 2026-11-15 준비 완료(사용자 지시 「준비해」): tailscale serve(tailnet only) / → :3000 · /api · /ws → :8002 · resolveApiBase(시험 먼저 — export 없음 실패 → 3 통과) · next.config allowedDevOrigins. 맥에서 확인(b25 tailnet.mjs · IP 고정): isSecureContext 참 · API 같은 출처 · 콘솔 오류 0 · KO 보임 · /ws 서버 도달(404 = 직접 호출과 같음). 이 맥 시스템 DNS 는 자기 tailnet 이름을 못 찾음. 게이트: tsc 0 · eslint 0 · build 0 · node 시험 통과. 남은 것: AC2 아이폰 실기기(사용자).
+
+2026-11-15 사용자: 아이폰 접속 확인함(Tailscale 앱 · tailnet 주소). 남은 AC2: 아이폰 Safari 음성 인식 실시간 표시 확인. 사용자 지적: 모바일 창에서 스크롤이 생김 → TASK-344(모바일 스크롤 없는 디자인).
 <!-- SECTION:NOTES:END -->

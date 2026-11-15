@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>OhMyEnglish — Your progress</title>
+  <link rel="stylesheet" href="../colors_and_type.css">
+  <link rel="stylesheet" href="components.css">
+</head>
+<body class="screen">
+  <header class="page-head">
+    <button type="button" class="btn">← Home</button>
+  </header>
+
+  <section class="card" aria-labelledby="progress-title">
+    <h1 class="label" id="progress-title">Your progress</h1>
+    <p class="progress-number">0<span> / 6 days</span></p>
+    <div class="bar"><div class="bar-fill" style="width: 0%"></div></div>
+    <div class="progress-meta">
+      <span>Grammar course</span>
+      <span>This week: 0 / 7 days</span>
+      <span>Best streak: 1 day</span>
+    </div>
+    <div class="weekly">
+      <p class="weekly-period">Last week · Nov 2 – Nov 8</p>
+      <div class="stats">
+        <div><p class="stat-value">0</p><p class="stat-label">Sessions</p></div>
+        <div><p class="stat-value">0</p><p class="stat-label">Patterns</p></div>
+      </div>
+    </div>
+    <div class="card-actions">
+      <button type="button" class="btn btn--primary">History →</button>
+      <button type="button" class="btn btn--primary">Weekly report →</button>
+    </div>
+  </section>
+
+  <section aria-labelledby="path-title">
+    <div class="section-head">
+      <h2 class="label" id="path-title">Continue your path</h2>
+      <button type="button" class="btn">View all</button>
+    </div>
+    <div class="day-list">
+      <button type="button" class="day-row">
+        <span class="day-badge">DAY 1</span>
+        <span class="day-title">Day 1 · In progress<span class="day-units">Units 1–21</span></span>
+        <span class="day-go"><svg class="icon icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+      </button>
+      <button type="button" class="day-row">
+        <span class="day-badge">DAY 2</span>
+        <span class="day-title">Day 2 · Up next<span class="day-units">Units 22–41</span></span>
+        <span class="day-go"><svg class="icon icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+      </button>
+    </div>
+  </section>
+
+  <section aria-labelledby="focus-title">
+    <h2 class="label section-label-row" id="focus-title">Focus patterns</h2>
+    <div class="card">
+      <p class="empty">No patterns yet. Start speaking to find them.</p>
+    </div>
+  </section>
+</body>
+</html>
