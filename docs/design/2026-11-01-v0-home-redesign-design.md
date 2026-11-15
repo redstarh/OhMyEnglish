@@ -258,6 +258,17 @@
 - `TASK-341`: 홈 주소 `?extras=1` 이면 숨긴 More practice · Practice a pattern 이 보임(`components/home/homeExtras.ts`). 기본은 숨김(`TASK-338`).
 - 이유: 수동 하네스 드라이버 다섯은 마이크 대체를 심을 틈 때문에 질의 진입 대신 버튼을 눌러 세션에 들어감(`H-CC`). 그래서 드라이버의 기본 주소를 `/?extras=1` 로 바꿨음.
 
+### 아이폰에서 열기 — tailnet HTTPS 한 주소 (2026-11-15 · `TASK-325`)
+
+- 막던 것: 아이폰은 HTTPS 에서만 마이크를 허용함. 화면이 서버를 `localhost:8002` 로 불러 아이폰에서는 아이폰 자신을 가리켰음.
+- 맥 설정(`tailscale serve` · tailnet only · funnel 아님): `https://redstarui-macbookair.tailf9cacf.ts.net` 의 `/` → :3000 · `/api` → :8002/api · `/ws` → :8002/ws.
+- 되돌리기: `tailscale serve reset`. 확인: `tailscale serve status`.
+- 화면: localhost 가 아닌 주소로 열면 그 출처를 서버 주소로 씀(`lib/config.ts` `resolveApiBase` · 시험 `lib/apiBase.test.mts`).
+- Next 개발 서버: `next.config.ts` 의 `allowedDevOrigins` 에 이 tailnet 이름만 넣음.
+- 확인(회차 b25 · 맥에서 IP 고정): 보안 문맥 참 · API 요청이 같은 출처 · 콘솔 오류 0 · `/ws` 가 서버까지 닿음.
+- ⚠️ 이 맥 자신은 시스템 DNS 가 자기 tailnet 이름을 못 찾음(Tailscale DNS 는 켜져 있음). 아이폰은 Tailscale 앱이 이름을 풀 것으로 봄(미확인).
+- 남은 것: 아이폰 실기기에서 Safari 음성 인식과 실시간 표시 확인(사용자 몫). Safari 는 받아쓰기(Siri)가 켜져 있어야 인식이 될 수 있음.
+
 ## 4. 파일 계획
 
 - 새 파일: `postcss.config.mjs` · `components.json` · `lib/utils.ts` · `components/ui/button.tsx` · `components/app-shell.tsx` · `app/additionalLearning.ts`(추가 학습 목록과 `entryForTarget` 을 옮기고 고정 `key` 를 줌) · `components/home/HomeDashboard.tsx`.

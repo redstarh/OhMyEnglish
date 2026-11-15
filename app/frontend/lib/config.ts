@@ -1,8 +1,27 @@
 /**
  * 백엔드 주소 — 하드코딩하지 않는다. `NEXT_PUBLIC_API_BASE`가 없으면
  * 로컬 개발 기본값(`http://localhost:8000`)으로 떨어진다.
+ *
+ * ⛔ localhost 가 아닌 주소로 열면 그 출처를 씀(`TASK-325` 아이폰) — 아이폰은 tailnet HTTPS 주소로 열고,
+ *    `tailscale serve` 가 같은 출처의 `/api` · `/ws` 를 맥의 서버(:8002)로 넘김. 환경 변수의
+ *    `localhost:8002` 는 아이폰에서 아이폰 자신을 가리키므로 쓸 수 없음. HTTPS 라야 마이크가 열림.
  */
-export const API_BASE: string = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
+const LOCAL_HOSTS: ReadonlySet<string> = new Set(["localhost", "127.0.0.1"]);
+
+export function resolveApiBase(
+  envBase: string | undefined,
+  location: { hostname: string; origin: string } | null,
+): string {
+  if (location && !LOCAL_HOSTS.has(location.hostname)) {
+    return location.origin;
+  }
+  return envBase ?? "http://localhost:8000";
+}
+
+export const API_BASE: string = resolveApiBase(
+  process.env.NEXT_PUBLIC_API_BASE,
+  typeof window !== "undefined" ? window.location : null,
+);
 
 /**
  * 세션 하나가 어느 문으로 들어왔는지 (`TASK-10.2` · 진입점 설계서
