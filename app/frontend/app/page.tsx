@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { translateUtterance } from "@/lib/api";
 import { entryFromQuery, type SessionEntry } from "@/lib/config";
@@ -618,7 +618,10 @@ export default function SessionPage() {
   // ⚠️ 연결 중 · 진행 · 종료 중 · 실패는 같은 `session-panel` 안에서 이어짐 — 대화 칸이 다시 마운트되지 않음.
   return (
     <div data-testid="home-dashboard-slot">
-      <HomeDashboard onStart={(entry, label) => void startSession(entry, label)} session={state === "idle" ? null : screen} />
+      {/* `HomeDashboard` 가 `?day=` 를 `useSearchParams` 로 읽으므로 Suspense 경계가 필요함(`TASK-344`). */}
+      <Suspense fallback={null}>
+        <HomeDashboard onStart={(entry, label) => void startSession(entry, label)} session={state === "idle" ? null : screen} />
+      </Suspense>
     </div>
   );
 }

@@ -264,3 +264,152 @@
   }
 }
 
+@media (max-width: 767px) {
+  .mobile-home-shell {
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow: hidden;
+  }
+
+  .mobile-home-content {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    overflow: hidden;
+    padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  }
+
+  .home-dashboard {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    gap: 10px;
+    overflow: hidden;
+  }
+
+  .home-mobile-header {
+    display: flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .home-brand {
+    display: flex;
+    min-height: 44px;
+    align-items: center;
+    gap: 10px;
+    color: var(--foreground);
+    text-decoration: none;
+  }
+
+  .home-brand-mark,
+  .home-progress-button {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    flex: 0 0 44px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    color: var(--brand);
+    background: var(--surface);
+  }
+
+  .home-brand-mark { color: white; background: var(--hero); border-color: transparent; }
+  .home-brand-mark svg, .home-progress-button svg { width: 20px; height: 20px; }
+  .home-brand strong { display: block; font-size: 14px; line-height: 1.15; }
+  .home-brand small { display: block; margin-top: 3px; color: var(--foreground-muted); font-size: 9px; letter-spacing: .12em; }
+  .home-mobile-summary { margin: 0; color: var(--foreground-muted); font-size: 12px; line-height: 18px; }
+
+  .home-primary-grid {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    gap: 0;
+  }
+  .home-primary-grid > :not(.home-hero),
+  .home-secondary-grid,
+  [data-testid="home-more-practice"] { display: none !important; }
+
+  .home-hero {
+    width: 100%;
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none;
+    flex: 1;
+    border-radius: 22px;
+    padding: 16px;
+    overflow: hidden;
+  }
+
+  .home-hero[data-mode="practice"] {
+    background: var(--surface);
+    color: var(--foreground);
+  }
+
+  .home-hero[data-mode="practice"] > .flex.shrink-0 {
+    min-height: 44px;
+  }
+
+  .home-hero[data-mode="practice"] > .flex.shrink-0 > * { color: var(--foreground); }
+  .home-hero-body { min-height: 0; flex: 1; overflow: hidden; }
+  .home-hero-body > * { min-height: 0; flex: 1; }
+  /* TASK-344 — 카드 안의 감싸개 둘(`div.mt-4` · `sentence-practice`)도 flex 세로 칸이어야 카드가 화면을 채움.
+     결과 칸은 데스크톱의 고정 높이 대신 남은 높이를 모두 씀 — 상태가 바뀌어도 칸 높이는 같고 버튼 줄은 바닥에 붙음. */
+  .home-hero[data-mode="practice"] .home-hero-body > *,
+  .home-hero[data-mode="practice"] [data-testid="sentence-practice"] {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+  }
+  .home-hero[data-mode="practice"] [data-testid="course-card"] {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .home-hero[data-mode="practice"] [data-testid="course-result-slot"] {
+    height: auto;
+    min-height: 0;
+    flex: 1;
+  }
+  .home-hero[data-mode="practice"] .omy-course-nav { margin-top: auto !important; gap: 6px; }
+  .home-hero[data-mode="practice"] .omy-course-nav .omy-button { min-height: 44px; justify-content: center; padding-inline: 8px; }
+  .home-hero[data-mode="practice"] button,
+  .home-hero[data-mode="practice"] a { min-height: 44px; }
+
+  /* 아래 여백은 `.mobile-progress-content` 가 safe-area 와 함께 줌 — 두 번 주면 393×659 에서 4 px 넘침. */
+  .progress-dashboard { padding-bottom: 0; }
+
+  /* TASK-344 — v0 판에 더한 것. ① 높이 사슬: page.tsx 의 슬롯이 flex 칸이 아니면 카드가 화면을 채우지 못함.
+     ② 대기 카드의 Start speaking 도 터치 대상 44 px. ③ 진도 화면도 393×659 에서 스크롤 없이 들어감 —
+     제목은 낭독기에만 두고(카드 라벨과 같은 말) 부제·장식 아이콘을 뺌. */
+  .mobile-home-content > [data-testid="home-dashboard-slot"] {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+  }
+  .home-hero[data-mode="idle"] [data-testid="start-session"] { min-height: 44px; }
+  .progress-dashboard .progress-title {
+    position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+  }
+  .mobile-progress-content {
+    padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  }
+  .progress-dashboard > a.omy-button { margin-bottom: 10px; }
+  .progress-dashboard > .grid { gap: 12px; }
+  .progress-dashboard [data-testid="home-progress"] { padding: 16px; }
+  .progress-dashboard [data-testid="home-progress"] > .flex:first-child > .grid { display: none; }
+  .progress-dashboard [data-testid="home-progress"] .mt-5 { margin-top: 10px; }
+  .progress-dashboard [data-testid="home-weekly-stats"] { margin-top: 12px; padding-top: 10px; }
+  .progress-dashboard [data-testid="home-path"] h2 + p,
+  .progress-dashboard [data-testid="home-focus"] h2 + p { display: none; }
+  .progress-dashboard a.omy-button,
+  .progress-dashboard button.omy-button { min-height: 44px; }
+}

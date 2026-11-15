@@ -11,12 +11,14 @@
 //    다른 세션을 열거나 화면을 떠나는 링크·버튼은 잠김 — 떠나면 소켓이 닫혀 세션이 끝남.
 
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import {
   ArrowRight,
   Check,
   ChevronRight,
   Mic,
+  Sparkles,
   Play,
   Plus,
   TrendingUp,
@@ -117,14 +119,17 @@ export function HomeDashboard({
   session?: ReactNode;
 }) {
   const locked = session !== null && session !== undefined;
+  const searchParams = useSearchParams();
+  const requestedDay = Number(searchParams.get("day"));
+  const initialPracticeDay = Number.isInteger(requestedDay) && requestedDay > 0 ? requestedDay : undefined;
   // `?extras=1` 이면 숨긴 추가 학습 입구를 보임 — 수동 하네스 드라이버의 진입 길(`TASK-341`).
   const extrasByQuery = useExtrasFromQuery();
   const showMorePractice = HOME_EXTRAS.morePractice || extrasByQuery;
   const showFocusPractice = HOME_EXTRAS.focusPractice || extrasByQuery;
   // 오늘의 연습 카드가 문장 연습을 그리는 중인가. 세션이 열리면 세션이 이김.
-  const [practicing, setPracticing] = useState(false);
+  const [practicing, setPracticing] = useState(initialPracticeDay !== undefined);
   // 문장 연습이 여는 Day — 비어 있으면 코스의 현재 Day 임. Continue your path 에서 고르면 그 Day 임(`TASK-314`).
-  const [practiceDay, setPracticeDay] = useState<number | undefined>(undefined);
+  const [practiceDay, setPracticeDay] = useState<number | undefined>(initialPracticeDay);
   const showPractice = practicing && !locked;
   const history = useLoad(fetchHistory);
   const weekly = useLoad(fetchWeeklyReport);
@@ -152,7 +157,7 @@ export function HomeDashboard({
       pendingRef.current = { entry, label };
       setPracticing(false);
     },
-    [onStart, practicing],
+    [onStart, practicing, setPracticing],
   );
   // Continue your path 에서 고른 Day 를 오늘의 연습 카드에서 엶 — 페이지를 옮기지 않음(`TASK-314` 사용자 지시).
   // 아래쪽 입구이므로 카드가 화면 밖이면 카드로 스크롤함(`TASK-308`).
@@ -160,7 +165,7 @@ export function HomeDashboard({
     revealHero(heroRef.current);
     setPracticeDay(day);
     setPracticing(true);
-  }, []);
+  }, [setPracticeDay, setPracticing]);
   // 연습이 닫힌 뒤 — 미뤄 둔 세션을 열고, 코스 개요를 다시 읽어 대기 카드·진도가 저장된 진도와 맞게 함
   // (회차 b12 D1). 다시 읽기는 닫을 때의 저장을 기다린 뒤 조회함(`fetchCourse`).
   const wasPracticing = useRef(false);
@@ -177,13 +182,31 @@ export function HomeDashboard({
     if (pending) onStart(pending.entry, pending.label);
   }, [practicing, onStart, reloadCourse]);
 
+  const doneDays = course.status === "ready" ? courseDoneCount(course.data) : 0;
+  const totalDays = course.status === "ready" ? course.data.days.length : 0;
+  const daysThisWeek = history.status === "ready" ? learnedInLastWeek(history.data) : null;
+
   return (
-    <div className="text-foreground">
+    <div className="home-dashboard text-foreground" data-practicing={showPractice ? "true" : "false"}>
+      {!showPractice ? (
+        <header className="home-mobile-header md:hidden">
+          <Link href="/" aria-label="OhMyEnglish home" className="home-brand">
+            <span className="home-brand-mark"><Sparkles aria-hidden="true" /></span>
+            <span><strong>OhMyEnglish</strong><small>SPEAK. REMEMBER. GROW.</small></span>
+          </Link>
+          <Link href="/progress" aria-label="Your progress" title="Your progress" className="home-progress-button">
+            <TrendingUp aria-hidden="true" />
+          </Link>
+        </header>
+      ) : null}
+      <p className={cn("home-mobile-summary md:hidden", showPractice && "hidden")}>
+        {totalDays ? `${doneDays} / ${totalDays} days` : "Progress loading"} · This week {daysThisWeek?.learned ?? "—"} / {daysThisWeek?.window ?? 7}
+      </p>
       {/* 날짜·인사·연속 학습 머리는 뺐음(`TASK-305` 사용자 지시). 화면 제목은 낭독기에만 남김. */}
       <h1 className="sr-only">Home</h1>
 
       {/* 오늘의 연습 카드는 연습에서 내용만큼의 높이이고, 대기·세션은 그 높이와 같은 `HERO_HEIGHT` 를 씀(`TASK-310`). */}
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.85fr)]">
+      <div className="home-primary-grid grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.85fr)]">
         <HeroCard
           heroRef={heroRef}
           course={course}
@@ -200,7 +223,7 @@ export function HomeDashboard({
         <ProgressCard course={course} history={history} weekly={weekly} locked={locked} />
       </div>
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(280px,0.8fr)]">
+      <div className="home-secondary-grid mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(280px,0.8fr)]">
         <PathSection
           course={course}
           locked={locked}
@@ -218,6 +241,29 @@ export function HomeDashboard({
 
       {showMorePractice ? <MorePractice onStart={startSession} locked={locked} /> : null}
     </div>
+  );
+}
+
+export function ProgressDashboard() {
+  const router = useRouter();
+  const course = useLoad(fetchCourse);
+  const history = useLoad(fetchHistory);
+  const weekly = useLoad(fetchWeeklyReport);
+  const daily = useLoad(fetchDailySummary);
+  const pickDay = useCallback((day: number | undefined) => {
+    if (day) router.push(`/?day=${day}`);
+  }, [router]);
+
+  return (
+    <main className="progress-dashboard mx-auto max-w-5xl text-foreground">
+      <Link href="/" className="omy-button mb-5 inline-flex min-h-11 items-center">← Home</Link>
+      <h1 className="progress-title mb-6 text-3xl font-extrabold tracking-tight">Your progress</h1>
+      <div className="grid gap-5">
+        <ProgressCard course={course} history={history} weekly={weekly} locked={false} />
+        <PathSection course={course} locked={false} selectedDay={null} onPick={pickDay} />
+        <FocusSection daily={daily} weekly={weekly} onStart={() => {}} locked={false} showPractice={false} />
+      </div>
+    </main>
   );
 }
 
@@ -294,7 +340,7 @@ function HeroCard({
         data-testid="home-hero"
         data-state={course.status}
         data-mode={inSession ? "session" : "practice"}
-        className={cn(CARD, "flex flex-col", inSession ? heroHeight : heroMinHeight)}
+        className={cn(CARD, "home-hero flex flex-col", inSession ? heroHeight : heroMinHeight)}
       >
         <div className="flex shrink-0 items-center justify-between gap-3">
           <SectionLabel>Today&apos;s practice</SectionLabel>
@@ -306,13 +352,13 @@ function HeroCard({
         </div>
         <div
           data-testid="home-hero-body"
-          className={cn("flex min-h-0 flex-1 flex-col", inSession && "-mr-2 overflow-y-auto overscroll-contain pr-2")}
+          className={cn("home-hero-body flex min-h-0 flex-1 flex-col", inSession && "-mr-2 overflow-y-auto overscroll-contain pr-2")}
         >
           {inSession ? session : <HomeCoursePractice key={practiceDay ?? "current"} day={practiceDay} onDayFinished={onDayFinished} />}
         </div>
       </div>
     );
-  }
+}
 
   return (
     <div
@@ -321,7 +367,7 @@ function HeroCard({
       data-state={course.status}
       data-mode="idle"
       className={cn(
-        "flex flex-col justify-center rounded-[24px] bg-hero p-6 text-white shadow-xl shadow-hero/10 sm:justify-between sm:p-8",
+        "home-hero flex flex-col justify-center rounded-[24px] bg-hero p-6 text-white shadow-xl shadow-hero/10 sm:justify-between sm:p-8",
         heroHeight,
       )}
     >
