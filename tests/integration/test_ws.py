@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import contextlib
 import json
 from collections.abc import AsyncIterator, Callable, Iterator, MutableMapping, Sequence
 from typing import Any, cast
@@ -1655,3 +1656,55 @@ async def test_ws_ignores_an_item_that_is_not_a_uuid(
             UUID(started["session_id"]),
         )
     assert chosen == earlier
+
+
+# ── `TASK-343` codex 리뷰 — 브라우저 출처(Origin) 허용 목록 ──
+# ⛔ 남의 웹사이트를 연 브라우저가 tailnet 주소의 소켓을 열어 세션을 만들 수 없어야 한다.
+#    브라우저는 Origin 을 반드시 보내므로 목록 밖의 Origin 은 받지 않고 닫는다.
+#    Origin 이 없는 연결(시험·스크립트)은 받는다.
+
+
+async def _first_message_for_origin(app: FastAPI, origin: bytes) -> dict[str, Any]:
+    scope = dict(_SCOPE) | {"headers": [(b"origin", origin)]}
+    to_app: asyncio.Queue[dict[str, Any]] = asyncio.Queue()
+    from_app: asyncio.Queue[dict[str, Any]] = asyncio.Queue()
+
+    async def send(message: MutableMapping[str, Any]) -> None:
+        await from_app.put(dict(message))
+
+    async with app.router.lifespan_context(app):
+        task = asyncio.create_task(app(scope, to_app.get, send))
+        await to_app.put({"type": "websocket.connect"})
+        first = await asyncio.wait_for(from_app.get(), timeout=RECEIVE_TIMEOUT)
+        await to_app.put({"type": "websocket.disconnect", "code": 1000})
+        task.cancel()
+        with contextlib.suppress(asyncio.CancelledError, Exception):
+            await task
+    return first
+
+
+async def test_ws_refuses_a_foreign_browser_origin(
+    ws_app: FastAPI, db_pool: asyncpg.Pool, seeded_fixed_user: UUID
+):
+    async with db_pool.acquire() as conn:
+        before = await conn.fetchval("select count(*) from learning_sessions")
+    first = await _first_message_for_origin(ws_app, b"https://evil.example")
+    assert first["type"] == "websocket.close", first
+    async with db_pool.acquire() as conn:
+        after = await conn.fetchval("select count(*) from learning_sessions")
+    assert after == before, "남의 출처가 세션 행을 만들었다"
+
+
+async def test_ws_accepts_the_local_frontend_origin(ws_app: FastAPI, seeded_fixed_user: UUID):
+    first = await _first_message_for_origin(ws_app, b"http://localhost:3000")
+    assert first["type"] == "websocket.accept", first
+
+
+async def test_ws_accepts_an_extra_origin_from_settings(
+    ws_app: FastAPI, seeded_fixed_user: UUID, monkeypatch: pytest.MonkeyPatch
+):
+    tailnet = "https://redstarui-macbookair.tailf9cacf.ts.net"
+    monkeypatch.setenv("EXTRA_ALLOWED_ORIGINS", f"{tailnet}, https://other.example")
+    get_settings.cache_clear()
+    first = await _first_message_for_origin(ws_app, tailnet.encode())
+    assert first["type"] == "websocket.accept", first

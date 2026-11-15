@@ -333,8 +333,34 @@ async def _record_drill_turns_or_continue(
         logger.exception("세션 %s의 기대 exchange 수를 남기지 못해 그대로 진행한다", session_id)
 
 
+# 소켓을 받을 브라우저 출처의 기본값 — 이 맥의 Next 개발 서버(`TASK-343`).
+_LOCAL_ORIGINS = frozenset({"http://localhost:3000", "http://127.0.0.1:3000"})
+
+
+def _origin_allowed(origin: str | None) -> bool:
+    """이 출처의 브라우저가 소켓을 열어도 되는가 (`TASK-343` codex 리뷰).
+
+    ⛔ **목록 밖의 브라우저 출처는 받지 않는다** — 인증이 없는 앱이라, 남의 웹사이트를 연
+    브라우저가 tailnet 주소의 소켓을 열면 세션을 만들고 소리를 보낼 수 있었다.
+    브라우저는 Origin 을 반드시 보낸다.
+    ⚠️ Origin 이 없는 연결(시험 클라이언트 · 스크립트)은 받는다 — 브라우저가 아니므로
+    이 공격의 길이 아니다.
+    """
+    if origin is None:
+        return True
+    raw = get_settings().extra_allowed_origins
+    extra = {item.strip() for item in raw.split(",") if item.strip()}
+    return origin in _LOCAL_ORIGINS or origin in extra
+
+
 @router.websocket(WS_SESSION_PATH)
 async def session_socket(websocket: WebSocket) -> None:
+    # ⛔ 받기 «전에» 출처를 본다 — 받은 뒤에 닫으면 그 사이 세션 행을 만들 수 있다.
+    origin = websocket.headers.get("origin")
+    if not _origin_allowed(origin):
+        logger.warning("허용 목록 밖의 출처 %r 의 소켓을 받지 않는다", origin)
+        await websocket.close(code=1008)
+        return
     await websocket.accept()
     channel = WebSocketChannel(websocket)
     pool: asyncpg.Pool = websocket.app.state.db_pool

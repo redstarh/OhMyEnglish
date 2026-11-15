@@ -87,6 +87,10 @@ class Settings(BaseSettings):
     # 시작마다 픽스처 세 턴을 재생하고 세션을 닫아, 학습자가 말하지 않은 발화·오류가 dev DB 에
     # 쌓였다(2026-09-26 실측). 스텁은 테스트와 하네스가 `VOICE_ADAPTER=stub` 으로 **명시**해 쓴다.
     voice_adapter: str = "nova"
+    # 소켓(`/ws/session`)이 받을 브라우저 출처 — 기본 localhost 화면 둘에 더할 것을
+    # 쉼표로 적는다(`TASK-343`). 아이폰은 tailnet HTTPS 주소로 열므로(`TASK-325`)
+    # 이 맥의 `.env` 가 그 주소를 더한다.
+    extra_allowed_origins: str = ""
     # Nova 2 Sonic 어댑터 설정. 모델 ID는 스파이크가 실측으로 확인한 값이고
     # (`amazon.nova-sonic-v1:0`은 이 계정에 없다), voiceId는 실음성 왕복(N-1)에서 쓴 값이다.
     # `nova_endpointing_sensitivity`(HIGH/MEDIUM/LOW)가 barge-in 민감도를 정한다 —
