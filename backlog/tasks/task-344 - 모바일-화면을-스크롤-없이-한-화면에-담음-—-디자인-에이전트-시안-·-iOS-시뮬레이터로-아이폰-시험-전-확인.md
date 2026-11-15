@@ -1,10 +1,10 @@
 ---
 id: TASK-344
 title: 모바일 화면을 스크롤 없이 한 화면에 담음 — 디자인 에이전트 시안 · iOS 시뮬레이터로 아이폰 시험 전 확인
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-11-15 03:06'
-updated_date: '2026-11-15 03:55'
+updated_date: '2026-11-15 03:56'
 labels: []
 dependencies: []
 ordinal: 411000
