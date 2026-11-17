@@ -19,7 +19,16 @@ async function loadCurrentDay(): Promise<CourseDayDetail | null> {
   return fetchCourseDay(course.current_day);
 }
 
-export function HomeCoursePractice({ day, onDayFinished }: { day?: number; onDayFinished?: () => void }) {
+export function HomeCoursePractice({
+  day,
+  onDayFinished,
+  autoStart = false,
+}: {
+  day?: number;
+  onDayFinished?: () => void;
+  /** 열리자마자 저장된 자리에서 듣기를 시작함 — 홈의 Start speaking(`TASK-348`). */
+  autoStart?: boolean;
+}) {
   const [state, setState] = useState<State>({ status: "loading" });
 
   // ⚠️ 부모는 Day 가 바뀌면 `key` 로 이 칸을 새로 마운트함 — 앞 Day 의 언마운트 정리(진도 저장)가 먼저 돎.
@@ -59,7 +68,7 @@ export function HomeCoursePractice({ day, onDayFinished }: { day?: number; onDay
       <p data-testid="practice-day" data-state="ready" className="text-xs font-semibold text-muted-foreground">
         Day {detail.day} · Units {detail.units[0]?.unit}–{detail.units.at(-1)?.unit}
       </p>
-      <SentencePractice key={detail.day} detail={detail} day={detail.day} onDayFinished={onDayFinished} />
+      <SentencePractice key={detail.day} detail={detail} day={detail.day} onDayFinished={onDayFinished} autoStart={autoStart} />
     </div>
   );
 }

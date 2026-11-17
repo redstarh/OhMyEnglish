@@ -370,7 +370,7 @@ function HeroCard({
           data-testid="home-hero-body"
           className={cn("home-hero-body flex min-h-0 flex-1 flex-col", inSession && "-mr-2 overflow-y-auto overscroll-contain pr-2")}
         >
-          {inSession ? session : <HomeCoursePractice key={practiceDay ?? "current"} day={practiceDay} onDayFinished={onDayFinished} />}
+          {inSession ? session : <HomeCoursePractice key={practiceDay ?? "current"} day={practiceDay} onDayFinished={onDayFinished} autoStart />}
         </div>
       </div>
     );

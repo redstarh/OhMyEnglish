@@ -7,6 +7,8 @@
  * 어림이 아니라 잰 값을 쓴다. 음성 합성이 없거나 끝 신호가 오지 않으면 낱말 수로 어림한다.
  */
 
+import { wordCountAt, wordSchedule } from "./speechHighlight";
+
 const SECONDS_PER_WORD = 0.4;
 // 끝 신호가 오지 않는 브라우저(헤드리스 등)에서 영원히 기다리지 않게 하는 상한.
 const MAX_WAIT_FACTOR = 3;
@@ -25,15 +27,56 @@ function pickVoice(synth: SpeechSynthesis): SpeechSynthesisVoice | null {
   );
 }
 
+type SpeakOptions = {
+  rate?: number;
+  signal?: AbortSignal;
+  /** 지금까지 읽기 시작한 낱말 수 — 읽어 주는 낱말 색칠에 씀(`TASK-348`). 끝나면 전체 낱말 수가 옴. */
+  onWords?: (count: number) => void;
+};
+
+/**
+ * 낱말 진행 알림 — 경계 신호가 오면 그것을 따르고, 오지 않으면 어림 시간에 비례한 일정으로 알림(`TASK-348`).
+ * ⚠️ 경계 신호가 한 번이라도 오면 일정 타이머는 멈춤 — 둘이 섞이면 색칠이 앞뒤로 흔들림.
+ */
+function wordProgress(text: string, estimate: number, onWords?: (count: number) => void) {
+  const timers: ReturnType<typeof setTimeout>[] = [];
+  let shown = 0;
+  const show = (count: number) => {
+    if (!onWords || count <= shown) return;
+    shown = count;
+    onWords(count);
+  };
+  const stopTimers = () => timers.splice(0).forEach(clearTimeout);
+  wordSchedule(text, estimate).forEach((at, index) => timers.push(setTimeout(() => show(index + 1), at)));
+  return {
+    boundary(charIndex: number) {
+      stopTimers();
+      show(wordCountAt(text, charIndex));
+    },
+    end() {
+      stopTimers();
+      show(wordCountAt(text, Number.MAX_SAFE_INTEGER));
+    },
+    cancel: stopTimers,
+  };
+}
+
 /** 문장을 읽고, 읽은 시간(ms)을 돌려준다. `signal` 이 끊기면 바로 멈추고 어림값을 돌려준다. */
-export function speak(text: string, options: { rate?: number; signal?: AbortSignal } = {}): Promise<number> {
+export function speak(text: string, options: SpeakOptions = {}): Promise<number> {
   const rate = options.rate ?? 1;
   const estimate = estimateSpeechMs(text, rate);
   const synth = typeof window !== "undefined" ? window.speechSynthesis : undefined;
   if (!synth || typeof SpeechSynthesisUtterance === "undefined") {
-    return new Promise((resolve) => setTimeout(() => resolve(estimate), estimate));
+    const progress = wordProgress(text, estimate, options.onWords);
+    return new Promise((resolve) =>
+      setTimeout(() => {
+        progress.end();
+        resolve(estimate);
+      }, estimate),
+    );
   }
   return new Promise((resolve) => {
+    const progress = wordProgress(text, estimate, options.onWords);
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "en-US";
     utterance.rate = rate;
@@ -46,6 +89,8 @@ export function speak(text: string, options: { rate?: number; signal?: AbortSign
       settled = true;
       clearTimeout(guard);
       options.signal?.removeEventListener("abort", onAbort);
+      if (measured === null && options.signal?.aborted) progress.cancel();
+      else progress.end();
       resolve(measured !== null && measured > 200 ? measured : estimate);
     };
     const onAbort = () => {
@@ -55,6 +100,10 @@ export function speak(text: string, options: { rate?: number; signal?: AbortSign
     const guard = setTimeout(() => finish(null), estimate * MAX_WAIT_FACTOR);
     utterance.onstart = () => {
       startedAt = performance.now();
+    };
+    utterance.onboundary = (event) => {
+      // 낱말 경계만 씀 — 문장 경계(`sentence`)는 색칠 위치가 아님. 이름이 비어 오는 브라우저는 낱말로 봄.
+      if (!event.name || event.name === "word") progress.boundary(event.charIndex);
     };
     utterance.onend = () => finish(startedAt === null ? null : performance.now() - startedAt);
     utterance.onerror = () => finish(null);

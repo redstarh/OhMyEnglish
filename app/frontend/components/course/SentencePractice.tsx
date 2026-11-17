@@ -65,6 +65,8 @@ interface Props {
   day: number;
   /** Day 를 마친 직후 — 홈이 코스 개요(현재 Day·완료 수)를 다시 읽게 함(회차 b12 D1). */
   onDayFinished?: () => void;
+  /** 열리자마자 저장된 자리에서 듣기를 시작함 — 홈의 Start speaking 한 번으로 시작(`TASK-348` 사용자 결정). */
+  autoStart?: boolean;
 }
 
 function readMode(): Mode {
@@ -95,6 +97,11 @@ function joinPcm(chunks: Uint8Array[]): Uint8Array {
     offset += chunk.byteLength;
   }
   return out;
+}
+
+/** 진도 저장의 같음 비교 열쇠 — 단원 · 문장 · 재생 위치가 모두 같으면 같은 진도임(`TASK-347`). */
+function progressKey(unit: number | undefined, sentenceIndex: number, positionSec: number): string {
+  return `${unit ?? ""}|${sentenceIndex}|${positionSec}`;
 }
 
 /** 저장된 진도가 가리키는 자리. 단원을 찾지 못하면 첫 단원임. */
@@ -172,28 +179,50 @@ function Spoken({ words, transcript }: { words: ReadbackWord[]; transcript: stri
   );
 }
 
-/** 말하는 동안의 글자 — 확정 부분은 보통 색, 미확정 부분은 흐린 기울임꼴(실시간 표시 설계서 §6). */
+/**
+ * 말하는 동안의 글자 — 들은 그대로 보임(실시간 표시 설계서 §6 · §12).
+ * ⛔ 「You're saying:」 꼬리표와 미확정 글자의 흐린 기울임꼴은 뺐음 — 「작은 글씨는 듣고 있는중이라고 표시하지 않아도 돼.
+ *    내가 읽는 문장을 그대로 표시」(`TASK-348` 사용자 지시). 확정·미확정의 testid 는 시험이 읽으므로 남김.
+ */
 function LiveLine({ live }: { live: ListenUpdate }) {
   return (
     <p data-testid="course-live" style={{ fontWeight: 600, lineHeight: 1.4, overflowWrap: "anywhere" }}>
-      <span style={{ fontSize: "0.72rem", fontWeight: 400, color: "var(--foreground-muted)" }}>{"You're saying: "}</span>
       {live.final ? <span data-testid="course-live-final">{live.final}</span> : null}
       {live.final && live.interim ? " " : null}
-      {live.interim ? (
-        <span data-testid="course-live-interim" style={{ color: "var(--foreground-muted)", fontStyle: "italic" }}>
-          {live.interim}
-        </span>
-      ) : null}
+      {live.interim ? <span data-testid="course-live-interim">{live.interim}</span> : null}
     </p>
   );
 }
 
-export function SentencePractice({ detail, day, onDayFinished }: Props) {
+/** 읽어 주는 동안의 문장 — 읽기 시작한 낱말까지 강조 색으로 칠함(`TASK-348`). `spoken` 이 `null` 이면 평소 문장. */
+function SpokenSentence({ text, spoken }: { text: string; spoken: number | null }) {
+  if (spoken === null) return <>{text}</>;
+  const parts = text.match(/\S+|\s+/g) ?? [];
+  return (
+    <>
+      {parts.map((part, at) => {
+        if (/^\s+$/.test(part)) return part;
+        // 이 조각이 몇 번째 낱말인가 — 앞 조각 중 낱말 수 + 1.
+        const order = parts.slice(0, at + 1).filter((item) => !/^\s+$/.test(item)).length;
+        const lit = order <= spoken;
+        return (
+          <span key={at} data-spoken={lit ? "true" : undefined} style={{ color: lit ? "var(--accent)" : undefined, transition: "color 120ms" }}>
+            {part}
+          </span>
+        );
+      })}
+    </>
+  );
+}
+
+export function SentencePractice({ detail, day, onDayFinished, autoStart = false }: Props) {
   const [unitIndex, setUnitIndex] = useState(() => savedPosition(detail).unitIndex);
   const [sentenceIndex, setSentenceIndex] = useState(() => savedPosition(detail).sentenceIndex);
   const [mode, setMode] = useState<Mode>(readMode);
   const [showTranslation, setShowTranslation] = useShowTranslation();
   const [phase, setPhase] = useState<Phase>("idle");
+  // 읽어 주는 동안 읽기 시작한 낱말 수 — 듣기 단계 밖에서는 `null`(`TASK-348`).
+  const [spokenWords, setSpokenWords] = useState<number | null>(null);
   // PCM 경로(인식기 없음)의 녹음 창 — 0 이면 인식기 경로이고 끝이 정해져 있지 않음(남은 초를 보이지 않음).
   const [waitMs, setWaitMs] = useState(0);
   const [live, setLive] = useState<ListenUpdate | null>(null);
@@ -236,18 +265,25 @@ export function SentencePractice({ detail, day, onDayFinished }: Props) {
     setLive(null);
   }, []);
 
+  // 마지막으로 서버에 쓴(처음에는 불러온) 자리 — 같은 자리는 다시 쓰지 않음(`TASK-347`).
+  // ⛔ 가만히 열려 있는 화면이 5초마다 자기 자리를 다시 쓰면, 다른 기기·탭에서 나아간 진도를 예전 자리로
+  //    덮었음(실측: 아이폰은 u017 까지 갔는데 진도는 unit 16 · 1 — 열려 있던 다른 화면들의 저장 3895건).
+  const lastSavedRef = useRef(
+    progressKey(detail.progress?.unit ?? detail.units[0]?.unit, detail.progress?.sentence_index ?? 0, detail.progress?.position_sec ?? 0),
+  );
+
   const save = useCallback(
-    (completed = false) => {
-      const position = positionRef.current;
+    (completed = false, at?: Position) => {
+      const position = at ?? positionRef.current;
       const current = detail.units[position.unitIndex];
       if (!current) return;
-      void saveCourseProgress(day, {
-        positionSec: completed ? 0 : lastTimeRef.current,
-        unit: completed ? detail.units[0].unit : current.unit,
-        sentenceIndex: completed ? 0 : position.sentenceIndex,
-        completed,
-        completedCount: completedRef.current,
-      });
+      const unit = completed ? detail.units[0].unit : current.unit;
+      const sentenceIndex = completed ? 0 : position.sentenceIndex;
+      const positionSec = completed ? 0 : lastTimeRef.current;
+      const key = progressKey(unit, sentenceIndex, positionSec);
+      if (!completed && key === lastSavedRef.current) return;
+      lastSavedRef.current = key;
+      void saveCourseProgress(day, { positionSec, unit, sentenceIndex, completed, completedCount: completedRef.current });
       if (completed) completedRef.current += 1;
     },
     [day, detail],
@@ -425,19 +461,27 @@ export function SentencePractice({ detail, day, onDayFinished }: Props) {
         return;
       }
       let position = start;
+      // 틀린 뒤 같은 문장을 다시 들을 때는 읽어 주지 않음(`TASK-348` 사용자 결정 「바로 다시 들음」).
+      let relisten = false;
+      let spokenMs = 0;
       for (;;) {
         const item = detail.units[position.unitIndex].sentences[position.sentenceIndex];
-        setUnitIndex(position.unitIndex);
-        setSentenceIndex(position.sentenceIndex);
-        positionRef.current = position;
-        setResult(null);
-        setLive(null);
-        // 앞 문장의 안내(안 들렸어요 · 판정을 쓸 수 없어요)가 이 문장의 결과로 읽히지 않게 지움(회차 b7).
-        setNotice(null);
+        if (!relisten) {
+          setUnitIndex(position.unitIndex);
+          setSentenceIndex(position.sentenceIndex);
+          positionRef.current = position;
+          setResult(null);
+          setLive(null);
+          // 앞 문장의 안내(안 들렸어요 · 판정을 쓸 수 없어요)가 이 문장의 결과로 읽히지 않게 지움(회차 b7).
+          setNotice(null);
 
-        setPhase("listen");
-        const spokenMs = await speak(item.text, { signal });
-        if (signal.aborted) return;
+          setPhase("listen");
+          setSpokenWords(0);
+          spokenMs = await speak(item.text, { signal, onWords: (count) => !signal.aborted && setSpokenWords(count) });
+          setSpokenWords(null);
+          if (signal.aborted) return;
+        }
+        relisten = false;
 
         let judged: WriteResult<CourseAttempt> | "unheard" | null;
         try {
@@ -467,21 +511,53 @@ export function SentencePractice({ detail, day, onDayFinished }: Props) {
           setNotice(NOTICE.unavailable);
         }
         setPhase("done");
-        save();
 
-        if (readMode() !== "auto") return;
-        await sleep(ADVANCE_DELAY_MS, signal);
-        if (signal.aborted) return;
-        const next = nextPosition(position);
-        if (next === null) {
-          finishDay();
+        if (readMode() !== "auto") {
+          save();
           return;
         }
-        position = next;
+        // 자동 모드(`TASK-348` · 설계서 §12): 다 맞으면 다음 문장 · 틀리면 같은 문장을 바로 다시 들음 ·
+        // 말 없음 · 판정 불가는 멈춤(다시 들으면 마이크가 끝없이 켜져 있게 됨). 못 넘어가면 학습자가 Next 를 누름.
+        const matched =
+          judged !== "unheard" &&
+          judged.ok &&
+          judged.value.words.length > 0 &&
+          judged.value.words.every((word) => word.verdict === "match");
+        if (matched) {
+          const next = nextPosition(position);
+          // ⛔ 다음 자리를 지금 저장함 — 판정을 보여 주는 동안 닫아도 다음에 열면 그 문장부터임(「이전 공부한 것 이후부터」).
+          save(false, next ?? position);
+          await sleep(ADVANCE_DELAY_MS, signal);
+          if (signal.aborted) return;
+          if (next === null) {
+            finishDay();
+            return;
+          }
+          position = next;
+          continue;
+        }
+        save();
+        if (judged !== "unheard" && judged.ok && judged.value.transcript) {
+          relisten = true;
+          continue;
+        }
+        return;
       }
     },
     [cancelRun, detail, ensureMic, finishDay, judgeLive, judgeRecorded, nextPosition, save],
   );
+
+  // 홈의 Start speaking 으로 열렸으면 바로 시작함(`TASK-348`) — 카드 안 Start 를 또 누르지 않음.
+  // ⚠️ 개발 모드의 이중 마운트에서는 첫 마운트의 정리가 연습을 끊고(`cancelRun`) 두 번째 마운트가 다시 시작함.
+  // ⛔ 마운트 때 한 번만 — `run` 은 부모 콜백(`onDayFinished`)에 달려 바뀔 수 있어, 그것을 의존으로 두면 연습 도중
+  //    처음부터 다시 시작했음. 최신 `run` 은 ref 로 부름. 개발 모드의 이중 마운트는 `run` 이 앞 연습을 끊고 새로 시작함.
+  const runLatest = useRef(run);
+  useEffect(() => {
+    runLatest.current = run;
+  }, [run]);
+  useEffect(() => {
+    if (autoStart) void runLatest.current(positionRef.current);
+  }, [autoStart]);
 
   const chooseMode = useCallback((value: Mode) => {
     window.localStorage.setItem(MODE_STORAGE_KEY, value);
@@ -626,7 +702,7 @@ export function SentencePractice({ detail, day, onDayFinished }: Props) {
           className={SENTENCE_FONT}
           style={{ fontWeight: 600, marginTop: 6, lineHeight: 1.4, height: "2.8em", overflow: "hidden" }}
         >
-          {sentence.text}
+          <SpokenSentence text={sentence.text} spoken={phase === "listen" ? spokenWords : null} />
         </p>
         {/* 한국어 번역 — KO 를 켰을 때만 두 줄 자리를 잡음. 가장 긴 번역(39자)이 두 줄에 드는 크기임(`TASK-328`). */}
         {showTranslation ? (
@@ -647,14 +723,13 @@ export function SentencePractice({ detail, day, onDayFinished }: Props) {
           className={`${SENTENCE_FONT} ${RESULT_SLOT_HEIGHT}`}
           style={{ marginTop: 10, overflowY: "auto", overscrollBehavior: "contain" }}
         >
-          {result ? <Spoken words={result.words} transcript={result.transcript} /> : null}
+          {/* 다시 듣는 중 새 글자가 오면 앞 시도의 결과를 감춤 — 같은 자리에 두 줄이 겹치지 않게 함(`TASK-348`). */}
+          {result && !((phase === "repeat" || phase === "judge") && live && (live.final || live.interim)) ? (
+            <Spoken words={result.words} transcript={result.transcript} />
+          ) : null}
           {/* 말하는 동안의 글자는 판정이 올 때까지 남음 — ③ Check 뒤에 `Spoken` 으로 바뀜(설계서 §6). */}
           {(phase === "repeat" || phase === "judge") && live && (live.final || live.interim) ? (
             <LiveLine live={live} />
-          ) : phase === "repeat" ? (
-            <p style={{ fontSize: "0.85rem", color: "var(--foreground-muted)" }}>
-              {"I'm listening. Say it, and you will see it below."}
-            </p>
           ) : null}
           {notice ? (
             <p data-testid="course-notice" style={{ marginTop: result ? 6 : 0, fontSize: "0.85rem" }}>

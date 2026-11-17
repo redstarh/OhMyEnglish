@@ -41,12 +41,16 @@ for (const [w, h] of [[428, 745], [393, 659]]) {
     check(v.small.length === 0, `${w}x${h} ${path} 44 px 미만 ${JSON.stringify(v.small)}`);
   }
   await page.goto("http://localhost:3000/", { waitUntil: "networkidle" });
+  // ⚠️ 연습은 열리자마자 시작함(`TASK-348`) — Manual 로 두어 한 번 판정 뒤 멈추게 하고, 그 뒤 KO 를 켜고 다시 시도함.
+  await page.evaluate(() => localStorage.setItem("omy.course.mode", "manual"));
   await page.getByRole("button", { name: /Start speaking/ }).click();
-  await page.waitForSelector('[data-testid="course-start"]', { timeout: 15000 });
+  await page.waitForSelector('[data-testid="course-card"]', { timeout: 15000 });
   const navOff = await page.evaluate(() => Math.round(document.querySelector('[data-testid="course-prev"]').getBoundingClientRect().top));
+  await page.waitForSelector('[data-testid="course-retry"]', { timeout: 20000 });
+  await page.waitForFunction(() => document.querySelector('[data-testid="course-phase"]')?.dataset.phase === "done", null, { timeout: 20000 });
   await page.getByTestId("course-translation").click(); await page.waitForTimeout(400);
   const navY0 = await page.evaluate(() => Math.round(document.querySelector('[data-testid="course-prev"]').getBoundingClientRect().top));
-  await page.getByTestId("course-start").click();
+  await page.getByTestId("course-retry").click();
   await page.waitForSelector('[data-testid="course-spoken"]', { timeout: 20000 }).catch(() => console.log("no result"));
   await page.waitForTimeout(800);
   const v = await page.evaluate(() => {
