@@ -3,10 +3,10 @@ id: TASK-348
 title: >-
   따라 읽기 흐름 개정 — 다음 문장부터 바로 시작 · 읽어 주는 낱말 색칠 · 다 맞으면 다음 · 틀리면 다시 들음 · 듣는 중 작은 글씨
   제거
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-11-17 12:57'
-updated_date: '2026-11-17 13:08'
+updated_date: '2026-11-17 13:09'
 labels: []
 dependencies: []
 ordinal: 415000
