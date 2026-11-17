@@ -41,15 +41,26 @@ type SpeakOptions = {
 function wordProgress(text: string, estimate: number, onWords?: (count: number) => void) {
   const timers: ReturnType<typeof setTimeout>[] = [];
   let shown = 0;
+  let started = false;
+  let heardBoundary = false;
   const show = (count: number) => {
     if (!onWords || count <= shown) return;
     shown = count;
     onWords(count);
   };
   const stopTimers = () => timers.splice(0).forEach(clearTimeout);
-  wordSchedule(text, estimate).forEach((at, index) => timers.push(setTimeout(() => show(index + 1), at)));
   return {
+    /**
+     * 소리가 시작될 때 일정을 켬(`TASK-349` codex 리뷰 MEDIUM) — `speak()` 를 부른 때 켜면 합성이 늦게 시작하는
+     * 기기에서 소리보다 색칠이 앞섰음. 경계 신호가 이미 왔으면 켜지 않음.
+     */
+    start() {
+      if (started || heardBoundary) return;
+      started = true;
+      wordSchedule(text, estimate).forEach((at, index) => timers.push(setTimeout(() => show(index + 1), at)));
+    },
     boundary(charIndex: number) {
+      heardBoundary = true;
       stopTimers();
       show(wordCountAt(text, charIndex));
     },
@@ -68,12 +79,22 @@ export function speak(text: string, options: SpeakOptions = {}): Promise<number>
   const synth = typeof window !== "undefined" ? window.speechSynthesis : undefined;
   if (!synth || typeof SpeechSynthesisUtterance === "undefined") {
     const progress = wordProgress(text, estimate, options.onWords);
-    return new Promise((resolve) =>
-      setTimeout(() => {
+    progress.start();
+    // ⛔ 끊기면 바로 끝냄(`TASK-349` codex 리뷰 LOW) — 끊겨도 어림 시간 뒤에 풀려 새 연습의 색칠을 지웠음.
+    return new Promise((resolve) => {
+      const timer = setTimeout(() => {
+        options.signal?.removeEventListener("abort", onAbort);
         progress.end();
         resolve(estimate);
-      }, estimate),
-    );
+      }, estimate);
+      const onAbort = () => {
+        clearTimeout(timer);
+        progress.cancel();
+        resolve(estimate);
+      };
+      if (options.signal?.aborted) onAbort();
+      else options.signal?.addEventListener("abort", onAbort, { once: true });
+    });
   }
   return new Promise((resolve) => {
     const progress = wordProgress(text, estimate, options.onWords);
@@ -100,6 +121,7 @@ export function speak(text: string, options: SpeakOptions = {}): Promise<number>
     const guard = setTimeout(() => finish(null), estimate * MAX_WAIT_FACTOR);
     utterance.onstart = () => {
       startedAt = performance.now();
+      progress.start();
     };
     utterance.onboundary = (event) => {
       // 낱말 경계만 씀 — 문장 경계(`sentence`)는 색칠 위치가 아님. 이름이 비어 오는 브라우저는 낱말로 봄.

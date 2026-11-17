@@ -26,6 +26,26 @@ await p.getByRole("button", { name: /Start speaking/ }).click(); await p.waitFor
 const t1 = saves.length;
 await p.getByTestId("course-next").click(); await p.waitForTimeout(6000);
 check(saves.length - t1 >= 1, `Next 로 옮기면 저장 ${saves.length - t1}건 ${JSON.stringify(saves.at(-1))}`);
+// 저장이 한 번 실패하면 같은 자리를 다시 보냄(`TASK-349` codex 리뷰 HIGH ②) — 첫 진도 저장만 500 으로 돌려줌.
+{
+  const p2 = await (await b.newContext({ viewport: { width: 393, height: 659 }, isMobile: true, hasTouch: true })).newPage();
+  const tries = [];
+  await p2.route("**/api/**", (r) => {
+    if (r.request().method() === "GET") return r.continue();
+    if (r.request().url().includes("/progress")) {
+      tries.push(r.request().postDataJSON().sentence_index);
+      return r.fulfill({ status: tries.length === 1 ? 500 : 204, body: "" });
+    }
+    return r.fulfill({ status: 204, body: "" });
+  });
+  await p2.goto("http://localhost:3000/", { waitUntil: "networkidle" });
+  await p2.evaluate(() => localStorage.setItem("omy.course.mode", "manual"));
+  await p2.getByRole("button", { name: /Start speaking/ }).click();
+  await p2.waitForSelector('[data-testid="course-next"]');
+  await p2.getByTestId("course-next").click();
+  await p2.waitForTimeout(6500);
+  check(tries.length >= 2 && tries[0] === tries[1], `실패한 저장을 같은 자리로 다시 보냄 ${JSON.stringify(tries)}`);
+}
 await b.close();
 console.log(failures.length ? `FAILED ${failures.length}` : "ALL PASS");
 process.exit(failures.length ? 1 : 0);

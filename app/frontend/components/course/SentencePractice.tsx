@@ -282,8 +282,13 @@ export function SentencePractice({ detail, day, onDayFinished, autoStart = false
       const positionSec = completed ? 0 : lastTimeRef.current;
       const key = progressKey(unit, sentenceIndex, positionSec);
       if (!completed && key === lastSavedRef.current) return;
-      lastSavedRef.current = key;
-      void saveCourseProgress(day, { positionSec, unit, sentenceIndex, completed, completedCount: completedRef.current });
+      // ⛔ 성공한 뒤에만 「썼음」으로 기억함(`TASK-349` codex 리뷰 HIGH) — 먼저 기억하면 한 번 실패한 자리를
+      //    다음 주기 저장 · 떠날 때 저장이 같은 자리로 보고 건너뛰어 진도를 잃었음.
+      void saveCourseProgress(day, { positionSec, unit, sentenceIndex, completed, completedCount: completedRef.current }).then(
+        (ok) => {
+          if (ok) lastSavedRef.current = key;
+        },
+      );
       if (completed) completedRef.current += 1;
     },
     [day, detail],
@@ -478,8 +483,9 @@ export function SentencePractice({ detail, day, onDayFinished, autoStart = false
           setPhase("listen");
           setSpokenWords(0);
           spokenMs = await speak(item.text, { signal, onWords: (count) => !signal.aborted && setSpokenWords(count) });
-          setSpokenWords(null);
+          // ⛔ 끊긴 연습은 색칠 상태를 건드리지 않음 — 그 사이 시작된 새 연습의 색칠을 지웠음(`TASK-349` codex 리뷰 LOW).
           if (signal.aborted) return;
+          setSpokenWords(null);
         }
         relisten = false;
 
@@ -526,6 +532,9 @@ export function SentencePractice({ detail, day, onDayFinished, autoStart = false
         if (matched) {
           const next = nextPosition(position);
           // ⛔ 다음 자리를 지금 저장함 — 판정을 보여 주는 동안 닫아도 다음에 열면 그 문장부터임(「이전 공부한 것 이후부터」).
+          // ⛔ 현재 자리도 지금 옮김(`TASK-349` codex 리뷰 HIGH) — 판정을 보여 주는 1.5초 동안 닫거나 주기 저장이
+          //    돌면 `positionRef`(방금 끝낸 문장)를 다시 써서 다음에 같은 문장부터 열렸음. 화면 번호는 기다린 뒤 바뀜.
+          if (next) positionRef.current = next;
           save(false, next ?? position);
           await sleep(ADVANCE_DELAY_MS, signal);
           if (signal.aborted) return;

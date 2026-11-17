@@ -106,6 +106,35 @@ const silent = await state();
 await page.waitForTimeout(3000);
 const later = await state();
 check(later.starts === silent.starts && /couldn't hear/i.test(later.slot), `⑥ 말 없음이면 멈춤 (듣기 ${silent.starts} → ${later.starts} · ${later.slot.slice(0, 40)})`);
+// ⑦ 맞은 뒤 1.5초 안에 닫아도 다음 자리가 마지막 저장임(`TASK-349` codex 리뷰 HIGH ①).
+{
+  const p2 = await ctx.newPage();
+  await p2.addInitScript(`(${fakes.toString()})(); window.__said = ${JSON.stringify(SAID)};`);
+  const saves2 = [];
+  let judged = false;
+  await p2.route("**/api/**", async (r) => {
+    const req = r.request();
+    if (req.url().includes("/attempts/text")) {
+      judged = true;
+      const said = req.postDataJSON().transcript;
+      return r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ transcript: said, words: said.split(" ").map((word) => ({ word, verdict: "match" })), attempts: 1 }) });
+    }
+    if (req.method() !== "GET") { if (req.url().includes("/progress")) saves2.push(req.postDataJSON()); return r.fulfill({ status: 204, body: "" }); }
+    return r.continue();
+  });
+  await p2.goto("http://localhost:3000/", { waitUntil: "networkidle" });
+  await p2.getByRole("button", { name: /Start speaking/ }).click();
+  await p2.waitForSelector('[data-testid="course-card"]');
+  const begin = await p2.evaluate(() => document.querySelector('[data-testid="course-sentence-number"]')?.textContent ?? "");
+  for (let i = 0; i < 60 && !judged; i += 1) await p2.waitForTimeout(250);
+  await p2.waitForTimeout(400);
+  await p2.getByRole("button", { name: /Close/ }).click();
+  await p2.waitForTimeout(800);
+  const beginIndex = Number(begin.match(/Sentence (\d+)/)?.[1] ?? 0) - 1;
+  const last = saves2.at(-1);
+  check(last !== undefined && last.sentence_index === beginIndex + 1, `⑦ 맞은 뒤 바로 닫아도 마지막 저장이 다음 자리 (시작 ${begin} · 마지막 ${JSON.stringify(last)} · 저장 ${saves2.length}건)`);
+  await p2.close();
+}
 await b.close();
 console.log(failures.length ? `FAILED ${failures.length}` : "ALL PASS");
 process.exit(failures.length ? 1 : 0);
